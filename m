@@ -1,56 +1,51 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH 11/11] staging: ti dspbridge: enable driver building
-Date: Wed, 7 Jul 2010 15:43:42 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53043EDF2740@dlee03.ent.ti.com>
-References: <1277298125-17991-1-git-send-email-ohad@wizery.com>
-	<1277298840-18516-1-git-send-email-ohad@wizery.com>
-	<20100623224150.GA6680@kroah.com>
-	<AANLkTik0rm12w4jplD1vSTZnPbwguDU6xtOdAfs9C-3r@mail.gmail.com>
-	<4C33513C.4090704@ti.com>
- <AANLkTikAZCAj4mljYbJcppuIL2quYz8AK0AkTFCZO3bG@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikAZCAj4mljYbJcppuIL2quYz8AK0AkTFCZO3bG@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Greg KH <greg@kroah.com>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 05/18] arm/omap: use generic_file_llseek in iommu_debug
+Date: Wed,  7 Jul 2010 23:40:07 +0200
+Message-ID: <1278538820-1392-6-git-send-email-arnd@arndb.de>
+References: <1278538820-1392-1-git-send-email-arnd@arndb.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:64770 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757799Ab0GGVks (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 17:40:48 -0400
+In-Reply-To: <1278538820-1392-1-git-send-email-arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: John Kacur <jkacur@redhat.com>, Frederic Weisbecker <fweisbec@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@lst.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
->From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
->
->I'm removing many people from the Cc which I think don't care about
->this. Is this even the right place for discussing about it?
->
->On Tue, Jul 6, 2010 at 6:52 PM, Omar Ramirez Luna <omar.ramirez@ti.com=
-> wrote:
->> On 7/4/2010 5:53 AM, Felipe Contreras wrote:
->>> On Thu, Jun 24, 2010 at 1:41 AM, Greg KH<greg@kroah.com> =A0wrote:
->>>> So I need some more Kconfig changes here, care to redo just this o=
-ne
->>>> patch? =A0I've applied all the others and they will show up in lin=
-ux-next
->>>> tomorrow.
->>>
->>> I fixed all that stuff some time ago:
->>> http://article.gmane.org/gmane.linux.ports.arm.omap/36065
->>>
->>> But the patches were ignored.
->>
->> Patches were not ignored, discussion was held privately (you and me)=
-,
->
->That was for the deh reorganization. Not the Kconfig ones.
+In future kernels, debugfs files need to specify
+the llseek operation explicitly to allow seeking.
+This sets the llseek operation in the omap iommu
+debugfs files to generic_file_llseek, which is
+appropriate for files using simple_read_from_buffer.
 
-Yes, you are right, somehow opening this link showed the deh reorganiza=
-tion patches, my bad.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+---
+ arch/arm/plat-omap/iommu-debug.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-But then again patches were not ignored, I sent you a notification that=
- I was wrongly tracking the first patch for dspbridge branch in case yo=
-u might wanted to resend again.
+diff --git a/arch/arm/plat-omap/iommu-debug.c b/arch/arm/plat-omap/iommu-debug.c
+index e6c0d53..f07cf2f 100644
+--- a/arch/arm/plat-omap/iommu-debug.c
++++ b/arch/arm/plat-omap/iommu-debug.c
+@@ -328,12 +328,14 @@ static int debug_open_generic(struct inode *inode, struct file *file)
+ 		.open = debug_open_generic,				\
+ 		.read = debug_read_##name,				\
+ 		.write = debug_write_##name,				\
++		.llseek = generic_file_llseek,				\
+ 	};
+ 
+ #define DEBUG_FOPS_RO(name)						\
+ 	static const struct file_operations debug_##name##_fops = {	\
+ 		.open = debug_open_generic,				\
+ 		.read = debug_read_##name,				\
++		.llseek = generic_file_llseek,				\
+ 	};
+ 
+ DEBUG_FOPS_RO(ver);
+-- 
+1.7.1
 
-Discussion, if any, about copyrights can be done in the patch itself.
-
-- omar
