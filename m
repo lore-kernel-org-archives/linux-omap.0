@@ -1,216 +1,95 @@
-From: "kishore kadiyala" <kishore.kadiyala@ti.com>
-Subject: [PATCH v6] OMAP4 HSMMC: Adding Card detect support for MMC1 on
-     OMAP4
-Date: Wed, 7 Jul 2010 19:42:24 +0530 (IST)
-Message-ID: <20809.10.24.255.18.1278511944.squirrel@dbdmail.itg.ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v3]OMAP:GPTIMER:1ms tick generation correction
+Date: Wed, 7 Jul 2010 19:43:16 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323830CE0@dbde02.ent.ti.com>
+References: <1277239078-31386-1-git-send-email-tarun.kanti@ti.com>
+ <20100707115946.GM1920@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: tony@atomide.com, madhu.cr@ti.com, adrian.hunter@nokia.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:50252 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753408Ab0GGONW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 10:13:22 -0400
+In-Reply-To: <20100707115946.GM1920@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
 
-Adding card detect callback function and card detect configuration
-function for MMC1 Controller.
+Tony,
+Thanks for the comments! Please see my response.
 
-Card detect configuration function does initial configuration of the
-MMC Control & PullUp-PullDown registers of Phoenix.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, July 07, 2010 5:30 PM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; R, Sricharan
+> Subject: Re: [PATCH v3]OMAP:GPTIMER:1ms tick generation correction
+> 
+> * Tarun Kanti DebBarma <tarun.kanti@ti.com> [100622 12:35]:
+> > +/**
+> > + * omap_dm_timer_ms_correction - hardware correction for millisecond
+> timer
+> > + * @timer: GPTIMER on which the correction support is to be applied
+> > + * @load: timer load value, used here to extract the expiry count
+> > + */
+> > +static void omap_dm_timer_ms_correction(struct omap_dm_timer *timer,
+> u32 load)
+> > +{
+> > +	int pos_increment, neg_increment;
+> > +	unsigned int count = (0xFFFFFFFF - load) * 1024;
+> > +
+> > +	pos_increment = (DIV_ROUND_UP(count, 1000) * 1000000) \
+> > +			- (count * 1000);
+> > +	neg_increment = ((DIV_ROUND_UP(count, 1000) - 1) * 1000000) \
+> > +			- (count * 1000);
+> > +	omap_dm_timer_write_reg(timer, OMAP_TIMER_TICK_POS_REG,
+> pos_increment);
+> > +	omap_dm_timer_write_reg(timer, OMAP_TIMER_TICK_NEG_REG,
+> neg_increment);
+> > +}
+> >
+> >  struct omap_dm_timer *omap_dm_timer_request(void)
+> >  {
+> > @@ -612,6 +639,10 @@ void omap_dm_timer_set_load_start(struct
+> omap_dm_timer *timer, int autoreload,
+> >  {
+> >  	u32 l;
+> >
+> > +#ifdef CONFIG_ARCH_OMAP2PLUS
+> > +	if (timer->ms_correction)
+> > +		omap_dm_timer_ms_correction(timer, load);
+> > +#endif
+> >  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
+> >  	if (autoreload) {
+> >  		l |= OMAP_TIMER_CTRL_AR;
+> 
+> How do you know that the timer is configured to use the 32KiHZ source?
+> 
 
-For MMC1 Controller, Card detect interrupt source is
-twl6030 and the card detect call back function provides card present/absent
-status by reading MMC Control register.
+[Tarun]
+At this point we do not know. The point is we need not know.
+The caller function calculates the load based upon the source clock frequency. Viz. sys_clk or 32Khz. Please note that correction is needed both for sys_clk and 32Khz clock.
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
----
-V5:
-	https://patchwork.kernel.org/patch/106697/
-	https://patchwork.kernel.org/patch/106698/
-V4:
-	http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg01958.html
-	http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg01949.html
+> Also, since omap2_gp_timer_set_next_event calls all the time,
+> we don't want to do this calculation for every tick.. So we should
+> make it a separate optional function.
+
+[Tarun]
+Agreed, but need some clarification here. 
+At first my intention was to make the call to omap_dm_timer_ms_correction() just once since the tick period is supposed to be constant. However, during testing it was found that the caller of omap2_gp_timer_set_next_event(unsigned long cycles,...) passes different values for cycles and so different load value. This gave me the impression that caller framework is programming for counts related to different number ticks with the necessity to apply omap_dm_timer_ms_correction() every time.
+
+I would be glad to get feedback on my observation.
+
+> 
+> Or can we somehow calculate this drift once during init?
+> 
+As described, for a constant tick we would need to compute and program just once, during initialization.
 
 
- arch/arm/mach-omap2/board-4430sdp.c |    7 +++-
- drivers/mfd/twl6030-irq.c           |   76 +++++++++++++++++++++++++++++++++++
- drivers/mmc/host/omap_hsmmc.c       |    4 +-
- include/linux/i2c/twl.h             |   16 +++++++
- 4 files changed, 100 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index f287461..388b96d 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -227,9 +227,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
- 	struct omap_mmc_platform_data *pdata = dev->platform_data;
-
- 	/* Setting MMC1 Card detect Irq */
--	if (pdev->id == 0)
-+	if (pdev->id == 0) {
-+		ret = twl6030_mmc_card_detect_config();
-+		if (ret)
-+			pr_err("Failed configuring MMC1 card detect\n");
- 		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
- 						MMCDETECT_INTR_OFFSET;
-+		pdata->slots[0].card_detect = twl6030_mmc_card_detect;
-+	}
- 	return ret;
- }
-
-diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-index 10bf228..c027692 100644
---- a/drivers/mfd/twl6030-irq.c
-+++ b/drivers/mfd/twl6030-irq.c
-@@ -36,6 +36,7 @@
- #include <linux/irq.h>
- #include <linux/kthread.h>
- #include <linux/i2c/twl.h>
-+#include <linux/platform_device.h>
-
- /*
-  * TWL6030 (unlike its predecessors, which had two level interrupt handling)
-@@ -223,6 +224,81 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset)
- }
- EXPORT_SYMBOL(twl6030_interrupt_mask);
-
-+int twl6030_mmc_card_detect_config(void)
-+{
-+	int ret;
-+	u8 reg_val = 0;
-+
-+	/* Unmasking the Card detect Interrupt line for MMC1 from Phoenix */
-+	if (twl_class_is_6030()) {
-+		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
-+							REG_INT_MSK_LINE_B);
-+		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
-+							REG_INT_MSK_STS_B);
-+	}
-+
-+	/*
-+	 * Intially Configuring MMC_CTRL for receving interrupts &
-+	 * Card status on TWL6030 for MMC1
-+	 */
-+	ret = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val, TWL6030_MMCCTRL);
-+	if (ret < 0) {
-+		pr_err("twl6030: Failed to read MMCCTRL, error %d\n", ret);
-+		return ret;
-+	}
-+	reg_val &= ~VMMC_AUTO_OFF;
-+	reg_val |= SW_FC;
-+	ret = twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_MMCCTRL);
-+	if (ret < 0) {
-+		return ret;
-+		pr_err("twl6030: Failed to write MMCCTRL, error %d\n", ret);
-+	}
-+
-+	/* Configuring PullUp-PullDown register */
-+	ret = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
-+						TWL6030_CFG_INPUT_PUPD3);
-+	if (ret < 0) {
-+		return ret;
-+		pr_err("twl6030: Failed to read CFG_INPUT_PUPD3, error %d\n",
-+									ret);
-+	}
-+	reg_val &= ~(MMC_PU | MMC_PD);
-+	ret = twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
-+						TWL6030_CFG_INPUT_PUPD3);
-+	if (ret < 0) {
-+		pr_err("twl6030: Failed to write CFG_INPUT_PUPD3, error %d\n",
-+									ret);
-+		return ret;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL(twl6030_mmc_card_detect_config);
-+
-+int twl6030_mmc_card_detect(struct device *dev, int slot)
-+{
-+	int ret = -EIO;
-+	u8 read_reg;
-+	struct platform_device *pdev = container_of(dev,
-+					struct platform_device, dev);
-+
-+	switch (pdev->id) {
-+	case 0:
-+		/*
-+		 * BIT0 of REG_MMC_CTRL
-+		 * 0 - Card not present ,1 - Card present
-+		 */
-+		ret = twl_i2c_read_u8(TWL6030_MODULE_ID0, &read_reg,
-+							TWL6030_MMCCTRL);
-+		if (ret >= 0)
-+			ret = read_reg & STS_MMC;
-+		break;
-+	default:
-+		pr_err("Unkown MMC controller %d in %s\n", pdev->id, __func__);
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL(twl6030_mmc_card_detect);
-+
- int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- {
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index b032828..c047b13 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -464,8 +464,6 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
- 	int ret;
-
- 	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
--		pdata->suspend = omap_hsmmc_suspend_cdirq;
--		pdata->resume = omap_hsmmc_resume_cdirq;
- 		if (pdata->slots[0].cover)
- 			pdata->slots[0].get_cover_state =
- 					omap_hsmmc_get_cover_state;
-@@ -2170,6 +2168,8 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 				"Unable to grab MMC CD IRQ\n");
- 			goto err_irq_cd;
- 		}
-+		pdata->suspend = omap_hsmmc_suspend_cdirq;
-+		pdata->resume = omap_hsmmc_resume_cdirq;
- 	}
-
- 	omap_hsmmc_disable_irq(host);
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 6de90bf..9493292 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -141,6 +141,16 @@
- #define TWL6030_CHARGER_CTRL_INT_MASK 	0x10
- #define TWL6030_CHARGER_FAULT_INT_MASK 	0x60
-
-+#define TWL6030_MMCCTRL		0xEE
-+#define VMMC_AUTO_OFF			(0x1 << 3)
-+#define SW_FC				(0x1 << 2)
-+#define STS_MMC			0x1
-+
-+#define TWL6030_CFG_INPUT_PUPD3	0xF2
-+#define MMC_PU				(0x1 << 3)
-+#define MMC_PD				(0x1 << 2)
-+
-+
-
- #define TWL4030_CLASS_ID 		0x4030
- #define TWL6030_CLASS_ID 		0x6030
-@@ -173,6 +183,12 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
- int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
-
-+/* Card detect Configuration for MMC1 Controller on OMAP4 */
-+int twl6030_mmc_card_detect_config(void);
-+
-+/* MMC1 Controller on OMAP4 uses Phoenix irq for Card detect */
-+int twl6030_mmc_card_detect(struct device *dev, int slot);
-+
- /*----------------------------------------------------------------------*/
-
- /*
--- 
-1.6.3.3
-
+> Regards,
+> 
+> Tony
