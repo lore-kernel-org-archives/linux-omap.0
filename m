@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/13] omap3: pandora: update gpio-keys data
-Date: Wed, 07 Jul 2010 12:44:08 +0300
-Message-ID: <20100707094408.2562.12431.stgit@baageli.muru.com>
+Subject: [PATCH 04/13] omap3: pandora: add NAND and wifi support
+Date: Wed, 07 Jul 2010 12:44:11 +0300
+Message-ID: <20100707094411.2562.54091.stgit@baageli.muru.com>
 References: <20100707094308.2562.91921.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59442 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754518Ab0GGJoK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 05:44:10 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58842 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab0GGJoP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 05:44:15 -0400
 In-Reply-To: <20100707094308.2562.91921.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,85 +19,196 @@ Cc: linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
 From: Grazvydas Ignotas <notasas@gmail.com>
 
-Update gpio-keys setup so it matches what is on default firmware.
-Also make use of debounce feature in gpio-keys instead of setting it
-explicitly, as gpio-keys is now capable of using hardware debounce on
-OMAPs thanks to recent gpiolib changes.
-Also fix a sparce warning along the way.
+Add platform data for NAND and wifi, also setup all GPIOs
+needed to use the wifi chip.
 
 Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-omap3pandora.c |   30 ++++++++++--------------------
- 1 files changed, 10 insertions(+), 20 deletions(-)
+ arch/arm/mach-omap2/board-omap3pandora.c |  120 ++++++++++++++++++++++++++++++
+ 1 files changed, 120 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index db06dc9..7a12729 100644
+index 7a12729..a58bdef 100644
 --- a/arch/arm/mach-omap2/board-omap3pandora.c
 +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -48,9 +48,6 @@
+@@ -25,6 +25,9 @@
+ #include <linux/spi/ads7846.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
++#include <linux/spi/wl12xx.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
+ #include <linux/leds.h>
+ #include <linux/input.h>
+ #include <linux/input/matrix_keypad.h>
+@@ -41,13 +44,50 @@
+ #include <plat/mcspi.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
++#include <plat/nand.h>
  
+ #include "mux.h"
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "hsmmc.h"
+ 
++#define PANDORA_WIFI_IRQ_GPIO		21
++#define PANDORA_WIFI_NRESET_GPIO	23
  #define OMAP3_PANDORA_TS_GPIO		94
  
--/* hardware debounce: (value + 1) * 31us */
--#define GPIO_DEBOUNCE_TIME		127
--
++#define NAND_BLOCK_SIZE			SZ_128K
++
++static struct mtd_partition omap3pandora_nand_partitions[] = {
++	{
++		.name           = "xloader",
++		.offset         = 0,
++		.size           = 4 * NAND_BLOCK_SIZE,
++		.mask_flags     = MTD_WRITEABLE
++	}, {
++		.name           = "uboot",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 15 * NAND_BLOCK_SIZE,
++	}, {
++		.name           = "uboot-env",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 1 * NAND_BLOCK_SIZE,
++	}, {
++		.name           = "boot",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 80 * NAND_BLOCK_SIZE,
++	}, {
++		.name           = "rootfs",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = MTDPART_SIZ_FULL,
++	},
++};
++
++static struct omap_nand_platform_data pandora_nand_data = {
++	.cs		= 0,
++	.devsize	= 1,	/* '0' for 8-bit, '1' for 16-bit device */
++	.parts		= omap3pandora_nand_partitions,
++	.nr_parts	= ARRAY_SIZE(omap3pandora_nand_partitions),
++};
++
  static struct gpio_led pandora_gpio_leds[] = {
  	{
  		.name			= "pandora::sd1",
-@@ -88,6 +85,7 @@ static struct platform_device pandora_leds_gpio = {
- 	.type		= ev_type,				\
- 	.code		= ev_code,				\
- 	.active_low	= act_low,				\
-+	.debounce_interval = 4,					\
- 	.desc		= "btn " descr,				\
+@@ -246,12 +286,33 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ static int omap3pandora_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
++	int ret, gpio_32khz;
++
+ 	/* gpio + {0,1} is "mmc{0,1}_cd" (input/IRQ) */
+ 	omap3pandora_mmc[0].gpio_cd = gpio + 0;
+ 	omap3pandora_mmc[1].gpio_cd = gpio + 1;
+ 	omap2_hsmmc_init(omap3pandora_mmc);
+ 
++	/* gpio + 13 drives 32kHz buffer for wifi module */
++	gpio_32khz = gpio + 13;
++	ret = gpio_request(gpio_32khz, "wifi 32kHz");
++	if (ret < 0) {
++		pr_err("Cannot get GPIO line %d, ret=%d\n", gpio_32khz, ret);
++		goto fail;
++	}
++
++	ret = gpio_direction_output(gpio_32khz, 1);
++	if (ret < 0) {
++		pr_err("Cannot set GPIO line %d, ret=%d\n", gpio_32khz, ret);
++		goto fail_direction;
++	}
++
+ 	return 0;
++
++fail_direction:
++	gpio_free(gpio_32khz);
++fail:
++	return -ENODEV;
  }
  
-@@ -99,14 +97,14 @@ static struct gpio_keys_button pandora_gpio_keys[] = {
- 	GPIO_BUTTON_LOW(103,	KEY_DOWN,	"down"),
- 	GPIO_BUTTON_LOW(96,	KEY_LEFT,	"left"),
- 	GPIO_BUTTON_LOW(98,	KEY_RIGHT,	"right"),
--	GPIO_BUTTON_LOW(109,	KEY_KP1,	"game 1"),
--	GPIO_BUTTON_LOW(111,	KEY_KP2,	"game 2"),
--	GPIO_BUTTON_LOW(106,	KEY_KP3,	"game 3"),
--	GPIO_BUTTON_LOW(101,	KEY_KP4,	"game 4"),
--	GPIO_BUTTON_LOW(102,	BTN_TL,		"l"),
--	GPIO_BUTTON_LOW(97,	BTN_TL2,	"l2"),
--	GPIO_BUTTON_LOW(105,	BTN_TR,		"r"),
--	GPIO_BUTTON_LOW(107,	BTN_TR2,	"r2"),
-+	GPIO_BUTTON_LOW(109,	KEY_PAGEUP,	"game 1"),
-+	GPIO_BUTTON_LOW(111,	KEY_END,	"game 2"),
-+	GPIO_BUTTON_LOW(106,	KEY_PAGEDOWN,	"game 3"),
-+	GPIO_BUTTON_LOW(101,	KEY_HOME,	"game 4"),
-+	GPIO_BUTTON_LOW(102,	KEY_RIGHTSHIFT,	"l"),
-+	GPIO_BUTTON_LOW(97,	KEY_KPPLUS,	"l2"),
-+	GPIO_BUTTON_LOW(105,	KEY_RIGHTCTRL,	"r"),
-+	GPIO_BUTTON_LOW(107,	KEY_KPMINUS,	"r2"),
- 	GPIO_BUTTON_LOW(104,	KEY_LEFTCTRL,	"ctrl"),
- 	GPIO_BUTTON_LOW(99,	KEY_MENU,	"menu"),
- 	GPIO_BUTTON_LOW(176,	KEY_COFFEE,	"hold"),
-@@ -127,14 +125,7 @@ static struct platform_device pandora_keys_gpio = {
- 	},
+ static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
+@@ -530,10 +591,67 @@ static void __init omap3pandora_init_irq(void)
+ 	omap_gpio_init();
+ }
+ 
++static void pandora_wl1251_set_power(bool enable)
++{
++	/*
++	 * Keep power always on until wl1251_sdio driver learns to re-init
++	 * the chip after powering it down and back up.
++	 */
++}
++
++static struct wl12xx_platform_data pandora_wl1251_pdata = {
++	.set_power	= pandora_wl1251_set_power,
++	.use_eeprom	= true,
++};
++
++static struct platform_device pandora_wl1251_data = {
++	.name           = "wl1251_data",
++	.id             = -1,
++	.dev		= {
++		.platform_data	= &pandora_wl1251_pdata,
++	},
++};
++
++static void pandora_wl1251_init(void)
++{
++	int ret;
++
++	ret = gpio_request(PANDORA_WIFI_IRQ_GPIO, "wl1251 irq");
++	if (ret < 0)
++		goto fail;
++
++	ret = gpio_direction_input(PANDORA_WIFI_IRQ_GPIO);
++	if (ret < 0)
++		goto fail_irq;
++
++	pandora_wl1251_pdata.irq = gpio_to_irq(PANDORA_WIFI_IRQ_GPIO);
++	if (pandora_wl1251_pdata.irq < 0)
++		goto fail_irq;
++
++	ret = gpio_request(PANDORA_WIFI_NRESET_GPIO, "wl1251 nreset");
++	if (ret < 0)
++		goto fail_irq;
++
++	/* start powered so that it probes with MMC subsystem */
++	ret = gpio_direction_output(PANDORA_WIFI_NRESET_GPIO, 1);
++	if (ret < 0)
++		goto fail_nreset;
++
++	return;
++
++fail_nreset:
++	gpio_free(PANDORA_WIFI_NRESET_GPIO);
++fail_irq:
++	gpio_free(PANDORA_WIFI_IRQ_GPIO);
++fail:
++	printk(KERN_ERR "wl1251 board initialisation failed\n");
++}
++
+ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&pandora_leds_gpio,
+ 	&pandora_keys_gpio,
+ 	&pandora_dss_device,
++	&pandora_wl1251_data,
  };
  
--static void __init pandora_keys_gpio_init(void)
--{
--	/* set debounce time for GPIO banks 4 and 6 */
--	gpio_set_debounce(32 * 3, GPIO_DEBOUNCE_TIME);
--	gpio_set_debounce(32 * 5, GPIO_DEBOUNCE_TIME);
--}
--
--static int board_keymap[] = {
-+static const uint32_t board_keymap[] = {
- 	/* row, col, code */
- 	KEY(0, 0, KEY_9),
- 	KEY(0, 1, KEY_8),
-@@ -582,7 +573,6 @@ static void __init omap3pandora_init(void)
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+@@ -566,6 +684,7 @@ static void __init omap3pandora_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	omap3pandora_i2c_init();
++	pandora_wl1251_init();
+ 	platform_add_devices(omap3pandora_devices,
+ 			ARRAY_SIZE(omap3pandora_devices));
+ 	omap_serial_init();
+@@ -574,6 +693,7 @@ static void __init omap3pandora_init(void)
  	omap3pandora_ads7846_init();
  	usb_ehci_init(&ehci_pdata);
--	pandora_keys_gpio_init();
  	usb_musb_init(&musb_board_data);
++	gpmc_nand_init(&pandora_nand_data);
  
  	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
 
