@@ -1,95 +1,117 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH v3]OMAP:GPTIMER:1ms tick generation correction
-Date: Wed, 7 Jul 2010 19:43:16 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323830CE0@dbde02.ent.ti.com>
-References: <1277239078-31386-1-git-send-email-tarun.kanti@ti.com>
- <20100707115946.GM1920@atomide.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH v5] OMAP: Fix for bus width which improves SD card's
+	peformance.
+Date: Wed, 7 Jul 2010 19:45:43 +0530
+Message-ID: <AANLkTilh9dSHT47E4VlYdbGxVflQYaooeAMm_5bSda7p@mail.gmail.com>
+References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
+	<20100406163211.GA29117@nokia.com>
+	<4BBB6767.7010202@ti.com>
+	<20100406165720.GA17916@nokia.com>
+	<00b401cad5e0$1d1868d0$544ff780@am.dhcp.ti.com>
+	<4BBBC628.9030207@ti.com>
+	<00c901cad5e7$9de54350$544ff780@am.dhcp.ti.com>
+	<4BBBD87C.1040307@ti.com>
+	<003601cad73c$98c3aa50$544ff780@am.dhcp.ti.com>
+	<s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com>
+	<h2h7f9d1ffb1004190851gf08897awf198d3c8e5f9dbce@mail.gmail.com>
+	<008f01cae1b2$6262c970$544ff780@am.dhcp.ti.com>
+	<AANLkTikNlJLiJeXwbBuS_KGPN6soAlKLQH1EUeJCKYi2@mail.gmail.com>
+	<AANLkTiks-UvRtQiZtpp-zwlGhMcGNoPZdHKC29lrlFYr@mail.gmail.com>
+	<AANLkTil7PEqhzAcxkErry4ucc1bg07cr7Sj-OpJsGB4e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50252 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753408Ab0GGONW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 10:13:22 -0400
-In-Reply-To: <20100707115946.GM1920@atomide.com>
-Content-Language: en-US
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:34687 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753653Ab0GGOPo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 10:15:44 -0400
+In-Reply-To: <AANLkTil7PEqhzAcxkErry4ucc1bg07cr7Sj-OpJsGB4e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "R, Sricharan" <r.sricharan@ti.com>
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Madhusudhan <madhu.cr@ti.com>, akpm@linux-foundation.org, tony@atomide.com, Nishanth Menon <nm@ti.com>, felipe.balbi@nokia.com, Vimal Singh <vimal.newwork@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
 
 Tony,
-Thanks for the comments! Please see my response.
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, July 07, 2010 5:30 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; R, Sricharan
-> Subject: Re: [PATCH v3]OMAP:GPTIMER:1ms tick generation correction
-> 
-> * Tarun Kanti DebBarma <tarun.kanti@ti.com> [100622 12:35]:
-> > +/**
-> > + * omap_dm_timer_ms_correction - hardware correction for millisecond
-> timer
-> > + * @timer: GPTIMER on which the correction support is to be applied
-> > + * @load: timer load value, used here to extract the expiry count
-> > + */
-> > +static void omap_dm_timer_ms_correction(struct omap_dm_timer *timer,
-> u32 load)
-> > +{
-> > +	int pos_increment, neg_increment;
-> > +	unsigned int count = (0xFFFFFFFF - load) * 1024;
-> > +
-> > +	pos_increment = (DIV_ROUND_UP(count, 1000) * 1000000) \
-> > +			- (count * 1000);
-> > +	neg_increment = ((DIV_ROUND_UP(count, 1000) - 1) * 1000000) \
-> > +			- (count * 1000);
-> > +	omap_dm_timer_write_reg(timer, OMAP_TIMER_TICK_POS_REG,
-> pos_increment);
-> > +	omap_dm_timer_write_reg(timer, OMAP_TIMER_TICK_NEG_REG,
-> neg_increment);
-> > +}
-> >
-> >  struct omap_dm_timer *omap_dm_timer_request(void)
-> >  {
-> > @@ -612,6 +639,10 @@ void omap_dm_timer_set_load_start(struct
-> omap_dm_timer *timer, int autoreload,
-> >  {
-> >  	u32 l;
-> >
-> > +#ifdef CONFIG_ARCH_OMAP2PLUS
-> > +	if (timer->ms_correction)
-> > +		omap_dm_timer_ms_correction(timer, load);
-> > +#endif
-> >  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-> >  	if (autoreload) {
-> >  		l |= OMAP_TIMER_CTRL_AR;
-> 
-> How do you know that the timer is configured to use the 32KiHZ source?
-> 
+Could this patch be taken ?
 
-[Tarun]
-At this point we do not know. The point is we need not know.
-The caller function calculates the load based upon the source clock frequency. Viz. sys_clk or 32Khz. Please note that correction is needed both for sys_clk and 32Khz clock.
+Thanks,
+kishore
 
-> Also, since omap2_gp_timer_set_next_event calls all the time,
-> we don't want to do this calculation for every tick.. So we should
-> make it a separate optional function.
-
-[Tarun]
-Agreed, but need some clarification here. 
-At first my intention was to make the call to omap_dm_timer_ms_correction() just once since the tick period is supposed to be constant. However, during testing it was found that the caller of omap2_gp_timer_set_next_event(unsigned long cycles,...) passes different values for cycles and so different load value. This gave me the impression that caller framework is programming for counts related to different number ticks with the necessity to apply omap_dm_timer_ms_correction() every time.
-
-I would be glad to get feedback on my observation.
-
-> 
-> Or can we somehow calculate this drift once during init?
-> 
-As described, for a constant tick we would need to compute and program just once, during initialization.
-
-
-> Regards,
-> 
-> Tony
+On Tue, Jun 15, 2010 at 1:37 PM, kishore kadiyala
+<kishorek.kadiyala@gmail.com> wrote:
+> From: Kishore Kadiyala <kishore.kadiyala@ti.com>
+>
+> This patch improves low speeds for SD cards.
+> OMAP-MMC controller's can support maximum bus width of '8'.
+> when bus width is mentioned as "8" in controller data,the SD
+> stack will check whether bus width is "4" and if not it will
+> set bus width to "1" and there by degrading performance.
+> This patch fixes the issue and improves the performance of
+> SD cards.
+>
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> Tested-by: Jarkko Nikula <jhnikula@gmail.com>
+> ---
+> In V5 : Rebasing on 2.6.35-rc3
+> In V4 : Updated with Nishanth's comments and appened his Signed-off
+> =A0 =A0 =A0 =A0http://marc.info/?t=3D127169149300006&r=3D1&w=3D2
+> In V3 : Updated =A0with Madhu's comments =A0and appended Tested by Ni=
+kula
+> In V2 : Appended Signed-off by Venkat and Ack by Madhu
+>
+> Here are my experiment numbers, on a Class 6 SDHC card:
+> Read peformance is increased by 220%
+> Write Performance is increased by 52%
+>
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 17 +++++++++++++++--
+> =A01 files changed, 15 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index b032828..a0c8515 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2096,10 +2096,23 @@ static int __init omap_hsmmc_probe(struct
+> =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGH=
+SPEED |
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MMC_CAP_WAIT_WHILE_BUSY;
+>
+> - =A0 =A0 =A0 if (mmc_slot(host).wires >=3D 8)
+> + =A0 =A0 =A0 switch (mmc_slot(host).wires) {
+> + =A0 =A0 =A0 case 8:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_8_BIT_DATA;
+> - =A0 =A0 =A0 else if (mmc_slot(host).wires >=3D 4)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Fall through */
+> + =A0 =A0 =A0 case 4:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_4_BIT_DATA;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 case 1:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Nothing to crib here */
+> + =A0 =A0 =A0 case 0:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Assuming nothing was given by board,=
+ Core use's 1-Bit */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 default:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Completely unexpected.. Core goes wi=
+th 1-Bit Width */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_crit(mmc_dev(host->mmc), "Invalid w=
+idth %d\n used!"
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "using 1 instead\n", mm=
+c_slot(host).wires);
+> + =A0 =A0 =A0 }
+>
+> =A0 =A0 =A0 =A0if (mmc_slot(host).nonremovable)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_NONREMOVABLE;
+> --
+> 1.6.3.3
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
