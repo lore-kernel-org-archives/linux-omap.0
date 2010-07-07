@@ -1,87 +1,148 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 11/11] staging: ti dspbridge: enable driver building
-Date: Wed, 7 Jul 2010 13:18:28 +0300
-Message-ID: <AANLkTil0dSafGxmwoNnA6kJQE3sHRg-pBdNDB7vfhcpv@mail.gmail.com>
-References: <1277298125-17991-1-git-send-email-ohad@wizery.com>
-	<1277298840-18516-1-git-send-email-ohad@wizery.com> <20100623224150.GA6680@kroah.com>
-	<AANLkTik0rm12w4jplD1vSTZnPbwguDU6xtOdAfs9C-3r@mail.gmail.com>
-	<4C33513C.4090704@ti.com> <AANLkTikAZCAj4mljYbJcppuIL2quYz8AK0AkTFCZO3bG@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 1/3] omap3 gpmc: functionality enhancement
+Date: Wed, 7 Jul 2010 13:18:41 +0300
+Message-ID: <20100707101840.GF1920@atomide.com>
+References: <s-ghorai@ti.com>
+ <1275637205-489-1-git-send-email-s-ghorai@ti.com>
+ <1275637205-489-2-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikAZCAj4mljYbJcppuIL2quYz8AK0AkTFCZO3bG@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg KH <greg@kroah.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53943 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752766Ab0GGKSx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 06:18:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1275637205-489-2-git-send-email-s-ghorai@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, mike@compulab.co.il
 
-On Wed, Jul 7, 2010 at 12:31 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Tue, Jul 6, 2010 at 6:52 PM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
->> at that point *you* wanted your patches not to be
->> included if the last one wasn't merged in.
->
-> Not without the copyright update patch.
-...
-> So. Would you care to give a reason why my contributions don't deserve
-> a copyright?
+* Sukumar Ghorai <s-ghorai@ti.com> [100604 10:34]:
+> few functions added in gpmc module and to be used by other drivers like NAND.
+> E.g.: - ioctl function
+>       - ecc functions
 
+Uhh, let's leave out ioctl from the description.. Otherwise people
+think you're adding new ioctls in this patch.
+ 
+> @@ -46,8 +46,9 @@
+>  #define GPMC_ECC_CONFIG		0x1f4
+>  #define GPMC_ECC_CONTROL	0x1f8
+>  #define GPMC_ECC_SIZE_CONFIG	0x1fc
+> +#define GPMC_ECC1_RESULT        0x200
+>  
+> -#define GPMC_CS0		0x60
+> +#define GPMC_CS0_BASE		0x60
+>  #define GPMC_CS_SIZE		0x30
+>  
+>  #define GPMC_MEM_START		0x00000000
 
-Disclaimer: I am not a lawyer, and I speak only for myself in this
-post, and doesn't represent TI in anyway.
+Why changing GPMC_CS0 to GPMC_CS0_BASE? Should it rather be
+GPMC_CS0_OFFSET?
 
+> @@ -419,8 +437,100 @@ void gpmc_cs_free(int cs)
+>  EXPORT_SYMBOL(gpmc_cs_free);
+>  
+>  /**
+> + * gpmc_hwcontrol - hardware specific access (read/ write) control
+> + * @cs: chip select number
+> + * @cmd: command type
+> + * @write: 1 for write; 0 for read
+> + * @wval: value to write
+> + * @rval: read pointer
+> + */
+> +int gpmc_hwcontrol(int cs, int cmd, int write, int wval, int *rval)
+> +{
+> +	u32 regval = 0;
+> +
+> +	if (!write && !rval)
+> +		return -EINVAL;
 
-AFAICT, you get copyright for every kernel change you submit and is
-accepted. Even if you just contribute whitespace cleanups, you get the
-copyright to those cleanups (not to suggest this was the sole
-contribution here).
+You pass int write, then return immediately if it's not set?
 
-The copyright assignment is per the actual git commit itself,
-obviously, and it doesn't apply for the rest of the code in those
-files you edited.
+> +	switch (cmd) {
+> +	case GPMC_STATUS_BUFFER:
+> +		regval = gpmc_read_reg(GPMC_STATUS);
+> +		/* 1 : buffer is available to write */
+> +		*rval = regval & GPMC_STATUS_BUFF_EMPTY;
+> +		break;
+> +
+> +	case GPMC_GET_SET_IRQ_STATUS:
+> +		if (write)
+> +			gpmc_write_reg(GPMC_IRQSTATUS, wval);
+> +		else
+> +			*rval = gpmc_read_reg(GPMC_IRQSTATUS);
+> +		break;
+> +
+> +	case GPMC_PREFETCH_FIFO_CNT:
+> +		regval = gpmc_read_reg(GPMC_PREFETCH_STATUS);
+> +		*rval = GPMC_PREFETCH_STATUS_FIFO_CNT(regval);
+> +		break;
+> +
+> +	case GPMC_PREFETCH_COUNT:
+> +		regval = gpmc_read_reg(GPMC_PREFETCH_STATUS);
+> +		*rval = GPMC_PREFETCH_STATUS_COUNT(regval);
+> +		break;
+> +
+> +	case GPMC_CONFIG_WP:
+> +		regval = gpmc_read_reg(GPMC_CONFIG);
+> +		if (wval)
+> +			regval &= ~GPMC_CONFIG_WRITEPROTECT; /* WP is ON */
+> +		else
+> +			regval |= GPMC_CONFIG_WRITEPROTECT;  /* WP is OFF */
+> +		gpmc_write_reg(GPMC_CONFIG, regval);
+> +		break;
+> +
+> +	case GPMC_CONFIG_RDY_BSY:
+> +		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +		regval |= WR_RD_PIN_MONITORING;
+> +		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+> +		break;
+> +
+> +	case GPMC_CONFIG_DEV_SIZE:
+> +		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +		regval |= GPMC_CONFIG1_DEVICESIZE(wval);
+> +		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+> +		break;
+> +
+> +	case GPMC_CONFIG_DEV_TYPE:
+> +		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +		regval |= GPMC_CONFIG1_DEVICETYPE(wval);
+> +		if (wval == GPMC_DEVICETYPE_NOR)
+> +			regval |= GPMC_CONFIG1_MUXADDDATA;
+> +		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+> +		break;
+> +
+> +	case GPMC_NAND_COMMAND:
+> +		gpmc_cs_write_byte(cs, GPMC_CS_NAND_COMMAND, wval);
+> +		break;
+> +
+> +	case GPMC_NAND_ADDRESS:
+> +		gpmc_cs_write_byte(cs, GPMC_CS_NAND_ADDRESS, wval);
+> +		break;
+> +
+> +	case GPMC_NAND_DATA:
+> +		if (write)
+> +			gpmc_cs_write_byte(cs, GPMC_CS_NAND_DATA, wval);
+> +		else
+> +			*rval = gpmc_cs_read_byte(cs, GPMC_CS_NAND_DATA);
+> +		break;
+> +
+> +	default:
+> +		printk(KERN_ERR "gpmc_hwcontrol: Not supported\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(gpmc_hwcontrol);
 
-There are some exceptions, but they are not applicable here:
-- Usually when you get paid for the work, the employer keeps the
-copyright of the patch, not the author.
-- There are some projects where you have to relinquish the copyright
-in order for the patch to be accepted. This is how FSF (Free Software
-Foundation) projects work (e.g. gcc), but not the Linux kernel (which
-is not a FSF project).
+You should just replace this function with simple functions like we already
+have in gpmc.c rather than trying to pack everything into one function.
+Just add various gpmc_xxx_get/set functions rather than pass int *rval.
 
-As I mentioned, I don't think these exceptions apply in this case, and
-AFAICT, Felipe - you inherently get the copyright for the changes that
-your accepted patches introduce.
+Regards,
 
-So it all boils down to the semantic question whether to edit the
-header file, adding new copyright lines, or not.
-
-Felipe, I think your contributions are important and helpful, and I
-would personally be happy if you continue to do them. I personally
-don't think that adding an explicit copyright line to the header
-should be important, because you get your copyright anyway. The exact
-change, to which you get copyright on, is kept in the git history, and
-will not likely to go away. I think this is pretty satisfying, and as
-a result, you don't see people(/companies) changing copyright headers
-when they submit kernel patches that edit existing files.
-
-The only thing I am not sure about, and that may be a concern to TI,
-is whether adding a copyright line in the header might actually give
-copyright ownership for the complete file. If this is true, I can
-understand why TI might not be so keen in adding copyright owners to
-the file header, without explicitly specifying what is the copyright
-about (not to suggest any opinion of TI on the matter, I speak only
-for myself).
-
-
-Again: I am not a lawyer, and I speak only for myself in this post,
-and doesn't represent TI in anyway.
-
-
-Thanks,
-Ohad.
-
-
->
-> --
-> Felipe Contreras
->
+Tony
