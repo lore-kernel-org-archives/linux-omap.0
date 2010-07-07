@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/13] omap: zoom2: wlan board muxing
-Date: Wed, 07 Jul 2010 12:43:54 +0300
-Message-ID: <20100707094354.2562.48930.stgit@baageli.muru.com>
+Subject: [PATCH 02/13] omap: zoom3: wlan board muxing
+Date: Wed, 07 Jul 2010 12:44:04 +0300
+Message-ID: <20100707094404.2562.29882.stgit@baageli.muru.com>
 References: <20100707094308.2562.91921.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59274 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754518Ab0GGJoE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 05:44:04 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58712 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab0GGJoG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 05:44:06 -0400
 In-Reply-To: <20100707094308.2562.91921.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,19 +20,19 @@ Cc: linux-omap@vger.kernel.org, Ohad Ben-Cohen <ohadb@ti.com>
 From: Ohad Ben-Cohen <ohadb@ti.com>
 
 Add board muxing to support the wlan wl1271 chip that is
-hardwired to mmc2 (third mmc controller) on the ZOOM2.
+hardwired to mmc2 (third mmc controller) on the ZOOM3.
 
 Signed-off-by: Ohad Ben-Cohen <ohadb@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-zoom2.c |   15 +++++++++++++++
+ arch/arm/mach-omap2/board-zoom3.c |   15 +++++++++++++++
  1 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 803ef14..00871be 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -71,6 +71,21 @@ static struct twl4030_platform_data zoom2_twldata = {
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index 3314704..0b62663 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -46,6 +46,21 @@ static void __init omap_zoom_init_irq(void)
  
  #ifdef CONFIG_OMAP_MUX
  static struct omap_board_mux board_mux[] __initdata = {
