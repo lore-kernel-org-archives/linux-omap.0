@@ -1,62 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3]OMAP:GPTIMER:1ms tick generation correction
-Date: Wed, 7 Jul 2010 14:59:47 +0300
-Message-ID: <20100707115946.GM1920@atomide.com>
-References: <1277239078-31386-1-git-send-email-tarun.kanti@ti.com>
+Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
+Date: Wed, 7 Jul 2010 15:02:42 +0300
+Message-ID: <20100707120241.GN1920@atomide.com>
+References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
+ <201006070809.47853.luke@dashjr.org>
+ <AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
+ <201006071115.34881.luke@dashjr.org>
+ <AANLkTinod9geJbbfdOIhB465qi6xHqfH-1vL048Bc3fa@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59918 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331Ab0GGL7v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 07:59:51 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52614 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751179Ab0GGMCx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 08:02:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1277239078-31386-1-git-send-email-tarun.kanti@ti.com>
+In-Reply-To: <AANLkTinod9geJbbfdOIhB465qi6xHqfH-1vL048Bc3fa@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, R Sricharan <r.sricharan@ti.com>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Luke-Jr <luke@dashjr.org>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-* Tarun Kanti DebBarma <tarun.kanti@ti.com> [100622 12:35]:
-> +/**
-> + * omap_dm_timer_ms_correction - hardware correction for millisecond timer
-> + * @timer: GPTIMER on which the correction support is to be applied
-> + * @load: timer load value, used here to extract the expiry count
-> + */
-> +static void omap_dm_timer_ms_correction(struct omap_dm_timer *timer, u32 load)
-> +{
-> +	int pos_increment, neg_increment;
-> +	unsigned int count = (0xFFFFFFFF - load) * 1024;
-> +
-> +	pos_increment = (DIV_ROUND_UP(count, 1000) * 1000000) \
-> +			- (count * 1000);
-> +	neg_increment = ((DIV_ROUND_UP(count, 1000) - 1) * 1000000) \
-> +			- (count * 1000);
-> +	omap_dm_timer_write_reg(timer, OMAP_TIMER_TICK_POS_REG, pos_increment);
-> +	omap_dm_timer_write_reg(timer, OMAP_TIMER_TICK_NEG_REG, neg_increment);
-> +}
->  
->  struct omap_dm_timer *omap_dm_timer_request(void)
->  {
-> @@ -612,6 +639,10 @@ void omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
->  {
->  	u32 l;
->  
-> +#ifdef CONFIG_ARCH_OMAP2PLUS
-> +	if (timer->ms_correction)
-> +		omap_dm_timer_ms_correction(timer, load);
-> +#endif
->  	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
->  	if (autoreload) {
->  		l |= OMAP_TIMER_CTRL_AR;
+* Govindraj <govindraj.ti@gmail.com> [100608 09:24]:
+> On Mon, Jun 7, 2010 at 9:45 PM, Luke-Jr <luke@dashjr.org> wrote:
+> > On Monday 07 June 2010 08:28:51 am Govindraj wrote:
+> >> Link:
+> >> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summa
+> >> ry
+> >>
+> >> Branch:
+> >> pm-wip/uart
+> >
+> > This branch doesn't appear to have omap-serial.c at all...
+> >
+> >> If you are trying to use with any client device connected to uart
+> >> then we need to ensure the client driver speaks to omap-serial
+> >> dev entries.
+> >
+> 
+> You need apply the driver patch on top of this branch.
+> 
+> [PATCH v3] serial: Add OMAP high-speed UART driver.
 
-How do you know that the timer is configured to use the 32KiHZ source?
-
-Also, since omap2_gp_timer_set_next_event calls all the time,
-we don't want to do this calculation for every tick.. So we should
-make it a separate optional function.
-
-Or can we somehow calculate this drift once during init?
+Do we still have a dependency to pm-wip/uart branch? Can you please
+check if you can rebase all these patches on top of linux-omap for-next
+branch?
 
 Regards,
 
