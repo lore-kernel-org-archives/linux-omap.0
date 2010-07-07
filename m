@@ -1,46 +1,54 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 3/8] musb: fix compilation warning in host only mode
-Date: Wed, 7 Jul 2010 15:01:29 -0700
-Message-ID: <20100707220129.GA5884@kroah.com>
-References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-2-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-3-git-send-email-ajay.gupta@ti.com>
- <1276771242-5201-4-git-send-email-ajay.gupta@ti.com>
- <20100624060338.GF8078@nokia.com>
- <19F8576C6E063C45BE387C64729E7394044E9E38CA@dbde02.ent.ti.com>
- <20100706091314.GG3035@nokia.com>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Wed, 07 Jul 2010 15:44:27 -0700
+Message-ID: <4C35034B.6040906@codeaurora.org>
+References: <1278135507-20294-1-git-send-email-zpfeffer@codeaurora.org> <m14oggpepx.fsf@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:35299 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752924Ab0GGWEE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Jul 2010 18:04:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20100706091314.GG3035@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <m14oggpepx.fsf@fess.ebiederm.org>
+Sender: owner-linux-mm@kvack.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: mel@csn.ul.ie, andi@firstfloor.org, dwalker@codeaurora.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arch@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@suse.de" <gregkh@suse.de>
 
-On Tue, Jul 06, 2010 at 12:13:14PM +0300, Felipe Balbi wrote:
-> Hi,
+Eric W. Biederman wrote:
+> Zach Pfeffer <zpfeffer@codeaurora.org> writes:
 > 
-> On Thu, Jun 24, 2010 at 01:17:54PM +0200, ext Gupta, Ajay Kumar wrote:
-> >Fixes below compilation warning when host only configuration is
-> >selected.
-> >drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
-> >drivers/usb/musb/musb_core.c:711: warning: unused variable 'mbase'
-> >
-> >Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+>> This patch contains the documentation for the API, termed the Virtual
+>> Contiguous Memory Manager. Its use would allow all of the IOMMU to VM,
+>> VM to device and device to IOMMU interoperation code to be refactored
+>> into platform independent code.
+>>
+>> Comments, suggestions and criticisms are welcome and wanted.
 > 
-> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+> How does this differ from the dma api?
 
-You've acked a random ammount of patches recently, are you going to be
-resending them to me?  I have a hard time going back and digging through
-the archives to pick out the ones that you acked vs. the ones you
-didn't.
+The DMA API handles the allocation and use of DMA channels. It can
+configure physical transfer settings, manage scatter-gather lists,
+etc. 
 
-thanks,
+The VCM is a different thing. The VCM allows a Virtual Contiguous
+Memory region to be created and associated with a device that
+addresses the bus virtually or physically. If the bus is addressed
+physically the Virtual Contiguous Memory is one-to-one mapped. If the
+bus is virtually mapped than a contiguous virtual reservation may be
+backed by a discontiguous list of physical blocks. This discontiguous
+list could be a SG list of just a list of physical blocks that would
+back the entire virtual reservation.
 
-greg k-h
+The VCM allows all device buffers to be passed between all devices in
+the system without passing those buffers through each domain's
+API. This means that instead of writing code to interoperate between
+DMA engines, IOMMU mapped spaces, CPUs and physically addressed
+devices the user can simply target a device with a buffer using the
+same API regardless of how that device maps or otherwise accesses the
+buffer.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
