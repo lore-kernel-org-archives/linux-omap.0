@@ -1,76 +1,48 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
-Date: Wed, 07 Jul 2010 10:48:05 +0300
-Message-ID: <4C343135.1090101@nokia.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com> <1278376666-3509-12-git-send-email-ohad@wizery.com> <4C32EF19.1000604@nokia.com> <AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com> <4C3306F4.8060907@nokia.com> <AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com> <4C333E0D.2070601@nokia.com> <alpine.LFD.2.00.1007061316010.6020@xanadu.home>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH resend 1/3] AM35x: Add musb support
+Date: Wed, 7 Jul 2010 10:53:04 +0300
+Message-ID: <20100707075303.GD1874@gandalf>
+References: <20100705102322.GR15951@atomide.com>
+ <4C31B54F.6040109@ru.mvista.com>
+ <20100705104841.GS15951@atomide.com>
+ <19F8576C6E063C45BE387C64729E7394044EAAD8F6@dbde02.ent.ti.com>
+ <20100705134552.GD15951@atomide.com>
+ <4C31F135.5060108@ru.mvista.com>
+ <19F8576C6E063C45BE387C64729E7394044EAADA64@dbde02.ent.ti.com>
+ <20100706075707.GC3192@atomide.com>
+ <20100706084603.GA3035@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03238308B1@dbde02.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.1007061316010.6020@xanadu.home>
-Sender: linux-mmc-owner@vger.kernel.org
-To: ext Nicolas Pitre <nico@fluxnic.net>
-Cc: ext Ohad Ben-Cohen <ohad@wizery.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:38713 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752301Ab0GGHxC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 03:53:02 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03238308B1@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 07/06/2010 08:42 PM, ext Nicolas Pitre wrote:
-> On Tue, 6 Jul 2010, Roger Quadros wrote:
->
->> On 07/06/2010 03:53 PM, ext Ohad Ben-Cohen wrote:
->>> Hi Roger,
->>>
->>> On Tue, Jul 6, 2010 at 1:35 PM, Roger Quadros<roger.quadros@nokia.com>
->>> wrote:
->>>> My point is that shouldn't this be handled by SDIO core?
->>>
->>> Care to explain what you mean / give a code example ?
->>
->> If the Power enable GPIO can be treated as SDIO slot supply (i.e. vmmc), then
->> the SDIO/MMC core should tackle it, just like it deals with supply for slots
->> with removable cards.
->
-> Exact.
->
->>> You need card detect events in order to trigger card&   sdio function
->>> initialization and removals.
->
-> Why would you trigger function initialization and removal?  Just to turn
-> off power?  That's a bit like pulling off the battery from your laptop
-> when you want to suspend it.  There is a better way to go about things.
->
->>> Please share any alternative approach you may be thinking on.
->>
->> OK, this is how I see it.
->>
->> - Treat the non-removable card as non-removable. So no need to do card detect
->> emulation.
->>
->> - Treat the GPIO power enable on wl1271 as VMMC supply. Use fixed regulator
->> framework to define this regulator&  supply. Even though you mention that it
->> is not actually a supply, it fits well in the fixed supply framework.
->>
->> - When the host controller is enumerated, the mmc core will power up the slot,
->> find the sdio card, and probe the function driver (i.e. wl1271_sdio).
->>
->> - if interface is not in use, the function driver must release the sdio host,
->> and this should eventually disable the vmmc supply.
->>
->> - Whenever the wlan interface must be brought up, wl1271_sdio, can claim the
->> sdio host. this will cause the vmmc supply to be enabled, for as long as the
->> interface is up.
->>
->> Does this address all issues?
->
-> This is mostly all good, except that claiming/releasing the SDIO host is
-> about access to the bus.  It must be claimed right before doing any IO,
-> and released right after that, even when the card is expected to remain
-> powered.  This is not the proper place to hook power control.
+Hi,
 
-Agreed, but is it so that SDIO power may be removed between a host_release and 
-claim? This appears so from omap_hsmmc host controller.
+On Wed, Jul 07, 2010 at 04:16:04AM +0530, Gadiyar, Anand wrote:
+> Like it is done in ehci-hcd.c/ohci-hcd.c?
 
-if we have sdio_claim_power() and sdio_release_power() in place then power 
-control should depend on it.
+That's different, they export the platform_driver which gets probed by
+ehci-hcd.c, here we would have a parent platform_driver instianting
+correct dma device and musb device.
 
-regards,
--roger
+> This looks much easier to maintain.
+> 
+> Do you already have a patch doing this, or would you like me to spin one
+> for RFC/RFT?
+
+I started this yesterday before leaving the office, so not much done. If
+you beat me to it, go for it :-)
+
+-- 
+balbi
