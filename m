@@ -1,117 +1,107 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v5] OMAP: Fix for bus width which improves SD card's
-	peformance.
-Date: Wed, 7 Jul 2010 19:45:43 +0530
-Message-ID: <AANLkTilh9dSHT47E4VlYdbGxVflQYaooeAMm_5bSda7p@mail.gmail.com>
-References: <003b01cad0f0$6ea78040$544ff780@am.dhcp.ti.com>
-	<20100406163211.GA29117@nokia.com>
-	<4BBB6767.7010202@ti.com>
-	<20100406165720.GA17916@nokia.com>
-	<00b401cad5e0$1d1868d0$544ff780@am.dhcp.ti.com>
-	<4BBBC628.9030207@ti.com>
-	<00c901cad5e7$9de54350$544ff780@am.dhcp.ti.com>
-	<4BBBD87C.1040307@ti.com>
-	<003601cad73c$98c3aa50$544ff780@am.dhcp.ti.com>
-	<s2l7f9d1ffb1004190836l9ba703c5lab13638d968a5c55@mail.gmail.com>
-	<h2h7f9d1ffb1004190851gf08897awf198d3c8e5f9dbce@mail.gmail.com>
-	<008f01cae1b2$6262c970$544ff780@am.dhcp.ti.com>
-	<AANLkTikNlJLiJeXwbBuS_KGPN6soAlKLQH1EUeJCKYi2@mail.gmail.com>
-	<AANLkTiks-UvRtQiZtpp-zwlGhMcGNoPZdHKC29lrlFYr@mail.gmail.com>
-	<AANLkTil7PEqhzAcxkErry4ucc1bg07cr7Sj-OpJsGB4e@mail.gmail.com>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: mtd_pagetest fails with omap2 OneNAND driver
+Date: Wed, 7 Jul 2010 16:55:17 +0200
+Message-ID: <AANLkTinrUQKhq9DZ5U8ErJ8PUAEspuDwcNRAPcrv7GCu@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:34687 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753653Ab0GGOPo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 10:15:44 -0400
-In-Reply-To: <AANLkTil7PEqhzAcxkErry4ucc1bg07cr7Sj-OpJsGB4e@mail.gmail.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:42466 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750996Ab0GGOzS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 10:55:18 -0400
+Received: by pwi5 with SMTP id 5so2484999pwi.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Jul 2010 07:55:17 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Madhusudhan <madhu.cr@ti.com>, akpm@linux-foundation.org, tony@atomide.com, Nishanth Menon <nm@ti.com>, felipe.balbi@nokia.com, Vimal Singh <vimal.newwork@gmail.com>, "S, Venkatraman" <svenkatr@ti.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
+To: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org
 
-Tony,
+Hello,
 
-Could this patch be taken ?
+I need some help to understand what is wrong, maybe someone can help me.
 
-Thanks,
-kishore
+I'm running an OMAP3-based board with a OneNAND from Numonyx, the
+problem is some mtd tests fails. An example is the mtd_pagetest, the
+erase test fails.
 
-On Tue, Jun 15, 2010 at 1:37 PM, kishore kadiyala
-<kishorek.kadiyala@gmail.com> wrote:
-> From: Kishore Kadiyala <kishore.kadiyala@ti.com>
->
-> This patch improves low speeds for SD cards.
-> OMAP-MMC controller's can support maximum bus width of '8'.
-> when bus width is mentioned as "8" in controller data,the SD
-> stack will check whether bus width is "4" and if not it will
-> set bus width to "1" and there by degrading performance.
-> This patch fixes the issue and improves the performance of
-> SD cards.
->
-> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-> Tested-by: Jarkko Nikula <jhnikula@gmail.com>
-> ---
-> In V5 : Rebasing on 2.6.35-rc3
-> In V4 : Updated with Nishanth's comments and appened his Signed-off
-> =A0 =A0 =A0 =A0http://marc.info/?t=3D127169149300006&r=3D1&w=3D2
-> In V3 : Updated =A0with Madhu's comments =A0and appended Tested by Ni=
-kula
-> In V2 : Appended Signed-off by Venkat and Ack by Madhu
->
-> Here are my experiment numbers, on a Class 6 SDHC card:
-> Read peformance is increased by 220%
-> Write Performance is increased by 52%
->
-> =A0drivers/mmc/host/omap_hsmmc.c | =A0 17 +++++++++++++++--
-> =A01 files changed, 15 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
-mmc.c
-> index b032828..a0c8515 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2096,10 +2096,23 @@ static int __init omap_hsmmc_probe(struct
-> =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGH=
-SPEED |
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 MMC_CAP_WAIT_WHILE_BUSY;
->
-> - =A0 =A0 =A0 if (mmc_slot(host).wires >=3D 8)
-> + =A0 =A0 =A0 switch (mmc_slot(host).wires) {
-> + =A0 =A0 =A0 case 8:
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_8_BIT_DATA;
-> - =A0 =A0 =A0 else if (mmc_slot(host).wires >=3D 4)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Fall through */
-> + =A0 =A0 =A0 case 4:
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_4_BIT_DATA;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 case 1:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Nothing to crib here */
-> + =A0 =A0 =A0 case 0:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Assuming nothing was given by board,=
- Core use's 1-Bit */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 default:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Completely unexpected.. Core goes wi=
-th 1-Bit Width */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_crit(mmc_dev(host->mmc), "Invalid w=
-idth %d\n used!"
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "using 1 instead\n", mm=
-c_slot(host).wires);
-> + =A0 =A0 =A0 }
->
-> =A0 =A0 =A0 =A0if (mmc_slot(host).nonremovable)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_NONREMOVABLE;
-> --
-> 1.6.3.3
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[  937.885925] mtd_pagetest: erasetest
+[  937.889434] mtd_pagetest: erasing block 0
+[  937.895721] mtd_pagetest: writing 1st page of block 0
+[  937.901550] mtd_pagetest: erasing block 0
+[  937.907623] mtd_pagetest: reading 1st page of block 0
+[  937.912994] mtd_pagetest: verifying 1st page of block 0 is all 0xff
+[  937.919342] mtd_pagetest: verifying all 0xff failed at 0
+[  937.924713] mtd_pagetest: finished with 1 errors
+
+If I read the mtd contents
+
+# mtd_debug read /dev/mtd4 0 1024 output.log
+# hexdump output.log
+0000000 1caf ecfa 976b aa81 700a 9ce1 5427 32eb
+
+looks like the mtd partition it's not erased, but If I use the
+flash_eraseall tool erases the flash completely without problem
+
+# flash_eraseall /dev/mtd4
+Erasing 256 Kibyte @ fa80000 -- 100 % complete.
+# mtd_debug read /dev/mtd4 0 1024 output.log
+Copied 1024 bytes from address 0x00000000 in flash to file.log
+# hexdump output.log
+0000000 ffff ffff ffff ffff ffff ffff ffff ffff
+*
+0000400
+
+So I don't understand why this test fails. Any idea what might be wrong ?
+
+Here the full log
+
+[  775.590270] =================================================
+[  775.596160] mtd_pagetest: MTD device: 4
+[  775.603851] mtd_pagetest: MTD device size 262668288, eraseblock
+size 262144, page size 4096, count of eraseblocks 1002, pages per
+eraseblock 64, OOB size 64
+[  775.618408] mtd_pagetest: scanning for bad eraseblocks
+[  775.624420] mtd_pagetest: scanned 1002 eraseblocks, 0 are bad
+[  775.630218] mtd_pagetest: erasing whole device
+[  777.486846] mtd_pagetest: erased 1002 eraseblocks
+[  777.491638] mtd_pagetest: writing whole device
+[  777.531585] mtd_pagetest: written up to eraseblock 0
+[  786.519378] mtd_pagetest: written up to eraseblock 256
+[  795.505706] mtd_pagetest: written up to eraseblock 512
+[  804.488769] mtd_pagetest: written up to eraseblock 768
+[  812.668182] mtd_pagetest: written 1002 eraseblocks
+[  812.673126] mtd_pagetest: verifying all eraseblocks
+[  812.803375] mtd_pagetest: verified up to eraseblock 0
+[  844.772460] mtd_pagetest: verified up to eraseblock 256
+[  876.734741] mtd_pagetest: verified up to eraseblock 512
+[  908.696838] mtd_pagetest: verified up to eraseblock 768
+[  937.791229] mtd_pagetest: verified 1002 eraseblocks
+[  937.796234] mtd_pagetest: crosstest
+[  937.800903] mtd_pagetest: reading page at 0x0
+[  937.805877] mtd_pagetest: reading page at 0xfa7f000
+[  937.811096] mtd_pagetest: reading page at 0x0
+[  937.816070] mtd_pagetest: verifying pages read at 0x0 match
+[  937.821838] mtd_pagetest: crosstest ok
+[  937.825622] mtd_pagetest: erasecrosstest
+[  937.829589] mtd_pagetest: erasing block 0
+[  937.835906] mtd_pagetest: writing 1st page of block 0
+[  937.841552] mtd_pagetest: reading 1st page of block 0
+[  937.847198] mtd_pagetest: verifying 1st page of block 0
+[  937.852600] mtd_pagetest: erasing block 0
+[  937.858734] mtd_pagetest: writing 1st page of block 0
+[  937.864379] mtd_pagetest: erasing block 1001
+[  937.870788] mtd_pagetest: reading 1st page of block 0
+[  937.876342] mtd_pagetest: verifying 1st page of block 0
+[  937.881652] mtd_pagetest: erasecrosstest ok
+[  937.885925] mtd_pagetest: erasetest
+[  937.889434] mtd_pagetest: erasing block 0
+[  937.895721] mtd_pagetest: writing 1st page of block 0
+[  937.901550] mtd_pagetest: erasing block 0
+[  937.907623] mtd_pagetest: reading 1st page of block 0
+[  937.912994] mtd_pagetest: verifying 1st page of block 0 is all 0xff
+[  937.919342] mtd_pagetest: verifying all 0xff failed at 0
+[  937.924713] mtd_pagetest: finished with 1 errors
+[  937.929870] =================================================
+
+Thanks in advance,
+
+Enric
