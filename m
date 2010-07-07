@@ -1,29 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2 0/3] Devkit8000: Use DIE id to initialize dm9000 MAC
- address
-Date: Wed, 7 Jul 2010 15:09:42 +0300
-Message-ID: <20100707120942.GP1920@atomide.com>
-References: <1278378604-15802-1-git-send-email-kanru@0xlab.org>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
+Date: Wed, 7 Jul 2010 17:52:42 +0530
+Message-ID: <AANLkTinq3Hx_2gGbuyvbGnNpSfQ75B3vJU9WU66GAzd4@mail.gmail.com>
+References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
+	<201006070809.47853.luke@dashjr.org>
+	<AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
+	<201006071115.34881.luke@dashjr.org>
+	<AANLkTinod9geJbbfdOIhB465qi6xHqfH-1vL048Bc3fa@mail.gmail.com>
+	<20100707120241.GN1920@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61336 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752882Ab0GGMJt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 08:09:49 -0400
-Content-Disposition: inline
-In-Reply-To: <1278378604-15802-1-git-send-email-kanru@0xlab.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20100707120241.GN1920@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Luke-Jr <luke@dashjr.org>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kan-Ru Chen <kanru@0xlab.org>
-Cc: linux-omap@vger.kernel.org, Thomas Weber <weber@corscience.de>
 
-* Kan-Ru Chen <kanru@0xlab.org> [100706 04:09]:
-> This patch series add the omap_get_die_id interface and use that
-> function to construct a MAC address for use by dm9000.
+On Wed, Jul 7, 2010 at 5:32 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Govindraj <govindraj.ti@gmail.com> [100608 09:24]:
+>> On Mon, Jun 7, 2010 at 9:45 PM, Luke-Jr <luke@dashjr.org> wrote:
+>> > On Monday 07 June 2010 08:28:51 am Govindraj wrote:
+>> >> Link:
+>> >> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summa
+>> >> ry
+>> >>
+>> >> Branch:
+>> >> pm-wip/uart
+>> >
+>> > This branch doesn't appear to have omap-serial.c at all...
+>> >
+>> >> If you are trying to use with any client device connected to uart
+>> >> then we need to ensure the client driver speaks to omap-serial
+>> >> dev entries.
+>> >
+>>
+>> You need apply the driver patch on top of this branch.
+>>
+>> [PATCH v3] serial: Add OMAP high-speed UART driver.
+>
+> Do we still have a dependency to pm-wip/uart branch? Can you please
+> check if you can rebase all these patches on top of linux-omap for-next
+> branch?
 
-Thanks, I've applied these into omap for-next branch.
+pm-wip uart branch is having all the mach-omap2/serail.c changes along with
+hwmod data file updation and serial hwmod usage.
 
+The driver patch [serial: Add OMAP high-speed UART driver]
+was tested against wip/uart branch.
+
+I will re-base all these patches for-next branch,
+and will post driver and board support patches from pm-wip/uart as a
+single series.
+
+Thanks,
+Govindraj.R
+
+
+>
+> Regards,
+>
+> Tony
+>
+
+
+
+-- 
+---
 Regards,
-
-Tony
+Govindraj.R
