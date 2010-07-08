@@ -1,26 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Tony mostly offline for the rest of July
-Date: Thu, 8 Jul 2010 13:00:13 +0300
-Message-ID: <20100708100013.GC1920@atomide.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: Possible bug in onenand_base ?
+Date: Thu, 08 Jul 2010 12:58:07 +0300
+Message-ID: <1278583087.20321.0.camel@localhost>
+References: <u2v70c9a9111004300305n4c86774bm7ed70161ad72d830@mail.gmail.com>
+	 <z2p9c9fda241005052046j3fea69a4v91f3d5fd86648fac@mail.gmail.com>
+	 <k2x70c9a9111005060422v90e246daw19b1f71d57a890a1@mail.gmail.com>
+	 <g2x9c9fda241005060444x7f9c4360u334d3afb06f1e8b8@mail.gmail.com>
+	 <z2v70c9a9111005060602n7b7477ebueb197af05372bd5@mail.gmail.com>
+	 <AANLkTimwO5iU6zPUJeLwAxW3GZGz5ldSRLmp2vpTBem3@mail.gmail.com>
+	 <AANLkTiktbqSHHw572y1YGVw7XhZaim9Pg3lhoMmDBLXY@mail.gmail.com>
+	 <AANLkTin43tv-AiFjwNkUE7ijy_ADMtsZTrqo_PY3DpCE@mail.gmail.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55960 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832Ab0GHKAT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 06:00:19 -0400
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:22419 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832Ab0GHKCY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 06:02:24 -0400
+In-Reply-To: <AANLkTin43tv-AiFjwNkUE7ijy_ADMtsZTrqo_PY3DpCE@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
+Cc: Kyungmin Park <kmpark@infradead.org>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-Hi all,
+On Thu, 2010-07-08 at 11:55 +0200, Enric Balletb=C3=B2 i Serra wrote:
+> Hello,
+>=20
+> I made new tests regarding this issue. Looks like the problem is
+> reading from the OneNAND device.
 
-FYI, I'll be mostly offline after Friday for several weeks.
+Did you try older kernel and then bisecting who is responsible for the
+breakage?
 
-I'll post few more patchsets for review, but will not be merging
-any other omap code after that for the upcoming merge window.
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
-Cheers,
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
