@@ -1,67 +1,52 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: Re: Possible bug in onenand_base ?
-Date: Thu, 8 Jul 2010 12:11:11 +0200
-Message-ID: <AANLkTiludbDD8ndnQlqxyWeP7us-BxaEDHvKfDpw-AW8@mail.gmail.com>
-References: <u2v70c9a9111004300305n4c86774bm7ed70161ad72d830@mail.gmail.com>
-	<z2p9c9fda241005052046j3fea69a4v91f3d5fd86648fac@mail.gmail.com>
-	<k2x70c9a9111005060422v90e246daw19b1f71d57a890a1@mail.gmail.com>
-	<g2x9c9fda241005060444x7f9c4360u334d3afb06f1e8b8@mail.gmail.com>
-	<z2v70c9a9111005060602n7b7477ebueb197af05372bd5@mail.gmail.com>
-	<AANLkTimwO5iU6zPUJeLwAxW3GZGz5ldSRLmp2vpTBem3@mail.gmail.com>
-	<AANLkTiktbqSHHw572y1YGVw7XhZaim9Pg3lhoMmDBLXY@mail.gmail.com>
-	<AANLkTin43tv-AiFjwNkUE7ijy_ADMtsZTrqo_PY3DpCE@mail.gmail.com>
-	<1278583087.20321.0.camel@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-next: manual merge of the omap tree with the arm tree
+Date: Thu, 8 Jul 2010 13:14:23 +0300
+Message-ID: <20100708101422.GD1920@atomide.com>
+References: <20100708113730.c2683125.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:55069 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753513Ab0GHKLM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 06:11:12 -0400
-Received: by pxi14 with SMTP id 14so257347pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 08 Jul 2010 03:11:12 -0700 (PDT)
-In-Reply-To: <1278583087.20321.0.camel@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100708113730.c2683125.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Russell King <rmk@arm.linux.org.uk>, Mike Rapoport <mike@compulab.co.il>
 List-Id: linux-omap@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: Kyungmin Park <kmpark@infradead.org>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-Hello,
+* Stephen Rothwell <sfr@canb.auug.org.au> [100708 04:31]:
+> Hi all,
+> 
+> Today's linux-next merge of the omap tree got conflicts in
+> arch/arm/mach-omap2/board-3430sdp.c,
+> arch/arm/mach-omap2/board-3630sdp.c,
+> arch/arm/mach-omap2/board-am3517evm.c,
+> arch/arm/mach-omap2/board-cm-t35.c,
+> arch/arm/mach-omap2/board-devkit8000.c,
+> arch/arm/mach-omap2/board-igep0020.c,
+> arch/arm/mach-omap2/board-ldp.c,
+> arch/arm/mach-omap2/board-omap3beagle.c,
+> arch/arm/mach-omap2/board-omap3evm.c,
+> arch/arm/mach-omap2/board-omap3pandora.c,
+> arch/arm/mach-omap2/board-omap3touchbook.c,
+> arch/arm/mach-omap2/board-overo.c,
+> arch/arm/mach-omap2/board-zoom2.c and
+> arch/arm/mach-omap2/board-zoom3.c
+> between commit 1e6d923b4e5729b73518d241edf87a3ab2d5688c ("ARM: OMAP:
+> Convert to use ->reserve method to reserve boot time memory") from the
+> arm tree and commit c752ab9d5a5b6899f14fe1c6643c0fe0b499a4ba ("omap3:
+> introduce omap3_map_io") from the omap tree.
+> 
+> Just context changes.  I fixed it up (see below) and can carry the fix as
+> necessary.
 
-2010/7/8 Artem Bityutskiy <dedekind1@gmail.com>:
-> On Thu, 2010-07-08 at 11:55 +0200, Enric Balletb=C3=B2 i Serra wrote:
->> Hello,
->>
->> I made new tests regarding this issue. Looks like the problem is
->> reading from the OneNAND device.
->
-> Did you try older kernel and then bisecting who is responsible for th=
-e
-> breakage?
+Thanks, I'll merge with Russell's lmb branch when I
+have confirmation that it will stay static.
+ 
+> P.S. Tony, that omap tree commit has a fairly unuseful changelog and no
+> SOB from its purported author ...
 
-Yes, before commit
+Oops, I'll check that.
 
-5988af2319781bc8e0ce418affec4e09cfa77907 (mtd: Flex-OneNAND support)
+Regards,
 
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-commit;h=3D5988af2319781bc8e0ce418affec4e09cfa77907
-
-my  OneNAND is working, after the commit, the OneNAND support is broken=
-=2E
-
-Cheers,
-Enric
-
->
-> --
-> Best Regards,
-> Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=
-=8E=D1=86=D0=BA=D0=B8=D0=B9)
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
