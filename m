@@ -1,72 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 13/13] omap: Devkit8000: Use DIE id to initialize dm9000 MAC
-	address
-Date: Thu, 08 Jul 2010 16:55:14 +0300
-Message-ID: <20100708135514.26276.25014.stgit@baageli.muru.com>
-References: <20100708135342.26276.80936.stgit@baageli.muru.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Mathias Nyman <mathias.nyman@nokia.com>
+Subject: [PATCH] omap: rx51: Platform support for tsl2563 ALS
+Date: Thu,  8 Jul 2010 17:05:11 +0300
+Message-ID: <1278597911-11839-1-git-send-email-mathias.nyman@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60814 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757915Ab0GHNzR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 09:55:17 -0400
-In-Reply-To: <20100708135342.26276.80936.stgit@baageli.muru.com>
+Received: from smtp.nokia.com ([192.100.122.233]:37363 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544Ab0GHOFY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 10:05:24 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o68E4gSl010940
+	for <linux-omap@vger.kernel.org>; Thu, 8 Jul 2010 17:05:21 +0300
+Received: from localhost.localdomain (esdhcp038119.research.nokia.com [172.21.38.119])
+	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o68E5Bca026182
+	for <linux-omap@vger.kernel.org>; Thu, 8 Jul 2010 17:05:11 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Kan-Ru Chen <kanru@0xlab.org>
+To: linux-omap@vger.kernel.org
 
-From: Kan-Ru Chen <kanru@0xlab.org>
+From: Mathias Nyman <mathias.nyman@nokia.com>
 
-The devkit8000 boards often come with empty EEPROM thus without
-valid ethernet MAC address. The DIE id to MAC formula is copied from
-u-boot.
+This will enable usage of tsl2563 ambient light sensor on Nokia N900.
 
-Signed-off-by: Kan-Ru Chen <kanru@0xlab.org>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/mach-omap2/board-devkit8000.c |   14 ++++++++++++++
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   14 ++++++++++++++
  1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 19da458..4b7103a 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -33,6 +33,7 @@
- #include <linux/i2c/twl.h>
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 3c3f975..a3a396c 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -35,6 +35,8 @@
+ #include <sound/tlv320aic3x.h>
+ #include <sound/tpa6130a2-plat.h>
  
- #include <mach/hardware.h>
-+#include <mach/id.h>
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -556,6 +557,9 @@ static struct platform_device omap_dm9000_dev = {
- 
- static void __init omap_dm9000_init(void)
- {
-+	unsigned char *eth_addr = omap_dm9000_platdata.dev_addr;
-+	struct omap_die_id odi;
++#include <../drivers/staging/iio/light/tsl2563.h>
 +
- 	if (gpio_request(OMAP_DM9000_GPIO_IRQ, "dm9000 irq") < 0) {
- 		printk(KERN_ERR "Failed to request GPIO%d for dm9000 IRQ\n",
- 			OMAP_DM9000_GPIO_IRQ);
-@@ -563,6 +567,16 @@ static void __init omap_dm9000_init(void)
- 		}
+ #include "mux.h"
+ #include "hsmmc.h"
  
- 	gpio_direction_input(OMAP_DM9000_GPIO_IRQ);
-+
-+	/* init the mac address using DIE id */
-+	omap_get_die_id(&odi);
-+
-+	eth_addr[0] = 0x02; /* locally administered */
-+	eth_addr[1] = odi.id_1 & 0xff;
-+	eth_addr[2] = (odi.id_0 & 0xff000000) >> 24;
-+	eth_addr[3] = (odi.id_0 & 0x00ff0000) >> 16;
-+	eth_addr[4] = (odi.id_0 & 0x0000ff00) >> 8;
-+	eth_addr[5] = (odi.id_0 & 0x000000ff);
- }
+@@ -53,6 +55,12 @@ enum {
  
- static struct platform_device *devkit8000_devices[] __initdata = {
+ static struct wl12xx_platform_data wl1251_pdata;
+ 
++#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
++static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
++	.cover_comp_gain = 16,
++};
++#endif
++
+ static struct omap2_mcspi_device_config wl1251_mcspi_config = {
+ 	.turbo_mode	= 0,
+ 	.single_channel	= 1,
+@@ -714,6 +722,12 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
+ 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+ 		.platform_data = &rx51_aic3x_data,
+ 	},
++#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
++	{
++		I2C_BOARD_INFO("tsl2563", 0x29),
++		.platform_data = &rx51_tsl2563_platform_data,
++	},
++#endif
+ 	{
+ 		I2C_BOARD_INFO("tpa6130a2", 0x60),
+ 		.platform_data = &rx51_tpa6130a2_data,
+-- 
+1.7.0.4
 
