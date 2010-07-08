@@ -1,46 +1,44 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: Possible bug in onenand_base ?
-Date: Thu, 08 Jul 2010 12:58:07 +0300
-Message-ID: <1278583087.20321.0.camel@localhost>
-References: <u2v70c9a9111004300305n4c86774bm7ed70161ad72d830@mail.gmail.com>
-	 <z2p9c9fda241005052046j3fea69a4v91f3d5fd86648fac@mail.gmail.com>
-	 <k2x70c9a9111005060422v90e246daw19b1f71d57a890a1@mail.gmail.com>
-	 <g2x9c9fda241005060444x7f9c4360u334d3afb06f1e8b8@mail.gmail.com>
-	 <z2v70c9a9111005060602n7b7477ebueb197af05372bd5@mail.gmail.com>
-	 <AANLkTimwO5iU6zPUJeLwAxW3GZGz5ldSRLmp2vpTBem3@mail.gmail.com>
-	 <AANLkTiktbqSHHw572y1YGVw7XhZaim9Pg3lhoMmDBLXY@mail.gmail.com>
-	 <AANLkTin43tv-AiFjwNkUE7ijy_ADMtsZTrqo_PY3DpCE@mail.gmail.com>
-Reply-To: dedekind1@gmail.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/5] omap serial init patches for 2.6.36 merge window
+Date: Thu, 08 Jul 2010 13:08:05 +0300
+Message-ID: <20100708100715.19285.30066.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:22419 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832Ab0GHKCY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 06:02:24 -0400
-In-Reply-To: <AANLkTin43tv-AiFjwNkUE7ijy_ADMtsZTrqo_PY3DpCE@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62663 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755993Ab0GHKIM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 06:08:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
-Cc: Kyungmin Park <kmpark@infradead.org>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-On Thu, 2010-07-08 at 11:55 +0200, Enric Balletb=C3=B2 i Serra wrote:
-> Hello,
->=20
-> I made new tests regarding this issue. Looks like the problem is
-> reading from the OneNAND device.
+Hi all,
 
-Did you try older kernel and then bisecting who is responsible for the
-breakage?
+Here are some patches dealing with omap serial errata handling.
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+Regards,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+
+---
+
+Deepak K (1):
+      omap2/3/4: serial: errata i202: fix for MDR1 access
+
+Govindraj R (1):
+      omap3: serial: Add context save and restore for mcr
+
+Nishanth Menon (3):
+      omap2/3/4: serial: remove initialization sparse warnings
+      omap2/3/4: serial: kill dev_attr_sleep_timeout sparse warn
+      omap2/3/4: serial: introduce errata handling
+
+
+ arch/arm/mach-omap2/serial.c |   80 ++++++++++++++++++++++++++++++++++++------
+ 1 files changed, 69 insertions(+), 11 deletions(-)
+
+-- 
+Signature
