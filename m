@@ -1,48 +1,80 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/8] musb: fix compilation warning in host only mode
-Date: Wed, 7 Jul 2010 20:35:56 -0700
-Message-ID: <20100708033556.GA25302@kroah.com>
-References: <1276771242-5201-1-git-send-email-ajay.gupta@ti.com> <1276771242-5201-2-git-send-email-ajay.gupta@ti.com> <1276771242-5201-3-git-send-email-ajay.gupta@ti.com> <1276771242-5201-4-git-send-email-ajay.gupta@ti.com> <20100624060338.GF8078@nokia.com> <19F8576C6E063C45BE387C64729E7394044E9E38CA@dbde02.ent.ti.com> <20100706091314.GG3035@nokia.com> <20100707220129.GA5884@kroah.com> <19F8576C6E063C45BE387C64729E7394044EB95AE0@dbde02.ent.ti.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH 06/15] omap zoom2: wlan board muxing
+Date: Thu, 8 Jul 2010 09:09:21 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E10C9B3__16419.2575532526$1278560395$gmane$org@dbde02.ent.ti.com>
+References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
+ <1278376666-3509-7-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044EB95AE0-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "gregkh-l3A5Bk7waGM@public.gmane.org" <gregkh-l3A5Bk7waGM@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43527 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753050Ab0GHDjs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jul 2010 23:39:48 -0400
+In-Reply-To: <1278376666-3509-7-git-send-email-ohad@wizery.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, linux-omap@vger.kernel.o
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Ben-cohen, Ohad" <ohadb@ti.com>
 
-On Thu, Jul 08, 2010 at 07:23:44AM +0530, Gupta, Ajay Kumar wrote:
-> Hi,
-> > > On Thu, Jun 24, 2010 at 01:17:54PM +0200, ext Gupta, Ajay Kumar wrote:
-> > > >Fixes below compilation warning when host only configuration is
-> > > >selected.
-> > > >drivers/usb/musb/musb_core.c: In function 'musb_stage0_irq':
-> > > >drivers/usb/musb/musb_core.c:711: warning: unused variable 'mbase'
-> > > >
-> > > >Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> > >
-> > > Acked-by: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> > 
-> > You've acked a random ammount of patches recently, are you going to be
-> > resending them to me?  I have a hard time going back and digging through
-> > the archives to pick out the ones that you acked vs. the ones you
-> > didn't.
-> 
-> Greg,
-> 
-> There are 2 musb and 1 ehci-omap bug fix patches which are acked.
-> Another related one is on ULPI and is trivial.
-> 
-> Apart from these, 2 musb patches for v2.6.36 window are also acked.
-> 
-> I will prepare the set and send you after sanity testing.
 
-That sounds great, thanks for doing this.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
+> owner@vger.kernel.org] On Behalf Of Ohad Ben-Cohen
+> Sent: Tuesday, July 06, 2010 6:08 AM
+> To: linux-wireless@vger.kernel.org; linux-mmc@vger.kernel.org; linux-
+> omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org; linux@arm.linux.org.uk;
+> Chikkature Rajashekar, Madhusudhan; Luciano Coelho; akpm@linux-
+> foundation.org; San Mehat; Ben-cohen, Ohad
+> Subject: [PATCH 06/15] omap zoom2: wlan board muxing
+> 
+> From: Ohad Ben-Cohen <ohadb@ti.com>
+> 
+> Add board muxing to support the wlan wl1271 chip that is
+> hardwired to mmc2 (third mmc controller) on the ZOOM2.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohadb@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-zoom2.c |   15 +++++++++++++++
+>  1 files changed, 15 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-
+> omap2/board-zoom2.c
+> index 803ef14..00871be 100644
+> --- a/arch/arm/mach-omap2/board-zoom2.c
+> +++ b/arch/arm/mach-omap2/board-zoom2.c
+> @@ -71,6 +71,21 @@ static struct twl4030_platform_data zoom2_twldata = {
+> 
+>  #ifdef CONFIG_OMAP_MUX
+>  static struct omap_board_mux board_mux[] __initdata = {
+> +#ifdef CONFIG_OMAP_ZOOM_WLAN
+[Ghorai] This is zoom board specific file, So why need this additional flag?
+
+> +	/* WLAN IRQ - GPIO 162 */
+> +	OMAP3_MUX(MCBSP1_CLKX, OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
+> +	/* WLAN POWER ENABLE - GPIO 101 */
+> +	OMAP3_MUX(CAM_D2, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+> +	/* WLAN SDIO: MMC3 CMD */
+> +	OMAP3_MUX(MCSPI1_CS1, OMAP_MUX_MODE3 | OMAP_PIN_INPUT_PULLUP),
+> +	/* WLAN SDIO: MMC3 CLK */
+> +	OMAP3_MUX(ETK_CLK, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
+> +	/* WLAN SDIO: MMC3 DAT[0-3] */
+> +	OMAP3_MUX(ETK_D3, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
+> +	OMAP3_MUX(ETK_D4, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
+> +	OMAP3_MUX(ETK_D5, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
+> +	OMAP3_MUX(ETK_D6, OMAP_MUX_MODE2 | OMAP_PIN_INPUT_PULLUP),
+> +#endif
+>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+>  };
+>  #else
+> --
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
