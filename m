@@ -1,70 +1,60 @@
-From: Mathias Nyman <mathias.nyman@nokia.com>
-Subject: [PATCH] omap: rx51: Platform support for tsl2563 ALS
-Date: Thu,  8 Jul 2010 17:05:11 +0300
-Message-ID: <1278597911-11839-1-git-send-email-mathias.nyman@nokia.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/9 v3] omap: generic: introduce a single check_revision
+Date: Thu, 8 Jul 2010 09:27:23 -0500
+Message-ID: <4C35E04B.1090102@ti.com>
+References: <1278590256.3787.14.camel@Nokia-N900> <20100708122157.GI1920@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:37363 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544Ab0GHOFY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 10:05:24 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o68E4gSl010940
-	for <linux-omap@vger.kernel.org>; Thu, 8 Jul 2010 17:05:21 +0300
-Received: from localhost.localdomain (esdhcp038119.research.nokia.com [172.21.38.119])
-	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o68E5Bca026182
-	for <linux-omap@vger.kernel.org>; Thu, 8 Jul 2010 17:05:11 +0300
+Received: from comal.ext.ti.com ([198.47.26.152]:58315 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751749Ab0GHO1c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Jul 2010 10:27:32 -0400
+In-Reply-To: <20100708122157.GI1920@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "ValkeinenTomi (Nokia-MS/Helsinki)" <Tomi.Valkeinen@nokia.com>, "Koskinen Aaro (Nokia-MS/Helsinki)" <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-From: Mathias Nyman <mathias.nyman@nokia.com>
+Tony Lindgren had written, on 07/08/2010 07:21 AM, the following:
+> * Menon, Nishanth <nm@ti.com> [100708 14:49]:
+>> ----- Original message -----
+>>> Hi,
+>>>
+>>> On Wed, Jul 07, 2010 at 07:24:16PM +0200, ext Nishanth Menon wrote:
+>>>> I am not sure.. if you would like drivers to be modprobabe, there may
+>>> be
+>>>> quirks that you'd want to enable based on cpu_is_omapxxx checks. so it
+>>>> probably does not make sense to __initdata the revision/feature
+>>> variables.
+>>>
+>>> can't you pass the quirks via pdata, then ?
+>> If pdata is passed based on board: Imagine 3630 and uart quirk. Why share errata xyz over pdata for every board using 3630? Quirks are cpu specific and not really domain of board..  
+> 
+> We should be able to handle the quirks by passing some
+> flag or function pointer from platform data.
+> 
+> The drivers should be arch independent, using cpu_is_omapxxxx
+> tests anywhere under drivers/* is wrong and should be
+> fixed.
 
-This will enable usage of tsl2563 ambient light sensor on Nokia N900.
+there are two forms of quirks:
+a) quirks which can be detected based on IP rev
+b) quirks which are silicon integration related - only cpu_is_xxxx can 
+be used to detect them.
+for a) - I disagree that pdata should be used (this was my original 
+contention)
+for b) the question IMHO is: How is pdata provided to the driver - that 
+is important. IMHO, pdata taken into drivers could have quirks, but if 
+the quirk addition is done from board files, I disagree, then should be 
+done in arch/arm/mach-omap[12]/somefile.c where somefile.c is common for 
+all boards (e.g. device.c) and that allows the driver to be cpu 
+independent and allows board files not to have redundant information.
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+BUT, features *should* be kept distinct from quirks for readability 
+purposes.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 3c3f975..a3a396c 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -35,6 +35,8 @@
- #include <sound/tlv320aic3x.h>
- #include <sound/tpa6130a2-plat.h>
- 
-+#include <../drivers/staging/iio/light/tsl2563.h>
-+
- #include "mux.h"
- #include "hsmmc.h"
- 
-@@ -53,6 +55,12 @@ enum {
- 
- static struct wl12xx_platform_data wl1251_pdata;
- 
-+#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
-+static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
-+	.cover_comp_gain = 16,
-+};
-+#endif
-+
- static struct omap2_mcspi_device_config wl1251_mcspi_config = {
- 	.turbo_mode	= 0,
- 	.single_channel	= 1,
-@@ -714,6 +722,12 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
- 		.platform_data = &rx51_aic3x_data,
- 	},
-+#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
-+	{
-+		I2C_BOARD_INFO("tsl2563", 0x29),
-+		.platform_data = &rx51_tsl2563_platform_data,
-+	},
-+#endif
- 	{
- 		I2C_BOARD_INFO("tpa6130a2", 0x60),
- 		.platform_data = &rx51_tpa6130a2_data,
 -- 
-1.7.0.4
-
+Regards,
+Nishanth Menon
