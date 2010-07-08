@@ -1,87 +1,161 @@
 From: Manjunatha GK <manjugk@ti.com>
-Subject: [RFC PATCH 00/10] OMAP: DMA: HWMOD and convert into platform driver
-Date: Fri,  9 Jul 2010 04:21:12 +0530
-Message-ID: <1278629482-32501-1-git-send-email-manjugk@ti.com>
+Subject: [RFC PATCH 01/10] OMAP2420: DMA: HWMOD: Add hwmod data structures
+Date: Fri,  9 Jul 2010 04:21:13 +0530
+Message-ID: <1278629482-32501-2-git-send-email-manjugk@ti.com>
+References: <1278629482-32501-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39641 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39640 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758698Ab0GHWyF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1758670Ab0GHWyF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 8 Jul 2010 18:54:05 -0400
+In-Reply-To: <1278629482-32501-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Manjunatha GK <manjugk@ti.com>, "Basak, Partha" <p-basak2@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-This patch series is to convert existing OMAP DMA library into platform driver
-for all the OMAP1 and OMAP2 plus processors as per alignment with
-Benoit, Paul and Kevin.
+This patch adds OMAP2420 DMA hwmod structures.
 
-The platform device model for OMAP2 plus will makes use of hwmod data base 
-and it is based on the reference branch:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-Branch: pm-wip/hwmods-omap4
-commit f1c79ab452ed9cf7b5ff6488335c1ddf15d5c92a
-Author: Benoit Cousson <b-cousson@ti.com>
-    OMAP4: hwmod: Enable omap_hwmod build for OMAP4
-
-The proposal is to:
-1. Convert DMA library into platform driver in hwmod way
-2. Clean up API's to remove cpu_is_xxxx checks.
-3. Make use of DMA engine(See Documentation/crypto/async-tx-api.txt)
-
-This series is going to cover 1 & 2 and 3 will be taken up once these changes
-becomes stable and thoroughly tested on all omap boards.
-
-The API's are cleaned up to remove cpu_is_xxxx checks and code is moved 
-to corresponding respective mach-omap folders.
-
-Basic tests are performed with this patch series on OMAP3630(Zoom3) board.
-All other major defconfigs are build tested. OMAP4 boot seems to be broken
-on above branch for both MMC and ethernet. 
-
-List of TODO's:
-1. To perform more tests on OMAP4 once the branch is bootable.
-2. OMAP2 boot and basic dma tests
-
-It will be helpful is some one tests and provides feedback on OMAP1 and OMAP2
-boards since I don't have OMAP1 board.
-
-Manjunatha GK (10):
-  OMAP2420: DMA: HWMOD: Add hwmod data structures
-  OMAP2430: DMA: HWMOD: Add hwmod data structures
-  OMAP3: DMA: HWMOD: Add hwmod data structures
-  OMAP4: DMA: HWMOD: update OMAP4 data base
-  OMAP1: DMA: Introduce DMA driver as platform driver
-  OMAP2/3/4: DMA: HWMOD: Device registration
-  OMAP2/3/4: DMA: Move chain API's to mach-omap2
-  OMAP: DMA: Move IRQ handlers to mach-omap
-  OMAP: DMA: API's Clean up
-  OMAP: DMA: Cleanup DMA library and enable DMA platform driver
-
- arch/arm/mach-omap1/Makefile               |    2 +-
- arch/arm/mach-omap1/dma.c                  |  595 +++++++++
- arch/arm/mach-omap1/include/mach/dma.h     |   80 ++
- arch/arm/mach-omap2/Makefile               |    2 +-
- arch/arm/mach-omap2/dma.c                  | 1268 ++++++++++++++++++
- arch/arm/mach-omap2/include/mach/dma.h     |  103 ++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   95 ++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   93 ++-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   90 ++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   21 +-
- arch/arm/plat-omap/dma.c                   | 1968 ++++++----------------------
- arch/arm/plat-omap/include/plat/dma.h      |  438 +++----
- 12 files changed, 2920 insertions(+), 1835 deletions(-)
- create mode 100644 arch/arm/mach-omap1/dma.c
- create mode 100644 arch/arm/mach-omap1/include/mach/dma.h
- create mode 100644 arch/arm/mach-omap2/dma.c
- create mode 100644 arch/arm/mach-omap2/include/mach/dma.h
-
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
 Signed-off-by: Basak, Partha <p-basak2@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   95 +++++++++++++++++++++++++++-
+ 1 files changed, 93 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index 8c90b27..294d5cc 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -16,6 +16,9 @@
+ #include <plat/cpu.h>
+ #include <plat/dma.h>
+ 
++#include <mach/irqs.h>
++#include <mach/dma.h>
++
+ #include "omap_hwmod_common_data.h"
+ 
+ #include "prm-regbits-24xx.h"
+@@ -32,6 +35,7 @@
+ static struct omap_hwmod omap2420_mpu_hwmod;
+ static struct omap_hwmod omap2420_l3_main_hwmod;
+ static struct omap_hwmod omap2420_l4_core_hwmod;
++static struct omap_hwmod omap2420_dma_system_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap2420_l3_main__l4_core = {
+@@ -136,11 +140,100 @@ static struct omap_hwmod omap2420_mpu_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ };
+ 
++static struct omap_hwmod_class_sysconfig omap2420_dma_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x002c,
++	.syss_offs	= 0x0028,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_MIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
++			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap2420_dma_hwmod_class = {
++	.name = "dma",
++	.sysc = &omap2420_dma_sysc,
++};
++
++/* system dma */
++
++/* dma attributes */
++static struct omap_dma_dev_attr dma_dev_attr = {
++	.dma_dev_attr = DMA_LINKED_LCH | GLOBAL_PRIORITY |
++				IS_CSSA_32 | IS_CDSA_32,
++	.dma_lch_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT,
++};
++
++static struct omap_hwmod_irq_info omap2420_dma_system_irqs[] = {
++	{ .name = "dma_0", .irq = INT_24XX_SDMA_IRQ0 },
++	{ .name = "dma_1", .irq = INT_24XX_SDMA_IRQ1 },
++	{ .name = "dma_2", .irq = INT_24XX_SDMA_IRQ2 },
++	{ .name = "dma_3", .irq = INT_24XX_SDMA_IRQ3 },
++};
++
++static struct omap_hwmod_addr_space omap2420_dma_system_addrs[] = {
++	{
++		.pa_start	= 0x48056000,
++		.pa_end		= 0x4a0560ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* dma_system -> L3 */
++static struct omap_hwmod_ocp_if omap2420_dma_system__l3 = {
++	.master		= &omap2420_dma_system_hwmod,
++	.slave		= &omap2420_l3_main_hwmod,
++	.clk		= "l3_div_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* dma_system master ports */
++static struct omap_hwmod_ocp_if *omap2420_dma_system_masters[] = {
++	&omap2420_dma_system__l3,
++};
++
++/* l4_cfg -> dma_system */
++static struct omap_hwmod_ocp_if omap2420_l4_core__dma_system = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_dma_system_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap2420_dma_system_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_dma_system_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* dma_system slave ports */
++static struct omap_hwmod_ocp_if *omap2420_dma_system_slaves[] = {
++	&omap2420_l4_core__dma_system,
++};
++
++static struct omap_hwmod omap2420_dma_system_hwmod = {
++	.name		= "dma",
++	.class		= &omap2420_dma_hwmod_class,
++	.mpu_irqs	= omap2420_dma_system_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_dma_system_irqs),
++	.main_clk	= "l3_div_ck",
++	.prcm = {
++		.omap2 = {
++			/* .clkctrl_reg = NULL, */
++		},
++	},
++	.slaves		= omap2420_dma_system_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_dma_system_slaves),
++	.masters	= omap2420_dma_system_masters,
++	.masters_cnt	= ARRAY_SIZE(omap2420_dma_system_masters),
++	.dev_attr	= &dma_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++};
++
+ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
+ 	&omap2420_l3_main_hwmod,
+ 	&omap2420_l4_core_hwmod,
+ 	&omap2420_l4_wkup_hwmod,
+ 	&omap2420_mpu_hwmod,
++	&omap2420_dma_system_hwmod,
+ 	NULL,
+ };
+ 
+@@ -148,5 +241,3 @@ int __init omap2420_hwmod_init(void)
+ {
+ 	return omap_hwmod_init(omap2420_hwmods);
+ }
+-
+-
+-- 
+1.7.0.4
 
