@@ -1,78 +1,94 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/13] omap: dma: Support for prefetch in destination
-	synchronizedtransfer
-Date: Thu, 08 Jul 2010 16:54:58 +0300
-Message-ID: <20100708135458.26276.67951.stgit@baageli.muru.com>
+Subject: [PATCH 10/13] OMAP3: AM3505/3517 do not have IO wakeup capability
+Date: Thu, 08 Jul 2010 16:55:02 +0300
+Message-ID: <20100708135502.26276.53341.stgit@baageli.muru.com>
 References: <20100708135342.26276.80936.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60371 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757859Ab0GHNzB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 09:55:01 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56128 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757915Ab0GHNzG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 09:55:06 -0400
 In-Reply-To: <20100708135342.26276.80936.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Samu Onkalo <samu.p.onkalo@nokia.com>, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
+From: stanley.miao <stanley.miao@windriver.com>
 
-Omap DMA controller can prefetch data in advance in case of
-destination synchronized data transfer. This may increase
-performance when target HW block doesn't have fifo.
-Data is waiting for transfer request in DMA fifo instead of read from memory.
+AM3505/3517 doesn't have IO wakeup capability, so we do not need to set
+the bit OMAP3430_EN_IO and the bit OMAP3430_EN_IO_CHAIN in the register
+PM_WKEN_WKUP when the system enters suspend state.
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+Tested on AM3517EVM and OMAP3530EVM.
+
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/dma.c              |   11 +++++++----
- arch/arm/plat-omap/include/plat/dma.h |    1 +
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/id.c              |    2 ++
+ arch/arm/mach-omap2/pm34xx.c          |    7 ++++---
+ arch/arm/plat-omap/include/plat/cpu.h |    2 ++
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index f7f571e..ec7eddf 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -290,7 +290,7 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
- 		val = dma_read(CCR(lch));
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index c7bf0e1..ccaa1ed 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -179,6 +179,8 @@ static void __init omap3_check_features(void)
+ 	OMAP3_CHECK_FEATURE(status, ISP);
+ 	if (cpu_is_omap3630())
+ 		omap3_features |= OMAP3_HAS_192MHZ_CLK;
++	if (!cpu_is_omap3505() && !cpu_is_omap3517())
++		omap3_features |= OMAP3_HAS_IO_WAKEUP;
  
- 		/* DMA_SYNCHRO_CONTROL_UPPER depends on the channel number */
--		val &= ~((3 << 19) | 0x1f);
-+		val &= ~((1 << 23) | (3 << 19) | 0x1f);
- 		val |= (dma_trigger & ~0x1f) << 14;
- 		val |= dma_trigger & 0x1f;
- 
-@@ -304,11 +304,14 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
- 		else
- 			val &= ~(1 << 18);
- 
--		if (src_or_dst_synch)
-+		if (src_or_dst_synch == OMAP_DMA_DST_SYNC_PREFETCH) {
-+			val &= ~(1 << 24);	/* dest synch */
-+			val |= (1 << 23);	/* Prefetch */
-+		} else if (src_or_dst_synch) {
- 			val |= 1 << 24;		/* source synch */
--		else
-+		} else {
- 			val &= ~(1 << 24);	/* dest synch */
--
-+		}
- 		dma_write(val, CCR(lch));
+ 	/*
+ 	 * TODO: Get additional info (where applicable)
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index b88737f..fb4994a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -385,8 +385,9 @@ void omap_sram_idle(void)
+ 	/* Enable IO-PAD and IO-CHAIN wakeups */
+ 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+ 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+-	if (per_next_state < PWRDM_POWER_ON ||
+-			core_next_state < PWRDM_POWER_ON) {
++	if (omap3_has_io_wakeup() && \
++			(per_next_state < PWRDM_POWER_ON ||
++			core_next_state < PWRDM_POWER_ON)) {
+ 		prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+ 		omap3_enable_io_chain();
+ 	}
+@@ -479,7 +480,7 @@ void omap_sram_idle(void)
  	}
  
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index 02232ca..af3a039 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -345,6 +345,7 @@
- #define OMAP_DMA_SYNC_BLOCK		0x02
- #define OMAP_DMA_SYNC_PACKET		0x03
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+-	if (core_next_state < PWRDM_POWER_ON) {
++	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
+ 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+ 		omap3_disable_io_chain();
+ 	}
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 7514174..aa2f4f0 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -444,6 +444,7 @@ extern u32 omap3_features;
+ #define OMAP3_HAS_NEON			BIT(3)
+ #define OMAP3_HAS_ISP			BIT(4)
+ #define OMAP3_HAS_192MHZ_CLK		BIT(5)
++#define OMAP3_HAS_IO_WAKEUP		BIT(6)
  
-+#define OMAP_DMA_DST_SYNC_PREFETCH	0x02
- #define OMAP_DMA_SRC_SYNC		0x01
- #define OMAP_DMA_DST_SYNC		0x00
+ #define OMAP3_HAS_FEATURE(feat,flag)			\
+ static inline unsigned int omap3_has_ ##feat(void)	\
+@@ -457,5 +458,6 @@ OMAP3_HAS_FEATURE(iva, IVA)
+ OMAP3_HAS_FEATURE(neon, NEON)
+ OMAP3_HAS_FEATURE(isp, ISP)
+ OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
++OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
  
+ #endif
 
