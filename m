@@ -1,79 +1,35 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
-Date: Thu, 08 Jul 2010 11:54:46 +0300
-Message-ID: <4C359256.3080704@nokia.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com> <1278376666-3509-12-git-send-email-ohad@wizery.com> <4C32EF19.1000604@nokia.com> <AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com> <4C3306F4.8060907@nokia.com> <AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com> <4C333E0D.2070601@nokia.com> <alpine.LFD.2.00.1007061316010.6020@xanadu.home> <4C343135.1090101@nokia.com> <alpine.LFD.2.00.1007070937040.6020@xanadu.home>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 3/9 v3] omap: generic: introduce a single check_revision
+Date: Thu, 8 Jul 2010 12:08:22 +0300
+Message-ID: <20100708090821.GC23326@nokia.com>
+References: <1277483122-3616-1-git-send-email-nm@ti.com>
+ <20100707123633.GT1920@atomide.com>
+ <4C34B840.3060907@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:16495 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab0GHIzq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 04:55:46 -0400
-In-Reply-To: <alpine.LFD.2.00.1007070937040.6020@xanadu.home>
+Received: from smtp.nokia.com ([192.100.122.233]:64126 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752613Ab0GHJJQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 05:09:16 -0400
+Content-Disposition: inline
+In-Reply-To: <4C34B840.3060907@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nicolas Pitre <nico@fluxnic.net>
-Cc: ext Ohad Ben-Cohen <ohad@wizery.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>
+To: ext Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "Valkeinen Tomi (Nokia-MS/Helsinki)" <Tomi.Valkeinen@nokia.com>, "Koskinen Aaro (Nokia-MS/Helsinki)" <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-On 07/07/2010 04:52 PM, ext Nicolas Pitre wrote:
-> On Wed, 7 Jul 2010, Roger Quadros wrote:
->
->> On 07/06/2010 08:42 PM, ext Nicolas Pitre wrote:
->>> On Tue, 6 Jul 2010, Roger Quadros wrote:
->>>
->>>> OK, this is how I see it.
->>>>
->>>> - Treat the non-removable card as non-removable. So no need to do card
->>>> detect
->>>> emulation.
->>>>
->>>> - Treat the GPIO power enable on wl1271 as VMMC supply. Use fixed
->>>> regulator
->>>> framework to define this regulator&   supply. Even though you mention that
->>>> it
->>>> is not actually a supply, it fits well in the fixed supply framework.
->>>>
->>>> - When the host controller is enumerated, the mmc core will power up the
->>>> slot,
->>>> find the sdio card, and probe the function driver (i.e. wl1271_sdio).
->>>>
->>>> - if interface is not in use, the function driver must release the sdio
->>>> host,
->>>> and this should eventually disable the vmmc supply.
->>>>
->>>> - Whenever the wlan interface must be brought up, wl1271_sdio, can claim
->>>> the
->>>> sdio host. this will cause the vmmc supply to be enabled, for as long as
->>>> the
->>>> interface is up.
->>>>
->>>> Does this address all issues?
->>>
->>> This is mostly all good, except that claiming/releasing the SDIO host is
->>> about access to the bus.  It must be claimed right before doing any IO,
->>> and released right after that, even when the card is expected to remain
->>> powered.  This is not the proper place to hook power control.
->>
->> Agreed, but is it so that SDIO power may be removed between a host_release and
->> claim? This appears so from omap_hsmmc host controller.
->
-> No, it is not because a host is not claimed that power should be
-> dropped.  The host claim/release is meant to provide exclusive access to
-> the card that's all.
->
-> If the OMAP controller is dropping power to the card upon
-> host->disable() then it is wrong.  AFAICS only the OMAP controller is
-> playing such games at the moment and I suspect the semantics might not
-> be all right.  Shutting down the _controller_ when it is idle might be a
-> good thing, but not power to the _card_.  Only the function driver might
-> know when it is fine to lose power.
->
->
-I completely agree with you Nicolas. omap_hsmmc needs to be fixed so that it 
-does not control MMC/SDIO slot supply voltage. It should deal with only the mmc 
-controller power savings and not the card/function power savings.
+Hi,
 
-regards,
--roger
+On Wed, Jul 07, 2010 at 07:24:16PM +0200, ext Nishanth Menon wrote:
+>I am not sure.. if you would like drivers to be modprobabe, there may be
+>quirks that you'd want to enable based on cpu_is_omapxxx checks. so it
+>probably does not make sense to __initdata the revision/feature variables.
+
+can't you pass the quirks via pdata, then ?
+
+-- 
+balbi
+
+DefectiveByDesign.org
