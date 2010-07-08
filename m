@@ -1,102 +1,63 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/13] omap: mux: fix multipath gpio handling
-Date: Thu, 08 Jul 2010 16:54:55 +0300
-Message-ID: <20100708135455.26276.13094.stgit@baageli.muru.com>
+Subject: [PATCH 12/13] omap: Use omap_get_die_id() to get the DIE ids
+Date: Thu, 08 Jul 2010 16:55:11 +0300
+Message-ID: <20100708135511.26276.34207.stgit@baageli.muru.com>
 References: <20100708135342.26276.80936.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55904 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56330 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757859Ab0GHNy5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 09:54:57 -0400
+	with ESMTP id S1757915Ab0GHNzO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 09:55:14 -0400
 In-Reply-To: <20100708135342.26276.80936.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org, Kan-Ru Chen <kanru@0xlab.org>
 
-From: Grazvydas Ignotas <notasas@gmail.com>
+From: Kan-Ru Chen <kanru@0xlab.org>
 
-OMAP3530 CBB package can have GPIO126 muxed on 2 pins: mmc1_dat4 and
-cam_strobe. This causes a problem with current multipath GPIO mux
-handling, which muxes both pins as GPIO126 and makes the GPIO unusable.
-
-Fix this by not muxing any pins if multipath GPIO is detected and
-just print a warning instead. It's up to board files to set correct
-mux using omap_mux_init_signal and pin name.
-
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Signed-off-by: Kan-Ru Chen <kanru@0xlab.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mux.c |   38 ++++++++++++++++++++------------------
- 1 files changed, 20 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap2/id.c |   14 ++++++--------
+ 1 files changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index be52fab..ab403b2 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -87,6 +87,9 @@ static char *omap_mux_options;
- int __init omap_mux_init_gpio(int gpio, int val)
- {
- 	struct omap_mux_entry *e;
-+	struct omap_mux *gpio_mux;
-+	u16 old_mode;
-+	u16 mux_mode;
- 	int found = 0;
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index d079ccf..fd1904b 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -118,24 +118,22 @@ static void __init omap24xx_check_revision(void)
+ 	u32 idcode, prod_id;
+ 	u16 hawkeye;
+ 	u8  dev_type, rev;
++	struct omap_die_id odi;
  
- 	if (!gpio)
-@@ -95,34 +98,33 @@ int __init omap_mux_init_gpio(int gpio, int val)
- 	list_for_each_entry(e, &muxmodes, node) {
- 		struct omap_mux *m = &e->mux;
- 		if (gpio == m->gpio) {
--			u16 old_mode;
--			u16 mux_mode;
--
--			old_mode = omap_mux_read(m->reg_offset);
--			mux_mode = val & ~(OMAP_MUX_NR_MODES - 1);
--			if (omap_mux_flags & MUXABLE_GPIO_MODE3)
--				mux_mode |= OMAP_MUX_MODE3;
--			else
--				mux_mode |= OMAP_MUX_MODE4;
--			printk(KERN_DEBUG "mux: Setting signal "
--				"%s.gpio%i 0x%04x -> 0x%04x\n",
--				m->muxnames[0], gpio, old_mode, mux_mode);
--			omap_mux_write(mux_mode, m->reg_offset);
-+			gpio_mux = m;
- 			found++;
- 		}
- 	}
+ 	idcode = read_tap_reg(OMAP_TAP_IDCODE);
+ 	prod_id = read_tap_reg(tap_prod_id);
+ 	hawkeye = (idcode >> 12) & 0xffff;
+ 	rev = (idcode >> 28) & 0x0f;
+ 	dev_type = (prod_id >> 16) & 0x0f;
++	omap_get_die_id(&odi);
  
--	if (found == 1)
--		return 0;
-+	if (found == 0) {
-+		printk(KERN_ERR "mux: Could not set gpio%i\n", gpio);
-+		return -ENODEV;
-+	}
+ 	pr_debug("OMAP_TAP_IDCODE 0x%08x REV %i HAWKEYE 0x%04x MANF %03x\n",
+ 		 idcode, rev, hawkeye, (idcode >> 1) & 0x7ff);
+-	pr_debug("OMAP_TAP_DIE_ID_0: 0x%08x\n",
+-		 read_tap_reg(OMAP_TAP_DIE_ID_0));
++	pr_debug("OMAP_TAP_DIE_ID_0: 0x%08x\n", odi.id_0);
+ 	pr_debug("OMAP_TAP_DIE_ID_1: 0x%08x DEV_REV: %i\n",
+-		 read_tap_reg(OMAP_TAP_DIE_ID_1),
+-		 (read_tap_reg(OMAP_TAP_DIE_ID_1) >> 28) & 0xf);
+-	pr_debug("OMAP_TAP_DIE_ID_2: 0x%08x\n",
+-		 read_tap_reg(OMAP_TAP_DIE_ID_2));
+-	pr_debug("OMAP_TAP_DIE_ID_3: 0x%08x\n",
+-		 read_tap_reg(OMAP_TAP_DIE_ID_3));
++		 odi.id_1, (odi.id_1 >> 28) & 0xf);
++	pr_debug("OMAP_TAP_DIE_ID_2: 0x%08x\n", odi.id_2);
++	pr_debug("OMAP_TAP_DIE_ID_3: 0x%08x\n", odi.id_3);
+ 	pr_debug("OMAP_TAP_PROD_ID_0: 0x%08x DEV_TYPE: %i\n",
+ 		 prod_id, dev_type);
  
- 	if (found > 1) {
--		printk(KERN_ERR "mux: Multiple gpio paths for gpio%i\n", gpio);
-+		printk(KERN_INFO "mux: Multiple gpio paths (%d) for gpio%i\n",
-+				found, gpio);
- 		return -EINVAL;
- 	}
- 
--	printk(KERN_ERR "mux: Could not set gpio%i\n", gpio);
-+	old_mode = omap_mux_read(gpio_mux->reg_offset);
-+	mux_mode = val & ~(OMAP_MUX_NR_MODES - 1);
-+	if (omap_mux_flags & MUXABLE_GPIO_MODE3)
-+		mux_mode |= OMAP_MUX_MODE3;
-+	else
-+		mux_mode |= OMAP_MUX_MODE4;
-+	printk(KERN_DEBUG "mux: Setting signal %s.gpio%i 0x%04x -> 0x%04x\n",
-+			gpio_mux->muxnames[0], gpio, old_mode, mux_mode);
-+	omap_mux_write(mux_mode, gpio_mux->reg_offset);
- 
--	return -ENODEV;
-+	return 0;
- }
- 
- int __init omap_mux_init_signal(char *muxname, int val)
 
