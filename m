@@ -1,7 +1,7 @@
 From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH V2 3/4]usb: musb: HWMOD database structures addition for OMAP3
-Date: Thu,  8 Jul 2010 15:44:28 +0530
-Message-ID: <1278584068-15381-1-git-send-email-hemahk@ti.com>
+Subject: [PATCH V2 4/4]usb : musb:Using omap_device_build for musb device registration
+Date: Thu,  8 Jul 2010 15:54:17 +0530
+Message-ID: <1278584657-18689-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -10,8 +10,10 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Hema HK  <hemahk-l0cyMroinI0@public.gmane.org>
 
-OMAP3 hwmod data stuctures are populated with base address, L3 and L4 
-interface clocks, IRQs,and sysconfig register details. 
+Using omap_device_build api instead of platform_device_register for musb 
+device registration.The device specific resources defined in centralized 
+database will be used. So removed the resource definitions from the musb
+platform file. 
 
 Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
@@ -20,135 +22,154 @@ Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 ---
 Based off  pm-wip/hwmods-omap4.
 
-[Review commets incorporated]
+[Review comments incorporated]
 
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   91 +++++++++++++++++++++++++++++
- 1 file changed, 91 insertions(+)
+ arch/arm/mach-omap2/clock44xx_data.c       |    2 
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 
+ arch/arm/mach-omap2/usb-musb.c             |   97 +++++++++++++++--------------
+ 3 files changed, 53 insertions(+), 48 deletions(-)
 
-Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+Index: linux-omap-pm/arch/arm/mach-omap2/clock44xx_data.c
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -82,6 +82,15 @@ static struct omap_hwmod omap3xxx_l3_mai
+--- linux-omap-pm.orig/arch/arm/mach-omap2/clock44xx_data.c
++++ linux-omap-pm/arch/arm/mach-omap2/clock44xx_data.c
+@@ -2296,7 +2296,7 @@ static struct clk usb_host_fs_fck = {
  };
  
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
-+static struct omap_hwmod omap3xxx_usbhsotg_hwmod;
-+
-+/* L3 <- USBHSOTG interface */
-+static struct omap_hwmod_ocp_if omap3xxx_usbhsotg__l3 = {
-+	.master		= &omap3xxx_usbhsotg_hwmod,
-+	.slave		= &omap3xxx_l3_main_hwmod,
-+	.clk		= "core_l3_ick",
-+	.user		= OCP_USER_MPU,
-+};
+ static struct clk usb_otg_ick = {
+-	.name		= "usb_otg_ick",
++	.name		= "usb_otg_hs_ick",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -4884,7 +4884,7 @@ static __initdata struct omap_hwmod *oma
+ 	/* usb_host_hs class */
+ /*	&omap44xx_usb_host_hs_hwmod, */
+ 	/* usb_otg_hs class */
+-/*	&omap44xx_usb_otg_hs_hwmod, */
++	&omap44xx_usb_otg_hs_hwmod,
+ 	/* usb_tll_hs class */
+ /*	&omap44xx_usb_tll_hs_hwmod, */
+ 	/* wd_timer class */
+Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
++++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+@@ -30,24 +30,12 @@
+ #include <mach/irqs.h>
+ #include <plat/mux.h>
+ #include <plat/usb.h>
++#include <plat/omap_device.h>
  
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
-@@ -90,6 +99,37 @@ static struct omap_hwmod_ocp_if omap3xxx
- 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ #ifdef CONFIG_USB_MUSB_SOC
  
-+/*
-+* USBHSOTG interface data
-+*/
-+
-+static struct omap_hwmod_addr_space omap3xxx_usbhsotg_addrs[] = {
+-static struct resource musb_resources[] = {
+-	[0] = { /* start and end set dynamically */
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {	/* general IRQ */
+-		.start	= INT_243X_HS_USB_MC,
+-		.flags	= IORESOURCE_IRQ,
+-		.name	= "mc",
+-	},
+-	[2] = {	/* DMA IRQ */
+-		.start	= INT_243X_HS_USB_DMA,
+-		.flags	= IORESOURCE_IRQ,
+-		.name	= "dma",
+-	},
+-};
++static const char name[] = "musb_hdrc";
++#define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
+ 
+ static struct musb_hdrc_config musb_config = {
+ 	.multipoint	= 1,
+@@ -76,43 +64,60 @@ static struct musb_hdrc_platform_data mu
+ 
+ static u64 musb_dmamask = DMA_BIT_MASK(32);
+ 
+-static struct platform_device musb_device = {
+-	.name		= "musb_hdrc",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &musb_dmamask,
+-		.coherent_dma_mask	= DMA_BIT_MASK(32),
+-		.platform_data		= &musb_plat,
++static struct omap_device_pm_latency omap_musb_latency[] = {
 +	{
-+		.pa_start	= OMAP34XX_HSUSB_OTG_BASE,
-+		.pa_end		= OMAP34XX_HSUSB_OTG_BASE + SZ_4K - 1,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* USBHSOTG <- L4_CORE interface */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__usbhsotg = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_usbhsotg_hwmod,
-+	.clk		= "l4_ick",
-+	.addr		= omap3xxx_usbhsotg_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_usbhsotg_addrs),
-+	.user		= OCP_USER_MPU,
-+
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_usbhsotg_masters[] = {
-+	&omap3xxx_usbhsotg__l3,
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_usbhsotg_slaves[] = {
-+	&omap3xxx_l4_core__usbhsotg,
-+};
-+
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
- 	&omap3xxx_l3_main__l4_core,
-@@ -197,6 +237,56 @@ static struct omap_hwmod omap3xxx_iva_hw
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func	 = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+ 	},
+-	.num_resources	= ARRAY_SIZE(musb_resources),
+-	.resource	= musb_resources,
  };
  
-+/*
-+ * USBHSOTG (USBHS)
-+ */
-+static struct omap_hwmod_class_sysconfig omap3xxx_usbhsotg_sysc = {
-+	.rev_offs	= 0x0400,
-+	.sysc_offs	= 0x0404,
-+	.syss_offs	= 0x0408,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
-+			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			  SYSC_HAS_AUTOIDLE,
-+	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
+ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+-	if (cpu_is_omap243x()) {
+-		musb_resources[0].start = OMAP243X_HS_BASE;
+-	} else if (cpu_is_omap34xx()) {
+-		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+-	} else if (cpu_is_omap44xx()) {
+-		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+-		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+-		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
++	char oh_name[MAX_OMAP_MUSB_HWMOD_NAME_LEN];
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++	struct platform_device *pdev;
++	struct device	*dev;
++	int l, bus_id = -1;
++	struct musb_hdrc_platform_data *pdata;
 +
-+static struct omap_hwmod_class usbotg_class = {
-+	.name = "usbotg",
-+	.sysc = &omap3xxx_usbhsotg_sysc,
-+};
++	l = snprintf(oh_name, MAX_OMAP_MUSB_HWMOD_NAME_LEN,
++						"usb_otg_hs");
++	WARN(l >= MAX_OMAP_MUSB_HWMOD_NAME_LEN,
++	"String buffer overflow in MUSB device setup\n");
++	oh = omap_hwmod_lookup(oh_name);
 +
-+/* usb_otg_hs */
-+static struct omap_hwmod_irq_info omap3xxx_usbhsotg_mpu_irqs[] = {
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++	} else {
++		/*
++		 * REVISIT: This line can be removed once all the platforms
++		 * using musb_core.c have been converted to use use clkdev.
++		 */
++		musb_plat.clock = "ick";
++		musb_plat.board_data = board_data;
++		musb_plat.power = board_data->power >> 1;
++		musb_plat.mode = board_data->mode;
++		pdata = &musb_plat;
 +
-+	{ .name = "mc", .irq = 92 },
-+	{ .name = "dma", .irq = 93 },
++		od = omap_device_build(name, bus_id, oh, pdata,
++				       sizeof(struct musb_hdrc_platform_data),
++							omap_musb_latency,
++				       ARRAY_SIZE(omap_musb_latency), false);
++		if (IS_ERR(od)) {
++			pr_err("Could not build omap_device for %s %s\n",
++						name, oh_name);
++		} else {
 +
-+};
-+
-+static struct omap_hwmod omap3xxx_usbhsotg_hwmod = {
-+	.name		= "usb_otg_hs",
-+	.mpu_irqs	= omap3xxx_usbhsotg_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_usbhsotg_mpu_irqs),
-+	.main_clk	= "hsotgusb_ick",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_GRPSEL_HSOTGUSB_MASK,
-+			.module_offs = CORE_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT,
-+			.idlest_stdby_bit = OMAP3430ES2_ST_HSOTGUSB_STDBY_SHIFT
-+		},
-+	},
-+	.masters	= omap3xxx_usbhsotg_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap3xxx_usbhsotg_masters),
-+	.slaves		= omap3xxx_usbhsotg_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_usbhsotg_slaves),
-+	.class		= &usbotg_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+};
-+
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_main_hwmod,
- 	&omap3xxx_l4_core_hwmod,
-@@ -204,6 +294,7 @@ static __initdata struct omap_hwmod *oma
- 	&omap3xxx_l4_wkup_hwmod,
- 	&omap3xxx_mpu_hwmod,
- 	&omap3xxx_iva_hwmod,
-+	&omap3xxx_usbhsotg_hwmod,
- 	NULL,
- };
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++			pdev = &od->pdev;
++			dev = &pdev->dev;
++			get_device(dev);
++			dev->dma_mask = &musb_dmamask;
++			dev->coherent_dma_mask = musb_dmamask;
++			put_device(dev);
++		}
+ 	}
+-	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
+-
+-	/*
+-	 * REVISIT: This line can be removed once all the platforms using
+-	 * musb_core.c have been converted to use use clkdev.
+-	 */
+-	musb_plat.clock = "ick";
+-	musb_plat.board_data = board_data;
+-	musb_plat.power = board_data->power >> 1;
+-	musb_plat.mode = board_data->mode;
+-	musb_plat.extvbus = board_data->extvbus;
