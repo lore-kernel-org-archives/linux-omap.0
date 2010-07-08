@@ -1,77 +1,34 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/5] omap: Allow testing for omap type with omap_has_feature
-Date: Thu, 08 Jul 2010 12:38:04 +0300
-Message-ID: <20100708093804.16352.82935.stgit@baageli.muru.com>
-References: <20100708093405.16352.11814.stgit@baageli.muru.com>
+Subject: Re: [PATCH 06/15] omap zoom2: wlan board muxing
+Date: Thu, 8 Jul 2010 12:45:48 +0300
+Message-ID: <20100708094548.GB1920@atomide.com>
+References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
+ <1278376666-3509-7-git-send-email-ohad@wizery.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030E10C9B3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53508 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754492Ab0GHJiG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 05:38:06 -0400
-In-Reply-To: <20100708093405.16352.11814.stgit@baageli.muru.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50188 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752613Ab0GHJqF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 05:46:05 -0400
+Content-Disposition: inline
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E10C9B3@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: nm@ti.com
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Ben-cohen, Ohad" <ohadb@ti.com>
 
-Allow testing for omap type with omap_has_feature. This
-can be used to leave out cpu_is_omapxxxx checks.
+* Ghorai, Sukumar <s-ghorai@ti.com> [100708 06:34]:
+> > @@ -71,6 +71,21 @@ static struct twl4030_platform_data zoom2_twldata = {
+> > 
+> >  #ifdef CONFIG_OMAP_MUX
+> >  static struct omap_board_mux board_mux[] __initdata = {
+> > +#ifdef CONFIG_OMAP_ZOOM_WLAN
+>
+> [Ghorai] This is zoom board specific file, So why need this additional flag?
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/include/plat/cpu.h |   38 ++++++++++++++++++++++++++-------
- 1 files changed, 30 insertions(+), 8 deletions(-)
+Good point, the ifdef is unnecessary in for both zoom2 and zoom3.
+Will update in my queue to remove the ifdefs.
 
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 96eac4d..c117c3c 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -437,14 +437,36 @@ int omap_chip_is(struct omap_chip_id oci);
- void omap2_check_revision(void);
- 
- /*
-- * Runtime detection of OMAP3 features
-+ * Runtime detection of OMAP features
-  */
--#define OMAP3_HAS_L2CACHE		BIT(0)
--#define OMAP3_HAS_IVA			BIT(1)
--#define OMAP3_HAS_SGX			BIT(2)
--#define OMAP3_HAS_NEON			BIT(3)
--#define OMAP3_HAS_ISP			BIT(4)
--#define OMAP3_HAS_192MHZ_CLK		BIT(5)
--#define OMAP3_HAS_IO_WAKEUP		BIT(6)
-+#define OMAP_FEAT_CLASS_OMAP1		BIT(24)
-+#define OMAP_FEAT_CLASS_OMAP2		BIT(25)
-+#define OMAP_FEAT_CLASS_OMAP3		BIT(26)
-+#define OMAP_FEAT_CLASS_OMAP4		BIT(27)
-+
-+#define OMAP_HAS_L2CACHE		BIT(0)
-+#define OMAP_HAS_IVA			BIT(1)
-+#define OMAP_HAS_SGX			BIT(2)
-+#define OMAP_HAS_NEON			BIT(3)
-+#define OMAP_HAS_ISP			BIT(4)
-+#define OMAP_HAS_192MHZ_CLK		BIT(5)
-+#define OMAP_HAS_IO_WAKEUP		BIT(6)
-+
-+#define OMAP2_HAS_IVA			OMAP_FEAT_CLASS_OMAP2 | OMAP_HAS_IVA
-+#define OMAP2_HAS_SGX			OMAP_FEAT_CLASS_OMAP2 | OMAP_HAS_SGX
-+
-+#define OMAP3_HAS_L2CACHE		OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_L2CACHE
-+#define OMAP3_HAS_IVA			OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_IVA
-+#define OMAP3_HAS_SGX			OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_SGX
-+#define OMAP3_HAS_NEON			OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_NEON
-+#define OMAP3_HAS_ISP			OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_ISP
-+#define OMAP3_HAS_192MHZ_CLK		OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_192MHZ_CLK
-+#define OMAP3_HAS_IO_WAKEUP		OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_IOWAKEUP
-+
-+#define OMAP4_HAS_L2CACHE		OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_L2CACHE
-+#define OMAP4_HAS_IVA			OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_IVA
-+#define OMAP4_HAS_SGX			OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_SGX
-+#define OMAP4_HAS_NEON			OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_NEON
-+#define OMAP4_HAS_ISP			OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_ISP
- 
- #endif
-
+Tony
