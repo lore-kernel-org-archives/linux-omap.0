@@ -1,93 +1,302 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/13] omap2/3: id: fix sparse warning
-Date: Thu, 08 Jul 2010 16:54:43 +0300
-Message-ID: <20100708135443.26276.42605.stgit@baageli.muru.com>
+Subject: [PATCH 06/13] omap3: Unify omap2_set_globals_3[43,6x]x functions
+Date: Thu, 08 Jul 2010 16:54:47 +0300
+Message-ID: <20100708135447.26276.33006.stgit@baageli.muru.com>
 References: <20100708135342.26276.80936.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59946 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757858Ab0GHNyq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 09:54:46 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55786 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757896Ab0GHNyx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 09:54:53 -0400
 In-Reply-To: <20100708135342.26276.80936.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Sergio Aguirre <saaguirre@ti.com>, linux-omap@vger.kernel.org
 
-From: Nishanth Menon <nm@ti.com>
+From: Sergio Aguirre <saaguirre@ti.com>
 
-omap24xx_check_revision, omap3_check_features,
-omap3_check_revision, omap4_check_revision, omap3_cpuinfo
-are not used elsewhere, it should be static
+The only difference between them is the physical address of the
+uart4 port, which is only present in 36xx chips.
 
-Also fixes the following sparse warnings:
-arch/arm/mach-omap2/id.c:105:13: warning: symbol 'omap24xx_check_revision'
-was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:167:13: warning: symbol 'omap3_check_features'
-was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:189:13: warning: symbol 'omap3_check_revision'
-was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:270:13: warning: symbol 'omap4_check_revision'
-was not declared. Should it be static?
-arch/arm/mach-omap2/id.c:300:13: warning: symbol 'omap3_cpuinfo'
-was not declared. Should it be static?
+We don't really need to care about keeping these 2 functions, since
+the decision to use uart4 is more cleanly done later when we do have
+access to omap_revision variable.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+[tony@atomide.com: added comment for the uart4_phys]
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/id.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
+ arch/arm/mach-omap2/board-3630sdp.c        |    2 +-
+ arch/arm/mach-omap2/board-am3517evm.c      |    2 +-
+ arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
+ arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c       |    2 +-
+ arch/arm/mach-omap2/board-ldp.c            |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c       |    2 +-
+ arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
+ arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
+ arch/arm/mach-omap2/board-overo.c          |    2 +-
+ arch/arm/mach-omap2/board-rx51.c           |    2 +-
+ arch/arm/mach-omap2/board-zoom2.c          |    2 +-
+ arch/arm/mach-omap2/board-zoom3.c          |    2 +-
+ arch/arm/plat-omap/common.c                |   10 ++--------
+ arch/arm/plat-omap/include/plat/common.h   |    3 +--
+ 18 files changed, 19 insertions(+), 26 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 37b8a1a..c7bf0e1 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -102,7 +102,7 @@ static struct omap_id omap_ids[] __initdata = {
- static void __iomem *tap_base;
- static u16 tap_prod_id;
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index f474a80..e3c2ffd 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -805,7 +805,7 @@ static void __init omap_3430sdp_init(void)
  
--void __init omap24xx_check_revision(void)
-+static void __init omap24xx_check_revision(void)
+ static void __init omap_3430sdp_map_io(void)
  {
- 	int i, j;
- 	u32 idcode, prod_id;
-@@ -164,7 +164,7 @@ void __init omap24xx_check_revision(void)
- 		omap3_features |= OMAP3_HAS_ ##feat;			\
- 	}
- 
--void __init omap3_check_features(void)
-+static void __init omap3_check_features(void)
- {
- 	u32 status;
- 
-@@ -186,7 +186,7 @@ void __init omap3_check_features(void)
- 	 */
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
  }
  
--void __init omap3_check_revision(void)
-+static void __init omap3_check_revision(void)
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index f267dc0..1942951 100644
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -67,7 +67,7 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 
+ static void __init omap_sdp_map_io(void)
  {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
-@@ -267,7 +267,7 @@ void __init omap3_check_revision(void)
- 	}
+-	omap2_set_globals_36xx();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
  }
  
--void __init omap4_check_revision(void)
-+static void __init omap4_check_revision(void)
- {
- 	u32 idcode;
- 	u16 hawkeye;
-@@ -297,7 +297,7 @@ void __init omap4_check_revision(void)
- 	if (omap3_has_ ##feat())		\
- 		printk(#feat" ");
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index af383a8..f326d59 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -463,7 +463,7 @@ static void __init am3517_evm_init(void)
  
--void __init omap3_cpuinfo(void)
-+static void __init omap3_cpuinfo(void)
+ static void __init am3517_evm_map_io(void)
  {
- 	u8 rev = GET_OMAP_REVISION();
- 	char cpu_name[16], cpu_rev[16];
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index e679a2c..6692ba0 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -710,7 +710,7 @@ static void __init cm_t35_init_irq(void)
+ 
+ static void __init cm_t35_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index ca4d521..461635b 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -810,7 +810,7 @@ static void __init devkit8000_init(void)
+ 
+ static void __init devkit8000_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index d55c57b..7eefbc3 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -534,7 +534,7 @@ static void __init igep2_init(void)
+ 
+ static void __init igep2_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index fefd7e6..f7c0a2a 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -408,7 +408,7 @@ static void __init omap_ldp_init(void)
+ 
+ static void __init omap_ldp_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 69b154c..518a3f7 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -509,7 +509,7 @@ static void __init omap3_beagle_init(void)
+ 
+ static void __init omap3_beagle_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index b952610..4056b3c 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -717,7 +717,7 @@ static void __init omap3_evm_init(void)
+ 
+ static void __init omap3_evm_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index a58bdef..3c9a630 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -702,7 +702,7 @@ static void __init omap3pandora_init(void)
+ 
+ static void __init omap3pandora_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index a04cffd..497d429 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -654,7 +654,7 @@ static void __init omap3_stalker_init(void)
+ 
+ static void __init omap3_stalker_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 2f5f823..d34742e 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -561,7 +561,7 @@ static void __init omap3_touchbook_init(void)
+ 
+ static void __init omap3_touchbook_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 4ceeb56..15b87fd 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -524,7 +524,7 @@ static void __init overo_init(void)
+ 
+ static void __init overo_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 1b86b5b..3bd4a8d 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -143,7 +143,7 @@ static void __init rx51_init(void)
+ 
+ static void __init rx51_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	rx51_video_mem_init();
+ 	omap34xx_map_common_io();
+ }
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 1520a2c..242b9d5 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -99,7 +99,7 @@ static void __init omap_zoom2_init(void)
+ 
+ static void __init omap_zoom2_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index 7d17046..171efc1 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -27,7 +27,7 @@
+ 
+ static void __init omap_zoom_map_io(void)
+ {
+-	omap2_set_globals_36xx();
++	omap2_set_globals_3xxx();
+ 	omap34xx_map_common_io();
+ }
+ 
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 219c01e..5d9b0ca 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -309,19 +309,13 @@ static struct omap_globals omap3_globals = {
+ 	.uart1_phys	= OMAP3_UART1_BASE,
+ 	.uart2_phys	= OMAP3_UART2_BASE,
+ 	.uart3_phys	= OMAP3_UART3_BASE,
++	.uart4_phys	= OMAP3_UART4_BASE,	/* Only on 3630 */
+ };
+ 
+-void __init omap2_set_globals_343x(void)
++void __init omap2_set_globals_3xxx(void)
+ {
+ 	__omap2_set_globals(&omap3_globals);
+ }
+-
+-void __init omap2_set_globals_36xx(void)
+-{
+-	omap3_globals.uart4_phys = OMAP3_UART4_BASE;
+-
+-	__omap2_set_globals(&omap3_globals);
+-}
+ #endif
+ 
+ #if defined(CONFIG_ARCH_OMAP4)
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index fe83e90..13d0cf9 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -56,8 +56,7 @@ struct omap_globals {
+ 
+ void omap2_set_globals_242x(void);
+ void omap2_set_globals_243x(void);
+-void omap2_set_globals_343x(void);
+-void omap2_set_globals_36xx(void);
++void omap2_set_globals_3xxx(void);
+ void omap2_set_globals_443x(void);
+ 
+ /* These get called from omap2_set_globals_xxxx(), do not call these */
 
