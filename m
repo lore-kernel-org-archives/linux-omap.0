@@ -1,166 +1,143 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/5] omap: Implement common omap_has_feature
-Date: Thu, 8 Jul 2010 09:52:32 -0500
-Message-ID: <4C35E630.4070204@ti.com>
-References: <20100708093405.16352.11814.stgit@baageli.muru.com> <20100708093755.16352.75290.stgit@baageli.muru.com>
+Subject: Re: [PATCH 3/5] omap: Replace omap3_has_ macros with omap_has_feature
+Date: Thu, 8 Jul 2010 09:53:50 -0500
+Message-ID: <4C35E67E.9030704@ti.com>
+References: <20100708093405.16352.11814.stgit@baageli.muru.com> <20100708093758.16352.93682.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37760 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756071Ab0GHOwf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 10:52:35 -0400
-In-Reply-To: <20100708093755.16352.75290.stgit@baageli.muru.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39457 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751749Ab0GHOxw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Jul 2010 10:53:52 -0400
+In-Reply-To: <20100708093758.16352.93682.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Tony Lindgren had written, on 07/08/2010 04:37 AM, the following:
-> Implement common omap_has_feature.
-> 
-> Intended to replace omap3_has_ functions
+> Replace omap3_has_ macros with omap_has_feature
 > 
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  arch/arm/mach-omap2/id.c              |   32 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/common.c           |   15 +++++++++++++++
->  arch/arm/plat-omap/include/plat/cpu.h |    3 +++
->  3 files changed, 50 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/clock3xxx_data.c  |    2 +-
+>  arch/arm/mach-omap2/id.c              |   22 +++++++++++-----------
+>  arch/arm/mach-omap2/pm34xx.c          |    2 +-
+>  arch/arm/plat-omap/include/plat/cpu.h |   12 ++++++------
+>  4 files changed, 19 insertions(+), 19 deletions(-)
 > 
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index c226798..2d2248f 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3435,7 +3435,7 @@ int __init omap3xxx_clk_init(void)
+>  		cpu_clkflg |= CK_3505;
+>  	}
+>  
+> -	if (omap3_has_192mhz_clk())
+> +	if (omap_has_feature(OMAP3_HAS_192MHZ_CLK))
+>  		omap_96m_alwon_fck = omap_96m_alwon_fck_3630;
+>  
+>  	if (cpu_is_omap3630()) {
 > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index fd1904b..a2e5965 100644
+> index a2e5965..11184cf 100644
 > --- a/arch/arm/mach-omap2/id.c
 > +++ b/arch/arm/mach-omap2/id.c
-> @@ -29,7 +29,9 @@
->  
->  static struct omap_chip_id omap_chip;
->  static unsigned int omap_revision;
-> +static u32 omap_features;
->  
-> +/* REVISIT: Get rid of omap3_features */
->  u32 omap3_features;
->  
->  unsigned int omap_rev(void)
-> @@ -112,6 +114,12 @@ void omap_get_die_id(struct omap_die_id *odi)
->  	odi->id_3 = read_tap_reg(OMAP_TAP_DIE_ID_3);
+> @@ -336,7 +336,7 @@ static void __init omap4_check_revision(void)
 >  }
 >  
-> +u32 omap2_has_feature(u32 feat_mask)
-> +{
-> +	/* REVISIT: Add necessary omap2 feature tests here */
-> +	return ((feat_mask & omap_features) == feat_mask);
-> +}
-> +
-I did consider this path initially,
-a) Additional functional call overhead here. some of the calls to 
-has_feature() will get called through pretty active paths, we would like 
-it to be minimized to compile time optimized inline function as much as 
-possible.(no reason why this cant me a inline macro in cpu.h?) -
-the original series received a similar comment:
-http://marc.info/?l=linux-omap&m=125018002127428&w=2
-
->  static void __init omap24xx_check_revision(void)
->  {
->  	int i, j;
-> @@ -164,6 +172,15 @@ static void __init omap24xx_check_revision(void)
->  	if ((omap_rev() >> 8) & 0x0f)
->  		pr_info("ES%x", (omap_rev() >> 12) & 0xf);
->  	pr_info("\n");
-> +
-> +	omap_features = 0;
-> +	omap_init_features(omap2_has_feature);
-> +}
-> +
-> +u32 omap3_has_feature(u32 feat_mask)
-> +{
-> +	/* REVISIT: Add necessary omap3 feature tests here */
-> +	return ((feat_mask & omap_features) == feat_mask);
+>  #define OMAP3_SHOW_FEATURE(feat)		\
+> -	if (omap3_has_ ##feat())		\
+> +	if (omap_has_feature(feat))		\
+>  		printk(#feat" ");
+>  
+>  static void __init omap3_cpuinfo(void)
+> @@ -356,20 +356,20 @@ static void __init omap3_cpuinfo(void)
+>  		/*
+>  		 * AM35xx devices
+>  		 */
+> -		if (omap3_has_sgx()) {
+> +		if (omap_has_feature(OMAP3_HAS_SGX)) {
+>  			omap_revision = OMAP3517_REV(rev);
+>  			strcpy(cpu_name, "AM3517");
+>  		} else {
+>  			/* Already set in omap3_check_revision() */
+>  			strcpy(cpu_name, "AM3505");
+>  		}
+> -	} else if (omap3_has_iva() && omap3_has_sgx()) {
+> +	} else if (omap_has_feature(OMAP3_HAS_IVA | OMAP3_HAS_SGX)) {
+>  		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
+>  		strcpy(cpu_name, "OMAP3430/3530");
+> -	} else if (omap3_has_iva()) {
+> +	} else if (omap_has_feature(OMAP3_HAS_IVA)) {
+>  		omap_revision = OMAP3525_REV(rev);
+>  		strcpy(cpu_name, "OMAP3525");
+> -	} else if (omap3_has_sgx()) {
+> +	} else if (omap_has_feature(OMAP3_HAS_SGX)) {
+>  		omap_revision = OMAP3515_REV(rev);
+>  		strcpy(cpu_name, "OMAP3515");
+>  	} else {
+> @@ -400,12 +400,12 @@ static void __init omap3_cpuinfo(void)
+>  	/* Print verbose information */
+>  	pr_info("%s ES%s (", cpu_name, cpu_rev);
+>  
+> -	OMAP3_SHOW_FEATURE(l2cache);
+> -	OMAP3_SHOW_FEATURE(iva);
+> -	OMAP3_SHOW_FEATURE(sgx);
+> -	OMAP3_SHOW_FEATURE(neon);
+> -	OMAP3_SHOW_FEATURE(isp);
+> -	OMAP3_SHOW_FEATURE(192mhz_clk);
+> +	OMAP3_SHOW_FEATURE(OMAP3_HAS_L2CACHE);
+> +	OMAP3_SHOW_FEATURE(OMAP3_HAS_IVA);
+> +	OMAP3_SHOW_FEATURE(OMAP3_HAS_SGX);
+> +	OMAP3_SHOW_FEATURE(OMAP3_HAS_NEON);
+> +	OMAP3_SHOW_FEATURE(OMAP3_HAS_ISP);
+> +	OMAP3_SHOW_FEATURE(OMAP3_HAS_192MHZ_CLK);
+>  
+>  	printk(")\n");
 >  }
->  
->  #define OMAP3_CHECK_FEATURE(status,feat)				\
-> @@ -194,6 +211,11 @@ static void __init omap3_check_features(void)
->  	 * TODO: Get additional info (where applicable)
->  	 *       e.g. Size of L2 cache.
->  	 */
-> +
-> +	/* REVISIT: Get rid of omap3_features */
-> +	omap_features = omap3_features;
-> +
-> +	omap_init_features(omap3_has_feature);
->  }
->  
->  static void __init omap3_check_revision(void)
-> @@ -277,6 +299,12 @@ static void __init omap3_check_revision(void)
->  	}
->  }
->  
-> +u32 omap4_has_feature(u32 feat_mask)
-> +{
-> +	/* REVISIT: Add necessary omap4 feature tests here */
-> +	return ((feat_mask & omap_features) == feat_mask);
-> +}
-> +
->  static void __init omap4_check_revision(void)
->  {
->  	u32 idcode;
-> @@ -297,6 +325,10 @@ static void __init omap4_check_revision(void)
->  		omap_revision = OMAP4430_REV_ES1_0;
->  		omap_chip.oc |= CHIP_IS_OMAP4430ES1;
->  		pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
-> +
-> +		omap_features = 0;
-> +		omap_init_features(omap4_has_feature);
-> +
->  		return;
->  	}
->  
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index 893a53a..d00b242 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -89,6 +89,21 @@ void __init omap_reserve(void)
->  	omap_vram_reserve_sdram_lmb();
->  }
->  
-> +static int (*_omap_check_feature)(u32 feat_mask);
-> +
-> +u32 omap_has_feature(u32 feat_mask)
-> +{
-> +	if (!_omap_check_feature)
-> +		return 0;
-> +
-> +	return _omap_check_feature(feat_mask);
-> +}
-> +
-> +void __init omap_init_features(u32 (*check_feature)(u32 feat))
-> +{
-> +	_omap_check_feature = check_feature;
-> +}
-> +
->  /*
->   * 32KHz clocksource ... always available, on pretty most chips except
->   * OMAP 730 and 1510.  Other timers could be used as clocksources, with
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index fb4994a..32e1005 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -385,7 +385,7 @@ void omap_sram_idle(void)
+>  	/* Enable IO-PAD and IO-CHAIN wakeups */
+>  	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+>  	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+> -	if (omap3_has_io_wakeup() && \
+> +	if (omap_has_feature(OMAP3_HAS_IO_WAKEUP) &&		\
+>  			(per_next_state < PWRDM_POWER_ON ||
+>  			core_next_state < PWRDM_POWER_ON)) {
+>  		prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
 > diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> index aa2f4f0..127df06 100644
+> index 127df06..efee323 100644
 > --- a/arch/arm/plat-omap/include/plat/cpu.h
 > +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -49,6 +49,9 @@ struct omap_chip_id {
->  	u8 type;
->  };
->  
-> +u32 omap_has_feature(u32 feat_mask);
-the above crib -> it is better as an static inline function instead of 
-explicit function call.
-
-> +void omap_init_features(u32 (*check_feature)(u32 feat));
-> +
->  #define OMAP_CHIP_INIT(x)	{ .oc = x }
->  
->  /*
+> @@ -334,14 +334,14 @@ IS_OMAP_TYPE(3517, 0x3517)
+>  # undef cpu_is_omap3517
+>  # define cpu_is_omap3430()		is_omap3430()
+>  # define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
+> -						(!omap3_has_iva()) &&	\
+> -						(!omap3_has_sgx()))
+> +					 (!omap_has_feature(OMAP3_HAS_IVA) &&	\
+> +						(!omap_has_feature(OMAP3_HAS_SGX)))
+>  # define cpu_is_omap3515()		(cpu_is_omap3430() &&		\
+> -						(!omap3_has_iva()) &&	\
+> -						(omap3_has_sgx()))
+> +						(!omap_has_feature(OMAP3_HAS_IVA)) &&	\
+> +						(omap_has_feature(OMAP3_HAS_SGX)))
+>  # define cpu_is_omap3525()		(cpu_is_omap3430() &&		\
+> -						(!omap3_has_sgx()) &&	\
+> -						(omap3_has_iva()))
+> +						(!omap_has_feature(OMAP3_HAS_SGX)) &&	\
+> +						(omap_has_feature(OMAP3_HAS_IVA)))
+>  # define cpu_is_omap3530()		(cpu_is_omap3430())
+>  # define cpu_is_omap3505()		is_omap3505()
+>  # define cpu_is_omap3517()		is_omap3517()
 > 
-
+Acked-by: Nishanth Menon <nm@ti.com>
 
 -- 
 Regards,
