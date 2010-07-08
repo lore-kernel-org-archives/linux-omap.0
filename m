@@ -1,118 +1,112 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 4/5] omap: Remove old omap3_has_ macros
-Date: Thu, 8 Jul 2010 09:54:48 -0500
-Message-ID: <4C35E6B8.9080300@ti.com>
-References: <20100708093405.16352.11814.stgit@baageli.muru.com> <20100708093801.16352.93269.stgit@baageli.muru.com>
+Subject: Re: [PATCH 5/5] omap: Allow testing for omap type with omap_has_feature
+Date: Thu, 8 Jul 2010 10:03:45 -0500
+Message-ID: <4C35E8D1.6030504@ti.com>
+References: <20100708093405.16352.11814.stgit@baageli.muru.com> <20100708093804.16352.82935.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39513 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60441 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754241Ab0GHOyu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Jul 2010 10:54:50 -0400
-In-Reply-To: <20100708093801.16352.93269.stgit@baageli.muru.com>
+	id S1755567Ab0GHPDr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Jul 2010 11:03:47 -0400
+In-Reply-To: <20100708093804.16352.82935.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Tony Lindgren had written, on 07/08/2010 04:38 AM, the following:
-> Remove old omap3_has_ macros. Please use omap_has_feature()
-> instead.
+> Allow testing for omap type with omap_has_feature. This
+> can be used to leave out cpu_is_omapxxxx checks.
 > 
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  arch/arm/mach-omap2/id.c              |   14 ++++----------
->  arch/arm/plat-omap/include/plat/cpu.h |   16 ----------------
->  2 files changed, 4 insertions(+), 26 deletions(-)
+>  arch/arm/plat-omap/include/plat/cpu.h |   38 ++++++++++++++++++++++++++-------
+>  1 files changed, 30 insertions(+), 8 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 11184cf..123ed1e 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -31,9 +31,6 @@ static struct omap_chip_id omap_chip;
->  static unsigned int omap_revision;
->  static u32 omap_features;
->  
-> -/* REVISIT: Get rid of omap3_features */
-> -u32 omap3_features;
-> -
->  unsigned int omap_rev(void)
->  {
->  	return omap_revision;
-> @@ -186,14 +183,14 @@ u32 omap3_has_feature(u32 feat_mask)
->  #define OMAP3_CHECK_FEATURE(status,feat)				\
->  	if (((status & OMAP3_ ##feat## _MASK) 				\
->  		>> OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) { 	\
-> -		omap3_features |= OMAP3_HAS_ ##feat;			\
-> +		omap_features |= OMAP3_HAS_ ##feat;			\
->  	}
->  
->  static void __init omap3_check_features(void)
->  {
->  	u32 status;
->  
-> -	omap3_features = 0;
-> +	omap_features = 0;
->  
->  	status = omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS);
->  
-> @@ -203,18 +200,15 @@ static void __init omap3_check_features(void)
->  	OMAP3_CHECK_FEATURE(status, NEON);
->  	OMAP3_CHECK_FEATURE(status, ISP);
->  	if (cpu_is_omap3630())
-> -		omap3_features |= OMAP3_HAS_192MHZ_CLK;
-> +		omap_features |= OMAP3_HAS_192MHZ_CLK;
->  	if (!cpu_is_omap3505() && !cpu_is_omap3517())
-> -		omap3_features |= OMAP3_HAS_IO_WAKEUP;
-> +		omap_features |= OMAP3_HAS_IO_WAKEUP;
->  
->  	/*
->  	 * TODO: Get additional info (where applicable)
->  	 *       e.g. Size of L2 cache.
->  	 */
->  
-> -	/* REVISIT: Get rid of omap3_features */
-> -	omap_features = omap3_features;
-> -
->  	omap_init_features(omap3_has_feature);
->  }
->  
 > diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-> index efee323..96eac4d 100644
+> index 96eac4d..c117c3c 100644
 > --- a/arch/arm/plat-omap/include/plat/cpu.h
 > +++ b/arch/arm/plat-omap/include/plat/cpu.h
-> @@ -439,8 +439,6 @@ void omap2_check_revision(void);
->  /*
->   * Runtime detection of OMAP3 features
->   */
-> -extern u32 omap3_features;
-> -
->  #define OMAP3_HAS_L2CACHE		BIT(0)
->  #define OMAP3_HAS_IVA			BIT(1)
->  #define OMAP3_HAS_SGX			BIT(2)
-> @@ -449,18 +447,4 @@ extern u32 omap3_features;
->  #define OMAP3_HAS_192MHZ_CLK		BIT(5)
->  #define OMAP3_HAS_IO_WAKEUP		BIT(6)
+> @@ -437,14 +437,36 @@ int omap_chip_is(struct omap_chip_id oci);
+>  void omap2_check_revision(void);
 >  
-> -#define OMAP3_HAS_FEATURE(feat,flag)			\
-> -static inline unsigned int omap3_has_ ##feat(void)	\
-> -{							\
-> -	return (omap3_features & OMAP3_HAS_ ##flag);	\
-> -}							\
-> -
-> -OMAP3_HAS_FEATURE(l2cache, L2CACHE)
-> -OMAP3_HAS_FEATURE(sgx, SGX)
-> -OMAP3_HAS_FEATURE(iva, IVA)
-> -OMAP3_HAS_FEATURE(neon, NEON)
-> -OMAP3_HAS_FEATURE(isp, ISP)
-> -OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> -OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
-> -
+>  /*
+> - * Runtime detection of OMAP3 features
+> + * Runtime detection of OMAP features
+>   */
+> -#define OMAP3_HAS_L2CACHE		BIT(0)
+> -#define OMAP3_HAS_IVA			BIT(1)
+> -#define OMAP3_HAS_SGX			BIT(2)
+> -#define OMAP3_HAS_NEON			BIT(3)
+> -#define OMAP3_HAS_ISP			BIT(4)
+> -#define OMAP3_HAS_192MHZ_CLK		BIT(5)
+> -#define OMAP3_HAS_IO_WAKEUP		BIT(6)
+> +#define OMAP_FEAT_CLASS_OMAP1		BIT(24)
+> +#define OMAP_FEAT_CLASS_OMAP2		BIT(25)
+> +#define OMAP_FEAT_CLASS_OMAP3		BIT(26)
+> +#define OMAP_FEAT_CLASS_OMAP4		BIT(27)
+> +
+> +#define OMAP_HAS_L2CACHE		BIT(0)
+> +#define OMAP_HAS_IVA			BIT(1)
+> +#define OMAP_HAS_SGX			BIT(2)
+> +#define OMAP_HAS_NEON			BIT(3)
+> +#define OMAP_HAS_ISP			BIT(4)
+> +#define OMAP_HAS_192MHZ_CLK		BIT(5)
+> +#define OMAP_HAS_IO_WAKEUP		BIT(6)
+> +
+> +#define OMAP2_HAS_IVA			OMAP_FEAT_CLASS_OMAP2 | OMAP_HAS_IVA
+> +#define OMAP2_HAS_SGX			OMAP_FEAT_CLASS_OMAP2 | OMAP_HAS_SGX
+> +
+> +#define OMAP3_HAS_L2CACHE		OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_L2CACHE
+> +#define OMAP3_HAS_IVA			OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_IVA
+> +#define OMAP3_HAS_SGX			OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_SGX
+> +#define OMAP3_HAS_NEON			OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_NEON
+> +#define OMAP3_HAS_ISP			OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_ISP
+> +#define OMAP3_HAS_192MHZ_CLK		OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_192MHZ_CLK
+> +#define OMAP3_HAS_IO_WAKEUP		OMAP_FEAT_CLASS_OMAP3 | OMAP_HAS_IOWAKEUP
+> +
+> +#define OMAP4_HAS_L2CACHE		OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_L2CACHE
+> +#define OMAP4_HAS_IVA			OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_IVA
+> +#define OMAP4_HAS_SGX			OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_SGX
+> +#define OMAP4_HAS_NEON			OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_NEON
+> +#define OMAP4_HAS_ISP			OMAP_FEAT_CLASS_OMAP4 | OMAP_HAS_ISP
+>  
 >  #endif
 > 
-Acked-by: Nishanth Menon <nm@ti.com>
+here is my contention:
+there will be two ways to use this:
+omap_has_feature(OMAP_HAS_SGX) and omap_has_feature(OMAP3_HAS_SGX)
+
+OMAP_HAS_SGX should return true or false no matter what omap silicon it is.
+
+OMAP3_HAS_SGX usage is meant for what? it is a mixture of cpu_is_omap3() 
+and omap_has_feature(OMAP_HAS_SGX) - tries to do two things in one shot. 
+which defeats why we are trying to introduce a generic omap_has_feature 
+in the first place.
+a) confusing as there seems to be two standards
+b) redundant information use cpu_is_omapxyz() if needed.
+
+IMHO:
++#define OMAP_HAS_L2CACHE		BIT(0)
++#define OMAP_HAS_IVA			BIT(1)
++#define OMAP_HAS_SGX			BIT(2)
++#define OMAP_HAS_NEON			BIT(3)
++#define OMAP_HAS_ISP			BIT(4)
++#define OMAP3_HAS_192MHZ_CLK		BIT(5)
++#define OMAP_HAS_IO_WAKEUP		BIT(6)
+and later if needed
++#define OMAP4_SOME_NEW_OMAP4ONLY_FEATURE BIT(7)
+
+where OMAP3_HAS is indicative that this is a OMAP3 *only* feature and 
+should be used to differentiate between various omap3 silicon.
+
+Benefits:
+a) distinction b/w omap generic and omap family specific features
+b) you get to define 32 features instead of reserving 24-32 for OMAP 
+classes.
 
 -- 
 Regards,
