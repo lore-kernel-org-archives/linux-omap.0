@@ -1,67 +1,186 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: Possible bug in onenand_base ?
-Date: Thu, 08 Jul 2010 13:22:57 +0300
-Message-ID: <1278584577.20321.2.camel@localhost>
-References: <u2v70c9a9111004300305n4c86774bm7ed70161ad72d830@mail.gmail.com>
-	 <z2p9c9fda241005052046j3fea69a4v91f3d5fd86648fac@mail.gmail.com>
-	 <k2x70c9a9111005060422v90e246daw19b1f71d57a890a1@mail.gmail.com>
-	 <g2x9c9fda241005060444x7f9c4360u334d3afb06f1e8b8@mail.gmail.com>
-	 <z2v70c9a9111005060602n7b7477ebueb197af05372bd5@mail.gmail.com>
-	 <AANLkTimwO5iU6zPUJeLwAxW3GZGz5ldSRLmp2vpTBem3@mail.gmail.com>
-	 <AANLkTiktbqSHHw572y1YGVw7XhZaim9Pg3lhoMmDBLXY@mail.gmail.com>
-	 <AANLkTin43tv-AiFjwNkUE7ijy_ADMtsZTrqo_PY3DpCE@mail.gmail.com>
-	 <1278583087.20321.0.camel@localhost>
-	 <AANLkTiludbDD8ndnQlqxyWeP7us-BxaEDHvKfDpw-AW8@mail.gmail.com>
-Reply-To: dedekind1@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Hema HK <hemahk@ti.com>
+Subject: [PATCH] usb: musb: Offmode fix for idle path
+Date: Thu,  8 Jul 2010 15:58:36 +0530
+Message-ID: <1278584916-21288-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:24349 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755962Ab0GHK1L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 06:27:11 -0400
-In-Reply-To: <AANLkTiludbDD8ndnQlqxyWeP7us-BxaEDHvKfDpw-AW8@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50843 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832Ab0GHK2o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 06:28:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
-Cc: Kyungmin Park <kmpark@infradead.org>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Rohit Hagargundgi <h.rohit@samsung.com>
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Hema HK <hemahk@ti.com>, Maulik Mankad <x0082077@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Thu, 2010-07-08 at 12:11 +0200, Enric Balletb=C3=B2 i Serra wrote:
-> Hello,
->=20
-> 2010/7/8 Artem Bityutskiy <dedekind1@gmail.com>:
-> > On Thu, 2010-07-08 at 11:55 +0200, Enric Balletb=C3=B2 i Serra wrot=
-e:
-> >> Hello,
-> >>
-> >> I made new tests regarding this issue. Looks like the problem is
-> >> reading from the OneNAND device.
-> >
-> > Did you try older kernel and then bisecting who is responsible for =
-the
-> > breakage?
->=20
-> Yes, before commit
->=20
-> 5988af2319781bc8e0ce418affec4e09cfa77907 (mtd: Flex-OneNAND support)
->=20
-> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-commit;h=3D5988af2319781bc8e0ce418affec4e09cfa77907
->=20
-> my  OneNAND is working, after the commit, the OneNAND support is brok=
-en.
+From: Hema HK  <hemahk@ti.com>
 
-Ok, we could revert it, but it is better to fix it. CCing the author of
-the commit.
+With OMAP coreoff support usb was not functional as context was getting
+lost after wakeup from coreoff. And also usb was blocking the coreoff 
+after loading the gadget driver even with no cable connected sometimes.
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+Added the conext save/restore api in the platform layer which will
+be called in the idle and wakeup path.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changed the usb sysconfig settings as per the usbotg functional spec.
+When the device is not used, configure in force idle and force standby mode.
+When it is being used, configure in smart standby and smart idle mode.
+So while attempting to coreoff the usb is configured to force standby and 
+force idle mode, after wakeup configured in smart idle and smart standby.
+
+Since clock used for musb is auto gated, there is no need to specifically
+enable/disable the clock. Removed enable/disable clock in suspend resume api.
+
+Signed-off-by: Hema HK <hemahk@ti.com>
+Signed-off-by: Maulik Mankad <x0082077@ti.com>
+
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Based off : Kevin pm branch.
+
+ arch/arm/mach-omap2/pm34xx.c          |    4 ++++
+ arch/arm/mach-omap2/usb-musb.c        |   15 +++++++++++++++
+ arch/arm/plat-omap/include/plat/usb.h |    2 ++
+ drivers/usb/musb/musb_core.c          |   11 -----------
+ drivers/usb/musb/omap2430.c           |   32 ++++++++++++++++++++++++++++----
+ 5 files changed, 49 insertions(+), 15 deletions(-)
+
+Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c
++++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+@@ -431,6 +431,8 @@ void omap_sram_idle(void)
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+ 			omap3_core_save_context();
+ 			omap3_prcm_save_context();
++			/* Save MUSB context */
++			musb_context_save_restore(1);
+ 		}
+ 	}
+ 
+@@ -479,6 +481,8 @@ void omap_sram_idle(void)
+ 			omap3_prcm_restore_context();
+ 			omap3_sram_restore_context();
+ 			omap2_sms_restore_context();
++			/* Restore MUSB context */
++			musb_context_save_restore(0);
+ 			/*
+ 			 * Errata 1.164 fix : OTG autoidle can prevent
+ 			 * sleep
+Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
++++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+@@ -177,6 +177,21 @@ void __init usb_musb_init(struct omap_mu
+ 	usb_musb_pm_init();
+ }
+ 
++void musb_context_save_restore(int save)
++{
++	struct device *dev = &musb_device.dev;
++	struct device_driver *drv = dev->driver;
++	if (dev->driver) {
++
++		const struct dev_pm_ops *pm = drv->pm;
++
++		if (save)
++			pm->suspend(dev);
++		else
++			pm->resume_noirq(dev);
++	}
++}
++
+ #else
+ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+Index: linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h
+===================================================================
+--- linux-omap-pm.orig/arch/arm/plat-omap/include/plat/usb.h
++++ linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h
+@@ -82,6 +82,8 @@ extern void usb_ohci_init(const struct o
+ /* This is needed for OMAP3 errata 1.164: enabled autoidle can prevent sleep */
+ extern void usb_musb_disable_autoidle(void);
+ 
++/* For saving and restoring the musb context during off/wakeup*/
++extern void musb_context_save_restore(int save);
+ #endif
+ 
+ void omap_usb_init(struct omap_usb_config *pdata);
+Index: linux-omap-pm/drivers/usb/musb/musb_core.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/musb_core.c
++++ linux-omap-pm/drivers/usb/musb/musb_core.c
+@@ -2430,11 +2430,6 @@ static int musb_suspend(struct device *d
+ 	}
+ 
+ 	musb_save_context(musb);
+-
+-	if (musb->set_clock)
+-		musb->set_clock(musb->clock, 0);
+-	else
+-		clk_disable(musb->clock);
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ 	return 0;
+ }
+@@ -2446,12 +2441,6 @@ static int musb_resume_noirq(struct devi
+ 
+ 	if (!musb->clock)
+ 		return 0;
+-
+-	if (musb->set_clock)
+-		musb->set_clock(musb->clock, 1);
+-	else
+-		clk_enable(musb->clock);
+-
+ 	musb_restore_context(musb);
+ 
+ 	/* for static cmos like DaVinci, register values were preserved
+Index: linux-omap-pm/drivers/usb/musb/omap2430.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/omap2430.c
++++ linux-omap-pm/drivers/usb/musb/omap2430.c
+@@ -257,15 +257,39 @@ int __init musb_platform_init(struct mus
+ void musb_platform_save_context(struct musb *musb,
+ 		struct musb_context_registers *musb_context)
+ {
+-	musb_context->otg_sysconfig = musb_readl(musb->mregs, OTG_SYSCONFIG);
+-	musb_context->otg_forcestandby = musb_readl(musb->mregs, OTG_FORCESTDBY);
++	/*
++	 * As per the specification, configure it to forced standby
++	 * and  force idle mode when no activity on usb.
++	 */
++	void __iomem *musb_base = musb->mregs;
++	musb_writel(musb_base, OTG_FORCESTDBY, 0);
++	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
++				OTG_SYSCONFIG) & ~(NOSTDBY | SMARTSTDBY));
++
++	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
++					OTG_SYSCONFIG) & ~(AUTOIDLE));
++
++	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
++				OTG_SYSCONFIG) & ~(NOIDLE | SMARTIDLE));
++
++	musb_writel(musb_base, OTG_FORCESTDBY, 1);
+ }
+ 
+ void musb_platform_restore_context(struct musb *musb,
+ 		struct musb_context_registers *musb_context)
+ {
+-	musb_writel(musb->mregs, OTG_SYSCONFIG, musb_context->otg_sysconfig);
+-	musb_writel(musb->mregs, OTG_FORCESTDBY, musb_context->otg_forcestandby);
++	/*
++	 * As per the specification, configure it smart standby
++	 * and smart idle during operation.
++	 */
++	void __iomem *musb_base = musb->mregs;
++	musb_writel(musb_base, OTG_FORCESTDBY, 0);
++
++	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
++				OTG_SYSCONFIG) | (SMARTSTDBY));
++
++	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
++					OTG_SYSCONFIG) | (SMARTIDLE));
+ }
+ #endif
+ 
