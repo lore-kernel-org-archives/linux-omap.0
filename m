@@ -1,175 +1,67 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH V2 4/4]usb : musb:Using omap_device_build for musb device registration
-Date: Thu,  8 Jul 2010 15:54:17 +0530
-Message-ID: <1278584657-18689-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: Possible bug in onenand_base ?
+Date: Thu, 08 Jul 2010 13:22:57 +0300
+Message-ID: <1278584577.20321.2.camel@localhost>
+References: <u2v70c9a9111004300305n4c86774bm7ed70161ad72d830@mail.gmail.com>
+	 <z2p9c9fda241005052046j3fea69a4v91f3d5fd86648fac@mail.gmail.com>
+	 <k2x70c9a9111005060422v90e246daw19b1f71d57a890a1@mail.gmail.com>
+	 <g2x9c9fda241005060444x7f9c4360u334d3afb06f1e8b8@mail.gmail.com>
+	 <z2v70c9a9111005060602n7b7477ebueb197af05372bd5@mail.gmail.com>
+	 <AANLkTimwO5iU6zPUJeLwAxW3GZGz5ldSRLmp2vpTBem3@mail.gmail.com>
+	 <AANLkTiktbqSHHw572y1YGVw7XhZaim9Pg3lhoMmDBLXY@mail.gmail.com>
+	 <AANLkTin43tv-AiFjwNkUE7ijy_ADMtsZTrqo_PY3DpCE@mail.gmail.com>
+	 <1278583087.20321.0.camel@localhost>
+	 <AANLkTiludbDD8ndnQlqxyWeP7us-BxaEDHvKfDpw-AW8@mail.gmail.com>
+Reply-To: dedekind1@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:24349 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755962Ab0GHK1L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jul 2010 06:27:11 -0400
+In-Reply-To: <AANLkTiludbDD8ndnQlqxyWeP7us-BxaEDHvKfDpw-AW8@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Enric =?ISO-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
+Cc: Kyungmin Park <kmpark@infradead.org>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, Rohit Hagargundgi <h.rohit@samsung.com>
 
-From: Hema HK  <hemahk-l0cyMroinI0@public.gmane.org>
+On Thu, 2010-07-08 at 12:11 +0200, Enric Balletb=C3=B2 i Serra wrote:
+> Hello,
+>=20
+> 2010/7/8 Artem Bityutskiy <dedekind1@gmail.com>:
+> > On Thu, 2010-07-08 at 11:55 +0200, Enric Balletb=C3=B2 i Serra wrot=
+e:
+> >> Hello,
+> >>
+> >> I made new tests regarding this issue. Looks like the problem is
+> >> reading from the OneNAND device.
+> >
+> > Did you try older kernel and then bisecting who is responsible for =
+the
+> > breakage?
+>=20
+> Yes, before commit
+>=20
+> 5988af2319781bc8e0ce418affec4e09cfa77907 (mtd: Flex-OneNAND support)
+>=20
+> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
+commit;h=3D5988af2319781bc8e0ce418affec4e09cfa77907
+>=20
+> my  OneNAND is working, after the commit, the OneNAND support is brok=
+en.
 
-Using omap_device_build api instead of platform_device_register for musb 
-device registration.The device specific resources defined in centralized 
-database will be used. So removed the resource definitions from the musb
-platform file. 
+Ok, we could revert it, but it is better to fix it. CCing the author of
+the commit.
 
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
----
-Based off  pm-wip/hwmods-omap4.
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
-[Review comments incorporated]
-
- arch/arm/mach-omap2/clock44xx_data.c       |    2 
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 
- arch/arm/mach-omap2/usb-musb.c             |   97 +++++++++++++++--------------
- 3 files changed, 53 insertions(+), 48 deletions(-)
-
-Index: linux-omap-pm/arch/arm/mach-omap2/clock44xx_data.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/clock44xx_data.c
-+++ linux-omap-pm/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2296,7 +2296,7 @@ static struct clk usb_host_fs_fck = {
- };
- 
- static struct clk usb_otg_ick = {
--	.name		= "usb_otg_ick",
-+	.name		= "usb_otg_hs_ick",
- 	.ops		= &clkops_omap2_dflt,
- 	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
- 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
-Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -4884,7 +4884,7 @@ static __initdata struct omap_hwmod *oma
- 	/* usb_host_hs class */
- /*	&omap44xx_usb_host_hs_hwmod, */
- 	/* usb_otg_hs class */
--/*	&omap44xx_usb_otg_hs_hwmod, */
-+	&omap44xx_usb_otg_hs_hwmod,
- 	/* usb_tll_hs class */
- /*	&omap44xx_usb_tll_hs_hwmod, */
- 	/* wd_timer class */
-Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
-+++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-@@ -30,24 +30,12 @@
- #include <mach/irqs.h>
- #include <plat/mux.h>
- #include <plat/usb.h>
-+#include <plat/omap_device.h>
- 
- #ifdef CONFIG_USB_MUSB_SOC
- 
--static struct resource musb_resources[] = {
--	[0] = { /* start and end set dynamically */
--		.flags	= IORESOURCE_MEM,
--	},
--	[1] = {	/* general IRQ */
--		.start	= INT_243X_HS_USB_MC,
--		.flags	= IORESOURCE_IRQ,
--		.name	= "mc",
--	},
--	[2] = {	/* DMA IRQ */
--		.start	= INT_243X_HS_USB_DMA,
--		.flags	= IORESOURCE_IRQ,
--		.name	= "dma",
--	},
--};
-+static const char name[] = "musb_hdrc";
-+#define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
- 
- static struct musb_hdrc_config musb_config = {
- 	.multipoint	= 1,
-@@ -76,43 +64,60 @@ static struct musb_hdrc_platform_data mu
- 
- static u64 musb_dmamask = DMA_BIT_MASK(32);
- 
--static struct platform_device musb_device = {
--	.name		= "musb_hdrc",
--	.id		= -1,
--	.dev = {
--		.dma_mask		= &musb_dmamask,
--		.coherent_dma_mask	= DMA_BIT_MASK(32),
--		.platform_data		= &musb_plat,
-+static struct omap_device_pm_latency omap_musb_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func	 = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
- 	},
--	.num_resources	= ARRAY_SIZE(musb_resources),
--	.resource	= musb_resources,
- };
- 
- void __init usb_musb_init(struct omap_musb_board_data *board_data)
- {
--	if (cpu_is_omap243x()) {
--		musb_resources[0].start = OMAP243X_HS_BASE;
--	} else if (cpu_is_omap34xx()) {
--		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
--	} else if (cpu_is_omap44xx()) {
--		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
--		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
--		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
-+	char oh_name[MAX_OMAP_MUSB_HWMOD_NAME_LEN];
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+	struct platform_device *pdev;
-+	struct device	*dev;
-+	int l, bus_id = -1;
-+	struct musb_hdrc_platform_data *pdata;
-+
-+	l = snprintf(oh_name, MAX_OMAP_MUSB_HWMOD_NAME_LEN,
-+						"usb_otg_hs");
-+	WARN(l >= MAX_OMAP_MUSB_HWMOD_NAME_LEN,
-+	"String buffer overflow in MUSB device setup\n");
-+	oh = omap_hwmod_lookup(oh_name);
-+
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", oh_name);
-+	} else {
-+		/*
-+		 * REVISIT: This line can be removed once all the platforms
-+		 * using musb_core.c have been converted to use use clkdev.
-+		 */
-+		musb_plat.clock = "ick";
-+		musb_plat.board_data = board_data;
-+		musb_plat.power = board_data->power >> 1;
-+		musb_plat.mode = board_data->mode;
-+		pdata = &musb_plat;
-+
-+		od = omap_device_build(name, bus_id, oh, pdata,
-+				       sizeof(struct musb_hdrc_platform_data),
-+							omap_musb_latency,
-+				       ARRAY_SIZE(omap_musb_latency), false);
-+		if (IS_ERR(od)) {
-+			pr_err("Could not build omap_device for %s %s\n",
-+						name, oh_name);
-+		} else {
-+
-+			pdev = &od->pdev;
-+			dev = &pdev->dev;
-+			get_device(dev);
-+			dev->dma_mask = &musb_dmamask;
-+			dev->coherent_dma_mask = musb_dmamask;
-+			put_device(dev);
-+		}
- 	}
--	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
--
--	/*
--	 * REVISIT: This line can be removed once all the platforms using
--	 * musb_core.c have been converted to use use clkdev.
--	 */
--	musb_plat.clock = "ick";
--	musb_plat.board_data = board_data;
--	musb_plat.power = board_data->power >> 1;
--	musb_plat.mode = board_data->mode;
--	musb_plat.extvbus = board_data->extvbus;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
