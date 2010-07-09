@@ -1,77 +1,62 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 1/2] musb: Kill board specific pinmux from driver file
-Date: Fri, 9 Jul 2010 12:03:32 -0700
-Message-ID: <20100709190332.GA29601@kroah.com>
-References: <1278587095-16978-1-git-send-email-ajay.gupta@ti.com>
- <1278587095-16978-2-git-send-email-ajay.gupta@ti.com>
- <20100709081532.GH24913@atomide.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: HTC Dream drivers was Re: [linux-pm] suspend blockers & Android
+ integration
+Date: Fri, 9 Jul 2010 21:11:46 +0200
+Message-ID: <20100709191145.GG1669@ucw.cz>
+References: <1275834706.7227.545.camel@mulgrave.site>
+ <alpine.LFD.2.00.1006061725000.2933@localhost.localdomain>
+ <1275844114.7227.552.camel@mulgrave.site>
+ <20100606190525.GA20517@infradead.org>
+ <AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com>
+ <20100606192405.GA7559@infradead.org>
+ <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:60751 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753585Ab0GITFJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Jul 2010 15:05:09 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20100709081532.GH24913@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Brian Swetland <swetland@google.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com, gregkh@suse.de, Anand Gadiyar <gadiyar@ti.com>
 
-On Fri, Jul 09, 2010 at 11:15:33AM +0300, Tony Lindgren wrote:
-> * Ajay Kumar Gupta <ajay.gupta@ti.com> [100708 13:59]:
-> > From: Anand Gadiyar <gadiyar@ti.com>
-> > 
-> > This pin-muxing is best done in the board files. The driver should
-> > not do this explicitly.
-> > 
-> > Also, this code causes a warning to be thrown when OMAP2430 and OMAP3/4
-> > support are enabled in the same kernel.
-> > 
-> > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> > Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Hi!
+
+
+> > So for people who really care about running a mainline kernel on their
+> > android device doing that part first on a generic ARM board in qemu
+> > might be much better first step work.
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-Thanks, I've added this to the patch.
-
-greg k-h
-
+> > On the other hand I've heard
+> > that various hardware vendors or parties closed to them are rather
+> > annoyed by their drivers beeing stuck in the android tree - but that
+> > can be easily solved by getting removing the suspend blockers (at least
+> > temporarily), cleaning up a few bits here and there and getting them in.
 > 
-> > ---
-> >  drivers/usb/musb/omap2430.c |    6 ------
-> >  1 files changed, 0 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> > index e06d65e..2111a24 100644
-> > --- a/drivers/usb/musb/omap2430.c
-> > +++ b/drivers/usb/musb/omap2430.c
-> > @@ -32,8 +32,6 @@
-> >  #include <linux/clk.h>
-> >  #include <linux/io.h>
-> >  
-> > -#include <plat/mux.h>
-> > -
-> >  #include "musb_core.h"
-> >  #include "omap2430.h"
-> >  
-> > @@ -194,10 +192,6 @@ int __init musb_platform_init(struct musb *musb, void *board_data)
-> >  	u32 l;
-> >  	struct omap_musb_board_data *data = board_data;
-> >  
-> > -#if defined(CONFIG_ARCH_OMAP2430)
-> > -	omap_cfg_reg(AE5_2430_USB0HS_STP);
-> > -#endif
-> > -
-> >  	/* We require some kind of external transceiver, hooked
-> >  	 * up through ULPI.  TWL4030-family PMICs include one,
-> >  	 * which needs a driver, drivers aren't always needed.
-> > -- 
-> > 1.6.2.4
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This continues to baffle me.  If we (Google) are such a headache, why
+> not just route around us.  The drivers we've written are GPLv2, the
+
+Well, we did route around you, and that's why the HTC Dream drivers
+are in
+staging.
+
+Unfortunately...
+
+> source is out there for anyone who wants it, etc.  The drivers other
+> people have written we have no control over at all. From my point of
+> view it'd be an annoyance if somebody took the code we wrote, modified
+> it heavily, and pushed it upstream, but fundamentally I can't stop
+> that from happening other than by pushing it upstream myself, first.
+
+...you were calling bloody murder when we tried to name them right way
+-- thats board_dream, not board_trout -- and AFAIK you still did not
+switch to actually using those drivers so that diffs would grow
+smaller...
+
+And no, it is not 'just arm architecture #1536'; due to strange
+baseband/cpu split in msm drivers end up quite big&complex...
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
