@@ -1,59 +1,70 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
-Date: Fri, 09 Jul 2010 11:12:52 +0300
-Message-ID: <4C36DA04.3090209@nokia.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com> 	<1278376666-3509-12-git-send-email-ohad@wizery.com> <4C32EF19.1000604@nokia.com> 	<AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com> 	<4C3306F4.8060907@nokia.com> <AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com> 	<4C333E0D.2070601@nokia.com> <alpine.LFD.2.00.1007061316010.6020@xanadu.home> <AANLkTin7jIAIiN_JHMxX74K-EBDtDNwUQMlIf4C6RCHD@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] musb: Kill board specific pinmux from driver file
+Date: Fri, 9 Jul 2010 11:15:33 +0300
+Message-ID: <20100709081532.GH24913@atomide.com>
+References: <1278587095-16978-1-git-send-email-ajay.gupta@ti.com>
+ <1278587095-16978-2-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTin7jIAIiN_JHMxX74K-EBDtDNwUQMlIf4C6RCHD@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: ext Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63027 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754638Ab0GIIPk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 04:15:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1278587095-16978-2-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com, gregkh@suse.de, Anand Gadiyar <gadiyar@ti.com>
 
-Hi Ohad,
+* Ajay Kumar Gupta <ajay.gupta@ti.com> [100708 13:59]:
+> From: Anand Gadiyar <gadiyar@ti.com>
+> 
+> This pin-muxing is best done in the board files. The driver should
+> not do this explicitly.
+> 
+> Also, this code causes a warning to be thrown when OMAP2430 and OMAP3/4
+> support are enabled in the same kernel.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On 07/08/2010 11:10 PM, ext Ohad Ben-Cohen wrote:
-> Hi Nicolas and Roger,
->
-> On Tue, Jul 6, 2010 at 8:42 PM, Nicolas Pitre<nico@fluxnic.net>  wrote:
->> On Tue, 6 Jul 2010, Roger Quadros wrote:
->>> If the Power enable GPIO can be treated as SDIO slot supply (i.e. vmmc), then
->>> the SDIO/MMC core should tackle it, just like it deals with supply for slots
->>> with removable cards.
->>
-> ...
->> Another function pair would be needed instead, which would do almost
->> like the suspend/resume code is already doing.  Something like:
->
-> Thanks a lot for your review and comments, and for taking the time to
-> present your approach.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-you're welcome :)
->
-> I like it !
->
-> It'd allow us to lose the software (or fake if you want ;) card detect
-> mechanism, which is something that should have been added to each
-> platform we wanted to support.
->
-> We would only need to make it possible to deliver board-specific data
-> to the function driver (e.g., in the case of the wl1271, we need irq
-> and board_ref_clock data).  That would require some board-level
-> platform-data configuration, which will be specific to the controller
-> to which the device is hardwired to. This data should propagate
-> through the host controller to the SDIO core so it would eventually be
-
-why should platform data go through the host controller? You are already 
-creating a new platform device for wl1271_sdio just to pass platform_data so the 
-platform data for that can be passed directly from board files to this platform 
-device. It doesn't need to go via host controller.
-
-I think this case is specific to wl1271. Ideally wl1271 should have used the 
-SDIO's in-band interrupt delivery mechanism and SDIO Configuration space to 
-provide this information to make it truly plug n play.
-
-br,
--roger
+> ---
+>  drivers/usb/musb/omap2430.c |    6 ------
+>  1 files changed, 0 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index e06d65e..2111a24 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -32,8 +32,6 @@
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+>  
+> -#include <plat/mux.h>
+> -
+>  #include "musb_core.h"
+>  #include "omap2430.h"
+>  
+> @@ -194,10 +192,6 @@ int __init musb_platform_init(struct musb *musb, void *board_data)
+>  	u32 l;
+>  	struct omap_musb_board_data *data = board_data;
+>  
+> -#if defined(CONFIG_ARCH_OMAP2430)
+> -	omap_cfg_reg(AE5_2430_USB0HS_STP);
+> -#endif
+> -
+>  	/* We require some kind of external transceiver, hooked
+>  	 * up through ULPI.  TWL4030-family PMICs include one,
+>  	 * which needs a driver, drivers aren't always needed.
+> -- 
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
