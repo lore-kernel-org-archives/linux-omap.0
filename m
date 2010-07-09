@@ -1,45 +1,77 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 5/5] omap: Allow testing for omap type with 	omap_has_feature
-Date: Fri, 9 Jul 2010 11:53:55 -0500
-Message-ID: <4C375423.1090405@ti.com>
-References: <20100708093405.16352.11814.stgit@baageli.muru.com> <20100708093804.16352.82935.stgit@baageli.muru.com> <4C35E8D1.6030504@ti.com> <AANLkTimTBT_tNNB4GB7mvy1hAEcMrWsauIvjG_p33TD2@mail.gmail.com> <4C35FCBF.4020400@ti.com> <AANLkTinoIchxcoG-GBROttjr63ZxIRwFheQwZ4RAxnWn@mail.gmail.com> <4C3628FE.5030201@ti.com> <20100709070422.GC24913@atomide.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 1/2] musb: Kill board specific pinmux from driver file
+Date: Fri, 9 Jul 2010 12:03:32 -0700
+Message-ID: <20100709190332.GA29601@kroah.com>
+References: <1278587095-16978-1-git-send-email-ajay.gupta@ti.com>
+ <1278587095-16978-2-git-send-email-ajay.gupta@ti.com>
+ <20100709081532.GH24913@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50686 "EHLO comal.ext.ti.com"
+Received: from kroah.org ([198.145.64.141]:60751 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756021Ab0GIQx7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Jul 2010 12:53:59 -0400
-In-Reply-To: <20100709070422.GC24913@atomide.com>
+	id S1753585Ab0GITFJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Jul 2010 15:05:09 -0400
+Content-Disposition: inline
+In-Reply-To: <20100709081532.GH24913@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com, gregkh@suse.de, Anand Gadiyar <gadiyar@ti.com>
 
-Tony Lindgren had written, on 07/09/2010 02:04 AM, the following:
-> * Nishanth Menon <nm@ti.com> [100708 22:31]:
->>>    I think this 'lazy reviewability'  comes at the cost of very
->>> abstraction  the features framework is intended to provide, not to
->>> mention the question of correct selection (is this a OMAP4 specific
->>> feature or is OMAP5 expected to have it ?). and upgradation.
->>>
->>>    As mentioned before, the surrounding context of the use of
->>> omap_has_feature() will provide enough clues about the cpu specific
->>> nature of a feature, if at all needed.
->> Does it really? when a new feature is added, dont we want to know if
->> it is generic feature or a omap specific feature? where is the flag?
+On Fri, Jul 09, 2010 at 11:15:33AM +0300, Tony Lindgren wrote:
+> * Ajay Kumar Gupta <ajay.gupta@ti.com> [100708 13:59]:
+> > From: Anand Gadiyar <gadiyar@ti.com>
+> > 
+> > This pin-muxing is best done in the board files. The driver should
+> > not do this explicitly.
+> > 
+> > Also, this code causes a warning to be thrown when OMAP2430 and OMAP3/4
+> > support are enabled in the same kernel.
+> > 
+> > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> > Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 > 
-> Yeah I don't know what we should do with these defines.. Kind of just
-> threw the patch out there.
-> 
-> If we already have omap specific omap_has_feature functions, we don't
-> need cpu_is_omapxxxx in most cases.
-> 
-> I suggest we only use the generic defines now, then look at it again
-> when we run out of the bits to define.
-ack.
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
--- 
-Regards,
-Nishanth Menon
+Thanks, I've added this to the patch.
+
+greg k-h
+
+> 
+> > ---
+> >  drivers/usb/musb/omap2430.c |    6 ------
+> >  1 files changed, 0 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> > index e06d65e..2111a24 100644
+> > --- a/drivers/usb/musb/omap2430.c
+> > +++ b/drivers/usb/musb/omap2430.c
+> > @@ -32,8 +32,6 @@
+> >  #include <linux/clk.h>
+> >  #include <linux/io.h>
+> >  
+> > -#include <plat/mux.h>
+> > -
+> >  #include "musb_core.h"
+> >  #include "omap2430.h"
+> >  
+> > @@ -194,10 +192,6 @@ int __init musb_platform_init(struct musb *musb, void *board_data)
+> >  	u32 l;
+> >  	struct omap_musb_board_data *data = board_data;
+> >  
+> > -#if defined(CONFIG_ARCH_OMAP2430)
+> > -	omap_cfg_reg(AE5_2430_USB0HS_STP);
+> > -#endif
+> > -
+> >  	/* We require some kind of external transceiver, hooked
+> >  	 * up through ULPI.  TWL4030-family PMICs include one,
+> >  	 * which needs a driver, drivers aren't always needed.
+> > -- 
+> > 1.6.2.4
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
