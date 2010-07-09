@@ -1,74 +1,59 @@
-From: Mathias Nyman <mathias.nyman@nokia.com>
-Subject: [PATCH] omap: rx51: Platform support for tsl2563 ALS
-Date: Fri,  9 Jul 2010 11:01:20 +0300
-Message-ID: <1278662480-12496-1-git-send-email-mathias.nyman@nokia.com>
-References: <20100709071835.GF24913@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:50518 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753088Ab0GIIBj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 04:01:39 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o6981W2A008191
-	for <linux-omap@vger.kernel.org>; Fri, 9 Jul 2010 03:01:38 -0500
-Received: from localhost.localdomain (esdhcp038119.research.nokia.com [172.21.38.119])
-	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o6981OAZ003193
-	for <linux-omap@vger.kernel.org>; Fri, 9 Jul 2010 11:01:24 +0300
-In-Reply-To: <20100709071835.GF24913@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
+Date: Fri, 09 Jul 2010 11:12:52 +0300
+Message-ID: <4C36DA04.3090209@nokia.com>
+References: <1278376666-3509-1-git-send-email-ohad@wizery.com> 	<1278376666-3509-12-git-send-email-ohad@wizery.com> <4C32EF19.1000604@nokia.com> 	<AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com> 	<4C3306F4.8060907@nokia.com> <AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com> 	<4C333E0D.2070601@nokia.com> <alpine.LFD.2.00.1007061316010.6020@xanadu.home> <AANLkTin7jIAIiN_JHMxX74K-EBDtDNwUQMlIf4C6RCHD@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTin7jIAIiN_JHMxX74K-EBDtDNwUQMlIf4C6RCHD@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: ext Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-From: Mathias Nyman <mathias.nyman@nokia.com>
+Hi Ohad,
 
-This will enable usage of tsl2563 ambient light sensor on Nokia N900.
+On 07/08/2010 11:10 PM, ext Ohad Ben-Cohen wrote:
+> Hi Nicolas and Roger,
+>
+> On Tue, Jul 6, 2010 at 8:42 PM, Nicolas Pitre<nico@fluxnic.net>  wrote:
+>> On Tue, 6 Jul 2010, Roger Quadros wrote:
+>>> If the Power enable GPIO can be treated as SDIO slot supply (i.e. vmmc), then
+>>> the SDIO/MMC core should tackle it, just like it deals with supply for slots
+>>> with removable cards.
+>>
+> ...
+>> Another function pair would be needed instead, which would do almost
+>> like the suspend/resume code is already doing.  Something like:
+>
+> Thanks a lot for your review and comments, and for taking the time to
+> present your approach.
 
+you're welcome :)
+>
+> I like it !
+>
+> It'd allow us to lose the software (or fake if you want ;) card detect
+> mechanism, which is something that should have been added to each
+> platform we wanted to support.
+>
+> We would only need to make it possible to deliver board-specific data
+> to the function driver (e.g., in the case of the wl1271, we need irq
+> and board_ref_clock data).  That would require some board-level
+> platform-data configuration, which will be specific to the controller
+> to which the device is hardwired to. This data should propagate
+> through the host controller to the SDIO core so it would eventually be
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+why should platform data go through the host controller? You are already 
+creating a new platform device for wl1271_sdio just to pass platform_data so the 
+platform data for that can be passed directly from board files to this platform 
+device. It doesn't need to go via host controller.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 3c3f975..a3a396c 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -35,6 +35,8 @@
- #include <sound/tlv320aic3x.h>
- #include <sound/tpa6130a2-plat.h>
- 
-+#include <../drivers/staging/iio/light/tsl2563.h>
-+
- #include "mux.h"
- #include "hsmmc.h"
- 
-@@ -53,6 +55,12 @@ enum {
- 
- static struct wl12xx_platform_data wl1251_pdata;
- 
-+#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
-+static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
-+	.cover_comp_gain = 16,
-+};
-+#endif
-+
- static struct omap2_mcspi_device_config wl1251_mcspi_config = {
- 	.turbo_mode	= 0,
- 	.single_channel	= 1,
-@@ -714,6 +722,12 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
- 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
- 		.platform_data = &rx51_aic3x_data,
- 	},
-+#if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
-+	{
-+		I2C_BOARD_INFO("tsl2563", 0x29),
-+		.platform_data = &rx51_tsl2563_platform_data,
-+	},
-+#endif
- 	{
- 		I2C_BOARD_INFO("tpa6130a2", 0x60),
- 		.platform_data = &rx51_tpa6130a2_data,
--- 
-1.7.0.4
+I think this case is specific to wl1271. Ideally wl1271 should have used the 
+SDIO's in-band interrupt delivery mechanism and SDIO Configuration space to 
+provide this information to make it truly plug n play.
 
+br,
+-roger
