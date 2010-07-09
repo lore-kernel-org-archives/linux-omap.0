@@ -1,60 +1,63 @@
-From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Subject: Re: [PM-SR][PATCH 1/2 v2] omap3: sr: fix memory leak and simplify
- the code
-Date: Fri, 09 Jul 2010 18:36:37 +0300
-Message-ID: <1278689797.9953.136.camel@localhost>
-References: <[PATCH 1/2] omap3: sr: fix memory leak and simplify the code>
-	 <1278687874-26123-1-git-send-email-nm@ti.com>
-Reply-To: Artem.Bityutskiy@nokia.com
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: RE: [PATCH 2/2] omap3: sr: improve errors handling
+Date: Fri, 09 Jul 2010 18:44:05 +0300
+Message-ID: <1278690245.9953.142.camel@localhost>
+References: <1278681612-10521-1-git-send-email-dedekind1@gmail.com>
+	 <1278681612-10521-2-git-send-email-dedekind1@gmail.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB032391F34E@dbde02.ent.ti.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:65330 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755169Ab0GIPk4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 11:40:56 -0400
-In-Reply-To: <1278687874-26123-1-git-send-email-nm@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:39862 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757325Ab0GIPsT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 11:48:19 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032391F34E@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>, "De-Schrijver Peter (Nokia-MS/Helsinki)" <Peter.De-Schrijver@nokia.com>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Peter p2 De Schrijver <peter.de-schrijver@nokia.com>
 
-On Fri, 2010-07-09 at 17:04 +0200, ext Nishanth Menon wrote:
-> From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+On Fri, 2010-07-09 at 20:35 +0530, Gopinath, Thara wrote:
 >=20
-> This patch fixes the following problem indicated by kmemleak:
+> >>-----Original Message-----
+> >>From: Artem Bityutskiy [mailto:dedekind1@gmail.com]
+> >>Sent: Friday, July 09, 2010 6:50 PM
+> >>To: linux-omap@vger.kernel.org
+> >>Cc: Menon, Nishanth; Kevin Hilman; Gopinath, Thara; Peter p2 De Sch=
+rijver
+> >>Subject: [PATCH 2/2] omap3: sr: improve errors handling
+> >>
+> >>From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> >>
+> >>Do not forget to check the 'platform_device_add_data()' error code
+> >>in 'omap_device_build_ss()'.
 >=20
-> kmemleak: unreferenced object 0xdf93c280 (size 64):
-> kmemleak:   backtrace:
-> kmemleak:     [<c00df6d4>] create_object+0x104/0x200
-> kmemleak:     [<c00d7638>] kmem_cache_alloc+0xe4/0xf4
-> kmemleak:     [<c000fc38>] omap_devinit_smartreflex+0x44/0x244
-> kmemleak:     [<c003a33c>] do_one_initcall+0x5c/0x1b8
-> kmemleak:     [<c00083fc>] kernel_init+0x94/0x110
-> kmemleak:     [<c003ba04>] kernel_thread_exit+0x0/0x8
+> Hello Artem,
 >=20
-> The reason is that 'omap_devinit_smartreflex()' allocates 'sr_data',
-> then passes it to 'omap_device_build()', which 'kmemdup()'s it and
-> uses the copy. But 'omap_devinit_smartreflex()' never frees 'sr_data'=
-=2E
->=20
-> This patch make 'sr_data' to be a stack variable, which eliminates
-> the memory leak and simplifies the code a bit.
->=20
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Thara Gopinath <thara@ti.com>,
-> Cc: Peter p2 De Schrijver <peter.de-schrijver@nokia.com>
-> Cc: Nishanth Menon <nm@ti.com>
->=20
-> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-> Acked-by: Nishanth Menon <nm@ti.com>
-> ---
-> Changes from V1:
-> 	rebased to latest pm-sr branch
-> 	default of sr_data set to 0 to make it equivalent to kzalloc
+> Can we have a better subject and description. The subject esp has got
+> nothing to do with the fix.
 
-Oh, right. Thanks for fixing!
+Hmm, I do not see why you think so. I think the subject is fine - the
+patch improves error handling in the SR code. Then description says how
+exactly it improves it - it makes the code to not forget to check the
+return code, and it tells in which function and which return code.
+
+So the logic is:
+
+1. The subject line is a short description which gives the idea what th=
+e
+commit is about. So, my subject line says:
+  1.1. It is about omap3 (which is true)
+  1.2. It is about sr (which is true)
+  1.3. It improves error handling (which is also true)
+
+So the subject line is descriptive enough. It does not have to provide
+all glory details.
+
+Then the description provides the details.
 
 --=20
 Best Regards,
