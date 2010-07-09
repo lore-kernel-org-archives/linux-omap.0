@@ -1,49 +1,100 @@
 From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v4 0/8] nand support on omap3 boards
-Date: Fri,  9 Jul 2010 19:57:46 +0530
-Message-ID: <1278685671-12036-1-git-send-email-s-ghorai@ti.com>
+Subject: [PATCH v4 3/5] omap3: add support for NAND on zoom3 board
+Date: Fri,  9 Jul 2010 19:57:49 +0530
+Message-ID: <1278685671-12036-4-git-send-email-s-ghorai@ti.com>
+References: <1278685671-12036-1-git-send-email-s-ghorai@ti.com>
+ <1278685671-12036-2-git-send-email-s-ghorai@ti.com>
+ <1278685671-12036-3-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50122 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752016Ab0GIO2C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 10:28:02 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:52054 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756946Ab0GIO2E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Jul 2010 10:28:04 -0400
+In-Reply-To: <1278685671-12036-3-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-   The following set of patches applies on top of for-next branch.
-   And these are the patches required to enable nand (nor and onenand for sdp
-   only) for different platform.
-   
-   v4: patch rebase on latest code base; depend on
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31950.html
-   
-   v3:  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30735.html
-	patch rebase on latest nand patch and depend on -
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30305.html
-   
-   v2: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26479.html
-	rework to use full nand in partition table of ZOOM2/3;
-	ZOOM1(LDP)support added.
-		
-   v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg22205.html
+patch adds NAND support to zoom3 board.
 
-Sukumar Ghorai (5):
-	omap3 flash: rename board-sdp-flash.c to be use by other boards
-	omap3: add support for NAND on zoom2 board
-	omap3: add support for NAND on zoom3 board
-	omap-3630-sdp : Add support for Flash
-	omap3: add support for NAND on LDP board
+Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+---
+ arch/arm/mach-omap2/Makefile      |    1 +
+ arch/arm/mach-omap2/board-zoom3.c |   43 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+), 0 deletions(-)
 
- arch/arm/mach-omap2/Makefile                  |    6 +-
- arch/arm/mach-omap2/board-3430sdp.c           |   16 +++-
- arch/arm/mach-omap2/board-3630sdp.c           |  120 +++++++++++++++++++++++++
- arch/arm/mach-omap2/board-ldp.c               |   35 +++++++
- arch/arm/mach-omap2/board-sdp-flash.c         |   88 ++++++++-----------
- arch/arm/mach-omap2/board-zoom2.c             |   43 +++++++++
- arch/arm/mach-omap2/board-zoom3.c             |   43 +++++++++
- arch/arm/mach-omap2/include/mach/board-sdp.h  |    9 ++-
- arch/arm/mach-omap2/include/mach/board-zoom.h |    6 ++
- 9 files changed, 311 insertions(+), 55 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 81c3b08..cbd3458 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -133,6 +133,7 @@ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+ 					   board-zoom-debugboard.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+ 					   board-zoom-peripherals.o \
++					   board-flash.o \
+ 					   hsmmc.o \
+ 					   board-zoom-debugboard.o
+ obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index 0c6858b..84f49da 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -28,6 +28,47 @@
+ static struct omap_board_config_kernel zoom_config[] __initdata = {
+ };
+ 
++static struct mtd_partition zoom_nand_partitions[] = {
++	/* All the partition sizes are listed in terms of NAND block size */
++	{
++		.name		= "X-Loader-NAND",
++		.offset		= 0,
++		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "U-Boot-NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
++		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
++		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
++	},
++	{
++		.name		= "Boot Env-NAND",
++		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
++		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
++	},
++	{
++		.name		= "Kernel-NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
++		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
++	},
++	{
++		.name		= "system",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
++		.size		= 3328 * (64 * 2048),	/* 416M, 0x1A000000 */
++	},
++	{
++		.name		= "userdata",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1C000000*/
++		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
++	},
++	{
++		.name		= "cache",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1E000000*/
++		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
++	},
++};
++
+ static void __init omap_zoom_init_irq(void)
+ {
+ 	omap_board_config = zoom_config;
+@@ -75,6 +116,8 @@ static void __init omap_zoom_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
+ 	zoom_peripherals_init();
++	board_nand_init(zoom_nand_partitions,
++			 ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS);
+ 	zoom_debugboard_init();
+ 
+ 	omap_mux_init_gpio(64, OMAP_PIN_OUTPUT);
