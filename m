@@ -1,45 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 0/3] omap3 nand: cleanup exiting platform related
- code
-Date: Fri, 9 Jul 2010 11:32:56 +0300
-Message-ID: <20100709083256.GI24913@atomide.com>
-References: <1278660308-8689-1-git-send-email-s-ghorai@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
+Date: Fri, 9 Jul 2010 11:32:47 +0300
+Message-ID: <AANLkTik7eGRREWlokHenj-hGlwJXwc7IBWpSqNpoMwGI@mail.gmail.com>
+References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
+	<1278376666-3509-12-git-send-email-ohad@wizery.com> <4C32EF19.1000604@nokia.com>
+	<AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com>
+	<4C3306F4.8060907@nokia.com> <AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com>
+	<4C333E0D.2070601@nokia.com> <alpine.LFD.2.00.1007061316010.6020@xanadu.home>
+	<AANLkTin7jIAIiN_JHMxX74K-EBDtDNwUQMlIf4C6RCHD@mail.gmail.com>
+	<4C36DA04.3090209@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58394 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab0GIIdB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 04:33:01 -0400
-Content-Disposition: inline
-In-Reply-To: <1278660308-8689-1-git-send-email-s-ghorai@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4C36DA04.3090209@nokia.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Roger Quadros <roger.quadros@nokia.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sukumar Ghorai <s-ghorai@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-* Sukumar Ghorai <s-ghorai@ti.com> [100709 10:19]:
->    The following set of patches applies on top of for-next branch.
-> 	http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git
->    Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and beagle board
-> 
->    And these are the patches required to address the following input -
->      1. The NAND driver needs to stop tinkering with the GPMC registers
-> 	The omap General Purpose Memory Controller (GPMC) registers are omap
->         specific, and not driver specific. Tinkering with these registers can
->         cause issues with the other devices on the GPMC.
-> 
->      2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
-> 	Passing hardcoded GPMC virtual addressess is sure way to mess up things.
->         This should all become unnecessary once the NAND drivers stops messing
->         with the GPMC registers directly.
+Hi Roger,
 
-Looks good to me, thanks for doing this.
+On Fri, Jul 9, 2010 at 11:12 AM, Roger Quadros <roger.quadros@nokia.com> wrote:
+> You are already
+> creating a new platform device for wl1271_sdio just to pass platform_data
 
-One more request: Please repost this series one more time with linux-arm-kernel
-mailing list Cc'd. Then if no comments, I'll merge this series during the next
-merge window.
+With the new approach, I can remove this platform device altogether,
+and completely rely on the sdio function device for driver probing (as
+it was before). I just need to add this little support of delivering
+small bits of platform data - the mechanism should be simple and
+generic, and would considerably simplify the driver.
 
-Regards,
+> I think this case is specific to wl1271.
 
-Tony
+Yes, it is.
+
+There's an hw issue with the wl1271's in-band interrupt, so we can't
+use it (the issue is fixed in the wl1281 btw).
+
+But we also have to deliver the reference clock info to the driver,
+which is board-specific data, and would be relevant to all wl12xx
+devices.
+
+Thanks,
+Ohad.
