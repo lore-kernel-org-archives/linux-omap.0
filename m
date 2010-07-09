@@ -1,52 +1,45 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH resend 1/2] OMAP3: musb: remove unneeded inits in musb_plat
-Date: Fri,  9 Jul 2010 13:52:05 +0530
-Message-ID: <1278663726-27689-1-git-send-email-ajay.gupta@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v6 0/3] omap3 nand: cleanup exiting platform related
+ code
+Date: Fri, 9 Jul 2010 11:32:56 +0300
+Message-ID: <20100709083256.GI24913@atomide.com>
+References: <1278660308-8689-1-git-send-email-s-ghorai@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34433 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752093Ab0GIIWQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Jul 2010 04:22:16 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58394 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751877Ab0GIIdB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 04:33:01 -0400
+Content-Disposition: inline
+In-Reply-To: <1278660308-8689-1-git-send-email-s-ghorai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-Removed unneeded 'power' and 'mode' field from musb_config as
-they are now getting updated by the values provided from board
-files at usb_musb_init().
+* Sukumar Ghorai <s-ghorai@ti.com> [100709 10:19]:
+>    The following set of patches applies on top of for-next branch.
+> 	http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git
+>    Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and beagle board
+> 
+>    And these are the patches required to address the following input -
+>      1. The NAND driver needs to stop tinkering with the GPMC registers
+> 	The omap General Purpose Memory Controller (GPMC) registers are omap
+>         specific, and not driver specific. Tinkering with these registers can
+>         cause issues with the other devices on the GPMC.
+> 
+>      2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
+> 	Passing hardcoded GPMC virtual addressess is sure way to mess up things.
+>         This should all become unnecessary once the NAND drivers stops messing
+>         with the GPMC registers directly.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- arch/arm/mach-omap2/usb-musb.c |   13 -------------
- 1 files changed, 0 insertions(+), 13 deletions(-)
+Looks good to me, thanks for doing this.
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 33a5cde..03ddf64 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -54,21 +54,8 @@ static struct musb_hdrc_config musb_config = {
- };
- 
- static struct musb_hdrc_platform_data musb_plat = {
--#ifdef CONFIG_USB_MUSB_OTG
--	.mode		= MUSB_OTG,
--#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
--	.mode		= MUSB_HOST,
--#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
--	.mode		= MUSB_PERIPHERAL,
--#endif
- 	/* .clock is set dynamically */
- 	.config		= &musb_config,
--
--	/* REVISIT charge pump on TWL4030 can supply up to
--	 * 100 mA ... but this value is board-specific, like
--	 * "mode", and should be passed to usb_musb_init().
--	 */
--	.power		= 50,			/* up to 100 mA */
- };
- 
- static u64 musb_dmamask = DMA_BIT_MASK(32);
--- 
-1.6.2.4
+One more request: Please repost this series one more time with linux-arm-kernel
+mailing list Cc'd. Then if no comments, I'll merge this series during the next
+merge window.
 
+Regards,
+
+Tony
