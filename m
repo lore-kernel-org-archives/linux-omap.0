@@ -1,58 +1,55 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH resend] omap: 3630: disable TLL SAR on 3630 ES1
-Date: Sat, 10 Jul 2010 05:04:29 +0530
-Message-ID: <1278718469-7940-1-git-send-email-gadiyar@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40402 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750987Ab0GIXeg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Jul 2010 19:34:36 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] staging: ti dspbridge: fix compilation error
+Date: Sat, 10 Jul 2010 02:37:26 +0300
+Message-ID: <AANLkTinL95vKeDgceG-CbyjjrMlVZkoIkP3qsDJBHN1w@mail.gmail.com>
+References: <1278715732-21167-1-git-send-email-rene.sapiens@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1278715732-21167-1-git-send-email-rene.sapiens@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rene Sapiens <rene.sapiens@ti.com>
+Cc: greg@kroah.com, gregkh@suse.de, omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Anand Gadiyar <gadiyar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-USBTLL Save-and-Restore is broken in 3630 ES1.0. Having it
-enabled could result in incorrect register restores as
-the OMAP exits off-mode. This could potentially result in
-unexpected wakeup events.
+On Sat, Jul 10, 2010 at 1:48 AM, Rene Sapiens <rene.sapiens@ti.com> wro=
+te:
+> This patch fix a compilation error in uuid_hex_to_bin
+> due to the patch "simplify and clean up"
+>
+> Signed-off-by: Rene Sapiens <rene.sapiens@ti.com>
+Oh, previous version of patch was sent. Thanks for fix.
 
-This is fixed in ES1.1. So disable it for ES1.0s.
+ACK.
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
-This is a fix for buggy hardware, and it would be nice
-to see this in the next merge window too.
+> ---
+> =C2=A0drivers/staging/tidspbridge/gen/uuidutil.c | =C2=A0 =C2=A01 +
+> =C2=A01 files changed, 1 insertions(+), 0 deletions(-)
+> =C2=A0mode change 100644 =3D> 100755 drivers/staging/tidspbridge/gen/=
+uuidutil.c
+>
+> diff --git a/drivers/staging/tidspbridge/gen/uuidutil.c b/drivers/sta=
+ging/tidspbridge/gen/uuidutil.c
+> index eb09bc3..070761b
+> --- a/drivers/staging/tidspbridge/gen/uuidutil.c
+> +++ b/drivers/staging/tidspbridge/gen/uuidutil.c
+> @@ -58,6 +58,7 @@ static s32 uuid_hex_to_bin(char *buf, s32 len)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0s32 i;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0s32 result =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 int value;
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 0; i < len; i++) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0value =3D hex_=
+to_bin(*buf++);
+> --
+> 1.6.3.3
+>
+>
 
-Depends on the patch I just posted which adds the
-CHIP_GE_OMAP3630ES1_1 macro
-<https://patchwork.kernel.org/patch/111147/>
 
- arch/arm/mach-omap2/powerdomains34xx.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/powerdomains34xx.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/powerdomains34xx.h
-+++ linux-omap-2.6/arch/arm/mach-omap2/powerdomains34xx.h
-@@ -80,7 +80,8 @@ static struct powerdomain core_3xxx_pre_
- 	.prcm_offs	  = CORE_MOD,
- 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
- 					   CHIP_IS_OMAP3430ES2 |
--					   CHIP_IS_OMAP3430ES3_0),
-+					   CHIP_IS_OMAP3430ES3_0 |
-+					   CHIP_IS_OMAP3630ES1),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.banks		  = 2,
-@@ -97,7 +98,8 @@ static struct powerdomain core_3xxx_pre_
- static struct powerdomain core_3xxx_es3_1_pwrdm = {
- 	.name		  = "core_pwrdm",
- 	.prcm_offs	  = CORE_MOD,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES3_1 |
-+					  CHIP_GE_OMAP3630ES1_1),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
- 	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
+--=20
+With Best Regards,
+Andy Shevchenko
