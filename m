@@ -1,62 +1,65 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: HTC Dream drivers was Re: [linux-pm] suspend blockers & Android
- integration
-Date: Fri, 9 Jul 2010 21:11:46 +0200
-Message-ID: <20100709191145.GG1669@ucw.cz>
-References: <1275834706.7227.545.camel@mulgrave.site>
- <alpine.LFD.2.00.1006061725000.2933@localhost.localdomain>
- <1275844114.7227.552.camel@mulgrave.site>
- <20100606190525.GA20517@infradead.org>
- <AANLkTikKx-gXCGtNo3woHLCpBoEQ7hG9Jbiq3hwUTW_w@mail.gmail.com>
- <20100606192405.GA7559@infradead.org>
- <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [Regression] ads7846.c touchscreen controller driver reports
+	wrong X,Y values
+Date: Fri, 9 Jul 2010 15:17:09 -0700
+Message-ID: <AANLkTilh7VrS1zZLSmuj-BFYvm34mkF_uwk9B7TpyYYz@mail.gmail.com>
+References: <AANLkTinwrfeYybZysJ-hyZC4MCxjtAFSVos6ZOguZ9VE@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTikA0ihlbehyyN-zQ3mN4WmlZJYBSRTYV8SbDhSr@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Neil Brown <neilb@suse.de>, tytso@mit.edu, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Florian Mickler <florian@mickler.org>, James Bottomley <James.Bottomley@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux PM <linux-pm@lists.linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Arjan van de Ven <arjan@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:64458 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752425Ab0GIWRL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 18:17:11 -0400
+Received: by qyk38 with SMTP id 38so3350221qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Jul 2010 15:17:10 -0700 (PDT)
+In-Reply-To: <AANLkTinwrfeYybZysJ-hyZC4MCxjtAFSVos6ZOguZ9VE@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mickael Chazaux <mickael.chazaux@gmail.com>
+Cc: linux-omap@vger.kernel.org, Roman Tereshonkov <roman.tereshonkov@nokia.com>
 
-Hi!
+On Tue, May 25, 2010 at 8:54 AM, Mickael Chazaux
+<mickael.chazaux@gmail.com> wrote:
+> Hi,
+>
+> I am working on adding the support of an omap3 based board in the
+> kernel. This board uses an ADS7843 touchscreen controller, on the SPI
+> bus. The in-kernel driver (drivers/input/touchscreen/ads7646.c) works
+> fine with the 2.6.33 kernel. When updating to the 2.6.34 kernel the
+> values reported by the driver were garbage. I had to revert this
+> commit [1] to make it work again. Can someone confirm that this drive=
+r
+> still works with other OMAP boards?
+>
+> [1] a330ce2001b290c59fe98c37e981683ef0a75fdf
+
+I can confirm that the above patch also breaks the ADS7846 driver on
+Overo.  Reverting it results in correct operation.
+
+Steve
 
 
-> > So for people who really care about running a mainline kernel on their
-> > android device doing that part first on a generic ARM board in qemu
-> > might be much better first step work.
-> 
-> > On the other hand I've heard
-> > that various hardware vendors or parties closed to them are rather
-> > annoyed by their drivers beeing stuck in the android tree - but that
-> > can be easily solved by getting removing the suspend blockers (at least
-> > temporarily), cleaning up a few bits here and there and getting them in.
-> 
-> This continues to baffle me.  If we (Google) are such a headache, why
-> not just route around us.  The drivers we've written are GPLv2, the
 
-Well, we did route around you, and that's why the HTC Dream drivers
-are in
-staging.
 
-Unfortunately...
 
-> source is out there for anyone who wants it, etc.  The drivers other
-> people have written we have no control over at all. From my point of
-> view it'd be an annoyance if somebody took the code we wrote, modified
-> it heavily, and pushed it upstream, but fundamentally I can't stop
-> that from happening other than by pushing it upstream myself, first.
-
-...you were calling bloody murder when we tried to name them right way
--- thats board_dream, not board_trout -- and AFAIK you still did not
-switch to actually using those drivers so that diffs would grow
-smaller...
-
-And no, it is not 'just arm architecture #1536'; due to strange
-baseband/cpu split in msm drivers end up quite big&complex...
-
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> Regards,
+>
+> Mickael
+>
+> Adeneo Embedded - Adetel Group
+> 2, chemin du Ruisseau
+> 69134 ECULLY - FRANCE
+> T=E9l. : +33 (0)4 72 18 08 40 - Fax : +33 (0)4 72 18 08 41
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
