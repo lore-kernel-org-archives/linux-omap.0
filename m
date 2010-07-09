@@ -1,44 +1,66 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 11/15] wireless: wl1271: introduce platform device support
-Date: Fri, 9 Jul 2010 12:24:06 +0300
-Message-ID: <AANLkTikviJTV-jPVwxu5HG_QT6jXyFDNE4MEADgUaoWV@mail.gmail.com>
-References: <1278376666-3509-1-git-send-email-ohad@wizery.com>
-	<1278376666-3509-12-git-send-email-ohad@wizery.com>
-	<4C32EF19.1000604@nokia.com>
-	<AANLkTintIz-N7MwwtqhVq2LR3Ln5JTNYSbJUBSSClcA-@mail.gmail.com>
-	<4C3306F4.8060907@nokia.com>
-	<AANLkTin5W52fPzWToRrAzm56SLZI-taSuI16rCEhLWqH@mail.gmail.com>
-	<4C333E0D.2070601@nokia.com>
-	<alpine.LFD.2.00.1007061316010.6020@xanadu.home>
-	<AANLkTin7jIAIiN_JHMxX74K-EBDtDNwUQMlIf4C6RCHD@mail.gmail.com>
-	<4C36DA04.3090209@nokia.com>
-	<AANLkTik7eGRREWlokHenj-hGlwJXwc7IBWpSqNpoMwGI@mail.gmail.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH v6 0/3] omap3 nand: cleanup exiting platform related code
+Date: Fri, 9 Jul 2010 16:29:32 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E181B51@dbde02.ent.ti.com>
+References: <1278660308-8689-1-git-send-email-s-ghorai@ti.com>
+ <20100709083256.GI24913@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTik7eGRREWlokHenj-hGlwJXwc7IBWpSqNpoMwGI@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Roger Quadros <roger.quadros@nokia.com>, Nicolas Pitre <nico@fluxnic.net>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37647 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753817Ab0GIK7m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 06:59:42 -0400
+In-Reply-To: <20100709083256.GI24913@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-On Fri, Jul 9, 2010 at 11:32 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> Hi Roger,
->
-> On Fri, Jul 9, 2010 at 11:12 AM, Roger Quadros <roger.quadros@nokia.com> wrote:
->> You are already
->> creating a new platform device for wl1271_sdio just to pass platform_data
->
-> With the new approach, I can remove this platform device altogether,
-> and completely rely on the sdio function device for driver probing (as
-> it was before). I just need to add this little support of delivering
-> small bits of platform data - the mechanism should be simple and
-> generic, and would considerably simplify the driver.
->
->> I think this case is specific to wl1271.
->
-> Yes, it is.
+Tony,
 
-wl1251 also has this issue. In fact it's even worse there as it's
-missing all SDIO registers and cannot be probed at all.. Those devices
-are not plug n play at all.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, July 09, 2010 2:03 PM
+> To: Ghorai, Sukumar
+> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org
+> Subject: Re: [PATCH v6 0/3] omap3 nand: cleanup exiting platform related
+> code
+> 
+> * Sukumar Ghorai <s-ghorai@ti.com> [100709 10:19]:
+> >    The following set of patches applies on top of for-next branch.
+> > 	http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git
+> >    Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and beagle
+> board
+> >
+> >    And these are the patches required to address the following input -
+> >      1. The NAND driver needs to stop tinkering with the GPMC registers
+> > 	The omap General Purpose Memory Controller (GPMC) registers are omap
+> >         specific, and not driver specific. Tinkering with these
+> registers can
+> >         cause issues with the other devices on the GPMC.
+> >
+> >      2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
+> > 	Passing hardcoded GPMC virtual addressess is sure way to mess up
+> things.
+> >         This should all become unnecessary once the NAND drivers stops
+> messing
+> >         with the GPMC registers directly.
+> 
+> Looks good to me, thanks for doing this.
+> 
+> One more request: Please repost this series one more time with linux-arm-
+> kernel
+> mailing list Cc'd. Then if no comments, I'll merge this series during the
+> next
+> merge window.
+
+[Ghorai] Thanks. 
+And would you please check if you have any input on following patch series? Otherwise I will rework on this and send again. We need those patches in this time.
+1. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30735.html
+2. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31471.html
+
+Regards,
+Ghorai
