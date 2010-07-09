@@ -1,66 +1,48 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v6 0/3] omap3 nand: cleanup exiting platform related code
-Date: Fri, 9 Jul 2010 16:29:32 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E181B51@dbde02.ent.ti.com>
-References: <1278660308-8689-1-git-send-email-s-ghorai@ti.com>
- <20100709083256.GI24913@atomide.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PM-SR] [PATCH 5/7] omap3: sr: device: add unlikely checks
+Date: Fri, 09 Jul 2010 16:12:28 +0300
+Message-ID: <1278681148.9953.110.camel@localhost>
+References: <1277502400-9915-1-git-send-email-nm@ti.com>
+	 <1277502400-9915-6-git-send-email-nm@ti.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37647 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753817Ab0GIK7m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 06:59:42 -0400
-In-Reply-To: <20100709083256.GI24913@atomide.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:58096 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755535Ab0GINQ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jul 2010 09:16:59 -0400
+In-Reply-To: <1277502400-9915-6-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Thara Gopinath <thara@ti.com>
 
-Tony,
+On Fri, 2010-06-25 at 16:46 -0500, Nishanth Menon wrote:
+> Add unlikely checks to better optimize the rare occurrance of
+> erroneous conditions.
+>=20
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Thara Gopinath <thara@ti.com>
+>=20
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, July 09, 2010 2:03 PM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org
-> Subject: Re: [PATCH v6 0/3] omap3 nand: cleanup exiting platform related
-> code
-> 
-> * Sukumar Ghorai <s-ghorai@ti.com> [100709 10:19]:
-> >    The following set of patches applies on top of for-next branch.
-> > 	http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git
-> >    Patches verified on: omap3430-SDP, omap3630-sdp, zoom3 and beagle
-> board
-> >
-> >    And these are the patches required to address the following input -
-> >      1. The NAND driver needs to stop tinkering with the GPMC registers
-> > 	The omap General Purpose Memory Controller (GPMC) registers are omap
-> >         specific, and not driver specific. Tinkering with these
-> registers can
-> >         cause issues with the other devices on the GPMC.
-> >
-> >      2. Passing hardcoded GPMC_CS0_BASE needs to go from the board files
-> > 	Passing hardcoded GPMC virtual addressess is sure way to mess up
-> things.
-> >         This should all become unnecessary once the NAND drivers stops
-> messing
-> >         with the GPMC registers directly.
-> 
-> Looks good to me, thanks for doing this.
-> 
-> One more request: Please repost this series one more time with linux-arm-
-> kernel
-> mailing list Cc'd. Then if no comments, I'll merge this series during the
-> next
-> merge window.
+unlikely and friends make sens only in realy hot path places. In other
+places like you touch, they are pointless - better let gcc make a choic=
+e
+of how to arrange code. And they only make the code less readable by
+adding extra braces and making ifs longer.
 
-[Ghorai] Thanks. 
-And would you please check if you have any input on following patch series? Otherwise I will rework on this and send again. We need those patches in this time.
-1. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30735.html
-2. http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31471.html
+Thus, NACK for this from my side.
 
-Regards,
-Ghorai
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
