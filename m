@@ -1,7 +1,7 @@
 From: Rene Sapiens <rene.sapiens@ti.com>
-Subject: [PATCH 08/15] staging:ti dspbridge: Rename words with camel case
-Date: Fri,  9 Jul 2010 21:24:02 -0500
-Message-ID: <1278728649-21012-9-git-send-email-rene.sapiens@ti.com>
+Subject: [PATCH 10/15] staging:ti dspbridge: Rename words with camel case
+Date: Fri,  9 Jul 2010 21:24:04 -0500
+Message-ID: <1278728649-21012-11-git-send-email-rene.sapiens@ti.com>
 References: <1278728649-21012-1-git-send-email-rene.sapiens@ti.com>
  <1278728649-21012-2-git-send-email-rene.sapiens@ti.com>
  <1278728649-21012-3-git-send-email-rene.sapiens@ti.com>
@@ -10,8 +10,10 @@ References: <1278728649-21012-1-git-send-email-rene.sapiens@ti.com>
  <1278728649-21012-6-git-send-email-rene.sapiens@ti.com>
  <1278728649-21012-7-git-send-email-rene.sapiens@ti.com>
  <1278728649-21012-8-git-send-email-rene.sapiens@ti.com>
+ <1278728649-21012-9-git-send-email-rene.sapiens@ti.com>
+ <1278728649-21012-10-git-send-email-rene.sapiens@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1278728649-21012-8-git-send-email-rene.sapiens@ti.com>
+In-Reply-To: <1278728649-21012-10-git-send-email-rene.sapiens@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: greg@kroah.com
 Cc: gregkh@suse.de, omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Rene Sapiens <rene.sapiens@ti.com>
@@ -21,1288 +23,1089 @@ The intention of this patch is to rename the remaining variables with camel
 case. Variables will be renamed avoiding camel case and Hungarian notation.
 The words to be renamed in this patch are:
 ========================================
-pMemStatBuf to mem_stat_buf
-pMgrAttrs to mgr_attrts
-pMgrInfo to mgr_info
-pNodeEnv to node_env
-pNodeId to node_uuid
-pNodeInfo to node_info
-pNumLibs to num_libs
-pNumPersLibs to num_pers_libs
-pObjDef to obj_def
-pObjUuid to obj_uuid
-poolPhysBase to pool_phys_base
-poolSize to pool_size
-pPctxt to pctxt
-ppDevContext to dev_cntxt
-ppDrvInterface to drv_intf
-pPersistentDepLibs to prstnt_dep_libs
-pPhyAddr to phy_addr
+pstrFxn to str_fxn
+pstrLibName to str_lib_name
+pstrSect to str_sect
+pstrSym to str_sym
+pstrZLFileName to str_zl_file_name
+pstrZLFile to str_zl_file
+pszCoffPath to sz_coff_path
+pszMode to sz_mode
+pszName to sz_name
+pszSectName to sz_sect_name
+pszUuid to sz_uuid
+pszZlDllName to sz_zl_dll_name
+puAddr to addr
+pulAddr to addr
+pulBufSize to buff_size
+pulBytes to nbytes
 ========================================
 
 Signed-off-by: Rene Sapiens <rene.sapiens@ti.com>
 ---
- drivers/staging/tidspbridge/core/chnl_sm.c         |   28 +++++-----
- drivers/staging/tidspbridge/core/io_sm.c           |    8 ++--
- drivers/staging/tidspbridge/core/tiomap3430.c      |   10 ++--
- .../staging/tidspbridge/include/dspbridge/chnl.h   |   14 +++---
- .../staging/tidspbridge/include/dspbridge/cmm.h    |    6 +-
- .../staging/tidspbridge/include/dspbridge/dbdcd.h  |   24 +++++-----
- .../staging/tidspbridge/include/dspbridge/disp.h   |    6 +-
- .../staging/tidspbridge/include/dspbridge/dmm.h    |    2 +-
- .../staging/tidspbridge/include/dspbridge/drv.h    |    8 ++--
- .../tidspbridge/include/dspbridge/dspchnl.h        |    4 +-
- .../tidspbridge/include/dspbridge/dspdefs.h        |   40 ++++++++--------
- .../staging/tidspbridge/include/dspbridge/dspio.h  |    2 +-
- drivers/staging/tidspbridge/include/dspbridge/io.h |   12 ++--
- .../staging/tidspbridge/include/dspbridge/node.h   |    8 ++--
- .../tidspbridge/include/dspbridge/nodepriv.h       |    2 +-
- .../include/dspbridge/resourcecleanup.h            |    6 +-
- .../staging/tidspbridge/include/dspbridge/rmm.h    |    4 +-
- drivers/staging/tidspbridge/pmgr/chnl.c            |   14 +++---
- drivers/staging/tidspbridge/pmgr/cmm.c             |   10 ++--
- drivers/staging/tidspbridge/pmgr/dmm.c             |    2 +-
- drivers/staging/tidspbridge/pmgr/io.c              |   10 ++--
- drivers/staging/tidspbridge/rmgr/dbdcd.c           |   52 ++++++++++----------
- drivers/staging/tidspbridge/rmgr/disp.c            |    6 +-
- drivers/staging/tidspbridge/rmgr/drv.c             |   10 ++--
- drivers/staging/tidspbridge/rmgr/node.c            |   50 +++++++++---------
- drivers/staging/tidspbridge/rmgr/rmm.c             |   14 +++---
- 26 files changed, 176 insertions(+), 176 deletions(-)
+ drivers/staging/tidspbridge/gen/uuidutil.c         |   40 ++++++------
+ .../staging/tidspbridge/include/dspbridge/cfg.h    |    8 +-
+ .../staging/tidspbridge/include/dspbridge/cod.h    |   50 ++++++++--------
+ .../staging/tidspbridge/include/dspbridge/dbdcd.h  |   24 ++++----
+ .../tidspbridge/include/dspbridge/dblldefs.h       |    4 +-
+ .../staging/tidspbridge/include/dspbridge/dev.h    |    6 +-
+ .../staging/tidspbridge/include/dspbridge/nldr.h   |    2 +-
+ .../tidspbridge/include/dspbridge/nldrdefs.h       |   10 ++--
+ .../staging/tidspbridge/include/dspbridge/strm.h   |   10 ++--
+ .../tidspbridge/include/dspbridge/uuidutil.h       |   16 +++---
+ drivers/staging/tidspbridge/pmgr/cod.c             |   64 ++++++++++----------
+ drivers/staging/tidspbridge/pmgr/dev.c             |    6 +-
+ drivers/staging/tidspbridge/rmgr/dbdcd.c           |   32 +++++-----
+ drivers/staging/tidspbridge/rmgr/nldr.c            |   20 +++---
+ drivers/staging/tidspbridge/rmgr/strm.c            |   14 ++--
+ 15 files changed, 153 insertions(+), 153 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/core/chnl_sm.c b/drivers/staging/tidspbridge/core/chnl_sm.c
-index 4c61a31..97eeda9 100644
---- a/drivers/staging/tidspbridge/core/chnl_sm.c
-+++ b/drivers/staging/tidspbridge/core/chnl_sm.c
-@@ -382,7 +382,7 @@ func_cont:
+diff --git a/drivers/staging/tidspbridge/gen/uuidutil.c b/drivers/staging/tidspbridge/gen/uuidutil.c
+index 070761b..840da42 100755
+--- a/drivers/staging/tidspbridge/gen/uuidutil.c
++++ b/drivers/staging/tidspbridge/gen/uuidutil.c
+@@ -36,14 +36,14 @@
+  *      Note: snprintf format specifier is:
+  *      %[flags] [width] [.precision] [{h | l | I64 | L}]type
   */
- int bridge_chnl_create(OUT struct chnl_mgr **channel_mgr,
- 			      struct dev_object *hdev_obj,
--			      IN CONST struct chnl_mgrattrs *pMgrAttrs)
-+			      IN CONST struct chnl_mgrattrs *mgr_attrts)
+-void uuid_uuid_to_string(IN struct dsp_uuid *uuid_obj, OUT char *pszUuid,
++void uuid_uuid_to_string(IN struct dsp_uuid *uuid_obj, OUT char *sz_uuid,
+ 			 IN s32 size)
  {
- 	int status = 0;
- 	struct chnl_mgr *chnl_mgr_obj = NULL;
-@@ -390,10 +390,10 @@ int bridge_chnl_create(OUT struct chnl_mgr **channel_mgr,
+ 	s32 i;			/* return result from snprintf. */
  
- 	/* Check DBC requirements: */
- 	DBC_REQUIRE(channel_mgr != NULL);
--	DBC_REQUIRE(pMgrAttrs != NULL);
--	DBC_REQUIRE(pMgrAttrs->max_channels > 0);
--	DBC_REQUIRE(pMgrAttrs->max_channels <= CHNL_MAXCHANNELS);
--	DBC_REQUIRE(pMgrAttrs->word_size != 0);
-+	DBC_REQUIRE(mgr_attrts != NULL);
-+	DBC_REQUIRE(mgr_attrts->max_channels > 0);
-+	DBC_REQUIRE(mgr_attrts->max_channels <= CHNL_MAXCHANNELS);
-+	DBC_REQUIRE(mgr_attrts->word_size != 0);
+-	DBC_REQUIRE(uuid_obj && pszUuid);
++	DBC_REQUIRE(uuid_obj && sz_uuid);
  
- 	/* Allocate channel manager object */
- 	chnl_mgr_obj = kzalloc(sizeof(struct chnl_mgr), GFP_KERNEL);
-@@ -401,10 +401,10 @@ int bridge_chnl_create(OUT struct chnl_mgr **channel_mgr,
- 		/*
- 		 * The max_channels attr must equal the # of supported chnls for
- 		 * each transport(# chnls for PCPY = DDMA = ZCPY): i.e.
--		 *      pMgrAttrs->max_channels = CHNL_MAXCHANNELS =
-+		 *      mgr_attrts->max_channels = CHNL_MAXCHANNELS =
- 		 *                       DDMA_MAXDDMACHNLS = DDMA_MAXZCPYCHNLS.
- 		 */
--		DBC_ASSERT(pMgrAttrs->max_channels == CHNL_MAXCHANNELS);
-+		DBC_ASSERT(mgr_attrts->max_channels == CHNL_MAXCHANNELS);
- 		max_channels = CHNL_MAXCHANNELS + CHNL_MAXCHANNELS * CHNL_PCPY;
- 		/* Create array of channels */
- 		chnl_mgr_obj->ap_channel = kzalloc(sizeof(struct chnl_object *)
-@@ -412,7 +412,7 @@ int bridge_chnl_create(OUT struct chnl_mgr **channel_mgr,
- 		if (chnl_mgr_obj->ap_channel) {
- 			/* Initialize chnl_mgr object */
- 			chnl_mgr_obj->dw_type = CHNL_TYPESM;
--			chnl_mgr_obj->word_size = pMgrAttrs->word_size;
-+			chnl_mgr_obj->word_size = mgr_attrts->word_size;
- 			/* Total # chnls supported */
- 			chnl_mgr_obj->max_channels = max_channels;
- 			chnl_mgr_obj->open_channels = 0;
-@@ -710,22 +710,22 @@ func_end:
-  *      Retrieve information related to the channel manager.
+-	i = snprintf(pszUuid, size,
++	i = snprintf(sz_uuid, size,
+ 		     "%.8X_%.4X_%.4X_%.2X%.2X_%.2X%.2X%.2X%.2X%.2X%.2X",
+ 		     uuid_obj->ul_data1, uuid_obj->us_data2, uuid_obj->us_data3,
+ 		     uuid_obj->uc_data4, uuid_obj->uc_data5,
+@@ -75,39 +75,39 @@ static s32 uuid_hex_to_bin(char *buf, s32 len)
+  *  Purpose:
+  *      Converts a string to a struct dsp_uuid.
   */
- int bridge_chnl_get_mgr_info(struct chnl_mgr *hchnl_mgr, u32 uChnlID,
--				 OUT struct chnl_mgrinfo *pMgrInfo)
-+				 OUT struct chnl_mgrinfo *mgr_info)
+-void uuid_uuid_from_string(IN char *pszUuid, OUT struct dsp_uuid *uuid_obj)
++void uuid_uuid_from_string(IN char *sz_uuid, OUT struct dsp_uuid *uuid_obj)
  {
- 	int status = 0;
- 	struct chnl_mgr *chnl_mgr_obj = (struct chnl_mgr *)hchnl_mgr;
+ 	s32 j;
  
--	if (pMgrInfo != NULL) {
-+	if (mgr_info != NULL) {
- 		if (uChnlID <= CHNL_MAXCHANNELS) {
- 			if (hchnl_mgr) {
- 				/* Return the requested information: */
--				pMgrInfo->chnl_obj =
-+				mgr_info->chnl_obj =
- 				    chnl_mgr_obj->ap_channel[uChnlID];
--				pMgrInfo->open_channels =
-+				mgr_info->open_channels =
- 				    chnl_mgr_obj->open_channels;
--				pMgrInfo->dw_type = chnl_mgr_obj->dw_type;
-+				mgr_info->dw_type = chnl_mgr_obj->dw_type;
- 				/* total # of chnls */
--				pMgrInfo->max_channels =
-+				mgr_info->max_channels =
- 				    chnl_mgr_obj->max_channels;
- 			} else {
- 				status = -EFAULT;
-diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
-index 7f34510..5090ff1 100644
---- a/drivers/staging/tidspbridge/core/io_sm.c
-+++ b/drivers/staging/tidspbridge/core/io_sm.c
-@@ -163,7 +163,7 @@ static int register_shm_segs(struct io_mgr *hio_mgr,
-  */
- int bridge_io_create(OUT struct io_mgr **io_man,
- 			    struct dev_object *hdev_obj,
--			    IN CONST struct io_attrs *pMgrAttrs)
-+			    IN CONST struct io_attrs *mgr_attrts)
- {
- 	int status = 0;
- 	struct io_mgr *pio_mgr = NULL;
-@@ -174,7 +174,7 @@ int bridge_io_create(OUT struct io_mgr **io_man,
- 	u8 dev_type;
+-	uuid_obj->ul_data1 = uuid_hex_to_bin(pszUuid, 8);
+-	pszUuid += 8;
++	uuid_obj->ul_data1 = uuid_hex_to_bin(sz_uuid, 8);
++	sz_uuid += 8;
  
- 	/* Check requirements */
--	if (!io_man || !pMgrAttrs || pMgrAttrs->word_size == 0) {
-+	if (!io_man || !mgr_attrts || mgr_attrts->word_size == 0) {
- 		status = -EFAULT;
- 		goto func_end;
+ 	/* Step over underscore */
+-	pszUuid++;
++	sz_uuid++;
+ 
+-	uuid_obj->us_data2 = (u16) uuid_hex_to_bin(pszUuid, 4);
+-	pszUuid += 4;
++	uuid_obj->us_data2 = (u16) uuid_hex_to_bin(sz_uuid, 4);
++	sz_uuid += 4;
+ 
+ 	/* Step over underscore */
+-	pszUuid++;
++	sz_uuid++;
+ 
+-	uuid_obj->us_data3 = (u16) uuid_hex_to_bin(pszUuid, 4);
+-	pszUuid += 4;
++	uuid_obj->us_data3 = (u16) uuid_hex_to_bin(sz_uuid, 4);
++	sz_uuid += 4;
+ 
+ 	/* Step over underscore */
+-	pszUuid++;
++	sz_uuid++;
+ 
+-	uuid_obj->uc_data4 = (u8) uuid_hex_to_bin(pszUuid, 2);
+-	pszUuid += 2;
++	uuid_obj->uc_data4 = (u8) uuid_hex_to_bin(sz_uuid, 2);
++	sz_uuid += 2;
+ 
+-	uuid_obj->uc_data5 = (u8) uuid_hex_to_bin(pszUuid, 2);
+-	pszUuid += 2;
++	uuid_obj->uc_data5 = (u8) uuid_hex_to_bin(sz_uuid, 2);
++	sz_uuid += 2;
+ 
+ 	/* Step over underscore */
+-	pszUuid++;
++	sz_uuid++;
+ 
+ 	for (j = 0; j < 6; j++) {
+-		uuid_obj->uc_data6[j] = (u8) uuid_hex_to_bin(pszUuid, 2);
+-		pszUuid += 2;
++		uuid_obj->uc_data6[j] = (u8) uuid_hex_to_bin(sz_uuid, 2);
++		sz_uuid += 2;
  	}
-@@ -214,7 +214,7 @@ int bridge_io_create(OUT struct io_mgr **io_man,
- 	pio_mgr->pmsg = NULL;
- #endif
- 	pio_mgr->hchnl_mgr = hchnl_mgr;
--	pio_mgr->word_size = pMgrAttrs->word_size;
-+	pio_mgr->word_size = mgr_attrts->word_size;
- 	pio_mgr->shared_mem = shared_mem;
- 
- 	if (dev_type == DSP_UNIT) {
-@@ -233,7 +233,7 @@ int bridge_io_create(OUT struct io_mgr **io_man,
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		pio_mgr->hbridge_context = hbridge_context;
--		pio_mgr->shared_irq = pMgrAttrs->irq_shared;
-+		pio_mgr->shared_irq = mgr_attrts->irq_shared;
- 		if (dsp_wdt_init())
- 			status = -EPERM;
- 	} else {
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index dc20cad..e759349 100755
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -103,7 +103,7 @@ static int bridge_brd_mem_map(struct bridge_dev_context *dev_ctxt,
- static int bridge_brd_mem_un_map(struct bridge_dev_context *dev_ctxt,
- 				     u32 ulVirtAddr, u32 ul_num_bytes);
- static int bridge_dev_create(OUT struct bridge_dev_context
--					**ppDevContext,
-+					**dev_cntxt,
- 					struct dev_object *hdev_obj,
- 					IN struct cfg_hostres *config_param);
- static int bridge_dev_ctrl(struct bridge_dev_context *dev_context,
-@@ -236,7 +236,7 @@ static void bad_page_dump(u32 pa, struct page *pg)
-  *  purpose:
-  *      Bridge Driver entry point.
-  */
--void bridge_drv_entry(OUT struct bridge_drv_interface **ppDrvInterface,
-+void bridge_drv_entry(OUT struct bridge_drv_interface **drv_intf,
- 		   IN CONST char *driver_file_name)
- {
- 
-@@ -245,7 +245,7 @@ void bridge_drv_entry(OUT struct bridge_drv_interface **ppDrvInterface,
- 	io_sm_init();		/* Initialization of io_sm module */
- 
- 	if (strcmp(driver_file_name, "UMA") == 0)
--		*ppDrvInterface = &drv_interface_fxns;
-+		*drv_intf = &drv_interface_fxns;
- 	else
- 		dev_dbg(bridge, "%s Unknown Bridge file name", __func__);
- 
-@@ -792,7 +792,7 @@ static int bridge_brd_write(struct bridge_dev_context *dev_ctxt,
-  *      Creates a driver object. Puts DSP in self loop.
-  */
- static int bridge_dev_create(OUT struct bridge_dev_context
--					**ppDevContext,
-+					**dev_cntxt,
- 					struct dev_object *hdev_obj,
- 					IN struct cfg_hostres *config_param)
- {
-@@ -930,7 +930,7 @@ static int bridge_dev_create(OUT struct bridge_dev_context
- 		dev_context->dw_brd_state = BRD_STOPPED;
- 		dev_context->resources = resources;
- 		/* Return ptr to our device state to the DSP API for storage */
--		*ppDevContext = dev_context;
-+		*dev_cntxt = dev_context;
- 	} else {
- 		if (pt_attrs != NULL) {
- 			kfree(pt_attrs->pg_info);
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/chnl.h b/drivers/staging/tidspbridge/include/dspbridge/chnl.h
-index 7b0352e..4c2020c 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/chnl.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/chnl.h
-@@ -53,11 +53,11 @@ extern int chnl_close(struct chnl_object *chnl_obj);
+ }
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfg.h b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
+index 98cadb1..1422ed0 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/cfg.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
+@@ -155,20 +155,20 @@ extern void cfg_get_perf_value(OUT bool *enable_perf);
   *  Parameters:
-  *      channel_mgr:    Location to store a channel manager object on output.
-  *      hdev_obj:     Handle to a device object.
-- *      pMgrAttrs:      Channel manager attributes.
-- *      pMgrAttrs->max_channels:   Max channels
-- *      pMgrAttrs->birq:        Channel's I/O IRQ number.
-- *      pMgrAttrs->irq_shared:     TRUE if the IRQ is shareable.
-- *      pMgrAttrs->word_size:   DSP Word size in equivalent PC bytes..
-+ *      mgr_attrts:      Channel manager attributes.
-+ *      mgr_attrts->max_channels:   Max channels
-+ *      mgr_attrts->birq:        Channel's I/O IRQ number.
-+ *      mgr_attrts->irq_shared:     TRUE if the IRQ is shareable.
-+ *      mgr_attrts->word_size:   DSP Word size in equivalent PC bytes..
+  *      dev_node_obj: Handle to the dev_node who's driver we are querying.
+  *      buf_size:       Size of buffer.
+- *      pstrZLFileName: Ptr to character buf to hold ZLFileName.
++ *      str_zl_file_name: Ptr to character buf to hold ZLFileName.
   *  Returns:
-  *      0:                Success;
-  *      -EFAULT:            hdev_obj is invalid.
-@@ -71,7 +71,7 @@ extern int chnl_close(struct chnl_object *chnl_obj);
+  *      0:                Success.
+- *      -EFAULT: pstrZLFileName is invalid or dev_node_obj is invalid.
++ *      -EFAULT: str_zl_file_name is invalid or dev_node_obj is invalid.
+  *      -ENODATA: couldn't find the ZLFileName.
   *  Requires:
-  *      chnl_init(void) called.
-  *      channel_mgr != NULL.
-- *      pMgrAttrs != NULL.
-+ *      mgr_attrts != NULL.
+  *      CFG initialized.
   *  Ensures:
-  *      0:                Subsequent calls to chnl_create() for the same
-  *                              board without an intervening call to
-@@ -79,7 +79,7 @@ extern int chnl_close(struct chnl_object *chnl_obj);
+  *      0:    Not more than buf_size bytes were copied into
+- *                  pstrZLFileName, and *pstrZLFileName contains ZLFileName
++ *                  str_zl_file_name, and *str_zl_file_name contains ZLFileName
+  *                  for this devnode.
   */
- extern int chnl_create(OUT struct chnl_mgr **channel_mgr,
- 			      struct dev_object *hdev_obj,
--			      IN CONST struct chnl_mgrattrs *pMgrAttrs);
-+			      IN CONST struct chnl_mgrattrs *mgr_attrts);
+ extern int cfg_get_zl_file(IN struct cfg_devnode *dev_node_obj,
+-				  IN u32 buf_size, OUT char *pstrZLFileName);
++				  IN u32 buf_size, OUT char *str_zl_file_name);
  
  /*
-  *  ======== chnl_destroy ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/cmm.h b/drivers/staging/tidspbridge/include/dspbridge/cmm.h
-index 22d053b..9d773aa 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/cmm.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/cmm.h
-@@ -72,7 +72,7 @@ extern void *cmm_calloc_buf(struct cmm_object *hcmm_mgr,
-  *      ph_cmm_mgr:	Location to store a communication manager handle on
-  *      		output.
-  *      hdev_obj: Handle to a device object.
-- *      pMgrAttrs:  Comm mem manager attributes.
-+ *      mgr_attrts: Comm mem manager attributes.
+  *  ======== cfg_init ========
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/cod.h b/drivers/staging/tidspbridge/include/dspbridge/cod.h
+index f8cbb21..c84761e 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/cod.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/cod.h
+@@ -78,7 +78,7 @@ extern void cod_close(struct cod_libraryobj *lib);
+  *      using the cod_get_sym_value() function.
+  *  Parameters:
+  *      manager:        created manager object
+- *      pstrZLFile:     ZL DLL filename, of length < COD_MAXPATHLENGTH.
++ *      str_zl_file:    ZL DLL filename, of length < COD_MAXPATHLENGTH.
+  *      attrs:          attributes to be used by this object. A NULL value
+  *                      will cause default attrs to be used.
   *  Returns:
-  *      0:        Success;
-  *      -ENOMEM:    Insufficient memory for requested resources.
-@@ -81,13 +81,13 @@ extern void *cmm_calloc_buf(struct cmm_object *hcmm_mgr,
+@@ -88,11 +88,11 @@ extern void cod_close(struct cod_libraryobj *lib);
+  *                              non default values of attrs.
   *  Requires:
-  *      cmm_init(void) called.
-  *      ph_cmm_mgr != NULL.
-- *      pMgrAttrs->ul_min_block_size >= 4 bytes.
-+ *      mgr_attrts->ul_min_block_size >= 4 bytes.
+  *      COD module initialized.
+- *      pstrZLFile != NULL
++ *      str_zl_file != NULL
   *  Ensures:
+  */
+ extern int cod_create(OUT struct cod_manager **manager,
+-			     char *pstrZLFile,
++			     char *str_zl_file,
+ 			     IN OPTIONAL CONST struct cod_attrs *attrs);
+ 
+ /*
+@@ -149,7 +149,7 @@ extern int cod_get_base_lib(struct cod_manager *cod_mgr_obj,
+  *      Get the name of the base image DBL library.
+  *  Parameters:
+  *      cod_mgr_obj:   handle of manager to be deleted
+- *      pszName:    location to store library name on output.
++ *      sz_name:    location to store library name on output.
+  *      usize:       size of name buffer.
+  *  Returns:
+  *      0:    Success.
+@@ -157,11 +157,11 @@ extern int cod_get_base_lib(struct cod_manager *cod_mgr_obj,
+  *  Requires:
+  *      COD module initialized.
+  *      valid cod_mgr_obj.
+- *      pszName != NULL.
++ *      sz_name != NULL.
+  *  Ensures:
+  */
+ extern int cod_get_base_name(struct cod_manager *cod_mgr_obj,
+-				    char *pszName, u32 usize);
++				    char *sz_name, u32 usize);
+ 
+ /*
+  *  ======== cod_get_entry ========
+@@ -206,8 +206,8 @@ extern int cod_get_loader(struct cod_manager *cod_mgr_obj,
+  *      given the section name.
+  *  Parameters:
+  *      lib         Library handle returned from cod_open().
+- *      pstrSect:   name of the section, with or without leading "."
+- *      puAddr:     Location to store address.
++ *      str_sect:   name of the section, with or without leading "."
++ *      addr:       Location to store address.
+  *      puLen:      Location to store length.
+  *  Returns:
+  *      0:                Success
+@@ -216,18 +216,18 @@ extern int cod_get_loader(struct cod_manager *cod_mgr_obj,
+  *  Requires:
+  *      COD module initialized.
+  *      valid cod_mgr_obj.
+- *      pstrSect != NULL;
+- *      puAddr != NULL;
++ *      str_sect != NULL;
++ *      addr != NULL;
+  *      puLen != NULL;
+  *  Ensures:
+- *      0:  *puAddr and *puLen contain the address and length of the
++ *      0:  *addr and *puLen contain the address and length of the
+  *                 section.
+- *      else:  *puAddr == 0 and *puLen == 0;
++ *      else:  *addr == 0 and *puLen == 0;
   *
   */
- extern int cmm_create(OUT struct cmm_object **ph_cmm_mgr,
- 			     struct dev_object *hdev_obj,
--			     IN CONST struct cmm_mgrattrs *pMgrAttrs);
-+			     IN CONST struct cmm_mgrattrs *mgr_attrts);
+ extern int cod_get_section(struct cod_libraryobj *lib,
+-				  IN char *pstrSect,
+-				  OUT u32 *puAddr, OUT u32 *puLen);
++				  IN char *str_sect,
++				  OUT u32 *addr, OUT u32 *puLen);
  
  /*
-  *  ======== cmm_destroy ========
+  *  ======== cod_get_sym_value ========
+@@ -246,12 +246,12 @@ extern int cod_get_section(struct cod_libraryobj *lib,
+  *  Requires:
+  *      COD module initialized.
+  *      Valid cod_mgr_obj.
+- *      pstrSym != NULL.
++ *      str_sym != NULL.
+  *      pul_value != NULL.
+  *  Ensures:
+  */
+ extern int cod_get_sym_value(struct cod_manager *cod_mgr_obj,
+-				    IN char *pstrSym, OUT u32 * pul_value);
++				    IN char *str_sym, OUT u32 * pul_value);
+ 
+ /*
+  *  ======== cod_init ========
+@@ -304,7 +304,7 @@ extern int cod_load_base(struct cod_manager *cod_mgr_obj,
+  *      Open a library for reading sections. Does not load or set the base.
+  *  Parameters:
+  *      hmgr:           manager to load the code with
+- *      pszCoffPath:    Coff file to open.
++ *      sz_coff_path:   Coff file to open.
+  *      flags:          COD_NOLOAD (don't load symbols) or COD_SYMB (load
+  *                      symbols).
+  *      lib_obj:        Handle returned that can be used in calls to cod_close
+@@ -316,11 +316,11 @@ extern int cod_load_base(struct cod_manager *cod_mgr_obj,
+  *      COD module initialized.
+  *      hmgr is valid.
+  *      flags == COD_NOLOAD || flags == COD_SYMB.
+- *      pszCoffPath != NULL.
++ *      sz_coff_path != NULL.
+  *  Ensures:
+  */
+ extern int cod_open(struct cod_manager *hmgr,
+-			   IN char *pszCoffPath,
++			   IN char *sz_coff_path,
+ 			   u32 flags, OUT struct cod_libraryobj **lib_obj);
+ 
+ /*
+@@ -329,7 +329,7 @@ extern int cod_open(struct cod_manager *hmgr,
+  *      Open base image for reading sections. Does not load the base.
+  *  Parameters:
+  *      hmgr:           manager to load the code with
+- *      pszCoffPath:    Coff file to open.
++ *      sz_coff_path:   Coff file to open.
+  *      flags:          Specifies whether to load symbols.
+  *  Returns:
+  *      0:            Success.
+@@ -337,10 +337,10 @@ extern int cod_open(struct cod_manager *hmgr,
+  *  Requires:
+  *      COD module initialized.
+  *      hmgr is valid.
+- *      pszCoffPath != NULL.
++ *      sz_coff_path != NULL.
+  *  Ensures:
+  */
+-extern int cod_open_base(struct cod_manager *hmgr, IN char *pszCoffPath,
++extern int cod_open_base(struct cod_manager *hmgr, IN char *sz_coff_path,
+ 				dbll_flags flags);
+ 
+ /*
+@@ -349,7 +349,7 @@ extern int cod_open_base(struct cod_manager *hmgr, IN char *pszCoffPath,
+  *      Retrieve the content of a code section given the section name.
+  *  Parameters:
+  *      cod_mgr_obj    - manager in which to search for the symbol
+- *      pstrSect    - name of the section, with or without leading "."
++ *      str_sect    - name of the section, with or without leading "."
+  *      str_content - buffer to store content of the section.
+  *  Returns:
+  *      0: on success, error code on failure
+@@ -357,13 +357,13 @@ extern int cod_open_base(struct cod_manager *hmgr, IN char *pszCoffPath,
+  *  Requires:
+  *      COD module initialized.
+  *      valid cod_mgr_obj.
+- *      pstrSect != NULL;
++ *      str_sect != NULL;
+  *      str_content != NULL;
+  *  Ensures:
+  *      0:  *str_content stores the content of the named section.
+  */
+ extern int cod_read_section(struct cod_libraryobj *lib,
+-				   IN char *pstrSect,
++				   IN char *str_sect,
+ 				   OUT char *str_content, IN u32 content_size);
+ 
+ #endif /* COD_ */
 diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbdcd.h b/drivers/staging/tidspbridge/include/dspbridge/dbdcd.h
-index 8c06272..8d1fc68 100644
+index 8d1fc68..c798e72 100644
 --- a/drivers/staging/tidspbridge/include/dspbridge/dbdcd.h
 +++ b/drivers/staging/tidspbridge/include/dspbridge/dbdcd.h
-@@ -155,7 +155,7 @@ extern void dcd_exit(void);
-  *      uuid_obj: Pointer to a dsp_uuid for a library.
-  *      num_libs: Size of uuid array (number of library uuids).
-  *      dep_lib_uuids: Array of dependent library uuids to be filled in.
-- *      pPersistentDepLibs: Array indicating if corresponding lib is persistent.
-+ *      prstnt_dep_libs:    Array indicating if corresponding lib is persistent.
-  *      phase: phase to obtain correct input library
-  *  Returns:
-  *      0: Success.
-@@ -173,7 +173,7 @@ extern int dcd_get_dep_libs(IN struct dcd_manager *hdcd_mgr,
- 				   IN struct dsp_uuid *uuid_obj,
- 				   u16 num_libs,
- 				   OUT struct dsp_uuid *dep_lib_uuids,
--				   OUT bool *pPersistentDepLibs,
-+				   OUT bool *prstnt_dep_libs,
- 				   IN enum nldr_phase phase);
- 
- /*
-@@ -184,8 +184,8 @@ extern int dcd_get_dep_libs(IN struct dcd_manager *hdcd_mgr,
+@@ -30,7 +30,7 @@
+  *      special COFF section called ".dcd_register"
   *  Parameters:
-  *      hdcd_mgr:        A DCD manager handle.
-  *      uuid_obj:          Pointer to a dsp_uuid for a library.
-- *      pNumLibs:       Size of uuid array (number of library uuids).
-- *      pNumPersLibs:   number of persistent dependent library.
-+ *      num_libs:       Size of uuid array (number of library uuids).
-+ *      num_pers_libs:  number of persistent dependent library.
-  *      phase:          Phase to obtain correct input library
+  *      hdcd_mgr:                A DCD manager handle.
+- *      pszCoffPath:            Pointer to name of COFF file containing DCD
++ *      sz_coff_path:           Pointer to name of COFF file containing DCD
+  *                              objects to be registered.
   *  Returns:
-  *      0: Success.
-@@ -196,13 +196,13 @@ extern int dcd_get_dep_libs(IN struct dcd_manager *hdcd_mgr,
-  *      DCD initialized.
-  *      Valid hdcd_mgr.
-  *      uuid_obj != NULL
-- *      pNumLibs != NULL.
-+ *      num_libs != NULL.
-  *  Ensures:
+  *      0:                Success.
+@@ -45,7 +45,7 @@
+  *      ".dcd_register", which is used for auto registration.
   */
- extern int dcd_get_num_dep_libs(IN struct dcd_manager *hdcd_mgr,
- 				       IN struct dsp_uuid *uuid_obj,
--				       OUT u16 *pNumLibs,
--				       OUT u16 *pNumPersLibs,
-+				       OUT u16 *num_libs,
-+				       OUT u16 *num_pers_libs,
- 				       IN enum nldr_phase phase);
+ extern int dcd_auto_register(IN struct dcd_manager *hdcd_mgr,
+-				    IN char *pszCoffPath);
++				    IN char *sz_coff_path);
  
  /*
-@@ -247,7 +247,7 @@ extern int dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
-  *                          DSP/BIOS Bridge object.
-  *      obj_type:            The type of DSP/BIOS Bridge object to be
-  *                          referenced (node, processor, etc).
-- *      pObjDef:            Pointer to an object definition structure. A
-+ *      obj_def:            Pointer to an object definition structure. A
-  *                          union of various possible DCD object types.
+  *  ======== dcd_auto_unregister ========
+@@ -54,7 +54,7 @@ extern int dcd_auto_register(IN struct dcd_manager *hdcd_mgr,
+  *      special COFF section called ".dcd_register"
+  *  Parameters:
+  *      hdcd_mgr:                A DCD manager handle.
+- *      pszCoffPath:            Pointer to name of COFF file containing
++ *      sz_coff_path:           Pointer to name of COFF file containing
+  *                              DCD objects to be unregistered.
   *  Returns:
-  *      0: Success.
-@@ -257,14 +257,14 @@ extern int dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
-  *      -EFAULT:        Invalid DCD_HMANAGER handle.
-  *  Requires:
-  *      DCD initialized.
-- *      pObjUuid is non-NULL.
-- *      pObjDef is non-NULL.
-+ *      obj_uuid is non-NULL.
-+ *      obj_def is non-NULL.
-  *  Ensures:
+  *      0:                Success.
+@@ -69,14 +69,14 @@ extern int dcd_auto_register(IN struct dcd_manager *hdcd_mgr,
+  *      ".dcd_register", which is used for auto unregistration.
   */
- extern int dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
--				     IN struct dsp_uuid *pObjUuid,
-+				     IN struct dsp_uuid *obj_uuid,
- 				     IN enum dsp_dcdobjtype obj_type,
--				     OUT struct dcd_genericobj *pObjDef);
-+				     OUT struct dcd_genericobj *obj_def);
+ extern int dcd_auto_unregister(IN struct dcd_manager *hdcd_mgr,
+-				      IN char *pszCoffPath);
++				      IN char *sz_coff_path);
  
  /*
-  *  ======== dcd_get_objects ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/disp.h b/drivers/staging/tidspbridge/include/dspbridge/disp.h
-index 03467bb..9f694a4 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/disp.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/disp.h
-@@ -128,7 +128,7 @@ extern int disp_node_change_priority(struct disp_object
-  *      ul_fxn_addr:      Address or RMS create node function.
-  *      ul_create_fxn:    Address of node's create function.
-  *      pargs:          Arguments to pass to RMS node create function.
-- *      pNodeEnv:       Location to store node environment pointer on
-+ *      node_env:       Location to store node environment pointer on
-  *                      output.
+  *  ======== dcd_create_manager ========
+  *  Purpose:
+  *      This function creates a DCD module manager.
+  *  Parameters:
+- *      pszZlDllName:   Pointer to a DLL name string.
++ *      sz_zl_dll_name: Pointer to a DLL name string.
+  *      dcd_mgr:        A pointer to a DCD manager handle.
   *  Returns:
   *      0:        Success.
-@@ -139,7 +139,7 @@ extern int disp_node_change_priority(struct disp_object
-  *      Valid disp_obj.
-  *      pargs != NULL.
-  *      hnode != NULL.
-- *      pNodeEnv != NULL.
-+ *      node_env != NULL.
-  *      node_get_type(hnode) != NODE_DEVICE.
+@@ -84,12 +84,12 @@ extern int dcd_auto_unregister(IN struct dcd_manager *hdcd_mgr,
+  *      -EPERM:      General failure.
+  *  Requires:
+  *      DCD initialized.
+- *      pszZlDllName is non-NULL.
++ *      sz_zl_dll_name is non-NULL.
+  *      dcd_mgr is non-NULL.
+  *  Ensures:
+  *      A DCD manager handle is created.
+  */
+-extern int dcd_create_manager(IN char *pszZlDllName,
++extern int dcd_create_manager(IN char *sz_zl_dll_name,
+ 				     OUT struct dcd_manager **dcd_mgr);
+ 
+ /*
+@@ -214,7 +214,7 @@ extern int dcd_get_num_dep_libs(IN struct dcd_manager *hdcd_mgr,
+  *      hdcd_mgr: A DCD manager handle.
+  *      uuid_obj:	Pointer to a dsp_uuid that represents a unique DSP/BIOS
+  *                      Bridge object.
+- *      pstrLibName: Buffer to hold library name.
++ *      str_lib_name: Buffer to hold library name.
+  *      buff_size: Contains buffer size. Set to string size on output.
+  *      phase:          Which phase to load
+  *      phase_split:    Are phases in multiple libraries
+@@ -224,14 +224,14 @@ extern int dcd_get_num_dep_libs(IN struct dcd_manager *hdcd_mgr,
+  *  Requires:
+  *      DCD initialized.
+  *      Valid hdcd_mgr.
+- *      pstrLibName != NULL.
++ *      str_lib_name != NULL.
+  *      uuid_obj != NULL
+  *      buff_size != NULL.
   *  Ensures:
   */
-@@ -148,7 +148,7 @@ extern int disp_node_create(struct disp_object *disp_obj,
- 				   u32 ul_fxn_addr,
- 				   u32 ul_create_fxn,
- 				   IN CONST struct node_createargs
--				   *pargs, OUT nodeenv *pNodeEnv);
-+				   *pargs, OUT nodeenv *node_env);
- 
- /*
-  *  ======== disp_node_delete ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dmm.h b/drivers/staging/tidspbridge/include/dspbridge/dmm.h
-index 9be892f..8c9a3d4 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dmm.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dmm.h
-@@ -59,7 +59,7 @@ extern int dmm_delete_tables(struct dmm_object *dmm_mgr);
- 
- extern int dmm_create(OUT struct dmm_object **dmm_manager,
- 			     struct dev_object *hdev_obj,
--			     IN CONST struct dmm_mgrattrs *pMgrAttrs);
-+			     IN CONST struct dmm_mgrattrs *mgr_attrts);
- 
- extern bool dmm_init(void);
- 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/drv.h b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-index 2f9d8d8..604c15b 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/drv.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-@@ -430,15 +430,15 @@ void bridge_recover_schedule(void);
-  *      allocations.
-  *      physical address based on the page frame address.
+ extern int dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+ 				       IN struct dsp_uuid *uuid_obj,
+-				       IN OUT char *pstrLibName,
++				       IN OUT char *str_lib_name,
+ 				       IN OUT u32 *buff_size,
+ 				       IN enum nldr_phase phase,
+ 				       OUT bool *phase_split);
+@@ -276,7 +276,7 @@ extern int dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+  *      unregister nodes from the node database, and 3) add overlay nodes.
   *  Parameters:
-- *      poolPhysBase  starting address of the physical memory pool.
-- *      poolSize      size of the physical memory pool.
-+ *      pool_phys_base  starting address of the physical memory pool.
-+ *      pool_size      size of the physical memory pool.
-  *  Returns:
-  *      none.
-  *  Requires:
-  *      - MEM initialized.
-  *      - valid physical address for the base and size > 0
+  *      hdcd_mgr:                A DCD manager handle.
+- *      pszCoffPath:            Pointer to name of COFF file containing DCD
++ *      sz_coff_path:           Pointer to name of COFF file containing DCD
+  *                              objects.
+  *      registerFxn:            Callback fxn to be applied on each located
+  *                              DCD object.
+@@ -295,7 +295,7 @@ extern int dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
+  *      ".dcd_register", which is used for auto registration.
   */
--extern void mem_ext_phys_pool_init(IN u32 poolPhysBase, IN u32 poolSize);
-+extern void mem_ext_phys_pool_init(IN u32 pool_phys_base, IN u32 pool_size);
+ extern int dcd_get_objects(IN struct dcd_manager *hdcd_mgr,
+-				  IN char *pszCoffPath,
++				  IN char *sz_coff_path,
+ 				  dcd_registerfxn registerFxn, void *handle);
  
  /*
-  *  ======== mem_ext_phys_pool_release ========
-@@ -502,7 +502,7 @@ extern void mem_free_phys_mem(void *pVirtualAddress,
-  *      If valid linear address is returned, be sure to call
-  *      MEM_UNMAP_LINEAR_ADDRESS().
-  */
--#define MEM_LINEAR_ADDRESS(pPhyAddr, byte_size) pPhyAddr
-+#define MEM_LINEAR_ADDRESS(phy_addr, byte_size) phy_addr
- 
- /*
-  *  ======== MEM_UNMAP_LINEAR_ADDRESS ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspchnl.h b/drivers/staging/tidspbridge/include/dspbridge/dspchnl.h
-index a4e0c84..cb7e18b 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dspchnl.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dspchnl.h
-@@ -27,7 +27,7 @@
- extern int bridge_chnl_create(OUT struct chnl_mgr **channel_mgr,
- 				     struct dev_object *hdev_obj,
- 				     IN CONST struct chnl_mgrattrs
--				     *pMgrAttrs);
-+				     *mgr_attrts);
- 
- extern int bridge_chnl_destroy(struct chnl_mgr *hchnl_mgr);
- 
-@@ -58,7 +58,7 @@ extern int bridge_chnl_get_info(struct chnl_object *chnl_obj,
- 
- extern int bridge_chnl_get_mgr_info(struct chnl_mgr *hchnl_mgr,
- 					u32 uChnlID, OUT struct chnl_mgrinfo
--					*pMgrInfo);
-+					*mgr_info);
- 
- extern int bridge_chnl_idle(struct chnl_object *chnl_obj,
- 				   u32 timeout, bool flush_data);
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
-index e3c7232..04df01d 100755
---- a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
-@@ -300,13 +300,13 @@ typedef int(*fxn_brd_write) (struct bridge_dev_context *dev_ctxt,
-  *  Parameters:
-  *      channel_mgr:    Location to store a channel manager object on output.
-  *      hdev_obj:     Handle to a device object.
-- *      pMgrAttrs:      Channel manager attributes.
-- *      pMgrAttrs->max_channels: Max channels
-- *      pMgrAttrs->birq:      Channel's I/O IRQ number.
-- *      pMgrAttrs->irq_shared:   TRUE if the IRQ is shareable.
-- *      pMgrAttrs->word_size: DSP Word size in equivalent PC bytes..
-- *      pMgrAttrs->shm_base:  Base physical address of shared memory, if any.
-- *      pMgrAttrs->usm_length: Bytes of shared memory block.
-+ *      mgr_attrts:      Channel manager attributes.
-+ *      mgr_attrts->max_channels: Max channels
-+ *      mgr_attrts->birq:      Channel's I/O IRQ number.
-+ *      mgr_attrts->irq_shared:   TRUE if the IRQ is shareable.
-+ *      mgr_attrts->word_size: DSP Word size in equivalent PC bytes..
-+ *      mgr_attrts->shm_base:  Base physical address of shared memory, if any.
-+ *      mgr_attrts->usm_length: Bytes of shared memory block.
-  *  Returns:
-  *      0:            Success;
-  *      -ENOMEM:        Insufficient memory for requested resources.
-@@ -314,8 +314,8 @@ typedef int(*fxn_brd_write) (struct bridge_dev_context *dev_ctxt,
-  *      -EFAULT:    Couldn't map physical address to a virtual one.
-  *  Requires:
-  *      channel_mgr != NULL.
-- *      pMgrAttrs != NULL
-- *      pMgrAttrs field are all valid:
-+ *      mgr_attrts != NULL
-+ *      mgr_attrts field are all valid:
-  *          0 < max_channels <= CHNL_MAXCHANNELS.
-  *          birq <= 15.
-  *          word_size > 0.
-@@ -328,7 +328,7 @@ typedef int(*fxn_chnl_create) (OUT struct chnl_mgr
- 				      struct dev_object
- 				      * hdev_obj,
- 				      IN CONST struct
--				      chnl_mgrattrs * pMgrAttrs);
-+				      chnl_mgrattrs * mgr_attrts);
- 
- /*
-  *  ======== bridge_chnl_destroy ========
-@@ -570,20 +570,20 @@ typedef int(*fxn_chnl_getinfo) (struct chnl_object *chnl_obj,
-  *  Parameters:
-  *      hchnl_mgr:           Handle to a valid channel manager, or NULL.
-  *      uChnlID:            Channel ID.
-- *      pMgrInfo:           Location to store channel manager info.
-+ *      mgr_info:           Location to store channel manager info.
-  *  Returns:
-  *      0:            Success;
-- *      -EFAULT: Invalid hchnl_mgr or pMgrInfo.
-+ *      -EFAULT: Invalid hchnl_mgr or mgr_info.
-  *      -ECHRNG:   Invalid channel ID.
-  *  Requires:
-  *  Ensures:
-- *      0:            pMgrInfo points to a filled in chnl_mgrinfo
-- *                          struct, if (pMgrInfo != NULL).
-+ *      0:            mgr_info points to a filled in chnl_mgrinfo
-+ *                          struct, if (mgr_info != NULL).
-  */
- typedef int(*fxn_chnl_getmgrinfo) (struct chnl_mgr
- 					  * hchnl_mgr,
- 					  u32 uChnlID,
--					  OUT struct chnl_mgrinfo *pMgrInfo);
-+					  OUT struct chnl_mgrinfo *mgr_info);
- 
- /*
-  *  ======== bridge_chnl_idle ========
-@@ -740,13 +740,13 @@ typedef int(*fxn_dev_destroy) (struct bridge_dev_context *dev_ctxt);
-  *      hdev_obj != NULL;
-  *      Channel manager already created;
-  *      Message manager already created;
-- *      pMgrAttrs != NULL;
-+ *      mgr_attrts != NULL;
-  *      io_man != NULL;
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dblldefs.h b/drivers/staging/tidspbridge/include/dspbridge/dblldefs.h
+index b827320..8446e0e 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dblldefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dblldefs.h
+@@ -368,7 +368,7 @@ typedef int(*dbll_load_fxn) (struct dbll_library_obj *lib,
   *  Ensures:
   */
- typedef int(*fxn_io_create) (OUT struct io_mgr **io_man,
- 				    struct dev_object *hdev_obj,
--				    IN CONST struct io_attrs *pMgrAttrs);
-+				    IN CONST struct io_attrs *mgr_attrts);
+ typedef int(*dbll_load_sect_fxn) (struct dbll_library_obj *lib,
+-					 char *pszSectName,
++					 char *sz_sect_name,
+ 					 struct dbll_attrs *attrs);
  
  /*
-  *  ======== bridge_io_destroy ========
-@@ -1036,19 +1036,19 @@ struct bridge_drv_interface {
-  *      compatibility, and then copy the interface functions into its own
-  *      memory space.
+@@ -471,7 +471,7 @@ typedef void (*dbll_unload_fxn) (struct dbll_library_obj *library,
+  *  Ensures:
+  */
+ typedef int(*dbll_unload_sect_fxn) (struct dbll_library_obj *lib,
+-					   char *pszSectName,
++					   char *sz_sect_name,
+ 					   struct dbll_attrs *attrs);
+ 
+ struct dbll_fxns {
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dev.h b/drivers/staging/tidspbridge/include/dspbridge/dev.h
+index d658df5..0cdbcb2 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dev.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dev.h
+@@ -475,7 +475,7 @@ extern int dev_get_node_manager(struct dev_object
   *  Parameters:
-- *      ppDrvInterface  Pointer to a location to receive a pointer to the
-+ *      drv_intf  Pointer to a location to receive a pointer to the
-  *                      Bridge driver interface.
+  *      hdev_obj:     Handle to device object created with
+  *                      dev_create_device().
+- *      pstrSym:        Name of symbol to look up.
++ *      str_sym:        Name of symbol to look up.
+  *      pul_value:       Ptr to symbol value.
+  *  Returns:
+  *      0:        Success.
+@@ -483,14 +483,14 @@ extern int dev_get_node_manager(struct dev_object
+  *      -ESPIPE: Symbols couldn not be found or have not been loaded onto
+  *               the board.
+  *  Requires:
+- *      pstrSym != NULL.
++ *      str_sym != NULL.
+  *      pul_value != NULL.
+  *      DEV Initialized.
+  *  Ensures:
+  *      0:        *pul_value contains the symbol value;
+  */
+ extern int dev_get_symbol(struct dev_object *hdev_obj,
+-				 IN CONST char *pstrSym, OUT u32 * pul_value);
++				 IN CONST char *str_sym, OUT u32 * pul_value);
+ 
+ /*
+  *  ======== dev_get_bridge_context ========
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/nldr.h b/drivers/staging/tidspbridge/include/dspbridge/nldr.h
+index b2bfb5e..986ebc8 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/nldr.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/nldr.h
+@@ -39,7 +39,7 @@ extern void nldr_delete(struct nldr_object *nldr_obj);
+ extern void nldr_exit(void);
+ 
+ extern int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
+-				    char *pstrFxn, u32 * pulAddr);
++				    char *str_fxn, u32 * addr);
+ 
+ extern int nldr_get_rmm_manager(struct nldr_object *nldr,
+ 				       OUT struct rmm_target_obj **rmm_mgr);
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h b/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
+index e15ef67..ed20dc0 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/nldrdefs.h
+@@ -210,21 +210,21 @@ typedef void (*nldr_freefxn) (struct nldr_nodeobject *nldr_node_obj);
+  *
+  *  Parameters:
+  *      nldr_node_obj:      Handle returned from nldr_allocate().
+- *      pstrFxn:        Name of function.
+- *      pulAddr:        Location to store function address.
++ *      str_fxn:        Name of function.
++ *      addr:           Location to store function address.
+  *  Returns:
+  *      0:        Success.
+  *      -ESPIPE:    Address of function not found.
+  *  Requires:
+  *      nldr_init(void) called.
+  *      Valid nldr_node_obj.
+- *      pulAddr != NULL;
+- *      pstrFxn != NULL;
++ *      addr != NULL;
++ *      str_fxn != NULL;
+  *  Ensures:
+  */
+ typedef int(*nldr_getfxnaddrfxn) (struct nldr_nodeobject
+ 					 * nldr_node_obj,
+-					 char *pstrFxn, u32 * pulAddr);
++					 char *str_fxn, u32 * addr);
+ 
+ /*
+  *  ======== nldr_init ========
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/strm.h b/drivers/staging/tidspbridge/include/dspbridge/strm.h
+index 6572442..e028518 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/strm.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/strm.h
+@@ -303,9 +303,9 @@ extern int strm_prepare_buffer(struct strm_object *stream_obj,
+  *  Parameters:
+  *      stream_obj:          Stream handle returned from strm_open().
+  *      buf_ptr:        Location to store pointer to reclaimed buffer.
+- *      pulBytes:       Location where number of bytes of data in the
++ *      nbytes:         Location where number of bytes of data in the
+  *                      buffer will be written.
+- *      pulBufSize:     Location where actual buffer size will be written.
++ *      buff_size:      Location where actual buffer size will be written.
+  *      pdw_arg:         Location where user argument that travels with
+  *                      the buffer will be written.
+  *  Returns:
+@@ -317,13 +317,13 @@ extern int strm_prepare_buffer(struct strm_object *stream_obj,
+  *  Requires:
+  *      strm_init(void) called.
+  *      buf_ptr != NULL.
+- *      pulBytes != NULL.
++ *      nbytes != NULL.
+  *      pdw_arg != NULL.
+  *  Ensures:
+  */
+ extern int strm_reclaim(struct strm_object *stream_obj,
+-			       OUT u8 **buf_ptr, u32 * pulBytes,
+-			       u32 *pulBufSize, u32 *pdw_arg);
++			       OUT u8 **buf_ptr, u32 * nbytes,
++			       u32 *buff_size, u32 *pdw_arg);
+ 
+ /*
+  *  ======== strm_register_notify ========
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/uuidutil.h b/drivers/staging/tidspbridge/include/dspbridge/uuidutil.h
+index d7d0962..dde76c9 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/uuidutil.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/uuidutil.h
+@@ -27,18 +27,18 @@
+  *      Converts a dsp_uuid to an ANSI string.
+  *  Parameters:
+  *      uuid_obj:      Pointer to a dsp_uuid object.
+- *      pszUuid:    Pointer to a buffer to receive a NULL-terminated UUID
++ *      sz_uuid:    Pointer to a buffer to receive a NULL-terminated UUID
+  *                  string.
+- *      size:	    Maximum size of the pszUuid string.
++ *      size:	    Maximum size of the sz_uuid string.
   *  Returns:
   *  Requires:
-  *      The code segment this function resides in must expect to be discarded
-  *      after completion.
+- *      uuid_obj & pszUuid are non-NULL values.
++ *      uuid_obj & sz_uuid are non-NULL values.
   *  Ensures:
-- *      ppDrvInterface pointer initialized to Bridge driver's function
-+ *      drv_intf pointer initialized to Bridge driver's function
-  *      interface. No system resources are acquired by this function.
+- *      Lenghth of pszUuid is less than MAXUUIDLEN.
++ *      Lenghth of sz_uuid is less than MAXUUIDLEN.
   *  Details:
-  *      Called during the Device_Init phase.
+  *      UUID string limit currently set at MAXUUIDLEN.
   */
--void bridge_drv_entry(OUT struct bridge_drv_interface **ppDrvInterface,
-+void bridge_drv_entry(OUT struct bridge_drv_interface **drv_intf,
- 		   IN CONST char *driver_file_name);
- 
- #endif /* DSPDEFS_ */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspio.h b/drivers/staging/tidspbridge/include/dspbridge/dspio.h
-index 7b33563..93dc592 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dspio.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dspio.h
-@@ -28,7 +28,7 @@
- 
- extern int bridge_io_create(OUT struct io_mgr **io_man,
- 				   struct dev_object *hdev_obj,
--				   IN CONST struct io_attrs *pMgrAttrs);
-+				   IN CONST struct io_attrs *mgr_attrts);
- 
- extern int bridge_io_destroy(struct io_mgr *hio_mgr);
- 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/io.h b/drivers/staging/tidspbridge/include/dspbridge/io.h
-index aa24535..b8670ca 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/io.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/io.h
-@@ -33,10 +33,10 @@
-  *      channel_mgr:            Location to store a channel manager object on
-  *                              output.
-  *      hdev_obj:             Handle to a device object.
-- *      pMgrAttrs:              IO manager attributes.
-- *      pMgrAttrs->birq:        I/O IRQ number.
-- *      pMgrAttrs->irq_shared:     TRUE if the IRQ is shareable.
-- *      pMgrAttrs->word_size:   DSP Word size in equivalent PC bytes..
-+ *      mgr_attrts:              IO manager attributes.
-+ *      mgr_attrts->birq:        I/O IRQ number.
-+ *      mgr_attrts->irq_shared:     TRUE if the IRQ is shareable.
-+ *      mgr_attrts->word_size:   DSP Word size in equivalent PC bytes..
-  *  Returns:
-  *      0:                Success;
-  *      -ENOMEM:            Insufficient memory for requested resources.
-@@ -46,12 +46,12 @@
-  *  Requires:
-  *      io_init(void) called.
-  *      io_man != NULL.
-- *      pMgrAttrs != NULL.
-+ *      mgr_attrts != NULL.
-  *  Ensures:
-  */
- extern int io_create(OUT struct io_mgr **io_man,
- 			    struct dev_object *hdev_obj,
--			    IN CONST struct io_attrs *pMgrAttrs);
-+			    IN CONST struct io_attrs *mgr_attrts);
+-void uuid_uuid_to_string(IN struct dsp_uuid *uuid_obj, OUT char *pszUuid,
++void uuid_uuid_to_string(IN struct dsp_uuid *uuid_obj, OUT char *sz_uuid,
+ 			 s32 size);
  
  /*
-  *  ======== io_destroy ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/node.h b/drivers/staging/tidspbridge/include/dspbridge/node.h
-index 70f3e89..e87708d 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/node.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/node.h
-@@ -32,7 +32,7 @@
-  *      Allocate GPP resources to manage a node on the DSP.
+@@ -46,17 +46,17 @@ void uuid_uuid_to_string(IN struct dsp_uuid *uuid_obj, OUT char *pszUuid,
+  *  Purpose:
+  *      Converts an ANSI string to a dsp_uuid.
   *  Parameters:
-  *      hprocessor:         Handle of processor that is allocating the node.
-- *      pNodeId:            Pointer to a dsp_uuid for the node.
-+ *      node_uuid:          Pointer to a dsp_uuid for the node.
-  *      pargs:              Optional arguments to be passed to the node.
-  *      attr_in:            Optional pointer to node attributes (priority,
-  *                          timeout...)
-@@ -49,14 +49,14 @@
-  *  Requires:
-  *      node_init(void) called.
-  *      hprocessor != NULL.
-- *      pNodeId != NULL.
-+ *      node_uuid != NULL.
-  *      ph_node != NULL.
-  *  Ensures:
-  *      0:            IsValidNode(*ph_node).
-  *      error:              *ph_node == NULL.
-  */
- extern int node_allocate(struct proc_object *hprocessor,
--				IN CONST struct dsp_uuid *pNodeId,
-+				IN CONST struct dsp_uuid *node_uuid,
- 				OPTIONAL IN CONST struct dsp_cbdata
- 				*pargs, OPTIONAL IN CONST struct dsp_nodeattrin
- 				*attr_in,
-@@ -554,7 +554,7 @@ extern int node_terminate(struct node_object *hnode,
-  *
-  */
- extern int node_get_uuid_props(void *hprocessor,
--				      IN CONST struct dsp_uuid *pNodeId,
-+				      IN CONST struct dsp_uuid *node_uuid,
- 				      OUT struct dsp_ndbprops
- 				      *node_props);
- 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/nodepriv.h b/drivers/staging/tidspbridge/include/dspbridge/nodepriv.h
-index 0dc6dc7..0b45094 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/nodepriv.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/nodepriv.h
-@@ -163,7 +163,7 @@ extern enum node_type node_get_type(struct node_object *hnode);
-  *  Ensures:
-  */
- extern void get_node_info(struct node_object *hnode,
--			  struct dsp_nodeinfo *pNodeInfo);
-+			  struct dsp_nodeinfo *node_info);
- 
- /*
-  *  ======== node_get_load_type ========
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/resourcecleanup.h b/drivers/staging/tidspbridge/include/dspbridge/resourcecleanup.h
-index 6c78f2d..48aebff 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/resourcecleanup.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/resourcecleanup.h
-@@ -17,7 +17,7 @@
- #include <dspbridge/nodepriv.h>
- #include <dspbridge/drv.h>
- 
--extern int drv_get_proc_ctxt_list(struct process_context **pPctxt,
-+extern int drv_get_proc_ctxt_list(struct process_context **pctxt,
- 					 struct drv_object *hdrv_obj);
- 
- extern int drv_insert_proc_context(struct drv_object *driver_obj,
-@@ -29,7 +29,7 @@ extern int drv_remove_all_node_res_elements(void *ctxt);
- 
- extern int drv_proc_set_pid(void *ctxt, s32 process);
- 
--extern int drv_remove_all_resources(void *pPctxt);
-+extern int drv_remove_all_resources(void *pctxt);
- 
- extern int drv_remove_proc_context(struct drv_object *driver_obj,
- 					  void *pr_ctxt);
-@@ -50,7 +50,7 @@ extern int drv_proc_update_strm_res(u32 num_bufs, void *strm_res);
- 
- extern int drv_proc_insert_strm_res_element(void *stream_obj,
- 						   void *strm_res,
--						   void *pPctxt);
-+						   void *pctxt);
- 
- extern int drv_get_strm_res_element(void *stream_obj, void *strm_res,
- 					   void *ctxt);
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/rmm.h b/drivers/staging/tidspbridge/include/dspbridge/rmm.h
-index 468d8d8..f6b78d7 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/rmm.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/rmm.h
-@@ -166,7 +166,7 @@ extern bool rmm_init(void);
-  *
-  *  Parameters:
-  *      segid:       Segment ID of the dynamic loading segment.
-- *      pMemStatBuf: Pointer to allocated buffer into which memory stats are
-+ *      mem_stat_buf: Pointer to allocated buffer into which memory stats are
-  *                   placed.
+- *      pszUuid:    Pointer to a string that represents a dsp_uuid object.
++ *      sz_uuid:    Pointer to a string that represents a dsp_uuid object.
+  *      uuid_obj:      Pointer to a dsp_uuid object.
   *  Returns:
-  *      TRUE:   Success.
-@@ -176,6 +176,6 @@ extern bool rmm_init(void);
+  *  Requires:
+- *      uuid_obj & pszUuid are non-NULL values.
++ *      uuid_obj & sz_uuid are non-NULL values.
   *  Ensures:
+  *  Details:
+  *      We assume the string representation of a UUID has the following format:
+  *      "12345678_1234_1234_1234_123456789abc".
   */
- extern bool rmm_stat(struct rmm_target_obj *target, enum dsp_memtype segid,
--		     struct dsp_memstat *pMemStatBuf);
-+		     struct dsp_memstat *mem_stat_buf);
+-extern void uuid_uuid_from_string(IN char *pszUuid,
++extern void uuid_uuid_from_string(IN char *sz_uuid,
+ 				  OUT struct dsp_uuid *uuid_obj);
  
- #endif /* RMM_ */
-diff --git a/drivers/staging/tidspbridge/pmgr/chnl.c b/drivers/staging/tidspbridge/pmgr/chnl.c
-index 0ba5039..7da17c8 100644
---- a/drivers/staging/tidspbridge/pmgr/chnl.c
-+++ b/drivers/staging/tidspbridge/pmgr/chnl.c
-@@ -53,7 +53,7 @@ static u32 refs;
-  */
- int chnl_create(OUT struct chnl_mgr **channel_mgr,
- 		       struct dev_object *hdev_obj,
--		       IN CONST struct chnl_mgrattrs *pMgrAttrs)
-+		       IN CONST struct chnl_mgrattrs *mgr_attrts)
+ #endif /* UUIDUTIL_ */
+diff --git a/drivers/staging/tidspbridge/pmgr/cod.c b/drivers/staging/tidspbridge/pmgr/cod.c
+index e4fc065..ae44bed 100644
+--- a/drivers/staging/tidspbridge/pmgr/cod.c
++++ b/drivers/staging/tidspbridge/pmgr/cod.c
+@@ -109,7 +109,7 @@ static s32 cod_f_close(struct file *filp)
+ 	return 0;
+ }
+ 
+-static struct file *cod_f_open(CONST char *psz_file_name, CONST char *pszMode)
++static struct file *cod_f_open(CONST char *psz_file_name, CONST char *sz_mode)
  {
- 	int status;
- 	struct chnl_mgr *hchnl_mgr;
-@@ -61,20 +61,20 @@ int chnl_create(OUT struct chnl_mgr **channel_mgr,
+ 	mm_segment_t fs;
+ 	struct file *filp;
+@@ -337,17 +337,17 @@ int cod_get_base_lib(struct cod_manager *cod_mgr_obj,
+ /*
+  *  ======== cod_get_base_name ========
+  */
+-int cod_get_base_name(struct cod_manager *cod_mgr_obj, char *pszName,
++int cod_get_base_name(struct cod_manager *cod_mgr_obj, char *sz_name,
+ 			     u32 usize)
+ {
+ 	int status = 0;
  
  	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(channel_mgr != NULL);
--	DBC_REQUIRE(pMgrAttrs != NULL);
-+	DBC_REQUIRE(mgr_attrts != NULL);
+ 	DBC_REQUIRE(IS_VALID(cod_mgr_obj));
+-	DBC_REQUIRE(pszName != NULL);
++	DBC_REQUIRE(sz_name != NULL);
  
- 	*channel_mgr = NULL;
- 
- 	/* Validate args: */
--	if ((0 < pMgrAttrs->max_channels) &&
--	    (pMgrAttrs->max_channels <= CHNL_MAXCHANNELS))
-+	if ((0 < mgr_attrts->max_channels) &&
-+	    (mgr_attrts->max_channels <= CHNL_MAXCHANNELS))
- 		status = 0;
--	else if (pMgrAttrs->max_channels == 0)
-+	else if (mgr_attrts->max_channels == 0)
- 		status = -EINVAL;
+ 	if (usize <= COD_MAXPATHLENGTH)
+-		strncpy(pszName, cod_mgr_obj->sz_zl_file, usize);
++		strncpy(sz_name, cod_mgr_obj->sz_zl_file, usize);
  	else
- 		status = -ECHRNG;
+ 		status = -EPERM;
  
--	if (pMgrAttrs->word_size == 0)
-+	if (mgr_attrts->word_size == 0)
- 		status = -EINVAL;
- 
- 	if (DSP_SUCCEEDED(status)) {
-@@ -89,7 +89,7 @@ int chnl_create(OUT struct chnl_mgr **channel_mgr,
- 		dev_get_intf_fxns(hdev_obj, &intf_fxns);
- 		/* Let Bridge channel module finish the create: */
- 		status = (*intf_fxns->pfn_chnl_create) (&hchnl_mgr, hdev_obj,
--							pMgrAttrs);
-+							mgr_attrts);
- 		if (DSP_SUCCEEDED(status)) {
- 			/* Fill in DSP API channel module's fields of the
- 			 * chnl_mgr structure */
-diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
-index ffe724a..8fd9c26 100644
---- a/drivers/staging/tidspbridge/pmgr/cmm.c
-+++ b/drivers/staging/tidspbridge/pmgr/cmm.c
-@@ -242,7 +242,7 @@ void *cmm_calloc_buf(struct cmm_object *hcmm_mgr, u32 usize,
+@@ -396,8 +396,8 @@ int cod_get_loader(struct cod_manager *cod_mgr_obj,
+  *      Retrieve the starting address and length of a section in the COFF file
+  *      given the section name.
   */
- int cmm_create(OUT struct cmm_object **ph_cmm_mgr,
- 		      struct dev_object *hdev_obj,
--		      IN CONST struct cmm_mgrattrs *pMgrAttrs)
-+		      IN CONST struct cmm_mgrattrs *mgr_attrts)
+-int cod_get_section(struct cod_libraryobj *lib, IN char *pstrSect,
+-			   OUT u32 *puAddr, OUT u32 *puLen)
++int cod_get_section(struct cod_libraryobj *lib, IN char *str_sect,
++			   OUT u32 *addr, OUT u32 *puLen)
  {
- 	struct cmm_object *cmm_obj = NULL;
+ 	struct cod_manager *cod_mgr_obj;
  	int status = 0;
-@@ -255,13 +255,13 @@ int cmm_create(OUT struct cmm_object **ph_cmm_mgr,
- 	/* create, zero, and tag a cmm mgr object */
- 	cmm_obj = kzalloc(sizeof(struct cmm_object), GFP_KERNEL);
- 	if (cmm_obj != NULL) {
--		if (pMgrAttrs == NULL)
--			pMgrAttrs = &cmm_dfltmgrattrs;	/* set defaults */
-+		if (mgr_attrts == NULL)
-+			mgr_attrts = &cmm_dfltmgrattrs;	/* set defaults */
+@@ -405,21 +405,21 @@ int cod_get_section(struct cod_libraryobj *lib, IN char *pstrSect,
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(lib != NULL);
+ 	DBC_REQUIRE(IS_VALID(lib->cod_mgr));
+-	DBC_REQUIRE(pstrSect != NULL);
+-	DBC_REQUIRE(puAddr != NULL);
++	DBC_REQUIRE(str_sect != NULL);
++	DBC_REQUIRE(addr != NULL);
+ 	DBC_REQUIRE(puLen != NULL);
  
- 		/* 4 bytes minimum */
--		DBC_ASSERT(pMgrAttrs->ul_min_block_size >= 4);
-+		DBC_ASSERT(mgr_attrts->ul_min_block_size >= 4);
- 		/* save away smallest block allocation for this cmm mgr */
--		cmm_obj->ul_min_block_size = pMgrAttrs->ul_min_block_size;
-+		cmm_obj->ul_min_block_size = mgr_attrts->ul_min_block_size;
- 		/* save away the systems memory page size */
- 		sys_info.dw_page_size = PAGE_SIZE;
- 		sys_info.dw_allocation_granularity = PAGE_SIZE;
-diff --git a/drivers/staging/tidspbridge/pmgr/dmm.c b/drivers/staging/tidspbridge/pmgr/dmm.c
-index 96af2cc..c661e58 100644
---- a/drivers/staging/tidspbridge/pmgr/dmm.c
-+++ b/drivers/staging/tidspbridge/pmgr/dmm.c
-@@ -119,7 +119,7 @@ int dmm_create_tables(struct dmm_object *dmm_mgr, u32 addr, u32 size)
+-	*puAddr = 0;
++	*addr = 0;
+ 	*puLen = 0;
+ 	if (lib != NULL) {
+ 		cod_mgr_obj = lib->cod_mgr;
+-		status = cod_mgr_obj->fxns.get_sect_fxn(lib->dbll_lib, pstrSect,
+-							puAddr, puLen);
++		status = cod_mgr_obj->fxns.get_sect_fxn(lib->dbll_lib, str_sect,
++							addr, puLen);
+ 	} else {
+ 		status = -ESPIPE;
+ 	}
+ 
+-	DBC_ENSURE(DSP_SUCCEEDED(status) || ((*puAddr == 0) && (*puLen == 0)));
++	DBC_ENSURE(DSP_SUCCEEDED(status) || ((*addr == 0) && (*puLen == 0)));
+ 
+ 	return status;
+ }
+@@ -432,23 +432,23 @@ int cod_get_section(struct cod_libraryobj *lib, IN char *pstrSect,
+  *      C symbol.
+  *
   */
- int dmm_create(OUT struct dmm_object **dmm_manager,
- 		      struct dev_object *hdev_obj,
--		      IN CONST struct dmm_mgrattrs *pMgrAttrs)
-+		      IN CONST struct dmm_mgrattrs *mgr_attrts)
+-int cod_get_sym_value(struct cod_manager *hmgr, char *pstrSym,
++int cod_get_sym_value(struct cod_manager *hmgr, char *str_sym,
+ 			     u32 *pul_value)
  {
- 	struct dmm_object *dmm_obj = NULL;
- 	int status = 0;
-diff --git a/drivers/staging/tidspbridge/pmgr/io.c b/drivers/staging/tidspbridge/pmgr/io.c
-index fdd3390..6585050 100644
---- a/drivers/staging/tidspbridge/pmgr/io.c
-+++ b/drivers/staging/tidspbridge/pmgr/io.c
-@@ -47,7 +47,7 @@ static u32 refs;
-  *      CHNL and msg_ctrl
-  */
- int io_create(OUT struct io_mgr **io_man, struct dev_object *hdev_obj,
--		     IN CONST struct io_attrs *pMgrAttrs)
-+		     IN CONST struct io_attrs *mgr_attrts)
- {
- 	struct bridge_drv_interface *intf_fxns;
- 	struct io_mgr *hio_mgr = NULL;
-@@ -56,15 +56,15 @@ int io_create(OUT struct io_mgr **io_man, struct dev_object *hdev_obj,
+ 	struct dbll_sym_val *dbll_sym;
  
  	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(io_man != NULL);
--	DBC_REQUIRE(pMgrAttrs != NULL);
-+	DBC_REQUIRE(mgr_attrts != NULL);
+ 	DBC_REQUIRE(IS_VALID(hmgr));
+-	DBC_REQUIRE(pstrSym != NULL);
++	DBC_REQUIRE(str_sym != NULL);
+ 	DBC_REQUIRE(pul_value != NULL);
  
- 	*io_man = NULL;
+-	dev_dbg(bridge, "%s: hmgr: %p pstrSym: %s pul_value: %p\n",
+-		__func__, hmgr, pstrSym, pul_value);
++	dev_dbg(bridge, "%s: hmgr: %p str_sym: %s pul_value: %p\n",
++		__func__, hmgr, str_sym, pul_value);
+ 	if (hmgr->base_lib) {
+ 		if (!hmgr->fxns.
+-		    get_addr_fxn(hmgr->base_lib, pstrSym, &dbll_sym)) {
++		    get_addr_fxn(hmgr->base_lib, str_sym, &dbll_sym)) {
+ 			if (!hmgr->fxns.
+-			    get_c_addr_fxn(hmgr->base_lib, pstrSym, &dbll_sym))
++			    get_c_addr_fxn(hmgr->base_lib, str_sym, &dbll_sym))
+ 				return -ESPIPE;
+ 		}
+ 	} else {
+@@ -550,7 +550,7 @@ int cod_load_base(struct cod_manager *hmgr, u32 num_argc, char *args[],
+  *  ======== cod_open ========
+  *      Open library for reading sections.
+  */
+-int cod_open(struct cod_manager *hmgr, IN char *pszCoffPath,
++int cod_open(struct cod_manager *hmgr, IN char *sz_coff_path,
+ 		    u32 flags, struct cod_libraryobj **lib_obj)
+ {
+ 	int status = 0;
+@@ -558,7 +558,7 @@ int cod_open(struct cod_manager *hmgr, IN char *pszCoffPath,
  
- 	/* A memory base of 0 implies no memory base: */
--	if ((pMgrAttrs->shm_base != 0) && (pMgrAttrs->usm_length == 0))
-+	if ((mgr_attrts->shm_base != 0) && (mgr_attrts->usm_length == 0))
- 		status = -EINVAL;
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(IS_VALID(hmgr));
+-	DBC_REQUIRE(pszCoffPath != NULL);
++	DBC_REQUIRE(sz_coff_path != NULL);
+ 	DBC_REQUIRE(flags == COD_NOLOAD || flags == COD_SYMB);
+ 	DBC_REQUIRE(lib_obj != NULL);
  
--	if (pMgrAttrs->word_size == 0)
-+	if (mgr_attrts->word_size == 0)
- 		status = -EINVAL;
+@@ -570,15 +570,15 @@ int cod_open(struct cod_manager *hmgr, IN char *pszCoffPath,
  
  	if (DSP_SUCCEEDED(status)) {
-@@ -72,7 +72,7 @@ int io_create(OUT struct io_mgr **io_man, struct dev_object *hdev_obj,
+ 		lib->cod_mgr = hmgr;
+-		status = hmgr->fxns.open_fxn(hmgr->target, pszCoffPath, flags,
++		status = hmgr->fxns.open_fxn(hmgr->target, sz_coff_path, flags,
+ 					     &lib->dbll_lib);
+ 		if (DSP_SUCCEEDED(status))
+ 			*lib_obj = lib;
+ 	}
  
- 		/* Let Bridge channel module finish the create: */
- 		status = (*intf_fxns->pfn_io_create) (&hio_mgr, hdev_obj,
--						      pMgrAttrs);
-+						      mgr_attrts);
+ 	if (DSP_FAILED(status))
+-		pr_err("%s: error status 0x%x, pszCoffPath: %s flags: 0x%x\n",
+-		       __func__, status, pszCoffPath, flags);
++		pr_err("%s: error status 0x%x, sz_coff_path: %s flags: 0x%x\n",
++		       __func__, status, sz_coff_path, flags);
+ 	return status;
+ }
  
- 		if (DSP_SUCCEEDED(status)) {
- 			pio_mgr = (struct io_mgr_ *)hio_mgr;
+@@ -587,7 +587,7 @@ int cod_open(struct cod_manager *hmgr, IN char *pszCoffPath,
+  *  Purpose:
+  *      Open base image for reading sections.
+  */
+-int cod_open_base(struct cod_manager *hmgr, IN char *pszCoffPath,
++int cod_open_base(struct cod_manager *hmgr, IN char *sz_coff_path,
+ 			 dbll_flags flags)
+ {
+ 	int status = 0;
+@@ -595,7 +595,7 @@ int cod_open_base(struct cod_manager *hmgr, IN char *pszCoffPath,
+ 
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(IS_VALID(hmgr));
+-	DBC_REQUIRE(pszCoffPath != NULL);
++	DBC_REQUIRE(sz_coff_path != NULL);
+ 
+ 	/* if we previously opened a base image, close it now */
+ 	if (hmgr->base_lib) {
+@@ -606,17 +606,17 @@ int cod_open_base(struct cod_manager *hmgr, IN char *pszCoffPath,
+ 		hmgr->fxns.close_fxn(hmgr->base_lib);
+ 		hmgr->base_lib = NULL;
+ 	}
+-	status = hmgr->fxns.open_fxn(hmgr->target, pszCoffPath, flags, &lib);
++	status = hmgr->fxns.open_fxn(hmgr->target, sz_coff_path, flags, &lib);
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* hang onto the library for subsequent sym table usage */
+ 		hmgr->base_lib = lib;
+-		strncpy(hmgr->sz_zl_file, pszCoffPath, COD_MAXPATHLENGTH - 1);
++		strncpy(hmgr->sz_zl_file, sz_coff_path, COD_MAXPATHLENGTH - 1);
+ 		hmgr->sz_zl_file[COD_MAXPATHLENGTH - 1] = '\0';
+ 	}
+ 
+ 	if (DSP_FAILED(status))
+-		pr_err("%s: error status 0x%x pszCoffPath: %s\n", __func__,
+-		       status, pszCoffPath);
++		pr_err("%s: error status 0x%x sz_coff_path: %s\n", __func__,
++		       status, sz_coff_path);
+ 	return status;
+ }
+ 
+@@ -625,7 +625,7 @@ int cod_open_base(struct cod_manager *hmgr, IN char *pszCoffPath,
+  *  Purpose:
+  *      Retrieve the content of a code section given the section name.
+  */
+-int cod_read_section(struct cod_libraryobj *lib, IN char *pstrSect,
++int cod_read_section(struct cod_libraryobj *lib, IN char *str_sect,
+ 			    OUT char *str_content, IN u32 content_size)
+ {
+ 	int status = 0;
+@@ -633,12 +633,12 @@ int cod_read_section(struct cod_libraryobj *lib, IN char *pstrSect,
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(lib != NULL);
+ 	DBC_REQUIRE(IS_VALID(lib->cod_mgr));
+-	DBC_REQUIRE(pstrSect != NULL);
++	DBC_REQUIRE(str_sect != NULL);
+ 	DBC_REQUIRE(str_content != NULL);
+ 
+ 	if (lib != NULL)
+ 		status =
+-		    lib->cod_mgr->fxns.read_sect_fxn(lib->dbll_lib, pstrSect,
++		    lib->cod_mgr->fxns.read_sect_fxn(lib->dbll_lib, str_sect,
+ 						     str_content, content_size);
+ 	else
+ 		status = -ESPIPE;
+diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
+index 5098f7f..55e2a5e 100644
+--- a/drivers/staging/tidspbridge/pmgr/dev.c
++++ b/drivers/staging/tidspbridge/pmgr/dev.c
+@@ -691,18 +691,18 @@ int dev_get_node_manager(struct dev_object *hdev_obj,
+  *  ======== dev_get_symbol ========
+  */
+ int dev_get_symbol(struct dev_object *hdev_obj,
+-			  IN CONST char *pstrSym, OUT u32 * pul_value)
++			  IN CONST char *str_sym, OUT u32 * pul_value)
+ {
+ 	int status = 0;
+ 	struct cod_manager *cod_mgr;
+ 
+ 	DBC_REQUIRE(refs > 0);
+-	DBC_REQUIRE(pstrSym != NULL && pul_value != NULL);
++	DBC_REQUIRE(str_sym != NULL && pul_value != NULL);
+ 
+ 	if (hdev_obj) {
+ 		status = dev_get_cod_mgr(hdev_obj, &cod_mgr);
+ 		if (cod_mgr)
+-			status = cod_get_sym_value(cod_mgr, (char *)pstrSym,
++			status = cod_get_sym_value(cod_mgr, (char *)str_sym,
+ 						   pul_value);
+ 		else
+ 			status = -EFAULT;
 diff --git a/drivers/staging/tidspbridge/rmgr/dbdcd.c b/drivers/staging/tidspbridge/rmgr/dbdcd.c
-index 595f9ec..2f32ece 100644
+index 2f32ece..a5cef43 100644
 --- a/drivers/staging/tidspbridge/rmgr/dbdcd.c
 +++ b/drivers/staging/tidspbridge/rmgr/dbdcd.c
-@@ -69,10 +69,10 @@ static void compress_buf(char *psz_buf, u32 ul_buf_size, s32 char_size);
- static char dsp_char2_gpp_char(char *pWord, s32 dsp_char_size);
- static int get_dep_lib_info(IN struct dcd_manager *hdcd_mgr,
- 				   IN struct dsp_uuid *uuid_obj,
--				   IN OUT u16 *pNumLibs,
--				   OPTIONAL OUT u16 *pNumPersLibs,
-+				   IN OUT u16 *num_libs,
-+				   OPTIONAL OUT u16 *num_pers_libs,
- 				   OPTIONAL OUT struct dsp_uuid *dep_lib_uuids,
--				   OPTIONAL OUT bool *pPersistentDepLibs,
-+				   OPTIONAL OUT bool *prstnt_dep_libs,
- 				   IN enum nldr_phase phase);
- 
- /*
-@@ -328,7 +328,7 @@ void dcd_exit(void)
- int dcd_get_dep_libs(IN struct dcd_manager *hdcd_mgr,
- 			    IN struct dsp_uuid *uuid_obj,
- 			    u16 num_libs, OUT struct dsp_uuid *dep_lib_uuids,
--			    OUT bool *pPersistentDepLibs,
-+			    OUT bool *prstnt_dep_libs,
- 			    IN enum nldr_phase phase)
- {
- 	int status = 0;
-@@ -337,11 +337,11 @@ int dcd_get_dep_libs(IN struct dcd_manager *hdcd_mgr,
- 	DBC_REQUIRE(hdcd_mgr);
- 	DBC_REQUIRE(uuid_obj != NULL);
- 	DBC_REQUIRE(dep_lib_uuids != NULL);
--	DBC_REQUIRE(pPersistentDepLibs != NULL);
-+	DBC_REQUIRE(prstnt_dep_libs != NULL);
- 
- 	status =
- 	    get_dep_lib_info(hdcd_mgr, uuid_obj, &num_libs, NULL, dep_lib_uuids,
--			     pPersistentDepLibs, phase);
-+			     prstnt_dep_libs, phase);
- 
- 	return status;
- }
-@@ -351,18 +351,18 @@ int dcd_get_dep_libs(IN struct dcd_manager *hdcd_mgr,
+@@ -81,16 +81,16 @@ static int get_dep_lib_info(IN struct dcd_manager *hdcd_mgr,
+  *      Parses the supplied image and resigsters with DCD.
   */
- int dcd_get_num_dep_libs(IN struct dcd_manager *hdcd_mgr,
- 				IN struct dsp_uuid *uuid_obj,
--				OUT u16 *pNumLibs, OUT u16 *pNumPersLibs,
-+				OUT u16 *num_libs, OUT u16 *num_pers_libs,
- 				IN enum nldr_phase phase)
+ int dcd_auto_register(IN struct dcd_manager *hdcd_mgr,
+-			     IN char *pszCoffPath)
++			     IN char *sz_coff_path)
  {
  	int status = 0;
  
  	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(hdcd_mgr);
--	DBC_REQUIRE(pNumLibs != NULL);
--	DBC_REQUIRE(pNumPersLibs != NULL);
-+	DBC_REQUIRE(num_libs != NULL);
-+	DBC_REQUIRE(num_pers_libs != NULL);
- 	DBC_REQUIRE(uuid_obj != NULL);
  
--	status = get_dep_lib_info(hdcd_mgr, uuid_obj, pNumLibs, pNumPersLibs,
-+	status = get_dep_lib_info(hdcd_mgr, uuid_obj, num_libs, num_pers_libs,
- 				  NULL, NULL, phase);
+ 	if (hdcd_mgr)
+-		status = dcd_get_objects(hdcd_mgr, pszCoffPath,
++		status = dcd_get_objects(hdcd_mgr, sz_coff_path,
+ 					 (dcd_registerfxn) dcd_register_object,
+-					 (void *)pszCoffPath);
++					 (void *)sz_coff_path);
+ 	else
+ 		status = -EFAULT;
  
- 	return status;
-@@ -375,9 +375,9 @@ int dcd_get_num_dep_libs(IN struct dcd_manager *hdcd_mgr,
-  *      object type.
+@@ -103,14 +103,14 @@ int dcd_auto_register(IN struct dcd_manager *hdcd_mgr,
+  *      Parses the supplied DSP image and unresiters from DCD.
   */
- int dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
--			      IN struct dsp_uuid *pObjUuid,
-+			      IN struct dsp_uuid *obj_uuid,
- 			      IN enum dsp_dcdobjtype obj_type,
--			      OUT struct dcd_genericobj *pObjDef)
-+			      OUT struct dcd_genericobj *obj_def)
+ int dcd_auto_unregister(IN struct dcd_manager *hdcd_mgr,
+-			       IN char *pszCoffPath)
++			       IN char *sz_coff_path)
  {
- 	struct dcd_manager *dcd_mgr_obj = hdcd_mgr;	/* ptr to DCD mgr */
- 	struct cod_libraryobj *lib = NULL;
-@@ -394,8 +394,8 @@ int dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
- 	char sz_obj_type[MAX_INT2CHAR_LENGTH];	/* str. rep. of obj_type. */
+ 	int status = 0;
  
  	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(pObjDef != NULL);
--	DBC_REQUIRE(pObjUuid != NULL);
-+	DBC_REQUIRE(obj_def != NULL);
-+	DBC_REQUIRE(obj_uuid != NULL);
  
- 	sz_uuid = kzalloc(MAXUUIDLEN, GFP_KERNEL);
- 	if (!sz_uuid) {
-@@ -436,7 +436,7 @@ int dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
- 		}
- 
- 		/* Create UUID value to set in registry. */
--		uuid_uuid_to_string(pObjUuid, sz_uuid, MAXUUIDLEN);
-+		uuid_uuid_to_string(obj_uuid, sz_uuid, MAXUUIDLEN);
- 
- 		if ((strlen(sz_reg_key) + MAXUUIDLEN) < DCD_MAXPATHLENGTH)
- 			strncat(sz_reg_key, sz_uuid, MAXUUIDLEN);
-@@ -512,7 +512,7 @@ int dcd_get_object_def(IN struct dcd_manager *hdcd_mgr,
- 
- 		/* Parse the content of the COFF buffer. */
- 		status =
--		    get_attrs_from_buf(psz_coff_buf, ul_len, obj_type, pObjDef);
-+		    get_attrs_from_buf(psz_coff_buf, ul_len, obj_type, obj_def);
- 		if (DSP_FAILED(status))
- 			status = -EACCES;
- 	} else {
-@@ -1393,10 +1393,10 @@ static char dsp_char2_gpp_char(char *pWord, s32 dsp_char_size)
+ 	if (hdcd_mgr)
+-		status = dcd_get_objects(hdcd_mgr, pszCoffPath,
++		status = dcd_get_objects(hdcd_mgr, sz_coff_path,
+ 					 (dcd_registerfxn) dcd_register_object,
+ 					 NULL);
+ 	else
+@@ -124,7 +124,7 @@ int dcd_auto_unregister(IN struct dcd_manager *hdcd_mgr,
+  *  Purpose:
+  *      Creates DCD manager.
   */
- static int get_dep_lib_info(IN struct dcd_manager *hdcd_mgr,
- 				   IN struct dsp_uuid *uuid_obj,
--				   IN OUT u16 *pNumLibs,
--				   OPTIONAL OUT u16 *pNumPersLibs,
-+				   IN OUT u16 *num_libs,
-+				   OPTIONAL OUT u16 *num_pers_libs,
- 				   OPTIONAL OUT struct dsp_uuid *dep_lib_uuids,
--				   OPTIONAL OUT bool *pPersistentDepLibs,
-+				   OPTIONAL OUT bool *prstnt_dep_libs,
- 				   enum nldr_phase phase)
+-int dcd_create_manager(IN char *pszZlDllName,
++int dcd_create_manager(IN char *sz_zl_dll_name,
+ 			      OUT struct dcd_manager **dcd_mgr)
+ {
+ 	struct cod_manager *cod_mgr;	/* COD manager handle */
+@@ -134,7 +134,7 @@ int dcd_create_manager(IN char *pszZlDllName,
+ 	DBC_REQUIRE(refs >= 0);
+ 	DBC_REQUIRE(dcd_mgr);
+ 
+-	status = cod_create(&cod_mgr, pszZlDllName, NULL);
++	status = cod_create(&cod_mgr, sz_zl_dll_name, NULL);
+ 	if (DSP_FAILED(status))
+ 		goto func_end;
+ 
+@@ -534,7 +534,7 @@ func_end:
+  *  ======== dcd_get_objects ========
+  */
+ int dcd_get_objects(IN struct dcd_manager *hdcd_mgr,
+-			   IN char *pszCoffPath, dcd_registerfxn registerFxn,
++			   IN char *sz_coff_path, dcd_registerfxn registerFxn,
+ 			   void *handle)
  {
  	struct dcd_manager *dcd_mgr_obj = hdcd_mgr;
-@@ -1416,14 +1416,14 @@ static int get_dep_lib_info(IN struct dcd_manager *hdcd_mgr,
- 	DBC_REQUIRE(refs > 0);
- 
- 	DBC_REQUIRE(hdcd_mgr);
--	DBC_REQUIRE(pNumLibs != NULL);
-+	DBC_REQUIRE(num_libs != NULL);
- 	DBC_REQUIRE(uuid_obj != NULL);
- 
- 	/*  Initialize to 0 dependent libraries, if only counting number of
- 	 *  dependent libraries */
- 	if (!get_uuids) {
--		*pNumLibs = 0;
--		*pNumPersLibs = 0;
-+		*num_libs = 0;
-+		*num_pers_libs = 0;
+@@ -556,7 +556,7 @@ int dcd_get_objects(IN struct dcd_manager *hdcd_mgr,
  	}
  
- 	/* Allocate a buffer for file name */
-@@ -1472,7 +1472,7 @@ static int get_dep_lib_info(IN struct dcd_manager *hdcd_mgr,
- 	psz_cur = psz_coff_buf;
- 	while ((token = strsep(&psz_cur, seps)) && *token != '\0') {
- 		if (get_uuids) {
--			if (dep_libs >= *pNumLibs) {
-+			if (dep_libs >= *num_libs) {
- 				/* Gone beyond the limit */
- 				break;
- 			} else {
-@@ -1482,17 +1482,17 @@ static int get_dep_lib_info(IN struct dcd_manager *hdcd_mgr,
- 							[dep_libs]));
- 				/* Is this library persistent? */
- 				token = strsep(&psz_cur, seps);
--				pPersistentDepLibs[dep_libs] = atoi(token);
-+				prstnt_dep_libs[dep_libs] = atoi(token);
- 				dep_libs++;
- 			}
- 		} else {
- 			/* Advanc to next token */
- 			token = strsep(&psz_cur, seps);
- 			if (atoi(token))
--				(*pNumPersLibs)++;
-+				(*num_pers_libs)++;
- 
- 			/* Just counting number of dependent libraries */
--			(*pNumLibs)++;
-+			(*num_libs)++;
- 		}
- 	}
- func_cont:
-diff --git a/drivers/staging/tidspbridge/rmgr/disp.c b/drivers/staging/tidspbridge/rmgr/disp.c
-index 9ebdf1e..d2cb558 100644
---- a/drivers/staging/tidspbridge/rmgr/disp.c
-+++ b/drivers/staging/tidspbridge/rmgr/disp.c
-@@ -252,7 +252,7 @@ int disp_node_create(struct disp_object *disp_obj,
- 			    struct node_object *hnode, u32 ulRMSFxn,
- 			    u32 ul_create_fxn,
- 			    IN CONST struct node_createargs *pargs,
--			    OUT nodeenv *pNodeEnv)
-+			    OUT nodeenv *node_env)
- {
- 	struct node_msgargs node_msg_args;
- 	struct node_taskargs task_arg_obj;
-@@ -282,7 +282,7 @@ int disp_node_create(struct disp_object *disp_obj,
- 	DBC_REQUIRE(disp_obj);
- 	DBC_REQUIRE(hnode != NULL);
- 	DBC_REQUIRE(node_get_type(hnode) != NODE_DEVICE);
--	DBC_REQUIRE(pNodeEnv != NULL);
-+	DBC_REQUIRE(node_env != NULL);
- 
- 	status = dev_get_dev_type(disp_obj->hdev_obj, &dev_type);
- 
-@@ -461,7 +461,7 @@ int disp_node_create(struct disp_object *disp_obj,
- 		ul_bytes = total * sizeof(rms_word);
- 		DBC_ASSERT(ul_bytes < (RMS_COMMANDBUFSIZE * sizeof(rms_word)));
- 		status = send_message(disp_obj, node_get_timeout(hnode),
--				      ul_bytes, pNodeEnv);
-+				      ul_bytes, node_env);
- 		if (DSP_SUCCEEDED(status)) {
- 			/*
- 			 * Message successfully received from RMS.
-diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
-index b08341b..ef147b7 100755
---- a/drivers/staging/tidspbridge/rmgr/drv.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv.c
-@@ -936,21 +936,21 @@ int drv_request_bridge_res_dsp(void **phost_resources)
- 	return status;
- }
- 
--void mem_ext_phys_pool_init(u32 poolPhysBase, u32 poolSize)
-+void mem_ext_phys_pool_init(u32 pool_phys_base, u32 pool_size)
- {
- 	u32 pool_virt_base;
- 
- 	/* get the virtual address for the physical memory pool passed */
--	pool_virt_base = (u32) ioremap(poolPhysBase, poolSize);
-+	pool_virt_base = (u32) ioremap(pool_phys_base, pool_size);
- 
- 	if ((void **)pool_virt_base == NULL) {
- 		pr_err("%s: external physical memory map failed\n", __func__);
- 		ext_phys_mem_pool_enabled = false;
- 	} else {
--		ext_mem_pool.phys_mem_base = poolPhysBase;
--		ext_mem_pool.phys_mem_size = poolSize;
-+		ext_mem_pool.phys_mem_base = pool_phys_base;
-+		ext_mem_pool.phys_mem_size = pool_size;
- 		ext_mem_pool.virt_mem_base = pool_virt_base;
--		ext_mem_pool.next_phys_alloc_ptr = poolPhysBase;
-+		ext_mem_pool.next_phys_alloc_ptr = pool_phys_base;
- 		ext_phys_mem_pool_enabled = true;
- 	}
- }
-diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
-index 5e586d4..91a5d8c 100644
---- a/drivers/staging/tidspbridge/rmgr/node.c
-+++ b/drivers/staging/tidspbridge/rmgr/node.c
-@@ -252,7 +252,7 @@ static int get_fxn_address(struct node_object *hnode, u32 * pulFxnAddr,
- 				  u32 uPhase);
- static int get_node_props(struct dcd_manager *hdcd_mgr,
- 				 struct node_object *hnode,
--				 CONST struct dsp_uuid *pNodeId,
-+				 CONST struct dsp_uuid *node_uuid,
- 				 struct dcd_genericobj *dcd_prop);
- static int get_proc_props(struct node_mgr *hnode_mgr,
- 				 struct dev_object *hdev_obj);
-@@ -291,7 +291,7 @@ enum node_state node_get_state(void *hnode)
-  *      Allocate GPP resources to manage a node on the DSP.
-  */
- int node_allocate(struct proc_object *hprocessor,
--			 IN CONST struct dsp_uuid *pNodeId,
-+			 IN CONST struct dsp_uuid *node_uuid,
- 			 OPTIONAL IN CONST struct dsp_cbdata *pargs,
- 			 OPTIONAL IN CONST struct dsp_nodeattrin *attr_in,
- 			 OUT struct node_object **ph_node,
-@@ -328,7 +328,7 @@ int node_allocate(struct proc_object *hprocessor,
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(hprocessor != NULL);
- 	DBC_REQUIRE(ph_node != NULL);
--	DBC_REQUIRE(pNodeId != NULL);
-+	DBC_REQUIRE(node_uuid != NULL);
- 
- 	*ph_node = NULL;
- 
-@@ -393,12 +393,12 @@ int node_allocate(struct proc_object *hprocessor,
- 	mutex_lock(&hnode_mgr->node_mgr_lock);
- 
- 	/* Get dsp_ndbprops from node database */
--	status = get_node_props(hnode_mgr->hdcd_mgr, pnode, pNodeId,
-+	status = get_node_props(hnode_mgr->hdcd_mgr, pnode, node_uuid,
- 				&(pnode->dcd_props));
- 	if (DSP_FAILED(status))
+ 	/* Open DSP coff file, don't load symbols. */
+-	status = cod_open(dcd_mgr_obj->cod_mgr, pszCoffPath, COD_NOLOAD, &lib);
++	status = cod_open(dcd_mgr_obj->cod_mgr, sz_coff_path, COD_NOLOAD, &lib);
+ 	if (DSP_FAILED(status)) {
+ 		status = -EACCES;
  		goto func_cont;
+@@ -572,7 +572,7 @@ int dcd_get_objects(IN struct dcd_manager *hdcd_mgr,
+ 	/* Allocate zeroed buffer. */
+ 	psz_coff_buf = kzalloc(ul_len + 4, GFP_KERNEL);
+ #ifdef _DB_TIOMAP
+-	if (strstr(pszCoffPath, "iva") == NULL) {
++	if (strstr(sz_coff_path, "iva") == NULL) {
+ 		/* Locate section by objectID and read its content. */
+ 		status = cod_read_section(lib, DCD_REGISTER_SECTION,
+ 					  psz_coff_buf, ul_len);
+@@ -587,7 +587,7 @@ int dcd_get_objects(IN struct dcd_manager *hdcd_mgr,
+ #endif
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* Compress DSP buffer to conform to PC format. */
+-		if (strstr(pszCoffPath, "iva") == NULL) {
++		if (strstr(sz_coff_path, "iva") == NULL) {
+ 			compress_buf(psz_coff_buf, ul_len, DSPWORDSIZE);
+ 		} else {
+ 			compress_buf(psz_coff_buf, ul_len, 1);
+@@ -644,7 +644,7 @@ func_end:
+  */
+ int dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+ 				IN struct dsp_uuid *uuid_obj,
+-				IN OUT char *pstrLibName,
++				IN OUT char *str_lib_name,
+ 				IN OUT u32 *buff_size,
+ 				enum nldr_phase phase, OUT bool *phase_split)
+ {
+@@ -656,12 +656,12 @@ int dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+ 	struct dcd_key_elem *dcd_key = NULL;
  
--	pnode->node_uuid = *pNodeId;
-+	pnode->node_uuid = *node_uuid;
- 	pnode->hprocessor = hprocessor;
- 	pnode->ntype = pnode->dcd_props.obj_data.node_obj.ndb_props.ntype;
- 	pnode->utimeout = pnode->dcd_props.obj_data.node_obj.ndb_props.utimeout;
-@@ -675,9 +675,9 @@ func_cont:
- 	DBC_ENSURE((DSP_FAILED(status) && (*ph_node == NULL)) ||
- 			(DSP_SUCCEEDED(status) && *ph_node));
- func_end:
--	dev_dbg(bridge, "%s: hprocessor: %p pNodeId: %p pargs: %p attr_in: %p "
--		"ph_node: %p status: 0x%x\n", __func__, hprocessor,
--		pNodeId, pargs, attr_in, ph_node, status);
-+	dev_dbg(bridge, "%s: hprocessor: %p node_uuid: %p pargs: %p attr_in:"
-+		" %p ph_node: %p status: 0x%x\n", __func__, hprocessor,
-+		node_uuid, pargs, attr_in, ph_node, status);
+ 	DBC_REQUIRE(uuid_obj != NULL);
+-	DBC_REQUIRE(pstrLibName != NULL);
++	DBC_REQUIRE(str_lib_name != NULL);
+ 	DBC_REQUIRE(buff_size != NULL);
+ 	DBC_REQUIRE(hdcd_mgr);
+ 
+-	dev_dbg(bridge, "%s: hdcd_mgr %p, uuid_obj %p, pstrLibName %p,"
+-		" buff_size %p\n", __func__, hdcd_mgr, uuid_obj, pstrLibName,
++	dev_dbg(bridge, "%s: hdcd_mgr %p, uuid_obj %p, str_lib_name %p,"
++		" buff_size %p\n", __func__, hdcd_mgr, uuid_obj, str_lib_name,
+ 		buff_size);
+ 
+ 	/*
+@@ -768,7 +768,7 @@ int dcd_get_library_name(IN struct dcd_manager *hdcd_mgr,
+ 	}
+ 
+ 	if (DSP_SUCCEEDED(status))
+-		memcpy(pstrLibName, dcd_key->path, strlen(dcd_key->path) + 1);
++		memcpy(str_lib_name, dcd_key->path, strlen(dcd_key->path) + 1);
  	return status;
  }
  
-@@ -2860,26 +2860,26 @@ static int get_fxn_address(struct node_object *hnode, u32 * pulFxnAddr,
-  *  Purpose:
-  *      Retrieves the node information.
+diff --git a/drivers/staging/tidspbridge/rmgr/nldr.c b/drivers/staging/tidspbridge/rmgr/nldr.c
+index 0c8a165..3eb1ae3 100644
+--- a/drivers/staging/tidspbridge/rmgr/nldr.c
++++ b/drivers/staging/tidspbridge/rmgr/nldr.c
+@@ -682,7 +682,7 @@ void nldr_exit(void)
+  *  ======== nldr_get_fxn_addr ========
   */
--void get_node_info(struct node_object *hnode, struct dsp_nodeinfo *pNodeInfo)
-+void get_node_info(struct node_object *hnode, struct dsp_nodeinfo *node_info)
+ int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
+-			     char *pstrFxn, u32 * pulAddr)
++			     char *str_fxn, u32 * addr)
  {
- 	u32 i;
+ 	struct dbll_sym_val *dbll_sym;
+ 	struct nldr_object *nldr_obj;
+@@ -692,8 +692,8 @@ int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
+ 	struct lib_node root = { NULL, 0, NULL };
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(nldr_node_obj);
+-	DBC_REQUIRE(pulAddr != NULL);
+-	DBC_REQUIRE(pstrFxn != NULL);
++	DBC_REQUIRE(addr != NULL);
++	DBC_REQUIRE(str_fxn != NULL);
  
- 	DBC_REQUIRE(hnode);
--	DBC_REQUIRE(pNodeInfo != NULL);
-+	DBC_REQUIRE(node_info != NULL);
+ 	nldr_obj = nldr_node_obj->nldr_obj;
+ 	/* Called from node_create(), node_delete(), or node_run(). */
+@@ -717,10 +717,10 @@ int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
+ 		root = nldr_node_obj->root;
+ 	}
+ 	status1 =
+-	    nldr_obj->ldr_fxns.get_c_addr_fxn(root.lib, pstrFxn, &dbll_sym);
++	    nldr_obj->ldr_fxns.get_c_addr_fxn(root.lib, str_fxn, &dbll_sym);
+ 	if (!status1)
+ 		status1 =
+-		    nldr_obj->ldr_fxns.get_addr_fxn(root.lib, pstrFxn,
++		    nldr_obj->ldr_fxns.get_addr_fxn(root.lib, str_fxn,
+ 						    &dbll_sym);
  
--	pNodeInfo->cb_struct = sizeof(struct dsp_nodeinfo);
--	pNodeInfo->nb_node_database_props =
-+	node_info->cb_struct = sizeof(struct dsp_nodeinfo);
-+	node_info->nb_node_database_props =
- 	    hnode->dcd_props.obj_data.node_obj.ndb_props;
--	pNodeInfo->execution_priority = hnode->prio;
--	pNodeInfo->device_owner = hnode->device_owner;
--	pNodeInfo->number_streams = hnode->num_inputs + hnode->num_outputs;
--	pNodeInfo->node_env = hnode->node_env;
-+	node_info->execution_priority = hnode->prio;
-+	node_info->device_owner = hnode->device_owner;
-+	node_info->number_streams = hnode->num_inputs + hnode->num_outputs;
-+	node_info->node_env = hnode->node_env;
+ 	/* If symbol not found, check dependent libraries */
+@@ -728,13 +728,13 @@ int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
+ 		for (i = 0; i < root.dep_libs; i++) {
+ 			status1 =
+ 			    nldr_obj->ldr_fxns.get_addr_fxn(root.dep_libs_tree
+-							    [i].lib, pstrFxn,
++							    [i].lib, str_fxn,
+ 							    &dbll_sym);
+ 			if (!status1) {
+ 				status1 =
+ 				    nldr_obj->ldr_fxns.
+ 				    get_c_addr_fxn(root.dep_libs_tree[i].lib,
+-						   pstrFxn, &dbll_sym);
++						   str_fxn, &dbll_sym);
+ 			}
+ 			if (status1) {
+ 				/* Symbol found */
+@@ -748,12 +748,12 @@ int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
+ 			status1 =
+ 			    nldr_obj->ldr_fxns.
+ 			    get_addr_fxn(nldr_node_obj->pers_lib_table[i].lib,
+-					 pstrFxn, &dbll_sym);
++					 str_fxn, &dbll_sym);
+ 			if (!status1) {
+ 				status1 =
+ 				    nldr_obj->ldr_fxns.
+ 				    get_c_addr_fxn(nldr_node_obj->pers_lib_table
+-						   [i].lib, pstrFxn, &dbll_sym);
++						   [i].lib, str_fxn, &dbll_sym);
+ 			}
+ 			if (status1) {
+ 				/* Symbol found */
+@@ -763,7 +763,7 @@ int nldr_get_fxn_addr(struct nldr_nodeobject *nldr_node_obj,
+ 	}
  
--	pNodeInfo->ns_execution_state = node_get_state(hnode);
-+	node_info->ns_execution_state = node_get_state(hnode);
+ 	if (status1)
+-		*pulAddr = dbll_sym->value;
++		*addr = dbll_sym->value;
+ 	else
+ 		status = -ESPIPE;
  
- 	/* Copy stream connect data */
- 	for (i = 0; i < hnode->num_inputs + hnode->num_outputs; i++)
--		pNodeInfo->sc_stream_connection[i] = hnode->stream_connect[i];
-+		node_info->sc_stream_connection[i] = hnode->stream_connect[i];
- 
- }
- 
-@@ -2890,7 +2890,7 @@ void get_node_info(struct node_object *hnode, struct dsp_nodeinfo *pNodeInfo)
+diff --git a/drivers/staging/tidspbridge/rmgr/strm.c b/drivers/staging/tidspbridge/rmgr/strm.c
+index f6922f4..ad3b50c 100644
+--- a/drivers/staging/tidspbridge/rmgr/strm.c
++++ b/drivers/staging/tidspbridge/rmgr/strm.c
+@@ -620,7 +620,7 @@ func_cont:
+  *      Relcaims a buffer from a stream.
   */
- static int get_node_props(struct dcd_manager *hdcd_mgr,
- 				 struct node_object *hnode,
--				 CONST struct dsp_uuid *pNodeId,
-+				 CONST struct dsp_uuid *node_uuid,
- 				 struct dcd_genericobj *dcd_prop)
+ int strm_reclaim(struct strm_object *stream_obj, OUT u8 ** buf_ptr,
+-			u32 *pulBytes, u32 *pulBufSize, u32 *pdw_arg)
++			u32 *nbytes, u32 *buff_size, u32 *pdw_arg)
  {
- 	u32 len;
-@@ -2902,14 +2902,14 @@ static int get_node_props(struct dcd_manager *hdcd_mgr,
- 	int status = 0;
- 	char sz_uuid[MAXUUIDLEN];
- 
--	status = dcd_get_object_def(hdcd_mgr, (struct dsp_uuid *)pNodeId,
-+	status = dcd_get_object_def(hdcd_mgr, (struct dsp_uuid *)node_uuid,
- 				    DSP_DCDNODETYPE, dcd_prop);
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		hnode->ntype = node_type = pndb_props->ntype;
- 
- 		/* Create UUID value to set in registry. */
--		uuid_uuid_to_string((struct dsp_uuid *)pNodeId, sz_uuid,
-+		uuid_uuid_to_string((struct dsp_uuid *)node_uuid, sz_uuid,
- 				    MAXUUIDLEN);
- 		dev_dbg(bridge, "(node) UUID: %s\n", sz_uuid);
- 
-@@ -3006,7 +3006,7 @@ static int get_proc_props(struct node_mgr *hnode_mgr,
-  *      Fetch Node UUID properties from DCD/DOF file.
-  */
- int node_get_uuid_props(void *hprocessor,
--			       IN CONST struct dsp_uuid *pNodeId,
-+			       IN CONST struct dsp_uuid *node_uuid,
- 			       OUT struct dsp_ndbprops *node_props)
- {
- 	struct node_mgr *hnode_mgr = NULL;
-@@ -3017,9 +3017,9 @@ int node_get_uuid_props(void *hprocessor,
+ 	struct bridge_drv_interface *intf_fxns;
+ 	struct chnl_ioc chnl_ioc_obj;
+@@ -629,7 +629,7 @@ int strm_reclaim(struct strm_object *stream_obj, OUT u8 ** buf_ptr,
  
  	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(hprocessor != NULL);
--	DBC_REQUIRE(pNodeId != NULL);
-+	DBC_REQUIRE(node_uuid != NULL);
+ 	DBC_REQUIRE(buf_ptr != NULL);
+-	DBC_REQUIRE(pulBytes != NULL);
++	DBC_REQUIRE(nbytes != NULL);
+ 	DBC_REQUIRE(pdw_arg != NULL);
  
--	if (hprocessor == NULL || pNodeId == NULL) {
-+	if (hprocessor == NULL || node_uuid == NULL) {
- 		status = -EFAULT;
- 		goto func_end;
- 	}
-@@ -3057,7 +3057,7 @@ int node_get_uuid_props(void *hprocessor,
- 	dcd_node_props.pstr_i_alg_name = NULL;
- 
- 	status = dcd_get_object_def(hnode_mgr->hdcd_mgr,
--		(struct dsp_uuid *)pNodeId, DSP_DCDNODETYPE,
-+		(struct dsp_uuid *)node_uuid, DSP_DCDNODETYPE,
- 		(struct dcd_genericobj *)&dcd_node_props);
- 
+ 	if (!stream_obj) {
+@@ -643,9 +643,9 @@ int strm_reclaim(struct strm_object *stream_obj, OUT u8 ** buf_ptr,
+ 					    stream_obj->utimeout,
+ 					    &chnl_ioc_obj);
  	if (DSP_SUCCEEDED(status)) {
-diff --git a/drivers/staging/tidspbridge/rmgr/rmm.c b/drivers/staging/tidspbridge/rmgr/rmm.c
-index 96c61dd..0354b0f 100644
---- a/drivers/staging/tidspbridge/rmgr/rmm.c
-+++ b/drivers/staging/tidspbridge/rmgr/rmm.c
-@@ -369,7 +369,7 @@ bool rmm_init(void)
-  *  ======== rmm_stat ========
-  */
- bool rmm_stat(struct rmm_target_obj *target, enum dsp_memtype segid,
--	      struct dsp_memstat *pMemStatBuf)
-+	      struct dsp_memstat *mem_stat_buf)
- {
- 	struct rmm_header *head;
- 	bool ret = false;
-@@ -377,7 +377,7 @@ bool rmm_stat(struct rmm_target_obj *target, enum dsp_memtype segid,
- 	u32 total_free_size = 0;
- 	u32 free_blocks = 0;
+-		*pulBytes = chnl_ioc_obj.byte_size;
+-		if (pulBufSize)
+-			*pulBufSize = chnl_ioc_obj.buf_size;
++		*nbytes = chnl_ioc_obj.byte_size;
++		if (buff_size)
++			*buff_size = chnl_ioc_obj.buf_size;
  
--	DBC_REQUIRE(pMemStatBuf != NULL);
-+	DBC_REQUIRE(mem_stat_buf != NULL);
- 	DBC_ASSERT(target != NULL);
+ 		*pdw_arg = chnl_ioc_obj.dw_arg;
+ 		if (!CHNL_IS_IO_COMPLETE(chnl_ioc_obj)) {
+@@ -692,9 +692,9 @@ func_end:
+ 		   status == -ETIME || status == -ESRCH ||
+ 		   status == -EPERM);
  
- 	if ((u32) segid < target->num_segs) {
-@@ -392,19 +392,19 @@ bool rmm_stat(struct rmm_target_obj *target, enum dsp_memtype segid,
- 		}
+-	dev_dbg(bridge, "%s: stream_obj: %p buf_ptr: %p pulBytes: %p "
++	dev_dbg(bridge, "%s: stream_obj: %p buf_ptr: %p nbytes: %p "
+ 		"pdw_arg: %p status 0x%x\n", __func__, stream_obj,
+-		buf_ptr, pulBytes, pdw_arg, status);
++		buf_ptr, nbytes, pdw_arg, status);
+ 	return status;
+ }
  
- 		/* ul_size */
--		pMemStatBuf->ul_size = target->seg_tab[segid].length;
-+		mem_stat_buf->ul_size = target->seg_tab[segid].length;
- 
- 		/* ul_num_free_blocks */
--		pMemStatBuf->ul_num_free_blocks = free_blocks;
-+		mem_stat_buf->ul_num_free_blocks = free_blocks;
- 
- 		/* ul_total_free_size */
--		pMemStatBuf->ul_total_free_size = total_free_size;
-+		mem_stat_buf->ul_total_free_size = total_free_size;
- 
- 		/* ul_len_max_free_block */
--		pMemStatBuf->ul_len_max_free_block = max_free_size;
-+		mem_stat_buf->ul_len_max_free_block = max_free_size;
- 
- 		/* ul_num_alloc_blocks */
--		pMemStatBuf->ul_num_alloc_blocks =
-+		mem_stat_buf->ul_num_alloc_blocks =
- 		    target->seg_tab[segid].number;
- 
- 		ret = true;
 -- 
 1.6.3.3
