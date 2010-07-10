@@ -1,44 +1,119 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Sat, 10 Jul 2010 17:11:11 +0200
-Message-ID: <20100710151111.GD10080@8bytes.org>
-References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org> <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org> <20100701101746.3810cc3b.randy.dunlap@oracle.com> <20100701180241.GA3594@basil.fritz.box> <1278012503.7738.17.camel@c-dwalke-linux.qualcomm.com> <20100701193850.GB3594@basil.fritz.box> <4C2D0FF1.6010206@codeaurora.org> <20100701230056.GD3594@basil.fritz.box> <4C2D847E.5080602@codeaurora.org>
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Subject: [RFC][PATCH] Add the proximity sensor support for 4430sdp
+Date: Sat, 10 Jul 2010 21:27:05 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003B36AAFAF@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <4C2D847E.5080602@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: Zach Pfeffer <zpfeffer@codeaurora.org>
-Cc: Andi Kleen <andi@firstfloor.org>, Daniel Walker <dwalker@codeaurora.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 01, 2010 at 11:17:34PM -0700, Zach Pfeffer wrote:
-> Andi Kleen wrote:
 
-> > Hmm? dma_map_* does not change any CPU mappings. It only sets up
-> > DMA mapping(s).
-> 
-> Sure, but I was saying that iommu_map() doesn't just set up the IOMMU
-> mappings, its sets up both the iommu and kernel buffer mappings.
+The proximity sensor is registered as a gpio-key
 
-What do you mean by kernel buffer mappings?
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |   43 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 9447644..91eba3f 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -20,6 +20,7 @@
+ #include <linux/usb/otg.h>
+ #include <linux/spi/spi.h>
+ #include <linux/i2c/twl.h>
++#include <linux/gpio_keys.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/leds.h>
+ 
+@@ -40,6 +41,8 @@
+ #define ETH_KS8851_IRQ			34
+ #define ETH_KS8851_POWER_ON		48
+ #define ETH_KS8851_QUART		138
++#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
++#define OMAP4_SFH7741_ENABLE_GPIO		188
+ 
+ static struct gpio_led sdp4430_gpio_leds[] = {
+ 	{
+@@ -76,11 +79,31 @@ static struct gpio_led sdp4430_gpio_leds[] = {
+ 	},
+ 
+ };
++static struct gpio_keys_button sdp4430_gpio_keys[] = {
++ {
++		.desc			= "Proximity Sensor",
++		.type			= EV_SW,
++		.code			= SW_FRONT_PROXIMITY,
++		.gpio			= OMAP4_SFH7741_SENSOR_OUTPUT_GPIO,
++		.active_low		= 0,
++	}
++};
+ 
+ static struct gpio_led_platform_data sdp4430_led_data = {
+ 	.leds	= sdp4430_gpio_leds,
+ 	.num_leds	= ARRAY_SIZE(sdp4430_gpio_leds),
+ };
++static struct gpio_keys_platform_data sdp4430_gpio_keys_data = {
++	.buttons	= sdp4430_gpio_keys,
++	.nbuttons	= ARRAY_SIZE(sdp4430_gpio_keys),
++};
++static struct platform_device sdp4430_gpio_keys_device = {
++	.name	= "gpio-keys",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &sdp4430_gpio_keys_data,
++	},
++};
+ 
+ static struct platform_device sdp4430_leds_gpio = {
+ 	.name	= "leds-gpio",
+@@ -161,6 +184,7 @@ static struct platform_device sdp4430_lcd_device = {
+ 
+ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_lcd_device,
++	&sdp4430_gpio_keys_device,
+ 	&sdp4430_leds_gpio,
+ };
+ 
+@@ -426,6 +450,24 @@ static int __init omap4_i2c_init(void)
+ 	omap_register_i2c_bus(4, 400, NULL, 0);
+ 	return 0;
+ }
++static void omap_sfh7741prox_init(void)
++{
++	int  error;
++
++	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
++	if (error < 0) {
++		pr_err("failed to request GPIO %d, error %d\n",
++			OMAP4_SFH7741_ENABLE_GPIO, error);
++		return;
++	}
++
++	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 1);
++	if (error < 0) {
++		pr_err("%s: GPIO configuration failed: GPIO %d,\
++			error %d\n",__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
++		gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
++	}
++}
+ static void __init omap_4430sdp_init(void)
+ {
+ 	int status;
+@@ -448,6 +490,7 @@ static void __init omap_4430sdp_init(void)
+ 		spi_register_board_info(sdp4430_spi_board_info,
+ 				ARRAY_SIZE(sdp4430_spi_board_info));
+ 	}
++	omap_sfh7741prox_init();
+ }
+ 
+ static void __init omap_4430sdp_map_io(void)
+-- 
+1.5.4.7
 
-> > That assumes that all the IOMMUs on the system support the same page table
-> > format, right?
-> 
-> Actually no. Since the VCMM abstracts a page-table as a Virtual
-> Contiguous Region (VCM) a VCM can be associated with any device,
-> regardless of their individual page table format.
-
-The IOMMU-API abstracts a page-table as a domain which can also be
-associated with any device (behind an iommu).
-
-	Joerg
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
