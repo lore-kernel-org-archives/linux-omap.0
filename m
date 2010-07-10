@@ -1,25 +1,24 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/3] omap: sram: fix is_sram_locked check
-Date: Sat, 10 Jul 2010 12:57:16 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C6005AAC@dbde02.ent.ti.com>
+Subject: RE: [PATCH 0/3] Fix omap_type() function
+Date: Sat, 10 Jul 2010 13:01:49 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C6005AB2@dbde02.ent.ti.com>
 References: <1278745713-31255-1-git-send-email-vikram.pandita@ti.com>
- <1278745713-31255-2-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60426 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:60547 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752030Ab0GJH1V convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Jul 2010 03:27:21 -0400
+	with ESMTP id S1751499Ab0GJHby convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Jul 2010 03:31:54 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6A7RHif013393
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6A7VoDA013650
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Sat, 10 Jul 2010 02:27:20 -0500
+	for <linux-omap@vger.kernel.org>; Sat, 10 Jul 2010 02:31:53 -0500
 Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o6A7RHXP006258
-	for <linux-omap@vger.kernel.org>; Sat, 10 Jul 2010 12:57:17 +0530 (IST)
-In-Reply-To: <1278745713-31255-2-git-send-email-vikram.pandita@ti.com>
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o6A7VoiF006912
+	for <linux-omap@vger.kernel.org>; Sat, 10 Jul 2010 13:01:50 +0530 (IST)
+In-Reply-To: <1278745713-31255-1-git-send-email-vikram.pandita@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -31,51 +30,25 @@ To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <lin
 > Sent: Saturday, July 10, 2010 12:39 PM
 > To: linux-omap@vger.kernel.org
 > Cc: Pandita, Vikram
-> Subject: [PATCH 1/3] omap: sram: fix is_sram_locked check
+> Subject: [PATCH 0/3] Fix omap_type() function
 > 
-> For OMAP24xx/34xx/44xx: omap_type() returns the correct type:
->  OMAP2_DEVICE_TYPE_TEST
->  OMAP2_DEVICE_TYPE_EMU
->  OMAP2_DEVICE_TYPE_SEC
->  OMAP2_DEVICE_TYPE_GP
->  OMAP2_DEVICE_TYPE_BAD
+> Aim was to get omap_type() function work on omap4.
+> In doing so, fixing an issue with is_sram_locked() function.
 > 
-> In current implementation there are two problems:
-> Problem 1:
-> For 34xx, the current if check will never return true.
+> Patches tested/verified on omap4 sdp.
+> Patches based of latest linus commit: e467e10
 > 
-> Problem 2:
-> For 24xx the correct type check should be with omap_type() function
-> Verified by checking the TRM 24xx for CONTROL_STATUS register bits
+> Vikram Pandita (3):
+>   omap: sram: fix is_sram_locked check
+>   omap4: fix omap_type() function
+>   omap4: SRAM start and size change for EMU/HS devices
 > 
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> ---
->  arch/arm/plat-omap/sram.c |    7 +------
->  1 files changed, 1 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> index 226b2e8..2eb5a27 100644
-> --- a/arch/arm/plat-omap/sram.c
-> +++ b/arch/arm/plat-omap/sram.c
-> @@ -93,16 +93,11 @@ extern unsigned long omapfb_reserve_sram(unsigned long
-> sram_pstart,
->   */
->  static int is_sram_locked(void)
->  {
-> -	int type = 0;
-> -
->  	if (cpu_is_omap44xx())
->  		/* Not yet supported */
->  		return 0;
-> 
-> -	if (cpu_is_omap242x())
-> -		type = omap_rev() & OMAP2_DEVICETYPE_MASK;
-> -
-> -	if (type == GP_DEVICE) {
-> +	if (OMAP2_DEVICE_TYPE_GP == omap_type()) {
->  		/* RAMFW: R/W access to all initiators for all qualifier sets
-> */
->  		if (cpu_is_omap242x()) {
->  			__raw_writel(0xFF, OMAP24XX_VA_REQINFOPERM0); /* all q-
-> vects */
-This one looks fine to me.
+>  arch/arm/plat-omap/include/plat/omap44xx.h |    2 +-
+>  arch/arm/plat-omap/sram.c                  |   28 ++++++++++++++---------
+In summary only fixing " is_sram_locked()" and adding the OMAP_2PLUS is enough.
+
+The control module needs to be fixed in right way because with different bases in wakeup and core control modules makes
+the current omap_control_read/write break on OMAP4. This is similar problem
+what we have on powerdomain base offsets and needs a proper handling.
+
+Fixing one base will break other register acceses
