@@ -1,68 +1,72 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v2 1/2] omap: sram: fix is_sram_locked check
-Date: Sun, 11 Jul 2010 01:41:53 -0500
-Message-ID: <1278830514-27734-1-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH v2] omap4: fix omap_type() function
+Date: Sun, 11 Jul 2010 02:00:32 -0500
+Message-ID: <1278831632-28658-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51317 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751016Ab0GKGkd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Jul 2010 02:40:33 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6B6eWXQ009145
+Received: from devils.ext.ti.com ([198.47.26.153]:35763 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750979Ab0GKG7K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Jul 2010 02:59:10 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6B6xAxB001433
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Sun, 11 Jul 2010 01:40:32 -0500
+	for <linux-omap@vger.kernel.org>; Sun, 11 Jul 2010 01:59:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-For OMAP24xx/34xx/44xx: omap_type() returns the correct type:
- OMAP2_DEVICE_TYPE_TEST
- OMAP2_DEVICE_TYPE_EMU
- OMAP2_DEVICE_TYPE_SEC
- OMAP2_DEVICE_TYPE_GP
- OMAP2_DEVICE_TYPE_BAD
+Following patch added the omap_type() functionality for omap4
+	737daa03: omap4: Fix omap_type() for omap4
 
-In current implementation there are two problems:
-Problem 1:
-For 34xx, the current if check will never return true.
+However the omap_type() function would not work as:
+1) the base address for CONTROL_STATUS register is wrong
+So insted of using omap_ctrl_readl that has a different base offset,
+use a correct offset using omap_readl
 
-Problem 2:
-For 24xx the correct type check should be with omap_type() function
-Verified by checking the TRM 24xx for CONTROL_STATUS register bits
+2) "Not yet supported" check for omap4 needs to be removed
+
+Verified on OMAP4 SDP board
 
 Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Shilimkar, Santosh <santosh.shilimkar@ti.com>
 ---
 
-Not fixing the omap_type() check for OMAP4 since Santosh suggests there is
-a clean 44xx register definition change coming that would fix the issue
+V1: had broken mmc support
+V2: No mmc break; use omap_readl to get to the right register
 
- arch/arm/plat-omap/sram.c |    7 +------
- 1 files changed, 1 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/id.c  |    2 +-
+ arch/arm/plat-omap/sram.c |    4 ----
+ 2 files changed, 1 insertions(+), 5 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 37b8a1a..6d47f91 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -58,7 +58,7 @@ int omap_type(void)
+ 	} else if (cpu_is_omap34xx()) {
+ 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
+ 	} else if (cpu_is_omap44xx()) {
+-		val = omap_ctrl_readl(OMAP44XX_CONTROL_STATUS);
++		val = omap_readl(OMAP443X_SCM_BASE + OMAP44XX_CONTROL_STATUS);
+ 	} else {
+ 		pr_err("Cannot detect omap type!\n");
+ 		goto out;
 diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 226b2e8..2eb5a27 100644
+index a72b391..98c86ff 100644
 --- a/arch/arm/plat-omap/sram.c
 +++ b/arch/arm/plat-omap/sram.c
-@@ -93,16 +93,11 @@ extern unsigned long omapfb_reserve_sram(unsigned long sram_pstart,
+@@ -93,10 +93,6 @@ extern unsigned long omapfb_reserve_sram(unsigned long sram_pstart,
   */
  static int is_sram_locked(void)
  {
--	int type = 0;
+-	if (cpu_is_omap44xx())
+-		/* Not yet supported */
+-		return 0;
 -
- 	if (cpu_is_omap44xx())
- 		/* Not yet supported */
- 		return 0;
- 
--	if (cpu_is_omap242x())
--		type = omap_rev() & OMAP2_DEVICETYPE_MASK;
--
--	if (type == GP_DEVICE) {
-+	if (OMAP2_DEVICE_TYPE_GP == omap_type()) {
+ 	if (OMAP2_DEVICE_TYPE_GP == omap_type()) {
  		/* RAMFW: R/W access to all initiators for all qualifier sets */
  		if (cpu_is_omap242x()) {
- 			__raw_writel(0xFF, OMAP24XX_VA_REQINFOPERM0); /* all q-vects */
 -- 
 1.6.6.1
 
