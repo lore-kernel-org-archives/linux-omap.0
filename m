@@ -1,73 +1,43 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH]omap:dmtimer:no null check for kzalloc
-Date: Mon, 12 Jul 2010 03:39:45 +0530
-Message-ID: <1278886185-12502-1-git-send-email-tarun.kanti@ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH]omap:dmtimer:no null check for kzalloc
+Date: Sun, 11 Jul 2010 21:02:45 +0300
+Message-ID: <1278871365.3212.18.camel@localhost.localdomain>
+References: <1278886185-12502-1-git-send-email-tarun.kanti@ti.com>
+Reply-To: dedekind1@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40923 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753784Ab0GKLMX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Jul 2010 07:12:23 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6BBCKu7010225
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Sun, 11 Jul 2010 06:12:22 -0500
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:41069 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752646Ab0GKSCv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Jul 2010 14:02:51 -0400
+Received: by bwz1 with SMTP id 1so1972630bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 11 Jul 2010 11:02:50 -0700 (PDT)
+In-Reply-To: <1278886185-12502-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: olbpdev@list.ti.com
-Cc: linux-omap@vger.kernel.org, Tarun Kanti Debbarma <tarun.kanti@ti.com>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: olbpdev@list.ti.com, linux-omap@vger.kernel.org
 
-This patch incorporates null pointer check associated with memory allocation
-for omap_dm_timer_plat_info using kzalloc()
+On Mon, 2010-07-12 at 03:39 +0530, Tarun Kanti DebBarma wrote:
+> +                       if (!pdata) {
+> +                               pr_err("%s: \
+> +                               No memory for omap_dm_timer_plat_info=
+\n",
+> +                               __func__);
+> +                               return -ENOMEM;
+> +                       }
 
-Tested on OMAP4430 SDP.
+do not use concatenation ('\'), this is probably not what you want.
 
-Signed-off-by: Tarun Kanti Debbarma <tarun.kanti@ti.com>
---- 
- arch/arm/mach-omap2/dmtimers.c |   20 ++++++++++++++++++--
- 1 files changed, 18 insertions(+), 2 deletions(-)
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
-diff --git a/arch/arm/mach-omap2/dmtimers.c b/arch/arm/mach-omap2/dmtimers.c
-index 772be63..a7e9ac5 100644
---- a/arch/arm/mach-omap2/dmtimers.c
-+++ b/arch/arm/mach-omap2/dmtimers.c
-@@ -248,7 +248,12 @@ void __init omap2_dm_timer_early_init(void)
- 
- 			pdata = kzalloc(sizeof(struct omap_dm_timer_plat_info),
- 					GFP_KERNEL);
--
-+			if (!pdata) {
-+				pr_err("%s: \
-+				No memory for omap_dm_timer_plat_info\n",
-+				__func__);
-+				return -ENOMEM;
-+			}
- 			pdata->omap_dm_clk_enable = omap2_dm_timer_enable;
- 			pdata->omap_dm_clk_disable = omap2_dm_timer_disable;
- 			pdata->omap_dm_set_source_clk = omap2_dm_timer_set_clk;
-@@ -346,6 +351,12 @@ int __init omap2_dm_timer_init(void)
- 
- 			pdata = kzalloc(sizeof(struct omap_dm_timer_plat_info),
- 					GFP_KERNEL);
-+			if (!pdata) {
-+				pr_err("%s: \
-+				No memory for omap_dm_timer_plat_info\n",
-+				__func__);
-+				return -ENOMEM;
-+			}
- 			pdata->omap_dm_clk_enable = omap2_dm_timer_enable;
- 			pdata->omap_dm_clk_disable = omap2_dm_timer_disable;
- 			pdata->omap_dm_set_source_clk = omap2_dm_timer_set_clk;
-@@ -397,7 +408,12 @@ fail:
- 				break;
- 			pdata = kzalloc(sizeof(struct omap_dm_timer_plat_info),
- 					GFP_KERNEL);
--
-+			if (!pdata) {
-+				pr_err("%s: \
-+				No memory for omap_dm_timer_plat_info\n",
-+				__func__);
-+				return -ENOMEM;
-+			}
- 			pdata->omap_dm_clk_enable = omap2_dm_timer_enable;
- 			pdata->omap_dm_clk_disable = omap2_dm_timer_disable;
- 			pdata->omap_dm_set_source_clk = omap2_dm_timer_set_clk;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
