@@ -1,154 +1,49 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: ARM defconfig files
-Date: Mon, 12 Jul 2010 16:14:43 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007121545360.10598@xanadu.home>
-References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org>
- <20100603181010.GA25779@flint.arm.linux.org.uk>
- <1275589230.23384.19.camel@c-dwalke-linux.qualcomm.com>
- <alpine.LFD.2.00.1006031119440.8175@i5.linux-foundation.org>
- <20100614083214.GA2104@pengutronix.de> <20100630104043.GG11746@pengutronix.de>
- <20100712155518.GA24144@pengutronix.de>
- <AANLkTilhI9O6YwnuAylo_jNgwR8VXmpSVJ1kylIYPCGT@mail.gmail.com>
- <20100712173228.GC9897@n2100.arm.linux.org.uk>
- <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com>
- <20100712185029.GB14425@pengutronix.de>
- <AANLkTinOuU-VVXaMwMp69CBp2Y4wxpoWybEQ34H5j0lJ@mail.gmail.com>
- <alpine.LFD.2.00.1007121510260.10598@xanadu.home>
- <AANLkTim-O00n9YPv7w4VCKjN-ETLijyTHomWUn4mZtTV@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH resend] omap: 3630: disable TLL SAR on 3630 ES1
+Date: Mon, 12 Jul 2010 14:18:02 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1007121414430.10106@utopia.booyaka.com>
+References: <1278718469-7940-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_fOG3bghPvGAvDvf0uNnpLw)"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:15059 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752337Ab0GLUOp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jul 2010 16:14:45 -0400
-In-reply-to: <AANLkTim-O00n9YPv7w4VCKjN-ETLijyTHomWUn4mZtTV@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:42667 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485Ab0GLUSF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jul 2010 16:18:05 -0400
+In-Reply-To: <1278718469-7940-1-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org
+To: Anand Gadiyar <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Sat, 10 Jul 2010, Anand Gadiyar wrote:
 
---Boundary_(ID_fOG3bghPvGAvDvf0uNnpLw)
-Content-type: TEXT/PLAIN; charset=ISO-8859-1
-Content-transfer-encoding: 8BIT
-
-On Mon, 12 Jul 2010, Linus Torvalds wrote:
-
-> On Mon, Jul 12, 2010 at 12:17 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
-> >>
-> >>    Put another way: I realize that fairly late in the -rc series is
-> >> actually a really good time to do this, rather than during the merge
-> >> window itself when things are in flux. However, while it would be a
-> >> good time to pull this for that reason, it's also a _horrible_ time to
-> >> pull if it then regresses the defconfig uses, or if it causes horrible
-> >> problems for linux-next merging etc.
-> >
-> > This cannot be any worse than wholesale removal of those files as you
-> > were contemplating at some point.  Furthermore, on ARM we have someone
-> > providing automatic rebuild of all defconfigs already, so any serious
-> > issue should be noticed right away.
+> USBTLL Save-and-Restore is broken in 3630 ES1.0. Having it
+> enabled could result in incorrect register restores as
+> the OMAP exits off-mode. This could potentially result in
+> unexpected wakeup events.
 > 
-> You aren't really answering the question. The thing is, the wholesale
-> removal wouldn't happen during the late -rc anyway, and it wouldn't
-> cause any merge issues (merge conflicts where the file is just to be
-> removed are trivial to take care of).
-
-I'll answer for myself only.  Others are free to pitch in if they have a 
-different opinion.
-
-Since this issue came up, RMK refused to merge any changes to the 
-arch/arm/configs directory.  Therefore a lot of those files aren't quite 
-up to date anymore anyway.  We simply skipped the usual defconfig 
-updates that used to be sent around -rc4.  And that's for the few 
-defconfig files that people cared to update.  A bunch of less frequently 
-used targets are probably out of date since many kernel versions ago.
-
-Those files are mainly used as a convenience for build testing.  We tend 
-to cram as many profiles together as we can to limit the number of 
-different test builds.  The remaining files are (supposed to be) 
-incompatible configurations.  So I doubt anyone is using them verbatim 
-for deployed systems.  If anything they should be reference 
-configurations not final product ones.
-
-> So I'm really asking about the issue of "how does this work during the
-> late -rc phase". Where the _timing_ is the important thing.
-
-Given what I said above, I think that:
-
-1) Those files aren't critical.  They're damn useful indeed, but a 
-   glitch in a defconfig file is far from being as important as a glitch 
-   in the very code they refer to.  So I don't think this is all that 
-   critical if the pull is applied late in the -rc period.
-
-2) Doing it sooner rather than later is IMHO the best thing to do.  At 
-   least we could now focus on maintaining and even improving on that 
-   state rather than going on in circles wondering what to do with it.
-   People would be able to think about how to update their defconfig 
-   files in the new form now instead of simply not updating it at all as 
-   it has been the case for a while until something happens.
-
-So to me this is all in favor for a merge before next merge window.  
-During the merge window this would create even more headaches.
-
-> So when I ask about timing and "how does this work in late -rc", it's
-> really about how safe it is to do now. Because if it isn't very
-> obviously safe, I can't pull it.
-
-As I said above, those files aren't that critical and no one should end 
-up in trouble if something is not exactly right after this merge.  So 
-this makes it pretty safe to me.
-
-> One part of the "obviously safe" thing is verification for each
-> defconfig file that the end result is identical with the reduced
-> version. Uwe implied that it was, and that was clearly the intention,
-> but was there some explicit verification that yes, the
-> before-and-after configurations are 100% the same?
-
-I'll let Uwe answer this.
-
-> Also, I assume that while it's _mostly_ a transparent change to users,
-> it does require that people do "make oldconfig" with the reduced
-> defconfig file first, in order to avoid having to answer with the
-> defaults. No? And the reduced defconfig files obviously do depend on
-> the default in the Kconfig files themselves, so it does have that kind
-> of fairly subtle semantic change that may not be entirely obvious or
-> easy to notice.
-
-That is going to be the case regardless of the merge timing for this.
-
-> So from a timing standpoint, I just want to be convinced that "late
-> -rc" really is the right thing. I'm not entirely sure it is, even
-> though I do see advantages.
-
-I do too.  At least this is positive progress for some bad issue that no 
-one could ever get very passionate about.  Better keep the momentum.
-
-> > I think Uwe could provide his script and add it to the kernel tree.
-> > Then all architectures could benefit from it.  Having the defconfig
-> > files contain only those options which are different from the defaults
-> > is certainly more readable, even on x86.
+> This is fixed in ES1.1. So disable it for ES1.0s.
 > 
-> Quite possible. But maintainers would need to be on the lookout of
-> people actually using the script, and refusing to apply patches that
-> re-introduce the whole big thing.
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> ---
+> This is a fix for buggy hardware, and it would be nice
+> to see this in the next merge window too.
+> 
+> Depends on the patch I just posted which adds the
+> CHIP_GE_OMAP3630ES1_1 macro
+> <https://patchwork.kernel.org/patch/111147/>
 
-Pretty easy to see on the diffstat graph.  Anyway, I'm sure once the 
-script is available then an army of kernel janitors will be busy trying 
-to find any transgressor.
+Verified against the OMAP3630 errata PDF from June 16.  Anand, could you 
+please add an erratum ID to the commit message or to a comment in the 
+code?
 
-> I also haven't actually seen the script - I don't think Uwe ever
-> posted it - so maybe it's some very fragile thing. Hard to judge on no
-> real information ;^p
+Tony, once Anand does that, it's
 
-I'm sure the script was quickly cobbled together as a proof of concept.  
-But once this defconfig reduction goes in then interest for a solid 
-script should raise significantly.
+Acked-by: Paul Walmsley <paul@pwsan.com>
+
+if you want it for .36; otherwise, for .37, I'd be happy to queue it.
 
 
-
-Nicolas
-
---Boundary_(ID_fOG3bghPvGAvDvf0uNnpLw)--
+- Paul
