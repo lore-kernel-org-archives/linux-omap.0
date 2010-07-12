@@ -1,25 +1,53 @@
-From: David Brown <davidb@codeaurora.org>
-Subject: Re: ARM defconfig files
-Date: Mon, 12 Jul 2010 16:05:32 -0700
-Message-ID: <201007121605.32462.davidb@codeaurora.org>
-References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org> <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com> <20100712185029.GB14425@pengutronix.de>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] staging: tidspbridge: fix build error for missing variable
+Date: Mon, 12 Jul 2010 18:14:47 -0500
+Message-ID: <4C3BA1E7.1070607@ti.com>
+References: <1278975385-7769-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100712185029.GB14425@pengutronix.de>
+In-Reply-To: <1278975385-7769-1-git-send-email-nm@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Uwe =?iso-8859-1?q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
+To: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 12 July 2010 11:50:29 Uwe Kleine-K=F6nig wrote:
+Menon, Nishanth had written, on 07/12/2010 05:56 PM, the following:
+> Commit:
+> staging: tidspbridge: gen: simplify and clean up
+> There is recently added hex_to_bin() kernel's method which we could use
+> instead of custom long function.
+> 
+> Introduced usage of hex_to_bin without defining the temp variable.
+> this causes the build error:
+> drivers/staging/tidspbridge/gen/uuidutil.c: In function 'uuid_hex_to_bin':
+> drivers/staging/tidspbridge/gen/uuidutil.c:63: error: 'value' undeclared (first use in this function)
+> drivers/staging/tidspbridge/gen/uuidutil.c:63: error: (Each undeclared identifier is reported only once
+> drivers/staging/tidspbridge/gen/uuidutil.c:63: error: for each function it appears in.)
+> 
+> introduce variable value to fix the error.
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  drivers/staging/tidspbridge/gen/uuidutil.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/staging/tidspbridge/gen/uuidutil.c b/drivers/staging/tidspbridge/gen/uuidutil.c
+> index eb09bc3..070761b 100644
+> --- a/drivers/staging/tidspbridge/gen/uuidutil.c
+> +++ b/drivers/staging/tidspbridge/gen/uuidutil.c
+> @@ -58,6 +58,7 @@ static s32 uuid_hex_to_bin(char *buf, s32 len)
+>  {
+>  	s32 i;
+>  	s32 result = 0;
+> +	int value;
+>  
+>  	for (i = 0; i < len; i++) {
+>  		value = hex_to_bin(*buf++);
+arrgh.. just saw https://patchwork.kernel.org/patch/111141/ - please 
+consider the same and drop this patch. apologies on the noise.
 
-> If it helps the powerpc people I can reduce their defconfigs, too.
-
-Do you have scripts or tools that you did this with, or is a manual
-process.  We're about to add several new (ARM) targets, and it'd be
-nice to be able to make small defconfigs for those targets as well.
-
-Thanks,
-David
+-- 
+Regards,
+Nishanth Menon
