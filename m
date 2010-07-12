@@ -1,123 +1,25 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 11/11] staging: tidspbridge: remove dbdefs.h
-Date: Mon, 12 Jul 2010 17:56:09 -0500
-Message-ID: <1278975369-7687-12-git-send-email-nm@ti.com>
-References: <1278975369-7687-1-git-send-email-nm@ti.com>
+From: David Brown <davidb@codeaurora.org>
+Subject: Re: ARM defconfig files
+Date: Mon, 12 Jul 2010 16:05:32 -0700
+Message-ID: <201007121605.32462.davidb@codeaurora.org>
+References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org> <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com> <20100712185029.GB14425@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1278975369-7687-1-git-send-email-nm@ti.com>
+In-Reply-To: <20100712185029.GB14425@pengutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
+To: Uwe =?iso-8859-1?q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
 
-Remove yet another custom definition header
+On Monday 12 July 2010 11:50:29 Uwe Kleine-K=F6nig wrote:
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- .../staging/tidspbridge/include/dspbridge/dbdefs.h |    1 -
- .../staging/tidspbridge/include/dspbridge/dbtype.h |   69 --------------------
- .../tidspbridge/include/dspbridge/host_os.h        |    1 -
- 3 files changed, 0 insertions(+), 71 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/dbtype.h
+> If it helps the powerpc people I can reduce their defconfigs, too.
 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
-index b408cad..ff0ba57 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
-@@ -21,7 +21,6 @@
- 
- #include <linux/types.h>
- 
--#include <dspbridge/dbtype.h>	/* GPP side type definitions */
- #include <dspbridge/rms_sh.h>	/* Types shared between GPP and DSP */
- 
- #define PG_SIZE4K 4096
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbtype.h b/drivers/staging/tidspbridge/include/dspbridge/dbtype.h
-deleted file mode 100644
-index ca5eaf8..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/dbtype.h
-+++ /dev/null
-@@ -1,69 +0,0 @@
--/*
-- * dbtype.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * This header defines data types for DSP/BIOS Bridge APIs and device
-- * driver modules. It also defines the Hungarian prefix to use for each
-- * base type.
-- *
-- * Copyright (C) 2008 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef DBTYPE_
--#define DBTYPE_
--
--/*===========================================================================*/
--/*  Argument specification syntax */
--/*===========================================================================*/
--
--#ifndef IN
--#define IN			/* Following parameter is for input. */
--#endif
--
--#ifndef OUT
--#define OUT			/* Following parameter is for output. */
--#endif
--
--#ifndef OPTIONAL
--#define OPTIONAL	/* Function may optionally use previous parameter. */
--#endif
--
--#ifndef CONST
--#define CONST   const
--#endif
--
--/*===========================================================================*/
--/*  NULL character   (normally used for string termination) */
--/*===========================================================================*/
--
--#ifndef NULL_CHAR
--#define NULL_CHAR    '\0'	/* Null character. */
--#endif
--
--/*===========================================================================*/
--/*  Basic Type definitions (with Prefixes for Hungarian notation) */
--/*===========================================================================*/
--
--#ifndef OMAPBRIDGE_TYPES
--#define OMAPBRIDGE_TYPES
--typedef volatile unsigned short reg_uword16;
--#endif
--
--#define TEXT(x) x
--
--#define DLLIMPORT
--#define DLLEXPORT
--
--/* Define DSPAPIDLL correctly in dspapi.h */
--#define _DSPSYSDLL32_
--
--#endif /* DBTYPE_ */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/host_os.h b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
-index a91c136..6b4feb4 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/host_os.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
-@@ -42,7 +42,6 @@
- #include <linux/vmalloc.h>
- #include <linux/ioport.h>
- #include <linux/platform_device.h>
--#include <dspbridge/dbtype.h>
- #include <plat/clock.h>
- #include <linux/clk.h>
- #include <plat/mailbox.h>
--- 
-1.6.3.3
+Do you have scripts or tools that you did this with, or is a manual
+process.  We're about to add several new (ARM) targets, and it'd be
+nice to be able to make small defconfigs for those targets as well.
+
+Thanks,
+David
