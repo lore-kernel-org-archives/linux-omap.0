@@ -1,38 +1,52 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
- memory management
-Date: Mon, 12 Jul 2010 10:25:08 +0900
-Message-ID: <20100712102435B.fujita.tomonori@lab.ntt.co.jp>
-References: <4C35034B.6040906@codeaurora.org>
-	<20100707230710.GA31792@n2100.arm.linux.org.uk>
-	<4C366678.60605@codeaurora.org>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH]omap:dmtimer:no null check for kzalloc
+Date: Mon, 12 Jul 2010 09:09:49 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032391F630@dbde02.ent.ti.com>
+References: <1278886185-12502-1-git-send-email-tarun.kanti@ti.com>
+ <1278871365.3212.18.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <4C366678.60605@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: zpfeffer@codeaurora.org
-Cc: linux@arm.linux.org.uk, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57647 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755660Ab0GLDj4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Jul 2010 23:39:56 -0400
+In-Reply-To: <1278871365.3212.18.camel@localhost.localdomain>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "dedekind1@gmail.com" <dedekind1@gmail.com>
+Cc: "olbpdev@list.ti.com - OMAP Linux Baseport Development Team (May contain
+	non-TIers)" <olbpdev@list.ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 08 Jul 2010 16:59:52 -0700
-Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
-
-> The problem I'm trying to solve boils down to this: map a set of
-> contiguous physical buffers to an aligned IOMMU address. I need to
-> allocate the set of physical buffers in a particular way: use 1 MB
-> contiguous physical memory, then 64 KB, then 4 KB, etc. and I need to
-> align the IOMMU address in a particular way.
-
-Sounds like the DMA API already supports what you want.
-
-You can set segment_boundary_mask in struct device_dma_parameters if
-you want to align the IOMMU address. See IOMMU implementations that
-support dma_get_seg_boundary() properly.
+> -----Original Message-----
+> From: Artem Bityutskiy [mailto:dedekind1@gmail.com]
+> Sent: Sunday, July 11, 2010 11:33 PM
+> To: DebBarma, Tarun Kanti
+> Cc: olbpdev@list.ti.com - OMAP Linux Baseport Development Team (May
+> contain non-TIers); linux-omap@vger.kernel.org
+> Subject: Re: [PATCH]omap:dmtimer:no null check for kzalloc
+>=20
+> On Mon, 2010-07-12 at 03:39 +0530, Tarun Kanti DebBarma wrote:
+> > +                       if (!pdata) {
+> > +                               pr_err("%s: \
+> > +                               No memory for
+> omap_dm_timer_plat_info\n",
+> > +                               __func__);
+> > +                               return -ENOMEM;
+> > +                       }
+>=20
+> do not use concatenation ('\'), this is probably not what you want.
+>
+Oops! Thanks for pointing this out. I will change.
+=20
+> --
+> Best Regards,
+> Artem Bityutskiy (=E1=D2=D4=A3=CD =E2=C9=D4=C0=C3=CB=C9=CA)
 
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
