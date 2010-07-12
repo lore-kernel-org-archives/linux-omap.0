@@ -1,159 +1,65 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: ARM defconfig files
-Date: Mon, 12 Jul 2010 21:59:56 +0200
-Message-ID: <20100712195956.GC14425@pengutronix.de>
-References: <20100614083214.GA2104@pengutronix.de> <20100630104043.GG11746@pengutronix.de> <20100712155518.GA24144@pengutronix.de> <AANLkTilhI9O6YwnuAylo_jNgwR8VXmpSVJ1kylIYPCGT@mail.gmail.com> <20100712173228.GC9897@n2100.arm.linux.org.uk> <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com> <20100712185029.GB14425@pengutronix.de> <AANLkTinOuU-VVXaMwMp69CBp2Y4wxpoWybEQ34H5j0lJ@mail.gmail.com> <alpine.LFD.2.00.1007121510260.10598@xanadu.home> <AANLkTim-O00n9YPv7w4VCKjN-ETLijyTHomWUn4mZtTV@mail.gmail.com>
+Date: Mon, 12 Jul 2010 21:06:04 +0100
+Message-ID: <20100712200604.GD9897@n2100.arm.linux.org.uk>
+References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org> <20100603181010.GA25779@flint.arm.linux.org.uk> <1275589230.23384.19.camel@c-dwalke-linux.qualcomm.com> <alpine.LFD.2.00.1006031119440.8175@i5.linux-foundation.org> <20100614083214.GA2104@pengutronix.de> <20100630104043.GG11746@pengutronix.de> <20100712155518.GA24144@pengutronix.de> <AANLkTilhI9O6YwnuAylo_jNgwR8VXmpSVJ1kylIYPCGT@mail.gmail.com> <20100712173228.GC9897@n2100.arm.linux.org.uk> <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Kj7319i9nmIyA2yE"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53185 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213Ab0GLUAY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jul 2010 16:00:24 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <AANLkTim-O00n9YPv7w4VCKjN-ETLijyTHomWUn4mZtTV@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Nicolas Pitre <nico@fluxnic.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org
+Cc: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
+List-Id: linux-omap@vger.kernel.org
 
-
---Kj7319i9nmIyA2yE
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Hi Linus,
-
-On Mon, Jul 12, 2010 at 12:34:59PM -0700, Linus Torvalds wrote:
-> On Mon, Jul 12, 2010 at 12:17 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
-> >>
-> >>    Put another way: I realize that fairly late in the -rc series is
-> >> actually a really good time to do this, rather than during the merge
-> >> window itself when things are in flux. However, while it would be a
-> >> good time to pull this for that reason, it's also a _horrible_ time to
-> >> pull if it then regresses the defconfig uses, or if it causes horrible
-> >> problems for linux-next merging etc.
+On Mon, Jul 12, 2010 at 10:40:36AM -0700, Linus Torvalds wrote:
+> On Mon, Jul 12, 2010 at 10:32 AM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
 > >
-> > This cannot be any worse than wholesale removal of those files as you
-> > were contemplating at some point.  Furthermore, on ARM we have someone
-> > providing automatic rebuild of all defconfigs already, so any serious
-> > issue should be noticed right away.
+> > When you brought up the problem you seemed absolutely convinced
+> > that nothing except your solution was going to be acceptable.
 > 
-> You aren't really answering the question. The thing is, the wholesale
-> removal wouldn't happen during the late -rc anyway, and it wouldn't
-> cause any merge issues (merge conflicts where the file is just to be
-> removed are trivial to take care of).
-> 
-> So I'm really asking about the issue of "how does this work during the
-> late -rc phase". Where the _timing_ is the important thing.
-> 
-> Because I could as easily pull after 2.6.35 is out. That has it's own
-> downsides (with all the merging going on), but at the same time, it's
-> clearly the right time for a large change.
-I hoped you to pull this in during the merge window, but doing it now is
-OK for me, too.
- 
-> So when I ask about timing and "how does this work in late -rc", it's
-> really about how safe it is to do now. Because if it isn't very
-> obviously safe, I can't pull it.
-> 
-> One part of the "obviously safe" thing is verification for each
-> defconfig file that the end result is identical with the reduced
-> version. Uwe implied that it was, and that was clearly the intention,
-> but was there some explicit verification that yes, the
-> before-and-after configurations are 100% the same?
-I'm pretty sure it's 100% save as I only kick a line in the defconfig if
-the result doesn't change.  Well, modulo bugs in my script.  But now
-that it's public you can convince yourself it's (hopefully) correct.
- 
-> Also, I assume that while it's _mostly_ a transparent change to users,
-> it does require that people do "make oldconfig" with the reduced
-> defconfig file first, in order to avoid having to answer with the
-> defaults. No?
-No, $(make ..._defconfig) is enough to get the full .config.
+> That's not true. What's true is that you didn't seem to _understand_
+> my solution, so I tried to push the understanding of it.
 
->               And the reduced defconfig files obviously do depend on
-> the default in the Kconfig files themselves, so it does have that kind
-> of fairly subtle semantic change that may not be entirely obvious or
-> easy to notice.
-Right.
+That's your point of view.
 
-> So from a timing standpoint, I just want to be convinced that "late
-> -rc" really is the right thing. I'm not entirely sure it is, even
-> though I do see advantages.
-> 
-> > I think Uwe could provide his script and add it to the kernel tree.
-> > Then all architectures could benefit from it.  Having the defconfig
-> > files contain only those options which are different from the defaults
-> > is certainly more readable, even on x86.
-> 
-> Quite possible. But maintainers would need to be on the lookout of
-> people actually using the script, and refusing to apply patches that
-> re-introduce the whole big thing.
-> 
-> I also haven't actually seen the script - I don't think Uwe ever
-> posted it - so maybe it's some very fragile thing. Hard to judge on no
-> real information ;^p
-See attachment.  It's just:
+My viewpoint was that I had read your email, thought of some alternative
+solution, proposed it and the result was shot down without any apparant
+thought about it.  That gave the impression that you _only_ wanted to
+see your own solution.
 
-	for each line:
-		kick $line if $(make ..._defconfig) results in the same config without $line
-		
-Best regards
-Uwe
+The result of that has been very little in the way of progress towards
+either your, or my alternative solutions - and apart from a few Kconfig
+corner quirk patches, the only major work that's happened has been from
+Uwe.
 
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+So in that regard, I support Uwe's patches as a means to prevent the
+impending loss of build coverage from facilities such as linux-next and
+the ARM kernel autobuilder, as that's the only option that's currently
+available.
 
---Kj7319i9nmIyA2yE
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment; filename=reduce_defconfig
-Content-Transfer-Encoding: 8bit
+As far as timing goes, I see no reason for it to be merged during -rc.
+As has already been said, I'm intending _not_ to make the defconfig
+situation any worse by accepting patches which add to the mess, as I'm
+also mindful that its exactly those kinds of patches are the cause of
+this problem.
 
-#! /usr/bin/env python
-# vim: set fileencoding=utf-8 :
-# Copyright (C) 2010 by Uwe Kleine-KÃ¶nig <u.kleine-koenig@pengutronix.de>
+Now, I'm happy to take Uwe's tree through mine for the next merge
+window _iff_ you find his solution acceptable, and you want that to
+happen.
 
-import re
-import subprocess
-import os
-import sys
+I'll also use this opportunity to warn you now - especially as you also
+complained about the amount of churn.  There is an effort to try to
+allow a single ARM kernel to boot on a wider range of platforms with
+more differences than it currently does.  This is going to mean a
+certain amount of restructuring, and a lot of additional patches over
+time to gradually convert the code.  So, I'm expecting that there will
+be even _more_ patches - some fairly big - to come over the next year
+or so.
 
-# This prevents including a timestamp in the .config which makes comparing a
-# bit easier.
-os.environ['KCONFIG_NOTIMESTAMP'] = 'Yes, please'
-
-# XXX: get these using getopt
-kernel_tree = '' # os.path.join(os.environ['HOME'], 'gsrc', 'linux-2.6')
-arch = 'arm'
-target = sys.argv[1]
-defconfig_src = os.path.join(kernel_tree, 'arch/%s/configs/%s' % (arch, target))
-
-subprocess.check_call(['make', '-s', 'ARCH=%s' % arch, target])
-origconfig = list(open('.config'))
-config = list(origconfig)
-config_size = os.stat('.config').st_size
-
-i = 0
-
-while i < len(config):
-    print 'test for %r' % config[i]
-    defconfig = open(defconfig_src, 'w')
-    defconfig.writelines(config[:i])
-    defconfig.writelines(config[i + 1:])
-    defconfig.close()
-    subprocess.check_call(['make', '-s', 'ARCH=%s' % arch, target])
-    if os.stat('.config').st_size == config_size and list(open('.config')) == origconfig:
-        del config[i]
-    else:
-        i += 1
-
-defconfig = open(defconfig_src, 'w')
-defconfig.writelines(config)
-defconfig.close()
-
---Kj7319i9nmIyA2yE--
+To give an idea - if we change the structure which defines a machine's
+properties, we're going to be changing 348 files under arch/arm to match.
+Clearly that's also going to give you a problem with diffstat being
+swamped.
