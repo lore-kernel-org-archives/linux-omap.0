@@ -1,7 +1,7 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 05/11] staging: tidspbridge: remove RET_OK RET_FAIL
-Date: Mon, 12 Jul 2010 17:56:03 -0500
-Message-ID: <1278975369-7687-6-git-send-email-nm@ti.com>
+Subject: [PATCH 11/11] staging: tidspbridge: remove dbdefs.h
+Date: Mon, 12 Jul 2010 17:56:09 -0500
+Message-ID: <1278975369-7687-12-git-send-email-nm@ti.com>
 References: <1278975369-7687-1-git-send-email-nm@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1278975369-7687-1-git-send-email-nm@ti.com>
@@ -10,295 +10,114 @@ To: Greg Kroah-Hartman <gregkh@suse.de>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-RET_OK is 0 and RET_FAIL is a -1, replace these custom returns with
-a standard errno
+Remove yet another custom definition header
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- drivers/staging/tidspbridge/core/tiomap3430.c |   10 ++---
- drivers/staging/tidspbridge/hw/hw_mmu.c       |   53 +++++++++++++------------
- 2 files changed, 31 insertions(+), 32 deletions(-)
+ .../staging/tidspbridge/include/dspbridge/dbdefs.h |    1 -
+ .../staging/tidspbridge/include/dspbridge/dbtype.h |   69 --------------------
+ .../tidspbridge/include/dspbridge/host_os.h        |    1 -
+ 3 files changed, 0 insertions(+), 71 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/dbtype.h
 
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index 51e327f..33fcef5 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -1506,8 +1506,7 @@ static int bridge_brd_mem_un_map(struct bridge_dev_context *hDevContext,
- 				}
- 				paddr += HW_PAGE_SIZE4KB;
- 			}
--			if (hw_mmu_pte_clear(pte_addr_l2, va_curr, pte_size)
--			    == RET_FAIL) {
-+			if (hw_mmu_pte_clear(pte_addr_l2, va_curr, pte_size)) {
- 				status = -EPERM;
- 				goto EXIT_LOOP;
- 			}
-@@ -1524,9 +1523,8 @@ static int bridge_brd_mem_un_map(struct bridge_dev_context *hDevContext,
- 				/*
- 				 * Clear the L1 PTE pointing to the L2 PT
- 				 */
--				if (hw_mmu_pte_clear(l1_base_va, va_curr_orig,
--						     HW_MMU_COARSE_PAGE_SIZE) ==
--				    RET_OK)
-+				if (!hw_mmu_pte_clear(l1_base_va, va_curr_orig,
-+						     HW_MMU_COARSE_PAGE_SIZE))
- 					status = 0;
- 				else {
- 					status = -EPERM;
-@@ -1571,7 +1569,7 @@ skip_coarse_page:
- 			}
- 			paddr += HW_PAGE_SIZE4KB;
- 		}
--		if (hw_mmu_pte_clear(l1_base_va, va_curr, pte_size) == RET_OK) {
-+		if (!hw_mmu_pte_clear(l1_base_va, va_curr, pte_size)) {
- 			status = 0;
- 			rem_bytes -= pte_size;
- 			va_curr += pte_size;
-diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.c b/drivers/staging/tidspbridge/hw/hw_mmu.c
-index 4430daf..321b72d 100644
---- a/drivers/staging/tidspbridge/hw/hw_mmu.c
-+++ b/drivers/staging/tidspbridge/hw/hw_mmu.c
-@@ -22,6 +22,7 @@
- #include <hw_defs.h>
- #include <hw_mmu.h>
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
+index b408cad..ff0ba57 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dbdefs.h
+@@ -21,7 +21,6 @@
+ 
  #include <linux/types.h>
-+#include <linux/err.h>
  
- #define MMU_BASE_VAL_MASK	0xFC00
- #define MMU_PAGE_MAX	     3
-@@ -59,7 +60,7 @@ enum hw_mmu_page_size_t {
-  * RETURNS:
-  *
-  *       Type		: hw_status
-- *       Description     : RET_OK		 -- No errors occured
-+ *       Description     : 0		 -- No errors occured
-  *			 RET_BAD_NULL_PARAM     -- A Pointer
-  *						Paramater was set to NULL
-  *
-@@ -102,7 +103,7 @@ static hw_status mmu_flush_entry(const void __iomem *base_address);
-  * RETURNS:
-  *
-  *       Type	    	: hw_status
-- *       Description     : RET_OK		 -- No errors occured
-+ *       Description     : 0		 -- No errors occured
-  *			 RET_BAD_NULL_PARAM     -- A Pointer Paramater
-  *						   was set to NULL
-  *			 RET_PARAM_OUT_OF_RANGE -- Input Parameter out
-@@ -147,7 +148,7 @@ static hw_status mmu_set_cam_entry(const void __iomem *base_address,
-  * RETURNS:
-  *
-  *       Type	    	: hw_status
-- *       Description     : RET_OK		 -- No errors occured
-+ *       Description     : 0		 -- No errors occured
-  *			 RET_BAD_NULL_PARAM     -- A Pointer Paramater
-  *							was set to NULL
-  *			 RET_PARAM_OUT_OF_RANGE -- Input Parameter
-@@ -167,7 +168,7 @@ static hw_status mmu_set_ram_entry(const void __iomem *base_address,
+-#include <dspbridge/dbtype.h>	/* GPP side type definitions */
+ #include <dspbridge/rms_sh.h>	/* Types shared between GPP and DSP */
  
- hw_status hw_mmu_enable(const void __iomem *base_address)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	MMUMMU_CNTLMMU_ENABLE_WRITE32(base_address, HW_SET);
- 
-@@ -176,7 +177,7 @@ hw_status hw_mmu_enable(const void __iomem *base_address)
- 
- hw_status hw_mmu_disable(const void __iomem *base_address)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	MMUMMU_CNTLMMU_ENABLE_WRITE32(base_address, HW_CLEAR);
- 
-@@ -186,7 +187,7 @@ hw_status hw_mmu_disable(const void __iomem *base_address)
- hw_status hw_mmu_num_locked_set(const void __iomem *base_address,
- 				u32 numLockedEntries)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	MMUMMU_LOCK_BASE_VALUE_WRITE32(base_address, numLockedEntries);
- 
-@@ -196,7 +197,7 @@ hw_status hw_mmu_num_locked_set(const void __iomem *base_address,
- hw_status hw_mmu_victim_num_set(const void __iomem *base_address,
- 				u32 victimEntryNum)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	MMUMMU_LOCK_CURRENT_VICTIM_WRITE32(base_address, victimEntryNum);
- 
-@@ -205,7 +206,7 @@ hw_status hw_mmu_victim_num_set(const void __iomem *base_address,
- 
- hw_status hw_mmu_event_ack(const void __iomem *base_address, u32 irqMask)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	MMUMMU_IRQSTATUS_WRITE_REGISTER32(base_address, irqMask);
- 
-@@ -214,7 +215,7 @@ hw_status hw_mmu_event_ack(const void __iomem *base_address, u32 irqMask)
- 
- hw_status hw_mmu_event_disable(const void __iomem *base_address, u32 irqMask)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 irq_reg;
- 
- 	irq_reg = MMUMMU_IRQENABLE_READ_REGISTER32(base_address);
-@@ -226,7 +227,7 @@ hw_status hw_mmu_event_disable(const void __iomem *base_address, u32 irqMask)
- 
- hw_status hw_mmu_event_enable(const void __iomem *base_address, u32 irqMask)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 irq_reg;
- 
- 	irq_reg = MMUMMU_IRQENABLE_READ_REGISTER32(base_address);
-@@ -238,7 +239,7 @@ hw_status hw_mmu_event_enable(const void __iomem *base_address, u32 irqMask)
- 
- hw_status hw_mmu_event_status(const void __iomem *base_address, u32 *irqMask)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	*irqMask = MMUMMU_IRQSTATUS_READ_REGISTER32(base_address);
- 
-@@ -247,7 +248,7 @@ hw_status hw_mmu_event_status(const void __iomem *base_address, u32 *irqMask)
- 
- hw_status hw_mmu_fault_addr_read(const void __iomem *base_address, u32 *addr)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	/*Check the input Parameters */
- 	CHECK_INPUT_PARAM(base_address, 0, RET_BAD_NULL_PARAM,
-@@ -261,7 +262,7 @@ hw_status hw_mmu_fault_addr_read(const void __iomem *base_address, u32 *addr)
- 
- hw_status hw_mmu_ttb_set(const void __iomem *base_address, u32 TTBPhysAddr)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 load_ttb;
- 
- 	/*Check the input Parameters */
-@@ -277,7 +278,7 @@ hw_status hw_mmu_ttb_set(const void __iomem *base_address, u32 TTBPhysAddr)
- 
- hw_status hw_mmu_twl_enable(const void __iomem *base_address)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	MMUMMU_CNTLTWL_ENABLE_WRITE32(base_address, HW_SET);
- 
-@@ -286,7 +287,7 @@ hw_status hw_mmu_twl_enable(const void __iomem *base_address)
- 
- hw_status hw_mmu_twl_disable(const void __iomem *base_address)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 
- 	MMUMMU_CNTLTWL_ENABLE_WRITE32(base_address, HW_CLEAR);
- 
-@@ -296,7 +297,7 @@ hw_status hw_mmu_twl_disable(const void __iomem *base_address)
- hw_status hw_mmu_tlb_flush(const void __iomem *base_address, u32 virtualAddr,
- 			   u32 pageSize)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 virtual_addr_tag;
- 	enum hw_mmu_page_size_t pg_size_bits;
- 
-@@ -318,7 +319,7 @@ hw_status hw_mmu_tlb_flush(const void __iomem *base_address, u32 virtualAddr,
- 		break;
- 
- 	default:
--		return RET_FAIL;
-+		return -EINVAL;
- 	}
- 
- 	/* Generate the 20-bit tag from virtual address */
-@@ -339,7 +340,7 @@ hw_status hw_mmu_tlb_add(const void __iomem *base_address,
- 			 struct hw_mmu_map_attrs_t *map_attrs,
- 			 s8 preservedBit, s8 validBit)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 lock_reg;
- 	u32 virtual_addr_tag;
- 	enum hw_mmu_page_size_t mmu_pg_size;
-@@ -371,7 +372,7 @@ hw_status hw_mmu_tlb_add(const void __iomem *base_address,
- 		break;
- 
- 	default:
--		return RET_FAIL;
-+		return -EINVAL;
- 	}
- 
- 	lock_reg = MMUMMU_LOCK_READ_REGISTER32(base_address);
-@@ -406,7 +407,7 @@ hw_status hw_mmu_pte_set(const u32 pg_tbl_va,
- 			 u32 virtualAddr,
- 			 u32 pageSize, struct hw_mmu_map_attrs_t *map_attrs)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 pte_addr, pte_val;
- 	s32 num_entries = 1;
- 
-@@ -466,7 +467,7 @@ hw_status hw_mmu_pte_set(const u32 pg_tbl_va,
- 		break;
- 
- 	default:
--		return RET_FAIL;
-+		return -EINVAL;
- 	}
- 
- 	while (--num_entries >= 0)
-@@ -477,7 +478,7 @@ hw_status hw_mmu_pte_set(const u32 pg_tbl_va,
- 
- hw_status hw_mmu_pte_clear(const u32 pg_tbl_va, u32 virtualAddr, u32 page_size)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 pte_addr;
- 	s32 num_entries = 1;
- 
-@@ -510,7 +511,7 @@ hw_status hw_mmu_pte_clear(const u32 pg_tbl_va, u32 virtualAddr, u32 page_size)
- 		break;
- 
- 	default:
--		return RET_FAIL;
-+		return -EINVAL;
- 	}
- 
- 	while (--num_entries >= 0)
-@@ -522,7 +523,7 @@ hw_status hw_mmu_pte_clear(const u32 pg_tbl_va, u32 virtualAddr, u32 page_size)
- /* mmu_flush_entry */
- static hw_status mmu_flush_entry(const void __iomem *base_address)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 flush_entry_data = 0x1;
- 
- 	/*Check the input Parameters */
-@@ -542,7 +543,7 @@ static hw_status mmu_set_cam_entry(const void __iomem *base_address,
- 				   const u32 validBit,
- 				   const u32 virtual_addr_tag)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 mmu_cam_reg;
- 
- 	/*Check the input Parameters */
-@@ -566,7 +567,7 @@ static hw_status mmu_set_ram_entry(const void __iomem *base_address,
- 				   enum hw_element_size_t element_size,
- 				   enum hw_mmu_mixed_size_t mixed_size)
- {
--	hw_status status = RET_OK;
-+	hw_status status = 0;
- 	u32 mmu_ram_reg;
- 
- 	/*Check the input Parameters */
+ #define PG_SIZE4K 4096
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dbtype.h b/drivers/staging/tidspbridge/include/dspbridge/dbtype.h
+deleted file mode 100644
+index ca5eaf8..0000000
+--- a/drivers/staging/tidspbridge/include/dspbridge/dbtype.h
++++ /dev/null
+@@ -1,69 +0,0 @@
+-/*
+- * dbtype.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * This header defines data types for DSP/BIOS Bridge APIs and device
+- * driver modules. It also defines the Hungarian prefix to use for each
+- * base type.
+- *
+- * Copyright (C) 2008 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef DBTYPE_
+-#define DBTYPE_
+-
+-/*===========================================================================*/
+-/*  Argument specification syntax */
+-/*===========================================================================*/
+-
+-#ifndef IN
+-#define IN			/* Following parameter is for input. */
+-#endif
+-
+-#ifndef OUT
+-#define OUT			/* Following parameter is for output. */
+-#endif
+-
+-#ifndef OPTIONAL
+-#define OPTIONAL	/* Function may optionally use previous parameter. */
+-#endif
+-
+-#ifndef CONST
+-#define CONST   const
+-#endif
+-
+-/*===========================================================================*/
+-/*  NULL character   (normally used for string termination) */
+-/*===========================================================================*/
+-
+-#ifndef NULL_CHAR
+-#define NULL_CHAR    '\0'	/* Null character. */
+-#endif
+-
+-/*===========================================================================*/
+-/*  Basic Type definitions (with Prefixes for Hungarian notation) */
+-/*===========================================================================*/
+-
+-#ifndef OMAPBRIDGE_TYPES
+-#define OMAPBRIDGE_TYPES
+-typedef volatile unsigned short reg_uword16;
+-#endif
+-
+-#define TEXT(x) x
+-
+-#define DLLIMPORT
+-#define DLLEXPORT
+-
+-/* Define DSPAPIDLL correctly in dspapi.h */
+-#define _DSPSYSDLL32_
+-
+-#endif /* DBTYPE_ */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/host_os.h b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
+index a91c136..6b4feb4 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/host_os.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
+@@ -42,7 +42,6 @@
+ #include <linux/vmalloc.h>
+ #include <linux/ioport.h>
+ #include <linux/platform_device.h>
+-#include <dspbridge/dbtype.h>
+ #include <plat/clock.h>
+ #include <linux/clk.h>
+ #include <plat/mailbox.h>
 -- 
 1.6.3.3
