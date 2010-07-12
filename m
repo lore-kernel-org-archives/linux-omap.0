@@ -1,36 +1,38 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: ARM defconfig files
-Date: Mon, 12 Jul 2010 17:55:18 +0200
-Message-ID: <20100712155518.GA24144@pengutronix.de>
-References: <20100603074548.GA12104@flint.arm.linux.org.uk> <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org> <20100603181010.GA25779@flint.arm.linux.org.uk> <1275589230.23384.19.camel@c-dwalke-linux.qualcomm.com> <alpine.LFD.2.00.1006031119440.8175@i5.linux-foundation.org> <20100614083214.GA2104@pengutronix.de> <20100630104043.GG11746@pengutronix.de>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC 3/7] OMAP: Introduce voltage domain pointer and device
+ specific set rate and get rate in device opp structures.
+Date: Mon, 12 Jul 2010 10:01:28 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1007120957140.19255@utopia.booyaka.com>
+References: <1278065909-32148-1-git-send-email-thara@ti.com> <1278065909-32148-2-git-send-email-thara@ti.com> <1278065909-32148-3-git-send-email-thara@ti.com> <1278065909-32148-4-git-send-email-thara@ti.com> <20100712164826.7548cd09@surf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100630104043.GG11746@pengutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Daniel Walker <dwalker@codeaurora.org>, Russell King <rmk@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:58074 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752956Ab0GLQBa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jul 2010 12:01:30 -0400
+In-Reply-To: <20100712164826.7548cd09@surf>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Thara Gopinath <thara@ti.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, p-basak2@ti.com
 
-Hi Linus,
+On Mon, 12 Jul 2010, Thomas Petazzoni wrote:
 
-On Wed, Jun 30, 2010 at 12:40:43PM +0200, Uwe Kleine-K=F6nig wrote:
-> I think my mail hit your inbox during your vacation.  As this is quit=
-e
-> important for the ARM people and there isn't much time left, can you
-> please comment?
-As you havn't replied up to now I wonder if that just means that you
-still plan to remove all defconfig files or if you are just busy doing
-other things.
+> I know this structure already exists, but do we really need a new
+> structure for this ? Couldn't these infos (OPP list, set/get rate
+> methods) be stored in an existing device-specific structure (omap_hwmod
+> for hardware-related things are omap_device for ~software-related
+> things) ?
+> 
+> For example, why aren't OPPs attached to the hwmod description of the
+> particular device ? These OPPs definitions really look like a
+> characteristic of a particular IP, don't they ?
 
-Thanks
-Uwe
+hwmod data is intended to be used for RTL-level data, e.g., data that is 
+invariant of the underlying process technology.  OPP data can vary by the 
+underlying fabrication process or per-die speed validation (e.g., 
+speed-binning).  So I don't think it belongs in the hwmod data.
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
+
+- Paul
