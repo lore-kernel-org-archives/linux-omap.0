@@ -1,74 +1,78 @@
-From: Arnd Bergmann <arnd@arndb.de>
+From: Nicolas Pitre <nico@fluxnic.net>
 Subject: Re: ARM defconfig files
-Date: Mon, 12 Jul 2010 22:31:16 +0200
-Message-ID: <201007122231.16283.arnd@arndb.de>
-References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org> <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com> <20100712185029.GB14425@pengutronix.de>
+Date: Mon, 12 Jul 2010 16:50:51 -0400 (EDT)
+Message-ID: <alpine.LFD.2.00.1007121638530.10598@xanadu.home>
+References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org>
+	<AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com>
+	<20100712185029.GB14425@pengutronix.de>
+	<201007122231.16283.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100712185029.GB14425@pengutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Uwe =?iso-8859-1?q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
+Content-Type: multipart/mixed; boundary="Boundary_(ID_g8GqyUWL5EpXoEfuThNOTw)"
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-reply-to: <201007122231.16283.arnd@arndb.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Walker <dwalker@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-msm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Eric Miao <eric.miao@canonical.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 12 July 2010 20:50:29 Uwe Kleine-K=F6nig wrote:
->=20
-> [1] The following changes since commit 67a3e12b05e055c0415c556a315a3d=
-3eb637e29e:
->=20
->   Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
->=20
-> are available in the git repository at:
->   git://git.pengutronix.de/git/ukl/linux-2.6.git arm/defconfig/reduce=
-d-v2.6.35-rc1
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-BTW, looking at the most common entries in there, I think we might at s=
-ome
-point want to change some of the defaults in the respective Kconfig fil=
-es.
-Right now an empty defconfig would result in a configuration without
-file system, networking or modules:
+--Boundary_(ID_g8GqyUWL5EpXoEfuThNOTw)
+Content-type: TEXT/PLAIN; charset=iso-8859-1
+Content-transfer-encoding: 8BIT
 
-sort arch/arm/configs/* | uniq -c | sort -n | tail -n 30
-    114 CONFIG_BLK_DEV_RAM=3Dy
-    116 CONFIG_BLK_DEV_INITRD=3Dy
-    116 CONFIG_UEVENT_HELPER_PATH=3D"/sbin/hotplug"
-    117 CONFIG_NFS_FS=3Dy
-    118 CONFIG_MTD_CHAR=3Dy
-    119 CONFIG_INOTIFY=3Dy
-    122 # CONFIG_BLK_DEV_BSG is not set
-    122 CONFIG_IP_PNP=3Dy
-    123 # CONFIG_IPV6 is not set
-    123 CONFIG_MTD_BLOCK=3Dy
-    125 CONFIG_FPE_NWFPE=3Dy
-    127 CONFIG_NET_ETHERNET=3Dy
-    128 CONFIG_LOG_BUF_SHIFT=3D14
-    128 CONFIG_MTD=3Dy
-    131 CONFIG_PACKET=3Dy
-    132 # CONFIG_INPUT_MOUSE is not set
-    133 CONFIG_DEBUG_KERNEL=3Dy
-    134 CONFIG_EXT2_FS=3Dy
-    138 CONFIG_MODULE_UNLOAD=3Dy
-    139 CONFIG_TMPFS=3Dy
-    142 CONFIG_NETDEVICES=3Dy
-    147 CONFIG_ZBOOT_ROM_BSS=3D0x0
-    147 CONFIG_ZBOOT_ROM_TEXT=3D0x0
-    151 CONFIG_INET=3Dy
-    151 CONFIG_UNIX=3Dy
-    153 CONFIG_NET=3Dy
-    156 # CONFIG_VGA_CONSOLE is not set
-    158 CONFIG_MODULES=3Dy
-    164 CONFIG_SYSVIPC=3Dy
-    174 CONFIG_EXPERIMENTAL=3Dy
+On Mon, 12 Jul 2010, Arnd Bergmann wrote:
 
-Also, some of the defconfigs contain stuff that arguably does not belon=
-g
-into a defconfig and could be removed in the next merge window, e.g.
+> On Monday 12 July 2010 20:50:29 Uwe Kleine-König wrote:
+> > 
+> > [1] The following changes since commit 67a3e12b05e055c0415c556a315a3d3eb637e29e:
+> > 
+> >   Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
+> > 
+> > are available in the git repository at:
+> >   git://git.pengutronix.de/git/ukl/linux-2.6.git arm/defconfig/reduced-v2.6.35-rc1
+> 
+> BTW, looking at the most common entries in there, I think we might at some
+> point want to change some of the defaults in the respective Kconfig files.
+> Right now an empty defconfig would result in a configuration without
+> file system, networking or modules:
 
-ezx_defconfig:CONFIG_LOCALVERSION=3D"-ezx200910312315"
-pnx4008_defconfig:CONFIG_DECNET=3Dm
-at572d940hfek_defconfig:CONFIG_SGI_PARTITION=3Dy
+We need to come up with a scheme that allows for expressing the most 
+likely options you might want if you have machine x and/or machine y 
+selected.  Those likely options are for drivers corresponding to 
+hardware soldered on the board or integrated into a SOC and therefore 
+which is not "optional".  Right now this information is carried in the 
+defconfig files.  Without that you need to lookup various datasheets and 
+wade through thousands of Kconfig options.  Compared to that, stuff like 
+filesystems and networking protocols are optional items that currently 
+are more arbitrarily included into or excluded from the defconfig files.  
 
-	Arnd
+I think that the first category of options should automatically be 
+selected on a per machine basis depending on BASE_CONFIG or the like and 
+expressed directly in the Kconfig files.  Typically there are very few 
+of those (like a dozen or so for some example target I looked at).
+
+
+Nicolas
+
+--Boundary_(ID_g8GqyUWL5EpXoEfuThNOTw)
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+--Boundary_(ID_g8GqyUWL5EpXoEfuThNOTw)--
