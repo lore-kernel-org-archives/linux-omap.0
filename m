@@ -1,68 +1,74 @@
-From: Nicolas Pitre <nico@fluxnic.net>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: ARM defconfig files
-Date: Mon, 12 Jul 2010 16:29:40 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007121619100.10598@xanadu.home>
-References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org>
- <20100603181010.GA25779@flint.arm.linux.org.uk>
- <1275589230.23384.19.camel@c-dwalke-linux.qualcomm.com>
- <alpine.LFD.2.00.1006031119440.8175@i5.linux-foundation.org>
- <20100614083214.GA2104@pengutronix.de> <20100630104043.GG11746@pengutronix.de>
- <20100712155518.GA24144@pengutronix.de>
- <AANLkTilhI9O6YwnuAylo_jNgwR8VXmpSVJ1kylIYPCGT@mail.gmail.com>
- <20100712173228.GC9897@n2100.arm.linux.org.uk>
- <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com>
- <20100712200604.GD9897@n2100.arm.linux.org.uk>
+Date: Mon, 12 Jul 2010 22:31:16 +0200
+Message-ID: <201007122231.16283.arnd@arndb.de>
+References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org> <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com> <20100712185029.GB14425@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:10162 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554Ab0GLU3l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jul 2010 16:29:41 -0400
-In-reply-to: <20100712200604.GD9897@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100712185029.GB14425@pengutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Uwe =?iso-8859-1?q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org
 
-On Mon, 12 Jul 2010, Russell King - ARM Linux wrote:
+On Monday 12 July 2010 20:50:29 Uwe Kleine-K=F6nig wrote:
+>=20
+> [1] The following changes since commit 67a3e12b05e055c0415c556a315a3d=
+3eb637e29e:
+>=20
+>   Linux 2.6.35-rc1 (2010-05-30 13:21:02 -0700)
+>=20
+> are available in the git repository at:
+>   git://git.pengutronix.de/git/ukl/linux-2.6.git arm/defconfig/reduce=
+d-v2.6.35-rc1
 
-> On Mon, Jul 12, 2010 at 10:40:36AM -0700, Linus Torvalds wrote:
-> > On Mon, Jul 12, 2010 at 10:32 AM, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> > >
-> > > When you brought up the problem you seemed absolutely convinced
-> > > that nothing except your solution was going to be acceptable.
-> > 
-> > That's not true. What's true is that you didn't seem to _understand_
-> > my solution, so I tried to push the understanding of it.
-> 
-> That's your point of view.
-> 
-> My viewpoint was that I had read your email, thought of some alternative
-> solution, proposed it and the result was shot down without any apparant
-> thought about it.  That gave the impression that you _only_ wanted to
-> see your own solution.
+BTW, looking at the most common entries in there, I think we might at s=
+ome
+point want to change some of the defaults in the respective Kconfig fil=
+es.
+Right now an empty defconfig would result in a configuration without
+file system, networking or modules:
 
-OK, please let's put this appearance of misunderstanding behind.  
-The rehashing of it from either parties doesn't produce any good.
+sort arch/arm/configs/* | uniq -c | sort -n | tail -n 30
+    114 CONFIG_BLK_DEV_RAM=3Dy
+    116 CONFIG_BLK_DEV_INITRD=3Dy
+    116 CONFIG_UEVENT_HELPER_PATH=3D"/sbin/hotplug"
+    117 CONFIG_NFS_FS=3Dy
+    118 CONFIG_MTD_CHAR=3Dy
+    119 CONFIG_INOTIFY=3Dy
+    122 # CONFIG_BLK_DEV_BSG is not set
+    122 CONFIG_IP_PNP=3Dy
+    123 # CONFIG_IPV6 is not set
+    123 CONFIG_MTD_BLOCK=3Dy
+    125 CONFIG_FPE_NWFPE=3Dy
+    127 CONFIG_NET_ETHERNET=3Dy
+    128 CONFIG_LOG_BUF_SHIFT=3D14
+    128 CONFIG_MTD=3Dy
+    131 CONFIG_PACKET=3Dy
+    132 # CONFIG_INPUT_MOUSE is not set
+    133 CONFIG_DEBUG_KERNEL=3Dy
+    134 CONFIG_EXT2_FS=3Dy
+    138 CONFIG_MODULE_UNLOAD=3Dy
+    139 CONFIG_TMPFS=3Dy
+    142 CONFIG_NETDEVICES=3Dy
+    147 CONFIG_ZBOOT_ROM_BSS=3D0x0
+    147 CONFIG_ZBOOT_ROM_TEXT=3D0x0
+    151 CONFIG_INET=3Dy
+    151 CONFIG_UNIX=3Dy
+    153 CONFIG_NET=3Dy
+    156 # CONFIG_VGA_CONSOLE is not set
+    158 CONFIG_MODULES=3Dy
+    164 CONFIG_SYSVIPC=3Dy
+    174 CONFIG_EXPERIMENTAL=3Dy
 
-> The result of that has been very little in the way of progress towards
-> either your, or my alternative solutions - and apart from a few Kconfig
-> corner quirk patches, the only major work that's happened has been from
-> Uwe.
+Also, some of the defconfigs contain stuff that arguably does not belon=
+g
+into a defconfig and could be removed in the next merge window, e.g.
 
-For the record, I do support Uwe's work too.  I do wish it could go in 
-now so that from that point going forward we could only focus on 
-improving the thing instead of having to care about implications during 
-the merge window.
+ezx_defconfig:CONFIG_LOCALVERSION=3D"-ezx200910312315"
+pnx4008_defconfig:CONFIG_DECNET=3Dm
+at572d940hfek_defconfig:CONFIG_SGI_PARTITION=3Dy
 
-But I do prefer RMK's proposal in the long run.  Not only is it more 
-expressive and clear, but it is easier to maintain going forward too.  
-But that transition cannot be automated and I doubt the majority of 
-targets will be converted anytime soon if at all.  So at least Uwe's 
-reduction is quite a good compromise for those.
-
-
-Nicolas
+	Arnd
