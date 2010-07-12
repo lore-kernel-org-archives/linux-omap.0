@@ -1,42 +1,45 @@
-From: Arno Steffen <arno.steffen@googlemail.com>
-Subject: omap3 flash issue
-Date: Mon, 12 Jul 2010 09:39:09 +0200
-Message-ID: <AANLkTine_dbw7RW8VLIPX8E047FyYdW5jogqetGr9xjt@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH] [ARM] video/omap2/tdo35s: fix visual artefacts
+Date: Mon, 12 Jul 2010 13:42:50 +0300
+Message-ID: <1278931370-19912-1-git-send-email-grinberg@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:38836 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754330Ab0GLHjL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jul 2010 03:39:11 -0400
-Received: by bwz1 with SMTP id 1so2134084bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 12 Jul 2010 00:39:10 -0700 (PDT)
+Received: from compulab.co.il ([67.18.134.219]:39922 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754607Ab0GLKnC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Jul 2010 06:43:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Igor Grinberg <grinberg@compulab.co.il>, Mike Rapoport <mike@compulab.co.il>
 
-While doing powercycles with an OMAP3 board I got several strange
-effects on my board.
-So even when mounting the root-partiton as read only ( ... noinitrd
-root=/dev/mtdblock6 ro rootfstype=jffs2 ... ) I 've got sometimes (1
-in a 100  trials) a bunch of message while mounting:
+TDO35S samples the data on the falling adge of the pixel clock,
+therefore the data strobe should be on the raising edge.
 
-jffs2_scan_eraseblock(): Magic bitmask 0x1985 not found at 0x00260000:
-0xff30 instead
-And later on
-JFFS2 notice: (365) jffs2_get_inode_nodes: Node header CRC failed at
-0x260090. {6144,773c,840fc11a,cc0c0e28}
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+---
+ .../video/omap2/displays/panel-toppoly-tdo35s.c    |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-Another time I get a
-uncorrectable error :
-Which is coming from nand_ecc.c (this is below the filesystem I guess).
+diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+index fa434ca..e320e67 100644
+--- a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
++++ b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+@@ -73,8 +73,12 @@ static void toppoly_tdo_panel_power_off(struct omap_dss_device *dssdev)
+ 
+ static int toppoly_tdo_panel_probe(struct omap_dss_device *dssdev)
+ {
+-	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+-		OMAP_DSS_LCD_IHS;
++	dssdev->panel.config = OMAP_DSS_LCD_TFT |
++			       OMAP_DSS_LCD_IVS |
++			       OMAP_DSS_LCD_IHS |
++			       OMAP_DSS_LCD_IPC |
++			       OMAP_DSS_LCD_ONOFF;
++
+ 	dssdev->panel.timings = toppoly_tdo_panel_timings;
+ 
+ 	return 0;
+-- 
+1.7.1
 
-The strange thing is, this errors/messages are disappeared in the next boot.
-
-I suspected the RAM/Flash hardware but on the other hand it unpacks
-the kernel a few 100 times, but never get a CRC error.
-Looking into kernel sources I found special omap2.c with some nand
-related code. I am using a standard 2.6.33 kernel.
-
-Does someone have a good advice what the reason for that might be. Any
-help is welcome.
