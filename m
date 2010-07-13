@@ -1,71 +1,54 @@
-From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
- memory management
-Date: Tue, 13 Jul 2010 05:14:21 -0700
-Message-ID: <20100713121420.GB4263@codeaurora.org>
-References: <4C366678.60605@codeaurora.org>
- <20100712102435B.fujita.tomonori@lab.ntt.co.jp>
- <4C3C0032.5020702@codeaurora.org>
- <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM-OPP][PATCH 2/4] OMAP: Correct the return value check after
+ call into find_device_opp
+Date: Tue, 13 Jul 2010 07:23:02 -0500
+Message-ID: <4C3C5AA6.8020303@ti.com>
+References: <1279000026-24042-1-git-send-email-thara@ti.com> <1279000026-24042-2-git-send-email-thara@ti.com> <1279000026-24042-3-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
-Sender: owner-linux-mm@kvack.org
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: linux@arm.linux.org.uk, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:32802 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752956Ab0GMMXG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jul 2010 08:23:06 -0400
+In-Reply-To: <1279000026-24042-3-git-send-email-thara@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Premi, Sanjeev" <premi@ti.com>
 
-On Tue, Jul 13, 2010 at 03:03:25PM +0900, FUJITA Tomonori wrote:
-> On Mon, 12 Jul 2010 22:57:06 -0700
-> Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
+Gopinath, Thara had written, on 07/13/2010 12:47 AM, the following:
+> Earlier we were checking on !dev_opp where as find_device_opp returns
+> a error pointer in case of error. So correcting the check as in the earlier
+> code even if find_device_opp returns an error opp_init_cpufreq_table
+> was not exiting.
 > 
-> > FUJITA Tomonori wrote:
-> > > On Thu, 08 Jul 2010 16:59:52 -0700
-> > > Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
-> > > 
-> > >> The problem I'm trying to solve boils down to this: map a set of
-> > >> contiguous physical buffers to an aligned IOMMU address. I need to
-> > >> allocate the set of physical buffers in a particular way: use 1 MB
-> > >> contiguous physical memory, then 64 KB, then 4 KB, etc. and I need to
-> > >> align the IOMMU address in a particular way.
-> > > 
-> > > Sounds like the DMA API already supports what you want.
-> > > 
-> > > You can set segment_boundary_mask in struct device_dma_parameters if
-> > > you want to align the IOMMU address. See IOMMU implementations that
-> > > support dma_get_seg_boundary() properly.
-> > 
-> > That function takes the wrong argument in a VCM world:
-> > 
-> > unsigned long dma_get_seg_boundary(struct device *dev);
-> > 
-> > The boundary should be an attribute of the device side mapping,
-> > independent of the device. This would allow better code reuse.
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/plat-omap/opp.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
 > 
-> You mean that you want to specify this alignment attribute every time
-> you create an IOMMU mapping? Then you can set segment_boundary_mask
-> every time you create an IOMMU mapping. It's odd but it should work.
+> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+> index a06b88d..d88a2e0 100644
+> --- a/arch/arm/plat-omap/opp.c
+> +++ b/arch/arm/plat-omap/opp.c
+> @@ -457,8 +457,10 @@ void opp_init_cpufreq_table(struct device *dev,
+>  	int i = 0;
+>  
+>  	dev_opp = find_device_opp(dev);
+> -	if (WARN_ON(!dev_opp))
+> +	if (IS_ERR(dev_opp)) {
+> +		WARN_ON(1);
+could we use pr_warning here instead of WARN_ON?
 
-Kinda. I want to forget about IOMMUs, devices and CPUs. I just want to
-create a mapping that has the alignment I specify, regardless of the
-mapper. The mapping is created on a VCM and the VCM is associated with
-a mapper: a CPU, an IOMMU'd device or a direct mapped device.
+>  		return;
+> +	}
+>  
+>  	freq_table = kzalloc(sizeof(struct cpufreq_frequency_table) *
+>  			     (dev_opp->enabled_opp_count + 1), GFP_ATOMIC);
 
-> 
-> Another possible solution is extending struct dma_attrs. We could add
-> the alignment attribute to it.
 
-That may be useful, but in the current DMA-API may be seen as
-redundant info.
-
---
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+Regards,
+Nishanth Menon
