@@ -1,43 +1,40 @@
-From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Mon, 12 Jul 2010 22:46:59 -0700
-Message-ID: <4C3BFDD3.8040209@codeaurora.org>
-References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org> <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org> <20100701101746.3810cc3b.randy.dunlap@oracle.com> <20100701180241.GA3594@basil.fritz.box> <1278021944.7738.43.camel@c-dwalke-linux.qualcomm.com> <4C2D965F.5000206@codeaurora.org> <20100710145639.GC10080@8bytes.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Thara Gopinath <thara@ti.com>
+Subject: [PM-OPP][PATCH 0/4] OMAP: Clean up series for generic opp layer.
+Date: Tue, 13 Jul 2010 11:17:02 +0530
+Message-ID: <1279000026-24042-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:34383 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103Ab0GMFrA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 01:47:00 -0400
-In-Reply-To: <20100710145639.GC10080@8bytes.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44278 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751103Ab0GMFrV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jul 2010 01:47:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>
-Cc: Daniel Walker <dwalker@codeaurora.org>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, b-cousson@ti.com, sawant@ti.com, vishwanath.bs@ti.com, premi@ti.com, Thara Gopinath <thara@ti.com>
 
-Joerg Roedel wrote:
-> On Fri, Jul 02, 2010 at 12:33:51AM -0700, Zach Pfeffer wrote:
->> Daniel Walker wrote:
-> 
->>> So if we include this code which "map implementations" could you
->>> collapse into this implementations ? Generally , what currently existing
->>> code can VCMM help to eliminate?
->> In theory, it can eliminate all code the interoperates between IOMMU,
->> CPU and non-IOMMU based devices and all the mapping code, alignment,
->> mapping attribute and special block size support that's been
->> implemented.
-> 
-> Thats a very abstract statement. Can you point to particular code files
-> and give a rough sketch how it could be improved using VCMM?
+This patch series does some clean up of the opp layer
+including removal of compilation warnings, avoiding wrong inclusioin
+of header files, correcting some srror checks and removing the dependency
+of opp layer on cpu freq layer.
 
-I can. Not to single out a particular subsystem, but the video4linux
-code contains interoperation code to abstract the difference between
-sg buffers, vmalloc buffers and physically contiguous buffers. The
-VCMM is an attempt to provide a framework where these and all the
-other buffer types can be unified.
+Apart from all these there is still one more concern i have in this generic
+opp layer. This is regarding the separate PMIC opp file opp_twl_tps.c which
+today caters to only twl4030 and twl5030 pmic. What is the approach to be
+taken if the PMIC changes? I am already facing this issue with OMAP4 where
+the PMIC is twl6030 and the formulas for converting vsel into voltage and
+vice versa are different. I am against adding another file for twl6030. The
+approach is not scalable. We need to keep these vsel to uV and vice versa
+convertion in one place or make them functions pointers.
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+Thara Gopinath (4):
+  OMAP: Fix the compilation warning in the opp layer
+  OMAP: Correct the return value check after call into find_device_opp
+  OMAP: Remove inclusion of PMIC specific header file in generic opp
+    layer.
+  OMAP: Remove dependency of generic opp layer on cpufreq.
+
+ arch/arm/plat-omap/Makefile           |    4 ++--
+ arch/arm/plat-omap/include/plat/opp.h |    4 ++--
+ arch/arm/plat-omap/opp.c              |    7 +++----
+ 3 files changed, 7 insertions(+), 8 deletions(-)
+
