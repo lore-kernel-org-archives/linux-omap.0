@@ -1,107 +1,54 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v3 4/4] omap: nand: making ecc layout as compatible with romcode ecc
-Date: Tue, 13 Jul 2010 10:15:37 +0530
-Message-ID: <1278996337-25172-5-git-send-email-s-ghorai@ti.com>
-References: <1278996337-25172-1-git-send-email-s-ghorai@ti.com>
- <1278996337-25172-2-git-send-email-s-ghorai@ti.com>
- <1278996337-25172-3-git-send-email-s-ghorai@ti.com>
- <1278996337-25172-4-git-send-email-s-ghorai@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59540 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032Ab0GMEpw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jul 2010 00:45:52 -0400
-In-Reply-To: <1278996337-25172-4-git-send-email-s-ghorai@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
+Date: Mon, 12 Jul 2010 22:21:05 -0700
+Message-ID: <4C3BF7C1.9040904@codeaurora.org>
+References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org> <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org> <20100701101746.3810cc3b.randy.dunlap@oracle.com> <20100701180241.GA3594@basil.fritz.box> <AANLkTinABCSdN6hnXVOvVZ12f1QBMR_UAi62qW8GmlkL@mail.gmail.com> <4C2D908E.9030309@codeaurora.org> <20100710143635.GA10080@8bytes.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20100710143635.GA10080@8bytes.org>
+Sender: owner-linux-mm@kvack.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Hari Kanigeri <hari.kanigeri@gmail.com>, Daniel Walker <dwalker@codeaurora.org>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-    This patch overrides nand ecc layout and bad block descriptor (for 8-bit
-    device) to support hw ecc in romcode layout. So as to have in sync with ecc
-    layout throughout; i.e. x-laod, u-boot and kernel.
+Joerg Roedel wrote:
+> On Fri, Jul 02, 2010 at 12:09:02AM -0700, Zach Pfeffer wrote:
+>> Hari Kanigeri wrote:
+>>>> He demonstrated the usage of his code in one of the emails he sent out
+>>>> initially. Did you go over that, and what (or how many) step would you
+>>>> use with the current code to do the same thing?
+>>> -- So is this patch set adding layers and abstractions to help the User ?
+>>>
+>>> If the idea is to share some memory across multiple devices, I guess
+>>> you can achieve the same by calling the map function provided by iommu
+>>> module and sharing the mapped address to the 10's or 100's of devices
+>>> to access the buffers. You would only need a dedicated virtual pool
+>>> per IOMMU device to manage its virtual memory allocations.
+>> Yeah, you can do that. My idea is to get away from explicit addressing
+>> and encapsulate the "device address to physical address" link into a
+>> mapping.
+> 
+> The DMA-API already does this with the help of IOMMUs if they are
+> present. What is the benefit of your approach over that?
 
-    This patch also enables to use romcode ecc for spd and zoom, by default.
+The grist to the DMA-API mill is the opaque scatterlist. Each
+scatterlist element brings together a physical address and a bus
+address that may be different. The set of scatterlist elements
+constitute both the set of physical buffers and the mappings to those
+buffers. My approach separates these two things into a struct physmem
+which contains the set of physical buffers and a struct reservation
+which contains the set of bus addresses (or device addresses). Each
+element in the struct physmem may be of various lengths (without
+resorting to chaining). A map call maps the one set to the other. 
 
-    This enables to flash x-load, u-boot, kernel, FS images from kernel itself
-    and compatiable with other tools.
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
 
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
----
- arch/arm/mach-omap2/board-flash.c |    2 +-
- drivers/mtd/nand/omap2.c          |   34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index ab31e7f..a15aab6 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -144,7 +144,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs)
- 	board_nand_data.cs		= cs;
- 	board_nand_data.parts		= nand_parts;
- 	board_nand_data.nr_parts	= nr_parts;
--	board_nand_data.ecc_opt		= OMAP_ECC_HAMMING_CODE_DIFF_LAYOUT;
-+	board_nand_data.ecc_opt		= OMAP_ECC_HAMMING_CODE_HW;
- 
- 	gpmc_nand_init(&board_nand_data);
- }
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 0464a19..09b26d7 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -128,6 +128,20 @@ const int use_dma;
- const int use_interrupt;
- #endif
- 
-+/* oob info generated runtime depending on ecc algorithm and layout selected */
-+static struct nand_ecclayout omap_oobinfo;
-+/* Define some generic bad / good block scan pattern which are used
-+ * while scanning a device for factory marked good / bad blocks
-+ */
-+static uint8_t scan_ff_pattern[] = { 0xff };
-+static struct nand_bbt_descr bb_descrip_flashbased = {
-+	.options = NAND_BBT_SCANEMPTY | NAND_BBT_SCANALLPAGES,
-+	.offs = 0,
-+	.len = 1,
-+	.pattern = scan_ff_pattern,
-+};
-+
-+
- struct omap_nand_info {
- 	struct nand_hw_control		controller;
- 	struct omap_nand_platform_data	*pdata;
-@@ -945,6 +959,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	struct omap_nand_info		*info;
- 	struct omap_nand_platform_data	*pdata;
- 	int				err;
-+	int				i, offset;
- 
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -1079,6 +1094,25 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	/* rom code layout */
-+	if (pdata->ecc_opt != OMAP_ECC_HAMMING_CODE_DIFF_LAYOUT) {
-+		offset = (info->nand.options & NAND_BUSWIDTH_16) ? 2 : 1;
-+		if (info->mtd.oobsize == 16) {
-+			info->nand.badblock_pattern = &bb_descrip_flashbased;
-+			omap_oobinfo.eccbytes = 3;
-+		} else
-+			omap_oobinfo.eccbytes  = 3 * 4;
-+
-+		for (i = 0; i < omap_oobinfo.eccbytes; i++)
-+			omap_oobinfo.eccpos[i] = i+offset;
-+
-+		omap_oobinfo.oobfree->offset = offset + omap_oobinfo.eccbytes;
-+		omap_oobinfo.oobfree->length = info->mtd.oobsize -
-+					(offset + omap_oobinfo.eccbytes);
-+
-+		info->nand.ecc.layout = &omap_oobinfo;
-+	}
-+
- #ifdef CONFIG_MTD_PARTITIONS
- 	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
- 	if (err > 0)
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
