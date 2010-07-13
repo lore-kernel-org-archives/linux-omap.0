@@ -1,164 +1,198 @@
-From: janboe <janboe.ye@gmail.com>
-Subject: [PATCH] omap: gpio: omap3_gpio_pads_init current only works for
- omap3
-Date: Tue, 13 Jul 2010 22:59:53 +0800
-Message-ID: <20100713145953.GA17852@localhost.localdomain>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 3/9 v3] omap: generic: introduce a single check_revision
+Date: Tue, 13 Jul 2010 10:37:49 -0500
+Message-ID: <4C3C884D.20709@ti.com>
+References: <1278590256.3787.14.camel@Nokia-N900> <20100708122157.GI1920@atomide.com> <4C35E04B.1090102@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301E7AADBE1@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:55314 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756850Ab0GMPMu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 11:12:50 -0400
-Received: by pzk26 with SMTP id 26so1352297pzk.19
-        for <linux-omap@vger.kernel.org>; Tue, 13 Jul 2010 08:12:50 -0700 (PDT)
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:56377 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752709Ab0GMPiD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 11:38:03 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7AADBE1@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "ValkeinenTomi (Nokia-MS/Helsinki)" <Tomi.Valkeinen@nokia.com>, "Koskinen Aaro (Nokia-MS/Helsinki)" <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-Since omap4 gpio pad config offset is different with omap3, so
-omap3_gpio_pads_init only works for omap3, and this will break
-omap4 build.
+Premi, Sanjeev had written, on 07/13/2010 10:06 AM, the following:
+>> -----Original Message-----
+>> From: Menon, Nishanth 
+>> Sent: Thursday, July 08, 2010 7:57 PM
+>> To: Tony Lindgren
+>> Cc: felipe.balbi@nokia.com; linux-omap; Angelo Arrifano; 
+>> Zebediah C. McClure; Alistair Buxton; Grazvydas Ignotas; Paul 
+>> Walmsley; Premi, Sanjeev; Shilimkar, Santosh; Guruswamy, 
+>> Senthilvadivu; Kevin Hilman; DebBarma, Tarun Kanti; 
+>> ValkeinenTomi (Nokia-MS/Helsinki); Koskinen Aaro 
+>> (Nokia-MS/Helsinki); Pandita, Vikram; S, Vishwanath
+>> Subject: Re: [PATCH 3/9 v3] omap: generic: introduce a single 
+>> check_revision
+>>
+>> Tony Lindgren had written, on 07/08/2010 07:21 AM, the following:
+>>> * Menon, Nishanth <nm@ti.com> [100708 14:49]:
+>>>> ----- Original message -----
+>>>>> Hi,
+>>>>>
+>>>>> On Wed, Jul 07, 2010 at 07:24:16PM +0200, ext Nishanth 
+>> Menon wrote:
+>>>>>> I am not sure.. if you would like drivers to be 
+>> modprobabe, there may
+>>>>> be
+>>>>>> quirks that you'd want to enable based on cpu_is_omapxxx 
+>> checks. so it
+>>>>>> probably does not make sense to __initdata the revision/feature
+>>>>> variables.
+>>>>>
+>>>>> can't you pass the quirks via pdata, then ?
+>>>> If pdata is passed based on board: Imagine 3630 and uart 
+>> quirk. Why share errata xyz over pdata for every board using 
+>> 3630? Quirks are cpu specific and not really domain of board..  
+>>> We should be able to handle the quirks by passing some
+>>> flag or function pointer from platform data.
+>>>
+>>> The drivers should be arch independent, using cpu_is_omapxxxx
+>>> tests anywhere under drivers/* is wrong and should be
+>>> fixed.
+>> there are two forms of quirks:
+>> a) quirks which can be detected based on IP rev
+>> b) quirks which are silicon integration related - only 
+>> cpu_is_xxxx can 
+>> be used to detect them.
+>> for a) - I disagree that pdata should be used (this was my original 
+>> contention)
+>> for b) the question IMHO is: How is pdata provided to the 
+>> driver - that 
+>> is important. IMHO, pdata taken into drivers could have 
+>> quirks, but if 
+>> the quirk addition is done from board files, I disagree, then 
+>> should be 
+>> done in arch/arm/mach-omap[12]/somefile.c where somefile.c is 
+>> common for 
+>> all boards (e.g. device.c) and that allows the driver to be cpu 
+>> independent and allows board files not to have redundant information.
+>>
+>> BUT, features *should* be kept distinct from quirks for readability 
+>> purposes.
+> 
+> Nishanth,
+> 
+> Sorry missed most of discussion due to vacation. But just wanted to
+> know the benefit of check_version() without the processor context.
 
-This patch fix this.
+lets try not to confuse things here:
+a) feature - this debate is part of this thread
+b) errata - done per driver
+c) cpu_is_xyz() - used for cpu type detection
+d) cpu_revision() - the patch that you post below - should be in a 
+seperate thread.
 
-Signed-off-by: janboe <janboe.ye@gmail.com>
----
- arch/arm/plat-omap/gpio.c |  112 ++++++++++++++++++++++----------------------
- 1 files changed, 56 insertions(+), 56 deletions(-)
+I am not averse to the new functions you are introducing and IMHO, I 
+agree that it will improve readability, can you rebase and post seperately?
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 0838c72..bae2649 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -379,6 +379,62 @@ struct gpio_pad {
- 
- static struct gpio_pad *gpio_pads;
- static u16 gpio_pad_map[OMAP34XX_GPIO_AMT];
-+
-+/*
-+ * Following pad init code in addition to the context / restore hooks are
-+ * needed to fix glitches in GPIO outputs during off-mode. See OMAP3
-+ * errate section 1.158
-+ */
-+static int __init omap3_gpio_pads_init(void)
-+{
-+	int i, j, min, max, gpio_amt;
-+	u16 offset;
-+
-+	gpio_amt = 0;
-+
-+	for (i = 0; i < ARRAY_SIZE(gpio_pads_config); i++) {
-+		min = gpio_pads_config[i].min;
-+		max = gpio_pads_config[i].max;
-+		offset = gpio_pads_config[i].offset;
-+
-+		for (j = min; j <= max; j++) {
-+			/*
-+			 * Check if pad has been configured as GPIO
-+			 * (mux mode 4.)
-+			 */
-+			if ((omap_ctrl_readw(offset) & 0x7) == 4) {
-+				gpio_pad_map[j] = offset;
-+				if (j > 31)
-+					gpio_amt++;
-+			}
-+			offset += 2;
-+		}
-+	}
-+	gpio_pads = kmalloc(sizeof(struct gpio_pad) * (gpio_amt + 1),
-+		GFP_KERNEL);
-+
-+	if (gpio_pads == NULL) {
-+		printk(KERN_ERR "FATAL: Failed to allocate gpio_pads\n");
-+		return -ENOMEM;
-+	}
-+
-+	gpio_amt = 0;
-+	for (i = 0; i < OMAP34XX_GPIO_AMT; i++) {
-+		/*
-+		 * First module (gpio 0...31) is ignored as it is
-+		 * in wakeup domain and does not need special
-+		 * handling during off mode.
-+		 */
-+		if (gpio_pad_map[i] && i > 31) {
-+			gpio_pads[gpio_amt].gpio = i;
-+			gpio_pads[gpio_amt].offset = gpio_pad_map[i];
-+			gpio_amt++;
-+		}
-+	}
-+	gpio_pads[gpio_amt].gpio = -1;
-+	return 0;
-+}
-+late_initcall(omap3_gpio_pads_init);
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP4
-@@ -1750,62 +1806,6 @@ static struct clk * gpio5_fck;
- 
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
- static struct clk *gpio_iclks[OMAP34XX_NR_GPIOS];
--
--/*
-- * Following pad init code in addition to the context / restore hooks are
-- * needed to fix glitches in GPIO outputs during off-mode. See OMAP3
-- * errate section 1.158
-- */
--static int __init omap3_gpio_pads_init(void)
--{
--	int i, j, min, max, gpio_amt;
--	u16 offset;
--
--	gpio_amt = 0;
--
--	for (i = 0; i < ARRAY_SIZE(gpio_pads_config); i++) {
--		min = gpio_pads_config[i].min;
--		max = gpio_pads_config[i].max;
--		offset = gpio_pads_config[i].offset;
--
--		for (j = min; j <= max; j++) {
--			/*
--			 * Check if pad has been configured as GPIO 
--			 * (mux mode 4.)
--			 */
--			if ((omap_ctrl_readw(offset) & 0x7) == 4) {
--				gpio_pad_map[j] = offset;
--				if (j > 31)
--					gpio_amt++;
--			}
--			offset += 2;
--		}
--	}
--	gpio_pads = kmalloc(sizeof(struct gpio_pad) * (gpio_amt + 1),
--		GFP_KERNEL);
--
--	if (gpio_pads == NULL) {
--		printk(KERN_ERR "FATAL: Failed to allocate gpio_pads\n");
--		return -ENOMEM;
--	}
--
--	gpio_amt = 0;
--	for (i = 0; i < OMAP34XX_GPIO_AMT; i++) {
--		/*
--		 * First module (gpio 0...31) is ignored as it is
--		 * in wakeup domain and does not need special
--		 * handling during off mode.
--		 */
--		if (gpio_pad_map[i] && i > 31) {
--			gpio_pads[gpio_amt].gpio = i;
--			gpio_pads[gpio_amt].offset = gpio_pad_map[i];
--			gpio_amt++;
--		}
--	}
--	gpio_pads[gpio_amt].gpio = -1;
--	return 0;
--}
--late_initcall(omap3_gpio_pads_init);
- #endif
- 
- static void __init omap_gpio_show_rev(void)
+> 
+> I had earlier submitted related patches; but 36x being considered
+> as 34x broke the logic. Before going on vacation I had created a
+> patch (against 2.6.32). Putting here for review (there are two
+> typos in this specific patch, pl ignore that):
+> 
+> Usage would be:
+> if (cpu_rev_eq(omap34xx, OMAP34XX_ES_1_0))
+maybe we could simplify this a bit(OMAP34XX prefix seems redundant):
+if (cpu_rev_eq(omap34xx, ES_1_0))?
+we should probably take the discussion seperately.
+
+> 
+> 
+> commit 6e4a9439fbc67eb2a55f440923cfade74c4509d2
+> Author: Sanjeev Premi <premi@ti.com>
+> Date:   Thu Jun 3 21:28:39 2010 +0530
+> 
+>     omap: Add macros to evaluate cpu revision
+> 
+>     This patch adds macros to evaluate the cpu revision.
+>     These macros increase readability by reducing the
+>     repetitive code when multiple silicon revisions have
+>     to be tested.
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/
+> index 7514174..7cc5611 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -70,6 +70,12 @@ unsigned int omap_rev(void);
+>  #define OMAP_REVBITS_20                0x20
+>  #define OMAP_REVBITS_30                0x30
+>  #define OMAP_REVBITS_40                0x40
+> +#define OMAP_REVBITS_50                0x50
+> +
+> +/*
+> + * Get the CPU Id for OMAP devices
+> + */
+> +#define GET_OMAP_ID()  ((omap_rev() >> 16) & 0xffff)
+> 
+>  /*
+>   * Get the CPU revision for OMAP devices
+> @@ -385,6 +391,12 @@ IS_OMAP_TYPE(3517, 0x3517)
+>  #define OMAP3505_REV(v)                (OMAP35XX_CLASS | (0x3505 << 16) | (v <<
+>  #define OMAP3517_REV(v)                (OMAP35XX_CLASS | (0x3517 << 16) | (v <<
+> 
+> +#define AM37XX_CLASS           0x37000034
+> +#define AM3703_REV(v)          (AM37XX_CLASS | (0x3503 << 16) | (v << 8))
+> +#define AM3715_REV(v)          (AM37XX_CLASS | (0x3515 << 16) | (v << 8))
+> +#define AM3725_REV(v)          (AM37XX_CLASS | (0x3525 << 16) | (v << 8))
+> +#define AM3730_REV(v)          (AM37XX_CLASS | (0x3530 << 16) | (v << 8))
+> +
+>  #define OMAP443X_CLASS         0x44300044
+>  #define OMAP4430_REV_ES1_0     0x44300044
+> 
+> @@ -458,4 +470,36 @@ OMAP3_HAS_FEATURE(neon, NEON)
+>  OMAP3_HAS_FEATURE(isp, ISP)
+>  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+> 
+> +/*
+> + * Map revision bits to silicon specific revisions
+> + */
+> +#define OMAP34XX_ES_1_0                OMAP_REVBITS_00
+> +#define OMAP34XX_ES_2_0                OMAP_REVBITS_10
+> +#define OMAP34XX_ES_2_1                OMAP_REVBITS_20
+> +#define OMAP34XX_ES_3_0                OMAP_REVBITS_30
+> +#define OMAP34XX_ES_3_1                OMAP_REVBITS_40
+> +#define OMAP34XX_ES_3_1_2      OMAP_REVBITS_50
+> +
+> +#define AM3517_ES_1_0          OMAP_REVBITS_00
+> +
+> +#define OMAP36XX_ES_1_0                OMAP_REVBITS_00
+> +
+> +/*
+> + * Macros to evaluate CPU revision
+> + */
+> +#define cpu_rev_lt(cpu,rev)    \
+> +       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() < (rev))) ? 1 : 0)
+> +
+> +#define cpu_rev_le(cpu,rev)    \
+> +       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() <= (rev))) ? 1 : 0)
+> +
+> +#define cpu_rev_eq(cpu,rev)    \
+> +       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() == (rev))) ? 1 : 0)
+> +
+> +#define cpu_rev_ge(cpu,rev)    \
+> +       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() >= (rev))) ? 1 : 0)
+> +
+> +#define cpu_rev_gt(cpu,rev)    \
+> +       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() > (rev))) ? 1 : 0)
+> +
+>  #endif
+> 
+> ~sanjeev
+> 
+>> -- 
+>> Regards,
+>> Nishanth Menon
+>>
+
+
 -- 
-1.7.1
-
+Regards,
+Nishanth Menon
