@@ -1,142 +1,37 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: optimized script [Was: ARM defconfig files]
-Date: Tue, 13 Jul 2010 10:07:05 +0200
-Message-ID: <20100713080705.GA20978@pengutronix.de>
-References: <20100712155518.GA24144@pengutronix.de> <AANLkTilhI9O6YwnuAylo_jNgwR8VXmpSVJ1kylIYPCGT@mail.gmail.com> <20100712173228.GC9897@n2100.arm.linux.org.uk> <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com> <20100712185029.GB14425@pengutronix.de> <AANLkTinOuU-VVXaMwMp69CBp2Y4wxpoWybEQ34H5j0lJ@mail.gmail.com> <alpine.LFD.2.00.1007121510260.10598@xanadu.home> <AANLkTim-O00n9YPv7w4VCKjN-ETLijyTHomWUn4mZtTV@mail.gmail.com> <AANLkTilDoGbCx_0oKKPOeGG7TKL2VSNVII5ydmnQ77B7@mail.gmail.com> <20100713070741.GB26442@pengutronix.de>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
+Date: Tue, 13 Jul 2010 09:20:12 +0100
+Message-ID: <20100713092012.7c1fe53e@lxorguk.ukuu.org.uk>
+References: <4C2D965F.5000206@codeaurora.org>
+	<20100710145639.GC10080@8bytes.org>
+	<4C3BFDD3.8040209@codeaurora.org>
+	<20100713145852C.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="qMm9M+Fa2AknHoGS"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54405 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752654Ab0GMIHc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 04:07:32 -0400
-Content-Disposition: inline
-In-Reply-To: <20100713070741.GB26442@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20100713145852C.fujita.tomonori@lab.ntt.co.jp>
+Sender: owner-linux-mm@kvack.org
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: zpfeffer@codeaurora.org, joro@8bytes.org, dwalker@codeaurora.org, andi@firstfloor.org, randy.dunlap@oracle.com, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Nicolas Pitre <nico@fluxnic.net>, Daniel Walker <dwalker@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-msm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Eric Miao <eric.miao@canonical.com>, linux-arm-kernel@lists.infradead.org, Stephen Rothwell <sfr@canb.auug.org.au>, Olof Johansson <olof@lixom.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org
 
+> Why video4linux can't use the DMA API? Doing DMA with vmalloc'ed
+> buffers is a thing that we should avoid (there are some exceptions
+> like xfs though).
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Vmalloc is about the only API for creating virtually linear memory areas.
+The video stuff really needs that to avoid lots of horrible special cases
+when doing buffer processing and the like.
 
-Hello,
+Pretty much each driver using it has a pair of functions 'rvmalloc' and
+'rvfree' so given a proper "vmalloc_for_dma()" type interface can easily
+be switched
 
-On Tue, Jul 13, 2010 at 09:07:41AM +0200, Uwe Kleine-König wrote:
-> Hi
-> 
-> On Mon, Jul 12, 2010 at 01:50:47PM -0600, Grant Likely wrote:
-> > On Mon, Jul 12, 2010 at 1:34 PM, Linus Torvalds
-> > <torvalds@linux-foundation.org> wrote:
-> > > On Mon, Jul 12, 2010 at 12:17 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
-> > >> I think Uwe could provide his script and add it to the kernel tree.
-> > >> Then all architectures could benefit from it.  Having the defconfig
-> > >> files contain only those options which are different from the defaults
-> > >> is certainly more readable, even on x86.
-> > >
-> > > Quite possible. But maintainers would need to be on the lookout of
-> > > people actually using the script, and refusing to apply patches that
-> > > re-introduce the whole big thing.
-> > 
-> > I can (partially) speak for powerpc.  If ARM uses this approach, then
-> > I think we can do the same.  After the defconfigs are trimmed, I
-> > certainly won't pick up any more full defconfigs.
-> I just restarted my script on the powerpc defconfigs basing on rc5, I
-> assume they complete in a few days time.
-So Stephen was faster than me.  I don't know yet how he optimised my
-script, meanwhile I put some efforts into it, too by just checking lines
-that match "^(# )?CONFIG_".
+Alan
 
-Find it attached.
-
-I will start to reduce the remaining configs (i.e. all but arm and
-powerpc).
-
-Best regards
-Uwe
-
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment; filename=reduce_defconfig
-Content-Transfer-Encoding: 8bit
-
-#! /usr/bin/env python
-# vim: set fileencoding=utf-8 :
-# Copyright (C) 2010 by Uwe Kleine-KÃ¶nig <u.kleine-koenig@pengutronix.de>
-
-import getopt
-import re
-import os
-import subprocess
-import sys
-
-# This prevents including a timestamp in the .config which makes comparing a
-# bit easier.
-os.environ['KCONFIG_NOTIMESTAMP'] = 'Yes, please'
-
-re_interesting = re.compile(r'^(# )?CONFIG_')
-
-opts, args = getopt.getopt(sys.argv[1:], '', ['arch=', 'src='])
-
-src = ''
-arch = 'arm'
-
-for o, a in opts:
-    if o == '--arch':
-        arch = a
-    elif o == '--src':
-        src = a
-
-configdir = os.path.join(src, 'arch', arch, 'configs')
-
-def all_defconfigs():
-    lc = len(configdir)
-    for root, dirs, files in os.walk(configdir):
-        root = root[lc + 1:]
-        for f in filter(lambda s: s.endswith('_defconfig'), files):
-            yield os.path.join(root, f)
-
-if not args:
-    args = all_defconfigs()
-
-for target in args:
-    defconfig_src = os.path.join(configdir, target)
-
-    subprocess.check_call(['make', '-s', 'ARCH=%s' % arch, target])
-    origconfig = list(open('.config'))
-    config = list(origconfig)
-    config_size = os.stat('.config').st_size
-
-    i = 0
-
-    while i < len(config):
-        mo = re_interesting.match(config[i])
-        if mo:
-            defconfig = open(defconfig_src, 'w')
-            defconfig.writelines(config[:i])
-            defconfig.writelines(config[i + 1:])
-            defconfig.close()
-            subprocess.check_call(['make', '-s', 'ARCH=%s' % arch, target])
-            if os.stat('.config').st_size == config_size and list(open('.config')) == origconfig:
-                print '-%s' % config[i][:-1]
-                del config[i]
-            else:
-                print ' %s' % config[i][:-1]
-                i += 1
-        else:
-            del config[i]
-
-    defconfig = open(defconfig_src, 'w')
-    defconfig.writelines(config)
-    defconfig.close()
-
---qMm9M+Fa2AknHoGS--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
