@@ -1,55 +1,98 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Tue, 13 Jul 2010 10:02:23 +0100
-Message-ID: <20100713090223.GB20590@n2100.arm.linux.org.uk>
-References: <20100713092012.7c1fe53e@lxorguk.ukuu.org.uk> <20100713173028M.fujita.tomonori@lab.ntt.co.jp> <20100713094244.7eb84f1b@lxorguk.ukuu.org.uk> <20100713174519D.fujita.tomonori@lab.ntt.co.jp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20100713174519D.fujita.tomonori@lab.ntt.co.jp>
-Sender: owner-linux-mm@kvack.org
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, joro@8bytes.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, zpfeffer@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] omap2: fix assorted compiler warnings
+Date: Tue, 13 Jul 2010 15:54:10 +0530
+Message-ID: <1279016650-20459-1-git-send-email-premi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39714 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756719Ab0GMKYS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 06:24:18 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6DAOF0H024146
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 13 Jul 2010 05:24:17 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On Tue, Jul 13, 2010 at 05:45:39PM +0900, FUJITA Tomonori wrote:
-> Drivers can tell the USB layer that these are vmapped buffers? Adding
-> something to struct urb? I might be totally wrong since I don't know
-> anything about the USB layer.
+This patch fixes these compiler warnings:
 
-With non-DMA coherent aliasing caches, you need to know where the page
-is mapped into the virtual address space, so you can deal with aliases.
+  CC      arch/arm/mach-omap2/mux.o
+arch/arm/mach-omap2/mux.c: In function 'omap_mux_init_gpio':
+arch/arm/mach-omap2/mux.c:90: warning: 'gpio_mux' may be used uninitial
+ized in this function
 
-You'd need to tell the USB layer about the other mappings of the page
-which you'd like to be coherent (such as the vmalloc area - and there's
-also the possible userspace mapping to think about too, but that's
-a separate issue.)
+  CC      arch/arm/plat-omap/gpio.o
+arch/arm/plat-omap/gpio.c: In function 'omap2_gpio_resume_after_idle':
+arch/arm/plat-omap/gpio.c:2152: warning: 'l' may be used uninitialized
+in this function
+arch/arm/plat-omap/gpio.c: In function 'omap2_gpio_prepare_for_idle':
+arch/arm/plat-omap/gpio.c:2085: warning: 'l2' may be used uninitialized
+in this function
+arch/arm/plat-omap/gpio.c:2085: warning: 'l1' may be used uninitialized
+in this function
 
-I wonder if we should have had:
+  CC      arch/arm/mach-omap2/board-omap4panda.o
+arch/arm/mach-omap2/board-omap4panda.c: In function 'omap4_panda_init':
+arch/arm/mach-omap2/board-omap4panda.c:277: warning: unused variable 's
+tatus'
 
-	vmalloc_prepare_dma(void *, size_t, enum dma_direction)
-	vmalloc_finish_dma(void *, size_t, enum dma_direction)
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |    2 --
+ arch/arm/mach-omap2/mux.c              |    2 +-
+ arch/arm/plat-omap/gpio.c              |    4 ++--
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
-rather than flush_kernel_vmap_range and invalidate_kernel_vmap_range,
-which'd make their use entirely obvious.
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index c03d1d5..96f5bbb 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -274,8 +274,6 @@ static int __init omap4_panda_i2c_init(void)
+ }
+ static void __init omap4_panda_init(void)
+ {
+-	int status;
+-
+ 	omap4_panda_i2c_init();
+ 	omap_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index ab403b2..2ffacc1 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -87,7 +87,7 @@ static char *omap_mux_options;
+ int __init omap_mux_init_gpio(int gpio, int val)
+ {
+ 	struct omap_mux_entry *e;
+-	struct omap_mux *gpio_mux;
++	struct omap_mux *gpio_mux=NULL;
+ 	u16 old_mode;
+ 	u16 mux_mode;
+ 	int found = 0;
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 9b7e354..831e6bc 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -2082,7 +2082,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
+ 
+ 	for (i = min; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+-		u32 l1, l2;
++		u32 l1=0, l2=0;
+ 
+ 		if (bank->dbck_enable_mask)
+ 			clk_disable(bank->dbck);
+@@ -2149,7 +2149,7 @@ void omap2_gpio_resume_after_idle(void)
+ 		min = 1;
+ 	for (i = min; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+-		u32 l, gen, gen0, gen1;
++		u32 l=0, gen, gen0, gen1;
+ 
+ 		if (bank->dbck_enable_mask)
+ 			clk_enable(bank->dbck);
+-- 
+1.6.6.1
 
-However, this brings up a question - how does the driver (eg, v4l, xfs)
-which is preparing the buffer for another driver (eg, usb host, block
-dev) know that DMA will be performed on the buffer rather than PIO?
-
-That's a very relevant question, because for speculatively prefetching
-CPUs, we need to invalidate caches after a DMA-from-device operation -
-but if PIO-from-device happened, this would destroy data read from the
-device.
-
-That problem goes away if we decide that PIO drivers must have the same
-apparant semantics as DMA drivers - in that data must end up beyond the
-point of DMA coherency (eg, physical page) - but that's been proven to
-be very hard to achieve, especially with block device drivers.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
