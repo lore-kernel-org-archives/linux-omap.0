@@ -1,111 +1,1325 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: optimized script [Was: ARM defconfig files]
-Date: Tue, 13 Jul 2010 13:04:02 -0500
-Message-ID: <20100713180402.GA1422@lixom.net>
-References: <AANLkTilhI9O6YwnuAylo_jNgwR8VXmpSVJ1kylIYPCGT@mail.gmail.com>
-	<20100712173228.GC9897@n2100.arm.linux.org.uk>
-	<AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com>
-	<20100712185029.GB14425@pengutronix.de>
-	<AANLkTinOuU-VVXaMwMp69CBp2Y4wxpoWybEQ34H5j0lJ@mail.gmail.com>
-	<alpine.LFD.2.00.1007121510260.10598@xanadu.home>
-	<AANLkTim-O00n9YPv7w4VCKjN-ETLijyTHomWUn4mZtTV@mail.gmail.com>
-	<AANLkTilDoGbCx_0oKKPOeGG7TKL2VSNVII5ydmnQ77B7@mail.gmail.com>
-	<20100713070741.GB26442@pengutronix.de>
-	<20100713080705.GA20978@pengutronix.de>
+From: Rob Landley <rob@landley.net>
+Subject: Re: ARM defconfig files
+Date: Tue, 13 Jul 2010 13:32:17 -0500
+Message-ID: <201007131332.25520.rob@landley.net>
+References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org> <201007121605.32462.davidb@codeaurora.org> <AANLkTimho3rcoCZZ2PlC3B3KIZZhsEiTnTk-__n1q_Dy@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20100713080705.GA20978@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Daniel Walker <dwalker@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-msm@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_5ELPMVip7ZeO3lz"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimho3rcoCZZ2PlC3B3KIZZhsEiTnTk-__n1q_Dy@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: David Brown <davidb@codeaurora.org>, Uwe =?iso-8859-1?q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 13, 2010 at 10:07:05AM +0200, Uwe Kleine-K=F6nig wrote:
-> Hello,
-> =
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> On Tue, Jul 13, 2010 at 09:07:41AM +0200, Uwe Kleine-K=F6nig wrote:
-> > Hi
-> > =
+On Monday 12 July 2010 18:18:01 Linus Torvalds wrote:
+> 2010/7/12 David Brown <davidb@codeaurora.org>:
+> > Do you have scripts or tools that you did this with, or is a manual
+> > process.  We're about to add several new (ARM) targets, and it'd be
+> > nice to be able to make small defconfigs for those targets as well.
+>
+> Uwe posted it earlier in this thread as an attachement, and I put the
+> python script into the merge commit message too. And we should
+> probably put it somewhere in scripts too, and/or make a 'make' target
+> to create the small config files.
+>
+> I pushed it all out, and tagged it as -rc5.
 
-> > On Mon, Jul 12, 2010 at 01:50:47PM -0600, Grant Likely wrote:
-> > > On Mon, Jul 12, 2010 at 1:34 PM, Linus Torvalds
-> > > <torvalds@linux-foundation.org> wrote:
-> > > > On Mon, Jul 12, 2010 at 12:17 PM, Nicolas Pitre <nico@fluxnic.net> =
-wrote:
-> > > >> I think Uwe could provide his script and add it to the kernel tree.
-> > > >> Then all architectures could benefit from it. =A0Having the defcon=
-fig
-> > > >> files contain only those options which are different from the defa=
-ults
-> > > >> is certainly more readable, even on x86.
-> > > >
-> > > > Quite possible. But maintainers would need to be on the lookout of
-> > > > people actually using the script, and refusing to apply patches that
-> > > > re-introduce the whole big thing.
-> > > =
+FYI, I repeatedly submitted a bash script to do this back in 2005, with 
+documentation and makefile changes to call it and so on.
 
-> > > I can (partially) speak for powerpc.  If ARM uses this approach, then
-> > > I think we can do the same.  After the defconfigs are trimmed, I
-> > > certainly won't pick up any more full defconfigs.
-> > I just restarted my script on the powerpc defconfigs basing on rc5, I
-> > assume they complete in a few days time.
-> So Stephen was faster than me.  I don't know yet how he optimised my
-> script, meanwhile I put some efforts into it, too by just checking lines
-> that match "^(# )?CONFIG_".
-> =
+  http://lwn.net/Articles/161086/
 
-> Find it attached.
-> =
+The current version of that script is is in my mercurial archive here:
 
-> I will start to reduce the remaining configs (i.e. all but arm and
-> powerpc).
+  http://impactlinux.com/hg/hgwebdir.cgi/aboriginal/file/tip/sources/toys/miniconfig.sh
 
-I added just a simple heuristic: If I could remove a line, I attempted
-to remove twice the amount next time around (and fall back to 1 if it faile=
-d).
+I'm still using it in my Aboriginal Linux project.  (Not just for the kernel, 
+but for busybox and uClibc too.)
 
-I.e. main loop:
+Attached are miniconfigs I use for a dozen or so QEMU targets.  (The project is 
+trying to build kernels aimed at every qemu system emulation.  I've got maybe 
+2/3 of them so far.  Arm, mips, sh4, x86, x86_64, sparc...)
 
-i =3D 0
-lines =3D 1
+They're used to create the system-image tarballs here:
 
-while i < len(config):
-    print 'test for %r + %d' % (config[i], lines)
-    defconfig =3D open(defconfig_src, 'w')
-    defconfig.writelines(config[:i])
-    defconfig.writelines(config[i + lines:])
-    defconfig.close()
-    subprocess.check_call(['make', '-s', 'ARCH=3D%s' % arch, target])
-    if os.stat('.config').st_size =3D=3D config_size and list(open('.config=
-')) =3D=3D origconfig:
-        del config[i:i+lines]
-        lines *=3D 2
-    else:
-        if lines > 1:
-            lines =3D 1
-        else:
-            i +=3D 1
+  http://impactlinux.com/aboriginal/downloads/binaries/
+
+You can download that for that target that interests you, extract it, and use 
+run-emulator.sh to launch it under qemu.  I have a cron job that does cross-
+platform regression testing, spitting /dev/console to a log file on the host.
+
+By the way, my build is generating those miniconfigs via a common "baseconfig" 
+file to which I append the target-specific stuff.  For example, my current 
+baseconfig is:
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+Then for mips I append:
+
+CONFIG_MIPS_MALTA=y
+CONFIG_CPU_MIPS32_R2=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+#CONFIG_PM=y
+CONFIG_PCNET32=y
+CONFIG_BLK_DEV_PIIX=y
+
+Or for x86_64 it's:
+
+CONFIG_ACPI=y
+CONFIG_BLK_DEV_PIIX=y
+CONFIG_NETDEV_1000=y
+CONFIG_E1000=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+
+And for armv4tl it's this big long saga (yes, with comments):
+
+# Processor config
+
+# QEMU patch: http://www.mail-archive.com/qemu-devel@nongnu.org/msg19370.html
+# and QEMU option '-cpu arm920t' enable CONFIG_CPU_ARM920T=y which is the
+# processor that actually _needs_ this code.  But until then, qemu can only
+# emulate an armv5 CPU...
+
+CONFIG_CPU_ARM926T=y
+CONFIG_MMU=y
+CONFIG_VFP=y
+CONFIG_ARM_THUMB=y
+CONFIG_AEABI=y
+
+# Versatile board
+
+CONFIG_ARCH_VERSATILE_PB=y
+CONFIG_PCI_LEGACY=y
+CONFIG_SERIAL_NONSTANDARD=y
+CONFIG_SERIAL_AMBA_PL011=y
+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+CONFIG_RTC_DRV_PL031=y
+CONFIG_SCSI_SYM53C8XX_2=y
+CONFIG_SCSI_SYM53C8XX_DMA_ADDRESSING_MODE=0
+CONFIG_SCSI_SYM53C8XX_MMIO=y
+
+Rob
+-- 
+GPLv3: as worthy a successor as The Phantom Meanace, as timely as Duke Nukem 
+Forever, and as welcome as New Coke.
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-armv4eb"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-armv4eb"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_CPU_ARM926T=y
+CONFIG_MMU=y
+CONFIG_ARCH_VERSATILE_PB=y
+CONFIG_MACH_VERSATILE_AB=y
+CONFIG_CPU_ARM926T=y
+CONFIG_ARM_THUMB=y
+CONFIG_SERIAL_NONSTANDARD=y
+CONFIG_SERIAL_AMBA_PL011=y
+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+CONFIG_RTC_DRV_PL031=y
 
 
-I didn't measure what the actual improvement was, but I saw a fair amount
-of 2/4/8-attempts passing, so I let it run. Stephen beat me to posting
-the resulting patch though. :P
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-armv4l"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-armv4l"
 
-While this script is great, it is somewhat painful to run given that it
-attempts one config per line. Even on a fast machine that tends to take
-a while.
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
 
 
--Olof
+# Processor config
+
+# QEMU patch: http://www.mail-archive.com/qemu-devel@nongnu.org/msg19370.html
+# and QEMU option '-cpu arm920t' enable CONFIG_CPU_ARM920T=y which is the
+# processor that actually _needs_ this code.  But until then, qemu can only
+# emulate an armv5 CPU...
+
+CONFIG_CPU_ARM926T=y
+CONFIG_MMU=y
+CONFIG_ARM_THUMB=y
+CONFIG_AEABI=y
+
+# Versatile board
+
+CONFIG_ARCH_VERSATILE_PB=y
+CONFIG_PCI_LEGACY=y
+CONFIG_SERIAL_NONSTANDARD=y
+CONFIG_SERIAL_AMBA_PL011=y
+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+CONFIG_RTC_DRV_PL031=y
+CONFIG_SCSI_SYM53C8XX_2=y
+CONFIG_SCSI_SYM53C8XX_DMA_ADDRESSING_MODE=0
+CONFIG_SCSI_SYM53C8XX_MMIO=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-armv4tl"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-armv4tl"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+
+# Processor config
+
+# QEMU patch: http://www.mail-archive.com/qemu-devel@nongnu.org/msg19370.html
+# and QEMU option '-cpu arm920t' enable CONFIG_CPU_ARM920T=y which is the
+# processor that actually _needs_ this code.  But until then, qemu can only
+# emulate an armv5 CPU...
+
+CONFIG_CPU_ARM926T=y
+CONFIG_MMU=y
+CONFIG_VFP=y
+CONFIG_ARM_THUMB=y
+CONFIG_AEABI=y
+
+# Versatile board
+
+CONFIG_ARCH_VERSATILE_PB=y
+CONFIG_PCI_LEGACY=y
+CONFIG_SERIAL_NONSTANDARD=y
+CONFIG_SERIAL_AMBA_PL011=y
+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+CONFIG_RTC_DRV_PL031=y
+CONFIG_SCSI_SYM53C8XX_2=y
+CONFIG_SCSI_SYM53C8XX_DMA_ADDRESSING_MODE=0
+CONFIG_SCSI_SYM53C8XX_MMIO=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-armv5l"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-armv5l"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+
+# Processor config
+
+CONFIG_CPU_ARM926T=y
+CONFIG_MMU=y
+CONFIG_VFP=y
+CONFIG_ARM_THUMB=y
+CONFIG_AEABI=y
+
+# Versatile board
+
+CONFIG_ARCH_VERSATILE_PB=y
+CONFIG_PCI_LEGACY=y
+CONFIG_SERIAL_NONSTANDARD=y
+CONFIG_SERIAL_AMBA_PL011=y
+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+CONFIG_RTC_DRV_PL031=y
+CONFIG_SCSI_SYM53C8XX_2=y
+CONFIG_SCSI_SYM53C8XX_DMA_ADDRESSING_MODE=0
+CONFIG_SCSI_SYM53C8XX_MMIO=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-armv6l"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-armv6l"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+
+# Processor config
+
+CONFIG_CPU_V6=y
+CONFIG_MMU=y
+CONFIG_ARM_THUMB=y
+CONFIG_AEABI=y
+CONFIG_VFP=y
+
+# Versatile board
+
+CONFIG_ARCH_VERSATILE_PB=y
+CONFIG_PCI_LEGACY=y
+CONFIG_SERIAL_NONSTANDARD=y
+CONFIG_SERIAL_AMBA_PL011=y
+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+CONFIG_RTC_DRV_PL031=y
+CONFIG_SCSI_SYM53C8XX_2=y
+CONFIG_SCSI_SYM53C8XX_DMA_ADDRESSING_MODE=0
+CONFIG_SCSI_SYM53C8XX_MMIO=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-i486"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-i486"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_M486=y
+CONFIG_ACPI=y
+CONFIG_BLK_DEV_PIIX=y
+CONFIG_NETDEV_1000=y
+CONFIG_E1000=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-i586"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-i586"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_M586=y
+CONFIG_ACPI=y
+CONFIG_BLK_DEV_PIIX=y
+CONFIG_NETDEV_1000=y
+CONFIG_E1000=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-i686"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-i686"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_MPENTIUMII=y
+CONFIG_ACPI=y
+CONFIG_BLK_DEV_PIIX=y
+CONFIG_NETDEV_1000=y
+CONFIG_E1000=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-mips"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-mips"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_MIPS_MALTA=y
+CONFIG_CPU_MIPS32_R2=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+#CONFIG_PM=y
+CONFIG_PCNET32=y
+CONFIG_BLK_DEV_PIIX=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-mips64"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-mips64"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_CPU_MIPS64_R1=y
+CONFIG_64BIT=y
+CONFIG_MIPS_MALTA=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_PCNET32=y
+CONFIG_BLK_DEV_PIIX=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-mipsel"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-mipsel"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_MIPS_MALTA=y
+CONFIG_CPU_LITTLE_ENDIAN=y
+CONFIG_CPU_MIPS32_R2=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_PCNET32=y
+CONFIG_BLK_DEV_PIIX=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-powerpc"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-powerpc"
+
+CONFIG_ALTIVEC=y
+CONFIG_EXPERIMENTAL=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_COMPAT_BRK=y
+CONFIG_SLAB=y
+CONFIG_LBDAF=y
+CONFIG_PPC_PMAC=y
+CONFIG_PPC_OF_BOOT_TRAMPOLINE=y
+CONFIG_PPC601_SYNC_FIX=y
+CONFIG_HIGHMEM=y
+CONFIG_NO_HZ=y
+CONFIG_BINFMT_ELF=y
+CONFIG_PROC_DEVICETREE=y
+CONFIG_PM=y
+CONFIG_SECCOMP=y
+CONFIG_PCCARD=y
+CONFIG_PCMCIA=y
+CONFIG_PCMCIA_LOAD_CIS=y
+CONFIG_PCMCIA_IOCTL=y
+CONFIG_YENTA=y
+CONFIG_ADVANCED_OPTIONS=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_INET_LRO=y
+CONFIG_PREVENT_FIRMWARE_BUILD=y
+CONFIG_FIRMWARE_IN_KERNEL=y
+CONFIG_CONNECTOR=y
+CONFIG_PROC_EVENTS=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_IDE_PROC_FS=y
+CONFIG_BLK_DEV_CMD64X=y
+CONFIG_BLK_DEV_IDE_PMAC=y
+CONFIG_IEEE1394=y
+CONFIG_IEEE1394_OHCI1394=y
+CONFIG_IEEE1394_ETH1394=y
+CONFIG_IEEE1394_RAWIO=y
+CONFIG_IEEE1394_VIDEO1394=y
+CONFIG_IEEE1394_DV1394=y
+CONFIG_MACINTOSH_DRIVERS=y
+CONFIG_ADB=y
+CONFIG_ADB_CUDA=y
+CONFIG_ADB_PMU=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_MACE=y
+CONFIG_BMAC=y
+CONFIG_HAPPYMEAL=y
+CONFIG_SUNGEM=y
+CONFIG_CASSINI=y
+CONFIG_NET_PCI=y
+CONFIG_PCNET32=y
+CONFIG_NE2K_PCI=y
+CONFIG_8139CP=y
+CONFIG_8139TOO=y
+CONFIG_8139TOO_PIO=y
+CONFIG_SERIO=y
+CONFIG_SERIAL_PMACZILOG=y
+CONFIG_SERIAL_PMACZILOG_TTYS=y
+CONFIG_SERIAL_PMACZILOG_CONSOLE=y
+CONFIG_HW_RANDOM=y
+CONFIG_SSB=y
+CONFIG_SSB_PCIHOST=y
+CONFIG_SSB_PCMCIAHOST=y
+CONFIG_SSB_DRIVER_PCICORE=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_DNOTIFY=y
+CONFIG_INOTIFY=y
+CONFIG_INOTIFY_USER=y
+CONFIG_PROC_KCORE=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_LIBCRC32C=y
+CONFIG_BOOTX_TEXT=y
+CONFIG_CRYPTO_HW=y
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-powerpc-440fp"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-powerpc-440fp"
+
+CONFIG_ALTIVEC=y
+CONFIG_EXPERIMENTAL=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_COMPAT_BRK=y
+CONFIG_SLAB=y
+CONFIG_LBDAF=y
+CONFIG_PPC_PMAC=y
+CONFIG_PPC_OF_BOOT_TRAMPOLINE=y
+CONFIG_PPC601_SYNC_FIX=y
+CONFIG_HIGHMEM=y
+CONFIG_NO_HZ=y
+CONFIG_BINFMT_ELF=y
+CONFIG_PROC_DEVICETREE=y
+CONFIG_PM=y
+CONFIG_SECCOMP=y
+CONFIG_PCCARD=y
+CONFIG_PCMCIA=y
+CONFIG_PCMCIA_LOAD_CIS=y
+CONFIG_PCMCIA_IOCTL=y
+CONFIG_YENTA=y
+CONFIG_ADVANCED_OPTIONS=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_INET_LRO=y
+CONFIG_PREVENT_FIRMWARE_BUILD=y
+CONFIG_FIRMWARE_IN_KERNEL=y
+CONFIG_CONNECTOR=y
+CONFIG_PROC_EVENTS=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_IDE_PROC_FS=y
+CONFIG_BLK_DEV_CMD64X=y
+CONFIG_BLK_DEV_IDE_PMAC=y
+CONFIG_IEEE1394=y
+CONFIG_IEEE1394_OHCI1394=y
+CONFIG_IEEE1394_ETH1394=y
+CONFIG_IEEE1394_RAWIO=y
+CONFIG_IEEE1394_VIDEO1394=y
+CONFIG_IEEE1394_DV1394=y
+CONFIG_MACINTOSH_DRIVERS=y
+CONFIG_ADB=y
+CONFIG_ADB_CUDA=y
+CONFIG_ADB_PMU=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_MACE=y
+CONFIG_BMAC=y
+CONFIG_HAPPYMEAL=y
+CONFIG_SUNGEM=y
+CONFIG_CASSINI=y
+CONFIG_NET_PCI=y
+CONFIG_PCNET32=y
+CONFIG_NE2K_PCI=y
+CONFIG_8139CP=y
+CONFIG_8139TOO=y
+CONFIG_8139TOO_PIO=y
+CONFIG_SERIO=y
+CONFIG_SERIAL_PMACZILOG=y
+CONFIG_SERIAL_PMACZILOG_TTYS=y
+CONFIG_SERIAL_PMACZILOG_CONSOLE=y
+CONFIG_HW_RANDOM=y
+CONFIG_SSB=y
+CONFIG_SSB_PCIHOST=y
+CONFIG_SSB_PCMCIAHOST=y
+CONFIG_SSB_DRIVER_PCICORE=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_DNOTIFY=y
+CONFIG_INOTIFY=y
+CONFIG_INOTIFY_USER=y
+CONFIG_PROC_KCORE=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_LIBCRC32C=y
+CONFIG_BOOTX_TEXT=y
+CONFIG_CRYPTO_HW=y
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-sh4"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-sh4"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_LOG_BUF_SHIFT=14
+CONFIG_SYSFS_DEPRECATED_V2=y
+CONFIG_UID16=y
+CONFIG_KALLSYMS=y
+CONFIG_HOTPLUG=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_SHMEM=y
+CONFIG_AIO=y
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_PCI_QUIRKS=y
+CONFIG_COMPAT_BRK=y
+CONFIG_SLAB=y
+CONFIG_PROFILING=y
+CONFIG_OPROFILE=y
+CONFIG_BLOCK=y
+CONFIG_IOSCHED_AS=y
+CONFIG_IOSCHED_DEADLINE=y
+CONFIG_IOSCHED_CFQ=y
+CONFIG_DEFAULT_AS=y
+CONFIG_CPU_SUBTYPE_SH7751R=y
+CONFIG_MMU=y
+CONFIG_MEMORY_START=0x0c000000
+CONFIG_VSYSCALL=y
+CONFIG_FLATMEM_MANUAL=y
+CONFIG_SH_FPU=y
+CONFIG_SH_RTS7751R2D=y
+CONFIG_RTS7751R2D_PLUS=y
+CONFIG_SH_TIMER_TMU=y
+CONFIG_NO_HZ=y
+CONFIG_HEARTBEAT=y
+CONFIG_PCI=y
+CONFIG_SH_PCIDMA_NONCOHERENT=y
+CONFIG_PCI_LEGACY=y
+CONFIG_HOTPLUG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_INET_XFRM_MODE_TRANSPORT=y
+CONFIG_INET_XFRM_MODE_TUNNEL=y
+CONFIG_INET_XFRM_MODE_BEET=y
+CONFIG_INET_DIAG=y
+CONFIG_WIRELESS=y
+CONFIG_WIRELESS_EXT=y
+CONFIG_WIRELESS_EXT_SYSFS=y
+CONFIG_STANDALONE=y
+CONFIG_PREVENT_FIRMWARE_BUILD=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_RAM=y
+CONFIG_MISC_DEVICES=y
+CONFIG_SCSI_PROC_FS=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_ATA=y
+CONFIG_SATA_PMP=y
+CONFIG_ATA_SFF=y
+CONFIG_PATA_PLATFORM=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_8139TOO=y
+CONFIG_NETDEV_1000=y
+CONFIG_NETDEV_10000=y
+CONFIG_VT=y
+CONFIG_CONSOLE_TRANSLATIONS=y
+CONFIG_VT_CONSOLE=y
+CONFIG_VT_HW_CONSOLE_BINDING=y
+CONFIG_DEVKMEM=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_PCI=y
+CONFIG_SERIAL_SH_SCI=y
+CONFIG_SERIAL_SH_SCI_NR_UARTS=1
+CONFIG_SERIAL_SH_SCI_CONSOLE=y
+CONFIG_UNIX98_PTYS=y
+CONFIG_LEGACY_PTYS=y
+CONFIG_HW_RANDOM=y
+CONFIG_SPI=y
+CONFIG_SPI_SH_SCI=y
+CONFIG_HWMON=y
+CONFIG_MFD_SM501=y
+CONFIG_FB=y
+CONFIG_FB_SM501=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+CONFIG_LOGO=y
+CONFIG_LOGO_SUPERH_CLUT224=y
+CONFIG_SOUND=y
+CONFIG_HID_SUPPORT=y
+CONFIG_USB_HID=y
+CONFIG_HID_A4TECH=y
+CONFIG_HID_APPLE=y
+CONFIG_HID_BELKIN=y
+CONFIG_HID_CHERRY=y
+CONFIG_HID_CHICONY=y
+CONFIG_HID_CYPRESS=y
+CONFIG_HID_EZKEY=y
+CONFIG_HID_GYRATION=y
+CONFIG_HID_LOGITECH=y
+CONFIG_HID_MICROSOFT=y
+CONFIG_HID_MONTEREY=y
+CONFIG_HID_PANTHERLORD=y
+CONFIG_HID_PETALYNX=y
+CONFIG_HID_SAMSUNG=y
+CONFIG_HID_SONY=y
+CONFIG_HID_SUNPLUS=y
+CONFIG_USB_SUPPORT=y
+CONFIG_USB=y
+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+CONFIG_USB_DEVICE_CLASS=y
+CONFIG_USB_OHCI_HCD=y
+CONFIG_USB_STORAGE=y
+CONFIG_USB_LIBUSUAL=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_PROC=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_RTC_DRV_R9701=y
+CONFIG_EXT2_FS=y
+CONFIG_FILE_LOCKING=y
+CONFIG_DNOTIFY=y
+CONFIG_INOTIFY=y
+CONFIG_INOTIFY_USER=y
+CONFIG_MSDOS_FS=y
+CONFIG_VFAT_FS=y
+CONFIG_PROC_FS=y
+CONFIG_PROC_KCORE=y
+CONFIG_PROC_SYSCTL=y
+CONFIG_PROC_PAGE_MONITOR=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MINIX_FS=y
+CONFIG_NETWORK_FILESYSTEMS=y
+CONFIG_NLS_CODEPAGE_932=y
+CONFIG_ENABLE_WARN_DEPRECATED=y
+CONFIG_ENABLE_MUST_CHECK=y
+CONFIG_EARLY_SCIF_CONSOLE=y
+CONFIG_EARLY_PRINTK=y
+CONFIG_CRYPTO_HW=y
+CONFIG_CRC_T10DIF=y
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-sparc"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-sparc"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_SCSI_SUNESP=y
+CONFIG_SUNLANCE=y
+CONFIG_SERIAL_SUNZILOG=y
+CONFIG_SERIAL_SUNZILOG_CONSOLE=y
+CONFIG_SUN_MOSTEK_RTC=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="miniconfig-x86_64"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="miniconfig-x86_64"
+
+CONFIG_EXPERIMENTAL=y
+CONFIG_NO_HZ=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_PCI=y
+CONFIG_BINFMT_ELF=y
+CONFIG_NET=y
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+CONFIG_INET=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_IDE=y
+CONFIG_IDE_GD=y
+CONFIG_IDE_GD_ATA=y
+CONFIG_BLK_DEV_IDECD=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_BLK_DEV_SR=y
+CONFIG_SCSI_LOWLEVEL=y
+CONFIG_NETDEVICES=y
+CONFIG_NET_ETHERNET=y
+CONFIG_NET_PCI=y
+CONFIG_8139CP=y
+CONFIG_HW_RANDOM=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_DEV=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+CONFIG_TMPFS=y
+CONFIG_MISC_FILESYSTEMS=y
+CONFIG_SQUASHFS=y
+CONFIG_MAGIC_SYSRQ=y
+
+CONFIG_ACPI=y
+CONFIG_BLK_DEV_PIIX=y
+CONFIG_NETDEV_1000=y
+CONFIG_E1000=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+
+
+--Boundary-00=_5ELPMVip7ZeO3lz--
