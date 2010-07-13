@@ -1,81 +1,181 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PM-OPP][PATCH 2/4] OMAP: Correct the return value check after
- call into find_device_opp
-Date: Tue, 13 Jul 2010 09:42:04 -0500
-Message-ID: <4C3C7B3C.9090704@ti.com>
-References: <1279000026-24042-1-git-send-email-thara@ti.com> <1279000026-24042-2-git-send-email-thara@ti.com> <1279000026-24042-3-git-send-email-thara@ti.com> <4C3C5AA6.8020303@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0323A2BCB7@dbde02.ent.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 3/9 v3] omap: generic: introduce a single check_revision
+Date: Tue, 13 Jul 2010 20:36:31 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7AADBE1@dbde02.ent.ti.com>
+References: <1278590256.3787.14.camel@Nokia-N900>
+ <20100708122157.GI1920@atomide.com> <4C35E04B.1090102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40512 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42199 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756565Ab0GMOmI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jul 2010 10:42:08 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323A2BCB7@dbde02.ent.ti.com>
+	id S1754713Ab0GMPGu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 11:06:50 -0400
+In-Reply-To: <4C35E04B.1090102@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Premi, Sanjeev" <premi@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, Angelo Arrifano <miknix@gmail.com>, "Zebediah C. McClure" <zmc@lurian.net>, Alistair Buxton <a.j.buxton@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "ValkeinenTomi (Nokia-MS/Helsinki)" <Tomi.Valkeinen@nokia.com>, "Koskinen Aaro (Nokia-MS/Helsinki)" <aaro.koskinen@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "S, Vishwanath" <vishwa.s@ti.com>
 
-Gopinath, Thara had written, on 07/13/2010 09:32 AM, the following:
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Thursday, July 08, 2010 7:57 PM
+> To: Tony Lindgren
+> Cc: felipe.balbi@nokia.com; linux-omap; Angelo Arrifano; 
+> Zebediah C. McClure; Alistair Buxton; Grazvydas Ignotas; Paul 
+> Walmsley; Premi, Sanjeev; Shilimkar, Santosh; Guruswamy, 
+> Senthilvadivu; Kevin Hilman; DebBarma, Tarun Kanti; 
+> ValkeinenTomi (Nokia-MS/Helsinki); Koskinen Aaro 
+> (Nokia-MS/Helsinki); Pandita, Vikram; S, Vishwanath
+> Subject: Re: [PATCH 3/9 v3] omap: generic: introduce a single 
+> check_revision
 > 
->>> -----Original Message-----
->>> From: Menon, Nishanth
->>> Sent: Tuesday, July 13, 2010 5:53 PM
->>> To: Gopinath, Thara
->>> Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; paul@pwsan.com; tony@atomide.com;
->>> Cousson, Benoit; Sawant, Anand; Sripathy, Vishwanath; Premi, Sanjeev
->>> Subject: Re: [PM-OPP][PATCH 2/4] OMAP: Correct the return value check after call into find_device_opp
->>>
->>> Gopinath, Thara had written, on 07/13/2010 12:47 AM, the following:
->>>> Earlier we were checking on !dev_opp where as find_device_opp returns
->>>> a error pointer in case of error. So correcting the check as in the earlier
->>>> code even if find_device_opp returns an error opp_init_cpufreq_table
->>>> was not exiting.
->>>>
->>>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>>> ---
->>>>  arch/arm/plat-omap/opp.c |    4 +++-
->>>>  1 files changed, 3 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
->>>> index a06b88d..d88a2e0 100644
->>>> --- a/arch/arm/plat-omap/opp.c
->>>> +++ b/arch/arm/plat-omap/opp.c
->>>> @@ -457,8 +457,10 @@ void opp_init_cpufreq_table(struct device *dev,
->>>>  	int i = 0;
->>>>
->>>>  	dev_opp = find_device_opp(dev);
->>>> -	if (WARN_ON(!dev_opp))
->>>> +	if (IS_ERR(dev_opp)) {
->>>> +		WARN_ON(1);
->>> could we use pr_warning here instead of WARN_ON?
-> The WARN_ON was already in the code. Added by you or Kevin. I just corrected the error checking.
-
-:) using a WARN_ON() for an operational code is not a good idea - who 
-ever added it (git annotate can help you there). WARN_ON(1) give no 
-useful information when debugging in the field - just gives a line 
-number and function name which changes btw.. useful info is something like:
-pr_warning("%s: failed to find device\n", __func__);
-
-useful when someone posts a log and we need to debug such logic.. esp 
-useful after a period of time.
-
+> Tony Lindgren had written, on 07/08/2010 07:21 AM, the following:
+> > * Menon, Nishanth <nm@ti.com> [100708 14:49]:
+> >> ----- Original message -----
+> >>> Hi,
+> >>>
+> >>> On Wed, Jul 07, 2010 at 07:24:16PM +0200, ext Nishanth 
+> Menon wrote:
+> >>>> I am not sure.. if you would like drivers to be 
+> modprobabe, there may
+> >>> be
+> >>>> quirks that you'd want to enable based on cpu_is_omapxxx 
+> checks. so it
+> >>>> probably does not make sense to __initdata the revision/feature
+> >>> variables.
+> >>>
+> >>> can't you pass the quirks via pdata, then ?
+> >> If pdata is passed based on board: Imagine 3630 and uart 
+> quirk. Why share errata xyz over pdata for every board using 
+> 3630? Quirks are cpu specific and not really domain of board..  
+> > 
+> > We should be able to handle the quirks by passing some
+> > flag or function pointer from platform data.
+> > 
+> > The drivers should be arch independent, using cpu_is_omapxxxx
+> > tests anywhere under drivers/* is wrong and should be
+> > fixed.
 > 
-> Regards
-> Thara
->>>>  		return;
->>>> +	}
->>>>
->>>>  	freq_table = kzalloc(sizeof(struct cpufreq_frequency_table) *
->>>>  			     (dev_opp->enabled_opp_count + 1), GFP_ATOMIC);
->>>
->>> --
->>> Regards,
->>> Nishanth Menon
+> there are two forms of quirks:
+> a) quirks which can be detected based on IP rev
+> b) quirks which are silicon integration related - only 
+> cpu_is_xxxx can 
+> be used to detect them.
+> for a) - I disagree that pdata should be used (this was my original 
+> contention)
+> for b) the question IMHO is: How is pdata provided to the 
+> driver - that 
+> is important. IMHO, pdata taken into drivers could have 
+> quirks, but if 
+> the quirk addition is done from board files, I disagree, then 
+> should be 
+> done in arch/arm/mach-omap[12]/somefile.c where somefile.c is 
+> common for 
+> all boards (e.g. device.c) and that allows the driver to be cpu 
+> independent and allows board files not to have redundant information.
+> 
+> BUT, features *should* be kept distinct from quirks for readability 
+> purposes.
+
+Nishanth,
+
+Sorry missed most of discussion due to vacation. But just wanted to
+know the benefit of check_version() without the processor context.
+
+I had earlier submitted related patches; but 36x being considered
+as 34x broke the logic. Before going on vacation I had created a
+patch (against 2.6.32). Putting here for review (there are two
+typos in this specific patch, pl ignore that):
+
+Usage would be:
+if (cpu_rev_eq(omap34xx, OMAP34XX_ES_1_0))
 
 
--- 
-Regards,
-Nishanth Menon
+commit 6e4a9439fbc67eb2a55f440923cfade74c4509d2
+Author: Sanjeev Premi <premi@ti.com>
+Date:   Thu Jun 3 21:28:39 2010 +0530
+
+    omap: Add macros to evaluate cpu revision
+
+    This patch adds macros to evaluate the cpu revision.
+    These macros increase readability by reducing the
+    repetitive code when multiple silicon revisions have
+    to be tested.
+
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/
+index 7514174..7cc5611 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -70,6 +70,12 @@ unsigned int omap_rev(void);
+ #define OMAP_REVBITS_20                0x20
+ #define OMAP_REVBITS_30                0x30
+ #define OMAP_REVBITS_40                0x40
++#define OMAP_REVBITS_50                0x50
++
++/*
++ * Get the CPU Id for OMAP devices
++ */
++#define GET_OMAP_ID()  ((omap_rev() >> 16) & 0xffff)
+
+ /*
+  * Get the CPU revision for OMAP devices
+@@ -385,6 +391,12 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP3505_REV(v)                (OMAP35XX_CLASS | (0x3505 << 16) | (v <<
+ #define OMAP3517_REV(v)                (OMAP35XX_CLASS | (0x3517 << 16) | (v <<
+
++#define AM37XX_CLASS           0x37000034
++#define AM3703_REV(v)          (AM37XX_CLASS | (0x3503 << 16) | (v << 8))
++#define AM3715_REV(v)          (AM37XX_CLASS | (0x3515 << 16) | (v << 8))
++#define AM3725_REV(v)          (AM37XX_CLASS | (0x3525 << 16) | (v << 8))
++#define AM3730_REV(v)          (AM37XX_CLASS | (0x3530 << 16) | (v << 8))
++
+ #define OMAP443X_CLASS         0x44300044
+ #define OMAP4430_REV_ES1_0     0x44300044
+
+@@ -458,4 +470,36 @@ OMAP3_HAS_FEATURE(neon, NEON)
+ OMAP3_HAS_FEATURE(isp, ISP)
+ OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+
++/*
++ * Map revision bits to silicon specific revisions
++ */
++#define OMAP34XX_ES_1_0                OMAP_REVBITS_00
++#define OMAP34XX_ES_2_0                OMAP_REVBITS_10
++#define OMAP34XX_ES_2_1                OMAP_REVBITS_20
++#define OMAP34XX_ES_3_0                OMAP_REVBITS_30
++#define OMAP34XX_ES_3_1                OMAP_REVBITS_40
++#define OMAP34XX_ES_3_1_2      OMAP_REVBITS_50
++
++#define AM3517_ES_1_0          OMAP_REVBITS_00
++
++#define OMAP36XX_ES_1_0                OMAP_REVBITS_00
++
++/*
++ * Macros to evaluate CPU revision
++ */
++#define cpu_rev_lt(cpu,rev)    \
++       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() < (rev))) ? 1 : 0)
++
++#define cpu_rev_le(cpu,rev)    \
++       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() <= (rev))) ? 1 : 0)
++
++#define cpu_rev_eq(cpu,rev)    \
++       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() == (rev))) ? 1 : 0)
++
++#define cpu_rev_ge(cpu,rev)    \
++       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() >= (rev))) ? 1 : 0)
++
++#define cpu_rev_gt(cpu,rev)    \
++       ((cpu_is_omap ##cpu() && (GET_OMAP_REVISION() > (rev))) ? 1 : 0)
++
+ #endif
+
+~sanjeev
+
+> -- 
+> Regards,
+> Nishanth Menon
+> 
