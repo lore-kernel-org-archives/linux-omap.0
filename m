@@ -1,51 +1,52 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Tue, 13 Jul 2010 17:45:39 +0900
-Message-ID: <20100713174519D.fujita.tomonori@lab.ntt.co.jp>
-References: <20100713092012.7c1fe53e@lxorguk.ukuu.org.uk>
-	<20100713173028M.fujita.tomonori@lab.ntt.co.jp>
-	<20100713094244.7eb84f1b@lxorguk.ukuu.org.uk>
+Date: Tue, 13 Jul 2010 10:02:23 +0100
+Message-ID: <20100713090223.GB20590@n2100.arm.linux.org.uk>
+References: <20100713092012.7c1fe53e@lxorguk.ukuu.org.uk> <20100713173028M.fujita.tomonori@lab.ntt.co.jp> <20100713094244.7eb84f1b@lxorguk.ukuu.org.uk> <20100713174519D.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20100713094244.7eb84f1b@lxorguk.ukuu.org.uk>
+Content-Disposition: inline
+In-Reply-To: <20100713174519D.fujita.tomonori@lab.ntt.co.jp>
 Sender: owner-linux-mm@kvack.org
-To: alan@lxorguk.ukuu.org.uk
-Cc: fujita.tomonori@lab.ntt.co.jp, zpfeffer@codeaurora.org, joro@8bytes.org, dwalker@codeaurora.org, andi@firstfloor.org, randy.dunlap@oracle.com, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, joro@8bytes.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, zpfeffer@codeaurora.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, 13 Jul 2010 09:42:44 +0100
-Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+On Tue, Jul 13, 2010 at 05:45:39PM +0900, FUJITA Tomonori wrote:
+> Drivers can tell the USB layer that these are vmapped buffers? Adding
+> something to struct urb? I might be totally wrong since I don't know
+> anything about the USB layer.
 
-> On Tue, 13 Jul 2010 17:30:43 +0900
-> FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
-> 
-> > On Tue, 13 Jul 2010 09:20:12 +0100
-> > Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> > 
-> > > > Why video4linux can't use the DMA API? Doing DMA with vmalloc'ed
-> > > > buffers is a thing that we should avoid (there are some exceptions
-> > > > like xfs though).
-> > > 
-> > > Vmalloc is about the only API for creating virtually linear memory areas.
-> > > The video stuff really needs that to avoid lots of horrible special cases
-> > > when doing buffer processing and the like.
-> > > 
-> > > Pretty much each driver using it has a pair of functions 'rvmalloc' and
-> > > 'rvfree' so given a proper "vmalloc_for_dma()" type interface can easily
-> > > be switched
-> > 
-> > We already have helper functions for DMA with vmap pages,
-> > flush_kernel_vmap_range and invalidate_kernel_vmap_range.
-> 
-> I'm not sure they help at all because the DMA user for these pages isn't
-> the video driver - it's the USB layer, and the USB layer isn't
-> specifically aware it is being passed vmap pages.
+With non-DMA coherent aliasing caches, you need to know where the page
+is mapped into the virtual address space, so you can deal with aliases.
 
-Drivers can tell the USB layer that these are vmapped buffers? Adding
-something to struct urb? I might be totally wrong since I don't know
-anything about the USB layer.
+You'd need to tell the USB layer about the other mappings of the page
+which you'd like to be coherent (such as the vmalloc area - and there's
+also the possible userspace mapping to think about too, but that's
+a separate issue.)
+
+I wonder if we should have had:
+
+	vmalloc_prepare_dma(void *, size_t, enum dma_direction)
+	vmalloc_finish_dma(void *, size_t, enum dma_direction)
+
+rather than flush_kernel_vmap_range and invalidate_kernel_vmap_range,
+which'd make their use entirely obvious.
+
+However, this brings up a question - how does the driver (eg, v4l, xfs)
+which is preparing the buffer for another driver (eg, usb host, block
+dev) know that DMA will be performed on the buffer rather than PIO?
+
+That's a very relevant question, because for speculatively prefetching
+CPUs, we need to invalidate caches after a DMA-from-device operation -
+but if PIO-from-device happened, this would destroy data read from the
+device.
+
+That problem goes away if we decide that PIO drivers must have the same
+apparant semantics as DMA drivers - in that data must end up beyond the
+point of DMA coherency (eg, physical page) - but that's been proven to
+be very hard to achieve, especially with block device drivers.
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
