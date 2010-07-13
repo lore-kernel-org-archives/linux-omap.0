@@ -1,43 +1,53 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PM-OPP][PATCH 3/4] OMAP: Remove inclusion of PMIC specific header file in generic opp layer.
-Date: Tue, 13 Jul 2010 11:17:05 +0530
-Message-ID: <1279000026-24042-4-git-send-email-thara@ti.com>
-References: <1279000026-24042-1-git-send-email-thara@ti.com>
- <1279000026-24042-2-git-send-email-thara@ti.com>
- <1279000026-24042-3-git-send-email-thara@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55452 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555Ab0GMFrY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 01:47:24 -0400
-In-Reply-To: <1279000026-24042-3-git-send-email-thara@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
+Date: Mon, 12 Jul 2010 22:52:43 -0700
+Message-ID: <4C3BFF2B.40006@codeaurora.org>
+References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org> <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org> <20100701101746.3810cc3b.randy.dunlap@oracle.com> <20100701180241.GA3594@basil.fritz.box> <1278012503.7738.17.camel@c-dwalke-linux.qualcomm.com> <20100701193850.GB3594@basil.fritz.box> <4C2D0FF1.6010206@codeaurora.org> <20100701230056.GD3594@basil.fritz.box> <4C2D847E.5080602@codeaurora.org> <20100710151111.GD10080@8bytes.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20100710151111.GD10080@8bytes.org>
+Sender: owner-linux-mm@kvack.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Andi Kleen <andi@firstfloor.org>, Daniel Walker <dwalker@codeaurora.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, b-cousson@ti.com, sawant@ti.com, vishwanath.bs@ti.com, premi@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch removes the inclusion of plat/opp_twl_tps.h in opp.c.
-This header file is included unnecessarily and creats unwanted
-dependency between the generic opp layer and TWL4030/5030 PMIC
-dependent code.
+Joerg Roedel wrote:
+> On Thu, Jul 01, 2010 at 11:17:34PM -0700, Zach Pfeffer wrote:
+>> Andi Kleen wrote:
+> 
+>>> Hmm? dma_map_* does not change any CPU mappings. It only sets up
+>>> DMA mapping(s).
+>> Sure, but I was saying that iommu_map() doesn't just set up the IOMMU
+>> mappings, its sets up both the iommu and kernel buffer mappings.
+> 
+> What do you mean by kernel buffer mappings?
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- arch/arm/plat-omap/opp.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+In-kernel mappings whose addresses can be dereferenced. 
 
-diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-index d88a2e0..1aea69e 100644
---- a/arch/arm/plat-omap/opp.c
-+++ b/arch/arm/plat-omap/opp.c
-@@ -19,7 +19,6 @@
- #include <linux/err.h>
- #include <linux/list.h>
- 
--#include <plat/opp_twl_tps.h>
- #include <plat/opp.h>
- #include <plat/omap_device.h>
- 
+> 
+> 
+>>> That assumes that all the IOMMUs on the system support the same page table
+>>> format, right?
+>> Actually no. Since the VCMM abstracts a page-table as a Virtual
+>> Contiguous Region (VCM) a VCM can be associated with any device,
+>> regardless of their individual page table format.
+> 
+> The IOMMU-API abstracts a page-table as a domain which can also be
+> associated with any device (behind an iommu).
+
+It does, but only by convention. The domain member is just a big
+catchall void *. It would be more useful to factor out a VCM
+abstraction, with associated ops. As it stands all IOMMU device driver
+writters have to re-invent IOMMU virtual address management.
+
 -- 
-1.7.0.rc1.33.g07cf0f
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
