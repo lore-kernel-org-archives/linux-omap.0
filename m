@@ -1,27 +1,39 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
-	memory management
-Date: Wed, 14 Jul 2010 23:05:36 +0100
-Message-ID: <20100714220536.GE18138@n2100.arm.linux.org.uk>
-References: <4C3C0032.5020702@codeaurora.org> <20100713150311B.fujita.tomonori@lab.ntt.co.jp> <20100713121420.GB4263@codeaurora.org> <20100714104353B.fujita.tomonori@lab.ntt.co.jp> <20100714201149.GA14008@codeaurora.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
+Date: Wed, 14 Jul 2010 15:22:55 +0200
+Message-ID: <20100714132255.GB3103@ucw.cz>
+References: <1277908081-17195-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1277908081-17195-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arch-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ksp.mff.cuni.cz ([195.113.26.206]:37498 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757520Ab0GNWmh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Jul 2010 18:42:37 -0400
 Content-Disposition: inline
-In-Reply-To: <20100714201149.GA14008@codeaurora.org>
-Sender: linux-arch-owner@vger.kernel.org
-To: Zach Pfeffer <zpfeffer@codeaurora.org>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1277908081-17195-2-git-send-email-Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-arm-kernel@lists.infradead.org, khilman@deeprootsystems.com, Yoshiya.Hirase@nokia.com, teerth@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-On Wed, Jul 14, 2010 at 01:11:49PM -0700, Zach Pfeffer wrote:
-> If the DMA-API contained functions to allocate virtual space separate
-> from physical space and reworked how chained buffers functioned it
-> would probably work - but then things start to look like the VCM API
-> which does graph based map management.
+Hi!
 
-Every additional virtual mapping of a physical buffer results in
-additional cache aliases on aliasing caches, and more workload for
-developers to sort out the cache aliasing issues.
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> 
+> Hibernation (a.k.a: Suspend-To-Disk) support for ARM
+> 
+> Based on the original work from Romit and Raghu at TI. The original
+> patch(*1) was sent to LOML by Teerth Reddy <teerth@ti.com>
+> 
+> *1: https://patchwork.kernel.org/patch/96442/
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-What does VCM to do mitigate that?
+Looks ok to me. ACK.
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
