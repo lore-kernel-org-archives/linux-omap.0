@@ -1,87 +1,85 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: optimized script [Was: ARM defconfig files]
-Date: Tue, 13 Jul 2010 19:39:15 -0400 (EDT)
-Message-ID: <alpine.LFD.2.00.1007131925010.10598@xanadu.home>
-References: <AANLkTilhI9O6YwnuAylo_jNgwR8VXmpSVJ1kylIYPCGT@mail.gmail.com>
- <20100712173228.GC9897@n2100.arm.linux.org.uk>
- <AANLkTinxUqzxClVDTyruJ6kzFTganXUGJJHJ5wRi9Iak@mail.gmail.com>
- <20100712185029.GB14425@pengutronix.de>
- <AANLkTinOuU-VVXaMwMp69CBp2Y4wxpoWybEQ34H5j0lJ@mail.gmail.com>
- <alpine.LFD.2.00.1007121510260.10598@xanadu.home>
- <AANLkTim-O00n9YPv7w4VCKjN-ETLijyTHomWUn4mZtTV@mail.gmail.com>
- <AANLkTilDoGbCx_0oKKPOeGG7TKL2VSNVII5ydmnQ77B7@mail.gmail.com>
- <20100713070741.GB26442@pengutronix.de>
- <20100713080705.GA20978@pengutronix.de> <20100713180402.GA1422@lixom.net>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PM-OPP][PATCH 0/4] OMAP: Clean up series for generic opp layer.
+Date: Wed, 14 Jul 2010 06:09:50 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323A2BD71@dbde02.ent.ti.com>
+References: <1279000026-24042-1-git-send-email-thara@ti.com>
+ <4C3C8BE8.30108@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_JS+nGVNbhixVXVfB1SVY1A)"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:60387 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756634Ab0GMXjS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 19:39:18 -0400
-In-reply-to: <20100713180402.GA1422@lixom.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57258 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751576Ab0GNAkB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jul 2010 20:40:01 -0400
+In-Reply-To: <4C3C8BE8.30108@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Linus Torvalds <torvalds@linux-foundation.org>, Grant Likely <grant.likely@secretlab.ca>, Daniel Walker <dwalker@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-msm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org, Eric Miao <eric.miao@canonical.com>, linux-arm-kernel@lists.infradead.org, Stephen Rothwell <sfr@canb.auug.org.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org
-
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---Boundary_(ID_JS+nGVNbhixVXVfB1SVY1A)
-Content-type: TEXT/PLAIN; charset=iso-8859-1
-Content-transfer-encoding: 8BIT
-
-On Tue, 13 Jul 2010, Olof Johansson wrote:
-
-> On Tue, Jul 13, 2010 at 10:07:05AM +0200, Uwe Kleine-König wrote:
-> > Hello,
-> > 
-> > On Tue, Jul 13, 2010 at 09:07:41AM +0200, Uwe Kleine-König wrote:
-> > > Hi
-> > > 
-> > > On Mon, Jul 12, 2010 at 01:50:47PM -0600, Grant Likely wrote:
-> > > > On Mon, Jul 12, 2010 at 1:34 PM, Linus Torvalds
-> > > > <torvalds@linux-foundation.org> wrote:
-> > > > > On Mon, Jul 12, 2010 at 12:17 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
-> > > > >> I think Uwe could provide his script and add it to the kernel tree.
-> > > > >> Then all architectures could benefit from it.  Having the defconfig
-> > > > >> files contain only those options which are different from the defaults
-> > > > >> is certainly more readable, even on x86.
-> > > > >
-> > > > > Quite possible. But maintainers would need to be on the lookout of
-> > > > > people actually using the script, and refusing to apply patches that
-> > > > > re-introduce the whole big thing.
-> > > > 
-> > > > I can (partially) speak for powerpc.  If ARM uses this approach, then
-> > > > I think we can do the same.  After the defconfigs are trimmed, I
-> > > > certainly won't pick up any more full defconfigs.
-> > > I just restarted my script on the powerpc defconfigs basing on rc5, I
-> > > assume they complete in a few days time.
-> > So Stephen was faster than me.  I don't know yet how he optimised my
-> > script, meanwhile I put some efforts into it, too by just checking lines
-> > that match "^(# )?CONFIG_".
-> > 
-> > Find it attached.
-> > 
-> > I will start to reduce the remaining configs (i.e. all but arm and
-> > powerpc).
-> 
-> I added just a simple heuristic: If I could remove a line, I attempted
-> to remove twice the amount next time around (and fall back to 1 if it failed).
-> 
-[...]
-> 
-> While this script is great, it is somewhat painful to run given that it
-> attempts one config per line. Even on a fast machine that tends to take
-> a while.
-
-The optimal solution is to add that .config reduction ability straight 
-into the Kconfig parser (scripts/kconfig/*).  There you can find out 
-right away what are the non default state for each config option without 
-actually trying them out one by one.
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Premi, Sanjeev" <premi@ti.com>
 
 
-Nicolas
 
---Boundary_(ID_JS+nGVNbhixVXVfB1SVY1A)--
+>>-----Original Message-----
+>>From: Menon, Nishanth
+>>Sent: Tuesday, July 13, 2010 9:23 PM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; paul@pwsan.com; tony@atomide.com;
+>>Cousson, Benoit; Sawant, Anand; Sripathy, Vishwanath; Premi, Sanjeev
+>>Subject: Re: [PM-OPP][PATCH 0/4] OMAP: Clean up series for generic opp layer.
+>>
+>>Thara Gopinath had written, on 07/13/2010 12:47 AM, the following:
+>>> This patch series does some clean up of the opp layer
+>>> including removal of compilation warnings, avoiding wrong inclusioin
+>>> of header files, correcting some srror checks and removing the dependency
+>>> of opp layer on cpu freq layer.
+>>>
+>>> Apart from all these there is still one more concern i have in this generic
+>>> opp layer. This is regarding the separate PMIC opp file opp_twl_tps.c which
+>>> today caters to only twl4030 and twl5030 pmic. What is the approach to be
+>>> taken if the PMIC changes? I am already facing this issue with OMAP4 where
+>>> the PMIC is twl6030 and the formulas for converting vsel into voltage and
+>>> vice versa are different. I am against adding another file for twl6030. The
+>>> approach is not scalable. We need to keep these vsel to uV and vice versa
+>>> convertion in one place or make them functions pointers.
+>>why is opp_twl_tps.c unable to decide the vsel conversion routines based
+>>on twl version? it seems to me (only watching l-o - not dug inside
+>>twl6030 datamanual), that rest of 6030 code seem to share 5030 codebase
+>>mostly..
+>>
+>>on a side note - this is a bigger problem for voltage.c which seem to
+>>have some ingrained idea that each step is 12.5mV and delays are coded
+>>in.. but not related to opp layer at all.
+Nope voltage.c ideally uses the opp_tpl_twl layer to get the vsel to uV and uV to vsel conversion. I think today there a couple of places where it does a manual calculation but that will be removed in the next version.
+All the delays are #defines and can be changed whenever needed. Also I am no sure if u saw the latest implementation where I have a hook to get the step size and slew rate from the PMIC.
+
+Regards
+Thara
+
+>>
+>>>
+>>> Thara Gopinath (4):
+>>>   OMAP: Fix the compilation warning in the opp layer
+>>>   OMAP: Correct the return value check after call into find_device_opp
+>>>   OMAP: Remove inclusion of PMIC specific header file in generic opp
+>>>     layer.
+>>>   OMAP: Remove dependency of generic opp layer on cpufreq.
+>>
+>>This specific series once the minor comment provided is looking good to me.
+>>
+>>>
+>>>  arch/arm/plat-omap/Makefile           |    4 ++--
+>>>  arch/arm/plat-omap/include/plat/opp.h |    4 ++--
+>>>  arch/arm/plat-omap/opp.c              |    7 +++----
+>>>  3 files changed, 7 insertions(+), 8 deletions(-)
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>--
+>>Regards,
+>>Nishanth Menon
