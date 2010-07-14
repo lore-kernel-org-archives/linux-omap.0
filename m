@@ -1,85 +1,76 @@
-From: Maurus Cuelenaere <mcuelenaere@gmail.com>
-Subject: [PATCH] ARM: OMAP3: Add S-Video output to IGEPv2 board
-Date: Wed, 14 Jul 2010 21:46:40 +0200
-Message-ID: <4c3e1422.d37b0e0a.7b5e.092d@mx.google.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:59423 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab0GNTqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jul 2010 15:46:45 -0400
-Received: by ewy23 with SMTP id 23so34055ewy.19
-        for <linux-omap@vger.kernel.org>; Wed, 14 Jul 2010 12:46:44 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Wed, 14 Jul 2010 13:11:49 -0700
+Message-ID: <20100714201149.GA14008@codeaurora.org>
+References: <4C3C0032.5020702@codeaurora.org>
+ <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
+ <20100713121420.GB4263@codeaurora.org>
+ <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
+Sender: owner-linux-mm@kvack.org
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: linux@arm.linux.org.uk, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, eballetbo@iseebcn.com
 
-This adds S-Video DSS and VDAC regulator platform definitions to the IGEPv2
-board. There isn't a physical connector on-board but one can solder one at test
-points provided by ISEE.
+On Wed, Jul 14, 2010 at 10:59:38AM +0900, FUJITA Tomonori wrote:
+> On Tue, 13 Jul 2010 05:14:21 -0700
+> Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
+> 
+> > > You mean that you want to specify this alignment attribute every time
+> > > you create an IOMMU mapping? Then you can set segment_boundary_mask
+> > > every time you create an IOMMU mapping. It's odd but it should work.
+> > 
+> > Kinda. I want to forget about IOMMUs, devices and CPUs. I just want to
+> > create a mapping that has the alignment I specify, regardless of the
+> > mapper. The mapping is created on a VCM and the VCM is associated with
+> > a mapper: a CPU, an IOMMU'd device or a direct mapped device.
+> 
+> Sounds like you can do the above with the combination of the current
+> APIs, create a virtual address and then an I/O address.
+> 
 
-Signed-off-by: Maurus Cuelenaere <mcuelenaere@gmail.com>
----
- arch/arm/mach-omap2/board-igep0020.c |   31 +++++++++++++++++++++++++++++--
- 1 files changed, 29 insertions(+), 2 deletions(-)
+Yes, and that's what the implementation does - and all the other
+implementations that need to do this same thing. Why not solve the
+problem once?
 
-diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index d55c57b..3ec48bd 100644
---- a/arch/arm/mach-omap2/board-igep0020.c
-+++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -310,8 +310,16 @@ static struct omap_dss_device igep2_dvi_device = {
- 	.platform_disable	= igep2_disable_dvi,
- };
- 
-+static struct omap_dss_device igep2_tv_device = {
-+	.name			= "tv",
-+	.driver_name		= "venc",
-+	.type			= OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+};
-+
- static struct omap_dss_device *igep2_dss_devices[] = {
--	&igep2_dvi_device
-+	&igep2_dvi_device,
-+	&igep2_tv_device,
- };
- 
- static struct omap_dss_board_info igep2_dss_data = {
-@@ -328,6 +336,25 @@ static struct platform_device igep2_dss_device = {
- 	},
- };
- 
-+static struct regulator_consumer_supply igep2_vdda_dac_supply = {
-+	.supply = "vdda_dac",
-+	.dev    = &igep2_dss_device.dev,
-+};
-+
-+/* VDAC for DSS driving S-Video (8 mA unloaded, max 65 mA) */
-+static struct regulator_init_data igep2_vdac = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &igep2_vdda_dac_supply,
-+};
-+
- static struct regulator_consumer_supply igep2_vpll2_supply = {
- 	.supply	= "vdds_dsi",
- 	.dev	= &igep2_dss_device.dev,
-@@ -429,7 +456,7 @@ static struct twl4030_platform_data igep2_twldata = {
- 	.vmmc1          = &igep2_vmmc1,
- 	.vmmc2		= &igep2_vmmc2,
- 	.vpll2		= &igep2_vpll2,
--
-+	.vdac		= &igep2_vdac,
- };
- 
- static struct i2c_board_info __initdata igep2_i2c_boardinfo[] = {
--- 
-1.7.0.4
+> The above can't be a reason to add a new infrastructure includes more
+> than 3,000 lines.
 
+Right now its 3000 lines because I haven't converted to a function
+pointer based implementation. Once I do that the size of the
+implementation will shrink and the code will act as a lib. Users pass
+buffer mappers and the lib will ease the management of of those
+buffers.
+
+>  
+> 
+> > > Another possible solution is extending struct dma_attrs. We could add
+> > > the alignment attribute to it.
+> > 
+> > That may be useful, but in the current DMA-API may be seen as
+> > redundant info.
+> 
+> If there is real requirement, we can extend the DMA-API.
+
+If the DMA-API contained functions to allocate virtual space separate
+from physical space and reworked how chained buffers functioned it
+would probably work - but then things start to look like the VCM API
+which does graph based map management.
+
+> 
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
