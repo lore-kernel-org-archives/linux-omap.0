@@ -1,86 +1,59 @@
-From: Manjunatha GK <manjugk@ti.com>
-Subject: [PATCH] OMAP1: PM: Fix OMAP1610 build
-Date: Wed, 14 Jul 2010 16:52:25 +0530
-Message-ID: <1279106545-3018-1-git-send-email-manjugk@ti.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCH] mmc: csd version check updated to support MMC v4.41
+Date: Wed, 14 Jul 2010 17:22:49 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305CE5795@dbde02.ent.ti.com>
+References: <1279095667-21255-1-git-send-email-s-ghorai@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41766 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55649 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753565Ab0GNLZB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Jul 2010 07:25:01 -0400
+	id S1752516Ab0GNLwz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jul 2010 07:52:55 -0400
+In-Reply-To: <1279095667-21255-1-git-send-email-s-ghorai@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-OMAP1610 build fails with following error on the branch pm-wip/hwmods-omap4.
 
-This patch fixes the build error.
-arch/arm/mach-omap1/pm_bus.c: In function 'platform_pm_runtime_suspend':
-arch/arm/mach-omap1/pm_bus.c:30: error: 'ret' undeclared (first use in this function)
-arch/arm/mach-omap1/pm_bus.c:30: error: (Each undeclared identifier is reported only once
-arch/arm/mach-omap1/pm_bus.c:30: error: for each function it appears in.)
-arch/arm/mach-omap1/pm_bus.c:32: error: implicit declaration of function 'clk_get'
-arch/arm/mach-omap1/pm_bus.c:32: warning: assignment makes pointer from integer without a cast
-arch/arm/mach-omap1/pm_bus.c:33: error: implicit declaration of function 'IS_ERR'
-arch/arm/mach-omap1/pm_bus.c:34: error: implicit declaration of function 'clk_disable'
-arch/arm/mach-omap1/pm_bus.c:35: error: implicit declaration of function 'clk_put'
-arch/arm/mach-omap1/pm_bus.c:38: warning: assignment makes pointer from integer without a cast
-arch/arm/mach-omap1/pm_bus.c: In function 'platform_pm_runtime_resume':
-arch/arm/mach-omap1/pm_bus.c:52: warning: assignment makes pointer from integer without a cast
-arch/arm/mach-omap1/pm_bus.c:54: error: implicit declaration of function 'clk_enable'
-arch/arm/mach-omap1/pm_bus.c:58: warning: assignment makes pointer from integer without a cast
-arch/arm/mach-omap1/pm_bus.c:49: warning: unused variable 'r'
-arch/arm/mach-omap1/pm_bus.c: In function 'platform_pm_runtime_idle':
-arch/arm/mach-omap1/pm_bus.c:72: error: 'ret' undeclared (first use in this function)
-make[1]: *** [arch/arm/mach-omap1/pm_bus.o] Error 1
-make: *** [arch/arm/mach-omap1] Error 2
 
-This patch fixes build issues and same has been tested for omap_h2_1610_defconfig.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Ghorai, Sukumar
+> Sent: Wednesday, July 14, 2010 1:51 PM
+> To: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org
+> Cc: Ghorai, Sukumar
+> Subject: [PATCH] mmc: csd version check updated to support MMC v4.41
+> 
+>  CSD_STRUCTURE [127:126] describes the version of the CSD structure.
+>  According to the MMC specificaiton (v4.4.1), 3 is also a valid number.
+> 
+> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+> ---
+>  Tested on omap4430 ES2.0
+> 
+>  drivers/mmc/core/mmc.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
+> index 89f7a25..525af33 100644
+> --- a/drivers/mmc/core/mmc.c
+> +++ b/drivers/mmc/core/mmc.c
+> @@ -122,7 +122,7 @@ static int mmc_decode_csd(struct mmc_card *card)
+>  	 * v1.2 has extra information in bits 15, 11 and 10.
+>  	 */
+>  	csd_struct = UNSTUFF_BITS(resp, 126, 2);
+> -	if (csd_struct != 1 && csd_struct != 2) {
+> +	if (csd_struct > 3) {
 
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap1/pm_bus.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+Can't csd_struct be 0? If so then your new check will break right?
 
-diff --git a/arch/arm/mach-omap1/pm_bus.c b/arch/arm/mach-omap1/pm_bus.c
-index 29d651a..6c5ab40 100644
---- a/arch/arm/mach-omap1/pm_bus.c
-+++ b/arch/arm/mach-omap1/pm_bus.c
-@@ -15,6 +15,8 @@
- #include <linux/pm_runtime.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
-+#include <linux/clk.h>
-+#include <linux/err.h>
- 
- #include <plat/omap_device.h>
- #include <plat/omap-pm.h>
-@@ -23,6 +25,7 @@
- int platform_pm_runtime_suspend(struct device *dev)
- {
- 	struct clk *iclk, *fclk;
-+	int ret = 0;
- 
- 	dev_dbg(dev, "%s\n", __func__);
- 
-@@ -46,7 +49,7 @@ int platform_pm_runtime_suspend(struct device *dev)
- 
- int platform_pm_runtime_resume(struct device *dev)
- {
--	int r, ret = 0;
-+	int ret = 0;
- 	struct clk *iclk, *fclk;
- 
- 	iclk = clk_get(dev, "ick");
-@@ -69,6 +72,7 @@ int platform_pm_runtime_resume(struct device *dev)
- 
- int platform_pm_runtime_idle(struct device *dev)
- {
-+	int ret = 0;
- 	ret = pm_runtime_suspend(dev);
- 	dev_dbg(dev, "%s [%d]\n", __func__, ret);
- 
--- 
-1.7.0.4
-
+>  		printk(KERN_ERR "%s: unrecognised CSD structure version %d\n",
+>  			mmc_hostname(card->host), csd_struct);
+>  		return -EINVAL;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
