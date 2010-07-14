@@ -1,112 +1,75 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH] mmc: csd version check updated to support MMC v4.41
-Date: Wed, 14 Jul 2010 18:15:30 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E27D761@dbde02.ent.ti.com>
-References: <1279095667-21255-1-git-send-email-s-ghorai@ti.com>
-	<FCCFB4CDC6E5564B9182F639FC3560870305CE5795@dbde02.ent.ti.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B030E27D730@dbde02.ent.ti.com>
- <AANLkTinpi8fhKB-zTHVgDub_ppqpvsWeTLnoQat3PX8m@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: musb_hdrc: usb_disconnect is not called when the USB device is
+ 	disconnected.
+Date: Wed, 14 Jul 2010 18:22:28 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323A2C0E3@dbde02.ent.ti.com>
+References: <AANLkTik34PBAF9TRK1KRy0D6xb_vdR4hCPRXGUDt1f9v@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinpi8fhKB-zTHVgDub_ppqpvsWeTLnoQat3PX8m@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59030 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756716Ab0GNMwn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Jul 2010 08:52:43 -0400
+In-Reply-To: <AANLkTik34PBAF9TRK1KRy0D6xb_vdR4hCPRXGUDt1f9v@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: Kyungmin Park <kmpark@infradead.org>
-Cc: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?utf-8?B?RW5yaWMgQmFsbGV0YsOyIGkgU2VycmE=?= <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
-
-> -----Original Message-----
-> From: kyungmin78@gmail.com [mailto:kyungmin78@gmail.com] On Behalf Of
-> Kyungmin Park
-> Sent: Wednesday, July 14, 2010 6:09 PM
-> To: Ghorai, Sukumar
-> Cc: Sripathy, Vishwanath; linux-mmc@vger.kernel.org; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH] mmc: csd version check updated to support MMC v4=
-=2E41
->=20
-> Hi,
->=20
-> you can find it's already merged at mmc tree.
->=20
-> Try to find this one. [PATCH v2] Recognize CSD structure version 3
-[Ghorai] Thanks I got it.=20
->=20
-> Thank you,
-> Kyungmin Park
->=20
-> On Wed, Jul 14, 2010 at 9:19 PM, Ghorai, Sukumar <s-ghorai@ti.com> wr=
-ote:
-> >
-> >
-> >> -----Original Message-----
-> >> From: Sripathy, Vishwanath
-> >> Sent: Wednesday, July 14, 2010 5:23 PM
-> >> To: Ghorai, Sukumar; linux-mmc@vger.kernel.org; linux-
-> omap@vger.kernel.org
-> >> Subject: RE: [PATCH] mmc: csd version check updated to support MMC
-> v4.41
-> >>
-> >>
-> >>
-> >> > -----Original Message-----
-> >> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> > owner@vger.kernel.org] On Behalf Of Ghorai, Sukumar
-> >> > Sent: Wednesday, July 14, 2010 1:51 PM
-> >> > To: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org
-> >> > Cc: Ghorai, Sukumar
-> >> > Subject: [PATCH] mmc: csd version check updated to support MMC v=
-4.41
-> >> >
-> >> > =A0CSD_STRUCTURE [127:126] describes the version of the CSD stru=
-cture.
-> >> > =A0According to the MMC specificaiton (v4.4.1), 3 is also a vali=
-d
-> number.
-> >> >
-> >> > Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-> >> > ---
-> >> > =A0Tested on omap4430 ES2.0
-> >> >
-> >> > =A0drivers/mmc/core/mmc.c | =A0 =A02 +-
-> >> > =A01 files changed, 1 insertions(+), 1 deletions(-)
-> >> >
-> >> > diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
-> >> > index 89f7a25..525af33 100644
-> >> > --- a/drivers/mmc/core/mmc.c
-> >> > +++ b/drivers/mmc/core/mmc.c
-> >> > @@ -122,7 +122,7 @@ static int mmc_decode_csd(struct mmc_card *c=
-ard)
-> >> > =A0 =A0 =A0* v1.2 has extra information in bits 15, 11 and 10.
-> >> > =A0 =A0 =A0*/
-> >> > =A0 =A0 csd_struct =3D UNSTUFF_BITS(resp, 126, 2);
-> >> > - =A0 if (csd_struct !=3D 1 && csd_struct !=3D 2) {
-> >> > + =A0 if (csd_struct > 3) {
-> >>
-> >> Can't csd_struct be 0? If so then your new check will break right?
-> > [Ghorai] 0 to 3 are the valid numbers.
-> >
-> >>
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "%s: unrecognised CSD st=
-ructure
-> version %d\n",
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc_hostname(card->host)=
-, csd_struct);
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> >> > --
-> >> > To unsubscribe from this list: send the line "unsubscribe linux-=
-omap"
-> in
-> >> > the body of a message to majordomo@vger.kernel.org
-> >> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.=
-html
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-mmc=
-" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-> >
+RW5yaWMgQmFsbGV0YsOyIGkgU2VycmENCj4gSGVsbG8sDQo+IA0KPiBXaGVuIEkgZGlzY29ubmVj
+dCBhbiBVU0IgcGVuZHJpdmUgdXNpbmcgdHdsNDAzMCBvdGcgYXMgaG9zdCAoc3RlcCAyKQ0KPiB0
+aGUgdXNiX2Rpc2Nvbm5lY3QgZnVuY3Rpb24gaXMgbm90IGNhbGxlZC4gT1RPSCBpZiBJIHJlY29u
+bmVjdCB0aGUNCj4gZGV2aWNlIChzdGVwIDMpLCB0aGVuIHRoZSB1c2JfZGlzY29ubmVjdCBmdW5j
+dGlvbiBpcyBjYWxsZWQuDQo+IA0KPiBEb2VzIGFueW9uZSBoYXZlIGFueSBpZGVhcyB3aHkgdXNi
+X2Rpc2Nvbm5lY3QgaXMgbm90IGNhbGxlZCB3aGVuIHRoZQ0KPiBkZXZpY2UgaXMgcmVtb3ZlZD8N
+Cj4gDQoNCldoaWNoIGtlcm5lbCB2ZXJzaW9uIGlzIHRoaXM/IENhbiB5b3UgY2hlY2sgaWYgdGhp
+cyBwYXRjaCBmaXhlcyB0aGUgYmVoYXZpb3I/DQoNCmh0dHA6Ly9naXQua2VybmVsLm9yZy8/cD1s
+aW51eC9rZXJuZWwvZ2l0L3RvcnZhbGRzL2xpbnV4LTIuNi5naXQ7YT1jb21taXRkaWZmO2g9N2Q5
+NjQ1ZmRjYTQ0NGQ1MzkwN2IyMmE0YjczZTM5NjdlZmUwOTc4MQ0KDQotIEFuYW5kDQoNCg0KPiBT
+dGVwcyB0byBzZWUgdGhlIGZlYXR1cmU6DQo+IA0KPiBTdGVwIDEgOiBQbHVnIGEgVVNCIHBlbmRy
+aXZlOg0KPiBbIDIxMTYuNDkxNTQ2XSB1c2IgMS0xOiBuZXcgaGlnaCBzcGVlZCBVU0IgZGV2aWNl
+IHVzaW5nIG11c2JfaGRyYyBhbmQgYWRkcmVzcyA2DQo+IFsgMjExNi43NTE4NjFdIHVzYiAxLTE6
+IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0wNThmLCBpZFByb2R1Y3Q9NjM4Nw0KPiBb
+IDIxMTYuNzU4Njk3XSB1c2IgMS0xOiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MSwgUHJv
+ZHVjdD0yLCBTZXJpYWxOdW1iZXI9Mw0KPiBbIDIxMTYuNzY1ODk5XSB1c2IgMS0xOiBQcm9kdWN0
+OiBNYXNzIFN0b3JhZ2UNCj4gWyAyMTE2Ljc3MDAxOV0gdXNiIDEtMTogTWFudWZhY3R1cmVyOiAy
+LjANCj4gWyAyMTE2Ljc3MzgzNF0gdXNiIDEtMTogU2VyaWFsTnVtYmVyOiBBMTVCN0I2MA0KPiBb
+IDIxMTYuNzg2NDY4XSBzY3NpNCA6IHVzYi1zdG9yYWdlIDEtMToxLjANCj4gWyAyMTE3Ljc5NzMz
+Ml0gc2NzaSA0OjA6MDowOiBEaXJlY3QtQWNjZXNzICAgICAyLjAgICAgICBGbGFzaCBEaXNrICA4
+LjA3IFBROiAwIEFOU0k6IDINCj4gWyAyMTE3LjgxMzI5M10gc2QgNDowOjA6MDogW3NkYV0gMTk2
+ODEyOCA1MTItYnl0ZSBsb2dpY2FsIGJsb2NrczogKDEuMDAgR0IvOTYxIE1pQikNCj4gWyAyMTE3
+LjgyOTA0MF0gc2QgNDowOjA6MDogW3NkYV0gV3JpdGUgUHJvdGVjdCBpcyBvZmYNCj4gWyAyMTE3
+LjgzNDAxNF0gc2QgNDowOjA6MDogW3NkYV0gTW9kZSBTZW5zZTogMDMgMDAgMDAgMDANCj4gWyAy
+MTE3LjgzNDAxNF0gc2QgNDowOjA6MDogW3NkYV0gQXNzdW1pbmcgZHJpdmUgY2FjaGU6IHdyaXRl
+IHRocm91Z2gNCj4gWyAyMTE3Ljg0OTIxMl0gc2QgNDowOjA6MDogW3NkYV0gQXNzdW1pbmcgZHJp
+dmUgY2FjaGU6IHdyaXRlIHRocm91Z2gNCj4gWyAyMTE3Ljg1NjU5N10gIHNkYTogc2RhMQ0KPiBb
+IDIxMTcuOTY1Njk4XSBzZCA0OjA6MDowOiBbc2RhXSBBc3N1bWluZyBkcml2ZSBjYWNoZTogd3Jp
+dGUgdGhyb3VnaA0KPiBbIDIxMTcuOTcxOTU0XSBzZCA0OjA6MDowOiBbc2RhXSBBdHRhY2hlZCBT
+Q1NJIHJlbW92YWJsZSBkaXNrDQo+IFsgMjExOC43Mzg3NjldIEZBVDogYm9ndXMgbnVtYmVyIG9m
+IHJlc2VydmVkIHNlY3RvcnMNCj4gWyAyMTE4Ljc0MzYyMV0gVkZTOiBDYW4ndCBmaW5kIGEgdmFs
+aWQgRkFUIGZpbGVzeXN0ZW0gb24gZGV2IHNkYS4NCj4gDQo+IFN0ZXAgMjogVW5wbHVnIHRoZSBV
+U0IgcGVuZHJpdmUNCj4gDQo+IFsgbm90aGluZyBoZXJlIF0NCj4gDQo+IFN0ZXAgMzogUGx1ZyB0
+aGUgVVNCIHBlbmRyaXZlOg0KPiBbIDIyMTguODIwNTU2XSB1c2IgMS0xOiBVU0IgZGlzY29ubmVj
+dCwgYWRkcmVzcyA2DQo+IFsgMjIxOS4xMzk4MzFdIHVzYiAxLTE6IG5ldyBoaWdoIHNwZWVkIFVT
+QiBkZXZpY2UgdXNpbmcgbXVzYl9oZHJjIGFuZCBhZGRyZXNzIDcNCj4gWyAyMjE5LjQwMDE0Nl0g
+dXNiIDEtMTogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTA1OGYsIGlkUHJvZHVjdD02
+Mzg3DQo+IFsgMjIxOS40MDY5NTFdIHVzYiAxLTE6IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1m
+cj0xLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJlcj0zDQo+IFsgMjIxOS40MTQxODRdIHVzYiAxLTE6
+IFByb2R1Y3Q6IE1hc3MgU3RvcmFnZQ0KPiBbIDIyMTkuNDE4MzA0XSB1c2IgMS0xOiBNYW51ZmFj
+dHVyZXI6IDIuMA0KPiBbIDIyMTkuNDIyMTE5XSB1c2IgMS0xOiBTZXJpYWxOdW1iZXI6IEExNUI3
+QjYwDQo+IFsgMjIxOS40MzQ4NzVdIHNjc2k1IDogdXNiLXN0b3JhZ2UgMS0xOjEuMA0KPiBbIDIy
+MjAuNDQ1NzcwXSBzY3NpIDU6MDowOjA6IERpcmVjdC1BY2Nlc3MgICAgIDIuMCAgICAgIEZsYXNo
+IERpc2sgIDguMDcgUFE6IDAgQU5TSTogMg0KPiBbIDIyMjAuNDYxNTQ3XSBzZCA1OjA6MDowOiBb
+c2RhXSAxOTY4MTI4IDUxMi1ieXRlIGxvZ2ljYWwgYmxvY2tzOigxLjAwIEdCLzk2MSBNaUIpDQo+
+IFsgMjIyMC40NzYzNzldIHNkIDU6MDowOjA6IFtzZGFdIFdyaXRlIFByb3RlY3QgaXMgb2ZmDQo+
+IFsgMjIyMC40ODEzMjNdIHNkIDU6MDowOjA6IFtzZGFdIE1vZGUgU2Vuc2U6IDAzIDAwIDAwIDAw
+DQo+IFsgMjIyMC40ODEzMjNdIHNkIDU6MDowOjA6IFtzZGFdIEFzc3VtaW5nIGRyaXZlIGNhY2hl
+OiB3cml0ZSB0aHJvdWdoDQo+IFsgMjIyMC40OTczMTRdIHNkIDU6MDowOjA6IFtzZGFdIEFzc3Vt
+aW5nIGRyaXZlIGNhY2hlOiB3cml0ZSB0aHJvdWdoDQo+IFsgMjIyMC41MDQ1MTZdICBzZGE6IHNk
+YTENCj4gWyAyMjIwLjYwMzc5MF0gc2QgNTowOjA6MDogW3NkYV0gQXNzdW1pbmcgZHJpdmUgY2Fj
+aGU6IHdyaXRlIHRocm91Z2gNCj4gWyAyMjIwLjYxMDAxNV0gc2QgNTowOjA6MDogW3NkYV0gQXR0
+YWNoZWQgU0NTSSByZW1vdmFibGUgZGlzaw0KPiBbIDIyMjEuMzc4NTcwXSBGQVQ6IGJvZ3VzIG51
+bWJlciBvZiByZXNlcnZlZCBzZWN0b3JzDQo+IFsgMjIyMS4zODM0NTNdIFZGUzogQ2FuJ3QgZmlu
+ZCBhIHZhbGlkIEZBVCBmaWxlc3lzdGVtIG9uIGRldiBzZGEuDQo+IA0K
