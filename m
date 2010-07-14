@@ -1,33 +1,33 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH] mmc: csd version check updated to support MMC v4.41
-Date: Wed, 14 Jul 2010 13:51:07 +0530
-Message-ID: <1279095667-21255-1-git-send-email-s-ghorai@ti.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Sukumar Ghorai <s-ghorai@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: ARM defconfig files
+Date: Wed, 14 Jul 2010 12:13:07 +0300
+Message-ID: <AANLkTimttp-YgYADPU5scbcSeb-7lb5d7Cf-_g_-0uJ7@mail.gmail.com>
+References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org>
+	<201007121605.32462.davidb@codeaurora.org>
+	<AANLkTimho3rcoCZZ2PlC3B3KIZZhsEiTnTk-__n1q_Dy@mail.gmail.com>
+	<201007121634.04427.davidb@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201007121634.04427.davidb@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Brown <davidb@codeaurora.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 List-Id: linux-omap@vger.kernel.org
 
- CSD_STRUCTURE [127:126] describes the version of the CSD structure.
- According to the MMC specificaiton (v4.4.1), 3 is also a valid number.  
+On Tue, Jul 13, 2010 at 2:34 AM, David Brown <davidb@codeaurora.org> wr=
+ote:
+> It seems a bit brute force, probably not something I can make part of
+> our regular build process, but I can definitely run it before sending
+> patches out.
+>
+> I wonder if there's a more efficient way of doing it that doesn't
+> involve invoking make for each line of the file. =C2=A0It at least
+> shouldn't be necessary to actually build the kernel each time.
 
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
----
- Tested on omap4430 ES2.0
+Yes, I think there's a more efficient way to do it, but it would
+require the SAT resolver, or something like that.
 
- drivers/mmc/core/mmc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
-index 89f7a25..525af33 100644
---- a/drivers/mmc/core/mmc.c
-+++ b/drivers/mmc/core/mmc.c
-@@ -122,7 +122,7 @@ static int mmc_decode_csd(struct mmc_card *card)
- 	 * v1.2 has extra information in bits 15, 11 and 10.
- 	 */
- 	csd_struct = UNSTUFF_BITS(resp, 126, 2);
--	if (csd_struct != 1 && csd_struct != 2) {
-+	if (csd_struct > 3) {
- 		printk(KERN_ERR "%s: unrecognised CSD structure version %d\n",
- 			mmc_hostname(card->host), csd_struct);
- 		return -EINVAL;
+--=20
+=46elipe Contreras
