@@ -1,41 +1,40 @@
-From: Tony Luck <tony.luck@gmail.com>
-Subject: Re: ARM defconfig files
-Date: Wed, 14 Jul 2010 10:37:07 -0700
-Message-ID: <AANLkTinMZw7ZuUpNPePwIRgkYCwFuxbk-xiuDm7HHBwF@mail.gmail.com>
-References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org>
-	<201007121605.32462.davidb@codeaurora.org>
-	<AANLkTimho3rcoCZZ2PlC3B3KIZZhsEiTnTk-__n1q_Dy@mail.gmail.com>
-	<201007121634.04427.davidb@codeaurora.org>
-	<20100714132046.GA18343@pengutronix.de>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
+Date: Wed, 14 Jul 2010 21:34:03 +0200
+Message-ID: <20100714193403.GC23755@8bytes.org>
+References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org> <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org> <20100701101746.3810cc3b.randy.dunlap@oracle.com> <20100701180241.GA3594@basil.fritz.box> <AANLkTinABCSdN6hnXVOvVZ12f1QBMR_UAi62qW8GmlkL@mail.gmail.com> <4C2D908E.9030309@codeaurora.org> <20100710143635.GA10080@8bytes.org> <4C3BF7C1.9040904@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:58197 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755064Ab0GNRhg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jul 2010 13:37:36 -0400
-In-Reply-To: <20100714132046.GA18343@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <4C3BF7C1.9040904@codeaurora.org>
+Sender: owner-linux-mm@kvack.org
+To: Zach Pfeffer <zpfeffer@codeaurora.org>
+Cc: Hari Kanigeri <hari.kanigeri@gmail.com>, Daniel Walker <dwalker@codeaurora.org>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Uwe_Kleine=2DK=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: David Brown <davidb@codeaurora.org>, Linus Torvalds <torvalds@linux-foundation.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Daniel Walker <dwalker@codeaurora.org>, Kevin Hilman <khilman@deeprootsystems.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Eric Miao <eric.miao@canonical.com>, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>
 
-2010/7/14 Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>:
-> Note that no kernel is built at all, only the config is regenerated o=
-nce
-> for each line.
+On Mon, Jul 12, 2010 at 10:21:05PM -0700, Zach Pfeffer wrote:
+> Joerg Roedel wrote:
 
-You could special case blank lines and comments (other than ones
-like "# CONFIG_FOO is not set" which do matter).  They account for
-~15% of the lines in my .config files.  But it probably doesn't matter
-all that much. I just ran reduce_defconfig in parallel on all the ia64
-defconfig files (in separate build trees) and they were all done when
-I looked back an hour or so later.  Nice tool!
+> > The DMA-API already does this with the help of IOMMUs if they are
+> > present. What is the benefit of your approach over that?
+> 
+> The grist to the DMA-API mill is the opaque scatterlist. Each
+> scatterlist element brings together a physical address and a bus
+> address that may be different. The set of scatterlist elements
+> constitute both the set of physical buffers and the mappings to those
+> buffers. My approach separates these two things into a struct physmem
+> which contains the set of physical buffers and a struct reservation
+> which contains the set of bus addresses (or device addresses). Each
+> element in the struct physmem may be of various lengths (without
+> resorting to chaining). A map call maps the one set to the other.
 
--Tony
+Okay, thats a different concept, where is the benefit?
+
+	Joerg
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
