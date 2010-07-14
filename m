@@ -1,68 +1,78 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Subject: Re: ARM defconfig files
-Date: Wed, 14 Jul 2010 15:20:46 +0200
-Message-ID: <20100714132046.GA18343@pengutronix.de>
-References: <alpine.LFD.2.00.1006030725420.8175@i5.linux-foundation.org>
-	<201007121605.32462.davidb@codeaurora.org>
-	<AANLkTimho3rcoCZZ2PlC3B3KIZZhsEiTnTk-__n1q_Dy@mail.gmail.com>
-	<201007121634.04427.davidb@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <201007121634.04427.davidb@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: David Brown <davidb@codeaurora.org>
-Cc: Daniel Walker <dwalker@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-msm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, Eric Miao <eric.miao@canonical.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH resend v2] omap: 3630: disable TLL SAR on 3630 ES1
+Date: Wed, 14 Jul 2010 19:08:49 +0530
+Message-ID: <1279114729-8815-1-git-send-email-gadiyar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:34931 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752786Ab0GNNiy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jul 2010 09:38:54 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6EDcpTH018469
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 14 Jul 2010 08:38:53 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Anand Gadiyar <gadiyar@ti.com>
 
-On Mon, Jul 12, 2010 at 04:34:04PM -0700, David Brown wrote:
-> On Monday 12 July 2010 16:18:01 Linus Torvalds wrote:
-> =
+USBTLL Save-and-Restore is broken in 3630 ES1.0. Having it
+enabled could result in incorrect register restores as
+the OMAP exits off-mode. This could potentially result in
+unexpected wakeup events.
 
-> > 2010/7/12 David Brown <davidb@codeaurora.org>:
-> > >
-> > > Do you have scripts or tools that you did this with, or is a manual
-> > > process.  We're about to add several new (ARM) targets, and it'd be
-> > > nice to be able to make small defconfigs for those targets as well.
-> > =
+(Refer 3630 errata ID i579)
 
-> > Uwe posted it earlier in this thread as an attachement, and I put the
-> > python script into the merge commit message too. And we should
-> > probably put it somewhere in scripts too, and/or make a 'make' target
-> > to create the small config files.
-> > =
+This is fixed in ES1.1. So disable it for ES1.0s.
 
-> > I pushed it all out, and tagged it as -rc5.
-> =
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Acked-by: Paul Walmsley <paul@pwsan.com>
+---
+(v2: Added a comment to the code with a reference to the errata IDs
+for 3430 and 3630. Also added Paul's ack).
 
-> Got it, thanks.  I just pulled a bit soon.
-> =
+This is a fix for buggy hardware, and it would be nice
+to see this in the next merge window too.
 
-> It seems a bit brute force, probably not something I can make part of
-> our regular build process, but I can definitely run it before sending
-> patches out.
-> =
+Depends on the patch I just posted which adds the
+CHIP_GE_OMAP3630ES1_1 macro
+<https://patchwork.kernel.org/patch/111147/>
 
-> I wonder if there's a more efficient way of doing it that doesn't
-> involve invoking make for each line of the file.  It at least
-> shouldn't be necessary to actually build the kernel each time.
-Note that no kernel is built at all, only the config is regenerated once
-for each line.
+ arch/arm/mach-omap2/powerdomains34xx.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-Best regards
-Uwe
-
--- =
-
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Index: linux-omap-2.6/arch/arm/mach-omap2/powerdomains34xx.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/powerdomains34xx.h
++++ linux-omap-2.6/arch/arm/mach-omap2/powerdomains34xx.h
+@@ -75,12 +75,19 @@ static struct powerdomain mpu_3xxx_pwrdm
+ 	},
+ };
+ 
++/*
++ * The USBTLL Save-and-Restore mechanism is broken on
++ * 3430s upto ES3.0 and 3630ES1.0. Hence this feature
++ * needs to be disabled on these chips.
++ * Refer: 3430 errata ID i459 and 3630 errata ID i579
++ */
+ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
+ 	.name		  = "core_pwrdm",
+ 	.prcm_offs	  = CORE_MOD,
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
+ 					   CHIP_IS_OMAP3430ES2 |
+-					   CHIP_IS_OMAP3430ES3_0),
++					   CHIP_IS_OMAP3430ES3_0 |
++					   CHIP_IS_OMAP3630ES1),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 2,
+@@ -97,7 +104,8 @@ static struct powerdomain core_3xxx_pre_
+ static struct powerdomain core_3xxx_es3_1_pwrdm = {
+ 	.name		  = "core_pwrdm",
+ 	.prcm_offs	  = CORE_MOD,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES3_1 |
++					  CHIP_GE_OMAP3630ES1_1),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
