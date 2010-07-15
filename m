@@ -1,94 +1,75 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: Power managment on Overo
-Date: Thu, 15 Jul 2010 08:17:54 -0500
-Message-ID: <4C3F0A82.50107@ti.com>
-References: <loom.20100715T065056-117@post.gmane.org> <4C3EE316.5000506@gmail.com>
+From: Mathieu Poirier <mathieu.poirier@canonical.com>
+Subject: [PATCH] Combine dsi and sdi under the same vdds supply.
+Date: Thu, 15 Jul 2010 14:15:30 -0600
+Message-ID: <1279224930.14213.12.camel@black>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39318 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933200Ab0GONSc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jul 2010 09:18:32 -0400
-In-Reply-To: <4C3EE316.5000506@gmail.com>
+Received: from adelie.canonical.com ([91.189.90.139]:40847 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934624Ab0GOUPg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jul 2010 16:15:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Han Wang <hw342@cornell.edu>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, Mathieu Poirier <mathieu.poirier@canonical.com>
 
-Nishanth Menon had written, on 07/15/2010 05:29 AM, the following:
-> On 07/15/2010 12:00 AM, Han Wang wrote:
->> Hi, All,
->>
->>     I am running the linux-pm-kernel v2.35.rc3 on Overo Earth. I have managed to
->> suspend the system using "echo mem>  /sys/power/state" with "enable_off_mode"
->> and "sleep_while_idle" enabled. Currently, I am able to achieve 200mW in suspend
->> mode. However, I am seen in other posts, such as this  one  (http://old.nabble.com/
->> Overo-boot-time--power-management-ts28402656.html#a28463135), that
->> people are able to achieve a much lower power signature.
-> 
-> Did you check if you have actually shut off the voltages on vdd1 and 
-> vdd2 when you hit OFF? easy to check with a voltmeter/scope on vdd1&vdd2 
-> capcacitors.
+>From b817304b25a0358f2897d39048adfada8d4126bc Mon Sep 17 00:00:00 2001
+From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
+Date: Wed, 14 Jul 2010 15:31:46 -0600
+Subject: [PATCH] Combine dsi and sdi under the same vdds supply.
 
-Just some addon info, in case you'd like to dig further. I have'nt 
-personally looked at overo board, but given that it uses TWL variant 
-PMIC and OMAP3, the concepts should remain same, in a simplistic form:
+The omapfb driver can't locate its display sink because of an
+initialization error in the DSS subsystem.  This error is caused by a
+missing sdi entry in the board power regulator list.  Adding the missing
+sdi entry and combining dsi and sdi under the same vdds supply.
 
-OMAP is divided into powerdomains which power clock domains,
+BugLink: https://bugs.launchpad.net/bugs/597904
 
-when the clock domains hit off, power domains switch off, if all the 
-domains hit off, core domain (the thing that drives sdram etc) goes to 
-OFF, this triggers an interesting sequence from h/w perspective -> it 
-toggles couple of lines - one that tells pmic that it is going to off, 
-and also tells the pmic that it does not need a sysclk.
+Signed-off-by: <mathieu.poirier@canonical.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-twl pmic has internal scripts that can be linked to these signals- these 
-are called resources in PMIC terminology -> for sysoff, we have twl 
-scripts which tell which LDOs to switch off completely
-
-so at OFF mode, ideally you supply 0v to vdd1,vdd2. vio_1.8 is active 
-and drives a domain called wakeup domain inside OMAP, this keeps a few 
-signals from omap and blocks within OMAP active - such as the one to 
-detect a wakeup event(yeah we need some mechanism to wakeup right-aka 
-some voltage ;) ).. the struggle is always to find the optimal 
-configuration for the platform at hand which minimizes the blocks and 
-signals active - we save a few uAmps here and there but they all add up.
-
-Further at OFF, other than OMAP and the PMIC, there are other 
-peripherals on the board -e.g. if you dont need to wakeup from 
-Touchscreen, do we keep it on, is wlan ON? remember when you switch off 
-a peripheral, you need to reconfigure it to bring it back on - aka 
-latency tradeoff.. on a real product, there are a lot of investigations 
-folks do to optimize, improve the designs to achieve as little 
-peripherals as needed to be kept on at any given time Vs responsiveness.
-
-in short it is usually an interesting challenge to consume as little as 
-possible in OFF - to use automotive language - based on the usage model, 
-your milage may vary ;)..
-
-> 
->>     I am particularly interested to know what mode has the SDRAM on Overo  been set to
->> during suspend mode? Is it auto-refresh or self-refresh? And whether the TPS/TWL
->> power management chip is set to low power mode during suspend mode by the pm
->> kernel, if not, how to set it?
->>
->> Thanks,
->> Han
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 69b154c..32565dc 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -162,8 +162,10 @@ static struct platform_device beagle_dss_device = {
+ static struct regulator_consumer_supply beagle_vdac_supply =
+ 	REGULATOR_SUPPLY("vdda_dac", "omapdss");
+ 
+-static struct regulator_consumer_supply beagle_vdvi_supply =
+-	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
++static struct regulator_consumer_supply beagle_vdds_supplies[] = {
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
++	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
++};
+ 
+ static void __init beagle_display_init(void)
+ {
+@@ -291,7 +293,6 @@ static struct regulator_init_data beagle_vdac = {
+ /* VPLL2 for digital video outputs */
+ static struct regulator_init_data beagle_vpll2 = {
+ 	.constraints = {
+-		.name			= "VDVI",
+ 		.min_uV			= 1800000,
+ 		.max_uV			= 1800000,
+ 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+@@ -299,8 +300,8 @@ static struct regulator_init_data beagle_vpll2 = {
+ 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &beagle_vdvi_supply,
++	.num_consumer_supplies  = ARRAY_SIZE(beagle_vdds_supplies),
++	.consumer_supplies      = beagle_vdds_supplies,
+ };
+ 
+ static struct twl4030_usb_data beagle_usb_data = {
 -- 
-Regards,
-Nishanth Menon
+1.7.0.4
+
+
+
