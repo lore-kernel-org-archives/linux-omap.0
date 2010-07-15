@@ -1,57 +1,54 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
- memory management
-Date: Thu, 15 Jul 2010 08:07:28 +0900
-Message-ID: <20100715080710T.fujita.tomonori@lab.ntt.co.jp>
-References: <20100713121420.GB4263@codeaurora.org>
-	<20100714104353B.fujita.tomonori@lab.ntt.co.jp>
-	<20100714201149.GA14008@codeaurora.org>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
+Date: Wed, 14 Jul 2010 18:18:39 -0700
+Message-ID: <20100715011839.GA2239@codeaurora.org>
+References: <1277877350-2147-1-git-send-email-zpfeffer@codeaurora.org>
+ <1277877350-2147-3-git-send-email-zpfeffer@codeaurora.org>
+ <20100701101746.3810cc3b.randy.dunlap@oracle.com>
+ <20100701180241.GA3594@basil.fritz.box>
+ <AANLkTinABCSdN6hnXVOvVZ12f1QBMR_UAi62qW8GmlkL@mail.gmail.com>
+ <4C2D908E.9030309@codeaurora.org>
+ <20100710143635.GA10080@8bytes.org>
+ <4C3BF7C1.9040904@codeaurora.org>
+ <20100714193403.GC23755@8bytes.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20100714201149.GA14008@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: zpfeffer@codeaurora.org
-Cc: fujita.tomonori@lab.ntt.co.jp, linux@arm.linux.org.uk, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100714193403.GC23755@8bytes.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>
+Cc: Hari Kanigeri <hari.kanigeri@gmail.com>, Daniel Walker <dwalker@codeaurora.org>, Andi Kleen <andi@firstfloor.org>, Randy Dunlap <randy.dunlap@oracle.com>, mel@csn.ul.ie, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 14 Jul 2010 13:11:49 -0700
-Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
-
-> On Wed, Jul 14, 2010 at 10:59:38AM +0900, FUJITA Tomonori wrote:
-> > On Tue, 13 Jul 2010 05:14:21 -0700
-> > Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
-> > 
-> > > > You mean that you want to specify this alignment attribute every time
-> > > > you create an IOMMU mapping? Then you can set segment_boundary_mask
-> > > > every time you create an IOMMU mapping. It's odd but it should work.
-> > > 
-> > > Kinda. I want to forget about IOMMUs, devices and CPUs. I just want to
-> > > create a mapping that has the alignment I specify, regardless of the
-> > > mapper. The mapping is created on a VCM and the VCM is associated with
-> > > a mapper: a CPU, an IOMMU'd device or a direct mapped device.
-> > 
-> > Sounds like you can do the above with the combination of the current
-> > APIs, create a virtual address and then an I/O address.
-> > 
+On Wed, Jul 14, 2010 at 09:34:03PM +0200, Joerg Roedel wrote:
+> On Mon, Jul 12, 2010 at 10:21:05PM -0700, Zach Pfeffer wrote:
+> > Joerg Roedel wrote:
 > 
-> Yes, and that's what the implementation does - and all the other
-> implementations that need to do this same thing. Why not solve the
-> problem once?
+> > > The DMA-API already does this with the help of IOMMUs if they are
+> > > present. What is the benefit of your approach over that?
+> > 
+> > The grist to the DMA-API mill is the opaque scatterlist. Each
+> > scatterlist element brings together a physical address and a bus
+> > address that may be different. The set of scatterlist elements
+> > constitute both the set of physical buffers and the mappings to those
+> > buffers. My approach separates these two things into a struct physmem
+> > which contains the set of physical buffers and a struct reservation
+> > which contains the set of bus addresses (or device addresses). Each
+> > element in the struct physmem may be of various lengths (without
+> > resorting to chaining). A map call maps the one set to the other.
+> 
+> Okay, thats a different concept, where is the benefit?
 
-Why we we need a new abstraction layer to solve the problem that the
-current API can handle?
+The benefit is that virtual address space and physical address space
+are managed independently. This may be useful if you want to reuse the
+same set of physical buffers, a user simply maps them when they're
+needed. It also means that different physical memories could be
+targeted and a virtual allocation could map those memories without
+worrying about where they were. 
 
-The above two operations don't sound too complicated. The combination
-of the current API sounds much simpler than your new abstraction.
-
-Please show how the combination of the current APIs doesn't
-work. Otherwise, we can't see what's the benefit of your new
-abstraction.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+This whole concept is just a logical extension of the already existing
+separation between pages and page frames... in fact the separation
+between physical memory and what is mapped to that memory is
+fundamental to the Linux kernel. This approach just says that arbitrary
+long buffers should work the same way.
