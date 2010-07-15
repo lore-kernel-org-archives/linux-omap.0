@@ -1,66 +1,58 @@
-From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
- memory management
-Date: Wed, 14 Jul 2010 22:40:51 -0700
-Message-ID: <20100715054050.GB3623@codeaurora.org>
-References: <4C3C0032.5020702@codeaurora.org>
- <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
- <20100713121420.GB4263@codeaurora.org>
- <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
- <20100714201149.GA14008@codeaurora.org>
- <20100714220536.GE18138@n2100.arm.linux.org.uk>
- <20100715012958.GB2239@codeaurora.org>
- <m1mxttiki1.fsf@fess.ebiederm.org>
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
+Date: Thu, 15 Jul 2010 07:56:11 +0200
+Message-ID: <201007150756.11817.marek.vasut@gmail.com>
+References: <1277908081-17195-1-git-send-email-Hiroshi.DOYU@nokia.com> <201007150648.50521.marek.vasut@gmail.com> <20100715.083931.226798141.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <m1mxttiki1.fsf@fess.ebiederm.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: Text/Plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:49704 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932443Ab0GOF4Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jul 2010 01:56:16 -0400
+Received: by bwz1 with SMTP id 1so341260bwz.19
+        for <linux-omap@vger.kernel.org>; Wed, 14 Jul 2010 22:56:15 -0700 (PDT)
+In-Reply-To: <20100715.083931.226798141.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-arm-kernel@lists.infradead.org, Yoshiya.Hirase@nokia.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, teerth@ti.com, linux-pm@lists.linux-foundation.org
 
-On Wed, Jul 14, 2010 at 06:47:34PM -0700, Eric W. Biederman wrote:
-> Zach Pfeffer <zpfeffer@codeaurora.org> writes:
-> 
-> > On Wed, Jul 14, 2010 at 11:05:36PM +0100, Russell King - ARM Linux wrote:
-> >> On Wed, Jul 14, 2010 at 01:11:49PM -0700, Zach Pfeffer wrote:
-> >> > If the DMA-API contained functions to allocate virtual space separate
-> >> > from physical space and reworked how chained buffers functioned it
-> >> > would probably work - but then things start to look like the VCM API
-> >> > which does graph based map management.
-> >> 
-> >> Every additional virtual mapping of a physical buffer results in
-> >> additional cache aliases on aliasing caches, and more workload for
-> >> developers to sort out the cache aliasing issues.
-> >> 
-> >> What does VCM to do mitigate that?
-> >
-> > The VCM ensures that all mappings that map a given physical buffer:
-> > IOMMU mappings, CPU mappings and one-to-one device mappings all map
-> > that buffer using the same (or compatible) attributes. At this point
-> > the only attribute that users can pass is CACHED. In the absence of
-> > CACHED all accesses go straight through to the physical memory.
-> >
-> > The architecture of the VCM allows these sorts of consistency checks
-> > to be made since all mappers of a given physical resource are
-> > tracked. This is feasible because the physical resources we're
-> > tracking are typically large.
-> 
-> On x86 this is implemented in the pat code, and could reasonably be
-> generalized to be cross platform.
-> 
-> This is controlled by HAVE_PFNMAP_TRACKING and with entry points
-> like track_pfn_vma_new.
-> 
-> Given that we already have an implementation that tracks the cached
-> vs non-cached attribute using the dma api.  I don't see that the
-> API has to change.  An implementation of the cached vs non-cached
-> status for arm and other architectures is probably appropriate.
-> 
-> It is definitely true that getting your mapping caching attributes
-> out of sync can be a problem.
+Dne =C8t 15. =E8ervence 2010 07:39:31 Hiroshi DOYU napsal(a):
+> From: ext Marek Vasut <marek.vasut@gmail.com>
+> Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
+> Date: Thu, 15 Jul 2010 06:48:50 +0200
+>=20
+> > Dne St 30. =E8ervna 2010 16:28:01 Hiroshi DOYU napsal(a):
+> >> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> >>=20
+> >> Hibernation (a.k.a: Suspend-To-Disk) support for ARM
+> >>=20
+> >> Based on the original work from Romit and Raghu at TI. The origina=
+l
+> >> patch(*1) was sent to LOML by Teerth Reddy <teerth@ti.com>
+> >>=20
+> >> *1: https://patchwork.kernel.org/patch/96442/
+> >>=20
+> >> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> >=20
+> > Hey, can this also run on pre-v7 arms ? Or is there something I mis=
+sed
+> > that'd make that impossible?
+>=20
+> What I verified is with OMAP3(Cortex A8) based board.
+>=20
+> cp15 part has to be modified, but it might work without this part its=
+elf, I
+> guess.
 
-Sure, but we're still stuck with needing lots of scatterlist list
-elements and needing to copy them to share physical buffers.
+I see ... do I need any special support on the bootloader or userland s=
+ide ?
+
+Sorry for stupid questions :)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
