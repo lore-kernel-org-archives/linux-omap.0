@@ -1,49 +1,50 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
-Date: Thu, 15 Jul 2010 12:08:07 +0300 (EEST)
-Message-ID: <20100715.120807.39160135.Hiroshi.DOYU@nokia.com>
-References: <20100714132255.GB3103@ucw.cz>
-	<20100715.083450.193689911.Hiroshi.DOYU@nokia.com>
-	<20100715084118.GB26212@n2100.arm.linux.org.uk>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: Power managment on Overo
+Date: Thu, 15 Jul 2010 05:29:42 -0500
+Message-ID: <4C3EE316.5000506@gmail.com>
+References: <loom.20100715T065056-117@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20100715084118.GB26212@n2100.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux@arm.linux.org.uk
-Cc: khilman@deeprootsystems.com, Yoshiya.Hirase@nokia.com, pavel@ucw.cz, teerth@ti.com, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:50521 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933031Ab0GOK3z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jul 2010 06:29:55 -0400
+Received: by yxn35 with SMTP id 35so18608yxn.19
+        for <linux-omap@vger.kernel.org>; Thu, 15 Jul 2010 03:29:54 -0700 (PDT)
+In-Reply-To: <loom.20100715T065056-117@post.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Han Wang <hw342@cornell.edu>
+Cc: linux-omap@vger.kernel.org
 
-From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
-Date: Thu, 15 Jul 2010 10:41:18 +0200
-
-> On Thu, Jul 15, 2010 at 08:34:50AM +0300, Hiroshi DOYU wrote:
->> Russell, would it be possible to put this into your next merge queue?
-> 
-> I think it needs quite a bit of rework - I certainly don't like all
-> those CP15 register accesses there - that's asking for lots of ifdefs
-> to spring up as more CPUs are supported.
+On 07/15/2010 12:00 AM, Han Wang wrote:
+> Hi, All,
 >
-> Eg, what about ensuring that state such as iWMMXt on PXA CPUs is
-> properly restored?
+>     I am running the linux-pm-kernel v2.35.rc3 on Overo Earth. I have managed to
+> suspend the system using "echo mem>  /sys/power/state" with "enable_off_mode"
+> and "sleep_while_idle" enabled. Currently, I am able to achieve 200mW in suspend
+> mode. However, I am seen in other posts, such as this  one  (http://old.nabble.com/
+> Overo-boot-time--power-management-ts28402656.html#a28463135), that
+> people are able to achieve a much lower power signature.
 
-Right. This arch specific part can be something like
-"suspend-v[3-7].S" to accomodate those differences
+Did you check if you have actually shut off the voltages on vdd1 and 
+vdd2 when you hit OFF? easy to check with a voltmeter/scope on vdd1&vdd2 
+capcacitors.
 
-> We already have code which knows what needs to be saved across a
-> power-off transition - its what we use for our normal suspend/resume
-> functionality, so we should look at re-using that code for hibernate
-> as well.  We really don't want to be maintaining two sets of code
-> doing the same thing.
+>
+>     I am particularly interested to know what mode has the SDRAM on Overo  been set to
+> during suspend mode? Is it auto-refresh or self-refresh? And whether the TPS/TWL
+> power management chip is set to low power mode during suspend mode by the pm
+> kernel, if not, how to set it?
+>
+> Thanks,
+> Han
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Could you explain which code you're refering for the existing one?
