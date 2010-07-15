@@ -1,38 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH resend] omap: 3630: disable TLL SAR on 3630 ES1
-Date: Wed, 14 Jul 2010 23:01:09 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1007142257250.4823@utopia.booyaka.com>
-References: <1278718469-7940-1-git-send-email-gadiyar@ti.com> <alpine.DEB.2.00.1007121414430.10106@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB0323A2C0F6@dbde02.ent.ti.com>
+From: Han Wang <hw342@cornell.edu>
+Subject: Power managment on Overo
+Date: Thu, 15 Jul 2010 05:00:11 +0000 (UTC)
+Message-ID: <loom.20100715T065056-117@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43650 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932267Ab0GOFBK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jul 2010 01:01:10 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323A2C0F6@dbde02.ent.ti.com>
+Received: from lo.gmane.org ([80.91.229.12]:48930 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932267Ab0GOFFG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jul 2010 01:05:06 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1OZGd5-0002Pg-Ux
+	for linux-omap@vger.kernel.org; Thu, 15 Jul 2010 07:05:04 +0200
+Received: from cpe-24-59-188-255.twcny.res.rr.com ([24.59.188.255])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Thu, 15 Jul 2010 07:05:03 +0200
+Received: from hw342 by cpe-24-59-188-255.twcny.res.rr.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Thu, 15 Jul 2010 07:05:03 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Wed, 14 Jul 2010, Gadiyar, Anand wrote:
+Hi, All, 
 
-> Paul Walmsley wrote:
-> 
-> > Tony, once Anand does that, it's
-> > 
-> > Acked-by: Paul Walmsley <paul@pwsan.com>
-> > 
-> > if you want it for .36; otherwise, for .37, I'd be happy to queue it.
-> 
-> I assume you mean .35 and .36 here - isn't .37 another 3+ months away?
+   I am running the linux-pm-kernel v2.35.rc3 on Overo Earth. I have managed to
+suspend the system using "echo mem > /sys/power/state" with "enable_off_mode" 
+and "sleep_while_idle" enabled. Currently, I am able to achieve 200mW in suspend 
+mode. However, I am seen in other posts, such as this  one  (http://old.nabble.com/
+Overo-boot-time--power-management-ts28402656.html#a28463135), that 
+people are able to achieve a much lower power signature.
+  
+   I am particularly interested to know what mode has the SDRAM on Overo  been set to 
+during suspend mode? Is it auto-refresh or self-refresh? And whether the TPS/TWL 
+power management chip is set to low power mode during suspend mode by the pm
+kernel, if not, how to set it?
 
-I mean .35 and .36 -- we're operating under the idea that Linus only wants 
-regressions for the -rc series; and due to summer vacations, Kevin and I 
-have already sent our patch queues for .36 to Tony.  So it's likely to be 
-in .37, but it might get in for .36 depending on how schedules pan out.  
-This patch seems quite straightforward to me.
+Thanks,
+Han
 
-
-- Paul
