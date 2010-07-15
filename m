@@ -1,34 +1,43 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
-Date: Thu, 15 Jul 2010 09:41:18 +0100
-Message-ID: <20100715084118.GB26212@n2100.arm.linux.org.uk>
-References: <1277908081-17195-1-git-send-email-Hiroshi.DOYU@nokia.com> <1277908081-17195-2-git-send-email-Hiroshi.DOYU@nokia.com> <20100714132255.GB3103@ucw.cz> <20100715.083450.193689911.Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+	memory management
+Date: Thu, 15 Jul 2010 09:55:35 +0100
+Message-ID: <20100715085535.GC26212@n2100.arm.linux.org.uk>
+References: <4C3C0032.5020702@codeaurora.org> <20100713150311B.fujita.tomonori@lab.ntt.co.jp> <20100713121420.GB4263@codeaurora.org> <20100714104353B.fujita.tomonori@lab.ntt.co.jp> <20100714201149.GA14008@codeaurora.org> <20100714220536.GE18138@n2100.arm.linux.org.uk> <20100715012958.GB2239@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51974 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932643Ab0GOIl5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jul 2010 04:41:57 -0400
+Return-path: <linux-arch-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20100715.083450.193689911.Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20100715012958.GB2239@codeaurora.org>
+Sender: linux-arch-owner@vger.kernel.org
+To: Zach Pfeffer <zpfeffer@codeaurora.org>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-arm-kernel@lists.infradead.org, pavel@ucw.cz, khilman@deeprootsystems.com, teerth@ti.com, linux-pm@lists.linux-foundation.org, Yoshiya.Hirase@nokia.com, linux-omap@vger.kernel.org
 
-On Thu, Jul 15, 2010 at 08:34:50AM +0300, Hiroshi DOYU wrote:
-> Russell, would it be possible to put this into your next merge queue?
+On Wed, Jul 14, 2010 at 06:29:58PM -0700, Zach Pfeffer wrote:
+> The VCM ensures that all mappings that map a given physical buffer:
+> IOMMU mappings, CPU mappings and one-to-one device mappings all map
+> that buffer using the same (or compatible) attributes. At this point
+> the only attribute that users can pass is CACHED. In the absence of
+> CACHED all accesses go straight through to the physical memory.
 
-I think it needs quite a bit of rework - I certainly don't like all
-those CP15 register accesses there - that's asking for lots of ifdefs
-to spring up as more CPUs are supported.
+So what you're saying is that if I have a buffer in kernel space
+which I already have its virtual address, I can pass this to VCM and
+tell it !CACHED, and it'll setup another mapping which is not cached
+for me?
 
-Eg, what about ensuring that state such as iWMMXt on PXA CPUs is
-properly restored?
+You are aware that multiple V:P mappings for the same physical page
+with different attributes are being outlawed with ARMv6 and ARMv7
+due to speculative prefetching.  The cache can be searched even for
+a mapping specified as 'normal, uncached' and you can get cache hits
+because the data has been speculatively loaded through a separate
+cached mapping of the same physical page.
 
-We already have code which knows what needs to be saved across a
-power-off transition - its what we use for our normal suspend/resume
-functionality, so we should look at re-using that code for hibernate
-as well.  We really don't want to be maintaining two sets of code
-doing the same thing.
+FYI, during the next merge window, I will be pushing a patch which makes
+ioremap() of system RAM fail, which should be the last core code creator
+of mappings with different memory types.  This behaviour has been outlawed
+(as unpredictable) in the architecture specification and does cause
+problems on some CPUs.
+
+We've also the issue of multiple mappings with differing cache attributes
+which needs addressing too...
