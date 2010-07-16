@@ -1,87 +1,89 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Buffer overrun in the TWL4030 keypad driver with Nokia RX51
-Date: Fri, 16 Jul 2010 17:28:43 +0200
-Message-ID: <201007161728.44227.laurent.pinchart@ideasonboard.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] Combine dsi and sdi under the same vdds supply.
+Date: Fri, 16 Jul 2010 17:21:58 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1007161720010.19679@utopia.booyaka.com>
+References: <1279224930.14213.12.camel@black>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:36657 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759459Ab0GPXV7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jul 2010 19:21:59 -0400
+In-Reply-To: <1279224930.14213.12.camel@black>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Koen Kooi <koen@dominion.thruhere.net>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Mathieu Poirier <mathieu.poirier@canonical.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
-Hi everybody,
+Tomi, Koen,
 
-I've spent the day debugging a kernel crash in the USB networking code to find 
-out the problem was caused by a buffer overrun in the TWL4030 keypad driver. 
+On Thu, 15 Jul 2010, Mathieu Poirier wrote:
 
-The Nokia RX51 board code (arch/arm/mach-omap2/board-rx51-peripherals.c) 
-defines a key map for the matrix keypad keyboard. The hardware seems to use 
-all of the 8 rows and 8 columns of the keypad, although not all possible 
-locations are used.
+> >From b817304b25a0358f2897d39048adfada8d4126bc Mon Sep 17 00:00:00 2001
+> From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
+> Date: Wed, 14 Jul 2010 15:31:46 -0600
+> Subject: [PATCH] Combine dsi and sdi under the same vdds supply.
+> 
+> The omapfb driver can't locate its display sink because of an
+> initialization error in the DSS subsystem.  This error is caused by a
+> missing sdi entry in the board power regulator list.  Adding the missing
+> sdi entry and combining dsi and sdi under the same vdds supply.
+> 
+> BugLink: https://bugs.launchpad.net/bugs/597904
+> 
+> Signed-off-by: <mathieu.poirier@canonical.com>
 
-The TWL4030 supports keypads with at most 8 rows and 8 columns. Most keys are 
-defined with a row and column number between 0 and 7, except
+care to take a quick look at this one?
 
-        KEY(0xff, 2, KEY_F9),
-        KEY(0xff, 4, KEY_F10),
-        KEY(0xff, 5, KEY_F11),
 
-The row number is set to 0xff. As the generic matrix keypad support 
-(include/linux/input/matrix_keypad.h) supports at most 16 rows and 16 columns, 
-it masks all but the lower 4 bits of the row and column numbers in the KEY 
-macro.
+- Paul
 
-#define MATRIX_MAX_ROWS         16
-#define MATRIX_MAX_COLS         16
 
-#define KEY(row, col, val)      ((((row) & (MATRIX_MAX_ROWS - 1)) << 24) |\
-                                 (((col) & (MATRIX_MAX_COLS - 1)) << 16) |\
-                                 (val & 0xffff))
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |   11 ++++++-----
+>  1 files changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 69b154c..32565dc 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -162,8 +162,10 @@ static struct platform_device beagle_dss_device = {
+>  static struct regulator_consumer_supply beagle_vdac_supply =
+>  	REGULATOR_SUPPLY("vdda_dac", "omapdss");
+>  
+> -static struct regulator_consumer_supply beagle_vdvi_supply =
+> -	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
+> +static struct regulator_consumer_supply beagle_vdds_supplies[] = {
+> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
+> +	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
+> +};
+>  
+>  static void __init beagle_display_init(void)
+>  {
+> @@ -291,7 +293,6 @@ static struct regulator_init_data beagle_vdac = {
+>  /* VPLL2 for digital video outputs */
+>  static struct regulator_init_data beagle_vpll2 = {
+>  	.constraints = {
+> -		.name			= "VDVI",
+>  		.min_uV			= 1800000,
+>  		.max_uV			= 1800000,
+>  		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> @@ -299,8 +300,8 @@ static struct regulator_init_data beagle_vpll2 = {
+>  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+>  					| REGULATOR_CHANGE_STATUS,
+>  	},
+> -	.num_consumer_supplies	= 1,
+> -	.consumer_supplies	= &beagle_vdvi_supply,
+> +	.num_consumer_supplies  = ARRAY_SIZE(beagle_vdds_supplies),
+> +	.consumer_supplies      = beagle_vdds_supplies,
+>  };
+>  
+>  static struct twl4030_usb_data beagle_usb_data = {
+> -- 
+> 1.7.0.4
+> 
+> 
+> 
 
-This leads to an effective row number equal to 15.
 
-The TWL4030 keypad driver (drivers/input/keyboard/twl4030_keypad.c) allocates 
-in twl4030_kp_probe a 8x8 keycodes map, part of the twl4030_keypad structure.
-
-#define TWL4030_MAX_ROWS        8       /* TWL4030 hard limit */
-#define TWL4030_MAX_COLS        8
-#define TWL4030_ROW_SHIFT       3
-#define TWL4030_KEYMAP_SIZE     (TWL4030_MAX_ROWS * TWL4030_MAX_COLS)
-
-struct twl4030_keypad {
-        unsigned short  keymap[TWL4030_KEYMAP_SIZE];
-...
-
-It then calls matrix_keypad_build_keymap (include/linux/input/matrix_keypad.h) 
-to initialize the keycodes map from the keymap defined in platform data. The 
-function loops over all the keymap platform data entries, and initializes the 
-corresponding keycodes map entry. The entry index is computed with
-
-#define MATRIX_SCAN_CODE(row, col, row_shift)   (((row) << (row_shift)) + 
-(col))
-
-called with row_shift set to TWL4030_ROW_SHIFT, defined as 3.
-
-For the 3 keys defined with a row equal to 0xff, the map entry index is then 
-equal to (15 << 3) + col, which is bigger than the number of keycodes map 
-entries in the twl4030_keypad structure. Writing to that invalid index 
-overwrites random memory.
-
-The 0xff row number is used to detect rows completely connected to ground (see 
-the comment in twl4030_col_xlate, drivers/input/keyboard/twl4030_keypad.c). 
-The related code in twl4030_col_xlate is obviously wrong, returning a column 
-number too large for the allocated keycodes map if the hardware keypad has 8 
-columns.
-
-I can try to provide a patch, but I'm not familiar enough with the TWL4030 
-keypad driver and the generic matrix keypad code to know what the best fix 
-would be. Hopefully this should be quite clear for the TWL4030 keypad driver 
-developers.
-
--- 
-Regards,
-
-Laurent Pinchart
