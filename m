@@ -1,60 +1,45 @@
-From: Larry Bassel <lbassel@codeaurora.org>
-Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
- memory management
-Date: Fri, 16 Jul 2010 17:01:08 -0700
-Message-ID: <20100717000108.GB21293@labbmf-linux.quicinc.com>
-References: <4C3C0032.5020702@codeaurora.org>
- <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
- <20100713121420.GB4263@codeaurora.org>
- <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
- <20100714201149.GA14008@codeaurora.org>
- <20100714220536.GE18138@n2100.arm.linux.org.uk>
- <20100715012958.GB2239@codeaurora.org>
- <20100715085535.GC26212@n2100.arm.linux.org.uk>
- <AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com>
- <20100716075856.GC16124@n2100.arm.linux.org.uk>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH 00/15] ti dspbridge: Remove CamelCase, reagroup variables
+Date: Fri, 16 Jul 2010 19:17:12 -0500
+Message-ID: <4C40F688.80507@ti.com>
+References: <1278728649-21012-1-git-send-email-rene.sapiens@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20100716075856.GC16124@n2100.arm.linux.org.uk>
-Sender: owner-linux-mm@kvack.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tim HRM <zt.tmzt@gmail.com>, Zach Pfeffer <zpfeffer@codeaurora.org>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40053 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759483Ab0GQARX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Jul 2010 20:17:23 -0400
+In-Reply-To: <1278728649-21012-1-git-send-email-rene.sapiens@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Sapiens, Rene" <rene.sapiens@ti.com>
+Cc: "greg@kroah.com" <greg@kroah.com>, "gregkh@suse.de" <gregkh@suse.de>, "ohad@wizery.com" <ohad@wizery.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 16 Jul 10 08:58, Russell King - ARM Linux wrote:
-> On Thu, Jul 15, 2010 at 08:48:36PM -0400, Tim HRM wrote:
-> > Interesting, since I seem to remember the MSM devices mostly conduct
-> > IO through regions of normal RAM, largely accomplished through
-> > ioremap() calls.
-> > 
-> > Without more public domain documentation of the MSM chips and AMSS
-> > interfaces I wouldn't know how to avoid this, but I can imagine it
-> > creates a bit of urgency for Qualcomm developers as they attempt to
-> > upstream support for this most interesting SoC.
-> 
-> As the patch has been out for RFC since early April on the linux-arm-kernel
-> mailing list (Subject: [RFC] Prohibit ioremap() on kernel managed RAM),
-> and no comments have come back from Qualcomm folk.
+On 7/9/2010 9:23 PM, Sapiens, Rene wrote:
+> The intention of this serie of patches is to rename the remaining variables
+> with camel case. Words will be renamed avoiding CamelCase and Hungarian
+> notation. Also the variables in the prototypes  will be renamed to make them
+> match with the ones in the function definitions.
+>
+[...]
+>   74 files changed, 2471 insertions(+), 2439 deletions(-)
+>
+>
 
-We are investigating the impact of this change on us, and I
-will send out more detailed comments next week.
+Some of your patches produce:
 
-> 
-> The restriction on creation of multiple V:P mappings with differing
-> attributes is also fairly hard to miss in the ARM architecture
-> specification when reading the sections about caches.
-> 
+warning: drivers/staging/tidspbridge/include/dspbridge/dspdefs.h has 
+type 100644, expected 100755
 
-Larry Bassel
+None of the files had their permissions changed so I guess they should 
+be fine to merge, unless anybody else complains... so ACK.
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+For future patches please check you are not changing file mode or use:
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+git config core.filemode false
+
+Regards,
+
+Omar
