@@ -1,89 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] Combine dsi and sdi under the same vdds supply.
-Date: Fri, 16 Jul 2010 17:21:58 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1007161720010.19679@utopia.booyaka.com>
-References: <1279224930.14213.12.camel@black>
+From: Larry Bassel <lbassel@codeaurora.org>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Fri, 16 Jul 2010 17:01:08 -0700
+Message-ID: <20100717000108.GB21293@labbmf-linux.quicinc.com>
+References: <4C3C0032.5020702@codeaurora.org>
+ <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
+ <20100713121420.GB4263@codeaurora.org>
+ <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
+ <20100714201149.GA14008@codeaurora.org>
+ <20100714220536.GE18138@n2100.arm.linux.org.uk>
+ <20100715012958.GB2239@codeaurora.org>
+ <20100715085535.GC26212@n2100.arm.linux.org.uk>
+ <AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com>
+ <20100716075856.GC16124@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36657 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759459Ab0GPXV7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jul 2010 19:21:59 -0400
-In-Reply-To: <1279224930.14213.12.camel@black>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20100716075856.GC16124@n2100.arm.linux.org.uk>
+Sender: owner-linux-mm@kvack.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tim HRM <zt.tmzt@gmail.com>, Zach Pfeffer <zpfeffer@codeaurora.org>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Mathieu Poirier <mathieu.poirier@canonical.com>, tony@atomide.com, linux-omap@vger.kernel.org
 
-Tomi, Koen,
-
-On Thu, 15 Jul 2010, Mathieu Poirier wrote:
-
-> >From b817304b25a0358f2897d39048adfada8d4126bc Mon Sep 17 00:00:00 2001
-> From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
-> Date: Wed, 14 Jul 2010 15:31:46 -0600
-> Subject: [PATCH] Combine dsi and sdi under the same vdds supply.
+On 16 Jul 10 08:58, Russell King - ARM Linux wrote:
+> On Thu, Jul 15, 2010 at 08:48:36PM -0400, Tim HRM wrote:
+> > Interesting, since I seem to remember the MSM devices mostly conduct
+> > IO through regions of normal RAM, largely accomplished through
+> > ioremap() calls.
+> > 
+> > Without more public domain documentation of the MSM chips and AMSS
+> > interfaces I wouldn't know how to avoid this, but I can imagine it
+> > creates a bit of urgency for Qualcomm developers as they attempt to
+> > upstream support for this most interesting SoC.
 > 
-> The omapfb driver can't locate its display sink because of an
-> initialization error in the DSS subsystem.  This error is caused by a
-> missing sdi entry in the board power regulator list.  Adding the missing
-> sdi entry and combining dsi and sdi under the same vdds supply.
-> 
-> BugLink: https://bugs.launchpad.net/bugs/597904
-> 
-> Signed-off-by: <mathieu.poirier@canonical.com>
+> As the patch has been out for RFC since early April on the linux-arm-kernel
+> mailing list (Subject: [RFC] Prohibit ioremap() on kernel managed RAM),
+> and no comments have come back from Qualcomm folk.
 
-care to take a quick look at this one?
+We are investigating the impact of this change on us, and I
+will send out more detailed comments next week.
 
-
-- Paul
-
-
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |   11 ++++++-----
->  1 files changed, 6 insertions(+), 5 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 69b154c..32565dc 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -162,8 +162,10 @@ static struct platform_device beagle_dss_device = {
->  static struct regulator_consumer_supply beagle_vdac_supply =
->  	REGULATOR_SUPPLY("vdda_dac", "omapdss");
->  
-> -static struct regulator_consumer_supply beagle_vdvi_supply =
-> -	REGULATOR_SUPPLY("vdds_dsi", "omapdss");
-> +static struct regulator_consumer_supply beagle_vdds_supplies[] = {
-> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
-> +	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
-> +};
->  
->  static void __init beagle_display_init(void)
->  {
-> @@ -291,7 +293,6 @@ static struct regulator_init_data beagle_vdac = {
->  /* VPLL2 for digital video outputs */
->  static struct regulator_init_data beagle_vpll2 = {
->  	.constraints = {
-> -		.name			= "VDVI",
->  		.min_uV			= 1800000,
->  		.max_uV			= 1800000,
->  		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> @@ -299,8 +300,8 @@ static struct regulator_init_data beagle_vpll2 = {
->  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
->  					| REGULATOR_CHANGE_STATUS,
->  	},
-> -	.num_consumer_supplies	= 1,
-> -	.consumer_supplies	= &beagle_vdvi_supply,
-> +	.num_consumer_supplies  = ARRAY_SIZE(beagle_vdds_supplies),
-> +	.consumer_supplies      = beagle_vdds_supplies,
->  };
->  
->  static struct twl4030_usb_data beagle_usb_data = {
-> -- 
-> 1.7.0.4
-> 
-> 
+> The restriction on creation of multiple V:P mappings with differing
+> attributes is also fairly hard to miss in the ARM architecture
+> specification when reading the sections about caches.
 > 
 
+Larry Bassel
 
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
