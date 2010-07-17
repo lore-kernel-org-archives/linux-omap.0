@@ -1,72 +1,74 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH v2] OMAP: DSS2: Fix error path in omap_dsi_update()
-Date: Sat, 17 Jul 2010 12:14:03 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305DC5F77@dbde02.ent.ti.com>
-References: <1279109510-12992-1-git-send-email-archit@ti.com>
- <4C3DDF3D.7010609@ti.com>
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
+Date: Sat, 17 Jul 2010 15:51:44 +0200
+Message-ID: <201007171551.44438.marek.vasut@gmail.com>
+References: <201007150648.50521.marek.vasut@gmail.com> <20100715.090028.189718162.Hiroshi.DOYU@nokia.com> <201007150804.06217.marek.vasut@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=iso-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38196 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753354Ab0GQGoP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jul 2010 02:44:15 -0400
-In-Reply-To: <4C3DDF3D.7010609@ti.com>
-Content-Language: en-US
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:44962 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753485Ab0GQNvw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jul 2010 09:51:52 -0400
+Received: by fxm14 with SMTP id 14so1520034fxm.19
+        for <linux-omap@vger.kernel.org>; Sat, 17 Jul 2010 06:51:51 -0700 (PDT)
+In-Reply-To: <201007150804.06217.marek.vasut@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-arm-kernel@lists.infradead.org, Yoshiya.Hirase@nokia.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, teerth@ti.com, linux-pm@lists.linux-foundation.org
 
+Dne =C8t 15. =E8ervence 2010 08:04:06 Marek Vasut napsal(a):
+> Dne =C8t 15. =E8ervence 2010 08:00:28 Hiroshi DOYU napsal(a):
+> > From: ext Marek Vasut <marek.vasut@gmail.com>
+> > Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation support
+> > Date: Thu, 15 Jul 2010 07:56:11 +0200
+> >=20
+> > > Dne =C8t 15. =E8ervence 2010 07:39:31 Hiroshi DOYU napsal(a):
+> > >> From: ext Marek Vasut <marek.vasut@gmail.com>
+> > >> Subject: Re: [RFC][PATCH 1/1] ARM: Add initial hibernation suppo=
+rt
+> > >> Date: Thu, 15 Jul 2010 06:48:50 +0200
+> > >>=20
+> > >> > Dne St 30. =E8ervna 2010 16:28:01 Hiroshi DOYU napsal(a):
+> > >> >> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > >> >>=20
+> > >> >> Hibernation (a.k.a: Suspend-To-Disk) support for ARM
+> > >> >>=20
+> > >> >> Based on the original work from Romit and Raghu at TI. The or=
+iginal
+> > >> >> patch(*1) was sent to LOML by Teerth Reddy <teerth@ti.com>
+> > >> >>=20
+> > >> >> *1: https://patchwork.kernel.org/patch/96442/
+> > >> >>=20
+> > >> >> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > >> >=20
+> > >> > Hey, can this also run on pre-v7 arms ? Or is there something =
+I
+> > >> > missed that'd make that impossible?
+> > >>=20
+> > >> What I verified is with OMAP3(Cortex A8) based board.
+> > >>=20
+> > >> cp15 part has to be modified, but it might work without this par=
+t
+> > >> itself, I guess.
+> > >=20
+> > > I see ... do I need any special support on the bootloader or user=
+land
+> > > side ?
+> >=20
+> > No, I don't think so. The resuming boot could set up most of states
+> > basically.
+>=20
+> I'll test it on xscale/pxa270 ... if it works, I can test on various =
+pxa3xx
+> too.
 
-> Taneja, Archit had written, on 07/14/2010 07:11 AM, the following:
-> > In the case of an error on calling dsi_update_screen_l4(), a 
-> > successful framedone callback is still sent to panel-taal. An error 
-> > should be returned to taal_update() instead.
-> > 
-> > Signed-off-by: Archit Taneja <archit@ti.com>
-> > ---
-> > v2: This fixes a compilation warning seen after builing with v1.
-> > 
-> > v1:
-> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31715.html
-> > 
-> >  drivers/video/omap2/dss/dsi.c |    7 ++++++-
-> >  1 files changed, 6 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/video/omap2/dss/dsi.c 
-> > b/drivers/video/omap2/dss/dsi.c index a6e0f64..b3fa3a7
-> > --- a/drivers/video/omap2/dss/dsi.c
-> > +++ b/drivers/video/omap2/dss/dsi.c
-> > @@ -2920,7 +2920,12 @@ int omap_dsi_update(struct omap_dss_device 
-> > *dssdev,
-> >  
-> >  		dsi_update_screen_dispc(dssdev, x, y, w, h);
-> dont need the error check here?
-
-No, there is a scheduled workqueue which notifies a failure if
-this function doesn't do what it was supposed to.
-
-> >  	} else {
-> > -		dsi_update_screen_l4(dssdev, x, y, w, h);
-> > +		int r;
-> > +
-> > +		r = dsi_update_screen_l4(dssdev, x, y, w, h);
-> > +		if (r)
-> no print for warning developer/user? is this error expected?
-
-The failure or success of omap_dsi_update() is notified to the display
-panel driver(panel-taal) by a callback , if this error check isn't put
-here, the panel driver will receive the callback without any error. Hence
-it is needed. The error arrives when we don't get the supported pixel size
-and color mode.
-
-I am not sure if a print is needed, I will wait for Tomi's comment for that,
-this returned value will be checked by upper functuions though. It is the
-responsibility of the caller of taal_update to handle the returned value
-correctly.
-
-Regards,
-
-Archit
+Sorry I wasn't able to test this yet, I'm having trouble with my cross-
+toolchain.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
