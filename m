@@ -1,128 +1,91 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC] [PATCH 5/6] OMAP1: Amstrad Delta: add support for camera
-Date: Sun, 18 Jul 2010 06:27:49 +0200
-Message-ID: <201007180627.54193.jkrzyszt@tis.icnet.pl>
+Subject: [RFC] [PATCH 6/6] OMAP1: Amstrad Delta: add camera controlled LEDS trigger
+Date: Sun, 18 Jul 2010 06:29:47 +0200
+Message-ID: <201007180629.56253.jkrzyszt@tis.icnet.pl>
 References: <201007180618.08266.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:56764 "EHLO d1.icnet.pl"
+Received: from d1.icnet.pl ([212.160.220.21]:57069 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751318Ab0GRE2W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 18 Jul 2010 00:28:22 -0400
+	id S1751318Ab0GREaZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 18 Jul 2010 00:30:25 -0400
 In-Reply-To: <201007180618.08266.jkrzyszt@tis.icnet.pl>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+To: linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Tony Lindgren <tony@atomide.com>, Richard Purdie <rpurdie@rpsys.net>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-This patch adds configuration data and initialization code required for camera 
-support to the Amstrad Delta board.
+This patch extends the Amstrad Delta camera support with LEDS trigger that can 
+be used for automatic control of the on-board camera LED. The led turns on 
+automatically on camera device open and turns off on camera device close.
 
-Three devices are declared: SoC camera, OMAP1 camera interface and OV6650 
-sensor.
-
-Default 12MHz clock has been selected for driving the sensor. Pixel clock has 
-been limited to get reasonable frame rates, not exceeding the board 
-capabilities. Since both devices (interface and sensor) support both pixel 
-clock polarities, decision on polarity selection has been left to drivers.
-Interface GPIO line has been found not functional, thus not configured.
+If you find this solution usefull for other boards / machines / platforms 
+as well, I can try to reimplement it at the SoC camera framework level, or 
+OMAP1 camera interface level.
 
 Created and tested against linux-2.6.35-rc3.
 
-Works on top of previous patches from the series, at least 1/6, 2/6 and 3/6.
+Works on top of patch 5/6, "OMAP1: Amstrad Delta: add support for on-board 
+camera"
 
 Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
- arch/arm/mach-omap1/board-ams-delta.c |   45 ++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ arch/arm/mach-omap1/board-ams-delta.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
---- linux-2.6.35-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c	2010-06-26 15:54:47.000000000 +0200
-+++ linux-2.6.35-rc3/arch/arm/mach-omap1/board-ams-delta.c	2010-07-18 02:21:23.000000000 +0200
-@@ -19,6 +19,8 @@
+--- linux-2.6.35-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c	2010-07-18 02:48:53.000000000 +0200
++++ linux-2.6.35-rc3/arch/arm/mach-omap1/board-ams-delta.c	2010-07-18 02:47:33.000000000 +0200
+@@ -16,6 +16,7 @@
+ #include <linux/init.h>
+ #include <linux/input.h>
+ #include <linux/interrupt.h>
++#include <linux/leds.h>
  #include <linux/platform_device.h>
  #include <linux/serial_8250.h>
  
-+#include <media/soc_camera.h>
-+
- #include <asm/serial.h>
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -32,6 +34,7 @@
- #include <plat/usb.h>
- #include <plat/board.h>
- #include <plat/common.h>
-+#include <mach/camera.h>
- 
- #include <mach/ams-delta-fiq.h>
- 
-@@ -213,10 +216,37 @@ static struct platform_device ams_delta_
- 	.id	= -1
+@@ -222,11 +223,30 @@ static struct i2c_board_info ams_delta_c
+ 	},
  };
  
-+static struct i2c_board_info ams_delta_camera_board_info[] = {
-+	{
-+		I2C_BOARD_INFO("ov6650", 0x60),
-+	},
-+};
++#if defined(CONFIG_LEDS_TRIGGERS)
++DEFINE_LED_TRIGGER(ams_delta_camera_led_trigger);
 +
-+static struct soc_camera_link __initdata ams_delta_iclink = {
-+	.bus_id         = 0,	/* OMAP1 SoC camera bus */
-+	.i2c_adapter_id = 1,
-+	.board_info     = &ams_delta_camera_board_info[0],
-+	.module_name    = "ov6650",
-+};
++static int ams_delta_camera_power(struct device *dev, int power)
++{
++	/*
++	 * turn on camera LED
++	 */
++	if (power)
++		led_trigger_event(ams_delta_camera_led_trigger, LED_FULL);
++	else
++		led_trigger_event(ams_delta_camera_led_trigger, LED_OFF);
++	return 0;
++}
++#else
++#define ams_delta_camera_power	NULL
++#endif
 +
-+static struct platform_device ams_delta_camera_device = {
-+	.name   = "soc-camera-pdrv",
-+	.id     = 0,
-+	.dev    = {
-+		.platform_data = &ams_delta_iclink,
-+	},
-+};
-+
-+static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
-+	.camexclk_khz	= 12000,	/* default 12MHz clock, no extra DPLL */
-+	.lclk_khz_max	= 1334,		/* results in 5fps CIF, 10fps QCIF */
-+};
-+
- static struct platform_device *ams_delta_devices[] __initdata = {
- 	&ams_delta_kp_device,
- 	&ams_delta_lcd_device,
- 	&ams_delta_led_device,
-+	&ams_delta_camera_device,
+ static struct soc_camera_link __initdata ams_delta_iclink = {
+ 	.bus_id         = 0,	/* OMAP1 SoC camera bus */
+ 	.i2c_adapter_id = 1,
+ 	.board_info     = &ams_delta_camera_board_info[0],
+ 	.module_name    = "ov6650",
++	.power		= ams_delta_camera_power,
  };
  
- static void __init ams_delta_init(void)
-@@ -225,6 +255,20 @@ static void __init ams_delta_init(void)
- 	omap_cfg_reg(UART1_TX);
- 	omap_cfg_reg(UART1_RTS);
- 
-+	/* parallel camera interface */
-+	omap_cfg_reg(H19_1610_CAM_EXCLK);
-+	omap_cfg_reg(J15_1610_CAM_LCLK);
-+	omap_cfg_reg(L18_1610_CAM_VS);
-+	omap_cfg_reg(L15_1610_CAM_HS);
-+	omap_cfg_reg(L19_1610_CAM_D0);
-+	omap_cfg_reg(K14_1610_CAM_D1);
-+	omap_cfg_reg(K15_1610_CAM_D2);
-+	omap_cfg_reg(K19_1610_CAM_D3);
-+	omap_cfg_reg(K18_1610_CAM_D4);
-+	omap_cfg_reg(J14_1610_CAM_D5);
-+	omap_cfg_reg(J19_1610_CAM_D6);
-+	omap_cfg_reg(J18_1610_CAM_D7);
-+
- 	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
- 
- 	omap_board_config = ams_delta_config;
-@@ -236,6 +280,7 @@ static void __init ams_delta_init(void)
- 	ams_delta_latch2_write(~0, 0);
+ static struct platform_device ams_delta_camera_device = {
+@@ -281,6 +301,10 @@ static void __init ams_delta_init(void)
  
  	omap_usb_init(&ams_delta_usb_config);
-+	omap1_set_camera_info(&ams_delta_camera_platform_data);
+ 	omap1_set_camera_info(&ams_delta_camera_platform_data);
++#if defined(CONFIG_LEDS_TRIGGERS)
++	led_trigger_register_simple("ams_delta_camera",
++			&ams_delta_camera_led_trigger);
++#endif
  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
  
  #ifdef CONFIG_AMS_DELTA_FIQ
