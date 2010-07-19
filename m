@@ -1,59 +1,87 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 5/5] omap:hwspinlocks-ensure the order of registration
-Date: Mon, 19 Jul 2010 11:50:21 -0500
-Message-ID: <1279558221-14954-6-git-send-email-h-kanigeri2@ti.com>
-References: <1279558221-14954-1-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH 0/5] omap:hwspinlock support-omap4
+Date: Mon, 19 Jul 2010 11:50:16 -0500
+Message-ID: <1279558221-14954-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48454 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936439Ab0GSQjf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jul 2010 12:39:35 -0400
-In-Reply-To: <1279558221-14954-1-git-send-email-h-kanigeri2@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35776 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S936439Ab0GSQjd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Jul 2010 12:39:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Cousson Benoit <b-cousson@ti.com>, Simon Que <sque@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Ensure that the hwspinlock driver is registered prior to
-I2C driver registration since I2C is dependent on hwspinlock.
+Resending the hwspinlock patch Simon Que sent few days ago by splitting
+the patch into logical pieces. The first 4 patches are based on Simon's
+patch.
+https://patchwork.kernel.org/patch/110672/
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
- arch/arm/mach-omap2/hwspinlocks.c |    2 +-
- arch/arm/plat-omap/hwspinlock.c   |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+The 5th patch is a new patch to address race condition issue with
+I2C driver usage.
 
-diff --git a/arch/arm/mach-omap2/hwspinlocks.c b/arch/arm/mach-omap2/hwspinlocks.c
-index f0f05e1..a9f85b9 100644
---- a/arch/arm/mach-omap2/hwspinlocks.c
-+++ b/arch/arm/mach-omap2/hwspinlocks.c
-@@ -67,4 +67,4 @@ int __init hwspinlocks_init(void)
- 
- 	return retval;
- }
--module_init(hwspinlocks_init);
-+postcore_initcall(hwspinlocks_init);
-diff --git a/arch/arm/plat-omap/hwspinlock.c b/arch/arm/plat-omap/hwspinlock.c
-index 1883add..3742b04 100644
---- a/arch/arm/plat-omap/hwspinlock.c
-+++ b/arch/arm/plat-omap/hwspinlock.c
-@@ -309,6 +309,7 @@ static int __init hwspinlock_init(void)
- 
- 	return retval;
- }
-+postcore_initcall(hwspinlock_init);
- 
- /* Cleanup function */
- static void __exit hwspinlock_exit(void)
-@@ -325,8 +326,6 @@ static void __exit hwspinlock_exit(void)
- 	if (hwspinlock_module->is_init)
- 		kfree(hwspinlocks);
- }
--
--module_init(hwspinlock_init);
- module_exit(hwspinlock_exit);
- 
- MODULE_LICENSE("GPL v2");
--- 
-1.7.0
+
+Created driver for OMAP hardware spinlock.  This driver supports:
+- Reserved spinlocks for internal use
+- Dynamic allocation of unreserved locks
+- Lock, unlock, and trylock functions, with or without disabling irqs/preempt
+- Registered as a platform device driver
+
+The device initialization uses hwmod to configure the devices.
+One device will be created for each IP.
+It will pass spinlock register offset info to the driver.
+The device initialization file is:
+                arch/arm/mach-omap2/hwspinlocks.c
+
+The driver takes in register offset info passed in device initialization.
+It uses hwmod to obtain the base address of the hardware spinlock module.
+Then it reads info from the registers.
+The function hwspinlock_probe() initializes the array of spinlock structures,
+each containing a spinlock register address calculated from the base address
+and lock offsets.  The device driver file is:
+                arch/arm/plat-omap/hwspinlock.c
+
+Here's an API summary:
+int hwspinlock_lock(struct hwspinlock *);
+        Attempt to lock a hardware spinlock.  If it is busy, the function will
+        keep trying until it succeeds.  This is a blocking function.
+int hwspinlock_trylock(struct hwspinlock *);
+        Attempt to lock a hardware spinlock.  If it is busy, the function will
+        return BUSY.  If it succeeds in locking, the function will return
+        ACQUIRED.  This is a non-blocking function.
+int hwspinlock_unlock(struct hwspinlock *);
+        Unlock a hardware spinlock.
+
+struct hwspinlock *hwspinlock_request(void);
+        Provides for "dynamic allocation" of a hardware spinlock.  It returns
+        the handle to the next available (unallocated) spinlock.  If no more
+        locks are available, it returns NULL.
+struct hwspinlock *hwspinlock_request_specific(unsigned int);
+        Provides for "static allocation" of a specific hardware spinlock. This
+        allows the system to use a specific spinlock, identified by an ID. If
+        the ID is invalid or if the desired lock is already allocated, this
+        will return NULL.  Otherwise it returns a spinlock handle.
+int hwspinlock_free(struct hwspinlock *);
+        Frees an allocated hardware spinlock (either reserved or unreserved).
+
+Hari Kanigeri (1):
+  omap:hwspinlocks-ensure the order of registration
+
+Simon Que (4):
+  omap:hwmod-hwspinlock-enable
+  omap:hwspinlock-define HWSPINLOCK base address
+  omap:hwspinlock-added hwspinlock driver
+  omap:hwspinlock-add build support
+
+ arch/arm/mach-omap2/Makefile                 |    2 +
+ arch/arm/mach-omap2/hwspinlocks.c            |   70 ++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    2 +-
+ arch/arm/plat-omap/Makefile                  |    2 +
+ arch/arm/plat-omap/hwspinlock.c              |  334 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/hwspinlock.h |   29 +++
+ arch/arm/plat-omap/include/plat/omap44xx.h   |    5 +
+ 7 files changed, 443 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/hwspinlocks.c
+ create mode 100644 arch/arm/plat-omap/hwspinlock.c
+ create mode 100644 arch/arm/plat-omap/include/plat/hwspinlock.h
 
