@@ -1,78 +1,53 @@
-From: Tim HRM <zt.tmzt@gmail.com>
-Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
-	memory management
-Date: Mon, 19 Jul 2010 05:21:35 -0400
-Message-ID: <AANLkTinTQXbsD91JDHiSFrvDoUeHbaGUGSWA-5aT5ZCr@mail.gmail.com>
-References: <4C3C0032.5020702@codeaurora.org>
-	<20100713150311B.fujita.tomonori@lab.ntt.co.jp>
-	<20100713121420.GB4263@codeaurora.org>
-	<20100714104353B.fujita.tomonori@lab.ntt.co.jp>
-	<20100714201149.GA14008@codeaurora.org>
-	<20100714220536.GE18138@n2100.arm.linux.org.uk>
-	<20100715012958.GB2239@codeaurora.org>
-	<20100715085535.GC26212@n2100.arm.linux.org.uk>
-	<AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com>
-	<20100716075856.GC16124@n2100.arm.linux.org.uk>
-	<20100717000108.GB21293@labbmf-linux.quicinc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20100717000108.GB21293@labbmf-linux.quicinc.com>
-Sender: owner-linux-mm@kvack.org
-To: Larry Bassel <lbassel@codeaurora.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Zach Pfeffer <zpfeffer@codeaurora.org>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 1/5] OMAP: DSS2: Add Video3 pipeline in display.h
+Date: Mon, 19 Jul 2010 17:25:40 +0530
+Message-ID: <1279540544-12682-2-git-send-email-archit@ti.com>
+References: <1279540544-12682-1-git-send-email-archit@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35625 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760621Ab0GSLz4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Jul 2010 07:55:56 -0400
+In-Reply-To: <1279540544-12682-1-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, Sumit Semwal <sumit.semwal@ti.com>, Mukund Mittal <mmittal@ti.com>, Archit Taneja <archit@ti.com>
 
-On Fri, Jul 16, 2010 at 8:01 PM, Larry Bassel <lbassel@codeaurora.org> wrote:
-> On 16 Jul 10 08:58, Russell King - ARM Linux wrote:
->> On Thu, Jul 15, 2010 at 08:48:36PM -0400, Tim HRM wrote:
->> > Interesting, since I seem to remember the MSM devices mostly conduct
->> > IO through regions of normal RAM, largely accomplished through
->> > ioremap() calls.
->> >
->> > Without more public domain documentation of the MSM chips and AMSS
->> > interfaces I wouldn't know how to avoid this, but I can imagine it
->> > creates a bit of urgency for Qualcomm developers as they attempt to
->> > upstream support for this most interesting SoC.
->>
->> As the patch has been out for RFC since early April on the linux-arm-kernel
->> mailing list (Subject: [RFC] Prohibit ioremap() on kernel managed RAM),
->> and no comments have come back from Qualcomm folk.
->
-> We are investigating the impact of this change on us, and I
-> will send out more detailed comments next week.
->
->>
->> The restriction on creation of multiple V:P mappings with differing
->> attributes is also fairly hard to miss in the ARM architecture
->> specification when reading the sections about caches.
->>
->
-> Larry Bassel
->
-> --
-> Sent by an employee of the Qualcomm Innovation Center, Inc.
-> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
->
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-Hi Larry and Qualcomm people.
-I'm curious what your reason for introducing this new api (or adding
-to dma) is.  Specifically how this would be used to make the memory
-mapping of the MSM chip dynamic in contrast to the fixed _PHYS defines
-in the Android and Codeaurora trees.
+Changes in display.h for enabling Video3 pipeline in DSS2 for OMAP4.
 
-I'm also interested in how this ability to map memory regions as files
-for devices like KGSL/DRI or PMEM might work and why this is better
-suited to that purpose than existing methods, where this fits into
-camera preview and other issues that have been dealt with in these
-trees in novel ways (from my perspective).
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Signed-off-by: Mukund Mittal <mmittal@ti.com>
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ arch/arm/plat-omap/include/plat/display.h |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-Thanks,
-Timothy Meade
-tmzt #htc-linux
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index 56e7045..d1da317
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -62,7 +62,8 @@ enum omap_display_type {
+ enum omap_plane {
+ 	OMAP_DSS_GFX	= 0,
+ 	OMAP_DSS_VIDEO1	= 1,
+-	OMAP_DSS_VIDEO2	= 2
++	OMAP_DSS_VIDEO2 = 2,
++	OMAP_DSS_VIDEO3 = 3,
+ };
+ 
+ enum omap_channel {
+@@ -117,6 +118,8 @@ enum omap_color_mode {
+ 		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
+ 		OMAP_DSS_COLOR_UYVY | OMAP_DSS_COLOR_ARGB32 |
+ 		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
++
++	OMAP_DSS_COLOR_VID3_OMAP3 = OMAP_DSS_COLOR_VID2_OMAP3,
+ };
+ 
+ enum omap_lcd_display_type {
+-- 
+1.6.3.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
