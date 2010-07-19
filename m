@@ -1,57 +1,69 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] [ARM] video/omap2/tdo35s: fix visual artefacts
-Date: Sun, 18 Jul 2010 13:11:27 +0300
-Message-ID: <4C42D34F.4000602@compulab.co.il>
-References: <1278931370-19912-1-git-send-email-grinberg@compulab.co.il>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Sun, 18 Jul 2010 23:52:33 -0700
+Message-ID: <20100719065233.GD11054@codeaurora.org>
+References: <4C3C0032.5020702@codeaurora.org>
+ <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
+ <20100713121420.GB4263@codeaurora.org>
+ <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
+ <20100714201149.GA14008@codeaurora.org>
+ <20100714220536.GE18138@n2100.arm.linux.org.uk>
+ <20100715012958.GB2239@codeaurora.org>
+ <20100715085535.GC26212@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:35428 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753921Ab0GRKLf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 18 Jul 2010 06:11:35 -0400
-In-Reply-To: <1278931370-19912-1-git-send-email-grinberg@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100715085535.GC26212@n2100.arm.linux.org.uk>
+Sender: linux-arch-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
-Tomi,
+On Thu, Jul 15, 2010 at 09:55:35AM +0100, Russell King - ARM Linux wrote:
+> On Wed, Jul 14, 2010 at 06:29:58PM -0700, Zach Pfeffer wrote:
+> > The VCM ensures that all mappings that map a given physical buffer:
+> > IOMMU mappings, CPU mappings and one-to-one device mappings all map
+> > that buffer using the same (or compatible) attributes. At this point
+> > the only attribute that users can pass is CACHED. In the absence of
+> > CACHED all accesses go straight through to the physical memory.
+> 
+> So what you're saying is that if I have a buffer in kernel space
+> which I already have its virtual address, I can pass this to VCM and
+> tell it !CACHED, and it'll setup another mapping which is not cached
+> for me?
 
-Any comments?
+Not quite. The existing mapping will be represented by a reservation
+from the prebuilt VCM of the VM. This reservation has been marked
+non-cached. Another reservation on a IOMMU VCM, also marked non-cached
+will be backed with the same physical memory. This is legal in ARM,
+allowing the vcm_back call to succeed. If you instead passed cached on
+the second mapping, the first mapping would be non-cached and the
+second would be cached. If the underlying architecture supported this
+than the vcm_back would go through.
 
-> TDO35S samples the data on the falling adge of the pixel clock,
-> therefore the data strobe should be on the raising edge.
->
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> ---
->  .../video/omap2/displays/panel-toppoly-tdo35s.c    |    8 ++++++--
->  1 files changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-> index fa434ca..e320e67 100644
-> --- a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-> +++ b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-> @@ -73,8 +73,12 @@ static void toppoly_tdo_panel_power_off(struct omap_dss_device *dssdev)
->  
->  static int toppoly_tdo_panel_probe(struct omap_dss_device *dssdev)
->  {
-> -	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-> -		OMAP_DSS_LCD_IHS;
-> +	dssdev->panel.config = OMAP_DSS_LCD_TFT |
-> +			       OMAP_DSS_LCD_IVS |
-> +			       OMAP_DSS_LCD_IHS |
-> +			       OMAP_DSS_LCD_IPC |
-> +			       OMAP_DSS_LCD_ONOFF;
-> +
->  	dssdev->panel.timings = toppoly_tdo_panel_timings;
->  
->  	return 0;
->   
+> 
+> You are aware that multiple V:P mappings for the same physical page
+> with different attributes are being outlawed with ARMv6 and ARMv7
+> due to speculative prefetching.  The cache can be searched even for
+> a mapping specified as 'normal, uncached' and you can get cache hits
+> because the data has been speculatively loaded through a separate
+> cached mapping of the same physical page.
 
--- 
-Regards,
-Igor.
+I didn't know that. Thanks for the heads up.
 
+> FYI, during the next merge window, I will be pushing a patch which makes
+> ioremap() of system RAM fail, which should be the last core code creator
+> of mappings with different memory types.  This behaviour has been outlawed
+> (as unpredictable) in the architecture specification and does cause
+> problems on some CPUs.
+
+That's fair enough, but it seems like it should only be outlawed for
+those processors on which it breaks.
+
+> 
+> We've also the issue of multiple mappings with differing cache attributes
+> which needs addressing too...
+
+The VCM has been architected to handle these things.
