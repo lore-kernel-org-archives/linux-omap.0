@@ -1,81 +1,74 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: Buffer overrun in the TWL4030 keypad driver with Nokia RX51
-Date: Tue, 20 Jul 2010 11:07:45 -0700
-Message-ID: <201007201107.46003.dmitry.torokhov@gmail.com>
-References: <201007161728.44227.laurent.pinchart@ideasonboard.com> <20100717213705.GA22477@core.coreip.homeip.net> <201007201306.10505.laurent.pinchart@ideasonboard.com>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Tue, 20 Jul 2010 13:45:17 -0700
+Message-ID: <20100720204515.GA12250@codeaurora.org>
+References: <4C3C0032.5020702@codeaurora.org>
+ <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
+ <20100713121420.GB4263@codeaurora.org>
+ <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
+ <20100714201149.GA14008@codeaurora.org>
+ <20100714220536.GE18138@n2100.arm.linux.org.uk>
+ <20100715012958.GB2239@codeaurora.org>
+ <20100715085535.GC26212@n2100.arm.linux.org.uk>
+ <AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com>
+ <20100716075856.GC16124@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <201007201306.10505.laurent.pinchart@ideasonboard.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Amit Kucheria <amit.kucheria@verdurent.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20100716075856.GC16124@n2100.arm.linux.org.uk>
+Sender: owner-linux-mm@kvack.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tim HRM <zt.tmzt@gmail.com>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday, July 20, 2010 04:06:08 am Laurent Pinchart wrote:
-> Hi Dmitry,
-> 
-> On Saturday 17 July 2010 23:37:05 Dmitry Torokhov wrote:
-> > On Fri, Jul 16, 2010 at 05:28:43PM +0200, Laurent Pinchart wrote:
-> > > I've spent the day debugging a kernel crash in the USB networking code
-> > > to find out the problem was caused by a buffer overrun in the TWL4030
-> > > keypad driver.
-> > > 
-> > > The Nokia RX51 board code
-> > > (arch/arm/mach-omap2/board-rx51-peripherals.c) defines a key map for
-> > > the matrix keypad keyboard. The hardware seems to use all of the 8
-> > > rows and 8 columns of the keypad, although not all possible locations
-> > > are used.
-> > > 
-> > > The TWL4030 supports keypads with at most 8 rows and 8 columns. Most
-> > > keys are defined with a row and column number between 0 and 7, except
-> > > 
-> > >         KEY(0xff, 2, KEY_F9),
-> > >         KEY(0xff, 4, KEY_F10),
-> > >         KEY(0xff, 5, KEY_F11),
-> > > 
-> > > The row number is set to 0xff. As the generic matrix keypad support
-> > > (include/linux/input/matrix_keypad.h) supports at most 16 rows and 16
-> > > columns, it masks all but the lower 4 bits of the row and column
-> > > numbers in the KEY macro.
+On Fri, Jul 16, 2010 at 08:58:56AM +0100, Russell King - ARM Linux wrote:
+> On Thu, Jul 15, 2010 at 08:48:36PM -0400, Tim HRM wrote:
+> > Interesting, since I seem to remember the MSM devices mostly conduct
+> > IO through regions of normal RAM, largely accomplished through
+> > ioremap() calls.
 > > 
-> > [..snipped..]
-> > 
-> > Thanks for the report. Could yo uplease try the patch below and let me
-> > know if it works.
+> > Without more public domain documentation of the MSM chips and AMSS
+> > interfaces I wouldn't know how to avoid this, but I can imagine it
+> > creates a bit of urgency for Qualcomm developers as they attempt to
+> > upstream support for this most interesting SoC.
 > 
-> The patch fixes the crash at startup,
-
-Great.
-
-> but the F9, F10 and F11 key events
-> are never reported. That might be because those keys are not wired up to
-> anything though.
-
-I would not know... If you see all keys on the device being handled then I 
-guess it's the case... Tony, Amit, any ideas?
-
-> All keys on the keyboard, as well as the F7 and F8 keys
-> (volume up and down on the of the case)
-
-I guess we need to remap them to KEY_VOLUMEUP and KEY_VOLUMEDOWN then. So is 
-F7 == Up and F8 == Down?
-
-> generate the proper events. All
-> other "keys" (keyboard slider switch, power button, focus button, lock
-> switch, proximity sensor) report events through other devices.
+> As the patch has been out for RFC since early April on the linux-arm-kernel
+> mailing list (Subject: [RFC] Prohibit ioremap() on kernel managed RAM),
+> and no comments have come back from Qualcomm folk.
 > 
-> > I have some concerns with the keymap assignments, I see that Amit
-> > changed them during KEY(col, row) -> KEY(row, col) conversion. I marked
-> > the entries I am concerned with with XXX.
-> 
-> F7, F8, right alt and left shift are properly mapped. I don't know what F9,
-> F10 and F11 are supposed to be.
+> The restriction on creation of multiple V:P mappings with differing
+> attributes is also fairly hard to miss in the ARM architecture
+> specification when reading the sections about caches.
 
-OK, thanks. Since you don't crash anymore I think it is worth pushing
-it out.
+As you mention in your patch the things that can't conflict are memory
+type (strongly- ordered/device/normal), cache policy
+(cacheable/non-cacheable, copy- back/write-through), and coherency
+realm (non-shareable/inner- shareable/outer-shareable). You can
+conflict in allocation preferences (write-allocate/write-no-allocate),
+as those are just "hints".
 
--- 
-Dmitry
+You can also conflict in access permissions which can and do conflict
+(which are what multiple mappings are all about...some buffer can get
+some access, while others get different access).
+
+The VCM API allows the same memory to be mapped as long as it makes
+sense and allows those attributes that can change to be specified. It
+could be the alternative, globally applicable approach, your looking
+for and request in your patch.
+
+Without the VCM API (or something like it) there will just be a bunch
+of duplicated code that's basically doing ioremap. This code will
+probably fail to configure its mappings correctly, in which case your
+patch is a bad idea because it'll spawn bugs all over the place
+instead of at a know location. We could instead change ioremap to
+match the attributes of System RAM if that's what its mapping.
+
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
