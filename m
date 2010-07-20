@@ -1,58 +1,76 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH 0/7] HTC Herald various device support
-Date: Mon, 19 Jul 2010 21:05:34 -0700
-Message-ID: <1279598741-18607-1-git-send-email-darkstar6262@gmail.com>
+Subject: [PATCH 2/7] [OMAP] Add allowance for extra IRQ space
+Date: Mon, 19 Jul 2010 21:07:41 -0700
+Message-ID: <1279598866-18716-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:58346 "EHLO
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:60023 "EHLO
 	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab0GTEGH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2010 00:06:07 -0400
-Received: by iwn7 with SMTP id 7so5352423iwn.19
-        for <linux-omap@vger.kernel.org>; Mon, 19 Jul 2010 21:06:04 -0700 (PDT)
+	with ESMTP id S1751269Ab0GTEH6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2010 00:07:58 -0400
+Received: by iwn7 with SMTP id 7so5354123iwn.19
+        for <linux-omap@vger.kernel.org>; Mon, 19 Jul 2010 21:07:58 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
-This patch set is an updated version of a series of patches I submitted
-a while ago.  It's built against the latest linux-omap master branch, and
-removes all defconfig updates.  Other comments were put in place as well.
+This change adds a configuration option that boards can specify that
+gives them an additional 64 or 128 IRQ lines to play with.  This is
+most useful if there are external interrupt-producing devices connected
+to the board.
 
-This patch set implements the following drivers and support for them into
-the HTC Herald:
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+---
+ arch/arm/plat-omap/Kconfig             |   18 ++++++++++++++++++
+ arch/arm/plat-omap/include/plat/irqs.h |    6 +++++-
+ 2 files changed, 23 insertions(+), 1 deletions(-)
 
- * MMC card support
- * I2C and HTCPLD drivers
- * TSC2046 touchscreen support
- * Serial port fixes for omap7xx
- * Bluetooth common code for HTC omap7xx smartphones
-
-The bluetooth drivers are implemented with the expectation that they will
-be used by other devices once the board files are submitted (Elf/Elfin,
-Opal, etc).
-
-Cory Maccarrone (7):
-  [OMAP] gpio: Allow for extended GPIO space
-  [OMAP] Add allowance for extra IRQ space
-  [OMAP] HTCHERALD: MMC, I2C, HTCPLD and related devices
-  [OMAP] htcherald: SPI register config, TSC2046 touchscreen
-  [omap1] omap7xx clocks, mux, serial fixes
-  [omap1] Bluetooth device code common to HTC smartphones
-  [htcherald] Add board support for UARTs, bluetooth
-
- arch/arm/mach-omap1/Kconfig               |    2 +
- arch/arm/mach-omap1/Makefile              |    2 +-
- arch/arm/mach-omap1/board-htcherald.c     |  346 ++++++++++++++++++++++++++++-
- arch/arm/mach-omap1/clock_data.c          |   20 ++
- arch/arm/mach-omap1/htc-bt.c              |  183 +++++++++++++++
- arch/arm/mach-omap1/include/mach/htc-bt.h |   22 ++
- arch/arm/mach-omap1/mux.c                 |    4 +
- arch/arm/mach-omap1/serial.c              |    7 +
- arch/arm/plat-omap/Kconfig                |   36 +++
- arch/arm/plat-omap/include/plat/gpio.h    |    7 +
- arch/arm/plat-omap/include/plat/irqs.h    |    6 +-
- arch/arm/plat-omap/include/plat/mux.h     |    4 +
- 12 files changed, 631 insertions(+), 8 deletions(-)
- create mode 100644 arch/arm/mach-omap1/htc-bt.c
- create mode 100644 arch/arm/mach-omap1/include/mach/htc-bt.h
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 5bc7a79..5ebbd91 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -20,6 +20,24 @@ config OMAP_GPIO_EXTRA128
+ 	  Add an extra 128 gpio numbers to the available GPIO pool. This is
+ 	  available for boards that need extra gpios for external devices.
+ 
++config OMAP_IRQ_EXTRA
++	int
++	default 128 if OMAP_IRQ_EXTRA128
++	default 64 if OMAP_IRQ_EXTRA64
++	default 0
++
++config OMAP_IRQ_EXTRA64
++	bool
++	help
++	  Add an extra 64 irq numbers to the available IRQ pool. This is
++	  available for boards that need extra interrupts for external devices.
++
++config OMAP_IRQ_EXTRA128
++	bool
++	help
++	  Add an extra 128 irq numbers to the available IRQ pool. This is
++	  available for boards that need extra interrupts for external devices.
++
+ config ARCH_OMAP_OTG
+ 	bool
+ 
+diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+index c01d9f0..2f14c78 100644
+--- a/arch/arm/plat-omap/include/plat/irqs.h
++++ b/arch/arm/plat-omap/include/plat/irqs.h
+@@ -409,7 +409,11 @@
+ #define TWL_IRQ_END		TWL6030_IRQ_END
+ #endif
+ 
+-#define NR_IRQS			TWL_IRQ_END
++/*
++ * Some boards require extra irq capacity to support external
++ * devices that generate interrupts.
++ */
++#define NR_IRQS			(TWL_IRQ_END + CONFIG_OMAP_IRQ_EXTRA)
+ 
+ #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
+ 
+-- 
+1.7.0.4
 
