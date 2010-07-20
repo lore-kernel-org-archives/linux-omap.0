@@ -1,61 +1,66 @@
-From: "Western Union Transfer" <hstephan@polytech.unice.fr>
-Subject: (unknown)
-Date: Tue, 20 Jul 2010 21:59:38 +0200 (CEST)
-Message-ID: <4f52e1d3f4d63e82aa291b9fcfcbf37b.squirrel__7516.52208059586$1279664840$gmane$org@webmail.polytech.unice.fr>
-Reply-To: western.uniontransfer@w.cn
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+	memory management
+Date: Tue, 20 Jul 2010 23:29:52 +0100
+Message-ID: <20100720222952.GD10553@n2100.arm.linux.org.uk>
+References: <20100714104353B.fujita.tomonori@lab.ntt.co.jp> <20100714201149.GA14008@codeaurora.org> <20100714220536.GE18138@n2100.arm.linux.org.uk> <20100715012958.GB2239@codeaurora.org> <20100715085535.GC26212@n2100.arm.linux.org.uk> <AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com> <20100716075856.GC16124@n2100.arm.linux.org.uk> <4C449183.20000@codeaurora.org> <20100719184002.GA21608@n2100.arm.linux.org.uk> <bb667e285fd8be82ea8cc9cc25cf335b.squirrel@www.codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from email.essi.fr ([157.169.25.6]:35201 "EHLO
-	email.polytech.unice.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932870Ab0GTW0p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2010 18:26:45 -0400
-Subject: 
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <bb667e285fd8be82ea8cc9cc25cf335b.squirrel@www.codeaurora.org>
+Sender: linux-arch-owner@vger.kernel.org
+To: stepanm@codeaurora.org
+Cc: Michael Bohan <mbohan@codeaurora.org>, Tim HRM <zt.tmzt@gmail.com>, Zach Pfeffer <zpfeffer@codeaurora.org>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Jul 20, 2010 at 03:02:34PM -0700, stepanm@codeaurora.org wrote:
+> Russell-
+> 
+> If a driver wants to allow a device to access memory (and cache coherency
+> is off/not present for device addesses), the driver needs to remap that
+> memory as non-cacheable.
 
+If that memory is not part of the kernel's managed memory, then that's
+fine.  But if it _is_ part of the kernel's managed memory, then it is
+not permitted by the ARM architecture specification to allow maps of
+the memory with differing [memory type, sharability, cache] attributes.
 
---=20
-My associate has helped me to send your first payment of US$7,500 to yo=
-u
-as instructed by Mr.James Gordon Brown the British prime minister after
-the last G20 meeting that was held on July 2nd in London, making you on=
-e
-of the beneficaries. Here is the information below:
+Basically, if a driver wants to create these kinds of mappings, then
+they should expect the system to become unreliable and unpredictable.
+That's not something any sane person should be aiming to do.
 
-MONEY TRANSFER CONTROL NUMBER:2913718010
+> Suppose there exists a chunk of
+> physically-contiguous memory (say, memory reserved for device use) that
+> happened to be already mapped into the kernel as normal memory (cacheable,
+> etc). One way to remap this memory is to use ioremap (and then never touch
+> the original virtual mapping, which would now have conflicting
+> attributes).
 
-SENDER NAME:solomon
-Last name:daniel
-AMOUNT: US$7,500
+This doesn't work, and is unpredictable on ARMv6 and ARMv7.  Not touching
+the original mapping is _not_ _sufficient_ to guarantee that the mapping
+is not used.  (We've seen problems on OMAP as a result of this.)
 
-Western union Tracking Site:Money Awaiting authorization
+Any mapping which exists can be speculatively prefetched by such CPUs
+at any time, which can lead it to be read into the cache.  Then, your
+different attributes for your "other" mapping can cause problems if you
+hit one of these cache lines - and then you can have (possibly silent)
+data corruption.
 
-https://wumt.westernunion.com/asp/orderStatus.asp?country=3Dglobal
+> I feel as if there should be a better way to remap memory for
+> device access, either by altering the attributes on the original mapping,
+> or removing the original mapping and creating a new one with attributes
+> set to non-cacheable.
 
+This is difficult to achieve without remapping kernel memory using L2
+page tables, so we can unmap pages on 4K page granularity.  That's
+going to increase TLB overhead and result in lower system performance
+as there'll be a greater number of MMU misses.
 
-The funds Clearance certificate must be made available befor you can
-pick the money in the nearest western union office close to you.
-
-I told him to keep sending you US$7,500 twice a week until the FULL
-payment of (US $560,000.00 Dollars) is completed within 6 (six) Months.
-
-send your Full Names and Mobile Number  via Email to:
-
-Mrs Henderson Elizabeth
-
-E-mail:western.uniontransfer@w.cn,western.uniontransfer02@w.cn
-
-=46or more details call the secretary Gary Moore
-
-Tel:+447045713697.
-Copyright =C2=A9
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+However, one obvious case would be to use highmem-only pages for
+remapping - but you then have to ensure that those pages are never
+kmapped in any way, because those mappings will fall into the same
+unpredictable category that we're already trying to avoid.  This
+may be possible, but you'll have to ensure that most of the system
+RAM is in highmem - which poses other problems (eg, if lowmem gets
+low.)
