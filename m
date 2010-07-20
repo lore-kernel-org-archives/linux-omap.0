@@ -1,69 +1,214 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Buffer overrun in the TWL4030 keypad driver with Nokia RX51
-Date: Tue, 20 Jul 2010 13:06:08 +0200
-Message-ID: <201007201306.10505.laurent.pinchart@ideasonboard.com>
-References: <201007161728.44227.laurent.pinchart@ideasonboard.com> <20100717213705.GA22477@core.coreip.homeip.net>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM not
+ define
+Date: Tue, 20 Jul 2010 18:51:42 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E310B10@dbde02.ent.ti.com>
+References: <1279607878-2405-1-git-send-email-s-ghorai@ti.com>
+ <4C454B99.7090705@nokia.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030E3107D8@dbde02.ent.ti.com>
+ <4C4559E5.7090004@nokia.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030E310805@dbde02.ent.ti.com>
+ <4C4560EB.8070702@nokia.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030E31084E@dbde02.ent.ti.com>
+ <4C4568C6.9050705@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:58471 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755734Ab0GTLGD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2010 07:06:03 -0400
-In-Reply-To: <20100717213705.GA22477@core.coreip.homeip.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4C4568C6.9050705@nokia.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Amit Kucheria <amit.kucheria@verdurent.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Hi Dmitry,
+Adrian,
 
-On Saturday 17 July 2010 23:37:05 Dmitry Torokhov wrote:
-> On Fri, Jul 16, 2010 at 05:28:43PM +0200, Laurent Pinchart wrote:
-> > 
-> > I've spent the day debugging a kernel crash in the USB networking code to
-> > find out the problem was caused by a buffer overrun in the TWL4030
-> > keypad driver.
-> > 
-> > The Nokia RX51 board code (arch/arm/mach-omap2/board-rx51-peripherals.c)
-> > defines a key map for the matrix keypad keyboard. The hardware seems to
-> > use all of the 8 rows and 8 columns of the keypad, although not all
-> > possible locations are used.
-> > 
-> > The TWL4030 supports keypads with at most 8 rows and 8 columns. Most keys
-> > are defined with a row and column number between 0 and 7, except
-> > 
-> >         KEY(0xff, 2, KEY_F9),
-> >         KEY(0xff, 4, KEY_F10),
-> >         KEY(0xff, 5, KEY_F11),
-> > 
-> > The row number is set to 0xff. As the generic matrix keypad support
-> > (include/linux/input/matrix_keypad.h) supports at most 16 rows and 16
-> > columns, it masks all but the lower 4 bits of the row and column numbers
-> > in the KEY macro.
+> -----Original Message-----
+> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+> Sent: Tuesday, July 20, 2010 2:44 PM
+> To: Ghorai, Sukumar
+> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Shilimkar,
+> Santosh; Chikkature Rajashekar, Madhusudhan; Andrew Morton
+> Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM not
+> define
 > 
-> [..snipped..]
+> Ghorai, Sukumar wrote:
+> >
+> >> -----Original Message-----
+> >> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+> >> Sent: Tuesday, July 20, 2010 2:10 PM
+> >> To: Ghorai, Sukumar
+> >> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Shilimkar,
+> >> Santosh; Chikkature Rajashekar, Madhusudhan; Andrew Morton
+> >> Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM not
+> >> define
+> >>
+> >> Ghorai, Sukumar wrote:
+> >>> Adrian,
+> >>>
+> >>>> -----Original Message-----
+> >>>> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+> >>>> Sent: Tuesday, July 20, 2010 1:40 PM
+> >>>> To: Ghorai, Sukumar
+> >>>> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Shilimkar,
+> >>>> Santosh; Chikkature Rajashekar, Madhusudhan; Andrew Morton
+> >>>> Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM
+> not
+> >>>> define
+> >>>>
+> >>>> Ghorai, Sukumar wrote:
+> >>>>>> -----Original Message-----
+> >>>>>> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+> >>>>>> Sent: Tuesday, July 20, 2010 12:39 PM
+> >>>>>> To: Ghorai, Sukumar
+> >>>>>> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org;
+> Shilimkar,
+> >>>>>> Santosh; Chikkature Rajashekar, Madhusudhan; Andrew Morton
+> >>>>>> Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM
+> >> not
+> >>>>>> define
+> >>>>>>
+> >>>>>> Sukumar Ghorai wrote:
+> >>>>>>>     Issue if power_saving option passed from board file and
+> >> CONFIG_PM
+> >>>>>> not define.
+> >>>>>>>     This is because hosts refer to wrong operation table and that
+> >> try
+> >>>> to
+> >>>>>> power save.
+> >>>>>>
+> >>>>>> power_saving is not related to power management.  It should work
+> with
+> >>>> or
+> >>>>>> without
+> >>>>>> CONFIG_PM.  What problem are you seeing?
+> >>>>> [Ghorai] when CONFIG_PM is not defined but power_saving flag is TRUE,
+> >>>> then host operation table point to table which handles in state
+> machine
+> >>>> as: ENABLE -> CARDSLEEP -> REGSLEEP -> DISABLED for power/clock cut.
+> >> And
+> >>>> do the reverse for the enable clock/power.
+> >>>>> And power saving is not required and wont work when CONFIG_PM is not
+> >>>> enabled.
+> >>>>
+> >>>> How is that a problem?  It would be useful to know what you need?
+> >>> [Ghorai] do men when CONFIG_PM is not enabled still we should do power
+> >> saving in mmc?
+> >>
+> >> Why not?
+> >>
+> >> Because issue is iclk/fclk is quite depended on PRCM framework when we
+> are
+> >> using omap_hsmmc_ps_ops operation table.
+> >>
+> >> iclk is left alone.
+> >>
+> >> fclk is manipulated with or without power_saving.
+> >>
+> >> I still do not understand your problem sorry :-(
+> > [Ghorai] thanks and need input again,
+> > we have two tables -
+> > 1. static const struct mmc_host_ops omap_hsmmc_ops = {
+> > }
+> > --> This is without CONFIG_PM, assumed.
 > 
-> Thanks for the report. Could yo uplease try the patch below and let me
-> know if it works.
+> No it is independent of CONFIG_PM
+> 
+> With CONFIG_PM
+> 	- the driver will restore registers if the host controller
+> 	has been powered off / on by PRCM
+> 	- suspend / resume can be used
+> 
+> >
+> > 2. static const struct mmc_host_ops omap_hsmmc_ps_ops = {
+> > }
+> > -> this with CONFIG_PM, assumed.
+> 
+> No it is independent of CONFIG_PM
+> 
+> Without CONFIG_PM
+> 	- card will be put to sleep after 1 second
+> 	- card will be powered off after another 8 seconds
+> 
+> >
+> > a. And you feel we should remove #1
+> 
+> Nothing should need to be removed.
+> 
+> > b. use omap_hsmmc_ps_ops default.
+> 
+> With power_saving it is yes.
+[Ghorai] Is it that power_saving (true or false) is independent of CONFIG_PM?
 
-The patch fixes the crash at startup, but the F9, F10 and F11 key events are 
-never reported. That might be because those keys are not wired up to anything 
-though. All keys on the keyboard, as well as the F7 and F8 keys (volume up and 
-down on the of the case) generate the proper events. All other "keys" 
-(keyboard slider switch, power button, focus button, lock switch, proximity 
-sensor) report events through other devices.
+> 
+> > c. And it should work in all case?
+> 
+> It should work in all cases.
+> 
+> >
+> >>>>> So if CONFIG_PM is not enable, then it should do simple clock
+> >>>> disable/enable, and not via the power state machine.
+> >>>>
+> >>>> If that is what you want, simply change your board file:
+> >>>>
+> >>>> #if CONFIG_PM
+> >>>> 	.power_saving = true,
+> >>>> #else
+> >>>> 	.power_saving = false,
+> >>>> #end
+> >>> [Ghorai] the fix I send is to guard in MMC/SD host driver to avoid
+> >> mistake in board file(s). And this file is used for multiple omap3,
+> omap4
+> >> boards.
+> >>>>>>> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+> >>>>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >>>>>>> CC: Madhusudhan Chikkature <madhu.cr@ti.com>
+> >>>>>>> CC: Andrew Morton <akpm@linux-foundation.org>
+> >>>>>>> ---
+> >>>>>>>  Tested on omap3, omap4430 ES2.0
+> >>>>>>>
+> >>>>>>>  drivers/mmc/host/omap_hsmmc.c |    2 ++
+> >>>>>>>  1 files changed, 2 insertions(+), 0 deletions(-)
+> >>>>>>>
+> >>>>>>> diff --git a/drivers/mmc/host/omap_hsmmc.c
+> >>>>>> b/drivers/mmc/host/omap_hsmmc.c
+> >>>>>>> index b032828..f84eed0 100644
+> >>>>>>> --- a/drivers/mmc/host/omap_hsmmc.c
+> >>>>>>> +++ b/drivers/mmc/host/omap_hsmmc.c
+> >>>>>>> @@ -2015,9 +2015,11 @@ static int __init omap_hsmmc_probe(struct
+> >>>>>> platform_device *pdev)
+> >>>>>>>  	platform_set_drvdata(pdev, host);
+> >>>>>>>  	INIT_WORK(&host->mmc_carddetect_work, omap_hsmmc_detect);
+> >>>>>>>
+> >>>>>>> +#ifdef CONFIG_PM
+> >>>>>>>  	if (mmc_slot(host).power_saving)
+> >>>>>>>  		mmc->ops	= &omap_hsmmc_ps_ops;
+> >>>>>>>  	else
+> >>>>>>> +#endif
+> >>>>>>>  		mmc->ops	= &omap_hsmmc_ops;
+> >>>>>>>
+> >>>>>>>  	/*
+> >>>>>>> --
+> >>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-
+> mmc"
+> >>>> in
+> >>>>>>> the body of a message to majordomo@vger.kernel.org
+> >>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>>>>>
+> >>>>> Regards,
+> >>>>> Ghorai
+> >>>>> --
+> >>>>> To unsubscribe from this list: send the line "unsubscribe linux-mmc"
+> >> in
+> >>>>> the body of a message to majordomo@vger.kernel.org
+> >>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>>>
+> >>>
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 
-> I have some concerns with the keymap assignments, I see that Amit
-> changed them during KEY(col, row) -> KEY(row, col) conversion. I marked
-> the entries I am concerned with with XXX.
-
-F7, F8, right alt and left shift are properly mapped. I don't know what F9, 
-F10 and F11 are supposed to be.
-
--- 
-Regards,
-
-Laurent Pinchart
