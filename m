@@ -1,87 +1,84 @@
-From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 1/2] omap:mailbox-make mailbox reference counter atomic
-Date: Tue, 20 Jul 2010 16:41:35 -0500
-Message-ID: <1279662096-3121-2-git-send-email-h-kanigeri2@ti.com>
-References: <1279662096-3121-1-git-send-email-h-kanigeri2@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60280 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234Ab0GTVa6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Jul 2010 17:30:58 -0400
-In-Reply-To: <1279662096-3121-1-git-send-email-h-kanigeri2@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Tue, 20 Jul 2010 14:56:05 -0700
+Message-ID: <20100720215605.GB12250@codeaurora.org>
+References: <20100713121420.GB4263@codeaurora.org>
+ <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
+ <20100714201149.GA14008@codeaurora.org>
+ <20100714220536.GE18138@n2100.arm.linux.org.uk>
+ <20100715012958.GB2239@codeaurora.org>
+ <20100715085535.GC26212@n2100.arm.linux.org.uk>
+ <AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com>
+ <20100716075856.GC16124@n2100.arm.linux.org.uk>
+ <20100720204515.GA12250@codeaurora.org>
+ <20100720205433.GA10553@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100720205433.GA10553@n2100.arm.linux.org.uk>
+Sender: linux-arch-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tim HRM <zt.tmzt@gmail.com>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Make the mailbox reference counter as atomic variable and remove
-the spinlock protection surrounding it.
+On Tue, Jul 20, 2010 at 09:54:33PM +0100, Russell King - ARM Linux wrote:
+> On Tue, Jul 20, 2010 at 01:45:17PM -0700, Zach Pfeffer wrote:
+> > You can also conflict in access permissions which can and do conflict
+> > (which are what multiple mappings are all about...some buffer can get
+> > some access, while others get different access).
+> 
+> Access permissions don't conflict between mappings - each mapping has
+> unique access permissions.
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- arch/arm/plat-omap/mailbox.c |   21 ++++++++-------------
- 1 files changed, 8 insertions(+), 13 deletions(-)
+Yes. Bad choice of words.
 
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index b06d3de..baac315 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -35,7 +35,7 @@ static struct omap_mbox *mboxes;
- static DEFINE_SPINLOCK(mboxes_lock);
- static bool rq_full;
- 
--static int mbox_configured;
-+static atomic_t mbox_refcount = ATOMIC_INIT(0);
- 
- /* Mailbox FIFO handle functions */
- static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
-@@ -243,16 +243,13 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 	struct omap_mbox_queue *mq;
- 
- 	if (likely(mbox->ops->startup)) {
--		spin_lock(&mboxes_lock);
--		if (!mbox_configured)
-+		if (atomic_inc_return(&mbox_refcount) == 1)
- 			ret = mbox->ops->startup(mbox);
- 
- 		if (unlikely(ret)) {
--			spin_unlock(&mboxes_lock);
-+			atomic_dec(&mbox_refcount);
- 			return ret;
- 		}
--		mbox_configured++;
--		spin_unlock(&mboxes_lock);
- 	}
- 
- 	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
-@@ -284,8 +281,10 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
-  fail_alloc_txq:
- 	free_irq(mbox->irq, mbox);
-  fail_request_irq:
--	if (likely(mbox->ops->shutdown))
--		mbox->ops->shutdown(mbox);
-+	if (likely(mbox->ops->shutdown)) {
-+		if (atomic_dec_return(&mbox_refcount) == 0)
-+			mbox->ops->shutdown(mbox);
-+	}
- 
- 	return ret;
- }
-@@ -298,12 +297,8 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
- 	free_irq(mbox->irq, mbox);
- 
- 	if (likely(mbox->ops->shutdown)) {
--		spin_lock(&mboxes_lock);
--		if (mbox_configured > 0)
--			mbox_configured--;
--		if (!mbox_configured)
-+		if (atomic_dec_return(&mbox_refcount) == 0)
- 			mbox->ops->shutdown(mbox);
--		spin_unlock(&mboxes_lock);
- 	}
- }
- 
--- 
-1.7.0
+> > The VCM API allows the same memory to be mapped as long as it makes
+> > sense and allows those attributes that can change to be specified. It
+> > could be the alternative, globally applicable approach, your looking
+> > for and request in your patch.
+> 
+> I very much doubt it - there's virtually no call for creating an
+> additional mapping of existing kernel memory with different permissions.
+> The only time kernel memory gets remapped is with vmalloc(), where we
+> want to create a virtually contiguous mapping from a collection of
+> (possibly) non-contiguous pages.  Such allocations are always created
+> with R/W permissions.
+> 
+> There are some cases where the vmalloc APIs are used to create mappings
+> with different memory properties, but as already covered, this has become
+> illegal with ARMv6 and v7 architectures.
+> 
+> So no, VCM doesn't help because there's nothing that could be solved here.
+> Creating read-only mappings is pointless, and creating mappings with
+> different memory type, sharability or cache attributes is illegal.
 
+I don't think its pointless; it may have limited utility but things
+like read-only mappings can be useful.
+
+> > Without the VCM API (or something like it) there will just be a bunch
+> > of duplicated code that's basically doing ioremap. This code will
+> > probably fail to configure its mappings correctly, in which case your
+> > patch is a bad idea because it'll spawn bugs all over the place
+> > instead of at a know location. We could instead change ioremap to
+> > match the attributes of System RAM if that's what its mapping.
+> 
+> And as I say, what is the point of creating another identical mapping to
+> the one we already have?
+
+As you say probably not much. We do still have a problem (and other
+people have it as well) we need to map in large contiguous buffers
+with various attributes and point the kernel and various engines at
+them. This seems like something that would be globally useful. The
+feedback I've gotten is that we should just keep our usage private to
+our mach-msm branch. 
+
+I've got a couple of questions:
+
+Do you think a global solution to this problem is appropriate?
+
+What would that solution need to look like, transparent huge pages?
+
+How should people change various mapping attributes for these large
+sections of memory?
