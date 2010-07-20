@@ -1,69 +1,68 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH 0/6] Add camera support to the OMAP1 Amstrad Delta videophone
-Date: Tue, 20 Jul 2010 19:38:13 +0200
-Message-ID: <201007201938.16054.jkrzyszt@tis.icnet.pl>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1007201139320.29807@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1007201139320.29807@axis700.grange>
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Richard Purdie <rpurdie@rpsys.net>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+From: Ernesto Ramos <ernesto@ti.com>
+Subject: [PATCH] staging:ti dspbridge: avoid possible NULL dereference panic
+Date: Tue, 20 Jul 2010 12:55:49 -0500
+Message-ID: <1279648549-16603-1-git-send-email-ernesto@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57090 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753630Ab0GTRv3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2010 13:51:29 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, Hiroshi.DOYU@nokia.com, nm@ti.com, Ernesto Ramos <ernesto@ti.com>
 
-Tuesday 20 July 2010 11:49:54 Guennadi Liakhovetski wrote:
-> Hi Janusz
+When dsp_notifications array is received from user,
+dspbridge verifies the array has valid pointers
+and dsp_notification structures. However, these
+structures contain pointers that need to be
+checked for valid handles.
 
-Hi Guennadi,
-Thanks for your answer.
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+---
+ drivers/staging/tidspbridge/pmgr/dspapi.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
-> On Sun, 18 Jul 2010, Janusz Krzysztofik wrote:
-> > This series consists of the following patches:
-> >
-> >   1/6	SoC Camera: add driver for OMAP1 camera interface
-> >   2/6	OMAP1: Add support for SoC camera interface
-> >   3/6	SoC Camera: add driver for OV6650 sensor
-> >   4/6	SoC Camera: add support for g_parm / s_parm operations
-> >   5/6	OMAP1: Amstrad Delta: add support for on-board camera
-> >   6/6	OMAP1: Amstrad Delta: add camera controlled LEDS trigger
->
-> It is an interesting decision to use soc-camera for an OMAP SoC, as you
-> most probably know OMAP3 and OMAP2 camera drivers do not use soc-camera. I
-> certainly do not want to discourage you from using soc-camera, just don't
-> want you to go the wrong way and then regret it or spend time re-designing
-> your driver. 
+diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/staging/tidspbridge/pmgr/dspapi.c
+index 8a568b3..71b9b5b 100644
+--- a/drivers/staging/tidspbridge/pmgr/dspapi.c
++++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
+@@ -539,7 +539,7 @@ func_end:
+  */
+ u32 mgrwrap_wait_for_bridge_events(union Trapped_Args *args, void *pr_ctxt)
+ {
+-	int status = 0, real_status = 0;
++	int status = 0;
+ 	struct dsp_notification *anotifications[MAX_EVENTS];
+ 	struct dsp_notification notifications[MAX_EVENTS];
+ 	u32 index, i;
+@@ -554,19 +554,21 @@ u32 mgrwrap_wait_for_bridge_events(union Trapped_Args *args, void *pr_ctxt)
+ 	/* get the events */
+ 	for (i = 0; i < count; i++) {
+ 		CP_FM_USR(&notifications[i], anotifications[i], status, 1);
+-		if (!status) {
+-			/* set the array of pointers to kernel structures */
+-			anotifications[i] = &notifications[i];
++		if (status || !notifications[i].handle) {
++			status = -EINVAL;
++			break;
+ 		}
++		/* set the array of pointers to kernel structures */
++		anotifications[i] = &notifications[i];
+ 	}
+ 	if (!status) {
+-		real_status = mgr_wait_for_bridge_events(anotifications, count,
++		status = mgr_wait_for_bridge_events(anotifications, count,
+ 							 &index,
+ 							 args->args_mgr_wait.
+ 							 utimeout);
+ 	}
+ 	CP_TO_USR(args->args_mgr_wait.pu_index, &index, status, 1);
+-	return real_status;
++	return status;
+ }
+ 
+ /*
+-- 
+1.5.4.5
 
-If this way occures wrong, then it's only my fault, since I've taken it 
-myself, without consulting it neither on omap nor media list, so I'm not 
-going to blame anyone except myself.
-
-> Have you had specific reasons for this design? 
-
-It looked like the most simple way for me. And while implementing it, I 
-haven't faced any restrictions that would lead me to changing my mind and 
-doing it another way.
-
-> Is OMAP1 so different from 2 (and 3)? 
-
-I think so, but let's see what OMAP guys have to say.
-
-> In any case - thanks for the patches, if you do 
-> insist on going this path (;)) I'll review them and get back to you after
-> that. Beware, it might be difficult to finish the review process in time
-> for 2.6.36...
-
-Since not all patches from the series are OMAP related, and those that are 
-not, don't depend on others, I think you could have a look at 4/6 and see if 
-it makes sense or not. You could also examine 6/6 and see if you would like 
-the idea of a camera LED trigger implemented, this way or another, at the 
-soc_camera framework level rather than specific machine or platform. Last, 
-the sensor driver (3/6), even if soc_camera specific, could be considered, if 
-accepted, for adopting it as a regular v4l2-subdev, if required by a 
-different implementation of OMAP part choosen.
-
-Thanks,
-Janusz
