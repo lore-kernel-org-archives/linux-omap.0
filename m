@@ -1,62 +1,47 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC] [PATCH 0/6] Add camera support to the OMAP1 Amstrad Delta
- videophone
-Date: Tue, 20 Jul 2010 11:49:54 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1007201139320.29807@axis700.grange>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl>
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+	memory management
+Date: Tue, 20 Jul 2010 19:09:31 +0900
+Message-ID: <20100720190904N.fujita.tomonori@lab.ntt.co.jp>
+References: <20100715080710T.fujita.tomonori@lab.ntt.co.jp>
+	<20100715014148.GC2239@codeaurora.org>
+	<20100719082213.GA7421@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201007180618.08266.jkrzyszt@tis.icnet.pl>
-Sender: linux-media-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Richard Purdie <rpurdie@rpsys.net>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20100719082213.GA7421@n2100.arm.linux.org.uk>
+Sender: owner-linux-mm@kvack.org
+To: linux@arm.linux.org.uk
+Cc: zpfeffer@codeaurora.org, fujita.tomonori@lab.ntt.co.jp, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Janusz
+On Mon, 19 Jul 2010 09:22:13 +0100
+Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
 
-On Sun, 18 Jul 2010, Janusz Krzysztofik wrote:
-
-> This series consists of the following patches:
+> > If I want to share the buffer with another device I have to
+> > make a copy of the entire thing then fix up the virtual mappings for
+> > the other device I'm sharing with.
 > 
->   1/6	SoC Camera: add driver for OMAP1 camera interface
->   2/6	OMAP1: Add support for SoC camera interface
->   3/6	SoC Camera: add driver for OV6650 sensor
->   4/6	SoC Camera: add support for g_parm / s_parm operations
->   5/6	OMAP1: Amstrad Delta: add support for on-board camera
->   6/6	OMAP1: Amstrad Delta: add camera controlled LEDS trigger
-
-It is an interesting decision to use soc-camera for an OMAP SoC, as you 
-most probably know OMAP3 and OMAP2 camera drivers do not use soc-camera. I 
-certainly do not want to discourage you from using soc-camera, just don't 
-want you to go the wrong way and then regret it or spend time re-designing 
-your driver. Have you had specific reasons for this design? Is OMAP1 so 
-different from 2 (and 3)? In any case - thanks for the patches, if you do 
-insist on going this path (;)) I'll review them and get back to you after 
-that. Beware, it might be difficult to finish the review process in time 
-for 2.6.36...
-
-Thanks
-Guennadi
-
+> This is something the DMA API doesn't do - probably because there hasn't
+> been a requirement for it.
 > 
->  arch/arm/mach-omap1/board-ams-delta.c     |   69 +
->  arch/arm/mach-omap1/devices.c             |   43
->  arch/arm/mach-omap1/include/mach/camera.h |    8
->  drivers/media/video/Kconfig               |   20
->  drivers/media/video/Makefile              |    2
->  drivers/media/video/omap1_camera.c        | 1656 ++++++++++++++++++++++++++++++
->  drivers/media/video/ov6650.c              | 1336 ++++++++++++++++++++++++
->  drivers/media/video/soc_camera.c          |   18
->  include/media/omap1_camera.h              |   16
->  include/media/v4l2-chip-ident.h           |    1
->  10 files changed, 3169 insertions(+)
-> 
-> Thanks,
-> Janusz
-> 
+> One of the issues for drivers is that by separating the mapped scatterlist
+> from the input buffer scatterlist, it creates something else for them to
+> allocate, which causes an additional failure point - and as all users sit
+> well with the current API, there's little reason to change especially
+> given the number of drivers which would need to be updated.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Agreed. There was the discussion about separating 'dma_addr and dma_len' from
+scatterlist struct but I don't think that it's worth doing so.
+
+
+> I'm just proving that it's not as hard as you seem to be making out.
+
+Agreed again.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
