@@ -1,12 +1,12 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 2/2] omap:mailbox-provide multiple reader support
-Date: Tue, 20 Jul 2010 16:41:36 -0500
-Message-ID: <1279662096-3121-3-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH 1/2] omap:mailbox-make mailbox reference counter atomic
+Date: Tue, 20 Jul 2010 16:41:35 -0500
+Message-ID: <1279662096-3121-2-git-send-email-h-kanigeri2@ti.com>
 References: <1279662096-3121-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46289 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60280 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752122Ab0GTVa6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752234Ab0GTVa6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 20 Jul 2010 17:30:58 -0400
 In-Reply-To: <1279662096-3121-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,167 +14,73 @@ List-Id: linux-omap@vger.kernel.org
 To: Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-This patch provides mutiple readers support for a mailbox
-instance.
+Make the mailbox reference counter as atomic variable and remove
+the spinlock protection surrounding it.
 
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 ---
- arch/arm/plat-omap/include/plat/mailbox.h |    6 ++-
- arch/arm/plat-omap/mailbox.c              |   63 ++++++++++++++++------------
- 2 files changed, 40 insertions(+), 29 deletions(-)
+ arch/arm/plat-omap/mailbox.c |   21 ++++++++-------------
+ 1 files changed, 8 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
-index 0486d64..c8e47d8 100644
---- a/arch/arm/plat-omap/include/plat/mailbox.h
-+++ b/arch/arm/plat-omap/include/plat/mailbox.h
-@@ -68,13 +68,15 @@ struct omap_mbox {
- 	void			*priv;
- 
- 	void			(*err_notify)(void);
-+	atomic_t		use_count;
-+	struct blocking_notifier_head	notifier;
- };
- 
- int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
- void omap_mbox_init_seq(struct omap_mbox *);
- 
--struct omap_mbox *omap_mbox_get(const char *);
--void omap_mbox_put(struct omap_mbox *);
-+struct omap_mbox *omap_mbox_get(const char *, struct notifier_block *nb);
-+void omap_mbox_put(struct omap_mbox *, struct notifier_block *nb);
- 
- int omap_mbox_register(struct device *parent, struct omap_mbox *);
- int omap_mbox_unregister(struct omap_mbox *);
 diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index baac315..f9f2af4 100644
+index b06d3de..baac315 100644
 --- a/arch/arm/plat-omap/mailbox.c
 +++ b/arch/arm/plat-omap/mailbox.c
-@@ -149,8 +149,8 @@ static void mbox_rx_work(struct work_struct *work)
- 		if (unlikely(len != sizeof(msg)))
- 			pr_err("%s: kfifo_out anomaly detected\n", __func__);
+@@ -35,7 +35,7 @@ static struct omap_mbox *mboxes;
+ static DEFINE_SPINLOCK(mboxes_lock);
+ static bool rq_full;
  
--		if (mq->callback)
--			mq->callback((void *)msg);
-+		blocking_notifier_call_chain(&mq->mbox->notifier, len,
-+							(void *)msg);
- 	}
- }
+-static int mbox_configured;
++static atomic_t mbox_refcount = ATOMIC_INIT(0);
  
-@@ -252,28 +252,30 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+ /* Mailbox FIFO handle functions */
+ static inline mbox_msg_t mbox_fifo_read(struct omap_mbox *mbox)
+@@ -243,16 +243,13 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+ 	struct omap_mbox_queue *mq;
+ 
+ 	if (likely(mbox->ops->startup)) {
+-		spin_lock(&mboxes_lock);
+-		if (!mbox_configured)
++		if (atomic_inc_return(&mbox_refcount) == 1)
+ 			ret = mbox->ops->startup(mbox);
+ 
+ 		if (unlikely(ret)) {
+-			spin_unlock(&mboxes_lock);
++			atomic_dec(&mbox_refcount);
+ 			return ret;
  		}
+-		mbox_configured++;
+-		spin_unlock(&mboxes_lock);
  	}
  
--	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
--				mbox->name, mbox);
--	if (unlikely(ret)) {
--		printk(KERN_ERR
--			"failed to register mailbox interrupt:%d\n", ret);
--		goto fail_request_irq;
--	}
-+	if (atomic_inc_return(&mbox->use_count) == 1) {
-+		ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
-+					mbox->name, mbox);
-+		if (unlikely(ret)) {
-+			printk(KERN_ERR "failed to register mailbox interrupt:"
-+								"%d\n", ret);
-+			goto fail_request_irq;
-+		}
- 
--	mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
--	if (!mq) {
--		ret = -ENOMEM;
--		goto fail_alloc_txq;
--	}
--	mbox->txq = mq;
-+		mq = mbox_queue_alloc(mbox, NULL, mbox_tx_tasklet);
-+		if (!mq) {
-+			ret = -ENOMEM;
-+			goto fail_alloc_txq;
-+		}
-+		mbox->txq = mq;
- 
--	mq = mbox_queue_alloc(mbox, mbox_rx_work, NULL);
--	if (!mq) {
--		ret = -ENOMEM;
--		goto fail_alloc_rxq;
-+		mq = mbox_queue_alloc(mbox, mbox_rx_work, NULL);
-+		if (!mq) {
-+			ret = -ENOMEM;
-+			goto fail_alloc_rxq;
-+		}
-+		mbox->rxq = mq;
-+		mq->mbox = mbox;
- 	}
--	mbox->rxq = mq;
--
- 	return 0;
- 
-  fail_alloc_rxq:
-@@ -281,6 +283,7 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
+ 	ret = request_irq(mbox->irq, mbox_interrupt, IRQF_SHARED,
+@@ -284,8 +281,10 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
   fail_alloc_txq:
  	free_irq(mbox->irq, mbox);
   fail_request_irq:
-+	atomic_dec(&mbox->use_count);
- 	if (likely(mbox->ops->shutdown)) {
- 		if (atomic_dec_return(&mbox_refcount) == 0)
- 			mbox->ops->shutdown(mbox);
-@@ -291,10 +294,12 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 
- static void omap_mbox_fini(struct omap_mbox *mbox)
- {
--	mbox_queue_free(mbox->txq);
--	mbox_queue_free(mbox->rxq);
- 
--	free_irq(mbox->irq, mbox);
-+	if (atomic_dec_return(&mbox->use_count) == 0) {
-+		mbox_queue_free(mbox->txq);
-+		mbox_queue_free(mbox->rxq);
-+		free_irq(mbox->irq, mbox);
+-	if (likely(mbox->ops->shutdown))
+-		mbox->ops->shutdown(mbox);
++	if (likely(mbox->ops->shutdown)) {
++		if (atomic_dec_return(&mbox_refcount) == 0)
++			mbox->ops->shutdown(mbox);
 +	}
  
+ 	return ret;
+ }
+@@ -298,12 +297,8 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
+ 	free_irq(mbox->irq, mbox);
+ 
  	if (likely(mbox->ops->shutdown)) {
- 		if (atomic_dec_return(&mbox_refcount) == 0)
-@@ -314,7 +319,7 @@ static struct omap_mbox **find_mboxes(const char *name)
- 	return p;
- }
- 
--struct omap_mbox *omap_mbox_get(const char *name)
-+struct omap_mbox *omap_mbox_get(const char *name, struct notifier_block *nb)
- {
- 	struct omap_mbox *mbox;
- 	int ret;
-@@ -325,19 +330,21 @@ struct omap_mbox *omap_mbox_get(const char *name)
- 		spin_unlock(&mboxes_lock);
- 		return ERR_PTR(-ENOENT);
+-		spin_lock(&mboxes_lock);
+-		if (mbox_configured > 0)
+-			mbox_configured--;
+-		if (!mbox_configured)
++		if (atomic_dec_return(&mbox_refcount) == 0)
+ 			mbox->ops->shutdown(mbox);
+-		spin_unlock(&mboxes_lock);
  	}
--
- 	spin_unlock(&mboxes_lock);
- 
- 	ret = omap_mbox_startup(mbox);
- 	if (ret)
- 		return ERR_PTR(-ENODEV);
-+	if (nb)
-+		blocking_notifier_chain_register(&mbox->notifier, nb);
- 
- 	return mbox;
  }
- EXPORT_SYMBOL(omap_mbox_get);
- 
--void omap_mbox_put(struct omap_mbox *mbox)
-+void omap_mbox_put(struct omap_mbox *mbox, struct notifier_block *nb)
- {
-+	blocking_notifier_chain_unregister(&mbox->notifier, nb);
- 	omap_mbox_fini(mbox);
- }
- EXPORT_SYMBOL(omap_mbox_put);
-@@ -361,6 +368,8 @@ int omap_mbox_register(struct device *parent, struct omap_mbox *mbox)
- 	}
- 	*tmp = mbox;
- 	spin_unlock(&mboxes_lock);
-+	BLOCKING_INIT_NOTIFIER_HEAD(&mbox->notifier);
-+	atomic_set(&mbox->use_count, 0);
- 
- 	return 0;
  
 -- 
 1.7.0
