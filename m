@@ -1,40 +1,69 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: configuration warnings with omap_3630sdp_defconfig in 2.6.35-rc5
-Date: Tue, 20 Jul 2010 15:52:08 +0530
-Message-ID: <AANLkTimh0MBzANu1rmLb7q1tYQMywznQd5DJ_mUKp_cZ@mail.gmail.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Buffer overrun in the TWL4030 keypad driver with Nokia RX51
+Date: Tue, 20 Jul 2010 13:06:08 +0200
+Message-ID: <201007201306.10505.laurent.pinchart@ideasonboard.com>
+References: <201007161728.44227.laurent.pinchart@ideasonboard.com> <20100717213705.GA22477@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:64190 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892Ab0GTKWM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2010 06:22:12 -0400
-Received: by iwn7 with SMTP id 7so5621181iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 20 Jul 2010 03:22:09 -0700 (PDT)
+Received: from perceval.irobotique.be ([92.243.18.41]:58471 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755734Ab0GTLGD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jul 2010 07:06:03 -0400
+In-Reply-To: <20100717213705.GA22477@core.coreip.homeip.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Amit Kucheria <amit.kucheria@verdurent.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-While trying to build omap_3630sdp_defconfig on Linus's 2.6.35-rc5, I
-get these warnings..
-I understand these could be related to the recent defconfig changes.
-I will try to investigate; posted here to know if anyone has found a
-fix already..
-------------------------------
-scripts/kconfig/conf -s arch/arm/Kconfig
-can't copy type 0
-warning: (USB_MUSB_HDRC_HCD && USB_SUPPORT && USB_MUSB_HDRC &&
-(USB_MUSB_HOST || USB_MUSB_OTG) && USB_GADGET_MUSB_HDRC ||
-USB_MUSB_OTG && <choice> && USB && USB_GADGET && PM && EXPERIMENTAL)
-selects USB_OTG which has unmet direct dependencies (USB_GADGET_OMAP
-&& ARCH_OMAP_OTG && USB_OHCI_HCD)
-warning: (USB_MUSB_HDRC_HCD && USB_SUPPORT && USB_MUSB_HDRC &&
-(USB_MUSB_HOST || USB_MUSB_OTG) && USB_GADGET_MUSB_HDRC ||
-USB_MUSB_OTG && <choice> && USB && USB_GADGET && PM && EXPERIMENTAL)
-selects USB_OTG which has unmet direct dependencies (USB_GADGET_OMAP
-&& ARCH_OMAP_OTG && USB_OHCI_HCD)
-------------------------------
+Hi Dmitry,
 
+On Saturday 17 July 2010 23:37:05 Dmitry Torokhov wrote:
+> On Fri, Jul 16, 2010 at 05:28:43PM +0200, Laurent Pinchart wrote:
+> > 
+> > I've spent the day debugging a kernel crash in the USB networking code to
+> > find out the problem was caused by a buffer overrun in the TWL4030
+> > keypad driver.
+> > 
+> > The Nokia RX51 board code (arch/arm/mach-omap2/board-rx51-peripherals.c)
+> > defines a key map for the matrix keypad keyboard. The hardware seems to
+> > use all of the 8 rows and 8 columns of the keypad, although not all
+> > possible locations are used.
+> > 
+> > The TWL4030 supports keypads with at most 8 rows and 8 columns. Most keys
+> > are defined with a row and column number between 0 and 7, except
+> > 
+> >         KEY(0xff, 2, KEY_F9),
+> >         KEY(0xff, 4, KEY_F10),
+> >         KEY(0xff, 5, KEY_F11),
+> > 
+> > The row number is set to 0xff. As the generic matrix keypad support
+> > (include/linux/input/matrix_keypad.h) supports at most 16 rows and 16
+> > columns, it masks all but the lower 4 bits of the row and column numbers
+> > in the KEY macro.
+> 
+> [..snipped..]
+> 
+> Thanks for the report. Could yo uplease try the patch below and let me
+> know if it works.
+
+The patch fixes the crash at startup, but the F9, F10 and F11 key events are 
+never reported. That might be because those keys are not wired up to anything 
+though. All keys on the keyboard, as well as the F7 and F8 keys (volume up and 
+down on the of the case) generate the proper events. All other "keys" 
+(keyboard slider switch, power button, focus button, lock switch, proximity 
+sensor) report events through other devices.
+
+> I have some concerns with the keymap assignments, I see that Amit
+> changed them during KEY(col, row) -> KEY(row, col) conversion. I marked
+> the entries I am concerned with with XXX.
+
+F7, F8, right alt and left shift are properly mapped. I don't know what F9, 
+F10 and F11 are supposed to be.
+
+-- 
 Regards,
-Venkat.
+
+Laurent Pinchart
