@@ -1,71 +1,31 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH v2] omap hsmmc: fix processing of all dma interrupts as block completion
-Date: Mon, 19 Jul 2010 17:37:29 -0500
-Message-ID: <D000741110734C2C922FC8C7967D9E63@am.dhcp.ti.com>
-References: <1279272062-9068-1-git-send-email-svenkatr@ti.com>
+From: wins <nds034@cox.net>
+Subject: Re:
+Date: Mon, 19 Jul 2010 17:22:42 -0700
+Message-ID: <20100719202242.FCZZQ.91462.imail__14995.6206013032$1279586373$gmane$org@fed1rmwml46>
+Reply-To: chevteam@feynet.cn
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51022 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967071Ab0GSWiJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Jul 2010 18:38:09 -0400
-In-Reply-To: <1279272062-9068-1-git-send-email-svenkatr@ti.com>
+Received: from fed1rmmtai114.cox.net ([68.230.241.46]:33971 "EHLO
+	fed1rmmtai114.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756845Ab0GTAjJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jul 2010 20:39:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Venkatraman S' <svenkatr@ti.com>, 'linux-mmc' <linux-mmc@vger.kernel.org>
-Cc: 'linux-omap' <linux-omap@vger.kernel.org>, 'Andrew Morton' <akpm@linux-foundation.org>
+
+Your e mail address  was picked  in the Chevron award   2010 which was held
+july  15th 2010 , and you are to claim  the
+sum of $750,000.00 USD. that   means  you are one of the five(5) lucky
+recipents . Your winning number is: (CT-222-6747,FGN/P-900-56).
 
 
+You are to send us  this informations
 
-> -----Original Message-----
-> From: Venkatraman S [mailto:svenkatr@ti.com]
-> Sent: Friday, July 16, 2010 4:21 AM
-> To: linux-mmc
-> Cc: linux-omap; Venkatraman S; Madhusudhan Chikkature; Andrew Morton
-> Subject: [PATCH v2] omap hsmmc: fix processing of all dma interrupts as
-> block completion
-> 
-> If other informative interrupts are enabled for
-> the DMA channel used by hsmmc, those are incorrectly
-> treated as block completion. This patch lets only the
-> block completion interrupt to be processed.
-> 
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> CC: Madhusudhan Chikkature <madhu.cr@ti.com>
-> CC: Andrew Morton <akpm@linux-foundation.org>
-> ---
-It looks like a valid case to fix.
-
-Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-
->  Changes since v1: better commit log message
-> 
->  drivers/mmc/host/omap_hsmmc.c |    7 +++++--
->  1 files changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index b032828..d2901f8 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1273,8 +1273,11 @@ static void omap_hsmmc_dma_cb(int lch, u16
-> ch_status, void *cb_data)
->  	struct mmc_data *data = host->mrq->data;
->  	int dma_ch, req_in_progress;
-> 
-> -	if (ch_status & OMAP2_DMA_MISALIGNED_ERR_IRQ)
-> -		dev_dbg(mmc_dev(host->mmc), "MISALIGNED_ADRS_ERR\n");
-> +	if (!(ch_status & OMAP_DMA_BLOCK_IRQ)) {
-> +		dev_warn(mmc_dev(host->mmc), "unexpected dma status %x\n",
-> +			ch_status);
-> +		return;
-> +	}
-> 
->  	spin_lock(&host->irq_lock);
->  	if (host->dma_ch < 0) {
-> --
-> 1.6.3.3
-
-
+NAME IN FULL: 
+DELIVERY ADDRESS: 
+AGE:
+NATIONALITY: 
+OCCUPATION: 
+PHONE: 
+SEX:
