@@ -1,92 +1,85 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Buffer overrun in the TWL4030 keypad driver with Nokia RX51
-Date: Wed, 21 Jul 2010 17:52:24 +0200
-Message-ID: <201007211752.28078.laurent.pinchart@ideasonboard.com>
-References: <201007161728.44227.laurent.pinchart@ideasonboard.com> <201007201306.10505.laurent.pinchart@ideasonboard.com> <201007201107.46003.dmitry.torokhov@gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing frequency
+Date: Wed, 21 Jul 2010 11:02:35 -0500
+Message-ID: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:50875 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872Ab0GUPwe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jul 2010 11:52:34 -0400
-In-Reply-To: <201007201107.46003.dmitry.torokhov@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41252 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754253Ab0GUQFr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Jul 2010 12:05:47 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6LG5kFm002500
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 21 Jul 2010 11:05:46 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Amit Kucheria <amit.kucheria@verdurent.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Jon Hunter <jon-hunter@ti.com>
 
-Hi Dmitry,
+From: Jon Hunter <jon-hunter@ti.com>
 
-On Tuesday 20 July 2010 20:07:45 Dmitry Torokhov wrote:
-> On Tuesday, July 20, 2010 04:06:08 am Laurent Pinchart wrote:
-> > On Saturday 17 July 2010 23:37:05 Dmitry Torokhov wrote:
-> > > On Fri, Jul 16, 2010 at 05:28:43PM +0200, Laurent Pinchart wrote:
-> > > > I've spent the day debugging a kernel crash in the USB networking
-> > > > code to find out the problem was caused by a buffer overrun in the
-> > > > TWL4030 keypad driver.
-> > > > 
-> > > > The Nokia RX51 board code
-> > > > (arch/arm/mach-omap2/board-rx51-peripherals.c) defines a key map for
-> > > > the matrix keypad keyboard. The hardware seems to use all of the 8
-> > > > rows and 8 columns of the keypad, although not all possible locations
-> > > > are used.
-> > > > 
-> > > > The TWL4030 supports keypads with at most 8 rows and 8 columns. Most
-> > > > keys are defined with a row and column number between 0 and 7, except
-> > > > 
-> > > >         KEY(0xff, 2, KEY_F9),
-> > > >         KEY(0xff, 4, KEY_F10),
-> > > >         KEY(0xff, 5, KEY_F11),
-> > > > 
-> > > > The row number is set to 0xff. As the generic matrix keypad support
-> > > > (include/linux/input/matrix_keypad.h) supports at most 16 rows and 16
-> > > > columns, it masks all but the lower 4 bits of the row and column
-> > > > numbers in the KEY macro.
-> > > 
-> > > [..snipped..]
-> > > 
-> > > Thanks for the report. Could yo uplease try the patch below and let me
-> > > know if it works.
-> > 
-> > The patch fixes the crash at startup,
-> 
-> Great.
-> 
-> > but the F9, F10 and F11 key events
-> > are never reported. That might be because those keys are not wired up to
-> > anything though.
-> 
-> I would not know... If you see all keys on the device being handled then I
-> guess it's the case... Tony, Amit, any ideas?
-> 
-> > All keys on the keyboard, as well as the F7 and F8 keys
-> > (volume up and down on the of the case)
-> 
-> I guess we need to remap them to KEY_VOLUMEUP and KEY_VOLUMEDOWN then. So
-> is F7 == Up and F8 == Down?
+When changing the L3 clock frequency, the CPU is executing from internal RAM
+and the SDRC clock is disabled. During this time accesses made to external
+DDR are stalled. If the ARM subsystem attempts to access the DDR while the
+SDRC clock is disabled this will stall the CPU until the access to the SDRC
+timeouts. A timeout on the SDRC should never occur. Once a timeout occurs all
+the following accesses will be aborted and the DDR is no longer accessible.
 
-It's the other way around. F7 is volume down, F8 is volume up. Note that the 
-same keys have different meanings depending on the context. In the photo 
-viewer, they are used to zoom (volume down zooms out, volume up zooms in).
+Although the code being executed in the internal RAM does not directly access
+the DDR, it was found that the branch prediction logic in the CPU may cause
+the CPU to prefetch code from a DDR location while the SDRC clock is disabled.
+This was causing an SDRC timeout which resulted in a system hang.
 
-> > generate the proper events. All other "keys" (keyboard slider switch,
-> > power button, focus button, lock switch, proximity sensor) report events
-> > through other devices.
-> > 
-> > > I have some concerns with the keymap assignments, I see that Amit
-> > > changed them during KEY(col, row) -> KEY(row, col) conversion. I marked
-> > > the entries I am concerned with with XXX.
-> > 
-> > F7, F8, right alt and left shift are properly mapped. I don't know what
-> > F9, F10 and F11 are supposed to be.
-> 
-> OK, thanks. Since you don't crash anymore I think it is worth pushing
-> it out.
+This patch fixes this problem by ensuring the branch prediction logic is
+disabled while changing the L3 clock frequency. The branch prediction logic
+is disabled by clearing the Z-bit in the ARM AUX CTRL register.
 
+Disabling the branch prediction logic does not have any noticable impact
+on the execution time of this code section. The hardware observability
+signals were used to monitor the sdrc idle time with and without this
+patch when operating at different CPU frequencies (150MHz, 500MHz and
+600MHz) and the total sdrc idle time when changing frequenct was in
+the range of 9-11us. This was measured on an omap3430 SDP running the
+omapzoom p-android-omap-2.6.29 branch.
+
+This change has been commited to both TI's android 2.6.29 and 2.6.32 kernels.
+The commits can be viewed here:
+http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=5679c7b1142f3cc2b9285181d53f6b40c4d0296d
+http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=cf16e57823575d98e9d5165aa7a498ffb751c940
+
+This patch has been rebased on the latest linux-omap tree and tested on
+Kevin Hilman's pm branch.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/sram34xx.S |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index de99ba2..e87e730 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -129,8 +129,11 @@ ENTRY(omap3_sram_configure_core_dpll)
+ 	ldr	r4, [sp, #80]
+ 	str     r4, omap_sdrc_mr_1_val
+ skip_cs1_params:
++	mrc p15, 0, r8, c1, c0, 0	@ read aux ctrl register
++	bic r10, r8, #0x800		@ clear Z-bit, disable branch prediction
++	mcr p15, 0, r10, c1, c0, 0	@ write aux ctrl register
+ 	dsb				@ flush buffered writes to interconnect
+-
++	isb				@ prevent speculative exec past here
+ 	cmp	r3, #1			@ if increasing SDRC clk rate,
+ 	bleq	configure_sdrc		@ program the SDRC regs early (for RFR)
+ 	cmp	r1, #SDRC_UNLOCK_DLL	@ set the intended DLL state
+@@ -148,6 +151,7 @@ skip_cs1_params:
+ 	beq	return_to_sdram		@ return to SDRAM code, otherwise,
+ 	bl	configure_sdrc		@ reprogram SDRC regs now
+ return_to_sdram:
++	mcr p15, 0, r8, c1, c0, 0	@ restore aux ctrl register
+ 	isb				@ prevent speculative exec past here
+ 	mov 	r0, #0 			@ return value
+ 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
 -- 
-Regards,
+1.7.0.4
 
-Laurent Pinchart
