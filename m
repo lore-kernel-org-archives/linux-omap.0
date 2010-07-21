@@ -1,111 +1,206 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
-	memory management
-Date: Wed, 21 Jul 2010 11:19:58 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C61C5FCA@dbde02.ent.ti.com>
-References: <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
-	<20100714201149.GA14008@codeaurora.org>
-	<20100714220536.GE18138@n2100.arm.linux.org.uk>
-	<20100715012958.GB2239@codeaurora.org>
-	<20100715085535.GC26212@n2100.arm.linux.org.uk>
-	<AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com>
-	<20100716075856.GC16124@n2100.arm.linux.org.uk>
-	<4C449183.20000@codeaurora.org>
-	<20100719184002.GA21608@n2100.arm.linux.org.uk>
-	<bb667e285fd8be82ea8cc9cc25cf335b.squirrel@www.codeaurora.org>
- <20100720222952.GD10553@n2100.arm.linux.org.uk>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM not define
+Date: Wed, 21 Jul 2010 09:16:03 +0300
+Message-ID: <4C4690A3.5030503@nokia.com>
+References: <1279607878-2405-1-git-send-email-s-ghorai@ti.com> <4C454B99.7090705@nokia.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030E3107D8@dbde02.ent.ti.com> <4C4559E5.7090004@nokia.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030E310805@dbde02.ent.ti.com> <4C4560EB.8070702@nokia.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030E31084E@dbde02.ent.ti.com> <4C4568C6.9050705@nokia.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030E310B10@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20100720222952.GD10553@n2100.arm.linux.org.uk>
-Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, "stepanm@codeaurora.org" <stepanm@codeaurora.org>
-Cc: "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "dwalker@codeaurora.org" <dwalker@codeaurora.org>, "mel@csn.ul.ie" <mel@csn.ul.ie>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "andi@firstfloor.org" <andi@firstfloor.org>, Zach Pfeffer <zpfeffer@codeaurora.org>, Michael Bohan <mbohan@codeaurora.org>, Tim HRM <zt.tmzt@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "ebiederm@xmission.com" <ebiederm@xmission.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:21096 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751177Ab0GUGQq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jul 2010 02:16:46 -0400
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E310B10@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Andrew Morton <akpm@linux-foundation.org>
 
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org [mailto:linux-arm-
-> kernel-bounces@lists.infradead.org] On Behalf Of Russell King - ARM Linux
-> Sent: Wednesday, July 21, 2010 4:00 AM
-> To: stepanm@codeaurora.org
-> Cc: linux-arch@vger.kernel.org; dwalker@codeaurora.org; mel@csn.ul.ie;
-> linux-arm-msm@vger.kernel.org; linux-kernel@vger.kernel.org; FUJITA
-> Tomonori; linux-mm@kvack.org; andi@firstfloor.org; Zach Pfeffer; Michael
-> Bohan; Tim HRM; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; ebiederm@xmission.com
-> Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and devic=
-e
-> memory management
->=20
-> On Tue, Jul 20, 2010 at 03:02:34PM -0700, stepanm@codeaurora.org wrote:
-> > Russell-
-> >
-> > If a driver wants to allow a device to access memory (and cache
-> coherency
-> > is off/not present for device addesses), the driver needs to remap that
-> > memory as non-cacheable.
->=20
-> If that memory is not part of the kernel's managed memory, then that's
-> fine.  But if it _is_ part of the kernel's managed memory, then it is
-> not permitted by the ARM architecture specification to allow maps of
-> the memory with differing [memory type, sharability, cache] attributes.
->=20
-> Basically, if a driver wants to create these kinds of mappings, then
-> they should expect the system to become unreliable and unpredictable.
-> That's not something any sane person should be aiming to do.
->=20
-> > Suppose there exists a chunk of
-> > physically-contiguous memory (say, memory reserved for device use) that
-> > happened to be already mapped into the kernel as normal memory
-> (cacheable,
-> > etc). One way to remap this memory is to use ioremap (and then never
-> touch
-> > the original virtual mapping, which would now have conflicting
-> > attributes).
->=20
-> This doesn't work, and is unpredictable on ARMv6 and ARMv7.  Not touching
-> the original mapping is _not_ _sufficient_ to guarantee that the mapping
-> is not used.  (We've seen problems on OMAP as a result of this.)
->=20
-> Any mapping which exists can be speculatively prefetched by such CPUs
-> at any time, which can lead it to be read into the cache.  Then, your
-> different attributes for your "other" mapping can cause problems if you
-> hit one of these cache lines - and then you can have (possibly silent)
-> data corruption.
->=20
-> > I feel as if there should be a better way to remap memory for
-> > device access, either by altering the attributes on the original
-> mapping,
-> > or removing the original mapping and creating a new one with attributes
-> > set to non-cacheable.
->=20
-> This is difficult to achieve without remapping kernel memory using L2
-> page tables, so we can unmap pages on 4K page granularity.  That's
-> going to increase TLB overhead and result in lower system performance
-> as there'll be a greater number of MMU misses.
->=20
-> However, one obvious case would be to use highmem-only pages for
-> remapping - but you then have to ensure that those pages are never
-> kmapped in any way, because those mappings will fall into the same
-> unpredictable category that we're already trying to avoid.  This
-> may be possible, but you'll have to ensure that most of the system
-> RAM is in highmem - which poses other problems (eg, if lowmem gets
-> low.)
->=20
-Why can't we consider an option of removing the old mappings when=20
-we need to create new ones with different attributes as suggested
-by Catalin on similar thread previously. This will avoid the duplicate
-mapping with different attributes issue on newer ARMs.
+Ghorai, Sukumar wrote:
+> Adrian,
+> 
+>> -----Original Message-----
+>> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+>> Sent: Tuesday, July 20, 2010 2:44 PM
+>> To: Ghorai, Sukumar
+>> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Shilimkar,
+>> Santosh; Chikkature Rajashekar, Madhusudhan; Andrew Morton
+>> Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM not
+>> define
+>>
+>> Ghorai, Sukumar wrote:
+>>>> -----Original Message-----
+>>>> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+>>>> Sent: Tuesday, July 20, 2010 2:10 PM
+>>>> To: Ghorai, Sukumar
+>>>> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Shilimkar,
+>>>> Santosh; Chikkature Rajashekar, Madhusudhan; Andrew Morton
+>>>> Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM not
+>>>> define
+>>>>
+>>>> Ghorai, Sukumar wrote:
+>>>>> Adrian,
+>>>>>
+>>>>>> -----Original Message-----
+>>>>>> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+>>>>>> Sent: Tuesday, July 20, 2010 1:40 PM
+>>>>>> To: Ghorai, Sukumar
+>>>>>> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Shilimkar,
+>>>>>> Santosh; Chikkature Rajashekar, Madhusudhan; Andrew Morton
+>>>>>> Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM
+>> not
+>>>>>> define
+>>>>>>
+>>>>>> Ghorai, Sukumar wrote:
+>>>>>>>> -----Original Message-----
+>>>>>>>> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+>>>>>>>> Sent: Tuesday, July 20, 2010 12:39 PM
+>>>>>>>> To: Ghorai, Sukumar
+>>>>>>>> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org;
+>> Shilimkar,
+>>>>>>>> Santosh; Chikkature Rajashekar, Madhusudhan; Andrew Morton
+>>>>>>>> Subject: Re: [PATCH] omap: hsmmc funtionality breaks when CONFIG_PM
+>>>> not
+>>>>>>>> define
+>>>>>>>>
+>>>>>>>> Sukumar Ghorai wrote:
+>>>>>>>>>     Issue if power_saving option passed from board file and
+>>>> CONFIG_PM
+>>>>>>>> not define.
+>>>>>>>>>     This is because hosts refer to wrong operation table and that
+>>>> try
+>>>>>> to
+>>>>>>>> power save.
+>>>>>>>>
+>>>>>>>> power_saving is not related to power management.  It should work
+>> with
+>>>>>> or
+>>>>>>>> without
+>>>>>>>> CONFIG_PM.  What problem are you seeing?
+>>>>>>> [Ghorai] when CONFIG_PM is not defined but power_saving flag is TRUE,
+>>>>>> then host operation table point to table which handles in state
+>> machine
+>>>>>> as: ENABLE -> CARDSLEEP -> REGSLEEP -> DISABLED for power/clock cut.
+>>>> And
+>>>>>> do the reverse for the enable clock/power.
+>>>>>>> And power saving is not required and wont work when CONFIG_PM is not
+>>>>>> enabled.
+>>>>>>
+>>>>>> How is that a problem?  It would be useful to know what you need?
+>>>>> [Ghorai] do men when CONFIG_PM is not enabled still we should do power
+>>>> saving in mmc?
+>>>>
+>>>> Why not?
+>>>>
+>>>> Because issue is iclk/fclk is quite depended on PRCM framework when we
+>> are
+>>>> using omap_hsmmc_ps_ops operation table.
+>>>>
+>>>> iclk is left alone.
+>>>>
+>>>> fclk is manipulated with or without power_saving.
+>>>>
+>>>> I still do not understand your problem sorry :-(
+>>> [Ghorai] thanks and need input again,
+>>> we have two tables -
+>>> 1. static const struct mmc_host_ops omap_hsmmc_ops = {
+>>> }
+>>> --> This is without CONFIG_PM, assumed.
+>> No it is independent of CONFIG_PM
+>>
+>> With CONFIG_PM
+>> 	- the driver will restore registers if the host controller
+>> 	has been powered off / on by PRCM
+>> 	- suspend / resume can be used
+>>
+>>> 2. static const struct mmc_host_ops omap_hsmmc_ps_ops = {
+>>> }
+>>> -> this with CONFIG_PM, assumed.
+>> No it is independent of CONFIG_PM
+>>
+>> Without CONFIG_PM
+>> 	- card will be put to sleep after 1 second
+>> 	- card will be powered off after another 8 seconds
+>>
+>>> a. And you feel we should remove #1
+>> Nothing should need to be removed.
+>>
+>>> b. use omap_hsmmc_ps_ops default.
+>> With power_saving it is yes.
+> [Ghorai] Is it that power_saving (true or false) is independent of CONFIG_PM?
 
-Is this something can't be worked out?
+Yes, power_saving (true or false) *is* independent of CONFIG_PM.
 
-Regards,
-Santosh
+>>> c. And it should work in all case?
+>> It should work in all cases.
+>>
+>>>>>>> So if CONFIG_PM is not enable, then it should do simple clock
+>>>>>> disable/enable, and not via the power state machine.
+>>>>>>
+>>>>>> If that is what you want, simply change your board file:
+>>>>>>
+>>>>>> #if CONFIG_PM
+>>>>>> 	.power_saving = true,
+>>>>>> #else
+>>>>>> 	.power_saving = false,
+>>>>>> #end
+>>>>> [Ghorai] the fix I send is to guard in MMC/SD host driver to avoid
+>>>> mistake in board file(s). And this file is used for multiple omap3,
+>> omap4
+>>>> boards.
+>>>>>>>>> Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+>>>>>>>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>>>>>> CC: Madhusudhan Chikkature <madhu.cr@ti.com>
+>>>>>>>>> CC: Andrew Morton <akpm@linux-foundation.org>
+>>>>>>>>> ---
+>>>>>>>>>  Tested on omap3, omap4430 ES2.0
+>>>>>>>>>
+>>>>>>>>>  drivers/mmc/host/omap_hsmmc.c |    2 ++
+>>>>>>>>>  1 files changed, 2 insertions(+), 0 deletions(-)
+>>>>>>>>>
+>>>>>>>>> diff --git a/drivers/mmc/host/omap_hsmmc.c
+>>>>>>>> b/drivers/mmc/host/omap_hsmmc.c
+>>>>>>>>> index b032828..f84eed0 100644
+>>>>>>>>> --- a/drivers/mmc/host/omap_hsmmc.c
+>>>>>>>>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>>>>>>>>> @@ -2015,9 +2015,11 @@ static int __init omap_hsmmc_probe(struct
+>>>>>>>> platform_device *pdev)
+>>>>>>>>>  	platform_set_drvdata(pdev, host);
+>>>>>>>>>  	INIT_WORK(&host->mmc_carddetect_work, omap_hsmmc_detect);
+>>>>>>>>>
+>>>>>>>>> +#ifdef CONFIG_PM
+>>>>>>>>>  	if (mmc_slot(host).power_saving)
+>>>>>>>>>  		mmc->ops	= &omap_hsmmc_ps_ops;
+>>>>>>>>>  	else
+>>>>>>>>> +#endif
+>>>>>>>>>  		mmc->ops	= &omap_hsmmc_ops;
+>>>>>>>>>
+>>>>>>>>>  	/*
+>>>>>>>>> --
+>>>>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-
+>> mmc"
+>>>>>> in
+>>>>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>>>>
+>>>>>>> Regards,
+>>>>>>> Ghorai
+>>>>>>> --
+>>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-mmc"
+>>>> in
+>>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
