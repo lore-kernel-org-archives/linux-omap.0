@@ -1,54 +1,50 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] [ARM] video/omap2/tdo35s: fix visual artefacts
-Date: Wed, 21 Jul 2010 17:36:11 +0300
-Message-ID: <4C4705DB.4000402@compulab.co.il>
-References: <1278931370-19912-1-git-send-email-grinberg@compulab.co.il>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 08/11] staging: tidspbridge: remove IN modifier
+Date: Wed, 21 Jul 2010 09:59:22 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043F0B2C09@dlee03.ent.ti.com>
+References: <1278975369-7687-1-git-send-email-nm@ti.com>
+ <1278975369-7687-9-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:34657 "EHLO compulab.co.il"
+Received: from comal.ext.ti.com ([198.47.26.152]:50844 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758320Ab0GUOgT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Jul 2010 10:36:19 -0400
-In-Reply-To: <1278931370-19912-1-git-send-email-grinberg@compulab.co.il>
+	id S1752123Ab0GUPBy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jul 2010 11:01:54 -0400
+In-Reply-To: <1278975369-7687-9-git-send-email-nm@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
+To: "Menon, Nishanth" <nm@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 
-ping!
-> TDO35S samples the data on the falling adge of the pixel clock,
-> therefore the data strobe should be on the raising edge.
->
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> ---
->  .../video/omap2/displays/panel-toppoly-tdo35s.c    |    8 ++++++--
->  1 files changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-> index fa434ca..e320e67 100644
-> --- a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-> +++ b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
-> @@ -73,8 +73,12 @@ static void toppoly_tdo_panel_power_off(struct omap_dss_device *dssdev)
->  
->  static int toppoly_tdo_panel_probe(struct omap_dss_device *dssdev)
->  {
-> -	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-> -		OMAP_DSS_LCD_IHS;
-> +	dssdev->panel.config = OMAP_DSS_LCD_TFT |
-> +			       OMAP_DSS_LCD_IVS |
-> +			       OMAP_DSS_LCD_IHS |
-> +			       OMAP_DSS_LCD_IPC |
-> +			       OMAP_DSS_LCD_ONOFF;
-> +
->  	dssdev->panel.timings = toppoly_tdo_panel_timings;
->  
->  	return 0;
->   
+Hi,
 
--- 
+>From: Menon, Nishanth
+>
+>IN modifier does not exist. remove it
+>
+>Signed-off-by: Nishanth Menon <nm@ti.com>
+>---
+[...]
+>diff --git a/drivers/staging/tidspbridge/include/dspbridge/drv.h
+>b/drivers/staging/tidspbridge/include/dspbridge/drv.h
+>index 020bed0..753a317 100644
+>--- a/drivers/staging/tidspbridge/include/dspbridge/drv.h
+>+++ b/drivers/staging/tidspbridge/include/dspbridge/drv.h
+>@@ -70,8 +70,8 @@
+> #define OMAP_DMMU_BASE 0x5D000000
+> #define OMAP_DMMU_SIZE 0x1000
+>
+>-#define OMAP_PRCM_VDD1_DOMAIN 1
+>-#define OMAP_PRCM_VDD2_DOMAIN 2
+>+#define OMAP_PRCM_VDD1_DOMA1
+>+#define OMAP_PRCM_VDD2_DOMA2
+>
+
+Unexpected change?
+
 Regards,
-Igor.
 
+Omar
