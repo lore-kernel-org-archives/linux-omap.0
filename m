@@ -1,85 +1,91 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing frequency
-Date: Wed, 21 Jul 2010 11:02:35 -0500
-Message-ID: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41252 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754253Ab0GUQFr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Jul 2010 12:05:47 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6LG5kFm002500
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 21 Jul 2010 11:05:46 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH v2 00/20] native support for wl1271 on ZOOM
+Date: Wed, 21 Jul 2010 20:33:34 +0300
+Message-ID: <1279733634-21974-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux@arm.linux.org.uk, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Jon Hunter <jon-hunter@ti.com>
 
-From: Jon Hunter <jon-hunter@ti.com>
+This patch series adds native support for wl1271 on ZOOM.
 
-When changing the L3 clock frequency, the CPU is executing from internal RAM
-and the SDRC clock is disabled. During this time accesses made to external
-DDR are stalled. If the ARM subsystem attempts to access the DDR while the
-SDRC clock is disabled this will stall the CPU until the access to the SDRC
-timeouts. A timeout on the SDRC should never occur. Once a timeout occurs all
-the following accesses will be aborted and the DDR is no longer accessible.
+Changes since v1:
 
-Although the code being executed in the internal RAM does not directly access
-the DDR, it was found that the branch prediction logic in the CPU may cause
-the CPU to prefetch code from a DDR location while the SDRC clock is disabled.
-This was causing an SDRC timeout which resulted in a system hang.
+- introduce a fixed regulator device to control the power of wl1271
+- allow to propagate private board-specific data to SDIO function drivers
+- allow SDIO function driver to control the card's power via new API
+- make it possible to keep the card's power down (without depending
+  on an explicit SDIO function driver power-down request)
 
-This patch fixes this problem by ensuring the branch prediction logic is
-disabled while changing the L3 clock frequency. The branch prediction logic
-is disabled by clearing the Z-bit in the ARM AUX CTRL register.
+Thanks to these changes, we no longer need a separate platform
+device (carrying e.g. the external irq information of the device),
+and no longer need to emulate virtual card detect events.
 
-Disabling the branch prediction logic does not have any noticable impact
-on the execution time of this code section. The hardware observability
-signals were used to monitor the sdrc idle time with and without this
-patch when operating at different CPU frequencies (150MHz, 500MHz and
-600MHz) and the total sdrc idle time when changing frequenct was in
-the range of 9-11us. This was measured on an omap3430 SDP running the
-omapzoom p-android-omap-2.6.29 branch.
+The two "board muxing" pathces were already taken by Tony, and
+are resent here just to make it easier for people to use/test these pathces.
 
-This change has been commited to both TI's android 2.6.29 and 2.6.32 kernels.
-The commits can be viewed here:
-http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=5679c7b1142f3cc2b9285181d53f6b40c4d0296d
-http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=cf16e57823575d98e9d5165aa7a498ffb751c940
+The changes to the MMC core really needs careful review; there still
+might be some pitfalls that haven't been covered. E.g., one thing
+we plan to look at next is their bahvior together with SDIO Suspend/Resume.
 
-This patch has been rebased on the latest linux-omap tree and tested on
-Kevin Hilman's pm branch.
+Special thanks to Roger Quadros and Nicolas Pitre for their extensive
+review and helpful suggestions.
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/sram34xx.S |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+The patches are based on 2.6.35-rc5, and were tested on ZOOM3.
 
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index de99ba2..e87e730 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -129,8 +129,11 @@ ENTRY(omap3_sram_configure_core_dpll)
- 	ldr	r4, [sp, #80]
- 	str     r4, omap_sdrc_mr_1_val
- skip_cs1_params:
-+	mrc p15, 0, r8, c1, c0, 0	@ read aux ctrl register
-+	bic r10, r8, #0x800		@ clear Z-bit, disable branch prediction
-+	mcr p15, 0, r10, c1, c0, 0	@ write aux ctrl register
- 	dsb				@ flush buffered writes to interconnect
--
-+	isb				@ prevent speculative exec past here
- 	cmp	r3, #1			@ if increasing SDRC clk rate,
- 	bleq	configure_sdrc		@ program the SDRC regs early (for RFR)
- 	cmp	r1, #SDRC_UNLOCK_DLL	@ set the intended DLL state
-@@ -148,6 +151,7 @@ skip_cs1_params:
- 	beq	return_to_sdram		@ return to SDRAM code, otherwise,
- 	bl	configure_sdrc		@ reprogram SDRC regs now
- return_to_sdram:
-+	mcr p15, 0, r8, c1, c0, 0	@ restore aux ctrl register
- 	isb				@ prevent speculative exec past here
- 	mov 	r0, #0 			@ return value
- 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
--- 
-1.7.0.4
+Thanks,
+
+Ohad Ben-Cohen (20):
+  sdio: add TI + wl1271 ids
+  wireless: wl1271: remove SDIO IDs from driver
+  mmc: support embedded data field in mmc_host
+  omap zoom2: wlan board muxing
+  omap zoom3: wlan board muxing
+  wireless: wl1271: make wl12xx.h common to both spi and sdio
+  wireless: wl1271: support return value for the set power func
+  wireless: wl1271: take irq info from private board data
+  wireless: wl1271: make ref_clock configurable by board
+  omap: zoom: add fixed regulator device for wlan
+  omap: hsmmc: support mmc3 regulator power control
+  omap: hsmmc: allow board-specific settings of private mmc data
+  omap: zoom: add mmc3/wl1271 device support
+  mmc: sdio: fully reconfigure oldcard on resume
+  mmc: sdio: verify existence of resume handler
+  mmc: introduce API to control the card's power
+  mmc: sdio: relocate sdio_set_block_size call
+  mmc: sdio: enable a default power off mode of the card
+  omap: zoom: keep the MMC3 wl1271 device powered off
+  wireless: wl1271: call SDIO claim/release power API
+
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   54 +++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom2.c            |   13 +++++
+ arch/arm/mach-omap2/board-zoom3.c            |   13 +++++
+ arch/arm/mach-omap2/hsmmc.c                  |   15 ++++--
+ arch/arm/mach-omap2/hsmmc.h                  |    2 +
+ arch/arm/plat-omap/include/plat/mmc.h        |    5 ++
+ drivers/mmc/core/bus.c                       |    3 +
+ drivers/mmc/core/core.c                      |   50 ++++++++++++++++++
+ drivers/mmc/core/sdio.c                      |   36 +++++++++++--
+ drivers/mmc/core/sdio_bus.c                  |    9 ---
+ drivers/mmc/core/sdio_io.c                   |   50 ++++++++++++++++++
+ drivers/mmc/host/omap_hsmmc.c                |   72 +++++++++++++++++++++++---
+ drivers/net/wireless/wl12xx/wl1251_sdio.c    |    2 +-
+ drivers/net/wireless/wl12xx/wl1251_spi.c     |    2 +-
+ drivers/net/wireless/wl12xx/wl1271.h         |    3 +-
+ drivers/net/wireless/wl12xx/wl1271_boot.c    |    9 ++--
+ drivers/net/wireless/wl12xx/wl1271_boot.h    |    1 -
+ drivers/net/wireless/wl12xx/wl1271_io.h      |    8 ++-
+ drivers/net/wireless/wl12xx/wl1271_main.c    |    4 +-
+ drivers/net/wireless/wl12xx/wl1271_sdio.c    |   31 +++++------
+ drivers/net/wireless/wl12xx/wl1271_spi.c     |    8 ++-
+ include/linux/mmc/card.h                     |    2 +
+ include/linux/mmc/host.h                     |   15 +++++
+ include/linux/mmc/sdio_func.h                |    3 +
+ include/linux/mmc/sdio_ids.h                 |    3 +
+ include/linux/spi/wl12xx.h                   |   34 ------------
+ include/linux/wl12xx.h                       |   35 ++++++++++++
+ 27 files changed, 393 insertions(+), 89 deletions(-)
+ delete mode 100644 include/linux/spi/wl12xx.h
+ create mode 100644 include/linux/wl12xx.h
 
