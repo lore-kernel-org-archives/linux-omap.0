@@ -1,88 +1,54 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 1/3] OMAP: DSS2: Zorder enum in display.h
-Date: Wed, 21 Jul 2010 19:47:19 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7C75F38@dbde02.ent.ti.com>
-References: <1279541407-17711-1-git-send-email-archit@ti.com>
- <1279541407-17711-2-git-send-email-archit@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] [ARM] video/omap2/tdo35s: fix visual artefacts
+Date: Wed, 21 Jul 2010 17:36:11 +0300
+Message-ID: <4C4705DB.4000402@compulab.co.il>
+References: <1278931370-19912-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48456 "EHLO comal.ext.ti.com"
+Received: from compulab.co.il ([67.18.134.219]:34657 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932087Ab0GUOR3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jul 2010 10:17:29 -0400
-In-Reply-To: <1279541407-17711-2-git-send-email-archit@ti.com>
-Content-Language: en-US
+	id S1758320Ab0GUOgT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Jul 2010 10:36:19 -0400
+In-Reply-To: <1278931370-19912-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>, "Taneja, Archit" <archit@ti.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Mike Rapoport <mike@compulab.co.il>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Archit Taneja
-> Sent: Monday, July 19, 2010 5:40 PM
-> To: tomi.valkeinen@nokia.com
-> Cc: linux-omap@vger.kernel.org; Semwal, Sumit; Nilofer, 
-> Samreen; Taneja, Archit
-> Subject: [PATCH 1/3] OMAP: DSS2: Zorder enum in display.h
-> 
-> From: Sumit Semwal <sumit.semwal@ti.com>
-> 
-> Add Zorder enum in display.h
-> 
-
-Patches 1 and 2 in the series can easily be conbined into one.
-Separating few line changes in header file from implementation
-across 2 patches isn't useful.
-
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-> Signed-off-by: Samreen <samreen@ti.com>
-> Signed-off-by: Archit Taneja <archit@ti.com>
+ping!
+> TDO35S samples the data on the falling adge of the pixel clock,
+> therefore the data strobe should be on the raising edge.
+>
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 > ---
->  arch/arm/plat-omap/include/plat/display.h |    8 ++++++++
->  1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/display.h 
-> b/arch/arm/plat-omap/include/plat/display.h
-> index d1da317..197ce8c
-> --- a/arch/arm/plat-omap/include/plat/display.h
-> +++ b/arch/arm/plat-omap/include/plat/display.h
-> @@ -206,6 +206,13 @@ enum omap_overlay_manager_caps {
->  	OMAP_DSS_OVL_MGR_CAP_DISPC = 1 << 0,
->  };
+>  .../video/omap2/displays/panel-toppoly-tdo35s.c    |    8 ++++++--
+>  1 files changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+> index fa434ca..e320e67 100644
+> --- a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+> +++ b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+> @@ -73,8 +73,12 @@ static void toppoly_tdo_panel_power_off(struct omap_dss_device *dssdev)
 >  
-> +enum omap_overlay_zorder {
-> +	OMAP_DSS_OVL_ZORDER_0	= 0x0,
-> +	OMAP_DSS_OVL_ZORDER_1	= 0x1,
-> +	OMAP_DSS_OVL_ZORDER_2	= 0x2,
-> +	OMAP_DSS_OVL_ZORDER_3	= 0x3,
-> +};
-
-Is "_DSS_" really needed in these emums? considering that enum
-itself doesn't contain "_dss_" in its name.
-
-~sanjeev
-
+>  static int toppoly_tdo_panel_probe(struct omap_dss_device *dssdev)
+>  {
+> -	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+> -		OMAP_DSS_LCD_IHS;
+> +	dssdev->panel.config = OMAP_DSS_LCD_TFT |
+> +			       OMAP_DSS_LCD_IVS |
+> +			       OMAP_DSS_LCD_IHS |
+> +			       OMAP_DSS_LCD_IPC |
+> +			       OMAP_DSS_LCD_ONOFF;
 > +
->  /* RFBI */
+>  	dssdev->panel.timings = toppoly_tdo_panel_timings;
 >  
->  struct rfbi_timings {
-> @@ -308,6 +315,7 @@ struct omap_overlay_info {
->  	u16 out_width;	/* if 0, out_width == width */
->  	u16 out_height;	/* if 0, out_height == height */
->  	u8 global_alpha;
-> +	enum omap_overlay_zorder zorder;
->  };
->  
->  struct omap_overlay {
-> -- 
-> 1.6.3.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>  	return 0;
+>   
+
+-- 
+Regards,
+Igor.
+
