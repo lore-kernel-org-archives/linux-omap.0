@@ -1,25 +1,60 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 10/20] omap: zoom: add fixed regulator device for
-	wlan
-Date: Wed, 21 Jul 2010 18:59:30 +0100
-Message-ID: <20100721175930.GD10930@sirena.org.uk>
-References: <1279733634-21974-1-git-send-email-ohad@wizery.com> <1279733634-21974-11-git-send-email-ohad@wizery.com>
+From: stepanm@codeaurora.org
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU,
+      CPU and device memory management
+Date: Wed, 21 Jul 2010 11:04:52 -0700 (PDT)
+Message-ID: <f63baf765051c19b85938ea73d6c6b2a.squirrel@www.codeaurora.org>
+References: <20100714220536.GE18138@n2100.arm.linux.org.uk>
+    <20100715012958.GB2239@codeaurora.org>
+    <20100715085535.GC26212@n2100.arm.linux.org.uk>
+    <AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com>
+    <20100716075856.GC16124@n2100.arm.linux.org.uk>
+    <4C449183.20000@codeaurora.org>
+    <20100719184002.GA21608@n2100.arm.linux.org.uk>
+    <bb667e285fd8be82ea8cc9cc25cf335b.squirrel@www.codeaurora.org>
+    <20100720222952.GD10553@n2100.arm.linux.org.uk>
+    <EAF47CD23C76F840A9E7FCE10091EFAB02C61C5FCA@dbde02.ent.ti.com>
+    <20100721072837.GB6009@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1279733634-21974-11-git-send-email-ohad@wizery.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Pandita Vikram <vikram.pandita@ti.com>, linux@arm.linux.org.uk, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Roger Quadros <roger.quadros@nokia.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20100721072837.GB6009@n2100.arm.linux.org.uk>
+Sender: owner-linux-mm@kvack.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "stepanm@codeaurora.org" <stepanm@codeaurora.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "dwalker@codeaurora.org" <dwalker@codeaurora.org>, "mel@csn.ul.ie" <mel@csn.ul.ie>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "andi@firstfloor.org" <andi@firstfloor.org>, Zach Pfeffer <zpfeffer@codeaurora.org>, Michael Bohan <mbohan@codeaurora.org>, Tim HRM <zt.tmzt@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "ebiederm@xmission.com" <ebiederm@xmission.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 21, 2010 at 08:33:44PM +0300, Ohad Ben-Cohen wrote:
+> ***********************************************************************=
+**
+>> > This is difficult to achieve without remapping kernel memory using L=
+2
+>> > page tables, so we can unmap pages on 4K page granularity.  That's
+>> > going to increase TLB overhead and result in lower system performanc=
+e
+>> > as there'll be a greater number of MMU misses.
+> ***********************************************************************=
+**
 
-> +static struct regulator_consumer_supply zoom_vmmc3_supply = {
-> +	.supply		= "vmmc",
-> +};
+Given how the buffers in question can be on the orders of tens of MB (and
+I don't think they will ever be less than 1MB), would we be able to get
+the desired effect by unmapping and then remapping on a 1MB granularity
+(ie, L1 sections)? It seems to me like this should be sufficient, and
+would not require using L2 mappings. Thoughts?
 
-This looks like a misconfiguration on the consumer - I'd strongly expect
-the consumer to have a dev_name specified also with the name being in
-terms of the consumer device.
+Thanks
+Steve
+
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum=
+.
+
+
+
+
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=3Dmailto:"dont@kvack.org"> email@kvack.org </a>
