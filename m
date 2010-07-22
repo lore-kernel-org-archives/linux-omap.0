@@ -1,46 +1,34 @@
-From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Thu, 22 Jul 2010 09:33:40 -0700
-Message-ID: <20100722163338.GE10255@codeaurora.org>
-References: <20100713090223.GB20590@n2100.arm.linux.org.uk>
- <20100714105922D.fujita.tomonori@lab.ntt.co.jp>
- <20100722035026.GB14176@codeaurora.org>
- <20100722134708I.fujita.tomonori@lab.ntt.co.jp>
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [PATCH 2/2] USB: musb: omap2430: add mode change from A to B
+Date: Thu, 22 Jul 2010 19:40:44 +0300
+Message-ID: <4C48748C.8040307@felipebalbi.com>
+References: <1268648622-28529-1-git-send-email-Hui.Wang@windriver.com> <1268648622-28529-2-git-send-email-Hui.Wang@windriver.com> <877hknwnrb.fsf@anar.kanru.info>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20100722134708I.fujita.tomonori@lab.ntt.co.jp>
-Sender: owner-linux-mm@kvack.org
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: linux@arm.linux.org.uk, alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, joro@8bytes.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <877hknwnrb.fsf-ONHucydYG54+Yz5RL6G0bA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kan-Ru Chen <kanru-suFqJ7M7tPnYtjvyW6yDsg@public.gmane.org>
+Cc: Wang Hui <Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jul 22, 2010 at 01:47:36PM +0900, FUJITA Tomonori wrote:
-> On Wed, 21 Jul 2010 20:50:26 -0700
-> Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
+On 07/22/2010 06:16 PM, Kan-Ru Chen wrote:
+> Just curious about how to do this in a more automatic way.
 > 
-> > On Wed, Jul 14, 2010 at 10:59:43AM +0900, FUJITA Tomonori wrote:
-> > > On Tue, 13 Jul 2010 10:02:23 +0100
-> > > 
-> > > Zach Pfeffer said this new VCM infrastructure can be useful for
-> > > video4linux. However, I don't think we need 3,000-lines another
-> > > abstraction layer to solve video4linux's issue nicely.
-> > 
-> > Its only 3000 lines because I haven't converted the code to use
-> > function pointers.
+> I think setup a daemon to monitor the musb_hdrc mode and try to alter
+> it's state via sysfs interface will work, but it may be error prone and
+> not always desirable solution.
 > 
-> The main point is adding a new abstraction that don't provide the huge
-> benefit.
+> Can we query the id pin state periodically in the kernel and change to
+> corresponding role?
 
-I disagree. In its current form the API may not be appropriate for
-inclusion into the kernel, but it provides a common framework for
-handling a class of problems that have been solved many times in the
-kernel: large buffer management, IOMMU interoperation and fine grained
-mapping control.
+the transceiver has an interrupt for id pin changes. You can use that
+instead of polling.
 
+-- 
+balbi
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
