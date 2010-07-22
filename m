@@ -1,59 +1,49 @@
-From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
- memory management
-Date: Thu, 22 Jul 2010 09:44:56 -0700
-Message-ID: <20100722164454.GF10255@codeaurora.org>
-References: <20100720221959.GC12250@codeaurora.org>
- <20100721104356S.fujita.tomonori@lab.ntt.co.jp>
- <20100722043034.GC22559@codeaurora.org>
- <20100722134253B.fujita.tomonori@lab.ntt.co.jp>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 00/15] ti dspbridge: Remove CamelCase, reagroup
+ variables
+Date: Thu, 22 Jul 2010 10:43:49 -0700
+Message-ID: <20100722174349.GA1166@kroah.com>
+References: <1278728649-21012-1-git-send-email-rene.sapiens@ti.com>
+ <4C40F688.80507@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arch-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from kroah.org ([198.145.64.141]:54341 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759195Ab0GVRrn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Jul 2010 13:47:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20100722134253B.fujita.tomonori@lab.ntt.co.jp>
-Sender: linux-arch-owner@vger.kernel.org
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: linux@arm.linux.org.uk, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <4C40F688.80507@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: "Sapiens, Rene" <rene.sapiens@ti.com>, "gregkh@suse.de" <gregkh@suse.de>, "ohad@wizery.com" <ohad@wizery.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jul 22, 2010 at 01:43:26PM +0900, FUJITA Tomonori wrote:
-> On Wed, 21 Jul 2010 21:30:34 -0700
-> Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
+On Fri, Jul 16, 2010 at 07:17:12PM -0500, Omar Ramirez Luna wrote:
+> On 7/9/2010 9:23 PM, Sapiens, Rene wrote:
+> >The intention of this serie of patches is to rename the remaining variables
+> >with camel case. Words will be renamed avoiding CamelCase and Hungarian
+> >notation. Also the variables in the prototypes  will be renamed to make them
+> >match with the ones in the function definitions.
+> >
+> [...]
+> >  74 files changed, 2471 insertions(+), 2439 deletions(-)
+> >
+> >
 > 
-> > On Wed, Jul 21, 2010 at 10:44:37AM +0900, FUJITA Tomonori wrote:
-> > > On Tue, 20 Jul 2010 15:20:01 -0700
-> > > Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
-> > > 
-> > > > > I'm not saying that it's reasonable to pass (or even allocate) a 1MB
-> > > > > buffer via the DMA API.
-> > > > 
-> > > > But given a bunch of large chunks of memory, is there any API that can
-> > > > manage them (asked this on the other thread as well)?
-> > > 
-> > > What is the problem about mapping a 1MB buffer with the DMA API?
-> > > 
-> > > Possibly, an IOMMU can't find space for 1MB but it's not the problem
-> > > of the DMA API.
-> > 
-> > This goes to the nub of the issue. We need a lot of 1 MB physically
-> > contiguous chunks. The system is going to fragment and we'll never get
-> > our 12 1 MB chunks that we'll need, since the DMA API allocator uses
-> > the system pool it will never succeed. For this reason we reserve a
-> > pool of 1 MB chunks (and 16 MB, 64 KB etc...) to satisfy our
-> > requests. This same use case is seen on most embedded "media" engines
-> > that are getting built today.
+> Some of your patches produce:
 > 
-> We don't need a new abstraction to reserve some memory.
+> warning: drivers/staging/tidspbridge/include/dspbridge/dspdefs.h has
+> type 100644, expected 100755
 > 
-> If you want pre-allocated memory pool per device (and share them with
-> some), the DMA API can for coherent memory (see
-> dma_alloc_from_coherent). You can extend the DMA API if necessary.
+> None of the files had their permissions changed so I guess they
+> should be fine to merge, unless anybody else complains... so ACK.
 
-That function won't work for us. We can't use
-bitmap_find_free_region(), we need to use our own allocator. If
-anything we need a dma_alloc_from_custom(my_allocator). Take a look
-at:
+Yeah, Rene, what are you doing changing the mode of these files?  Git
+shows those types of mode changes.
 
-mm: iommu: A physical allocator for the VCMM
-vcm_alloc_max_munch() 
+Ick, I'll edit them all out...
+
+thanks,
+
+greg k-h
