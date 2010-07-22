@@ -1,83 +1,103 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH 1/3] OMAP: DSS2: Zorder enum in display.h
-Date: Thu, 22 Jul 2010 09:41:53 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870305EEA38A@dbde02.ent.ti.com>
-References: <1279541407-17711-1-git-send-email-archit@ti.com>
- <1279541407-17711-2-git-send-email-archit@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E7C75F38@dbde02.ent.ti.com>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Wed, 21 Jul 2010 21:25:28 -0700
+Message-ID: <20100722042528.GB22559@codeaurora.org>
+References: <4C3C0032.5020702@codeaurora.org>
+ <20100713150311B.fujita.tomonori@lab.ntt.co.jp>
+ <20100713121420.GB4263@codeaurora.org>
+ <20100714104353B.fujita.tomonori@lab.ntt.co.jp>
+ <20100714201149.GA14008@codeaurora.org>
+ <20100714220536.GE18138@n2100.arm.linux.org.uk>
+ <20100715012958.GB2239@codeaurora.org>
+ <20100715085535.GC26212@n2100.arm.linux.org.uk>
+ <20100719065233.GD11054@codeaurora.org>
+ <m1mxtndifi.fsf@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45705 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754649Ab0GVEL7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jul 2010 00:11:59 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7C75F38@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:56932 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879Ab0GVEZ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jul 2010 00:25:29 -0400
+Content-Disposition: inline
+In-Reply-To: <m1mxtndifi.fsf@fess.ebiederm.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Nilofer, Samreen" <samreen@ti.com>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
- 
-
-> -----Original Message-----
-> From: Premi, Sanjeev 
-> Sent: Wednesday, July 21, 2010 7:47 PM
-> To: Taneja, Archit; tomi.valkeinen@nokia.com
-> Cc: linux-omap@vger.kernel.org; Semwal, Sumit; Nilofer, 
-> Samreen; Taneja, Archit
-> Subject: RE: [PATCH 1/3] OMAP: DSS2: Zorder enum in display.h
+On Mon, Jul 19, 2010 at 12:44:49AM -0700, Eric W. Biederman wrote:
+> Zach Pfeffer <zpfeffer@codeaurora.org> writes:
 > 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org 
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Archit Taneja
-> > Sent: Monday, July 19, 2010 5:40 PM
-> > To: tomi.valkeinen@nokia.com
-> > Cc: linux-omap@vger.kernel.org; Semwal, Sumit; Nilofer, Samreen; 
-> > Taneja, Archit
-> > Subject: [PATCH 1/3] OMAP: DSS2: Zorder enum in display.h
-> > 
-> > From: Sumit Semwal <sumit.semwal@ti.com>
-> > 
-> > Add Zorder enum in display.h
-> > 
+> > On Thu, Jul 15, 2010 at 09:55:35AM +0100, Russell King - ARM Linux wrote:
+> >> On Wed, Jul 14, 2010 at 06:29:58PM -0700, Zach Pfeffer wrote:
+> >> > The VCM ensures that all mappings that map a given physical buffer:
+> >> > IOMMU mappings, CPU mappings and one-to-one device mappings all map
+> >> > that buffer using the same (or compatible) attributes. At this point
+> >> > the only attribute that users can pass is CACHED. In the absence of
+> >> > CACHED all accesses go straight through to the physical memory.
+> >> 
+> >> So what you're saying is that if I have a buffer in kernel space
+> >> which I already have its virtual address, I can pass this to VCM and
+> >> tell it !CACHED, and it'll setup another mapping which is not cached
+> >> for me?
+> >
+> > Not quite. The existing mapping will be represented by a reservation
+> > from the prebuilt VCM of the VM. This reservation has been marked
+> > non-cached. Another reservation on a IOMMU VCM, also marked non-cached
+> > will be backed with the same physical memory. This is legal in ARM,
+> > allowing the vcm_back call to succeed. If you instead passed cached on
+> > the second mapping, the first mapping would be non-cached and the
+> > second would be cached. If the underlying architecture supported this
+> > than the vcm_back would go through.
 > 
-> Patches 1 and 2 in the series can easily be conbined into one.
-> Separating few line changes in header file from 
-> implementation across 2 patches isn't useful.
+> How does this compare with the x86 pat code?
 
-[archit] We are introducing a new DSS feature for OMAP4 in every
-patch series. In order to clearly explain the feature introduced,
-the first patch of every series makes changes on in the display.h
-header which is central to the DSS2 code.
+First, thanks for asking this question. I wasn't aware of the x86 pat
+code and I got to read about it. From my initial read the VCM differs in 2 ways:
 
-If this is not a accepted norm or a strong enough reason to have a
-separate small patch, I can rework these series, I would need more
-comments from others though.
+1. The attributes are explicitly set on virtual address ranges. These
+reservations can then map physical memory with these attributes.
 
-<snap>
+2. We explicitly allow multiple mappings (as long as the attributes are
+compatible). One such mapping may come from a IOMMU's virtual address
+space while another comes from the CPUs virtual address space. These
+mappings may exist at the same time.
 
-> > +enum omap_overlay_zorder {
-> > +	OMAP_DSS_OVL_ZORDER_0	= 0x0,
-> > +	OMAP_DSS_OVL_ZORDER_1	= 0x1,
-> > +	OMAP_DSS_OVL_ZORDER_2	= 0x2,
-> > +	OMAP_DSS_OVL_ZORDER_3	= 0x3,
-> > +};
 > 
-> Is "_DSS_" really needed in these emums? considering that 
-> enum itself doesn't contain "_dss_" in its name.
+> >> You are aware that multiple V:P mappings for the same physical page
+> >> with different attributes are being outlawed with ARMv6 and ARMv7
+> >> due to speculative prefetching.  The cache can be searched even for
+> >> a mapping specified as 'normal, uncached' and you can get cache hits
+> >> because the data has been speculatively loaded through a separate
+> >> cached mapping of the same physical page.
+> >
+> > I didn't know that. Thanks for the heads up.
+> >
+> >> FYI, during the next merge window, I will be pushing a patch which makes
+> >> ioremap() of system RAM fail, which should be the last core code creator
+> >> of mappings with different memory types.  This behaviour has been outlawed
+> >> (as unpredictable) in the architecture specification and does cause
+> >> problems on some CPUs.
+> >
+> > That's fair enough, but it seems like it should only be outlawed for
+> > those processors on which it breaks.
 > 
+> To my knowledge mismatch of mapping attributes is a problem on most
+> cpus on every architecture.  I don't see it making sense to encourage
+> coding constructs that will fail in the strangest most difficult to
+> debug ways.
 
-[archit] I agree with this, but the present header is inconsistent
-with the point you have made, there are other enums which don't have
-"_dss_" but have "_DSS_" in its enum members. We should try to make
-this uniform (unless there is a motive behind it).
+Yes it is a problem, as Russell has brought up, but there's something
+I probably haven't communicated well. I'll use the following example:
 
-> ~sanjeev
-> 
+There are 3 devices: A CPU, a decoder and a video output device. All 3
+devices need to map the same 12 MB buffer at the same time. Once this
+buffer has served its purpose it gets freed and goes back into the
+pool of big buffers. When the same usage case exists again the buffer
+needs to get reallocated and the same devices need to map to it.
 
-Regards,
-
-Archit
+This usage case does exist, not only for Qualcomm but for all of these
+SoC media engines that have started running Linux. The VCM API
+attempts to cover this case for the Linux kernel.
