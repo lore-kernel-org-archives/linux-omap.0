@@ -1,38 +1,50 @@
-From: ikjn <tiffang@gmail.com>
-Subject: Question about armv7(cortex-a9) dcache initialization.
-Date: Thu, 22 Jul 2010 10:12:37 +0900
-Message-ID: <AANLkTilpM7DcP26kvAmtukre16alx72Rh9CcnTvWVMD5@mail.gmail.com>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
+Date: Wed, 21 Jul 2010 20:50:26 -0700
+Message-ID: <20100722035026.GB14176@codeaurora.org>
+References: <20100713094244.7eb84f1b@lxorguk.ukuu.org.uk>
+ <20100713174519D.fujita.tomonori@lab.ntt.co.jp>
+ <20100713090223.GB20590@n2100.arm.linux.org.uk>
+ <20100714105922D.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:46786 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537Ab0GVBMj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jul 2010 21:12:39 -0400
-Received: by bwz1 with SMTP id 1so582189bwz.19
-        for <linux-omap@vger.kernel.org>; Wed, 21 Jul 2010 18:12:37 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20100714105922D.fujita.tomonori@lab.ntt.co.jp>
+Sender: owner-linux-mm@kvack.org
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: linux@arm.linux.org.uk, alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, joro@8bytes.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-In the ARM Cortex-A9 TRM, I found a note in chapter 6.1
+On Wed, Jul 14, 2010 at 10:59:43AM +0900, FUJITA Tomonori wrote:
+> On Tue, 13 Jul 2010 10:02:23 +0100
+> 
+> Zach Pfeffer said this new VCM infrastructure can be useful for
+> video4linux. However, I don't think we need 3,000-lines another
+> abstraction layer to solve video4linux's issue nicely.
 
-Note:
-You must invalidate the instruction cache, the data cache, and BTAC
-before using them.
-You are not required to invalidate the main TLB, even though it is
-recommended for
-safety reasons. This ensures compatibility with future revisions of
-the processor.
+Its only 3000 lines because I haven't converted the code to use
+function pointers.
 
-But the kernel does.. ( __v7_setup in proc-v7.S )
-clean & invalidate before turning on the MMU, not just 'invalidate'.
+> I can't find any reasonable reasons that we need to merge VCM; seems
+> that the combination of the current APIs (or with some small
+> extensions) can work for the issues that VCM tries to solve.
 
-If dcache tag&data ram has garbage data when power up,
-I think some dirty data lines can be flushed into to L2 or L3 memory
-because kernel does clean.
-And It can pollute the memory.
+Getting back to the point. There is no API that can handle large
+buffer allocation and sharing with low-level attribute control for
+virtual address spaces outside the CPU. At this point if you need to
+work with big buffers, 1 MB and 16 MB etc, and map those big buffers
+to non-CPU virtual spaces you need to explicitly carve them out and
+set up the mappings and sharing by hand. Its reasonable to have an API
+that can do this especially since IOMMUs are going to become more
+prevalent. The DMA API et al. take a CPU centric view of virtual space
+management, sharing has to be explicitly written and external virtual
+space management is left up to device driver writers. Given a system
+where each device has an IOMMU or a MMU the whole concept of a
+scatterlist goes away. The VCM API gets a jump on it.
 
-Is it possible in cortex-A9?
-
-Thanks..
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
