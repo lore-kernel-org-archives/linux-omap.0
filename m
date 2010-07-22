@@ -1,34 +1,59 @@
-From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Subject: Re: [PATCH 2/2] USB: musb: omap2430: add mode change from A to B
-Date: Thu, 22 Jul 2010 19:40:44 +0300
-Message-ID: <4C48748C.8040307@felipebalbi.com>
-References: <1268648622-28529-1-git-send-email-Hui.Wang@windriver.com> <1268648622-28529-2-git-send-email-Hui.Wang@windriver.com> <877hknwnrb.fsf@anar.kanru.info>
+From: Zach Pfeffer <zpfeffer@codeaurora.org>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Thu, 22 Jul 2010 09:44:56 -0700
+Message-ID: <20100722164454.GF10255@codeaurora.org>
+References: <20100720221959.GC12250@codeaurora.org>
+ <20100721104356S.fujita.tomonori@lab.ntt.co.jp>
+ <20100722043034.GC22559@codeaurora.org>
+ <20100722134253B.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <877hknwnrb.fsf-ONHucydYG54+Yz5RL6G0bA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kan-Ru Chen <kanru-suFqJ7M7tPnYtjvyW6yDsg@public.gmane.org>
-Cc: Wang Hui <Hui.Wang-CWA4WttNNZF54TAoqtyWWQ@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100722134253B.fujita.tomonori@lab.ntt.co.jp>
+Sender: linux-arch-owner@vger.kernel.org
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: linux@arm.linux.org.uk, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 07/22/2010 06:16 PM, Kan-Ru Chen wrote:
-> Just curious about how to do this in a more automatic way.
+On Thu, Jul 22, 2010 at 01:43:26PM +0900, FUJITA Tomonori wrote:
+> On Wed, 21 Jul 2010 21:30:34 -0700
+> Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
 > 
-> I think setup a daemon to monitor the musb_hdrc mode and try to alter
-> it's state via sysfs interface will work, but it may be error prone and
-> not always desirable solution.
+> > On Wed, Jul 21, 2010 at 10:44:37AM +0900, FUJITA Tomonori wrote:
+> > > On Tue, 20 Jul 2010 15:20:01 -0700
+> > > Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
+> > > 
+> > > > > I'm not saying that it's reasonable to pass (or even allocate) a 1MB
+> > > > > buffer via the DMA API.
+> > > > 
+> > > > But given a bunch of large chunks of memory, is there any API that can
+> > > > manage them (asked this on the other thread as well)?
+> > > 
+> > > What is the problem about mapping a 1MB buffer with the DMA API?
+> > > 
+> > > Possibly, an IOMMU can't find space for 1MB but it's not the problem
+> > > of the DMA API.
+> > 
+> > This goes to the nub of the issue. We need a lot of 1 MB physically
+> > contiguous chunks. The system is going to fragment and we'll never get
+> > our 12 1 MB chunks that we'll need, since the DMA API allocator uses
+> > the system pool it will never succeed. For this reason we reserve a
+> > pool of 1 MB chunks (and 16 MB, 64 KB etc...) to satisfy our
+> > requests. This same use case is seen on most embedded "media" engines
+> > that are getting built today.
 > 
-> Can we query the id pin state periodically in the kernel and change to
-> corresponding role?
+> We don't need a new abstraction to reserve some memory.
+> 
+> If you want pre-allocated memory pool per device (and share them with
+> some), the DMA API can for coherent memory (see
+> dma_alloc_from_coherent). You can extend the DMA API if necessary.
 
-the transceiver has an interrupt for id pin changes. You can use that
-instead of polling.
+That function won't work for us. We can't use
+bitmap_find_free_region(), we need to use our own allocator. If
+anything we need a dma_alloc_from_custom(my_allocator). Take a look
+at:
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+mm: iommu: A physical allocator for the VCMM
+vcm_alloc_max_munch() 
