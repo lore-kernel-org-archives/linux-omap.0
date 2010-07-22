@@ -1,59 +1,56 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Thu, 22 Jul 2010 08:51:51 +0100
-Message-ID: <20100722075151.GD6802@n2100.arm.linux.org.uk>
-References: <20100713094244.7eb84f1b@lxorguk.ukuu.org.uk> <20100713174519D.fujita.tomonori@lab.ntt.co.jp> <20100713090223.GB20590@n2100.arm.linux.org.uk> <20100714105922D.fujita.tomonori@lab.ntt.co.jp> <20100722035026.GB14176@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20100722035026.GB14176@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: Zach Pfeffer <zpfeffer@codeaurora.org>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, joro@8bytes.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] omap3: Remove non-existent config option
+Date: Thu, 22 Jul 2010 14:43:47 +0530
+Message-ID: <1279790027-2509-1-git-send-email-premi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59205 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753286Ab0GVJOh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Jul 2010 05:14:37 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6M9EXCO028662
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 22 Jul 2010 04:14:36 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Yogesh Marathe <yogesh_marathe@ti.com>, Sanjeev Premi <premi@ti.com>
 
-On Wed, Jul 21, 2010 at 08:50:26PM -0700, Zach Pfeffer wrote:
-> On Wed, Jul 14, 2010 at 10:59:43AM +0900, FUJITA Tomonori wrote:
-> > On Tue, 13 Jul 2010 10:02:23 +0100
-> > 
-> > Zach Pfeffer said this new VCM infrastructure can be useful for
-> > video4linux. However, I don't think we need 3,000-lines another
-> > abstraction layer to solve video4linux's issue nicely.
-> 
-> Its only 3000 lines because I haven't converted the code to use
-> function pointers.
+From: Yogesh Marathe <yogesh_marathe@ti.com>
 
-I don't understand - you've made this claim a couple of times.  I
-can't see how converting the code to use function pointers (presumably
-to eliminate those switch statements) would reduce the number of lines
-of code.
+The definition of "iva2" device in iommu_device
+is wrapped inside CONFIG_MPU_BRIDGE_IOMMU, but
+this option is not defined in KConfig.
 
-Please explain (or show via new patches) how does converting this to
-function pointers significantly reduce the number of lines of code.
+This patch removes the wrapper and makes "iva2"
+available as another iommu_device.
 
-We might then be able to put just _one_ of these issues to bed.
+Signed-off-by: Yogesh Marathe <yogesh_marathe@ti.com>
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/omap-iommu.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-> Getting back to the point. There is no API that can handle large
-> buffer allocation and sharing with low-level attribute control for
-> virtual address spaces outside the CPU.
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index f5a1aad..bb8c01d 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -35,7 +35,6 @@ static struct iommu_device omap3_devices[] = {
+ 			.clk_name = "cam_ick",
+ 		},
+ 	},
+-#if defined(CONFIG_MPU_BRIDGE_IOMMU)
+ 	{
+ 		.base = 0x5d000000,
+ 		.irq = 28,
+@@ -45,7 +44,6 @@ static struct iommu_device omap3_devices[] = {
+ 			.clk_name = "iva2_ck",
+ 		},
+ 	},
+-#endif
+ };
+ #define NR_OMAP3_IOMMU_DEVICES ARRAY_SIZE(omap3_devices)
+ static struct platform_device *omap3_iommu_pdev[NR_OMAP3_IOMMU_DEVICES];
+-- 
+1.6.6.1
 
-I think we've dealt with the attribute issue to death now.  Shall we
-repeat it again?
-
-> The DMA API et al. take a CPU centric view of virtual space
-> management, sharing has to be explicitly written and external virtual
-> space management is left up to device driver writers.
-
-I think I've also shown that not to be the case with example code.
-
-The code behind the DMA API can be changed on a per-device basis
-(currently on ARM we haven't supported that because no one's asked
-for it yet) so that it can support multiple IOMMUs even of multiple
-different types.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
