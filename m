@@ -1,38 +1,55 @@
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Thu, 22 Jul 2010 13:47:36 +0900
-Message-ID: <20100722134708I.fujita.tomonori@lab.ntt.co.jp>
-References: <20100713090223.GB20590@n2100.arm.linux.org.uk>
-	<20100714105922D.fujita.tomonori@lab.ntt.co.jp>
-	<20100722035026.GB14176@codeaurora.org>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] omap: Add macros to evaluate cpu revision
+Date: Thu, 22 Jul 2010 12:23:51 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323B40084@dbde02.ent.ti.com>
+References: <1279725163-3481-1-git-send-email-premi@ti.com>
+ <4C4710DB.6060901@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20100722035026.GB14176@codeaurora.org>
-Sender: owner-linux-mm@kvack.org
-To: zpfeffer@codeaurora.org
-Cc: fujita.tomonori@lab.ntt.co.jp, linux@arm.linux.org.uk, alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, joro@8bytes.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52625 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756738Ab0GVGx4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jul 2010 02:53:56 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6M6rr3m024372
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 22 Jul 2010 01:53:55 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o6M6rqni029033
+	for <linux-omap@vger.kernel.org>; Thu, 22 Jul 2010 12:23:52 +0530 (IST)
+In-Reply-To: <4C4710DB.6060901@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 21 Jul 2010 20:50:26 -0700
-Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
+> > @@ -460,4 +461,35 @@ OMAP3_HAS_FEATURE(isp, ISP)
+> >  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
+> >  OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
+> >  
+> > +/*
+> > + * Map revision bits to silicon specific revisions
+> > + */
+> > +#define ES_1_0		OMAP_REVBITS_00
+> probably need ES_1_1, 1_2 (considering 3630)
 
-> On Wed, Jul 14, 2010 at 10:59:43AM +0900, FUJITA Tomonori wrote:
-> > On Tue, 13 Jul 2010 10:02:23 +0100
-> > 
-> > Zach Pfeffer said this new VCM infrastructure can be useful for
-> > video4linux. However, I don't think we need 3,000-lines another
-> > abstraction layer to solve video4linux's issue nicely.
-> 
-> Its only 3000 lines because I haven't converted the code to use
-> function pointers.
 
-The main point is adding a new abstraction that don't provide the huge
-benefit.
+This should be okay, since the 3630 is out with
+these revisions, but...
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> > +#define ES_2_0		OMAP_REVBITS_10
+> > +#define ES_2_1		OMAP_REVBITS_20
+> makes sense to go to 2_2
+> > +#define ES_3_0		OMAP_REVBITS_30
+> > +#define ES_3_1		OMAP_REVBITS_40
+> > +#define ES_3_1_2	OMAP_REVBITS_50
+> 3_2?
+
+This may not make sense to add now as there are no
+2.2 or 3.2 revisions of any OMAP3/4 silicon?
+
+
+- Anand
