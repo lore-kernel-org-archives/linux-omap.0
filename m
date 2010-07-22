@@ -1,55 +1,44 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] omap: Add macros to evaluate cpu revision
-Date: Thu, 22 Jul 2010 12:23:51 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323B40084@dbde02.ent.ti.com>
-References: <1279725163-3481-1-git-send-email-premi@ti.com>
- <4C4710DB.6060901@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+	memory management
+Date: Thu, 22 Jul 2010 08:34:55 +0100
+Message-ID: <20100722073455.GB6802@n2100.arm.linux.org.uk>
+References: <20100713150311B.fujita.tomonori@lab.ntt.co.jp> <20100713121420.GB4263@codeaurora.org> <20100714104353B.fujita.tomonori@lab.ntt.co.jp> <20100714201149.GA14008@codeaurora.org> <20100714220536.GE18138@n2100.arm.linux.org.uk> <20100715012958.GB2239@codeaurora.org> <20100715085535.GC26212@n2100.arm.linux.org.uk> <20100719065233.GD11054@codeaurora.org> <m1mxtndifi.fsf@fess.ebiederm.org> <20100722042528.GB22559@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52625 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756738Ab0GVGx4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jul 2010 02:53:56 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o6M6rr3m024372
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 22 Jul 2010 01:53:55 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o6M6rqni029033
-	for <linux-omap@vger.kernel.org>; Thu, 22 Jul 2010 12:23:52 +0530 (IST)
-In-Reply-To: <4C4710DB.6060901@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arch-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100722042528.GB22559@codeaurora.org>
+Sender: linux-arch-owner@vger.kernel.org
+To: Zach Pfeffer <zpfeffer@codeaurora.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> > @@ -460,4 +461,35 @@ OMAP3_HAS_FEATURE(isp, ISP)
-> >  OMAP3_HAS_FEATURE(192mhz_clk, 192MHZ_CLK)
-> >  OMAP3_HAS_FEATURE(io_wakeup, IO_WAKEUP)
-> >  
-> > +/*
-> > + * Map revision bits to silicon specific revisions
-> > + */
-> > +#define ES_1_0		OMAP_REVBITS_00
-> probably need ES_1_1, 1_2 (considering 3630)
+On Wed, Jul 21, 2010 at 09:25:28PM -0700, Zach Pfeffer wrote:
+> Yes it is a problem, as Russell has brought up, but there's something
+> I probably haven't communicated well. I'll use the following example:
+> 
+> There are 3 devices: A CPU, a decoder and a video output device. All 3
+> devices need to map the same 12 MB buffer at the same time.
 
+Why do you need the same buffer mapped by the CPU?
 
-This should be okay, since the 3630 is out with
-these revisions, but...
+Let's take your example of a video decoder and video output device.
+Surely the CPU doesn't want to be writing to the same memory region
+used for the output picture as the decoder is writing to.  So what's
+the point of mapping that memory into the CPU's address space?
 
-> > +#define ES_2_0		OMAP_REVBITS_10
-> > +#define ES_2_1		OMAP_REVBITS_20
-> makes sense to go to 2_2
-> > +#define ES_3_0		OMAP_REVBITS_30
-> > +#define ES_3_1		OMAP_REVBITS_40
-> > +#define ES_3_1_2	OMAP_REVBITS_50
-> 3_2?
+Surely the video output device doesn't need to see the input data to
+the decoder either?
 
-This may not make sense to add now as there are no
-2.2 or 3.2 revisions of any OMAP3/4 silicon?
+Surely, all you need is:
 
+1. a mapping for the CPU for a chunk of memory to pass data to the
+   decoder.
+2. a mapping for the decoder to see the chunk of memory to receive data
+   from the CPU.
+3. a mapping for the decoder to see a chunk of memory used for the output
+   video buffer.
+4. a mapping for the output device to see the video buffer.
 
-- Anand
+So I don't see why everything needs to be mapped by everything else.
