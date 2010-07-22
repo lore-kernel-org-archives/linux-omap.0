@@ -1,50 +1,136 @@
 From: Zach Pfeffer <zpfeffer@codeaurora.org>
-Subject: Re: [RFC 3/3] mm: iommu: The Virtual Contiguous Memory Manager
-Date: Wed, 21 Jul 2010 20:50:26 -0700
-Message-ID: <20100722035026.GB14176@codeaurora.org>
-References: <20100713094244.7eb84f1b@lxorguk.ukuu.org.uk>
- <20100713174519D.fujita.tomonori@lab.ntt.co.jp>
- <20100713090223.GB20590@n2100.arm.linux.org.uk>
- <20100714105922D.fujita.tomonori@lab.ntt.co.jp>
+Subject: Re: [RFC 1/3 v3] mm: iommu: An API to unify IOMMU, CPU and device
+ memory management
+Date: Wed, 21 Jul 2010 21:06:40 -0700
+Message-ID: <20100722040637.GA22559@codeaurora.org>
+References: <20100714201149.GA14008@codeaurora.org>
+ <20100714220536.GE18138@n2100.arm.linux.org.uk>
+ <20100715012958.GB2239@codeaurora.org>
+ <20100715085535.GC26212@n2100.arm.linux.org.uk>
+ <AANLkTinVZeaZxt_lWKhjKa0dqhu3_j3BRNySO-2LvMdw@mail.gmail.com>
+ <20100716075856.GC16124@n2100.arm.linux.org.uk>
+ <20100717000108.GB21293@labbmf-linux.quicinc.com>
+ <AANLkTinTQXbsD91JDHiSFrvDoUeHbaGUGSWA-5aT5ZCr@mail.gmail.com>
+ <20100721004407.GA14176@codeaurora.org>
+ <AANLkTinFCo8xTm2QM1kFWbv2xViGWt0bQz72U9YcQjv6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:21089 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab0GVEGz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jul 2010 00:06:55 -0400
 Content-Disposition: inline
-In-Reply-To: <20100714105922D.fujita.tomonori@lab.ntt.co.jp>
-Sender: owner-linux-mm@kvack.org
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: linux@arm.linux.org.uk, alan@lxorguk.ukuu.org.uk, randy.dunlap@oracle.com, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, joro@8bytes.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <AANLkTinFCo8xTm2QM1kFWbv2xViGWt0bQz72U9YcQjv6@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Timothy Meade <zt.tmzt@gmail.com>
+Cc: Larry Bassel <lbassel@codeaurora.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, ebiederm@xmission.com, linux-arch@vger.kernel.org, dwalker@codeaurora.org, mel@csn.ul.ie, linux-arm-msm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, andi@firstfloor.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jul 14, 2010 at 10:59:43AM +0900, FUJITA Tomonori wrote:
-> On Tue, 13 Jul 2010 10:02:23 +0100
+On Tue, Jul 20, 2010 at 09:44:12PM -0400, Timothy Meade wrote:
+> On Tue, Jul 20, 2010 at 8:44 PM, Zach Pfeffer <zpfeffer@codeaurora.org> wrote:
+> > On Mon, Jul 19, 2010 at 05:21:35AM -0400, Tim HRM wrote:
+> >> On Fri, Jul 16, 2010 at 8:01 PM, Larry Bassel <lbassel@codeaurora.org> wrote:
+> >> > On 16 Jul 10 08:58, Russell King - ARM Linux wrote:
+> >> >> On Thu, Jul 15, 2010 at 08:48:36PM -0400, Tim HRM wrote:
+> >> >> > Interesting, since I seem to remember the MSM devices mostly conduct
+> >> >> > IO through regions of normal RAM, largely accomplished through
+> >> >> > ioremap() calls.
+> >> >> >
+> >> >> > Without more public domain documentation of the MSM chips and AMSS
+> >> >> > interfaces I wouldn't know how to avoid this, but I can imagine it
+> >> >> > creates a bit of urgency for Qualcomm developers as they attempt to
+> >> >> > upstream support for this most interesting SoC.
+> >> >>
+> >> >> As the patch has been out for RFC since early April on the linux-arm-kernel
+> >> >> mailing list (Subject: [RFC] Prohibit ioremap() on kernel managed RAM),
+> >> >> and no comments have come back from Qualcomm folk.
+> >> >
+> >> > We are investigating the impact of this change on us, and I
+> >> > will send out more detailed comments next week.
+> >> >
+> >> >>
+> >> >> The restriction on creation of multiple V:P mappings with differing
+> >> >> attributes is also fairly hard to miss in the ARM architecture
+> >> >> specification when reading the sections about caches.
+> >> >>
+> >> >
+> >> > Larry Bassel
+> >> >
+> >> > --
+> >> > Sent by an employee of the Qualcomm Innovation Center, Inc.
+> >> > The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+> >> >
+> >>
+> >> Hi Larry and Qualcomm people.
+> >> I'm curious what your reason for introducing this new api (or adding
+> >> to dma) is. ?Specifically how this would be used to make the memory
+> >> mapping of the MSM chip dynamic in contrast to the fixed _PHYS defines
+> >> in the Android and Codeaurora trees.
+> >
+> > The MSM has many integrated engines that allow offloading a variety of
+> > workloads. These engines have always addressed memory using physical
+> > addresses, because of this we had to reserve large (10's MB) buffers
+> > at boot. These buffers are never freed regardless of whether an engine
+> > is actually using them. As you can imagine, needing to reserve memory
+> > for all time on a device that doesn't have a lot of memory in the
+> > first place is not ideal because that memory could be used for other
+> > things, running apps, etc.
+> >
+> > To solve this problem we put IOMMUs in front of a lot of the
+> > engines. IOMMUs allow us to map physically discontiguous memory into a
+> > virtually contiguous address range. This means that we could ask the
+> > OS for 10 MB of pages and map all of these into our IOMMU space and
+> > the engine would still see a contiguous range.
+> >
 > 
-> Zach Pfeffer said this new VCM infrastructure can be useful for
-> video4linux. However, I don't think we need 3,000-lines another
-> abstraction layer to solve video4linux's issue nicely.
+> 
+> I see. Much like I suspected, this is used to replace the static
+> regime of the earliest Android kernel.  You mention placing IOMMUs in
+> front of the A11 engines, you are involved in this architecture as an
+> engineer or similar?  
 
-Its only 3000 lines because I haven't converted the code to use
-function pointers.
+I'm involved to the extent of designing and implementing VCM and,
+finding it useful for this class of problems, trying push it upstream.
 
-> I can't find any reasonable reasons that we need to merge VCM; seems
-> that the combination of the current APIs (or with some small
-> extensions) can work for the issues that VCM tries to solve.
+> Is there a reason a cooperative approach using
+> RPC or another mechanism is not used for memory reservation, this is
+> something that can be accomplished fully on APPS side?
 
-Getting back to the point. There is no API that can handle large
-buffer allocation and sharing with low-level attribute control for
-virtual address spaces outside the CPU. At this point if you need to
-work with big buffers, 1 MB and 16 MB etc, and map those big buffers
-to non-CPU virtual spaces you need to explicitly carve them out and
-set up the mappings and sharing by hand. Its reasonable to have an API
-that can do this especially since IOMMUs are going to become more
-prevalent. The DMA API et al. take a CPU centric view of virtual space
-management, sharing has to be explicitly written and external virtual
-space management is left up to device driver writers. Given a system
-where each device has an IOMMU or a MMU the whole concept of a
-scatterlist goes away. The VCM API gets a jump on it.
+It can be accomplished a few ways. At this point we let the
+application processor manage the buffers. Other cooperative approaches
+have been talked about. As you can see in the short, but voluminous
+cannon of MSM Linux support there is a degree of RPC used to
+communicate with other nodes in the system. As time progresses the
+cannon of code shows this usage going down.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 
+> > In reality, limitations in the hardware meant that we needed to map
+> > memory using larger mappings to minimize the number of TLB
+> > misses. This, plus the number of IOMMUs and the extreme use cases we
+> > needed to design for led us to a generic design.
+> >
+> > This generic design solved our problem and the general mapping
+> > problem. We thought other people, who had this same big-buffer
+> > interoperation problem would also appreciate a common API that was
+> > built with their needs in mind so we pushed our idea up.
+> >
+> >>
+> >> I'm also interested in how this ability to map memory regions as files
+> >> for devices like KGSL/DRI or PMEM might work and why this is better
+> >> suited to that purpose than existing methods, where this fits into
+> >> camera preview and other issues that have been dealt with in these
+> >> trees in novel ways (from my perspective).
+> >
+> > The file based approach was driven by Android's buffer passing scheme
+> > and the need to write userspace drivers for multimedia, etc...
+> >
+> >
+> So the Android file backed approach is obiviated by GEM and other mechanisms?
+
+Aye.
+
+> 
+> Thanks you for you help,
+> Timothy Meade
+> -tmzt #htc-linux (facebook.com/HTCLinux)
