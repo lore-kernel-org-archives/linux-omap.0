@@ -1,46 +1,326 @@
 From: David Sin <davidsin@ti.com>
-Subject: [RFC 2/8] TILER-DMM: Container manager interface and utility definitons
-Date: Fri, 23 Jul 2010 18:22:22 -0500
-Message-ID: <1279927348-21750-3-git-send-email-davidsin@ti.com>
+Subject: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and implementation
+Date: Fri, 23 Jul 2010 18:22:24 -0500
+Message-ID: <1279927348-21750-5-git-send-email-davidsin@ti.com>
 References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
  <1279927348-21750-2-git-send-email-davidsin@ti.com>
+ <1279927348-21750-3-git-send-email-davidsin@ti.com>
+ <1279927348-21750-4-git-send-email-davidsin@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33958 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53209 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759353Ab0GWXHN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Jul 2010 19:07:13 -0400
-In-Reply-To: <1279927348-21750-2-git-send-email-davidsin@ti.com>
+	id S1759171Ab0GWXHM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Jul 2010 19:07:12 -0400
+In-Reply-To: <1279927348-21750-4-git-send-email-davidsin@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Lajos Molnar <molnar@ti.com>, David Sin <davidsin@ti.com>, Ravi Ramachandra <r.ramachandra@ti.com>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Lajos Molnar <molnar@ti.com>, David Sin <davidsin@ti.com>
 
 From: Lajos Molnar <molnar@ti.com>
 
-This patch defined the TILER Container Manager (TCM) interface and
-provides utility methods for implementing a TCM.
+This patch defines the TILER Memory Manager (TMM) interface and
+provides implementation for a PAT-supporting TMM.
 
 Signed-off-by: Lajos Molnar <molnar@ti.com>
 Signed-off-by: David Sin <davidsin@ti.com>
-Signed-off-by: Ravi Ramachandra <r.ramachandra@ti.com>
 ---
- drivers/media/video/tiler/tcm.h           |  209 +++++++++++++++++++++++++++++
- drivers/media/video/tiler/tcm/tcm-utils.h |   54 ++++++++
- 2 files changed, 263 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/tiler/tcm.h
- create mode 100644 drivers/media/video/tiler/tcm/tcm-utils.h
+ drivers/media/video/tiler/tmm-pat.c |  274 +++++++++++++++++++++++++++++++++++
+ drivers/media/video/tiler/tmm.h     |  109 ++++++++++++++
+ 2 files changed, 383 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/tiler/tmm-pat.c
+ create mode 100644 drivers/media/video/tiler/tmm.h
 
-diff --git a/drivers/media/video/tiler/tcm.h b/drivers/media/video/tiler/tcm.h
+diff --git a/drivers/media/video/tiler/tmm-pat.c b/drivers/media/video/tiler/tmm-pat.c
 new file mode 100644
-index 0000000..52a022a
+index 0000000..ccd32b4
 --- /dev/null
-+++ b/drivers/media/video/tiler/tcm.h
-@@ -0,0 +1,209 @@
++++ b/drivers/media/video/tiler/tmm-pat.c
+@@ -0,0 +1,274 @@
 +/*
-+ * tcm.h
++ * tmm-pat.c
 + *
-+ * TILER container manager specification and support functions for TI
-+ * TILER driver.
++ * DMM driver support functions for TI TILER hardware block.
++ *
++ * Authors: Lajos Molnar <molnar@ti.com>
++ *          David Sin <davidsin@ti.com>
++ *
++ * Copyright (C) 2009-2010 Texas Instruments, Inc.
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/mmzone.h>
++#include <asm/cacheflush.h>
++#include <linux/mutex.h>
++#include <linux/list.h>
++#include <linux/slab.h>
++
++#include "tmm.h"
++
++/* Page size granularity can be 4k, 16k, or 64k */
++#define DMM_PAGE 0x1000
++
++/* Memory limit to cache free pages. TILER will eventually use this much */
++static u32 cache_limit = CONFIG_TILER_CACHE_LIMIT << 20;
++module_param_named(cache, cache_limit, uint, 0644);
++MODULE_PARM_DESC(cache, "Cache free pages if total memory is under this limit");
++
++/* global state - statically initialized */
++static LIST_HEAD(free_list);	/* page cache: list of free pages */
++static u32 total_mem;		/* total memory allocated (free & used) */
++static u32 refs;		/* number of tmm_pat instances */
++static DEFINE_MUTEX(mtx);	/* global mutex */
++
++/* The page struct pointer and physical address of each page.*/
++struct mem {
++	struct list_head list;
++	struct page *pg;	/* page struct */
++	u32 pa;			/* physical address */
++};
++
++/* Used to keep track of mem per tmm_pat_get_pages call */
++struct fast {
++	struct list_head list;
++	struct mem **mem;	/* array of page info */
++	u32 *pa;		/* array of physical addresses */
++	u32 num;		/* number of pages */
++};
++
++/* TMM PAT private structure */
++struct dmm_mem {
++	struct list_head fast_list;
++	struct dmm *dmm;
++};
++
++/**
++ *  Frees pages in a fast structure.  Moves pages to the free list if there
++ *  are	less pages used	than max_to_keep.  Otherwise, it frees the pages
++ */
++static void free_fast(struct fast *f)
++{
++	s32 i = 0;
++
++	/* mutex is locked */
++	for (i = 0; i < f->num; i++) {
++		if (total_mem < cache_limit) {
++			/* cache free page if under the limit */
++			list_add(&f->mem[i]->list, &free_list);
++		} else {
++			/* otherwise, free */
++			total_mem -= PAGE_SIZE;
++			__free_page(f->mem[i]->pg);
++		}
++	}
++	kfree(f->pa);
++	kfree(f->mem);
++	/* remove only if element was added */
++	if (f->list.next)
++		list_del(&f->list);
++	kfree(f);
++}
++
++/* allocate and flush a page */
++static struct mem *alloc_mem(void)
++{
++	struct mem *m = kzalloc(sizeof(*m), GFP_KERNEL);
++	if (!m)
++		return NULL;
++
++	m->pg = alloc_page(GFP_KERNEL | GFP_DMA);
++	if (!m->pg) {
++		kfree(m);
++		return NULL;
++	}
++
++	m->pa = page_to_phys(m->pg);
++
++	/* flush the cache entry for each page we allocate. */
++	dmac_flush_range(page_address(m->pg),
++				page_address(m->pg) + PAGE_SIZE);
++	outer_flush_range(m->pa, m->pa + PAGE_SIZE);
++
++	return m;
++}
++
++static void free_page_cache(void)
++{
++	struct mem *m, *m_;
++
++	/* mutex is locked */
++	list_for_each_entry_safe(m, m_, &free_list, list) {
++		__free_page(m->pg);
++		total_mem -= PAGE_SIZE;
++		list_del(&m->list);
++		kfree(m);
++	}
++}
++
++static void tmm_pat_deinit(struct tmm *tmm)
++{
++	struct fast *f, *f_;
++	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
++
++	mutex_lock(&mtx);
++
++	/* free all outstanding used memory */
++	list_for_each_entry_safe(f, f_, &pvt->fast_list, list)
++		free_fast(f);
++
++	/* if this is the last tmm_pat, free all memory */
++	if (--refs == 0)
++		free_page_cache();
++
++	mutex_unlock(&mtx);
++}
++
++static u32 *tmm_pat_get_pages(struct tmm *tmm, u32 n)
++{
++	struct mem *m;
++	struct fast *f;
++	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
++
++	f = kzalloc(sizeof(*f), GFP_KERNEL);
++	if (!f)
++		return NULL;
++
++	/* array of mem struct pointers */
++	f->mem = kzalloc(n * sizeof(*f->mem), GFP_KERNEL);
++
++	/* array of physical addresses */
++	f->pa = kzalloc(n * sizeof(*f->pa), GFP_KERNEL);
++
++	/* no pages have been allocated yet (needed for cleanup) */
++	f->num = 0;
++
++	if (!f->mem || !f->pa)
++		goto cleanup;
++
++	/* fill out fast struct mem array with free pages */
++	mutex_lock(&mtx);
++	while (f->num < n) {
++		/* if there is a free cached page use it */
++		if (!list_empty(&free_list)) {
++			/* unbind first element from list */
++			m = list_first_entry(&free_list, typeof(*m), list);
++			list_del(&m->list);
++		} else {
++			mutex_unlock(&mtx);
++
++			/**
++			 * Unlock mutex during allocation and cache flushing.
++			 */
++			m = alloc_mem();
++			if (!m)
++				goto cleanup;
++
++			mutex_lock(&mtx);
++			total_mem += PAGE_SIZE;
++		}
++
++		f->mem[f->num] = m;
++		f->pa[f->num++] = m->pa;
++	}
++
++	list_add(&f->list, &pvt->fast_list);
++	mutex_unlock(&mtx);
++	return f->pa;
++
++cleanup:
++	free_fast(f);
++	return NULL;
++}
++
++static void tmm_pat_free_pages(struct tmm *tmm, u32 *page_list)
++{
++	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
++	struct fast *f, *f_;
++
++	mutex_lock(&mtx);
++	/* find fast struct based on 1st page */
++	list_for_each_entry_safe(f, f_, &pvt->fast_list, list) {
++		if (f->pa[0] == page_list[0]) {
++			free_fast(f);
++			break;
++		}
++	}
++	mutex_unlock(&mtx);
++}
++
++static s32 tmm_pat_map(struct tmm *tmm, struct pat_area area, u32 page_pa)
++{
++	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
++	struct pat pat_desc = {0};
++
++	/* send pat descriptor to dmm driver */
++	pat_desc.ctrl.dir = 0;
++	pat_desc.ctrl.ini = 0;
++	pat_desc.ctrl.lut_id = 0;
++	pat_desc.ctrl.start = 1;
++	pat_desc.ctrl.sync = 0;
++	pat_desc.area = area;
++	pat_desc.next = NULL;
++
++	/* must be a 16-byte aligned physical address */
++	pat_desc.data = page_pa;
++	return dmm_pat_refill(pvt->dmm, &pat_desc, MANUAL);
++}
++
++struct tmm *tmm_pat_init(u32 pat_id)
++{
++	struct tmm *tmm = NULL;
++	struct dmm_mem *pvt = NULL;
++
++	struct dmm *dmm = dmm_pat_init(pat_id);
++	if (dmm)
++		tmm = kzalloc(sizeof(*tmm), GFP_KERNEL);
++	if (tmm)
++		pvt = kzalloc(sizeof(*pvt), GFP_KERNEL);
++	if (pvt) {
++		/* private data */
++		pvt->dmm = dmm;
++		INIT_LIST_HEAD(&pvt->fast_list);
++
++		/* increate tmm_pat references */
++		mutex_lock(&mtx);
++		refs++;
++		mutex_unlock(&mtx);
++
++		/* public data */
++		tmm->pvt = pvt;
++		tmm->deinit = tmm_pat_deinit;
++		tmm->get = tmm_pat_get_pages;
++		tmm->free = tmm_pat_free_pages;
++		tmm->map = tmm_pat_map;
++		tmm->clear = NULL;   /* not yet supported */
++
++		return tmm;
++	}
++
++	kfree(pvt);
++	kfree(tmm);
++	dmm_pat_release(dmm);
++	return NULL;
++}
++EXPORT_SYMBOL(tmm_pat_init);
+diff --git a/drivers/media/video/tiler/tmm.h b/drivers/media/video/tiler/tmm.h
+new file mode 100644
+index 0000000..fbdc1e2
+--- /dev/null
++++ b/drivers/media/video/tiler/tmm.h
+@@ -0,0 +1,109 @@
++/*
++ * tmm.h
++ *
++ * TMM interface definition for TI TILER driver.
 + *
 + * Author: Lajos Molnar <molnar@ti.com>
 + *
@@ -54,255 +334,96 @@ index 0000000..52a022a
 + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
++#ifndef TMM_H
++#define TMM_H
 +
-+#ifndef TCM_H
-+#define TCM_H
-+
-+struct tcm;
-+
-+/* point */
-+struct tcm_pt {
-+	u16 x;
-+	u16 y;
-+};
-+
-+/* 2d area */
-+struct tcm_area {
-+	struct tcm    *tcm;	/* parent */
-+	struct tcm_pt  p0;
-+	struct tcm_pt  p1;
-+};
-+
-+struct tcm {
-+	u16 width, height;	/* container dimensions */
-+
-+	/* 'pvt' structure shall contain any tcm details (attr) along with
-+	linked list of allocated areas and mutex for mutually exclusive access
-+	to the list.  It may also contain copies of width and height to notice
-+	any changes to the publicly available width and height fields. */
++#include <mach/dmm.h>
++/**
++ * TMM interface
++ */
++struct tmm {
 +	void *pvt;
 +
 +	/* function table */
-+	s32 (*reserve_2d)(struct tcm *tcm, u16 height, u16 width, u8 align,
-+			  struct tcm_area *area);
-+	s32 (*free)      (struct tcm *tcm, struct tcm_area *area);
-+	void (*deinit)   (struct tcm *tcm);
++	u32 *(*get)	(struct tmm *tmm, u32 num_pages);
++	void (*free)	(struct tmm *tmm, u32 *pages);
++	s32  (*map)	(struct tmm *tmm, struct pat_area area, u32 page_pa);
++	void (*clear)	(struct tmm *tmm, struct pat_area area);
++	void (*deinit)	(struct tmm *tmm);
 +};
 +
-+/*=============================================================================
-+    BASIC TILER CONTAINER MANAGER INTERFACE
-+=============================================================================*/
-+
-+/*
-+ * NOTE:
-+ *
-+ * Since some basic parameter checking is done outside the TCM algorithms,
-+ * TCM implementation do NOT have to check the following:
-+ *
-+ *   area pointer is NULL
-+ *   width and height fits within container
-+ *   number of pages is more than the size of the container
-+ *
-+ */
-+
 +/**
-+ * Template for <ALGO_NAME>_tcm_init method.  Define as:
-+ * TCM_INIT(<ALGO_NAME>_tcm_init)
-+ *
-+ * Allocates and initializes a tiler container manager.
-+ *
-+ * @param width		Width of container
-+ * @param height	Height of container
-+ * @param attr		Container manager specific configuration
-+ *			arguments.  Please describe these in
-+ *			your header file.
-+ *
-+ * @return Pointer to the allocated and initialized container
-+ *	   manager.  NULL on failure.  DO NOT leak any memory on
-+ *	   failure!
++ * Request a set of pages from the DMM free page stack.
++ * @return a pointer to a list of physical page addresses.
 + */
-+#define TCM_INIT(name, attr_t) \
-+struct tcm *name(u16 width, u16 height, typeof(attr_t) *attr);
-+
-+/**
-+ * Deinitialize tiler container manager.
-+ *
-+ * @param tcm	Pointer to container manager.
-+ *
-+ * @return 0 on success, non-0 error value on error.  The call
-+ *	   should free as much memory as possible and meaningful
-+ *	   even on failure.  Some error codes: -ENODEV: invalid
-+ *	   manager.
-+ */
-+static inline void tcm_deinit(struct tcm *tcm)
-+{
-+	if (tcm)
-+		tcm->deinit(tcm);
-+}
-+
-+/**
-+ * Reserves a 2D area in the container.
-+ *
-+ * @param tcm		Pointer to container manager.
-+ * @param height	Height(in pages) of area to be reserved.
-+ * @param width		Width(in pages) of area to be reserved.
-+ * @param align		Alignment requirement for top-left corner of area. Not
-+ *			all values may be supported by the container manager,
-+ *			but it must support 0 (1), 32 and 64.
-+ *			0 value is equivalent to 1.
-+ * @param area		Pointer to where the reserved area should be stored.
-+ *
-+ * @return 0 on success.  Non-0 error code on failure.  Also,
-+ *	   the tcm field of the area will be set to NULL on
-+ *	   failure.  Some error codes: -ENODEV: invalid manager,
-+ *	   -EINVAL: invalid area, -ENOMEM: not enough space for
-+ *	    allocation.
-+ */
-+static inline s32 tcm_reserve_2d(struct tcm *tcm, u16 width, u16 height,
-+				 u16 align, struct tcm_area *area)
-+{
-+	/* perform rudimentary error checking */
-+	s32 res = (tcm  == NULL ? -ENODEV :
-+		(area == NULL || width == 0 || height == 0 ||
-+		 /* align must be a 2 power */
-+		 align & (align - 1)) ? -EINVAL :
-+		(height > tcm->height || width > tcm->width) ? -ENOMEM :
-+		tcm->reserve_2d(tcm, height, width, align, area));
-+
-+	if (area)
-+		area->tcm = res ? NULL : tcm;
-+
-+	return res;
-+}
-+
-+/**
-+ * Free a previously reserved area from the container.
-+ *
-+ * @param area	Pointer to area reserved by a prior call to tcm_reserve_2d call,
-+ *		whether it was successful or not. (Note: all fields of
-+ *		the structure must match.)
-+ *
-+ * @return 0 on success.  Non-0 error code on failure.  Also, the tcm
-+ *	   field of the area is set to NULL on success to avoid subsequent
-+ *	   freeing.  This call will succeed even if supplying
-+ *	   the area from a failed reserved call.
-+ */
-+static inline s32 tcm_free(struct tcm_area *area)
-+{
-+	s32 res = 0; /* free succeeds by default */
-+
-+	if (area && area->tcm) {
-+		res = area->tcm->free(area->tcm, area);
-+		if (res == 0)
-+			area->tcm = NULL;
-+	}
-+
-+	return res;
-+}
-+
-+/*=============================================================================
-+    HELPER FUNCTION FOR ANY TILER CONTAINER MANAGER
-+=============================================================================*/
-+
-+/* Verify if a tcm area is logically valid */
-+static inline bool tcm_area_is_valid(struct tcm_area *area)
-+{
-+	return area && area->tcm &&
-+		/* coordinate bounds */
-+		area->p1.x < area->tcm->width &&
-+		area->p1.y < area->tcm->height &&
-+		area->p0.y <= area->p1.y &&
-+		area->p0.x <= area->p1.x;
-+}
-+
-+/* see if a coordinate is within an area */
-+static inline bool __tcm_is_in(struct tcm_pt *p, struct tcm_area *a)
-+{
-+	return p->x >= a->p0.x && p->x <= a->p1.x &&
-+		p->y >= a->p0.y && p->y <= a->p1.y;
-+}
-+
-+/* calculate area width */
-+static inline u16 __tcm_area_width(struct tcm_area *area)
-+{
-+	return area->p1.x - area->p0.x + 1;
-+}
-+
-+/* calculate area height */
-+static inline u16 __tcm_area_height(struct tcm_area *area)
-+{
-+	return area->p1.y - area->p0.y + 1;
-+}
-+
-+/* calculate number of slots in an area */
-+static inline u16 __tcm_sizeof(struct tcm_area *area)
-+{
-+	return __tcm_area_width(area) * __tcm_area_height(area);
-+}
-+#define tcm_sizeof(area) __tcm_sizeof(&(area))
-+#define tcm_awidth(area) __tcm_area_width(&(area))
-+#define tcm_aheight(area) __tcm_area_height(&(area))
-+#define tcm_is_in(pt, area) __tcm_is_in(&(pt), &(area))
-+
-+#endif
-diff --git a/drivers/media/video/tiler/tcm/tcm-utils.h b/drivers/media/video/tiler/tcm/tcm-utils.h
-new file mode 100644
-index 0000000..0d1260a
---- /dev/null
-+++ b/drivers/media/video/tiler/tcm/tcm-utils.h
-@@ -0,0 +1,54 @@
-+/*
-+ * tcm_utils.h
-+ *
-+ * Utility functions for implementing TILER container managers.
-+ *
-+ * Author: Lajos Molnar <molnar@ti.com>
-+ *
-+ * Copyright (C) 2009-2010 Texas Instruments, Inc.
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+#ifndef TCM_UTILS_H
-+#define TCM_UTILS_H
-+
-+#include "../tcm.h"
-+
-+/* TCM_ALG_NAME must be defined to use the debug methods */
-+
-+#ifdef DEBUG
-+#define IFDEBUG(x) x
-+#else
-+/* compile-check debug statements even if not DEBUG */
-+#define IFDEBUG(x) do { if (0) x; } while (0)
-+#endif
-+
-+#define P(level, fmt, ...) \
-+	IFDEBUG(printk(level TCM_ALG_NAME ":%d:%s()" fmt "\n", \
-+			__LINE__, __func__, ##__VA_ARGS__))
-+
-+#define P1(fmt, ...) P(KERN_NOTICE, fmt, ##__VA_ARGS__)
-+#define P2(fmt, ...) P(KERN_INFO, fmt, ##__VA_ARGS__)
-+#define P3(fmt, ...) P(KERN_DEBUG, fmt, ##__VA_ARGS__)
-+
-+#define PA(level, msg, p_area) P##level(msg " (%03d %03d)-(%03d %03d)\n", \
-+	(p_area)->p0.x, (p_area)->p0.y, (p_area)->p1.x, (p_area)->p1.y)
-+
-+/* assign coordinates to area */
 +static inline
-+void assign(struct tcm_area *a, u16 x0, u16 y0, u16 x1, u16 y1)
++u32 *tmm_get(struct tmm *tmm, u32 num_pages)
 +{
-+	a->p0.x = x0;
-+	a->p0.y = y0;
-+	a->p1.x = x1;
-+	a->p1.y = y1;
++	if (tmm && tmm->pvt)
++		return tmm->get(tmm, num_pages);
++	return NULL;
 +}
++
++/**
++ * Return a set of used pages to the DMM free page stack.
++ * @param list a pointer to a list of physical page addresses.
++ */
++static inline
++void tmm_free(struct tmm *tmm, u32 *pages)
++{
++	if (tmm && tmm->pvt)
++		tmm->free(tmm, pages);
++}
++
++/**
++ * Program the physical address translator.
++ * @param area PAT area
++ * @param list of pages
++ */
++static inline
++s32 tmm_map(struct tmm *tmm, struct pat_area area, u32 page_pa)
++{
++	if (tmm && tmm->map && tmm->pvt)
++		return tmm->map(tmm, area, page_pa);
++	return -ENODEV;
++}
++
++/**
++ * Clears the physical address translator.
++ * @param area PAT area
++ */
++static inline
++void tmm_clear(struct tmm *tmm, struct pat_area area)
++{
++	if (tmm && tmm->clear && tmm->pvt)
++		tmm->clear(tmm, area);
++}
++
++/**
++ * Checks whether tiler memory manager supports mapping
++ */
++static inline
++bool tmm_can_map(struct tmm *tmm)
++{
++	return tmm && tmm->map;
++}
++
++/**
++ * Deinitialize tiler memory manager
++ */
++static inline
++void tmm_deinit(struct tmm *tmm)
++{
++	if (tmm && tmm->pvt)
++		tmm->deinit(tmm);
++}
++
++/**
++ * TMM implementation for PAT support.
++ *
++ * Initialize TMM for PAT with given id.
++ */
++struct tmm *tmm_pat_init(u32 pat_id);
 +
 +#endif
 -- 
