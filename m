@@ -1,17 +1,18 @@
 From: David Sin <davidsin@ti.com>
-Subject: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and implementation
-Date: Fri, 23 Jul 2010 18:22:24 -0500
-Message-ID: <1279927348-21750-5-git-send-email-davidsin@ti.com>
+Subject: [RFC 5/8] TILER-DMM: TILER interface file and documentation
+Date: Fri, 23 Jul 2010 18:22:25 -0500
+Message-ID: <1279927348-21750-6-git-send-email-davidsin@ti.com>
 References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
  <1279927348-21750-2-git-send-email-davidsin@ti.com>
  <1279927348-21750-3-git-send-email-davidsin@ti.com>
  <1279927348-21750-4-git-send-email-davidsin@ti.com>
+ <1279927348-21750-5-git-send-email-davidsin@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53209 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759171Ab0GWXHM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Jul 2010 19:07:12 -0400
-In-Reply-To: <1279927348-21750-4-git-send-email-davidsin@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43191 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759491Ab0GWXHP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jul 2010 19:07:15 -0400
+In-Reply-To: <1279927348-21750-5-git-send-email-davidsin@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>
@@ -19,28 +20,177 @@ Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Vaibha
 
 From: Lajos Molnar <molnar@ti.com>
 
-This patch defines the TILER Memory Manager (TMM) interface and
-provides implementation for a PAT-supporting TMM.
+This patch contains the TILER interface file and the documentation.
 
 Signed-off-by: Lajos Molnar <molnar@ti.com>
 Signed-off-by: David Sin <davidsin@ti.com>
 ---
- drivers/media/video/tiler/tmm-pat.c |  274 +++++++++++++++++++++++++++++++++++
- drivers/media/video/tiler/tmm.h     |  109 ++++++++++++++
- 2 files changed, 383 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/tiler/tmm-pat.c
- create mode 100644 drivers/media/video/tiler/tmm.h
+ Documentation/arm/TILER                  |  144 +++++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/tiler.h |  201 ++++++++++++++++++++++++++++++
+ 2 files changed, 345 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/arm/TILER
+ create mode 100644 arch/arm/mach-omap2/include/mach/tiler.h
 
-diff --git a/drivers/media/video/tiler/tmm-pat.c b/drivers/media/video/tiler/tmm-pat.c
+diff --git a/Documentation/arm/TILER b/Documentation/arm/TILER
 new file mode 100644
-index 0000000..ccd32b4
+index 0000000..9c54037
 --- /dev/null
-+++ b/drivers/media/video/tiler/tmm-pat.c
-@@ -0,0 +1,274 @@
++++ b/Documentation/arm/TILER
+@@ -0,0 +1,144 @@
++TILER driver
++
++TILER is a hardware block made by Texas Instruments.  Its purpose is to
++organize video/image memory in a 2-dimensional fashion to limit memory
++bandwidth and facilitate 0 effort rotation and mirroring.  The TILER driver
++facilitates allocating, freeing, as well as mapping 2D blocks (areas) in the
++TILER container(s).  It also facilitates rotating and mirroring the allocated
++blocks or its rectangular subsections.
++
++TERMINOLOGY
++
++"slot"
++
++The basic TILER driver operates on blocks of slots.  A slot is the granularity
++of the TILER hardware device.  For all current uses it is 4K, but could also be
++16 or 64K.  The DMM-TILER TRM refers to this as "page" but we want to separate
++this concept from the MMU pages.
++
++"page"
++
++The granularity of the MMU, used by the kernel.  This is 4K.
++
++"block"
++
++The TILER hardware block supports 1D and 2D blocks.  A 2D block is a rectangular
++arrangement of slots with arbitrary width and height in a 2D container.  A
++1D block is a linear arrangement of slots with arbitrary length in a 1D
++container.  This TILER driver only supports 2D blocks.
++
++"container"
++
++The TILER driver supports an arbitrary TILER container size.  However, for
++all current implementations it is 256 by 128 slots.  The container currently can
++only be used as a 2D container.
++
++"reserved area"
++
++Each block resides within a reserved area in the container.  This area may
++be larger than the actual set of slots that a block occupies.  The reason for
++this is to protect access from one block into another.  Since TILER container is
++mmap-ped into user space as individual pages, all slots that are spanned by
++that page become visible to the user.  The tiler driver allows restricting the
++granularity of the reserved area (default alignment) as well as the mapped
++area (granularity).
++
++KERNEL API to the TILER driver.
++
++1. Allocating and freeing a 1080p YUV422 block
++
++        struct tiler_block_t blk = {0};
++        int res;
++
++        blk.width = 1920;
++        blk.height = 1080;
++        res = tiler_alloc(&blk, TILFMT_16BIT, 0, 0);
++
++        tiler_free(&blk);
++
++2. Allocating and freeing a 1080p YUV420p block
++
++        struct tiler_block_t blk_Y = {0}, blk_UV = {0};
++        int res;
++
++        blk_Y.width = 1920;
++        blk_Y.height = 1080;
++        blk_UV.widht = 960;
++        blk_UV.height = 540;
++        res = tiler_alloc(&blk_Y, TILFMT_8BIT, 0, 0) ? :
++                tiler_alloc(&blk_UV, TILFMT_16BIT, PAGE_SIZE,
++                                blk_y->phys & ~PAGE_MASK);
++
++        tiler_free(&blk_Y);
++        tiler_free(&blk_UV);
++
++Note how we allocated the UV block at the same in-page offset as the Y buffer.
++This facilitates mmap-ping both Y and UV blocks into userspace as one
++contiguous buffer.
++
++3. Mmap-ing YUV420p block into user space
++
++        static int my_mmap(struct file *file, struct vm_area_struct *vma)
++        {
++                unsigned long size = (vma->vm_end - vma->vm_start);
++                unsigned long start = vma->vm_start;
++
++                if (size != tiler_size(&blk_Y) + tiler_size(&blk_UV))
++                        return -EINVAL;
++
++                return tiler_mmap_blk(&blk_Y, 0, tiler_size(&blk_Y), vma, 0) ?
++                        : tiler_mmap_blk(&blk_UV, 0, tiler_size(&blk_UV), vma,
++                                tiler_size(&blk_Y));
++        }
++
++4. Ioremap-ing YUV422 block into kernel space
++
++        void *my_ioremap(tiler_block_t *blk) {
++                struct vm_struct *area;
++                int res;
++
++                area = get_vm_area(tiler_size(&blk), VM_IOREMAP);
++                if (!area)
++                        return NULL;
++
++                int res = tiler_ioremap_blk(&blk, 0, tiler_size(&block),
++                                        (u32) area->addr, MT_DEVICE_WC);
++                if (res) {
++                        vunmap(area->addr);
++                        return NULL;
++                }
++                return area->addr;
++        }
++
++CONFIGURATIONS
++
++The TILER driver allows specifying a container manager (tcm) for each
++pixel format.  The same container manager can be specified for more than
++one pixel formats.
++
++Each container manager also operates on a PAT instance.  One can also
++specify a "virtual" PAT (with a linear preassigned memory space no actual
++PAT programming), but it is not implemented.
++
++PARAMETERS
++
++The TILER driver allows specifying:
++
++    granularity (tiler.grain, CONFIG_TILER_GRANULARITY):
++
++        Each block is mapped in width-chunks of granularity.
++
++    default alignment (tiler.align, CONFIG_TILER_ALIGNMENT):
++
++        Default alignment if aligment is not specified (0). Otherwise,
++        blocks are allocated at an address aligned to the value given plus an
++        offset within the alignment.
++
++    cache limit (tiler.cache, CONFIG_TILER_CACHE_LIMIT):
++
++        TILER driver keeps a cache of allocated pages to speed up allocation of
++        TILER blocks.  You can set a limit of how much memory the TILER driver
++        should keep if there are no actual TILER allocations.  This also means
++        that if there is less memory used than this limit, the pages of freed
++        tiler blocks will not actually be freed, but instead are put into this
++        cache.
+diff --git a/arch/arm/mach-omap2/include/mach/tiler.h b/arch/arm/mach-omap2/include/mach/tiler.h
+new file mode 100644
+index 0000000..8509678
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/tiler.h
+@@ -0,0 +1,201 @@
 +/*
-+ * tmm-pat.c
++ * tiler.h
 + *
-+ * DMM driver support functions for TI TILER hardware block.
++ * TILER driver support functions for TI TILER hardware block.
 + *
 + * Authors: Lajos Molnar <molnar@ti.com>
 + *          David Sin <davidsin@ti.com>
@@ -55,375 +205,187 @@ index 0000000..ccd32b4
 + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
-+#include <linux/init.h>
-+#include <linux/module.h>
++
++#ifndef TILER_H
++#define TILER_H
++
 +#include <linux/mm.h>
-+#include <linux/mmzone.h>
-+#include <asm/cacheflush.h>
-+#include <linux/mutex.h>
-+#include <linux/list.h>
-+#include <linux/slab.h>
 +
-+#include "tmm.h"
-+
-+/* Page size granularity can be 4k, 16k, or 64k */
-+#define DMM_PAGE 0x1000
-+
-+/* Memory limit to cache free pages. TILER will eventually use this much */
-+static u32 cache_limit = CONFIG_TILER_CACHE_LIMIT << 20;
-+module_param_named(cache, cache_limit, uint, 0644);
-+MODULE_PARM_DESC(cache, "Cache free pages if total memory is under this limit");
-+
-+/* global state - statically initialized */
-+static LIST_HEAD(free_list);	/* page cache: list of free pages */
-+static u32 total_mem;		/* total memory allocated (free & used) */
-+static u32 refs;		/* number of tmm_pat instances */
-+static DEFINE_MUTEX(mtx);	/* global mutex */
-+
-+/* The page struct pointer and physical address of each page.*/
-+struct mem {
-+	struct list_head list;
-+	struct page *pg;	/* page struct */
-+	u32 pa;			/* physical address */
-+};
-+
-+/* Used to keep track of mem per tmm_pat_get_pages call */
-+struct fast {
-+	struct list_head list;
-+	struct mem **mem;	/* array of page info */
-+	u32 *pa;		/* array of physical addresses */
-+	u32 num;		/* number of pages */
-+};
-+
-+/* TMM PAT private structure */
-+struct dmm_mem {
-+	struct list_head fast_list;
-+	struct dmm *dmm;
-+};
-+
-+/**
-+ *  Frees pages in a fast structure.  Moves pages to the free list if there
-+ *  are	less pages used	than max_to_keep.  Otherwise, it frees the pages
-+ */
-+static void free_fast(struct fast *f)
-+{
-+	s32 i = 0;
-+
-+	/* mutex is locked */
-+	for (i = 0; i < f->num; i++) {
-+		if (total_mem < cache_limit) {
-+			/* cache free page if under the limit */
-+			list_add(&f->mem[i]->list, &free_list);
-+		} else {
-+			/* otherwise, free */
-+			total_mem -= PAGE_SIZE;
-+			__free_page(f->mem[i]->pg);
-+		}
-+	}
-+	kfree(f->pa);
-+	kfree(f->mem);
-+	/* remove only if element was added */
-+	if (f->list.next)
-+		list_del(&f->list);
-+	kfree(f);
-+}
-+
-+/* allocate and flush a page */
-+static struct mem *alloc_mem(void)
-+{
-+	struct mem *m = kzalloc(sizeof(*m), GFP_KERNEL);
-+	if (!m)
-+		return NULL;
-+
-+	m->pg = alloc_page(GFP_KERNEL | GFP_DMA);
-+	if (!m->pg) {
-+		kfree(m);
-+		return NULL;
-+	}
-+
-+	m->pa = page_to_phys(m->pg);
-+
-+	/* flush the cache entry for each page we allocate. */
-+	dmac_flush_range(page_address(m->pg),
-+				page_address(m->pg) + PAGE_SIZE);
-+	outer_flush_range(m->pa, m->pa + PAGE_SIZE);
-+
-+	return m;
-+}
-+
-+static void free_page_cache(void)
-+{
-+	struct mem *m, *m_;
-+
-+	/* mutex is locked */
-+	list_for_each_entry_safe(m, m_, &free_list, list) {
-+		__free_page(m->pg);
-+		total_mem -= PAGE_SIZE;
-+		list_del(&m->list);
-+		kfree(m);
-+	}
-+}
-+
-+static void tmm_pat_deinit(struct tmm *tmm)
-+{
-+	struct fast *f, *f_;
-+	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
-+
-+	mutex_lock(&mtx);
-+
-+	/* free all outstanding used memory */
-+	list_for_each_entry_safe(f, f_, &pvt->fast_list, list)
-+		free_fast(f);
-+
-+	/* if this is the last tmm_pat, free all memory */
-+	if (--refs == 0)
-+		free_page_cache();
-+
-+	mutex_unlock(&mtx);
-+}
-+
-+static u32 *tmm_pat_get_pages(struct tmm *tmm, u32 n)
-+{
-+	struct mem *m;
-+	struct fast *f;
-+	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
-+
-+	f = kzalloc(sizeof(*f), GFP_KERNEL);
-+	if (!f)
-+		return NULL;
-+
-+	/* array of mem struct pointers */
-+	f->mem = kzalloc(n * sizeof(*f->mem), GFP_KERNEL);
-+
-+	/* array of physical addresses */
-+	f->pa = kzalloc(n * sizeof(*f->pa), GFP_KERNEL);
-+
-+	/* no pages have been allocated yet (needed for cleanup) */
-+	f->num = 0;
-+
-+	if (!f->mem || !f->pa)
-+		goto cleanup;
-+
-+	/* fill out fast struct mem array with free pages */
-+	mutex_lock(&mtx);
-+	while (f->num < n) {
-+		/* if there is a free cached page use it */
-+		if (!list_empty(&free_list)) {
-+			/* unbind first element from list */
-+			m = list_first_entry(&free_list, typeof(*m), list);
-+			list_del(&m->list);
-+		} else {
-+			mutex_unlock(&mtx);
-+
-+			/**
-+			 * Unlock mutex during allocation and cache flushing.
-+			 */
-+			m = alloc_mem();
-+			if (!m)
-+				goto cleanup;
-+
-+			mutex_lock(&mtx);
-+			total_mem += PAGE_SIZE;
-+		}
-+
-+		f->mem[f->num] = m;
-+		f->pa[f->num++] = m->pa;
-+	}
-+
-+	list_add(&f->list, &pvt->fast_list);
-+	mutex_unlock(&mtx);
-+	return f->pa;
-+
-+cleanup:
-+	free_fast(f);
-+	return NULL;
-+}
-+
-+static void tmm_pat_free_pages(struct tmm *tmm, u32 *page_list)
-+{
-+	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
-+	struct fast *f, *f_;
-+
-+	mutex_lock(&mtx);
-+	/* find fast struct based on 1st page */
-+	list_for_each_entry_safe(f, f_, &pvt->fast_list, list) {
-+		if (f->pa[0] == page_list[0]) {
-+			free_fast(f);
-+			break;
-+		}
-+	}
-+	mutex_unlock(&mtx);
-+}
-+
-+static s32 tmm_pat_map(struct tmm *tmm, struct pat_area area, u32 page_pa)
-+{
-+	struct dmm_mem *pvt = (struct dmm_mem *) tmm->pvt;
-+	struct pat pat_desc = {0};
-+
-+	/* send pat descriptor to dmm driver */
-+	pat_desc.ctrl.dir = 0;
-+	pat_desc.ctrl.ini = 0;
-+	pat_desc.ctrl.lut_id = 0;
-+	pat_desc.ctrl.start = 1;
-+	pat_desc.ctrl.sync = 0;
-+	pat_desc.area = area;
-+	pat_desc.next = NULL;
-+
-+	/* must be a 16-byte aligned physical address */
-+	pat_desc.data = page_pa;
-+	return dmm_pat_refill(pvt->dmm, &pat_desc, MANUAL);
-+}
-+
-+struct tmm *tmm_pat_init(u32 pat_id)
-+{
-+	struct tmm *tmm = NULL;
-+	struct dmm_mem *pvt = NULL;
-+
-+	struct dmm *dmm = dmm_pat_init(pat_id);
-+	if (dmm)
-+		tmm = kzalloc(sizeof(*tmm), GFP_KERNEL);
-+	if (tmm)
-+		pvt = kzalloc(sizeof(*pvt), GFP_KERNEL);
-+	if (pvt) {
-+		/* private data */
-+		pvt->dmm = dmm;
-+		INIT_LIST_HEAD(&pvt->fast_list);
-+
-+		/* increate tmm_pat references */
-+		mutex_lock(&mtx);
-+		refs++;
-+		mutex_unlock(&mtx);
-+
-+		/* public data */
-+		tmm->pvt = pvt;
-+		tmm->deinit = tmm_pat_deinit;
-+		tmm->get = tmm_pat_get_pages;
-+		tmm->free = tmm_pat_free_pages;
-+		tmm->map = tmm_pat_map;
-+		tmm->clear = NULL;   /* not yet supported */
-+
-+		return tmm;
-+	}
-+
-+	kfree(pvt);
-+	kfree(tmm);
-+	dmm_pat_release(dmm);
-+	return NULL;
-+}
-+EXPORT_SYMBOL(tmm_pat_init);
-diff --git a/drivers/media/video/tiler/tmm.h b/drivers/media/video/tiler/tmm.h
-new file mode 100644
-index 0000000..fbdc1e2
---- /dev/null
-+++ b/drivers/media/video/tiler/tmm.h
-@@ -0,0 +1,109 @@
 +/*
-+ * tmm.h
-+ *
-+ * TMM interface definition for TI TILER driver.
-+ *
-+ * Author: Lajos Molnar <molnar@ti.com>
-+ *
-+ * Copyright (C) 2009-2010 Texas Instruments, Inc.
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ * ----------------------------- API Definitions -----------------------------
 + */
-+#ifndef TMM_H
-+#define TMM_H
 +
-+#include <mach/dmm.h>
-+/**
-+ * TMM interface
-+ */
-+struct tmm {
-+	void *pvt;
++/* return true if physical address is in the tiler container */
++bool is_tiler_addr(u32 phys);
 +
-+	/* function table */
-+	u32 *(*get)	(struct tmm *tmm, u32 num_pages);
-+	void (*free)	(struct tmm *tmm, u32 *pages);
-+	s32  (*map)	(struct tmm *tmm, struct pat_area area, u32 page_pa);
-+	void (*clear)	(struct tmm *tmm, struct pat_area area);
-+	void (*deinit)	(struct tmm *tmm);
++enum tiler_fmt {
++	TILFMT_MIN     = -2,
++	TILFMT_INVALID = -2,
++	TILFMT_NONE    = -1,
++	TILFMT_8BIT    = 0,
++	TILFMT_16BIT   = 1,
++	TILFMT_32BIT   = 2,
++	TILFMT_MAX     = 2,
++	TILFMT_PAGE    = 3,	/* for completeness */
 +};
 +
-+/**
-+ * Request a set of pages from the DMM free page stack.
-+ * @return a pointer to a list of physical page addresses.
-+ */
-+static inline
-+u32 *tmm_get(struct tmm *tmm, u32 num_pages)
++/* tiler block info */
++struct tiler_block_t {
++	u32 phys;		/* system space (L3) tiler addr */
++	u32 width;		/* width */
++	u32 height;		/* height */
++};
++
++/* tiler (image/video frame) view */
++struct tiler_view_t {
++	u32 tsptr;		/* tiler space addr */
++	u32 width;		/* width */
++	u32 height;		/* height */
++	u32 bpp;		/* bytes per pixel */
++	s32 h_inc;		/* horizontal increment */
++	s32 v_inc;		/* vertical increment */
++};
++
++/* get tiler format for a physical address */
++enum tiler_fmt tiler_fmt(u32 phys);
++
++/* get tiler block bytes-per-pixel */
++u32 tiler_bpp(const struct tiler_block_t *b);
++
++/* get tiler block physical stride */
++u32 tiler_pstride(const struct tiler_block_t *b);
++
++/* get tiler block virtual stride */
++static inline u32 tiler_vstride(const struct tiler_block_t *b)
 +{
-+	if (tmm && tmm->pvt)
-+		return tmm->get(tmm, num_pages);
-+	return NULL;
++	return PAGE_ALIGN((b->phys & ~PAGE_MASK) + tiler_bpp(b) * b->width);
++}
++
++/* returns the virtual size of the block (for mmap) */
++static inline u32 tiler_size(const struct tiler_block_t *b)
++{
++	return b->height * tiler_vstride(b);
 +}
 +
 +/**
-+ * Return a set of used pages to the DMM free page stack.
-+ * @param list a pointer to a list of physical page addresses.
-+ */
-+static inline
-+void tmm_free(struct tmm *tmm, u32 *pages)
-+{
-+	if (tmm && tmm->pvt)
-+		tmm->free(tmm, pages);
-+}
-+
-+/**
-+ * Program the physical address translator.
-+ * @param area PAT area
-+ * @param list of pages
-+ */
-+static inline
-+s32 tmm_map(struct tmm *tmm, struct pat_area area, u32 page_pa)
-+{
-+	if (tmm && tmm->map && tmm->pvt)
-+		return tmm->map(tmm, area, page_pa);
-+	return -ENODEV;
-+}
-+
-+/**
-+ * Clears the physical address translator.
-+ * @param area PAT area
-+ */
-+static inline
-+void tmm_clear(struct tmm *tmm, struct pat_area area)
-+{
-+	if (tmm && tmm->clear && tmm->pvt)
-+		tmm->clear(tmm, area);
-+}
-+
-+/**
-+ * Checks whether tiler memory manager supports mapping
-+ */
-+static inline
-+bool tmm_can_map(struct tmm *tmm)
-+{
-+	return tmm && tmm->map;
-+}
-+
-+/**
-+ * Deinitialize tiler memory manager
-+ */
-+static inline
-+void tmm_deinit(struct tmm *tmm)
-+{
-+	if (tmm && tmm->pvt)
-+		tmm->deinit(tmm);
-+}
-+
-+/**
-+ * TMM implementation for PAT support.
++ * Reserves a 2D TILER block area and memory.
 + *
-+ * Initialize TMM for PAT with given id.
++ * @param blk	pointer to tiler block data.  This must be set up ('phys' member
++ *		must be 0) with the tiler block information.
++ * @param fmt	TILER block format
++ * @param align	block alignment (default: normally PAGE_SIZE)
++ * @param offs	block offset
++ *
++ * @return error status
 + */
-+struct tmm *tmm_pat_init(u32 pat_id);
++s32 tiler_alloc(struct tiler_block_t *blk, enum tiler_fmt fmt, u32 align,
++		u32 offs);
++
++/**
++ * Mmaps a portion of a tiler block to a virtual address.  Use this method in
++ * your driver's mmap function to potentially combine multiple tiler blocks as
++ * one virtual buffer.
++ *
++ * @param blk		pointer to tiler block data
++ * @param offs		offset from where to map (must be page aligned)
++ * @param size		size of area to map (must be page aligned)
++ * @param vma		VMM memory area to map to
++ * @param voffs		offset (from vm_start) in the VMM memory area to start
++ *			mapping at
++ *
++ * @return error status
++ */
++s32 tiler_mmap_blk(struct tiler_block_t *blk, u32 offs, u32 size,
++				struct vm_area_struct *vma, u32 voffs);
++
++/**
++ * Ioremaps a portion of a tiler block.  Use this method in your driver instead
++ * of ioremap to potentially combine multiple tiler blocks as one virtual
++ * buffer.
++ *
++ * @param blk		pointer to tiler block data
++ * @param offs		offset from where to map (must be page aligned)
++ * @param size		size of area to map (must be page aligned)
++ * @param addr		virtual address
++ * @param mtype		ioremap memory type (e.g. MT_DEVICE)
++ *
++ * @return error status
++ */
++s32 tiler_ioremap_blk(struct tiler_block_t *blk, u32 offs, u32 size, u32 addr,
++							u32 mtype);
++
++/**
++ * Frees TILER memory.  Since there may be multiple references for the same area
++ * if duplicated by tiler_dup, the area is only actually freed if all references
++ * have been freed.
++ *
++ * @param blk	pointer to a tiler block data as filled by tiler_alloc,
++ *		tiler_map or tiler_dup.  'phys' member will be set to 0 on
++ *		success.
++ */
++void tiler_free(struct tiler_block_t *blk);
++
++/**
++ * Create a view based on a tiler address and width and height
++ *
++ * This method should only be used as a last resort, e.g. if tilview object
++ * cannot be passed because of incoherence with other view 2D objects that must
++ * be supported.
++ *
++ * @param view		Pointer to a view where the information will be stored
++ * @param ssptr		MUST BE a tiler address
++ * @param width		view width
++ * @param height	view height
++ */
++void tilview_create(struct tiler_view_t *view, u32 phys, u32 width, u32 height);
++
++/**
++ * Obtains the view information for a tiler block
++ *
++ * @param view		Pointer to a view where the information will be stored
++ * @param blk		Pointer to an existing allocated tiler block
++ */
++void tilview_get(struct tiler_view_t *view, struct tiler_block_t *blk);
++
++/**
++ * Crops a tiler view to a rectangular portion. Crop area must be fully within
++ * the orginal tiler view: 0 <= left <= left + width <= view->width, also:
++ * 0 <= top <= top + height <= view->height.
++ *
++ * @param view		Pointer to tiler view to be cropped
++ * @param left		x of top-left corner
++ * @param top		y of top-left corner
++ * @param width		crop width
++ * @param height	crop height
++ *
++ * @return error status.  The view will be reduced to the crop region if the
++ *	   crop region is correct.  Otherwise, no modifications are made.
++ */
++s32 tilview_crop(struct tiler_view_t *view, u32 left, u32 top, u32 width,
++								u32 height);
++
++/**
++ * Rotates a tiler view clockwise by a specified degree.
++ *
++ * @param view		Pointer to tiler view to be cropped
++ * @param rotate	Degree of rotation (clockwise).  Must be a multiple of
++ *			90.
++ * @return error status.  View is not modified on error; otherwise, it is
++ *	   updated in place.
++ */
++s32 tilview_rotate(struct tiler_view_t *view, s32 rotation);
++
++/**
++ * Mirrors a tiler view horizontally and/or vertically.
++ *
++ * @param view		Pointer to tiler view to be cropped
++ * @param flip_x	Mirror horizontally (left-to-right)
++ * @param flip_y	Mirror vertically (top-to-bottom)
++ *
++ * @return error status.  View is not modified on error; otherwise, it is
++ *	   updated in place.
++ */
++s32 tilview_flip(struct tiler_view_t *view, bool flip_x, bool flip_y);
 +
 +#endif
 -- 
