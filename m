@@ -1,33 +1,65 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: [PATCH 10/11] wip: ARM: omap: move omap_board_config_kernel to .init.data
-Date: Fri, 23 Jul 2010 21:58:33 +0200
-Message-ID: <1279915120-4373-10-git-send-email-u.kleine-koenig@pengutronix.de>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Subject: [PATCH 07/11] ARM: omap: move omapfb_reserve_sram() to .init.text
+Date: Fri, 23 Jul 2010 21:58:30 +0200
+Message-ID: <1279915120-4373-7-git-send-email-u.kleine-koenig@pengutronix.de>
 References: <1279915120-4373-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1279915120-4373-1-git-send-email-u.kleine-koenig@pengutronix.de>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, janboe <janboe.ye@gmail.com>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Probably this works ...
----
- arch/arm/plat-omap/common.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 3737dae..fb9d5c2 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -44,7 +44,7 @@
- 
- #define NO_LENGTH_CHECK 0xffffffff
- 
--struct omap_board_config_kernel *omap_board_config;
-+struct omap_board_config_kernel *omap_board_config __initdata;
- int omap_board_config_size;
- 
- static const void *get_config(u16 tag, size_t len, int skip, size_t *len_out)
--- 
-1.7.1
+b21hcGZiX3Jlc2VydmVfc3JhbSgpIGlzIG9ubHkgY2FsbGVkIGJ5IG9tYXBfZGV0ZWN0X3NyYW0o
+KSB3aGljaCBsaXZlcyBpbgouaW5pdC50ZXh0LiAgU28gdGhpcyBpcyBzYXZlIGZvciBvbWFwZmJf
+cmVzZXJ2ZV9zcmFtKCksIHRvby4KClNpZ25lZC1vZmYtYnk6IFV3ZSBLbGVpbmUtS8O2bmlnIDx1
+LmtsZWluZS1rb2VuaWdAcGVuZ3V0cm9uaXguZGU+Ci0tLQogYXJjaC9hcm0vcGxhdC1vbWFwL2Zi
+LmMgICB8ICAgIDYgKysrLS0tCiBhcmNoL2FybS9wbGF0LW9tYXAvc3JhbS5jIHwgICAgMiArLQog
+MiBmaWxlcyBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pCgpkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2ZiLmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvZmIuYwpp
+bmRleCA0ZGYyMTBmLi40YzBhZTRkIDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAvZmIu
+YworKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvZmIuYwpAQCAtMjMzLDcgKzIzMyw3IEBAIHZvaWQg
+X19pbml0IG9tYXBmYl9yZXNlcnZlX3NkcmFtKHZvaWQpCiAgKiB0aGlzIHBvaW50LCBzaW5jZSB0
+aGUgZHJpdmVyIGJ1aWx0IGFzIGEgbW9kdWxlIHdvdWxkIGhhdmUgcHJvYmxlbSB3aXRoCiAgKiBm
+cmVlaW5nIC8gcmVhbGxvY2F0aW5nIHRoZSByZWdpb25zLgogICovCi11bnNpZ25lZCBsb25nIG9t
+YXBmYl9yZXNlcnZlX3NyYW0odW5zaWduZWQgbG9uZyBzcmFtX3BzdGFydCwKK3Vuc2lnbmVkIGxv
+bmcgX19pbml0IG9tYXBmYl9yZXNlcnZlX3NyYW0odW5zaWduZWQgbG9uZyBzcmFtX3BzdGFydCwK
+IAkJCQkgIHVuc2lnbmVkIGxvbmcgc3JhbV92c3RhcnQsCiAJCQkJICB1bnNpZ25lZCBsb25nIHNy
+YW1fc2l6ZSwKIAkJCQkgIHVuc2lnbmVkIGxvbmcgcHN0YXJ0X2F2YWlsLApAQCAtMzYwLDcgKzM2
+MCw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXBfaW5pdF9mYih2b2lkKQogYXJjaF9pbml0Y2Fs
+bChvbWFwX2luaXRfZmIpOwogCiB2b2lkIF9faW5pdCBvbWFwZmJfcmVzZXJ2ZV9zZHJhbSh2b2lk
+KSB7fQotdW5zaWduZWQgbG9uZyBvbWFwZmJfcmVzZXJ2ZV9zcmFtKHVuc2lnbmVkIGxvbmcgc3Jh
+bV9wc3RhcnQsCit1bnNpZ25lZCBsb25nIF9faW5pdCBvbWFwZmJfcmVzZXJ2ZV9zcmFtKHVuc2ln
+bmVkIGxvbmcgc3JhbV9wc3RhcnQsCiAJCQkJICB1bnNpZ25lZCBsb25nIHNyYW1fdnN0YXJ0LAog
+CQkJCSAgdW5zaWduZWQgbG9uZyBzcmFtX3NpemUsCiAJCQkJICB1bnNpZ25lZCBsb25nIHN0YXJ0
+X2F2YWlsLApAQCAtMzc2LDcgKzM3Niw3IEBAIHZvaWQgb21hcGZiX3NldF9wbGF0Zm9ybV9kYXRh
+KHN0cnVjdCBvbWFwZmJfcGxhdGZvcm1fZGF0YSAqZGF0YSkKIH0KIAogdm9pZCBfX2luaXQgb21h
+cGZiX3Jlc2VydmVfc2RyYW0odm9pZCkge30KLXVuc2lnbmVkIGxvbmcgb21hcGZiX3Jlc2VydmVf
+c3JhbSh1bnNpZ25lZCBsb25nIHNyYW1fcHN0YXJ0LAordW5zaWduZWQgbG9uZyBfX2luaXQgb21h
+cGZiX3Jlc2VydmVfc3JhbSh1bnNpZ25lZCBsb25nIHNyYW1fcHN0YXJ0LAogCQkJCSAgdW5zaWdu
+ZWQgbG9uZyBzcmFtX3ZzdGFydCwKIAkJCQkgIHVuc2lnbmVkIGxvbmcgc3JhbV9zaXplLAogCQkJ
+CSAgdW5zaWduZWQgbG9uZyBzdGFydF9hdmFpbCwKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQt
+b21hcC9zcmFtLmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvc3JhbS5jCmluZGV4IDIyNmIyZTguLmNj
+ZDY2MjMgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9zcmFtLmMKKysrIGIvYXJjaC9h
+cm0vcGxhdC1vbWFwL3NyYW0uYwpAQCAtNzksNyArNzksNyBAQCBzdGF0aWMgdW5zaWduZWQgbG9u
+ZyBvbWFwX3NyYW1fYmFzZTsKIHN0YXRpYyB1bnNpZ25lZCBsb25nIG9tYXBfc3JhbV9zaXplOwog
+c3RhdGljIHVuc2lnbmVkIGxvbmcgb21hcF9zcmFtX2NlaWw7CiAKLWV4dGVybiB1bnNpZ25lZCBs
+b25nIG9tYXBmYl9yZXNlcnZlX3NyYW0odW5zaWduZWQgbG9uZyBzcmFtX3BzdGFydCwKK2V4dGVy
+biB1bnNpZ25lZCBsb25nIF9faW5pdCBvbWFwZmJfcmVzZXJ2ZV9zcmFtKHVuc2lnbmVkIGxvbmcg
+c3JhbV9wc3RhcnQsCiAJCQkJCSB1bnNpZ25lZCBsb25nIHNyYW1fdnN0YXJ0LAogCQkJCQkgdW5z
+aWduZWQgbG9uZyBzcmFtX3NpemUsCiAJCQkJCSB1bnNpZ25lZCBsb25nIHBzdGFydF9hdmFpbCwK
+LS0gCjEuNy4xCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5p
+bmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8v
+bGludXgtYXJtLWtlcm5lbAo=
