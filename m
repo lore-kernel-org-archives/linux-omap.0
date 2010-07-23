@@ -1,119 +1,189 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 4/5] OMAP: DSS2: Video3 pipeline IRQs
-Date: Fri, 23 Jul 2010 11:10:10 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044ED62F62@dbde02.ent.ti.com>
+Subject: RE: [PATCH 5/5] OMAP: DSS2: Context Save and Restore of Video3
+ pipeline registers
+Date: Fri, 23 Jul 2010 11:15:19 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044ED62F6B@dbde02.ent.ti.com>
 References: <1279540544-12682-1-git-send-email-archit@ti.com>
  <1279540544-12682-2-git-send-email-archit@ti.com>
  <1279540544-12682-3-git-send-email-archit@ti.com>
  <1279540544-12682-4-git-send-email-archit@ti.com>
  <1279540544-12682-5-git-send-email-archit@ti.com>
+ <1279540544-12682-6-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52201 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752824Ab0GWFlF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jul 2010 01:41:05 -0400
-In-Reply-To: <1279540544-12682-5-git-send-email-archit@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55144 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752876Ab0GWFp3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jul 2010 01:45:29 -0400
+In-Reply-To: <1279540544-12682-6-git-send-email-archit@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>, "Mittal, Mukund" <mmittal@ti.com>, "Taneja, Archit" <archit@ti.com>
+To: "Taneja, Archit" <archit@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Janorkar, Mayuresh" <mayur@ti.com>, "Mittal, Mukund" <mmittal@ti.com>
 
 
 > -----Original Message-----
 > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Archit Taneja
+> owner@vger.kernel.org] On Behalf Of Taneja, Archit
 > Sent: Monday, July 19, 2010 5:26 PM
 > To: tomi.valkeinen@nokia.com
-> Cc: linux-omap@vger.kernel.org; Semwal, Sumit; Mittal, Mukund; Taneja,
+> Cc: linux-omap@vger.kernel.org; Janorkar, Mayuresh; Mittal, Mukund; Taneja,
 > Archit
-> Subject: [PATCH 4/5] OMAP: DSS2: Video3 pipeline IRQs
+> Subject: [PATCH 5/5] OMAP: DSS2: Context Save and Restore of Video3 pipeline
+> registers
 > 
-> From: Sumit Semwal <sumit.semwal@ti.com>
+> From: Mayuresh Janorkar <mayur@ti.com>
 > 
-> Introduce Video3 pipeline IRQS for dumps and error handling
-> 
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-> Signed-off-by: Mukund Mittal <mmittal@ti.com>
-> Signed-off-by: Archit Taneja <archit@ti.com>
-> ---
->  arch/arm/plat-omap/include/plat/display.h |    2 ++
->  drivers/video/omap2/dss/dispc.c           |   23 ++++++++++++++++++++++-
->  2 files changed, 24 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-
-> omap/include/plat/display.h
-> index be83766..91796b6
-> --- a/arch/arm/plat-omap/include/plat/display.h
-> +++ b/arch/arm/plat-omap/include/plat/display.h
-> @@ -44,6 +44,8 @@
->  #define DISPC_IRQ_WAKEUP		(1 << 16)
->  #define DISPC_IRQ_SYNC_LOST_2  (1 << 17)
->  #define DISPC_IRQ_VSYNC2               (1 << 18)
-> +#define DISPC_IRQ_VID3_END_WIN		(1 << 19)
-> +#define DISPC_IRQ_VID3_FIFO_UNDERFLOW	(1 << 20)
->  #define DISPC_IRQ_ACBIAS_COUNT_STAT2   (1 << 21)
->  #define DISPC_IRQ_FRAMEDONE2           (1 << 22)
-> 
-> diff --git a/drivers/video/omap2/dss/dispc.c
-> b/drivers/video/omap2/dss/dispc.c
-> index 00aad04..8345ed7
-> --- a/drivers/video/omap2/dss/dispc.c
-> +++ b/drivers/video/omap2/dss/dispc.c
-> @@ -173,7 +173,8 @@ struct dispc_reg { u16 idx; };
->  					 DISPC_IRQ_SYNC_LOST | \
->  					 DISPC_IRQ_SYNC_LOST_DIGIT | \
->  					 (cpu_is_omap44xx() ? \
-> -					 DISPC_IRQ_SYNC_LOST_2 : 0))
-> +					 (DISPC_IRQ_VID3_FIFO_UNDERFLOW | \
-> +					 DISPC_IRQ_SYNC_LOST_2) : 0))
-[Hiremath, Vaibhav] This looks bit suspicious to me, against which tree this patch has been generated? I think you have missed some of the patches in between.
+> Context Save and Restore of Video3 pipeline registers.
+[Hiremath, Vaibhav] I still fill, we are un-necessary dividing the patch here. This patch can very well be part of another patch, 
 
-> 
->  #define DISPC_MAX_NR_ISRS		8
-> 
-> @@ -2540,6 +2541,8 @@ void dispc_dump_irqs(struct seq_file *s)
->  		PIS(VSYNC2);
->  		PIS(ACBIAS_COUNT_STAT2);
->  		PIS(SYNC_LOST_2);
-> +		PIS(VID3_FIFO_UNDERFLOW);
-> +		PIS(VID3_END_WIN);
->  	}
->  #undef PIS
->  }
-> @@ -3151,6 +3154,24 @@ static void dispc_error_worker(struct work_struct
-> *work)
->  		}
->  	}
-> 
-> +	if (errors & DISPC_IRQ_VID3_FIFO_UNDERFLOW) {
-> +		DSSERR("VID3_FIFO_UNDERFLOW, disabling VID2\n");
-[Hiremath, Vaibhav] typo mistake VID2 => VID3
+[PATCH 2/5] OMAP: DSS2: Add Video 3 pipeline functionality in DISPC
+
+In-fact, for me this should be consolidated single patch, something like, 
+
+OMAP: DSS2: Add Video-3 pipeline functionality
+
+
+I don't see any reason why we are fragmenting this into multiple patches.
 
 Thanks,
 Vaibhav
-> +		for (i = 0; i < omap_dss_get_num_overlays(); ++i) {
-> +			struct omap_overlay *ovl;
-> +			ovl = omap_dss_get_overlay(i);
+
+> 
+> Signed-off-by: Mayuresh Janorkar <mayur@ti.com>
+> Signed-off-by: Mukund Mittal <mmittal@ti.com>
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/video/omap2/dss/dispc.c |  104
+> +++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 104 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/dispc.c
+> b/drivers/video/omap2/dss/dispc.c
+> index 8cda961..5a6c10e
+> --- a/drivers/video/omap2/dss/dispc.c
+> +++ b/drivers/video/omap2/dss/dispc.c
+> @@ -397,6 +397,58 @@ void dispc_save_context(void)
+>  	SR(VID_FIR_COEF_V(1, 7));
+> 
+>  	SR(VID_PRELOAD(1));
 > +
-> +			if (!(ovl->caps & OMAP_DSS_OVL_CAP_DISPC))
-> +				continue;
+> +	/* VID3 */
+> +	if (cpu_is_omap44xx()) {
+> +		SR(VID3_WB_BA0(0));
+> +		SR(VID3_WB_BA1(0));
+> +		SR(VID3_POSITION);
+> +		SR(VID3_WB_SIZE(0));
+> +		SR(VID3_WB_ATTRIBUTES(0));
+> +		SR(VID3_WB_BUF_THRESHOLD(0));
+> +		SR(VID3_WB_BUF_SIZE_STATUS(0));
+> +		SR(VID3_WB_ROW_INC(0));
+> +		SR(VID3_WB_PIXEL_INC(0));
+> +		SR(VID3_WB_FIR(0));
+> +		SR(VID3_WB_PICTURE_SIZE(0));
+> +		SR(VID3_WB_ACCU0(0));
+> +		SR(VID3_WB_ACCU1(0));
 > +
-> +			if (ovl->id == 3) {
-> +				dispc_enable_plane(ovl->id, 0);
-> +				dispc_go(ovl->manager->id);
-> +				mdelay(50);
-> +				break;
-> +			}
-> +		}
+> +		SR(VID3_WB_FIR_COEF_H(0, 0));
+> +		SR(VID3_WB_FIR_COEF_H(0, 1));
+> +		SR(VID3_WB_FIR_COEF_H(0, 2));
+> +		SR(VID3_WB_FIR_COEF_H(0, 3));
+> +		SR(VID3_WB_FIR_COEF_H(0, 4));
+> +		SR(VID3_WB_FIR_COEF_H(0, 5));
+> +		SR(VID3_WB_FIR_COEF_H(0, 6));
+> +		SR(VID3_WB_FIR_COEF_H(0, 7));
+> +
+> +		SR(VID3_WB_FIR_COEF_HV(0, 0));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 1));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 2));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 3));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 4));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 5));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 6));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 7));
+> +
+> +		SR(VID3_WB_CONV_COEF(0, 0));
+> +		SR(VID3_WB_CONV_COEF(0, 1));
+> +		SR(VID3_WB_CONV_COEF(0, 2));
+> +		SR(VID3_WB_CONV_COEF(0, 3));
+> +		SR(VID3_WB_CONV_COEF(0, 4));
+> +
+> +		SR(VID3_WB_FIR_COEF_V(0, 0));
+> +		SR(VID3_WB_FIR_COEF_V(0, 1));
+> +		SR(VID3_WB_FIR_COEF_V(0, 2));
+> +		SR(VID3_WB_FIR_COEF_V(0, 3));
+> +		SR(VID3_WB_FIR_COEF_V(0, 4));
+> +		SR(VID3_WB_FIR_COEF_V(0, 5));
+> +		SR(VID3_WB_FIR_COEF_V(0, 6));
+> +		SR(VID3_WB_FIR_COEF_V(0, 7));
+> +
+> +		SR(VID3_PRELOAD);
+> +	}
+>  }
+> 
+>  void dispc_restore_context(void)
+> @@ -553,6 +605,58 @@ void dispc_restore_context(void)
+> 
+>  	RR(VID_PRELOAD(1));
+> 
+> +	/* VID3 */
+> +	if (cpu_is_omap44xx()) {
+> +		SR(VID3_WB_BA0(0));
+> +		SR(VID3_WB_BA1(0));
+> +		SR(VID3_POSITION);
+> +		SR(VID3_WB_SIZE(0));
+> +		SR(VID3_WB_ATTRIBUTES(0));
+> +		SR(VID3_WB_BUF_THRESHOLD(0));
+> +		SR(VID3_WB_BUF_SIZE_STATUS(0));
+> +		SR(VID3_WB_ROW_INC(0));
+> +		SR(VID3_WB_PIXEL_INC(0));
+> +		SR(VID3_WB_FIR(0));
+> +		SR(VID3_WB_PICTURE_SIZE(0));
+> +		SR(VID3_WB_ACCU0(0));
+> +		SR(VID3_WB_ACCU1(0));
+> +
+> +		SR(VID3_WB_FIR_COEF_H(0, 0));
+> +		SR(VID3_WB_FIR_COEF_H(0, 1));
+> +		SR(VID3_WB_FIR_COEF_H(0, 2));
+> +		SR(VID3_WB_FIR_COEF_H(0, 3));
+> +		SR(VID3_WB_FIR_COEF_H(0, 4));
+> +		SR(VID3_WB_FIR_COEF_H(0, 5));
+> +		SR(VID3_WB_FIR_COEF_H(0, 6));
+> +		SR(VID3_WB_FIR_COEF_H(0, 7));
+> +
+> +		SR(VID3_WB_FIR_COEF_HV(0, 0));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 1));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 2));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 3));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 4));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 5));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 6));
+> +		SR(VID3_WB_FIR_COEF_HV(0, 7));
+> +
+> +		SR(VID3_WB_CONV_COEF(0, 0));
+> +		SR(VID3_WB_CONV_COEF(0, 1));
+> +		SR(VID3_WB_CONV_COEF(0, 2));
+> +		SR(VID3_WB_CONV_COEF(0, 3));
+> +		SR(VID3_WB_CONV_COEF(0, 4));
+> +
+> +		SR(VID3_WB_FIR_COEF_V(0, 0));
+> +		SR(VID3_WB_FIR_COEF_V(0, 1));
+> +		SR(VID3_WB_FIR_COEF_V(0, 2));
+> +		SR(VID3_WB_FIR_COEF_V(0, 3));
+> +		SR(VID3_WB_FIR_COEF_V(0, 4));
+> +		SR(VID3_WB_FIR_COEF_V(0, 5));
+> +		SR(VID3_WB_FIR_COEF_V(0, 6));
+> +		SR(VID3_WB_FIR_COEF_V(0, 7));
+> +
+> +		SR(VID3_PRELOAD);
 > +	}
 > +
->  	if (errors & DISPC_IRQ_SYNC_LOST) {
->  		struct omap_overlay_manager *manager = NULL;
->  		bool enable = false;
+>  	/* enable last, because LCD & DIGIT enable are here */
+>  	RR(CONTROL(0));
+>  	if (cpu_is_omap44xx())
 > --
 > 1.5.4.7
 > 
