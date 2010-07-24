@@ -1,42 +1,109 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PM-OPP][PATCH] OMAP: Add check for omap_device pointer before adding an opp
-Date: Sat, 24 Jul 2010 12:12:33 +0530
-Message-ID: <1279953753-1377-1-git-send-email-thara@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 12/20] OMAP: PM: create omap_devices for MPU, DSP, L3
+Date: Sat, 24 Jul 2010 12:13:56 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323C3F32F@dbde02.ent.ti.com>
+References: <20100702152703.6221.33529.stgit@localhost.localdomain>
+ <20100702152930.6221.32877.stgit@localhost.localdomain>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0323A2C2A5@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45099 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36597 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751907Ab0GXGmq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Jul 2010 02:42:46 -0400
+	id S1752176Ab0GXGoJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Jul 2010 02:44:09 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323A2C2A5@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
+To: "Gopinath, Thara" <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-This patch adds the check for whether a omap_device and in turn
-platform_device and device pointers exist for the device before
-adding it's opp table into the global table. This is because all
-the later accesses to the opp entries are based on dev pointer and
-hence there is no point in adding a opp if the dev pointer does
-not exist.
-
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- arch/arm/plat-omap/opp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-index 0273497..e81bb95 100644
---- a/arch/arm/plat-omap/opp.c
-+++ b/arch/arm/plat-omap/opp.c
-@@ -333,7 +333,7 @@ int opp_add(const struct omap_opp_def *opp_def)
- 		return -EINVAL;
- 	}
- 	oh = omap_hwmod_lookup(opp_def->hwmod_name);
--	if (!oh) {
-+	if (!oh || !oh->od) {
- 		pr_warn("%s: no hwmod for %s, cannot add OPPs.\n",
- 			__func__, opp_def->hwmod_name);
- 		return -EINVAL;
--- 
-1.7.0.rc1.33.g07cf0f
-
+DQoNCj4+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+RnJvbTogbGludXgtb21hcC1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVsLm9y
+Z10gT24gQmVoYWxmIE9mDQo+PkdvcGluYXRoLCBUaGFyYQ0KPj5TZW50OiBUaHVyc2RheSwgSnVs
+eSAxNSwgMjAxMCAxMDo1NiBBTQ0KPj5UbzogUGF1bCBXYWxtc2xleTsgbGludXgtb21hcEB2Z2Vy
+Lmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZw0KPj5DYzog
+S2V2aW4gSGlsbWFuDQo+PlN1YmplY3Q6IFJFOiBbUEFUQ0ggMTIvMjBdIE9NQVA6IFBNOiBjcmVh
+dGUgb21hcF9kZXZpY2VzIGZvciBNUFUsIERTUCwgTDMNCj4+DQo+Pg0KPj4NCj4+Pj4tLS0tLU9y
+aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPj4+PkZyb206IGxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJu
+ZWwub3JnIFttYWlsdG86bGludXgtb21hcC1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFs
+ZiBPZiBQYXVsDQo+Pj4+V2FsbXNsZXkNCj4+Pj5TZW50OiBGcmlkYXksIEp1bHkgMDIsIDIwMTAg
+OTowMCBQTQ0KPj4+PlRvOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgbGludXgtYXJtLWtl
+cm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnDQo+Pj4+Q2M6IEtldmluIEhpbG1hbg0KPj4+PlN1Ympl
+Y3Q6IFtQQVRDSCAxMi8yMF0gT01BUDogUE06IGNyZWF0ZSBvbWFwX2RldmljZXMgZm9yIE1QVSwg
+RFNQLCBMMw0KPj4+Pg0KPj4+PkZyb206IEtldmluIEhpbG1hbiA8a2hpbG1hbkBkZWVwcm9vdHN5
+c3RlbXMuY29tPg0KPj4+Pg0KPj4+PkNyZWF0ZSBzaW1wbGUgb21hcF9kZXZpY2VzIGZvciB0aGUg
+bWFpbiBwcm9jZXNzb3JzIGFuZCBidXNzZXMuDQo+Pj4+DQo+Pj4+VGhpcyBpcyByZXF1aXJlZCB0
+byBzdXBwb3J0IHRoZSBmb3J0aC1jb21pbmcgZGV2aWNlLWJhc2VkIE9QUA0KPj4+PmFwcHJvYWNo
+LCB3aGVyZSBPUFBzIGFyZSBtYW5hZ2VkIGFuZCB0cmFja2VkIGF0IHRoZSBkZXZpY2UgbGV2ZWwu
+DQo+Pj4+DQo+Pj4+QWxzbywgbW92ZSB0aGVzZSBjb21tb24gUE0gaW5pdCBmdW5jdGlvbnMgaW50
+byBhIGNvbW1vbl9wbV9pbml0IGNhbGwNCj4+Pj50aGF0IGlzIGNhbGxlZCBhcyBhIGRldmljZV9p
+bml0Y2FsbCgpLiAgVGhlIFBNIGluaXQgaXMgZG9uZSBhdCB0aGlzIGxldmVsDQo+Pj4+dG8gZW5z
+dXJlIHRoYXQgdGhlIGRyaXZlciBjb3JlIGlzIGluaXRpYWxpemVkIGJlZm9yZSBpbml0aWFsaXpl
+ZC4NCj4+Pj4NCj4+Pj5TaWduZWQtb2ZmLWJ5OiBLZXZpbiBIaWxtYW4gPGtoaWxtYW5AZGVlcHJv
+b3RzeXN0ZW1zLmNvbT4NCj4+Pj5bcGF1bEBwd3Nhbi5jb206IHNwYXJzZSB3YXJuaW5ncyBjbGVh
+bmVkIHVwOyBuZXdseS1jcmVhdGVkIGZ1bmN0aW9ucyBtb3ZlZA0KPj4+PiBmcm9tIG1hY2gtb21h
+cDIvaW8uYyB0byBtYWNoLW9tYXAyL3BtLmM7IG5ld2x5LWNyZWF0ZWQgZnVuY3Rpb25zIHJlbmFt
+ZWQNCj4+Pj4gdG8gc3RhcnQgd2l0aCAib21hcDIiIHJhdGhlciB0aGFuICJvbWFwIl0NCj4+Pj5T
+aWduZWQtb2ZmLWJ5OiBQYXVsIFdhbG1zbGV5IDxwYXVsQHB3c2FuLmNvbT4NCj4+Pj4tLS0NCj4+
+Pj4gYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmlsZSAgICAgICAgICAgICB8ICAgIDIgLQ0KPj4+
+PiBhcmNoL2FybS9tYWNoLW9tYXAyL2lvLmMgICAgICAgICAgICAgICAgIHwgICAgMiAtDQo+Pj4+
+IGFyY2gvYXJtL21hY2gtb21hcDIvcG0uYyAgICAgICAgICAgICAgICAgfCAgIDg0ICsrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKw0KPj4+PiBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9w
+bGF0L2NvbW1vbi5oIHwgICAgNCArDQo+Pj4+IDQgZmlsZXMgY2hhbmdlZCwgOTAgaW5zZXJ0aW9u
+cygrKSwgMiBkZWxldGlvbnMoLSkNCj4+Pj4gY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21h
+Y2gtb21hcDIvcG0uYw0KPj4+Pg0KPj4+PmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAy
+L01ha2VmaWxlIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmlsZQ0KPj4+PmluZGV4IDJmYTM0
+MTguLjIxM2YxZGYgMTAwNjQ0DQo+Pj4+LS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmls
+ZQ0KPj4+PisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUNCj4+Pj5AQCAtMyw3ICsz
+LDcgQEANCj4+Pj4gIw0KPj4+Pg0KPj4+PiAjIENvbW1vbiBzdXBwb3J0DQo+Pj4+LW9iai15IDo9
+IGlkLm8gaW8ubyBjb250cm9sLm8gbXV4Lm8gZGV2aWNlcy5vIHNlcmlhbC5vIGdwbWMubyB0aW1l
+ci1ncC5vDQo+Pj4+K29iai15IDo9IGlkLm8gaW8ubyBjb250cm9sLm8gbXV4Lm8gZGV2aWNlcy5v
+IHNlcmlhbC5vIGdwbWMubyB0aW1lci1ncC5vIHBtLm8NCj4+Pj4NCj4+Pj4gb21hcC0yLTMtY29t
+bW9uCQkJCT0gaXJxLm8gc2RyYy5vDQo+Pj4+IGh3bW9kLWNvbW1vbgkJCQk9IG9tYXBfaHdtb2Qu
+byBcDQo+Pj4+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvaW8uYyBiL2FyY2gvYXJt
+L21hY2gtb21hcDIvaW8uYw0KPj4+PmluZGV4IDA1YzljZGIuLjJiOTgzYWMgMTAwNjQ0DQo+Pj4+
+LS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9pby5jDQo+Pj4+KysrIGIvYXJjaC9hcm0vbWFjaC1v
+bWFwMi9pby5jDQo+Pj4+QEAgLTQ0LDYgKzQ0LDcgQEANCj4+Pj4NCj4+Pj4gI2luY2x1ZGUgPHBs
+YXQvY2xvY2tkb21haW4uaD4NCj4+Pj4gI2luY2x1ZGUgImNsb2NrZG9tYWlucy5oIg0KPj4+PisN
+Cj4+Pj4gI2luY2x1ZGUgPHBsYXQvb21hcF9od21vZC5oPg0KPj4+Pg0KPj4+PiAvKg0KPj4+PkBA
+IC0zNDYsNyArMzQ3LDYgQEAgdm9pZCBfX2luaXQgb21hcDJfaW5pdF9jb21tb25faHcoc3RydWN0
+IG9tYXBfc2RyY19wYXJhbXMgKnNkcmNfY3MwLA0KPj4+PiAJaWYgKGNwdV9pc19vbWFwMjR4eCgp
+IHx8IGNwdV9pc19vbWFwMzR4eCgpKSAgIC8qIEZJWE1FOiBPTUFQNCAqLw0KPj4+PiAJCW9tYXBf
+aHdtb2RfbGF0ZV9pbml0KHNraXBfc2V0dXBfaWRsZSk7DQo+Pj4+DQo+Pj4+LQlvbWFwX3BtX2lm
+X2luaXQoKTsNCj4+Pj4gCWlmIChjcHVfaXNfb21hcDI0eHgoKSB8fCBjcHVfaXNfb21hcDM0eHgo
+KSkgew0KPj4+PiAJCW9tYXAyX3NkcmNfaW5pdChzZHJjX2NzMCwgc2RyY19jczEpOw0KPj4+PiAJ
+CV9vbWFwMl9pbml0X3JlcHJvZ3JhbV9zZHJjKCk7DQo+Pj4+ZGlmZiAtLWdpdCBhL2FyY2gvYXJt
+L21hY2gtb21hcDIvcG0uYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG0uYw0KPj4+Pm5ldyBmaWxl
+IG1vZGUgMTAwNjQ0DQo+Pj4+aW5kZXggMDAwMDAwMC4uNjhmOWYyZQ0KPj4+Pi0tLSAvZGV2L251
+bGwNCj4+Pj4rKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMNCj4+Pj5AQCAtMCwwICsxLDg0
+IEBADQo+Pj4+Ky8qDQo+Pj4+KyAqIHBtLmMgLSBDb21tb24gT01BUDIrIHBvd2VyIG1hbmFnZW1l
+bnQtcmVsYXRlZCBjb2RlDQo+Pj4+KyAqDQo+Pj4+KyAqIENvcHlyaWdodCAoQykgMjAxMCBUZXhh
+cyBJbnN0cnVtZW50cywgSW5jLg0KPj4+PisgKiBDb3B5cmlnaHQgKEMpIDIwMTAgTm9raWEgQ29y
+cG9yYXRpb24NCj4+Pj4rICoNCj4+Pj4rICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7
+IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkNCj4+Pj4rICogaXQgdW5kZXIg
+dGhlIHRlcm1zIG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJzaW9uIDIgYXMN
+Cj4+Pj4rICogcHVibGlzaGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uDQo+Pj4+
+KyAqLw0KPj4+PisNCj4+Pj4rI2luY2x1ZGUgPGxpbnV4L2tlcm5lbC5oPg0KPj4+PisjaW5jbHVk
+ZSA8bGludXgvaW5pdC5oPg0KPj4+PisjaW5jbHVkZSA8bGludXgvaW8uaD4NCj4+Pj4rI2luY2x1
+ZGUgPGxpbnV4L2Vyci5oPg0KPj4+PisNCj4+Pj4rI2luY2x1ZGUgPHBsYXQvb21hcC1wbS5oPg0K
+Pj4+PisjaW5jbHVkZSA8cGxhdC9vbWFwX2RldmljZS5oPg0KPj4+PisjaW5jbHVkZSA8cGxhdC9j
+b21tb24uaD4NCj4+Pj4rDQo+Pj4+K3N0YXRpYyBzdHJ1Y3Qgb21hcF9kZXZpY2VfcG1fbGF0ZW5j
+eSAqcG1fbGF0czsNCj4+Pj4rDQo+Pj4+K3N0YXRpYyBzdHJ1Y3QgZGV2aWNlICptcHVfZGV2Ow0K
+Pj4+PitzdGF0aWMgc3RydWN0IGRldmljZSAqZHNwX2RldjsNCj4+Pj4rc3RhdGljIHN0cnVjdCBk
+ZXZpY2UgKmwzX2RldjsNCj4+Pj4rDQo+Pj4+K3N0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9tcHVz
+c19kZXZpY2Uodm9pZCkNCj4+Pj4rew0KPj4+PisJV0FSTl9PTl9PTkNFKCFtcHVfZGV2KTsNCj4+
+Pj4rCXJldHVybiBtcHVfZGV2Ow0KPj4+Pit9DQo+Pj4+Kw0KPj4+PitzdHJ1Y3QgZGV2aWNlICpv
+bWFwMl9nZXRfZHNwX2RldmljZSh2b2lkKQ0KPj4+Pit7DQo+Pj4+KwlXQVJOX09OX09OQ0UoIWRz
+cF9kZXYpOw0KPj4+PisJcmV0dXJuIGRzcF9kZXY7DQo+Pj4+K30NCj4+Rmlyc3Qgb2YgYWxsLCBh
+cG9sb2dpZXMgZm9yIHNvIGxhdGUgcG9zdGluZyBvZiB0aGUgY29tbWVudC4gSU1ITyBpdCB3b3Vs
+ZCBiZSBnb29kIHRvIHJlbmFtZSB0aGlzIEFQSQ0KPj5hcyBvbWFwMl9nZXRfaXZhX2RldmljZS4g
+VGhpcyBpcyBiZWNhdXNlIE9NQVA0IGhhcyBzZXBhcmF0ZSBJVkEgYW5kIERTUCBkZXZpY2VzIGFu
+ZCB3ZSB3aWxsIG5lZWQgdG8NCj4+YnVpbGQgdGhlIG9tYXBfZGV2aWNlIGZvciBib3RoLiBJZiB3
+ZSBjb3VsZCByZW5hbWUgdGhpcyBhcyBvbWFwMl9nZXRfaXZhX2RldmljZSwgd2UgY291bGQgaW50
+cm9kdWNlDQo+PmFub3RoZXIgQVBJIG9tYXA0X2dldF9pdmFfZGV2aWNlIHVudGlsIGJyaWRnZSBz
+dGFydHMgZG9pbmcgYSBvbWFwX2RldmljZV9idWlsZCBmb3IgYWxsIHRoZXNlIGRldmljZXMuDQoN
+CkhlbGxvIFBhdWwsDQoNCkFueSB0aG91Z2h0cyBvbiB0aGlzIG9uZT8NCg0KUmVnYXJkcw0KVGhh
+cmENCg==
