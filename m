@@ -1,231 +1,128 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC 1/8] TILER-DMM: DMM-PAT driver for TI TILER
-Date: Sat, 24 Jul 2010 11:15:48 +0100
-Message-ID: <20100724101548.GA16238@n2100.arm.linux.org.uk>
-References: <1279927348-21750-1-git-send-email-davidsin@ti.com> <1279927348-21750-2-git-send-email-davidsin@ti.com> <20100724080915.GC15064@n2100.arm.linux.org.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC 0/8] TI TILER-DMM driver
+Date: Sat, 24 Jul 2010 13:12:53 +0200
+Message-ID: <201007241312.53551.hverkuil@xs4all.nl>
+References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59012 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753800Ab0GXKQC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jul 2010 06:16:02 -0400
-Content-Disposition: inline
-In-Reply-To: <20100724080915.GC15064@n2100.arm.linux.org.uk>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3709 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291Ab0GXLXc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jul 2010 07:23:32 -0400
+In-Reply-To: <1279927348-21750-1-git-send-email-davidsin@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Sin <davidsin@ti.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Lajos Molnar <molnar@ti.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>, Hari Kanigeri <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This is what I'd expect to see.  This uses a hardware-upwards registration
-scheme, so by registering a 'dmm' device, when the driver for 'dmm' gets
-registered, it automatically registers with the next level up.
+Hi David,
 
-However, you should think carefully about this kind of layered approach.
-Would it be more appropriate to turn the 'tmm' and higher layers into a
-set of library calls for this driver to use, so that they can be reused
-with less modifications when other hardware comes along?
+On Saturday 24 July 2010 01:22:20 David Sin wrote:
+> TILER is a hardware block made by Texas Instruments.  Its purpose is to 
+> organize video/image memory in a 2-dimensional fashion to limit memory 
+> bandwidth and facilitate 0 effort rotation and mirroring.  The TILER 
+> driver facilitates allocating, freeing, as well as mapping 2D blocks (areas) 
+> in the TILER container(s).  It also facilitates rotating and mirroring 
+> the allocated blocks or its rectangular subsections.
 
-#include <linux/errno.h>
-#include <linux/io.h>
-#include <linux/module.h>
-#include <linux/platform_device.h>
-#include <linux/slab.h>
+Since this driver is part of the media/video subsystem you should cross-post
+it to the linux-media mailinglist as well.
 
-/* RMK: or whatever path to this... */
-#include "tmm.h"
-/*
- * RMK: which contains at least something like:
- *
- * struct tmm;
- * int tmm_register(struct tmm **tmm, int (*refill)(struct pat *, enum pat_mode, void *), void *priv);
- * void tmm_unregister(struct tmm *tmm);
- */
+The main question that I have is how this driver is to be used in practice.
+How does it fit into the bigger video4linux picture? Is this something that
+is mainly used from other v4l or fb drivers? Or is it controlled by userspace?
 
-#define MASK(msb, lsb) (((1 << ((msb) + 1 - (lsb))) - 1) << (lsb))
-#define SET_FLD(reg, msb, lsb, val) \
-(((reg) & ~MASK((msb), (lsb))) | (((val) << (lsb)) & MASK((msb), (lsb))))
+Regards,
 
-struct dmm {
-	void __iomem *base;
-	struct tmm *tmm;
-};
+	Hans
 
-static int dmm_wait(void __iomem *reg, unsigned mask, unsigned val, unsigned long timeout)
-{
-	while ((readl(reg) & mask) != val) {
-		if (timeout-- == 0)
-			return -ETIMEDOUT;
-		udelay(1);
-	}
-	return 0;
-}
+> 
+> List of pending items in proposed order:
+> 
+> * Add area packing support (multiple blocks can reside in the same band/area)
+>   to optimize area use
+> * Add group-ID support (to specify which blocks can reside together in the
+>   same area)
+> * Add multiple search directions to TCM-SiTA
+> * Add 1D block support (including adding 1D search algo to TCM-SiTA)
+> * Optimize mutex handling (don.t hold mutex during memory
+>   allocation/mapping/cache flushing)
+> * Add block reference counting, support for sharing blocks
+> * Move all kernel-API-s to tiler-iface.c
+> * Support orphaned block support (in preparation for process cleanup support)
+> * Change block identification from physical address to key-ID pair
+>   (in preparation for user space support, and process security)
+> * Add support for process security (blocks from separate processes never
+>   reside in the same band)
+> * Support file interface (ioctl and mmap)
+> * Support for buffers (ordered list of blocks that are mapped to userspace
+>   together, such as YUV420sp)
+> * Support 1D user buffer mapping into TILER container
+> * Support for block pre-reservation (to further optimize area use)
+> 
+> David Sin (1):
+>   TILER-DMM: DMM-PAT driver for TI TILER
+> 
+> Lajos Molnar (6):
+>   TILER-DMM: Container manager interface and utility definitons
+>   TILER-DMM: TILER Memory Manager interface and implementation
+>   TILER-DMM: TILER interface file and documentation
+>   TILER-DMM: Geometry and view manipulation functions.
+>   TILER-DMM: Main TILER driver implementation.
+>   TILER-DMM: Linking TILER driver into the Linux kernel build
+> 
+> Ravi Ramachandra (1):
+>   TILER-DMM: Sample TCM implementation: Simple TILER Allocator
+> 
+>  Documentation/arm/TILER                   |  144 +++++++++
+>  arch/arm/mach-omap2/include/mach/dmm.h    |  128 ++++++++
+>  arch/arm/mach-omap2/include/mach/tiler.h  |  201 +++++++++++++
+>  drivers/media/Kconfig                     |    6 +
+>  drivers/media/Makefile                    |    2 +
+>  drivers/media/video/tiler/Kconfig         |   65 ++++
+>  drivers/media/video/tiler/Makefile        |    7 +
+>  drivers/media/video/tiler/_tiler.h        |   51 ++++
+>  drivers/media/video/tiler/dmm.c           |  200 +++++++++++++
+>  drivers/media/video/tiler/tcm.h           |  209 +++++++++++++
+>  drivers/media/video/tiler/tcm/Makefile    |    1 +
+>  drivers/media/video/tiler/tcm/_tcm-sita.h |   64 ++++
+>  drivers/media/video/tiler/tcm/tcm-sita.c  |  459 +++++++++++++++++++++++++++++
+>  drivers/media/video/tiler/tcm/tcm-sita.h  |   37 +++
+>  drivers/media/video/tiler/tcm/tcm-utils.h |   54 ++++
+>  drivers/media/video/tiler/tiler-geom.c    |  360 ++++++++++++++++++++++
+>  drivers/media/video/tiler/tiler-iface.c   |  106 +++++++
+>  drivers/media/video/tiler/tiler-main.c    |  426 ++++++++++++++++++++++++++
+>  drivers/media/video/tiler/tmm-pat.c       |  274 +++++++++++++++++
+>  drivers/media/video/tiler/tmm.h           |  109 +++++++
+>  20 files changed, 2903 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/arm/TILER
+>  create mode 100644 arch/arm/mach-omap2/include/mach/dmm.h
+>  create mode 100644 arch/arm/mach-omap2/include/mach/tiler.h
+>  create mode 100644 drivers/media/video/tiler/Kconfig
+>  create mode 100644 drivers/media/video/tiler/Makefile
+>  create mode 100644 drivers/media/video/tiler/_tiler.h
+>  create mode 100644 drivers/media/video/tiler/dmm.c
+>  create mode 100644 drivers/media/video/tiler/tcm.h
+>  create mode 100644 drivers/media/video/tiler/tcm/Makefile
+>  create mode 100644 drivers/media/video/tiler/tcm/_tcm-sita.h
+>  create mode 100644 drivers/media/video/tiler/tcm/tcm-sita.c
+>  create mode 100644 drivers/media/video/tiler/tcm/tcm-sita.h
+>  create mode 100644 drivers/media/video/tiler/tcm/tcm-utils.h
+>  create mode 100644 drivers/media/video/tiler/tiler-geom.c
+>  create mode 100644 drivers/media/video/tiler/tiler-iface.c
+>  create mode 100644 drivers/media/video/tiler/tiler-main.c
+>  create mode 100644 drivers/media/video/tiler/tmm-pat.c
+>  create mode 100644 drivers/media/video/tiler/tmm.h
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-static int dmm_refill(struct pat *pat, enum pat_mode mode, void *priv)
-{
-	struct dmm *dmm = priv;
-	int ret;
-	u32 v;
-
-	if (mode != PAT_MODE_MANUAL || pat->data & 0x0000000f)
-		/* RMK: and maybe check the range of other args */
-		return -EINVAL;
-
-	/* Check that the DMM_PAT_STATUS register has not reported an error */
-	v = readl(dmm->base + DMM_PAT_STATUS__0);
-	if (v & 0xfc00)
-		return -EIO;
-
-	/* Set "next" register to 0 */
-	/* RMK: not null - hardware doesn't take virtual addresses */
-	v = readl(dmm->base + DMM_PAT_DESCR__0);
-	v = SET_FLD(v, 31, 4, 0);
-	writel(v, dmm->base + DMM_PAT_DESCR__0);
-
-	/* Set area to be refilled */
-	v = readl(dmm->base + DMM_PAT_AREA__0) & 0xc000c000;
-	v = (pat->area.y1 << 24) | (pat->area.x1 << 16) |
-	    (pat->area.y0 << 8) | pat->area.x0;
-	writel(v, dmm->base + DMM_PAT_AREA__0);
-
-	/* Clear the DMM_PAT_IRQSTATUS register */
-	writel(~0, dmm->base + DMM_PAT_IRQSTATUS);
-
-	ret = dmm_wait(dmm->base + DMM_PAT_IRQSTATUS_RAW), ~0, 0, timeout);
-	if (ret)
-		return ret;
-
-	/* Fill data register */
-	v = readl(dmm->base + DMM_PAT_DATA__0) & 0x0000000f;
-	v |= pat->data;
-	writel(v, dmm->base + DMM_PAT_DATA__0);
-
-	/*
-	 * Read back PAT_DATA__0 to see if write was successful
-	 * RMK: shouldn't this just check bits 31-4 ?  Is this just
-	 * trying to ensure that the value is written before the next one?
-	 * if so, writes to devices are ordered with each other, so this
-	 * should not be necessary.
-	 */
-	ret = dmm_wait(dmm->base + DMM_PAT_DATA__0, ~0, pat->data, timeout);
-	if (ret)
-		return ret;
-
-	v = readl(dmm->base + DMM_PAT_CTRL__0) & 0x0ffefc8e;
-	v |= (pat->ctrl.ini << 28) | (pat->ctrl.sync << 16) |
-	     (pat->ctrl.lut_id << 8) | (pat->ctrl.dir << 4) | pat->ctrl.start;
-	writel(v, dmm->base + DMM_PAT_CTRL__0);
-
-	/* Check if PAT_IRQSTATUS_RAW is set after the PAT has been refilled */
-	ret = dmm_wait(dmm->base + DMM_PAT_IRQSTATUS_RAW, 3, 3, timeout);
-	if (ret)
-		return ret;
-
-	/* Clear the DMM_PAT_IRQSTATUS register */
-	writel(~0, dmm->base + DMM_PAT_IRQSTATUS);
-
-	ret = dmm_wait(dmm->base + DMM_PAT_IRQSTATUS_RAW, ~0, 0, timeout);
-	if (ret)
-		return ret;	
-
-	/* Set "next" register to 0 to clear any PAT STATUS errors */
-	v = readl(dmm->base + DMM_PAT_DESCR__0);
-	v = SET_FLD(v, 31, 4, 0);
-	writel(v, dmm->base + DMM_PAT_DESCR__0);
-
-	/*
-	 * Now check that the DMM_PAT_STATUS register has not reported an error
-	 */
-	v = readl(dmm->base + DMM_PAT_STATUS__0);
-	if (v & 0xfc00)
-		return -EIO;
-
-	return 0;
-}
-
-static int dmm_probe(struct platform_device *pdev)
-{
-	struct resource *res = platform_get_resource(pdev, 0, IORESOURCE_MEM);
-	struct dmm *dmm;
-	int ret;
-
-	if (!res)
-		return -EINVAL;
-
-	if (request_mem_region(res->start, resource_size(res), "dmm")) {
-		ret = -EBUSY;
-		goto err_region;
-	}
-
-	dmm = kzalloc(sizeof(*dmm), GFP_KERNEL);
-	if (!dmm) {
-		ret = -ENOMEM;
-		goto err_kzalloc;
-	}
-
-	dmm->base = ioremap(res->start, resource_size(res));
-	if (!dmm->base) {
-		ret = -ENOMEM;
-		goto err_ioremap;
-	}
-
-	__raw_writel(0x88888888, dmm->base + DMM_PAT_VIEW__0);
-	__raw_writel(0x88888888, dmm->base + DMM_PAT_VIEW__1);
-	__raw_writel(0x80808080, dmm->base + DMM_PAT_VIEW_MAP__0);
-	__raw_writel(0x80000000, dmm->base + DMM_PAT_VIEW_MAP_BASE);
-	__raw_writel(0x88888888, dmm->base + DMM_TILER_OR__0);
-	__raw_writel(0x88888888, dmm->base + DMM_TILER_OR__1);
-
-	/* register with the tiler memory manager */
-	ret = tmm_register(&dmm->tmm, dmm_refill, dmm);
-	if (ret)
-		goto err_tmm_register;
-
-	return 0;
-
-err_tmm_register:
-	iounmap(dmm->base);
-err_iounmap:
-	kfree(dmm);
-err_kzalloc:
-	release_mem_region(res->start, resource_size(res));
-err_region:
-	return ret;
-}
-
-static void dmm_remove(struct platform_device *pdev)
-{
-	struct resource *res = platform_get_resource(pdev, 0, IORESOURCE_MEM);
-	struct dmm *dmm = platform_get_drvdata(pdev);
-
-	tmm_unregister(dmm->tmm);
-	iounmap(dmm->base);
-	kfree(dmm);
-	release_mem_region(res->start, resource_size(res));
-}
-
-static struct platform_driver dmm_driver = {
-	.driver = {
-		.owner = THIS_MODULE,
-		.name = "dmm",
-	},
-	.probe	= dmm_probe,
-	.remove	= dmm_remove,
-};
-
-static int __init dmm_init(void)
-{
-	return platform_driver_register(&dmm_driver);
-}
-module_init(dmm_init);
-
-static void __exit dmm_exit(void)
-{
-	platform_driver_unregister(&dmm_driver);
-}
-module_exit(dmm_exit);
-
-MODULE_AUTHOR("Name <email>");
-MODULE_DESCRIPTION("TI OMAP4 tiler hardware driver");
-MODULE_LICENSE("GPL v2");
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
