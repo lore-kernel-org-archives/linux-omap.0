@@ -1,99 +1,45 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: [PATCH 5/7] omap3: move EMU peripheral addresses to a platform header
-Date: Sun, 25 Jul 2010 20:05:18 +0300
-Message-ID: <1280077520-7538-6-git-send-email-virtuoso@slind.org>
+From: Hari Kanigeri <hari.kanigeri@gmail.com>
+Subject: Re: [PATCH 6/7] save and restore etm state across core OFF modes
+Date: Sun, 25 Jul 2010 12:34:22 -0600
+Message-ID: <AANLkTinmSJ6dtgqmyuk9CArniPEvEp7TrXauvGxLxv7x@mail.gmail.com>
 References: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Alexander Shishkin <virtuoso@slind.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+	<1280077520-7538-7-git-send-email-virtuoso@slind.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:32906 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439Ab0GYSeY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Jul 2010 14:34:24 -0400
+In-Reply-To: <1280077520-7538-7-git-send-email-virtuoso@slind.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alexander Shishkin <virtuoso@slind.org>
+Cc: linux-arm-kernel@lists.infradead.org, Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-These addresses are also needed for the OFF code to save/restore the
-contexts of the EMU peripherals correctly.
+> +config ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> + =A0 =A0 =A0 bool "Enable hardware emulation context save and restor=
+e"
+> + =A0 =A0 =A0 depends on ARCH_OMAP3
 
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
----
- arch/arm/mach-omap2/emu.c            |   14 ++++----------
- arch/arm/plat-omap/include/plat/io.h |   20 ++++++++++++++++++++
- 2 files changed, 24 insertions(+), 10 deletions(-)
+-- Shouldn't this be depends on OMAP3_EMU instead ?
 
-diff --git a/arch/arm/mach-omap2/emu.c b/arch/arm/mach-omap2/emu.c
-index 9c442e2..6b41745 100644
---- a/arch/arm/mach-omap2/emu.c
-+++ b/arch/arm/mach-omap2/emu.c
-@@ -24,19 +24,13 @@
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Alexander Shishkin");
- 
--/* Cortex CoreSight components within omap3xxx EMU */
--#define ETM_BASE	(L4_EMU_34XX_PHYS + 0x10000)
--#define DBG_BASE	(L4_EMU_34XX_PHYS + 0x11000)
--#define ETB_BASE	(L4_EMU_34XX_PHYS + 0x1b000)
--#define DAPCTL		(L4_EMU_34XX_PHYS + 0x1d000)
--
- static struct amba_device omap3_etb_device = {
- 	.dev		= {
- 		.init_name = "etb",
- 	},
- 	.res		= {
--		.start	= ETB_BASE,
--		.end	= ETB_BASE + SZ_4K - 1,
-+		.start	= OMAP34XX_ETB_PHYS,
-+		.end	= OMAP34XX_ETB_PHYS + OMAP34XX_ETB_SIZE - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	.periphid	= 0x000bb907,
-@@ -47,8 +41,8 @@ static struct amba_device omap3_etm_device = {
- 		.init_name = "etm",
- 	},
- 	.res		= {
--		.start	= ETM_BASE,
--		.end	= ETM_BASE + SZ_4K - 1,
-+		.start	= OMAP34XX_ETM_PHYS,
-+		.end	= OMAP34XX_ETM_PHYS + OMAP34XX_ETM_SIZE - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	.periphid	= 0x102bb921,
-diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-index 128b549..81f736a 100644
---- a/arch/arm/plat-omap/include/plat/io.h
-+++ b/arch/arm/plat-omap/include/plat/io.h
-@@ -185,6 +185,26 @@
- 
- /* 3430 IVA - currently unmapped */
- 
-+#define OMAP34XX_DBG_OFFSET	(0x00011000)
-+#define OMAP34XX_DBG_VIRT	(L4_EMU_34XX_VIRT + OMAP34XX_DBG_OFFSET)
-+#define OMAP34XX_DBG_PHYS	(L4_EMU_34XX_PHYS + OMAP34XX_DBG_OFFSET)
-+#define OMAP34XX_DBG_SIZE	SZ_4K
-+
-+#define OMAP34XX_ETM_OFFSET	(0x00010000)
-+#define OMAP34XX_ETM_VIRT	(L4_EMU_34XX_VIRT + OMAP34XX_ETM_OFFSET)
-+#define OMAP34XX_ETM_PHYS	(L4_EMU_34XX_PHYS + OMAP34XX_ETM_OFFSET)
-+#define OMAP34XX_ETM_SIZE	SZ_4K
-+
-+#define OMAP34XX_ETB_OFFSET	(0x0001b000)
-+#define OMAP34XX_ETB_VIRT	(L4_EMU_34XX_VIRT + OMAP34XX_ETB_OFFSET)
-+#define OMAP34XX_ETB_PHYS	(L4_EMU_34XX_PHYS + OMAP34XX_ETB_OFFSET)
-+#define OMAP34XX_ETB_SIZE	SZ_4K
-+
-+#define OMAP34XX_DAP_OFFSET	(0x0001d000)
-+#define OMAP34XX_DAP_VIRT	(L4_EMU_34XX_VIRT + OMAP34XX_DAP_OFFSET)
-+#define OMAP34XX_DAP_PHYS	(L4_EMU_34XX_PHYS + OMAP34XX_DAP_OFFSET)
-+#define OMAP34XX_DAP_SIZE	SZ_4K
-+
- /*
-  * ----------------------------------------------------------------------------
-  * Omap4 specific IO mapping
--- 
-1.7.1
+> + =A0 =A0 =A0 default y
+
+-- As this is debug option, can you keep this "n" by default ?
+
+> + =A0 =A0 =A0 help
+> + =A0 =A0 =A0 =A0 This option enables JTAG & ETM debugging across pow=
+er states.
+> + =A0 =A0 =A0 =A0 With out this option emulation features are reset a=
+cross OFF
+> + =A0 =A0 =A0 =A0 mode state changes.
+> +
+
+Hari
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
