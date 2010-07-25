@@ -1,55 +1,49 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: [PATCH 6/7] save and restore etm state across core OFF modes
-Date: Sun, 25 Jul 2010 22:38:51 +0300
-Message-ID: <20100725193851.GA14399@shisha.kicks-ass.net>
-References: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
- <1280077520-7538-7-git-send-email-virtuoso@slind.org>
- <AANLkTinmSJ6dtgqmyuk9CArniPEvEp7TrXauvGxLxv7x@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/1] DSPBRIDGE: cache operation against kernel address
+	instead of user's
+Date: Sun, 25 Jul 2010 23:10:32 +0300
+Message-ID: <AANLkTikZSAqtpTqgFWKTZjn9eLD2x9ENgNMhyjckCQuj@mail.gmail.com>
+References: <1257510861-18627-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=koi8-r
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTinmSJ6dtgqmyuk9CArniPEvEp7TrXauvGxLxv7x@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hari Kanigeri <hari.kanigeri@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:50906 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750850Ab0GYUKd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Jul 2010 16:10:33 -0400
+Received: by eya25 with SMTP id 25so353381eya.19
+        for <linux-omap@vger.kernel.org>; Sun, 25 Jul 2010 13:10:32 -0700 (PDT)
+In-Reply-To: <1257510861-18627-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, ameya.palande@nokia.com, h-kanigeri2@ti.com, x0095840@ti.com, omar.ramirez@ti.com, nm@ti.com
 
-On Sun, Jul 25, 2010 at 12:34:22 -0600, Hari Kanigeri wrote:
-> > +config ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> > + =9A =9A =9A bool "Enable hardware emulation context save and rest=
-ore"
-> > + =9A =9A =9A depends on ARCH_OMAP3
->=20
-> -- Shouldn't this be depends on OMAP3_EMU instead ?
-
-Not really. OMAP3_EMU will enable ETM/ETB drivers within omap, but this
-particular patch is also needed if you're using an external hardware
-debugger to debug code across OFF modes.
-
-> > + =9A =9A =9A default y
->=20
-> -- As this is debug option, can you keep this "n" by default ?
-
-This option allows for enabling certain debugging functionality in runt=
-ime
-(via a sysfs file), which is turned off by default. It is debatable whe=
-ther
-this option should default to 'y' or 'n', seeing as it doesn't add much
-overhead to the normal usecase.
-
-> > + =9A =9A =9A help
-> > + =9A =9A =9A =9A This option enables JTAG & ETM debugging across p=
-ower states.
-> > + =9A =9A =9A =9A With out this option emulation features are reset=
- across OFF
-> > + =9A =9A =9A =9A mode state changes.
-
-But I see that the wording is misleading and unclear, so I'll try to co=
-me
-up with something more descriptive.
-
-Regards,
---
-Alex
+SGksCgpXaGlsZSBpbnZlc3RpZ2F0aW5nIGEgYnVnIGluIG1hZW1vWzFdIEkgZm91bmQgdGhhdCB0
+aGlzIHBhdGNoIHRyaWdnZXJzCml0LCBJIHRoaW5rIEkgZm91bmQgdGhlIHJlYXNvbi4KCkl0IHBy
+b2JhYmx5IGRvZXNuJ3QgbWF0dGVyIGZvciB1cHN0cmVhbSBhbnltb3JlLgoKT24gRnJpLCBOb3Yg
+NiwgMjAwOSBhdCAzOjM0IFBNLCBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
+IHdyb3RlOgo+IEBAIC02OTAsMTQgKzczMiwxOSBAQCBzdGF0aWMgaW50IG1lbW9yeV9jaGVja192
+bWEodW5zaWduZWQgbG9uZyBzdGFydCwgdTMyIGxlbikKPiDCoCDCoCDCoCDCoGlmIChlbmQgPD0g
+c3RhcnQpCj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqByZXR1cm4gLUVJTlZBTDsKPgo+IC0gwqAg
+wqAgwqAgZG93bl9yZWFkKCZjdXJyZW50LT5tbS0+bW1hcF9zZW0pOwo+IC0KPiDCoCDCoCDCoCDC
+oHdoaWxlICgodm1hID0gZmluZF92bWEoY3VycmVudC0+bW0sIHN0YXJ0KSkgIT0gTlVMTCkgewo+
+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3NpemVfdCBzaXplOwo+Cj4gLSDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCBpZiAodm1hLT52bV9zdGFydCA+IHN0YXJ0KSB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCBlcnIgPSAtRUlOVkFMOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+aWYgKHZtYS0+dm1fZmxhZ3MgJiAoVk1fSU8gfCBWTV9QRk5NQVApKQo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0dXJuIC1FSU5WQUw7Cj4gKwo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgaWYgKHZtYS0+dm1fc3RhcnQgPiBzdGFydCkKPiArIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIHJldHVybiAtRUlOVkFMOwo+ICsKPiArIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIHNpemUgPSBtaW5fdChzc2l6ZV90LCB2bWEtPnZtX2VuZCAtIHN0YXJ0LCBsZW4pOwoKVGhp
+cyAnbGVuJyBpcyB0aGUgdG90YWwgbGVuZ3RoLCB3aGljaCBpcyBub3Qgd2hhdCB3ZSB3YW50OyBp
+biBlYWNoCml0ZXJhdGlvbiB0aGUgbGVuZ3RoIHNob3VsZCBiZSBkZWNyZWFzZWQgc28gdGhhdCBp
+dCdzIGFsd2F5cyB0aGUKcmVtYWluaW5nIGxlbmd0aC4gUmlnaHQ/CgpsZW4gLT0gc2l6ZTsKCj4g
+KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBlcnIgPSBtZW1vcnlfc3luY19wYWdlKHZtYSwgc3RhcnQs
+IHNpemUsIGZ0eXBlKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmIChlcnIpCj4gwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBicmVhazsKPiAtIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIH0KPgo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgaWYgKGVuZCA8PSB2bWEtPnZtX2VuZCkK
+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGJyZWFrOwoKWzFdIGh0dHBzOi8v
+YnVncy5tYWVtby5vcmcvc2hvd19idWcuY2dpP2lkPTEwODEzCgotLSAKRmVsaXBlIENvbnRyZXJh
+cwo=
