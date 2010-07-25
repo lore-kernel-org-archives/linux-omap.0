@@ -1,83 +1,154 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v3 3/7] DSPBRIDGE: do not call follow_page
-Date: Sun, 25 Jul 2010 23:13:49 +0300
-Message-ID: <AANLkTimrW7qOKmdDtNP4GcBv34yYNwzx49wkFd94o+Rz@mail.gmail.com>
-References: <1274976134-22769-1-git-send-email-ohad@wizery.com>
-	<1274976134-22769-4-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: [PATCH] omap3: make coresight register save across OFF modes a sysfs option
+Date: Mon, 26 Jul 2010 00:04:23 +0300
+Message-ID: <1280091863-8891-1-git-send-email-virtuoso@slind.org>
+References: <AANLkTinmSJ6dtgqmyuk9CArniPEvEp7TrXauvGxLxv7x@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:51986 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750788Ab0GYUNv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Jul 2010 16:13:51 -0400
-Received: by ewy23 with SMTP id 23so649073ewy.19
-        for <linux-omap@vger.kernel.org>; Sun, 25 Jul 2010 13:13:50 -0700 (PDT)
-In-Reply-To: <1274976134-22769-4-git-send-email-ohad@wizery.com>
+Received: from filtteri5.pp.htv.fi ([213.243.153.188]:40905 "EHLO
+	filtteri5.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038Ab0GYVKK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Jul 2010 17:10:10 -0400
+In-Reply-To: <AANLkTinmSJ6dtgqmyuk9CArniPEvEp7TrXauvGxLxv7x@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Kanigeri Hari <h-kanigeri2@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Guzman Lugo Fernando <x0095840@ti.com>, Menon Nishanth <nm@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
+To: Hari Kanigeri <hari.kanigeri@gmail.com>
+Cc: Alexander Shishkin <virtuoso@slind.org>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+This adds a sysfs file at /sys/power/coresight_save which is used to
+control if the ETM and debug components' states should be saved and
+restored across OFF modes.
 
-Just for the record, I found a problem in this patch. The next patch
-in the series overrides it, so it's not that important, unless
-somebody picks only this patch.
+Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+---
+ arch/arm/mach-omap2/Makefile    |    1 +
+ arch/arm/mach-omap2/debug34xx.c |   66 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h        |    6 +++
+ arch/arm/mach-omap2/pm34xx.c    |    3 ++
+ 4 files changed, 76 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/debug34xx.c
 
-On Thu, May 27, 2010 at 7:02 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> @@ -537,23 +606,30 @@ dsp_status proc_enum_nodes(void *hprocessor, vo=
-id **node_tab,
-> =C2=A0}
->
-> =C2=A0/* Cache operation against kernel address instead of users */
-> -static int memory_sync_page(struct vm_area_struct *vma, unsigned lon=
-g start,
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 ssize_t len, enum dsp_flushtype ftype)
-> +static int memory_sync_page(struct dmm_map_object *map_obj,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 unsigned long star=
-t, ssize_t len, enum dsp_flushtype ftype)
-> =C2=A0{
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct page *page;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0void *kaddr;
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index f5b4ff4..3a64ce4 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -49,6 +49,7 @@ ifeq ($(CONFIG_PM),y)
+ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
++obj-$(CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG) += debug34xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ 
+ AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+diff --git a/arch/arm/mach-omap2/debug34xx.c b/arch/arm/mach-omap2/debug34xx.c
+new file mode 100644
+index 0000000..698e83a
+--- /dev/null
++++ b/arch/arm/mach-omap2/debug34xx.c
+@@ -0,0 +1,66 @@
++/*
++ * Control saving and restoring of coresight components' state during
++ * OFF mode.
++ *
++ * Copyright (C) 2010 Nokia Corporation
++ * Alexander Shishkin
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/sysfs.h>
++#include <linux/kobject.h>
++
++#include "pm.h"
++
++/*
++ * Pointer to a place in sram where the ETM/debug state save
++ * flag is. It can be calculated after the omap_sram_idle is
++ * pushed to sram.
++ */
++static unsigned int *_etm_save;
++
++/*
++ * sysfs file /sys/power/coresight_save controls whether the
++ * state of coresight components should be saved and restored
++ * across OFF modes.
++ */
++static ssize_t coresight_save_show(struct kobject *kobj,
++				  struct kobj_attribute *attr,
++				  char *buf)
++{
++	return sprintf(buf, "%u\n", *_etm_save);
++}
++
++static ssize_t coresight_save_store(struct kobject *kobj,
++				   struct kobj_attribute *attr,
++				   const char *buf, size_t n)
++{
++	unsigned int value;
++
++	if (sscanf(buf, "%u", &value) != 1)
++		return -EINVAL;
++
++	*_etm_save = !!value;
++
++	return n;
++}
++
++static struct kobj_attribute coresight_save_attr =
++	__ATTR(coresight_save, 0644, coresight_save_show, coresight_save_store);
++
++int omap3_coresight_pm_init(void *sram_addr)
++{
++	int ret;
++
++	/* the last word from the top of omap_sram_idle */
++	_etm_save = (unsigned *)((u8 *)sram_addr + omap34xx_cpu_suspend_sz - 4);
++
++	ret = sysfs_create_file(power_kobj, &coresight_save_attr.attr);
++
++	return ret;
++}
++
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 3de6ece..0321834 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -76,6 +76,12 @@ extern void omap34xx_cpu_suspend(u32 *addr, int save_state);
+ extern void save_secure_ram_context(u32 *addr);
+ extern void omap3_save_scratchpad_contents(void);
+ 
++#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
++int omap3_coresight_pm_init(void *sram_addr);
++#else
++#define omap3_coresight_pm_init(x) do {} while (0)
++#endif
++
+ extern unsigned int omap24xx_idle_loop_suspend_sz;
+ extern unsigned int omap34xx_suspend_sz;
+ extern unsigned int save_secure_ram_context_sz;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index fb4994a..c389e65 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -1096,6 +1096,9 @@ static int __init omap3_pm_init(void)
+ 	core_clkdm = clkdm_lookup("core_clkdm");
+ 
+ 	omap_push_sram_idle();
++
++	omap3_coresight_pm_init(_omap_sram_idle);
++
+ #ifdef CONFIG_SUSPEND
+ 	suspend_set_ops(&omap_pm_ops);
+ #endif /* CONFIG_SUSPEND */
+-- 
+1.7.1
 
-[...]
-
-> - =C2=A0 =C2=A0 =C2=A0 if (memory_sync_vma((u32) pmpu_addr, ul_size, =
-=46lushMemType)) {
-> + =C2=A0 =C2=A0 =C2=A0 /* find requested memory are in cached mapping=
- information */
-> + =C2=A0 =C2=A0 =C2=A0 map_obj =3D find_containing_mapping(pr_ctxt, (=
-u32) pmpu_addr, ul_size);
-> + =C2=A0 =C2=A0 =C2=A0 if (!map_obj) {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err("%s: find_c=
-ontaining_mapping failed\n", __func__);
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 status =3D -EFAULT=
-;
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err_out;
-> + =C2=A0 =C2=A0 =C2=A0 }
-> + =C2=A0 =C2=A0 =C2=A0 if (memory_sync_page(map_obj, (u32) pmpu_addr,=
- ul_size, ul_flags)) {
-
-It should be FlushMemType, not ul_flags.
-
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0pr_err("%s: In=
-Valid address parameters %p %x\n",
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0__func__, pmpu_addr, ul_size);
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0__func__, pmpu_addr, ul_size);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D -EF=
-AULT;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
