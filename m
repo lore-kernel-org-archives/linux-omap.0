@@ -1,116 +1,118 @@
-From: "Gabay, Benzy" <benzyg-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2 19/20] omap: zoom: keep the MMC3 wl1271 device
- powered 	off
-Date: Mon, 26 Jul 2010 13:33:10 -0500
-Message-ID: <676FD6AA0F002F49B89E70F0C5EFD22C131128FA47@dlee04.ent.ti.com>
-References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
- 	<1279733634-21974-20-git-send-email-ohad@wizery.com>
- <676FD6AA0F002F49B89E70F0C5EFD22C1311192A47@dlee04.ent.ti.com>
- <AANLkTim3RWv2-qi9UMg1imwKTJuh3GstdjMTxz64uOHf@mail.gmail.com>
+From: "Sin, David" <davidsin@ti.com>
+Subject: RE: [RFC 0/8] TI TILER-DMM driver
+Date: Mon, 26 Jul 2010 14:20:41 -0500
+Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D63B9DA4@dlee02.ent.ti.com>
+References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C6255358@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTim3RWv2-qi9UMg1imwKTJuh3GstdjMTxz64uOHf-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C6255358@dbde02.ent.ti.com>
 Content-Language: en-US
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr-l0cyMroinI0@public.gmane.org>, Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>
+Sender: linux-media-owner@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>li
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>
 List-Id: linux-omap@vger.kernel.org
 
-Ohad,
+Thanks, Santosh, for your comments.  I will roll them into an RFC v2.
 
+Also, adding the media list...
+
+-David
+
+-----Original Message-----
+From: Shilimkar, Santosh 
+Sent: Saturday, July 24, 2010 2:45 AM
+To: Sin, David; linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org; Tony Lindgren; Russell King
+Cc: Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Cousson, Benoit
+Subject: RE: [RFC 0/8] TI TILER-DMM driver
+
+David, 
 > -----Original Message-----
-> From: Ohad Ben-Cohen [mailto:ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org]
-> Sent: Thursday, July 22, 2010 6:18 PM
-> To: Gabay, Benzy
-> Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org;
-> linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org; Chikkature Rajashekar, Madhusudhan; Luciano
-> Coelho; akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org; San Mehat; Roger Quadros; Tony
-> Lindgren; Nicolas Pitre; Pandita, Vikram; Kalle Valo
-> Subject: Re: [PATCH v2 19/20] omap: zoom: keep the MMC3 wl1271 device
-> powered off
->=20
-> Hi Gever,
->=20
-> On Wed, Jul 21, 2010 at 9:55 PM, Gabay, Benzy <benzyg-l0cyMroinI0@public.gmane.org> wrote:
-> > From: Ohad Ben-Cohen [mailto:ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org]
-> > Sent: Wednesday, July 21, 2010 12:34 PM
-> > To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linu=
-x-
-> omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org;
-> Chikkature Rajashekar, Madhusudhan; Luciano Coelho; akpm@linux-
-> foundation.org; San Mehat; Roger Quadros; Tony Lindgren; Nicolas Pitr=
-e;
-> Pandita, Vikram; Kalle Valo; Ohad Ben-Cohen
-> > Subject: [PATCH v2 19/20] omap: zoom: keep the MMC3 wl1271 device
-> powered off
-> >
-> > Keep the MMC3 wl1271 WLAN device powered off until its
-> > SDIO function driver requests otherwise.
-> >
-> > Signed-off-by: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-> > ---
-> > =A0arch/arm/mach-omap2/board-zoom-peripherals.c | =A0 =A01 +
-> > =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 =A03 +++
-> > =A0arch/arm/mach-omap2/hsmmc.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
- =A0 =A01 +
-> > =A0arch/arm/plat-omap/include/plat/mmc.h =A0 =A0 =A0 =A0| =A0 =A03 =
-+++
-> > =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A03 +++
-> > =A05 files changed, 11 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> > index 3230801..3ab9125 100644
-> > --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> > +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> > @@ -217,6 +217,7 @@ static struct omap2_hsmmc_info mmc[] __initdata=
- =3D
-> {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.gpio_wp =A0 =A0 =A0 =A0=3D -EINVAL,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.gpio_cd =A0 =A0 =A0 =A0=3D -EINVAL,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.ocr_mask =A0 =A0 =A0 =3D MMC_VDD_16=
-5_195,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .dont_power_card =3D true,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.priv_data =A0 =A0 =A0=3D &omap_zoom=
-_wlan_data,
-> > =A0 =A0 =A0 =A0},
-> > =A0 =A0 =A0 =A0{} =A0 =A0 =A0/* Terminator */
-> ...
-> > --
-> > 1.7.0.4
-> >
-> > [Benzy Gabay] small comment: Please make sure that all 127x related
-> changes are not bounded only to MMC3.
-> > On OMAP4 WLAN is used on MMC5.
->=20
->=20
-> The only place MMC3 is bound is in the board files (see code snippet
-> above), so that should be ok.
->=20
-> I can probably split this patch to make this more obvious just by
-> reading the diffstat if you prefer.
+> From: Sin, David
+> Sent: Saturday, July 24, 2010 4:52 AM
+> To: linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org;
+> Tony Lindgren; Russell King
+> Cc: Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Shilimkar, Santosh;
+> Sin, David
+> Subject: [RFC 0/8] TI TILER-DMM driver
+> 
+> TILER is a hardware block made by Texas Instruments.  Its purpose is to
+> organize video/image memory in a 2-dimensional fashion to limit memory
+> bandwidth and facilitate 0 effort rotation and mirroring.  The TILER
+> driver facilitates allocating, freeing, as well as mapping 2D blocks
+> (areas)
+> in the TILER container(s).  It also facilitates rotating and mirroring
+> the allocated blocks or its rectangular subsections.
+> 
+> List of pending items in proposed order:
+> 
+> * Add area packing support (multiple blocks can reside in the same
+> band/area)
+>   to optimize area use
+> * Add group-ID support (to specify which blocks can reside together in the
+>   same area)
+> * Add multiple search directions to TCM-SiTA
+> * Add 1D block support (including adding 1D search algo to TCM-SiTA)
+> * Optimize mutex handling (don.t hold mutex during memory
+>   allocation/mapping/cache flushing)
+> * Add block reference counting, support for sharing blocks
+> * Move all kernel-API-s to tiler-iface.c
+> * Support orphaned block support (in preparation for process cleanup
+> support)
+> * Change block identification from physical address to key-ID pair
+>   (in preparation for user space support, and process security)
+> * Add support for process security (blocks from separate processes never
+>   reside in the same band)
+> * Support file interface (ioctl and mmap)
+> * Support for buffers (ordered list of blocks that are mapped to userspace
+>   together, such as YUV420sp)
+> * Support 1D user buffer mapping into TILER container
+> * Support for block pre-reservation (to further optimize area use)
+> 
+> David Sin (1):
+>   TILER-DMM: DMM-PAT driver for TI TILER
+> 
+> Lajos Molnar (6):
+>   TILER-DMM: Container manager interface and utility definitons
+>   TILER-DMM: TILER Memory Manager interface and implementation
+>   TILER-DMM: TILER interface file and documentation
+>   TILER-DMM: Geometry and view manipulation functions.
+>   TILER-DMM: Main TILER driver implementation.
+>   TILER-DMM: Linking TILER driver into the Linux kernel build
+> 
+> Ravi Ramachandra (1):
+>   TILER-DMM: Sample TCM implementation: Simple TILER Allocator
+> 
+I am just summarizing some of my comments here
 
+1. linux-arm-kernel@lists.arm.linux.org.uk is not operational anymore. The
+current list is linux-arm-kernel@lists.infradead.org
 
-Yep. That will be great.
+2. Thanks for the Documentation patch. Just take care of correct directory for same
 
-Benzy
+3. iormap on RAM will be prohibited. Russell has a patch in the queue so
+	we need to look at the alternative.
+4. You haven't implemented probe fuction in both of your diver and doing
+all work in init itself. You might want to revisit that
 
+5. DMM register info is auto-generated thanks to Benoit. We can use that directly.
 
->=20
->=20
-> Thanks,
-> Ohad.
->=20
->=20
-> >
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireles=
-s" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+6. There are too many header files(8-9) and I think you can re-organise all of them to manage with 3-4
+
+7. Commenting style is not consistent in all patches and does not follow
+linux style in few places
+
+8. The DMM driver registration can be done using omap_device framework as
+is being done for most of the OMAP4 drivers.
+
+9. Error handling can be improved
+
+10. There is an excessive usage of barriers and may be we can keep 
+only the necessary ones.
+
+Thanks for the tiler port.
+
+Regards,
+Santosh
