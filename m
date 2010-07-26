@@ -1,285 +1,181 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: [PATCH] save and restore etm state across core OFF modes
-Date: Mon, 26 Jul 2010 00:15:47 +0300
-Message-ID: <1280092547-9015-1-git-send-email-virtuoso@slind.org>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] omap3: make coresight register save across OFF modes a
+ sysfs option
+Date: Mon, 26 Jul 2010 12:28:38 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C625569B@dbde02.ent.ti.com>
 References: <AANLkTinmSJ6dtgqmyuk9CArniPEvEp7TrXauvGxLxv7x@mail.gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:56190 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751591Ab0GYVVI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Jul 2010 17:21:08 -0400
-In-Reply-To: <AANLkTinmSJ6dtgqmyuk9CArniPEvEp7TrXauvGxLxv7x@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+ <1280091863-8891-1-git-send-email-virtuoso@slind.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1280091863-8891-1-git-send-email-virtuoso@slind.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexander Shishkin <virtuoso@slind.org>, Hari Kanigeri <hari.kanigeri@gmail.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hari Kanigeri <hari.kanigeri@gmail.com>
-Cc: Alexander Shishkin <virtuoso@slind.org>, linux-arm-kernel@lists.infradead.org, Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This prevents ETM stalls whenever core enters OFF mode. Original patch
-author is Richard Woodruff <r-woodruff2@ti.com>.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Alexander Shishkin
+> Sent: Monday, July 26, 2010 2:34 AM
+> To: Hari Kanigeri
+> Cc: Alexander Shishkin; linux-arm-kernel@lists.infradead.org; Tony
+> Lindgren; Russell King; Paul Walmsley; Kevin Hilman; linux-
+> omap@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] omap3: make coresight register save across OFF modes a
+> sysfs option
+> 
+> This adds a sysfs file at /sys/power/coresight_save which is used to
+> control if the ETM and debug components' states should be saved and
+> restored across OFF modes.
+> 
+> Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-kernel@vger.kernel.org
+> ---
+>  arch/arm/mach-omap2/Makefile    |    1 +
+>  arch/arm/mach-omap2/debug34xx.c |   66
+> +++++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/pm.h        |    6 +++
+>  arch/arm/mach-omap2/pm34xx.c    |    3 ++
+>  4 files changed, 76 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/debug34xx.c
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index f5b4ff4..3a64ce4 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -49,6 +49,7 @@ ifeq ($(CONFIG_PM),y)
+>  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+>  obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
+> +obj-$(CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG) += debug34xx.o
+>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+> 
+>  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+> diff --git a/arch/arm/mach-omap2/debug34xx.c b/arch/arm/mach-
+> omap2/debug34xx.c
+> new file mode 100644
+> index 0000000..698e83a
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/debug34xx.c
 
-This version of the patch makes use of the ETM OS save/restore mechanism,
-which takes about 55 words in omap3_arm_context[] instead of 128. Also,
-saving ETM context can be switched on/off at runtime.
+> @@ -0,0 +1,66 @@
+> +/*
+> + * Control saving and restoring of coresight components' state during
+> + * OFF mode.
+> + *
+> + * Copyright (C) 2010 Nokia Corporation
+> + * Alexander Shishkin
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/sysfs.h>
+> +#include <linux/kobject.h>
+> +
+> +#include "pm.h"
+> +
+> +/*
+> + * Pointer to a place in sram where the ETM/debug state save
+> + * flag is. It can be calculated after the omap_sram_idle is
+> + * pushed to sram.
+> + */
+> +static unsigned int *_etm_save;
+> +
+> +/*
+> + * sysfs file /sys/power/coresight_save controls whether the
+> + * state of coresight components should be saved and restored
+> + * across OFF modes.
+> + */
+> +static ssize_t coresight_save_show(struct kobject *kobj,
+> +				  struct kobj_attribute *attr,
+> +				  char *buf)
+> +{
+> +	return sprintf(buf, "%u\n", *_etm_save);
+> +}
+> +
+> +static ssize_t coresight_save_store(struct kobject *kobj,
+> +				   struct kobj_attribute *attr,
+> +				   const char *buf, size_t n)
+> +{
+> +	unsigned int value;
+> +
+> +	if (sscanf(buf, "%u", &value) != 1)
+> +		return -EINVAL;
+> +
+> +	*_etm_save = !!value;
+> +
+> +	return n;
+> +}
+> +
+> +static struct kobj_attribute coresight_save_attr =
+> +	__ATTR(coresight_save, 0644, coresight_save_show,
+> coresight_save_store);
+> +
+> +int omap3_coresight_pm_init(void *sram_addr)
+> +{
+> +	int ret;
+> +
+> +	/* the last word from the top of omap_sram_idle */
+> +	_etm_save = (unsigned *)((u8 *)sram_addr + omap34xx_cpu_suspend_sz -
+> 4);
+> +
+> +	ret = sysfs_create_file(power_kobj, &coresight_save_attr.attr);
+> +
+> +	return ret;
+> +}
 
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
----
- arch/arm/mach-omap2/Kconfig               |   12 +++
- arch/arm/mach-omap2/control.c             |    2 +-
- arch/arm/mach-omap2/sleep34xx.S           |  135 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/control.h |    2 +-
- 4 files changed, 149 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index b48bacf..b00d719 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -243,6 +243,18 @@ config MACH_OMAP4_PANDA
- 	default y
- 	depends on ARCH_OMAP4
- 
-+config ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-+	bool "Enable hardware emulation context save and restore"
-+	depends on ARCH_OMAP3
-+	default y
-+	help
-+	  This option enables the code that controls the capability to
-+	  save and restore JTAG & ETM debugging across power states. It
-+	  may be required when using the ETM/ETB tracing driver or an
-+	  external debugging hardware.
-+	  Without this option emulation features' states are reset across
-+	  OFF mode state changes.
-+
- config OMAP3_EMU
- 	bool "OMAP3 debugging peripherals"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index a8d20ee..22dd240 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -93,7 +93,7 @@ void *omap3_secure_ram_storage;
-  * The address is stored in scratchpad, so that it can be used
-  * during the restore path.
-  */
--u32 omap3_arm_context[128];
-+u32 omap3_arm_context[256];
- 
- struct omap3_control_regs {
- 	u32 sysconfig;
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index d522cd7..cd6a1d4 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -28,6 +28,7 @@
- #include <asm/assembler.h>
- #include <mach/io.h>
- #include <plat/control.h>
-+#include <asm/hardware/coresight.h>
- 
- #include "cm.h"
- #include "prm.h"
-@@ -226,6 +227,18 @@ loop:
- 	nop
- 	bl wait_sdrc_ok
- 
-+#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-+	/*
-+	 * Restore Coresight debug registers
-+	 */
-+	ldr	r6, debug_vbase		/* base Vaddr of CortexA8-Debug */
-+	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-+	bl	unlock_debug		/* remove global lock if set */
-+	ldr	r6, etm_vbase		/* base Vaddr of ETM */
-+	bl	unlock_debug		/* remove global lock if set */
-+	str	r6, [r6, #ETMMR_OSLAR]	/* clear OSLAR lock using non-key */
-+#endif
-+
- 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
- restore_es3:
- 	/*b restore_es3*/		@ Enable to debug restore code
-@@ -385,6 +398,44 @@ logic_l1_restore:
- 	/*normal memory remap register */
- 	MCR p15, 0, r5, c10, c2, 1
- 
-+#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-+	/*
-+	 * Restore Coresight debug registers
-+	 */
-+	ldr	r6, debug_pbase		/* base paddr of CortexA8-Debug */
-+	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-+	bl	unlock_debug		/* remove global lock if set */
-+	str	r4, [r6, #ETMMR_OSLAR]	/* reset-pointer (already locked) */
-+	ldr	r4, [r6, #ETMMR_OSSRR]	/* dummy read */
-+	ldr	r4, [r3], #4		/* load save size */
-+	cmp	r4, #0			/* check for zero */
-+debug_restore:
-+	ittt	ne			/* t2/compat if-then block */
-+	ldrne	r5, [r3], #4		/* get saved value */
-+	strne	r5, [r6,#ETMMR_OSSRR]	/* restore saved value */
-+	subnes	r4, r4, #1		/* decrement loop */
-+	bne	debug_restore		/* loop till done */
-+	str	r5, [r6, #ETMMR_OSSRR]	/* clear lock */
-+	/*
-+	 * Restore CoreSight ETM registers
-+	 */
-+	ldr	r6, etm_pbase		/* base paddr of ETM */
-+	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-+	bl	unlock_debug		/* remove global lock if set */
-+	str	r4, [r6, #ETMMR_OSLAR]	/* reset-pointer (already locked) */
-+	ldr	r4, [r6, #ETMMR_OSSRR]	/* dummy read */
-+	ldr	r4, [r3], #4		/* load save size */
-+	cmp	r4, #0			/* check for zero */
-+	beq	etm_skip
-+etm_restore:
-+	ldrne	r5, [r3], #4		/* get saved value */
-+	strne	r5, [r6, #ETMMR_OSSRR]	/* restore saved value */
-+	subnes	r4, r4, #1		/* decrement loop */
-+	bne	etm_restore		/* loop till done */
-+etm_skip:
-+	str	r6, [r6, #ETMMR_OSLAR]	/* remove OS lock */
-+#endif
-+
- 	/* Restore cpsr */
- 	ldmia	r3!,{r4}	/*load CPSR from SDRAM*/
- 	msr	cpsr, r4	/*store cpsr */
-@@ -506,6 +557,48 @@ l1_logic_lost:
- 	mrc	p15, 0, r5, c10, c2, 1
- 	stmia	r8!,{r4-r5}
- 
-+#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-+	/*
-+	 * Save Coresight debug registers
-+	 */
-+	ldr	r4, do_etm_save
-+	cmp	r4, #0
-+	streq	r4, [r8], #4		/* 0 for coresight saved size */
-+	streq	r4, [r8], #4		/* 0 for ETM saved size */
-+	beq	etm_skip_save
-+	ldr	r6, debug_vbase		/* base vaddr of CortexA8-Debug */
-+	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-+	bl	unlock_debug		/* force global unlock */
-+	str	r4, [r6, #ETMMR_OSLAR]	/* lock debug access */
-+	ldr	r4, [r6, #ETMMR_OSSRR]	/* OSSRR returns size on first read */
-+	str	r4, [r8], #4		/* push item to save area */
-+	cmp	r4, #0			/* zero check */
-+debug_save:
-+	ittt	ne			/* thumb 2 compat if-then block */
-+	ldrne	r5, [r6, #ETMMR_OSSRR]	/* get reg value */
-+	strne	r5, [r8], #4		/* push item to save area */
-+	subnes	r4, r4, #1		/* decrement size */
-+	bne	debug_save		/* loop till done */
-+	str	r6, [r6, #ETMMR_OSLAR]	/* unlock debug access */
-+	/*
-+	 * Save etm registers
-+	 */
-+	ldr	r6, etm_vbase		/* base vaddr of ETM */
-+	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-+	bl	unlock_debug		/* force global unlock */
-+	str	r4, [r6, #ETMMR_OSLAR]	/* lock OS access to trace regs */
-+	ldr	r4, [r6, #ETMMR_OSSRR]	/* OSSRR returns size on first read */
-+	str	r4, [r8], #4		/* push size to save area */
-+	cmp	r4, #0			/* zero check */
-+etm_save:
-+	ldrne	r5, [r6, #ETMMR_OSSRR]	/* get reg value */
-+	strne	r5, [r8], #4		/* push item to save area */
-+	subnes	r4, r4, #1		/* decrement size */
-+	bne	etm_save		/* loop till done */
-+	str	r6, [r6, #ETMMR_OSLAR]	/* unlock debug access */
-+etm_skip_save:
-+#endif
-+
- 	/* Store current cpsr*/
- 	mrs	r2, cpsr
- 	stmia	r8!, {r2}
-@@ -520,6 +613,7 @@ clean_caches:
- 	cmp	r9, #1 /* Check whether L2 inval is required or not*/
- 	bne	skip_l2_inval
- clean_l2:
-+#ifndef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
- 	/* read clidr */
- 	mrc     p15, 1, r0, c0, c0, 1
- 	/* extract loc from clidr */
-@@ -586,6 +680,12 @@ finished:
- 	/* select current cache level in cssr */
- 	mcr     p15, 2, r10, c0, c0, 0
- 	isb
-+#else
-+	ldr	r1, kernel_flush	/* get 32 bit addr of flush */
-+	mov	lr, pc			/* prepare for return */
-+	bx	r1			/* do it */
-+#endif
-+
- skip_l2_inval:
- 	/* Data memory barrier and Data sync barrier */
- 	mov     r1, #0
-@@ -632,6 +732,36 @@ wait_dll_lock:
-         bne     wait_dll_lock
-         bx      lr
- 
-+#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-+	/*
-+	 * unlock debug:
-+	 *  Input:
-+	 *      r6 has base address of emulation
-+	 *      r4 has unlock key
-+	 *  Output
-+	 *      r5 has PDS value (1=accessable)
-+	 */
-+unlock_debug:
-+	ldr	r5, [r6, #CSMR_LOCKSTATUS]	/* get LSR */
-+	cmp	r5, #0x3			/* need unlocking? */
-+	streq	r4, [r6, #CSMR_LOCKACCESS]	/* unlock if so */
-+	ldr	r5, [r6, #ETMMR_PDSR]		/* clear power status */
-+	bx	lr				/* back to caller */
-+
-+debug_vbase:
-+	.word OMAP34XX_DBG_VIRT
-+debug_pbase:
-+	.word OMAP34XX_DBG_PHYS
-+etm_vbase:
-+	.word OMAP34XX_ETM_VIRT
-+etm_pbase:
-+	.word OMAP34XX_ETM_PHYS
-+debug_xlar_key:
-+	.word UNLOCK_MAGIC
-+#endif
-+
-+kernel_flush:
-+	.word v7_flush_dcache_all
- cm_idlest1_core:
- 	.word	CM_IDLEST1_CORE_V
- sdrc_dlla_status:
-@@ -668,5 +798,10 @@ cache_pred_disable_mask:
- 	.word	0xFFFFE7FB
- control_stat:
- 	.word	CONTROL_STAT
-+/* this word needs to be at the end */
-+#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-+do_etm_save:
-+	.word   0
-+#endif
- ENTRY(omap34xx_cpu_suspend_sz)
- 	.word	. - omap34xx_cpu_suspend
-diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index 131bf40..537acbe 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -362,7 +362,7 @@ extern void omap3_save_scratchpad_contents(void);
- extern void omap3_clear_scratchpad_contents(void);
- extern u32 *get_restore_pointer(void);
- extern u32 *get_es3_restore_pointer(void);
--extern u32 omap3_arm_context[128];
-+extern u32 omap3_arm_context[256];
- extern void omap3_control_save_context(void);
- extern void omap3_control_restore_context(void);
- 
--- 
-1.7.1
-
+Looking at content of this file, I think you can keep this under common 
+pm-debug.c file. 
+Any problems with that ?
+> +
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index 3de6ece..0321834 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -76,6 +76,12 @@ extern void omap34xx_cpu_suspend(u32 *addr, int
+> save_state);
+>  extern void save_secure_ram_context(u32 *addr);
+>  extern void omap3_save_scratchpad_contents(void);
+> 
+> +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> +int omap3_coresight_pm_init(void *sram_addr);
+> +#else
+> +#define omap3_coresight_pm_init(x) do {} while (0)
+> +#endif
+> +
+>  extern unsigned int omap24xx_idle_loop_suspend_sz;
+>  extern unsigned int omap34xx_suspend_sz;
+>  extern unsigned int save_secure_ram_context_sz;
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index fb4994a..c389e65 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -1096,6 +1096,9 @@ static int __init omap3_pm_init(void)
+>  	core_clkdm = clkdm_lookup("core_clkdm");
+> 
+>  	omap_push_sram_idle();
+> +
+> +	omap3_coresight_pm_init(_omap_sram_idle);
+> +
+>  #ifdef CONFIG_SUSPEND
+>  	suspend_set_ops(&omap_pm_ops);
+>  #endif /* CONFIG_SUSPEND */
+> --
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
