@@ -1,118 +1,103 @@
 From: "Sin, David" <davidsin@ti.com>
-Subject: RE: [RFC 0/8] TI TILER-DMM driver
-Date: Mon, 26 Jul 2010 14:20:41 -0500
-Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D63B9DA4@dlee02.ent.ti.com>
+Subject: RE: [RFC 1/8] TILER-DMM: DMM-PAT driver for TI TILER
+Date: Mon, 26 Jul 2010 14:28:17 -0500
+Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D63B9DC0@dlee02.ent.ti.com>
 References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C6255358@dbde02.ent.ti.com>
+ <1279927348-21750-2-git-send-email-davidsin@ti.com>
+ <20100724080915.GC15064@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C6255358@dbde02.ent.ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41629 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751632Ab0GZT2X convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jul 2010 15:28:23 -0400
+In-Reply-To: <20100724080915.GC15064@n2100.arm.linux.org.uk>
 Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>li
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Molnar, Lajos" <molnar@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
 
-Thanks, Santosh, for your comments.  I will roll them into an RFC v2.
-
-Also, adding the media list...
-
--David
+Thanks, Russel, for your comments.  I will rework the RFC and send out a v2 soon.  
 
 -----Original Message-----
-From: Shilimkar, Santosh 
-Sent: Saturday, July 24, 2010 2:45 AM
-To: Sin, David; linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org; Tony Lindgren; Russell King
-Cc: Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Cousson, Benoit
-Subject: RE: [RFC 0/8] TI TILER-DMM driver
+From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
+Sent: Saturday, July 24, 2010 3:09 AM
+To: Sin, David
+Cc: linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Shilimkar, Santosh; Molnar, Lajos
+Subject: Re: [RFC 1/8] TILER-DMM: DMM-PAT driver for TI TILER
 
-David, 
-> -----Original Message-----
-> From: Sin, David
-> Sent: Saturday, July 24, 2010 4:52 AM
-> To: linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org;
-> Tony Lindgren; Russell King
-> Cc: Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Shilimkar, Santosh;
-> Sin, David
-> Subject: [RFC 0/8] TI TILER-DMM driver
-> 
-> TILER is a hardware block made by Texas Instruments.  Its purpose is to
-> organize video/image memory in a 2-dimensional fashion to limit memory
-> bandwidth and facilitate 0 effort rotation and mirroring.  The TILER
-> driver facilitates allocating, freeing, as well as mapping 2D blocks
-> (areas)
-> in the TILER container(s).  It also facilitates rotating and mirroring
-> the allocated blocks or its rectangular subsections.
-> 
-> List of pending items in proposed order:
-> 
-> * Add area packing support (multiple blocks can reside in the same
-> band/area)
->   to optimize area use
-> * Add group-ID support (to specify which blocks can reside together in the
->   same area)
-> * Add multiple search directions to TCM-SiTA
-> * Add 1D block support (including adding 1D search algo to TCM-SiTA)
-> * Optimize mutex handling (don.t hold mutex during memory
->   allocation/mapping/cache flushing)
-> * Add block reference counting, support for sharing blocks
-> * Move all kernel-API-s to tiler-iface.c
-> * Support orphaned block support (in preparation for process cleanup
-> support)
-> * Change block identification from physical address to key-ID pair
->   (in preparation for user space support, and process security)
-> * Add support for process security (blocks from separate processes never
->   reside in the same band)
-> * Support file interface (ioctl and mmap)
-> * Support for buffers (ordered list of blocks that are mapped to userspace
->   together, such as YUV420sp)
-> * Support 1D user buffer mapping into TILER container
-> * Support for block pre-reservation (to further optimize area use)
-> 
-> David Sin (1):
->   TILER-DMM: DMM-PAT driver for TI TILER
-> 
-> Lajos Molnar (6):
->   TILER-DMM: Container manager interface and utility definitons
->   TILER-DMM: TILER Memory Manager interface and implementation
->   TILER-DMM: TILER interface file and documentation
->   TILER-DMM: Geometry and view manipulation functions.
->   TILER-DMM: Main TILER driver implementation.
->   TILER-DMM: Linking TILER driver into the Linux kernel build
-> 
-> Ravi Ramachandra (1):
->   TILER-DMM: Sample TCM implementation: Simple TILER Allocator
-> 
-I am just summarizing some of my comments here
+On Fri, Jul 23, 2010 at 06:22:21PM -0500, David Sin wrote:
+> +static struct platform_driver dmm_driver_ldm = {
+> +	.driver = {
+> +		.owner = THIS_MODULE,
+> +		.name = "dmm",
+> +	},
+> +	.probe = NULL,
+> +	.shutdown = NULL,
+> +	.remove = NULL,
+> +};
 
-1. linux-arm-kernel@lists.arm.linux.org.uk is not operational anymore. The
-current list is linux-arm-kernel@lists.infradead.org
+What's the point of this driver structure? [dhs] -- This is pretty much incomplete.  I will revist this based on the suggestions you and Santosh have given in the other e-mail replies. 
 
-2. Thanks for the Documentation patch. Just take care of correct directory for same
+> +s32 dmm_pat_refill(struct dmm *dmm, struct pat *pd, enum pat_mode mode)
+> +{
+> +	void __iomem *r;
+> +	u32 v;
+> +
+> +	/* Only manual refill supported */
+> +	if (mode != MANUAL)
+> +		return -EFAULT;
+> +
+> +	/* Check that the DMM_PAT_STATUS register has not reported an error */
+> +	r = dmm->base + DMM_PAT_STATUS__0;
+> +	v = __raw_readl(r);
+> +	if (WARN(v & 0xFC00, KERN_ERR "dmm_pat_refill() error.\n"))
+> +		return -EIO;
+> +
+> +	/* Set "next" register to NULL */
+> +	r = dmm->base + DMM_PAT_DESCR__0;
+> +	v = __raw_readl(r);
+> +	v = SET_FLD(v, 31, 4, (u32) NULL);
+> +	__raw_writel(v, r);
+> +
+> +	/* Set area to be refilled */
+> +	r = dmm->base + DMM_PAT_AREA__0;
+> +	v = __raw_readl(r);
+> +	v = SET_FLD(v, 30, 24, pd->area.y1);
+> +	v = SET_FLD(v, 23, 16, pd->area.x1);
+> +	v = SET_FLD(v, 14, 8, pd->area.y0);
+> +	v = SET_FLD(v, 7, 0, pd->area.x0);
+> +	__raw_writel(v, r);
+> +	wmb();
 
-3. iormap on RAM will be prohibited. Russell has a patch in the queue so
-	we need to look at the alternative.
-4. You haven't implemented probe fuction in both of your diver and doing
-all work in init itself. You might want to revisit that
+Maybe use writel() (which will contain the barrier _before_ the write op.) [dhs] -- I didn't know this.  Thanks for this input.
 
-5. DMM register info is auto-generated thanks to Benoit. We can use that directly.
+> +
+> +	/* First, clear the DMM_PAT_IRQSTATUS register */
+> +	r = dmm->base + DMM_PAT_IRQSTATUS;
+> +	__raw_writel(0xFFFFFFFF, r);
+> +	wmb();
 
-6. There are too many header files(8-9) and I think you can re-organise all of them to manage with 3-4
+And consider using:
+	writel(0xffffffff, dmm->base + DMM_PAT_IRQSTATUS);
 
-7. Commenting style is not consistent in all patches and does not follow
-linux style in few places
+In any case, writes to devices are ordered, so there's no real need to
+add barriers between each write - in which case writel_relaxed() or
+__raw_writel() can be used (which'll be added soon.) [dhs] -- OK, will incorporate in RFC v2.
 
-8. The DMM driver registration can be done using omap_device framework as
-is being done for most of the OMAP4 drivers.
+> +
+> +	r = dmm->base + DMM_PAT_IRQSTATUS_RAW;
+> +	while (__raw_readl(r) != 0)
+> +		;
 
-9. Error handling can be improved
+It's normal to use cpu_relax() in busy-wait loops.  What if the IRQ status
+never becomes zero? [dhs] -- I will revist this as well.
 
-10. There is an excessive usage of barriers and may be we can keep 
-only the necessary ones.
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_AUTHOR("davidsin@ti.com");
+> +MODULE_AUTHOR("molnar@ti.com");
 
-Thanks for the tiler port.
-
-Regards,
-Santosh
+MODULE_AUTHOR("Name <email>"); or just MODULE_AUTHOR("Name");
