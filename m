@@ -1,46 +1,41 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS2: DSI: Check for TX FIFO emptiness when sending long
- packets
-Date: Mon, 26 Jul 2010 13:20:08 +0300
-Message-ID: <1280139608.2427.27.camel@tubuntu.research.nokia.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870305FAB05B@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH 2/2] [ARM] omap: cm-t35: fix video signal on DVI panels
+Date: Mon, 26 Jul 2010 13:34:28 +0300
+Message-ID: <1280140468-8183-2-git-send-email-grinberg@compulab.co.il>
+References: <1280140468-8183-1-git-send-email-grinberg@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:16391 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815Ab0GZKUU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jul 2010 06:20:20 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870305FAB05B@dbde02.ent.ti.com>
+Received: from compulab.co.il ([67.18.134.219]:46246 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753884Ab0GZKeq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 26 Jul 2010 06:34:46 -0400
+In-Reply-To: <1280140468-8183-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Igor Grinberg <grinberg@compulab.co.il>, Mike Rapoport <mike@compulab.co.il>
 
-On Mon, 2010-07-26 at 11:28 +0200, ext Taneja, Archit wrote:
-> Hi,
-> 
-> I had a little query. We check for TX FIFO not full before
-> sending a short packet in dsi_vc_send_short(), but we
-> don't have a similar check in dsi_vc_send_long() before
-> writing to the long packet header.
-> 
-> There is a check of the static fifo size of the channel and
-> the length of data we are pushing, but that does not reflect
-> the state of the TX FIFO at that point of time.
-> 
-> Do you think we should have a check using DSI_TX_FIFO_VC_EMPTINESS
-> before writing to the long packet header?
+CM-T35 DVI transmitter sampling the data on the raising edge of the
+pixel clock, therefore the data strobe should happen on the falling
+edge.
 
-Yes, I think we should check that. Otherwise the transfer will break
-with DSI_VC_IRQ_FIFO_TX_OVF interrupt, although I think the lcd driver
-doesn't currently see this in any way.
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+---
+ arch/arm/mach-omap2/board-cm-t35.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Although I'm not sure which would be better, return an error (EBUSY?
-EWOULDBLOCK?) if the FIFO cannot hold the whole message, or block until
-the FIFO can hold the whole message...
-
- Tomi
-
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index e679a2c..1b636f8 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -384,6 +384,7 @@ static struct omap_dss_device cm_t35_dvi_device = {
+ 	.driver_name		= "generic_panel",
+ 	.type			= OMAP_DISPLAY_TYPE_DPI,
+ 	.phy.dpi.data_lines	= 24,
++	.panel.config		= OMAP_DSS_LCD_IPC | OMAP_DSS_LCD_ONOFF,
+ 	.platform_enable	= cm_t35_panel_enable_dvi,
+ 	.platform_disable	= cm_t35_panel_disable_dvi,
+ };
+-- 
+1.7.1
 
