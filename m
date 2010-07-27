@@ -1,65 +1,56 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: Issue with file transfers to a mass storage device on SMP system
-Date: Tue, 27 Jul 2010 15:08:54 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF707@dbde02.ent.ti.com>
-References: <00e601cb2d55$cb6253c0$808918ac@apr.dhcp.ti.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: Issue with file transfers to a mass storage device on SMP
+	system
+Date: Tue, 27 Jul 2010 11:01:21 +0100
+Message-ID: <20100727100121.GB7846@n2100.arm.linux.org.uk>
+References: <00e601cb2d55$cb6253c0$808918ac@apr.dhcp.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF707@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43046 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751222Ab0G0JjC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 05:39:02 -0400
-In-Reply-To: <00e601cb2d55$cb6253c0$808918ac@apr.dhcp.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF707-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Mankad, Maulik Ojas" <x0082077@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Mankad, Maulik Ojas
-> Sent: Tuesday, July 27, 2010 12:05 PM
-> To: linux-usb@vger.kernel.org
-> Cc: Shilimkar, Santosh; linux-arm-kernel@lists.infradead.org; linux-
-> omap@vger.kernel.org
-> Subject: Issue with file transfers to a mass storage device on SMP system
-> 
-> Hello,
-> 
-> I am working on OMAP4 which has two ARM Cortex A9 microprocessors (SMP
-> system) with 2.6.35-rc5 kernel.
-> 
-> I have an issue whereby transferring a large file (>20MB) over USB (OMAP
-> Mentor USB controller acts as USB host) to an attached USB thumb drive
-> fails.
-> 
-> The USB analyzer trace shows that the 31 bytes CBW packet is corrupted and
-> device responds with a STALL when this issue occurs.
-> 
-> Further it was found that the CBWCB field (the last 16 bytes which
-> contains
-> the command to be executed by the device) of the CBW packet was Zero in
-> the
-> failure case. Also the first 15 bytes of the CBW packet contained valid
-> data.
-> 
-> The code snippet below from usb_stor_Bulk_transport () in
-> drivers/usb/storage/transport.c looks to be a problem area.
-> 
-> /* copy the command payload */
-> 
->  memset(bcb->CDB, 0, sizeof(bcb->CDB));
->  memcpy(bcb->CDB, srb->cmnd, bcb->Length);
-> 
-> Looks like when the issue occurs the memory (bcb->CDB) is not yet updated
-> due to likely out of order execution due to SMP.
-> 
-As discussed, the main reason is the cache maintenance isn't done on
- "bcb->CDB"  buffers and hence the data remains in CPU write buffer instead of the physical memory on which DMA operates. 
-In working scenario's, there might be a barrier in the path which is helping
-you.
+On Tue, Jul 27, 2010 at 03:08:54PM +0530, Shilimkar, Santosh wrote:
+> As discussed, the main reason is the cache maintenance isn't done on
+>  "bcb->CDB"  buffers and hence the data remains in CPU write buffer
+> instead of the physical memory on which DMA operates. 
 
-Regards,
-Santosh
+struct bulk_cb_wrap {
+        __le32  Signature;              /* contains 'USBC' */
+        __u32   Tag;                    /* unique per command id */
+        __le32  DataTransferLength;     /* size of data */
+        __u8    Flags;                  /* direction in bit 0 */
+        __u8    Lun;                    /* LUN normally 0 */
+        __u8    Length;                 /* of of the CDB */
+        __u8    CDB[16];                /* max command */
+};
+
+So, CDB is contained within bcb...bcb+sizeof(*bcb).
+
+The bcb is passed to usb_stor_bulk_transfer_buf:
+
+        result = usb_stor_bulk_transfer_buf(us, us->send_bulk_pipe,
+                                bcb, cbwlen, NULL);
+
+which fills it into a URB:
+
+        usb_fill_bulk_urb(us->current_urb, us->pusb_dev, pipe, buf, length,
+                      usb_stor_blocking_completion, NULL);
+
+This sets the URB buffer pointers:
+
+        urb->transfer_buffer = transfer_buffer;
+        urb->transfer_buffer_length = buffer_length;
+
+And this buffer should be dma-mapped and dma-unmapped as appropriate.
+
+Wasn't there an issue with the DMA mapping being used with a PIO USB
+host recently?  Is that the problem here?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
