@@ -1,18 +1,18 @@
 From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [RFC 2/6] omap: introduce OMAP3 remoteproc module
-Date: Tue, 27 Jul 2010 20:53:24 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7DA2225@dbde02.ent.ti.com>
+Subject: RE: [RFC 5/6] omap: add remoteproc device(s)
+Date: Tue, 27 Jul 2010 21:14:37 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7DA2238@dbde02.ent.ti.com>
 References: <1278022994-28476-1-git-send-email-ohad@wizery.com>
- <1278022994-28476-3-git-send-email-ohad@wizery.com>
+ <1278022994-28476-6-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58882 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752661Ab0G0PXb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 11:23:31 -0400
-In-Reply-To: <1278022994-28476-3-git-send-email-ohad@wizery.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39614 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751045Ab0G0Pom convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 11:44:42 -0400
+In-Reply-To: <1278022994-28476-6-git-send-email-ohad@wizery.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -25,300 +25,163 @@ Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ben-cohen, Ohad" <ohadb@ti.com>
 > Sent: Friday, July 02, 2010 3:53 AM
 > To: linux-omap@vger.kernel.org
 > Cc: Kanigeri, Hari; Ben-cohen, Ohad
-> Subject: [RFC 2/6] omap: introduce OMAP3 remoteproc module
+> Subject: [RFC 5/6] omap: add remoteproc device(s)
 > 
 > From: Ohad Ben-Cohen <ohadb@ti.com>
 > 
-> Introduce OMAP3 remoteproc module which takes care of
-> machine-specific code required to start and stop
-> the DSP remote processor.
+> Add an omap_device for each remote processor on the system
 > 
 > Signed-off-by: Ohad Ben-Cohen <ohadb@ti.com>
 > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 > ---
->  arch/arm/mach-omap2/remoteproc3xxx.c |  226 
-> ++++++++++++++++++++++++++++++++++
->  1 files changed, 226 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/remoteproc3xxx.c
+>  arch/arm/mach-omap2/devices.c |   86 
+> +++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 86 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/remoteproc3xxx.c 
-> b/arch/arm/mach-omap2/remoteproc3xxx.c
-> new file mode 100644
-> index 0000000..f86a333
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/remoteproc3xxx.c
-> @@ -0,0 +1,226 @@
-> +/*
-> + * Remote Processor machine-specific module for OMAP3
-> + *
-> + * Copyright (C) 2010 Texas Instruments Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be 
-> useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +/* this is needed for multi-omap support */
-> +#ifdef CONFIG_ARCH_OMAP3
-
-[sp] If ARCH_OMAP3 is not defined this file shouldn't be compiled.
-     I do see that we are achieving the multi-omap support - a
-     concern I had in my comment on another patch in the series -
-     but this appears to be a hack.
-
-> +#include <linux/kernel.h>
-> +#include <linux/delay.h>
-> +#include <linux/clk.h>
+> diff --git a/arch/arm/mach-omap2/devices.c 
+> b/arch/arm/mach-omap2/devices.c
+> index 18ad931..d365db6 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/io.h>
+>  #include <linux/clk.h>
 > +#include <linux/err.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/io.h>
-> +#include <linux/pm_runtime.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -26,9 +27,13 @@
+>  #include <plat/mux.h>
+>  #include <mach/gpio.h>
+>  #include <plat/mmc.h>
 > +#include <plat/remoteproc.h>
-> +#include <mach/irqs.h>
+>  
+>  #include "mux.h"
+>  
 > +#include <plat/omap_device.h>
-> +#include <plat/control.h>
-> +#include <plat/common.h>
-> +#include <plat/powerdomain.h>
-> +#include <plat/clockdomain.h>
-> +#include <asm/uaccess.h>
+> +#include <plat/omap_hwmod.h>
 > +
-> +#include "cm-regbits-34xx.h"
-> +#include "prm-regbits-34xx.h"
-> +
-> +#define OMAP3_IVA2_BOOTADDR_MASK	0xFFFFFC00
-> +
-> +#define PRCM_PM_PWSTCTRL_IVA2_POWER_STATE_MASK		(u32)(3)
-> +#define PRCM_PM_PWSTCTRL_IVA2_POWER_STATE_OFFSET	(u32)(0)
-
-[sp] We should either use the definitions in prm-regbits-34xx.h/prm.h
-     or make sure appropriate headers are updated with these definitions.
-
-     The naming conventions here seem to be very differen from the ones
-     used in prm-regbits-34xx.h and prm.h
-
-> +
-> +#define PRCM_PM_PWSTST_IVA2_InTransition_MASK		
-> (u32)(0x100000)
-> +#define PRCM_PM_PWSTST_IVA2_InTransition_OFFSET		
-> (u32)(20)
-
-[sp] Is "InTransition" delibrately put in CamelCase?
-
-> +
-> +#define CM_CLKSTCTRL_IVA2_OFFSET	(0)
-> +#define CM_CLKSTCTRL_IVA2_MASK		(3)
-
-[sp] Same somment as before. See corresponding definition(s) in
-     cm-regbits-34xx.h for existing definitions, instead of
-     defining new ones.
-
-> +
-> +#define DSP_SYSC_DIRECTBOOT		(0)
-> +#define DSP_SYSC_IDLEBOOT		(1)
-> +#define DSP_SYSC_SELFLOOPBOOT		(2)
-> +#define DSP_SYSC_USRBOOTSTRAP		(3)
-> +#define DSP_SYSC_DEFAULTRESTORE		(4)
-> +
-> +#ifdef CONFIG_BRIDGE_DEBUG
-> +static void omap3_rproc_dump_regs(struct device *dev)
-> +{
-> +	u32 temp;
-> +
-> +	temp = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_FCLKEN);
-> +	dev_info(dev, "CM_FCLKEN_IVA2 = 0x%x \n", temp);
-
-[sp] Shouldn't we be using dev_dbg() here?
-     Also, same information is available in debugfs in base linux.
-     Is this function really needed here?
-
-> +	temp = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_ICLKEN1);
-> +	dev_info(dev, "CM_ICLKEN1_IVA2 = 0x%x \n", temp);
-> +	temp = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_IDLEST);
-> +	dev_info(dev, "CM_IDLEST_IVA2 = 0x%x \n", temp);
-> +	temp = cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
-> +	dev_info(dev, "CM_CLKSTCTRL_IVA2 = 0x%x \n", temp);
-> +	temp = cm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSTST);
-> +	dev_info(dev, "CM_CLKSTST_IVA2 = 0x%x \n", temp);
-> +	temp = prm_read_mod_reg(OMAP3430_IVA2_MOD, RM_RSTCTRL);
-> +	dev_info(dev, "RM_RSTCTRL_IVA2 = 0x%x \n", temp);
-> +	temp = prm_read_mod_reg(OMAP3430_IVA2_MOD, RM_RSTST);
-> +	dev_info(dev, "RM_RSTST_IVA2 = 0x%x \n", temp);
-> +	temp = prm_read_mod_reg(OMAP3430_IVA2_MOD, PM_PWSTCTRL);
-> +	dev_info(dev, "PM_PWSTCTRL_IVA2 = 0x%x \n", temp);
-> +	temp = prm_read_mod_reg(OMAP3430_IVA2_MOD, PM_PWSTST);
-> +	dev_info(dev, "PM_PWSTST_IVA2 = 0x%x \n", temp);
-> +	temp = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
-> +	dev_info(dev, "CM_ICLKEN1_CORE = 0x%x \n", temp);
-> +}
-> +#else
-> +static void omap3_rproc_dump_regs(struct device *dev) { }
-> +#endif
-> +
-> +static int omap3_rproc_get_state(struct device *dev)
-> +{
-> +	u32 dsp_pwr_state;
-> +
-> +	dsp_pwr_state = prm_read_mod_reg(OMAP3430_IVA2_MOD, PM_PWSTST);
-> +
-> +	return dsp_pwr_state & OMAP_POWERSTATEST_MASK;
-> +}
-> +
-> +static int omap3_rproc_start(struct device *dev, u32 start_addr)
-> +{
-> +	dev_info(dev, "%s: set boot mode, addr: 0x%x\n", 
-> __func__, start_addr);
-> +
-> +	omap3_rproc_dump_regs(dev);
-> +
-> +	if (PWRDM_POWER_ON != omap3_rproc_get_state(dev)) {
-> +		/* IVA2 is not in ON state */
-> +		/* Read and set PM_PWSTCTRL_IVA2 to ON */
-> +		prm_rmw_mod_reg_bits(OMAP_POWERSTATEST_MASK, 
-> PWRDM_POWER_ON,
-> +				OMAP3430_IVA2_MOD, PM_PWSTCTRL);
-> +
-> +		/* Set the SW supervised state transition */
-> +		cm_write_mod_reg(OMAP34XX_CLKSTCTRL_FORCE_WAKEUP,
-> +					OMAP3430_IVA2_MOD, 
-> CM_CLKSTCTRL);
-> +
-> +		/* Wait until the state has moved to ON */
-> +		while (prm_read_mod_reg(OMAP3430_IVA2_MOD, PM_PWSTST)
-> +						& OMAP_INTRANSITION)
-> +			;
-> +
-> +		/* Disable Automatic transition */
-> +		cm_write_mod_reg(OMAP34XX_CLKSTCTRL_DISABLE_AUTO,
-> +					OMAP3430_IVA2_MOD, 
-> CM_CLKSTCTRL);
-> +	}
-> +
-> +	/* Assert RST1 i.e only the RST only for DSP megacell */
-> +	prm_rmw_mod_reg_bits(OMAP3430_RST1_IVA2, OMAP3430_RST1_IVA2,
-> +					OMAP3430_IVA2_MOD, RM_RSTCTRL);
-> +	/* Mask address with 1K for compatibility */
-> +	omap_ctrl_writel(start_addr & OMAP3_IVA2_BOOTADDR_MASK,
-> +					OMAP343X_CONTROL_IVA2_BOOTADDR);
-> +	/* Set bootmode to self loop if dsp_debug flag is true */
-> +	omap_ctrl_writel(DSP_SYSC_DIRECTBOOT, 
-> OMAP343X_CONTROL_IVA2_BOOTMOD);
-> +
-> +	/*Set Autoidle Mode for IVA2 PLL */
-> +	cm_write_mod_reg(1 << OMAP3430_AUTO_IVA2_DPLL_SHIFT,
-> +				OMAP3430_IVA2_MOD, 
-> OMAP3430_CM_AUTOIDLE_PLL);
-> +
-> +	/* select GPT5 and GPT6 as IVA2 wake-up modules */
-> +	prm_rmw_mod_reg_bits(0x3F, 0xC0, OMAP3430_PER_MOD,
-> +							
-> OMAP3430_PM_IVAGRPSEL);
-> +
-> +	/* make sure GPT5 and GPT6 are not selected as MPU 
-> wake-up modules */
-> +	prm_rmw_mod_reg_bits(0xC0, 0, OMAP3430_PER_MOD, 
-> OMAP3430_PM_MPUGRPSEL);
-> +
-> +	/* PER domain sleep dependency with IVA2 domain is enabled */
-> +	cm_rmw_mod_reg_bits(4, 4, OMAP3430_PER_MOD, 
-> OMAP3430_CM_SLEEPDEP);
-> +
-> +	/* Allow automatic transitions */
-> +	cm_write_mod_reg(OMAP34XX_CLKSTCTRL_ENABLE_AUTO, 
-> OMAP3430_IVA2_MOD,
-> +								
-> CM_CLKSTCTRL);
-> +
-> +	/* Let DSP go */
-> +	dev_dbg(dev, "%s Unreset DSP\n", __func__);
-> +
-> +	/* release the RST1, DSP starts executing now .. */
-> +	prm_rmw_mod_reg_bits(OMAP3430_RST1_IVA2, 0, OMAP3430_IVA2_MOD,
-> +								
-> RM_RSTCTRL);
-> +
-> +	omap3_rproc_dump_regs(dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int omap3_rproc_stop(struct device *dev)
-> +{
-> +	dev_info(dev, "%s\n", __func__);
-> +
-> +	omap3_rproc_dump_regs(dev);
-> +
-> +	/* Set PM_PWSTCTRL_IVA2 to OFF */
-> +	prm_rmw_mod_reg_bits(OMAP_POWERSTATEST_MASK,
-> +			PWRDM_POWER_OFF, OMAP3430_IVA2_MOD, 
-> PM_PWSTCTRL);
-> +
-> +	/* Set the SW supervised state transition for Sleep */
-> +	cm_write_mod_reg(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, 
-> OMAP3430_IVA2_MOD,
-> +								
-> CM_CLKSTCTRL);
-> +
-> +	/* Reset RST1 + RST3 */
-> +	prm_rmw_mod_reg_bits(OMAP3430_RST1_IVA2 | OMAP3430_RST3_IVA2,
-> +				OMAP3430_RST1_IVA2 | OMAP3430_RST3_IVA2,
-> +				OMAP3430_IVA2_MOD, RM_RSTCTRL);
-> +
-> +	udelay(10);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct omap_rproc_ops omap3_rproc_ops = {
-> +	.start		= omap3_rproc_start,
-> +	.stop		= omap3_rproc_stop,
-> +	.get_state	= omap3_rproc_get_state,
-> +};
-> +
-> +static struct omap_rproc_platform_data omap3_rproc_data[] = {
+>  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+>  
+>  static struct resource cam_resources[] = {
+> @@ -136,6 +141,86 @@ static inline void omap_init_camera(void)
+>  }
+>  #endif
+>  
+> +#if defined(CONFIG_OMAP_REMOTE_PROC) || 
+> defined(CONFIG_OMAP_REMOTE_PROC_MODULE)
+> +static struct omap_device_pm_latency omap_rproc_latency[] = {
 > +	{
-> +		.name = "dsp",
-> +		.ops = &omap3_rproc_ops,
-> +		.oh_name = "iva2_hwmod",
+> +		.deactivate_func = omap_device_idle_hwmods,
+> +		.activate_func = omap_device_enable_hwmods,
+> +		.deactivate_lat = 1,
+> +		.activate_lat = 1,
 > +	},
 > +};
 > +
-> +struct omap_rproc_platform_data *omap3_get_rproc_data(void)
+> +static struct omap_rproc_platform_data 
+> *omap_get_remoteproc_data(void)
 > +{
-> +       return omap3_rproc_data;
+> +	struct omap_rproc_platform_data *rproc_data = NULL;
+> +
+> +	if (cpu_is_omap3430() || cpu_is_omap3630())
+> +		rproc_data = omap3_get_rproc_data();
+> +	else if (cpu_is_omap44xx())
+> +		rproc_data = omap4_get_rproc_data();
+> +	else
+> +		pr_err("%s: platform not supported\n", __func__);
+> +
+> +	return rproc_data;
 > +}
 > +
-> +int omap3_get_rproc_data_size(void)
+> +int omap_get_num_of_remoteproc(void)
 > +{
-> +       return ARRAY_SIZE(omap3_rproc_data);
+> +	int num = -1;
+> +
+> +	if (cpu_is_omap3430() || cpu_is_omap3630())
+> +		num = omap3_get_rproc_data_size();
+> +	else if (cpu_is_omap44xx())
+> +		num = omap4_get_rproc_data_size();
+> +	else
+> +		pr_err("%s: platform not supported\n", __func__);
+> +
+> +	return num;
+> +}
+
+[sp] I realise that I commented on this function in earlier patch
+     without reading this one. While my comment on breaking the
+     multi_omap support due to this function my not be true, but,
+     I didn't expect function declared in "include/plat/remoteproc.h"
+     to be implemented in "mach-omap2/devices.c".
+
+     I was, possibly, deceived by presence of "plat-omap/remoteproc.c"
+     and device specific implementations in the patch series.
+
+     Is there any specific reason why remoteproc is being implemented
+     quite different that other devices in the same file. See, for
+     example, omap_init_mbox(), omap3_mbox_resources and omap3_mbox_resources_sz.
+
+     Following the same scheme, this function is not required.
+
+> +EXPORT_SYMBOL(omap_get_num_of_remoteproc);
+> +
+> +static inline void omap_init_rproc(void)
+> +{
+> +	struct omap_hwmod *oh;
+> +	struct omap_device *od;
+> +	struct omap_device_pm_latency *ohl;
+> +	char *oh_name, *pdev_name;
+> +	int ohl_cnt = 0, i;
+> +	int rproc_data_size;
+> +	struct omap_rproc_platform_data *rproc_data;
+> +
+> +	pdev_name = "omap-rproc";
+> +	ohl = omap_rproc_latency;
+> +	ohl_cnt = ARRAY_SIZE(omap_rproc_latency);
+> +
+> +	rproc_data = omap_get_remoteproc_data();
+> +	rproc_data_size = omap_get_num_of_remoteproc();
+> +	if (rproc_data == NULL || rproc_data_size <= 0) {
+> +		pr_err("%s: platform not supported\n", __func__);
+> +		return;
+> +	}
+> +
+> +	for (i = 0; i < rproc_data_size; i++) {
+> +		oh_name = rproc_data[i].oh_name;
+> +		oh = omap_hwmod_lookup(oh_name);
+> +		if (!oh) {
+> +			pr_err("%s: could not look up %s\n", 
+> __func__, oh_name);
+> +			continue;
+> +		}
+> +
+> +		od = omap_device_build(pdev_name, i, oh,
+> +					&rproc_data[i],
+> +					sizeof(struct 
+> omap_rproc_platform_data),
+> +					ohl, ohl_cnt);
+> +		WARN(IS_ERR(od), "Could not build omap_device 
+> for %s %s\n",
+> +			pdev_name, oh_name);
+> +	}
 > +}
 > +#else
-> +struct omap_rproc_platform_data *omap3_get_rproc_data(void)
-> +{
-> +       return NULL;
-> +}
+> +static inline void omap_init_rproc(void) { }
+> +#endif /* CONFIG_OMAP_REMOTE_PROC */
 > +
-> +int omap3_get_rproc_data_size(void)
-> +{
-> +       return 0;
-> +}
-> +#endif
-> +
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_DESCRIPTION("OMAP3 Remote Processor module");
-> +MODULE_AUTHOR("Ohad Ben-Cohen <ohad@wizery.com>");
-> +MODULE_AUTHOR("Hari Kanigeri <h-kanigeri2@ti.com>");
+>  #if defined(CONFIG_OMAP_MBOX_FWK) || 
+> defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+>  
+>  #define MBOX_REG_SIZE   0x120
+> @@ -773,6 +858,7 @@ static int __init omap2_init_devices(void)
+>  	omap_hsmmc_reset();
+>  	omap_init_camera();
+>  	omap_init_mbox();
+> +	omap_init_rproc();
+>  	omap_init_mcspi();
+>  	omap_hdq_init();
+>  	omap_init_sti();
 > -- 
 > 1.7.0.4
 > 
