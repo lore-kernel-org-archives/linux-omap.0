@@ -1,133 +1,69 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 1/2] OMAP: DSS2: enable generic panel configuration modification
-Date: Tue, 27 Jul 2010 16:59:08 +0300
-Message-ID: <4C4EE62C.9010701@compulab.co.il>
-References: <1280140468-8183-1-git-send-email-grinberg@compulab.co.il> <1280217649.2427.68.camel@tubuntu.research.nokia.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: Issue with file transfers to a mass storage device on SMP system
+Date: Tue, 27 Jul 2010 14:59:40 +0100
+Message-ID: <20100727135939.GD11468@n2100.arm.linux.org.uk>
+References: <00e601cb2d55$cb6253c0$808918ac@apr.dhcp.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF707@dbde02.ent.ti.com> <20100727100121.GB7846@n2100.arm.linux.org.uk> <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF75B@dbde02.ent.ti.com> <20100727104133.GA10665@n2100.arm.linux.org.uk> <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF83C@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF8F3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:57064 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754303Ab0G0N7P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Jul 2010 09:59:15 -0400
-In-Reply-To: <1280217649.2427.68.camel@tubuntu.research.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF8F3-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Rapoport <mike@compulab.co.il>
 
-On 07/27/10 11:00, Tomi Valkeinen wrote:
-> On Mon, 2010-07-26 at 12:34 +0200, ext Igor Grinberg wrote:
->   
->> This patch enables platforms to modify the dss device configuration
->> of the generic panel.
->>
->> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
->> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
->> ---
->>  drivers/video/omap2/displays/panel-generic.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
->> index 300eff5..ad80dd0 100644
->> --- a/drivers/video/omap2/displays/panel-generic.c
->> +++ b/drivers/video/omap2/displays/panel-generic.c
->> @@ -66,7 +66,7 @@ static void generic_panel_power_off(struct omap_dss_device *dssdev)
->>  
->>  static int generic_panel_probe(struct omap_dss_device *dssdev)
->>  {
->> -	dssdev->panel.config = OMAP_DSS_LCD_TFT;
->> +	dssdev->panel.config |= OMAP_DSS_LCD_TFT;
->>  	dssdev->panel.timings = generic_panel_timings;
->>  
->>  	return 0;
->>     
->
-> I don't like this. Panel driver should be the one which decides the
-> config.
->   
+On Tue, Jul 27, 2010 at 07:15:25PM +0530, Shilimkar, Santosh wrote:
+> > -----Original Message-----
+> > From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Shilimkar, Santosh
+> > Sent: Tuesday, July 27, 2010 5:31 PM
+> > To: Russell King - ARM Linux
+> > Cc: Mankad, Maulik Ojas; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> > omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> > Subject: RE: Issue with file transfers to a mass storage device on SMP
+> > system
+> > 
+> > We have already those patches Russell and still see the issue. I think WMB
+> > is helping because data is just 16 bytes which can reside in WB. Had it
+> > been a bigger buffer this wouldn't have worked.
+> > 
+> > Will get back to you with more data on this.
+> 
+> Maulik and I looked at the code and below is what seems to be an issue.
+> The mass storage USB layer is not respecting the DMA/CPU buffer ownership.
+> 
+> "usb_stor_Bulk_transport" gets "us-iobuf" which is already mapped for DMA.
+> But inside this function the buffers is updated by the CPU which should not
+> be done as per rule. Same buffer passed down for DMA to transfer where the 
+> data might remain in CPU cache/WB. The dma map is not done on this buffer
+> because it's being done already before passing it to 'usb_stor_Bulk_transport'
 
-I agree with this in most cases, but not always.
-There are certain transmitters (like TI TFP410 dvi transmitter found
-on cm-t35 and other boards) that can have some of their parameters
-defined by hardware (strapped), so only the platform knows the correct
-values for them.
-One of such parameters is the edge of the clock sampling.
+Hang on.
 
-> I think a better solution is to make panel-generic configurable, which
-> has been discussed a bit some time ago on l-o.
->   
+us->iobuf is a DMA coherent buffer, allocated by usb_alloc_coherent(),
+in turn hcd_buffer_alloc().  This comes from either a DMA pool, or
+dma_alloc_coherent().  These buffers are simultaneously owned by both
+the CPU and the DMA agent.
 
-No doubt about that :)
+So to talk about the buffer "already being mapped" and "buffer ownership"
+is wrong.  It's supposed to be a DMA coherent buffer, and trying to use
+dma_map_*() on it definitely won't work.
 
-> Briefly:
->
-> - Add a struct for the configuration variables (a bit like
-> arch/arm/plat-omap/include/plat/nokia-dsi-panel.h).
->
-> - Fill the struct in the board file, and pass it to the panel driver via
-> omap_dss_device->data pointer.
->
-> - The panel driver get the struct and uses it to do whatever
-> configuration it needs.
->   
+This memory will be mapped in as 'normal memory, uncached', and with
+Catalins IO ordering patches, we rely upon wmb() ensuring that data
+written to it becomes visible to the DMA agents.  (wmb() by default
+aliases to mb(), which is a dsb() followed by outer_sync().)
 
-This is more or less what I've been thinking of, but with slight addition:
-the panel driver should have a defaults for all the parameters,
-so there will be no need to provide the whole parameters list,
-just the ones that are different.
+I think OMAP overrides the definitions of the mandatory barriers -
+the question is whether the OMAP implementation is sufficient to ensure
+that data written to a 'normal memory, uncached' mapping makes it out
+RAM so that the DMA agents can see it.
 
-> I think there are two ways to implement this:
->
-> 1) Have lots of fields in the struct, including video timings and video
-> signaling information, and the driver uses these directly.
->   
-
-This seems like a good choice for better flexibility and
-provides an easy way of dealing with the issues, I've described above.
-
-> 2) Have a panel name in the struct, and the panel driver contains a
-> static list of panels, including configurations for those panels, and
-> the driver selects the configuration based on the panel name given from
-> the board file. (like drivers/video/omap2/displays/panel-taal.c does,
-> except there's currently only one panel defined).
->   
-
-This approach does not deal with the dvi transmitters issue above,
-unless there will be possibility to define some kind of platform data.
-Also, if we have a static list of panels with their configurations,
-there could be panels with (almost) the same parameters defined
-for a couple of times.
-
-> While 1. gives perhaps slightly easier configuration, as you just edit
-> the board file, I'd go for 2. because the required configuration is
-> really defined by the panel/chip being used, and so the board file
-> should just state which panel/chip we have, and the driver handles the
-> rest.
-
-Well, unfortunately, it is not :(
-
->  And 2. makes it also easier to use the same panel/chip on multiple
-> boards.
->
-> Implementing this would allow us to remove some panel drivers which
-> currently are 99% copies of each other.
->
->  Tomi
->
->   
-
-My idea is:
-generic driver will have built-in defaults, that can
-(but not necessarily will) be overridden by platform (or other) code
-on a parameter basis.
-This will allow other panels (like tdo35s) reuse the generic driver
-without the need for their special driver.
-
-What do you think of it?
-
--- 
-Regards,
-Igor.
-
+As the OMAP mandatory barrier implementation isn't in mainline, I can't
+comment on that.  However, I feel certain that this is where the problem
+is.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
