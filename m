@@ -1,98 +1,46 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: Issue with file transfers to a mass storage device on SMP system
-Date: Tue, 27 Jul 2010 15:05:58 +0800
-Message-ID: <AANLkTinmwh3ZetA78xk9B27tq4fgnxN8Qu5pt0TBpuLX@mail.gmail.com>
-References: <00e601cb2d55$cb6253c0$808918ac@apr.dhcp.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: DSS2: DSI: Check for TX FIFO emptiness when sending long
+ packets
+Date: Tue, 27 Jul 2010 10:16:32 +0300
+Message-ID: <1280214992.2427.33.camel@tubuntu.research.nokia.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870305FAB05B@dbde02.ent.ti.com>
+	 <1280139608.2427.27.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC3560870305FAB129@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:34679 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753586Ab0G0HF7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 03:05:59 -0400
-In-Reply-To: <00e601cb2d55$cb6253c0$808918ac@apr.dhcp.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:25421 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751817Ab0G0HRD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 03:17:03 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870305FAB129@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Maulik <x0082077@ti.com>
-Cc: linux-usb@vger.kernel.org, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "ext Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-2010/7/27 Maulik <x0082077@ti.com>:
-> Hello,
->
-> I am working on OMAP4 which has two ARM Cortex A9 microprocessors (SM=
-P
-> system) with 2.6.35-rc5 kernel.
->
-> I have an issue whereby transferring a large file (>20MB) over USB (O=
-MAP
-> Mentor USB controller acts as USB host) to an attached USB thumb driv=
-e
-> fails.
->
-> The USB analyzer trace shows that the 31 bytes CBW packet is corrupte=
-d and
-> device responds with a STALL when this issue occurs.
->
-> Further it was found that the CBWCB field (the last 16 bytes which co=
-ntains
-> the command to be executed by the device) of the CBW packet was Zero =
-in the
-> failure case. Also the first 15 bytes of the CBW packet contained val=
-id
-> data.
->
-> The code snippet below from usb_stor_Bulk_transport () in
-> drivers/usb/storage/transport.c looks to be a problem area.
->
-> /* copy the command payload */
->
-> =A0memset(bcb->CDB, 0, sizeof(bcb->CDB));
-> =A0memcpy(bcb->CDB, srb->cmnd, bcb->Length);
->
-> Looks like when the issue occurs the memory (bcb->CDB) is not yet upd=
-ated
-> due to likely out of order execution due to SMP.
->
-> I have tried below workarounds that fixes the issue.
->
-> (1)Enabling debug prints / adding delays fixes the issue.
-> (2)Using nosmp in bootargs i.e. disabling SMP fixes the issue.
-> (3)Using wmb() (Write memory barrier) before starting DMA transfer in=
- MUSB
-> driver fixes the issue.
+On Mon, 2010-07-26 at 13:18 +0200, ext Taneja, Archit wrote:
 
-Seems it is one solution.
+> I am not sure about this, it can be probably aligned with what is done in
+> update_screen_l4(). I didn't exaclty get why you block till
+> fifo_stalls > 0xfffff and if we can have a similar reasoning for send_long?
+> 
+> It would be great though if we can make dsi_vc_send_long() configurable enough
+> to be actually used in dsi_update_screen_l4(), because they both have enough
+> common code beween them.
 
-It should be caused by dma_alloc_coherent, which allocated uncached but
-buffered coherent buffer, see discussions below:
+dsi_update_screen_l4() is quite old and unused code. I was mainly trying
+out how CPU can be used for DSI transfer, and trying out different ways
+to get better performance. You shouldn't look at it as any reference =).
 
-          http://marc.info/?t=3D127918539100004&r=3D1&w=3D2
+The 0xfffff was just a random number to abort the transfer if it didn't
+seem to go through. It worked for me, but probably won't work for other
+cases.
 
-> (4)Using wmb() for only 31 bytes CBW packets after the memcpy(in stor=
-age
-> stack (transport.c)) fixes the issue.
-> (5)Checking if last 16 bytes (of the 31 bytes CBW packet) are Zero or=
- not
-> after the memcpy() also fixes the issue. i.e if you read back the mem=
-ory,
-> the memory seems to be updated.
->
-> Has anyone seen such issue on a SMP system?
->
-> Please comment on the need and the usage of a memory barrier in this =
-case.
->
-> Thanks,
-> Maulik
->
+I don't think that anyone really wants to update the screen with CPU, so
+the code could even be removed.
+
+ Tomi
 
 
-
---=20
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
