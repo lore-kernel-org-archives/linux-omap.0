@@ -1,55 +1,66 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PM-OPP][PATCH] OMAP: Add check for omap_device pointer before
- adding an opp
-Date: Mon, 26 Jul 2010 19:09:45 -0500
-Message-ID: <4C4E23C9.6080608@ti.com>
-References: <1279953753-1377-1-git-send-email-thara@ti.com>
+From: "Maulik" <x0082077@ti.com>
+Subject: Issue with file transfers to a mass storage device on SMP system
+Date: Tue, 27 Jul 2010 12:04:39 +0530
+Message-ID: <00e601cb2d55$cb6253c0$808918ac@apr.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50261 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36652 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752345Ab0G0AJs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Jul 2010 20:09:48 -0400
-In-Reply-To: <1279953753-1377-1-git-send-email-thara@ti.com>
+	id S1752124Ab0G0Ger (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Jul 2010 02:34:47 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: linux-usb@vger.kernel.org
+Cc: "'Shilimkar, Santosh'" <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Gopinath, Thara had written, on 07/24/2010 01:42 AM, the following:
-> This patch adds the check for whether a omap_device and in turn
-> platform_device and device pointers exist for the device before
-> adding it's opp table into the global table. This is because all
-> the later accesses to the opp entries are based on dev pointer and
-> hence there is no point in adding a opp if the dev pointer does
-> not exist.
-> 
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
->  arch/arm/plat-omap/opp.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-> index 0273497..e81bb95 100644
-> --- a/arch/arm/plat-omap/opp.c
-> +++ b/arch/arm/plat-omap/opp.c
-> @@ -333,7 +333,7 @@ int opp_add(const struct omap_opp_def *opp_def)
->  		return -EINVAL;
->  	}
->  	oh = omap_hwmod_lookup(opp_def->hwmod_name);
-> -	if (!oh) {
-> +	if (!oh || !oh->od) {
->  		pr_warn("%s: no hwmod for %s, cannot add OPPs.\n",
-just to continue to have sane warnings,
+Hello,
 
-minor nitpick -> s/no hwmod/no hwmod or odev/
+I am working on OMAP4 which has two ARM Cortex A9 microprocessors (SMP
+system) with 2.6.35-rc5 kernel.
 
->  			__func__, opp_def->hwmod_name);
->  		return -EINVAL;
-Acked-by: Nishanth Menon <nm@ti.com>
+I have an issue whereby transferring a large file (>20MB) over USB (OMAP
+Mentor USB controller acts as USB host) to an attached USB thumb drive
+fails.
 
--- 
-Regards,
-Nishanth Menon
+The USB analyzer trace shows that the 31 bytes CBW packet is corrupted and
+device responds with a STALL when this issue occurs.
+
+Further it was found that the CBWCB field (the last 16 bytes which contains
+the command to be executed by the device) of the CBW packet was Zero in the
+failure case. Also the first 15 bytes of the CBW packet contained valid
+data.
+
+The code snippet below from usb_stor_Bulk_transport () in
+drivers/usb/storage/transport.c looks to be a problem area.
+
+/* copy the command payload */
+
+ memset(bcb->CDB, 0, sizeof(bcb->CDB));
+ memcpy(bcb->CDB, srb->cmnd, bcb->Length);
+
+Looks like when the issue occurs the memory (bcb->CDB) is not yet updated
+due to likely out of order execution due to SMP.
+
+I have tried below workarounds that fixes the issue.
+
+(1)Enabling debug prints / adding delays fixes the issue. 
+(2)Using nosmp in bootargs i.e. disabling SMP fixes the issue. 
+(3)Using wmb() (Write memory barrier) before starting DMA transfer in MUSB
+driver fixes the issue. 
+(4)Using wmb() for only 31 bytes CBW packets after the memcpy(in storage
+stack (transport.c)) fixes the issue. 
+(5)Checking if last 16 bytes (of the 31 bytes CBW packet) are Zero or not
+after the memcpy() also fixes the issue. i.e if you read back the memory,
+the memory seems to be updated.
+
+Has anyone seen such issue on a SMP system?
+
+Please comment on the need and the usage of a memory barrier in this case.
+
+Thanks,
+Maulik
+
+
