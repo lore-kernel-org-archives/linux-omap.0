@@ -1,86 +1,145 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 1/2] OMAP: DSS2: enable generic panel configuration
- modification
-Date: Tue, 27 Jul 2010 11:00:49 +0300
-Message-ID: <1280217649.2427.68.camel@tubuntu.research.nokia.com>
-References: <1280140468-8183-1-git-send-email-grinberg@compulab.co.il>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 12/20] OMAP: PM: create omap_devices for MPU, DSP, L3
+Date: Tue, 27 Jul 2010 13:44:32 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323C3FADC@dbde02.ent.ti.com>
+References: <20100702152703.6221.33529.stgit@localhost.localdomain>
+ <20100702152930.6221.32877.stgit@localhost.localdomain>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E7DA1E30@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58287 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753629Ab0G0IBM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 04:01:12 -0400
-In-Reply-To: <1280140468-8183-1-git-send-email-grinberg@compulab.co.il>
+Received: from bear.ext.ti.com ([192.94.94.41]:34515 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751222Ab0G0IO6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Jul 2010 04:14:58 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7DA1E30@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Rapoport <mike@compulab.co.il>
+To: "Basak, Partha" <p-basak2@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-On Mon, 2010-07-26 at 12:34 +0200, ext Igor Grinberg wrote:
-> This patch enables platforms to modify the dss device configuration
-> of the generic panel.
-> 
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> ---
->  drivers/video/omap2/displays/panel-generic.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
-> index 300eff5..ad80dd0 100644
-> --- a/drivers/video/omap2/displays/panel-generic.c
-> +++ b/drivers/video/omap2/displays/panel-generic.c
-> @@ -66,7 +66,7 @@ static void generic_panel_power_off(struct omap_dss_device *dssdev)
->  
->  static int generic_panel_probe(struct omap_dss_device *dssdev)
->  {
-> -	dssdev->panel.config = OMAP_DSS_LCD_TFT;
-> +	dssdev->panel.config |= OMAP_DSS_LCD_TFT;
->  	dssdev->panel.timings = generic_panel_timings;
->  
->  	return 0;
-
-
-I don't like this. Panel driver should be the one which decides the
-config.
-
-I think a better solution is to make panel-generic configurable, which
-has been discussed a bit some time ago on l-o.
-
-Briefly:
-
-- Add a struct for the configuration variables (a bit like
-arch/arm/plat-omap/include/plat/nokia-dsi-panel.h).
-
-- Fill the struct in the board file, and pass it to the panel driver via
-omap_dss_device->data pointer.
-
-- The panel driver get the struct and uses it to do whatever
-configuration it needs.
-
-I think there are two ways to implement this:
-
-1) Have lots of fields in the struct, including video timings and video
-signaling information, and the driver uses these directly.
-
-2) Have a panel name in the struct, and the panel driver contains a
-static list of panels, including configurations for those panels, and
-the driver selects the configuration based on the panel name given from
-the board file. (like drivers/video/omap2/displays/panel-taal.c does,
-except there's currently only one panel defined).
-
-While 1. gives perhaps slightly easier configuration, as you just edit
-the board file, I'd go for 2. because the required configuration is
-really defined by the panel/chip being used, and so the board file
-should just state which panel/chip we have, and the driver handles the
-rest. And 2. makes it also easier to use the same panel/chip on multiple
-boards.
-
-Implementing this would allow us to remove some panel drivers which
-currently are 99% copies of each other.
-
- Tomi
-
-
+DQoNCj4+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+RnJvbTogbGludXgtb21hcC1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVsLm9y
+Z10gT24gQmVoYWxmIE9mIEJhc2FrLA0KPj5QYXJ0aGENCj4+U2VudDogVHVlc2RheSwgSnVseSAy
+NywgMjAxMCAxOjA3IFBNDQo+PlRvOiBQYXVsIFdhbG1zbGV5OyBsaW51eC1vbWFwQHZnZXIua2Vy
+bmVsLm9yZzsgbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnDQo+PkNjOiBLZXZp
+biBIaWxtYW4NCj4+U3ViamVjdDogUkU6IFtQQVRDSCAxMi8yMF0gT01BUDogUE06IGNyZWF0ZSBv
+bWFwX2RldmljZXMgZm9yIE1QVSwgRFNQLCBMMw0KPj4NCj4+DQo+Pg0KPj4+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQo+Pj4gRnJvbTogbGludXgtb21hcC1vd25lckB2Z2VyLmtlcm5lbC5v
+cmcgW21haWx0bzpsaW51eC1vbWFwLQ0KPj4+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVo
+YWxmIE9mIFBhdWwgV2FsbXNsZXkNCj4+PiBTZW50OiBGcmlkYXksIEp1bHkgMDIsIDIwMTAgOTow
+MCBQTQ0KPj4+IFRvOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgbGludXgtYXJtLWtlcm5l
+bEBsaXN0cy5pbmZyYWRlYWQub3JnDQo+Pj4gQ2M6IEtldmluIEhpbG1hbg0KPj4+IFN1YmplY3Q6
+IFtQQVRDSCAxMi8yMF0gT01BUDogUE06IGNyZWF0ZSBvbWFwX2RldmljZXMgZm9yIE1QVSwgRFNQ
+LCBMMw0KPj4+DQo+Pj4gRnJvbTogS2V2aW4gSGlsbWFuIDxraGlsbWFuQGRlZXByb290c3lzdGVt
+cy5jb20+DQo+Pj4NCj4+PiBDcmVhdGUgc2ltcGxlIG9tYXBfZGV2aWNlcyBmb3IgdGhlIG1haW4g
+cHJvY2Vzc29ycyBhbmQgYnVzc2VzLg0KPj4+DQo+Pj4gVGhpcyBpcyByZXF1aXJlZCB0byBzdXBw
+b3J0IHRoZSBmb3J0aC1jb21pbmcgZGV2aWNlLWJhc2VkIE9QUA0KPj4+IGFwcHJvYWNoLCB3aGVy
+ZSBPUFBzIGFyZSBtYW5hZ2VkIGFuZCB0cmFja2VkIGF0IHRoZSBkZXZpY2UgbGV2ZWwuDQo+Pj4N
+Cj4+PiBBbHNvLCBtb3ZlIHRoZXNlIGNvbW1vbiBQTSBpbml0IGZ1bmN0aW9ucyBpbnRvIGEgY29t
+bW9uX3BtX2luaXQgY2FsbA0KPj4+IHRoYXQgaXMgY2FsbGVkIGFzIGEgZGV2aWNlX2luaXRjYWxs
+KCkuICBUaGUgUE0gaW5pdCBpcyBkb25lIGF0IHRoaXMgbGV2ZWwNCj4+PiB0byBlbnN1cmUgdGhh
+dCB0aGUgZHJpdmVyIGNvcmUgaXMgaW5pdGlhbGl6ZWQgYmVmb3JlIGluaXRpYWxpemVkLg0KPj4+
+DQo+Pj4gU2lnbmVkLW9mZi1ieTogS2V2aW4gSGlsbWFuIDxraGlsbWFuQGRlZXByb290c3lzdGVt
+cy5jb20+DQo+Pj4gW3BhdWxAcHdzYW4uY29tOiBzcGFyc2Ugd2FybmluZ3MgY2xlYW5lZCB1cDsg
+bmV3bHktY3JlYXRlZCBmdW5jdGlvbnMgbW92ZWQNCj4+PiAgZnJvbSBtYWNoLW9tYXAyL2lvLmMg
+dG8gbWFjaC1vbWFwMi9wbS5jOyBuZXdseS1jcmVhdGVkIGZ1bmN0aW9ucyByZW5hbWVkDQo+Pj4g
+IHRvIHN0YXJ0IHdpdGggIm9tYXAyIiByYXRoZXIgdGhhbiAib21hcCJdDQo+Pj4gU2lnbmVkLW9m
+Zi1ieTogUGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5jb20+DQo+Pj4gLS0tDQo+Pj4gIGFyY2gv
+YXJtL21hY2gtb21hcDIvTWFrZWZpbGUgICAgICAgICAgICAgfCAgICAyIC0NCj4+PiAgYXJjaC9h
+cm0vbWFjaC1vbWFwMi9pby5jICAgICAgICAgICAgICAgICB8ICAgIDIgLQ0KPj4+ICBhcmNoL2Fy
+bS9tYWNoLW9tYXAyL3BtLmMgICAgICAgICAgICAgICAgIHwgICA4NA0KPj4+ICsrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKw0KPj4+ICBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0
+L2NvbW1vbi5oIHwgICAgNCArDQo+Pj4gIDQgZmlsZXMgY2hhbmdlZCwgOTAgaW5zZXJ0aW9ucygr
+KSwgMiBkZWxldGlvbnMoLSkNCj4+PiAgY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL21hY2gt
+b21hcDIvcG0uYw0KPj4+DQo+Pj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvTWFr
+ZWZpbGUgYi9hcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlDQo+Pj4gaW5kZXggMmZhMzQxOC4u
+MjEzZjFkZiAxMDA2NDQNCj4+PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlDQo+
+Pj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmlsZQ0KPj4+IEBAIC0zLDcgKzMsNyBA
+QA0KPj4+ICAjDQo+Pj4NCj4+PiAgIyBDb21tb24gc3VwcG9ydA0KPj4+IC1vYmoteSA6PSBpZC5v
+IGlvLm8gY29udHJvbC5vIG11eC5vIGRldmljZXMubyBzZXJpYWwubyBncG1jLm8gdGltZXItZ3Au
+bw0KPj4+ICtvYmoteSA6PSBpZC5vIGlvLm8gY29udHJvbC5vIG11eC5vIGRldmljZXMubyBzZXJp
+YWwubyBncG1jLm8gdGltZXItZ3Aubw0KPj4+IHBtLm8NCj4+Pg0KPj4+ICBvbWFwLTItMy1jb21t
+b24JCQkJPSBpcnEubyBzZHJjLm8NCj4+PiAgaHdtb2QtY29tbW9uCQkJCT0gb21hcF9od21vZC5v
+IFwNCj4+PiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9pby5jIGIvYXJjaC9hcm0v
+bWFjaC1vbWFwMi9pby5jDQo+Pj4gaW5kZXggMDVjOWNkYi4uMmI5ODNhYyAxMDA2NDQNCj4+PiAt
+LS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2lvLmMNCj4+PiArKysgYi9hcmNoL2FybS9tYWNoLW9t
+YXAyL2lvLmMNCj4+PiBAQCAtNDQsNiArNDQsNyBAQA0KPj4+DQo+Pj4gICNpbmNsdWRlIDxwbGF0
+L2Nsb2NrZG9tYWluLmg+DQo+Pj4gICNpbmNsdWRlICJjbG9ja2RvbWFpbnMuaCINCj4+PiArDQo+
+Pj4gICNpbmNsdWRlIDxwbGF0L29tYXBfaHdtb2QuaD4NCj4+Pg0KPj4+ICAvKg0KPj4+IEBAIC0z
+NDYsNyArMzQ3LDYgQEAgdm9pZCBfX2luaXQgb21hcDJfaW5pdF9jb21tb25faHcoc3RydWN0DQo+
+Pj4gb21hcF9zZHJjX3BhcmFtcyAqc2RyY19jczAsDQo+Pj4gIAlpZiAoY3B1X2lzX29tYXAyNHh4
+KCkgfHwgY3B1X2lzX29tYXAzNHh4KCkpICAgLyogRklYTUU6IE9NQVA0ICovDQo+Pj4gIAkJb21h
+cF9od21vZF9sYXRlX2luaXQoc2tpcF9zZXR1cF9pZGxlKTsNCj4+Pg0KPj4+IC0Jb21hcF9wbV9p
+Zl9pbml0KCk7DQo+Pj4gIAlpZiAoY3B1X2lzX29tYXAyNHh4KCkgfHwgY3B1X2lzX29tYXAzNHh4
+KCkpIHsNCj4+PiAgCQlvbWFwMl9zZHJjX2luaXQoc2RyY19jczAsIHNkcmNfY3MxKTsNCj4+PiAg
+CQlfb21hcDJfaW5pdF9yZXByb2dyYW1fc2RyYygpOw0KPj4+IGRpZmYgLS1naXQgYS9hcmNoL2Fy
+bS9tYWNoLW9tYXAyL3BtLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMNCj4+PiBuZXcgZmls
+ZSBtb2RlIDEwMDY0NA0KPj4+IGluZGV4IDAwMDAwMDAuLjY4ZjlmMmUNCj4+PiAtLS0gL2Rldi9u
+dWxsDQo+Pj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbS5jDQo+Pj4gQEAgLTAsMCArMSw4
+NCBAQA0KPj4+ICsvKg0KPj4+ICsgKiBwbS5jIC0gQ29tbW9uIE9NQVAyKyBwb3dlciBtYW5hZ2Vt
+ZW50LXJlbGF0ZWQgY29kZQ0KPj4+ICsgKg0KPj4+ICsgKiBDb3B5cmlnaHQgKEMpIDIwMTAgVGV4
+YXMgSW5zdHJ1bWVudHMsIEluYy4NCj4+PiArICogQ29weXJpZ2h0IChDKSAyMDEwIE5va2lhIENv
+cnBvcmF0aW9uDQo+Pj4gKyAqDQo+Pj4gKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJl
+OyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5DQo+Pj4gKyAqIGl0IHVuZGVy
+IHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFz
+DQo+Pj4gKyAqIHB1Ymxpc2hlZCBieSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLg0KPj4+
+ICsgKi8NCj4+PiArDQo+Pj4gKyNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4NCj4+PiArI2luY2x1
+ZGUgPGxpbnV4L2luaXQuaD4NCj4+PiArI2luY2x1ZGUgPGxpbnV4L2lvLmg+DQo+Pj4gKyNpbmNs
+dWRlIDxsaW51eC9lcnIuaD4NCj4+PiArDQo+Pj4gKyNpbmNsdWRlIDxwbGF0L29tYXAtcG0uaD4N
+Cj4+PiArI2luY2x1ZGUgPHBsYXQvb21hcF9kZXZpY2UuaD4NCj4+PiArI2luY2x1ZGUgPHBsYXQv
+Y29tbW9uLmg+DQo+Pj4gKw0KPj4+ICtzdGF0aWMgc3RydWN0IG9tYXBfZGV2aWNlX3BtX2xhdGVu
+Y3kgKnBtX2xhdHM7DQo+Pj4gKw0KPj4+ICtzdGF0aWMgc3RydWN0IGRldmljZSAqbXB1X2RldjsN
+Cj4+PiArc3RhdGljIHN0cnVjdCBkZXZpY2UgKmRzcF9kZXY7DQo+Pj4gK3N0YXRpYyBzdHJ1Y3Qg
+ZGV2aWNlICpsM19kZXY7DQo+Pj4gKw0KPj4+ICtzdHJ1Y3QgZGV2aWNlICpvbWFwMl9nZXRfbXB1
+c3NfZGV2aWNlKHZvaWQpDQo+Pj4gK3sNCj4+PiArCVdBUk5fT05fT05DRSghbXB1X2Rldik7DQo+
+Pj4gKwlyZXR1cm4gbXB1X2RldjsNCj4+PiArfQ0KPj4+ICsNCj4+PiArc3RydWN0IGRldmljZSAq
+b21hcDJfZ2V0X2RzcF9kZXZpY2Uodm9pZCkNCj4+PiArew0KPj4+ICsJV0FSTl9PTl9PTkNFKCFk
+c3BfZGV2KTsNCj4+PiArCXJldHVybiBkc3BfZGV2Ow0KPj4+ICt9DQo+Pj4gKw0KPj4+ICtzdHJ1
+Y3QgZGV2aWNlICpvbWFwMl9nZXRfbDNfZGV2aWNlKHZvaWQpDQo+Pj4gK3sNCj4+PiArCVdBUk5f
+T05fT05DRSghbDNfZGV2KTsNCj4+PiArCXJldHVybiBsM19kZXY7DQo+Pj4gK30NCj4+PiArDQo+
+Pj4gKy8qIHN0YXRpYyBpbnQgX2luaXRfb21hcF9kZXZpY2Uoc3RydWN0IG9tYXBfaHdtb2QgKm9o
+LCB2b2lkICp1c2VyKSAqLw0KPj4+ICtzdGF0aWMgaW50IF9pbml0X29tYXBfZGV2aWNlKGNoYXIg
+Km5hbWUsIHN0cnVjdCBkZXZpY2UgKipuZXdfZGV2KQ0KPj4+ICt7DQo+Pj4gKwlzdHJ1Y3Qgb21h
+cF9od21vZCAqb2g7DQo+Pj4gKwlzdHJ1Y3Qgb21hcF9kZXZpY2UgKm9kOw0KPj4+ICsNCj4+PiAr
+CW9oID0gb21hcF9od21vZF9sb29rdXAobmFtZSk7DQo+Pj4gKwlpZiAoV0FSTighb2gsICIlczog
+Y291bGQgbm90IGZpbmQgb21hcF9od21vZCBmb3IgJXNcbiIsDQo+Pj4gKwkJIF9fZnVuY19fLCBu
+YW1lKSkNCj4+PiArCQlyZXR1cm4gLUVOT0RFVjsNCj4+PiArDQo+Pj4gKwlvZCA9IG9tYXBfZGV2
+aWNlX2J1aWxkKG9oLT5uYW1lLCAwLCBvaCwgTlVMTCwgMCwgcG1fbGF0cywgMCwgZmFsc2UpOw0K
+Pj4+ICsJaWYgKFdBUk4oSVNfRVJSKG9kKSwgIiVzOiBjb3VsZCBub3QgYnVpbGQgb21hcF9kZXZp
+Y2UgZm9yICVzXG4iLA0KPj4+ICsJCSBfX2Z1bmNfXywgbmFtZSkpDQo+Pj4gKwkJcmV0dXJuIC1F
+Tk9ERVY7DQo+Pj4gKw0KPj4+ICsJKm5ld19kZXYgPSAmb2QtPnBkZXYuZGV2Ow0KPj4+ICsNCj4+
+PiArCXJldHVybiAwOw0KPj4+ICt9DQo+Pj4gKw0KPj4+ICsvKg0KPj4+ICsgKiBCdWlsZCBvbWFw
+X2RldmljZXMgZm9yIHByb2Nlc3NvcnMgYW5kIGJ1cy4NCj4+PiArICovDQo+Pj4gK3N0YXRpYyB2
+b2lkIG9tYXAyX2luaXRfcHJvY2Vzc29yX2RldmljZXModm9pZCkNCj4+PiArew0KPj4+ICsJX2lu
+aXRfb21hcF9kZXZpY2UoIm1wdSIsICZtcHVfZGV2KTsNCj4+PiArCV9pbml0X29tYXBfZGV2aWNl
+KCJpdmEiLCAmZHNwX2Rldik7DQo+Pj4gKwlfaW5pdF9vbWFwX2RldmljZSgibDNfbWFpbiIsICZs
+M19kZXYpOw0KPj4NCj4+VGhpcyBicmVha3MgT01BUDQgYXMgbDNfbWFpbiBpcyBub3QgYXBwbGlj
+YWJsZSBmb3IgT01BUDQuDQoNCkZvciBPTUFQNCB3ZSBuZWVkIHRvIGFkZCBhIGNoZWNrIGFuZCBt
+YWtlIGl0ICJsM19tYWluXzEiLiBJIGhhdmUgZG9uZSB0aGlzIGFzIHBhcnQNCm9mIERWRlMgc3Vw
+cG9ydCBvbiBPTUFQNC4gV2lsbCBiZSBwb3N0aW5nIGl0IG91dCBpbiBzb21ldGltZS4NCg0KUmVn
+YXJkcw0KVGhhcmENCj4+PiArfQ0KPj4+ICsNCj4+PiArc3RhdGljIGludCBfX2luaXQgb21hcDJf
+Y29tbW9uX3BtX2luaXQodm9pZCkNCj4+PiArew0KPj4+ICsJb21hcDJfaW5pdF9wcm9jZXNzb3Jf
+ZGV2aWNlcygpOw0KPj4+ICsJb21hcF9wbV9pZl9pbml0KCk7DQo+Pj4gKw0KPj4+ICsJcmV0dXJu
+IDA7DQo+Pj4gK30NCj4+PiArZGV2aWNlX2luaXRjYWxsKG9tYXAyX2NvbW1vbl9wbV9pbml0KTsN
+Cj4+PiArDQo+Pj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQv
+Y29tbW9uLmggYi9hcmNoL2FybS9wbGF0LQ0KPj4+IG9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5o
+DQo+Pj4gaW5kZXggNWU0YWZiZS4uNWNmOTUwOSAxMDA2NDQNCj4+PiAtLS0gYS9hcmNoL2FybS9w
+bGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5oDQo+Pj4gKysrIGIvYXJjaC9hcm0vcGxhdC1v
+bWFwL2luY2x1ZGUvcGxhdC9jb21tb24uaA0KPj4+IEBAIC04OSw0ICs4OSw4IEBAIHZvaWQgb21h
+cDJfc2V0X2dsb2JhbHNfdWFydChzdHJ1Y3Qgb21hcF9nbG9iYWxzICopOw0KPj4+ICAJfQkJCQkJ
+CQlcDQo+Pj4gIH0pDQo+Pj4NCj4+PiArZXh0ZXJuIHN0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9t
+cHVzc19kZXZpY2Uodm9pZCk7DQo+Pj4gK2V4dGVybiBzdHJ1Y3QgZGV2aWNlICpvbWFwMl9nZXRf
+ZHNwX2RldmljZSh2b2lkKTsNCj4+PiArZXh0ZXJuIHN0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9s
+M19kZXZpY2Uodm9pZCk7DQo+Pj4gKw0KPj4+ICAjZW5kaWYgLyogX19BUkNIX0FSTV9NQUNIX09N
+QVBfQ09NTU9OX0ggKi8NCj4+Pg0KPj4+DQo+Pj4gLS0NCj4+PiBUbyB1bnN1YnNjcmliZSBmcm9t
+IHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtb21hcCIgaW4NCj4+
+PiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPj4+
+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21v
+LWluZm8uaHRtbA0KPj4E77+9ey5u77+9K++/ve+/ve+/ve+/ve+/ve+/ve+/vSsl77+977+9bHp3
+be+/ve+/vWLvv73rp7Lvv73vv71y77+977+9eljvv73vv70aJmrvv73vv73vv70X77+977+93Kh9
+77+977+977+9xqB677+9Jmo6K3bvv73vv73vv70N77+977+977+977+9elor77+977+9K3pm77+9
+77+977+9aO+/ve+/ve+/vX7vv73vv73vv73vv71p77+977+977+9eu+/vR7vv71377+977+977+9
+P++/ve+/vQ0KPj7vv73vv70m77+9Kd+iG2YNCg==
