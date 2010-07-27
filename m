@@ -1,37 +1,50 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] Input: OMAP: RX51: fix 'KEY_10' compile breakage
-Date: Tue, 27 Jul 2010 09:43:25 -0700
-Message-ID: <20100727164325.GA4302@core.coreip.homeip.net>
-References: <alpine.DEB.2.00.1007261625470.1906@utopia.booyaka.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 2/5] omap:hwspinlock-define HWSPINLOCK base address
+Date: Tue, 27 Jul 2010 11:50:11 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4D25C9B4@dlee03.ent.ti.com>
+References: <1279558221-14954-1-git-send-email-h-kanigeri2@ti.com>
+ <1279558221-14954-3-git-send-email-h-kanigeri2@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E7DA2246@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1007261625470.1906@utopia.booyaka.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Amit Kucheria <amit.kucheria@verdurent.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, stable@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36386 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750937Ab0G0QuO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 12:50:14 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7DA2246@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>, Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Que, Simon" <sque@ti.com>
 
-Hi Paul,
+Sanjeev,
 
-On Mon, Jul 26, 2010 at 04:28:12PM -0600, Paul Walmsley wrote:
+> > @@ -49,5 +49,10 @@
+> >  #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
+> >  #define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
+> >
+> > +#define OMAP4_MMU1_BASE			0x55082000
+> > +#define OMAP4_MMU2_BASE			0x4A066000
 > 
-> Commit 3fea60261e73dbf4a51130d40cafcc8465b0f2c3 replaces KEY_F10 and 
-> KEY_F11 macro references with 'KEY_10' and 'KEY_11'.  This breaks 
-> v2.6.35-rc6 compiles with omap3_defconfig:
-> 
->   CC      arch/arm/mach-omap2/board-rx51-peripherals.o
-> arch/arm/mach-omap2/board-rx51-peripherals.c:223: error: 'KEY_10' undeclared here (not in a function)
-> arch/arm/mach-omap2/board-rx51-peripherals.c:226: error: 'KEY_11' undeclared here (not in a function)
-> 
-> Fix by renaming the macro references back to KEY_F10 and KEY_F11.
-> 
-> Compile-tested only.
-> 
+> [sp] Are these 2 base addresses related to this patch?
 
-Thank you for the patch however Linus managed to fish off LKML and apply
-another version that I posted earlier.
+Nope. Thanks for finding this. I will update the patch.
 
--- 
-Dmitry
+> 
+> ~sanjeev
+> 
+> > +
+> > +#define OMAP44XX_SPINLOCK_BASE		(L4_44XX_BASE + 0xF6000)
+> > +
+> >  #endif /* __ASM_ARCH_OMAP44XX_H */
+> >
+> > --
+> > 1.7.0
+> >
+> >
+
+Best regards,
+Hari
