@@ -1,56 +1,85 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH v2] OMAP: DSS2: Fix error path in omap_dsi_update()
-Date: Tue, 27 Jul 2010 10:43:57 +0300
-Message-ID: <1280216637.2427.50.camel@tubuntu.research.nokia.com>
-References: <1279109510-12992-1-git-send-email-archit@ti.com>
-	 <1280215188.2427.34.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC3560870305FAB51E@dbde02.ent.ti.com>
+Subject: Re: [PATCH 1/2] OMAP: DSS2: enable generic panel configuration
+ modification
+Date: Tue, 27 Jul 2010 11:00:49 +0300
+Message-ID: <1280217649.2427.68.camel@tubuntu.research.nokia.com>
+References: <1280140468-8183-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:27962 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291Ab0G0HoU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 03:44:20 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870305FAB51E@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:58287 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753629Ab0G0IBM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 04:01:12 -0400
+In-Reply-To: <1280140468-8183-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Rapoport <mike@compulab.co.il>
 
-On Tue, 2010-07-27 at 09:34 +0200, ext Taneja, Archit wrote:
-> >
-> > Looks ok to me, I'll add it to my tree. Are you actually 
-> > using dsi_update_screen_l4?
-> > 
-> >  Tomi
+On Mon, 2010-07-26 at 12:34 +0200, ext Igor Grinberg wrote:
+> This patch enables platforms to modify the dss device configuration
+> of the generic panel.
 > 
-> There is a usecase in OMAP4 where we can run 4 displays in
-> parallel, 3 can be run using the 3 dispc channels, and another DSI
-> panel can be run using L4 updates.
-
-Ok.
-
-> It would probably be better if we can connect 2 or more peripherals to
-> one DSI PHY, but with l4 updates we don't need to introduce any hardware changes
-> on the boards.
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> ---
+>  drivers/video/omap2/displays/panel-generic.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> So with l4 update we can free one dispc channel. I am not sure how much the
-> 4 display usecase is going to be used. But having l4 updates is still a handy feature,
+> diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
+> index 300eff5..ad80dd0 100644
+> --- a/drivers/video/omap2/displays/panel-generic.c
+> +++ b/drivers/video/omap2/displays/panel-generic.c
+> @@ -66,7 +66,7 @@ static void generic_panel_power_off(struct omap_dss_device *dssdev)
+>  
+>  static int generic_panel_probe(struct omap_dss_device *dssdev)
+>  {
+> -	dssdev->panel.config = OMAP_DSS_LCD_TFT;
+> +	dssdev->panel.config |= OMAP_DSS_LCD_TFT;
+>  	dssdev->panel.timings = generic_panel_timings;
+>  
+>  	return 0;
 
-The current implementation of dsi_update_screen_l4() is very bad
-performance-wise, for throughput and for being basically a busy loop.
 
-Much better would be to use system DMA for the transfer. In theory this
-is possible, and I've made some tests with it, but I wasn't able to
-solve the problems how to inject DSI commands (write_memory_start and
-write_memory_continue), and how to get unpacked 24bit pixels from the
-memory changed into packed 24bit pixels for the DSI transfer.
+I don't like this. Panel driver should be the one which decides the
+config.
 
-> especially if one wants to run both a DPI and a DSI display on OMAP3 :)
+I think a better solution is to make panel-generic configurable, which
+has been discussed a bit some time ago on l-o.
 
-Yes, that's the original reason I implemented it =).
+Briefly:
+
+- Add a struct for the configuration variables (a bit like
+arch/arm/plat-omap/include/plat/nokia-dsi-panel.h).
+
+- Fill the struct in the board file, and pass it to the panel driver via
+omap_dss_device->data pointer.
+
+- The panel driver get the struct and uses it to do whatever
+configuration it needs.
+
+I think there are two ways to implement this:
+
+1) Have lots of fields in the struct, including video timings and video
+signaling information, and the driver uses these directly.
+
+2) Have a panel name in the struct, and the panel driver contains a
+static list of panels, including configurations for those panels, and
+the driver selects the configuration based on the panel name given from
+the board file. (like drivers/video/omap2/displays/panel-taal.c does,
+except there's currently only one panel defined).
+
+While 1. gives perhaps slightly easier configuration, as you just edit
+the board file, I'd go for 2. because the required configuration is
+really defined by the panel/chip being used, and so the board file
+should just state which panel/chip we have, and the driver handles the
+rest. And 2. makes it also easier to use the same panel/chip on multiple
+boards.
+
+Implementing this would allow us to remove some panel drivers which
+currently are 99% copies of each other.
 
  Tomi
 
