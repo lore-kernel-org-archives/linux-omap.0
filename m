@@ -1,48 +1,44 @@
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: Re: [PATCH v2 03/20] mmc: support embedded data field in mmc_host
-Date: Wed, 28 Jul 2010 21:47:41 +0200
-Message-ID: <AANLkTimzA_JJ-byTDWznbL3YzeJ8LAP4M50onf2_3fBF@mail.gmail.com>
-References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
-	<1279733634-21974-4-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1279733634-21974-4-git-send-email-ohad@wizery.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Pandita Vikram <vikram.pandita@ti.com>, linux@arm.linux.org.uk, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Roger Quadros <roger.quadros@nokia.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
+From: Ernesto Ramos <ernesto@ti.com>
+Subject: [PATCH 0/5] use idr kernel library instead of handles
+Date: Wed, 28 Jul 2010 16:04:52 -0500
+Message-ID: <1280351097-3346-1-git-send-email-ernesto@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49154 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752428Ab0G1VAT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Jul 2010 17:00:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: gregkh@suse.de
+Cc: omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org, Rene Sapiens <rene.sapiens@ti.com>
 
-Hi Ohad,
+From: Rene Sapiens <rene.sapiens@ti.com>
 
-On Wed, Jul 21, 2010 at 7:33 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> Add support to set/get mmc_host private embedded
-> data.
->
-> This is needed to allow software to dynamically
-> create (and remove) SDIO functions which represents
-> embedded SDIO devices.
->
-<snip>
-> @@ -209,6 +209,8 @@ struct mmc_host {
-> =A0 =A0 =A0 =A0struct led_trigger =A0 =A0 =A0*led; =A0 =A0 =A0 =A0 =A0=
- /* activity led */
-> =A0#endif
->
-> + =A0 =A0 =A0 void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*embedded_d=
-ata;
-> +
+Use idr kernel library to send/receive node and stream ids to the
+user instead of kernel address.
+This id will be use to access the node and stream handles at the
+kernel side, if id does not match to any handle
+error -EFAULT is returned.
 
-To my understanding, this data doesn't belong to mmc_host. It's not a
-host data at all. E. g. imagine a GPIO IRQ for some SDIO chip -- it's
-totally unrelated to host.
+For processor handle, dspbridge driver will make sure
+the handle is valid by using the handle stored in process context.
 
-I think a cleaner way would be to introduce something similar to what
-we have for SPI, e. g. struct sdio_board_info. This board info will
-contain platform-specific stuff and vendor id/chip id for each onboard
-SDIO device. Then the SDIO core will pick up the appropriate data
-basing on vendor id/chip id.
+Ernesto Ramos (5):
+  staging:ti dspbridge: use node id instead of kernel address
+  staging:ti dspbridge: avoid errors if node handle is zero
+  staging:ti dspbridge: use processor handle from context instead of
+    user's
+  staging:ti dspbridge: use stream id instead of kernel address
+  staging:ti dspbridge: avoid errors if stream id is zero
 
-~Vitaly
+ .../staging/tidspbridge/include/dspbridge/drv.h    |   11 +-
+ .../staging/tidspbridge/include/dspbridge/node.h   |   14 +-
+ .../include/dspbridge/resourcecleanup.h            |   12 -
+ .../staging/tidspbridge/include/dspbridge/strm.h   |   22 +-
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |  329 ++++++++++++++++----
+ drivers/staging/tidspbridge/rmgr/drv.c             |  303 ++++++-------------
+ drivers/staging/tidspbridge/rmgr/drv_interface.c   |   18 +-
+ drivers/staging/tidspbridge/rmgr/node.c            |  109 ++++---
+ drivers/staging/tidspbridge/rmgr/strm.c            |   54 ++--
+ 9 files changed, 485 insertions(+), 387 deletions(-)
+
