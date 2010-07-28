@@ -1,69 +1,45 @@
 From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH 3/5] staging:ti dspbridge: remove function delete_strm_mgr
-Date: Wed, 28 Jul 2010 09:40:50 -0500
-Message-ID: <1280328052-31292-4-git-send-email-ernesto@ti.com>
+Subject: [PATCH 2/5] staging:ti dspbridge: remove unnecessary check for NULL pointer in cmm.c
+Date: Wed, 28 Jul 2010 09:40:49 -0500
+Message-ID: <1280328052-31292-3-git-send-email-ernesto@ti.com>
 References: <1280328052-31292-1-git-send-email-ernesto@ti.com>
  <1280328052-31292-2-git-send-email-ernesto@ti.com>
- <1280328052-31292-3-git-send-email-ernesto@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1280328052-31292-3-git-send-email-ernesto@ti.com>
+In-Reply-To: <1280328052-31292-2-git-send-email-ernesto@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@suse.de
 Cc: omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org, Ernesto Ramos <ernesto@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Remove function delete_strm_mgr in strm.c and
-use kfree instead.
+Remove unnecessary check for NULL pointer in cmm.c.
 
 Signed-off-by: Ernesto Ramos <ernesto@ti.com>
 ---
- drivers/staging/tidspbridge/rmgr/strm.c |   16 ++--------------
- 1 files changed, 2 insertions(+), 14 deletions(-)
+ drivers/staging/tidspbridge/pmgr/cmm.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/rmgr/strm.c b/drivers/staging/tidspbridge/rmgr/strm.c
-index 73888e3..6c184c6 100644
---- a/drivers/staging/tidspbridge/rmgr/strm.c
-+++ b/drivers/staging/tidspbridge/rmgr/strm.c
-@@ -90,7 +90,6 @@ static u32 refs;		/* module reference count */
+diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
+index 8e808d9..874ed64 100644
+--- a/drivers/staging/tidspbridge/pmgr/cmm.c
++++ b/drivers/staging/tidspbridge/pmgr/cmm.c
+@@ -992,16 +992,12 @@ int cmm_xlator_create(struct cmm_xlatorobject **xlator,
+ int cmm_xlator_delete(struct cmm_xlatorobject *xlator, bool force)
+ {
+ 	struct cmm_xlator *xlator_obj = (struct cmm_xlator *)xlator;
+-	int status = 0;
  
- /*  ----------------------------------- Function Prototypes */
- static int delete_strm(struct strm_object *stream_obj);
--static void delete_strm_mgr(struct strm_mgr *strm_mgr_obj);
- 
- /*
-  *  ======== strm_allocate_buffer ========
-@@ -232,7 +231,7 @@ int strm_create(struct strm_mgr **strm_man,
- 	if (DSP_SUCCEEDED(status))
- 		*strm_man = strm_mgr_obj;
- 	else
--		delete_strm_mgr(strm_mgr_obj);
-+		kfree(strm_mgr_obj);
- 
- 	DBC_ENSURE((DSP_SUCCEEDED(status) && *strm_man) ||
- 				(DSP_FAILED(status) && *strm_man == NULL));
-@@ -250,7 +249,7 @@ void strm_delete(struct strm_mgr *strm_mgr_obj)
  	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(strm_mgr_obj);
  
--	delete_strm_mgr(strm_mgr_obj);
-+	kfree(strm_mgr_obj);
+-	if (xlator_obj)
+-		kfree(xlator_obj);
+-	else
+-		status = -EFAULT;
++	kfree(xlator_obj);
+ 
+-	return status;
++	return 0;
  }
  
  /*
-@@ -859,14 +858,3 @@ static int delete_strm(struct strm_object *stream_obj)
- 	}
- 	return status;
- }
--
--/*
-- *  ======== delete_strm_mgr ========
-- *  Purpose:
-- *      Frees stream manager.
-- */
--static void delete_strm_mgr(struct strm_mgr *strm_mgr_obj)
--{
--	if (strm_mgr_obj)
--		kfree(strm_mgr_obj);
--}
 -- 
 1.5.4.5
