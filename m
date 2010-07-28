@@ -1,139 +1,94 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 2/2] omap:mailbox-provide multiple reader support
-Date: Wed, 28 Jul 2010 01:02:29 +0300
-Message-ID: <AANLkTi=tHyRBgO79e=LEPOS85z=87TEt1QOvXR+keZHG@mail.gmail.com>
-References: <1279662096-3121-1-git-send-email-h-kanigeri2@ti.com>
-	<1279662096-3121-3-git-send-email-h-kanigeri2@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: RE: Issue with file transfers to a mass storage device on SMP	system
+Date: Wed, 28 Jul 2010 10:45:41 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C62EFAD5@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF707@dbde02.ent.ti.com>
+ <20100727100121.GB7846@n2100.arm.linux.org.uk>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF75B@dbde02.ent.ti.com>
+ <20100727104133.GA10665@n2100.arm.linux.org.uk>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF83C@dbde02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF8F3@dbde02.ent.ti.com>
+ <20100727135939.GD11468@n2100.arm.linux.org.uk>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF90B@dbde02.ent.ti.com>
+ <20100727142113.GE11468@n2100.arm.linux.org.uk>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C62EF91F@dbde02.ent.ti.com>
+ <20100727160710.GF11468@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:51084 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab0G0WCv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jul 2010 18:02:51 -0400
-Received: by wwj40 with SMTP id 40so1784031wwj.1
-        for <linux-omap@vger.kernel.org>; Tue, 27 Jul 2010 15:02:50 -0700 (PDT)
-In-Reply-To: <1279662096-3121-3-git-send-email-h-kanigeri2@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100727160710.GF11468-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hari Kanigeri <h-kanigeri2@ti.com>
-Cc: Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
 
-Hi Hari,
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org]
+> Sent: Tuesday, July 27, 2010 9:37 PM
+> To: Shilimkar, Santosh
+> Cc: Mankad, Maulik Ojas; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> Subject: Re: Issue with file transfers to a mass storage device on SMP
+> system
+> 
+> On Tue, Jul 27, 2010 at 07:59:17PM +0530, Shilimkar, Santosh wrote:
+> > Once it's pushed out of L2X WB, it will hit the memory. Just to give an
+> additional data point, with CATC analyzer what we see that only those
+> > 16 bytes CDB are 0x0. This buffer was memset to 0x0 just before the
+> > memcpy.
+> >
+> > I am just wondering who will issue a barrier(wmb) on this buffer before
+> DMA
+> > start if we don't use dma-mapping APIs? May be for dma_alloc_coherent
+> > buffers, we need to explicitly issue the barrier.
+> 
+> wmb's don't take addresses - they're a global thing.  All stores before
+> the wmb() take effect before stores after the wmb().
+> 
+> The wmb() is issued by Catalin's IO ordering patches:
+> 
+> +#define writeb(v,c)            ({ wmb(); writeb_relaxed(v,c); })
+> +#define writew(v,c)            ({ wmb(); writew_relaxed(v,c); })
+> +#define writel(v,c)            ({ wmb(); writel_relaxed(v,c); })
+> 
+> So, the wmb() is issued to ensure that all stores to (eg) buffers
+> allocated by dma_alloc_coherent() hit memory prior to the store to
+> the device.
+> 
+> Now, if you're writing to registers using something other than
+> write[bwl](),
+> you'll miss the wmb(), and therefore your DMA buffer won't be up to date.
+> 
+Yep. 
+> And this _is_ the problem:
+> 
+> drivers/usb/musb/musb_io.h:static inline void musb_writew(void __iomem
+> *addr, unsigned offset, u16 data)
+> drivers/usb/musb/musb_io.h:     { __raw_writew(data, addr + offset); }
+> drivers/usb/musb/musb_io.h:static inline void musb_writel(void __iomem
+> *addr, unsigned offset, u32 data)
+> drivers/usb/musb/musb_io.h:     { __raw_writel(data, addr + offset); }
+> drivers/usb/musb/musb_io.h:static inline void musb_writeb(void __iomem
+> *addr, unsigned offset, u8 data)
+> drivers/usb/musb/musb_io.h:     __raw_writew(tmp, addr + (offset & ~1));
+> drivers/usb/musb/musb_io.h:static inline void musb_writeb(void __iomem
+> *addr, unsigned offset, u8 data)
+> drivers/usb/musb/musb_io.h:     { __raw_writeb(data, addr + offset); }
+> 
+> All IO performed by musb misses out on the barriers - so what you
+> need to do is either add wmb()s to these, or you need to ensure
+> that the driver has the various necessary memory barriers in place.
+> The latter solution will be more efficient.
 
-On Wed, Jul 21, 2010 at 12:41 AM, Hari Kanigeri <h-kanigeri2@ti.com> wr=
-ote:
-> This patch provides mutiple readers support for a mailbox
-> instance.
->
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> ---
-> =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 =A06 ++-
-> =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 63 +=
-+++++++++++++++------------
-> =A02 files changed, 40 insertions(+), 29 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/pla=
-t-omap/include/plat/mailbox.h
-> index 0486d64..c8e47d8 100644
-> --- a/arch/arm/plat-omap/include/plat/mailbox.h
-> +++ b/arch/arm/plat-omap/include/plat/mailbox.h
-> @@ -68,13 +68,15 @@ struct omap_mbox {
-> =A0 =A0 =A0 =A0void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*priv;
->
-> =A0 =A0 =A0 =A0void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*err_noti=
-fy)(void);
-> + =A0 =A0 =A0 atomic_t =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0use_count;
-> + =A0 =A0 =A0 struct blocking_notifier_head =A0 notifier;
-> =A0};
->
-> =A0int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
-> =A0void omap_mbox_init_seq(struct omap_mbox *);
->
-> -struct omap_mbox *omap_mbox_get(const char *);
-> -void omap_mbox_put(struct omap_mbox *);
-> +struct omap_mbox *omap_mbox_get(const char *, struct notifier_block =
-*nb);
+I also agree that patching driver is less impacting and non-intrusive. We will go ahead with the original work-around which adds barrier in the driver.
 
-In this context, I'd like to change notifier to support adding a
-cookie which will be passed back to the handler function (unmodified,
-in a similar manner to request_irq's void *dev param).
+Thanks for the good discussion on this.
 
-This cookie param will be passed to the mailbox callback whenever a
-mailbox event is triggered, and will allow drivers to have multiple
-instances: instead of maintaining their state in a global variable
-(like bridge is doing today), it will be given back every time a
-mailbox event is delivered. For syslink it will also help using the
-same mbox callback for different devices (e.g. sysm3, appm3).
-
-The changes should be minor, and shouldn't affect existing notifier
-users, here's the diff (untested):
-
-diff --git a/include/linux/notifier.h b/include/linux/notifier.h
-index 540703b..e740aea 100644
---- a/include/linux/notifier.h
-+++ b/include/linux/notifier.h
-@@ -51,6 +51,7 @@ struct notifier_block {
-        int (*notifier_call)(struct notifier_block *, unsigned long, vo=
-id *);
-        struct notifier_block *next;
-        int priority;
-+       void *dev_id;
- };
-
- struct atomic_notifier_head {
-diff --git a/kernel/notifier.c b/kernel/notifier.c
-index 2488ba7..050fd9b 100644
---- a/kernel/notifier.c
-+++ b/kernel/notifier.c
-@@ -64,6 +64,7 @@ static int notifier_chain_unregister(struct notifier_=
-block **n
-  *     @nl:            Pointer to head of the blocking notifier chain
-  *     @val:           Value passed unmodified to notifier function
-  *     @v:             Pointer passed unmodified to notifier function
-+ *                     If pointer is NULL, the notifier block's
-cookie is passed
-  *     @nr_to_call:    Number of notifier functions to be called. Don'=
-t care
-  *                     value of this parameter is -1.
-  *     @nr_calls:      Records the number of notifications sent. Don't=
- care
-@@ -90,6 +91,7 @@ static int __kprobes notifier_call_chain(struct notif=
-ier_block
-                        continue;
-                }
- #endif
-+               v =3D v ? v : nb->dev_id;
-                ret =3D nb->notifier_call(nb, val, v);
-
-                if (nr_calls)
-
-
-And the only change in your mbox patch should be:
-
-@@ -149,8 +149,8 @@ static void mbox_rx_work(struct work_struct *work)
-               if (unlikely(len !=3D sizeof(msg)))
-                       pr_err("%s: kfifo_out anomaly detected\n", __fun=
-c__);
-
--               blocking_notifier_call_chain(&mq->mbox->notifier, len,
--                                                       (void *)msg);
-+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 blocking_notifier_call_chain(&mq->mbox->n=
-otifier, msg, NULL);
-       }
- }
-
-The result should be us getting both the mailbox msg and the original
-cookie, which will, in our case, be the context of the relevant
-dspbridge or syslink driver.
-
-What do you think ?
-
-Thanks,
-Ohad.
+Regards,
+Santosh
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
