@@ -1,44 +1,55 @@
 From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH 0/5] use idr kernel library instead of handles
-Date: Wed, 28 Jul 2010 16:04:52 -0500
-Message-ID: <1280351097-3346-1-git-send-email-ernesto@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49154 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752428Ab0G1VAT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Jul 2010 17:00:19 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCH] staging:ti dspbridge: avoid errors if node handle is zero
+Date: Wed, 28 Jul 2010 16:04:54 -0500
+Message-ID: <1280351097-3346-3-git-send-email-ernesto@ti.com>
+References: <1280351097-3346-1-git-send-email-ernesto@ti.com>
+ <1280351097-3346-2-git-send-email-ernesto@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1280351097-3346-2-git-send-email-ernesto@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@suse.de
-Cc: omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org, Rene Sapiens <rene.sapiens@ti.com>
+Cc: omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org, Ernesto Ramos <ernesto@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-From: Rene Sapiens <rene.sapiens@ti.com>
+As 'zero' can be a perfectly good id, it can be picked up as
+a NULL from userspace, avoid issues in API and user apps if node
+handle is zero.
 
-Use idr kernel library to send/receive node and stream ids to the
-user instead of kernel address.
-This id will be use to access the node and stream handles at the
-kernel side, if id does not match to any handle
-error -EFAULT is returned.
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+---
+ drivers/staging/tidspbridge/pmgr/dspapi.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-For processor handle, dspbridge driver will make sure
-the handle is valid by using the handle stored in process context.
-
-Ernesto Ramos (5):
-  staging:ti dspbridge: use node id instead of kernel address
-  staging:ti dspbridge: avoid errors if node handle is zero
-  staging:ti dspbridge: use processor handle from context instead of
-    user's
-  staging:ti dspbridge: use stream id instead of kernel address
-  staging:ti dspbridge: avoid errors if stream id is zero
-
- .../staging/tidspbridge/include/dspbridge/drv.h    |   11 +-
- .../staging/tidspbridge/include/dspbridge/node.h   |   14 +-
- .../include/dspbridge/resourcecleanup.h            |   12 -
- .../staging/tidspbridge/include/dspbridge/strm.h   |   22 +-
- drivers/staging/tidspbridge/pmgr/dspapi.c          |  329 ++++++++++++++++----
- drivers/staging/tidspbridge/rmgr/drv.c             |  303 ++++++-------------
- drivers/staging/tidspbridge/rmgr/drv_interface.c   |   18 +-
- drivers/staging/tidspbridge/rmgr/node.c            |  109 ++++---
- drivers/staging/tidspbridge/rmgr/strm.c            |   54 ++--
- 9 files changed, 485 insertions(+), 387 deletions(-)
-
+diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/staging/tidspbridge/pmgr/dspapi.c
+index 6eda7c5..f46aaf6 100644
+--- a/drivers/staging/tidspbridge/pmgr/dspapi.c
++++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
+@@ -1059,7 +1059,7 @@ inline void find_node_handle(struct node_res_object **noderes,
+ {
+ 	rcu_read_lock();
+ 	*noderes = idr_find(((struct process_context *)pr_ctxt)->node_id,
+-								(int)hnode);
++								(int)hnode - 1);
+ 	rcu_read_unlock();
+ 	return;
+ }
+@@ -1077,6 +1077,7 @@ u32 nodewrap_allocate(union trapped_args *args, void *pr_ctxt)
+ 	u8 *pargs = NULL;
+ 	struct dsp_nodeattrin proc_attr_in, *attr_in = NULL;
+ 	struct node_res_object *node_res;
++	int nodeid;
+ 
+ 	/* Optional argument */
+ 	if (psize) {
+@@ -1112,7 +1113,8 @@ u32 nodewrap_allocate(union trapped_args *args, void *pr_ctxt)
+ 				       attr_in, &node_res, pr_ctxt);
+ 	}
+ 	if (!status) {
+-		CP_TO_USR(args->args_node_allocate.ph_node, &node_res->id,
++		nodeid = node_res->id + 1;
++		CP_TO_USR(args->args_node_allocate.ph_node, &nodeid,
+ 			status, 1);
+ 		if (status) {
+ 			status = -EFAULT;
+-- 
+1.5.4.5
