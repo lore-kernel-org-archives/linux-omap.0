@@ -1,88 +1,137 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC 1/8] TILER-DMM: DMM-PAT driver for TI TILER
-Date: Wed, 28 Jul 2010 12:00:22 +0200
-Message-ID: <201007281200.23458.laurent.pinchart@ideasonboard.com>
-References: <1279927348-21750-1-git-send-email-davidsin@ti.com> <513FF747EED39B4AADBB4D6C9D9F9F7903D644D974@dlee02.ent.ti.com> <19F8576C6E063C45BE387C64729E7394044ED6385D@dbde02.ent.ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH] twl4030 reboot workaround
+Date: Wed, 28 Jul 2010 15:37:32 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323D40402@dbde02.ent.ti.com>
+References: <1265226207-22971-3-git-send-email-mturquette@ti.com>
+ <1280310092-27260-1-git-send-email-ext-mikko.rapeli@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:47157 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753806Ab0G1J7o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 05:59:44 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044ED6385D@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46745 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753133Ab0G1KHl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 06:07:41 -0400
+In-Reply-To: <1280310092-27260-1-git-send-email-ext-mikko.rapeli@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Sin, David" <davidsin@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Molnar, Lajos" <molnar@ti.com>
+To: Mikko Rapeli <ext-mikko.rapeli@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Turquette, Mike" <mturquette@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>
 
 
-On Tuesday 27 July 2010 21:53:28 Hiremath, Vaibhav wrote:
-> On Wednesday 28 July 2010 00:35:00 Sin, David wrote:
-> > On Tuesday 27 July 2010 01:38:00 Hiremath, Vaibhav wrote:
-> > > On Saturday 24 July 2010 04:52:00 Sin, David wrote:
 
-[snip]
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Mikko
+>>Rapeli
+>>Sent: Wednesday, July 28, 2010 3:12 PM
+>>To: linux-omap@vger.kernel.org
+>>Cc: Turquette, Mike; sameo@linux.intel.com
+>>Subject: [PATCH] twl4030 reboot workaround
+>>
+>>From: Mikko Rapeli <ext-mikko.rapeli@nokia.com>
+>>
+>>Original patch: http://marc.info/?l=linux-omap&m=126522625032441&w=2
+>>
+>>"Removes TWL4030 sleep script prior to rebooting, only on OMAP3. This is
+>>necessary since DPLL3 reset causes SYS_OFFMODE pin to go low, resulting
+>>in the sleep script being executed on TWL4030. This usually results in
+>>VDD1 & VDD2 voltage collapse while ROM code is executing, followed by an
+>>MPU Watch Dog reset or worse, an irrecoverable hang."
+>>
+>>Original patch resulted in a crash due to sleeping i2c calls late in the
+>>reboot sequence. Here's how to trigger the crash:
+>>
+>>	# cat /dev/urandom > /foo &
+>>	sync();
+>>        reboot(LINUX_REBOOT_CMD_RESTART2);
+>>
+>>Kernel trace from 2.6.32:
+>>
+>>Unable to handle kernel NULL pointer dereference at virtual address 00000000
+>>pgd = c0004000
+>>[00000000] *pgd=00000000
+>>Internal error: Oops: 805 [#2] PREEMPT
+>>...
+>>[<c00b3210>] (exit_mmap+0x1d4/0x1f8) from [<c006069c>] (mmput+0x34/0x110)
+>>[<c006069c>] (mmput+0x34/0x110) from [<c0064a90>] (exit_mm+0x140/0x180)
+>>[<c0064a90>] (exit_mm+0x140/0x180) from [<c00668ec>] (do_exit+0x5d8/0x6ac)
+>>[<c00668ec>] (do_exit+0x5d8/0x6ac) from [<c0035858>] (die+0x2d4/0x2e0)
+>>[<c0035858>] (die+0x2d4/0x2e0) from [<c0035904>] (baddataabort+0x0/0x50)
+>>[<c0035904>] (baddataabort+0x0/0x50) from [<c0274ff4>] (i2c_transfer+0xec/0x104)
+>>[<c0274ff4>] (i2c_transfer+0xec/0x104) from [<00000001>] (0x1)
+>>
+>>Fix is to move reboot preparations into a reboot notifier.
+>>
+>>Signed-off-by: Mikko Rapeli <ext-mikko.rapeli@nokia.com>
+>>---
+>> drivers/mfd/twl4030-power.c |   29 +++++++++++++++++++++++++++++
+>> 1 files changed, 29 insertions(+), 0 deletions(-)
+>>
+>>diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+>>index 7efa878..5d46768 100644
+>>--- a/drivers/mfd/twl4030-power.c
+>>+++ b/drivers/mfd/twl4030-power.c
+>>@@ -28,6 +28,7 @@
+>> #include <linux/pm.h>
+>> #include <linux/i2c/twl.h>
+>> #include <linux/platform_device.h>
+>>+#include <linux/reboot.h>
+>>
+>> #include <asm/mach-types.h>
+>>
+>>@@ -127,6 +128,29 @@ static u8 res_config_addrs[] = {
+>> 	[RES_Main_Ref]	= 0x94,
+>> };
+>>
+>>+/*
+>>+ * PRCM on OMAP3 will drive SYS_OFFMODE low during DPLL3 warm reset.
+>>+ * This causes Gaia sleep script to execute, usually killing VDD1 and
+>>+ * VDD2 while code is running.  WA is to disable the sleep script
+>>+ * before warm reset.
+>>+ */
+>>+static int twl4030_prepare_for_reboot(struct notifier_block *this,
+>>+		unsigned long cmd, void *p)
+>>+{
+>>+	int err;
 
-> > > [Hiremath, Vaibhav] If I understand correctly, DMM stands for
-> > > dynamic memory manager. Is it something which can only be
-> > > used with Video devices? Any specific reason why this is part
-> > > of drivers/media/video/ directory,
-> >
-> > [dhs] Any device can use TILER memory, but there is a big advantage,
-> > performance-wise, for 2-Dimensional macro block based buffers.  This HW
-> > is intended for image/video hardware accelerators (e.g. OMAP4 IVA-HD). 
-> > Plus there's the added advantage of doing zero-copy flips and rotations
-> > for the OMAP display and image sub-systems.
-> 
-> [Hiremath, Vaibhav] When you mention Tiler memory, you meant Tiler Virtual
-> memory which is independent of physical memory. Driver requesting/using
-> Tiler is responsible for allocating physical memory. Is that understanding
-> correct?
-> 
-> If yes, then feature wise it is same as VRFB in OMAP3, where it provides
-> virtual address space and driver requesting VRFB is responsible for
-> physical memory allocation. There could be additional features,
-> enhancement and stuff but zero-copy rotation for DSS, then its same as
-> VRFB.
-> 
-> Don't you think is would be very difficult to use for drivers with such
-> proposals, I can comment from DSS point of view,
-> 
-> In case of OMAP4 80% of code is being re-used from OMAP3 (located under
-> drivers/video/omap2/), which is currently supported hardware
-> rotation/mirroring and hardly tied to VRFB API's.
-> 
-> Now with this driver we have to do something,
-> 
-> cpu_is_omap34xx()
->         VRFB
-> else if cpu_is_omap44xx()
->         Tiler
-> 
-> I am not sure about further OMAP series of devices, where we might have
-> something else with DSS IP reuse (along with software). And I believe
-> Tiler is not part of DSS at all. Again if some other devices are using
-> Tiler API's it would become more difficult to re-use the code when same IP
-> is being used in multiple SoC's.
-> 
-> Does it make sense to you to have registration based mechanism (function
-> pointer) where you register your hardware capabilities/API's, driver don't
-> have to dependent on underneath hardware block. Ofcource if driver intend
-> to use some specific/custom feature supported by some hardware block then
-> he has to call that API under cpu_is_xxxx
+Minor nit. Insert a blank line.
 
-I think I agree with it. The tiler provides dynamic views on arbitrary 
-physical memory. Ideally it shouldn't be tied to the media/video subsystem 
-(obviously it should still provide an interface for V4L drivers).
+Regards
+Thara
 
-It's getting a bit hard to comment on the proposal, as there's no public 
-documentation I'm aware of beside the Documentation/arm/TILER file in the 
-patch set, and that information is far too concise and vague.
-
--- 
-Regards,
-
-Laurent Pinchart
+>>+	err = twl4030_remove_script(TWL4030_SLEEP_SCRIPT);
+>>+	if (err)
+>>+		pr_err("TWL4030: error trying to disable sleep script!\n");
+>>+
+>>+	return NOTIFY_DONE;
+>>+}
+>>+
+>>+static struct notifier_block twl4030_reboot_notifier = {
+>>+		.notifier_call = twl4030_prepare_for_reboot,
+>>+		.next = NULL,
+>>+		.priority = 0
+>>+};
+>>+
+>> static int __init twl4030_write_script_byte(u8 address, u8 byte)
+>> {
+>> 	int err;
+>>@@ -549,6 +573,11 @@ void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
+>> 	err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, R_PROTECT_KEY);
+>> 	if (err)
+>> 		pr_err("TWL4030 Unable to relock registers\n");
+>>+
+>>+	err = register_reboot_notifier(&twl4030_reboot_notifier);
+>>+	if (err)
+>>+		pr_err("TWL4030 Failed to register reboot notifier\n");
+>>+
+>> 	return;
+>>
+>> unlock:
+>>--
+>>1.5.6.5
+>>
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
