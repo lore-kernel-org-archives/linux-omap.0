@@ -1,102 +1,69 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH resend] OMAP: DSS2: Replace strncmp() with sysfs_streq()
- in overlay_manager_store()
-Date: Wed, 28 Jul 2010 20:06:27 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703060EAB90@dbde02.ent.ti.com>
-References: <'> <1280298118-4295-1-git-send-email-archit@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E7E39F08@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60323 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754909Ab0G1Ogf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 10:36:35 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7E39F08@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Ernesto Ramos <ernesto@ti.com>
+Subject: [PATCH 3/5] staging:ti dspbridge: remove function delete_strm_mgr
+Date: Wed, 28 Jul 2010 09:40:50 -0500
+Message-ID: <1280328052-31292-4-git-send-email-ernesto@ti.com>
+References: <1280328052-31292-1-git-send-email-ernesto@ti.com>
+ <1280328052-31292-2-git-send-email-ernesto@ti.com>
+ <1280328052-31292-3-git-send-email-ernesto@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1280328052-31292-3-git-send-email-ernesto@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: gregkh@suse.de
+Cc: omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org, Ernesto Ramos <ernesto@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Remove function delete_strm_mgr in strm.c and
+use kfree instead.
+
+Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+---
+ drivers/staging/tidspbridge/rmgr/strm.c |   16 ++--------------
+ 1 files changed, 2 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/staging/tidspbridge/rmgr/strm.c b/drivers/staging/tidspbridge/rmgr/strm.c
+index 73888e3..6c184c6 100644
+--- a/drivers/staging/tidspbridge/rmgr/strm.c
++++ b/drivers/staging/tidspbridge/rmgr/strm.c
+@@ -90,7 +90,6 @@ static u32 refs;		/* module reference count */
  
-
-> -----Original Message-----
-> From: Premi, Sanjeev 
-> Sent: Wednesday, July 28, 2010 7:28 PM
-> To: Taneja, Archit; tomi.valkeinen@nokia.com
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH resend] OMAP: DSS2: Replace strncmp() 
-> with sysfs_streq() in overlay_manager_store()
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org 
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Taneja, Archit
-> > Sent: Wednesday, July 28, 2010 11:52 AM
-> > To: tomi.valkeinen@nokia.com
-> > Cc: linux-omap@vger.kernel.org; Taneja, Archit
-> > Subject: [PATCH resend] OMAP: DSS2: Replace strncmp() with
-> > sysfs_streq() in overlay_manager_store()
-> > 
-> > In the function overlay_manager_store, the length of the 
-> string buf is 
-> > used to comapre the 2 strings, there is a possibility of false 
-> > positive match if buf is a prefix string of another manager.
-> > 
-> > The use of sysfs_streq() fixes this.
-> > 
-> > Signed-off-by: Archit Taneja <archit@ti.com>
-> > ---
-> >  drivers/video/omap2/dss/overlay.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/video/omap2/dss/overlay.c
-> > b/drivers/video/omap2/dss/overlay.c
-> > index 8233658..244dca8
-> > --- a/drivers/video/omap2/dss/overlay.c
-> > +++ b/drivers/video/omap2/dss/overlay.c
-> > @@ -65,7 +65,7 @@ static ssize_t overlay_manager_store(struct 
-> > omap_overlay *ovl, const char *buf,
-> >  		for (i = 0; i <
-> > omap_dss_get_num_overlay_managers(); ++i) {
-> >  			mgr = omap_dss_get_overlay_manager(i);
-> >  
-> > -			if (strncmp(buf, mgr->name, len) == 0)
-> > +			if (sysfs_streq(buf, mgr->name))
-> 
-> [sp] sysfs_streq() ignores trailing newlines during comparison. So,
->      the possibility mentioned in the description still stays.
-
-The aim is to compare one string which is a sysfs input and the other
-which is in the kernel. 
-
-> 
->      I am not familiar with overall context; but wouldn't srtcmp()
->      be the right choice? unless, of course, either of strings
->      being compared are not null terminated.
-
-The sysfs input will have a newline and null at the end whereas the
-other string will only have null, strcmp will fail when we want the two
-strings to match.
-
-Eg. Sysfs input "lcd\n\0"
-Kernel string "lcd\0"
-
-strcmp will fail here
-
-> 
-> >  				break;
-> >  
-> >  			mgr = NULL;
-> > --
-> > 1.5.4.7
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" 
-> > in the body of a message to majordomo@vger.kernel.org More 
-> majordomo 
-> > info at  http://vger.kernel.org/majordomo-info.html
-> > 
+ /*  ----------------------------------- Function Prototypes */
+ static int delete_strm(struct strm_object *stream_obj);
+-static void delete_strm_mgr(struct strm_mgr *strm_mgr_obj);
+ 
+ /*
+  *  ======== strm_allocate_buffer ========
+@@ -232,7 +231,7 @@ int strm_create(struct strm_mgr **strm_man,
+ 	if (DSP_SUCCEEDED(status))
+ 		*strm_man = strm_mgr_obj;
+ 	else
+-		delete_strm_mgr(strm_mgr_obj);
++		kfree(strm_mgr_obj);
+ 
+ 	DBC_ENSURE((DSP_SUCCEEDED(status) && *strm_man) ||
+ 				(DSP_FAILED(status) && *strm_man == NULL));
+@@ -250,7 +249,7 @@ void strm_delete(struct strm_mgr *strm_mgr_obj)
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(strm_mgr_obj);
+ 
+-	delete_strm_mgr(strm_mgr_obj);
++	kfree(strm_mgr_obj);
+ }
+ 
+ /*
+@@ -859,14 +858,3 @@ static int delete_strm(struct strm_object *stream_obj)
+ 	}
+ 	return status;
+ }
+-
+-/*
+- *  ======== delete_strm_mgr ========
+- *  Purpose:
+- *      Frees stream manager.
+- */
+-static void delete_strm_mgr(struct strm_mgr *strm_mgr_obj)
+-{
+-	if (strm_mgr_obj)
+-		kfree(strm_mgr_obj);
+-}
+-- 
+1.5.4.5
