@@ -1,75 +1,67 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 2/2] omap:mailbox-provide multiple reader support
-Date: Wed, 28 Jul 2010 13:33:47 +0300
-Message-ID: <AANLkTikfg1=cJSxyx9b1JbnEyGKGd+Uxx0K7ajduJj6y@mail.gmail.com>
-References: <1279662096-3121-1-git-send-email-h-kanigeri2@ti.com>
-	<1279662096-3121-3-git-send-email-h-kanigeri2@ti.com> <AANLkTi=tHyRBgO79e=LEPOS85z=87TEt1QOvXR+keZHG@mail.gmail.com>
+From: Nicholas Beck <nbeck@mpcdata.com>
+Subject: Re: OMAP2 DSS Linux Driver
+Date: Wed, 28 Jul 2010 11:57:54 +0100
+Message-ID: <4C500D32.8060408@mpcdata.com>
+References: <4C4FF08D.4040503@mpcdata.com> <1280313123.2427.109.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:55479 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754696Ab0G1KeP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 06:34:15 -0400
-Received: by wwj40 with SMTP id 40so2224853wwj.1
-        for <linux-omap@vger.kernel.org>; Wed, 28 Jul 2010 03:34:13 -0700 (PDT)
-In-Reply-To: <AANLkTi=tHyRBgO79e=LEPOS85z=87TEt1QOvXR+keZHG@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43689 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754819Ab0G1K56 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 06:57:58 -0400
+Received: by wyf19 with SMTP id 19so3980354wyf.19
+        for <linux-omap@vger.kernel.org>; Wed, 28 Jul 2010 03:57:57 -0700 (PDT)
+In-Reply-To: <1280313123.2427.109.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hari Kanigeri <h-kanigeri2@ti.com>
-Cc: Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@Nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Hari,
-
-On Wed, Jul 28, 2010 at 1:02 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> On Wed, Jul 21, 2010 at 12:41 AM, Hari Kanigeri <h-kanigeri2@ti.com> =
-wrote:
-> > This patch provides mutiple readers support for a mailbox
-> > instance.
-> >
-> > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> > ---
-> > =A0arch/arm/plat-omap/include/plat/mailbox.h | =A0 =A06 ++-
-> > =A0arch/arm/plat-omap/mailbox.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 63=
- ++++++++++++++++------------
-> > =A02 files changed, 40 insertions(+), 29 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/p=
-lat-omap/include/plat/mailbox.h
-> > index 0486d64..c8e47d8 100644
-> > --- a/arch/arm/plat-omap/include/plat/mailbox.h
-> > +++ b/arch/arm/plat-omap/include/plat/mailbox.h
-> > @@ -68,13 +68,15 @@ struct omap_mbox {
-> > =A0 =A0 =A0 =A0void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*priv;
-> >
-> > =A0 =A0 =A0 =A0void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(*err_no=
-tify)(void);
-> > + =A0 =A0 =A0 atomic_t =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0use_count;
-> > + =A0 =A0 =A0 struct blocking_notifier_head =A0 notifier;
-> > =A0};
-> >
-> > =A0int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
-> > =A0void omap_mbox_init_seq(struct omap_mbox *);
-> >
-> > -struct omap_mbox *omap_mbox_get(const char *);
-> > -void omap_mbox_put(struct omap_mbox *);
-> > +struct omap_mbox *omap_mbox_get(const char *, struct notifier_bloc=
-k *nb);
+On 28/07/10 11:32, Tomi Valkeinen wrote:
+> On Wed, 2010-07-28 at 10:55 +0200, ext Nicholas Beck wrote:
+>    
+>> Hi Tomi,
+>>
+>> Firstly, I apologise if you would prefer this on a maillist rather than
+>> a direct mail. Please let me know if you would prefer this on a maillist
+>> I will post it there instead.
+>>      
+> cc'ing linux-omap mailing list is always good (cc'd). More people can
+> answer, and more people will see the answer.
+>    
+Thanks and understood. I will make sure that future posts hit the mail list.
+>    
+>> I am working with the omap2 DSS driver implementation that you created.
+>> The DSS linux docs say that MIPI DBI (RFBI) output is working and tested.
+>>
+>> Please could you let me know what platform you tried this on?
+>>      
+> That information is a bit outdated. RFBI was working and tested, and the
+> platform was Nokia N800. However, the panel driver for N800 was just a
+> quickly ported hack, and currently there are no public boards that use
+> DSS2 and RFBI.
 >
-> In this context, I'd like to change notifier to support adding a
-> cookie which will be passed back to the handler function (unmodified,
-> in a similar manner to request_irq's void *dev param).
+> There has been quite big changes in the DSS2 code, and RFBI is most
+> likely broken. There has also been some discussions about RFBI in
+> linux-omap mailinglist, but I haven't looked at the RFBI code myself as
+> I don't have any board to test it on.
+>
+>    
+>> I am working with some custom hardware, which is largely similar to the
+>> OMAP3530EVM, but will use MIPI DBI (RFBI) through a custom FPGA instead
+>> of MIPI DPI (RFBI bypass) as used by the EVM's LCD. We are trying to
+>> reduce the integration risk by basing this work on a known working platform.
+>>      
+> Most likely the problems with RFBI are quite small, as the driver did
+> work earlier. However, finding those small problems may be a big job =).
+> I suggest you search l-o mailing list archives, and try to work with the
+> guys there who are trying to use RFBI.
+>
+>    
+Thanks for the info. I'll dig through the archive and see what the 
+current state is.
 
-This can be easily achieved with a simple container_of manipulation,
-so please disregard my request : your patch is fine as-is. After it is
-accepted, it'd be simple to add this context-get-back to dspbridge.
+Nick
 
-Thanks,
-Ohad.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
