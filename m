@@ -1,77 +1,122 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC 1/8] TILER-DMM: DMM-PAT driver for TI TILER
-Date: Wed, 28 Jul 2010 21:16:22 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044EE51DAD@dbde02.ent.ti.com>
-References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
- <513FF747EED39B4AADBB4D6C9D9F9F7903D644D974@dlee02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394044ED6385D@dbde02.ent.ti.com>
- <201007281200.23458.laurent.pinchart@ideasonboard.com>
- <513FF747EED39B4AADBB4D6C9D9F9F7903D64D75EB@dlee02.ent.ti.com>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH] twl4030 reboot workaround
+Date: Wed, 28 Jul 2010 10:47:36 -0500
+Message-ID: <4C505118.40807@ti.com>
+References: <1265226207-22971-3-git-send-email-mturquette@ti.com> <1280310092-27260-1-git-send-email-ext-mikko.rapeli@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33289 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33336 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752785Ab0G1Pqo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 11:46:44 -0400
-In-Reply-To: <513FF747EED39B4AADBB4D6C9D9F9F7903D64D75EB@dlee02.ent.ti.com>
-Content-Language: en-US
+	id S1755508Ab0G1Prm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Jul 2010 11:47:42 -0400
+In-Reply-To: <1280310092-27260-1-git-send-email-ext-mikko.rapeli@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sin, David" <davidsin@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Molnar, Lajos" <molnar@ti.com>
+To: Mikko Rapeli <ext-mikko.rapeli@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>
 
-> -----Original Message-----
-> From: Sin, David
-> Sent: Wednesday, July 28, 2010 8:09 PM
-> To: Laurent Pinchart; linux-arm-kernel@lists.infradead.org
-> Cc: Hiremath, Vaibhav; linux-omap@vger.kernel.org; Tony Lindgren; Russell
-> King; Ohad Ben-Cohen; Kanigeri, Hari; Shilimkar, Santosh; Molnar, Lajos
-> Subject: RE: [RFC 1/8] TILER-DMM: DMM-PAT driver for TI TILER
+Mikko Rapeli wrote:
+> From: Mikko Rapeli <ext-mikko.rapeli@nokia.com>
 > 
-> > -----Original Message-----
-> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> > Sent: Wednesday, July 28, 2010 5:00 AM
-> > To: linux-arm-kernel@lists.infradead.org
-> > Cc: Hiremath, Vaibhav; Sin, David;
-> > linux-omap@vger.kernel.org; Tony Lindgren; Russell King; Ohad
-> > Ben-Cohen; Kanigeri, Hari; Shilimkar, Santosh; Molnar, Lajos
-> > Subject: Re: [RFC 1/8] TILER-DMM: DMM-PAT driver for TI TILER
-<snip>
+> Original patch: http://marc.info/?l=linux-omap&m=126522625032441&w=2
 
-> > I think I agree with it. The tiler provides dynamic views on
-> > arbitrary
-> > physical memory. Ideally it shouldn't be tied to the
-> > media/video subsystem
-> > (obviously it should still provide an interface for V4L drivers).
-> >
-> > It's getting a bit hard to comment on the proposal, as
-> > there's no public
-> > documentation I'm aware of beside the Documentation/arm/TILER
-> > file in the
-> > patch set, and that information is far too concise and vague.
-> >
-> > --
-> > Regards,
-> >
-> > Laurent Pinchart
-> >
+I forgot about this one...
+
+> "Removes TWL4030 sleep script prior to rebooting, only on OMAP3. This is
+> necessary since DPLL3 reset causes SYS_OFFMODE pin to go low, resulting
+> in the sleep script being executed on TWL4030. This usually results in
+> VDD1 & VDD2 voltage collapse while ROM code is executing, followed by an
+> MPU Watch Dog reset or worse, an irrecoverable hang."
 > 
-> [dhs] I understand what you're stating here, conceptually, but I'm missing
-> some details.  Do you mean that there needs to be a generic layer between a
-> given video memory allocator and V4L? 
-> and that set of APIs should point to
-> specific functions based on availability (e.g. VRFB, TILER, future TILER,
-> other IP, etc)?
+> Original patch resulted in a crash due to sleeping i2c calls late in the
+> reboot sequence. Here's how to trigger the crash:
 > 
-[Hiremath, Vaibhav] David,
-As far as Memory allocator is concerned I think it is more generic term and should not really tie to underneath hardware/feature (Tiler, VRFB or could be anything). This is long time issue with every Embedded devices dealing with Video, due to their dynamic requirement of memory/buffers.
+> 	# cat /dev/urandom > /foo &
+> 	sync();
+>         reboot(LINUX_REBOOT_CMD_RESTART2);
+> 
+> Kernel trace from 2.6.32:
+> 
+> Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> pgd = c0004000
+> [00000000] *pgd=00000000
+> Internal error: Oops: 805 [#2] PREEMPT
+> ...
+> [<c00b3210>] (exit_mmap+0x1d4/0x1f8) from [<c006069c>] (mmput+0x34/0x110)
+> [<c006069c>] (mmput+0x34/0x110) from [<c0064a90>] (exit_mm+0x140/0x180)
+> [<c0064a90>] (exit_mm+0x140/0x180) from [<c00668ec>] (do_exit+0x5d8/0x6ac)
+> [<c00668ec>] (do_exit+0x5d8/0x6ac) from [<c0035858>] (die+0x2d4/0x2e0)
+> [<c0035858>] (die+0x2d4/0x2e0) from [<c0035904>] (baddataabort+0x0/0x50)
+> [<c0035904>] (baddataabort+0x0/0x50) from [<c0274ff4>] (i2c_transfer+0xec/0x104)
+> [<c0274ff4>] (i2c_transfer+0xec/0x104) from [<00000001>] (0x1)
+> 
+> Fix is to move reboot preparations into a reboot notifier.
+> 
+> Signed-off-by: Mikko Rapeli <ext-mikko.rapeli@nokia.com>
+> ---
+>  drivers/mfd/twl4030-power.c |   29 +++++++++++++++++++++++++++++
+>  1 files changed, 29 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 7efa878..5d46768 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/pm.h>
+>  #include <linux/i2c/twl.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/reboot.h>
+>  
+>  #include <asm/mach-types.h>
+>  
+> @@ -127,6 +128,29 @@ static u8 res_config_addrs[] = {
+>  	[RES_Main_Ref]	= 0x94,
+>  };
+>  
+> +/*
+> + * PRCM on OMAP3 will drive SYS_OFFMODE low during DPLL3 warm reset.
+> + * This causes Gaia sleep script to execute, usually killing VDD1 and
+> + * VDD2 while code is running.  WA is to disable the sleep script
+> + * before warm reset.
+> + */
+> +static int twl4030_prepare_for_reboot(struct notifier_block *this,
+> +		unsigned long cmd, void *p)
+> +{
+> +	int err;
+> +	err = twl4030_remove_script(TWL4030_SLEEP_SCRIPT);
+> +	if (err)
+> +		pr_err("TWL4030: error trying to disable sleep script!\n");
+> +
+> +	return NOTIFY_DONE;
+> +}
+> +
+> +static struct notifier_block twl4030_reboot_notifier = {
+> +		.notifier_call = twl4030_prepare_for_reboot,
+> +		.next = NULL,
+> +		.priority = 0
+> +};
+> +
+>  static int __init twl4030_write_script_byte(u8 address, u8 byte)
+>  {
+>  	int err;
+> @@ -549,6 +573,11 @@ void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
+>  	err = twl_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, R_PROTECT_KEY);
+>  	if (err)
+>  		pr_err("TWL4030 Unable to relock registers\n");
+> +
+> +	err = register_reboot_notifier(&twl4030_reboot_notifier);
 
-Have you looked at Samsung (CMA) and Qualcomm (IOMMU) patches for memory allocation/management? I think it is worth to look at their approach. 
+This method is much better than the method I proposed before.  Taking 
+into account the comments from others, ACK.
 
-Thanks,
-Vaibhav
+Mike
 
-> Laurent:  The TRM for DMM-TILER should be publicly available already, but
-> for some reason, I'm not able to see the link.  I will work on this...
+> +	if (err)
+> +		pr_err("TWL4030 Failed to register reboot notifier\n");
+> +
+>  	return;
+>  
+>  unlock:
+
