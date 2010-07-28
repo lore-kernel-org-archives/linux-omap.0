@@ -1,90 +1,33 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 2/5] omap:hwspinlock-define HWSPINLOCK base address
-Date: Wed, 28 Jul 2010 20:03:57 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7E39F4A@dbde02.ent.ti.com>
-References: <1279558221-14954-1-git-send-email-h-kanigeri2@ti.com>
- <1279558221-14954-3-git-send-email-h-kanigeri2@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E7DA2246@dbde02.ent.ti.com>
- <8F7AF80515AF0D4D93307E594F3CB40E4D25C9B4@dlee03.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E7E39F22@dbde02.ent.ti.com>
- <8F7AF80515AF0D4D93307E594F3CB40E4D25D34F@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Ernesto Ramos <ernesto@ti.com>
+Subject: [PATCH 0/5] staging:ti dspbridge: Checkpatch errors cleanup series
+Date: Wed, 28 Jul 2010 09:40:47 -0500
+Message-ID: <1280328052-31292-1-git-send-email-ernesto@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60180 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60312 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754384Ab0G1OeF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 10:34:05 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4D25D34F@dlee03.ent.ti.com>
-Content-Language: en-US
+	id S1754768Ab0G1Og3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Jul 2010 10:36:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Que, Simon" <sque@ti.com>
+To: gregkh@suse.de
+Cc: omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org, Ernesto Ramos <ernesto@ti.com>
 
- 
+These patches are targetted to remove checkpatch errors within
+dspbridge driver.
 
-> -----Original Message-----
-> From: Kanigeri, Hari 
-> Sent: Wednesday, July 28, 2010 7:53 PM
-> To: Premi, Sanjeev; Linux Omap; Tony Lindgren
-> Cc: Shilimkar, Santosh; Cousson, Benoit; Que, Simon
-> Subject: RE: [PATCH 2/5] omap:hwspinlock-define HWSPINLOCK 
-> base address
-> 
-[snip]
+Ernesto Ramos (5):
+  staging:ti dspbridge: remove unused typedef REG16
+  staging:ti dspbridge: remove unnecessary check for NULL pointer in
+    cmm.c
+  staging:ti dspbridge: remove function delete_strm_mgr
+  staging:ti dspbridge: remove unnecessary volatile variables
+  staging:ti dspbridge: replace simple_strtoul by strict_strtoul
 
-> > > Sanjeev,
-> > >
-> > > > > @@ -49,5 +49,10 @@
-> > > > >  #define OMAP44XX_MAILBOX_BASE		
-> (L4_44XX_BASE + 0xF4000)
-> > > > >  #define OMAP44XX_HSUSB_OTG_BASE		
-> (L4_44XX_BASE + 0xAB000)
-> > > > >
-> > > > > +#define OMAP4_MMU1_BASE			0x55082000
-> > > > > +#define OMAP4_MMU2_BASE			0x4A066000
-> > > >
-> > > > [sp] Are these 2 base addresses related to this patch?
-> > >
-> > > Nope. Thanks for finding this. I will update the patch.
-> > 
-> > [sp] Then additional patch only to add the base address 
-> won't make much
-> > sense.
-> >      You may want to combine it with appropriately with 
-> another one in
-> > this
-> >      series.
-> 
-> I think the define to add SPINLOCK base address is 
-> independent of adding spinlock driver functionality, and I 
-> don't see a reason why it shouldn't be a separate patch.
-> Example: The driver patches might take time to get 
-> upstreamed, but that shouldn't stop this patch that adds the 
-> missing Base address.
+ drivers/staging/tidspbridge/core/_tiomap.h    |    2 --
+ drivers/staging/tidspbridge/core/tiomap3430.c |    8 ++++----
+ drivers/staging/tidspbridge/dynload/tramp.c   |    4 ++--
+ drivers/staging/tidspbridge/pmgr/cmm.c        |   15 ++++++---------
+ drivers/staging/tidspbridge/rmgr/dbdcd.c      |    6 +++++-
+ drivers/staging/tidspbridge/rmgr/strm.c       |   16 ++--------------
+ 6 files changed, 19 insertions(+), 32 deletions(-)
 
-[sp] Without driver would this base address be of any use?
-
-> 
-> > 
-> > >
-> > > >
-> > > > ~sanjeev
-> > > >
-> > > > > +
-> > > > > +#define OMAP44XX_SPINLOCK_BASE		
-> (L4_44XX_BASE + 0xF6000)
-> > > > > +
-> > > > >  #endif /* __ASM_ARCH_OMAP44XX_H */
-> > > > >
-> > > > > --
-> > > > > 1.7.0
-> > > > >
-> > > > >
-> > >
-> > > Best regards,
-> > > Hari
-> > >
-> 
