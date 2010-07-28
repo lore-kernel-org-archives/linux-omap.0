@@ -1,74 +1,57 @@
 From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH 04/10] staging:ti dspbridge: remove DSP_SUCCEEDED macro from services
-Date: Wed, 28 Jul 2010 09:45:27 -0500
-Message-ID: <1280328333-31336-5-git-send-email-ernesto@ti.com>
-References: <1280328333-31336-1-git-send-email-ernesto@ti.com>
- <1280328333-31336-2-git-send-email-ernesto@ti.com>
- <1280328333-31336-3-git-send-email-ernesto@ti.com>
- <1280328333-31336-4-git-send-email-ernesto@ti.com>
+Subject: [PATCH 00/10] staging:ti dspbridge: Remove DSP_FAILED and DSP_SUCCEEDED macros
+Date: Wed, 28 Jul 2010 09:45:23 -0500
+Message-ID: <1280328333-31336-1-git-send-email-ernesto@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1280328333-31336-4-git-send-email-ernesto@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@suse.de
 Cc: omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org, Ernesto Ramos <ernesto@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Since status succeeded is now 0 macro DSP_SUCCEEDED
-is not necessary anymore.
+This series of patches is targetted to remove macros DSP_FAILED
+and DSP_SUCCEEDED since bridge driver currently uses standard kernel
+error codes.
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
----
- drivers/staging/tidspbridge/services/cfg.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+Ernesto Ramos (10):
+  staging:ti dspbridge: remove DSP_SUCCEEDED macro from core
+  staging:ti dspbridge: remove DSP_SUCCEEDED macro from pmgr
+  staging:ti dspbridge: remove DSP_SUCCEEDED macro from rmgr
+  staging:ti dspbridge: remove DSP_SUCCEEDED macro from services
+  staging:ti dspbridge: remove DSP_SUCCEEDED macro definition
+  staging:ti dspbridge: remove DSP_FAILED macro from core
+  staging:ti dspbridge: remove DSP_FAILED macro from pmgr
+  staging:ti dspbridge: remove DSP_FAILED macro from rmgr
+  staging:ti dspbridge: remove DSP_FAILED macro from services
+  staging:ti dspbridge: remove DSP_FAILED macro definition
 
-diff --git a/drivers/staging/tidspbridge/services/cfg.c b/drivers/staging/tidspbridge/services/cfg.c
-index 4ab3cd7..c3f33f6 100644
---- a/drivers/staging/tidspbridge/services/cfg.c
-+++ b/drivers/staging/tidspbridge/services/cfg.c
-@@ -62,7 +62,7 @@ int cfg_get_auto_start(struct cfg_devnode *dev_node_obj,
- 		status = -EFAULT;
- 	if (!auto_start || !drv_datap)
- 		status = -EFAULT;
--	if (DSP_SUCCEEDED(status))
-+	if (!status)
- 		*auto_start = (drv_datap->base_img) ? 1 : 0;
- 
- 	DBC_ENSURE((status == 0 &&
-@@ -93,7 +93,7 @@ int cfg_get_dev_object(struct cfg_devnode *dev_node_obj,
- 		status = -EFAULT;
- 
- 	dw_buf_size = sizeof(value);
--	if (DSP_SUCCEEDED(status)) {
-+	if (!status) {
- 
- 		/* check the device string and then store dev object */
- 		if (!
-@@ -127,7 +127,7 @@ int cfg_get_exec_file(struct cfg_devnode *dev_node_obj, u32 buf_size,
- 	if (strlen(drv_datap->base_img) > buf_size)
- 		status = -EINVAL;
- 
--	if (DSP_SUCCEEDED(status) && drv_datap->base_img)
-+	if (!status && drv_datap->base_img)
- 		strcpy(str_exec_file, drv_datap->base_img);
- 
- 	if (DSP_FAILED(status))
-@@ -178,7 +178,7 @@ int cfg_get_object(u32 *value, u8 dw_type)
- 		*value = 0;
- 		pr_err("%s: Failed, status 0x%x\n", __func__, status);
- 	}
--	DBC_ENSURE((DSP_SUCCEEDED(status) && *value != 0) ||
-+	DBC_ENSURE((!status && *value != 0) ||
- 		   (DSP_FAILED(status) && *value == 0));
- 	return status;
- }
-@@ -211,7 +211,7 @@ int cfg_set_dev_object(struct cfg_devnode *dev_node_obj, u32 value)
- 	if (!dev_node_obj)
- 		status = -EFAULT;
- 
--	if (DSP_SUCCEEDED(status)) {
-+	if (!status) {
- 		/* Store the Bridge device object in the Registry */
- 
- 		if (!(strcmp((char *)dev_node_obj, "TIOMAP1510")))
--- 
-1.5.4.5
+ drivers/staging/tidspbridge/core/chnl_sm.c         |   42 ++--
+ drivers/staging/tidspbridge/core/dsp-clock.c       |    4 +-
+ drivers/staging/tidspbridge/core/io_sm.c           |  111 +++++-----
+ drivers/staging/tidspbridge/core/msg_sm.c          |   26 ++--
+ drivers/staging/tidspbridge/core/tiomap3430.c      |   61 +++---
+ drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |    8 +-
+ drivers/staging/tidspbridge/core/tiomap_io.c       |   41 ++--
+ .../staging/tidspbridge/include/dspbridge/dbdefs.h |    4 -
+ drivers/staging/tidspbridge/pmgr/chnl.c            |   10 +-
+ drivers/staging/tidspbridge/pmgr/cmm.c             |  137 ++++++-------
+ drivers/staging/tidspbridge/pmgr/cod.c             |   18 +-
+ drivers/staging/tidspbridge/pmgr/dbll.c            |   32 ++--
+ drivers/staging/tidspbridge/pmgr/dev.c             |   79 +++----
+ drivers/staging/tidspbridge/pmgr/dmm.c             |   12 +-
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |   82 ++++----
+ drivers/staging/tidspbridge/pmgr/io.c              |    4 +-
+ drivers/staging/tidspbridge/pmgr/msg.c             |    2 +-
+ drivers/staging/tidspbridge/rmgr/dbdcd.c           |   48 ++--
+ drivers/staging/tidspbridge/rmgr/disp.c            |   62 +++---
+ drivers/staging/tidspbridge/rmgr/drv.c             |   39 ++--
+ drivers/staging/tidspbridge/rmgr/drv_interface.c   |   10 +-
+ drivers/staging/tidspbridge/rmgr/dspdrv.c          |   16 +-
+ drivers/staging/tidspbridge/rmgr/mgr.c             |   32 ++--
+ drivers/staging/tidspbridge/rmgr/nldr.c            |  106 +++++-----
+ drivers/staging/tidspbridge/rmgr/node.c            |  224 ++++++++++----------
+ drivers/staging/tidspbridge/rmgr/proc.c            |  137 ++++++------
+ drivers/staging/tidspbridge/rmgr/pwr.c             |   26 +--
+ drivers/staging/tidspbridge/rmgr/rmm.c             |   12 +-
+ drivers/staging/tidspbridge/rmgr/strm.c            |   75 ++++----
+ drivers/staging/tidspbridge/services/cfg.c         |   21 +-
+ 30 files changed, 710 insertions(+), 771 deletions(-)
