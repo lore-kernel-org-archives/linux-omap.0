@@ -1,114 +1,102 @@
-From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH 4/5] staging:ti dspbridge: remove unnecessary volatile variables
-Date: Wed, 28 Jul 2010 09:40:51 -0500
-Message-ID: <1280328052-31292-5-git-send-email-ernesto@ti.com>
-References: <1280328052-31292-1-git-send-email-ernesto@ti.com>
- <1280328052-31292-2-git-send-email-ernesto@ti.com>
- <1280328052-31292-3-git-send-email-ernesto@ti.com>
- <1280328052-31292-4-git-send-email-ernesto@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1280328052-31292-4-git-send-email-ernesto@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gregkh@suse.de
-Cc: omar.ramirez@ti.com, ohad@wizery.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org, Ernesto Ramos <ernesto@ti.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: [PATCH resend] OMAP: DSS2: Replace strncmp() with sysfs_streq()
+ in overlay_manager_store()
+Date: Wed, 28 Jul 2010 20:06:27 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703060EAB90@dbde02.ent.ti.com>
+References: <'> <1280298118-4295-1-git-send-email-archit@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E7E39F08@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60323 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754909Ab0G1Ogf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 10:36:35 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7E39F08@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Remove unnecessary volatile variables; use accessor
-functions __raw_readl/__raw_writel instead when applicable.
+ 
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
----
- drivers/staging/tidspbridge/core/tiomap3430.c |    8 ++++----
- drivers/staging/tidspbridge/dynload/tramp.c   |    4 ++--
- drivers/staging/tidspbridge/pmgr/cmm.c        |    7 ++++---
- 3 files changed, 10 insertions(+), 9 deletions(-)
+> -----Original Message-----
+> From: Premi, Sanjeev 
+> Sent: Wednesday, July 28, 2010 7:28 PM
+> To: Taneja, Archit; tomi.valkeinen@nokia.com
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH resend] OMAP: DSS2: Replace strncmp() 
+> with sysfs_streq() in overlay_manager_store()
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Taneja, Archit
+> > Sent: Wednesday, July 28, 2010 11:52 AM
+> > To: tomi.valkeinen@nokia.com
+> > Cc: linux-omap@vger.kernel.org; Taneja, Archit
+> > Subject: [PATCH resend] OMAP: DSS2: Replace strncmp() with
+> > sysfs_streq() in overlay_manager_store()
+> > 
+> > In the function overlay_manager_store, the length of the 
+> string buf is 
+> > used to comapre the 2 strings, there is a possibility of false 
+> > positive match if buf is a prefix string of another manager.
+> > 
+> > The use of sysfs_streq() fixes this.
+> > 
+> > Signed-off-by: Archit Taneja <archit@ti.com>
+> > ---
+> >  drivers/video/omap2/dss/overlay.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/video/omap2/dss/overlay.c
+> > b/drivers/video/omap2/dss/overlay.c
+> > index 8233658..244dca8
+> > --- a/drivers/video/omap2/dss/overlay.c
+> > +++ b/drivers/video/omap2/dss/overlay.c
+> > @@ -65,7 +65,7 @@ static ssize_t overlay_manager_store(struct 
+> > omap_overlay *ovl, const char *buf,
+> >  		for (i = 0; i <
+> > omap_dss_get_num_overlay_managers(); ++i) {
+> >  			mgr = omap_dss_get_overlay_manager(i);
+> >  
+> > -			if (strncmp(buf, mgr->name, len) == 0)
+> > +			if (sysfs_streq(buf, mgr->name))
+> 
+> [sp] sysfs_streq() ignores trailing newlines during comparison. So,
+>      the possibility mentioned in the description still stays.
 
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index 08a2f5f..ae1f394 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -404,7 +404,7 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 		pr_err("%s: Illegal SM base\n", __func__);
- 		status = -EPERM;
- 	} else
--		*((volatile u32 *)dw_sync_addr) = 0xffffffff;
-+		__raw_writel(0xffffffff, dw_sync_addr);
- 
- 	if (DSP_SUCCEEDED(status)) {
- 		resources = dev_context->resources;
-@@ -584,7 +584,7 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 		dev_dbg(bridge, "Waiting for Sync @ 0x%x\n", dw_sync_addr);
- 		dev_dbg(bridge, "DSP c_int00 Address =  0x%x\n", dsp_addr);
- 		if (dsp_debug)
--			while (*((volatile u16 *)dw_sync_addr))
-+			while (__raw_readw(dw_sync_addr))
- 				;;
- 
- 		/* Wait for DSP to clear word in shared memory */
-@@ -602,7 +602,7 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 			/* Write the synchronization bit to indicate the
- 			 * completion of OPP table update to DSP
- 			 */
--			*((volatile u32 *)dw_sync_addr) = 0XCAFECAFE;
-+			__raw_writel(0XCAFECAFE, dw_sync_addr);
- 
- 			/* update board state */
- 			dev_context->dw_brd_state = BRD_RUNNING;
-@@ -1852,7 +1852,7 @@ bool wait_for_start(struct bridge_dev_context *dev_context, u32 dw_sync_addr)
- 	u16 timeout = TIHELEN_ACKTIMEOUT;
- 
- 	/*  Wait for response from board */
--	while (*((volatile u16 *)dw_sync_addr) && --timeout)
-+	while (__raw_readw(dw_sync_addr) && --timeout)
- 		udelay(10);
- 
- 	/*  If timed out: return false */
-diff --git a/drivers/staging/tidspbridge/dynload/tramp.c b/drivers/staging/tidspbridge/dynload/tramp.c
-index 81314d2..60d22ea 100644
---- a/drivers/staging/tidspbridge/dynload/tramp.c
-+++ b/drivers/staging/tidspbridge/dynload/tramp.c
-@@ -86,8 +86,8 @@ static u8 priv_h2a(u8 value)
- static void priv_tramp_sym_gen_name(u32 value, char *dst)
- {
- 	u32 i;
--	volatile char *prefix = TRAMP_SYM_PREFIX;
--	volatile char *dst_local = dst;
-+	char *prefix = TRAMP_SYM_PREFIX;
-+	char *dst_local = dst;
- 	u8 tmp;
- 
- 	/*  Clear out the destination, including the ending NULL */
-diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
-index 874ed64..b7cba1b 100644
---- a/drivers/staging/tidspbridge/pmgr/cmm.c
-+++ b/drivers/staging/tidspbridge/pmgr/cmm.c
-@@ -1008,6 +1008,7 @@ void *cmm_xlator_alloc_buf(struct cmm_xlatorobject *xlator, void *va_buf,
- {
- 	struct cmm_xlator *xlator_obj = (struct cmm_xlator *)xlator;
- 	void *pbuf = NULL;
-+	void *tmp_va_buff;
- 	struct cmm_attrs attrs;
- 
- 	DBC_REQUIRE(refs > 0);
-@@ -1019,16 +1020,16 @@ void *cmm_xlator_alloc_buf(struct cmm_xlatorobject *xlator, void *va_buf,
- 
- 	if (xlator_obj) {
- 		attrs.ul_seg_id = xlator_obj->ul_seg_id;
--		*(volatile u32 *)va_buf = 0;
-+		__raw_writel(0, va_buf);
- 		/* Alloc SM */
- 		pbuf =
- 		    cmm_calloc_buf(xlator_obj->hcmm_mgr, pa_size, &attrs, NULL);
- 		if (pbuf) {
- 			/* convert to translator(node/strm) process Virtual
- 			 * address */
--			*(volatile u32 **)va_buf =
--			    (u32 *) cmm_xlator_translate(xlator,
-+			 tmp_va_buff = cmm_xlator_translate(xlator,
- 							 pbuf, CMM_PA2VA);
-+			__raw_writel((u32)tmp_va_buff, va_buf);
- 		}
- 	}
- 	return pbuf;
--- 
-1.5.4.5
+The aim is to compare one string which is a sysfs input and the other
+which is in the kernel. 
+
+> 
+>      I am not familiar with overall context; but wouldn't srtcmp()
+>      be the right choice? unless, of course, either of strings
+>      being compared are not null terminated.
+
+The sysfs input will have a newline and null at the end whereas the
+other string will only have null, strcmp will fail when we want the two
+strings to match.
+
+Eg. Sysfs input "lcd\n\0"
+Kernel string "lcd\0"
+
+strcmp will fail here
+
+> 
+> >  				break;
+> >  
+> >  			mgr = NULL;
+> > --
+> > 1.5.4.7
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More 
+> majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> > 
