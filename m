@@ -1,163 +1,144 @@
-From: "Sin, David" <davidsin@ti.com>
-Subject: RE: [RFC 0/8] TI TILER-DMM driver
-Date: Wed, 28 Jul 2010 10:23:06 -0500
-Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D64D76D5@dlee02.ent.ti.com>
-References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
- <201007241312.53551.hverkuil@xs4all.nl>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/5] staging:ti dspbridge: remove unnecessary check for
+ NULL pointer in cmm.c
+Date: Wed, 28 Jul 2010 10:31:50 -0500
+Message-ID: <4C504D66.8090302@ti.com>
+References: <1280328052-31292-1-git-send-email-ernesto@ti.com> <1280328052-31292-2-git-send-email-ernesto@ti.com> <1280328052-31292-3-git-send-email-ernesto@ti.com> <4C504719.3020007@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60209 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754553Ab0G1PXR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jul 2010 11:23:17 -0400
-In-Reply-To: <201007241312.53551.hverkuil@xs4all.nl>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4C504719.3020007@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Cc: "gregkh@suse.de" <gregkh@suse.de>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "ohad@wizery.com" <ohad@wizery.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <rmk@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-> Sent: Saturday, July 24, 2010 6:13 AM
-> To: Sin, David
-> Cc: linux-arm-kernel@lists.arm.linux.org.uk; 
-> linux-omap@vger.kernel.org; Tony Lindgren; Russell King; 
-> Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Shilimkar, Santosh
-> Subject: Re: [RFC 0/8] TI TILER-DMM driver
+Nishanth Menon had written, on 07/28/2010 10:04 AM, the following:
+> Ramos Falcon, Ernesto had written, on 07/28/2010 09:40 AM, the following:
+>> Remove unnecessary check for NULL pointer in cmm.c.
+>>
+>> Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+>> ---
+>>  drivers/staging/tidspbridge/pmgr/cmm.c |    8 ++------
+>>  1 files changed, 2 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
+>> index 8e808d9..874ed64 100644
+>> --- a/drivers/staging/tidspbridge/pmgr/cmm.c
+>> +++ b/drivers/staging/tidspbridge/pmgr/cmm.c
+>> @@ -992,16 +992,12 @@ int cmm_xlator_create(struct cmm_xlatorobject **xlator,
+>>  int cmm_xlator_delete(struct cmm_xlatorobject *xlator, bool force)
+>>  {
+>>  	struct cmm_xlator *xlator_obj = (struct cmm_xlator *)xlator;
+>> -	int status = 0;
+>>  
+>>  	DBC_REQUIRE(refs > 0);
+>>  
+>> -	if (xlator_obj)
+>> -		kfree(xlator_obj);
+>> -	else
+>> -		status = -EFAULT;
+>> +	kfree(xlator_obj);
+>>  
+>> -	return status;
+>> +	return 0;
+>>  }
+>>  
+>>  /*
+> which kind of begs the question - does this function need to any longer 
+> return int?
 > 
-> Hi David,
-> 
-> On Saturday 24 July 2010 01:22:20 David Sin wrote:
-> > TILER is a hardware block made by Texas Instruments.  Its 
-> purpose is to 
-> > organize video/image memory in a 2-dimensional fashion to 
-> limit memory 
-> > bandwidth and facilitate 0 effort rotation and mirroring.  
-> The TILER 
-> > driver facilitates allocating, freeing, as well as mapping 
-> 2D blocks (areas) 
-> > in the TILER container(s).  It also facilitates rotating 
-> and mirroring 
-> > the allocated blocks or its rectangular subsections.
-> 
-> Since this driver is part of the media/video subsystem you 
-> should cross-post
-> it to the linux-media mailinglist as well.
-> 
-> The main question that I have is how this driver is to be 
-> used in practice.
-> How does it fit into the bigger video4linux picture? Is this 
-> something that
-> is mainly used from other v4l or fb drivers? Or is it 
-> controlled by userspace?
+here is a better approach:
+remove cmm_xlator_delete altogether
+diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c 
+b/drivers/staging/tidspbridge/pmgr/cmm.c
+index 8e808d9..1a4ebca 100644
+--- a/drivers/staging/tidspbridge/pmgr/cmm.c
++++ b/drivers/staging/tidspbridge/pmgr/cmm.c
+@@ -984,27 +984,6 @@ int cmm_xlator_create(struct cmm_xlatorobject **xlator,
+  }
 
-[dhs] I missed this one -- my apologies.  As I stated to Vaibhav, any device can use TILER memory, but there is a big advantage, performance-wise, for 2-Dimensional macro block based buffers.  This HW is intended for image/video hardware accelerators (e.g. OMAP4 IVA-HD).  Plus there's the added advantage of doing zero-copy flips and rotations for the OMAP display and image sub-systems.
+  /*
+- *  ======== cmm_xlator_delete ========
+- *  Purpose:
+- *      Free the Xlator resources.
+- *      VM gets freed later.
+- */
+-int cmm_xlator_delete(struct cmm_xlatorobject *xlator, bool force)
+-{
+-	struct cmm_xlator *xlator_obj = (struct cmm_xlator *)xlator;
+-	int status = 0;
+-
+-	DBC_REQUIRE(refs > 0);
+-
+-	if (xlator_obj)
+-		kfree(xlator_obj);
+-	else
+-		status = -EFAULT;
+-
+-	return status;
+-}
+-
+-/*
+   *  ======== cmm_xlator_alloc_buf ========
+   */
+  void *cmm_xlator_alloc_buf(struct cmm_xlatorobject *xlator, void *va_buf,
+diff --git a/drivers/staging/tidspbridge/rmgr/node.c 
+b/drivers/staging/tidspbridge/rmgr/node.c
+index 9f07c81..0c39288 100644
+--- a/drivers/staging/tidspbridge/rmgr/node.c
++++ b/drivers/staging/tidspbridge/rmgr/node.c
+@@ -2503,7 +2503,6 @@ static void delete_node(struct node_object *hnode,
+  			struct process_context *pr_ctxt)
+  {
+  	struct node_mgr *hnode_mgr;
+-	struct cmm_xlatorobject *xlator;
+  	struct bridge_drv_interface *intf_fxns;
+  	u32 i;
+  	enum node_type node_type;
+@@ -2521,7 +2520,6 @@ static void delete_node(struct node_object *hnode,
+  	hnode_mgr = hnode->hnode_mgr;
+  	if (!hnode_mgr)
+  		goto func_end;
+-	xlator = hnode->xlator;
+  	node_type = node_get_type(hnode);
+  	if (node_type != NODE_DEVICE) {
+  		node_msg_args = hnode->create_args.asa.node_msg_args;
+@@ -2617,10 +2615,7 @@ static void delete_node(struct node_object *hnode,
+  	hnode->dcd_props.obj_data.node_obj.pstr_i_alg_name = NULL;
 
-In this RFC, there are only kernel APIs to allocate TILER memory.  Eventually, we would like to provide a way to obtain TILER memory to the user space.
+  	/* Free all SM address translator resources */
+-	if (xlator) {
+-		(void)cmm_xlator_delete(xlator, true);	/* force free */
+-		xlator = NULL;
+-	}
++	kfree(hnode->xlator);
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > List of pending items in proposed order:
-> > 
-> > * Add area packing support (multiple blocks can reside in 
-> the same band/area)
-> >   to optimize area use
-> > * Add group-ID support (to specify which blocks can reside 
-> together in the
-> >   same area)
-> > * Add multiple search directions to TCM-SiTA
-> > * Add 1D block support (including adding 1D search algo to TCM-SiTA)
-> > * Optimize mutex handling (don.t hold mutex during memory
-> >   allocation/mapping/cache flushing)
-> > * Add block reference counting, support for sharing blocks
-> > * Move all kernel-API-s to tiler-iface.c
-> > * Support orphaned block support (in preparation for 
-> process cleanup support)
-> > * Change block identification from physical address to key-ID pair
-> >   (in preparation for user space support, and process security)
-> > * Add support for process security (blocks from separate 
-> processes never
-> >   reside in the same band)
-> > * Support file interface (ioctl and mmap)
-> > * Support for buffers (ordered list of blocks that are 
-> mapped to userspace
-> >   together, such as YUV420sp)
-> > * Support 1D user buffer mapping into TILER container
-> > * Support for block pre-reservation (to further optimize area use)
-> > 
-> > David Sin (1):
-> >   TILER-DMM: DMM-PAT driver for TI TILER
-> > 
-> > Lajos Molnar (6):
-> >   TILER-DMM: Container manager interface and utility definitons
-> >   TILER-DMM: TILER Memory Manager interface and implementation
-> >   TILER-DMM: TILER interface file and documentation
-> >   TILER-DMM: Geometry and view manipulation functions.
-> >   TILER-DMM: Main TILER driver implementation.
-> >   TILER-DMM: Linking TILER driver into the Linux kernel build
-> > 
-> > Ravi Ramachandra (1):
-> >   TILER-DMM: Sample TCM implementation: Simple TILER Allocator
-> > 
-> >  Documentation/arm/TILER                   |  144 +++++++++
-> >  arch/arm/mach-omap2/include/mach/dmm.h    |  128 ++++++++
-> >  arch/arm/mach-omap2/include/mach/tiler.h  |  201 +++++++++++++
-> >  drivers/media/Kconfig                     |    6 +
-> >  drivers/media/Makefile                    |    2 +
-> >  drivers/media/video/tiler/Kconfig         |   65 ++++
-> >  drivers/media/video/tiler/Makefile        |    7 +
-> >  drivers/media/video/tiler/_tiler.h        |   51 ++++
-> >  drivers/media/video/tiler/dmm.c           |  200 +++++++++++++
-> >  drivers/media/video/tiler/tcm.h           |  209 +++++++++++++
-> >  drivers/media/video/tiler/tcm/Makefile    |    1 +
-> >  drivers/media/video/tiler/tcm/_tcm-sita.h |   64 ++++
-> >  drivers/media/video/tiler/tcm/tcm-sita.c  |  459 
-> +++++++++++++++++++++++++++++
-> >  drivers/media/video/tiler/tcm/tcm-sita.h  |   37 +++
-> >  drivers/media/video/tiler/tcm/tcm-utils.h |   54 ++++
-> >  drivers/media/video/tiler/tiler-geom.c    |  360 
-> ++++++++++++++++++++++
-> >  drivers/media/video/tiler/tiler-iface.c   |  106 +++++++
-> >  drivers/media/video/tiler/tiler-main.c    |  426 
-> ++++++++++++++++++++++++++
-> >  drivers/media/video/tiler/tmm-pat.c       |  274 +++++++++++++++++
-> >  drivers/media/video/tiler/tmm.h           |  109 +++++++
-> >  20 files changed, 2903 insertions(+), 0 deletions(-)
-> >  create mode 100644 Documentation/arm/TILER
-> >  create mode 100644 arch/arm/mach-omap2/include/mach/dmm.h
-> >  create mode 100644 arch/arm/mach-omap2/include/mach/tiler.h
-> >  create mode 100644 drivers/media/video/tiler/Kconfig
-> >  create mode 100644 drivers/media/video/tiler/Makefile
-> >  create mode 100644 drivers/media/video/tiler/_tiler.h
-> >  create mode 100644 drivers/media/video/tiler/dmm.c
-> >  create mode 100644 drivers/media/video/tiler/tcm.h
-> >  create mode 100644 drivers/media/video/tiler/tcm/Makefile
-> >  create mode 100644 drivers/media/video/tiler/tcm/_tcm-sita.h
-> >  create mode 100644 drivers/media/video/tiler/tcm/tcm-sita.c
-> >  create mode 100644 drivers/media/video/tiler/tcm/tcm-sita.h
-> >  create mode 100644 drivers/media/video/tiler/tcm/tcm-utils.h
-> >  create mode 100644 drivers/media/video/tiler/tiler-geom.c
-> >  create mode 100644 drivers/media/video/tiler/tiler-iface.c
-> >  create mode 100644 drivers/media/video/tiler/tiler-main.c
-> >  create mode 100644 drivers/media/video/tiler/tmm-pat.c
-> >  create mode 100644 drivers/media/video/tiler/tmm.h
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG, 
-> part of Cisco
-> 
+  	kfree(hnode->nldr_node_obj);
+  	hnode->nldr_node_obj = NULL;
+diff --git a/drivers/staging/tidspbridge/rmgr/strm.c 
+b/drivers/staging/tidspbridge/rmgr/strm.c
+index 73888e3..05a8d13 100644
+--- a/drivers/staging/tidspbridge/rmgr/strm.c
++++ b/drivers/staging/tidspbridge/rmgr/strm.c
+@@ -844,14 +844,8 @@ static int delete_strm(struct strm_object *stream_obj)
+  			status = (*intf_fxns->pfn_chnl_close)
+  					(stream_obj->chnl_obj);
+  			/* Free all SM address translator resources */
+-			if (DSP_SUCCEEDED(status)) {
+-				if (stream_obj->xlator) {
+-					/* force free */
+-					(void)cmm_xlator_delete(stream_obj->
+-								xlator,
+-								true);
+-				}
+-			}
++			if (DSP_SUCCEEDED(status))
++				kfree(stream_obj->xlator);
+  		}
+  		kfree(stream_obj);
+  	} else {
+-- 
+Regards,
+Nishanth Menon
