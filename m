@@ -1,55 +1,54 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/5] omap:hwspinlock-added hwspinlock driver
-Date: Thu, 29 Jul 2010 09:05:52 -0500
-Message-ID: <4C518AC0.6070809@ti.com>
-References: <1279558221-14954-1-git-send-email-h-kanigeri2@ti.com> <1279558221-14954-4-git-send-email-h-kanigeri2@ti.com>
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: Re: [PATCH v2 03/20] mmc: support embedded data field in mmc_host
+Date: Thu, 29 Jul 2010 18:16:19 +0200
+Message-ID: <AANLkTi=BUX59heXAW2Uf4wZo2dSS19Je54dkQ5u2YGAW@mail.gmail.com>
+References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
+	<1279733634-21974-4-git-send-email-ohad@wizery.com>
+	<AANLkTimzA_JJ-byTDWznbL3YzeJ8LAP4M50onf2_3fBF@mail.gmail.com>
+	<AANLkTi=Oy8X1xMOwWL_cKBB1LWULT6=p+adUgB+AuSJS@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37233 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753717Ab0G2OGw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Jul 2010 10:06:52 -0400
-In-Reply-To: <1279558221-14954-4-git-send-email-h-kanigeri2@ti.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:54335 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758042Ab0G2QQU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jul 2010 12:16:20 -0400
+In-Reply-To: <AANLkTi=Oy8X1xMOwWL_cKBB1LWULT6=p+adUgB+AuSJS@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Que, Simon" <sque@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Pandita Vikram <vikram.pandita@ti.com>, linux@arm.linux.org.uk, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Roger Quadros <roger.quadros@nokia.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 
-Kanigeri, Hari had written, on 07/19/2010 11:50 AM, the following:
-> From: Simon Que <sque@ti.com>
-> 
-> Created driver for OMAP hardware spinlock.  This driver supports:
-> - Reserved spinlocks for internal use
-> - Dynamic allocation of unreserved locks
-> - Lock, unlock, and trylock functions, with or without disabling irqs/preempt
-> - Registered as a platform device driver
-> 
-> The device initialization uses hwmod to configure the devices.
-> One device will be created for each IP.  It will pass spinlock register offset
-> info to the driver.  The device initialization file is:
->                 arch/arm/mach-omap2/hwspinlocks.c
-> 
-> The driver takes in register offset info passed in device initialization.
-> It uses hwmod to obtain the base address of the hardware spinlock module.
-> Then it reads info from the registers.  The function hwspinlock_probe()
-> initializes the array of spinlock structures, each containing a spinlock
-> register address calculated from the base address and lock offsets.
-> The device driver file is:
->                 arch/arm/plat-omap/hwspinlock.c
+Hi Ohad,
 
-just a curious question:
+On Thu, Jul 29, 2010 at 8:00 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>> To my understanding, this data doesn't belong to mmc_host. It's not a
+>> host data at all. E. g. imagine a GPIO IRQ for some SDIO chip -- it's
+>> totally unrelated to host.
+>>
+>> I think a cleaner way would be to introduce something similar to what
+>> we have for SPI, e. g. struct sdio_board_info. This board info will
+>> contain platform-specific stuff and vendor id/chip id for each onboard
+>> SDIO device. Then the SDIO core will pick up the appropriate data
+>> basing on vendor id/chip id.
+>
+> Can you please elaborate some more about your proposal (specifically
+> where does this sdio_board_info get set and how do function drivers
+> access it) ?
+>
+> If I understand you correctly, you suggest to have a global,
+> board-specific table of sdio_board_info structures, which would be
+> accessible to the SDIO core (through the host driver ?). When a new
+> SDIO device is found the core would search this table for the
+> appropriate sdio_board_info struct and make it accessible to the SDIO
+> function driver ?
 
-Is there no h/w spinlock implementation for other architectures in 
-linux? I mean the concept does not seem unique for a heterogenous 
-processor environments now a days.. if it does exist, maybe we have two 
-options:
-* extend standard spinlock architecture to handle h/w spinlocks as well
-* establish a new framework for h/w spinlocks..
+Well, let's look at how it's implemented for SPI. There is the
+function spi_register_board_info in the SPI core which copies the
+board info into the local data structure (a linked list, actually).
+Whenever needed, the core walks through the list to find the
+appropriate board_info basing on some search key.
 
-[...]
+I think this may be the way to go for SDIO as well.
 
--- 
-Regards,
-Nishanth Menon
+~Vitaly
