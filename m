@@ -1,602 +1,278 @@
 From: Manjunatha GK <manjugk@ti.com>
-Subject: [PATCH 11/11] sDMA: descriptor autoloading feature
-Date: Thu, 29 Jul 2010 15:29:05 +0530
-Message-ID: <1280397545-27323-12-git-send-email-manjugk@ti.com>
+Subject: [PATCH 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
+Date: Thu, 29 Jul 2010 15:29:01 +0530
+Message-ID: <1280397545-27323-8-git-send-email-manjugk@ti.com>
 References: <1280397545-27323-1-git-send-email-manjugk@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38819 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756098Ab0G2KBF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jul 2010 06:01:05 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:59302 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756422Ab0G2KBE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Jul 2010 06:01:04 -0400
 In-Reply-To: <1280397545-27323-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Venkatraman S <svenkatr@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Anand Sawant <sawant@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Basak Partha <p-basak2@ti.com>, Charulatha V <charu@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Anand Sawant <sawant@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Basak Partha <p-basak2@ti.com>, Charulatha V <charu@ti.com>
 
-From: Venkatraman S <svenkatr@ti.com>
+This patch converts omap2/3/4 dma driver into platform
+devices through using omap hwmod, omap device and runtime pm
+frameworks.
 
-Add sDMA driver support for descriptor autoloading feature.
-Descriptor autoloading is OMAP sDMA v5 hardware capability that can be exploited
-for scatter gather scenarios, currently available in OMAP3630 and OMAP4430.
-
-The feature works as described below.
-1. A sDMA channel is programmed to be in 'linked list' mode.
-2) The client (sDMA user) provides a list of descriptors in a linked list format
-3) Each of the 'descriptor' (element in the linked list) contains an updated set
-of DMA configuration register values.
-4) Client starts DMA transfer.
-5) sDMA controller loads the first element to its register configuration memory
-and executes the transfer.
-6) After completion, loads the next element (in linked list) to configuration
-memory and executes the transfer, without MCU intervention.
-7) Interrupt is generated after all transfers are completed; this can be
-configured to be done differently.
-
-Configurations and additional features
-1) Fast mode & non-fast mode
-Fast mode/non-fast decides on how the first transfer begins. In non-fast mode,
-the first element in the linked list is loaded only after completing the
-transfer according to the configurations already in the sDMA channel registers.
-In fast mode, the loading of the first element precedes the transfer.
-
-2) Pause / resume of transfers
-A transfer can be paused after a descriptor set has been loaded, provided the
-pause bit' is set in the linked list element.
-An ongoing transfer cannot be paused. If the 'pause bit' is set, transfer is not
-started after loading the register set from memory.
-Such a transfer can be resumed later.
-
-3) Descriptor types
-Three possible configurations of descriptors (initialized as linked list
-elements) are possible.
-Type 1 provides the maximum flexibility, which contains most register
-definitions of a DMA logical channel.
-Fewer options are present in type 2.
-Type 3 can just modify source/destinations address of transfers. In all
-transfers, unmodified registers settings are maintained for the next transfer.
-
-Patch provides options / API for
-1) Setting up a descriptor loading for DMA channel for sg type transfers
-2) configuration with linked list elements
-3) Starting / pause and resume of the said transfers, query state
-4) Clearing the sglist mode
-
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
 Signed-off-by: Manjunatha GK <manjugk@ti.com>
 ---
- arch/arm/mach-omap1/dma.c              |    5 +
- arch/arm/mach-omap1/include/mach/dma.h |    2 +
- arch/arm/mach-omap2/dma.c              |  254 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/include/mach/dma.h |  194 ++++++++++++++++++++++++
- arch/arm/plat-omap/dma.c               |    1 +
- 5 files changed, 456 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/dma.c              |  134 ++++++++++++++++++++++++=
+++++++++
+ arch/arm/mach-omap2/include/mach/dma.h |   80 +++++++++++++++++++
+ 2 files changed, 214 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/dma.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/dma.h
 
-diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
-index eadc160..1f10f62 100644
---- a/arch/arm/mach-omap1/dma.c
-+++ b/arch/arm/mach-omap1/dma.c
-@@ -304,6 +304,11 @@ void omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
- }
- EXPORT_SYMBOL(omap_dma_set_global_params);
- 
-+void omap_clear_dma_sglist_mode(int lch)
-+{
-+	return;
-+}
-+
- static int __init omap1_system_dma_init(void)
- {
- 	struct platform_device *pdev;
-diff --git a/arch/arm/mach-omap1/include/mach/dma.h b/arch/arm/mach-omap1/include/mach/dma.h
-index 1eb0d31..afe486b 100644
---- a/arch/arm/mach-omap1/include/mach/dma.h
-+++ b/arch/arm/mach-omap1/include/mach/dma.h
-@@ -143,4 +143,6 @@ struct omap_dma_lch {
- 	long flags;
- };
- 
-+/* Dummy function */
-+extern void omap_clear_dma_sglist_mode(int lch);
- #endif /* __ASM_ARCH_OMAP1_DMA_H */
 diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-index 390c428..c24ed00 100644
---- a/arch/arm/mach-omap2/dma.c
+new file mode 100644
+index 0000000..da76c34
+--- /dev/null
 +++ b/arch/arm/mach-omap2/dma.c
-@@ -204,6 +204,77 @@ static void dma_ocpsysconfig_errata(u32 *sys_cf, bool flag)
- 		dma_write(*sys_cf, OCP_SYSCONFIG);
- }
- 
-+static inline void omap_dma_list_set_ntype(struct omap_dma_sglist_node *node,
-+					   int value)
+@@ -0,0 +1,134 @@
++/*
++ * dma.c - OMAP2 specific DMA code
++ *
++ * Copyright (C) 2003 - 2008 Nokia Corporation
++ * Author: Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.com>
++ * DMA channel linking for 1610 by Samuel Ortiz <samuel.ortiz@nokia.co=
+m>
++ * Graphics DMA and LCD DMA graphics tranformations
++ * by Imre Deak <imre.deak@nokia.com>
++ * OMAP2/3 support Copyright (C) 2004-2007 Texas Instruments, Inc.
++ * Some functions based on earlier dma-omap.c Copyright (C) 2001 Ridge=
+Run, Inc.
++ *
++ * Copyright (C) 2009 Texas Instruments
++ * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Converted DMA library into platform driver by Manjunatha GK <manjug=
+k@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++#include <linux/io.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/sched.h>
++#include <linux/spinlock.h>
++#include <linux/errno.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++#include <linux/device.h>
++
++#include <plat/irqs.h>
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
++#include <plat/dma.h>
++
++#define dma_read(reg)							\
++({									\
++	u32 __val;							\
++	__val =3D __raw_readl(dma_base + OMAP_DMA4_##reg);		\
++	__val;								\
++})
++
++#define dma_write(val, reg)						\
++({									\
++	__raw_writel((val), dma_base + OMAP_DMA4_##reg);		\
++})
++
++static struct omap_dma_dev_attr *d;
++static void __iomem *dma_base;
++static struct omap_system_dma_plat_info *omap2_pdata;
++static int dma_caps0_status;
++
++static struct omap_device_pm_latency omap2_dma_latency[] =3D {
++	{
++	.deactivate_func =3D omap_device_idle_hwmods,
++	.activate_func	 =3D omap_device_enable_hwmods,
++	.flags		 =3D OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
++
++/* One time initializations */
++static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, voi=
+d *user)
 +{
-+	node->num_of_elem |= ((value) << 29);
-+}
++	struct omap_device *od;
++	struct omap_system_dma_plat_info *pdata;
++	struct resource *mem;
++	char *name =3D "dma";
 +
-+static void omap_set_dma_sglist_pausebit(
-+		struct omap_dma_list_config_params *lcfg, int nelem, int set)
-+{
-+	struct omap_dma_sglist_node *sgn = lcfg->sghead;
-+
-+	if (nelem > 0 && nelem < lcfg->num_elem) {
-+		lcfg->pausenode = nelem;
-+		sgn += nelem;
-+
-+		if (set)
-+			sgn->next_desc_add_ptr |= DMA_LIST_DESC_PAUSE;
-+		else
-+			sgn->next_desc_add_ptr &= ~(DMA_LIST_DESC_PAUSE);
-+	}
-+}
-+
-+static int dma_sglist_set_phy_params(struct omap_dma_sglist_node *sghead,
-+		dma_addr_t phyaddr, int nelem)
-+{
-+	struct omap_dma_sglist_node *sgcurr, *sgprev;
-+	dma_addr_t elem_paddr = phyaddr;
-+
-+	for (sgprev = sghead;
-+		sgprev < sghead + nelem;
-+		sgprev++) {
-+
-+		sgcurr = sgprev + 1;
-+		sgprev->next = sgcurr;
-+		elem_paddr += (int)sizeof(*sgcurr);
-+		sgprev->next_desc_add_ptr = elem_paddr;
-+
-+		switch (sgcurr->desc_type) {
-+		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1:
-+			omap_dma_list_set_ntype(sgprev, 1);
-+			break;
-+
-+		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a:
-+		/* intentional no break */
-+		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b:
-+			omap_dma_list_set_ntype(sgprev, 2);
-+			break;
-+
-+		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a:
-+			/* intentional no break */
-+		case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b:
-+			omap_dma_list_set_ntype(sgprev, 3);
-+			break;
-+
-+		default:
-+			return -EINVAL;
-+
-+		}
-+		if (sgcurr->flags & OMAP_DMA_LIST_SRC_VALID)
-+			sgprev->num_of_elem |= DMA_LIST_DESC_SRC_VALID;
-+		if (sgcurr->flags & OMAP_DMA_LIST_DST_VALID)
-+			sgprev->num_of_elem |= DMA_LIST_DESC_DST_VALID;
-+		if (sgcurr->flags & OMAP_DMA_LIST_NOTIFY_BLOCK_END)
-+			sgprev->num_of_elem |= DMA_LIST_DESC_BLK_END;
-+	}
-+	sgprev--;
-+	sgprev->next_desc_add_ptr = OMAP_DMA_INVALID_DESCRIPTOR_POINTER;
-+	return 0;
-+}
-+
-+
- void omap_dma_global_context_save(void)
- {
- 	omap_dma_global_context.dma_irqenable_l0 =
-@@ -861,6 +932,189 @@ void omap_set_dma_write_mode(int lch, enum omap_dma_write_mode mode)
- }
- EXPORT_SYMBOL(omap_set_dma_write_mode);
- 
-+int omap_set_dma_sglist_mode(int lch, struct omap_dma_sglist_node *sgparams,
-+	dma_addr_t padd, int nelem, struct omap_dma_channel_params *chparams)
-+{
-+	struct omap_dma_list_config_params *lcfg;
-+	int l = DMA_LIST_CDP_LISTMODE; /* Enable Linked list mode in CDP */
-+
-+	if ((dma_caps0_status & DMA_CAPS_SGLIST_SUPPORT) == 0) {
-+		printk(KERN_ERR "omap DMA: sglist feature not supported\n");
-+		return -EPERM;
-+	}
-+	if (dma_chan[lch].flags & OMAP_DMA_ACTIVE) {
-+		printk(KERN_ERR "omap DMA: configuring active DMA channel\n");
-+		return -EPERM;
++	pdata =3D kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNE=
+L);
++	if (!pdata) {
++		pr_err("%s: Unable to allocate pdata for %s:%s\n",
++			__func__, name, oh->name);
++		return -ENOMEM;
 +	}
 +
-+	if (padd == 0) {
-+		printk(KERN_ERR "omap DMA: sglist invalid dma_addr\n");
-+		return -EINVAL;
++	pdata->dma_attr		=3D (struct omap_dma_dev_attr *)oh->dev_attr;
++
++	od =3D omap_device_build(name, 0, oh, pdata, sizeof(*pdata),
++			omap2_dma_latency, ARRAY_SIZE(omap2_dma_latency), 0);
++
++	if (IS_ERR(od)) {
++		pr_err("%s: Cant build omap_device for %s:%s.\n",
++			__func__, name, oh->name);
++		kfree(pdata);
++		return 0;
 +	}
-+	lcfg = &dma_chan[lch].list_config;
 +
-+	lcfg->sghead = sgparams;
-+	lcfg->num_elem = nelem;
-+	lcfg->sgheadphy = padd;
-+	lcfg->pausenode = -1;
-+
-+
-+	if (NULL == chparams)
-+		l |= DMA_LIST_CDP_FASTMODE;
-+	else
-+		omap_set_dma_params(lch, chparams);
-+
-+	dma_write(l, CDP(lch));
-+	dma_write(0, CCDN(lch)); /* Reset List index numbering */
-+	/* Initialize frame and element counters to invalid values */
-+	dma_write(OMAP_DMA_INVALID_FRAME_COUNT, CCFN(lch));
-+	dma_write(OMAP_DMA_INVALID_ELEM_COUNT, CCEN(lch));
-+
-+	return dma_sglist_set_phy_params(sgparams, lcfg->sgheadphy, nelem);
-+
-+}
-+EXPORT_SYMBOL(omap_set_dma_sglist_mode);
-+
-+void omap_clear_dma_sglist_mode(int lch)
-+{
-+	/* Clear entire CDP which is related to sglist handling */
-+	dma_write(0, CDP(lch));
-+	dma_write(0, CCDN(lch));
-+	/**
-+	 * Put back the original enabled irqs, which
-+	 * could have been overwritten by type 1 or type 2
-+	 * descriptors
-+	 */
-+	dma_write(dma_chan[lch].enabled_irqs, CICR(lch));
-+	return;
-+}
-+EXPORT_SYMBOL(omap_clear_dma_sglist_mode);
-+
-+int omap_start_dma_sglist_transfers(int lch, int pauseafter)
-+{
-+	struct omap_dma_list_config_params *lcfg;
-+	struct omap_dma_sglist_node *sgn;
-+	unsigned int l, type_id;
-+
-+	lcfg = &dma_chan[lch].list_config;
-+	sgn = lcfg->sghead;
-+
-+	lcfg->pausenode = 0;
-+	omap_set_dma_sglist_pausebit(lcfg, pauseafter, 1);
-+
-+	/* Program the head descriptor's properties into CDP */
-+	switch (lcfg->sghead->desc_type) {
-+	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1:
-+		type_id = DMA_LIST_CDP_TYPE1;
-+		break;
-+	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a:
-+	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b:
-+		type_id = DMA_LIST_CDP_TYPE2;
-+		break;
-+	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a:
-+	case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b:
-+		type_id = DMA_LIST_CDP_TYPE3;
-+		break;
-+	default:
++	mem =3D platform_get_resource(&od->pdev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		dev_err(&od->pdev.dev, "%s: no mem resource\n", __func__);
 +		return -EINVAL;
 +	}
 +
-+	l = dma_read(CDP(lch));
-+	l |= type_id;
-+	if (lcfg->sghead->flags & OMAP_DMA_LIST_SRC_VALID)
-+		l |= DMA_LIST_CDP_SRC_VALID;
-+	if (lcfg->sghead->flags & OMAP_DMA_LIST_DST_VALID)
-+		l |= DMA_LIST_CDP_DST_VALID;
++	dma_base =3D ioremap(mem->start, resource_size(mem));
++	if (!dma_base) {
++		dev_err(&od->pdev.dev, "%s: ioremap fail\n", __func__);
++		return -ENOMEM;
++	}
 +
-+	dma_write(l, CDP(lch));
-+	dma_write((lcfg->sgheadphy), CNDP(lch));
-+	/**
-+	 * Barrier needed as writes to the
-+	 * descriptor memory needs to be flushed
-+	 * before it's used by DMA controller
-+	 */
-+	wmb();
-+	omap_start_dma(lch);
++	/* Get DMA device attributes from hwmod data base */
++	d =3D (struct omap_dma_dev_attr *)oh->dev_attr;
 +
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_start_dma_sglist_transfers);
++	/* OMAP2 Plus: physical and logical channel count is same */
++	d->dma_chan_count =3D d->dma_lch_count;
 +
-+int omap_resume_dma_sglist_transfers(int lch, int pauseafter)
-+{
-+	struct omap_dma_list_config_params *lcfg;
-+	struct omap_dma_sglist_node *sgn;
-+	int l, get_sysconfig;
++	d->dma_chan =3D kzalloc(sizeof(struct omap_dma_lch) *
++					(d->dma_lch_count), GFP_KERNEL);
 +
-+	lcfg = &dma_chan[lch].list_config;
-+	sgn = lcfg->sghead;
++	if (!d->dma_chan) {
++		dev_err(&od->pdev.dev, "%s: kzalloc fail\n", __func__);
++		return -ENOMEM;
++	}
 +
-+	/* Maintain the pause state in descriptor */
-+	omap_set_dma_sglist_pausebit(lcfg, lcfg->pausenode, 0);
-+	omap_set_dma_sglist_pausebit(lcfg, pauseafter, 1);
-+
-+	/**
-+	 * Barrier needed as writes to the
-+	 * descriptor memory needs to be flushed
-+	 * before it's used by DMA controller
-+	 */
-+	wmb();
-+
-+	if (p->errata & DMA_SYSCONFIG_ERRATA)
-+		dma_ocpsysconfig_errata(&get_sysconfig, false)
-+
-+	/* Clear pause bit in CDP */
-+	l = dma_read(CDP(lch));
-+	l &= ~(DMA_LIST_CDP_PAUSEMODE);
-+	dma_write(l, CDP(lch));
-+
-+	omap_start_dma(lch);
-+
-+	if (p->errata & DMA_SYSCONFIG_ERRATA)
-+		dma_ocpsysconfig_errata(&get_sysconfig, true);
++	omap2_pdata		=3D pdata;
++	dma_caps0_status	=3D dma_read(CAPS_0);
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL(omap_resume_dma_sglist_transfers);
 +
-+void omap_release_dma_sglist(int lch)
++static int __init omap2_system_dma_init(void)
 +{
-+	omap_clear_dma_sglist_mode(lch);
-+	omap_free_dma(lch);
++	int ret;
 +
-+	return;
++	ret =3D omap_hwmod_for_each_by_class("dma",
++			omap2_system_dma_init_dev, NULL);
++
++	return ret;
 +}
-+EXPORT_SYMBOL(omap_release_dma_sglist);
-+
-+int omap_get_completed_sglist_nodes(int lch)
-+{
-+	int list_count;
-+
-+	list_count = dma_read(CCDN(lch));
-+	return list_count & 0xffff; /* only 16 LSB bits are valid */
-+}
-+EXPORT_SYMBOL(omap_get_completed_sglist_nodes);
-+
-+int omap_dma_sglist_is_paused(int lch)
-+{
-+	int list_state;
-+	list_state = dma_read(CDP(lch));
-+	return (list_state & DMA_LIST_CDP_PAUSEMODE) ? 1 : 0;
-+}
-+EXPORT_SYMBOL(omap_dma_sglist_is_paused);
-+
-+void omap_dma_set_sglist_fastmode(int lch, int fastmode)
-+{
-+	int l = dma_read(CDP(lch));
-+
-+	if (fastmode)
-+		l |= DMA_LIST_CDP_FASTMODE;
-+	else
-+		l &= ~(DMA_LIST_CDP_FASTMODE);
-+	dma_write(l, CDP(lch));
-+}
-+EXPORT_SYMBOL(omap_dma_set_sglist_fastmode);
-+
- static int omap2_dma_handle_ch(int ch)
- {
- 	u32 status = dma_read(CSR(ch));
-diff --git a/arch/arm/mach-omap2/include/mach/dma.h b/arch/arm/mach-omap2/include/mach/dma.h
-index f3e21d5..e039ea4 100644
---- a/arch/arm/mach-omap2/include/mach/dma.h
++arch_initcall(omap2_system_dma_init);
+diff --git a/arch/arm/mach-omap2/include/mach/dma.h b/arch/arm/mach-oma=
+p2/include/mach/dma.h
+new file mode 100644
+index 0000000..3eca7d8
+--- /dev/null
 +++ b/arch/arm/mach-omap2/include/mach/dma.h
-@@ -143,6 +143,112 @@
- #define OMAP_DMA4_GSCR				0
- #define OMAP1_DMA_REVISION			0
- 
-+/* CDP Register bitmaps */
-+#define DMA_LIST_CDP_DST_VALID	(BIT(0))
-+#define DMA_LIST_CDP_SRC_VALID	(BIT(2))
-+#define DMA_LIST_CDP_TYPE1	(BIT(4))
-+#define DMA_LIST_CDP_TYPE2	(BIT(5))
-+#define DMA_LIST_CDP_TYPE3	(BIT(4) | BIT(5))
-+#define DMA_LIST_CDP_PAUSEMODE	(BIT(7))
-+#define DMA_LIST_CDP_LISTMODE	(BIT(8))
-+#define DMA_LIST_CDP_FASTMODE	(BIT(10))
-+/* CAPS register bitmaps */
-+#define DMA_CAPS_SGLIST_SUPPORT	(BIT(20))
-+
-+#define DMA_LIST_DESC_PAUSE	(BIT(0))
-+#define DMA_LIST_DESC_SRC_VALID	(BIT(24))
-+#define DMA_LIST_DESC_DST_VALID	(BIT(26))
-+#define DMA_LIST_DESC_BLK_END	(BIT(28))
-+
-+#define OMAP_DMA_INVALID_FRAME_COUNT	(0xffff)
-+#define OMAP_DMA_INVALID_ELEM_COUNT	(0xffffff)
-+#define OMAP_DMA_INVALID_DESCRIPTOR_POINTER	(0xfffffffc)
-+
-+struct omap_dma_list_config_params {
-+	unsigned int num_elem;
-+	struct omap_dma_sglist_node *sghead;
-+	dma_addr_t sgheadphy;
-+	unsigned int pausenode;
-+};
-+
-+struct omap_dma_sglist_type1_params {
-+	u32 src_addr;
-+	u32 dst_addr;
-+	u16 cfn_fn;
-+	u16 cicr;
-+	u16 dst_elem_idx;
-+	u16 src_elem_idx;
-+	u32 dst_frame_idx_or_pkt_size;
-+	u32 src_frame_idx_or_pkt_size;
-+	u32 color;
-+	u32 csdp;
-+	u32 clnk_ctrl;
-+	u32 ccr;
-+};
-+
-+struct omap_dma_sglist_type2a_params {
-+	u32 src_addr;
-+	u32 dst_addr;
-+	u16 cfn_fn;
-+	u16 cicr;
-+	u16 dst_elem_idx;
-+	u16 src_elem_idx;
-+	u32 dst_frame_idx_or_pkt_size;
-+	u32 src_frame_idx_or_pkt_size;
-+};
-+
-+struct omap_dma_sglist_type2b_params {
-+	u32 src_or_dest_addr;
-+	u16 cfn_fn;
-+	u16 cicr;
-+	u16 dst_elem_idx;
-+	u16 src_elem_idx;
-+	u32 dst_frame_idx_or_pkt_size;
-+	u32 src_frame_idx_or_pkt_size;
-+};
-+
-+struct omap_dma_sglist_type3a_params {
-+	u32 src_addr;
-+	u32 dst_addr;
-+};
-+
-+struct omap_dma_sglist_type3b_params {
-+	u32 src_or_dest_addr;
-+};
-+
-+enum omap_dma_sglist_descriptor_select {
-+	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1,
-+	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a,
-+	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b,
-+	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a,
-+	OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b,
-+};
-+
-+union omap_dma_sglist_node_type{
-+	struct omap_dma_sglist_type1_params t1;
-+	struct omap_dma_sglist_type2a_params t2a;
-+	struct omap_dma_sglist_type2b_params t2b;
-+	struct omap_dma_sglist_type3a_params t3a;
-+	struct omap_dma_sglist_type3b_params t3b;
-+};
-+
-+struct omap_dma_sglist_node {
-+
-+	/* Common elements for all descriptors */
-+	dma_addr_t next_desc_add_ptr;
-+	u32 num_of_elem;
-+	/* Type specific elements */
-+	union omap_dma_sglist_node_type sg_node;
-+	/* Control fields */
-+	unsigned short flags;
-+	/* Fields that can be set in flags variable */
-+	#define OMAP_DMA_LIST_SRC_VALID		BIT(0)
-+	#define OMAP_DMA_LIST_DST_VALID		BIT(1)
-+	#define OMAP_DMA_LIST_NOTIFY_BLOCK_END	BIT(2)
-+	enum omap_dma_sglist_descriptor_select desc_type;
-+	struct omap_dma_sglist_node *next;
-+};
-+
- struct omap_dma_lch {
- 	int next_lch;
- 	int dev_id;
-@@ -158,8 +264,96 @@ struct omap_dma_lch {
- 	int state;
- 	int chain_id;
- 	int status;
-+	struct omap_dma_list_config_params list_config;
- };
- 
-+/**
-+ * omap_set_dma_sglist_mode()	Switch channel to scatter gather mode
-+ * @lch:	Logical channel to switch to sglist mode
-+ * @sghead:	Contains the descriptor elements to be executed
-+ *		Should be allocated using dma_alloc_coherent
-+ * @padd:	The dma address of sghead, as returned by dma_alloc_coherent
-+ * @nelem:	Number of elements in sghead
-+ * @chparams:	DMA channel transfer parameters. Can be NULL
-+ */
-+extern int omap_set_dma_sglist_mode(int lch,
-+	struct omap_dma_sglist_node *sghead, dma_addr_t padd,
-+	int nelem, struct omap_dma_channel_params *chparams);
-+
-+/**
-+ * omap_clear_dma_sglist_mode()	Switch from scatter gather mode
-+ *				to normal mode
-+ * @lch:	The logical channel to be switched to normal mode
+@@ -0,0 +1,80 @@
++/*
++ *  OMAP DMA controller register offsets.
 + *
-+ * Switches the requested logical channel to normal mode
-+ * from scatter gather mode
-+ */
-+extern void omap_clear_dma_sglist_mode(int lch);
-+
-+/**
-+ * omap_start_dma_sglist_transfers()	Starts the sglist transfer
-+ * @lch:	logical channel on which sglist transfer to be started
-+ * @pauseafter:	index of the element on which to pause the transfer
-+ *		set to -1 if no pause is needed till end of transfer
++ *  Copyright (C) 2003 Nokia Corporation
++ *  Author: Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.com>
 + *
-+ * Start the dma transfer in list mode
-+ * The index (in pauseafter) is absolute (from the head of the list)
-+ * User should have previously called omap_set_dma_sglist_mode()
-+ */
-+extern int omap_start_dma_sglist_transfers(int lch, int pauseafter);
-+
-+/**
-+ * omap_resume_dma_sglist_transfers()	Resumes a previously paused
-+ *					sglist transfer
-+ * @lch:	The logical channel to be resumed
-+ * @pauseafter:	The index of sglist to be paused again
-+ *		set to -1 if no pause is needed till end of transfer
++ *  Copyright (C) 2009 Texas Instruments
++ *  Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
 + *
-+ * Resume the previously paused transfer
-+ * The index (in pauseafter) is absolute (from the head of the list)
-+ */
-+extern int omap_resume_dma_sglist_transfers(int lch, int pauseafter);
-+
-+/**
-+ * omap_release_dma_sglist()	Releases a previously requested
-+ *				DMA channel which is in sglist mode
-+ * @lch:	The logical channel to be released
-+ */
-+extern void omap_release_dma_sglist(int lch);
-+
-+/**
-+ * omap_get_completed_sglist_nodes()	Returns a list of completed
-+ *					sglist nodes
-+ * @lch:	The logical on which the query is to be made
++ *  Copyright (C) 2010 Texas Instruments
++ *  Converted DMA library into platform driver by Manjunatha GK <manju=
+gk@ti.com>
 + *
-+ * Returns the number of completed elements in the linked list
-+ * The value is transient if the API is invoked for an ongoing transfer
-+ */
-+int omap_get_completed_sglist_nodes(int lch);
-+
-+/**
-+ * omap_dma_sglist_is_paused()	Query is the logical channel in
-+ *				sglist mode is paused or note
-+ * @lch:	The logical on which the query is to be made
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License as published b=
+y
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ * Returns non zero if the linked list is currently in pause state
-+ */
-+int omap_dma_sglist_is_paused(int lch);
-+
-+/**
-+ * omap_dma_set_sglist_fastmode() Set the sglist transfer to fastmode
-+ * @lch:	The logical channel which is to be changed to fastmode
-+ * @fastmode:	Set or clear the fastmode status
-+ *		1 = set fastmode
-+ *		0 = clear fastmode
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
 + *
-+ * In fastmode, DMA register settings are updated from the first element
-+ * of the linked list, before initiating the tranfer.
-+ * In non-fastmode, the first element is used only after completing the
-+ * transfer as already configured in the registers
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307=
+ USA
 + */
-+void omap_dma_set_sglist_fastmode(int lch, int fastmode);
 +
- /* Chaining APIs */
- extern int omap_request_dma_chain(int dev_id, const char *dev_name,
- 				  void (*callback) (int lch, u16 ch_status,
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 643f538..daac49c 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -543,6 +543,7 @@ void omap_free_dma(int lch)
- 		/* Make sure the DMA transfer is stopped. */
- 		dma_write(0, CCR(lch));
- 		omap_clear_dma(lch);
-+		omap_clear_dma_sglist_mode(lch);
- 	}
- 
- 	spin_lock_irqsave(&dma_chan_lock, flags);
--- 
++#ifndef __ASM_ARCH_OMAP2_DMA_H
++#define __ASM_ARCH_OMAP2_DMA_H
++
++/* OMAP2 Plus register offset's */
++#define OMAP_DMA4_REVISION		0x00
++#define OMAP_DMA4_GCR			0x78
++#define OMAP_DMA4_IRQSTATUS_L0		0x08
++#define OMAP_DMA4_IRQSTATUS_L1		0x0c
++#define OMAP_DMA4_IRQSTATUS_L2		0x10
++#define OMAP_DMA4_IRQSTATUS_L3		0x14
++#define OMAP_DMA4_IRQENABLE_L0		0x18
++#define OMAP_DMA4_IRQENABLE_L1		0x1c
++#define OMAP_DMA4_IRQENABLE_L2		0x20
++#define OMAP_DMA4_IRQENABLE_L3		0x24
++#define OMAP_DMA4_SYSSTATUS		0x28
++#define OMAP_DMA4_OCP_SYSCONFIG		0x2c
++#define OMAP_DMA4_CAPS_0		0x64
++#define OMAP_DMA4_CAPS_2		0x6c
++#define OMAP_DMA4_CAPS_3		0x70
++#define OMAP_DMA4_CAPS_4		0x74
++
++/* Should be part of hwmod data base ? */
++#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* REVISIT: Is this 32 + 2? =
+*/
++
++/* Common channel specific registers for omap2 */
++#define OMAP_DMA4_CH_BASE(n)		(0x60 * (n) + 0x80)
++#define OMAP_DMA4_CCR(n)		(0x60 * (n) + 0x80)
++#define OMAP_DMA4_CLNK_CTRL(n)		(0x60 * (n) + 0x84)
++#define OMAP_DMA4_CICR(n)		(0x60 * (n) + 0x88)
++#define OMAP_DMA4_CSR(n)		(0x60 * (n) + 0x8c)
++#define OMAP_DMA4_CSDP(n)		(0x60 * (n) + 0x90)
++#define OMAP_DMA4_CEN(n)		(0x60 * (n) + 0x94)
++#define OMAP_DMA4_CFN(n)		(0x60 * (n) + 0x98)
++#define OMAP_DMA4_CSEI(n)		(0x60 * (n) + 0xa4)
++#define OMAP_DMA4_CSFI(n)		(0x60 * (n) + 0xa8)
++#define OMAP_DMA4_CDEI(n)		(0x60 * (n) + 0xac)
++#define OMAP_DMA4_CDFI(n)		(0x60 * (n) + 0xb0)
++#define OMAP_DMA4_CSAC(n)		(0x60 * (n) + 0xb4)
++#define OMAP_DMA4_CDAC(n)		(0x60 * (n) + 0xb8)
++
++/* Channel specific registers only on omap2 */
++#define OMAP_DMA4_CSSA(n)		(0x60 * (n) + 0x9c)
++#define OMAP_DMA4_CDSA(n)		(0x60 * (n) + 0xa0)
++#define OMAP_DMA4_CCEN(n)		(0x60 * (n) + 0xbc)
++#define OMAP_DMA4_CCFN(n)		(0x60 * (n) + 0xc0)
++#define OMAP_DMA4_COLOR(n)		(0x60 * (n) + 0xc4)
++
++/* Additional registers available on OMAP4 */
++#define OMAP_DMA4_CDP(n)		(0x60 * (n) + 0xd0)
++#define OMAP_DMA4_CNDP(n)		(0x60 * (n) + 0xd4)
++#define OMAP_DMA4_CCDN(n)		(0x60 * (n) + 0xd8)
++
++#endif /* __ASM_ARCH_OMAP2_DMA_H */
+--=20
 1.7.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
