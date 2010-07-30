@@ -1,39 +1,38 @@
-From: Tomi Valkeinen <tomi.valkeinen@Nokia.com>
+From: "Menon, Nishanth" <nm@ti.com>
 Subject: Re: OMAP DSS2 coming out of OFF mode without restoring context
-Date: Fri, 30 Jul 2010 09:57:59 +0300
-Message-ID: <1280473079.2427.114.camel@tubuntu.research.nokia.com>
-References: <AANLkTimpATpjeaq5OYf_5zy-o1ho2UxppjF6+Re9QqUb@mail.gmail.com>
+Date: Fri, 30 Jul 2010 06:09:27 -0500
+Message-ID: <1280488167.6035.5.camel@Nokia-N900>
+Reply-To: "Menon, Nishanth" <nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:55579 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753896Ab0G3G6M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jul 2010 02:58:12 -0400
-In-Reply-To: <AANLkTimpATpjeaq5OYf_5zy-o1ho2UxppjF6+Re9QqUb@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34912 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754553Ab0G3LGf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Jul 2010 07:06:35 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Laine Walker-Avina <lwalkera@pasco.com>
+To: Tomi Valkeinen <tomi.valkeinen@Nokia.com>, ext Laine Walker-Avina <lwalkera@pasco.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Hi,
-
-On Thu, 2010-07-29 at 23:29 +0200, ext Laine Walker-Avina wrote:
-> Hi,
-> 
-> I'm having a problem where the DSS driver isn't restoring the
-> framebuffer parameters after going in and out of blanking with OFF
-> mode enabled. The problem appears to be in dss_get_ctx_id() in that
-> pdata->get_last_off_on_transaction_id is 0. Commenting out the call to
-> dss_need_ctx_restore() in dss_clk_enable() appears to do the right
-> thing. I'm using the current master branch of linux-omap.
-
-You need to fill the func pointer in the board file:
-
-static struct omap_dss_board_info xxx_dss_data = {
-	.get_last_off_on_transaction_id = omap_pm_get_dev_context_loss_count,
-
- Tomi
-
-
+DQotLS0tLSBPcmlnaW5hbCBtZXNzYWdlIC0tLS0tDQo+IEhpLA0KPiANCj4gT24gVGh1LCAyMDEw
+LTA3LTI5IGF0IDIzOjI5ICswMjAwLCBleHQgTGFpbmUgV2Fsa2VyLUF2aW5hIHdyb3RlOg0KPiA+
+IEhpLA0KPiA+IA0KPiA+IEknbSBoYXZpbmcgYSBwcm9ibGVtIHdoZXJlIHRoZSBEU1MgZHJpdmVy
+IGlzbid0IHJlc3RvcmluZyB0aGUNCj4gPiBmcmFtZWJ1ZmZlciBwYXJhbWV0ZXJzIGFmdGVyIGdv
+aW5nIGluIGFuZCBvdXQgb2YgYmxhbmtpbmcgd2l0aCBPRkYNCj4gPiBtb2RlIGVuYWJsZWQuIFRo
+ZSBwcm9ibGVtIGFwcGVhcnMgdG8gYmUgaW4gZHNzX2dldF9jdHhfaWQoKSBpbiB0aGF0DQo+ID4g
+cGRhdGEtPmdldF9sYXN0X29mZl9vbl90cmFuc2FjdGlvbl9pZCBpcyAwLiBDb21tZW50aW5nIG91
+dCB0aGUgY2FsbCB0bw0KPiA+IGRzc19uZWVkX2N0eF9yZXN0b3JlKCkgaW4gZHNzX2Nsa19lbmFi
+bGUoKSBhcHBlYXJzIHRvIGRvIHRoZSByaWdodA0KPiA+IHRoaW5nLiBJJ20gdXNpbmcgdGhlIGN1
+cnJlbnQgbWFzdGVyIGJyYW5jaCBvZiBsaW51eC1vbWFwLg0KPiANCj4gWW91IG5lZWQgdG8gZmls
+bCB0aGUgZnVuYyBwb2ludGVyIGluIHRoZSBib2FyZCBmaWxlOg0KPiANCj4gc3RhdGljIHN0cnVj
+dCBvbWFwX2Rzc19ib2FyZF9pbmZvIHh4eF9kc3NfZGF0YSA9IHsNCj7CoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCAgLmdldF9sYXN0X29mZl9vbl90cmFuc2FjdGlvbl9pZCA9DQo+IG9tYXBfcG1fZ2V0
+X2Rldl9jb250ZXh0X2xvc3NfY291bnQsDQo+IA0Kbm9uZSBvZiBsLW8gYm9hcmQgZmlsZXMgc2Vl
+bSB0byBkbyB0aGlzLiBJIGd1ZXNzDQp3aXRoIG9mZiBjYXBhYmxlIG1hc3Rlciwgd2UgbmVlZCB0
+aGlzIHRvIGJlIA0KZGVmYXVsdGVkIHVuZGVyIENPTkZJR19QTSB3aXRoaW4gZHNzL2NvcmUgaXRz
+ZWxmPw0KSSBtZWFuIHRoZSBkZWZhdWx0cyBwcmV2ZW50IGRpc3BsYXkgZnVuY3Rpb24NCmF0IG9m
+Ziwgc28gd2h5IGFzayBhbGwgYm9hcmRzIHRvIGZpbGwgaXQgdXA/DQoNClJlZ2FyZHMsDQpOaXNo
+YW50aCBNZW5vbg0K
