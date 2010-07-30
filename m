@@ -1,33 +1,53 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: [PATCH 6/7] save and restore etm state across core OFF modes
-Date: Fri, 30 Jul 2010 15:16:00 +0300
-Message-ID: <20100730121600.GI14399@shisha.kicks-ass.net>
-References: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
- <1280077520-7538-7-git-send-email-virtuoso@slind.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 7/9] staging: tidspbridge: fix memory leak
+Date: Fri, 30 Jul 2010 07:38:17 -0500
+Message-ID: <4C52C7B9.7000209@ti.com>
+References: <1280488163-20939-1-git-send-email-segooon@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:52146 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756685Ab0G3MQd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jul 2010 08:16:33 -0400
-Content-Disposition: inline
-In-Reply-To: <1280077520-7538-7-git-send-email-virtuoso@slind.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45324 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755895Ab0G3MiY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Jul 2010 08:38:24 -0400
+In-Reply-To: <1280488163-20939-1-git-send-email-segooon@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Richard Woodruff <r-woodruff2@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>
+To: Kulikov Vasiliy <segooon@gmail.com>
+Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, "Sapiens, Rene" <rene.sapiens@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, Jul 25, 2010 at 08:05:19 +0300, Alexander Shishkin wrote:
-> This prevents ETM stalls whenever core enters OFF mode. Original patch
-> author is Richard Woodruff <r-woodruff2@ti.com>.
+Kulikov Vasiliy had written, on 07/30/2010 06:09 AM, the following:
+> dbll_create() leaks pzl_target if target_obj is NULL. Call kzalloc()
+> only if memory is used.
 > 
-> This version of the patch makes use of the ETM OS save/restore mechanism,
-> which takes about 55 words in omap3_arm_context[] instead of 128. Also,
-> saving ETM context can be switched on/off at runtime.
+> Signed-off-by: Kulikov Vasiliy <segooon@gmail.com>
+> ---
+>  drivers/staging/tidspbridge/pmgr/dbll.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/staging/tidspbridge/pmgr/dbll.c b/drivers/staging/tidspbridge/pmgr/dbll.c
+> index 3636aa3..86840ce 100644
+> --- a/drivers/staging/tidspbridge/pmgr/dbll.c
+> +++ b/drivers/staging/tidspbridge/pmgr/dbll.c
+> @@ -247,9 +247,9 @@ int dbll_create(struct dbll_tar_obj **target_obj,
+>  	DBC_REQUIRE(pattrs != NULL);
+>  	DBC_REQUIRE(target_obj != NULL);
+>  
+> -	/* Allocate DBL target object */
+> -	pzl_target = kzalloc(sizeof(struct dbll_tar_obj), GFP_KERNEL);
+>  	if (target_obj != NULL) {
+> +		/* Allocate DBL target object */
+> +		pzl_target = kzalloc(sizeof(struct dbll_tar_obj), GFP_KERNEL);
+>  		if (pzl_target == NULL) {
+>  			*target_obj = NULL;
+>  			status = -ENOMEM;
+I would suggest to add a else branch for if (target_obj != NULL) adding 
+a status =-ENOMEM if error.
 
-Can I have some (n)acks on this one and 7/7 as well?
+Overall, I guess we need to kick out the DBC_REQUIRE usage.. it is 
+misleading as it is active only when DEBUG macro is enabled!
 
+-- 
 Regards,
---
-Alex
+Nishanth Menon
