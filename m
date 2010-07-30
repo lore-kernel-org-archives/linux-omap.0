@@ -1,58 +1,68 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v2] twl4030 reboot workaround
-Date: Fri, 30 Jul 2010 12:05:46 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323D40C6F@dbde02.ent.ti.com>
-References: <20100729061608.GG12063@edollo>
-	<1280385678-4366-1-git-send-email-ext-mikko.rapeli@nokia.com>
- <AANLkTi=OkfRGvW05ZTOaSU+-r7jo40wHFK_pkQM9Hmw=@mail.gmail.com>
+From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
+Subject: RE: [PATCH 3/5] omap:hwspinlock-added hwspinlock driver
+Date: Fri, 30 Jul 2010 12:23:12 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7E3AA88@dbde02.ent.ti.com>
+References: <1279558221-14954-1-git-send-email-h-kanigeri2@ti.com>
+ <1279558221-14954-4-git-send-email-h-kanigeri2@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E7E3A01E@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E7E3A1B6@dbde02.ent.ti.com>
+ <8F7AF80515AF0D4D93307E594F3CB40E4D2F3F83@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52361 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50772 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755500Ab0G3Gf5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jul 2010 02:35:57 -0400
-In-Reply-To: <AANLkTi=OkfRGvW05ZTOaSU+-r7jo40wHFK_pkQM9Hmw=@mail.gmail.com>
+	id S1752661Ab0G3GxT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jul 2010 02:53:19 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4D2F3F83@dlee03.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike.rapoport@gmail.com>, Mikko Rapeli <ext-mikko.rapeli@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Turquette, Mike" <mturquette@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Que, Simon" <sque@ti.com>
 
+Hari,
 
+> -----Original Message-----
+> From: Kanigeri, Hari
+> Sent: Thursday, July 29, 2010 6:44 PM
+> To: Marathe, Yogesh; Premi, Sanjeev; Linux Omap; Tony Lindgren
+> Cc: Shilimkar, Santosh; Cousson, Benoit; Que, Simon
+> Subject: RE: [PATCH 3/5] omap:hwspinlock-added hwspinlock driver
+> 
+> Yogesh,
+> 
+> Nice to see your email.
+> 
+> > > > +/* Release a spinlock */
+> > > > +int hwspinlock_unlock(struct hwspinlock *handle)
+> > > > +{
+> > > > +     if (WARN_ON(handle == NULL))
+> > > > +             return -EINVAL;
+> > > > +
+> > > > +     /* Release it by writing 0 to it */
+> > > > +     writel(0, handle->lock_reg);
+> >
+> > [[Yogesh Marathe]] Releasing the spinlock without knowing who owns it is
+> > risky. There should be a check for ownership and if authenticated user has
+> > called this api  only then it should be released otherwise permission
+> > denied error should be returned.
+> 
+> -- I think if there is another Kernel client that is trying to release that is not owned by
+> it then that Kernel client itself is buggy and needs to be fixed. Please share your
+> thoughts on how we can ensure that we can add some protection.
 
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Mike
->>Rapoport
->>Sent: Friday, July 30, 2010 12:41 AM
->>To: Mikko Rapeli
->>Cc: linux-omap@vger.kernel.org; Turquette, Mike; sameo@linux.intel.com
->>Subject: Re: [PATCH v2] twl4030 reboot workaround
->>
->>Hi
->>
->>On Thu, Jul 29, 2010 at 9:41 AM, Mikko Rapeli
->><ext-mikko.rapeli@nokia.com> wrote:
->>> From: Mikko Rapeli <ext-mikko.rapeli@nokia.com>
->>>
->>> Original patch: http://marc.info/?l=linux-omap&m=126522625032441&w=2
->>>
->>> "Removes TWL4030 sleep script prior to rebooting, only on OMAP3. This is
->>> necessary since DPLL3 reset causes SYS_OFFMODE pin to go low, resulting
->>> in the sleep script being executed on TWL4030. This usually results in
->>> VDD1 & VDD2 voltage collapse while ROM code is executing, followed by an
->>> MPU Watch Dog reset or worse, an irrecoverable hang."
->>
->>I had a similar issue when my system hanged on hard reset when there
->>was a TWL sleep script installed.
->>The workaround I've found was to install the sleep script immediately
->>before entering the suspend state and remove the script on the resume
->>path.
->>If you think that such approach is appropriate I can send a patch.
-
-How do you hit the off state(Vdd's at 0 V) in the idle path then? Or do you do this every
-time in the idle thread also?
-
-Regards
-Thara
+[Yogesh Marathe] I agree the client has to be fixed but at least the client should get some error message instead of crashing someone else. I think if hwspinlock_request() and hwspinlock_request_specific() can keep the owner info (say thread id) in some module state structure it is possible to verify against it before acquiring and releasing the lock. 
+ 
+> 
+> 
+> >
+> > > > +
+> > > > +     pm_runtime_put(&handle->pdev->dev);
+> > > > +
+> > > > +     return 0;
+> 
+> Thank you,
+> Best regards,
+> Hari
