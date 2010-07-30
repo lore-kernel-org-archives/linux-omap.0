@@ -1,137 +1,139 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: OMAP DSS2 coming out of OFF mode without restoring context
-Date: Fri, 30 Jul 2010 10:15:23 -0500
-Message-ID: <A24693684029E5489D1D202277BE894456C0B56C@dlee02.ent.ti.com>
-References: <1280488167.6035.5.camel@Nokia-N900>
- <1280488679.2427.121.camel@tubuntu.research.nokia.com>
- <4C52CD26.8010908@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 00/10] staging:ti dspbridge: Remove DSP_FAILED and
+	DSP_SUCCEEDED macros
+Date: Fri, 30 Jul 2010 18:16:30 +0300
+Message-ID: <AANLkTinhr8KhmJ9QMKeUHpPWsXuiBjZaFzHuwdrwww6=@mail.gmail.com>
+References: <1280328333-31336-1-git-send-email-ernesto@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33593 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750767Ab0G3PPb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jul 2010 11:15:31 -0400
-In-Reply-To: <4C52CD26.8010908@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1280328333-31336-1-git-send-email-ernesto@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ernesto Ramos <ernesto@ti.com>
+Cc: gregkh@suse.de, omar.ramirez@ti.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, nm@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: ext Laine Walker-Avina <lwalkera@pasco.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Hi,
+Hi Ernesto,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Menon, Nishanth
-> Sent: Friday, July 30, 2010 8:01 AM
-> To: Tomi Valkeinen
-> Cc: ext Laine Walker-Avina; linux-omap@vger.kernel.org; linux-
-> fbdev@vger.kernel.org
-> Subject: Re: OMAP DSS2 coming out of OFF mode without restoring context
-> 
-> Tomi Valkeinen had written, on 07/30/2010 06:17 AM, the following:
-> > On Fri, 2010-07-30 at 13:09 +0200, ext Menon, Nishanth wrote:
-> >> ----- Original message -----
-> >>> Hi,
-> >>>
-> >>> On Thu, 2010-07-29 at 23:29 +0200, ext Laine Walker-Avina wrote:
-> >>>> Hi,
-> >>>>
-> >>>> I'm having a problem where the DSS driver isn't restoring the
-> >>>> framebuffer parameters after going in and out of blanking with OFF
-> >>>> mode enabled. The problem appears to be in dss_get_ctx_id() in that
-> >>>> pdata->get_last_off_on_transaction_id is 0. Commenting out the call
-> to
-> >>>> dss_need_ctx_restore() in dss_clk_enable() appears to do the right
-> >>>> thing. I'm using the current master branch of linux-omap.
-> >>> You need to fill the func pointer in the board file:
-> >>>
-> >>> static struct omap_dss_board_info xxx_dss_data = {
-> >>>                 .get_last_off_on_transaction_id =
-> >>> omap_pm_get_dev_context_loss_count,
-> >>>
-> >> none of l-o board files seem to do this. I guess
-> >> with off capable master, we need this to be
-> >> defaulted under CONFIG_PM within dss/core itself?
-> >> I mean the defaults prevent display function
-> >> at off, so why ask all boards to fill it up?
-> >
-> > If the PM stuff in linux tree starts to be in working order, then yes,
-> > we need some better solution.
-> >
-> > I'm not quite sure what the options are, but I was told that the correct
-> > way to get context loss count is as above, fill the platform_data in the
-> > board file with a pointer to omap_pm_get_dev_context_loss_count().
-> >
-> > So if that is still the proper way, then we need a "DSS platform
-> > initialization" function that the board files can call, which then fills
-> > the platform_data with correct data.
-> >
-> > But this will still require modifying every board file that uses DSS.
-> > Then again, every board file needs anyway DSS code, so perhaps that's
-> > not such a big issue.
-> >
-> > For this particular case there's not much benefit having a separate
-> > initialization function. On the contrary, it'll just have more code
-> > lines. But I think there will be some more platform DSS stuff (like
-> > pinmuxing) which can then use the same mechanism.
-> >
-> >  Tomi
-> >
-> >
-> 
-> I was thinking more of the lines of this:
-> a) omap_pm_get_dev_context_loss_count is exported
-> OR
-> b) there is a file arch/arm/mach-omap2/dss.c which would take this..
+On Wed, Jul 28, 2010 at 5:45 PM, Ernesto Ramos <ernesto@ti.com> wrote:
+> This series of patches is targetted to remove macros DSP_FAILED
+> and DSP_SUCCEEDED since bridge driver currently uses standard kernel
+> error codes.
 
-I'm curious about something...
+These macros were often used to test for success, instead for errors.
 
-Why this can't be part of the platform code per-cpu?
+This often leads to dspbridge code being highly nested, and hard to
+read. The excessive indentation sometimes even lead to longer lines,
+which were broken to meet the 80-chars recommendation, where the real
+problem is actually the redundant indentation (e.g. check out this
+patch http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26700.h=
+tml).
 
-It makes no sense to me (unless I'm missing something here) to put this
-In mach-omap2/ files... It should be on plat-omap/ somewhere.
+E.g. the following error testing is very common in the bridge code:
 
-What do you think?
+do_something1();
+if (success) {
+    do_something2();
+    if (success) {
+        do_something3();
+        ....
+    }
+}
 
-Regards,
-Sergio
+The kernel alternative would be to check for errors, and take error
+paths out of the code flow, e.g.:
 
-> 
-> 
-> diff --git a/drivers/video/omap2/dss/core.c
-> b/drivers/video/omap2/dss/core.c
-> index b3a498f..0b9041a 100644
-> --- a/drivers/video/omap2/dss/core.c
-> +++ b/drivers/video/omap2/dss/core.c
-> @@ -35,6 +35,7 @@
-> 
->   #include <plat/display.h>
->   #include <plat/clock.h>
-> +#include <plat/omap-pm.h>
-> 
->   #include "dss.h"
-> 
-> @@ -502,6 +503,10 @@ static int omap_dss_probe(struct platform_device
-> *pdev)
-> 
->          core.pdev = pdev;
-> 
-> +       if (!core.pdev->get_last_off_on_transaction_id)
-> +               core.pdev->get_last_off_on_transaction_id =
-> +                       omap_pm_get_dev_context_loss_count;
-> +
->          dss_init_overlay_managers(pdev);
->          dss_init_overlays(pdev);
-> 
-> 
-> 
-> --
-> Regards,
-> Nishanth Menon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+do_something1();
+if (error)
+    leave;
+
+do_something2();
+if (error)
+    leave;
+
+do_something3();
+if (error)
+    leave;
+
+This leads to code which is much more easier to read.
+
+If you could hunt some of those highly nested areas and make them test
+for error instead of success, it can be really great.
+
+Thanks,
+Ohad.
+
+>
+> Ernesto Ramos (10):
+> =A0staging:ti dspbridge: remove DSP_SUCCEEDED macro from core
+> =A0staging:ti dspbridge: remove DSP_SUCCEEDED macro from pmgr
+> =A0staging:ti dspbridge: remove DSP_SUCCEEDED macro from rmgr
+> =A0staging:ti dspbridge: remove DSP_SUCCEEDED macro from services
+> =A0staging:ti dspbridge: remove DSP_SUCCEEDED macro definition
+> =A0staging:ti dspbridge: remove DSP_FAILED macro from core
+> =A0staging:ti dspbridge: remove DSP_FAILED macro from pmgr
+> =A0staging:ti dspbridge: remove DSP_FAILED macro from rmgr
+> =A0staging:ti dspbridge: remove DSP_FAILED macro from services
+> =A0staging:ti dspbridge: remove DSP_FAILED macro definition
+>
+> =A0drivers/staging/tidspbridge/core/chnl_sm.c =A0 =A0 =A0 =A0 | =A0 4=
+2 ++--
+> =A0drivers/staging/tidspbridge/core/dsp-clock.c =A0 =A0 =A0 | =A0 =A0=
+4 +-
+> =A0drivers/staging/tidspbridge/core/io_sm.c =A0 =A0 =A0 =A0 =A0 | =A0=
+111 +++++-----
+> =A0drivers/staging/tidspbridge/core/msg_sm.c =A0 =A0 =A0 =A0 =A0| =A0=
+ 26 ++--
+> =A0drivers/staging/tidspbridge/core/tiomap3430.c =A0 =A0 =A0| =A0 61 =
++++---
+> =A0drivers/staging/tidspbridge/core/tiomap3430_pwr.c =A0| =A0 =A08 +-
+> =A0drivers/staging/tidspbridge/core/tiomap_io.c =A0 =A0 =A0 | =A0 41 =
+++--
+> =A0.../staging/tidspbridge/include/dspbridge/dbdefs.h | =A0 =A04 -
+> =A0drivers/staging/tidspbridge/pmgr/chnl.c =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 10 +-
+> =A0drivers/staging/tidspbridge/pmgr/cmm.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+137 ++++++-------
+> =A0drivers/staging/tidspbridge/pmgr/cod.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 18 +-
+> =A0drivers/staging/tidspbridge/pmgr/dbll.c =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 32 ++--
+> =A0drivers/staging/tidspbridge/pmgr/dev.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 79 +++----
+> =A0drivers/staging/tidspbridge/pmgr/dmm.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 12 +-
+> =A0drivers/staging/tidspbridge/pmgr/dspapi.c =A0 =A0 =A0 =A0 =A0| =A0=
+ 82 ++++----
+> =A0drivers/staging/tidspbridge/pmgr/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 =A04 +-
+> =A0drivers/staging/tidspbridge/pmgr/msg.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ =A02 +-
+> =A0drivers/staging/tidspbridge/rmgr/dbdcd.c =A0 =A0 =A0 =A0 =A0 | =A0=
+ 48 ++--
+> =A0drivers/staging/tidspbridge/rmgr/disp.c =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 62 +++---
+> =A0drivers/staging/tidspbridge/rmgr/drv.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 39 ++--
+> =A0drivers/staging/tidspbridge/rmgr/drv_interface.c =A0 | =A0 10 +-
+> =A0drivers/staging/tidspbridge/rmgr/dspdrv.c =A0 =A0 =A0 =A0 =A0| =A0=
+ 16 +-
+> =A0drivers/staging/tidspbridge/rmgr/mgr.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 32 ++--
+> =A0drivers/staging/tidspbridge/rmgr/nldr.c =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+106 +++++-----
+> =A0drivers/staging/tidspbridge/rmgr/node.c =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+224 ++++++++++----------
+> =A0drivers/staging/tidspbridge/rmgr/proc.c =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+137 ++++++------
+> =A0drivers/staging/tidspbridge/rmgr/pwr.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 26 +--
+> =A0drivers/staging/tidspbridge/rmgr/rmm.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 12 +-
+> =A0drivers/staging/tidspbridge/rmgr/strm.c =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 75 ++++----
+> =A0drivers/staging/tidspbridge/services/cfg.c =A0 =A0 =A0 =A0 | =A0 2=
+1 +-
+> =A030 files changed, 710 insertions(+), 771 deletions(-)
+>
+>
