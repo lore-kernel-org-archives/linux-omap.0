@@ -1,96 +1,75 @@
-From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH 6/6] TI816X: Add low level debug support
-Date: Sat, 31 Jul 2010 02:22:18 +0530
-Message-ID: <1280523138-25198-1-git-send-email-hemantp@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Fwd: [PATCH 0/3] Allow late mdesc detection, v3
+Date: Sat, 31 Jul 2010 10:25:22 +0100
+Message-ID: <20100731092522.GD23886@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42713 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751992Ab0G3UwX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Jul 2010 16:52:23 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44749 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751137Ab0GaJZd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jul 2010 05:25:33 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@deeprootsystems.com, Hemant Pedanekar <hemantp@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-This patch adds support for low level debugging on TI816X boards. Currently the
-support for UART3 console on TI816X EVM is added.
+Forwarding for OMAP people - as there's outstanding questions about this
+change for their platforms.
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+----- Forwarded message from Jeremy Kerr <jeremy.kerr@canonical.com> -----
+
+Date: Fri, 30 Jul 2010 17:22:11 +0800
+From: Jeremy Kerr <jeremy.kerr@canonical.com>
+To: linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 0/3] Allow late mdesc detection, v3
+Delivery-date: Sat, 31 Jul 2010 01:25:58 +0100
+
+Hi all,
+
+Currently, we probe for a mdesc early in boot. At this early stage, the
+only thing we use the mdesc for is to determine the debug page mapping.
+
+However, the debug addresses (phys and virt) need to be coded into the
+addruart macro anyway; the dynamic probing is only going to tell us what
+we already know.
+
+These changes allow us to use the addruart macros to find the debug
+mapping addresses, rather than pulling them out of the mdesc. This means
+that the addresses are only kept in the one place, and that we don't
+need the mdesc nearly as early.
+
+The first change updates all of the addruart macros to return both
+physical and virtual addresses. I've used 'rp' and 'rv' as the macro
+arguments to indicate which address goes where
+
+The second change updates the debug setup routine to use the addruart
+macro to establish the debug mapping, now that we can invoke the macro
+to find the phyical and virtual addresses.
+
+This allows us to delay the requirement to have a mdesc available until
+much later. For example, we can parse one from the device tree once
+we've reached C code.
+
+May break OMAP1/2, as the addruart macros are more complex on these
+platforms. I'd appreciate input from OMAP folks who may well tell me
+that this isn't possible.
+
+Cheers,
+
+
+Jeremy
+
+v3:
+ * only establish page mapping if !DEBUG_ICEDCC
+
+v2:
+ * return both phys and virt addresses from addruart
+ * mask unneeded bits from uart physical address in mapping setup
+ * remove io_pg_offst and phys_io, in a separate patch
+
 ---
- arch/arm/mach-omap2/include/mach/debug-macro.S |   12 ++++++++++++
- arch/arm/plat-omap/include/plat/serial.h       |    3 +++
- arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++++++
- 3 files changed, 22 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 35b2440..a25708e 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -66,6 +66,12 @@ omap_uart_lsr:	.word	0
- 		beq	34f			@ configure OMAP3UART4
- 		cmp	\rx, #OMAP4UART4	@ only on 44xx
- 		beq	44f			@ configure OMAP4UART4
-+		cmp	\rx, #TI816XUART1	@ ti816x UART offsets different
-+		beq	81f			@ configure UART1
-+		cmp	\rx, #TI816XUART2	@ ti816x UART offsets different
-+		beq	82f			@ configure UART2
-+		cmp	\rx, #TI816XUART3	@ ti816x UART offsets different
-+		beq	83f			@ configure UART3
- 		cmp	\rx, #ZOOM_UART		@ only on zoom2/3
- 		beq	95f			@ configure ZOOM_UART
- 
-@@ -88,6 +94,12 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 44:		mov	\rx, #UART_OFFSET(OMAP4_UART4_BASE)
- 		b	98f
-+81:		mov	\rx, #UART_OFFSET(TI816X_UART1_BASE)
-+		b	98f
-+82:		mov	\rx, #UART_OFFSET(TI816X_UART2_BASE)
-+		b	98f
-+83:		mov	\rx, #UART_OFFSET(TI816X_UART3_BASE)
-+		b	98f
- 95:		ldr	\rx, =ZOOM_UART_BASE
- 		ldr	\tmp, =omap_uart_phys
- 		str	\rx, [\tmp, #0]
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index ad8d0d8..ef8a57a 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -86,6 +86,9 @@
- #define OMAP4UART2		OMAP2UART2
- #define OMAP4UART3		43
- #define OMAP4UART4		44
-+#define TI816XUART1		81
-+#define TI816XUART2		82
-+#define TI816XUART3		83
- #define ZOOM_UART		95		/* Only on zoom2/3 */
- 
- /* This is only used by 8250.c for omap1510 */
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index ddf723b..48a0d8c 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -93,6 +93,10 @@ static inline void flush(void)
- #define DEBUG_LL_ZOOM(mach)						\
- 	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
- 
-+#define DEBUG_LL_TI816X(p, mach)					\
-+	_DEBUG_LL_ENTRY(mach, TI816X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		TI816XUART##p)
-+
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
- 	int port = 0;
-@@ -158,6 +162,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		DEBUG_LL_ZOOM(omap_zoom2);
- 		DEBUG_LL_ZOOM(omap_zoom3);
- 
-+		/* TI8168 base boards using UART3 */
-+		DEBUG_LL_TI816X(3, ti8168evm);
-+
- 	} while (0);
- }
- 
--- 
-1.6.2.4
-
+Jeremy Kerr (3):
+      arm/debug: consolidate addruart macros for CONFIG_DEBUG_ICEDCC
+      arm: return both physical and virtual addresses from addruart
+      arm: use addruart macro to establish debug mappings
