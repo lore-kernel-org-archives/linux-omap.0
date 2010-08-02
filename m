@@ -1,59 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/7] HTC Herald various device support
-Date: Mon, 2 Aug 2010 13:54:34 +0300
-Message-ID: <20100802105434.GC12293@atomide.com>
-References: <1279598741-18607-1-git-send-email-darkstar6262@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 0/3] OMAP: DSS2: Add Zorder Support on OMAP4
+Date: Mon, 02 Aug 2010 14:42:27 +0300
+Message-ID: <1280749347.3436.45.camel@tubuntu.research.nokia.com>
+References: <1279541407-17711-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54953 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751852Ab0HBKyJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 06:54:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1279598741-18607-1-git-send-email-darkstar6262@gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:61630 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152Ab0HBLmm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 07:42:42 -0400
+In-Reply-To: <1279541407-17711-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: ext Archit Taneja <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sumit Semwal <sumit.semwal@ti.com>
 
-* Cory Maccarrone <darkstar6262@gmail.com> [100720 06:59]:
-> This patch set is an updated version of a series of patches I submitted
-> a while ago.  It's built against the latest linux-omap master branch, and
-> removes all defconfig updates.  Other comments were put in place as well.
+On Mon, 2010-07-19 at 14:10 +0200, ext Archit Taneja wrote:
+> From: Sumit Semwal <sumit.semwal@ti.com>
 > 
-> This patch set implements the following drivers and support for them into
-> the HTC Herald:
+> This patch series adds Zorder Support on OMAP4, this feature
+> allows deciding the visibility order of the overlays based on
+> the Zorder value given to a sysfs attribute of the overlay object.
 > 
->  * MMC card support
->  * I2C and HTCPLD drivers
->  * TSC2046 touchscreen support
->  * Serial port fixes for omap7xx
->  * Bluetooth common code for HTC omap7xx smartphones
-> 
-> The bluetooth drivers are implemented with the expectation that they will
-> be used by other devices once the board files are submitted (Elf/Elfin,
-> Opal, etc).
-> 
-> Cory Maccarrone (7):
->   [OMAP] gpio: Allow for extended GPIO space
->   [OMAP] Add allowance for extra IRQ space
+> Since this feature is not supported on OMAP3 and OMAP2, the sysfs
+> attibutes always return Zorder as 0 and do not write to dispc registers
+> for non OMAP4 architectures.
 
-Let's drop these two for now, they will get solved in a generic way
-hopefully quite soon.
+It would be better if the sysfs file only appears on OMAP4. I know that
+method is not currently used for any other DSS sysfs files, but it's
+long been in the todo list...
 
->   [OMAP] HTCHERALD: MMC, I2C, HTCPLD and related devices
->   [OMAP] htcherald: SPI register config, TSC2046 touchscreen
->   [omap1] omap7xx clocks, mux, serial fixes
->   [omap1] Bluetooth device code common to HTC smartphones
->   [htcherald] Add board support for UARTs, bluetooth
+ Tomi
 
-Please repost these one more time with linux-arm-kernel list Cc'd.
-If no comments, we may be able to get these still into the current
-merge window.
 
-Sorry for the delay, I've been offline for past few weeks :)
-
-Regards,
-
-Tony
