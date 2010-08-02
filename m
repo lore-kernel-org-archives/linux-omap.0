@@ -1,8 +1,8 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+From: "Sin, David" <davidsin@ti.com>
 Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and
  implementation
-Date: Mon, 2 Aug 2010 20:22:56 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C641D58B@dbde02.ent.ti.com>
+Date: Mon, 2 Aug 2010 09:55:26 -0500
+Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D654A44A@dlee02.ent.ti.com>
 References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
  <1279927348-21750-2-git-send-email-davidsin@ti.com>
  <1279927348-21750-3-git-send-email-davidsin@ti.com>
@@ -12,20 +12,28 @@ References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
  <513FF747EED39B4AADBB4D6C9D9F9F7903D654A3FE@dlee02.ent.ti.com>
  <EAF47CD23C76F840A9E7FCE10091EFAB02C641D580@dbde02.ent.ti.com>
  <513FF747EED39B4AADBB4D6C9D9F9F7903D654A430@dlee02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C641D58B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55251 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34775 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750959Ab0HBOxM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 10:53:12 -0400
-In-Reply-To: <513FF747EED39B4AADBB4D6C9D9F9F7903D654A430@dlee02.ent.ti.com>
+	id S1751303Ab0HBOzg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 10:55:36 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C641D58B@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sin, David" <davidsin@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Woodruff, Richard" <r-woodruff2@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Molnar, Lajos" <molnar@ti.com>, "Voultoury, Pierre" <p-voultoury@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+-----Original Message-----
+From: Shilimkar, Santosh 
+Sent: Monday, August 02, 2010 9:53 AM
+To: Sin, David; Russell King - ARM Linux; Woodruff, Richard
+Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Molnar, Lajos; Voultoury, Pierre; linux-arm-kernel@lists.infradead.org
+Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and implementation
 
 
 
@@ -84,4 +92,6 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <to
 > 
 It's configurable. By default it's 2 MB pool. GFP_DMA doesn't give you
 un-cacheable memory.
+
+[dhs] OK -- I will increase this and try to allocate this way.  Thank you.
 
