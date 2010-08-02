@@ -1,104 +1,91 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH v4 4/4] omap: nand: making ecc layout as compatible with romcode ecc
-Date: Mon,  2 Aug 2010 21:19:52 +0530
-Message-ID: <1280764192-15053-5-git-send-email-s-ghorai@ti.com>
-References: <1280764192-15053-1-git-send-email-s-ghorai@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59198 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753780Ab0HBPuK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Aug 2010 11:50:10 -0400
-In-Reply-To: <1280764192-15053-1-git-send-email-s-ghorai@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v2 03/20] mmc: support embedded data field in mmc_host
+Date: Mon, 2 Aug 2010 18:54:36 +0300
+Message-ID: <AANLkTimZQKj7H_GeE=+O9cwxEMTR+LhfFbt=AyXGzN3d@mail.gmail.com>
+References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
+	<1279733634-21974-4-git-send-email-ohad@wizery.com>
+	<AANLkTimzA_JJ-byTDWznbL3YzeJ8LAP4M50onf2_3fBF@mail.gmail.com>
+	<AANLkTi=Oy8X1xMOwWL_cKBB1LWULT6=p+adUgB+AuSJS@mail.gmail.com>
+	<AANLkTi=BUX59heXAW2Uf4wZo2dSS19Je54dkQ5u2YGAW@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTi=BUX59heXAW2Uf4wZo2dSS19Je54dkQ5u2YGAW@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Vitaly Wool <vitalywool@gmail.com>
+Cc: Kalle Valo <kalle.valo@iki.fi>, Pandita Vikram <vikram.pandita@ti.com>, linux@arm.linux.org.uk, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, Roger Quadros <roger.quadros@nokia.com>, linux-mmc@vger.kernel.org, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, linux-omap@vger.kernel.org, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>, Vimal Singh <vimalsingh@ti.com>
 
-    This patch overrides nand ecc layout and bad block descriptor (for 8-bit
-    device) to support hw ecc in romcode layout. So as to have in sync with ecc
-    layout throughout; i.e. x-loader, u-boot and kernel.
+Hi Vitaly,
 
-    This patch also enables to use romcode ecc for spd and zoom, by default.
+On Thu, Jul 29, 2010 at 7:16 PM, Vitaly Wool <vitalywool@gmail.com> wrote:
+> On Thu, Jul 29, 2010 at 8:00 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>>> To my understanding, this data doesn't belong to mmc_host. It's not a
+>>> host data at all. E. g. imagine a GPIO IRQ for some SDIO chip -- it's
+>>> totally unrelated to host.
+>>>
+>>> I think a cleaner way would be to introduce something similar to what
+>>> we have for SPI, e. g. struct sdio_board_info. This board info will
+>>> contain platform-specific stuff and vendor id/chip id for each onboard
+>>> SDIO device. Then the SDIO core will pick up the appropriate data
+>>> basing on vendor id/chip id.
+>>
+>> Can you please elaborate some more about your proposal (specifically
+>> where does this sdio_board_info get set and how do function drivers
+>> access it) ?
+>>
+>> If I understand you correctly, you suggest to have a global,
+>> board-specific table of sdio_board_info structures, which would be
+>> accessible to the SDIO core (through the host driver ?). When a new
+>> SDIO device is found the core would search this table for the
+>> appropriate sdio_board_info struct and make it accessible to the SDIO
+>> function driver ?
+>
+> Well, let's look at how it's implemented for SPI. There is the
+> function spi_register_board_info in the SPI core which copies the
+> board info into the local data structure (a linked list, actually).
+> Whenever needed, the core walks through the list to find the
+> appropriate board_info basing on some search key.
+>
+> I think this may be the way to go for SDIO as well.
 
-    This enables to flash x-loader, u-boot, kernel, FS images from kernel itself
-    and compatiable with other tools.
+IMHO this is a bit overkill solution for our problem.
 
-Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
----
- arch/arm/mach-omap2/board-flash.c |    2 +-
- drivers/mtd/nand/omap2.c          |   34 ++++++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 1 deletions(-)
+SPI is using these spi_board_info tables to populate the SPI device
+trees. These tables are registered early at the board-specific init
+code, and are later used by SPI core to populate the devices when the
+SPI master controller is registered.
 
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index 5f74c8f..d71c511 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -145,7 +145,7 @@ __init board_nand_init(struct mtd_partition *nand_parts, u8 nr_parts, u8 cs)
- 	board_nand_data.cs		= cs;
- 	board_nand_data.parts		= nand_parts;
- 	board_nand_data.nr_parts	= nr_parts;
--	board_nand_data.ecc_opt		= OMAP_ECC_HAMMING_CODE_DIFF_LAYOUT;
-+	board_nand_data.ecc_opt		= OMAP_ECC_HAMMING_CODE_HW;
- 
- 	gpmc_nand_init(&board_nand_data);
- }
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 63682c0..1041783 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -128,6 +128,20 @@ const int use_dma;
- const int use_interrupt;
- #endif
- 
-+/* oob info generated runtime depending on ecc algorithm and layout selected */
-+static struct nand_ecclayout omap_oobinfo;
-+/* Define some generic bad / good block scan pattern which are used
-+ * while scanning a device for factory marked good / bad blocks
-+ */
-+static uint8_t scan_ff_pattern[] = { 0xff };
-+static struct nand_bbt_descr bb_descrip_flashbased = {
-+	.options = NAND_BBT_SCANEMPTY | NAND_BBT_SCANALLPAGES,
-+	.offs = 0,
-+	.len = 1,
-+	.pattern = scan_ff_pattern,
-+};
-+
-+
- struct omap_nand_info {
- 	struct nand_hw_control		controller;
- 	struct omap_nand_platform_data	*pdata;
-@@ -945,6 +959,7 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 	struct omap_nand_info		*info;
- 	struct omap_nand_platform_data	*pdata;
- 	int				err;
-+	int				i, offset;
- 
- 	pdata = pdev->dev.platform_data;
- 	if (pdata == NULL) {
-@@ -1079,6 +1094,25 @@ static int __devinit omap_nand_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	/* rom code layout */
-+	if (pdata->ecc_opt != OMAP_ECC_HAMMING_CODE_DIFF_LAYOUT) {
-+		offset = (info->nand.options & NAND_BUSWIDTH_16) ? 2 : 1;
-+		if (info->mtd.oobsize == 16) {
-+			info->nand.badblock_pattern = &bb_descrip_flashbased;
-+			omap_oobinfo.eccbytes = 3;
-+		} else
-+			omap_oobinfo.eccbytes  = 3 * 4;
-+
-+		for (i = 0; i < omap_oobinfo.eccbytes; i++)
-+			omap_oobinfo.eccpos[i] = i+offset;
-+
-+		omap_oobinfo.oobfree->offset = offset + omap_oobinfo.eccbytes;
-+		omap_oobinfo.oobfree->length = info->mtd.oobsize -
-+					(offset + omap_oobinfo.eccbytes);
-+
-+		info->nand.ecc.layout = &omap_oobinfo;
-+	}
-+
- #ifdef CONFIG_MTD_PARTITIONS
- 	err = parse_mtd_partitions(&info->mtd, part_probes, &info->parts, 0);
- 	if (err > 0)
+SDIO doesn't normally needs any kind of hard coded data: most devices
+are dynamically probed and populated.
+
+On rare cases like the wl1271, we have some platform-specific data we
+need to deliver the SDIO function driver (i.e. the irq info in this
+case). Since the device is hardwired to a specific controller, it does
+make some sense to pass this private data from the controller's info
+in the board files, through the host driver, and make it accessible
+through the specific host instance that drives this controller.
+
+Btw, if our problem was be broader (e.g., needs to supply private data
+for non-hardwired devices), then I agree that a more complex
+mechanism, such as the one you suggest, would be needed. But currently
+the problem is very simple and the solution is even simpler: just add
+1 private pointer to the host.
+
+Hope you find this reasonable,
+
+Thanks,
+Ohad.
+
+>
+> ~Vitaly
+>
