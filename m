@@ -1,29 +1,45 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH v2 00/20] native support for wl1271 on ZOOM
-Date: Mon, 02 Aug 2010 11:16:27 +0300
-Message-ID: <1280736987.17809.18.camel@chilepepper>
-References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
-	 <20100726193028.GG3903@tuxdriver.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100726193028.GG3903@tuxdriver.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "ext John W. Linville" <linville@tuxdriver.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>
+From: Thara Gopinath <thara@ti.com>
+Subject: [PM-OPP][PATCHV2] OMAP: Add check for omap_device pointer before adding an opp
+Date: Mon,  2 Aug 2010 13:51:21 +0530
+Message-ID: <1280737281-22967-1-git-send-email-thara@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:58703 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753491Ab0HBIVd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 04:21:33 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-On Mon, 2010-07-26 at 21:30 +0200, ext John W. Linville wrote:
-> On Wed, Jul 21, 2010 at 08:33:34PM +0300, Ohad Ben-Cohen wrote:
-> > This patch series adds native support for wl1271 on ZOOM.
-> 
-> Just for the record, I'm fine with the wl1271 bits here going through
-> the omap tree with the rest of the series.
+This patch adds the check for whether a omap_device and in turn
+platform_device and device pointers exist for the device before
+adding it's opp table into the global table. This is because all
+the later access to the opp entries are based on dev pointer and
+hence there is no point in adding a opp if the dev pointer does
+not exist.
 
-Yeah, I agree.  This is probably the best way to keep things in sync.
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Acked-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/plat-omap/opp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+index 0273497..f3855ba 100644
+--- a/arch/arm/plat-omap/opp.c
++++ b/arch/arm/plat-omap/opp.c
+@@ -333,8 +333,8 @@ int opp_add(const struct omap_opp_def *opp_def)
+ 		return -EINVAL;
+ 	}
+ 	oh = omap_hwmod_lookup(opp_def->hwmod_name);
+-	if (!oh) {
+-		pr_warn("%s: no hwmod for %s, cannot add OPPs.\n",
++	if (!oh || !oh->od) {
++		pr_warn("%s: no hwmod or odev for %s, cannot add OPPs.\n",
+ 			__func__, opp_def->hwmod_name);
+ 		return -EINVAL;
+ 	}
 -- 
-Cheers,
-Luca.
+1.7.0.rc1.33.g07cf0f
 
