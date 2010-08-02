@@ -1,91 +1,82 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v3 1/4] omap3: nand: prefetch in irq mode support
-Date: Mon, 2 Aug 2010 19:09:58 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E54E6BD@dbde02.ent.ti.com>
-References: <1278996337-25172-1-git-send-email-s-ghorai@ti.com>
- <1278996337-25172-2-git-send-email-s-ghorai@ti.com>
- <20100802130306.GL12293@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] [RFC] Remove the debug print noise
+Date: Mon, 2 Aug 2010 08:47:06 -0500
+Message-ID: <4C56CC5A.3040708@ti.com>
+References: <1280753271-21182-1-git-send-email-shubhrajyoti@ti.com> <20100802125215.GA30753@nokia.com> <0680EC522D0CC943BC586913CF3768C003B38719CA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39077 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39520 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751844Ab0HBNkJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 09:40:09 -0400
-In-Reply-To: <20100802130306.GL12293@atomide.com>
-Content-Language: en-US
+	id S1751273Ab0HBNrM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Aug 2010 09:47:12 -0400
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B38719CA@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Vimal Singh <vimalsingh@ti.com>
+To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+
+Datta, Shubhrajyoti had written, on 08/02/2010 07:59 AM, the following:
+> 
+>> -----Original Message-----
+>> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+>> Sent: Monday, August 02, 2010 6:22 PM
+>> To: Datta, Shubhrajyoti
+>> Cc: linux-omap@vger.kernel.org; Tony Lindgren
+>> Subject: Re: [PATCH] [RFC] Remove the debug print noise
+>>
+>> Hi,
+>>
+>> On Mon, Aug 02, 2010 at 02:47:51PM +0200, ext Shubhrajyoti D wrote:
+>>> @@ -626,7 +626,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter
+>> *adap,
+>>> 	if (r < 0)
+>>> 		return r;
+>>> 	if (r == 0) {
+>>> -		dev_err(dev->dev, "controller timed out\n");
+>>> +		dev_dbg(dev->dev, "controller timed out\n");
+>> you would better be searching for the cause of the timeout. 1 second is
+>> enough time (or should be) for any i2c command to complete. If you have
+>> an easy way to reproduce this problem, then better search for its
+>> rootcause. If I remember correctly, this timeout was put here for a good
+>> reason.
+> 
+> The reason I am getting the timeout is that there isn't a device to respond in that address However 
+> # ./i2cdetect -y -r 3
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+> 10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 20: -- -- -- -- -- -- -- -- -- 29 -- -- -- -- -- --
+> 30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> 40: -- -- -- -- -- -- -- -- 48 -- -- 4b -- -- -- --
+> 
+> Is more readable than 
+>      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> 00:          -- i2c_omap i2c_omap.3: controller timed out
+> -- -- i2c_omap i2c_omap.3: controller timed out
+> -- -- i2c_omap i2c_omap.3: controller timed out
+> -- -- i2c_omap i2c_omap.3: controller timed out
+> -- -- i2c_omap i2c_omap.3: controller timed out
+> -- -- i2c_omap i2c_omap.3: controller timed out
+> -- --
+> 
+
+this is still not a debug message -> dev_warn perhaps to flag that this 
+is indeed an error from the driver point of view?
+
+>> Tony, any comments ?
+>>
+>> --
+>> balbi
+>>
+>> DefectiveByDesign.org
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Monday, August 02, 2010 6:33 PM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> kernel@lists.infradead.org; Vimal Singh
-> Subject: Re: [PATCH v3 1/4] omap3: nand: prefetch in irq mode support
-> 
-> * Sukumar Ghorai <s-ghorai@ti.com> [100713 07:39]:
-> > This patch enable prefetch-irq mode for NAND.
-> 
-> <snip>
-> 
-> > --- a/arch/arm/mach-omap2/board-flash.c
-> > +++ b/arch/arm/mach-omap2/board-flash.c
-> > @@ -133,6 +133,7 @@ static struct omap_nand_platform_data
-> board_nand_data = {
-> >  	.nand_setup	= NULL,
-> >  	.gpmc_t		= &nand_timings,
-> >  	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
-> > +	.gpmc_irq	= GPMC_IRQ_NUMBER,
-> >  	.dev_ready	= NULL,
-> >  	.devsize	= 0,	/* '0' for 8-bit, '1' for 16-bit device */
-> >  };
-> > --- a/arch/arm/mach-omap2/include/mach/board-flash.h
-> > +++ b/arch/arm/mach-omap2/include/mach/board-flash.h
-> > @@ -19,6 +19,9 @@
-> >  #define PDC_ONENAND	3
-> >  #define DBG_MPDB	4
-> >
-> > +/* Interrupt number to the MPU Subsystem for GPMC */
-> > +#define GPMC_IRQ_NUMBER	20
-> > +
-> 
-> This does not look right for the IRQ. Please add it to the irqs.h and 34xx,
-> then set it dynamically during the init just like we handle the other
-> interrupt numbers.
-> 
-> This is because the irq numbers can change between omaps, like irqs-44xx.h
-> already has
-> 
-> #define OMAP44XX_IRQ_GPMC                       (20 +
-> OMAP44XX_IRQ_GIC_START)
-> 
-> > @@ -130,6 +141,13 @@ struct omap_nand_info {
-> >  	unsigned long			phys_base;
-> >  	struct completion		comp;
-> >  	int				dma_ch;
-> > +	int				gpmc_irq;
-> > +	enum {
-> > +		NAND_IO_READ = 0,	/* read */
-> > +		NAND_IO_WRITE,		/* write */
-> > +	} iomode;
-> > +	u_char				*buf;
-> > +	int					buf_len;
-> >  };
-> 
-> These should probably be OMAP_NAND_IO_READ and OMAP_NAND_IO_WRITE?
-[Ghorai] Thanks. I understand all your comments. I will rework and submit again. 
-
+-- 
 Regards,
-Ghorai
-
-> 
-> Regards,
-> 
-> Tony
+Nishanth Menon
