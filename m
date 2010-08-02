@@ -1,45 +1,52 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PM-OPP][PATCHV2] OMAP: Add check for omap_device pointer before adding an opp
-Date: Mon,  2 Aug 2010 13:51:21 +0530
-Message-ID: <1280737281-22967-1-git-send-email-thara@ti.com>
+From: ikjn <tiffang@gmail.com>
+Subject: Re: Question about armv7(cortex-a9) dcache initialization.
+Date: Mon, 2 Aug 2010 18:55:31 +0900
+Message-ID: <AANLkTinuU5mJA7jHpODeQFik3JFUp0u+0B-5QA24tsmh@mail.gmail.com>
+References: <AANLkTilpM7DcP26kvAmtukre16alx72Rh9CcnTvWVMD5@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58703 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753491Ab0HBIVd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 04:21:33 -0400
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:45211 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750787Ab0HBJzc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 05:55:32 -0400
+Received: by qyk7 with SMTP id 7so5264459qyk.19
+        for <linux-omap@vger.kernel.org>; Mon, 02 Aug 2010 02:55:32 -0700 (PDT)
+In-Reply-To: <AANLkTilpM7DcP26kvAmtukre16alx72Rh9CcnTvWVMD5@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, nm@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-This patch adds the check for whether a omap_device and in turn
-platform_device and device pointers exist for the device before
-adding it's opp table into the global table. This is because all
-the later access to the opp entries are based on dev pointer and
-hence there is no point in adding a opp if the dev pointer does
-not exist.
+Now I think that it is a bootloader requirement.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/plat-omap/opp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+And in the arm linux kernel's booting requirement,
+"Data cache must be off and must not contain any stale data."
+And today I found a code for invalidating dcache in omap4 bootloader
+source code.
 
-diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-index 0273497..f3855ba 100644
---- a/arch/arm/plat-omap/opp.c
-+++ b/arch/arm/plat-omap/opp.c
-@@ -333,8 +333,8 @@ int opp_add(const struct omap_opp_def *opp_def)
- 		return -EINVAL;
- 	}
- 	oh = omap_hwmod_lookup(opp_def->hwmod_name);
--	if (!oh) {
--		pr_warn("%s: no hwmod for %s, cannot add OPPs.\n",
-+	if (!oh || !oh->od) {
-+		pr_warn("%s: no hwmod or odev for %s, cannot add OPPs.\n",
- 			__func__, opp_def->hwmod_name);
- 		return -EINVAL;
- 	}
--- 
-1.7.0.rc1.33.g07cf0f
+So it's okay to clean & invalidate in kernel init procedure.
+Boot loader should initialize all caches before use.
 
+On Thu, Jul 22, 2010 at 10:12 AM, ikjn <tiffang@gmail.com> wrote:
+> In the ARM Cortex-A9 TRM, I found a note in chapter 6.1
+>
+> Note:
+> You must invalidate the instruction cache, the data cache, and BTAC
+> before using them.
+> You are not required to invalidate the main TLB, even though it is
+> recommended for
+> safety reasons. This ensures compatibility with future revisions of
+> the processor.
+>
+> But the kernel does.. ( __v7_setup in proc-v7.S )
+> clean & invalidate before turning on the MMU, not just 'invalidate'.
+>
+> If dcache tag&data ram has garbage data when power up,
+> I think some dirty data lines can be flushed into to L2 or L3 memory
+> because kernel does clean.
+> And It can pollute the memory.
+>
+> Is it possible in cortex-A9?
+>
+> Thanks..
+>
