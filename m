@@ -1,88 +1,87 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH 0/5] HTC Herald various device support
-Date: Mon, 2 Aug 2010 08:27:02 -0700
-Message-ID: <AANLkTinO4AFFsw9oc+UE+2=8oaykqC4T4kmvVovuEATA@mail.gmail.com>
-References: <1280762636-17206-1-git-send-email-darkstar6262@gmail.com>
+Subject: Re: [PATCH] [SPI] SPI100k: Fix 8-bit and RX-only transfers
+Date: Mon, 2 Aug 2010 08:34:11 -0700
+Message-ID: <AANLkTimJfM2BLTS2Uf9kMV4pT2nqSXZtur9cb0Qi7g7u@mail.gmail.com>
+References: <1275178343-28193-1-git-send-email-darkstar6262@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:45288 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753808Ab0HBPdR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 11:33:17 -0400
-Received: by wwf26 with SMTP id 26so9871869wwf.1
-        for <linux-omap@vger.kernel.org>; Mon, 02 Aug 2010 08:33:15 -0700 (PDT)
-In-Reply-To: <1280762636-17206-1-git-send-email-darkstar6262@gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:58684 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751700Ab0HBPeg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 11:34:36 -0400
+Received: by wwj40 with SMTP id 40so3995194wwj.1
+        for <linux-omap@vger.kernel.org>; Mon, 02 Aug 2010 08:34:34 -0700 (PDT)
+In-Reply-To: <1275178343-28193-1-git-send-email-darkstar6262@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Cory Maccarrone <darkstar6262@gmail.com>
+To: spi-devel-general@lists.sourceforge.net, Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
 
-ok, so apparently I had the wrong address for the linux-arm-kernel
-list, so I'll be resubmitting the series again, with the correct
-address.
-
-Sorry for the spam...
-
-- Cory
-
-On Mon, Aug 2, 2010 at 8:23 AM, Cory Maccarrone <darkstar6262@gmail.com=
-> wrote:
-> This patch set is an updated version of a series of patches I submitt=
-ed
-> a while ago. =C2=A0It's built against the latest linux-omap master br=
-anch, and
-> removes all defconfig updates. =C2=A0Other comments were put in place=
- as well.
->
-> This patch set implements the following drivers and support for them =
-into
-> the HTC Herald:
->
-> =C2=A0* MMC card support
-> =C2=A0* I2C and HTCPLD drivers
-> =C2=A0* TSC2046 touchscreen support
-> =C2=A0* Serial port fixes for omap7xx
-> =C2=A0* Bluetooth common code for HTC omap7xx smartphones
->
-> The bluetooth drivers are implemented with the expectation that they =
-will
-> be used by other devices once the board files are submitted (Elf/Elfi=
-n,
-> Opal, etc).
->
-> Cory Maccarrone (5):
-> =C2=A0[OMAP] HTCHERALD: MMC, I2C, HTCPLD and related devices
-> =C2=A0[OMAP] htcherald: SPI register config, TSC2046 touchscreen
-> =C2=A0[omap1] omap7xx clocks, mux, serial fixes
-> =C2=A0[omap1] Bluetooth device code common to HTC smartphones
-> =C2=A0[htcherald] Add board support for UARTs, bluetooth
->
-> =C2=A0arch/arm/mach-omap1/Kconfig =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 | =C2=A0 =C2=A02 +
-> =C2=A0arch/arm/mach-omap1/Makefile =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0| =C2=A0 =C2=A02 +-
-> =C2=A0arch/arm/mach-omap1/board-htcherald.c =C2=A0 =C2=A0 | =C2=A0346=
- ++++++++++++++++++++++++++++-
-> =C2=A0arch/arm/mach-omap1/clock_data.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0| =C2=A0 20 ++
-> =C2=A0arch/arm/mach-omap1/htc-bt.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0| =C2=A0183 +++++++++++++++
-> =C2=A0arch/arm/mach-omap1/include/mach/htc-bt.h | =C2=A0 22 ++
-> =C2=A0arch/arm/mach-omap1/mux.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 | =C2=A0 =C2=A04 +
-> =C2=A0arch/arm/mach-omap1/serial.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0| =C2=A0 =C2=A07 +
-> =C2=A0arch/arm/plat-omap/include/plat/mux.h =C2=A0 =C2=A0 | =C2=A0 =C2=
-=A04 +
-> =C2=A09 files changed, 583 insertions(+), 7 deletions(-)
-> =C2=A0create mode 100644 arch/arm/mach-omap1/htc-bt.c
-> =C2=A0create mode 100644 arch/arm/mach-omap1/include/mach/htc-bt.h
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gU2F0LCBNYXkgMjksIDIwMTAgYXQgNToxMiBQTSwgQ29yeSBNYWNjYXJyb25lIDxkYXJrc3Rh
+cjYyNjJAZ21haWwuY29tPiB3cm90ZToKPiBUaGlzIGNoYW5nZSBmaXhlcyA4LWJpdCB0cmFuc2Zl
+cnMgYW5kIFJYLW9ubHkgdHJhbnNmZXJzLiDCoFRoZQo+IFNQSTEwMGsgZnJhbWV3b3JrIHJlcXVp
+cmVzIG1pbmltdW0gMTYtYml0IHdvcmRzIHRvIGJlIHdyaXR0ZW4sIHNvIDgtYml0Cj4gdHJhbnNm
+ZXJzIG11c3QgYmUgc2hpdGVkIGJ5IDggYml0cyBhbmQgc2VudCBvdXQgYXMgYSAxNi1iaXQgd29y
+ZC4KPgo+IEFkZGl0aW9uYWxseSwgcmVjZWl2ZS1vbmx5IHRyYW5zZmVycyB3ZXJlIGZhaWxpbmcg
+ZHVlIHRvIHRoZQo+IHBlcmNlaXZlZCBuZWVkIHRvIGZpbGwgdGhlIFRYIGJ1ZmZlciB3aXRoIHNv
+bWV0aGluZy4gwqBUaGlzIGlzIGluCj4gZmFjdCBub3QgbmVlZGVkLgo+Cj4gU2lnbmVkLW9mZi1i
+eTogQ29yeSBNYWNjYXJyb25lIDxkYXJrc3RhcjYyNjJAZ21haWwuY29tPgo+IC0tLQo+IMKgZHJp
+dmVycy9zcGkvb21hcF9zcGlfMTAway5jIHwgwqAgMjMgKysrKysrKysrKysrLS0tLS0tLS0tLS0K
+PiDCoDEgZmlsZXMgY2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwgMTEgZGVsZXRpb25zKC0pCj4K
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9zcGkvb21hcF9zcGlfMTAway5jIGIvZHJpdmVycy9zcGkv
+b21hcF9zcGlfMTAway5jCj4gaW5kZXggMjQ2NjhiMy4uOWJkMWM5MiAxMDA2NDQKPiAtLS0gYS9k
+cml2ZXJzL3NwaS9vbWFwX3NwaV8xMDBrLmMKPiArKysgYi9kcml2ZXJzL3NwaS9vbWFwX3NwaV8x
+MDBrLmMKPiBAQCAtMTQxLDcgKzE0MSwxMiBAQCBzdGF0aWMgdm9pZCBzcGkxMDBrX3dyaXRlX2Rh
+dGEoc3RydWN0IHNwaV9tYXN0ZXIgKm1hc3RlciwgaW50IGxlbiwgaW50IGRhdGEpCj4gwqB7Cj4g
+wqAgwqAgwqAgwqBzdHJ1Y3Qgb21hcDFfc3BpMTAwayAqc3BpMTAwayA9IHNwaV9tYXN0ZXJfZ2V0
+X2RldmRhdGEobWFzdGVyKTsKPgo+IC0gwqAgwqAgwqAgLyogd3JpdGUgMTYtYml0IHdvcmQgKi8K
+PiArIMKgIMKgIMKgIC8qIHdyaXRlIDE2LWJpdCB3b3JkLCBzaGlmdGluZyA4LWJpdCBkYXRhIGlm
+IG5lY2Vzc2FyeSAqLwo+ICsgwqAgwqAgwqAgaWYgKGxlbiA8PSA4KSB7Cj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCBkYXRhIDw8PSA4Owo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgbGVuID0gMTY7
+Cj4gKyDCoCDCoCDCoCB9Cj4gKwo+IMKgIMKgIMKgIMKgc3BpMTAwa19lbmFibGVfY2xvY2sobWFz
+dGVyKTsKPiDCoCDCoCDCoCDCoHdyaXRldyggZGF0YSAsIHNwaTEwMGstPmJhc2UgKyBTUElfVFhf
+TVNCKTsKPgo+IEBAIC0xNjIsNiArMTY3LDEwIEBAIHN0YXRpYyBpbnQgc3BpMTAwa19yZWFkX2Rh
+dGEoc3RydWN0IHNwaV9tYXN0ZXIgKm1hc3RlciwgaW50IGxlbikKPiDCoCDCoCDCoCDCoGludCBk
+YXRhSCxkYXRhTDsKPiDCoCDCoCDCoCDCoHN0cnVjdCBvbWFwMV9zcGkxMDBrICpzcGkxMDBrID0g
+c3BpX21hc3Rlcl9nZXRfZGV2ZGF0YShtYXN0ZXIpOwo+Cj4gKyDCoCDCoCDCoCAvKiBBbHdheXMg
+ZG8gYXQgbGVhc3QgMTYgYml0cyAqLwo+ICsgwqAgwqAgwqAgaWYgKGxlbiA8PSA4KQo+ICsgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgbGVuID0gMTY7Cj4gKwo+IMKgIMKgIMKgIMKgc3BpMTAwa19lbmFi
+bGVfY2xvY2sobWFzdGVyKTsKPiDCoCDCoCDCoCDCoHdyaXRldyhTUElfQ1RSTF9TRU4oMCkgfAo+
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIFNQSV9DVFJMX1dPUkRfU0laRShsZW4pIHwKPiBAQCAtMjE0
+LDEwICsyMjMsNiBAQCBvbWFwMV9zcGkxMDBrX3R4cnhfcGlvKHN0cnVjdCBzcGlfZGV2aWNlICpz
+cGksIHN0cnVjdCBzcGlfdHJhbnNmZXIgKnhmZXIpCj4gwqAgwqAgwqAgwqBjID0gY291bnQ7Cj4g
+wqAgwqAgwqAgwqB3b3JkX2xlbiA9IGNzLT53b3JkX2xlbjsKPgo+IC0gwqAgwqAgwqAgLyogUlhf
+T05MWSBtb2RlIG5lZWRzIGR1bW15IGRhdGEgaW4gVFggcmVnICovCj4gLSDCoCDCoCDCoCBpZiAo
+eGZlci0+dHhfYnVmID09IE5VTEwpCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzcGkxMDBrX3dy
+aXRlX2RhdGEoc3BpLT5tYXN0ZXIsd29yZF9sZW4sIDApOwo+IC0KPiDCoCDCoCDCoCDCoGlmICh3
+b3JkX2xlbiA8PSA4KSB7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB1OCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCpyeDsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGNvbnN0IHU4IMKgIMKgIMKgIMKg
+KnR4Owo+IEBAIC0yMjcsOSArMjMyLDkgQEAgb21hcDFfc3BpMTAwa190eHJ4X3BpbyhzdHJ1Y3Qg
+c3BpX2RldmljZSAqc3BpLCBzdHJ1Y3Qgc3BpX3RyYW5zZmVyICp4ZmVyKQo+IMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgZG8gewo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgYy09
+MTsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGlmICh4ZmVyLT50eF9idWYg
+IT0gTlVMTCkKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IHNwaTEwMGtfd3JpdGVfZGF0YShzcGktPm1hc3Rlcix3b3JkX2xlbiwgKnR4KTsKPiArIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNwaTEwMGtfd3JpdGVfZGF0
+YShzcGktPm1hc3Rlciwgd29yZF9sZW4sICp0eCsrKTsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoGlmICh4ZmVyLT5yeF9idWYgIT0gTlVMTCkKPiAtIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgICpyeCA9IHNwaTEwMGtfcmVhZF9kYXRhKHNw
+aS0+bWFzdGVyLHdvcmRfbGVuKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgICpyeCsrID0gc3BpMTAwa19yZWFkX2RhdGEoc3BpLT5tYXN0ZXIsIHdvcmRf
+bGVuKTsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoH0gd2hpbGUoYyk7Cj4gwqAgwqAgwqAgwqB9
+IGVsc2UgaWYgKHdvcmRfbGVuIDw9IDE2KSB7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB1MTYg
+wqAgwqAgwqAgwqAgwqAgwqAgKnJ4Owo+IEBAIC0zODAsMTAgKzM4NSw2IEBAIHN0YXRpYyB2b2lk
+IG9tYXAxX3NwaTEwMGtfd29yayhzdHJ1Y3Qgd29ya19zdHJ1Y3QgKndvcmspCj4gwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBpZiAodC0+bGVuKSB7Cj4gwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB1bnNpZ25lZCBjb3VudDsKPgo+IC0gwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLyogUlhfT05MWSBtb2Rl
+IG5lZWRzIGR1bW15IGRhdGEgaW4gVFggcmVnICovCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAodC0+dHhfYnVmID09IE5VTEwpCj4gLSDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzcGkxMDBr
+X3dyaXRlX2RhdGEoc3BpLT5tYXN0ZXIsIDgsIDApOwo+IC0KPiDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGNvdW50ID0gb21hcDFfc3BpMTAwa190eHJ4X3Bp
+byhzcGksIHQpOwo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgbS0+YWN0dWFsX2xlbmd0aCArPSBjb3VudDsKPgo+IC0tCj4gMS43LjAuNAo+Cj4KCkFkZGlu
+ZyBhbm90aGVyIG5hbWUgdG8gdGhlIGxpc3QuCgotIENvcnkK
