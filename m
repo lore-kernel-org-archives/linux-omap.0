@@ -1,37 +1,39 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 0/3] OMAP: DSS2: Add Zorder Support on OMAP4
-Date: Mon, 02 Aug 2010 14:42:27 +0300
-Message-ID: <1280749347.3436.45.camel@tubuntu.research.nokia.com>
-References: <1279541407-17711-1-git-send-email-archit@ti.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v2 00/20] native support for wl1271 on ZOOM
+Date: Mon, 2 Aug 2010 14:42:58 +0300
+Message-ID: <20100802114256.GE12293@atomide.com>
+References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
+ <20100726193028.GG3903@tuxdriver.com>
+ <1280736987.17809.18.camel@chilepepper>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:61630 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152Ab0HBLmm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 07:42:42 -0400
-In-Reply-To: <1279541407-17711-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1280736987.17809.18.camel@chilepepper>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "ext John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org" <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Pandita Vikram <vikram.pandita-l0cyMroinI0@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Archit Taneja <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sumit Semwal <sumit.semwal@ti.com>
 
-On Mon, 2010-07-19 at 14:10 +0200, ext Archit Taneja wrote:
-> From: Sumit Semwal <sumit.semwal@ti.com>
+* Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> [100802 11:10]:
+> On Mon, 2010-07-26 at 21:30 +0200, ext John W. Linville wrote:
+> > On Wed, Jul 21, 2010 at 08:33:34PM +0300, Ohad Ben-Cohen wrote:
+> > > This patch series adds native support for wl1271 on ZOOM.
+> > 
+> > Just for the record, I'm fine with the wl1271 bits here going through
+> > the omap tree with the rest of the series.
 > 
-> This patch series adds Zorder Support on OMAP4, this feature
-> allows deciding the visibility order of the overlays based on
-> the Zorder value given to a sysfs attribute of the overlay object.
-> 
-> Since this feature is not supported on OMAP3 and OMAP2, the sysfs
-> attibutes always return Zorder as 0 and do not write to dispc registers
-> for non OMAP4 architectures.
+> Yeah, I agree.  This is probably the best way to keep things in sync.
 
-It would be better if the sysfs file only appears on OMAP4. I know that
-method is not currently used for any other DSS sysfs files, but it's
-long been in the todo list...
+OK, let's do that then. 
 
- Tomi
+Nicolas Pitre made a comment saying he wants to look at these patches
+more, are there other pending comments?
 
+Regards,
 
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
