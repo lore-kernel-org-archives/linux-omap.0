@@ -1,112 +1,114 @@
-From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
-Subject: RE: [PATCH 4/5] staging:ti dspbridge: remove unnecessary volatile
- variables
-Date: Mon, 2 Aug 2010 14:46:03 -0500
-Message-ID: <B852767254C5C94EBB1040EE0EFA060094D16F7E@dlee01.ent.ti.com>
-References: <1280328052-31292-1-git-send-email-ernesto@ti.com>
- <1280328052-31292-2-git-send-email-ernesto@ti.com>
- <1280328052-31292-3-git-send-email-ernesto@ti.com>
- <1280328052-31292-4-git-send-email-ernesto@ti.com>
- <1280328052-31292-5-git-send-email-ernesto@ti.com> <4C5046D5.6010306@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v2 03/20] mmc: support embedded data field in mmc_host
+Date: Tue, 3 Aug 2010 00:35:56 +0300
+Message-ID: <AANLkTi=vhWV1RNyemtfppfjvLYAbzd3aRjFOVgLLpG3Z@mail.gmail.com>
+References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
+	<1279733634-21974-4-git-send-email-ohad@wizery.com> <AANLkTimzA_JJ-byTDWznbL3YzeJ8LAP4M50onf2_3fBF@mail.gmail.com>
+	<AANLkTi=Oy8X1xMOwWL_cKBB1LWULT6=p+adUgB+AuSJS@mail.gmail.com>
+	<AANLkTi=BUX59heXAW2Uf4wZo2dSS19Je54dkQ5u2YGAW@mail.gmail.com>
+	<AANLkTimZQKj7H_GeE=+O9cwxEMTR+LhfFbt=AyXGzN3d@mail.gmail.com>
+	<AANLkTikfRja-h9mz7uyRXCZNZjKdU_yB8e58XQucUzrn@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40659 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754546Ab0HBTqN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 15:46:13 -0400
-In-Reply-To: <4C5046D5.6010306@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikfRja-h9mz7uyRXCZNZjKdU_yB8e58XQucUzrn@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Vitaly Wool <vitalywool@gmail.com>
+Cc: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Pandita Vikram <vikram.pandita@ti.com>, linux@arm.linux.org.uk, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Roger Quadros <roger.quadros@nokia.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "gregkh@suse.de" <gregkh@suse.de>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "ohad@wizery.com" <ohad@wizery.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Vitaly,
 
->-----Original Message-----
->From: Menon, Nishanth
->Sent: Wednesday, July 28, 2010 10:04 AM
->To: Ramos Falcon, Ernesto
->Cc: gregkh@suse.de; Ramirez Luna, Omar; ohad@wizery.com;
->ameya.palande@nokia.com; felipe.contreras@nokia.com; Guzman Lugo, Fernando;
->linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; linux-
->omap@vger.kernel.org
->Subject: Re: [PATCH 4/5] staging:ti dspbridge: remove unnecessary volatile
->variables
-
-<snip>
-
->> index 08a2f5f..ae1f394 100644
->> --- a/drivers/staging/tidspbridge/core/tiomap3430.c
->> +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
->> @@ -404,7 +404,7 @@ static int bridge_brd_start(struct bridge_dev_context
->*dev_ctxt,
->>  		pr_err("%s: Illegal SM base\n", __func__);
->>  		status = -EPERM;
->>  	} else
->> -		*((volatile u32 *)dw_sync_addr) = 0xffffffff;
->> +		__raw_writel(0xffffffff, dw_sync_addr);
->curious question: any reason not to use writel instead of __raw_writel?
->
-I was not aware of the existence of writel, but I think I should use writel instead.
-
+On Mon, Aug 2, 2010 at 7:25 PM, Vitaly Wool <vitalywool@gmail.com> wrot=
+e:
+> On Mon, Aug 2, 2010 at 5:54 PM, Ohad Ben-Cohen <ohad@wizery.com> wrot=
+e:
+>> SPI is using these spi_board_info tables to populate the SPI device
+>> trees. These tables are registered early at the board-specific init
+>> code, and are later used by SPI core to populate the devices when th=
+e
+>> SPI master controller is registered.
 >>
->>  	if (DSP_SUCCEEDED(status)) {
->>  		resources = dev_context->resources;
->> @@ -584,7 +584,7 @@ static int bridge_brd_start(struct bridge_dev_context
->*dev_ctxt,
->>  		dev_dbg(bridge, "Waiting for Sync @ 0x%x\n", dw_sync_addr);
->>  		dev_dbg(bridge, "DSP c_int00 Address =  0x%x\n", dsp_addr);
->>  		if (dsp_debug)
->> -			while (*((volatile u16 *)dw_sync_addr))
->> +			while (__raw_readw(dw_sync_addr))
->>  				;;
->
->may be for a later on patch -> we seem to have a potential infinite loop
->here..
->
-This is done intentionally and it is used to debug the dsp.  The system will hang here, and then Lautherback or jtag can be connected to take control of the program execution from this point.
-
->> diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c
->b/drivers/staging/tidspbridge/pmgr/cmm.c
->> index 874ed64..b7cba1b 100644
->> --- a/drivers/staging/tidspbridge/pmgr/cmm.c
->> +++ b/drivers/staging/tidspbridge/pmgr/cmm.c
->> @@ -1008,6 +1008,7 @@ void *cmm_xlator_alloc_buf(struct cmm_xlatorobject
->*xlator, void *va_buf,
->>  {
->>  	struct cmm_xlator *xlator_obj = (struct cmm_xlator *)xlator;
->>  	void *pbuf = NULL;
->> +	void *tmp_va_buff;
->>  	struct cmm_attrs attrs;
+>> SDIO doesn't normally needs any kind of hard coded data: most device=
+s
+>> are dynamically probed and populated.
 >>
->>  	DBC_REQUIRE(refs > 0);
->> @@ -1019,16 +1020,16 @@ void *cmm_xlator_alloc_buf(struct
->cmm_xlatorobject *xlator, void *va_buf,
+>> On rare cases like the wl1271, we have some platform-specific data w=
+e
+>> need to deliver the SDIO function driver (i.e. the irq info in this
+>> case). Since the device is hardwired to a specific controller, it do=
+es
+>> make some sense to pass this private data from the controller's info
+>> in the board files, through the host driver, and make it accessible
+>> through the specific host instance that drives this controller.
 >>
->>  	if (xlator_obj) {
->>  		attrs.ul_seg_id = xlator_obj->ul_seg_id;
->> -		*(volatile u32 *)va_buf = 0;
->> +		__raw_writel(0, va_buf);
->>  		/* Alloc SM */
->>  		pbuf =
->>  		    cmm_calloc_buf(xlator_obj->hcmm_mgr, pa_size, &attrs,
->NULL);
->>  		if (pbuf) {
->>  			/* convert to translator(node/strm) process Virtual
->>  			 * address */
->> -			*(volatile u32 **)va_buf =
->> -			    (u32 *) cmm_xlator_translate(xlator,
->> +			 tmp_va_buff = cmm_xlator_translate(xlator,
->>  							 pbuf, CMM_PA2VA);
->> +			__raw_writel((u32)tmp_va_buff, va_buf);
+>> Btw, if our problem was be broader (e.g., needs to supply private da=
+ta
+>> for non-hardwired devices), then I agree that a more complex
+>> mechanism, such as the one you suggest, would be needed. But current=
+ly
+>> the problem is very simple and the solution is even simpler: just ad=
+d
+>> 1 private pointer to the host.
+>>
+>> Hope you find this reasonable,
 >
->a) is the u32 cast of tmp_va_buff really necessary?
->b) tmp_va_buff is used only in this branch, why not reduce the scope of
->the variable to just to this if branch
+> no, actually I don't. I think this is a hack that intrudes into the
+> area it completely doesn't belong to.
+>
+> In fact, one can have 2 views on this problem: either this is a fairl=
+y
+> generic problem we need to address, or this is a very specific corner
+> case.
+> Your solution will be treated as a hack in both cases.
+>
+> If we consider it a generic problem, then we need to find a generic
+> solution, which is the board_info solution, for instance. FWIW, I2C
+> also uses this approach now.
+>
+> If we consider it to be a corner case, let's just add a dummy
+> platform_device like it's done in WL1251 implementation and keep the
+> MMC subsystem clean.
 
-Agree!
+Let's start by defining the problem exactly:
 
+SDIO devices that are hardwired to a specific controller and have some
+platform data that needs to be available to the SDIO function driver.
 
+It doesn't get more generic than that - it's not needed with common
+fully-enumerable SDIO devices (at least I'm not aware of such need),
+hence a generic mechanism of maintaining a global pile of platform
+data pointers, which can be queried with the device and vendor ID,
+really sounds like an overkill.
+
+But it's not specific to the wl1271 device - I prefer to support this
+at the MMC level, so we wouldn't have to add an extra platform device
+for every SDIO function driver that needs to cope with such issue (we
+already have two drivers - wl1271_sdio.c and wl1251_sdio.c); Adding an
+extra platform device for every driver is just too much dummy code
+(that btw adds a well-hidden race condition between the two probe
+calls), which can be nicely eliminated if we just introduce this new
+per-host private data pointer.
+
+So we have a SDIO device hardwired to a specific controller, that is
+driven by a specific host controller driver instance. This patch
+allows this specific host instance to carry platform data for the
+device that is hardwired to it. The platform data would be available
+only to SDIO function driver instances of that specific host
+controller. The solution is generic enough to support all SDIO
+function drivers with similar needs, and it's extremely simple.
+
+I'm honestly trying to understand your concerns, but I'm afraid that
+just saying "it's a hack" is not too informative. Can you please
+explain what do you think is technically wrong with the proposed
+solution ? is it not general enough for other use cases ? will it
+break something ?
+
+Thanks,
+Ohad.
+
+>
+> Thanks,
+> =A0 Vitaly
+>
