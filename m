@@ -1,52 +1,54 @@
-From: ikjn <tiffang@gmail.com>
-Subject: Re: Question about armv7(cortex-a9) dcache initialization.
-Date: Mon, 2 Aug 2010 18:55:31 +0900
-Message-ID: <AANLkTinuU5mJA7jHpODeQFik3JFUp0u+0B-5QA24tsmh@mail.gmail.com>
-References: <AANLkTilpM7DcP26kvAmtukre16alx72Rh9CcnTvWVMD5@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/7] [OMAP] gpio: Allow for extended GPIO space
+Date: Mon, 2 Aug 2010 13:51:50 +0300
+Message-ID: <20100802105150.GB12293@atomide.com>
+References: <1279598741-18607-1-git-send-email-darkstar6262@gmail.com>
+ <1279598741-18607-2-git-send-email-darkstar6262@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:45211 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787Ab0HBJzc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 05:55:32 -0400
-Received: by qyk7 with SMTP id 7so5264459qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 02 Aug 2010 02:55:32 -0700 (PDT)
-In-Reply-To: <AANLkTilpM7DcP26kvAmtukre16alx72Rh9CcnTvWVMD5@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62951 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752016Ab0HBKv0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Aug 2010 06:51:26 -0400
+Content-Disposition: inline
+In-Reply-To: <1279598741-18607-2-git-send-email-darkstar6262@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Now I think that it is a bootloader requirement.
+* Cory Maccarrone <darkstar6262@gmail.com> [100720 06:59]:
+> This change copies from the s3c24xx the ability for a board to specify
+> if it wants 64 or 128 more GPIOs in the board space.  This is needed
+> to get the HTC Herald board's extra htcpld gpios to work as actual
+> gpios.
 
-And in the arm linux kernel's booting requirement,
-"Data cache must be off and must not contain any stale data."
-And today I found a code for invalidating dcache in omap4 bootloader
-source code.
+<snip>
+  
+> +config OMAP_GPIO_EXTRA
+> +	int
+> +	default 128 if OMAP_GPIO_EXTRA128
+> +	default 64 if OMAP_GPIO_EXTRA64
+> +	default 0
+> +
+> +config OMAP_GPIO_EXTRA64
+> +	bool
+> +	help
+> +	  Add an extra 64 gpio numbers to the available GPIO pool. This is
+> +	  available for boards that need extra gpios for external devices.
+> +
+> +config OMAP_GPIO_EXTRA128
+> +	bool
+> +	help
+> +	  Add an extra 128 gpio numbers to the available GPIO pool. This is
+> +	  available for boards that need extra gpios for external devices.
+> +
 
-So it's okay to clean & invalidate in kernel init procedure.
-Boot loader should initialize all caches before use.
+Let's wait on this and the following patch a a little, I believe there
+are already patches in the works to deal with this for the multi-arm
+support. So this should get solved eventually in a generic way.
 
-On Thu, Jul 22, 2010 at 10:12 AM, ikjn <tiffang@gmail.com> wrote:
-> In the ARM Cortex-A9 TRM, I found a note in chapter 6.1
->
-> Note:
-> You must invalidate the instruction cache, the data cache, and BTAC
-> before using them.
-> You are not required to invalidate the main TLB, even though it is
-> recommended for
-> safety reasons. This ensures compatibility with future revisions of
-> the processor.
->
-> But the kernel does.. ( __v7_setup in proc-v7.S )
-> clean & invalidate before turning on the MMU, not just 'invalidate'.
->
-> If dcache tag&data ram has garbage data when power up,
-> I think some dirty data lines can be flushed into to L2 or L3 memory
-> because kernel does clean.
-> And It can pollute the memory.
->
-> Is it possible in cortex-A9?
->
-> Thanks..
->
+Regards,
+
+Tony
