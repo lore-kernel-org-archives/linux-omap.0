@@ -1,114 +1,82 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [GIT PULL] OMAP: clock, hwmod, omap_device, PM constraints: patches for 2.6.36
-Date: Tue, 03 Aug 2010 15:28:02 -0700
-Message-ID: <877hk7nxfx.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.1007031548010.16344@utopia.booyaka.com>
-	<20100706110918.GJ3192@atomide.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 1/8] netdev: separate out davinci mdio controller code
+Date: Tue, 3 Aug 2010 18:29:46 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53043F3C8C2A__45219.2138568082$1280878200$gmane$org@dlee03.ent.ti.com>
+References: <1280842313-3743-1-git-send-email-cyril@ti.com>
+ <1280842313-3743-2-git-send-email-cyril@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:41876 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755997Ab0HCW2H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 18:28:07 -0400
-Received: by iwn7 with SMTP id 7so5473420iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 03 Aug 2010 15:28:06 -0700 (PDT)
-In-Reply-To: <20100706110918.GJ3192@atomide.com> (Tony Lindgren's message of
-	"Tue, 6 Jul 2010 14:09:20 +0300")
+Received: from bear.ext.ti.com ([192.94.94.41]:49973 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756711Ab0HCX3q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 19:29:46 -0400
+In-Reply-To: <1280842313-3743-2-git-send-email-cyril@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.c>
+Cc: "Nori, Sekhar" <nsekhar@ti.com>, "Govindarajan, Sriramakrishnan" <srk@ti.com>, "Chemparathy, Cyril" <cyril@ti.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+Hi,
 
-> * Paul Walmsley <paul@pwsan.com> [100704 00:43]:
->> 
->> Hi Tony,
->> 
->> here's the pull request for some clock, hwmod, omap_device, PM constraints 
->> patches for 2.6.36.
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Cyril
+>Chemparathy
 >
-> Thanks, pulled into omap-for-linus.
+>Davinci's MDIO controller is present on other TI devices, without an
+>accompanying EMAC.  For example, on tnetv107x, the same MDIO module is used in
+>conjunction with a 3-port switch hardware.
 >
-
-Hmm, I don't see this in current omap-for-linus.  Is it still planned
-for 2.6.36?  
-
-Once this is merged, the all the hwmod/omap_device conversions will only
-have a dependency on the OMAP runtime PM core.
-
-Kevin
-
+>By separating the MDIO controller code into its own platform driver, this
+>patch allows common logic to be reused on such platforms.
 >
->  
->> 
->> - Paul
->> 
->> The following changes since commit 7e27d6e778cd87b6f2415515d7127eba53fe5d02:
->> 
->>   Linux 2.6.35-rc3 (2010-06-11 19:14:04 -0700)
->> 
->> are available in the git repository at:
->>   git://git.pwsan.com/linux-2.6 for_2.6.36
->> 
->> Anand Gadiyar (1):
->>       OMAP3: wait on IDLEST after enabling USBTLL fclk
->> 
->> Benoit Cousson (1):
->>       OMAP2&3: hwmod: Remove _hwmod prefix in name string
->> 
->> Kevin Hilman (8):
->>       OMAP24xx: CM: fix mask used for checking IDLEST status
->>       OMAP2/3: hwmod: L3 and L4 CORE/PER/WKUP hwmods don't have IDLEST
->>       OMAP: hwmod: add non-locking versions of enable and idle functions
->>       OMAP: omap_device: ensure hwmod tracks attached omap_device pointer
->>       OMAP: PM: create omap_devices for MPU, DSP, L3
->>       OMAP: hwmod data: add class for IVA hwmods
->>       OMAP2&3: hwmod: Replace l3 -> l3_main
->>       OMAP3: hwmod data: add data for OMAP3 IVA2
->> 
->> Paul Walmsley (9):
->>       OMAP: clock: add kerneldoc for structures; move flags closer to structs
->>       OMAP1: OPP: add KConfig entry for 96MHz ARM rate (using a 12MHz oscillator)
->>       OMAP1: clock: some cleanup
->>       OMAP: hwmod: allow omap_hwmod_late_init() caller to skip module idle in _setup()
->>       OMAP2: hwmod data: add IVA1 (2420), IVA2 (2430) hwmods
->>       OMAP: hwmod/device: add omap_{device,hwmod}_get_mpu_rt_va
->>       OMAP2+: hwmod/device: update documentation and copyright
->>       OMAP: PM constraints: add return values; add requesting device param to omap_pm_set_max_dev_wakeup_lat()
->>       OMAP: PM constraints: add omap_pm_set_min_clk_rate()
->> 
->> Rajendra Nayak (1):
->>       OMAP4: hwmod: Enable omap_device build for OMAP4
->> 
->>  arch/arm/mach-omap1/Kconfig                   |    6 +
->>  arch/arm/mach-omap1/clock.c                   |   22 +++--
->>  arch/arm/mach-omap1/clock.h                   |    2 +-
->>  arch/arm/mach-omap1/clock_data.c              |  129 +++++++++++++++++++-----
->>  arch/arm/mach-omap2/Makefile                  |    4 +-
->>  arch/arm/mach-omap2/clock3xxx_data.c          |    2 +-
->>  arch/arm/mach-omap2/cm.c                      |    6 +-
->>  arch/arm/mach-omap2/io.c                      |   11 ++-
->>  arch/arm/mach-omap2/omap_hwmod.c              |  106 +++++++++++++++-----
->>  arch/arm/mach-omap2/omap_hwmod_2420_data.c    |   79 +++++++++++-----
->>  arch/arm/mach-omap2/omap_hwmod_2430_data.c    |   81 +++++++++++-----
->>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |   92 ++++++++++++------
->>  arch/arm/mach-omap2/omap_hwmod_common_data.c  |    3 +
->>  arch/arm/mach-omap2/omap_hwmod_common_data.h  |    1 +
->>  arch/arm/mach-omap2/pm.c                      |   84 ++++++++++++++++
->>  arch/arm/plat-omap/Makefile                   |    1 +
->>  arch/arm/plat-omap/i2c.c                      |   12 ++-
->>  arch/arm/plat-omap/include/plat/clock.h       |  130 ++++++++++++++++++++-----
->>  arch/arm/plat-omap/include/plat/common.h      |    4 +
->>  arch/arm/plat-omap/include/plat/omap-pm.h     |  130 +++++++++++++++++++------
->>  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
->>  arch/arm/plat-omap/include/plat/omap_hwmod.h  |   14 ++-
->>  arch/arm/plat-omap/omap-pm-noop.c             |   61 +++++++++---
->>  arch/arm/plat-omap/omap_device.c              |   33 ++++++-
->>  24 files changed, 790 insertions(+), 225 deletions(-)
->>  create mode 100644 arch/arm/mach-omap2/pm.c
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Signed-off-by: Cyril Chemparathy <cyril@ti.com>
+>---
+> drivers/net/Kconfig          |   10 +
+> drivers/net/Makefile         |    1 +
+> drivers/net/davinci_mdio.c   |  386 ++++++++++++++++++++++++++++++++++++++++++
+> include/linux/davinci_emac.h |    4 +
+> 4 files changed, 401 insertions(+), 0 deletions(-)
+> create mode 100644 drivers/net/davinci_mdio.c
+>
+[...]
+>diff --git a/drivers/net/davinci_mdio.c b/drivers/net/davinci_mdio.c
+>new file mode 100644
+>index 0000000..d34a53a
+>--- /dev/null
+>+++ b/drivers/net/davinci_mdio.c
+[...]
+>+
+>+/* wait until hardware is ready for another user access */
+>+static inline u32 wait_for_user_access(struct davinci_mdio_data *data)
+>+{
+>+	struct davinci_mdio_regs __iomem *regs = data->regs;
+>+	u32 reg;
+>+
+>+	while ((reg = __raw_readl(&regs->user[0].access)) & USERACCESS_GO)
+>+		;
+
+potential infinite loop? I saw another place in your series using time_after, might fit in here too.
+
+>+
+>+	return reg;
+>+}
+>+
+>+/* wait until hardware state machine is idle */
+>+static inline void wait_for_idle(struct davinci_mdio_data *data)
+>+{
+>+	struct davinci_mdio_regs __iomem *regs = data->regs;
+>+
+>+	while ((__raw_readl(&regs->control) & CONTROL_IDLE) == 0)
+>+		;
+
+Ditto
+
+>+}
+>+
+[...]
+
+Regards,
+
+omar
