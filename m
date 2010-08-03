@@ -1,89 +1,66 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3630: Add ES1.1 and ES1.2 detection
-Date: Tue, 3 Aug 2010 10:39:40 +0300
-Message-ID: <20100803073940.GS12293@atomide.com>
-References: <20100709072941.GG24913@atomide.com>
- <1278717461-5329-1-git-send-email-gadiyar@ti.com>
+Subject: Re: [PATCH] omap2: fix assorted compiler warnings
+Date: Tue, 3 Aug 2010 10:51:15 +0300
+Message-ID: <20100803075114.GT12293@atomide.com>
+References: <1279016650-20459-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58774 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752076Ab0HCHjS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 03:39:18 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52423 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752152Ab0HCHuu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 03:50:50 -0400
 Content-Disposition: inline
-In-Reply-To: <1278717461-5329-1-git-send-email-gadiyar@ti.com>
+In-Reply-To: <1279016650-20459-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org, Nishanth Menon <nm@ti.com>, Manjunatha GK <manjugk@ti.com>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Anand Gadiyar <gadiyar@ti.com> [100710 02:11]:
-> Add revision detection for ES1.1 and ES1.2. Set default
-> revision as ES1.2.
-> 
-> Add CHIP_GE_OMAP3630ES1_1 to detect revisions 1.1 and later.
-> This is needed for at least one feature that is broken in
-> 3630ES1.0 but exists on older (3430 ES3.1) and newer revisions.
-> 
-> Additionally, update some of the CHIP_GE_* macros to use other
-> macros for ease of maintenance.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> Cc: Manjunatha GK <manjugk@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
-> This is based on Manju's original patch at [1] and my update [2].
-> The original patch failed to properly update the CHIP_GE_OMAP3630ES1 macro.
-> 
-> Would be nice to get this queued for the next merge window
-> 
-> [1] https://patchwork.kernel.org/patch/95684/
-> [2] https://patchwork.kernel.org/patch/99590/
-> 
->  arch/arm/mach-omap2/id.c              |   27 +++++++++++++++++++++++----
->  arch/arm/plat-omap/include/plat/cpu.h |   15 +++++++++++----
->  2 files changed, 34 insertions(+), 8 deletions(-)
-> 
-> Index: linux-omap-2.6/arch/arm/mach-omap2/id.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/id.c
-> +++ linux-omap-2.6/arch/arm/mach-omap2/id.c
-> @@ -269,11 +269,24 @@ void __init omap3_check_revision(void)
->  		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
->  		break;
->  	case 0xb891:
-> -	/* FALLTHROUGH */
-> -	default:
-> -		/* Unknown default to latest silicon rev as default*/
-> -		omap_revision = OMAP3630_REV_ES1_0;
-> +		/* Handle 36xx devices */
->  		omap_chip.oc |= CHIP_IS_OMAP3630ES1;
-> +
-> +		switch(rev) {
-> +		case 0: /* Take care of early samples */
-> +			omap_revision = OMAP3630_REV_ES1_0;
-> +			break;
-> +		case 1:
-> +			omap_revision = OMAP3630_REV_ES1_1;
-> +			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
-> +			break;
-> +		case 2:
-> +		/* Fall through */
-> +		default:
-> +			/* Use the latest known revision as default */
-> +			omap_revision =  OMAP3630_REV_ES1_2;
-> +			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
-> +		}
->  	}
->  }
+* Sanjeev Premi <premi@ti.com> [100713 13:26]:
+> This patch fixes these compiler warnings:
 
-Please don't remove the default handling for unknown hawkeye
-registers for omap3. Now you're only handling hawkeye 0xb891.
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -87,7 +87,7 @@ static char *omap_mux_options;
+>  int __init omap_mux_init_gpio(int gpio, int val)
+>  {
+>  	struct omap_mux_entry *e;
+> -	struct omap_mux *gpio_mux;
+> +	struct omap_mux *gpio_mux=NULL;
 
-IMHO, setting unknown hawkeye chips to OMAP3630_REV_ES1_2
-should be still best option for future chips.
+Please use spaces around = like *gpio_mux = NULL;
+
+>  	u16 old_mode;
+>  	u16 mux_mode;
+>  	int found = 0;
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index 9b7e354..831e6bc 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -2082,7 +2082,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
+>  
+>  	for (i = min; i < gpio_bank_count; i++) {
+>  		struct gpio_bank *bank = &gpio_bank[i];
+> -		u32 l1, l2;
+> +		u32 l1=0, l2=0;
+>  
+>  		if (bank->dbck_enable_mask)
+>  			clk_disable(bank->dbck);
+
+Here too.
+
+> @@ -2149,7 +2149,7 @@ void omap2_gpio_resume_after_idle(void)
+>  		min = 1;
+>  	for (i = min; i < gpio_bank_count; i++) {
+>  		struct gpio_bank *bank = &gpio_bank[i];
+> -		u32 l, gen, gen0, gen1;
+> +		u32 l=0, gen, gen0, gen1;
+>  
+>  		if (bank->dbck_enable_mask)
+>  			clk_enable(bank->dbck);
+
+And here.
 
 Regards,
 
