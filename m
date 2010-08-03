@@ -1,71 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 21/33] Removing dead OMAP2_VENC_OUT_TYPE_SVIDEO,
- OMAP2_VENC_OUT_TYPE_COMPOSITE
-Date: Tue, 03 Aug 2010 15:12:22 +0300
-Message-ID: <1280837542.3436.142.camel@tubuntu.research.nokia.com>
-References: <cover.1277911345.git.siccegge@cs.fau.de>
-	 <2709d1406900af2436f6f8af00555507baf8dac9.1277911346.git.siccegge@cs.fau.de>
-	 <20100705085654.GL15951@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] Allow late mdesc detection, v3
+Date: Tue, 3 Aug 2010 15:56:52 +0300
+Message-ID: <20100803125652.GA5450@atomide.com>
+References: <20100731092522.GD23886@n2100.arm.linux.org.uk>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C6381053@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100705085654.GL15951@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Christoph Egger <siccegge@cs.fau.de>, Russell King <linux@arm.linux.org.uk>, Jason Lam <lzg@ema-tech.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vamos@i4.informatik.uni-erlangen.de" <vamos@i4.informatik.uni-erlangen.de>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56727 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756198Ab0HCM4m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 08:56:42 -0400
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C6381053@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2010-07-05 at 10:56 +0200, ext Tony Lindgren wrote:
-> * Christoph Egger <siccegge@cs.fau.de> [100630 18:58]:
-> > OMAP2_VENC_OUT_TYPE_SVIDEO, OMAP2_VENC_OUT_TYPE_COMPOSITE doesn't
-> > exist in Kconfig, therefore removing all references for it from the
-> > source code.
-> 
-> Let's let Tomi figure out this one, added him to Cc.
-
-The patch doesn't look valid, because either SVIDEO or COMPOSITE should
-be set into .phy.venc.type. But then again, the code that's removed
-doesn't look valid either, as by default it doesn't do either, and the
-COMPOSITE block wouldn't even comile...
-
-Those defines look like some custom defines that have never been in
-mainstream linux, so I think the patch can be applied, and the board
-file maintainer can fix it with proper code later.
-
- Tomi
-
-> 
-> Regards,
-> 
-> Tony
->  
-> > Signed-off-by: Christoph Egger <siccegge@cs.fau.de>
-> > ---
-> >  arch/arm/mach-omap2/board-omap3stalker.c |    5 -----
-> >  1 files changed, 0 insertions(+), 5 deletions(-)
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100731 15:38]:
+> Jeremy,
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Russell King - ARM Linux
+> > Sent: Saturday, July 31, 2010 2:55 PM
+> > To: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org; Tony
+> > Lindgren
+> > Subject: Fwd: [PATCH 0/3] Allow late mdesc detection, v3
 > > 
-> > diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-> > index f848ba8..b38afd5 100644
-> > --- a/arch/arm/mach-omap2/board-omap3stalker.c
-> > +++ b/arch/arm/mach-omap2/board-omap3stalker.c
-> > @@ -181,11 +181,6 @@ static struct omap_dss_device omap3_stalker_tv_device = {
-> >  	.name			= "tv",
-> >  	.driver_name		= "venc",
-> >  	.type			= OMAP_DISPLAY_TYPE_VENC,
-> > -#if defined(CONFIG_OMAP2_VENC_OUT_TYPE_SVIDEO)
-> > -	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-> > -#elif defined(CONFIG_OMAP2_VENC_OUT_TYPE_COMPOSITE)
-> > -	.u.venc.type		= OMAP_DSS_VENC_TYPE_COMPOSITE,
-> > -#endif
-> >  	.platform_enable	= omap3_stalker_enable_tv,
-> >  	.platform_disable	= omap3_stalker_disable_tv,
-> >  };
-> > -- 
-> > 1.7.0.4
+> > Forwarding for OMAP people - as there's outstanding questions about this
+> > change for their platforms.
 > > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
+> > ----- Forwarded message from Jeremy Kerr <jeremy.kerr@canonical.com> -----
+> > 
+> > Date: Fri, 30 Jul 2010 17:22:11 +0800
+> > From: Jeremy Kerr <jeremy.kerr@canonical.com>
+> > To: linux-arm-kernel@lists.infradead.org
+> > Subject: [PATCH 0/3] Allow late mdesc detection, v3
+> > Delivery-date: Sat, 31 Jul 2010 01:25:58 +0100
+> > 
+> > Hi all,
+> > 
+> > Currently, we probe for a mdesc early in boot. At this early stage, the
+> > only thing we use the mdesc for is to determine the debug page mapping.
+> > 
+> > However, the debug addresses (phys and virt) need to be coded into the
+> > addruart macro anyway; the dynamic probing is only going to tell us what
+> > we already know.
+> > 
+> > These changes allow us to use the addruart macros to find the debug
+> > mapping addresses, rather than pulling them out of the mdesc. This means
+> > that the addresses are only kept in the one place, and that we don't
+> > need the mdesc nearly as early.
+> > 
+> > The first change updates all of the addruart macros to return both
+> > physical and virtual addresses. I've used 'rp' and 'rv' as the macro
+> > arguments to indicate which address goes where
+> > 
+> > The second change updates the debug setup routine to use the addruart
+> > macro to establish the debug mapping, now that we can invoke the macro
+> > to find the phyical and virtual addresses.
+> > 
+> > This allows us to delay the requirement to have a mdesc available until
+> > much later. For example, we can parse one from the device tree once
+> > we've reached C code.
+> > 
+> > May break OMAP1/2, as the addruart macros are more complex on these
+> > platforms. I'd appreciate input from OMAP folks who may well tell me
+> > that this isn't possible.
+> > 
+> Just tried this on OMAP4, and indeed it breaks OMAP2PLUS low level debug
+> support.
+> 
+> Tony recently revamped the complete debug code, so that we can dynamically
+> set correct debug port based on machine ID passed by boot-loaders. Based
+> on this , the debug code determines the the correct debug port based on
+> this using a scratch pad register.
+> 
+> Tony can comment better on this issue.
+
+Looks like the fix suggested by Jason Wang <jason77.wang@gmail.com>
+is needed to make the mdesc series to work on omaps. An updated
+version for the mdesc series is here:
+
+http://marc.info/?l=linux-arm-kernel&m=128083927030188&w=2
+
+So with the patch at the link above, the mdesc series
+
+Tested-by: Tony Lindgren <tony@atomide.com>
+
+Regards,
+
+Tony
