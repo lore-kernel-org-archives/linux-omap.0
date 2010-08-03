@@ -1,132 +1,139 @@
-From: "Sin, David" <davidsin@ti.com>
-Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and
- implementation
-Date: Tue, 3 Aug 2010 14:49:45 -0500
-Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D65FEEDE@dlee02.ent.ti.com>
-References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
- <1279927348-21750-2-git-send-email-davidsin@ti.com>
- <1279927348-21750-3-git-send-email-davidsin@ti.com>
- <1279927348-21750-4-git-send-email-davidsin@ti.com>
- <1279927348-21750-5-git-send-email-davidsin@ti.com>
- <20100724080118.GB15064@n2100.arm.linux.org.uk>
- <513FF747EED39B4AADBB4D6C9D9F9F7903D654A3FE@dlee02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C641D580@dbde02.ent.ti.com>
- <513FF747EED39B4AADBB4D6C9D9F9F7903D654A430@dlee02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C641D58B@dbde02.ent.ti.com>
- <9DCA1E44C5805D4EB7C1626D5FD1739E048EDA223B@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH v2] OMAP3630: Add ES1.1 and ES1.2 detection
+Date: Wed,  4 Aug 2010 01:29:24 +0530
+Message-ID: <1280865564-6456-1-git-send-email-gadiyar@ti.com>
+References: <20100803073940.GS12293@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55492 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40444 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756515Ab0HCTuA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 15:50:00 -0400
-In-Reply-To: <9DCA1E44C5805D4EB7C1626D5FD1739E048EDA223B@dlee02.ent.ti.com>
-Content-Language: en-US
+	id S1756207Ab0HCT7e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Aug 2010 15:59:34 -0400
+In-Reply-To: <20100803073940.GS12293@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sin, David" <davidsin@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>, 'Tony Lindgren' <tony@atomide.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, 'Ohad Ben-Cohen' <ohad@wizery.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Molnar, Lajos" <molnar@ti.com>, "Voultoury, Pierre" <p-voultoury@ti.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: Anand Gadiyar <gadiyar@ti.com>, Nishanth Menon <nm@ti.com>, Manjunatha GK <manjugk@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Russell, 
+Add revision detection for ES1.1 and ES1.2. Set default
+revision as ES1.2.
 
-> -----Original Message-----
-> From: Sin, David 
-> Sent: Monday, August 02, 2010 9:55 AM
-> To: Shilimkar, Santosh; Russell King - ARM Linux; Woodruff, Richard
-> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, 
-> Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Molnar, Lajos; 
-> Voultoury, Pierre; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager 
-> interface and implementation
-> 
-> -----Original Message-----
-> From: Shilimkar, Santosh 
-> Sent: Monday, August 02, 2010 9:53 AM
-> To: Sin, David; Russell King - ARM Linux; Woodruff, Richard
-> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, 
-> Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Molnar, Lajos; 
-> Voultoury, Pierre; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager 
-> interface and implementation
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Sin, David
-> > Sent: Monday, August 02, 2010 8:20 PM
-> > To: Shilimkar, Santosh; Russell King - ARM Linux; Woodruff, Richard
-> > Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, 
-> Hari; Ohad Ben-
-> > Cohen; Hiremath, Vaibhav; Molnar, Lajos; Voultoury, Pierre; 
-> linux-arm-
-> > kernel@lists.infradead.org
-> > Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and
-> > implementation
-> > 
-> > -----Original Message-----
-> > From: Shilimkar, Santosh
-> > Sent: Monday, August 02, 2010 9:45 AM
-> > To: Sin, David; Russell King - ARM Linux; Woodruff, Richard
-> > Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, 
-> Hari; Ohad Ben-
-> > Cohen; Hiremath, Vaibhav; Molnar, Lajos; Voultoury, Pierre; 
-> linux-arm-
-> > kernel@lists.infradead.org
-> > Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and
-> > implementation
-> > 
-> < snip>
-> 
-> > > > +	m->pa = page_to_phys(m->pg);
-> > > > +
-> > > > +	/* flush the cache entry for each page we allocate. */
-> > > > +	dmac_flush_range(page_address(m->pg),
-> > > > +				page_address(m->pg) + 
-> PAGE_SIZE);
-> > > > +	outer_flush_range(m->pa, m->pa + PAGE_SIZE);
-> > >
-> > > NAK.  This is an abuse of these interfaces, and is buggy 
-> in any case.
-> > >
-> > > ARMv6 and ARMv7 CPUs speculatively prefetch memory, which 
-> means that
-> > > there's no guarantee that if you flush the caches for a particular
-> > > range of virtual space, that it will stay flushed until you decide
-> > > to read it.  So flushing the caches in some memory allocator can't
-> > > guarantee that when you eventually get around to using 
-> the page that
-> > > there won't be cache lines associated with it.
-> > >
-> > > [dhs] Russell, thanks for reviewing this code.  Do you have any
-> > interface
-> > > suggestions that you can share that would make this 
-> proper?  Ideally, I
-> > > would like to get physical pages without associated 
-> virtual address, or
-> > > ones that are non-cached/non-bufferable.
-> > 
-> > There is nothing called 'non-bufferable' any more David on ARMv6 and
-> > ARMv7.
-> > You can get non-cached memory using "dma_alloc_coherent"
-> > 
-> > [dhs] Thanks, Santosh, for the clarification.  I believe
-> > dma_alloc_coherent is quite limited, right?  We need to be 
-> able to cover
-> > potentially 128MB of physical memory for the TILER.  BTW, 
-> does GFP_DMA
-> > indicate that I don't want cached memory?
-> > 
-> It's configurable. By default it's 2 MB pool. GFP_DMA doesn't give you
-> un-cacheable memory.
-> 
-> [dhs] OK -- I will increase this and try to allocate this 
-> way.  Thank you.
-> 
-> 
+Add CHIP_GE_OMAP3630ES1_1 to detect revisions 1.1 and later.
+This is needed for at least one feature that is broken in
+3630ES1.0 but exists on older (3430 ES3.1) and newer revisions.
 
-As Santosh suggests, I will increase the dma_alloc_coherent pool size to something that will accomdate TILER requirements.  I believe this will work, as I'm only making 4k allocations per call, as opposed to one large contiguous allocation.  However, I'd like to be able to use an API similar to alloc_page() that gives back device or strongly ordered memory so that we don't have to pre-allocate such a large amount at boot-up.  Is this something that you're considering on your end for the near future?  Thanks for working through this with us.
+Additionally, update some of the CHIP_GE_* macros to use other
+macros for ease of maintenance.
 
-Regards,
--David
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Cc: Nishanth Menon <nm@ti.com>
+Cc: Manjunatha GK <manjugk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+v2: Fixed accidental removal of default handling, and minor update of a comment.
+
+This is based on Manju's original patch at [1] and my update [2].
+The original patch failed to properly update the CHIP_GE_OMAP3630ES1 macro.
+
+Would be nice to get this queued for the next merge window
+
+[1] https://patchwork.kernel.org/patch/95684/
+[2] https://patchwork.kernel.org/patch/99590/
+
+ arch/arm/mach-omap2/id.c              |   27 +++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/cpu.h |   15 +++++++++++----
+ 2 files changed, 36 insertions(+), 6 deletions(-)
+
+Index: linux-2.6/arch/arm/mach-omap2/id.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-omap2/id.c
++++ linux-2.6/arch/arm/mach-omap2/id.c
+@@ -261,9 +261,26 @@ void __init omap3_check_revision(void)
+ 	case 0xb891:
+ 	/* FALLTHROUGH */
+ 	default:
+-		/* Unknown default to latest silicon rev as default*/
+-		omap_revision = OMAP3630_REV_ES1_0;
++		/* Unknown hawkeye defaults to latest silicon revision */
++		
++		/* Handle 36xx devices */
+ 		omap_chip.oc |= CHIP_IS_OMAP3630ES1;
++
++		switch(rev) {
++		case 0: /* Take care of early samples */
++			omap_revision = OMAP3630_REV_ES1_0;
++			break;
++		case 1:
++			omap_revision = OMAP3630_REV_ES1_1;
++			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
++			break;
++		case 2:
++		/* Fall through */
++		default:
++			/* Use the latest known revision as default */
++			omap_revision =  OMAP3630_REV_ES1_2;
++			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
++		}
+ 	}
+ }
+ 
+@@ -339,6 +356,12 @@ void __init omap3_cpuinfo(void)
+ 	case OMAP_REVBITS_00:
+ 		strcpy(cpu_rev, "1.0");
+ 		break;
++	case OMAP_REVBITS_01:
++		strcpy(cpu_rev, "1.1");
++		break;
++	case OMAP_REVBITS_02:
++		strcpy(cpu_rev, "1.2");
++		break;
+ 	case OMAP_REVBITS_10:
+ 		strcpy(cpu_rev, "2.0");
+ 		break;
+Index: linux-2.6/arch/arm/plat-omap/include/plat/cpu.h
+===================================================================
+--- linux-2.6.orig/arch/arm/plat-omap/include/plat/cpu.h
++++ linux-2.6/arch/arm/plat-omap/include/plat/cpu.h
+@@ -66,6 +66,8 @@ unsigned int omap_rev(void);
+  * family. This difference can be handled separately.
+  */
+ #define OMAP_REVBITS_00		0x00
++#define OMAP_REVBITS_01		0x01
++#define OMAP_REVBITS_02		0x02
+ #define OMAP_REVBITS_10		0x10
+ #define OMAP_REVBITS_20		0x20
+ #define OMAP_REVBITS_30		0x30
+@@ -376,6 +378,8 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP3430_REV_ES3_1_2	0x34305034
+ 
+ #define OMAP3630_REV_ES1_0	0x36300034
++#define OMAP3630_REV_ES1_1	0x36300134
++#define OMAP3630_REV_ES1_2	0x36300234
+ 
+ #define OMAP35XX_CLASS		0x35000034
+ #define OMAP3503_REV(v)		(OMAP35XX_CLASS | (0x3503 << 16) | (v << 8))
+@@ -411,6 +415,8 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
+ #define CHIP_IS_OMAP3630ES1		(1 << 7)
+ #define CHIP_IS_OMAP4430ES1		(1 << 8)
++#define CHIP_IS_OMAP3630ES1_1           (1 << 9)
++#define CHIP_IS_OMAP3630ES1_2           (1 << 10)
+ 
+ #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+ 
+@@ -424,11 +430,12 @@ IS_OMAP_TYPE(3517, 0x3517)
+  */
+ #define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
+ 					 CHIP_IS_OMAP3430ES3_0 | \
+-					 CHIP_IS_OMAP3430ES3_1 | \
+-					 CHIP_IS_OMAP3630ES1)
++					 CHIP_GE_OMAP3430ES3_1)
+ #define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1 | \
+-					 CHIP_IS_OMAP3630ES1)
+-
++					 CHIP_IS_OMAP3630ES1 | \
++					 CHIP_GE_OMAP3630ES1_1)
++#define CHIP_GE_OMAP3630ES1_1		(CHIP_IS_OMAP3630ES1_1 | \
++					 CHIP_IS_OMAP3630ES1_2)
+ 
+ int omap_chip_is(struct omap_chip_id oci);
+ void omap2_check_revision(void);
