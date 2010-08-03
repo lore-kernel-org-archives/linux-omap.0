@@ -1,139 +1,46 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH v2] OMAP3630: Add ES1.1 and ES1.2 detection
-Date: Wed,  4 Aug 2010 01:29:24 +0530
-Message-ID: <1280865564-6456-1-git-send-email-gadiyar@ti.com>
-References: <20100803073940.GS12293@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 04/11] OMAP3: DMA: HWMOD: Add hwmod data structures
+Date: Tue, 03 Aug 2010 14:56:55 -0700
+Message-ID: <87eiefnyvs.fsf@deeprootsystems.com>
+References: <1280397545-27323-1-git-send-email-manjugk@ti.com>
+	<1280397545-27323-5-git-send-email-manjugk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40444 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756207Ab0HCT7e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Aug 2010 15:59:34 -0400
-In-Reply-To: <20100803073940.GS12293@atomide.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:33708 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757768Ab0HCV47 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 17:56:59 -0400
+Received: by pzk26 with SMTP id 26so1804590pzk.19
+        for <linux-omap@vger.kernel.org>; Tue, 03 Aug 2010 14:56:58 -0700 (PDT)
+In-Reply-To: <1280397545-27323-5-git-send-email-manjugk@ti.com> (Manjunatha
+	GK's message of "Thu, 29 Jul 2010 15:28:58 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Anand Gadiyar <gadiyar@ti.com>, Nishanth Menon <nm@ti.com>, Manjunatha GK <manjugk@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Manjunatha GK <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Anand Sawant <sawant@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Basak Partha <p-basak2@ti.com>, Charulatha V <charu@ti.com>
 
-Add revision detection for ES1.1 and ES1.2. Set default
-revision as ES1.2.
+Manjunatha GK <manjugk@ti.com> writes:
 
-Add CHIP_GE_OMAP3630ES1_1 to detect revisions 1.1 and later.
-This is needed for at least one feature that is broken in
-3630ES1.0 but exists on older (3430 ES3.1) and newer revisions.
+> This patch adds OMAP3 DMA hwmod structures.
+>
+> Signed-off-by: Manjunatha GK <manjugk@ti.com>
 
-Additionally, update some of the CHIP_GE_* macros to use other
-macros for ease of maintenance.
+[...]
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Nishanth Menon <nm@ti.com>
-Cc: Manjunatha GK <manjugk@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
-v2: Fixed accidental removal of default handling, and minor update of a comment.
+> +static struct omap_hwmod omap3xxx_dma_system_hwmod = {
+> +	.name		= "dma",
+> +	.class		= &omap3xxx_dma_hwmod_class,
+> +	.mpu_irqs	= omap3xxx_dma_system_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_dma_system_irqs),
+> +	.main_clk	= "l3_div_ck",
+> +	.prcm = {
+> +		.omap2 = {
+> +			/* .clkctrl_reg = NULL, */
+> +		},
+> +	},
 
-This is based on Manju's original patch at [1] and my update [2].
-The original patch failed to properly update the CHIP_GE_OMAP3630ES1 macro.
+Has this been tested?  Without valid fields here the hwmod will never be
+enabled.
 
-Would be nice to get this queued for the next merge window
-
-[1] https://patchwork.kernel.org/patch/95684/
-[2] https://patchwork.kernel.org/patch/99590/
-
- arch/arm/mach-omap2/id.c              |   27 +++++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/cpu.h |   15 +++++++++++----
- 2 files changed, 36 insertions(+), 6 deletions(-)
-
-Index: linux-2.6/arch/arm/mach-omap2/id.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/id.c
-+++ linux-2.6/arch/arm/mach-omap2/id.c
-@@ -261,9 +261,26 @@ void __init omap3_check_revision(void)
- 	case 0xb891:
- 	/* FALLTHROUGH */
- 	default:
--		/* Unknown default to latest silicon rev as default*/
--		omap_revision = OMAP3630_REV_ES1_0;
-+		/* Unknown hawkeye defaults to latest silicon revision */
-+		
-+		/* Handle 36xx devices */
- 		omap_chip.oc |= CHIP_IS_OMAP3630ES1;
-+
-+		switch(rev) {
-+		case 0: /* Take care of early samples */
-+			omap_revision = OMAP3630_REV_ES1_0;
-+			break;
-+		case 1:
-+			omap_revision = OMAP3630_REV_ES1_1;
-+			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
-+			break;
-+		case 2:
-+		/* Fall through */
-+		default:
-+			/* Use the latest known revision as default */
-+			omap_revision =  OMAP3630_REV_ES1_2;
-+			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
-+		}
- 	}
- }
- 
-@@ -339,6 +356,12 @@ void __init omap3_cpuinfo(void)
- 	case OMAP_REVBITS_00:
- 		strcpy(cpu_rev, "1.0");
- 		break;
-+	case OMAP_REVBITS_01:
-+		strcpy(cpu_rev, "1.1");
-+		break;
-+	case OMAP_REVBITS_02:
-+		strcpy(cpu_rev, "1.2");
-+		break;
- 	case OMAP_REVBITS_10:
- 		strcpy(cpu_rev, "2.0");
- 		break;
-Index: linux-2.6/arch/arm/plat-omap/include/plat/cpu.h
-===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/include/plat/cpu.h
-+++ linux-2.6/arch/arm/plat-omap/include/plat/cpu.h
-@@ -66,6 +66,8 @@ unsigned int omap_rev(void);
-  * family. This difference can be handled separately.
-  */
- #define OMAP_REVBITS_00		0x00
-+#define OMAP_REVBITS_01		0x01
-+#define OMAP_REVBITS_02		0x02
- #define OMAP_REVBITS_10		0x10
- #define OMAP_REVBITS_20		0x20
- #define OMAP_REVBITS_30		0x30
-@@ -376,6 +378,8 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP3430_REV_ES3_1_2	0x34305034
- 
- #define OMAP3630_REV_ES1_0	0x36300034
-+#define OMAP3630_REV_ES1_1	0x36300134
-+#define OMAP3630_REV_ES1_2	0x36300234
- 
- #define OMAP35XX_CLASS		0x35000034
- #define OMAP3503_REV(v)		(OMAP35XX_CLASS | (0x3503 << 16) | (v << 8))
-@@ -411,6 +415,8 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
- #define CHIP_IS_OMAP3630ES1		(1 << 7)
- #define CHIP_IS_OMAP4430ES1		(1 << 8)
-+#define CHIP_IS_OMAP3630ES1_1           (1 << 9)
-+#define CHIP_IS_OMAP3630ES1_2           (1 << 10)
- 
- #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
- 
-@@ -424,11 +430,12 @@ IS_OMAP_TYPE(3517, 0x3517)
-  */
- #define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
- 					 CHIP_IS_OMAP3430ES3_0 | \
--					 CHIP_IS_OMAP3430ES3_1 | \
--					 CHIP_IS_OMAP3630ES1)
-+					 CHIP_GE_OMAP3430ES3_1)
- #define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1 | \
--					 CHIP_IS_OMAP3630ES1)
--
-+					 CHIP_IS_OMAP3630ES1 | \
-+					 CHIP_GE_OMAP3630ES1_1)
-+#define CHIP_GE_OMAP3630ES1_1		(CHIP_IS_OMAP3630ES1_1 | \
-+					 CHIP_IS_OMAP3630ES1_2)
- 
- int omap_chip_is(struct omap_chip_id oci);
- void omap2_check_revision(void);
+Kevin
