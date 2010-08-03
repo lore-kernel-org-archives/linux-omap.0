@@ -1,65 +1,92 @@
-From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
-Subject: RE: [PATCH 5/5] staging:ti dspbridge: replace simple_strtoul by
- 	strict_strtoul
-Date: Tue, 3 Aug 2010 12:33:51 -0500
-Message-ID: <B852767254C5C94EBB1040EE0EFA060094D17A30@dlee01.ent.ti.com>
-References: <1280328052-31292-1-git-send-email-ernesto@ti.com>
-	<1280328052-31292-2-git-send-email-ernesto@ti.com>
-	<1280328052-31292-3-git-send-email-ernesto@ti.com>
-	<1280328052-31292-4-git-send-email-ernesto@ti.com>
-	<1280328052-31292-5-git-send-email-ernesto@ti.com>
-	<1280328052-31292-6-git-send-email-ernesto@ti.com>
- <AANLkTin-2_JC0-18QWAdo9r36Jx0QdnDwnB2+2AdePyc@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Issues with calling pm_runtime functions in platform_pm_suspend_noirq/IRQ disabled context.
+Date: Tue, 03 Aug 2010 10:35:59 -0700
+Message-ID: <874ofbppj4.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED1089@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTin-2_JC0-18QWAdo9r36Jx0QdnDwnB2+2AdePyc@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "gregkh@suse.de" <gregkh@suse.de>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "ohad@wizery.com" <ohad@wizery.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:45622 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756514Ab0HCRgF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 13:36:05 -0400
+Received: by iwn7 with SMTP id 7so5292758iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 03 Aug 2010 10:36:04 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED1089@dbde02.ent.ti.com>
+	(Partha Basak's message of "Tue, 3 Aug 2010 19:19:40 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Basak, Partha" <p-basak2@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi,
+"Basak, Partha" <p-basak2@ti.com> writes:
 
->-----Original Message-----
->From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
->Sent: Wednesday, July 28, 2010 1:44 PM
->To: Ramos Falcon, Ernesto
->Cc: gregkh@suse.de; Ramirez Luna, Omar; ohad@wizery.com;
->ameya.palande@nokia.com; felipe.contreras@nokia.com; Guzman Lugo, Fern=
-ando;
->linux-kernel@vger.kernel.org; Menon, Nishanth; linux-omap@vger.kernel.=
-org
->Subject: Re: [PATCH 5/5] staging:ti dspbridge: replace simple_strtoul =
-by
->strict_strtoul
+> Resending with the corrected mailing list
 >
->On Wed, Jul 28, 2010 at 5:40 PM, Ernesto Ramos <ernesto@ti.com> wrote:
->> Replace simple_strtoul by strict_strtoul in atoi function.
->In general the question what is the purpose here to do the change?
+> Hello Kevin,
 >
+> I want to draw your attention to an issue the following patch
+> introduces. http://dev.omapzoom.org/?p=swarch/linux-omap-adv.git;a=commitdiff;h=8041359e18e49bf8a3d41f15894db9e476f3a8fc
 
-It is recommended to use strict_strtoul instead of simple_strtoul since=
- ensures the string is really a valid unsigned long. This also removes =
-checkpatch warning message.
+[...]
 
->> @@ -1023,7 +1025,9 @@ static s32 atoi(char *psz_buf)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0base =3D 16;
->> =A0 =A0 =A0 =A0}
->>
->> - =A0 =A0 =A0 return simple_strtoul(pch, NULL, base);
->> + =A0 =A0 =A0 ret_val =3D strict_strtoul(pch, base, &res);
->> +
->> + =A0 =A0 =A0 return ret_val ? : res;
->May be better to use explicit values in condition?
+> I believe, it is not correct to call the pm_runtime APIs from
+> interrupt locked context since the underlying functions
+> __pm_runtime_suspend & __pm_runtime_resume enable interrupts and call
+> schedule().
 >
+> Further, from a s/w layering standpoint, platform-bus is a deeper
+> layer than the Runtime layer, which the runtime layer calls into. So
+> it may not be correct to have this layer calling into pm_runtime(). It
+> should directly call omap_device APIs.
 
-I think this is ok as it is, I'm not sure but I think it maybe defined =
-in any C ansi book, in this case if ret_val is unequal to 0 ret_val is =
-returned.
+The original version of this patch did directly call the omap_device
+APIs.  However, Paul didn't like that approach and there were
+use-counting problems to handle as well (e.g. if a driver was not (yet)
+in use, it would already be disabled, and a suspend would trigger an
+omap_device_disable() which would fail since device was already
+disabled.)
 
->--
->With Best Regards,
->Andy Shevchenko
+Paul and I agreed that this current approach would solve the
+use-counting problems, but you're correct in that it introduces
+new problems as these functions can _possibly_ sleep/schedule.
+
+That being said, have you actually seen problems here?   I would like
+to see how they are triggered?
+
+By the time the drivers _noirq hooks are called, the PM core has
+shutdown all the drivers, prevented any runtime PM transitions and
+disabled interrupts, so no pending runtime transitions will be queued
+so the sleeping patch of the __pm_runtime_* should never be entered.
+
+> We are facing a similar issue with a few drivers USB, UART & GPIO
+> where, we need to enable/disable clocks & restore/save context in the
+> CPU-Idle path with interrupts locked.
+
+These are unrelated issues.  The above is for the static suspend/resume
+case.  These are for runtime PM.
+
+> As we are unable to use Runtime APIs, we are using omap_device APIs
+> directly with the following modification in the .activate_funcion/
+> deactivate_funcion (example UART driver)
+
+[...]
+
+The UART driver is a special case as it is managed from deep inside the
+idle path.
+
+> Can you feedback on my observations and comment on the approach taken
+> for these drivers?
+
+I cannot comment until I understand why these drivers need to
+enable/disable with interrupts off.
+
+In general, any use of the interrupts-off versions of the omap_device
+APIs need to be thorougly justified.
+
+Even the UART one will go away when the omap-serial driver is converted
+to runtime PM.
+
+Kevin
+
+
