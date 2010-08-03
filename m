@@ -1,79 +1,98 @@
-From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
-Subject: RE: [PATCH] omap3: Remove non-existent config option
-Date: Tue, 3 Aug 2010 13:39:48 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED0D93@dbde02.ent.ti.com>
-References: <1279790027-2509-1-git-send-email-premi@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: DSS2 patch series
+Date: Tue, 03 Aug 2010 11:43:43 +0300
+Message-ID: <1280825023.3436.111.camel@tubuntu.research.nokia.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870305FAB57B@dbde02.ent.ti.com>
+	 <1280749895.3436.47.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC35608703061EBA59@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46788 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753991Ab0HCIJx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 04:09:53 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7389nop025471
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 3 Aug 2010 03:09:52 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o7389n3u017889
-	for <linux-omap@vger.kernel.org>; Tue, 3 Aug 2010 13:39:49 +0530 (IST)
-In-Reply-To: <1279790027-2509-1-git-send-email-premi@ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:39463 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754194Ab0HCIoK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 04:44:10 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703061EBA59@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Premi, Sanjeev" <premi@ti.com>
+To: "ext Taneja, Archit" <archit@ti.com>
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ping..
+On Mon, 2010-08-02 at 14:05 +0200, ext Taneja, Archit wrote:
+> Hi,
+> 
+> > On Tue, 2010-07-27 at 10:27 +0200, ext Taneja, Archit wrote:
+> > > Hi,
+> > > 
+> > > We had pushed three patch series while you were out. We 
+> > received some 
+> > > good comments on them. We wanted to know if you can point out more 
+> > > fixes and susuggestions before we rework them.
+> > > 
+> > > https://patchwork.kernel.org/patch/111901/
+> > > 
+> > > https://patchwork.kernel.org/patch/112648/
+> > > 
+> > > https://patchwork.kernel.org/patch/112653/
+> > 
+> > Do you have updated patches for these? It would be easier to 
+> > review new ones than the old ones.
+> > 
+> >  Tomi
+> 
+> The comments on the existing patches have been mostly related
+> to minimizing the number of patches in each series, moving some
+> #defines to header files and one or two typos.
+> 
+> I haven't reworked these patches yet, I wanted to know if you
+> could review the changes you had suggested on the v1 of the series
+> below:
 
-> -----Original Message-----
-> From: Premi, Sanjeev
-> Sent: Thursday, July 22, 2010 2:44 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Marathe, Yogesh; Premi, Sanjeev
-> Subject: [PATCH] omap3: Remove non-existent config option
-> 
-> From: Yogesh Marathe <yogesh_marathe@ti.com>
-> 
-> The definition of "iva2" device in iommu_device
-> is wrapped inside CONFIG_MPU_BRIDGE_IOMMU, but
-> this option is not defined in KConfig.
-> 
-> This patch removes the wrapper and makes "iva2"
-> available as another iommu_device.
-> 
-> Signed-off-by: Yogesh Marathe <yogesh_marathe@ti.com>
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
->  arch/arm/mach-omap2/omap-iommu.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-
-> iommu.c
-> index f5a1aad..bb8c01d 100644
-> --- a/arch/arm/mach-omap2/omap-iommu.c
-> +++ b/arch/arm/mach-omap2/omap-iommu.c
-> @@ -35,7 +35,6 @@ static struct iommu_device omap3_devices[] = {
->  			.clk_name = "cam_ick",
->  		},
->  	},
-> -#if defined(CONFIG_MPU_BRIDGE_IOMMU)
->  	{
->  		.base = 0x5d000000,
->  		.irq = 28,
-> @@ -45,7 +44,6 @@ static struct iommu_device omap3_devices[] = {
->  			.clk_name = "iva2_ck",
->  		},
->  	},
-> -#endif
->  };
->  #define NR_OMAP3_IOMMU_DEVICES ARRAY_SIZE(omap3_devices)
->  static struct platform_device
-> *omap3_iommu_pdev[NR_OMAP3_IOMMU_DEVICES];
-> --
-> 1.6.6.1
+I think the register handling looks much better now. Although defines
+like this:
 
-Regards,
-Yogesh.
++#define DISPC_DEFAULT_COLOR(ch)	DISPC_REG(ch == OMAP_DSS_CHANNEL_LCD \
++				? (0x004C) : (ch == OMAP_DSS_CHANNEL_DIGIT ? \
++				(0x0050) : (0x03AC)))
+
+makes me wonder if a separate lookup table would be cleaner. But perhaps
+it's not too bad yet.
+
+Also, we should think how to reduce if (cpu_is_omap44xx()) lines. There
+should be some kind of DSS capability list somewhere, which would tell
+the features available. I haven't thought this more, but it'd be very
+nice if we could use the DSS HW version number to decide what features
+there are.
+
+However, TI answered that information about DSS HW version numbers is
+not available, and thus cannot be used =(. Perhaps you could try to dig
+out some information from inside TI?
+
+And, as others have commented, consider how to split the patches. The
+most important rule is that every stage in the patch set has to compile.
+
+One thing that I personally think makes patch sets clearer, is to divide
+a new functionality into two parts: 1) modify the old code, without
+adding new functionality, so that the new functionality is easier to add
+2) add the new functionality.
+
+As an example, if we look at the new DISPC registers patch:
+
+There could first be a patch that introduces DISPC_XXX(channel) style
+registers (even if there's only one channel available) and modifies the
+functions accordingly. 
+
+The second patch would introduce OMAP4 registers and whatever new
+functionality these registers require.
+
+This way it would be easy to study and test the first patch, as it
+shouldn't introduce any new functionality, but just "shuffles the code
+around".
+
+And it would be easy to study the second patch, as the needed base
+functionality is already there, and there's lot less new stuff added.
+
+ Tomi
+
 
