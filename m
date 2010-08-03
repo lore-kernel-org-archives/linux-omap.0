@@ -1,114 +1,149 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2 03/20] mmc: support embedded data field in mmc_host
-Date: Tue, 3 Aug 2010 00:35:56 +0300
-Message-ID: <AANLkTi=vhWV1RNyemtfppfjvLYAbzd3aRjFOVgLLpG3Z@mail.gmail.com>
-References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
-	<1279733634-21974-4-git-send-email-ohad@wizery.com> <AANLkTimzA_JJ-byTDWznbL3YzeJ8LAP4M50onf2_3fBF@mail.gmail.com>
-	<AANLkTi=Oy8X1xMOwWL_cKBB1LWULT6=p+adUgB+AuSJS@mail.gmail.com>
-	<AANLkTi=BUX59heXAW2Uf4wZo2dSS19Je54dkQ5u2YGAW@mail.gmail.com>
-	<AANLkTimZQKj7H_GeE=+O9cwxEMTR+LhfFbt=AyXGzN3d@mail.gmail.com>
-	<AANLkTikfRja-h9mz7uyRXCZNZjKdU_yB8e58XQucUzrn@mail.gmail.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 1/2] OMAP: DSS2: enable generic panel configuration modification
+Date: Tue, 03 Aug 2010 09:45:21 +0300
+Message-ID: <4C57BB01.6000004@compulab.co.il>
+References: <1280140468-8183-1-git-send-email-grinberg@compulab.co.il> <1280217649.2427.68.camel@tubuntu.research.nokia.com> <4C4EE62C.9010701@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikfRja-h9mz7uyRXCZNZjKdU_yB8e58XQucUzrn@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Vitaly Wool <vitalywool@gmail.com>
-Cc: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Pandita Vikram <vikram.pandita@ti.com>, linux@arm.linux.org.uk, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Roger Quadros <roger.quadros@nokia.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from compulab.co.il ([67.18.134.219]:58546 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755327Ab0HCGp2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Aug 2010 02:45:28 -0400
+In-Reply-To: <4C4EE62C.9010701@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Mike Rapoport <mike@compulab.co.il>
 
-Hi Vitaly,
+Tomi,
 
-On Mon, Aug 2, 2010 at 7:25 PM, Vitaly Wool <vitalywool@gmail.com> wrot=
-e:
-> On Mon, Aug 2, 2010 at 5:54 PM, Ohad Ben-Cohen <ohad@wizery.com> wrot=
-e:
->> SPI is using these spi_board_info tables to populate the SPI device
->> trees. These tables are registered early at the board-specific init
->> code, and are later used by SPI core to populate the devices when th=
-e
->> SPI master controller is registered.
+Any thoughts?
+
+
+On 07/27/10 16:59, Igor Grinberg wrote:
+> On 07/27/10 11:00, Tomi Valkeinen wrote:
+>   
+>> On Mon, 2010-07-26 at 12:34 +0200, ext Igor Grinberg wrote:
+>>   
+>>     
+>>> This patch enables platforms to modify the dss device configuration
+>>> of the generic panel.
+>>>
+>>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+>>> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+>>> ---
+>>>  drivers/video/omap2/displays/panel-generic.c |    2 +-
+>>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
+>>> index 300eff5..ad80dd0 100644
+>>> --- a/drivers/video/omap2/displays/panel-generic.c
+>>> +++ b/drivers/video/omap2/displays/panel-generic.c
+>>> @@ -66,7 +66,7 @@ static void generic_panel_power_off(struct omap_dss_device *dssdev)
+>>>  
+>>>  static int generic_panel_probe(struct omap_dss_device *dssdev)
+>>>  {
+>>> -	dssdev->panel.config = OMAP_DSS_LCD_TFT;
+>>> +	dssdev->panel.config |= OMAP_DSS_LCD_TFT;
+>>>  	dssdev->panel.timings = generic_panel_timings;
+>>>  
+>>>  	return 0;
+>>>     
+>>>       
+>> I don't like this. Panel driver should be the one which decides the
+>> config.
+>>   
+>>     
+> I agree with this in most cases, but not always.
+> There are certain transmitters (like TI TFP410 dvi transmitter found
+> on cm-t35 and other boards) that can have some of their parameters
+> defined by hardware (strapped), so only the platform knows the correct
+> values for them.
+> One of such parameters is the edge of the clock sampling.
+>
+>   
+>> I think a better solution is to make panel-generic configurable, which
+>> has been discussed a bit some time ago on l-o.
+>>   
+>>     
+> No doubt about that :)
+>
+>   
+>> Briefly:
 >>
->> SDIO doesn't normally needs any kind of hard coded data: most device=
-s
->> are dynamically probed and populated.
+>> - Add a struct for the configuration variables (a bit like
+>> arch/arm/plat-omap/include/plat/nokia-dsi-panel.h).
 >>
->> On rare cases like the wl1271, we have some platform-specific data w=
-e
->> need to deliver the SDIO function driver (i.e. the irq info in this
->> case). Since the device is hardwired to a specific controller, it do=
-es
->> make some sense to pass this private data from the controller's info
->> in the board files, through the host driver, and make it accessible
->> through the specific host instance that drives this controller.
+>> - Fill the struct in the board file, and pass it to the panel driver via
+>> omap_dss_device->data pointer.
 >>
->> Btw, if our problem was be broader (e.g., needs to supply private da=
-ta
->> for non-hardwired devices), then I agree that a more complex
->> mechanism, such as the one you suggest, would be needed. But current=
-ly
->> the problem is very simple and the solution is even simpler: just ad=
-d
->> 1 private pointer to the host.
+>> - The panel driver get the struct and uses it to do whatever
+>> configuration it needs.
+>>   
+>>     
+> This is more or less what I've been thinking of, but with slight addition:
+> the panel driver should have a defaults for all the parameters,
+> so there will be no need to provide the whole parameters list,
+> just the ones that are different.
+>
+>   
+>> I think there are two ways to implement this:
 >>
->> Hope you find this reasonable,
+>> 1) Have lots of fields in the struct, including video timings and video
+>> signaling information, and the driver uses these directly.
+>>   
+>>     
+> This seems like a good choice for better flexibility and
+> provides an easy way of dealing with the issues, I've described above.
 >
-> no, actually I don't. I think this is a hack that intrudes into the
-> area it completely doesn't belong to.
+>   
+>> 2) Have a panel name in the struct, and the panel driver contains a
+>> static list of panels, including configurations for those panels, and
+>> the driver selects the configuration based on the panel name given from
+>> the board file. (like drivers/video/omap2/displays/panel-taal.c does,
+>> except there's currently only one panel defined).
+>>   
+>>     
+> This approach does not deal with the dvi transmitters issue above,
+> unless there will be possibility to define some kind of platform data.
+> Also, if we have a static list of panels with their configurations,
+> there could be panels with (almost) the same parameters defined
+> for a couple of times.
 >
-> In fact, one can have 2 views on this problem: either this is a fairl=
-y
-> generic problem we need to address, or this is a very specific corner
-> case.
-> Your solution will be treated as a hack in both cases.
+>   
+>> While 1. gives perhaps slightly easier configuration, as you just edit
+>> the board file, I'd go for 2. because the required configuration is
+>> really defined by the panel/chip being used, and so the board file
+>> should just state which panel/chip we have, and the driver handles the
+>> rest.
+>>     
+> Well, unfortunately, it is not :(
 >
-> If we consider it a generic problem, then we need to find a generic
-> solution, which is the board_info solution, for instance. FWIW, I2C
-> also uses this approach now.
+>   
+>>  And 2. makes it also easier to use the same panel/chip on multiple
+>> boards.
+>>
+>> Implementing this would allow us to remove some panel drivers which
+>> currently are 99% copies of each other.
+>>
+>>  Tomi
+>>
+>>   
+>>     
+> My idea is:
+> generic driver will have built-in defaults, that can
+> (but not necessarily will) be overridden by platform (or other) code
+> on a parameter basis.
+> This will allow other panels (like tdo35s) reuse the generic driver
+> without the need for their special driver.
 >
-> If we consider it to be a corner case, let's just add a dummy
-> platform_device like it's done in WL1251 implementation and keep the
-> MMC subsystem clean.
-
-Let's start by defining the problem exactly:
-
-SDIO devices that are hardwired to a specific controller and have some
-platform data that needs to be available to the SDIO function driver.
-
-It doesn't get more generic than that - it's not needed with common
-fully-enumerable SDIO devices (at least I'm not aware of such need),
-hence a generic mechanism of maintaining a global pile of platform
-data pointers, which can be queried with the device and vendor ID,
-really sounds like an overkill.
-
-But it's not specific to the wl1271 device - I prefer to support this
-at the MMC level, so we wouldn't have to add an extra platform device
-for every SDIO function driver that needs to cope with such issue (we
-already have two drivers - wl1271_sdio.c and wl1251_sdio.c); Adding an
-extra platform device for every driver is just too much dummy code
-(that btw adds a well-hidden race condition between the two probe
-calls), which can be nicely eliminated if we just introduce this new
-per-host private data pointer.
-
-So we have a SDIO device hardwired to a specific controller, that is
-driven by a specific host controller driver instance. This patch
-allows this specific host instance to carry platform data for the
-device that is hardwired to it. The platform data would be available
-only to SDIO function driver instances of that specific host
-controller. The solution is generic enough to support all SDIO
-function drivers with similar needs, and it's extremely simple.
-
-I'm honestly trying to understand your concerns, but I'm afraid that
-just saying "it's a hack" is not too informative. Can you please
-explain what do you think is technically wrong with the proposed
-solution ? is it not general enough for other use cases ? will it
-break something ?
-
-Thanks,
-Ohad.
-
+> What do you think of it?
 >
-> Thanks,
-> =A0 Vitaly
->
+>   
+
+-- 
+Regards,
+Igor.
+
