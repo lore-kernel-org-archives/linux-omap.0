@@ -1,92 +1,132 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Issues with calling pm_runtime functions in platform_pm_suspend_noirq/IRQ disabled context.
-Date: Tue, 03 Aug 2010 10:35:59 -0700
-Message-ID: <874ofbppj4.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED1089@dbde02.ent.ti.com>
+From: "Sin, David" <davidsin@ti.com>
+Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and
+ implementation
+Date: Tue, 3 Aug 2010 14:49:45 -0500
+Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D65FEEDE@dlee02.ent.ti.com>
+References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
+ <1279927348-21750-2-git-send-email-davidsin@ti.com>
+ <1279927348-21750-3-git-send-email-davidsin@ti.com>
+ <1279927348-21750-4-git-send-email-davidsin@ti.com>
+ <1279927348-21750-5-git-send-email-davidsin@ti.com>
+ <20100724080118.GB15064@n2100.arm.linux.org.uk>
+ <513FF747EED39B4AADBB4D6C9D9F9F7903D654A3FE@dlee02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C641D580@dbde02.ent.ti.com>
+ <513FF747EED39B4AADBB4D6C9D9F9F7903D654A430@dlee02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C641D58B@dbde02.ent.ti.com>
+ <9DCA1E44C5805D4EB7C1626D5FD1739E048EDA223B@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:45622 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756514Ab0HCRgF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 13:36:05 -0400
-Received: by iwn7 with SMTP id 7so5292758iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 03 Aug 2010 10:36:04 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED1089@dbde02.ent.ti.com>
-	(Partha Basak's message of "Tue, 3 Aug 2010 19:19:40 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55492 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756515Ab0HCTuA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 15:50:00 -0400
+In-Reply-To: <9DCA1E44C5805D4EB7C1626D5FD1739E048EDA223B@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Basak, Partha" <p-basak2@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "Sin, David" <davidsin@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, 'Russell King - ARM Linux' <linux@arm.linux.org.uk>, "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>, 'Tony Lindgren' <tony@atomide.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, 'Ohad Ben-Cohen' <ohad@wizery.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Molnar, Lajos" <molnar@ti.com>, "Voultoury, Pierre" <p-voultoury@ti.com>, "'linux-arm-kernel@lists.infradead.org'" <linux-arm-kernel@lists.infradead.org>
 
-"Basak, Partha" <p-basak2@ti.com> writes:
+Russell, 
 
-> Resending with the corrected mailing list
->
-> Hello Kevin,
->
-> I want to draw your attention to an issue the following patch
-> introduces. http://dev.omapzoom.org/?p=swarch/linux-omap-adv.git;a=commitdiff;h=8041359e18e49bf8a3d41f15894db9e476f3a8fc
+> -----Original Message-----
+> From: Sin, David 
+> Sent: Monday, August 02, 2010 9:55 AM
+> To: Shilimkar, Santosh; Russell King - ARM Linux; Woodruff, Richard
+> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, 
+> Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Molnar, Lajos; 
+> Voultoury, Pierre; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager 
+> interface and implementation
+> 
+> -----Original Message-----
+> From: Shilimkar, Santosh 
+> Sent: Monday, August 02, 2010 9:53 AM
+> To: Sin, David; Russell King - ARM Linux; Woodruff, Richard
+> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, 
+> Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Molnar, Lajos; 
+> Voultoury, Pierre; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager 
+> interface and implementation
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: Sin, David
+> > Sent: Monday, August 02, 2010 8:20 PM
+> > To: Shilimkar, Santosh; Russell King - ARM Linux; Woodruff, Richard
+> > Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, 
+> Hari; Ohad Ben-
+> > Cohen; Hiremath, Vaibhav; Molnar, Lajos; Voultoury, Pierre; 
+> linux-arm-
+> > kernel@lists.infradead.org
+> > Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and
+> > implementation
+> > 
+> > -----Original Message-----
+> > From: Shilimkar, Santosh
+> > Sent: Monday, August 02, 2010 9:45 AM
+> > To: Sin, David; Russell King - ARM Linux; Woodruff, Richard
+> > Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, 
+> Hari; Ohad Ben-
+> > Cohen; Hiremath, Vaibhav; Molnar, Lajos; Voultoury, Pierre; 
+> linux-arm-
+> > kernel@lists.infradead.org
+> > Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and
+> > implementation
+> > 
+> < snip>
+> 
+> > > > +	m->pa = page_to_phys(m->pg);
+> > > > +
+> > > > +	/* flush the cache entry for each page we allocate. */
+> > > > +	dmac_flush_range(page_address(m->pg),
+> > > > +				page_address(m->pg) + 
+> PAGE_SIZE);
+> > > > +	outer_flush_range(m->pa, m->pa + PAGE_SIZE);
+> > >
+> > > NAK.  This is an abuse of these interfaces, and is buggy 
+> in any case.
+> > >
+> > > ARMv6 and ARMv7 CPUs speculatively prefetch memory, which 
+> means that
+> > > there's no guarantee that if you flush the caches for a particular
+> > > range of virtual space, that it will stay flushed until you decide
+> > > to read it.  So flushing the caches in some memory allocator can't
+> > > guarantee that when you eventually get around to using 
+> the page that
+> > > there won't be cache lines associated with it.
+> > >
+> > > [dhs] Russell, thanks for reviewing this code.  Do you have any
+> > interface
+> > > suggestions that you can share that would make this 
+> proper?  Ideally, I
+> > > would like to get physical pages without associated 
+> virtual address, or
+> > > ones that are non-cached/non-bufferable.
+> > 
+> > There is nothing called 'non-bufferable' any more David on ARMv6 and
+> > ARMv7.
+> > You can get non-cached memory using "dma_alloc_coherent"
+> > 
+> > [dhs] Thanks, Santosh, for the clarification.  I believe
+> > dma_alloc_coherent is quite limited, right?  We need to be 
+> able to cover
+> > potentially 128MB of physical memory for the TILER.  BTW, 
+> does GFP_DMA
+> > indicate that I don't want cached memory?
+> > 
+> It's configurable. By default it's 2 MB pool. GFP_DMA doesn't give you
+> un-cacheable memory.
+> 
+> [dhs] OK -- I will increase this and try to allocate this 
+> way.  Thank you.
+> 
+> 
 
-[...]
+As Santosh suggests, I will increase the dma_alloc_coherent pool size to something that will accomdate TILER requirements.  I believe this will work, as I'm only making 4k allocations per call, as opposed to one large contiguous allocation.  However, I'd like to be able to use an API similar to alloc_page() that gives back device or strongly ordered memory so that we don't have to pre-allocate such a large amount at boot-up.  Is this something that you're considering on your end for the near future?  Thanks for working through this with us.
 
-> I believe, it is not correct to call the pm_runtime APIs from
-> interrupt locked context since the underlying functions
-> __pm_runtime_suspend & __pm_runtime_resume enable interrupts and call
-> schedule().
->
-> Further, from a s/w layering standpoint, platform-bus is a deeper
-> layer than the Runtime layer, which the runtime layer calls into. So
-> it may not be correct to have this layer calling into pm_runtime(). It
-> should directly call omap_device APIs.
-
-The original version of this patch did directly call the omap_device
-APIs.  However, Paul didn't like that approach and there were
-use-counting problems to handle as well (e.g. if a driver was not (yet)
-in use, it would already be disabled, and a suspend would trigger an
-omap_device_disable() which would fail since device was already
-disabled.)
-
-Paul and I agreed that this current approach would solve the
-use-counting problems, but you're correct in that it introduces
-new problems as these functions can _possibly_ sleep/schedule.
-
-That being said, have you actually seen problems here?   I would like
-to see how they are triggered?
-
-By the time the drivers _noirq hooks are called, the PM core has
-shutdown all the drivers, prevented any runtime PM transitions and
-disabled interrupts, so no pending runtime transitions will be queued
-so the sleeping patch of the __pm_runtime_* should never be entered.
-
-> We are facing a similar issue with a few drivers USB, UART & GPIO
-> where, we need to enable/disable clocks & restore/save context in the
-> CPU-Idle path with interrupts locked.
-
-These are unrelated issues.  The above is for the static suspend/resume
-case.  These are for runtime PM.
-
-> As we are unable to use Runtime APIs, we are using omap_device APIs
-> directly with the following modification in the .activate_funcion/
-> deactivate_funcion (example UART driver)
-
-[...]
-
-The UART driver is a special case as it is managed from deep inside the
-idle path.
-
-> Can you feedback on my observations and comment on the approach taken
-> for these drivers?
-
-I cannot comment until I understand why these drivers need to
-enable/disable with interrupts off.
-
-In general, any use of the interrupts-off versions of the omap_device
-APIs need to be thorougly justified.
-
-Even the UART one will go away when the omap-serial driver is converted
-to runtime PM.
-
-Kevin
-
-
+Regards,
+-David
