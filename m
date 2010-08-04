@@ -1,301 +1,144 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH v6] OMAP4 HSMMC: Adding Card detect support for MMC1 on OMAP4
-Date: Wed, 4 Aug 2010 17:56:44 -0500
-Message-ID: <AC97C00B2EE8468DAA78B37136C89721@am.dhcp.ti.com>
-References: <20809.10.24.255.18.1278511944.squirrel@dbdmail.itg.ti.com><AANLkTimNbzSMeOW4m201D=uV1WyYqkwpE1KqdTb8Qudy@mail.gmail.com><966519786A214EA4BC770E7EC4D50628@am.dhcp.ti.com> <AANLkTinZDt-ApCSPRxXQnFx6=M4-_EZhYBrtetoRhcn8@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Issues with calling pm_runtime functions in platform_pm_suspend_noirq/IRQ disabled context.
+Date: Wed, 04 Aug 2010 16:20:41 -0700
+Message-ID: <87sk2u7ynq.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED1089@dbde02.ent.ti.com>
+	<874ofbppj4.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E7F6ECA2@dbde02.ent.ti.com>
+	<87tynaaw4r.fsf@deeprootsystems.com>
+	<87sk2u9fgp.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47163 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755167Ab0HDW5L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 18:57:11 -0400
-In-Reply-To: <AANLkTinZDt-ApCSPRxXQnFx6=M4-_EZhYBrtetoRhcn8@mail.gmail.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:59917 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759156Ab0HDXUo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 19:20:44 -0400
+Received: by pvc7 with SMTP id 7so2249808pvc.19
+        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 16:20:43 -0700 (PDT)
+In-Reply-To: <87sk2u9fgp.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Wed, 04 Aug 2010 15:32:22 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'kishore kadiyala' <kishorek.kadiyala@gmail.com>
-Cc: 'Andrew Morton' <akpm@linux-foundation.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, adrian.hunter@nokia.com
+To: "Basak, Partha" <p-basak2@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-<snip>
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> >> > =A0arch/arm/mach-omap2/board-4430sdp.c | =A0 =A07 +++-
-> >> > =A0drivers/mfd/twl6030-irq.c =A0 =A0 =A0 =A0 =A0 | =A0 76
-> >> +++++++++++++++++++++++++++++++++++
-> >> > =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 | =A0 =A04 +-
-> >> > =A0include/linux/i2c/twl.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 16 ++++=
-+++
-> >> > =A04 files changed, 100 insertions(+), 3 deletions(-)
-> >> >
-> >> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach=
--
-> >> omap2/board-4430sdp.c
-> >> > index f287461..388b96d 100644
-> >> > --- a/arch/arm/mach-omap2/board-4430sdp.c
-> >> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> >> > @@ -227,9 +227,14 @@ static int omap4_twl6030_hsmmc_late_init(st=
-ruct
-> >> device *dev)
-> >> > =A0 =A0 =A0 =A0struct omap_mmc_platform_data *pdata =3D dev->pla=
-tform_data;
-> >> >
-> >> > =A0 =A0 =A0 =A0/* Setting MMC1 Card detect Irq */
-> >> > - =A0 =A0 =A0 if (pdev->id =3D=3D 0)
-> >> > + =A0 =A0 =A0 if (pdev->id =3D=3D 0) {
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl6030_mmc_card_detect_co=
-nfig();
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Failed con=
-figuring MMC1 card
-> detect\n");
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect_irq =3D=
- TWL6030_IRQ_BASE +
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCDETECT_INTR_OFFSET;
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->slots[0].card_detect =3D
-> twl6030_mmc_card_detect;
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>
+>> "Basak, Partha" <p-basak2@ti.com> writes:
+>>
+>>>> -----Original Message-----
+>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>> Sent: Tuesday, August 03, 2010 11:06 PM
+>>>> To: Basak, Partha
+>>>> Cc: Paul Walmsley; linux-omap@vger.kernel.org; Kalliguddi, Hema; Raja,
+>>>> Govindraj; Varadarajan, Charulatha; Nayak, Rajendra; Cousson, Benoit
+>>>> Subject: Re: Issues with calling pm_runtime functions in
+>>>> platform_pm_suspend_noirq/IRQ disabled context.
+>>>> 
+>>>> "Basak, Partha" <p-basak2@ti.com> writes:
+>>>> 
+>>>> > Resending with the corrected mailing list
+>>>> >
+>>>> > Hello Kevin,
+>>>> >
+>>>> > I want to draw your attention to an issue the following patch
+>>>> > introduces. http://dev.omapzoom.org/?p=swarch/linux-omap-
+>>>> adv.git;a=commitdiff;h=8041359e18e49bf8a3d41f15894db9e476f3a8fc
+>>>> 
+>>>> [...]
+>>>> 
+>>>> > I believe, it is not correct to call the pm_runtime APIs from
+>>>> > interrupt locked context since the underlying functions
+>>>> > __pm_runtime_suspend & __pm_runtime_resume enable interrupts and call
+>>>> > schedule().
+>>>> >
+>>>> > Further, from a s/w layering standpoint, platform-bus is a deeper
+>>>> > layer than the Runtime layer, which the runtime layer calls into. So
+>>>> > it may not be correct to have this layer calling into pm_runtime(). It
+>>>> > should directly call omap_device APIs.
+>>>> 
+>>>> The original version of this patch did directly call the omap_device
+>>>> APIs.  However, Paul didn't like that approach and there were
+>>>> use-counting problems to handle as well (e.g. if a driver was not (yet)
+>>>> in use, it would already be disabled, and a suspend would trigger an
+>>>> omap_device_disable() which would fail since device was already
+>>>> disabled.)
+>>>> 
+>>>> Paul and I agreed that this current approach would solve the
+>>>> use-counting problems, but you're correct in that it introduces
+>>>> new problems as these functions can _possibly_ sleep/schedule.
+>>>> 
+>>>> That being said, have you actually seen problems here?   I would like
+>>>> to see how they are triggered?
+>>>
+>>> Scenario 1:
+>>>
+>>> Consider the case where a driver has already called
+>>> pm_runtime_put_sync as part of aggressive clock cutting
+>>> scheme. Subsequently, when system suspend is called,
+>>> pm_runtime_put_sync is called again. 
+>>
+>>> Due to atomic_dec_and_test check
+>>> on usage_count, the second call goes through w/o error.
+>>
+>> I don't think you're fully understanding the point of the put/get in the
+>> suspend/resume path.
+>>
+>> The reason for the 'put' in the suspend path is because the PM core has
+>> done a 'get' in dpm_prepare() [c.f. drivers/base/power/main.c] so that
+>> runtime PM transitions are prevented during suspend/resume.
+>>
+>> On OMAP, we want to allow those transitions to happen so we can use the
+>> same runtime PM calls in the idle and suspend paths.
+>>
+>>> At System resume, pm_runtime_get_sync is called twice, once by resume,
+>>> once by the driver itself. 
+>>
+>> Yes, but there is a 'put_sync' in between those done by the PM core
+>> during resume (c.f. dpm_complete() in drivers/base/power/main.c]
+>>
+>>> Because of the extra reference count, the
+>>> aggressive clock control by the driver is broken, as call to put_sync
+>>> by a driver reduces to usage_count to 1. As a result clock transition
+>>> in Idle-path is broken.
+>
+> A closer look here, and there is indeed a bug in the _resume_noirq()
+> method.  The get here needs to be a _noresume version to match what is
+> done in the PM core.
+>
+> This doesn't change the use count, but it does change whether the device
+> is actually awoken by this 'get' or not.  This get should never actually
+> awake the device.  It is only there to compensate for what the PM core
+> does.
+>
+> Can you try this patch?  Will post a version to the list with
+> changelog shortly.
 
-You are assigning an exported fn here.
+After a little more thinking, I'm not sure yet if this is a real problem
+or not.
 
-What if somebody disables CONFIG_TWL4030_CORE in the omap_4430sdp_defco=
-nfig
-file? Does the driver behave nicely with only loosing the hotplug
-capability?
+One other question.  At least for GPIO testing, does it work if you
+simply remove the _noirq hooks from pm_bus.c?  If so, please feel to
+post a version with the dependency that the patch adding suspend/resume
+hooks in pm_bus.c needs to be reverted first.
 
-Regards,
-Madhu
+Kevin
 
-
-> >> > + =A0 =A0 =A0 }
-> >> > =A0 =A0 =A0 =A0return ret;
-> >> > =A0}
-> >> >
-> >> > diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq=
-=2Ec
-> >> > index 10bf228..c027692 100644
-> >> > --- a/drivers/mfd/twl6030-irq.c
-> >> > +++ b/drivers/mfd/twl6030-irq.c
-> >> > @@ -36,6 +36,7 @@
-> >> > =A0#include <linux/irq.h>
-> >> > =A0#include <linux/kthread.h>
-> >> > =A0#include <linux/i2c/twl.h>
-> >> > +#include <linux/platform_device.h>
-> >> >
-> >> > =A0/*
-> >> > =A0* TWL6030 (unlike its predecessors, which had two level inter=
-rupt
-> >> handling)
-> >> > @@ -223,6 +224,81 @@ int twl6030_interrupt_mask(u8 bit_mask, u8
-> offset)
-> >> > =A0}
-> >> > =A0EXPORT_SYMBOL(twl6030_interrupt_mask);
-> >> >
-> >> > +int twl6030_mmc_card_detect_config(void)
-> >> > +{
-> >> > + =A0 =A0 =A0 int ret;
-> >> > + =A0 =A0 =A0 u8 reg_val =3D 0;
-> >> > +
-> >> > + =A0 =A0 =A0 /* Unmasking the Card detect Interrupt line for MM=
-C1 from
-> >> Phoenix */
-> >> > + =A0 =A0 =A0 if (twl_class_is_6030()) {
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_M=
-MCDETECT_INT_MASK,
-> >> > +
-> >> REG_INT_MSK_LINE_B);
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_M=
-MCDETECT_INT_MASK,
-> >> > +
-> >> REG_INT_MSK_STS_B);
-> >> > + =A0 =A0 =A0 }
-> >> > +
-> >> > + =A0 =A0 =A0 /*
-> >> > + =A0 =A0 =A0 =A0* Intially Configuring MMC_CTRL for receving in=
-terrupts &
-> >> > + =A0 =A0 =A0 =A0* Card status on TWL6030 for MMC1
-> >> > + =A0 =A0 =A0 =A0*/
-> >> > + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_v=
-al,
-> >> TWL6030_MMCCTRL);
-> >> > + =A0 =A0 =A0 if (ret < 0) {
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to read MM=
-CCTRL, error %d\n",
-> >> ret);
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> >> > + =A0 =A0 =A0 }
-> >> > + =A0 =A0 =A0 reg_val &=3D ~VMMC_AUTO_OFF;
-> >> > + =A0 =A0 =A0 reg_val |=3D SW_FC;
-> >> > + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_v=
-al,
-> >> TWL6030_MMCCTRL);
-> >> > + =A0 =A0 =A0 if (ret < 0) {
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to write M=
-MCCTRL, error
-> %d\n",
-> >> ret);
-> >> > + =A0 =A0 =A0 }
-> >> > +
-> >> > + =A0 =A0 =A0 /* Configuring PullUp-PullDown register */
-> >> > + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_v=
-al,
-> >> > +
-> >> TWL6030_CFG_INPUT_PUPD3);
-> >> > + =A0 =A0 =A0 if (ret < 0) {
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to read CF=
-G_INPUT_PUPD3,
-> error
-> >> %d\n",
-> >> > +
-> >> ret);
-> >> > + =A0 =A0 =A0 }
-> >> > + =A0 =A0 =A0 reg_val &=3D ~(MMC_PU | MMC_PD);
-> >> > + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_v=
-al,
-> >> > +
-> >> TWL6030_CFG_INPUT_PUPD3);
-> >> > + =A0 =A0 =A0 if (ret < 0) {
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to write C=
-=46G_INPUT_PUPD3,
-> error
-> >> %d\n",
-> >> > +
-> >> ret);
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> >> > + =A0 =A0 =A0 }
-> >> > + =A0 =A0 =A0 return 0;
-> >> > +}
-> >> > +EXPORT_SYMBOL(twl6030_mmc_card_detect_config);
-> >> > +
-> >> > +int twl6030_mmc_card_detect(struct device *dev, int slot)
-> >> > +{
-> >> > + =A0 =A0 =A0 int ret =3D -EIO;
-> >> > + =A0 =A0 =A0 u8 read_reg;
-> >> > + =A0 =A0 =A0 struct platform_device *pdev =3D container_of(dev,
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 struct platform_device, dev);
-> >> > +
-> >> > + =A0 =A0 =A0 switch (pdev->id) {
-> >> > + =A0 =A0 =A0 case 0:
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /*
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* BIT0 of REG_MMC_CTRL
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* 0 - Card not present ,1 - Car=
-d present
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MO=
-DULE_ID0, &read_reg,
-> >> > +
-> >> TWL6030_MMCCTRL);
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret >=3D 0)
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D read_reg &=
- STS_MMC;
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> >> > + =A0 =A0 =A0 default:
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Unkown MMC controller %d i=
-n %s\n", pdev->id,
-> >> __func__);
-> >> > + =A0 =A0 =A0 }
-> >> > + =A0 =A0 =A0 return ret;
-> >> > +}
-> >> > +EXPORT_SYMBOL(twl6030_mmc_card_detect);
-> >> > +
-> >> > =A0int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned
-> irq_end)
-> >> > =A0{
-> >> >
-> >> > diff --git a/drivers/mmc/host/omap_hsmmc.c
-> >> b/drivers/mmc/host/omap_hsmmc.c
-> >> > index b032828..c047b13 100644
-> >> > --- a/drivers/mmc/host/omap_hsmmc.c
-> >> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> >> > @@ -464,8 +464,6 @@ static int omap_hsmmc_gpio_init(struct
-> >> omap_mmc_platform_data *pdata)
-> >> > =A0 =A0 =A0 =A0int ret;
-> >> >
-> >> > =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].switch_pin)) {
-> >> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->suspend =3D omap_hsmmc_susp=
-end_cdirq;
-> >> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->resume =3D omap_hsmmc_resum=
-e_cdirq;
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (pdata->slots[0].cover)
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].g=
-et_cover_state =3D
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0omap_hsmmc_get_cover_state;
-> >> > @@ -2170,6 +2168,8 @@ static int __init omap_hsmmc_probe(struct
-> >> platform_device *pdev)
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"=
-Unable to grab MMC CD IRQ\n");
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_irq_cd;
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->suspend =3D omap_hsmmc_susp=
-end_cdirq;
-> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->resume =3D omap_hsmmc_resum=
-e_cdirq;
-> >> > =A0 =A0 =A0 =A0}
-> >> >
-> >> > =A0 =A0 =A0 =A0omap_hsmmc_disable_irq(host);
-> >> > diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-> >> > index 6de90bf..9493292 100644
-> >> > --- a/include/linux/i2c/twl.h
-> >> > +++ b/include/linux/i2c/twl.h
-> >> > @@ -141,6 +141,16 @@
-> >> > =A0#define TWL6030_CHARGER_CTRL_INT_MASK =A00x10
-> >> > =A0#define TWL6030_CHARGER_FAULT_INT_MASK =A0 =A0 =A0 =A0 0x60
-> >> >
-> >> > +#define TWL6030_MMCCTRL =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00xEE
-> >> > +#define VMMC_AUTO_OFF =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(0x1 <=
-< 3)
-> >> > +#define SW_FC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-(0x1 << 2)
-> >> > +#define STS_MMC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-0x1
-> >> > +
-> >> > +#define TWL6030_CFG_INPUT_PUPD3 =A0 =A0 =A0 =A00xF2
-> >> > +#define MMC_PU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-(0x1 << 3)
-> >> > +#define MMC_PD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-(0x1 << 2)
-> >> > +
-> >> > +
-> >> >
-> >> > =A0#define TWL4030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x4030
-> >> > =A0#define TWL6030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x6030
-> >> > @@ -173,6 +183,12 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 r=
-eg,
-> >> unsigned num_bytes);
-> >> > =A0int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
-> >> > =A0int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
-> >> >
-> >> > +/* Card detect Configuration for MMC1 Controller on OMAP4 */
-> >> > +int twl6030_mmc_card_detect_config(void);
-> >> > +
-> >> > +/* MMC1 Controller on OMAP4 uses Phoenix irq for Card detect */
-> >> > +int twl6030_mmc_card_detect(struct device *dev, int slot);
-> >> > +
-> >> > =A0/*-----------------------------------------------------------=
--------
-> ---
-> >> -*/
-> >> >
-> >> > =A0/*
-> >> > --
-> >> > 1.6.3.3
-> >> >
-> >> > --
-> >> > To unsubscribe from this list: send the line "unsubscribe linux-=
-mmc"
-> in
-> >> > the body of a message to majordomo@vger.kernel.org
-> >> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.=
-html
-> >> >
-> >
-> >
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Kevin
+>
+> diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bus.c
+> index bab0186..01bbe65 100644
+> --- a/arch/arm/mach-omap2/pm_bus.c
+> +++ b/arch/arm/mach-omap2/pm_bus.c
+> @@ -90,7 +90,7 @@ int platform_pm_resume_noirq(struct device *dev)
+>  	 * method so that the runtime PM usage counting is in the same
+>  	 * state it was when suspend was called.
+>  	 */
+> -	pm_runtime_get_sync(dev);
+> +	pm_runtime_get_noresume(dev);
+>  
+>  	if (!drv)
+>  		return 0;
