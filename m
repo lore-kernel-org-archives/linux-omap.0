@@ -1,41 +1,41 @@
 From: "Gopinath, Thara" <thara@ti.com>
 Subject: RE: [RFC 3/7] OMAP: Introduce voltage domain pointer and device
  specific set rate and get rate in device opp structures.
-Date: Wed, 4 Aug 2010 09:31:03 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323E68C8F@dbde02.ent.ti.com>
+Date: Wed, 4 Aug 2010 09:32:13 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323E68C90@dbde02.ent.ti.com>
 References: <1278065909-32148-1-git-send-email-thara@ti.com>
- <1278065909-32148-2-git-send-email-thara@ti.com>
- <1278065909-32148-3-git-send-email-thara@ti.com>
- <1278065909-32148-4-git-send-email-thara@ti.com> <4C56B5C5.2070504@ti.com>
+	<1278065909-32148-2-git-send-email-thara@ti.com>
+	<1278065909-32148-3-git-send-email-thara@ti.com>
+	<1278065909-32148-4-git-send-email-thara@ti.com>
+ <87iq3rkyit.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33200 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33244 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751291Ab0HDEBI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 00:01:08 -0400
-In-Reply-To: <4C56B5C5.2070504@ti.com>
+	id S1751291Ab0HDECT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 00:02:19 -0400
+In-Reply-To: <87iq3rkyit.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
 
 
 >>-----Original Message-----
->>From: Cousson, Benoit
->>Sent: Monday, August 02, 2010 5:41 PM
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Wednesday, August 04, 2010 6:03 AM
 >>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; paul@pwsan.com; Sripathy, Vishwanath;
->>Sawant, Anand; Basak, Partha
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand;
+>>Basak, Partha
 >>Subject: Re: [RFC 3/7] OMAP: Introduce voltage domain pointer and device specific set rate and get
 >>rate in device opp structures.
 >>
->>Hi Thara,
+>>Thara Gopinath <thara@ti.com> writes:
 >>
->>On 7/2/2010 12:18 PM, Gopinath, Thara wrote:
 >>> This patch extends the device opp structure to contain
 >>> info about the voltage domain to which the device belongs to
 >>> and to contain pointers to scale the operating rate of the
@@ -48,11 +48,11 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeproot
 >>> all the devices associated with a voltage domain and then
 >>> scale the voltage domain.
 >>>
->>> Signed-off-by: Thara Gopinath<thara@ti.com>
+>>> Signed-off-by: Thara Gopinath <thara@ti.com>
 >>> ---
->>>   arch/arm/plat-omap/include/plat/opp.h |   37 +++++++++++++++++++++++++-
->>>   arch/arm/plat-omap/opp.c              |   47 +++++++++++++++++++++++++-------
->>>   2 files changed, 72 insertions(+), 12 deletions(-)
+>>>  arch/arm/plat-omap/include/plat/opp.h |   37 +++++++++++++++++++++++++-
+>>>  arch/arm/plat-omap/opp.c              |   47 +++++++++++++++++++++++++-------
+>>>  2 files changed, 72 insertions(+), 12 deletions(-)
 >>>
 >>> diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
 >>> index 893731f..15e1e70 100644
@@ -60,40 +60,198 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeproot
 >>> +++ b/arch/arm/plat-omap/include/plat/opp.h
 >>> @@ -16,6 +16,7 @@
 >>>
->>>   #include<linux/err.h>
->>>   #include<linux/cpufreq.h>
->>> +#include<linux/clk.h>
+>>>  #include <linux/err.h>
+>>>  #include <linux/cpufreq.h>
+>>> +#include <linux/clk.h>
 >>>
->>>   #include<plat/common.h>
+>>>  #include <plat/common.h>
 >>>
 >>> @@ -38,21 +39,45 @@
->>>    */
->>>   struct omap_opp_def {
->>>   	char *hwmod_name;
+>>>   */
+>>>  struct omap_opp_def {
+>>>  	char *hwmod_name;
 >>> +	char *vdd_name;
->>
->>vdd should be an attribute of hwmod. For one hwmod in a soc we will
->>always have the same vdd.
->>That will avoid to duplicate information and to have to populate that in
->>each OPP entry (cf patch 6).
-I also do not like the duplication of info in the opp tables. I was not sure
-about introducing this in the hwmod layer. I could surely do this for the
-vdd name and voltage domain pointer.
->>
 >>>
->>>   	unsigned long freq;
->>>   	unsigned long u_volt;
+>>>  	unsigned long freq;
+>>>  	unsigned long u_volt;
 >>>
 >>> +	int (*set_rate)(struct device *dev, unsigned long rate);
 >>> +	unsigned long (*get_rate) (struct device *dev);
+>>> +
+>>>  	bool enabled;
+>>>  };
+>>>
+>>> +struct device_opp {
+>>> +	struct list_head node;
+>>> +	char *vdd_name;
+>>> +
+>>> +	struct omap_hwmod *oh;
+>>> +	struct device *dev;
+>>> +	struct omap_volt_domain *volt_domain;
+>>> +
+>>> +	struct list_head opp_list;
+>>> +	u32 opp_count;
+>>> +	u32 enabled_opp_count;
+>>> +
+>>> +	int (*set_rate)(struct device *dev, unsigned long rate);
+>>> +	unsigned long (*get_rate) (struct device *dev);
+>>> +};
 >>
->>We might already discussed that, but why should we store that per OPP?
->>Cannot we store that per device?
+>>I don't like moving the definition of this struct out.  This exposes the
+>>implmentation details of the OPP layer that are subject to change.
+>>
+>>A quick glance shows you need to access the volt_domain field and the
+>>new function pointers.
+>>
+>>The voltage domain should be part of the hwmod as suggested by Benoit,
+>>and an API created to get the voltage domain from the hwmod.
+>>
+>>For the get/set rate functions, maybe new OPP layer API should be
+>>created access those functions.  opp_[get|set]_rate()?
 
-Paul had concerns regarding this. These are not h/w or h/w interface related info
-in any manner. One good point is that even though these pointers are duplicated in
-the init opp tables, during init the device opp tables are built and only one copy
-is maintained. But I agree this does not look too very good.
+Yes I could do this.
+
+>>
+>>
+>>>  /*
+>>>   * Initialization wrapper used to define an OPP.
+>>>   * To point at the end of a terminator of a list of OPPs,
+>>>   * use OMAP_OPP_DEF(0, 0, 0)
+>>>   */
+>>> -#define OMAP_OPP_DEF(_hwmod_name, _enabled, _freq, _uv)	\
+>>> +#define OMAP_OPP_DEF(_hwmod_name, _vdd_name, _set_rate, _get_rate, \
+>>> +			_enabled, _freq, _uv)	\
+>>>  {						\
+>>>  	.hwmod_name	= _hwmod_name,		\
+>>> +	.vdd_name	= _vdd_name,		\
+>>> +	.set_rate	= _set_rate,		\
+>>> +	.get_rate	= _get_rate,		\
+>>>  	.enabled	= _enabled,		\
+>>>  	.freq		= _freq,		\
+>>>  	.u_volt		= _uv,			\
+>>> @@ -77,6 +102,8 @@ struct omap_opp *opp_find_freq_ceil(struct device *dev, unsigned long *freq);
+>>>
+>>>  struct omap_opp *opp_find_voltage(struct device *dev, unsigned long volt);
+>>>
+>>> +struct device_opp *opp_find_dev_opp(struct device *dev);
+>>> +
+>>>  int opp_add(const struct omap_opp_def *opp_def);
+>>>
+>>>  int opp_enable(struct omap_opp *opp);
+>>> @@ -89,6 +116,9 @@ u8 __deprecated opp_get_opp_id(struct omap_opp *opp);
+>>>
+>>>  void opp_init_cpufreq_table(struct device *dev,
+>>>  			    struct cpufreq_frequency_table **table);
+>>> +
+>>> +struct device **opp_init_voltage_params(struct omap_volt_domain *volt_domain,
+>>> +		int *dev_count);
+>>>  #else
+>>>  static inline unsigned long opp_get_voltage(const struct omap_opp *opp)
+>>>  {
+>>> @@ -124,6 +154,11 @@ static inline struct omap_opp *opp_find_freq_ceil(struct omap_opp *oppl,
+>>>  	return ERR_PTR(-EINVAL);
+>>>  }
+>>>
+>>> +static inline struct device_opp *opp_find_dev_opp(struct device *dev)
+>>> +{
+>>> +	return ERR_PTR(-EINVAL);
+>>> +}
+>>> +
+>>>  static inline struct omap_opp *opp_add(struct omap_opp *oppl,
+>>>  				       const struct omap_opp_def *opp_def)
+>>>  {
+>>> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+>>> index 070ff5b..9bc53e8 100644
+>>> --- a/arch/arm/plat-omap/opp.c
+>>> +++ b/arch/arm/plat-omap/opp.c
+>>> @@ -22,6 +22,7 @@
+>>>  #include <plat/opp_twl_tps.h>
+>>>  #include <plat/opp.h>
+>>>  #include <plat/omap_device.h>
+>>> +#include <plat/voltage.h>
+>>>
+>>>  /**
+>>>   * struct omap_opp - OMAP OPP description structure
+>>> @@ -43,17 +44,6 @@ struct omap_opp {
+>>>  	struct device_opp *dev_opp;  /* containing device_opp struct */
+>>>  };
+>>>
+>>> -struct device_opp {
+>>> -	struct list_head node;
+>>> -
+>>> -	struct omap_hwmod *oh;
+>>> -	struct device *dev;
+>>> -
+>>> -	struct list_head opp_list;
+>>> -	u32 opp_count;
+>>> -	u32 enabled_opp_count;
+>>> -};
+>>> -
+>>>  static LIST_HEAD(dev_opp_list);
+>>>
+>>>  /**
+>>> @@ -330,6 +320,11 @@ struct omap_opp *opp_find_voltage(struct device *dev, unsigned long volt)
+>>>  	return opp;
+>>>  }
+>>>
+>>> +struct device_opp *opp_find_dev_opp(struct device *dev)
+>>> +{
+>>> +	return find_device_opp(dev);
+>>> +}
+>>> +
+>>>  /* wrapper to reuse converting opp_def to opp struct */
+>>>  static void omap_opp_populate(struct omap_opp *opp,
+>>>  			      const struct omap_opp_def *opp_def)
+>>> @@ -385,6 +380,11 @@ int opp_add(const struct omap_opp_def *opp_def)
+>>>
+>>>  		dev_opp->oh = oh;
+>>>  		dev_opp->dev = &oh->od->pdev.dev;
+>>> +		dev_opp->vdd_name = kzalloc(strlen(opp_def->vdd_name) + 1,
+>>> +				GFP_KERNEL);
+>>> +		strcpy(dev_opp->vdd_name, opp_def->vdd_name);
+>>
+>>Since this is user-defined data/string, should probably have a max
+>>strlen and use strncpy.
+
+I did not get this. What is the problem with the strlen here ?
 
 Regards
 Thara
+
+>>
+>>Kevin
+>>
+>>> +		dev_opp->set_rate = opp_def->set_rate;
+>>> +		dev_opp->get_rate = opp_def->get_rate;
+>>>  		INIT_LIST_HEAD(&dev_opp->opp_list);
+>>>
+>>>  		list_add(&dev_opp->node, &dev_opp_list);
+>>> @@ -511,3 +511,28 @@ void opp_init_cpufreq_table(struct device *dev,
+>>>
+>>>  	*table = &freq_table[0];
+>>>  }
+>>> +
+>>> +struct device **opp_init_voltage_params(struct omap_volt_domain *volt_domain,
+>>> +		int *dev_count)
+>>> +{
+>>> +	struct device_opp *dev_opp;
+>>> +	struct device **dev_list;
+>>> +	int count = 0, i = 0;
+>>> +
+>>> +	list_for_each_entry(dev_opp, &dev_opp_list, node) {
+>>> +		if (!strcmp(dev_opp->vdd_name, volt_domain->name)) {
+>>> +			dev_opp->volt_domain = volt_domain;
+>>> +			count++;
+>>> +		}
+>>> +	}
+>>> +
+>>> +	dev_list = kzalloc(sizeof(struct device *) * count, GFP_KERNEL);
+>>> +
+>>> +	list_for_each_entry(dev_opp, &dev_opp_list, node) {
+>>> +		if (dev_opp->volt_domain == volt_domain)
+>>> +			dev_list[i++] = dev_opp->dev;
+>>> +	}
+>>> +
+>>> +	*dev_count = count;
+>>> +	return dev_list;
+>>> +}
