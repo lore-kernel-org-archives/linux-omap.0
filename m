@@ -1,78 +1,71 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PM-SR] [PATCH] OMAP: PM: Remove the usage of vdd id's.
-Date: Wed, 04 Aug 2010 16:14:01 +0200
-Message-ID: <4C5975A9.4010008@ti.com>
-References: <1277391768-3361-1-git-send-email-thara@ti.com> <87hbkrm0kj.fsf@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB0323E68CC7@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH 01/11] OMAP: DMA: Introduce DMA device attributes
+Date: Wed, 4 Aug 2010 22:51:56 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402708B4F1A@dbde02.ent.ti.com>
+References: <1280397545-27323-1-git-send-email-manjugk@ti.com>
+ <1280397545-27323-2-git-send-email-manjugk@ti.com> <4C5175A6.5020101@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402707515AE@dbde02.ent.ti.com>
+ <4C593D50.4010908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46073 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58651 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755637Ab0HDOOH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Aug 2010 10:14:07 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323E68CC7@dbde02.ent.ti.com>
+	id S1755361Ab0HDRWG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 13:22:06 -0400
+In-Reply-To: <4C593D50.4010908@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
-
-On 8/4/2010 6:31 AM, Gopinath, Thara wrote:
->>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>> Sent: Friday, June 25, 2010 11:56 PM
->>>
->>> Thara Gopinath<thara@ti.com>  writes:
->>>
->>>> This patch removes the usage of vdd and sr id alltogether.
->>>> This is achieved by introducing a separte voltage domain per
->>>> VDD and hooking this up with the voltage and smartreflex
->>>> internal info structure. Any user of voltage or smartreflex layer
->>>> should call into omap_volt_domain_get to get the voltage
->>>> domain handle and make use of this to call into the various
->>>> exported API's.
->>>
->>> Great, I'm glad to see those gone.
->>>
->>> Minor comment on naming:
->>>
->>> In current code, we currently have
->>>
->>>    struct clockdomain *clkdm;
->>>    struct powerdomain *pwrdm;
->>>
->>> so, for consistency, I'd suggest using
->>>
->>>    struct voltagedomain *voltdm;
->>>
->>> instead of this:
->>>
->>>    struct omap_volt_domain *volt_domain;
->>>
->>>
->>> Also, it looks like your 'struct omap_vdd_info' is the real struct that
->>> represents a voltage domain.
->>>
->>> Maybe you're planning this already, but I suggest you get rid of
->>> omap_vdd_info and just move all that stuff into the voltagedomain.
->>> Again, that will probably create a diff with a ton of renames, so this
->>> should just be part of your V2 series.
->
-> Are you sure? Because omap_vdd_info contains all the internal details about the
-> voltage domains. Do we really want to expose it? IMHO omap_vdd_info should remain as
-> internal structure instead of exposing it out.
-
-I think as well that struct voltagedomain should be a soc generic 
-representation of the voltage domain, whereas omap_vdd_info will contain 
-all the soc specific details.
-The issue with voltage domain, is that the compared to clockdomain and 
-powerdomain, the details are quite different between OMAP2, 3 and 4.
-OMAP2 does not have any VP, VC, SR, so in this case, the voltagedomain 
-should be almost empty whereas OMAP3 will contain much more stuff. OMAP4 
-should be pretty similar.
-
-That being said, since we have only 1 scalable voltage domain on OMAP2, 
-we can still manage the overhead.
-
-Benoit
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
 
 
+
+> -----Original Message-----
+> From: Cousson, Benoit 
+> Sent: Wednesday, August 04, 2010 3:44 PM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Paul Walmsley; 
+> Tony Lindgren; Sawant, Anand; Shilimkar, Santosh; Nayak, 
+> Rajendra; Basak, Partha; Varadarajan, Charulatha
+> Subject: Re: [PATCH 01/11] OMAP: DMA: Introduce DMA device attributes
+> 
+> On 7/30/2010 5:57 AM, G, Manjunath Kondaiah wrote:
+> 
+> <snip>
+> 
+> >>> +/* Attributes for OMAP DMA Contrllers */
+> >>> +#define ENABLE_1510_MODE		(1<<   0)
+> >>> +#define DMA_LINKED_LCH			(1<<   1)
+> >>> +#define GLOBAL_PRIORITY			(1<<   2)
+> >>> +#define RESERVE_CHANNEL			(1<<   3)
+> >>> +#define SRC_PORT			(2<<   3)
+> >>> +#define DST_PORT			(2<<   4)
+> >>> +#define IS_CSSA_32			(2<<   5)
+> >>> +#define IS_CDSA_32			(2<<   6)
+> >>> +#define SRC_INDEX			(4<<   6)
+> >>> +#define DST_INDEX			(4<<   7)
+> >>> +#define IS_BURST_ONLY4			(4<<   8)
+> >>> +#define CLEAR_CSR_ON_READ		(4<<   9)
+> >>> +#define IS_WORD_16			(8<<   9)
+> >>> +#define IS_RW_PRIORIY			(8<<   0xA)
+> >>
+> >> It is a minor detail, but why are you shifting both side of the
+> >> operator? It is really confusing, cannot you just do 1<<  X?
+> >> With 0<  X<  13.
+> > I can change this if it is confusing to others.
+> 
+> So you are still convince that this is a good way to do it???
+> What is the rational behind that?
+> Why adding potential source of confusion when you can avoid 
+> that easily?
+
+There is no specific reason/rationale. Left side bit keeps incrementing
+for every four bits and right side bit keeps incrementing every time except
+during left bit increment.
+As I mentioned earlier, I can change this to your logic or we can have something like:
+0x0001, 0x0002, 0x0004, 0x0008, 0x0010 ...
+
+-Manjunath
