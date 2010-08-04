@@ -1,80 +1,49 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 1/3] OMAP4: prcm: Add temporarily helper functions for rmw and read inside the PRM
-Date: Thu,  5 Aug 2010 00:12:46 +0200
-Message-ID: <1280959968-23933-2-git-send-email-b-cousson@ti.com>
-References: <1280959968-23933-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 0/3] OMAP: hwmod: Add hardreset and softreset management
+Date: Thu,  5 Aug 2010 00:12:45 +0200
+Message-ID: <1280959968-23933-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45450 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59261 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752047Ab0HDWM5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Aug 2010 18:12:57 -0400
-In-Reply-To: <1280959968-23933-1-git-send-email-b-cousson@ti.com>
+	id S1752047Ab0HDWM4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Aug 2010 18:12:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com
 Cc: rnayak@ti.com, santosh.shilimkar@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-Since OMAP4 is using an absolute address, the current PRM accessors
-are not useable.
-OMAP4 adaptation for these API are currently ongoing, so define temp
-version until the proper ones are defined.
+Hi Paul & Kevin,
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/prcm.c             |   24 ++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/prcm.h |    2 ++
- 2 files changed, 26 insertions(+), 0 deletions(-)
+Here are a reset management series.
 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 96f4616..d4388d3 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -216,6 +216,30 @@ u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask)
- 	return v;
- }
- 
-+/* Read a PRM register, AND it, and shift the result down to bit 0 */
-+u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask)
-+{
-+	u32 v;
-+
-+	v = __raw_readl(reg);
-+	v &= mask;
-+	v >>= __ffs(mask);
-+
-+	return v;
-+}
-+
-+/* Read-modify-write a register in a PRM module. Caller must lock */
-+u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg)
-+{
-+	u32 v;
-+
-+	v = __raw_readl(reg);
-+	v &= ~mask;
-+	v |= bits;
-+	__raw_writel(v, reg);
-+
-+	return v;
-+}
- /* Read a register in a CM module */
- u32 cm_read_mod_reg(s16 module, u16 idx)
- {
-diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
-index 9fbd914..ab77442 100644
---- a/arch/arm/plat-omap/include/plat/prcm.h
-+++ b/arch/arm/plat-omap/include/plat/prcm.h
-@@ -38,6 +38,8 @@ u32 prm_read_mod_reg(s16 module, u16 idx);
- void prm_write_mod_reg(u32 val, s16 module, u16 idx);
- u32 prm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
- u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask);
-+u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
-+u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg);
- u32 cm_read_mod_reg(s16 module, u16 idx);
- void cm_write_mod_reg(u32 val, s16 module, u16 idx);
- u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
--- 
-1.6.1.3
+- The first patch will be removed as soon as we will have the proper
+  OMAP4 support for the prm_xxx accessors.
+- The second one is adding hardreset support in order to allow
+  syslink driver to manage properly the DSP and IPU processor
+  reset.
+- The last one is forcing a sofreset after the first init. 
+  Some IP might require sofreset after each wakeup
+  from power domain OFF mode. That still needs to be confirm.
+
+
+Tested on PAB board using OMAP4 ES1.0 GP device
+
+Patches are based on lo/for-next + for-next-fixes and are available here:
+git://dev.omapzoom.org/pub/scm/swarch/linux-omap-adv.git pm-wip/hwmods-reset
+
+Regards,
+Benoit
+
+
+Benoit Cousson (3):
+  OMAP4: prcm: Add temporarily helper functions for rmw and read inside
+    the PRM
+  OMAP: hwmod: Add hardreset management support
+  OMAP: hwmod: Force a softreset during _setup
+
+ arch/arm/mach-omap2/omap_hwmod.c             |  197 ++++++++++++++++++++++++--
+ arch/arm/mach-omap2/prcm.c                   |   24 +++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   21 +++
+ arch/arm/plat-omap/include/plat/prcm.h       |    2 +
+ 4 files changed, 235 insertions(+), 9 deletions(-)
 
