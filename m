@@ -1,45 +1,45 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 2/8] davinci: add mdio platform devices
-Date: Wed, 04 Aug 2010 09:58:26 +0300
-Message-ID: <4C590F92.1040003@compulab.co.il>
-References: <1280842313-3743-1-git-send-email-cyril@ti.com> <1280842313-3743-3-git-send-email-cyril@ti.com> <4C58227A.4080502@compulab.co.il> <4C582879.7060708@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: linux-omap-2.6.35 on beagleboard based device hangs after
+ booting the kernel
+Date: Wed, 4 Aug 2010 12:15:41 +0300
+Message-ID: <20100804121541.efc1740f.jhnikula@gmail.com>
+References: <5C6708A1-224D-49D0-90F8-E037EEE7542A@mac.com>
+	<D51DF1EE-C759-411A-AC52-7E3A61797254@mac.com>
+	<20100804053916.GC6840@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C582879.7060708@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: cyril@ti.com
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Govindarajan, Sriramakrishnan" <srk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:59031 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757224Ab0HDJOo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 05:14:44 -0400
+Received: by ewy23 with SMTP id 23so1917883ewy.19
+        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 02:14:43 -0700 (PDT)
+In-Reply-To: <20100804053916.GC6840@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Elvis Dowson <elvis.dowson@mac.com>, linux-omap@vger.kernel.org
 
-On 08/03/10 17:32, Cyril Chemparathy wrote:
-> Hi Igor,
->
->   
->> Shouldn't arch/arm/mach-omap2/board-am3517evm.c be on your list?
->> I think it should, or else it will be broken by:
->> [PATCH 5/8] netdev: cleanup unused davinci mdio emac code
->>     
-> Correct.  As stated in the series summary:
->
->   
->> Additional omap tree patches will be required for am35xx as well
->> (not included here).
->>     
+On Wed, 4 Aug 2010 08:39:19 +0300
+Tony Lindgren <tony@atomide.com> wrote:
 
-Sorry for missing that,
-my laziness and long cover letter made me miss it :)
-Do you plan on bringing those patches?
-Wouldn't it be better for those patches to be included in the series?
-Because, merging code that breaks other platform(s) is not so nice...
+> > I was using beagleboard_defconfig, which probably was insufficient, I should have used omap3_defconfig.
+> 
+> Hmm, sounds like there's something wrong with beagleboard_defconfig
+> then. Care to enable CONFIG_DEBUG_LL=y and CONFIG_EARLY_PRINTK=y
+> and add earlyprintk to kernel cmdline and see if you get any
+> more info why it hangs?
+> 
+I have Beagle C2 with U-boot 2009.01-dirty and both v2.6.35 and l-o head
+c287f2c5e0b80a272b9ee2032feef7366dcc1e64 boots ok with
+omap3_beagle_defconfig.
 
-> Regards
-> Cyril.
->
->   
+Does you custom board have the same machine id than Beagle? You'll see
+that also with earlyprintk if machine id from bootloader doesn't match
+with board(s) support by the kernel.
+
 
 -- 
-Regards,
-Igor.
-
+Jarkko
