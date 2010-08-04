@@ -1,233 +1,131 @@
-From: Patrick Pannuto <ppannuto@codeaurora.org>
-Subject: [PATCH] platform: Facilitate the creation of pseduo-platform busses
-Date: Wed, 04 Aug 2010 15:14:44 -0700
-Message-ID: <4C59E654.1090403@codeaurora.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Issues with calling pm_runtime functions in platform_pm_suspend_noirq/IRQ disabled context.
+Date: Wed, 04 Aug 2010 15:32:22 -0700
+Message-ID: <87sk2u9fgp.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED1089@dbde02.ent.ti.com>
+	<874ofbppj4.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E7F6ECA2@dbde02.ent.ti.com>
+	<87tynaaw4r.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:64001 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756576Ab0HDWOp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 18:14:45 -0400
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:59955 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758086Ab0HDWcY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 18:32:24 -0400
+Received: by pvc7 with SMTP id 7so2236369pvc.19
+        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 15:32:24 -0700 (PDT)
+In-Reply-To: <87tynaaw4r.fsf@deeprootsystems.com> (Kevin Hilman's message of
+	"Wed, 04 Aug 2010 14:47:00 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, alan@lxorguk.ukuu.org.uk, zt.tmzt@gmail.com
+To: "Basak, Partha" <p-basak2@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Inspiration for this comes from:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31161.html
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-RFC: http://lkml.org/lkml/2010/8/3/496
-Patch is unchanged from the RFC. Reviews seemed generally positive
-and it seemed this was desired functionality.
+> "Basak, Partha" <p-basak2@ti.com> writes:
+>
+>>> -----Original Message-----
+>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>> Sent: Tuesday, August 03, 2010 11:06 PM
+>>> To: Basak, Partha
+>>> Cc: Paul Walmsley; linux-omap@vger.kernel.org; Kalliguddi, Hema; Raja,
+>>> Govindraj; Varadarajan, Charulatha; Nayak, Rajendra; Cousson, Benoit
+>>> Subject: Re: Issues with calling pm_runtime functions in
+>>> platform_pm_suspend_noirq/IRQ disabled context.
+>>> 
+>>> "Basak, Partha" <p-basak2@ti.com> writes:
+>>> 
+>>> > Resending with the corrected mailing list
+>>> >
+>>> > Hello Kevin,
+>>> >
+>>> > I want to draw your attention to an issue the following patch
+>>> > introduces. http://dev.omapzoom.org/?p=swarch/linux-omap-
+>>> adv.git;a=commitdiff;h=8041359e18e49bf8a3d41f15894db9e476f3a8fc
+>>> 
+>>> [...]
+>>> 
+>>> > I believe, it is not correct to call the pm_runtime APIs from
+>>> > interrupt locked context since the underlying functions
+>>> > __pm_runtime_suspend & __pm_runtime_resume enable interrupts and call
+>>> > schedule().
+>>> >
+>>> > Further, from a s/w layering standpoint, platform-bus is a deeper
+>>> > layer than the Runtime layer, which the runtime layer calls into. So
+>>> > it may not be correct to have this layer calling into pm_runtime(). It
+>>> > should directly call omap_device APIs.
+>>> 
+>>> The original version of this patch did directly call the omap_device
+>>> APIs.  However, Paul didn't like that approach and there were
+>>> use-counting problems to handle as well (e.g. if a driver was not (yet)
+>>> in use, it would already be disabled, and a suspend would trigger an
+>>> omap_device_disable() which would fail since device was already
+>>> disabled.)
+>>> 
+>>> Paul and I agreed that this current approach would solve the
+>>> use-counting problems, but you're correct in that it introduces
+>>> new problems as these functions can _possibly_ sleep/schedule.
+>>> 
+>>> That being said, have you actually seen problems here?   I would like
+>>> to see how they are triggered?
+>>
+>> Scenario 1:
+>>
+>> Consider the case where a driver has already called
+>> pm_runtime_put_sync as part of aggressive clock cutting
+>> scheme. Subsequently, when system suspend is called,
+>> pm_runtime_put_sync is called again. 
+>
+>> Due to atomic_dec_and_test check
+>> on usage_count, the second call goes through w/o error.
+>
+> I don't think you're fully understanding the point of the put/get in the
+> suspend/resume path.
+>
+> The reason for the 'put' in the suspend path is because the PM core has
+> done a 'get' in dpm_prepare() [c.f. drivers/base/power/main.c] so that
+> runtime PM transitions are prevented during suspend/resume.
+>
+> On OMAP, we want to allow those transitions to happen so we can use the
+> same runtime PM calls in the idle and suspend paths.
+>
+>> At System resume, pm_runtime_get_sync is called twice, once by resume,
+>> once by the driver itself. 
+>
+> Yes, but there is a 'put_sync' in between those done by the PM core
+> during resume (c.f. dpm_complete() in drivers/base/power/main.c]
+>
+>> Because of the extra reference count, the
+>> aggressive clock control by the driver is broken, as call to put_sync
+>> by a driver reduces to usage_count to 1. As a result clock transition
+>> in Idle-path is broken.
 
-INTRO
+A closer look here, and there is indeed a bug in the _resume_noirq()
+method.  The get here needs to be a _noresume version to match what is
+done in the PM core.
 
-As SOCs become more popular, the desire to quickly define a simple,
-but functional, bus type with only a few unique properties becomes
-desirable. As they become more complicated, the ability to nest these
-simple busses and otherwise orchestrate them to match the actual
-topology also becomes desirable.
+This doesn't change the use count, but it does change whether the device
+is actually awoken by this 'get' or not.  This get should never actually
+awake the device.  It is only there to compensate for what the PM core
+does.
 
-EXAMPLE USAGE
+Can you try this patch?  Will post a version to the list with
+changelog shortly.
 
-/arch/ARCH/MY_ARCH/my_bus.c:
+Kevin
 
-	#include <linux/device.h>
-	#include <linux/platform_device.h>
-
-	struct bus_type my_bus_type = {
-		.name	= "mybus",
-	};
-	EXPORT_SYMBOL_GPL(my_bus_type);
-
-	struct platform_device sub_bus1 = {
-		.name		= "sub_bus1",
-		.id		= -1,
-		.dev.bus	= &my_bus_type,
-	}
-	EXPORT_SYMBOL_GPL(sub_bus1);
-
-	struct platform_device sub_bus2 = {
-		.name		= "sub_bus2",
-		.id		= -1,
-		.dev.bus	= &my_bus_type,
-	}
-	EXPORT_SYMBOL_GPL(sub_bus2);
-
-	static int __init my_bus_init(void)
-	{
-		int error;
-		platform_bus_type_init(&my_bus_type);
-
-		error = bus_register(&my_bus_type);
-		if (error)
-			return error;
-
-		error = platform_device_register(&sub_bus1);
-		if (error)
-			goto fail_sub_bus1;
-
-		error = platform_device_register(&sub_bus2);
-		if (error)
-			goto fail_sub_bus2;
-
-		return error;
-
-	fail_sub_bus2:
-		platform_device_unregister(&sub_bus1);
-	fail_sub_bus2:
-		bus_unregister(&my_bus_type);
-
-		return error;
-	}
-	postcore_initcall(my_bus_init);
-	EXPORT_SYMBOL_GPL(my_bus_init);
-
-/drivers/my_driver.c
-	static struct platform_driver my_driver = {
-		.driver	= {
-			.name	= "my-driver",
-			.owner	= THIS_MODULE,
-			.bus	= &my_bus_type,
-		},
-	};
-
-/somewhere/my_device.c
-	static struct platform_device my_device = {
-		.name		= "my-device",
-		.id		= -1,
-		.dev.bus	= &my_bus_type,
-		.dev.parent	= &sub_bus_1.dev,
-	};
-
-Notice that for a device / driver, only 3 lines were added to
-switch from the platform bus to the new my_bus. This is
-especially valuable if we consider supporting a legacy SOCs
-and new SOCs where the same driver is used, but may need to
-be on either the platform bus or the new my_bus. The above
-code then becomes:
-
-	(possibly in a header)
-	#ifdef CONFIG_MY_BUS
-	#define MY_BUS_TYPE	&my_bus_type
-	#else
-	#define MY_BUS_TYPE	NULL
-	#endif
-
-/drivers/my_driver.c
-	static struct platform_driver my_driver = {
-		.driver	= {
-			.name	= "my-driver",
-			.owner	= THIS_MODULE,
-			.bus	= MY_BUS_TYPE,
-		},
-	};
-
-Which will allow the same driver to easily to used on either
-the platform bus or the newly defined bus type.
-
-This will build a device tree that mirrors the actual configuration:
-    /sys/bus
-    |-- my_bus
-    |   |-- devices
-    |   |   |-- sub_bus1 -> ../../../devices/platform/sub_bus1
-    |   |   |-- sub_bus2 -> ../../../devices/platform/sub_bus2
-    |   |   |-- my-device -> ../../../devices/platform/sub_bus1/my-device
-    |   |-- drivers
-    |   |   |-- my-driver
-
-
-Signed-off-by: Patrick Pannuto <ppannuto@codeaurora.org>
----
- drivers/base/platform.c         |   30 ++++++++++++++++++++++++++----
- include/linux/platform_device.h |    2 ++
- 2 files changed, 28 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index 4d99c8b..c86be03 100644
---- a/drivers/base/platform.c
-+++ b/drivers/base/platform.c
-@@ -241,7 +241,8 @@ int platform_device_add(struct platform_device *pdev)
- 	if (!pdev->dev.parent)
- 		pdev->dev.parent = &platform_bus;
- 
--	pdev->dev.bus = &platform_bus_type;
-+	if (!pdev->dev.bus)
-+		pdev->dev.bus = &platform_bus_type;
- 
- 	if (pdev->id != -1)
- 		dev_set_name(&pdev->dev, "%s.%d", pdev->name,  pdev->id);
-@@ -482,7 +483,8 @@ static void platform_drv_shutdown(struct device *_dev)
-  */
- int platform_driver_register(struct platform_driver *drv)
- {
--	drv->driver.bus = &platform_bus_type;
-+	if (!drv->driver.bus)
-+		drv->driver.bus = &platform_bus_type;
- 	if (drv->probe)
- 		drv->driver.probe = platform_drv_probe;
- 	if (drv->remove)
-@@ -539,12 +541,12 @@ int __init_or_module platform_driver_probe(struct platform_driver *drv,
- 	 * if the probe was successful, and make sure any forced probes of
- 	 * new devices fail.
+diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bus.c
+index bab0186..01bbe65 100644
+--- a/arch/arm/mach-omap2/pm_bus.c
++++ b/arch/arm/mach-omap2/pm_bus.c
+@@ -90,7 +90,7 @@ int platform_pm_resume_noirq(struct device *dev)
+ 	 * method so that the runtime PM usage counting is in the same
+ 	 * state it was when suspend was called.
  	 */
--	spin_lock(&platform_bus_type.p->klist_drivers.k_lock);
-+	spin_lock(&drv->driver.bus->p->klist_drivers.k_lock);
- 	drv->probe = NULL;
- 	if (code == 0 && list_empty(&drv->driver.p->klist_devices.k_list))
- 		retval = -ENODEV;
- 	drv->driver.probe = platform_drv_probe_fail;
--	spin_unlock(&platform_bus_type.p->klist_drivers.k_lock);
-+	spin_unlock(&drv->driver.bus->p->klist_drivers.k_lock);
+-	pm_runtime_get_sync(dev);
++	pm_runtime_get_noresume(dev);
  
- 	if (code != retval)
- 		platform_driver_unregister(drv);
-@@ -1017,6 +1019,26 @@ struct bus_type platform_bus_type = {
- };
- EXPORT_SYMBOL_GPL(platform_bus_type);
- 
-+/** platform_bus_type_init - fill in a pseudo-platform-bus
-+  * @bus: foriegn bus type
-+  *
-+  * This init is basically a selective memcpy that
-+  * won't overwrite any user-defined attributes and
-+  * only copies things that platform bus defines anyway
-+  */
-+void platform_bus_type_init(struct bus_type *bus)
-+{
-+	if (!bus->dev_attrs)
-+		bus->dev_attrs = platform_bus_type.dev_attrs;
-+	if (!bus->match)
-+		bus->match = platform_bus_type.match;
-+	if (!bus->uevent)
-+		bus->uevent = platform_bus_type.uevent;
-+	if (!bus->pm)
-+		bus->pm = platform_bus_type.pm;
-+}
-+EXPORT_SYMBOL_GPL(platform_bus_type_init);
-+
- int __init platform_bus_init(void)
- {
- 	int error;
-diff --git a/include/linux/platform_device.h b/include/linux/platform_device.h
-index 5417944..fa8c35a 100644
---- a/include/linux/platform_device.h
-+++ b/include/linux/platform_device.h
-@@ -79,6 +79,8 @@ extern int platform_driver_probe(struct platform_driver *driver,
- #define platform_get_drvdata(_dev)	dev_get_drvdata(&(_dev)->dev)
- #define platform_set_drvdata(_dev,data)	dev_set_drvdata(&(_dev)->dev, (data))
- 
-+extern void platform_bus_type_init(struct bus_type *);
-+
- extern struct platform_device *platform_create_bundle(struct platform_driver *driver,
- 					int (*probe)(struct platform_device *),
- 					struct resource *res, unsigned int n_res,
--- 
-1.7.2
-
-
--- 
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum
+ 	if (!drv)
+ 		return 0;
