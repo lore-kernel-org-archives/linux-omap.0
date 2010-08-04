@@ -1,45 +1,47 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: linux-omap-2.6.35 on beagleboard based device hangs after
- booting the kernel
-Date: Wed, 4 Aug 2010 12:15:41 +0300
-Message-ID: <20100804121541.efc1740f.jhnikula@gmail.com>
-References: <5C6708A1-224D-49D0-90F8-E037EEE7542A@mac.com>
-	<D51DF1EE-C759-411A-AC52-7E3A61797254@mac.com>
-	<20100804053916.GC6840@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: device: improve errors handling
+Date: Wed, 4 Aug 2010 12:46:39 +0300
+Message-ID: <20100804094638.GC9881@atomide.com>
+References: <1278941887.16634.85.camel@localhost>
+ <alpine.DEB.2.00.1007121028410.19255@utopia.booyaka.com>
+ <alpine.DEB.2.00.1007121030120.19255@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:59031 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757224Ab0HDJOo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 05:14:44 -0400
-Received: by ewy23 with SMTP id 23so1917883ewy.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 02:14:43 -0700 (PDT)
-In-Reply-To: <20100804053916.GC6840@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59563 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754207Ab0HDJqO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 05:46:14 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1007121030120.19255@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Elvis Dowson <elvis.dowson@mac.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, "ext Menon, Nishanth" <nm@ti.com>, Thara Gopinath <thara@ti.com>
 
-On Wed, 4 Aug 2010 08:39:19 +0300
-Tony Lindgren <tony@atomide.com> wrote:
-
-> > I was using beagleboard_defconfig, which probably was insufficient, I should have used omap3_defconfig.
+* Paul Walmsley <paul@pwsan.com> [100712 19:24]:
+> Tony,
 > 
-> Hmm, sounds like there's something wrong with beagleboard_defconfig
-> then. Care to enable CONFIG_DEBUG_LL=y and CONFIG_EARLY_PRINTK=y
-> and add earlyprintk to kernel cmdline and see if you get any
-> more info why it hangs?
+> by the way,
 > 
-I have Beagle C2 with U-boot 2009.01-dirty and both v2.6.35 and l-o head
-c287f2c5e0b80a272b9ee2032feef7366dcc1e64 boots ok with
-omap3_beagle_defconfig.
+> On Mon, 12 Jul 2010, Paul Walmsley wrote:
+> 
+> > On Mon, 12 Jul 2010, Artem Bityutskiy wrote:
+> > 
+> > > From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> > > 
+> > > Do not forget to check the 'platform_device_add_data()' error code
+> > > in 'omap_device_build_ss()'.
+> > 
+> > Looks fine to me, platform_device_add_data() can return -ENOMEM in the 
+> > unlikely event that its kmemdup() fails.
+> > 
+> > Acked-by: Paul Walmsley <paul@pwsan.com>
+> 
+> you want to take this one, or want me to queue it up for .37?
 
-Does you custom board have the same machine id than Beagle? You'll see
-that also with earlyprintk if machine id from bootloader doesn't match
-with board(s) support by the kernel.
+Thanks, I'll add it to omap-for-linus for 2.6.36.
 
+Regards,
 
--- 
-Jarkko
+Tony
