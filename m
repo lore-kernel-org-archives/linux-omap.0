@@ -1,52 +1,69 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH v2] OMAP3630: Add ES1.1 and ES1.2 detection
-Date: Wed, 4 Aug 2010 16:25:20 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323E68F1F@dbde02.ent.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH v2] OMAP3630: Add ES1.1 and ES1.2 detection
+Date: Wed, 4 Aug 2010 14:01:42 +0300
+Message-ID: <20100804110142.GA19377@nokia.com>
 References: <20100803073940.GS12293@atomide.com>
  <1280865564-6456-1-git-send-email-gadiyar@ti.com>
- <20100804103029.GI9881@atomide.com> <20100804105138.GJ9881@atomide.com>
+ <20100804103029.GI9881@atomide.com>
+ <20100804105138.GJ9881@atomide.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49129 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756972Ab0HDKzZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 06:55:25 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:17482 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351Ab0HDLDO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 07:03:14 -0400
+Content-Disposition: inline
 In-Reply-To: <20100804105138.GJ9881@atomide.com>
-Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>, Manjunatha GK <manjugk@ti.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Wednesday, August 04, 2010 4:22 PM
-> To: Gadiyar, Anand
-> Cc: linux-omap@vger.kernel.org; Menon, Nishanth; G, Manjunath Kondaiah
-> Subject: Re: [PATCH v2] OMAP3630: Add ES1.1 and ES1.2 detection
-> 
-> * Tony Lindgren <tony@atomide.com> [100804 13:23]:
-> > * Anand Gadiyar <gadiyar@ti.com> [100803 22:52]:
-> > > Add revision detection for ES1.1 and ES1.2. Set default
-> > > revision as ES1.2.
-> > > 
-> > > Add CHIP_GE_OMAP3630ES1_1 to detect revisions 1.1 and later.
-> > > This is needed for at least one feature that is broken in
-> > > 3630ES1.0 but exists on older (3430 ES3.1) and newer revisions.
-> > > 
-> > > Additionally, update some of the CHIP_GE_* macros to use other
-> > > macros for ease of maintenance.
-> > 
-> > Thanks, I've updated it a bit more for the fallthrough handling,
-> > here's the updated version.
-> 
-> That does not even build, here's the patch one more time.
-> 
+hi,
 
-This one doesn't seem to build either :(
-The two patches you sent are identical except for the first line,
-so maybe you attached the wrong file?
+On Wed, Aug 04, 2010 at 12:51:39PM +0200, ext Tony Lindgren wrote:
+>diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+>index fd1904b..0a0ff0c 100644
+>--- a/arch/arm/mach-omap2/id.c
+>+++ b/arch/arm/mach-omap2/id.c
+>@@ -269,11 +269,29 @@ static void __init omap3_check_revision(void)
+> 		omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+> 		break;
+> 	case 0xb891:
+>+		/* Handle 36xx devices */
+>+		omap_chip.oc |= CHIP_IS_OMAP3630ES1;
+>+
+>+		switch(rev) {
+>+		case 0: /* Take care of early samples */
+>+			omap_revision = OMAP3630_REV_ES1_0;
+>+			break;
+>+		case 1:
+>+			omap_revision = OMAP3630_REV_ES1_1;
+>+			omap_chip.oc |= CHIP_IS_OMAP3630ES1_1;
+>+			break;
+>+		case 2:
+>+			omap_revision =  OMAP3630_REV_ES1_2;
+>+			omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
+>+			break;
+>+		default:
+>+			/* FALLTHROUGH */
 
-- Anand
+did you forget a break here
+
+>+		}
+> 	/* FALLTHROUGH */
+> 	default:
+> 		/* Unknown default to latest silicon rev as default*/
+>-		omap_revision = OMAP3630_REV_ES1_0;
+>-		omap_chip.oc |= CHIP_IS_OMAP3630ES1;
+>+		omap_revision =  OMAP3630_REV_ES1_2;
+>+		omap_chip.oc |= CHIP_IS_OMAP3630ES1_2;
+
+and here ?
+
+-- 
+balbi
+
+DefectiveByDesign.org
