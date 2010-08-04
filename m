@@ -1,74 +1,126 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 04/11] OMAP3: DMA: HWMOD: Add hwmod data structures
-Date: Wed, 04 Aug 2010 12:08:17 +0200
-Message-ID: <4C593C11.5040600@ti.com>
-References: <1280397545-27323-1-git-send-email-manjugk@ti.com>	<1280397545-27323-5-git-send-email-manjugk@ti.com> <87eiefnyvs.fsf@deeprootsystems.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402708B48E3@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/5] [OMAP] HTCHERALD: MMC, I2C, HTCPLD and related
+ devices
+Date: Wed, 4 Aug 2010 13:10:09 +0300
+Message-ID: <20100804101008.GD9881@atomide.com>
+References: <1280762976-17284-1-git-send-email-darkstar6262@gmail.com>
+ <1280762976-17284-2-git-send-email-darkstar6262@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59791 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932146Ab0HDKIY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Aug 2010 06:08:24 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402708B48E3@dbde02.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52161 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932117Ab0HDKJq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 06:09:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1280762976-17284-2-git-send-email-darkstar6262@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 8/4/2010 2:35 AM, G, Manjunath Kondaiah wrote:
-> Kevin,
->
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Wednesday, August 04, 2010 3:27 AM
->>
->> Manjunatha GK<manjugk@ti.com>  writes:
->>
->>> This patch adds OMAP3 DMA hwmod structures.
->>>
->>> Signed-off-by: Manjunatha GK<manjugk@ti.com>
->>
->> [...]
->>
->>> +static struct omap_hwmod omap3xxx_dma_system_hwmod = {
->>> +	.name		= "dma",
->>> +	.class		=&omap3xxx_dma_hwmod_class,
->>> +	.mpu_irqs	= omap3xxx_dma_system_irqs,
->>> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_dma_system_irqs),
->>> +	.main_clk	= "l3_div_ck",
->>> +	.prcm = {
->>> +		.omap2 = {
->>> +			/* .clkctrl_reg = NULL, */
->>> +		},
->>> +	},
->>
->> Has this been tested?  Without valid fields here the hwmod
->> will never be
->> enabled.
->
-> This patch series has been tested on both omap3 and omap4. I didn't find
-> any entries for DMA module in prcm-common.h(for assigning .module_bit etc)
-> hence I commented this for clarification.
+* Cory Maccarrone <darkstar6262@gmail.com> [100802 18:23]:
+> This change adds in MMC and I2C support to the HTC Herald board, as well
+> as adding the HTCPLD driver for the PLD used on this phone.  It also
+> adds in the gpio-keys entries for the front directional keys and
+> selector and the cursor keys on the slide-out keyboard, and gpio-leds
+> support for the LEDs attached to the htcpld.
+> 
+> The Kconfig was also modified to add 64 GPIOs and IRQs to the default
+> maximum number of each for the HTC herald.  This is needed because the
+> HTCPLD chip on this board exposes an additional 32 gpios and 16 irqs
+> that would not fit in the default limits.
+> 
+> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+> ---
+>  arch/arm/mach-omap1/Kconfig           |    2 +
+>  arch/arm/mach-omap1/board-htcherald.c |  288 ++++++++++++++++++++++++++++++++-
+>  2 files changed, 284 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+> index 3b02d3b..94d5b52 100644
+> --- a/arch/arm/mach-omap1/Kconfig
+> +++ b/arch/arm/mach-omap1/Kconfig
+> @@ -64,6 +64,8 @@ config MACH_OMAP_HTCWIZARD
+>  config MACH_HERALD
+>  	bool "HTC Herald"
+>  	depends on ARCH_OMAP850
+> +	select OMAP_GPIO_EXTRA64
+> +	select OMAP_IRQ_EXTRA64
+>  	help
+>  	  HTC Herald smartphone support (AKA T-Mobile Wing, ...)
+>  
 
-There is no explicit PRCM control for the SDMA. You can just access the 
-standby status and change the sysconfig idle and standby settings.
-It uses the L3 interface clock as functional clock.
-You should still use HWMOD_NO_IDLEST status to prevent the enable to crash.
+Looking at this patches again.. These above does not exist in
+the mainline kernel.
 
-In your case, I think that you are probably never explicitly enabling or 
-disabling the dma device due to the library kind of API and the fact 
-that the HW is managing is automatically, isn't it?
+> +/* HTCPLD definitions */
+> +
+> +/*
+> + * CPLD Logic
+> + *
+> +
+> +Chip 3 - 0x03
+> +
+> +Function            7 6 5 4  3 2 1 0
+> +------------------------------------
+> +DPAD light          x x x x  x x x 1
+> +SoundDev            x x x x  1 x x x
+> +Screen white        1 x x x  x x x x
+> +MMC power on        x x x x  x 1 x x
+> +Happy times (n)     0 x x x  x 1 x x
+> +
+> +Chip 4 - 0x04
+> +
+> +Function            7 6 5 4  3 2 1 0
+> +------------------------------------
+> +Keyboard light      x x x x  x x x 1
+> +LCD Bright (4)      x x x x  x 1 1 x
+> +LCD Bright (3)      x x x x  x 0 1 x
+> +LCD Bright (2)      x x x x  x 1 0 x
+> +LCD Bright (1)      x x x x  x 0 0 x
+> +LCD Off             x x x x  0 x x x
+> +LCD image (fb)      1 x x x  x x x x
+> +LCD image (white)   0 x x x  x x x x
+> +Caps lock LED       x x 1 x  x x x x
+> +
+> +Chip 5 - 0x05
+> +
+> +Function            7 6 5 4  3 2 1 0
+> +------------------------------------
+> +Red (solid)         x x x x  x 1 x x
+> +Red (flash)         x x x x  x x 1 x
+> +Green (GSM flash)   x x x x  1 x x x
+> +Green (GSM solid)   x x x 1  x x x x
+> +Green (wifi flash)  x x 1 x  x x x x
+> +Blue (bt flash)     x 1 x x  x x x x
+> +DPAD Int Enable     1 x x x  x x x 0
+> +
+> +(Combinations of the above can be made for different colors.)
+> +The direction pad interrupt enable must be set each time the
+> +interrupt is handled.
+> +
+> +Chip 6 - 0x06
+> +
+> +Function            7 6 5 4  3 2 1 0
+> +------------------------------------
+> +Vibrator            x x x x  1 x x x
+> +Alt LED             x x x 1  x x x x
+> +Screen white        1 x x x  x x x x
+> +Screen white        x x 1 x  x x x x
+> +Screen white        x 0 x x  x x x x
+> +Enable kbd dpad     x x x x  x x 0 x
+> +Happy Times         0 1 0 x  x x 0 x
+> +*/
 
-We had the same kind of discussion for the hwspinlock. Since these IPs 
-are using interface clock as a functional clock, there is no need to 
-explicitly enable them. But we should, otherwise we have no way to track 
-the usage of this IP and potentially to enable the power domain that 
-contains these IP.
+/*
+ * Please put the above into standard comments like
+ * this thanks
+ */
 
-Each time a dma channel is requested, you should call the 
-pm_runtime_get, and pm_runtime_put() when the channel is not needed anymore.
+Other than that, looks good to me. Have to leave this to the next
+merge window though.
 
 Regards,
-Benoit
 
+Tony
