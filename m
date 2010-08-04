@@ -1,69 +1,86 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH 04/11] OMAP3: DMA: HWMOD: Add hwmod data structures
-Date: Wed, 4 Aug 2010 06:05:19 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402708B48E3@dbde02.ent.ti.com>
-References: <1280397545-27323-1-git-send-email-manjugk@ti.com>
-	<1280397545-27323-5-git-send-email-manjugk@ti.com>
- <87eiefnyvs.fsf@deeprootsystems.com>
+From: Timothy Meade <zt.tmzt@gmail.com>
+Subject: Re: [RFC PATCH] platform: Faciliatate the creation of pseduo-platform
+	busses
+Date: Tue, 3 Aug 2010 20:41:58 -0400
+Message-ID: <AANLkTint-H1zcUh0dsJUt6irm_HLbiBrFi+KurOkwq8D@mail.gmail.com>
+References: <4C58A7AA.8020007@codeaurora.org>
+	<20100803235631.GA17759@suse.de>
+	<4C58AE15.6090900@codeaurora.org>
+	<20100804000945.GA19729@suse.de>
+	<4C58B1B6.9050005@quicinc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39849 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756799Ab0HDAf3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Aug 2010 20:35:29 -0400
-In-Reply-To: <87eiefnyvs.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4C58B1B6.9050005@quicinc.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Patrick Pannuto <ppannuto@quicinc.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "dtor@mail.ru" <dtor@mail.ru>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
 
-Kevin,
+On Tue, Aug 3, 2010 at 8:17 PM, Patrick Pannuto <ppannuto@quicinc.com> =
+wrote:
+>>>>>
+>>>>> =A0 =A0struct platform_device sub_bus1 =3D {
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =A0 =A0 =A0 =A0 =3D "sub_bus1",
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0.id =A0 =A0 =A0 =A0 =A0 =A0 =3D -1,
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0.dev.bus =A0 =A0 =A0 =A0=3D &my_bus_type,
+>>>>> =A0 =A0}
+>>>>> =A0 =A0EXPORT_SYMBOL_GPL(sub_bus1);
+>>>>
+>>>> You really want a bus hanging off of a bus? =A0Normally you need a=
+ device
+>>>> to do that, which is what I think you have here, but the naming is=
+ a bit
+>>>> odd to me.
+>>>>
+>>>> What would you do with this "sub bus"? =A0It's just a device, but =
+you are
+>>>> wanting it to be around for something.
+>>>>
+>>>
+>>> It's for power management stuff, basically, there are actual physic=
+al buses
+>>> involved that can be completely powered off IFF all of their device=
+s are
+>>> not in use. Plus it actually matches bus topology this way.
+>>
+>> Then create a real bus hanging off of a device, not another device t=
+hat
+>> "acts" like a bus here, right? =A0Or am I missing the point?
+>>
+>
+> The motivation for doing it this was is that one driver could drive
+> devices on two different subbusses. =A0In the example, "my-driver" co=
+uld
+> drive a device on sub_bus1 AND sub_bus2 (if there were 2+ devices, on=
+e
+> or more on each bus).
+>
+> From my understanding, this is not possible if they are actually
+> different busses.
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Wednesday, August 04, 2010 3:27 AM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; Cousson, Benoit; Paul 
-> Walmsley; Tony Lindgren; Sawant, Anand; Shilimkar, Santosh; 
-> Nayak, Rajendra; Basak, Partha; Varadarajan, Charulatha
-> Subject: Re: [PATCH 04/11] OMAP3: DMA: HWMOD: Add hwmod data 
-> structures
-> 
-> Manjunatha GK <manjugk@ti.com> writes:
-> 
-> > This patch adds OMAP3 DMA hwmod structures.
-> >
-> > Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> 
-> [...]
-> 
-> > +static struct omap_hwmod omap3xxx_dma_system_hwmod = {
-> > +	.name		= "dma",
-> > +	.class		= &omap3xxx_dma_hwmod_class,
-> > +	.mpu_irqs	= omap3xxx_dma_system_irqs,
-> > +	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_dma_system_irqs),
-> > +	.main_clk	= "l3_div_ck",
-> > +	.prcm = {
-> > +		.omap2 = {
-> > +			/* .clkctrl_reg = NULL, */
-> > +		},
-> > +	},
-> 
-> Has this been tested?  Without valid fields here the hwmod 
-> will never be
-> enabled.
+This could be quite useful on the Qualcomm devices where there are
+many collections of "devices" that resemble a bus but cannot be
+directly enumerated but are initialized by platform code or possibly
+in future, a device tree.  One such bus is made up of SMI devices that
+are identified to the applications core by the modem firmware and can
+be in the form of character devices (smd), network devices (rmnet) rpc
+router channel and others, we also have to deal with the MDDI video
+bus which represented a challenge when migrating the HTC Rhodium to
+2.6.32 as each mdp device (and others in later kernels) are added to
+the platform bus dynamically, though they don't appear similararly
+group in sysfs due to not actaully being on a bus.  While it would
+have been possible to implement an mddi bus, the work would have
+essentially recreated the platform bus with a new name.  A simliar
+challenge exists for exposing rpc endpoints to userspace as the
+current codebase uses character devices rather than introducing a new
+network protocol to the kernel, if such as bus was exposed through
+sysfs a userspace daemon could easily bind a GPS library to the PDAPI
+endpoint or similar features requiring less configuration to adapt to
+new AMSS firmware or device name layout.
 
-This patch series has been tested on both omap3 and omap4. I didn't find
-any entries for DMA module in prcm-common.h(for assigning .module_bit etc)
-hence I commented this for clarification.
-
-However, all omap3 applicable dma tests used to pass with these changes.
-
-I can include and test it again if these entries are available at some other 
-place or I can define if it is applicable for DMA.
-
--Manjunath
-
+Thank you,
+Timothy Meade
+tmzt #htc-linux
+facebook.com/HTCLinux
