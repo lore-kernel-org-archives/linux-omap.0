@@ -1,67 +1,47 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: Unable to load ext3 partition from mmc card
-Date: Wed, 4 Aug 2010 11:11:45 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E5E4492@dbde02.ent.ti.com>
-References: <45FFBB97-C823-4C41-9D09-48895A4ECE8B@mac.com>
- <BA49A8F9-B682-49D0-8B9F-1AD5D7ABB8CA@mac.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] OMAP: clock, hwmod, omap_device, PM constraints:
+ patches for 2.6.36
+Date: Wed, 4 Aug 2010 08:51:24 +0300
+Message-ID: <20100804055123.GD6840@atomide.com>
+References: <alpine.DEB.2.00.1007031548010.16344@utopia.booyaka.com>
+ <20100706110918.GJ3192@atomide.com>
+ <877hk7nxfx.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49059 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754785Ab0HDFlw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 01:41:52 -0400
-In-Reply-To: <BA49A8F9-B682-49D0-8B9F-1AD5D7ABB8CA@mac.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50258 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752613Ab0HDFvB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 01:51:01 -0400
+Content-Disposition: inline
+In-Reply-To: <877hk7nxfx.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Elvis Dowson
-> Sent: Wednesday, August 04, 2010 6:25 AM
-> To: linux-omap@vger.kernel.org
-> Subject: Re: Unable to load ext3 partition from mmc card
+* Kevin Hilman <khilman@deeprootsystems.com> [100804 01:21]:
+> Tony Lindgren <tony@atomide.com> writes:
 > 
-> 
-> On Aug 4, 2010, at 3:53 AM, Elvis Dowson wrote:
-> 
-> > Hi,
-> >       I'm trying out u-boot-2010.06 and linux-omap-2.6.34, and I'm using
-> the omap3_defconfig.
+> > * Paul Walmsley <paul@pwsan.com> [100704 00:43]:
+> >> 
+> >> Hi Tony,
+> >> 
+> >> here's the pull request for some clock, hwmod, omap_device, PM constraints 
+> >> patches for 2.6.36.
 > >
-> > I get the following error upon boot:
+> > Thanks, pulled into omap-for-linus.
 > >
-> > [    2.097320] Waiting for root device /dev/mmcblk0p2...
-> > [    2.235595] mmc0: new SD card at address b874
-> > [    2.243530] mmcblk0: mmc0:b874 SU02G 1.87 GiB (ro)
-> > [    2.250213]  mmcblk0: p1 p2
-> > [    2.323638] VFS: Cannot open root device "mmcblk0p2" or unknown-
-> block(179,2)
-> > [    2.330871] Please append a correct "root=" boot option; here are the
-> available partitions:
-> > [    2.339477] b300         1971712 mmcblk0 driver: mmcblk
-> > [    2.344848]   b301           40131 mmcblk0p1
-> > [    2.349182]   b302          514080 mmcblk0p2
-> > [    2.353973] Kernel panic - not syncing: VFS: Unable to mount root fs
-> on unknown-block(179,2)
 > 
-> I found that switching to v2.6.35 and using the
-> omap3_beagleboard_defconfig, works. It doesn't work for some reason for
-> v2.6.34.
+> Hmm, I don't see this in current omap-for-linus.  Is it still planned
+> for 2.6.36?  
 
-[Ghorai] I used omap3_defconfig on v2.6.34 for beagleboard; here is the bootargs that works for me -
-setenv bootargs 'console=ttyS2,115200n8 console=tty0 noinitrd root=/dev/mmcblk0p2 rootdelay=3'
+Thanks for checking. Paul asked me to redo the pull after fixing some
+credits, and looks like then I forgot to pull.
+ 
+> Once this is merged, the all the hwmod/omap_device conversions will only
+> have a dependency on the OMAP runtime PM core.
 
-> 
-> Best regards,
-> 
-> Elvis Dowson
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah that's good!
+
+Tony
