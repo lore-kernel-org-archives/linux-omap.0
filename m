@@ -1,131 +1,509 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Issues with calling pm_runtime functions in platform_pm_suspend_noirq/IRQ disabled context.
-Date: Wed, 04 Aug 2010 15:32:22 -0700
-Message-ID: <87sk2u9fgp.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED1089@dbde02.ent.ti.com>
-	<874ofbppj4.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E7F6ECA2@dbde02.ent.ti.com>
-	<87tynaaw4r.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [RFC PATCH] OMAP: hwmod: Add debugfs support for omap_hwmod
+Date: Thu,  5 Aug 2010 00:43:53 +0200
+Message-ID: <1280961833-25002-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:59955 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758086Ab0HDWcY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 18:32:24 -0400
-Received: by pvc7 with SMTP id 7so2236369pvc.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 15:32:24 -0700 (PDT)
-In-Reply-To: <87tynaaw4r.fsf@deeprootsystems.com> (Kevin Hilman's message of
-	"Wed, 04 Aug 2010 14:47:00 -0700")
+Received: from bear.ext.ti.com ([192.94.94.41]:60624 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757567Ab0HDWoD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Aug 2010 18:44:03 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Basak, Partha" <p-basak2@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com
+Cc: rnayak@ti.com, santosh.shilimkar@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+First quick & dirty attempt to add some debugfs hooks in order
+to ease the debug of hwmods.
 
-> "Basak, Partha" <p-basak2@ti.com> writes:
->
->>> -----Original Message-----
->>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>> Sent: Tuesday, August 03, 2010 11:06 PM
->>> To: Basak, Partha
->>> Cc: Paul Walmsley; linux-omap@vger.kernel.org; Kalliguddi, Hema; Raja,
->>> Govindraj; Varadarajan, Charulatha; Nayak, Rajendra; Cousson, Benoit
->>> Subject: Re: Issues with calling pm_runtime functions in
->>> platform_pm_suspend_noirq/IRQ disabled context.
->>> 
->>> "Basak, Partha" <p-basak2@ti.com> writes:
->>> 
->>> > Resending with the corrected mailing list
->>> >
->>> > Hello Kevin,
->>> >
->>> > I want to draw your attention to an issue the following patch
->>> > introduces. http://dev.omapzoom.org/?p=swarch/linux-omap-
->>> adv.git;a=commitdiff;h=8041359e18e49bf8a3d41f15894db9e476f3a8fc
->>> 
->>> [...]
->>> 
->>> > I believe, it is not correct to call the pm_runtime APIs from
->>> > interrupt locked context since the underlying functions
->>> > __pm_runtime_suspend & __pm_runtime_resume enable interrupts and call
->>> > schedule().
->>> >
->>> > Further, from a s/w layering standpoint, platform-bus is a deeper
->>> > layer than the Runtime layer, which the runtime layer calls into. So
->>> > it may not be correct to have this layer calling into pm_runtime(). It
->>> > should directly call omap_device APIs.
->>> 
->>> The original version of this patch did directly call the omap_device
->>> APIs.  However, Paul didn't like that approach and there were
->>> use-counting problems to handle as well (e.g. if a driver was not (yet)
->>> in use, it would already be disabled, and a suspend would trigger an
->>> omap_device_disable() which would fail since device was already
->>> disabled.)
->>> 
->>> Paul and I agreed that this current approach would solve the
->>> use-counting problems, but you're correct in that it introduces
->>> new problems as these functions can _possibly_ sleep/schedule.
->>> 
->>> That being said, have you actually seen problems here?   I would like
->>> to see how they are triggered?
->>
->> Scenario 1:
->>
->> Consider the case where a driver has already called
->> pm_runtime_put_sync as part of aggressive clock cutting
->> scheme. Subsequently, when system suspend is called,
->> pm_runtime_put_sync is called again. 
->
->> Due to atomic_dec_and_test check
->> on usage_count, the second call goes through w/o error.
->
-> I don't think you're fully understanding the point of the put/get in the
-> suspend/resume path.
->
-> The reason for the 'put' in the suspend path is because the PM core has
-> done a 'get' in dpm_prepare() [c.f. drivers/base/power/main.c] so that
-> runtime PM transitions are prevented during suspend/resume.
->
-> On OMAP, we want to allow those transitions to happen so we can use the
-> same runtime PM calls in the idle and suspend paths.
->
->> At System resume, pm_runtime_get_sync is called twice, once by resume,
->> once by the driver itself. 
->
-> Yes, but there is a 'put_sync' in between those done by the PM core
-> during resume (c.f. dpm_complete() in drivers/base/power/main.c]
->
->> Because of the extra reference count, the
->> aggressive clock control by the driver is broken, as call to put_sync
->> by a driver reduces to usage_count to 1. As a result clock transition
->> in Idle-path is broken.
+I send it just in case someone else find that useful.
 
-A closer look here, and there is indeed a bug in the _resume_noirq()
-method.  The get here needs to be a _noresume version to match what is
-done in the PM core.
+It is based on lo/for-next + for-next-fixes + pm-wip/hwmods-reset and is available here:
+git://dev.omapzoom.org/pub/scm/swarch/linux-omap-adv.git pm-wip/hwmods-debugfs
 
-This doesn't change the use count, but it does change whether the device
-is actually awoken by this 'get' or not.  This get should never actually
-awake the device.  It is only there to compensate for what the PM core
-does.
+Benoit
 
-Can you try this patch?  Will post a version to the list with
-changelog shortly.
 
-Kevin
+Allow to dump each hwmods internal state and change manually
+the module state and the reset state if applicable.
 
-diff --git a/arch/arm/mach-omap2/pm_bus.c b/arch/arm/mach-omap2/pm_bus.c
-index bab0186..01bbe65 100644
---- a/arch/arm/mach-omap2/pm_bus.c
-+++ b/arch/arm/mach-omap2/pm_bus.c
-@@ -90,7 +90,7 @@ int platform_pm_resume_noirq(struct device *dev)
- 	 * method so that the runtime PM usage counting is in the same
- 	 * state it was when suspend was called.
- 	 */
--	pm_runtime_get_sync(dev);
-+	pm_runtime_get_noresume(dev);
+Usage:
+
+- Mount the debugfs filesystem
+mount -t debugfs none /sys/kernel/debug
+
+- dump a individual hwmod status:
+cat /sys/kernel/debug/hwmods/mcbsp1/summary
+  mcbsp1
+    state:        idle:5
+    class:        mcbsp
+    flags:        0x0000
+    address:      0x40122000-0x401220ff (mpu)
+    address:      0x49022000-0x490220ff
+    clock:        mcbsp1_fck
+    irqs(1):
+      (null):49
+    dmas(2):
+      tx:33
+      rx:34
+
+- change the state of an hwmod:
+echo enable > /sys/kernel/debug/hwmods/ipu/state
+echo idle > /sys/kernel/debug/hwmods/ipu/state
+echo disable > /sys/kernel/debug/hwmods/ipu/state
+
+- assert an hardreset line
+echo 1 > /sys/kernel/debug/hwmods/ipu/resets/mmu_cache
+- deassert a hardreset line
+echo 0 > /sys/kernel/debug/hwmods/ipu/resets/mmu_cache
+
+- trigger a softreset in the module
+echo reset > /sys/kernel/debug/hwmods/XXX/state
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/Makefile                 |    4 +-
+ arch/arm/mach-omap2/omap_hwmod_debug.c       |  387 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    9 +-
+ 3 files changed, 398 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_debug.c
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 63b2d88..2f2b25b 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -17,7 +17,9 @@ obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(prcm-common) $(hwmod-common)
+ obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(prcm-common) $(hwmod-common)
+ obj-$(CONFIG_ARCH_OMAP4) += $(prcm-common) $(hwmod-common)
  
- 	if (!drv)
- 		return 0;
+-obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
++obj-$(CONFIG_OMAP_MCBSP)		+= mcbsp.o
++obj-$(CONFIG_DEBUG_FS)			+= omap_hwmod_debug.o
++
+ 
+ # SMP support ONLY available for OMAP4
+ obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
+diff --git a/arch/arm/mach-omap2/omap_hwmod_debug.c b/arch/arm/mach-omap2/omap_hwmod_debug.c
+new file mode 100644
+index 0000000..3f48977
+--- /dev/null
++++ b/arch/arm/mach-omap2/omap_hwmod_debug.c
+@@ -0,0 +1,387 @@
++/*
++ * omap_hwmod debugfs implementation
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ *
++ * Benoit Cousson
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Expose a debufs interface in order to check and modify hwmod state
++ * The current directory structure is:
++ *
++ * hwmods
++ *  +-hwmod_mpu
++ *  +-hwmod_dsp
++ *  .
++ *  .
++ *  +-hwmod_xxx   : hwmod node
++ *     +-state    : internal state (RO)
++ *     +-summary  : global view of hwmod definition
++ *     +-resets   : reset lines
++ *        +-rst1  : reset state / control (RW)
++ *        +-rst2  :
++ *
++ * To do:
++ * - Add irq / dma dump
++ * - Add clock dump
++ */
++#undef DEBUG
++
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/debugfs.h>
++#include <linux/fs.h>
++#include <linux/uaccess.h>
++#include <linux/seq_file.h>
++#include <linux/slab.h>
++
++#include <plat/clock.h>
++#include <plat/common.h>
++#include <plat/omap_hwmod.h>
++
++
++/*
++ * DEBUGFS helper macros
++ *
++ * This code is already used in several omap drivers, so eventually it will be
++ * good to move that to plat-omap and share the same code.
++ */
++
++#define DEFINE_DEBUGFS_SHOW(__fops, __show)				\
++static int __fops ## _open(struct inode *inode, struct file *file)	\
++{									\
++	return single_open(file, __show, inode->i_private);		\
++}									\
++static const struct file_operations __fops = {				\
++	.owner	 	= THIS_MODULE,					\
++	.open	 	= __fops ## _open,				\
++	.read           = seq_read,					\
++	.llseek         = seq_lseek,					\
++	.release        = single_release,				\
++};
++
++/*
++ * Aggregate reset information in a specific structure, because the reset
++ * node does not contain any link to the parent hwmod structure
++ */
++struct reset_info {
++	struct omap_hwmod 	*oh;
++	const char		*name;
++	u8			rst_shift;
++};
++
++/* internal hwmod states */
++static const char* states[_HWMOD_STATE_LAST + 1] = {
++	[_HWMOD_STATE_UNKNOWN] 		= "unknown",
++	[_HWMOD_STATE_REGISTERED] 	= "registered",
++	[_HWMOD_STATE_CLKS_INITED] 	= "clks_inited",
++	[_HWMOD_STATE_INITIALIZED] 	= "initialized",
++	[_HWMOD_STATE_ENABLED] 		= "enabled",
++	[_HWMOD_STATE_IDLE] 		= "idle",
++	[_HWMOD_STATE_DISABLED] 	= "disabled",
++};
++
++const char * _state_str(int state)
++{
++	if (state < 0 || state > _HWMOD_STATE_LAST)
++		return "invalid_state";
++
++	return states[state];
++}
++
++static int _set_state(void *data, u64 val)
++{
++	*(u8 *)data = val;
++	return 0;
++}
++static int _get_state(void *data, u64 *val)
++{
++	*val = *(u8 *)data;
++	return 0;
++}
++DEFINE_SIMPLE_ATTRIBUTE(state_fops, _get_state, _set_state, "%llu\n");
++
++static int default_open(struct inode *inode, struct file *file)
++{
++	if (inode->i_private)
++		file->private_data = inode->i_private;
++
++	return 0;
++}
++
++#define MAX_BUFFER_SIZE 16
++
++static ssize_t read_hwmod_state(struct file *file, char __user *user_buf,
++			        size_t count, loff_t *ppos)
++{
++	char buf[MAX_BUFFER_SIZE];
++	struct omap_hwmod *oh = file->private_data;
++	const char *msg = _state_str(oh->_state);
++
++	int len = snprintf(buf, MAX_BUFFER_SIZE, "%s\n", msg);
++
++	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
++}
++
++static ssize_t write_hwmod_state(struct file *file, const char __user *user_buf,
++			         size_t count, loff_t *ppos)
++{
++	char buf[32];
++	int buf_size;
++	char *p;
++	int len;
++	struct omap_hwmod *oh = file->private_data;
++
++	if (!oh || !oh->name)
++		return -EINVAL;
++
++	buf_size = min(count, (sizeof(buf)-1));
++	if (copy_from_user(buf, user_buf, buf_size))
++		return -EFAULT;
++
++	p = memchr(buf, '\n', buf_size);
++	len = p ? p - buf : buf_size;
++	buf[len] = '\0';
++
++	if (!strncmp(buf, "enable", len))
++		omap_hwmod_enable(oh);
++	else if (!strncmp(buf, "idle", len))
++		omap_hwmod_idle(oh);
++	else if (!strncmp(buf, "disable", len))
++		omap_hwmod_shutdown(oh);
++	else if (!strncmp(buf, "reset", len))
++		omap_hwmod_reset(oh);
++	else
++		pr_warning("write_hwmod_state: invalid state: %s\n", buf);
++
++	return count;
++}
++
++static const struct file_operations hwmod_state_fops = {
++	.read =		read_hwmod_state,
++	.write =	write_hwmod_state,
++	.open =		default_open,
++};
++
++/**
++ * _reset_get - helper function for debugfs read to reset line
++ * @data: pointer to data initialized during debugfs_create_file. In this
++ * case this is a pointer to struct reset_info
++ * @val: pointer to the value that will be read and propagate to the debufs
++ * interface
++ *
++ * Returns: 0 if the reset is deasserted or asserted (0 or 1), any other states
++ * are invalid, so return -EINVAL in that case.
++ */
++static int _reset_get(void *data, u64 *val)
++{
++	struct reset_info *info = data;
++	int state;
++
++	state = omap_hwmod_hardreset_state(info->oh, info->name);
++
++	pr_debug("_reset_get: %s:%d %d\n", info->name, info->rst_shift, state);
++
++	*val = (u64)state;
++
++	if (state >= 0)
++		return 0;
++
++	return *val;
++}
++
++/**
++ * _reset_set - helper function for debugfs write to reset line
++ * @data: pointer to data initialized during debugfs_create_file. In this
++ * case this is a pointer to struct reset_info
++ * @val: value that should written from the debufs interface
++ *
++ * Assert or deassert the reset line depending of the value written
++ * on the debugfs "rst" file entry
++ * Returns -EINVAL if val is not 0 or 1.
++ */
++static int _reset_set(void *data, u64 val)
++{
++	struct reset_info *info = data;
++	int ret = -EINVAL;
++
++	pr_debug("_reset_set: %s[%d]: %llu\n", info->name, info->rst_shift,
++					       val);
++
++	if (val == 1)
++		ret = omap_hwmod_hardreset_assert(info->oh, info->name);
++	else if	(val == 0)
++		ret = omap_hwmod_hardreset_deassert(info->oh, info->name);
++
++	return ret;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(reset_fops, _reset_get, _reset_set, "%llu\n");
++
++
++
++static struct omap_hwmod_addr_space* _print_addresses(struct seq_file *s,
++						      struct omap_hwmod *oh)
++{
++	struct omap_hwmod_ocp_if *os = NULL;
++	struct omap_hwmod_addr_space *mem;
++	int j;
++
++	if (!oh || oh->slaves_cnt == 0) {
++		seq_printf(s, "  address:      N/A\n");
++		return NULL;
++	}
++
++	for (j = 0; j < oh->slaves_cnt; j++) {
++		int i;
++
++		os = oh->slaves[j];
++		if (!os->addr)
++			continue;
++
++		if (os->user & OCP_USER_MPU) {
++			for (i = 0, mem = os->addr; i < os->addr_cnt; i++, mem++)
++				seq_printf(s, "  address:      0x%08x-0x%08x (mpu)\n",
++					   mem->pa_start, mem->pa_end);
++		} else {
++			for (i = 0, mem = os->addr; i < os->addr_cnt; i++, mem++)
++				seq_printf(s, "  address:      0x%08x-0x%08x\n",
++					   mem->pa_start, mem->pa_end);
++		}
++	}
++
++	return NULL;
++}
++
++static int show_hwmod_summary(struct omap_hwmod *oh, void* param)
++{
++	struct seq_file *s = param;
++	int i;
++
++	if (!oh || !oh->name)
++		return -EINVAL;
++
++	seq_printf(s, "%s\n", oh->name);
++	seq_printf(s, "  state:        %s:%d\n", _state_str(oh->_state),
++		   oh->_state);
++	seq_printf(s, "  class:        %s\n", oh->class->name);
++	seq_printf(s, "  flags:        0x%04x\n", oh->flags);
++
++	_print_addresses(s, oh);
++
++	if (!IS_ERR_OR_NULL(oh->_clk))
++		seq_printf(s, "  clock:        %s\n", oh->_clk->name);
++
++	if (oh->rst_lines_cnt > 0)
++		seq_printf(s, "  resets(%d):\n", oh->rst_lines_cnt);
++	for (i = 0; i < oh->rst_lines_cnt; i++) {
++		int state = omap_hwmod_hardreset_state(oh,
++						       oh->rst_lines[i].name);
++		seq_printf(s, "    %s:%d\n", oh->rst_lines[i].name,
++			   state);
++	}
++
++	if (oh->mpu_irqs_cnt > 0)
++		seq_printf(s, "  irqs(%d):\n", oh->mpu_irqs_cnt);
++	for (i = 0; i < oh->mpu_irqs_cnt; i++)
++		seq_printf(s, "    %s:%d\n", oh->mpu_irqs[i].name,
++			   oh->mpu_irqs[i].irq);
++
++	if (oh->sdma_reqs_cnt > 0)
++		seq_printf(s, "  dmas(%d):\n", oh->sdma_reqs_cnt);
++	for (i = 0; i < oh->sdma_reqs_cnt; i++)
++		seq_printf(s, "    %s:%d\n", oh->sdma_reqs[i].name,
++			   oh->sdma_reqs[i].dma_req);
++
++	return 0;
++}
++
++static int show_hwmod(struct seq_file *s, void *unused)
++{
++	struct omap_hwmod *oh = s->private;
++
++	show_hwmod_summary(oh, s);
++
++	return 0;
++}
++DEFINE_DEBUGFS_SHOW(_hwmod_fops, show_hwmod);
++
++/**
++ * create_debugfs_entry - create a debugfs entry per omap_hwmod
++ * @oh: struct omap_hwmod *
++ * @parent: reference to the parent directory dentry needed for the creation
++ * of the files inside the debugfs directory
++ *
++ * Create a directory entry for each hwmod.
++ * Each directory will contain at least one state file and potentially
++ * some files that will represent the HW reset lines of that IP.
++ */
++static int create_debugfs_entry(struct omap_hwmod *oh, void* parent)
++{
++	struct dentry *d, *fd;
++	int i;
++
++	if (!oh || !oh->name)
++		return -EINVAL;
++
++	pr_debug("creating debugfs entry: %s[%p]\n", oh->name, oh);
++
++	d = debugfs_create_dir(oh->name, parent);
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	fd = debugfs_create_file("summary", S_IRUGO, d, oh, &_hwmod_fops);
++	if (IS_ERR(fd))
++		return PTR_ERR(fd);
++
++	fd = debugfs_create_file("state", S_IRUGO|S_IWUSR, d, oh,
++				 &hwmod_state_fops);
++	if (IS_ERR(fd))
++		return PTR_ERR(fd);
++
++	if (oh->rst_lines_cnt > 0) {
++		struct dentry *drst = debugfs_create_dir("resets", d);
++		if (IS_ERR(drst))
++			return PTR_ERR(drst);
++
++		/* Create one directory entry per reset line */
++		for (i = 0; i < oh->rst_lines_cnt; i++) {
++			struct reset_info *info;
++			const char *name = oh->rst_lines[i].name;
++
++			/* XXX need to find a way to free that memory */
++			info = kmalloc(sizeof(struct reset_info), GFP_KERNEL);
++			if (!info)
++				return -ENOMEM;
++
++			info->oh 	= oh;
++			info->name 	= oh->rst_lines[i].name;
++			info->rst_shift = oh->rst_lines[i].rst_shift;
++
++			debugfs_create_file(name, S_IRUGO|S_IWUSR, drst, info,
++					    &reset_fops);
++		}
++	}
++
++	return 0;
++}
++
++/* hwmod_debugfs_init - Initialize the debugfs directory tree for hwmods */
++static int __init hwmod_debugfs_init(void)
++{
++	struct dentry *d;
++
++	pr_warning("omap_hwmod: Initialize debugfs support");
++
++	d = debugfs_create_dir("hwmods", NULL);
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	omap_hwmod_for_each(create_debugfs_entry, d);
++
++	return 0;
++}
++late_initcall(hwmod_debugfs_init);
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 5941183..4a0b723 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -394,7 +394,13 @@ struct omap_hwmod_omap4_prcm {
+  * INITIALIZED: reset (optionally), initialized, enabled, disabled
+  *              (optionally)
+  *
+- *
++ * _HWMOD_STATE_UNKNOWN
++ * _HWMOD_STATE_REGISTERED
++ * _HWMOD_STATE_CLKS_INITED
++ * _HWMOD_STATE_INITIALIZED
++ * _HWMOD_STATE_ENABLED
++ * _HWMOD_STATE_IDLE
++ * _HWMOD_STATE_DISABLED
+  */
+ #define _HWMOD_STATE_UNKNOWN			0
+ #define _HWMOD_STATE_REGISTERED			1
+@@ -403,6 +409,7 @@ struct omap_hwmod_omap4_prcm {
+ #define _HWMOD_STATE_ENABLED			4
+ #define _HWMOD_STATE_IDLE			5
+ #define _HWMOD_STATE_DISABLED			6
++#define _HWMOD_STATE_LAST			_HWMOD_STATE_DISABLED
+ 
+ /**
+  * struct omap_hwmod_class - the type of an IP block
+-- 
+1.6.1.3
+
