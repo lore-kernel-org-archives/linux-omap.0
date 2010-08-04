@@ -1,86 +1,72 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH 04/11] OMAP3: DMA: HWMOD: Add hwmod data structures
-Date: Wed, 4 Aug 2010 22:54:25 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402708B4F1B@dbde02.ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 01/11] OMAP: DMA: Introduce DMA device attributes
+Date: Wed, 4 Aug 2010 23:43:24 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032162396E@dbde02.ent.ti.com>
 References: <1280397545-27323-1-git-send-email-manjugk@ti.com>
-	<1280397545-27323-5-git-send-email-manjugk@ti.com>
- <87eiefnyvs.fsf@deeprootsystems.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402708B48E3@dbde02.ent.ti.com>
- <4C593C11.5040600@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C641E1E6@dbde02.ent.ti.com>
- <4C593F92.4070707@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C641E209@dbde02.ent.ti.com>
- <4C594296.30706@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02C641E22C@dbde02.ent.ti.com>
+ <1280397545-27323-2-git-send-email-manjugk@ti.com> <4C5175A6.5020101@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402707515AE@dbde02.ent.ti.com>
+ <4C593D50.4010908@ti.com>,<E0D41E29EB0DAC4E9F3FF173962E9E9402708B4F1A@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58776 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:32823 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755490Ab0HDRYc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 13:24:32 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C641E22C@dbde02.ent.ti.com>
+	id S1756983Ab0HDSQD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 14:16:03 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402708B4F1A@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
 
-
-
-
-
-> -----Original Message-----
-> From: Shilimkar, Santosh 
-> Sent: Wednesday, August 04, 2010 4:08 PM
-> To: Cousson, Benoit
-> Cc: G, Manjunath Kondaiah; Kevin Hilman; 
-> linux-omap@vger.kernel.org; Paul Walmsley; Tony Lindgren; 
-> Sawant, Anand; Nayak, Rajendra; Basak, Partha; Varadarajan, Charulatha
-> Subject: RE: [PATCH 04/11] OMAP3: DMA: HWMOD: Add hwmod data 
-> structures
-> 
-> 
-> 
-> > -----Original Message-----
+G, Manjunath Kondaiah [manjugk@ti.com] wrote:
 > > From: Cousson, Benoit
-> > Sent: Wednesday, August 04, 2010 4:06 PM
-> > To: Shilimkar, Santosh
-> > Cc: G, Manjunath Kondaiah; Kevin Hilman; 
-> linux-omap@vger.kernel.org; Paul
-> > Walmsley; Tony Lindgren; Sawant, Anand; Nayak, Rajendra; 
-> Basak, Partha;
-> > Varadarajan, Charulatha
-> > Subject: Re: [PATCH 04/11] OMAP3: DMA: HWMOD: Add hwmod 
-> data structures
-> > 
-> <snip>
+> > On 7/30/2010 5:57 AM, G, Manjunath Kondaiah wrote:
+> >
+> > <snip>
+> >
+> > >>> +/* Attributes for OMAP DMA Contrllers */
+> > >>> +#define ENABLE_1510_MODE         (1<<   0)
+> > >>> +#define DMA_LINKED_LCH                   (1<<   1)
+> > >>> +#define GLOBAL_PRIORITY                  (1<<   2)
+> > >>> +#define RESERVE_CHANNEL                  (1<<   3)
+> > >>> +#define SRC_PORT                 (2<<   3)
+> > >>> +#define DST_PORT                 (2<<   4)
+> > >>> +#define IS_CSSA_32                       (2<<   5)
+> > >>> +#define IS_CDSA_32                       (2<<   6)
+> > >>> +#define SRC_INDEX                        (4<<   6)
+> > >>> +#define DST_INDEX                        (4<<   7)
+> > >>> +#define IS_BURST_ONLY4                   (4<<   8)
+> > >>> +#define CLEAR_CSR_ON_READ                (4<<   9)
+> > >>> +#define IS_WORD_16                       (8<<   9)
+> > >>> +#define IS_RW_PRIORIY                    (8<<   0xA)
 > > >>
-> > >> The point is to "enable" the device when at least one 
-> channel is in use
-> > >> and "disable" it when every channel are released. We do 
-> have only one
-> > >> DMA IP that managed several channels, since pm_runtime is doing
-> > >> reference counting, we can call get for each channel 
-> request and put
-> > for
-> > >> each release.
-> > >> Did I miss something?
-> > > We are saying same thing more or less :)
-> > 
-> > That was my impression as well, but I was not sure :-)
-> > 
-> > > Since it's one IP, and say have one clock, then doing per channel
-> > runtime
-> > > get/put is redundant, No?
-> > 
-> > If the DMA driver is already counting the number of channel in use,
-> > you're right we can avoid that. It is already the case today?
-> > 
-> Yes. That's the case I was refrering
+> > >> It is a minor detail, but why are you shifting both side of the
+> > >> operator? It is really confusing, cannot you just do 1<<  X?
+> > >> With 0<  X<  13.
+> > > I can change this if it is confusing to others.
+> >
+> > So you are still convince that this is a good way to do it???
+> > What is the rational behind that?
+> > Why adding potential source of confusion when you can avoid
+> > that easily?
 > 
+> There is no specific reason/rationale. Left side bit keeps incrementing
+> for every four bits and right side bit keeps incrementing every time except
+> during left bit increment.
+> As I mentioned earlier, I can change this to your logic or we can have something like:
+> 0x0001, 0x0002, 0x0004, 0x0008, 0x0010 ...
+> 
+> -Manjunath
 
-Agreed. I will incorporate this comment in next version.
+Please, just use BIT(i) for things like these.
 
--Manjunath
+It's much more clear, when you look up some bitfield in the TRM.
+
+The TRM doesn't group the bits within a register in groups of 4,
+and you'll need to do more mental math to figure out what you're
+looking at.
+
+- Anand
