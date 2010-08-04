@@ -1,47 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] OMAP: clock, hwmod, omap_device, PM constraints:
- patches for 2.6.36
-Date: Wed, 4 Aug 2010 08:51:24 +0300
-Message-ID: <20100804055123.GD6840@atomide.com>
-References: <alpine.DEB.2.00.1007031548010.16344@utopia.booyaka.com>
- <20100706110918.GJ3192@atomide.com>
- <877hk7nxfx.fsf@deeprootsystems.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 2/8] davinci: add mdio platform devices
+Date: Wed, 04 Aug 2010 09:58:26 +0300
+Message-ID: <4C590F92.1040003@compulab.co.il>
+References: <1280842313-3743-1-git-send-email-cyril@ti.com> <1280842313-3743-3-git-send-email-cyril@ti.com> <4C58227A.4080502@compulab.co.il> <4C582879.7060708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50258 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab0HDFvB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 01:51:01 -0400
-Content-Disposition: inline
-In-Reply-To: <877hk7nxfx.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4C582879.7060708@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: cyril@ti.com
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Govindarajan, Sriramakrishnan" <srk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100804 01:21]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > * Paul Walmsley <paul@pwsan.com> [100704 00:43]:
-> >> 
-> >> Hi Tony,
-> >> 
-> >> here's the pull request for some clock, hwmod, omap_device, PM constraints 
-> >> patches for 2.6.36.
-> >
-> > Thanks, pulled into omap-for-linus.
-> >
-> 
-> Hmm, I don't see this in current omap-for-linus.  Is it still planned
-> for 2.6.36?  
+On 08/03/10 17:32, Cyril Chemparathy wrote:
+> Hi Igor,
+>
+>   
+>> Shouldn't arch/arm/mach-omap2/board-am3517evm.c be on your list?
+>> I think it should, or else it will be broken by:
+>> [PATCH 5/8] netdev: cleanup unused davinci mdio emac code
+>>     
+> Correct.  As stated in the series summary:
+>
+>   
+>> Additional omap tree patches will be required for am35xx as well
+>> (not included here).
+>>     
 
-Thanks for checking. Paul asked me to redo the pull after fixing some
-credits, and looks like then I forgot to pull.
- 
-> Once this is merged, the all the hwmod/omap_device conversions will only
-> have a dependency on the OMAP runtime PM core.
+Sorry for missing that,
+my laziness and long cover letter made me miss it :)
+Do you plan on bringing those patches?
+Wouldn't it be better for those patches to be included in the series?
+Because, merging code that breaks other platform(s) is not so nice...
 
-Yeah that's good!
+> Regards
+> Cyril.
+>
+>   
 
-Tony
+-- 
+Regards,
+Igor.
+
