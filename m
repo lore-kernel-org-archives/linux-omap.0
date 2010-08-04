@@ -1,64 +1,80 @@
-From: John Faith <jfaith7@gmail.com>
-Subject: Re: SDMA, V4L2, and videobuf-dma-sg
-Date: Wed, 4 Aug 2010 14:59:31 -0700
-Message-ID: <AANLkTik+dR-EwAy5Q+80NsZyZf6zmGgs9REuwPW+em1Q@mail.gmail.com>
-References: <4C570654.3050006@irobot.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 1/3] OMAP4: prcm: Add temporarily helper functions for rmw and read inside the PRM
+Date: Thu,  5 Aug 2010 00:12:46 +0200
+Message-ID: <1280959968-23933-2-git-send-email-b-cousson@ti.com>
+References: <1280959968-23933-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:33753 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751855Ab0HDV7c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 17:59:32 -0400
-Received: by pxi14 with SMTP id 14so2225028pxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 14:59:31 -0700 (PDT)
-In-Reply-To: <4C570654.3050006@irobot.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45450 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752047Ab0HDWM5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Aug 2010 18:12:57 -0400
+In-Reply-To: <1280959968-23933-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adam Wozniak <awozniak@irobot.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com
+Cc: rnayak@ti.com, santosh.shilimkar@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-On Mon, Aug 2, 2010 at 10:54 AM, Adam Wozniak <awozniak@irobot.com> wro=
-te:
-> Hello,
->
-> I'm working with an OMAP3530 based custom board. =A0The board has 4 c=
-ameras
-> attached to it,
+Since OMAP4 is using an absolute address, the current PRM accessors
+are not useable.
+OMAP4 adaptation for these API are currently ongoing, so define temp
+version until the proper ones are defined.
 
-<snip>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/prcm.c             |   24 ++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/prcm.h |    2 ++
+ 2 files changed, 26 insertions(+), 0 deletions(-)
 
-> The problem I'm running into (I think) is that omap34xxcam.c uses
-> videobuf-dma-sg to do its allocation and the videobuf_buffer I get is=
- using
-> a scatterlist, and the pages in the scatterlist are noncontiguous. =A0=
-In other
-> words, if I use videobuf_to_dma(vb), the videobuf_dmabuf I get back h=
-as a
-> vmalloc of null and a bus_addr of null; only the scatterlist and page=
-s
-> fields have valid values. =A0There's no contiguous memory pointer I c=
-an grab
-> onto there.
->
-> How do I get a pointer suitable for SDMA? =A0Will anything map this
-> scatterlist so it looks contiguous for SDMA?
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 96f4616..d4388d3 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -216,6 +216,30 @@ u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask)
+ 	return v;
+ }
+ 
++/* Read a PRM register, AND it, and shift the result down to bit 0 */
++u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask)
++{
++	u32 v;
++
++	v = __raw_readl(reg);
++	v &= mask;
++	v >>= __ffs(mask);
++
++	return v;
++}
++
++/* Read-modify-write a register in a PRM module. Caller must lock */
++u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg)
++{
++	u32 v;
++
++	v = __raw_readl(reg);
++	v &= ~mask;
++	v |= bits;
++	__raw_writel(v, reg);
++
++	return v;
++}
+ /* Read a register in a CM module */
+ u32 cm_read_mod_reg(s16 module, u16 idx)
+ {
+diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
+index 9fbd914..ab77442 100644
+--- a/arch/arm/plat-omap/include/plat/prcm.h
++++ b/arch/arm/plat-omap/include/plat/prcm.h
+@@ -38,6 +38,8 @@ u32 prm_read_mod_reg(s16 module, u16 idx);
+ void prm_write_mod_reg(u32 val, s16 module, u16 idx);
+ u32 prm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
+ u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask);
++u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
++u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg);
+ u32 cm_read_mod_reg(s16 module, u16 idx);
+ void cm_write_mod_reg(u32 val, s16 module, u16 idx);
+ u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
+-- 
+1.6.1.3
 
-Hi Adam,
-Not sure if it will help you, but I use this trick, also on a 3530, to
-get a contiguous block of memory by setting "mem=3D" in the bootloader =
-:
-http://elinux.org/Memory_Management#Reserving_.28and_accessing.29_the_t=
-op_of_memory_on_startup
-
-, then I use ioremap() in my driver and open("/dev/mem") in userspace
-to point to the same memory.
-
-,
-John
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
