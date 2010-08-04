@@ -1,39 +1,68 @@
-From: John Faith <jfaith7@gmail.com>
-Subject: Board mux entries ignored?
-Date: Wed, 4 Aug 2010 12:28:55 -0700
-Message-ID: <AANLkTimYgkviKVfXNpQB9vsjSZyMdxuwkrXYQHSb02wY@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: Unable to load ext3 partition from mmc card
+Date: Wed, 4 Aug 2010 21:52:15 +0200
+Message-ID: <47643B59-2CBE-4422-BFE3-66FC1AB79717@dominion.thruhere.net>
+References: <45FFBB97-C823-4C41-9D09-48895A4ECE8B@mac.com> <BA49A8F9-B682-49D0-8B9F-1AD5D7ABB8CA@mac.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030E5E4492@dbde02.ent.ti.com>
+Mime-Version: 1.0 (Apple Message framework v1081)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:39251 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756564Ab0HDT2z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 15:28:55 -0400
-Received: by pzk26 with SMTP id 26so2180366pzk.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 12:28:55 -0700 (PDT)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:64753 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756873Ab0HDTwX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 15:52:23 -0400
+Received: by eya25 with SMTP id 25so2131338eya.19
+        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 12:52:18 -0700 (PDT)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E5E4492@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: Elvis Dowson <elvis.dowson@mac.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-I'm trying to set mux modes for a 3530, package CBC in my board.c
-(2.6.32 kernel) using an omap_board_mux entry:
- OMAP3_MUX(GPMC_WAIT1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
 
-, but sysfs reports mode4:
-# grep WAIT1 /sys/kernel/debug/omap_mux/board
-OMAP3_MUX(GPMC_WAIT1, OMAP_PIN_INPUT | OMAP_MUX_MODE4),
+Op 4 aug 2010, om 07:41 heeft Ghorai, Sukumar het volgende geschreven:
 
-I tried adding to bootargs "omap_mux=gpmc_wait1.gpmc_wait1=0x100", but
-still got MODE4.  Doing "echo 0x100 >
-/sys/kernel/debug/omap_mux/gpmc_wait1" gave me MODE0, but I'd prefer
-to init pins in board.c.  I've also noticed for pin SDMMC2_DAT3 that
-my OMAP3_MUX() entry specifies MODE1, but sysfs shows MODE4; it
-changed to MODE1 after adding:
- omap_mux_init_signal("mcspi3_cs0", OMAP_PIN_OUTPUT);
+> 
+> 
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Elvis Dowson
+>> Sent: Wednesday, August 04, 2010 6:25 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: Re: Unable to load ext3 partition from mmc card
+>> 
+>> 
+>> On Aug 4, 2010, at 3:53 AM, Elvis Dowson wrote:
+>> 
+>>> Hi,
+>>>      I'm trying out u-boot-2010.06 and linux-omap-2.6.34, and I'm using
+>> the omap3_defconfig.
+>>> 
+>>> I get the following error upon boot:
+>>> 
+>>> [    2.097320] Waiting for root device /dev/mmcblk0p2...
+>>> [    2.235595] mmc0: new SD card at address b874
+>>> [    2.243530] mmcblk0: mmc0:b874 SU02G 1.87 GiB (ro)
+>>> [    2.250213]  mmcblk0: p1 p2
+>>> [    2.323638] VFS: Cannot open root device "mmcblk0p2" or unknown-
+>> block(179,2)
+>>> [    2.330871] Please append a correct "root=" boot option; here are the
+>> available partitions:
+>>> [    2.339477] b300         1971712 mmcblk0 driver: mmcblk
+>>> [    2.344848]   b301           40131 mmcblk0p1
+>>> [    2.349182]   b302          514080 mmcblk0p2
+>>> [    2.353973] Kernel panic - not syncing: VFS: Unable to mount root fs
+>> on unknown-block(179,2)
+>> 
+>> I found that switching to v2.6.35 and using the
+>> omap3_beagleboard_defconfig, works. It doesn't work for some reason for
+>> v2.6.34.
+> 
+> [Ghorai] I used omap3_defconfig on v2.6.34 for beagleboard; here is the bootargs that works for me -
+> setenv bootargs 'console=ttyS2,115200n8 console=tty0 noinitrd root=/dev/mmcblk0p2 rootdelay=3'
 
-Is just having the mode in omap_board_mux entries sufficient?
+Since 2.6.24 we have 'rootwait', so please stop using rootdelay. A lot of (internal) TI wikis were fixed to change rootdelay=X to rootwait, but there are a lot remaining. Please help with the rootdelay eradication effort :)
 
-Thanks!
-,
-John
+regards,
+
+Koen
