@@ -1,56 +1,72 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] platform: Facilitate the creation of pseduo-platform  busses
-Date: Thu, 05 Aug 2010 08:27:39 -0700
-Message-ID: <87fwyt13mc.fsf@deeprootsystems.com>
-References: <4C59E654.1090403@codeaurora.org>
-	<AANLkTimkMy6_201XNGb41e7LivkvVHMkFZWVoA-7UmBo@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimkMy6_201XNGb41e7LivkvVHMkFZWVoA-7UmBo@mail.gmail.com>
-	(Magnus Damm's message of "Thu, 5 Aug 2010 11:32:16 +0900")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: Patrick Pannuto <ppannuto@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, alan@lxorguk.ukuu.org.uk, zt.tmzt@gmail.com
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v3 0/7] OMAP: hwmod: Full data set for OMAP4430 ES1 & ES2
+Date: Thu,  5 Aug 2010 17:47:49 +0200
+Message-ID: <1281023276-15679-1-git-send-email-b-cousson@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:39650 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756454Ab0HEPsE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Aug 2010 11:48:04 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com
+Cc: rnayak@ti.com, santosh.shilimkar@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-Magnus Damm <magnus.damm@gmail.com> writes:
+Hi Kevin & Paul,
 
-> On Thu, Aug 5, 2010 at 7:14 AM, Patrick Pannuto <ppannuto@codeaurora.=
-org> wrote:
->> Inspiration for this comes from:
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31161.html
->>
->> RFC: http://lkml.org/lkml/2010/8/3/496
->> Patch is unchanged from the RFC. Reviews seemed generally positive
->> and it seemed this was desired functionality.
->
-> Thanks for your patch, it's really nice to see work done in this area=
-!
-> I'd like to see something like this merged in the not so distant
-> future. At this point I'm not so concerned about the details, so I'll
-> restrict myself to this:
->
->> /drivers/my_driver.c
->> =A0 =A0 =A0 =A0static struct platform_driver my_driver =3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.driver =3D {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =3D "my-dri=
-ver",
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.owner =A0=3D THIS_MO=
-DULE,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.bus =A0 =A0=3D &my_b=
-us_type,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0},
->> =A0 =A0 =A0 =A0};
->
-> I would really prefer not to have the bus type in the here. I
-> understand it's needed at this point, but I wonder if it's possible t=
-o
-> adjust the device<->driver matching for platform devices to allow any
-> type of pseudo-platform bus_type.
+Here is the OMAP4430 ES1 & ES2 hwmod data v3 series.
 
-I totally agree here.  Keeping the drivers ignorant of the bus (or SoC)
-they are on will make them much more portable.
+Please note that there is no difference between the ES1 & ES2 wrt hwmod.
 
-Kevin
+This series is re-organised in order to allow initial submission for upstream
+with minimal interconnect data set + mpu.
+
+Further data will be sent along with the driver once adapted to hwmod.
+A first patch is done for the TIMER IP as an example.
+
+Patches are based on lo/for-next + for-next-fixes + pm-wip/hwmods-reset
++ pm-wip/hwmods-debugfs and are available here:
+git://dev.omapzoom.org/pub/scm/swarch/linux-omap-adv.git pm-wip/hwmods-omap4
+
+Tested on OMAP4430 ES1.0 GP device using PAB board.
+
+Thanks,
+Benoit
+
+v1
+  http://marc.info/?l=linux-omap&m=127324843814741&w=2
+
+v2
+  http://www.spinics.net/lists/linux-omap/msg29622.html
+  - [PATCH 3/6] OMAP4: hwmod: Enable omap_device build for OMAP4
+    Removed some old defines for OMAP_32KSYNCT_BASE that has nothing
+    to do in that file and was already removed by Tony.
+
+v3
+  - Re-organize the data for initial submission
+  - Fix and align clock name with the hwmod
+  - Add hardreset support
+  - Add DSS sub-modules
+  - Add mpu_bus for internal access from mpu to mpu subsystem
+  - Fix interconnect wrong class name
+
+
+Benoit Cousson (7):
+  OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
+  OMAP4: clock: Fix clock names and align with hwmod names
+  OMAP4: pm: Change l3_main to l3_main_1 during bus device init
+  OMAP4: hwmod: Add TIMER data for OMAP4430 ES1 & ES2
+  OMAP4: hwmod: Add remaining hwmods data for OMAP4430 ES1 & ES2
+  OMAP: hwmod: Temporary prevent reset during _setup for GPIOs
+  OMAP: hwmod: Temporary prevent reset during _setup for I2Cs
+
+ arch/arm/mach-omap2/Makefile                 |    1 +
+ arch/arm/mach-omap2/clock44xx_data.c         |  715 ++--
+ arch/arm/mach-omap2/io.c                     |    7 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   | 5801 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.c                     |    5 +-
+ arch/arm/plat-omap/Makefile                  |    2 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 7 files changed, 6147 insertions(+), 385 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+
