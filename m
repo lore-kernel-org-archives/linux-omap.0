@@ -1,609 +1,1058 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v3 1/7] OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
-Date: Thu,  5 Aug 2010 17:47:50 +0200
-Message-ID: <1281023276-15679-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v3 2/7] OMAP4: clock: Fix clock names and align with hwmod names
+Date: Thu,  5 Aug 2010 17:47:51 +0200
+Message-ID: <1281023276-15679-3-git-send-email-b-cousson@ti.com>
 References: <1281023276-15679-1-git-send-email-b-cousson@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39248 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51487 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758862Ab0HEPsH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Aug 2010 11:48:07 -0400
+	id S1756454Ab0HEPsK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Aug 2010 11:48:10 -0400
 In-Reply-To: <1281023276-15679-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com
 Cc: rnayak@ti.com, santosh.shilimkar@ti.com, Benoit Cousson <b-cousson@ti.com>
 
-The current version contains only the interconnects and the
-mpu hwmods.
-The remaining hwmods will be introduced by further patches on
-top of this one.
+The OMAP4 hwmod data introduced the new naming convention for TI
+IPs (See patch OMAP4: hwmod: Add partial hwmod support for OMAP4430 ES1.0)
 
-- enable as well omap_hwmod.c build for OMAP4 Soc
+The leaf clock names are using the same IP name and thus must be
+modified to match the clock populated in the hwmod data.
 
-Please not that this file uses the new naming convention for
-naming HW IPs. This convention will be backported soon for previous
-OMAP2 & 3 data files.
+- Fix some leaf clocks nodes that were using a _iclk instead of the _fclk
+prefix.
+- Fix some wrong interface clock name for master IPs connected to
+interconnect.
 
-new name        trm name
--------------   -------------------
-counter_32k     synctimer_32k
-l3_main         l3
-timerX          gptimerX / dmtimerX
-mmcX            mmchsX / sdmmcX
-dma_system      sdma
-smartreflex_X   sr_X / sr?
-usb_host_fs     usbfshost
-usb_otg_hs      hsusbotg
-usb_tll_hs      usbtllhs_config
-wd_timerX       wdtimerX
-ipu             cortexm3 / ducati
-dsp             c6x / tesla
-iva             ivahd / iva2.2
-kbd             kbdocp / keyboard
-mailbox         system_mailbox
-mpu             cortexa9 / chiron
+Please not that due to the fact that nodes are sorted by name, the name
+change will introduce a quite ugly diff a little bit hard to follow.
+
+Timers clock con_id is still using the old gptX_fck name until the
+gptimer driver is updated to omap_device framework.
+Timers entries in hwmods DB are still disabled until the migration
+if timer to platform_driver + omap_hwmod.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/io.c                     |    7 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  482 ++++++++++++++++++++++++++
- arch/arm/plat-omap/Makefile                  |    2 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 5 files changed, 489 insertions(+), 4 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+ arch/arm/mach-omap2/clock44xx_data.c |  715 ++++++++++++++++------------------
+ 1 files changed, 335 insertions(+), 380 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 2f2b25b..cc0df1b 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -88,6 +88,7 @@ obj-$(CONFIG_ARCH_OMAP2430)		+= opp2430_data.o
- obj-$(CONFIG_ARCH_OMAP2420)		+= omap_hwmod_2420_data.o
- obj-$(CONFIG_ARCH_OMAP2430)		+= omap_hwmod_2430_data.o
- obj-$(CONFIG_ARCH_OMAP3)		+= omap_hwmod_3xxx_data.o
-+obj-$(CONFIG_ARCH_OMAP4)		+= omap_hwmod_44xx_data.o
- 
- # EMU peripherals
- obj-$(CONFIG_OMAP3_EMU)			+= emu.o
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index b9ea70b..490d870 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -323,6 +323,9 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 		omap2430_hwmod_init();
- 	else if (cpu_is_omap34xx())
- 		omap3xxx_hwmod_init();
-+	else if (cpu_is_omap44xx())
-+		omap44xx_hwmod_init();
-+
- 	/* The OPP tables have to be registered before a clk init */
- 	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
- 
-@@ -342,9 +345,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- #ifndef CONFIG_PM_RUNTIME
- 	skip_setup_idle = 1;
- #endif
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
--		omap_hwmod_late_init(skip_setup_idle);
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index e10db7a..a0e369e 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -22,7 +22,6 @@
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/clk.h>
 -
-+	omap_hwmod_late_init(skip_setup_idle);
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
- 		omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 		_omap2_init_reprogram_sdrc();
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-new file mode 100644
-index 0000000..e20b0ee
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -0,0 +1,482 @@
-+/*
-+ * Hardware modules present on the OMAP44xx chips
-+ *
-+ * Copyright (C) 2009-2010 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2010 Nokia Corporation
-+ *
-+ * Paul Walmsley
-+ * Benoit Cousson
-+ *
-+ * This file is automatically generated from the OMAP hardware databases.
-+ * We respectfully ask that any modifications to this file be coordinated
-+ * with the public linux-omap@vger.kernel.org mailing list and the
-+ * authors above to ensure that the autogeneration scripts are kept
-+ * up-to-date with the file contents.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/io.h>
-+
-+#include <plat/omap_hwmod.h>
-+#include <plat/cpu.h>
-+
-+#include "omap_hwmod_common_data.h"
-+
-+#include "cm.h"
-+#include "prm-regbits-44xx.h"
-+
-+/* Base offset for all OMAP4 interrupts external to MPUSS */
-+#define OMAP44XX_IRQ_GIC_START	32
-+
-+/* Base offset for all OMAP4 dma requests */
-+#define OMAP44XX_DMA_REQ_START  1
-+
-+/* Backward references (IPs with Bus Master capability) */
-+static struct omap_hwmod omap44xx_dmm_hwmod;
-+static struct omap_hwmod omap44xx_emif_fw_hwmod;
-+static struct omap_hwmod omap44xx_l3_instr_hwmod;
-+static struct omap_hwmod omap44xx_l3_main_1_hwmod;
-+static struct omap_hwmod omap44xx_l3_main_2_hwmod;
-+static struct omap_hwmod omap44xx_l3_main_3_hwmod;
-+static struct omap_hwmod omap44xx_l4_abe_hwmod;
-+static struct omap_hwmod omap44xx_l4_cfg_hwmod;
-+static struct omap_hwmod omap44xx_l4_per_hwmod;
-+static struct omap_hwmod omap44xx_l4_wkup_hwmod;
-+static struct omap_hwmod omap44xx_mpu_hwmod;
-+static struct omap_hwmod omap44xx_mpu_private_hwmod;
-+
-+/*
-+ * Interconnects omap_hwmod structures
-+ * hwmods that compose the global OMAP interconnect
-+ */
-+
-+/*
-+ * 'dmm' class
-+ * instance(s): dmm
-+ */
-+static struct omap_hwmod_class omap44xx_dmm_hwmod_class = {
-+	.name = "dmm",
-+};
-+
-+/* dmm interface data */
-+/* l3_main_1 -> dmm */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_1__dmm = {
-+	.master		= &omap44xx_l3_main_1_hwmod,
-+	.slave		= &omap44xx_dmm_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mpu -> dmm */
-+static struct omap_hwmod_ocp_if omap44xx_mpu__dmm = {
-+	.master		= &omap44xx_mpu_hwmod,
-+	.slave		= &omap44xx_dmm_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* dmm slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_dmm_slaves[] = {
-+	&omap44xx_l3_main_1__dmm,
-+	&omap44xx_mpu__dmm,
-+};
-+
-+static struct omap_hwmod_irq_info omap44xx_dmm_irqs[] = {
-+	{ .irq = 113 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod omap44xx_dmm_hwmod = {
-+	.name		= "dmm",
-+	.class		= &omap44xx_dmm_hwmod_class,
-+	.slaves		= omap44xx_dmm_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_dmm_slaves),
-+	.mpu_irqs	= omap44xx_dmm_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dmm_irqs),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/*
-+ * 'emif_fw' class
-+ * instance(s): emif_fw
-+ */
-+static struct omap_hwmod_class omap44xx_emif_fw_hwmod_class = {
-+	.name = "emif_fw",
-+};
-+
-+/* emif_fw interface data */
-+/* dmm -> emif_fw */
-+static struct omap_hwmod_ocp_if omap44xx_dmm__emif_fw = {
-+	.master		= &omap44xx_dmm_hwmod,
-+	.slave		= &omap44xx_emif_fw_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg -> emif_fw */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__emif_fw = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_emif_fw_hwmod,
-+	.clk		= "l4_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* emif_fw slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_emif_fw_slaves[] = {
-+	&omap44xx_dmm__emif_fw,
-+	&omap44xx_l4_cfg__emif_fw,
-+};
-+
-+static struct omap_hwmod omap44xx_emif_fw_hwmod = {
-+	.name		= "emif_fw",
-+	.class		= &omap44xx_emif_fw_hwmod_class,
-+	.slaves		= omap44xx_emif_fw_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_emif_fw_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/*
-+ * 'l3' class
-+ * instance(s): l3_instr, l3_main_1, l3_main_2, l3_main_3
-+ */
-+static struct omap_hwmod_class omap44xx_l3_hwmod_class = {
-+	.name = "l3",
-+};
-+
-+/* l3_instr interface data */
-+/* l3_main_3 -> l3_instr */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_3__l3_instr = {
-+	.master		= &omap44xx_l3_main_3_hwmod,
-+	.slave		= &omap44xx_l3_instr_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_instr slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_l3_instr_slaves[] = {
-+	&omap44xx_l3_main_3__l3_instr,
-+};
-+
-+static struct omap_hwmod omap44xx_l3_instr_hwmod = {
-+	.name		= "l3_instr",
-+	.class		= &omap44xx_l3_hwmod_class,
-+	.slaves		= omap44xx_l3_instr_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_instr_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* l3_main_2 -> l3_main_1 */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_2__l3_main_1 = {
-+	.master		= &omap44xx_l3_main_2_hwmod,
-+	.slave		= &omap44xx_l3_main_1_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg -> l3_main_1 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_1 = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_l3_main_1_hwmod,
-+	.clk		= "l4_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mpu -> l3_main_1 */
-+static struct omap_hwmod_ocp_if omap44xx_mpu__l3_main_1 = {
-+	.master		= &omap44xx_mpu_hwmod,
-+	.slave		= &omap44xx_l3_main_1_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_1 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_l3_main_1_slaves[] = {
-+	&omap44xx_l3_main_2__l3_main_1,
-+	&omap44xx_l4_cfg__l3_main_1,
-+	&omap44xx_mpu__l3_main_1,
-+};
-+
-+static struct omap_hwmod omap44xx_l3_main_1_hwmod = {
-+	.name		= "l3_main_1",
-+	.class		= &omap44xx_l3_hwmod_class,
-+	.slaves		= omap44xx_l3_main_1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_1_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* l3_main_2 interface data */
-+/* l3_main_1 -> l3_main_2 */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_2 = {
-+	.master		= &omap44xx_l3_main_1_hwmod,
-+	.slave		= &omap44xx_l3_main_2_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg -> l3_main_2 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_l3_main_2_hwmod,
-+	.clk		= "l4_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_2 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
-+	&omap44xx_l3_main_1__l3_main_2,
-+	&omap44xx_l4_cfg__l3_main_2,
-+};
-+
-+static struct omap_hwmod omap44xx_l3_main_2_hwmod = {
-+	.name		= "l3_main_2",
-+	.class		= &omap44xx_l3_hwmod_class,
-+	.slaves		= omap44xx_l3_main_2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_2_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* l3_main_3 interface data */
-+/* l3_main_1 -> l3_main_3 */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_3 = {
-+	.master		= &omap44xx_l3_main_1_hwmod,
-+	.slave		= &omap44xx_l3_main_3_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_2 -> l3_main_3 */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_2__l3_main_3 = {
-+	.master		= &omap44xx_l3_main_2_hwmod,
-+	.slave		= &omap44xx_l3_main_3_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg -> l3_main_3 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_3 = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_l3_main_3_hwmod,
-+	.clk		= "l4_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l3_main_3 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_l3_main_3_slaves[] = {
-+	&omap44xx_l3_main_1__l3_main_3,
-+	&omap44xx_l3_main_2__l3_main_3,
-+	&omap44xx_l4_cfg__l3_main_3,
-+};
-+
-+static struct omap_hwmod omap44xx_l3_main_3_hwmod = {
-+	.name		= "l3_main_3",
-+	.class		= &omap44xx_l3_hwmod_class,
-+	.slaves		= omap44xx_l3_main_3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_l3_main_3_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/*
-+ * 'l4' class
-+ * instance(s): l4_abe, l4_cfg, l4_per, l4_wkup
-+ */
-+static struct omap_hwmod_class omap44xx_l4_hwmod_class = {
-+	.name = "l4",
-+};
-+
-+/* l4_abe interface data */
-+/* l3_main_1 -> l4_abe */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l4_abe = {
-+	.master		= &omap44xx_l3_main_1_hwmod,
-+	.slave		= &omap44xx_l4_abe_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mpu -> l4_abe */
-+static struct omap_hwmod_ocp_if omap44xx_mpu__l4_abe = {
-+	.master		= &omap44xx_mpu_hwmod,
-+	.slave		= &omap44xx_l4_abe_hwmod,
-+	.clk		= "ocp_abe_iclk",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_abe slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_l4_abe_slaves[] = {
-+	&omap44xx_l3_main_1__l4_abe,
-+	&omap44xx_mpu__l4_abe,
-+};
-+
-+static struct omap_hwmod omap44xx_l4_abe_hwmod = {
-+	.name		= "l4_abe",
-+	.class		= &omap44xx_l4_hwmod_class,
-+	.slaves		= omap44xx_l4_abe_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_abe_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* l4_cfg interface data */
-+/* l3_main_1 -> l4_cfg */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l4_cfg = {
-+	.master		= &omap44xx_l3_main_1_hwmod,
-+	.slave		= &omap44xx_l4_cfg_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_cfg slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_l4_cfg_slaves[] = {
-+	&omap44xx_l3_main_1__l4_cfg,
-+};
-+
-+static struct omap_hwmod omap44xx_l4_cfg_hwmod = {
-+	.name		= "l4_cfg",
-+	.class		= &omap44xx_l4_hwmod_class,
-+	.slaves		= omap44xx_l4_cfg_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_cfg_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* l4_per interface data */
-+/* l3_main_2 -> l4_per */
-+static struct omap_hwmod_ocp_if omap44xx_l3_main_2__l4_per = {
-+	.master		= &omap44xx_l3_main_2_hwmod,
-+	.slave		= &omap44xx_l4_per_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_per slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_l4_per_slaves[] = {
-+	&omap44xx_l3_main_2__l4_per,
-+};
-+
-+static struct omap_hwmod omap44xx_l4_per_hwmod = {
-+	.name		= "l4_per",
-+	.class		= &omap44xx_l4_hwmod_class,
-+	.slaves		= omap44xx_l4_per_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_per_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* l4_wkup interface data */
-+/* l4_cfg -> l4_wkup */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l4_wkup = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_l4_wkup_hwmod,
-+	.clk		= "l4_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* l4_wkup slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_l4_wkup_slaves[] = {
-+	&omap44xx_l4_cfg__l4_wkup,
-+};
-+
-+static struct omap_hwmod omap44xx_l4_wkup_hwmod = {
-+	.name		= "l4_wkup",
-+	.class		= &omap44xx_l4_hwmod_class,
-+	.slaves		= omap44xx_l4_wkup_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_l4_wkup_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/*
-+ * 'mpu_bus' class
-+ * instance(s): mpu_private
-+ */
-+static struct omap_hwmod_class omap44xx_mpu_bus_hwmod_class = {
-+	.name = "mpu_bus",
-+};
-+
-+/* mpu_private interface data */
-+/* mpu -> mpu_private */
-+static struct omap_hwmod_ocp_if omap44xx_mpu__mpu_private = {
-+	.master		= &omap44xx_mpu_hwmod,
-+	.slave		= &omap44xx_mpu_private_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* mpu_private slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_mpu_private_slaves[] = {
-+	&omap44xx_mpu__mpu_private,
-+};
-+
-+static struct omap_hwmod omap44xx_mpu_private_hwmod = {
-+	.name		= "mpu_private",
-+	.class		= &omap44xx_mpu_bus_hwmod_class,
-+	.slaves		= omap44xx_mpu_private_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_mpu_private_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/*
-+ * 'mpu' class
-+ * mpu sub-system
-+ */
-+
-+static struct omap_hwmod_class omap44xx_mpu_hwmod_class = {
-+	.name = "mpu",
-+};
-+
-+/* mpu */
-+static struct omap_hwmod_irq_info omap44xx_mpu_irqs[] = {
-+	{ .name = "pl310", .irq = 0 + OMAP44XX_IRQ_GIC_START },
-+	{ .name = "cti0", .irq = 1 + OMAP44XX_IRQ_GIC_START },
-+	{ .name = "cti1", .irq = 2 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+/* mpu master ports */
-+static struct omap_hwmod_ocp_if *omap44xx_mpu_masters[] = {
-+	&omap44xx_mpu__l3_main_1,
-+	&omap44xx_mpu__l4_abe,
-+	&omap44xx_mpu__dmm,
-+};
-+
-+static struct omap_hwmod omap44xx_mpu_hwmod = {
-+	.name		= "mpu",
-+	.class		= &omap44xx_mpu_hwmod_class,
-+	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
-+	.mpu_irqs	= omap44xx_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mpu_irqs),
-+	.main_clk	= "dpll_mpu_m2_ck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_MPU_MPU_CLKCTRL,
-+		},
-+	},
-+	.masters	= omap44xx_mpu_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap44xx_mpu_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
-+	/* dmm class */
-+	&omap44xx_dmm_hwmod,
-+	/* emif_fw class */
-+	&omap44xx_emif_fw_hwmod,
-+	/* l3 class */
-+	&omap44xx_l3_instr_hwmod,
-+	&omap44xx_l3_main_1_hwmod,
-+	&omap44xx_l3_main_2_hwmod,
-+	&omap44xx_l3_main_3_hwmod,
-+	/* l4 class */
-+	&omap44xx_l4_abe_hwmod,
-+	&omap44xx_l4_cfg_hwmod,
-+	&omap44xx_l4_per_hwmod,
-+	&omap44xx_l4_wkup_hwmod,
-+	/* mpu_bus class */
-+	&omap44xx_mpu_private_hwmod,
-+
-+	/* mpu class */
-+	&omap44xx_mpu_hwmod,
-+	NULL,
-+};
-+
-+int __init omap44xx_hwmod_init(void)
-+{
-+	return omap_hwmod_init(omap44xx_hwmods);
-+}
-+
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 9405831..2a15191 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -31,4 +31,4 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
- # OMAP mailbox framework
- obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+ #include <plat/control.h>
+ #include <plat/clkdev_omap.h>
  
--obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
-\ No newline at end of file
-+obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 4a0b723..2211805 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -562,5 +562,6 @@ int omap_hwmod_for_each_by_class(const char *classname,
- extern int omap2420_hwmod_init(void);
- extern int omap2430_hwmod_init(void);
- extern int omap3xxx_hwmod_init(void);
-+extern int omap44xx_hwmod_init(void);
+@@ -914,6 +913,7 @@ static struct clk usb_hs_clk_div_ck = {
+ static struct dpll_data dpll_usb_dd = {
+ 	.mult_div1_reg	= OMAP4430_CM_CLKSEL_DPLL_USB,
+ 	.clk_bypass	= &usb_hs_clk_div_ck,
++	.flags		= DPLL_J_TYPE | DPLL_NO_DCO_SEL,
+ 	.clk_ref	= &dpll_sys_ref_clk,
+ 	.control_reg	= OMAP4430_CM_CLKMODE_DPLL_USB,
+ 	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+@@ -927,7 +927,6 @@ static struct dpll_data dpll_usb_dd = {
+ 	.max_multiplier	= OMAP4430_MAX_DPLL_MULT,
+ 	.max_divider	= OMAP4430_MAX_DPLL_DIV,
+ 	.min_divider	= 1,
+-	.flags		= DPLL_J_TYPE | DPLL_NO_DCO_SEL
+ };
  
- #endif
+ 
+@@ -1284,16 +1283,6 @@ static struct clk aess_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk cust_efuse_fck = {
+-	.name		= "cust_efuse_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_cefuse_clkdm",
+-	.parent		= &sys_clkin_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+ static struct clk des3des_fck = {
+ 	.name		= "des3des_fck",
+ 	.ops		= &clkops_omap2_dflt,
+@@ -1344,6 +1333,16 @@ static struct clk dmic_fck = {
+ 	.clkdm_name	= "abe_clkdm",
+ };
+ 
++static struct clk dsp_fck = {
++	.name		= "dsp_fck",
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= OMAP4430_CM_TESLA_TESLA_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
++	.clkdm_name	= "tesla_clkdm",
++	.parent		= &dpll_iva_m4_ck,
++	.recalc		= &followparent_recalc,
++};
++
+ static struct clk dss_fck = {
+ 	.name		= "dss_fck",
+ 	.ops		= &clkops_omap2_dflt,
+@@ -1354,18 +1353,18 @@ static struct clk dss_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk ducati_ick = {
+-	.name		= "ducati_ick",
++static struct clk efuse_ctrl_cust_fck = {
++	.name		= "efuse_ctrl_cust_fck",
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "ducati_clkdm",
+-	.parent		= &ducati_clk_mux_ck,
++	.enable_reg	= OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "l4_cefuse_clkdm",
++	.parent		= &sys_clkin_ck,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk emif1_ick = {
+-	.name		= "emif1_ick",
++static struct clk emif1_fck = {
++	.name		= "emif1_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_1_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+@@ -1375,8 +1374,8 @@ static struct clk emif1_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk emif2_ick = {
+-	.name		= "emif2_ick",
++static struct clk emif2_fck = {
++	.name		= "emif2_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_MEMIF_EMIF_2_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+@@ -1407,42 +1406,14 @@ static struct clk fdif_fck = {
+ 	.clkdm_name	= "iss_clkdm",
+ };
+ 
+-static const struct clksel per_sgx_fclk_div[] = {
+-	{ .parent = &dpll_per_m2x2_ck, .rates = div3_1to4_rates },
+-	{ .parent = NULL },
+-};
+-
+-static struct clk per_sgx_fclk = {
+-	.name		= "per_sgx_fclk",
+-	.parent		= &dpll_per_m2x2_ck,
+-	.clksel		= per_sgx_fclk_div,
+-	.clksel_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_PER_192M_MASK,
+-	.ops		= &clkops_null,
+-	.recalc		= &omap2_clksel_recalc,
+-	.round_rate	= &omap2_clksel_round_rate,
+-	.set_rate	= &omap2_clksel_set_rate,
+-};
+-
+-static const struct clksel sgx_clk_mux_sel[] = {
+-	{ .parent = &dpll_core_m7_ck, .rates = div_1_0_rates },
+-	{ .parent = &per_sgx_fclk, .rates = div_1_1_rates },
+-	{ .parent = NULL },
+-};
+-
+-/* Merged sgx_clk_mux into gfx */
+-static struct clk gfx_fck = {
+-	.name		= "gfx_fck",
+-	.parent		= &dpll_core_m7_ck,
+-	.clksel		= sgx_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_SGX_FCLK_MASK,
++static struct clk fpka_fck = {
++	.name		= "fpka_fck",
+ 	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
++	.enable_reg	= OMAP4430_CM_L4SEC_PKAEIP29_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l3_gfx_clkdm",
++	.clkdm_name	= "l4_secure_clkdm",
++	.parent		= &l4_div_ck,
++	.recalc		= &followparent_recalc,
+ };
+ 
+ static struct clk gpio1_ick = {
+@@ -1515,214 +1486,42 @@ static struct clk gpmc_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static const struct clksel dmt1_clk_mux_sel[] = {
+-	{ .parent = &sys_clkin_ck, .rates = div_1_0_rates },
+-	{ .parent = &sys_32k_ck, .rates = div_1_1_rates },
++static const struct clksel per_sgx_fclk_div[] = {
++	{ .parent = &dpll_per_m2x2_ck, .rates = div3_1to4_rates },
+ 	{ .parent = NULL },
+ };
+ 
+-/*
+- * Merged dmt1_clk_mux into gptimer1
+- * gptimer1 renamed temporarily into gpt1 to match OMAP3 convention
+- */
+-static struct clk gpt1_fck = {
+-	.name		= "gpt1_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= dmt1_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_wkup_clkdm",
+-};
+-
+-/*
+- * Merged cm2_dm10_mux into gptimer10
+- * gptimer10 renamed temporarily into gpt10 to match OMAP3 convention
+- */
+-static struct clk gpt10_fck = {
+-	.name		= "gpt10_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= dmt1_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-};
+-
+-/*
+- * Merged cm2_dm11_mux into gptimer11
+- * gptimer11 renamed temporarily into gpt11 to match OMAP3 convention
+- */
+-static struct clk gpt11_fck = {
+-	.name		= "gpt11_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= dmt1_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-};
+-
+-/*
+- * Merged cm2_dm2_mux into gptimer2
+- * gptimer2 renamed temporarily into gpt2 to match OMAP3 convention
+- */
+-static struct clk gpt2_fck = {
+-	.name		= "gpt2_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= dmt1_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-};
+-
+-/*
+- * Merged cm2_dm3_mux into gptimer3
+- * gptimer3 renamed temporarily into gpt3 to match OMAP3 convention
+- */
+-static struct clk gpt3_fck = {
+-	.name		= "gpt3_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= dmt1_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
+-};
+-
+-/*
+- * Merged cm2_dm4_mux into gptimer4
+- * gptimer4 renamed temporarily into gpt4 to match OMAP3 convention
+- */
+-static struct clk gpt4_fck = {
+-	.name		= "gpt4_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= dmt1_clk_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
++static struct clk per_sgx_fclk = {
++	.name		= "per_sgx_fclk",
++	.parent		= &dpll_per_m2x2_ck,
++	.clksel		= per_sgx_fclk_div,
++	.clksel_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_PER_192M_MASK,
++	.ops		= &clkops_null,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
++	.round_rate	= &omap2_clksel_round_rate,
++	.set_rate	= &omap2_clksel_set_rate,
+ };
+ 
+-static const struct clksel timer5_sync_mux_sel[] = {
+-	{ .parent = &syc_clk_div_ck, .rates = div_1_0_rates },
+-	{ .parent = &sys_32k_ck, .rates = div_1_1_rates },
++static const struct clksel sgx_clk_mux_sel[] = {
++	{ .parent = &dpll_core_m7_ck, .rates = div_1_0_rates },
++	{ .parent = &per_sgx_fclk, .rates = div_1_1_rates },
+ 	{ .parent = NULL },
+ };
+ 
+-/*
+- * Merged timer5_sync_mux into gptimer5
+- * gptimer5 renamed temporarily into gpt5 to match OMAP3 convention
+- */
+-static struct clk gpt5_fck = {
+-	.name		= "gpt5_fck",
+-	.parent		= &syc_clk_div_ck,
+-	.clksel		= timer5_sync_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM1_ABE_TIMER5_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_TIMER5_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-};
+-
+-/*
+- * Merged timer6_sync_mux into gptimer6
+- * gptimer6 renamed temporarily into gpt6 to match OMAP3 convention
+- */
+-static struct clk gpt6_fck = {
+-	.name		= "gpt6_fck",
+-	.parent		= &syc_clk_div_ck,
+-	.clksel		= timer5_sync_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM1_ABE_TIMER6_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_TIMER6_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-};
+-
+-/*
+- * Merged timer7_sync_mux into gptimer7
+- * gptimer7 renamed temporarily into gpt7 to match OMAP3 convention
+- */
+-static struct clk gpt7_fck = {
+-	.name		= "gpt7_fck",
+-	.parent		= &syc_clk_div_ck,
+-	.clksel		= timer5_sync_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM1_ABE_TIMER7_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_TIMER7_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-};
+-
+-/*
+- * Merged timer8_sync_mux into gptimer8
+- * gptimer8 renamed temporarily into gpt8 to match OMAP3 convention
+- */
+-static struct clk gpt8_fck = {
+-	.name		= "gpt8_fck",
+-	.parent		= &syc_clk_div_ck,
+-	.clksel		= timer5_sync_mux_sel,
+-	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM1_ABE_TIMER8_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+-	.ops		= &clkops_omap2_dflt,
+-	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM1_ABE_TIMER8_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-};
+-
+-/*
+- * Merged cm2_dm9_mux into gptimer9
+- * gptimer9 renamed temporarily into gpt9 to match OMAP3 convention
+- */
+-static struct clk gpt9_fck = {
+-	.name		= "gpt9_fck",
+-	.parent		= &sys_clkin_ck,
+-	.clksel		= dmt1_clk_mux_sel,
++/* Merged sgx_clk_mux into gpu */
++static struct clk gpu_fck = {
++	.name		= "gpu_fck",
++	.parent		= &dpll_core_m7_ck,
++	.clksel		= sgx_clk_mux_sel,
+ 	.init		= &omap2_init_clksel_parent,
+-	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
+-	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.clksel_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_SGX_FCLK_MASK,
+ 	.ops		= &clkops_omap2_dflt,
+ 	.recalc		= &omap2_clksel_recalc,
+-	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
++	.enable_reg	= OMAP4430_CM_GFX_GFX_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_per_clkdm",
++	.clkdm_name	= "l3_gfx_clkdm",
+ };
+ 
+ static struct clk hdq1w_fck = {
+@@ -1736,8 +1535,8 @@ static struct clk hdq1w_fck = {
+ };
+ 
+ /* Merged hsi_fclk into hsi */
+-static struct clk hsi_ick = {
+-	.name		= "hsi_ick",
++static struct clk hsi_fck = {
++	.name		= "hsi_fck",
+ 	.parent		= &dpll_per_m2x2_ck,
+ 	.clksel		= per_sgx_fclk_div,
+ 	.clksel_reg	= OMAP4430_CM_L3INIT_HSI_CLKCTRL,
+@@ -1791,6 +1590,16 @@ static struct clk i2c4_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
++static struct clk ipu_fck = {
++	.name		= "ipu_fck",
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= OMAP4430_CM_DUCATI_DUCATI_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
++	.clkdm_name	= "ducati_clkdm",
++	.parent		= &ducati_clk_mux_ck,
++	.recalc		= &followparent_recalc,
++};
++
+ static struct clk iss_fck = {
+ 	.name		= "iss_fck",
+ 	.ops		= &clkops_omap2_dflt,
+@@ -1801,8 +1610,8 @@ static struct clk iss_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk ivahd_ick = {
+-	.name		= "ivahd_ick",
++static struct clk iva_fck = {
++	.name		= "iva_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_IVAHD_IVAHD_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+@@ -1811,8 +1620,8 @@ static struct clk ivahd_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk keyboard_fck = {
+-	.name		= "keyboard_fck",
++static struct clk kbd_fck = {
++	.name		= "kbd_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_WKUP_KEYBOARD_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -1821,8 +1630,8 @@ static struct clk keyboard_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk l3_instr_interconnect_ick = {
+-	.name		= "l3_instr_interconnect_ick",
++static struct clk l3_instr_ick = {
++	.name		= "l3_instr_ick",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L3INSTR_L3_INSTR_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+@@ -1831,8 +1640,8 @@ static struct clk l3_instr_interconnect_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk l3_interconnect_3_ick = {
+-	.name		= "l3_interconnect_3_ick",
++static struct clk l3_main_3_ick = {
++	.name		= "l3_main_3_ick",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L3INSTR_L3_3_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+@@ -2005,6 +1814,16 @@ static struct clk mcbsp4_fck = {
+ 	.clkdm_name	= "l4_per_clkdm",
+ };
+ 
++static struct clk mcpdm_fck = {
++	.name		= "mcpdm_fck",
++	.ops		= &clkops_omap2_dflt,
++	.enable_reg	= OMAP4430_CM1_ABE_PDM_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "abe_clkdm",
++	.parent		= &pad_clks_ck,
++	.recalc		= &followparent_recalc,
++};
++
+ static struct clk mcspi1_fck = {
+ 	.name		= "mcspi1_fck",
+ 	.ops		= &clkops_omap2_dflt,
+@@ -2105,33 +1924,23 @@ static struct clk mmc5_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk ocp_wp1_ick = {
+-	.name		= "ocp_wp1_ick",
++static struct clk ocp2scp_usb_phy_ick = {
++	.name		= "ocp2scp_usb_phy_ick",
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INSTR_OCP_WP1_CLKCTRL,
++	.enable_reg	= OMAP4430_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l3_instr_clkdm",
+-	.parent		= &l3_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk pdm_fck = {
+-	.name		= "pdm_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM1_ABE_PDM_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "abe_clkdm",
+-	.parent		= &pad_clks_ck,
++	.clkdm_name	= "l3_init_clkdm",
++	.parent		= &l4_div_ck,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk pkaeip29_fck = {
+-	.name		= "pkaeip29_fck",
++static struct clk ocp_wp_noc_ick = {
++	.name		= "ocp_wp_noc_ick",
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L4SEC_PKAEIP29_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l4_secure_clkdm",
+-	.parent		= &l4_div_ck,
++	.enable_reg	= OMAP4430_CM_L3INSTR_OCP_WP1_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
++	.clkdm_name	= "l3_instr_clkdm",
++	.parent		= &l3_div_ck,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -2145,8 +1954,8 @@ static struct clk rng_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk sha2md51_fck = {
+-	.name		= "sha2md51_fck",
++static struct clk sha2md5_fck = {
++	.name		= "sha2md5_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L4SEC_SHA2MD51_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -2155,8 +1964,8 @@ static struct clk sha2md51_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk sl2_ick = {
+-	.name		= "sl2_ick",
++static struct clk sl2if_ick = {
++	.name		= "sl2if_ick",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_IVAHD_SL2_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+@@ -2185,8 +1994,8 @@ static struct clk slimbus2_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk sr_core_fck = {
+-	.name		= "sr_core_fck",
++static struct clk smartreflex_core_fck = {
++	.name		= "smartreflex_core_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_ALWON_SR_CORE_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -2195,8 +2004,8 @@ static struct clk sr_core_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk sr_iva_fck = {
+-	.name		= "sr_iva_fck",
++static struct clk smartreflex_iva_fck = {
++	.name		= "smartreflex_iva_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_ALWON_SR_IVA_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -2205,8 +2014,8 @@ static struct clk sr_iva_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk sr_mpu_fck = {
+-	.name		= "sr_mpu_fck",
++static struct clk smartreflex_mpu_fck = {
++	.name		= "smartreflex_mpu_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_ALWON_SR_MPU_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -2215,14 +2024,181 @@ static struct clk sr_mpu_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk tesla_ick = {
+-	.name		= "tesla_ick",
++static const struct clksel dmt1_clk_mux_sel[] = {
++	{ .parent = &sys_clkin_ck, .rates = div_1_0_rates },
++	{ .parent = &sys_32k_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
++/* Merged dmt1_clk_mux into timer1 */
++static struct clk timer1_fck = {
++	.name		= "timer1_fck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= dmt1_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_TESLA_TESLA_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "tesla_clkdm",
+-	.parent		= &dpll_iva_m4_ck,
+-	.recalc		= &followparent_recalc,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "l4_wkup_clkdm",
++};
++
++/* Merged cm2_dm10_mux into timer10 */
++static struct clk timer10_fck = {
++	.name		= "timer10_fck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= dmt1_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "l4_per_clkdm",
++};
++
++/* Merged cm2_dm11_mux into timer11 */
++static struct clk timer11_fck = {
++	.name		= "timer11_fck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= dmt1_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "l4_per_clkdm",
++};
++
++/* Merged cm2_dm2_mux into timer2 */
++static struct clk timer2_fck = {
++	.name		= "timer2_fck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= dmt1_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "l4_per_clkdm",
++};
++
++/* Merged cm2_dm3_mux into timer3 */
++static struct clk timer3_fck = {
++	.name		= "timer3_fck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= dmt1_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "l4_per_clkdm",
++};
++
++/* Merged cm2_dm4_mux into timer4 */
++static struct clk timer4_fck = {
++	.name		= "timer4_fck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= dmt1_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "l4_per_clkdm",
++};
++
++static const struct clksel timer5_sync_mux_sel[] = {
++	{ .parent = &syc_clk_div_ck, .rates = div_1_0_rates },
++	{ .parent = &sys_32k_ck, .rates = div_1_1_rates },
++	{ .parent = NULL },
++};
++
++/* Merged timer5_sync_mux into timer5 */
++static struct clk timer5_fck = {
++	.name		= "timer5_fck",
++	.parent		= &syc_clk_div_ck,
++	.clksel		= timer5_sync_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM1_ABE_TIMER5_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM1_ABE_TIMER5_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "abe_clkdm",
++};
++
++/* Merged timer6_sync_mux into timer6 */
++static struct clk timer6_fck = {
++	.name		= "timer6_fck",
++	.parent		= &syc_clk_div_ck,
++	.clksel		= timer5_sync_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM1_ABE_TIMER6_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM1_ABE_TIMER6_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "abe_clkdm",
++};
++
++/* Merged timer7_sync_mux into timer7 */
++static struct clk timer7_fck = {
++	.name		= "timer7_fck",
++	.parent		= &syc_clk_div_ck,
++	.clksel		= timer5_sync_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM1_ABE_TIMER7_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM1_ABE_TIMER7_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "abe_clkdm",
++};
++
++/* Merged timer8_sync_mux into timer8 */
++static struct clk timer8_fck = {
++	.name		= "timer8_fck",
++	.parent		= &syc_clk_div_ck,
++	.clksel		= timer5_sync_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM1_ABE_TIMER8_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM1_ABE_TIMER8_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "abe_clkdm",
++};
++
++/* Merged cm2_dm9_mux into timer9 */
++static struct clk timer9_fck = {
++	.name		= "timer9_fck",
++	.parent		= &sys_clkin_ck,
++	.clksel		= dmt1_clk_mux_sel,
++	.init		= &omap2_init_clksel_parent,
++	.clksel_reg	= OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
++	.clksel_mask	= OMAP4430_CLKSEL_MASK,
++	.ops		= &clkops_omap2_dflt,
++	.recalc		= &omap2_clksel_recalc,
++	.enable_reg	= OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
++	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
++	.clkdm_name	= "l4_per_clkdm",
+ };
+ 
+ static struct clk uart1_fck = {
+@@ -2265,18 +2241,18 @@ static struct clk uart4_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk unipro1_fck = {
+-	.name		= "unipro1_fck",
++static struct clk usb_host_fs_fck = {
++	.name		= "usb_host_fs_fck",
+ 	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_UNIPRO1_CLKCTRL,
++	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_FS_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+ 	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &func_96m_fclk,
++	.parent		= &func_48mc_fclk,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk usb_host_fck = {
+-	.name		= "usb_host_fck",
++static struct clk usb_host_hs_fck = {
++	.name		= "usb_host_hs_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -2285,18 +2261,8 @@ static struct clk usb_host_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk usb_host_fs_fck = {
+-	.name		= "usb_host_fs_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USB_HOST_FS_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &func_48mc_fclk,
+-	.recalc		= &followparent_recalc,
+-};
+-
+-static struct clk usb_otg_ick = {
+-	.name		= "usb_otg_ick",
++static struct clk usb_otg_hs_ick = {
++	.name		= "usb_otg_hs_ick",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+@@ -2305,8 +2271,8 @@ static struct clk usb_otg_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk usb_tll_ick = {
+-	.name		= "usb_tll_ick",
++static struct clk usb_tll_hs_ick = {
++	.name		= "usb_tll_hs_ick",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+@@ -2315,16 +2281,6 @@ static struct clk usb_tll_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk usbphyocp2scp_ick = {
+-	.name		= "usbphyocp2scp_ick",
+-	.ops		= &clkops_omap2_dflt,
+-	.enable_reg	= OMAP4430_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
+-	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	= "l3_init_clkdm",
+-	.parent		= &l4_div_ck,
+-	.recalc		= &followparent_recalc,
+-};
+-
+ static struct clk usim_fck = {
+ 	.name		= "usim_fck",
+ 	.ops		= &clkops_omap2_dflt,
+@@ -2335,8 +2291,8 @@ static struct clk usim_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk wdt2_fck = {
+-	.name		= "wdt2_fck",
++static struct clk wd_timer2_fck = {
++	.name		= "wd_timer2_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM_WKUP_WDT2_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -2345,8 +2301,8 @@ static struct clk wdt2_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+-static struct clk wdt3_fck = {
+-	.name		= "wdt3_fck",
++static struct clk wd_timer3_fck = {
++	.name		= "wd_timer3_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.enable_reg	= OMAP4430_CM1_ABE_WDT3_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_SWCTRL,
+@@ -2557,17 +2513,16 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"aes1_fck",			&aes1_fck,	CK_443X),
+ 	CLK(NULL,	"aes2_fck",			&aes2_fck,	CK_443X),
+ 	CLK(NULL,	"aess_fck",			&aess_fck,	CK_443X),
+-	CLK(NULL,	"cust_efuse_fck",		&cust_efuse_fck,	CK_443X),
+ 	CLK(NULL,	"des3des_fck",			&des3des_fck,	CK_443X),
+ 	CLK(NULL,	"dmic_sync_mux_ck",		&dmic_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"dmic_fck",			&dmic_fck,	CK_443X),
++	CLK(NULL,	"dsp_fck",			&dsp_fck,	CK_443X),
+ 	CLK(NULL,	"dss_fck",			&dss_fck,	CK_443X),
+-	CLK(NULL,	"ducati_ick",			&ducati_ick,	CK_443X),
+-	CLK(NULL,	"emif1_ick",			&emif1_ick,	CK_443X),
+-	CLK(NULL,	"emif2_ick",			&emif2_ick,	CK_443X),
++	CLK(NULL,	"efuse_ctrl_cust_fck",		&efuse_ctrl_cust_fck,	CK_443X),
++	CLK(NULL,	"emif1_fck",			&emif1_fck,	CK_443X),
++	CLK(NULL,	"emif2_fck",			&emif2_fck,	CK_443X),
+ 	CLK(NULL,	"fdif_fck",			&fdif_fck,	CK_443X),
+-	CLK(NULL,	"per_sgx_fclk",			&per_sgx_fclk,	CK_443X),
+-	CLK(NULL,	"gfx_fck",			&gfx_fck,	CK_443X),
++	CLK(NULL,	"fpka_fck",			&fpka_fck,	CK_443X),
+ 	CLK(NULL,	"gpio1_ick",			&gpio1_ick,	CK_443X),
+ 	CLK(NULL,	"gpio2_ick",			&gpio2_ick,	CK_443X),
+ 	CLK(NULL,	"gpio3_ick",			&gpio3_ick,	CK_443X),
+@@ -2575,28 +2530,20 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"gpio5_ick",			&gpio5_ick,	CK_443X),
+ 	CLK(NULL,	"gpio6_ick",			&gpio6_ick,	CK_443X),
+ 	CLK(NULL,	"gpmc_ick",			&gpmc_ick,	CK_443X),
+-	CLK(NULL,	"gpt1_fck",			&gpt1_fck,	CK_443X),
+-	CLK(NULL,	"gpt10_fck",			&gpt10_fck,	CK_443X),
+-	CLK(NULL,	"gpt11_fck",			&gpt11_fck,	CK_443X),
+-	CLK(NULL,	"gpt2_fck",			&gpt2_fck,	CK_443X),
+-	CLK(NULL,	"gpt3_fck",			&gpt3_fck,	CK_443X),
+-	CLK(NULL,	"gpt4_fck",			&gpt4_fck,	CK_443X),
+-	CLK(NULL,	"gpt5_fck",			&gpt5_fck,	CK_443X),
+-	CLK(NULL,	"gpt6_fck",			&gpt6_fck,	CK_443X),
+-	CLK(NULL,	"gpt7_fck",			&gpt7_fck,	CK_443X),
+-	CLK(NULL,	"gpt8_fck",			&gpt8_fck,	CK_443X),
+-	CLK(NULL,	"gpt9_fck",			&gpt9_fck,	CK_443X),
++	CLK(NULL,	"per_sgx_fclk",			&per_sgx_fclk,	CK_443X),
++	CLK(NULL,	"gpu_fck",			&gpu_fck,	CK_443X),
+ 	CLK("omap2_hdq.0",	"fck",				&hdq1w_fck,	CK_443X),
+-	CLK(NULL,	"hsi_ick",			&hsi_ick,	CK_443X),
++	CLK(NULL,	"hsi_fck",			&hsi_fck,	CK_443X),
+ 	CLK("i2c_omap.1",	"fck",				&i2c1_fck,	CK_443X),
+ 	CLK("i2c_omap.2",	"fck",				&i2c2_fck,	CK_443X),
+ 	CLK("i2c_omap.3",	"fck",				&i2c3_fck,	CK_443X),
+ 	CLK("i2c_omap.4",	"fck",				&i2c4_fck,	CK_443X),
++	CLK(NULL,	"ipu_fck",			&ipu_fck,	CK_443X),
+ 	CLK(NULL,	"iss_fck",			&iss_fck,	CK_443X),
+-	CLK(NULL,	"ivahd_ick",			&ivahd_ick,	CK_443X),
+-	CLK(NULL,	"keyboard_fck",			&keyboard_fck,	CK_443X),
+-	CLK(NULL,	"l3_instr_interconnect_ick",	&l3_instr_interconnect_ick,	CK_443X),
+-	CLK(NULL,	"l3_interconnect_3_ick",	&l3_interconnect_3_ick,	CK_443X),
++	CLK(NULL,	"iva_fck",			&iva_fck,	CK_443X),
++	CLK(NULL,	"kbd_fck",			&kbd_fck,	CK_443X),
++	CLK(NULL,	"l3_instr_ick",			&l3_instr_ick,	CK_443X),
++	CLK(NULL,	"l3_main_3_ick",		&l3_main_3_ick,	CK_443X),
+ 	CLK(NULL,	"mcasp_sync_mux_ck",		&mcasp_sync_mux_ck,	CK_443X),
+ 	CLK(NULL,	"mcasp_fck",			&mcasp_fck,	CK_443X),
+ 	CLK(NULL,	"mcbsp1_sync_mux_ck",		&mcbsp1_sync_mux_ck,	CK_443X),
+@@ -2607,6 +2554,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK("omap-mcbsp.3",	"fck",				&mcbsp3_fck,	CK_443X),
+ 	CLK(NULL,	"mcbsp4_sync_mux_ck",		&mcbsp4_sync_mux_ck,	CK_443X),
+ 	CLK("omap-mcbsp.4",	"fck",				&mcbsp4_fck,	CK_443X),
++	CLK(NULL,	"mcpdm_fck",			&mcpdm_fck,	CK_443X),
+ 	CLK("omap2_mcspi.1",	"fck",				&mcspi1_fck,	CK_443X),
+ 	CLK("omap2_mcspi.2",	"fck",				&mcspi2_fck,	CK_443X),
+ 	CLK("omap2_mcspi.3",	"fck",				&mcspi3_fck,	CK_443X),
+@@ -2616,31 +2564,38 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK("mmci-omap-hs.2",	"fck",				&mmc3_fck,	CK_443X),
+ 	CLK("mmci-omap-hs.3",	"fck",				&mmc4_fck,	CK_443X),
+ 	CLK("mmci-omap-hs.4",	"fck",				&mmc5_fck,	CK_443X),
+-	CLK(NULL,	"ocp_wp1_ick",			&ocp_wp1_ick,	CK_443X),
+-	CLK(NULL,	"pdm_fck",			&pdm_fck,	CK_443X),
+-	CLK(NULL,	"pkaeip29_fck",			&pkaeip29_fck,	CK_443X),
++	CLK(NULL,	"ocp2scp_usb_phy_ick",		&ocp2scp_usb_phy_ick,	CK_443X),
++	CLK(NULL,	"ocp_wp_noc_ick",		&ocp_wp_noc_ick,	CK_443X),
+ 	CLK("omap_rng",	"ick",				&rng_ick,	CK_443X),
+-	CLK(NULL,	"sha2md51_fck",			&sha2md51_fck,	CK_443X),
+-	CLK(NULL,	"sl2_ick",			&sl2_ick,	CK_443X),
++	CLK(NULL,	"sha2md5_fck",			&sha2md5_fck,	CK_443X),
++	CLK(NULL,	"sl2if_ick",			&sl2if_ick,	CK_443X),
+ 	CLK(NULL,	"slimbus1_fck",			&slimbus1_fck,	CK_443X),
+ 	CLK(NULL,	"slimbus2_fck",			&slimbus2_fck,	CK_443X),
+-	CLK(NULL,	"sr_core_fck",			&sr_core_fck,	CK_443X),
+-	CLK(NULL,	"sr_iva_fck",			&sr_iva_fck,	CK_443X),
+-	CLK(NULL,	"sr_mpu_fck",			&sr_mpu_fck,	CK_443X),
+-	CLK(NULL,	"tesla_ick",			&tesla_ick,	CK_443X),
++	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
++	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
++	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
++	CLK(NULL,	"gpt1_fck",			&timer1_fck,	CK_443X),
++	CLK(NULL,	"gpt10_fck",			&timer10_fck,	CK_443X),
++	CLK(NULL,	"gpt11_fck",			&timer11_fck,	CK_443X),
++	CLK(NULL,	"gpt2_fck",			&timer2_fck,	CK_443X),
++	CLK(NULL,	"gpt3_fck",			&timer3_fck,	CK_443X),
++	CLK(NULL,	"gpt4_fck",			&timer4_fck,	CK_443X),
++	CLK(NULL,	"gpt5_fck",			&timer5_fck,	CK_443X),
++	CLK(NULL,	"gpt6_fck",			&timer6_fck,	CK_443X),
++	CLK(NULL,	"gpt7_fck",			&timer7_fck,	CK_443X),
++	CLK(NULL,	"gpt8_fck",			&timer8_fck,	CK_443X),
++	CLK(NULL,	"gpt9_fck",			&timer9_fck,	CK_443X),
+ 	CLK(NULL,	"uart1_fck",			&uart1_fck,	CK_443X),
+ 	CLK(NULL,	"uart2_fck",			&uart2_fck,	CK_443X),
+ 	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
+ 	CLK(NULL,	"uart4_fck",			&uart4_fck,	CK_443X),
+-	CLK(NULL,	"unipro1_fck",			&unipro1_fck,	CK_443X),
+-	CLK(NULL,	"usb_host_fck",			&usb_host_fck,	CK_443X),
+ 	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
+-	CLK("musb_hdrc",	"ick",				&usb_otg_ick,	CK_443X),
+-	CLK(NULL,	"usb_tll_ick",			&usb_tll_ick,	CK_443X),
+-	CLK(NULL,	"usbphyocp2scp_ick",		&usbphyocp2scp_ick,	CK_443X),
++	CLK(NULL,	"usb_host_hs_fck",		&usb_host_hs_fck,	CK_443X),
++	CLK("musb_hdrc",	"ick",				&usb_otg_hs_ick,	CK_443X),
++	CLK(NULL,	"usb_tll_hs_ick",		&usb_tll_hs_ick,	CK_443X),
+ 	CLK(NULL,	"usim_fck",			&usim_fck,	CK_443X),
+-	CLK("omap_wdt",	"fck",				&wdt2_fck,	CK_443X),
+-	CLK(NULL,	"wdt3_fck",			&wdt3_fck,	CK_443X),
++	CLK("omap_wdt",	"fck",				&wd_timer2_fck,	CK_443X),
++	CLK(NULL,	"wd_timer3_fck",		&wd_timer3_fck,	CK_443X),
+ 	CLK(NULL,	"otg_60m_gfclk_ck",		&otg_60m_gfclk_ck,	CK_443X),
+ 	CLK(NULL,	"stm_clk_div_ck",		&stm_clk_div_ck,	CK_443X),
+ 	CLK(NULL,	"trace_clk_div_ck",		&trace_clk_div_ck,	CK_443X),
+@@ -2669,19 +2624,19 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK("i2c_omap.2",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK("i2c_omap.3",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK("i2c_omap.4",	"ick",				&dummy_ck,	CK_443X),
++	CLK("mmci-omap-hs.0",	"ick",				&dummy_ck,	CK_443X),
++	CLK("mmci-omap-hs.1",	"ick",				&dummy_ck,	CK_443X),
++	CLK("mmci-omap-hs.2",	"ick",				&dummy_ck,	CK_443X),
++	CLK("mmci-omap-hs.3",	"ick",				&dummy_ck,	CK_443X),
++	CLK("mmci-omap-hs.4",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK("omap-mcbsp.1",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK("omap-mcbsp.2",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK("omap-mcbsp.3",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK("omap-mcbsp.4",	"ick",				&dummy_ck,	CK_443X),
+-	CLK("omap2_mcspi.1",	"ick",			&dummy_ck,	CK_443X),
+-	CLK("omap2_mcspi.2",	"ick",			&dummy_ck,	CK_443X),
+-	CLK("omap2_mcspi.3",	"ick",			&dummy_ck,	CK_443X),
+-	CLK("omap2_mcspi.4",	"ick",			&dummy_ck,	CK_443X),
+-	CLK("mmci-omap-hs.0",	"ick",		&dummy_ck,	CK_443X),
+-	CLK("mmci-omap-hs.1",	"ick",		&dummy_ck,	CK_443X),
+-	CLK("mmci-omap-hs.2",	"ick",		&dummy_ck,	CK_443X),
+-	CLK("mmci-omap-hs.3",	"ick",		&dummy_ck,	CK_443X),
+-	CLK("mmci-omap-hs.4",	"ick",		&dummy_ck,	CK_443X),
++	CLK("omap2_mcspi.1",	"ick",				&dummy_ck,	CK_443X),
++	CLK("omap2_mcspi.2",	"ick",				&dummy_ck,	CK_443X),
++	CLK("omap2_mcspi.3",	"ick",				&dummy_ck,	CK_443X),
++	CLK("omap2_mcspi.4",	"ick",				&dummy_ck,	CK_443X),
+ 	CLK(NULL,	"uart1_ick",			&dummy_ck,	CK_443X),
+ 	CLK(NULL,	"uart2_ick",			&dummy_ck,	CK_443X),
+ 	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
 -- 
 1.6.1.3
 
