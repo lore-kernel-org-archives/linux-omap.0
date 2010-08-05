@@ -1,195 +1,308 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Issues with calling pm_runtime functions in platform_pm_suspend_noirq/IRQ disabled context.
-Date: Wed, 04 Aug 2010 16:35:17 -0700
-Message-ID: <87eiee7xze.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED1089@dbde02.ent.ti.com>
-	<874ofbppj4.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E7F6ECA2@dbde02.ent.ti.com>
+Subject: Re: [PATCH] platform: Facilitate the creation of pseduo-platform busses
+Date: Wed, 04 Aug 2010 17:16:05 -0700
+Message-ID: <877hk56hiy.fsf@deeprootsystems.com>
+References: <4C59E654.1090403@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:41400 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759364Ab0HDXfT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Aug 2010 19:35:19 -0400
-Received: by pvc7 with SMTP id 7so2253810pvc.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 Aug 2010 16:35:19 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E7F6ECA2@dbde02.ent.ti.com>
-	(Partha Basak's message of "Wed, 4 Aug 2010 18:49:29 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4C59E654.1090403@codeaurora.org> (Patrick Pannuto's message of
+	"Wed, 04 Aug 2010 15:14:44 -0700")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Patrick Pannuto <ppannuto@codeaurora.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, alan@lxorguk.ukuu.org.uk, zt.tmzt@gmail.com, grant.likely@secretlab.ca, magnus.damm@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: "Basak, Partha" <p-basak2@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-"Basak, Partha" <p-basak2@ti.com> writes:
+Patrick Pannuto <ppannuto@codeaurora.org> writes:
+
+> Inspiration for this comes from:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31161.html
+
+Also, later in that thread I also wrote[1] what seems to be the core of
+what you've done here: namely, allow platform_devices and
+platform_drivers to to be used on custom busses.  Patch is at the end of
+this mail with a more focused changelog.  As Greg suggested in his reply
+to your first version, this part could be merged today, and the
+platform_bus_init stuff could be added later, after some more review.
+Some comments below...
+
+> INTRO
+>
+> As SOCs become more popular, the desire to quickly define a simple,
+> but functional, bus type with only a few unique properties becomes
+> desirable. As they become more complicated, the ability to nest these
+> simple busses and otherwise orchestrate them to match the actual
+> topology also becomes desirable.
+>
+> EXAMPLE USAGE
+>
+> /arch/ARCH/MY_ARCH/my_bus.c:
+>
+> 	#include <linux/device.h>
+> 	#include <linux/platform_device.h>
+>
+> 	struct bus_type my_bus_type = {
+> 		.name	= "mybus",
+> 	};
+> 	EXPORT_SYMBOL_GPL(my_bus_type);
+>
+> 	struct platform_device sub_bus1 = {
+> 		.name		= "sub_bus1",
+> 		.id		= -1,
+> 		.dev.bus	= &my_bus_type,
+> 	}
+> 	EXPORT_SYMBOL_GPL(sub_bus1);
+>
+> 	struct platform_device sub_bus2 = {
+> 		.name		= "sub_bus2",
+> 		.id		= -1,
+> 		.dev.bus	= &my_bus_type,
+> 	}
+> 	EXPORT_SYMBOL_GPL(sub_bus2);
+>
+> 	static int __init my_bus_init(void)
+> 	{
+> 		int error;
+> 		platform_bus_type_init(&my_bus_type);
+> 		error = bus_register(&my_bus_type);
+> 		if (error)
+> 			return error;
+>
+> 		error = platform_device_register(&sub_bus1);
+> 		if (error)
+> 			goto fail_sub_bus1;
+>
+> 		error = platform_device_register(&sub_bus2);
+> 		if (error)
+> 			goto fail_sub_bus2;
+>
+> 		return error;
+>
+> 	fail_sub_bus2:
+> 		platform_device_unregister(&sub_bus1);
+> 	fail_sub_bus2:
+> 		bus_unregister(&my_bus_type);
+>
+> 		return error;
+> 	}
+> 	postcore_initcall(my_bus_init);
+> 	EXPORT_SYMBOL_GPL(my_bus_init);
+>
+> /drivers/my_driver.c
+> 	static struct platform_driver my_driver = {
+> 		.driver	= {
+> 			.name	= "my-driver",
+> 			.owner	= THIS_MODULE,
+> 			.bus	= &my_bus_type,
+> 		},
+> 	};
+>
+> /somewhere/my_device.c
+> 	static struct platform_device my_device = {
+> 		.name		= "my-device",
+> 		.id		= -1,
+> 		.dev.bus	= &my_bus_type,
+> 		.dev.parent	= &sub_bus_1.dev,
+> 	};
+>
+> Notice that for a device / driver, only 3 lines were added to
+> switch from the platform bus to the new my_bus. This is
+> especially valuable if we consider supporting a legacy SOCs
+> and new SOCs where the same driver is used, but may need to
+> be on either the platform bus or the new my_bus. The above
+> code then becomes:
+>
+> 	(possibly in a header)
+> 	#ifdef CONFIG_MY_BUS
+> 	#define MY_BUS_TYPE	&my_bus_type
+> 	#else
+> 	#define MY_BUS_TYPE	NULL
+> 	#endif
+
+> /drivers/my_driver.c
+> 	static struct platform_driver my_driver = {
+> 		.driver	= {
+> 			.name	= "my-driver",
+> 			.owner	= THIS_MODULE,
+> 			.bus	= MY_BUS_TYPE,
+> 		},
+> 	};
+>
+> Which will allow the same driver to easily to used on either
+> the platform bus or the newly defined bus type.
+
+Except it requires a re-compile.
+
+Rather than doing this at compile time, it would be better to support
+legacy devices at runtime.  You could handle this by simply registering
+the driver on the custom bus and the platform_bus and let the bus
+matching code handle it.  Then, the same binary would work on both
+legacy and updated SoCs.
 
 >
-> Tested GPIO for Suspend with these changes & obtained dump of Circular Locking dependencies:
+> This will build a device tree that mirrors the actual configuration:
+>     /sys/bus
+>     |-- my_bus
+>     |   |-- devices
+>     |   |   |-- sub_bus1 -> ../../../devices/platform/sub_bus1
+>     |   |   |-- sub_bus2 -> ../../../devices/platform/sub_bus2
+>     |   |   |-- my-device -> ../../../devices/platform/sub_bus1/my-device
+>     |   |-- drivers
+>     |   |   |-- my-driver
 >
+>
+> Signed-off-by: Patrick Pannuto <ppannuto@codeaurora.org>
+> ---
+>  drivers/base/platform.c         |   30 ++++++++++++++++++++++++++----
+>  include/linux/platform_device.h |    2 ++
+>  2 files changed, 28 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+> index 4d99c8b..c86be03 100644
+> --- a/drivers/base/platform.c
+> +++ b/drivers/base/platform.c
+> @@ -241,7 +241,8 @@ int platform_device_add(struct platform_device *pdev)
+>  	if (!pdev->dev.parent)
+>  		pdev->dev.parent = &platform_bus;
+>  
+> -	pdev->dev.bus = &platform_bus_type;
+> +	if (!pdev->dev.bus)
+> +		pdev->dev.bus = &platform_bus_type;
+>  
+>  	if (pdev->id != -1)
+>  		dev_set_name(&pdev->dev, "%s.%d", pdev->name,  pdev->id);
+> @@ -482,7 +483,8 @@ static void platform_drv_shutdown(struct device *_dev)
+>   */
+>  int platform_driver_register(struct platform_driver *drv)
+>  {
+> -	drv->driver.bus = &platform_bus_type;
+> +	if (!drv->driver.bus)
+> +		drv->driver.bus = &platform_bus_type;
+>  	if (drv->probe)
+>  		drv->driver.probe = platform_drv_probe;
+>  	if (drv->remove)
+> @@ -539,12 +541,12 @@ int __init_or_module platform_driver_probe(struct platform_driver *drv,
+>  	 * if the probe was successful, and make sure any forced probes of
+>  	 * new devices fail.
+>  	 */
+> -	spin_lock(&platform_bus_type.p->klist_drivers.k_lock);
+> +	spin_lock(&drv->driver.bus->p->klist_drivers.k_lock);
+>  	drv->probe = NULL;
+>  	if (code == 0 && list_empty(&drv->driver.p->klist_devices.k_list))
+>  		retval = -ENODEV;
+>  	drv->driver.probe = platform_drv_probe_fail;
+> -	spin_unlock(&platform_bus_type.p->klist_drivers.k_lock);
+> +	spin_unlock(&drv->driver.bus->p->klist_drivers.k_lock);
 
-It would *really* help to have these GPIO conversion patches posted
-against a public tree/branch one could see exactly what is going on and
-be able to reproduce this problem for easier analysis.  I have some
-hunches as to what is going wrong here, but cannot be sure.  I'd much
-rather be able to see and try the code.
+Up to here, this looks exactly what I wrote in thread referenced above.
 
-Fortunately, lockdep is verbose enough to try and understand the
-symptoms here.  Lockdep seems to have detected that these two locks have
-been acquired in different order, resulting in *potential* deadlock.
+>  
+>  	if (code != retval)
+>  		platform_driver_unregister(drv);
+> @@ -1017,6 +1019,26 @@ struct bus_type platform_bus_type = {
+>  };
+>  EXPORT_SYMBOL_GPL(platform_bus_type);
+>  
+> +/** platform_bus_type_init - fill in a pseudo-platform-bus
+> +  * @bus: foriegn bus type
+> +  *
+> +  * This init is basically a selective memcpy that
+> +  * won't overwrite any user-defined attributes and
+> +  * only copies things that platform bus defines anyway
+> +  */
 
-Indeed, during init (#0 below) you have the hwmod_mutex acquired
-(hwmod_for_each_by_class()) then the dpm_list_mtx acquired
-(device_pm_add()).  Later, during suspend the dpm_list_mtx is aquired
-first (dpm_suspend_noirq()), then the omap_hwmod_mutex is acquired
-(omap_hwmod_idle()).
+minor nit: kernel doc style has wrong indentation
 
-Taking the same locks in different order at different times is the
-circular dependency and a recipe for potential deadlock.
+> +void platform_bus_type_init(struct bus_type *bus)
+> +{
+> +	if (!bus->dev_attrs)
+> +		bus->dev_attrs = platform_bus_type.dev_attrs;
+> +	if (!bus->match)
+> +		bus->match = platform_bus_type.match;
+> +	if (!bus->uevent)
+> +		bus->uevent = platform_bus_type.uevent;
+> +	if (!bus->pm)
+> +		bus->pm = platform_bus_type.pm;
+> +}
+> +EXPORT_SYMBOL_GPL(platform_bus_type_init);
 
-In our case, there is no real potential for deadlock here as the locks
-are only taken the hwmod->dpm order once during init, all other times
-(when the omap_device/hwmod are ready) it will happen in the dpm->hwmod
-order.
+With this approach, you should note in the comments/changelog that
+any selective customization of the bus PM methods must be done after 
+calling platform_bus_type_init().
 
-The simple fix here is probably to remove the locking in the
-omap_hwmod_for_each* functions.  Could you try that?
+Also, You've left out the legacy PM methods here.  That implies that
+moving a driver from the platform_bus to the custom bus is not entirely
+transparent.  If the driver still has legacy PM methods, it would stop
+working on the custom bus.
 
-I'm a bit confused why I don't see the same problem with the UART layer
-which currently also handles things in the idle path as well.
+While this is good motivation for converting a driver to dev_pm_ops, at
+a minimum it should be clear in the changelog that the derivative busses
+do not support legacy PM methods.  However, since it's quite easy to do,
+and you want the derivative busses to be *exactly* like the platform bus
+except where explicitly changed, I'd suggest you also check/copy the
+legacy PM methods.
+
+In addition, you've missed several fields in 'struct bus_type'
+(bus_attr, drv_attr, p, etc.)  Without digging deeper into the driver
+core, I'm not sure if they are all needed at init time, but it should be
+clear in the comments why they can be excluded.
 
 Kevin
 
-> # echo mem > /sys/power/state
-> [  809.981658] PM: Syncing filesystems ... done.
-> [  810.037963] Freezing user space processes ... (elapsed 0.02 seconds) done.
-> [  810.067901] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
-> [  810.105224] Suspending console(s) (use no_console_suspend to debug)
-> [  810.166748] PM: suspend of devices complete after 46.142 msecs
-> [  810.170562]
-> [  810.170593] =======================================================
-> [  810.170593] [ INFO: possible circular locking dependency detected ]
-> [  810.170623] 2.6.35-rc5-00131-g56e767c-dirty #34
-> [  810.170654] -------------------------------------------------------
-> [  810.170654] sh/670 is trying to acquire lock:
-> [  810.170684]  (omap_hwmod_mutex){+.+.+.}, at: [<c004fe84>] omap_hwmod_idle+0x1c/0x38
-> [  810.170745]
-> [  810.170745] but task is already holding lock:
-> [  810.170776]  (dpm_list_mtx){+.+...}, at: [<c023baf8>] dpm_suspend_noirq+0x28/0x188
-> [  810.170806]
-> [  810.170837] which lock already depends on the new lock.
-> [  810.170837]
-> [  810.170837]
-> [  810.170837] the existing dependency chain (in reverse order) is:
-> [  810.170867]
-> [  810.170867] -> #1 (dpm_list_mtx){+.+...}:
-> [  810.170898]        [<c009bc3c>] lock_acquire+0x60/0x74
-> [  810.170959]        [<c0437a9c>] mutex_lock_nested+0x58/0x2e4
-> [  810.170989]        [<c023bcc0>] device_pm_add+0x14/0xcc
-> [  810.171020]        [<c0235304>] device_add+0x3b8/0x564
-> [  810.171051]        [<c0238834>] platform_device_add+0x104/0x160
-> [  810.171112]        [<c005f2a8>] omap_device_build_ss+0x14c/0x1c8
-> [  810.171142]        [<c005f36c>] omap_device_build+0x48/0x50
-> [  810.171173]        [<c004d34c>] omap2_init_gpio+0xf0/0x15c
-> [  810.171203]        [<c004f254>] omap_hwmod_for_each_by_class+0x60/0xa4
-> [  810.171264]        [<c0040340>] do_one_initcall+0x58/0x1b4
-> [  810.171295]        [<c0008574>] kernel_init+0x98/0x150
-> [  810.171325]        [<c0041968>] kernel_thread_exit+0x0/0x8
-> [  810.171356]
-> [  810.171356] -> #0 (omap_hwmod_mutex){+.+.+.}:
-> [  810.171386]        [<c009b4e4>] __lock_acquire+0x108c/0x1784
-> [  810.171447]        [<c009bc3c>] lock_acquire+0x60/0x74
-> [  810.171478]        [<c0437a9c>] mutex_lock_nested+0x58/0x2e4
-> [  810.171508]        [<c004fe84>] omap_hwmod_idle+0x1c/0x38
-> [  810.171539]        [<c005eb9c>] omap_device_idle_hwmods+0x20/0x3c
-> [  810.171600]        [<c005ec88>] _omap_device_deactivate+0x58/0x14c
-> [  810.171630]        [<c005ef50>] omap_device_idle+0x4c/0x6c
-> [  810.171661]        [<c0053e7c>] platform_pm_runtime_suspend+0x4c/0x74
-> [  810.171691]        [<c023c9f8>] __pm_runtime_suspend+0x204/0x34c
-> [  810.171722]        [<c023cbe0>] pm_runtime_suspend+0x20/0x34
-> [  810.171752]        [<c0053dbc>] platform_pm_runtime_idle+0x8/0x10
-> [  810.171783]        [<c023c344>] __pm_runtime_idle+0x15c/0x198
-> [  810.171813]        [<c023c3f8>] pm_runtime_idle+0x1c/0x30
-> [  810.171844]        [<c0053dac>] platform_pm_suspend_noirq+0x48/0x50
-> [  810.171875]        [<c023ad4c>] pm_noirq_op+0xa0/0x184
-> [  810.171905]        [<c023bb7c>] dpm_suspend_noirq+0xac/0x188
-> [  810.171936]        [<c00a5d00>] suspend_devices_and_enter+0x94/0x1d8
-> [  810.171966]        [<c00a5f00>] enter_state+0xbc/0x120
-> [  810.171997]        [<c00a5654>] state_store+0xa4/0xb8
-> [  810.172027]        [<c01ea9e0>] kobj_attr_store+0x18/0x1c
-> [  810.172088]        [<c0129acc>] sysfs_write_file+0x10c/0x144
-> [  810.172119]        [<c00df83c>] vfs_write+0xb0/0x148
-> [  810.172149]        [<c00df984>] sys_write+0x3c/0x68
-> [  810.172180]        [<c0040920>] ret_fast_syscall+0x0/0x3c
-> [  810.172210]
-> [  810.172210] other info that might help us debug this:
-> [  810.172210]
-> [  810.172241] 4 locks held by sh/670:
-> [  810.172241]  #0:  (&buffer->mutex){+.+.+.}, at: [<c01299e8>] sysfs_write_file+0x28/0x144
-> [  810.172302]  #1:  (s_active#5){.+.+.+}, at: [<c0129aa8>] sysfs_write_file+0xe8/0x144
-> [  810.172363]  #2:  (pm_mutex){+.+.+.}, at: [<c00a5e64>] enter_state+0x20/0x120
-> [  810.172393]  #3:  (dpm_list_mtx){+.+...}, at: [<c023baf8>] dpm_suspend_noirq+0x28/0x188
-> [  810.172454]
-> [  810.172454] stack backtrace:
-> [  810.172515] [<c00460d4>] (unwind_backtrace+0x0/0xe4) from [<c00996f4>] (print_circular_bug+0xc4/0xdc)
-> [  810.172576] [<c00996f4>] (print_circular_bug+0xc4/0xdc) from [<c009b4e4>] (__lock_acquire+0x108c/0x1784)
-> [  810.172637] [<c009b4e4>] (__lock_acquire+0x108c/0x1784) from [<c009bc3c>] (lock_acquire+0x60/0x74)
-> [  810.172698] [<c009bc3c>] (lock_acquire+0x60/0x74) from [<c0437a9c>] (mutex_lock_nested+0x58/0x2e4)
-> [  810.172760] [<c0437a9c>] (mutex_lock_nested+0x58/0x2e4) from [<c004fe84>] (omap_hwmod_idle+0x1c/0x38)
-> [  810.172821] [<c004fe84>] (omap_hwmod_idle+0x1c/0x38) from [<c005eb9c>] (omap_device_idle_hwmods+0x20/0x3c)
-> [  810.172882] [<c005eb9c>] (omap_device_idle_hwmods+0x20/0x3c) from [<c005ec88>] (_omap_device_deactivate+0x58/0x14c)
-> [  810.172943] [<c005ec88>] (_omap_device_deactivate+0x58/0x14c) from [<c005ef50>] (omap_device_idle+0x4c/0x6c)
-> [  810.173004] [<c005ef50>] (omap_device_idle+0x4c/0x6c) from [<c0053e7c>] (platform_pm_runtime_suspend+0x4c/0x74)
-> [  810.173065] [<c0053e7c>] (platform_pm_runtime_suspend+0x4c/0x74) from [<c023c9f8>] (__pm_runtime_suspend+0x204/0x34c)
-> [  810.173095] [<c023c9f8>] (__pm_runtime_suspend+0x204/0x34c) from [<c023cbe0>] (pm_runtime_suspend+0x20/0x34)
-> [  810.173156] [<c023cbe0>] (pm_runtime_suspend+0x20/0x34) from [<c0053dbc>] (platform_pm_runtime_idle+0x8/0x10)
-> [  810.173217] [<c0053dbc>] (platform_pm_runtime_idle+0x8/0x10) from [<c023c344>] (__pm_runtime_idle+0x15c/0x198)
-> [  810.173248] [<c023c344>] (__pm_runtime_idle+0x15c/0x198) from [<c023c3f8>] (pm_runtime_idle+0x1c/0x30)
-> [  810.173309] [<c023c3f8>] (pm_runtime_idle+0x1c/0x30) from [<c0053dac>] (platform_pm_suspend_noirq+0x48/0x50)
-> [  810.173339] [<c0053dac>] (platform_pm_suspend_noirq+0x48/0x50) from [<c023ad4c>] (pm_noirq_op+0xa0/0x184)
->> 
->> By the time the drivers _noirq hooks are called, the PM core has
->> shutdown all the drivers, prevented any runtime PM transitions and
->> disabled interrupts, so no pending runtime transitions will be queued
->> so the sleeping patch of the __pm_runtime_* should never be entered.
->> 
->> > We are facing a similar issue with a few drivers USB, UART & GPIO
->> > where, we need to enable/disable clocks & restore/save context in the
->> > CPU-Idle path with interrupts locked.
->>
->
->
->> These are unrelated issues.  The above is for the static suspend/resume
->> case.  These are for runtime PM.
->> 
->> > As we are unable to use Runtime APIs, we are using omap_device APIs
->> > directly with the following modification in the .activate_funcion/
->> > deactivate_funcion (example UART driver)
->> 
->> [...]
->> 
->> The UART driver is a special case as it is managed from deep inside the
->> idle path.
->> 
->> > Can you feedback on my observations and comment on the approach taken
->> > for these drivers?
->> 
->> I cannot comment until I understand why these drivers need to
->> enable/disable with interrupts off.
->> 
->> In general, any use of the interrupts-off versions of the omap_device
->> APIs need to be thorougly justified.
->> 
->> Even the UART one will go away when the omap-serial driver is converted
->> to runtime PM.
->>
->
-> For GPIO, it is a must to relinquish clocks in Idle-path as it is possible to have a GPIO bank requested and still allow PER domain to go to OFF.
->
-> For USB, this is required because of a h/w issue.
->
-> My point is, just by exposing a _omap_hwmod_idle()(mutex-free version) will not let us call pm_runtime APIs in Idle path as we are not supposed to enable interrupts there. We have faced problems with USB big-time in Idle path while using pm_runtime functions. So, we are resorting to calling omap_device_idle() in CPU_Idle path, and runtime functions in thread-context. 
->
-> Is this acceptable, given the limitations?
->  
->> Kevin
->> 
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31289.html
+
+
+>From b784009af1d0a7065dc5e58a13ce29afa3432d3e Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Mon, 28 Jun 2010 16:08:14 -0700
+Subject: [PATCH] driver core: allow platform_devices and platform_drivers on custom busses
+
+This allows platform_devices and platform_drivers to be registered onto
+custom busses that are compatible with the platform_bus.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ drivers/base/platform.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index 4d99c8b..2cf55e2 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -241,7 +241,8 @@ int platform_device_add(struct platform_device *pdev)
+ 	if (!pdev->dev.parent)
+ 		pdev->dev.parent = &platform_bus;
+ 
+-	pdev->dev.bus = &platform_bus_type;
++	if (!pdev->dev.bus)
++		pdev->dev.bus = &platform_bus_type;
+ 
+ 	if (pdev->id != -1)
+ 		dev_set_name(&pdev->dev, "%s.%d", pdev->name,  pdev->id);
+@@ -482,7 +483,8 @@ static void platform_drv_shutdown(struct device *_dev)
+  */
+ int platform_driver_register(struct platform_driver *drv)
+ {
+-	drv->driver.bus = &platform_bus_type;
++	if (!drv->driver.bus)
++		drv->driver.bus = &platform_bus_type;
+ 	if (drv->probe)
+ 		drv->driver.probe = platform_drv_probe;
+ 	if (drv->remove)
+@@ -539,12 +541,12 @@ int __init_or_module platform_driver_probe(struct platform_driver *drv,
+ 	 * if the probe was successful, and make sure any forced probes of
+ 	 * new devices fail.
+ 	 */
+-	spin_lock(&platform_bus_type.p->klist_drivers.k_lock);
++	spin_lock(&drv->driver.bus->p->klist_drivers.k_lock);
+ 	drv->probe = NULL;
+ 	if (code == 0 && list_empty(&drv->driver.p->klist_devices.k_list))
+ 		retval = -ENODEV;
+ 	drv->driver.probe = platform_drv_probe_fail;
+-	spin_unlock(&platform_bus_type.p->klist_drivers.k_lock);
++	spin_unlock(&drv->driver.bus->p->klist_drivers.k_lock);
+ 
+ 	if (code != retval)
+ 		platform_driver_unregister(drv);
+-- 
+1.7.2.1
