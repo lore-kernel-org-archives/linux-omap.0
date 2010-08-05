@@ -1,134 +1,88 @@
 From: Patrick Pannuto <ppannuto@codeaurora.org>
 Subject: Re: [PATCH] platform: Facilitate the creation of pseduo-platform
- busses
-Date: Thu, 05 Aug 2010 09:31:27 -0700
-Message-ID: <4C5AE75F.5020507@codeaurora.org>
-References: <4C59E654.1090403@codeaurora.org>	<877hk56hiy.fsf@deeprootsystems.com> <4C5A0C68.9080500@codeaurora.org> <87fwytxdba.fsf@deeprootsystems.com>
+ 	busses
+Date: Thu, 05 Aug 2010 10:43:48 -0700
+Message-ID: <4C5AF854.4020502@codeaurora.org>
+References: <4C59E654.1090403@codeaurora.org> <AANLkTimkMy6_201XNGb41e7LivkvVHMkFZWVoA-7UmBo@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:36868 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933306Ab0HEQb2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Aug 2010 12:31:28 -0400
-In-Reply-To: <87fwytxdba.fsf@deeprootsystems.com>
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:54994 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756150Ab0HERnt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Aug 2010 13:43:49 -0400
+In-Reply-To: <AANLkTimkMy6_201XNGb41e7LivkvVHMkFZWVoA-7UmBo@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, alan@lxorguk.ukuu.org.uk, zt.tmzt@gmail.com, grant.likely@secretlab.ca, magnus.damm@gmail.com
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, alan@lxorguk.ukuu.org.uk, zt.tmzt@gmail.com
 
->>>> [snip]
->>>>
->>>> Which will allow the same driver to easily to used on either
->>>> the platform bus or the newly defined bus type.
->>>
->>> Except it requires a re-compile.
->>>
->>> Rather than doing this at compile time, it would be better to support
->>> legacy devices at runtime.  You could handle this by simply registering
->>> the driver on the custom bus and the platform_bus and let the bus
->>> matching code handle it.  Then, the same binary would work on both
->>> legacy and updated SoCs.
->>>
+On 08/04/2010 07:32 PM, Magnus Damm wrote:
+> On Thu, Aug 5, 2010 at 7:14 AM, Patrick Pannuto <ppannuto@codeaurora.org> wrote:
+>> Inspiration for this comes from:
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31161.html
 >>
->> Can you safely register a driver on more than one bus? I didn't think
->> that was safe -- normally it's impossible since you're calling
->>
->> struct BUS_TYPE_driver mydriver;
->> BUS_TYPE_driver_register(&mydriver)
->>
->> but now we have multiple "bus types" that are all actually platform type; still,
->> at a minimum you would need:
->> 	struct platform_driver mydrvier1 = {
->> 		.driver.bus = &sub_bus1,
->> 	};
->> 	struct platform_driver mydrvier2 = {
->> 		.driver.bus = &sub_bus2,
->> 	};
->> which would all point to the same driver functions, yet the respective devices
->> attached for the "same" driver would be on different buses. I fear this might
->> confuse some drivers. I don't think dynamic bus assignment is this easy
->>
->> In short: I do not believe the same driver can be registered on multiple
->> different buses -- if this is wrong, please correct me.
+>> RFC: http://lkml.org/lkml/2010/8/3/496
+>> Patch is unchanged from the RFC. Reviews seemed generally positive
+>> and it seemed this was desired functionality.
 > 
-> It is possible, and currently done in powerpc land where some
-> drivers handle devices on the platform_bus and the custom OF bus.
+> Thanks for your patch, it's really nice to see work done in this area!
+> I'd like to see something like this merged in the not so distant
+> future. At this point I'm not so concerned about the details, so I'll
+> restrict myself to this:
 > 
-> However, as noted by Magnus, what we really need here is a way for
-> drivers to not care at all what kind of bus they are on.  There are an
-> increasing number of drivers that are re-used not just across different
-> SoCs in the same family, but across totally different SoCs (e.g. drivers
-> for hardware shared between TI OMAP and TI DaVinci, or SH and SH-Mobile/ARM)
+>> /drivers/my_driver.c
+>>        static struct platform_driver my_driver = {
+>>                .driver = {
+>>                        .name   = "my-driver",
+>>                        .owner  = THIS_MODULE,
+>>                        .bus    = &my_bus_type,
+>>                },
+>>        };
+> 
+> I would really prefer not to have the bus type in the here. I
+> understand it's needed at this point, but I wonder if it's possible to
+> adjust the device<->driver matching for platform devices to allow any
+> type of pseudo-platform bus_type.
+> 
+> The reason why I'd like to avoid having the bus type in the driver is
+> that I'd like to reuse the platform driver across multiple
+> architectures and buses. For instance, on the SH architecture and
+
+So would I :). That's where this was all heading eventually, I was just
+originally doing it in two passes. I have some ideas for how to do this
+and will try to send out a patchset either today or tomorrow.
+
+> SH-Mobile ARM we have SoCs with SCIF hardware blocks driven by the
+> sh-sci.c serial driver. The sh-sci.c platform driver supports a wide
+> range of different SCI(F)(A)(B) hardware blocks, and on any given SoC
+> there is a mix of SCIF blocks spread out on different buses.
+> 
+> At this point our SH platform drivers are unaware where their driver
+> instanced are located on the SoC. The I/O address and IRQs are
+> assigned via struct resource and clocks are managed through clkdev. I
+> believe that adding the bus type in the driver will violate this
+> abstraction and make it more difficult to just instantiate a driver
+> somewhere on the SoC.
+> 
+>> /somewhere/my_device.c
+>>        static struct platform_device my_device = {
+>>                .name           = "my-device",
+>>                .id             = -1,
+>>                .dev.bus        = &my_bus_type,
+>>                .dev.parent     = &sub_bus_1.dev,
+>>        };
+> 
+> This I don't mind at all. Actually, this is the place where the
+> topology should be defined IMO.
 > 
 
-I will start trying to work on this
+Agreed.
 
->>>
->>> Up to here, this looks exactly what I wrote in thread referenced
->>> above.
->>>
->>
->> It is, you just went on vacation :)
->>
+> Cheers,
 > 
-> Ah, OK.   The changelog was missing credits to that affect, but I was
-> more concerned that you hadn't seen my example and didn't want to be
-> duplicating work.
-> 
-
-will fix.
-
->>>>  [snip]
-> 
->> if you call it second then they will all already be well-defined and
->> thus not overwritten.
-> 
-> Right, they will not be overwritten, but you'll be left with a mostly
-> empty dev_pm_ops on the custom bus.
-> 
-> IOW, Most of these custom busses will only want to customize a small
-> subset of the dev_pm_ops methods (e.g. only the runtime PM methods.)  If
-> you setup your sparsly populated custom dev_pm_ops and then call
-> platform_bus_type_init() second, dev_pm_ops on the new buswill have *only*
-> your custom fields, and none of the defaults from platform_dev_pm_ops.
-> 
-> So, what I was getting at is that it should probably be clearer to the
-> users of platform_bus_type_init() that any customization of dev_pm_ops
-> should be done after.
-> 
-
-I understand what you're saying now, and I can fix this as well.
-
-> 
->>
->> If you would like to lead this effort, please do so; I did not mean to step
->> on your toes, it's just that this is an issue for me as well. 
-> 
-> No worries there, my toes are fine.   :) 
-
-Good :)
-
-> 
->> You had indicated that you were going on vacation for a month and I
->> had not seen any more follow-up on this issue, so I forged ahead.
-> 
-> Great, I'm glad you forged ahead.  There is definitely a broader need
-> for something like this, and I have no personal attachment to the code.
-> 
-> I have no problems with you continuing the work (in fact, I'd prefer it.
-> I have lots of other things to catch up on after my vacation.)
-> 
-> In the future though, it's common (and kind) to note the original author
-> in the changelog when basing a patch on previous work.  Something like
-> "originally written by..."  or "based on the work of..." etc.
-
-Ok, I can do that; that was the intention of the "original inspiration from"
-line at the beginning.  Is there a more formal way of indicating this in the
-next version of the patch? Should I add you as a "From:" or an "Author:"?
-
--Pat
+> / magnus
 
 
 -- 
