@@ -1,92 +1,58 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 4/6] TI816X: Create board support for TI816X_EVM
-Date: Thu, 05 Aug 2010 07:32:26 -0700
-Message-ID: <87bp9h2kqt.fsf@deeprootsystems.com>
-References: <1280523118-25118-1-git-send-email-hemantp@ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH] omap3: Remove non-existent config option
+Date: Thu, 5 Aug 2010 10:12:11 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4D537702@dlee03.ent.ti.com>
+References: <1279790027-2509-1-git-send-email-premi@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E7ED0D93@dbde02.ent.ti.com>
+	<20100804111147.GL9881@atomide.com>
+ <20100804.142025.108806991.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:49385 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933301Ab0HEOcm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Aug 2010 10:32:42 -0400
-Received: by pwj7 with SMTP id 7so83934pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 05 Aug 2010 07:32:41 -0700 (PDT)
-In-Reply-To: <1280523118-25118-1-git-send-email-hemantp@ti.com> (Hemant
-	Pedanekar's message of "Sat, 31 Jul 2010 02:21:58 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:48917 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933531Ab0HEPMS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Aug 2010 11:12:18 -0400
+In-Reply-To: <20100804.142025.108806991.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemant Pedanekar <hemantp@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "Marathe, Yogesh" <yogesh_marathe@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Premi, Sanjeev" <premi@ti.com>
 
-Hemant Pedanekar <hemantp@ti.com> writes:
+Hiroshi,
+ 
 
-> This patch adds minimal support for TI816X EVM to enable kernel boot.
->
-> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hiroshi DOYU
+> Sent: Wednesday, August 04, 2010 6:20 AM
+> To: tony@atomide.com
+> Cc: Marathe, Yogesh; linux-omap@vger.kernel.org; Premi, Sanjeev
+> Subject: Re: [PATCH] omap3: Remove non-existent config option
+> 
+> From: ext Tony Lindgren <tony@atomide.com>
+> Subject: Re: [PATCH] omap3: Remove non-existent config option
+> Date: Wed, 4 Aug 2010 13:11:47 +0200
+> 
+> > * Marathe, Yogesh <yogesh_marathe@ti.com> [100803 11:03]:
+> >> ping..
+> > 
+> > Hiroshi ack/nak?
+> 
+> Nak.
+> 
+> http://www.spinics.net/lists/linux-omap/msg32869.html
+> 
+> "tidspbridge" is in staging now.
 
-[...]
+Can you please elaborate what this means ? 
+Yogesh patch enables the IOMMU for BRIDGE by default and we need this as IOMMU is going to get use in 3430.
 
-> diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-> new file mode 100644
-> index 0000000..2271624
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-> @@ -0,0 +1,71 @@
-> +/*
-> + * Code for TI8168 EVM.
-> + *
-> + * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/device.h>
-> +#include <linux/spi/spi.h>
-> +#include <linux/spi/flash.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/gpio.h>
-> +#include <linux/i2c.h>
-> +#include <linux/i2c/pcf857x.h>
-> +#include <linux/i2c/at24.h>
-> +#include <linux/mtd/mtd.h>
-> +#include <linux/mtd/nand.h>
-> +#include <linux/mtd/partitions.h>
-> +#include <linux/mtd/physmap.h>
-> +#include <linux/phy.h>
-
-Looks like most of these headers are not needed for this minimal
-support.  It's preferred to have a minimal set of headers here and add
-them later as needed when the devices are added.
-
-> +#include <mach/hardware.h>
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +#include <asm/mach/map.h>
-> +
-> +#include <plat/irqs.h>
-> +#include <plat/mux.h>
-> +#include <plat/board.h>
-> +#include <plat/common.h>
-> +#include <plat/timer-gp.h>
-> +
-> +static void __init ti8168_evm_init_irq(void)
-> +{
-> +	omap2_gp_clockevent_set_gptimer(2);
-
-Just curious why GPT2 is used here.
-
-> +	omap2_init_common_hw(NULL, NULL);
-> +	omap_init_irq();
-> +}
-
-Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
