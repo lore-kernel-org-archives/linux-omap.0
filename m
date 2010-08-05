@@ -1,119 +1,72 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v6] OMAP4 HSMMC: Adding Card detect support for MMC1 on
-	OMAP4
-Date: Thu, 5 Aug 2010 21:33:59 +0530
-Message-ID: <AANLkTi=5mvAN5iK1aV1yWPxSmrd6OKwg_HW6mgqqQro4@mail.gmail.com>
-References: <20809.10.24.255.18.1278511944.squirrel@dbdmail.itg.ti.com>
-	<AANLkTimNbzSMeOW4m201D=uV1WyYqkwpE1KqdTb8Qudy@mail.gmail.com>
-	<966519786A214EA4BC770E7EC4D50628@am.dhcp.ti.com>
-	<AANLkTinZDt-ApCSPRxXQnFx6=M4-_EZhYBrtetoRhcn8@mail.gmail.com>
-	<AC97C00B2EE8468DAA78B37136C89721@am.dhcp.ti.com>
+From: John Faith <jfaith7@gmail.com>
+Subject: Re: Board mux entries ignored?
+Date: Thu, 5 Aug 2010 09:14:36 -0700
+Message-ID: <AANLkTinqEesHdt5jzUbJawEp7U6NsFwxe2=hjTg6C53n@mail.gmail.com>
+References: <AANLkTimYgkviKVfXNpQB9vsjSZyMdxuwkrXYQHSb02wY@mail.gmail.com>
+	<20100805065423.GU9881@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AC97C00B2EE8468DAA78B37136C89721@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, adrian.hunter@nokia.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:33013 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755178Ab0HEQOk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Aug 2010 12:14:40 -0400
+Received: by pzk26 with SMTP id 26so2534472pzk.19
+        for <linux-omap@vger.kernel.org>; Thu, 05 Aug 2010 09:14:40 -0700 (PDT)
+In-Reply-To: <20100805065423.GU9881@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Madhu,
-
-On Thu, Aug 5, 2010 at 4:26 AM, Madhusudhan <madhu.cr@ti.com> wrote:
-> <snip>
+On Wed, Aug 4, 2010 at 11:54 PM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * John Faith <jfaith7@gmail.com> [100804 22:22]:
+>> Hi,
+>> I'm trying to set mux modes for a 3530, package CBC in my board.c
+>> (2.6.32 kernel) using an omap_board_mux entry:
+>> =A0OMAP3_MUX(GPMC_WAIT1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT),
+>>
+>> , but sysfs reports mode4:
+>> # grep WAIT1 /sys/kernel/debug/omap_mux/board
+>> OMAP3_MUX(GPMC_WAIT1, OMAP_PIN_INPUT | OMAP_MUX_MODE4),
+>>
+>> I tried adding to bootargs "omap_mux=3Dgpmc_wait1.gpmc_wait1=3D0x100=
+", but
+>> still got MODE4. =A0Doing "echo 0x100 >
+>> /sys/kernel/debug/omap_mux/gpmc_wait1" gave me MODE0, but I'd prefer
+>> to init pins in board.c. =A0I've also noticed for pin SDMMC2_DAT3 th=
+at
+>> my OMAP3_MUX() entry specifies MODE1, but sysfs shows MODE4; it
+>> changed to MODE1 after adding:
+>> =A0omap_mux_init_signal("mcspi3_cs0", OMAP_PIN_OUTPUT);
+>>
+>> Is just having the mode in omap_board_mux entries sufficient?
 >
->> >> > =A0arch/arm/mach-omap2/board-4430sdp.c | =A0 =A07 +++-
->> >> > =A0drivers/mfd/twl6030-irq.c =A0 =A0 =A0 =A0 =A0 | =A0 76
->> >> +++++++++++++++++++++++++++++++++++
->> >> > =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 | =A0 =A04 +-
->> >> > =A0include/linux/i2c/twl.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 16 +++=
-++++
->> >> > =A04 files changed, 100 insertions(+), 3 deletions(-)
->> >> >
->> >> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mac=
-h-
->> >> omap2/board-4430sdp.c
->> >> > index f287461..388b96d 100644
->> >> > --- a/arch/arm/mach-omap2/board-4430sdp.c
->> >> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
->> >> > @@ -227,9 +227,14 @@ static int omap4_twl6030_hsmmc_late_init(s=
-truct
->> >> device *dev)
->> >> > =A0 =A0 =A0 =A0struct omap_mmc_platform_data *pdata =3D dev->pl=
-atform_data;
->> >> >
->> >> > =A0 =A0 =A0 =A0/* Setting MMC1 Card detect Irq */
->> >> > - =A0 =A0 =A0 if (pdev->id =3D=3D 0)
->> >> > + =A0 =A0 =A0 if (pdev->id =3D=3D 0) {
->> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl6030_mmc_card_detect_c=
-onfig();
->> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
->> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Failed co=
-nfiguring MMC1 card
->> detect\n");
->> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect_irq =
-=3D TWL6030_IRQ_BASE +
->> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCDETECT_INTR_OFFSET;
->> >> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->slots[0].card_detect =3D
->> twl6030_mmc_card_detect;
+> Hmm that should be enough. Does dmesg | grep -i mux show any errors?
 >
-> You are assigning an exported fn here.
->
-> What if somebody disables CONFIG_TWL4030_CORE in the omap_4430sdp_def=
-config
-> file? Does the driver behave nicely with only loosing the hotplug
-> capability?
+> You do have CONFIG_OMAP_MUX set, right? Otherwise omap_mux_init_signa=
+ls
+> does not do anything, and the mux code just builds a list of GPIO
+> pins for PM runtime muxing (not implemented yet).
 
-On mainline 2.6.35 omap3_defconfig works for OMAP4 but without hotplug
-functionality
-Disabling CONFIG_TWL4030_CORE in defconfig  means disabling
-regulator's  and eventually
-on bootup mmc host drivers probe fails as omap_hsmmc_reg_get( )
-fails. Seems like
-MMC and TWL are tightly coupled because of LDO dependency.
+Hi,
+Yes, CONFIG_OMAP_MUX is set.  The only non-wait1 error I saw was:
+mux: Multiple signal paths (3) for mcspi3_cs0
 
-With this V6 patch and omap3_defconfig , disabling CONFIG_TWL4030_CORE
-[also need to disable USB & comment board-devkit8000.c in
-mach-omap2/Makefile as they have dependency on
-twl_i2c_write_u8/twl_i2c_read_u8 defined in twl-core.c] doesn't
-compile due to undefined reference to those exported functions
-twl6030_mmc_card_detect_config & twl6030_mmc_card_detect .
+With CONFIG_OMAP_MUX_DEBUG I now see that after mode0 is set, later
+it's set to mode4:
+# dmesg | grep -i wait1
+mux: Setting signal gpmc_wait1.gpmc_wait1 0x0100 -> 0x0100
+mux: Setting signal gpmc_wait1.gpio63 0x0100 -> 0x0104
 
-Having below one[in twl.h] in addition to V6 :
+The same pin was enabled for a different config, fixed with an ifdef.
 
- /* Card detect Configuration for MMC1 Controller on OMAP4 */
-+#if defined(CONFIG_TWL4030_CORE)
- int twl6030_mmc_card_detect_config(void);
-+#else
-+static inline int twl6030_mmc_card_detect_config(void)
-+{
-+	pr_err("twl6030_mmc_card_detect_config not supported\n");
-+	return 0;
-+}
-+#endif
-
- /* MMC1 Controller on OMAP4 uses Phoenix irq for Card detect */
-+#if defined(CONFIG_TWL4030_CORE)
- int twl6030_mmc_card_detect(struct device *dev, int slot);
--
-+#else
-+static inline int twl6030_mmc_card_detect(struct device *dev, int slot=
-)
-+{
-+	pr_err("Call back twl6030_mmc_card_detect not supported\n");
-+	return -EIO;
-+}
-+#endif
-
-With the above change compilation as well as booting goes well but mmc =
-probe
-fails.
-
-Shall I go with above changes and post V7 ?
-
-<snip>
-
-Thanks ,
-Kishore
+Thanks!
+,
+John
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
