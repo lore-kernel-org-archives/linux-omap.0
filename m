@@ -1,34 +1,44 @@
-From: "Henk Geraads" <linux@hf-electronics.com>
-Subject: Patches Xf86-video-omapfb
-Date: Fri, 6 Aug 2010 16:06:42 +0200
-Message-ID: <NGBBLNEOGLJIIJKLFLPFOEECFCAA.linux@hf-electronics.com>
-References: <4C5C129A.3020808@matrix-vision.de>
-Reply-To: <linux@hf-electronics.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [RFC PATCH] platform: Faciliatate the creation of
+ pseduo-platform busses
+Date: Fri, 6 Aug 2010 07:27:27 -0700
+Message-ID: <20100806142727.GB4921@suse.de>
+References: <4C58A7AA.8020007@codeaurora.org>
+ <20100803235631.GA17759@suse.de>
+ <4C58AE15.6090900@codeaurora.org>
+ <20100804000945.GA19729@suse.de>
+ <4C58B1B6.9050005@quicinc.com>
+ <AANLkTikVzh9=DvvUPbKmDeo6k2-pPVSnjH+GxAPdQFO4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relay55.tele2.vuurwerk.nl ([62.250.3.55]:45511 "EHLO
-	relay.versatel.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1761462Ab0HFO01 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 10:26:27 -0400
-Received: from [87.213.192.4] (helo=hf-electronics.com)
-	by relay.versatel.net with smtp (Exim 4.69)
-	(envelope-from <linux@hf-electronics.com>)
-	id 1OhNZS-0005jB-HL
-	for linux-omap@vger.kernel.org; Fri, 06 Aug 2010 16:06:51 +0200
-In-Reply-To: <4C5C129A.3020808@matrix-vision.de>
+Received: from cantor2.suse.de ([195.135.220.15]:49380 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758021Ab0HFOam (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Aug 2010 10:30:42 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTikVzh9=DvvUPbKmDeo6k2-pPVSnjH+GxAPdQFO4@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Patrick Pannuto <ppannuto@quicinc.com>, Patrick Pannuto <ppannuto@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "dtor@mail.ru" <dtor@mail.ru>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi I would like to have the "patches" of Eino-Ville Talvala on the
-Xf86-video-omapfb which fixes the problems using DSS2 on OMAP3 EVM / Angstrom with rotation.
-These fixes where made dec. 2009 
+On Thu, Aug 05, 2010 at 04:59:35PM -0600, Grant Likely wrote:
+> (On that point Greg, what is the reason for even having the
+> /sys/devices/platform/ parent?  Why not just let the platform devices
+> sit at the root of the device tree?  In the OF case (granted, I'm
+> biased) all of the platform_device registrations reflect the actual
+> device hierarchy expressed in the device tree data.)
 
-Who can help me on this?
+If we sat them at the "root", there would be a bunch of them there.  I
+don't know, we could drop the parent, I guess whoever created the
+platform device oh so long ago, decided that it would look nicer to be
+in this type of structure.
 
-Best regards,
+> Now, having gone on this whole long tirade, it looks like having
+> separate platform bus types may not be the best approach after all.
 
-Henk
+I totally agree, and thanks for the detailed explaination, it saved me
+from having to write up the same thing :)
 
+greg k-h
