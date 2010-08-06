@@ -1,54 +1,68 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC PATCH] platform: Faciliatate the creation of pseduo-platform
-	busses
-Date: Fri, 6 Aug 2010 09:12:27 -0600
-Message-ID: <AANLkTi=VbVed09=u-Ea0L8c_CWZ_CLLjWH9ZjD2dyg6Y@mail.gmail.com>
-References: <4C58A7AA.8020007@codeaurora.org> <20100803235631.GA17759@suse.de>
-	<4C58AE15.6090900@codeaurora.org> <20100804000945.GA19729@suse.de>
-	<4C58B1B6.9050005@quicinc.com> <AANLkTikVzh9=DvvUPbKmDeo6k2-pPVSnjH+GxAPdQFO4@mail.gmail.com>
-	<20100806142727.GB4921@suse.de>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: omap3camera and linux-omap
+Date: Fri, 6 Aug 2010 10:32:36 -0500
+Message-ID: <A24693684029E5489D1D202277BE894456DF59A3@dlee02.ent.ti.com>
+References: <4C5C129A.3020808@matrix-vision.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100806142727.GB4921@suse.de>
-Sender: netdev-owner@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Patrick Pannuto <ppannuto@quicinc.com>, Patrick Pannuto <ppannuto@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "dtor@mail.ru" <dtor@mail.ru>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53309 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750981Ab0HFPcv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 11:32:51 -0400
+In-Reply-To: <4C5C129A.3020808@matrix-vision.de>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael Jones <michael.jones@matrix-vision.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>
 
-On Fri, Aug 6, 2010 at 8:27 AM, Greg KH <gregkh@suse.de> wrote:
-> On Thu, Aug 05, 2010 at 04:59:35PM -0600, Grant Likely wrote:
->> (On that point Greg, what is the reason for even having the
->> /sys/devices/platform/ parent? =A0Why not just let the platform devi=
-ces
->> sit at the root of the device tree? =A0In the OF case (granted, I'm
->> biased) all of the platform_device registrations reflect the actual
->> device hierarchy expressed in the device tree data.)
->
-> If we sat them at the "root", there would be a bunch of them there. =A0=
-I
-> don't know, we could drop the parent, I guess whoever created the
-> platform device oh so long ago, decided that it would look nicer to b=
-e
-> in this type of structure.
+Hi Michael,
 
-Personally I'd rather see a meaningful structure used here.  Maybe
-having them all in the root will encourage people to find realistic
-parents for their platform devices.  :-)  Why don't I float a patch to
-remove this and see if anybody freaks out.  Should I wrap it with a
-CONFIG_ so that it can be configurable for a release or to, or just
-make it unconditional?
 
->> Now, having gone on this whole long tirade, it looks like having
->> separate platform bus types may not be the best approach after all.
->
-> I totally agree, and thanks for the detailed explaination, it saved m=
-e
-> from having to write up the same thing :)
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Michael Jones
+> Sent: Friday, August 06, 2010 8:48 AM
+> To: linux-omap@vger.kernel.org
+> Cc: sakari.ailus@maxwell.research.nokia.com
+> Subject: omap3camera and linux-omap
+> 
+> I am currently using Sakari's omap3camera repository (branch 'devel').
+> 'git merge-base linux-omap omap3camera' tells me that the last commit
+> omap3camera has in common with linux-omap is 40a0c47, from July 7 2010.
+> But there are >1000 commits which are only in omap3camera, dating back to
+> 2008.
+> 
+> Is this destined to stay this way?
 
-:-)
+This is because devel branch keeps a detailed development history since we started working on the camera driver. At the end, the patches submitted will be a consolidated set, which should end in something around ~12 patches or so..
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+> Or will the omap3camera tree be merged into linux-omap at some point?
+
+The omap3camera submission is on hold, because the camera driver is dependant on Media controller framework, which is holding for merge in linux-media mailing list.
+
+> 
+> When proposing a patch for the omap3camera tree, should it be sent to this
+> list?
+
+You should preferably send the patches to linux-media (at) vger.kernel.org mailing with cc to Sakari Ailus and Laurent Pinchart.
+
+So far we have been keeping patch review internally, because we didn't want to pollute the mailing list with patches to unsubmitted code.
+
+Regards,
+Sergio
+
+> 
+> Thanks,
+> Michael
+> 
+> MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+> Registergericht: Amtsgericht Stuttgart, HRB 271090
+> Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Hans-
+> Joachim Reich
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
