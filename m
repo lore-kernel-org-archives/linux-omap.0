@@ -1,136 +1,420 @@
-From: Hema HK <hemahk@ti.com>
-Subject: [PATCH 7/8] : Hwmod api changes
-Date: Fri,  6 Aug 2010 22:58:08 +0530
-Message-ID: <1281115688-1429-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60522 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751713Ab0HFR2P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Aug 2010 13:28:15 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 8/8 ]usb : musb:Using runtime pm apis for musb.
+Date: Fri,  6 Aug 2010 22:59:09 +0530
+Message-ID: <1281115749-1601-1-git-send-email-hemahk@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Hema HK <hemahk@ti.com>, "Basak, Partha" <p-basak2@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Hema HK  <hemahk@ti.com>
+From: Hema HK  <hemahk-l0cyMroinI0@public.gmane.org>
 
-Omap USBOTG modules has a requirement to set the auto idle bit only after
-setting smart idle bit. Modified the _sys_enable api to set the smart idle 
-first and then the autoidle bit. Setting this will not have any impact on the 
-other modules.
+Calling runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync() 
+for enabling/disabling the clocks,sysconfig settings.
 
-Added 2 wrapper APIs in the omap device layer for wakeup enable/disable 
-and sidle/mstandby settings. 
+used omap_hwmod_enable_wakeup & omap_hwmod_disable_wakeup apis to set/clear
+the wakeup enable bit.
+Also need to put the USB in force standby and force idle mode when usb not used
+and set it back to smart idle and smart stndby after wakeup.
+these cases are handled using the oh flags.
+For omap3430 auto idle bit has to be disabled because of the errata.So using 
+HWMOD_NO_OCP_AUTOIDLE flag for OMAP3430.
 
-Signed-off-by: Hema HK <hemahk@ti.com>
-Signed-off-by: Basak, Partha <p-basak2@ti.com>
+Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Basak, Partha <p-basak2-l0cyMroinI0@public.gmane.org>
 
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-
+Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 ---
- arch/arm/mach-omap2/omap_hwmod.c              |   18 +++++++----
- arch/arm/plat-omap/include/plat/omap_device.h |    2 +
- arch/arm/plat-omap/omap_device.c              |   42 ++++++++++++++++++++++++++
- 3 files changed, 56 insertions(+), 6 deletions(-)
 
-Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod.c
+ arch/arm/mach-omap2/pm34xx.c          |   10 +++-
+ arch/arm/mach-omap2/usb-musb.c        |   72 ++++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/usb.h |    9 +++
+ drivers/usb/musb/musb_core.c          |   12 +++++
+ drivers/usb/musb/omap2430.c           |   77 +++++-----------------------------
+ include/linux/usb/musb.h              |   18 +++++++
+ 6 files changed, 126 insertions(+), 72 deletions(-)
+
+Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod.c	2010-08-06 08:59:03.641863815 -0400
-+++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod.c	2010-08-06 09:02:00.021864999 -0400
-@@ -653,12 +653,6 @@
- 		_set_master_standbymode(oh, idlemode, &v);
+--- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c	2010-08-06 10:44:06.000000000 -0400
++++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c	2010-08-06 10:44:42.942112875 -0400
+@@ -418,7 +418,9 @@
+ 			omap3_core_save_context();
+ 			omap3_prcm_save_context();
+ 			/* Save MUSB context */
+-			musb_context_save_restore(1);
++			musb_context_save_restore(save_context);
++		} else {
++			musb_context_save_restore(disable_clk);
+ 		}
  	}
  
--	if (sf & SYSC_HAS_AUTOIDLE) {
--		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
--			0 : 1;
--		_set_module_autoidle(oh, idlemode, &v);
--	}
--
- 	/* XXX OCP ENAWAKEUP bit? */
+@@ -462,8 +464,10 @@
+ 			omap3_sram_restore_context();
+ 			omap2_sms_restore_context();
+ 			/* restore MUSB context */
+-			musb_context_save_restore(0);
+-		}
++			musb_context_save_restore(restore_context);
++		} else {
++			musb_context_save_restore(enable_clk);
++ 		}
+ 		omap_uart_resume_idle(0);
+ 		omap_uart_resume_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF)
+Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c	2010-08-06 10:44:06.000000000 -0400
++++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c	2010-08-06 10:44:42.942112875 -0400
+@@ -25,11 +25,13 @@
+ #include <linux/io.h>
  
- 	/*
-@@ -671,6 +665,18 @@
- 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
+ #include <linux/usb/musb.h>
++#include <linux/pm_runtime.h>
  
- 	_write_sysconfig(v, oh);
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <plat/usb.h>
+ #include <plat/omap_device.h>
++#include <plat/omap_hwmod.h>
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+ 
+@@ -99,6 +101,18 @@
+ 		musb_plat.board_data = board_data;
+ 		musb_plat.power = board_data->power >> 1;
+ 		musb_plat.mode = board_data->mode;
++		musb_plat.device_enable = omap_device_enable;
++		musb_plat.device_idle = omap_device_idle;
++		musb_plat.enable_wakeup = omap_device_enable_wakeup;
++		musb_plat.disable_wakeup = omap_device_disable_wakeup;
++		/*
++		 * Errata 1.166 idle_req/ack is broken in omap3430
++		 * workaround is to disable the autodile bit for omap3430.
++		 */
++		if (cpu_is_omap3430())
++			oh->flags |= HWMOD_NO_OCP_AUTOIDLE;
 +
-+	/* Set the auto idle bit only after setting the smartidle bit
-+	 * as this is requirement for some modules like USBOTG
-+	 * setting this will not have any impact on the other modues.
-+	 */
-+
-+	if (sf & SYSC_HAS_AUTOIDLE) {
-+		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
-+			0 : 1;
-+		_set_module_autoidle(oh, idlemode, &v);
-+	}
-+	_write_sysconfig(v, oh);
++		musb_plat.oh = oh;
+ 		pdata = &musb_plat;
+ 
+ 		od = omap_device_build(name, bus_id, oh, pdata,
+@@ -120,7 +134,7 @@
+ 	}
  }
  
- /**
-Index: linux-omap-pm/arch/arm/plat-omap/include/plat/omap_device.h
-===================================================================
---- linux-omap-pm.orig/arch/arm/plat-omap/include/plat/omap_device.h	2010-08-06 08:59:03.661863725 -0400
-+++ linux-omap-pm/arch/arm/plat-omap/include/plat/omap_device.h	2010-08-06 09:02:00.021864999 -0400
-@@ -116,6 +116,8 @@
- int omap_device_disable_clocks(struct omap_device *od);
- int omap_device_enable_clocks(struct omap_device *od);
+-void musb_context_save_restore(int save)
++void musb_context_save_restore(enum musb_state state)
+ {
+ 	struct omap_hwmod *oh = omap_hwmod_lookup("usb_otg_hs");
+ 	struct omap_device *od = oh->od;
+@@ -129,14 +143,64 @@
+ 	struct device_driver *drv = dev->driver;
  
-+int omap_device_enable_wakeup(struct omap_device *od);
-+int omap_device_disable_wakeup(struct omap_device *od);
+ 	if (drv) {
++#ifdef CONFIG_PM_RUNTIME
+ 		struct musb_hdrc_platform_data *pdata = dev->platform_data;
+ 		const struct dev_pm_ops *pm = drv->pm;
+-		if (!pdata->is_usb_active(dev)) {
  
- /*
-  * Entries should be kept in latency order ascending
-Index: linux-omap-pm/arch/arm/plat-omap/omap_device.c
+-			if (save)
++		if (!pdata->is_usb_active(dev)) {
++			switch (state) {
++			case save_context:
++				/* If the usb device not active then Save
++				 * the context,set the sysconfig setting to
++				 * force standby force idle during idle and
++				 * disable the clock.
++				 */
++				oh->flags |= HWMOD_SWSUP_SIDLE
++						| HWMOD_SWSUP_MSTANDBY;
+ 				pm->suspend(dev);
+-			else
++				pdata->device_idle(pdev);
++
++				break;
++			case disable_clk:
++				/* If the usb device not active then
++				 * Save the context, set the sysconfig setting
++				 * to force standby force idle during idle and
++				 * disable the clock.
++				 */
++
++				oh->flags |= HWMOD_SWSUP_SIDLE
++					| HWMOD_SWSUP_MSTANDBY;
++				pdata->device_idle(pdev);
++
++				break;
++
++			case restore_context:
++				/* Enable the clock, set the sysconfig
++				 * back to smart idle and smart stndby after
++				 * wakeup. restore the context.
++				 */
++				oh->flags &= ~(HWMOD_SWSUP_SIDLE
++					| HWMOD_SWSUP_MSTANDBY);
++				pdata->device_enable(pdev);
+ 				pm->resume_noirq(dev);
++
++				break;
++
++			case enable_clk:
++				/* Set the sysconfig back to smart
++				 * idle and smart stndby after wakeup and
++				 * enable the clock
++				 */
++				oh->flags &= ~(HWMOD_SWSUP_SIDLE
++					| HWMOD_SWSUP_MSTANDBY);
++				pdata->device_enable(pdev);
++
++				break;
++
++			default:
++				break;
++			}
++#endif
+ 		}
+ 	}
+ }
+Index: linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h
 ===================================================================
---- linux-omap-pm.orig/arch/arm/plat-omap/omap_device.c	2010-08-06 08:59:03.661863725 -0400
-+++ linux-omap-pm/arch/arm/plat-omap/omap_device.c	2010-08-06 09:02:00.021864999 -0400
-@@ -757,3 +757,45 @@
- 	/* XXX pass along return value here? */
+--- linux-omap-pm.orig/arch/arm/plat-omap/include/plat/usb.h	2010-08-06 10:44:06.000000000 -0400
++++ linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h	2010-08-06 10:44:42.942112875 -0400
+@@ -71,6 +71,13 @@
+ 	unsigned extvbus:1;
+ };
+ 
++enum musb_state {
++	save_context = 1,
++	disable_clk,
++	restore_context,
++	enable_clk,
++	};
++
+ enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
+ 
+ extern void usb_musb_init(struct omap_musb_board_data *board_data);
+@@ -80,7 +87,7 @@
+ extern void usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata);
+ 
+ /* For saving and restoring the musb context during off/wakeup*/
+-extern void musb_context_save_restore(int save);
++extern void musb_context_save_restore(enum musb_state state);
+ #endif
+ 
+ 
+Index: linux-omap-pm/drivers/usb/musb/musb_core.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/musb_core.c	2010-08-06 10:44:06.000000000 -0400
++++ linux-omap-pm/drivers/usb/musb/musb_core.c	2010-08-06 10:44:42.942112875 -0400
+@@ -2447,9 +2447,21 @@
  	return 0;
  }
-+
-+/**
-+ * omap_device_enable_wakeup - Enable the wakeup bit
-+ * @od: struct omap_device *od
-+ *
-+ * Enable the wakup bit for omap_hwmods associated
-+ * with the omap_device.  Returns 0.
-+ */
-+
-+int omap_device_enable_wakeup(struct omap_device *od)
+ 
++static int musb_runtime_suspend(struct device *dev)
 +{
-+	struct omap_hwmod *oh;
-+	int i;
-+
-+	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
-+		omap_hwmod_enable_wakeup(oh);
-+
-+	/* XXX pass along return value here? */
 +	return 0;
 +}
 +
-+/**
-+ * omap_device_disable_wakeup -Disable the wakeup bit
-+ * @od: struct omap_device *od
-+ *
-+ * Disable the wakup bit for omap_hwmods associated
-+ * with the omap_device.  Returns 0.
-+ */
-+
-+
-+int omap_device_disable_wakeup(struct omap_device *od)
++static int musb_runtime_resume(struct device *dev)
 +{
-+	struct omap_hwmod *oh;
-+	int i;
-+
-+	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
-+		omap_hwmod_disable_wakeup(oh);
-+
-+	/* XXX pass along return value here? */
 +	return 0;
 +}
 +
+ static const struct dev_pm_ops musb_dev_pm_ops = {
+ 	.suspend	= musb_suspend,
+ 	.resume_noirq	= musb_resume_noirq,
++	.runtime_suspend = musb_runtime_suspend,
++	.runtime_resume	 = musb_runtime_resume,
+ };
+ 
+ #define MUSB_DEV_PM_OPS (&musb_dev_pm_ops)
+Index: linux-omap-pm/drivers/usb/musb/omap2430.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/omap2430.c	2010-08-06 10:44:30.093914217 -0400
++++ linux-omap-pm/drivers/usb/musb/omap2430.c	2010-08-06 10:44:42.942112875 -0400
+@@ -31,6 +31,7 @@
+ #include <linux/list.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <plat/mux.h>
+ 
+@@ -209,10 +210,6 @@
+ 	struct musb_hdrc_platform_data *plat = dev->platform_data;
+ 	struct omap_musb_board_data *data = plat->board_data;
+ 
+-#if defined(CONFIG_ARCH_OMAP2430)
+-	omap_cfg_reg(AE5_2430_USB0HS_STP);
+-#endif
+-
+ 	/* We require some kind of external transceiver, hooked
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+@@ -224,22 +221,6 @@
+ 	}
+ 
+ 	musb_platform_resume(musb);
+-
+-	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+-	l &= ~ENABLEWAKEUP;	/* disable wakeup */
+-	l &= ~NOSTDBY;		/* remove possible nostdby */
+-	l |= SMARTSTDBY;	/* enable smart standby */
+-	l &= ~AUTOIDLE;		/* disable auto idle */
+-	l &= ~NOIDLE;		/* remove possible noidle */
+-	l |= SMARTIDLE;		/* enable smart idle */
+-	/*
+-	 * MUSB AUTOIDLE don't work in 3430.
+-	 * Workaround by Richard Woodruff/TI
+-	 */
+-	if (!cpu_is_omap3430())
+-		l |= AUTOIDLE;		/* enable auto idle */
+-	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+-
+ 	l = musb_readl(musb->mregs, OTG_INTERFSEL);
+ 
+ 	if (data->interface_type == MUSB_INTERFACE_UTMI) {
+@@ -273,48 +254,26 @@
+ void musb_platform_save_context(struct musb *musb,
+ 		struct musb_context_registers *musb_context)
+ {
+-	/*
+-	 * As per the omap-usbotg specification, configure it to forced standby
+-	 * and  force idle mode when no activity on usb.
+-	 */
+ 	void __iomem *musb_base = musb->mregs;
+ 
+-	musb_writel(musb_base, OTG_FORCESTDBY, 0);
+-
+-	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+-				OTG_SYSCONFIG) & ~(NOSTDBY | SMARTSTDBY));
+-
+-	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+-					OTG_SYSCONFIG) & ~(AUTOIDLE));
+-
+-	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+-				OTG_SYSCONFIG) & ~(NOIDLE | SMARTIDLE));
+-
+ 	musb_writel(musb_base, OTG_FORCESTDBY, 1);
+ }
+ 
+ void musb_platform_restore_context(struct musb *musb,
+ 		struct musb_context_registers *musb_context)
+ {
+-	/*
+-	 * As per the omap-usbotg specification, configure it smart standby
+-	 * and smart idle during operation.
+-	 */
+ 	void __iomem *musb_base = musb->mregs;
+ 
+ 	musb_writel(musb_base, OTG_FORCESTDBY, 0);
+-
+-	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+-				OTG_SYSCONFIG) | (SMARTSTDBY));
+-
+-	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+-				OTG_SYSCONFIG) | (SMARTIDLE));
+ }
+ #endif
+ 
+ static int musb_platform_suspend(struct musb *musb)
+ {
+ 	u32 l;
++	struct device *dev = musb->controller;
++	struct musb_hdrc_platform_data *pdata = dev->platform_data;
++	struct omap_hwmod *oh = pdata->oh;
+ 
+ 	if (!musb->clock)
+ 		return 0;
+@@ -324,16 +283,9 @@
+ 	l |= ENABLEFORCE;	/* enable MSTANDBY */
+ 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+ 
+-	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+-	l |= ENABLEWAKEUP;	/* enable wakeup */
+-	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+-
++	pdata->enable_wakeup(oh->od);
+ 	otg_set_suspend(musb->xceiv, 1);
+-
+-	if (musb->set_clock)
+-		musb->set_clock(musb->clock, 0);
+-	else
+-		clk_disable(musb->clock);
++	pm_runtime_put_sync(dev);
+ 
+ 	return 0;
+ }
+@@ -341,21 +293,18 @@
+ static int musb_platform_resume(struct musb *musb)
+ {
+ 	u32 l;
++	struct device *dev = musb->controller;
++	struct musb_hdrc_platform_data *pdata = dev->platform_data;
++	struct omap_hwmod *oh = pdata->oh;
+ 
+ 	if (!musb->clock)
+ 		return 0;
+ 
+ 	otg_set_suspend(musb->xceiv, 0);
+-
+-	if (musb->set_clock)
+-		musb->set_clock(musb->clock, 1);
+-	else
+-		clk_enable(musb->clock);
+-
+-	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+-	l &= ~ENABLEWAKEUP;	/* disable wakeup */
+-	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+-
++	pm_runtime_enable(dev);
++	pm_runtime_get_sync(dev);
++	pdata->disable_wakeup(oh->od);
++	pdata->enable_wakeup(oh->od);
+ 	l = musb_readl(musb->mregs, OTG_FORCESTDBY);
+ 	l &= ~ENABLEFORCE;	/* disable MSTANDBY */
+ 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+Index: linux-omap-pm/include/linux/usb/musb.h
+===================================================================
+--- linux-omap-pm.orig/include/linux/usb/musb.h	2010-08-06 10:44:06.000000000 -0400
++++ linux-omap-pm/include/linux/usb/musb.h	2010-08-06 10:44:42.946115274 -0400
+@@ -10,6 +10,9 @@
+ #ifndef __LINUX_USB_MUSB_H
+ #define __LINUX_USB_MUSB_H
+ 
++#include <linux/platform_device.h>
++#include <plat/omap_hwmod.h>
++
+ /* The USB role is defined by the connector used on the board, so long as
+  * standards are being followed.  (Developer boards sometimes won't.)
+  */
+@@ -129,6 +132,21 @@
+ 
+ 	/* check usb device active state*/
+ 	int		(*is_usb_active)(struct device *dev);
++
++	/* omap hwmod data structure	 */
++	struct	omap_hwmod *oh;
++
++	/* enable clocks and set sysconfig register*/
++	int		(*device_enable)(struct platform_device *pdev);
++
++	/* Disable clock and reset the sysconfig register settings*/
++	int		(*device_idle)(struct platform_device *pdev);
++
++	/* set the enable wakeup bit of sysconfig register */
++	int		(*enable_wakeup)(struct omap_device *od);
++
++	/* Clear the enable wakeup bit  of sysconfig register */
++	int		(*disable_wakeup)(struct omap_device *od);
+ };
+ 
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
