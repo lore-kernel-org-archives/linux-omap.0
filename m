@@ -1,28 +1,40 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PM-SR][PATCH 01/12] omap3: voltage: cleanup pr_xxxx
-Date: Fri, 6 Aug 2010 13:18:07 +0100
-Message-ID: <20100806121807.GD31326@sirena.org.uk>
-References: <1281047052-21346-1-git-send-email-nm@ti.com> <1281047052-21346-2-git-send-email-nm@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB032401CE69@dbde02.ent.ti.com> <4C5BED13.6080702@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Charulatha V <charu@ti.com>
+Subject: [PATCH] OMAP4: HWMOD: Do omap_hwmod_late_init for OMAP4
+Date: Fri,  6 Aug 2010 18:01:13 +0530
+Message-ID: <1281097873-24094-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:52012 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759367Ab0HFMSK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 08:18:10 -0400
-Content-Disposition: inline
-In-Reply-To: <4C5BED13.6080702@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41635 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752668Ab0HFM2h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Aug 2010 08:28:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, rnayak@ti.com, Charulatha V <charu@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-On Fri, Aug 06, 2010 at 06:08:03AM -0500, Nishanth Menon wrote:
+This patch includes "cpu_is" check for omap44xx cpu inorder to do
+omap_hwmod_late_init() without which hwmods initialization does not
+happen for omap4.
 
-> Well that is my motivation here. if driver reports a warning to kernel  
-> syslog, well, I expect the log to contain the function name for me to  
-> maintain faster.
+Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Basak, Partha <p-basak2@ti.com>
+---
+ arch/arm/mach-omap2/io.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-That's really not the expectation for Linux log messages - the general
-approach to find the source of a message is generally to just grep for
-the message text which is usually very effective.
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index b89e678..9b15f46 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -345,7 +345,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ #ifndef CONFIG_PM_RUNTIME
+ 	skip_setup_idle = 1;
+ #endif
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
++	if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx())
+ 		omap_hwmod_late_init(skip_setup_idle);
+ 
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+-- 
+1.6.3.3
+
