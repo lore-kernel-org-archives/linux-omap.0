@@ -1,226 +1,183 @@
 From: Charulatha V <charu@ti.com>
-Subject: [PATCH 08/13 v5] OMAP: GPIO: Add gpio dev_attr and correct clks in OMAP4 hwmod struct
-Date: Fri,  6 Aug 2010 18:04:20 +0530
-Message-ID: <1281098065-24177-9-git-send-email-charu@ti.com>
-References: <1281098065-24177-1-git-send-email-charu@ti.com>
- <1281098065-24177-2-git-send-email-charu@ti.com>
- <1281098065-24177-3-git-send-email-charu@ti.com>
- <1281098065-24177-4-git-send-email-charu@ti.com>
- <1281098065-24177-5-git-send-email-charu@ti.com>
- <1281098065-24177-6-git-send-email-charu@ti.com>
- <1281098065-24177-7-git-send-email-charu@ti.com>
- <1281098065-24177-8-git-send-email-charu@ti.com>
+Subject: [PATCH 00/13 v5] OMAP: GPIO: Implement GPIO in HWMOD way
+Date: Fri,  6 Aug 2010 18:04:12 +0530
+Message-ID: <1281098065-24177-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48634 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934476Ab0HFMbr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 08:31:47 -0400
-In-Reply-To: <1281098065-24177-8-git-send-email-charu@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:52286 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934159Ab0HFMbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Aug 2010 08:31:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, rnayak@ti.com, Charulatha V <charu@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, rnayak@ti.com, Charulatha V <charu@ti.com>
 
-This patch adds gpio_dev_attr to OMAP4 gpio hwmod structure. This patch
-also corrects the gpio .main_clk and .clk fields in gpio hwmod structures.
+This patch series makes OMAP2PLUS specific GPIO implemented in HWMOD
+FW way. This is done by implementing GPIO module in platform device model.
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Signed-off-by: Basak, Partha <p-basak2@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   40 +++++++++++++++++++--------
- 1 files changed, 28 insertions(+), 12 deletions(-)
+This patch series is generated on "origin/pm-wip/hwmods-omap4".
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 20f5f8c..1b066df 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -22,6 +22,7 @@
- 
- #include <plat/omap_hwmod.h>
- #include <plat/cpu.h>
-+#include <plat/gpio.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-@@ -1272,6 +1273,20 @@ static struct omap_hwmod omap44xx_fdif_hwmod = {
-  * general purpose io module
-  */
- 
-+/* gpio_dev_attr common for gpio2-6*/
-+static struct omap_gpio_dev_attr gpio_dev_attr = {
-+	.bank_width = 32,
-+	.dbck_flag = true,
-+	.off_mode_support = true,
-+};
-+
-+/* gpio_dev_attr for gpio1*/
-+static struct omap_gpio_dev_attr gpio1_dev_attr = {
-+	.bank_width = 32,
-+	.dbck_flag = true,
-+	.off_mode_support = false,
-+};
-+
- static struct omap_hwmod_class_sysconfig omap44xx_gpio_sysc = {
- 	.rev_offs	= 0x0000,
- 	.sysc_offs	= 0x0010,
-@@ -1285,6 +1300,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_gpio_sysc = {
- static struct omap_hwmod_class omap44xx_gpio_hwmod_class = {
- 	.name = "gpio",
- 	.sysc = &omap44xx_gpio_sysc,
-+	.rev = 2,
- };
- 
- /* gpio1 */
-@@ -1305,7 +1321,7 @@ static struct omap_hwmod_addr_space omap44xx_gpio1_addrs[] = {
- static struct omap_hwmod_ocp_if omap44xx_l4_wkup__gpio1 = {
- 	.master		= &omap44xx_l4_wkup_hwmod,
- 	.slave		= &omap44xx_gpio1_hwmod,
--	.clk		= "l4_wkup_clk_mux_ck",
-+	.clk		= "gpio1_ick",
- 	.addr		= omap44xx_gpio1_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap44xx_gpio1_addrs),
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-@@ -1325,7 +1341,6 @@ static struct omap_hwmod omap44xx_gpio1_hwmod = {
- 	.class		= &omap44xx_gpio_hwmod_class,
- 	.mpu_irqs	= omap44xx_gpio1_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio1_irqs),
--	.main_clk	= "gpio1_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_WKUP_GPIO1_CLKCTRL,
-@@ -1333,6 +1348,7 @@ static struct omap_hwmod omap44xx_gpio1_hwmod = {
- 	},
- 	.opt_clks	= gpio1_opt_clks,
- 	.opt_clks_cnt = ARRAY_SIZE(gpio1_opt_clks),
-+	.dev_attr	= &gpio1_dev_attr,
- 	.slaves		= omap44xx_gpio1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio1_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -1356,7 +1372,7 @@ static struct omap_hwmod_addr_space omap44xx_gpio2_addrs[] = {
- static struct omap_hwmod_ocp_if omap44xx_l4_per__gpio2 = {
- 	.master		= &omap44xx_l4_per_hwmod,
- 	.slave		= &omap44xx_gpio2_hwmod,
--	.clk		= "l4_div_ck",
-+	.clk		= "gpio2_ick",
- 	.addr		= omap44xx_gpio2_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap44xx_gpio2_addrs),
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-@@ -1376,7 +1392,6 @@ static struct omap_hwmod omap44xx_gpio2_hwmod = {
- 	.class		= &omap44xx_gpio_hwmod_class,
- 	.mpu_irqs	= omap44xx_gpio2_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio2_irqs),
--	.main_clk	= "gpio2_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO2_CLKCTRL,
-@@ -1384,6 +1399,7 @@ static struct omap_hwmod omap44xx_gpio2_hwmod = {
- 	},
- 	.opt_clks	= gpio2_opt_clks,
- 	.opt_clks_cnt = ARRAY_SIZE(gpio2_opt_clks),
-+	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio2_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -1407,7 +1423,7 @@ static struct omap_hwmod_addr_space omap44xx_gpio3_addrs[] = {
- static struct omap_hwmod_ocp_if omap44xx_l4_per__gpio3 = {
- 	.master		= &omap44xx_l4_per_hwmod,
- 	.slave		= &omap44xx_gpio3_hwmod,
--	.clk		= "l4_div_ck",
-+	.clk		= "gpio3_ick",
- 	.addr		= omap44xx_gpio3_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap44xx_gpio3_addrs),
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-@@ -1427,7 +1443,6 @@ static struct omap_hwmod omap44xx_gpio3_hwmod = {
- 	.class		= &omap44xx_gpio_hwmod_class,
- 	.mpu_irqs	= omap44xx_gpio3_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio3_irqs),
--	.main_clk	= "gpio3_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO3_CLKCTRL,
-@@ -1435,6 +1450,7 @@ static struct omap_hwmod omap44xx_gpio3_hwmod = {
- 	},
- 	.opt_clks	= gpio3_opt_clks,
- 	.opt_clks_cnt = ARRAY_SIZE(gpio3_opt_clks),
-+	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio3_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio3_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -1458,7 +1474,7 @@ static struct omap_hwmod_addr_space omap44xx_gpio4_addrs[] = {
- static struct omap_hwmod_ocp_if omap44xx_l4_per__gpio4 = {
- 	.master		= &omap44xx_l4_per_hwmod,
- 	.slave		= &omap44xx_gpio4_hwmod,
--	.clk		= "l4_div_ck",
-+	.clk		= "gpio4_ick",
- 	.addr		= omap44xx_gpio4_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap44xx_gpio4_addrs),
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-@@ -1478,7 +1494,6 @@ static struct omap_hwmod omap44xx_gpio4_hwmod = {
- 	.class		= &omap44xx_gpio_hwmod_class,
- 	.mpu_irqs	= omap44xx_gpio4_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio4_irqs),
--	.main_clk	= "gpio4_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO4_CLKCTRL,
-@@ -1486,6 +1501,7 @@ static struct omap_hwmod omap44xx_gpio4_hwmod = {
- 	},
- 	.opt_clks	= gpio4_opt_clks,
- 	.opt_clks_cnt = ARRAY_SIZE(gpio4_opt_clks),
-+	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio4_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio4_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -1509,7 +1525,7 @@ static struct omap_hwmod_addr_space omap44xx_gpio5_addrs[] = {
- static struct omap_hwmod_ocp_if omap44xx_l4_per__gpio5 = {
- 	.master		= &omap44xx_l4_per_hwmod,
- 	.slave		= &omap44xx_gpio5_hwmod,
--	.clk		= "l4_div_ck",
-+	.clk		= "gpio5_ick",
- 	.addr		= omap44xx_gpio5_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap44xx_gpio5_addrs),
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-@@ -1529,7 +1545,6 @@ static struct omap_hwmod omap44xx_gpio5_hwmod = {
- 	.class		= &omap44xx_gpio_hwmod_class,
- 	.mpu_irqs	= omap44xx_gpio5_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio5_irqs),
--	.main_clk	= "gpio5_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO5_CLKCTRL,
-@@ -1537,6 +1552,7 @@ static struct omap_hwmod omap44xx_gpio5_hwmod = {
- 	},
- 	.opt_clks	= gpio5_opt_clks,
- 	.opt_clks_cnt = ARRAY_SIZE(gpio5_opt_clks),
-+	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio5_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio5_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-@@ -1560,7 +1576,7 @@ static struct omap_hwmod_addr_space omap44xx_gpio6_addrs[] = {
- static struct omap_hwmod_ocp_if omap44xx_l4_per__gpio6 = {
- 	.master		= &omap44xx_l4_per_hwmod,
- 	.slave		= &omap44xx_gpio6_hwmod,
--	.clk		= "l4_div_ck",
-+	.clk		= "gpio6_ick",
- 	.addr		= omap44xx_gpio6_addrs,
- 	.addr_cnt	= ARRAY_SIZE(omap44xx_gpio6_addrs),
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-@@ -1580,7 +1596,6 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
- 	.class		= &omap44xx_gpio_hwmod_class,
- 	.mpu_irqs	= omap44xx_gpio6_irqs,
- 	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_gpio6_irqs),
--	.main_clk	= "gpio6_ick",
- 	.prcm = {
- 		.omap4 = {
- 			.clkctrl_reg = OMAP4430_CM_L4PER_GPIO6_CLKCTRL,
-@@ -1588,6 +1603,7 @@ static struct omap_hwmod omap44xx_gpio6_hwmod = {
- 	},
- 	.opt_clks	= gpio6_opt_clks,
- 	.opt_clks_cnt = ARRAY_SIZE(gpio6_opt_clks),
-+	.dev_attr	= &gpio_dev_attr,
- 	.slaves		= omap44xx_gpio6_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_gpio6_slaves),
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
--- 
-1.6.3.3
+This patch series is created on top of the following two patches:
+- OMAP4: HWMOD: Do omap_hwmod_late_init for OMAP4
+- musb: Kill board specific pinmux from driver file
+	http://marc.info/?l=linux-usb&m=127858711304301&w=2
+- Revert the following patch:
+	OMAP: bus-level PM: enable use of runtime PM API for suspend/resume
+	http://dev.omapzoom.org/?p=swarch/linux-omap-adv.git;a=commitdiff;h=8041359e18e49bf8a3d41f15894db9e476f3a8fc
+	(or)
+  Remove the locking in the omap_hwmod_for_each* function
+
+This patch series is tested on OMAP4430 SDP board and OMAP3430 SDP board.
+It would be of great help if someone could test the same on OMAP1
+and OMAP2 boards.
+
+Links to related discussions:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32833.html
+
+Version History:
+---------------
+Comments Fixed in V5:
+- Use dev_pm_ops instead of sys_dev_class
+- Use runtime suspend/resume hooks for GPIO device
+- extend the usage of mod_usage flag to all cpu classes.( Earlier it was
+   used only for OMAP2PLUS)
+- Make gpio_context as part of gpio_bank structure
+
+v4 Series:
+Some link for v4 series:
+https://patchwork.kernel.org/patch/107411/
+
+Comments Fixed in v4:
+- Remove gpio_bank_count from dev_attr field and derive it from
+   hwmod class iteration count
+- Add TODOs for future omap gpio code cleanup related activity
+- Rename gpio's platform_data 'method' to 'bank_type'
+- Rename gpio's platform_data 'gpio_bank_bits' to 'gpio_bank_width'
+- Add 'rev' field to gpio class in hwmod datbase and get 'bank_type'
+   based on 'rev' field
+- Filename removed from file description when a new file is created
+
+Comments Fixed in v3:
+- .module_offs populated in hwmod structures
+- If not defined CONFIG_PM_RUNTIME is not handled in GPIO driver
+- No changes to mach-omap2/clockxxxx-data.c to handle clocks by dev ptr
+    as it is taken care using clock get by name in hwmod & omap_device layer
+- Using "ick" instead of "arm_gpio_ck" for OMAP15xx clock
+- SoC base addresses moved to plat-omap/omapXXXX.h that should be
+    used only by the omap_hwmod_xxxx_data.c file
+- OMAP2/3 hwmod structures naming convention changed as it is
+    followed in OMAP4
+- omap24xx_gpio_init() uses cpu_is_omap24xx() instead of separate
+    checks for 2420 & 2430 in OMAP2 specific init call (mach-omap layer)
+- Reason for using postcore_initcall is added to patch description for
+    the patch "OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init"
+- Comments added for usage of dbck_flag and other elements
+    in dev_attr structure
+- Uses dev_dbg() and dev_err() instead of pr_dbg() and pr_err()
+- Corrects the gpio clock details in OMAP4 hwmod database
+
+
+v2 series:
+Some important links to patch v2 series and comments:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30262.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28787.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30263.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30295.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30259.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28933.html
+Comments Fixed in V2:
+- GPIO dev attr was added for SoC specific chip info (eg., gpio bank count)
+- Removed omap_gpio_init() usage from board files 
+- platform_get_resource() used instead of pdata->base for
+    OMAP2+ base addresses
+- postcore_initcall used for gpio init instead of making
+    GPIO as an early platform device. SoC specific gpio_init
+    needs to be done before machine_init functions access gpio
+    APIs. Hence making SoC specific gpio_init as postcore_initcall.
+- getting gpio dbck is moved to omap_set_gpio_debounce()
+    instead of doing it in probe
+
+
+v1 series:
+Some important links to patch v1 series and comments:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26934.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27860.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28183.html
+Highlights in v1:
+- Introduces SoC specific functions at mach-omap layer
+- Implements GPIO as a platform device
+- Make gpio an early device and make it implemented in
+    HWMOD FW adapted way for OMAP2PLUS
+
+Charulatha V (13):
+  OMAP: GPIO: Modify init() in preparation for platform device
+    implementation
+  OMAP: GPIO: Introduce support for OMAP15xx chip GPIO init
+  OMAP: GPIO: Introduce support for OMAP16xx chip GPIO init
+  OMAP: GPIO: Introduce support for OMAP7xx chip GPIO init
+  OMAP: GPIO: add GPIO hwmods structures for OMAP3
+  OMAP: GPIO: add GPIO hwmods structures for OMAP242X
+  OMAP: GPIO: add GPIO hwmods structures for OMAP243X
+  OMAP: GPIO: Add gpio dev_attr and correct clks in OMAP4 hwmod struct
+  OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init
+  OMAP: GPIO: Implement GPIO as a platform device
+  OMAP: GPIO: Make gpio_context as part of gpio_bank structure
+  OMAP: GPIO: Use dev_pm_ops instead of sys_dev_class
+  OMAP: GPIO: Remove omap_gpio_init()
+
+ arch/arm/mach-omap1/Makefile               |    6 +
+ arch/arm/mach-omap1/board-ams-delta.c      |    1 -
+ arch/arm/mach-omap1/board-fsample.c        |    1 -
+ arch/arm/mach-omap1/board-h2.c             |    1 -
+ arch/arm/mach-omap1/board-h3.c             |    1 -
+ arch/arm/mach-omap1/board-htcherald.c      |    1 -
+ arch/arm/mach-omap1/board-innovator.c      |    1 -
+ arch/arm/mach-omap1/board-nokia770.c       |    1 -
+ arch/arm/mach-omap1/board-osk.c            |    1 -
+ arch/arm/mach-omap1/board-palmte.c         |    1 -
+ arch/arm/mach-omap1/board-palmz71.c        |    1 -
+ arch/arm/mach-omap1/board-perseus2.c       |    1 -
+ arch/arm/mach-omap1/board-sx1.c            |    1 -
+ arch/arm/mach-omap1/board-voiceblue.c      |    1 -
+ arch/arm/mach-omap1/clock_data.c           |    4 +-
+ arch/arm/mach-omap1/gpio15xx.c             |  101 +++
+ arch/arm/mach-omap1/gpio16xx.c             |  208 +++++
+ arch/arm/mach-omap1/gpio7xx.c              |  274 ++++++
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/board-2430sdp.c        |    1 -
+ arch/arm/mach-omap2/board-3430sdp.c        |    1 -
+ arch/arm/mach-omap2/board-3630sdp.c        |    1 -
+ arch/arm/mach-omap2/board-4430sdp.c        |    1 -
+ arch/arm/mach-omap2/board-am3517evm.c      |    1 -
+ arch/arm/mach-omap2/board-apollon.c        |    1 -
+ arch/arm/mach-omap2/board-cm-t35.c         |    1 -
+ arch/arm/mach-omap2/board-devkit8000.c     |    1 -
+ arch/arm/mach-omap2/board-h4.c             |    1 -
+ arch/arm/mach-omap2/board-igep0020.c       |    1 -
+ arch/arm/mach-omap2/board-ldp.c            |    1 -
+ arch/arm/mach-omap2/board-n8x0.c           |    1 -
+ arch/arm/mach-omap2/board-omap3beagle.c    |    1 -
+ arch/arm/mach-omap2/board-omap3evm.c       |    1 -
+ arch/arm/mach-omap2/board-omap3pandora.c   |    1 -
+ arch/arm/mach-omap2/board-omap3stalker.c   |    1 -
+ arch/arm/mach-omap2/board-omap3touchbook.c |    1 -
+ arch/arm/mach-omap2/board-omap4panda.c     |    1 -
+ arch/arm/mach-omap2/board-overo.c          |    1 -
+ arch/arm/mach-omap2/board-rx51.c           |    1 -
+ arch/arm/mach-omap2/board-zoom2.c          |    1 -
+ arch/arm/mach-omap2/board-zoom3.c          |    1 -
+ arch/arm/mach-omap2/gpio.c                 |  120 +++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  234 ++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  290 +++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  382 +++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   40 +-
+ arch/arm/mach-omap2/pm24xx.c               |    4 +-
+ arch/arm/mach-omap2/pm34xx.c               |   23 +-
+ arch/arm/plat-omap/gpio.c                  | 1259 ++++++++++++----------------
+ arch/arm/plat-omap/include/plat/gpio.h     |   29 +-
+ 50 files changed, 2208 insertions(+), 803 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/gpio15xx.c
+ create mode 100644 arch/arm/mach-omap1/gpio16xx.c
+ create mode 100644 arch/arm/mach-omap1/gpio7xx.c
+ create mode 100644 arch/arm/mach-omap2/gpio.c
 
