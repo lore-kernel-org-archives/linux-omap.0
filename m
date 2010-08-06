@@ -1,94 +1,80 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH] omap: Fix sev instruction usage for multi-omap
-Date: Fri, 6 Aug 2010 16:59:09 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032401CFA6@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] omap: Fix omap_4430sdp_defconfig for make oldconfig
+Date: Fri, 6 Aug 2010 14:50:10 +0300
+Message-ID: <20100806115009.GL23778@atomide.com>
 References: <8739uu9em0.fsf@deeprootsystems.com>
  <5A47E75E594F054BAF48C5E4FC4B92AB0323E6947D@dbde02.ent.ti.com>
- <87tyn8ptkl.fsf@deeprootsystems.com> <20100806070301.GA23778@atomide.com>
+ <87tyn8ptkl.fsf@deeprootsystems.com>
+ <20100806070301.GA23778@atomide.com>
  <20100806070519.GB23778@atomide.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB032401CFA6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed; boundary="L6iaP+gRLNZHKoI4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45556 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761248Ab0HFL3T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 07:29:19 -0400
-In-Reply-To: <20100806070519.GB23778@atomide.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54460 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752346Ab0HFLtn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 07:49:43 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032401CFA6@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Friday, August 06, 2010 12:35 PM
-> To: Kevin Hilman
-> Cc: Nayak, Rajendra; linux-omap@vger.kernel.org
-> Subject: [PATCH] omap: Fix sev instruction usage for multi-omap
+--L6iaP+gRLNZHKoI4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+* Nayak, Rajendra <rnayak@ti.com> [100806 14:22]:
 > 
-> * Tony Lindgren <tony@atomide.com> [100806 09:55]:
-> > * Kevin Hilman <khilman@deeprootsystems.com> [100806 01:48]:
-> > > 
-> > > > Also with omap_4430sdp_defconfig, I see these compile errors
-> > > > arch/arm/kernel/entry-armv.S: Assembler messages:
-> > > > arch/arm/kernel/entry-armv.S:48: Error: bad instruction 
-> `test_for_ipi r0,r6,r5,lr'
-> > > > arch/arm/kernel/entry-armv.S:48: Error: bad instruction 
-> `test_for_ipi r0,r6,r5,lr'
-> > > > make[1]: *** [arch/arm/kernel/entry-armv.o] Error 1
-> > > > make: *** [arch/arm/kernel] Error 2
-> > > >
-> > > > Doing a git log on entry-armv.S shows me a top commit 
-> which might
-> > > > be an issue if conflicts are'nt resolved well.
-> > > >
-> > > > commit 7b70c4275f28702b76b273c8534c38f8313812e9
-> > > > Merge: ceb0885... a20df56...
-> > > > Author: Russell King <rmk+kernel@arm.linux.org.uk>
-> > > > Date:   Sat Jul 31 14:20:16 2010 +0100
-> > > >
-> > > >     Merge branch 'devel-stable' into devel
-> > > >
-> > > >     Conflicts:
-> > > >         arch/arm/kernel/entry-armv.S
-> > > >         arch/arm/kernel/setup.c
-> > > >         arch/arm/mm/init.c
-> > > >
-> > > > Maybe this is an issue in Tony's for-next as well. 
-> Haven't tested
-> > > > it though.
-> > > 
-> > > Yeah, I'm guessing this an issue in for-next, and 
-> probably l-o master
-> > > too.
-> > 
-> > Noticed that with omap3_defconfig with CONFIG_SMP enabled. Does the
-> > following work for you?
+> Now with this, omap4 build using omap_4430sdp_defconfig seems to
+> go through, but like you said, boot is still an issue.
 
-With this patch, I went past the previous break but hit this
+Hmm, I guess these issues pop up if you do yes "" | make oldconfig.
 
-/tmp/ccUTrImV.s: Assembler messages:
-/tmp/ccUTrImV.s:140: Error: selected processor does not support `sev'
-make[1]: *** [arch/arm/mach-omap2/omap-smp.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+Can you try the patch below? After applying the patch, you need
+to:
 
-> 
-> Here's a related patch that allows CONFIG_SMP to compile with
-> omap3_defconfig. Booting still won't work before some arm generic
-> code is changed.
+$ rm .config
+$ cp arch/arm/configs/omap_4430sdp_defconfig .config
+$ yes "" | ARCH=arm make oldconfig
 
-Now with this, omap4 build using omap_4430sdp_defconfig seems to
-go through, but like you said, boot is still an issue.
+Then omap2 and 3 won't get selected by make oldconfig.
 
-regards,
-Rajendra
+Regards,
 
-> 
-> Regards,
-> 
-> Tony
-> 
+Tony
+
+--L6iaP+gRLNZHKoI4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename=omap4-defconfig
+
+>From 96214d5365a10f370e7690a3aa2dc24dbca39e79 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Fri, 6 Aug 2010 14:40:46 +0300
+Subject: [PATCH] omap: Fix omap_4430sdp_defconfig for make oldconfig
+
+We don't want to select select the other omaps at this
+point because otherwise we would have to disable
+CONFIG_SMP.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
+index 63e0c2d..14c1e18 100644
+--- a/arch/arm/configs/omap_4430sdp_defconfig
++++ b/arch/arm/configs/omap_4430sdp_defconfig
+@@ -13,6 +13,9 @@ CONFIG_MODULE_SRCVERSION_ALL=y
+ # CONFIG_BLK_DEV_BSG is not set
+ CONFIG_ARCH_OMAP=y
+ CONFIG_ARCH_OMAP4=y
++# CONFIG_ARCH_OMAP2PLUS_TYPICAL is not set
++# CONFIG_ARCH_OMAP2 is not set
++# CONFIG_ARCH_OMAP3 is not set
+ # CONFIG_OMAP_MUX is not set
+ CONFIG_OMAP_32K_TIMER=y
+ CONFIG_OMAP_DM_TIMER=y
+
+--L6iaP+gRLNZHKoI4--
