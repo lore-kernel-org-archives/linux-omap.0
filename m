@@ -1,37 +1,79 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 0/4] nand prefetch-irq support and ecc layout chanage
-Date: Fri, 6 Aug 2010 12:10:10 +0300
-Message-ID: <20100806091009.GE23778@atomide.com>
-References: <1280764192-15053-1-git-send-email-s-ghorai@ti.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B030E65BEFD@dbde02.ent.ti.com>
+Subject: Re: [PATCH] [RFC] Remove the debug print noise
+Date: Fri, 6 Aug 2010 12:14:19 +0300
+Message-ID: <20100806091419.GF23778@atomide.com>
+References: <1280753271-21182-1-git-send-email-shubhrajyoti@ti.com>
+ <20100802125215.GA30753@nokia.com>
+ <0680EC522D0CC943BC586913CF3768C003B38719CA@dbde02.ent.ti.com>
+ <4C56CC5A.3040708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65278 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933055Ab0HFJNz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 05:13:55 -0400
 Content-Disposition: inline
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E65BEFD@dbde02.ent.ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <4C56CC5A.3040708@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Ghorai, Sukumar <s-ghorai@ti.com> [100806 11:56]:
->
-> Would you please check the status of these patch(s).
+* Nishanth Menon <nm@ti.com> [100802 16:40]:
+> Datta, Shubhrajyoti had written, on 08/02/2010 07:59 AM, the following:
+> >
+> >>-----Original Message-----
+> >>From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+> >>Sent: Monday, August 02, 2010 6:22 PM
+> >>To: Datta, Shubhrajyoti
+> >>Cc: linux-omap@vger.kernel.org; Tony Lindgren
+> >>Subject: Re: [PATCH] [RFC] Remove the debug print noise
+> >>
+> >>Hi,
+> >>
+> >>On Mon, Aug 02, 2010 at 02:47:51PM +0200, ext Shubhrajyoti D wrote:
+> >>>@@ -626,7 +626,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter
+> >>*adap,
+> >>>	if (r < 0)
+> >>>		return r;
+> >>>	if (r == 0) {
+> >>>-		dev_err(dev->dev, "controller timed out\n");
+> >>>+		dev_dbg(dev->dev, "controller timed out\n");
+> >>you would better be searching for the cause of the timeout. 1 second is
+> >>enough time (or should be) for any i2c command to complete. If you have
+> >>an easy way to reproduce this problem, then better search for its
+> >>rootcause. If I remember correctly, this timeout was put here for a good
+> >>reason.
+> >
+> >The reason I am getting the timeout is that there isn't a device
+> >to respond in that address However # ./i2cdetect -y -r 3
+> >     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+> >00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+> >10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> >20: -- -- -- -- -- -- -- -- -- 29 -- -- -- -- -- --
+> >30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+> >40: -- -- -- -- -- -- -- -- 48 -- -- 4b -- -- -- --
+> >
+> >Is more readable than      0  1  2  3  4  5  6  7  8  9  a  b  c
+> >d  e  f
+> >00:          -- i2c_omap i2c_omap.3: controller timed out
+> >-- -- i2c_omap i2c_omap.3: controller timed out
+> >-- -- i2c_omap i2c_omap.3: controller timed out
+> >-- -- i2c_omap i2c_omap.3: controller timed out
+> >-- -- i2c_omap i2c_omap.3: controller timed out
+> >-- -- i2c_omap i2c_omap.3: controller timed out
+> >-- --
+> >
+> 
+> this is still not a debug message -> dev_warn perhaps to flag that
+> this is indeed an error from the driver point of view?
+> 
+> >>Tony, any comments ?
 
-Need to look at these after this merge window.
-
-In general, we need to have our patches reviewed and
-tested and sitting in the for-next tree by -rc6.
-
-Regards,
+Errors like this should be handled at the I2C bus level,
+not at the driver level. But looks like the I2C bus does
+not do anything about it.. So dev_warn sounds good to me.
 
 Tony
+
