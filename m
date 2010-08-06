@@ -1,98 +1,65 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/6] TI816X: Update common omap platform files
-Date: Fri, 06 Aug 2010 16:12:13 -0700
-Message-ID: <87mxsznxo2.fsf@deeprootsystems.com>
-References: <1280523096-25041-1-git-send-email-hemantp@ti.com>
-	<87ocdh2kwx.fsf@deeprootsystems.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B030E65C19B@dbde02.ent.ti.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [RFC PATCH] platform: Faciliatate the creation of
+ pseduo-platform busses
+Date: Fri, 6 Aug 2010 16:46:35 -0700
+Message-ID: <20100806234635.GC16793@suse.de>
+References: <4C58A7AA.8020007@codeaurora.org>
+ <20100803235631.GA17759@suse.de>
+ <4C58AE15.6090900@codeaurora.org>
+ <20100804000945.GA19729@suse.de>
+ <4C58B1B6.9050005@quicinc.com>
+ <AANLkTikVzh9=DvvUPbKmDeo6k2-pPVSnjH+GxAPdQFO4@mail.gmail.com>
+ <20100806142727.GB4921@suse.de>
+ <AANLkTi=VbVed09=u-Ea0L8c_CWZ_CLLjWH9ZjD2dyg6Y@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:52399 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762159Ab0HFXMQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 19:12:16 -0400
-Received: by pzk26 with SMTP id 26so3037292pzk.19
-        for <linux-omap@vger.kernel.org>; Fri, 06 Aug 2010 16:12:15 -0700 (PDT)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E65C19B@dbde02.ent.ti.com>
-	(Hemant Pedanekar's message of "Fri, 6 Aug 2010 23:53:59 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTi=VbVed09=u-Ea0L8c_CWZ_CLLjWH9ZjD2dyg6Y@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Patrick Pannuto <ppannuto@quicinc.com>, Patrick Pannuto <ppannuto@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "dtor@mail.ru" <dtor@mail.ru>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Pedanekar, Hemant" <hemantp@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-"Pedanekar, Hemant" <hemantp@ti.com> writes:
+On Fri, Aug 06, 2010 at 09:12:27AM -0600, Grant Likely wrote:
+> On Fri, Aug 6, 2010 at 8:27 AM, Greg KH <gregkh@suse.de> wrote:
+> > On Thu, Aug 05, 2010 at 04:59:35PM -0600, Grant Likely wrote:
+> >> (On that point Greg, what is the reason for even having the
+> >> /sys/devices/platform/ parent? =A0Why not just let the platform de=
+vices
+> >> sit at the root of the device tree? =A0In the OF case (granted, I'=
+m
+> >> biased) all of the platform_device registrations reflect the actua=
+l
+> >> device hierarchy expressed in the device tree data.)
+> >
+> > If we sat them at the "root", there would be a bunch of them there.=
+ =A0I
+> > don't know, we could drop the parent, I guess whoever created the
+> > platform device oh so long ago, decided that it would look nicer to=
+ be
+> > in this type of structure.
+>=20
+> Personally I'd rather see a meaningful structure used here.  Maybe
+> having them all in the root will encourage people to find realistic
+> parents for their platform devices.  :-)
 
-> Hi Kevin,
->
-> Kevin Hilman wrote:
->> Hemant Pedanekar <hemantp@ti.com> writes:
->> 
->>> This patch updates the common platform files with TI816X specific
->>> additions. 
->>> 
->>> Also adds new files for TI816X modules base addresseses and irq
->>> definitions. 
->>> 
->>> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
->>> ---
-> [...]
->>> 
->>> diff --git a/arch/arm/mach-omap2/include/mach/entry-macro.S
->> b/arch/arm/mach-omap2/include/mach/entry-macro.S
->>> index 50fd749..6516cbd 100644
->>> --- a/arch/arm/mach-omap2/include/mach/entry-macro.S
->>> +++ b/arch/arm/mach-omap2/include/mach/entry-macro.S @@ -34,7 +34,7 @@
->>>  		.endm
->>> 
->>>  /*
->>> - * Unoptimized irq functions for multi-omap2, 3 and 4
->>> + * Unoptimized irq functions for multi-omap2, 3, 4 and ti816x   */
->>> 
->>>  #ifdef MULTI_OMAP2
->>> @@ -57,7 +57,8 @@ omap_irq_base:	.word	0
-> [...]
->>> +		bne	9998f
->>> +
->>> +		/*
->>> +		 * ti816x has additional IRQ pending register. Checking this
->>> +		 * register on omap2 & omap3 has no effect (read as 0). +		 */
->>> +		ldr	\irqnr, [\base, #0xf8] /* IRQ pending reg 4 */
->>> +		cmp	\irqnr, #0x0
->> 
->> This part makes me a slightly nervous.  At least according to
->> the TRMs,
->> this address is undefined on OMAP2 & OMAP3 (yet still in the
->> INTC block.)
->> Was this tested on OMAP2/3 hardware and verified to return 0?
->> 
->> You might also consider wrapping this section in
->> #ifdef CONFIG_ARCH_TI816X so a multi-OMAP kernel without 816x support would
->> avoid this extra read. 
->> 
->
-> Won't the usage of #ifdef inside MULTI_OMAP2 make things look strange?
-> E.g.,
->
-> #ifdef MULTI_OMAP2
-> ...
-> #ifdef CONFIG_ARCH_TI816X
-> ...
-> #endif
-> #endif
->
-> (Specifically, since there is already a custom block present in #else part?)
->
+That would be nice, but take your "standard" PC today:
+	> ls /sys/devices/platform/
+	Fixed MDIO bus.0  i8042  pcspkr  power  serial8250  uevent vesafb.0
 
-Yeah, I thought about that too.  That's why I said "you might
-consider..." above.
+There are tty devices below the serial port, which is nice to see, but
+the others?  I don't know what type of bus they would be on, do you?
 
-But thinking more, you're right.  When we want an optimized version for
-a specific SoC, we just compile for that SoC and get the optimized
-version.
+> Why don't I float a patch to remove this and see if anybody freaks
+> out.  Should I wrap it with a CONFIG_ so that it can be configurable
+> for a release or to, or just make it unconditional?
 
-Go ahead and leave out the #ifdef, but I'd still like to see some tests
-on OMAP2 that show that reading this undefined part of the INTC block
-does indeed return zero.
+If you can figure out a structure for the desktop/server machines, sure=
+,
+I say just always enable it :)
 
-Kevin
+thanks,
+
+greg k-h
