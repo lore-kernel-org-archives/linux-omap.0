@@ -1,144 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [GIT PULL] OMAP DSS updates for 2.6.36
-Date: Fri, 06 Aug 2010 15:49:15 +0300
-Message-ID: <1281098955.3436.230.camel@tubuntu.research.nokia.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM-SR][PATCH 01/12] omap3: voltage: cleanup pr_xxxx
+Date: Fri, 6 Aug 2010 08:10:44 -0500
+Message-ID: <4C5C09D4.50406@ti.com>
+References: <1281047052-21346-1-git-send-email-nm@ti.com> <1281047052-21346-2-git-send-email-nm@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB032401CE69@dbde02.ent.ti.com> <4C5BED13.6080702@gmail.com> <20100806121807.GD31326@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50712 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752828Ab0HFNKt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 09:10:49 -0400
+In-Reply-To: <20100806121807.GD31326@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, "Gopinath, Thara" <thara@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Linus,
+Mark Brown had written, on 08/06/2010 07:18 AM, the following:
+> On Fri, Aug 06, 2010 at 06:08:03AM -0500, Nishanth Menon wrote:
+> 
+>> Well that is my motivation here. if driver reports a warning to kernel  
+>> syslog, well, I expect the log to contain the function name for me to  
+>> maintain faster.
+> 
+> That's really not the expectation for Linux log messages - the general
+> approach to find the source of a message is generally to just grep for
+> the message text which is usually very effective.
 
-Please pull OMAP Display Subsystem patches from below. Mostly fixes and
-improvements to existing features.
+taking a small sample set of pr_xyz(); (pr which spans a single line):
 
- Tomi
+$ git grep pr_ drivers/|grep ")"|grep __func__|wc -l
+589
+$ git grep pr_ drivers/|grep ")"|grep -v __func__|wc -l
+5373
+$ git grep pr_fmt drivers/|wc -l
+138
+
+Reading Documentation/dynamic-debug-howto.txt, I see that you are in a 
+one way right. I can get fine grained control over the log by enabling 
+CONFIG_DYNAMIC_DEBUG.
+
+At the same time, I have wondered on the usage of pr_fmt() in many of 
+the drivers. in a way, if i wanted to be that verbose in a driver, I 
+could in theory do:
+#define pr_fmt(fmt) "%s:" fmt, __func__ and get the benefit throughout 
+the file..
+
+but overall, I still disagree that we dont need to have the function 
+name in log is a speed booster for maintenance folks.
+a) when the strings are split up when they go multiple lines:
+E.g.:
+	"abcd "
+	"efg"
+print comes out abcd efg
+i) you do a git grep "abcd efg" will return nada
+ii) if you do a git grep of "abcd", you will probably see half a dozen 
+prints there, then open each file to see where the "real" message is, 
+and you find the file searching a bit
 
 
-The following changes since commit 9fe6206f400646a2322096b56c59891d530e=
-8d51:
-  Linus Torvalds (1):
-        Linux 2.6.35
+b) when there are couple more usage in cases of commonly used error 
+message- (e.g. invalid parameters),  you end up getting multiple hits, 
+and you are left guessing where it came from
 
-are available in the git repository at:
+in this example: lets see: (on l-o pm branch):
+git grep "DEBUG option not enabled" .
+arch/arm/mach-omap2/smartreflex.c:              pr_notice("DEBUG option 
+not enabled!\n  \
+arch/arm/mach-omap2/voltage.c:          pr_notice("DEBUG option not 
+enabled!\n  \
 
-  git://gitorious.org/linux-omap-dss2/linux.git for-linus
+now open up both the files to find exactly what you are looking for.
 
-Afzal Mohammed (1):
-      OMAP: DSS2: OMAPFB: Fix probe error path
+c) time required:
+$ time git grep "DEBUG option not enabled" .
+arch/arm/mach-omap2/smartreflex.c:              pr_notice("DEBUG option 
+not enabled!\n  \
+arch/arm/mach-omap2/voltage.c:          pr_notice("DEBUG option not 
+enabled!\n  \
 
-Archit Taneja (3):
-      OMAP: DSS2: Remove extra return statement
-      OMAP: DSS2: Fix error path in omap_dsi_update()
-      OMAP: DSS2: Replace strncmp() with sysfs_streq() in overlay_manag=
-er_store()
+real	1m34.722s
+user	0m0.440s
+sys	0m1.820s
 
-Grazvydas Ignotas (1):
-      OMAP: DSS2: OMAPFB: add support for FBIO_WAITFORVSYNC
-
-Igor Grinberg (1):
-      OMAP: DSS2: TDO35S: fix video signaling
-
-Jani Nikula (21):
-      OMAP: DSS2: Taal: Add panel hardware reset
-      OMAP: DSS2: Taal: Add locks to protect taal data access
-      OMAP: DSS2: Taal: Remove platform enable/disable
-      OMAP: DSS2: Taal: Fix request_irq() error handling
-      OMAP: DSS2: Taal: Remove ESD work cancel from driver probe error =
-handling
-      OMAP: DSS2: Taal: Improve taal_power_on() error handling
-      OMAP: DSS2: Taal: Ensure panel is enabled in enable_te() and run_=
-test()
-      OMAP: DSS2: Taal: Change DSI bus locking to avoid deadlock in ESD=
- work
-      OMAP: DSS2: Taal: Check taal_power_on() return value in taal_resu=
-me()
-      OMAP: DSS2: Taal: Change ESD work management
-      OMAP: DSS2: Taal: Change probe error handling labels
-      OMAP: DSS2: Taal: Add proper external TE support
-      OMAP: DSS2: Add Nokia DSI command mode panel configuration struct
-      OMAP: DSS2: Taal: Configure ESD check in DSI panel data
-      OMAP: DSS2: Taal: Add panel specific configuration structure
-      OMAP: DSS2: Taal: Print panel name in addition to revision
-      OMAP: DSS2: Taal: CABC workaround is Taal specific
-      OMAP: DSS2: OMAPFB: Check fb2display() return value
-      OMAP: DSS2: OMAPFB: Remove redundant rotate range check
-      OMAP: DSS2: OMAPFB: Remove redundant color register range check
-      OMAP: DSS2: OMAPFB: Fix sysfs mirror input check
-
-Maurus Cuelenaere (1):
-      OMAP: DSS2: OMAPFB: Fix invalid bpp for PAL and NTSC modes
-
-Tobias Klauser (1):
-      OMAP: DSS2: storage class should be before const qualifier
-
-Tomi Valkeinen (20):
-      OMAP: DSS2: DSI: Increase HS TX timeout
-      OMAP: DSS2: Fix update area calculations with multiple scaled ove=
-rlays
-      OMAP: DSS2: DSI: print errors in dsi_vc_flush_receive_data()
-      OMAP: DSS2: DSI: use a private workqueue
-      OMAP: DSS2: DSI: change dsi_vc_dcs_read_2 parameters
-      OMAP: DSS2: DSI: handle error in synchronous write
-      OMAP: DSS2: DSI: change DSI timeout functions
-      OMAP: DSS2: Taal: add locks to taal_bl_update_status
-      OMAP: DSS2: Taal: Use Nokia DSI panel data
-      OMAP: DSS2: Taal: Add regulator configuration support
-      OMAP: DSS2: DSI: Wait for DSI PLL clocks to be active before sele=
-cting them
-      OMAP: DSS2: DSI: change dsi_vc_config_l4/vp()
-      OMAP: DSS2: DSI: use BTA to end the frame transfer
-      OMAP: DSS2: change manual update scaling setup
-      OMAP: DSS2: DSI: Remove BTA after set_max_rx_packet_size
-      OMAP: DSS2: DSI: Add error IRQ mask for DSI complexIO
-      OMAP: DSS2: DSI: increase FIFO low threshold
-      OMAP: DSS2: DSI: detect unsupported update requests
-      OMAP: DSS2: Taal: Optimize enable_te, rotate, mirror when value u=
-nchanged
-      OMAP: DSS2: adjust YUV overlay width to be even
-
-Vaibhav Hiremath (1):
-      OMAP3EVM: Replace vdvi regulator supply with vdds_dsi
-
-Ville Syrj=C3=A4l=C3=A4 (14):
-      OMAP: DSS2: Check if display supports update mode changes
-      OMAP: DSS2: Make wait_for_go() succeed for disabled displays
-      OMAP: DSS2: clear spurious SYNC_LOST_DIGIT interrupts
-      OMAP: DSS2: OMAPFB: Refactor overlay address calculations
-      OMAP: DSS2: OMAPFB: Check var even if there isn't memory
-      OMAP: DSS2: OMAPFB: Skip unnecessary set_overlay_info()
-      OMAP: DSS2: OMAPFB: Add support for switching memory regions
-      OMAP: DSS2: OMAPFB: Add locking for memory regions
-      OMAP: DSS2: OMAPFB: Convert the memory region locking to rwsem
-      OMAP: DSS2: OMAPFB: Make lockdep happy
-      OMAP: DSS2: OMAPFB: Add some locking debug checks
-      OMAP: DSS2: DSI: Disable PCKFREE on error
-      OMAP: DSS2: DSI: Print an error message if DSI clock calc fails
-      OMAP: DSS2: DSI: Disable interface when disabling the display
-
- arch/arm/mach-omap2/board-omap3evm.c               |    7 +-
- arch/arm/plat-omap/include/plat/display.h          |    9 +-
- arch/arm/plat-omap/include/plat/nokia-dsi-panel.h  |   31 ++
- drivers/video/omap2/displays/panel-taal.c          |  567 ++++++++++++=
-+++----
- .../video/omap2/displays/panel-toppoly-tdo35s.c    |    8 +-
- drivers/video/omap2/dss/dispc.c                    |   16 +-
- drivers/video/omap2/dss/display.c                  |    4 +-
- drivers/video/omap2/dss/dsi.c                      |  463 ++++++++----=
------
- drivers/video/omap2/dss/dss.c                      |    6 +
- drivers/video/omap2/dss/dss.h                      |   11 +-
- drivers/video/omap2/dss/manager.c                  |  236 +++++----
- drivers/video/omap2/dss/overlay.c                  |    2 +-
- drivers/video/omap2/dss/rfbi.c                     |    2 +-
- drivers/video/omap2/omapfb/omapfb-ioctl.c          |  188 ++++++-
- drivers/video/omap2/omapfb/omapfb-main.c           |  229 ++++++---
- drivers/video/omap2/omapfb/omapfb-sysfs.c          |   70 ++-
- drivers/video/omap2/omapfb/omapfb.h                |   29 +-
- include/linux/omapfb.h                             |    5 +-
- 18 files changed, 1281 insertions(+), 602 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/plat/nokia-dsi-panel.h
+Vs cscope or ctags where it is rather instantaneous if you know the 
+function name..
+-- 
+Regards,
+Nishanth Menon
