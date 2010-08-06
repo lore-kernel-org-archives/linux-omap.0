@@ -1,51 +1,38 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] OMAP4: HWMOD: Do omap_hwmod_late_init for OMAP4
-Date: Fri, 06 Aug 2010 14:35:34 +0200
-Message-ID: <4C5C0196.3040106@ti.com>
-References: <1281097873-24094-1-git-send-email-charu@ti.com>
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: Re: [PATCH 7/7] omap3: make coresight register save across OFF
+ modes a sysfs option
+Date: Fri, 6 Aug 2010 15:37:11 +0300
+Message-ID: <20100806123711.GI28519@shisha.kicks-ass.net>
+References: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
+ <1280077520-7538-8-git-send-email-virtuoso@slind.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33747 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932594Ab0HFMfk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Aug 2010 08:35:40 -0400
-In-Reply-To: <1281097873-24094-1-git-send-email-charu@ti.com>
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:33610 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932232Ab0HFMh5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 08:37:57 -0400
+Content-Disposition: inline
+In-Reply-To: <1280077520-7538-8-git-send-email-virtuoso@slind.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Charu,
+On Sun, Jul 25, 2010 at 08:05:20 +0300, Alexander Shishkin wrote:
+> This adds a sysfs file at /sys/power/coresight_save which is used to
+> control if the ETM and debug components' states should be saved and
+> restored across OFF modes.
 
-On 8/6/2010 2:31 PM, Varadarajan, Charulatha wrote:
-> This patch includes "cpu_is" check for omap44xx cpu inorder to do
-> omap_hwmod_late_init() without which hwmods initialization does not
-> happen for omap4.
->
-> Signed-off-by: Charulatha V<charu@ti.com>
-> Signed-off-by: Basak, Partha<p-basak2@ti.com>
-> ---
->   arch/arm/mach-omap2/io.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index b89e678..9b15f46 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -345,7 +345,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->   #ifndef CONFIG_PM_RUNTIME
->   	skip_setup_idle = 1;
->   #endif
-> -	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
-> +	if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx())
->   		omap_hwmod_late_init(skip_setup_idle);
->
->   	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+The non-omap patches are merged to Russell's tree, so these three are
+the only remaining.
 
-This is already done in this patch:
-[PATCH v3 1/7] OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
-https://patchwork.kernel.org/patch/117347/
+This one won't apply to linux-omap master any more because of the pm44xx
+in the makefile, but should be ok otherwise. It would still apply to
+linus' tree.
 
-Benoit
+So, should I rediff it, resend it or just drop it, because it's not needed?
+
+Regards,
+--
+Alex
