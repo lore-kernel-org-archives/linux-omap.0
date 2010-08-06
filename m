@@ -1,75 +1,80 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PM-SR][PATCH 01/12] omap3: voltage: cleanup pr_xxxx
-Date: Fri, 6 Aug 2010 13:12:49 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032401CE69@dbde02.ent.ti.com>
-References: <1281047052-21346-1-git-send-email-nm@ti.com>
- <1281047052-21346-2-git-send-email-nm@ti.com>
+From: "Pedanekar, Hemant" <hemantp@ti.com>
+Subject: RE: [PATCH 4/6] TI816X: Create board support for TI816X_EVM
+Date: Fri, 6 Aug 2010 14:00:02 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E65BEB9@dbde02.ent.ti.com>
+References: <1280523118-25118-1-git-send-email-hemantp@ti.com>
+ <87bp9h2kqt.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58952 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933570Ab0HFHmy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 03:42:54 -0400
-In-Reply-To: <1281047052-21346-2-git-send-email-nm@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38987 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752491Ab0HFIaK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 04:30:10 -0400
+In-Reply-To: <87bp9h2kqt.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
+Kevin Hilman wrote:
+> Hemant Pedanekar <hemantp@ti.com> writes:
+> 
+>> This patch adds minimal support for TI816X EVM to enable kernel boot.
+>> 
+>> Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+> 
+> [...]
+>> +#include <linux/kernel.h>
+>> +#include <linux/init.h>
+>> +#include <linux/device.h>
+>> +#include <linux/spi/spi.h>
+>> +#include <linux/spi/flash.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/gpio.h>
+>> +#include <linux/i2c.h>
+>> +#include <linux/i2c/pcf857x.h>
+>> +#include <linux/i2c/at24.h>
+>> +#include <linux/mtd/mtd.h>
+>> +#include <linux/mtd/nand.h>
+>> +#include <linux/mtd/partitions.h>
+>> +#include <linux/mtd/physmap.h>
+>> +#include <linux/phy.h>
+> 
+> Looks like most of these headers are not needed for this minimal
+> support.  It's preferred to have a minimal set of headers here and add
+> them later as needed when the devices are added.
+> 
+>> +#include <mach/hardware.h>
+>> +#include <asm/mach-types.h>
+>> +#include <asm/mach/arch.h>
+>> +#include <asm/mach/map.h>
+>> +
+>> +#include <plat/irqs.h>
+>> +#include <plat/mux.h>
+>> +#include <plat/board.h>
+>> +#include <plat/common.h>
+>> +#include <plat/timer-gp.h>
+>> +
+>> +static void __init ti8168_evm_init_irq(void)
+>> +{
+>> +	omap2_gp_clockevent_set_gptimer(2);
+> 
+> Just curious why GPT2 is used here.
+> 
+>> +	omap2_init_common_hw(NULL, NULL);
+>> +	omap_init_irq();
+>> +}
+> 
+> Kevin
 
+Currently, first timer is reserved on TI816X.
 
->>-----Original Message-----
->>From: Menon, Nishanth
->>Sent: Friday, August 06, 2010 3:54 AM
->>To: linux-omap
->>Cc: Menon, Nishanth; Kevin Hilman; Gopinath, Thara
->>Subject: [PM-SR][PATCH 01/12] omap3: voltage: cleanup pr_xxxx
->>
->>Few more pr_xxxx need cleanup for printing the function name and
->>not using multiline prints when c allows us to do "".
->>
->>Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>Cc: Thara Gopinath <thara@ti.com>
->>
->>Signed-off-by: Nishanth Menon <nm@ti.com>
->>---
->> arch/arm/mach-omap2/voltage.c |    7 ++++---
->> 1 files changed, 4 insertions(+), 3 deletions(-)
->>
->>diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
->>index 148e4d4..3431fa3 100644
->>--- a/arch/arm/mach-omap2/voltage.c
->>+++ b/arch/arm/mach-omap2/voltage.c
->>@@ -253,8 +253,9 @@ static int vp_debug_set(void *data, u64 val)
->> 		u32 *option = data;
->> 		*option = val;
->> 	} else {
->>-		pr_notice("DEBUG option not enabled!\n	\
->>-			echo 1 > pm_debug/enable_sr_vp_debug - to enable\n");
->>+		pr_notice("%s: DEBUG option not enabled! "
->>+			"echo 1 > pm_debug/enable_sr_vp_debug - to enable\n",
->>+			__func__);
->> 	}
+I will cleanup the includes and add timer comment.
 
-I do not think this is needed as these fns get called only from user space.
-
-Regards
-Thara
-
->> 	return 0;
->> }
->>@@ -265,7 +266,7 @@ static int vp_volt_debug_get(void *data, u64 *val)
->> 	u8 vsel;
->>
->> 	vsel = voltage_read_reg(info->vp_offs.voltage_reg);
->>-	pr_notice("curr_vsel = %x\n", vsel);
->>+	pr_notice("%s: curr_vsel = %x\n", __func__, vsel);
->> 	*val = vsel * 12500 + 600000;
->>
->> 	return 0;
->>--
->>1.6.3.3
+Thanks
+-
+Hemant
 
