@@ -1,67 +1,51 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PM-SR][PATCH 03/12] omap3: voltage: expose
- omap_change_voltscale_method
-Date: Fri, 6 Aug 2010 12:37:30 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032401CE4A@dbde02.ent.ti.com>
-References: <1281047052-21346-1-git-send-email-nm@ti.com>
- <1281047052-21346-4-git-send-email-nm@ti.com>
+From: Linus Walleij <linus.ml.walleij@gmail.com>
+Subject: Re: [PATCH v2 03/20] mmc: support embedded data field in mmc_host
+Date: Fri, 6 Aug 2010 09:07:47 +0200
+Message-ID: <AANLkTimrb5P9cVo30y_udoi4+vu3cM4YzfpDaYCfwGEA@mail.gmail.com>
+References: <1279733634-21974-1-git-send-email-ohad@wizery.com>
+	<1279733634-21974-4-git-send-email-ohad@wizery.com>
+	<AANLkTimzA_JJ-byTDWznbL3YzeJ8LAP4M50onf2_3fBF@mail.gmail.com>
+	<AANLkTi=Oy8X1xMOwWL_cKBB1LWULT6=p+adUgB+AuSJS@mail.gmail.com>
+	<AANLkTi=BUX59heXAW2Uf4wZo2dSS19Je54dkQ5u2YGAW@mail.gmail.com>
+	<AANLkTimZQKj7H_GeE=+O9cwxEMTR+LhfFbt=AyXGzN3d@mail.gmail.com>
+	<AANLkTikfRja-h9mz7uyRXCZNZjKdU_yB8e58XQucUzrn@mail.gmail.com>
+	<AANLkTi=vhWV1RNyemtfppfjvLYAbzd3aRjFOVgLLpG3Z@mail.gmail.com>
+	<AANLkTin4m8gJR50zwMB2b0jRMHdNA6CQToKBTAhOL9wF@mail.gmail.com>
+	<AANLkTinu2S19r8fueM-jVkc35XL2G0Z16BddE92Ci9KB@mail.gmail.com>
+	<20100804114147.GB6852@n2100.arm.linux.org.uk>
+	<AANLkTi=Dqs_qg=BsoNBTjvJbG+ub+zMv8ctbrJSGPJJJ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39282 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758123Ab0HFHHd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 03:07:33 -0400
-In-Reply-To: <1281047052-21346-4-git-send-email-nm@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=Dqs_qg=BsoNBTjvJbG+ub+zMv8ctbrJSGPJJJ@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Vitaly Wool <vitalywool@gmail.com>, Kalle Valo <kalle.valo@iki.fi>, Pandita Vikram <vikram.pandita@ti.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, Roger Quadros <roger.quadros@nokia.com>, linux-mmc@vger.kernel.org, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, linux-omap@vger.kernel.org, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-
-
->>-----Original Message-----
->>From: Menon, Nishanth
->>Sent: Friday, August 06, 2010 3:54 AM
->>To: linux-omap
->>Cc: Menon, Nishanth; Kevin Hilman; Gopinath, Thara
->>Subject: [PM-SR][PATCH 03/12] omap3: voltage: expose omap_change_voltscale_method
+2010/8/4 Ohad Ben-Cohen <ohad@wizery.com>:
+> On Wed, Aug 4, 2010 at 2:41 PM, Russell King - ARM Linux
 >>
->>omap_change_voltscale_method is meant to be used for board files
->>desiring to choose a different scaling technique. so this function
->>should be exposed to the world.
->>
->>also fixes sparse warning:
->>arch/arm/mach-omap2/voltage.c:1047:6: warning: symbol 'omap_change_voltscale_method' was not
->>declared. Should it be static?
->>
->>Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>Cc: Thara Gopinath <thara@ti.com>
->>
->>Signed-off-by: Nishanth Menon <nm@ti.com>
->>---
->> arch/arm/mach-omap2/voltage.h |    1 +
->> 1 files changed, 1 insertions(+), 0 deletions(-)
->>
->>diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
->>index a7be515..6dc8ce4 100644
->>--- a/arch/arm/mach-omap2/voltage.h
->>+++ b/arch/arm/mach-omap2/voltage.h
->>@@ -113,6 +113,7 @@ void omap_voltageprocessor_enable(int vp_id);
->> void omap_voltageprocessor_disable(int vp_id);
->> int omap_voltage_scale(int vdd, unsigned long target_volt);
->> void omap_reset_voltage(int vdd);
->>+void omap_change_voltscale_method(int voltscale_method);
+>> Why not arrange for a small piece of code to be built into the kernel
+>> when this driver is selected as a module or built-in, which handles
+>> the passing of platform data to the driver?
+>
+> It's interesting.
+>
+> The only drawback I can see is that it has an inherent limitation of
+> having only a single wl1271 device on board,
 
-Collated with rest of the series
+...which is exactly what the *_board_info scheme in the spi
+and i2c subsystems is designed to solve.
 
-Regards
-Thara
->> int omap_get_voltage_table(int vdd, struct omap_volt_data **volt_data);
->> struct omap_volt_data *omap_get_volt_data(int vdd, unsigned long volt);
->> void omap_voltage_register_pmic(struct omap_volt_pmic_info *pmic_info);
->>--
->>1.6.3.3
+This is an established design pattern in the kernel with two
+precedents, what makes it so hard to implement this idea?
+There are plenty of examples all over the place.
 
+What mainly matters to me is that the stuff can be separated
+cleanly and in a nicely structured manner into board-xxx.c files
+in the mach-xxx dirs, which is possible also with the simpler
+approach so whatever...
+
+Yours,
+Linus Walleij
