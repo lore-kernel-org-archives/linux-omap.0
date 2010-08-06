@@ -1,39 +1,54 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v2 03/20] mmc: support embedded data field in mmc_host
-Date: Fri, 6 Aug 2010 15:46:05 +0100
-Message-ID: <20100806144605.GA21015@n2100.arm.linux.org.uk>
-References: <AANLkTi=BUX59heXAW2Uf4wZo2dSS19Je54dkQ5u2YGAW@mail.gmail.com> <AANLkTimZQKj7H_GeE=+O9cwxEMTR+LhfFbt=AyXGzN3d@mail.gmail.com> <AANLkTikfRja-h9mz7uyRXCZNZjKdU_yB8e58XQucUzrn@mail.gmail.com> <AANLkTi=vhWV1RNyemtfppfjvLYAbzd3aRjFOVgLLpG3Z@mail.gmail.com> <AANLkTin4m8gJR50zwMB2b0jRMHdNA6CQToKBTAhOL9wF@mail.gmail.com> <AANLkTinu2S19r8fueM-jVkc35XL2G0Z16BddE92Ci9KB@mail.gmail.com> <20100804114147.GB6852@n2100.arm.linux.org.uk> <AANLkTi=Dqs_qg=BsoNBTjvJbG+ub+zMv8ctbrJSGPJJJ@mail.gmail.com> <AANLkTimrb5P9cVo30y_udoi4+vu3cM4YzfpDaYCfwGEA@mail.gmail.com> <AANLkTim6Yuor4CAEmQPs3zPVz1svEbckzO0HHeFWGmjy@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [RFC PATCH] platform: Faciliatate the creation of pseduo-platform
+	busses
+Date: Fri, 6 Aug 2010 09:12:27 -0600
+Message-ID: <AANLkTi=VbVed09=u-Ea0L8c_CWZ_CLLjWH9ZjD2dyg6Y@mail.gmail.com>
+References: <4C58A7AA.8020007@codeaurora.org> <20100803235631.GA17759@suse.de>
+	<4C58AE15.6090900@codeaurora.org> <20100804000945.GA19729@suse.de>
+	<4C58B1B6.9050005@quicinc.com> <AANLkTikVzh9=DvvUPbKmDeo6k2-pPVSnjH+GxAPdQFO4@mail.gmail.com>
+	<20100806142727.GB4921@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTim6Yuor4CAEmQPs3zPVz1svEbckzO0HHeFWGmjy@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Linus Walleij <linus.ml.walleij@gmail.com>, Vitaly Wool <vitalywool@gmail.com>, Kalle Valo <kalle.valo@iki.fi>, Pandita Vikram <vikram.pandita@ti.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, linux-wireless@vger.kernel.org, Roger Quadros <roger.quadros@nokia.com>, linux-mmc@vger.kernel.org, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, linux-omap@vger.kernel.org, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org, Ido Yariv <ido@wizery.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100806142727.GB4921@suse.de>
+Sender: netdev-owner@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: Patrick Pannuto <ppannuto@quicinc.com>, Patrick Pannuto <ppannuto@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "dtor@mail.ru" <dtor@mail.ru>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 06, 2010 at 01:02:24PM +0300, Ohad Ben-Cohen wrote:
-> We have Russell's suggestion which is nice and simple, but it has the
-> 1 device limitation.
+On Fri, Aug 6, 2010 at 8:27 AM, Greg KH <gregkh@suse.de> wrote:
+> On Thu, Aug 05, 2010 at 04:59:35PM -0600, Grant Likely wrote:
+>> (On that point Greg, what is the reason for even having the
+>> /sys/devices/platform/ parent? =A0Why not just let the platform devi=
+ces
+>> sit at the root of the device tree? =A0In the OF case (granted, I'm
+>> biased) all of the platform_device registrations reflect the actual
+>> device hierarchy expressed in the device tree data.)
+>
+> If we sat them at the "root", there would be a bunch of them there. =A0=
+I
+> don't know, we could drop the parent, I guess whoever created the
+> platform device oh so long ago, decided that it would look nicer to b=
+e
+> in this type of structure.
 
-You could make it generic by doing something like this:
+Personally I'd rather see a meaningful structure used here.  Maybe
+having them all in the root will encourage people to find realistic
+parents for their platform devices.  :-)  Why don't I float a patch to
+remove this and see if anybody freaks out.  Should I wrap it with a
+CONFIG_ so that it can be configurable for a release or to, or just
+make it unconditional?
 
-#define set_device_data(name, type, index, data)			\
- ({									\
-    extern void __set_device_data(const char *, int, void *, size_t);	\
-    BUILD_BUG_ON(!__same_type(type, *data));				\
-    __set_device_data(name ":" #type, index, data, sizeof(type));	\
- })
+>> Now, having gone on this whole long tirade, it looks like having
+>> separate platform bus types may not be the best approach after all.
+>
+> I totally agree, and thanks for the detailed explaination, it saved m=
+e
+> from having to write up the same thing :)
 
-#define get_device_data(name, type, index) ({				\
-  extern void *__get_device_data(const char *, int);			\
-  type *__ptr = __get_device_data(name ":" #type, index);		\
-  __ptr; })
+:-)
 
-And now we have something that takes a string and index to use as a lookup
-key in some kind of list - and it's typesafe (because the lookup key is
-dependent on the stringified type.)
-
-But... at this point I feel that we're getting too complicated, and will
-get shouted at to use something like DT which already solves this problem.
+--=20
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
