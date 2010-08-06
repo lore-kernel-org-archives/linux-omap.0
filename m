@@ -1,7 +1,7 @@
 From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/8]usb: musb: HWMOD database structures fixes OMAP4
-Date: Fri,  6 Aug 2010 21:27:29 +0530
-Message-ID: <1281110249-4098-1-git-send-email-hemahk@ti.com>
+Subject: [PATCH V2 4/8]usb : musb:Using omap_device_build for musb device registration
+Date: Fri,  6 Aug 2010 21:27:50 +0530
+Message-ID: <1281110270-4185-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -10,8 +10,10 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Hema HK  <hemahk-l0cyMroinI0@public.gmane.org>
 
-Fixed the missing sysc settings for OMAP4 and enabled the OMAP4 
-hwmod data structure.
+Using omap_device_build api instead of platform_device_register for musb 
+device registration.The device specific resources defined in centralized 
+database will be used. So removed the resource definitions from the musb
+platform file. 
 
 Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
@@ -19,38 +21,126 @@ Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 ---
 
-Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+ arch/arm/mach-omap2/usb-musb.c |  100 +++++++++++++++++++++--------------------
+ 1 file changed, 53 insertions(+), 47 deletions(-)
+
+Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c	2010-08-06 08:31:45.885868560 -0400
-+++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c	2010-08-06 08:35:41.250112281 -0400
-@@ -4516,8 +4516,15 @@
-  */
+--- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c	2010-08-06 09:01:25.526112352 -0400
++++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c	2010-08-06 09:01:43.786112839 -0400
+@@ -29,24 +29,12 @@
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <plat/usb.h>
++#include <plat/omap_device.h>
  
- static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
--	.sysc_flags	= SYSS_MISSING,
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+
-+	.rev_offs	= 0x0400,
-+	.sysc_offs	= 0x0404,
-+	.syss_offs	= 0x0408,
-+	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
-+			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			  SYSC_HAS_AUTOIDLE,
-+	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
+ #ifdef CONFIG_USB_MUSB_SOC
+ 
+-static struct resource musb_resources[] = {
+-	[0] = { /* start and end set dynamically */
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {	/* general IRQ */
+-		.start	= INT_243X_HS_USB_MC,
+-		.flags	= IORESOURCE_IRQ,
+-		.name	= "mc",
+-	},
+-	[2] = {	/* DMA IRQ */
+-		.start	= INT_243X_HS_USB_DMA,
+-		.flags	= IORESOURCE_IRQ,
+-		.name	= "dma",
+-	},
+-};
++static const char name[] = "musb_hdrc";
++#define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
+ 
+ static struct musb_hdrc_config musb_config = {
+ 	.multipoint	= 1,
+@@ -75,43 +63,61 @@
+ 
+ static u64 musb_dmamask = DMA_BIT_MASK(32);
+ 
+-static struct platform_device musb_device = {
+-	.name		= "musb_hdrc",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &musb_dmamask,
+-		.coherent_dma_mask	= DMA_BIT_MASK(32),
+-		.platform_data		= &musb_plat,
+-	},
+-	.num_resources	= ARRAY_SIZE(musb_resources),
+-	.resource	= musb_resources,
++static struct omap_device_pm_latency omap_musb_latency[] = {
++	  {
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	  },
  };
  
- static struct omap_hwmod_class omap44xx_usb_otg_hs_hwmod_class = {
-@@ -4884,7 +4891,7 @@
- 	/* usb_host_hs class */
- /*	&omap44xx_usb_host_hs_hwmod, */
- 	/* usb_otg_hs class */
--/*	&omap44xx_usb_otg_hs_hwmod, */
-+	&omap44xx_usb_otg_hs_hwmod,
- 	/* usb_tll_hs class */
- /*	&omap44xx_usb_tll_hs_hwmod, */
- 	/* wd_timer class */
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+-	if (cpu_is_omap243x()) {
+-		musb_resources[0].start = OMAP243X_HS_BASE;
+-	} else if (cpu_is_omap34xx()) {
+-		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+-	} else if (cpu_is_omap44xx()) {
+-		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+-		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+-		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
++	char oh_name[MAX_OMAP_MUSB_HWMOD_NAME_LEN];
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++	struct platform_device *pdev;
++	struct device	*dev;
++	int l, bus_id = -1;
++	struct musb_hdrc_platform_data *pdata;
++
++	l = snprintf(oh_name, MAX_OMAP_MUSB_HWMOD_NAME_LEN,
++						"usb_otg_hs");
++	WARN(l >= MAX_OMAP_MUSB_HWMOD_NAME_LEN,
++			"String buffer overflow in MUSB device setup\n");
++
++	oh = omap_hwmod_lookup(oh_name);
++
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++	} else {
++		/*
++		 * REVISIT: This line can be removed once all the platforms
++		 * using musb_core.c have been converted to use use clkdev.
++		 */
++		musb_plat.clock = "ick";
++		musb_plat.board_data = board_data;
++		musb_plat.power = board_data->power >> 1;
++		musb_plat.mode = board_data->mode;
++		pdata = &musb_plat;
++
++		od = omap_device_build(name, bus_id, oh, pdata,
++				       sizeof(struct musb_hdrc_platform_data),
++							omap_musb_latency,
++				       ARRAY_SIZE(omap_musb_latency), false);
++		if (IS_ERR(od)) {
++			pr_err("Could not build omap_device for %s %s\n",
++						name, oh_name);
++		} else {
++
++			pdev = &od->pdev;
++			dev = &pdev->dev;
++			get_device(dev);
++			dev->dma_mask = &musb_dmamask;
++			dev->coherent_dma_mask = musb_dmamask;
++			put_device(dev);
++		}
+ 	}
+-	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
+-
+-	/*
+-	 * REVISIT: This line can be removed once all the platforms using
+-	 * musb_core.c have been converted to use use clkdev.
+-	 */
+-	musb_plat.clock = "ick";
+-	musb_plat.board_data = board_data;
+-	musb_plat.power = board_data->power >> 1;
+-	musb_plat.mode = board_data->mode;
+-	musb_plat.extvbus = board_data->extvbus;
