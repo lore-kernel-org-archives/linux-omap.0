@@ -1,7 +1,7 @@
 From: Charulatha V <charu@ti.com>
-Subject: [PATCH 09/13 v5] OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init
-Date: Fri,  6 Aug 2010 18:04:21 +0530
-Message-ID: <1281098065-24177-10-git-send-email-charu@ti.com>
+Subject: [PATCH 11/13 v5] OMAP: GPIO: Make gpio_context as part of gpio_bank structure
+Date: Fri,  6 Aug 2010 18:04:23 +0530
+Message-ID: <1281098065-24177-12-git-send-email-charu@ti.com>
 References: <1281098065-24177-1-git-send-email-charu@ti.com>
  <1281098065-24177-2-git-send-email-charu@ti.com>
  <1281098065-24177-3-git-send-email-charu@ti.com>
@@ -11,156 +11,156 @@ References: <1281098065-24177-1-git-send-email-charu@ti.com>
  <1281098065-24177-7-git-send-email-charu@ti.com>
  <1281098065-24177-8-git-send-email-charu@ti.com>
  <1281098065-24177-9-git-send-email-charu@ti.com>
+ <1281098065-24177-10-git-send-email-charu@ti.com>
+ <1281098065-24177-11-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48636 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:48635 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934491Ab0HFMbr (ORCPT
+	with ESMTP id S934480Ab0HFMbr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 08:31:47 -0400
-In-Reply-To: <1281098065-24177-9-git-send-email-charu@ti.com>
+In-Reply-To: <1281098065-24177-11-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, rnayak@ti.com, Charulatha V <charu@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-This patch adds support for handling GPIO as a HWMOD FW adapted
-platform device for OMAP2PLUS chips.
+gpio_context array, which is used to save gpio bank's context,
+is used only for OMAP3 architecture.
 
-gpio_init needs to be done before machine_init functions access
-gpio APIs.Hence gpio_init is made as a postcore_initcall.
+This patch moves gpio_context as part of gpio_bank structure
+so that it can be specific to each gpio bank and can be
+used for any OMAP architecture
 
 Signed-off-by: Charulatha V <charu@ti.com>
 Signed-off-by: Basak, Partha <p-basak2@ti.com>
 ---
- arch/arm/mach-omap2/gpio.c |  120 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 120 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/gpio.c
+ arch/arm/plat-omap/gpio.c |   70 ++++++++++++++++++++++-----------------------
+ 1 files changed, 34 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-new file mode 100644
-index 0000000..30aeef9
---- /dev/null
-+++ b/arch/arm/mach-omap2/gpio.c
-@@ -0,0 +1,120 @@
-+/*
-+ * gpio.c - OMAP2PLUS-specific gpio code
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ *
-+ * Author:
-+ *	Charulatha V <charu@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/gpio.h>
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+#include <linux/interrupt.h>
-+
-+#include <plat/omap_hwmod.h>
-+#include <plat/omap_device.h>
-+
-+/*
-+ * For GPIO, it is a must to relinquish clocks in the Idle-path
-+ * as it is possible to have a GPIO bank requested and still
-+ * allow PER domain to go to OFF. In the idle path (interrupt
-+ * disabled context), omap_device APIs cannot be used as they
-+ * are not mutex-free functions. Hence the below wrappers are
-+ * required to handle interrupts disabled context and interrupts
-+ * enabled context.
-+ */
-+static int gpio_enable_hwmod(struct omap_device *od)
-+{
-+	struct omap_hwmod *oh = *od->hwmods;
-+
-+	if (irqs_disabled())
-+		_omap_hwmod_enable(oh);
-+	else
-+		omap_device_enable_hwmods(od);
-+	return 0;
-+}
-+
-+static int gpio_idle_hwmod(struct omap_device *od)
-+{
-+	struct omap_hwmod *oh = *od->hwmods;
-+
-+	if (irqs_disabled())
-+		_omap_hwmod_idle(oh);
-+	else
-+		omap_device_idle_hwmods(od);
-+	return 0;
-+}
-+
-+static struct omap_device_pm_latency omap_gpio_latency[] = {
-+	[0] = {
-+		.deactivate_func = gpio_idle_hwmod,
-+		.activate_func   = gpio_enable_hwmod,
-+		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	},
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index a377d40..6a5cf43 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -132,6 +132,19 @@
+ #define OMAP4_GPIO_CLEARDATAOUT		0x0190
+ #define OMAP4_GPIO_SETDATAOUT		0x0194
+ 
++struct omap_gpio_regs {
++	u32 irqenable1;
++	u32 irqenable2;
++	u32 wake_en;
++	u32 ctrl;
++	u32 oe;
++	u32 leveldetect0;
++	u32 leveldetect1;
++	u32 risingdetect;
++	u32 fallingdetect;
++	u32 dataout;
 +};
 +
-+static int omap2_init_gpio(struct omap_hwmod *oh, void *user)
-+{
-+	struct omap_device *od;
-+	struct omap_gpio_platform_data *pdata;
-+	char *name = "omap-gpio";
-+	static int id;
-+	struct omap_gpio_dev_attr *gpio_dev_data;
-+
-+	if (!oh) {
-+		pr_err("Could not look up omap gpio %d\n", id + 1);
-+		return -EINVAL;
-+	}
-+
-+	pdata = kzalloc(sizeof(struct omap_gpio_platform_data),
-+					GFP_KERNEL);
-+	if (!pdata) {
-+		pr_err("Memory allocation failed gpio%d\n", id + 1);
-+		return -ENOMEM;
-+	}
-+
-+	gpio_dev_data = (struct omap_gpio_dev_attr *)oh->dev_attr;
-+
-+	pdata->gpio_attr = gpio_dev_data;
-+	pdata->virtual_irq_start = IH_GPIO_BASE + 32 * id;
-+	switch (oh->class->rev) {
-+	case 0:
-+	case 1:
-+		pdata->bank_type = METHOD_GPIO_24XX;
-+		break;
-+	case 2:
-+		pdata->bank_type = METHOD_GPIO_44XX;
-+		break;
-+	default:
-+		WARN(1, "Invalid gpio bank_type\n");
-+		break;
-+	}
-+	gpio_bank_count++;
-+
-+	od = omap_device_build(name, id, oh, pdata,
-+				sizeof(*pdata),	omap_gpio_latency,
-+				ARRAY_SIZE(omap_gpio_latency),
-+				false);
-+	WARN(IS_ERR(od), "Cant build omap_device for %s:%s.\n",
-+				name, oh->name);
-+
-+	id++;
-+	return 0;
-+}
-+
-+/*
-+ * gpio_init needs to be done before
-+ * machine_init functions access gpio APIs.
-+ * Hence gpio_init is a postcore_initcall.
-+ */
-+static int __init omap2_gpio_init(void)
-+{
-+	return omap_hwmod_for_each_by_class("gpio", omap2_init_gpio,
-+						NULL);
-+}
-+postcore_initcall(omap2_gpio_init);
+ struct gpio_bank {
+ 	unsigned long pbase;
+ 	void __iomem *base;
+@@ -156,27 +169,11 @@ struct gpio_bank {
+ 	u32 mod_usage;
+ 	u32 dbck_enable_mask;
+ 	struct device *dev;
++	struct omap_gpio_regs gpio_context;
+ 	bool dbck_flag;
+ 	bool off_mode_support;
+ };
+ 
+-#ifdef CONFIG_ARCH_OMAP3
+-struct omap3_gpio_regs {
+-	u32 irqenable1;
+-	u32 irqenable2;
+-	u32 wake_en;
+-	u32 ctrl;
+-	u32 oe;
+-	u32 leveldetect0;
+-	u32 leveldetect1;
+-	u32 risingdetect;
+-	u32 fallingdetect;
+-	u32 dataout;
+-};
+-
+-static struct omap3_gpio_regs gpio_context[OMAP34XX_NR_GPIOS];
+-#endif
+-
+ /*
+  * TODO: Cleanup gpio_bank usage as it is having information
+  * related to all instances of the device
+@@ -2032,25 +2029,25 @@ void omap_gpio_save_context(void)
+ 	/* saving banks from 2-6 only since GPIO1 is in WKUP */
+ 	for (i = 1; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+-		gpio_context[i].irqenable1 =
++		bank->gpio_context.irqenable1 =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE1);
+-		gpio_context[i].irqenable2 =
++		bank->gpio_context.irqenable2 =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_IRQENABLE2);
+-		gpio_context[i].wake_en =
++		bank->gpio_context.wake_en =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_WAKE_EN);
+-		gpio_context[i].ctrl =
++		bank->gpio_context.ctrl =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
+-		gpio_context[i].oe =
++		bank->gpio_context.oe =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_OE);
+-		gpio_context[i].leveldetect0 =
++		bank->gpio_context.leveldetect0 =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+-		gpio_context[i].leveldetect1 =
++		bank->gpio_context.leveldetect1 =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+-		gpio_context[i].risingdetect =
++		bank->gpio_context.risingdetect =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_RISINGDETECT);
+-		gpio_context[i].fallingdetect =
++		bank->gpio_context.fallingdetect =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_FALLINGDETECT);
+-		gpio_context[i].dataout =
++		bank->gpio_context.dataout =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_DATAOUT);
+ 	}
+ }
+@@ -2063,24 +2060,25 @@ void omap_gpio_restore_context(void)
+ 	for (i = 1; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+ 		__raw_writel(gpio_context[i].irqenable1,
++		__raw_writel(bank->gpio_context.irqenable1,
+ 				bank->base + OMAP24XX_GPIO_IRQENABLE1);
+-		__raw_writel(gpio_context[i].irqenable2,
++		__raw_writel(bank->gpio_context.irqenable2,
+ 				bank->base + OMAP24XX_GPIO_IRQENABLE2);
+-		__raw_writel(gpio_context[i].wake_en,
++		__raw_writel(bank->gpio_context.wake_en,
+ 				bank->base + OMAP24XX_GPIO_WAKE_EN);
+-		__raw_writel(gpio_context[i].ctrl,
++		__raw_writel(bank->gpio_context.ctrl,
+ 				bank->base + OMAP24XX_GPIO_CTRL);
+-		__raw_writel(gpio_context[i].oe,
++		__raw_writel(bank->gpio_context.oe,
+ 				bank->base + OMAP24XX_GPIO_OE);
+-		__raw_writel(gpio_context[i].leveldetect0,
++		__raw_writel(bank->gpio_context.leveldetect0,
+ 				bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+-		__raw_writel(gpio_context[i].leveldetect1,
++		__raw_writel(bank->gpio_context.leveldetect1,
+ 				bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+-		__raw_writel(gpio_context[i].risingdetect,
++		__raw_writel(bank->gpio_context.risingdetect,
+ 				bank->base + OMAP24XX_GPIO_RISINGDETECT);
+-		__raw_writel(gpio_context[i].fallingdetect,
++		__raw_writel(bank->gpio_context.fallingdetect,
+ 				bank->base + OMAP24XX_GPIO_FALLINGDETECT);
+-		__raw_writel(gpio_context[i].dataout,
++		__raw_writel(bank->gpio_context.dataout,
+ 				bank->base + OMAP24XX_GPIO_DATAOUT);
+ 	}
+ }
 -- 
 1.6.3.3
 
