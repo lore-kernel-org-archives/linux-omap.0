@@ -1,19 +1,18 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PM-SR][PATCH 09/12] omap3: sr: enable/disable sr only if
- required
-Date: Fri, 6 Aug 2010 10:21:05 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032401CD1B@dbde02.ent.ti.com>
+Subject: RE: [PM-SR][PATCH 10/12] omap3: sr: export sr_dbg_dir
+Date: Fri, 6 Aug 2010 10:26:17 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032401CD29@dbde02.ent.ti.com>
 References: <1281047052-21346-1-git-send-email-nm@ti.com>
- <1281047052-21346-10-git-send-email-nm@ti.com>
+ <1281047052-21346-11-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43509 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43653 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932418Ab0HFEvL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 00:51:11 -0400
-In-Reply-To: <1281047052-21346-10-git-send-email-nm@ti.com>
+	id S1751691Ab0HFE4W convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 00:56:22 -0400
+In-Reply-To: <1281047052-21346-11-git-send-email-nm@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,64 +26,47 @@ Cc: Kevin Hilman <khilman@deeprootsystems.com>
 >>Sent: Friday, August 06, 2010 3:54 AM
 >>To: linux-omap
 >>Cc: Menon, Nishanth; Kevin Hilman; Gopinath, Thara
->>Subject: [PM-SR][PATCH 09/12] omap3: sr: enable/disable sr only if required
+>>Subject: [PM-SR][PATCH 10/12] omap3: sr: export sr_dbg_dir
 >>
->>We dont need to go down the path of enabling/disabling the SR
->>if we dont need to. do some sanity check and trigger if needed
+>>sr_dbg_dir is currently used privately in smartreflex.c, however,
+>>smartreflex class drivers could store their own debugfs entries there
+>>as well.
+>>
+>>This also fixes the sparse warning:
+>>arch/arm/mach-omap2/smartreflex.c:44:15: warning: symbol 'sr_dbg_dir' was not declared. Should it be
+>>static?
 >>
 >>Cc: Kevin Hilman <khilman@deeprootsystems.com>
 >>Cc: Thara Gopinath <thara@ti.com>
 >>
 >>Signed-off-by: Nishanth Menon <nm@ti.com>
 >>---
->> arch/arm/mach-omap2/smartreflex.c |   19 +++++++++++++++----
->> 1 files changed, 15 insertions(+), 4 deletions(-)
+>> arch/arm/plat-omap/include/plat/smartreflex.h |    5 +++++
+>> 1 files changed, 5 insertions(+), 0 deletions(-)
 >>
->>diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
->>index d63691b..9b5a10e 100644
->>--- a/arch/arm/mach-omap2/smartreflex.c
->>+++ b/arch/arm/mach-omap2/smartreflex.c
->>@@ -778,15 +778,26 @@ static int omap_sr_autocomp_show(void *data, u64 *val)
->> static int omap_sr_autocomp_store(void *data, u64 val)
->> {
->> 	struct omap_sr *sr_info = (struct omap_sr *) data;
->>+	u32 value = (u32) val;
+>>diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/plat-
+>>omap/include/plat/smartreflex.h
+>>index 1105db0..df58026 100644
+>>--- a/arch/arm/plat-omap/include/plat/smartreflex.h
+>>+++ b/arch/arm/plat-omap/include/plat/smartreflex.h
+>>@@ -263,6 +263,11 @@ int omap_sr_register_class(struct omap_smartreflex_class_data *class_data);
 >>
->> 	if (!sr_info) {
->> 		pr_warning("%s: omap_sr struct for SR not found\n", __func__);
->> 		return -EINVAL;
->> 	}
->>-	if (!val)
->>-		sr_stop_vddautocomp(sr_info);
->>-	else
->>-		sr_start_vddautocomp(sr_info);
+>> /* API to register the pmic specific data with the smartreflex driver. */
+>> void omap_sr_register_pmic(struct omap_smartreflex_pmic_data *pmic_data);
 >>+
->>+	/* Sanity check */
->>+	if (value && (value != 1)) {
->>+		pr_err("%s: invalid value %d\n", __func__, value);
->>+		return -EINVAL;
->>+	}
-Will take this in.
+>>+#ifdef CONFIG_PM_DEBUG
+>>+extern struct dentry *sr_dbg_dir;
+>>+#endif
 
->>+
->>+	/* change only if needed */
->>+	if (sr_info->is_autocomp_active ^ value) {
-
-I do not think this is necessary. sr_start_vddautocomp and sr_stop_vddautocomp will take care of
-enabling and disabling intelligently.
+Will take this in
 
 Regards
 Thara
 
->>+		if (!val)
->>+			sr_stop_vddautocomp(sr_info);
->>+		else
->>+			sr_start_vddautocomp(sr_info);
->>+	}
-
->> 	return 0;
->> }
->>
+>>+
+>> #else
+>> static inline void omap_smartreflex_enable(int srid) {}
+>> static inline void omap_smartreflex_disable(int srid) {}
 >>--
 >>1.6.3.3
 
