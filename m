@@ -1,19 +1,18 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PM-SR][PATCH 02/12] omap3: voltage: make required variables
- static
-Date: Fri, 6 Aug 2010 13:09:56 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032401CE64@dbde02.ent.ti.com>
+Subject: RE: [PM-SR][PATCH 01/12] omap3: voltage: cleanup pr_xxxx
+Date: Fri, 6 Aug 2010 13:12:49 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032401CE69@dbde02.ent.ti.com>
 References: <1281047052-21346-1-git-send-email-nm@ti.com>
- <1281047052-21346-3-git-send-email-nm@ti.com>
+ <1281047052-21346-2-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51792 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934369Ab0HFHkA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 03:40:00 -0400
-In-Reply-To: <1281047052-21346-3-git-send-email-nm@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58952 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933570Ab0HFHmy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Aug 2010 03:42:54 -0400
+In-Reply-To: <1281047052-21346-2-git-send-email-nm@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,69 +26,50 @@ Cc: Kevin Hilman <khilman@deeprootsystems.com>
 >>Sent: Friday, August 06, 2010 3:54 AM
 >>To: linux-omap
 >>Cc: Menon, Nishanth; Kevin Hilman; Gopinath, Thara
->>Subject: [PM-SR][PATCH 02/12] omap3: voltage: make required variables static
+>>Subject: [PM-SR][PATCH 01/12] omap3: voltage: cleanup pr_xxxx
 >>
->>debugfs voltage_dir - used only by voltage layer and no reason for
->>others to add data to it, so make it static.
->>volt_mod have no business being exposed as global. make it static
->>we dont expose omap3_vp_offs to the world and is __init data,
->>so make it static.
->>
->>This fixes sparse warnings:
->>arch/arm/mach-omap2/voltage.c:42:15: warning: symbol 'voltage_dir' was not declared. Should it be
->>static?
->>arch/arm/mach-omap2/voltage.c:49:5: warning: symbol 'volt_mod' was not declared. Should it be static?
->>arch/arm/mach-omap2/voltage.c:130:27: warning: symbol 'omap3_vp_offs' was not declared. Should it be
->>static?
+>>Few more pr_xxxx need cleanup for printing the function name and
+>>not using multiline prints when c allows us to do "".
 >>
 >>Cc: Kevin Hilman <khilman@deeprootsystems.com>
 >>Cc: Thara Gopinath <thara@ti.com>
 >>
 >>Signed-off-by: Nishanth Menon <nm@ti.com>
 >>---
->>
->>Note: i had initially considered splitting these into three seperate patches,
->>but these are too trivial.
->>
->> arch/arm/mach-omap2/voltage.c |    6 +++---
->> 1 files changed, 3 insertions(+), 3 deletions(-)
+>> arch/arm/mach-omap2/voltage.c |    7 ++++---
+>> 1 files changed, 4 insertions(+), 3 deletions(-)
 >>
 >>diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
->>index 3431fa3..1a3d00d 100644
+>>index 148e4d4..3431fa3 100644
 >>--- a/arch/arm/mach-omap2/voltage.c
 >>+++ b/arch/arm/mach-omap2/voltage.c
->>@@ -39,14 +39,14 @@
->> #define VP_TRANXDONE_TIMEOUT	300
->>
->> #ifdef CONFIG_PM_DEBUG
->>-struct dentry *voltage_dir;
->>+static struct dentry *voltage_dir;
->> #endif
->>
->> /* VP SR debug support */
->> u32 enable_sr_vp_debug;
->>
->> /* PRM voltage module */
->>-u32 volt_mod;
->>+static u32 volt_mod;
->>
->> /* Voltage processor register offsets */
->> struct vp_reg_offs {
->>@@ -127,7 +127,7 @@ static struct omap_vdd_info *vdd_info;
->> static int no_scalable_vdd;
->>
->> /* OMAP3 VP register offsets and other definitions */
->>-struct __init vp_reg_offs omap3_vp_offs[] = {
->>+static struct __init vp_reg_offs omap3_vp_offs[] = {
+>>@@ -253,8 +253,9 @@ static int vp_debug_set(void *data, u64 val)
+>> 		u32 *option = data;
+>> 		*option = val;
+>> 	} else {
+>>-		pr_notice("DEBUG option not enabled!\n	\
+>>-			echo 1 > pm_debug/enable_sr_vp_debug - to enable\n");
+>>+		pr_notice("%s: DEBUG option not enabled! "
+>>+			"echo 1 > pm_debug/enable_sr_vp_debug - to enable\n",
+>>+			__func__);
+>> 	}
 
-This change is no longer valid after the patch converting vdd id's to
-names. Rest of the two changes have been taken in.
+I do not think this is needed as these fns get called only from user space.
 
-Regards,
+Regards
 Thara
->> 	/* VP1 */
->> 	{
->> 		.vpconfig_reg = OMAP3_PRM_VP1_CONFIG_OFFSET,
+
+>> 	return 0;
+>> }
+>>@@ -265,7 +266,7 @@ static int vp_volt_debug_get(void *data, u64 *val)
+>> 	u8 vsel;
+>>
+>> 	vsel = voltage_read_reg(info->vp_offs.voltage_reg);
+>>-	pr_notice("curr_vsel = %x\n", vsel);
+>>+	pr_notice("%s: curr_vsel = %x\n", __func__, vsel);
+>> 	*val = vsel * 12500 + 600000;
+>>
+>> 	return 0;
 >>--
 >>1.6.3.3
 
