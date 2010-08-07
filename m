@@ -1,148 +1,173 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] platform: Facilitate the creation of pseduo-platform
-	busses
-Date: Sat, 7 Aug 2010 00:53:01 -0600
-Message-ID: <AANLkTi=JDPy4SCL_wW1A8xjnr9xs=XhPe3dsLX_9rLUH@mail.gmail.com>
-References: <4C59E654.1090403@codeaurora.org> <877hk56hiy.fsf@deeprootsystems.com>
-	<4C5A0C68.9080500@codeaurora.org> <87fwytxdba.fsf@deeprootsystems.com>
-	<AANLkTimCS4RV+8E_ZzX97=r5rmQR3nmizp0JYK+syLRa@mail.gmail.com>
-	<4C5B646C.1030308@codeaurora.org>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 6/8] usb: musb: Offmode fix for idle path
+Date: Sat, 07 Aug 2010 19:25:25 +0400
+Message-ID: <4C5D7AE5.7040506@ru.mvista.com>
+References: <1281115624-1174-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C5B646C.1030308@codeaurora.org>
-Sender: netdev-owner@vger.kernel.org
-To: Patrick Pannuto <ppannuto@codeaurora.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, alan@lxorguk.ukuu.org.uk, zt.tmzt@gmail.com, magnus.damm@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1281115624-1174-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 5, 2010 at 7:25 PM, Patrick Pannuto <ppannuto@codeaurora.or=
-g> wrote:
-> On 08/05/2010 04:16 PM, Grant Likely wrote:
->> The relevant question before going down this path is, "Is the
->> omap/sh/other-soc behaviour something fundamentally different from t=
-he
->> platform bus? =A0Or is it something complementary that would be bett=
-er
->> handled with a notifier or some orthogonal method of adding new
->> behaviour?"
->>
->> I don't have a problem with multiple platform_bus instances using th=
-e
->> same code (I did suggest it after all), but I do worry about muddyin=
-g
->> the Linux device model or making it overly complex. =A0Binding singl=
-e
->> drivers to multiple device types could be messy.
->>
->> Cheers,
->> g.
->
-> From your other email, the distinction of /bus_types/ versus /physica=
-l
-> or logical buses/ was very valuable (thanks). I am becoming less
-> convinced that I need this infrastructure or the ability to create
-> pseudo-platform buses. Let me outline some thoughts below, which I
-> think at least solves my problems ( ;) ), and if some of the OMAP fol=
-ks
-> and Alan could chime in as to whether they can apply something simila=
-r,
-> or if they still have need of creating actual new bus types?
->
->
-> As we are exploring all of this, let me put a concrete (ish) scenario
-> out there to discuss:
->
-> =A0 =A0 =A0 =A0SUB_BUS1---DEVICE1
-> =A0 =A0 =A0 /
-> CPU ---
-> =A0 =A0 =A0 \
-> =A0 =A0 =A0 =A0SUB_BUS2---DEVICE2
->
-> DEVICE1 and DEVICE2 are the same device (say, usb host controller, or
-> whatever), and they should be driven by the same driver. However,
-> physically they are attached to different buses.
->
-> SUB_BUS1 and SUB_BUS2 are *different* and let's say require a differe=
-nt
-> suspend method. If I understand correctly, the right way to build the
-> topology would be:
->
-> struct device_type SUB_BUS1_type =3D {
-> =A0 =A0 =A0 =A0.name =3D "sub-bus1-type",
-> =A0 =A0 =A0 =A0.pm =A0 =3D &sub_bus1_pm_ops;
-> };
->
-> struct platform_device SUB_BUS1 =3D {
-> =A0 =A0 =A0 =A0.init_name =3D "sub-bus1",
-> =A0 =A0 =A0 =A0.dev.type =A0=3D &sub_bus1_type,
-> };
->
-> struct platform_device DEVICE1 =3D {
-> =A0 =A0 =A0 =A0.name =A0 =A0 =A0 =3D "device1",
-> =A0 =A0 =A0 =A0.dev.parent =3D &SUB_BUS1.dev,
-> };
->
-> platform_device_register(&SUB_BUS1);
-> platform_device_register(&DEVICE1);
->
-> [analogous for *2]
+Hello.
 
-Not quite.  The device_type is intended to collect similar, but
-different things (ie, all keyboards, regardless of how they are
-attached to the system).  Trying to capture the device-specific
-behavour really belongs in the specific device driver attached to the
-SUB_BUS* device.  In fact, the way you've constructed your example,
-SUB_BUS1 and SUB_BUS2 don't really need to be platform_devices at all;
-you could have used a plain struct device because in this example you
-aren't binding them to a device driver).
+Hema HK wrote:
 
-That being said, because each bus *does* have custom behaviour, it
-probably does make sense to either bind each to a device driver, or to
-do something to each child device that changes the PM behaviour.  I
-haven't dug into the problem domain deep enough to give you absolute
-answers, but the devres approach looks promising, as does creating a
-derived platform_bus_type (although I'm not fond of sharing device
-drivers between multiple bus_types).  Another option might be giving
-the parent struct device some runtime PM operations that it performs
-per-child.  I'm just throwing out ideas here though.
+> With OMAP core-off support musb was not functional as context was getting
+> lost after wakeup from core-off. And also musb was blocking the core-off 
+> after loading the gadget driver even with no cable connected sometimes.
 
-> which would yield:
->
-> /sys/bus/platform/devices/
-> =A0|
-> =A0|-SUB_BUS1
-> =A0| =A0|
-> =A0| =A0|-DEVICE1
-> =A0|
-> =A0|-SUB_BUS2
-> =A0| =A0|
-> =A0| =A0|-DEVICE2
+> Added the conext save/restore api in the platform layer which will
+> be called in the idle and wakeup path.
 
-You're looking in the wrong place.  Look in /sys/devices instead of
-/sys/bus... (see comments below)
+> Changed the usb sysconfig settings as per the usbotg functional spec.
+> When the device is not active, configure to force idle and force standby mode.
+> When it is being used, configure in smart standby and smart idle mode.
+> So while attempting to coreoff the usb is configured to force standby and 
+> force idle mode, after wakeup configured in smart idle and smart standby.
 
-> Which is the correct topology, and logically provides all the correct
-> interfaces. =A0The only thing that becomes confusing now, is that SUB=
-_BUS*
-> is *actually* a physically different bus, yet it's not in /sys/bus;
-> although I suppose this is actually how the world works presently (yo=
-u
-> don't see an individual entry in /sys/bus for each usb host controlle=
-r,
-> which is technically defining a sub-bus...)
+> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
 
-/sys/bus is for bus_types, not bus instances.  All USB devices will be
-listed in /sys/bus/usb/devices regardless of the bus instance that
-they attached to.
+> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 
-However, look carefully at the files in /sys/bus/*/devices.  Notice
-that they are all symlinks?  Notice that the all of them point to
-directories in /sys/devices?  /sys/bus tells you which devices are
-registered against each bus type, but /sys/devices is the actual
-structure.  Always look in /sys/devices when you want to know the
-topology of the system.
+[...]
 
-Cheers,
-g.
+> Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c	2010-08-06 09:24:23.690112596 -0400
+> +++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c	2010-08-06 10:44:06.385862697 -0400
+> @@ -120,6 +120,27 @@
+>  	}
+>  }
+>  
+> +void musb_context_save_restore(int save)
+> +{
+> +	struct omap_hwmod *oh = omap_hwmod_lookup("usb_otg_hs");
+> +	struct omap_device *od = oh->od;
+> +	struct platform_device *pdev = &od->pdev;
+> +	struct device *dev = &pdev->dev;
+> +	struct device_driver *drv = dev->driver;
+> +
+> +	if (drv) {
+> +		struct musb_hdrc_platform_data *pdata = dev->platform_data;
+> +		const struct dev_pm_ops *pm = drv->pm;
+
+    Should be an empty line after the declaration block...
+
+> +		if (!pdata->is_usb_active(dev)) {
+> +
+> +			if (save)
+> +				pm->suspend(dev);
+> +			else
+> +				pm->resume_noirq(dev);
+> +		}
+> +	}
+> +}
+> +
+>  #else
+>  void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>  {
+> Index: linux-omap-pm/drivers/usb/musb/musb_core.c
+> ===================================================================
+> --- linux-omap-pm.orig/drivers/usb/musb/musb_core.c	2010-08-06 09:24:21.069863329 -0400
+> +++ linux-omap-pm/drivers/usb/musb/musb_core.c	2010-08-06 10:44:06.369863527 -0400
+> @@ -2427,11 +2427,6 @@
+>  	}
+>  
+>  	musb_save_context(musb);
+> -
+> -	if (musb->set_clock)
+> -		musb->set_clock(musb->clock, 0);
+> -	else
+> -		clk_disable(musb->clock);
+>  	spin_unlock_irqrestore(&musb->lock, flags);
+>  	return 0;
+>  }
+> @@ -2443,12 +2438,6 @@
+>  
+>  	if (!musb->clock)
+>  		return 0;
+> -
+> -	if (musb->set_clock)
+> -		musb->set_clock(musb->clock, 1);
+> -	else
+> -		clk_enable(musb->clock);
+> -
+>  	musb_restore_context(musb);
+
+   The same question again: are you sure that clocks are auto-gated on 
+non-OMAP platfroms?
+
+> Index: linux-omap-pm/drivers/usb/musb/omap2430.c
+> ===================================================================
+> --- linux-omap-pm.orig/drivers/usb/musb/omap2430.c	2010-08-06 09:24:21.069863329 -0400
+> +++ linux-omap-pm/drivers/usb/musb/omap2430.c	2010-08-06 10:44:30.093914217 -0400
+[...]
+> @@ -259,15 +273,42 @@
+>  void musb_platform_save_context(struct musb *musb,
+>  		struct musb_context_registers *musb_context)
+>  {
+> -	musb_context->otg_sysconfig = musb_readl(musb->mregs, OTG_SYSCONFIG);
+> -	musb_context->otg_forcestandby = musb_readl(musb->mregs, OTG_FORCESTDBY);
+
+    If you're not saving the registers, you should remove the corresponding 
+fields from 'struct musb_context_registers'.
+
+> +	/*
+> +	 * As per the omap-usbotg specification, configure it to forced standby
+> +	 * and  force idle mode when no activity on usb.
+> +	 */
+> +	void __iomem *musb_base = musb->mregs;
+> +
+> +	musb_writel(musb_base, OTG_FORCESTDBY, 0);
+> +
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +				OTG_SYSCONFIG) & ~(NOSTDBY | SMARTSTDBY));
+> +
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +					OTG_SYSCONFIG) & ~(AUTOIDLE));
+
+    Pointless parens around AUTOIDLE...
+
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +				OTG_SYSCONFIG) & ~(NOIDLE | SMARTIDLE));
+> +
+> +	musb_writel(musb_base, OTG_FORCESTDBY, 1);
+>  }
+>  
+>  void musb_platform_restore_context(struct musb *musb,
+>  		struct musb_context_registers *musb_context)
+>  {
+> -	musb_writel(musb->mregs, OTG_SYSCONFIG, musb_context->otg_sysconfig);
+> -	musb_writel(musb->mregs, OTG_FORCESTDBY, musb_context->otg_forcestandby);
+> +	/*
+> +	 * As per the omap-usbotg specification, configure it smart standby
+> +	 * and smart idle during operation.
+> +	 */
+> +	void __iomem *musb_base = musb->mregs;
+> +
+> +	musb_writel(musb_base, OTG_FORCESTDBY, 0);
+> +
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +				OTG_SYSCONFIG) | (SMARTSTDBY));
+
+    Pointless parens around SMARTSTDBY...
+
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +				OTG_SYSCONFIG) | (SMARTIDLE));
+
+    Pointless parens around SMARTIDLE...
+
+WBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
