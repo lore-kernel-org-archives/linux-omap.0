@@ -1,93 +1,74 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 1/3] ARM: mmu: Setup MT_MEMORY and MT_MEMORY_NONACHED L1 entries
-Date: Sun,  8 Aug 2010 15:47:52 +0530
-Message-ID: <1281262672-27626-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 2/3] omap1/2/3/4: map only available SRAM
+Date: Sun,  8 Aug 2010 15:48:04 +0530
+Message-ID: <1281262684-27684-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54821 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54822 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751645Ab0HHKSM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 8 Aug 2010 06:18:12 -0400
+	id S1751645Ab0HHKSN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 8 Aug 2010 06:18:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch populates the L1 entries for MT_MEMORY and MT_MEMORY_NONACHED
-types so that at boot-up, we can map memories outside system memory
-at page level granularity
+Currently we map 1 MB section while setting up SRAM on OMAPs.
+The actual physcal OCM RAM available on OMAP SOCs is in order
+of KBs. This patch maps only available sram and removes some
+non necessary cpu_is_xxx checks.
 
-Previously the mapping was limiting to section level, which creates
-unnecessary addiotional mapping for which physical memory may not
-present. On the newer ARM with speculation, this is dangerous and can
+On the newer ARMs with speculation, this is dangerous and can
 result in untraceable aborts.
 
-The patch is based on inputs from Russell King
-
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>
 ---
- arch/arm/mm/mmu.c |   18 ++++++++++++++++--
- 1 files changed, 16 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/sram.c |   25 +++++--------------------
+ 1 files changed, 5 insertions(+), 20 deletions(-)
 
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 6e1c4f6..4ede969 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -246,6 +246,9 @@ static struct mem_type mem_types[] = {
- 		.domain    = DOMAIN_USER,
- 	},
- 	[MT_MEMORY] = {
-+		.prot_pte  = L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
-+				L_PTE_USER | L_PTE_EXEC,
-+		.prot_l1   = PMD_TYPE_TABLE,
- 		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
- 		.domain    = DOMAIN_KERNEL,
- 	},
-@@ -254,6 +257,9 @@ static struct mem_type mem_types[] = {
- 		.domain    = DOMAIN_KERNEL,
- 	},
- 	[MT_MEMORY_NONCACHED] = {
-+		.prot_pte  = L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
-+				L_PTE_USER | L_PTE_EXEC,
-+		.prot_l1   = PMD_TYPE_TABLE,
- 		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
- 		.domain    = DOMAIN_KERNEL,
- 	},
-@@ -411,9 +417,12 @@ static void __init build_mem_type_table(void)
- 	 * Enable CPU-specific coherency if supported.
- 	 * (Only available on XSC3 at the moment.)
- 	 */
--	if (arch_is_coherent() && cpu_is_xsc3())
-+	if (arch_is_coherent() && cpu_is_xsc3()) {
- 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 226b2e8..10b3b4c 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -220,20 +220,7 @@ void __init omap_map_sram(void)
+ 	if (omap_sram_size == 0)
+ 		return;
+ 
+-	if (cpu_is_omap24xx()) {
+-		omap_sram_io_desc[0].virtual = OMAP2_SRAM_VA;
 -
-+		mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
-+		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
-+	}
- 	/*
- 	 * ARMv6 and above have extended page tables.
- 	 */
-@@ -438,7 +447,9 @@ static void __init build_mem_type_table(void)
- 		mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
- 		mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
- 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
-+		mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
- 		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
- #endif
+-		base = OMAP2_SRAM_PA;
+-		base = ROUND_DOWN(base, PAGE_SIZE);
+-		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
+-	}
+-
+ 	if (cpu_is_omap34xx()) {
+-		omap_sram_io_desc[0].virtual = OMAP3_SRAM_VA;
+-		base = OMAP3_SRAM_PA;
+-		base = ROUND_DOWN(base, PAGE_SIZE);
+-		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
+-
+ 		/*
+ 		 * SRAM must be marked as non-cached on OMAP3 since the
+ 		 * CORE DPLL M2 divider change code (in SRAM) runs with the
+@@ -244,13 +231,11 @@ void __init omap_map_sram(void)
+ 		omap_sram_io_desc[0].type = MT_MEMORY_NONCACHED;
  	}
  
-@@ -475,6 +486,9 @@ static void __init build_mem_type_table(void)
- 	mem_types[MT_LOW_VECTORS].prot_l1 |= ecc_mask;
- 	mem_types[MT_HIGH_VECTORS].prot_l1 |= ecc_mask;
- 	mem_types[MT_MEMORY].prot_sect |= ecc_mask | cp->pmd;
-+	mem_types[MT_MEMORY].prot_pte |= kern_pgprot;
-+	mem_types[MT_MEMORY_NONCACHED].prot_sect |= ecc_mask | cp->pmd;
-+	mem_types[MT_MEMORY_NONCACHED].prot_pte |= kern_pgprot;
- 	mem_types[MT_ROM].prot_sect |= cp->pmd;
+-	if (cpu_is_omap44xx()) {
+-		omap_sram_io_desc[0].virtual = OMAP4_SRAM_VA;
+-		base = OMAP4_SRAM_PA;
+-		base = ROUND_DOWN(base, PAGE_SIZE);
+-		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
+-	}
+-	omap_sram_io_desc[0].length = 1024 * 1024;	/* Use section desc */
++	omap_sram_io_desc[0].virtual = omap_sram_base;
++	base = omap_sram_start;
++	base = ROUND_DOWN(base, PAGE_SIZE);
++	omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
++	omap_sram_io_desc[0].length = ROUND_DOWN(omap_sram_size, PAGE_SIZE);
+ 	iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc));
  
- 	switch (cp->pmd) {
+ 	printk(KERN_INFO "SRAM: Mapped pa 0x%08lx to va 0x%08lx size: 0x%lx\n",
 -- 
 1.6.0.4
 
