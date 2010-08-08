@@ -1,39 +1,59 @@
-From: "Gustavo F. Padovan" <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>
-Subject: Re: [PATCH] net: bluetooth: Fix build error from rfcomm/tty.c
-Date: Sun, 8 Aug 2010 15:24:15 -0300
-Message-ID: <20100808182414.GB9339@vigoh>
-References: <1281258478-17335-1-git-send-email-santosh.shilimkar@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 1/2] mfd: menelaus: Fix mmc slot 2 misconfiguration
+Date: Sun, 8 Aug 2010 23:50:17 +0200
+Message-ID: <20100808215016.GA3480@sortiz-mobl>
+References: <1281287124-26693-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1281258478-17335-1-git-send-email-santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Cc: linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1281287124-26693-1-git-send-email-jhnikula@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Santosh,
+Hi Jarkko,
 
-* Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org> [2010-08-08 14:37:58 +0530]:
+On Sun, Aug 08, 2010 at 08:05:23PM +0300, Jarkko Nikula wrote:
+> We are modifying register value instead of return value.
+Patch applied, kiitos.
 
-> The build error is as follows:
-> `rfcomm_cleanup_ttys' referenced in section `.init.text' of net/built-in.o:
-> defined in discarded section `.exit.text' of net/built-in.o
-> make: *** [.tmp_vmlinux1] Error 1
+
+> This fix is originally done by Carlos Eduardo Aguiar. Original fix is
+> commit bb4e91722e29efe31587d2cc664b6def645aecd9 in
+> git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
 > 
-> This patch fixes by removing __exit from fucntion 'rfcomm_cleanup_ttys'
-> to avoid section mismatch
+> Author modified the fix for mainline version of menelaus.
 > 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-> Cc: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
 > ---
->  net/bluetooth/rfcomm/tty.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> Tested on N810. Integrated eMMC on N810 started to work with this patch.
+> ---
+>  drivers/mfd/menelaus.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-
-We have fixed that already, thanks anyway. ;)
+> diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+> index a3fb4bc..e02b574 100644
+> --- a/drivers/mfd/menelaus.c
+> +++ b/drivers/mfd/menelaus.c
+> @@ -356,9 +356,9 @@ int menelaus_set_mmc_slot(int slot, int enable, int power, int cd_en)
+>  		int b;
+>  
+>  		if (enable)
+> -			ret |= 1 << 1;
+> +			val |= 1 << 1;
+>  		else
+> -			ret &= ~(1 << 1);
+> +			val &= ~(1 << 1);
+>  		b = menelaus_read_reg(MENELAUS_MCT_CTRL2);
+>  		b &= ~0x03;
+>  		b |= power;
+> -- 
+> 1.7.1
+> 
 
 -- 
-Gustavo F. Padovan
-http://padovan.org
+Intel Open Source Technology Centre
+http://oss.intel.com/
