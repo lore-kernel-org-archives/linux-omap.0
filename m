@@ -1,74 +1,92 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/3] omap1/2/3/4: map only available SRAM
-Date: Sun,  8 Aug 2010 15:48:04 +0530
-Message-ID: <1281262684-27684-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 3/3] davinci: Map sram using MT_MEMORY_NONCACHED instead of MT_DEVICE
+Date: Sun,  8 Aug 2010 15:48:22 +0530
+Message-ID: <1281262702-27732-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54822 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39592 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751645Ab0HHKSN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 8 Aug 2010 06:18:13 -0400
+	id S1751645Ab0HHKSe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 8 Aug 2010 06:18:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, davinci-linux-open-source@linux.davincidsp.com, Kevin Hilman <khilman@deeprootsystems.com>
 
-Currently we map 1 MB section while setting up SRAM on OMAPs.
-The actual physcal OCM RAM available on OMAP SOCs is in order
-of KBs. This patch maps only available sram and removes some
-non necessary cpu_is_xxx checks.
+On Davinci SRAM is mapped as MT_DEVICE becasue of the section
+mapping pre-requisite instead of intended MT_MEMORY_NONCACHED
 
-On the newer ARMs with speculation, this is dangerous and can
-result in untraceable aborts.
+Since the section mapping limitation gets fixed with first
+patch in this series, the MT_MEMORY_NONCACHED can be used now.
+
+Have not tested this, so somebody with Davinci hardware can
+try this out
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: davinci-linux-open-source@linux.davincidsp.com
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/plat-omap/sram.c |   25 +++++--------------------
- 1 files changed, 5 insertions(+), 20 deletions(-)
+ arch/arm/mach-davinci/dm355.c  |    3 +--
+ arch/arm/mach-davinci/dm365.c  |    3 +--
+ arch/arm/mach-davinci/dm644x.c |    3 +--
+ arch/arm/mach-davinci/dm646x.c |    3 +--
+ 4 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 226b2e8..10b3b4c 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -220,20 +220,7 @@ void __init omap_map_sram(void)
- 	if (omap_sram_size == 0)
- 		return;
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index 3834781..e7bd2ad 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -767,8 +767,7 @@ static struct map_desc dm355_io_desc[] = {
+ 		.virtual	= SRAM_VIRT,
+ 		.pfn		= __phys_to_pfn(0x00010000),
+ 		.length		= SZ_32K,
+-		/* MT_MEMORY_NONCACHED requires supersection alignment */
+-		.type		= MT_DEVICE,
++		.type		= MT_MEMORY_NONCACHED,
+ 	},
+ };
  
--	if (cpu_is_omap24xx()) {
--		omap_sram_io_desc[0].virtual = OMAP2_SRAM_VA;
--
--		base = OMAP2_SRAM_PA;
--		base = ROUND_DOWN(base, PAGE_SIZE);
--		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
--	}
--
- 	if (cpu_is_omap34xx()) {
--		omap_sram_io_desc[0].virtual = OMAP3_SRAM_VA;
--		base = OMAP3_SRAM_PA;
--		base = ROUND_DOWN(base, PAGE_SIZE);
--		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
--
- 		/*
- 		 * SRAM must be marked as non-cached on OMAP3 since the
- 		 * CORE DPLL M2 divider change code (in SRAM) runs with the
-@@ -244,13 +231,11 @@ void __init omap_map_sram(void)
- 		omap_sram_io_desc[0].type = MT_MEMORY_NONCACHED;
- 	}
+diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
+index a146849..5dee032 100644
+--- a/arch/arm/mach-davinci/dm365.c
++++ b/arch/arm/mach-davinci/dm365.c
+@@ -967,8 +967,7 @@ static struct map_desc dm365_io_desc[] = {
+ 		.virtual	= SRAM_VIRT,
+ 		.pfn		= __phys_to_pfn(0x00010000),
+ 		.length		= SZ_32K,
+-		/* MT_MEMORY_NONCACHED requires supersection alignment */
+-		.type		= MT_DEVICE,
++		.type		= MT_MEMORY_NONCACHED,
+ 	},
+ };
  
--	if (cpu_is_omap44xx()) {
--		omap_sram_io_desc[0].virtual = OMAP4_SRAM_VA;
--		base = OMAP4_SRAM_PA;
--		base = ROUND_DOWN(base, PAGE_SIZE);
--		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
--	}
--	omap_sram_io_desc[0].length = 1024 * 1024;	/* Use section desc */
-+	omap_sram_io_desc[0].virtual = omap_sram_base;
-+	base = omap_sram_start;
-+	base = ROUND_DOWN(base, PAGE_SIZE);
-+	omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
-+	omap_sram_io_desc[0].length = ROUND_DOWN(omap_sram_size, PAGE_SIZE);
- 	iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc));
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index 7ad1520..5112d51 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -651,8 +651,7 @@ static struct map_desc dm644x_io_desc[] = {
+ 		.virtual	= SRAM_VIRT,
+ 		.pfn		= __phys_to_pfn(0x00008000),
+ 		.length		= SZ_16K,
+-		/* MT_MEMORY_NONCACHED requires supersection alignment */
+-		.type		= MT_DEVICE,
++		.type		= MT_MEMORY_NONCACHED,
+ 	},
+ };
  
- 	printk(KERN_INFO "SRAM: Mapped pa 0x%08lx to va 0x%08lx size: 0x%lx\n",
+diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
+index 9404565..97078f4 100644
+--- a/arch/arm/mach-davinci/dm646x.c
++++ b/arch/arm/mach-davinci/dm646x.c
+@@ -735,8 +735,7 @@ static struct map_desc dm646x_io_desc[] = {
+ 		.virtual	= SRAM_VIRT,
+ 		.pfn		= __phys_to_pfn(0x00010000),
+ 		.length		= SZ_32K,
+-		/* MT_MEMORY_NONCACHED requires supersection alignment */
+-		.type		= MT_DEVICE,
++		.type		= MT_MEMORY_NONCACHED,
+ 	},
+ };
+ 
 -- 
 1.6.0.4
 
