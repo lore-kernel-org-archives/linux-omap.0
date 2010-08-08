@@ -1,42 +1,44 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [RFC PATCH] platform: Faciliatate the creation of pseduo-platform
-	busses
-Date: Sat, 7 Aug 2010 11:28:13 -0600
-Message-ID: <AANLkTimjXd=SL61KvjDfvJ-JtXsSVW9pwOYBFUHX0mVp@mail.gmail.com>
-References: <4C58A7AA.8020007@codeaurora.org> <20100803235631.GA17759@suse.de>
-	<4C58AE15.6090900@codeaurora.org> <20100804000945.GA19729@suse.de>
-	<4C58B1B6.9050005@quicinc.com> <AANLkTikVzh9=DvvUPbKmDeo6k2-pPVSnjH+GxAPdQFO4@mail.gmail.com>
-	<20100806142727.GB4921@suse.de> <AANLkTi=VbVed09=u-Ea0L8c_CWZ_CLLjWH9ZjD2dyg6Y@mail.gmail.com>
-	<20100806234635.GC16793@suse.de> <AANLkTimHbcF+fz=aBMLdhLo2s-rhfNvaPCtqE8nYJ8aT@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimHbcF+fz=aBMLdhLo2s-rhfNvaPCtqE8nYJ8aT@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Patrick Pannuto <ppannuto@quicinc.com>, Patrick Pannuto <ppannuto@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "dtor@mail.ru" <dtor@mail.ru>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] net: bluetooth: Fix build error from rfcomm/tty.c
+Date: Sun,  8 Aug 2010 14:37:58 +0530
+Message-ID: <1281258478-17335-1-git-send-email-santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:49431 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301Ab0HHJII (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Aug 2010 05:08:08 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-bluetooth@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Marcel Holtmann <marcel@holtmann.org>
 
-On Sat, Aug 7, 2010 at 12:35 AM, Grant Likely <grant.likely@secretlab.c=
-a> wrote:
-> On Fri, Aug 6, 2010 at 5:46 PM, Greg KH <gregkh@suse.de> wrote:
->> That would be nice, but take your "standard" PC today:
->> =A0 =A0 =A0 =A0> ls /sys/devices/platform/
->> =A0 =A0 =A0 =A0Fixed MDIO bus.0 =A0i8042 =A0pcspkr =A0power =A0seria=
-l8250 =A0uevent vesafb.0
->>
->> There are tty devices below the serial port, which is nice to see, b=
-ut
->> the others? =A0I don't know what type of bus they would be on, do yo=
-u?
-[...]
-> I wouldn't have any problem modifying those specific drivers to
-> register under something like /sys/devices/legacy, but I don't really
-> think it is in any way necessary.
+The build error is as follows:
+`rfcomm_cleanup_ttys' referenced in section `.init.text' of net/built-in.o:
+defined in discarded section `.exit.text' of net/built-in.o
+make: *** [.tmp_vmlinux1] Error 1
 
-Or for that matter, make those drivers explicitly use
-/sys/devices/platform so that I don't cause churn on PCs.  :-)  I'd
-like to be rid of it as default behaviour for embedded though.
+This patch fixes by removing __exit from fucntion 'rfcomm_cleanup_ttys'
+to avoid section mismatch
 
-g.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
+---
+ net/bluetooth/rfcomm/tty.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/bluetooth/rfcomm/tty.c b/net/bluetooth/rfcomm/tty.c
+index 026205c..befc3a5 100644
+--- a/net/bluetooth/rfcomm/tty.c
++++ b/net/bluetooth/rfcomm/tty.c
+@@ -1183,7 +1183,7 @@ int __init rfcomm_init_ttys(void)
+ 	return 0;
+ }
+ 
+-void __exit rfcomm_cleanup_ttys(void)
++void rfcomm_cleanup_ttys(void)
+ {
+ 	tty_unregister_driver(rfcomm_tty_driver);
+ 	put_tty_driver(rfcomm_tty_driver);
+-- 
+1.6.0.4
+
