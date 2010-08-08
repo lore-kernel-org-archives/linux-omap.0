@@ -1,41 +1,93 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/3] SRAM map series
-Date: Sun,  8 Aug 2010 15:46:23 +0530
-Message-ID: <1281262583-27392-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 1/3] ARM: mmu: Setup MT_MEMORY and MT_MEMORY_NONACHED L1 entries
+Date: Sun,  8 Aug 2010 15:47:52 +0530
+Message-ID: <1281262672-27626-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36605 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54821 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751645Ab0HHKQf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 8 Aug 2010 06:16:35 -0400
+	id S1751645Ab0HHKSM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 8 Aug 2010 06:18:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Russell King <linux@arm.linux.org.uk>
 
-Currently we map 1 MB section while setting up SRAM on OMAPs.
-The actual physcal OCM RAM available on OMAP SOCs is in order
-of KBs. On the newer ARMs with speculation, this is dangerous and can
+This patch populates the L1 entries for MT_MEMORY and MT_MEMORY_NONACHED
+types so that at boot-up, we can map memories outside system memory
+at page level granularity
+
+Previously the mapping was limiting to section level, which creates
+unnecessary addiotional mapping for which physical memory may not
+present. On the newer ARM with speculation, this is dangerous and can
 result in untraceable aborts.
-On Davinci as well because of section limitation the SRAM is
-marked as MT_DEVICE
 
-First patch of this series addresses the section mapping limiaton and
-now we can map such memories as page level granularity.
+The patch is based on inputs from Russell King
 
-The series is generated against latest manline commit "2d530569730"
-and boot tested on OMAP4430SDP, OMAP3430SDP platforms with 
-omap_4430sdp_defconfig and multi-omap(omap3_defconfig) builds
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+---
+ arch/arm/mm/mmu.c |   18 ++++++++++++++++--
+ 1 files changed, 16 insertions(+), 2 deletions(-)
 
-Santosh Shilimkar (3):
-  ARM: mmu: Setup MT_MEMORY and MT_MEMORY_NONACHED L1 entries
-  omap1/2/3/4: map only available SRAM
-  davinci: Map sram using MT_MEMORY_NONCACHED instead of MT_DEVICE
-
- arch/arm/mach-davinci/dm355.c  |    3 +--
- arch/arm/mach-davinci/dm365.c  |    3 +--
- arch/arm/mach-davinci/dm644x.c |    3 +--
- arch/arm/mach-davinci/dm646x.c |    3 +--
- arch/arm/mm/mmu.c              |   18 ++++++++++++++++--
- arch/arm/plat-omap/sram.c      |   25 +++++--------------------
- 6 files changed, 25 insertions(+), 30 deletions(-)
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 6e1c4f6..4ede969 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -246,6 +246,9 @@ static struct mem_type mem_types[] = {
+ 		.domain    = DOMAIN_USER,
+ 	},
+ 	[MT_MEMORY] = {
++		.prot_pte  = L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
++				L_PTE_USER | L_PTE_EXEC,
++		.prot_l1   = PMD_TYPE_TABLE,
+ 		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
+@@ -254,6 +257,9 @@ static struct mem_type mem_types[] = {
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
+ 	[MT_MEMORY_NONCACHED] = {
++		.prot_pte  = L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
++				L_PTE_USER | L_PTE_EXEC,
++		.prot_l1   = PMD_TYPE_TABLE,
+ 		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
+@@ -411,9 +417,12 @@ static void __init build_mem_type_table(void)
+ 	 * Enable CPU-specific coherency if supported.
+ 	 * (Only available on XSC3 at the moment.)
+ 	 */
+-	if (arch_is_coherent() && cpu_is_xsc3())
++	if (arch_is_coherent() && cpu_is_xsc3()) {
+ 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
+-
++		mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
++		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
++	}
+ 	/*
+ 	 * ARMv6 and above have extended page tables.
+ 	 */
+@@ -438,7 +447,9 @@ static void __init build_mem_type_table(void)
+ 		mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
+ 		mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
+ 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
+ 		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
+ #endif
+ 	}
+ 
+@@ -475,6 +486,9 @@ static void __init build_mem_type_table(void)
+ 	mem_types[MT_LOW_VECTORS].prot_l1 |= ecc_mask;
+ 	mem_types[MT_HIGH_VECTORS].prot_l1 |= ecc_mask;
+ 	mem_types[MT_MEMORY].prot_sect |= ecc_mask | cp->pmd;
++	mem_types[MT_MEMORY].prot_pte |= kern_pgprot;
++	mem_types[MT_MEMORY_NONCACHED].prot_sect |= ecc_mask | cp->pmd;
++	mem_types[MT_MEMORY_NONCACHED].prot_pte |= kern_pgprot;
+ 	mem_types[MT_ROM].prot_sect |= cp->pmd;
+ 
+ 	switch (cp->pmd) {
+-- 
+1.6.0.4
 
