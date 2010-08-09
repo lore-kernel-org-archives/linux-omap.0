@@ -1,135 +1,83 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap2: fix assorted compiler warnings
-Date: Mon, 9 Aug 2010 16:58:02 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E800C3E3@dbde02.ent.ti.com>
-References: <1279016650-20459-1-git-send-email-premi@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 4/8]usb: musb: HWMOD database structures fixes OMAP4
+Date: Mon, 09 Aug 2010 13:52:04 +0200
+Message-ID: <4C5FEBE4.1060707@ti.com>
+References: <1281110249-4098-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55214 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56238 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756101Ab0HIL2N convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 07:28:13 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o79BS4kT001088
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 9 Aug 2010 06:28:06 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o79BS3V0022990
-	for <linux-omap@vger.kernel.org>; Mon, 9 Aug 2010 16:58:03 +0530 (IST)
-In-Reply-To: <1279016650-20459-1-git-send-email-premi@ti.com>
-Content-Language: en-US
+	id S1756256Ab0HILwQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Aug 2010 07:52:16 -0400
+In-Reply-To: <1281110249-4098-1-git-send-email-hemahk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Kalliguddi, Hema" <hemahk@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-> -----Original Message-----
-> From: Premi, Sanjeev 
-> Sent: Tuesday, July 13, 2010 3:54 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Premi, Sanjeev
-> Subject: [PATCH] omap2: fix assorted compiler warnings
+Hi Hema,
 
-Tony,
+On 8/6/2010 5:57 PM, Kalliguddi, Hema wrote:
+> From: Hema HK<hemahk@ti.com>
+>
+> Fixed the missing sysc settings for OMAP4 and enabled the OMAP4
+> hwmod data structure.
+>
+> Signed-off-by: Hema HK<hemahk@ti.com>
+> Cc: Felipe Balbi<felipe.balbi@nokia.com>
+> Cc: Tony Lindgren<tony@atomide.com>
+> Cc: Kevin Hilman<khilman@deeprootsystems.com>
 
-I notice the same warnings today while building against:
+It is a good practice, if not mandatory, to CC the authors of the file 
+you are modifying with your patch.
+Neither Paul, nor myself are in CC of this patch. Could you please add 
+us to this one and the other ones when applicable?
 
-commit 842849896627701e4c07441f2c7519aeec771058
-Merge: 024a97d c287f2c
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Wed Aug 4 18:33:28 2010 +0300
-
-Is this patch in your queue?
-
-~sanjeev
-
-> 
-> This patch fixes these compiler warnings:
-> 
->   CC      arch/arm/mach-omap2/mux.o
-> arch/arm/mach-omap2/mux.c: In function 'omap_mux_init_gpio':
-> arch/arm/mach-omap2/mux.c:90: warning: 'gpio_mux' may be used 
-> uninitial
-> ized in this function
-> 
->   CC      arch/arm/plat-omap/gpio.o
-> arch/arm/plat-omap/gpio.c: In function 'omap2_gpio_resume_after_idle':
-> arch/arm/plat-omap/gpio.c:2152: warning: 'l' may be used uninitialized
-> in this function
-> arch/arm/plat-omap/gpio.c: In function 'omap2_gpio_prepare_for_idle':
-> arch/arm/plat-omap/gpio.c:2085: warning: 'l2' may be used 
-> uninitialized
-> in this function
-> arch/arm/plat-omap/gpio.c:2085: warning: 'l1' may be used 
-> uninitialized
-> in this function
-> 
->   CC      arch/arm/mach-omap2/board-omap4panda.o
-> arch/arm/mach-omap2/board-omap4panda.c: In function 
-> 'omap4_panda_init':
-> arch/arm/mach-omap2/board-omap4panda.c:277: warning: unused 
-> variable 's
-> tatus'
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
 > ---
->  arch/arm/mach-omap2/board-omap4panda.c |    2 --
->  arch/arm/mach-omap2/mux.c              |    2 +-
->  arch/arm/plat-omap/gpio.c              |    4 ++--
->  3 files changed, 3 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c 
-> b/arch/arm/mach-omap2/board-omap4panda.c
-> index c03d1d5..96f5bbb 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -274,8 +274,6 @@ static int __init omap4_panda_i2c_init(void)
->  }
->  static void __init omap4_panda_init(void)
->  {
-> -	int status;
-> -
->  	omap4_panda_i2c_init();
->  	omap_serial_init();
->  	omap4_twl6030_hsmmc_init(mmc);
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index ab403b2..2ffacc1 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -87,7 +87,7 @@ static char *omap_mux_options;
->  int __init omap_mux_init_gpio(int gpio, int val)
->  {
->  	struct omap_mux_entry *e;
-> -	struct omap_mux *gpio_mux;
-> +	struct omap_mux *gpio_mux=NULL;
->  	u16 old_mode;
->  	u16 mux_mode;
->  	int found = 0;
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 9b7e354..831e6bc 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -2082,7 +2082,7 @@ void omap2_gpio_prepare_for_idle(int 
-> power_state)
->  
->  	for (i = min; i < gpio_bank_count; i++) {
->  		struct gpio_bank *bank = &gpio_bank[i];
-> -		u32 l1, l2;
-> +		u32 l1=0, l2=0;
->  
->  		if (bank->dbck_enable_mask)
->  			clk_disable(bank->dbck);
-> @@ -2149,7 +2149,7 @@ void omap2_gpio_resume_after_idle(void)
->  		min = 1;
->  	for (i = min; i < gpio_bank_count; i++) {
->  		struct gpio_bank *bank = &gpio_bank[i];
-> -		u32 l, gen, gen0, gen1;
-> +		u32 l=0, gen, gen0, gen1;
->  
->  		if (bank->dbck_enable_mask)
->  			clk_enable(bank->dbck);
-> -- 
-> 1.6.6.1
-> 
-> 
+>
+> Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c	2010-08-06 08:31:45.885868560 -0400
+> +++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c	2010-08-06 08:35:41.250112281 -0400
+> @@ -4516,8 +4516,15 @@
+>    */
+>
+>   static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
+> -	.sysc_flags	= SYSS_MISSING,
+> -	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +
+> +	.rev_offs	= 0x0400,
+> +	.sysc_offs	= 0x0404,
+> +	.syss_offs	= 0x0408,
+> +	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
+> +			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+> +			  SYSC_HAS_AUTOIDLE,
+> +	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
+> +	.sysc_fields	=&omap_hwmod_sysc_type1,
+>   };
+
+This part if fine except the missing MIDLE_XXX modes. Here is the 
+modified version using the same convention as other modules:
+
+ >  static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
+ > -       .sysc_flags     = SYSS_MISSING,
+ > -       .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+ > +       .rev_offs       = 0x0400,
+ > +       .sysc_offs      = 0x0404,
+ > +       .syss_offs      = 0x0408,
+ > +       .sysc_flags     = (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
+ > +                          SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
+ > +                          SYSC_HAS_SOFTRESET),
+ > +       .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+ > +                          MSTANDBY_FORCE | MSTANDBY_NO | 
+MSTANDBY_SMART),
+ > +       .sysc_fields    = &omap_hwmod_sysc_type1,
+ >  };
+
+I don't have any preference for the parens, but in order to be 
+consistent with the already existing hwmods, let's keep them.
+
+Regards,
+Benoit
