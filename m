@@ -1,55 +1,261 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] OMAP: DSS2: OMAPFB: add support for FBIO_WAITFORVSYNC
-Date: Mon, 9 Aug 2010 18:23:49 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E7394044EF4D594@dbde02.ent.ti.com>
-References: <1278104096-27809-1-git-send-email-notasas@gmail.com>
- <1280836944.3436.135.camel@tubuntu.research.nokia.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V2 6/8] usb: musb: Offmode fix for idle path
+Date: Mon, 09 Aug 2010 15:01:25 +0200
+Message-ID: <4C5FFC25.4060707@ti.com>
+References: <1281115624-1174-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35839 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755969Ab0HIMx5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 08:53:57 -0400
-In-Reply-To: <1280836944.3436.135.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1281115624-1174-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, ext Grazvydas Ignotas <notasas@gmail.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Tuesday, August 03, 2010 5:32 PM
-> To: ext Grazvydas Ignotas
-> Cc: linux-fbdev@vger.kernel.org; linux-omap@vger.kernel.org; Hiremath,
-> Vaibhav
-> Subject: Re: [PATCH] OMAP: DSS2: OMAPFB: add support for FBIO_WAITFORVSYNC
-> 
-> On Fri, 2010-07-02 at 22:54 +0200, ext Grazvydas Ignotas wrote:
-> > FBIO_WAITFORVSYNC is a stardard ioctl for waiting vsync, already
-> > used by some userspace, so add it as an alias for OMAPFB_WAITFORVSYNC.
-> >
-> > Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> > ---
-> > Tomi,
-> >
-> > I know I already sent this earlier, but as now FBIO_WAITFORVSYNC is a
-> > standard ioctl, so why don't we support it? I know you might not like
-> > that omapfb_ioctl will have one standard ioctl handler between all OMAP
-> > specific ones, but that's something plenty of other drivers do.
-> 
-> One could ask that if FBIO_WAITFORSYNC is a standard ioctl, why do we
-> need to handle it in omapfb's custom ioctl function =).
-> 
-> But I think this is fine, I'll apply.
-[Hiremath, Vaibhav] I still think we should mark the old (custom) interface as deprecated and add new standard ioctl interface here, so that in the future we can remove custom one.
+On 8/6/2010 7:27 PM, Kalliguddi, Hema wrote:
+> From: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+>
+> With OMAP core-off support musb was not functional as context was getting
+> lost after wakeup from core-off. And also musb was blocking the core-off
+> after loading the gadget driver even with no cable connected sometimes.
+>
+> Added the conext save/restore api in the platform layer which will
+> be called in the idle and wakeup path.
+>
+> Changed the usb sysconfig settings as per the usbotg functional spec.
+> When the device is not active, configure to force idle and force standby mode.
+> When it is being used, configure in smart standby and smart idle mode.
+> So while attempting to coreoff the usb is configured to force standby and
+> force idle mode, after wakeup configured in smart idle and smart standby.
 
-Thanks,
-Vaibhav
+Is this valid for OMAP3 and OMAP4? I checked quickly the OMAP4 TRM vB in 
+the USB_OTG chapter related to PM (23.13.4.2 Power-Management), and I 
+cannot find any note regarding that specific programming model.
+Could give us reference to the documentation that contains the details 
+about that?
 
-> 
->  Tomi
-> 
+Benoit
 
+>
+> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Maulik Mankad<x0082077-l0cyMroinI0@public.gmane.org>
+>
+> Cc: Felipe Balbi<felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+> ---
+>
+>   arch/arm/mach-omap2/pm34xx.c          |    4 ++
+>   arch/arm/mach-omap2/usb-musb.c        |   21 ++++++++++++++
+>   arch/arm/plat-omap/include/plat/usb.h |    2 +
+>   drivers/usb/musb/musb_core.c          |   11 -------
+>   drivers/usb/musb/omap2430.c           |   48 +++++++++++++++++++++++++++++++---
+>   5 files changed, 71 insertions(+), 15 deletions(-)
+>
+> Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c	2010-08-06 09:23:01.153862710 -0400
+> +++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c	2010-08-06 10:44:06.393863125 -0400
+> @@ -39,6 +39,7 @@
+>   #include<plat/gpmc.h>
+>   #include<plat/dma.h>
+>   #include<plat/dmtimer.h>
+> +#include<plat/usb.h>
+>
+>   #include<asm/tlbflush.h>
+>
+> @@ -416,6 +417,8 @@
+>   		if (core_next_state == PWRDM_POWER_OFF) {
+>   			omap3_core_save_context();
+>   			omap3_prcm_save_context();
+> +			/* Save MUSB context */
+> +			musb_context_save_restore(1);
+>   		}
+>   	}
+>
+> @@ -458,6 +461,8 @@
+>   			omap3_prcm_restore_context();
+>   			omap3_sram_restore_context();
+>   			omap2_sms_restore_context();
+> +			/* restore MUSB context */
+> +			musb_context_save_restore(0);
+>   		}
+>   		omap_uart_resume_idle(0);
+>   		omap_uart_resume_idle(1);
+> Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c	2010-08-06 09:24:23.690112596 -0400
+> +++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c	2010-08-06 10:44:06.385862697 -0400
+> @@ -120,6 +120,27 @@
+>   	}
+>   }
+>
+> +void musb_context_save_restore(int save)
+> +{
+> +	struct omap_hwmod *oh = omap_hwmod_lookup("usb_otg_hs");
+> +	struct omap_device *od = oh->od;
+> +	struct platform_device *pdev =&od->pdev;
+> +	struct device *dev =&pdev->dev;
+> +	struct device_driver *drv = dev->driver;
+> +
+> +	if (drv) {
+> +		struct musb_hdrc_platform_data *pdata = dev->platform_data;
+> +		const struct dev_pm_ops *pm = drv->pm;
+> +		if (!pdata->is_usb_active(dev)) {
+> +
+> +			if (save)
+> +				pm->suspend(dev);
+> +			else
+> +				pm->resume_noirq(dev);
+> +		}
+> +	}
+> +}
+> +
+>   #else
+>   void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>   {
+> Index: linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/plat-omap/include/plat/usb.h	2010-08-06 09:23:01.137862514 -0400
+> +++ linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h	2010-08-06 10:44:06.381864367 -0400
+> @@ -79,6 +79,8 @@
+>
+>   extern void usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata);
+>
+> +/* For saving and restoring the musb context during off/wakeup*/
+> +extern void musb_context_save_restore(int save);
+>   #endif
+>
+>
+> Index: linux-omap-pm/drivers/usb/musb/musb_core.c
+> ===================================================================
+> --- linux-omap-pm.orig/drivers/usb/musb/musb_core.c	2010-08-06 09:24:21.069863329 -0400
+> +++ linux-omap-pm/drivers/usb/musb/musb_core.c	2010-08-06 10:44:06.369863527 -0400
+> @@ -2427,11 +2427,6 @@
+>   	}
+>
+>   	musb_save_context(musb);
+> -
+> -	if (musb->set_clock)
+> -		musb->set_clock(musb->clock, 0);
+> -	else
+> -		clk_disable(musb->clock);
+>   	spin_unlock_irqrestore(&musb->lock, flags);
+>   	return 0;
+>   }
+> @@ -2443,12 +2438,6 @@
+>
+>   	if (!musb->clock)
+>   		return 0;
+> -
+> -	if (musb->set_clock)
+> -		musb->set_clock(musb->clock, 1);
+> -	else
+> -		clk_enable(musb->clock);
+> -
+>   	musb_restore_context(musb);
+>
+>   	/* for static cmos like DaVinci, register values were preserved
+> Index: linux-omap-pm/drivers/usb/musb/omap2430.c
+> ===================================================================
+> --- linux-omap-pm.orig/drivers/usb/musb/omap2430.c	2010-08-06 09:24:21.069863329 -0400
+> +++ linux-omap-pm/drivers/usb/musb/omap2430.c	2010-08-06 10:44:30.093914217 -0400
+> @@ -189,6 +189,19 @@
+>   	return 0;
+>   }
+>
+> +int is_musb_active(struct device *dev)
+> +{
+> +	struct musb *musb;
+> +
+> +#ifdef CONFIG_USB_MUSB_HDRC_HCD
+> +	/* usbcore insists dev->driver_data is a "struct hcd *" */
+> +	musb = hcd_to_musb(dev_get_drvdata(dev));
+> +#else
+> +	musb = dev_get_drvdata(dev);
+> +#endif
+> +	return musb->is_active;
+> +}
+> +
+>   int __init musb_platform_init(struct musb *musb)
+>   {
+>   	u32 l;
+> @@ -250,6 +263,7 @@
+>   	if (is_host_enabled(musb))
+>   		musb->board_set_vbus = omap_set_vbus;
+>
+> +	plat->is_usb_active = is_musb_active;
+>   	setup_timer(&musb_idle_timer, musb_do_idle, (unsigned long) musb);
+>
+>   	return 0;
+> @@ -259,15 +273,42 @@
+>   void musb_platform_save_context(struct musb *musb,
+>   		struct musb_context_registers *musb_context)
+>   {
+> -	musb_context->otg_sysconfig = musb_readl(musb->mregs, OTG_SYSCONFIG);
+> -	musb_context->otg_forcestandby = musb_readl(musb->mregs, OTG_FORCESTDBY);
+> +	/*
+> +	 * As per the omap-usbotg specification, configure it to forced standby
+> +	 * and  force idle mode when no activity on usb.
+> +	 */
+> +	void __iomem *musb_base = musb->mregs;
+> +
+> +	musb_writel(musb_base, OTG_FORCESTDBY, 0);
+> +
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +				OTG_SYSCONFIG)&  ~(NOSTDBY | SMARTSTDBY));
+> +
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +					OTG_SYSCONFIG)&  ~(AUTOIDLE));
+> +
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +				OTG_SYSCONFIG)&  ~(NOIDLE | SMARTIDLE));
+> +
+> +	musb_writel(musb_base, OTG_FORCESTDBY, 1);
+>   }
+>
+>   void musb_platform_restore_context(struct musb *musb,
+>   		struct musb_context_registers *musb_context)
+>   {
+> -	musb_writel(musb->mregs, OTG_SYSCONFIG, musb_context->otg_sysconfig);
+> -	musb_writel(musb->mregs, OTG_FORCESTDBY, musb_context->otg_forcestandby);
+> +	/*
+> +	 * As per the omap-usbotg specification, configure it smart standby
+> +	 * and smart idle during operation.
+> +	 */
+> +	void __iomem *musb_base = musb->mregs;
+> +
+> +	musb_writel(musb_base, OTG_FORCESTDBY, 0);
+> +
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +				OTG_SYSCONFIG) | (SMARTSTDBY));
+> +
+> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> +				OTG_SYSCONFIG) | (SMARTIDLE));
+>   }
+>   #endif
+>
+> Index: linux-omap-pm/include/linux/usb/musb.h
+> ===================================================================
+> --- linux-omap-pm.orig/include/linux/usb/musb.h	2010-08-06 09:23:01.161864151 -0400
+> +++ linux-omap-pm/include/linux/usb/musb.h	2010-08-06 10:44:06.401862567 -0400
+> @@ -126,6 +126,9 @@
+>
+>   	/* Architecture specific board data	*/
+>   	void		*board_data;
+> +
+> +	/* check usb device active state*/
+> +	int		(*is_usb_active)(struct device *dev);
+>   };
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
