@@ -1,49 +1,69 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH 3/3] omap: n8x0: Mux i2s codec port pins for McBSP block
-Date: Mon,  9 Aug 2010 10:59:00 +0300
-Message-ID: <1281340740-10823-4-git-send-email-jhnikula@gmail.com>
-References: <1281340740-10823-1-git-send-email-jhnikula@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 7/8] : Hwmod api changes
+Date: Mon, 9 Aug 2010 02:21:12 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1008090156250.8958@utopia.booyaka.com>
+References: <1281115688-1429-1-git-send-email-hemahk@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB032401D2AC@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1585636690-1281340752=:8958"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:54985 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755677Ab0HIH6C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 03:58:02 -0400
-Received: by mail-ew0-f46.google.com with SMTP id 23so3345279ewy.19
-        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 00:58:01 -0700 (PDT)
-In-Reply-To: <1281340740-10823-1-git-send-email-jhnikula@gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58492 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755682Ab0HIIVN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 04:21:13 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032401D2AC@dbde02.ent.ti.com>
+Content-ID: <alpine.DEB.2.00.1008090159330.8958@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "Kalliguddi, Hema" <hemahk@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, b-cousson@ti.com, Kevin Hilman <khilman@deeprootsystems.com>
 
-Bootloader on Nokia N800 and N810 muxes I2C codec port pins for EAC block.
-As there is no driver and use for EAC, mux those pins for McBSP instead
-since N810 ASoC drivers can use it.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
----
-With this patch it is possible to use audio on Nokia N810 by enabling the
-CONFIG_SND_OMAP_SOC_N810=y
----
- arch/arm/mach-omap2/board-n8x0.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+--155748971-1585636690-1281340752=:8958
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1008090159331.8958@utopia.booyaka.com>
 
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 7863633..8fd2269 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -660,6 +660,11 @@ static void __init n8x0_init_irq(void)
- 
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
-+	/* I2S codec port pins for McBSP block */
-+	OMAP2420_MUX(EAC_AC_SCLK, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP2420_MUX(EAC_AC_FS, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP2420_MUX(EAC_AC_DIN, OMAP_MUX_MODE1 | OMAP_PIN_INPUT),
-+	OMAP2420_MUX(EAC_AC_DOUT, OMAP_MUX_MODE1 | OMAP_PIN_OUTPUT),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #else
--- 
-1.7.1
+(cc Beno=EEt)
 
+On Mon, 9 Aug 2010, Nayak, Rajendra wrote:
+
+> Does it make sense for the framework itself to enable wakeup
+> for all devices when the slave port is programmed to be in
+> Smartidle
+
+It seems to me that they are separate mechanisms?  If a module is=20
+programmed for slave smart-idle, then the module prevents the PRCM from=20
+shutting off the module clock(s) until the module is not busy.  This seems=
+=20
+distinct from ENAWAKEUP, which I thought simply controlled whether the=20
+module would assert the SWakeup signal to the PRCM when an external wakeup=
+=20
+condition occurred for that module.  Is that an accurate summary? =20
+
+> instead of exposing 2 more omap device level api;s to the drivers?
+
+Something like this probably needs to be exposed to core code that would=20
+also set/clear PM_WKEN_* for the appropriate processor module.  Right now=
+=20
+we just set a bunch of these bits directly in pmXXXX.c, and that needs to=
+=20
+change.
+
+The other issue is that I suspct the module needs to be enabled in order=20
+for SYSCONFIG writes to succeed; right now the underlying hwmod code does=
+=20
+not appear to enforce this :-(
+
+But I don't see why drivers would need to call these functions directly. =
+=20
+Hema, was that your intention?  If so, you could you please explain the=20
+use case?
+
+> I have a patch for this and can post it for review in case you
+> feel it makes sense.
+
+
+- Paul
+--155748971-1585636690-1281340752=:8958--
