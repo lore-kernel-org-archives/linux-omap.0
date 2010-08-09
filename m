@@ -1,54 +1,66 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 0/7] OMAP: hwmod: Full data set for OMAP4430 ES1 & ES2
-Date: Mon, 09 Aug 2010 12:11:53 -0700
-Message-ID: <878w4fk3d2.fsf@deeprootsystems.com>
-References: <1281023276-15679-1-git-send-email-b-cousson@ti.com>
+Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
+Date: Mon, 09 Aug 2010 12:29:36 -0700
+Message-ID: <87zkwvinz3.fsf@deeprootsystems.com>
+References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
+	<201006070809.47853.luke@dashjr.org>
+	<AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
+	<201006071115.34881.luke@dashjr.org>
+	<AANLkTinod9geJbbfdOIhB465qi6xHqfH-1vL048Bc3fa@mail.gmail.com>
+	<20100707120241.GN1920@atomide.com>
+	<AANLkTinq3Hx_2gGbuyvbGnNpSfQ75B3vJU9WU66GAzd4@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:36410 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752547Ab0HITLz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 15:11:55 -0400
-Received: by pzk26 with SMTP id 26so3778216pzk.19
-        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 12:11:55 -0700 (PDT)
-In-Reply-To: <1281023276-15679-1-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Thu, 5 Aug 2010 17:47:49 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinq3Hx_2gGbuyvbGnNpSfQ75B3vJU9WU66GAzd4@mail.gmail.com>
+	(Govindraj's message of "Wed, 7 Jul 2010 17:52:42 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Luke-Jr <luke@dashjr.org>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, santosh.shilimkar@ti.com
 
-Benoit Cousson <b-cousson@ti.com> writes:
+Govindraj <govindraj.ti@gmail.com> writes:
 
-> Hi Kevin & Paul,
+> On Wed, Jul 7, 2010 at 5:32 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Govindraj <govindraj.ti@gmail.com> [100608 09:24]:
+>>> On Mon, Jun 7, 2010 at 9:45 PM, Luke-Jr <luke@dashjr.org> wrote:
+>>> > On Monday 07 June 2010 08:28:51 am Govindraj wrote:
+>>> >> Link:
+>>> >> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summa
+>>> >> ry
+>>> >>
+>>> >> Branch:
+>>> >> pm-wip/uart
+>>> >
+>>> > This branch doesn't appear to have omap-serial.c at all...
+>>> >
+>>> >> If you are trying to use with any client device connected to uart
+>>> >> then we need to ensure the client driver speaks to omap-serial
+>>> >> dev entries.
+>>> >
+>>>
+>>> You need apply the driver patch on top of this branch.
+>>>
+>>> [PATCH v3] serial: Add OMAP high-speed UART driver.
+>>
+>> Do we still have a dependency to pm-wip/uart branch? Can you please
+>> check if you can rebase all these patches on top of linux-omap for-next
+>> branch?
 >
-> Here is the OMAP4430 ES1 & ES2 hwmod data v3 series.
+> pm-wip uart branch is having all the mach-omap2/serail.c changes along with
+> hwmod data file updation and serial hwmod usage.
 >
-> Please note that there is no difference between the ES1 & ES2 wrt hwmod.
+> The driver patch [serial: Add OMAP high-speed UART driver]
+> was tested against wip/uart branch.
 >
-> This series is re-organised in order to allow initial submission for upstream
-> with minimal interconnect data set + mpu.
->
-> Further data will be sent along with the driver once adapted to hwmod.
-> A first patch is done for the TIMER IP as an example.
->
-> Patches are based on lo/for-next + for-next-fixes + pm-wip/hwmods-reset
-> + pm-wip/hwmods-debugfs and are available here:
-> git://dev.omapzoom.org/pub/scm/swarch/linux-omap-adv.git pm-wip/hwmods-omap4
->
-> Tested on OMAP4430 ES1.0 GP device using PAB board.
+> I will re-base all these patches for-next branch,
+> and will post driver and board support patches from pm-wip/uart as a
+> single series.
 
-This is looking good to me.  Of course, as you noted we need to
-understand the root cause of need for those temporary patches before
-merging.
+Any update on this?
 
-To facilitate broader testing with the other hwmod conversions in
-progress, and to test with runtime PM, I've updated my
-pm-wip/hwmods-omap4 branch now includes your series (and its
-dependencies.)
-
-IOW, my pm-wip/hwmods-omap4 branch is just a merge of my pm-wip/runtime
-branch and your pm-wip/hwmods-omap4 branch.
+FWIW, I rebased the pm-wip/uart part on top of latest
+pm-wip/hwmods-omap4 but from here, you should take over responsibility
+for pm-wip/uart.
 
 Kevin
