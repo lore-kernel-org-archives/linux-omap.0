@@ -1,70 +1,89 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH 4/5] [omap1] Bluetooth device code common to HTC
-	smartphones
-Date: Mon, 9 Aug 2010 10:28:10 -0700
-Message-ID: <AANLkTinQ+50aFPj6M0yEnE_nemamnBb8=emD--VZ_hsG@mail.gmail.com>
-References: <1280762976-17284-1-git-send-email-darkstar6262@gmail.com>
-	<1280762976-17284-5-git-send-email-darkstar6262@gmail.com>
-	<20100804101507.GG9881@atomide.com>
-	<AANLkTikGA9-TCM7v+_yivBYtxiX3ByJ7_ub1FOP0LgBO@mail.gmail.com>
-	<20100809074300.GB32480@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/3] OMAP4: prcm: Add temporarily helper functions for rmw and read inside the PRM
+Date: Mon, 09 Aug 2010 10:30:23 -0700
+Message-ID: <87hbj3lmmo.fsf@deeprootsystems.com>
+References: <1280959968-23933-1-git-send-email-b-cousson@ti.com>
+	<1280959968-23933-2-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20100809074300.GB32480@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:57059 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834Ab0HIRa0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 13:30:26 -0400
+Received: by pvg2 with SMTP id 2so839734pvg.19
+        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 10:30:25 -0700 (PDT)
+In-Reply-To: <1280959968-23933-2-git-send-email-b-cousson@ti.com> (Benoit
+	Cousson's message of "Thu, 5 Aug 2010 00:12:46 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, rnayak@ti.com, santosh.shilimkar@ti.com
 
-T24gTW9uLCBBdWcgOSwgMjAxMCBhdCAxMjo0MyBBTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
-aWRlLmNvbT4gd3JvdGU6Cj4gKiBDb3J5IE1hY2NhcnJvbmUgPGRhcmtzdGFyNjI2MkBnbWFpbC5j
-b20+IFsxMDA4MDggMjA6MjJdOgo+PiBPbiBXZWQsIEF1ZyA0LCAyMDEwIGF0IDM6MTUgQU0sIFRv
-bnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+IHdyb3RlOgo+PiA+ICogQ29yeSBNYWNjYXJy
-b25lIDxkYXJrc3RhcjYyNjJAZ21haWwuY29tPiBbMTAwODAyIDE4OjIzXToKPj4gPj4gVGhpcyBj
-aGFuZ2UgYWRkcyBpbiBhIGJsdWV0b290aCBjb250cm9sZCBkcml2ZXIvcmZraWxsCj4+ID4+IGlu
-dGVyZmFjZSB0byB0aGUgc2VyaWFsIGJsdWV0b290aCBjb250cm9sbGVyIGZvdW5kIG9uIG1hbnkK
-Pj4gPj4gSFRDIHNtYXJ0cGhvbmVzIHN1Y2ggYXMgdGhlIEhUQyBIZXJhbGQgYW5kIEhUQyBXaXph
-cmQuCj4+ID4KPj4gPiBUbyBtZSBpdCBsb29rcyBsaWtlIG1vc3Qgb2YgdGhpcyBzaG91bGQgYmUg
-aW4gZHJpdmVycy9ibHVldG9vdGgvb21hcDd4eC5jCj4+ID4gb3Igc29tZXRoaW5nIGxpa2UgdGhh
-dC4gVGhlbiB5b3UgY2FuIGp1c3QgcGFzcyBpdCB0aGUgZ3BpbyBudW1iZXJzIGluCj4+ID4gdGhl
-IHBsYXRmb3JtX2RhdGEuCj4+ID4KPj4KPj4gTm90IHN1cmUgSSBhZ3JlZSB0aGF0IGl0IGZpdHMg
-dGhlcmUuIMKgVGhlIGRyaXZlciBpc24ndCByZWFsbHkgYQo+PiBibHVldG9vdGggZHJpdmVyIC0t
-IGl0J3MgcmVhbGx5IGp1c3QgYW4gUkZLSUxMIGludGVyZmFjZSwgYW5kIHNvbWUKPj4gY29kZSB0
-byB0b2dnbGUgVUFSVCBjbG9ja3Mgb24gYW5kIG9mZiwgcGx1cyBHUElPIHdvcmsgb24gYQo+PiBi
-b2FyZC1zcGVjaWZpYyBsZXZlbC4gwqBJbiBwcmluY2lwbGUsIHRoZSBncGlvcyBjb3VsZCBiZSBz
-ZXQgYW5kIHRoZQo+PiBjbG9ja3MgZW5hYmxlZCBpbiB0aGUgYm9hcmQgZmlsZXMsIGFuZCB0aGlz
-IGRyaXZlciB3b3VsZG4ndCBiZQo+PiBuZWNlc3NhcnkgdG8gZ2V0IHdvcmtpbmcgYmx1ZXRvb3Ro
-IChhcyB3ZSdkIHVzZSBoY2lhdHRhY2ggb24KPj4gL2Rldi90dHlTKikuIMKgQnV0IHRoZW4sIHdl
-IGNhbid0IHRvZ2dsZSBpdCBvZmYgZm9yIHBvd2VyIHNhdmluZy4KPj4gTWF5YmUgYSBiZXR0ZXIg
-cGxhY2Ugd291bGQgYmUgcGxhdC1vbWFwLz8gwqBCdXQgaXQgcmVhbGx5IGlzIG1vcmUKPj4gc3Bl
-Y2lmaWMgdG8gdGhlc2UgSFRDIGJvYXJkcywgbm90IHRoZSBhcmNoaXRlY3R1cmUgaXRzZWxmLgo+
-Cj4gSG1tIHdlbGwgd2hhdCB3ZSd2ZSB1c2VkIGVhcmxpZXIgaXMgdG8gc2V0IHNvbWV0aGluZyBs
-aWtlIHNldF9wb3dlcgo+IGZ1bmN0aW9uIHBvaW50ZXIgaW4gdGhlIHBsYXRmb3JtIGRhdGEsIHRo
-ZW4gY2FsbCB0aGF0IGluIHRoZSBkcml2ZXIKPiBpZiBzZXQuIEJ1dCBpbiB0aGlzIGNhc2UgdGhl
-IGRyaXZlciBpcyA4MjUwLmMsIHNvIGxldCdzIG5vdCBtZXNzCj4gd2l0aCB0aGF0Li4KPgo+IFRo
-aXMgaXNzdWUgc2hvdWxkIGdldCBwcm9wZXJseSBzb2x2ZWQgd2l0aCB0aGUgb21hcCBzcGVjaWZp
-YyBzZXJpYWwKPiBkcml2ZXIgb25jZSB3ZSBnZXQgdGhhdCBtZXJnZWQgYXMgdGhlbiB3ZSBjYW4g
-aGF2ZSBob29rcyBmb3Igc2V0X3Bvd2VyCj4gaW4gYWRkaXRpb24gdG8gY3V0dGluZyBzZXJpYWwg
-Y2xvY2tzIHdoZW4gaWRsZS4KPgo+PiBTbyByZWFsbHksIHRoZSBvbmx5IHBvaW50IG9mIHRoaXMg
-ZHJpdmVyIGlzIHRvIGJlIGFibGUgdG8gcG93ZXIgb24gYW5kCj4+IG9mZiB0aGUgZXh0ZXJuYWwg
-Ymx1ZXRvb3RoIGNoaXAsIHdoaWNoIGlzIHdoeSBJIHN1Ym1pdHRlZCBpdCBhcyBoZWxwZXIKPj4g
-Y29kZSB0byB0aGUgYm9hcmQgZmlsZXMuCj4KPiBZZWFoLiBDYW4geW91IHRha2UgYSBsb29rIGF0
-IHRoZSBvbWFwIHNwZWNpZmljIHNlcmlhbCBkcml2ZXIgdG8gZ2V0Cj4gaXQgd29ya2luZyBvbiBv
-bWFwMT8KPgo+IFRoZW4geW91IGNhbiBoYXZlIHlvdXIgR1BJTyBmdW5jdGlvbnMgc2V0IGluIHRo
-ZSBib2FyZC0qLmMgZmlsZQo+IGFzIHNldF9wb3dlciBvciBzaW1pbGFyLCBhbmQgdGhlIFVBUlQg
-ZHJpdmVyIGNhbiBpZGxlIHByb3Blcmx5Lgo+CgpJIGNhbiBsb29rIGF0IGl0LiAgV2hlcmUgaXMg
-dGhlIGNvZGUgZm9yIHRoYXQsIGFyY2gvYXJtL21hY2gtb21hcDIvc2VyaWFsLmM/CgotIENvcnkK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFy
-bS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9y
-ZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1r
-ZXJuZWwK
+Benoit Cousson <b-cousson@ti.com> writes:
+
+> Since OMAP4 is using an absolute address, the current PRM accessors
+> are not useable.
+> OMAP4 adaptation for these API are currently ongoing, so define temp
+> version until the proper ones are defined.
+
+Curious what we're waiting for for the final versions of these?
+
+Kevin
+
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/mach-omap2/prcm.c             |   24 ++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/prcm.h |    2 ++
+>  2 files changed, 26 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> index 96f4616..d4388d3 100644
+> --- a/arch/arm/mach-omap2/prcm.c
+> +++ b/arch/arm/mach-omap2/prcm.c
+> @@ -216,6 +216,30 @@ u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask)
+>  	return v;
+>  }
+>  
+> +/* Read a PRM register, AND it, and shift the result down to bit 0 */
+> +u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask)
+> +{
+> +	u32 v;
+> +
+> +	v = __raw_readl(reg);
+> +	v &= mask;
+> +	v >>= __ffs(mask);
+> +
+> +	return v;
+> +}
+> +
+> +/* Read-modify-write a register in a PRM module. Caller must lock */
+> +u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg)
+> +{
+> +	u32 v;
+> +
+> +	v = __raw_readl(reg);
+> +	v &= ~mask;
+> +	v |= bits;
+> +	__raw_writel(v, reg);
+> +
+> +	return v;
+> +}
+>  /* Read a register in a CM module */
+>  u32 cm_read_mod_reg(s16 module, u16 idx)
+>  {
+> diff --git a/arch/arm/plat-omap/include/plat/prcm.h b/arch/arm/plat-omap/include/plat/prcm.h
+> index 9fbd914..ab77442 100644
+> --- a/arch/arm/plat-omap/include/plat/prcm.h
+> +++ b/arch/arm/plat-omap/include/plat/prcm.h
+> @@ -38,6 +38,8 @@ u32 prm_read_mod_reg(s16 module, u16 idx);
+>  void prm_write_mod_reg(u32 val, s16 module, u16 idx);
+>  u32 prm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
+>  u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask);
+> +u32 omap4_prm_read_bits_shift(void __iomem *reg, u32 mask);
+> +u32 omap4_prm_rmw_reg_bits(u32 mask, u32 bits, void __iomem *reg);
+>  u32 cm_read_mod_reg(s16 module, u16 idx);
+>  void cm_write_mod_reg(u32 val, s16 module, u16 idx);
+>  u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
