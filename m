@@ -1,70 +1,83 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH] OMAP4: HWMOD: Do omap_hwmod_late_init for OMAP4
-Date: Mon, 9 Aug 2010 18:05:50 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C6553084@dbde02.ent.ti.com>
-References: <1281097873-24094-1-git-send-email-charu@ti.com>
- <4C5C0196.3040106@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH V2 4/8]usb : musb:Using omap_device_build for musb device
+ registration
+Date: Mon, 09 Aug 2010 14:45:10 +0200
+Message-ID: <4C5FF856.4020301@ti.com>
+References: <1281110270-4185-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50038 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754140Ab0HIMf5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 08:35:57 -0400
-In-Reply-To: <4C5C0196.3040106@ti.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:35079 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755983Ab0HIMpU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Aug 2010 08:45:20 -0400
+In-Reply-To: <1281110270-4185-1-git-send-email-hemahk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: "Kalliguddi, Hema" <hemahk@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
- 
+On 8/6/2010 5:57 PM, Kalliguddi, Hema wrote:
+> From: Hema HK<hemahk@ti.com>
 
-> -----Original Message-----
-> From: Cousson, Benoit 
-> Sent: Friday, August 06, 2010 6:06 PM
-> To: Varadarajan, Charulatha
-> Cc: linux-omap@vger.kernel.org; paul@pwsan.com; 
-> khilman@deeprootsystems.com; Nayak, Rajendra; Basak, Partha
-> Subject: Re: [PATCH] OMAP4: HWMOD: Do omap_hwmod_late_init for OMAP4
-> 
-> Hi Charu,
-> 
-> On 8/6/2010 2:31 PM, Varadarajan, Charulatha wrote:
-> > This patch includes "cpu_is" check for omap44xx cpu inorder to do
-> > omap_hwmod_late_init() without which hwmods initialization does not
-> > happen for omap4.
-> >
-> > Signed-off-by: Charulatha V<charu@ti.com>
-> > Signed-off-by: Basak, Partha<p-basak2@ti.com>
-> > ---
-> >   arch/arm/mach-omap2/io.c |    2 +-
-> >   1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> > index b89e678..9b15f46 100644
-> > --- a/arch/arm/mach-omap2/io.c
-> > +++ b/arch/arm/mach-omap2/io.c
-> > @@ -345,7 +345,7 @@ void __init omap2_init_common_hw(struct 
-> omap_sdrc_params *sdrc_cs0,
-> >   #ifndef CONFIG_PM_RUNTIME
-> >   	skip_setup_idle = 1;
-> >   #endif
-> > -	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
-> > +	if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx())
-> >   		omap_hwmod_late_init(skip_setup_idle);
-> >
-> >   	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-> 
-> This is already done in this patch:
-> [PATCH v3 1/7] OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
-> https://patchwork.kernel.org/patch/117347/
+<snip>
 
-Okay. I found omap_hwmod_late_init() call missing for OMAP4 in
-origin/pm-wip/hwmods-omap4 and sent this patch without noticing your
-above mentioned patch. Please ignore this patch.
+>   void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>   {
+> -	if (cpu_is_omap243x()) {
+> -		musb_resources[0].start = OMAP243X_HS_BASE;
+> -	} else if (cpu_is_omap34xx()) {
+> -		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+> -	} else if (cpu_is_omap44xx()) {
+> -		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+> -		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+> -		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
+> +	char oh_name[MAX_OMAP_MUSB_HWMOD_NAME_LEN];
+> +	struct omap_hwmod *oh;
+> +	struct omap_device *od;
+> +	struct platform_device *pdev;
+> +	struct device	*dev;
+> +	int l, bus_id = -1;
+> +	struct musb_hdrc_platform_data *pdata;
+> +
+> +	l = snprintf(oh_name, MAX_OMAP_MUSB_HWMOD_NAME_LEN,
+> +						"usb_otg_hs");
+> +	WARN(l>= MAX_OMAP_MUSB_HWMOD_NAME_LEN,
+> +			"String buffer overflow in MUSB device setup\n");
 
-> 
-> Benoit
-> 
+This is not needed in your case. Just use a const char*, and you will 
+avoid the useless snprintf and test.
+
+> +
+> +	oh = omap_hwmod_lookup(oh_name);
+> +
+> +	if (!oh) {
+> +		pr_err("Could not look up %s\n", oh_name);
+> +	} else {
+
+You can avoid that indentation be returning in case of failure.
+
+> +		/*
+> +		 * REVISIT: This line can be removed once all the platforms
+> +		 * using musb_core.c have been converted to use use clkdev.
+> +		 */
+> +		musb_plat.clock = "ick";
+> +		musb_plat.board_data = board_data;
+> +		musb_plat.power = board_data->power>>  1;
+> +		musb_plat.mode = board_data->mode;
+> +		pdata =&musb_plat;
+> +
+> +		od = omap_device_build(name, bus_id, oh, pdata,
+> +				       sizeof(struct musb_hdrc_platform_data),
+> +							omap_musb_latency,
+> +				       ARRAY_SIZE(omap_musb_latency), false);
+> +		if (IS_ERR(od)) {
+> +			pr_err("Could not build omap_device for %s %s\n",
+> +						name, oh_name);
+ > +		} else {
+
+You can avoid that second level of indentation be returning in case of 
+failure as well.
+
+Benoit
