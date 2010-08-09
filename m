@@ -1,83 +1,124 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 4/8]usb: musb: HWMOD database structures fixes OMAP4
-Date: Mon, 09 Aug 2010 13:52:04 +0200
-Message-ID: <4C5FEBE4.1060707@ti.com>
-References: <1281110249-4098-1-git-send-email-hemahk@ti.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 7/8] : Hwmod api changes
+Date: Mon, 09 Aug 2010 14:12:22 +0200
+Message-ID: <4C5FF0A6.7080003@ti.com>
+References: <1281115688-1429-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56238 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756256Ab0HILwQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Aug 2010 07:52:16 -0400
-In-Reply-To: <1281110249-4098-1-git-send-email-hemahk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1281115688-1429-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Hema,
-
-On 8/6/2010 5:57 PM, Kalliguddi, Hema wrote:
-> From: Hema HK<hemahk@ti.com>
+On 8/6/2010 7:28 PM, Kalliguddi, Hema wrote:
+> From: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
 >
-> Fixed the missing sysc settings for OMAP4 and enabled the OMAP4
-> hwmod data structure.
+> Omap USBOTG modules has a requirement to set the auto idle bit only after
+> setting smart idle bit.
+
+Is it a requirement or an errata? Could you provide more information 
+(i.e. TRM page or errata number / description)?
+
+> Modified the _sys_enable api to set the smart idle
+> first and then the autoidle bit. Setting this will not have any impact on the
+> other modules.
 >
-> Signed-off-by: Hema HK<hemahk@ti.com>
-> Cc: Felipe Balbi<felipe.balbi@nokia.com>
-> Cc: Tony Lindgren<tony@atomide.com>
-> Cc: Kevin Hilman<khilman@deeprootsystems.com>
-
-It is a good practice, if not mandatory, to CC the authors of the file 
-you are modifying with your patch.
-Neither Paul, nor myself are in CC of this patch. Could you please add 
-us to this one and the other ones when applicable?
-
+> Added 2 wrapper APIs in the omap device layer for wakeup enable/disable
+> and sidle/mstandby settings.
+>
+> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Basak, Partha<p-basak2-l0cyMroinI0@public.gmane.org>
+>
+> Cc: Felipe Balbi<felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>
 > ---
+>   arch/arm/mach-omap2/omap_hwmod.c              |   18 +++++++----
+>   arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+>   arch/arm/plat-omap/omap_device.c              |   42 ++++++++++++++++++++++++++
+>   3 files changed, 56 insertions(+), 6 deletions(-)
 >
-> Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod.c
 > ===================================================================
-> --- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c	2010-08-06 08:31:45.885868560 -0400
-> +++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c	2010-08-06 08:35:41.250112281 -0400
-> @@ -4516,8 +4516,15 @@
->    */
+> --- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod.c	2010-08-06 08:59:03.641863815 -0400
+> +++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod.c	2010-08-06 09:02:00.021864999 -0400
+> @@ -653,12 +653,6 @@
+>   		_set_master_standbymode(oh, idlemode,&v);
+>   	}
 >
->   static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
-> -	.sysc_flags	= SYSS_MISSING,
-> -	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> -	if (sf&  SYSC_HAS_AUTOIDLE) {
+> -		idlemode = (oh->flags&  HWMOD_NO_OCP_AUTOIDLE) ?
+> -			0 : 1;
+> -		_set_module_autoidle(oh, idlemode,&v);
+> -	}
+> -
+>   	/* XXX OCP ENAWAKEUP bit? */
+>
+>   	/*
+> @@ -671,6 +665,18 @@
+>   		_set_clockactivity(oh, oh->class->sysc->clockact,&v);
+>
+>   	_write_sysconfig(v, oh);
 > +
-> +	.rev_offs	= 0x0400,
-> +	.sysc_offs	= 0x0404,
-> +	.syss_offs	= 0x0408,
-> +	.sysc_flags	= SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
-> +			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-> +			  SYSC_HAS_AUTOIDLE,
-> +	.idlemodes	= SIDLE_FORCE | SIDLE_NO | SIDLE_SMART,
-> +	.sysc_fields	=&omap_hwmod_sysc_type1,
->   };
+> +	/* Set the auto idle bit only after setting the smartidle bit
+> +	 * as this is requirement for some modules like USBOTG
+> +	 * setting this will not have any impact on the other modues.
+> +	 */
 
-This part if fine except the missing MIDLE_XXX modes. Here is the 
-modified version using the same convention as other modules:
+Except that you are adding an extra access to a quite slow L4 slave 
+interface. I'm not sure if write posted will help in that case.
 
- >  static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
- > -       .sysc_flags     = SYSS_MISSING,
- > -       .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
- > +       .rev_offs       = 0x0400,
- > +       .sysc_offs      = 0x0404,
- > +       .syss_offs      = 0x0408,
- > +       .sysc_flags     = (SYSC_HAS_AUTOIDLE | SYSC_HAS_ENAWAKEUP |
- > +                          SYSC_HAS_MIDLEMODE | SYSC_HAS_SIDLEMODE |
- > +                          SYSC_HAS_SOFTRESET),
- > +       .idlemodes      = (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
- > +                          MSTANDBY_FORCE | MSTANDBY_NO | 
-MSTANDBY_SMART),
- > +       .sysc_fields    = &omap_hwmod_sysc_type1,
- >  };
+> +
+> +	if (sf&  SYSC_HAS_AUTOIDLE) {
+> +		idlemode = (oh->flags&  HWMOD_NO_OCP_AUTOIDLE) ?
+> +			0 : 1;
+> +		_set_module_autoidle(oh, idlemode,&v);
+> +	}
+> +	_write_sysconfig(v, oh);
+>   }
+>
+>   /**
+> Index: linux-omap-pm/arch/arm/plat-omap/include/plat/omap_device.h
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/plat-omap/include/plat/omap_device.h	2010-08-06 08:59:03.661863725 -0400
+> +++ linux-omap-pm/arch/arm/plat-omap/include/plat/omap_device.h	2010-08-06 09:02:00.021864999 -0400
+> @@ -116,6 +116,8 @@
+>   int omap_device_disable_clocks(struct omap_device *od);
+>   int omap_device_enable_clocks(struct omap_device *od);
+>
+> +int omap_device_enable_wakeup(struct omap_device *od);
+> +int omap_device_disable_wakeup(struct omap_device *od);
+>
+>   /*
+>    * Entries should be kept in latency order ascending
+> Index: linux-omap-pm/arch/arm/plat-omap/omap_device.c
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/plat-omap/omap_device.c	2010-08-06 08:59:03.661863725 -0400
+> +++ linux-omap-pm/arch/arm/plat-omap/omap_device.c	2010-08-06 09:02:00.021864999 -0400
+> @@ -757,3 +757,45 @@
+>   	/* XXX pass along return value here? */
+>   	return 0;
+>   }
+> +
+> +/**
+> + * omap_device_enable_wakeup - Enable the wakeup bit
+> + * @od: struct omap_device *od
+> + *
+> + * Enable the wakup bit for omap_hwmods associated
+> + * with the omap_device.  Returns 0.
+> + */
+> +
+> +int omap_device_enable_wakeup(struct omap_device *od)
 
-I don't have any preference for the parens, but in order to be 
-consistent with the already existing hwmods, let's keep them.
+Why do you need that? Could you elaborate?
 
-Regards,
 Benoit
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
