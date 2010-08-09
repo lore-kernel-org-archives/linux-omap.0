@@ -1,142 +1,110 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] spi: omap2_mcspi: make use of dev_vdbg()
-Date: Mon, 9 Aug 2010 07:22:31 -0600
-Message-ID: <AANLkTinA72_YkcyN=1q04CDG5uW8PiOz5+jg9nTN7PuE@mail.gmail.com>
-References: <1275563341-31078-1-git-send-email-felipe.balbi@nokia.com>
-	<20100809103618.GE11340@nokia.com>
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: Re: [PATCH] musb: move usb_add_hcd to the core init code from gadget
+ code (v2)
+Date: Mon, 09 Aug 2010 21:24:01 +0800
+Message-ID: <4C600171.5020405@canonical.com>
+References: <1279895783-7313-1-git-send-email-bryan.wu@canonical.com>
+Reply-To: bryan.wu@canonical.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100809103618.GE11340@nokia.com>
+In-Reply-To: <1279895783-7313-1-git-send-email-bryan.wu@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Tereshonkov Roman (Nokia-D/Helsinki)" <roman.tereshonkov@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, David Brownell <david-b@pacbell.net>
+To: felipe.balbi@nokia.com, linux-usb@vger.kernel.org
+Cc: david-b@pacbell.net, kernel-team@lists.ubuntu.com, linux-kernel@vger.kernel.org, ricardo.salveti@canonical.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCBBdWcgOSwgMjAxMCBhdCA0OjM2IEFNLCBGZWxpcGUgQmFsYmkgPGZlbGlwZS5iYWxi
-aUBub2tpYS5jb20+IHdyb3RlOgo+IE9uIFRodSwgSnVuIDAzLCAyMDEwIGF0IDAxOjA5OjAxUE0g
-KzAyMDAsIEJhbGJpIEZlbGlwZSAoTm9raWEtRC9IZWxzaW5raSkKPiB3cm90ZToKPj4KPj4gRnJv
-bTogRmVsaXBlIEJhbGJpIDxmZWxpcGUuYmFsYmlAbm9raWEuY29tPgo+Pgo+PiBkZXZfdmRiZygp
-IGlzIG9ubHkgY29tcGlsZWQgd2hlbiBWRVJCT1NFIGlzIGRlZmluZWQsIHNvCj4+IHRoZXJlJ3Mg
-bm8gbmVlZCB0byB3cmFwIGRldl9kYmcoKSBvbiAjaWZkZWYgVkVSQk9TRSAuLiAjZW5kaWYKPj4g
-YXMgd2UgY2FuIHVzZSBkZXZfdmRiZygpIGRpcmVjdGx5Lgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBG
-ZWxpcGUgQmFsYmkgPGZlbGlwZS5iYWxiaUBub2tpYS5jb20+Cj4+IC0tLQo+Cj4gcGluZywgYW55
-IGNvbW1lbnRzIHRvIHRoaXMgb25lID8gSXQncyBiZWVuIHBlbmRpbmcgZm9yIHF1aXRlIGEgbG9u
-ZyB0aW1lLgoKSXQgZGlkbid0IGdldCBzZW50IHRvIHRoZSBzcGktZGV2ZWwtZ2VuZXJhbCBsaXN0
-LCBzbyBpdCBkaWRuJ3QgZ2V0CnBpY2tlZCB1cCBieSBwYXRjaHdvcmsgYW5kIHdhc24ndCB0aGVy
-ZSBmb3IgbWUgdG8gcGljayB1cCB3aGVuIEkgd2FzCmNvbGxlY3Rpbmcgc3R1ZmYgZm9yIC4zNi4K
-CmcuCgo+Cj4+IGRyaXZlcnMvc3BpL29tYXAyX21jc3BpLmMgfCCgIDM2ICsrKysrKysrKy0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+PiAxIGZpbGVzIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygr
-KSwgMjcgZGVsZXRpb25zKC0pCj4+Cj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3NwaS9vbWFwMl9t
-Y3NwaS5jIGIvZHJpdmVycy9zcGkvb21hcDJfbWNzcGkuYwo+PiBpbmRleCBiM2E5NGNhLi5kNzAz
-OTI3IDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJzL3NwaS9vbWFwMl9tY3NwaS5jCj4+ICsrKyBiL2Ry
-aXZlcnMvc3BpL29tYXAyX21jc3BpLmMKPj4gQEAgLTQ4OSwxMCArNDg5LDggQEAgb21hcDJfbWNz
-cGlfdHhyeF9waW8oc3RydWN0IHNwaV9kZXZpY2UgKnNwaSwgc3RydWN0Cj4+IHNwaV90cmFuc2Zl
-ciAqeGZlcikKPj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgZGV2X2Vy
-cigmc3BpLT5kZXYsICJUWFMgdGltZWQKPj4gb3V0XG4iKTsKPj4goCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgZ290byBvdXQ7Cj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKB9Cj4+IC0jaWZkZWYgVkVSQk9TRQo+PiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIGRldl9kYmcoJnNwaS0+ZGV2LCAid3JpdGUtJWQgJTAyeFxuIiwKPj4gKyCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBkZXZfdmRiZygmc3BpLT5kZXYsICJ3cml0ZS0lZCAlMDJ4
-XG4iLAo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoHdv
-cmRfbGVuLCAqdHgpOwo+PiAtI2VuZGlmCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKBfX3Jhd193cml0ZWwoKnR4KyssIHR4X3JlZyk7Cj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-fQo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoGlmIChyeCAhPSBOVUxMKSB7Cj4+IEBAIC01MDYs
-MTAgKzUwNCw4IEBAIG9tYXAyX21jc3BpX3R4cnhfcGlvKHN0cnVjdCBzcGlfZGV2aWNlICpzcGks
-IHN0cnVjdAo+PiBzcGlfdHJhbnNmZXIgKnhmZXIpCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgKGwgJiBPTUFQMl9NQ1NQSV9DSENPTkZfVFVSQk8pKSB7Cj4+IKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoG9tYXAyX21jc3BpX3NldF9lbmFibGUoc3Bp
-LCAwKTsKPj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgKnJ4KysgPSBf
-X3Jhd19yZWFkbChyeF9yZWcpOwo+PiAtI2lmZGVmIFZFUkJPU0UKPj4gLSCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldl9kYmcoJnNwaS0+ZGV2LCAicmVhZC0lZAo+PiAl
-MDJ4XG4iLAo+PiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGV2X3Zk
-YmcoJnNwaS0+ZGV2LCAicmVhZC0lZAo+PiAlMDJ4XG4iLAo+PiCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB3b3JkX2xlbiwgKihyeCAtIDEpKTsKPj4g
-LSNlbmRpZgo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBpZgo+PiAo
-bWNzcGlfd2FpdF9mb3JfcmVnX2JpdChjaHN0YXRfcmVnLAo+PiCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoE9NQVAyX01DU1BJX0NIU1RBVF9SWFMpIDwKPj4g
-MCkgewo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoGRl
-dl9lcnIoJnNwaS0+ZGV2LAo+PiBAQCAtNTIyLDEwICs1MTgsOCBAQCBvbWFwMl9tY3NwaV90eHJ4
-X3BpbyhzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpLCBzdHJ1Y3QKPj4gc3BpX3RyYW5zZmVyICp4ZmVy
-KQo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgfQo+Pgo+PiCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgKnJ4KysgPSBfX3Jhd19yZWFkbChyeF9yZWcpOwo+PiAtI2lmZGVm
-IFZFUkJPU0UKPj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBkZXZfZGJnKCZzcGkt
-PmRldiwgInJlYWQtJWQgJTAyeFxuIiwKPj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCBkZXZfdmRiZygmc3BpLT5kZXYsICJyZWFkLSVkICUwMnhcbiIsCj4+IKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgd29yZF9sZW4sICoocnggLSAxKSk7Cj4+
-IC0jZW5kaWYKPj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB9Cj4+IKAgoCCgIKAgoCCgIKAgoH0g
-d2hpbGUgKGMpOwo+PiCgIKAgoCCgfSBlbHNlIGlmICh3b3JkX2xlbiA8PSAxNikgewo+PiBAQCAt
-NTQyLDEwICs1MzYsOCBAQCBvbWFwMl9tY3NwaV90eHJ4X3BpbyhzdHJ1Y3Qgc3BpX2RldmljZSAq
-c3BpLCBzdHJ1Y3QKPj4gc3BpX3RyYW5zZmVyICp4ZmVyKQo+PiCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKBkZXZfZXJyKCZzcGktPmRldiwgIlRYUyB0aW1lZAo+PiBvdXRc
-biIpOwo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBnb3RvIG91dDsK
-Pj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoH0KPj4gLSNpZmRlZiBWRVJCT1NFCj4+
-IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGV2X2RiZygmc3BpLT5kZXYsICJ3cml0
-ZS0lZCAlMDR4XG4iLAo+PiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldl92ZGJn
-KCZzcGktPmRldiwgIndyaXRlLSVkICUwNHhcbiIsCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgd29yZF9sZW4sICp0eCk7Cj4+IC0jZW5kaWYKPj4goCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoF9fcmF3X3dyaXRlbCgqdHgrKywgdHhfcmVnKTsK
-Pj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB9Cj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgaWYg
-KHJ4ICE9IE5VTEwpIHsKPj4gQEAgLTU1OSwxMCArNTUxLDggQEAgb21hcDJfbWNzcGlfdHhyeF9w
-aW8oc3RydWN0IHNwaV9kZXZpY2UgKnNwaSwgc3RydWN0Cj4+IHNwaV90cmFuc2ZlciAqeGZlcikK
-Pj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAobCAmIE9NQVAyX01DU1BJX0NI
-Q09ORl9UVVJCTykpIHsKPj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-b21hcDJfbWNzcGlfc2V0X2VuYWJsZShzcGksIDApOwo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAqcngrKyA9IF9fcmF3X3JlYWRsKHJ4X3JlZyk7Cj4+IC0jaWZkZWYg
-VkVSQk9TRQo+PiAtIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGV2X2Ri
-Zygmc3BpLT5kZXYsICJyZWFkLSVkCj4+ICUwNHhcbiIsCj4+ICsgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCBkZXZfdmRiZygmc3BpLT5kZXYsICJyZWFkLSVkCj4+ICUwNHhc
-biIsCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oHdvcmRfbGVuLCAqKHJ4IC0gMSkpOwo+PiAtI2VuZGlmCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoGlmCj4+IChtY3NwaV93YWl0X2Zvcl9yZWdfYml0KGNoc3RhdF9y
-ZWcsCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgT01B
-UDJfTUNTUElfQ0hTVEFUX1JYUykgPAo+PiAwKSB7Cj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgZGV2X2Vycigmc3BpLT5kZXYsCj4+IEBAIC01NzUsMTAg
-KzU2NSw4IEBAIG9tYXAyX21jc3BpX3R4cnhfcGlvKHN0cnVjdCBzcGlfZGV2aWNlICpzcGksIHN0
-cnVjdAo+PiBzcGlfdHJhbnNmZXIgKnhmZXIpCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKB9Cj4+Cj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAqcngrKyA9IF9fcmF3
-X3JlYWRsKHJ4X3JlZyk7Cj4+IC0jaWZkZWYgVkVSQk9TRQo+PiAtIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIGRldl9kYmcoJnNwaS0+ZGV2LCAicmVhZC0lZCAlMDR4XG4iLAo+PiArIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldl92ZGJnKCZzcGktPmRldiwgInJlYWQtJWQg
-JTA0eFxuIiwKPj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKB3b3JkX2xlbiwgKihyeCAtIDEpKTsKPj4gLSNlbmRpZgo+PiCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoH0KPj4goCCgIKAgoCCgIKAgoCCgfSB3aGlsZSAoYyk7Cj4+IKAgoCCgIKB9IGVsc2UgaWYg
-KHdvcmRfbGVuIDw9IDMyKSB7Cj4+IEBAIC01OTUsMTAgKzU4Myw4IEBAIG9tYXAyX21jc3BpX3R4
-cnhfcGlvKHN0cnVjdCBzcGlfZGV2aWNlICpzcGksIHN0cnVjdAo+PiBzcGlfdHJhbnNmZXIgKnhm
-ZXIpCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoGRldl9lcnIoJnNw
-aS0+ZGV2LCAiVFhTIHRpbWVkCj4+IG91dFxuIik7Cj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoGdvdG8gb3V0Owo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgfQo+PiAtI2lmZGVmIFZFUkJPU0UKPj4gLSCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCBkZXZfZGJnKCZzcGktPmRldiwgIndyaXRlLSVkICUwOHhcbiIsCj4+ICsgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgZGV2X3ZkYmcoJnNwaS0+ZGV2LCAid3JpdGUtJWQgJTA4eFxuIiwK
-Pj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKB3b3JkX2xl
-biwgKnR4KTsKPj4gLSNlbmRpZgo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgX19y
-YXdfd3JpdGVsKCp0eCsrLCB0eF9yZWcpOwo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoH0KPj4g
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBpZiAocnggIT0gTlVMTCkgewo+PiBAQCAtNjEyLDEwICs1
-OTgsOCBAQCBvbWFwMl9tY3NwaV90eHJ4X3BpbyhzdHJ1Y3Qgc3BpX2RldmljZSAqc3BpLCBzdHJ1
-Y3QKPj4gc3BpX3RyYW5zZmVyICp4ZmVyKQo+PiCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoChsICYgT01BUDJfTUNTUElfQ0hDT05GX1RVUkJPKSkgewo+PiCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBvbWFwMl9tY3NwaV9zZXRfZW5hYmxlKHNwaSwgMCk7
-Cj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCpyeCsrID0gX19yYXdf
-cmVhZGwocnhfcmVnKTsKPj4gLSNpZmRlZiBWRVJCT1NFCj4+IC0goCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCBkZXZfZGJnKCZzcGktPmRldiwgInJlYWQtJWQKPj4gJTA4eFxu
-IiwKPj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGRldl92ZGJnKCZz
-cGktPmRldiwgInJlYWQtJWQKPj4gJTA4eFxuIiwKPj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgd29yZF9sZW4sICoocnggLSAxKSk7Cj4+IC0jZW5k
-aWYKPj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgaWYKPj4gKG1jc3Bp
-X3dhaXRfZm9yX3JlZ19iaXQoY2hzdGF0X3JlZywKPj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBPTUFQMl9NQ1NQSV9DSFNUQVRfUlhTKSA8Cj4+IDApIHsK
-Pj4goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBkZXZfZXJy
-KCZzcGktPmRldiwKPj4gQEAgLTYyOCwxMCArNjEyLDggQEAgb21hcDJfbWNzcGlfdHhyeF9waW8o
-c3RydWN0IHNwaV9kZXZpY2UgKnNwaSwgc3RydWN0Cj4+IHNwaV90cmFuc2ZlciAqeGZlcikKPj4g
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoH0KPj4KPj4goCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCpyeCsrID0gX19yYXdfcmVhZGwocnhfcmVnKTsKPj4gLSNpZmRlZiBWRVJC
-T1NFCj4+IC0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGV2X2RiZygmc3BpLT5kZXYs
-ICJyZWFkLSVkICUwOHhcbiIsCj4+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGV2
-X3ZkYmcoJnNwaS0+ZGV2LCAicmVhZC0lZCAlMDh4XG4iLAo+PiCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoHdvcmRfbGVuLCAqKHJ4IC0gMSkpOwo+PiAtI2Vu
-ZGlmCj4+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgfQo+PiCgIKAgoCCgIKAgoCCgIKB9IHdoaWxl
-IChjKTsKPj4goCCgIKAgoH0KPj4gLS0KPj4gMS43LjEKPgo+IC0tCj4gYmFsYmkKPgo+IERlZmVj
-dGl2ZUJ5RGVzaWduLm9yZwo+CgoKCi0tIApHcmFudCBMaWtlbHksIEIuU2MuLCBQLkVuZy4KU2Vj
-cmV0IExhYiBUZWNobm9sb2dpZXMgTHRkLgo=
+Felipe,
+
+Any comments on this patch?
+
+Thanks a lot,
+-Bryan
+
+
+On 07/23/2010 10:36 PM, Bryan Wu wrote:
+> BugLink: http://bugs.launchpad.net/bugs/608312
+>
+> v2:
+> fix the building error on latest 2.6.35-rc kernel, since v1 was generated in
+> 2.6.33 kernel.
+>
+> v1:
+> usb_add_hcd was only called when we insmod the gadget class module or built-in
+> that gadget class driver. If musb is configured as OTG controller, we need to
+> insmod or built-in gadget class driver to make our Host mode fucntion works.
+>
+> In our Ubuntu system, normally we compiled all the gadget class drivers as
+> modules. Then users can insmod the gadget modules as they want. But without the
+> gadget class driver running, we needs host function to support common USB
+> devices.
+>
+> This patch fix this issue and tested on omap3 beagle board and Gumstix board.
+>
+> Signed-off-by: Bryan Wu<bryan.wu@canonical.com>
+> ---
+>   drivers/usb/musb/musb_core.c   |   13 +++++--------
+>   drivers/usb/musb/musb_gadget.c |   18 ------------------
+>   2 files changed, 5 insertions(+), 26 deletions(-)
+>
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 3b795c5..1b6d74c 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1583,14 +1583,6 @@ irqreturn_t musb_interrupt(struct musb *musb)
+>   		(devctl&  MUSB_DEVCTL_HM) ? "host" : "peripheral",
+>   		musb->int_usb, musb->int_tx, musb->int_rx);
+>
+> -#ifdef CONFIG_USB_GADGET_MUSB_HDRC
+> -	if (is_otg_enabled(musb) || is_peripheral_enabled(musb))
+> -		if (!musb->gadget_driver) {
+> -			DBG(5, "No gadget driver loaded\n");
+> -			return IRQ_HANDLED;
+> -		}
+> -#endif
+> -
+>   	/* the core can interrupt us for multiple reasons; docs have
+>   	 * a generic interrupt flowchart to follow
+>   	 */
+> @@ -2128,6 +2120,11 @@ bad_config:
+>
+>   		status = musb_gadget_setup(musb);
+>
+> +		if (is_otg_enabled(musb)) {
+> +			status = usb_add_hcd(musb_to_hcd(musb), -1, 0);
+> +			musb_start(musb);
+> +		}
+> +
+>   		DBG(1, "%s mode, status %d, dev%02x\n",
+>   			is_otg_enabled(musb) ? "OTG" : "PERIPHERAL",
+>   			status,
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> index 6fca870..9e55534 100644
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -1761,24 +1761,6 @@ int usb_gadget_register_driver(struct usb_gadget_driver *driver)
+>   		otg_set_peripheral(musb->xceiv,&musb->g);
+>
+>   		spin_unlock_irqrestore(&musb->lock, flags);
+> -
+> -		if (is_otg_enabled(musb)) {
+> -			DBG(3, "OTG startup...\n");
+> -
+> -			/* REVISIT:  funcall to other code, which also
+> -			 * handles power budgeting ... this way also
+> -			 * ensures HdrcStart is indirectly called.
+> -			 */
+> -			retval = usb_add_hcd(musb_to_hcd(musb), -1, 0);
+> -			if (retval<  0) {
+> -				DBG(1, "add_hcd failed, %d\n", retval);
+> -				spin_lock_irqsave(&musb->lock, flags);
+> -				otg_set_peripheral(musb->xceiv, NULL);
+> -				musb->gadget_driver = NULL;
+> -				musb->g.dev.driver = NULL;
+> -				spin_unlock_irqrestore(&musb->lock, flags);
+> -			}
+> -		}
+>   	}
+>
+>   	return retval;
