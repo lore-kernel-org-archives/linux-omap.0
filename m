@@ -1,83 +1,55 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH V2 4/8]usb : musb:Using omap_device_build for musb device
- registration
-Date: Mon, 09 Aug 2010 14:45:10 +0200
-Message-ID: <4C5FF856.4020301@ti.com>
-References: <1281110270-4185-1-git-send-email-hemahk@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] OMAP: DSS2: OMAPFB: add support for FBIO_WAITFORVSYNC
+Date: Mon, 9 Aug 2010 18:23:49 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044EF4D594@dbde02.ent.ti.com>
+References: <1278104096-27809-1-git-send-email-notasas@gmail.com>
+ <1280836944.3436.135.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35079 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35839 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755983Ab0HIMpU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Aug 2010 08:45:20 -0400
-In-Reply-To: <1281110270-4185-1-git-send-email-hemahk@ti.com>
+	id S1755969Ab0HIMx5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 08:53:57 -0400
+In-Reply-To: <1280836944.3436.135.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, ext Grazvydas Ignotas <notasas@gmail.com>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 8/6/2010 5:57 PM, Kalliguddi, Hema wrote:
-> From: Hema HK<hemahk@ti.com>
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Tuesday, August 03, 2010 5:32 PM
+> To: ext Grazvydas Ignotas
+> Cc: linux-fbdev@vger.kernel.org; linux-omap@vger.kernel.org; Hiremath,
+> Vaibhav
+> Subject: Re: [PATCH] OMAP: DSS2: OMAPFB: add support for FBIO_WAITFORVSYNC
+> 
+> On Fri, 2010-07-02 at 22:54 +0200, ext Grazvydas Ignotas wrote:
+> > FBIO_WAITFORVSYNC is a stardard ioctl for waiting vsync, already
+> > used by some userspace, so add it as an alias for OMAPFB_WAITFORVSYNC.
+> >
+> > Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> > ---
+> > Tomi,
+> >
+> > I know I already sent this earlier, but as now FBIO_WAITFORVSYNC is a
+> > standard ioctl, so why don't we support it? I know you might not like
+> > that omapfb_ioctl will have one standard ioctl handler between all OMAP
+> > specific ones, but that's something plenty of other drivers do.
+> 
+> One could ask that if FBIO_WAITFORSYNC is a standard ioctl, why do we
+> need to handle it in omapfb's custom ioctl function =).
+> 
+> But I think this is fine, I'll apply.
+[Hiremath, Vaibhav] I still think we should mark the old (custom) interface as deprecated and add new standard ioctl interface here, so that in the future we can remove custom one.
 
-<snip>
+Thanks,
+Vaibhav
 
->   void __init usb_musb_init(struct omap_musb_board_data *board_data)
->   {
-> -	if (cpu_is_omap243x()) {
-> -		musb_resources[0].start = OMAP243X_HS_BASE;
-> -	} else if (cpu_is_omap34xx()) {
-> -		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
-> -	} else if (cpu_is_omap44xx()) {
-> -		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
-> -		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
-> -		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
-> +	char oh_name[MAX_OMAP_MUSB_HWMOD_NAME_LEN];
-> +	struct omap_hwmod *oh;
-> +	struct omap_device *od;
-> +	struct platform_device *pdev;
-> +	struct device	*dev;
-> +	int l, bus_id = -1;
-> +	struct musb_hdrc_platform_data *pdata;
-> +
-> +	l = snprintf(oh_name, MAX_OMAP_MUSB_HWMOD_NAME_LEN,
-> +						"usb_otg_hs");
-> +	WARN(l>= MAX_OMAP_MUSB_HWMOD_NAME_LEN,
-> +			"String buffer overflow in MUSB device setup\n");
+> 
+>  Tomi
+> 
 
-This is not needed in your case. Just use a const char*, and you will 
-avoid the useless snprintf and test.
-
-> +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +
-> +	if (!oh) {
-> +		pr_err("Could not look up %s\n", oh_name);
-> +	} else {
-
-You can avoid that indentation be returning in case of failure.
-
-> +		/*
-> +		 * REVISIT: This line can be removed once all the platforms
-> +		 * using musb_core.c have been converted to use use clkdev.
-> +		 */
-> +		musb_plat.clock = "ick";
-> +		musb_plat.board_data = board_data;
-> +		musb_plat.power = board_data->power>>  1;
-> +		musb_plat.mode = board_data->mode;
-> +		pdata =&musb_plat;
-> +
-> +		od = omap_device_build(name, bus_id, oh, pdata,
-> +				       sizeof(struct musb_hdrc_platform_data),
-> +							omap_musb_latency,
-> +				       ARRAY_SIZE(omap_musb_latency), false);
-> +		if (IS_ERR(od)) {
-> +			pr_err("Could not build omap_device for %s %s\n",
-> +						name, oh_name);
- > +		} else {
-
-You can avoid that second level of indentation be returning in case of 
-failure as well.
-
-Benoit
