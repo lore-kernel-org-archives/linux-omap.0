@@ -1,118 +1,322 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 7/8] : Hwmod api changes
-Date: Mon, 09 Aug 2010 17:05:55 +0200
-Message-ID: <4C601953.7070309@ti.com>
-References: <1281115688-1429-1-git-send-email-hemahk@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB032401D2AC@dbde02.ent.ti.com> <alpine.DEB.2.00.1008090156250.8958@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB032401D438@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Issues with calling pm_runtime functions in platform_pm_suspend_noirq/IRQ disabled context.
+Date: Mon, 09 Aug 2010 08:31:25 -0700
+Message-ID: <871va7n6pe.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED0FDF@dbde02.ent.ti.com>
+	<alpine.DEB.2.00.1008061305360.5732@utopia.booyaka.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E800BD63@dbde02.ent.ti.com>
+	<alpine.DEB.2.00.1008082350130.8958@utopia.booyaka.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E800C34D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032401D438-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:43103 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756835Ab0HIPb3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 11:31:29 -0400
+Received: by pvg2 with SMTP id 2so766334pvg.19
+        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 08:31:28 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E800C34D@dbde02.ent.ti.com>
+	(Partha Basak's message of "Mon, 9 Aug 2010 16:01:41 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Basak, Partha" <p-basak2@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
 
-On 8/9/2010 11:37 AM, Nayak, Rajendra wrote:
+"Basak, Partha" <p-basak2@ti.com> writes:
+
+>> Finally, we have omap_sram_idle():
+>> 
+>> > In particular, for USB, while executing SRAM_Idle, is we use pm_runtime
+>> > functions, we see spurious IO-Pad interrupts.
+>> 
+>> Your message doesn't specify what PM runtime functions you are executing.
+>> But if those functions are calling mutex_lock(), then they obviously must
+>> not be called from omap_sram_idle() in interrupt context.
+>> 
+>> It's not clear from your message why you need to call PM runtime functions
+>> from the idle loop.  I'd suggest that you post the problematic code in
+>> question to the list.
+>>
 >
+> USB issue:
 >
->> From: Paul Walmsley [mailto:paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org]
->> Sent: Monday, August 09, 2010 1:51 PM
->>
->> (cc Beno=EEt)
->>
->> On Mon, 9 Aug 2010, Nayak, Rajendra wrote:
->>
->>> Does it make sense for the framework itself to enable wakeup
->>> for all devices when the slave port is programmed to be in
->>> Smartidle
->>
->> It seems to me that they are separate mechanisms?  If a module is
->> programmed for slave smart-idle, then the module prevents the
->> PRCM from
->> shutting off the module clock(s) until the module is not
->> busy.  This seems
->> distinct from ENAWAKEUP, which I thought simply controlled
->> whether the
->> module would assert the SWakeup signal to the PRCM when an
->> external wakeup
->> condition occurred for that module.  Is that an accurate summary?
+> Please refer to the USB patch attached (will be sent to the list as well in a few minutes)
+> As I mentioned previously, few drivers like GPIO, USB & UART have clock- disable/enable + context save/restore in Idle path(omap_sram_idle()).
 >
-> hmm.. the reason I thought the two were related was because the need =
-to
-> assert a SWakeup will arise only when the module is programmed in sma=
-rt-idle.
-> If the module is either in no-idle (in which case no idle-ack is asse=
-rted
-> by the module) or force-idle (when the module is forced to idle and
-> expected to stay idle) there might not be a need for the module to be
-> capable of asserting a SWakeup.
+> In particular, I am referring to calling of the functions pm_runtime_put_sync() & pm_runtime_get_sync() for USB around wfi.
+>
+> Now, the following call sequence from omap_sram_idle()will enable IRQs: 
+> pm_runtime_put_sync-->
+> 	__pm_runtime_put-->
+> 		pm_runtime_idle-->
+> 			spin_unlock_irq(),
+> 			__pm_runtime_idle(),-->
+> 			 spin_unlock_irq,
+> 				spin_unlock_irq 
+>
+> The functions pm_runtime_idle() & __ pm_runtime_idle() do not use
+> spin_lock_irqsave & spin_unlock_irqrestore. This leads to enabling of
+> the interrupts in omap_sram_idle unconditionally, which for USB in
+> particular is leading to IO-pad interrupt being triggered which does
+> not come otherwise.
 
-In fact, the SWakeup is asserted as soon as the module is in idle=20
-(idle_ack =3D 1) and cannot use the OCP interface to communicate a IRQ_=
-REQ=20
-or DMA_REQ.
-But the wakeup capability is disabled by setting the SidleMode to=20
-=46orce-Idle, regardless of the value of Wakeup enable.
-Bottom-line is that the SWakeup can be asserted only if the module is i=
-n=20
-smart-idle.
+You seem to have correctly identified the problem.  Can you try the
+patch below (untested) which attempts to address the root cause you've
+identified?
 
-> The reason I proposed ENAWAKEUP to be always enabled with smart-idle =
-was
-> with as understanding that we may never have a case wherein the modul=
-e
-> is programmed in smart-idle but not expected to assert SWakeup (if it
-> supports one). I will check up on this if there ever could be such a
-> case.
+Kevin
 
-This is something that can make sense on OMAP4, because the wakeup=20
-status is de-asserted automatically as soon as the interrupt status is=20
-cleared.
-On previous platform, as Paul said, we will have to handle that manuall=
-y=20
-somewhere, but preferably not in driver directly.
-It will not be that straightforward.
+> To work around this problem, instead of using Runtime APIs, we are using omap_device_enable/disable, which in-turn call to __omap_hwmod_enable/idle
+>
+> Simply put, I am not talking about grabbing a mutex when interrupts are disabled, rather of a scenario where interrupts are getting enabled as a side-effect of calling these functions in   omap_sram_idle().
 
->>
->>> instead of exposing 2 more omap device level api;s to the drivers?
->>
->> Something like this probably needs to be exposed to core code
->> that would
->> also set/clear PM_WKEN_* for the appropriate processor
->> module.  Right now
->> we just set a bunch of these bits directly in pmXXXX.c, and
->> that needs to
->> change.
->>
->> The other issue is that I suspct the module needs to be
->> enabled in order
->> for SYSCONFIG writes to succeed; right now the underlying
->> hwmod code does
->> not appear to enforce this :-(
+>From be3aeea5f8d29c8ce2fa278f48aef849eb682282 Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Mon, 9 Aug 2010 08:12:39 -0700
+Subject: [PATCH] PM: allow runtime PM get/put from interrupts-disabled context
 
-At least we have a comment saying that we should do it :-)
-We probably just need to ensure that a module is enabled before=20
-accessing the sysconfig.
+When using runtime PM in combination with CPUidle, the runtime PM
+transtions of some devices may be triggered during the idle path.
+Late in the idle sequence, interrupts may already be disabled when
+runtime PM for these devices is initiated (using the _sync versions of
+the runtime PM API.)
 
-Regards,
-Benoit
+Currently, the runtime PM core assumes methods are called with
+interrupts enabled.  However, if it is called with interrupts
+disabled, the internal locking unconditionally enables interrupts, for
+example:
 
->>
->> But I don't see why drivers would need to call these
->> functions directly.
->> Hema, was that your intention?  If so, you could you please
->> explain the
->> use case?
->>
->>> I have a patch for this and can post it for review in case you
->>> feel it makes sense.
->>
->>
->> - Paul
+pm_runtime_put_sync()
+    __pm_runtime_put()
+        pm_runtime_idle()
+            spin_lock_irq()
+            __pm_runtime_idle()
+                spin_unlock_irq()   <--- interrupts unconditionally enabled
+                dev->bus->pm->runtime_idle()
+                spin_lock_irq()
+             spin_unlock_irq()
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To fix, use the save/restore versions of the spinlock API.
+
+Reported-by: Partha Basak <p-basak2@ti.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ drivers/base/power/runtime.c |   68 ++++++++++++++++++++++-------------------
+ include/linux/pm.h           |    1 +
+ 2 files changed, 37 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
+index b0ec0e9..b02ef35 100644
+--- a/drivers/base/power/runtime.c
++++ b/drivers/base/power/runtime.c
+@@ -80,24 +80,24 @@ static int __pm_runtime_idle(struct device *dev)
+ 	dev->power.idle_notification = true;
+ 
+ 	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_idle) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		dev->bus->pm->runtime_idle(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 	} else if (dev->type && dev->type->pm && dev->type->pm->runtime_idle) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		dev->type->pm->runtime_idle(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 	} else if (dev->class && dev->class->pm
+ 	    && dev->class->pm->runtime_idle) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		dev->class->pm->runtime_idle(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 	}
+ 
+ 	dev->power.idle_notification = false;
+@@ -115,9 +115,9 @@ int pm_runtime_idle(struct device *dev)
+ {
+ 	int retval;
+ 
+-	spin_lock_irq(&dev->power.lock);
++	spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 	retval = __pm_runtime_idle(dev);
+-	spin_unlock_irq(&dev->power.lock);
++	spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 	return retval;
+ }
+@@ -187,11 +187,13 @@ int __pm_runtime_suspend(struct device *dev, bool from_wq)
+ 			if (dev->power.runtime_status != RPM_SUSPENDING)
+ 				break;
+ 
+-			spin_unlock_irq(&dev->power.lock);
++			spin_unlock_irqrestore(&dev->power.lock,
++					       dev->power.lock_flags);
+ 
+ 			schedule();
+ 
+-			spin_lock_irq(&dev->power.lock);
++			spin_lock_irqsave(&dev->power.lock,
++					  dev->power.lock_flags);
+ 		}
+ 		finish_wait(&dev->power.wait_queue, &wait);
+ 		goto repeat;
+@@ -201,27 +203,27 @@ int __pm_runtime_suspend(struct device *dev, bool from_wq)
+ 	dev->power.deferred_resume = false;
+ 
+ 	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		retval = dev->bus->pm->runtime_suspend(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 		dev->power.runtime_error = retval;
+ 	} else if (dev->type && dev->type->pm
+ 	    && dev->type->pm->runtime_suspend) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		retval = dev->type->pm->runtime_suspend(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 		dev->power.runtime_error = retval;
+ 	} else if (dev->class && dev->class->pm
+ 	    && dev->class->pm->runtime_suspend) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		retval = dev->class->pm->runtime_suspend(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 		dev->power.runtime_error = retval;
+ 	} else {
+ 		retval = -ENOSYS;
+@@ -257,11 +259,11 @@ int __pm_runtime_suspend(struct device *dev, bool from_wq)
+ 		__pm_runtime_idle(dev);
+ 
+ 	if (parent && !parent->power.ignore_children) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		pm_request_idle(parent);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 	}
+ 
+  out:
+@@ -278,9 +280,9 @@ int pm_runtime_suspend(struct device *dev)
+ {
+ 	int retval;
+ 
+-	spin_lock_irq(&dev->power.lock);
++	spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 	retval = __pm_runtime_suspend(dev, false);
+-	spin_unlock_irq(&dev->power.lock);
++	spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 	return retval;
+ }
+@@ -342,11 +344,13 @@ int __pm_runtime_resume(struct device *dev, bool from_wq)
+ 			    && dev->power.runtime_status != RPM_SUSPENDING)
+ 				break;
+ 
+-			spin_unlock_irq(&dev->power.lock);
++			spin_unlock_irqrestore(&dev->power.lock,
++					       dev->power.lock_flags);
+ 
+ 			schedule();
+ 
+-			spin_lock_irq(&dev->power.lock);
++			spin_lock_irqsave(&dev->power.lock,
++					  dev->power.lock_flags);
+ 		}
+ 		finish_wait(&dev->power.wait_queue, &wait);
+ 		goto repeat;
+@@ -384,27 +388,27 @@ int __pm_runtime_resume(struct device *dev, bool from_wq)
+ 	dev->power.runtime_status = RPM_RESUMING;
+ 
+ 	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		retval = dev->bus->pm->runtime_resume(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 		dev->power.runtime_error = retval;
+ 	} else if (dev->type && dev->type->pm
+ 	    && dev->type->pm->runtime_resume) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		retval = dev->type->pm->runtime_resume(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 		dev->power.runtime_error = retval;
+ 	} else if (dev->class && dev->class->pm
+ 	    && dev->class->pm->runtime_resume) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		retval = dev->class->pm->runtime_resume(dev);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 		dev->power.runtime_error = retval;
+ 	} else {
+ 		retval = -ENOSYS;
+@@ -425,11 +429,11 @@ int __pm_runtime_resume(struct device *dev, bool from_wq)
+ 
+  out:
+ 	if (parent) {
+-		spin_unlock_irq(&dev->power.lock);
++		spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 		pm_runtime_put(parent);
+ 
+-		spin_lock_irq(&dev->power.lock);
++		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 	}
+ 
+ 	dev_dbg(dev, "__pm_runtime_resume() returns %d!\n", retval);
+@@ -445,9 +449,9 @@ int pm_runtime_resume(struct device *dev)
+ {
+ 	int retval;
+ 
+-	spin_lock_irq(&dev->power.lock);
++	spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
+ 	retval = __pm_runtime_resume(dev, false);
+-	spin_unlock_irq(&dev->power.lock);
++	spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
+ 
+ 	return retval;
+ }
+diff --git a/include/linux/pm.h b/include/linux/pm.h
+index 8e258c7..1a3d514 100644
+--- a/include/linux/pm.h
++++ b/include/linux/pm.h
+@@ -464,6 +464,7 @@ struct dev_pm_info {
+ 	struct work_struct	work;
+ 	wait_queue_head_t	wait_queue;
+ 	spinlock_t		lock;
++	unsigned long           lock_flags;
+ 	atomic_t		usage_count;
+ 	atomic_t		child_count;
+ 	unsigned int		disable_depth:3;
+-- 
+1.7.2.1
+
