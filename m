@@ -1,82 +1,61 @@
 From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: Zoom3 not booting with omap3_defconfig (update: sometimes...)
-Date: Mon, 9 Aug 2010 15:09:32 -0500
-Message-ID: <A24693684029E5489D1D202277BE894456EA3043@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE894456EA2F3F@dlee02.ent.ti.com>
- <49EAB745-5CB7-429F-8875-9EB349DC3803@mac.com>
+Subject: [Zoom3] smsc911x_soft_reset: Failed to complete reset (sometimes...)
+Date: Mon, 9 Aug 2010 15:36:11 -0500
+Message-ID: <A24693684029E5489D1D202277BE894456EA309A@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49653 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755815Ab0HIUJf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 16:09:35 -0400
-In-Reply-To: <49EAB745-5CB7-429F-8875-9EB349DC3803@mac.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34695 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755604Ab0HIUgO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 16:36:14 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o79KaDB3002405
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 9 Aug 2010 15:36:13 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id o79KaD4X004919
+	for <linux-omap@vger.kernel.org>; Mon, 9 Aug 2010 15:36:13 -0500 (CDT)
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o79KaD3U015838
+	for <linux-omap@vger.kernel.org>; Mon, 9 Aug 2010 15:36:13 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi all,
 
-> -----Original Message-----
-> From: Elvis Dowson [mailto:elvis.dowson@mac.com]
-> Sent: Monday, August 09, 2010 2:17 PM
-> To: Aguirre, Sergio
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: Zoom3 not booting with omap3_defconfig
-> 
-> Hi Sergio,
->                      I've seen the exact same thing happen, when I used
-> the linux-omap v2.6.35 tag for a beagleboard based device. It gives me the
-> same kernel panic.
+Seems that, with current master branch
+(commit ID: 842849896627701e4c07441f2c7519aeec771058),
+and doing this change:
 
-Actually, I realized something weird...
+> diff --git a/drivers/net/smsc911x.h b/drivers/net/smsc911x.h
+> index 016360c..2cd4f5a 100644
+> --- a/drivers/net/smsc911x.h
+> +++ b/drivers/net/smsc911x.h
+> @@ -23,7 +23,7 @@
+>  
+>  #define TX_FIFO_LOW_THRESHOLD  ((u32)1600)
+>  #define SMSC911X_EEPROM_SIZE   ((u32)7)
+> -#define USE_DEBUG              0
+> +#define USE_DEBUG              1
+>  
+>  /* This is the maximum number of packets to be received every
+>   * NAPI poll */
 
-If I have the exact same kernel, generated with omap3_defconfig, IT sometimes generates me these errors:
+I see in the console sometimes (not always) these error messages:
 
-> [    2.674804] IP-Config: Failed to open eth0
-> [    2.678924] IP-Config: No network devices available.
+[    2.682342] eth0: smsc911x_soft_reset: Failed to complete reset
+[    2.688385] eth0: smsc911x_open: soft reset failed
+[    2.693176] IP-Config: Failed to open eth0
+[    2.697326] IP-Config: No network devices available.
 
-And sometimes it succeeds:
+Is somebody also experiencing this?
 
-> [    2.680389] net eth0: SMSC911x/921x identified at 0xe08da000, IRQ: 318
-> [    3.688232] Sending DHCP requests .., OK
-> [    6.469879] IP-Config: Got DHCP answer from 0.0.0.0, my address is 128.247.75.216
-> [    6.479034] IP-Config: Complete:
-
-So, I don't know... Either I have a faulty HW, or some race condition is happening on the driver that doesn't allow to open it..
-
-I'll try to find out why the open of eth0 fails sometimes..
+NOTE: It doesn't seem consistent. I had to reboot several times the board,
+To reproduce it. Sometimes it comes at the first try.
 
 Regards,
 Sergio
-
-> 
-> > [    2.097320] Waiting for root device /dev/mmcblk0p2...
-> > [    2.235595] mmc0: new SD card at address b874
-> > [    2.243530] mmcblk0: mmc0:b874 SU02G 1.87 GiB (ro)
-> > [    2.250213]  mmcblk0: p1 p2
-> > [    2.323638] VFS: Cannot open root device "mmcblk0p2" or unknown-
-> block(179,2)
-> > [    2.330871] Please append a correct "root=" boot option; here are the
-> available partitions:
-> > [    2.339477] b300         1971712 mmcblk0 driver: mmcblk
-> > [    2.344848]   b301           40131 mmcblk0p1
-> > [    2.349182]   b302          514080 mmcblk0p2
-> > [    2.353973] Kernel panic - not syncing: VFS: Unable to mount root fs
-> on unknown-block(179,2)
-> 
-> In my case, I found that using v2.6.35 and using the
-> omap3_beagleboard_defconfig worked.
-> 
-> This must an artifact from the defconfig clean up that happened for
-> v2.6.35, breakages due to defective or untested defconfigs.
-> 
-> Why don't you try a defconfig from a previous kernel version that works?
-> 
-> Best regards,
-> 
-> Elvis Dowson
