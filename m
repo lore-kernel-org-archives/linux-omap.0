@@ -1,499 +1,435 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP PM: MPU/DMA Latency constraints
-Date: Mon, 09 Aug 2010 11:29:06 -0700
-Message-ID: <87hbj3k5cd.fsf@deeprootsystems.com>
-References: <1279874209-7944-1-git-send-email-vishwanath.bs@ti.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Zoom3 not booting with omap3_defconfig
+Date: Mon, 9 Aug 2010 14:01:46 -0500
+Message-ID: <A24693684029E5489D1D202277BE894456EA2F3F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="_003_A24693684029E5489D1D202277BE894456EA2F3Fdlee02entticom_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:39740 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642Ab0HIS3J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 14:29:09 -0400
-Received: by pvg2 with SMTP id 2so870188pvg.19
-        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 11:29:09 -0700 (PDT)
-In-Reply-To: <1279874209-7944-1-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath Sripathy's message of "Fri, 23 Jul 2010 14:06:49 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57279 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753752Ab0HITBs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Aug 2010 15:01:48 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o79J1lLB028114
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 9 Aug 2010 14:01:47 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id o79J1lAU029323
+	for <linux-omap@vger.kernel.org>; Mon, 9 Aug 2010 14:01:47 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o79J1lWK003870
+	for <linux-omap@vger.kernel.org>; Mon, 9 Aug 2010 14:01:47 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
+--_003_A24693684029E5489D1D202277BE894456EA2F3Fdlee02entticom_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-> This patch has implementation for OMAP MPU/DMA Latency constraints using PM QOS.
+Hi,
 
-Changelog is missing description of the problem being solved and the
-motivation for the solution.  
+I'm trying to boot from NFS with my Zoom3 board with current master branch
+(commit ID: 842849896627701e4c07441f2c7519aeec771058)
 
-In particular, a system-wide API is being changed here with no
-description of the problem or the reason for this particular solution.
+But, I'm not successful so far. :(
 
-On first glance, the idea here seems wrong.  In getting rid of the device
-pointer, how do you plan to handle per-device constraints?
+Seems that it can't detect the eth0 device. (See attached log: bad.txt)
 
-Kevin
+Now, If I take omap_zoom3_defconfig from just before commit:
 
-> Signed-off-by: Vishwanath Sripathy <vishwanath.bs@ti.com>
-> ---
->  arch/arm/plat-omap/Kconfig                |    3 +
->  arch/arm/plat-omap/Makefile               |    1 +
->  arch/arm/plat-omap/i2c.c                  |    3 +-
->  arch/arm/plat-omap/include/plat/omap-pm.h |    9 +-
->  arch/arm/plat-omap/omap-pm-noop.c         |   20 +--
->  arch/arm/plat-omap/omap-pm.c              |  309 +++++++++++++++++++++++++++++
->  6 files changed, 328 insertions(+), 17 deletions(-)
->  create mode 100755 arch/arm/plat-omap/omap-pm.c
->
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index 286b606..ce544b0 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -194,6 +194,9 @@ config OMAP_PM_NONE
->  config OMAP_PM_NOOP
->  	bool "No-op/debug PM layer"
->  
-> +config OMAP_PM
-> +	depends on PM
-> +	bool "OMAP PM layer implementation"
->  endchoice
->  
->  endmenu
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index 2a15191..fad2475 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -32,3 +32,4 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
->  obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
->  
->  obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
-> +obj-$(CONFIG_OMAP_PM) += omap-pm.o
-> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-> index a5ce4f0..29dc45a
-> --- a/arch/arm/plat-omap/i2c.c
-> +++ b/arch/arm/plat-omap/i2c.c
-> @@ -145,7 +145,8 @@ static inline int omap1_i2c_add_bus(struct platform_device *pdev, int bus_id)
->   */
->  static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
->  {
-> -	omap_pm_set_max_mpu_wakeup_lat(dev, t);
-> +	struct pm_qos_request_list *qos_handle = NULL;
-> +	omap_pm_set_max_mpu_wakeup_lat(&qos_handle, t);
->  }
->  
->  static inline int omap2_i2c_add_bus(struct platform_device *pdev, int bus_id)
-> diff --git a/arch/arm/plat-omap/include/plat/omap-pm.h b/arch/arm/plat-omap/include/plat/omap-pm.h
-> index 728fbb9..47ba9e6 100644
-> --- a/arch/arm/plat-omap/include/plat/omap-pm.h
-> +++ b/arch/arm/plat-omap/include/plat/omap-pm.h
-> @@ -19,6 +19,7 @@
->  #include <linux/clk.h>
->  
->  #include "powerdomain.h"
-> +#include <linux/pm_qos_params.h>
->  
->  /**
->   * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
-> @@ -86,7 +87,7 @@ void omap_pm_if_exit(void);
->  
->  /**
->   * omap_pm_set_max_mpu_wakeup_lat - set the maximum MPU wakeup latency
-> - * @dev: struct device * requesting the constraint
-> + * @qos_request: handle for the constraint. The pointer should be initialized to NULL
->   * @t: maximum MPU wakeup latency in microseconds
->   *
->   * Request that the maximum interrupt latency for the MPU to be no
-> @@ -118,7 +119,7 @@ void omap_pm_if_exit(void);
->   * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
->   * is not satisfiable, or 0 upon success.
->   */
-> -int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
-> +int omap_pm_set_max_mpu_wakeup_lat(struct pm_qos_request_list **qos_request, long t);
->  
->  
->  /**
-> @@ -185,7 +186,7 @@ int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
->  
->  /**
->   * omap_pm_set_max_sdma_lat - set the maximum system DMA transfer start latency
-> - * @dev: struct device *
-> + * @qos_request: handle for the constraint. The pointer should be initialized to NULL
->   * @t: maximum DMA transfer start latency in microseconds
->   *
->   * Request that the maximum system DMA transfer start latency for this
-> @@ -210,7 +211,7 @@ int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
->   * Returns -EINVAL for an invalid argument, -ERANGE if the constraint
->   * is not satisfiable, or 0 upon success.
->   */
-> -int omap_pm_set_max_sdma_lat(struct device *dev, long t);
-> +int omap_pm_set_max_sdma_lat(struct pm_qos_request_list **qos_request, long t);
->  
->  
->  /**
-> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-> index e129ce8..af2fe43 100644
-> --- a/arch/arm/plat-omap/omap-pm-noop.c
-> +++ b/arch/arm/plat-omap/omap-pm-noop.c
-> @@ -34,19 +34,17 @@ struct omap_opp *l3_opps;
->   * Device-driver-originated constraints (via board-*.c files)
->   */
->  
-> -int omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
-> +int omap_pm_set_max_mpu_wakeup_lat(struct pm_qos_request_list **pmqos_req, long t)
->  {
-> -	if (!dev || t < -1) {
-> +	if (!pmqos_req || t < -1) {
->  		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
->  		return -EINVAL;
->  	};
->  
->  	if (t == -1)
-> -		pr_debug("OMAP PM: remove max MPU wakeup latency constraint: "
-> -			 "dev %s\n", dev_name(dev));
-> +		pr_debug("OMAP PM: remove max MPU wakeup latency constraint\n");
->  	else
-> -		pr_debug("OMAP PM: add max MPU wakeup latency constraint: "
-> -			 "dev %s, t = %ld usec\n", dev_name(dev), t);
-> +		pr_debug("OMAP PM: add max MPU wakeup latency constraint: t = %ld usec\n", t);
->  
->  	/*
->  	 * For current Linux, this needs to map the MPU to a
-> @@ -120,19 +118,17 @@ int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
->  	return 0;
->  }
->  
-> -int omap_pm_set_max_sdma_lat(struct device *dev, long t)
-> +int omap_pm_set_max_sdma_lat(struct pm_qos_request_list **qos_request, long t)
->  {
-> -	if (!dev || t < -1) {
-> +	if (!qos_request || t < -1) {
->  		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
->  		return -EINVAL;
->  	};
->  
->  	if (t == -1)
-> -		pr_debug("OMAP PM: remove max DMA latency constraint: "
-> -			 "dev %s\n", dev_name(dev));
-> +		pr_debug("OMAP PM: remove max DMA latency constraint:\n");
->  	else
-> -		pr_debug("OMAP PM: add max DMA latency constraint: "
-> -			 "dev %s, t = %ld usec\n", dev_name(dev), t);
-> +		pr_debug("OMAP PM: add max DMA latency constraint: t = %ld usec\n", t);
->  
->  	/*
->  	 * For current Linux PM QOS params, this code should scan the
-> diff --git a/arch/arm/plat-omap/omap-pm.c b/arch/arm/plat-omap/omap-pm.c
-> new file mode 100755
-> index 0000000..937196a
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/omap-pm.c
-> @@ -0,0 +1,309 @@
-> +/*
-> + * omap-pm.c - OMAP power management interface
-> + *
-> + * Copyright (C) 2008-2010 Texas Instruments, Inc.
-> + * Copyright (C) 2008-2009 Nokia Corporation
-> + * Vishwanath BS
-> + *
-> + * This code is based on plat-omap/omap-pm-noop.c.
-> + *
-> + * Interface developed by (in alphabetical order):
-> + * Karthik Dasu, Tony Lindgren, Rajendra Nayak, Sakari Poussa, Veeramanikandan
-> + * Raju, Anand Sawant, Igor Stoppa, Paul Walmsley, Richard Woodruff
-> + */
-> +
-> +#undef DEBUG
-> +
-> +#include <linux/init.h>
-> +#include <linux/cpufreq.h>
-> +#include <linux/device.h>
-> +
-> +/* Interface documentation is in mach/omap-pm.h */
-> +#include <plat/omap-pm.h>
-> +
-> +#include <plat/powerdomain.h>
-> +
-> +struct omap_opp *dsp_opps;
-> +struct omap_opp *mpu_opps;
-> +struct omap_opp *l3_opps;
-> +
-> +/*
-> + * Device-driver-originated constraints (via board-*.c files)
-> + */
-> +
-> +int omap_pm_set_max_mpu_wakeup_lat(struct pm_qos_request_list **qos_request, long t)
-> +{
-> +	if (!qos_request || t < -1) {
-> +		pr_warning("Warning: invalid params to omap_pm_set_max_mpu_wakeup_lat \n:");
-> +		return -EINVAL;
-> +	};
-> +
-> +	if (t == -1) {
-> +		pm_qos_remove_request(*qos_request);
-> +		*qos_request = NULL;
-> +	} else if (*qos_request == NULL)
-> +		*qos_request = pm_qos_add_request(PM_QOS_CPU_DMA_LATENCY, t);
-> +	else
-> +		pm_qos_update_request(*qos_request, t);
-> +
-> +	return 0;
-> +}
-> +
-> +
-> +int omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
-> +{
-> +	if (!dev || (agent_id != OCP_INITIATOR_AGENT &&
-> +	    agent_id != OCP_TARGET_AGENT)) {
-> +		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
-> +		return -EINVAL;
-> +	};
-> +
-> +	if (r == 0)
-> +		pr_debug("OMAP PM: remove min bus tput constraint: "
-> +			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
-> +	else
-> +		pr_debug("OMAP PM: add min bus tput constraint: "
-> +			 "dev %s for agent_id %d: rate %ld KiB\n",
-> +			 dev_name(dev), agent_id, r);
-> +
-> +	/*
-> +	 * This code should model the interconnect and compute the
-> +	 * required clock frequency, convert that to a VDD2 OPP ID, then
-> +	 * set the VDD2 OPP appropriately.
-> +	 *
-> +	 * TI CDP code can call constraint_set here on the VDD2 OPP.
-> +	 */
-> +
-> +	return 0;
-> +}
-> +
-> +int omap_pm_set_max_dev_wakeup_lat(struct device *req_dev, struct device *dev,
-> +				   long t)
-> +{
-> +	if (!req_dev || !dev || t < -1) {
-> +		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
-> +		return -EINVAL;
-> +	};
-> +
-> +	if (t == -1)
-> +		pr_debug("OMAP PM: remove max device latency constraint: "
-> +			 "dev %s\n", dev_name(dev));
-> +	else
-> +		pr_debug("OMAP PM: add max device latency constraint: "
-> +			 "dev %s, t = %ld usec\n", dev_name(dev), t);
-> +
-> +	/*
-> +	 * For current Linux, this needs to map the device to a
-> +	 * powerdomain, then go through the list of current max lat
-> +	 * constraints on that powerdomain and find the smallest.  If
-> +	 * the latency constraint has changed, the code should
-> +	 * recompute the state to enter for the next powerdomain
-> +	 * state.  Conceivably, this code should also determine
-> +	 * whether to actually disable the device clocks or not,
-> +	 * depending on how long it takes to re-enable the clocks.
-> +	 *
-> +	 * TI CDP code can call constraint_set here.
-> +	 */
-> +
-> +	return 0;
-> +}
-> +
-> +int omap_pm_set_max_sdma_lat(struct pm_qos_request_list **qos_request, long t)
-> +{
-> +	if (!qos_request || t < -1) {
-> +		pr_warning("Warning: invalid params to omap_pm_set_max_sdma_lat\n:");
-> +		return -EINVAL;
-> +	};
-> +
-> +	if (t == -1) {
-> +		pm_qos_remove_request(*qos_request);
-> +		*qos_request = NULL;
-> +	} else if (*qos_request == NULL)
-> +		*qos_request = pm_qos_add_request(PM_QOS_CPU_DMA_LATENCY, t);
-> +	else
-> +		pm_qos_update_request(*qos_request, t);
-> +
-> +	return 0;
-> +}
-> +
-> +int omap_pm_set_min_clk_rate(struct device *dev, struct clk *c, long r)
-> +{
-> +	if (!dev || !c || r < 0) {
-> +		WARN(1, "OMAP PM: %s: invalid parameter(s)", __func__);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (r == 0)
-> +		pr_debug("OMAP PM: remove min clk rate constraint: "
-> +			 "dev %s\n", dev_name(dev));
-> +	else
-> +		pr_debug("OMAP PM: add min clk rate constraint: "
-> +			 "dev %s, rate = %ld Hz\n", dev_name(dev), r);
-> +
-> +	/*
-> +	 * Code in a real implementation should keep track of these
-> +	 * constraints on the clock, and determine the highest minimum
-> +	 * clock rate.  It should iterate over each OPP and determine
-> +	 * whether the OPP will result in a clock rate that would
-> +	 * satisfy this constraint (and any other PM constraint in effect
-> +	 * at that time).  Once it finds the lowest-voltage OPP that
-> +	 * meets those conditions, it should switch to it, or return
-> +	 * an error if the code is not capable of doing so.
-> +	 */
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * DSP Bridge-specific constraints
-> + */
-> +
-> +const struct omap_opp *omap_pm_dsp_get_opp_table(void)
-> +{
-> +	pr_debug("OMAP PM: DSP request for OPP table\n");
-> +
-> +	/*
-> +	 * Return DSP frequency table here:  The final item in the
-> +	 * array should have .rate = .opp_id = 0.
-> +	 */
-> +
-> +	return NULL;
-> +}
-> +
-> +void omap_pm_dsp_set_min_opp(u8 opp_id)
-> +{
-> +	if (opp_id == 0) {
-> +		WARN_ON(1);
-> +		return;
-> +	}
-> +
-> +	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id);
-> +
-> +	/*
-> +	 *
-> +	 * For l-o dev tree, our VDD1 clk is keyed on OPP ID, so we
-> +	 * can just test to see which is higher, the CPU's desired OPP
-> +	 * ID or the DSP's desired OPP ID, and use whichever is
-> +	 * highest.
-> +	 *
-> +	 * In CDP12.14+, the VDD1 OPP custom clock that controls the DSP
-> +	 * rate is keyed on MPU speed, not the OPP ID.  So we need to
-> +	 * map the OPP ID to the MPU speed for use with clk_set_rate()
-> +	 * if it is higher than the current OPP clock rate.
-> +	 *
-> +	 */
-> +}
-> +
-> +
-> +u8 omap_pm_dsp_get_opp(void)
-> +{
-> +	pr_debug("OMAP PM: DSP requests current DSP OPP ID\n");
-> +
-> +	/*
-> +	 * For l-o dev tree, call clk_get_rate() on VDD1 OPP clock
-> +	 *
-> +	 * CDP12.14+:
-> +	 * Call clk_get_rate() on the OPP custom clock, map that to an
-> +	 * OPP ID using the tables defined in board-*.c/chip-*.c files.
-> +	 */
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * CPUFreq-originated constraint
-> + *
-> + * In the future, this should be handled by custom OPP clocktype
-> + * functions.
-> + */
-> +
-> +struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
-> +{
-> +	pr_debug("OMAP PM: CPUFreq request for frequency table\n");
-> +
-> +	/*
-> +	 * Return CPUFreq frequency table here: loop over
-> +	 * all VDD1 clkrates, pull out the mpu_ck frequencies, build
-> +	 * table
-> +	 */
-> +
-> +	return NULL;
-> +}
-> +
-> +void omap_pm_cpu_set_freq(unsigned long f)
-> +{
-> +	if (f == 0) {
-> +		WARN_ON(1);
-> +		return;
-> +	}
-> +
-> +	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n",
-> +		 f);
-> +
-> +	/*
-> +	 * For l-o dev tree, determine whether MPU freq or DSP OPP id
-> +	 * freq is higher.  Find the OPP ID corresponding to the
-> +	 * higher frequency.  Call clk_round_rate() and clk_set_rate()
-> +	 * on the OPP custom clock.
-> +	 *
-> +	 * CDP should just be able to set the VDD1 OPP clock rate here.
-> +	 */
-> +}
-> +
-> +unsigned long omap_pm_cpu_get_freq(void)
-> +{
-> +	pr_debug("OMAP PM: CPUFreq requests current CPU frequency\n");
-> +
-> +	/*
-> +	 * Call clk_get_rate() on the mpu_ck.
-> +	 */
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Device context loss tracking
-> + */
-> +
-> +int omap_pm_get_dev_context_loss_count(struct device *dev)
-> +{
-> +	if (!dev) {
-> +		WARN_ON(1);
-> +		return -EINVAL;
-> +	};
-> +
-> +	pr_debug("OMAP PM: returning context loss count for dev %s\n",
-> +		 dev_name(dev));
-> +
-> +	/*
-> +	 * Map the device to the powerdomain.  Return the powerdomain
-> +	 * off counter.
-> +	 */
-> +
-> +	return 0;
-> +}
-> +
-> +
-> +/* Should be called before clk framework init */
-> +int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-> +				 struct omap_opp *dsp_opp_table,
-> +				 struct omap_opp *l3_opp_table)
-> +{
-> +	mpu_opps = mpu_opp_table;
-> +	dsp_opps = dsp_opp_table;
-> +	l3_opps = l3_opp_table;
-> +	return 0;
-> +}
-> +
-> +/* Must be called after clock framework is initialized */
-> +int __init omap_pm_if_init(void)
-> +{
-> +	return 0;
-> +}
-> +
-> +void omap_pm_if_exit(void)
-> +{
-> +	/* Deallocate CPUFreq frequency table here */
-> +}
-> +
-> +
+commit 80690ccc41f01df6edfb6684006824d8edff189e
+Author: Vincent Sanders <vince@simtec.co.uk>
+Date:   Tue Aug 3 21:19:21 2010 +0100
+
+    Remove ARM default configurations which duplicate omap3_defconfig
+
+I'm able to boot fine (see attached log: good.txt)
+
+So, somehow, current omap3_defconfig doesn't seem to be as functional as
+omap_zoom3_defconfig used to be...
+
+Is there something that everybody knows, and I'm missing on how to make a
+usable Zoom3 .config?
+
+Regards,
+Sergio
+
+--_003_A24693684029E5489D1D202277BE894456EA2F3Fdlee02entticom_
+Content-Type: text/plain; name="bad.txt"
+Content-Description: bad.txt
+Content-Disposition: attachment; filename="bad.txt"; size=13314;
+	creation-date="Mon, 09 Aug 2010 13:42:15 GMT";
+	modification-date="Mon, 09 Aug 2010 13:42:15 GMT"
+Content-Transfer-Encoding: base64
+
+VW5jb21wcmVzc2luZyBMaW51eC4uLiBkb25lLCBib290aW5nIHRoZSBrZXJuZWwuClsgICAgMC4w
+MDAwMDBdIExpbnV4IHZlcnNpb24gMi42LjM1LTA4OTI2LWcxMmZhZmJmICh4MDA5MTM1OUBkdHgw
+MDkxMzU5LXVidW50dS0xKSAoZ2NjIHZlcnNpb24gNC4zLjIgKFNvdXJjZXJ5IEcrKyBMaXRlIDIw
+MDhxMy03MikgKSAjMyBNb24gQXVnIDkgMTI6MTU6NDEgQ0RUIDIwMTAKWyAgICAwLjAwMDAwMF0g
+Q1BVOiBBUk12NyBQcm9jZXNzb3IgWzQxM2ZjMDgyXSByZXZpc2lvbiAyIChBUk12NyksIGNyPTEw
+YzUzYzdmClsgICAgMC4wMDAwMDBdIENQVTogVklQVCBub25hbGlhc2luZyBkYXRhIGNhY2hlLCBW
+SVBUIG5vbmFsaWFzaW5nIGluc3RydWN0aW9uIGNhY2hlClsgICAgMC4wMDAwMDBdIE1hY2hpbmU6
+IE9NQVAgWm9vbTMgYm9hcmQKWyAgICAwLjAwMDAwMF0gTWVtb3J5IHBvbGljeTogRUNDIGRpc2Fi
+bGVkLCBEYXRhIGNhY2hlIHdyaXRlYmFjawpbICAgIDAuMDAwMDAwXSBPTUFQMzYzMC8zNzMwIEVT
+MS4yIChsMmNhY2hlIGl2YSBzZ3ggbmVvbiBpc3AgMTkybWh6X2NsayApClsgICAgMC4wMDAwMDBd
+IFNSQU06IE1hcHBlZCBwYSAweDQwMjAwMDAwIHRvIHZhIDB4ZmU0MDAwMDAgc2l6ZTogMHgxMDAw
+MDAKWyAgICAwLjAwMDAwMF0gQnVpbHQgMSB6b25lbGlzdHMgaW4gWm9uZSBvcmRlciwgbW9iaWxp
+dHkgZ3JvdXBpbmcgb24uICBUb3RhbCBwYWdlczogMTMwMDQ4ClsgICAgMC4wMDAwMDBdIEtlcm5l
+bCBjb21tYW5kIGxpbmU6IGVhcmx5cHJpbnRrIGNvbnNvbGU9dHR5UzAsMTE1MjAwbjggbm9pbml0
+cmQgbWVtPTUxMk0gcm9vdD0vZGV2L25mcyBydyBuZnNyb290PTEyOC4yNDcuNzQuMjQxOi9ob21l
+L3gwMDkxMzU5L215LW5mcy9idXN5Ym94LG5vbG9jayBpcD1kaGNwIG5mc3ZlcnM9Myx0Y3Agb21h
+cF92b3V0X21vZC52aWRlbzFfCm51bWJ1ZmZlcnM9NiBvbWFwX3ZvdXRfbW9kLnZpZDFfc3RhdGlj
+X3ZyZmJfYWxsb2M9eSBvbWFwX3ZvdXRfbW9kLnZpZGVvMl9udW1idWZmZXJzPTYgb21hcF92b3V0
+X21vZC52aWQyX3N0YXRpY192cmZiX2FsbG9jPXkKWyAgICAwLjAwMDAwMF0gUElEIGhhc2ggdGFi
+bGUgZW50cmllczogMjA0OCAob3JkZXI6IDEsIDgxOTIgYnl0ZXMpClsgICAgMC4wMDAwMDBdIERl
+bnRyeSBjYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDY1NTM2IChvcmRlcjogNiwgMjYyMTQ0IGJ5
+dGVzKQpbICAgIDAuMDAwMDAwXSBJbm9kZS1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDMyNzY4
+IChvcmRlcjogNSwgMTMxMDcyIGJ5dGVzKQpbICAgIDAuMDAwMDAwXSBNZW1vcnk6IDUxMk1CID0g
+NTEyTUIgdG90YWwKWyAgICAwLjAwMDAwMF0gTWVtb3J5OiA1MDU4MzZrLzUwNTgzNmsgYXZhaWxh
+YmxlLCAxODQ1MmsgcmVzZXJ2ZWQsIDBLIGhpZ2htZW0KWyAgICAwLjAwMDAwMF0gVmlydHVhbCBr
+ZXJuZWwgbWVtb3J5IGxheW91dDoKWyAgICAwLjAwMDAwMF0gICAgIHZlY3RvciAgOiAweGZmZmYw
+MDAwIC0gMHhmZmZmMTAwMCAgICggICA0IGtCKQpbICAgIDAuMDAwMDAwXSAgICAgZml4bWFwICA6
+IDB4ZmZmMDAwMDAgLSAweGZmZmUwMDAwICAgKCA4OTYga0IpClsgICAgMC4wMDAwMDBdICAgICBE
+TUEgICAgIDogMHhmZmMwMDAwMCAtIDB4ZmZlMDAwMDAgICAoICAgMiBNQikKWyAgICAwLjAwMDAw
+MF0gICAgIHZtYWxsb2MgOiAweGUwODAwMDAwIC0gMHhmODAwMDAwMCAgICggMzc2IE1CKQpbICAg
+IDAuMDAwMDAwXSAgICAgbG93bWVtICA6IDB4YzAwMDAwMDAgLSAweGUwMDAwMDAwICAgKCA1MTIg
+TUIpClsgICAgMC4wMDAwMDBdICAgICBtb2R1bGVzIDogMHhiZjAwMDAwMCAtIDB4YzAwMDAwMDAg
+ICAoICAxNiBNQikKWyAgICAwLjAwMDAwMF0gICAgICAgLmluaXQgOiAweGMwMDA4MDAwIC0gMHhj
+MDA0ODAwMCAgICggMjU2IGtCKQpbICAgIDAuMDAwMDAwXSAgICAgICAudGV4dCA6IDB4YzAwNDgw
+MDAgLSAweGMwNjA0MDAwICAgKDU4NzIga0IpClsgICAgMC4wMDAwMDBdICAgICAgIC5kYXRhIDog
+MHhjMDYzMDAwMCAtIDB4YzA4MDhhNDAgICAoMTg5MSBrQikKWyAgICAwLjAwMDAwMF0gSGllcmFy
+Y2hpY2FsIFJDVSBpbXBsZW1lbnRhdGlvbi4KWyAgICAwLjAwMDAwMF0gIFJDVS1iYXNlZCBkZXRl
+Y3Rpb24gb2Ygc3RhbGxlZCBDUFVzIGlzIGRpc2FibGVkLgpbICAgIDAuMDAwMDAwXSAgVmVyYm9z
+ZSBzdGFsbGVkLUNQVXMgZGV0ZWN0aW9uIGlzIGRpc2FibGVkLgpbICAgIDAuMDAwMDAwXSBOUl9J
+UlFTOjQwMgpbICAgIDAuMDAwMDAwXSBDbG9ja2luZyByYXRlIChDcnlzdGFsL0NvcmUvTVBVKTog
+MjYuMC80MDAvNjAwIE1IegpbICAgIDAuMDAwMDAwXSAgKG51bGwpOiBDb3VsZCBub3QgZ2V0IHVh
+cnQ0X2ljawpbICAgIDAuMDAwMDAwXSAgKG51bGwpOiBDb3VsZCBub3QgZ2V0IHVhcnQ0X2Zjawpb
+ICAgIDAuMDAwMDAwXSBSZXByb2dyYW1taW5nIFNEUkMgY2xvY2sgdG8gNDAwMDAwMDAwIEh6Clsg
+ICAgMC4wMDAwMDBdIEdQTUMgcmV2aXNpb24gNS4wClsgICAgMC4wMDAwMDBdIElSUTogRm91bmQg
+YW4gSU5UQyBhdCAweGZhMjAwMDAwIChyZXZpc2lvbiA0LjApIHdpdGggOTYgaW50ZXJydXB0cwpb
+ICAgIDAuMDAwMDAwXSBUb3RhbCBvZiA5NiBpbnRlcnJ1cHRzIG9uIDEgYWN0aXZlIGNvbnRyb2xs
+ZXIKWyAgICAwLjAwMDAwMF0gQ291bGQgbm90IGdldCBncGlvc19pY2sKWyAgICAwLjAwMDAwMF0g
+Q291bGQgbm90IGdldCBncGlvc19mY2sKWyAgICAwLjAwMDAwMF0gT01BUCBHUElPIGhhcmR3YXJl
+IHZlcnNpb24gMi41ClsgICAgMC4wMDAwMDBdIE9NQVAgY2xvY2tldmVudCBzb3VyY2U6IEdQVElN
+RVIxIGF0IDMyNzY4IEh6ClsgICAgMC4wMDAwMDBdIENvbnNvbGU6IGNvbG91ciBkdW1teSBkZXZp
+Y2UgODB4MzAKWyAgICAwLjAwMDAwMF0gTG9jayBkZXBlbmRlbmN5IHZhbGlkYXRvcjogQ29weXJp
+Z2h0IChjKSAyMDA2IFJlZCBIYXQsIEluYy4sIEluZ28gTW9sbmFyClsgICAgMC4wMDAwMDBdIC4u
+LiBNQVhfTE9DS0RFUF9TVUJDTEFTU0VTOiAgOApbICAgIDAuMDAwMDAwXSAuLi4gTUFYX0xPQ0tf
+REVQVEg6ICAgICAgICAgIDQ4ClsgICAgMC4wMDAwMDBdIC4uLiBNQVhfTE9DS0RFUF9LRVlTOiAg
+ICAgICAgODE5MQpbICAgIDAuMDAwMDAwXSAuLi4gQ0xBU1NIQVNIX1NJWkU6ICAgICAgICAgIDQw
+OTYKWyAgICAwLjAwMDAwMF0gLi4uIE1BWF9MT0NLREVQX0VOVFJJRVM6ICAgICAxNjM4NApbICAg
+IDAuMDAwMDAwXSAuLi4gTUFYX0xPQ0tERVBfQ0hBSU5TOiAgICAgIDMyNzY4ClsgICAgMC4wMDAw
+MDBdIC4uLiBDSEFJTkhBU0hfU0laRTogICAgICAgICAgMTYzODQKWyAgICAwLjAwMDAwMF0gIG1l
+bW9yeSB1c2VkIGJ5IGxvY2sgZGVwZW5kZW5jeSBpbmZvOiAzOTUxIGtCClsgICAgMC4wMDAwMDBd
+ICBwZXIgdGFzay1zdHJ1Y3QgbWVtb3J5IGZvb3RwcmludDogMjMwNCBieXRlcwpbICAgIDAuMDAw
+MDAwXSBDYWxpYnJhdGluZyBkZWxheSBsb29wLi4uIDU5Ny42NCBCb2dvTUlQUyAobHBqPTIzMzQ3
+MjApClsgICAgMC4wMDAwMDBdIHBpZF9tYXg6IGRlZmF1bHQ6IDMyNzY4IG1pbmltdW06IDMwMQpb
+ICAgIDAuMDAwMDAwXSBTZWN1cml0eSBGcmFtZXdvcmsgaW5pdGlhbGl6ZWQKWyAgICAwLjAwMDAw
+MF0gTW91bnQtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA1MTIKWyAgICAwLjAwMDAwMF0gQ1BV
+OiBUZXN0aW5nIHdyaXRlIGJ1ZmZlciBjb2hlcmVuY3k6IG9rClsgICAgMC4wMDAwMDBdIHJlZ3Vs
+YXRvcjogY29yZSB2ZXJzaW9uIDAuNQpbICAgIDAuMDAwMDAwXSBORVQ6IFJlZ2lzdGVyZWQgcHJv
+dG9jb2wgZmFtaWx5IDE2ClsgICAgMC4wMDA3OTNdIE9NQVAgRE1BIGhhcmR3YXJlIHJldmlzaW9u
+IDUuMApbICAgIDAuMDg0MjI4XSBiaW86IGNyZWF0ZSBzbGFiIDxiaW8tMD4gYXQgMApbICAgIDAu
+MDkzMDc4XSBTQ1NJIHN1YnN5c3RlbSBpbml0aWFsaXplZApbICAgIDAuMTAyNzUyXSB1c2Jjb3Jl
+OiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmZzClsgICAgMC4xMDQwMzRdIHVz
+YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgaHViClsgICAgMC4xMDQ5NDld
+IHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGRldmljZSBkcml2ZXIgdXNiClsgICAgMC4xMDc1NDNd
+IGkyY19vbWFwIGkyY19vbWFwLjE6IGJ1cyAxIHJldjQuMCBhdCAyNDAwIGtIegpbICAgIDAuMTE4
+NjUyXSB0d2w0MDMwOiBQSUggKGlycSA3KSBjaGFpbmluZyBJUlFzIDM2OC4uMzc1ClsgICAgMC4x
+MTg4MzVdIHR3bDQwMzA6IHBvd2VyIChpcnEgMzczKSBjaGFpbmluZyBJUlFzIDM3Ni4uMzgzClsg
+ICAgMC4xMjA4MTldIHR3bDQwMzA6IGdwaW8gKGlycSAzNjgpIGNoYWluaW5nIElSUXMgMzg0Li40
+MDEKWyAgICAwLjEzMTgzNV0gcmVndWxhdG9yOiBWVVNCMVY1OiAxNTAwIG1WIG5vcm1hbCBzdGFu
+ZGJ5ClsgICAgMC4xMzM5NzJdIHJlZ3VsYXRvcjogVlVTQjFWODogMTgwMCBtViBub3JtYWwgc3Rh
+bmRieQpbICAgIDAuMTM1OTU1XSByZWd1bGF0b3I6IFZVU0IzVjE6IDMxMDAgbVYgbm9ybWFsIHN0
+YW5kYnkKWyAgICAwLjE0MDc0N10gdHdsNDAzMF91c2IgdHdsNDAzMF91c2I6IEluaXRpYWxpemVk
+IFRXTDQwMzAgVVNCIG1vZHVsZQpbICAgIDAuMTQ2MjcwXSByZWd1bGF0b3I6IFZNTUMxOiAxODUw
+IDwtLT4gMzE1MCBtViBhdCAzMDAwIG1WIG5vcm1hbCBzdGFuZGJ5ClsgICAgMC4xNDgyODRdIHJl
+Z3VsYXRvcjogVkRBQzogMTgwMCBtViBub3JtYWwgc3RhbmRieQpbICAgIDAuMTUwNDgyXSByZWd1
+bGF0b3I6IFZQTEwyOiAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5ClsgICAgMC4xNTI4OTNdIHJlZ3Vs
+YXRvcjogVk1NQzI6IDE4NTAgbVYgbm9ybWFsIHN0YW5kYnkKWyAgICAwLjE1NTIxMl0gcmVndWxh
+dG9yOiBWU0lNOiAxODAwIDwtLT4gMzAwMCBtViBhdCAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5Clsg
+ICAgMC4xNTU4ODNdIGkyY19vbWFwIGkyY19vbWFwLjI6IGJ1cyAyIHJldjQuMCBhdCAxMDAga0h6
+ClsgICAgMC4xNTgyMDNdIGkyY19vbWFwIGkyY19vbWFwLjM6IGJ1cyAzIHJldjQuMCBhdCA0MDAg
+a0h6ClsgICAgMC4xNjQyNDVdIEFkdmFuY2VkIExpbnV4IFNvdW5kIEFyY2hpdGVjdHVyZSBEcml2
+ZXIgVmVyc2lvbiAxLjAuMjMuClsgICAgMC4xNjc5MDddIEJsdWV0b290aDogQ29yZSB2ZXIgMi4x
+NQpbICAgIDAuMTY4NTc5XSBORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDMxClsgICAg
+MC4xNjg1NzldIEJsdWV0b290aDogSENJIGRldmljZSBhbmQgY29ubmVjdGlvbiBtYW5hZ2VyIGlu
+aXRpYWxpemVkClsgICAgMC4xNjg3MzFdIEJsdWV0b290aDogSENJIHNvY2tldCBsYXllciBpbml0
+aWFsaXplZApbICAgIDAuMTcwODM3XSBjZmc4MDIxMTogQ2FsbGluZyBDUkRBIHRvIHVwZGF0ZSB3
+b3JsZCByZWd1bGF0b3J5IGRvbWFpbgpbICAgIDAuMTcyMDI3XSBTd2l0Y2hpbmcgdG8gY2xvY2tz
+b3VyY2UgMzJrX2NvdW50ZXIKWyAgICAwLjIyMjU2NF0gbXVzYl9oZHJjOiB2ZXJzaW9uIDYuMCwg
+bXVzYi1kbWEsIG90ZyAocGVyaXBoZXJhbCtob3N0KSwgZGVidWc9MApbICAgIDAuMjI4OTczXSBt
+dXNiX2hkcmMgbXVzYl9oZHJjOiBVU0IgT1RHIG1vZGUgY29udHJvbGxlciBhdCBmYTBhYjAwMCB1
+c2luZyBETUEsIElSUSA5MgpbICAgIDAuMjMwMjg1XSBORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wg
+ZmFtaWx5IDIKWyAgICAwLjIzMTAxOF0gSVAgcm91dGUgY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVz
+OiA0MDk2IChvcmRlcjogMiwgMTYzODQgYnl0ZXMpClsgICAgMC4yMzI4NzldIFRDUCBlc3RhYmxp
+c2hlZCBoYXNoIHRhYmxlIGVudHJpZXM6IDE2Mzg0IChvcmRlcjogNSwgMTMxMDcyIGJ5dGVzKQpb
+ICAgIDAuMjMzNjczXSBUQ1AgYmluZCBoYXNoIHRhYmxlIGVudHJpZXM6IDE2Mzg0IChvcmRlcjog
+NywgNjU1MzYwIGJ5dGVzKQpbICAgIDAuMjQzODA0XSBUQ1A6IEhhc2ggdGFibGVzIGNvbmZpZ3Vy
+ZWQgKGVzdGFibGlzaGVkIDE2Mzg0IGJpbmQgMTYzODQpClsgICAgMC4yNDM4OTZdIFRDUCByZW5v
+IHJlZ2lzdGVyZWQKWyAgICAwLjI0MzkyN10gVURQIGhhc2ggdGFibGUgZW50cmllczogMjU2IChv
+cmRlcjogMiwgMjQ1NzYgYnl0ZXMpClsgICAgMC4yNDQyNjJdIFVEUC1MaXRlIGhhc2ggdGFibGUg
+ZW50cmllczogMjU2IChvcmRlcjogMiwgMjQ1NzYgYnl0ZXMpClsgICAgMC4yNDUxNDddIE5FVDog
+UmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMQpbICAgIDAuMjQ2Mjc2XSBSUEM6IFJlZ2lzdGVy
+ZWQgdWRwIHRyYW5zcG9ydCBtb2R1bGUuClsgICAgMC4yNDYzMDddIFJQQzogUmVnaXN0ZXJlZCB0
+Y3AgdHJhbnNwb3J0IG1vZHVsZS4KWyAgICAwLjI0NjMzN10gUlBDOiBSZWdpc3RlcmVkIHRjcCBO
+RlN2NC4xIGJhY2tjaGFubmVsIHRyYW5zcG9ydCBtb2R1bGUuClsgICAgMC4yNTIyNThdIE5ldFdp
+bmRlciBGbG9hdGluZyBQb2ludCBFbXVsYXRvciBWMC45NyAoZG91YmxlIHByZWNpc2lvbikKWyAg
+ICAwLjQyNDE2M10gVkZTOiBEaXNrIHF1b3RhcyBkcXVvdF82LjUuMgpbICAgIDAuNDI0Mjg1XSBE
+cXVvdC1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDEwMjQgKG9yZGVyIDAsIDQwOTYgYnl0ZXMp
+ClsgICAgMC40MjgzNDRdIEpGRlMyIHZlcnNpb24gMi4yLiAoTkFORCkgKFNVTU1BUlkpICDvv73v
+v6kgMjAwMS0yMDA2IFJlZCBIYXQsIEluYy4KWyAgICAwLjQyOTQ3M10gbXNnbW5pIGhhcyBiZWVu
+IHNldCB0byA5ODcKWyAgICAwLjQzNzU2MV0gYWxnOiBObyB0ZXN0IGZvciBzdGRybmcgKGtybmcp
+ClsgICAgMC40MzgwNzldIGlvIHNjaGVkdWxlciBub29wIHJlZ2lzdGVyZWQKWyAgICAwLjQzODEx
+MF0gaW8gc2NoZWR1bGVyIGRlYWRsaW5lIHJlZ2lzdGVyZWQKWyAgICAwLjQzODMyM10gaW8gc2No
+ZWR1bGVyIGNmcSByZWdpc3RlcmVkIChkZWZhdWx0KQpbICAgIDAuNDk2MjQ2XSBTZXJpYWw6IDgy
+NTAvMTY1NTAgZHJpdmVyLCA0IHBvcnRzLCBJUlEgc2hhcmluZyBlbmFibGVkClsgICAgMC41MjU4
+MTddIHNlcmlhbDgyNTAuMDogdHR5UzAgYXQgTU1JTyAweDEwMDAwMDAwIChpcnEgPSAyNjIpIGlz
+IGEgU1QxNjY1NApbICAgIDEuMTQxNzU0XSBjb25zb2xlIFt0dHlTMF0gZW5hYmxlZApbICAgIDEu
+MTgyMjIwXSBicmQ6IG1vZHVsZSBsb2FkZWQKWyAgICAxLjIwMjcyOF0gbG9vcDogbW9kdWxlIGxv
+YWRlZApbICAgIDEuMjE1MDI2XSBtdGRvb3BzOiBtdGQgZGV2aWNlIChtdGRkZXY9bmFtZS9udW1i
+ZXIpIG11c3QgYmUgc3VwcGxpZWQKWyAgICAxLjIyMjA0NV0gb21hcDItbmFuZCBkcml2ZXIgaW5p
+dGlhbGl6aW5nClsgICAgMS4yMjY1OTNdIE5BTkQgZGV2aWNlOiBNYW51ZmFjdHVyZXIgSUQ6IDB4
+MmMsIENoaXAgSUQ6IDB4YmMgKE1pY3JvbiBvbWFwMi1uYW5kLjApClsgICAgMS4yMzQzNDRdIE5B
+TkQgYnVzIHdpZHRoIDggaW5zdGVhZCAxNiBiaXQKWyAgICAxLjIzODU4Nl0gTm8gTkFORCBkZXZp
+Y2UgZm91bmQuClsgICAgMS4yNDIwNjVdIE5BTkQgZGV2aWNlOiBNYW51ZmFjdHVyZXIgSUQ6IDB4
+MmMsIENoaXAgSUQ6IDB4YmMgKE1pY3JvbiBOQU5EIDUxMk1pQiAxLDhWIDE2LWJpdCkKWyAgICAx
+LjI1MDc5M10gQ3JlYXRpbmcgNyBNVEQgcGFydGl0aW9ucyBvbiAib21hcDItbmFuZC4wIjoKWyAg
+ICAxLjI1NjEzNF0gMHgwMDAwMDAwMDAwMDAtMHgwMDAwMDAwODAwMDAgOiAiWC1Mb2FkZXItTkFO
+RCIKWyAgICAxLjI2OTU2MV0gMHgwMDAwMDAwODAwMDAtMHgwMDAwMDAxYzAwMDAgOiAiVS1Cb290
+LU5BTkQiClsgICAgMS4yODA1NDhdIDB4MDAwMDAwMWMwMDAwLTB4MDAwMDAwMjAwMDAwIDogIkJv
+b3QgRW52LU5BTkQiClsgICAgMS4yOTEyOTBdIDB4MDAwMDAwMjAwMDAwLTB4MDAwMDAyMDAwMDAw
+IDogIktlcm5lbC1OQU5EIgpbICAgIDEuMzE2NjE5XSAweDAwMDAwMjAwMDAwMC0weDAwMDAxYzAw
+MDAwMCA6ICJzeXN0ZW0iClsgICAgMS41MzUwMDNdIDB4MDAwMDFjMDAwMDAwLTB4MDAwMDFlMDAw
+MDAwIDogInVzZXJkYXRhIgpbICAgIDEuNTYxMDY1XSAweDAwMDAxZTAwMDAwMC0weDAwMDAyMDAw
+MDAwMCA6ICJjYWNoZSIKWyAgICAxLjU4ODE2NV0gT25lTkFORCBkcml2ZXIgaW5pdGlhbGl6aW5n
+ClsgICAgMS41OTkwNjBdIHNtc2M5MTF4OiBEcml2ZXIgdmVyc2lvbiAyMDA4LTEwLTIxLgpbICAg
+IDEuNjA5NDk3XSBzbXNjOTExeC1tZGlvOiBwcm9iZWQKWyAgICAxLjYxMzQwM10gZXRoMDogYXR0
+YWNoZWQgUEhZIGRyaXZlciBbU01TQyBMQU44NzAwXSAobWlpX2J1czpwaHlfYWRkcj1mZmZmZmZm
+ZjowMSwgaXJxPS0xKQpbICAgIDEuNjIyMDM5XSBuZXQgZXRoMDogTUFDIEFkZHJlc3M6IDAwOjA4
+OmVlOjAzOjdkOmU5ClsgICAgMS42Mjg0NzldIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVy
+ZmFjZSBkcml2ZXIgYXNpeApbICAgIDEuNjM0Njc0XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBp
+bnRlcmZhY2UgZHJpdmVyIGNkY19ldGhlcgpbICAgIDEuNjQxMjY1XSB1c2Jjb3JlOiByZWdpc3Rl
+cmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIG5ldDEwODAKWyAgICAxLjY0NzUyMV0gdXNiY29yZTog
+cmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBjZGNfc3Vic2V0ClsgICAgMS42NTQxNDRd
+IHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgemF1cnVzClsgICAgMS42
+NjA2NzVdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgdXNiOHh4eApb
+ICAgIDEuNjY2NDQyXSBsaWJlcnRhc19zZGlvOiBMaWJlcnRhcyBTRElPIGRyaXZlcgpbICAgIDEu
+NjcwOTg5XSBsaWJlcnRhc19zZGlvOiBDb3B5cmlnaHQgUGllcnJlIE9zc21hbgpbICAgIDEuNjc4
+ODMzXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGNkY193ZG0KWyAg
+ICAxLjY4NDYzMV0gSW5pdGlhbGl6aW5nIFVTQiBNYXNzIFN0b3JhZ2UgZHJpdmVyLi4uClsgICAg
+MS42OTAyNDZdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgdXNiLXN0
+b3JhZ2UKWyAgICAxLjY5NjQxMV0gVVNCIE1hc3MgU3RvcmFnZSBzdXBwb3J0IHJlZ2lzdGVyZWQu
+ClsgICAgMS43MDIzMDFdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIg
+bGlidXN1YWwKWyAgICAxLjcwODgzMV0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNl
+IGRyaXZlciB1c2J0ZXN0ClsgICAgMS43MTY0MDBdIG1pY2U6IFBTLzIgbW91c2UgZGV2aWNlIGNv
+bW1vbiBmb3IgYWxsIG1pY2UKWyAgICAxLjcyNDc2MV0gaW5wdXQ6IFRXTDQwMzAgS2V5cGFkIGFz
+IC9kZXZpY2VzL3BsYXRmb3JtL2kyY19vbWFwLjEvaTJjLTEvMS0wMDRhL3R3bDQwMzBfa2V5cGFk
+L2lucHV0L2lucHV0MApbICAgIDEuNzQzNDM4XSBpbnB1dDogdHdsNDAzMF9wd3JidXR0b24gYXMg
+L2RldmljZXMvcGxhdGZvcm0vaTJjX29tYXAuMS9pMmMtMS8xLTAwNDkvdHdsNDAzMF9wd3JidXR0
+b24vaW5wdXQvaW5wdXQxClsgICAgMS43NTczNTRdIHR3bF9ydGMgdHdsX3J0YzogcnRjIGNvcmU6
+IHJlZ2lzdGVyZWQgdHdsX3J0YyBhcyBydGMwClsgICAgMS43NjY3NTRdIGkyYyAvZGV2IGVudHJp
+ZXMgZHJpdmVyClsgICAgMS43NzUxNDZdIERyaXZlciBmb3IgMS13aXJlIERhbGxhcyBuZXR3b3Jr
+IHByb3RvY29sLgpbICAgIDEuNzg1MzY5XSBCbHVldG9vdGg6IEhDSSBVQVJUIGRyaXZlciB2ZXIg
+Mi4yClsgICAgMS43OTAwMDhdIEJsdWV0b290aDogSENJIEg0IHByb3RvY29sIGluaXRpYWxpemVk
+ClsgICAgMS43OTQ3OTldIEJsdWV0b290aDogSENJIEJDU1AgcHJvdG9jb2wgaW5pdGlhbGl6ZWQK
+WyAgICAxLjc5OTgzNV0gQmx1ZXRvb3RoOiBIQ0lMTCBwcm90b2NvbCBpbml0aWFsaXplZApbICAg
+IDEuODA0NTM0XSBCbHVldG9vdGg6IEJyb2FkY29tIEJsdXRvbml1bSBmaXJtd2FyZSBkcml2ZXIg
+dmVyIDEuMgpbICAgIDEuODExMzcwXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2Ug
+ZHJpdmVyIGJjbTIwM3gKWyAgICAxLjgxNzE5OV0gQmx1ZXRvb3RoOiBEaWdpYW5zd2VyIEJsdWV0
+b290aCBVU0IgZHJpdmVyIHZlciAwLjEwClsgICAgMS44MjM3OTFdIHVzYmNvcmU6IHJlZ2lzdGVy
+ZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgYnBhMTB4ClsgICAgMS44NDY1MjddIHVzYmNvcmU6IHJl
+Z2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgdXNiaGlkClsgICAgMS44NTIyNjRdIHVzYmhp
+ZDogVVNCIEhJRCBjb3JlIGRyaXZlcgpbICAgIDEuODU5MTkxXSB1c2Jjb3JlOiByZWdpc3RlcmVk
+IG5ldyBpbnRlcmZhY2UgZHJpdmVyIHNuZC11c2ItYXVkaW8KWyAgICAxLjk1NzQyN10gTm8gZGV2
+aWNlIGZvciBEQUkgb21hcC1tY2JzcC1kYWktMApbICAgIDEuOTYxOTc1XSBObyBkZXZpY2UgZm9y
+IERBSSBvbWFwLW1jYnNwLWRhaS0xClsgICAgMS45NjY0MzBdIE5vIGRldmljZSBmb3IgREFJIG9t
+YXAtbWNic3AtZGFpLTIKWyAgICAxLjk3MDk0N10gTm8gZGV2aWNlIGZvciBEQUkgb21hcC1tY2Jz
+cC1kYWktMwpbICAgIDEuOTc1NDAyXSBObyBkZXZpY2UgZm9yIERBSSBvbWFwLW1jYnNwLWRhaS00
+ClsgICAgMS45Nzk5MTldIEFMU0EgZGV2aWNlIGxpc3Q6ClsgICAgMS45ODI5MTBdICAgTm8gc291
+bmRjYXJkcyBmb3VuZC4KWyAgICAxLjk4NjM1OF0gb3Byb2ZpbGU6IGhhcmR3YXJlIGNvdW50ZXJz
+IG5vdCBhdmFpbGFibGUKWyAgICAxLjk5MTM5NF0gb3Byb2ZpbGU6IHVzaW5nIHRpbWVyIGludGVy
+cnVwdC4KWyAgICAxLjk5NjI0Nl0gVENQIGN1YmljIHJlZ2lzdGVyZWQKWyAgICAxLjk5OTQ4MV0g
+SW5pdGlhbGl6aW5nIFhGUk0gbmV0bGluayBzb2NrZXQKWyAgICAyLjAwMzk5N10gTkVUOiBSZWdp
+c3RlcmVkIHByb3RvY29sIGZhbWlseSAxNwpbICAgIDIuMDA4ODE5XSBORVQ6IFJlZ2lzdGVyZWQg
+cHJvdG9jb2wgZmFtaWx5IDE1ClsgICAgMi4wMTM3NjNdIEJsdWV0b290aDogTDJDQVAgdmVyIDIu
+MTQKWyAgICAyLjAxNzU0N10gQmx1ZXRvb3RoOiBMMkNBUCBzb2NrZXQgbGF5ZXIgaW5pdGlhbGl6
+ZWQKWyAgICAyLjAyMjcwNV0gQmx1ZXRvb3RoOiBTQ08gKFZvaWNlIExpbmspIHZlciAwLjYKWyAg
+ICAyLjAyNzI4Ml0gQmx1ZXRvb3RoOiBTQ08gc29ja2V0IGxheWVyIGluaXRpYWxpemVkClsgICAg
+Mi4wMzI2NTNdIEJsdWV0b290aDogUkZDT01NIFRUWSBsYXllciBpbml0aWFsaXplZApbICAgIDIu
+MDM3NTk3XSBCbHVldG9vdGg6IFJGQ09NTSBzb2NrZXQgbGF5ZXIgaW5pdGlhbGl6ZWQKWyAgICAy
+LjA0MjgxNl0gQmx1ZXRvb3RoOiBSRkNPTU0gdmVyIDEuMTEKWyAgICAyLjA0NjU2OV0gQmx1ZXRv
+b3RoOiBCTkVQIChFdGhlcm5ldCBFbXVsYXRpb24pIHZlciAxLjMKWyAgICAyLjA1MTk0MF0gQmx1
+ZXRvb3RoOiBCTkVQIGZpbHRlcnM6IHByb3RvY29sIG11bHRpY2FzdApbICAgIDIuMDU3MjUwXSBC
+bHVldG9vdGg6IEhJRFAgKEh1bWFuIEludGVyZmFjZSBFbXVsYXRpb24pIHZlciAxLjIKWyAgICAy
+LjA2NTE4NV0gbGliODAyMTE6IGNvbW1vbiByb3V0aW5lcyBmb3IgSUVFRTgwMi4xMSBkcml2ZXJz
+ClsgICAgMi4wNzEwMTRdIFRodW1iRUUgQ1BVIGV4dGVuc2lvbiBzdXBwb3J0ZWQuClsgICAgMi4w
+ODg4OTddIFBvd2VyIE1hbmFnZW1lbnQgZm9yIFRJIE9NQVAzLgpbICAgIDIuMTQ1NzIxXSBWRlAg
+c3VwcG9ydCB2MC4zOiBpbXBsZW1lbnRvciA0MSBhcmNoaXRlY3R1cmUgMyBwYXJ0IDMwIHZhcmlh
+bnQgYyByZXYgMwpbICAgIDIuMTYxMDQxXSB0d2xfcnRjIHR3bF9ydGM6IHNldHRpbmcgc3lzdGVt
+IGNsb2NrIHRvIDIwMTAtMDgtMDkgMTg6NDE6MTAgVVRDICgxMjgxMzc5MjcwKQpbICAgIDIuMTgw
+MjM2XSBtbWMxOiBuZXcgaGlnaCBzcGVlZCBNTUMgY2FyZCBhdCBhZGRyZXNzIDAwMDEKWyAgICAy
+LjE4Nzg5Nl0gbW1jYmxrMDogbW1jMTowMDAxIFNUTTE2RyAxNC44IEdpQiAKWyAgICAyLjE5Mzg3
+OF0gIG1tY2JsazA6IHVua25vd24gcGFydGl0aW9uIHRhYmxlClsgICAgMi42NzQ0NjhdIElQLUNv
+bmZpZzogRmFpbGVkIHRvIG9wZW4gZXRoMApbICAgIDIuNjc4NTg4XSBJUC1Db25maWc6IE5vIG5l
+dHdvcmsgZGV2aWNlcyBhdmFpbGFibGUuClsgICAgMi42ODYwOTZdIExvb2tpbmcgdXAgcG9ydCBv
+ZiBSUEMgMTAwMDAzLzIgb24gMTI4LjI0Ny43NC4yNDEKWyAgIDMyLjc2NjI5Nl0gcnBjYmluZDog
+c2VydmVyIDEyOC4yNDcuNzQuMjQxIG5vdCByZXNwb25kaW5nLCB0aW1lZCBvdXQKWyAgIDMyLjc3
+MzI4NF0gUm9vdC1ORlM6IFVuYWJsZSB0byBnZXQgbmZzZCBwb3J0IG51bWJlciBmcm9tIHNlcnZl
+ciwgdXNpbmcgZGVmYXVsdApbICAgMzIuNzgwNzAwXSBMb29raW5nIHVwIHBvcnQgb2YgUlBDIDEw
+MDAwNS8xIG9uIDEyOC4yNDcuNzQuMjQxClsgICA2Mi44NTk2NDldIHJwY2JpbmQ6IHNlcnZlciAx
+MjguMjQ3Ljc0LjI0MSBub3QgcmVzcG9uZGluZywgdGltZWQgb3V0ClsgICA2Mi44NjYyMTBdIFJv
+b3QtTkZTOiBVbmFibGUgdG8gZ2V0IG1vdW50ZCBwb3J0IG51bWJlciBmcm9tIHNlcnZlciwgdXNp
+bmcgZGVmYXVsdApbICAgNjIuODc0MjM3XSBSb290LU5GUzogU2VydmVyIHJldHVybmVkIGVycm9y
+IC0xMDEgd2hpbGUgbW91bnRpbmcgL2hvbWUveDAwOTEzNTkvbXktbmZzL2J1c3lib3gKWyAgIDYy
+Ljg4MzE0OF0gVkZTOiBVbmFibGUgdG8gbW91bnQgcm9vdCBmcyB2aWEgTkZTLCB0cnlpbmcgZmxv
+cHB5LgpbICAgNjIuODkwNzc3XSBWRlM6IENhbm5vdCBvcGVuIHJvb3QgZGV2aWNlICJuZnMiIG9y
+IHVua25vd24tYmxvY2soMiwwKQpbICAgNjIuODk3MjE2XSBQbGVhc2UgYXBwZW5kIGEgY29ycmVj
+dCAicm9vdD0iIGJvb3Qgb3B0aW9uOyBoZXJlIGFyZSB0aGUgYXZhaWxhYmxlIHBhcnRpdGlvbnM6
+ClsgICA2Mi45MDU3NjFdIDFmMDAgICAgICAgICAgICAgNTEyIG10ZGJsb2NrMCAoZHJpdmVyPykK
+WyAgIDYyLjkxMDgyN10gMWYwMSAgICAgICAgICAgIDEyODAgbXRkYmxvY2sxIChkcml2ZXI/KQpb
+ICAgNjIuOTE1ODYzXSAxZjAyICAgICAgICAgICAgIDI1NiBtdGRibG9jazIgKGRyaXZlcj8pClsg
+ICA2Mi45MjA4NjddIDFmMDMgICAgICAgICAgIDMwNzIwIG10ZGJsb2NrMyAoZHJpdmVyPykKWyAg
+IDYyLjkyNTkzM10gMWYwNCAgICAgICAgICA0MjU5ODQgbXRkYmxvY2s0IChkcml2ZXI/KQpbICAg
+NjIuOTMwOTY5XSAxZjA1ICAgICAgICAgICAzMjc2OCBtdGRibG9jazUgKGRyaXZlcj8pClsgICA2
+Mi45MzU5NzRdIDFmMDYgICAgICAgICAgIDMyNzY4IG10ZGJsb2NrNiAoZHJpdmVyPykKWyAgIDYy
+Ljk0MTAwOV0gYjMwMCAgICAgICAgMTU1NTgxNDQgbW1jYmxrMCBkcml2ZXI6IG1tY2JsawpbICAg
+NjIuOTQ2MzE5XSBLZXJuZWwgcGFuaWMgLSBub3Qgc3luY2luZzogVkZTOiBVbmFibGUgdG8gbW91
+bnQgcm9vdCBmcyBvbiB1bmtub3duLWJsb2NrKDIsMCkK
+
+--_003_A24693684029E5489D1D202277BE894456EA2F3Fdlee02entticom_
+Content-Type: text/plain; name="good.txt"
+Content-Description: good.txt
+Content-Disposition: attachment; filename="good.txt"; size=6990;
+	creation-date="Mon, 09 Aug 2010 13:41:23 GMT";
+	modification-date="Mon, 09 Aug 2010 13:41:23 GMT"
+Content-Transfer-Encoding: base64
+
+VW5jb21wcmVzc2luZyBMaW51eC4uLiBkb25lLCBib290aW5nIHRoZSBrZXJuZWwuCkxpbnV4IHZl
+cnNpb24gMi42LjM1LTA4OTI1LWdhMTE5NjVlICh4MDA5MTM1OUBkdHgwMDkxMzU5LXVidW50dS0x
+KSAoZ2NjIHZlcnNpb24gNC4zLjIgKFNvdXJjZXJ5IEcrKyBMaXRlIDIwMDhxMy03MikgKSAjMiBN
+b24gQXVnIDkgMTE6Mzc6MDQgQ0RUIDIwMTAKQ1BVOiBBUk12NyBQcm9jZXNzb3IgWzQxM2ZjMDgy
+XSByZXZpc2lvbiAyIChBUk12NyksIGNyPTEwYzUzYzdmCkNQVTogVklQVCBub25hbGlhc2luZyBk
+YXRhIGNhY2hlLCBWSVBUIG5vbmFsaWFzaW5nIGluc3RydWN0aW9uIGNhY2hlCk1hY2hpbmU6IE9N
+QVAgWm9vbTMgYm9hcmQKTWVtb3J5IHBvbGljeTogRUNDIGRpc2FibGVkLCBEYXRhIGNhY2hlIHdy
+aXRlYmFjawpPTUFQMzYzMC8zNzMwIEVTMS4yIChsMmNhY2hlIGl2YSBzZ3ggbmVvbiBpc3AgMTky
+bWh6X2NsayApClNSQU06IE1hcHBlZCBwYSAweDQwMjAwMDAwIHRvIHZhIDB4ZmU0MDAwMDAgc2l6
+ZTogMHgxMDAwMDAKQnVpbHQgMSB6b25lbGlzdHMgaW4gWm9uZSBvcmRlciwgbW9iaWxpdHkgZ3Jv
+dXBpbmcgb24uICBUb3RhbCBwYWdlczogMTMwMDQ4Cktlcm5lbCBjb21tYW5kIGxpbmU6IGVhcmx5
+cHJpbnRrIGNvbnNvbGU9dHR5UzAsMTE1MjAwbjggbm9pbml0cmQgbWVtPTUxMk0gcm9vdD0vZGV2
+L25mcyBydyBuZnNyb290PTEyOC4yNDcuNzQuMjQxOi9ob21lL3gwMDkxMzU5L215LW5mcy9idXN5
+Ym94LG5vbG9jayBpcD1kaGNwIG5mc3ZlcnM9Myx0Y3Agb21hcF92b3V0X21vZC52aWRlbzFfbnVt
+YnVmZmVycz02IG9tCmFwX3ZvdXRfbW9kLnZpZDFfc3RhdGljX3ZyZmJfYWxsb2M9eSBvbWFwX3Zv
+dXRfbW9kLnZpZGVvMl9udW1idWZmZXJzPTYgb21hcF92b3V0X21vZC52aWQyX3N0YXRpY192cmZi
+X2FsbG9jPXkKUElEIGhhc2ggdGFibGUgZW50cmllczogMjA0OCAob3JkZXI6IDEsIDgxOTIgYnl0
+ZXMpCkRlbnRyeSBjYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDY1NTM2IChvcmRlcjogNiwgMjYy
+MTQ0IGJ5dGVzKQpJbm9kZS1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDMyNzY4IChvcmRlcjog
+NSwgMTMxMDcyIGJ5dGVzKQpNZW1vcnk6IDUxMk1CID0gNTEyTUIgdG90YWwKTWVtb3J5OiA1MTU0
+ODhrLzUxNTQ4OGsgYXZhaWxhYmxlLCA4ODAwayByZXNlcnZlZCwgMEsgaGlnaG1lbQpWaXJ0dWFs
+IGtlcm5lbCBtZW1vcnkgbGF5b3V0OgogICAgdmVjdG9yICA6IDB4ZmZmZjAwMDAgLSAweGZmZmYx
+MDAwICAgKCAgIDQga0IpCiAgICBmaXhtYXAgIDogMHhmZmYwMDAwMCAtIDB4ZmZmZTAwMDAgICAo
+IDg5NiBrQikKICAgIERNQSAgICAgOiAweGZmYzAwMDAwIC0gMHhmZmUwMDAwMCAgICggICAyIE1C
+KQogICAgdm1hbGxvYyA6IDB4ZTA4MDAwMDAgLSAweGY4MDAwMDAwICAgKCAzNzYgTUIpCiAgICBs
+b3dtZW0gIDogMHhjMDAwMDAwMCAtIDB4ZTAwMDAwMDAgICAoIDUxMiBNQikKICAgIG1vZHVsZXMg
+OiAweGJmMDAwMDAwIC0gMHhjMDAwMDAwMCAgICggIDE2IE1CKQogICAgICAuaW5pdCA6IDB4YzAw
+MDgwMDAgLSAweGMwMDNiMDAwICAgKCAyMDQga0IpCiAgICAgIC50ZXh0IDogMHhjMDAzYjAwMCAt
+IDB4YzAzYWQwMDAgICAoMzUyOCBrQikKICAgICAgLmRhdGEgOiAweGMwM2NjMDAwIC0gMHhjMDQx
+YzdhMCAgICggMzIyIGtCKQpIaWVyYXJjaGljYWwgUkNVIGltcGxlbWVudGF0aW9uLgogICAgICAg
+IFJDVS1iYXNlZCBkZXRlY3Rpb24gb2Ygc3RhbGxlZCBDUFVzIGlzIGRpc2FibGVkLgogICAgICAg
+IFZlcmJvc2Ugc3RhbGxlZC1DUFVzIGRldGVjdGlvbiBpcyBkaXNhYmxlZC4KTlJfSVJRUzo0MDIK
+Q2xvY2tpbmcgcmF0ZSAoQ3J5c3RhbC9Db3JlL01QVSk6IDI2LjAvNDAwLzYwMCBNSHoKIChudWxs
+KTogQ291bGQgbm90IGdldCB1YXJ0NF9pY2sKIChudWxsKTogQ291bGQgbm90IGdldCB1YXJ0NF9m
+Y2sKUmVwcm9ncmFtbWluZyBTRFJDIGNsb2NrIHRvIDQwMDAwMDAwMCBIegpHUE1DIHJldmlzaW9u
+IDUuMApJUlE6IEZvdW5kIGFuIElOVEMgYXQgMHhmYTIwMDAwMCAocmV2aXNpb24gNC4wKSB3aXRo
+IDk2IGludGVycnVwdHMKVG90YWwgb2YgOTYgaW50ZXJydXB0cyBvbiAxIGFjdGl2ZSBjb250cm9s
+bGVyCkNvdWxkIG5vdCBnZXQgZ3Bpb3NfaWNrCkNvdWxkIG5vdCBnZXQgZ3Bpb3NfZmNrCk9NQVAg
+R1BJTyBoYXJkd2FyZSB2ZXJzaW9uIDIuNQpPTUFQIGNsb2NrZXZlbnQgc291cmNlOiBHUFRJTUVS
+MSBhdCAzMjc2OCBIegpDb25zb2xlOiBjb2xvdXIgZHVtbXkgZGV2aWNlIDgweDMwCkNhbGlicmF0
+aW5nIGRlbGF5IGxvb3AuLi4gNTk3LjY0IEJvZ29NSVBTIChscGo9MjMzNDcyMCkKcGlkX21heDog
+ZGVmYXVsdDogMzI3NjggbWluaW11bTogMzAxCk1vdW50LWNhY2hlIGhhc2ggdGFibGUgZW50cmll
+czogNTEyCkNQVTogVGVzdGluZyB3cml0ZSBidWZmZXIgY29oZXJlbmN5OiBvawpyZWd1bGF0b3I6
+IGNvcmUgdmVyc2lvbiAwLjUKTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxNgpPTUFQ
+IERNQSBoYXJkd2FyZSByZXZpc2lvbiA1LjAKYmlvOiBjcmVhdGUgc2xhYiA8YmlvLTA+IGF0IDAK
+U0NTSSBzdWJzeXN0ZW0gaW5pdGlhbGl6ZWQKdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJm
+YWNlIGRyaXZlciB1c2Jmcwp1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVy
+IGh1Ygp1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBkZXZpY2UgZHJpdmVyIHVzYgppMmNfb21hcCBp
+MmNfb21hcC4xOiBidXMgMSByZXY0LjAgYXQgMjQwMCBrSHoKdHdsNDAzMDogUElIIChpcnEgNykg
+Y2hhaW5pbmcgSVJRcyAzNjguLjM3NQp0d2w0MDMwOiBwb3dlciAoaXJxIDM3MykgY2hhaW5pbmcg
+SVJRcyAzNzYuLjM4Mwp0d2w0MDMwOiBncGlvIChpcnEgMzY4KSBjaGFpbmluZyBJUlFzIDM4NC4u
+NDAxCnJlZ3VsYXRvcjogVlVTQjFWNTogMTUwMCBtViBub3JtYWwgc3RhbmRieQpyZWd1bGF0b3I6
+IFZVU0IxVjg6IDE4MDAgbVYgbm9ybWFsIHN0YW5kYnkKcmVndWxhdG9yOiBWVVNCM1YxOiAzMTAw
+IG1WIG5vcm1hbCBzdGFuZGJ5CnR3bDQwMzBfdXNiIHR3bDQwMzBfdXNiOiBJbml0aWFsaXplZCBU
+V0w0MDMwIFVTQiBtb2R1bGUKcmVndWxhdG9yOiBWTU1DMTogMTg1MCA8LS0+IDMxNTAgbVYgYXQg
+MzAwMCBtViBub3JtYWwgc3RhbmRieQpyZWd1bGF0b3I6IFZEQUM6IDE4MDAgbVYgbm9ybWFsIHN0
+YW5kYnkKcmVndWxhdG9yOiBWUExMMjogMTgwMCBtViBub3JtYWwgc3RhbmRieQpyZWd1bGF0b3I6
+IFZNTUMyOiAxODUwIG1WIG5vcm1hbCBzdGFuZGJ5CnJlZ3VsYXRvcjogVlNJTTogMTgwMCA8LS0+
+IDMwMDAgbVYgYXQgMTgwMCBtViBub3JtYWwgc3RhbmRieQppMmNfb21hcCBpMmNfb21hcC4yOiBi
+dXMgMiByZXY0LjAgYXQgMTAwIGtIegppMmNfb21hcCBpMmNfb21hcC4zOiBidXMgMyByZXY0LjAg
+YXQgNDAwIGtIegpBZHZhbmNlZCBMaW51eCBTb3VuZCBBcmNoaXRlY3R1cmUgRHJpdmVyIFZlcnNp
+b24gMS4wLjIzLgpTd2l0Y2hpbmcgdG8gY2xvY2tzb3VyY2UgMzJrX2NvdW50ZXIKbXVzYl9oZHJj
+OiB2ZXJzaW9uIDYuMCwgbXVzYi1kbWEsIG90ZyAocGVyaXBoZXJhbCtob3N0KSwgZGVidWc9MApt
+dXNiX2hkcmMgbXVzYl9oZHJjOiBVU0IgT1RHIG1vZGUgY29udHJvbGxlciBhdCBmYTBhYjAwMCB1
+c2luZyBETUEsIElSUSA5MgpORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDIKSVAgcm91
+dGUgY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA0MDk2IChvcmRlcjogMiwgMTYzODQgYnl0ZXMp
+ClRDUCBlc3RhYmxpc2hlZCBoYXNoIHRhYmxlIGVudHJpZXM6IDE2Mzg0IChvcmRlcjogNSwgMTMx
+MDcyIGJ5dGVzKQpUQ1AgYmluZCBoYXNoIHRhYmxlIGVudHJpZXM6IDE2Mzg0IChvcmRlcjogNCwg
+NjU1MzYgYnl0ZXMpClRDUDogSGFzaCB0YWJsZXMgY29uZmlndXJlZCAoZXN0YWJsaXNoZWQgMTYz
+ODQgYmluZCAxNjM4NCkKVENQIHJlbm8gcmVnaXN0ZXJlZApVRFAgaGFzaCB0YWJsZSBlbnRyaWVz
+OiAyNTYgKG9yZGVyOiAwLCA0MDk2IGJ5dGVzKQpVRFAtTGl0ZSBoYXNoIHRhYmxlIGVudHJpZXM6
+IDI1NiAob3JkZXI6IDAsIDQwOTYgYnl0ZXMpCk5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1p
+bHkgMQpSUEM6IFJlZ2lzdGVyZWQgdWRwIHRyYW5zcG9ydCBtb2R1bGUuClJQQzogUmVnaXN0ZXJl
+ZCB0Y3AgdHJhbnNwb3J0IG1vZHVsZS4KUlBDOiBSZWdpc3RlcmVkIHRjcCBORlN2NC4xIGJhY2tj
+aGFubmVsIHRyYW5zcG9ydCBtb2R1bGUuCk5ldFdpbmRlciBGbG9hdGluZyBQb2ludCBFbXVsYXRv
+ciBWMC45NyAoZG91YmxlIHByZWNpc2lvbikKVkZTOiBEaXNrIHF1b3RhcyBkcXVvdF82LjUuMgpE
+cXVvdC1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDEwMjQgKG9yZGVyIDAsIDQwOTYgYnl0ZXMp
+Cm1zZ21uaSBoYXMgYmVlbiBzZXQgdG8gMTAwNgphbGc6IE5vIHRlc3QgZm9yIHN0ZHJuZyAoa3Ju
+ZykKaW8gc2NoZWR1bGVyIG5vb3AgcmVnaXN0ZXJlZAppbyBzY2hlZHVsZXIgZGVhZGxpbmUgcmVn
+aXN0ZXJlZAppbyBzY2hlZHVsZXIgY2ZxIHJlZ2lzdGVyZWQgKGRlZmF1bHQpClNlcmlhbDogODI1
+MC8xNjU1MCBkcml2ZXIsIDEgcG9ydHMsIElSUSBzaGFyaW5nIGVuYWJsZWQKc2VyaWFsODI1MC4w
+OiB0dHlTMCBhdCBNTUlPIDB4MTAwMDAwMDAgKGlycSA9IDI2MikgaXMgYSBTVDE2NjU0CmNvbnNv
+bGUgW3R0eVMwXSBlbmFibGVkCmJyZDogbW9kdWxlIGxvYWRlZApsb29wOiBtb2R1bGUgbG9hZGVk
+CnNtc2M5MTF4OiBEcml2ZXIgdmVyc2lvbiAyMDA4LTEwLTIxLgpzbXNjOTExeC1tZGlvOiBwcm9i
+ZWQKZXRoMDogYXR0YWNoZWQgUEhZIGRyaXZlciBbU01TQyBMQU44NzAwXSAobWlpX2J1czpwaHlf
+YWRkcj1mZmZmZmZmZjowMSwgaXJxPS0xKQpuZXQgZXRoMDogTUFDIEFkZHJlc3M6IDAwOjA4OmVl
+OjAzOjdkOmU5CkluaXRpYWxpemluZyBVU0IgTWFzcyBTdG9yYWdlIGRyaXZlci4uLgp1c2Jjb3Jl
+OiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYi1zdG9yYWdlClVTQiBNYXNzIFN0
+b3JhZ2Ugc3VwcG9ydCByZWdpc3RlcmVkLgppbnB1dDogVFdMNDAzMCBLZXlwYWQgYXMgL2Rldmlj
+ZXMvcGxhdGZvcm0vaTJjX29tYXAuMS9pMmMtMS8xLTAwNGEvdHdsNDAzMF9rZXlwYWQvaW5wdXQv
+aW5wdXQwCnR3bF9ydGMgdHdsX3J0YzogcnRjIGNvcmU6IHJlZ2lzdGVyZWQgdHdsX3J0YyBhcyBy
+dGMwCmkyYyAvZGV2IGVudHJpZXMgZHJpdmVyCkRyaXZlciBmb3IgMS13aXJlIERhbGxhcyBuZXR3
+b3JrIHByb3RvY29sLgp1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVz
+YmhpZAp1c2JoaWQ6IFVTQiBISUQgY29yZSBkcml2ZXIKQUxTQSBkZXZpY2UgbGlzdDoKICBObyBz
+b3VuZGNhcmRzIGZvdW5kLgpUQ1AgY3ViaWMgcmVnaXN0ZXJlZApJbml0aWFsaXppbmcgWEZSTSBu
+ZXRsaW5rIHNvY2tldApORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE3Ck5FVDogUmVn
+aXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMTUKUG93ZXIgTWFuYWdlbWVudCBmb3IgVEkgT01BUDMu
+ClZGUCBzdXBwb3J0IHYwLjM6IGltcGxlbWVudG9yIDQxIGFyY2hpdGVjdHVyZSAzIHBhcnQgMzAg
+dmFyaWFudCBjIHJldiAzCnR3bF9ydGMgdHdsX3J0Yzogc2V0dGluZyBzeXN0ZW0gY2xvY2sgdG8g
+MjAxMC0wOC0wOSAxNjo1NDo0OSBVVEMgKDEyODEzNzI4ODkpCm1tYzE6IG5ldyBoaWdoIHNwZWVk
+IE1NQyBjYXJkIGF0IGFkZHJlc3MgMDAwMQptbWNibGswOiBtbWMxOjAwMDEgU1RNMTZHIDE0Ljgg
+R2lCIAogbW1jYmxrMDogdW5rbm93biBwYXJ0aXRpb24gdGFibGUKbmV0IGV0aDA6IFNNU0M5MTF4
+LzkyMXggaWRlbnRpZmllZCBhdCAweGUwODBjMDAwLCBJUlE6IDMxOApTZW5kaW5nIERIQ1AgcmVx
+dWVzdHMgLi4uLCBPSwpJUC1Db25maWc6IEdvdCBESENQIGFuc3dlciBmcm9tIDAuMC4wLjAsIG15
+IGFkZHJlc3MgaXMgMTI4LjI0Ny43NS4yMTYKSVAtQ29uZmlnOiBDb21wbGV0ZToKICAgICBkZXZp
+Y2U9ZXRoMCwgYWRkcj0xMjguMjQ3Ljc1LjIxNiwgbWFzaz0yNTUuMjU1LjI1NC4wLCBndz0xMjgu
+MjQ3Ljc0LjIsCiAgICAgaG9zdD0xMjguMjQ3Ljc1LjIxNiwgZG9tYWluPWFtLmRoY3AudGkuY29t
+LCBuaXMtZG9tYWluPShub25lKSwKICAgICBib290c2VydmVyPTAuMC4wLjAsIHJvb3RzZXJ2ZXI9
+MTI4LjI0Ny43NC4yNDEsIHJvb3RwYXRoPQpMb29raW5nIHVwIHBvcnQgb2YgUlBDIDEwMDAwMy8y
+IG9uIDEyOC4yNDcuNzQuMjQxCkxvb2tpbmcgdXAgcG9ydCBvZiBSUEMgMTAwMDA1LzEgb24gMTI4
+LjI0Ny43NC4yNDEKVkZTOiBNb3VudGVkIHJvb3QgKG5mcyBmaWxlc3lzdGVtKSBvbiBkZXZpY2Ug
+MDoxMS4KRnJlZWluZyBpbml0IG1lbW9yeTogMjA0SwoKICAgIFN5c3RlbSBpbml0aWFsaXphdGlv
+bi4uLgoKICAgIEhvc3RuYW1lICAgICAgIDogWk9PTTIKICAgIEZpbGVzeXN0ZW0gICAgIDogdjEu
+MC4wCgoKICAgIEtlcm5lbCByZWxlYXNlIDogTGludXggMi42LjM1LTA4OTI1LWdhMTE5NjVlCiAg
+ICBLZXJuZWwgdmVyc2lvbiA6ICMyIE1vbiBBdWcgOSAxMTozNzowNCBDRFQgMjAxMAoKIE1vdW50
+aW5nIC9wcm9jICAgICAgICAgICAgIDogW1NVQ0NFU1NdCiBNb3VudGluZyAvc3lzICAgICAgICAg
+ICAgICA6IFtTVUNDRVNTXQogTW91bnRpbmcgL2RldiAgICAgICAgICAgICAgOiBbU1VDQ0VTU10K
+IE1vdW50aW5nIC9kZXYvcHRzICAgICAgICAgIDogW1NVQ0NFU1NdCiBFbmFibGluZyBob3QtcGx1
+ZyAgICAgICAgICA6IFtTVUNDRVNTXQogUG9wdWxhdGluZyAvZGV2ICAgICAgICAgICAgOiBbU1VD
+Q0VTU10KIE1vdW50aW5nIG90aGVyIGZpbGVzeXN0ZW1zIDogW1NVQ0NFU1NdCiBTdGFydGluZyBz
+eXNsb2dkICAgICAgICAgICA6IFtTVUNDRVNTXQogU3RhcnRpbmcgdGVsbmV0ZCAgICAgICAgICAg
+OiBbU1VDQ0VTU10KClN5c3RlbSBpbml0aWFsaXphdGlvbiBjb21wbGV0ZS4KClBsZWFzZSBwcmVz
+cyBFbnRlciB0byBhY3RpdmF0ZSB0aGlzIGNvbnNvbGUuIAoK
+
+--_003_A24693684029E5489D1D202277BE894456EA2F3Fdlee02entticom_--
