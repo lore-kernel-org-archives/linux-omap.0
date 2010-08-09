@@ -1,66 +1,58 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
-Date: Mon, 09 Aug 2010 12:29:36 -0700
-Message-ID: <87zkwvinz3.fsf@deeprootsystems.com>
-References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
-	<201006070809.47853.luke@dashjr.org>
-	<AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
-	<201006071115.34881.luke@dashjr.org>
-	<AANLkTinod9geJbbfdOIhB465qi6xHqfH-1vL048Bc3fa@mail.gmail.com>
-	<20100707120241.GN1920@atomide.com>
-	<AANLkTinq3Hx_2gGbuyvbGnNpSfQ75B3vJU9WU66GAzd4@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinq3Hx_2gGbuyvbGnNpSfQ75B3vJU9WU66GAzd4@mail.gmail.com>
-	(Govindraj's message of "Wed, 7 Jul 2010 17:52:42 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Luke-Jr <luke@dashjr.org>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
+From: mturquette@gmail.com
+Subject: [PATCH] OMAP: Voltage: fix typos, compile break
+Date: Mon,  9 Aug 2010 14:39:19 -0500
+Message-ID: <1281382759-13025-1-git-send-email-mturquette@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:33729 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754707Ab0HITjw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 15:39:52 -0400
+Received: by gxk23 with SMTP id 23so3538572gxk.19
+        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 12:39:51 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, Mike Turquette <mturquette@ti.com>
 
-Govindraj <govindraj.ti@gmail.com> writes:
+From: Mike Turquette <mturquette@ti.com>
 
-> On Wed, Jul 7, 2010 at 5:32 PM, Tony Lindgren <tony@atomide.com> wrote:
->> * Govindraj <govindraj.ti@gmail.com> [100608 09:24]:
->>> On Mon, Jun 7, 2010 at 9:45 PM, Luke-Jr <luke@dashjr.org> wrote:
->>> > On Monday 07 June 2010 08:28:51 am Govindraj wrote:
->>> >> Link:
->>> >> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summa
->>> >> ry
->>> >>
->>> >> Branch:
->>> >> pm-wip/uart
->>> >
->>> > This branch doesn't appear to have omap-serial.c at all...
->>> >
->>> >> If you are trying to use with any client device connected to uart
->>> >> then we need to ensure the client driver speaks to omap-serial
->>> >> dev entries.
->>> >
->>>
->>> You need apply the driver patch on top of this branch.
->>>
->>> [PATCH v3] serial: Add OMAP high-speed UART driver.
->>
->> Do we still have a dependency to pm-wip/uart branch? Can you please
->> check if you can rebase all these patches on top of linux-omap for-next
->> branch?
->
-> pm-wip uart branch is having all the mach-omap2/serail.c changes along with
-> hwmod data file updation and serial hwmod usage.
->
-> The driver patch [serial: Add OMAP high-speed UART driver]
-> was tested against wip/uart branch.
->
-> I will re-base all these patches for-next branch,
-> and will post driver and board support patches from pm-wip/uart as a
-> single series.
+mach-omap/voltage.c incorrectly called omap_get_mpuss_device and
+omap_get_l3_device.  The correct function names are
+omap2_get_mpuss_device and omap2_get_l3_device respectively.
 
-Any update on this?
+This fixes a compile break.  Test on OMAP3430 SDP.
 
-FWIW, I rebased the pm-wip/uart part on top of latest
-pm-wip/hwmods-omap4 but from here, you should take over responsibility
-for pm-wip/uart.
+Signed-off-by: Mike Turquette <mturquette@ti.com>
+---
 
-Kevin
+This patch is meant to apply to Kevin's pm-srf branch.  Without it
+compilation for OMAP3 is broken.
+
+ arch/arm/mach-omap2/voltage.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+index e7055f6..148e4d4 100644
+--- a/arch/arm/mach-omap2/voltage.c
++++ b/arch/arm/mach-omap2/voltage.c
+@@ -385,7 +385,7 @@ static void __init omap3_vdd_data_configure(int vdd)
+ 		vdd_info[vdd].volt_clk = clk_get(NULL, "dpll1_ck");
+ 		WARN(IS_ERR(vdd_info[vdd].volt_clk),
+ 				"unable to get clock for VDD%d\n", vdd + 1);
+-		vdd_info[vdd].opp_dev = omap_get_mpuss_device();
++		vdd_info[vdd].opp_dev = omap2_get_mpuss_device();
+ 		vdd_info[vdd].vp_reg.tranxdone_status =
+ 				OMAP3430_VP1_TRANXDONE_ST_MASK;
+ 		vdd_info[vdd].cmdval_reg = OMAP3_PRM_VC_CMD_VAL_0_OFFSET;
+@@ -411,7 +411,7 @@ static void __init omap3_vdd_data_configure(int vdd)
+ 		vdd_info[vdd].volt_clk = clk_get(NULL, "l3_ick");
+ 		WARN(IS_ERR(vdd_info[vdd].volt_clk),
+ 				"unable to get clock for VDD%d\n", vdd + 1);
+-		vdd_info[vdd].opp_dev = omap_get_l3_device();
++		vdd_info[vdd].opp_dev = omap2_get_l3_device();
+ 		vdd_info[vdd].vp_reg.tranxdone_status =
+ 					OMAP3430_VP2_TRANXDONE_ST_MASK;
+ 		vdd_info[vdd].cmdval_reg = OMAP3_PRM_VC_CMD_VAL_1_OFFSET;
+-- 
+1.7.0.5
+
