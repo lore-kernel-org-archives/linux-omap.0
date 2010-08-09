@@ -1,57 +1,70 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 0/8]usb: musb:USB driver changes to use hwmod+ omap-device
- apis
-Date: Mon, 09 Aug 2010 14:32:04 +0200
-Message-ID: <4C5FF544.9050907@ti.com>
-References: <1281110052-28990-1-git-send-email-hemahk@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH] OMAP4: HWMOD: Do omap_hwmod_late_init for OMAP4
+Date: Mon, 9 Aug 2010 18:05:50 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C6553084@dbde02.ent.ti.com>
+References: <1281097873-24094-1-git-send-email-charu@ti.com>
+ <4C5C0196.3040106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1281110052-28990-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: HEMA HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50038 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754140Ab0HIMf5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 08:35:57 -0400
+In-Reply-To: <4C5C0196.3040106@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-On 8/6/2010 5:54 PM, HEMA HK wrote:
-> From: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
->
-> Series of patches to port musb driver to use hwmod and runtime pm
-> APIs for OMAP4 and OMAP3.These patches are tested on OMAP4430SDP and
-> OMAP3630-ZOOM3 boards.
->
-> The patch 1 and 2 are are the prerequisites for the hwmod changes.
-> Patch 6 is the OMAP3 offmode support patch.
->
-> This patch series is generated on "origin/pm-wip/hwmods-omap4".
->
-> Offmode is tested with origin/pm on omap3630 zoom3 board.
+ 
 
-The way you are submitting that series is quite confusing!
+> -----Original Message-----
+> From: Cousson, Benoit 
+> Sent: Friday, August 06, 2010 6:06 PM
+> To: Varadarajan, Charulatha
+> Cc: linux-omap@vger.kernel.org; paul@pwsan.com; 
+> khilman@deeprootsystems.com; Nayak, Rajendra; Basak, Partha
+> Subject: Re: [PATCH] OMAP4: HWMOD: Do omap_hwmod_late_init for OMAP4
+> 
+> Hi Charu,
+> 
+> On 8/6/2010 2:31 PM, Varadarajan, Charulatha wrote:
+> > This patch includes "cpu_is" check for omap44xx cpu inorder to do
+> > omap_hwmod_late_init() without which hwmods initialization does not
+> > happen for omap4.
+> >
+> > Signed-off-by: Charulatha V<charu@ti.com>
+> > Signed-off-by: Basak, Partha<p-basak2@ti.com>
+> > ---
+> >   arch/arm/mach-omap2/io.c |    2 +-
+> >   1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> > index b89e678..9b15f46 100644
+> > --- a/arch/arm/mach-omap2/io.c
+> > +++ b/arch/arm/mach-omap2/io.c
+> > @@ -345,7 +345,7 @@ void __init omap2_init_common_hw(struct 
+> omap_sdrc_params *sdrc_cs0,
+> >   #ifndef CONFIG_PM_RUNTIME
+> >   	skip_setup_idle = 1;
+> >   #endif
+> > -	if (cpu_is_omap24xx() || cpu_is_omap34xx())   /* FIXME: OMAP4 */
+> > +	if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx())
+> >   		omap_hwmod_late_init(skip_setup_idle);
+> >
+> >   	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> 
+> This is already done in this patch:
+> [PATCH v3 1/7] OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
+> https://patchwork.kernel.org/patch/117347/
 
-You are mixing several numbering schemes and several series versions.
-If this is a V2, you have to resubmit everything with a V2, and you must 
-include an history.
+Okay. I found omap_hwmod_late_init() call missing for OMAP4 in
+origin/pm-wip/hwmods-omap4 and sent this patch without noticing your
+above mentioned patch. Please ignore this patch.
 
-[8/8] usb : musb:Using runtime pm apis for musb.  	
-[7/8] : Hwmod api changes
-[V2,6/8] usb: musb: Offmode fix for idle path
-[V2,4/8] usb : musb:Using omap_device_build for musb device registration
-[4/8] usb: musb: HWMOD database structures fixes OMAP4
-[V2,3/4] usb: musb: HWMOD database structures addition for OMAP3
-[2/8] usb: musb: Remove board_data parameter from musb_platform_init()
-[1/8] usb: musb: Adding names for IRQs in resource structure
-
-
-The cover letter does not contain the overall stat to summarize what 
-files you are modifying.
-
-Some spaces are missing after the ":" in the email subjects.
-
-Regards,
-Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Benoit
+> 
