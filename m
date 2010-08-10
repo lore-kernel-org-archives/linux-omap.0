@@ -1,34 +1,59 @@
-From: Hari Kanigeri <hari.kanigeri@gmail.com>
-Subject: Re: dspbridge and the omapl1x
-Date: Tue, 10 Aug 2010 17:12:45 -0500
-Message-ID: <AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
-References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:62046 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932745Ab0HJWMq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 18:12:46 -0400
-Received: by yxg6 with SMTP id 6so3911692yxg.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 15:12:45 -0700 (PDT)
-In-Reply-To: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 0/9] native support for wl1271 on ZOOM
+Date: Wed, 11 Aug 2010 01:12:19 +0300
+Message-ID: <1281478348-24833-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Pandita Vikram <vikram.pandita-l0cyMroinI0@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gardiner <bengardiner@nanometrics.ca>
-Cc: ErnestoRamos <ernesto@ti.com>, ArmandoUribe <x0095078@ti.com>, NishanthMenon <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, ReneSapiens <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, FelipeContreras <felipe.contreras@gmail.com>, OmarRamirezLuna <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org
 
-Ben,
+This patch series adds native support for wl1271 on ZOOM.
 
+Changes since v2:
+- mmc/sdio power manipulation is removed, and will be
+  posted separately in the shape of mmc/sdio runtime pm.
+- the platform device is back, used to deliver board-specific
+  platform data (i.e. irq and ref clock)
 
-> We are attracted to DSPBridge over DSPLink because it appears to have
-> better dynamic resource management and it is headed for mainline
-> (fingers crossed).
+Patches are based on linux-next (as of Aug 7th), and tested
+on ZOOM2.
 
-Do you mean dynamic memory management ? Can you please elaborate on
-what feature you are referring to ?
->
+Please note that I am going to have a very limited email access
+in the next three weeks, so I might not respond right away.
 
-Thank you,
-Best regards,
-Hari
+Thanks,
+
+Ohad Ben-Cohen (9):
+  wireless: wl1271: make wl12xx.h common to both spi and sdio
+  wireless: wl1271: support return value for the set power func
+  wireless: wl1271: add platform driver to get board data
+  wireless: wl1271: take irq info from private board data
+  wireless: wl1271: make ref_clock configurable by board
+  omap: hsmmc: remove unused variable
+  omap: zoom: add fixed regulator device for wlan
+  omap: hsmmc: support mmc3 regulator power control
+  omap: zoom: add mmc3/wl1271 device support
+
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   69 +++++++++++++++
+ arch/arm/mach-omap2/hsmmc.c                  |   10 ++-
+ drivers/mmc/host/omap_hsmmc.c                |   68 +++++++++++++--
+ drivers/net/wireless/wl12xx/wl1251_sdio.c    |    2 +-
+ drivers/net/wireless/wl12xx/wl1251_spi.c     |    2 +-
+ drivers/net/wireless/wl12xx/wl1271.h         |   15 +++-
+ drivers/net/wireless/wl12xx/wl1271_boot.c    |    9 +-
+ drivers/net/wireless/wl12xx/wl1271_boot.h    |    1 -
+ drivers/net/wireless/wl12xx/wl1271_io.h      |    8 +-
+ drivers/net/wireless/wl12xx/wl1271_main.c    |    4 +-
+ drivers/net/wireless/wl12xx/wl1271_sdio.c    |  120 +++++++++++++++++++++++---
+ drivers/net/wireless/wl12xx/wl1271_spi.c     |    8 ++-
+ include/linux/spi/wl12xx.h                   |   34 -------
+ include/linux/wl12xx.h                       |   35 ++++++++
+ 14 files changed, 311 insertions(+), 74 deletions(-)
+ delete mode 100644 include/linux/spi/wl12xx.h
+ create mode 100644 include/linux/wl12xx.h
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
