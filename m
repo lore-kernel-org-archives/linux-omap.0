@@ -1,611 +1,485 @@
-From: "Basak, Partha" <p-basak2@ti.com>
-Subject: RE: [RFC v.4] omap: hwspinlock: Added hwspinlock driver
-Date: Tue, 10 Aug 2010 20:49:49 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E80AC50C@dbde02.ent.ti.com>
-References: <F39349C6FA641B4A831B7BF4EBF4D4E1475D1B0F@dlee03.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+Date: Tue, 10 Aug 2010 18:49:03 +0300 (EEST)
+Message-ID: <20100810.184903.214240645.Hiroshi.DOYU@nokia.com>
+References: <1276841055-13843-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<1277736372.25271.102.camel@e102109-lin.cambridge.arm.com>
+	<20100629.074423.71111160.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51062 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932157Ab0HJPT4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 11:19:56 -0400
-In-Reply-To: <F39349C6FA641B4A831B7BF4EBF4D4E1475D1B0F@dlee03.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:51702 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932074Ab0HJPtd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 11:49:33 -0400
+In-Reply-To: <20100629.074423.71111160.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Que, Simon" <sque@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: catalin.marinas@arm.com
+Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
 
+Hi Catalin,
 
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+Date: Tue, 29 Jun 2010 07:44:23 +0300 (EEST)
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Que, Simon
-> Sent: Wednesday, July 07, 2010 1:55 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Kanigeri, Hari; Ohad Ben-Cohen; Shilimkar, Santosh
-> Subject: [RFC v.4] omap: hwspinlock: Added hwspinlock driver
->
-> Hello,
->
-> This is the fourth and final RFC for the hardware spinlock driver.  I have
-> incorporated some changes and fixes based on Santosh's comments.
->
-> Please give your comments.
->
-> Thanks,
-> Simon
->
->
-> =================================================================
->
-> From d4794eff60e5e509581fedaf2660b0d2d92463ab Mon Sep 17 00:00:00 2001
-> From: Simon Que <sque@ti.com>
-> Date: Wed, 23 Jun 2010 18:40:30 -0500
-> Subject: [PATCH] omap: hwspinlock: Added hwspinlock driver
->
-> Created driver for OMAP hardware spinlock.  This driver supports:
-> - Reserved spinlocks for internal use
-> - Dynamic allocation of unreserved locks
-> - Lock, unlock, and trylock functions, with or without disabling
-> irqs/preempt
-> - Registered as a platform device driver
->
-> The device initialization uses hwmod to configure the devices.  One device
-> will
-> be created for each hardware spinlock.  It will pass spinlock register
-> addresses to the driver.  The device initialization file is:
->                 arch/arm/mach-omap2/hwspinlocks.c
->
-> The driver takes in data passed in device initialization.  The function
-> hwspinlock_probe() initializes the array of spinlock structures, each
-> containing a spinlock register address provided by the device
-> initialization.
-> The device driver file is:
->                 arch/arm/plat-omap/hwspinlock.c
->
-> Here's an API summary:
-> int hwspinlock_lock(struct hwspinlock *);
->         Attempt to lock a hardware spinlock.  If it is busy, the function
-> will
->         keep trying until it succeeds.  This is a blocking function.
-> int hwspinlock_trylock(struct hwspinlock *);
->         Attempt to lock a hardware spinlock.  If it is busy, the function
-> will
->         return BUSY.  If it succeeds in locking, the function will return
->         ACQUIRED.  This is a non-blocking function
-> int hwspinlock_unlock(struct hwspinlock *);
->         Unlock a hardware spinlock.
->
-> struct hwspinlock *hwspinlock_request(void);
->         Provides for "dynamic allocation" of a hardware spinlock.  It
-> returns
->         the handle to the next available (unallocated) spinlock.  If no
-> more
->         locks are available, it returns NULL.
-> struct hwspinlock *hwspinlock_request_specific(unsigned int);
->         Provides for "static allocation" of a specific hardware spinlock.
-> This
->         allows the system to use a specific spinlock, identified by an ID.
-> If
->         the ID is invalid or if the desired lock is already allocated,
-> this
->         will return NULL.  Otherwise it returns a spinlock handle.
-> int hwspinlock_free(struct hwspinlock *);
->         Frees an allocated hardware spinlock (either reserved or
-> unreserved).
->
-> Signed-off-by: Simon Que <sque@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile                 |    2 +
->  arch/arm/mach-omap2/hwspinlocks.c            |   71 ++++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    2 +-
->  arch/arm/plat-omap/Makefile                  |    3 +-
->  arch/arm/plat-omap/hwspinlock.c              |  295
-> ++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/hwspinlock.h |   29 +++
->  arch/arm/plat-omap/include/plat/omap44xx.h   |    2 +
->  7 files changed, 402 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/hwspinlocks.c
->  create mode 100644 arch/arm/plat-omap/hwspinlock.c
->  create mode 100644 arch/arm/plat-omap/include/plat/hwspinlock.h
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 6725b3a..5f5c87b 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -170,3 +170,5 @@ obj-y                                       += $(nand-
-> m) $(nand-y)
->
->  smc91x-$(CONFIG_SMC91X)                        := gpmc-smc91x.o
->  obj-y                                  += $(smc91x-m) $(smc91x-y)
-> +
-> +obj-$(CONFIG_ARCH_OMAP4)               += hwspinlocks.o
-> \ No newline at end of file
-> diff --git a/arch/arm/mach-omap2/hwspinlocks.c b/arch/arm/mach-
-> omap2/hwspinlocks.c
-> new file mode 100644
-> index 0000000..58a6483
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/hwspinlocks.c
-> @@ -0,0 +1,71 @@
-> +/*
-> + * OMAP hardware spinlock device initialization
-> + *
-> + * Copyright (C) 2010 Texas Instruments. All rights reserved.
-> + *
-> + * Contact: Simon Que <sque@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/device.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/slab.h>
-> +
-> +#include <plat/hwspinlock.h>
-> +#include <plat/omap_device.h>
-> +#include <plat/omap_hwmod.h>
-> +
-> +/* Spinlock register offsets */
-> +#define REVISION_OFFSET                        0x0000
-> +#define SYSCONFIG_OFFSET               0x0010
-> +#define SYSSTATUS_OFFSET               0x0014
-> +#define LOCK_BASE_OFFSET               0x0800
-> +#define LOCK_OFFSET(i)                 (LOCK_BASE_OFFSET + 0x4 * (i))
-> +
-> +/* Initialization function */
-> +int __init hwspinlocks_init(void)
-> +{
-> +       int retval = 0;
-> +
-> +       struct hwspinlock_plat_info *pdata;
-> +       struct omap_hwmod *oh;
-> +       char *oh_name, *pdev_name;
-> +
-> +       oh_name = "spinlock";
-> +       oh = omap_hwmod_lookup(oh_name);
-> +       if (WARN_ON(oh == NULL))
-> +               return -EINVAL;
-> +
-> +       pdev_name = "hwspinlock";
-> +
-> +       /* Pass data to device initialization */
-> +       pdata = kzalloc(sizeof(struct hwspinlock_plat_info), GFP_KERNEL);
-> +       if (WARN_ON(pdata == NULL))
-> +               return -ENOMEM;
-> +       pdata->sysstatus_offset = SYSSTATUS_OFFSET;
-> +       pdata->lock_base_offset = LOCK_BASE_OFFSET;
-> +
-> +       omap_device_build(pdev_name, 0, oh, pdata,
-> +                       sizeof(struct hwspinlock_plat_info), NULL, 0,
-> false);
+> From: ext Catalin Marinas <catalin.marinas@arm.com>
+> Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+> Date: Mon, 28 Jun 2010 16:46:12 +0200
+> 
+>> Hi,
+>> 
+>> (and sorry for the delay)
+>> 
+>> On Fri, 2010-06-18 at 07:04 +0100, Hiroshi DOYU wrote:
+>>> This is another version of "kmemleak: Fix false positive", which
+>>> introduces another alias tree to keep track of all alias address of
+>>> each objects, based on the discussion(*1)
+>>> 
+>>> You can also find the previous one(*2), which uses special scan area
+>>> for alias addresses with a conversion function.
+>>> 
+>>> Compared with both methods, it seems that the current one takes a bit
+>>> longer to scan as below, tested with 512 elementes of (*3).
+>>> 
+>>> "kmemleak: Fix false positive with alias":
+>>> # time echo scan > /mnt/kmemleak
+>>> real    0m 8.40s
+>>> user    0m 0.00s
+>>> sys     0m 8.40s
+>>> 
+>>> "kmemleak: Fix false positive with special scan":
+>>> # time echo scan > /mnt/kmemleak
+>>> real    0m 3.96s
+>>> user    0m 0.00s
+>>> sys     0m 3.96s
+>> 
+>> Have you tried without your patches (just the test module but without
+>> aliasing the pointers)? I'm curious what's the impact of your first set
+>> of patches.
+> 
+> IIRC, not much difference against the one with the first patches. I'll
+> measure it again later.
+> 
+>>> For our case(*4) to reduce false positives for the 2nd level IOMMU
+>>> pagetable allocation, the previous special scan  seems to be enough
+>>> lightweight, although there might be possiblity to improve alias
+>>> one and also I might misunderstand the original proposal of aliasing.
+>> 
+>> The performance impact is indeed pretty high, though some parts of the
+>> code look over-engineered to me (the __scan_block function with a loop
+>> going through an array of two function pointers - I think the compiler
+>> cannot figure out what to inline). You could just extend the
+>> find_and_get_object() to search both trees under a single spinlock
+>> region (as locking also takes time).
+> 
+> Ok, a good point.
 
-I did not see struct omap_device_pm_latency *pm_lats approprpriately populated and passed to omap_device_build.
+Now there's not much difference with the attached patch, a new version
+of alias.
 
-I was expecting something like this:
-struct omap_device_pm_latency omap_hwspinlock_latency[] = {
-        {
-                .deactivate_func = omap_device_idle_hwmods,
-                .activate_func   = omap_device_enable_hwmods,
-                .flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-        };
-       omap_device_build(pdev_name, 0, oh, pdata,
-            sizeof(struct hwspinlock_plat_info),                                                omap_hwspinlock_latency, ARRAY_SIZE(omap_hwspinlock_latency),
-                false);
+/ # modprobe kmemleak-special-test use_alias=0
+/ # time echo scan > /sys/kernel/debug/kmemleak
+real    0m 2.30s
+user    0m 0.00s
+sys     0m 2.30s
 
-Unless this is done, pm_runtime_getsync()/omap_device_enable will not actually enable(idle) the underlying hwmod.
+/ # modprobe kmemleak-special-test use_alias=1
+/ # time echo scan > /sys/kernel/debug/kmemleak
+real    0m 3.91s
+user    0m 0.00s
+sys     0m 3.91s
 
-> +       return retval;
-> +}
-> +module_init(hwspinlocks_init);
-> +
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-
-> omap2/omap_hwmod_44xx_data.c
-> index d8d6d58..ce6c5ff 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -4875,7 +4875,7 @@ static __initdata struct omap_hwmod
-> *omap44xx_hwmods[] = {
->  /*     &omap44xx_smartreflex_iva_hwmod, */
->  /*     &omap44xx_smartreflex_mpu_hwmod, */
->         /* spinlock class */
-> -/*     &omap44xx_spinlock_hwmod, */
-> +       &omap44xx_spinlock_hwmod,
->         /* timer class */
->         &omap44xx_timer1_hwmod,
->         &omap44xx_timer2_hwmod,
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index a37abf5..f725afc 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -32,4 +32,5 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
->  obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
->  obj-$(CONFIG_OMAP_REMOTE_PROC) += remoteproc.o
->
-> -obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
-> \ No newline at end of file
-> +obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
-> +obj-$(CONFIG_ARCH_OMAP4) += hwspinlock.o
-> \ No newline at end of file
-> diff --git a/arch/arm/plat-omap/hwspinlock.c b/arch/arm/plat-
-> omap/hwspinlock.c
-> new file mode 100644
-> index 0000000..eca1fc7
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/hwspinlock.c
-> @@ -0,0 +1,295 @@
-> +/*
-> + * OMAP hardware spinlock driver
-> + *
-> + * Copyright (C) 2010 Texas Instruments. All rights reserved.
-> + *
-> + * Contact: Simon Que <sque@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/device.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/slab.h>
-> +#include <linux/spinlock.h>
-> +
-> +#include <plat/hwspinlock.h>
-> +
-> +/* Spinlock count code */
-> +#define SPINLOCK_32_REGS               1
-> +#define SPINLOCK_64_REGS               2
-> +#define SPINLOCK_128_REGS              4
-> +#define SPINLOCK_256_REGS              8
-> +#define SPINLOCK_NUMLOCKS_OFFSET       24
-> +
-> +/* for managing a hardware spinlock module */
-> +struct hwspinlock_state {
-> +       bool is_init;                   /* For first-time initialization
-> */
-> +       int num_locks;                  /* Total number of locks in system
-> */
-> +       spinlock_t local_lock;          /* Local protection */
-> +       void __iomem *io_base;          /* Mapped base address */
-> +};
-> +
-> +/* Points to the hardware spinlock module */
-> +static struct hwspinlock_state hwspinlock_state;
-> +static struct hwspinlock_state *hwspinlock_module = &hwspinlock_state;
-> +
-> +/* Spinlock object */
-> +struct hwspinlock {
-> +       bool is_init;
-> +       int id;
-> +       void __iomem *lock_reg;
-> +       bool is_allocated;
-> +       struct platform_device *pdev;
-> +};
-> +
-> +/* Array of spinlocks */
-> +static struct hwspinlock *hwspinlocks;
-> +
-> +/* API functions */
-> +
-> +/* Busy loop to acquire a spinlock */
-> +int hwspinlock_lock(struct hwspinlock *handle)
-> +{
-> +       int retval;
-> +
-> +       if (WARN_ON(handle == NULL))
-> +               return -EINVAL;
-> +
-> +       if (WARN_ON(in_irq()))
-> +               return -EPERM;
-> +
-> +       if (pm_runtime_get(&handle->pdev->dev) < 0)
-> +               return -ENODEV;
-> +
-> +       /* Attempt to acquire the lock by reading from it */
-> +       do {
-> +               retval = readl(handle->lock_reg);
-> +       } while (retval == HWSPINLOCK_BUSY);
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_lock);
-> +
-> +/* Attempt to acquire a spinlock once */
-> +int hwspinlock_trylock(struct hwspinlock *handle)
-> +{
-> +       int retval = 0;
-> +
-> +       if (WARN_ON(handle == NULL))
-> +               return -EINVAL;
-> +
-> +       if (WARN_ON(in_irq()))
-> +               return -EPERM;
-> +
-> +       if (pm_runtime_get(&handle->pdev->dev) < 0)
-> +               return -ENODEV;
-> +
-> +       /* Attempt to acquire the lock by reading from it */
-> +       retval = readl(handle->lock_reg);
-> +
-> +       if (retval == HWSPINLOCK_BUSY)
-> +               pm_runtime_put(&handle->pdev->dev);
-Any reason for using pm_runtime_put instead of pm_runtime_put_sync?
+>From a5670d69b2cafe85f6f26f6951097210d3b9917f Mon Sep 17 00:00:00 2001
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Thu, 17 Jun 2010 13:36:45 +0300
+Subject: [PATCH 1/1] kmemleak: Fix false positive with address alias
 
-Using pm_runtime_gett_sync & pm_runtime_put_sync have been recommended by Kevin Hilman.
+There is a false positive case that a pointer is calculated by other
+methods than the usual container_of macro. "kmemleak_ignore" can cover
+such a false positive, but it would loose the advantage of memory leak
+detection. This patch allows kmemleak to work with such false
+positives by aliasing of address. A client module can register an
+alias address to an original pointer.
 
-> +
-> +       return retval;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_trylock);
-> +
-> +/* Release a spinlock */
-> +int hwspinlock_unlock(struct hwspinlock *handle)
-> +{
-> +       if (WARN_ON(handle == NULL))
-> +               return -EINVAL;
-> +
-> +       /* Release it by writing 0 to it */
-> +       writel(0, handle->lock_reg);
-> +
-> +       pm_runtime_put(&handle->pdev->dev);
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_unlock);
-> +
-> +/* Request an unclaimed spinlock */
-> +struct hwspinlock *hwspinlock_request(void)
-> +{
-> +       int i;
-> +       bool found = false;
-> +       struct hwspinlock *handle = NULL;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&hwspinlock_module->local_lock, flags);
-> +       /* Search for an unclaimed, unreserved lock */
-> +       for (i = 0; i < hwspinlock_module->num_locks && !found; i++) {
-> +               if (!hwspinlocks[i].is_allocated) {
-> +                       found = true;
-> +                       handle = &hwspinlocks[i];
-> +               }
-> +       }
-> +       spin_unlock_irqrestore(&hwspinlock_module->local_lock, flags);
-> +
-> +       /* Return error if no more locks available */
-> +       if (!found)
-> +               return NULL;
-> +
-> +       handle->is_allocated = true;
-> +
-> +       return handle;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_request);
-> +
-> +/* Request an unclaimed spinlock by ID */
-> +struct hwspinlock *hwspinlock_request_specific(unsigned int id)
-> +{
-> +       struct hwspinlock *handle = NULL;
-> +       unsigned long flags;
-> +
-> +       spin_lock_irqsave(&hwspinlock_module->local_lock, flags);
-> +
-> +       if (WARN_ON(hwspinlocks[id].is_allocated))
-> +               goto exit;
-> +
-> +       handle = &hwspinlocks[id];
-> +       handle->is_allocated = true;
-> +
-> +exit:
-> +       spin_unlock_irqrestore(&hwspinlock_module->local_lock, flags);
-> +       return handle;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_request_specific);
-> +
-> +/* Release a claimed spinlock */
-> +int hwspinlock_free(struct hwspinlock *handle)
-> +{
-> +       if (WARN_ON(handle == NULL))
-> +               return -EINVAL;
-> +
-> +       if (WARN_ON(!handle->is_allocated))
-> +               return -ENOMEM;
-> +
-> +       handle->is_allocated = false;
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(hwspinlock_free);
-> +
-> +/* Probe function */
-> +static int __devinit hwspinlock_probe(struct platform_device *pdev)
-> +{
-> +       struct hwspinlock_plat_info *pdata = pdev->dev.platform_data;
-> +       struct resource *res;
-> +       void __iomem *io_base;
-> +       int id;
-> +
-> +       void __iomem *sysstatus_reg;
-> +
-> +       /* Determine number of locks */
-> +       sysstatus_reg = ioremap(OMAP44XX_SPINLOCK_BASE +
-> +                                       pdata->sysstatus_offset,
-> sizeof(u32));
-> +       switch (readl(sysstatus_reg) >> SPINLOCK_NUMLOCKS_OFFSET) {
-> +       case SPINLOCK_32_REGS:
-> +               hwspinlock_module->num_locks = 32;
-> +               break;
-> +       case SPINLOCK_64_REGS:
-> +               hwspinlock_module->num_locks = 64;
-> +               break;
-> +       case SPINLOCK_128_REGS:
-> +               hwspinlock_module->num_locks = 128;
-> +               break;
-> +       case SPINLOCK_256_REGS:
-> +               hwspinlock_module->num_locks = 256;
-> +               break;
-> +       default:
-> +               return -EINVAL; /* Invalid spinlock count code */
-> +       }
-> +       iounmap(sysstatus_reg);
-> +
-> +       /* Allocate spinlock device objects */
-> +       hwspinlocks = kmalloc(sizeof(struct hwspinlock) *
-> +                       hwspinlock_module->num_locks, GFP_KERNEL);
-> +       if (WARN_ON(hwspinlocks == NULL))
-> +               return -ENOMEM;
-> +
-> +       /* Initialize local lock */
-> +       spin_lock_init(&hwspinlock_module->local_lock);
-> +
-> +       /* Get address info */
-> +       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +
-> +       /* Map spinlock module address space */
-> +       io_base = ioremap(res->start, resource_size(res));
-> +       hwspinlock_module->io_base = io_base;
-> +
-> +       /* Set up each individual lock handle */
-> +       for (id = 0; id < hwspinlock_module->num_locks; id++) {
-> +               hwspinlocks[id].id              = id;
-> +               hwspinlocks[id].pdev            = pdev;
-> +
-> +               hwspinlocks[id].is_init         = true;
-> +               hwspinlocks[id].is_allocated    = false;
-> +
-> +               hwspinlocks[id].lock_reg        = io_base + pdata->
-> +                                       lock_base_offset + sizeof(u32) *
-> id;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static struct platform_driver hwspinlock_driver = {
-> +       .probe          = hwspinlock_probe,
-> +       .driver         = {
-> +               .name   = "hwspinlock",
-> +       },
-> +};
-> +
-> +/* Initialization function */
-> +static int __init hwspinlock_init(void)
-> +{
-> +       int retval = 0;
-> +
-> +       /* Register spinlock driver */
-> +       retval = platform_driver_register(&hwspinlock_driver);
-> +
-> +       return retval;
-> +}
-> +
-> +/* Cleanup function */
-> +static void __exit hwspinlock_exit(void)
-> +{
-> +       int id;
-> +
-> +       platform_driver_unregister(&hwspinlock_driver);
-> +
-> +       for (id = 0; id < hwspinlock_module->num_locks; id++)
-> +               hwspinlocks[id].is_init = false;
-> +       iounmap(hwspinlock_module->io_base);
-> +
-> +       /* Free spinlock device objects */
-> +       if (hwspinlock_module->is_init)
-> +               kfree(hwspinlocks);
-> +}
-> +
-> +module_init(hwspinlock_init);
-> +module_exit(hwspinlock_exit);
-> +
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_DESCRIPTION("Hardware spinlock driver");
-> +MODULE_AUTHOR("Simon Que");
-> +MODULE_AUTHOR("Hari Kanigeri");
-> diff --git a/arch/arm/plat-omap/include/plat/hwspinlock.h b/arch/arm/plat-
-> omap/include/plat/hwspinlock.h
-> new file mode 100644
-> index 0000000..8c69ca5
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/include/plat/hwspinlock.h
-> @@ -0,0 +1,29 @@
-> +/* hwspinlock.h */
-> +
-> +#ifndef HWSPINLOCK_H
-> +#define HWSPINLOCK_H
-> +
-> +#include <linux/platform_device.h>
-> +#include <plat/omap44xx.h>
-> +
-> +/* Read values from the spinlock register */
-> +#define HWSPINLOCK_ACQUIRED 0
-> +#define HWSPINLOCK_BUSY 1
-> +
-> +/* Device data */
-> +struct hwspinlock_plat_info {
-> +       u32 sysstatus_offset;           /* System status register offset
-> */
-> +       u32 lock_base_offset;           /* Offset of spinlock registers */
-> +};
-> +
-> +struct hwspinlock;
-> +
-> +int hwspinlock_lock(struct hwspinlock *handle);
-> +int hwspinlock_trylock(struct hwspinlock *handle);
-> +int hwspinlock_unlock(struct hwspinlock *handle);
-> +
-> +struct hwspinlock *hwspinlock_request(void);
-> +struct hwspinlock *hwspinlock_request_specific(unsigned int id);
-> +int hwspinlock_free(struct hwspinlock *hwspinlock_ptr);
-> +
-> +#endif /* HWSPINLOCK_H */
-> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-
-> omap/include/plat/omap44xx.h
-> index 8b3f12f..8016508 100644
-> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
-> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-> @@ -52,5 +52,7 @@
->  #define OMAP4_MMU1_BASE                        0x55082000
->  #define OMAP4_MMU2_BASE                        0x4A066000
->
-> +#define OMAP44XX_SPINLOCK_BASE         (L4_44XX_BASE + 0xF6000)
-> +
->  #endif /* __ASM_ARCH_OMAP44XX_H */
->
-> --
-> 1.7.0
+A typical use case could be the IOMMU pagetable allocation which
+stores pointers to the second level of page tables with some
+conversion, for example, a physical address with attribute bits. Right
+now I don't have other use cases but I hope that there could be some
+that this special scan works with.
+
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+---
+ include/linux/kmemleak.h |    8 ++
+ mm/kmemleak.c            |  208 +++++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 204 insertions(+), 12 deletions(-)
+
+diff --git a/include/linux/kmemleak.h b/include/linux/kmemleak.h
+index 99d9a67..9e2af3a 100644
+--- a/include/linux/kmemleak.h
++++ b/include/linux/kmemleak.h
+@@ -34,6 +34,8 @@ extern void kmemleak_not_leak(const void *ptr) __ref;
+ extern void kmemleak_ignore(const void *ptr) __ref;
+ extern void kmemleak_scan_area(const void *ptr, size_t size, gfp_t gfp) __ref;
+ extern void kmemleak_no_scan(const void *ptr) __ref;
++extern void kmemleak_add_alias(const void *ptr, const void *new) __ref;
++extern void kmemleak_unalias(const void *alias) __ref;
+ 
+ static inline void kmemleak_alloc_recursive(const void *ptr, size_t size,
+ 					    int min_count, unsigned long flags,
+@@ -92,6 +94,12 @@ static inline void kmemleak_erase(void **ptr)
+ static inline void kmemleak_no_scan(const void *ptr)
+ {
+ }
++static inline void kmemleak_add_alias(const void *ptr, const void *new)
++{
++}
++static inline void kmemleak_unalias(const void *alias)
++{
++}
+ 
+ #endif	/* CONFIG_DEBUG_KMEMLEAK */
+ 
+diff --git a/mm/kmemleak.c b/mm/kmemleak.c
+index 2c0d032..3875cb7 100644
+--- a/mm/kmemleak.c
++++ b/mm/kmemleak.c
+@@ -157,6 +157,13 @@ struct kmemleak_object {
+ 	unsigned long jiffies;		/* creation timestamp */
+ 	pid_t pid;			/* pid of the current task */
+ 	char comm[TASK_COMM_LEN];	/* executable name */
++	struct kmemleak_alias *alias;	/* if a pointer is modified */
++};
++
++struct kmemleak_alias {
++	struct list_head alias_list;
++	struct prio_tree_node tree_node;
++	struct kmemleak_object *object;
+ };
+ 
+ /* flag representing the memory block allocation status */
+@@ -179,13 +186,18 @@ struct kmemleak_object {
+ static LIST_HEAD(object_list);
+ /* the list of gray-colored objects (see color_gray comment below) */
+ static LIST_HEAD(gray_list);
++/* the list of objects with alias (see alias comment below) */
++static LIST_HEAD(alias_list);
+ /* prio search tree for object boundaries */
+ static struct prio_tree_root object_tree_root;
++/* prio search tree for alias object boundaries */
++static struct prio_tree_root alias_tree_root;
+ /* rw_lock protecting the access to object_list and prio_tree_root */
+ static DEFINE_RWLOCK(kmemleak_lock);
+ 
+ /* allocation caches for kmemleak internal data */
+ static struct kmem_cache *object_cache;
++static struct kmem_cache *alias_cache;
+ static struct kmem_cache *scan_area_cache;
+ 
+ /* set if tracing memory operations is enabled */
+@@ -269,6 +281,8 @@ static void kmemleak_disable(void);
+ 	kmemleak_disable();		\
+ } while (0)
+ 
++#define to_address(obj) ((obj)->tree_node.start)
++
+ /*
+  * Printing of the objects hex dump to the seq file. The number of lines to be
+  * printed is limited to HEX_MAX_LINES to prevent seq file spamming. The
+@@ -369,7 +383,7 @@ static void dump_object_info(struct kmemleak_object *object)
+ 	trace.entries = object->trace;
+ 
+ 	pr_notice("Object 0x%08lx (size %zu):\n",
+-		  object->tree_node.start, object->size);
++		  to_address(object), object->size);
+ 	pr_notice("  comm \"%s\", pid %d, jiffies %lu\n",
+ 		  object->comm, object->pid, object->jiffies);
+ 	pr_notice("  min_count = %d\n", object->min_count);
+@@ -436,6 +450,8 @@ static void free_object_rcu(struct rcu_head *rcu)
+ 		hlist_del(elem);
+ 		kmem_cache_free(scan_area_cache, area);
+ 	}
++	if (object->alias)
++		kmem_cache_free(alias_cache, object->alias);
+ 	kmem_cache_free(object_cache, object);
+ }
+ 
+@@ -460,12 +476,11 @@ static void put_object(struct kmemleak_object *object)
+ /*
+  * Look up an object in the prio search tree and increase its use_count.
+  */
+-static struct kmemleak_object *find_and_get_object(unsigned long ptr, int alias)
++static struct kmemleak_object *__find_and_get_object(unsigned long ptr, int alias)
+ {
+ 	unsigned long flags;
+ 	struct kmemleak_object *object = NULL;
+ 
+-	rcu_read_lock();
+ 	read_lock_irqsave(&kmemleak_lock, flags);
+ 	if (ptr >= min_addr && ptr < max_addr)
+ 		object = lookup_object(ptr, alias);
+@@ -474,6 +489,75 @@ static struct kmemleak_object *find_and_get_object(unsigned long ptr, int alias)
+ 	/* check whether the object is still available */
+ 	if (object && !get_object(object))
+ 		object = NULL;
++
++	return object;
++}
++
++static struct kmemleak_object *find_and_get_object(unsigned long ptr, int alias)
++{
++	struct kmemleak_object *object;
++
++	rcu_read_lock();
++	object = __find_and_get_object(ptr, alias);
++	rcu_read_unlock();
++
++	return object;
++}
++
++static struct kmemleak_object *__find_and_get_alias(unsigned long ptr, int alias)
++{
++	struct kmemleak_object *object = NULL;
++	struct kmemleak_alias *ao = NULL;
++	struct prio_tree_node *node;
++	struct prio_tree_iter iter;
++	unsigned long flags;
++
++	read_lock_irqsave(&kmemleak_lock, flags);
++
++	prio_tree_iter_init(&iter, &alias_tree_root, ptr, ptr);
++	node = prio_tree_next(&iter);
++	if (node) {
++		ao = prio_tree_entry(node, struct kmemleak_alias, tree_node);
++		if (!alias && to_address(ao) != ptr) {
++			kmemleak_warn("Found object by alias");
++			ao = NULL;
++		}
++	}
++
++	read_unlock_irqrestore(&kmemleak_lock, flags);
++
++	if (ao && get_object(ao->object))
++		object = ao->object;
++
++	return object;
++}
++
++static struct kmemleak_object *find_and_get_alias(unsigned long ptr, int alias)
++{
++	struct kmemleak_object *object = NULL;
++
++	rcu_read_lock();
++	object = __find_and_get_alias(ptr, alias);
++	rcu_read_unlock();
++
++	return object;
++}
++
++/*
++ * Try to find object first, and then with alias address if not found.
++ */
++static struct kmemleak_object *find_and_get_object_with_alias(unsigned long ptr,
++							      int alias)
++{
++	struct kmemleak_object *object = NULL;
++
++	rcu_read_lock();
++
++	object = __find_and_get_object(ptr, alias);
++	if (!object &&
++	    !prio_tree_empty(&alias_tree_root))
++		object = __find_and_get_alias(ptr, alias);
++
+ 	rcu_read_unlock();
+ 
+ 	return object;
+@@ -524,6 +608,7 @@ static struct kmemleak_object *create_object(unsigned long ptr, size_t size,
+ 	object->count = 0;			/* white color initially */
+ 	object->jiffies = jiffies;
+ 	object->checksum = 0;
++	object->alias = NULL;
+ 
+ 	/* task information */
+ 	if (in_irq()) {
+@@ -547,7 +632,7 @@ static struct kmemleak_object *create_object(unsigned long ptr, size_t size,
+ 	object->trace_len = __save_stack_trace(object->trace);
+ 
+ 	INIT_PRIO_TREE_NODE(&object->tree_node);
+-	object->tree_node.start = ptr;
++	to_address(object) = ptr;
+ 	object->tree_node.last = ptr + size - 1;
+ 
+ 	write_lock_irqsave(&kmemleak_lock, flags);
+@@ -577,6 +662,57 @@ out:
+ 	return object;
+ }
+ 
++static void create_alias_object(struct kmemleak_object *object,
++				unsigned long ptr)
++{
++	struct kmemleak_alias *alias;
++	struct prio_tree_node *node;
++	unsigned long flags;
++
++	alias = kmem_cache_alloc(alias_cache, GFP_KERNEL);
++	if (!alias) {
++		kmemleak_stop("Cannot allocate a kmemleak_alias structure\n");
++		return;
++	}
++	INIT_LIST_HEAD(&alias->alias_list);
++	INIT_PRIO_TREE_NODE(&alias->tree_node);
++	to_address(alias) = ptr;
++
++	spin_lock_irqsave(&object->lock, flags);
++	alias->tree_node.last = ptr + object->size - 1;
++	alias->object = object;
++	object->alias = alias;
++	spin_unlock_irqrestore(&object->lock, flags);
++
++	write_lock_irqsave(&kmemleak_lock, flags);
++
++	node = prio_tree_insert(&alias_tree_root, &alias->tree_node);
++	if (!node) {
++		kmemleak_warn("Cannot allocate a kmemleak_alias structure\n");
++		kmem_cache_free(alias_cache, alias);
++	}
++	list_add_tail_rcu(&alias->alias_list, &alias_list);
++
++	write_unlock_irqrestore(&kmemleak_lock, flags);
++}
++
++static void __delete_alias_object(struct kmemleak_object *object)
++{
++	prio_tree_remove(&alias_tree_root, &object->alias->tree_node);
++	list_del_rcu(&object->alias->alias_list);
++	kmem_cache_free(alias_cache, object->alias);
++	object->alias = NULL;
++}
++
++static void delete_alias_object(struct kmemleak_object *object)
++{
++	unsigned long flags;
++
++	write_lock_irqsave(&kmemleak_lock, flags);
++	__delete_alias_object(object);
++	write_unlock_irqrestore(&kmemleak_lock, flags);
++}
++
+ /*
+  * Remove the metadata (struct kmemleak_object) for a memory block from the
+  * object_list and object_tree_root and decrement its use_count.
+@@ -588,6 +724,8 @@ static void __delete_object(struct kmemleak_object *object)
+ 	write_lock_irqsave(&kmemleak_lock, flags);
+ 	prio_tree_remove(&object_tree_root, &object->tree_node);
+ 	list_del_rcu(&object->object_list);
++	if (object->alias)
++		__delete_alias_object(object);
+ 	write_unlock_irqrestore(&kmemleak_lock, flags);
+ 
+ 	WARN_ON(!(object->flags & OBJECT_ALLOCATED));
+@@ -630,7 +768,7 @@ static void delete_object_full(unsigned long ptr)
+  */
+ static void delete_object_part(unsigned long ptr, size_t size)
+ {
+-	struct kmemleak_object *object;
++	struct kmemleak_object *object, *new;
+ 	unsigned long start, end;
+ 
+ 	object = find_and_get_object(ptr, 1);
+@@ -652,12 +790,24 @@ static void delete_object_part(unsigned long ptr, size_t size)
+ 	 */
+ 	start = object->pointer;
+ 	end = object->pointer + object->size;
+-	if (ptr > start)
+-		create_object(start, ptr - start, object->min_count,
+-			      GFP_KERNEL);
+-	if (ptr + size < end)
+-		create_object(ptr + size, end - ptr - size, object->min_count,
+-			      GFP_KERNEL);
++	if (ptr > start) {
++		new = create_object(start, ptr - start, object->min_count,
++				    GFP_KERNEL);
++		if (new && unlikely(object->alias))
++			create_alias_object(new, to_address(object->alias));
++	}
++	if (ptr + size < end) {
++		new = create_object(ptr + size, end - ptr - size,
++				    object->min_count, GFP_KERNEL);
++		if (new && unlikely(object->alias)) {
++			unsigned long alias_ptr;
++
++			alias_ptr = to_address(object->alias);
++			alias_ptr += ptr - start + size;
++
++			create_alias_object(new, alias_ptr);
++		}
++	}
+ 
+ 	put_object(object);
+ }
+@@ -944,6 +1094,38 @@ void __ref kmemleak_no_scan(const void *ptr)
+ }
+ EXPORT_SYMBOL(kmemleak_no_scan);
+ 
++void kmemleak_add_alias(const void *ptr, const void *alias)
++{
++	struct kmemleak_object *object;
++
++	pr_debug("%s(0x%p -> 0x%p)\n", __func__, ptr, alias);
++
++	object = find_and_get_object((unsigned long)ptr, 0);
++	if (!object) {
++		kmemleak_warn("Aliasing unknown object at 0x%p\n", ptr);
++		return;
++	}
++	create_alias_object(object, (unsigned long)alias);
++	put_object(object);
++}
++EXPORT_SYMBOL(kmemleak_add_alias);
++
++void kmemleak_unalias(const void *alias)
++{
++	struct kmemleak_object *object;
++
++	pr_debug("%s(0x%p)\n", __func__, alias);
++
++	object = find_and_get_alias((unsigned long)alias, 0);
++	if (!object) {
++		kmemleak_warn("Aliasing unknown object at 0x%p\n", alias);
++		return;
++	}
++	delete_alias_object(object);
++	put_object(object);
++}
++EXPORT_SYMBOL(kmemleak_unalias);
++
+ /*
+  * Update an object's checksum and return true if it was modified.
+  */
+@@ -1007,7 +1189,7 @@ static void scan_block(void *_start, void *_end,
+ 
+ 		pointer = *ptr;
+ 
+-		object = find_and_get_object(pointer, 1);
++		object = find_and_get_object_with_alias(pointer, 1);
+ 		if (!object)
+ 			continue;
+ 		if (object == scanned) {
+@@ -1620,8 +1802,10 @@ void __init kmemleak_init(void)
+ 	jiffies_scan_wait = msecs_to_jiffies(SECS_SCAN_WAIT * 1000);
+ 
+ 	object_cache = KMEM_CACHE(kmemleak_object, SLAB_NOLEAKTRACE);
++	alias_cache = KMEM_CACHE(kmemleak_alias, SLAB_NOLEAKTRACE);
+ 	scan_area_cache = KMEM_CACHE(kmemleak_scan_area, SLAB_NOLEAKTRACE);
+ 	INIT_PRIO_TREE_ROOT(&object_tree_root);
++	INIT_PRIO_TREE_ROOT(&alias_tree_root);
+ 
+ 	/* the kernel is still in UP mode, so disabling the IRQs is enough */
+ 	local_irq_save(flags);
+-- 
+1.7.1.rc2
 
