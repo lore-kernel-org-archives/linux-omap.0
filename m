@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 12/13 v5] OMAP: GPIO: Use dev_pm_ops instead of sys_dev_class
-Date: Mon, 09 Aug 2010 17:21:19 -0700
-Message-ID: <871va79v28.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 09/13 v5] OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init
+Date: Mon, 09 Aug 2010 17:21:40 -0700
+Message-ID: <87zkwv8gh7.fsf@deeprootsystems.com>
 References: <1281098065-24177-1-git-send-email-charu@ti.com>
 	<1281098065-24177-2-git-send-email-charu@ti.com>
 	<1281098065-24177-3-git-send-email-charu@ti.com>
@@ -12,20 +12,17 @@ References: <1281098065-24177-1-git-send-email-charu@ti.com>
 	<1281098065-24177-8-git-send-email-charu@ti.com>
 	<1281098065-24177-9-git-send-email-charu@ti.com>
 	<1281098065-24177-10-git-send-email-charu@ti.com>
-	<1281098065-24177-11-git-send-email-charu@ti.com>
-	<1281098065-24177-12-git-send-email-charu@ti.com>
-	<1281098065-24177-13-git-send-email-charu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:60580 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757268Ab0HJAVV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 20:21:21 -0400
-Received: by pwj7 with SMTP id 7so1540756pwj.19
-        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 17:21:21 -0700 (PDT)
-In-Reply-To: <1281098065-24177-13-git-send-email-charu@ti.com> (Charulatha
-	V.'s message of "Fri, 6 Aug 2010 18:04:24 +0530")
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:49368 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757268Ab0HJAVm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 20:21:42 -0400
+Received: by pzk26 with SMTP id 26so3868516pzk.19
+        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 17:21:42 -0700 (PDT)
+In-Reply-To: <1281098065-24177-10-git-send-email-charu@ti.com> (Charulatha
+	V.'s message of "Fri, 6 Aug 2010 18:04:21 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Charulatha V <charu@ti.com>
@@ -33,331 +30,110 @@ Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com,
 
 Charulatha V <charu@ti.com> writes:
 
-> This patch makes GPIO driver to use dev_pm_ops instead of
-> sysdev_class. With this approach, gpio_bank_suspend & gpio_bank_resume
-> are not part of sys_dev_class.
+> This patch adds support for handling GPIO as a HWMOD FW adapted
+> platform device for OMAP2PLUS chips.
 >
-> According to this patch, a GPIO bank relinquishes the clock using
-> PM runtime APIs when all the gpios in that bank are freed. 
-
-This does not match the code.
-
-The only clock associated with a GPIO hwmod is the optional clock for
-the debounce clock.  This clock is managed by the driver itself, not
-by using the PM runtime API.
-
-> It also
-> relinquishes the clocks in the idle-path too, as it is possible to
-> have a GPIO bank requested and still allow PER domain to go to OFF state.
-
-This doesn't make sense to me.  What clocks are you referring to?
-
-> In the idle path (interrupt disabled context), PM runtime APIs cannot
-> be used as they are not mutex-free functions. Hence omap_device APIs
-> are used in the idle and resume after idle path.
-
-This needs much more fleshing out. 
-
-Exactly what mutexes are causing the problems here.  As pointed out in
-previous discussions, the ones in the PM runtime core should not be a
-problem in this path.  Therefore, I'll assume the problems are coming
-from the mutexes when the device code (mach-omap2/gpio.c) calls into the
-hwmod layer.  More on this in comments on the next patch.
-
-> To summarize,
-> 1. pm_runtime_get_sync() for any gpio bank is called when one of the gpios
->    is requested on the bank, in which, no other gpio is being used (when
->    mod_usage becomes non-zero)
-> 2. omap_device_enable() is called during gpio resume after idle, only
->    if the particular bank is being used (if mod_usage is non-zero)
-
-context is saved/restored in the idle path, but...
-
-> 3. pm_runtime_put_sync() is called when the last used gpio in that
->    gpio bank is freed (when mod_usage becomes zero)
-
-in this path, the bank is now runtime suspended, but context has not
-been saved for it.  That should be fine, since this bank is no longer
-used, but now let's assume there was an off-mode transition and context
-is lost.  Then, gpio_request() is called which will trigger
-a pm_runtime_get_sync() and gpio_bank_runtime_resume() will be called.
-
-In this case, it's not terribly clear that runtime_resume is doing sane
-things if context has just been lost.  Seems like runtime_resume should
-be a nop in this case since any re-init will be be done in gpio_request().
-
-> 4. omap_device_idle() is called during idle, if the particular bank
->    is being used (if mod_usage is non-zero)
-
-This mixture of pm_runtime_* and omap_device_* APIs is confusing at
-best.
-
-There should be a single path into the drivers runtime_suspend hooks.
-Namely, when pm_runtime_put_* is called and the usecount goes to zero.
-If you can't use the runtime PM APIs, then we need to understand
-*exactly* why and work on a solution for that particular problem.
-
-On my omap34xx/omap3evm, I had to disable the omap_device_* calls in the
-idle path since as they were causing strange crashes, and as stated
-above, I'm not sure what the purpose is.
-
-> With this patch, GPIO's prepare_for_idle and resume_after_idle APIs
-> makes use of the parameter save_context and restore_context respectively
-> inorder to identify if save context/restore context needs to be done.
-
-Why?
-
-> Links to related discussion:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32833.html
+> gpio_init needs to be done before machine_init functions access
+> gpio APIs.Hence gpio_init is made as a postcore_initcall.
 >
-> For suspend/resume path to work, this patch has dependency of
-> 1. reverting the following patch:
-> OMAP: bus-level PM: enable use of runtime PM API for suspend/resume
-> http://dev.omapzoom.org/?p=swarch/linux-omap-adv.git;a=commitdiff;
-> h=8041359e18e49bf8a3d41f15894db9e476f3a8fc
-> (or)
-> 2. Remove the locking in the omap_hwmod_for_each* function
-
-Did you mean 'and' instead of 'or'?  If you meant 'or', then clearly
-(20 is preferred over (1), and I have a patch to fix that in the current
-pm-wip/runtime branch.
-
-If you meant 'and', then you need to describe the root cause for (1).
-
 > Signed-off-by: Charulatha V <charu@ti.com>
 > Signed-off-by: Basak, Partha <p-basak2@ti.com>
 > ---
->  arch/arm/mach-omap2/pm24xx.c           |    4 +-
->  arch/arm/mach-omap2/pm34xx.c           |   23 +-
->  arch/arm/plat-omap/gpio.c              |  561 ++++++++++++++++----------------
->  arch/arm/plat-omap/include/plat/gpio.h |    6 +-
->  4 files changed, 297 insertions(+), 297 deletions(-)
+>  arch/arm/mach-omap2/gpio.c |  120 ++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 120 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/gpio.c
 >
-> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-> index 6aeedea..c01e156 100644
-> --- a/arch/arm/mach-omap2/pm24xx.c
-> +++ b/arch/arm/mach-omap2/pm24xx.c
-> @@ -106,7 +106,7 @@ static void omap2_enter_full_retention(void)
->  	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | OMAP24XX_USBSTANDBYCTRL;
->  	omap_ctrl_writel(l, OMAP2_CONTROL_DEVCONF0);
->  
-> -	omap2_gpio_prepare_for_idle(PWRDM_POWER_RET);
-> +	omap2_gpio_prepare_for_idle(false);
->  
->  	if (omap2_pm_debug) {
->  		omap2_pm_dump(0, 0, 0);
-> @@ -140,7 +140,7 @@ no_sleep:
->  		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
->  		omap2_pm_dump(0, 1, tmp);
->  	}
-> -	omap2_gpio_resume_after_idle();
-> +	omap2_gpio_resume_after_idle(false);
->  
->  	clk_enable(osc_ck);
->  
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index fb4994a..66c7e11 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -79,16 +79,6 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
->  static struct powerdomain *core_pwrdm, *per_pwrdm;
->  static struct powerdomain *cam_pwrdm;
->  
-> -static inline void omap3_per_save_context(void)
-> -{
-> -	omap_gpio_save_context();
-> -}
-> -
-> -static inline void omap3_per_restore_context(void)
-> -{
-> -	omap_gpio_restore_context();
-> -}
-> -
->  static void omap3_enable_io_chain(void)
->  {
->  	int timeout = 0;
-> @@ -395,15 +385,17 @@ void omap_sram_idle(void)
->  	/* PER */
->  	if (per_next_state < PWRDM_POWER_ON) {
->  		omap_uart_prepare_idle(2);
-> -		omap2_gpio_prepare_for_idle(per_next_state);
->  		if (per_next_state == PWRDM_POWER_OFF) {
->  			if (core_next_state == PWRDM_POWER_ON) {
->  				per_next_state = PWRDM_POWER_RET;
->  				pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
->  				per_state_modified = 1;
-> -			} else
-> -				omap3_per_save_context();
-> +			}
->  		}
-> +		if (per_next_state == PWRDM_POWER_OFF)
-> +			omap2_gpio_prepare_for_idle(true);
-> +		else
-> +			omap2_gpio_prepare_for_idle(false);
-
-Why is this better than passing the next power state?
-
->  	}
->  
->  	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
-> @@ -471,9 +463,10 @@ void omap_sram_idle(void)
->  	/* PER */
->  	if (per_next_state < PWRDM_POWER_ON) {
->  		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
-> -		omap2_gpio_resume_after_idle();
->  		if (per_prev_state == PWRDM_POWER_OFF)
-> -			omap3_per_restore_context();
-> +			omap2_gpio_resume_after_idle(true);
-> +		else
-> +			omap2_gpio_resume_after_idle(false);
->  		omap_uart_resume_idle(2);
->  		if (per_state_modified)
->  			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 6a5cf43..6686f9f 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -25,12 +25,12 @@
->  #include <linux/pm_runtime.h>
->  
->  #include <plat/omap_device.h>
-> +#include <plat/powerdomain.h>
->  #include <mach/hardware.h>
->  #include <asm/irq.h>
->  #include <mach/irqs.h>
->  #include <mach/gpio.h>
->  #include <asm/mach/irq.h>
-> -#include <plat/powerdomain.h>
->  
->  /*
->   * OMAP1510 GPIO registers
-> @@ -179,7 +179,6 @@ struct gpio_bank {
->   * related to all instances of the device
->   */
->  static struct gpio_bank *gpio_bank;
-> -
->  static int bank_width;
->  
->  /* TODO: Analyze removing gpio_bank_count usage from driver code */
-> @@ -1045,6 +1044,9 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
->  	struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
->  	unsigned long flags;
->  
-> +	if (!bank->mod_usage)
-> +		pm_runtime_get_sync(bank->dev);
+> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+> new file mode 100644
+> index 0000000..30aeef9
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/gpio.c
+> @@ -0,0 +1,120 @@
+> +/*
+> + * gpio.c - OMAP2PLUS-specific gpio code
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + *
+> + * Author:
+> + *	Charulatha V <charu@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
 > +
-
-Would be fine to skip the 'if' here and let runtime PM continue the
-usecounting.  Since we'll have trace tools that instrument runtime PM,
-it will be nice to be able to trace all the users instead of just the
-first one to request a GPIO in a given bank.
-
->  	spin_lock_irqsave(&bank->lock, flags);
->  
->  	/* Set trigger to none. You need to enable the desired trigger with
-> @@ -1061,22 +1063,19 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
->  		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
->  	}
->  #endif
-> -	if (!cpu_class_is_omap1()) {
-> -		if (!bank->mod_usage) {
-> -			void __iomem *reg = bank->base;
-> -			u32 ctrl;
-> -
-> -			if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> -				reg += OMAP24XX_GPIO_CTRL;
-> -			else if (cpu_is_omap44xx())
-> -				reg += OMAP4_GPIO_CTRL;
-> -			ctrl = __raw_readl(reg);
-> -			/* Module is enabled, clocks are not gated */
-> -			ctrl &= 0xFFFFFFFE;
-> -			__raw_writel(ctrl, reg);
-> -		}
-> -		bank->mod_usage |= 1 << offset;
-> +	if ((!bank->mod_usage) && (!cpu_class_is_omap1())) {
-> +		void __iomem *reg = bank->base;
-> +		u32 ctrl;
-> +		if (bank->method == METHOD_GPIO_24XX)
-> +			reg += OMAP24XX_GPIO_CTRL;
-> +		else if (bank->method == METHOD_GPIO_44XX)
-> +			reg += OMAP4_GPIO_CTRL;
-> +		ctrl = __raw_readl(reg);
-> +		/* Module is enabled, clocks are not gated */
-> +		ctrl &= 0xFFFFFFFE;
-> +		__raw_writel(ctrl, reg);
-
-If you get rid of the 'if (!mod_usage)' check above for the
-pm_runtime_get, you could just get rid of the mod_usage flag all
-together and do this section in the runtime_resume hook.
-
->  	}
-> +	bank->mod_usage |= 1 << offset;
->  	spin_unlock_irqrestore(&bank->lock, flags);
->  
->  	return 0;
-> @@ -1109,24 +1108,26 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
->  		__raw_writel(1 << offset, reg);
->  	}
->  #endif
-> -	if (!cpu_class_is_omap1()) {
-> -		bank->mod_usage &= ~(1 << offset);
-> -		if (!bank->mod_usage) {
-> -			void __iomem *reg = bank->base;
-> -			u32 ctrl;
-> -
-> -			if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> -				reg += OMAP24XX_GPIO_CTRL;
-> -			else if (cpu_is_omap44xx())
-> -				reg += OMAP4_GPIO_CTRL;
-> -			ctrl = __raw_readl(reg);
-> -			/* Module is disabled, clocks are gated */
-> -			ctrl |= 1;
-> -			__raw_writel(ctrl, reg);
-> -		}
-> +	bank->mod_usage &= ~(1 << offset);
-> +	if ((!bank->mod_usage) && (!cpu_class_is_omap1())) {
-> +		void __iomem *reg = bank->base;
-> +		u32 ctrl;
+> +#include <linux/gpio.h>
+> +#include <linux/err.h>
+> +#include <linux/slab.h>
+> +#include <linux/interrupt.h>
 > +
-> +		if (bank->method == METHOD_GPIO_24XX)
-> +			reg += OMAP24XX_GPIO_CTRL;
-> +		else if (bank->method == METHOD_GPIO_44XX)
-> +			reg += OMAP4_GPIO_CTRL;
-> +		ctrl = __raw_readl(reg);
-> +		/* Module is disabled, clocks are gated */
-> +		ctrl |= 1;
-> +		__raw_writel(ctrl, reg);
-
-ditto, but in the runtime_suspend hook
-
->  	}
+> +#include <plat/omap_hwmod.h>
+> +#include <plat/omap_device.h>
 > +
->  	_reset_gpio(bank, bank->chip.base + offset);
->  	spin_unlock_irqrestore(&bank->lock, flags);
+> +/*
+> + * For GPIO, it is a must to relinquish clocks in the Idle-path
+> + * as it is possible to have a GPIO bank requested and still
+> + * allow PER domain to go to OFF. 
+
+What clocks are you referring to?   
+
+There is no main_clk associated with this hwmod, so hwmod is not
+managing any clocks for you and the driver is handling the debounce
+clock (opt_clk.)
+
+> In the idle path (interrupt
+> + * disabled context), omap_device APIs cannot be used as they
+> + * are not mutex-free functions. Hence the below wrappers are
+> + * required to handle interrupts disabled context and interrupts
+> + * enabled context.
+> + */
+> +static int gpio_enable_hwmod(struct omap_device *od)
+> +{
+> +	struct omap_hwmod *oh = *od->hwmods;
 > +
-> +	if (!bank->mod_usage)
-> +		pm_runtime_put_sync(bank->dev);
+> +	if (irqs_disabled())
+> +		_omap_hwmod_enable(oh);
+> +	else
+> +		omap_device_enable_hwmods(od);
+> +	return 0;
+> +}
+> +
+> +static int gpio_idle_hwmod(struct omap_device *od)
+> +{
+> +	struct omap_hwmod *oh = *od->hwmods;
+> +
+> +	if (irqs_disabled())
+> +		_omap_hwmod_idle(oh);
+> +	else
+> +		omap_device_idle_hwmods(od);
+> +	return 0;
+> +}
 
-see above
+The use of hwmod to disable GPIO hwmods in the idle path needs some more
+explanation since it differs from what is done in the current GPIO code.
 
->  }
->  
->  /*
-> @@ -1728,7 +1729,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->  	}
->  
->  	pm_runtime_enable(bank->dev);
-> -	pm_runtime_get_sync(bank->dev);
+As mentioned above, the (optional) clocks are being managed by the
+driver already, so what exactly are you wanting hwmod to do for you?
+The only thing that will happen is the toggling of no-idle/smart-idle,
+and it's not clear to me that is what you want.
 
-as mentioned before, this should stay, otherwise mod_init will fault if
-GPIO hwmod is disabled.
+Whatever the new behavior you're trying to get, it should be described
+well in the changelog since it's different from current behavior of the
+GPIO code.  In fact, a change like this which is signifcantly different
+from current behavior should be done in a separate patch.
 
->  	omap_gpio_mod_init(bank, id);
->  	omap_gpio_chip_init(bank);
-> @@ -1741,294 +1741,222 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+> +
+> +static struct omap_device_pm_latency omap_gpio_latency[] = {
+> +	[0] = {
+> +		.deactivate_func = gpio_idle_hwmod,
+> +		.activate_func   = gpio_enable_hwmod,
+> +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> +	},
+> +};
 
-and you'd need a matching 'put' here.
-
-[...]
+So, to keep the same behavior as the current code, you could just drop
+the omap_gpio_latency part here, and you don't have to worry about
+calling into omap_hwmod_* with interrupts disabled.
 
 Kevin
+
