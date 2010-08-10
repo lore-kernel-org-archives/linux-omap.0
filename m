@@ -1,36 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3: Remove non-existent config option
-Date: Tue, 10 Aug 2010 15:39:38 +0300
-Message-ID: <20100810123938.GJ32480@atomide.com>
-References: <1279790027-2509-1-git-send-email-premi@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E7ED0D93@dbde02.ent.ti.com>
- <20100804111147.GL9881@atomide.com>
- <20100804.142025.108806991.Hiroshi.DOYU@nokia.com>
- <8F7AF80515AF0D4D93307E594F3CB40E4D537702@dlee03.ent.ti.com>
- <20100806103238.7ed33afc.Hiroshi.DOYU@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E80AC440@dbde02.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 0/3] omap: n8x0: Audio update to N810
+Date: Tue, 10 Aug 2010 15:43:46 +0300
+Message-ID: <20100810154346.a23e0341.jhnikula@gmail.com>
+References: <1281340740-10823-1-git-send-email-jhnikula@gmail.com>
+	<20100810120733.GI32480@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62932 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757605Ab0HJMjr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 08:39:47 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E80AC440@dbde02.ent.ti.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:45662 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757142Ab0HJMoB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 08:44:01 -0400
+Received: by ewy23 with SMTP id 23so3799879ewy.19
+        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 05:44:00 -0700 (PDT)
+In-Reply-To: <20100810120733.GI32480@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Marathe, Yogesh" <yogesh_marathe@ti.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Premi, Sanjeev" <premi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-* Marathe, Yogesh <yogesh_marathe@ti.com> [100810 15:12]:
+On Tue, 10 Aug 2010 15:07:34 +0300
+Tony Lindgren <tony@atomide.com> wrote:
+
+> > With this set and a fix [1] it is possible to get ALSA SoC on N810 working.
+> > 
+> > This set is generated against mainline commit e320cea but applies also to
+> > linux-omap (board-n8x0.c has cbus patches in linux-omap).
 > 
-> > From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> >
-> > please put this into your queue for next merge.
+> I've added these into omap for-next for 2.6.37. Let me know if these should
+> go in along with other ASoC patches.
 > 
-> Is this patch taken?
+Ok, good. This is independent set so no need for any special
+procedure :-)
 
-I'll add this to omap for-next queue.
 
-Tony
+-- 
+Jarkko
