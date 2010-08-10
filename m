@@ -1,60 +1,63 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP3: PM: ensure IO wakeups are properly disabled
-Date: Tue, 10 Aug 2010 16:53:51 -0700
-Message-ID: <1281484431-17620-1-git-send-email-khilman@deeprootsystems.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [RFC PATCH] platform: Faciliatate the creation of
+ pseduo-platform busses
+Date: Tue, 10 Aug 2010 16:53:23 -0700
+Message-ID: <20100810235323.GA24612@suse.de>
+References: <20100803235631.GA17759@suse.de>
+ <4C58AE15.6090900@codeaurora.org>
+ <20100804000945.GA19729@suse.de>
+ <4C58B1B6.9050005@quicinc.com>
+ <AANLkTikVzh9=DvvUPbKmDeo6k2-pPVSnjH+GxAPdQFO4@mail.gmail.com>
+ <20100806142727.GB4921@suse.de>
+ <AANLkTi=VbVed09=u-Ea0L8c_CWZ_CLLjWH9ZjD2dyg6Y@mail.gmail.com>
+ <20100806234635.GC16793@suse.de>
+ <AANLkTimHbcF+fz=aBMLdhLo2s-rhfNvaPCtqE8nYJ8aT@mail.gmail.com>
+ <AANLkTimjXd=SL61KvjDfvJ-JtXsSVW9pwOYBFUHX0mVp@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:38633 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758185Ab0HJXxy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 19:53:54 -0400
-Received: by pvg2 with SMTP id 2so1396203pvg.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 16:53:53 -0700 (PDT)
+Received: from cantor.suse.de ([195.135.220.2]:46147 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757854Ab0HJXxi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Aug 2010 19:53:38 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTimjXd=SL61KvjDfvJ-JtXsSVW9pwOYBFUHX0mVp@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Ameya Palande <ameya.palande@nokia.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Patrick Pannuto <ppannuto@quicinc.com>, Patrick Pannuto <ppannuto@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "dtor@mail.ru" <dtor@mail.ru>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Kevin Hilman <khilman@ti.com>
+On Sat, Aug 07, 2010 at 11:28:13AM -0600, Grant Likely wrote:
+> On Sat, Aug 7, 2010 at 12:35 AM, Grant Likely <grant.likely@secretlab=
+=2Eca> wrote:
+> > On Fri, Aug 6, 2010 at 5:46 PM, Greg KH <gregkh@suse.de> wrote:
+> >> That would be nice, but take your "standard" PC today:
+> >> =A0 =A0 =A0 =A0> ls /sys/devices/platform/
+> >> =A0 =A0 =A0 =A0Fixed MDIO bus.0 =A0i8042 =A0pcspkr =A0power =A0ser=
+ial8250 =A0uevent vesafb.0
+> >>
+> >> There are tty devices below the serial port, which is nice to see,=
+ but
+> >> the others? =A0I don't know what type of bus they would be on, do =
+you?
+> [...]
+> > I wouldn't have any problem modifying those specific drivers to
+> > register under something like /sys/devices/legacy, but I don't real=
+ly
+> > think it is in any way necessary.
+>=20
+> Or for that matter, make those drivers explicitly use
+> /sys/devices/platform so that I don't cause churn on PCs.  :-)  I'd
+> like to be rid of it as default behaviour for embedded though.
 
-During idle, if the PER powerdomain transitions and CORE does not (as
-is the case with the lower C-states when using CPUidle) the IO pad
-wakeups are not being disabled in the idle path after they are
-enabled.
+Yes, that would be the easier (and better) solution.
 
-This patch ensures that the check for disabling IO wakeups also checks
-for PER transitions, matching the check done to enable IO wakeups.
+thanks,
 
-Found when debugging PM/CPUidle related problems reported by Ameya
-Palande <ameya.palande@nokia.com>.  Problems were triggered
-particularily on boards with UART2 consoles (n900, Overo) since UART2
-is in the PER powerdomain.
-
-Tested on l-o master (omap3_defonfig + CONFIG_CPU_IDLE=y) as well
-as with current PM branch.  Boards tested: n900, Overo, omap3evm.
-
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-This should go into 2.6.36-rc2 as it's a fix for a serious regression.
-
- arch/arm/mach-omap2/pm34xx.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index fb4994a..7b03426 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -480,7 +480,9 @@ void omap_sram_idle(void)
- 	}
- 
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
-+	if (omap3_has_io_wakeup() &&
-+	    (per_next_state < PWRDM_POWER_ON ||
-+	     core_next_state < PWRDM_POWER_ON)) {
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
- 		omap3_disable_io_chain();
- 	}
--- 
-1.7.2.1
-
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
