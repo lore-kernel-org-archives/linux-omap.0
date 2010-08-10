@@ -1,108 +1,91 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v3 9/9] omap: zoom: add mmc3/wl1271 device support
-Date: Wed, 11 Aug 2010 01:12:28 +0300
-Message-ID: <1281478348-24833-10-git-send-email-ohad@wizery.com>
-References: <1281478348-24833-1-git-send-email-ohad@wizery.com>
+From: Cliff Brake <cliff.brake@gmail.com>
+Subject: Re: [PATCH] OMAP3 PM: fix the error messages printed when the system suspend
+Date: Tue, 10 Aug 2010 18:16:22 -0400
+Message-ID: <AANLkTimS8Wns3Do3R+BrevjnuTb+mzP1iF3NsRtDjYQa@mail.gmail.com>
+References: <1277195484-5501-1-git-send-email-stanley.miao@windriver.com>
+	<87iq5bm7ac.fsf@deeprootsystems.com>
+	<AANLkTi=Dud9H_1TUD6egOtAUaSYzqyqsMP3=3Sj9YWjZ@mail.gmail.com>
+	<4C60ABAA.5010805@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1281478348-24833-1-git-send-email-ohad@wizery.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Kalle Valo <kalle.valo@iki.fi>, Ohad Ben-Cohen <ohad@wizery.com>, Pandita Vikram <vikram.pandita@ti.com>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:52439 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932759Ab0HJWQY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 18:16:24 -0400
+Received: by wwj40 with SMTP id 40so13473596wwj.1
+        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 15:16:23 -0700 (PDT)
+In-Reply-To: <4C60ABAA.5010805@windriver.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "stanley.miao" <stanley.miao@windriver.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-Add MMC3 support on ZOOM, which has the wl1271 device hardwired to.
+On Mon, Aug 9, 2010 at 9:30 PM, stanley.miao <stanley.miao@windriver.co=
+m> wrote:
+> Cliff Brake wrote:
+>>
+>> Functionally, what does this statement mean? =A0The 3503 seems to ha=
+ve
+>> the EN_IO [8] bit, but I've yet to figure out what the EN_IO_CHAIN
+>> [16] means.
+>>
+>
+> Please reference to Chapter 4.11 PRCM Off-Mode Management in OMAP35x =
+TRM.
 
-The wl1271 is a 4-wire, 1.8V, embedded SDIO WLAN device with an
-external IRQ line, and power-controlled by a GPIO-based fixed regulator.
+Thanks for the pointer.  Do you know offhand what TI documentation
+details the differences between the 3503 and the 3530 in this regard.
+I'm also trying to piece together what practical impact this will have
+on a system.
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- arch/arm/mach-omap2/board-zoom-peripherals.c |   34 ++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+I have an older 3503 system, and it is still spewing "Wake up daisy
+chain activation failed" messages.  Do you expect the following patch
+would have fixed this?
 
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index de88635..82776bc 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -17,6 +17,8 @@
- #include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
-+#include <linux/mmc/host.h>
-+#include <linux/wl12xx.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -29,6 +31,7 @@
- #include "hsmmc.h"
- 
- #define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
-+#define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
- 
- /* Zoom2 has Qwerty keyboard*/
- static int board_keymap[] = {
-@@ -185,6 +188,28 @@ static struct platform_device omap_vwlan_device = {
- 	},
- };
- 
-+struct wl12xx_platform_data omap_zoom_wlan_data = {
-+	/* ZOOM ref clock is 26 MHz */
-+	.board_ref_clock = 1,
-+};
-+
-+static struct resource omap_zoom_wl1271_resources[] = {
-+	{
-+		.start = OMAP_GPIO_IRQ(OMAP_ZOOM_WLAN_IRQ_GPIO),
-+		.end = OMAP_GPIO_IRQ(OMAP_ZOOM_WLAN_IRQ_GPIO),
-+		.flags = IORESOURCE_IRQ,
-+	}
-+};
-+static struct platform_device omap_zoom_wl1271 = {
-+	.name		= "wl1271_plat.2",
-+	.id		= -1,
-+	.resource	= omap_zoom_wl1271_resources,
-+	.num_resources	= ARRAY_SIZE(omap_zoom_wl1271_resources),
-+	.dev = {
-+		.platform_data = &omap_zoom_wlan_data,
-+	},
-+};
-+
- static struct omap2_hsmmc_info mmc[] __initdata = {
- 	{
- 		.name		= "external",
-@@ -202,6 +227,14 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
- 		.nonremovable	= true,
- 		.power_saving	= true,
- 	},
-+	{
-+		.name		= "wl1271",
-+		.mmc		= 3,
-+		.wires		= 4,
-+		.gpio_wp	= -EINVAL,
-+		.gpio_cd	= -EINVAL,
-+		.ocr_mask	= MMC_VDD_165_195,
-+	},
- 	{}      /* Terminator */
- };
- 
-@@ -313,6 +346,7 @@ static void enable_board_wakeup_source(void)
- 
- void __init zoom_peripherals_init(void)
- {
-+	platform_device_register(&omap_zoom_wl1271);
- 	omap_i2c_init();
- 	platform_device_register(&omap_vwlan_device);
- 	usb_musb_init(&musb_board_data);
--- 
-1.7.0.4
+So I then instrumented the following macros:
+
+CLIFF: cpu_is_omap3503 =3D 0
+CLIFF: cpu_is_omap3515 =3D 0
+CLIFF: cpu_is_omap3525 =3D 0
+CLIFF: cpu_is_omap3530 =3D 0
+CLIFF: is_omap3430 =3D 0
+CLIFF: omap3_has_iva =3D 2
+CLIFF: omap3_has_sgx =3D 0
+CLIFF: omap3_has_io_wakeup =3D 64
+
+Perhaps it is not a 3503???  The kernel prints the following on bootup:
+OMAP3525 ES2.1 (l2cache iva neon isp )
+
+But, then I look at u-boot, and see:
+OMAP3503-GP ES2.1, CPU-OPP2, L3-165MHz, Max clock-600Mhz
+
+So not everyone is telling the same story.  Anyway, it seems we have a
+problem in that the cpu_is_xxx macros are not working.
+
+Thanks,
+Cliff
+
+commit ad0c63f1d623ea9d3e0c0521d5ce9cd522c4e1f0
+Author: stanley.miao <stanley.miao@windriver.com>
+Date:   Mon Aug 2 14:21:40 2010 +0300
+
+    OMAP3: AM3505/3517 do not have IO wakeup capability
+
+    AM3505/3517 doesn't have IO wakeup capability, so we do not need to=
+ set
+    the bit OMAP3430_EN_IO and the bit OMAP3430_EN_IO_CHAIN in the regi=
+ster
+    PM_WKEN_WKUP when the system enters suspend state.
+
+    Tested on AM3517EVM and OMAP3530EVM.
+
+    Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+    Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+    Signed-off-by: Tony Lindgren <tony@atomide.com>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
