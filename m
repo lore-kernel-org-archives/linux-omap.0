@@ -1,53 +1,75 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: CONFIG_CPU_IDLE broken for N900
-Date: Tue, 10 Aug 2010 17:23:03 +0300
-Message-ID: <20100810172303.31178f2f.jhnikula@gmail.com>
-References: <1281442891.17541.26.camel@chotu>
-	<1281443718.17541.29.camel@chotu>
-	<20100810160324.8df82287.jhnikula@gmail.com>
-	<1281447796.17541.33.camel@chotu>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] OMAP2: Fix a cpu type check problem.
+Date: Tue, 10 Aug 2010 17:32:20 +0300
+Message-ID: <4C6162F4.7030500@compulab.co.il>
+References: <1281443797-7062-1-git-send-email-stanley.miao@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48672 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932134Ab0HJOXR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 10:23:17 -0400
-Received: by eya25 with SMTP id 25so3829475eya.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 07:23:16 -0700 (PDT)
-In-Reply-To: <1281447796.17541.33.camel@chotu>
+Received: from compulab.co.il ([67.18.134.219]:36545 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757717Ab0HJOc2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Aug 2010 10:32:28 -0400
+In-Reply-To: <1281443797-7062-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Kristo Tero (Nokia-MS/Tampere)" <Tero.Kristo@nokia.com>
+To: "Stanley.Miao" <stanley.miao@windriver.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Tue, 10 Aug 2010 16:43:16 +0300
-Ameya Palande <ameya.palande@nokia.com> wrote:
+On 08/10/10 15:36, Stanley.Miao wrote:
+> cpu_is_omap3517() and cpu_is_omap3505() are the subgroups of cpu_is_omap34xx(),
+> so we should check cpu_is_omap3517() and cpu_is_omap3505() first, then check
+> cpu_is_omap34xx().
+>
+> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+>   
 
-> > I'm able to reproduce with 2.6.35-rc1 but not with l-o head. It seems
-> > that the commit below fixes this.
-> > 
-> > commit c786bcf12e092802496f1bc440b2b189144612a5
-> > Author: Kevin Hilman <khilman@deeprootsystems.com>
-> > Date:   Thu Jun 3 17:13:22 2010 +0000
-> > 
-> >     OMAP3: PM: fix IO daisy chain enable to use PM_WKEN reg
-> 
-> Just tested it on linux-omap with omap3_defconfig and found that it is
-> broken. When kernel bootup is complete, and it switches to user space,
-> device hangs. When I disable CPU IDLE, it works..
-> 
-And I was too fast, problem is there in l-o head but it seems to hang in
-different places for me. Above commit removed "Wake up daisy chain
-activation failed." error that was slowing down the boot but this issue
-seems to be different.
+Tested-by: Igor Grinberg <grinberg@compulab.co.il>
 
-I can boot up to Debian console login but system hangs during user
-space boot if I send something over serial. This happend with
-omap3_defconfig in l-o head using N900. However, the same kernel works
-fine on Beagle. Can this be some silicon dependent issue?
+I've just ran into this yesterday evening.
+Having a patch for this on the next day made me :)
+Tested on AM3517.
 
+> ---
+>  arch/arm/mach-omap2/clock3xxx_data.c |   14 +++++++-------
+>  1 files changed, 7 insertions(+), 7 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> index 138646d..dfdce2d 100644
+> --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> @@ -3417,7 +3417,13 @@ int __init omap3xxx_clk_init(void)
+>  	struct omap_clk *c;
+>  	u32 cpu_clkflg = CK_3XXX;
+>  
+> -	if (cpu_is_omap34xx()) {
+> +	if (cpu_is_omap3517()) {
+> +		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+> +		cpu_clkflg |= CK_3517;
+> +	} else if (cpu_is_omap3505()) {
+> +		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+> +		cpu_clkflg |= CK_3505;
+> +	} else if (cpu_is_omap34xx()) {
+>  		cpu_mask = RATE_IN_3XXX;
+>  		cpu_clkflg |= CK_343X;
+>  
+> @@ -3432,12 +3438,6 @@ int __init omap3xxx_clk_init(void)
+>  			cpu_mask |= RATE_IN_3430ES2PLUS;
+>  			cpu_clkflg |= CK_3430ES2;
+>  		}
+> -	} else if (cpu_is_omap3517()) {
+> -		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+> -		cpu_clkflg |= CK_3517;
+> -	} else if (cpu_is_omap3505()) {
+> -		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+> -		cpu_clkflg |= CK_3505;
+>  	}
+>  
+>  	if (omap3_has_192mhz_clk())
+>   
 
 -- 
-Jarkko
+Regards,
+Igor.
+
