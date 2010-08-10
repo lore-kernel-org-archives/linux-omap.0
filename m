@@ -1,63 +1,59 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [RFC PATCH] platform: Faciliatate the creation of
- pseduo-platform busses
-Date: Tue, 10 Aug 2010 16:53:23 -0700
-Message-ID: <20100810235323.GA24612@suse.de>
-References: <20100803235631.GA17759@suse.de>
- <4C58AE15.6090900@codeaurora.org>
- <20100804000945.GA19729@suse.de>
- <4C58B1B6.9050005@quicinc.com>
- <AANLkTikVzh9=DvvUPbKmDeo6k2-pPVSnjH+GxAPdQFO4@mail.gmail.com>
- <20100806142727.GB4921@suse.de>
- <AANLkTi=VbVed09=u-Ea0L8c_CWZ_CLLjWH9ZjD2dyg6Y@mail.gmail.com>
- <20100806234635.GC16793@suse.de>
- <AANLkTimHbcF+fz=aBMLdhLo2s-rhfNvaPCtqE8nYJ8aT@mail.gmail.com>
- <AANLkTimjXd=SL61KvjDfvJ-JtXsSVW9pwOYBFUHX0mVp@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Overo serial problems after resume, vs. Beagleboard
+Date: Tue, 10 Aug 2010 16:57:29 -0700
+Message-ID: <AANLkTi=5a93=HTCxA11mZT6PKR7XkGVOiNGAT_7KNQJO@mail.gmail.com>
+References: <4C1F9B80.9010708@gmail.com>
+	<874ogw1dy2.fsf@deeprootsystems.com>
+	<4C207A9C.7070309@compulab.co.il>
+	<87zkynnnq3.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:46147 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757854Ab0HJXxi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Aug 2010 19:53:38 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTimjXd=SL61KvjDfvJ-JtXsSVW9pwOYBFUHX0mVp@mail.gmail.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:60569 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755894Ab0HJX5a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 19:57:30 -0400
+Received: by gyg10 with SMTP id 10so3925963gyg.19
+        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 16:57:30 -0700 (PDT)
+In-Reply-To: <87zkynnnq3.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Patrick Pannuto <ppannuto@quicinc.com>, Patrick Pannuto <ppannuto@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "damm@opensource.se" <damm@opensource.se>, "lethal@linux-sh.org" <lethal@linux-sh.org>, "rjw@sisk.pl" <rjw@sisk.pl>, "dtor@mail.ru" <dtor@mail.ru>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: Peter Tseng <tsenpet09@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Han Wang <hw342@cornell.edu>
 
-On Sat, Aug 07, 2010 at 11:28:13AM -0600, Grant Likely wrote:
-> On Sat, Aug 7, 2010 at 12:35 AM, Grant Likely <grant.likely@secretlab=
-=2Eca> wrote:
-> > On Fri, Aug 6, 2010 at 5:46 PM, Greg KH <gregkh@suse.de> wrote:
-> >> That would be nice, but take your "standard" PC today:
-> >> =A0 =A0 =A0 =A0> ls /sys/devices/platform/
-> >> =A0 =A0 =A0 =A0Fixed MDIO bus.0 =A0i8042 =A0pcspkr =A0power =A0ser=
-ial8250 =A0uevent vesafb.0
-> >>
-> >> There are tty devices below the serial port, which is nice to see,=
- but
-> >> the others? =A0I don't know what type of bus they would be on, do =
-you?
-> [...]
-> > I wouldn't have any problem modifying those specific drivers to
-> > register under something like /sys/devices/legacy, but I don't real=
-ly
-> > think it is in any way necessary.
->=20
-> Or for that matter, make those drivers explicitly use
-> /sys/devices/platform so that I don't cause churn on PCs.  :-)  I'd
-> like to be rid of it as default behaviour for embedded though.
+On Tue, Jun 22, 2010 at 7:31 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Mike Rapoport <mike@compulab.co.il> writes:
+>
+>> Kevin Hilman wrote:
+>>> Peter Tseng <tsenpet09@gmail.com> writes:
+>>>
+>>>> I am seeing some discrepancies between the Overo (I believe I have a
+>>>> Water) and the Beagleboard (I have a Rev. B5) when resuming after a
+>>>> suspend to RAM.
+>>>
+>>> Not that it is much comfort, but I have the same problem on Overo but
+>>> don't see it on any other OMAP3 board.
+>>>
+>>> I have yet to debug this particular issue further.
+>>
+>> I had the same issue on CM-T35 and when I've disabled CONFIG_CPU_IDLE
+>> in the kernel configuration the issue disappeared. Maybe it'll be of
+>> some help.
+>
+> That just masks the problem by not auto-gating the UART clocks.
 
-Yes, that would be the easier (and better) solution.
+OK, I think I finally figured out this problem.  A similar thing was
+reported on the n900 recently and got me to thinking that it must be
+something fishy going on with the PER powerdomain since both n900 and
+Overo are using a UART2 console, and UART2 is in PER.
 
-thanks,
+Anyways, I just posted a patch[1] that should fix this. I'd appreciate
+if anyone else with an Overo could confirm that things are back to
+working as expected with CONFIG_CPU_IDLE.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Kevin
+
+[1] https://patchwork.kernel.org/patch/118709/
