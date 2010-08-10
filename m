@@ -1,218 +1,63 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v3 3/9] wireless: wl1271: add platform driver to get board data
-Date: Wed, 11 Aug 2010 01:12:22 +0300
-Message-ID: <1281478348-24833-4-git-send-email-ohad@wizery.com>
-References: <1281478348-24833-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1281478348-24833-1-git-send-email-ohad@wizery.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>, Ohad Ben-Cohen <ohad@wizery.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: CONFIG_CPU_IDLE broken for N900
+Date: Tue, 10 Aug 2010 16:21:26 -0700
+Message-ID: <87zkwu3vgp.fsf@deeprootsystems.com>
+References: <1281442891.17541.26.camel@chotu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:65418 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881Ab0HJXV3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 19:21:29 -0400
+Received: by pxi10 with SMTP id 10so266813pxi.19
+        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 16:21:29 -0700 (PDT)
+In-Reply-To: <1281442891.17541.26.camel@chotu> (Ameya Palande's message of
+	"Tue, 10 Aug 2010 15:21:31 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Dynamically create and register a platform driver, that will
-be used to to receive board-specific information like irq and
-reference clock numbers.
+Ameya Palande <ameya.palande@nokia.com> writes:
 
-The driver is created dynamically in order to avoid the 1-device
-limitation of a fixed platform driver name.
+> When I enable CONFIG_CPU_IDLE and boot kernel, it hangs around the point
+> when it switches to user space. I am able to reproduce this for 2.6.35
+> on linux-omap and linux-2.6 trees.
+>
+> Has anyone else noticed the same thing for omap3 based boards?
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- drivers/net/wireless/wl12xx/wl1271.h      |   12 ++++
- drivers/net/wireless/wl12xx/wl1271_sdio.c |  103 +++++++++++++++++++++++++++--
- 2 files changed, 108 insertions(+), 7 deletions(-)
+I was able to reproduce on my n900 and found the problem.  I believe
+this is the same problem that has been haunting the Overo folks in that
+their console (on UART2 like n900) was not responding after suspend.
 
-diff --git a/drivers/net/wireless/wl12xx/wl1271.h b/drivers/net/wireless/wl12xx/wl1271.h
-index faa5925..013eabb 100644
---- a/drivers/net/wireless/wl12xx/wl1271.h
-+++ b/drivers/net/wireless/wl12xx/wl1271.h
-@@ -31,6 +31,7 @@
- #include <linux/list.h>
- #include <linux/bitops.h>
- #include <net/mac80211.h>
-+#include <linux/platform_device.h>
- 
- #include "wl1271_conf.h"
- #include "wl1271_ini.h"
-@@ -319,8 +320,19 @@ struct wl1271_if_operations {
- 	void (*disable_irq)(struct wl1271 *wl);
- };
- 
-+/* exact size needed for "wl1271_plat.x" */
-+#define WL12XX_PLAT_NAME_LEN 14
-+
-+struct wl12xx_plat_instance {
-+	struct platform_driver pdriver;
-+	char name[WL12XX_PLAT_NAME_LEN];
-+	struct wl12xx_platform_data *pdata;
-+	struct completion data_ready;
-+};
-+
- struct wl1271 {
- 	struct platform_device *plat_dev;
-+	struct wl12xx_plat_instance *pinstance;
- 	struct ieee80211_hw *hw;
- 	bool mac80211_registered;
- 
-diff --git a/drivers/net/wireless/wl12xx/wl1271_sdio.c b/drivers/net/wireless/wl12xx/wl1271_sdio.c
-index c41293a..5b43626 100644
---- a/drivers/net/wireless/wl12xx/wl1271_sdio.c
-+++ b/drivers/net/wireless/wl12xx/wl1271_sdio.c
-@@ -28,7 +28,11 @@
- #include <linux/mmc/sdio_func.h>
- #include <linux/mmc/sdio_ids.h>
- #include <linux/mmc/card.h>
-+#include <linux/mmc/host.h>
-+#include <linux/wl12xx.h>
- #include <linux/gpio.h>
-+#include <linux/platform_device.h>
-+#include <linux/completion.h>
- 
- #include "wl1271.h"
- #include "wl12xx_80211.h"
-@@ -182,10 +186,84 @@ static struct wl1271_if_operations sdio_ops = {
- 	.disable_irq	= wl1271_sdio_disable_interrupts
- };
- 
-+static int wl1271_plat_probe(struct platform_device *pdev)
-+{
-+	struct wl12xx_platform_data *pdata;
-+	struct platform_driver *pdriver;
-+	struct wl12xx_plat_instance *pinstance;
-+
-+	pdata = pdev->dev.platform_data;
-+	if (!pdata) {
-+		wl1271_error("no platform data");
-+		return -ENODEV;
-+	}
-+
-+	pdriver = container_of(pdev->dev.driver, struct platform_driver,
-+								driver);
-+	pinstance = container_of(pdriver, struct wl12xx_plat_instance, pdriver);
-+
-+	pinstance->pdata = pdata;
-+
-+	complete(&pinstance->data_ready);
-+
-+	return 0;
-+}
-+
-+static struct wl12xx_platform_data *wl1271_get_data(struct wl1271 *wl, int id)
-+{
-+	int ret;
-+	struct wl12xx_plat_instance *pinstance;
-+
-+	#define WL1271_PLAT_NAME "wl1271_plat.%d"
-+
-+	pinstance = kzalloc(sizeof(*pinstance), GFP_KERNEL);
-+	if (!pinstance)
-+		return ERR_PTR(-ENOMEM);
-+
-+	init_completion(&pinstance->data_ready);
-+
-+	pinstance->pdriver.probe = wl1271_plat_probe;
-+
-+	ret = snprintf(pinstance->name, ARRAY_SIZE(pinstance->name),
-+						WL1271_PLAT_NAME, id);
-+	if (ret >= WL12XX_PLAT_NAME_LEN) {
-+		wl1271_error("truncated plat drv name\n");
-+		goto out_free;
-+	}
-+
-+	pinstance->pdriver.driver.name = pinstance->name;
-+	pinstance->pdriver.driver.owner = THIS_MODULE;
-+
-+	ret = platform_driver_register(&pinstance->pdriver);
-+	if (ret < 0) {
-+		wl1271_error("failed to register plat driver: %d", ret);
-+		goto out_free;
-+	}
-+
-+	ret = wait_for_completion_interruptible_timeout(&pinstance->data_ready,
-+						msecs_to_jiffies(15000));
-+	if (ret <= 0) {
-+		wl1271_error("can't get platform device (%d)", ret);
-+		ret = (ret == 0 ? -EAGAIN : ret);
-+		goto unreg;
-+	}
-+
-+	wl->pinstance = pinstance;
-+
-+	return pinstance->pdata;
-+
-+unreg:
-+	platform_driver_unregister(&pinstance->pdriver);
-+out_free:
-+	kfree(pinstance);
-+	return ERR_PTR(ret);
-+}
-+
- static int __devinit wl1271_probe(struct sdio_func *func,
- 				  const struct sdio_device_id *id)
- {
- 	struct ieee80211_hw *hw;
-+	struct wl12xx_platform_data *wlan_data;
- 	struct wl1271 *wl;
- 	int ret;
- 
-@@ -205,17 +283,24 @@ static int __devinit wl1271_probe(struct sdio_func *func,
- 	/* Grab access to FN0 for ELP reg. */
- 	func->card->quirks |= MMC_QUIRK_LENIENT_FN0;
- 
-+	wlan_data = wl1271_get_data(wl, func->card->host->index);
-+	if (IS_ERR(wlan_data)) {
-+		ret = PTR_ERR(wlan_data);
-+		wl1271_error("missing wlan data (needed for irq/ref_clk)!");
-+		goto out_free;
-+	}
-+
- 	wl->irq = gpio_to_irq(RX71_WL1271_IRQ_GPIO);
- 	if (wl->irq < 0) {
- 		ret = wl->irq;
- 		wl1271_error("could not get irq!");
--		goto out_free;
-+		goto put_data;
+The patch below fixes the problem for me, and will post an official
+version shortly.
+
+Tested with l-o master (omap3_defconfig + CONFIG_CPU_IDLE=y) as well
+with current PM branch.  PM branch (specifically pm-fixes sub-branch)
+has been updated to include this fix.
+
+Kevin
+
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index fb4994a..7b03426 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -480,7 +480,9 @@ void omap_sram_idle(void)
  	}
  
- 	ret = request_irq(wl->irq, wl1271_irq, 0, DRIVER_NAME, wl);
- 	if (ret < 0) {
- 		wl1271_error("request_irq() failed: %d", ret);
--		goto out_free;
-+		goto put_data;
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+-	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
++	if (omap3_has_io_wakeup() &&
++	    (per_next_state < PWRDM_POWER_ON ||
++	     core_next_state < PWRDM_POWER_ON)) {
+ 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
+ 		omap3_disable_io_chain();
  	}
- 
- 	set_irq_type(wl->irq, IRQ_TYPE_EDGE_RISING);
-@@ -236,13 +321,13 @@ static int __devinit wl1271_probe(struct sdio_func *func,
- 
- 	return 0;
- 
-- out_irq:
-+out_irq:
- 	free_irq(wl->irq, wl);
--
--
-- out_free:
-+put_data:
-+	platform_driver_unregister(&wl->pinstance->pdriver);
-+	kfree(wl->pinstance);
-+out_free:
- 	wl1271_free_hw(wl);
--
- 	return ret;
- }
- 
-@@ -253,6 +338,10 @@ static void __devexit wl1271_remove(struct sdio_func *func)
- 	free_irq(wl->irq, wl);
- 
- 	wl1271_unregister_hw(wl);
-+
-+	platform_driver_unregister(&wl->pinstance->pdriver);
-+	kfree(wl->pinstance);
-+
- 	wl1271_free_hw(wl);
- }
- 
 -- 
-1.7.0.4
+1.7.2.1
+
+
 
