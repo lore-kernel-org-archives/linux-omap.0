@@ -1,161 +1,101 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] spi: omap2_mcspi: make use of dev_vdbg()
-Date: Tue, 10 Aug 2010 00:33:41 -0600
-Message-ID: <20100810063341.GA28597@angua.secretlab.ca>
-References: <1275563341-31078-1-git-send-email-felipe.balbi@nokia.com>
- <20100809103618.GE11340@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/5] [omap1] Bluetooth device code common to HTC
+ smartphones
+Date: Tue, 10 Aug 2010 09:36:27 +0300
+Message-ID: <20100810063626.GE32480@atomide.com>
+References: <1280762976-17284-1-git-send-email-darkstar6262@gmail.com>
+ <1280762976-17284-5-git-send-email-darkstar6262@gmail.com>
+ <20100804101507.GG9881@atomide.com>
+ <AANLkTikGA9-TCM7v+_yivBYtxiX3ByJ7_ub1FOP0LgBO@mail.gmail.com>
+ <20100809074300.GB32480@atomide.com>
+ <AANLkTinQ+50aFPj6M0yEnE_nemamnBb8=emD--VZ_hsG@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:47851 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878Ab0HJGdo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 02:33:44 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57085 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750878Ab0HJGgc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 02:36:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20100809103618.GE11340@nokia.com>
+In-Reply-To: <AANLkTinQ+50aFPj6M0yEnE_nemamnBb8=emD--VZ_hsG@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Tereshonkov Roman (Nokia-D/Helsinki)" <roman.tereshonkov@nokia.com>, Andrew Morton <akpm@linux-foundation.org>, David Brownell <david-b@pacbell.net>, spi-devel-general@lists.sourceforge.net
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Aug 09, 2010 at 01:36:18PM +0300, Felipe Balbi wrote:
-> On Thu, Jun 03, 2010 at 01:09:01PM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
-> >From: Felipe Balbi <felipe.balbi@nokia.com>
+* Cory Maccarrone <darkstar6262@gmail.com> [100809 20:21]:
+> On Mon, Aug 9, 2010 at 12:43 AM, Tony Lindgren <tony@atomide.com> wro=
+te:
+> > * Cory Maccarrone <darkstar6262@gmail.com> [100808 20:22]:
+> >> On Wed, Aug 4, 2010 at 3:15 AM, Tony Lindgren <tony@atomide.com> w=
+rote:
+> >> > * Cory Maccarrone <darkstar6262@gmail.com> [100802 18:23]:
+> >> >> This change adds in a bluetooth controld driver/rfkill
+> >> >> interface to the serial bluetooth controller found on many
+> >> >> HTC smartphones such as the HTC Herald and HTC Wizard.
+> >> >
+> >> > To me it looks like most of this should be in drivers/bluetooth/=
+omap7xx.c
+> >> > or something like that. Then you can just pass it the gpio numbe=
+rs in
+> >> > the platform_data.
+> >> >
+> >>
+> >> Not sure I agree that it fits there. =C2=A0The driver isn't really=
+ a
+> >> bluetooth driver -- it's really just an RFKILL interface, and some
+> >> code to toggle UART clocks on and off, plus GPIO work on a
+> >> board-specific level. =C2=A0In principle, the gpios could be set a=
+nd the
+> >> clocks enabled in the board files, and this driver wouldn't be
+> >> necessary to get working bluetooth (as we'd use hciattach on
+> >> /dev/ttyS*). =C2=A0But then, we can't toggle it off for power savi=
+ng.
+> >> Maybe a better place would be plat-omap/? =C2=A0But it really is m=
+ore
+> >> specific to these HTC boards, not the architecture itself.
 > >
-> >dev_vdbg() is only compiled when VERBOSE is defined, so
-> >there's no need to wrap dev_dbg() on #ifdef VERBOSE .. #endif
-> >as we can use dev_vdbg() directly.
+> > Hmm well what we've used earlier is to set something like set_power
+> > function pointer in the platform data, then call that in the driver
+> > if set. But in this case the driver is 8250.c, so let's not mess
+> > with that..
 > >
-> >Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> >---
-> 
-> ping, any comments to this one ? It's been pending for quite a long
-> time.
+> > This issue should get properly solved with the omap specific serial
+> > driver once we get that merged as then we can have hooks for set_po=
+wer
+> > in addition to cutting serial clocks when idle.
+> >
+> >> So really, the only point of this driver is to be able to power on=
+ and
+> >> off the external bluetooth chip, which is why I submitted it as he=
+lper
+> >> code to the board files.
+> >
+> > Yeah. Can you take a look at the omap specific serial driver to get
+> > it working on omap1?
+> >
+> > Then you can have your GPIO functions set in the board-*.c file
+> > as set_power or similar, and the UART driver can idle properly.
+> >
+>=20
+> I can look at it.  Where is the code for that, arch/arm/mach-omap2/se=
+rial.c?
 
-Now picked up into my test-spi branch.  I'll add it to linux-next after the merge window closes.
+It's been floating on the list for a while now, here's the latest
+version:
 
-g.
+http://www.spinics.net/lists/linux-omap/msg31786.html
 
-> 
-> >drivers/spi/omap2_mcspi.c |   36 +++++++++---------------------------
-> >1 files changed, 9 insertions(+), 27 deletions(-)
-> >
-> >diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> >index b3a94ca..d703927 100644
-> >--- a/drivers/spi/omap2_mcspi.c
-> >+++ b/drivers/spi/omap2_mcspi.c
-> >@@ -489,10 +489,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >					dev_err(&spi->dev, "TXS timed out\n");
-> >					goto out;
-> >				}
-> >-#ifdef VERBOSE
-> >-				dev_dbg(&spi->dev, "write-%d %02x\n",
-> >+				dev_vdbg(&spi->dev, "write-%d %02x\n",
-> >						word_len, *tx);
-> >-#endif
-> >				__raw_writel(*tx++, tx_reg);
-> >			}
-> >			if (rx != NULL) {
-> >@@ -506,10 +504,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >				    (l & OMAP2_MCSPI_CHCONF_TURBO)) {
-> >					omap2_mcspi_set_enable(spi, 0);
-> >					*rx++ = __raw_readl(rx_reg);
-> >-#ifdef VERBOSE
-> >-					dev_dbg(&spi->dev, "read-%d %02x\n",
-> >+					dev_vdbg(&spi->dev, "read-%d %02x\n",
-> >						    word_len, *(rx - 1));
-> >-#endif
-> >					if (mcspi_wait_for_reg_bit(chstat_reg,
-> >						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
-> >						dev_err(&spi->dev,
-> >@@ -522,10 +518,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >				}
-> >
-> >				*rx++ = __raw_readl(rx_reg);
-> >-#ifdef VERBOSE
-> >-				dev_dbg(&spi->dev, "read-%d %02x\n",
-> >+				dev_vdbg(&spi->dev, "read-%d %02x\n",
-> >						word_len, *(rx - 1));
-> >-#endif
-> >			}
-> >		} while (c);
-> >	} else if (word_len <= 16) {
-> >@@ -542,10 +536,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >					dev_err(&spi->dev, "TXS timed out\n");
-> >					goto out;
-> >				}
-> >-#ifdef VERBOSE
-> >-				dev_dbg(&spi->dev, "write-%d %04x\n",
-> >+				dev_vdbg(&spi->dev, "write-%d %04x\n",
-> >						word_len, *tx);
-> >-#endif
-> >				__raw_writel(*tx++, tx_reg);
-> >			}
-> >			if (rx != NULL) {
-> >@@ -559,10 +551,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >				    (l & OMAP2_MCSPI_CHCONF_TURBO)) {
-> >					omap2_mcspi_set_enable(spi, 0);
-> >					*rx++ = __raw_readl(rx_reg);
-> >-#ifdef VERBOSE
-> >-					dev_dbg(&spi->dev, "read-%d %04x\n",
-> >+					dev_vdbg(&spi->dev, "read-%d %04x\n",
-> >						    word_len, *(rx - 1));
-> >-#endif
-> >					if (mcspi_wait_for_reg_bit(chstat_reg,
-> >						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
-> >						dev_err(&spi->dev,
-> >@@ -575,10 +565,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >				}
-> >
-> >				*rx++ = __raw_readl(rx_reg);
-> >-#ifdef VERBOSE
-> >-				dev_dbg(&spi->dev, "read-%d %04x\n",
-> >+				dev_vdbg(&spi->dev, "read-%d %04x\n",
-> >						word_len, *(rx - 1));
-> >-#endif
-> >			}
-> >		} while (c);
-> >	} else if (word_len <= 32) {
-> >@@ -595,10 +583,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >					dev_err(&spi->dev, "TXS timed out\n");
-> >					goto out;
-> >				}
-> >-#ifdef VERBOSE
-> >-				dev_dbg(&spi->dev, "write-%d %08x\n",
-> >+				dev_vdbg(&spi->dev, "write-%d %08x\n",
-> >						word_len, *tx);
-> >-#endif
-> >				__raw_writel(*tx++, tx_reg);
-> >			}
-> >			if (rx != NULL) {
-> >@@ -612,10 +598,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >				    (l & OMAP2_MCSPI_CHCONF_TURBO)) {
-> >					omap2_mcspi_set_enable(spi, 0);
-> >					*rx++ = __raw_readl(rx_reg);
-> >-#ifdef VERBOSE
-> >-					dev_dbg(&spi->dev, "read-%d %08x\n",
-> >+					dev_vdbg(&spi->dev, "read-%d %08x\n",
-> >						    word_len, *(rx - 1));
-> >-#endif
-> >					if (mcspi_wait_for_reg_bit(chstat_reg,
-> >						OMAP2_MCSPI_CHSTAT_RXS) < 0) {
-> >						dev_err(&spi->dev,
-> >@@ -628,10 +612,8 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >				}
-> >
-> >				*rx++ = __raw_readl(rx_reg);
-> >-#ifdef VERBOSE
-> >-				dev_dbg(&spi->dev, "read-%d %08x\n",
-> >+				dev_vdbg(&spi->dev, "read-%d %08x\n",
-> >						word_len, *(rx - 1));
-> >-#endif
-> >			}
-> >		} while (c);
-> >	}
-> >-- 
-> >1.7.1
-> 
-> -- 
-> balbi
-> 
-> DefectiveByDesign.org
+Probably doing the platform data initialization is the biggest
+part that needs to be done for omap1, the driver itself should not
+need much changes.
+
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
