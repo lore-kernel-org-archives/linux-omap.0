@@ -1,46 +1,61 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] spi: omap2_mcspi: make use of
-	dev_vdbg()
-Date: Tue, 10 Aug 2010 09:39:55 +0300
-Message-ID: <20100810063955.GC21953@nokia.com>
-References: <1275563341-31078-1-git-send-email-felipe.balbi@nokia.com>
-	<20100809103618.GE11340@nokia.com>
-	<20100810063341.GA28597@angua.secretlab.ca>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: beginner questions on being added to the linux tree
+Date: Tue, 10 Aug 2010 09:50:47 +0300
+Message-ID: <20100810065046.GF32480@atomide.com>
+References: <77A0A4DB5BF2A44283E5522C27234AC6021A5F78@EDPRSRV011.logicpd.com>
+ <20100810110915.9e2ddc27.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55087 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752702Ab0HJGvD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 02:51:03 -0400
 Content-Disposition: inline
-In-Reply-To: <20100810063341.GA28597-MrY2KI0G/OVr83L8+7iqerDks+cytr/Z@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: ext Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Tereshonkov Roman (Nokia-MS/Helsinki)" <roman.tereshonkov-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Balbi Felipe (Nokia-MS/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+In-Reply-To: <20100810110915.9e2ddc27.sfr@canb.auug.org.au>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>, Russell King <rmk@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-Hi,
+* Stephen Rothwell <sfr@canb.auug.org.au> [100810 04:02]:
+> Hi Jacob,
+> 
+> On Mon, 9 Aug 2010 19:36:01 -0500 "Jacob Tanenbaum" <Jacob.Tanenbaum@logicpd.com> wrote:
+> >
+> >             I work for LogicPD and am trying to add new support for
+> > there OMAP3 development boards to the kernel, I have a working version
+> > of some of the base support and was wondering how to get that ready to
+> > be merged in during this merge window. We have tested the code against
+> > the most recent version of linux-next I can get to build and was
+> > wondering where to go. Do I send merge requests to the linux-next list
+> > or a series of patches. I have sent patches to the omap and arm lists
+> > and got some minor syntax errors reported by them (spaces instead of
+> > tabs and the like) and was wondering where to go from here.
+> 
+> I only merge other people's trees, so you need to set up a git tree
+> somewhere and tell me (cc'ing linux-next and all other appropriate
+> lists/people) where it is and which branch to fetch.  I then fetch that
+> branch each day and merge it with everything else.
+> 
+> Getting your code merged by Linus during this merge window is up to Linus
+> and Russell or Tony, I guess.  But I cannot take new trees now until
+> after -rc1 is out.  So if you really want your code merged during this
+> merge window, your best bet is to convince Russell and/or Tony.
 
-On Tue, Aug 10, 2010 at 08:33:41AM +0200, ext Grant Likely wrote:
->Now picked up into my test-spi branch.  I'll add it to linux-next after 
->the merge window closes.
+Yeah, it's too late for this merge window. But after -rc1 I'll start
+queuing things up for the next merge window. That way your patches will
+go to Stephen's for-next tree and then get pulled into the mainline
+tree during the next merge window.
 
-ok, thanks Grant
+> Having your tree in linux-next may be useful for ongoing development
+> unless Tony thinks it may be better for you to just submit your code
+> through his omap tree.
 
--- 
-balbi
+If you have patches coming on continuous basis, then maintaining
+a git branch makes sense. For occasional sets of patches, it's probably
+easier to just email them to the list.
 
-DefectiveByDesign.org
+Regards,
 
-------------------------------------------------------------------------------
-This SF.net email is sponsored by 
-
-Make an app they can't live without
-Enter the BlackBerry Developer Challenge
-http://p.sf.net/sfu/RIM-dev2dev 
+Tony
