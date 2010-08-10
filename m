@@ -1,117 +1,330 @@
-From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH V2 6/8] usb: musb: Offmode fix for idle path
-Date: Tue, 10 Aug 2010 17:29:19 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940270A4A257@dbde02.ent.ti.com>
-References: <1281115624-1174-1-git-send-email-hemahk@ti.com>
- <4C5D7AE5.7040506@ru.mvista.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E940270A49F92@dbde02.ent.ti.com>
- <4C6135D1.2000909@ru.mvista.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C6135D1.2000909-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCH] OMAP: DSS2: don't power off a panel twice
+Date: Tue, 10 Aug 2010 20:16:25 +0800
+Message-ID: <1281442585-6511-1-git-send-email-stanley.miao@windriver.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.windriver.com ([147.11.1.11]:52192 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752252Ab0HJMCS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 08:02:18 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-Hi, 
+If we blank the panel by
+echo 1 > /sys/devices/platform/omapfb/graphics/fb0/blank
 
->-----Original Message-----
->From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org] 
->Sent: Tuesday, August 10, 2010 4:50 PM
->To: Kalliguddi, Hema
->Cc: Sergei Shtylyov; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
->linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Mankad, Maulik Ojas; Felipe Balbi; 
->Tony Lindgren; Kevin Hilman
->Subject: Re: [PATCH V2 6/8] usb: musb: Offmode fix for idle path
->
->Hello.
->
->Kalliguddi, Hema wrote:
->
->>>> With OMAP core-off support musb was not functional as 
->context was getting
->>>> lost after wakeup from core-off. And also musb was 
->blocking the core-off 
->>>> after loading the gadget driver even with no cable 
->connected sometimes.
->
->>>> Added the conext save/restore api in the platform layer which will
->>>> be called in the idle and wakeup path.
->>>> Changed the usb sysconfig settings as per the usbotg 
->functional spec.
->>>> When the device is not active, configure to force idle and 
->force standby mode.
->>>> When it is being used, configure in smart standby and 
->smart idle mode.
->>>> So while attempting to coreoff the usb is configured to 
->force standby and 
->>>> force idle mode, after wakeup configured in smart idle and 
->smart standby.
->
->>>> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->>>> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
->>>> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->>>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->>>> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->
->>> [...]
->
->>>> Index: linux-omap-pm/drivers/usb/musb/musb_core.c
->>>> ===================================================================
->>>> --- linux-omap-pm.orig/drivers/usb/musb/musb_core.c	
->>> 2010-08-06 09:24:21.069863329 -0400
->>>> +++ linux-omap-pm/drivers/usb/musb/musb_core.c	
->>> 2010-08-06 10:44:06.369863527 -0400
->>>> @@ -2427,11 +2427,6 @@
->>>>  	}
->>>>  
->>>>  	musb_save_context(musb);
->>>> -
->>>> -	if (musb->set_clock)
->>>> -		musb->set_clock(musb->clock, 0);
->>>> -	else
->>>> -		clk_disable(musb->clock);
->>>>  	spin_unlock_irqrestore(&musb->lock, flags);
->>>>  	return 0;
->>>>  }
->>>> @@ -2443,12 +2438,6 @@
->>>>  
->>>>  	if (!musb->clock)
->>>>  		return 0;
->>>> -
->>>> -	if (musb->set_clock)
->>>> -		musb->set_clock(musb->clock, 1);
->>>> -	else
->>>> -		clk_enable(musb->clock);
->>>> -
->>>>  	musb_restore_context(musb);
->
->>>   The same question again: are you sure that clocks are 
->auto-gated on 
->>> non-OMAP platfroms?
->
->> Bon Lui confirmed that there is no clock for blackfin.
->
->    What about DaVinci (and the coming DA8xx)?
->
+Then, we reboot the sytem, the kernel will crash at
+drivers/video/omap2/dss/core.c:323
 
-I checked with Ajay, it is not auto gated for for Davinci so I can't just remove this.
+This is because the panel is closed twice. Now add a variable panel_enabled
+to forbid a panel is power on or power off twice.
 
-I am thinking of adding a member variable(clk_autogated) in them usb_hdrc_platform_data structure and 
-check this in the musb_suspend() And musb_resume() APIs. Do you see any problem with it?
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+---
+ drivers/video/omap2/displays/panel-generic.c       |   11 +++++++++++
+ .../video/omap2/displays/panel-sharp-lq043t1dg01.c |   11 +++++++++++
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |   11 +++++++++++
+ drivers/video/omap2/displays/panel-taal.c          |    6 ++++++
+ .../video/omap2/displays/panel-toppoly-tdo35s.c    |   11 +++++++++++
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |    9 +++++++++
+ 6 files changed, 59 insertions(+), 0 deletions(-)
 
-Regards,
-Hema
+diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
+index 300eff5..607f11a 100644
+--- a/drivers/video/omap2/displays/panel-generic.c
++++ b/drivers/video/omap2/displays/panel-generic.c
+@@ -22,6 +22,8 @@
+ 
+ #include <plat/display.h>
+ 
++static int panel_enabled;
++
+ static struct omap_video_timings generic_panel_timings = {
+ 	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
+ 	.x_res		= 640,
+@@ -39,6 +41,9 @@ static int generic_panel_power_on(struct omap_dss_device *dssdev)
+ {
+ 	int r;
+ 
++	if (panel_enabled)
++		return 0;
++
+ 	r = omapdss_dpi_display_enable(dssdev);
+ 	if (r)
+ 		goto err0;
+@@ -48,6 +53,7 @@ static int generic_panel_power_on(struct omap_dss_device *dssdev)
+ 		if (r)
+ 			goto err1;
+ 	}
++	panel_enabled = 1;
+ 
+ 	return 0;
+ err1:
+@@ -58,10 +64,14 @@ err0:
+ 
+ static void generic_panel_power_off(struct omap_dss_device *dssdev)
+ {
++	if (panel_enabled == 0)
++		return;
++
+ 	if (dssdev->platform_disable)
+ 		dssdev->platform_disable(dssdev);
+ 
+ 	omapdss_dpi_display_disable(dssdev);
++	panel_enabled = 0;
+ }
+ 
+ static int generic_panel_probe(struct omap_dss_device *dssdev)
+@@ -155,6 +165,7 @@ static struct omap_dss_driver generic_driver = {
+ 
+ static int __init generic_panel_drv_init(void)
+ {
++	panel_enabled = 0;
+ 	return omap_dss_register_driver(&generic_driver);
+ }
+ 
+diff --git a/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c b/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+index 1026746..b5205d4 100644
+--- a/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
++++ b/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+@@ -24,6 +24,8 @@
+ 
+ #include <plat/display.h>
+ 
++static int panel_enabled;
++
+ static struct omap_video_timings sharp_lq_timings = {
+ 	.x_res = 480,
+ 	.y_res = 272,
+@@ -43,6 +45,9 @@ static int sharp_lq_panel_power_on(struct omap_dss_device *dssdev)
+ {
+ 	int r;
+ 
++	if (panel_enabled)
++		return 0;
++
+ 	r = omapdss_dpi_display_enable(dssdev);
+ 	if (r)
+ 		goto err0;
+@@ -55,6 +60,7 @@ static int sharp_lq_panel_power_on(struct omap_dss_device *dssdev)
+ 		if (r)
+ 			goto err1;
+ 	}
++	panel_enabled = 1;
+ 
+ 	return 0;
+ err1:
+@@ -65,6 +71,9 @@ err0:
+ 
+ static void sharp_lq_panel_power_off(struct omap_dss_device *dssdev)
+ {
++	if (panel_enabled == 0)
++		return;
++
+ 	if (dssdev->platform_disable)
+ 		dssdev->platform_disable(dssdev);
+ 
+@@ -72,6 +81,7 @@ static void sharp_lq_panel_power_off(struct omap_dss_device *dssdev)
+ 	msleep(100);
+ 
+ 	omapdss_dpi_display_disable(dssdev);
++	panel_enabled = 0;
+ }
+ 
+ static int sharp_lq_panel_probe(struct omap_dss_device *dssdev)
+@@ -146,6 +156,7 @@ static struct omap_dss_driver sharp_lq_driver = {
+ 
+ static int __init sharp_lq_panel_drv_init(void)
+ {
++	panel_enabled = 0;
+ 	return omap_dss_register_driver(&sharp_lq_driver);
+ }
+ 
+diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+index 7d9eb2b..3750fdc 100644
+--- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
++++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+@@ -31,6 +31,8 @@ struct sharp_data {
+ 	struct backlight_device *bl;
+ };
+ 
++static int panel_enabled;
++
+ static struct omap_video_timings sharp_ls_timings = {
+ 	.x_res = 480,
+ 	.y_res = 640,
+@@ -135,6 +137,9 @@ static int sharp_ls_power_on(struct omap_dss_device *dssdev)
+ {
+ 	int r = 0;
+ 
++	if (panel_enabled)
++		return 0;
++
+ 	r = omapdss_dpi_display_enable(dssdev);
+ 	if (r)
+ 		goto err0;
+@@ -147,6 +152,7 @@ static int sharp_ls_power_on(struct omap_dss_device *dssdev)
+ 		if (r)
+ 			goto err1;
+ 	}
++	panel_enabled = 1;
+ 
+ 	return 0;
+ err1:
+@@ -157,6 +163,9 @@ err0:
+ 
+ static void sharp_ls_power_off(struct omap_dss_device *dssdev)
+ {
++	if (panel_enabled == 0)
++		return;
++
+ 	if (dssdev->platform_disable)
+ 		dssdev->platform_disable(dssdev);
+ 
+@@ -165,6 +174,7 @@ static void sharp_ls_power_off(struct omap_dss_device *dssdev)
+ 	msleep(100);
+ 
+ 	omapdss_dpi_display_disable(dssdev);
++	panel_enabled = 0;
+ }
+ 
+ static int sharp_ls_panel_enable(struct omap_dss_device *dssdev)
+@@ -213,6 +223,7 @@ static struct omap_dss_driver sharp_ls_driver = {
+ 
+ static int __init sharp_ls_panel_drv_init(void)
+ {
++	panel_enabled = 0;
+ 	return omap_dss_register_driver(&sharp_ls_driver);
+ }
+ 
+diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+index aaf5d30..db65577 100644
+--- a/drivers/video/omap2/displays/panel-taal.c
++++ b/drivers/video/omap2/displays/panel-taal.c
+@@ -635,6 +635,9 @@ static int taal_power_on(struct omap_dss_device *dssdev)
+ 	u8 id1, id2, id3;
+ 	int r;
+ 
++	if (td->enabled)
++		return 0;
++
+ 	if (dssdev->platform_enable) {
+ 		r = dssdev->platform_enable(dssdev);
+ 		if (r)
+@@ -715,6 +718,9 @@ static void taal_power_off(struct omap_dss_device *dssdev)
+ {
+ 	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
+ 
++	if (td->enabled == 0)
++		return;
++
+ 	dsi_bus_lock();
+ 
+ 	cancel_delayed_work(&td->esd_work);
+diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+index fa434ca..da279d8 100644
+--- a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
++++ b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+@@ -26,6 +26,8 @@
+ 
+ #include <plat/display.h>
+ 
++static int panel_enabled;
++
+ static struct omap_video_timings toppoly_tdo_panel_timings = {
+ 	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
+ 	.x_res		= 480,
+@@ -46,6 +48,9 @@ static int toppoly_tdo_panel_power_on(struct omap_dss_device *dssdev)
+ {
+ 	int r;
+ 
++	if (panel_enabled)
++		return 0;
++
+ 	r = omapdss_dpi_display_enable(dssdev);
+ 	if (r)
+ 		goto err0;
+@@ -55,6 +60,7 @@ static int toppoly_tdo_panel_power_on(struct omap_dss_device *dssdev)
+ 		if (r)
+ 			goto err1;
+ 	}
++	panel_enabled = 1;
+ 
+ 	return 0;
+ err1:
+@@ -65,10 +71,14 @@ err0:
+ 
+ static void toppoly_tdo_panel_power_off(struct omap_dss_device *dssdev)
+ {
++	if (panel_enabled == 0)
++		return;
++
+ 	if (dssdev->platform_disable)
+ 		dssdev->platform_disable(dssdev);
+ 
+ 	omapdss_dpi_display_disable(dssdev);
++	panel_enabled = 0;
+ }
+ 
+ static int toppoly_tdo_panel_probe(struct omap_dss_device *dssdev)
+@@ -141,6 +151,7 @@ static struct omap_dss_driver generic_driver = {
+ 
+ static int __init toppoly_tdo_panel_drv_init(void)
+ {
++	panel_enabled = 0;
+ 	return omap_dss_register_driver(&generic_driver);
+ }
+ 
+diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+index e866e76..9f09150 100644
+--- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
++++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+@@ -57,6 +57,7 @@ struct tpo_td043_device {
+ 	u32 mode;
+ 	u32 hmirror:1;
+ 	u32 vmirror:1;
++	int enabled;
+ };
+ 
+ static int tpo_td043_write(struct spi_device *spi, u8 addr, u8 data)
+@@ -269,6 +270,9 @@ static int tpo_td043_power_on(struct omap_dss_device *dssdev)
+ 	int nreset_gpio = dssdev->reset_gpio;
+ 	int r;
+ 
++	if (tpo_td043->enabled)
++		return 0;
++
+ 	r = omapdss_dpi_display_enable(dssdev);
+ 	if (r)
+ 		goto err0;
+@@ -295,6 +299,7 @@ static int tpo_td043_power_on(struct omap_dss_device *dssdev)
+ 	tpo_td043_write_mirror(tpo_td043->spi, tpo_td043->hmirror,
+ 			tpo_td043->vmirror);
+ 	tpo_td043_write_gamma(tpo_td043->spi, tpo_td043->gamma);
++	tpo_td043->enabled = 1;
+ 
+ 	return 0;
+ err1:
+@@ -308,6 +313,9 @@ static void tpo_td043_power_off(struct omap_dss_device *dssdev)
+ 	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
+ 	int nreset_gpio = dssdev->reset_gpio;
+ 
++	if (tpo_td043->enabled == 0)
++		return;
++
+ 	tpo_td043_write(tpo_td043->spi, 3,
+ 			TPO_R03_VAL_STANDBY | TPO_R03_EN_PWM);
+ 
+@@ -325,6 +333,7 @@ static void tpo_td043_power_off(struct omap_dss_device *dssdev)
+ 		dssdev->platform_disable(dssdev);
+ 
+ 	omapdss_dpi_display_disable(dssdev);
++	tpo_td043->enabled = 0;
+ }
+ 
+ static int tpo_td043_enable(struct omap_dss_device *dssdev)
+-- 
+1.5.4.3
 
-
-
->WBR, Sergei
->
->--
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
