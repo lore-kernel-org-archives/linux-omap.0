@@ -1,33 +1,58 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: CONFIG_CPU_IDLE broken for N900
-Date: Tue, 10 Aug 2010 15:21:31 +0300
-Message-ID: <1281442891.17541.26.camel@chotu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: "Stanley.Miao" <stanley.miao@windriver.com>
+Subject: [PATCH] OMAP2: Fix a cpu type check problem.
+Date: Tue, 10 Aug 2010 20:36:37 +0800
+Message-ID: <1281443797-7062-1-git-send-email-stanley.miao@windriver.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:36943 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755620Ab0HJMWG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 08:22:06 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o7ACLd5C016599
-	for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 15:22:04 +0300
-Received: from [172.21.22.240] (helruo-dhcp022240.ntc.nokia.com [172.21.22.240])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o7ACLUaV006724
-	for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 15:21:30 +0300
+Received: from mail.windriver.com ([147.11.1.11]:56184 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755620Ab0HJMW3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 08:22:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+cpu_is_omap3517() and cpu_is_omap3505() are the subgroups of cpu_is_omap34xx(),
+so we should check cpu_is_omap3517() and cpu_is_omap3505() first, then check
+cpu_is_omap34xx().
 
-When I enable CONFIG_CPU_IDLE and boot kernel, it hangs around the point
-when it switches to user space. I am able to reproduce this for 2.6.35
-on linux-omap and linux-2.6 trees.
+Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-Has anyone else noticed the same thing for omap3 based boards?
-
-Cheers,
-Ameya.
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 138646d..dfdce2d 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3417,7 +3417,13 @@ int __init omap3xxx_clk_init(void)
+ 	struct omap_clk *c;
+ 	u32 cpu_clkflg = CK_3XXX;
+ 
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap3517()) {
++		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
++		cpu_clkflg |= CK_3517;
++	} else if (cpu_is_omap3505()) {
++		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
++		cpu_clkflg |= CK_3505;
++	} else if (cpu_is_omap34xx()) {
+ 		cpu_mask = RATE_IN_3XXX;
+ 		cpu_clkflg |= CK_343X;
+ 
+@@ -3432,12 +3438,6 @@ int __init omap3xxx_clk_init(void)
+ 			cpu_mask |= RATE_IN_3430ES2PLUS;
+ 			cpu_clkflg |= CK_3430ES2;
+ 		}
+-	} else if (cpu_is_omap3517()) {
+-		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+-		cpu_clkflg |= CK_3517;
+-	} else if (cpu_is_omap3505()) {
+-		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+-		cpu_clkflg |= CK_3505;
+ 	}
+ 
+ 	if (omap3_has_192mhz_clk())
+-- 
+1.5.4.3
 
