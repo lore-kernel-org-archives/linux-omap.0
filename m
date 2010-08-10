@@ -1,82 +1,98 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH V2 6/8] usb: musb: Offmode fix for idle path
-Date: Tue, 10 Aug 2010 15:19:45 +0400
-Message-ID: <4C6135D1.2000909@ru.mvista.com>
-References: <1281115624-1174-1-git-send-email-hemahk@ti.com> <4C5D7AE5.7040506@ru.mvista.com> <E0D41E29EB0DAC4E9F3FF173962E9E940270A49F92@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv2] omap2: fix assorted compiler warnings
+Date: Tue, 10 Aug 2010 16:58:06 +0530
+Message-ID: <1281439686-23713-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55462 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757496Ab0HJLVS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 07:21:18 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940270A49F92@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41590 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752490Ab0HJL2S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Aug 2010 07:28:18 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7ABSEml016337
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 06:28:17 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mankad, Maulik Ojas" <x0082077@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Hello.
+This patch fixes these compiler warnings:
 
-Kalliguddi, Hema wrote:
+  CC      arch/arm/mach-omap2/mux.o
+arch/arm/mach-omap2/mux.c: In function 'omap_mux_init_gpio':
+arch/arm/mach-omap2/mux.c:90: warning: 'gpio_mux' may be used uninitial
+ized in this function
 
->>> With OMAP core-off support musb was not functional as context was getting
->>> lost after wakeup from core-off. And also musb was blocking the core-off 
->>> after loading the gadget driver even with no cable connected sometimes.
+  CC      arch/arm/plat-omap/gpio.o
+arch/arm/plat-omap/gpio.c: In function 'omap2_gpio_resume_after_idle':
+arch/arm/plat-omap/gpio.c:2152: warning: 'l' may be used uninitialized
+in this function
+arch/arm/plat-omap/gpio.c: In function 'omap2_gpio_prepare_for_idle':
+arch/arm/plat-omap/gpio.c:2085: warning: 'l2' may be used uninitialized
+in this function
+arch/arm/plat-omap/gpio.c:2085: warning: 'l1' may be used uninitialized
+in this function
 
->>> Added the conext save/restore api in the platform layer which will
->>> be called in the idle and wakeup path.
->>> Changed the usb sysconfig settings as per the usbotg functional spec.
->>> When the device is not active, configure to force idle and force standby mode.
->>> When it is being used, configure in smart standby and smart idle mode.
->>> So while attempting to coreoff the usb is configured to force standby and 
->>> force idle mode, after wakeup configured in smart idle and smart standby.
+  CC      arch/arm/mach-omap2/board-omap4panda.o
+arch/arm/mach-omap2/board-omap4panda.c: In function 'omap4_panda_init':
+arch/arm/mach-omap2/board-omap4panda.c:277: warning: unused variable 's
+tatus'
 
->>> Signed-off-by: Hema HK <hemahk@ti.com>
->>> Signed-off-by: Maulik Mankad <x0082077@ti.com>
->>> Cc: Felipe Balbi <felipe.balbi@nokia.com>
->>> Cc: Tony Lindgren <tony@atomide.com>
->>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |    2 --
+ arch/arm/mach-omap2/mux.c              |    2 +-
+ arch/arm/plat-omap/gpio.c              |    4 ++--
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
->> [...]
-
->>> Index: linux-omap-pm/drivers/usb/musb/musb_core.c
->>> ===================================================================
->>> --- linux-omap-pm.orig/drivers/usb/musb/musb_core.c	
->> 2010-08-06 09:24:21.069863329 -0400
->>> +++ linux-omap-pm/drivers/usb/musb/musb_core.c	
->> 2010-08-06 10:44:06.369863527 -0400
->>> @@ -2427,11 +2427,6 @@
->>>  	}
->>>  
->>>  	musb_save_context(musb);
->>> -
->>> -	if (musb->set_clock)
->>> -		musb->set_clock(musb->clock, 0);
->>> -	else
->>> -		clk_disable(musb->clock);
->>>  	spin_unlock_irqrestore(&musb->lock, flags);
->>>  	return 0;
->>>  }
->>> @@ -2443,12 +2438,6 @@
->>>  
->>>  	if (!musb->clock)
->>>  		return 0;
->>> -
->>> -	if (musb->set_clock)
->>> -		musb->set_clock(musb->clock, 1);
->>> -	else
->>> -		clk_enable(musb->clock);
->>> -
->>>  	musb_restore_context(musb);
-
->>   The same question again: are you sure that clocks are auto-gated on 
->> non-OMAP platfroms?
-
-> Bon Lui confirmed that there is no clock for blackfin.
-
-    What about DaVinci (and the coming DA8xx)?
-
-WBR, Sergei
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index c03d1d5..96f5bbb 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -274,8 +274,6 @@ static int __init omap4_panda_i2c_init(void)
+ }
+ static void __init omap4_panda_init(void)
+ {
+-	int status;
+-
+ 	omap4_panda_i2c_init();
+ 	omap_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index ab403b2..6c2f8f0 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -87,7 +87,7 @@ static char *omap_mux_options;
+ int __init omap_mux_init_gpio(int gpio, int val)
+ {
+ 	struct omap_mux_entry *e;
+-	struct omap_mux *gpio_mux;
++	struct omap_mux *gpio_mux = NULL;
+ 	u16 old_mode;
+ 	u16 mux_mode;
+ 	int found = 0;
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 9b7e354..ba3b9ab 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -2082,7 +2082,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
+ 
+ 	for (i = min; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+-		u32 l1, l2;
++		u32 l1 = 0, l2 = 0;
+ 
+ 		if (bank->dbck_enable_mask)
+ 			clk_disable(bank->dbck);
+@@ -2149,7 +2149,7 @@ void omap2_gpio_resume_after_idle(void)
+ 		min = 1;
+ 	for (i = min; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+-		u32 l, gen, gen0, gen1;
++		u32 l = 0, gen, gen0, gen1;
+ 
+ 		if (bank->dbck_enable_mask)
+ 			clk_enable(bank->dbck);
+-- 
+1.6.6.1
 
