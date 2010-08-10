@@ -1,98 +1,175 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCHv2] omap2: fix assorted compiler warnings
-Date: Tue, 10 Aug 2010 16:58:06 +0530
-Message-ID: <1281439686-23713-1-git-send-email-premi@ti.com>
+From: "Basak, Partha" <p-basak2@ti.com>
+Subject: RE: [PATCH 01/13 v5] OMAP: GPIO: Modify init() in preparation for
+ platform device implementation
+Date: Tue, 10 Aug 2010 17:01:12 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E80AC3C7@dbde02.ent.ti.com>
+References: <1281098065-24177-1-git-send-email-charu@ti.com>
+	<1281098065-24177-2-git-send-email-charu@ti.com>
+ <878w4fh1hf.fsf@deeprootsystems.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C6553365@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E80AC12E@dbde02.ent.ti.com>
+ <4C612DA9.7070002@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41590 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41713 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752490Ab0HJL2S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Aug 2010 07:28:18 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7ABSEml016337
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 06:28:17 -0500
+	id S1752252Ab0HJLbT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 07:31:19 -0400
+In-Reply-To: <4C612DA9.7070002@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
 
-This patch fixes these compiler warnings:
 
-  CC      arch/arm/mach-omap2/mux.o
-arch/arm/mach-omap2/mux.c: In function 'omap_mux_init_gpio':
-arch/arm/mach-omap2/mux.c:90: warning: 'gpio_mux' may be used uninitial
-ized in this function
 
-  CC      arch/arm/plat-omap/gpio.o
-arch/arm/plat-omap/gpio.c: In function 'omap2_gpio_resume_after_idle':
-arch/arm/plat-omap/gpio.c:2152: warning: 'l' may be used uninitialized
-in this function
-arch/arm/plat-omap/gpio.c: In function 'omap2_gpio_prepare_for_idle':
-arch/arm/plat-omap/gpio.c:2085: warning: 'l2' may be used uninitialized
-in this function
-arch/arm/plat-omap/gpio.c:2085: warning: 'l1' may be used uninitialized
-in this function
+> -----Original Message-----
+> From: Cousson, Benoit
+> Sent: Tuesday, August 10, 2010 4:15 PM
+> To: Basak, Partha
+> Cc: Varadarajan, Charulatha; Kevin Hilman; linux-omap@vger.kernel.org;
+> paul@pwsan.com; Nayak, Rajendra; Syed Mohammed, Khasim
+> Subject: Re: [PATCH 01/13 v5] OMAP: GPIO: Modify init() in preparation for
+> platform device implementation
+> 
+> On 8/10/2010 9:20 AM, Basak, Partha wrote:
+> >
+> >> From: Varadarajan, Charulatha
+> >> Sent: Tuesday, August 10, 2010 10:49 AM
+> >>
+> >>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> >>> Sent: Tuesday, August 10, 2010 3:51 AM
+> >>>
+> >>> Charulatha V<charu@ti.com>  writes:
+> >>>
+> >>>> This is in prepartion for implementing GPIO as a platform device.
+> >>>> gpio bank's base addresses are moved from gpio.c to plat/gpio.h.
+> >>>>
+> >>>> This patch also modifies omap_gpio_init() to make use of
+> >>>> omap_gpio_chip_init() and omap_gpio_mod_init(). omap_gpio_mod_init()
+> >>> does
+> >>>> the module init by clearing the status register and initializing the
+> >>>> GPIO control register. omap_gpio_chip_init() initializes the chip
+> >>> request,
+> >>>> free, get, set and other function pointers and sets the gpio irq
+> >> handler.
+> >>>>
+> >>>> Signed-off-by: Charulatha V<charu@ti.com>
+> >>>> Signed-off-by: Basak, Partha<p-basak2@ti.com>
+> >>>
+> >>> [...]
+> >>>
+> >>>> +static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
+> >>>> +{
+> >>>> +	if (cpu_class_is_omap2()) {
+> >>>> +		if (cpu_is_omap44xx()) {
+> >>>> +			__raw_writel(0xffffffff, bank->base +
+> >>>> +					OMAP4_GPIO_IRQSTATUSCLR0);
+> >>>> +			__raw_writel(0x00000000, bank->base +
+> >>>> +					 OMAP4_GPIO_DEBOUNCENABLE);
+> >>>> +			/* Initialize interface clk ungated, module
+> enabled */
+> >>>> +			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
+> >>>> +		} else if (cpu_is_omap34xx()) {
+> >>>> +			__raw_writel(0x00000000, bank->base +
+> >>>> +					OMAP24XX_GPIO_IRQENABLE1);
+> >>>> +			__raw_writel(0xffffffff, bank->base +
+> >>>> +					OMAP24XX_GPIO_IRQSTATUS1);
+> >>>> +			__raw_writel(0x00000000, bank->base +
+> >>>> +					OMAP24XX_GPIO_DEBOUNCE_EN);
+> >>>> +
+> >>>> +			/* Initialize interface clk ungated, module
+> enabled */
+> >>>> +			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
+> >>>> +			/* Enable autoidle for the OCP interface */
+> >>>> +			omap_writel(1<<  0, 0x48306814);
+> >>>
+> >>> This autoidle stuff should be removed in this series as setting this
+> is
+> >>> handled by the hwmod layer.
+> >>
+> >> Okay.
+> >
+> > This code is incorrectly setting the PRCM_SYSCONFIG(0x48306814) register
+> inside GPIO module which is incorrect. Ideally it should be moved to
+> generic code like prcm_setup_regs() inside PM44xx.c/PM34xx.c. Having said
+> that, the reset value of PRCM_SYSCONFIG is 0x01, so it would be safe just
+> to remove this.
+> 
+> That's weird, do you know where it come from? Maybe it is re-enable
+> because someone disable it at some point?
+> It is indeed a dirty hack, but it will be good to understand the
+> rational, if any?
+> 
+> The code is from that commit: 5492fb1a ARM: OMAP: Add 3430 gpio support
+> from Khasim Syed Mohammed (Added in Cc).
+> 
+> It seems to be a bad copy paste of the 2420 code (omap_writel(1<<  0,
+> 0x48019010)). That one is indeed changing the GPIO SYSCONFIG.
+> 
+> 
+> > Now, coming to setting of AutoIdle (in CM_AUTOIDLE_XXX registers), even
+> though prcm_reg_ids are being populated, hwmod framework is not setting
+> these anywhere, all CM_AutoIdle settings are being done one-time in side
+> prcm_setup_regs().
+> 
+> In this case, Kevin was referring to the SYSCONFIG autoidle setting not
+> the PRCM one. But the following point is still valid.
+> 
+> > Kevin, as you pointed out this needs to be done in the framework.
+> 
+> Yep, good point, it was indeed already suggested by the comment:
+> 
+> 	/*
+> 	 * Enable interface clock autoidle for all modules.
+> 	 * Note that in the long run this should be done by clockfw
+> 	 */
+> 
+> Except that doing that in hwmod make more sense now. hwmod probably
+> didn't exist at that time.
+> 
+> Everything is in place in the hwmod prcm struct to set this setting from
+> the hwmod core code.
+> 
+> > Can we do it as part of enabling the slave clocks? How does the
+> following look?
+> >
+> > static int _enable_clocks(struct omap_hwmod *oh)
+> > {
+> > 	int i;
+> >
+> > 	pr_debug("omap_hwmod: %s: enabling clocks\n", oh->name);
+> >
+> > 	if (oh->_clk)
+> > 		clk_enable(oh->_clk);
+> >
+> > 	if (oh->slaves_cnt>  0) {
+> > 		for (i = 0; i<  oh->slaves_cnt; i++) {
+> > 			struct omap_hwmod_ocp_if *os = oh->slaves[i];
+> > 			struct clk *c = os->_clk;
+> >
+> > 			if (c&&  (os->flags&  OCPIF_SWSUP_IDLE))
+> > 				clk_enable(c);
+> > 			else
+> > 				/*TODO: Set CM_AutoIdle here*/
+> > 		}
+> > 	}
+> >
+> > 	/* The opt clocks are controlled by the device driver. */
+> >
+> > 	return 0;
+> > }
+> 
+> It should be done only once, so it is better to do that at _setup time
+> instead.
+> Please note that this is an OMAP2&3 setting only. That bit does not
+> exist anymore in OMAP4.
+> 
 
-  CC      arch/arm/mach-omap2/board-omap4panda.o
-arch/arm/mach-omap2/board-omap4panda.c: In function 'omap4_panda_init':
-arch/arm/mach-omap2/board-omap4panda.c:277: warning: unused variable 's
-tatus'
+We will put this as part of _setup. Also, we will remove this hard-coded setting from GPIO code. Aligned.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/board-omap4panda.c |    2 --
- arch/arm/mach-omap2/mux.c              |    2 +-
- arch/arm/plat-omap/gpio.c              |    4 ++--
- 3 files changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index c03d1d5..96f5bbb 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -274,8 +274,6 @@ static int __init omap4_panda_i2c_init(void)
- }
- static void __init omap4_panda_init(void)
- {
--	int status;
--
- 	omap4_panda_i2c_init();
- 	omap_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index ab403b2..6c2f8f0 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -87,7 +87,7 @@ static char *omap_mux_options;
- int __init omap_mux_init_gpio(int gpio, int val)
- {
- 	struct omap_mux_entry *e;
--	struct omap_mux *gpio_mux;
-+	struct omap_mux *gpio_mux = NULL;
- 	u16 old_mode;
- 	u16 mux_mode;
- 	int found = 0;
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 9b7e354..ba3b9ab 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -2082,7 +2082,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
- 
- 	for (i = min; i < gpio_bank_count; i++) {
- 		struct gpio_bank *bank = &gpio_bank[i];
--		u32 l1, l2;
-+		u32 l1 = 0, l2 = 0;
- 
- 		if (bank->dbck_enable_mask)
- 			clk_disable(bank->dbck);
-@@ -2149,7 +2149,7 @@ void omap2_gpio_resume_after_idle(void)
- 		min = 1;
- 	for (i = min; i < gpio_bank_count; i++) {
- 		struct gpio_bank *bank = &gpio_bank[i];
--		u32 l, gen, gen0, gen1;
-+		u32 l = 0, gen, gen0, gen1;
- 
- 		if (bank->dbck_enable_mask)
- 			clk_enable(bank->dbck);
--- 
-1.6.6.1
-
+> Regards,
+> Benoit
