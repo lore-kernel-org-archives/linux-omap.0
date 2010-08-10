@@ -1,139 +1,74 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 09/13 v5] OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init
-Date: Mon, 09 Aug 2010 17:21:40 -0700
-Message-ID: <87zkwv8gh7.fsf@deeprootsystems.com>
-References: <1281098065-24177-1-git-send-email-charu@ti.com>
-	<1281098065-24177-2-git-send-email-charu@ti.com>
-	<1281098065-24177-3-git-send-email-charu@ti.com>
-	<1281098065-24177-4-git-send-email-charu@ti.com>
-	<1281098065-24177-5-git-send-email-charu@ti.com>
-	<1281098065-24177-6-git-send-email-charu@ti.com>
-	<1281098065-24177-7-git-send-email-charu@ti.com>
-	<1281098065-24177-8-git-send-email-charu@ti.com>
-	<1281098065-24177-9-git-send-email-charu@ti.com>
-	<1281098065-24177-10-git-send-email-charu@ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: beginner questions on being added to the linux tree
+Date: Tue, 10 Aug 2010 11:09:15 +1000
+Message-ID: <20100810110915.9e2ddc27.sfr@canb.auug.org.au>
+References: <77A0A4DB5BF2A44283E5522C27234AC6021A5F78@EDPRSRV011.logicpd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__10_Aug_2010_11_09_15_+1000_=Hc/zAExi0O/_=_F"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:49368 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757268Ab0HJAVm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Aug 2010 20:21:42 -0400
-Received: by pzk26 with SMTP id 26so3868516pzk.19
-        for <linux-omap@vger.kernel.org>; Mon, 09 Aug 2010 17:21:42 -0700 (PDT)
-In-Reply-To: <1281098065-24177-10-git-send-email-charu@ti.com> (Charulatha
-	V.'s message of "Fri, 6 Aug 2010 18:04:21 +0530")
+Received: from chilli.pcug.org.au ([203.10.76.44]:39317 "EHLO smtps.tip.net.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751440Ab0HJBJW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Aug 2010 21:09:22 -0400
+In-Reply-To: <77A0A4DB5BF2A44283E5522C27234AC6021A5F78@EDPRSRV011.logicpd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, "Basak, Partha" <p-basak2@ti.com>
+To: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
+Cc: Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Charulatha V <charu@ti.com> writes:
+--Signature=_Tue__10_Aug_2010_11_09_15_+1000_=Hc/zAExi0O/_=_F
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> This patch adds support for handling GPIO as a HWMOD FW adapted
-> platform device for OMAP2PLUS chips.
+Hi Jacob,
+
+On Mon, 9 Aug 2010 19:36:01 -0500 "Jacob Tanenbaum" <Jacob.Tanenbaum@logicp=
+d.com> wrote:
 >
-> gpio_init needs to be done before machine_init functions access
-> gpio APIs.Hence gpio_init is made as a postcore_initcall.
->
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Signed-off-by: Basak, Partha <p-basak2@ti.com>
-> ---
->  arch/arm/mach-omap2/gpio.c |  120 ++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 120 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/gpio.c
->
-> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
-> new file mode 100644
-> index 0000000..30aeef9
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/gpio.c
-> @@ -0,0 +1,120 @@
-> +/*
-> + * gpio.c - OMAP2PLUS-specific gpio code
-> + *
-> + * Copyright (C) 2010 Texas Instruments, Inc.
-> + *
-> + * Author:
-> + *	Charulatha V <charu@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/gpio.h>
-> +#include <linux/err.h>
-> +#include <linux/slab.h>
-> +#include <linux/interrupt.h>
-> +
-> +#include <plat/omap_hwmod.h>
-> +#include <plat/omap_device.h>
-> +
-> +/*
-> + * For GPIO, it is a must to relinquish clocks in the Idle-path
-> + * as it is possible to have a GPIO bank requested and still
-> + * allow PER domain to go to OFF. 
+>             I work for LogicPD and am trying to add new support for
+> there OMAP3 development boards to the kernel, I have a working version
+> of some of the base support and was wondering how to get that ready to
+> be merged in during this merge window. We have tested the code against
+> the most recent version of linux-next I can get to build and was
+> wondering where to go. Do I send merge requests to the linux-next list
+> or a series of patches. I have sent patches to the omap and arm lists
+> and got some minor syntax errors reported by them (spaces instead of
+> tabs and the like) and was wondering where to go from here.
 
-What clocks are you referring to?   
+I only merge other people's trees, so you need to set up a git tree
+somewhere and tell me (cc'ing linux-next and all other appropriate
+lists/people) where it is and which branch to fetch.  I then fetch that
+branch each day and merge it with everything else.
 
-There is no main_clk associated with this hwmod, so hwmod is not
-managing any clocks for you and the driver is handling the debounce
-clock (opt_clk.)
+Getting your code merged by Linus during this merge window is up to Linus
+and Russell or Tony, I guess.  But I cannot take new trees now until
+after -rc1 is out.  So if you really want your code merged during this
+merge window, your best bet is to convince Russell and/or Tony.
 
-> In the idle path (interrupt
-> + * disabled context), omap_device APIs cannot be used as they
-> + * are not mutex-free functions. Hence the below wrappers are
-> + * required to handle interrupts disabled context and interrupts
-> + * enabled context.
-> + */
-> +static int gpio_enable_hwmod(struct omap_device *od)
-> +{
-> +	struct omap_hwmod *oh = *od->hwmods;
-> +
-> +	if (irqs_disabled())
-> +		_omap_hwmod_enable(oh);
-> +	else
-> +		omap_device_enable_hwmods(od);
-> +	return 0;
-> +}
-> +
-> +static int gpio_idle_hwmod(struct omap_device *od)
-> +{
-> +	struct omap_hwmod *oh = *od->hwmods;
-> +
-> +	if (irqs_disabled())
-> +		_omap_hwmod_idle(oh);
-> +	else
-> +		omap_device_idle_hwmods(od);
-> +	return 0;
-> +}
+Having your tree in linux-next may be useful for ongoing development
+unless Tony thinks it may be better for you to just submit your code
+through his omap tree.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-The use of hwmod to disable GPIO hwmods in the idle path needs some more
-explanation since it differs from what is done in the current GPIO code.
+--Signature=_Tue__10_Aug_2010_11_09_15_+1000_=Hc/zAExi0O/_=_F
+Content-Type: application/pgp-signature
 
-As mentioned above, the (optional) clocks are being managed by the
-driver already, so what exactly are you wanting hwmod to do for you?
-The only thing that will happen is the toggling of no-idle/smart-idle,
-and it's not clear to me that is what you want.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-Whatever the new behavior you're trying to get, it should be described
-well in the changelog since it's different from current behavior of the
-GPIO code.  In fact, a change like this which is signifcantly different
-from current behavior should be done in a separate patch.
+iQEcBAEBAgAGBQJMYKa7AAoJEDMEi1NhKgbsKlgH/1ya/Z5VlKuMIORWRv8fF8x2
+uDVifMt6M68IjVhUg/KUZAT9sNslD7oTFcj+ER3ilrF0dOIBmFbO5UTemujTnRVT
+WlJBHDyh7K4T3OWPw5ufSBD8nFpKLsfaFpTA42b2GGt7cn4GkH/2W21uqDcbIOGR
+lB7pm/IWjKxtfIkTBzeqlX/j8WZTCNurxp5fVjVQTJ+9Gtt/Fh8yJ1eoJGfQ/P6/
+q31HnRpzMRgRDBJEJxeC7kRngn74vRtXhTtt4DXbjbpDvtGFROgwiOzTQv+ddSva
+xTDojtul65kENWv+sVqLEyAeaoWzbXd7BGRktYK65VLLMPe4aGGAaRmoHvCpW5o=
+=c24M
+-----END PGP SIGNATURE-----
 
-> +
-> +static struct omap_device_pm_latency omap_gpio_latency[] = {
-> +	[0] = {
-> +		.deactivate_func = gpio_idle_hwmod,
-> +		.activate_func   = gpio_enable_hwmod,
-> +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> +	},
-> +};
-
-So, to keep the same behavior as the current code, you could just drop
-the omap_gpio_latency part here, and you don't have to worry about
-calling into omap_hwmod_* with interrupts disabled.
-
-Kevin
-
+--Signature=_Tue__10_Aug_2010_11_09_15_+1000_=Hc/zAExi0O/_=_F--
