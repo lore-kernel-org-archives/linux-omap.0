@@ -1,91 +1,218 @@
-From: Cliff Brake <cliff.brake@gmail.com>
-Subject: Re: [PATCH] OMAP3 PM: fix the error messages printed when the system suspend
-Date: Tue, 10 Aug 2010 18:16:22 -0400
-Message-ID: <AANLkTimS8Wns3Do3R+BrevjnuTb+mzP1iF3NsRtDjYQa@mail.gmail.com>
-References: <1277195484-5501-1-git-send-email-stanley.miao@windriver.com>
-	<87iq5bm7ac.fsf@deeprootsystems.com>
-	<AANLkTi=Dud9H_1TUD6egOtAUaSYzqyqsMP3=3Sj9YWjZ@mail.gmail.com>
-	<4C60ABAA.5010805@windriver.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:52439 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932759Ab0HJWQY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 18:16:24 -0400
-Received: by wwj40 with SMTP id 40so13473596wwj.1
-        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 15:16:23 -0700 (PDT)
-In-Reply-To: <4C60ABAA.5010805@windriver.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH v3 3/9] wireless: wl1271: add platform driver to get board data
+Date: Wed, 11 Aug 2010 01:12:22 +0300
+Message-ID: <1281478348-24833-4-git-send-email-ohad@wizery.com>
+References: <1281478348-24833-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1281478348-24833-1-git-send-email-ohad@wizery.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
-To: "stanley.miao" <stanley.miao@windriver.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-On Mon, Aug 9, 2010 at 9:30 PM, stanley.miao <stanley.miao@windriver.co=
-m> wrote:
-> Cliff Brake wrote:
->>
->> Functionally, what does this statement mean? =A0The 3503 seems to ha=
-ve
->> the EN_IO [8] bit, but I've yet to figure out what the EN_IO_CHAIN
->> [16] means.
->>
->
-> Please reference to Chapter 4.11 PRCM Off-Mode Management in OMAP35x =
-TRM.
+Dynamically create and register a platform driver, that will
+be used to to receive board-specific information like irq and
+reference clock numbers.
 
-Thanks for the pointer.  Do you know offhand what TI documentation
-details the differences between the 3503 and the 3530 in this regard.
-I'm also trying to piece together what practical impact this will have
-on a system.
+The driver is created dynamically in order to avoid the 1-device
+limitation of a fixed platform driver name.
 
-I have an older 3503 system, and it is still spewing "Wake up daisy
-chain activation failed" messages.  Do you expect the following patch
-would have fixed this?
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ drivers/net/wireless/wl12xx/wl1271.h      |   12 ++++
+ drivers/net/wireless/wl12xx/wl1271_sdio.c |  103 +++++++++++++++++++++++++++--
+ 2 files changed, 108 insertions(+), 7 deletions(-)
 
-So I then instrumented the following macros:
+diff --git a/drivers/net/wireless/wl12xx/wl1271.h b/drivers/net/wireless/wl12xx/wl1271.h
+index faa5925..013eabb 100644
+--- a/drivers/net/wireless/wl12xx/wl1271.h
++++ b/drivers/net/wireless/wl12xx/wl1271.h
+@@ -31,6 +31,7 @@
+ #include <linux/list.h>
+ #include <linux/bitops.h>
+ #include <net/mac80211.h>
++#include <linux/platform_device.h>
+ 
+ #include "wl1271_conf.h"
+ #include "wl1271_ini.h"
+@@ -319,8 +320,19 @@ struct wl1271_if_operations {
+ 	void (*disable_irq)(struct wl1271 *wl);
+ };
+ 
++/* exact size needed for "wl1271_plat.x" */
++#define WL12XX_PLAT_NAME_LEN 14
++
++struct wl12xx_plat_instance {
++	struct platform_driver pdriver;
++	char name[WL12XX_PLAT_NAME_LEN];
++	struct wl12xx_platform_data *pdata;
++	struct completion data_ready;
++};
++
+ struct wl1271 {
+ 	struct platform_device *plat_dev;
++	struct wl12xx_plat_instance *pinstance;
+ 	struct ieee80211_hw *hw;
+ 	bool mac80211_registered;
+ 
+diff --git a/drivers/net/wireless/wl12xx/wl1271_sdio.c b/drivers/net/wireless/wl12xx/wl1271_sdio.c
+index c41293a..5b43626 100644
+--- a/drivers/net/wireless/wl12xx/wl1271_sdio.c
++++ b/drivers/net/wireless/wl12xx/wl1271_sdio.c
+@@ -28,7 +28,11 @@
+ #include <linux/mmc/sdio_func.h>
+ #include <linux/mmc/sdio_ids.h>
+ #include <linux/mmc/card.h>
++#include <linux/mmc/host.h>
++#include <linux/wl12xx.h>
+ #include <linux/gpio.h>
++#include <linux/platform_device.h>
++#include <linux/completion.h>
+ 
+ #include "wl1271.h"
+ #include "wl12xx_80211.h"
+@@ -182,10 +186,84 @@ static struct wl1271_if_operations sdio_ops = {
+ 	.disable_irq	= wl1271_sdio_disable_interrupts
+ };
+ 
++static int wl1271_plat_probe(struct platform_device *pdev)
++{
++	struct wl12xx_platform_data *pdata;
++	struct platform_driver *pdriver;
++	struct wl12xx_plat_instance *pinstance;
++
++	pdata = pdev->dev.platform_data;
++	if (!pdata) {
++		wl1271_error("no platform data");
++		return -ENODEV;
++	}
++
++	pdriver = container_of(pdev->dev.driver, struct platform_driver,
++								driver);
++	pinstance = container_of(pdriver, struct wl12xx_plat_instance, pdriver);
++
++	pinstance->pdata = pdata;
++
++	complete(&pinstance->data_ready);
++
++	return 0;
++}
++
++static struct wl12xx_platform_data *wl1271_get_data(struct wl1271 *wl, int id)
++{
++	int ret;
++	struct wl12xx_plat_instance *pinstance;
++
++	#define WL1271_PLAT_NAME "wl1271_plat.%d"
++
++	pinstance = kzalloc(sizeof(*pinstance), GFP_KERNEL);
++	if (!pinstance)
++		return ERR_PTR(-ENOMEM);
++
++	init_completion(&pinstance->data_ready);
++
++	pinstance->pdriver.probe = wl1271_plat_probe;
++
++	ret = snprintf(pinstance->name, ARRAY_SIZE(pinstance->name),
++						WL1271_PLAT_NAME, id);
++	if (ret >= WL12XX_PLAT_NAME_LEN) {
++		wl1271_error("truncated plat drv name\n");
++		goto out_free;
++	}
++
++	pinstance->pdriver.driver.name = pinstance->name;
++	pinstance->pdriver.driver.owner = THIS_MODULE;
++
++	ret = platform_driver_register(&pinstance->pdriver);
++	if (ret < 0) {
++		wl1271_error("failed to register plat driver: %d", ret);
++		goto out_free;
++	}
++
++	ret = wait_for_completion_interruptible_timeout(&pinstance->data_ready,
++						msecs_to_jiffies(15000));
++	if (ret <= 0) {
++		wl1271_error("can't get platform device (%d)", ret);
++		ret = (ret == 0 ? -EAGAIN : ret);
++		goto unreg;
++	}
++
++	wl->pinstance = pinstance;
++
++	return pinstance->pdata;
++
++unreg:
++	platform_driver_unregister(&pinstance->pdriver);
++out_free:
++	kfree(pinstance);
++	return ERR_PTR(ret);
++}
++
+ static int __devinit wl1271_probe(struct sdio_func *func,
+ 				  const struct sdio_device_id *id)
+ {
+ 	struct ieee80211_hw *hw;
++	struct wl12xx_platform_data *wlan_data;
+ 	struct wl1271 *wl;
+ 	int ret;
+ 
+@@ -205,17 +283,24 @@ static int __devinit wl1271_probe(struct sdio_func *func,
+ 	/* Grab access to FN0 for ELP reg. */
+ 	func->card->quirks |= MMC_QUIRK_LENIENT_FN0;
+ 
++	wlan_data = wl1271_get_data(wl, func->card->host->index);
++	if (IS_ERR(wlan_data)) {
++		ret = PTR_ERR(wlan_data);
++		wl1271_error("missing wlan data (needed for irq/ref_clk)!");
++		goto out_free;
++	}
++
+ 	wl->irq = gpio_to_irq(RX71_WL1271_IRQ_GPIO);
+ 	if (wl->irq < 0) {
+ 		ret = wl->irq;
+ 		wl1271_error("could not get irq!");
+-		goto out_free;
++		goto put_data;
+ 	}
+ 
+ 	ret = request_irq(wl->irq, wl1271_irq, 0, DRIVER_NAME, wl);
+ 	if (ret < 0) {
+ 		wl1271_error("request_irq() failed: %d", ret);
+-		goto out_free;
++		goto put_data;
+ 	}
+ 
+ 	set_irq_type(wl->irq, IRQ_TYPE_EDGE_RISING);
+@@ -236,13 +321,13 @@ static int __devinit wl1271_probe(struct sdio_func *func,
+ 
+ 	return 0;
+ 
+- out_irq:
++out_irq:
+ 	free_irq(wl->irq, wl);
+-
+-
+- out_free:
++put_data:
++	platform_driver_unregister(&wl->pinstance->pdriver);
++	kfree(wl->pinstance);
++out_free:
+ 	wl1271_free_hw(wl);
+-
+ 	return ret;
+ }
+ 
+@@ -253,6 +338,10 @@ static void __devexit wl1271_remove(struct sdio_func *func)
+ 	free_irq(wl->irq, wl);
+ 
+ 	wl1271_unregister_hw(wl);
++
++	platform_driver_unregister(&wl->pinstance->pdriver);
++	kfree(wl->pinstance);
++
+ 	wl1271_free_hw(wl);
+ }
+ 
+-- 
+1.7.0.4
 
-CLIFF: cpu_is_omap3503 =3D 0
-CLIFF: cpu_is_omap3515 =3D 0
-CLIFF: cpu_is_omap3525 =3D 0
-CLIFF: cpu_is_omap3530 =3D 0
-CLIFF: is_omap3430 =3D 0
-CLIFF: omap3_has_iva =3D 2
-CLIFF: omap3_has_sgx =3D 0
-CLIFF: omap3_has_io_wakeup =3D 64
-
-Perhaps it is not a 3503???  The kernel prints the following on bootup:
-OMAP3525 ES2.1 (l2cache iva neon isp )
-
-But, then I look at u-boot, and see:
-OMAP3503-GP ES2.1, CPU-OPP2, L3-165MHz, Max clock-600Mhz
-
-So not everyone is telling the same story.  Anyway, it seems we have a
-problem in that the cpu_is_xxx macros are not working.
-
-Thanks,
-Cliff
-
-commit ad0c63f1d623ea9d3e0c0521d5ce9cd522c4e1f0
-Author: stanley.miao <stanley.miao@windriver.com>
-Date:   Mon Aug 2 14:21:40 2010 +0300
-
-    OMAP3: AM3505/3517 do not have IO wakeup capability
-
-    AM3505/3517 doesn't have IO wakeup capability, so we do not need to=
- set
-    the bit OMAP3430_EN_IO and the bit OMAP3430_EN_IO_CHAIN in the regi=
-ster
-    PM_WKEN_WKUP when the system enters suspend state.
-
-    Tested on AM3517EVM and OMAP3530EVM.
-
-    Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
-    Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
