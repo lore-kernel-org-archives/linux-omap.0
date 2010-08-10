@@ -1,78 +1,109 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: [PATCH 0/8]usb: musb:USB driver changes to use hwmod+
- omap-device apis
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH V2 4/8]usb : musb:Using omap_device_build for musb
+ device registration
 Date: Tue, 10 Aug 2010 10:33:57 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940270944037@dbde02.ent.ti.com>
-References: <1281110052-28990-1-git-send-email-hemahk@ti.com>
- <4C5FF544.9050907@ti.com>
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940270944038@dbde02.ent.ti.com>
+References: <1281110270-4185-1-git-send-email-hemahk@ti.com>
+ <4C5FF856.4020301@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43827 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522Ab0HJFEI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 01:04:08 -0400
-In-Reply-To: <4C5FF544.9050907@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C5FF856.4020301-l0cyMroinI0@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi, 
+ Hi,
 
 >-----Original Message-----
 >From: Cousson, Benoit 
->Sent: Monday, August 09, 2010 6:02 PM
+>Sent: Monday, August 09, 2010 6:15 PM
 >To: Kalliguddi, Hema
->Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; 
+>Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
 >Felipe Balbi; Tony Lindgren; Kevin Hilman
->Subject: Re: [PATCH 0/8]usb: musb:USB driver changes to use 
->hwmod+ omap-device apis
+>Subject: Re: [PATCH V2 4/8]usb : musb:Using omap_device_build 
+>for musb device registration
 >
->On 8/6/2010 5:54 PM, HEMA HK wrote:
->> From: Hema HK<hemahk@ti.com>
->>
->> Series of patches to port musb driver to use hwmod and runtime pm
->> APIs for OMAP4 and OMAP3.These patches are tested on OMAP4430SDP and
->> OMAP3630-ZOOM3 boards.
->>
->> The patch 1 and 2 are are the prerequisites for the hwmod changes.
->> Patch 6 is the OMAP3 offmode support patch.
->>
->> This patch series is generated on "origin/pm-wip/hwmods-omap4".
->>
->> Offmode is tested with origin/pm on omap3630 zoom3 board.
+>On 8/6/2010 5:57 PM, Kalliguddi, Hema wrote:
+>> From: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
 >
->The way you are submitting that series is quite confusing!
+><snip>
 >
->You are mixing several numbering schemes and several series versions.
->If this is a V2, you have to resubmit everything with a V2, 
->and you must 
->include an history.
+>>   void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>>   {
+>> -	if (cpu_is_omap243x()) {
+>> -		musb_resources[0].start = OMAP243X_HS_BASE;
+>> -	} else if (cpu_is_omap34xx()) {
+>> -		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+>> -	} else if (cpu_is_omap44xx()) {
+>> -		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+>> -		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+>> -		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
+>> +	char oh_name[MAX_OMAP_MUSB_HWMOD_NAME_LEN];
+>> +	struct omap_hwmod *oh;
+>> +	struct omap_device *od;
+>> +	struct platform_device *pdev;
+>> +	struct device	*dev;
+>> +	int l, bus_id = -1;
+>> +	struct musb_hdrc_platform_data *pdata;
+>> +
+>> +	l = snprintf(oh_name, MAX_OMAP_MUSB_HWMOD_NAME_LEN,
+>> +						"usb_otg_hs");
+>> +	WARN(l>= MAX_OMAP_MUSB_HWMOD_NAME_LEN,
+>> +			"String buffer overflow in MUSB device 
+>setup\n");
 >
->[8/8] usb : musb:Using runtime pm apis for musb.  	
->[7/8] : Hwmod api changes
->[V2,6/8] usb: musb: Offmode fix for idle path
->[V2,4/8] usb : musb:Using omap_device_build for musb device 
->registration
->[4/8] usb: musb: HWMOD database structures fixes OMAP4
->[V2,3/4] usb: musb: HWMOD database structures addition for OMAP3
->[2/8] usb: musb: Remove board_data parameter from musb_platform_init()
->[1/8] usb: musb: Adding names for IRQs in resource structure
->
->
->The cover letter does not contain the overall stat to summarize what 
->files you are modifying.
->
->Some spaces are missing after the ":" in the email subjects.
+>This is not needed in your case. Just use a const char*, and you will 
+>avoid the useless snprintf and test.
 
-I will take care of this in the next st of patches.
-
-Thanks,
-Hema
+Ok.
 >
->Regards,
+>> +
+>> +	oh = omap_hwmod_lookup(oh_name);
+>> +
+>> +	if (!oh) {
+>> +		pr_err("Could not look up %s\n", oh_name);
+>> +	} else {
+>
+>You can avoid that indentation be returning in case of failure.
+
+ Agreed.
+>
+>> +		/*
+>> +		 * REVISIT: This line can be removed once all 
+>the platforms
+>> +		 * using musb_core.c have been converted to use 
+>use clkdev.
+>> +		 */
+>> +		musb_plat.clock = "ick";
+>> +		musb_plat.board_data = board_data;
+>> +		musb_plat.power = board_data->power>>  1;
+>> +		musb_plat.mode = board_data->mode;
+>> +		pdata =&musb_plat;
+>> +
+>> +		od = omap_device_build(name, bus_id, oh, pdata,
+>> +				       sizeof(struct 
+>musb_hdrc_platform_data),
+>> +							
+>omap_musb_latency,
+>> +				       
+>ARRAY_SIZE(omap_musb_latency), false);
+>> +		if (IS_ERR(od)) {
+>> +			pr_err("Could not build omap_device for 
+>%s %s\n",
+>> +						name, oh_name);
+> > +		} else {
+>
+>You can avoid that second level of indentation be returning in case of 
+>failure as well.
+
+Agreed.
+>
 >Benoit
->
+>--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
