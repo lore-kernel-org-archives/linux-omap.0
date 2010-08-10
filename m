@@ -1,368 +1,104 @@
-From: "Basak, Partha" <p-basak2@ti.com>
-Subject: RE: Issues with calling pm_runtime functions in
- platform_pm_suspend_noirq/IRQ disabled context.
-Date: Tue, 10 Aug 2010 20:29:30 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E80AC503@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E7ED0FDF@dbde02.ent.ti.com>
-	<alpine.DEB.2.00.1008061305360.5732@utopia.booyaka.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E800BD63@dbde02.ent.ti.com>
-	<alpine.DEB.2.00.1008082350130.8958@utopia.booyaka.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E800C34D@dbde02.ent.ti.com>
- <871va7n6pe.fsf@deeprootsystems.com>
+From: "Sapiens, Rene" <rene.sapiens@ti.com>
+Subject: RE: [PATCH 09/10] omap: mailbox: convert block api to kfifo
+Date: Tue, 10 Aug 2010 10:00:38 -0500
+Message-ID: <D2943F03B81C9C458E44DFB213905E02B7328E6C@dlee04.ent.ti.com>
+References: <1275546858-29507-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ 	<1275546858-29507-10-git-send-email-Hiroshi.DOYU@nokia.com>
+ 	<D2943F03B81C9C458E44DFB213905E02B6325C6A@dlee04.ent.ti.com>
+ 	<AANLkTik4lW3_xP_e4BStJEYpHlVoNjemEz8zWfIE7gRU@mail.gmail.com>
+ 	<496565EC904933469F292DDA3F1663E602CA4D88F3@dlee06.ent.ti.com>
+ <AANLkTikZ2uDpuK1DjJLk_pSiogQyStwJVG952o79_NjX@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57366 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58334 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932143Ab0HJO7i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 10:59:38 -0400
-In-Reply-To: <871va7n6pe.fsf@deeprootsystems.com>
+	id S932143Ab0HJPAp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 11:00:45 -0400
+In-Reply-To: <AANLkTikZ2uDpuK1DjJLk_pSiogQyStwJVG952o79_NjX@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kalliguddi, Hema" <hemahk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
+Hi Ohad,
 
+Sure I will do it.
+
+Regards,
+Rene
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Monday, August 09, 2010 9:01 PM
-> To: Basak, Partha
-> Cc: Paul Walmsley; linux-omap@vger.kernel.org; Kalliguddi, Hema; Raja,
-> Govindraj; Varadarajan, Charulatha
-> Subject: Re: Issues with calling pm_runtime functions in
-> platform_pm_suspend_noirq/IRQ disabled context.
-> 
-> "Basak, Partha" <p-basak2@ti.com> writes:
-> 
-> >> Finally, we have omap_sram_idle():
+> From: Ohad Ben-Cohen [mailto:ohad@wizery.com]
+> Sent: Tuesday, August 10, 2010 9:43 AM
+> To: Guzman Lugo, Fernando; Sapiens, Rene
+> Cc: Hiroshi DOYU; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Kanigeri, Hari
+> Subject: Re: [PATCH 09/10] omap: mailbox: convert block api to kfifo
+>=20
+> Hi Rene,
+>=20
+>=20
+> On Wed, Jun 9, 2010 at 8:38 AM, Guzman Lugo, Fernando
+> <fernando.lugo@ti.com> wrote:
+> >>On Tue, Jun 8, 2010 at 7:16 PM, Sapiens, Rene <rene.sapiens@ti.com>
+> wrote:
+> >>> In mbox_rx_work() you are removing the lines that enable back
+> the =A0mbox irq for the RX case, but inside =A0__mbox_rx_interrupt() =
+this
+> interrupt =A0is disabled in the case that the kfifo for Rx >mailbox g=
+ets
+> full. So I think that we need to enable it back as soon as there is s=
+pace
+> in this kfifo.
 > >>
-> >> > In particular, for USB, while executing SRAM_Idle, is we use
-> pm_runtime
-> >> > functions, we see spurious IO-Pad interrupts.
 > >>
-> >> Your message doesn't specify what PM runtime functions you are
-> executing.
-> >> But if those functions are calling mutex_lock(), then they obviously
-> must
-> >> not be called from omap_sram_idle() in interrupt context.
+> >>Actually these irq on/off lines are not part of my patch; they are
+> >>introduced by patch 05/10 on top of which my patches were rebased.
 > >>
-> >> It's not clear from your message why you need to call PM runtime
-> functions
-> >> from the idle loop.  I'd suggest that you post the problematic code in
-> >> question to the list.
+> >>Nevertheless I agree with you - the kfifo migration patch should no=
+t
+> >>affect that irq on/off behavior. It's probably just a rebase gotcha=
+=2E
 > >>
+> >>But now that you point me to this irq on/off thing, it looks a bit
+> >>broken in terms of multiple concurrent mbox support since it relies=
+ on
+> >>a global rq_full state. I guess it'd be better to hold that rq_full
+> >>state in the relevant mbox queue state itself.
+> >>
+> >>Fernando what do you think ?
 > >
-> > USB issue:
+> > Yes, you are right Ohad. Only should be disable the "new message"
+> interrupt of the mailbox which kfifo is full.
+>=20
+>=20
+>=20
+> Once Fernando's fix will get thru, we will be able to fix the rebase
+> error that you pointed out.
+>=20
+> Unfortunately I will not have any email access in the next 3 weeks,
+> and I was hoping maybe you could submit a fix for this once Fernando'=
+s
+> fix is accepted ? I would really like us to fix this early in the day=
+s
+> of 2.6.36, maybe even during the merge window.
+>=20
+> Thanks a lot,
+> Ohad.
+>=20
 > >
-> > Please refer to the USB patch attached (will be sent to the list as well
-> in a few minutes)
-> > As I mentioned previously, few drivers like GPIO, USB & UART have clock-
-> disable/enable + context save/restore in Idle path(omap_sram_idle()).
+> > regards,
+> > Fernando.
 > >
-> > In particular, I am referring to calling of the functions
-> pm_runtime_put_sync() & pm_runtime_get_sync() for USB around wfi.
+> >>
+> >>Thanks,
+> >>Ohad.
 > >
-> > Now, the following call sequence from omap_sram_idle()will enable IRQs:
-> > pm_runtime_put_sync-->
-> > 	__pm_runtime_put-->
-> > 		pm_runtime_idle-->
-> > 			spin_unlock_irq(),
-> > 			__pm_runtime_idle(),-->
-> > 			 spin_unlock_irq,
-> > 				spin_unlock_irq
-> >
-> > The functions pm_runtime_idle() & __ pm_runtime_idle() do not use
-> > spin_lock_irqsave & spin_unlock_irqrestore. This leads to enabling of
-> > the interrupts in omap_sram_idle unconditionally, which for USB in
-> > particular is leading to IO-pad interrupt being triggered which does
-> > not come otherwise.
-> 
-> You seem to have correctly identified the problem.  Can you try the
-> patch below (untested) which attempts to address the root cause you've
-> identified?
-> 
-> Kevin
-> 
-> > To work around this problem, instead of using Runtime APIs, we are using
-> omap_device_enable/disable, which in-turn call to __omap_hwmod_enable/idle
-> >
-> > Simply put, I am not talking about grabbing a mutex when interrupts are
-> disabled, rather of a scenario where interrupts are getting enabled as a
-> side-effect of calling these functions in   omap_sram_idle().
-> 
-> From be3aeea5f8d29c8ce2fa278f48aef849eb682282 Mon Sep 17 00:00:00 2001
-> From: Kevin Hilman <khilman@deeprootsystems.com>
-> Date: Mon, 9 Aug 2010 08:12:39 -0700
-> Subject: [PATCH] PM: allow runtime PM get/put from interrupts-disabled
-> context
-> 
-> When using runtime PM in combination with CPUidle, the runtime PM
-> transtions of some devices may be triggered during the idle path.
-> Late in the idle sequence, interrupts may already be disabled when
-> runtime PM for these devices is initiated (using the _sync versions of
-> the runtime PM API.)
-> 
-> Currently, the runtime PM core assumes methods are called with
-> interrupts enabled.  However, if it is called with interrupts
-> disabled, the internal locking unconditionally enables interrupts, for
-> example:
-> 
-> pm_runtime_put_sync()
->     __pm_runtime_put()
->         pm_runtime_idle()
->             spin_lock_irq()
->             __pm_runtime_idle()
->                 spin_unlock_irq()   <--- interrupts unconditionally
-> enabled
->                 dev->bus->pm->runtime_idle()
->                 spin_lock_irq()
->              spin_unlock_irq()
-> 
-> To fix, use the save/restore versions of the spinlock API.
-> 
-> Reported-by: Partha Basak <p-basak2@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  drivers/base/power/runtime.c |   68 ++++++++++++++++++++++---------------
-> ----
->  include/linux/pm.h           |    1 +
->  2 files changed, 37 insertions(+), 32 deletions(-)
-> 
-> diff --git a/drivers/base/power/runtime.c b/drivers/base/power/runtime.c
-> index b0ec0e9..b02ef35 100644
-> --- a/drivers/base/power/runtime.c
-> +++ b/drivers/base/power/runtime.c
-> @@ -80,24 +80,24 @@ static int __pm_runtime_idle(struct device *dev)
->  	dev->power.idle_notification = true;
-> 
->  	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_idle) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		dev->bus->pm->runtime_idle(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  	} else if (dev->type && dev->type->pm && dev->type->pm-
-> >runtime_idle) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		dev->type->pm->runtime_idle(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  	} else if (dev->class && dev->class->pm
->  	    && dev->class->pm->runtime_idle) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		dev->class->pm->runtime_idle(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  	}
-> 
->  	dev->power.idle_notification = false;
-> @@ -115,9 +115,9 @@ int pm_runtime_idle(struct device *dev)
->  {
->  	int retval;
-> 
-> -	spin_lock_irq(&dev->power.lock);
-> +	spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  	retval = __pm_runtime_idle(dev);
-> -	spin_unlock_irq(&dev->power.lock);
-> +	spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
-> 
->  	return retval;
->  }
-> @@ -187,11 +187,13 @@ int __pm_runtime_suspend(struct device *dev, bool
-> from_wq)
->  			if (dev->power.runtime_status != RPM_SUSPENDING)
->  				break;
-> 
-> -			spin_unlock_irq(&dev->power.lock);
-> +			spin_unlock_irqrestore(&dev->power.lock,
-> +					       dev->power.lock_flags);
-> 
->  			schedule();
-> 
-> -			spin_lock_irq(&dev->power.lock);
-> +			spin_lock_irqsave(&dev->power.lock,
-> +					  dev->power.lock_flags);
->  		}
->  		finish_wait(&dev->power.wait_queue, &wait);
->  		goto repeat;
-> @@ -201,27 +203,27 @@ int __pm_runtime_suspend(struct device *dev, bool
-> from_wq)
->  	dev->power.deferred_resume = false;
-> 
->  	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		retval = dev->bus->pm->runtime_suspend(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  		dev->power.runtime_error = retval;
->  	} else if (dev->type && dev->type->pm
->  	    && dev->type->pm->runtime_suspend) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		retval = dev->type->pm->runtime_suspend(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  		dev->power.runtime_error = retval;
->  	} else if (dev->class && dev->class->pm
->  	    && dev->class->pm->runtime_suspend) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		retval = dev->class->pm->runtime_suspend(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  		dev->power.runtime_error = retval;
->  	} else {
->  		retval = -ENOSYS;
-> @@ -257,11 +259,11 @@ int __pm_runtime_suspend(struct device *dev, bool
-> from_wq)
->  		__pm_runtime_idle(dev);
-> 
->  	if (parent && !parent->power.ignore_children) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		pm_request_idle(parent);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  	}
-> 
->   out:
-> @@ -278,9 +280,9 @@ int pm_runtime_suspend(struct device *dev)
->  {
->  	int retval;
-> 
-> -	spin_lock_irq(&dev->power.lock);
-> +	spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  	retval = __pm_runtime_suspend(dev, false);
-> -	spin_unlock_irq(&dev->power.lock);
-> +	spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
-> 
->  	return retval;
->  }
-> @@ -342,11 +344,13 @@ int __pm_runtime_resume(struct device *dev, bool
-> from_wq)
->  			    && dev->power.runtime_status != RPM_SUSPENDING)
->  				break;
-> 
-> -			spin_unlock_irq(&dev->power.lock);
-> +			spin_unlock_irqrestore(&dev->power.lock,
-> +					       dev->power.lock_flags);
-> 
->  			schedule();
-> 
-> -			spin_lock_irq(&dev->power.lock);
-> +			spin_lock_irqsave(&dev->power.lock,
-> +					  dev->power.lock_flags);
->  		}
->  		finish_wait(&dev->power.wait_queue, &wait);
->  		goto repeat;
-> @@ -384,27 +388,27 @@ int __pm_runtime_resume(struct device *dev, bool
-> from_wq)
->  	dev->power.runtime_status = RPM_RESUMING;
-> 
->  	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		retval = dev->bus->pm->runtime_resume(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  		dev->power.runtime_error = retval;
->  	} else if (dev->type && dev->type->pm
->  	    && dev->type->pm->runtime_resume) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		retval = dev->type->pm->runtime_resume(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  		dev->power.runtime_error = retval;
->  	} else if (dev->class && dev->class->pm
->  	    && dev->class->pm->runtime_resume) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		retval = dev->class->pm->runtime_resume(dev);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  		dev->power.runtime_error = retval;
->  	} else {
->  		retval = -ENOSYS;
-> @@ -425,11 +429,11 @@ int __pm_runtime_resume(struct device *dev, bool
-> from_wq)
-> 
->   out:
->  	if (parent) {
-> -		spin_unlock_irq(&dev->power.lock);
-> +		spin_unlock_irqrestore(&dev->power.lock, dev-
-> >power.lock_flags);
-> 
->  		pm_runtime_put(parent);
-> 
-> -		spin_lock_irq(&dev->power.lock);
-> +		spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  	}
-> 
->  	dev_dbg(dev, "__pm_runtime_resume() returns %d!\n", retval);
-> @@ -445,9 +449,9 @@ int pm_runtime_resume(struct device *dev)
->  {
->  	int retval;
-> 
-> -	spin_lock_irq(&dev->power.lock);
-> +	spin_lock_irqsave(&dev->power.lock, dev->power.lock_flags);
->  	retval = __pm_runtime_resume(dev, false);
-> -	spin_unlock_irq(&dev->power.lock);
-> +	spin_unlock_irqrestore(&dev->power.lock, dev->power.lock_flags);
-> 
->  	return retval;
->  }
-> diff --git a/include/linux/pm.h b/include/linux/pm.h
-> index 8e258c7..1a3d514 100644
-> --- a/include/linux/pm.h
-> +++ b/include/linux/pm.h
-> @@ -464,6 +464,7 @@ struct dev_pm_info {
->  	struct work_struct	work;
->  	wait_queue_head_t	wait_queue;
->  	spinlock_t		lock;
-> +	unsigned long           lock_flags;
->  	atomic_t		usage_count;
->  	atomic_t		child_count;
->  	unsigned int		disable_depth:3;
-> --
-> 1.7.2.1
-
-Thanks Kevin. This looks good from interrupt locking standpoint. We will test this patch on GPIO and USB and revert back. 
-
-One question. Is it OK to call Schedule() with interrupts disabled?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
