@@ -1,326 +1,116 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: [PATCH V2 6/8] usb: musb: Offmode fix for idle path
-Date: Tue, 10 Aug 2010 13:53:25 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940270A49FFB@dbde02.ent.ti.com>
-References: <1281115624-1174-1-git-send-email-hemahk@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032401D637@dbde02.ent.ti.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: DSS2 patch series
+Date: Tue, 10 Aug 2010 15:03:05 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030635EC1D@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870305FAB57B@dbde02.ent.ti.com>
+	 <1280749895.3436.47.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC35608703061EBA59@dbde02.ent.ti.com>
+	 <1280825023.3436.111.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC3560870306287736@dbde02.ent.ti.com>
+ <1280995782.3436.205.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52302 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751048Ab0HJIXk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 04:23:40 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032401D637@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36521 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756466Ab0HJJdR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 05:33:17 -0400
+In-Reply-To: <1280995782.3436.205.camel@tubuntu.research.nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Mankad, Maulik Ojas" <x0082077@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+Hi,
 
->-----Original Message-----
->From: DebBarma, Tarun Kanti 
->Sent: Monday, August 09, 2010 10:14 PM
->To: Kalliguddi, Hema; linux-usb@vger.kernel.org; 
->linux-omap@vger.kernel.org
->Cc: Kalliguddi, Hema; Mankad, Maulik Ojas; Felipe Balbi; Tony 
->Lindgren; Kevin Hilman
->Subject: RE: [PATCH V2 6/8] usb: musb: Offmode fix for idle path
->
->Hema,
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Hema HK
->> Sent: Friday, August 06, 2010 10:57 PM
->> To: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org
->> Cc: Kalliguddi, Hema; Mankad, Maulik Ojas; Felipe Balbi; 
->Tony Lindgren;
->> Kevin Hilman
->> Subject: [PATCH V2 6/8] usb: musb: Offmode fix for idle path
->> 
->> From: Hema HK  <hemahk@ti.com>
->> 
->> With OMAP core-off support musb was not functional as 
->context was getting
->> lost after wakeup from core-off. And also musb was blocking 
->the core-off
->> after loading the gadget driver even with no cable connected 
->sometimes.
->> 
->> Added the conext save/restore api in the platform layer which will
->> be called in the idle and wakeup path.
->> 
->> Changed the usb sysconfig settings as per the usbotg functional spec.
->> When the device is not active, configure to force idle and 
->force standby
->> mode.
->> When it is being used, configure in smart standby and smart 
->idle mode.
->> So while attempting to coreoff the usb is configured to 
->force standby and
->> force idle mode, after wakeup configured in smart idle and 
->smart standby.
->> 
->> Signed-off-by: Hema HK <hemahk@ti.com>
->> Signed-off-by: Maulik Mankad <x0082077@ti.com>
->> 
->> Cc: Felipe Balbi <felipe.balbi@nokia.com>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->> 
->>  arch/arm/mach-omap2/pm34xx.c          |    4 ++
->>  arch/arm/mach-omap2/usb-musb.c        |   21 ++++++++++++++
->>  arch/arm/plat-omap/include/plat/usb.h |    2 +
->>  drivers/usb/musb/musb_core.c          |   11 -------
->>  drivers/usb/musb/omap2430.c           |   48
->> +++++++++++++++++++++++++++++++---
->>  5 files changed, 71 insertions(+), 15 deletions(-)
->> 
->> Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
->> ===================================================================
->> --- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c	2010-08-06
->> 09:23:01.153862710 -0400
->> +++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c	2010-08-06
->> 10:44:06.393863125 -0400
->> @@ -39,6 +39,7 @@
->>  #include <plat/gpmc.h>
->>  #include <plat/dma.h>
->>  #include <plat/dmtimer.h>
->> +#include <plat/usb.h>
->> 
->>  #include <asm/tlbflush.h>
->> 
->> @@ -416,6 +417,8 @@
->>  		if (core_next_state == PWRDM_POWER_OFF) {
->>  			omap3_core_save_context();
->>  			omap3_prcm_save_context();
->> +			/* Save MUSB context */
->> +			musb_context_save_restore(1);
->>  		}
->>  	}
->> 
->> @@ -458,6 +461,8 @@
->>  			omap3_prcm_restore_context();
->>  			omap3_sram_restore_context();
->>  			omap2_sms_restore_context();
->> +			/* restore MUSB context */
->> +			musb_context_save_restore(0);
->>  		}
->>  		omap_uart_resume_idle(0);
->>  		omap_uart_resume_idle(1);
->> Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
->> ===================================================================
->> --- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c	
->2010-08-06
->> 09:24:23.690112596 -0400
->> +++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c	2010-08-06
->> 10:44:06.385862697 -0400
->> @@ -120,6 +120,27 @@
->>  	}
->>  }
->> 
->> +void musb_context_save_restore(int save)
->> +{
->> +	struct omap_hwmod *oh = omap_hwmod_lookup("usb_otg_hs");
->Might be good idea to check (oh) before proceeding?
->if (!oh) {
->	/* error message */
->	return;
->}
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com] 
+> Sent: Thursday, August 05, 2010 1:40 PM
+> To: Taneja, Archit
+> Cc: Semwal, Sumit; linux-omap@vger.kernel.org
+> Subject: RE: DSS2 patch series
+> 
+> On Thu, 2010-08-05 at 09:06 +0200, ext Taneja, Archit wrote:
+> > Hi,
+> > 
+> > > 
+> > > Also, we should think how to reduce if (cpu_is_omap44xx()) lines. 
+> > > There should be some kind of DSS capability list somewhere, which 
+> > > would tell the features available. I haven't thought this 
+> more, but 
+> > > it'd be very nice if we could use the DSS HW version number to 
+> > > decide what features there are.
+> > > 
+> > > However, TI answered that information about DSS HW 
+> version numbers 
+> > > is not available, and thus cannot be used =(. Perhaps you 
+> could try 
+> > > to dig out some information from inside TI?
+> > > 
+> > 
+> > I read the DSS_REVISON, DISPC_REVISION etc registers on 
+> 3430, 3630, 4430:
+> > 
+> > 3430: DSS rev 2.0, DISPC rev 3.0, RFBI rev 1.0, DSI rev 
+> 1.0, VENC rev 
+> > 2
+> > 3630: DSS rev 2.0, DISPC rev 3.0, RFBI rev 1.0, DSI rev 
+> 1.0, VENC rev 
+> > 2
+> > 4430: DSS rev 4.0, DISPC rev 4.0, DSI rev 3.0, RFBI rev 3.5
+> > 
+> > I haven't tried on OMAP2 yet..
+> > 
+> > Don't you think these revision numbers are enough to 
+> differentiate the 
+> > features of each IP block?
+> 
+> Perhaps. The problem is, I don't know what the version 
+> numbers mean, ie.
+> when are they changed, what are the changes. I would hope you 
+> that you could find some internal info inside TI that would 
+> explain the differences =).
+[Archit] I have collected some information about what these revision
+numbers mean from the TI folks. The following is what I have gathered:
 
-You are right. I will put a check.
+-For each broad version of OMAP, like OMAP3430, OMAP3630, OMAP4430 and so on,
+there is an independent revision list. These are changed/incremented when
+the corresponding IP blocks are modified. The numbers which we see are probably
+the ones which were chosen to put into the silicon.
 
->
->> +	struct omap_device *od = oh->od;
->> +	struct platform_device *pdev = &od->pdev;
->> +	struct device *dev = &pdev->dev;
->> +	struct device_driver *drv = dev->driver;
->> +
->> +	if (drv) {
->> +		struct musb_hdrc_platform_data *pdata = 
->dev->platform_data;
->> +		const struct dev_pm_ops *pm = drv->pm;
->> +		if (!pdata->is_usb_active(dev)) {
->> +
->> +			if (save)
->> +				pm->suspend(dev);
->> +			else
->> +				pm->resume_noirq(dev);
->> +		}
->> +	}
->> +}
->> +
->>  #else
->>  void __init usb_musb_init(struct omap_musb_board_data *board_data)
->>  {
->> Index: linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h
->> ===================================================================
->> --- linux-omap-pm.orig/arch/arm/plat-omap/include/plat/usb.h	2010-08-
->> 06 09:23:01.137862514 -0400
->> +++ linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h	
->2010-08-06
->> 10:44:06.381864367 -0400
->> @@ -79,6 +79,8 @@
->> 
->>  extern void usb_ohci_init(const struct ohci_hcd_omap_platform_data
->> *pdata);
->> 
->> +/* For saving and restoring the musb context during off/wakeup*/
->> +extern void musb_context_save_restore(int save);
->>  #endif
->> 
->> 
->> Index: linux-omap-pm/drivers/usb/musb/musb_core.c
->> ===================================================================
->> --- linux-omap-pm.orig/drivers/usb/musb/musb_core.c	2010-08-06
->> 09:24:21.069863329 -0400
->> +++ linux-omap-pm/drivers/usb/musb/musb_core.c	2010-08-06
->> 10:44:06.369863527 -0400
->> @@ -2427,11 +2427,6 @@
->>  	}
->> 
->>  	musb_save_context(musb);
->> -
->> -	if (musb->set_clock)
->> -		musb->set_clock(musb->clock, 0);
->> -	else
->> -		clk_disable(musb->clock);
->>  	spin_unlock_irqrestore(&musb->lock, flags);
->>  	return 0;
->>  }
->> @@ -2443,12 +2438,6 @@
->> 
->>  	if (!musb->clock)
->>  		return 0;
->> -
->> -	if (musb->set_clock)
->> -		musb->set_clock(musb->clock, 1);
->> -	else
->> -		clk_enable(musb->clock);
->> -
->>  	musb_restore_context(musb);
->> 
->>  	/* for static cmos like DaVinci, register values were preserved
->> Index: linux-omap-pm/drivers/usb/musb/omap2430.c
->> ===================================================================
->> --- linux-omap-pm.orig/drivers/usb/musb/omap2430.c	2010-08-06
->> 09:24:21.069863329 -0400
->> +++ linux-omap-pm/drivers/usb/musb/omap2430.c	2010-08-06
->> 10:44:30.093914217 -0400
->> @@ -189,6 +189,19 @@
->>  	return 0;
->>  }
->> 
->> +int is_musb_active(struct device *dev)
->> +{
->> +	struct musb *musb;
->> +
->> +#ifdef CONFIG_USB_MUSB_HDRC_HCD
->> +	/* usbcore insists dev->driver_data is a "struct hcd *" */
->> +	musb = hcd_to_musb(dev_get_drvdata(dev));
->> +#else
->> +	musb = dev_get_drvdata(dev);
->> +#endif
->> +	return musb->is_active;
->> +}
->> +
->>  int __init musb_platform_init(struct musb *musb)
->>  {
->>  	u32 l;
->> @@ -250,6 +263,7 @@
->>  	if (is_host_enabled(musb))
->>  		musb->board_set_vbus = omap_set_vbus;
->> 
->> +	plat->is_usb_active = is_musb_active;
->>  	setup_timer(&musb_idle_timer, musb_do_idle, (unsigned 
->long) musb);
->> 
->>  	return 0;
->> @@ -259,15 +273,42 @@
->>  void musb_platform_save_context(struct musb *musb,
->>  		struct musb_context_registers *musb_context)
->>  {
->> -	musb_context->otg_sysconfig = musb_readl(musb->mregs, 
->OTG_SYSCONFIG);
->> -	musb_context->otg_forcestandby = musb_readl(musb->mregs,
->> OTG_FORCESTDBY);
->> +	/*
->> +	 * As per the omap-usbotg specification, configure it to forced
->> standby
->> +	 * and  force idle mode when no activity on usb.
->> +	 */
->> +	void __iomem *musb_base = musb->mregs;
->> +
->Just to clarify, have you already taken care of ioremap() / 
->request_mem_region() for musb_base?
->
->
-This is already done.
+So, it is possible that the revision numbers of ES_1 of OMAP3430 is exactly the
+same as the ES_1 of OMAP3630 even if the IP blocks have changed. This is what is
+seen in the prints of the revision of 3430 and 3630 I sent in the previous mail.
 
->> +	musb_writel(musb_base, OTG_FORCESTDBY, 0);
->> +
->> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
->> +				OTG_SYSCONFIG) & ~(NOSTDBY | 
->SMARTSTDBY));
->> +
->> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
->> +					OTG_SYSCONFIG) & ~(AUTOIDLE));
->> +
->> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
->> +				OTG_SYSCONFIG) & ~(NOIDLE | SMARTIDLE));
->> +
->> +	musb_writel(musb_base, OTG_FORCESTDBY, 1);
->>  }
->> 
->>  void musb_platform_restore_context(struct musb *musb,
->>  		struct musb_context_registers *musb_context)
->>  {
->> -	musb_writel(musb->mregs, OTG_SYSCONFIG, 
->musb_context->otg_sysconfig);
->> -	musb_writel(musb->mregs, OTG_FORCESTDBY, musb_context-
->> >otg_forcestandby);
->> +	/*
->> +	 * As per the omap-usbotg specification, configure it 
->smart standby
->> +	 * and smart idle during operation.
->> +	 */
->> +	void __iomem *musb_base = musb->mregs;
->> +
->> +	musb_writel(musb_base, OTG_FORCESTDBY, 0);
->> +
->> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
->> +				OTG_SYSCONFIG) | (SMARTSTDBY));
->> +
->> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
->> +				OTG_SYSCONFIG) | (SMARTIDLE));
->>  }
->>  #endif
->> 
->> Index: linux-omap-pm/include/linux/usb/musb.h
->> ===================================================================
->> --- linux-omap-pm.orig/include/linux/usb/musb.h	2010-08-06
->> 09:23:01.161864151 -0400
->> +++ linux-omap-pm/include/linux/usb/musb.h	2010-08-06 
->10:44:06.401862567
->> -0400
->> @@ -126,6 +126,9 @@
->> 
->>  	/* Architecture specific board data	*/
->>  	void		*board_data;
->> +
->> +	/* check usb device active state*/
->> +	int		(*is_usb_active)(struct device *dev);
->>  };
->> 
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+These revision numbers are hence useful only within the revisions of a particular
+OMAP. It looks like that there is no single revision chain since OMAP2.
+
+-After discussions with more TI DSS folks, it seems that some changes that we may
+need to make in DSS software may not be dependent on the DSS hardware at all. For example,
+the patch "OMAP3630:DSS2: Updating MAX divider value" was introduced because of a change
+in PRCM.
+
+So it seems that we will need to have omap2, omap3 and omap4 checks , best we can
+do is prevent them from scattering around, i.e have them at a single place during
+initialization.
+
+How do you think we can clean things up?
+
+Archit
+
+> 
+> We can of course reverse engineer the version numbers, and 
+> hope that we decipher them correctly. For OMAP3430/3630/4430 
+> the differences look clear.
+> 
+> But how about OMAP rev changes? For example, at some 3430 
+> revision the bitfield lengths of video timing registers were 
+> changed. Does it show on DSS/DISPC version numbers? I don't 
+> think I have boards with those revs, so I can't check.
+> 
+>  Tomi
+> 
+> 
+> 
