@@ -1,37 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] omap3: id: fix 3630 rev detection
-Date: Tue, 10 Aug 2010 07:52:24 -0400
-Message-ID: <notify-1281441140@atomide.com>
-References: <1281010636-24796-1-git-send-email-nm@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] [RFC] Remove the debug print noise
+Date: Tue, 10 Aug 2010 14:52:43 +0300
+Message-ID: <20100810115243.GE22436@nokia.com>
+References: <1280753271-21182-1-git-send-email-shubhrajyoti@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB032401D991@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54105 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752252Ab0HJLwY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 07:52:24 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1OinNX-000BMI-T5
-	for linux-omap@vger.kernel.org; Tue, 10 Aug 2010 11:52:24 +0000
-In-Reply-To: <1281010636-24796-1-git-send-email-nm@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:30253 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752490Ab0HJLxe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 07:53:34 -0400
 Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032401D991@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "ext DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+On Tue, Aug 10, 2010 at 12:39:32PM +0200, ext DebBarma, Tarun Kanti wrote:
+>> @@ -626,7 +626,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>>  	if (r < 0)
+>>  		return r;
+>>  	if (r == 0) {
+>> -		dev_err(dev->dev, "controller timed out\n");
+>> +		dev_dbg(dev->dev, "controller timed out\n");
+>
+>Did you compile the code? I thought it would be as below:
+>dev_dbg(&dev->dev, "controller timed out\n");
 
-Branch in linux-omap: omap-fixes
+read the code more carefully. Check the definition of struct 
+omap_i2c_dev. It holds a pointer to a struct device already.
 
-Initial commit ID (Likely to change): 5c61cf9fcab4ff75af9403bb378e772b74e4ddd1
+-- 
+balbi
 
-PatchWorks
-http://patchwork.kernel.org/patch/117282/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=5c61cf9fcab4ff75af9403bb378e772b74e4ddd1
-
-
+DefectiveByDesign.org
