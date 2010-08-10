@@ -1,37 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCHv2] omap2: fix assorted compiler warnings
-Date: Tue, 10 Aug 2010 08:03:48 -0400
-Message-ID: <notify-1281441823@atomide.com>
-References: <1281439686-23713-1-git-send-email-premi@ti.com>
+Subject: Re: [PATCH 0/3] omap: n8x0: Audio update to N810
+Date: Tue, 10 Aug 2010 15:07:34 +0300
+Message-ID: <20100810120733.GI32480@atomide.com>
+References: <1281340740-10823-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49557 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752252Ab0HJMDs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 08:03:48 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1OinYX-000Foe-Ul
-	for linux-omap@vger.kernel.org; Tue, 10 Aug 2010 12:03:47 +0000
-In-Reply-To: <1281439686-23713-1-git-send-email-premi@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61166 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754923Ab0HJMHi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 08:07:38 -0400
 Content-Disposition: inline
+In-Reply-To: <1281340740-10823-1-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Jarkko Nikula <jhnikula@gmail.com> [100809 10:50]:
+> Hi
+> 
+> With this set and a fix [1] it is possible to get ALSA SoC on N810 working.
+> 
+> This set is generated against mainline commit e320cea but applies also to
+> linux-omap (board-n8x0.c has cbus patches in linux-omap).
 
-Branch in linux-omap: for-next
+I've added these into omap for-next for 2.6.37. Let me know if these should
+go in along with other ASoC patches.
 
-Initial commit ID (Likely to change): fc39c9bf6e2e67a4c11e926ec6b2bb1093defd50
+Regards,
 
-PatchWorks
-http://patchwork.kernel.org/patch/118553/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=fc39c9bf6e2e67a4c11e926ec6b2bb1093defd50
-
-
+Tony
+ 
+> 1. http://marc.info/?l=linux-omap&m=128109830113485&w=2
