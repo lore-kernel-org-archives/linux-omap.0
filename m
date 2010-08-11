@@ -1,48 +1,68 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH v3 6/9] omap: hsmmc: remove unused variable
-Date: Wed, 11 Aug 2010 12:55:04 +0300
-Message-ID: <4C627378.2090304@nokia.com>
-References: <1281478348-24833-1-git-send-email-ohad@wizery.com> <1281478348-24833-7-git-send-email-ohad@wizery.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: felipe.balbi@nokia.com
+Subject: [PATCH] usb: otg: twl4030: fix wrong assumption of starting state
+Date: Wed, 11 Aug 2010 13:02:32 +0300
+Message-ID: <1281520952-27981-1-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:56668 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757849Ab0HKJzj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 05:55:39 -0400
-In-Reply-To: <1281478348-24833-7-git-send-email-ohad@wizery.com>
+Received: from smtp.nokia.com ([192.100.122.233]:30208 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753044Ab0HKKCj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 06:02:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>
+To: Greg KH <greg@kroah.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, David Brownell <david-b@pacbell.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-Ohad Ben-Cohen wrote:
-> Make this go away:
-> 
-> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_suspend':
-> drivers/mmc/host/omap_hsmmc.c:2328: warning: unused variable 'state'
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-Was done a while ago.
+The reset state of twl4030-usb is not sleeping, it starts
+up awaken and we need to disable it if we have booted
+with a disconnected cable to avoid over consumption on
+the default state.
 
-See 1a13f8fa76c880be41d6b1e6a2b44404bcbfdf9e in linus' tree.
+To avoid problems later, we read the current state of the
+transceiver from the PHY_PWR_CTRL register. The bootloader
+can, anyways, put the device to sleep before us.
 
-> 
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index b032828..d50e917 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2272,7 +2272,6 @@ static int omap_hsmmc_suspend(struct device *dev)
->  	int ret = 0;
->  	struct platform_device *pdev = to_platform_device(dev);
->  	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
-> -	pm_message_t state = PMSG_SUSPEND; /* unused by MMC core */
->  
->  	if (host && host->suspended)
->  		return 0;
+Tested on a custom OMAP board.
+
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+
+Greg,
+
+this is a bugfix but it's not a huge one, so if want
+to wait until next merge window, it's fine by me.
+
+This patch saves about 2mA for the case when we boot
+with the USB cable disconnected.
+
+ drivers/usb/otg/twl4030-usb.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 0e88885..05aaac1 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -550,6 +550,7 @@ static int __devinit twl4030_usb_probe(struct platform_device *pdev)
+ 	struct twl4030_usb_data *pdata = pdev->dev.platform_data;
+ 	struct twl4030_usb	*twl;
+ 	int			status, err;
++	u8			pwr;
+ 
+ 	if (!pdata) {
+ 		dev_dbg(&pdev->dev, "platform_data not available\n");
+@@ -568,7 +569,10 @@ static int __devinit twl4030_usb_probe(struct platform_device *pdev)
+ 	twl->otg.set_peripheral	= twl4030_set_peripheral;
+ 	twl->otg.set_suspend	= twl4030_set_suspend;
+ 	twl->usb_mode		= pdata->usb_mode;
+-	twl->asleep		= 1;
++
++	pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
++
++	twl->asleep		= (pwr & PHY_PWR_PHYPWD);
+ 
+ 	/* init spinlock for workqueue */
+ 	spin_lock_init(&twl->lock);
+-- 
+1.7.2.1.6.g61bf12
 
