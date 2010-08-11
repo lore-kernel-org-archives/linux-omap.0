@@ -1,209 +1,73 @@
-From: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
-Subject: [PATCH 3/4] add generic smsc911x support for LogicPD's OMAP3 TORPEDO and SOM dev kits
-Date: Wed, 11 Aug 2010 12:31:36 -0400
-Message-ID: <1281544297-18015-3-git-send-email-Jacob.Tanenbaum@logicpd.com>
-References: <1281544297-18015-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
- <1281544297-18015-2-git-send-email-Jacob.Tanenbaum@logicpd.com>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@nokia.com>
+Subject: Re: [PATCH] OMAP:DSS:Add support for Additional color modes
+ supported by OMAP4
+Date: Wed, 11 Aug 2010 19:37:55 +0300
+Message-ID: <20100811163755.GB13922@nokia.com>
+References: <1280987665-25639-1-git-send-email-mythripk@ti.com>
+ <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:41256 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753668Ab0HKQcO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Aug 2010 12:32:14 -0400
-In-Reply-To: <1281544297-18015-2-git-send-email-Jacob.Tanenbaum@logicpd.com>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:46237 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753318Ab0HKQiV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 12:38:21 -0400
+Content-Disposition: inline
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rmk@arm.linux.org.uk, tony@atomide.com, Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
+To: "ext K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen Tomi (Nokia-MS/Helsinki)" <Tomi.Valkeinen@nokia.com>
 
-	ARM: OMAP3: Add generic smsc911x support when connected to GPMC
+On Wed, Aug 11, 2010 at 11:22:44AM +0200, ext K, Mythri P wrote:
+>=20
+> Hi Tomi,
+> Can you please comment on the below patch . This is to add new color =
+modes supported by OMAP4.
+>=20
+> Thanks and regards,
+> Mythri.
+> -----Original Message-----
+> From: K, Mythri P=20
+> Sent: Thursday, August 05, 2010 11:24 AM
+> To: linux-omap@vger.kernel.org
+> Cc: tomi.valkeinen@nokia.com; Semwal, Sumit; K, Mythri P
+> Subject: [PATCH] OMAP:DSS:Add support for Additional color modes supp=
+orted by OMAP4
+>=20
+> From: Sumit semwal <sumit.semwal@ti.com>
+>=20
+> This patch adds support for new color modes that are supported by the=
+ video/graphics pipeline of OMAP4
+>=20
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/display.h |   16 ++++++++-
+>  drivers/video/omap2/dss/dispc.c           |   53 +++++++++++++++++++=
++++-------
+>  drivers/video/omap2/dss/overlay.c         |    6 ++-
+>  3 files changed, 59 insertions(+), 16 deletions(-)
+>=20
+> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/pla=
+t-omap/include/plat/display.h
+> index 7a6eedd..ebf1020 100644
+> --- a/arch/arm/plat-omap/include/plat/display.h
+> +++ b/arch/arm/plat-omap/include/plat/display.h
+> @@ -89,6 +89,12 @@ enum omap_color_mode {
+>  	OMAP_DSS_COLOR_ARGB32	=3D 1 << 11, /* ARGB32 */
+>  	OMAP_DSS_COLOR_RGBA32	=3D 1 << 12, /* RGBA32 */
+>  	OMAP_DSS_COLOR_RGBX32	=3D 1 << 13, /* RGBx32 */
+> +	OMAP_DSS_COLOR_NV12	=3D 1 << 14, /* NV12 format: YUV 4:2:0 */
+> +	OMAP_DSS_COLOR_RGBA12	=3D 1 << 15, /* RGBA12 - 4444 */
+> +	OMAP_DSS_COLOR_XRGB12	=3D 1 << 16, /* xRGB12, 16-bit container */
 
-        Introduce of a generic way to setup smsc911x based Ethernet
-        controller connected to GPMC similar to gpmc-smc91x but without
-        timing setup.
-	FIXED: pbias voltage for the Torpedo board
+Isn't this the same as RGB12U?
 
-        Tested against: linux-next 81e09f50c93edff607259cbe374a3006c9c5fa74
-	Signed-off-by: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
----
- arch/arm/mach-omap2/Makefile                    |    4 +
- arch/arm/mach-omap2/gpmc-smsc911x.c             |  113 +++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |   35 +++++++
- 3 files changed, 152 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.c
- create mode 100644 arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index bc77d32..668bfc7 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -177,3 +177,7 @@ obj-y					+= $(nand-m) $(nand-y)
- 
- smc91x-$(CONFIG_SMC91X)			:= gpmc-smc91x.o
- obj-y					+= $(smc91x-m) $(smc91x-y)
-+
-+smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
-+obj-y					+= $(smsc911x-m) $(smsc911x-y)
-+
-diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
-new file mode 100644
-index 0000000..703f150
---- /dev/null
-+++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
-@@ -0,0 +1,113 @@
-+/*
-+ * linux/arch/arm/mach-omap2/gpmc-smsc911x.c
-+ *
-+ * Copyright (C) 2009 Li-Pro.Net
-+ * Stephan Linz <linz@li-pro.net>
-+ *
-+ * Modified from linux/arch/arm/mach-omap2/gpmc-smc91x.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/smsc911x.h>
-+
-+#include <plat/board.h>
-+#include <plat/gpmc.h>
-+#include <plat/gpmc-smsc911x.h>
-+
-+static struct omap_smsc911x_platform_data *gpmc_cfg;
-+
-+static struct resource gpmc_smsc911x_resources[] = {
-+	[0] = {
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.flags		= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct smsc911x_platform_config gpmc_smsc911x_config = {
-+	.phy_interface	= PHY_INTERFACE_MODE_MII,
-+	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
-+	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
-+	.flags		= SMSC911X_USE_16BIT,
-+};
-+
-+static struct platform_device gpmc_smsc911x_device = {
-+	.name		= "smsc911x",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(gpmc_smsc911x_resources),
-+	.resource	= gpmc_smsc911x_resources,
-+	.dev		= {
-+		.platform_data = &gpmc_smsc911x_config,
-+	},
-+};
-+
-+/*
-+ * Initialize smsc911x device connected to the GPMC. Note that we
-+ * assume that pin multiplexing is done in the board-*.c file,
-+ * or in the bootloader.
-+ */
-+void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
-+{
-+	unsigned long cs_mem_base;
-+	int ret;
-+
-+	gpmc_cfg = board_data;
-+
-+	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
-+		printk(KERN_ERR "Failed to request GPMC mem for smsc911x\n");
-+		return;
-+	}
-+
-+	gpmc_smsc911x_resources[0].start = cs_mem_base + 0x0;
-+	gpmc_smsc911x_resources[0].end = cs_mem_base + 0xff;
-+
-+	if (gpio_request(gpmc_cfg->gpio_irq, "smsc911x irq") < 0) {
-+		printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
-+				gpmc_cfg->gpio_irq);
-+		goto free1;
-+	}
-+
-+	gpio_direction_input(gpmc_cfg->gpio_irq);
-+	gpmc_smsc911x_resources[1].start = gpio_to_irq(gpmc_cfg->gpio_irq);
-+	gpmc_smsc911x_resources[1].flags |=
-+					(gpmc_cfg->flags & IRQF_TRIGGER_MASK);
-+
-+	if (gpio_is_valid(gpmc_cfg->gpio_reset)) {
-+		ret = gpio_request(gpmc_cfg->gpio_reset, "smsc911x reset");
-+		if (ret) {
-+			printk(KERN_ERR "Failed to request GPIO%d for smsc911x reset\n",
-+					gpmc_cfg->gpio_reset);
-+			goto free2;
-+		}
-+
-+		gpio_direction_output(gpmc_cfg->gpio_reset, 1);
-+		gpio_set_value(gpmc_cfg->gpio_reset, 0);
-+		msleep(100);
-+		gpio_set_value(gpmc_cfg->gpio_reset, 1);
-+	}
-+
-+	if (platform_device_register(&gpmc_smsc911x_device) < 0) {
-+		printk(KERN_ERR "Unable to register smsc911x device\n");
-+		gpio_free(gpmc_cfg->gpio_reset);
-+		goto free2;
-+	}
-+
-+	return;
-+
-+free2:
-+	gpio_free(gpmc_cfg->gpio_irq);
-+free1:
-+	gpmc_cs_free(gpmc_cfg->cs);
-+
-+	printk(KERN_ERR "Could not initialize smsc911x\n");
-+}
-diff --git a/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
-new file mode 100644
-index 0000000..e5f3a48
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
-@@ -0,0 +1,35 @@
-+/*
-+ * arch/arm/plat-omap/include/mach/gpmc-smsc911x.h
-+ *
-+ * Copyright (C) 2009 Li-Pro.Net
-+ * Stephan Linz <linz@li-pro.net>
-+ *
-+ * Modified from arch/arm/plat-omap/include/mach/gpmc-smc91x.h
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __ASM_ARCH_OMAP_GPMC_SMSC911X_H__
-+
-+struct omap_smsc911x_platform_data {
-+	int	cs;
-+	int	gpio_irq;
-+	int	gpio_reset;
-+	u32	flags;
-+};
-+
-+#if defined(CONFIG_SMSC911X) || \
-+	defined(CONFIG_SMSC911X_MODULE)
-+
-+extern void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d);
-+
-+#else
-+
-+static inline void gpmc_smsc911x_init(struct omap_smsc911x_platform_data *d)
-+{
-+}
-+
-+#endif
-+#endif
--- 
-1.6.0.4
-
+--=20
+Ville Syrj=E4l=E4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
