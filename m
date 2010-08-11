@@ -1,67 +1,45 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Subject: Re: [PATCH 1/4] initial support for LogicPD's OMAP3 SOM and
-	TORPEDO development kits
-Date: Wed, 11 Aug 2010 19:54:50 +0200
-Message-ID: <20100811175450.GA17425@merkur.ravnborg.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/4] initial support for LogicPD's OMAP3 SOM and TORPEDO development kits
+Date: Wed, 11 Aug 2010 11:04:52 -0700
+Message-ID: <87r5i52fgb.fsf@deeprootsystems.com>
 References: <1281544297-18015-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pfepa.post.tele.dk ([195.41.46.235]:39168 "EHLO
-	pfepa.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758394Ab0HKRyx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 13:54:53 -0400
-Content-Disposition: inline
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1281544297-18015-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+	(Jacob Tanenbaum's message of "Wed, 11 Aug 2010 12:31:34 -0400")
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
 Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rmk@arm.linux.org.uk, tony@atomide.com
+List-Id: linux-omap@vger.kernel.org
 
-Hi Jacob.
+Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com> writes:
 
-Some quick comments.
+> 	Adding LogicPD OMAP3 board support
+>
+>          Adding support for LogicPD's OMAP 3530 LV SOM and
+>          OMAP 35x Torpedo board.
+> 	 
+> 	 Tested against: linux-next 81e09f50c93edff607259cbe374a3006c9c5fa74
+>          Signed-off-by: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
 
-	Sam
+[...]
 
-> diff --git a/arch/arm/configs/omap3_defconfig b/arch/arm/configs/omap3_defconfig
-> index 5db9a6b..f510dfd 100644
-> --- a/arch/arm/configs/omap3_defconfig
-> +++ b/arch/arm/configs/omap3_defconfig
-> @@ -37,6 +37,8 @@ CONFIG_MACH_OMAP_2430SDP=y
->  CONFIG_MACH_OMAP3_BEAGLE=y
->  CONFIG_MACH_DEVKIT8000=y
->  CONFIG_MACH_OMAP_LDP=y
-> +CONFIG_MACH_OMAP3530_LV_SOM=y
-> +CONFIG_MACH_OMAP3_TORPEDO=y
->  CONFIG_MACH_OVERO=y
->  CONFIG_MACH_OMAP3EVM=y
->  CONFIG_MACH_OMAP3517EVM=y
+> +/* Micron MT46H32M32LF-6 */
+> +/* FIXME: borrowed from sdram-micron-mt46h32m32lf-6.h because on LogicPD
+> + * boards we can't use the default values -- why? I suspect the reason
+> + * lies in the boot strap code. We correct this part if we have ported
+> + * U-Boot and X-Load. */
 
-Are the omap3_defconfig supposed to enable all omap board variants?
-Otherwise leave this change out.
+Another option here instead of re-defining the struct is to includ the
+original header and just change the values you need to.  That way
+you can describe the reasons behind the values that are changing.
 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index b48bacf..42e7d4a 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -135,6 +135,14 @@ config MACH_OMAP_LDP
->  	default y
->  	select OMAP_PACKAGE_CBB
->  
-> +config MACH_OMAP3530_LV_SOM
-> +	bool "OMAP3 Logic 3530 LV SOM board"
-> +	depends on ARCH_OMAP3
+[...]
+
+> +static struct omap_board_config_kernel omap3logic_config[] __initdata = {
+> +};
 > +
-> +config MACH_OMAP3_TORPEDO
-> +	bool "OMAP3 Logic 35x Torpedo board"
-> +	depends on ARCH_OMAP3
-> +
-
-Some help would be beneficial.
-URL's to product descriptions etc could be included there.
-You may alos consider telling people this is a TI deriviate etc.
-
 > +static void __init omap3logic_init_irq(void)
 > +{
 > +	omap_board_config = omap3logic_config;
@@ -73,15 +51,11 @@ You may alos consider telling people this is a TI deriviate etc.
 > +	omap2_gp_clockevent_set_gptimer(12);
 > +#endif
 
-Fix this on the called site. There is zero reason
-to sprinkle all user of omap2_gp_clockevent_set_gptimer()
-with ifdef/endif.
+Why do you need GPT12?
 
-> +	/* Ensure SDRC pins are mux'd for self-refresh */
-> +/*	omap_cfg_reg(H16_34XX_SDRC_CKE0);
-> +	omap_cfg_reg(H17_34XX_SDRC_CKE1);
-> +	omap_cfg_reg(SDRC_CKE0);
-> +	omap_cfg_reg(SDRC_CKE1); */
+Was this a copy-paste from Beagle?  Certain revs of beagle had this
+limitation due to a board design problem, so unless you've inherited the
+same board-design problem, you should be find with the default.
 
-Why do we have code that is not in use?
 
+Kevin
