@@ -1,99 +1,87 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCH v3 9/9] omap: zoom: add mmc3/wl1271 device support
-Date: Wed, 11 Aug 2010 12:01:50 +0300
-Message-ID: <4C6266FE.5000904@nokia.com>
-References: <1281478348-24833-1-git-send-email-ohad@wizery.com> <1281478348-24833-10-git-send-email-ohad@wizery.com> <4C626140.3080107@nokia.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
+Date: Wed, 11 Aug 2010 14:42:36 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0324110879@dbde02.ent.ti.com>
+References: <1281493018-29294-1-git-send-email-nm@ti.com>
+ <1281493018-29294-3-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4C626140.3080107@nokia.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: ext Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53969 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753044Ab0HKJMr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 05:12:47 -0400
+In-Reply-To: <1281493018-29294-3-git-send-email-nm@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On 08/11/2010 11:37 AM, Roger Quadros wrote:
-> On 08/11/2010 01:12 AM, ext Ohad Ben-Cohen wrote:
->> Add MMC3 support on ZOOM, which has the wl1271 device hardwired to.
->>
->> The wl1271 is a 4-wire, 1.8V, embedded SDIO WLAN device with an
->> external IRQ line, and power-controlled by a GPIO-based fixed regulator.
->>
->> Signed-off-by: Ohad Ben-Cohen<ohad@wizery.com>
->> ---
->>    arch/arm/mach-omap2/board-zoom-peripherals.c |   34 ++++++++++++++++++++++++++
->>    1 files changed, 34 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
->> index de88635..82776bc 100644
->> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
->> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
->> @@ -17,6 +17,8 @@
->>    #include<linux/i2c/twl.h>
->>    #include<linux/regulator/machine.h>
->>    #include<linux/regulator/fixed.h>
->> +#include<linux/mmc/host.h>
->> +#include<linux/wl12xx.h>
->>
->>    #include<asm/mach-types.h>
->>    #include<asm/mach/arch.h>
->> @@ -29,6 +31,7 @@
->>    #include "hsmmc.h"
->>
->>    #define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
->> +#define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
->>
->>    /* Zoom2 has Qwerty keyboard*/
->>    static int board_keymap[] = {
->> @@ -185,6 +188,28 @@ static struct platform_device omap_vwlan_device = {
->>    	},
->>    };
->>
->> +struct wl12xx_platform_data omap_zoom_wlan_data = {
->> +	/* ZOOM ref clock is 26 MHz */
->> +	.board_ref_clock = 1,
->> +};
->> +
->> +static struct resource omap_zoom_wl1271_resources[] = {
->> +	{
->> +		.start = OMAP_GPIO_IRQ(OMAP_ZOOM_WLAN_IRQ_GPIO),
->> +		.end = OMAP_GPIO_IRQ(OMAP_ZOOM_WLAN_IRQ_GPIO),
->> +		.flags = IORESOURCE_IRQ,
->> +	}
->> +};
->> +static struct platform_device omap_zoom_wl1271 = {
->> +	.name		= "wl1271_plat.2",
->> +	.id		= -1,
->> +	.resource	= omap_zoom_wl1271_resources,
->> +	.num_resources	= ARRAY_SIZE(omap_zoom_wl1271_resources),
->> +	.dev = {
->> +		.platform_data =&omap_zoom_wlan_data,
->> +	},
->> +};
->> +
->>    static struct omap2_hsmmc_info mmc[] __initdata = {
->>    	{
->>    		.name		= "external",
->> @@ -202,6 +227,14 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
->>    		.nonremovable	= true,
->>    		.power_saving	= true,
->>    	},
->> +	{
->> +		.name		= "wl1271",
->> +		.mmc		= 3,
->> +		.wires		= 4,
->> +		.gpio_wp	= -EINVAL,
->> +		.gpio_cd	= -EINVAL,
->> +		.ocr_mask	= MMC_VDD_165_195,
->
-> Do we really need to specify ocr_mask here?
-> It seems to be set in omap_hsmmc_reg_get() by calling mmc_regulator_get_ocrmask().
->
-> This should automatically pick the right mask if you have defined the "vmmc"
-> regulator output voltage correctly.
->
-Also shouldn't .nonremovable be set to true? as this is a non-removable card slot.
 
-regards,
--roger
+
+>>-----Original Message-----
+>>From: Menon, Nishanth
+>>Sent: Wednesday, August 11, 2010 7:47 AM
+>>To: linux-omap
+>>Cc: Menon, Nishanth; Eduardo Valentin; Kevin Hilman; Paul Walmsley; Nayak, Rajendra; Premi, Sanjeev;
+>>Gopinath, Thara; Tony Lindgren
+>>Subject: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
+>>
+>>Make opp3xx data which is registered with the opp layer
+>>dependent purely on CONFIG_PM as opp layer and pm.c users
+>>are CONFIG_PM dependent not cpufreq dependent.
+>>so we rename the data definition to opp3xxx_data.c (inline with what
+>>we have for omap2), also move the build definition to be under
+>>the existing CONFIG_PM build instead of CPUFREQ.
+>>
+>>Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+>>Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>>Cc: Paul Walmsley <paul@pwsan.com>
+>>Cc: Rajendra Nayak <rnayak@ti.com>
+>>Cc: Sanjeev Premi <premi@ti.com>
+>>Cc: Thara Gopinath <thara@ti.com>
+>>Cc: Tony Lindgren <tony@atomide.com>
+>>
+>>Signed-off-by: Nishanth Menon <nm@ti.com>
+>>---
+>>Note:
+>>This takes care of the discussion on opp file renaming and making
+>>it independent of cpufreq, unless I missed something else
+>>
+>> arch/arm/mach-omap2/Makefile                       |    5 +----
+>> .../mach-omap2/{cpufreq34xx.c => opp3xxx_data.c}   |    0
+>> 2 files changed, 1 insertions(+), 4 deletions(-)
+>> rename arch/arm/mach-omap2/{cpufreq34xx.c => opp3xxx_data.c} (100%)
+
+Is this part of PM-OPP branch? Also I was thinking of reusing the same file for OMAP4.
+No reason why we should have a different file for OMAP4. So a better name than opp3xxx_data.c?
+
+Regards
+Thara
+>>
+>>diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+>>index 0b188fa..43d7372 100644
+>>--- a/arch/arm/mach-omap2/Makefile
+>>+++ b/arch/arm/mach-omap2/Makefile
+>>@@ -58,11 +58,8 @@ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+>> AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+>> AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+>>
+>>-endif
+>>+obj-$(CONFIG_ARCH_OMAP3)		+= opp3xxx_data.o
+>>
+>>-# CPU Frequency
+>>-ifeq ($(CONFIG_CPU_FREQ),y)
+>>-obj-$(CONFIG_ARCH_OMAP3)		+= cpufreq34xx.o
+>> endif
+>>
+>> # PRCM
+>>diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/opp3xxx_data.c
+>>similarity index 100%
+>>rename from arch/arm/mach-omap2/cpufreq34xx.c
+>>rename to arch/arm/mach-omap2/opp3xxx_data.c
+>>--
+>>1.6.3.3
+
