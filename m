@@ -1,25 +1,25 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
-Date: Tue, 10 Aug 2010 21:16:58 -0500
-Message-ID: <1281493018-29294-3-git-send-email-nm@ti.com>
-References: <1281493018-29294-1-git-send-email-nm@ti.com>
+Subject: [PM-OPP][PATCH v2 1/2] omap: pm: opp: remove opp_id
+Date: Tue, 10 Aug 2010 21:43:43 -0500
+Message-ID: <1281494623-11232-1-git-send-email-nm@ti.com>
+References: <[PM-OPP][PATCH 1/2] omap: pm: opp: remove opp_id>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41243 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38636 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758078Ab0HKCRI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Aug 2010 22:17:08 -0400
-In-Reply-To: <1281493018-29294-1-git-send-email-nm@ti.com>
+	id S1757952Ab0HKCny (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Aug 2010 22:43:54 -0400
+In-Reply-To: <[PM-OPP][PATCH 1/2] omap: pm: opp: remove opp_id>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Nishanth Menon <nm@ti.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Sanjeev Premi <premi@ti.com>, Thara Gopinath <thara@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Make opp3xx data which is registered with the opp layer
-dependent purely on CONFIG_PM as opp layer and pm.c users
-are CONFIG_PM dependent not cpufreq dependent.
-so we rename the data definition to opp3xxx_data.c (inline with what
-we have for omap2), also move the build definition to be under
-the existing CONFIG_PM build instead of CPUFREQ.
+Remove the concept of opp_id now that SRF is gone from pm branch
+the new framework should exist on silicon variants without the
+notion of opp ids
+
+This also removes the deprecated functions opp_get_opp_id and
+opp_find_by_opp_id.
 
 Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
@@ -31,36 +31,140 @@ Cc: Tony Lindgren <tony@atomide.com>
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
-Note:
-This takes care of the discussion on opp file renaming and making
-it independent of cpufreq, unless I missed something else
+v1: original patch https://patchwork.kernel.org/patch/118723/
+v2: I missed cleaning up opp_add properly :( (I should have removed
+  the variable i and removed the list walk for renumbering..) apologies
+  on the spam..
+Note: for folks using SRF, you'd have to revert this patch
 
- arch/arm/mach-omap2/Makefile                       |    5 +----
- .../mach-omap2/{cpufreq34xx.c => opp3xxx_data.c}   |    0
- 2 files changed, 1 insertions(+), 4 deletions(-)
- rename arch/arm/mach-omap2/{cpufreq34xx.c => opp3xxx_data.c} (100%)
+ arch/arm/plat-omap/include/plat/opp.h |   15 ---------
+ arch/arm/plat-omap/opp.c              |   52 ---------------------------------
+ 2 files changed, 0 insertions(+), 67 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 0b188fa..43d7372 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -58,11 +58,8 @@ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
- AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
- AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
+index f9feb8d..997b56e 100644
+--- a/arch/arm/plat-omap/include/plat/opp.h
++++ b/arch/arm/plat-omap/include/plat/opp.h
+@@ -82,10 +82,6 @@ int opp_enable(struct omap_opp *opp);
  
--endif
-+obj-$(CONFIG_ARCH_OMAP3)		+= opp3xxx_data.o
+ int opp_disable(struct omap_opp *opp);
  
--# CPU Frequency
--ifeq ($(CONFIG_CPU_FREQ),y)
--obj-$(CONFIG_ARCH_OMAP3)		+= cpufreq34xx.o
- endif
+-struct omap_opp *__deprecated opp_find_by_opp_id(struct device *dev,
+-						  u8 opp_id);
+-u8 __deprecated opp_get_opp_id(struct omap_opp *opp);
+-
+ void opp_init_cpufreq_table(struct device *dev,
+ 			    struct cpufreq_frequency_table **table);
+ #else
+@@ -139,17 +135,6 @@ static inline int opp_disable(struct omap_opp *opp)
+ 	return 0;
+ }
  
- # PRCM
-diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/opp3xxx_data.c
-similarity index 100%
-rename from arch/arm/mach-omap2/cpufreq34xx.c
-rename to arch/arm/mach-omap2/opp3xxx_data.c
+-static inline struct omap_opp *__deprecated
+-opp_find_by_opp_id(struct omap_opp *opps, u8 opp_id)
+-{
+-	return ERR_PTR(-EINVAL);
+-}
+-
+-static inline u8 __deprecated opp_get_opp_id(struct omap_opp *opp)
+-{
+-	return 0;
+-}
+-
+ static inline
+ void opp_init_cpufreq_table(struct omap_opp *opps,
+ 			    struct cpufreq_frequency_table **table)
+diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+index b9b7bda..17f93b2 100644
+--- a/arch/arm/plat-omap/opp.c
++++ b/arch/arm/plat-omap/opp.c
+@@ -27,7 +27,6 @@
+  * @enabled:	true/false - marking this OPP as enabled/disabled
+  * @rate:	Frequency in hertz
+  * @u_volt:	Nominal voltage in microvolts corresponding to this OPP
+- * @opp_id:	opp identifier (deprecated)
+  * @dev_opp:	contains the device_opp struct
+  *
+  * This structure stores the OPP information for a given domain.
+@@ -38,7 +37,6 @@ struct omap_opp {
+ 	bool enabled;
+ 	unsigned long rate;
+ 	unsigned long u_volt;
+-	u8 opp_id;
+ 
+ 	struct device_opp *dev_opp;
+ };
+@@ -132,50 +130,6 @@ unsigned long opp_get_freq(const struct omap_opp *opp)
+ }
+ 
+ /**
+- * opp_find_by_opp_id - look up OPP by OPP ID (deprecated)
+- * @opp_type:	OPP type where we want the look up to happen.
+- * @opp_id:	OPP ID to search for
+- *
+- * Returns the struct omap_opp pointer corresponding to the given OPP
+- * ID @opp_id, or returns NULL on error.
+- */
+-struct omap_opp * __deprecated opp_find_by_opp_id(struct device *dev,
+-						  u8 opp_id)
+-{
+-	struct device_opp *dev_opp;
+-	struct omap_opp *temp_opp, *opp = ERR_PTR(-ENODEV);
+-
+-	dev_opp = find_device_opp(dev);
+-	if (IS_ERR(dev_opp))
+-		return opp;
+-
+-	list_for_each_entry(temp_opp, &dev_opp->opp_list, node) {
+-		if (temp_opp->enabled && temp_opp->opp_id == opp_id) {
+-			opp = temp_opp;
+-			break;
+-		}
+-	}
+-
+-	return opp;
+-}
+-
+-/**
+- * opp_get_opp_id() - Provide OPP ID corresponding to an OPP (deprecated)
+- * @opp:	opp for which frequency has to be returned for
+- *
+- * Returns an OPP ID for the OPP required, if error, returns 0
+- */
+-u8 __deprecated opp_get_opp_id(struct omap_opp *opp)
+-{
+-	if (unlikely(!opp || IS_ERR(opp)) || !opp->enabled) {
+-		pr_err("%s: Invalid parameter being passed\n", __func__);
+-		return 0;
+-	}
+-
+-	return opp->opp_id;
+-}
+-
+-/**
+  * opp_get_opp_count() - Get number of opps enabled in the opp list
+  * @opp_type:	OPP type we want to count
+  *
+@@ -344,7 +298,6 @@ int opp_add(const struct omap_opp_def *opp_def)
+ 	struct omap_opp *opp, *new_opp;
+ 	struct platform_device *pdev;
+ 	struct list_head *head;
+-	int i;
+ 
+ 	/* find the correct hwmod, and device */
+ 	if (!opp_def->hwmod_name) {
+@@ -410,11 +363,6 @@ int opp_add(const struct omap_opp_def *opp_def)
+ 	if (new_opp->enabled)
+ 		dev_opp->enabled_opp_count++;
+ 
+-	/* renumber (deprecated) OPP IDs based on new order */
+-	i = 0;
+-	list_for_each_entry(opp, &dev_opp->opp_list, node)
+-		opp->opp_id = i++;
+-
+ 	return 0;
+ }
+ 
 -- 
 1.6.3.3
 
