@@ -1,106 +1,77 @@
-From: "Jacob Tanenbaum" <Jacob.Tanenbaum@logicpd.com>
-Subject: RE: [PATCH 1/4] initial support for LogicPD's OMAP3 SOM andTORPEDO development kits
-Date: Wed, 11 Aug 2010 13:53:18 -0500
-Message-ID: <77A0A4DB5BF2A44283E5522C27234AC6021C82D5@EDPRSRV011.logicpd.com>
-References: <20100811175450.GA17425@merkur.ravnborg.org>
+From: "DebBarma, Tarun Kanti" <tarun.kanti-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v4 3/8] wireless: wl1271: add platform driver to get
+ board data
+Date: Thu, 12 Aug 2010 00:22:54 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC1@dbde02.ent.ti.com>
+References: <1281550913-17633-1-git-send-email-ohad@wizery.com>
+ <1281550913-17633-4-git-send-email-ohad@wizery.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0324110ABD@dbde02.ent.ti.com>
+ <20100811184742.GA21778@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <20100811175450.GA17425@merkur.ravnborg.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rmk@arm.linux.org.uk, tony@atomide.com
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100811184742.GA21778-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr-l0cyMroinI0@public.gmane.org>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 
+> -----Original Message-----
+> From: Felipe Balbi [mailto:felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org]
+> Sent: Thursday, August 12, 2010 12:18 AM
+> To: DebBarma, Tarun Kanti
+> Cc: Ohad Ben-Cohen; linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Ido Yariv; Mark Brown;
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; Chikkature Rajashekar, Madhusudhan;
+> Coelho Luciano (Nokia-MS/Helsinki); akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org; San Mehat;
+> Quadros Roger (Nokia-MS/Helsinki); Tony Lindgren; Nicolas Pitre; Pandita,
+> Vikram; Kalle Valo
+> Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to get
+> board data
+> 
+> hi,
+> 
+> On Wed, Aug 11, 2010 at 08:42:18PM +0200, ext DebBarma, Tarun Kanti wrote:
+> >> @@ -182,10 +186,84 @@ static struct wl1271_if_operations sdio_ops = {
+> >>  	.disable_irq	= wl1271_sdio_disable_interrupts
+> >>  };
+> >>
+> >> +static int wl1271_plat_probe(struct platform_device *pdev)
+> >> +{
+> >> +	struct wl12xx_platform_data *pdata;
+> >> +	struct platform_driver *pdriver;
+> >> +	struct wl12xx_plat_instance *pinstance;
+> >> +
+> >What about checking for pdev here before extracting pdata?
+> 
+> why ? if probe is called pdev is guaranteed to be valid, no ?
+> 
+True; however if we go by that argument than we can also assume pdata is valid, so that we would not need the below check.
+Still, I would go ahead and find out if there is any scenario where pdev can go wrong during device registration. Thanks.
 
------Original Message-----
-From: Sam Ravnborg [mailto:sam@ravnborg.org] 
-Sent: Wednesday, August 11, 2010 1:55 PM
-To: Jacob Tanenbaum
-Cc: linux@arm.linux.org.uk; linux-omap@vger.kernel.org;
-linux-kernel@vger.kernel.org; rmk@arm.linux.org.uk; tony@atomide.com
-Subject: Re: [PATCH 1/4] initial support for LogicPD's OMAP3 SOM
-andTORPEDO development kits
-
-Hi Jacob.
-
-Some quick comments.
-
-	Sam
-
-> diff --git a/arch/arm/configs/omap3_defconfig
-b/arch/arm/configs/omap3_defconfig
-> index 5db9a6b..f510dfd 100644
-> --- a/arch/arm/configs/omap3_defconfig
-> +++ b/arch/arm/configs/omap3_defconfig
-> @@ -37,6 +37,8 @@ CONFIG_MACH_OMAP_2430SDP=y
->  CONFIG_MACH_OMAP3_BEAGLE=y
->  CONFIG_MACH_DEVKIT8000=y
->  CONFIG_MACH_OMAP_LDP=y
-> +CONFIG_MACH_OMAP3530_LV_SOM=y
-> +CONFIG_MACH_OMAP3_TORPEDO=y
->  CONFIG_MACH_OVERO=y
->  CONFIG_MACH_OMAP3EVM=y
->  CONFIG_MACH_OMAP3517EVM=y
-
-Are the omap3_defconfig supposed to enable all omap board variants?
-Otherwise leave this change out.
-
-This is the default defconfig that enables most of the options
-available, we are just adding our boards to the standard omap3_defconfig
-
-
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index b48bacf..42e7d4a 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -135,6 +135,14 @@ config MACH_OMAP_LDP
->  	default y
->  	select OMAP_PACKAGE_CBB
->  
-> +config MACH_OMAP3530_LV_SOM
-> +	bool "OMAP3 Logic 3530 LV SOM board"
-> +	depends on ARCH_OMAP3
-> +
-> +config MACH_OMAP3_TORPEDO
-> +	bool "OMAP3 Logic 35x Torpedo board"
-> +	depends on ARCH_OMAP3
-> +
-
-Some help would be beneficial.
-URL's to product descriptions etc could be included there.
-You may alos consider telling people this is a TI deriviate etc.
-
-Will fix
-
-> +static void __init omap3logic_init_irq(void)
-> +{
-> +	omap_board_config = omap3logic_config;
-> +	omap_board_config_size = ARRAY_SIZE(omap3logic_config);
-> +	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-> +				mt46h32m32lf6_sdrc_params);
-> +	omap_init_irq();
-> +#ifdef CONFIG_OMAP_32K_TIMER
-> +	omap2_gp_clockevent_set_gptimer(12);
-> +#endif
-
-Fix this on the called site. There is zero reason
-to sprinkle all user of omap2_gp_clockevent_set_gptimer()
-with ifdef/endif.
-
-Will fix
-
-> +	/* Ensure SDRC pins are mux'd for self-refresh */
-> +/*	omap_cfg_reg(H16_34XX_SDRC_CKE0);
-> +	omap_cfg_reg(H17_34XX_SDRC_CKE1);
-> +	omap_cfg_reg(SDRC_CKE0);
-> +	omap_cfg_reg(SDRC_CKE1); */
-
-Why do we have code that is not in use?
-
-Taken out in the 4th patch made a mistake in rebasing 
-Will fix
+> >> +	pdata = pdev->dev.platform_data;
+> >> +	if (!pdata) {
+> >> +		wl1271_error("no platform data");
+> >> +		return -ENODEV;
+> >> +	}
+> >> +
+> >> +	pdriver = container_of(pdev->dev.driver, struct platform_driver,
+> >> +								driver);
+> 
+> but you shouldn't fiddle with the driver structure here. What are you
+> actually trying to achieve here ? What's pinstance supposed to do ? are
+> you trying to handle cases where you might have several wl12xx chips on
+> the same board ? If that's the case you should have several platform
+> devices, one for each chip. They'll only have different ids.
+> 
+> --
+> balbi
+> 
+> DefectiveByDesign.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
