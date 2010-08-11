@@ -1,50 +1,38 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] OMAP3: PM: ensure IO wakeups are properly disabled
-Date: Wed, 11 Aug 2010 08:39:46 +0300
-Message-ID: <20100811083946.494aac87.jhnikula@gmail.com>
-References: <1281484431-17620-1-git-send-email-khilman@deeprootsystems.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCHv2] mailbox: change full flag per mailbox queue instead
+ of global
+Date: Wed, 11 Aug 2010 08:43:05 +0300 (EEST)
+Message-ID: <20100811.084305.149819136.Hiroshi.DOYU@nokia.com>
+References: <1281489169-15945-1-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:43117 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751304Ab0HKFj6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 01:39:58 -0400
-Received: by ewy23 with SMTP id 23so4227133ewy.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 22:39:56 -0700 (PDT)
-In-Reply-To: <1281484431-17620-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:54672 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751304Ab0HKFnO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 01:43:14 -0400
+In-Reply-To: <1281489169-15945-1-git-send-email-x0095840@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
+To: x0095840@ti.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ohad@wizery.com
 
-On Tue, 10 Aug 2010 16:53:51 -0700
-Kevin Hilman <khilman@deeprootsystems.com> wrote:
+From: ext Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCHv2] mailbox: change full flag per mailbox queue instead of global
+Date: Wed, 11 Aug 2010 03:12:49 +0200
 
-> From: Kevin Hilman <khilman@ti.com>
+> As pointed by Ohad Ben-Cohen, the variable rq_full flag is a
+> global variable, so if there are multiple mailbox users
+> there will be conflics. Now there is a full flag per
+> mailbox queue.
 > 
-> During idle, if the PER powerdomain transitions and CORE does not (as
-> is the case with the lower C-states when using CPUidle) the IO pad
-> wakeups are not being disabled in the idle path after they are
-> enabled.
+> Version 2:
+> - Rebase to the latest.
 > 
-> This patch ensures that the check for disabling IO wakeups also checks
-> for PER transitions, matching the check done to enable IO wakeups.
-> 
-> Found when debugging PM/CPUidle related problems reported by Ameya
-> Palande <ameya.palande@nokia.com>.  Problems were triggered
-> particularily on boards with UART2 consoles (n900, Overo) since UART2
-> is in the PER powerdomain.
-> 
-> Tested on l-o master (omap3_defonfig + CONFIG_CPU_IDLE=y) as well
-> as with current PM branch.  Boards tested: n900, Overo, omap3evm.
-> 
-> Cc: Ameya Palande <ameya.palande@nokia.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
+> Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-I don't see the problem on N900 anymore after applying this patch. Feel
-free to add:
-
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
+Ok for me.
+Tony, could you take this in? since it's a single patch for fix.
