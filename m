@@ -1,59 +1,52 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Overo serial problems after resume, vs. Beagleboard
-Date: Tue, 10 Aug 2010 16:57:29 -0700
-Message-ID: <AANLkTi=5a93=HTCxA11mZT6PKR7XkGVOiNGAT_7KNQJO@mail.gmail.com>
-References: <4C1F9B80.9010708@gmail.com>
-	<874ogw1dy2.fsf@deeprootsystems.com>
-	<4C207A9C.7070309@compulab.co.il>
-	<87zkynnnq3.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [PATCH 0/4] OMAP OPP layer
+Date: Tue, 10 Aug 2010 17:07:30 -0700
+Message-ID: <1281485254-20704-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:60569 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755894Ab0HJX5a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 19:57:30 -0400
-Received: by gyg10 with SMTP id 10so3925963gyg.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 16:57:30 -0700 (PDT)
-In-Reply-To: <87zkynnnq3.fsf@deeprootsystems.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:52158 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755711Ab0HKAHh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 20:07:37 -0400
+Received: by pwj7 with SMTP id 7so1960539pwj.19
+        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 17:07:36 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Peter Tseng <tsenpet09@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Han Wang <hw342@cornell.edu>
+To: linux-omap@vger.kernel.org
 
-On Tue, Jun 22, 2010 at 7:31 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Mike Rapoport <mike@compulab.co.il> writes:
->
->> Kevin Hilman wrote:
->>> Peter Tseng <tsenpet09@gmail.com> writes:
->>>
->>>> I am seeing some discrepancies between the Overo (I believe I have a
->>>> Water) and the Beagleboard (I have a Rev. B5) when resuming after a
->>>> suspend to RAM.
->>>
->>> Not that it is much comfort, but I have the same problem on Overo but
->>> don't see it on any other OMAP3 board.
->>>
->>> I have yet to debug this particular issue further.
->>
->> I had the same issue on CM-T35 and when I've disabled CONFIG_CPU_IDLE
->> in the kernel configuration the issue disappeared. Maybe it'll be of
->> some help.
->
-> That just masks the problem by not auto-gating the UART clocks.
+This series introduces a layer to manage Operating Performance Points (OPPs)
+for OMAP SoCs.
 
-OK, I think I finally figured out this problem.  A similar thing was
-reported on the n900 recently and got me to thinking that it must be
-something fishy going on with the PER powerdomain since both n900 and
-Overo are using a UART2 console, and UART2 is in PER.
+Special thanks to Nishanth for doing the bulk of the grunt work for
+this series and to Thara for doing significant review, testing and
+updates.
 
-Anyways, I just posted a patch[1] that should fix this. I'd appreciate
-if anyone else with an Overo could confirm that things are back to
-working as expected with CONFIG_CPU_IDLE.
+Kevin Hilman (1):
+  omap3: pm: remove OPP interfaces from OMAP PM layer
 
-Thanks,
+Nishanth Menon (1):
+  OMAP: introduce OPP layer for device-specific OPPs
 
-Kevin
+Paul Walmsley (1):
+  omap: opp: twl/tps: Introduce TWL/TPS-specific code
 
-[1] https://patchwork.kernel.org/patch/118709/
+Thara Gopinath (1):
+  OMAP: Remove dependency of generic opp layer on cpufreq.
+
+ Documentation/arm/OMAP/omap_pm                |   93 +++++
+ arch/arm/mach-omap2/io.c                      |    3 +-
+ arch/arm/plat-omap/Makefile                   |    8 +-
+ arch/arm/plat-omap/include/plat/omap-pm.h     |   31 +-
+ arch/arm/plat-omap/include/plat/opp.h         |  160 ++++++++
+ arch/arm/plat-omap/include/plat/opp_twl_tps.h |   21 +
+ arch/arm/plat-omap/omap-pm-noop.c             |   11 +-
+ arch/arm/plat-omap/opp.c                      |  513 +++++++++++++++++++++++++
+ arch/arm/plat-omap/opp_twl_tps.c              |   41 ++
+ 9 files changed, 847 insertions(+), 34 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/opp.h
+ create mode 100644 arch/arm/plat-omap/include/plat/opp_twl_tps.h
+ create mode 100644 arch/arm/plat-omap/opp.c
+ create mode 100644 arch/arm/plat-omap/opp_twl_tps.c
+
+-- 
+1.7.2.1
+
