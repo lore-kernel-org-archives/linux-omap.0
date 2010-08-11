@@ -1,59 +1,69 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v3 9/9] omap: zoom: add mmc3/wl1271 device support
-Date: Thu, 12 Aug 2010 01:48:33 +0530
-Message-ID: <AANLkTimqDVGHR+65+35jCAYauvPD8MKwsUdmnJJmH0EU@mail.gmail.com>
-References: <1281478348-24833-1-git-send-email-ohad@wizery.com>
-	<1281478348-24833-10-git-send-email-ohad@wizery.com>
-	<4C626140.3080107@nokia.com>
-	<AANLkTik8yftwy9Toq473134vcdoFN1Z29oTc9MGEUzue@mail.gmail.com>
-	<AANLkTi=n=uH5ePRf8KzXWTtSdyRabpOCOgLBSD1GfwkJ@mail.gmail.com>
-	<AANLkTin9ABch+_S=gYwD2HKPm8aT8etwfsE_WRRoq=2U@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: Voltage: fix typos, compile break
+Date: Wed, 11 Aug 2010 13:19:08 -0700
+Message-ID: <87hbj0298j.fsf@deeprootsystems.com>
+References: <1281382759-13025-1-git-send-email-mturquette@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTin9ABch+_S=gYwD2HKPm8aT8etwfsE_WRRoq=2U@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Roger Quadros <roger.quadros@nokia.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:57913 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757023Ab0HKUTL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 16:19:11 -0400
+Received: by pxi10 with SMTP id 10so188453pxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 13:19:11 -0700 (PDT)
+In-Reply-To: <1281382759-13025-1-git-send-email-mturquette@ti.com>
+	(mturquette@gmail.com's message of "Mon, 9 Aug 2010 14:39:19 -0500")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mturquette@gmail.com
+Cc: linux-omap@vger.kernel.org, Mike Turquette <mturquette@ti.com>
 
-Oops didn't notice ,,,
+mturquette@gmail.com writes:
 
-Thanks,
-Kishore
+> From: Mike Turquette <mturquette@ti.com>
+>
+> mach-omap/voltage.c incorrectly called omap_get_mpuss_device and
+> omap_get_l3_device.  The correct function names are
+> omap2_get_mpuss_device and omap2_get_l3_device respectively.
+>
+> This fixes a compile break.  Test on OMAP3430 SDP.
+>
+> Signed-off-by: Mike Turquette <mturquette@ti.com>
+> ---
+>
+> This patch is meant to apply to Kevin's pm-srf branch.  Without it
+> compilation for OMAP3 is broken.
 
-On Thu, Aug 12, 2010 at 1:42 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> Hi Kishore,
+pm-srf branch is no longer supported (by me anyways)
+
+and this problem is fixed in the pm-sr branch which is included in the
+latest PM branch.
+
+Kevin
+
+>  arch/arm/mach-omap2/voltage.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 >
-> On Wed, Aug 11, 2010 at 11:09 PM, kishore kadiyala
-> <kishorek.kadiyala@gmail.com> wrote:
->> Since you specified the voltage source is fixed, and if MMC3 has any
->> dedicated regulator as MMC1 & MMC2 you can go with
->> Roger's comments.
->
-> You are reading an old batch of the patches.
->
-> Scroll down to v4 ;)
->
-> Thanks,
-> Ohad.
->
->> If the LDO is fixed voltage source from TWL then since regulator
->> framework supports only adjustable LDO's, I think you can
->> have ocr_mask defined as above in board file.
->>
->> Regards,
->> Kishore
->>>
->>> Removed, thanks!
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-mmc=
-" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
->>>
->>
->
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+> index e7055f6..148e4d4 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -385,7 +385,7 @@ static void __init omap3_vdd_data_configure(int vdd)
+>  		vdd_info[vdd].volt_clk = clk_get(NULL, "dpll1_ck");
+>  		WARN(IS_ERR(vdd_info[vdd].volt_clk),
+>  				"unable to get clock for VDD%d\n", vdd + 1);
+> -		vdd_info[vdd].opp_dev = omap_get_mpuss_device();
+> +		vdd_info[vdd].opp_dev = omap2_get_mpuss_device();
+>  		vdd_info[vdd].vp_reg.tranxdone_status =
+>  				OMAP3430_VP1_TRANXDONE_ST_MASK;
+>  		vdd_info[vdd].cmdval_reg = OMAP3_PRM_VC_CMD_VAL_0_OFFSET;
+> @@ -411,7 +411,7 @@ static void __init omap3_vdd_data_configure(int vdd)
+>  		vdd_info[vdd].volt_clk = clk_get(NULL, "l3_ick");
+>  		WARN(IS_ERR(vdd_info[vdd].volt_clk),
+>  				"unable to get clock for VDD%d\n", vdd + 1);
+> -		vdd_info[vdd].opp_dev = omap_get_l3_device();
+> +		vdd_info[vdd].opp_dev = omap2_get_l3_device();
+>  		vdd_info[vdd].vp_reg.tranxdone_status =
+>  					OMAP3430_VP2_TRANXDONE_ST_MASK;
+>  		vdd_info[vdd].cmdval_reg = OMAP3_PRM_VC_CMD_VAL_1_OFFSET;
