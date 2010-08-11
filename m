@@ -1,88 +1,85 @@
-From: Gregory CLEMENT <gclement00@gmail.com>
-Subject: [PATCH 2/2] spi/omap2_mcspi: When SPI wake up from OFF mode, CS is in
-	wrong state: force it to unactive state
-Date: Wed, 11 Aug 2010 16:44:02 +0200
-Message-ID: <AANLkTi=y_phvzqeg0wy+FMVsm-0O9gv1gobCe0qzSXEE@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v3 0/7] OMAP: hwmod: Full data set for OMAP4430 ES1 &
+ ES2
+Date: Wed, 11 Aug 2010 16:45:30 +0200
+Message-ID: <4C62B78A.8060907@ti.com>
+References: <1281023276-15679-1-git-send-email-b-cousson@ti.com> <878w4fk3d2.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0016368e2bdadbf195048d8d4709
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:50348 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179Ab0HKOoD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 10:44:03 -0400
-Received: by mail-fx0-f46.google.com with SMTP id 13so147283fxm.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 07:44:02 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:49364 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752581Ab0HKOpg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Aug 2010 10:45:36 -0400
+In-Reply-To: <878w4fk3d2.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: spi-devel-general <spi-devel-general@lists.sourceforge.net>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Gregory CLEMENT <gclement00@gmail.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
---0016368e2bdadbf195048d8d4709
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Kevin,
 
-When SPI wake up from OFF mode, CS is in wrong state: force it to unactive state
+On 8/9/2010 9:11 PM, Kevin Hilman wrote:
+> Benoit Cousson<b-cousson@ti.com>  writes:
+>
+>> Hi Kevin&  Paul,
+>>
+>> Here is the OMAP4430 ES1&  ES2 hwmod data v3 series.
+>>
+>> Please note that there is no difference between the ES1&  ES2 wrt hwmod.
+>>
+>> This series is re-organised in order to allow initial submission for upstream
+>> with minimal interconnect data set + mpu.
+>>
+>> Further data will be sent along with the driver once adapted to hwmod.
+>> A first patch is done for the TIMER IP as an example.
+>>
+>> Patches are based on lo/for-next + for-next-fixes + pm-wip/hwmods-reset
+>> + pm-wip/hwmods-debugfs and are available here:
+>> git://dev.omapzoom.org/pub/scm/swarch/linux-omap-adv.git pm-wip/hwmods-omap4
+>>
+>> Tested on OMAP4430 ES1.0 GP device using PAB board.
+>
+> This is looking good to me.  Of course, as you noted we need to
+> understand the root cause of need for those temporary patches before
+> merging.
+>
+> To facilitate broader testing with the other hwmod conversions in
+> progress, and to test with runtime PM, I've updated my
+> pm-wip/hwmods-omap4 branch now includes your series (and its
+> dependencies.)
 
-Signed-off-by: Gregory CLEMENT <gclement00@gmail.com>
----
- drivers/spi/omap2_mcspi.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+Cool, thanks.
 
-diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index b3a94ca..3083bd0 100644
---- a/drivers/spi/omap2_mcspi.c
-+++ b/drivers/spi/omap2_mcspi.c
-@@ -1137,7 +1137,15 @@ static u8 __initdata spi4_txdma_id[] = {
- 	OMAP34XX_DMA_SPI4_TX0,
- };
- #endif
--
-+/* When SPI wake up, CS is in wrong state: force it to unactive state*/
-+static void omap2_mcspi_resume(struct spi_device *spi)
-+{
-+	omap2_mcspi_enable_clocks( spi_master_get_devdata(spi->master));
-+/* We need to togle CS state for OMAP take this chang in account*/
-+	omap2_mcspi_force_cs(spi, 1);
-+	omap2_mcspi_force_cs(spi, 0);
-+	omap2_mcspi_disable_clocks( spi_master_get_devdata(spi->master));
-+}
- static int __init omap2_mcspi_probe(struct platform_device *pdev)
- {
- 	struct spi_master	*master;
-@@ -1193,6 +1201,7 @@ static int __init omap2_mcspi_probe(struct
-platform_device *pdev)
- 	master->transfer = omap2_mcspi_transfer;
- 	master->cleanup = omap2_mcspi_cleanup;
- 	master->num_chipselect = num_chipselect;
-+	master->resume = omap2_mcspi_resume;
+Maybe we should reshuffle the branch in order to allow people to start 
+stacking the OMAP4 hwmod data in small pieces on top of the initial data.
 
- 	dev_set_drvdata(&pdev->dev, master);
+What about these branches:
 
---0016368e2bdadbf195048d8d4709
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0002-spi-omap2_mcspi-When-SPI-wake-up-from-OFF-mode-CS-is.patch"
-Content-Disposition: attachment;
-	filename="0002-spi-omap2_mcspi-When-SPI-wake-up-from-OFF-mode-CS-is.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: 7da9a884b5f67f18_0.1
+-> pm-wip/hwmods-omap4-full that contains the original full data that 
+people will split but that nobody should use as a base.
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3BpL29tYXAyX21jc3BpLmMgYi9kcml2ZXJzL3NwaS9vbWFw
-Ml9tY3NwaS5jDQppbmRleCBiM2E5NGNhLi4zMDgzYmQwIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9z
-cGkvb21hcDJfbWNzcGkuYw0KKysrIGIvZHJpdmVycy9zcGkvb21hcDJfbWNzcGkuYw0KQEAgLTEx
-MzcsNyArMTEzNywxNSBAQCBzdGF0aWMgdTggX19pbml0ZGF0YSBzcGk0X3R4ZG1hX2lkW10gPSB7
-DQogCU9NQVAzNFhYX0RNQV9TUEk0X1RYMCwNCiB9Ow0KICNlbmRpZg0KLQ0KKy8qIFdoZW4gU1BJ
-IHdha2UgdXAsIENTIGlzIGluIHdyb25nIHN0YXRlOiBmb3JjZSBpdCB0byB1bmFjdGl2ZSBzdGF0
-ZSovDQorc3RhdGljIHZvaWQgb21hcDJfbWNzcGlfcmVzdW1lKHN0cnVjdCBzcGlfZGV2aWNlICpz
-cGkpDQorew0KKwlvbWFwMl9tY3NwaV9lbmFibGVfY2xvY2tzKCBzcGlfbWFzdGVyX2dldF9kZXZk
-YXRhKHNwaS0+bWFzdGVyKSk7DQorLyogV2UgbmVlZCB0byB0b2dsZSBDUyBzdGF0ZSBmb3IgT01B
-UCB0YWtlIHRoaXMgY2hhbmcgaW4gYWNjb3VudCovDQorCW9tYXAyX21jc3BpX2ZvcmNlX2NzKHNw
-aSwgMSk7DQorCW9tYXAyX21jc3BpX2ZvcmNlX2NzKHNwaSwgMCk7DQorCW9tYXAyX21jc3BpX2Rp
-c2FibGVfY2xvY2tzKCBzcGlfbWFzdGVyX2dldF9kZXZkYXRhKHNwaS0+bWFzdGVyKSk7DQorfQ0K
-IHN0YXRpYyBpbnQgX19pbml0IG9tYXAyX21jc3BpX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZp
-Y2UgKnBkZXYpDQogew0KIAlzdHJ1Y3Qgc3BpX21hc3RlcgkqbWFzdGVyOw0KQEAgLTExOTMsNiAr
-MTIwMSw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXAyX21jc3BpX3Byb2JlKHN0cnVjdCBwbGF0
-Zm9ybV9kZXZpY2UgKnBkZXYpDQogCW1hc3Rlci0+dHJhbnNmZXIgPSBvbWFwMl9tY3NwaV90cmFu
-c2ZlcjsNCiAJbWFzdGVyLT5jbGVhbnVwID0gb21hcDJfbWNzcGlfY2xlYW51cDsNCiAJbWFzdGVy
-LT5udW1fY2hpcHNlbGVjdCA9IG51bV9jaGlwc2VsZWN0Ow0KKwltYXN0ZXItPnJlc3VtZSA9IG9t
-YXAyX21jc3BpX3Jlc3VtZTsNCiANCiAJZGV2X3NldF9kcnZkYXRhKCZwZGV2LT5kZXYsIG1hc3Rl
-cik7DQogDQo=
---0016368e2bdadbf195048d8d4709--
+bbd5866 OMAP: hwmod: Temporary prevent reset during _setup for I2Cs
+c47ddf5 OMAP: hwmod: Temporary prevent reset during _setup for GPIOs
+4d2fbb8 OMAP4: hwmod: Add remaining hwmods data for OMAP4430 ES1 & ES2
+a9a8f22 OMAP4: hwmod: Add TIMER data for OMAP4430 ES1 & ES2
+
+-> pm-wip/hwmods-omap4-base to base all driver hwmod migration including 
+the OMAP4 data part
+
+b8eccd4 OMAP: omap_hwmod: remove locking from hwmod_for_each iterators
+fedcdf6 PM: allow runtime PM get/put from interrupts-disabled context
+a55908c OMAP1: PM: add simple runtime PM layer to manage clocks
+be46d49 OMAP: bus-level PM: enable use of runtime PM API for...
+1ebda92 OMAP: PM: initial runtime PM core support
+2cb85f7 USB: Remove omap_cfg_reg for 2430
+
+-> pm-wip/hwmods-omap4
+
+71a4efa OMAP4: pm: Change l3_main to l3_main_1 during bus device init
+1cf660c OMAP4: clock: Fix clock names and align with hwmod names
+517cead OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
+
+Thanks,
+Benoit
