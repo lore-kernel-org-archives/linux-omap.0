@@ -1,102 +1,127 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v4 8/8] omap: zoom: add mmc3/wl1271 device support
-Date: Wed, 11 Aug 2010 21:21:53 +0300
-Message-ID: <1281550913-17633-9-git-send-email-ohad@wizery.com>
-References: <1281550913-17633-1-git-send-email-ohad@wizery.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: omap_hwmod: remove locking from hwmod_for_each iterators
+Date: Wed, 11 Aug 2010 11:24:04 -0700
+Message-ID: <87tyn10zzv.fsf@deeprootsystems.com>
+References: <1281457882-30327-1-git-send-email-khilman@deeprootsystems.com>
+	<alpine.DEB.2.00.1008102323360.27472@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:43673 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754879Ab0HKSWY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 14:22:24 -0400
-In-Reply-To: <1281550913-17633-1-git-send-email-ohad@wizery.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:35188 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755134Ab0HKSYG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 14:24:06 -0400
+Received: by pzk26 with SMTP id 26so153003pzk.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 11:24:06 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1008102323360.27472@utopia.booyaka.com> (Paul
+	Walmsley's message of "Tue, 10 Aug 2010 23:37:50 -0600 (MDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Ido Yariv <ido@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, p-basak2@ti.com
 
-Add MMC3 support on ZOOM, which has the wl1271 device hardwired to.
+Paul Walmsley <paul@pwsan.com> writes:
 
-The wl1271 is a 4-wire, 1.8V, embedded SDIO WLAN device with an
-external IRQ line, and power-controlled by a GPIO-based fixed regulator.
+> Hi Kevin,
+>
+> On Tue, 10 Aug 2010, Kevin Hilman wrote:
+>
+>> Remove unnecessary locking in the 'for_each' iterators.  Any locking should
+>> be taken care of by using hwmod API functions in the functions called by the
+>> iterators.
+>> 
+>> In addition, having locking here causes lockdep to detect possible circular
+>> dependencies (originally reported by Partha Basak <p-basak2@ti.com>.)
+>> 
+>> For example, during init (#0 below) you have the hwmod_mutex acquired
+>> (hwmod_for_each_by_class()) then the dpm_list_mtx acquired
+>> (device_pm_add()).  Later, during suspend the dpm_list_mtx is aquired
+>> first (dpm_suspend_noirq()), then the omap_hwmod_mutex is acquired
+>> (omap_hwmod_idle()).
+>> 
+>> [  810.170593] =======================================================
+>> [  810.170593] [ INFO: possible circular locking dependency detected ]
+>> [  810.170623] 2.6.35-rc5-00131-g56e767c-dirty #34
+>> [  810.170654] -------------------------------------------------------
+>> [  810.170654] sh/670 is trying to acquire lock:
+>> [  810.170684]  (omap_hwmod_mutex){+.+.+.}, at: [<c004fe84>] omap_hwmod_idle+0x1c/0x38
+>> [  810.170745]
+>> [  810.170745] but task is already holding lock:
+>> [  810.170776]  (dpm_list_mtx){+.+...}, at: [<c023baf8>] dpm_suspend_noirq+0x28/0x188
+>> [  810.170806]
+>> [  810.170837] which lock already depends on the new lock.
+>> [  810.170837]
+>> [  810.170837]
+>> [  810.170837] the existing dependency chain (in reverse order) is:
+>> [  810.170867]
+>> [  810.170867] -> #1 (dpm_list_mtx){+.+...}:
+>> [  810.170898]        [<c009bc3c>] lock_acquire+0x60/0x74
+>> [  810.170959]        [<c0437a9c>] mutex_lock_nested+0x58/0x2e4
+>> [  810.170989]        [<c023bcc0>] device_pm_add+0x14/0xcc
+>> [  810.171020]        [<c0235304>] device_add+0x3b8/0x564
+>> [  810.171051]        [<c0238834>] platform_device_add+0x104/0x160
+>> [  810.171112]        [<c005f2a8>] omap_device_build_ss+0x14c/0x1c8
+>> [  810.171142]        [<c005f36c>] omap_device_build+0x48/0x50
+>> [  810.171173]        [<c004d34c>] omap2_init_gpio+0xf0/0x15c
+>> [  810.171203]        [<c004f254>] omap_hwmod_for_each_by_class+0x60/0xa4
+>> [  810.171264]        [<c0040340>] do_one_initcall+0x58/0x1b4
+>> [  810.171295]        [<c0008574>] kernel_init+0x98/0x150
+>> [  810.171325]        [<c0041968>] kernel_thread_exit+0x0/0x8
+>> [  810.171356]
+>> [  810.171356] -> #0 (omap_hwmod_mutex){+.+.+.}:
+>> [  810.171386]        [<c009b4e4>] __lock_acquire+0x108c/0x1784
+>> [  810.171447]        [<c009bc3c>] lock_acquire+0x60/0x74
+>> [  810.171478]        [<c0437a9c>] mutex_lock_nested+0x58/0x2e4
+>> [  810.171508]        [<c004fe84>] omap_hwmod_idle+0x1c/0x38
+>> [  810.171539]        [<c005eb9c>] omap_device_idle_hwmods+0x20/0x3c
+>> [  810.171600]        [<c005ec88>] _omap_device_deactivate+0x58/0x14c
+>> [  810.171630]        [<c005ef50>] omap_device_idle+0x4c/0x6c
+>> [  810.171661]        [<c0053e7c>] platform_pm_runtime_suspend+0x4c/0x74
+>> [  810.171691]        [<c023c9f8>] __pm_runtime_suspend+0x204/0x34c
+>> [  810.171722]        [<c023cbe0>] pm_runtime_suspend+0x20/0x34
+>> [  810.171752]        [<c0053dbc>] platform_pm_runtime_idle+0x8/0x10
+>> [  810.171783]        [<c023c344>] __pm_runtime_idle+0x15c/0x198
+>> [  810.171813]        [<c023c3f8>] pm_runtime_idle+0x1c/0x30
+>> [  810.171844]        [<c0053dac>] platform_pm_suspend_noirq+0x48/0x50
+>> [  810.171875]        [<c023ad4c>] pm_noirq_op+0xa0/0x184
+>> [  810.171905]        [<c023bb7c>] dpm_suspend_noirq+0xac/0x188
+>> [  810.171936]        [<c00a5d00>] suspend_devices_and_enter+0x94/0x1d8
+>> [  810.171966]        [<c00a5f00>] enter_state+0xbc/0x120
+>> [  810.171997]        [<c00a5654>] state_store+0xa4/0xb8
+>> [  810.172027]        [<c01ea9e0>] kobj_attr_store+0x18/0x1c
+>> [  810.172088]        [<c0129acc>] sysfs_write_file+0x10c/0x144
+>> [  810.172119]        [<c00df83c>] vfs_write+0xb0/0x148
+>> [  810.172149]        [<c00df984>] sys_write+0x3c/0x68
+>> [  810.172180]        [<c0040920>] ret_fast_syscall+0x0/0x3c
+>
+> The intention of the mutex_lock() in the omap_hwmod_for_each*() case is to 
+> protect against changes to omap_hwmod_list during the list iteration.  It 
+> is true that omap_hwmod_list is only likely to change very early in boot, 
+> as the hwmods are registered, so perhaps this is not necessary in 
+> practice.  But at least theoretically it seems necessary, since I don't 
+> think that list_for_each_entry() is safe if a list addition is in progress 
+> simultaneously.
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- arch/arm/mach-omap2/board-zoom-peripherals.c |   34 ++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+Good point.  It wasn't clear to me exactly what the mutex was trying to
+protect, thanks for the clarification.
 
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index de88635..625ae56 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -17,6 +17,8 @@
- #include <linux/i2c/twl.h>
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
-+#include <linux/mmc/host.h>
-+#include <linux/wl12xx.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -29,6 +31,7 @@
- #include "hsmmc.h"
- 
- #define OMAP_ZOOM_WLAN_PMENA_GPIO	(101)
-+#define OMAP_ZOOM_WLAN_IRQ_GPIO		(162)
- 
- /* Zoom2 has Qwerty keyboard*/
- static int board_keymap[] = {
-@@ -185,6 +188,28 @@ static struct platform_device omap_vwlan_device = {
- 	},
- };
- 
-+struct wl12xx_platform_data omap_zoom_wlan_data = {
-+	/* ZOOM ref clock is 26 MHz */
-+	.board_ref_clock = 1,
-+};
-+
-+static struct resource omap_zoom_wl1271_resources[] = {
-+	{
-+		.start = OMAP_GPIO_IRQ(OMAP_ZOOM_WLAN_IRQ_GPIO),
-+		.end = OMAP_GPIO_IRQ(OMAP_ZOOM_WLAN_IRQ_GPIO),
-+		.flags = IORESOURCE_IRQ,
-+	}
-+};
-+static struct platform_device omap_zoom_wl1271 = {
-+	.name		= "wl1271_plat.2",
-+	.id		= -1,
-+	.resource	= omap_zoom_wl1271_resources,
-+	.num_resources	= ARRAY_SIZE(omap_zoom_wl1271_resources),
-+	.dev = {
-+		.platform_data = &omap_zoom_wlan_data,
-+	},
-+};
-+
- static struct omap2_hsmmc_info mmc[] __initdata = {
- 	{
- 		.name		= "external",
-@@ -202,6 +227,14 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
- 		.nonremovable	= true,
- 		.power_saving	= true,
- 	},
-+	{
-+		.name		= "wl1271",
-+		.mmc		= 3,
-+		.wires		= 4,
-+		.gpio_wp	= -EINVAL,
-+		.gpio_cd	= -EINVAL,
-+		.nonremovable	= true,
-+	},
- 	{}      /* Terminator */
- };
- 
-@@ -313,6 +346,7 @@ static void enable_board_wakeup_source(void)
- 
- void __init zoom_peripherals_init(void)
- {
-+	platform_device_register(&omap_zoom_wl1271);
- 	omap_i2c_init();
- 	platform_device_register(&omap_vwlan_device);
- 	usb_musb_init(&musb_board_data);
--- 
-1.7.0.4
+> On the other hand, taking the mutex during most of the other 
+> omap_hwmod calls, such as 
+> omap_hwmod_{enable,idle,shutdown,enable_clocks,disable_clocks,reset,enable_wakeup,disable_wakeup}
+> is definitely not needed since those functions do not affect 
+> omap_hwmod_list.  
 
+Agreed.
+
+> The goal of the mutex there was simply to protect 
+> against concurrent calls to those functions.  To do that, perhaps the lock 
+> could be moved into the struct omap_hwmod?  I believe you suggested this 
+> during our PM discussions in Bengaluru.  That would carry a slight memory 
+> space penalty, but would also deserialize hwmod operations on an SMP 
+> system.  If you agree, perhaps you might spin a patch for that instead?
+
+Yes, will do.
+
+Thanks,
+
+Kevin
