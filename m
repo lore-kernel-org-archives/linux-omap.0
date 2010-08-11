@@ -1,76 +1,57 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v3] serial: Add OMAP high-speed UART driver
-Date: Wed, 11 Aug 2010 18:40:34 +0530
-Message-ID: <AANLkTimPqo3+xAPO=mYjVydW3BHrF_F4xxO0nUahOs=N@mail.gmail.com>
-References: <33418.192.168.10.88.1275659646.squirrel@dbdmail.itg.ti.com>
-	<201006070809.47853.luke@dashjr.org>
-	<AANLkTimEtn-ef4ygY2Cu3ay4vAGHpCwtxrf8U9nW9NV8@mail.gmail.com>
-	<201006071115.34881.luke@dashjr.org>
-	<AANLkTinod9geJbbfdOIhB465qi6xHqfH-1vL048Bc3fa@mail.gmail.com>
-	<20100707120241.GN1920@atomide.com>
-	<AANLkTinq3Hx_2gGbuyvbGnNpSfQ75B3vJU9WU66GAzd4@mail.gmail.com>
-	<87zkwvinz3.fsf@deeprootsystems.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Beagle: support MMC gpio_wp differences on xM
+Date: Wed, 11 Aug 2010 08:52:12 -0500
+Message-ID: <AANLkTim+fmmVtf1O_yf0ZRC83s_GhD3N20XtBF2n=t9i@mail.gmail.com>
+References: <1281451216-23725-1-git-send-email-robertcnelson@gmail.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B030E700860@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87zkwvinz3.fsf@deeprootsystems.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, Luke-Jr <luke@dashjr.org>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:46359 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752251Ab0HKNwO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 09:52:14 -0400
+Received: by eya25 with SMTP id 25so45821eya.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 06:52:13 -0700 (PDT)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E700860@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Aug 10, 2010 at 12:59 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Govindraj <govindraj.ti@gmail.com> writes:
->
->> On Wed, Jul 7, 2010 at 5:32 PM, Tony Lindgren <tony@atomide.com> wrote:
->>> * Govindraj <govindraj.ti@gmail.com> [100608 09:24]:
->>>> On Mon, Jun 7, 2010 at 9:45 PM, Luke-Jr <luke@dashjr.org> wrote:
->>>> > On Monday 07 June 2010 08:28:51 am Govindraj wrote:
->>>> >> Link:
->>>> >> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summa
->>>> >> ry
->>>> >>
->>>> >> Branch:
->>>> >> pm-wip/uart
->>>> >
->>>> > This branch doesn't appear to have omap-serial.c at all...
->>>> >
->>>> >> If you are trying to use with any client device connected to uart
->>>> >> then we need to ensure the client driver speaks to omap-serial
->>>> >> dev entries.
->>>> >
->>>>
->>>> You need apply the driver patch on top of this branch.
->>>>
->>>> [PATCH v3] serial: Add OMAP high-speed UART driver.
->>>
->>> Do we still have a dependency to pm-wip/uart branch? Can you please
->>> check if you can rebase all these patches on top of linux-omap for-next
->>> branch?
->>
->> pm-wip uart branch is having all the mach-omap2/serail.c changes along with
->> hwmod data file updation and serial hwmod usage.
->>
->> The driver patch [serial: Add OMAP high-speed UART driver]
->> was tested against wip/uart branch.
->>
->> I will re-base all these patches for-next branch,
->> and will post driver and board support patches from pm-wip/uart as a
->> single series.
->
-> Any update on this?
->
-> FWIW, I rebased the pm-wip/uart part on top of latest
-> pm-wip/hwmods-omap4 but from here, you should take over responsibility
-> for pm-wip/uart.
->
+>> - =A0 =A0 if (system_rev >=3D 0x20 && system_rev <=3D 0x34301000) {
+>> + =A0 =A0 if (cpu_is_omap3630()) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 mmc[0].gpio_wp =3D -EINVAL;
+>> + =A0 =A0 } else if (system_rev >=3D 0x20 && system_rev <=3D 0x34301=
+000) {
+> [Ghorai] it's an old code. But I think we can replace the hardcode va=
+lue to use omap_rev() as you are changing the same! Or default for all =
+omap34xx?
 
-Yes sure, Will test and post to LO from pm-wip/uart.
+It's actually broken too. ;)
 
-Thanks,
-Govindraj.R
+My Bx board falls into that "Cx" if..  (and explains why the
+write-protect lever on my sd card is ignored on that test system)
 
+Looking at mainline u-boot, where system_rev is defined and passed to
+the kernel, it is a constant 0x20...
 
-> Kevin
+I'm going to try using gpio pins 171/172/173 which were used to
+identify what Beagle Hardware Rev (Ax/Bx, C2/C3, C4, xM)
+
 >
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_mux_init_gpio(23, OMAP_PIN_INPUT);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc[0].gpio_wp =3D 23;
+>> =A0 =A0 =A0 } else {
+
+Regards,
+
+--=20
+Robert Nelson
+http://www.rcn-ee.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
