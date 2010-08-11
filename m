@@ -1,76 +1,29 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
-Date: Wed, 11 Aug 2010 05:43:43 -0500
-Message-ID: <4C627EDF.2000404@gmail.com>
-References: <1281493018-29294-1-git-send-email-nm@ti.com> <1281493018-29294-3-git-send-email-nm@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110879@dbde02.ent.ti.com>
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: [PATCH v3 8/9] omap: hsmmc: split mmc23 power control
+Date: Wed, 11 Aug 2010 13:52:10 +0300
+Message-ID: <4C6280DA.70205@nokia.com>
+References: <1281478348-24833-1-git-send-email-ohad@wizery.com> <1281478348-24833-9-git-send-email-ohad@wizery.com> <4C6275F3.6030108@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:50715 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750714Ab0HKKnr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 06:43:47 -0400
-Received: by yxg6 with SMTP id 6so4058965yxg.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 03:43:47 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0324110879@dbde02.ent.ti.com>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:45355 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972Ab0HKKwY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 06:52:24 -0400
+In-Reply-To: <4C6275F3.6030108@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>
+To: "Hunter Adrian (Nokia-MS/Helsinki)" <adrian.hunter@nokia.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>
 
-On 08/11/2010 04:12 AM, Gopinath, Thara wrote:
+On 08/11/2010 01:05 PM, Hunter Adrian (Nokia-MS/Helsinki) wrote:
+> Ohad Ben-Cohen wrote:
+>> Prepare for mmc3 regulator power control by splitting the power
+>> control functions of mmc2 and mmc3, and expecting mmc3 to have
+>> a single, dedicated, regulator support.
 >
+> Why?  Can't the controller be connected to an eMMC with 2 power
+> supplies?  At a glance, it is not obvious why this patch is needed.
 >
->>> -----Original Message-----
->>> From: Menon, Nishanth
->>> Sent: Wednesday, August 11, 2010 7:47 AM
->>> To: linux-omap
->>> Cc: Menon, Nishanth; Eduardo Valentin; Kevin Hilman; Paul Walmsley; Nayak, Rajendra; Premi, Sanjeev;
->>> Gopinath, Thara; Tony Lindgren
->>> Subject: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
->>>
->>> Make opp3xx data which is registered with the opp layer
->>> dependent purely on CONFIG_PM as opp layer and pm.c users
->>> are CONFIG_PM dependent not cpufreq dependent.
->>> so we rename the data definition to opp3xxx_data.c (inline with what
->>> we have for omap2), also move the build definition to be under
->>> the existing CONFIG_PM build instead of CPUFREQ.
->>>
->>> Cc: Eduardo Valentin<eduardo.valentin@nokia.com>
->>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
->>> Cc: Paul Walmsley<paul@pwsan.com>
->>> Cc: Rajendra Nayak<rnayak@ti.com>
->>> Cc: Sanjeev Premi<premi@ti.com>
->>> Cc: Thara Gopinath<thara@ti.com>
->>> Cc: Tony Lindgren<tony@atomide.com>
->>>
->>> Signed-off-by: Nishanth Menon<nm@ti.com>
->>> ---
->>> Note:
->>> This takes care of the discussion on opp file renaming and making
->>> it independent of cpufreq, unless I missed something else
->>>
->>> arch/arm/mach-omap2/Makefile                       |    5 +----
->>> .../mach-omap2/{cpufreq34xx.c =>  opp3xxx_data.c}   |    0
->>> 2 files changed, 1 insertions(+), 4 deletions(-)
->>> rename arch/arm/mach-omap2/{cpufreq34xx.c =>  opp3xxx_data.c} (100%)
->
-> Is this part of PM-OPP branch? Also I was thinking of reusing the same file for OMAP4.
-this defines the opp data base and would be part of pm-opp branch. the 
-idea of rename was this:
-a) be clear that this is not dependent on cpufreq alone.
-b) use the same convention in arch/arm/mach-omap2/ like omap2's opp data 
-files which could be converted to use the opp layer now instead of 
-having it's own opp layer. and maybe hopefully omap1 as well..
-c) when we do specific product build, it makes sense to have arch 
-specific files as it makes not much reason to carry the omap4/2 
-definitions(even if init_data).
-
-> No reason why we should have a different file for OMAP4. So a better name than opp3xxx_data.c?
-why do we need to have it in the same file? Remember, 3630,3430 are 
-under OMAP3 family, but omap4 is considered a different arch.
-
-Regards,
-Nishanth Menon
-[...]
+I agree with Adrian. This patch is not required at all.
