@@ -1,94 +1,79 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
-Date: Wed, 11 Aug 2010 16:53:36 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032411094B@dbde02.ent.ti.com>
-References: <1281493018-29294-1-git-send-email-nm@ti.com>
- <1281493018-29294-3-git-send-email-nm@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0324110879@dbde02.ent.ti.com>
- <4C627EDF.2000404@gmail.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] OMAP2: Fix a cpu type check problem.
+Date: Wed, 11 Aug 2010 14:36:06 +0300
+Message-ID: <4C628B26.7020206@compulab.co.il>
+References: <1281443797-7062-1-git-send-email-stanley.miao@windriver.com> <4C6162F4.7030500@compulab.co.il> <20100811092005.GB26637@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301E80ACA1F@dbde02.ent.ti.com> <20100811102718.GF26637@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54568 "EHLO arroyo.ext.ti.com"
+Received: from compulab.co.il ([67.18.134.219]:44564 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751257Ab0HKLXz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 07:23:55 -0400
-In-Reply-To: <4C627EDF.2000404@gmail.com>
-Content-Language: en-US
+	id S1751326Ab0HKLgO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Aug 2010 07:36:14 -0400
+In-Reply-To: <20100811102718.GF26637@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "Stanley.Miao" <stanley.miao@windriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-
->>-----Original Message-----
->>From: Nishanth Menon [mailto:menon.nishanth@gmail.com]
->>Sent: Wednesday, August 11, 2010 4:14 PM
->>To: Gopinath, Thara
->>Cc: Menon, Nishanth; linux-omap; Eduardo Valentin; Kevin Hilman; Paul Walmsley; Nayak, Rajendra;
->>Premi, Sanjeev; Tony Lindgren
->>Subject: Re: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
->>
->>On 08/11/2010 04:12 AM, Gopinath, Thara wrote:
+On 08/11/10 13:27, Tony Lindgren wrote:
+> * Premi, Sanjeev <premi@ti.com> [100811 12:45]:
+>   
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org 
+>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+>>> Sent: Wednesday, August 11, 2010 2:50 PM
+>>> To: Igor Grinberg
+>>> Cc: Stanley.Miao; linux-omap@vger.kernel.org
+>>> Subject: Re: [PATCH] OMAP2: Fix a cpu type check problem.
 >>>
+>>> * Igor Grinberg <grinberg@compulab.co.il> [100810 17:25]:
+>>>       
+>>>> On 08/10/10 15:36, Stanley.Miao wrote:
+>>>>         
+>>>>> cpu_is_omap3517() and cpu_is_omap3505() are the subgroups 
+>>>>>           
+>>> of cpu_is_omap34xx(),
+>>>       
+>>>>> so we should check cpu_is_omap3517() and 
+>>>>>           
+>>> cpu_is_omap3505() first, then check
+>>>       
+>>>>> cpu_is_omap34xx().
+>>>>>
+>>>>> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+>>>>>   
+>>>>>           
+>>>> Tested-by: Igor Grinberg <grinberg@compulab.co.il>
+>>>>
+>>>> I've just ran into this yesterday evening.
+>>>> Having a patch for this on the next day made me :)
+>>>> Tested on AM3517.
+>>>>         
+>>> Can you please describe what breaks so we can merge this as a fix?
 >>>
->>>>> -----Original Message-----
->>>>> From: Menon, Nishanth
->>>>> Sent: Wednesday, August 11, 2010 7:47 AM
->>>>> To: linux-omap
->>>>> Cc: Menon, Nishanth; Eduardo Valentin; Kevin Hilman; Paul Walmsley; Nayak, Rajendra; Premi,
->>Sanjeev;
->>>>> Gopinath, Thara; Tony Lindgren
->>>>> Subject: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
->>>>>
->>>>> Make opp3xx data which is registered with the opp layer
->>>>> dependent purely on CONFIG_PM as opp layer and pm.c users
->>>>> are CONFIG_PM dependent not cpufreq dependent.
->>>>> so we rename the data definition to opp3xxx_data.c (inline with what
->>>>> we have for omap2), also move the build definition to be under
->>>>> the existing CONFIG_PM build instead of CPUFREQ.
->>>>>
->>>>> Cc: Eduardo Valentin<eduardo.valentin@nokia.com>
->>>>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
->>>>> Cc: Paul Walmsley<paul@pwsan.com>
->>>>> Cc: Rajendra Nayak<rnayak@ti.com>
->>>>> Cc: Sanjeev Premi<premi@ti.com>
->>>>> Cc: Thara Gopinath<thara@ti.com>
->>>>> Cc: Tony Lindgren<tony@atomide.com>
->>>>>
->>>>> Signed-off-by: Nishanth Menon<nm@ti.com>
->>>>> ---
->>>>> Note:
->>>>> This takes care of the discussion on opp file renaming and making
->>>>> it independent of cpufreq, unless I missed something else
->>>>>
->>>>> arch/arm/mach-omap2/Makefile                       |    5 +----
->>>>> .../mach-omap2/{cpufreq34xx.c =>  opp3xxx_data.c}   |    0
->>>>> 2 files changed, 1 insertions(+), 4 deletions(-)
->>>>> rename arch/arm/mach-omap2/{cpufreq34xx.c =>  opp3xxx_data.c} (100%)
->>>
->>> Is this part of PM-OPP branch? Also I was thinking of reusing the same file for OMAP4.
->>this defines the opp data base and would be part of pm-opp branch. the
->>idea of rename was this:
->>a) be clear that this is not dependent on cpufreq alone.
+>>>       
+>> cpu_is_34xx() will be true for all OMAP3 based devices including
+>> AM3517. So, if we want to perform operations specific to AM3517, the
+>> check for AM3517 should be done first else you match for 34xx would
+>> return true; and you wouldn't go far enough to check for am3517.
+>>     
+> Understood, but we need some concrete error like "otherwise booting
+> xyz board fails with non-working USB" or similar.
+>   
 
-I do not understand this. This files is not present in PM-OPP branch. But you have a patch modifying it against PM-OPP branch. Am I looking at a wrong version of PM-OPP branch?
+Otherwise, All AM35XX (Sitara) clocks do not get registered and device
+drivers
+(ti_hecc, etc...) that depend on those clocks are failing to get the
+clock and
+end up with non working device.
 
->>b) use the same convention in arch/arm/mach-omap2/ like omap2's opp data
->>files which could be converted to use the opp layer now instead of
->>having it's own opp layer. and maybe hopefully omap1 as well..
->>c) when we do specific product build, it makes sense to have arch
->>specific files as it makes not much reason to carry the omap4/2
->>definitions(even if init_data).
->>
->>> No reason why we should have a different file for OMAP4. So a better name than opp3xxx_data.c?
->>why do we need to have it in the same file? Remember, 3630,3430 are
->>under OMAP3 family, but omap4 is considered a different arch.
+> Tony
+>
+>   
 
-Code is more or less the same. Is that not a sufficient reason to reuse a  file ?
->>
->>Regards,
->>Nishanth Menon
->>[...]
+-- 
+Regards,
+Igor.
+
