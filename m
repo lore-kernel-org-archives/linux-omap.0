@@ -1,73 +1,85 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@nokia.com>
-Subject: Re: [PATCH] OMAP:DSS:Add support for Additional color modes
- supported by OMAP4
-Date: Wed, 11 Aug 2010 19:37:55 +0300
-Message-ID: <20100811163755.GB13922@nokia.com>
-References: <1280987665-25639-1-git-send-email-mythripk@ti.com>
- <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
+From: Hari Kanigeri <hari.kanigeri@gmail.com>
+Subject: Re: dspbridge and the omapl1x
+Date: Wed, 11 Aug 2010 11:55:56 -0500
+Message-ID: <AANLkTinyg1+FMLBDgMTpfOK2iy=yzGqsd1XA+xsZ9sse@mail.gmail.com>
+References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
+	<AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
+	<AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:46237 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318Ab0HKQiV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 12:38:21 -0400
-Content-Disposition: inline
-In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:44515 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754526Ab0HKQz6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 12:55:58 -0400
+Received: by ywh1 with SMTP id 1so89896ywh.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 09:55:58 -0700 (PDT)
+In-Reply-To: <AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen Tomi (Nokia-MS/Helsinki)" <Tomi.Valkeinen@nokia.com>
+To: Ben Gardiner <bengardiner@nanometrics.ca>
+Cc: ErnestoRamos <ernesto@ti.com>, ArmandoUribe <x0095078@ti.com>, NishanthMenon <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, ReneSapiens <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, FelipeContreras <felipe.contreras@gmail.com>, OmarRamirezLuna <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org
 
-On Wed, Aug 11, 2010 at 11:22:44AM +0200, ext K, Mythri P wrote:
->=20
-> Hi Tomi,
-> Can you please comment on the below patch . This is to add new color =
-modes supported by OMAP4.
->=20
-> Thanks and regards,
-> Mythri.
-> -----Original Message-----
-> From: K, Mythri P=20
-> Sent: Thursday, August 05, 2010 11:24 AM
-> To: linux-omap@vger.kernel.org
-> Cc: tomi.valkeinen@nokia.com; Semwal, Sumit; K, Mythri P
-> Subject: [PATCH] OMAP:DSS:Add support for Additional color modes supp=
-orted by OMAP4
->=20
-> From: Sumit semwal <sumit.semwal@ti.com>
->=20
-> This patch adds support for new color modes that are supported by the=
- video/graphics pipeline of OMAP4
->=20
-> Signed-off-by: Mythri P K <mythripk@ti.com>
+Ben,
+
+> Yes, dynamic memory management. With DSP Link on the OMAPL138 the
+> memory allocated to the DSP must be specified as a 'hole' in Linux
+> memory at boot-time [1[2][3]. It seems (perhaps this is wishful
+> thinking) that dspbridge does not have this limitation.
+
+DSPBridge doesn't has this requirement.
+
+>
+> Also dynamic application loading. With DSP Link it is possible to run
+> multiple linux processes concurrently communicating with DSP tasks but
+> the image loaded and executed on the DSP side must contain the code
+> for all of the tasks at load time [4]. It seems that dspbridge does
+> not have this limitation.
+>
+> I am very interested in learning details about both dsplink and
+> dspbridge; please reply with more details or corrections as you see
+> fit.
+
+DSPBridge and DSPLink IPCs are for 2 different purposes. So before you
+make a switch to one of the IPC, I would recommend to you to make sure
+your requirements are met.
+To check the differences between DSPBridge and DSPLink, please check
+this email thread contributed by Richard W.
+http://linux.omap.com/pipermail/linux-omap-open-source/2007-May/009850.html.
+
+We are working on making some of core functionalities such as DMM,
+resource Management,  reset Management of co-processors generic for
+any IPC to use. So if DSPLink is missing DMM functionality then it
+should be just the matter of DSPLink adapting to this.
+
+I am not aware of the official word from T.I to support dspbridge on
+OMAP1, but as the community you will have the support in case you want
+to go with dspbridge option.
+
+On a high level, this is what needs to be done to provide support for OMAP1.
+
+1. Adapt to iommu. Add support if the support is not present for OMAP1.
+
+2. Adapt to mailbox
+
+3. Reset and Power management adaptation for OMAP1.
+
+
+Thank you,
+Best regards,
+Hari
+
+>
+> Best Regards,
+> Ben Gardiner
+>
+> [1] http://processors.wiki.ti.com/index.php/Changing_DSPLink_Memory_Map
+> [2] http://e2e.ti.com/support/dsp/omap_applications_processors/f/42/t/29571.aspx
+> [3] http://code.google.com/p/rowboat/wiki/DSP
+>
+> [4] http://processors.wiki.ti.com/index.php/Using_DSPLink_from_multiple_processes
+>
 > ---
->  arch/arm/plat-omap/include/plat/display.h |   16 ++++++++-
->  drivers/video/omap2/dss/dispc.c           |   53 +++++++++++++++++++=
-+++-------
->  drivers/video/omap2/dss/overlay.c         |    6 ++-
->  3 files changed, 59 insertions(+), 16 deletions(-)
->=20
-> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/pla=
-t-omap/include/plat/display.h
-> index 7a6eedd..ebf1020 100644
-> --- a/arch/arm/plat-omap/include/plat/display.h
-> +++ b/arch/arm/plat-omap/include/plat/display.h
-> @@ -89,6 +89,12 @@ enum omap_color_mode {
->  	OMAP_DSS_COLOR_ARGB32	=3D 1 << 11, /* ARGB32 */
->  	OMAP_DSS_COLOR_RGBA32	=3D 1 << 12, /* RGBA32 */
->  	OMAP_DSS_COLOR_RGBX32	=3D 1 << 13, /* RGBx32 */
-> +	OMAP_DSS_COLOR_NV12	=3D 1 << 14, /* NV12 format: YUV 4:2:0 */
-> +	OMAP_DSS_COLOR_RGBA12	=3D 1 << 15, /* RGBA12 - 4444 */
-> +	OMAP_DSS_COLOR_XRGB12	=3D 1 << 16, /* xRGB12, 16-bit container */
-
-Isn't this the same as RGB12U?
-
---=20
-Ville Syrj=E4l=E4
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Nanometrics Inc.
+> http://www.nanometrics.ca
+>
