@@ -1,98 +1,105 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 8/8 ]usb : musb:Using runtime pm apis for musb.
-Date: Wed, 11 Aug 2010 15:35:29 +0400
-Message-ID: <4C628B01.2010009@mvista.com>
-References: <1281115749-1601-1-git-send-email-hemahk@ti.com> <4C5D8150.4020009@ru.mvista.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
+Date: Wed, 11 Aug 2010 06:38:14 -0500
+Message-ID: <4C628BA6.6090507@ti.com>
+References: <1281493018-29294-1-git-send-email-nm@ti.com> <1281493018-29294-3-git-send-email-nm@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110879@dbde02.ent.ti.com> <4C627EDF.2000404@gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB032411094B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C5D8150.4020009-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:35068 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751503Ab0HKLiU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Aug 2010 07:38:20 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB032411094B@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hello.
+On 08/11/2010 06:23 AM, Gopinath, Thara wrote:
+>
+>
+>>> -----Original Message-----
+>>> From: Nishanth Menon [mailto:menon.nishanth@gmail.com]
+>>> Sent: Wednesday, August 11, 2010 4:14 PM
+>>> To: Gopinath, Thara
+>>> Cc: Menon, Nishanth; linux-omap; Eduardo Valentin; Kevin Hilman; Paul Walmsley; Nayak, Rajendra;
+>>> Premi, Sanjeev; Tony Lindgren
+>>> Subject: Re: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
+>>>
+>>> On 08/11/2010 04:12 AM, Gopinath, Thara wrote:
+>>>>
+>>>>
+>>>>>> -----Original Message-----
+>>>>>> From: Menon, Nishanth
+>>>>>> Sent: Wednesday, August 11, 2010 7:47 AM
+>>>>>> To: linux-omap
+>>>>>> Cc: Menon, Nishanth; Eduardo Valentin; Kevin Hilman; Paul Walmsley; Nayak, Rajendra; Premi,
+>>> Sanjeev;
+>>>>>> Gopinath, Thara; Tony Lindgren
+>>>>>> Subject: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
+>>>>>>
+>>>>>> Make opp3xx data which is registered with the opp layer
+>>>>>> dependent purely on CONFIG_PM as opp layer and pm.c users
+>>>>>> are CONFIG_PM dependent not cpufreq dependent.
+>>>>>> so we rename the data definition to opp3xxx_data.c (inline with what
+>>>>>> we have for omap2), also move the build definition to be under
+>>>>>> the existing CONFIG_PM build instead of CPUFREQ.
+>>>>>>
+>>>>>> Cc: Eduardo Valentin<eduardo.valentin@nokia.com>
+>>>>>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+>>>>>> Cc: Paul Walmsley<paul@pwsan.com>
+>>>>>> Cc: Rajendra Nayak<rnayak@ti.com>
+>>>>>> Cc: Sanjeev Premi<premi@ti.com>
+>>>>>> Cc: Thara Gopinath<thara@ti.com>
+>>>>>> Cc: Tony Lindgren<tony@atomide.com>
+>>>>>>
+>>>>>> Signed-off-by: Nishanth Menon<nm@ti.com>
+>>>>>> ---
+>>>>>> Note:
+>>>>>> This takes care of the discussion on opp file renaming and making
+>>>>>> it independent of cpufreq, unless I missed something else
+>>>>>>
+>>>>>> arch/arm/mach-omap2/Makefile                       |    5 +----
+>>>>>> .../mach-omap2/{cpufreq34xx.c =>   opp3xxx_data.c}   |    0
+>>>>>> 2 files changed, 1 insertions(+), 4 deletions(-)
+>>>>>> rename arch/arm/mach-omap2/{cpufreq34xx.c =>   opp3xxx_data.c} (100%)
+>>>>
+>>>> Is this part of PM-OPP branch? Also I was thinking of reusing the same file for OMAP4.
+>>> this defines the opp data base and would be part of pm-opp branch. the
+>>> idea of rename was this:
+>>> a) be clear that this is not dependent on cpufreq alone.
+>
+> I do not understand this. This files is not present in PM-OPP branch. But you have a patch modifying it against PM-OPP branch. Am I looking at a wrong version of PM-OPP branch?
+you got me curious as well, my apologies, I had assumed things were how 
+they were before :( Looks like Kevin shuffled things around and the data 
+by itself is in cpufreq branch:
+http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=shortlog;h=refs/heads/pm-cpufreq
 
-I wrote:
+ergo, Kevin, do we need this cpufreq branch to contain the opp data:
+http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commitdiff;h=9f6847282f65cdcd26d740e6ae6afadc3ee00233
+and related changes could potentially be pulled into the same pm-opp series?
 
->> Calling runtime pm APIs pm_runtime_put_sync() and 
->> pm_runtime_get_sync() for enabling/disabling the clocks,sysconfig 
->> settings.
+>
+>>> b) use the same convention in arch/arm/mach-omap2/ like omap2's opp data
+>>> files which could be converted to use the opp layer now instead of
+>>> having it's own opp layer. and maybe hopefully omap1 as well..
+>>> c) when we do specific product build, it makes sense to have arch
+>>> specific files as it makes not much reason to carry the omap4/2
+>>> definitions(even if init_data).
+>>>
+>>>> No reason why we should have a different file for OMAP4. So a better name than opp3xxx_data.c?
+>>> why do we need to have it in the same file? Remember, 3630,3430 are
+>>> under OMAP3 family, but omap4 is considered a different arch.
+>
+> Code is more or less the same. Is that not a sufficient reason to reuse a  file ?
+I dont really care as long as opp layer is usable by mpurate without 
+depending on cpufreq and it is maintainable without going to if else 
+nightmare. But personally, I dont see really reusuable code in that file 
+(other than doing an opp addition in a loop) it could result eventually 
+in a large amount of code redundancy and maintenance nightmare with 
+OMAP4 variants coming in.
 
->> used omap_hwmod_enable_wakeup & omap_hwmod_disable_wakeup apis to 
->> set/clear
->> the wakeup enable bit.
->> Also need to put the USB in force standby and force idle mode when usb 
->> not used
->> and set it back to smart idle and smart stndby after wakeup.
->> these cases are handled using the oh flags.
->> For omap3430 auto idle bit has to be disabled because of the errata.So 
->> using HWMOD_NO_OCP_AUTOIDLE flag for OMAP3430.
-
->> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Basak, Partha <p-basak2-l0cyMroinI0@public.gmane.org>
-
->> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-
-[...]
-
->> Index: linux-omap-pm/include/linux/usb/musb.h
->> ===================================================================
->> --- linux-omap-pm.orig/include/linux/usb/musb.h    2010-08-06 
->> 10:44:06.000000000 -0400
->> +++ linux-omap-pm/include/linux/usb/musb.h    2010-08-06 
->> 10:44:42.946115274 -0400
->> @@ -10,6 +10,9 @@
->>  #ifndef __LINUX_USB_MUSB_H
->>  #define __LINUX_USB_MUSB_H
->>  
->> +#include <linux/platform_device.h>
-
->    You could just use incomplete declaration of 'struct platfrom_device' 
-> instead of this #include.
-
->> +#include <plat/omap_hwmod.h>
-
-    Did you think about the other platfroms where this file doesn't exist? How 
-are they supposed to compile?!
-    I think this #include needs to be wrapped in #ifdef as well...
-
->> +
->>  /* The USB role is defined by the connector used on the board, so 
->> long as
->>   * standards are being followed.  (Developer boards sometimes won't.)
->>   */
->> @@ -129,6 +132,21 @@
->>  
->>      /* check usb device active state*/
->>      int        (*is_usb_active)(struct device *dev);
->> +
->> +    /* omap hwmod data structure     */
->> +    struct    omap_hwmod *oh;
-
->    This should be wrapped into #ifdef, don't you think?
-
->> +    /* enable clocks and set sysconfig register*/
->> +    int        (*device_enable)(struct platform_device *pdev);
->> +
->> +    /* Disable clock and reset the sysconfig register settings*/
->> +    int        (*device_idle)(struct platform_device *pdev);
->> +
->> +    /* set the enable wakeup bit of sysconfig register */
->> +    int        (*enable_wakeup)(struct omap_device *od);
->> +
->> +    /* Clear the enable wakeup bit  of sysconfig register */
->> +    int        (*disable_wakeup)(struct omap_device *od);
-
->    This should be wrapped too, I think...
-
-WBR, Sergei
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nishanth Menon
