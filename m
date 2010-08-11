@@ -1,81 +1,56 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v3 6/9] omap: hsmmc: remove unused variable
-Date: Wed, 11 Aug 2010 13:08:28 +0300
-Message-ID: <AANLkTi=bB++-VU88JQTicJeYf==9qccx0HMDiz5-geyg@mail.gmail.com>
-References: <1281478348-24833-1-git-send-email-ohad@wizery.com>
-	<1281478348-24833-7-git-send-email-ohad@wizery.com> <4C627378.2090304@nokia.com>
+From: "Janorkar, Mayuresh" <mayur@ti.com>
+Subject: RE: [PATCH] omap4: fb: Adds missing display update call when panning
+Date: Wed, 11 Aug 2010 15:44:40 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C65D7394@dbde02.ent.ti.com>
+References: <1279197422-23662-1-git-send-email-mayur@ti.com>
+ <1280130435.2427.3.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4C627378.2090304@nokia.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52295 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758131Ab0HKKOu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 06:14:50 -0400
+In-Reply-To: <1280130435.2427.3.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Diaz Prado, Gustavo" <gusdp@ti.com>
 
-On Wed, Aug 11, 2010 at 12:55 PM, Adrian Hunter <adrian.hunter@nokia.co=
-m> wrote:
-> Ohad Ben-Cohen wrote:
->>
->> Make this go away:
->>
->> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_suspend':
->> drivers/mmc/host/omap_hsmmc.c:2328: warning: unused variable 'state'
->
-> Was done a while ago.
+Hi Tomi,
 
-Are you sure ?
+Could you please provide me info on how to update the screen from user's space incase of manual update mode?
 
-I can still see the unused state variable in Linus' tree:
+-Thanks,
+Mayuresh
 
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=3D=
-blob;f=3Ddrivers/mmc/host/omap_hsmmc.c;h=3Db032828c61263028963bd412a745=
-5546d5e86ce7;hb=3DHEAD#l2275
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Monday, July 26, 2010 1:17 PM
+> To: Janorkar, Mayuresh
+> Cc: linux-omap@vger.kernel.org; Diaz Prado, Gustavo
+> Subject: Re: [PATCH] omap4: fb: Adds missing display update call when
+> panning
+> 
+> Hi,
+> 
+> On Thu, 2010-07-15 at 14:37 +0200, ext Mayuresh Janorkar wrote:
+> > From: Gustavo Diaz Prado <x0083741@ti.com>
+> >
+> > Adds the missing display update call when panning, this
+> > is needed for the DSI panel when the auto-update feature is
+> > not enabled.
+> 
+> The omapfb driver is not meant to make updates automatically, except on
+> a few special cases (currently on initialization and when unblanking).
+> It's the user space's responsibility to update the screen.
+> 
+> The reason for this should be obvious if you think of a use case where
+> you have, say, all 3 overlays on the LCD, and you want to pan all of
+> them.
+> 
+>  Tomi
+> 
 
-
-> See 1a13f8fa76c880be41d6b1e6a2b44404bcbfdf9e in linus' tree.
-
-This commit only seem to adapt to the API change (the state variable
-is not removed):
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmm=
-c.c
-index d25b19b..b032828 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2292,7 +2292,7 @@ static int omap_hsmmc_suspend(struct device *dev)
-                }
-                cancel_work_sync(&host->mmc_carddetect_work);
-                mmc_host_enable(host->mmc);
--               ret =3D mmc_suspend_host(host->mmc, state);
-+               ret =3D mmc_suspend_host(host->mmc);
-                if (ret =3D=3D 0) {
-                        omap_hsmmc_disable_irq(host);
-                        OMAP_HSMMC_WRITE(host->base, HCTL,
-
->
->>
->> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
->> ---
->> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A01 -
->> =A01 files changed, 0 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
-smmc.c
->> index b032828..d50e917 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -2272,7 +2272,6 @@ static int omap_hsmmc_suspend(struct device *d=
-ev)
->> =A0 =A0 =A0 =A0int ret =3D 0;
->> =A0 =A0 =A0 =A0struct platform_device *pdev =3D to_platform_device(d=
-ev);
->> =A0 =A0 =A0 =A0struct omap_hsmmc_host *host =3D platform_get_drvdata=
-(pdev);
->> - =A0 =A0 =A0 pm_message_t state =3D PMSG_SUSPEND; /* unused by MMC =
-core */
->> =A0 =A0 =A0 =A0if (host && host->suspended)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
->
->
