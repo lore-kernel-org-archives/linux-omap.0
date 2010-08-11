@@ -1,87 +1,83 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
-Date: Wed, 11 Aug 2010 14:42:36 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0324110879@dbde02.ent.ti.com>
-References: <1281493018-29294-1-git-send-email-nm@ti.com>
- <1281493018-29294-3-git-send-email-nm@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP2: Fix a cpu type check problem.
+Date: Wed, 11 Aug 2010 12:20:05 +0300
+Message-ID: <20100811092005.GB26637@atomide.com>
+References: <1281443797-7062-1-git-send-email-stanley.miao@windriver.com>
+ <4C6162F4.7030500@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53969 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753044Ab0HKJMr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 05:12:47 -0400
-In-Reply-To: <1281493018-29294-3-git-send-email-nm@ti.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55975 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753925Ab0HKJUM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 05:20:12 -0400
+Content-Disposition: inline
+In-Reply-To: <4C6162F4.7030500@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
+* Igor Grinberg <grinberg@compulab.co.il> [100810 17:25]:
+> On 08/10/10 15:36, Stanley.Miao wrote:
+> > cpu_is_omap3517() and cpu_is_omap3505() are the subgroups of cpu_is_omap34xx(),
+> > so we should check cpu_is_omap3517() and cpu_is_omap3505() first, then check
+> > cpu_is_omap34xx().
+> >
+> > Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> >   
+> 
+> Tested-by: Igor Grinberg <grinberg@compulab.co.il>
+> 
+> I've just ran into this yesterday evening.
+> Having a patch for this on the next day made me :)
+> Tested on AM3517.
 
+Can you please describe what breaks so we can merge this as a fix?
 
->>-----Original Message-----
->>From: Menon, Nishanth
->>Sent: Wednesday, August 11, 2010 7:47 AM
->>To: linux-omap
->>Cc: Menon, Nishanth; Eduardo Valentin; Kevin Hilman; Paul Walmsley; Nayak, Rajendra; Premi, Sanjeev;
->>Gopinath, Thara; Tony Lindgren
->>Subject: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
->>
->>Make opp3xx data which is registered with the opp layer
->>dependent purely on CONFIG_PM as opp layer and pm.c users
->>are CONFIG_PM dependent not cpufreq dependent.
->>so we rename the data definition to opp3xxx_data.c (inline with what
->>we have for omap2), also move the build definition to be under
->>the existing CONFIG_PM build instead of CPUFREQ.
->>
->>Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
->>Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>Cc: Paul Walmsley <paul@pwsan.com>
->>Cc: Rajendra Nayak <rnayak@ti.com>
->>Cc: Sanjeev Premi <premi@ti.com>
->>Cc: Thara Gopinath <thara@ti.com>
->>Cc: Tony Lindgren <tony@atomide.com>
->>
->>Signed-off-by: Nishanth Menon <nm@ti.com>
->>---
->>Note:
->>This takes care of the discussion on opp file renaming and making
->>it independent of cpufreq, unless I missed something else
->>
->> arch/arm/mach-omap2/Makefile                       |    5 +----
->> .../mach-omap2/{cpufreq34xx.c => opp3xxx_data.c}   |    0
->> 2 files changed, 1 insertions(+), 4 deletions(-)
->> rename arch/arm/mach-omap2/{cpufreq34xx.c => opp3xxx_data.c} (100%)
+Regards,
 
-Is this part of PM-OPP branch? Also I was thinking of reusing the same file for OMAP4.
-No reason why we should have a different file for OMAP4. So a better name than opp3xxx_data.c?
-
-Regards
-Thara
->>
->>diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->>index 0b188fa..43d7372 100644
->>--- a/arch/arm/mach-omap2/Makefile
->>+++ b/arch/arm/mach-omap2/Makefile
->>@@ -58,11 +58,8 @@ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
->> AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
->> AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
->>
->>-endif
->>+obj-$(CONFIG_ARCH_OMAP3)		+= opp3xxx_data.o
->>
->>-# CPU Frequency
->>-ifeq ($(CONFIG_CPU_FREQ),y)
->>-obj-$(CONFIG_ARCH_OMAP3)		+= cpufreq34xx.o
->> endif
->>
->> # PRCM
->>diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/opp3xxx_data.c
->>similarity index 100%
->>rename from arch/arm/mach-omap2/cpufreq34xx.c
->>rename to arch/arm/mach-omap2/opp3xxx_data.c
->>--
->>1.6.3.3
-
+Tony
+ 
+> > ---
+> >  arch/arm/mach-omap2/clock3xxx_data.c |   14 +++++++-------
+> >  1 files changed, 7 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+> > index 138646d..dfdce2d 100644
+> > --- a/arch/arm/mach-omap2/clock3xxx_data.c
+> > +++ b/arch/arm/mach-omap2/clock3xxx_data.c
+> > @@ -3417,7 +3417,13 @@ int __init omap3xxx_clk_init(void)
+> >  	struct omap_clk *c;
+> >  	u32 cpu_clkflg = CK_3XXX;
+> >  
+> > -	if (cpu_is_omap34xx()) {
+> > +	if (cpu_is_omap3517()) {
+> > +		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+> > +		cpu_clkflg |= CK_3517;
+> > +	} else if (cpu_is_omap3505()) {
+> > +		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+> > +		cpu_clkflg |= CK_3505;
+> > +	} else if (cpu_is_omap34xx()) {
+> >  		cpu_mask = RATE_IN_3XXX;
+> >  		cpu_clkflg |= CK_343X;
+> >  
+> > @@ -3432,12 +3438,6 @@ int __init omap3xxx_clk_init(void)
+> >  			cpu_mask |= RATE_IN_3430ES2PLUS;
+> >  			cpu_clkflg |= CK_3430ES2;
+> >  		}
+> > -	} else if (cpu_is_omap3517()) {
+> > -		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+> > -		cpu_clkflg |= CK_3517;
+> > -	} else if (cpu_is_omap3505()) {
+> > -		cpu_mask = RATE_IN_3XXX | RATE_IN_3430ES2PLUS;
+> > -		cpu_clkflg |= CK_3505;
+> >  	}
+> >  
+> >  	if (omap3_has_192mhz_clk())
+> >   
+> 
+> -- 
+> Regards,
+> Igor.
+> 
