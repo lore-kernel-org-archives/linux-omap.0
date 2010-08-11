@@ -1,38 +1,39 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCHv2] mailbox: change full flag per mailbox queue instead
- of global
-Date: Wed, 11 Aug 2010 08:43:05 +0300 (EEST)
-Message-ID: <20100811.084305.149819136.Hiroshi.DOYU@nokia.com>
-References: <1281489169-15945-1-git-send-email-x0095840@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 10/13 v5] OMAP: GPIO: Implement GPIO as a platform
+ device
+Date: Tue, 10 Aug 2010 23:47:03 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1008102344440.27472@utopia.booyaka.com>
+References: <1281098065-24177-1-git-send-email-charu@ti.com> <1281098065-24177-2-git-send-email-charu@ti.com> <1281098065-24177-3-git-send-email-charu@ti.com> <1281098065-24177-4-git-send-email-charu@ti.com> <1281098065-24177-5-git-send-email-charu@ti.com>
+ <1281098065-24177-6-git-send-email-charu@ti.com> <1281098065-24177-7-git-send-email-charu@ti.com> <1281098065-24177-8-git-send-email-charu@ti.com> <1281098065-24177-9-git-send-email-charu@ti.com> <1281098065-24177-10-git-send-email-charu@ti.com>
+ <1281098065-24177-11-git-send-email-charu@ti.com> <878w4ffkth.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301E80AC400@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:54672 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751304Ab0HKFnO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 01:43:14 -0400
-In-Reply-To: <1281489169-15945-1-git-send-email-x0095840@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:42186 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360Ab0HKFrF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 01:47:05 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E80AC400@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: x0095840@ti.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, ohad@wizery.com
+To: "Basak, Partha" <p-basak2@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Varadarajan, Charulatha" <charu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-From: ext Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCHv2] mailbox: change full flag per mailbox queue instead of global
-Date: Wed, 11 Aug 2010 03:12:49 +0200
+On Tue, 10 Aug 2010, Basak, Partha wrote:
 
-> As pointed by Ohad Ben-Cohen, the variable rq_full flag is a
-> global variable, so if there are multiple mailbox users
-> there will be conflics. Now there is a full flag per
-> mailbox queue.
-> 
-> Version 2:
-> - Rebase to the latest.
-> 
-> Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> As per our discussion with Paul & you during workshop, I believe, 
+> optional clock control should be done using clock APIs. So, I would go 
+> by your suggestion 1 of exposing an API to expose the optional clocks in 
+> the hwmod, something like:
+>
+> struct omap_hwmod_opt_clk * omap_hwmod_get_opt_clks(struct omap_hwmod 
+> *oh);
+>
+> If agreed, Charu will send updated patch.
 
-Ok for me.
-Tony, could you take this in? since it's a single patch for fix.
+This should be done by modifying the hwmod code to call clk_add_alias() 
+for the clock names for the optional clocks.  I don't think any extra API 
+is needed.
+
+
+- Paul
