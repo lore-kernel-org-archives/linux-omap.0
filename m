@@ -1,24 +1,79 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/4] OMAP OPP layer
-Date: Tue, 10 Aug 2010 17:17:26 -0700
-Message-ID: <87vd7i3svd.fsf@deeprootsystems.com>
-References: <1281485357-20791-1-git-send-email-khilman@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCHv2] mailbox: change full flag per mailbox queue instead of global
+Date: Tue, 10 Aug 2010 20:12:49 -0500
+Message-ID: <1281489169-15945-1-git-send-email-x0095840@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:37760 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758181Ab0HKAR3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Aug 2010 20:17:29 -0400
-Received: by pzk26 with SMTP id 26so4288021pzk.19
-        for <linux-omap@vger.kernel.org>; Tue, 10 Aug 2010 17:17:28 -0700 (PDT)
-In-Reply-To: <1281485357-20791-1-git-send-email-khilman@deeprootsystems.com>
-	(Kevin Hilman's message of "Tue, 10 Aug 2010 17:09:13 -0700")
+Received: from bear.ext.ti.com ([192.94.94.41]:38125 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751720Ab0HKA7o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Aug 2010 20:59:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: hiroshi.doyu@nokia.com, ohad@wizery.com, Fernando Guzman Lugo <x0095840@ti.com>
 
-Sorry for the duplicate series... I had a git-send-email hiccup on my
-side. :(
+As pointed by Ohad Ben-Cohen, the variable rq_full flag is a
+global variable, so if there are multiple mailbox users
+there will be conflics. Now there is a full flag per
+mailbox queue.
 
-Kevin
+Version 2:
+- Rebase to the latest.
+
+Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ arch/arm/plat-omap/include/plat/mailbox.h |    1 +
+ arch/arm/plat-omap/mailbox.c              |   10 +++++++---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-omap/include/plat/mailbox.h
+index 9976565..261f6b8 100644
+--- a/arch/arm/plat-omap/include/plat/mailbox.h
++++ b/arch/arm/plat-omap/include/plat/mailbox.h
+@@ -48,6 +48,7 @@ struct omap_mbox_queue {
+ 	struct tasklet_struct	tasklet;
+ 	int	(*callback)(void *);
+ 	struct omap_mbox	*mbox;
++	bool	full;
+ };
+ 
+ struct omap_mbox {
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index d2fafb8..c59c9c3 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -33,7 +33,6 @@
+ 
+ static struct workqueue_struct *mboxd;
+ static struct omap_mbox **mboxes;
+-static bool rq_full;
+ 
+ static int mbox_configured;
+ static DEFINE_MUTEX(mbox_configured_lock);
+@@ -145,7 +144,12 @@ static void mbox_rx_work(struct work_struct *work)
+ 	while (kfifo_len(&mq->fifo) >= sizeof(msg)) {
+ 		len = kfifo_out(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+ 		WARN_ON(len != sizeof(msg));
+-
++		spin_lock_irq(&mq->lock);
++		if (mq->full) {
++			omap_mbox_enable_irq(mq->mbox, IRQ_RX);
++			mq->full = false;
++		}
++		spin_unlock_irq(&mq->lock);
+ 		if (mq->callback)
+ 			mq->callback((void *)msg);
+ 	}
+@@ -170,7 +174,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+ 	while (!mbox_fifo_empty(mbox)) {
+ 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
+ 			omap_mbox_disable_irq(mbox, IRQ_RX);
+-			rq_full = true;
++			mq->full = true;
+ 			goto nomem;
+ 		}
+ 
+-- 
+1.6.3.3
+
