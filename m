@@ -1,52 +1,54 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v4 0/8] native support for wl1271 on ZOOM
-Date: Wed, 11 Aug 2010 21:21:45 +0300
-Message-ID: <1281550913-17633-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Ido Yariv <ido@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>, Ohad Ben-Cohen <ohad@wizery.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/2] Put OMAP2 SPI CS in unactive state when return from  suspend
+Date: Wed, 11 Aug 2010 11:21:58 -0700
+Message-ID: <871va52ent.fsf@deeprootsystems.com>
+References: <AANLkTin7-ZqFRH4GXT4aUfQ4sE=8Jc=3i0j8rTH7EyBm@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:42268 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753717Ab0HKSWB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 14:22:01 -0400
+Received: by pzk26 with SMTP id 26so152390pzk.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 11:22:00 -0700 (PDT)
+In-Reply-To: <AANLkTin7-ZqFRH4GXT4aUfQ4sE=8Jc=3i0j8rTH7EyBm@mail.gmail.com>
+	(Gregory CLEMENT's message of "Wed, 11 Aug 2010 16:42:52 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Gregory CLEMENT <gclement00@gmail.com>
+Cc: spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>
 
-This patch series adds native support for wl1271 on ZOOM.
+Gregory CLEMENT <gclement00@gmail.com> writes:
 
-Changes since v3:
-- slot is marked nonremovable
-- no explicit slot ocr mask
-- dont split hsmmc mmc23 power control
+> We notice that when system wake up from OFF mode, then CS is in
+> unactive state until the first SPI transfert.
+> For our design it lead to some conflict on this I/O.
+> Unactive state for CS when there is no transfert shoudl be the correct
+> behaviour: this is the purpose of these patches.
 
-Patches are based on linux-next (as of Aug 7th), and tested
-on ZOOM2.
+This approach handles an off-mode transition during suspend, but if
+off-mode is enabled, you can also have an off-mode transition during
+idle.
 
-Please note that I am going to have a very limited email access
-in the next three weeks, so I might not respond right away.
+Since you didn't describe what the conflicts you're seeing are, I would
+assume that you'll have the same problems in idle as in suspend, and
+this series doesn't address the idle case.
 
-Thanks,
+Kevin
 
-Ohad Ben-Cohen (8):
-  wireless: wl1271: make wl12xx.h common to both spi and sdio
-  wireless: wl1271: support return value for the set power func
-  wireless: wl1271: add platform driver to get board data
-  wireless: wl1271: take irq info from private board data
-  wireless: wl1271: make ref_clock configurable by board
-  omap: hsmmc: remove unused variable
-  omap: zoom: add fixed regulator device for wlan
-  omap: zoom: add mmc3/wl1271 device support
 
- arch/arm/mach-omap2/board-zoom-peripherals.c |   69 +++++++++++++++
- drivers/mmc/host/omap_hsmmc.c                |    1 -
- drivers/net/wireless/wl12xx/wl1251_sdio.c    |    2 +-
- drivers/net/wireless/wl12xx/wl1251_spi.c     |    2 +-
- drivers/net/wireless/wl12xx/wl1271.h         |   15 +++-
- drivers/net/wireless/wl12xx/wl1271_boot.c    |    9 +-
- drivers/net/wireless/wl12xx/wl1271_boot.h    |    1 -
- drivers/net/wireless/wl12xx/wl1271_io.h      |    8 +-
- drivers/net/wireless/wl12xx/wl1271_main.c    |    4 +-
- drivers/net/wireless/wl12xx/wl1271_sdio.c    |  120 +++++++++++++++++++++++---
- drivers/net/wireless/wl12xx/wl1271_spi.c     |    8 ++-
- include/linux/spi/wl12xx.h                   |   34 -------
- include/linux/wl12xx.h                       |   35 ++++++++
- 13 files changed, 245 insertions(+), 63 deletions(-)
- delete mode 100644 include/linux/spi/wl12xx.h
- create mode 100644 include/linux/wl12xx.h
 
+> Gregory CLEMENT (2):
+>   spi: Add hook on suspend/resume for spi master
+>   spi/omap2_mcspi: When SPI wake up from OFF mode, CS is in wrong
+>     state: force it to unactive state
+>
+>  drivers/spi/omap2_mcspi.c |   11 ++++++++++-
+>  drivers/spi/spi.c         |   15 ++++++++++++++-
+>  include/linux/spi/spi.h   |    4 +++-
+>  3 files changed, 27 insertions(+), 3 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
