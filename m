@@ -1,79 +1,98 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] OMAP2: Fix a cpu type check problem.
-Date: Wed, 11 Aug 2010 14:36:06 +0300
-Message-ID: <4C628B26.7020206@compulab.co.il>
-References: <1281443797-7062-1-git-send-email-stanley.miao@windriver.com> <4C6162F4.7030500@compulab.co.il> <20100811092005.GB26637@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301E80ACA1F@dbde02.ent.ti.com> <20100811102718.GF26637@atomide.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 8/8 ]usb : musb:Using runtime pm apis for musb.
+Date: Wed, 11 Aug 2010 15:35:29 +0400
+Message-ID: <4C628B01.2010009@mvista.com>
+References: <1281115749-1601-1-git-send-email-hemahk@ti.com> <4C5D8150.4020009@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:44564 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751326Ab0HKLgO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Aug 2010 07:36:14 -0400
-In-Reply-To: <20100811102718.GF26637@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C5D8150.4020009-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "Stanley.Miao" <stanley.miao@windriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 08/11/10 13:27, Tony Lindgren wrote:
-> * Premi, Sanjeev <premi@ti.com> [100811 12:45]:
->   
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org 
->>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
->>> Sent: Wednesday, August 11, 2010 2:50 PM
->>> To: Igor Grinberg
->>> Cc: Stanley.Miao; linux-omap@vger.kernel.org
->>> Subject: Re: [PATCH] OMAP2: Fix a cpu type check problem.
->>>
->>> * Igor Grinberg <grinberg@compulab.co.il> [100810 17:25]:
->>>       
->>>> On 08/10/10 15:36, Stanley.Miao wrote:
->>>>         
->>>>> cpu_is_omap3517() and cpu_is_omap3505() are the subgroups 
->>>>>           
->>> of cpu_is_omap34xx(),
->>>       
->>>>> so we should check cpu_is_omap3517() and 
->>>>>           
->>> cpu_is_omap3505() first, then check
->>>       
->>>>> cpu_is_omap34xx().
->>>>>
->>>>> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
->>>>>   
->>>>>           
->>>> Tested-by: Igor Grinberg <grinberg@compulab.co.il>
->>>>
->>>> I've just ran into this yesterday evening.
->>>> Having a patch for this on the next day made me :)
->>>> Tested on AM3517.
->>>>         
->>> Can you please describe what breaks so we can merge this as a fix?
->>>
->>>       
->> cpu_is_34xx() will be true for all OMAP3 based devices including
->> AM3517. So, if we want to perform operations specific to AM3517, the
->> check for AM3517 should be done first else you match for 34xx would
->> return true; and you wouldn't go far enough to check for am3517.
->>     
-> Understood, but we need some concrete error like "otherwise booting
-> xyz board fails with non-working USB" or similar.
->   
+Hello.
 
-Otherwise, All AM35XX (Sitara) clocks do not get registered and device
-drivers
-(ti_hecc, etc...) that depend on those clocks are failing to get the
-clock and
-end up with non working device.
+I wrote:
 
-> Tony
->
->   
+>> Calling runtime pm APIs pm_runtime_put_sync() and 
+>> pm_runtime_get_sync() for enabling/disabling the clocks,sysconfig 
+>> settings.
 
--- 
-Regards,
-Igor.
+>> used omap_hwmod_enable_wakeup & omap_hwmod_disable_wakeup apis to 
+>> set/clear
+>> the wakeup enable bit.
+>> Also need to put the USB in force standby and force idle mode when usb 
+>> not used
+>> and set it back to smart idle and smart stndby after wakeup.
+>> these cases are handled using the oh flags.
+>> For omap3430 auto idle bit has to be disabled because of the errata.So 
+>> using HWMOD_NO_OCP_AUTOIDLE flag for OMAP3430.
 
+>> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>> Signed-off-by: Basak, Partha <p-basak2-l0cyMroinI0@public.gmane.org>
+
+>> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+
+[...]
+
+>> Index: linux-omap-pm/include/linux/usb/musb.h
+>> ===================================================================
+>> --- linux-omap-pm.orig/include/linux/usb/musb.h    2010-08-06 
+>> 10:44:06.000000000 -0400
+>> +++ linux-omap-pm/include/linux/usb/musb.h    2010-08-06 
+>> 10:44:42.946115274 -0400
+>> @@ -10,6 +10,9 @@
+>>  #ifndef __LINUX_USB_MUSB_H
+>>  #define __LINUX_USB_MUSB_H
+>>  
+>> +#include <linux/platform_device.h>
+
+>    You could just use incomplete declaration of 'struct platfrom_device' 
+> instead of this #include.
+
+>> +#include <plat/omap_hwmod.h>
+
+    Did you think about the other platfroms where this file doesn't exist? How 
+are they supposed to compile?!
+    I think this #include needs to be wrapped in #ifdef as well...
+
+>> +
+>>  /* The USB role is defined by the connector used on the board, so 
+>> long as
+>>   * standards are being followed.  (Developer boards sometimes won't.)
+>>   */
+>> @@ -129,6 +132,21 @@
+>>  
+>>      /* check usb device active state*/
+>>      int        (*is_usb_active)(struct device *dev);
+>> +
+>> +    /* omap hwmod data structure     */
+>> +    struct    omap_hwmod *oh;
+
+>    This should be wrapped into #ifdef, don't you think?
+
+>> +    /* enable clocks and set sysconfig register*/
+>> +    int        (*device_enable)(struct platform_device *pdev);
+>> +
+>> +    /* Disable clock and reset the sysconfig register settings*/
+>> +    int        (*device_idle)(struct platform_device *pdev);
+>> +
+>> +    /* set the enable wakeup bit of sysconfig register */
+>> +    int        (*enable_wakeup)(struct omap_device *od);
+>> +
+>> +    /* Clear the enable wakeup bit  of sysconfig register */
+>> +    int        (*disable_wakeup)(struct omap_device *od);
+
+>    This should be wrapped too, I think...
+
+WBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
