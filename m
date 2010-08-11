@@ -1,96 +1,110 @@
-From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v2 6/6] TI816X: Add low level debug support
-Date: Wed, 11 Aug 2010 22:41:27 +0530
-Message-ID: <1281546687-11593-1-git-send-email-hemantp@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52378 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537Ab0HKRLf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 13:11:35 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/4] initial support for LogicPD's OMAP3 SOM and
+ TORPEDO development kits
+Date: Wed, 11 Aug 2010 20:22:32 +0300
+Message-ID: <20100811172232.GA21391@nokia.com>
+References: <1281544297-18015-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1281544297-18015-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@deeprootsystems.com, Hemant Pedanekar <hemantp@ti.com>
 
-This patch adds support for low level debugging on TI816X boards. Currently the
-support for UART3 console on TI816X EVM is added.
+Hi Jacob,
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
----
- arch/arm/mach-omap2/include/mach/debug-macro.S |   12 ++++++++++++
- arch/arm/plat-omap/include/plat/serial.h       |    3 +++
- arch/arm/plat-omap/include/plat/uncompress.h   |    7 +++++++
- 3 files changed, 22 insertions(+), 0 deletions(-)
+few style comments only
 
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 09331bb..992411f 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -66,6 +66,12 @@ omap_uart_lsr:	.word	0
- 		beq	34f			@ configure OMAP3UART4
- 		cmp	\rx, #OMAP4UART4	@ only on 44xx
- 		beq	44f			@ configure OMAP4UART4
-+		cmp	\rx, #TI816XUART1	@ ti816x UART offsets different
-+		beq	81f			@ configure UART1
-+		cmp	\rx, #TI816XUART2	@ ti816x UART offsets different
-+		beq	82f			@ configure UART2
-+		cmp	\rx, #TI816XUART3	@ ti816x UART offsets different
-+		beq	83f			@ configure UART3
- 		cmp	\rx, #ZOOM_UART		@ only on zoom2/3
- 		beq	95f			@ configure ZOOM_UART
- 
-@@ -88,6 +94,12 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 44:		mov	\rx, #UART_OFFSET(OMAP4_UART4_BASE)
- 		b	98f
-+81:		mov	\rx, #UART_OFFSET(TI816X_UART1_BASE)
-+		b	98f
-+82:		mov	\rx, #UART_OFFSET(TI816X_UART2_BASE)
-+		b	98f
-+83:		mov	\rx, #UART_OFFSET(TI816X_UART3_BASE)
-+		b	98f
- 95:		ldr	\rx, =ZOOM_UART_BASE
- 		mrc	p15, 0, \tmp, c1, c0
- 		tst	\tmp, #1		@ MMU enabled?
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index ad8d0d8..ef8a57a 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -86,6 +86,9 @@
- #define OMAP4UART2		OMAP2UART2
- #define OMAP4UART3		43
- #define OMAP4UART4		44
-+#define TI816XUART1		81
-+#define TI816XUART2		82
-+#define TI816XUART3		83
- #define ZOOM_UART		95		/* Only on zoom2/3 */
- 
- /* This is only used by 8250.c for omap1510 */
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index ddf723b..48a0d8c 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -93,6 +93,10 @@ static inline void flush(void)
- #define DEBUG_LL_ZOOM(mach)						\
- 	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
- 
-+#define DEBUG_LL_TI816X(p, mach)					\
-+	_DEBUG_LL_ENTRY(mach, TI816X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		TI816XUART##p)
-+
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
- 	int port = 0;
-@@ -158,6 +162,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		DEBUG_LL_ZOOM(omap_zoom2);
- 		DEBUG_LL_ZOOM(omap_zoom3);
- 
-+		/* TI8168 base boards using UART3 */
-+		DEBUG_LL_TI816X(3, ti8168evm);
-+
- 	} while (0);
- }
- 
+On Wed, Aug 11, 2010 at 06:31:34PM +0200, ext Jacob Tanenbaum wrote:
+>
+>	Adding LogicPD OMAP3 board support
+>
+>         Adding support for LogicPD's OMAP 3530 LV SOM and
+>         OMAP 35x Torpedo board.
+>	
+>	 Tested against: linux-next 81e09f50c93edff607259cbe374a3006c9c5fa74
+>         Signed-off-by: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
+
+don't tab here. Please remove.
+
+>+static int omap3logic_twl_gpio_setup(struct device *dev,
+>+				unsigned gpio, unsigned ngpio)
+>+{
+>+	return 0;
+>+}
+
+no gpio setup ?? If you truly don't need, you don't have to add this 
+stub function.
+
+>+static struct twl4030_gpio_platform_data omap3logic_gpio_data = {
+>+	.gpio_base	= OMAP_MAX_GPIO_LINES,
+>+	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+>+	.irq_end	= TWL4030_GPIO_IRQ_END,
+>+	.use_leds	= true,
+>+	.pullups	= BIT(1),
+>+	.pulldowns	= BIT(2)  | BIT(6)  | BIT(7)  | BIT(8)
+>+			| BIT(13) | BIT(15) | BIT(16) | BIT(17),
+>+	.setup		= omap3logic_twl_gpio_setup,
+>+};
+>+
+>+static struct twl4030_platform_data omap3logic_twldata = {
+>+	.irq_base	= TWL4030_IRQ_BASE,
+>+	.irq_end	= TWL4030_IRQ_END,
+>+
+>+	/* platform_data for children goes here */
+>+	.gpio		= &omap3logic_gpio_data,
+
+no USB on this board ?
+
+>+static struct omap_board_config_kernel omap3logic_config[] __initdata = {
+>+};
+
+just don't assign anything ?
+
+>+static void __init omap3logic_init_irq(void)
+>+{
+>+	omap_board_config = omap3logic_config;
+>+	omap_board_config_size = ARRAY_SIZE(omap3logic_config);
+>+	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+>+				mt46h32m32lf6_sdrc_params);
+>+	omap_init_irq();
+>+#ifdef CONFIG_OMAP_32K_TIMER
+>+	omap2_gp_clockevent_set_gptimer(12);
+>+#endif
+>+	omap_gpio_init();
+>+}
+>+
+>+
+>+
+
+one blank line only
+
+>+static void __init omap3logic_init(void)
+>+{
+>+	omap3logic_i2c_init();
+>+	omap_serial_init();
+>+
+>+	/* Ensure SDRC pins are mux'd for self-refresh */
+>+/*	omap_cfg_reg(H16_34XX_SDRC_CKE0);
+>+	omap_cfg_reg(H17_34XX_SDRC_CKE1);
+>+	omap_cfg_reg(SDRC_CKE0);
+>+	omap_cfg_reg(SDRC_CKE1); */
+
+remove this commented code if it's not used yet.
+
+>+#ifdef CONFIG_MACH_OMAP3_TORPEDO
+
+no need to wrap on this ifdef, please remove.
+
+>+#ifdef CONFIG_MACH_OMAP3530_LV_SOM
+
+neither this.
+
 -- 
-1.6.2.4
+balbi
 
+DefectiveByDesign.org
