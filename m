@@ -1,118 +1,139 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 6/6 v2] OMAP2PLUS: WDT: Conversion to runtime PM
-Date: Wed, 11 Aug 2010 11:45:21 -0700
-Message-ID: <87lj8d0z0e.fsf@deeprootsystems.com>
-References: <1281521471-15802-1-git-send-email-charu@ti.com>
-	<1281521471-15802-2-git-send-email-charu@ti.com>
-	<1281521471-15802-3-git-send-email-charu@ti.com>
-	<1281521471-15802-4-git-send-email-charu@ti.com>
-	<1281521471-15802-5-git-send-email-charu@ti.com>
-	<1281521471-15802-6-git-send-email-charu@ti.com>
-	<1281521471-15802-7-git-send-email-charu@ti.com>
+From: "Jacob Tanenbaum" <Jacob.Tanenbaum@logicpd.com>
+Subject: RE: [PATCH 1/4] initial support for LogicPD's OMAP3 SOM and TORPEDO development kits
+Date: Wed, 11 Aug 2010 13:45:22 -0500
+Message-ID: <77A0A4DB5BF2A44283E5522C27234AC6021C82B4@EDPRSRV011.logicpd.com>
+References: <20100811172232.GA21391@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:60816 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755027Ab0HKSpY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 14:45:24 -0400
-Received: by pzk26 with SMTP id 26so159861pzk.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 11:45:23 -0700 (PDT)
-In-Reply-To: <1281521471-15802-7-git-send-email-charu@ti.com> (Charulatha V.'s
-	message of "Wed, 11 Aug 2010 15:41:11 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <20100811172232.GA21391@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: felipe.balbi@nokia.com
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, rmk@arm.linux.org.uk, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, wim@iguana.be, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com
 
-Charulatha V <charu@ti.com> writes:
 
-> This patch converts the OMAP Watchdog timer driver to
-> get adapted to HWMOD FW and to use the runtime PM APIs.
+
+-----Original Message-----
+From: Felipe Balbi [mailto:felipe.balbi@nokia.com] 
+Sent: Wednesday, August 11, 2010 1:23 PM
+To: Jacob Tanenbaum
+Cc: linux@arm.linux.org.uk; linux-omap@vger.kernel.org;
+linux-kernel@vger.kernel.org; rmk@arm.linux.org.uk; tony@atomide.com
+Subject: Re: [PATCH 1/4] initial support for LogicPD's OMAP3 SOM and
+TORPEDO development kits
+
+Hi Jacob,
+
+few style comments only
+
+On Wed, Aug 11, 2010 at 06:31:34PM +0200, ext Jacob Tanenbaum wrote:
 >
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Signed-off-by: Basak, Partha <p-basak2@ti.com>
-
-This series looks good.  One minor comment below...
-
-> ---
->  arch/arm/plat-omap/devices.c |   52 ++++++++++++++++++++++++++++++-----------
->  drivers/watchdog/omap_wdt.c  |   43 ++++++----------------------------
->  2 files changed, 46 insertions(+), 49 deletions(-)
+>	Adding LogicPD OMAP3 board support
 >
-> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> index d1920be..efe2aff 100644
-> --- a/arch/arm/plat-omap/devices.c
-> +++ b/arch/arm/plat-omap/devices.c
-> @@ -15,6 +15,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> +#include <linux/err.h>
->  
->  #include <mach/hardware.h>
->  #include <asm/mach-types.h>
-> @@ -28,6 +29,8 @@
->  #include <plat/menelaus.h>
->  #include <plat/mcbsp.h>
->  #include <plat/omap44xx.h>
-> +#include <plat/omap_hwmod.h>
-> +#include <plat/omap_device.h>
->  
->  /*-------------------------------------------------------------------------*/
->  
-> @@ -238,6 +241,8 @@ static inline void omap_init_uwire(void) {}
->  
->  static struct resource wdt_resources[] = {
->  	{
-> +		.start		= 0xfffeb000,
-> +		.end		= 0xfffeb07F,
->  		.flags		= IORESOURCE_MEM,
->  	},
->  };
+>         Adding support for LogicPD's OMAP 3530 LV SOM and
+>         OMAP 35x Torpedo board.
+>	
+>	 Tested against: linux-next
+81e09f50c93edff607259cbe374a3006c9c5fa74
+>         Signed-off-by: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
 
-This struct should probably be renamed with an omap1_ prefix.
+don't tab here. Please remove.
+Will fix
 
-> @@ -249,24 +254,43 @@ static struct platform_device omap_wdt_device = {
->  	.resource	= wdt_resources,
->  };
+>+static int omap3logic_twl_gpio_setup(struct device *dev,
+>+				unsigned gpio, unsigned ngpio)
+>+{
+>+	return 0;
+>+}
 
-ditto
+no gpio setup ?? If you truly don't need, you don't have to add this 
+stub function.
+Will fix 
 
-and they should be moved down just above omap_init_wdt()
+>+static struct twl4030_gpio_platform_data omap3logic_gpio_data = {
+>+	.gpio_base	= OMAP_MAX_GPIO_LINES,
+>+	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+>+	.irq_end	= TWL4030_GPIO_IRQ_END,
+>+	.use_leds	= true,
+>+	.pullups	= BIT(1),
+>+	.pulldowns	= BIT(2)  | BIT(6)  | BIT(7)  | BIT(8)
+>+			| BIT(13) | BIT(15) | BIT(16) | BIT(17),
+>+	.setup		= omap3logic_twl_gpio_setup,
+>+};
+>+
+>+static struct twl4030_platform_data omap3logic_twldata = {
+>+	.irq_base	= TWL4030_IRQ_BASE,
+>+	.irq_end	= TWL4030_IRQ_END,
+>+
+>+	/* platform_data for children goes here */
+>+	.gpio		= &omap3logic_gpio_data,
 
-> -static void omap_init_wdt(void)
-> +struct omap_device_pm_latency omap_wdt_latency[] = {
-> +	[0] = {
-> +		.deactivate_func = omap_device_idle_hwmods,
-> +		.activate_func   = omap_device_enable_hwmods,
-> +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> +	},
-> +};
-> +
-> +static void omap2_init_wdt()
->  {
-> -	if (cpu_is_omap16xx())
-> -		wdt_resources[0].start = 0xfffeb000;
-> -	else if (cpu_is_omap2420())
-> -		wdt_resources[0].start = 0x48022000; /* WDT2 */
-> -	else if (cpu_is_omap2430())
-> -		wdt_resources[0].start = 0x49016000; /* WDT2 */
-> -	else if (cpu_is_omap343x())
-> -		wdt_resources[0].start = 0x48314000; /* WDT2 */
-> -	else if (cpu_is_omap44xx())
-> -		wdt_resources[0].start = 0x4a314000;
-> -	else
-> +	int id = -1;
-> +	struct omap_device *od;
-> +	struct omap_hwmod *oh;
-> +	char *oh_name = "wd_timer2";
-> +	char *name = "omap_wdt";
-> +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (!oh) {
-> +		pr_err("Could not look up %s\n", oh_name);
->  		return;
-> +	}
+no USB on this board ?
 
-Kevin
+
+there is USB support it will be added in later 
+
+>+static struct omap_board_config_kernel omap3logic_config[] __initdata
+= {
+>+};
+
+just don't assign anything ?
+
+
+will fix
+
+>+static void __init omap3logic_init_irq(void)
+>+{
+>+	omap_board_config = omap3logic_config;
+>+	omap_board_config_size = ARRAY_SIZE(omap3logic_config);
+>+	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+>+				mt46h32m32lf6_sdrc_params);
+>+	omap_init_irq();
+>+#ifdef CONFIG_OMAP_32K_TIMER
+>+	omap2_gp_clockevent_set_gptimer(12);
+>+#endif
+>+	omap_gpio_init();
+>+}
+>+
+>+
+>+
+
+one blank line only
+
+will fix
+
+>+static void __init omap3logic_init(void)
+>+{
+>+	omap3logic_i2c_init();
+>+	omap_serial_init();
+>+
+>+	/* Ensure SDRC pins are mux'd for self-refresh */
+>+/*	omap_cfg_reg(H16_34XX_SDRC_CKE0);
+>+	omap_cfg_reg(H17_34XX_SDRC_CKE1);
+>+	omap_cfg_reg(SDRC_CKE0);
+>+	omap_cfg_reg(SDRC_CKE1); */
+
+remove this commented code if it's not used yet.
+
+I made a mistake rebasing this code gets removed in patch 4, will fix 
+
+>+#ifdef CONFIG_MACH_OMAP3_TORPEDO
+
+no need to wrap on this ifdef, please remove.
+
+>+#ifdef CONFIG_MACH_OMAP3530_LV_SOM
+
+neither this.
+
+No one else uses the ifdef but we were told from an earlier submission
+we should because if both boards are disabled in the .config it would
+inform the user on bootup 
+
+-- 
+balbi
+
+DefectiveByDesign.org
