@@ -1,54 +1,34 @@
-From: Mathieu Poirier <mathieu.poirier@canonical.com>
-Subject: [PATCH] Initializing gpmc before accessing flash
-Date: Wed, 11 Aug 2010 08:41:30 -0600
-Message-ID: <1281537690.1512.2.camel@black>
+From: Gregory CLEMENT <gclement00@gmail.com>
+Subject: [PATCH 0/2] Put OMAP2 SPI CS in unactive state when return from
+	suspend
+Date: Wed, 11 Aug 2010 16:42:52 +0200
+Message-ID: <AANLkTin7-ZqFRH4GXT4aUfQ4sE=8Jc=3i0j8rTH7EyBm@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:56563 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753072Ab0HKOlf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 10:41:35 -0400
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:42008 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752648Ab0HKOmy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 10:42:54 -0400
+Received: by fxm13 with SMTP id 13so146642fxm.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 07:42:52 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Mathieu Poirier <mathieu.poirier@canonical.com>
+To: spi-devel-general <spi-devel-general@lists.sourceforge.net>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Gregory CLEMENT <gclement00@gmail.com>
 
->From b12de3010763a8c047eefd2eb9296eb68157b07e Mon Sep 17 00:00:00 2001
-From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
-Date: Tue, 10 Aug 2010 17:14:25 -0400
-Subject: [PATCH] Initializing gpmc before accessing flash
+We notice that when system wake up from OFF mode, then CS is in
+unactive state until the first SPI transfert.
+For our design it lead to some conflict on this I/O.
+Unactive state for CS when there is no transfert shoudl be the correct
+behaviour: this is the purpose of these patches.
 
-Adding initialization of the General Purpose Memory Controller
-(gpmc) in 'omap3beagle_flash_init'.
+Gregory CLEMENT (2):
+  spi: Add hook on suspend/resume for spi master
+  spi/omap2_mcspi: When SPI wake up from OFF mode, CS is in wrong
+    state: force it to unactive state
 
-The gpmc init was decoupled from nand flash init and
-got its own init function.  This change was not reflected in
-'omap3beagle_flash_init' resulting in a lookup failure when
-probing for flash.
-
-BugLink: https://bugs/launchpad.net/bugs/608266
-
-Signed-off-by: Mathieu Poirier <mathieu.poirier@canonical.com>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 7a1b351..e1203a4 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -466,6 +466,7 @@ static void __init omap3beagle_flash_init(void)
- 		omap3beagle_nand_data.gpmc_cs_baseaddr = (void *)
- 			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
- 		omap3beagle_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
-+               gpmc_nand_init(&omap3beagle_nand_data);
- 
- 		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
- 		if (platform_device_register(&omap3beagle_nand_device) < 0)
--- 
-1.7.0.4
-
-
-
+ drivers/spi/omap2_mcspi.c |   11 ++++++++++-
+ drivers/spi/spi.c         |   15 ++++++++++++++-
+ include/linux/spi/spi.h   |    4 +++-
+ 3 files changed, 27 insertions(+), 3 deletions(-)
