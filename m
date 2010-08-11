@@ -1,57 +1,61 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP: Beagle: support MMC gpio_wp differences on xM
-Date: Wed, 11 Aug 2010 08:52:12 -0500
-Message-ID: <AANLkTim+fmmVtf1O_yf0ZRC83s_GhD3N20XtBF2n=t9i@mail.gmail.com>
-References: <1281451216-23725-1-git-send-email-robertcnelson@gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B030E700860@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: dspbridge and the omapl1x
+Date: Wed, 11 Aug 2010 17:01:43 +0300
+Message-ID: <AANLkTinVQW7acb9Q_-17oVgP_DFAeeWrEg2qxojvXa2Q@mail.gmail.com>
+References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
+	<AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
+	<AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:46359 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752251Ab0HKNwO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 09:52:14 -0400
-Received: by eya25 with SMTP id 25so45821eya.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 06:52:13 -0700 (PDT)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E700860@dbde02.ent.ti.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:52106 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751503Ab0HKOBp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 10:01:45 -0400
+Received: by bwz3 with SMTP id 3so127289bwz.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 07:01:44 -0700 (PDT)
+In-Reply-To: <AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ben Gardiner <bengardiner@nanometrics.ca>
+Cc: Hari Kanigeri <hari.kanigeri@gmail.com>, ErnestoRamos <ernesto@ti.com>, ArmandoUribe <x0095078@ti.com>, NishanthMenon <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, ReneSapiens <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, OmarRamirezLuna <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org
 
->> - =A0 =A0 if (system_rev >=3D 0x20 && system_rev <=3D 0x34301000) {
->> + =A0 =A0 if (cpu_is_omap3630()) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 mmc[0].gpio_wp =3D -EINVAL;
->> + =A0 =A0 } else if (system_rev >=3D 0x20 && system_rev <=3D 0x34301=
-000) {
-> [Ghorai] it's an old code. But I think we can replace the hardcode va=
-lue to use omap_rev() as you are changing the same! Or default for all =
-omap34xx?
+Hi,
 
-It's actually broken too. ;)
-
-My Bx board falls into that "Cx" if..  (and explains why the
-write-protect lever on my sd card is ignored on that test system)
-
-Looking at mainline u-boot, where system_rev is defined and passed to
-the kernel, it is a constant 0x20...
-
-I'm going to try using gpio pins 171/172/173 which were used to
-identify what Beagle Hardware Rev (Ax/Bx, C2/C3, C4, xM)
-
+On Wed, Aug 11, 2010 at 3:56 PM, Ben Gardiner
+<bengardiner@nanometrics.ca> wrote:
+> On Tue, Aug 10, 2010 at 6:12 PM, Hari Kanigeri <hari.kanigeri@gmail.com> wrote:
+>> Do you mean dynamic memory management ? Can you please elaborate on
+>> what feature you are referring to ?
 >
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_mux_init_gpio(23, OMAP_PIN_INPUT);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc[0].gpio_wp =3D 23;
->> =A0 =A0 =A0 } else {
+> Yes, dynamic memory management. With DSP Link on the OMAPL138 the
+> memory allocated to the DSP must be specified as a 'hole' in Linux
+> memory at boot-time [1[2][3]. It seems (perhaps this is wishful
+> thinking) that dspbridge does not have this limitation.
 
-Regards,
+The dsp-bridge can map scattered user-space pages just fine.
 
---=20
-Robert Nelson
-http://www.rcn-ee.com/
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Also dynamic application loading. With DSP Link it is possible to run
+> multiple linux processes concurrently communicating with DSP tasks but
+> the image loaded and executed on the DSP side must contain the code
+> for all of the tasks at load time [4]. It seems that dspbridge does
+> not have this limitation.
+
+Indeed, you can dynamically load socket-nodes.
+
+> I am very interested in learning details about both dsplink and
+> dspbridge; please reply with more details or corrections as you see
+> fit.
+
+Have you looked into dsp-gateway[1]? The code is very simple and AFAIK
+it was close to getting merged upstream, but it's unmaintained
+nowadays. It was used on OMAP1 and OMAP2 by Nokia, and shares code
+with dsp-bridge, like mailbox and soon iommu. So it might be possible
+to port the OMAP1 stuff from dsp-gateway into dsp-bridge.
+
+Cheers.
+
+[1] http://dspgateway.sourceforge.net/pub/index.php
+
+-- 
+Felipe Contreras
