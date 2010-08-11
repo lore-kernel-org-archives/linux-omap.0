@@ -1,114 +1,119 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH 00/11] OMAP: DMA: HWMOD and DMA as platform driver
-Date: Wed, 11 Aug 2010 13:13:56 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940270A4A709@dbde02.ent.ti.com>
-References: <1280397545-27323-1-git-send-email-manjugk@ti.com>
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: [PATCH v3 8/9] omap: hsmmc: split mmc23 power control
+Date: Wed, 11 Aug 2010 11:30:29 +0300
+Message-ID: <4C625FA5.8070705@nokia.com>
+References: <1281478348-24833-1-git-send-email-ohad@wizery.com> <1281478348-24833-9-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46013 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756348Ab0HKHoJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 03:44:09 -0400
-In-Reply-To: <1280397545-27323-1-git-send-email-manjugk@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1281478348-24833-9-git-send-email-ohad@wizery.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: ext Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
 
-So far, the following comments are received.
+Hi Ohad,
 
-http://www.spinics.net/lists/linux-omap/msg34291.html
-http://www.spinics.net/lists/linux-omap/msg34292.html
-http://www.spinics.net/lists/linux-omap/msg34078.html
-http://www.spinics.net/lists/linux-omap/msg34083.html
+On 08/11/2010 01:12 AM, ext Ohad Ben-Cohen wrote:
+> Prepare for mmc3 regulator power control by splitting the power
+> control functions of mmc2 and mmc3, and expecting mmc3 to have
+> a single, dedicated, regulator support.
+>
+> Signed-off-by: Ohad Ben-Cohen<ohad@wizery.com>
+> ---
+>   arch/arm/mach-omap2/hsmmc.c   |   10 ++++--
+>   drivers/mmc/host/omap_hsmmc.c |   67 ++++++++++++++++++++++++++++++++++++----
+>   2 files changed, 66 insertions(+), 11 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+> index 1ef54b0..5d3d789 100644
+> --- a/arch/arm/mach-omap2/hsmmc.c
+> +++ b/arch/arm/mach-omap2/hsmmc.c
+> @@ -174,7 +174,7 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
+>   	}
+>   }
+>
+> -static void hsmmc23_before_set_reg(struct device *dev, int slot,
+> +static void hsmmc2_before_set_reg(struct device *dev, int slot,
+>   				   int power_on, int vdd)
+>   {
+>   	struct omap_mmc_platform_data *mmc = dev->platform_data;
+> @@ -325,14 +325,16 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+>   				c->transceiver = 1;
+>   			if (c->transceiver&&  c->wires>  4)
+>   				c->wires = 4;
+> -			/* FALLTHROUGH */
+> -		case 3:
+>   			if (mmc->slots[0].features&  HSMMC_HAS_PBIAS) {
+>   				/* off-chip level shifting, or none */
+> -				mmc->slots[0].before_set_reg = hsmmc23_before_set_reg;
+> +				mmc->slots[0].before_set_reg = hsmmc2_before_set_reg;
+>   				mmc->slots[0].after_set_reg = NULL;
+>   			}
+>   			break;
+> +		case 3:
+> +			mmc->slots[0].before_set_reg = NULL;
+> +			mmc->slots[0].after_set_reg = NULL;
+> +			break;
+>   		default:
+>   			pr_err("MMC%d configuration not supported!\n", c->mmc);
+>   			kfree(mmc);
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index d50e917..6f5cea0 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -258,7 +258,7 @@ static int omap_hsmmc_1_set_power(struct device *dev, int slot, int power_on,
+>   	return ret;
+>   }
+>
+> -static int omap_hsmmc_23_set_power(struct device *dev, int slot, int power_on,
+> +static int omap_hsmmc_2_set_power(struct device *dev, int slot, int power_on,
+>   				   int vdd)
+>   {
+>   	struct omap_hsmmc_host *host =
+> @@ -309,6 +309,31 @@ static int omap_hsmmc_23_set_power(struct device *dev, int slot, int power_on,
+>   	return ret;
+>   }
+>
+> +static int omap_hsmmc_3_set_power(struct device *dev, int slot, int power_on,
+> +				   int vdd)
+> +{
+> +	struct omap_hsmmc_host *host =
+> +		platform_get_drvdata(to_platform_device(dev));
+> +	int ret = 0;
+> +
+> +	if (power_on) {
+> +		ret = mmc_regulator_set_ocr(host->vcc, vdd);
 
-If there are no further comments for this patch series, I will
-incorporate review comments and post next version.
+> +		/* Enable interface voltage rail, if needed */
+Why is this needed? In this case interface voltage rail seems to be the same as 
+card supply.
 
-Regards,
-Manjunath 
+If you notice mmc_regulator_set_ocr code, it is doing the regulator enable, so 
+don't need to enable it again below.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G, 
-> Manjunath Kondaiah
-> Sent: Thursday, July 29, 2010 3:29 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Cousson, Benoit; Kevin Hilman; Paul Walmsley; Tony 
-> Lindgren; Sawant, Anand; Shilimkar, Santosh; Nayak, Rajendra; 
-> Basak, Partha; Varadarajan, Charulatha
-> Subject: [PATCH 00/11] OMAP: DMA: HWMOD and DMA as platform driver
-> 
-> This patch series is refined version of earlier patches posted at:
-> http://www.spinics.net/lists/linux-omap/index.html#33393
-> 
-> These changes are based on comments received during internal 
-> discussions which 
-> has changes(compared to previous version) such as:
->  - Code optimization
->  - Patches are rearranged in more meaningful way so that git 
-> bisect works at any
->    intermediate patch in the series.
->  - Build tested for all omap's(OMAP1 and OMAP2PLUS)
->  - Boot tested for OMAP3 and OMAP4(appreciate if some one 
-> tests on OMAP1/2)
->  - Applicalbe tests are executed on OMAP3 and OMAP4 boards
->  - Rebased and added descriptor autoloading feature(only for 
-> omap3630 and omap4)
-> 
-> This patch series applies on top of:
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-om
-> ap-pm.git
-> Branch: pm-wip/hwmods-omap4
-> commit f1c79ab452ed9cf7b5ff6488335c1ddf15d5c92a
-> Author: Benoit Cousson <b-cousson@ti.com>
-> Date:   Wed May 12 17:54:37 2010 +0200
-> 
->     OMAP4: hwmod: Enable omap_hwmod build for OMAP4
-> 
-> Patch series summary:
-> =====================
-> Manjunatha GK (10):
->   OMAP: DMA: Introduce DMA device attributes
->   OMAP2420: DMA: HWMOD: Add hwmod data structures
->   OMAP2430: DMA: HWMOD: Add hwmod data structures
->   OMAP3: DMA: HWMOD: Add hwmod data structures
->   OMAP4: DMA: HWMOD: update OMAP4 data base
->   OMAP1: DMA: Introduce DMA driver as platform driver
->   OMAP2/3/4: DMA: HWMOD: Device registration
->   OMAP: DMA: Convert DMA library into DMA platform Driver
->   OMAP: DMA: Implement generic errata handling
->   OMAP: DMA: Use DMA device attributes
-> 
-> Venkatraman S (1):
->   sDMA: descriptor autoloading feature
-> 
->  arch/arm/mach-omap1/Makefile               |    2 +-
->  arch/arm/mach-omap1/dma.c                  |  446 ++++++++
->  arch/arm/mach-omap1/include/mach/dma.h     |  148 +++
->  arch/arm/mach-omap2/Makefile               |    2 +-
->  arch/arm/mach-omap2/dma.c                  | 1380 
-> +++++++++++++++++++++++++
->  arch/arm/mach-omap2/include/mach/dma.h     |  378 +++++++
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   89 ++
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   89 ++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   89 ++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   19 +-
->  arch/arm/plat-omap/dma.c                   | 1515 
-> +++-------------------------
->  arch/arm/plat-omap/include/plat/dma.h      |  222 +----
->  12 files changed, 2850 insertions(+), 1529 deletions(-)
->  create mode 100644 arch/arm/mach-omap1/dma.c
->  create mode 100644 arch/arm/mach-omap1/include/mach/dma.h
->  create mode 100644 arch/arm/mach-omap2/dma.c
->  create mode 100644 arch/arm/mach-omap2/include/mach/dma.h
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> +		if (ret == 0&&  host->vcc) {
+> +			ret = regulator_enable(host->vcc);
+> +			if (ret<  0)
+> +				ret = mmc_regulator_set_ocr(host->vcc, 0);
+> +		}
+> +	} else {
+> +		if (host->vcc)
+> +			ret = regulator_disable(host->vcc);
+> +		if (ret == 0)
+> +			ret = mmc_regulator_set_ocr(host->vcc, 0);
+> +	}
+> +
+> +	return ret;
+> +}
+
+All This can be replaced to the following to simply
+
+if (power_on) {
+	return mmc_regulator_set_ocr(host->vcc, vdd);
+else
+	return mmc_regulator_set_ocr(host->vcc, 0);
+
+regards,
+-roger
