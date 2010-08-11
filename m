@@ -1,30 +1,52 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: dspbridge and the omapl1x
-Date: Wed, 11 Aug 2010 21:20:50 +0300
-Message-ID: <AANLkTi=PY3L4hbbJ8vSZEApaJrpx9H8GaO5DgQSVX9yr@mail.gmail.com>
-References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
-	<AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
-	<AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
-	<AANLkTinyg1+FMLBDgMTpfOK2iy=yzGqsd1XA+xsZ9sse@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:38274 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752650Ab0HKSUv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 14:20:51 -0400
-Received: by bwz3 with SMTP id 3so322760bwz.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 11:20:50 -0700 (PDT)
-In-Reply-To: <AANLkTinyg1+FMLBDgMTpfOK2iy=yzGqsd1XA+xsZ9sse@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH v4 0/8] native support for wl1271 on ZOOM
+Date: Wed, 11 Aug 2010 21:21:45 +0300
+Message-ID: <1281550913-17633-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Ido Yariv <ido@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Pandita Vikram <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hari Kanigeri <hari.kanigeri@gmail.com>
-Cc: Ben Gardiner <bengardiner@nanometrics.ca>, ErnestoRamos <ernesto@ti.com>, ArmandoUribe <x0095078@ti.com>, NishanthMenon <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, ReneSapiens <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, OmarRamirezLuna <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org
 
-On Wed, Aug 11, 2010 at 7:55 PM, Hari Kanigeri <hari.kanigeri@gmail.com> wrote:
-> 1. Adapt to iommu. Add support if the support is not present for OMAP1.
+This patch series adds native support for wl1271 on ZOOM.
 
-AFAIK iommu started for OMAP1 as it was originally developed for dsp-gateway.
+Changes since v3:
+- slot is marked nonremovable
+- no explicit slot ocr mask
+- dont split hsmmc mmc23 power control
 
--- 
-Felipe Contreras
+Patches are based on linux-next (as of Aug 7th), and tested
+on ZOOM2.
+
+Please note that I am going to have a very limited email access
+in the next three weeks, so I might not respond right away.
+
+Thanks,
+
+Ohad Ben-Cohen (8):
+  wireless: wl1271: make wl12xx.h common to both spi and sdio
+  wireless: wl1271: support return value for the set power func
+  wireless: wl1271: add platform driver to get board data
+  wireless: wl1271: take irq info from private board data
+  wireless: wl1271: make ref_clock configurable by board
+  omap: hsmmc: remove unused variable
+  omap: zoom: add fixed regulator device for wlan
+  omap: zoom: add mmc3/wl1271 device support
+
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   69 +++++++++++++++
+ drivers/mmc/host/omap_hsmmc.c                |    1 -
+ drivers/net/wireless/wl12xx/wl1251_sdio.c    |    2 +-
+ drivers/net/wireless/wl12xx/wl1251_spi.c     |    2 +-
+ drivers/net/wireless/wl12xx/wl1271.h         |   15 +++-
+ drivers/net/wireless/wl12xx/wl1271_boot.c    |    9 +-
+ drivers/net/wireless/wl12xx/wl1271_boot.h    |    1 -
+ drivers/net/wireless/wl12xx/wl1271_io.h      |    8 +-
+ drivers/net/wireless/wl12xx/wl1271_main.c    |    4 +-
+ drivers/net/wireless/wl12xx/wl1271_sdio.c    |  120 +++++++++++++++++++++++---
+ drivers/net/wireless/wl12xx/wl1271_spi.c     |    8 ++-
+ include/linux/spi/wl12xx.h                   |   34 -------
+ include/linux/wl12xx.h                       |   35 ++++++++
+ 13 files changed, 245 insertions(+), 63 deletions(-)
+ delete mode 100644 include/linux/spi/wl12xx.h
+ create mode 100644 include/linux/wl12xx.h
+
