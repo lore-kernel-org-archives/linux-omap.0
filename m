@@ -1,92 +1,114 @@
-From: Gregory CLEMENT <gclement00@gmail.com>
-Subject: Re: [PATCH 0/2] Put OMAP2 SPI CS in unactive state when return from
-	suspend
-Date: Thu, 12 Aug 2010 10:54:00 +0200
-Message-ID: <AANLkTinPbOR2OUyfiCLkkbV6gCjxib+-mmMKNf9mzeDC@mail.gmail.com>
-References: <AANLkTin7-ZqFRH4GXT4aUfQ4sE=8Jc=3i0j8rTH7EyBm@mail.gmail.com>
-	<871va52ent.fsf@deeprootsystems.com>
-	<AANLkTik7O1s-UAt0abyJoakSSjHGJD6CSktOD+O=BGou@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v3 0/7] OMAP: hwmod: Full data set for OMAP4430 ES1 &
+ ES2
+Date: Thu, 12 Aug 2010 11:01:19 +0200
+Message-ID: <4C63B85F.1050401@ti.com>
+References: <1281023276-15679-1-git-send-email-b-cousson@ti.com>	<878w4fk3d2.fsf@deeprootsystems.com> <4C62B78A.8060907@ti.com> <877hjwzn1f.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:55146 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753256Ab0HLIyB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 04:54:01 -0400
-Received: by fxm13 with SMTP id 13so580855fxm.19
-        for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 01:54:00 -0700 (PDT)
-In-Reply-To: <AANLkTik7O1s-UAt0abyJoakSSjHGJD6CSktOD+O=BGou@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:53954 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751101Ab0HLJBZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Aug 2010 05:01:25 -0400
+In-Reply-To: <877hjwzn1f.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-2010/8/11 Kevin Hilman <khilman@deeprootsystems.com>
+On 8/12/2010 2:34 AM, Kevin Hilman wrote:
+> "Cousson, Benoit"<b-cousson@ti.com>  writes:
 >
-> Gregory CLEMENT <gclement00@gmail.com> writes:
+>> Hi Kevin,
+>>
+>> On 8/9/2010 9:11 PM, Kevin Hilman wrote:
+>>> Benoit Cousson<b-cousson@ti.com>   writes:
+>>>
+>>>> Hi Kevin&   Paul,
+>>>>
+>>>> Here is the OMAP4430 ES1&   ES2 hwmod data v3 series.
+>>>>
+>>>> Please note that there is no difference between the ES1&   ES2 wrt hwmod.
+>>>>
+>>>> This series is re-organised in order to allow initial submission for upstream
+>>>> with minimal interconnect data set + mpu.
+>>>>
+>>>> Further data will be sent along with the driver once adapted to hwmod.
+>>>> A first patch is done for the TIMER IP as an example.
+>>>>
+>>>> Patches are based on lo/for-next + for-next-fixes + pm-wip/hwmods-reset
+>>>> + pm-wip/hwmods-debugfs and are available here:
+>>>> git://dev.omapzoom.org/pub/scm/swarch/linux-omap-adv.git pm-wip/hwmods-omap4
+>>>>
+>>>> Tested on OMAP4430 ES1.0 GP device using PAB board.
+>>>
+>>> This is looking good to me.  Of course, as you noted we need to
+>>> understand the root cause of need for those temporary patches before
+>>> merging.
+>>>
+>>> To facilitate broader testing with the other hwmod conversions in
+>>> progress, and to test with runtime PM, I've updated my
+>>> pm-wip/hwmods-omap4 branch now includes your series (and its
+>>> dependencies.)
+>>
+>> Cool, thanks.
+>>
+>> Maybe we should reshuffle the branch in order to allow people to start
+>> stacking the OMAP4 hwmod data in small pieces on top of the initial
+>> data.
 >
-> > We notice that when system wake up from OFF mode, then CS is in
-> > unactive state until the first SPI transfert.
-> > For our design it lead to some conflict on this I/O.
-> > Unactive state for CS when there is no transfert shoudl be the corr=
-ect
-> > behaviour: this is the purpose of these patches.
+> Yes, it is time for that.
 >
-> This approach handles an off-mode transition during suspend, but if
-> off-mode is enabled, you can also have an off-mode transition during
-> idle.
+>> What about these branches:
+>>
+>> ->  pm-wip/hwmods-omap4-full that contains the original full data that
+>> people will split but that nobody should use as a base.
+>>
+>> bbd5866 OMAP: hwmod: Temporary prevent reset during _setup for I2Cs
+>> c47ddf5 OMAP: hwmod: Temporary prevent reset during _setup for GPIOs
+>> 4d2fbb8 OMAP4: hwmod: Add remaining hwmods data for OMAP4430 ES1&  ES2
+>> a9a8f22 OMAP4: hwmod: Add TIMER data for OMAP4430 ES1&  ES2
 >
+> OK, done.
+>
+>> ->  pm-wip/hwmods-omap4-base to base all driver hwmod migration
+>> including the OMAP4 data part
+>
+> OK, done, but I kept the name pm-wip/hwmods-omap4 since that's what
+> people are already using for a base.
+>
+>> b8eccd4 OMAP: omap_hwmod: remove locking from hwmod_for_each iterators
+>
+> fyi... there's an updated version of this locking patch in my pm-wip/hwmods
+> branch, based on top of your for-next-fixes branch, and included as part
+> of pm-wip/hwmods-omap4.
+>
+>> fedcdf6 PM: allow runtime PM get/put from interrupts-disabled context
+>> a55908c OMAP1: PM: add simple runtime PM layer to manage clocks
+>> be46d49 OMAP: bus-level PM: enable use of runtime PM API for...
+>> 1ebda92 OMAP: PM: initial runtime PM core support
+>
+> This is still pm-wip/runtime (but included in pm-wip/hwmods-omap4)
+>
+>> 2cb85f7 USB: Remove omap_cfg_reg for 2430
+>
+> This s still pm-backports (but included in pm-wip/hwmods-omap4)
+>
+>> ->  pm-wip/hwmods-omap4
+>>
+>> 71a4efa OMAP4: pm: Change l3_main to l3_main_1 during bus device init
+>> 1cf660c OMAP4: clock: Fix clock names and align with hwmod names
+>> 517cead OMAP4: hwmod: Add initial data for OMAP4430 ES1&  ES2
+>
+> I just left this as your for-next-fixes branch and merged it into
+> my pm-wip/hwmods-omap4.
 
-Well maybe I didn't use the correct words.
-During the system life, I monitored the CS behaviour using a oscillosco=
-pe.
-I also activate debug in omap2_mcspi, so I see when driver disable the
-clocks and restore context when device is not used.
-Each time the CS is in the correct state. It is only when there is a
-suspend with the following configuration that on resume the CS is in
-wrong state( ie activated)
+Great, thanks.
 
+I'll start notifying people to rebase and re-submit the OMAP4 hwmod part.
 
-echo 1 > /mnt/pm_debug/enable_off_mode
-echo 0 > /mnt/pm_debug/core_pwrdm/suspend
-echo 1 > /mnt/pm_debug/voltage_off_while_idle
+Thanks,
+Benoit
 
-
->
-> Since you didn't describe what the conflicts you're seeing are, I wou=
-ld
-> assume that you'll have the same problems in idle as in suspend, and
-> this series doesn't address the idle case.
-
-I didn't see any problem in idle case, just when system resume from a
-suspend to ram (echo mem > /sys/power/state)
-
->
-> Kevin
->
->
->
-> > Gregory CLEMENT (2):
-> > =A0 spi: Add hook on suspend/resume for spi master
-> > =A0 spi/omap2_mcspi: When SPI wake up from OFF mode, CS is in wrong
-> > =A0 =A0 state: force it to unactive state
-> >
-> > =A0drivers/spi/omap2_mcspi.c | =A0 11 ++++++++++-
-> > =A0drivers/spi/spi.c =A0 =A0 =A0 =A0 | =A0 15 ++++++++++++++-
-> > =A0include/linux/spi/spi.h =A0 | =A0 =A04 +++-
-> > =A03 files changed, 27 insertions(+), 3 deletions(-)
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-
---
-Gregory CLEMENT
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
