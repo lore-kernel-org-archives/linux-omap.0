@@ -1,36 +1,82 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to get board
-	data
-Date: Thu, 12 Aug 2010 09:40:19 +0300
-Message-ID: <AANLkTikDhzGVFZhNJZic9xYX9bL_NhOW=4LS-cTFSG0i@mail.gmail.com>
-References: <1281550913-17633-1-git-send-email-ohad@wizery.com>
-	<1281550913-17633-4-git-send-email-ohad@wizery.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110ABD@dbde02.ent.ti.com>
-	<20100811184742.GA21778@nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC1@dbde02.ent.ti.com>
-	<20100811185724.GD21778@nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC7@dbde02.ent.ti.com>
-	<20100811212513.GC827@n2100.arm.linux.org.uk>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH v2 1/3] ARM: OMAP: Beagle: revision detection
+Date: Thu, 12 Aug 2010 10:03:49 +0300
+Message-ID: <20100812100349.8f151b5b.jhnikula@gmail.com>
+References: <1281569862-19894-1-git-send-email-robertcnelson@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100811212513.GC827@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Kalle Valo <kalle.valo@iki.fi>, "Pandita, Vikram" <vikram.pandita@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Nicolas Pitre <nico@fluxnic.net>, San Mehat <san@google.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ido Yariv <ido@wizery.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:43672 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751475Ab0HLHD7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 03:03:59 -0400
+Received: by ewy23 with SMTP id 23so479423ewy.19
+        for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 00:03:58 -0700 (PDT)
+In-Reply-To: <1281569862-19894-1-git-send-email-robertcnelson@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Thu, Aug 12, 2010 at 12:25 AM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
->I've outlined a far simpler and easiler solution
-> which avoids this kind of abuse, and given suggestions on how to extend
-> it to support multiple instances.
->
+Hi
 
-Do you mean:
-http://www.spinics.net/lists/arm-kernel/msg95338.html
-?
+On Wed, 11 Aug 2010 18:37:40 -0500
+Robert Nelson <robertcnelson@gmail.com> wrote:
 
-I was under the impression you eventually discarded that approach in that post.
+> Due to the omap3530 ES3.0 Silicon being used on both the
+> B5/B6 and C1/2/3 Beagle we can't use the cpu_is_omap34xx() 
+> routines to differentiate the Beagle Boards.
+> 
+> However gpio pins 171,172,173 where setup for this prupose, so 
+> lets use them.
+> 
+> Tested on Beagle Revisions: B5, C2, C4, and xMA
+> 
+> Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |   60 +++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/board.h |   23 ++++++++++++
+>  2 files changed, 83 insertions(+), 0 deletions(-)
+> 
+...
+> +	beagle_rev = gpio_get_value(171) | (gpio_get_value(172) << 1)
+> +			| (gpio_get_value(173) << 2);
+> +
+> +	switch (beagle_rev) {
+> +	case 7:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: Ax/Bx\n");
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_AXBX;
+> +		break;
+> +	case 6:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: C1/C2/C3\n");
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_C1_3;
+> +		break;
+> +	case 5:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: C4\n");
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_C4;
+> +		break;
+> +	case 0:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+> +		break;
+> +	default:
+> +		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
+> +		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
+> +	}
 
-Please tell me if you still support it,
+My C2 reads as 2 and I have U-Boot 2009.01-dirty (Feb 19 2009 -
+12:22:31). I believe these pins are not muxed correctly with that
+U-Boot version.
 
-Thanks,
-Ohad.
+Therefore kernel should remux those pins so that version is detected
+right independently of bootloader version. Detections works fine if I
+add these:
+
+	omap_mux_init_gpio(171, OMAP_PIN_INPUT_PULLUP);
+	omap_mux_init_gpio(172, OMAP_PIN_INPUT_PULLUP);
+	omap_mux_init_gpio(173, OMAP_PIN_INPUT_PULLUP);
+
+
+-- 
+Jarkko
