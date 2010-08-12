@@ -1,87 +1,109 @@
-From: "Que, Simon" <sque@ti.com>
-Subject: [PATCH 4/4 v2] omap: hwspinlock: Patch to add support to build
- hwspinlock modules
-Date: Wed, 11 Aug 2010 19:29:51 -0500
-Message-ID: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E49@dlee03.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3 0/7] OMAP: hwmod: Full data set for OMAP4430 ES1 & ES2
+Date: Wed, 11 Aug 2010 17:34:36 -0700
+Message-ID: <877hjwzn1f.fsf@deeprootsystems.com>
+References: <1281023276-15679-1-git-send-email-b-cousson@ti.com>
+	<878w4fk3d2.fsf@deeprootsystems.com> <4C62B78A.8060907@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_F39349C6FA641B4A831B7BF4EBF4D4E1480D9E49dlee03entticom_"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56813 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759336Ab0HLA3z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Aug 2010 20:29:55 -0400
-Content-Language: en-US
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:64969 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933424Ab0HLAel (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 20:34:41 -0400
+Received: by ywh1 with SMTP id 1so205086ywh.19
+        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 17:34:40 -0700 (PDT)
+In-Reply-To: <4C62B78A.8060907@ti.com> (Benoit Cousson's message of "Wed, 11
+	Aug 2010 16:45:30 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
---_002_F39349C6FA641B4A831B7BF4EBF4D4E1480D9E49dlee03entticom_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-Patch to add support to build hwspinlock modules
+> Hi Kevin,
+>
+> On 8/9/2010 9:11 PM, Kevin Hilman wrote:
+>> Benoit Cousson<b-cousson@ti.com>  writes:
+>>
+>>> Hi Kevin&  Paul,
+>>>
+>>> Here is the OMAP4430 ES1&  ES2 hwmod data v3 series.
+>>>
+>>> Please note that there is no difference between the ES1&  ES2 wrt hwmod.
+>>>
+>>> This series is re-organised in order to allow initial submission for upstream
+>>> with minimal interconnect data set + mpu.
+>>>
+>>> Further data will be sent along with the driver once adapted to hwmod.
+>>> A first patch is done for the TIMER IP as an example.
+>>>
+>>> Patches are based on lo/for-next + for-next-fixes + pm-wip/hwmods-reset
+>>> + pm-wip/hwmods-debugfs and are available here:
+>>> git://dev.omapzoom.org/pub/scm/swarch/linux-omap-adv.git pm-wip/hwmods-omap4
+>>>
+>>> Tested on OMAP4430 ES1.0 GP device using PAB board.
+>>
+>> This is looking good to me.  Of course, as you noted we need to
+>> understand the root cause of need for those temporary patches before
+>> merging.
+>>
+>> To facilitate broader testing with the other hwmod conversions in
+>> progress, and to test with runtime PM, I've updated my
+>> pm-wip/hwmods-omap4 branch now includes your series (and its
+>> dependencies.)
+>
+> Cool, thanks.
+>
+> Maybe we should reshuffle the branch in order to allow people to start
+> stacking the OMAP4 hwmod data in small pieces on top of the initial
+> data.
 
-Signed-off-by: Simon Que <sque@ti.com>
----
- arch/arm/mach-omap2/Makefile |    2 ++
- arch/arm/plat-omap/Makefile  |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
+Yes, it is time for that.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 630f880..fe49340 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -176,3 +176,5 @@ obj-y					+=3D $(nand-m) $(nand-y)
-=20
- smc91x-$(CONFIG_SMC91X)			:=3D gpmc-smc91x.o
- obj-y					+=3D $(smc91x-m) $(smc91x-y)
-+
-+obj-$(CONFIG_ARCH_OMAP4)		+=3D hwspinlocks.o
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index ea8e555..c9f79d5 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -34,3 +34,5 @@ obj-$(CONFIG_OMAP_REMOTE_PROC) +=3D remoteproc.o
-=20
- obj-$(CONFIG_OMAP_PM_NOOP) +=3D omap-pm-noop.o
- obj-$(CONFIG_OMAP_PM) +=3D omap-pm.o
-+
-+obj-$(CONFIG_ARCH_OMAP4) +=3D hwspinlock.o
---=20
-1.7.0
+> What about these branches:
+>
+> -> pm-wip/hwmods-omap4-full that contains the original full data that
+> people will split but that nobody should use as a base.
+>
+> bbd5866 OMAP: hwmod: Temporary prevent reset during _setup for I2Cs
+> c47ddf5 OMAP: hwmod: Temporary prevent reset during _setup for GPIOs
+> 4d2fbb8 OMAP4: hwmod: Add remaining hwmods data for OMAP4430 ES1 & ES2
+> a9a8f22 OMAP4: hwmod: Add TIMER data for OMAP4430 ES1 & ES2
 
+OK, done.
 
---_002_F39349C6FA641B4A831B7BF4EBF4D4E1480D9E49dlee03entticom_
-Content-Type: application/octet-stream; name=
-	"0004-omap-hwspinlock-Patch-to-add-support-to-build-hwspinlock-modules.patch"
-Content-Description: 0004-omap-hwspinlock-Patch-to-add-support-to-build-hwspinlock-modules.patch
-Content-Disposition: attachment; filename=
-	"0004-omap-hwspinlock-Patch-to-add-support-to-build-hwspinlock-modules.patch";
-	size=1112; creation-date="Wed, 11 Aug 2010 19:35:08 GMT";
-	modification-date="Wed, 11 Aug 2010 19:35:08 GMT"
-Content-Transfer-Encoding: base64
+> -> pm-wip/hwmods-omap4-base to base all driver hwmod migration
+> including the OMAP4 data part
 
-RnJvbSBmNTBkMzM0MzNhMmZmM2UwMDI4YzNjODU5YTY3MDQwZmZhMWUxYTk4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTaW1vbiBRdWUgPHNxdWVAdGkuY29tPgpEYXRlOiBGcmksIDYg
-QXVnIDIwMTAgMTA6NTA6MTUgLTA1MDAKU3ViamVjdDogW1BBVENIIDQvNF0gUGF0Y2ggdG8gYWRk
-IHN1cHBvcnQgdG8gYnVpbGQgaHdzcGlubG9jayBtb2R1bGVzCgpTaWduZWQtb2ZmLWJ5OiBTaW1v
-biBRdWUgPHNxdWVAdGkuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUgfCAg
-ICAyICsrCiBhcmNoL2FybS9wbGF0LW9tYXAvTWFrZWZpbGUgIHwgICAgMiArKwogMiBmaWxlcyBj
-aGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJj
-aC9hcm0vbWFjaC1vbWFwMi9NYWtlZmlsZSBiL2FyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUK
-aW5kZXggNjMwZjg4MC4uZmU0OTM0MCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9N
-YWtlZmlsZQorKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlCkBAIC0xNzYsMyArMTc2
-LDUgQEAgb2JqLXkJCQkJCSs9ICQobmFuZC1tKSAkKG5hbmQteSkKIAogc21jOTF4LSQoQ09ORklH
-X1NNQzkxWCkJCQk6PSBncG1jLXNtYzkxeC5vCiBvYmoteQkJCQkJKz0gJChzbWM5MXgtbSkgJChz
-bWM5MXgteSkKKworb2JqLSQoQ09ORklHX0FSQ0hfT01BUDQpCQkrPSBod3NwaW5sb2Nrcy5vCmRp
-ZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvTWFrZWZpbGUgYi9hcmNoL2FybS9wbGF0LW9t
-YXAvTWFrZWZpbGUKaW5kZXggZWE4ZTU1NS4uYzlmNzlkNSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0v
-cGxhdC1vbWFwL01ha2VmaWxlCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9NYWtlZmlsZQpAQCAt
-MzQsMyArMzQsNSBAQCBvYmotJChDT05GSUdfT01BUF9SRU1PVEVfUFJPQykgKz0gcmVtb3RlcHJv
-Yy5vCiAKIG9iai0kKENPTkZJR19PTUFQX1BNX05PT1ApICs9IG9tYXAtcG0tbm9vcC5vCiBvYmot
-JChDT05GSUdfT01BUF9QTSkgKz0gb21hcC1wbS5vCisKK29iai0kKENPTkZJR19BUkNIX09NQVA0
-KSArPSBod3NwaW5sb2NrLm8KLS0gCjEuNy4wCgo=
+OK, done, but I kept the name pm-wip/hwmods-omap4 since that's what
+people are already using for a base.
 
---_002_F39349C6FA641B4A831B7BF4EBF4D4E1480D9E49dlee03entticom_--
+> b8eccd4 OMAP: omap_hwmod: remove locking from hwmod_for_each iterators
+
+fyi... there's an updated version of this locking patch in my pm-wip/hwmods
+branch, based on top of your for-next-fixes branch, and included as part
+of pm-wip/hwmods-omap4.
+
+> fedcdf6 PM: allow runtime PM get/put from interrupts-disabled context
+> a55908c OMAP1: PM: add simple runtime PM layer to manage clocks
+> be46d49 OMAP: bus-level PM: enable use of runtime PM API for...
+> 1ebda92 OMAP: PM: initial runtime PM core support
+
+This is still pm-wip/runtime (but included in pm-wip/hwmods-omap4)
+
+> 2cb85f7 USB: Remove omap_cfg_reg for 2430
+
+This s still pm-backports (but included in pm-wip/hwmods-omap4)
+
+> -> pm-wip/hwmods-omap4
+>
+> 71a4efa OMAP4: pm: Change l3_main to l3_main_1 during bus device init
+> 1cf660c OMAP4: clock: Fix clock names and align with hwmod names
+> 517cead OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
+
+I just left this as your for-next-fixes branch and merged it into
+my pm-wip/hwmods-omap4.
+
+Kevin
