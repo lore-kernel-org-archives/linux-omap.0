@@ -1,224 +1,78 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP: hwmod: separate list locking and hwmod hardware locking
-Date: Wed, 11 Aug 2010 17:24:45 -0700
-Message-ID: <1281572685-13964-1-git-send-email-khilman@deeprootsystems.com>
+From: "Que, Simon" <sque@ti.com>
+Subject: [PATCH 1/4 v2] omap: hwspinlock: uncomment the hwmod part for
+ hwspinlock
+Date: Wed, 11 Aug 2010 19:29:45 -0500
+Message-ID: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E46@dlee03.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_002_F39349C6FA641B4A831B7BF4EBF4D4E1480D9E46dlee03entticom_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:55750 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759566Ab0HLAYs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Aug 2010 20:24:48 -0400
-Received: by pvg2 with SMTP id 2so254061pvg.19
-        for <linux-omap@vger.kernel.org>; Wed, 11 Aug 2010 17:24:48 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:58712 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759185Ab0HLA3u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Aug 2010 20:29:50 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com
-Cc: b-cousson@ti.com
+To: Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
-From: Kevin Hilman <khilman@ti.com>
+--_002_F39349C6FA641B4A831B7BF4EBF4D4E1480D9E46dlee03entticom_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Currently omap_hwmod_mutex is being used to protect both the list
-access/modification and concurrent access to hwmod functions.  This
-patch separates these two types of locking.
+uncomment the hwmod part for hwspinlock
 
-First, omap_hwmod_mutex is used only to protect access and
-modification of omap_hwmod_list.  Also cleaned up some comments
-referring to this mutex that are no longer needed.
-
-Then, for protecting concurrent access to hwmod functions, use a
-per-hwmod mutex.  This protects concurrent access to a single hwmod,
-but would allow concurrent access to different hwmods.
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Simon Que <sque@ti.com>
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   62 ++++++++++++-------------
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- 2 files changed, 32 insertions(+), 32 deletions(-)
+arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 100115f..832c2c3 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -767,10 +767,10 @@ static struct omap_hwmod *_lookup(const char *name)
-  * @data: not used; pass NULL
-  *
-  * Called by omap_hwmod_late_init() (after omap2_clk_init()).
-- * Resolves all clock names embedded in the hwmod.  Must be called
-- * with omap_hwmod_mutex held.  Returns -EINVAL if the omap_hwmod
-- * has not yet been registered or if the clocks have already been
-- * initialized, 0 on success, or a non-zero error on failure.
-+ * Resolves all clock names embedded in the hwmod.  Returns -EINVAL if
-+ * the omap_hwmod has not yet been registered or if the clocks have
-+ * already been initialized, 0 on success, or a non-zero error on
-+ * failure.
-  */
- static int _init_clocks(struct omap_hwmod *oh, void *data)
- {
-@@ -838,10 +838,9 @@ static int _wait_target_ready(struct omap_hwmod *oh)
-  * @oh: struct omap_hwmod *
-  *
-  * Resets an omap_hwmod @oh via the OCP_SYSCONFIG bit.  hwmod must be
-- * enabled for this to work.  Must be called with omap_hwmod_mutex
-- * held.  Returns -EINVAL if the hwmod cannot be reset this way or if
-- * the hwmod is in the wrong state, -ETIMEDOUT if the module did not
-- * reset in time, or 0 upon success.
-+ * enabled for this to work.  Returns -EINVAL if the hwmod cannot be
-+ * reset this way or if the hwmod is in the wrong state, -ETIMEDOUT if
-+ * the module did not reset in time, or 0 upon success.
-  */
- static int _reset(struct omap_hwmod *oh)
- {
-@@ -891,9 +890,8 @@ static int _reset(struct omap_hwmod *oh)
-  * @oh: struct omap_hwmod *
-  *
-  * Enables an omap_hwmod @oh such that the MPU can access the hwmod's
-- * register target.  Must be called with omap_hwmod_mutex held.
-- * Returns -EINVAL if the hwmod is in the wrong state or passes along
-- * the return value of _wait_target_ready().
-+ * register target.  Returns -EINVAL if the hwmod is in the wrong
-+ * state or passes along the return value of _wait_target_ready().
-  */
- int _omap_hwmod_enable(struct omap_hwmod *oh)
- {
-@@ -1004,11 +1002,10 @@ static int _shutdown(struct omap_hwmod *oh)
-  * @skip_setup_idle_p: do not idle hwmods at the end of the fn if 1
-  *
-  * Writes the CLOCKACTIVITY bits @clockact to the hwmod @oh
-- * OCP_SYSCONFIG register.  Must be called with omap_hwmod_mutex held.
-- * @skip_setup_idle is intended to be used on a system that will not
-- * call omap_hwmod_enable() to enable devices (e.g., a system without
-- * PM runtime).  Returns -EINVAL if the hwmod is in the wrong state or
-- * returns 0.
-+ * OCP_SYSCONFIG register.  @skip_setup_idle is intended to be used on
-+ * a system that will not call omap_hwmod_enable() to enable devices
-+ * (e.g., a system without PM runtime).  Returns -EINVAL if the hwmod
-+ * is in the wrong state or returns 0.
-  */
- static int _setup(struct omap_hwmod *oh, void *data)
- {
-@@ -1038,6 +1035,7 @@ static int _setup(struct omap_hwmod *oh, void *data)
- 		}
- 	}
- 
-+	mutex_init(&oh->mutex);
- 	oh->_state = _HWMOD_STATE_INITIALIZED;
- 
- 	r = _omap_hwmod_enable(oh);
-@@ -1323,9 +1321,9 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->mutex);
- 	r = _omap_hwmod_enable(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->mutex);
- 
- 	return r;
- }
-@@ -1343,9 +1341,9 @@ int omap_hwmod_idle(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->mutex);
- 	_omap_hwmod_idle(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->mutex);
- 
- 	return 0;
- }
-@@ -1363,9 +1361,9 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->mutex);
- 	_shutdown(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->mutex);
- 
- 	return 0;
- }
-@@ -1378,9 +1376,9 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
-  */
- int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
- {
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->mutex);
- 	_enable_clocks(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->mutex);
- 
- 	return 0;
- }
-@@ -1393,9 +1391,9 @@ int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
-  */
- int omap_hwmod_disable_clocks(struct omap_hwmod *oh)
- {
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->mutex);
- 	_disable_clocks(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->mutex);
- 
- 	return 0;
- }
-@@ -1443,9 +1441,9 @@ int omap_hwmod_reset(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->mutex);
- 	r = _reset(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->mutex);
- 
- 	return r;
- }
-@@ -1646,9 +1644,9 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->mutex);
- 	_enable_wakeup(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->mutex);
- 
- 	return 0;
- }
-@@ -1671,9 +1669,9 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->mutex);
- 	_disable_wakeup(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->mutex);
- 
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 5506d80..cf0cef6 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -35,6 +35,7 @@
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/ioport.h>
-+#include <linux/mutex.h>
- #include <plat/cpu.h>
- 
- struct omap_device;
-@@ -461,6 +462,7 @@ struct omap_hwmod {
- 	void				*dev_attr;
- 	u32				_sysc_cache;
- 	void __iomem			*_mpu_rt_va;
-+	struct mutex                    mutex;
- 	struct list_head		node;
- 	u16				flags;
- 	u8				_mpu_port_index;
--- 
-1.7.2.1
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_44xx_data.c
+index bb0c870..81e3f3f 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -5797,7 +5797,7 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[=
+] =3D {
+ /*     &omap44xx_smartreflex_iva_hwmod, */
+ /*     &omap44xx_smartreflex_mpu_hwmod, */
+        /* spinlock class */
+-/*     &omap44xx_spinlock_hwmod, */
++       &omap44xx_spinlock_hwmod,
+        /* timer class */
+        &omap44xx_timer1_hwmod,
+        &omap44xx_timer2_hwmod,
+--
+1.7.0
 
+--_002_F39349C6FA641B4A831B7BF4EBF4D4E1480D9E46dlee03entticom_
+Content-Type: application/octet-stream;
+	name="0001-omap-hwspinlock-uncomment-the-hwmod-part-for-hwspinlock.patch"
+Content-Description: 0001-omap-hwspinlock-uncomment-the-hwmod-part-for-hwspinlock.patch
+Content-Disposition: attachment; filename=
+	"0001-omap-hwspinlock-uncomment-the-hwmod-part-for-hwspinlock.patch";
+	size=955; creation-date="Fri, 06 Aug 2010 11:06:58 GMT";
+	modification-date="Fri, 06 Aug 2010 11:06:58 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbSA0NzJkMDZjZWYyYmJhOWUzNTgxNTk2MGM1ODQ4YjhhMGQwYTJkNjBlIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBTaW1vbiBRdWUgPHNxdWVAdGkuY29tPgpEYXRlOiBGcmksIDYg
+QXVnIDIwMTAgMTA6Mjg6NTMgLTA1MDAKU3ViamVjdDogW1BBVENIIDEvNF0gdW5jb21tZW50IHRo
+ZSBod21vZCBwYXJ0IGZvciBod3NwaW5sb2NrCgpTaWduZWQtb2ZmLWJ5OiBTaW1vbiBRdWUgPHNx
+dWVAdGkuY29tPgpTaWduZWQtb2ZmLWJ5OiBIYXJpIEthbmlnZXJpIDxoLWthbmlnZXJpMkB0aS5j
+b20+Ci0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzQ0eHhfZGF0YS5jIHwgICAg
+MiArLQogMSBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpk
+aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzQ0eHhfZGF0YS5jIGIv
+YXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzQ0eHhfZGF0YS5jCmluZGV4IGJiMGM4NzAu
+LjgxZTNmM2YgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcF9od21vZF80NHh4
+X2RhdGEuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXBfaHdtb2RfNDR4eF9kYXRhLmMK
+QEAgLTU3OTcsNyArNTc5Nyw3IEBAIHN0YXRpYyBfX2luaXRkYXRhIHN0cnVjdCBvbWFwX2h3bW9k
+ICpvbWFwNDR4eF9od21vZHNbXSA9IHsKIC8qCSZvbWFwNDR4eF9zbWFydHJlZmxleF9pdmFfaHdt
+b2QsICovCiAvKgkmb21hcDQ0eHhfc21hcnRyZWZsZXhfbXB1X2h3bW9kLCAqLwogCS8qIHNwaW5s
+b2NrIGNsYXNzICovCi0vKgkmb21hcDQ0eHhfc3BpbmxvY2tfaHdtb2QsICovCisJJm9tYXA0NHh4
+X3NwaW5sb2NrX2h3bW9kLAogCS8qIHRpbWVyIGNsYXNzICovCiAJJm9tYXA0NHh4X3RpbWVyMV9o
+d21vZCwKIAkmb21hcDQ0eHhfdGltZXIyX2h3bW9kLAotLSAKMS43LjAKCg==
+
+--_002_F39349C6FA641B4A831B7BF4EBF4D4E1480D9E46dlee03entticom_--
