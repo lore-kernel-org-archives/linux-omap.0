@@ -1,76 +1,40 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH] Initializing gpmc before accessing flash
-Date: Thu, 12 Aug 2010 10:51:31 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E700EF0@dbde02.ent.ti.com>
-References: <1281537690.1512.2.camel@black>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to get
+ board data
+Date: Thu, 12 Aug 2010 08:21:26 +0300
+Message-ID: <20100812052126.GA23362@nokia.com>
+References: <1281550913-17633-1-git-send-email-ohad@wizery.com>
+ <1281550913-17633-4-git-send-email-ohad@wizery.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0324110ABD@dbde02.ent.ti.com>
+ <20100811184742.GA21778@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC1@dbde02.ent.ti.com>
+ <20100811185724.GD21778@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC7@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60230 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751971Ab0HLFVj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 01:21:39 -0400
-In-Reply-To: <1281537690.1512.2.camel@black>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC7@dbde02.ent.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "ext DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Balbi Felipe (Nokia-MS/Helsinki)" <felipe.balbi@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ido Yariv <ido@wizery.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, San Mehat <san@google.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, "Pandita, Vikram" <vikram.pandita@ti.com>, Kalle Valo <kalle.valo@iki.fi>
 List-Id: linux-omap@vger.kernel.org
-To: Mathieu Poirier <mathieu.poirier@canonical.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hi,
 
+On Wed, Aug 11, 2010 at 09:27:18PM +0200, ext DebBarma, Tarun Kanti wrote:
+>Sounds perfect!
+>What that means is _probe() function makes sense only for cases where 
+>we have valid platform data because we are returning right at the top 
+>if pdata is not valid. If this is the case I was curious to know why 
+>not framework make another check for valid pdata before calling 
+>_probe() instead of coming all the way to _probe() and then returning!
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Mathieu Poirier
-> Sent: Wednesday, August 11, 2010 8:12 PM
-> To: tony@atomide.com
-> Cc: linux-omap@vger.kernel.org; Mathieu Poirier
-> Subject: [PATCH] Initializing gpmc before accessing flash
-> 
-> >From b12de3010763a8c047eefd2eb9296eb68157b07e Mon Sep 17 00:00:00 2001
-> From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
-> Date: Tue, 10 Aug 2010 17:14:25 -0400
-> Subject: [PATCH] Initializing gpmc before accessing flash
-> 
-> Adding initialization of the General Purpose Memory Controller
-> (gpmc) in 'omap3beagle_flash_init'.
-> 
-> The gpmc init was decoupled from nand flash init and
-> got its own init function.  This change was not reflected in
-> 'omap3beagle_flash_init' resulting in a lookup failure when
-> probing for flash.
-> 
-> BugLink: https://bugs/launchpad.net/bugs/608266
-> 
-> Signed-off-by: Mathieu Poirier <mathieu.poirier@canonical.com>
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-
-> omap2/board-omap3beagle.c
-> index 7a1b351..e1203a4 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -466,6 +466,7 @@ static void __init omap3beagle_flash_init(void)
->  		omap3beagle_nand_data.gpmc_cs_baseaddr = (void *)
->  			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
->  		omap3beagle_nand_data.gpmc_baseaddr = (void *)
-> (gpmc_base_add);
-> +               gpmc_nand_init(&omap3beagle_nand_data);
-[Ghorai] things are queued for 2.6.36; can refer 
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=f450d86790ebf72ac93c7ea5addd6fa278aae64c
+because pdata is completely optional. pdev OTOH isn't. Without a matched 
+platform_device, your probe() won't get called.
 
-> 
->  		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
->  		if (platform_device_register(&omap3beagle_nand_device) < 0)
-> --
-> 1.7.0.4
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
+
+DefectiveByDesign.org
