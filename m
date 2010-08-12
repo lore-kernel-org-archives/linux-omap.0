@@ -1,109 +1,77 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH v2] OMAP3: PM: ensure IO wakeups are properly disabled
-Date: Thu, 12 Aug 2010 14:59:10 +0300
-Message-ID: <1281614350.1861.14.camel@chotu>
-References: <1281542626-4045-1-git-send-email-khilman@deeprootsystems.com>
-	 <1281609324.1861.6.camel@chotu>  <20100812115107.GC6629@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/3] ARM: OMAP: Beagle: revision detection
+Date: Thu, 12 Aug 2010 15:00:41 +0300
+Message-ID: <20100812120040.GD6629@atomide.com>
+References: <1281569862-19894-1-git-send-email-robertcnelson@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58269 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758701Ab0HLL7x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 07:59:53 -0400
-In-Reply-To: <20100812115107.GC6629@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53002 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753801Ab0HLMAp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 08:00:45 -0400
+Content-Disposition: inline
+In-Reply-To: <1281569862-19894-1-git-send-email-robertcnelson@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, 2010-08-12 at 13:51 +0200, ext Tony Lindgren wrote:
-> * Ameya Palande <ameya.palande@nokia.com> [100812 13:28]:
-> > Hi Kevin,
-> > 
-> > On Wed, 2010-08-11 at 18:03 +0200, ext Kevin Hilman wrote:
-> > > From: Kevin Hilman <khilman@ti.com>
-> > > 
-> > > Commit 5a5f561 (convert OMAP3 PRCM macros to the _SHIFT/_MASK suffixes)
-> > > mistakenly removed the check for PER when disabling the IO chain.
-> > > 
-> > > During idle, if the PER powerdomain transitions and CORE does not (as
-> > > is the case with the lower C-states when using CPUidle) the IO pad
-> > > wakeups are not being disabled in the idle path after they are
-> > > enabled.
-> > > 
-> > > This patch ensures that the check for disabling IO wakeups also checks
-> > > for PER transitions, matching the check done to enable IO wakeups.
-> > > 
-> > > Found when debugging PM/CPUidle related problems reported by Ameya
-> > > Palande <ameya.palande@nokia.com>.  Problems were triggered
-> > > particularily on boards with UART2 consoles (n900, Overo) since UART2
-> > > is in the PER powerdomain.
-> > > 
-> > > Tested on l-o master (omap3_defonfig + CONFIG_CPU_IDLE=y) as well
-> > > as with current PM branch.  Boards tested: n900, Overo, omap3evm.
-> > > 
-> > > Cc: Paul Walmsley <paul@pwsan.com>
-> > > Cc: Ameya Palande <ameya.palande@nokia.com>
-> > > Tested-by: Jarkko Nikula <jhnikula@gmail.com>
-> > > Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> > > ---
-> > > Tony, this should go in with fixes for -rc2
-> > > 
-> > > Changes since v1
-> > > - added a bit of history about where the problem was created
-> > > - added 'Tested-by' for Jarkko
-> > > 
-> > >  arch/arm/mach-omap2/pm34xx.c |    4 +++-
-> > >  1 files changed, 3 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > > index fb4994a..7b03426 100644
-> > > --- a/arch/arm/mach-omap2/pm34xx.c
-> > > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > > @@ -480,7 +480,9 @@ void omap_sram_idle(void)
-> > >  	}
-> > >  
-> > >  	/* Disable IO-PAD and IO-CHAIN wakeup */
-> > > -	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
-> > > +	if (omap3_has_io_wakeup() &&
-> > > +	    (per_next_state < PWRDM_POWER_ON ||
-> > > +	     core_next_state < PWRDM_POWER_ON)) {
-> > >  		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
-> > >  		omap3_disable_io_chain();
-> > >  	}
-> > 
-> > Thanks for your fix!
-> > I tried out following patch on n900 kernel (based on 2.6.35 mainline)
-> > hosted at: http://gitorious.org/nokia-n900-kernel
-> > 
-> > Patch:
-> > 
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > index b88737f..887242d 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -479,7 +479,8 @@ void omap_sram_idle(void)
-> >         }
-> >  
-> >         /* Disable IO-PAD and IO-CHAIN wakeup */
-> > -       if (core_next_state < PWRDM_POWER_ON) {
-> > +       if (per_next_state < PWRDM_POWER_ON ||
-> > +                       core_next_state < PWRDM_POWER_ON) {
-> >                 prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
-> > PM_WKEN);
-> >                 omap3_disable_io_chain();
-> >         }
-> > 
-> > And got following WARNING after sometime:
+* Robert Nelson <robertcnelson@gmail.com> [100812 02:30]:
+> Due to the omap3530 ES3.0 Silicon being used on both the
+> B5/B6 and C1/2/3 Beagle we can't use the cpu_is_omap34xx() 
+> routines to differentiate the Beagle Boards.
 > 
-> So what's the deal, is this ack or nak for Kevin's patch then?
+> However gpio pins 171,172,173 where setup for this prupose, so 
+> lets use them.
 
-Kevin's patch seems to fix the serial port issue for sure, so we
-definitely need it. I just wanted to point out that there are more issue
-in CPUIDLE :)
+<snip>
 
-Cheers,
-Ameya.
+> --- a/arch/arm/plat-omap/include/plat/board.h
+> +++ b/arch/arm/plat-omap/include/plat/board.h
+> @@ -26,6 +26,22 @@ enum {
+>  	OMAP3EVM_BOARD_GEN_2,		/* EVM Rev >= Rev E */
+>  };
+>  
+> +/*
+> + * OMAP3 Beagle revision
+> + * Run time detection of Beagle revision is done by reading GPIO.
+> + * GPIO ID -
+> + *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
+> + *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
+> + *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
+> + *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
+> + */
+> +enum {
+> +	OMAP3BEAGLE_BOARD_AXBX = 0,
+> +	OMAP3BEAGLE_BOARD_C1_3,
+> +	OMAP3BEAGLE_BOARD_C4,
+> +	OMAP3BEAGLE_BOARD_XM,
+> +};
+> +
+>  /* Different peripheral ids */
+>  #define OMAP_TAG_CLOCK		0x4f01
+>  #define OMAP_TAG_LCD		0x4f05
+> @@ -173,4 +189,11 @@ u8 get_omap3_evm_rev(void);
+>  #else
+>  #define get_omap3_evm_rev() (-EINVAL)
+>  #endif
+> +
+> +/* Beagle revision */
+> +#if defined(CONFIG_MACH_OMAP3_BEAGLE)
+> +u8 get_omap3_beagle_rev(void);
+> +#else
+> +#define get_omap3_beagle_rev() (-EINVAL)
+> +#endif
+>  #endif
 
+You should be able to keep this all in board-omap3beagle.c,
+no need for the header. If this header is needed somewhere
+else, chances are that something is wrong.
+
+For the drivers, you should be able to pass the necessary
+flags via platform_data if needed.
+
+Regards,
+
+Tony
