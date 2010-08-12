@@ -1,59 +1,46 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 1/4 v2] omap: hwspinlock: uncomment the hwmod part for
- hwspinlock
-Date: Thu, 12 Aug 2010 15:07:40 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E814705E@dbde02.ent.ti.com>
-References: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E46@dlee03.ent.ti.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to get
+	board data
+Date: Thu, 12 Aug 2010 10:55:46 +0100
+Message-ID: <20100812095546.GA3354@n2100.arm.linux.org.uk>
+References: <1281550913-17633-1-git-send-email-ohad@wizery.com> <1281550913-17633-4-git-send-email-ohad@wizery.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110ABD@dbde02.ent.ti.com> <20100811184742.GA21778@nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC1@dbde02.ent.ti.com> <20100811185724.GD21778@nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC7@dbde02.ent.ti.com> <20100811212513.GC827@n2100.arm.linux.org.uk> <AANLkTikDhzGVFZhNJZic9xYX9bL_NhOW=4LS-cTFSG0i@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55662 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753337Ab0HLJhp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 05:37:45 -0400
-In-Reply-To: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E46@dlee03.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTikDhzGVFZhNJZic9xYX9bL_NhOW=4LS-cTFSG0i-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti-l0cyMroinI0@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr-l0cyMroinI0@public.gmane.org>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Que, Simon" <sque@ti.com>, Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
-> -----Original Message-----
-> From: Que, Simon 
-> Sent: Thursday, August 12, 2010 6:00 AM
-> To: Linux Omap; Tony Lindgren
-> Cc: Cousson, Benoit; Shilimkar, Santosh; Premi, Sanjeev; 
-> Kanigeri, Hari
-> Subject: [PATCH 1/4 v2] omap: hwspinlock: uncomment the hwmod 
-> part for hwspinlock
+On Thu, Aug 12, 2010 at 09:40:19AM +0300, Ohad Ben-Cohen wrote:
+> On Thu, Aug 12, 2010 at 12:25 AM, Russell King - ARM Linux
+> <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
+> >I've outlined a far simpler and easiler solution
+> > which avoids this kind of abuse, and given suggestions on how to extend
+> > it to support multiple instances.
+> >
 > 
-> uncomment the hwmod part for hwspinlock
+> Do you mean:
+> http://www.spinics.net/lists/arm-kernel/msg95338.html
+> ?
 > 
-> Signed-off-by: Simon Que <sque@ti.com>
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> ---
-> arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-[sp] I did not see this file in any of the "master",
-     "for-next" or "pm" branches.
+> I was under the impression you eventually discarded that approach in
+> that post.
 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c 
-> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index bb0c870..81e3f3f 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -5797,7 +5797,7 @@ static __initdata struct omap_hwmod 
-> *omap44xx_hwmods[] = {
->  /*     &omap44xx_smartreflex_iva_hwmod, */
->  /*     &omap44xx_smartreflex_mpu_hwmod, */
->         /* spinlock class */
-> -/*     &omap44xx_spinlock_hwmod, */
-> +       &omap44xx_spinlock_hwmod,
->         /* timer class */
->         &omap44xx_timer1_hwmod,
->         &omap44xx_timer2_hwmod,
-> --
-> 1.7.0
-> 
+Indeed.
+
+I'm talking about my first suggestion:
+
+http://lists.arm.linux.org.uk/lurker/message/20100804.114148.bf961e83.en.html
+
+which was later expanded by Vitaly:
+
+http://lists.arm.linux.org.uk/lurker/message/20100804.140119.f476c29c.en.html
+
+I don't think anyone had any negative comments against that proposal.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
