@@ -1,136 +1,76 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH 6/6 v2] OMAP2PLUS: WDT: Conversion to runtime PM
-Date: Thu, 12 Aug 2010 10:10:26 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C65D771E@dbde02.ent.ti.com>
-References: <1281521471-15802-1-git-send-email-charu@ti.com>
-	<1281521471-15802-2-git-send-email-charu@ti.com>
-	<1281521471-15802-3-git-send-email-charu@ti.com>
-	<1281521471-15802-4-git-send-email-charu@ti.com>
-	<1281521471-15802-5-git-send-email-charu@ti.com>
-	<1281521471-15802-6-git-send-email-charu@ti.com>
-	<1281521471-15802-7-git-send-email-charu@ti.com>
- <87lj8d0z0e.fsf@deeprootsystems.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH] Initializing gpmc before accessing flash
+Date: Thu, 12 Aug 2010 10:51:31 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B030E700EF0@dbde02.ent.ti.com>
+References: <1281537690.1512.2.camel@black>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57006 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751036Ab0HLEkj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 00:40:39 -0400
-In-Reply-To: <87lj8d0z0e.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60230 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971Ab0HLFVj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 01:21:39 -0400
+In-Reply-To: <1281537690.1512.2.camel@black>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "wim@iguana.be" <wim@iguana.be>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: Mathieu Poirier <mathieu.poirier@canonical.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, August 12, 2010 12:15 AM
-> To: Varadarajan, Charulatha
-> Cc: linux-omap@vger.kernel.org; wim@iguana.be; paul@pwsan.com; Cousson,
-> Benoit; Nayak, Rajendra; Basak, Partha
-> Subject: Re: [PATCH 6/6 v2] OMAP2PLUS: WDT: Conversion to runtime PM
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Mathieu Poirier
+> Sent: Wednesday, August 11, 2010 8:12 PM
+> To: tony@atomide.com
+> Cc: linux-omap@vger.kernel.org; Mathieu Poirier
+> Subject: [PATCH] Initializing gpmc before accessing flash
 > 
-> Charulatha V <charu@ti.com> writes:
+> >From b12de3010763a8c047eefd2eb9296eb68157b07e Mon Sep 17 00:00:00 2001
+> From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
+> Date: Tue, 10 Aug 2010 17:14:25 -0400
+> Subject: [PATCH] Initializing gpmc before accessing flash
 > 
-> > This patch converts the OMAP Watchdog timer driver to
-> > get adapted to HWMOD FW and to use the runtime PM APIs.
-> >
-> > Signed-off-by: Charulatha V <charu@ti.com>
-> > Signed-off-by: Basak, Partha <p-basak2@ti.com>
+> Adding initialization of the General Purpose Memory Controller
+> (gpmc) in 'omap3beagle_flash_init'.
 > 
-> This series looks good.  One minor comment below...
+> The gpmc init was decoupled from nand flash init and
+> got its own init function.  This change was not reflected in
+> 'omap3beagle_flash_init' resulting in a lookup failure when
+> probing for flash.
 > 
-> > ---
-> >  arch/arm/plat-omap/devices.c |   52 ++++++++++++++++++++++++++++++-----
-> ------
-> >  drivers/watchdog/omap_wdt.c  |   43 ++++++----------------------------
-> >  2 files changed, 46 insertions(+), 49 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> > index d1920be..efe2aff 100644
-> > --- a/arch/arm/plat-omap/devices.c
-> > +++ b/arch/arm/plat-omap/devices.c
-> > @@ -15,6 +15,7 @@
-> >  #include <linux/platform_device.h>
-> >  #include <linux/io.h>
-> >  #include <linux/slab.h>
-> > +#include <linux/err.h>
-> >
-> >  #include <mach/hardware.h>
-> >  #include <asm/mach-types.h>
-> > @@ -28,6 +29,8 @@
-> >  #include <plat/menelaus.h>
-> >  #include <plat/mcbsp.h>
-> >  #include <plat/omap44xx.h>
-> > +#include <plat/omap_hwmod.h>
-> > +#include <plat/omap_device.h>
-> >
-> >  /*---------------------------------------------------------------------
-> ----*/
-> >
-> > @@ -238,6 +241,8 @@ static inline void omap_init_uwire(void) {}
-> >
-> >  static struct resource wdt_resources[] = {
-> >  	{
-> > +		.start		= 0xfffeb000,
-> > +		.end		= 0xfffeb07F,
-> >  		.flags		= IORESOURCE_MEM,
-> >  	},
-> >  };
+> BugLink: https://bugs/launchpad.net/bugs/608266
 > 
-> This struct should probably be renamed with an omap1_ prefix.
+> Signed-off-by: Mathieu Poirier <mathieu.poirier@canonical.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> > @@ -249,24 +254,43 @@ static struct platform_device omap_wdt_device = {
-> >  	.resource	= wdt_resources,
-> >  };
-> 
-> ditto
-> 
-
-Okay
-
-> and they should be moved down just above omap_init_wdt()
-
-Okay. Will send you the updated patch series soon.
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-
+> omap2/board-omap3beagle.c
+> index 7a1b351..e1203a4 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -466,6 +466,7 @@ static void __init omap3beagle_flash_init(void)
+>  		omap3beagle_nand_data.gpmc_cs_baseaddr = (void *)
+>  			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
+>  		omap3beagle_nand_data.gpmc_baseaddr = (void *)
+> (gpmc_base_add);
+> +               gpmc_nand_init(&omap3beagle_nand_data);
+[Ghorai] things are queued for 2.6.36; can refer 
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=f450d86790ebf72ac93c7ea5addd6fa278aae64c
 
 > 
-> > -static void omap_init_wdt(void)
-> > +struct omap_device_pm_latency omap_wdt_latency[] = {
-> > +	[0] = {
-> > +		.deactivate_func = omap_device_idle_hwmods,
-> > +		.activate_func   = omap_device_enable_hwmods,
-> > +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-> > +	},
-> > +};
-> > +
-> > +static void omap2_init_wdt()
-> >  {
-> > -	if (cpu_is_omap16xx())
-> > -		wdt_resources[0].start = 0xfffeb000;
-> > -	else if (cpu_is_omap2420())
-> > -		wdt_resources[0].start = 0x48022000; /* WDT2 */
-> > -	else if (cpu_is_omap2430())
-> > -		wdt_resources[0].start = 0x49016000; /* WDT2 */
-> > -	else if (cpu_is_omap343x())
-> > -		wdt_resources[0].start = 0x48314000; /* WDT2 */
-> > -	else if (cpu_is_omap44xx())
-> > -		wdt_resources[0].start = 0x4a314000;
-> > -	else
-> > +	int id = -1;
-> > +	struct omap_device *od;
-> > +	struct omap_hwmod *oh;
-> > +	char *oh_name = "wd_timer2";
-> > +	char *name = "omap_wdt";
-> > +
-> > +	oh = omap_hwmod_lookup(oh_name);
-> > +	if (!oh) {
-> > +		pr_err("Could not look up %s\n", oh_name);
-> >  		return;
-> > +	}
+>  		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
+>  		if (platform_device_register(&omap3beagle_nand_device) < 0)
+> --
+> 1.7.0.4
 > 
-> Kevin
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
