@@ -1,77 +1,58 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/2] Put OMAP2 SPI CS in unactive state when return from  suspend
-Date: Thu, 12 Aug 2010 07:28:29 -0700
-Message-ID: <87tymzucqa.fsf@deeprootsystems.com>
-References: <AANLkTin7-ZqFRH4GXT4aUfQ4sE=8Jc=3i0j8rTH7EyBm@mail.gmail.com>
-	<871va52ent.fsf@deeprootsystems.com>
-	<AANLkTik7O1s-UAt0abyJoakSSjHGJD6CSktOD+O=BGou@mail.gmail.com>
-	<AANLkTinPbOR2OUyfiCLkkbV6gCjxib+-mmMKNf9mzeDC@mail.gmail.com>
+Subject: Re: [PM-OPP][PATCH 2/2] omap3: opp: make independent of cpufreq
+Date: Thu, 12 Aug 2010 07:34:28 -0700
+Message-ID: <87iq3fucgb.fsf@deeprootsystems.com>
+References: <1281493018-29294-1-git-send-email-nm@ti.com>
+	<1281493018-29294-3-git-send-email-nm@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0324110879@dbde02.ent.ti.com>
+	<4C627EDF.2000404@gmail.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB032411094B@dbde02.ent.ti.com>
+	<4C628BA6.6090507@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0324110E11@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:57969 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753875Ab0HLO2c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 10:28:32 -0400
-Received: by pzk26 with SMTP id 26so446984pzk.19
-        for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 07:28:31 -0700 (PDT)
-In-Reply-To: <AANLkTinPbOR2OUyfiCLkkbV6gCjxib+-mmMKNf9mzeDC@mail.gmail.com>
-	(Gregory CLEMENT's message of "Thu, 12 Aug 2010 10:54:00 +0200")
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:41525 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753875Ab0HLOeb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 10:34:31 -0400
+Received: by pwi4 with SMTP id 4so148827pwi.19
+        for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 07:34:31 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0324110E11@dbde02.ent.ti.com>
+	(Thara Gopinath's message of "Thu, 12 Aug 2010 19:50:55 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gregory CLEMENT <gclement00@gmail.com>
-Cc: spi-devel-general <spi-devel-general@lists.sourceforge.net>, linux-omap <linux-omap@vger.kernel.org>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, Nishanth Menon <menon.nishanth@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Gregory CLEMENT <gclement00@gmail.com> writes:
+"Gopinath, Thara" <thara@ti.com> writes:
 
-> 2010/8/11 Kevin Hilman <khilman@deeprootsystems.com>
->>
->> Gregory CLEMENT <gclement00@gmail.com> writes:
->>
->> > We notice that when system wake up from OFF mode, then CS is in
->> > unactive state until the first SPI transfert.
->> > For our design it lead to some conflict on this I/O.
->> > Unactive state for CS when there is no transfert shoudl be the correct
->> > behaviour: this is the purpose of these patches.
->>
->> This approach handles an off-mode transition during suspend, but if
->> off-mode is enabled, you can also have an off-mode transition during
->> idle.
->>
+[...]
+
+>>>>>>
+>>>>>>> No reason why we should have a different file for OMAP4. So a better name than opp3xxx_data.c?
+>>>>>> why do we need to have it in the same file? Remember, 3630,3430 are
+>>>>>> under OMAP3 family, but omap4 is considered a different arch.
+>>>>
+>>>> Code is more or less the same. Is that not a sufficient reason to reuse a  file ?
+>>>I dont really care as long as opp layer is usable by mpurate without
+>>>depending on cpufreq and it is maintainable without going to if else
+>>>nightmare. But personally, I dont see really reusuable code in that file
+>>>(other than doing an opp addition in a loop) it could result eventually
+>>>in a large amount of code redundancy and maintenance nightmare with
+>>>OMAP4 variants coming in.
 >
-> Well maybe I didn't use the correct words.
-> During the system life, I monitored the CS behaviour using a oscilloscope.
-> I also activate debug in omap2_mcspi, so I see when driver disable the
-> clocks and restore context when device is not used.
-> Each time the CS is in the correct state. It is only when there is a
-> suspend with the following configuration that on resume the CS is in
-> wrong state( ie activated)
-
-OK, that should be more clear in the changelog.  The way I understood
-your description, the problem was related to an off-mode transition.
-
+> Why do you say maintenance nightmare? It is going to be one opp table
+> per SoC. Anyways, Kevin what is your take on this?
 >
-> echo 1 > /mnt/pm_debug/enable_off_mode
-> echo 0 > /mnt/pm_debug/core_pwrdm/suspend
 
-fyi... this part isn't needed.  You're telling the OMAP PM core that
-you want the CORE powerdomain to go into off-mode, but you've you've
-already done that by the 'enable_off_mode' flag, which enables *all*
-powerdomains to hit off mode.
+I think we should keep separate files for each SoC listing the OPP data,
+and in those files should be *only* data.
 
-> echo 1 > /mnt/pm_debug/voltage_off_while_idle
->
->
->>
->> Since you didn't describe what the conflicts you're seeing are, I would
->> assume that you'll have the same problems in idle as in suspend, and
->> this series doesn't address the idle case.
->
-> I didn't see any problem in idle case, just when system resume from a
-> suspend to ram (echo mem > /sys/power/state)
-
-OK, I'd recommend you update the changelog to make that more clear.
-
-Then, I'll leave it to the SPI folks to review your patch.
+The init functions across these files will be basically the same, so
+maybe the common code should be pulled out into a separate file (pm.c?),
+and the data files have a very simple init function (device_initcall) that just registers
+their data.
 
 Kevin
+
