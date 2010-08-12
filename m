@@ -1,54 +1,136 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: linux hardware spinlock framework for heterogeneous processor SOCs?
-Date: Wed, 11 Aug 2010 21:02:12 -0500
-Message-ID: <4C635624.1090407@ti.com>
-References: <1279558221-14954-1-git-send-email-h-kanigeri2@ti.com> <1279558221-14954-4-git-send-email-h-kanigeri2@ti.com> <4C518AC0.6070809@ti.com> <F39349C6FA641B4A831B7BF4EBF4D4E1480D9D14@dlee03.ent.ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH 6/6 v2] OMAP2PLUS: WDT: Conversion to runtime PM
+Date: Thu, 12 Aug 2010 10:10:26 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C65D771E@dbde02.ent.ti.com>
+References: <1281521471-15802-1-git-send-email-charu@ti.com>
+	<1281521471-15802-2-git-send-email-charu@ti.com>
+	<1281521471-15802-3-git-send-email-charu@ti.com>
+	<1281521471-15802-4-git-send-email-charu@ti.com>
+	<1281521471-15802-5-git-send-email-charu@ti.com>
+	<1281521471-15802-6-git-send-email-charu@ti.com>
+	<1281521471-15802-7-git-send-email-charu@ti.com>
+ <87lj8d0z0e.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51499 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57006 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932932Ab0HLCCV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Aug 2010 22:02:21 -0400
-In-Reply-To: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9D14@dlee03.ent.ti.com>
+	id S1751036Ab0HLEkj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 00:40:39 -0400
+In-Reply-To: <87lj8d0z0e.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Que, Simon" <sque@ti.com>, LKML <linux-kernel@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "wim@iguana.be" <wim@iguana.be>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-Changing subject, the original thread is at [1], looping in lkml for a 
-wider audience for advice.
 
-Que, Simon had written, on 08/11/2010 05:03 PM, the following:
->> just a curious question:
->>
->> Is there no h/w spinlock implementation for other architectures in
->> linux? I mean the concept does not seem unique for a heterogenous
->> processor environments now a days.. if it does exist, maybe we have two
->> options:
->> * extend standard spinlock architecture to handle h/w spinlocks as well
->> * establish a new framework for h/w spinlocks..
->>
+
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Thursday, August 12, 2010 12:15 AM
+> To: Varadarajan, Charulatha
+> Cc: linux-omap@vger.kernel.org; wim@iguana.be; paul@pwsan.com; Cousson,
+> Benoit; Nayak, Rajendra; Basak, Partha
+> Subject: Re: [PATCH 6/6 v2] OMAP2PLUS: WDT: Conversion to runtime PM
 > 
-> Thank you for bringing that to my attention.  I did a quick search and
- > haven't found any hwspinlock module elsewhere.  But should there be
- > hwspinlocks over multiple architectures in the future, we can definitely
- > consider something like the two solutions that you suggested, so that
- > they can be used from platform-independent kernel code.  However, right
- > now we can develop OMAP hwspinlock independently of that.
+> Charulatha V <charu@ti.com> writes:
+> 
+> > This patch converts the OMAP Watchdog timer driver to
+> > get adapted to HWMOD FW and to use the runtime PM APIs.
+> >
+> > Signed-off-by: Charulatha V <charu@ti.com>
+> > Signed-off-by: Basak, Partha <p-basak2@ti.com>
+> 
+> This series looks good.  One minor comment below...
+> 
+> > ---
+> >  arch/arm/plat-omap/devices.c |   52 ++++++++++++++++++++++++++++++-----
+> ------
+> >  drivers/watchdog/omap_wdt.c  |   43 ++++++----------------------------
+> >  2 files changed, 46 insertions(+), 49 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+> > index d1920be..efe2aff 100644
+> > --- a/arch/arm/plat-omap/devices.c
+> > +++ b/arch/arm/plat-omap/devices.c
+> > @@ -15,6 +15,7 @@
+> >  #include <linux/platform_device.h>
+> >  #include <linux/io.h>
+> >  #include <linux/slab.h>
+> > +#include <linux/err.h>
+> >
+> >  #include <mach/hardware.h>
+> >  #include <asm/mach-types.h>
+> > @@ -28,6 +29,8 @@
+> >  #include <plat/menelaus.h>
+> >  #include <plat/mcbsp.h>
+> >  #include <plat/omap44xx.h>
+> > +#include <plat/omap_hwmod.h>
+> > +#include <plat/omap_device.h>
+> >
+> >  /*---------------------------------------------------------------------
+> ----*/
+> >
+> > @@ -238,6 +241,8 @@ static inline void omap_init_uwire(void) {}
+> >
+> >  static struct resource wdt_resources[] = {
+> >  	{
+> > +		.start		= 0xfffeb000,
+> > +		.end		= 0xfffeb07F,
+> >  		.flags		= IORESOURCE_MEM,
+> >  	},
+> >  };
+> 
+> This struct should probably be renamed with an omap1_ prefix.
+> 
+> > @@ -249,24 +254,43 @@ static struct platform_device omap_wdt_device = {
+> >  	.resource	= wdt_resources,
+> >  };
+> 
+> ditto
+> 
 
-I did glance through the kernel commit log, and nothing remotely seems 
-to match up at least in my opinion (closest seemed to be [2] 
-drivers/gpu/drm/ - but it did not seem relevant here). If this concept 
-is unique to OMAP family alone, then I guess it makes sense to introduce 
-SOC specific API library for usage. hoping for some suggestions to 
-enlighten us.
+Okay
 
-Ref:
-[1] http://marc.info/?t=127955774200003&r=1&w=2
-[2] http://dri.sourceforge.net/doc/hardware_locking_low_level.html
+> and they should be moved down just above omap_init_wdt()
 
--- 
-Regards,
-Nishanth Menon
+Okay. Will send you the updated patch series soon.
+
+> 
+> > -static void omap_init_wdt(void)
+> > +struct omap_device_pm_latency omap_wdt_latency[] = {
+> > +	[0] = {
+> > +		.deactivate_func = omap_device_idle_hwmods,
+> > +		.activate_func   = omap_device_enable_hwmods,
+> > +		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> > +	},
+> > +};
+> > +
+> > +static void omap2_init_wdt()
+> >  {
+> > -	if (cpu_is_omap16xx())
+> > -		wdt_resources[0].start = 0xfffeb000;
+> > -	else if (cpu_is_omap2420())
+> > -		wdt_resources[0].start = 0x48022000; /* WDT2 */
+> > -	else if (cpu_is_omap2430())
+> > -		wdt_resources[0].start = 0x49016000; /* WDT2 */
+> > -	else if (cpu_is_omap343x())
+> > -		wdt_resources[0].start = 0x48314000; /* WDT2 */
+> > -	else if (cpu_is_omap44xx())
+> > -		wdt_resources[0].start = 0x4a314000;
+> > -	else
+> > +	int id = -1;
+> > +	struct omap_device *od;
+> > +	struct omap_hwmod *oh;
+> > +	char *oh_name = "wd_timer2";
+> > +	char *name = "omap_wdt";
+> > +
+> > +	oh = omap_hwmod_lookup(oh_name);
+> > +	if (!oh) {
+> > +		pr_err("Could not look up %s\n", oh_name);
+> >  		return;
+> > +	}
+> 
+> Kevin
