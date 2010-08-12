@@ -1,48 +1,53 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: omap3630: cpu revision bits are different
-Date: Thu, 12 Aug 2010 18:18:59 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E81471BE@dbde02.ent.ti.com>
+From: Hari Kanigeri <hari.kanigeri@gmail.com>
+Subject: Re: dspbridge and the omapl1x
+Date: Thu, 12 Aug 2010 08:40:07 -0500
+Message-ID: <AANLkTikA0a2s4Vkq1PYFo_bsA4vWkCgKR6foFDj8x-Wj@mail.gmail.com>
+References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
+	<AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
+	<AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
+	<AANLkTinyg1+FMLBDgMTpfOK2iy=yzGqsd1XA+xsZ9sse@mail.gmail.com>
+	<AANLkTincmfyydjQxsyAR_od13O15Oimyr5QBd-9gCess@mail.gmail.com>
+	<AANLkTikVNhNRki4UoJEK2W4mjS2K64gBEvQxYn8BOyY1@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E80ACF17@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34803 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751879Ab0HLMtD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 08:49:03 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7CCn0YL000712
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 07:49:02 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o7CCmxJk011387
-	for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 18:18:59 +0530 (IST)
-Content-Language: en-US
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:50333 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753829Ab0HLNkI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 09:40:08 -0400
+Received: by ywh1 with SMTP id 1so390019ywh.19
+        for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 06:40:08 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E80ACF17@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Kamoolkar, Mugdha" <mugdha@ti.com>
+Cc: Ben Gardiner <bengardiner@nanometrics.ca>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Uribe de Leon, Armando" <x0095078@ti.com>, "Menon, Nishanth" <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, "Sapiens, Rene" <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, FelipeContreras <felipe.contreras@gmail.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Uppal, Deepali" <deepali@ti.com>
 
-Hi all,
+Mugdha,
 
-While re working on the cpu revision patch, I came
-across these definitions:
+On Thu, Aug 12, 2010 at 1:16 AM, Kamoolkar, Mugdha <mugdha@ti.com> wrote:
+> Ben,
+>
+>>
+>>
+>> >
+>> > I'm still not sure about the iommu features required by dspbridge, I
+>> > will need to look into this. But 2+3 sound like they could be provided
+>> > by DSPLink itself. Would it be sane to put dspbridge on top of
+>> > DSPLink? Just to sound it out, the DSP-side base image could be
+>> > DSPBios + DSPLink (DSP-side) and the ARM-side would be made of
+>> > dspbridge where the IPC is DSP Link 'compatible'. This could avoid a
+>> > rewrite of the DSP-side of dspbridge maybe?
+>>
+>> Probably over-kill to get the features you want.
+> iommu could not be adapted for OMAPL1xx since it abstracts the DSP MMU, which is non-existent on OMAPL1xx devices.
+>
+> Also, OMAPL1xx devices do not use mailbox interrupts. They have a different type of IPC interrupt, which is not mailbox. So a different kind of abstraction would be required to be able to use either mailbox or this different IPC interrupt.
 
-#define OMAP3630_REV_ES1_0      0x36300034
-#define OMAP3630_REV_ES1_1      0x36300134
-#define OMAP3630_REV_ES1_2      0x36300234
+Thanks for providing information on OMAPL1xx devices. I wasn't aware
+of OMAP1 architecture.
 
-Contrast this with:
-
-#define OMAP3430_REV_ES1_0      0x34300034
-#define OMAP3430_REV_ES2_0      0x34301034
-#define OMAP3430_REV_ES2_1      0x34302034
-
-I may have missed the discussion on this list, but
-wanted to quickly check if the difference in intended
-OR accidental.
-
-I do recognize that definitions for 3630 start at lower
-nibble, so they appear to be better choice.
-
+Thank you,
 Best regards,
-Sanjeev
+Hari
