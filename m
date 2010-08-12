@@ -1,42 +1,36 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: dspbridge and the omapl1x
-Date: Thu, 12 Aug 2010 09:23:43 +0300
-Message-ID: <20100812062343.GD23362@nokia.com>
-References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
- <AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
- <AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
- <AANLkTinyg1+FMLBDgMTpfOK2iy=yzGqsd1XA+xsZ9sse@mail.gmail.com>
- <AANLkTincmfyydjQxsyAR_od13O15Oimyr5QBd-9gCess@mail.gmail.com>
- <AANLkTikVNhNRki4UoJEK2W4mjS2K64gBEvQxYn8BOyY1@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E80ACF17@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to get board
+	data
+Date: Thu, 12 Aug 2010 09:40:19 +0300
+Message-ID: <AANLkTikDhzGVFZhNJZic9xYX9bL_NhOW=4LS-cTFSG0i@mail.gmail.com>
+References: <1281550913-17633-1-git-send-email-ohad@wizery.com>
+	<1281550913-17633-4-git-send-email-ohad@wizery.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110ABD@dbde02.ent.ti.com>
+	<20100811184742.GA21778@nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC1@dbde02.ent.ti.com>
+	<20100811185724.GD21778@nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC7@dbde02.ent.ti.com>
+	<20100811212513.GC827@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:22903 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758066Ab0HLGXQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 02:23:16 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E80ACF17@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100811212513.GC827@n2100.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Kalle Valo <kalle.valo@iki.fi>, "Pandita, Vikram" <vikram.pandita@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Nicolas Pitre <nico@fluxnic.net>, San Mehat <san@google.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ido Yariv <ido@wizery.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "ext Kamoolkar, Mugdha" <mugdha@ti.com>
-Cc: Hari Kanigeri <hari.kanigeri@gmail.com>, Ben Gardiner <bengardiner@nanometrics.ca>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Uribe de Leon, Armando" <x0095078@ti.com>, "Menon, Nishanth" <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, "Sapiens, Rene" <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, FelipeContreras <felipe.contreras@gmail.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Uppal, Deepali" <deepali@ti.com>
 
-Hi,
+On Thu, Aug 12, 2010 at 12:25 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+>I've outlined a far simpler and easiler solution
+> which avoids this kind of abuse, and given suggestions on how to extend
+> it to support multiple instances.
+>
 
-On Thu, Aug 12, 2010 at 08:16:23AM +0200, ext Kamoolkar, Mugdha wrote:
->One thing I would like to mention is that the DMM feature does require 
->the slave DSP to have an MMU. The OMAPL1xx devices do not have MMU for 
->the DSP. DMM cannot be implemented without the DSP having an MMU. 
->Hence, even if you ported DSPBridge to OMAPL1xx devices, you could not 
->make use of the DMM feature.
+Do you mean:
+http://www.spinics.net/lists/arm-kernel/msg95338.html
+?
 
-your lines are still too wide. Tell your mailer to break them on 80 
-characters.
+I was under the impression you eventually discarded that approach in that post.
 
--- 
-balbi
+Please tell me if you still support it,
 
-DefectiveByDesign.org
+Thanks,
+Ohad.
