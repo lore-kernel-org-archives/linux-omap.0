@@ -1,50 +1,52 @@
-From: Hari Kanigeri <hari.kanigeri@gmail.com>
-Subject: Re: dspbridge and the omapl1x
-Date: Thu, 12 Aug 2010 18:28:22 -0600
-Message-ID: <AANLkTimzLZKn3nUT2=nFAzLzyzuhUVz=Y9h5ciqTu90h@mail.gmail.com>
-References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
-	<AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
-	<AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
-	<AANLkTinyg1+FMLBDgMTpfOK2iy=yzGqsd1XA+xsZ9sse@mail.gmail.com>
-	<AANLkTincmfyydjQxsyAR_od13O15Oimyr5QBd-9gCess@mail.gmail.com>
-	<AANLkTikVNhNRki4UoJEK2W4mjS2K64gBEvQxYn8BOyY1@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E80ACF17@dbde02.ent.ti.com>
-	<AANLkTikpKWxfSEgJLx3v5Q7kEwkgAyvU_76vRGbnCjZQ@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap3630: cpu revision bits are different
+Date: Fri, 13 Aug 2010 09:22:57 +0300
+Message-ID: <20100813062255.GA12706@atomide.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E81471BE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:56509 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755607Ab0HMA2X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 20:28:23 -0400
-Received: by gxk23 with SMTP id 23so672682gxk.19
-        for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 17:28:22 -0700 (PDT)
-In-Reply-To: <AANLkTikpKWxfSEgJLx3v5Q7kEwkgAyvU_76vRGbnCjZQ@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62596 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752757Ab0HMGXG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 02:23:06 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E81471BE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ben Gardiner <bengardiner@nanometrics.ca>
-Cc: "Kamoolkar, Mugdha" <mugdha@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Uribe de Leon, Armando" <x0095078@ti.com>, "Menon, Nishanth" <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, "Sapiens, Rene" <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, FelipeContreras <felipe.contreras@gmail.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Uppal, Deepali" <deepali@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> On Thu, Aug 12, 2010 at 2:16 AM, Kamoolkar, Mugdha <mugdha@ti.com> wrote:
->> You are correct that dynamic linking and loading is a feature that is available in DSPBridge, and which is missing in DSPLink, which could work on OMAPL1xx if you ported DSPBridge to OMAPL1xx
->
-> I imagined that the lack of MMU would be a blocker in porting
-> dspbridge since it would be impossible to support scattered (in PAs)
-> pages on the DSP-side. But Mugdha makes it sound like the port could
-> be accomplished with DMM omitted.
->
-> Also I believe that the new Contiguous Memory Allocation (CMA)
-> framework was developed specifically for systems that need to allocate
-> physically contiguous memory because they don't have an MMU. What
-> would say to avoiding the IOMMU requirement and keeping DMM by using
-> physically contiguous dynamically allocated memory regions like those
-> provided by the new CMA [2]?
->
+* Premi, Sanjeev <premi@ti.com> [100812 15:42]:
+> Hi all,
+> 
+> While re working on the cpu revision patch, I came
+> across these definitions:
+> 
+> #define OMAP3630_REV_ES1_0      0x36300034
+> #define OMAP3630_REV_ES1_1      0x36300134
+> #define OMAP3630_REV_ES1_2      0x36300234
+> 
+> Contrast this with:
+> 
+> #define OMAP3430_REV_ES1_0      0x34300034
+> #define OMAP3430_REV_ES2_0      0x34301034
+> #define OMAP3430_REV_ES2_1      0x34302034
+> 
+> I may have missed the discussion on this list, but
+> wanted to quickly check if the difference in intended
+> OR accidental.
 
-Just curious as how CMA is different from Android's pmem.
+Hmm for those defines it should be just a running
+number for the revision so we should most likely
+just renumber the OMAP3430_REV_ES bits.
+ 
+> I do recognize that definitions for 3630 start at lower
+> nibble, so they appear to be better choice.
 
->
+Yeah. Care to do a patch to renumber 3430 revision
+bits for the next merge window? AFAIK, that should
+change anything in the functionality so it's only
+a cosmetic change. Should be grepped carefully though :)
 
-Thank you,
-Best regards,
-Hari
+Tony
