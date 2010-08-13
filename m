@@ -1,65 +1,54 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: omap3630: cpu revision bits are different
-Date: Fri, 13 Aug 2010 13:24:08 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E81475D0@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E81471BE@dbde02.ent.ti.com>
- <20100813062255.GA12706@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/6] omap fixes for upcoming 2.6.36-rc1
+Date: Fri, 13 Aug 2010 11:01:38 +0300
+Message-ID: <20100813080034.18750.15410.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55790 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755024Ab0HMHyQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 03:54:16 -0400
-In-Reply-To: <20100813062255.GA12706@atomide.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63647 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755243Ab0HMIBp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 04:01:45 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Friday, August 13, 2010 11:53 AM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: omap3630: cpu revision bits are different
-> 
-> * Premi, Sanjeev <premi@ti.com> [100812 15:42]:
-> > Hi all,
-> > 
-> > While re working on the cpu revision patch, I came
-> > across these definitions:
-> > 
-> > #define OMAP3630_REV_ES1_0      0x36300034
-> > #define OMAP3630_REV_ES1_1      0x36300134
-> > #define OMAP3630_REV_ES1_2      0x36300234
-> > 
-> > Contrast this with:
-> > 
-> > #define OMAP3430_REV_ES1_0      0x34300034
-> > #define OMAP3430_REV_ES2_0      0x34301034
-> > #define OMAP3430_REV_ES2_1      0x34302034
-> > 
-> > I may have missed the discussion on this list, but
-> > wanted to quickly check if the difference in intended
-> > OR accidental.
-> 
-> Hmm for those defines it should be just a running
-> number for the revision so we should most likely
-> just renumber the OMAP3430_REV_ES bits.
->  
-> > I do recognize that definitions for 3630 start at lower
-> > nibble, so they appear to be better choice.
-> 
-> Yeah. Care to do a patch to renumber 3430 revision
-> bits for the next merge window? AFAIK, that should
-> change anything in the functionality so it's only
-> a cosmetic change. Should be grepped carefully though :)
+Hi all,
 
-Will do so... will have it ready by MON.
+Here are some omap fixes for review.
 
-> 
-> Tony
-> 
+Regards,
+
+Tony
+
+---
+
+Kevin Hilman (1):
+      OMAP3: PM: ensure IO wakeups are properly disabled
+
+Nishanth Menon (1):
+      omap3: id: fix 3630 rev detection
+
+Tony Lindgren (3):
+      omap: Fix sev instruction usage for multi-omap
+      omap: Use CONFIG_SMP for test_for_ipi and test_for_ltirq
+      omap: Fix omap_4430sdp_defconfig for make oldconfig
+
+stanley.miao (1):
+      OMAP3: Fix a cpu type check problem
+
+
+ arch/arm/configs/omap_4430sdp_defconfig        |    3 +++
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/clock3xxx_data.c           |   14 +++++++-------
+ arch/arm/mach-omap2/id.c                       |    2 +-
+ arch/arm/mach-omap2/include/mach/entry-macro.S |    6 ++++--
+ arch/arm/mach-omap2/omap-smp.c                 |    3 +--
+ arch/arm/mach-omap2/pm34xx.c                   |    4 +++-
+ arch/arm/plat-omap/include/plat/smp.h          |    7 -------
+ 8 files changed, 20 insertions(+), 20 deletions(-)
+
+-- 
+Signature
