@@ -1,115 +1,127 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCHv2 7/8] OMAP3: PM: Adding T2 enabling of smartreflex support
-Date: Fri, 13 Aug 2010 19:17:10 +0530
-Message-ID: <1281707231-3026-8-git-send-email-thara@ti.com>
-References: <1281707231-3026-1-git-send-email-thara@ti.com>
+Subject: [PATCHv2 0/8] OMAP3: Adding Smartreflex and Voltage driver support
+Date: Fri, 13 Aug 2010 19:17:03 +0530
+Message-ID: <1281707231-3026-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53799 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:53791 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761649Ab0HMNr0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 09:47:26 -0400
-In-Reply-To: <1281707231-3026-1-git-send-email-thara@ti.com>
+	with ESMTP id S1761639Ab0HMNrZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 09:47:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, dderrick@ti.com, Thara Gopinath <thara@ti.com>
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, dderrick@ti.com, thara gopinath <thara@ti.com>
 
-This patch adds support in the twl4030 driver to hook up
-the API enabling smartreflex support on PMIC side with the
-smartreflex driver. Without this the OMAP smartreflex modules
-will not function.
+From: thara gopinath <thara@ti.com>
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- drivers/mfd/twl-core.c      |    7 +++++--
- drivers/mfd/twl4030-power.c |   29 +++++++++++++++++++++++++++++
- include/linux/i2c/twl.h     |    1 +
- 3 files changed, 35 insertions(+), 2 deletions(-)
+This patch series introduces smartreflex and voltage driver support
+for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
+control for real-time voltage adjustments.
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 720e099..677b903 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1009,8 +1009,11 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	clocks_init(&client->dev, pdata->clock);
- 
- 	/* load power event scripts */
--	if (twl_has_power() && pdata->power)
--		twl4030_power_init(pdata->power);
-+	if (twl_has_power()) {
-+		twl4030_power_sr_init();
-+		 if (pdata->power)
-+			twl4030_power_init(pdata->power);
-+	}
- 
- 	/* Maybe init the T2 Interrupt subsystem */
- 	if (client->irq
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 7efa878..0e4d215 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -31,6 +31,8 @@
- 
- #include <asm/mach-types.h>
- 
-+#include <plat/smartreflex.h>
-+
- static u8 twl4030_start_script_address = 0x2b;
- 
- #define PWR_P1_SW_EVENTS	0x10
-@@ -63,6 +65,10 @@ static u8 twl4030_start_script_address = 0x2b;
- #define R_MEMORY_ADDRESS	PHY_TO_OFF_PM_MASTER(0x59)
- #define R_MEMORY_DATA		PHY_TO_OFF_PM_MASTER(0x5a)
- 
-+/* Smartreflex Control */
-+#define R_DCDC_GLOBAL_CFG	PHY_TO_OFF_PM_RECEIVER(0x61)
-+#define CFG_ENABLE_SRFLX	0x08
-+
- #define R_PROTECT_KEY		0x0E
- #define R_KEY_1			0xC0
- #define R_KEY_2			0x0C
-@@ -511,6 +517,29 @@ int twl4030_remove_script(u8 flags)
- 	return err;
- }
- 
-+/* API to enable smrtreflex on Triton side */
-+static void twl4030_smartreflex_init(void)
-+{
-+	int ret = 0;
-+	u8 read_val;
-+
-+	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &read_val,
-+			R_DCDC_GLOBAL_CFG);
-+	read_val |= CFG_ENABLE_SRFLX;
-+	ret |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, read_val,
-+			R_DCDC_GLOBAL_CFG);
-+}
-+
-+struct omap_smartreflex_pmic_data twl4030_sr_data = {
-+       .sr_pmic_init   = twl4030_smartreflex_init,
-+};
-+
-+void __init twl4030_power_sr_init()
-+{
-+	/* Register the SR init API with the Smartreflex driver */
-+	omap_sr_register_pmic(&twl4030_sr_data);
-+}
-+
- void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
- {
- 	int err = 0;
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 6de90bf..b02011e 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -550,6 +550,7 @@ struct twl4030_power_data {
- };
- 
- extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
-+extern void twl4030_power_sr_init(void);
- extern int twl4030_remove_script(u8 flags);
- 
- struct twl4030_codec_audio_data {
+Originally all the functionalities introduced in this patch
+were present in arch/arm/mach-omap2/smartreflex.c file in Kevin's
+pm tree. This patch series does a major rewrite of this file
+and introduces a separate voltage driver. Major contributors
+to the original driver are
+
+Eduardo Valentin (1):
+      OMAP3: PM: SmartReflex: Fix scheduled while atomic problem
+
+Kalle Jokiniemi (1):
+      OMAP3: PM: SmartReflex driver integration
+
+Kevin Hilman (2):
+      temp: SR: IO_ADDRESS conversion
+      OMAP: SR: OPP interfaces removed from OMAP PM layer
+
+Nishanth Menon (1):
+      omap3: pm: sr: replace get_opp with freq_to_opp
+
+Paul Walmsley (2):
+      OMAP SR: use opp_find_opp_by_opp_id()
+      OMAP SR: use OPP API for OPP ID, remove direct access
+
+Phil Carmody (2):
+      OMAP3: PM: Don't do unnecessary searches in omap_sr_vdd*_autocomp_store
+      OMAP3: PM: Early exit on invalid parameters
+
+Rajendra Nayak (9):
+      OMAP3: SR: Fix init voltage on OPP change
+      OMAP3: SR: Update VDD1/2 voltages at boot
+      OMAP3: SR: Use sysclk for SR CLKLENGTH calc
+      OMAP3: SR: Reset voltage level on SR disable
+      OMAP3: SR: Replace printk's with pr_* calls
+      OMAP3: SR: Remove redundant defines
+      OMAP3: SR: Fix SR driver to check for omap-pm return values
+      OMAP3: PM: Put optimal SMPS stabilization delay
+      OMAP3: SR: Wait for VP idle before a VP disable
+
+Roger Quadros (4):
+      OMAP3: PM: Fix Smartreflex when used with PM_NOOP layer
+      OMAP3: PM: Make Smartreflex driver independent of SRF
+      OMAP3: PM: Do not Enable SmartReflex if OPP tables not defined
+      OMAP3: PM: Smartreflex: Fix VDD2 OPP determining logic
+
+Romit Dasgupta (1):
+      omap: pm: SR: use enum for OPP types
+
+Teerth Reddy (1):
+      OMAP3: SR: Replace SR_PASS/FAIL,SR_TRUE/FALSE
+
+Tero Kristo (1):
+      Smartreflex: Avoid unnecessary spam
+
+This patch series is based against origin/opp branch off
+Kevin's pm tree which in turn is based off lo-master.
+This series will apply against lo-master also but will
+break compilation due to lack of opp framework support
+on lo-master.
+
+This patch series has been tested on OMAP3430 SDP with the extra five patches
+from origin/cpufreq branch off Kevin's pm tree applied. This series
+has been tested with with omap3_defconfig with the following
+menuconfig options enabled.
+System type -> TI OMAP Implementations -> Smartreflex Support
+System type -> TI OMAP Implementations ->
+		Class 3 mode of Smartreflex Implementation
+
+Thara Gopinath (8):
+  OMAP: PM: Allowing an early init of pm debugfs driver.
+  OMAP3: PM: Adding voltage driver support for OMAP3
+  OMAP3: PM: Adding smartreflex driver support.
+  OMAP3: PM: Adding smartreflex device file.
+  OMAP3: PM: Adding smartreflex hwmod data
+  OMAP3: PM: Adding smartreflex class3 driver
+  OMAP3: PM: Adding T2 enabling of smartreflex support
+  OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
+
+ arch/arm/mach-omap2/Makefile                  |    5 +-
+ arch/arm/mach-omap2/board-3430sdp.c           |    2 +
+ arch/arm/mach-omap2/board-3630sdp.c           |    2 +
+ arch/arm/mach-omap2/board-zoom3.c             |    2 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  249 +++++
+ arch/arm/mach-omap2/pm-debug.c                |   18 +-
+ arch/arm/mach-omap2/smartreflex-class3.c      |   61 ++
+ arch/arm/mach-omap2/smartreflex-class3.h      |   23 +
+ arch/arm/mach-omap2/smartreflex.c             | 1009 +++++++++++++++++++
+ arch/arm/mach-omap2/sr_device.c               |  185 ++++
+ arch/arm/mach-omap2/voltage.c                 | 1275 +++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig                    |   41 +
+ arch/arm/plat-omap/include/plat/control.h     |   27 +
+ arch/arm/plat-omap/include/plat/smartreflex.h |  285 ++++++
+ arch/arm/plat-omap/include/plat/voltage.h     |  137 +++
+ drivers/mfd/twl-core.c                        |    7 +-
+ drivers/mfd/twl4030-power.c                   |   29 +
+ include/linux/i2c/twl.h                       |    1 +
+ 18 files changed, 3353 insertions(+), 5 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
+ create mode 100644 arch/arm/mach-omap2/smartreflex.c
+ create mode 100644 arch/arm/mach-omap2/sr_device.c
+ create mode 100644 arch/arm/mach-omap2/voltage.c
+ create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
+ create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
+
 -- 
 1.7.1.GIT
 
