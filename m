@@ -1,59 +1,63 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
-Date: Fri, 13 Aug 2010 18:17:00 +0530
-Message-ID: <0ebd01cb3ae5$a0dcfc70$LocalHost@wipblrx0099946>
-References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <4BF6753B.60201@cam.ac.uk>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH v3 1/3] ARM: OMAP: Beagle: revision detection
+Date: Fri, 13 Aug 2010 07:51:10 -0500
+Message-ID: <AANLkTi=xn6A_3fAZObHn+DnMvWPe2HMJWxZOoUUX-iwZ@mail.gmail.com>
+References: <1281702070-10525-1-git-send-email-robertcnelson@gmail.com>
+	<20100813154454.aca470ee.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Jonathan Cameron <jic23@cam.ac.uk>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:56358 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934260Ab0HMMvM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 08:51:12 -0400
+Received: by ewy23 with SMTP id 23so1183195ewy.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 Aug 2010 05:51:10 -0700 (PDT)
+In-Reply-To: <20100813154454.aca470ee.jhnikula@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
------ Original Message ----- 
-From: "Jonathan Cameron" <jic23@cam.ac.uk>
-To: "Hemanth V" <hemanthv@ti.com>
-Cc: <linux-input@vger.kernel.org>; <linux-kernel@vger.kernel.org>; 
-<linux-omap@vger.kernel.org>
-Sent: Friday, May 21, 2010 5:27 PM
-Subject: Re: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
-
-
-> On 05/21/10 07:52, Hemanth V wrote:
->> From: Hemanth V <hemanthv@ti.com>
->> Date: Thu, 20 May 2010 20:18:17 +0530
->> Subject: [PATCH] input: CMA3000 Accelerometer Driver
->>
->> This patch adds support for CMA3000 Tri-axis accelerometer, which
->> supports Motion detect, Measurement and Free fall modes.
->> CMA3000 supports both I2C/SPI bus for communication, currently the
->> driver supports I2C based communication.
->>
->> Driver reports acceleration data through input subsystem and supports
->> sysfs for configuration changes.
->>
->> This is V2 of patch, which fixes open source review comments
->>
+On Fri, Aug 13, 2010 at 7:44 AM, Jarkko Nikula <jhnikula@gmail.com> wro=
+te:
+> On Fri, 13 Aug 2010 07:21:08 -0500
+> Robert Nelson <robertcnelson@gmail.com> wrote:
 >
-> Hi,
+>> + =A0 =A0 /* Older U-Boot's such as 2009.01-dirty don't have the pin=
+s
+>> + =A0 =A0 =A0* muxed correctly to use the generic gpio_direction_inp=
+ut();
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 omap_mux_init_gpio(171, OMAP_PIN_INPUT_PULLUP);
+>> + =A0 =A0 omap_mux_init_gpio(172, OMAP_PIN_INPUT_PULLUP);
+>> + =A0 =A0 omap_mux_init_gpio(173, OMAP_PIN_INPUT_PULLUP);
+>> +
 >
-> The driver is nice and clean.
+> Comment (and code) is wrong: gpio_direction_input is still required t=
+o
+> setup pin direction and letting the gpiolib to setup internal data
+> structures properly. I.e. both mux setup and gpio_direction_input are
+> required.
 >
-> Still leaving aside the long argued question of whether this should be
-> in input.  If you care for my views on that there are plenty or other
-> threads! There are a few things I'd still like to suggest:
+>
+> --
+> Jarkko
 >
 
-Jonathan, Andrew
+Thanks Jarkko,
 
-Is there any way forward for this patch, I am unable to induce any response
-from the input maintainer
+I'll add the gpio_direction_input's back.. I assumed those two
+functions were similar, and it still works probably by mostly luck..
 
-Thanks
-Hemanth 
+Regards,
 
+--=20
+Robert Nelson
+http://www.rcn-ee.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
