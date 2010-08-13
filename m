@@ -1,60 +1,50 @@
-From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to get board data
-Date: Fri, 13 Aug 2010 03:01:17 +0300
-Message-ID: <AANLkTi=f_vghwQZn3HHs_CJKYiMf_pp85JHujsyvRg3J@mail.gmail.com>
-References: <1281550913-17633-1-git-send-email-ohad@wizery.com>
-	<1281550913-17633-4-git-send-email-ohad@wizery.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0324110ABD@dbde02.ent.ti.com>
-	<20100811184742.GA21778@nokia.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0324110AC1@dbde02.ent.ti.com>
-	<20100811185724.GD21778@nokia.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0324110AC7@dbde02.ent.ti.com>
-	<20100811212513.GC827@n2100.arm.linux.org.uk>
-	<AANLkTikDhzGVFZhNJZic9xYX9bL_NhOW=4LS-cTFSG0i@mail.gmail.com>
-	<20100812095546.GA3354@n2100.arm.linux.org.uk>
+From: Hari Kanigeri <hari.kanigeri@gmail.com>
+Subject: Re: dspbridge and the omapl1x
+Date: Thu, 12 Aug 2010 18:28:22 -0600
+Message-ID: <AANLkTimzLZKn3nUT2=nFAzLzyzuhUVz=Y9h5ciqTu90h@mail.gmail.com>
+References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
+	<AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
+	<AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
+	<AANLkTinyg1+FMLBDgMTpfOK2iy=yzGqsd1XA+xsZ9sse@mail.gmail.com>
+	<AANLkTincmfyydjQxsyAR_od13O15Oimyr5QBd-9gCess@mail.gmail.com>
+	<AANLkTikVNhNRki4UoJEK2W4mjS2K64gBEvQxYn8BOyY1@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E80ACF17@dbde02.ent.ti.com>
+	<AANLkTikpKWxfSEgJLx3v5Q7kEwkgAyvU_76vRGbnCjZQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100812095546.GA3354-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti-l0cyMroinI0@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr-l0cyMroinI0@public.gmane.org>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:56509 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755607Ab0HMA2X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 20:28:23 -0400
+Received: by gxk23 with SMTP id 23so672682gxk.19
+        for <linux-omap@vger.kernel.org>; Thu, 12 Aug 2010 17:28:22 -0700 (PDT)
+In-Reply-To: <AANLkTikpKWxfSEgJLx3v5Q7kEwkgAyvU_76vRGbnCjZQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ben Gardiner <bengardiner@nanometrics.ca>
+Cc: "Kamoolkar, Mugdha" <mugdha@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Uribe de Leon, Armando" <x0095078@ti.com>, "Menon, Nishanth" <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, "Sapiens, Rene" <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, FelipeContreras <felipe.contreras@gmail.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Uppal, Deepali" <deepali@ti.com>
 
-On Thursday, August 12, 2010, Russell King - ARM Linux
-<linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
-> On Thu, Aug 12, 2010 at 09:40:19AM +0300, Ohad Ben-Cohen wrote:
->> On Thu, Aug 12, 2010 at 12:25 AM, Russell King - ARM Linux
->> <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
->> >I've outlined a far simpler and easiler solution
->> > which avoids this kind of abuse, and given suggestions on how to extend
->> > it to support multiple instances.
->> >
->>
->> Do you mean:
->> http://www.spinics.net/lists/arm-kernel/msg95338.html
->> ?
->>
->> I was under the impression you eventually discarded that approach in
->> that post.
+> On Thu, Aug 12, 2010 at 2:16 AM, Kamoolkar, Mugdha <mugdha@ti.com> wrote:
+>> You are correct that dynamic linking and loading is a feature that is available in DSPBridge, and which is missing in DSPLink, which could work on OMAPL1xx if you ported DSPBridge to OMAPL1xx
 >
-> Indeed.
+> I imagined that the lack of MMU would be a blocker in porting
+> dspbridge since it would be impossible to support scattered (in PAs)
+> pages on the DSP-side. But Mugdha makes it sound like the port could
+> be accomplished with DMM omitted.
 >
-> I'm talking about my first suggestion:
+> Also I believe that the new Contiguous Memory Allocation (CMA)
+> framework was developed specifically for systems that need to allocate
+> physically contiguous memory because they don't have an MMU. What
+> would say to avoiding the IOMMU requirement and keeping DMM by using
+> physically contiguous dynamically allocated memory regions like those
+> provided by the new CMA [2]?
 >
-> http://lists.arm.linux.org.uk/lurker/message/20100804.114148.bf961e83.en.html
->
-> which was later expanded by Vitaly:
->
-> http://lists.arm.linux.org.uk/lurker/message/20100804.140119.f476c29c.en.html
->
-> I don't think anyone had any negative comments against that proposal.
 
-Thanks, I see what you mean now.
+Just curious as how CMA is different from Android's pmem.
 
-I'll give this a spin when I'm back (I'm away until e/o August)
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Thank you,
+Best regards,
+Hari
