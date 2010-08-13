@@ -1,124 +1,60 @@
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera
- interface
-Date: Thu, 12 Aug 2010 23:38:17 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1008111339190.32197@axis700.grange>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl>
- <Pine.LNX.4.64.1007291043380.16266@axis700.grange> <201007302049.09085.jkrzyszt@tis.icnet.pl>
- <201008011751.17294.jkrzyszt@tis.icnet.pl>
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to get board data
+Date: Fri, 13 Aug 2010 03:01:17 +0300
+Message-ID: <AANLkTi=f_vghwQZn3HHs_CJKYiMf_pp85JHujsyvRg3J@mail.gmail.com>
+References: <1281550913-17633-1-git-send-email-ohad@wizery.com>
+	<1281550913-17633-4-git-send-email-ohad@wizery.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0324110ABD@dbde02.ent.ti.com>
+	<20100811184742.GA21778@nokia.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0324110AC1@dbde02.ent.ti.com>
+	<20100811185724.GD21778@nokia.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0324110AC7@dbde02.ent.ti.com>
+	<20100811212513.GC827@n2100.arm.linux.org.uk>
+	<AANLkTikDhzGVFZhNJZic9xYX9bL_NhOW=4LS-cTFSG0i@mail.gmail.com>
+	<20100812095546.GA3354@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:46386 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754984Ab0HLViU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Aug 2010 17:38:20 -0400
-In-Reply-To: <201008011751.17294.jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100812095546.GA3354-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti-l0cyMroinI0@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>, "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr-l0cyMroinI0@public.gmane.org>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-On Sun, 1 Aug 2010, Janusz Krzysztofik wrote:
+On Thursday, August 12, 2010, Russell King - ARM Linux
+<linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
+> On Thu, Aug 12, 2010 at 09:40:19AM +0300, Ohad Ben-Cohen wrote:
+>> On Thu, Aug 12, 2010 at 12:25 AM, Russell King - ARM Linux
+>> <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
+>> >I've outlined a far simpler and easiler solution
+>> > which avoids this kind of abuse, and given suggestions on how to extend
+>> > it to support multiple instances.
+>> >
+>>
+>> Do you mean:
+>> http://www.spinics.net/lists/arm-kernel/msg95338.html
+>> ?
+>>
+>> I was under the impression you eventually discarded that approach in
+>> that post.
+>
+> Indeed.
+>
+> I'm talking about my first suggestion:
+>
+> http://lists.arm.linux.org.uk/lurker/message/20100804.114148.bf961e83.en.html
+>
+> which was later expanded by Vitaly:
+>
+> http://lists.arm.linux.org.uk/lurker/message/20100804.140119.f476c29c.en.html
+>
+> I don't think anyone had any negative comments against that proposal.
 
-> Friday 30 July 2010 20:49:05 Janusz Krzysztofik napisa=C5=82(a):
-> > Friday 30 July 2010 13:07:42 Guennadi Liakhovetski napisa=C5=82(a):
-> > > On Sun, 18 Jul 2010, Janusz Krzysztofik wrote:
-> > > > This is a V4L2 driver for TI OMAP1 SoC camera interface.
-> > > >
-> > > > Two versions of the driver are provided, using either
-> > > > videobuf-dma-contig or videobuf-dma-sg. The former uses less pr=
-ocessing
-> > > > power, but often fails to allocate contignuous buffer memory. T=
-he
-> > > > latter is free of this problem, but generates tens of DMA inter=
-rupts
-> > > > per frame.
-> > >
-> > > Hm, would it be difficult to first try contig, and if it fails - =
-fall
-> > > back to sg?
-> >
-> > Hmm, let me think about it.
->=20
-> Hi Gennadi,
->=20
-> For me, your idea of frist trying contig and then falling back to sg =
-if it=20
-> fails, sounds great. However, I'm not sure if implementing it at a sp=
-ecific=20
-> hardware driver level is a good solution. Nor soc_camera framework se=
-ems the=20
-> right place for it either.
->=20
-> I think the right way would be if implemented at the videobuf-core le=
-vel.=20
-> Then, drivers should be able to initialize both paths, providing queu=
-e=20
-> callbacks for both sets of methods, contig and sg, for videobuf sole =
-use.
+Thanks, I see what you mean now.
 
-Ok, here're my thoughts about this:
-
-1. We've discussed this dynamic switching a bit on IRC today. The first=
-=20
-reaction was - you probably should concentrate on getting the contiguou=
-s=20
-version to work reliably. I.e., to reserve the memory in the board init=
-=20
-code similar, how other contig users currently do it. But given problem=
-s=20
-with this aproach in the current ARM tree [1], this might be a bit=20
-difficult. Still, those problems have to be and will be fixed somehow=20
-eventually, so, you might prefer to still just go that route.
-
-2. If you do want to do the switching - we also discussed, how forthcom=
-ing=20
-changes to the videobuf subsystem will affest this work. I do not think=
- it=20
-would be possible to implement this switching in the videobuf core.=20
-Remember, with the videobuf API you first call the respective=20
-implementation init method, which doesn't fail. Then, in REQBUFS ioctl =
-you=20
-call videobuf_reqbufs(), which might already fail but normally doesn't.=
-=20
-The biggest problem is the mmap call with the contig videobuf=20
-implementation. This one is likely to fail. So, you would have to catch=
-=20
-the failing mmap, call videobuf_mmap_free(), then init the SG videobuf,=
-=20
-request buffers and mmap them... With my 2 patches from today, there is=
-=20
-only one process (file descriptor, to be precise), that manages the=20
-videobuf queue. So, this all can only be implemented in your driver.
-
-[1] http://thread.gmane.org/gmane.linux.ports.sh.devel/8560
-
-> I'm not sure if I have enough skills to implement this idea. However,=
- if there=20
-> is a consensus on its general usfullness as a videobuf extension, I c=
-an have=20
-> a look at it in my spare time.
->=20
-> For now, I'd propose limiting my changes for v2 to splitting both met=
-hods into=20
-> separate sections, not interleaved with #ifdefs like they are now, as=
- you've=20
-> already suggested.
-
-Yep, so, I think, your choice is either to drop sg completely, or to=20
-separate the two cleanly and switch between them dynamically in your=20
-driver.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-=46reelance Open-Source Software Developer
-http://www.open-technology.de/
+I'll give this a spin when I'm back (I'm away until e/o August)
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
