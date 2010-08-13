@@ -1,35 +1,40 @@
-From: "Que, Simon" <sque@ti.com>
-Subject: RE: [PATCH 2/4 v2] omap: hwspinlock: Add HWSPINLOCK base address
- information in omap44xx.h
-Date: Fri, 13 Aug 2010 10:23:06 -0500
-Message-ID: <F39349C6FA641B4A831B7BF4EBF4D4E148156ED6@dlee03.ent.ti.com>
-References: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E47@dlee03.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301E8147031@dbde02.ent.ti.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: [ANNOUNCE] OMAP3 Camera ISP driver wiki in omappedia.org
+Date: Fri, 13 Aug 2010 12:20:02 -0500
+Message-ID: <A24693684029E5489D1D202277BE894456FC4E3B@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40552 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48298 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934427Ab0HMPXI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 11:23:08 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E8147031@dbde02.ent.ti.com>
+	id S1761870Ab0HMRUI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 13:20:08 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>, "Nataraju, Kiran" <knataraju@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
+Hi all,
 
-> > +#define OMAP44XX_SPINLOCK_BASE         (L4_44XX_BASE + 0xF6000)
-> > +
-> 
-> [sp] Can this be simply OMAP4_SPINLOCK_BASE equiv to OMAP4_MMUx_BASE
->      defined just above. OR is this address specific to OMAP44xx only?
->      (I haven't checked what is the the convention followed in rest of
->      the file)
+I'll like to announce a new wikipage entry in http://omappedia.org site for
+OMAP3 Camera-ISP progress and details. Please find it here.
 
-[SQ] Yes, I'll change it to "OMAP4_"
+http://omappedia.org/wiki/Camera-ISP_Driver
 
-Thanks,
-Simon
+The intention is to provide an online documentation of the work and progress
+of the patches submission, and its dependencies (Media Controller Framework,
+specifically).
+
+If you're interested to contribute/experiment with the driver, this is intended to
+be a good start point for that, and also feel free to update it aswell.
+
+The more people trying the driver, the better, so we can have as much platforms
+running with it as possible, and we can claim that the driver is flexible enough
+for all.
+
+Have a great weekend!
+
+Regards,
+Sergio
