@@ -1,65 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/6] OMAP3: PM: ensure IO wakeups are properly disabled
-Date: Fri, 13 Aug 2010 11:02:00 +0300
-Message-ID: <20100813080200.18750.37791.stgit@baageli.muru.com>
+Subject: [PATCH 5/6] omap: Use CONFIG_SMP for test_for_ipi and test_for_ltirq
+Date: Fri, 13 Aug 2010 11:02:10 +0300
+Message-ID: <20100813080210.18750.68209.stgit@baageli.muru.com>
 References: <20100813080034.18750.15410.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52345 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52514 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755789Ab0HMICF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 04:02:05 -0400
+	with ESMTP id S1754389Ab0HMICN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 04:02:13 -0400
 In-Reply-To: <20100813080034.18750.15410.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@ti.com>
+Otherwise we get the following error when enabling CONFIG_SMP
+for omap3_defconfig:
 
-Commit 5a5f561 (convert OMAP3 PRCM macros to the _SHIFT/_MASK suffixes)
-mistakenly removed the check for PER when disabling the IO chain.
+arch/arm/kernel/entry-armv.S: Assembler messages:
+arch/arm/kernel/entry-armv.S:48: Error: bad instruction `test_for_ipi r0,r6,r5,lr'
+arch/arm/kernel/entry-armv.S:48: Error: bad instruction `test_for_ltirq r0,r6,r5,lr'
+arch/arm/kernel/entry-armv.S:48: Error: bad instruction `test_for_ipi r0,r6,r5,lr'
+arch/arm/kernel/entry-armv.S:48: Error: bad instruction `test_for_ltirq r0,r6,r5,lr'
 
-During idle, if the PER powerdomain transitions and CORE does not (as
-is the case with the lower C-states when using CPUidle) the IO pad
-wakeups are not being disabled in the idle path after they are
-enabled.
-
-This patch ensures that the check for disabling IO wakeups also checks
-for PER transitions, matching the check done to enable IO wakeups.
-
-Found when debugging PM/CPUidle related problems reported by Ameya
-Palande <ameya.palande@nokia.com>.  Problems were triggered
-particularily on boards with UART2 consoles (n900, Overo) since UART2
-is in the PER powerdomain.
-
-Tested on l-o master (omap3_defonfig + CONFIG_CPU_IDLE=y) as well
-as with current PM branch.  Boards tested: n900, Overo, omap3evm.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/include/mach/entry-macro.S |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index fb4994a..7b03426 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -480,7 +480,9 @@ void omap_sram_idle(void)
- 	}
+diff --git a/arch/arm/mach-omap2/include/mach/entry-macro.S b/arch/arm/mach-omap2/include/mach/entry-macro.S
+index 50fd749..06e64e1 100644
+--- a/arch/arm/mach-omap2/include/mach/entry-macro.S
++++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
+@@ -177,7 +177,10 @@ omap_irq_base:	.word	0
+ 		cmpne   \irqnr, \tmp
+ 		cmpcs   \irqnr, \irqnr
+ 		.endm
++#endif
++#endif	/* MULTI_OMAP2 */
  
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
-+	if (omap3_has_io_wakeup() &&
-+	    (per_next_state < PWRDM_POWER_ON ||
-+	     core_next_state < PWRDM_POWER_ON)) {
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
- 		omap3_disable_io_chain();
- 	}
++#ifdef CONFIG_SMP
+ 		/* We assume that irqstat (the raw value of the IRQ acknowledge
+ 		 * register) is preserved from the macro above.
+ 		 * If there is an IPI, we immediately signal end of interrupt
+@@ -205,8 +208,7 @@ omap_irq_base:	.word	0
+ 		streq	\irqstat, [\base, #GIC_CPU_EOI]
+ 		cmp	\tmp, #0
+ 		.endm
+-#endif
+-#endif	/* MULTI_OMAP2 */
++#endif	/* CONFIG_SMP */
+ 
+ 		.macro	irq_prio_table
+ 		.endm
 
