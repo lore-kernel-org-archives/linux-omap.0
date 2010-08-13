@@ -1,177 +1,157 @@
-From: Marin Mitov <mitov@issp.bas.bg>
-Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera interface
-Date: Fri, 13 Aug 2010 12:11:52 +0300
-Message-ID: <201008131211.53101.mitov@issp.bas.bg>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <201008130924.04660.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1008131016100.31714@axis700.grange>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] OMAP2PLUS: Fix Sparse errors/warnings in mach-omap2
+Date: Fri, 13 Aug 2010 04:34:01 -0500
+Message-ID: <4C651189.2080509@ti.com>
+References: <1281687720-5482-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.issp.bas.bg ([195.96.236.10]:59047 "EHLO mail.issp.bas.bg"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60041 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761390Ab0HMJVf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 05:21:35 -0400
-In-Reply-To: <Pine.LNX.4.64.1008131016100.31714@axis700.grange>
+	id S934042Ab0HMJeD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Aug 2010 05:34:03 -0400
+In-Reply-To: <1281687720-5482-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Friday, August 13, 2010 11:52:41 am Guennadi Liakhovetski wrote:
-> On Fri, 13 Aug 2010, Janusz Krzysztofik wrote:
->=20
-> > Thursday 12 August 2010 23:38:17 Guennadi Liakhovetski napisa=C5=82=
-(a):
-> > > On Sun, 1 Aug 2010, Janusz Krzysztofik wrote:
-> > > > Friday 30 July 2010 20:49:05 Janusz Krzysztofik napisa=C3=85=C2=
-=82(a):
-> > > >
-> > > > I think the right way would be if implemented at the videobuf-c=
-ore level.
-> > > > Then, drivers should be able to initialize both paths, providin=
-g queue
-> > > > callbacks for both sets of methods, contig and sg, for videobuf=
- sole use.
-> > >
-> > > Ok, here're my thoughts about this:
-> > >
-> > > 1. We've discussed this dynamic switching a bit on IRC today. The=
- first
-> > > reaction was - you probably should concentrate on getting the con=
-tiguous
-> > > version to work reliably. I.e., to reserve the memory in the boar=
-d init
-> > > code similar, how other contig users currently do it.=20
-> >=20
-> > I already tried before to find out how I could allocate memory at i=
-nit without=20
-> > reinventing a new videobuf-dma-contig implementation. Since in the=20
-> > Documentation/video4linux/videobuf I've read that videobuf does not=
- currently=20
-> > play well with drivers that play tricks by allocating DMA space at =
-system=20
-> > boot time, I've implemented the alternate sg path.
-> >=20
-> > If it's not quite true what the documentation says and you can give=
- me a hint=20
-> > how this could be done, I might try again.
->=20
-> For an example look at=20
-> arch/arm/mach-mx3/mach-pcm037.c::pcm037_camera_alloc_dma().
-
-=46or preallocating dma-coherent memory for device personal use during =
-device probe() time
-(when the memory is less fragmented compared to open() time)
-see also dt3155_alloc_coherent/dt3155_free_coherent in drivers/staging/=
-dt3155v4l/dt3155vfl.c
-(for x86 arch, I do not know if it works for arm arch)
-
->=20
-> > > But given problems=20
-> > > with this aproach in the current ARM tree [1], this might be a bi=
-t
-> > > difficult. Still, those problems have to be and will be fixed som=
-ehow
-> > > eventually, so, you might prefer to still just go that route.
-> >=20
-> > My board uses two drivers that allocate dma memory at boot time:=20
-> > drivers/video/omap/lcdc.c and sounc/soc/omap/omap-pcm.c. Both use=20
-> > alloc_dma_writecombine() for this and work without problems.
->=20
-> dma_alloc_writecombine() also allocates contiguous RAM, right? And it=
-=20
-> doesn't use device "local" memory. So, it's chances to fail are the s=
-ame=20
-> as those of dma_alloc_coherent() in the absence of device own memory.=
- I=20
-> guess, the sound driver doesn't need much RAM, but if you build your =
-LCDC=20
-> driver as a module and load it later after startup, it might get prob=
-lems=20
-> allocating RAM for the framebuffer.
->=20
-> > > 2. If you do want to do the switching - we also discussed, how fo=
-rthcoming
-> > > changes to the videobuf subsystem will affest this work. I do not=
- think it
-> > > would be possible to implement this switching in the videobuf cor=
-e.
-> >=20
-> > OK, I should have probably said that it looked not possible for me =
-to do it=20
-> > without any additional support implemented at videobuf-core (or soc=
-_camera)=20
-> > level.
-> >=20
-> > > Remember, with the videobuf API you first call the respective
-> > > implementation init method, which doesn't fail. Then, in REQBUFS =
-ioctl you
-> > > call videobuf_reqbufs(), which might already fail but normally do=
-esn't.
-> > > The biggest problem is the mmap call with the contig videobuf
-> > > implementation. This one is likely to fail. So, you would have to=
- catch
-> > > the failing mmap, call videobuf_mmap_free(), then init the SG vid=
-eobuf,
-> > > request buffers and mmap them...=20
-> >=20
-> > That's what I've already discovered, but failed to identify a place=
- in my code=20
-> > where I could intercept this failing mmap without replacing parts o=
-f the=20
-> > videobuf code.
->=20
-> Right, ATM soc-camera just calls videobuf_mmap_mapper() directly in i=
-ts=20
-> mmap method. I could add a callback to struct soc_camera_host_ops lik=
-e
->=20
-> 	int (*mmap)(struct soc_camera_device *, struct vm_area_struct *)
->=20
-> and modify soc_camera_mmap() to check, whether the host driver has=20
-> implemented it. If so - call it, otherwise call videobuf_mmap_mapper(=
-)=20
-> directly just like now. So, other drivers would not have to be modifi=
-ed.=20
-> And you could implement that .mmap() method, call videobuf_mmap_mappe=
-r()=20
-> yourself, and if it fails for contig, fall back to SG.
->=20
-> > > With my 2 patches from today, there is=20
-> > > only one process (file descriptor, to be precise), that manages t=
-he
-> > > videobuf queue. So, this all can only be implemented in your driv=
-er.
-> >=20
-> > The only way I'm yet able to invent is replacing the=20
-> > videobuf_queue->int_ops->mmap_mapper() callback with my own wrapper=
- that=20
-> > would intercept a failing videobuf-dma-contig version of mmap_mappe=
-r(). This=20
-> > could be done in my soc_camera_host->ops->init_videobuf() after the=
-=20
-> > videobuf-dma-contig.c version of the videobuf_queue->int_ops->mmap_=
-mapper()=20
-> > is installed with the videobuf_queue_dma_contig_init().
-> >=20
-> > Is this method close to what you have on mind?
->=20
-> See, if the above idea would suit your needs.
->=20
-> Thanks
-> Guennadi
+G, Manjunath Kondaiah had written, on 08/13/2010 03:22 AM, the following:
+> This patch fixes sparse errors/warnings for all the files
+> in mach-omap2 directory.
+> 
+> Build tested for omap3_defconfig and boot tested on OMAP4 SDP and beagle
+> board.
+> 
+> sparse warnings which are fixed with this patch:
+> 
+> arch/arm/mach-omap2/control.c:88:6: warning: symbol 'omap3_secure_ram_storage' was not declared. Should it be static?
+> arch/arm/mach-omap2/control.c:195:16: warning: incorrect type in assignment (different address spaces)
+> arch/arm/mach-omap2/control.c:195:16:    expected unsigned int [usertype] *v_addr
+> arch/arm/mach-omap2/control.c:195:16:    got void [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/control.c:199:25: warning: incorrect type in argument 1 (different address spaces)
+> arch/arm/mach-omap2/control.c:199:25:    expected void const volatile [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/control.c:199:25:    got unsigned int [usertype] *
+> arch/arm/mach-omap2/control.c:320:28: warning: incorrect type in assignment (different address spaces)
+> arch/arm/mach-omap2/control.c:320:28:    expected void *[noderef] <asn:2>scratchpad_address
+> arch/arm/mach-omap2/control.c:320:28:    got void [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/control.c:321:9: warning: incorrect type in argument 1 (different address spaces)
+> arch/arm/mach-omap2/control.c:321:9:    expected void volatile [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/control.c:321:9:    got void *[noderef] <asn:2>scratchpad_address
+> arch/arm/mach-omap2/control.c:324:9: warning: incorrect type in argument 1 (different address spaces)
+> arch/arm/mach-omap2/control.c:324:9:    expected void volatile [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/control.c:324:9:    got void *
+> arch/arm/mach-omap2/control.c:327:9: warning: incorrect type in argument 1 (different address spaces)
+> arch/arm/mach-omap2/control.c:327:9:    expected void volatile [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/control.c:327:9:    got void *
+> arch/arm/mach-omap2/control.c:334:9: warning: incorrect type in argument 1 (different address spaces)
+> arch/arm/mach-omap2/control.c:334:9:    expected void volatile [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/control.c:334:9:    got void *
+> arch/arm/mach-omap2/control.c:321:9: warning: dereference of noderef expression
+> arch/arm/mach-omap2/control.c:324:9: warning: dereference of noderef expression
+> arch/arm/mach-omap2/control.c:327:9: warning: dereference of noderef expression
+> arch/arm/mach-omap2/control.c:334:9: warning: dereference of noderef expression
+> 
+> arch/arm/mach-omap2/timer-gp.c:50:22: warning: symbol 'gptimer_wakeup' was not declared. Should it be static?
+> arch/arm/mach-omap2/timer-gp.c:115:12: warning: symbol 'omap2_gp_clockevent_set_gptimer' was not declared. Should it be static?
+> arch/arm/mach-omap2/timer-gp.c:240:18: warning: symbol 'omap_timer' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/irq.c:50:35: warning: Using plain integer as NULL pointer
+> 
+> arch/arm/mach-omap2/powerdomain.c:993:5: warning: symbol 'pwrdm_set_lowpwrstchange' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/mux2430.c:589:29: warning: symbol 'omap2430_pop_ball' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/mux34xx.c:934:28: warning: symbol 'omap3_cus_subset' was not declared. Should it be static?
+> arch/arm/mach-omap2/mux34xx.c:1080:29: warning: symbol 'omap3_cus_ball' was not declared. Should it be static?
+> arch/arm/mach-omap2/mux34xx.c:1272:28: warning: symbol 'omap3_cbb_subset' was not declared. Should it be static?
+> arch/arm/mach-omap2/mux34xx.c:1393:29: warning: symbol 'omap3_cbb_ball' was not declared. Should it be static?
+> arch/arm/mach-omap2/mux34xx.c:1603:28: warning: symbol 'omap36xx_cbp_subset' was not declared. Should it be static?
+> arch/arm/mach-omap2/mux34xx.c:1821:29: warning: symbol 'omap36xx_cbp_ball' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/pm34xx.c:323:28: warning: incorrect type in assignment (different address spaces)
+> arch/arm/mach-omap2/pm34xx.c:323:28:    expected unsigned int [usertype] *scratchpad_address
+> arch/arm/mach-omap2/pm34xx.c:323:28:    got void [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/pm34xx.c:326:26: warning: incorrect type in argument 1 (different address spaces)
+> arch/arm/mach-omap2/pm34xx.c:326:26:    expected void const volatile [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/pm34xx.c:326:26:    got unsigned int [usertype] *
+> arch/arm/mach-omap2/pm34xx.c:329:26: warning: incorrect type in argument 1 (different address spaces)
+> arch/arm/mach-omap2/pm34xx.c:329:26:    expected void const volatile [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/pm34xx.c:329:26:    got unsigned int [usertype] *
+> arch/arm/mach-omap2/pm34xx.c:334:29: warning: incorrect type in argument 1 (different address spaces)
+> arch/arm/mach-omap2/pm34xx.c:334:29:    expected void const volatile [noderef] <asn:2>*<noident>
+> arch/arm/mach-omap2/pm34xx.c:334:29:    got unsigned int [usertype] *
+> 
+> arch/arm/mach-omap2/pm-debug.c:165:15: warning: symbol 'pm_dbg_dir' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/board-flash.c:141:8: warning: symbol 'board_nand_init' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/board-omap3evm.c:590:30: warning: symbol 'ads7846_config' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-omap3evm.c:609:23: warning: symbol 'omap3evm_spi_board_info' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/board-n8x0.c:416:6: warning: symbol 'n8x0_mmc_slot1_cover_handler' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-n8x0.c:544:13: warning: symbol 'n8x0_mmc_init' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-rx51-sdram.c:46:25: warning: symbol 'rx51_sdrc_params' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-rx51-sdram.c:211:25: warning: symbol 'rx51_get_sdram_timings' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/board-rx51-peripherals.c:902:13: warning: symbol 'rx51_peripherals_init' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-rx51-video.c:107:13: warning: symbol 'rx51_video_mem_init' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-zoom-debugboard.c:155:12: warning: symbol 'zoom_debugboard_init' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-zoom-peripherals.c:280:13: warning: symbol 'zoom_peripherals_init' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/board-igep0020.c:110:13: warning: symbol 'igep2_flash_init' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-omap3touchbook.c:64:15: warning: symbol 'touchbook_revision' was not declared. Should it be static?
+> 
+> arch/arm/mach-omap2/board-am3517evm.c:109:6: warning: symbol 'am3517_evm_ethernet_init' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-am3517evm.c:350:24: warning: symbol 'am3517_evm_dss_device' was not declared. Should it be static?
+> arch/arm/mach-omap2/board-am3517evm.c:141:17: warning: Initializer entry defined twice
+> arch/arm/mach-omap2/board-am3517evm.c:142:18:   also defined here
+> 
+> Signed-off-by: Manjunatha GK <manjugk@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 > ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  arch/arm/mach-omap2/board-am3517evm.c          |    5 +--
+>  arch/arm/mach-omap2/board-igep0020.c           |    4 +-
+>  arch/arm/mach-omap2/board-n8x0.c               |   16 +------------
+>  arch/arm/mach-omap2/board-omap3evm.c           |    4 +-
+>  arch/arm/mach-omap2/board-omap3stalker.c       |    2 +-
+>  arch/arm/mach-omap2/board-omap3touchbook.c     |    2 +-
+>  arch/arm/mach-omap2/board-rx51-peripherals.c   |    2 +
+>  arch/arm/mach-omap2/board-rx51-sdram.c         |    2 +-
+>  arch/arm/mach-omap2/board-rx51-video.c         |    2 +
+>  arch/arm/mach-omap2/board-rx51.c               |    2 +
+>  arch/arm/mach-omap2/board-zoom-debugboard.c    |    2 +
+>  arch/arm/mach-omap2/board-zoom-peripherals.c   |    2 +
+>  arch/arm/mach-omap2/control.c                  |    5 ++-
+>  arch/arm/mach-omap2/include/mach/board-flash.h |    2 +
+>  arch/arm/mach-omap2/include/mach/board-rx51.h  |   11 +++++++++
+>  arch/arm/mach-omap2/irq.c                      |    2 +-
+>  arch/arm/mach-omap2/mux2420.c                  |    2 +-
+>  arch/arm/mach-omap2/mux2430.c                  |    2 +-
+>  arch/arm/mach-omap2/mux34xx.c                  |   12 +++++-----
+>  arch/arm/mach-omap2/pm-debug.c                 |    2 +-
+>  arch/arm/mach-omap2/pm34xx.c                   |    2 +-
+>  arch/arm/mach-omap2/powerdomain.c              |   28 ------------------------
+>  arch/arm/mach-omap2/prcm.c                     |    2 +-
+>  arch/arm/mach-omap2/timer-gp.c                 |    2 +
+>  arch/arm/plat-omap/include/plat/board.h        |    2 +-
+>  arch/arm/plat-omap/include/plat/dmtimer.h      |    4 ++-
+>  arch/arm/plat-omap/include/plat/sdrc.h         |    1 +
+>  27 files changed, 55 insertions(+), 69 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/include/mach/board-rx51.h
+
+
+could we at least split this into each area at least?
+patch 1- fix sparse for static variables
+patch 2 - fix sparse warnings functions that should have been static
+patch 3 - fix specific warnings/errors?
+
+makes this patch at least readable in some context.. this patch in 
+effect is almost equivalent to -> fix all build warnings on 
+arch/arm/mach-omap2...
+
+[...]
+-- 
+Regards,
+Nishanth Menon
