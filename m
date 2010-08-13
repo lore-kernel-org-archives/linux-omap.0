@@ -1,40 +1,49 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: [ANNOUNCE] OMAP3 Camera ISP driver wiki in omappedia.org
-Date: Fri, 13 Aug 2010 12:20:02 -0500
-Message-ID: <A24693684029E5489D1D202277BE894456FC4E3B@dlee02.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 1/4 v2] omap: hwspinlock: uncomment the hwmod part for
+ hwspinlock
+Date: Fri, 13 Aug 2010 23:04:41 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C667AD68@dbde02.ent.ti.com>
+References: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E46@dlee03.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E814705E@dbde02.ent.ti.com>
+ <F39349C6FA641B4A831B7BF4EBF4D4E148156ED2@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48298 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48086 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761870Ab0HMRUI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 13:20:08 -0400
+	id S1755437Ab0HMRet convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 13:34:49 -0400
+In-Reply-To: <F39349C6FA641B4A831B7BF4EBF4D4E148156ED2@dlee03.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>, "Nataraju, Kiran" <knataraju@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Que, Simon" <sque@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Linux Omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
-Hi all,
+Simon
+> -----Original Message-----
+> From: Que, Simon
+> Sent: Friday, August 13, 2010 8:52 PM
+> To: Premi, Sanjeev; Linux Omap; Tony Lindgren
+> Cc: Cousson, Benoit; Shilimkar, Santosh; Kanigeri, Hari
+> Subject: RE: [PATCH 1/4 v2] omap: hwspinlock: uncomment the hwmod part for
+> hwspinlock
+> 
+> > > arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+> > >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > >
+> > [sp] I did not see this file in any of the "master",
+> >      "for-next" or "pm" branches.
+> 
+> [SQ] This will go into Santosh's omap4_next branch for upstreaming.  That
+> branch contains the file.
+> 
+There is a slight change in the way OMAP4 hwmod database will be merged.
+Every driver need to add it's respective databse as part of the series.
 
-I'll like to announce a new wikipage entry in http://omappedia.org site for
-OMAP3 Camera-ISP progress and details. Please find it here.
+Please find more info on the below thread.
 
-http://omappedia.org/wiki/Camera-ISP_Driver
+http://www.spinics.net/lists/linux-omap/msg34700.html
 
-The intention is to provide an online documentation of the work and progress
-of the patches submission, and its dependencies (Media Controller Framework,
-specifically).
 
-If you're interested to contribute/experiment with the driver, this is intended to
-be a good start point for that, and also feel free to update it aswell.
-
-The more people trying the driver, the better, so we can have as much platforms
-running with it as possible, and we can claim that the driver is flexible enough
-for all.
-
-Have a great weekend!
-
-Regards,
-Sergio
