@@ -1,138 +1,56 @@
-From: "Murphy, Dan" <dmurphy@ti.com>
-Subject: RE: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
-Date: Fri, 13 Aug 2010 08:34:07 -0500
-Message-ID: <C9D59C82B94F474B872F2092A87F261412470D0874@dlee07.ent.ti.com>
-References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
- <4BF6753B.60201@cam.ac.uk> <0ebd01cb3ae5$a0dcfc70$LocalHost@wipblrx0099946>
+From: Ben Gardiner <bengardiner@nanometrics.ca>
+Subject: Re: dspbridge and the omapl1x
+Date: Fri, 13 Aug 2010 09:44:18 -0400
+Message-ID: <AANLkTima8UM7JpWHynHWFL+8X=FejBj_SptUe6MwRhei@mail.gmail.com>
+References: <AANLkTin7MAdSUmyja5=tp8TP+2mS53++yJT5T6+K27Lp@mail.gmail.com>
+	<AANLkTinYLLf4a9p_zFfPZ5s_+-NbNi+zn8UO0G-=i1CK@mail.gmail.com>
+	<AANLkTimDnC=BRtdGRGStYj-7XX8ZtehZvY6eK-v-6O5-@mail.gmail.com>
+	<AANLkTinyg1+FMLBDgMTpfOK2iy=yzGqsd1XA+xsZ9sse@mail.gmail.com>
+	<AANLkTincmfyydjQxsyAR_od13O15Oimyr5QBd-9gCess@mail.gmail.com>
+	<AANLkTikVNhNRki4UoJEK2W4mjS2K64gBEvQxYn8BOyY1@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E80ACF17@dbde02.ent.ti.com>
+	<AANLkTikpKWxfSEgJLx3v5Q7kEwkgAyvU_76vRGbnCjZQ@mail.gmail.com>
+	<AANLkTimzLZKn3nUT2=nFAzLzyzuhUVz=Y9h5ciqTu90h@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <0ebd01cb3ae5$a0dcfc70$LocalHost@wipblrx0099946>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: "V, Hemanth" <hemanthv@ti.com>, Jonathan Cameron <jic23@cam.ac.uk>, Andrew Morton <akpm@linux-foundation.org>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:61346 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755198Ab0HMNoT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 09:44:19 -0400
+Received: by wyb32 with SMTP id 32so2646425wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 Aug 2010 06:44:18 -0700 (PDT)
+In-Reply-To: <AANLkTimzLZKn3nUT2=nFAzLzyzuhUVz=Y9h5ciqTu90h@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hari Kanigeri <hari.kanigeri@gmail.com>
+Cc: "Kamoolkar, Mugdha" <mugdha@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "Uribe de Leon, Armando" <x0095078@ti.com>, "Menon, Nishanth" <nm@ti.com>, KulikovVasiliy <segooon@gmail.com>, "Sapiens, Rene" <rene.sapiens@ti.com>, AndyShevchenko <andy.shevchenko@gmail.com>, FelipeContreras <felipe.contreras@gmail.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, OhadBen-Cohen <ohad@wizery.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Uppal, Deepali" <deepali@ti.com>
 
-Hemanth
-I have a few comments on this patch.
+On Thu, Aug 12, 2010 at 8:28 PM, Hari Kanigeri <hari.kanigeri@gmail.com> wrote:
+>> Also I believe that the new Contiguous Memory Allocation (CMA)
+>> framework was developed specifically for systems that need to allocate
+>> physically contiguous memory because they don't have an MMU. What
+(edit) "... because they don't have an _IO_MMU."
 
-+static ssize_t cma3000_store_attr_mdfftmr(struct device *dev,
-+					struct device_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct cma3000_accl_data *data = platform_get_drvdata(pdev);
-+	unsigned long val;
-+	int error;
-+
-+	error = strict_strtoul(buf, 0, &val);
-+	if (error)
-+		return error;
-+
-+	mutex_lock(&data->mutex);
-+	data->pdata.mdfftmr = val;
-+
-+	disable_irq(data->client->irq);
-You should use disable_irq_nosync here.  This may not work properly on SMP.
-
-> +	if (val == CMARANGE_2G) {
-> +		ctrl |= CMA3000_RANGE2G;
-> +		data->pdata.g_range = CMARANGE_2G;
-> +	} else if (val == CMARANGE_8G) {
-> +		ctrl |= CMA3000_RANGE8G;
-> +		data->pdata.g_range = CMARANGE_8G;
-
-Why are you modifying the platform data?  Why not just keep it in a global or a glocal structure and modify it that way?
-> +	} else {
-> +		error = -EINVAL;
-> +		goto err_op_failed;
-> +	}
-> +
-> +	g_range = data->pdata.g_range;
-> +	fuzz_x = data->pdata.fuzz_x;
-> +	fuzz_y = data->pdata.fuzz_y;
-> +	fuzz_z = data->pdata.fuzz_z;
-Why are you storing these locally and then using them once can't we eliminate these completely and just pass the platform data values into the set params?
-> +
-> +	disable_irq(data->client->irq);
-You should use disable_irq_nosync here.  This may not work properly on SMP.
-
-> +	cma3000_set(data, CMA3000_CTRL, ctrl, "ctrl");
-> +
-> +	input_set_abs_params(data->input_dev, ABS_X, -g_range,
-> +				g_range, fuzz_x, 0);
-> +	input_set_abs_params(data->input_dev, ABS_Y, -g_range,
-> +				g_range, fuzz_y, 0);
-> +	input_set_abs_params(data->input_dev, ABS_Z, -g_range,
-> +				g_range, fuzz_z, 0);
-Don't necessarily agree with modifying the parameters for the input device on the fly.  Some implementations may be a read once on init and do not go back and check this.
-
-
-+		ret = request_threaded_irq(data->client->irq, NULL,
-+					cma3000_thread_irq,
-+					irqflags | IRQF_ONESHOT,
-+					data->client->name, data);
-
-This is implemented wrong.  You are doing a lot of processing in the IRQ context here.  Especially calls out to a peripheral.  The NULL should be your handler thread where you do all the device processing.
-
-Also this implementation only suggests that the HW has the IRQ connected what about devices that the IRQ line was not connected?
-
-I have changed this driver to adjust all the issues above.  Let me know if you want the patches or the files.
-
-Dan
-
------Original Message-----
-From: linux-input-owner@vger.kernel.org [mailto:linux-input-owner@vger.kernel.org] On Behalf Of V, Hemanth
-Sent: Friday, August 13, 2010 7:47 AM
-To: Jonathan Cameron; Andrew Morton
-Cc: linux-input@vger.kernel.org; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org
-Subject: Re: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
-
------ Original Message ----- 
-From: "Jonathan Cameron" <jic23@cam.ac.uk>
-To: "Hemanth V" <hemanthv@ti.com>
-Cc: <linux-input@vger.kernel.org>; <linux-kernel@vger.kernel.org>; 
-<linux-omap@vger.kernel.org>
-Sent: Friday, May 21, 2010 5:27 PM
-Subject: Re: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
-
-
-> On 05/21/10 07:52, Hemanth V wrote:
->> From: Hemanth V <hemanthv@ti.com>
->> Date: Thu, 20 May 2010 20:18:17 +0530
->> Subject: [PATCH] input: CMA3000 Accelerometer Driver
->>
->> This patch adds support for CMA3000 Tri-axis accelerometer, which
->> supports Motion detect, Measurement and Free fall modes.
->> CMA3000 supports both I2C/SPI bus for communication, currently the
->> driver supports I2C based communication.
->>
->> Driver reports acceleration data through input subsystem and supports
->> sysfs for configuration changes.
->>
->> This is V2 of patch, which fixes open source review comments
+>> would say to avoiding the IOMMU requirement and keeping DMM by using
+>> physically contiguous dynamically allocated memory regions like those
+>> provided by the new CMA [2]?
 >>
 >
-> Hi,
->
-> The driver is nice and clean.
->
-> Still leaving aside the long argued question of whether this should be
-> in input.  If you care for my views on that there are plenty or other
-> threads! There are a few things I'd still like to suggest:
->
+> Just curious as how CMA is different from Android's pmem.
 
-Jonathan, Andrew
+I'm not really sure, but based on the discussion in one of the pmem
+patches proposed on lkml [1] they seem to provide similar
+functionality.
 
-Is there any way forward for this patch, I am unable to induce any response
-from the input maintainer
+Perhaps the difference is that pmem has made it to staging whereas CMA
+is only a proposed feature so far?
 
-Thanks
-Hemanth 
+Best Regards,
+Ben Gardiner
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] https://patchwork.kernel.org/patch/47513/
+
+---
+Nanometrics Inc.
+http://www.nanometrics.ca
