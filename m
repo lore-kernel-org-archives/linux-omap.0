@@ -1,40 +1,59 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH v3 1/3] ARM: OMAP: Beagle: revision detection
-Date: Fri, 13 Aug 2010 15:44:54 +0300
-Message-ID: <20100813154454.aca470ee.jhnikula@gmail.com>
-References: <1281702070-10525-1-git-send-email-robertcnelson@gmail.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
+Date: Fri, 13 Aug 2010 18:17:00 +0530
+Message-ID: <0ebd01cb3ae5$a0dcfc70$LocalHost@wipblrx0099946>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <4BF6753B.60201@cam.ac.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:62954 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934206Ab0HMMo6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Aug 2010 08:44:58 -0400
-Received: by eyg5 with SMTP id 5so110274eyg.19
-        for <linux-omap@vger.kernel.org>; Fri, 13 Aug 2010 05:44:56 -0700 (PDT)
-In-Reply-To: <1281702070-10525-1-git-send-email-robertcnelson@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Jonathan Cameron <jic23@cam.ac.uk>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Fri, 13 Aug 2010 07:21:08 -0500
-Robert Nelson <robertcnelson@gmail.com> wrote:
-
-> +	/* Older U-Boot's such as 2009.01-dirty don't have the pins 
-> +	 * muxed correctly to use the generic gpio_direction_input();
-> +	 */
-> +	omap_mux_init_gpio(171, OMAP_PIN_INPUT_PULLUP);
-> +	omap_mux_init_gpio(172, OMAP_PIN_INPUT_PULLUP);
-> +	omap_mux_init_gpio(173, OMAP_PIN_INPUT_PULLUP);
-> +
-
-Comment (and code) is wrong: gpio_direction_input is still required to
-setup pin direction and letting the gpiolib to setup internal data
-structures properly. I.e. both mux setup and gpio_direction_input are
-required.
+----- Original Message ----- 
+From: "Jonathan Cameron" <jic23@cam.ac.uk>
+To: "Hemanth V" <hemanthv@ti.com>
+Cc: <linux-input@vger.kernel.org>; <linux-kernel@vger.kernel.org>; 
+<linux-omap@vger.kernel.org>
+Sent: Friday, May 21, 2010 5:27 PM
+Subject: Re: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
 
 
--- 
-Jarkko
+> On 05/21/10 07:52, Hemanth V wrote:
+>> From: Hemanth V <hemanthv@ti.com>
+>> Date: Thu, 20 May 2010 20:18:17 +0530
+>> Subject: [PATCH] input: CMA3000 Accelerometer Driver
+>>
+>> This patch adds support for CMA3000 Tri-axis accelerometer, which
+>> supports Motion detect, Measurement and Free fall modes.
+>> CMA3000 supports both I2C/SPI bus for communication, currently the
+>> driver supports I2C based communication.
+>>
+>> Driver reports acceleration data through input subsystem and supports
+>> sysfs for configuration changes.
+>>
+>> This is V2 of patch, which fixes open source review comments
+>>
+>
+> Hi,
+>
+> The driver is nice and clean.
+>
+> Still leaving aside the long argued question of whether this should be
+> in input.  If you care for my views on that there are plenty or other
+> threads! There are a few things I'd still like to suggest:
+>
+
+Jonathan, Andrew
+
+Is there any way forward for this patch, I am unable to induce any response
+from the input maintainer
+
+Thanks
+Hemanth 
+
