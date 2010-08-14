@@ -1,20 +1,22 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCHv2 8/13] dmtimer: OMAP: multi-platform register access support
-Date: Sat, 14 Aug 2010 21:06:19 +0530
-Message-ID: <1281800179-15085-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH 7/13] dmtimer: OMAP: multi-platform register map definitions
+Date: Sat, 14 Aug 2010 21:06:34 +0530
+Message-ID: <1281800194-15110-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45237 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52829 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751100Ab0HNEhE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 14 Aug 2010 00:37:04 -0400
+	id S932562Ab0HNEhU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 14 Aug 2010 00:37:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Thara Gopinath <thara@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-This patch uses the new register structures and mappings in functions
-in order to access register offsets thereby supporting multi-platform
-environment.
+This patch introduces new structures and mappings of registers
+so that it is expandable to support multiple omap platforms.
+The present modification is intended to support OMAP4 and previous
+platforms without minimal changes to the accessing code by
+suitably mapping of specific register maps.
 
 Signed-off-by: Partha Basak <p-basak2@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
@@ -24,117 +26,215 @@ Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/dmtimer.c |   51 ++++++++++++++++++++++++++++++++----------
- 1 files changed, 39 insertions(+), 12 deletions(-)
+ arch/arm/plat-omap/dmtimer.c |  185 ++++++++++++++++++++----------------------
+ 1 files changed, 87 insertions(+), 98 deletions(-)
 
 diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 14a20e0..24ca283 100755
+index 0915a37..14a20e0 100755
 --- a/arch/arm/plat-omap/dmtimer.c
 +++ b/arch/arm/plat-omap/dmtimer.c
-@@ -154,6 +154,7 @@ struct omap_dm_timer {
- 	unsigned long fclk_rate;
- 	int irq;
- 	void __iomem *io_base;
-+	u32	*regs;
- 	unsigned reserved:1;
- 	unsigned enabled:1;
- 	unsigned posted:1;
-@@ -174,13 +175,14 @@ static DEFINE_SPINLOCK(dm_timer_lock);
-  * pending bit must be checked. Otherwise a read of a non completed write
-  * will produce an error.
-  **/
--static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, u32 reg)
-+static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, int reg)
- {
- 	if (timer->posted)
--		while (readl(timer->io_base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
--				& (reg >> WPSHIFT))
-+		while (readl(timer->io_base + \
-+			((timer->regs[OMAP_TIMER_WRITE_PEND_REG]) & 0xff))
-+				& (timer->regs[reg] >> WPSHIFT))
- 			cpu_relax();
--	return readl(timer->io_base + (reg & 0xff));
-+	return readl(timer->io_base + (timer->regs[reg] & 0xff));
- }
+@@ -51,114 +51,103 @@
+ #include <mach/irqs.h>
+ #include <linux/interrupt.h>
  
- /**
-@@ -193,25 +195,38 @@ static inline u32 omap_dm_timer_read_reg(struct omap_dm_timer *timer, u32 reg)
-  * pending bit must be checked. Otherwise a write on a register which has a
-  * pending write will be lost.
-  **/
--static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
-+static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, int reg,
- 						u32 value)
- {
- 	if (timer->posted)
--		while (readl(timer->io_base + (OMAP_TIMER_WRITE_PEND_REG & 0xff))
--				& (reg >> WPSHIFT))
-+		while (readl(timer->io_base + \
-+			((timer->regs[OMAP_TIMER_WRITE_PEND_REG]) & 0xff))
-+				& (timer->regs[reg] >> WPSHIFT))
- 			cpu_relax();
--	writel(value, timer->io_base + (reg & 0xff));
-+	writel(value, timer->io_base + (timer->regs[reg] & 0xff));
- }
- 
- static void omap_dm_timer_wait_for_reset(struct omap_dm_timer *timer)
- {
- 	int c;
-+	u32 reg;
-+	int reset_is_active;
-+	struct omap_dmtimer_platform_data *pdata = \
-+					timer->pdev->dev.platform_data;
+-/* register offsets */
+-#define _OMAP_TIMER_ID_OFFSET		0x00
+-#define _OMAP_TIMER_OCP_CFG_OFFSET	0x10
+-#define _OMAP_TIMER_SYS_STAT_OFFSET	0x14
+-#define _OMAP_TIMER_STAT_OFFSET		0x18
+-#define _OMAP_TIMER_INT_EN_OFFSET	0x1c
+-#define _OMAP_TIMER_WAKEUP_EN_OFFSET	0x20
+-#define _OMAP_TIMER_CTRL_OFFSET		0x24
+-#define		OMAP_TIMER_CTRL_GPOCFG		(1 << 14)
+-#define		OMAP_TIMER_CTRL_CAPTMODE	(1 << 13)
+-#define		OMAP_TIMER_CTRL_PT		(1 << 12)
+-#define		OMAP_TIMER_CTRL_TCM_LOWTOHIGH	(0x1 << 8)
+-#define		OMAP_TIMER_CTRL_TCM_HIGHTOLOW	(0x2 << 8)
++#define		OMAP_TIMER_CTRL_GPOCFG		BIT(14)
++#define		OMAP_TIMER_CTRL_CAPTMODE	BIT(13)
++#define		OMAP_TIMER_CTRL_PT		BIT(12)
++#define		OMAP_TIMER_CTRL_TCM_LOWTOHIGH	BIT(8)
++#define		OMAP_TIMER_CTRL_TCM_HIGHTOLOW	BIT(9)
+ #define		OMAP_TIMER_CTRL_TCM_BOTHEDGES	(0x3 << 8)
+-#define		OMAP_TIMER_CTRL_SCPWM		(1 << 7)
+-#define		OMAP_TIMER_CTRL_CE		(1 << 6) /* compare enable */
+-#define		OMAP_TIMER_CTRL_PRE		(1 << 5) /* prescaler enable */
++#define		OMAP_TIMER_CTRL_SCPWM		BIT(7)
++#define		OMAP_TIMER_CTRL_CE		BIT(6) /* compare enable */
++#define		OMAP_TIMER_CTRL_PRE		BIT(5) /* prescaler enable */
+ #define		OMAP_TIMER_CTRL_PTV_SHIFT	2 /* prescaler value shift */
+-#define		OMAP_TIMER_CTRL_POSTED		(1 << 2)
+-#define		OMAP_TIMER_CTRL_AR		(1 << 1) /* auto-reload enable */
+-#define		OMAP_TIMER_CTRL_ST		(1 << 0) /* start timer */
+-#define _OMAP_TIMER_COUNTER_OFFSET	0x28
+-#define _OMAP_TIMER_LOAD_OFFSET		0x2c
+-#define _OMAP_TIMER_TRIGGER_OFFSET	0x30
+-#define _OMAP_TIMER_WRITE_PEND_OFFSET	0x34
++#define		OMAP_TIMER_CTRL_POSTED		BIT(2)
++#define		OMAP_TIMER_CTRL_AR		BIT(1) /* auto-reload enable */
++#define		OMAP_TIMER_CTRL_ST		BIT(0) /* start timer */
 +
-+	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
-+		reg = OMAP_TIMER_OCP_CFG_REG;
-+		reset_is_active = 1;
-+	} else {
-+		reg = OMAP_TIMER_SYS_STAT_REG;
-+		reset_is_active = 0;
-+	}
+ #define		WP_NONE			0	/* no write pending bit */
+-#define		WP_TCLR			(1 << 0)
+-#define		WP_TCRR			(1 << 1)
+-#define		WP_TLDR			(1 << 2)
+-#define		WP_TTGR			(1 << 3)
+-#define		WP_TMAR			(1 << 4)
+-#define		WP_TPIR			(1 << 5)
+-#define		WP_TNIR			(1 << 6)
+-#define		WP_TCVR			(1 << 7)
+-#define		WP_TOCR			(1 << 8)
+-#define		WP_TOWR			(1 << 9)
+-#define _OMAP_TIMER_MATCH_OFFSET	0x38
+-#define _OMAP_TIMER_CAPTURE_OFFSET	0x3c
+-#define _OMAP_TIMER_IF_CTRL_OFFSET	0x40
+-#define _OMAP_TIMER_CAPTURE2_OFFSET		0x44	/* TCAR2, 34xx only */
+-#define _OMAP_TIMER_TICK_POS_OFFSET		0x48	/* TPIR, 34xx only */
+-#define _OMAP_TIMER_TICK_NEG_OFFSET		0x4c	/* TNIR, 34xx only */
+-#define _OMAP_TIMER_TICK_COUNT_OFFSET		0x50	/* TCVR, 34xx only */
+-#define _OMAP_TIMER_TICK_INT_MASK_SET_OFFSET	0x54	/* TOCR, 34xx only */
+-#define _OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET	0x58	/* TOWR, 34xx only */
++#define		WP_TCLR			BIT(0)
++#define		WP_TCRR			BIT(1)
++#define		WP_TLDR			BIT(2)
++#define		WP_TTGR			BIT(3)
++#define		WP_TMAR			BIT(4)
++#define		WP_TPIR			BIT(5)
++#define		WP_TNIR			BIT(6)
++#define		WP_TCVR			BIT(7)
++#define		WP_TOCR			BIT(8)
++#define		WP_TOWR			BIT(9)
  
- 	c = 0;
--	while (!(omap_dm_timer_read_reg(timer, OMAP_TIMER_SYS_STAT_REG) & 1)) {
-+	while (omap_dm_timer_read_reg(timer, reg) == reset_is_active) {
- 		c++;
- 		if (c > 100000) {
--			printk(KERN_ERR "Timer failed to reset\n");
-+			printk(KERN_ERR "%s:Timer failed to reset\n", __func__);
- 			return;
- 		}
- 	}
-@@ -500,10 +515,17 @@ void omap_dm_timer_set_int_disable(struct omap_dm_timer *timer,
- 					unsigned int value)
- {
- 	u32 l;
-+	struct omap_dmtimer_platform_data *pdata = \
-+					timer->pdev->dev.platform_data;
+ /* register offsets with the write pending bit encoded */
+ #define	WPSHIFT					16
  
- 	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_WAKEUP_EN_REG);
--	l &= ~value;
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_INT_EN_REG, l);
-+	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2) {
-+		l |= value;
-+		omap_dm_timer_write_reg(timer, OMAP_TIMER_INT_CLR_REG, value);
-+	} else {
-+		l &= ~value;
-+		omap_dm_timer_write_reg(timer, OMAP_TIMER_INT_EN_REG, l);
-+	}
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_WAKEUP_EN_REG, l);
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_set_int_disable);
-@@ -624,6 +646,11 @@ static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
- 		ret = -ENOMEM;
- 		goto err_release_ioregion;
- 	}
-+	if (pdata->timer_ip_type == OMAP_TIMER_IP_VERSION_2)
-+		timer->regs = (u32 *) omap4_reg_map;
-+	else
-+		timer->regs = (u32 *) reg_map;
-+
- 	timer->io_base = ioremap(mem->start, resource_size(mem));
- 	if (!timer->io_base) {
- 		dev_err(&pdev->dev, "%s: ioremap failed\n", __func__);
+-#define OMAP_TIMER_ID_REG			(_OMAP_TIMER_ID_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_OCP_CFG_REG			(_OMAP_TIMER_OCP_CFG_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_SYS_STAT_REG			(_OMAP_TIMER_SYS_STAT_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_STAT_REG			(_OMAP_TIMER_STAT_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_INT_EN_REG			(_OMAP_TIMER_INT_EN_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_WAKEUP_EN_REG		(_OMAP_TIMER_WAKEUP_EN_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_CTRL_REG			(_OMAP_TIMER_CTRL_OFFSET \
+-							| (WP_TCLR << WPSHIFT))
+-
+-#define OMAP_TIMER_COUNTER_REG			(_OMAP_TIMER_COUNTER_OFFSET \
+-							| (WP_TCRR << WPSHIFT))
+-
+-#define OMAP_TIMER_LOAD_REG			(_OMAP_TIMER_LOAD_OFFSET \
+-							| (WP_TLDR << WPSHIFT))
+-
+-#define OMAP_TIMER_TRIGGER_REG			(_OMAP_TIMER_TRIGGER_OFFSET \
+-							| (WP_TTGR << WPSHIFT))
+-
+-#define OMAP_TIMER_WRITE_PEND_REG		(_OMAP_TIMER_WRITE_PEND_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_MATCH_REG			(_OMAP_TIMER_MATCH_OFFSET \
+-							| (WP_TMAR << WPSHIFT))
+-
+-#define OMAP_TIMER_CAPTURE_REG			(_OMAP_TIMER_CAPTURE_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_IF_CTRL_REG			(_OMAP_TIMER_IF_CTRL_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_CAPTURE2_REG			(_OMAP_TIMER_CAPTURE2_OFFSET \
+-							| (WP_NONE << WPSHIFT))
+-
+-#define OMAP_TIMER_TICK_POS_REG			(_OMAP_TIMER_TICK_POS_OFFSET \
+-							| (WP_TPIR << WPSHIFT))
+-
+-#define OMAP_TIMER_TICK_NEG_REG			(_OMAP_TIMER_TICK_NEG_OFFSET \
+-							| (WP_TNIR << WPSHIFT))
++enum {
++	OMAP_TIMER_ID_REG = 0,
++	OMAP_TIMER_OCP_CFG_REG,
++	OMAP_TIMER_SYS_STAT_REG,
++	OMAP_TIMER_STAT_REG,
++	OMAP_TIMER_INT_EN_REG,
++	OMAP_TIMER_WAKEUP_EN_REG,
++	OMAP_TIMER_CTRL_REG,
++	OMAP_TIMER_COUNTER_REG,
++	OMAP_TIMER_LOAD_REG,
++	OMAP_TIMER_TRIGGER_REG,
++	OMAP_TIMER_WRITE_PEND_REG,
++	OMAP_TIMER_MATCH_REG,
++	OMAP_TIMER_CAPTURE_REG,
++	OMAP_TIMER_IF_CTRL_REG,
++	OMAP_TIMER_CAPTURE2_REG,
++	OMAP_TIMER_TICK_POS_REG,
++	OMAP_TIMER_TICK_NEG_REG,
++	OMAP_TIMER_TICK_COUNT_REG,
++	OMAP_TIMER_TICK_INT_MASK_SET_REG,
++	OMAP_TIMER_TICK_INT_MASK_COUNT_REG,
++	OMAP_TIMER_INT_CLR_REG,
++};
+ 
+-#define OMAP_TIMER_TICK_COUNT_REG		(_OMAP_TIMER_TICK_COUNT_OFFSET \
+-							| (WP_TCVR << WPSHIFT))
++/* omap2xxx and omap3xxx timers register map */
++static const u32 reg_map[] = {
++	[OMAP_TIMER_ID_REG]		= (0x00 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_OCP_CFG_REG]	= (0x10 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_SYS_STAT_REG]	= (0x14 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_STAT_REG]		= (0x18 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_INT_EN_REG]		= (0x1c | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_WAKEUP_EN_REG]	= (0x20 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_CTRL_REG]		= (0x24 | (WP_TCLR << WPSHIFT)),
++	[OMAP_TIMER_COUNTER_REG]	= (0x28 | (WP_TCRR << WPSHIFT)),
++	[OMAP_TIMER_LOAD_REG]		= (0x2c | (WP_TLDR << WPSHIFT)),
++	[OMAP_TIMER_TRIGGER_REG]	= (0x30 | (WP_TTGR << WPSHIFT)),
++	[OMAP_TIMER_WRITE_PEND_REG]	= (0x34 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_MATCH_REG]		= (0x38 | (WP_TMAR << WPSHIFT)),
++	[OMAP_TIMER_CAPTURE_REG]	= (0x3c | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_IF_CTRL_REG]	= (0x40 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_CAPTURE2_REG]	= (0x44 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_TICK_POS_REG]	= (0x48 | (WP_TPIR << WPSHIFT)),
++	[OMAP_TIMER_TICK_NEG_REG]	= (0x4c | (WP_TNIR << WPSHIFT)),
++	[OMAP_TIMER_TICK_COUNT_REG]	= (0x50 | (WP_TCVR << WPSHIFT)),
++	[OMAP_TIMER_TICK_INT_MASK_SET_REG]	= (0x54 | (WP_TOCR << WPSHIFT)),
++	[OMAP_TIMER_TICK_INT_MASK_COUNT_REG]	= (0x58 | (WP_TOWR << WPSHIFT)),
++};
+ 
+-#define OMAP_TIMER_TICK_INT_MASK_SET_REG				\
+-		(_OMAP_TIMER_TICK_INT_MASK_SET_OFFSET | (WP_TOCR << WPSHIFT))
++/* omap4 timers register map */
++static const u32 omap4_reg_map[] = {
++	[OMAP_TIMER_ID_REG]		= (0x00 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_OCP_CFG_REG]	= (0x10 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_SYS_STAT_REG]	= (0x14 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_STAT_REG]		= (0x28 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_INT_EN_REG]		= (0x2c | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_WAKEUP_EN_REG]	= (0x34 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_CTRL_REG]		= (0x38 | (WP_TCLR << WPSHIFT)),
++	[OMAP_TIMER_COUNTER_REG]	= (0x3c | (WP_TCRR << WPSHIFT)),
++	[OMAP_TIMER_LOAD_REG]		= (0x40 | (WP_TLDR << WPSHIFT)),
++	[OMAP_TIMER_TRIGGER_REG]	= (0x44 | (WP_TTGR << WPSHIFT)),
++	[OMAP_TIMER_WRITE_PEND_REG]	= (0x48 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_MATCH_REG]		= (0x4c | (WP_TMAR << WPSHIFT)),
++	[OMAP_TIMER_CAPTURE_REG]	= (0x50 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_IF_CTRL_REG]	= (0x54 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_CAPTURE2_REG]	= (0x58 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_INT_CLR_REG]	= (0x30 | (WP_NONE << WPSHIFT)),
++};
+ 
+-#define OMAP_TIMER_TICK_INT_MASK_COUNT_REG				\
+-		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+ 
+ struct omap_dm_timer {
+ 	int id;
 -- 
 1.6.0.4
 
