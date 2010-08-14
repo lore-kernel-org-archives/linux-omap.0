@@ -1,148 +1,219 @@
-From: thara gopinath <thara@ti.com>
-Subject: [PM-OPP][PATCH] OMAP: Modifying the frequency comparison logic.
-Date: Sat, 14 Aug 2010 09:28:12 +0530
-Message-ID: <1281758292-18895-1-git-send-email-thara@ti.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH] dmtimer: hwmod: OMAP1: device registration
+Date: Sat, 14 Aug 2010 20:43:28 +0530
+Message-ID: <1281798808-14548-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44251 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44742 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932460Ab0HND6Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Aug 2010 23:58:25 -0400
+	id S1750764Ab0HNEOS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 14 Aug 2010 00:14:18 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, nm@ti.com, Thara Gopinath <thara@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Partha Basak <p-basak2@ti.com>, Thara Gopinath <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-From: Thara Gopinath <thara@ti.com>
+This patch converts OMAP1 dual mode timers into platform devices,
+adds support for registering them through generic linux platform
+device layer.
 
-In the current opp layer the frequency matching API's
-tries to match the exact frequency passed in Hz. This leads
-to problems in cases where dplls are locked to slightly differnet
-frequencies due to sys clock speed or optimum M,N values.
-Consider the following scenario
-	a. dpll_x is supposed to be locked at 266Mhz but is
-	   actually att 266.045 Mhz due to above mentioned reasons.
-	b. The opp table has the entry as 266000000 hz.
-	c. The user does a clk_get_rate(dpll_x) and passes the
-	  corresponding rate <rate> into the opp API's to get back
-	  a opp table entry.
-	d. In this scenario if  the user has called into
-	   opp_find_freq_exact it will return an error.
-	   If the user has called into opp_find_freq_ceil
-	   it will either return the opp entry corresponding
-	   to the next higher frequency in the opp table
-	   or return an error if 266 Mhz is the last entry
-	   in the table.
-
-The above is not correct as we expect the framework to return back
-the opp table entry corresponding to 266 Mhz.
-
-Now there are two ways of fixing this issue.
-	a. Put the correct dpll lock frequency in the opp table.
-	   This means opp table will now have entries like 266045000 hz.
-	   But this is not scalable as these dpll lock frequencies
-	   can change slightly based on sys clk speeds. Like for eg
-	   at sys clk speed 38.4 Mhz we will able to get 266.045 Mhz
-	   where as at sys clk speed 26 Mhz we will be able to get
-	   onyl 266.124 Mhz etc. So depending on the platform we
-	   will have to start changing the opp table.
-
-	b. Do the comparison in Mhz in the opp layer rather than in Hz.
-	   This would mean we will divide the rate passed into the opp layer
-	  API and the rates stored in the opp tables by 1000000 to get the
-	  rates in Mhz and do the necessary comparision. In this approach any
-	  vague frequency like 266.045Mhz will get mapped to 266 Mhz in the
-	  opp table. But if the passed rate is 267 Mhz, the opp framework
-	  will still rerturn an error or the next highest opp table entry
-
-This patch implements solution b. The scenario mentioned above is
-esp true for OMAP4 dpll_iva where we do end up with such weird frequencies
-due to sys clk being at 38.4 Mhz.
-
+Signed-off-by: Partha Basak <p-basak2@ti.com>
 Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/opp.c |   37 ++++++++++++++++++++++++++-----------
- 1 files changed, 26 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap1/Makefile   |    2 +-
+ arch/arm/mach-omap1/dmtimer.c  |  146 ++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap1/timer32k.c |    3 -
+ 3 files changed, 147 insertions(+), 4 deletions(-)
+ mode change 100644 => 100755 arch/arm/mach-omap1/Makefile
+ create mode 100755 arch/arm/mach-omap1/dmtimer.c
+ mode change 100644 => 100755 arch/arm/mach-omap1/timer32k.c
 
-diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-index b9b7bda..ba7a554 100644
---- a/arch/arm/plat-omap/opp.c
-+++ b/arch/arm/plat-omap/opp.c
-@@ -212,15 +212,20 @@ struct omap_opp *opp_find_freq_exact(struct device *dev,
- {
- 	struct device_opp *dev_opp;
- 	struct omap_opp *temp_opp, *opp = ERR_PTR(-ENODEV);
-+	unsigned long req_freq = freq / 1000000;
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+old mode 100644
+new mode 100755
+index 9a304d8..0001659
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -4,7 +4,7 @@
  
- 	dev_opp = find_device_opp(dev);
- 	if (IS_ERR(dev_opp))
- 		return opp;
+ # Common support
+ obj-y := io.o id.o sram.o irq.o mux.o flash.o serial.o devices.o
+-obj-y += clock.o clock_data.o opp_data.o
++obj-y += clock.o clock_data.o opp_data.o dmtimer.o
  
- 	list_for_each_entry(temp_opp, &dev_opp->opp_list, node) {
--		if (temp_opp->enabled && temp_opp->rate == freq) {
--			opp = temp_opp;
--			break;
-+		if (temp_opp->enabled) {
-+			unsigned long rate = temp_opp->rate / 1000000;
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+ 
+diff --git a/arch/arm/mach-omap1/dmtimer.c b/arch/arm/mach-omap1/dmtimer.c
+new file mode 100755
+index 0000000..b06d096
+--- /dev/null
++++ b/arch/arm/mach-omap1/dmtimer.c
+@@ -0,0 +1,146 @@
++/**
++ * OMAP1 Dual-Mode Timers
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Thara Gopinath <thara@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify 
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+			if (rate == req_freq) {
-+				opp = temp_opp;
-+				break;
-+			}
- 		}
- 	}
- 
-@@ -258,16 +263,21 @@ struct omap_opp *opp_find_freq_ceil(struct device *dev, unsigned long *freq)
- {
- 	struct device_opp *dev_opp;
- 	struct omap_opp *temp_opp, *opp = ERR_PTR(-ENODEV);
-+	unsigned long req_freq = *freq / 1000000;
- 
- 	dev_opp = find_device_opp(dev);
- 	if (IS_ERR(dev_opp))
- 		return opp;
- 
- 	list_for_each_entry(temp_opp, &dev_opp->opp_list, node) {
--		if (temp_opp->enabled && temp_opp->rate >= *freq) {
--			opp = temp_opp;
--			*freq = opp->rate;
--			break;
-+		if (temp_opp->enabled) {
-+			unsigned long rate = temp_opp->rate / 1000000;
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <mach/irqs.h>
++#include <plat/dmtimer.h>
 +
-+			if (rate >= req_freq) {
-+				opp = temp_opp;
-+				*freq = opp->rate;
-+				break;
-+			}
- 		}
- 	}
- 
-@@ -305,16 +315,21 @@ struct omap_opp *opp_find_freq_floor(struct device *dev, unsigned long *freq)
- {
- 	struct device_opp *dev_opp;
- 	struct omap_opp *temp_opp, *opp = ERR_PTR(-ENODEV);
-+	unsigned long req_freq = *freq / 1000000;
- 
- 	dev_opp = find_device_opp(dev);
- 	if (IS_ERR(dev_opp))
- 		return opp;
- 
- 	list_for_each_entry_reverse(temp_opp, &dev_opp->opp_list, node) {
--		if (temp_opp->enabled && temp_opp->rate <= *freq) {
--			opp = temp_opp;
--			*freq = opp->rate;
--			break;
-+		if (temp_opp->enabled) {
-+			unsigned long rate = temp_opp->rate / 1000000;
++#define OMAP1610_GPTIMER1_BASE		0xfffb1400
++#define OMAP1610_GPTIMER2_BASE          0xfffb1c00
++#define OMAP1610_GPTIMER3_BASE          0xfffb2400
++#define OMAP1610_GPTIMER4_BASE          0xfffb2c00
++#define OMAP1610_GPTIMER5_BASE          0xfffb3400
++#define OMAP1610_GPTIMER6_BASE          0xfffb3c00
++#define OMAP1610_GPTIMER7_BASE          0xfffb7400
++#define OMAP1610_GPTIMER8_BASE          0xfffbd400
 +
-+			if (rate <= req_freq) {
-+				opp = temp_opp;
-+				*freq = opp->rate;
-+				break;
-+			}
- 		}
- 	}
++#define OMAP1_DM_TIMER_COUNT	8
++
++static int omap1_dm_timer_set_clk(struct platform_device *pdev,
++				int source)
++{
++	int n = (pdev->id) << 1;
++	u32 l;
++
++	l = omap_readl(MOD_CONF_CTRL_1) & ~(0x03 << n);
++	l |= source << n;
++	omap_writel(l, MOD_CONF_CTRL_1);
++
++	return 0;
++}
++
++int __init omap1_dm_timer_init(void)
++{
++	int i;
++
++	if (!cpu_is_omap16xx())
++		return 0;
++
++	for (i = 0; i < OMAP1_DM_TIMER_COUNT; i++) {
++		struct platform_device *pdev;
++		struct omap_dmtimer_platform_data *pdata;
++		struct resource res[2];
++		u32 base, irq;
++		int ret;
++
++		switch (i) {
++		case 0:
++			base = OMAP1610_GPTIMER1_BASE;
++			irq = INT_1610_GPTIMER1;
++			break;
++		case 1:
++			base = OMAP1610_GPTIMER2_BASE;
++			irq = INT_1610_GPTIMER2;
++			break;
++		case 2:
++			base = OMAP1610_GPTIMER3_BASE;
++			irq = INT_1610_GPTIMER3;
++			break;
++		case 3:
++			base = OMAP1610_GPTIMER4_BASE;
++			irq = INT_1610_GPTIMER4;
++			break;
++		case 4:
++			base = OMAP1610_GPTIMER5_BASE;
++			irq = INT_1610_GPTIMER5;
++			break;
++		case 5:
++			base = OMAP1610_GPTIMER6_BASE;
++			irq = INT_1610_GPTIMER6;
++			break;
++		case 6:
++			base = OMAP1610_GPTIMER7_BASE;
++			irq = INT_1610_GPTIMER7;
++			break;
++		case 7:
++			base = OMAP1610_GPTIMER8_BASE;
++			irq = INT_1610_GPTIMER8;
++			break;
++		default:
++			/* Should never reach here */
++			return  -EINVAL;
++		}
++
++		pdev = platform_device_alloc("dmtimer", i);
++		if (!pdev) {
++			pr_err("%s: Unable to device alloc for dmtimer%d\n",
++				__func__, i);
++			return -ENOMEM;
++		}
++
++		memset(res, 0, 2 * sizeof(struct resource));
++		res[0].start = base;
++		res[0].end = base + 0xff;
++		res[0].flags = IORESOURCE_MEM;
++		res[1].start = res[1].end = irq;
++		res[1].flags = IORESOURCE_IRQ;
++		ret = platform_device_add_resources(pdev, res,
++				ARRAY_SIZE(res));
++		if (ret) {
++			pr_err("%s: Unable to add resources for %s%d\n",
++				__func__, pdev->name, pdev->id);
++			goto exit_device_put;
++		}
++
++		pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			pr_err("%s: Unable to allocate pdata for %s%d\n",
++				__func__, pdev->name, pdev->id);
++			ret = -ENOMEM;
++			goto exit_device_put;
++		}
++
++		pdata->omap_dm_set_source_clk = omap1_dm_timer_set_clk;
++		ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
++		if (ret) {
++			pr_err("%s: Unable to add platform data for %s%d\n",
++				__func__, pdev->name, pdev->id);
++			goto exit_release_pdata;
++		}
++		ret = platform_device_add(pdev);
++		if (ret) {
++			pr_err("%s: Unable to add platform device for %s%d\n",
++				__func__, pdev->name, pdev->id);
++			goto exit_release_pdata;
++		}
++		continue;
++exit_release_pdata:
++		kfree(pdata);
++exit_device_put:
++		platform_device_put(pdev);
++		return ret;
++	}
++	return 0;
++}
++arch_initcall(omap1_dm_timer_init);
+diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+old mode 100644
+new mode 100755
+index 20cfbcc..6b8ab9b
+--- a/arch/arm/mach-omap1/timer32k.c
++++ b/arch/arm/mach-omap1/timer32k.c
+@@ -183,9 +183,6 @@ static __init void omap_init_32k_timer(void)
+  */
+ static void __init omap_timer_init(void)
+ {
+-#ifdef CONFIG_OMAP_DM_TIMER
+-	omap_dm_timer_init();
+-#endif
+ 	omap_init_32k_timer();
+ }
  
 -- 
-1.7.1.GIT
+1.6.0.4
 
