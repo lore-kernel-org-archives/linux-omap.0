@@ -1,19 +1,19 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Subject: [PATCHv2 0/13] OMAP: dmtimer: hwmod
-Date: Sat, 14 Aug 2010 21:09:19 +0530
-Message-ID: <1281800359-15285-1-git-send-email-tarun.kanti@ti.com>
+Date: Sat, 14 Aug 2010 21:16:09 +0530
+Message-ID: <1281800769-15442-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52921 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45460 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932661Ab0HNEkD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 14 Aug 2010 00:40:03 -0400
+	id S1751100Ab0HNEqx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 14 Aug 2010 00:46:53 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7E4e0FB002334
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7E4koHa014514
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 13 Aug 2010 23:40:02 -0500
+	for <linux-omap@vger.kernel.org>; Fri, 13 Aug 2010 23:46:53 -0500
 Received: from localhost.localdomain (localhost [127.0.0.1])
-	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id o7E4dxGi028802
-	for <linux-omap@vger.kernel.org>; Sat, 14 Aug 2010 10:09:59 +0530 (IST)
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id o7E4knJi029541
+	for <linux-omap@vger.kernel.org>; Sat, 14 Aug 2010 10:16:49 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
