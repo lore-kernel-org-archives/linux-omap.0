@@ -1,121 +1,55 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCHv2 0/13] OMAP: dmtimer: hwmod
-Date: Mon, 16 Aug 2010 09:54:08 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032419CAAD@dbde02.ent.ti.com>
-References: <1281800359-15285-1-git-send-email-tarun.kanti@ti.com>
- <4C67C5FE.8070607@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [RFC PATCH] hmc5843: Digital compass board file
+Date: Mon, 16 Aug 2010 12:01:29 +0530
+Message-ID: <1281940289-18188-1-git-send-email-shubhrajyoti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57821 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39702 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752083Ab0HPEY0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Aug 2010 00:24:26 -0400
-In-Reply-To: <4C67C5FE.8070607@compulab.co.il>
-Content-Language: en-US
+	id S1752502Ab0HPGbf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Aug 2010 02:31:35 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7G6VVIa031100
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 16 Aug 2010 01:31:34 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Igor,
+The  board file changes for the digital compass hmc5843.
+The interface to the device is i2c.
 
-> -----Original Message-----
-> From: Igor Grinberg [mailto:grinberg@compulab.co.il]
-> Sent: Sunday, August 15, 2010 4:19 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCHv2 0/13] OMAP: dmtimer: hwmod
-> 
-> 
-> 
-> On 08/14/10 18:39, Tarun Kanti DebBarma wrote:
-> > This patch series contains:
-> > (*) most of the comments provided in v1 implemented and
-> > (*) OMAP4 timers support
-> >
-> > The comment details are availabe in respective patch series.
-> >
-> > The comment regarding usage of "dmtimer" name will be resolved
-> > after final round of consultation with members.
-> >
-> > Baseline: "origin/pm-wip/hwmods-omap4"
-> > Test info: Tested on OMAP4430SDP, OMAP3630SDP
-> >
-> > Tarun Kanti DebBarma (13):
-> >   dmtimer: hwmod: OMAP4: add device names to flck nodes
-> >   dmtimer: hwmod: add omap3xxx database
-> >   dmtimer: hwmod: OMAP: rev field to identify timer version
-> >   dmtimer: hwmod: OMAP: api to read omap_hwmod _clk
-> >   dmtimer: hwmod: OMAP: conversion to platform driver
-> >   dmtimer: OMAP: multi-platform register map definitions
-> >   dmtimer: hwmod: OMAP2PLUS: device registration
-> >   dmtimer: OMAP: multi-platform register access support
-> >   dmtimer: hwmod: OMAP3: add device names to flck nodes
-> >   dmtimer: hwmod: add omap2430 database
-> >   dmtimer: hwmod: add omap2420 database
-> >   dmtimer: hwmod: OMAP2: add device names to flck nodes
-> >   dmtimer: hwmod: OMAP1: device registration
-> >
-> >  arch/arm/mach-omap1/Makefile                 |    2 +-
-> >  arch/arm/mach-omap1/dmtimer.c                |  146 +++++
-> >  arch/arm/mach-omap1/timer32k.c               |    3 -
-> >  arch/arm/mach-omap2/Makefile                 |    2 +-
-> >  arch/arm/mach-omap2/clock2420_data.c         |   12 +
-> >  arch/arm/mach-omap2/clock2430_data.c         |   12 +
-> >  arch/arm/mach-omap2/clock3xxx_data.c         |   24 +-
-> >  arch/arm/mach-omap2/clock44xx_data.c         |   22 +-
-> >  arch/arm/mach-omap2/dmtimer.c                |  403 +++++++++++++
-> >  arch/arm/mach-omap2/dmtimer.h                |   19 +
-> >  arch/arm/mach-omap2/io.c                     |    2 +
-> >  arch/arm/mach-omap2/omap_hwmod.c             |   21 +
-> >  arch/arm/mach-omap2/omap_hwmod_2420_data.c   |  597
-> ++++++++++++++++++++
-> >  arch/arm/mach-omap2/omap_hwmod_2430_data.c   |  595
-> ++++++++++++++++++++
-> >  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  674
-> ++++++++++++++++++++++
-> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    3 +
-> >  arch/arm/mach-omap2/timer-gp.c               |    1 -
-> >  arch/arm/plat-omap/dmtimer.c                 |  781 ++++++++++++-------
-> -------
-> >  arch/arm/plat-omap/include/plat/dmtimer.h    |   15 +-
-> >  arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
-> >  20 files changed, 2894 insertions(+), 441 deletions(-)
-> >  mode change 100644 => 100755 arch/arm/mach-omap1/Makefile
-> >  create mode 100755 arch/arm/mach-omap1/dmtimer.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap1/timer32k.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/clock2420_data.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/clock2430_data.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/clock3xxx_data.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/clock44xx_data.c
-> >  create mode 100755 arch/arm/mach-omap2/dmtimer.c
-> >  create mode 100755 arch/arm/mach-omap2/dmtimer.h
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/io.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> >  mode change 100644 => 100755 arch/arm/plat-omap/dmtimer.c
-> >  mode change 100644 => 100755 arch/arm/plat-omap/include/plat/dmtimer.h
-> >  mode change 100644 => 100755 arch/arm/plat-
-> omap/include/plat/omap_hwmod.h
-> >
-> 
-> What the point of all this mode changes? What's wrong with 644?
-> 
-That's a mistake. I will correct them.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
-> 
-> --
-> Regards,
-> Igor.
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 9447644..5b6a48d 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -412,6 +412,11 @@ static struct i2c_board_info __initdata sdp4430_i2c_3_boardinfo[] = {
+ 		I2C_BOARD_INFO("tmp105", 0x48),
+ 	},
+ };
++static struct i2c_board_info __initdata sdp4430_i2c_4_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("hmc5843", 0x1e),
++	},
++};
+ static int __init omap4_i2c_init(void)
+ {
+ 	/*
+@@ -423,7 +428,8 @@ static int __init omap4_i2c_init(void)
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
+ 				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
+-	omap_register_i2c_bus(4, 400, NULL, 0);
++	omap_register_i2c_bus(4, 400, sdp4430_i2c_4_boardinfo,
++				ARRAY_SIZE(sdp4430_i2c_4_boardinfo));
+ 	return 0;
+ }
+ static void __init omap_4430sdp_init(void)
+-- 
+1.7.0.4
 
