@@ -1,139 +1,135 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH] OMAP4: pm.c extensions for OMAP4 support
-Date: Mon, 16 Aug 2010 19:38:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0324221C3E@dbde02.ent.ti.com>
-References: <1281950818-13043-1-git-send-email-thara@ti.com>
- <4C6942C6.5080202@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: [PATCH v4 1/3] ARM: OMAP: Beagle: revision detection
+Date: Mon, 16 Aug 2010 09:36:41 -0500
+Message-ID: <1281969403-28312-1-git-send-email-robertcnelson@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60800 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754147Ab0HPOJF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Aug 2010 10:09:05 -0400
-In-Reply-To: <4C6942C6.5080202@ti.com>
-Content-Language: en-US
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:60619 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754250Ab0HPOhO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Aug 2010 10:37:14 -0400
+Received: by yxg6 with SMTP id 6so1902776yxg.19
+        for <linux-omap@vger.kernel.org>; Mon, 16 Aug 2010 07:37:14 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>
 
+Due to the omap3530 ES3.0 Silicon being used on both the
+B5/B6 and C1/2/3 Beagle we can't use the cpu_is_omap34xx() 
+routines to differentiate the Beagle Boards.
 
+However gpio pins 171,172,173 where setup for this prupose, so 
+lets use them.
 
->>-----Original Message-----
->>From: Cousson, Benoit
->>Sent: Monday, August 16, 2010 7:23 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; paul@pwsan.com; Sripathy, Vishwanath;
->>Sawant, Anand
->>Subject: Re: [PATCH] OMAP4: pm.c extensions for OMAP4 support
->>
->>Hi Thara,
->>
->>On 8/16/2010 11:26 AM, Thara Gopinath wrote:
->>> OMAP4 has an iva device and a dsp devcice where as OMAP2/3
->>> has only an iva device. In this file the iva device in the
->>> system is registered under the name dsp_dev and the API
->>> to retrieve the iva device is omap2_get_dsp_device.
->>> This patch renames the dsp_dev to iva_dev, renames
->>> omap2_get_dsp_device to omap2_get_iva_device,
->>> registers dsp_dev for OMAP4 and adds a new API
->>> omap4_get_dsp_device to retrieve the dep_dev.
->>> This patch also registers the device "l3_main_1" as the l3
->>> device in case of OMAP4 and retains traditional "l3_main"
->>> in case of OMAP2/3
->>
->>This bug is already fixed in the following patch:
->>http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-
->>pm.git;a=commit;h=71a4efad2196d0c52485aa397093c6791a6995f1
+Changes:
+for older U-Boot's, use omap_mux_init_gpio()
+keep Beagle Rev in board-omap3beagle.c
 
-Ok. I did not see this. But rests of the changes are still valid.
-I will send a V2 skipping this part.
+Tested on Beagle Revisions: B5, C2, C4, and xMA
 
-Regards
-Thara
->>
->>Regards,
->>Benoit
->>
->>>
->>> Signed-off-by: Thara Gopinath<thara@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/pm.c                 |   24 ++++++++++++++++++------
->>>   arch/arm/plat-omap/include/plat/common.h |    3 ++-
->>>   2 files changed, 20 insertions(+), 7 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
->>> index 68f9f2e..0331290 100644
->>> --- a/arch/arm/mach-omap2/pm.c
->>> +++ b/arch/arm/mach-omap2/pm.c
->>> @@ -21,8 +21,9 @@
->>>   static struct omap_device_pm_latency *pm_lats;
->>>
->>>   static struct device *mpu_dev;
->>> -static struct device *dsp_dev;
->>> +static struct device *iva_dev;
->>>   static struct device *l3_dev;
->>> +static struct device *dsp_dev;
->>>
->>>   struct device *omap2_get_mpuss_device(void)
->>>   {
->>> @@ -30,10 +31,10 @@ struct device *omap2_get_mpuss_device(void)
->>>   	return mpu_dev;
->>>   }
->>>
->>> -struct device *omap2_get_dsp_device(void)
->>> +struct device *omap2_get_iva_device(void)
->>>   {
->>> -	WARN_ON_ONCE(!dsp_dev);
->>> -	return dsp_dev;
->>> +	WARN_ON_ONCE(!iva_dev);
->>> +	return iva_dev;
->>>   }
->>>
->>>   struct device *omap2_get_l3_device(void)
->>> @@ -42,6 +43,13 @@ struct device *omap2_get_l3_device(void)
->>>   	return l3_dev;
->>>   }
->>>
->>> +struct device *omap4_get_dsp_device(void)
->>> +{
->>> +	WARN_ON_ONCE(!dsp_dev);
->>> +	return dsp_dev;
->>> +}
->>> +EXPORT_SYMBOL(omap4_get_dsp_device);
->>> +
->>>   /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
->>>   static int _init_omap_device(char *name, struct device **new_dev)
->>>   {
->>> @@ -69,8 +77,12 @@ static int _init_omap_device(char *name, struct device **new_dev)
->>>   static void omap2_init_processor_devices(void)
->>>   {
->>>   	_init_omap_device("mpu",&mpu_dev);
->>> -	_init_omap_device("iva",&dsp_dev);
->>> -	_init_omap_device("l3_main",&l3_dev);
->>> +	_init_omap_device("iva",&iva_dev);
->>> +	_init_omap_device("dsp",&dsp_dev);
->>> +	if (cpu_is_omap44xx())
->>> +		_init_omap_device("l3_main_1",&l3_dev);
->>> +	else
->>> +		_init_omap_device("l3_main",&l3_dev);
->>>   }
->>>
->>>   static int __init omap2_common_pm_init(void)
->>> diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
->>> index 9776b41..c45dbb9 100644
->>> --- a/arch/arm/plat-omap/include/plat/common.h
->>> +++ b/arch/arm/plat-omap/include/plat/common.h
->>> @@ -91,7 +91,8 @@ void omap3_map_io(void);
->>>   })
->>>
->>>   extern struct device *omap2_get_mpuss_device(void);
->>> -extern struct device *omap2_get_dsp_device(void);
->>> +extern struct device *omap2_get_iva_device(void);
->>>   extern struct device *omap2_get_l3_device(void);
->>> +extern struct device *omap4_get_dsp_device(void);
->>>
->>>   #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   79 +++++++++++++++++++++++++++++++
+ 1 files changed, 79 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 87969c7..01a288f 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -50,6 +50,84 @@
+ 
+ #define NAND_BLOCK_SIZE		SZ_128K
+ 
++/*
++ * OMAP3 Beagle revision
++ * Run time detection of Beagle revision is done by reading GPIO.
++ * GPIO ID -
++ *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
++ *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
++ *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
++ *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
++ */
++enum {
++	OMAP3BEAGLE_BOARD_AXBX = 0,
++	OMAP3BEAGLE_BOARD_C1_3,
++	OMAP3BEAGLE_BOARD_C4,
++	OMAP3BEAGLE_BOARD_XM,
++};
++
++static u8 omap3_beagle_version;
++
++u8 get_omap3_beagle_rev(void)
++{
++	return omap3_beagle_version;
++}
++
++static void __init omap3_beagle_get_revision(void)
++{
++	int ret;
++	u16 beagle_rev = 0;
++
++	omap_mux_init_gpio(171, OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_gpio(172, OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_gpio(173, OMAP_PIN_INPUT_PULLUP);
++
++	ret = gpio_request(171, "rev_id_0");
++	if (ret < 0)
++		goto fail;
++
++	ret = gpio_request(172, "rev_id_1");
++	if (ret < 0)
++		goto fail;
++
++	ret = gpio_request(173, "rev_id_2");
++	if (ret < 0)
++		goto fail;
++
++	gpio_direction_input(171);
++	gpio_direction_input(172);
++	gpio_direction_input(173);
++
++	beagle_rev = gpio_get_value(171) | (gpio_get_value(172) << 1)
++			| (gpio_get_value(173) << 2);
++
++	switch (beagle_rev) {
++	case 7:
++		printk(KERN_INFO "OMAP3 Beagle Rev: Ax/Bx\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_AXBX;
++		break;
++	case 6:
++		printk(KERN_INFO "OMAP3 Beagle Rev: C1/C2/C3\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_C1_3;
++		break;
++	case 5:
++		printk(KERN_INFO "OMAP3 Beagle Rev: C4\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_C4;
++		break;
++	case 0:
++		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
++		break;
++	default:
++		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
++	}
++
++	return;
++fail:
++	printk(KERN_ERR "Unable to get revision detection GPIO pins\n");
++}
++
+ static struct mtd_partition omap3beagle_nand_partitions[] = {
+ 	/* All the partition sizes are listed in terms of NAND block size */
+ 	{
+@@ -464,6 +542,7 @@ static struct omap_musb_board_data musb_board_data = {
+ static void __init omap3_beagle_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++	omap3_beagle_get_revision();
+ 	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
+-- 
+1.7.0.4
 
