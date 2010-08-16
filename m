@@ -1,173 +1,98 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: [PATCH] : Bug fix in generic runtime pm APIs
-Date: Mon, 16 Aug 2010 20:15:40 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940270BE1011@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E940270AE9715@dbde02.ent.ti.com>
- <4C693E82.9000503@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH 0/1] omap: fix section mismatch errors
+Date: Mon, 16 Aug 2010 21:01:04 +0530
+Message-ID: <1281972664-1587-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55666 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754233Ab0HPOqT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Aug 2010 10:46:19 -0400
-In-Reply-To: <4C693E82.9000503@ti.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:33824 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751823Ab0HPPbM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Aug 2010 11:31:12 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7GFV8o9006622
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 16 Aug 2010 10:31:11 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Hi,
+Multiple section mismatches are observed with the latest
+master. While attempting to fix the ones listed below, I
+came across more instances.
+
+The patch in this series fixes all these issues.
+
+Though most of the changes are straight-forward, but for
+these (for now annotated as ___refdata):
+
+1) arch/arm/plat-omap/cpu-omap.c
+   Variable omap_driver may be required beyond __init
+   lifetime.
  
->> -----Original Message-----
->> From: Kalliguddi, Hema
->> Sent: Friday, August 13, 2010 7:08 PM
->> To: Cousson, Benoit
->> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kevin Hilman; 
->Paul.Walmsley[paul@pwsan.com]
->> Subject: RE: [PATCH] : Bug fix in generic runtime pm APIs
->>
->> Hi,
->>
->>> -----Original Message-----
->>> From: Cousson, Benoit
->>> Sent: Friday, August 13, 2010 6:29 PM
->>> To: Kalliguddi, Hema
->>> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kevin Hilman;
->>> Paul.Walmsley[paul@pwsan.com]
->>> Subject: Re: [PATCH] : Bug fix in generic runtime pm APIs
->>>
->>> Hi Hema,
->>>
->>> On 8/13/2010 2:31 PM, Kalliguddi, Hema wrote:
->>>> From: Hema HK<hemahk@ti.com>
->>>>
->>>> pm_generic_runtime_resume/pm_generic_runtime_suspend api
->>> should return zero if
->>>> driver has not implemented runtime_suspend or runtime_resume apis.
->>>
->>> Why? Could you elaborate?
->>>
->> I don't have runtime_suspend and runtime_resume APIs 
->implemented in the usb driver.
->> When runtime_pm_get_sync is called there is a -22 as return value.
->
->It is still not clear why it is related to the following patch?
->Can you explain in what context you observe that?
+2) drivers/mfd/twl-core.c
+   Variable twl_driver is used both in __init and __exit
+   context.
 
-Sorry. It is not related o following commit. It is related to 
-http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=1ebda92e47879750c739f6125ab11632a8f6f713
+There are few more similar errors in some of the modules
+would submit them separately.
 
-In this pm_generic_runtime_resume() API returns -EINVAL if there is no 
-runtime_resume and runtime_suspend APIs implemented by driver.
 
-I observe this issue when I call runtime_pm_get_sync api in the driver and check for the return value.
-The return value is -22 because there is no runtime_resume API implemented in the USB driver.
+WARNING: vmlinux.o(.text+0x187c0): Section mismatch in reference from the function zoom_twl_gpio_setup() to the (unknown reference) .init.data:(unknown)
+The function zoom_twl_gpio_setup() references
+the (unknown reference) __initdata (unknown).
+This is often because zoom_twl_gpio_setup lacks a __initdata
+annotation or the annotation of (unknown) is wrong.
 
->
->> Is not it is valid if there is no runtime_suspend and 
->runtime_resume implemented by drivers/device?
->> Why should this API returns -EINVAL if there is no 
->runtime_resume and runtime_suspend APIs ?
->
->Good question, you should maybe ask the original author, who is Rafael.
->
+WARNING: vmlinux.o(.text+0x189b0): Section mismatch in reference from the function cm_t35_twl_gpio_setup() to the (unknown reference) .init.data:(unknown)
+The function cm_t35_twl_gpio_setup() references
+the (unknown reference) __initdata (unknown).
+This is often because cm_t35_twl_gpio_setup lacks a __initdata
+annotation or the annotation of (unknown) is wrong.
 
-Rafael,
+WARNING: vmlinux.o(.data+0x19e38): Section mismatch in reference from the variable h4_config to the (unknown reference) .init.data:(unknown)
+The variable h4_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
 
-Is it mandatory to implement the runtime_suspend and runtime_resume APIs in the driver
-even if there is nothing to done in the APIs?
+WARNING: vmlinux.o(.data+0x1a670): Section mismatch in reference from the variable sdp2430_config to the (unknown reference) .init.data:(unknown)
+The variable sdp2430_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
 
->
->This patch is just adding platform_pm_suspend_noirq and 
->platform_pm_resume_noirq custom implementation in order to use 
->the same 
->idle / enable as runtime PM.
->How it is related to your problem?
+WARNING: vmlinux.o(.data+0x1ac50): Section mismatch in reference from the variable apollon_config to the (unknown reference) .init.data:(unknown)
+The variable apollon_config references
+the (unknown reference) __initdata (unknown)
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
 
-This is not related.
->
->>> This patch is changing some core driver code, so you should probably
->>> send it to Rafael / lkml / linux-pm.
->>>
->> I am not sure the above commit posted by Kevin already. This 
->issue I am seeing on Kevin's pm-wip/hwmods-omap4 branch.
->
->That does not matter. The code you are trying to change is already in 
->mainline kernel, so you just have to explain how you observe 
->that issue.
-Yes you are right. I will check with Rafael.
->
->Regards,
->Benoit
->
->>
->>> Regards,
->>> Benoit
->>>
->>>> Signed-off-by: Hema HK<hemahk@ti.com>
->>>>
->>>> Cc: Tony Lindgren<tony@atomide.com>
->>>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
->>>> Cc: Cousson, Benoit<b-cousson@ti.com>
->>>> Cc: Paul Walmsley [paul@pwsan.com]
->>>> ---
->>>> Based of: Kevin's pm-wip/hwmods-omap4  branch
->>>>
->>>>    drivers/base/power/generic_ops.c |    8 ++++----
->>>>    1 file changed, 4 insertions(+), 4 deletions(-)
->>>>
->>>> Index: linux-omap-pm/drivers/base/power/generic_ops.c
->>>> ===================================================================
->>>> --- linux-omap-pm.orig/drivers/base/power/generic_ops.c	
->>> 2010-08-13 08:05:54.705862674 -0400
->>>> +++ linux-omap-pm/drivers/base/power/generic_ops.c	
->>> 2010-08-13 08:06:19.257924404 -0400
->>>> @@ -38,14 +38,14 @@
->>>>     *
->>>>     * If PM operations are defined for the @dev's driver and
->>> they include
->>>>     * ->runtime_suspend(), execute it and return its error
->>> code.  Otherwise,
->>>> - * return -EINVAL.
->>>> + * return Zero.
->>>>     */
->>>>    int pm_generic_runtime_suspend(struct device *dev)
->>>>    {
->>>>    	const struct dev_pm_ops *pm = dev->driver ?
->>> dev->driver->pm : NULL;
->>>>    	int ret;
->>>>
->>>> -	ret = pm&&   pm->runtime_suspend ?
->>> pm->runtime_suspend(dev) : -EINVAL;
->>>> +	ret = pm&&   pm->runtime_suspend ? pm->runtime_suspend(dev) : 0;
->>>>
->>>>    	return ret;
->>>>    }
->>>> @@ -57,14 +57,14 @@
->>>>     *
->>>>     * If PM operations are defined for the @dev's driver and
->>> they include
->>>>     * ->runtime_resume(), execute it and return its error
->>> code.  Otherwise,
->>>> - * return -EINVAL.
->>>> + * return Zero.
->>>>     */
->>>>    int pm_generic_runtime_resume(struct device *dev)
->>>>    {
->>>>    	const struct dev_pm_ops *pm = dev->driver ?
->>> dev->driver->pm : NULL;
->>>>    	int ret;
->>>>
->>>> -	ret = pm&&   pm->runtime_resume ?
->>> pm->runtime_resume(dev) : -EINVAL;
->>>> +	ret = pm&&   pm->runtime_resume ? pm->runtime_resume(dev) : 0;
->>>>
->>>>    	return ret;
->>>>    }
->>>
->>>
->
->
+WARNING: vmlinux.o(.data+0x2e378): Section mismatch in reference from the variable omap_driver to the function .init.text:omap_cpu_init()
+The variable omap_driver references
+the function __init omap_cpu_init()
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+WARNING: vmlinux.o(.data+0x1b9dcc): Section mismatch in reference from the variable twl_driver to the function .init.text:twl_probe()
+The variable twl_driver references
+the function __init twl_probe()
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+
+Sanjeev Premi (1):
+  omap: fix section mismatch errors
+
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+ arch/arm/mach-omap2/board-apollon.c          |    2 +-
+ arch/arm/mach-omap2/board-cm-t35.c           |    8 ++++----
+ arch/arm/mach-omap2/board-h4.c               |    2 +-
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   18 +++++++++---------
+ arch/arm/plat-omap/cpu-omap.c                |    2 +-
+ drivers/mfd/twl-core.c                       |    2 +-
+ 7 files changed, 18 insertions(+), 18 deletions(-)
+
