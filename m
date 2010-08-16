@@ -1,202 +1,139 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 4/4] omap4: control: Fix the control module register accesses
-Date: Mon, 16 Aug 2010 19:36:22 +0530
-Message-ID: <1281967582-9773-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH] OMAP4: pm.c extensions for OMAP4 support
+Date: Mon, 16 Aug 2010 19:38:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0324221C3E@dbde02.ent.ti.com>
+References: <1281950818-13043-1-git-send-email-thara@ti.com>
+ <4C6942C6.5080202@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56265 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60800 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750962Ab0HPOG3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Aug 2010 10:06:29 -0400
+	id S1754147Ab0HPOJF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Aug 2010 10:09:05 -0400
+In-Reply-To: <4C6942C6.5080202@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-This patch has multiple fixes together. To ensure that git bisect work across
-commits, all changes are clubbed together
 
-1. Move the common control base address to control core
-2. Remove the manually coeded defines and use the ones from headers.
-3. Fix the the status register define in id.c for OMAP4
-4. Fix all the register define in hsmmc.c
-5. Use the control pad accessor API for omap4 hsmmc register accesses
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/hsmmc.c               |   67 +++++++++++++++-------------
- arch/arm/mach-omap2/id.c                  |    2 +-
- arch/arm/plat-omap/common.c               |    2 +-
- arch/arm/plat-omap/include/plat/control.h |   23 ----------
- 4 files changed, 38 insertions(+), 56 deletions(-)
+>>-----Original Message-----
+>>From: Cousson, Benoit
+>>Sent: Monday, August 16, 2010 7:23 PM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; paul@pwsan.com; Sripathy, Vishwanath;
+>>Sawant, Anand
+>>Subject: Re: [PATCH] OMAP4: pm.c extensions for OMAP4 support
+>>
+>>Hi Thara,
+>>
+>>On 8/16/2010 11:26 AM, Thara Gopinath wrote:
+>>> OMAP4 has an iva device and a dsp devcice where as OMAP2/3
+>>> has only an iva device. In this file the iva device in the
+>>> system is registered under the name dsp_dev and the API
+>>> to retrieve the iva device is omap2_get_dsp_device.
+>>> This patch renames the dsp_dev to iva_dev, renames
+>>> omap2_get_dsp_device to omap2_get_iva_device,
+>>> registers dsp_dev for OMAP4 and adds a new API
+>>> omap4_get_dsp_device to retrieve the dep_dev.
+>>> This patch also registers the device "l3_main_1" as the l3
+>>> device in case of OMAP4 and retains traditional "l3_main"
+>>> in case of OMAP2/3
+>>
+>>This bug is already fixed in the following patch:
+>>http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-
+>>pm.git;a=commit;h=71a4efad2196d0c52485aa397093c6791a6995f1
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index c8f647b..87bdb7b 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -135,10 +135,11 @@ static void omap4_hsmmc1_before_set_reg(struct device *dev, int slot,
- 	 *
- 	 * FIXME handle VMMC1A as needed ...
- 	 */
--	reg = omap_ctrl_readl(control_pbias_offset);
--	reg &= ~(OMAP4_MMC1_PBIASLITE_PWRDNZ | OMAP4_MMC1_PWRDNZ |
--					OMAP4_USBC1_ICUSB_PWRDNZ);
--	omap_ctrl_writel(reg, control_pbias_offset);
-+	reg = omap4_ctrl_pad_readl(control_pbias_offset);
-+	reg &= ~(OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
-+		OMAP4_MMC1_PWRDNZ_MASK |
-+		OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
-+	omap4_ctrl_pad_writel(reg, control_pbias_offset);
- }
- 
- static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
-@@ -147,30 +148,33 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
- 	u32 reg;
- 
- 	if (power_on) {
--		reg = omap_ctrl_readl(control_pbias_offset);
--		reg |= OMAP4_MMC1_PBIASLITE_PWRDNZ;
-+		reg = omap4_ctrl_pad_readl(control_pbias_offset);
-+		reg |= OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK;
- 		if ((1 << vdd) <= MMC_VDD_165_195)
--			reg &= ~OMAP4_MMC1_PBIASLITE_VMODE;
-+			reg &= ~OMAP4_MMC1_PBIASLITE_VMODE_MASK;
- 		else
--			reg |= OMAP4_MMC1_PBIASLITE_VMODE;
--		reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ | OMAP4_MMC1_PWRDNZ |
--						OMAP4_USBC1_ICUSB_PWRDNZ);
--		omap_ctrl_writel(reg, control_pbias_offset);
-+			reg |= OMAP4_MMC1_PBIASLITE_VMODE_MASK;
-+		reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
-+			OMAP4_MMC1_PWRDNZ_MASK |
-+			OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
-+		omap4_ctrl_pad_writel(reg, control_pbias_offset);
- 		/* 4 microsec delay for comparator to generate an error*/
- 		udelay(4);
--		reg = omap_ctrl_readl(control_pbias_offset);
--		if (reg & OMAP4_MMC1_PBIASLITE_VMODE_ERROR) {
-+		reg = omap4_ctrl_pad_readl(control_pbias_offset);
-+		if (reg & OMAP4_MMC1_PBIASLITE_VMODE_ERROR_MASK) {
- 			pr_err("Pbias Voltage is not same as LDO\n");
- 			/* Caution : On VMODE_ERROR Power Down MMC IO */
--			reg &= ~(OMAP4_MMC1_PWRDNZ | OMAP4_USBC1_ICUSB_PWRDNZ);
--			omap_ctrl_writel(reg, control_pbias_offset);
-+			reg &= ~(OMAP4_MMC1_PWRDNZ_MASK |
-+				OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
-+			omap4_ctrl_pad_writel(reg, control_pbias_offset);
- 		}
- 	} else {
--		reg = omap_ctrl_readl(control_pbias_offset);
--		 reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ |
--			OMAP4_MMC1_PBIASLITE_VMODE | OMAP4_MMC1_PWRDNZ |
--			OMAP4_USBC1_ICUSB_PWRDNZ);
--		omap_ctrl_writel(reg, control_pbias_offset);
-+		reg = omap4_ctrl_pad_readl(control_pbias_offset);
-+		reg |= (OMAP4_MMC1_PBIASLITE_PWRDNZ_MASK |
-+			OMAP4_MMC1_PWRDNZ_MASK |
-+			OMAP4_MMC1_PBIASLITE_VMODE_MASK |
-+			OMAP4_USBC1_ICUSB_PWRDNZ_MASK);
-+		omap4_ctrl_pad_writel(reg, control_pbias_offset);
- 	}
- }
- 
-@@ -218,17 +222,18 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 			control_devconf1_offset = OMAP343X_CONTROL_DEVCONF1;
- 		}
- 	} else {
--		control_pbias_offset = OMAP44XX_CONTROL_PBIAS_LITE;
--		control_mmc1 = OMAP44XX_CONTROL_MMC1;
--		reg = omap_ctrl_readl(control_mmc1);
--		reg |= (OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP0 |
--			OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP1);
--		reg &= ~(OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP2 |
--			OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP3);
--		reg |= (OMAP4_CONTROL_SDMMC1_DR0_SPEEDCTRL |
--			OMAP4_CONTROL_SDMMC1_DR1_SPEEDCTRL |
--			OMAP4_CONTROL_SDMMC1_DR2_SPEEDCTRL);
--		omap_ctrl_writel(reg, control_mmc1);
-+		control_pbias_offset =
-+			OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_PBIASLITE;
-+		control_mmc1 = OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_MMC1;
-+		reg = omap4_ctrl_pad_readl(control_mmc1);
-+		reg |= (OMAP4_SDMMC1_PUSTRENGTH_GRP0_MASK |
-+			OMAP4_SDMMC1_PUSTRENGTH_GRP1_MASK);
-+		reg &= ~(OMAP4_SDMMC1_PUSTRENGTH_GRP2_MASK |
-+			OMAP4_SDMMC1_PUSTRENGTH_GRP3_MASK);
-+		reg |= (OMAP4_USBC1_DR0_SPEEDCTRL_MASK|
-+			OMAP4_SDMMC1_DR1_SPEEDCTRL_MASK |
-+			OMAP4_SDMMC1_DR2_SPEEDCTRL_MASK);
-+		omap4_ctrl_pad_writel(reg, control_mmc1);
- 	}
- 
- 	for (c = controllers; c->mmc; c++) {
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 9a879f9..4808bc9 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -60,7 +60,7 @@ int omap_type(void)
- 	} else if (cpu_is_omap34xx()) {
- 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
- 	} else if (cpu_is_omap44xx()) {
--		val = omap_ctrl_readl(OMAP44XX_CONTROL_STATUS);
-+		val = omap_ctrl_readl(OMAP4_CTRL_MODULE_CORE_STATUS);
- 	} else {
- 		pr_err("Cannot detect omap type!\n");
- 		goto out;
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 480718b..7d668b3 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -336,7 +336,7 @@ void __init omap3_map_io(void)
- static struct omap_globals omap4_globals = {
- 	.class	= OMAP443X_CLASS,
- 	.tap	= OMAP2_L4_IO_ADDRESS(OMAP443X_SCM_BASE),
--	.ctrl	= OMAP443X_CTRL_BASE,	/* FIXME: Move this to control core */
-+	.ctrl	= OMAP443X_SCM_BASE,
- 	.ctrl_pad	= OMAP443X_CTRL_BASE,
- 	.prm	= OMAP4430_PRM_BASE,
- 	.cm	= OMAP4430_CM_BASE,
-diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index f571af7..19c9b2a 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -208,12 +208,6 @@
- #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
- #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
- 
--/* 44xx control status register offset */
--#define OMAP44XX_CONTROL_STATUS		0x2c4
--
--/* 44xx-only CONTROL_GENERAL register offsets */
--#define OMAP44XX_CONTROL_MMC1			0x628
--#define OMAP44XX_CONTROL_PBIAS_LITE		0x600
- /*
-  * REVISIT: This list of registers is not comprehensive - there are more
-  * that should be added.
-@@ -259,23 +253,6 @@
- #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
- #define OMAP2_PBIASLITEVMODE0		(1 << 0)
- 
--/* CONTROL_PBIAS_LITE bits for OMAP4 */
--#define OMAP4_MMC1_PWRDNZ			(1 << 26)
--#define OMAP4_MMC1_PBIASLITE_HIZ_MODE		(1 << 25)
--#define OMAP4_MMC1_PBIASLITE_SUPPLY_HI_OUT	(1 << 24)
--#define OMAP4_MMC1_PBIASLITE_VMODE_ERROR	(1 << 23)
--#define OMAP4_MMC1_PBIASLITE_PWRDNZ		(1 << 22)
--#define OMAP4_MMC1_PBIASLITE_VMODE		(1 << 21)
--#define OMAP4_USBC1_ICUSB_PWRDNZ		(1 << 20)
--
--#define OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP0	(1 << 31)
--#define OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP1	(1 << 30)
--#define OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP2	(1 << 29)
--#define OMAP4_CONTROL_SDMMC1_PUSTRENGTHGRP3	(1 << 28)
--#define OMAP4_CONTROL_SDMMC1_DR0_SPEEDCTRL	(1 << 27)
--#define OMAP4_CONTROL_SDMMC1_DR1_SPEEDCTRL	(1 << 26)
--#define OMAP4_CONTROL_SDMMC1_DR2_SPEEDCTRL	(1 << 25)
--
- /* CONTROL_PROG_IO1 bits */
- #define OMAP3630_PRG_SDMMC1_SPEEDCTRL	(1 << 20)
- 
--- 
-1.6.0.4
+Ok. I did not see this. But rests of the changes are still valid.
+I will send a V2 skipping this part.
+
+Regards
+Thara
+>>
+>>Regards,
+>>Benoit
+>>
+>>>
+>>> Signed-off-by: Thara Gopinath<thara@ti.com>
+>>> ---
+>>>   arch/arm/mach-omap2/pm.c                 |   24 ++++++++++++++++++------
+>>>   arch/arm/plat-omap/include/plat/common.h |    3 ++-
+>>>   2 files changed, 20 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+>>> index 68f9f2e..0331290 100644
+>>> --- a/arch/arm/mach-omap2/pm.c
+>>> +++ b/arch/arm/mach-omap2/pm.c
+>>> @@ -21,8 +21,9 @@
+>>>   static struct omap_device_pm_latency *pm_lats;
+>>>
+>>>   static struct device *mpu_dev;
+>>> -static struct device *dsp_dev;
+>>> +static struct device *iva_dev;
+>>>   static struct device *l3_dev;
+>>> +static struct device *dsp_dev;
+>>>
+>>>   struct device *omap2_get_mpuss_device(void)
+>>>   {
+>>> @@ -30,10 +31,10 @@ struct device *omap2_get_mpuss_device(void)
+>>>   	return mpu_dev;
+>>>   }
+>>>
+>>> -struct device *omap2_get_dsp_device(void)
+>>> +struct device *omap2_get_iva_device(void)
+>>>   {
+>>> -	WARN_ON_ONCE(!dsp_dev);
+>>> -	return dsp_dev;
+>>> +	WARN_ON_ONCE(!iva_dev);
+>>> +	return iva_dev;
+>>>   }
+>>>
+>>>   struct device *omap2_get_l3_device(void)
+>>> @@ -42,6 +43,13 @@ struct device *omap2_get_l3_device(void)
+>>>   	return l3_dev;
+>>>   }
+>>>
+>>> +struct device *omap4_get_dsp_device(void)
+>>> +{
+>>> +	WARN_ON_ONCE(!dsp_dev);
+>>> +	return dsp_dev;
+>>> +}
+>>> +EXPORT_SYMBOL(omap4_get_dsp_device);
+>>> +
+>>>   /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
+>>>   static int _init_omap_device(char *name, struct device **new_dev)
+>>>   {
+>>> @@ -69,8 +77,12 @@ static int _init_omap_device(char *name, struct device **new_dev)
+>>>   static void omap2_init_processor_devices(void)
+>>>   {
+>>>   	_init_omap_device("mpu",&mpu_dev);
+>>> -	_init_omap_device("iva",&dsp_dev);
+>>> -	_init_omap_device("l3_main",&l3_dev);
+>>> +	_init_omap_device("iva",&iva_dev);
+>>> +	_init_omap_device("dsp",&dsp_dev);
+>>> +	if (cpu_is_omap44xx())
+>>> +		_init_omap_device("l3_main_1",&l3_dev);
+>>> +	else
+>>> +		_init_omap_device("l3_main",&l3_dev);
+>>>   }
+>>>
+>>>   static int __init omap2_common_pm_init(void)
+>>> diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+>>> index 9776b41..c45dbb9 100644
+>>> --- a/arch/arm/plat-omap/include/plat/common.h
+>>> +++ b/arch/arm/plat-omap/include/plat/common.h
+>>> @@ -91,7 +91,8 @@ void omap3_map_io(void);
+>>>   })
+>>>
+>>>   extern struct device *omap2_get_mpuss_device(void);
+>>> -extern struct device *omap2_get_dsp_device(void);
+>>> +extern struct device *omap2_get_iva_device(void);
+>>>   extern struct device *omap2_get_l3_device(void);
+>>> +extern struct device *omap4_get_dsp_device(void);
+>>>
+>>>   #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
 
