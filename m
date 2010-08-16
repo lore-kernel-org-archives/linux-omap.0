@@ -1,55 +1,51 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [RFC PATCH] hmc5843: Digital compass board file
-Date: Mon, 16 Aug 2010 12:01:29 +0530
-Message-ID: <1281940289-18188-1-git-send-email-shubhrajyoti@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH] omap: rx51: Add bq27200 battery platform data
+Date: Mon, 16 Aug 2010 11:10:29 +0300
+Message-ID: <20100816111029.a4c003e0.jhnikula@gmail.com>
+References: <201008150112.30128.luke@dashjr.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39702 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752502Ab0HPGbf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Aug 2010 02:31:35 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7G6VVIa031100
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 16 Aug 2010 01:31:34 -0500
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:41720 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751339Ab0HPIKY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Aug 2010 04:10:24 -0400
+Received: by eyg5 with SMTP id 5so1090191eyg.19
+        for <linux-omap@vger.kernel.org>; Mon, 16 Aug 2010 01:10:22 -0700 (PDT)
+In-Reply-To: <201008150112.30128.luke@dashjr.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Luke-Jr <luke@dashjr.org>
+Cc: Anton Vorontsov <cbou@mail.ru>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
 
-The  board file changes for the digital compass hmc5843.
-The interface to the device is i2c.
+On Sun, 15 Aug 2010 01:12:10 -0500
+"Luke-Jr" <luke@dashjr.org> wrote:
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+> Signed-off-by: Luke Dashjr <luke-jr+git@utopios.org>
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index 0348392..4131cc6 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -731,6 +731,9 @@ static struct i2c_board_info __initdata rx51_peripherals_i2c_board_info_2[] = {
+>  	{
+>  		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+>  	},
+> +	{
+> +		I2C_BOARD_INFO("bq27200", 0x55),
+> +	},
+>  };
+>  
+Hi
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 9447644..5b6a48d 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -412,6 +412,11 @@ static struct i2c_board_info __initdata sdp4430_i2c_3_boardinfo[] = {
- 		I2C_BOARD_INFO("tmp105", 0x48),
- 	},
- };
-+static struct i2c_board_info __initdata sdp4430_i2c_4_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("hmc5843", 0x1e),
-+	},
-+};
- static int __init omap4_i2c_init(void)
- {
- 	/*
-@@ -423,7 +428,8 @@ static int __init omap4_i2c_init(void)
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	omap_register_i2c_bus(3, 400, sdp4430_i2c_3_boardinfo,
- 				ARRAY_SIZE(sdp4430_i2c_3_boardinfo));
--	omap_register_i2c_bus(4, 400, NULL, 0);
-+	omap_register_i2c_bus(4, 400, sdp4430_i2c_4_boardinfo,
-+				ARRAY_SIZE(sdp4430_i2c_4_boardinfo));
- 	return 0;
- }
- static void __init omap_4430sdp_init(void)
+There has been changes in board-rx51-peripherals.c and patch doesn't
+apply. Could you refresh this patch against linux-2.6 or linux-omap
+tree.
+
+
 -- 
-1.7.0.4
-
+Jarkko
