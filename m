@@ -1,87 +1,50 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] : Bug fix in generic runtime pm APIs
-Date: Mon, 16 Aug 2010 20:54:21 +0200
-Message-ID: <201008162054.21274.rjw@sisk.pl>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E940270AE9715@dbde02.ent.ti.com> <4C693E82.9000503@ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E940270BE1011@dbde02.ent.ti.com>
+Subject: Re: [linux-pm] [PATCH] PM: runtime PM + idle: allow usage when interrupts are disabled
+Date: Mon, 16 Aug 2010 23:18:03 +0200
+Message-ID: <201008162318.03923.rjw@sisk.pl>
+References: <1281459261-30829-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:45391 "EHLO ogre.sisk.pl"
+Received: from ogre.sisk.pl ([217.79.144.158]:45818 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752575Ab0HPS4D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Aug 2010 14:56:03 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940270BE1011@dbde02.ent.ti.com>
+	id S1755313Ab0HPVTo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Aug 2010 17:19:44 -0400
+In-Reply-To: <1281459261-30829-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-pm@lists.linux-foundation.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Ming Lei <tom.leiming@gmail.com>
 
-On Monday, August 16, 2010, Kalliguddi, Hema wrote:
-> Hi,
->  
-> >> -----Original Message-----
-> >> From: Kalliguddi, Hema
-> >> Sent: Friday, August 13, 2010 7:08 PM
-> >> To: Cousson, Benoit
-> >> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kevin Hilman; 
-> >Paul.Walmsley[paul@pwsan.com]
-> >> Subject: RE: [PATCH] : Bug fix in generic runtime pm APIs
-> >>
-> >> Hi,
-> >>
-> >>> -----Original Message-----
-> >>> From: Cousson, Benoit
-> >>> Sent: Friday, August 13, 2010 6:29 PM
-> >>> To: Kalliguddi, Hema
-> >>> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Kevin Hilman;
-> >>> Paul.Walmsley[paul@pwsan.com]
-> >>> Subject: Re: [PATCH] : Bug fix in generic runtime pm APIs
-> >>>
-> >>> Hi Hema,
-> >>>
-> >>> On 8/13/2010 2:31 PM, Kalliguddi, Hema wrote:
-> >>>> From: Hema HK<hemahk@ti.com>
-> >>>>
-> >>>> pm_generic_runtime_resume/pm_generic_runtime_suspend api
-> >>> should return zero if
-> >>>> driver has not implemented runtime_suspend or runtime_resume apis.
-> >>>
-> >>> Why? Could you elaborate?
-> >>>
-> >> I don't have runtime_suspend and runtime_resume APIs 
-> >implemented in the usb driver.
-> >> When runtime_pm_get_sync is called there is a -22 as return value.
-> >
-> >It is still not clear why it is related to the following patch?
-> >Can you explain in what context you observe that?
+On Tuesday, August 10, 2010, Kevin Hilman wrote:
+> When using runtime PM in combination with CPUidle, the runtime PM
+> transtions of some devices may be triggered during the idle path.
+> Late in the idle sequence, interrupts will likely be disabled when
+> runtime PM for these devices is initiated.
 > 
-> Sorry. It is not related o following commit. It is related to 
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=1ebda92e47879750c739f6125ab11632a8f6f713
+> Currently, the runtime PM core assumes methods are called with
+> interrupts enabled.  However, if it is called with interrupts
+> disabled, the internal locking unconditionally enables interrupts, for
+> example:
 > 
-> In this pm_generic_runtime_resume() API returns -EINVAL if there is no 
-> runtime_resume and runtime_suspend APIs implemented by driver.
-> 
-> I observe this issue when I call runtime_pm_get_sync api in the driver and check for the return value.
-> The return value is -22 because there is no runtime_resume API implemented in the USB driver.
-> 
-> >
-> >> Is not it is valid if there is no runtime_suspend and 
-> >runtime_resume implemented by drivers/device?
-> >> Why should this API returns -EINVAL if there is no 
-> >runtime_resume and runtime_suspend APIs ?
-> >
-> >Good question, you should maybe ask the original author, who is Rafael.
-> >
-> 
-> Rafael,
-> 
-> Is it mandatory to implement the runtime_suspend and runtime_resume APIs in the driver
-> even if there is nothing to done in the APIs?
+> pm_runtime_put_sync()
 
-That depends on the bus type routines.  If your bus type uses the generic
-ones then yes, it is.
+Please don't use that from interrupt context.  There's pm_runtime_put()
+exactly for this purpose that puts the _idle() call into a workqueue.
+
+>     __pm_runtime_put()
+>         pm_runtime_idle()
+>             spin_lock_irq()
+>             __pm_runtime_idle()
+>                 spin_unlock_irq()   <--- interrupts unconditionally enabled
+
+That's because __pm_runtime_idle() has to be called from process context.
+
+>                 dev->bus->pm->runtime_idle()
+>                 spin_lock_irq()
+>              spin_unlock_irq()
 
 Thanks,
 Rafael
