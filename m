@@ -1,141 +1,121 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/13] dmtimer: hwmod: OMAP: rev field to identify timer
- version
-Date: Mon, 16 Aug 2010 13:59:56 +0200
-Message-ID: <4C69283C.5050807@ti.com>
-References: <1281800301-15210-1-git-send-email-tarun.kanti@ti.com>
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 8/8 ]usb : musb:Using runtime pm apis for musb.
+Date: Mon, 16 Aug 2010 17:41:59 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940270AE9B45@dbde02.ent.ti.com>
+References: <1281115749-1601-1-git-send-email-hemahk@ti.com>
+ <4C5D8150.4020009@ru.mvista.com> <4C628B01.2010009@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49373 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750740Ab0HPMAF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Aug 2010 08:00:05 -0400
-In-Reply-To: <1281800301-15210-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C628B01.2010009-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Gopinath, Thara" <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Tarun,
+ Hi,
 
-You series is missing the omap4 hwmod data. You should rebase it on the 
-latest pm_wip/hwmods-omap4 and add the hwmod data for the timers.
+>-----Original Message-----
+>From: Sergei Shtylyov [mailto:sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org] 
+>Sent: Wednesday, August 11, 2010 5:05 PM
+>To: Kalliguddi, Hema
+>Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
+>Basak, Partha; Felipe Balbi; Tony Lindgren; Kevin Hilman
+>Subject: Re: [PATCH 8/8 ]usb : musb:Using runtime pm apis for musb.
+>
+>Hello.
+>
+>I wrote:
+>
+>>> Calling runtime pm APIs pm_runtime_put_sync() and 
+>>> pm_runtime_get_sync() for enabling/disabling the clocks,sysconfig 
+>>> settings.
+>
+>>> used omap_hwmod_enable_wakeup & omap_hwmod_disable_wakeup apis to 
+>>> set/clear
+>>> the wakeup enable bit.
+>>> Also need to put the USB in force standby and force idle 
+>mode when usb 
+>>> not used
+>>> and set it back to smart idle and smart stndby after wakeup.
+>>> these cases are handled using the oh flags.
+>>> For omap3430 auto idle bit has to be disabled because of 
+>the errata.So 
+>>> using HWMOD_NO_OCP_AUTOIDLE flag for OMAP3430.
+>
+>>> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+>>> Signed-off-by: Basak, Partha <p-basak2-l0cyMroinI0@public.gmane.org>
+>
+>>> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+>>> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>>> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+>
+>[...]
+>
+>>> Index: linux-omap-pm/include/linux/usb/musb.h
+>>> ===================================================================
+>>> --- linux-omap-pm.orig/include/linux/usb/musb.h    2010-08-06 
+>>> 10:44:06.000000000 -0400
+>>> +++ linux-omap-pm/include/linux/usb/musb.h    2010-08-06 
+>>> 10:44:42.946115274 -0400
+>>> @@ -10,6 +10,9 @@
+>>>  #ifndef __LINUX_USB_MUSB_H
+>>>  #define __LINUX_USB_MUSB_H
+>>>  
+>>> +#include <linux/platform_device.h>
+>
+>>    You could just use incomplete declaration of 'struct 
+>platfrom_device' 
+>> instead of this #include.
+>
+>>> +#include <plat/omap_hwmod.h>
+>
+>    Did you think about the other platfroms where this file 
+>doesn't exist? How 
+>are they supposed to compile?!
+>    I think this #include needs to be wrapped in #ifdef as well...
 
-For further details please read this:
-http://www.spinics.net/lists/linux-omap/msg34700.html
+Good point. I did not think of it. It need not be wrapped. Instead I am changing the 
+Enable_wakeup/disable_wakeup parameter to platform_device instead of omap_device.
+So that I can avoid these includes.
+>
+>>> +
+>>>  /* The USB role is defined by the connector used on the board, so 
+>>> long as
+>>>   * standards are being followed.  (Developer boards 
+>sometimes won't.)
+>>>   */
+>>> @@ -129,6 +132,21 @@
+>>>  
+>>>      /* check usb device active state*/
+>>>      int        (*is_usb_active)(struct device *dev);
+>>> +
+>>> +    /* omap hwmod data structure     */
+>>> +    struct    omap_hwmod *oh;
+>
+>>    This should be wrapped into #ifdef, don't you think?
+>
+>>> +    /* enable clocks and set sysconfig register*/
+>>> +    int        (*device_enable)(struct platform_device *pdev);
+>>> +
+>>> +    /* Disable clock and reset the sysconfig register settings*/
+>>> +    int        (*device_idle)(struct platform_device *pdev);
+>>> +
+>>> +    /* set the enable wakeup bit of sysconfig register */
+>>> +    int        (*enable_wakeup)(struct omap_device *od);
+>>> +
+>>> +    /* Clear the enable wakeup bit  of sysconfig register */
+>>> +    int        (*disable_wakeup)(struct omap_device *od);
+>
+>>    This should be wrapped too, I think...
 
-
-On 8/14/2010 5:38 PM, DebBarma, Tarun Kanti wrote:
-> This patch adds revision (.rev) to hwmod class to identify different
-> timer types. In the present implementation it is used to identify
-> millisecond timers, legacy timers and highlander timers present in
-> OMAP4. This identification serves following purposes:
-> (1) select appropriate timers register maps associated with legacy
-> ip timers and highlander ip timers present on OMAP4.
-> (2) select millisecond timers to perform specific operations upon
-> them during _probe()
+It will be taken care.
 >
-> Signed-off-by: Partha Basak<p-basak2@ti.com>
-> Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> Signed-off-by: Thara Gopinath<thara@ti.com>
-> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> Cc: Kevin Hilman<khilman@deeprootsystems.com>
-> Cc: Tony Lindgren<tony@atomide.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +++
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
->   arch/arm/plat-omap/include/plat/dmtimer.h  |    5 +++++
->   3 files changed, 11 insertions(+), 0 deletions(-)
->   mode change 100644 =>  100755 arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->   mode change 100644 =>  100755 arch/arm/plat-omap/include/plat/dmtimer.h
+>WBR, Sergei
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 6b9e7a1..98fcf3d 100755
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -17,6 +17,7 @@
->   #include<mach/irqs.h>
->   #include<plat/cpu.h>
->   #include<plat/dma.h>
-> +#include<plat/dmtimer.h>
->
->   #include "omap_hwmod_common_data.h"
->
-> @@ -115,6 +116,7 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_1ms_sysc = {
->   static struct omap_hwmod_class omap3xxx_timer_1ms_hwmod_class = {
->   	.name = "timer_1ms",
->   	.sysc =&omap3xxx_timer_1ms_sysc,
-> +	.rev = OMAP_TIMER_MILLISECOND,
->   };
->
->
-> @@ -131,6 +133,7 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_sysc = {
->   static struct omap_hwmod_class omap3xxx_timer_hwmod_class = {
->   	.name = "timer",
->   	.sysc =&omap3xxx_timer_sysc,
-> +	.rev =  OMAP_TIMER_IP_LEGACY,
->   };
->
->   /* timer10 */
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index 9736a49..c5478f7
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -22,6 +22,7 @@
->
->   #include<plat/omap_hwmod.h>
->   #include<plat/cpu.h>
-> +#include<plat/dmtimer.h>
->
->   #include "omap_hwmod_common_data.h"
->
-> @@ -4339,6 +4340,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
->   static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class = {
->   	.name = "timer_1ms",
->   	.sysc =&omap44xx_timer_1ms_sysc,
-> +	.rev = OMAP_TIMER_MILLISECOND,
-
-That information is redundant, you already know from the class that this 
-is a 1ms timer.
-If you need to get that information from the driver, you can set this 
-settings in device data using the class name at device init time.
-
-Moreover, this rev field is supposed to contain the revision per class 
-so in your case it should contain OMAP_TIMER_IP_LEGACY.
-
->   };
->
->   static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
-> @@ -4353,6 +4355,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
->   static struct omap_hwmod_class omap44xx_timer_hwmod_class = {
->   	.name = "timer",
->   	.sysc =&omap44xx_timer_sysc,
-> +	.rev = OMAP_TIMER_IP_VERSION_2,
->   };
->
->   /* timer1 */
-> diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-> index 20f1054..2926dc6
-> --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> @@ -44,6 +44,11 @@
->   #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
->   #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
->
-> +/* timer ip constants */
-> +#define OMAP_TIMER_MILLISECOND			0x0
-> +#define OMAP_TIMER_IP_LEGACY			0x1
-
-Legacy is not very meaningful, you'd better use VERSION_1 in that case.
-
-Benoit
-
-> +#define OMAP_TIMER_IP_VERSION_2			0x2
-> +
->   struct omap_dm_timer;
->   struct clk;
->
-
+>--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
