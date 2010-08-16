@@ -1,107 +1,112 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH] OMAP4: pm.c extensions for OMAP4 support
-Date: Mon, 16 Aug 2010 14:56:58 +0530
-Message-ID: <1281950818-13043-1-git-send-email-thara@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42004 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751270Ab0HPJ1J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Aug 2010 05:27:09 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: RE: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
+Date: Mon, 16 Aug 2010 15:15:17 +0530 (IST)
+Message-ID: <3776.10.24.255.18.1281951917.squirrel@dbdmail.itg.ti.com>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
+    <4BF6753B.60201@cam.ac.uk>
+    <0ebd01cb3ae5$a0dcfc70$LocalHost@wipblrx0099946>
+    <C9D59C82B94F474B872F2092A87F261412470D0874@dlee07.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <C9D59C82B94F474B872F2092A87F261412470D0874@dlee07.ent.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Murphy, Dan" <dmurphy@ti.com>
+Cc: Jonathan Cameron <jic23@cam.ac.uk>, Andrew Morton <akpm@linux-foundation.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-OMAP4 has an iva device and a dsp devcice where as OMAP2/3
-has only an iva device. In this file the iva device in the
-system is registered under the name dsp_dev and the API
-to retrieve the iva device is omap2_get_dsp_device.
-This patch renames the dsp_dev to iva_dev, renames
-omap2_get_dsp_device to omap2_get_iva_device,
-registers dsp_dev for OMAP4 and adds a new API
-omap4_get_dsp_device to retrieve the dep_dev.
-This patch also registers the device "l3_main_1" as the l3
-device in case of OMAP4 and retains traditional "l3_main"
-in case of OMAP2/3
+From: "Murphy, Dan" <dmurphy@ti.com>
+> Hemanth
+> I have a few comments on this patch.
+>
+> +static ssize_t cma3000_store_attr_mdfftmr(struct device *dev,
+> +					struct device_attribute *attr,
+> +					const char *buf, size_t count)
+> +{
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct cma3000_accl_data *data = platform_get_drvdata(pdev);
+> +	unsigned long val;
+> +	int error;
+> +
+> +	error = strict_strtoul(buf, 0, &val);
+> +	if (error)
+> +		return error;
+> +
+> +	mutex_lock(&data->mutex);
+> +	data->pdata.mdfftmr = val;
+> +
+> +	disable_irq(data->client->irq);
+> You should use disable_irq_nosync here.  This may not work properly on SMP.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- arch/arm/mach-omap2/pm.c                 |   24 ++++++++++++++++++------
- arch/arm/plat-omap/include/plat/common.h |    3 ++-
- 2 files changed, 20 insertions(+), 7 deletions(-)
+Can u explain why disable_irq will not work on SMP.
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 68f9f2e..0331290 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -21,8 +21,9 @@
- static struct omap_device_pm_latency *pm_lats;
- 
- static struct device *mpu_dev;
--static struct device *dsp_dev;
-+static struct device *iva_dev;
- static struct device *l3_dev;
-+static struct device *dsp_dev;
- 
- struct device *omap2_get_mpuss_device(void)
- {
-@@ -30,10 +31,10 @@ struct device *omap2_get_mpuss_device(void)
- 	return mpu_dev;
- }
- 
--struct device *omap2_get_dsp_device(void)
-+struct device *omap2_get_iva_device(void)
- {
--	WARN_ON_ONCE(!dsp_dev);
--	return dsp_dev;
-+	WARN_ON_ONCE(!iva_dev);
-+	return iva_dev;
- }
- 
- struct device *omap2_get_l3_device(void)
-@@ -42,6 +43,13 @@ struct device *omap2_get_l3_device(void)
- 	return l3_dev;
- }
- 
-+struct device *omap4_get_dsp_device(void)
-+{
-+	WARN_ON_ONCE(!dsp_dev);
-+	return dsp_dev;
-+}
-+EXPORT_SYMBOL(omap4_get_dsp_device);
-+
- /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
- static int _init_omap_device(char *name, struct device **new_dev)
- {
-@@ -69,8 +77,12 @@ static int _init_omap_device(char *name, struct device **new_dev)
- static void omap2_init_processor_devices(void)
- {
- 	_init_omap_device("mpu", &mpu_dev);
--	_init_omap_device("iva", &dsp_dev);
--	_init_omap_device("l3_main", &l3_dev);
-+	_init_omap_device("iva", &iva_dev);
-+	_init_omap_device("dsp", &dsp_dev);
-+	if (cpu_is_omap44xx())
-+		_init_omap_device("l3_main_1", &l3_dev);
-+	else
-+		_init_omap_device("l3_main", &l3_dev);
- }
- 
- static int __init omap2_common_pm_init(void)
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 9776b41..c45dbb9 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -91,7 +91,8 @@ void omap3_map_io(void);
- })
- 
- extern struct device *omap2_get_mpuss_device(void);
--extern struct device *omap2_get_dsp_device(void);
-+extern struct device *omap2_get_iva_device(void);
- extern struct device *omap2_get_l3_device(void);
-+extern struct device *omap4_get_dsp_device(void);
- 
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
--- 
-1.7.0.4
+>
+>> +	if (val == CMARANGE_2G) {
+>> +		ctrl |= CMA3000_RANGE2G;
+>> +		data->pdata.g_range = CMARANGE_2G;
+>> +	} else if (val == CMARANGE_8G) {
+>> +		ctrl |= CMA3000_RANGE8G;
+>> +		data->pdata.g_range = CMARANGE_8G;
+>
+> Why are you modifying the platform data?  Why not just keep it in a global or a glocal structure and modify it that way?
+
+If you look carefully, the variable data is indeed a local structure.
+
+>> +	} else {
+>> +		error = -EINVAL;
+>> +		goto err_op_failed;
+>> +	}
+>> +
+>> +	g_range = data->pdata.g_range;
+>> +	fuzz_x = data->pdata.fuzz_x;
+>> +	fuzz_y = data->pdata.fuzz_y;
+>> +	fuzz_z = data->pdata.fuzz_z;
+> Why are you storing these locally and then using them once can't we eliminate these completely and just pass the platform data values into the set
+> params?
+
+I belive this is already discussed and agreed upon in the previous thread of discussion.
+Pl refer the same.
+
+>> +
+>> +	disable_irq(data->client->irq);
+> You should use disable_irq_nosync here.  This may not work properly on SMP.
+>
+
+Same comment as above
+
+>> +	cma3000_set(data, CMA3000_CTRL, ctrl, "ctrl");
+>> +
+>> +	input_set_abs_params(data->input_dev, ABS_X, -g_range,
+>> +				g_range, fuzz_x, 0);
+>> +	input_set_abs_params(data->input_dev, ABS_Y, -g_range,
+>> +				g_range, fuzz_y, 0);
+>> +	input_set_abs_params(data->input_dev, ABS_Z, -g_range,
+>> +				g_range, fuzz_z, 0);
+> Don't necessarily agree with modifying the parameters for the input device on the fly.  Some implementations may be a read once on init and do not
+> go back and check this.
+
+Its the user space code that can modify the grange if required, so I suppose it will need to check
+these values after modifying the range.
+
+>
+>
+> +		ret = request_threaded_irq(data->client->irq, NULL,
+> +					cma3000_thread_irq,
+> +					irqflags | IRQF_ONESHOT,
+> +					data->client->name, data);
+>
+> This is implemented wrong.  You are doing a lot of processing in the IRQ context here.  Especially calls out to a peripheral.  The NULL should be
+> your handler thread where you do all the device processing.
+
+Are u sure u are referring to threaded irq, all the processing is being done in thread
+context. Pl refer documentation for more details on threaded irqs.
+
+>
+> Also this implementation only suggests that the HW has the IRQ connected what about devices that the IRQ line was not connected?
+>
+This is currently not implemented, since I am not aware of any boards with this configuration. A polling method could be added
+in future if the need arises.
+
+
 
