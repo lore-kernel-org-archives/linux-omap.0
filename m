@@ -1,103 +1,96 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCHv2 0/13] OMAP: dmtimer: hwmod
-Date: Sun, 15 Aug 2010 13:48:30 +0300
-Message-ID: <4C67C5FE.8070607@compulab.co.il>
-References: <1281800359-15285-1-git-send-email-tarun.kanti@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH v4 3/8] wireless: wl1271: add platform driver to get
+	board data
+Date: Mon, 16 Aug 2010 09:51:04 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032419CAAC@dbde02.ent.ti.com>
+References: <1281550913-17633-1-git-send-email-ohad@wizery.com>
+ <1281550913-17633-4-git-send-email-ohad@wizery.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0324110ABD@dbde02.ent.ti.com>
+ <20100811184742.GA21778@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC1@dbde02.ent.ti.com>
+ <20100811185724.GD21778@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0324110AC7@dbde02.ent.ti.com>
+ <20100811212513.GC827@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:48992 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758307Ab0HORCp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 15 Aug 2010 13:02:45 -0400
-In-Reply-To: <1281800359-15285-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100811212513.GC827@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, "Pandita, Vikram" <vikram.pandita@ti.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Nicolas Pitre <nico@fluxnic.net>, San Mehat <san@google.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Coelho Luciano (Nokia-MS/Helsinki)" <Luciano.Coelho@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ido Yariv <ido@wizery.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org
 
 
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Thursday, August 12, 2010 2:55 AM
+> To: DebBarma, Tarun Kanti
+> Cc: felipe.balbi@nokia.com; Ohad Ben-Cohen; Kalle Valo; Pandita, Vikram;
+> akpm@linux-foundation.org; Quadros Roger (Nokia-MS/Helsinki); Tony
+> Lindgren; linux-wireless@vger.kernel.org; Mark Brown; linux-
+> mmc@vger.kernel.org; Nicolas Pitre; San Mehat; Chikkature Rajashekar,
+> Madhusudhan; Coelho Luciano (Nokia-MS/Helsinki); linux-
+> omap@vger.kernel.org; Ido Yariv; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to get
+> board data
+> 
+> On Thu, Aug 12, 2010 at 12:57:18AM +0530, DebBarma, Tarun Kanti wrote:
+> >
+> > > -----Original Message-----
+> > > From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+> > > Sent: Thursday, August 12, 2010 12:27 AM
+> > > To: DebBarma, Tarun Kanti
+> > > Cc: Balbi Felipe (Nokia-MS/Helsinki); Ohad Ben-Cohen; linux-
+> > > wireless@vger.kernel.org; linux-mmc@vger.kernel.org; linux-
+> > > omap@vger.kernel.org; Ido Yariv; Mark Brown; linux-arm-
+> > > kernel@lists.infradead.org; Chikkature Rajashekar, Madhusudhan; Coelho
+> > > Luciano (Nokia-MS/Helsinki); akpm@linux-foundation.org; San Mehat;
+> Quadros
+> > > Roger (Nokia-MS/Helsinki); Tony Lindgren; Nicolas Pitre; Pandita,
+> Vikram;
+> > > Kalle Valo
+> > > Subject: Re: [PATCH v4 3/8] wireless: wl1271: add platform driver to
+> get
+> > > board data
+> > >
+> > > Hi,
+> > >
+> > > On Wed, Aug 11, 2010 at 08:52:54PM +0200, ext DebBarma, Tarun Kanti
+> wrote:
+> > > >True; however if we go by that argument than we can also assume pdata
+> > > >is valid, so that we would not need the below check.
+> > >
+> > > of course not. You can have devices that just play well with default
+> > > values or devices where you don't need the flexibility of platform
+> data.
+> > > That's why we check.
+> > >
+> > > platform_device pointers on the other hand, are guaranteed to be
+> always
+> > > true, if it isn't then you should oops, you deserve to oops because
+> > > something is really really wrong.
+> > >
+> > Sounds perfect!
+> > What that means is _probe() function makes sense only for cases where we
+> > have valid platform data because we are returning right at the top if
+> > pdata is not valid. If this is the case I was curious to know why not
+> > framework make another check for valid pdata before calling _probe()
+> > instead of coming all the way to _probe() and then returning!
+> 
+> Platform devices are not for passing platform data around - they're for
+> declaring platform hardware devices that we want drivers to handle -
+> and it depends on the driver whether having platform data is appropriate
+> or not.
+> 
+> This proposal is, IMHO, abusing the platform device/driver support to
+> achieve its own goals.  I've outlined a far simpler and easiler solution
+> which avoids this kind of abuse, and given suggestions on how to extend
+> it to support multiple instances.
 
-On 08/14/10 18:39, Tarun Kanti DebBarma wrote:
-> This patch series contains:
-> (*) most of the comments provided in v1 implemented and
-> (*) OMAP4 timers support
->
-> The comment details are availabe in respective patch series.
->
-> The comment regarding usage of "dmtimer" name will be resolved
-> after final round of consultation with members.
->
-> Baseline: "origin/pm-wip/hwmods-omap4"
-> Test info: Tested on OMAP4430SDP, OMAP3630SDP
->
-> Tarun Kanti DebBarma (13):
->   dmtimer: hwmod: OMAP4: add device names to flck nodes
->   dmtimer: hwmod: add omap3xxx database
->   dmtimer: hwmod: OMAP: rev field to identify timer version
->   dmtimer: hwmod: OMAP: api to read omap_hwmod _clk
->   dmtimer: hwmod: OMAP: conversion to platform driver
->   dmtimer: OMAP: multi-platform register map definitions
->   dmtimer: hwmod: OMAP2PLUS: device registration
->   dmtimer: OMAP: multi-platform register access support
->   dmtimer: hwmod: OMAP3: add device names to flck nodes
->   dmtimer: hwmod: add omap2430 database
->   dmtimer: hwmod: add omap2420 database
->   dmtimer: hwmod: OMAP2: add device names to flck nodes
->   dmtimer: hwmod: OMAP1: device registration
->
->  arch/arm/mach-omap1/Makefile                 |    2 +-
->  arch/arm/mach-omap1/dmtimer.c                |  146 +++++
->  arch/arm/mach-omap1/timer32k.c               |    3 -
->  arch/arm/mach-omap2/Makefile                 |    2 +-
->  arch/arm/mach-omap2/clock2420_data.c         |   12 +
->  arch/arm/mach-omap2/clock2430_data.c         |   12 +
->  arch/arm/mach-omap2/clock3xxx_data.c         |   24 +-
->  arch/arm/mach-omap2/clock44xx_data.c         |   22 +-
->  arch/arm/mach-omap2/dmtimer.c                |  403 +++++++++++++
->  arch/arm/mach-omap2/dmtimer.h                |   19 +
->  arch/arm/mach-omap2/io.c                     |    2 +
->  arch/arm/mach-omap2/omap_hwmod.c             |   21 +
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c   |  597 ++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c   |  595 ++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |  674 ++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    3 +
->  arch/arm/mach-omap2/timer-gp.c               |    1 -
->  arch/arm/plat-omap/dmtimer.c                 |  781 ++++++++++++--------------
->  arch/arm/plat-omap/include/plat/dmtimer.h    |   15 +-
->  arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
->  20 files changed, 2894 insertions(+), 441 deletions(-)
->  mode change 100644 => 100755 arch/arm/mach-omap1/Makefile
->  create mode 100755 arch/arm/mach-omap1/dmtimer.c
->  mode change 100644 => 100755 arch/arm/mach-omap1/timer32k.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/clock2420_data.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/clock2430_data.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/clock3xxx_data.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/clock44xx_data.c
->  create mode 100755 arch/arm/mach-omap2/dmtimer.c
->  create mode 100755 arch/arm/mach-omap2/dmtimer.h
->  mode change 100644 => 100755 arch/arm/mach-omap2/io.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_2420_data.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_2430_data.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->  mode change 100644 => 100755 arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->  mode change 100644 => 100755 arch/arm/plat-omap/dmtimer.c
->  mode change 100644 => 100755 arch/arm/plat-omap/include/plat/dmtimer.h
->  mode change 100644 => 100755 arch/arm/plat-omap/include/plat/omap_hwmod.h
->   
+I guess I have not put my question in the right perspective. As you have said, platform devices are not meant for passing data around, it appeared to me contradictory when in the probe() we are just checking the pdata and proceeding/returning based upon its value, as if platform device has no other functions. So, the question should have been what else we could do in probe() with platform device other than manipulation of pdata, other than modification of the framework in the real sense.
 
-What the point of all this mode changes? What's wrong with 644?
+Anyways, I will go through the suggestions you mentioned. Thanks for the clarifications.
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->   
-
--- 
-Regards,
-Igor.
 
