@@ -1,54 +1,173 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next: manual merge of the sound-asoc tree with the omap
- tree
-Date: Tue, 17 Aug 2010 10:53:47 +0300
-Message-ID: <20100817075346.GE12184@atomide.com>
-References: <20100817122145.f399e543.sfr@canb.auug.org.au>
- <20100817061558.GD12184@atomide.com>
- <20100817093445.ade1b4a4.jhnikula@gmail.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCH 3/13] dmtimer: hwmod: OMAP: rev field to identify timer
+ version
+Date: Tue, 17 Aug 2010 14:07:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032419CAB2@dbde02.ent.ti.com>
+References: <1281800301-15210-1-git-send-email-tarun.kanti@ti.com>
+ <4C69283C.5050807@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100817093445.ade1b4a4.jhnikula@gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50196 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755381Ab0HQIiR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 04:38:17 -0400
+In-Reply-To: <4C69283C.5050807@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Gopinath, Thara" <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-* Jarkko Nikula <jhnikula@gmail.com> [100817 09:27]:
-> On Tue, 17 Aug 2010 09:15:59 +0300
-> Tony Lindgren <tony@atomide.com> wrote:
+Benoit,
+
+> -----Original Message-----
+> From: Cousson, Benoit
+> Sent: Monday, August 16, 2010 5:30 PM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Basak, Partha; Shilimkar, Santosh;
+> Gopinath, Thara; Paul Walmsley; Kevin Hilman; Tony Lindgren
+> Subject: Re: [PATCH 3/13] dmtimer: hwmod: OMAP: rev field to identify
+> timer version
 > 
-> > * Stephen Rothwell <sfr@canb.auug.org.au> [100817 05:14]:
-> > > Hi all,
-> > > 
-> > > Today's linux-next merge of the sound-asoc tree got a conflict in
-> > > arch/arm/mach-omap2/board-n8x0.c between commits
-> > > 1c37553eb1778802f0e7b6730df36542752e801e ("omap: n8x0: Cleanup i2c1 and
-> > > menelaus registration") and 69be0f6f4b8e3be992ab6a333a3a82e043784c52
-> > > ("omap: n8x0: Register i2c2 and add board info with tlv320aic3xfor N810")
-> > > from the omap tree and commit f0fba2ad1b6b53d5360125c41953b7afcd6deff0
-> > > ("ASoC: multi-component - ASoC Multi-Component Support") from the
-> > > sound-asoc tree.
-> > > 
-> > > I couldn't figure this out, so I effectively reverted the part of the
-> > > latter commit affecting that file.  Is there no way that the latter
-> > > commit can be broken up into smaller self contained pieces?
-> > 
-> > Let's let Jarkko and Liam to queue these along with the other
-> > ASoC patches, I'll drop them from omap for-next.
-> > 
-> > Jarkko, can you please rebase them?
-> > 
-> I think it's easier if you keep them in l-o for-next and I send a
-> patch to ASoC multi-component removing board-n8x0.c changes.
+> Hi Tarun,
 > 
-> That way the N810 audio is usable in linux-omap before m-c merge and m-c
-> patch touch less board files.
+> You series is missing the omap4 hwmod data. You should rebase it on the
+> latest pm_wip/hwmods-omap4 and add the hwmod data for the timers.
+> 
+> For further details please read this:
+> http://www.spinics.net/lists/linux-omap/msg34700.html
+> 
+OK.
 
-OK sounds good to me.
+> 
+> On 8/14/2010 5:38 PM, DebBarma, Tarun Kanti wrote:
+> > This patch adds revision (.rev) to hwmod class to identify different
+> > timer types. In the present implementation it is used to identify
+> > millisecond timers, legacy timers and highlander timers present in
+> > OMAP4. This identification serves following purposes:
+> > (1) select appropriate timers register maps associated with legacy
+> > ip timers and highlander ip timers present on OMAP4.
+> > (2) select millisecond timers to perform specific operations upon
+> > them during _probe()
+> >
+> > Signed-off-by: Partha Basak<p-basak2@ti.com>
+> > Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
+> > Signed-off-by: Thara Gopinath<thara@ti.com>
+> > Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> > Cc: Paul Walmsley<paul@pwsan.com>
+> > Cc: Kevin Hilman<khilman@deeprootsystems.com>
+> > Cc: Tony Lindgren<tony@atomide.com>
+> > ---
+> >   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +++
+> >   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
+> >   arch/arm/plat-omap/include/plat/dmtimer.h  |    5 +++++
+> >   3 files changed, 11 insertions(+), 0 deletions(-)
+> >   mode change 100644 =>  100755 arch/arm/mach-
+> omap2/omap_hwmod_44xx_data.c
+> >   mode change 100644 =>  100755 arch/arm/plat-
+> omap/include/plat/dmtimer.h
+> >
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-
+> omap2/omap_hwmod_3xxx_data.c
+> > index 6b9e7a1..98fcf3d 100755
+> > --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> > @@ -17,6 +17,7 @@
+> >   #include<mach/irqs.h>
+> >   #include<plat/cpu.h>
+> >   #include<plat/dma.h>
+> > +#include<plat/dmtimer.h>
+> >
+> >   #include "omap_hwmod_common_data.h"
+> >
+> > @@ -115,6 +116,7 @@ static struct omap_hwmod_class_sysconfig
+> omap3xxx_timer_1ms_sysc = {
+> >   static struct omap_hwmod_class omap3xxx_timer_1ms_hwmod_class = {
+> >   	.name = "timer_1ms",
+> >   	.sysc =&omap3xxx_timer_1ms_sysc,
+> > +	.rev = OMAP_TIMER_MILLISECOND,
+> >   };
+> >
+> >
+> > @@ -131,6 +133,7 @@ static struct omap_hwmod_class_sysconfig
+> omap3xxx_timer_sysc = {
+> >   static struct omap_hwmod_class omap3xxx_timer_hwmod_class = {
+> >   	.name = "timer",
+> >   	.sysc =&omap3xxx_timer_sysc,
+> > +	.rev =  OMAP_TIMER_IP_LEGACY,
+> >   };
+> >
+> >   /* timer10 */
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-
+> omap2/omap_hwmod_44xx_data.c
+> > index 9736a49..c5478f7
+> > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> > @@ -22,6 +22,7 @@
+> >
+> >   #include<plat/omap_hwmod.h>
+> >   #include<plat/cpu.h>
+> > +#include<plat/dmtimer.h>
+> >
+> >   #include "omap_hwmod_common_data.h"
+> >
+> > @@ -4339,6 +4340,7 @@ static struct omap_hwmod_class_sysconfig
+> omap44xx_timer_1ms_sysc = {
+> >   static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class = {
+> >   	.name = "timer_1ms",
+> >   	.sysc =&omap44xx_timer_1ms_sysc,
+> > +	.rev = OMAP_TIMER_MILLISECOND,
+> 
+> That information is redundant, you already know from the class that this
+> is a 1ms timer.
+> If you need to get that information from the driver, you can set this
+> settings in device data using the class name at device init time.
+> 
+> Moreover, this rev field is supposed to contain the revision per class
+> so in your case it should contain OMAP_TIMER_IP_LEGACY.
+> 
+Following changes will be posted in the next series:
+(1) OMAP_TIMER_IP_VERSION_1 replaces OMAP_TIMER_IP_LEGACY
+(2) OMAP_TIMER_MILLISECOND replaced by OPAM_TIMER_IP_VERSION_1
+(3) add is_ms_timer field in struct omap_dmtimer_platform_data.
+ this field is updated during device build based upon the .name="timer_1ms" and used during probe() to skip calling pm_runtime_enable() for millisecond timers since the framework is not fully functional during early init.
 
-Thanks,
+> >   };
+> >
+> >   static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
+> > @@ -4353,6 +4355,7 @@ static struct omap_hwmod_class_sysconfig
+> omap44xx_timer_sysc = {
+> >   static struct omap_hwmod_class omap44xx_timer_hwmod_class = {
+> >   	.name = "timer",
+> >   	.sysc =&omap44xx_timer_sysc,
+> > +	.rev = OMAP_TIMER_IP_VERSION_2,
+> >   };
+> >
+> >   /* timer1 */
+> > diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-
+> omap/include/plat/dmtimer.h
+> > index 20f1054..2926dc6
+> > --- a/arch/arm/plat-omap/include/plat/dmtimer.h
+> > +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
+> > @@ -44,6 +44,11 @@
+> >   #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
+> >   #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
+> >
+> > +/* timer ip constants */
+> > +#define OMAP_TIMER_MILLISECOND			0x0
+> > +#define OMAP_TIMER_IP_LEGACY			0x1
+> 
+> Legacy is not very meaningful, you'd better use VERSION_1 in that case.
+>
+This will be changed to OMAP_TIMER_IP_VERSION_1 in the next series.
+ 
+> Benoit
+> 
+> > +#define OMAP_TIMER_IP_VERSION_2			0x2
+> > +
+> >   struct omap_dm_timer;
+> >   struct clk;
+> >
 
-Tony
