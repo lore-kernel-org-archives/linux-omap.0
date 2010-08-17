@@ -1,66 +1,67 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: DSS2 patch series
-Date: Tue, 17 Aug 2010 13:52:26 +0300
-Message-ID: <1282042346.2348.35.camel@tubuntu.research.nokia.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870305FAB57B@dbde02.ent.ti.com>
-	 <1280749895.3436.47.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC35608703061EBA59@dbde02.ent.ti.com>
-	 <1280825023.3436.111.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC3560870306287736@dbde02.ent.ti.com>
-	 <1280995782.3436.205.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC356087030635EC1D@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/4] Hacks to allow booting ARM SMP kernel on UP ARMv7
+Date: Tue, 17 Aug 2010 13:53:12 +0300
+Message-ID: <20100817104414.19061.38999.stgit@baageli.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:51369 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753934Ab0HQKwc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 06:52:32 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087030635EC1D@dbde02.ent.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59221 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379Ab0HQKxL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 06:53:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Taneja, Archit" <archit@ti.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, bryan.wu@canonical.com
 
-On Tue, 2010-08-10 at 11:33 +0200, ext Taneja, Archit wrote:
-> [Archit] I have collected some information about what these revision
-> numbers mean from the TI folks. The following is what I have gathered:
-> 
-> -For each broad version of OMAP, like OMAP3430, OMAP3630, OMAP4430 and so on,
-> there is an independent revision list. These are changed/incremented when
-> the corresponding IP blocks are modified. The numbers which we see are probably
-> the ones which were chosen to put into the silicon.
-> 
-> So, it is possible that the revision numbers of ES_1 of OMAP3430 is exactly the
-> same as the ES_1 of OMAP3630 even if the IP blocks have changed. This is what is
-> seen in the prints of the revision of 3430 and 3630 I sent in the previous mail.
-> 
-> These revision numbers are hence useful only within the revisions of a particular
-> OMAP. It looks like that there is no single revision chain since OMAP2.
-> 
-> -After discussions with more TI DSS folks, it seems that some changes that we may
-> need to make in DSS software may not be dependent on the DSS hardware at all. For example,
-> the patch "OMAP3630:DSS2: Updating MAX divider value" was introduced because of a change
-> in PRCM.
-> 
-> So it seems that we will need to have omap2, omap3 and omap4 checks , best we can
-> do is prevent them from scattering around, i.e have them at a single place during
-> initialization.
+Hi all,
 
-Ok. Well, good that it's clear now =).
+Here are some experimental patches to allow booting ARMv7 SMP
+kernel on UP to some extent. Posting these early in case it is
+of any help as I know at least Bryan Wu is working on similar
+issues.
 
-> How do you think we can clean things up?
+The patches are very much work in progress, and does not quite
+boot to init yet so there's all kinds of things to fix. But at
+least these patches allow booting to the point where the fixing
+issues might be a bit easier.. Currently it boots to the point
+where there are tons of "WARNING: at mm/percpu-vm.c:320 pcpu_alloc"
+prints.
 
-If I remember right, there's some kind of feature framework being worked
-on (or ready?), but I haven't looked at that at all. That may or may not
-suit our needs.
+I've only tested these on omap3 UP systems so far so YMMV. The
+patches are posted on top of v2.6.36-rc1 + omap-fixes branch.
+Also available in devel-smp-on-unicore branch in the linux-omap
+tree.
 
-But perhaps we could just have a separate dss_features.c file, which
-would contain a bunch of functions that can be used to ask whether a
-certain feature is supported, and also to ask certain values (max
-dividers or similar).
+Cheers,
 
- Tomi
+Tony
+
+---
+
+Tony Lindgren (4):
+      ARM: Add SMP_ON_UP Kconfig option for booting SMP kernel on UP
+      ARM: Allow optional UP processor functions for SMP kernels
+      ARM: Set separate proc-v7 functions for SMP
+      omap: Fix SMP on UP interrupt handling for multi-omap
 
 
+ arch/arm/Kconfig                               |    7 ++
+ arch/arm/include/asm/cacheflush.h              |    6 ++
+ arch/arm/include/asm/proc-fns.h                |    8 ++
+ arch/arm/include/asm/procinfo.h                |    6 ++
+ arch/arm/include/asm/smp_plat.h                |    9 +++
+ arch/arm/include/asm/tlbflush.h                |   16 ++++-
+ arch/arm/kernel/setup.c                        |   45 ++++++++++++++
+ arch/arm/mach-omap2/include/mach/entry-macro.S |   22 +++++++
+ arch/arm/mach-omap2/omap-smp.c                 |   16 ++++-
+ arch/arm/mach-omap2/timer-gp.c                 |    7 ++
+ arch/arm/mm/cache-v7.S                         |   60 +++++++++++++++++++
+ arch/arm/mm/mmu.c                              |   20 +++---
+ arch/arm/mm/proc-v7.S                          |   77 ++++++++++++++++++++++--
+ arch/arm/mm/tlb-v7.S                           |   51 ++++++++++++++++
+ 14 files changed, 325 insertions(+), 25 deletions(-)
+
+-- 
+Signature
