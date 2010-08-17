@@ -1,58 +1,70 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/3] SRAM map series
-Date: Tue, 17 Aug 2010 11:04:22 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C667B70E@dbde02.ent.ti.com>
-References: <1281262583-27392-1-git-send-email-santosh.shilimkar@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH v4 1/3] ARM: OMAP: Beagle: revision detection
+Date: Tue, 17 Aug 2010 08:48:24 +0300
+Message-ID: <20100817084824.8f869e8e.jhnikula@gmail.com>
+References: <1281969403-28312-1-git-send-email-robertcnelson@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48926 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751971Ab0HQFeg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 01:34:36 -0400
-In-Reply-To: <1281262583-27392-1-git-send-email-santosh.shilimkar@ti.com>
-Content-Language: en-US
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:33799 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751057Ab0HQFsR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 01:48:17 -0400
+Received: by eyg5 with SMTP id 5so1733921eyg.19
+        for <linux-omap@vger.kernel.org>; Mon, 16 Aug 2010 22:48:16 -0700 (PDT)
+In-Reply-To: <1281969403-28312-1-git-send-email-robertcnelson@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-Tony/Kevin,
-> -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Sunday, August 08, 2010 3:46 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; Shilimkar, Santosh
-> Subject: [PATCH 0/3] SRAM map series
-> 
-> Currently we map 1 MB section while setting up SRAM on OMAPs.
-> The actual physcal OCM RAM available on OMAP SOCs is in order
-> of KBs. On the newer ARMs with speculation, this is dangerous and can
-> result in untraceable aborts.
-> On Davinci as well because of section limitation the SRAM is
-> marked as MT_DEVICE
-> 
-> First patch of this series addresses the section mapping limiaton and
-> now we can map such memories as page level granularity.
-> 
-> The series is generated against latest manline commit "2d530569730"
-> and boot tested on OMAP4430SDP, OMAP3430SDP platforms with
-> omap_4430sdp_defconfig and multi-omap(omap3_defconfig) builds
-> 
-> Santosh Shilimkar (3):
->   ARM: mmu: Setup MT_MEMORY and MT_MEMORY_NONACHED L1 entries
->   omap1/2/3/4: map only available SRAM
->   davinci: Map sram using MT_MEMORY_NONCACHED instead of MT_DEVICE
-> 
-Can you please have a look at second and third patch?
-First patch is reviewed by Russell already
+Hi
 
->  arch/arm/mach-davinci/dm355.c  |    3 +--
->  arch/arm/mach-davinci/dm365.c  |    3 +--
->  arch/arm/mach-davinci/dm644x.c |    3 +--
->  arch/arm/mach-davinci/dm646x.c |    3 +--
->  arch/arm/mm/mmu.c              |   18 ++++++++++++++++--
->  arch/arm/plat-omap/sram.c      |   25 +++++--------------------
->  6 files changed, 25 insertions(+), 30 deletions(-)
+On Mon, 16 Aug 2010 09:36:41 -0500
+Robert Nelson <robertcnelson@gmail.com> wrote:
 
+> +u8 get_omap3_beagle_rev(void)
+> +{
+> +	return omap3_beagle_version;
+> +}
+> +
+> +static void __init omap3_beagle_get_revision(void)
+> +{
+> +	int ret;
+> +	u16 beagle_rev = 0;
+> +
+> +	omap_mux_init_gpio(171, OMAP_PIN_INPUT_PULLUP);
+> +	omap_mux_init_gpio(172, OMAP_PIN_INPUT_PULLUP);
+> +	omap_mux_init_gpio(173, OMAP_PIN_INPUT_PULLUP);
+> +
+> +	ret = gpio_request(171, "rev_id_0");
+> +	if (ret < 0)
+> +		goto fail;
+> +
+> +	ret = gpio_request(172, "rev_id_1");
+> +	if (ret < 0)
+> +		goto fail;
+> +
+> +	ret = gpio_request(173, "rev_id_2");
+> +	if (ret < 0)
+> +		goto fail;
+> +
+
+Sorry, I didn't notice this earlier: you should free already allocated
+gpios if the next one fails.
+
+<minor>
+I was thinking would it make a sense to rename funtions below. I.e. to
+indicate that only one of them is for runtime revision detection and
+another is for revision initialization only. What do you think?
+
+get_omap3_beagle_rev -> omap3_beagle_get_rev
+omap3_beagle_get_revision -> omap3_beagle_init_rev
+</minor>
+
+Otherwise the set looks goot to me.
+
+
+-- 
+Jarkko
