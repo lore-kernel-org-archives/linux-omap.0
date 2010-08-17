@@ -1,57 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] Hacks to allow booting ARM SMP kernel on UP ARMv7
-Date: Tue, 17 Aug 2010 17:12:11 +0300
-Message-ID: <20100817141210.GJ12184@atomide.com>
+Subject: Re: [PATCH 4/4] omap: Fix SMP on UP interrupt handling for
+ multi-omap
+Date: Tue, 17 Aug 2010 17:14:28 +0300
+Message-ID: <20100817141428.GK12184@atomide.com>
 References: <20100817104414.19061.38999.stgit@baageli.muru.com>
- <20100817135205.GC20325@n2100.arm.linux.org.uk>
+ <20100817105332.19061.44765.stgit@baageli.muru.com>
+ <1282043269.32205.13.camel@bnru01>
+ <20100817113045.GH12184@atomide.com>
+ <1282047250.32205.17.camel@bnru01>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64632 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51466 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753635Ab0HQOMU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 10:12:20 -0400
+	with ESMTP id S1755463Ab0HQOOb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 10:14:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20100817135205.GC20325@n2100.arm.linux.org.uk>
+In-Reply-To: <1282047250.32205.17.camel@bnru01>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
+To: srinidhi <srinidhi.kasagar@stericsson.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [100817 16:44]:
-> On Tue, Aug 17, 2010 at 01:53:12PM +0300, Tony Lindgren wrote:
-> > Here are some experimental patches to allow booting ARMv7 SMP
-> > kernel on UP to some extent. Posting these early in case it is
-> > of any help as I know at least Bryan Wu is working on similar
-> > issues.
+* srinidhi <srinidhi.kasagar@stericsson.com> [100817 15:07]:
+> On Tue, 2010-08-17 at 13:30 +0200, Tony Lindgren wrote:
+> > * srinidhi <srinidhi.kasagar@stericsson.com> [100817 14:00]:
+> > > On Tue, 2010-08-17 at 12:53 +0200, Tony Lindgren wrote:
+> > > > Fix SMP on UP interrupt handling for multi-omap
+> > > > 
+> > > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > > ---
+> > > >  arch/arm/mach-omap2/include/mach/entry-macro.S |   22 ++++++++++++++++++++++
+> > > >  arch/arm/mach-omap2/omap-smp.c                 |   16 ++++++++++++----
+> > > >  arch/arm/mach-omap2/timer-gp.c                 |    7 +++++--
+> > > >  3 files changed, 39 insertions(+), 6 deletions(-)
+> > > > 
+> > > > diff --git a/arch/arm/mach-omap2/include/mach/entry-macro.S b/arch/arm/mach-omap2/include/mach/entry-macro.S
+> > > > index 06e64e1..75c67aa 100644
+> > > > --- a/arch/arm/mach-omap2/include/mach/entry-macro.S
+> > > > +++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
+> > > 
+> > > There is one patch lying in Russell's tracker (6284/1) which attempts to
+> > > use the common IRQ helper macros instead of platforms duplicating this
+> > > file. Perhaps you may need to re-base to that if Russell is ok with that
+> > > patch, of course.
+> > 
+> > Nice to see. Ideally test_for_ipi and test_for_ltirq would return
+> > early automatically when running SMP kernel on UP.
+> > 
+> > BTW, did you test patch 6284/1 with omap3_defconfig to make sure
+> > that still boots on omap3 & 4?
 > 
-> I think these are compeltely the wrong direction.  First thing to realise
-> is that XIP in the "SMP and UP in one kernel" is not really practical -
-> I'm not sure that many people who want that kind of flexibility also want
-> XIP too.
-> 
-> So let's forget about the kernel text being read-only.
+> Just build tested for all other machines and boot tested on ux500
+> machine. I do not have omap and other boards :(
 
-OK, at least for me.
- 
-> The second thing to realise is that most of the SMP dependencies are in
-> assembly - and we can make lists of instructions and their modified
-> versions that would be necessary to boot a SMP kernel on UP.
-
-OK cool.
- 
-> So something like this will do (though note that not everywhere has been
-> fixed up - such as the page table flags - or this patch tested yet.)
-
-Great, will give it a try hopefully tomorrow. Sounds like that's the way
-to deal with fixing up things when booting up older UP ARMv6 without the
-32v6 support :)
- 
-> If we don't want the SMP-on-UP support for SMP kernels (it's not actually
-> all that big - around 512 bytes) then we can discard the .smpalt.init
-> section and the __fixup_smp code.
-
-OK
+OK, I'll give your patch a try on some omap3 board, maybe Santosh
+can test it on omap4.
 
 Regards,
 
