@@ -1,70 +1,77 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH v4 1/3] ARM: OMAP: Beagle: revision detection
-Date: Tue, 17 Aug 2010 08:48:24 +0300
-Message-ID: <20100817084824.8f869e8e.jhnikula@gmail.com>
+Date: Tue, 17 Aug 2010 09:10:23 +0300
+Message-ID: <20100817061022.GC12184@atomide.com>
 References: <1281969403-28312-1-git-send-email-robertcnelson@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:33799 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057Ab0HQFsR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 01:48:17 -0400
-Received: by eyg5 with SMTP id 5so1733921eyg.19
-        for <linux-omap@vger.kernel.org>; Mon, 16 Aug 2010 22:48:16 -0700 (PDT)
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52646 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751057Ab0HQGKU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 02:10:20 -0400
+Content-Disposition: inline
 In-Reply-To: <1281969403-28312-1-git-send-email-robertcnelson@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Robert Nelson <robertcnelson@gmail.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>
 
-Hi
+* Robert Nelson <robertcnelson@gmail.com> [100816 17:29]:
+> Due to the omap3530 ES3.0 Silicon being used on both the
+> B5/B6 and C1/2/3 Beagle we can't use the cpu_is_omap34xx() 
+> routines to differentiate the Beagle Boards.
+> 
+> However gpio pins 171,172,173 where setup for this prupose, so 
+> lets use them.
+> 
+> Changes:
+> for older U-Boot's, use omap_mux_init_gpio()
+> keep Beagle Rev in board-omap3beagle.c
+> 
+> Tested on Beagle Revisions: B5, C2, C4, and xMA
 
-On Mon, 16 Aug 2010 09:36:41 -0500
-Robert Nelson <robertcnelson@gmail.com> wrote:
-
+Looks good, just one minor comment below.
+ 
+> Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+> Cc: Jarkko Nikula <jhnikula@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3beagle.c |   79 +++++++++++++++++++++++++++++++
+>  1 files changed, 79 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 87969c7..01a288f 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -50,6 +50,84 @@
+>  
+>  #define NAND_BLOCK_SIZE		SZ_128K
+>  
+> +/*
+> + * OMAP3 Beagle revision
+> + * Run time detection of Beagle revision is done by reading GPIO.
+> + * GPIO ID -
+> + *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
+> + *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
+> + *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
+> + *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
+> + */
+> +enum {
+> +	OMAP3BEAGLE_BOARD_AXBX = 0,
+> +	OMAP3BEAGLE_BOARD_C1_3,
+> +	OMAP3BEAGLE_BOARD_C4,
+> +	OMAP3BEAGLE_BOARD_XM,
+> +};
+> +
+> +static u8 omap3_beagle_version;
+> +
 > +u8 get_omap3_beagle_rev(void)
 > +{
 > +	return omap3_beagle_version;
 > +}
-> +
-> +static void __init omap3_beagle_get_revision(void)
-> +{
-> +	int ret;
-> +	u16 beagle_rev = 0;
-> +
-> +	omap_mux_init_gpio(171, OMAP_PIN_INPUT_PULLUP);
-> +	omap_mux_init_gpio(172, OMAP_PIN_INPUT_PULLUP);
-> +	omap_mux_init_gpio(173, OMAP_PIN_INPUT_PULLUP);
-> +
-> +	ret = gpio_request(171, "rev_id_0");
-> +	if (ret < 0)
-> +		goto fail;
-> +
-> +	ret = gpio_request(172, "rev_id_1");
-> +	if (ret < 0)
-> +		goto fail;
-> +
-> +	ret = gpio_request(173, "rev_id_2");
-> +	if (ret < 0)
-> +		goto fail;
-> +
 
-Sorry, I didn't notice this earlier: you should free already allocated
-gpios if the next one fails.
+Please make this static u8 get_omap3_beagle_rev().
 
-<minor>
-I was thinking would it make a sense to rename funtions below. I.e. to
-indicate that only one of them is for runtime revision detection and
-another is for revision initialization only. What do you think?
+Regards,
 
-get_omap3_beagle_rev -> omap3_beagle_get_rev
-omap3_beagle_get_revision -> omap3_beagle_init_rev
-</minor>
-
-Otherwise the set looks goot to me.
-
-
--- 
-Jarkko
+Tony
