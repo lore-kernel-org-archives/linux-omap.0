@@ -1,85 +1,72 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/4] ARM: Allow optional UP processor functions for SMP
-	kernels
-Date: Tue, 17 Aug 2010 12:08:57 +0100
-Message-ID: <20100817110857.GB20325@n2100.arm.linux.org.uk>
-References: <20100817104414.19061.38999.stgit@baageli.muru.com> <20100817105325.19061.93324.stgit@baageli.muru.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: DSS2 patch series
+Date: Tue, 17 Aug 2010 16:46:11 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703064DC3F9@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870305FAB57B@dbde02.ent.ti.com>
+	 <1280749895.3436.47.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC35608703061EBA59@dbde02.ent.ti.com>
+	 <1280825023.3436.111.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC3560870306287736@dbde02.ent.ti.com>
+	 <1280995782.3436.205.camel@tubuntu.research.nokia.com>
+	 <FCCFB4CDC6E5564B9182F639FC356087030635EC1D@dbde02.ent.ti.com>
+ <1282042346.2348.35.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43963 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755604Ab0HQLJJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 07:09:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20100817105325.19061.93324.stgit@baageli.muru.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35066 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752472Ab0HQLQT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 07:16:19 -0400
+In-Reply-To: <1282042346.2348.35.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Aug 17, 2010 at 01:53:25PM +0300, Tony Lindgren wrote:
-> diff --git a/arch/arm/include/asm/smp_plat.h b/arch/arm/include/asm/smp_plat.h
-> index e621530..1c2f587 100644
-> --- a/arch/arm/include/asm/smp_plat.h
-> +++ b/arch/arm/include/asm/smp_plat.h
-> @@ -18,4 +18,13 @@ static inline int cache_ops_need_broadcast(void)
->  	return ((read_cpuid_ext(CPUID_EXT_MMFR3) >> 12) & 0xf) < 1;
->  }
->  
-> +#ifdef CONFIG_SMP_ON_UP
-> +extern int smp_on_up(void);
-> +#else
-> +static inline int smp_on_up(void)
-> +{
-> +	return 0;
-> +}
-> +#endif
-> +
->  #endif
-> diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
-> index d5231ae..5f3606c 100644
-> --- a/arch/arm/kernel/setup.c
-> +++ b/arch/arm/kernel/setup.c
-> @@ -289,6 +289,50 @@ static void __init feat_v6_fixup(void)
->  		elf_hwcap &= ~HWCAP_TLS;
->  }
->  
-> +#ifdef CONFIG_SMP_ON_UP
-> +
-> +static int _smp_on_up;
-> +
-> +int smp_on_up(void)
-> +{
-> +	return _smp_on_up;
-> +}
+Hi,
 
-This kind of function to access one bit of data is really silly and
-expensive.  If you want to do something like this to hide the data
-itself, then instead do this in the header file:
+> Ok. Well, good that it's clear now =).
+> 
+> > How do you think we can clean things up?
+> 
+> If I remember right, there's some kind of feature framework 
+> being worked on (or ready?), but I haven't looked at that at 
+> all. That may or may not suit our needs.
+> 
+> But perhaps we could just have a separate dss_features.c 
+> file, which would contain a bunch of functions that can be 
+> used to ask whether a certain feature is supported, and also 
+> to ask certain values (max dividers or similar).
 
-static inline int smp_on_up(void)
-{
-#ifdef CONFIG_SMP_ON_UP
-	extern int _smp_on_up;
-	return _smp_on_up;
-#else
-	return 0;
-#endif
-}
+I talked to some more folks about this. To summarize:
 
-rather than making the compiler unable to optimize this call by spilling
-at least 5 registers each time.
+- The revision registers aren't reliable enough, it's better to
+use the combination of cpu_is_xxxx and and omap_rev macros. These
+should be enough for making an DSS specific feature list.
 
-> +	if (list->proc_up)
-> +		processor = *list->proc_up;
-> +
-> +	if (list->tlb_up)
-> +		cpu_tlb = *list->tlb_up;
-> +
-> +	if (list->cache_up)
-> +		cpu_cache = *list->cache_up;
+-The feature framework(HWMOD) can help out with the following things
+	- The internal IP blocks within DSS.
+	- The PRCM clocks and IRQs coming to DSS, and PM stuff which I don't
+	know much about.
+	- Effectively, the information on how the outside world communicates with DSS.
 
-I don't think this is a good approach at all - most of the assembly
-is identical and I'm sure there's a much better approach to fixing
-these things up.
+-DSS features like number of vid pipelines, supported color modes,internal clocks
+and PLL info, bit fields needs to be managed by us.
+
+One good input was that we can manage internal DSS clocks using the exisiting
+clock framework and custom clock modes. I don't know much about it. Others
+in the list can probably help out with this :)
+
+The present way of handling DSS2 clocks is good, but we need to see if it can be
+scalable when more OMAPs come in.
+
+The dss_features.c idea sounds good, we will still have these new bunch of functions
+scattered around in the code. But it will be much than an if else chain of omap checks.
+
+So should we stick with this idea?
+
+Thanks,
+
+Archit
