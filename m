@@ -1,173 +1,31 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCH 3/13] dmtimer: hwmod: OMAP: rev field to identify timer
- version
-Date: Tue, 17 Aug 2010 14:07:59 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032419CAB2@dbde02.ent.ti.com>
-References: <1281800301-15210-1-git-send-email-tarun.kanti@ti.com>
- <4C69283C.5050807@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: hvaibhav@ti.com
+Subject: [PATCH 0/3] RTC:A35390A: Add Interrupt API interfaces
+Date: Tue, 17 Aug 2010 14:18:38 +0530
+Message-ID: <1282034921-22167-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50196 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755381Ab0HQIiR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 04:38:17 -0400
-In-Reply-To: <4C69283C.5050807@ti.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:57024 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757104Ab0HQIsz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Aug 2010 04:48:55 -0400
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Gopinath, Thara" <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
+To: linux-kernel@vger.kernel.org
+Cc: akpm@linux-foundation.org, byron.bbradley@gmail.com, linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Benoit,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-> -----Original Message-----
-> From: Cousson, Benoit
-> Sent: Monday, August 16, 2010 5:30 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; Basak, Partha; Shilimkar, Santosh;
-> Gopinath, Thara; Paul Walmsley; Kevin Hilman; Tony Lindgren
-> Subject: Re: [PATCH 3/13] dmtimer: hwmod: OMAP: rev field to identify
-> timer version
-> 
-> Hi Tarun,
-> 
-> You series is missing the omap4 hwmod data. You should rebase it on the
-> latest pm_wip/hwmods-omap4 and add the hwmod data for the timers.
-> 
-> For further details please read this:
-> http://www.spinics.net/lists/linux-omap/msg34700.html
-> 
-OK.
+This patch adds support for interrupt API interfaces like,
+     - Alarm interrupt
+     - Periodic interrupt
+     - Per minute interrupt
 
-> 
-> On 8/14/2010 5:38 PM, DebBarma, Tarun Kanti wrote:
-> > This patch adds revision (.rev) to hwmod class to identify different
-> > timer types. In the present implementation it is used to identify
-> > millisecond timers, legacy timers and highlander timers present in
-> > OMAP4. This identification serves following purposes:
-> > (1) select appropriate timers register maps associated with legacy
-> > ip timers and highlander ip timers present on OMAP4.
-> > (2) select millisecond timers to perform specific operations upon
-> > them during _probe()
-> >
-> > Signed-off-by: Partha Basak<p-basak2@ti.com>
-> > Signed-off-by: Santosh Shilimkar<santosh.shilimkar@ti.com>
-> > Signed-off-by: Thara Gopinath<thara@ti.com>
-> > Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> > Cc: Paul Walmsley<paul@pwsan.com>
-> > Cc: Kevin Hilman<khilman@deeprootsystems.com>
-> > Cc: Tony Lindgren<tony@atomide.com>
-> > ---
-> >   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    3 +++
-> >   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 +++
-> >   arch/arm/plat-omap/include/plat/dmtimer.h  |    5 +++++
-> >   3 files changed, 11 insertions(+), 0 deletions(-)
-> >   mode change 100644 =>  100755 arch/arm/mach-
-> omap2/omap_hwmod_44xx_data.c
-> >   mode change 100644 =>  100755 arch/arm/plat-
-> omap/include/plat/dmtimer.h
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-
-> omap2/omap_hwmod_3xxx_data.c
-> > index 6b9e7a1..98fcf3d 100755
-> > --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> > @@ -17,6 +17,7 @@
-> >   #include<mach/irqs.h>
-> >   #include<plat/cpu.h>
-> >   #include<plat/dma.h>
-> > +#include<plat/dmtimer.h>
-> >
-> >   #include "omap_hwmod_common_data.h"
-> >
-> > @@ -115,6 +116,7 @@ static struct omap_hwmod_class_sysconfig
-> omap3xxx_timer_1ms_sysc = {
-> >   static struct omap_hwmod_class omap3xxx_timer_1ms_hwmod_class = {
-> >   	.name = "timer_1ms",
-> >   	.sysc =&omap3xxx_timer_1ms_sysc,
-> > +	.rev = OMAP_TIMER_MILLISECOND,
-> >   };
-> >
-> >
-> > @@ -131,6 +133,7 @@ static struct omap_hwmod_class_sysconfig
-> omap3xxx_timer_sysc = {
-> >   static struct omap_hwmod_class omap3xxx_timer_hwmod_class = {
-> >   	.name = "timer",
-> >   	.sysc =&omap3xxx_timer_sysc,
-> > +	.rev =  OMAP_TIMER_IP_LEGACY,
-> >   };
-> >
-> >   /* timer10 */
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-
-> omap2/omap_hwmod_44xx_data.c
-> > index 9736a49..c5478f7
-> > --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> > @@ -22,6 +22,7 @@
-> >
-> >   #include<plat/omap_hwmod.h>
-> >   #include<plat/cpu.h>
-> > +#include<plat/dmtimer.h>
-> >
-> >   #include "omap_hwmod_common_data.h"
-> >
-> > @@ -4339,6 +4340,7 @@ static struct omap_hwmod_class_sysconfig
-> omap44xx_timer_1ms_sysc = {
-> >   static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class = {
-> >   	.name = "timer_1ms",
-> >   	.sysc =&omap44xx_timer_1ms_sysc,
-> > +	.rev = OMAP_TIMER_MILLISECOND,
-> 
-> That information is redundant, you already know from the class that this
-> is a 1ms timer.
-> If you need to get that information from the driver, you can set this
-> settings in device data using the class name at device init time.
-> 
-> Moreover, this rev field is supposed to contain the revision per class
-> so in your case it should contain OMAP_TIMER_IP_LEGACY.
-> 
-Following changes will be posted in the next series:
-(1) OMAP_TIMER_IP_VERSION_1 replaces OMAP_TIMER_IP_LEGACY
-(2) OMAP_TIMER_MILLISECOND replaced by OPAM_TIMER_IP_VERSION_1
-(3) add is_ms_timer field in struct omap_dmtimer_platform_data.
- this field is updated during device build based upon the .name="timer_1ms" and used during probe() to skip calling pm_runtime_enable() for millisecond timers since the framework is not fully functional during early init.
+Vaibhav Hiremath (3):
+  RTC:s35390a: Add Alarm interrupt support
+  RTC:s35390a: Add Periodic interrupt support
+  RTC:s35390a: Add update_irq (per Min interrupt) support
 
-> >   };
-> >
-> >   static struct omap_hwmod_class_sysconfig omap44xx_timer_sysc = {
-> > @@ -4353,6 +4355,7 @@ static struct omap_hwmod_class_sysconfig
-> omap44xx_timer_sysc = {
-> >   static struct omap_hwmod_class omap44xx_timer_hwmod_class = {
-> >   	.name = "timer",
-> >   	.sysc =&omap44xx_timer_sysc,
-> > +	.rev = OMAP_TIMER_IP_VERSION_2,
-> >   };
-> >
-> >   /* timer1 */
-> > diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-
-> omap/include/plat/dmtimer.h
-> > index 20f1054..2926dc6
-> > --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> > +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> > @@ -44,6 +44,11 @@
-> >   #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
-> >   #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
-> >
-> > +/* timer ip constants */
-> > +#define OMAP_TIMER_MILLISECOND			0x0
-> > +#define OMAP_TIMER_IP_LEGACY			0x1
-> 
-> Legacy is not very meaningful, you'd better use VERSION_1 in that case.
->
-This will be changed to OMAP_TIMER_IP_VERSION_1 in the next series.
- 
-> Benoit
-> 
-> > +#define OMAP_TIMER_IP_VERSION_2			0x2
-> > +
-> >   struct omap_dm_timer;
-> >   struct clk;
-> >
+ drivers/rtc/rtc-s35390a.c |  302 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 299 insertions(+), 3 deletions(-)
 
