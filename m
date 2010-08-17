@@ -1,51 +1,42 @@
-From: Cliff Brake <cliff.brake@gmail.com>
-Subject: NAND ECC in linux-omap
-Date: Tue, 17 Aug 2010 17:56:36 -0400
-Message-ID: <AANLkTimABq72N98Ca6yJ9FgYnyDpod3qRPoTypkDn-4A@mail.gmail.com>
+From: "CMD" <CMD@irisl.net>
+Subject: ***You E-mail ID Have Won***
+Date: Tue, 17 Aug 2010 21:20:48 +0430
+Message-ID: <WC20100817165048.380A5C__38214.9002668031$1282092881$gmane$org@irisl.net>
+Reply-To: mr.fredpetersclaimsagent01@yahoo.com.hk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:46161 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057Ab0HQV4i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 17:56:38 -0400
-Received: by wwi17 with SMTP id 17so1700976wwi.1
-        for <linux-omap@vger.kernel.org>; Tue, 17 Aug 2010 14:56:36 -0700 (PDT)
+Received: from [87.107.91.67] ([87.107.91.67]:2828 "EHLO irisl.net"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752162Ab0HRAye (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Aug 2010 20:54:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Users <linux-omap@vger.kernel.org>, Sukumar Ghorai <s-ghorai@ti.com>
 
-Hi,
 
-I'm using the latest pm branch (based on linux-omap I think), and
-running into the following problems.
 
-The first is my x-loader uses software ECC.  Looking in the omap nand
-driver, I made the following change which gets x-loader/u-boot working
-again:
+This is to inform you that you have been 
+selected for a cash prize of 1,000,000 
+(British Pounds) held on the 15th of August
+2010 in London (United Kingdom). The 
+selection process was carried out through 
+random selection in Our computerized email 
+selection system (ESS) London Uk. Fill the 
+below:
 
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index 133d515..1593c60 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -7,7 +7,7 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--#define CONFIG_MTD_NAND_OMAP_HWECC
-+//#define CONFIG_MTD_NAND_OMAP_HWECC
+1.Full Name
+2.Full Address
+3.Marital Status
+4.Occupation
+5.Age
+6.Sex
+7.Nationality
+8.Country Of Residence
+9.Telephone Number
 
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
+Agent Name: Mr. Fred Peters
+Tel:+447024051534
++447024013832
+Email:mr.fredpetersclaimsagent01@yahoo.com.hk
 
-But, I'm still getting a ton of ECC errors in JFFS2 flash filesystem.
-Does anyone have any suggestions as to where to go from here?  I see
-some patches on the mail lists from Sukumar Ghorai that make HW/SW ECC
-selectable from the board file.
 
-Thanks,
-Cliff
-
--- 
-=================
-http://bec-systems.com
