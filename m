@@ -1,97 +1,46 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH] OMAP:DSS:Add support for Additional color modes
- supported by OMAP4
-Date: Tue, 17 Aug 2010 14:00:49 +0300
-Message-ID: <1282042850.2348.42.camel@tubuntu.research.nokia.com>
-References: <1280987665-25639-1-git-send-email-mythripk@ti.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
+From: srinidhi <srinidhi.kasagar@stericsson.com>
+Subject: Re: [PATCH 4/4] omap: Fix SMP on UP interrupt handling for multi-omap
+Date: Tue, 17 Aug 2010 16:37:49 +0530
+Message-ID: <1282043269.32205.13.camel@bnru01>
+References: <20100817104414.19061.38999.stgit@baageli.muru.com>
+	<20100817105332.19061.44765.stgit@baageli.muru.com>
+Reply-To: srinidhi.kasagar@stericsson.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:32623 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751955Ab0HQLBl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 07:01:41 -0400
-In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20100817105332.19061.44765.stgit@baageli.muru.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>
 List-Id: linux-omap@vger.kernel.org
-To: "ext K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-
-On Wed, 2010-08-11 at 11:22 +0200, ext K, Mythri P wrote:
-> Hi Tomi,
-> Can you please comment on the below patch . This is to add new color modes supported by OMAP4.
+On Tue, 2010-08-17 at 12:53 +0200, Tony Lindgren wrote:
+> Fix SMP on UP interrupt handling for multi-omap
 > 
-> Thanks and regards,
-> Mythri.
-> -----Original Message-----
-> From: K, Mythri P 
-> Sent: Thursday, August 05, 2010 11:24 AM
-> To: linux-omap@vger.kernel.org
-> Cc: tomi.valkeinen@nokia.com; Semwal, Sumit; K, Mythri P
-> Subject: [PATCH] OMAP:DSS:Add support for Additional color modes supported by OMAP4
-> 
-> From: Sumit semwal <sumit.semwal@ti.com>
-> 
-> This patch adds support for new color modes that are supported by the video/graphics pipeline of OMAP4
-> 
-> Signed-off-by: Mythri P K <mythripk@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  arch/arm/plat-omap/include/plat/display.h |   16 ++++++++-
->  drivers/video/omap2/dss/dispc.c           |   53 ++++++++++++++++++++++-------
->  drivers/video/omap2/dss/overlay.c         |    6 ++-
->  3 files changed, 59 insertions(+), 16 deletions(-)
+>  arch/arm/mach-omap2/include/mach/entry-macro.S |   22 ++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap-smp.c                 |   16 ++++++++++++----
+>  arch/arm/mach-omap2/timer-gp.c                 |    7 +++++--
+>  3 files changed, 39 insertions(+), 6 deletions(-)
 > 
-> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-> index 7a6eedd..ebf1020 100644
-> --- a/arch/arm/plat-omap/include/plat/display.h
-> +++ b/arch/arm/plat-omap/include/plat/display.h
-> @@ -89,6 +89,12 @@ enum omap_color_mode {
->  	OMAP_DSS_COLOR_ARGB32	= 1 << 11, /* ARGB32 */
->  	OMAP_DSS_COLOR_RGBA32	= 1 << 12, /* RGBA32 */
->  	OMAP_DSS_COLOR_RGBX32	= 1 << 13, /* RGBx32 */
-> +	OMAP_DSS_COLOR_NV12	= 1 << 14, /* NV12 format: YUV 4:2:0 */
-> +	OMAP_DSS_COLOR_RGBA12	= 1 << 15, /* RGBA12 - 4444 */
+> diff --git a/arch/arm/mach-omap2/include/mach/entry-macro.S b/arch/arm/mach-omap2/include/mach/entry-macro.S
+> index 06e64e1..75c67aa 100644
+> --- a/arch/arm/mach-omap2/include/mach/entry-macro.S
+> +++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
 
-Is this the same as ARGB16? Or is it the same, except alpha value is in
-the other end? If so, I think the naming should be coherent, and either
-this should be RGBA16, or ARGB16 should be ARGB12.
+There is one patch lying in Russell's tracker (6284/1) which attempts to
+use the common IRQ helper macros instead of platforms duplicating this
+file. Perhaps you may need to re-base to that if Russell is ok with that
+patch, of course.
 
-Then again, if TRM says this is RGBA12, and the other one is ARGB16, I
-guess we should stick with TRM naming...
-
-> +	OMAP_DSS_COLOR_XRGB12	= 1 << 16, /* xRGB12, 16-bit container */
-
-Is this RGB12U, or again otherwise same but the empty value is on the
-other end?
-
-> +	OMAP_DSS_COLOR_ARGB16_1555	= 1 << 17, /* ARGB16-1555 */
-> +	OMAP_DSS_COLOR_RGBX24_32_ALGN	= 1 << 18, /* 32-msb aligned 24bit */
-
-Hmm, what is this?
-
-> +	OMAP_DSS_COLOR_XRGB15	= 1 << 19, /* xRGB15: 1555*/
->  
->  	OMAP_DSS_COLOR_GFX_OMAP2 =
->  		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
-> @@ -112,9 +118,17 @@ enum omap_color_mode {
->  	OMAP_DSS_COLOR_VID1_OMAP3 =
->  		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
->  		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P |
-> -		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY,
-> +		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY |
-> +		OMAP_DSS_COLOR_NV12 | OMAP_DSS_COLOR_RGBA12 |
-> +		OMAP_DSS_COLOR_XRGB12 | OMAP_DSS_COLOR_ARGB16_1555 |
-> +		OMAP_DSS_COLOR_RGBX24_32_ALGN | OMAP_DSS_COLOR_XRGB15 |
-> +		OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_RGBA32 |
-> +		OMAP_DSS_COLOR_RGBX32,
-
-Why do you change OMAP3 modes, if this patch is about supported OMAP4
-modes?
-
- Tomi
-
-
+srinidhi
