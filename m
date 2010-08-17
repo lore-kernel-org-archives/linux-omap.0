@@ -1,77 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 1/3] ARM: OMAP: Beagle: revision detection
-Date: Tue, 17 Aug 2010 09:10:23 +0300
-Message-ID: <20100817061022.GC12184@atomide.com>
-References: <1281969403-28312-1-git-send-email-robertcnelson@gmail.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH] iommu: fix end address of vm area comparation in
+ alloc_iovm_area
+Date: Tue, 17 Aug 2010 01:08:04 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CA4D894D@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602CA4D8949@dlee06.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CA4D894C@dlee06.ent.ti.com>,<20100817.082706.39158708.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52646 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057Ab0HQGKU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 02:10:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1281969403-28312-1-git-send-email-robertcnelson@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100817.082706.39158708.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>
 
-* Robert Nelson <robertcnelson@gmail.com> [100816 17:29]:
-> Due to the omap3530 ES3.0 Silicon being used on both the
-> B5/B6 and C1/2/3 Beagle we can't use the cpu_is_omap34xx() 
-> routines to differentiate the Beagle Boards.
-> 
-> However gpio pins 171,172,173 where setup for this prupose, so 
-> lets use them.
-> 
-> Changes:
-> for older U-Boot's, use omap_mux_init_gpio()
-> keep Beagle Rev in board-omap3beagle.c
-> 
-> Tested on Beagle Revisions: B5, C2, C4, and xMA
 
-Looks good, just one minor comment below.
- 
-> Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
-> Cc: Jarkko Nikula <jhnikula@gmail.com>
-> ---
->  arch/arm/mach-omap2/board-omap3beagle.c |   79 +++++++++++++++++++++++++++++++
->  1 files changed, 79 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 87969c7..01a288f 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -50,6 +50,84 @@
->  
->  #define NAND_BLOCK_SIZE		SZ_128K
->  
-> +/*
-> + * OMAP3 Beagle revision
-> + * Run time detection of Beagle revision is done by reading GPIO.
-> + * GPIO ID -
-> + *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
-> + *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
-> + *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
-> + *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
-> + */
-> +enum {
-> +	OMAP3BEAGLE_BOARD_AXBX = 0,
-> +	OMAP3BEAGLE_BOARD_C1_3,
-> +	OMAP3BEAGLE_BOARD_C4,
-> +	OMAP3BEAGLE_BOARD_XM,
-> +};
-> +
-> +static u8 omap3_beagle_version;
-> +
-> +u8 get_omap3_beagle_rev(void)
-> +{
-> +	return omap3_beagle_version;
-> +}
+>From: Hiroshi DOYU [Hiroshi.DOYU@nokia.com]
+>Sent: Tuesday, August 17, 2010 12:27 AM
+>To: Guzman Lugo, Fernando
+>Cc: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org; Kanigeri=
+, Hari
+>Subject: Re: [PATCH] iommu: fix end address of vm area comparation in =
+alloc_iovm_area
+>
+>From: "ext Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+>Subject: RE: [PATCH] iommu: fix end address of vm area comparation in =
+alloc_iovm_area
+>Date: Tue, 17 Aug 2010 06:48:14 +0200
+>
+>> From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel=
+=2Eorg] On Behalf Of Guzman Lugo, Fernando [fernando.lugo@ti.com]
+>> Sent: Monday, August 16, 2010 10:51 PM
+>> To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org
+>> Cc: Hiroshi.DOYO@nokia.com; Kanigeri, Hari
+>> Subject: [PATCH] iommu: fix end address of vm area comparation in al=
+loc_iovm_area
+>>
+>> From cc48c0adaee97c8385a356aefa5b64a51818b4fd Mon Sep 17 00:00:00 20=
+01
+>> From: Fernando Guzman Lugo <x0095840@ti.com>
+>> Date: Mon, 16 Aug 2010 22:28:24 -0500
+>> Subject: [PATCH] iommu: fix end address of vm area comparation in al=
+loc_iovm_area
+>>
+>> End address of the vm area is =93start + bytes -1=94,
+>> not =93start + byte=94. This patch fixes that issue by doing
+>> an inclusive comparison with tmp->da_start. This issue
+>> was preventing allocate an area of size exactly the same
+>> than the free area. I did no change the value of da_end
+>> of each vm area because it is used to get area size in
+>> several places.
+>
+>Ok for me. Is this patch against the latest?
 
-Please make this static u8 get_omap3_beagle_rev().
+not it isn't, but I don't think it could have issues applying. However =
+I will resend it, base against the latest and include you ack.
 
 Regards,
-
-Tony
+=46ernando.
