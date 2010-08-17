@@ -1,72 +1,46 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: DSS2 patch series
-Date: Tue, 17 Aug 2010 16:46:11 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703064DC3F9@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870305FAB57B@dbde02.ent.ti.com>
-	 <1280749895.3436.47.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC35608703061EBA59@dbde02.ent.ti.com>
-	 <1280825023.3436.111.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC3560870306287736@dbde02.ent.ti.com>
-	 <1280995782.3436.205.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC356087030635EC1D@dbde02.ent.ti.com>
- <1282042346.2348.35.camel@tubuntu.research.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/4] ARM: Allow optional UP processor functions for SMP
+ kernels
+Date: Tue, 17 Aug 2010 14:20:11 +0300
+Message-ID: <20100817112011.GG12184@atomide.com>
+References: <20100817104414.19061.38999.stgit@baageli.muru.com>
+ <20100817105325.19061.93324.stgit@baageli.muru.com>
+ <20100817110857.GB20325@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35066 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752472Ab0HQLQT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 07:16:19 -0400
-In-Reply-To: <1282042346.2348.35.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64824 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab0HQLUT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 07:20:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20100817110857.GB20325@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
 
-Hi,
-
-> Ok. Well, good that it's clear now =).
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [100817 14:01]:
+> On Tue, Aug 17, 2010 at 01:53:25PM +0300, Tony Lindgren wrote:
 > 
-> > How do you think we can clean things up?
+> > +	if (list->proc_up)
+> > +		processor = *list->proc_up;
+> > +
+> > +	if (list->tlb_up)
+> > +		cpu_tlb = *list->tlb_up;
+> > +
+> > +	if (list->cache_up)
+> > +		cpu_cache = *list->cache_up;
 > 
-> If I remember right, there's some kind of feature framework 
-> being worked on (or ready?), but I haven't looked at that at 
-> all. That may or may not suit our needs.
-> 
-> But perhaps we could just have a separate dss_features.c 
-> file, which would contain a bunch of functions that can be 
-> used to ask whether a certain feature is supported, and also 
-> to ask certain values (max dividers or similar).
+> I don't think this is a good approach at all - most of the assembly
+> is identical and I'm sure there's a much better approach to fixing
+> these things up.
 
-I talked to some more folks about this. To summarize:
+We could simplify it if we tried to detect SMP kernel running
+on UP hardware early on and then select the UP vs SMP code as
+needed.
 
-- The revision registers aren't reliable enough, it's better to
-use the combination of cpu_is_xxxx and and omap_rev macros. These
-should be enough for making an DSS specific feature list.
+Regards,
 
--The feature framework(HWMOD) can help out with the following things
-	- The internal IP blocks within DSS.
-	- The PRCM clocks and IRQs coming to DSS, and PM stuff which I don't
-	know much about.
-	- Effectively, the information on how the outside world communicates with DSS.
+Tony
 
--DSS features like number of vid pipelines, supported color modes,internal clocks
-and PLL info, bit fields needs to be managed by us.
-
-One good input was that we can manage internal DSS clocks using the exisiting
-clock framework and custom clock modes. I don't know much about it. Others
-in the list can probably help out with this :)
-
-The present way of handling DSS2 clocks is good, but we need to see if it can be
-scalable when more OMAPs come in.
-
-The dss_features.c idea sounds good, we will still have these new bunch of functions
-scattered around in the code. But it will be much than an if else chain of omap checks.
-
-So should we stick with this idea?
-
-Thanks,
-
-Archit
