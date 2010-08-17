@@ -1,102 +1,85 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v2] OMAP4: pm.c extensions for OMAP4 support
-Date: Tue, 17 Aug 2010 10:06:38 +0530
-Message-ID: <1282019798-2443-1-git-send-email-thara@ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH] iommu: fix end address of vm area comparation in
+ alloc_iovm_area
+Date: Mon, 16 Aug 2010 23:48:14 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602CA4D894C@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602CA4D8949@dlee06.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40014 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139Ab0HQEgt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 00:36:49 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44688 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751799Ab0HQEwC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 00:52:02 -0400
+In-Reply-To: <496565EC904933469F292DDA3F1663E602CA4D8949@dlee06.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>
 
-OMAP4 has an iva device and a dsp devcice where as OMAP2/3
-has only an iva device. In this file the iva device in the
-system is registered under the name dsp_dev and the API
-to retrieve the iva device is omap2_get_dsp_device.
-This patch renames the dsp_dev to iva_dev, renames
-omap2_get_dsp_device to omap2_get_iva_device,
-registers dsp_dev for OMAP4 and adds a new API
-omap4_get_dsp_device to retrieve the dep_dev.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
+There was a mistake with Hiroshi email. Looping in Hiroshi
+
+Sorry for the noise.
+
+Regards,
+=46ernando.
+________________________________________
+=46rom: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.=
+org] On Behalf Of Guzman Lugo, Fernando [fernando.lugo@ti.com]
+Sent: Monday, August 16, 2010 10:51 PM
+To: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org
+Cc: Hiroshi.DOYO@nokia.com; Kanigeri, Hari
+Subject: [PATCH] iommu: fix end address of vm area comparation in alloc=
+_iovm_area
+
+=46rom cc48c0adaee97c8385a356aefa5b64a51818b4fd Mon Sep 17 00:00:00 200=
+1
+=46rom: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Mon, 16 Aug 2010 22:28:24 -0500
+Subject: [PATCH] iommu: fix end address of vm area comparation in alloc=
+_iovm_area
+
+End address of the vm area is =93start + bytes -1=94,
+not =93start + byte=94. This patch fixes that issue by doing
+an inclusive comparison with tmp->da_start. This issue
+was preventing allocate an area of size exactly the same
+than the free area. I did no change the value of da_end
+of each vm area because it is used to get area size in
+several places.
+
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
-v2: Removed fixing of l3_main hwmod for OMAP4 as Benoit has
-    already submitted a pach fixing the same.
+ arch/arm/plat-omap/iovmm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
- arch/arm/mach-omap2/pm.c                 |   19 ++++++++++++++-----
- arch/arm/plat-omap/include/plat/common.h |    3 ++-
- 2 files changed, 16 insertions(+), 6 deletions(-)
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index b8bcad5..8745d4e 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -295,7 +295,7 @@ static struct iovm_struct *alloc_iovm_area(struct i=
+ommu *obj, u32 da,
+        prev_end =3D 0;
+        list_for_each_entry(tmp, &obj->mmap, list) {
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 68f9f2e..a98b5e8 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -21,8 +21,9 @@
- static struct omap_device_pm_latency *pm_lats;
- 
- static struct device *mpu_dev;
--static struct device *dsp_dev;
-+static struct device *iva_dev;
- static struct device *l3_dev;
-+static struct device *dsp_dev;
- 
- struct device *omap2_get_mpuss_device(void)
- {
-@@ -30,10 +31,10 @@ struct device *omap2_get_mpuss_device(void)
- 	return mpu_dev;
- }
- 
--struct device *omap2_get_dsp_device(void)
-+struct device *omap2_get_iva_device(void)
- {
--	WARN_ON_ONCE(!dsp_dev);
--	return dsp_dev;
-+	WARN_ON_ONCE(!iva_dev);
-+	return iva_dev;
- }
- 
- struct device *omap2_get_l3_device(void)
-@@ -42,6 +43,13 @@ struct device *omap2_get_l3_device(void)
- 	return l3_dev;
- }
- 
-+struct device *omap4_get_dsp_device(void)
-+{
-+	WARN_ON_ONCE(!dsp_dev);
-+	return dsp_dev;
-+}
-+EXPORT_SYMBOL(omap4_get_dsp_device);
-+
- /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
- static int _init_omap_device(char *name, struct device **new_dev)
- {
-@@ -69,7 +77,8 @@ static int _init_omap_device(char *name, struct device **new_dev)
- static void omap2_init_processor_devices(void)
- {
- 	_init_omap_device("mpu", &mpu_dev);
--	_init_omap_device("iva", &dsp_dev);
-+	_init_omap_device("iva", &iva_dev);
-+	_init_omap_device("dsp", &dsp_dev);
- 	_init_omap_device("l3_main", &l3_dev);
- }
- 
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 9776b41..c45dbb9 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -91,7 +91,8 @@ void omap3_map_io(void);
- })
- 
- extern struct device *omap2_get_mpuss_device(void);
--extern struct device *omap2_get_dsp_device(void);
-+extern struct device *omap2_get_iva_device(void);
- extern struct device *omap2_get_l3_device(void);
-+extern struct device *omap4_get_dsp_device(void);
- 
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
--- 
+-               if ((prev_end <=3D start) && (start + bytes < tmp->da_s=
+tart))
++               if ((prev_end <=3D start) && (start + bytes <=3D tmp->d=
+a_start))
+                        goto found;
+
+                if (flags & IOVMF_DA_ANON)
+--
 1.7.0.4
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
