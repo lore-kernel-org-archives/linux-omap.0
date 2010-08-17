@@ -1,30 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/4] Hacks to allow booting ARM SMP kernel on UP ARMv7
-Date: Tue, 17 Aug 2010 16:40:35 +0100
-Message-ID: <20100817154035.GD20325@n2100.arm.linux.org.uk>
-References: <20100817104414.19061.38999.stgit@baageli.muru.com> <20100817135205.GC20325@n2100.arm.linux.org.uk> <20100817141210.GJ12184@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCH] iommu: fix end address of vm area comparation in alloc_iovm_area
+Date: Tue, 17 Aug 2010 11:56:01 -0500
+Message-ID: <1282064161-21056-1-git-send-email-x0095840@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45914 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757467Ab0HQPkq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Aug 2010 11:40:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20100817141210.GJ12184@atomide.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52126 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750837Ab0HQQm3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Aug 2010 12:42:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Hiroshi.DOYU@nokia.com, h-kanigeri2@ti.com, Fernando Guzman Lugo <x0095840@ti.com>
 
-On Tue, Aug 17, 2010 at 05:12:11PM +0300, Tony Lindgren wrote:
-> Great, will give it a try hopefully tomorrow. Sounds like that's the way
-> to deal with fixing up things when booting up older UP ARMv6 without the
-> 32v6 support :)
+End address of the vm area is .start + bytes -1., not start + byte.
+This patch fixes that issue by doing an inclusive comparison with
+tmp->da_start. This issue was preventing allocate an area of size
+exactly the same than the free area. I did no change the value of
+da_end of each vm area because it is used to get area size in
+several places.
 
-What I've also been debating about is adding another word to the
-smpalt structure, that being a set of flags which denote the situation
-where the alternative should be used.
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/plat-omap/iovmm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-That means we can use it to do individual word replacements for SMP vs
-UP, ARMv6 vs ARMv6k etc.
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 8ce0de2..24ca9c4 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -292,7 +292,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
+ 		if (prev_end >= start)
+ 			break;
+ 
+-		if (start + bytes < tmp->da_start)
++		if (start + bytes <= tmp->da_start)
+ 			goto found;
+ 
+ 		if (flags & IOVMF_DA_ANON)
+-- 
+1.6.3.3
+
