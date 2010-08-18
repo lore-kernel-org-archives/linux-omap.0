@@ -1,77 +1,106 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: RE: [PATCH] OMAP:DSS:Add support for Additional color modes
- supported by OMAP4
-Date: Wed, 18 Aug 2010 19:16:15 +0530
-Message-ID: <FF55437E1F14DA4BAEB721A458B6701706BE1F300C@dbde02.ent.ti.com>
-References: <1280987665-25639-1-git-send-email-mythripk@ti.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
-	 <1282042850.2348.42.camel@tubuntu.research.nokia.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706BE1F2E1B@dbde02.ent.ti.com>
-	 <1282122106.2348.110.camel@tubuntu.research.nokia.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706BE1F2FC0@dbde02.ent.ti.com>
- <1282137179.2348.152.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Hema HK <hemahk@ti.com>
+Subject: [PATCH 0/8 v2]usb: musb: hwmod and runtime pm support for musb
+Date: Wed, 18 Aug 2010 19:32:57 +0530
+Message-ID: <1282140177-28089-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50327 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751907Ab0HRNqY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 09:46:24 -0400
-In-Reply-To: <1282137179.2348.152.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48810 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752827Ab0HRODO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Aug 2010 10:03:14 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Hema HK <hemahk@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Tomi,
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 
-I shall check if the OMAP4 TRM is public and get back to you.
-Here is the excerpt of the TRM , for the color modes.
+This patch series makes OMAP2PLUS musb Module implemented
+in HWMOD FW way. It also implements musb driver to
+use the runtime pm apis.
 
-DISPC_VID1_ATTRIBUTES
-Bits Field Name Description Type Reset
-4:1 FORMAT Video Format. RW 0x0
-It defines the pixel format when fetching the video #1
-picture into memory.
-0x6: RGB16-565
-0x1: RGB12x-4444
-0xA: YUV2 4:2:2 co-sited
-0x7: ARGB16-1555
-0xD: RGBA32-8888
-0x0: NV12 4:2:0 2 buffers (Y + UV)
-0x2: RGBA12-4444
-0x8: xRGB24-8888 (32-bit container)
-0x9: RGB24-888 (24-bit container)
-0xB: UYVY 4:2:2 co-sited
-0x5: ARGB16-4444
-0xF: xRGB15-1555
-0xC: ARGB32-8888
-0x4: xRGB12-4444
-0xE: RGBx24-8888 (24-bit RGB aligned on MSB of the
-32-bit container)
+PATCH[1/8 v2] and [PATCH 2/8 v2] are the pre-requisites for the hwmod
+support for the usb module.
 
-Thanks and regards,
-Mythri.
+PATCH[6/8 v2] is core-offmode usb fix patch for the OMAP3
+in idle path.
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Wednesday, August 18, 2010 6:43 PM
-> To: K, Mythri P
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH] OMAP:DSS:Add support for Additional color modes supported by OMAP4
-> 
-> Hi,
-> 
-> On Wed, 2010-08-18 at 14:52 +0200, ext K, Mythri P wrote:
-> > Hi Tomi,
-> > 	Sorry I configured my email client :).
-> > 	Here is the link for OMAP4 TRM :
-> > http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
-> 
-> That is for OMAP34xx...
-> 
->  Tomi
-> 
+As per the OMAP usbotg specification[1] musb sysconfig register
+has to be set to force idle and force standby when not used
+and set smart idle/standby during operation.otherwise core-off
+will be prevented by musb.
+
+[1]: http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
+
+This patch series is created on "origin/pm-wip/hwmods-omap4".
+
+This patch series is tested on OMAP3630 zoom3 and OMAP4430 SDP.
+On OMAP3630 zoom3, off mode is tested on "origin/pm" branch using 
+omap3_pm_defconfig.
+
+
+Version History:
+---------------
+Vesrion v2:
+
+Fixed review comments.
+Removed the omap_hwmod.h inclusion from musb.h file which was 
+breaking the non-omap platform build.
+Using the runtime pm apis in the idle path(interrupts disabled).
+Added the omap4 hwmod data base.
+
+Version v1:
+initial version of the patch series.
+
+Some of the links for v1
+------------------------
+
+http://www.spinics.net/lists/linux-usb/msg34570.html
+http://www.spinics.net/lists/linux-omap/msg34568.html
+http://www.spinics.net/lists/linux-usb/msg34544.html
+http://www.spinics.net/lists/linux-usb/msg34540.html
+http://www.spinics.net/lists/linux-usb/msg34589.html
+http://www.spinics.net/lists/linux-usb/msg34554.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32973.html
+
+
+Cousson, Benoit (1):
+  usb: musb: HWMOD database structures addition for OMAP4
+
+Hema HK (7):
+  usb: musb: Adding names for IRQs in resource structure
+  usb: musb: Remove board_data parameter from musb_platform_init()
+  usb: musb: HWMOD database structures addition for OMAP3
+  usb: musb: Using omap_device_build for musb device registration
+  usb: musb: Offmode fix for idle path
+  OMAP: Hwmod api changes
+  usb : musb: Using runtime pm apis for musb.
+
+ arch/arm/mach-davinci/usb.c                   |    2 +
+ arch/arm/mach-omap2/omap_hwmod.c              |   18 ++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  100 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   92 ++++++++++++
+ arch/arm/mach-omap2/pm34xx.c                  |    9 ++
+ arch/arm/mach-omap2/usb-musb.c                |  188 ++++++++++++++++++++-----
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+ arch/arm/plat-omap/include/plat/usb.h         |    9 ++
+ arch/arm/plat-omap/omap_device.c              |   43 ++++++
+ arch/blackfin/mach-bf527/boards/cm_bf527.c    |    2 +
+ arch/blackfin/mach-bf527/boards/ezbrd.c       |    2 +
+ arch/blackfin/mach-bf527/boards/ezkit.c       |    2 +
+ arch/blackfin/mach-bf548/boards/cm_bf548.c    |    2 +
+ arch/blackfin/mach-bf548/boards/ezkit.c       |    2 +
+ drivers/usb/musb/blackfin.c                   |    2 +-
+ drivers/usb/musb/cppi_dma.c                   |    2 +-
+ drivers/usb/musb/davinci.c                    |    2 +-
+ drivers/usb/musb/musb_core.c                  |   26 +++-
+ drivers/usb/musb/musb_core.h                  |    3 +-
+ drivers/usb/musb/musbhsdma.c                  |    2 +-
+ drivers/usb/musb/omap2430.c                   |   87 ++++++------
+ drivers/usb/musb/tusb6010.c                   |    2 +-
+ include/linux/usb/musb.h                      |   20 +++
+ 23 files changed, 522 insertions(+), 97 deletions(-)
 
