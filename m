@@ -1,39 +1,160 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 02/10] OMAP4: OPP framework support
-Date: Wed, 18 Aug 2010 16:46:23 +0530
-Message-ID: <1282130191-9062-3-git-send-email-thara@ti.com>
+Subject: [PATCH 04/10] OMAP4: Extend clock data.
+Date: Wed, 18 Aug 2010 16:46:25 +0530
+Message-ID: <1282130191-9062-5-git-send-email-thara@ti.com>
 References: <1282130191-9062-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42879 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752644Ab0HRLQn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 07:16:43 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:51677 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752724Ab0HRLQo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Aug 2010 07:16:44 -0400
 In-Reply-To: <1282130191-9062-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, b-cousson@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch allows the compilation of the generic
-opp layer for OMAP4 also.
+This patch extends the OMAP4 clock data to include
+various x2 clockc nodes as the clock framework
+skips a *2 whie calculating the dpll locked frequency.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/plat-omap/Makefile |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+This patch has a checkpatch.pl warning due to the clock
+data base omap44xx_clks having all the entries
+exceeding 80 chars. Since this data base is auto-generated
+to maintain consistency the new entries added also exceed
+80 chars.
 
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 852fa33..cbf8f2e 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -15,6 +15,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
- # OPP support in (OMAP3+ only at the moment)
- ifdef CONFIG_PM
- obj-$(CONFIG_ARCH_OMAP3) += opp.o
-+obj-$(CONFIG_ARCH_OMAP4) += opp.o
- obj-$(CONFIG_TWL4030_CORE) += opp_twl_tps.o
- endif
+ arch/arm/mach-omap2/clock44xx_data.c |   40 +++++++++++++++++++++++++++------
+ 1 files changed, 32 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index a0e369e..2c42d79 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -485,14 +485,21 @@ static struct clk dpll_core_m5_ck = {
+ 	.set_rate	= &omap2_clksel_set_rate,
+ };
  
++static struct clk dpll_core_m5x2_ck = {
++	.name		= "dpll_core_m5x2_ck",
++	.parent		= &dpll_core_m5_ck,
++	.ops		= &clkops_null,
++	.recalc		= &omap3_clkoutx2_recalc,
++};
++
+ static const struct clksel div_core_div[] = {
+-	{ .parent = &dpll_core_m5_ck, .rates = div2_1to2_rates },
++	{ .parent = &dpll_core_m5x2_ck, .rates = div2_1to2_rates },
+ 	{ .parent = NULL },
+ };
+ 
+ static struct clk div_core_ck = {
+ 	.name		= "div_core_ck",
+-	.parent		= &dpll_core_m5_ck,
++	.parent		= &dpll_core_m5x2_ck,
+ 	.clksel		= div_core_div,
+ 	.clksel_reg	= OMAP4430_CM_CLKSEL_CORE,
+ 	.clksel_mask	= OMAP4430_CLKSEL_CORE_MASK,
+@@ -511,13 +518,13 @@ static const struct clksel_rate div4_1to8_rates[] = {
+ };
+ 
+ static const struct clksel div_iva_hs_clk_div[] = {
+-	{ .parent = &dpll_core_m5_ck, .rates = div4_1to8_rates },
++	{ .parent = &dpll_core_m5x2_ck, .rates = div4_1to8_rates },
+ 	{ .parent = NULL },
+ };
+ 
+ static struct clk div_iva_hs_clk = {
+ 	.name		= "div_iva_hs_clk",
+-	.parent		= &dpll_core_m5_ck,
++	.parent		= &dpll_core_m5x2_ck,
+ 	.clksel		= div_iva_hs_clk_div,
+ 	.clksel_reg	= OMAP4430_CM_BYPCLK_DPLL_IVA,
+ 	.clksel_mask	= OMAP4430_CLKSEL_0_1_MASK,
+@@ -529,7 +536,7 @@ static struct clk div_iva_hs_clk = {
+ 
+ static struct clk div_mpu_hs_clk = {
+ 	.name		= "div_mpu_hs_clk",
+-	.parent		= &dpll_core_m5_ck,
++	.parent		= &dpll_core_m5x2_ck,
+ 	.clksel		= div_iva_hs_clk_div,
+ 	.clksel_reg	= OMAP4430_CM_BYPCLK_DPLL_MPU,
+ 	.clksel_mask	= OMAP4430_CLKSEL_0_1_MASK,
+@@ -655,6 +662,13 @@ static struct clk dpll_iva_m4_ck = {
+ 	.set_rate	= &omap2_clksel_set_rate,
+ };
+ 
++static struct clk dpll_iva_m4x2_ck = {
++	.name		= "dpll_iva_m4x2_ck",
++	.parent		= &dpll_iva_m4_ck,
++	.ops		= &clkops_null,
++	.recalc		= &omap3_clkoutx2_recalc,
++};
++
+ static struct clk dpll_iva_m5_ck = {
+ 	.name		= "dpll_iva_m5_ck",
+ 	.parent		= &dpll_iva_ck,
+@@ -667,6 +681,13 @@ static struct clk dpll_iva_m5_ck = {
+ 	.set_rate	= &omap2_clksel_set_rate,
+ };
+ 
++static struct clk dpll_iva_m5x2_ck = {
++	.name		= "dpll_iva_m5x2_ck",
++	.parent		= &dpll_iva_m5_ck,
++	.ops		= &clkops_null,
++	.recalc		= &omap3_clkoutx2_recalc,
++};
++
+ /* DPLL_MPU */
+ static struct dpll_data dpll_mpu_dd = {
+ 	.mult_div1_reg	= OMAP4430_CM_CLKSEL_DPLL_MPU,
+@@ -1339,7 +1360,7 @@ static struct clk dsp_fck = {
+ 	.enable_reg	= OMAP4430_CM_TESLA_TESLA_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+ 	.clkdm_name	= "tesla_clkdm",
+-	.parent		= &dpll_iva_m4_ck,
++	.parent		= &dpll_iva_m4x2_ck,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -1616,7 +1637,7 @@ static struct clk iva_fck = {
+ 	.enable_reg	= OMAP4430_CM_IVAHD_IVAHD_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+ 	.clkdm_name	= "ivahd_clkdm",
+-	.parent		= &dpll_iva_m5_ck,
++	.parent		= &dpll_iva_m5x2_ck,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -1970,7 +1991,7 @@ static struct clk sl2if_ick = {
+ 	.enable_reg	= OMAP4430_CM_IVAHD_SL2_CLKCTRL,
+ 	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+ 	.clkdm_name	= "ivahd_clkdm",
+-	.parent		= &dpll_iva_m5_ck,
++	.parent		= &dpll_iva_m5x2_ck,
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -2458,6 +2479,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"dpll_core_m2_ck",		&dpll_core_m2_ck,	CK_443X),
+ 	CLK(NULL,	"ddrphy_ck",			&ddrphy_ck,	CK_443X),
+ 	CLK(NULL,	"dpll_core_m5_ck",		&dpll_core_m5_ck,	CK_443X),
++	CLK(NULL,	"dpll_core_m5x2_ck",		&dpll_core_m5x2_ck,	CK_443X),
+ 	CLK(NULL,	"div_core_ck",			&div_core_ck,	CK_443X),
+ 	CLK(NULL,	"div_iva_hs_clk",		&div_iva_hs_clk,	CK_443X),
+ 	CLK(NULL,	"div_mpu_hs_clk",		&div_mpu_hs_clk,	CK_443X),
+@@ -2469,7 +2491,9 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"iva_hsd_byp_clk_mux_ck",	&iva_hsd_byp_clk_mux_ck,	CK_443X),
+ 	CLK(NULL,	"dpll_iva_ck",			&dpll_iva_ck,	CK_443X),
+ 	CLK(NULL,	"dpll_iva_m4_ck",		&dpll_iva_m4_ck,	CK_443X),
++	CLK(NULL,	"dpll_iva_m4x2_ck",		&dpll_iva_m4x2_ck,	CK_443X),
+ 	CLK(NULL,	"dpll_iva_m5_ck",		&dpll_iva_m5_ck,	CK_443X),
++	CLK(NULL,	"dpll_iva_m5x2_ck",		&dpll_iva_m5x2_ck,	CK_443X),
+ 	CLK(NULL,	"dpll_mpu_ck",			&dpll_mpu_ck,	CK_443X),
+ 	CLK(NULL,	"dpll_mpu_m2_ck",		&dpll_mpu_m2_ck,	CK_443X),
+ 	CLK(NULL,	"per_hs_clk_div_ck",		&per_hs_clk_div_ck,	CK_443X),
 -- 
 1.7.1.GIT
 
