@@ -1,128 +1,89 @@
 From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/5] usb: ehci: omap: Update clock names to be same across OMAP3 and OMAP4
-Date: Wed, 18 Aug 2010 08:25:41 +0530
-Message-ID: <1282100145-27485-2-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH 3/5] usb: ehci: relocate PHY reset code
+Date: Wed, 18 Aug 2010 08:25:43 +0530
+Message-ID: <1282100145-27485-4-git-send-email-keshava_mgowda@ti.com>
 References: <1282100145-27485-1-git-send-email-keshava_mgowda@ti.com>
+ <1282100145-27485-2-git-send-email-keshava_mgowda@ti.com>
+ <1282100145-27485-3-git-send-email-keshava_mgowda@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1282100145-27485-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1282100145-27485-3-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Rename usbhost2_120m_fck to usbhost_hs_fck and
-usbhost1_48m_fck to usbhost_fs_fck, so that we can reuse the
-names across OMAP3 and OMAP4.
-
-OMAP3 and OMAP4 have similar clocks, with different frequencies.
-The driver should not need to care about these.
+The PHY reset code is moved at the begining and end of the function
+omap_start_ehc. This simplfies the writing clocks enabling code for 
+OMAP4 later. 
 
 Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 ---
- drivers/usb/host/ehci-omap.c |   56 +++++++++++++++++++++----------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+ drivers/usb/host/ehci-omap.c |   52 +++++++++++++++++++++----------------------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
 Index: linux-2.6/drivers/usb/host/ehci-omap.c
 ===================================================================
 --- linux-2.6.orig/drivers/usb/host/ehci-omap.c
 +++ linux-2.6/drivers/usb/host/ehci-omap.c
-@@ -156,8 +156,8 @@ struct ehci_hcd_omap {
- 	struct device		*dev;
+@@ -279,6 +279,24 @@ static int omap_start_ehc(struct ehci_hc
  
- 	struct clk		*usbhost_ick;
--	struct clk		*usbhost2_120m_fck;
--	struct clk		*usbhost1_48m_fck;
-+	struct clk		*usbhost_hs_fck;
-+	struct clk		*usbhost_fs_fck;
- 	struct clk		*usbtll_fck;
- 	struct clk		*usbtll_ick;
+ 	dev_dbg(omap->dev, "starting TI EHCI USB Controller\n");
  
-@@ -286,19 +286,19 @@ static int omap_start_ehc(struct ehci_hc
- 	}
- 	clk_enable(omap->usbhost_ick);
- 
--	omap->usbhost2_120m_fck = clk_get(omap->dev, "usbhost_120m_fck");
--	if (IS_ERR(omap->usbhost2_120m_fck)) {
--		ret = PTR_ERR(omap->usbhost2_120m_fck);
--		goto err_host_120m_fck;
--	}
--	clk_enable(omap->usbhost2_120m_fck);
--
--	omap->usbhost1_48m_fck = clk_get(omap->dev, "usbhost_48m_fck");
--	if (IS_ERR(omap->usbhost1_48m_fck)) {
--		ret = PTR_ERR(omap->usbhost1_48m_fck);
--		goto err_host_48m_fck;
-+	omap->usbhost_hs_fck = clk_get(omap->dev, "usbhost_120m_fck");
-+	if (IS_ERR(omap->usbhost_hs_fck)) {
-+		ret = PTR_ERR(omap->usbhost_hs_fck);
-+		goto err_host_hs_fck;
-+	}
-+	clk_enable(omap->usbhost_hs_fck);
++	if (omap->phy_reset) {
++		/* Refer: ISSUE1 */
++		if (gpio_is_valid(omap->reset_gpio_port[0])) {
++			gpio_request(omap->reset_gpio_port[0],
++						"USB1 PHY reset");
++			gpio_direction_output(omap->reset_gpio_port[0], 0);
++		}
 +
-+	omap->usbhost_fs_fck = clk_get(omap->dev, "usbhost_48m_fck");
-+	if (IS_ERR(omap->usbhost_fs_fck)) {
-+		ret = PTR_ERR(omap->usbhost_fs_fck);
-+		goto err_host_fs_fck;
++		if (gpio_is_valid(omap->reset_gpio_port[1])) {
++			gpio_request(omap->reset_gpio_port[1],
++						"USB2 PHY reset");
++			gpio_direction_output(omap->reset_gpio_port[1], 0);
++		}
++
++		/* Hold the PHY in RESET for enough time till DIR is high */
++		udelay(10);
++	}
++
+ 	/* Enable Clocks for USBHOST */
+ 	omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
+ 	if (IS_ERR(omap->usbhost_ick)) {
+@@ -301,24 +319,6 @@ static int omap_start_ehc(struct ehci_hc
  	}
--	clk_enable(omap->usbhost1_48m_fck);
-+	clk_enable(omap->usbhost_fs_fck);
+ 	clk_enable(omap->usbhost_fs_fck);
  
- 	if (omap->phy_reset) {
- 		/* Refer: ISSUE1 */
-@@ -472,8 +472,8 @@ err_tll_ick:
- 	clk_put(omap->usbtll_fck);
+-	if (omap->phy_reset) {
+-		/* Refer: ISSUE1 */
+-		if (gpio_is_valid(omap->reset_gpio_port[0])) {
+-			gpio_request(omap->reset_gpio_port[0],
+-						"USB1 PHY reset");
+-			gpio_direction_output(omap->reset_gpio_port[0], 0);
+-		}
+-
+-		if (gpio_is_valid(omap->reset_gpio_port[1])) {
+-			gpio_request(omap->reset_gpio_port[1],
+-						"USB2 PHY reset");
+-			gpio_direction_output(omap->reset_gpio_port[1], 0);
+-		}
+-
+-		/* Hold the PHY in RESET for enough time till DIR is high */
+-		udelay(10);
+-	}
+-
+ 	/* Configure TLL for 60Mhz clk for ULPI */
+ 	omap->usbtll_fck = clk_get(omap->dev, "usbtll_fck");
+ 	if (IS_ERR(omap->usbtll_fck)) {
+@@ -476,14 +476,6 @@ err_tll_fck:
+ 	clk_disable(omap->usbhost_fs_fck);
+ 	clk_put(omap->usbhost_fs_fck);
  
- err_tll_fck:
--	clk_disable(omap->usbhost1_48m_fck);
--	clk_put(omap->usbhost1_48m_fck);
-+	clk_disable(omap->usbhost_fs_fck);
-+	clk_put(omap->usbhost_fs_fck);
- 
- 	if (omap->phy_reset) {
- 		if (gpio_is_valid(omap->reset_gpio_port[0]))
-@@ -483,11 +483,11 @@ err_tll_fck:
- 			gpio_free(omap->reset_gpio_port[1]);
- 	}
- 
--err_host_48m_fck:
--	clk_disable(omap->usbhost2_120m_fck);
--	clk_put(omap->usbhost2_120m_fck);
-+err_host_fs_fck:
-+	clk_disable(omap->usbhost_hs_fck);
-+	clk_put(omap->usbhost_hs_fck);
- 
--err_host_120m_fck:
-+err_host_hs_fck:
- 	clk_disable(omap->usbhost_ick);
- 	clk_put(omap->usbhost_ick);
- 
-@@ -550,16 +550,16 @@ static void omap_stop_ehc(struct ehci_hc
- 		omap->usbhost_ick = NULL;
- 	}
- 
--	if (omap->usbhost1_48m_fck != NULL) {
--		clk_disable(omap->usbhost1_48m_fck);
--		clk_put(omap->usbhost1_48m_fck);
--		omap->usbhost1_48m_fck = NULL;
-+	if (omap->usbhost_fs_fck != NULL) {
-+		clk_disable(omap->usbhost_fs_fck);
-+		clk_put(omap->usbhost_fs_fck);
-+		omap->usbhost_fs_fck = NULL;
- 	}
- 
--	if (omap->usbhost2_120m_fck != NULL) {
--		clk_disable(omap->usbhost2_120m_fck);
--		clk_put(omap->usbhost2_120m_fck);
--		omap->usbhost2_120m_fck = NULL;
-+	if (omap->usbhost_hs_fck != NULL) {
-+		clk_disable(omap->usbhost_hs_fck);
-+		clk_put(omap->usbhost_hs_fck);
-+		omap->usbhost_hs_fck = NULL;
- 	}
- 
- 	if (omap->usbtll_ick != NULL) {
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-	if (omap->phy_reset) {
+-		if (gpio_is_valid(omap->reset_gpio_port[0]))
+-			gpio_free(omap->reset_gpio_port[0]);
+-
+-		if (gpio_is_valid(omap->reset_gpio_port[1]))
+-			gpio_free(omap->reset_gpio_port[1]);
+-	}
