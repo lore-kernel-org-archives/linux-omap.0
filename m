@@ -1,17 +1,19 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
 Subject: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
-Date: Tue, 17 Aug 2010 21:34:07 -0700
-Message-ID: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
+Date: Tue, 17 Aug 2010 21:35:46 -0700
+Message-ID: <1282106146-7727-1-git-send-email-darkstar6262@gmail.com>
+References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:50898 "EHLO
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:63232 "EHLO
 	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab0HREeX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 00:34:23 -0400
-Received: by iwn7 with SMTP id 7so213167iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 17 Aug 2010 21:34:22 -0700 (PDT)
+	with ESMTP id S1750956Ab0HREgF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 00:36:05 -0400
+Received: by iwn7 with SMTP id 7so214664iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 17 Aug 2010 21:36:04 -0700 (PDT)
+In-Reply-To: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Cory Maccarrone <darkstar6262@gmail.com>
 
 This change adds in MMC and I2C support to the HTC Herald board, as well
