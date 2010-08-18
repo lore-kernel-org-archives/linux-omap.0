@@ -1,14 +1,8 @@
 From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 5/6] usb: ohci: don't hard-code TLL channel count
-Date: Wed, 18 Aug 2010 08:25:45 +0530
-Message-ID: <1282100145-27485-6-git-send-email-keshava_mgowda@ti.com>
-References: <1282100145-27485-1-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-2-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-3-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-4-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-5-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH 5/5] usb: ohci: don't hard-code TLL channel count
+Date: Wed, 18 Aug 2010 08:29:09 +0530
+Message-ID: <1282100349-27514-1-git-send-email-keshava_mgowda@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1282100145-27485-5-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
