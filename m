@@ -1,83 +1,50 @@
-From: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 5/6] usb: ohci: don't hard-code TLL channel count
-Date: Wed, 18 Aug 2010 21:07:51 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B39A32E4@dbde02.ent.ti.com>
-References: <1282100145-27485-1-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-2-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-3-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-4-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-5-git-send-email-keshava_mgowda@ti.com>
- <1282100145-27485-6-git-send-email-keshava_mgowda@ti.com>
+From: Cliff Brake <cliff.brake@gmail.com>
+Subject: Re: NAND ECC in linux-omap
+Date: Wed, 18 Aug 2010 11:45:31 -0400
+Message-ID: <AANLkTik4+gApkw5fQ561QnJPLX5ED7oN3oU0P6F0+Gsv@mail.gmail.com>
+References: <AANLkTimABq72N98Ca6yJ9FgYnyDpod3qRPoTypkDn-4A@mail.gmail.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B030E8188DB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1282100145-27485-6-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:54584 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab0HRPpc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 11:45:32 -0400
+Received: by ewy23 with SMTP id 23so461681ewy.19
+        for <linux-omap@vger.kernel.org>; Wed, 18 Aug 2010 08:45:31 -0700 (PDT)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E8188DB@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: Linux OMAP Users <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>
 
+On Wed, Aug 18, 2010 at 12:14 AM, Ghorai, Sukumar <s-ghorai@ti.com> wrote:
+> [Ghorai]
+> 1. Can you send the git tree link and branch you are referring?
 
-It is [PATCH 5/5] not [PATCH 5/6].
-I have resent this mail with this subject correction.
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+branch: pm
+95e42b92313f229cbc9fc81bf68fe60aaee515aa
 
-Regards,
-Keshava Munegowda
- 
- 
+I'm pretty sure this branch tracks linux-omap.  I have not tested
+linux-omap yet (git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git:master)
 
-> -----Original Message-----
-> From: Munegowda, Keshava
-> Sent: Wednesday, August 18, 2010 8:26 AM
-> To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: Munegowda, Keshava; Gadiyar, Anand
-> Subject: [PATCH 5/6] usb: ohci: don't hard-code TLL channel count
-> 
-> Make TLL channel count a parameter instead of a hardcoded value.
-> This allows us to be flexible with future OMAP revisions which
-> could have a different number of channels.
-> 
-> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/usb/host/ohci-omap3.c |    7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> Index: kernel-omap4-base/drivers/usb/host/ohci-omap3.c
-> ===================================================================
-> --- kernel-omap4-base.orig/drivers/usb/host/ohci-omap3.c
-> +++ kernel-omap4-base/drivers/usb/host/ohci-omap3.c
-> @@ -245,7 +245,8 @@ static unsigned ohci_omap3_fslsmode(enum
->  	}
->  }
-> 
-> -static void ohci_omap3_tll_config(struct ohci_hcd_omap3 *omap)
-> +static void ohci_omap3_tll_config(struct ohci_hcd_omap3 *omap,
-> +					u8 tll_channel_count)
->  {
->  	u32 reg;
->  	int i;
-> @@ -263,7 +264,7 @@ static void ohci_omap3_tll_config(struct
->  	 * REVISIT: Only the 3-pin and 4-pin PHY modes have
->  	 * actually been tested.
->  	 */
-> -	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
-> +	for (i = 0; i < tll_channel_count; i++) {
-> 
->  		/* Enable only those channels that are actually used */
->  		if (omap->port_mode[i] == OMAP_OHCI_PORT_MODE_UNUSED)
-> @@ -422,7 +423,7 @@ static int omap3_start_ohci(struct ohci_
->  	ohci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
->  	dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
-> 
-> -	ohci_omap3_tll_config(omap);
-> +	ohci_omap3_tll_config(omap, OMAP_TLL_CHANNEL_COUNT);
-> 
->  	return 0;
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 2. I am working to support the NAND BCH and not upstream yet, how you apply this patch in PM branch.
+
+What do you mean by upstream?  I'm not sure what NAND changes are in
+the above pm branch -- that is what I'm trying to figure out :-)
+Perhaps you can suggest if I'm using BCH, etc.
+
+> 3. which x-loader and u-boot you are referring? And no x-loader/ u-boot supports the BCH
+
+I'm using the x-loader/u-boot from for the Gumstix Overo.  My
+understanding is that it uses software -- likely not BCH, but I'm not
+sure.
+
+Thanks,
+Cliff
+
+-- 
+=================
+http://bec-systems.com
