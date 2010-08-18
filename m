@@ -1,84 +1,65 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [RFC] [PATCH 5/7] omap: usb: ehci: Initialize resources for omap4
-Date: Thu, 19 Aug 2010 05:19:35 +0530
-Message-ID: <1282175377-2784-6-git-send-email-keshava_mgowda@ti.com>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [RFC] [PATCH 6/7] usb: ehci: Introduce CONFIG_USB_EHCI_HCD_OMAP3
+Date: Thu, 19 Aug 2010 05:19:36 +0530
+Message-ID: <1282175377-2784-7-git-send-email-keshava_mgowda@ti.com>
 References: <1282175377-2784-1-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-2-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-3-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-4-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-5-git-send-email-keshava_mgowda@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1282175377-2784-5-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+ <1282175377-2784-6-git-send-email-keshava_mgowda@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:35906 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752942Ab0HSLtT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Aug 2010 07:49:19 -0400
+In-Reply-To: <1282175377-2784-6-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-Update resources (IRQ number, base addresses) for EHCI on OMAP4.
-This patch will be replaced when the driver is converted to
-take advantage of hwmod (hardware mode).
+Introduce the CONFIG_USB_EHCI_HCD_OMAP3 option to select
+EHCI support on OMAP3 and later chips. This scales better
+than having a long line of dependencies for each new OMAP
+with EHCI support.
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
- arch/arm/mach-omap2/usb-ehci.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/usb/host/Kconfig    |    8 ++++++++
+ drivers/usb/host/ehci-hcd.c |    2 +-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-Index: linux-2.6/arch/arm/mach-omap2/usb-ehci.c
+Index: linux-2.6/drivers/usb/host/ehci-hcd.c
 ===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/usb-ehci.c
-+++ linux-2.6/arch/arm/mach-omap2/usb-ehci.c
-@@ -34,22 +34,15 @@
+--- linux-2.6.orig/drivers/usb/host/ehci-hcd.c
++++ linux-2.6/drivers/usb/host/ehci-hcd.c
+@@ -1157,7 +1157,7 @@ MODULE_LICENSE ("GPL");
+ #define	PLATFORM_DRIVER		ehci_hcd_au1xxx_driver
+ #endif
  
- static struct resource ehci_resources[] = {
- 	{
--		.start	= OMAP34XX_EHCI_BASE,
--		.end	= OMAP34XX_EHCI_BASE + SZ_1K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{
--		.start	= OMAP34XX_UHH_CONFIG_BASE,
--		.end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{
--		.start	= OMAP34XX_USBTLL_BASE,
--		.end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{         /* general IRQ */
--		.start   = INT_34XX_EHCI_IRQ,
- 		.flags   = IORESOURCE_IRQ,
- 	}
- };
-@@ -328,8 +321,25 @@ void __init usb_ehci_init(const struct e
- 	platform_device_add_data(&ehci_device, pdata, sizeof(*pdata));
+-#ifdef CONFIG_ARCH_OMAP3
++#ifdef CONFIG_USB_EHCI_HCD_OMAP3
+ #include "ehci-omap.c"
+ #define        PLATFORM_DRIVER         ehci_hcd_omap_driver
+ #endif
+Index: linux-2.6/drivers/usb/host/Kconfig
+===================================================================
+--- linux-2.6.orig/drivers/usb/host/Kconfig
++++ linux-2.6/drivers/usb/host/Kconfig
+@@ -126,6 +126,14 @@ config USB_EHCI_MXC
+ 	---help---
+ 	  Variation of ARC USB block used in some Freescale chips.
  
- 	/* Setup Pin IO MUX for EHCI */
--	if (cpu_is_omap34xx())
-+	if (cpu_is_omap34xx()) {
-+		ehci_resources[0].start	= OMAP34XX_EHCI_BASE;
-+		ehci_resources[0].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
-+		ehci_resources[1].start	= OMAP34XX_UHH_CONFIG_BASE;
-+		ehci_resources[1].end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
-+		ehci_resources[2].start	= OMAP34XX_USBTLL_BASE;
-+		ehci_resources[2].end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1;
-+		ehci_resources[3].start = INT_34XX_EHCI_IRQ;
- 		setup_ehci_io_mux(pdata->port_mode);
-+	} else if (cpu_is_omap44xx()) {
-+		ehci_resources[0].start	= OMAP44XX_HSUSB_EHCI_BASE;
-+		ehci_resources[0].end	= OMAP44XX_HSUSB_EHCI_BASE + SZ_1K - 1;
-+		ehci_resources[1].start	= OMAP44XX_UHH_CONFIG_BASE;
-+		ehci_resources[1].end	= OMAP44XX_UHH_CONFIG_BASE + SZ_2K - 1;
-+		ehci_resources[2].start	= OMAP44XX_USBTLL_BASE;
-+		ehci_resources[2].end	= OMAP44XX_USBTLL_BASE + SZ_4K - 1;
-+		ehci_resources[3].start = OMAP44XX_IRQ_EHCI;
-+		setup_4430ehci_io_mux(pdata->port_mode);
-+	}
- 
- 	if (platform_device_register(&ehci_device) < 0) {
- 		printk(KERN_ERR "Unable to register HS-USB (EHCI) device\n");
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++config USB_EHCI_HCD_OMAP3
++	bool "EHCI support for OMAP3 and later chips"
++	depends on USB_EHCI_HCD && (ARCH_OMAP3 || ARCH_OMAP4)
++	default y
++	--- help ---
++	  Enables support for the on-chip EHCI controller on
++	  OMAP3 and later chips.
++
+ config USB_EHCI_HCD_PPC_OF
+ 	bool "EHCI support for PPC USB controller on OF platform bus"
+ 	depends on USB_EHCI_HCD && PPC_OF
