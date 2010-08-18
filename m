@@ -1,153 +1,434 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: RE: [PATCH] OMAP:DSS:Add support for Additional color modes
- supported by OMAP4
-Date: Wed, 18 Aug 2010 18:22:42 +0530
-Message-ID: <FF55437E1F14DA4BAEB721A458B6701706BE1F2FC0@dbde02.ent.ti.com>
-References: <1280987665-25639-1-git-send-email-mythripk@ti.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
-	 <1282042850.2348.42.camel@tubuntu.research.nokia.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706BE1F2E1B@dbde02.ent.ti.com>
- <1282122106.2348.110.camel@tubuntu.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: "Krogerus Heikki (EXT-Teleca/Helsinki)"
+	<ext-heikki.krogerus@nokia.com>
+Subject: [PATCH] power_supply: add isp1704 charger detection driver
+Date: Wed, 18 Aug 2010 16:01:05 +0300
+Message-ID: <1282136465-1748-1-git-send-email-ext-heikki.krogerus@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47561 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752772Ab0HRMwv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 08:52:51 -0400
-In-Reply-To: <1282122106.2348.110.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:56361 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334Ab0HRNBd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 09:01:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, dwmw2@infradead.org, cbou@mail.ru, felipe.balbi@nokia.com, ameya.palande@nokia.com, markus.lehtonen@nokia.com, roger.quadros@nokia.com
 
-Hi Tomi,
-	Sorry I configured my email client :).
-	Here is the link for OMAP4 TRM : 
-http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
+From: Heikki Krogerus <ext-heikki.krogerus@nokia.com>
 
+NXP ISP1704 is Battery Charging Specification 1.0 compliant USB
+transceiver. This adds a power supply driver for ISP1704 and
+ISP1707 USB transceivers.
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Wednesday, August 18, 2010 2:32 PM
-> To: K, Mythri P
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH] OMAP:DSS:Add support for Additional color modes supported by OMAP4
-> 
-> Hi,
-> 
-> On Wed, 2010-08-18 at 09:56 +0200, ext K, Mythri P wrote:
-> > Hi Tomi,
-> >
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Tuesday, August 17, 2010 4:31 PM
-> > To: K, Mythri P
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: RE: [PATCH] OMAP:DSS:Add support for Additional color modes supported by OMAP4
-> >
-> > Hi,
-> >
-> > On Wed, 2010-08-11 at 11:22 +0200, ext K, Mythri P wrote:
-> > > Hi Tomi,
-> > > Can you please comment on the below patch . This is to add new color modes supported by OMAP4.
-> > >
-> > > Thanks and regards,
-> > > Mythri.
-> > > -----Original Message-----
-> > > From: K, Mythri P
-> > > Sent: Thursday, August 05, 2010 11:24 AM
-> > > To: linux-omap@vger.kernel.org
-> > > Cc: tomi.valkeinen@nokia.com; Semwal, Sumit; K, Mythri P
-> > > Subject: [PATCH] OMAP:DSS:Add support for Additional color modes supported by OMAP4
-> > >
-> > > From: Sumit semwal <sumit.semwal@ti.com>
-> > >
-> > > This patch adds support for new color modes that are supported by the video/graphics pipeline of
-> OMAP4
-> > >
-> > > Signed-off-by: Mythri P K <mythripk@ti.com>
-> > > ---
-> > >  arch/arm/plat-omap/include/plat/display.h |   16 ++++++++-
-> > >  drivers/video/omap2/dss/dispc.c           |   53 ++++++++++++++++++++++-------
-> > >  drivers/video/omap2/dss/overlay.c         |    6 ++-
-> > >  3 files changed, 59 insertions(+), 16 deletions(-)
-> > >
-> > > diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-
-> omap/include/plat/display.h
-> > > index 7a6eedd..ebf1020 100644
-> > > --- a/arch/arm/plat-omap/include/plat/display.h
-> > > +++ b/arch/arm/plat-omap/include/plat/display.h
-> > > @@ -89,6 +89,12 @@ enum omap_color_mode {
-> > >  	OMAP_DSS_COLOR_ARGB32	= 1 << 11, /* ARGB32 */
-> > >  	OMAP_DSS_COLOR_RGBA32	= 1 << 12, /* RGBA32 */
-> > >  	OMAP_DSS_COLOR_RGBX32	= 1 << 13, /* RGBx32 */
-> > > +	OMAP_DSS_COLOR_NV12	= 1 << 14, /* NV12 format: YUV 4:2:0 */
-> > > +	OMAP_DSS_COLOR_RGBA12	= 1 << 15, /* RGBA12 - 4444 */
-> >
-> > Is this the same as ARGB16? Or is it the same, except alpha value is in
-> > the other end? If so, I think the naming should be coherent, and either
-> > this should be RGBA16, or ARGB16 should be ARGB12.
-> >
-> > Then again, if TRM says this is RGBA12, and the other one is ARGB16, I
-> > guess we should stick with TRM naming...
-> > [Mythri] yes these are the TRM naming conventions. There are 2 formats in ARGB16 , ARGB16-1555 and
-> ARGB16-4444.
-> 
-> Please, use some sane email client with proper quoting. It's quite
-> difficult to read your emails.
-> 
-> > > +	OMAP_DSS_COLOR_ARGB16_1555	= 1 << 17, /* ARGB16-1555 */
-> > > +	OMAP_DSS_COLOR_RGBX24_32_ALGN	= 1 << 18, /* 32-msb aligned 24bit */
-> >
-> > Hmm, what is this?
-> > [Mythri] This format is RGBx24-8888 (24-bit RGB aligned on MSB of the 32-bit container). TRM DISPC-
-> Table 10-199. DISPC_VID1_ATTRIBUTES , formats.
-> 
-> I don't have OMAP4 TRM. Is it available from somewhere?
-> 
-> > > +	OMAP_DSS_COLOR_XRGB15	= 1 << 19, /* xRGB15: 1555*/
-> > >
-> > >  	OMAP_DSS_COLOR_GFX_OMAP2 =
-> > >  		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
-> > > @@ -112,9 +118,17 @@ enum omap_color_mode {
-> > >  	OMAP_DSS_COLOR_VID1_OMAP3 =
-> > >  		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
-> > >  		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P |
-> > > -		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY,
-> > > +		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY |
-> > > +		OMAP_DSS_COLOR_NV12 | OMAP_DSS_COLOR_RGBA12 |
-> > > +		OMAP_DSS_COLOR_XRGB12 | OMAP_DSS_COLOR_ARGB16_1555 |
-> > > +		OMAP_DSS_COLOR_RGBX24_32_ALGN | OMAP_DSS_COLOR_XRGB15 |
-> > > +		OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_RGBA32 |
-> > > +		OMAP_DSS_COLOR_RGBX32,
-> >
-> > Why do you change OMAP3 modes, if this patch is about supported OMAP4
-> > modes?
-> > [Mythri] When the additional color formats supported for OMAP4 are added in the OMAP3 modes, There
-> is a check in the dispc color-modes for OMAP4 alone to support , OMAP3 would return an error as
-> before.
-> > Do you suggest add a new OMAP_DSS_COLOR_VID1_OMAP4 instead?
-> 
-> Well, there's an entry for OMAP2 color modes, and OMAP3 color modes. I
-> find it quite strange to modify OMAP3 color modes to include OMAP4
-> modes, and then later in code find what are acceptable values. Besides,
-> having wrong values in ovl->supported_modes means that omapfb will allow
-> user space to select illegal color modes.
-> 
-> So yes, I think there should be separate entries for OMAP4's color
-> modes.
-> 
-> And _dispc_set_color_mode() shouldn't do complex argument checking for
-> different omap versions. It's a low level function, and the arguments
-> given to it should be valid.
-> 
+Signed-off-by: Heikki Krogerus <ext-heikki.krogerus@nokia.com>
+---
+ drivers/power/Kconfig           |    7 +
+ drivers/power/Makefile          |    1 +
+ drivers/power/isp1704_charger.c |  371 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 379 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/power/isp1704_charger.c
 
-I shall remove the cpu_44xx check in dispc_set_color mode and make relevant changes in display.h to add OMAP4 colormodes.
+diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
+index 0734356..d55fc29 100644
+--- a/drivers/power/Kconfig
++++ b/drivers/power/Kconfig
+@@ -166,4 +166,11 @@ config BATTERY_INTEL_MID
+ 	  Say Y here to enable the battery driver on Intel MID
+ 	  platforms.
+ 
++config CHARGER_ISP1704
++	tristate "ISP1704 USB Charger Detection"
++	select NOP_USB_XCEIV if ! MACH_NOKIA_RX51
++	help
++	  Say Y to enable support for USB Charger Detection with
++	  ISP1707/ISP1704 USB transceivers.
++
+ endif # POWER_SUPPLY
+diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+index 10143aa..c73d381 100644
+--- a/drivers/power/Makefile
++++ b/drivers/power/Makefile
+@@ -37,3 +37,4 @@ obj-$(CONFIG_BATTERY_S3C_ADC)	+= s3c_adc_battery.o
+ obj-$(CONFIG_CHARGER_PCF50633)	+= pcf50633-charger.o
+ obj-$(CONFIG_BATTERY_JZ4740)	+= jz4740-battery.o
+ obj-$(CONFIG_BATTERY_INTEL_MID)	+= intel_mid_battery.o
++obj-$(CONFIG_CHARGER_ISP1704)	+= isp1704_charger.o
+diff --git a/drivers/power/isp1704_charger.c b/drivers/power/isp1704_charger.c
+new file mode 100644
+index 0000000..821ad29
+--- /dev/null
++++ b/drivers/power/isp1704_charger.c
+@@ -0,0 +1,371 @@
++/*
++ * isp1704_charger.c - ISP1704 USB Charger Detection driver
++ *
++ * Copyright (C) 2010 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/types.h>
++#include <linux/device.h>
++#include <linux/sysfs.h>
++#include <linux/platform_device.h>
++#include <linux/power_supply.h>
++#include <linux/delay.h>
++
++#include <linux/usb/otg.h>
++#include <linux/usb/ulpi.h>
++#include <linux/usb/ch9.h>
++#include <linux/usb/gadget.h>
++
++/* Vendor specific Power Control register */
++#define ISP1704_PWR_CTRL		0x3d
++#define ISP1704_PWR_CTRL_SWCTRL		(1 << 0)
++#define ISP1704_PWR_CTRL_DET_COMP	(1 << 1)
++#define ISP1704_PWR_CTRL_BVALID_RISE	(1 << 2)
++#define ISP1704_PWR_CTRL_BVALID_FALL	(1 << 3)
++#define ISP1704_PWR_CTRL_DP_WKPU_EN	(1 << 4)
++#define ISP1704_PWR_CTRL_VDAT_DET	(1 << 5)
++#define ISP1704_PWR_CTRL_DPVSRC_EN	(1 << 6)
++#define ISP1704_PWR_CTRL_HWDETECT	(1 << 7)
++
++#define NXP_VENDOR_ID			0x04cc
++
++static u16 isp170x_id[] = {
++	0x1704,
++	0x1707,
++};
++
++struct isp1704_charger {
++	struct device		*dev;
++	struct power_supply	psy;
++	struct otg_transceiver	*otg;
++	struct notifier_block	nb;
++	struct work_struct	work;
++
++	char			model[7];
++	unsigned		present:1;
++};
++
++/*
++ * ISP1704 detects PS/2 adapters as charger. To make sure the detected charger
++ * is actually a dedicated charger, the following steps need to be taken.
++ */
++static inline int isp1704_charger_verify(struct isp1704_charger *isp)
++{
++	u8 r, ret = 0;
++
++	/* Reset the transceiver */
++	r = otg_io_read(isp->otg, ULPI_FUNC_CTRL);
++	r |= ULPI_FUNC_CTRL_RESET;
++	otg_io_write(isp->otg, ULPI_FUNC_CTRL, r);
++	usleep_range(1000, 2000);
++
++	/* Set normal mode */
++	r &= ~(ULPI_FUNC_CTRL_RESET | ULPI_FUNC_CTRL_OPMODE_MASK);
++	otg_io_write(isp->otg, ULPI_FUNC_CTRL, r);
++
++	/* Clear the DP and DM pull-down bits */
++	r = ULPI_OTG_CTRL_DP_PULLDOWN | ULPI_OTG_CTRL_DM_PULLDOWN;
++	otg_io_write(isp->otg, ULPI_CLR(ULPI_OTG_CTRL), r);
++
++	/* Enable strong pull-up on DP (1.5K) and reset */
++	r = ULPI_FUNC_CTRL_TERMSELECT | ULPI_FUNC_CTRL_RESET;
++	otg_io_write(isp->otg, ULPI_SET(ULPI_FUNC_CTRL), r);
++	usleep_range(1000, 2000);
++
++	/* Read the line state */
++	if (otg_io_read(isp->otg, ULPI_DEBUG)) {
++		/* Is it a charger or PS/2 connection */
++
++		/* Enable weak pull-up resistor on DP */
++		otg_io_write(isp->otg, ULPI_SET(ISP1704_PWR_CTRL),
++				ISP1704_PWR_CTRL_DP_WKPU_EN);
++
++		/* Disable strong pull-up on DP (1.5K) */
++		otg_io_write(isp->otg, ULPI_CLR(ULPI_FUNC_CTRL),
++				ULPI_FUNC_CTRL_TERMSELECT);
++
++		/* Enable weak pull-down resistor on DM */
++		otg_io_write(isp->otg, ULPI_SET(ULPI_OTG_CTRL),
++				ULPI_OTG_CTRL_DM_PULLDOWN);
++
++		/* It's a charger if the line states are clear */
++		if (!(otg_io_read(isp->otg, ULPI_DEBUG)))
++			ret = 1;
++
++		/* Disable weak pull-up resistor on DP */
++		otg_io_write(isp->otg, ULPI_CLR(ISP1704_PWR_CTRL),
++				ISP1704_PWR_CTRL_DP_WKPU_EN);
++	} else {
++		ret = 1;
++
++		/* Disable strong pull-up on DP (1.5K) */
++		otg_io_write(isp->otg, ULPI_CLR(ULPI_FUNC_CTRL),
++				ULPI_FUNC_CTRL_TERMSELECT);
++	}
++
++	return ret;
++}
++
++static inline int isp1704_charger_detect(struct isp1704_charger *isp)
++{
++	unsigned long	timeout;
++	u8		r;
++	int		vdat;
++
++	/* set SW control bit in PWR_CTRL register */
++	otg_io_write(isp->otg, ISP1704_PWR_CTRL,
++			ISP1704_PWR_CTRL_SWCTRL);
++
++	/* enable manual charger detection */
++	r = (ISP1704_PWR_CTRL_SWCTRL | ISP1704_PWR_CTRL_DPVSRC_EN);
++	otg_io_write(isp->otg, ULPI_SET(ISP1704_PWR_CTRL), r);
++	usleep_range(1000, 2000);
++
++	timeout = jiffies + msecs_to_jiffies(300);
++	while (!time_after(jiffies, timeout)) {
++		/* Check if there is a charger */
++		vdat = !!(otg_io_read(isp->otg, ISP1704_PWR_CTRL)
++				& ISP1704_PWR_CTRL_VDAT_DET);
++		if (vdat)
++			break;
++	}
++	return vdat;
++}
++
++static void isp1704_charger_work(struct work_struct *data)
++{
++	struct isp1704_charger	*isp =
++		container_of(data, struct isp1704_charger, work);
++
++	/* FIXME Only supporting dedicated chargers even though isp1704 can
++	 * detect HUB and HOST chargers. If the device has already been
++	 * enumerated, the detection will break the connection.
++	 */
++	if (isp->otg->state != OTG_STATE_B_IDLE)
++		return;
++
++	/* disable data pullups */
++	if (isp->otg->gadget)
++		usb_gadget_disconnect(isp->otg->gadget);
++
++	/* detect charger */
++	if (isp1704_charger_detect(isp))
++		isp->present = isp1704_charger_verify(isp);
++
++	/* enable data pullups */
++	if (isp->otg->gadget)
++		usb_gadget_connect(isp->otg->gadget);
++
++	if (isp->present)
++		power_supply_changed(&isp->psy);
++}
++
++static int isp1707_notifier_call(struct notifier_block *nb,
++		unsigned long event, void *unused)
++{
++	struct isp1704_charger *isp =
++		container_of(nb, struct isp1704_charger, nb);
++
++	switch (event) {
++	case USB_EVENT_VBUS:
++		schedule_work(&isp->work);
++		break;
++	case USB_EVENT_NONE:
++		isp->present = 0;
++		power_supply_changed(&isp->psy);
++		break;
++	default:
++		return NOTIFY_DONE;
++	}
++
++	return NOTIFY_OK;
++}
++
++static int isp1704_charger_get_property(struct power_supply *psy,
++				enum power_supply_property psp,
++				union power_supply_propval *val)
++{
++	struct isp1704_charger *isp =
++		container_of(psy, struct isp1704_charger, psy);
++
++	switch (psp) {
++	case POWER_SUPPLY_PROP_PRESENT:
++		val->intval = isp->present;
++		break;
++	case POWER_SUPPLY_PROP_MODEL_NAME:
++		val->strval = isp->model;
++		break;
++	case POWER_SUPPLY_PROP_MANUFACTURER:
++		val->strval = "NXP";
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static enum power_supply_property power_props[] = {
++	POWER_SUPPLY_PROP_PRESENT,
++	POWER_SUPPLY_PROP_MODEL_NAME,
++	POWER_SUPPLY_PROP_MANUFACTURER,
++};
++
++static inline int isp1704_test_ulpi(struct isp1704_charger *isp)
++{
++	int			vendor, product, i;
++	int			ret = -ENODEV;
++
++	/* Test ULPI interface */
++	ret = otg_io_write(isp->otg, ULPI_SCRATCH, 0xaa);
++	if (ret < 0)
++		return ret;
++	ret = otg_io_read(isp->otg, ULPI_SCRATCH);
++	if (ret < 0)
++		return ret;
++	if (ret != 0xaa)
++		return -ENODEV;
++	/* Verify the product and vendor id matches */
++	vendor = otg_io_read(isp->otg, ULPI_VENDOR_ID_LOW);
++	vendor |= otg_io_read(isp->otg, ULPI_VENDOR_ID_HIGH) << 8;
++	if (vendor != NXP_VENDOR_ID)
++		return -ENODEV;
++	for (i = 0; i < ARRAY_SIZE(isp170x_id); i++) {
++		product = otg_io_read(isp->otg, ULPI_PRODUCT_ID_LOW);
++		product |= otg_io_read(isp->otg, ULPI_PRODUCT_ID_HIGH) << 8;
++		if (product == isp170x_id[i]) {
++			sprintf(isp->model, "isp%x", product);
++			return product;
++		}
++	}
++
++	dev_err(isp->dev, "product id %x not matching known ids", product);
++
++	return -ENODEV;
++}
++
++static int __devinit isp1704_charger_probe(struct platform_device *pdev)
++{
++	struct isp1704_charger	*isp;
++	int			ret = -ENODEV;
++
++	isp = kzalloc(sizeof *isp, GFP_KERNEL);
++	if (!isp)
++		return -ENOMEM;
++
++	isp->otg = otg_get_transceiver();
++	if (!isp->otg) {
++		kfree(isp);
++		return ret;
++	}
++
++	ret = isp1704_test_ulpi(isp);
++	if (ret < 0)
++		goto fail;
++
++	isp->dev = &pdev->dev;
++	platform_set_drvdata(pdev, isp);
++
++	isp->psy.name		= "isp1704";
++	isp->psy.type		= POWER_SUPPLY_TYPE_USB;
++	isp->psy.properties	= power_props;
++	isp->psy.num_properties	= ARRAY_SIZE(power_props);
++	isp->psy.get_property	= isp1704_charger_get_property;
++
++	ret = power_supply_register(isp->dev, &isp->psy);
++	if (ret)
++		goto fail;
++
++	/* REVISIT: using work in order to allow the otg notifications to be
++	 * made atomically in the future.
++	 */
++	INIT_WORK(&isp->work, isp1704_charger_work);
++
++	isp->nb.notifier_call = isp1707_notifier_call;
++	ret = otg_register_notifier(isp->otg, &isp->nb);
++	if (ret)
++		goto fail2;
++
++	dev_info(isp->dev, "registered with product id %s\n", isp->model);
++
++	return 0;
++fail2:
++	power_supply_unregister(&isp->psy);
++fail:
++	otg_put_transceiver(isp->otg);
++	kfree(isp);
++
++	dev_err(&pdev->dev, "failed to register isp1704 with error %d\n", ret);
++
++	return ret;
++}
++
++static int __devexit isp1704_charger_remove(struct platform_device *pdev)
++{
++	struct isp1704_charger *isp = platform_get_drvdata(pdev);
++
++	otg_unregister_notifier(isp->otg, &isp->nb);
++	power_supply_unregister(&isp->psy);
++	otg_put_transceiver(isp->otg);
++	kfree(isp);
++
++	return 0;
++}
++
++static struct platform_driver isp1704_charger_driver = {
++	.driver = {
++		.name = "isp1704_charger",
++	},
++	.probe = isp1704_charger_probe,
++	.remove = __devexit_p(isp1704_charger_remove),
++};
++
++static struct platform_device *isp1704_device;
++
++static int __init isp1704_charger_init(void)
++{
++	int ret = 0;
++
++	ret = platform_driver_register(&isp1704_charger_driver);
++	if (ret)
++		return ret;
++
++	isp1704_device = platform_device_register_simple("isp1704_charger",
++							0, NULL, 0);
++	if (IS_ERR(isp1704_device)) {
++		platform_driver_unregister(&isp1704_charger_driver);
++		ret = PTR_ERR(isp1704_device);
++	}
++
++	return ret;
++}
++module_init(isp1704_charger_init);
++
++static void __exit isp1704_charger_exit(void)
++{
++	platform_device_unregister(isp1704_device);
++	platform_driver_unregister(&isp1704_charger_driver);
++}
++module_exit(isp1704_charger_exit);
++
++MODULE_ALIAS("platform:isp1704-charger");
++MODULE_AUTHOR("Nokia Corporation");
++MODULE_DESCRIPTION("ISP170x USB Charger driver");
++MODULE_LICENSE("GPL");
+-- 
+1.7.0.4
 
->  Tomi
-> 
-Thanks and regards,
-Mythri.
