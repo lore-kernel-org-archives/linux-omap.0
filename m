@@ -1,12 +1,12 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 06/13] OMAP: Voltage layer changes to support DVFS.
-Date: Wed, 18 Aug 2010 16:50:05 +0530
-Message-ID: <1282130412-12027-7-git-send-email-thara@ti.com>
+Subject: [PATCH 05/13] OMAP: Introduce device specific set rate and get rate in device opp structures.
+Date: Wed, 18 Aug 2010 16:50:04 +0530
+Message-ID: <1282130412-12027-6-git-send-email-thara@ti.com>
 References: <1282130412-12027-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45575 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45574 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752630Ab0HRLUZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752795Ab0HRLUZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 18 Aug 2010 07:20:25 -0400
 In-Reply-To: <1282130412-12027-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,129 +14,212 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, b-cousson@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch introduces a list of scalable devices associated with
-a particular voltage domain instance. This list is obtained from
-the opp layer during init. This patch also introduces an API
-to take in the voltage domain and the new voltage as parameter
-and to scale all the scalable devices associated with the the
-voltage domain to the rate corresponding to the new voltage and
-scale the voltage domain to the new voltage.
+This patch extends the device opp structure to contain
+pointers to scale the operating rate of the
+device and to retrieve the operating rate of the device.
+This patch also adds the three new APIs in the opp layer
+namely opp_set_rate that can be called to set a new operating
+rate for a device, opp_get_rate that can be called to retrieve
+the operating frequency for a device and opp_populate_rate_fns
+to populte the device specific set_rate and get_rate API's.
+The opp_set_rate and opp_get_rate does some routine error
+checks and finally calls into the device specific set_rate
+and get_rate APIs populated through opp_populate_rate_fns.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c             |   71 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/voltage.h |    2 +
- 2 files changed, 73 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/opp.h |   28 +++++++++-
+ arch/arm/plat-omap/opp.c              |  103 +++++++++++++++++++++++++++++++++
+ 2 files changed, 130 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 4624250..3332123 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -141,6 +141,8 @@ struct omap_vdd_info{
- 	struct plist_head user_list;
- 	struct mutex scaling_mutex;
- 	int volt_data_count;
-+	struct device **dev_list;
-+	int dev_count;
- 	unsigned long nominal_volt;
- 	u8 cmdval_reg;
- 	u8 vdd_sr_reg;
-@@ -820,6 +822,9 @@ static void __init vdd_data_configure(struct omap_vdd_info *vdd)
- 	/* Init the DVFS mutex */
- 	mutex_init(&vdd->scaling_mutex);
+diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
+index a4c1669..604914d 100644
+--- a/arch/arm/plat-omap/include/plat/opp.h
++++ b/arch/arm/plat-omap/include/plat/opp.h
+@@ -16,6 +16,7 @@
  
-+	/* Get the devices associated with this VDD */
-+	vdd->dev_list = opp_init_voltage_params(&vdd->voltdm, &vdd->dev_count);
+ #include <linux/err.h>
+ #include <linux/cpufreq.h>
++#include <linux/clk.h>
+ 
+ #include <plat/common.h>
+ #include <plat/voltage.h>
+@@ -52,7 +53,7 @@ struct omap_opp_def {
+  * To point at the end of a terminator of a list of OPPs,
+  * use OMAP_OPP_DEF(NULL, 0, 0, 0)
+  */
+-#define OMAP_OPP_DEF(_hwmod_name, _enabled, _freq, _uv)	\
++#define OMAP_OPP_DEF(_hwmod_name, _enabled, _freq, _uv) \
+ {						\
+ 	.hwmod_name	= _hwmod_name,		\
+ 	.enabled	= _enabled,		\
+@@ -79,6 +80,14 @@ struct omap_opp *opp_find_freq_ceil(struct device *dev, unsigned long *freq);
+ 
+ struct omap_opp *opp_find_voltage(struct device *dev, unsigned long volt);
+ 
++int opp_set_rate(struct device *dev, unsigned long freq);
 +
- #ifdef CONFIG_PM_DEBUG
- 	strcpy(name, "vdd_");
- 	strcat(name, vdd->voltdm.name);
-@@ -1578,6 +1583,72 @@ struct voltagedomain *omap_voltage_domain_get(char *name)
++unsigned long opp_get_rate(struct device *dev);
++
++void opp_populate_rate_fns(struct device *dev,
++		int (*set_rate)(struct device *dev, unsigned long rate),
++		unsigned long (*get_rate) (struct device *dev));
++
+ int opp_add(const struct omap_opp_def *opp_def);
+ 
+ int opp_enable(struct omap_opp *opp);
+@@ -131,6 +140,23 @@ static inline struct omap_opp *opp_find_voltage(struct device *dev,
+ 	return ERR_PTR(-EINVAL);
  }
  
- /**
-+ * omap_voltage_scale : API to scale the devices associated with a
-+ *			voltage domain vdd voltage.
-+ * @volt_domain : the voltage domain to be scaled
-+ * @volt : the new voltage for the voltage domain
-+ *
-+ * This API runs through the list of devices associated with the
-+ * voltage domain and scales the device rates to those corresponding
-+ * to the new voltage of the voltage domain. This API also scales
-+ * the voltage domain voltage to the new value. Returns 0 on success
-+ * else the error value.
-+ */
-+int omap_voltage_scale(struct voltagedomain *voltdm, unsigned long volt)
++static inline int opp_set_rate(struct device *dev, unsigned long freq)
 +{
-+	unsigned long curr_volt;
-+	int is_volt_scaled = 0, i;
-+	struct omap_vdd_info *vdd;
++	return -EINVAL;
++}
 +
-+	if (!voltdm || IS_ERR(voltdm)) {
-+		pr_warning("%s: VDD specified does not exist!\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
-+
-+	mutex_lock(&vdd->scaling_mutex);
-+
-+	curr_volt = omap_voltage_get_nom_volt(voltdm);
-+
-+	if (curr_volt == volt) {
-+		is_volt_scaled = 1;
-+	} else if (curr_volt < volt) {
-+		omap_voltage_scale_vdd(voltdm, volt);
-+		is_volt_scaled = 1;
-+	}
-+
-+	for (i = 0; i < vdd->dev_count; i++) {
-+		struct omap_opp *opp;
-+		unsigned long freq;
-+
-+		opp = opp_find_voltage(vdd->dev_list[i], volt);
-+		if (IS_ERR(opp)) {
-+			dev_err(vdd->dev_list[i], "%s: Unable to find OPP for"
-+				"volt%ld\n", __func__, volt);
-+			continue;
-+		}
-+
-+		freq = opp_get_freq(opp);
-+
-+		if (freq == opp_get_rate(vdd->dev_list[i])) {
-+			dev_warn(vdd->dev_list[i], "%s: Already at the"
-+				"requested rate %ld\n", __func__, freq);
-+			continue;
-+		}
-+
-+		opp_set_rate(vdd->dev_list[i], freq);
-+	}
-+
-+	if (!is_volt_scaled)
-+		omap_voltage_scale_vdd(voltdm, volt);
-+
-+	mutex_unlock(&vdd->scaling_mutex);
-+
++static inline unsigned long opp_get_rate(struct device *dev)
++{
 +	return 0;
 +}
 +
-+/**
-  * omap_voltage_init : Volatage init API which does VP and VC init.
-  */
- static int __init omap_voltage_init(void)
-diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
-index fffd086..4f8342a 100644
---- a/arch/arm/plat-omap/include/plat/voltage.h
-+++ b/arch/arm/plat-omap/include/plat/voltage.h
-@@ -146,6 +146,8 @@ void omap_voltage_register_pmic(struct omap_volt_pmic_info *pmic_info);
- unsigned long omap_voltage_get_nom_volt(struct voltagedomain *voltdm);
- int omap_voltage_add_userreq(struct voltagedomain *voltdm, struct device *dev,
- 		unsigned long *volt);
-+int omap_voltage_scale(struct voltagedomain *voltdm, unsigned long volt);
++static inline void opp_populate_rate_fns(struct device *dev,
++		int (*set_rate)(struct device *dev, unsigned long rate)
++		unsigned long (*get_rate) (struct device *dev))
++{
++	return;
++}
 +
- #ifdef CONFIG_PM
- void omap_voltage_init_vc(struct omap_volt_vc_data *setup_vc);
- void omap_change_voltscale_method(int voltscale_method);
+ static inline struct omap_opp *opp_add(struct omap_opp *oppl,
+ 				       const struct omap_opp_def *opp_def)
+ {
+diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+index 72dd62a..3b5a581 100644
+--- a/arch/arm/plat-omap/opp.c
++++ b/arch/arm/plat-omap/opp.c
+@@ -21,6 +21,7 @@
+ 
+ #include <plat/opp.h>
+ #include <plat/omap_device.h>
++#include <plat/voltage.h>
+ 
+ /**
+  * struct omap_opp - OMAP OPP description structure
+@@ -63,6 +64,9 @@ struct device_opp {
+ 	struct list_head opp_list;
+ 	u32 opp_count;
+ 	u32 enabled_opp_count;
++
++	int (*set_rate)(struct device *dev, unsigned long rate);
++	unsigned long (*get_rate) (struct device *dev);
+ };
+ 
+ static LIST_HEAD(dev_opp_list);
+@@ -318,6 +322,105 @@ struct omap_opp *opp_find_voltage(struct device *dev, unsigned long volt)
+ 	return opp;
+ }
+ 
++/**
++ * opp_set_rate() - Change the operating frequency of the device
++ * @dev:	device pointer associated with the opp type
++ * @freq:	new frequency at which the device is to be operated.
++ *
++ * This API calls into the custom specified set rate API mentioned
++ * in the device opp table to change the operating frequency of the
++ * device. Returns error values in case of no device opp table for the
++ * device or missing set_rate API in the device opp table.
++ */
++int opp_set_rate(struct device *dev, unsigned long freq)
++{
++	struct device_opp *dev_opp;
++
++	if (!dev) {
++		pr_err("%s: Invalid device\n", __func__);
++		return -EINVAL;
++	}
++
++	dev_opp = find_device_opp(dev);
++	if (IS_ERR(dev_opp)) {
++		dev_err(dev, "%s: No device opp table\n", __func__);
++		return -ENODEV;
++	}
++
++	if (!dev_opp->set_rate) {
++		dev_err(dev, "%s: No set_rate API for scaling opp\n",
++			__func__);
++		return -ENODATA;
++	}
++
++	return dev_opp->set_rate(dev, freq);
++}
++
++/**
++ * opp_get_rate() - Get the operating frequency of the device
++ * @dev:	device pointer associated with the opp type
++ *
++ * This API calls into the custom specified get rate API mentioned
++ * in the device opp table to retrieve the operating frequency of the
++ * device. Returns 0 in case of no device opp table for the
++ * device or missing get_rate API in the device opp table else
++ * returns the rate at which the device is operating.
++ */
++unsigned long opp_get_rate(struct device *dev)
++{
++	struct device_opp *dev_opp;
++
++	if (!dev) {
++		pr_err("%s: Invalid device\n", __func__);
++		return 0;
++	}
++
++	dev_opp = find_device_opp(dev);
++	if (IS_ERR(dev_opp)) {
++		dev_err(dev, "%s: No device opp table\n", __func__);
++		return 0;
++	}
++
++	if (!dev_opp->get_rate) {
++		dev_err(dev, "%s: No set_rate API for scaling opp\n",
++			__func__);
++		return 0;
++	}
++
++	return dev_opp->get_rate(dev);
++}
++
++/**
++ * opp_populate_rate_fns() - Populates the device opp tables with set_rate
++ *				and get_rate API's
++ * @dev:	device pointer whose device opp table is to be populated.
++ * @set_rate:	the set_rate API
++ * @get_rate:	the get_rate API
++ *
++ * This API populates the device opp table corresponding to device <dev>
++ * with the specified set_rate and get_rate APIs passed as parameters.
++ */
++void opp_populate_rate_fns(struct device *dev,
++		int (*set_rate)(struct device *dev, unsigned long rate),
++		unsigned long (*get_rate) (struct device *dev))
++{
++	struct device_opp *dev_opp;
++
++	if (!dev || !set_rate || !get_rate) {
++		pr_err("%s: Invalid device or parameters\n", __func__);
++		return;
++	}
++
++	dev_opp = find_device_opp(dev);
++	if (IS_ERR(dev_opp)) {
++		dev_err(dev, "%s: No device opp table\n", __func__);
++		return;
++	}
++
++	dev_opp->set_rate = set_rate;
++	dev_opp->get_rate = get_rate;
++}
++
+ /* wrapper to reuse converting opp_def to opp struct */
+ static void omap_opp_populate(struct omap_opp *opp,
+ 			      const struct omap_opp_def *opp_def)
 -- 
 1.7.1.GIT
 
