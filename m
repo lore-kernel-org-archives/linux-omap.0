@@ -1,115 +1,115 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/4] i2c: twl: add register defines for pm master module
-Date: Wed, 18 Aug 2010 10:19:16 +0300
-Message-ID: <20100818071916.GF11947@nokia.com>
-References: <1282112377-1335-1-git-send-email-felipe.balbi@nokia.com>
- <1282112377-1335-2-git-send-email-felipe.balbi@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: RE: [PATCH] OMAP:DSS:Add support for Additional color modes
+ supported by OMAP4
+Date: Wed, 18 Aug 2010 13:26:56 +0530
+Message-ID: <FF55437E1F14DA4BAEB721A458B6701706BE1F2E1B@dbde02.ent.ti.com>
+References: <1280987665-25639-1-git-send-email-mythripk@ti.com>
+	 <FF55437E1F14DA4BAEB721A458B6701706BE125722@dbde02.ent.ti.com>
+ <1282042850.2348.42.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:43507 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961Ab0HRHU1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 03:20:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1282112377-1335-2-git-send-email-felipe.balbi@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34575 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882Ab0HRH5E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 03:57:04 -0400
+In-Reply-To: <1282042850.2348.42.camel@tubuntu.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi Felipe (Nokia-MS/Helsinki)" <felipe.balbi@nokia.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-hi,
+Hi Tomi,
 
-On Wed, Aug 18, 2010 at 08:19:34AM +0200, Balbi Felipe (Nokia-MS/Helsinki) wrote:
->From: Felipe Balbi <felipe.balbi@nokia.com>
->
->Some modules already need to talk to at least PROTECT_KEY
->register, while at that, add defines to the entire register
->space.
->
->Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
->---
+-----Original Message-----
+From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com] 
+Sent: Tuesday, August 17, 2010 4:31 PM
+To: K, Mythri P
+Cc: linux-omap@vger.kernel.org
+Subject: RE: [PATCH] OMAP:DSS:Add support for Additional color modes supported by OMAP4
 
-here's updated patch with correct register space
+Hi,
 
-8<--------------------------------------------------
+On Wed, 2010-08-11 at 11:22 +0200, ext K, Mythri P wrote:
+> Hi Tomi,
+> Can you please comment on the below patch . This is to add new color modes supported by OMAP4.
+> 
+> Thanks and regards,
+> Mythri.
+> -----Original Message-----
+> From: K, Mythri P 
+> Sent: Thursday, August 05, 2010 11:24 AM
+> To: linux-omap@vger.kernel.org
+> Cc: tomi.valkeinen@nokia.com; Semwal, Sumit; K, Mythri P
+> Subject: [PATCH] OMAP:DSS:Add support for Additional color modes supported by OMAP4
+> 
+> From: Sumit semwal <sumit.semwal@ti.com>
+> 
+> This patch adds support for new color modes that are supported by the video/graphics pipeline of OMAP4
+> 
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/display.h |   16 ++++++++-
+>  drivers/video/omap2/dss/dispc.c           |   53 ++++++++++++++++++++++-------
+>  drivers/video/omap2/dss/overlay.c         |    6 ++-
+>  3 files changed, 59 insertions(+), 16 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+> index 7a6eedd..ebf1020 100644
+> --- a/arch/arm/plat-omap/include/plat/display.h
+> +++ b/arch/arm/plat-omap/include/plat/display.h
+> @@ -89,6 +89,12 @@ enum omap_color_mode {
+>  	OMAP_DSS_COLOR_ARGB32	= 1 << 11, /* ARGB32 */
+>  	OMAP_DSS_COLOR_RGBA32	= 1 << 12, /* RGBA32 */
+>  	OMAP_DSS_COLOR_RGBX32	= 1 << 13, /* RGBx32 */
+> +	OMAP_DSS_COLOR_NV12	= 1 << 14, /* NV12 format: YUV 4:2:0 */
+> +	OMAP_DSS_COLOR_RGBA12	= 1 << 15, /* RGBA12 - 4444 */
 
- From a1021f7be2c7e277b303e6930285832f97258f85 Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Date: Thu, 1 Jul 2010 13:24:37 +0300
-Subject: [PATCH 1/4] i2c: twl: add register defines for pm master module
+Is this the same as ARGB16? Or is it the same, except alpha value is in
+the other end? If so, I think the naming should be coherent, and either
+this should be RGBA16, or ARGB16 should be ARGB12.
 
-Some modules already need to talk to at least PROTECT_KEY
-register, while at that, add defines to the entire register
-space.
+Then again, if TRM says this is RGBA12, and the other one is ARGB16, I
+guess we should stick with TRM naming...
+[Mythri] yes these are the TRM naming conventions. There are 2 formats in ARGB16 , ARGB16-1555 and ARGB16-4444.
+> +	OMAP_DSS_COLOR_XRGB12	= 1 << 16, /* xRGB12, 16-bit container */
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
-  include/linux/i2c/twl.h |   46 ++++++++++++++++++++++++++++++++++++++++++++++
-  1 files changed, 46 insertions(+), 0 deletions(-)
+Is this RGB12U, or again otherwise same but the empty value is on the
+other end?
+[Mythri] again RGB12x-4444 and xRGB12-4444 are two different formats with empty value or alignment otherwise.
 
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 6de90bf..9b17244 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -357,6 +357,52 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
-  
-  /*----------------------------------------------------------------------*/
-  
-+/*
-+ * PM Master module register offsets (use TWL4030_MODULE_PM_MASTER)
-+ */
-+
-+#define TWL4030_PM_MASTER_CFG_P1_TRANSITION	0x00
-+#define TWL4030_PM_MASTER_CFG_P2_TRANSITION	0x01
-+#define TWL4030_PM_MASTER_CFG_P3_TRANSITION	0x02
-+#define TWL4030_PM_MASTER_CFG_P123_TRANSITION	0x03
-+#define TWL4030_PM_MASTER_STS_BOOT		0x04
-+#define TWL4030_PM_MASTER_CFG_BOOT		0x05
-+#define TWL4030_PM_MASTER_SHUNDAN		0x06
-+#define TWL4030_PM_MASTER_BOOT_BCI		0x07
-+#define TWL4030_PM_MASTER_CFG_PWRANA1		0x08
-+#define TWL4030_PM_MASTER_CFG_PWRANA2		0x09
-+#define TWL4030_PM_MASTER_BACKUP_MISC_STS	0x0b
-+#define TWL4030_PM_MASTER_BACKUP_MISC_CFG	0x0c
-+#define TWL4030_PM_MASTER_BACKUP_MISC_TST	0x0d
-+#define TWL4030_PM_MASTER_PROTECT_KEY		0x0e
-+#define TWL4030_PM_MASTER_STS_HW_CONDITIONS	0x0f
-+#define TWL4030_PM_MASTER_P1_SW_EVENTS		0x10
-+#define TWL4030_PM_MASTER_P2_SW_EVENTS		0x11
-+#define TWL4030_PM_MASTER_P3_SW_EVENTS		0x12
-+#define TWL4030_PM_MASTER_STS_P123_STATE	0x13
-+#define TWL4030_PM_MASTER_PB_CFG		0x14
-+#define TWL4030_PM_MASTER_PB_WORD_MSB		0x15
-+#define TWL4030_PM_MASTER_PB_WORD_LSB		0x16
-+#define TWL4030_PM_MASTER_SEQ_ADD_W2P		0x1c
-+#define TWL4030_PM_MASTER_SEQ_ADD_P2A		0x1d
-+#define TWL4030_PM_MASTER_SEQ_ADD_A2W		0x1e
-+#define TWL4030_PM_MASTER_SEQ_ADD_A2S		0x1f
-+#define TWL4030_PM_MASTER_SEQ_ADD_S2A12		0x20
-+#define TWL4030_PM_MASTER_SEQ_ADD_S2A3		0x21
-+#define TWL4030_PM_MASTER_SEQ_ADD_WARM		0x22
-+#define TWL4030_PM_MASTER_MEMORY_ADDRESS	0x23
-+#define TWL4030_PM_MASTER_MEMORY_DATA		0x24
-+
-+#define TWL4030_PM_MASTER_KEY_CFG1		0xc0
-+#define TWL4030_PM_MASTER_KEY_CFG2		0x0c
-+
-+#define TWL4030_PM_MASTER_KEY_TST1		0xe0
-+#define TWL4030_PM_MASTER_KEY_TST2		0x0e
-+
-+#define TWL4030_PM_MASTER_GLOBAL_TST		0xb6
-+
-+/*----------------------------------------------------------------------*/
-+
-  /* Power bus message definitions */
-  
-  /* The TWL4030/5030 splits its power-management resources (the various
--- 
-1.7.2.1.6.g61bf12
+> +	OMAP_DSS_COLOR_ARGB16_1555	= 1 << 17, /* ARGB16-1555 */
+> +	OMAP_DSS_COLOR_RGBX24_32_ALGN	= 1 << 18, /* 32-msb aligned 24bit */
 
--- 
-balbi
+Hmm, what is this?
+[Mythri] This format is RGBx24-8888 (24-bit RGB aligned on MSB of the 32-bit container). TRM DISPC- Table 10-199. DISPC_VID1_ATTRIBUTES , formats.
+> +	OMAP_DSS_COLOR_XRGB15	= 1 << 19, /* xRGB15: 1555*/
+>  
+>  	OMAP_DSS_COLOR_GFX_OMAP2 =
+>  		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
+> @@ -112,9 +118,17 @@ enum omap_color_mode {
+>  	OMAP_DSS_COLOR_VID1_OMAP3 =
+>  		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
+>  		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P |
+> -		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY,
+> +		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY |
+> +		OMAP_DSS_COLOR_NV12 | OMAP_DSS_COLOR_RGBA12 |
+> +		OMAP_DSS_COLOR_XRGB12 | OMAP_DSS_COLOR_ARGB16_1555 |
+> +		OMAP_DSS_COLOR_RGBX24_32_ALGN | OMAP_DSS_COLOR_XRGB15 |
+> +		OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_RGBA32 |
+> +		OMAP_DSS_COLOR_RGBX32,
 
-DefectiveByDesign.org
+Why do you change OMAP3 modes, if this patch is about supported OMAP4
+modes?
+[Mythri] When the additional color formats supported for OMAP4 are added in the OMAP3 modes, There is a check in the dispc color-modes for OMAP4 alone to support , OMAP3 would return an error as before.
+Do you suggest add a new OMAP_DSS_COLOR_VID1_OMAP4 instead?
+
+ Tomi
+
+
+
+Thanks and regards,
+Mythri.
+
