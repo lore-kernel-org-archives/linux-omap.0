@@ -1,209 +1,188 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 06/10] OMAP4: hwmod: Add inital data for smartreflex modules.
-Date: Wed, 18 Aug 2010 16:46:27 +0530
-Message-ID: <1282130191-9062-7-git-send-email-thara@ti.com>
+Subject: [PATCH 10/10] OMAP4: Add opp tables.
+Date: Wed, 18 Aug 2010 16:46:31 +0530
+Message-ID: <1282130191-9062-11-git-send-email-thara@ti.com>
 References: <1282130191-9062-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41074 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51684 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752752Ab0HRLQp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752765Ab0HRLQp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 18 Aug 2010 07:16:45 -0400
 In-Reply-To: <1282130191-9062-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, b-cousson@ti.com
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, b-cousson@ti.com, Thara Gopinath <thara@ti.com>
 
-From: Benoit Cousson <b-cousson@ti.com>
+This patch adds OPP tables for OMAP4. A new file
+opp44xx.c has been added to keep the OMAP4 opp tables
+and the registeration of these tables with the generic
+opp framework.
 
-This patch adds the hwmod details to OMAP4 smartreflex modules.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  164 ++++++++++++++++++++++++++++
- 1 files changed, 164 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Makefile       |    2 +-
+ arch/arm/mach-omap2/opp44xx.h      |   26 ++++++++++++
+ arch/arm/mach-omap2/opp44xx_data.c |   80 ++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.c           |    6 ++-
+ 4 files changed, 112 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/opp44xx.h
+ create mode 100644 arch/arm/mach-omap2/opp44xx_data.c
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index e20b0ee..4984976 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -452,6 +452,166 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
- 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index d46fbec..ebe3f36 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -51,7 +51,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+ obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
+ 					   cpuidle34xx.o
+-obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o voltage.o
++obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o voltage.o opp44xx_data.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+diff --git a/arch/arm/mach-omap2/opp44xx.h b/arch/arm/mach-omap2/opp44xx.h
+new file mode 100644
+index 0000000..2cae9f3
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp44xx.h
+@@ -0,0 +1,26 @@
 +/*
-+ * 'smartreflex' class
-+ * smartreflex module (monitor silicon performance and outputs a measure of
-+ * performance error)
++ * OMAP4 OPP API's.
++ *
++ * Copyright (C) 2010 Texas Instruments Incorporated.
++ *	Thara Gopinath
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ * History:
 + */
 +
-+/* The IP is not compliant to type1 / type2 scheme */
-+static struct omap_hwmod_sysc_fields omap_hwmod_sysc_type_smartreflex = {
-+	.sidle_shift	= 24,
-+	.enwkup_shift	= 26,
++#ifndef __ARCH_ARM_MACH_OMAP2_OPP44XX_H
++#define __ARCH_ARM_MACH_OMAP2_OPP44XX_H
++
++#ifdef CONFIG_PM
++extern int omap4_pm_init_opp_table(void);
++#else
++static inline int omap4_pm_init_opp_table(void) { return -EINVAL; }
++#endif
++
++#endif
+diff --git a/arch/arm/mach-omap2/opp44xx_data.c b/arch/arm/mach-omap2/opp44xx_data.c
+new file mode 100644
+index 0000000..b5c9680
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp44xx_data.c
+@@ -0,0 +1,80 @@
++/*
++ * OMAP4 OPP table definitions.
++ *
++ * Copyright (C) 2009 - 2010 Texas Instruments Incorporated.
++ *	Nishanth Menon
++ * Copyright (C) 2009 - 2010 Deep Root Systems, LLC.
++ *	Kevin Hilman
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ * Copyright (C) 2010 Texas Instruments Incorporated.
++ *	Thara Gopinath
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ * History:
++ */
++
++#include <linux/module.h>
++#include <linux/err.h>
++
++#include <plat/opp.h>
++#include <plat/cpu.h>
++
++#include "opp44xx.h"
++
++static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
++	/* MPU OPP1 - OPP50 */
++	OMAP_OPP_DEF("mpu", true, 300000000, 930000),
++	/* MPU OPP2 - OPP100 */
++	OMAP_OPP_DEF("mpu", true, 600000000, 1100000),
++	/* MPU OPP3 - OPP-Turbo */
++	OMAP_OPP_DEF("mpu", true, 800000000, 1260000),
++	/* MPU OPP4 - OPP-SB */
++	OMAP_OPP_DEF("mpu", true, 1008000000, 1350000),
++	/* IVA OPP1 - OPP50 */
++	OMAP_OPP_DEF("iva", true,  133000000, 930000),
++	/* IVA OPP2 - OPP100 */
++	OMAP_OPP_DEF("iva", true,  266000000, 1100000),
++	/* IVA OPP3 - OPP-Turbo */
++	OMAP_OPP_DEF("iva", false, 332000000, 1260000),
++	/* L3 OPP1 - OPP50 */
++	OMAP_OPP_DEF("l3_main_1", true, 100000000, 930000),
++	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
++	OMAP_OPP_DEF("l3_main_1", true, 200000000, 1100000),
 +};
 +
-+static struct omap_hwmod_class_sysconfig omap44xx_smartreflex_sysc = {
-+	.sysc_offs	= 0x0038,
-+	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
-+			   SYSS_MISSING),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type_smartreflex,
-+};
++static u32 omap44xx_opp_def_size = ARRAY_SIZE(omap44xx_opp_def_list);
 +
-+static struct omap_hwmod_class omap44xx_smartreflex_hwmod_class = {
-+	.name = "smartreflex",
-+	.sysc = &omap44xx_smartreflex_sysc,
-+};
++/* Temp variable to allow multiple calls */
++static u8 __initdata omap4_table_init;
 +
-+/* smartreflex_core */
-+static struct omap_hwmod omap44xx_smartreflex_core_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_smartreflex_core_irqs[] = {
-+	{ .irq = 19 + OMAP44XX_IRQ_GIC_START },
-+};
 +
-+static struct omap_hwmod_addr_space omap44xx_smartreflex_core_addrs[] = {
-+	{
-+		.pa_start	= 0x4a0dd000,
-+		.pa_end		= 0x4a0dd03f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
++int __init omap4_pm_init_opp_table(void)
++{
++	struct omap_opp_def *opp_def;
++	int i, r;
 +
-+/* l4_cfg -> smartreflex_core */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_core = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_smartreflex_core_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_smartreflex_core_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
++	/*
++	 * Allow multiple calls, but initialize only if not already initalized
++	 * even if the previous call failed, coz, no reason we'd succeed again
++	 */
++	if (omap4_table_init)
++		return 0;
++	omap4_table_init = 1;
 +
-+/* smartreflex_core slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_smartreflex_core_slaves[] = {
-+	&omap44xx_l4_cfg__smartreflex_core,
-+};
++	opp_def = omap44xx_opp_def_list;
 +
-+static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
-+	.name		= "smartreflex_core",
-+	.class		= &omap44xx_smartreflex_hwmod_class,
-+	.mpu_irqs	= omap44xx_smartreflex_core_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_irqs),
-+	.main_clk	= "smartreflex_core_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_ALWON_SR_CORE_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_smartreflex_core_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* smartreflex_iva */
-+static struct omap_hwmod omap44xx_smartreflex_iva_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_smartreflex_iva_irqs[] = {
-+	{ .irq = 102 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_smartreflex_iva_addrs[] = {
-+	{
-+		.pa_start	= 0x4a0db000,
-+		.pa_end		= 0x4a0db03f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_cfg -> smartreflex_iva */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_iva = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_smartreflex_iva_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_smartreflex_iva_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* smartreflex_iva slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_smartreflex_iva_slaves[] = {
-+	&omap44xx_l4_cfg__smartreflex_iva,
-+};
-+
-+static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
-+	.name		= "smartreflex_iva",
-+	.class		= &omap44xx_smartreflex_hwmod_class,
-+	.mpu_irqs	= omap44xx_smartreflex_iva_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_irqs),
-+	.main_clk	= "smartreflex_iva_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_ALWON_SR_IVA_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_smartreflex_iva_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/* smartreflex_mpu */
-+static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_smartreflex_mpu_irqs[] = {
-+	{ .irq = 18 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_smartreflex_mpu_addrs[] = {
-+	{
-+		.pa_start	= 0x4a0d9000,
-+		.pa_end		= 0x4a0d903f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_cfg -> smartreflex_mpu */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__smartreflex_mpu = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_smartreflex_mpu_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_smartreflex_mpu_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* smartreflex_mpu slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_smartreflex_mpu_slaves[] = {
-+	&omap44xx_l4_cfg__smartreflex_mpu,
-+};
-+
-+static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
-+	.name		= "smartreflex_mpu",
-+	.class		= &omap44xx_smartreflex_hwmod_class,
-+	.mpu_irqs	= omap44xx_smartreflex_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_irqs),
-+	.main_clk	= "smartreflex_mpu_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_ALWON_SR_MPU_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_smartreflex_mpu_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	/* dmm class */
- 	&omap44xx_dmm_hwmod,
-@@ -472,6 +632,10 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
++	for (i = 0; i < omap44xx_opp_def_size; i++) {
++		r = opp_add(opp_def++);
++		if (r)
++			pr_err("unable to add OPP %ld Hz for %s\n",
++				opp_def->freq, opp_def->hwmod_name);
++	}
++	return 0;
++}
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 740e506..6707a2e 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -19,6 +19,7 @@
+ #include <plat/common.h>
  
- 	/* mpu class */
- 	&omap44xx_mpu_hwmod,
-+
-+	&omap44xx_smartreflex_core_hwmod,
-+	&omap44xx_smartreflex_iva_hwmod,
-+	&omap44xx_smartreflex_mpu_hwmod,
- 	NULL,
- };
+ #include "omap3-opp.h"
++#include "opp44xx.h"
+ 
+ static struct omap_device_pm_latency *pm_lats;
+ 
+@@ -90,7 +91,10 @@ static void omap2_init_processor_devices(void)
+ static int __init omap2_common_pm_init(void)
+ {
+ 	omap2_init_processor_devices();
+-	omap3_pm_init_opp_table();
++	if (cpu_is_omap34xx())
++		omap3_pm_init_opp_table();
++	else if (cpu_is_omap44xx())
++		omap4_pm_init_opp_table();
+ 
+ 	omap_pm_if_init();
  
 -- 
 1.7.1.GIT
