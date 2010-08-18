@@ -1,50 +1,48 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [RFC  PATCH] Board support for the the GPIO keys
-Date: Thu, 19 Aug 2010 17:17:06 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0324222967@dbde02.ent.ti.com>
-References: <1282218130-17111-1-git-send-email-shubhrajyoti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1282218130-17111-1-git-send-email-shubhrajyoti@ti.com>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/7] usb: ehci: omap: Adding OMAP4 support
+Date: Thu, 19 Aug 2010 05:19:30 +0530
+Message-ID: <1282175377-2784-1-git-send-email-keshava_mgowda@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Datta, Shubhrajyoti wrote:
-> Subject: [RFC PATCH] Board support for the the GPIO keys
-> 
-
-Please tag $SUBJECT with something like "omap: 4430sdp: "
-
-> Board support for the GPIO keys.
-> The proximity sensor is connected to GPIO and is registered as a 
-> GPIO key.
-> 
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-
-...
-
-
-> +static void omap_sfh7741prox_init(void)
-> +{
-> +	int  error;
-> +
-> +	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
-> +	if (error < 0) {
-> +		pr_err("failed to request GPIO %d, error %d\n",
-> +			OMAP4_SFH7741_ENABLE_GPIO, error);
-> +		return;
-> +	}
-> +
-> +	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 1);
-> +	if (error < 0) {
-> +		pr_err("%s: GPIO configuration failed: GPIO %d,error %d\n",\
-> +			 __func__, OMAP4_SFH7741_ENABLE_GPIO, error);
-
-That trailing '\' is unnecessary.
-
+The OMAP4 EHCI supports only two ports and hence two TLL channels.
+Each port is driven by seperate clocks. Following interface mode 
+exists in EHCI controller of OMAP4.
+- External PHY mode , with 12 pin ULPI
+- USBTLL mode
+- HSIC mode 
+The External PHY mode is validated with these patches and other modes are TODOs
+for later. 
+The TLL clocks are enabled and channels are configuared only when
+USBTLL mode is choosen.
  
+The summary is of patches - 
+
+	1/7  	Add the base address of EHCI controller
+	2/7     based on omap3 and omap4 ; the processor specific clocks
+		enabled. formats the code of ehci-omap.c so that OMAP4 specific 
+		changes can be easily inserted.  
+	3/7 	Adding OMAP4 support.
+	4/7	Introduces the Kconfig macro to include the ehci driver
+		as platform driver 
+	5/7 	This is hack to do the mux setting for EHCI pad configuration;
+		This patch will be replaced when the mux framework for omap4
+		is introduced.
+	6/7	Adds the EHCI IRQ number and base address resources in 
+		ehci initialization.
+	7/7	The EHCI init fuction invocation from 4430 sdp init.
+
+diffstat is below:
+ drivers/usb/host/Kconfig                       |    8 
+ drivers/usb/host/ehci-hcd.c                    |    2 
+ drivers/usb/host/ehci-omap.c                   |  539 +++++++++++++++++--------
+ 3 files changed 
+
+-- keshava
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
