@@ -1,225 +1,169 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH 05/13] OMAP: Introduce device specific set rate and get rate in device opp structures.
-Date: Wed, 18 Aug 2010 16:50:04 +0530
-Message-ID: <1282130412-12027-6-git-send-email-thara@ti.com>
+Subject: [PATCH 10/13] OMAP3: Introduce custom set rate and get rate APIs for scalable devices
+Date: Wed, 18 Aug 2010 16:50:09 +0530
+Message-ID: <1282130412-12027-11-git-send-email-thara@ti.com>
 References: <1282130412-12027-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45574 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41240 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752795Ab0HRLUZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Aug 2010 07:20:25 -0400
+	id S1752791Ab0HRLU0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Aug 2010 07:20:26 -0400
 In-Reply-To: <1282130412-12027-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, b-cousson@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch extends the device opp structure to contain
-pointers to scale the operating rate of the
-device and to retrieve the operating rate of the device.
-This patch also adds the three new APIs in the opp layer
-namely opp_set_rate that can be called to set a new operating
-rate for a device, opp_get_rate that can be called to retrieve
-the operating frequency for a device and opp_populate_rate_fns
-to populte the device specific set_rate and get_rate API's.
-The opp_set_rate and opp_get_rate does some routine error
-checks and finally calls into the device specific set_rate
-and get_rate APIs populated through opp_populate_rate_fns.
+This patch also introduces omap3_mpu_set_rate, omap3_iva_set_rate,
+omap3_l3_set_rate, omap3_mpu_get_rate, omap3_iva_get_rate,
+omap3_l3_get_rate as device specific set rate and get rate
+APIs for OMAP3 mpu, iva and l3_main devices. This patch also
+calls into opp_populate_rate_fns during system init to register
+various set_rate and get_rate APIs with the generic opp
+framework.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/plat-omap/include/plat/opp.h |   28 +++++++++-
- arch/arm/plat-omap/opp.c              |  103 +++++++++++++++++++++++++++++++++
- 2 files changed, 130 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/cpufreq34xx.c |  104 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 104 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/opp.h b/arch/arm/plat-omap/include/plat/opp.h
-index a4c1669..604914d 100644
---- a/arch/arm/plat-omap/include/plat/opp.h
-+++ b/arch/arm/plat-omap/include/plat/opp.h
-@@ -16,6 +16,7 @@
+diff --git a/arch/arm/mach-omap2/cpufreq34xx.c b/arch/arm/mach-omap2/cpufreq34xx.c
+index 195b5bc..8b9ef72 100644
+--- a/arch/arm/mach-omap2/cpufreq34xx.c
++++ b/arch/arm/mach-omap2/cpufreq34xx.c
+@@ -24,8 +24,22 @@
  
- #include <linux/err.h>
- #include <linux/cpufreq.h>
-+#include <linux/clk.h>
- 
- #include <plat/common.h>
- #include <plat/voltage.h>
-@@ -52,7 +53,7 @@ struct omap_opp_def {
-  * To point at the end of a terminator of a list of OPPs,
-  * use OMAP_OPP_DEF(NULL, 0, 0, 0)
-  */
--#define OMAP_OPP_DEF(_hwmod_name, _enabled, _freq, _uv)	\
-+#define OMAP_OPP_DEF(_hwmod_name, _enabled, _freq, _uv) \
- {						\
- 	.hwmod_name	= _hwmod_name,		\
- 	.enabled	= _enabled,		\
-@@ -79,6 +80,14 @@ struct omap_opp *opp_find_freq_ceil(struct device *dev, unsigned long *freq);
- 
- struct omap_opp *opp_find_voltage(struct device *dev, unsigned long volt);
- 
-+int opp_set_rate(struct device *dev, unsigned long freq);
+ #include <plat/opp.h>
+ #include <plat/cpu.h>
++#include <plat/clock.h>
 +
-+unsigned long opp_get_rate(struct device *dev);
-+
-+void opp_populate_rate_fns(struct device *dev,
-+		int (*set_rate)(struct device *dev, unsigned long rate),
-+		unsigned long (*get_rate) (struct device *dev));
-+
- int opp_add(const struct omap_opp_def *opp_def);
++#include "cm-regbits-34xx.h"
++#include "prm.h"
+ #include "omap3-opp.h"
  
- int opp_enable(struct omap_opp *opp);
-@@ -131,6 +140,23 @@ static inline struct omap_opp *opp_find_voltage(struct device *dev,
- 	return ERR_PTR(-EINVAL);
- }
++static int omap3_mpu_set_rate(struct device *dev, unsigned long rate);
++static int omap3_iva_set_rate(struct device *dev, unsigned long rate);
++static int omap3_l3_set_rate(struct device *dev, unsigned long rate);
++
++static unsigned long omap3_mpu_get_rate(struct device *dev);
++static unsigned long omap3_iva_get_rate(struct device *dev);
++static unsigned long omap3_l3_get_rate(struct device *dev);
++
++struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
++
+ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
+ 	/* MPU OPP1 */
+ 	OMAP_OPP_DEF("mpu", true, 125000000, 975000),
+@@ -92,12 +106,82 @@ static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+ };
+ static u32 omap36xx_opp_def_size = ARRAY_SIZE(omap36xx_opp_def_list);
  
-+static inline int opp_set_rate(struct device *dev, unsigned long freq)
++
++static int omap3_mpu_set_rate(struct device *dev, unsigned long rate)
 +{
-+	return -EINVAL;
-+}
++	unsigned long cur_rate = omap3_mpu_get_rate(dev);
++	int ret;
 +
-+static inline unsigned long opp_get_rate(struct device *dev)
-+{
++#ifdef CONFIG_CPU_FREQ
++	struct cpufreq_freqs freqs_notify;
++
++	freqs_notify.old = cur_rate / 1000;
++	freqs_notify.new = rate / 1000;
++	freqs_notify.cpu = 0;
++	/* Send pre notification to CPUFreq */
++	cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
++#endif
++	ret = clk_set_rate(dpll1_clk, rate);
++	if (ret) {
++		dev_warn(dev, "%s: Unable to set rate to %ld\n",
++			__func__, rate);
++		return ret;
++	}
++
++#ifdef CONFIG_CPU_FREQ
++	/* Send a post notification to CPUFreq */
++	cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
++#endif
++
++#ifndef CONFIG_CPU_FREQ
++	/*Update loops_per_jiffy if processor speed is being changed*/
++	loops_per_jiffy = compute_lpj(loops_per_jiffy,
++			cur_rate / 1000, rate / 1000);
++#endif
 +	return 0;
 +}
 +
-+static inline void opp_populate_rate_fns(struct device *dev,
-+		int (*set_rate)(struct device *dev, unsigned long rate)
-+		unsigned long (*get_rate) (struct device *dev))
++static unsigned long omap3_mpu_get_rate(struct device *dev)
 +{
-+	return;
++	return dpll1_clk->rate;
 +}
 +
- static inline struct omap_opp *opp_add(struct omap_opp *oppl,
- 				       const struct omap_opp_def *opp_def)
- {
-diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
-index 72dd62a..3b5a581 100644
---- a/arch/arm/plat-omap/opp.c
-+++ b/arch/arm/plat-omap/opp.c
-@@ -21,6 +21,7 @@
- 
- #include <plat/opp.h>
- #include <plat/omap_device.h>
-+#include <plat/voltage.h>
- 
- /**
-  * struct omap_opp - OMAP OPP description structure
-@@ -63,6 +64,9 @@ struct device_opp {
- 	struct list_head opp_list;
- 	u32 opp_count;
- 	u32 enabled_opp_count;
++static int omap3_iva_set_rate(struct device *dev, unsigned long rate)
++{
++	return clk_set_rate(dpll2_clk, rate);
++}
 +
-+	int (*set_rate)(struct device *dev, unsigned long rate);
-+	unsigned long (*get_rate) (struct device *dev);
- };
++static unsigned long omap3_iva_get_rate(struct device *dev)
++{
++	return dpll2_clk->rate;
++}
++
++static int omap3_l3_set_rate(struct device *dev, unsigned long rate)
++{
++	int l3_div;
++
++	l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++			OMAP3430_CLKSEL_L3_MASK;
++
++	return clk_set_rate(dpll3_clk, rate * l3_div);
++}
++
++static unsigned long omap3_l3_get_rate(struct device *dev)
++{
++	int l3_div;
++
++	l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++			OMAP3430_CLKSEL_L3_MASK;
++	return dpll3_clk->rate / l3_div;
++}
++
+ /* Temp variable to allow multiple calls */
+ static u8 __initdata omap3_table_init;
  
- static LIST_HEAD(dev_opp_list);
-@@ -318,6 +322,105 @@ struct omap_opp *opp_find_voltage(struct device *dev, unsigned long volt)
- 	return opp;
+ int __init omap3_pm_init_opp_table(void)
+ {
+ 	struct omap_opp_def *opp_def, *omap3_opp_def_list;
++	struct device *dev;
+ 	u32 omap3_opp_def_size;
+ 	int i, r;
+ 
+@@ -122,6 +206,26 @@ int __init omap3_pm_init_opp_table(void)
+ 			       opp_def->freq, opp_def->hwmod_name);
+ 	}
+ 
++	dpll1_clk = clk_get(NULL, "dpll1_ck");
++	dpll2_clk = clk_get(NULL, "dpll2_ck");
++	dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
++
++	/* Populate the set rate and get rate for mpu, iva and l3 device */
++	dev = omap2_get_mpuss_device();
++	if (dev)
++		opp_populate_rate_fns(dev, omap3_mpu_set_rate,
++				omap3_mpu_get_rate);
++
++	dev = omap2_get_iva_device();
++	if (dev)
++		opp_populate_rate_fns(dev, omap3_iva_set_rate,
++				omap3_iva_get_rate);
++
++	dev = omap2_get_l3_device();
++	if (dev)
++		opp_populate_rate_fns(dev, omap3_l3_set_rate,
++				omap3_l3_get_rate);
++
+ 	return 0;
  }
  
-+/**
-+ * opp_set_rate() - Change the operating frequency of the device
-+ * @dev:	device pointer associated with the opp type
-+ * @freq:	new frequency at which the device is to be operated.
-+ *
-+ * This API calls into the custom specified set rate API mentioned
-+ * in the device opp table to change the operating frequency of the
-+ * device. Returns error values in case of no device opp table for the
-+ * device or missing set_rate API in the device opp table.
-+ */
-+int opp_set_rate(struct device *dev, unsigned long freq)
-+{
-+	struct device_opp *dev_opp;
-+
-+	if (!dev) {
-+		pr_err("%s: Invalid device\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	dev_opp = find_device_opp(dev);
-+	if (IS_ERR(dev_opp)) {
-+		dev_err(dev, "%s: No device opp table\n", __func__);
-+		return -ENODEV;
-+	}
-+
-+	if (!dev_opp->set_rate) {
-+		dev_err(dev, "%s: No set_rate API for scaling opp\n",
-+			__func__);
-+		return -ENODATA;
-+	}
-+
-+	return dev_opp->set_rate(dev, freq);
-+}
-+
-+/**
-+ * opp_get_rate() - Get the operating frequency of the device
-+ * @dev:	device pointer associated with the opp type
-+ *
-+ * This API calls into the custom specified get rate API mentioned
-+ * in the device opp table to retrieve the operating frequency of the
-+ * device. Returns 0 in case of no device opp table for the
-+ * device or missing get_rate API in the device opp table else
-+ * returns the rate at which the device is operating.
-+ */
-+unsigned long opp_get_rate(struct device *dev)
-+{
-+	struct device_opp *dev_opp;
-+
-+	if (!dev) {
-+		pr_err("%s: Invalid device\n", __func__);
-+		return 0;
-+	}
-+
-+	dev_opp = find_device_opp(dev);
-+	if (IS_ERR(dev_opp)) {
-+		dev_err(dev, "%s: No device opp table\n", __func__);
-+		return 0;
-+	}
-+
-+	if (!dev_opp->get_rate) {
-+		dev_err(dev, "%s: No set_rate API for scaling opp\n",
-+			__func__);
-+		return 0;
-+	}
-+
-+	return dev_opp->get_rate(dev);
-+}
-+
-+/**
-+ * opp_populate_rate_fns() - Populates the device opp tables with set_rate
-+ *				and get_rate API's
-+ * @dev:	device pointer whose device opp table is to be populated.
-+ * @set_rate:	the set_rate API
-+ * @get_rate:	the get_rate API
-+ *
-+ * This API populates the device opp table corresponding to device <dev>
-+ * with the specified set_rate and get_rate APIs passed as parameters.
-+ */
-+void opp_populate_rate_fns(struct device *dev,
-+		int (*set_rate)(struct device *dev, unsigned long rate),
-+		unsigned long (*get_rate) (struct device *dev))
-+{
-+	struct device_opp *dev_opp;
-+
-+	if (!dev || !set_rate || !get_rate) {
-+		pr_err("%s: Invalid device or parameters\n", __func__);
-+		return;
-+	}
-+
-+	dev_opp = find_device_opp(dev);
-+	if (IS_ERR(dev_opp)) {
-+		dev_err(dev, "%s: No device opp table\n", __func__);
-+		return;
-+	}
-+
-+	dev_opp->set_rate = set_rate;
-+	dev_opp->get_rate = get_rate;
-+}
-+
- /* wrapper to reuse converting opp_def to opp struct */
- static void omap_opp_populate(struct omap_opp *opp,
- 			      const struct omap_opp_def *opp_def)
 -- 
 1.7.1.GIT
 
