@@ -1,22 +1,20 @@
 From: Hema HK <hemahk@ti.com>
-Subject: [PATCH 1/8 v2] usb: musb: Adding names for IRQs in resource structure
-Date: Wed, 18 Aug 2010 19:34:52 +0530
-Message-ID: <1282140292-28468-1-git-send-email-hemahk@ti.com>
+Subject: [PATCH 2/8 v2] usb: musb: Remove board_data parameter from musb_platform_init()
+Date: Wed, 18 Aug 2010 19:36:09 +0530
+Message-ID: <1282140369-28703-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54311 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752827Ab0HROFE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Aug 2010 10:05:04 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:51538 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753070Ab0HROGZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 10:06:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 Cc: Hema HK <hemahk@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Modified the Omap,Blackfin and Davinci board files to add the name of the IRQs
-in the resource structures and musb driver to use the get_irq_byname() api to
-get the mc and dma irq numbers instead of using the index as the order of
-resource definition need not be always in order of device interrupt and
-then dma interrupt
+Removed the board_data parameter being passed to musb_platform_init function
+as board data can be extracted from device structure which is already member of
+musb structure.
 
 Signed-off-by: Hema HK <hemahk@ti.com>
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
@@ -25,181 +23,98 @@ Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Cousson, Benoit <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-davinci/usb.c                |    2 ++
- arch/arm/mach-omap2/usb-musb.c             |    2 ++
- arch/blackfin/mach-bf527/boards/cm_bf527.c |    2 ++
- arch/blackfin/mach-bf527/boards/ezbrd.c    |    2 ++
- arch/blackfin/mach-bf527/boards/ezkit.c    |    2 ++
- arch/blackfin/mach-bf548/boards/cm_bf548.c |    2 ++
- arch/blackfin/mach-bf548/boards/ezkit.c    |    2 ++
- drivers/usb/musb/cppi_dma.c                |    2 +-
- drivers/usb/musb/musb_core.c               |    2 +-
- drivers/usb/musb/musbhsdma.c               |    2 +-
- 10 files changed, 17 insertions(+), 3 deletions(-)
+ drivers/usb/musb/blackfin.c  |    2 +-
+ drivers/usb/musb/davinci.c   |    2 +-
+ drivers/usb/musb/musb_core.c |    2 +-
+ drivers/usb/musb/musb_core.h |    2 +-
+ drivers/usb/musb/omap2430.c  |    6 ++++--
+ drivers/usb/musb/tusb6010.c  |    2 +-
+ 6 files changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/usb.c b/arch/arm/mach-davinci/usb.c
-index 31f0cbe..b0d6b07 100644
---- a/arch/arm/mach-davinci/usb.c
-+++ b/arch/arm/mach-davinci/usb.c
-@@ -64,10 +64,12 @@ static struct resource usb_resources[] = {
- 	{
- 		.start          = IRQ_USBINT,
- 		.flags          = IORESOURCE_IRQ,
-+		.name		= "mc"
- 	},
- 	{
- 		/* placeholder for the dedicated CPPI IRQ */
- 		.flags          = IORESOURCE_IRQ,
-+		.name		= "dma"
- 	},
- };
+diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
+index b611420..0bef011 100644
+--- a/drivers/usb/musb/blackfin.c
++++ b/drivers/usb/musb/blackfin.c
+@@ -323,7 +323,7 @@ int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
+ 	return -EIO;
+ }
  
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 33a5cde..1b7aa70 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -39,10 +39,12 @@ static struct resource musb_resources[] = {
- 	[1] = {	/* general IRQ */
- 		.start	= INT_243X_HS_USB_MC,
- 		.flags	= IORESOURCE_IRQ,
-+		.name	= "mc",
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= INT_243X_HS_USB_DMA,
- 		.flags	= IORESOURCE_IRQ,
-+		.name	= "dma",
- 	},
- };
+-int __init musb_platform_init(struct musb *musb, void *board_data)
++int __init musb_platform_init(struct musb *musb)
+ {
  
-diff --git a/arch/blackfin/mach-bf527/boards/cm_bf527.c b/arch/blackfin/mach-bf527/boards/cm_bf527.c
-index f392af6..a8f840a 100644
---- a/arch/blackfin/mach-bf527/boards/cm_bf527.c
-+++ b/arch/blackfin/mach-bf527/boards/cm_bf527.c
-@@ -82,11 +82,13 @@ static struct resource musb_resources[] = {
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
+ 	/*
+diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
+index 5762436..ce2e16f 100644
+--- a/drivers/usb/musb/davinci.c
++++ b/drivers/usb/musb/davinci.c
+@@ -376,7 +376,7 @@ int musb_platform_set_mode(struct musb *musb, u8 mode)
+ 	return -EIO;
+ }
  
-diff --git a/arch/blackfin/mach-bf527/boards/ezbrd.c b/arch/blackfin/mach-bf527/boards/ezbrd.c
-index 606eb36..be6d415 100644
---- a/arch/blackfin/mach-bf527/boards/ezbrd.c
-+++ b/arch/blackfin/mach-bf527/boards/ezbrd.c
-@@ -46,11 +46,13 @@ static struct resource musb_resources[] = {
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-diff --git a/arch/blackfin/mach-bf527/boards/ezkit.c b/arch/blackfin/mach-bf527/boards/ezkit.c
-index a05c967..4125335 100644
---- a/arch/blackfin/mach-bf527/boards/ezkit.c
-+++ b/arch/blackfin/mach-bf527/boards/ezkit.c
-@@ -86,11 +86,13 @@ static struct resource musb_resources[] = {
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-diff --git a/arch/blackfin/mach-bf548/boards/cm_bf548.c b/arch/blackfin/mach-bf548/boards/cm_bf548.c
-index dbb6b1d..0f2ddc3 100644
---- a/arch/blackfin/mach-bf548/boards/cm_bf548.c
-+++ b/arch/blackfin/mach-bf548/boards/cm_bf548.c
-@@ -482,11 +482,13 @@ static struct resource musb_resources[] = {
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-diff --git a/arch/blackfin/mach-bf548/boards/ezkit.c b/arch/blackfin/mach-bf548/boards/ezkit.c
-index 6fcfb91..30b929d 100644
---- a/arch/blackfin/mach-bf548/boards/ezkit.c
-+++ b/arch/blackfin/mach-bf548/boards/ezkit.c
-@@ -587,11 +587,13 @@ static struct resource musb_resources[] = {
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-diff --git a/drivers/usb/musb/cppi_dma.c b/drivers/usb/musb/cppi_dma.c
-index 59dc3d3..82bf59b 100644
---- a/drivers/usb/musb/cppi_dma.c
-+++ b/drivers/usb/musb/cppi_dma.c
-@@ -1307,7 +1307,7 @@ dma_controller_create(struct musb *musb, void __iomem *mregs)
- 	struct cppi		*controller;
- 	struct device		*dev = musb->controller;
- 	struct platform_device	*pdev = to_platform_device(dev);
--	int			irq = platform_get_irq(pdev, 1);
-+	int			irq = platform_get_irq_byname(pdev, "dma");
- 
- 	controller = kzalloc(sizeof *controller, GFP_KERNEL);
- 	if (!controller)
+-int __init musb_platform_init(struct musb *musb, void *board_data)
++int __init musb_platform_init(struct musb *musb)
+ {
+ 	void __iomem	*tibase = musb->ctrl_base;
+ 	u32		revision;
 diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 3b795c5..447ea9b 100644
+index 447ea9b..2a50d12 100644
 --- a/drivers/usb/musb/musb_core.c
 +++ b/drivers/usb/musb/musb_core.c
-@@ -2204,7 +2204,7 @@ static u64	*orig_dma_mask;
- static int __init musb_probe(struct platform_device *pdev)
- {
- 	struct device	*dev = &pdev->dev;
--	int		irq = platform_get_irq(pdev, 0);
-+	int		irq = platform_get_irq_byname(pdev, "mc");
- 	int		status;
- 	struct resource	*iomem;
- 	void __iomem	*base;
-diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-index dc66e43..50bc9aa 100644
---- a/drivers/usb/musb/musbhsdma.c
-+++ b/drivers/usb/musb/musbhsdma.c
-@@ -366,7 +366,7 @@ dma_controller_create(struct musb *musb, void __iomem *base)
- 	struct musb_dma_controller *controller;
- 	struct device *dev = musb->controller;
- 	struct platform_device *pdev = to_platform_device(dev);
--	int irq = platform_get_irq(pdev, 1);
-+	int irq = platform_get_irq_byname(pdev, "dma");
+@@ -2023,7 +2023,7 @@ bad_config:
+ 	 * isp1504, non-OTG, etc) mostly hooking up through ULPI.
+ 	 */
+ 	musb->isr = generic_interrupt;
+-	status = musb_platform_init(musb, plat->board_data);
++	status = musb_platform_init(musb);
+ 	if (status < 0)
+ 		goto fail2;
  
- 	if (irq == 0) {
- 		dev_err(dev, "No DMA interrupt line!\n");
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 91d6779..85a92fd 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -612,7 +612,7 @@ extern int musb_platform_get_vbus_status(struct musb *musb);
+ #define musb_platform_get_vbus_status(x)	0
+ #endif
+ 
+-extern int __init musb_platform_init(struct musb *musb, void *board_data);
++extern int __init musb_platform_init(struct musb *musb);
+ extern int musb_platform_exit(struct musb *musb);
+ 
+ #endif	/* __MUSB_CORE_H__ */
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 5f04d3f..3bae428 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -189,10 +189,12 @@ int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
+ 	return 0;
+ }
+ 
+-int __init musb_platform_init(struct musb *musb, void *board_data)
++int __init musb_platform_init(struct musb *musb)
+ {
+ 	u32 l;
+-	struct omap_musb_board_data *data = board_data;
++	struct device *dev = musb->controller;
++	struct musb_hdrc_platform_data *plat = dev->platform_data;
++	struct omap_musb_board_data *data = plat->board_data;
+ 
+ 	/* We require some kind of external transceiver, hooked
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
+index 3c48e77..ab776a8 100644
+--- a/drivers/usb/musb/tusb6010.c
++++ b/drivers/usb/musb/tusb6010.c
+@@ -1091,7 +1091,7 @@ err:
+ 	return -ENODEV;
+ }
+ 
+-int __init musb_platform_init(struct musb *musb, void *board_data)
++int __init musb_platform_init(struct musb *musb)
+ {
+ 	struct platform_device	*pdev;
+ 	struct resource		*mem;
 -- 
 1.7.0.4
 
