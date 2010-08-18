@@ -1,50 +1,147 @@
-From: Cliff Brake <cliff.brake@gmail.com>
-Subject: Re: NAND ECC in linux-omap
-Date: Wed, 18 Aug 2010 11:45:31 -0400
-Message-ID: <AANLkTik4+gApkw5fQ561QnJPLX5ED7oN3oU0P6F0+Gsv@mail.gmail.com>
-References: <AANLkTimABq72N98Ca6yJ9FgYnyDpod3qRPoTypkDn-4A@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B030E8188DB@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: [PATCH v5 1/3] ARM: OMAP: Beagle: revision detection
+Date: Wed, 18 Aug 2010 10:56:51 -0500
+Message-ID: <1282147013-508-1-git-send-email-robertcnelson@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:54584 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952Ab0HRPpc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 11:45:32 -0400
-Received: by ewy23 with SMTP id 23so461681ewy.19
-        for <linux-omap@vger.kernel.org>; Wed, 18 Aug 2010 08:45:31 -0700 (PDT)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B030E8188DB@dbde02.ent.ti.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:57357 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751796Ab0HRP5E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 11:57:04 -0400
+Received: by yxg6 with SMTP id 6so244231yxg.19
+        for <linux-omap@vger.kernel.org>; Wed, 18 Aug 2010 08:57:03 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-On Wed, Aug 18, 2010 at 12:14 AM, Ghorai, Sukumar <s-ghorai@ti.com> wrote:
-> [Ghorai]
-> 1. Can you send the git tree link and branch you are referring?
+Due to the omap3530 ES3.0 Silicon being used on both the
+B5/B6 and C1/2/3 Beagle we can't use the cpu_is_omap34xx() 
+routines to differentiate the Beagle Boards.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
-branch: pm
-95e42b92313f229cbc9fc81bf68fe60aaee515aa
+However gpio pins 171,172,173 where setup for this prupose, so 
+lets use them.
 
-I'm pretty sure this branch tracks linux-omap.  I have not tested
-linux-omap yet (git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git:master)
+Changes:
+for older U-Boot's, use omap_mux_init_gpio()
+keep Beagle Rev in board-omap3beagle.c
+gpio_free on gpio request failure
 
-> 2. I am working to support the NAND BCH and not upstream yet, how you apply this patch in PM branch.
+Tested on Beagle Revisions: B5, C2, C4, and xMA
 
-What do you mean by upstream?  I'm not sure what NAND changes are in
-the above pm branch -- that is what I'm trying to figure out :-)
-Perhaps you can suggest if I'm using BCH, etc.
+Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   90 +++++++++++++++++++++++++++++++
+ 1 files changed, 90 insertions(+), 0 deletions(-)
 
-> 3. which x-loader and u-boot you are referring? And no x-loader/ u-boot supports the BCH
-
-I'm using the x-loader/u-boot from for the Gumstix Overo.  My
-understanding is that it uses software -- likely not BCH, but I'm not
-sure.
-
-Thanks,
-Cliff
-
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 87969c7..62d69a9 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -50,6 +50,95 @@
+ 
+ #define NAND_BLOCK_SIZE		SZ_128K
+ 
++/*
++ * OMAP3 Beagle revision
++ * Run time detection of Beagle revision is done by reading GPIO.
++ * GPIO ID -
++ *	AXBX	= GPIO173, GPIO172, GPIO171: 1 1 1
++ *	C1_3	= GPIO173, GPIO172, GPIO171: 1 1 0
++ *	C4	= GPIO173, GPIO172, GPIO171: 1 0 1
++ *	XM	= GPIO173, GPIO172, GPIO171: 0 0 0
++ */
++enum {
++	OMAP3BEAGLE_BOARD_UNKN = 0,
++	OMAP3BEAGLE_BOARD_AXBX,
++	OMAP3BEAGLE_BOARD_C1_3,
++	OMAP3BEAGLE_BOARD_C4,
++	OMAP3BEAGLE_BOARD_XM,
++};
++
++static u8 omap3_beagle_version;
++
++static u8 omap3_beagle_get_rev(void)
++{
++	return omap3_beagle_version;
++}
++
++static void __init omap3_beagle_init_rev(void)
++{
++	int ret;
++	u16 beagle_rev = 0;
++
++	omap_mux_init_gpio(171, OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_gpio(172, OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_gpio(173, OMAP_PIN_INPUT_PULLUP);
++
++	ret = gpio_request(171, "rev_id_0");
++	if (ret < 0)
++		goto fail0;
++
++	ret = gpio_request(172, "rev_id_1");
++	if (ret < 0)
++		goto fail1;
++
++	ret = gpio_request(173, "rev_id_2");
++	if (ret < 0)
++		goto fail2;
++
++	gpio_direction_input(171);
++	gpio_direction_input(172);
++	gpio_direction_input(173);
++
++	beagle_rev = gpio_get_value(171) | (gpio_get_value(172) << 1)
++			| (gpio_get_value(173) << 2);
++
++	switch (beagle_rev) {
++	case 7:
++		printk(KERN_INFO "OMAP3 Beagle Rev: Ax/Bx\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_AXBX;
++		break;
++	case 6:
++		printk(KERN_INFO "OMAP3 Beagle Rev: C1/C2/C3\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_C1_3;
++		break;
++	case 5:
++		printk(KERN_INFO "OMAP3 Beagle Rev: C4\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_C4;
++		break;
++	case 0:
++		printk(KERN_INFO "OMAP3 Beagle Rev: xM\n");
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_XM;
++		break;
++	default:
++		printk(KERN_INFO "OMAP3 Beagle Rev: unknown %hd\n", beagle_rev);
++		omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
++	}
++
++	return;
++
++fail2:
++	gpio_free(173);
++fail1:
++	gpio_free(172);
++fail0:
++	gpio_free(171);
++
++	printk(KERN_ERR "Unable to get revision detection GPIO pins\n");
++	omap3_beagle_version = OMAP3BEAGLE_BOARD_UNKN;
++
++	return;
++}
++
+ static struct mtd_partition omap3beagle_nand_partitions[] = {
+ 	/* All the partition sizes are listed in terms of NAND block size */
+ 	{
+@@ -464,6 +553,7 @@ static struct omap_musb_board_data musb_board_data = {
+ static void __init omap3_beagle_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++	omap3_beagle_init_rev();
+ 	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
 -- 
-=================
-http://bec-systems.com
+1.7.0.4
+
