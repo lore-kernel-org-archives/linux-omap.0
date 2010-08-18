@@ -1,58 +1,190 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 2/4] mfd: twl-core: switch over to defines in twl.h
-Date: Wed, 18 Aug 2010 19:50:33 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032422251A@dbde02.ent.ti.com>
-References: <1282112377-1335-1-git-send-email-felipe.balbi@nokia.com>
- <1282112377-1335-3-git-send-email-felipe.balbi@nokia.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB032422229C@dbde02.ent.ti.com>
- <20100818065905.GC11947@nokia.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB03242222C7@dbde02.ent.ti.com>
- <20100818071022.GD11947@nokia.com> <20100818071619.GE11947@nokia.com>
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: [PATCH] power_supply: add isp1704 charger detection driver
+Date: Wed, 18 Aug 2010 17:55:28 +0300
+Message-ID: <4C6BF460.9090105@nokia.com>
+References: <1282136465-1748-1-git-send-email-ext-heikki.krogerus@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60905 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753076Ab0HROVW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 10:21:22 -0400
-In-Reply-To: <20100818071619.GE11947@nokia.com>
-Content-Language: en-US
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:22149 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082Ab0HROy7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Aug 2010 10:54:59 -0400
+In-Reply-To: <1282136465-1748-1-git-send-email-ext-heikki.krogerus@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>
+To: "Krogerus Heikki (EXT-Teleca/Helsinki)" <ext-heikki.krogerus@nokia.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "cbou@mail.ru" <cbou@mail.ru>, "Balbi Felipe (Nokia-MS/Helsinki)" <felipe.balbi@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "Lehtonen Markus (Nokia-MS/Helsinki)" <markus.lehtonen@nokia.com>
+
+Hi,
+
+On 08/18/2010 04:01 PM, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
+> From: Heikki Krogerus<ext-heikki.krogerus@nokia.com>
+>
+> NXP ISP1704 is Battery Charging Specification 1.0 compliant USB
+> transceiver. This adds a power supply driver for ISP1704 and
+> ISP1707 USB transceivers.
+>
+> Signed-off-by: Heikki Krogerus<ext-heikki.krogerus@nokia.com>
+> ---
+>   drivers/power/Kconfig           |    7 +
+>   drivers/power/Makefile          |    1 +
+>   drivers/power/isp1704_charger.c |  371 +++++++++++++++++++++++++++++++++++++++
+>   3 files changed, 379 insertions(+), 0 deletions(-)
+>   create mode 100644 drivers/power/isp1704_charger.c
+>
+> diff --git a/drivers/power/Kconfig b/drivers/power/Kconfig
+> index 0734356..d55fc29 100644
+> --- a/drivers/power/Kconfig
+> +++ b/drivers/power/Kconfig
+> @@ -166,4 +166,11 @@ config BATTERY_INTEL_MID
+>   	  Say Y here to enable the battery driver on Intel MID
+>   	  platforms.
+>
+> +config CHARGER_ISP1704
+> +	tristate "ISP1704 USB Charger Detection"
+> +	select NOP_USB_XCEIV if ! MACH_NOKIA_RX51
+
+As Anton mentioned, this is wrong.
+
+It is possible for platforms other than RX51 to use ISP1704 and this driver 
+should be usable on them without modifications to kconfig or driver code.
+
+> +	help
+> +	  Say Y to enable support for USB Charger Detection with
+> +	  ISP1707/ISP1704 USB transceivers.
+> +
 
 
+>   endif # POWER_SUPPLY
+> diff --git a/drivers/power/Makefile b/drivers/power/Makefile
+> index 10143aa..c73d381 100644
+> --- a/drivers/power/Makefile
+> +++ b/drivers/power/Makefile
+> @@ -37,3 +37,4 @@ obj-$(CONFIG_BATTERY_S3C_ADC)	+= s3c_adc_battery.o
+>   obj-$(CONFIG_CHARGER_PCF50633)	+= pcf50633-charger.o
+>   obj-$(CONFIG_BATTERY_JZ4740)	+= jz4740-battery.o
+>   obj-$(CONFIG_BATTERY_INTEL_MID)	+= intel_mid_battery.o
+> +obj-$(CONFIG_CHARGER_ISP1704)	+= isp1704_charger.o
+> diff --git a/drivers/power/isp1704_charger.c b/drivers/power/isp1704_charger.c
+> new file mode 100644
+> index 0000000..821ad29
+> --- /dev/null
+> +++ b/drivers/power/isp1704_charger.c
+> @@ -0,0 +1,371 @@
+> +/*
+> + * isp1704_charger.c - ISP1704 USB Charger Detection driver
+> + *
+> + * Copyright (C) 2010 Nokia Corporation
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+> + */
+> +
 
->>-----Original Message-----
->>From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
->>Sent: Wednesday, August 18, 2010 12:46 PM
->>To: Balbi Felipe (Nokia-MS/Helsinki)
->>Cc: Gopinath, Thara; Samuel Ortiz; linux-kernel@vger.kernel.org; linux-omap@vger.kernel.org; Tony
->>Lindgren; Andrew Morton
->>Subject: Re: [PATCH 2/4] mfd: twl-core: switch over to defines in twl.h
->>
->>Hi,
->>
->>On Wed, Aug 18, 2010 at 09:10:22AM +0200, Balbi Felipe (Nokia-MS/Helsinki) wrote:
->>>On Wed, Aug 18, 2010 at 09:03:44AM +0200, ext Gopinath, Thara wrote:
->>>>>>No I am not talking about the key values. I was talking about the register offset
->>>>>>for TWL4030_PM_MASTER_PROTECT_KEY. My question is, is it ok for it to be 0xd or 0xe.
->>>>>>Earlier we were using 0xd and in the new implementation it has been changed to 0xe.
->>>>
->>>>Typo. Earlier we were using 0xe and in the new implementation it has
->>>>been changed to 0xd.
->>>
->>>you're right, I'm not sure how I came up with that value since the TRM
->>>shows 0x0e, maybe a copy&paste error. Will change patch 1.
->>
->>ok, it's because there's no register 0x0a. And I missed that when
->>defined the register space. Good catch, thanks. I wonder why it didn't
->>fail to write to that register address :-?
+<snip>
 
-0xd is a valid register offset. Hence no crash. Anyways I saw your new
-patch. Looks ok to me.
 
-Regards
-Thara
+> +
+> +static inline int isp1704_test_ulpi(struct isp1704_charger *isp)
+> +{
+> +	int			vendor, product, i;
+> +	int			ret = -ENODEV;
+> +
+> +	/* Test ULPI interface */
+> +	ret = otg_io_write(isp->otg, ULPI_SCRATCH, 0xaa);
+> +	if (ret<  0)
+> +		return ret;
+> +	ret = otg_io_read(isp->otg, ULPI_SCRATCH);
+> +	if (ret<  0)
+> +		return ret;
+> +	if (ret != 0xaa)
+> +		return -ENODEV;
+> +	/* Verify the product and vendor id matches */
+> +	vendor = otg_io_read(isp->otg, ULPI_VENDOR_ID_LOW);
+> +	vendor |= otg_io_read(isp->otg, ULPI_VENDOR_ID_HIGH)<<  8;
+> +	if (vendor != NXP_VENDOR_ID)
+> +		return -ENODEV;
+> +	for (i = 0; i<  ARRAY_SIZE(isp170x_id); i++) {
+> +		product = otg_io_read(isp->otg, ULPI_PRODUCT_ID_LOW);
+> +		product |= otg_io_read(isp->otg, ULPI_PRODUCT_ID_HIGH)<<  8;
+
+product id should be read outside the for loop. This way you will save 
+unnecessary otg_io_reads. product id won't change anyways.
+
+> +		if (product == isp170x_id[i]) {
+> +			sprintf(isp->model, "isp%x", product);
+> +			return product;
+> +		}
+> +	}
+> +
+> +	dev_err(isp->dev, "product id %x not matching known ids", product);
+> +
+> +	return -ENODEV;
+> +}
+
+<snip>
+
+> +static struct platform_driver isp1704_charger_driver = {
+> +	.driver = {
+> +		.name = "isp1704_charger",
+> +	},
+> +	.probe = isp1704_charger_probe,
+> +	.remove = __devexit_p(isp1704_charger_remove),
+> +};
+> +
+> +static struct platform_device *isp1704_device;
+> +
+> +static int __init isp1704_charger_init(void)
+> +{
+> +	int ret = 0;
+> +
+> +	ret = platform_driver_register(&isp1704_charger_driver);
+> +	if (ret)
+> +		return ret;
+> +
+> +	isp1704_device = platform_device_register_simple("isp1704_charger",
+> +							0, NULL, 0);
+
+This platform_device_register should be done in the rx51 board file. i.e. 
+board-rx51-peripherals.c
+
+> +	if (IS_ERR(isp1704_device)) {
+> +		platform_driver_unregister(&isp1704_charger_driver);
+> +		ret = PTR_ERR(isp1704_device);
+> +	}
+> +
+> +	return ret;
+> +}
+> +module_init(isp1704_charger_init);
+> +
+> +static void __exit isp1704_charger_exit(void)
+> +{
+> +	platform_device_unregister(isp1704_device);
+don't do platform_device_unregister here.
+
+> +	platform_driver_unregister(&isp1704_charger_driver);
+> +}
+> +module_exit(isp1704_charger_exit);
+> +
+> +MODULE_ALIAS("platform:isp1704-charger");
+> +MODULE_AUTHOR("Nokia Corporation");
+> +MODULE_DESCRIPTION("ISP170x USB Charger driver");
+> +MODULE_LICENSE("GPL");
+
+
+-- 
+regards,
+-roger
