@@ -1,48 +1,40 @@
-From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 0/7] usb: ehci: omap: Adding OMAP4 support
-Date: Thu, 19 Aug 2010 05:19:30 +0530
-Message-ID: <1282175377-2784-1-git-send-email-keshava_mgowda@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+From: Keshava Munegowda <keshava_mgowda@ti.com>
+Subject: [RFC] [PATCH 1/7] usb: ehci-omap: Add the HSUSB base address
+Date: Thu, 19 Aug 2010 05:19:31 +0530
+Message-ID: <1282175377-2784-2-git-send-email-keshava_mgowda@ti.com>
+References: <1282175377-2784-1-git-send-email-keshava_mgowda@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48573 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752774Ab0HSLtB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Aug 2010 07:49:01 -0400
+In-Reply-To: <1282175377-2784-1-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Keshava Munegowda <keshava_mgowda@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-The OMAP4 EHCI supports only two ports and hence two TLL channels.
-Each port is driven by seperate clocks. Following interface mode 
-exists in EHCI controller of OMAP4.
-- External PHY mode , with 12 pin ULPI
-- USBTLL mode
-- HSIC mode 
-The External PHY mode is validated with these patches and other modes are TODOs
-for later. 
-The TLL clocks are enabled and channels are configuared only when
-USBTLL mode is choosen.
+Update omap44xx.h with base addresses for USBHOST and USBTLL.
+This patch will be replaced with the HWMOD(hardware mode) implementation later.
+
+Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+ arch/arm/plat-omap/include/plat/omap44xx.h |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+Index: kernel-omap4-base/arch/arm/plat-omap/include/plat/omap44xx.h
+===================================================================
+--- kernel-omap4-base.orig/arch/arm/plat-omap/include/plat/omap44xx.h
++++ kernel-omap4-base/arch/arm/plat-omap/include/plat/omap44xx.h
+@@ -52,5 +52,10 @@
+ #define OMAP4_MMU1_BASE			0x55082000
+ #define OMAP4_MMU2_BASE			0x4A066000
  
-The summary is of patches - 
-
-	1/7  	Add the base address of EHCI controller
-	2/7     based on omap3 and omap4 ; the processor specific clocks
-		enabled. formats the code of ehci-omap.c so that OMAP4 specific 
-		changes can be easily inserted.  
-	3/7 	Adding OMAP4 support.
-	4/7	Introduces the Kconfig macro to include the ehci driver
-		as platform driver 
-	5/7 	This is hack to do the mux setting for EHCI pad configuration;
-		This patch will be replaced when the mux framework for omap4
-		is introduced.
-	6/7	Adds the EHCI IRQ number and base address resources in 
-		ehci initialization.
-	7/7	The EHCI init fuction invocation from 4430 sdp init.
-
-diffstat is below:
- drivers/usb/host/Kconfig                       |    8 
- drivers/usb/host/ehci-hcd.c                    |    2 
- drivers/usb/host/ehci-omap.c                   |  539 +++++++++++++++++--------
- 3 files changed 
-
--- keshava
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++#define OMAP44XX_USBTLL_BASE		(L4_44XX_BASE + 0x62000)
++#define OMAP44XX_UHH_CONFIG_BASE	(L4_44XX_BASE + 0x64000)
++#define OMAP44XX_HSUSB_OHCI_BASE	(L4_44XX_BASE + 0x64800)
++#define OMAP44XX_HSUSB_EHCI_BASE	(L4_44XX_BASE + 0x64C00)
++
+ #endif /* __ASM_ARCH_OMAP44XX_H */
+ 
