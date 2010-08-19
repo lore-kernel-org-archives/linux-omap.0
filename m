@@ -1,35 +1,58 @@
 From: Anton Vorontsov <cbouatmailru@gmail.com>
-Subject: Re: [PATCHv2 1/2] power_supply: add isp1704 charger detection
- driver
-Date: Thu, 19 Aug 2010 16:36:35 +0400
-Message-ID: <20100819123635.GA12293@oksana.dev.rtsoft.ru>
+Subject: Re: [PATCHv2 2/2] omap: rx51: add support for USB chargers
+Date: Thu, 19 Aug 2010 16:40:42 +0400
+Message-ID: <20100819124042.GA15837@oksana.dev.rtsoft.ru>
 References: <1282219777-17657-1-git-send-email-ext-heikki.krogerus@nokia.com>
- <1282219777-17657-2-git-send-email-ext-heikki.krogerus@nokia.com>
+ <1282219777-17657-3-git-send-email-ext-heikki.krogerus@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:53493 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab0HSMgl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 08:36:41 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1282219777-17657-2-git-send-email-ext-heikki.krogerus@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1282219777-17657-3-git-send-email-ext-heikki.krogerus@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Krogerus Heikki (EXT-Teleca/Helsinki)" <ext-heikki.krogerus@nokia.com>
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, felipe.balbi@nokia.com, ameya.palande@nokia.com, markus.lehtonen@nokia.com, roger.quadros@nokia.com
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, Aug 19, 2010 at 03:09:36PM +0300, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
+On Thu, Aug 19, 2010 at 03:09:37PM +0300, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
 > From: Heikki Krogerus <ext-heikki.krogerus@nokia.com>
 > 
-> NXP ISP1704 is Battery Charging Specification 1.0 compliant USB
-> transceiver. This adds a power supply driver for ISP1704 and
-> ISP1707 USB transceivers.
+> This enables isp1704 power supply driver on RX51, allowing
+> USB charger detection with N900.
 > 
 > Signed-off-by: Heikki Krogerus <ext-heikki.krogerus@nokia.com>
 > ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index 9a5eb87..a4b1f8b 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -104,6 +104,10 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+>  	},
+>  };
+>  
+> +static struct platform_device rx51_charger_device = {
+> +	.name = "isp1704_charger",
+> +};
+> +
+>  #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
+>  
+>  #define RX51_GPIO_CAMERA_LENS_COVER	110
+> @@ -909,5 +913,6 @@ void __init rx51_peripherals_init(void)
+>  	spi_register_board_info(rx51_peripherals_spi_board_info,
+>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+>  	omap2_hsmmc_init(mmc);
+> +	platform_device_register(&rx51_charger_device);
 
-Applied to battery-2.6.git, thanks!
+Maybe
+
+  platform_device_register_simple("isp1704_charger", -1, NULL, 0);
+
+?
+
+Thanks,
 
 -- 
 Anton Vorontsov
