@@ -1,83 +1,53 @@
 From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [RFC] [PATCH 4/5] usb: ohci: omap: Initialize resources for OMAP4
-Date: Fri, 20 Aug 2010 00:48:09 +0530
-Message-ID: <1282245490-24339-5-git-send-email-keshava_mgowda@ti.com>
+Subject: [RFC] [PATCH 5/5] usb: ohci: omap: enable the ohci port on OMAP4SDP
+Date: Fri, 20 Aug 2010 00:48:10 +0530
+Message-ID: <1282245490-24339-6-git-send-email-keshava_mgowda@ti.com>
 References: <1282245490-24339-1-git-send-email-keshava_mgowda@ti.com>
  <1282245490-24339-2-git-send-email-keshava_mgowda@ti.com>
  <1282245490-24339-3-git-send-email-keshava_mgowda@ti.com>
  <1282245490-24339-4-git-send-email-keshava_mgowda@ti.com>
+ <1282245490-24339-5-git-send-email-keshava_mgowda@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55277 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55281 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752002Ab0HTHRf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Aug 2010 03:17:35 -0400
-In-Reply-To: <1282245490-24339-4-git-send-email-keshava_mgowda@ti.com>
+	id S1752017Ab0HTHRi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Aug 2010 03:17:38 -0400
+In-Reply-To: <1282245490-24339-5-git-send-email-keshava_mgowda@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Keshava Munegowda <keshava_mgowda@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-Update resources (IRQ number, base addresses) for OHCI on OMAP4.
-This patch should be replaced when the driver is converted to
-take advantage of hwmod (hardware mode).
+The port 2 of OHCI controller is connected to external PHY. 
+The Unidirection 6 pin serial mode is configured.
 
 Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
- arch/arm/mach-omap2/usb-ehci.c |   26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-Index: linux-2.6/arch/arm/mach-omap2/usb-ehci.c
+Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
 ===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/usb-ehci.c
-+++ linux-2.6/arch/arm/mach-omap2/usb-ehci.c
-@@ -360,22 +360,15 @@ void __init usb_ehci_init(const struct e
- 
- static struct resource ohci_resources[] = {
- 	{
--		.start	= OMAP34XX_OHCI_BASE,
--		.end	= OMAP34XX_OHCI_BASE + SZ_1K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{
--		.start	= OMAP34XX_UHH_CONFIG_BASE,
--		.end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{
--		.start	= OMAP34XX_USBTLL_BASE,
--		.end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1,
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	{	/* general IRQ */
--		.start	= INT_34XX_OHCI_IRQ,
- 		.flags	= IORESOURCE_IRQ,
- 	}
+--- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c
++++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
+@@ -424,6 +424,11 @@ static const struct ehci_hcd_omap_platfo
+ 	.reset_gpio_port[2]  = -EINVAL
  };
-@@ -580,8 +573,25 @@ void __init usb_ohci_init(const struct o
- 	platform_device_add_data(&ohci_device, pdata, sizeof(*pdata));
  
- 	/* Setup Pin IO MUX for OHCI */
--	if (cpu_is_omap34xx())
-+	if (cpu_is_omap34xx()) {
-+		ohci_resources[0].start	= OMAP34XX_OHCI_BASE;
-+		ohci_resources[0].end	= OMAP34XX_OHCI_BASE + SZ_1K - 1;
-+		ohci_resources[1].start	= OMAP34XX_UHH_CONFIG_BASE;
-+		ohci_resources[1].end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
-+		ohci_resources[2].start	= OMAP34XX_USBTLL_BASE;
-+		ohci_resources[2].end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1;
-+		ohci_resources[3].start = INT_34XX_OHCI_IRQ;
- 		setup_ohci_io_mux(pdata->port_mode);
-+	} else if (cpu_is_omap44xx()) {
-+		ohci_resources[0].start	= OMAP44XX_HSUSB_OHCI_BASE;
-+		ohci_resources[0].end	= OMAP44XX_HSUSB_OHCI_BASE + SZ_1K - 1;
-+		ohci_resources[1].start	= OMAP44XX_UHH_CONFIG_BASE;
-+		ohci_resources[1].end	= OMAP44XX_UHH_CONFIG_BASE + SZ_1K - 1;
-+		ohci_resources[2].start	= OMAP44XX_USBTLL_BASE;
-+		ohci_resources[2].end	= OMAP44XX_USBTLL_BASE + SZ_4K - 1;
-+		ohci_resources[3].start = OMAP44XX_IRQ_OHCI;
-+		setup_4430ohci_io_mux(pdata->port_mode);
-+	}
- 
- 	if (platform_device_register(&ohci_device) < 0) {
- 		pr_err("Unable to register FS-USB (OHCI) device\n");
++static const struct ohci_hcd_omap_platform_data ohci_pdata __initconst = {
++	.port_mode[0] = OMAP_OHCI_PORT_MODE_UNUSED,
++	.port_mode[1] = OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0,
++	.port_mode[2] = OMAP_OHCI_PORT_MODE_UNUSED,
++};
+ static int __init omap4_i2c_init(void)
+ {
+ 	/*
+@@ -454,6 +459,7 @@ static void __init omap_4430sdp_init(voi
+ 		gpio_direction_output(OMAP4SDP_MDM_PWR_EN_GPIO, 1);
+ 	}
+ 	usb_ehci_init(&ehci_pdata);
++	usb_ohci_init(&ohci_pdata);
+ 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
+ 	usb_nop_xceiv_register();
+ 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
