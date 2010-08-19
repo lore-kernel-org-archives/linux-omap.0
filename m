@@ -1,68 +1,61 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 3/5] usb: ehci: relocate PHY reset code
-Date: Thu, 19 Aug 2010 09:01:26 +0300
-Message-ID: <20100819060126.GS4385@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 5/6] usb: ohci: don't hard-code TLL channel count
+Date: Thu, 19 Aug 2010 09:03:08 +0300
+Message-ID: <20100819060308.GT4385@nokia.com>
 References: <1282100145-27485-1-git-send-email-keshava_mgowda@ti.com>
  <1282100145-27485-2-git-send-email-keshava_mgowda@ti.com>
  <1282100145-27485-3-git-send-email-keshava_mgowda@ti.com>
  <1282100145-27485-4-git-send-email-keshava_mgowda@ti.com>
-Reply-To: felipe.balbi@nokia.com
+ <1282100145-27485-5-git-send-email-keshava_mgowda@ti.com>
+ <1282100145-27485-6-git-send-email-keshava_mgowda@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53114 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750840Ab0HSGBp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 02:01:45 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1282100145-27485-4-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1282100145-27485-6-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>
 
-On Wed, Aug 18, 2010 at 04:55:43AM +0200, ext Keshava Munegowda wrote:
->The PHY reset code is moved at the begining and end of the function
->omap_start_ehc. This simplfies the writing clocks enabling code for
->OMAP4 later.
->
->Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
->---
-> drivers/usb/host/ehci-omap.c |   52 +++++++++++++++++++++----------------------
-> 1 file changed, 26 insertions(+), 26 deletions(-)
->
->Index: linux-2.6/drivers/usb/host/ehci-omap.c
->===================================================================
->--- linux-2.6.orig/drivers/usb/host/ehci-omap.c
->+++ linux-2.6/drivers/usb/host/ehci-omap.c
->@@ -279,6 +279,24 @@ static int omap_start_ehc(struct ehci_hc
->
-> 	dev_dbg(omap->dev, "starting TI EHCI USB Controller\n");
->
->+	if (omap->phy_reset) {
->+		/* Refer: ISSUE1 */
->+		if (gpio_is_valid(omap->reset_gpio_port[0])) {
->+			gpio_request(omap->reset_gpio_port[0],
->+						"USB1 PHY reset");
->+			gpio_direction_output(omap->reset_gpio_port[0], 0);
->+		}
->+
->+		if (gpio_is_valid(omap->reset_gpio_port[1])) {
->+			gpio_request(omap->reset_gpio_port[1],
->+						"USB2 PHY reset");
->+			gpio_direction_output(omap->reset_gpio_port[1], 0);
->+		}
->+
->+		/* Hold the PHY in RESET for enough time till DIR is high */
->+		udelay(10);
->+	}
+Hi,
 
-there was another patch doing this with ulpi messages and that's more 
-portable as every board will have support for softreset but we can't 
-guarantee all of them will have these gpio routed correctly, right ?
+On Wed, Aug 18, 2010 at 04:55:45AM +0200, ext Keshava Munegowda wrote:
+>@@ -245,7 +245,8 @@ static unsigned ohci_omap3_fslsmode(enum
+> 	}
+> }
+>
+>-static void ohci_omap3_tll_config(struct ohci_hcd_omap3 *omap)
+>+static void ohci_omap3_tll_config(struct ohci_hcd_omap3 *omap,
+>+					u8 tll_channel_count)
+> {
+> 	u32 reg;
+> 	int i;
+>@@ -263,7 +264,7 @@ static void ohci_omap3_tll_config(struct
+> 	 * REVISIT: Only the 3-pin and 4-pin PHY modes have
+> 	 * actually been tested.
+> 	 */
+>-	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
+>+	for (i = 0; i < tll_channel_count; i++) {
+>
+> 		/* Enable only those channels that are actually used */
+> 		if (omap->port_mode[i] == OMAP_OHCI_PORT_MODE_UNUSED)
+>@@ -422,7 +423,7 @@ static int omap3_start_ohci(struct ohci_
+> 	ohci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
+> 	dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
+>
+>-	ohci_omap3_tll_config(omap);
+>+	ohci_omap3_tll_config(omap, OMAP_TLL_CHANNEL_COUNT);
+
+it's still hardcoded, are you planning to change this in any way ? 
+Otherwise I don't see the point for this patch.
 
 -- 
 balbi
 
 DefectiveByDesign.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
