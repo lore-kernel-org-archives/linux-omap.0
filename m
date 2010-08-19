@@ -1,40 +1,73 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] power_supply: add isp1704 charger detection driver
-Date: Thu, 19 Aug 2010 16:29:05 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032422290C@dbde02.ent.ti.com>
-References: <1282136465-1748-1-git-send-email-ext-heikki.krogerus@nokia.com>
+From: "Basak, Partha" <p-basak2@ti.com>
+Subject: RE: [linux-pm] [PATCH] PM: runtime PM + idle: allow usage when
+ interrupts are disabled
+Date: Thu, 19 Aug 2010 16:32:23 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E82ACD17@dbde02.ent.ti.com>
+References: <1281459261-30829-1-git-send-email-khilman@deeprootsystems.com>
+ <201008162318.03923.rjw@sisk.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46917 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46961 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752219Ab0HSLBv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 07:01:51 -0400
-In-Reply-To: <1282136465-1748-1-git-send-email-ext-heikki.krogerus@nokia.com>
+	id S1752219Ab0HSLDL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 07:03:11 -0400
+In-Reply-To: <201008162318.03923.rjw@sisk.pl>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krogerus Heikki (EXT-Teleca/Helsinki)" <ext-heikki.krogerus@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "cbou@mail.ru" <cbou@mail.ru>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "markus.lehtonen@nokia.com" <markus.lehtonen@nokia.com>, "roger.quadros@nokia.com" <roger.quadros@nokia.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Ming Lei <tom.leiming@gmail.com>
 
-> +static void isp1704_charger_work(struct work_struct *data)
-> +{
-> +	struct isp1704_charger	*isp =
-> +		container_of(data, struct isp1704_charger, work);
-> +
-> +	/* FIXME Only supporting dedicated chargers even though isp1704 can
-> +	 * detect HUB and HOST chargers. If the device has already been
-> +	 * enumerated, the detection will break the connection.
-> +	 */
 
-Minor CodingStyle comment (since you're reworking the patch anyway).
 
-Preferred style for multi-line comments is:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Rafael J. Wysocki
+> Sent: Tuesday, August 17, 2010 2:48 AM
+> To: Kevin Hilman
+> Cc: linux-pm@lists.linux-foundation.org; linux-omap@vger.kernel.org; Alan
+> Stern; Ming Lei
+> Subject: Re: [linux-pm] [PATCH] PM: runtime PM + idle: allow usage when
+> interrupts are disabled
+> 
+> On Tuesday, August 10, 2010, Kevin Hilman wrote:
+> > When using runtime PM in combination with CPUidle, the runtime PM
+> > transtions of some devices may be triggered during the idle path.
+> > Late in the idle sequence, interrupts will likely be disabled when
+> > runtime PM for these devices is initiated.
+> >
+> > Currently, the runtime PM core assumes methods are called with
+> > interrupts enabled.  However, if it is called with interrupts
+> > disabled, the internal locking unconditionally enables interrupts, for
+> > example:
+> >
+> > pm_runtime_put_sync()
+> 
+> Please don't use that from interrupt context.  There's pm_runtime_put()
+> exactly for this purpose that puts the _idle() call into a workqueue.
 
-/*
- * FIXME Only supporting ...
- * detect HUB ...
- * enumerated ...
- */
+Rafael, we execute this little before executing idle instruction with interrupts locked. So, we cannot call pm_runtime_put() as we want it to take effect immediately.
+Kevin??
 
+> 
+> >     __pm_runtime_put()
+> >         pm_runtime_idle()
+> >             spin_lock_irq()
+> >             __pm_runtime_idle()
+> >                 spin_unlock_irq()   <--- interrupts unconditionally
+> enabled
+> 
+> That's because __pm_runtime_idle() has to be called from process context.
+> 
+> >                 dev->bus->pm->runtime_idle()
+> >                 spin_lock_irq()
+> >              spin_unlock_irq()
+> 
+> Thanks,
+> Rafael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
