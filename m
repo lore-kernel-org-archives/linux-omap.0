@@ -1,60 +1,37 @@
-From: Anton Vorontsov <cbouatmailru@gmail.com>
+From: Heikki Krogerus <ext-heikki.krogerus@nokia.com>
 Subject: Re: [PATCHv2 2/2] omap: rx51: add support for USB chargers
-Date: Thu, 19 Aug 2010 16:40:42 +0400
-Message-ID: <20100819124042.GA15837@oksana.dev.rtsoft.ru>
+Date: Thu, 19 Aug 2010 16:09:37 +0300
+Message-ID: <20100819130937.GC4363@esdhcp041123.research.nokia.com>
 References: <1282219777-17657-1-git-send-email-ext-heikki.krogerus@nokia.com>
  <1282219777-17657-3-git-send-email-ext-heikki.krogerus@nokia.com>
+ <20100819124042.GA15837@oksana.dev.rtsoft.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:58487 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751686Ab0HSNKT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 09:10:19 -0400
 Content-Disposition: inline
-In-Reply-To: <1282219777-17657-3-git-send-email-ext-heikki.krogerus@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Krogerus Heikki (EXT-Teleca/Helsinki)" <ext-heikki.krogerus@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, felipe.balbi@nokia.com, ameya.palande@nokia.com, markus.lehtonen@nokia.com, roger.quadros@nokia.com
+In-Reply-To: <20100819124042.GA15837@oksana.dev.rtsoft.ru>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "Balbi Felipe (Nokia-MS/Helsinki)" <felipe.balbi@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "Lehtonen Markus (Nokia-MS/Helsinki)" <markus.lehtonen@nokia.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-On Thu, Aug 19, 2010 at 03:09:37PM +0300, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
-> From: Heikki Krogerus <ext-heikki.krogerus@nokia.com>
+On Thu, Aug 19, 2010 at 02:40:42PM +0200, ext Anton Vorontsov wrote:
+> On Thu, Aug 19, 2010 at 03:09:37PM +0300, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
+>> @@ -909,5 +913,6 @@ void __init rx51_peripherals_init(void)
+>>  	spi_register_board_info(rx51_peripherals_spi_board_info,
+>>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+>>  	omap2_hsmmc_init(mmc);
+>> +	platform_device_register(&rx51_charger_device);
 > 
-> This enables isp1704 power supply driver on RX51, allowing
-> USB charger detection with N900.
+> Maybe
 > 
-> Signed-off-by: Heikki Krogerus <ext-heikki.krogerus@nokia.com>
-> ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index 9a5eb87..a4b1f8b 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -104,6 +104,10 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
->  	},
->  };
->  
-> +static struct platform_device rx51_charger_device = {
-> +	.name = "isp1704_charger",
-> +};
-> +
->  #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
->  
->  #define RX51_GPIO_CAMERA_LENS_COVER	110
-> @@ -909,5 +913,6 @@ void __init rx51_peripherals_init(void)
->  	spi_register_board_info(rx51_peripherals_spi_board_info,
->  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
->  	omap2_hsmmc_init(mmc);
-> +	platform_device_register(&rx51_charger_device);
+>   platform_device_register_simple("isp1704_charger", -1, NULL, 0);
 
-Maybe
-
-  platform_device_register_simple("isp1704_charger", -1, NULL, 0);
-
-?
-
-Thanks,
+I guess it's enough in this case. Ameya, Roger, any objections?
 
 -- 
-Anton Vorontsov
-email: cbouatmailru@gmail.com
-irc://irc.freenode.net/bd2
+heikki
