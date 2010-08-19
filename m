@@ -1,127 +1,315 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] OMAP3: PM: ensure IO wakeups are properly disabled
-Date: Fri, 20 Aug 2010 09:56:50 +0300
-Message-ID: <20100820065649.GH25742@atomide.com>
-References: <20100813080034.18750.15410.stgit@baageli.muru.com>
- <20100813080200.18750.37791.stgit@baageli.muru.com>
- <4C651635.8000201@ru.mvista.com>
- <20100813102933.GN12706@atomide.com>
- <4C65238D.9080105@ru.mvista.com>
- <87sk2ao4fr.fsf@deeprootsystems.com>
- <4C6D7936.3090201@ru.mvista.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ulDeV4rPMk/y39in"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56871 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751825Ab0HTG4y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 02:56:54 -0400
-Content-Disposition: inline
-In-Reply-To: <4C6D7936.3090201@ru.mvista.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [RFC] [PATCH 1/5] usb: ohci-omap3: seperate the OMAP3-specific code
+Date: Fri, 20 Aug 2010 00:48:06 +0530
+Message-ID: <1282245490-24339-2-git-send-email-keshava_mgowda@ti.com>
+References: <1282245490-24339-1-git-send-email-keshava_mgowda@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1282245490-24339-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
 
+Formats the code so that omap4 ohci host specific code changes can be
+inserted in TODO location later.The function cpu_is_omap44xx is used
+to determine the OMAP3 or OMAP4 processor. This function will be
+later replaced by HWMOD changes.
 
---ulDeV4rPMk/y39in
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+No functional changes.
 
-* Sergei Shtylyov <sshtylyov@mvista.com> [100819 21:27]:
-> Hello.
-> 
-> Kevin Hilman wrote:
-> 
-> >>>>>From: Kevin Hilman <khilman@ti.com>
-> >>>>>Commit 5a5f561 (convert OMAP3 PRCM macros to the _SHIFT/_MASK suffixes)
-> >>>>>mistakenly removed the check for PER when disabling the IO chain.
-> >>>>>During idle, if the PER powerdomain transitions and CORE does not (as
-> 
-> >>>>  Does not what?
-> 
-> >>>How about ".. and CORE does not transition"?
-> 
-> >>   Transition to what then? Sentense till won't parse right...
-> 
-> >>>Kevin, care to clarify that?
-> >>   Yeah, looks like a considerable partt of that sentense got omitted...
-> 
-> >No.  Nothing was omitted.
-> 
-> >It's like saying "Tony drinks Fernet and Kevin does not."  Adding an
-> >additional "drinks Fernet" at the end is redundant.
-> 
->    Sorry, the sentence still doesn't parse for me. You don't say
-> "Fernet" there BTW, so it's not clear where the PER powerdomain
-> transitions to. What goes after the closing parenthesis doesn't
-> clear things up either, it just describes what happens if...
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/host/ohci-omap3.c |  236 +++++++++++++++++++++---------------------
+ 1 file changed, 120 insertions(+), 116 deletions(-)
 
-I'll update it with the following to preserve the Fernet style,
-and to describe the transition:
-
-During idle, if the PER powerdomain transitions into a lower state
-and CORE does not, the IO pad wakeups are not being disabled in
-the idle path after they are enabled. This can happen with the
-lower C-states when using CPUidle for example.
-
-Updated patch attached.
-
-Please reply ASAP if this is not OK, I'd like to get a pull
-request for these fixes sent to Linus over the weekend.
-
-Regards,
-
-Tony
-
---ulDeV4rPMk/y39in
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="omap3-pm-ensure-io-wakeups-are-properly-disabled.patch"
-
-From: Kevin Hilman <khilman@ti.com>
-Date: Mon, 16 Aug 2010 09:21:19 +0300
-Subject: [PATCH] OMAP3: PM: ensure IO wakeups are properly disabled
-
-Commit 5a5f561 (convert OMAP3 PRCM macros to the _SHIFT/_MASK suffixes)
-mistakenly removed the check for PER when disabling the IO chain.
-
-During idle, if the PER powerdomain transitions into a lower state
-and CORE does not, the IO pad wakeups are not being disabled in
-the idle path after they are enabled. This can happen with the
-lower C-states when using CPUidle for example.
-
-This patch ensures that the check for disabling IO wakeups also checks
-for PER transitions, matching the check done to enable IO wakeups.
-
-Found when debugging PM/CPUidle related problems reported by Ameya
-Palande <ameya.palande@nokia.com>.  Problems were triggered
-particularily on boards with UART2 consoles (n900, Overo) since UART2
-is in the PER powerdomain.
-
-Tested on l-o master (omap3_defonfig + CONFIG_CPU_IDLE=y) as well
-as with current PM branch.  Boards tested: n900, Overo, omap3evm.
-
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-[tony@atomide.com: updated description to clarify the transistion]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index fb4994a..7b03426 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -480,7 +480,9 @@ void omap_sram_idle(void)
- 	}
+Index: linux-2.6/drivers/usb/host/ohci-omap3.c
+===================================================================
+--- linux-2.6.orig/drivers/usb/host/ohci-omap3.c
++++ linux-2.6/drivers/usb/host/ohci-omap3.c
+@@ -290,161 +290,165 @@ static int omap3_start_ohci(struct ohci_
  
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (omap3_has_io_wakeup() && core_next_state < PWRDM_POWER_ON) {
-+	if (omap3_has_io_wakeup() &&
-+	    (per_next_state < PWRDM_POWER_ON ||
-+	     core_next_state < PWRDM_POWER_ON)) {
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
- 		omap3_disable_io_chain();
- 	}
-
---ulDeV4rPMk/y39in--
+ 	dev_dbg(omap->dev, "starting TI OHCI USB Controller\n");
+ 
+-	/* Get all the clock handles we need */
+-	omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
+-	if (IS_ERR(omap->usbhost_ick)) {
+-		dev_err(omap->dev, "could not get usbhost_ick\n");
+-		ret =  PTR_ERR(omap->usbhost_ick);
+-		goto err_host_ick;
+-	}
+-
+-	omap->usbhost_hs_fck = clk_get(omap->dev, "usbhost_120m_fck");
+-	if (IS_ERR(omap->usbhost_hs_fck)) {
+-		dev_err(omap->dev, "could not get usbhost_120m_fck\n");
+-		ret = PTR_ERR(omap->usbhost_hs_fck);
+-		goto err_host_hs_fck;
+-	}
+-
+-	omap->usbhost_fs_fck = clk_get(omap->dev, "usbhost_48m_fck");
+-	if (IS_ERR(omap->usbhost_fs_fck)) {
+-		dev_err(omap->dev, "could not get usbhost_48m_fck\n");
+-		ret = PTR_ERR(omap->usbhost_fs_fck);
+-		goto err_host_fs_fck;
+-	}
++	if (cpu_is_omap44xx()) {
++		/* TODO */
++	} else {
++		/* Get all the clock handles we need */
++		omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
++		if (IS_ERR(omap->usbhost_ick)) {
++			dev_err(omap->dev, "could not get usbhost_ick\n");
++			ret =  PTR_ERR(omap->usbhost_ick);
++			goto err_host_ick;
++		}
+ 
+-	omap->usbtll_fck = clk_get(omap->dev, "usbtll_fck");
+-	if (IS_ERR(omap->usbtll_fck)) {
+-		dev_err(omap->dev, "could not get usbtll_fck\n");
+-		ret = PTR_ERR(omap->usbtll_fck);
+-		goto err_tll_fck;
+-	}
++		omap->usbhost_hs_fck = clk_get(omap->dev, "usbhost_120m_fck");
++		if (IS_ERR(omap->usbhost_hs_fck)) {
++			dev_err(omap->dev, "could not get usbhost_120m_fck\n");
++			ret = PTR_ERR(omap->usbhost_hs_fck);
++			goto err_host_hs_fck;
++		}
+ 
+-	omap->usbtll_ick = clk_get(omap->dev, "usbtll_ick");
+-	if (IS_ERR(omap->usbtll_ick)) {
+-		dev_err(omap->dev, "could not get usbtll_ick\n");
+-		ret = PTR_ERR(omap->usbtll_ick);
+-		goto err_tll_ick;
+-	}
++		omap->usbhost_fs_fck = clk_get(omap->dev, "usbhost_48m_fck");
++		if (IS_ERR(omap->usbhost_fs_fck)) {
++			dev_err(omap->dev, "could not get usbhost_48m_fck\n");
++			ret = PTR_ERR(omap->usbhost_fs_fck);
++			goto err_host_fs_fck;
++		}
+ 
+-	/* Now enable all the clocks in the correct order */
+-	ohci_omap3_clock_power(omap, 1);
++		omap->usbtll_fck = clk_get(omap->dev, "usbtll_fck");
++		if (IS_ERR(omap->usbtll_fck)) {
++			dev_err(omap->dev, "could not get usbtll_fck\n");
++			ret = PTR_ERR(omap->usbtll_fck);
++			goto err_tll_fck;
++		}
+ 
+-	/* perform TLL soft reset, and wait until reset is complete */
+-	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
+-			OMAP_USBTLL_SYSCONFIG_SOFTRESET);
++		omap->usbtll_ick = clk_get(omap->dev, "usbtll_ick");
++		if (IS_ERR(omap->usbtll_ick)) {
++			dev_err(omap->dev, "could not get usbtll_ick\n");
++			ret = PTR_ERR(omap->usbtll_ick);
++			goto err_tll_ick;
++		}
+ 
+-	/* Wait for TLL reset to complete */
+-	while (!(ohci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
+-			& OMAP_USBTLL_SYSSTATUS_RESETDONE)) {
+-		cpu_relax();
++		/* Now enable all the clocks in the correct order */
++		ohci_omap3_clock_power(omap, 1);
+ 
+-		if (time_after(jiffies, timeout)) {
+-			dev_dbg(omap->dev, "operation timed out\n");
+-			ret = -EINVAL;
+-			goto err_sys_status;
++		/* perform TLL soft reset, and wait until reset is complete */
++		ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
++				OMAP_USBTLL_SYSCONFIG_SOFTRESET);
++
++		/* Wait for TLL reset to complete */
++		while (!(ohci_omap_readl(omap->tll_base, OMAP_USBTLL_SYSSTATUS)
++				& OMAP_USBTLL_SYSSTATUS_RESETDONE)) {
++			cpu_relax();
++
++			if (time_after(jiffies, timeout)) {
++				dev_dbg(omap->dev, "operation timed out\n");
++				ret = -EINVAL;
++				goto err_sys_status;
++			}
+ 		}
+-	}
+ 
+-	dev_dbg(omap->dev, "TLL reset done\n");
++		dev_dbg(omap->dev, "TLL reset done\n");
+ 
+-	/* (1<<3) = no idle mode only for initial debugging */
+-	ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
+-			OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
+-			OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
+-			OMAP_USBTLL_SYSCONFIG_CACTIVITY);
++		/* (1<<3) = no idle mode only for initial debugging */
++		ohci_omap_writel(omap->tll_base, OMAP_USBTLL_SYSCONFIG,
++				OMAP_USBTLL_SYSCONFIG_ENAWAKEUP |
++				OMAP_USBTLL_SYSCONFIG_SIDLEMODE |
++				OMAP_USBTLL_SYSCONFIG_CACTIVITY);
+ 
+ 
+-	/* Put UHH in NoIdle/NoStandby mode */
+-	reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
+-	reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
++		/* Put UHH in NoIdle/NoStandby mode */
++		reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_SYSCONFIG);
++		reg |= (OMAP_UHH_SYSCONFIG_ENAWAKEUP
+ 			| OMAP_UHH_SYSCONFIG_SIDLEMODE
+ 			| OMAP_UHH_SYSCONFIG_CACTIVITY
+ 			| OMAP_UHH_SYSCONFIG_MIDLEMODE);
+-	reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
+-	reg &= ~OMAP_UHH_SYSCONFIG_SOFTRESET;
++		reg &= ~OMAP_UHH_SYSCONFIG_AUTOIDLE;
++		reg &= ~OMAP_UHH_SYSCONFIG_SOFTRESET;
+ 
+-	ohci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
++		ohci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
+ 
+-	reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
++		reg = ohci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
+ 
+-	/* setup ULPI bypass and burst configurations */
+-	reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
++		/* setup ULPI bypass and burst configurations */
++		reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
+ 			| OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN
+ 			| OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN);
+-	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
++		reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
+ 
+-	/*
+-	 * REVISIT: Pi_CONNECT_STATUS controls MStandby
+-	 * assertion and Swakeup generation - let us not
+-	 * worry about this for now. OMAP HWMOD framework
+-	 * might take care of this later. If not, we can
+-	 * update these registers when adding aggressive
+-	 * clock management code.
+-	 *
+-	 * For now, turn off all the Pi_CONNECT_STATUS bits
+-	 *
+-	if (omap->port_mode[0] == OMAP_OHCI_PORT_MODE_UNUSED)
+-		reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
+-	if (omap->port_mode[1] == OMAP_OHCI_PORT_MODE_UNUSED)
+-		reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
+-	if (omap->port_mode[2] == OMAP_OHCI_PORT_MODE_UNUSED)
+-		reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+-	 */
+-	reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
+-	reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
+-	reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+-
+-	 if (omap->es2_compatibility) {
+ 		/*
+-		 * All OHCI modes need to go through the TLL,
+-		 * unlike in the EHCI case. So use UTMI mode
+-		 * for all ports for OHCI, on ES2.x silicon
+-		 */
+-		dev_dbg(omap->dev, "OMAP3 ES version <= ES2.1\n");
+-		reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
+-	} else {
+-		dev_dbg(omap->dev, "OMAP3 ES version > ES2.1\n");
++		 * REVISIT: Pi_CONNECT_STATUS controls MStandby
++		 * assertion and Swakeup generation - let us not
++		 * worry about this for now. OMAP HWMOD framework
++		 * might take care of this later. If not, we can
++		 * update these registers when adding aggressive
++		 * clock management code.
++		 *
++		 * For now, turn off all the Pi_CONNECT_STATUS bits
++		 *
+ 		if (omap->port_mode[0] == OMAP_OHCI_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
+-		else
+-			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
+-
++			reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
+ 		if (omap->port_mode[1] == OMAP_OHCI_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
+-		else
+-			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
+-
++			reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
+ 		if (omap->port_mode[2] == OMAP_OHCI_PORT_MODE_UNUSED)
+-			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
+-		else
+-			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
++			reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
++		 */
++		reg &= ~OMAP_UHH_HOSTCONFIG_P1_CONNECT_STATUS;
++		reg &= ~OMAP_UHH_HOSTCONFIG_P2_CONNECT_STATUS;
++		reg &= ~OMAP_UHH_HOSTCONFIG_P3_CONNECT_STATUS;
+ 
+-	}
+-	ohci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
+-	dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
++		 if (omap->es2_compatibility) {
++			/*
++			 * All OHCI modes need to go through the TLL,
++			 * unlike in the EHCI case. So use UTMI mode
++			 * for all ports for OHCI, on ES2.x silicon
++			 */
++			dev_dbg(omap->dev, "OMAP3 ES version <= ES2.1\n");
++			reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
++		} else {
++			dev_dbg(omap->dev, "OMAP3 ES version > ES2.1\n");
++			if (omap->port_mode[0] == OMAP_OHCI_PORT_MODE_UNUSED)
++				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
++			else
++				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
++
++			if (omap->port_mode[1] == OMAP_OHCI_PORT_MODE_UNUSED)
++				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
++			else
++				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
++
++			if (omap->port_mode[2] == OMAP_OHCI_PORT_MODE_UNUSED)
++				reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
++			else
++				reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
+ 
+-	ohci_omap3_tll_config(omap, OMAP_TLL_CHANNEL_COUNT);
++		}
++		ohci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
++		dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
+ 
+-	return 0;
++		ohci_omap3_tll_config(omap, OMAP_TLL_CHANNEL_COUNT);
++
++		return 0;
+ 
+ err_sys_status:
+-	ohci_omap3_clock_power(omap, 0);
+-	clk_put(omap->usbtll_ick);
++		ohci_omap3_clock_power(omap, 0);
++		clk_put(omap->usbtll_ick);
+ 
+ err_tll_ick:
+-	clk_put(omap->usbtll_fck);
++		clk_put(omap->usbtll_fck);
+ 
+ err_tll_fck:
+-	clk_put(omap->usbhost_fs_fck);
++		clk_put(omap->usbhost_fs_fck);
+ 
+ err_host_fs_fck:
+-	clk_put(omap->usbhost_hs_fck);
++		clk_put(omap->usbhost_hs_fck);
+ 
+ err_host_hs_fck:
+-	clk_put(omap->usbhost_ick);
++		clk_put(omap->usbhost_ick);
+ 
+ err_host_ick:
+-	return ret;
++		return ret;
++	}
+ }
+ 
+ static void omap3_stop_ohci(struct ohci_hcd_omap3 *omap, struct usb_hcd *hcd)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
