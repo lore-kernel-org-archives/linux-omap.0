@@ -1,106 +1,49 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: DSS2 patch series
-Date: Fri, 20 Aug 2010 03:03:57 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703064DD0E3@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870305FAB57B@dbde02.ent.ti.com>
-	 <1280749895.3436.47.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC35608703061EBA59@dbde02.ent.ti.com>
-	 <1280825023.3436.111.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC3560870306287736@dbde02.ent.ti.com>
-	 <1280995782.3436.205.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC356087030635EC1D@dbde02.ent.ti.com>
-	 <1282042346.2348.35.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC35608703064DC3F9@dbde02.ent.ti.com>
- <1282045184.2348.49.camel@tubuntu.research.nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [linux-pm] [PATCH] PM: runtime PM + idle: allow usage when interrupts are disabled
+Date: Thu, 19 Aug 2010 14:37:43 -0700
+Message-ID: <874oeqgu6w.fsf@deeprootsystems.com>
+References: <1281459261-30829-1-git-send-email-khilman@deeprootsystems.com>
+	<201008162318.03923.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33695 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753636Ab0HSVeG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 17:34:06 -0400
-In-Reply-To: <1282045184.2348.49.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:39909 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753703Ab0HSVhq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 17:37:46 -0400
+Received: by pzk26 with SMTP id 26so940238pzk.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 Aug 2010 14:37:45 -0700 (PDT)
+In-Reply-To: <201008162318.03923.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Mon, 16 Aug 2010 23:18:03 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Ming Lei <tom.leiming@gmail.com>
 
-Hi, 
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com] 
-> Sent: Tuesday, August 17, 2010 5:10 PM
-> To: Taneja, Archit
-> Cc: Semwal, Sumit; linux-omap@vger.kernel.org
-> Subject: RE: DSS2 patch series
-> 
-> On Tue, 2010-08-17 at 13:16 +0200, ext Taneja, Archit wrote:
-> > Hi,
-> > 
-> > > Ok. Well, good that it's clear now =).
-> > > 
-> > > > How do you think we can clean things up?
-> > > 
-> > > If I remember right, there's some kind of feature framework being 
-> > > worked on (or ready?), but I haven't looked at that at 
-> all. That may 
-> > > or may not suit our needs.
-> > > 
-> > > But perhaps we could just have a separate dss_features.c 
-> file, which 
-> > > would contain a bunch of functions that can be used to 
-> ask whether a 
-> > > certain feature is supported, and also to ask certain values (max 
-> > > dividers or similar).
-> > 
-> > I talked to some more folks about this. To summarize:
-> > 
-> > - The revision registers aren't reliable enough, it's better to use 
-> > the combination of cpu_is_xxxx and and omap_rev macros. 
-> These should 
-> > be enough for making an DSS specific feature list.
-> > 
-> > -The feature framework(HWMOD) can help out with the following things
-> > 	- The internal IP blocks within DSS.
-> > 	- The PRCM clocks and IRQs coming to DSS, and PM stuff 
-> which I don't
-> > 	know much about.
-> > 	- Effectively, the information on how the outside world 
-> communicates with DSS.
-> > 
-> > -DSS features like number of vid pipelines, supported color 
-> > modes,internal clocks and PLL info, bit fields needs to be 
-> managed by us.
-> > 
-> > One good input was that we can manage internal DSS clocks using the 
-> > exisiting clock framework and custom clock modes. I don't know much 
-> > about it. Others in the list can probably help out with this :)
-> > 
-> > The present way of handling DSS2 clocks is good, but we 
-> need to see if 
-> > it can be scalable when more OMAPs come in.
-> > 
-> > The dss_features.c idea sounds good, we will still have these new 
-> > bunch of functions scattered around in the code. But it 
-> will be much than an if else chain of omap checks.
-> > 
-> > So should we stick with this idea?
-> 
-> Yes, and even if the dss_features.c isn't what is needed in 
-> the end, it'll still be easier to convert to whatever way we 
-> want in the future.
-> 
-> But this is also not a very high priority thing. So I don't 
-> see a need to start converting everything to use 
-> dss_features.c right away. We can start by converting the 
-> places where OMAP4 changes require feature checks.
-> 
->  Tomi
-> 
+> On Tuesday, August 10, 2010, Kevin Hilman wrote:
+>> When using runtime PM in combination with CPUidle, the runtime PM
+>> transtions of some devices may be triggered during the idle path.
+>> Late in the idle sequence, interrupts will likely be disabled when
+>> runtime PM for these devices is initiated.
+>> 
+>> Currently, the runtime PM core assumes methods are called with
+>> interrupts enabled.  However, if it is called with interrupts
+>> disabled, the internal locking unconditionally enables interrupts, for
+>> example:
+>> 
+>> pm_runtime_put_sync()
+>
+> Please don't use that from interrupt context.  
 
-Okay, I'll come up with a way to implement the dss_features.c idea,
-I'll also try to learn how we can use hwmod for dss specific features.
+I'm not using this in interrupt context.  I'm using it in process
+context where interrupts are disabled, specifically, the idle thread.
 
-Archit
+> There's pm_runtime_put() exactly for this purpose that puts the
+> _idle() call into a workqueue.
+
+If I'm in my CPU's idle path, I don't want to activate a workqueue
+because then I'll no longer be idle.
+
+Kevin
