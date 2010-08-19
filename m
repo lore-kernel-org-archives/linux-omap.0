@@ -1,39 +1,110 @@
-From: Roger Quadros <roger.quadros@nokia.com>
-Subject: Re: [PATCHv2 2/2] omap: rx51: add support for USB chargers
-Date: Thu, 19 Aug 2010 17:25:49 +0300
-Message-ID: <4C6D3EED.7040703@nokia.com>
-References: <1282219777-17657-1-git-send-email-ext-heikki.krogerus@nokia.com> <1282219777-17657-3-git-send-email-ext-heikki.krogerus@nokia.com> <20100819124042.GA15837@oksana.dev.rtsoft.ru> <20100819130937.GC4363@esdhcp041123.research.nokia.com>
+From: "Sapiens, Rene" <rene.sapiens@ti.com>
+Subject: RE: [PATCHv2] mailbox: change full flag per mailbox queue instead
+ of global
+Date: Thu, 19 Aug 2010 11:09:34 -0500
+Message-ID: <D2943F03B81C9C458E44DFB213905E02B7637B6D@dlee04.ent.ti.com>
+References: <1281489169-15945-1-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17932 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476Ab0HSOZU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 10:25:20 -0400
-In-Reply-To: <20100819130937.GC4363@esdhcp041123.research.nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51121 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752277Ab0HSQLw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 12:11:52 -0400
+In-Reply-To: <1281489169-15945-1-git-send-email-x0095840@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krogerus Heikki (EXT-Teleca/Helsinki)" <ext-heikki.krogerus@nokia.com>
-Cc: ext Anton Vorontsov <cbouatmailru@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "Balbi Felipe (Nokia-MS/Helsinki)" <felipe.balbi@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "Lehtonen Markus (Nokia-MS/Helsinki)" <markus.lehtonen@nokia.com>, Tony Lindgren <tony@atomide.com>
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>
 
-On 08/19/2010 04:09 PM, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
-> On Thu, Aug 19, 2010 at 02:40:42PM +0200, ext Anton Vorontsov wrote:
->> On Thu, Aug 19, 2010 at 03:09:37PM +0300, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
->>> @@ -909,5 +913,6 @@ void __init rx51_peripherals_init(void)
->>>   	spi_register_board_info(rx51_peripherals_spi_board_info,
->>>   				ARRAY_SIZE(rx51_peripherals_spi_board_info));
->>>   	omap2_hsmmc_init(mmc);
->>> +	platform_device_register(&rx51_charger_device);
->>
->> Maybe
->>
->>    platform_device_register_simple("isp1704_charger", -1, NULL, 0);
->
-> I guess it's enough in this case. Ameya, Roger, any objections?
->
-I'm fine with the current approach. No need to re-spin.
+Hi Ohad,
 
--- 
-regards,
--roger
+This patch already contains the missed changes due to previous rebases.
+Thanks.
+
+Regards,
+Rene
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Guzman Lugo, Fernando
+> Sent: Tuesday, August 10, 2010 8:13 PM
+> To: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> Cc: hiroshi.doyu@nokia.com; ohad@wizery.com; Guzman Lugo, Fernando
+> Subject: [PATCHv2] mailbox: change full flag per mailbox queue instead of
+> global
+> 
+> As pointed by Ohad Ben-Cohen, the variable rq_full flag is a
+> global variable, so if there are multiple mailbox users
+> there will be conflics. Now there is a full flag per
+> mailbox queue.
+> 
+> Version 2:
+> - Rebase to the latest.
+> 
+> Reported-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/mailbox.h |    1 +
+>  arch/arm/plat-omap/mailbox.c              |   10 +++++++---
+>  2 files changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/mailbox.h b/arch/arm/plat-
+> omap/include/plat/mailbox.h
+> index 9976565..261f6b8 100644
+> --- a/arch/arm/plat-omap/include/plat/mailbox.h
+> +++ b/arch/arm/plat-omap/include/plat/mailbox.h
+> @@ -48,6 +48,7 @@ struct omap_mbox_queue {
+>  	struct tasklet_struct	tasklet;
+>  	int	(*callback)(void *);
+>  	struct omap_mbox	*mbox;
+> +	bool	full;
+>  };
+> 
+>  struct omap_mbox {
+> diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+> index d2fafb8..c59c9c3 100644
+> --- a/arch/arm/plat-omap/mailbox.c
+> +++ b/arch/arm/plat-omap/mailbox.c
+> @@ -33,7 +33,6 @@
+> 
+>  static struct workqueue_struct *mboxd;
+>  static struct omap_mbox **mboxes;
+> -static bool rq_full;
+> 
+>  static int mbox_configured;
+>  static DEFINE_MUTEX(mbox_configured_lock);
+> @@ -145,7 +144,12 @@ static void mbox_rx_work(struct work_struct *work)
+>  	while (kfifo_len(&mq->fifo) >= sizeof(msg)) {
+>  		len = kfifo_out(&mq->fifo, (unsigned char *)&msg,
+> sizeof(msg));
+>  		WARN_ON(len != sizeof(msg));
+> -
+> +		spin_lock_irq(&mq->lock);
+> +		if (mq->full) {
+> +			omap_mbox_enable_irq(mq->mbox, IRQ_RX);
+> +			mq->full = false;
+> +		}
+> +		spin_unlock_irq(&mq->lock);
+>  		if (mq->callback)
+>  			mq->callback((void *)msg);
+>  	}
+> @@ -170,7 +174,7 @@ static void __mbox_rx_interrupt(struct omap_mbox
+> *mbox)
+>  	while (!mbox_fifo_empty(mbox)) {
+>  		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
+>  			omap_mbox_disable_irq(mbox, IRQ_RX);
+> -			rq_full = true;
+> +			mq->full = true;
+>  			goto nomem;
+>  		}
+> 
+> --
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
