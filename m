@@ -1,87 +1,54 @@
-From: Marin Mitov <mitov@issp.bas.bg>
-Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera interface
-Date: Thu, 19 Aug 2010 20:25:31 +0300
-Message-ID: <201008192025.31660.mitov@issp.bas.bg>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <201008191516.21910.mitov@issp.bas.bg> <201008191909.28697.jkrzyszt@tis.icnet.pl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/6] OMAP3: PM: ensure IO wakeups are properly disabled
+Date: Thu, 19 Aug 2010 11:14:32 -0700
+Message-ID: <87sk2ao4fr.fsf@deeprootsystems.com>
+References: <20100813080034.18750.15410.stgit@baageli.muru.com>
+	<20100813080200.18750.37791.stgit@baageli.muru.com>
+	<4C651635.8000201@ru.mvista.com> <20100813102933.GN12706@atomide.com>
+	<4C65238D.9080105@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.issp.bas.bg ([195.96.236.10]:48818 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751641Ab0HSR1T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 13:27:19 -0400
-In-Reply-To: <201008191909.28697.jkrzyszt@tis.icnet.pl>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:38203 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753176Ab0HSSOg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 14:14:36 -0400
+Received: by pzk26 with SMTP id 26so868140pzk.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 Aug 2010 11:14:36 -0700 (PDT)
+In-Reply-To: <4C65238D.9080105@ru.mvista.com> (Sergei Shtylyov's message of
+	"Fri, 13 Aug 2010 14:50:53 +0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
 
-On Thursday, August 19, 2010 08:09:27 pm Janusz Krzysztofik wrote:
-> Thursday 19 August 2010 14:16:21 Marin Mitov napisa=C5=82(a):
-> > On Thursday, August 19, 2010 02:39:47 pm Guennadi Liakhovetski wrot=
-e:
-> > >
-> > > No, I don't think you should go to the next power of 2 - that's t=
-oo
-> > > crude. Try rounding your buffer size to the page size, that shoul=
-d
-> > > suffice.
->=20
-> Guennadi,
-> If you have a look at how a device reserved memory is next allocated =
-to a=20
-> driver with drivers/base/dma-coherent.c::dma_alloc_from_coherent(), t=
-hen than=20
-> you may find my conclusion on a power of 2 as true:
->=20
-> int dma_alloc_from_coherent(struct device *dev, ssize_t size,
-> 					dma_addr_t *dma_handle, void **ret)
-> {
-> ...
->         int order =3D get_order(size);
-> ...
-> 	pageno =3D bitmap_find_free_region(mem->bitmap, mem->size, order);
-> ...
-> }
->=20
->=20
-> > Allocated coherent memory is always a power of 2.
->=20
-> Marin,
-> For ARM, this seems true as long as allocated with the above from a d=
-evice=20
-> assigned pool, but not true for a (pre)allocation from a generic syst=
-em RAM.=20
-> See arch/arm/mm/dma-mapping.c::__dma_alloc_buffer(), where it looks l=
-ike extra=20
-> pages are freed:
->=20
-> static struct page *__dma_alloc_buffer(struct device *dev, size_t siz=
-e, gfp_t gfp)
-> {
-> 	unsigned long order =3D get_order(size);
-> ...
-> 	page =3D alloc_pages(gfp, order);
-> ...
-> 	split_page(page, order);
->         for (p =3D page + (size >> PAGE_SHIFT), e =3D page + (1 << or=
-der); p < e; p++)
->                 __free_page(p);
-> ...
-> }=09
+Sergei Shtylyov <sshtylyov@mvista.com> writes:
 
-Thanks for the clarification.
+> Hello.
+>
+> Tony Lindgren wrote:
+>
+>>>> From: Kevin Hilman <khilman@ti.com>
+>>>> Commit 5a5f561 (convert OMAP3 PRCM macros to the _SHIFT/_MASK suffixes)
+>>>> mistakenly removed the check for PER when disabling the IO chain.
+>
+>>>> During idle, if the PER powerdomain transitions and CORE does not (as
+>
+>>>   Does not what?
+>
+>> How about ".. and CORE does not transition"?
+>
+>    Transition to what then? Sentense till won't parse right...
+>
+>> Kevin, care to clarify that?
+>
+>    Yeah, looks like a considerable partt of that sentense got omitted...
+>
 
-Marin Mitov
+No.  Nothing was omitted.  
 
->=20
->=20
-> Thanks,
-> Janusz
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It's like saying "Tony drinks Fernet and Kevin does not."  Adding an
+additional "drinks Fernet" at the end is redundant.
+
+Kevin
+
