@@ -1,58 +1,55 @@
-From: Anton Vorontsov <cbouatmailru@gmail.com>
-Subject: Re: [PATCHv2 2/2] omap: rx51: add support for USB chargers
-Date: Fri, 20 Aug 2010 20:24:40 +0400
-Message-ID: <20100820162440.GA31661@oksana.dev.rtsoft.ru>
-References: <1282219777-17657-1-git-send-email-ext-heikki.krogerus@nokia.com>
- <1282219777-17657-3-git-send-email-ext-heikki.krogerus@nokia.com>
- <20100819124042.GA15837@oksana.dev.rtsoft.ru>
- <20100819130937.GC4363@esdhcp041123.research.nokia.com>
- <4C6D3EED.7040703@nokia.com>
- <20100820072525.GJ25742@atomide.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] omap:iommu-load cam register before flushing the entry
+Date: Fri, 20 Aug 2010 19:25:58 +0300 (EEST)
+Message-ID: <20100820.192558.246512790.Hiroshi.DOYU@nokia.com>
+References: <1282312218-26545-1-git-send-email-h-kanigeri2@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:58688 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946Ab0HTQYp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 12:24:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20100820072525.GJ25742@atomide.com>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:55533 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752205Ab0HTQ0F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 12:26:05 -0400
+In-Reply-To: <1282312218-26545-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Krogerus Heikki (EXT-Teleca/Helsinki)" <ext-heikki.krogerus@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "Balbi Felipe (Nokia-MS/Helsinki)" <felipe.balbi@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "Lehtonen Markus (Nokia-MS/Helsinki)" <markus.lehtonen@nokia.com>, Roger Quadros <roger.quadros@nokia.com>
+To: h-kanigeri2@ti.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Aug 20, 2010 at 10:25:26AM +0300, Tony Lindgren wrote:
-> Hi,
+Hi Hari,
+
+From: ext Hari Kanigeri <h-kanigeri2@ti.com>
+Subject: [PATCH] omap:iommu-load cam register before flushing the entry
+Date: Fri, 20 Aug 2010 15:50:18 +0200
+
+> The flush_iotlb_page is not loading the cam register before flushing
+> the cam entry. This causes wrong entry to be flushed out from the TLB, and
+> if the entry happens to be a locked TLB entry it would lead to MMU faults.
 > 
-> * Roger Quadros <roger.quadros@nokia.com> [100819 17:17]:
-> > On 08/19/2010 04:09 PM, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
-> > >On Thu, Aug 19, 2010 at 02:40:42PM +0200, ext Anton Vorontsov wrote:
-> > >>On Thu, Aug 19, 2010 at 03:09:37PM +0300, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
-> > >>>@@ -909,5 +913,6 @@ void __init rx51_peripherals_init(void)
-> > >>>  	spi_register_board_info(rx51_peripherals_spi_board_info,
-> > >>>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
-> > >>>  	omap2_hsmmc_init(mmc);
-> > >>>+	platform_device_register(&rx51_charger_device);
-> > >>
-> > >>Maybe
-> > >>
-> > >>   platform_device_register_simple("isp1704_charger", -1, NULL, 0);
-> > >
-> > >I guess it's enough in this case. Ameya, Roger, any objections?
-> > >
-> > I'm fine with the current approach. No need to re-spin.
+> The fix is to load the cam register with the address to be flushed before
+> flushing the TLB entry.
 > 
-> Just checking.. Anton, can you please queue up this 2/2 patch too to
-> keep them together? Here's my ack:
+> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+
+Ok for me. Thanks.
+
+> ---
+>  arch/arm/plat-omap/iommu.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-Sure thing, applied.
-
-Thanks!
-
--- 
-Anton Vorontsov
-email: cbouatmailru@gmail.com
-irc://irc.freenode.net/bd2
+> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+> index 2e603fe..c534280 100644
+> --- a/arch/arm/plat-omap/iommu.c
+> +++ b/arch/arm/plat-omap/iommu.c
+> @@ -315,6 +315,7 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
+>  		if ((start <= da) && (da < start + bytes)) {
+>  			dev_dbg(obj->dev, "%s: %08x<=%08x(%x)\n",
+>  				__func__, start, da, bytes);
+> +			iotlb_load_cr(obj, &cr);
+>  			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
+>  		}
+>  	}
+> -- 
+> 1.7.0
+> 
