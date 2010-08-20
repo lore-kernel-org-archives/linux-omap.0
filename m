@@ -1,35 +1,46 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 3/6] OMAP3: PM: ensure IO wakeups are properly disabled
-Date: Fri, 20 Aug 2010 09:43:29 -0700
-Message-ID: <87bp8xck0e.fsf@deeprootsystems.com>
-References: <20100813080034.18750.15410.stgit@baageli.muru.com>
-	<20100813080200.18750.37791.stgit@baageli.muru.com>
-	<4C651635.8000201@ru.mvista.com> <20100813102933.GN12706@atomide.com>
-	<4C65238D.9080105@ru.mvista.com> <87sk2ao4fr.fsf@deeprootsystems.com>
-	<4C6D7936.3090201@ru.mvista.com> <20100820065649.GH25742@atomide.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: omap3_defconfig: USB_OTG unmet dependencies
+Date: Fri, 20 Aug 2010 14:21:27 -0500
+Message-ID: <A24693684029E5489D1D202277BE89445721F86D@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:63723 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946Ab0HTQne (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 12:43:34 -0400
-Received: by gyd8 with SMTP id 8so1325511gyd.19
-        for <linux-omap@vger.kernel.org>; Fri, 20 Aug 2010 09:43:34 -0700 (PDT)
-In-Reply-To: <20100820065649.GH25742@atomide.com> (Tony Lindgren's message of
-	"Fri, 20 Aug 2010 09:56:50 +0300")
+Received: from bear.ext.ti.com ([192.94.94.41]:60943 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751050Ab0HTTV3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 15:21:29 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7KJLTcG020136
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 20 Aug 2010 14:21:29 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id o7KJLSs3016121
+	for <linux-omap@vger.kernel.org>; Fri, 20 Aug 2010 14:21:28 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o7KJLSSS011681
+	for <linux-omap@vger.kernel.org>; Fri, 20 Aug 2010 14:21:28 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony Lindgren <tony@atomide.com> writes:
+Hi all,
 
-[...]
+Today, I tried loading the omap3_defconfig from current master commit: 
 
-> I'll update it with the following to preserve the Fernet style,
-> and to describe the transition:
+ddfc2d1 Linux-omap rebuilt: Updated to v2.6.36-rc1
 
-ok with me, thanks tony.
+And I noticed this bad Kconfig dependency:
 
-Kevin
+warning: (USB_MUSB_HDRC_HCD && USB_SUPPORT && USB_MUSB_HDRC && (USB_MUSB_HOST || USB_MUSB_OTG) && USB_GADGET_MUSB_HDRC || USB_MUSB_OTG && <choice> && USB && USB_GADGET && PM && EXPERIMENTAL) selects USB_OTG which has unmet direct dependencies (USB_GADGET_OMAP && ARCH_OMAP_OTG && USB_OHCI_HCD)
+warning: (USB_MUSB_HDRC_HCD && USB_SUPPORT && USB_MUSB_HDRC && (USB_MUSB_HOST || USB_MUSB_OTG) && USB_GADGET_MUSB_HDRC || USB_MUSB_OTG && <choice> && USB && USB_GADGET && PM && EXPERIMENTAL) selects USB_OTG which has unmet direct dependencies (USB_GADGET_OMAP && ARCH_OMAP_OTG && USB_OHCI_HCD)
+#
+# configuration written to .config
+#
+
+Is there a patch to resolve this already?
+
+Regards,
+Sergio
+
