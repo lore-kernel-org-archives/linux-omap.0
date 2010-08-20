@@ -1,61 +1,47 @@
 From: "kishore kadiyala" <kishore.kadiyala@ti.com>
-Subject: [pm-wip/mmc][PATCH 00/10] OMAP MMC Hwmod & Runtime patches
-Date: Sat, 21 Aug 2010 01:40:17 +0530 (IST)
-Message-ID: <16071.10.24.255.18.1282335017.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 01/10] [PM-WIP-MMC] OMAP2 HWMOD: Updating MMC Controller
+     data
+Date: Sat, 21 Aug 2010 01:40:24 +0530 (IST)
+Message-ID: <16079.10.24.255.18.1282335024.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46726 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751016Ab0HTUKV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Aug 2010 16:10:21 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:34476 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751016Ab0HTUK3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 16:10:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, tony@atomide.com, b-cousson@ti.com
 
-Hi,
+Updating OMAP2 hwmod data file with correct register offsets for
+MMC controllers.
 
-1) The patch series has dependency on Tony's patches
-   http://www.spinics.net/lists/linux-omap/msg34835.html
-   http://www.spinics.net/lists/linux-omap/msg34834.html
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-2) The patch series has some updations of hwmod data
-   for MMC controller's on MMC2/3.
-3) Also adds & updates hwmod data for mmc and uart for OMAP4.
-   Adding UART for OMAP4 helps to validate MMC cards from console
-4) Also the series includes couple of fixes
-   a) runtime crash seen currently on tree. Validated on OMAP3430.
-   b) crash on OMAP4430 when CONFIG_MMC_OMAP_HS is not set.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index cec1671..d342f58 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -401,8 +401,9 @@ static struct omap_hwmod omap2430_uart3_hwmod = {
+ /* MMC/SD/SDIO common */
 
-The entire series has been tested on OMAP4430 SDP with omap3_defconfig
-Currently working on runtime for MMC and will update later.
-
-
-Kishore Kadiyala (7):
-  [PM-WIP-MMC] OMAP2 HWMOD: Updating MMC Controller data
-  [PM-WIP-MMC] OMAP3 HWMOD: Updating MMC controller data
-  [PM-WIP-MMC] OMAP2/OMAP3: Updating hwmod name for MMC controller
-  [PM-WIP-MMC] OMAP4 hwmod: Updating hwmod data for MMC controllers
-  [PM-WIP-MMC] OMAP MMC: Remove MMC controller reset
-  [PM-WIP-MMC] OMAP MMC: Register offset handling
-  [PM-WIP-MMC] OMAP MMC : Fix crash with CONFIG_PM_RUNTIME
-
-Benoit Cousson (3):
-  [PM-WIP-MMC] OMAP4 hwmod: Adding hwmod data for MMC controller
-  [PM-WIP-UART] OMAP4 hwmod : Adding hwmod data for UART
-  [PM-WIP-MMC] omap4 hsmmc: Fix the init if CONFIG_MMC_OMAP_HS is not
-    set
-
- arch/arm/mach-omap2/board-4430sdp.c        |    7 +-
- arch/arm/mach-omap2/devices.c              |  106 +-----
- arch/arm/mach-omap2/hsmmc.c                |    6 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    9 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   11 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  567 +++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/mmc.h      |   76 ++++
- drivers/mmc/host/omap_hsmmc.c              |  256 ++++++-------
- 8 files changed, 785 insertions(+), 253 deletions(-)
-
+ static struct omap_hwmod_class_sysconfig mmc_sysc = {
+-	.rev_offs	= 0x10,
+-	.sysc_offs	= 0x14,
++	.rev_offs	= 0x1FC,
++	.sysc_offs	= 0x10,
++	.syss_offs	= 0x14,
+ 	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SIDLEMODE |
+ 			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+ 			   SYSC_HAS_AUTOIDLE | SYSS_MISSING),
+-- 
+1.7.0.4
 
