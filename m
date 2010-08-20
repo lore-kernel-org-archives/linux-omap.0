@@ -1,84 +1,75 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/5] OMAP: McSPI: Implement McSPI in HWMOD way
-Date: Thu, 19 Aug 2010 17:56:43 -0700
-Message-ID: <87fwyacd9w.fsf@deeprootsystems.com>
-References: <1281708323-18989-1-git-send-email-charu@ti.com>
-	<AANLkTikS0tX3GA+1LXnqbZYuuWteOTq7dH13i-icKYD2@mail.gmail.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: [PATCH v5 1/3] ARM: OMAP: Beagle: revision detection
+Date: Thu, 19 Aug 2010 21:33:37 -0500
+Message-ID: <AANLkTimixBcvEfUHVKOCWdVSr6WLb7n_YMeP77E4VuUJ@mail.gmail.com>
+References: <1282147013-508-1-git-send-email-robertcnelson@gmail.com>
+	<20100819095329.3c39a8a9.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:36680 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750975Ab0HTA4q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 20:56:46 -0400
-Received: by pvg2 with SMTP id 2so978872pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 19 Aug 2010 17:56:45 -0700 (PDT)
-In-Reply-To: <AANLkTikS0tX3GA+1LXnqbZYuuWteOTq7dH13i-icKYD2@mail.gmail.com>
-	(Grant Likely's message of "Fri, 13 Aug 2010 16:44:30 -0600")
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:57555 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817Ab0HTCdi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 22:33:38 -0400
+Received: by eyg5 with SMTP id 5so1821582eyg.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 Aug 2010 19:33:37 -0700 (PDT)
+In-Reply-To: <20100819095329.3c39a8a9.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Charulatha V <charu@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, dbrownell@users.sourceforge.net, spi-devel-general@lists.sourceforge.net, rnayak@ti.com, p-basak2@ti.com, govindraj.raja@ti.com
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-Grant Likely <grant.likely@secretlab.ca> writes:
-
-> On Fri, Aug 13, 2010 at 8:05 AM, Charulatha V <charu@ti.com> wrote:
->> This patch series implements McSPI Module in HWMOD FW way
->> and use the runtime PM layer.
+On Thu, Aug 19, 2010 at 1:53 AM, Jarkko Nikula <jhnikula@gmail.com> wro=
+te:
+> On Wed, 18 Aug 2010 10:56:51 -0500
+> Robert Nelson <robertcnelson@gmail.com> wrote:
 >
-> Hi Charulatha,
+>> + =A0 =A0 ret =3D gpio_request(171, "rev_id_0");
+>> + =A0 =A0 if (ret < 0)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto fail0;
+>> +
+>> + =A0 =A0 ret =3D gpio_request(172, "rev_id_1");
+>> + =A0 =A0 if (ret < 0)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto fail1;
+>> +
+>> + =A0 =A0 ret =3D gpio_request(173, "rev_id_2");
+>> + =A0 =A0 if (ret < 0)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto fail2;
+> ...
+>> +fail2:
+>> + =A0 =A0 gpio_free(173);
+>> +fail1:
+>> + =A0 =A0 gpio_free(172);
+>> +fail0:
+>> + =A0 =A0 gpio_free(171);
 >
-> I'll go through and review the patches, but I'm unfamiliar with HWMOD.
-> Is there a description of HWMOD that you can point me at?
+> This must be:
+>
+> +fail2:
+> + =A0 =A0 =A0 gpio_free(172);
+> +fail1:
+> + =A0 =A0 =A0 gpio_free(171);
+> +fail0:
+>
+> Otherwise the set looks good to me.
+>
+>
+> --
+> Jarkko
+>
 
-Hi Grant,
+Thanks Jarkko,
 
-If you want to skip my rambling, the source for omap_hwmod is in mainline:
+Yeah that one is obvious, will resubmit..
 
-   arch/arm/mach-omap2/omap_hwmod.c
-   arch/arm/plat-omap/include/plat/omap_hwmod.h
+Regards,
 
-omap_hwmod is short for OMAP hardware module.  It is essentially a
-central way of describing each IP block in an OMAP SoC, and the way they
-are connected together to make an SoC.  An omap_hwmod for a given IP
-block contains base address, IRQs, DMA channels etc. (as would a device
-tree node) but also includes information on any master/slave interfaces
-to model how IP blocks are connected on the SoC and many other details.
-With my PM hat on, the most important part of an omap_hwmod is that it
-also defines lots of details about the PM register and capabilities of a
-given IP block.
-
-Part of omap_hwmod is the data (which is now auto-generated for current
-and future OMAPs), and the other part is the code.  In the code, the
-omap_hwmod layer also provides an API so that functionality common to
-all IP blocks (clock management, power states, idle modes, resets, etc.)
-can be handled in a common way.
-
-Drivers do not interact directly with omap_hwmod and it is considered
-OMAP core code.  In other threads, you've seen a little bit of the
-omap_device layer.  The omap_device layer encapsulates the omap_hwmod
-layer.  An omap_device consists of at least one (but possibly several)
-omap_hwmods.  Drivers do not interact directly with omap_device either,
-but instead use runtime PM to trigger the custom bus code which would
-call omap_device_* which in turn would call into omap_hwmod_*.  Also,
-from the omap_hwmod data, platform_devices are generated (including
-resources) so drivers get the common data in standard ways.
-
-So, with that background, we're going through some major work in several
-OMAP drivers to convert them to work across multiple OMAP SoCs (OMAP2, 3
-and 4.)  To make the drivers more general, this means adding the hwmod
-data for the device IP, building the omap_device for the device and
-converting the driver to use runtime PM instead of direct clock management.
-
-You see all these changes happening in a single patch because the are
-quite dependent on one another.  This driver seems to have needed pretty
-significant cleanup as well, so I agree that this last patch should be
-broken up into parts.  
-
-I think it could be broken up into at least two parts:
-cleanup/restructure work to handle more data coming via platform_data,
-followed by the conversion to runtime PM.
-
-Kevin
-
-
+--=20
+Robert Nelson
+http://www.rcn-ee.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
