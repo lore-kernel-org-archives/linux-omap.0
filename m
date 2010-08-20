@@ -1,53 +1,47 @@
-From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [RFC] [PATCH 5/5] usb: ohci: omap: enable the ohci port on OMAP4SDP
-Date: Fri, 20 Aug 2010 00:48:10 +0530
-Message-ID: <1282245490-24339-6-git-send-email-keshava_mgowda@ti.com>
-References: <1282245490-24339-1-git-send-email-keshava_mgowda@ti.com>
- <1282245490-24339-2-git-send-email-keshava_mgowda@ti.com>
- <1282245490-24339-3-git-send-email-keshava_mgowda@ti.com>
- <1282245490-24339-4-git-send-email-keshava_mgowda@ti.com>
- <1282245490-24339-5-git-send-email-keshava_mgowda@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv2 2/2] omap: rx51: add support for USB chargers
+Date: Fri, 20 Aug 2010 10:25:26 +0300
+Message-ID: <20100820072525.GJ25742@atomide.com>
+References: <1282219777-17657-1-git-send-email-ext-heikki.krogerus@nokia.com>
+ <1282219777-17657-3-git-send-email-ext-heikki.krogerus@nokia.com>
+ <20100819124042.GA15837@oksana.dev.rtsoft.ru>
+ <20100819130937.GC4363@esdhcp041123.research.nokia.com>
+ <4C6D3EED.7040703@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55281 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752017Ab0HTHRi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Aug 2010 03:17:38 -0400
-In-Reply-To: <1282245490-24339-5-git-send-email-keshava_mgowda@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60189 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751083Ab0HTHZ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 03:25:29 -0400
+Content-Disposition: inline
+In-Reply-To: <4C6D3EED.7040703@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, Anand Gadiyar <gadiyar@ti.com>
+To: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: "Krogerus Heikki (EXT-Teleca/Helsinki)" <ext-heikki.krogerus@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "Balbi Felipe (Nokia-MS/Helsinki)" <felipe.balbi@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "Lehtonen Markus (Nokia-MS/Helsinki)" <markus.lehtonen@nokia.com>, Roger Quadros <roger.quadros@nokia.com>
 
-The port 2 of OHCI controller is connected to external PHY. 
-The Unidirection 6 pin serial mode is configured.
+Hi,
 
-Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+* Roger Quadros <roger.quadros@nokia.com> [100819 17:17]:
+> On 08/19/2010 04:09 PM, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
+> >On Thu, Aug 19, 2010 at 02:40:42PM +0200, ext Anton Vorontsov wrote:
+> >>On Thu, Aug 19, 2010 at 03:09:37PM +0300, Krogerus Heikki (EXT-Teleca/Helsinki) wrote:
+> >>>@@ -909,5 +913,6 @@ void __init rx51_peripherals_init(void)
+> >>>  	spi_register_board_info(rx51_peripherals_spi_board_info,
+> >>>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+> >>>  	omap2_hsmmc_init(mmc);
+> >>>+	platform_device_register(&rx51_charger_device);
+> >>
+> >>Maybe
+> >>
+> >>   platform_device_register_simple("isp1704_charger", -1, NULL, 0);
+> >
+> >I guess it's enough in this case. Ameya, Roger, any objections?
+> >
+> I'm fine with the current approach. No need to re-spin.
 
-Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c
-+++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-@@ -424,6 +424,11 @@ static const struct ehci_hcd_omap_platfo
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+static const struct ohci_hcd_omap_platform_data ohci_pdata __initconst = {
-+	.port_mode[0] = OMAP_OHCI_PORT_MODE_UNUSED,
-+	.port_mode[1] = OMAP_OHCI_PORT_MODE_PHY_6PIN_DATSE0,
-+	.port_mode[2] = OMAP_OHCI_PORT_MODE_UNUSED,
-+};
- static int __init omap4_i2c_init(void)
- {
- 	/*
-@@ -454,6 +459,7 @@ static void __init omap_4430sdp_init(voi
- 		gpio_direction_output(OMAP4SDP_MDM_PWR_EN_GPIO, 1);
- 	}
- 	usb_ehci_init(&ehci_pdata);
-+	usb_ohci_init(&ohci_pdata);
- 	/* OMAP4 SDP uses internal transceiver so register nop transceiver */
- 	usb_nop_xceiv_register();
- 	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
+Just checking.. Anton, can you please queue up this 2/2 patch too to
+keep them together? Here's my ack:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
