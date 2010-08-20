@@ -1,40 +1,48 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [RFC] [PATCH 3/7] usb: ehci-omap: omap: Add OMAP4 support
-Date: Fri, 20 Aug 2010 08:38:44 +0300
-Message-ID: <20100820053844.GB15196@nokia.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC] [PATCH 5/7] omap: usb: ehci: Initialize resources for
+ omap4
+Date: Fri, 20 Aug 2010 08:39:47 +0300
+Message-ID: <20100820053947.GC15196@nokia.com>
 References: <1282175377-2784-1-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-2-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-3-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-4-git-send-email-keshava_mgowda@ti.com>
-Reply-To: felipe.balbi@nokia.com
+ <1282175377-2784-5-git-send-email-keshava_mgowda@ti.com>
+ <1282175377-2784-6-git-send-email-keshava_mgowda@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:63496 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054Ab0HTFjD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 01:39:03 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1282175377-2784-4-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1282175377-2784-6-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Keshava Munegowda <keshava_mgowda@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>
 
-Hi,
-
-On Thu, Aug 19, 2010 at 01:49:33AM +0200, ext Keshava Munegowda wrote:
->@@ -298,7 +327,163 @@ static int omap_start_ehc(struct ehci_hc
-> 	}
+On Thu, Aug 19, 2010 at 01:49:35AM +0200, ext Keshava Munegowda wrote:
+>@@ -328,8 +321,25 @@ void __init usb_ehci_init(const struct e
+> 	platform_device_add_data(&ehci_device, pdata, sizeof(*pdata));
 >
-> 	if (cpu_is_omap44xx()) {
->-		/* TODO */
+> 	/* Setup Pin IO MUX for EHCI */
+>-	if (cpu_is_omap34xx())
+>+	if (cpu_is_omap34xx()) {
+>+		ehci_resources[0].start	= OMAP34XX_EHCI_BASE;
+>+		ehci_resources[0].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
+>+		ehci_resources[1].start	= OMAP34XX_UHH_CONFIG_BASE;
+>+		ehci_resources[1].end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
+>+		ehci_resources[2].start	= OMAP34XX_USBTLL_BASE;
+>+		ehci_resources[2].end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1;
+>+		ehci_resources[3].start = INT_34XX_EHCI_IRQ;
+> 		setup_ehci_io_mux(pdata->port_mode);
 
-driver should never make use of cpu_is_omap* calls neither machine_is_* 
-for that matter. Driver shouldn't care about correct clock names either. 
-You need to find a better to handle differences between omap3 and omap4.
+rename this to setup_3430ehci_io_mux() while at that.
 
 -- 
 balbi
 
 DefectiveByDesign.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
