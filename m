@@ -1,44 +1,48 @@
-From: Robert Nelson <robertcnelson@gmail.com>
-Subject: [PATCH v6 3/3] ARM: OMAP: Beagle: no gpio_wp pin connection on xM
-Date: Thu, 19 Aug 2010 21:38:46 -0500
-Message-ID: <1282271926-2676-3-git-send-email-robertcnelson@gmail.com>
-References: <1282271926-2676-1-git-send-email-robertcnelson@gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [RFC] [PATCH 2/7] usb: ehci-omap: don't execute OMAP3-specific
+ code on non-OMAP3
+Date: Fri, 20 Aug 2010 08:35:41 +0300
+Message-ID: <20100820053541.GA15196@nokia.com>
+References: <1282175377-2784-1-git-send-email-keshava_mgowda@ti.com>
+ <1282175377-2784-2-git-send-email-keshava_mgowda@ti.com>
+ <1282175377-2784-3-git-send-email-keshava_mgowda@ti.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:43344 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab0HTCjE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Aug 2010 22:39:04 -0400
-Received: by mail-gx0-f174.google.com with SMTP id 23so1041711gxk.19
-        for <linux-omap@vger.kernel.org>; Thu, 19 Aug 2010 19:39:04 -0700 (PDT)
-In-Reply-To: <1282271926-2676-1-git-send-email-robertcnelson@gmail.com>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:20237 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054Ab0HTFfz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 01:35:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1282175377-2784-3-git-send-email-keshava_mgowda@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Robert Nelson <robertcnelson@gmail.com>
+To: ext Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>
 
-The omap3630 based BeagleBoard xM uses a MicroSD card slot with
-no write protection.
+On Thu, Aug 19, 2010 at 01:49:32AM +0200, ext Keshava Munegowda wrote:
+>@@ -297,194 +297,184 @@ static int omap_start_ehc(struct ehci_hc
+>                udelay(10);
+>        }
+>
+>-       /* Enable Clocks for USBHOST */
+>-       omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
+>-       if (IS_ERR(omap->usbhost_ick)) {
+>-               ret =  PTR_ERR(omap->usbhost_ick);
+>-               goto err_host_ick;
+>-       }
+>-       clk_enable(omap->usbhost_ick);
+>+       if (cpu_is_omap44xx()) {
+>+               /* TODO */
 
-Signed-off-by: Robert Nelson <robertcnelson@gmail.com>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+please don't. Come back when you have clock framework support for omap4, 
+this patch is anyway useless as you will revert it as soon as clock 
+framework support is done. NAK
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index e9af4fd..1f455c3 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -274,7 +274,9 @@ static struct gpio_led gpio_leds[];
- static int beagle_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
--	if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
-+	if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
-+		mmc[0].gpio_wp = -EINVAL;
-+	} else if ((omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C1_3) ||
- 		(omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_C4)) {
- 		omap_mux_init_gpio(23, OMAP_PIN_INPUT);
- 		mmc[0].gpio_wp = 23;
+if you don't have clk support on omap4, make clk_* empty stubs.
+
 -- 
-1.7.0.4
+balbi
 
+DefectiveByDesign.org
