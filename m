@@ -1,59 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH] PM: runtime PM + idle: allow usage when interrupts are disabled
-Date: Sat, 21 Aug 2010 01:27:46 +0200
-Message-ID: <201008210127.46934.rjw@sisk.pl>
-References: <1281459261-30829-1-git-send-email-khilman@deeprootsystems.com> <201008162318.03923.rjw@sisk.pl> <874oeqgu6w.fsf@deeprootsystems.com>
+From: "Micheal Blake" <michealblake008@operamail.com>
+Subject: Can I Trust You
+Date: Sat, 21 Aug 2010 00:30:32 +0100
+Message-ID: <20100820233032.0A19015F021@c-in3ws--03-03.sv2.lotuslive.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59369 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750815Ab0HTX2q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Aug 2010 19:28:46 -0400
-In-Reply-To: <874oeqgu6w.fsf@deeprootsystems.com>
+Received: from outbound3-nonen.messaging.lotuslive.com ([8.12.152.97]:57398
+	"EHLO outbound3-nonen.messaging.lotuslive.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750815Ab0HTXfy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Aug 2010 19:35:54 -0400
+Received: from outbound3.messaging.lotuslive.com (52.33.5.10.in-addr.arpa [10.5.33.52])
+	by c-in3ofal03-01.sv2.lotuslive.com (Postfix) with ESMTP id D5DE7306DC
+	for <linux-omap@vger.kernel.org>; Fri, 20 Aug 2010 23:31:55 +0000 (GMT)
+Received: from outbound3-nonen.messaging.lotuslive.com (94.33.5.10.in-addr.arpa [10.5.33.94])
+	by c-in3ofal03-01.sv2.lotuslive.com (Postfix) with ESMTP id D4A57A00E2D
+	for <linux-omap@vger.kernel.org>; Fri, 20 Aug 2010 23:31:55 +0000 (GMT)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Ming Lei <tom.leiming@gmail.com>
 
-On Thursday, August 19, 2010, Kevin Hilman wrote:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
-> > On Tuesday, August 10, 2010, Kevin Hilman wrote:
-> >> When using runtime PM in combination with CPUidle, the runtime PM
-> >> transtions of some devices may be triggered during the idle path.
-> >> Late in the idle sequence, interrupts will likely be disabled when
-> >> runtime PM for these devices is initiated.
-> >> 
-> >> Currently, the runtime PM core assumes methods are called with
-> >> interrupts enabled.  However, if it is called with interrupts
-> >> disabled, the internal locking unconditionally enables interrupts, for
-> >> example:
-> >> 
-> >> pm_runtime_put_sync()
-> >
-> > Please don't use that from interrupt context.  
-> 
-> I'm not using this in interrupt context.  I'm using it in process
-> context where interrupts are disabled, specifically, the idle thread.
-> 
-> > There's pm_runtime_put() exactly for this purpose that puts the
-> > _idle() call into a workqueue.
-> 
-> If I'm in my CPU's idle path, I don't want to activate a workqueue
-> because then I'll no longer be idle.
 
-Well, what about:
 
--> idle
-   -> check if devices have been suspended
-       - enter idle if so
-       - call pm_request_idle() for devices
+Dear friend,
 
-The workqueue will activate and put the devices into low-power states and
-then your idle callback will be called again, with the devices suspended.
+I do hope my email meet you well, I am Sgt.Micheal Blake  a U.S. Army in
+Iraq . I write you this email to ask for your agreement to receive the sum
+of 15 Million dollars on our behalf. My partner and I need a good partner
+someone we can trust to actualize this venture. The money is from oil
+proceeds and legal. And we are transferring it via the safe passage of a
+diplomatic courier. If you agree,
 
-Thanks,
-Rafael
+get yourself a deal by replying to:micheal.blake48@yahoo.com Once you
+receive the funds, you are to take a reward of 30% and keep our part. If
+you have good business plan, you can invest our share too. We seek your
+confidentiality in this business transaction.We await your response and
+wish to furnish you with more comprehensive details.
+
+Your buddy,
+Sgt. Micheal Blake
+
+
+-- 
