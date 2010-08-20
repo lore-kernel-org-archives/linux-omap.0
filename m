@@ -1,63 +1,52 @@
-From: Mathieu Poirier <mathieu.poirier@canonical.com>
-Subject: [PATCH] Adding i2c eeprom driver to read EDID
-Date: Fri, 20 Aug 2010 14:56:19 -0600
-Message-ID: <1282337779.5433.14.camel@black>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 2/4] mfd: twl-core: switch over to defines in twl.h
+Date: Sat, 21 Aug 2010 00:11:46 +0200
+Message-ID: <20100820221145.GM3650@sortiz-mobl>
+References: <1282112377-1335-1-git-send-email-felipe.balbi@nokia.com>
+ <1282112377-1335-3-git-send-email-felipe.balbi@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB032422229C@dbde02.ent.ti.com>
+ <20100818065905.GC11947@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03242222C7@dbde02.ent.ti.com>
+ <20100818071022.GD11947@nokia.com>
+ <20100818071619.GE11947@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:41481 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab0HTU40 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 16:56:26 -0400
+Received: from mga14.intel.com ([143.182.124.37]:21844 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751821Ab0HTWLs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Aug 2010 18:11:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20100818071619.GE11947@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: "ext Gopinath, Thara" <thara@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>
 
->From f0b677144c1b674f21c1f423781c49d8173914c8 Mon Sep 17 00:00:00 2001
-From: Mathieu J. Poirier <mathieu.poirier@canonical.com>
-Date: Fri, 20 Aug 2010 14:25:53 -0600
-Subject: [PATCH] Adding i2c eeprom driver to read EDID
+Hi Felipe,
 
-Adding i2c eeprom driver to access monitor EDID binary information
-from user space, something that is required by 'decode-edid' and
-'parse-edid'.
+On Wed, Aug 18, 2010 at 10:16:19AM +0300, Felipe Balbi wrote:
+> Hi,
+> 
+> On Wed, Aug 18, 2010 at 09:10:22AM +0200, Balbi Felipe (Nokia-MS/Helsinki) wrote:
+> >On Wed, Aug 18, 2010 at 09:03:44AM +0200, ext Gopinath, Thara wrote:
+> >>>>No I am not talking about the key values. I was talking about the register offset
+> >>>>for TWL4030_PM_MASTER_PROTECT_KEY. My question is, is it ok for it to be 0xd or 0xe.
+> >>>>Earlier we were using 0xd and in the new implementation it has been changed to 0xe.
+> >>
+> >>Typo. Earlier we were using 0xe and in the new implementation it has
+> >>been changed to 0xd.
+> >
+> >you're right, I'm not sure how I came up with that value since the TRM
+> >shows 0x0e, maybe a copy&paste error. Will change patch 1.
+> 
+> ok, it's because there's no register 0x0a. And I missed that when
+> defined the register space. Good catch, thanks. 
+Should I expect a new patch then ?
 
-BugLink: https://bugs.launchpad.net/bugs/608279
+Cheers,
+Samuel.
 
-Signed-off-by: Mathieu Poirier <mathieu.poirier@canonical.com>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 7a1b351..fb6cbb9 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -355,13 +355,19 @@ static struct i2c_board_info __initdata beagle_i2c_boardinfo[] = {
- 	},
- };
- 
-+static struct i2c_board_info __initdata beagle_i2c_eeprom[] = {
-+       {
-+               I2C_BOARD_INFO("eeprom", 0x50),
-+       },
-+};
-+
- static int __init omap3_beagle_i2c_init(void)
- {
- 	omap_register_i2c_bus(1, 2600, beagle_i2c_boardinfo,
- 			ARRAY_SIZE(beagle_i2c_boardinfo));
- 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
- 	 * projector don't work reliably with 400kHz */
--	omap_register_i2c_bus(3, 100, NULL, 0);
-+	omap_register_i2c_bus(3, 100, beagle_i2c_eeprom, ARRAY_SIZE(beagle_i2c_eeprom));
- 	return 0;
- }
- 
 -- 
-1.7.0.4
-
-
-
+Intel Open Source Technology Centre
+http://oss.intel.com/
