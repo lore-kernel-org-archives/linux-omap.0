@@ -1,55 +1,35 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] omap:iommu-load cam register before flushing the entry
-Date: Fri, 20 Aug 2010 19:25:58 +0300 (EEST)
-Message-ID: <20100820.192558.246512790.Hiroshi.DOYU@nokia.com>
-References: <1282312218-26545-1-git-send-email-h-kanigeri2@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/6] OMAP3: PM: ensure IO wakeups are properly disabled
+Date: Fri, 20 Aug 2010 09:43:29 -0700
+Message-ID: <87bp8xck0e.fsf@deeprootsystems.com>
+References: <20100813080034.18750.15410.stgit@baageli.muru.com>
+	<20100813080200.18750.37791.stgit@baageli.muru.com>
+	<4C651635.8000201@ru.mvista.com> <20100813102933.GN12706@atomide.com>
+	<4C65238D.9080105@ru.mvista.com> <87sk2ao4fr.fsf@deeprootsystems.com>
+	<4C6D7936.3090201@ru.mvista.com> <20100820065649.GH25742@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:55533 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205Ab0HTQ0F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 12:26:05 -0400
-In-Reply-To: <1282312218-26545-1-git-send-email-h-kanigeri2@ti.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:63723 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750946Ab0HTQne (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 12:43:34 -0400
+Received: by gyd8 with SMTP id 8so1325511gyd.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 Aug 2010 09:43:34 -0700 (PDT)
+In-Reply-To: <20100820065649.GH25742@atomide.com> (Tony Lindgren's message of
+	"Fri, 20 Aug 2010 09:56:50 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: h-kanigeri2@ti.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
 
-Hi Hari,
+Tony Lindgren <tony@atomide.com> writes:
 
-From: ext Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH] omap:iommu-load cam register before flushing the entry
-Date: Fri, 20 Aug 2010 15:50:18 +0200
+[...]
 
-> The flush_iotlb_page is not loading the cam register before flushing
-> the cam entry. This causes wrong entry to be flushed out from the TLB, and
-> if the entry happens to be a locked TLB entry it would lead to MMU faults.
-> 
-> The fix is to load the cam register with the address to be flushed before
-> flushing the TLB entry.
-> 
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> I'll update it with the following to preserve the Fernet style,
+> and to describe the transition:
 
-Ok for me. Thanks.
+ok with me, thanks tony.
 
-> ---
->  arch/arm/plat-omap/iommu.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> index 2e603fe..c534280 100644
-> --- a/arch/arm/plat-omap/iommu.c
-> +++ b/arch/arm/plat-omap/iommu.c
-> @@ -315,6 +315,7 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
->  		if ((start <= da) && (da < start + bytes)) {
->  			dev_dbg(obj->dev, "%s: %08x<=%08x(%x)\n",
->  				__func__, start, da, bytes);
-> +			iotlb_load_cr(obj, &cr);
->  			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
->  		}
->  	}
-> -- 
-> 1.7.0
-> 
+Kevin
