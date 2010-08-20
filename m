@@ -1,83 +1,59 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH] omap:iommu-load cam register before flushing the entry
-Date: Fri, 20 Aug 2010 17:23:15 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E4DADD7E1@dlee03.ent.ti.com>
-References: <1282312218-26545-1-git-send-email-h-kanigeri2@ti.com>
- <A24693684029E5489D1D202277BE89445721FA38@dlee02.ent.ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH] PM: runtime PM + idle: allow usage when interrupts are disabled
+Date: Sat, 21 Aug 2010 01:27:46 +0200
+Message-ID: <201008210127.46934.rjw@sisk.pl>
+References: <1281459261-30829-1-git-send-email-khilman@deeprootsystems.com> <201008162318.03923.rjw@sisk.pl> <874oeqgu6w.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41149 "EHLO bear.ext.ti.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:59369 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750959Ab0HTWXS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 18:23:18 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE89445721FA38@dlee02.ent.ti.com>
-Content-Language: en-US
+	id S1750815Ab0HTX2q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Aug 2010 19:28:46 -0400
+In-Reply-To: <874oeqgu6w.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, Linux omap <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, Ming Lei <tom.leiming@gmail.com>
 
-Sergio
+On Thursday, August 19, 2010, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> 
+> > On Tuesday, August 10, 2010, Kevin Hilman wrote:
+> >> When using runtime PM in combination with CPUidle, the runtime PM
+> >> transtions of some devices may be triggered during the idle path.
+> >> Late in the idle sequence, interrupts will likely be disabled when
+> >> runtime PM for these devices is initiated.
+> >> 
+> >> Currently, the runtime PM core assumes methods are called with
+> >> interrupts enabled.  However, if it is called with interrupts
+> >> disabled, the internal locking unconditionally enables interrupts, for
+> >> example:
+> >> 
+> >> pm_runtime_put_sync()
+> >
+> > Please don't use that from interrupt context.  
+> 
+> I'm not using this in interrupt context.  I'm using it in process
+> context where interrupts are disabled, specifically, the idle thread.
+> 
+> > There's pm_runtime_put() exactly for this purpose that puts the
+> > _idle() call into a workqueue.
+> 
+> If I'm in my CPU's idle path, I don't want to activate a workqueue
+> because then I'll no longer be idle.
 
-> -----Original Message-----
-> From: Aguirre, Sergio
-> Sent: Friday, August 20, 2010 5:09 PM
-> To: Kanigeri, Hari; Hiroshi Doyu; Linux omap
-> Subject: RE: [PATCH] omap:iommu-load cam register before flushing the
-> entry
-> 
-> Hi Hari,
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Kanigeri, Hari
-> > Sent: Friday, August 20, 2010 8:50 AM
-> > To: Hiroshi Doyu; Linux omap
-> > Cc: Kanigeri, Hari
-> > Subject: [PATCH] omap:iommu-load cam register before flushing the entry
-> >
-> > The flush_iotlb_page is not loading the cam register before flushing
-> > the cam entry. This causes wrong entry to be flushed out from the TLB,
-> and
-> > if the entry happens to be a locked TLB entry it would lead to MMU
-> faults.
-> >
-> > The fix is to load the cam register with the address to be flushed
-> before
-> > flushing the TLB entry.
-> 
-> I'm curious... does this impact OMAP3 ISP aswell? Or is it for OMAP4 only?
-> 
+Well, what about:
 
-This is valid for OMAP3 as well.
+-> idle
+   -> check if devices have been suspended
+       - enter idle if so
+       - call pm_request_idle() for devices
 
-> Regards,
-> Sergio
-> 
-> >
-> > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> > ---
-> >  arch/arm/plat-omap/iommu.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> > index 2e603fe..c534280 100644
-> > --- a/arch/arm/plat-omap/iommu.c
-> > +++ b/arch/arm/plat-omap/iommu.c
-> > @@ -315,6 +315,7 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
-> >  		if ((start <= da) && (da < start + bytes)) {
-> >  			dev_dbg(obj->dev, "%s: %08x<=%08x(%x)\n",
-> >  				__func__, start, da, bytes);
-> > +			iotlb_load_cr(obj, &cr);
-> >  			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
-> >  		}
-> >  	}
-> > --
-> > 1.7.0
-> >
-> > 
+The workqueue will activate and put the devices into low-power states and
+then your idle callback will be called again, with the devices suspended.
 
-Thank you,
-Best regards,
-Hari
+Thanks,
+Rafael
