@@ -1,48 +1,41 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] [PATCH 5/7] omap: usb: ehci: Initialize resources for
- omap4
-Date: Fri, 20 Aug 2010 08:39:47 +0300
-Message-ID: <20100820053947.GC15196@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [RFC] [PATCH 6/7] usb: ehci: Introduce
+ CONFIG_USB_EHCI_HCD_OMAP3
+Date: Fri, 20 Aug 2010 08:41:57 +0300
+Message-ID: <20100820054157.GD15196@nokia.com>
 References: <1282175377-2784-1-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-2-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-3-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-4-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-5-git-send-email-keshava_mgowda@ti.com>
  <1282175377-2784-6-git-send-email-keshava_mgowda@ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+ <1282175377-2784-7-git-send-email-keshava_mgowda@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:34119 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751102Ab0HTFmL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Aug 2010 01:42:11 -0400
 Content-Disposition: inline
-In-Reply-To: <1282175377-2784-6-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1282175377-2784-7-git-send-email-keshava_mgowda@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>
 
-On Thu, Aug 19, 2010 at 01:49:35AM +0200, ext Keshava Munegowda wrote:
->@@ -328,8 +321,25 @@ void __init usb_ehci_init(const struct e
-> 	platform_device_add_data(&ehci_device, pdata, sizeof(*pdata));
+On Thu, Aug 19, 2010 at 01:49:36AM +0200, ext Keshava Munegowda wrote:
+>@@ -126,6 +126,14 @@ config USB_EHCI_MXC
+> 	---help---
+> 	  Variation of ARC USB block used in some Freescale chips.
 >
-> 	/* Setup Pin IO MUX for EHCI */
->-	if (cpu_is_omap34xx())
->+	if (cpu_is_omap34xx()) {
->+		ehci_resources[0].start	= OMAP34XX_EHCI_BASE;
->+		ehci_resources[0].end	= OMAP34XX_EHCI_BASE + SZ_1K - 1;
->+		ehci_resources[1].start	= OMAP34XX_UHH_CONFIG_BASE;
->+		ehci_resources[1].end	= OMAP34XX_UHH_CONFIG_BASE + SZ_1K - 1;
->+		ehci_resources[2].start	= OMAP34XX_USBTLL_BASE;
->+		ehci_resources[2].end	= OMAP34XX_USBTLL_BASE + SZ_4K - 1;
->+		ehci_resources[3].start = INT_34XX_EHCI_IRQ;
-> 		setup_ehci_io_mux(pdata->port_mode);
+>+config USB_EHCI_HCD_OMAP3
 
-rename this to setup_3430ehci_io_mux() while at that.
+USB_EHCI_HCD_OMAP would be enough as you already have omap3 and omap4 
+supported.
 
 -- 
 balbi
 
 DefectiveByDesign.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
