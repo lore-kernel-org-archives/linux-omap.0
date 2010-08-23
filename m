@@ -1,16 +1,18 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH 03/20] Build omap_device for each DSS HW IP
-Date: Mon, 23 Aug 2010 21:27:52 +0530
-Message-ID: <1282579089-10487-4-git-send-email-svadivu@ti.com>
+Subject: [PATCH 05/20] Move dss platform driver to dss.c
+Date: Mon, 23 Aug 2010 21:27:54 +0530
+Message-ID: <1282579089-10487-6-git-send-email-svadivu@ti.com>
 References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
  <1282579089-10487-2-git-send-email-svadivu@ti.com>
  <1282579089-10487-3-git-send-email-svadivu@ti.com>
+ <1282579089-10487-4-git-send-email-svadivu@ti.com>
+ <1282579089-10487-5-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55693 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35123 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754217Ab0HWP6W (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Aug 2010 11:58:22 -0400
-In-Reply-To: <1282579089-10487-3-git-send-email-svadivu@ti.com>
+	id S1754243Ab0HWP6Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Aug 2010 11:58:25 -0400
+In-Reply-To: <1282579089-10487-5-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com
@@ -18,111 +20,118 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Looks up the HWMOD database for each of the given DSS HW IP
-and builds omap_device which inturn does the platform device
-register for each of DSS HW IP
+dsshw_probe and remove functions are moved to dss.c
+To maintain the order of init, through the dsshw_probe, omap_dss_init2
+is made as device_init_call_sync.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- arch/arm/mach-omap2/devices.c             |   46 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/display.h |   10 ++++++
- 2 files changed, 56 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/core.c |   26 +-------------------------
+ drivers/video/omap2/dss/dss.c  |   29 +++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 25 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 523ce27..8faac13 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -29,6 +29,8 @@
- #include <plat/mmc.h>
- #include <plat/dma.h>
- #include <plat/display.h>
-+#include <plat/omap_device.h>
-+#include <plat/omap_hwmod.h>
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index 3b6a309..f01e8e6 100644
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -707,17 +707,6 @@ static int omap_dss_resume(struct platform_device *pdev)
+ 	return dss_resume_all_devices();
+ }
  
- #include "mux.h"
- 
-@@ -824,9 +826,53 @@ static struct platform_device omap_display_device = {
+-/* DSS HW IP initialisation */
+-static int omap_dsshw_probe(struct platform_device *pdev)
+-{
+-	return 0;
+-}
+-
+-static int omap_dsshw_remove(struct platform_device *pdev)
+-{
+-	return 0;
+-}
+-
+ /* DISPC HW IP initialisation */
+ static int omap_dispchw_probe(struct platform_device *pdev)
+ {
+@@ -775,18 +764,6 @@ static struct platform_driver omap_dss_driver = {
  	},
  };
  
-+static struct omap_device_pm_latency omap_dss_latency[] = {
-+       [0] = {
-+		.deactivate_func        = omap_device_idle_hwmods,
-+		.activate_func          = omap_device_enable_hwmods,
-+       },
-+};
-+
- void __init omap_display_init(struct omap_dss_board_info
- 					*board_data)
+-static struct platform_driver omap_dsshw_driver = {
+-	.probe          = omap_dsshw_probe,
+-	.remove         = omap_dsshw_remove,
+-	.shutdown	= NULL,
+-	.suspend	= NULL,
+-	.resume		= NULL,
+-	.driver         = {
+-		.name   = "dss",
+-		.owner  = THIS_MODULE,
+-	},
+-};
+-
+ static struct platform_driver omap_dispchw_driver = {
+ 	.probe          = omap_dispchw_probe,
+ 	.remove         = omap_dispchw_remove,
+@@ -1100,7 +1077,6 @@ static int __init omap_dss_init(void)
+ 
+ static int __init omap_dss_init2(void)
  {
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+	int l, i;
-+	struct omap_display_platform_data pdata;
-+	char oh_name[5][MAX_OMAP_DSS_HWMOD_NAME_LEN] = {
-+			"dss",
-+			"dss_dispc",
-+			"dss_dsi1",
-+			"dss_rfbi",
-+			"dss_venc"
-+			};
-+
-+	for (i = 0; i < 5; i++) {
-+		l = snprintf(oh_name[i], MAX_OMAP_DSS_HWMOD_NAME_LEN,
-+				 oh_name[i]);
-+		WARN(l >= MAX_OMAP_DSS_HWMOD_NAME_LEN,
-+			"String buffer overflow in DSS device setup\n");
-+
-+		oh = omap_hwmod_lookup(oh_name[i]);
-+		if (!oh) {
-+			pr_err("Could not look up %s\n", oh_name[i]);
-+			return ;
-+		}
-+		strcpy(pdata.name, oh_name[i]);
-+		pdata.board_data		=       board_data;
-+		pdata.board_data->get_last_off_on_transaction_id = NULL;
-+		pdata.device_enable    =       omap_device_enable;
-+		pdata.device_idle      =       omap_device_idle;
-+		pdata.device_shutdown  =       omap_device_shutdown;
-+		od = omap_device_build(oh_name[i], -1, oh, &pdata,
-+				sizeof(struct omap_display_platform_data),
-+				omap_dss_latency,
-+				ARRAY_SIZE(omap_dss_latency), 0);
-+
-+		WARN((IS_ERR(od)), "Could not build omap_device for %s\n",
-+				oh_name[i]);
-+	}
+-	platform_driver_register(&omap_dsshw_driver);
+ 	platform_driver_register(&omap_dispchw_driver);
+ 	platform_driver_register(&omap_dsi1hw_driver);
+ 	platform_driver_register(&omap_rfbihw_driver);
+@@ -1109,7 +1085,7 @@ static int __init omap_dss_init2(void)
+ }
  
- 	omap_display_device.dev.platform_data = board_data;
+ core_initcall(omap_dss_init);
+-device_initcall(omap_dss_init2);
++device_initcall_sync(omap_dss_init2);
+ #endif
  
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index f5da4ae..996964a 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -26,6 +26,8 @@
- #include <linux/platform_device.h>
- #include <asm/atomic.h>
+ MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@nokia.com>");
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 24b1825..5f91e37 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -122,6 +122,29 @@ void dss_restore_context(void)
+ #undef SR
+ #undef RR
  
-+#define MAX_OMAP_DSS_HWMOD_NAME_LEN 16
++/* DSS HW IP initialisation */
++static int omap_dsshw_probe(struct platform_device *pdev)
++{
++	return 0;
++}
 +
- #define DISPC_IRQ_FRAMEDONE		(1 << 0)
- #define DISPC_IRQ_VSYNC			(1 << 1)
- #define DISPC_IRQ_EVSYNC_EVEN		(1 << 2)
-@@ -255,6 +257,14 @@ struct omap_dss_board_info {
- /* Init with the board info */
- extern void omap_display_init(struct omap_dss_board_info *board_data);
- 
-+struct omap_display_platform_data{
-+	char name[MAX_OMAP_DSS_HWMOD_NAME_LEN];
-+	struct omap_dss_board_info *board_data;
-+	int (*device_enable)(struct platform_device *pdev);
-+	int (*device_shutdown)(struct platform_device *pdev);
-+	int (*device_idle)(struct platform_device *pdev);
++static int omap_dsshw_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static struct platform_driver omap_dsshw_driver = {
++	.probe          = omap_dsshw_probe,
++	.remove         = omap_dsshw_remove,
++	.shutdown	= NULL,
++	.suspend	= NULL,
++	.resume		= NULL,
++	.driver         = {
++		.name   = "dss",
++		.owner  = THIS_MODULE,
++	},
 +};
 +
- struct omap_video_timings {
- 	/* Unit: pixels */
- 	u16 x_res;
+ void dss_sdi_init(u8 datapairs)
+ {
+ 	u32 l;
+@@ -633,3 +656,9 @@ void dss_exit(void)
+ 	iounmap(dss.base);
+ }
+ 
++static int __init omap_dss_init1(void)
++{
++	return platform_driver_register(&omap_dsshw_driver);
++}
++
++device_initcall(omap_dss_init1);
 -- 
 1.6.3.3
 
