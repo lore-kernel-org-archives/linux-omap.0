@@ -1,227 +1,250 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 5/5] OMAP: I2C: Convert i2c driver to use PM runtime api's
-Date: Mon, 23 Aug 2010 15:23:27 -0700
-Message-ID: <87d3t9vuhs.fsf@deeprootsystems.com>
-References: <1281364586-26323-1-git-send-email-rnayak@ti.com>
-	<1281364586-26323-2-git-send-email-rnayak@ti.com>
-	<1281364586-26323-3-git-send-email-rnayak@ti.com>
-	<1281364586-26323-4-git-send-email-rnayak@ti.com>
-	<1281364586-26323-5-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH] dmtimer: hwmod: OMAP1: device registration
+Date: Mon, 23 Aug 2010 15:43:34 -0700
+Message-ID: <87r5hpuezt.fsf@deeprootsystems.com>
+References: <1281798808-14548-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:51227 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753022Ab0HWWXa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Aug 2010 18:23:30 -0400
-Received: by pvg2 with SMTP id 2so2445483pvg.19
-        for <linux-omap@vger.kernel.org>; Mon, 23 Aug 2010 15:23:29 -0700 (PDT)
-In-Reply-To: <1281364586-26323-5-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Mon, 9 Aug 2010 20:06:26 +0530")
+Received: from mail-px0-f174.google.com ([209.85.212.174]:55568 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab0HWWnh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Aug 2010 18:43:37 -0400
+Received: by pxi10 with SMTP id 10so2450251pxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 23 Aug 2010 15:43:36 -0700 (PDT)
+In-Reply-To: <1281798808-14548-1-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Sat, 14 Aug 2010 20:43:28 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, Partha Basak <p-basak2@ti.com>, Thara Gopinath <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-> This patch converts the i2c driver to use PM runtime apis for OMAP2+
-> and omap_device api's for OMAP1
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> This patch converts OMAP1 dual mode timers into platform devices,
+> adds support for registering them through generic linux platform
+> device layer.
+
+"...and changes the init sequence ordering from a sys_timer to an
+arch_initcall" (more on this below...)
+
+> Signed-off-by: Partha Basak <p-basak2@ti.com>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 > Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 
-Some minor comments below, but otherwise looks like the right direction.
+Tested on ... ?
+
+> ---
+>  arch/arm/mach-omap1/Makefile   |    2 +-
+>  arch/arm/mach-omap1/dmtimer.c  |  146 ++++++++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap1/timer32k.c |    3 -
+>  3 files changed, 147 insertions(+), 4 deletions(-)
+>  mode change 100644 => 100755 arch/arm/mach-omap1/Makefile
+>  create mode 100755 arch/arm/mach-omap1/dmtimer.c
+>  mode change 100644 => 100755 arch/arm/mach-omap1/timer32k.c
+>
+> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+> old mode 100644
+> new mode 100755
+> index 9a304d8..0001659
+> --- a/arch/arm/mach-omap1/Makefile
+> +++ b/arch/arm/mach-omap1/Makefile
+> @@ -4,7 +4,7 @@
+>  
+>  # Common support
+>  obj-y := io.o id.o sram.o irq.o mux.o flash.o serial.o devices.o
+> -obj-y += clock.o clock_data.o opp_data.o
+> +obj-y += clock.o clock_data.o opp_data.o dmtimer.o
+>  
+>  obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+>  
+> diff --git a/arch/arm/mach-omap1/dmtimer.c b/arch/arm/mach-omap1/dmtimer.c
+> new file mode 100755
+> index 0000000..b06d096
+> --- /dev/null
+> +++ b/arch/arm/mach-omap1/dmtimer.c
+> @@ -0,0 +1,146 @@
+> +/**
+> + * OMAP1 Dual-Mode Timers
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify 
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+> +#include <linux/err.h>
+> +#include <linux/slab.h>
+> +#include <mach/irqs.h>
+> +#include <plat/dmtimer.h>
+> +
+> +#define OMAP1610_GPTIMER1_BASE		0xfffb1400
+> +#define OMAP1610_GPTIMER2_BASE          0xfffb1c00
+> +#define OMAP1610_GPTIMER3_BASE          0xfffb2400
+> +#define OMAP1610_GPTIMER4_BASE          0xfffb2c00
+> +#define OMAP1610_GPTIMER5_BASE          0xfffb3400
+> +#define OMAP1610_GPTIMER6_BASE          0xfffb3c00
+> +#define OMAP1610_GPTIMER7_BASE          0xfffb7400
+> +#define OMAP1610_GPTIMER8_BASE          0xfffbd400
+> +
+> +#define OMAP1_DM_TIMER_COUNT	8
+> +
+> +static int omap1_dm_timer_set_clk(struct platform_device *pdev,
+> +				int source)
+> +{
+> +	int n = (pdev->id) << 1;
+> +	u32 l;
+> +
+> +	l = omap_readl(MOD_CONF_CTRL_1) & ~(0x03 << n);
+> +	l |= source << n;
+> +	omap_writel(l, MOD_CONF_CTRL_1);
+> +
+> +	return 0;
+> +}
+> +
+> +int __init omap1_dm_timer_init(void)
+> +{
+> +	int i;
+> +
+> +	if (!cpu_is_omap16xx())
+> +		return 0;
+> +
+> +	for (i = 0; i < OMAP1_DM_TIMER_COUNT; i++) {
+> +		struct platform_device *pdev;
+> +		struct omap_dmtimer_platform_data *pdata;
+> +		struct resource res[2];
+> +		u32 base, irq;
+> +		int ret;
+> +
+> +		switch (i) {
+> +		case 0:
+> +			base = OMAP1610_GPTIMER1_BASE;
+> +			irq = INT_1610_GPTIMER1;
+> +			break;
+> +		case 1:
+> +			base = OMAP1610_GPTIMER2_BASE;
+> +			irq = INT_1610_GPTIMER2;
+> +			break;
+> +		case 2:
+> +			base = OMAP1610_GPTIMER3_BASE;
+> +			irq = INT_1610_GPTIMER3;
+> +			break;
+> +		case 3:
+> +			base = OMAP1610_GPTIMER4_BASE;
+> +			irq = INT_1610_GPTIMER4;
+> +			break;
+> +		case 4:
+> +			base = OMAP1610_GPTIMER5_BASE;
+> +			irq = INT_1610_GPTIMER5;
+> +			break;
+> +		case 5:
+> +			base = OMAP1610_GPTIMER6_BASE;
+> +			irq = INT_1610_GPTIMER6;
+> +			break;
+> +		case 6:
+> +			base = OMAP1610_GPTIMER7_BASE;
+> +			irq = INT_1610_GPTIMER7;
+> +			break;
+> +		case 7:
+> +			base = OMAP1610_GPTIMER8_BASE;
+> +			irq = INT_1610_GPTIMER8;
+> +			break;
+> +		default:
+> +			/* Should never reach here */
+> +			return  -EINVAL;
+> +		}
+
+IMO, this would be much cleaner to just have a static list of
+platform_devices with the base and IRQ resources hard coded and use
+
+   platform_add_devices(..., ARRAY_SIZE(...)) 
+
+instead of looping over the allocate/init/register 
+
+> +		pdev = platform_device_alloc("dmtimer", i);
+> +		if (!pdev) {
+> +			pr_err("%s: Unable to device alloc for dmtimer%d\n",
+> +				__func__, i);
+> +			return -ENOMEM;
+> +		}
+> +
+> +		memset(res, 0, 2 * sizeof(struct resource));
+> +		res[0].start = base;
+> +		res[0].end = base + 0xff;
+> +		res[0].flags = IORESOURCE_MEM;
+> +		res[1].start = res[1].end = irq;
+> +		res[1].flags = IORESOURCE_IRQ;
+> +		ret = platform_device_add_resources(pdev, res,
+> +				ARRAY_SIZE(res));
+> +		if (ret) {
+> +			pr_err("%s: Unable to add resources for %s%d\n",
+> +				__func__, pdev->name, pdev->id);
+> +			goto exit_device_put;
+> +		}
+> +
+> +		pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
+> +		if (!pdata) {
+> +			pr_err("%s: Unable to allocate pdata for %s%d\n",
+> +				__func__, pdev->name, pdev->id);
+> +			ret = -ENOMEM;
+> +			goto exit_device_put;
+> +		}
+> +
+> +		pdata->omap_dm_set_source_clk = omap1_dm_timer_set_clk;
+> +		ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
+> +		if (ret) {
+> +			pr_err("%s: Unable to add platform data for %s%d\n",
+> +				__func__, pdev->name, pdev->id);
+> +			goto exit_release_pdata;
+> +		}
+> +		ret = platform_device_add(pdev);
+> +		if (ret) {
+> +			pr_err("%s: Unable to add platform device for %s%d\n",
+> +				__func__, pdev->name, pdev->id);
+> +			goto exit_release_pdata;
+> +		}
+> +		continue;
+> +exit_release_pdata:
+> +		kfree(pdata);
+> +exit_device_put:
+> +		platform_device_put(pdev);
+> +		return ret;
+> +	}
+> +	return 0;
+> +}
+> +arch_initcall(omap1_dm_timer_init);
+> diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
+> old mode 100644
+> new mode 100755
+> index 20cfbcc..6b8ab9b
+> --- a/arch/arm/mach-omap1/timer32k.c
+> +++ b/arch/arm/mach-omap1/timer32k.c
+> @@ -183,9 +183,6 @@ static __init void omap_init_32k_timer(void)
+>   */
+>  static void __init omap_timer_init(void)
+>  {
+> -#ifdef CONFIG_OMAP_DM_TIMER
+> -	omap_dm_timer_init();
+> -#endif
+>  	omap_init_32k_timer();
+>  }
+
+You change the init sequence here from a sys_timer to an
+arch_initcall(), yet there is no description in the changelog, or 
+an explanation of why things still work, etc.
+
+Please add to your changelog a description of this change, and why it still
+works.
+
+Thanks,
 
 Kevin
 
-> ---
->  drivers/i2c/busses/i2c-omap.c |   81 ++++++++++++++++++-----------------------
->  1 files changed, 35 insertions(+), 46 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 7674efb..387f9c6 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -39,6 +39,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/i2c-omap.h>
-> +#include <linux/pm_runtime.h>
->  
->  /* I2C controller revisions */
->  #define OMAP_I2C_REV_2			0x20
-> @@ -175,8 +176,6 @@ struct omap_i2c_dev {
->  	void __iomem		*base;		/* virtual */
->  	int			irq;
->  	int			reg_shift;      /* bit shift for I2C register addresses */
-> -	struct clk		*iclk;		/* Interface clock */
-> -	struct clk		*fclk;		/* Functional clock */
->  	struct completion	cmd_complete;
->  	struct resource		*ioarea;
->  	u32			latency;	/* maximum mpu wkup latency */
-> @@ -265,45 +264,25 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
->  				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
->  }
->  
-> -static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-> +static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  {
-> -	int ret;
-> -
-> -	dev->iclk = clk_get(dev->dev, "ick");
-> -	if (IS_ERR(dev->iclk)) {
-> -		ret = PTR_ERR(dev->iclk);
-> -		dev->iclk = NULL;
-> -		return ret;
-> -	}
-> -
-> -	dev->fclk = clk_get(dev->dev, "fck");
-> -	if (IS_ERR(dev->fclk)) {
-> -		ret = PTR_ERR(dev->fclk);
-> -		if (dev->iclk != NULL) {
-> -			clk_put(dev->iclk);
-> -			dev->iclk = NULL;
-> -		}
-> -		dev->fclk = NULL;
-> -		return ret;
-> -	}
-> +	struct platform_device *pdev;
-> +	struct omap_i2c_bus_platform_data *pdata;
->  
-> -	return 0;
-> -}
-> +	WARN_ON(!dev->idle);
->  
-> -static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
-> -{
-> -	clk_put(dev->fclk);
-> -	dev->fclk = NULL;
-> -	clk_put(dev->iclk);
-> -	dev->iclk = NULL;
-> -}
-> +	pdev = container_of(dev->dev, struct platform_device, dev);
 
-<linux/platform_device.h> provides to_platform_device() for this
-
-> +	pdata = pdev->dev.platform_data;
->  
-> -static void omap_i2c_unidle(struct omap_i2c_dev *dev)
-> -{
-> -	WARN_ON(!dev->idle);
-> +	pm_runtime_get_sync(&pdev->dev);
-> +	/*
-> +	 * This is needed for now to have OMAP1
-> +	 * working as PM runtime is not yet
-> +	 * supported on OMAP1
-> +	 */
-> +	if (pdata->device_enable)
-> +		pdata->device_enable(pdev);
-
-OMAP1 should work fine on the pm-wip/rutime branch as there is a simple
-runtime PM core for OMAP1 implemented that just manages clocks.
-
-> -	clk_enable(dev->iclk);
-> -	clk_enable(dev->fclk);
->  	if (cpu_is_omap34xx()) {
->  		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-> @@ -326,10 +305,15 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  
->  static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  {
-> +	struct platform_device *pdev;
-> +	struct omap_i2c_bus_platform_data *pdata;
->  	u16 iv;
->  
->  	WARN_ON(dev->idle);
->  
-> +	pdev = container_of(dev->dev, struct platform_device, dev);
-> +	pdata = pdev->dev.platform_data;
-> +
->  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
->  	if (dev->rev >= OMAP_I2C_REV_ON_4430)
->  		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-> @@ -345,8 +329,15 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
->  	}
->  	dev->idle = 1;
-> -	clk_disable(dev->fclk);
-> -	clk_disable(dev->iclk);
-> +
-> +	pm_runtime_put_sync(&pdev->dev);
-> +	/*
-> +	 * This is needed for now to have OMAP1
-> +	 * working as PM runtime is not yet
-> +	 * supported on OMAP1
-> +	 */
-> +	if (pdata->device_idle)
-> +		pdata->device_idle(pdev);
-
-ditto
-
->  }
->  
->  static int omap_i2c_init(struct omap_i2c_dev *dev)
-> @@ -356,6 +347,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  	unsigned long fclk_rate = 12000000;
->  	unsigned long timeout;
->  	unsigned long internal_clk = 0;
-> +	struct clk *fclk;
->  
->  	if (dev->rev >= OMAP_I2C_REV_2) {
->  		/* Disable I2C controller before soft reset */
-> @@ -414,7 +406,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  		 * always returns 12MHz for the functional clock, we can
->  		 * do this bit unconditionally.
->  		 */
-> -		fclk_rate = clk_get_rate(dev->fclk);
-> +		fclk = clk_get(dev->dev, "fck");
-> +		fclk_rate = clk_get_rate(fclk);
->  
->  		/* TRM for 5912 says the I2C clock must be prescaled to be
->  		 * between 7 - 12 MHz. The XOR input clock is typically
-> @@ -443,7 +436,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			internal_clk = 9600;
->  		else
->  			internal_clk = 4000;
-> -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-> +		fclk = clk_get(dev->dev, "fck");
-> +		fclk_rate = clk_get_rate(fclk) / 1000;
->  
->  		/* Compute prescaler divisor */
->  		psc = fclk_rate / internal_clk;
-> @@ -1046,14 +1040,12 @@ omap_i2c_probe(struct platform_device *pdev)
->  	else
->  		dev->reg_shift = 2;
->  
-> -	if ((r = omap_i2c_get_clocks(dev)) != 0)
-> -		goto err_iounmap;
-> -
->  	if (cpu_is_omap44xx())
->  		dev->regs = (u8 *) omap4_reg_map;
->  	else
->  		dev->regs = (u8 *) reg_map;
->  
-> +	pm_runtime_enable(&pdev->dev);
->  	omap_i2c_unidle(dev);
->  
->  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-> @@ -1125,8 +1117,6 @@ err_free_irq:
->  err_unuse_clocks:
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  	omap_i2c_idle(dev);
-> -	omap_i2c_put_clocks(dev);
-> -err_iounmap:
->  	iounmap(dev->base);
->  err_free_mem:
->  	platform_set_drvdata(pdev, NULL);
-> @@ -1148,7 +1138,6 @@ omap_i2c_remove(struct platform_device *pdev)
->  	free_irq(dev->irq, dev);
->  	i2c_del_adapter(&dev->adapter);
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-> -	omap_i2c_put_clocks(dev);
->  	iounmap(dev->base);
->  	kfree(dev);
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
