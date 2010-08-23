@@ -1,92 +1,85 @@
-From: kishon <a0393678@ti.com>
-Subject: [RFC/PATCH] Fix to support multiple HWMODS for a single device
-Date: Sun, 22 Aug 2010 15:20:53 +0530
-Message-ID: <4C70F2FD.1080208@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2 1/3] RTC:s35390a: Add Alarm interrupt support
+Date: Mon, 23 Aug 2010 10:28:42 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394044F1252C6@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1282393829-7326-2-git-send-email-hvaibhav@ti.com>
+ <20100821140541.GA31697@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070309020507000003050900"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49894 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752046Ab0HVJvD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 Aug 2010 05:51:03 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7M9owUe018953
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Sun, 22 Aug 2010 04:51:01 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100821140541.GA31697@nokia.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "byron.bbradley@gmail.com" <byron.bbradley@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Partha Basak <p-basak2@ti.com>
-Cc: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, Nishant Kamat <nskamat@ti.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
 
-This is a multi-part message in MIME format.
---------------070309020507000003050900
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-
-
---------------070309020507000003050900
-Content-Type: text/x-patch;
- name="0001-RFC-PATCH-Fix-to-support-multiple-HWMODS-for-a-singl.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-RFC-PATCH-Fix-to-support-multiple-HWMODS-for-a-singl.pa";
- filename*1="tch"
-
->From 24ffaa67c44065a9caa3ee3525dd863d32c67269 Mon Sep 17 00:00:00 2001
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Date: Sun, 22 Aug 2010 15:06:42 +0530
-Subject: [RFC/PATCH] Fix to support multiple HWMODS for a single device
-
-The current code expects multiple HWMODS to be filled in consecutive
-memory location before passing to omap_device_build_ss(). Ignoring this
-will result in incorrect data being populated in omap_hwmod_fill_resources().
-This means before calling omap_device_build_ss() the user has to create memory
-chunks, copy all the HWMOD structures to it taking care of the mutex
-variable as well.
-
-This fix does some pointer calculations to the existing function
-omap_device_fill_resources() in order to fill the resources properly.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/plat-omap/omap_device.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
- mode change 100644 => 100755 arch/arm/plat-omap/omap_device.c
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-old mode 100644
-new mode 100755
-index d2b1609..8013292
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -289,12 +289,12 @@ int omap_device_count_resources(struct omap_device *od)
-  */
- int omap_device_fill_resources(struct omap_device *od, struct resource *res)
- {
--	struct omap_hwmod *oh;
-+	struct omap_hwmod **oh;
- 	int c = 0;
- 	int i, r;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++) {
--		r = omap_hwmod_fill_resources(oh, res);
-+	for (i = 0, oh = od->hwmods; i < od->hwmods_cnt; i++, oh++) {
-+		r = omap_hwmod_fill_resources(*oh, res);
- 		res += r;
- 		c += r;
- 	}
-@@ -694,7 +694,6 @@ int omap_device_enable_hwmods(struct omap_device *od)
- {
- 	struct omap_hwmod *oh;
- 	int i;
--
- 	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
- 		omap_hwmod_enable(oh);
- 
--- 
-1.7.0.4
+> -----Original Message-----
+> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+> Sent: Saturday, August 21, 2010 7:36 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-kernel@vger.kernel.org; akpm@linux-foundation.org;
+> byron.bbradley@gmail.com; linux-omap@vger.kernel.org; Balbi Felipe (Nokia-
+> MS/Helsinki)
+> Subject: Re: [PATCH-V2 1/3] RTC:s35390a: Add Alarm interrupt support
+> 
+> Hi,
+> 
+> On Sat, Aug 21, 2010 at 02:30:27PM +0200, ext hvaibhav@ti.com wrote:
+> >+static irqreturn_t s35390a_irq_thread(int irq, void *handle)
+> >+{
+> >+	char buf[1];
+> >+	struct s35390a *s35390a = handle;
+> >+	struct i2c_client *client = s35390a->client[0];
+> 
+> don't you need some locking on the irq handler ? a mutex maybe ? Just
+> wondering...
+> 
+[Hiremath, Vaibhav] Yes definitely we do need locking here, I thought of adding locking mechanism in subsequent patch, does it makes sense?
 
 
---------------070309020507000003050900--
+> >@@ -261,15 +424,30 @@ static int s35390a_probe(struct i2c_client *client,
+> > 	if (s35390a_get_datetime(client, &tm) < 0)
+> > 		dev_warn(&client->dev, "clock needs to be set\n");
+> >
+> >+	if (client->irq >= 0) {
+> >+		err = request_threaded_irq(client->irq, NULL,
+> >+				s35390a_irq_thread,
+> >+				IRQF_TRIGGER_LOW | IRQF_ONESHOT,
+> >+				client->name, s35390a);
+> >+		if (err) {
+> >+			dev_err(&client->dev, "unable to request IRQ\n");
+> >+			goto exit_dummy;
+> >+		}
+> >+	}
+> >+
+> > 	s35390a->rtc = rtc_device_register(s35390a_driver.driver.name,
+> > 				&client->dev, &s35390a_rtc_ops, THIS_MODULE);
+> >
+> > 	if (IS_ERR(s35390a->rtc)) {
+> > 		err = PTR_ERR(s35390a->rtc);
+> >-		goto exit_dummy;
+> >+		goto exit_intr;
+> > 	}
+> >+
+> > 	return 0;
+> >
+> >+exit_intr:
+> >+	free_irq(client->irq, client);
+> 
+> free_irq() won't behave correctly, I believe since you're passing
+> different dev_id parameters. If you look at the implementation of
+> free_irq() you'll see it uses dev_id to find the correct struct
+> irqaction pointer.
+> 
+[Hiremath, Vaibhav] Overlooked, my bad. Thanks for pointing this to me ,will fix.
+
+
+Thanks,
+Vaibhav
+> --
+> balbi
+> 
+> DefectiveByDesign.org
