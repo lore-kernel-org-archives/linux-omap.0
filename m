@@ -1,48 +1,105 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS2 broken with 36-rc1
-Date: Mon, 23 Aug 2010 10:35:30 +0300
-Message-ID: <1282548930.2202.16.camel@tubuntu.research.nokia.com>
-References: <1281962906.1888.25.camel@chotu>
-	 <4C72192A.9050801@compulab.co.il>
-	 <1282547709.2202.1.camel@tubuntu.research.nokia.com>
-	 <4C722115.50401@compulab.co.il>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 05/10] [PM-WIP-MMC] OMAP4 hwmod: Updating hwmod data for
+      MMC controllers
+Date: Mon, 23 Aug 2010 10:00:42 +0200
+Message-ID: <4C722AAA.9040905@ti.com>
+References: <16128.10.24.255.18.1282335050.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:58472 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753277Ab0HWHgB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Aug 2010 03:36:01 -0400
-In-Reply-To: <4C722115.50401@compulab.co.il>
+Received: from devils.ext.ti.com ([198.47.26.153]:42638 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752900Ab0HWIAs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Aug 2010 04:00:48 -0400
+In-Reply-To: <16128.10.24.255.18.1282335050.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Mike Rapoport <mike@compulab.co.il>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Mon, 2010-08-23 at 09:19 +0200, ext Mike Rapoport wrote:
-> Tomi Valkeinen wrote:
-> > 
-> > I tested 36-rc1 briefly with OMAP 3430SDP board. I wonder why that
-> > works, but not N900...
-> 
-> May it be that 3430SDP uses SRAM for the framebuffer? Or reserves framebuffer 
-> memory from the RAM that is not managed by the kernel, e.g with something like
-> mem=<RAM size - fb size> vram=<fb size>,0x8...... ?
+Hi Kishore,
 
-No, SRAM cannot be used on OMAP3s, as SRAM is too small to hold a
-framebuffer. And no, I don't think it's reserving it from RAM not
-managed by the kernel.
+On 8/20/2010 10:10 PM, Kadiyala, Kishore wrote:
+> Update register offsets and dev attributes for MMC controllers on
+> OMAP4
+>
+> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+> Cc: Benoit Cousson<b-cousson@ti.com>
+> Signed-off-by: Kishore Kadiyala<kishore.kadiyala@ti.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   17 +++++++++++++++--
+>   1 files changed, 15 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index b7268f6..db62b84 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -22,6 +22,7 @@
+>
+>   #include<plat/omap_hwmod.h>
+>   #include<plat/cpu.h>
+> +#include<plat/mmc.h>
+>
+>   #include "omap_hwmod_common_data.h"
+>
+> @@ -408,8 +409,8 @@ static struct omap_hwmod omap44xx_l4_wkup_hwmod = {
+>    */
+>
+>   static struct omap_hwmod_class_sysconfig omap44xx_mmc_sysc = {
+> -	.rev_offs	= 0x0000,
+> -	.sysc_offs	= 0x0010,
+> +	.rev_offs	= 0x02FC,
+> +	.sysc_offs	= 0x0110,
 
-What is actually failing there? Looking at Ameya's original post, the
-problem is in allocating the framebuffer. Your patch is doing something
-_after_ the allocation has failed, so I don't see Ameya's problem having
-anything to do with ioremap.
+You should not use these registers. MMC is one of the few IP that 
+contains both legacy and highlander version of the registers, hence the 
+_HL prefix for the MMCHS_HL_REV and MMCHS_HL_SYSCONFIG.
 
-Ameya, you could try turning on the debugs in
-drivers/video/omap2/vram.c, and checking what it says. Or see what is in
-debugfs/vram file
+I don't know why the legacy registers are still there, but you should 
+use the highlander version.
 
- Tomi
+Regards,
+Benoit
 
+>   	.syss_offs	= 0x0114,
+>   	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_EMUFREE |
+>   			   SYSC_HAS_SOFTRESET | SYSC_HAS_MIDLEMODE),
+> @@ -424,6 +425,11 @@ static struct omap_hwmod_class omap44xx_mmc_hwmod_class = {
+>   };
+>
+>   /* mmc1 */
+> +
+> +static struct mmc_dev_attr mmc1_dev_attr = {
+> +	.flags = MMC_INTERNAL_XCVR,
+> +};
+> +
+>   static struct omap_hwmod_irq_info omap44xx_mmc1_irqs[] = {
+>   	{ .irq = 83 + OMAP44XX_IRQ_GIC_START },
+>   };
+> @@ -478,10 +484,16 @@ static struct omap_hwmod omap44xx_mmc1_hwmod = {
+>   	.slaves_cnt	= ARRAY_SIZE(omap44xx_mmc1_slaves),
+>   	.masters	= omap44xx_mmc1_masters,
+>   	.masters_cnt	= ARRAY_SIZE(omap44xx_mmc1_masters),
+> +	.dev_attr	=&mmc1_dev_attr,
+>   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>   };
+>
+>   /* mmc2 */
+> +
+> +static struct mmc_dev_attr mmc2_dev_attr = {
+> +	.flags = MMC_SUPPORTS_EXTERNAL_XCVR,
+> +};
+> +
+>   static struct omap_hwmod_irq_info omap44xx_mmc2_irqs[] = {
+>   	{ .irq = 86 + OMAP44XX_IRQ_GIC_START },
+>   };
+> @@ -536,6 +548,7 @@ static struct omap_hwmod omap44xx_mmc2_hwmod = {
+>   	.slaves_cnt	= ARRAY_SIZE(omap44xx_mmc2_slaves),
+>   	.masters	= omap44xx_mmc2_masters,
+>   	.masters_cnt	= ARRAY_SIZE(omap44xx_mmc2_masters),
+> +	.dev_attr	=&mmc2_dev_attr,
+>   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>   };
+>
 
