@@ -1,45 +1,58 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS2 broken with 36-rc1
-Date: Mon, 23 Aug 2010 10:15:09 +0300
-Message-ID: <1282547709.2202.1.camel@tubuntu.research.nokia.com>
-References: <1281962906.1888.25.camel@chotu>
-	 <4C72192A.9050801@compulab.co.il>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [PATCH] PM: runtime PM + idle: allow usage when
+ interrupts are disabled
+Date: Mon, 23 Aug 2010 09:18:45 +0200
+Message-ID: <20100823071845.GA5685@ucw.cz>
+References: <1281459261-30829-1-git-send-email-khilman@deeprootsystems.com>
+ <Pine.LNX.4.44L0.1008132112090.24267-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:24322 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105Ab0HWHPf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Aug 2010 03:15:35 -0400
-In-Reply-To: <4C72192A.9050801@compulab.co.il>
+Received: from ksp.mff.cuni.cz ([195.113.26.206]:57253 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751967Ab0HWHSw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Aug 2010 03:18:52 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1008132112090.24267-100000@netrider.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Mike Rapoport <mike@compulab.co.il>
-Cc: "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-On Mon, 2010-08-23 at 08:46 +0200, ext Mike Rapoport wrote:
-> Hi Ameya,
+Hi!
+
+> > When using runtime PM in combination with CPUidle, the runtime PM
+> > transtions of some devices may be triggered during the idle path.
+> > Late in the idle sequence, interrupts will likely be disabled when
+> > runtime PM for these devices is initiated.
+> > 
+> > Currently, the runtime PM core assumes methods are called with
+> > interrupts enabled.  However, if it is called with interrupts
+> > disabled, the internal locking unconditionally enables interrupts, for
+> > example:
 > 
-> Ameya Palande wrote:
-> > Hi Tomi,
+> ...
+> 
+> > Unconditionally enabling interrupts late in the idle sequence is not
+> > desired behavior.  To fix, use the save/restore versions of the
+> > spinlock API.
 > > 
-> > When I tried to boot 2.6.36-rc1 kernel on Nokia N900, omapfb failed with
-> > following error messages:
-> > 
-> > [    0.124145] OMAP DSS rev 2.0
-> > [    0.124237] OMAP DISPC rev 3.0
-> > 
-> > [    0.303833] acx565akm spi1.2: omapfb: acx565akm rev 8b LCD detected
-> > 
-> > [    0.805419] omapfb omapfb: failed to allocate framebuffer
-> > [    0.810882] omapfb omapfb: failed to allocate fbmem
-> > [    0.815856] omapfb omapfb: failed to setup omapfb
-> > [    0.820648] omapfb: probe of omapfb failed with error -12
+> > Reported-by: Partha Basak <p-basak2@ti.com>
+> > Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> > ---
+> > RFC: I'm not crazy about having the 'flags' in struct dev_pm_info, but
+> > since the locks are taken and released in separate functions, this
+> > seems better than changing the function APIs to pass around the flags.
+> 
+> There are restrictions on what you're allowed to do with the flags, but 
+> I don't remember exactly what they are.
 
-I tested 36-rc1 briefly with OMAP 3430SDP board. I wonder why that
-works, but not N900...
+There used to be 'flags must local variable, and enable/disable must
+happen in same function' restriction on sparc. Not sure if it is still
+present. Ask davem?
+									Pavel
 
-Tomi
-
-
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
