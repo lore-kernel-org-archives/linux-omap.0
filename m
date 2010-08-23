@@ -1,54 +1,54 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 15/20] Use platform device to get DSS base addr
-Date: Mon, 23 Aug 2010 23:43:12 +0200
-Message-ID: <4C72EB70.7000606@ti.com>
-References: <1282579089-10487-1-git-send-email-svadivu@ti.com> <1282579089-10487-2-git-send-email-svadivu@ti.com> <1282579089-10487-3-git-send-email-svadivu@ti.com> <1282579089-10487-4-git-send-email-svadivu@ti.com> <1282579089-10487-5-git-send-email-svadivu@ti.com> <1282579089-10487-6-git-send-email-svadivu@ti.com> <1282579089-10487-7-git-send-email-svadivu@ti.com> <1282579089-10487-8-git-send-email-svadivu@ti.com> <1282579089-10487-9-git-send-email-svadivu@ti.com> <1282579089-10487-10-git-send-email-svadivu@ti.com> <1282579089-10487-11-git-send-email-svadivu@ti.com> <1282579089-10487-12-git-send-email-svadivu@ti.com> <1282579089-10487-13-git-send-email-svadivu@ti.com> <1282579089-10487-14-git-send-email-svadivu@ti.com> <1282579089-10487-15-git-send-email-svadivu@ti.com> <1282579089-10487
- -16-git-send-email-svadivu@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/5] OMAP4: runtime: Enable PM runtime core for OMAP4
+Date: Mon, 23 Aug 2010 15:16:08 -0700
+Message-ID: <87tymlvutz.fsf@deeprootsystems.com>
+References: <1281364586-26323-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54880 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754511Ab0HWVnU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Aug 2010 17:43:20 -0400
-In-Reply-To: <1282579089-10487-16-git-send-email-svadivu@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:48929 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754326Ab0HWWQO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Aug 2010 18:16:14 -0400
+Received: by iwn5 with SMTP id 5so3885533iwn.19
+        for <linux-omap@vger.kernel.org>; Mon, 23 Aug 2010 15:16:13 -0700 (PDT)
+In-Reply-To: <1281364586-26323-1-git-send-email-rnayak@ti.com> (Rajendra
+	Nayak's message of "Mon, 9 Aug 2010 20:06:22 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On 8/23/2010 5:58 PM, Guruswamy, Senthilvadivu wrote:
-> From: Senthilvadivu Guruswamy<svadivu@ti.com>
+Rajendra Nayak <rnayak@ti.com> writes:
+
+> The PM runtime core functions are implemented in pm_bus.c
+> which needs to be compiled for CONFIG_ARCH_OMAP4 for
+> runtime api's to work.
 >
-> DSS Base addr got form platform device. Hardcoding of base addr could be removed.
->
-> Signed-off-by: Senthilvadivu Guruswamy<svadivu@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+
+I'll fold this one into the OMAP runtime PM core series (pm-wip/runtime
+branch) so this goes upstream with the core code.
+
+Thanks,
+
+Kevin
+
 > ---
->   drivers/video/omap2/dss/dss.c |    4 +++-
->   1 files changed, 3 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/Makefile |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 >
-> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-> index cbad9ff..21005c6 100644
-> --- a/drivers/video/omap2/dss/dss.c
-> +++ b/drivers/video/omap2/dss/dss.c
-> @@ -973,8 +973,10 @@ int dss_init(bool skip_init)
->   {
->   	int r;
->   	u32 rev;
-> +	struct resource *dss_mem;
->
-> -	dss.base = ioremap(DSS_BASE, DSS_SZ_REGS);
-> +	dss_mem = platform_get_resource(dss.pdev, IORESOURCE_MEM, 0);
-
-platform_get_resource can fail, so you have to check the returned value.
-Please note that this comment applies as well to all the other patches 
-from 16 to 19.
-
-Benoit
-
-> +	dss.base = ioremap(dss_mem->start, resource_size(dss_mem));
->   	if (!dss.base) {
->   		DSSERR("can't ioremap DSS\n");
->   		r = -ENOMEM;
-
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 800b430..18db759 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -50,7 +50,7 @@ ifeq ($(CONFIG_PM),y)
+>  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+>  obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o pm_bus.o
+> -obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o
+> +obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
+>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+>  
+>  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
