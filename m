@@ -1,7 +1,7 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH 14/20] Pass platform_device argument to rfbi,dispc
-Date: Mon, 23 Aug 2010 21:28:03 +0530
-Message-ID: <1282579089-10487-15-git-send-email-svadivu@ti.com>
+Subject: [PATCH 16/20] Get DISPC base addr with platform device
+Date: Mon, 23 Aug 2010 21:28:05 +0530
+Message-ID: <1282579089-10487-17-git-send-email-svadivu@ti.com>
 References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
  <1282579089-10487-2-git-send-email-svadivu@ti.com>
  <1282579089-10487-3-git-send-email-svadivu@ti.com>
@@ -16,12 +16,14 @@ References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
  <1282579089-10487-12-git-send-email-svadivu@ti.com>
  <1282579089-10487-13-git-send-email-svadivu@ti.com>
  <1282579089-10487-14-git-send-email-svadivu@ti.com>
+ <1282579089-10487-15-git-send-email-svadivu@ti.com>
+ <1282579089-10487-16-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35120 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38247 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754240Ab0HWP6Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754245Ab0HWP6Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 23 Aug 2010 11:58:25 -0400
-In-Reply-To: <1282579089-10487-14-git-send-email-svadivu@ti.com>
+In-Reply-To: <1282579089-10487-16-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com
@@ -29,96 +31,44 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Add platform_device argument to rfbi_init and dispc_init
-to pass the pdev to the driver.
+DISPC Base addr got from the platform device.  Hadrcoding of base
+addr removed.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/dss/core.c  |    4 ++--
- drivers/video/omap2/dss/dispc.c |    2 +-
- drivers/video/omap2/dss/dss.h   |    6 +++---
- drivers/video/omap2/dss/rfbi.c  |    2 +-
- 4 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index ce1f83b..f6fdf6a 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -286,7 +286,7 @@ static int omap_dispchw_probe(struct platform_device *pdev)
- {
- 	int r;
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
--	r = dispc_init();
-+	r = dispc_init(pdev);
- 	if (r) {
- 		DSSERR("Failed to initialize dispc\n");
- 		goto err_dispc;
-@@ -331,7 +331,7 @@ static int omap_rfbihw_probe(struct platform_device *pdev)
- {
- 	int r;
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
--	r = rfbi_init();
-+	r = rfbi_init(pdev);
- 	if (r) {
- 		DSSERR("Failed to initialize rfbi\n");
- 		goto err_rfbi;
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index e777e35..ae18b5f 100644
+index ae18b5f..8a7a086 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -3091,7 +3091,7 @@ static void _omap_dispc_initial_config(void)
- 	dispc_read_plane_fifo_sizes();
- }
- 
--int dispc_init(void)
-+int dispc_init(struct platform_device *pdev)
- {
- 	u32 rev;
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 3f79292..7f9cdf5 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -311,7 +311,7 @@ static inline void dpi_exit(void)
- #endif
+@@ -40,7 +40,6 @@
+ #include "dss.h"
  
  /* DISPC */
--int dispc_init(void);
-+int dispc_init(struct platform_device *pdev);
- void dispc_exit(void);
- void dispc_dump_clocks(struct seq_file *s);
- void dispc_dump_irqs(struct seq_file *s);
-@@ -413,7 +413,7 @@ static inline void venc_exit(void)
+-#define DISPC_BASE			0x48050400
  
- /* RFBI */
- #ifdef CONFIG_OMAP2_DSS_RFBI
--int rfbi_init(void);
-+int rfbi_init(struct platform_device *pdev);
- void rfbi_exit(void);
- void rfbi_dump_regs(struct seq_file *s);
+ #define DISPC_SZ_REGS			SZ_1K
  
-@@ -425,7 +425,7 @@ void rfbi_set_timings(int rfbi_module, struct rfbi_timings *t);
- unsigned long rfbi_get_max_tx_rate(void);
- int rfbi_init_display(struct omap_dss_device *display);
- #else
--static inline int rfbi_init(void)
-+static inline int rfbi_init(struct platform_device *pdev)
- {
- 	return 0;
- }
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index cc23f53..fe4f423 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -957,7 +957,7 @@ void rfbi_dump_regs(struct seq_file *s)
- #undef DUMPREG
- }
- 
--int rfbi_init(void)
-+int rfbi_init(struct platform_device *pdev)
+@@ -3094,6 +3093,7 @@ static void _omap_dispc_initial_config(void)
+ int dispc_init(struct platform_device *pdev)
  {
  	u32 rev;
- 	u32 l;
++	struct resource *dispc_mem;
+ 
+ 	spin_lock_init(&dispc.irq_lock);
+ 
+@@ -3104,7 +3104,8 @@ int dispc_init(struct platform_device *pdev)
+ 
+ 	INIT_WORK(&dispc.error_work, dispc_error_worker);
+ 
+-	dispc.base = ioremap(DISPC_BASE, DISPC_SZ_REGS);
++	dispc_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	dispc.base = ioremap(dispc_mem->start, resource_size(dispc_mem));
+ 	if (!dispc.base) {
+ 		DSSERR("can't ioremap DISPC\n");
+ 		return -ENOMEM;
 -- 
 1.6.3.3
 
