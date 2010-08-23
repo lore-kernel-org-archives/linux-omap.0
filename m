@@ -1,43 +1,46 @@
 From: Mike Rapoport <mike@compulab.co.il>
 Subject: Re: DSS2 broken with 36-rc1
-Date: Mon, 23 Aug 2010 09:46:02 +0300
-Message-ID: <4C72192A.9050801@compulab.co.il>
-References: <1281962906.1888.25.camel@chotu>
+Date: Mon, 23 Aug 2010 10:06:34 +0300
+Message-ID: <4C721DFA.9010009@compulab.co.il>
+References: <1281962906.1888.25.camel@chotu> <4C72192A.9050801@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:52593 "EHLO compulab.co.il"
+Received: from compulab.co.il ([67.18.134.219]:52733 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751978Ab0HWGqr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Aug 2010 02:46:47 -0400
-In-Reply-To: <1281962906.1888.25.camel@chotu>
+	id S1751783Ab0HWHHT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Aug 2010 03:07:19 -0400
+In-Reply-To: <4C72192A.9050801@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ameya Palande <ameya.palande@nokia.com>
-Cc: tomi.valkeinen@nokia.com, linux-omap <linux-omap@vger.kernel.org>
+Cc: tomi.valkeinen@nokia.com, linux-omap <linux-omap@vger.kernel.org>, Mike Rapoport <mike@compulab.co.il>
 
-Hi Ameya,
+Mike Rapoport wrote:
+> Hi Ameya,
+> 
+> Ameya Palande wrote:
+>> Hi Tomi,
+>>
+>> When I tried to boot 2.6.36-rc1 kernel on Nokia N900, omapfb failed with
+>> following error messages:
+>>
+>> [    0.124145] OMAP DSS rev 2.0
+>> [    0.124237] OMAP DISPC rev 3.0
+>>
+>> [    0.303833] acx565akm spi1.2: omapfb: acx565akm rev 8b LCD detected
+>>
+>> [    0.805419] omapfb omapfb: failed to allocate framebuffer
+>> [    0.810882] omapfb omapfb: failed to allocate fbmem
+>> [    0.815856] omapfb omapfb: failed to setup omapfb
+>> [    0.820648] omapfb: probe of omapfb failed with error -12
+> 
 
-Ameya Palande wrote:
-> Hi Tomi,
-> 
-> When I tried to boot 2.6.36-rc1 kernel on Nokia N900, omapfb failed with
-> following error messages:
-> 
-> [    0.124145] OMAP DSS rev 2.0
-> [    0.124237] OMAP DISPC rev 3.0
-> 
-> [    0.303833] acx565akm spi1.2: omapfb: acx565akm rev 8b LCD detected
-> 
-> [    0.805419] omapfb omapfb: failed to allocate framebuffer
-> [    0.810882] omapfb omapfb: failed to allocate fbmem
-> [    0.815856] omapfb omapfb: failed to setup omapfb
-> [    0.820648] omapfb: probe of omapfb failed with error -12
+Please discard the previous patch, it's buggy :(
+Sorry for the noise.
 
-Can you try this one:
-
- From 28de4496224d1e2ae72dcb5bb52b72d850d3cc49 Mon Sep 17 00:00:00 2001
+ From 81e9278ad27bc91be42105321e0e26d0be9e883b Mon Sep 17 00:00:00 2001
 From: Mike Rapoport <mike@compulab.co.il>
 Date: Mon, 23 Aug 2010 09:40:09 +0300
 Subject: [PATCH] OMAP: DSS2: OMAPFB: use phys_to_virt for RAM mappings
@@ -50,32 +53,69 @@ ioremap for other memory types
 Reported-by: Ameya Palande <ameya.palande@nokia.com>
 Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 ---
-  drivers/video/omap2/omapfb/omapfb-main.c |    5 ++++-
-  1 files changed, 4 insertions(+), 1 deletions(-)
+  arch/arm/plat-omap/include/plat/vram.h   |    1 +
+  drivers/video/omap2/omapfb/omapfb-main.c |    2 +-
+  drivers/video/omap2/vram.c               |   10 ++++++++++
+  3 files changed, 12 insertions(+), 1 deletions(-)
 
+diff --git a/arch/arm/plat-omap/include/plat/vram.h b/arch/arm/plat-omap/include/plat/vram.h
+index 0aa4ecd..b1b137c 100644
+--- a/arch/arm/plat-omap/include/plat/vram.h
++++ b/arch/arm/plat-omap/include/plat/vram.h
+@@ -33,6 +33,7 @@ extern int omap_vram_alloc(int mtype, size_t size, unsigned long *paddr);
+  extern int omap_vram_reserve(unsigned long paddr, size_t size);
+  extern void omap_vram_get_info(unsigned long *vram, unsigned long *free_vram,
+  		unsigned long *largest_free_block);
++extern void __iomem *omap_vram_remap(size_t size, unsigned long paddr);
+
+  #ifdef CONFIG_OMAP2_VRAM
+  extern void omap_vram_set_sdram_vram(u32 size, u32 start);
 diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index 04034d4..7f7b1c2 100644
+index 04034d4..39f53b1 100644
 --- a/drivers/video/omap2/omapfb/omapfb-main.c
 +++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -1436,7 +1436,10 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
+@@ -1436,7 +1436,7 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
   	}
 
   	if (ofbi->rotation_type != OMAP_DSS_ROT_VRFB) {
 -		vaddr = ioremap_wc(paddr, size);
-+		if (region_mem_type(paddr) == OMAP_VRAM_MEMTYPE_SDRAM)
-+			vaddr = phys_to_virt(paddr);
-+		else
-+			vaddr = ioremap_wc(paddr, size);
++		vaddr = omap_vram_remap(size, paddr);
 
   		if (!vaddr) {
   			dev_err(fbdev->dev, "failed to ioremap framebuffer\n");
+diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
+index f6fdc20..37557b6 100644
+--- a/drivers/video/omap2/vram.c
++++ b/drivers/video/omap2/vram.c
+@@ -30,6 +30,7 @@
+  #include <linux/debugfs.h>
+  #include <linux/jiffies.h>
+  #include <linux/module.h>
++#include <linux/io.h>
+
+  #include <asm/setup.h>
+
+@@ -425,6 +426,15 @@ void omap_vram_get_info(unsigned long *vram,
+  }
+  EXPORT_SYMBOL(omap_vram_get_info);
+
++void __iomem *omap_vram_remap(size_t size, unsigned long paddr)
++{
++	if (region_mem_type(paddr) == OMAP_VRAM_MEMTYPE_SDRAM)
++		return phys_to_virt(paddr);
++
++	return ioremap_wc(paddr, size);
++}
++EXPORT_SYMBOL(omap_vram_remap);
++
+  #if defined(CONFIG_DEBUG_FS)
+  static int vram_debug_show(struct seq_file *s, void *unused)
+  {
 -- 
 1.6.6.2
-
 
 
 
 -- 
 Sincerely yours,
 Mike.
-
