@@ -1,7 +1,7 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH 08/20] Replace clk_enable/disable APIs with HWMOD APIs
-Date: Mon, 23 Aug 2010 21:27:57 +0530
-Message-ID: <1282579089-10487-9-git-send-email-svadivu@ti.com>
+Subject: [PATCH 19/20] Get RFBI baseaddr with platform device
+Date: Mon, 23 Aug 2010 21:28:08 +0530
+Message-ID: <1282579089-10487-20-git-send-email-svadivu@ti.com>
 References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
  <1282579089-10487-2-git-send-email-svadivu@ti.com>
  <1282579089-10487-3-git-send-email-svadivu@ti.com>
@@ -10,12 +10,23 @@ References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
  <1282579089-10487-6-git-send-email-svadivu@ti.com>
  <1282579089-10487-7-git-send-email-svadivu@ti.com>
  <1282579089-10487-8-git-send-email-svadivu@ti.com>
+ <1282579089-10487-9-git-send-email-svadivu@ti.com>
+ <1282579089-10487-10-git-send-email-svadivu@ti.com>
+ <1282579089-10487-11-git-send-email-svadivu@ti.com>
+ <1282579089-10487-12-git-send-email-svadivu@ti.com>
+ <1282579089-10487-13-git-send-email-svadivu@ti.com>
+ <1282579089-10487-14-git-send-email-svadivu@ti.com>
+ <1282579089-10487-15-git-send-email-svadivu@ti.com>
+ <1282579089-10487-16-git-send-email-svadivu@ti.com>
+ <1282579089-10487-17-git-send-email-svadivu@ti.com>
+ <1282579089-10487-18-git-send-email-svadivu@ti.com>
+ <1282579089-10487-19-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38245 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38244 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754242Ab0HWP6Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754239Ab0HWP6Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Mon, 23 Aug 2010 11:58:25 -0400
-In-Reply-To: <1282579089-10487-8-git-send-email-svadivu@ti.com>
+In-Reply-To: <1282579089-10487-19-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com, paul@pwsan.com, khilman@ti.com
@@ -23,80 +34,44 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-when DSS ICK, FCK are requested, dss HWMOD APIs are used for enable
-and disable. The remaining clocks (dss opt clks in HWMOD database)
-continue to use clk APIs, since HWMOD APIs are not fully available
-for the dss opt clocks without the usage of clk framework.
+RFBI base addr got from platform device.  Hardcoding of
+base addr removed.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/dss/dss.c |   28 ++++++++++++++++++++--------
- 1 files changed, 20 insertions(+), 8 deletions(-)
+ drivers/video/omap2/dss/rfbi.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 15d0399..098ff96 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -61,6 +61,7 @@ struct dss_reg {
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index fe4f423..690f7bf 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -36,7 +36,6 @@
+ #include <plat/display.h>
+ #include "dss.h"
  
- static struct {
- 	struct platform_device *pdev;
-+	struct omap_display_platform_data *pdata;
+-#define RFBI_BASE               0x48050800
  
- 	void __iomem    *base;
- 	int		ctx_id;
-@@ -310,14 +311,26 @@ static unsigned count_clk_bits(enum dss_clock clks)
- 	return num_clks;
- }
+ struct rfbi_reg { u16 idx; };
  
-+static inline void enable_clocks(bool enable)
-+ {
-+	static int use_count;
-+
-+	use_count += enable ? 1 : -1;
-+	if (use_count < 0)
-+		use_count = 0;
-+
-+	if (enable && use_count == 1)
-+		dss.pdata->device_enable(dss.pdev);
-+	else if (!enable && use_count == 0)
-+		dss.pdata->device_idle(dss.pdev);
-+}
-+
- static void dss_clk_enable_no_ctx(enum dss_clock clks)
+@@ -961,6 +960,7 @@ int rfbi_init(struct platform_device *pdev)
  {
- 	unsigned num_clks = count_clk_bits(clks);
+ 	u32 rev;
+ 	u32 l;
++	struct resource *rfbi_mem;
  
--	if (clks & DSS_CLK_ICK)
--		clk_enable(dss.dss_ick);
--	if (clks & DSS_CLK_FCK1)
--		clk_enable(dss.dss1_fck);
-+	if ((clks & DSS_CLK_ICK) || (clks & DSS_CLK_FCK1))
-+		enable_clocks(1);
- 	if (clks & DSS_CLK_FCK2)
- 		clk_enable(dss.dss2_fck);
- 	if (clks & DSS_CLK_54M)
-@@ -342,10 +355,8 @@ static void dss_clk_disable_no_ctx(enum dss_clock clks)
- {
- 	unsigned num_clks = count_clk_bits(clks);
+ 	spin_lock_init(&rfbi.cmd_lock);
  
--	if (clks & DSS_CLK_ICK)
--		clk_disable(dss.dss_ick);
--	if (clks & DSS_CLK_FCK1)
--		clk_disable(dss.dss1_fck);
-+	if ((clks & DSS_CLK_ICK) || (clks & DSS_CLK_FCK1))
-+		enable_clocks(0);
- 	if (clks & DSS_CLK_FCK2)
- 		clk_disable(dss.dss2_fck);
- 	if (clks & DSS_CLK_54M)
-@@ -447,6 +458,7 @@ static int omap_dsshw_probe(struct platform_device *pdev)
- 	int r;
+@@ -968,7 +968,8 @@ int rfbi_init(struct platform_device *pdev)
+ 	atomic_set(&rfbi.cmd_fifo_full, 0);
+ 	atomic_set(&rfbi.cmd_pending, 0);
  
- 	dss.pdev = pdev;
-+	dss.pdata = dss.pdev->dev.platform_data;
- 
- 	r = dss_get_clocks();
- 	if (r)
+-	rfbi.base = ioremap(RFBI_BASE, SZ_256);
++	rfbi_mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	rfbi.base = ioremap(rfbi_mem->start, resource_size(rfbi_mem));
+ 	if (!rfbi.base) {
+ 		DSSERR("can't ioremap RFBI\n");
+ 		return -ENOMEM;
 -- 
 1.6.3.3
 
