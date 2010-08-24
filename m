@@ -1,81 +1,34 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Tue, 24 Aug 2010 11:31:30 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
-	<1277943660-4112-3-git-send-email-x0095840@ti.com>
-	<1277943660-4112-4-git-send-email-x0095840@ti.com>
-	<1277943660-4112-5-git-send-email-x0095840@ti.com>
-	<1277943660-4112-6-git-send-email-x0095840@ti.com>
-	<1277943660-4112-7-git-send-email-x0095840@ti.com>
-	<1277943660-4112-8-git-send-email-x0095840@ti.com>
-	<1277943660-4112-9-git-send-email-x0095840@ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
- <AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: NAND ECC in linux-omap
+Date: Tue, 24 Aug 2010 22:40:41 +0530
+Message-ID: <AANLkTi=br81XgtJWE52NpE_0Kdbbpe6OTSXVAnhXDj2+@mail.gmail.com>
+References: <AANLkTimABq72N98Ca6yJ9FgYnyDpod3qRPoTypkDn-4A@mail.gmail.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030E8188DB@dbde02.ent.ti.com>
+ <AANLkTik4+gApkw5fQ561QnJPLX5ED7oN3oU0P6F0+Gsv@mail.gmail.com>
+ <2A3DCF3DA181AD40BDE86A3150B27B6B030E9299EA@dbde02.ent.ti.com> <AANLkTinuR_g53r4Q6a3LCmy4LR9ox8j7uCOFVB4OmRz4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45153 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754343Ab0HXQbg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 12:31:36 -0400
-In-Reply-To: <AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:53815 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753154Ab0HXRLB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 13:11:01 -0400
+Received: by pwi7 with SMTP id 7so2541336pwi.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 10:11:01 -0700 (PDT)
+In-Reply-To: <AANLkTinuR_g53r4Q6a3LCmy4LR9ox8j7uCOFVB4OmRz4@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: Cliff Brake <cliff.brake@gmail.com>
+Cc: "Ghorai, Sukumar" <s-ghorai@ti.com>, Linux OMAP Users <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>
 
- 
+On Tue, Aug 24, 2010 at 8:04 PM, Cliff Brake <cliff.brake@gmail.com> wrote:
+>
+> flash_erasall -j /dev/mtd4
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
-> Sent: Tuesday, August 24, 2010 5:09 AM
-> To: Guzman Lugo, Fernando
-> Cc: Kanigeri, Hari; linux-omap@vger.kernel.org; 
-> linux-kernel@vger.kernel.org; ohad@wizery.com; 
-> hiroshi.doyu@nokia.com; ameya.palande@nokia.com; 
-> felipe.contreras@nokia.com
-> Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
-> 
-> On Fri, Jul 2, 2010 at 9:39 PM, Guzman Lugo, Fernando 
-> <fernando.lugo@ti.com> wrote:
-> > I think, it would be good if we get rid of DMMPOOL size, if 
-> the liked list grow up as it is needed, there is no memory 
-> penalty of have all the possible iommu addresses valid 
-> (11000000 - FFFFFFFF). The reservation will only fail when 
-> there is no memory. If a software restriction is needed we 
-> could define a start and end addresses for iommu module 
-> (maybe as a parameter when the iommu handle for iva2 is got) 
-> and that boundaries can be taking in account at the moment of 
-> reserve the memory.
-> 
-> What happened to this?
-> 
-> IIUC what you are proposing is to remove the DMM pool 
-> completely, that makes sense to me. However, is it really 
-> needed to finish the iommu migration to do this?
-> 
-> > I think the reserve/unreserved dspbridge api can disappear 
-> and just return the da address in the map function.
-> 
-> This is something I've proposed before, so I agree :)
+Give a try without using '-j' option... If ECC layout is the suspect..
+this may help.
 
-Yeah, that is how it will be. I have been busy with other stuffs, but now
-I have finish a version with all dmm module removed and reserve/unreserve
-Api removed as well. But because a the big # of patches merge in dspbrdge
-I have to rebase them to the latest, I hope finish this week and send
-Them again next week.
 
+-- 
 Regards,
-Fernando.
-
-> 
-> --
-> Felipe Contreras
-> 
+Vimal Singh
