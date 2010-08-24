@@ -1,143 +1,43 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH v2] omap: 4430sdp board support for the the GPIO keys
-Date: Tue, 24 Aug 2010 10:57:33 +0530
-Message-ID: <1282627653-31510-1-git-send-email-shubhrajyoti@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34377 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751357Ab0HXF1j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Aug 2010 01:27:39 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7O5RZ1b009069
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 00:27:38 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
+Date: Tue, 24 Aug 2010 13:09:01 +0300
+Message-ID: <AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
+References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
+	<1277943660-4112-2-git-send-email-x0095840@ti.com>
+	<1277943660-4112-3-git-send-email-x0095840@ti.com>
+	<1277943660-4112-4-git-send-email-x0095840@ti.com>
+	<1277943660-4112-5-git-send-email-x0095840@ti.com>
+	<1277943660-4112-6-git-send-email-x0095840@ti.com>
+	<1277943660-4112-7-git-send-email-x0095840@ti.com>
+	<1277943660-4112-8-git-send-email-x0095840@ti.com>
+	<1277943660-4112-9-git-send-email-x0095840@ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-omap 4430sdp board support for the GPIO keys.
-The proximity sensor is connected to GPIO and is registered as a
-GPIO key.
-- Making the default state of the sensor off at bootup
+On Fri, Jul 2, 2010 at 9:39 PM, Guzman Lugo, Fernando
+<fernando.lugo@ti.com> wrote:
+> I think, it would be good if we get rid of DMMPOOL size, if the liked list grow up as it is needed, there is no memory penalty of have all the possible iommu addresses valid (11000000 - FFFFFFFF). The reservation will only fail when there is no memory. If a software restriction is needed we could define a start and end addresses for iommu module (maybe as a parameter when the iommu handle for iva2 is got) and that boundaries can be taking in account at the moment of reserve the memory.
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   61 +++++++++++++++++++++++++++++++++++
- 1 files changed, 61 insertions(+), 0 deletions(-)
+What happened to this?
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 9447644..85b0e0c 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -20,6 +20,7 @@
- #include <linux/usb/otg.h>
- #include <linux/spi/spi.h>
- #include <linux/i2c/twl.h>
-+#include <linux/gpio_keys.h>
- #include <linux/regulator/machine.h>
- #include <linux/leds.h>
- 
-@@ -40,6 +41,8 @@
- #define ETH_KS8851_IRQ			34
- #define ETH_KS8851_POWER_ON		48
- #define ETH_KS8851_QUART		138
-+#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
-+#define OMAP4_SFH7741_ENABLE_GPIO		188
- 
- static struct gpio_led sdp4430_gpio_leds[] = {
- 	{
-@@ -77,11 +80,47 @@ static struct gpio_led sdp4430_gpio_leds[] = {
- 
- };
- 
-+static struct gpio_keys_button sdp4430_gpio_keys[] = {
-+	{
-+		.desc			= "Proximity Sensor",
-+		.type			= EV_SW,
-+		.code			= SW_FRONT_PROXIMITY,
-+		.gpio			= OMAP4_SFH7741_SENSOR_OUTPUT_GPIO,
-+		.active_low		= 0,
-+	}
-+};
-+
- static struct gpio_led_platform_data sdp4430_led_data = {
- 	.leds	= sdp4430_gpio_leds,
- 	.num_leds	= ARRAY_SIZE(sdp4430_gpio_leds),
- };
- 
-+static int omap_prox_activate(struct device *dev)
-+{
-+	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 1);
-+	return 0;
-+}
-+
-+static void omap_prox_deactivate(struct device *dev)
-+{
-+	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 0);
-+}
-+
-+static struct gpio_keys_platform_data sdp4430_gpio_keys_data = {
-+	.buttons	= sdp4430_gpio_keys,
-+	.nbuttons	= ARRAY_SIZE(sdp4430_gpio_keys),
-+	.enable		= omap_prox_activate,
-+	.disable	= omap_prox_deactivate,
-+};
-+
-+static struct platform_device sdp4430_gpio_keys_device = {
-+	.name	= "gpio-keys",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data	= &sdp4430_gpio_keys_data,
-+	},
-+};
-+
- static struct platform_device sdp4430_leds_gpio = {
- 	.name	= "leds-gpio",
- 	.id	= -1,
-@@ -161,6 +200,7 @@ static struct platform_device sdp4430_lcd_device = {
- 
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_lcd_device,
-+	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- };
- 
-@@ -426,6 +466,26 @@ static int __init omap4_i2c_init(void)
- 	omap_register_i2c_bus(4, 400, NULL, 0);
- 	return 0;
- }
-+
-+static void __init omap_sfh7741prox_init(void)
-+{
-+	int  error;
-+
-+	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
-+	if (error < 0) {
-+		pr_err("%s:failed to request GPIO %d, error %d\n",
-+			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
-+		return;
-+	}
-+
-+	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 0);
-+	if (error < 0) {
-+		pr_err("%s: GPIO configuration failed: GPIO %d,error %d\n",
-+			 __func__, OMAP4_SFH7741_ENABLE_GPIO, error);
-+		gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
-+	}
-+}
-+
- static void __init omap_4430sdp_init(void)
- {
- 	int status;
-@@ -448,6 +508,7 @@ static void __init omap_4430sdp_init(void)
- 		spi_register_board_info(sdp4430_spi_board_info,
- 				ARRAY_SIZE(sdp4430_spi_board_info));
- 	}
-+	omap_sfh7741prox_init();
- }
- 
- static void __init omap_4430sdp_map_io(void)
+IIUC what you are proposing is to remove the DMM pool completely, that
+makes sense to me. However, is it really needed to finish the iommu
+migration to do this?
+
+> I think the reserve/unreserved dspbridge api can disappear and just return the da address in the map function.
+
+This is something I've proposed before, so I agree :)
+
 -- 
-1.7.0.4
-
+Felipe Contreras
