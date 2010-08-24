@@ -1,73 +1,68 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Wed, 25 Aug 2010 00:17:50 +0300
-Message-ID: <AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
-	<1277943660-4112-3-git-send-email-x0095840@ti.com>
-	<1277943660-4112-4-git-send-email-x0095840@ti.com>
-	<1277943660-4112-5-git-send-email-x0095840@ti.com>
-	<1277943660-4112-6-git-send-email-x0095840@ti.com>
-	<1277943660-4112-7-git-send-email-x0095840@ti.com>
-	<1277943660-4112-8-git-send-email-x0095840@ti.com>
-	<1277943660-4112-9-git-send-email-x0095840@ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
-	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
-	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
-	<AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3995@dlee06.ent.ti.com>
-	<AANLkTinjMujus-28DcLzZ+16GAGpLohwhPhuTi5uKhB8@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PM-SR][PATCH 1/2 v2] omap3: sr: fix memory leak and simplify the code
+Date: Tue, 24 Aug 2010 14:25:01 -0700
+Message-ID: <87vd6zn1oy.fsf@deeprootsystems.com>
+References: <1278687874-26123-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:34125 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755932Ab0HXVRw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:17:52 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:58410 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755435Ab0HXVZF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:25:05 -0400
+Received: by pvg2 with SMTP id 2so2799658pvg.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 14:25:04 -0700 (PDT)
+In-Reply-To: <1278687874-26123-1-git-send-email-nm@ti.com> (Nishanth Menon's
+	message of "Fri, 9 Jul 2010 10:04:34 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: Nishanth Menon <nm@ti.com>, Thara Gopinath <thara@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>, Peter p2 De Schrijver <peter.de-schrijver@nokia.com>
 
-On Tue, Aug 24, 2010 at 10:30 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
->> Oh, I actually meant the DMM pool.
->>
->> a) 1. Migrate to iommu, 2. Remove DMM completely
->> b) 1. Remove DMM pool, 2. Migrate to iommu 3. Remove DMM completely
+Nishanth Menon <nm@ti.com> writes:
+
+> From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 >
-> Ok, what is the issue with DMM pool?
-
->From what I've heard; fragmentation.
-
-> The issue I see removing DMM pool in this moment and making all the DMM
-> Available (from 0x11000000 to 0xFFFFFFFF omap3 case) that is:
+> This patch fixes the following problem indicated by kmemleak:
 >
-> The DMM module allocates a list of "struct map_page" elements base on
-> DMM_POOL_SIZE to keep track of memory reserved and mapped.
+> kmemleak: unreferenced object 0xdf93c280 (size 64):
+> kmemleak:   backtrace:
+> kmemleak:     [<c00df6d4>] create_object+0x104/0x200
+> kmemleak:     [<c00d7638>] kmem_cache_alloc+0xe4/0xf4
+> kmemleak:     [<c000fc38>] omap_devinit_smartreflex+0x44/0x244
+> kmemleak:     [<c003a33c>] do_one_initcall+0x5c/0x1b8
+> kmemleak:     [<c00083fc>] kernel_init+0x94/0x110
+> kmemleak:     [<c003ba04>] kernel_thread_exit+0x0/0x8
 >
-> Memory allocated = DMM_POOL_SIZE / PAGE_SIZE * sizeof(struct map_page);
+> The reason is that 'omap_devinit_smartreflex()' allocates 'sr_data',
+> then passes it to 'omap_device_build()', which 'kmemdup()'s it and
+> uses the copy. But 'omap_devinit_smartreflex()' never frees 'sr_data'.
 >
-> So making all memory avalible it will increase the memory used for DMM
-> Module and it could be quite significant.
+> This patch make 'sr_data' to be a stack variable, which eliminates
+> the memory leak and simplifies the code a bit.
 >
-> Iovmm.c module, the list is increased dynamically when it is needed so
-> It does no have that problem. Then when the migration is done and
-> Iovmm.c module is used the DMM_POOL_SIZE can be removed without issues.
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Thara Gopinath <thara@ti.com>,
+> Cc: Peter p2 De Schrijver <peter.de-schrijver@nokia.com>
+> Cc: Nishanth Menon <nm@ti.com>
+>
+> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> Acked-by: Nishanth Menon <nm@ti.com>
+> ---
+> Changes from V1:
+> 	rebased to latest pm-sr branch
+> 	default of sr_data set to 0 to make it equivalent to kzalloc
+>
+> NOTE: this probably should be squashed when being send upstream along with
+> rest of SR series
 
-It seems that this "memory allocated" you are taking about is an
-array, but what we would like is a list, like apparently iovmm is
-using. I think I can give that a try if needed.
+Thara, you appear to have fixed this problem differently in your latest
+series.  Looks like you just ensured kfree() was always done, correct?
 
-However, from what I can see iovmm can be used instead of dmm even if
-the switch to iommu is not yet there.
+In the future, it would be helpful if you would reply to these proposed
+fixes on the list so we know if they are incorporated or handled
+differently.
 
--- 
-Felipe Contreras
+Thanks,
+
+Kevin
