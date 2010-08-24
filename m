@@ -1,68 +1,161 @@
-From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
-Subject: RE: [PATCH]omap: i2c: Avoid compilation error in case the header is
- included multiple times
-Date: Wed, 25 Aug 2010 00:27:59 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E8351872@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301E835183B@dbde02.ent.ti.com>
- <20100824184912.GA29744@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PM-OPP][PATCH] OMAP: Modifying the frequency comparison logic.
+Date: Tue, 24 Aug 2010 12:03:35 -0700
+Message-ID: <87occromt4.fsf@deeprootsystems.com>
+References: <1281758292-18895-1-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54035 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751444Ab0HXS6I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 14:58:08 -0400
-In-Reply-To: <20100824184912.GA29744@nokia.com>
-Content-Language: en-US
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:65004 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751985Ab0HXTDi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 15:03:38 -0400
+Received: by pwi7 with SMTP id 7so268pwi.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 12:03:38 -0700 (PDT)
+In-Reply-To: <1281758292-18895-1-git-send-email-thara@ti.com> (thara
+	gopinath's message of "Sat, 14 Aug 2010 09:28:12 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "tony@atomide.com" <tony@atomide.com>
+To: thara gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com
 
-Hi Felipe,
+thara gopinath <thara@ti.com> writes:
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:felipe.balbi@nokia.com] 
-> Sent: Tuesday, August 24, 2010 1:49 PM
-> To: C.A, Subramaniam
-> Cc: linux-omap@vger.kernel.org; Gadiyar, Anand; tony@atomide.com
-> Subject: Re: [PATCH]omap: i2c: Avoid compilation error in 
-> case the header is included multiple times
-> 
-> On Tue, Aug 24, 2010 at 07:14:30PM +0200, ext C.A, Subramaniam wrote:
-> >>From e3c3ee9317850b2b26e02680a0c976d3c75febab Mon Sep 17 
-> 00:00:00 2001
-> >From: Subramaniam C.A <subramaniam.ca@ti.com>
-> >Date: Tue, 24 Aug 2010 12:02:28 -0500
-> >Subject: [PATCH] omap: i2c: Avoid compilation error in case 
-> the header is included multiple times.
-> >
-> >Added defines to avoid compilation error.
-> >
-> 
-> could you list one such case ?
-This caused a compilation error for the OMAP4 tree, where the ipu_pm.c file was including plat/i2c.h and plat/omap-pm.h.
-Ref: http://dev.omapzoom.org/?p=integration/kernel-omap4.git;a=blob;f=drivers/dsp/syslink/ipu_pm/ipu_pm.c;h=b1791d4e7f2113eed046d3785106360dbe1cfc86;hb=d67c37aaadb80a6209f07618302bb84e1c952e97
+> From: Thara Gopinath <thara@ti.com>
+>
+> In the current opp layer the frequency matching API's
+> tries to match the exact frequency passed in Hz. This leads
+> to problems in cases where dplls are locked to slightly differnet
+> frequencies due to sys clock speed or optimum M,N values.
+> Consider the following scenario
+> 	a. dpll_x is supposed to be locked at 266Mhz but is
+> 	   actually att 266.045 Mhz due to above mentioned reasons.
+> 	b. The opp table has the entry as 266000000 hz.
+> 	c. The user does a clk_get_rate(dpll_x) and passes the
+> 	  corresponding rate <rate> into the opp API's to get back
+> 	  a opp table entry.
+> 	d. In this scenario if  the user has called into
+> 	   opp_find_freq_exact it will return an error.
+> 	   If the user has called into opp_find_freq_ceil
+> 	   it will either return the opp entry corresponding
+> 	   to the next higher frequency in the opp table
+> 	   or return an error if 266 Mhz is the last entry
+> 	   in the table.
+>
+> The above is not correct as we expect the framework to return back
+> the opp table entry corresponding to 266 Mhz.
+>
+> Now there are two ways of fixing this issue.
+> 	a. Put the correct dpll lock frequency in the opp table.
+> 	   This means opp table will now have entries like 266045000 hz.
+> 	   But this is not scalable as these dpll lock frequencies
+> 	   can change slightly based on sys clk speeds. Like for eg
+> 	   at sys clk speed 38.4 Mhz we will able to get 266.045 Mhz
+> 	   where as at sys clk speed 26 Mhz we will be able to get
+> 	   onyl 266.124 Mhz etc. So depending on the platform we
+> 	   will have to start changing the opp table.
+>
+> 	b. Do the comparison in Mhz in the opp layer rather than in Hz.
+> 	   This would mean we will divide the rate passed into the opp layer
+> 	  API and the rates stored in the opp tables by 1000000 to get the
+> 	  rates in Mhz and do the necessary comparision. In this approach any
+> 	  vague frequency like 266.045Mhz will get mapped to 266 Mhz in the
+> 	  opp table. But if the passed rate is 267 Mhz, the opp framework
+> 	  will still rerturn an error or the next highest opp table entry
+>
+> This patch implements solution b. The scenario mentioned above is
+> esp true for OMAP4 dpll_iva where we do end up with such weird frequencies
+> due to sys clk being at 38.4 Mhz.
 
-omap-pm.h indirectly includes plat/i2c.h and hence the compilation error.
+I agree that solution b is better, although it makes the '_exact'
+function a bit less exact. :/
 
-Yes we could have removed the,
+solution b is fine with me, but the kerneldoc for these find functions
+should be updated to describe the new matching technique.
 
-#include <plat/i2c.h>
+Kevin
 
-from the ipu_pm.c file and avoided the compilation error, but it still made sense to have this patch.
-
-> 
-> >Signed-off-by: Subramaniam C.A <subramaniam.ca@ti.com>
-> 
-> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> --
-> balbi
-> 
-> DefectiveByDesign.org
-> 
-
-BR
-Subbu
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/plat-omap/opp.c |   37 ++++++++++++++++++++++++++-----------
+>  1 files changed, 26 insertions(+), 11 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
+> index b9b7bda..ba7a554 100644
+> --- a/arch/arm/plat-omap/opp.c
+> +++ b/arch/arm/plat-omap/opp.c
+> @@ -212,15 +212,20 @@ struct omap_opp *opp_find_freq_exact(struct device *dev,
+>  {
+>  	struct device_opp *dev_opp;
+>  	struct omap_opp *temp_opp, *opp = ERR_PTR(-ENODEV);
+> +	unsigned long req_freq = freq / 1000000;
+>  
+>  	dev_opp = find_device_opp(dev);
+>  	if (IS_ERR(dev_opp))
+>  		return opp;
+>  
+>  	list_for_each_entry(temp_opp, &dev_opp->opp_list, node) {
+> -		if (temp_opp->enabled && temp_opp->rate == freq) {
+> -			opp = temp_opp;
+> -			break;
+> +		if (temp_opp->enabled) {
+> +			unsigned long rate = temp_opp->rate / 1000000;
+> +
+> +			if (rate == req_freq) {
+> +				opp = temp_opp;
+> +				break;
+> +			}
+>  		}
+>  	}
+>  
+> @@ -258,16 +263,21 @@ struct omap_opp *opp_find_freq_ceil(struct device *dev, unsigned long *freq)
+>  {
+>  	struct device_opp *dev_opp;
+>  	struct omap_opp *temp_opp, *opp = ERR_PTR(-ENODEV);
+> +	unsigned long req_freq = *freq / 1000000;
+>  
+>  	dev_opp = find_device_opp(dev);
+>  	if (IS_ERR(dev_opp))
+>  		return opp;
+>  
+>  	list_for_each_entry(temp_opp, &dev_opp->opp_list, node) {
+> -		if (temp_opp->enabled && temp_opp->rate >= *freq) {
+> -			opp = temp_opp;
+> -			*freq = opp->rate;
+> -			break;
+> +		if (temp_opp->enabled) {
+> +			unsigned long rate = temp_opp->rate / 1000000;
+> +
+> +			if (rate >= req_freq) {
+> +				opp = temp_opp;
+> +				*freq = opp->rate;
+> +				break;
+> +			}
+>  		}
+>  	}
+>  
+> @@ -305,16 +315,21 @@ struct omap_opp *opp_find_freq_floor(struct device *dev, unsigned long *freq)
+>  {
+>  	struct device_opp *dev_opp;
+>  	struct omap_opp *temp_opp, *opp = ERR_PTR(-ENODEV);
+> +	unsigned long req_freq = *freq / 1000000;
+>  
+>  	dev_opp = find_device_opp(dev);
+>  	if (IS_ERR(dev_opp))
+>  		return opp;
+>  
+>  	list_for_each_entry_reverse(temp_opp, &dev_opp->opp_list, node) {
+> -		if (temp_opp->enabled && temp_opp->rate <= *freq) {
+> -			opp = temp_opp;
+> -			*freq = opp->rate;
+> -			break;
+> +		if (temp_opp->enabled) {
+> +			unsigned long rate = temp_opp->rate / 1000000;
+> +
+> +			if (rate <= req_freq) {
+> +				opp = temp_opp;
+> +				*freq = opp->rate;
+> +				break;
+> +			}
+>  		}
+>  	}
