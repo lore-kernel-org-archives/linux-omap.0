@@ -1,112 +1,72 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] OMAP4: pm.c extensions for OMAP4 support
-Date: Tue, 24 Aug 2010 14:58:46 -0700
-Message-ID: <87fwy3n04p.fsf@deeprootsystems.com>
-References: <1282019798-2443-1-git-send-email-thara@ti.com>
+Subject: Re: [PATCHv2 1/8] OMAP: PM: Allowing an early init of pm debugfs driver.
+Date: Tue, 24 Aug 2010 15:16:01 -0700
+Message-ID: <87aaobmzby.fsf@deeprootsystems.com>
+References: <1281707231-3026-1-git-send-email-thara@ti.com>
+	<1281707231-3026-2-git-send-email-thara@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:47530 "EHLO
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:62210 "EHLO
 	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755435Ab0HXV6t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:58:49 -0400
-Received: by pzk26 with SMTP id 26so2819074pzk.19
-        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 14:58:49 -0700 (PDT)
-In-Reply-To: <1282019798-2443-1-git-send-email-thara@ti.com> (Thara Gopinath's
-	message of "Tue, 17 Aug 2010 10:06:38 +0530")
+	with ESMTP id S932244Ab0HXWQF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 18:16:05 -0400
+Received: by pzk26 with SMTP id 26so2823470pzk.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 15:16:04 -0700 (PDT)
+In-Reply-To: <1281707231-3026-2-git-send-email-thara@ti.com> (Thara Gopinath's
+	message of "Fri, 13 Aug 2010 19:17:04 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, dderrick@ti.com
 
 Thara Gopinath <thara@ti.com> writes:
 
-> OMAP4 has an iva device and a dsp devcice where as OMAP2/3
-> has only an iva device. In this file the iva device in the
-> system is registered under the name dsp_dev and the API
-> to retrieve the iva device is omap2_get_dsp_device.
-> This patch renames the dsp_dev to iva_dev, renames
-> omap2_get_dsp_device to omap2_get_iva_device,
-> registers dsp_dev for OMAP4 and adds a new API
-> omap4_get_dsp_device to retrieve the dep_dev.
->
-> Signed-off-by: Thara Gopinath <thara@ti.com>
-> ---
-> v2: Removed fixing of l3_main hwmod for OMAP4 as Benoit has
->     already submitted a pach fixing the same.
+> This patch changes the pm_db_init from arch initcall to a postcore
+> initcall. With arch initcall, it is impossible for pm driver that
+> gets initialized prior to this driver to use one of the
+> pm debug fs entries during its init. Making it a postcore initcall
+> ensures that this drver gets initialized early on before any pm
+> drivers. 
 
-OK, applying this to pm-fixes.
+Instead of tinkering with initcall ordering, how about calling the pm
+debug init from pm.c
+
+> Also now the generir pm_debug directory is made global
+> so that other drivers can include it and use it.
+
+include it from where?
 
 Kevin
 
->  arch/arm/mach-omap2/pm.c                 |   19 ++++++++++++++-----
->  arch/arm/plat-omap/include/plat/common.h |    3 ++-
->  2 files changed, 16 insertions(+), 6 deletions(-)
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm-debug.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 68f9f2e..a98b5e8 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -21,8 +21,9 @@
->  static struct omap_device_pm_latency *pm_lats;
+> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+> index 723b44e..fed8da1 100644
+> --- a/arch/arm/mach-omap2/pm-debug.c
+> +++ b/arch/arm/mach-omap2/pm-debug.c
+> @@ -162,7 +162,7 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
 >  
->  static struct device *mpu_dev;
-> -static struct device *dsp_dev;
-> +static struct device *iva_dev;
->  static struct device *l3_dev;
-> +static struct device *dsp_dev;
+>  static void pm_dbg_regset_store(u32 *ptr);
 >  
->  struct device *omap2_get_mpuss_device(void)
->  {
-> @@ -30,10 +31,10 @@ struct device *omap2_get_mpuss_device(void)
->  	return mpu_dev;
+> -struct dentry *pm_dbg_dir;
+> +struct dentry *pm_dbg_dir, *pm_dbg_main_dir;
+>  
+>  static int pm_dbg_init_done;
+>  
+> @@ -609,10 +609,11 @@ static int __init pm_dbg_init(void)
+>  				   &sleep_while_idle, &pm_dbg_option_fops);
+>  	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
+>  				   &wakeup_timer_seconds, &pm_dbg_option_fops);
+> +	pm_dbg_main_dir = d;
+>  	pm_dbg_init_done = 1;
+>  
+>  	return 0;
 >  }
+> -arch_initcall(pm_dbg_init);
+> +postcore_initcall(pm_dbg_init);
 >  
-> -struct device *omap2_get_dsp_device(void)
-> +struct device *omap2_get_iva_device(void)
->  {
-> -	WARN_ON_ONCE(!dsp_dev);
-> -	return dsp_dev;
-> +	WARN_ON_ONCE(!iva_dev);
-> +	return iva_dev;
->  }
->  
->  struct device *omap2_get_l3_device(void)
-> @@ -42,6 +43,13 @@ struct device *omap2_get_l3_device(void)
->  	return l3_dev;
->  }
->  
-> +struct device *omap4_get_dsp_device(void)
-> +{
-> +	WARN_ON_ONCE(!dsp_dev);
-> +	return dsp_dev;
-> +}
-> +EXPORT_SYMBOL(omap4_get_dsp_device);
-> +
->  /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
->  static int _init_omap_device(char *name, struct device **new_dev)
->  {
-> @@ -69,7 +77,8 @@ static int _init_omap_device(char *name, struct device **new_dev)
->  static void omap2_init_processor_devices(void)
->  {
->  	_init_omap_device("mpu", &mpu_dev);
-> -	_init_omap_device("iva", &dsp_dev);
-> +	_init_omap_device("iva", &iva_dev);
-> +	_init_omap_device("dsp", &dsp_dev);
->  	_init_omap_device("l3_main", &l3_dev);
->  }
->  
-> diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-> index 9776b41..c45dbb9 100644
-> --- a/arch/arm/plat-omap/include/plat/common.h
-> +++ b/arch/arm/plat-omap/include/plat/common.h
-> @@ -91,7 +91,8 @@ void omap3_map_io(void);
->  })
->  
->  extern struct device *omap2_get_mpuss_device(void);
-> -extern struct device *omap2_get_dsp_device(void);
-> +extern struct device *omap2_get_iva_device(void);
->  extern struct device *omap2_get_l3_device(void);
-> +extern struct device *omap4_get_dsp_device(void);
->  
->  #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+>  #endif
