@@ -1,43 +1,143 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Tue, 24 Aug 2010 13:09:01 +0300
-Message-ID: <AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
-	<1277943660-4112-3-git-send-email-x0095840@ti.com>
-	<1277943660-4112-4-git-send-email-x0095840@ti.com>
-	<1277943660-4112-5-git-send-email-x0095840@ti.com>
-	<1277943660-4112-6-git-send-email-x0095840@ti.com>
-	<1277943660-4112-7-git-send-email-x0095840@ti.com>
-	<1277943660-4112-8-git-send-email-x0095840@ti.com>
-	<1277943660-4112-9-git-send-email-x0095840@ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: [PATCH] Fix to support multiple HWMODS for a single device
+Date: Tue, 24 Aug 2010 16:33:10 +0530
+Message-ID: <1282647790-15821-1-git-send-email-kishon@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:48979 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751207Ab0HXLDY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Aug 2010 07:03:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: khilman@deeprootsystems.com, b-cousson@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
 
-On Fri, Jul 2, 2010 at 9:39 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
-> I think, it would be good if we get rid of DMMPOOL size, if the liked list grow up as it is needed, there is no memory penalty of have all the possible iommu addresses valid (11000000 - FFFFFFFF). The reservation will only fail when there is no memory. If a software restriction is needed we could define a start and end addresses for iommu module (maybe as a parameter when the iommu handle for iva2 is got) and that boundaries can be taking in account at the moment of reserve the memory.
+Currently there is a bug in the existing omap_device core code when
+extracting the hwmod structures passed to omap_device_build_ss(). This bug
+gets exposed only when passing multiple HWMOD structure to
+omap_device_build_ss() resulting in incorrect extraction from second HWMOD
+structure.
 
-What happened to this?
+This fix uses the pointer to  pointer to OMAP_HWMOD structure (array of 
+pointers to OMAP_HWMOD structure) passed to omap_device_build_ss() to 
+correctly extract the appropriate OMAP_HWMOD structure.
 
-IIUC what you are proposing is to remove the DMM pool completely, that
-makes sense to me. However, is it really needed to finish the iommu
-migration to do this?
+This patch has been created and tested on lo/master and mainline.
 
-> I think the reserve/unreserved dspbridge api can disappear and just return the da address in the map function.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/plat-omap/omap_device.c |   35 ++++++++++++++---------------------
+ 1 files changed, 14 insertions(+), 21 deletions(-)
 
-This is something I've proposed before, so I agree :)
-
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index d2b1609..2dd2a46 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -257,12 +257,11 @@ static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
+  */
+ int omap_device_count_resources(struct omap_device *od)
+ {
+-	struct omap_hwmod *oh;
+ 	int c = 0;
+ 	int i;
+ 
+-	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
+-		c += omap_hwmod_count_resources(oh);
++	for (i = 0; i < od->hwmods_cnt; i++)
++		c += omap_hwmod_count_resources(od->hwmods[i]);
+ 
+ 	pr_debug("omap_device: %s: counted %d total resources across %d "
+ 		 "hwmods\n", od->pdev.name, c, od->hwmods_cnt);
+@@ -289,12 +288,11 @@ int omap_device_count_resources(struct omap_device *od)
+  */
+ int omap_device_fill_resources(struct omap_device *od, struct resource *res)
+ {
+-	struct omap_hwmod *oh;
+ 	int c = 0;
+ 	int i, r;
+ 
+-	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++) {
+-		r = omap_hwmod_fill_resources(oh, res);
++	for (i = 0; i < od->hwmods_cnt; i++) {
++		r = omap_hwmod_fill_resources(od->hwmods[i], res);
+ 		res += r;
+ 		c += r;
+ 	}
+@@ -566,7 +564,6 @@ int omap_device_shutdown(struct platform_device *pdev)
+ {
+ 	int ret, i;
+ 	struct omap_device *od;
+-	struct omap_hwmod *oh;
+ 
+ 	od = _find_by_pdev(pdev);
+ 
+@@ -579,8 +576,8 @@ int omap_device_shutdown(struct platform_device *pdev)
+ 
+ 	ret = _omap_device_deactivate(od, IGNORE_WAKEUP_LAT);
+ 
+-	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
+-		omap_hwmod_shutdown(oh);
++	for (i = 0; i < od->hwmods_cnt; i++)
++		omap_hwmod_shutdown(od->hwmods[i]);
+ 
+ 	od->_state = OMAP_DEVICE_STATE_SHUTDOWN;
+ 
+@@ -692,11 +689,10 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
+  */
+ int omap_device_enable_hwmods(struct omap_device *od)
+ {
+-	struct omap_hwmod *oh;
+ 	int i;
+ 
+-	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
+-		omap_hwmod_enable(oh);
++	for (i = 0; i < od->hwmods_cnt; i++)
++		omap_hwmod_enable(od->hwmods[i]);
+ 
+ 	/* XXX pass along return value here? */
+ 	return 0;
+@@ -710,11 +706,10 @@ int omap_device_enable_hwmods(struct omap_device *od)
+  */
+ int omap_device_idle_hwmods(struct omap_device *od)
+ {
+-	struct omap_hwmod *oh;
+ 	int i;
+ 
+-	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
+-		omap_hwmod_idle(oh);
++	for (i = 0; i < od->hwmods_cnt; i++)
++		omap_hwmod_idle(od->hwmods[i]);
+ 
+ 	/* XXX pass along return value here? */
+ 	return 0;
+@@ -729,11 +724,10 @@ int omap_device_idle_hwmods(struct omap_device *od)
+  */
+ int omap_device_disable_clocks(struct omap_device *od)
+ {
+-	struct omap_hwmod *oh;
+ 	int i;
+ 
+-	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
+-		omap_hwmod_disable_clocks(oh);
++	for (i = 0; i < od->hwmods_cnt; i++)
++		omap_hwmod_disable_clocks(od->hwmods[i]);
+ 
+ 	/* XXX pass along return value here? */
+ 	return 0;
+@@ -748,11 +742,10 @@ int omap_device_disable_clocks(struct omap_device *od)
+  */
+ int omap_device_enable_clocks(struct omap_device *od)
+ {
+-	struct omap_hwmod *oh;
+ 	int i;
+ 
+-	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
+-		omap_hwmod_enable_clocks(oh);
++	for (i = 0; i < od->hwmods_cnt; i++)
++		omap_hwmod_enable_clocks(od->hwmods[i]);
+ 
+ 	/* XXX pass along return value here? */
+ 	return 0;
 -- 
-Felipe Contreras
+1.7.0.4
+
