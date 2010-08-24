@@ -1,60 +1,68 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Tue, 24 Aug 2010 21:55:08 +0300
-Message-ID: <AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
-	<1277943660-4112-3-git-send-email-x0095840@ti.com>
-	<1277943660-4112-4-git-send-email-x0095840@ti.com>
-	<1277943660-4112-5-git-send-email-x0095840@ti.com>
-	<1277943660-4112-6-git-send-email-x0095840@ti.com>
-	<1277943660-4112-7-git-send-email-x0095840@ti.com>
-	<1277943660-4112-8-git-send-email-x0095840@ti.com>
-	<1277943660-4112-9-git-send-email-x0095840@ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
-	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
-	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
+From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: RE: [PATCH]omap: i2c: Avoid compilation error in case the header is
+ included multiple times
+Date: Wed, 25 Aug 2010 00:27:59 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301E8351872@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E835183B@dbde02.ent.ti.com>
+ <20100824184912.GA29744@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:61679 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752953Ab0HXSzJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 14:55:09 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54035 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751444Ab0HXS6I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 14:58:08 -0400
+In-Reply-To: <20100824184912.GA29744@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Tue, Aug 24, 2010 at 9:44 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
->> However, I still have the question about the dependency on
->> iommu; AFAICS the DMM removal doesn't depend on the migration
->> to iommu, which AFAIK has been stalled for some time.
->
-> Yeah, DMM removal does not depend on iommu migration. However,
-> After the changes for iommu migration the DMM module is not
-> Needed anymore, so it is better to remove it too.
+Hi Felipe,
 
-Yes, but there are two options:
+> -----Original Message-----
+> From: Felipe Balbi [mailto:felipe.balbi@nokia.com] 
+> Sent: Tuesday, August 24, 2010 1:49 PM
+> To: C.A, Subramaniam
+> Cc: linux-omap@vger.kernel.org; Gadiyar, Anand; tony@atomide.com
+> Subject: Re: [PATCH]omap: i2c: Avoid compilation error in 
+> case the header is included multiple times
+> 
+> On Tue, Aug 24, 2010 at 07:14:30PM +0200, ext C.A, Subramaniam wrote:
+> >>From e3c3ee9317850b2b26e02680a0c976d3c75febab Mon Sep 17 
+> 00:00:00 2001
+> >From: Subramaniam C.A <subramaniam.ca@ti.com>
+> >Date: Tue, 24 Aug 2010 12:02:28 -0500
+> >Subject: [PATCH] omap: i2c: Avoid compilation error in case 
+> the header is included multiple times.
+> >
+> >Added defines to avoid compilation error.
+> >
+> 
+> could you list one such case ?
+This caused a compilation error for the OMAP4 tree, where the ipu_pm.c file was including plat/i2c.h and plat/omap-pm.h.
+Ref: http://dev.omapzoom.org/?p=integration/kernel-omap4.git;a=blob;f=drivers/dsp/syslink/ipu_pm/ipu_pm.c;h=b1791d4e7f2113eed046d3785106360dbe1cfc86;hb=d67c37aaadb80a6209f07618302bb84e1c952e97
 
-a) 1. Migrate to iommu, 2. Remove DMM
+omap-pm.h indirectly includes plat/i2c.h and hence the compilation error.
 
-or:
+Yes we could have removed the,
 
-b) 1. Remove DMM, 2. Migrate to iommu
+#include <plat/i2c.h>
 
-I've heard there are some problems regarding DMM, and since you say
-you have already done the changes, and since iommu migration is not
-yet ready AFAIK, it might make sense to go for option b).
+from the ipu_pm.c file and avoided the compilation error, but it still made sense to have this patch.
 
-Anyway, thanks for the clarification :)
+> 
+> >Signed-off-by: Subramaniam C.A <subramaniam.ca@ti.com>
+> 
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+> 
+> --
+> balbi
+> 
+> DefectiveByDesign.org
+> 
 
--- 
-Felipe Contreras
+BR
+Subbu
