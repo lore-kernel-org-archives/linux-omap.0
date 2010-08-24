@@ -1,46 +1,46 @@
 From: Manjunatha GK <manjugk@ti.com>
-Subject: [PATCH v2 06/11] OMAP1: DMA: Introduce DMA driver as platform driver
-Date: Tue, 24 Aug 2010 16:34:21 +0530
-Message-ID: <1282647866-6918-7-git-send-email-manjugk@ti.com>
+Subject: [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
+Date: Tue, 24 Aug 2010 16:34:22 +0530
+Message-ID: <1282647866-6918-8-git-send-email-manjugk@ti.com>
 References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56908 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56916 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751710Ab0HXLFq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Aug 2010 07:05:46 -0400
+	id S1751710Ab0HXLFu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Aug 2010 07:05:50 -0400
 In-Reply-To: <1282647866-6918-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch introduces OMAP1 DMA driver as platform device
-and adds support for registering through platform device
-layer.
+This patch converts omap2/3/4 dma driver into platform
+devices through using omap hwmod, omap device and runtime pm
+frameworks.
 
 Signed-off-by: Manjunatha GK <manjugk@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap1/dma.c              |  234 ++++++++++++++++++++++++=
+ arch/arm/mach-omap2/dma.c              |  134 ++++++++++++++++++++++++=
 ++++++++
- arch/arm/mach-omap1/include/mach/dma.h |   80 +++++++++++
- 2 files changed, 314 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap1/dma.c
- create mode 100644 arch/arm/mach-omap1/include/mach/dma.h
+ arch/arm/mach-omap2/include/mach/dma.h |   80 +++++++++++++++++++
+ 2 files changed, 214 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/dma.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/dma.h
 
-diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
 new file mode 100644
-index 0000000..26ab6e3
+index 0000000..f369bee
 --- /dev/null
-+++ b/arch/arm/mach-omap1/dma.c
-@@ -0,0 +1,234 @@
++++ b/arch/arm/mach-omap2/dma.c
+@@ -0,0 +1,134 @@
 +/*
-+ * dma.c - OMAP1/OMAP7xx-specific DMA code
++ * dma.c - OMAP2 specific DMA code
 + *
 + * Copyright (C) 2003 - 2008 Nokia Corporation
 + * Author: Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.com>
@@ -51,6 +51,9 @@ m>
 + * OMAP2/3 support Copyright (C) 2004-2007 Texas Instruments, Inc.
 + * Some functions based on earlier dma-omap.c Copyright (C) 2001 Ridge=
 Run, Inc.
++ *
++ * Copyright (C) 2009 Texas Instruments
++ * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
 + *
 + * Copyright (C) 2010 Texas Instruments, Inc.
 + * Converted DMA library into platform driver by Manjunatha GK <manjug=
@@ -75,221 +78,122 @@ y
 +#include <linux/irq.h>
 +#include <linux/device.h>
 +
++#include <plat/irqs.h>
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
 +#include <plat/dma.h>
-+#include <plat/tc.h>
 +
 +#define dma_read(reg)							\
 +({									\
 +	u32 __val;							\
-+	__val =3D __raw_readw(dma_base + OMAP1_DMA_##reg);		\
++	__val =3D __raw_readl(dma_base + OMAP_DMA4_##reg);		\
 +	__val;								\
 +})
 +
 +#define dma_write(val, reg)						\
 +({									\
-+	__raw_writew((val), dma_base + OMAP1_DMA_##reg);		\
++	__raw_writel((val), dma_base + OMAP_DMA4_##reg);		\
 +})
 +
-+static struct resource res[] __initdata =3D {
-+	[0] =3D {
-+		.start	=3D OMAP1_DMA_BASE,
-+		.end	=3D OMAP1_DMA_BASE + SZ_2K - 1,
-+		.flags	=3D IORESOURCE_MEM,
-+	},
-+	[1] =3D {
-+		.name   =3D "0",
-+		.start  =3D INT_DMA_CH0_6,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	[2] =3D {
-+		.name   =3D "1",
-+		.start  =3D INT_DMA_CH1_7,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	[3] =3D {
-+		.name   =3D "2",
-+		.start  =3D INT_DMA_CH2_8,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	[4] =3D {
-+		.name   =3D "3",
-+		.start  =3D INT_DMA_CH3,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	[5] =3D {
-+		.name   =3D "4",
-+		.start  =3D INT_DMA_CH4,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	[6] =3D {
-+		.name   =3D "5",
-+		.start  =3D INT_DMA_CH5,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	[7] =3D {
-+		.name   =3D "6",
-+		.start  =3D INT_DMA_LCD,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	/* irq's for omap16xx and omap7xx */
-+	[8] =3D {
-+		.name   =3D "7",
-+		.start  =3D 53 + IH2_BASE,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	[9] =3D {
-+		.name   =3D "8",
-+		.start  =3D 54 + IH2_BASE,
-+		.flags  =3D IORESOURCE_IRQ,
-+	},
-+	[10] =3D {
-+		.name  =3D "9",
-+		.start =3D 55 + IH2_BASE,
-+		.flags =3D IORESOURCE_IRQ,
-+	},
-+	[11] =3D {
-+		.name  =3D "10",
-+		.start =3D 56 + IH2_BASE,
-+		.flags =3D IORESOURCE_IRQ,
-+	},
-+	[12] =3D {
-+		.name  =3D "11",
-+		.start =3D 57 + IH2_BASE,
-+		.flags =3D IORESOURCE_IRQ,
-+	},
-+	[13] =3D {
-+		.name  =3D "12",
-+		.start =3D 58 + IH2_BASE,
-+		.flags =3D IORESOURCE_IRQ,
-+	},
-+	[14] =3D {
-+		.name  =3D "13",
-+		.start =3D 59 + IH2_BASE,
-+		.flags =3D IORESOURCE_IRQ,
-+	},
-+	[15] =3D {
-+		.name  =3D "14",
-+		.start =3D 60 + IH2_BASE,
-+		.flags =3D IORESOURCE_IRQ,
-+	},
-+	[16] =3D {
-+		.name  =3D "15",
-+		.start =3D 61 + IH2_BASE,
-+		.flags =3D IORESOURCE_IRQ,
-+	},
-+	[17] =3D {
-+		.name  =3D "16",
-+		.start =3D 62 + IH2_BASE,
-+		.flags =3D IORESOURCE_IRQ,
++static struct omap_dma_dev_attr *d;
++static void __iomem *dma_base;
++static struct omap_system_dma_plat_info *omap2_pdata;
++static int dma_caps0_status;
++
++static struct omap_device_pm_latency omap2_dma_latency[] =3D {
++	{
++	.deactivate_func =3D omap_device_idle_hwmods,
++	.activate_func	 =3D omap_device_enable_hwmods,
++	.flags		 =3D OMAP_DEVICE_LATENCY_AUTO_ADJUST,
 +	},
 +};
 +
-+static void __iomem *dma_base;
-+
-+static int __init omap1_system_dma_init(void)
++/* One time initializations */
++static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, voi=
+d *user)
 +{
-+	struct platform_device *pdev;
++	struct omap_device *od;
 +	struct omap_system_dma_plat_info *pdata;
-+	struct omap_dma_dev_attr *d;
-+	int ret;
-+
-+	pdev =3D platform_device_alloc("system_dma", 0);
-+	if (!pdev) {
-+		pr_err("%s: Unable to device alloc for dma\n",
-+			__func__);
-+		return -ENOMEM;
-+	}
-+
-+	ret =3D platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
-+	if (ret) {
-+		pr_err("%s: Unable to add resources for %s%d\n",
-+			__func__, pdev->name, pdev->id);
-+		goto exit_device_put;
-+	}
++	struct resource *mem;
++	char *name =3D "dma";
 +
 +	pdata =3D kzalloc(sizeof(struct omap_system_dma_plat_info), GFP_KERNE=
 L);
 +	if (!pdata) {
-+		dev_err(&pdev->dev, "%s: Unable to allocate pdata for %s\n",
-+			__func__, pdev->name);
-+		ret =3D -ENOMEM;
-+		goto exit_device_put;
++		pr_err("%s: Unable to allocate pdata for %s:%s\n",
++			__func__, name, oh->name);
++		return -ENOMEM;
 +	}
 +
-+	d =3D pdata->dma_attr;
++	pdata->dma_attr		=3D (struct omap_dma_dev_attr *)oh->dev_attr;
 +
-+	/* Valid attributes for omap1 plus processors */
-+	d->dev_caps =3D 0;
++	od =3D omap_device_build(name, 0, oh, pdata, sizeof(*pdata),
++			omap2_dma_latency, ARRAY_SIZE(omap2_dma_latency), 0);
 +
-+	if (cpu_is_omap15xx())
-+		d->dev_caps =3D ENABLE_1510_MODE;
-+
-+	d->dev_caps			|=3D SRC_PORT;
-+	d->dev_caps			|=3D DST_PORT;
-+	d->dev_caps			|=3D SRC_INDEX;
-+	d->dev_caps			|=3D DST_INDEX;
-+	d->dev_caps			|=3D IS_BURST_ONLY4;
-+	d->dev_caps			|=3D CLEAR_CSR_ON_READ;
-+	d->dev_caps			|=3D IS_WORD_16;
-+
-+	d->lch_count		=3D OMAP1_LOGICAL_DMA_CH_COUNT;
-+
-+	if (cpu_is_omap15xx())
-+		d->chan_count =3D 9;
-+	else if (cpu_is_omap16xx() || cpu_is_omap7xx()) {
-+		if (!(d->dev_caps & ENABLE_1510_MODE))
-+			d->chan_count =3D 16;
-+		else
-+			d->chan_count =3D 9;
++	if (IS_ERR(od)) {
++		pr_err("%s: Cant build omap_device for %s:%s.\n",
++			__func__, name, oh->name);
++		kfree(pdata);
++		return 0;
 +	}
 +
-+	pdata->omap_dma_base		=3D (void __iomem *)res[0].start;
-+	dma_base			=3D pdata->omap_dma_base;
++	mem =3D platform_get_resource(&od->pdev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		dev_err(&od->pdev.dev, "%s: no mem resource\n", __func__);
++		return -EINVAL;
++	}
 +
-+	d->dma_chan =3D kzalloc(sizeof(struct omap_dma_lch) *
++	dma_base =3D ioremap(mem->start, resource_size(mem));
++	if (!dma_base) {
++		dev_err(&od->pdev.dev, "%s: ioremap fail\n", __func__);
++		return -ENOMEM;
++	}
++
++	/* Get DMA device attributes from hwmod data base */
++	d =3D (struct omap_dma_dev_attr *)oh->dev_attr;
++
++	/* OMAP2 Plus: physical and logical channel count is same */
++	d->chan_count =3D d->lch_count;
++
++	d->chan =3D kzalloc(sizeof(struct omap_dma_lch) *
 +					(d->lch_count), GFP_KERNEL);
 +
-+	if (!d->dma_chan) {
-+		dev_err(&pdev->dev, "%s: Memory allcation failed"
-+					"for dma_chan!!!\n", __func__);
-+		goto exit_release_pdata;
++	if (!d->chan) {
++		dev_err(&od->pdev.dev, "%s: kzalloc fail\n", __func__);
++		return -ENOMEM;
 +	}
 +
-+	ret =3D platform_device_add_data(pdev, pdata, sizeof(*pdata));
-+	if (ret) {
-+		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
-+			__func__, pdev->name, pdev->id);
-+		goto exit_release_dma_chan;
-+	}
-+	ret =3D platform_device_add(pdev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "%s: Unable to add resources for %s%d\n",
-+			__func__, pdev->name, pdev->id);
-+		goto exit_release_dma_chan;
-+	}
++	omap2_pdata		=3D pdata;
++	dma_caps0_status	=3D dma_read(CAPS_0);
 +
-+exit_release_dma_chan:
-+	kfree(d->dma_chan);
-+exit_release_pdata:
-+	kfree(pdata);
-+exit_device_put:
-+	platform_device_put(pdev);
++	return 0;
++}
++
++static int __init omap2_system_dma_init(void)
++{
++	int ret;
++
++	ret =3D omap_hwmod_for_each_by_class("dma",
++			omap2_system_dma_init_dev, NULL);
 +
 +	return ret;
 +}
-+arch_initcall(omap1_system_dma_init);
-diff --git a/arch/arm/mach-omap1/include/mach/dma.h b/arch/arm/mach-oma=
-p1/include/mach/dma.h
++arch_initcall(omap2_system_dma_init);
+diff --git a/arch/arm/mach-omap2/include/mach/dma.h b/arch/arm/mach-oma=
+p2/include/mach/dma.h
 new file mode 100644
-index 0000000..d446cdd
+index 0000000..3eca7d8
 --- /dev/null
-+++ b/arch/arm/mach-omap1/include/mach/dma.h
++++ b/arch/arm/mach-omap2/include/mach/dma.h
 @@ -0,0 +1,80 @@
 +/*
 + *  OMAP DMA controller register offsets.
 + *
 + *  Copyright (C) 2003 Nokia Corporation
 + *  Author: Juha Yrj=C3=B6l=C3=A4 <juha.yrjola@nokia.com>
++ *
++ *  Copyright (C) 2009 Texas Instruments
++ *  Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
 + *
 + *  Copyright (C) 2010 Texas Instruments
 + *  Converted DMA library into platform driver by Manjunatha GK <manju=
@@ -313,62 +217,60 @@ y
  USA
 + */
 +
-+#ifndef __ASM_ARCH_OMAP1_DMA_H
-+#define __ASM_ARCH_OMAP1_DMA_H
-+/* Hardware registers for omap1 */
-+#define OMAP1_DMA_BASE			(0xfffed800)
++#ifndef __ASM_ARCH_OMAP2_DMA_H
++#define __ASM_ARCH_OMAP2_DMA_H
 +
-+#define OMAP1_DMA_GCR			0x400
-+#define OMAP1_DMA_GSCR			0x404
-+#define OMAP1_DMA_GRST			0x408
-+#define OMAP1_DMA_HW_ID			0x442
-+#define OMAP1_DMA_PCH2_ID		0x444
-+#define OMAP1_DMA_PCH0_ID		0x446
-+#define OMAP1_DMA_PCH1_ID		0x448
-+#define OMAP1_DMA_PCHG_ID		0x44a
-+#define OMAP1_DMA_PCHD_ID		0x44c
-+#define OMAP1_DMA_CAPS_0_U		0x44e
-+#define OMAP1_DMA_CAPS_0_L		0x450
-+#define OMAP1_DMA_CAPS_1_U		0x452
-+#define OMAP1_DMA_CAPS_1_L		0x454
-+#define OMAP1_DMA_CAPS_2		0x456
-+#define OMAP1_DMA_CAPS_3		0x458
-+#define OMAP1_DMA_CAPS_4		0x45a
-+#define OMAP1_DMA_PCH2_SR		0x460
-+#define OMAP1_DMA_PCH0_SR		0x480
-+#define OMAP1_DMA_PCH1_SR		0x482
-+#define OMAP1_DMA_PCHD_SR		0x4c0
++/* OMAP2 Plus register offset's */
++#define OMAP_DMA4_REVISION		0x00
++#define OMAP_DMA4_GCR			0x78
++#define OMAP_DMA4_IRQSTATUS_L0		0x08
++#define OMAP_DMA4_IRQSTATUS_L1		0x0c
++#define OMAP_DMA4_IRQSTATUS_L2		0x10
++#define OMAP_DMA4_IRQSTATUS_L3		0x14
++#define OMAP_DMA4_IRQENABLE_L0		0x18
++#define OMAP_DMA4_IRQENABLE_L1		0x1c
++#define OMAP_DMA4_IRQENABLE_L2		0x20
++#define OMAP_DMA4_IRQENABLE_L3		0x24
++#define OMAP_DMA4_SYSSTATUS		0x28
++#define OMAP_DMA4_OCP_SYSCONFIG		0x2c
++#define OMAP_DMA4_CAPS_0		0x64
++#define OMAP_DMA4_CAPS_2		0x6c
++#define OMAP_DMA4_CAPS_3		0x70
++#define OMAP_DMA4_CAPS_4		0x74
 +
-+#define OMAP1_LOGICAL_DMA_CH_COUNT	17
++/* Should be part of hwmod data base ? */
++#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* REVISIT: Is this 32 + 2? =
+*/
 +
-+/* Common channel specific registers for omap1 */
-+#define OMAP1_DMA_CH_BASE(n)		(0x40 * (n) + 0x00)
-+#define OMAP1_DMA_CSDP(n)		(0x40 * (n) + 0x00)
-+#define OMAP1_DMA_CCR(n)		(0x40 * (n) + 0x02)
-+#define OMAP1_DMA_CICR(n)		(0x40 * (n) + 0x04)
-+#define OMAP1_DMA_CSR(n)		(0x40 * (n) + 0x06)
-+#define OMAP1_DMA_CEN(n)		(0x40 * (n) + 0x10)
-+#define OMAP1_DMA_CFN(n)		(0x40 * (n) + 0x12)
-+#define OMAP1_DMA_CSFI(n)		(0x40 * (n) + 0x14)
-+#define OMAP1_DMA_CSEI(n)		(0x40 * (n) + 0x16)
-+#define OMAP1_DMA_CPC(n)		(0x40 * (n) + 0x18)	/* 15xx only */
-+#define OMAP1_DMA_CSAC(n)		(0x40 * (n) + 0x18)
-+#define OMAP1_DMA_CDAC(n)		(0x40 * (n) + 0x1a)
-+#define OMAP1_DMA_CDEI(n)		(0x40 * (n) + 0x1c)
-+#define OMAP1_DMA_CDFI(n)		(0x40 * (n) + 0x1e)
-+#define OMAP1_DMA_CLNK_CTRL(n)		(0x40 * (n) + 0x28)
++/* Common channel specific registers for omap2 */
++#define OMAP_DMA4_CH_BASE(n)		(0x60 * (n) + 0x80)
++#define OMAP_DMA4_CCR(n)		(0x60 * (n) + 0x80)
++#define OMAP_DMA4_CLNK_CTRL(n)		(0x60 * (n) + 0x84)
++#define OMAP_DMA4_CICR(n)		(0x60 * (n) + 0x88)
++#define OMAP_DMA4_CSR(n)		(0x60 * (n) + 0x8c)
++#define OMAP_DMA4_CSDP(n)		(0x60 * (n) + 0x90)
++#define OMAP_DMA4_CEN(n)		(0x60 * (n) + 0x94)
++#define OMAP_DMA4_CFN(n)		(0x60 * (n) + 0x98)
++#define OMAP_DMA4_CSEI(n)		(0x60 * (n) + 0xa4)
++#define OMAP_DMA4_CSFI(n)		(0x60 * (n) + 0xa8)
++#define OMAP_DMA4_CDEI(n)		(0x60 * (n) + 0xac)
++#define OMAP_DMA4_CDFI(n)		(0x60 * (n) + 0xb0)
++#define OMAP_DMA4_CSAC(n)		(0x60 * (n) + 0xb4)
++#define OMAP_DMA4_CDAC(n)		(0x60 * (n) + 0xb8)
 +
-+/* Channel specific registers only on omap1 */
-+#define OMAP1_DMA_CSSA_L(n)		(0x40 * (n) + 0x08)
-+#define OMAP1_DMA_CSSA_U(n)		(0x40 * (n) + 0x0a)
-+#define OMAP1_DMA_CDSA_L(n)		(0x40 * (n) + 0x0c)
-+#define OMAP1_DMA_CDSA_U(n)		(0x40 * (n) + 0x0e)
-+#define OMAP1_DMA_COLOR_L(n)		(0x40 * (n) + 0x20)
-+#define OMAP1_DMA_COLOR_U(n)		(0x40 * (n) + 0x22)
-+#define OMAP1_DMA_CCR2(n)		(0x40 * (n) + 0x24)
-+#define OMAP1_DMA_LCH_CTRL(n)		(0x40 * (n) + 0x2a)
++/* Channel specific registers only on omap2 */
++#define OMAP_DMA4_CSSA(n)		(0x60 * (n) + 0x9c)
++#define OMAP_DMA4_CDSA(n)		(0x60 * (n) + 0xa0)
++#define OMAP_DMA4_CCEN(n)		(0x60 * (n) + 0xbc)
++#define OMAP_DMA4_CCFN(n)		(0x60 * (n) + 0xc0)
++#define OMAP_DMA4_COLOR(n)		(0x60 * (n) + 0xc4)
 +
-+#endif /* __ASM_ARCH_OMAP1_DMA_H */
++/* Additional registers available on OMAP4 */
++#define OMAP_DMA4_CDP(n)		(0x60 * (n) + 0xd0)
++#define OMAP_DMA4_CNDP(n)		(0x60 * (n) + 0xd4)
++#define OMAP_DMA4_CCDN(n)		(0x60 * (n) + 0xd8)
++
++#endif /* __ASM_ARCH_OMAP2_DMA_H */
 --=20
 1.7.0.4
 
