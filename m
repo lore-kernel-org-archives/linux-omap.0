@@ -1,108 +1,112 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Tue, 24 Aug 2010 16:55:38 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
-	<1277943660-4112-3-git-send-email-x0095840@ti.com>
-	<1277943660-4112-4-git-send-email-x0095840@ti.com>
-	<1277943660-4112-5-git-send-email-x0095840@ti.com>
-	<1277943660-4112-6-git-send-email-x0095840@ti.com>
-	<1277943660-4112-7-git-send-email-x0095840@ti.com>
-	<1277943660-4112-8-git-send-email-x0095840@ti.com>
-	<1277943660-4112-9-git-send-email-x0095840@ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
-	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
-	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
-	<AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3995@dlee06.ent.ti.com>
-	<AANLkTinjMujus-28DcLzZ+16GAGpLohwhPhuTi5uKhB8@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
- <AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2] OMAP4: pm.c extensions for OMAP4 support
+Date: Tue, 24 Aug 2010 14:58:46 -0700
+Message-ID: <87fwy3n04p.fsf@deeprootsystems.com>
+References: <1282019798-2443-1-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41163 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755927Ab0HXVzl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:55:41 -0400
-In-Reply-To: <AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:47530 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755435Ab0HXV6t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:58:49 -0400
+Received: by pzk26 with SMTP id 26so2819074pzk.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 14:58:49 -0700 (PDT)
+In-Reply-To: <1282019798-2443-1-git-send-email-thara@ti.com> (Thara Gopinath's
+	message of "Tue, 17 Aug 2010 10:06:38 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com
 
- 
+Thara Gopinath <thara@ti.com> writes:
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
-> Sent: Tuesday, August 24, 2010 4:18 PM
-> To: Guzman Lugo, Fernando
-> Cc: Kanigeri, Hari; linux-omap@vger.kernel.org; 
-> linux-kernel@vger.kernel.org; ohad@wizery.com; 
-> hiroshi.doyu@nokia.com; ameya.palande@nokia.com; 
-> felipe.contreras@nokia.com
-> Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
-> 
-> On Tue, Aug 24, 2010 at 10:30 PM, Guzman Lugo, Fernando 
-> <fernando.lugo@ti.com> wrote:
-> >> Oh, I actually meant the DMM pool.
-> >>
-> >> a) 1. Migrate to iommu, 2. Remove DMM completely
-> >> b) 1. Remove DMM pool, 2. Migrate to iommu 3. Remove DMM completely
-> >
-> > Ok, what is the issue with DMM pool?
-> 
-> From what I've heard; fragmentation.
-> 
-> > The issue I see removing DMM pool in this moment and making all the 
-> > DMM Available (from 0x11000000 to 0xFFFFFFFF omap3 case) that is:
-> >
-> > The DMM module allocates a list of "struct map_page" 
-> elements base on 
-> > DMM_POOL_SIZE to keep track of memory reserved and mapped.
-> >
-> > Memory allocated = DMM_POOL_SIZE / PAGE_SIZE * sizeof(struct 
-> > map_page);
-> >
-> > So making all memory avalible it will increase the memory 
-> used for DMM 
-> > Module and it could be quite significant.
-> >
-> > Iovmm.c module, the list is increased dynamically when it 
-> is needed so 
-> > It does no have that problem. Then when the migration is done and 
-> > Iovmm.c module is used the DMM_POOL_SIZE can be removed 
-> without issues.
-> 
-> It seems that this "memory allocated" you are taking about is 
-> an array, but what we would like is a list, like apparently 
-> iovmm is using. I think I can give that a try if needed.
+> OMAP4 has an iva device and a dsp devcice where as OMAP2/3
+> has only an iva device. In this file the iva device in the
+> system is registered under the name dsp_dev and the API
+> to retrieve the iva device is omap2_get_dsp_device.
+> This patch renames the dsp_dev to iva_dev, renames
+> omap2_get_dsp_device to omap2_get_iva_device,
+> registers dsp_dev for OMAP4 and adds a new API
+> omap4_get_dsp_device to retrieve the dep_dev.
+>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+> v2: Removed fixing of l3_main hwmod for OMAP4 as Benoit has
+>     already submitted a pach fixing the same.
 
-Yes, that is an array in dmm and a liked list in iovmm.
+OK, applying this to pm-fixes.
 
-> 
-> However, from what I can see iovmm can be used instead of dmm 
-> even if the switch to iommu is not yet there.
+Kevin
 
-Iovmm have a list of memory used (reserved, that is what dmm module
-does) and also maps the buffer, So we can not use iovmm without removing
-The mapping which is done inside dspbridge because it will conflic with
-The mapping doing inside iovmm module. So that means for using iovmm, the
-Mapping in dspbridge had to be removed in order to work properly.
-
-
-Regards,
-Fernando.
-
-> 
-> --
-> Felipe Contreras
-> 
+>  arch/arm/mach-omap2/pm.c                 |   19 ++++++++++++++-----
+>  arch/arm/plat-omap/include/plat/common.h |    3 ++-
+>  2 files changed, 16 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 68f9f2e..a98b5e8 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -21,8 +21,9 @@
+>  static struct omap_device_pm_latency *pm_lats;
+>  
+>  static struct device *mpu_dev;
+> -static struct device *dsp_dev;
+> +static struct device *iva_dev;
+>  static struct device *l3_dev;
+> +static struct device *dsp_dev;
+>  
+>  struct device *omap2_get_mpuss_device(void)
+>  {
+> @@ -30,10 +31,10 @@ struct device *omap2_get_mpuss_device(void)
+>  	return mpu_dev;
+>  }
+>  
+> -struct device *omap2_get_dsp_device(void)
+> +struct device *omap2_get_iva_device(void)
+>  {
+> -	WARN_ON_ONCE(!dsp_dev);
+> -	return dsp_dev;
+> +	WARN_ON_ONCE(!iva_dev);
+> +	return iva_dev;
+>  }
+>  
+>  struct device *omap2_get_l3_device(void)
+> @@ -42,6 +43,13 @@ struct device *omap2_get_l3_device(void)
+>  	return l3_dev;
+>  }
+>  
+> +struct device *omap4_get_dsp_device(void)
+> +{
+> +	WARN_ON_ONCE(!dsp_dev);
+> +	return dsp_dev;
+> +}
+> +EXPORT_SYMBOL(omap4_get_dsp_device);
+> +
+>  /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
+>  static int _init_omap_device(char *name, struct device **new_dev)
+>  {
+> @@ -69,7 +77,8 @@ static int _init_omap_device(char *name, struct device **new_dev)
+>  static void omap2_init_processor_devices(void)
+>  {
+>  	_init_omap_device("mpu", &mpu_dev);
+> -	_init_omap_device("iva", &dsp_dev);
+> +	_init_omap_device("iva", &iva_dev);
+> +	_init_omap_device("dsp", &dsp_dev);
+>  	_init_omap_device("l3_main", &l3_dev);
+>  }
+>  
+> diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+> index 9776b41..c45dbb9 100644
+> --- a/arch/arm/plat-omap/include/plat/common.h
+> +++ b/arch/arm/plat-omap/include/plat/common.h
+> @@ -91,7 +91,8 @@ void omap3_map_io(void);
+>  })
+>  
+>  extern struct device *omap2_get_mpuss_device(void);
+> -extern struct device *omap2_get_dsp_device(void);
+> +extern struct device *omap2_get_iva_device(void);
+>  extern struct device *omap2_get_l3_device(void);
+> +extern struct device *omap4_get_dsp_device(void);
+>  
+>  #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
