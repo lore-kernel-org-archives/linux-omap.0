@@ -1,68 +1,292 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM-SR][PATCH 1/2 v2] omap3: sr: fix memory leak and simplify the code
-Date: Tue, 24 Aug 2010 14:25:01 -0700
-Message-ID: <87vd6zn1oy.fsf@deeprootsystems.com>
-References: <1278687874-26123-1-git-send-email-nm@ti.com>
+Subject: Re: [RFC][PATCH 2/2] OMAP4: PRCM: Fix usage of prm/cm accessor api's for OMAP4
+Date: Tue, 24 Aug 2010 14:39:38 -0700
+Message-ID: <87mxsbn10l.fsf@deeprootsystems.com>
+References: <1281452576-5705-1-git-send-email-rnayak@ti.com>
+	<1281452576-5705-2-git-send-email-rnayak@ti.com>
+	<1281452576-5705-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:58410 "EHLO
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:54577 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755435Ab0HXVZF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:25:05 -0400
-Received: by pvg2 with SMTP id 2so2799658pvg.19
-        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 14:25:04 -0700 (PDT)
-In-Reply-To: <1278687874-26123-1-git-send-email-nm@ti.com> (Nishanth Menon's
-	message of "Fri, 9 Jul 2010 10:04:34 -0500")
+	with ESMTP id S1755993Ab0HXVjm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:39:42 -0400
+Received: by pvg2 with SMTP id 2so2803368pvg.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 14:39:41 -0700 (PDT)
+In-Reply-To: <1281452576-5705-3-git-send-email-rnayak@ti.com> (Rajendra
+	Nayak's message of "Tue, 10 Aug 2010 20:32:56 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Thara Gopinath <thara@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>, Peter p2 De Schrijver <peter.de-schrijver@nokia.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com
 
-Nishanth Menon <nm@ti.com> writes:
+Rajendra Nayak <rnayak@ti.com> writes:
 
-> From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> OMAP's have always had PRCM split into PRM for power and reset
+> management and CM for clock management.
+> In OMAP4 the split (physically) is not very straight forward and
+> there are instances of clock management control registers in PRM
+> and vice versa.
+> However it still makes sense, even on OMAP4 to logically split
+> PRCM into PRM and CM for better understanding and to avoid adding
+> additonal complexity in higher level frameworks which rely on the
+> accessor api;s to do the low level register accesses.
 >
-> This patch fixes the following problem indicated by kmemleak:
+> Hence this patch makes sure that any clock management code can
+> use the cm_read/write* accessor apis (without knowing the physical split)
+> and power and reset management code can use prm_read/write*
+> accessor api;s.
 >
-> kmemleak: unreferenced object 0xdf93c280 (size 64):
-> kmemleak:   backtrace:
-> kmemleak:     [<c00df6d4>] create_object+0x104/0x200
-> kmemleak:     [<c00d7638>] kmem_cache_alloc+0xe4/0xf4
-> kmemleak:     [<c000fc38>] omap_devinit_smartreflex+0x44/0x244
-> kmemleak:     [<c003a33c>] do_one_initcall+0x5c/0x1b8
-> kmemleak:     [<c00083fc>] kernel_init+0x94/0x110
-> kmemleak:     [<c003ba04>] kernel_thread_exit+0x0/0x8
+> To do this the submodule offsets within PRM/CM1 and CM2 have additonal
+> info embedded in them specifying what base address to use while
+> trying to access registers in the given submodule.
 >
-> The reason is that 'omap_devinit_smartreflex()' allocates 'sr_data',
-> then passes it to 'omap_device_build()', which 'kmemdup()'s it and
-> uses the copy. But 'omap_devinit_smartreflex()' never frees 'sr_data'.
+> The 16 bit signed submodule offset is defined for OMAP4 as
+> <Bit 15>	| <Bit 14:13> 		| <Bit 12:0>
+> <Sign bit>	| <base identifier>	| <submodule offset from base>
 >
-> This patch make 'sr_data' to be a stack variable, which eliminates
-> the memory leak and simplifies the code a bit.
+> For older OMAP's the base identifier is always set to 0.
 >
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Thara Gopinath <thara@ti.com>,
-> Cc: Peter p2 De Schrijver <peter.de-schrijver@nokia.com>
-> Cc: Nishanth Menon <nm@ti.com>
->
-> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-> Acked-by: Nishanth Menon <nm@ti.com>
-> ---
-> Changes from V1:
-> 	rebased to latest pm-sr branch
-> 	default of sr_data set to 0 to make it equivalent to kzalloc
->
-> NOTE: this probably should be squashed when being send upstream along with
-> rest of SR series
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
 
-Thara, you appear to have fixed this problem differently in your latest
-series.  Looks like you just ensured kfree() was always done, correct?
+I'm OK with this approach, but I don't like the extra overhead added for
+every PRCM access on OMAP2/3.
 
-In the future, it would be helpful if you would reply to these proposed
-fixes on the list so we know if they are incorporated or handled
-differently.
-
-Thanks,
+What if you keep the original functions and add new functions for OMAP4,
+and use function pointers init'd at runtime (based on the existence of
+prcm_mpu_base)
 
 Kevin
+
+
+> ---
+>  arch/arm/mach-omap2/cm.h          |    4 +-
+>  arch/arm/mach-omap2/prcm-common.h |   58 ++++++++++++++++++++-----------
+>  arch/arm/mach-omap2/prcm.c        |   68 ++++++++++++++++++++++++++++++++++--
+>  arch/arm/mach-omap2/prm.h         |    4 +-
+>  4 files changed, 105 insertions(+), 29 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+> index a02ca30..7b7ef09 100644
+> --- a/arch/arm/mach-omap2/cm.h
+> +++ b/arch/arm/mach-omap2/cm.h
+> @@ -23,9 +23,9 @@
+>  #define OMAP34XX_CM_REGADDR(module, reg)				\
+>  			OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE + (module) + (reg))
+>  #define OMAP44XX_CM1_REGADDR(module, reg)				\
+> -			OMAP2_L4_IO_ADDRESS(OMAP4430_CM1_BASE + (module) + (reg))
+> +			OMAP2_L4_IO_ADDRESS(OMAP4430_CM1_BASE + ((module) & (MOD_MASK)) + (reg))
+>  #define OMAP44XX_CM2_REGADDR(module, reg)				\
+> -			OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE + (module) + (reg))
+> +			OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE + ((module) & (MOD_MASK)) + (reg))
+>  
+>  #include "cm44xx.h"
+>  
+> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+> index 995b7ed..b93d33e 100644
+> --- a/arch/arm/mach-omap2/prcm-common.h
+> +++ b/arch/arm/mach-omap2/prcm-common.h
+> @@ -57,10 +57,26 @@
+>  #define BITFIELD(l_bit, u_bit)	\
+>  	(BITS(u_bit) & ~((BITS(l_bit)) >> 1))
+>  
+> -/* OMAP44XX specific module offsets */
+> +/*
+> + * OMAP44XX specific module offsets
+> + * The 16 bit submodule offset is defined for OMAP4 as
+> + * <Bit 15>	| <Bit 14:13> 		| <Bit 12:0>
+> + * <Sign bit>	| <base identifier>	| <submodule offset from base>
+> + */
+>  
+> -/* CM1 instances */
+> +#define DEFAULT_BASE	0x0
+> +#define PRM_BASE	0x1
+> +#define PRCM_MPU_BASE	0x2
+> +#define CM2_BASE	0x3
+>  
+> +#define BASE_ID_SHIFT	13
+> +#define MOD_MASK	((1 << BASE_ID_SHIFT)-1)
+> +
+> +#define PRM_BASE_ID		(PRM_BASE << BASE_ID_SHIFT)
+> +#define PRCM_MPU_BASE_ID	(PRCM_MPU_BASE << BASE_ID_SHIFT)
+> +#define CM2_BASE_ID		(CM2_BASE << BASE_ID_SHIFT)
+> +
+> +/* CM1 instances */
+>  #define OMAP4430_CM1_OCP_SOCKET_MOD	0x0000
+>  #define OMAP4430_CM1_CKGEN_MOD		0x0100
+>  #define OMAP4430_CM1_MPU_MOD		0x0300
+> @@ -71,19 +87,19 @@
+>  
+>  /* CM2 instances */
+>  
+> -#define OMAP4430_CM2_OCP_SOCKET_MOD	0x0000
+> -#define OMAP4430_CM2_CKGEN_MOD		0x0100
+> -#define OMAP4430_CM2_ALWAYS_ON_MOD	0x0600
+> -#define OMAP4430_CM2_CORE_MOD		0x0700
+> -#define OMAP4430_CM2_IVAHD_MOD		0x0f00
+> -#define OMAP4430_CM2_CAM_MOD		0x1000
+> -#define OMAP4430_CM2_DSS_MOD		0x1100
+> -#define OMAP4430_CM2_GFX_MOD		0x1200
+> -#define OMAP4430_CM2_L3INIT_MOD		0x1300
+> -#define OMAP4430_CM2_L4PER_MOD		0x1400
+> -#define OMAP4430_CM2_CEFUSE_MOD		0x1600
+> -#define OMAP4430_CM2_RESTORE_MOD	0x1e00
+> -#define OMAP4430_CM2_INSTR_MOD		0x1f00
+> +#define OMAP4430_CM2_OCP_SOCKET_MOD	0x0000 | CM2_BASE_ID
+> +#define OMAP4430_CM2_CKGEN_MOD		0x0100 | CM2_BASE_ID
+> +#define OMAP4430_CM2_ALWAYS_ON_MOD	0x0600 | CM2_BASE_ID
+> +#define OMAP4430_CM2_CORE_MOD		0x0700 | CM2_BASE_ID
+> +#define OMAP4430_CM2_IVAHD_MOD		0x0f00 | CM2_BASE_ID
+> +#define OMAP4430_CM2_CAM_MOD		0x1000 | CM2_BASE_ID
+> +#define OMAP4430_CM2_DSS_MOD		0x1100 | CM2_BASE_ID
+> +#define OMAP4430_CM2_GFX_MOD		0x1200 | CM2_BASE_ID
+> +#define OMAP4430_CM2_L3INIT_MOD		0x1300 | CM2_BASE_ID
+> +#define OMAP4430_CM2_L4PER_MOD		0x1400 | CM2_BASE_ID
+> +#define OMAP4430_CM2_CEFUSE_MOD		0x1600 | CM2_BASE_ID
+> +#define OMAP4430_CM2_RESTORE_MOD	0x1e00 | CM2_BASE_ID
+> +#define OMAP4430_CM2_INSTR_MOD		0x1f00 | CM2_BASE_ID
+>  
+>  /* PRM instances */
+>  
+> @@ -102,9 +118,9 @@
+>  #define OMAP4430_PRM_L4PER_MOD		0x1400
+>  #define OMAP4430_PRM_CEFUSE_MOD		0x1600
+>  #define OMAP4430_PRM_WKUP_MOD		0x1700
+> -#define OMAP4430_PRM_WKUP_CM_MOD	0x1800
+> +#define OMAP4430_PRM_WKUP_CM_MOD	0x1800 | PRM_BASE_ID
+>  #define OMAP4430_PRM_EMU_MOD		0x1900
+> -#define OMAP4430_PRM_EMU_CM_MOD		0x1a00
+> +#define OMAP4430_PRM_EMU_CM_MOD		0x1a00 | PRM_BASE_ID
+>  #define OMAP4430_PRM_DEVICE_MOD		0x1b00
+>  #define OMAP4430_PRM_INSTR_MOD		0x1f00
+>  
+> @@ -114,10 +130,10 @@
+>  
+>  /* PRCM_MPU instances */
+>  
+> -#define OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_MOD	0x0000
+> -#define OMAP4430_PRCM_MPU_DEVICE_PRM_MOD	0x0200
+> -#define OMAP4430_PRCM_MPU_CPU0_MOD		0x0400
+> -#define OMAP4430_PRCM_MPU_CPU1_MOD		0x0800
+> +#define OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_MOD	0x0000 | PRCM_MPU_BASE_ID
+> +#define OMAP4430_PRCM_MPU_DEVICE_PRM_MOD	0x0200 | PRCM_MPU_BASE_ID
+> +#define OMAP4430_PRCM_MPU_CPU0_MOD		0x0400 | PRCM_MPU_BASE_ID
+> +#define OMAP4430_PRCM_MPU_CPU1_MOD		0x0800 | PRCM_MPU_BASE_ID
+>  
+>  
+>  /* 24XX register bits shared between CM & PRM registers */
+> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> index 4df30d0..124e866 100644
+> --- a/arch/arm/mach-omap2/prcm.c
+> +++ b/arch/arm/mach-omap2/prcm.c
+> @@ -182,13 +182,40 @@ static inline void __omap_prcm_write(u32 value, void __iomem *base,
+>  /* Read a register in a PRM module */
+>  u32 prm_read_mod_reg(s16 module, u16 idx)
+>  {
+> -	return __omap_prcm_read(prm_base, module, idx);
+> +	u32 base = 0;
+> +
+> +	base = abs(module) >> BASE_ID_SHIFT;
+> +	module &= MOD_MASK;
+> +
+> +	switch (base) {
+> +	case PRCM_MPU_BASE:
+> +		return __omap_prcm_read(prcm_mpu_base, module, idx);
+> +	case DEFAULT_BASE:
+> +		return __omap_prcm_read(prm_base, module, idx);
+> +	default:
+> +		pr_err("Unknown PRM submodule base\n");
+> +	}
+> +	return 0;
+>  }
+>  
+>  /* Write into a register in a PRM module */
+>  void prm_write_mod_reg(u32 val, s16 module, u16 idx)
+>  {
+> -	__omap_prcm_write(val, prm_base, module, idx);
+> +	u32 base = 0;
+> +
+> +	base = abs(module) >> BASE_ID_SHIFT;
+> +
+> +	switch (base) {
+> +	case PRCM_MPU_BASE:
+> +		__omap_prcm_write(val, prcm_mpu_base, module, idx);
+> +		break;
+> +	case DEFAULT_BASE:
+> +		__omap_prcm_write(val, prm_base, module, idx);
+> +		break;
+> +	default:
+> +		pr_err("Unknown PRM submodule base\n");
+> +		break;
+> +	}
+>  }
+>  
+>  /* Read-modify-write a register in a PRM module. Caller must lock */
+> @@ -219,13 +246,46 @@ u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32 mask)
+>  /* Read a register in a CM module */
+>  u32 cm_read_mod_reg(s16 module, u16 idx)
+>  {
+> -	return __omap_prcm_read(cm_base, module, idx);
+> +	u32 base = 0;
+> +
+> +	base = abs(module) >> BASE_ID_SHIFT;
+> +	module &= MOD_MASK;
+> +
+> +	switch (base) {
+> +	case PRM_BASE:
+> +		return __omap_prcm_read(prm_base, module, idx);
+> +	case CM2_BASE:
+> +		return __omap_prcm_read(cm2_base, module, idx);
+> +	case DEFAULT_BASE:
+> +		return __omap_prcm_read(cm_base, module, idx);
+> +	default:
+> +		pr_err("Unknown CM submodule base\n");
+> +	}
+> +	return 0;
+>  }
+>  
+>  /* Write into a register in a CM module */
+>  void cm_write_mod_reg(u32 val, s16 module, u16 idx)
+>  {
+> -	__omap_prcm_write(val, cm_base, module, idx);
+> +	u32 base = 0;
+> +
+> +	base = abs(module) >> BASE_ID_SHIFT;
+> +	module &= MOD_MASK;
+> +
+> +	switch (base) {
+> +	case PRM_BASE:
+> +		__omap_prcm_write(val, prm_base, module, idx);
+> +		break;
+> +	case CM2_BASE:
+> +		__omap_prcm_write(val, cm2_base, module, idx);
+> +		break;
+> +	case DEFAULT_BASE:
+> +		__omap_prcm_write(val, cm_base, module, idx);
+> +		break;
+> +	default:
+> +		pr_err("Unknown CM submodule base\n");
+> +		break;
+> +	}
+>  }
+>  
+>  /* Read-modify-write a register in a CM module. Caller must lock */
+> diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+> index 588873b..72456cc 100644
+> --- a/arch/arm/mach-omap2/prm.h
+> +++ b/arch/arm/mach-omap2/prm.h
+> @@ -23,9 +23,9 @@
+>  #define OMAP34XX_PRM_REGADDR(module, reg)				\
+>  		OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE + (module) + (reg))
+>  #define OMAP44XX_PRM_REGADDR(module, reg)				\
+> -		OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE + (module) + (reg))
+> +		OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE +	((module) & (MOD_MASK)) + (reg))
+>  #define OMAP44XX_PRCM_MPU_REGADDR(module, reg)				\
+> -		OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE + (module) + (reg))
+> +		OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE + ((module) & (MOD_MASK)) + (reg))
+>  
+>  #include "prm44xx.h"
