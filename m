@@ -1,143 +1,85 @@
-From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH] Fix to support multiple HWMODS for a single device
-Date: Tue, 24 Aug 2010 16:33:10 +0530
-Message-ID: <1282647790-15821-1-git-send-email-kishon@ti.com>
+From: Manjunatha GK <manjugk@ti.com>
+Subject: [PATCH v2 00/11] OMAP: DMA: HWMOD and DMA as platform driver
+Date: Tue, 24 Aug 2010 16:34:15 +0530
+Message-ID: <1282647866-6918-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48979 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56325 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751207Ab0HXLDY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Aug 2010 07:03:24 -0400
+	id S1751710Ab0HXLF0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Aug 2010 07:05:26 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: khilman@deeprootsystems.com, b-cousson@ti.com, Kishon Vijay Abraham I <kishon@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Currently there is a bug in the existing omap_device core code when
-extracting the hwmod structures passed to omap_device_build_ss(). This bug
-gets exposed only when passing multiple HWMOD structure to
-omap_device_build_ss() resulting in incorrect extraction from second HWMOD
-structure.
+This patch series has review comments incorporated which are received
+for v1 version.
+The review comments can be found at:
+http://www.spinics.net/lists/linux-omap/msg34291.html
+http://www.spinics.net/lists/linux-omap/msg34292.html
+http://www.spinics.net/lists/linux-omap/msg34078.html
+http://www.spinics.net/lists/linux-omap/msg34083.html
 
-This fix uses the pointer to  pointer to OMAP_HWMOD structure (array of 
-pointers to OMAP_HWMOD structure) passed to omap_device_build_ss() to 
-correctly extract the appropriate OMAP_HWMOD structure.
+These changes are tested on following boards:
+- Zoom3     (OMAP3630)
+- Beagle    (OMAP3530)
+- OMAP4 SDP (OMAP4430)
+I don't have omap1 and omap2 boards and appreciate if 
+some one can test these boards and provides feedback.
 
-This patch has been created and tested on lo/master and mainline.
+Build tested for both omap1 and omap2 plus boards.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/plat-omap/omap_device.c |   35 ++++++++++++++---------------------
- 1 files changed, 14 insertions(+), 21 deletions(-)
+This patch series applies on top of:
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+Branch: pm-wip/hwmods-omap4
+commit f6f7f1103b80b4dc0ace8a0314d95d1b1ebca726
+Merge: 79d0b02 597e89c
+Author: Kevin Hilman <khilman@ti.com>
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index d2b1609..2dd2a46 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -257,12 +257,11 @@ static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
-  */
- int omap_device_count_resources(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int c = 0;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		c += omap_hwmod_count_resources(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		c += omap_hwmod_count_resources(od->hwmods[i]);
- 
- 	pr_debug("omap_device: %s: counted %d total resources across %d "
- 		 "hwmods\n", od->pdev.name, c, od->hwmods_cnt);
-@@ -289,12 +288,11 @@ int omap_device_count_resources(struct omap_device *od)
-  */
- int omap_device_fill_resources(struct omap_device *od, struct resource *res)
- {
--	struct omap_hwmod *oh;
- 	int c = 0;
- 	int i, r;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++) {
--		r = omap_hwmod_fill_resources(oh, res);
-+	for (i = 0; i < od->hwmods_cnt; i++) {
-+		r = omap_hwmod_fill_resources(od->hwmods[i], res);
- 		res += r;
- 		c += r;
- 	}
-@@ -566,7 +564,6 @@ int omap_device_shutdown(struct platform_device *pdev)
- {
- 	int ret, i;
- 	struct omap_device *od;
--	struct omap_hwmod *oh;
- 
- 	od = _find_by_pdev(pdev);
- 
-@@ -579,8 +576,8 @@ int omap_device_shutdown(struct platform_device *pdev)
- 
- 	ret = _omap_device_deactivate(od, IGNORE_WAKEUP_LAT);
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_shutdown(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_shutdown(od->hwmods[i]);
- 
- 	od->_state = OMAP_DEVICE_STATE_SHUTDOWN;
- 
-@@ -692,11 +689,10 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
-  */
- int omap_device_enable_hwmods(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_enable(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_enable(od->hwmods[i]);
- 
- 	/* XXX pass along return value here? */
- 	return 0;
-@@ -710,11 +706,10 @@ int omap_device_enable_hwmods(struct omap_device *od)
-  */
- int omap_device_idle_hwmods(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_idle(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_idle(od->hwmods[i]);
- 
- 	/* XXX pass along return value here? */
- 	return 0;
-@@ -729,11 +724,10 @@ int omap_device_idle_hwmods(struct omap_device *od)
-  */
- int omap_device_disable_clocks(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_disable_clocks(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_disable_clocks(od->hwmods[i]);
- 
- 	/* XXX pass along return value here? */
- 	return 0;
-@@ -748,11 +742,10 @@ int omap_device_disable_clocks(struct omap_device *od)
-  */
- int omap_device_enable_clocks(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_enable_clocks(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_enable_clocks(od->hwmods[i]);
- 
- 	/* XXX pass along return value here? */
- 	return 0;
--- 
-1.7.0.4
+    Merge branch 'pm-wip/hwmods' into pm-wip/hwmods-omap4-base
 
+The earlier version of the patches can be found at:
+RFC patches:
+http://www.spinics.net/lists/linux-omap/index.html#33393
+
+v1 patches:
+http://www.spinics.net/lists/linux-omap/msg34066.html
+
+Patch series summary:
+=====================
+Manjunatha GK (10):
+  OMAP: DMA: Introduce DMA device attributes
+  OMAP2420: DMA: HWMOD: Add hwmod data structures
+  OMAP2430: DMA: HWMOD: Add hwmod data structures
+  OMAP3: DMA: HWMOD: Add hwmod data structures
+  OMAP4: DMA: HWMOD: Add hwmod data structures
+  OMAP1: DMA: Introduce DMA driver as platform driver
+  OMAP2/3/4: DMA: HWMOD: Device registration
+  OMAP: DMA: Convert DMA library into DMA platform Driver
+  OMAP: DMA: Implement generic errata handling
+  OMAP: DMA: Use DMA device attributes
+
+Venkatraman S (1):
+  sDMA: descriptor autoloading feature
+
+ arch/arm/mach-omap1/Makefile               |    2 +-
+ arch/arm/mach-omap1/dma.c                  |  451 ++++++++
+ arch/arm/mach-omap1/include/mach/dma.h     |  148 +++
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/dma.c                  | 1380 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/dma.h     |  378 +++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   85 ++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   85 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   85 ++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   99 ++
+ arch/arm/plat-omap/dma.c                   | 1539 ++++------------------------
+ arch/arm/plat-omap/include/plat/dma.h      |  222 +---
+ 12 files changed, 2945 insertions(+), 1531 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/dma.c
+ create mode 100644 arch/arm/mach-omap1/include/mach/dma.h
+ create mode 100644 arch/arm/mach-omap2/dma.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/dma.h
+
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
