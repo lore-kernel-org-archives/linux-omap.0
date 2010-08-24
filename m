@@ -1,111 +1,108 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PM-OPP][PATCH] OMAP: Modifying the frequency comparison logic.
-Date: Tue, 24 Aug 2010 16:50:59 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C01406226EA@dlee02.ent.ti.com>
-References: <1281758292-18895-1-git-send-email-thara@ti.com>
-	<87occromt4.fsf@deeprootsystems.com>
-	<7A436F7769CA33409C6B44B358BFFF0C014062250C@dlee02.ent.ti.com>
- <87eidnogqy.fsf@deeprootsystems.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH 8/9] dspbridge: add map support for big buffers
+Date: Tue, 24 Aug 2010 16:55:38 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
+References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
+	<1277943660-4112-2-git-send-email-x0095840@ti.com>
+	<1277943660-4112-3-git-send-email-x0095840@ti.com>
+	<1277943660-4112-4-git-send-email-x0095840@ti.com>
+	<1277943660-4112-5-git-send-email-x0095840@ti.com>
+	<1277943660-4112-6-git-send-email-x0095840@ti.com>
+	<1277943660-4112-7-git-send-email-x0095840@ti.com>
+	<1277943660-4112-8-git-send-email-x0095840@ti.com>
+	<1277943660-4112-9-git-send-email-x0095840@ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
+	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
+	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
+	<AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3995@dlee06.ent.ti.com>
+	<AANLkTinjMujus-28DcLzZ+16GAGpLohwhPhuTi5uKhB8@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
+ <AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42890 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755993Ab0HXVvC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:51:02 -0400
-In-Reply-To: <87eidnogqy.fsf@deeprootsystems.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41163 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755927Ab0HXVzl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 17:55:41 -0400
+In-Reply-To: <AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Tuesday, August 24, 2010 4:14 PM
+ 
 
-
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
+> Sent: Tuesday, August 24, 2010 4:18 PM
+> To: Guzman Lugo, Fernando
+> Cc: Kanigeri, Hari; linux-omap@vger.kernel.org; 
+> linux-kernel@vger.kernel.org; ohad@wizery.com; 
+> hiroshi.doyu@nokia.com; ameya.palande@nokia.com; 
+> felipe.contreras@nokia.com
+> Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
 > 
-> "Menon, Nishanth" <nm@ti.com> writes:
-> 
+> On Tue, Aug 24, 2010 at 10:30 PM, Guzman Lugo, Fernando 
+> <fernando.lugo@ti.com> wrote:
+> >> Oh, I actually meant the DMM pool.
 > >>
-> >> thara gopinath <thara@ti.com> writes:
-> >>
-> >> > From: Thara Gopinath <thara@ti.com>
-> >> >
-
-[...]
-> >> >
-> >> > The above is not correct as we expect the framework to return back
-> >> > the opp table entry corresponding to 266 Mhz.
-> >> >
-
-[...]
-> >> >
-> >> > 	b. Do the comparison in Mhz in the opp layer rather than in Hz.
-> >> > 	   This would mean we will divide the rate passed into the opp layer
-> >> > 	  API and the rates stored in the opp tables by 1000000 to get the
-> >> > 	  rates in Mhz and do the necessary comparision. In this approach
-> >> any
-> >> > 	  vague frequency like 266.045Mhz will get mapped to 266 Mhz in the
-> >> > 	  opp table. But if the passed rate is 267 Mhz, the opp framework
-> >> > 	  will still rerturn an error or the next highest opp table entry
-> >> >
-> >> > This patch implements solution b. The scenario mentioned above is
-> >> > esp true for OMAP4 dpll_iva where we do end up with such weird
-> >> frequencies
-> >> > due to sys clk being at 38.4 Mhz.
-> >>
-> >> I agree that solution b is better, although it makes the '_exact'
-> >> function a bit less exact. :/
-> >>
-> >> solution b is fine with me, but the kerneldoc for these find functions
-> >> should be updated to describe the new matching technique.
+> >> a) 1. Migrate to iommu, 2. Remove DMM completely
+> >> b) 1. Remove DMM pool, 2. Migrate to iommu 3. Remove DMM completely
 > >
-> > I agree, I suggest one improvement though - the search accuracy will
-> vary
-> > Based on the silicon rev, one size will probably not fit every silicon
-> and
-> > Domains we have - I suggest having accuracy as a parameter as part of
-> domain
-> > Registration/configurable parameter
-> > e.g.
-> >> > +			unsigned long rate = temp_opp->rate / 1000000;
-> > Will probably configurable to the "exactness" we expect to handle per
-> domain/silicon family.
+> > Ok, what is the issue with DMM pool?
+> 
+> From what I've heard; fragmentation.
+> 
+> > The issue I see removing DMM pool in this moment and making all the 
+> > DMM Available (from 0x11000000 to 0xFFFFFFFF omap3 case) that is:
 > >
+> > The DMM module allocates a list of "struct map_page" 
+> elements base on 
+> > DMM_POOL_SIZE to keep track of memory reserved and mapped.
+> >
+> > Memory allocated = DMM_POOL_SIZE / PAGE_SIZE * sizeof(struct 
+> > map_page);
+> >
+> > So making all memory avalible it will increase the memory 
+> used for DMM 
+> > Module and it could be quite significant.
+> >
+> > Iovmm.c module, the list is increased dynamically when it 
+> is needed so 
+> > It does no have that problem. Then when the migration is done and 
+> > Iovmm.c module is used the DMM_POOL_SIZE can be removed 
+> without issues.
 > 
-> The more I think about, I think we should leave the 'exact' find the way
-> it is, especially as we move to device OPPs we will probably want to
-> have more precise matching.
+> It seems that this "memory allocated" you are taking about is 
+> an array, but what we would like is a list, like apparently 
+> iovmm is using. I think I can give that a try if needed.
+
+Yes, that is an array in dmm and a liked list in iovmm.
+
 > 
-> What about adding another function that does a "find closest"?
-Just my 2cents:
-With accuracy as a param? Then we fall back to the question - who would be 
-the users of the "_ceil, _floor" functions? Probably exact might should mean exact, and ceil and floor should be using as they were originally intended..
+> However, from what I can see iovmm can be used instead of dmm 
+> even if the switch to iommu is not yet there.
 
-But, the real users of ceil and floor are guys from cpufreq and frequency
-searchers - they don't really want to know the minor deltas b/w 19.2MHz Vs
-26MHz Vs 38.4MHz sysclk variations caused to precise clock definitions..
-They like to do ciel(1Ghz) and get opp corresponding to 1Ghz if 19.2Mhz 
-sysclk causes this to be 999,999Mhz it will fail in the current logic..
+Iovmm have a list of memory used (reserved, that is what dmm module
+does) and also maps the buffer, So we can not use iovmm without removing
+The mapping which is done inside dspbridge because it will conflic with
+The mapping doing inside iovmm module. So that means for using iovmm, the
+Mapping in dspbridge had to be removed in order to work properly.
 
-Also, we would like to users of these apis to remain consistent and not
-Know about the variation of freq deltas. E.g.:
-Omapx 12MHz to 38.4Mhz causes fluctuations around 100Mhz
-OMAPy  19.2MHz to 38.4Mhz causes fluctuations around 10Mhz
-The caller should not do:
-If cpu_is_omapx()
-	Find_closest_ciel(freq,100)
-Else if cpu_is_omapy()
-	Find_closest_ciel(freq,10)
-
-That'd be nightmare..
-
-Instead as part of cpu domain registration, we mention what is the accuracy
-And the callers do find_ciel(freq) and that will "automagically" translate
-To accuracy needed for that silicon on that domain..
 
 Regards,
-Nishanth Menon
+Fernando.
 
+> 
+> --
+> Felipe Contreras
+> 
