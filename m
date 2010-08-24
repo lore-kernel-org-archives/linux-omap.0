@@ -1,160 +1,174 @@
-From: Mika Westerberg <mika.westerberg@iki.fi>
-Subject: Re: [PATCH v2 03/11] OMAP2430: DMA: HWMOD: Add hwmod data
-	structures
-Date: Tue, 24 Aug 2010 14:30:54 +0300
-Message-ID: <20100824113054.GG25559@gw.healthdatacare.com>
-References: <1282647866-6918-1-git-send-email-manjugk@ti.com> <1282647866-6918-4-git-send-email-manjugk@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] Fix to support multiple HWMODS for a single device
+Date: Tue, 24 Aug 2010 13:51:57 +0200
+Message-ID: <4C73B25D.5040609@ti.com>
+References: <1282647790-15821-1-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:63214 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754882Ab0HXLbB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 07:31:01 -0400
-Received: by bwz11 with SMTP id 11so4701465bwz.19
-        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 04:30:59 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1282647866-6918-4-git-send-email-manjugk@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:50813 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751400Ab0HXLwE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Aug 2010 07:52:04 -0400
+In-Reply-To: <1282647790-15821-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manjunatha GK <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
++ Paul
 
-On Tue, Aug 24, 2010 at 04:34:18PM +0530, Manjunatha GK wrote:
-> This patch adds OMAP2430 DMA hwmod structures.
-> 
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Hi Vijay,
+
+I just have a couple of minors comments.
+
+You should copy at least the file authors when submitting a patch. Paul 
+is missing.
+
+You should correct the subject with something like:
+[PATCH] OMAP: omap_device: Fix to support multiple hwmods for a single 
+device
+
+On 8/24/2010 1:03 PM, ABRAHAM, KISHON VIJAY wrote:
+> Currently there is a bug in the existing omap_device core code when
+> extracting the hwmod structures passed to omap_device_build_ss(). This bug
+> gets exposed only when passing multiple HWMOD structure to
+> omap_device_build_ss() resulting in incorrect extraction from second HWMOD
+> structure.
+>
+> This fix uses the pointer to  pointer to OMAP_HWMOD structure (array of
+Remove the space here --------^
+
+> pointers to OMAP_HWMOD structure) passed to omap_device_build_ss() to
+> correctly extract the appropriate OMAP_HWMOD structure.
+
+All OMAP_HWMOD structure should be in lower case.
+
+>
+> This patch has been created and tested on lo/master and mainline.
+>
+> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+
+Add Paul & Kevin in CC here after your signed-off. You can add myself as 
+well, since I reviewed your first RFC.
+
+Otherwise the patch looks fine to me.
+
+Thanks,
+Benoit
+
 > ---
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   85 ++++++++++++++++++++++++++++
->  1 files changed, 85 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> index 4526628..3d79a52 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> @@ -33,6 +33,7 @@ static struct omap_hwmod omap2430_mpu_hwmod;
->  static struct omap_hwmod omap2430_iva_hwmod;
->  static struct omap_hwmod omap2430_l3_main_hwmod;
->  static struct omap_hwmod omap2430_l4_core_hwmod;
-> +static struct omap_hwmod omap2430_dma_system_hwmod;
->  
->  /* L3 -> L4_CORE interface */
->  static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core = {
-> @@ -165,12 +166,96 @@ static struct omap_hwmod omap2430_iva_hwmod = {
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
->  };
->  
-> +/* dma_system */
-> +static struct omap_hwmod_class_sysconfig omap2430_dma_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x002c,
-> +	.syss_offs	= 0x0028,
-> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET |
-> +			   SYSC_HAS_MIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
-> +			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-> +	.sysc_fields	= &omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap2430_dma_hwmod_class = {
-> +	.name = "dma",
-> +	.sysc = &omap2430_dma_sysc,
-> +};
-> +
-> +/* dma attributes */
-> +static struct omap_dma_dev_attr dma_dev_attr = {
-> +	.dev_caps  = DMA_LINKED_LCH | GLOBAL_PRIORITY |
-> +				IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORIY,
-                                                          ^^^^^^^^^^^^^
+>   arch/arm/plat-omap/omap_device.c |   35 ++++++++++++++---------------------
+>   1 files changed, 14 insertions(+), 21 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index d2b1609..2dd2a46 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -257,12 +257,11 @@ static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
+>    */
+>   int omap_device_count_resources(struct omap_device *od)
+>   {
+> -	struct omap_hwmod *oh;
+>   	int c = 0;
+>   	int i;
+>
+> -	for (i = 0, oh = *od->hwmods; i<  od->hwmods_cnt; i++, oh++)
+> -		c += omap_hwmod_count_resources(oh);
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		c += omap_hwmod_count_resources(od->hwmods[i]);
+>
+>   	pr_debug("omap_device: %s: counted %d total resources across %d "
+>   		 "hwmods\n", od->pdev.name, c, od->hwmods_cnt);
+> @@ -289,12 +288,11 @@ int omap_device_count_resources(struct omap_device *od)
+>    */
+>   int omap_device_fill_resources(struct omap_device *od, struct resource *res)
+>   {
+> -	struct omap_hwmod *oh;
+>   	int c = 0;
+>   	int i, r;
+>
+> -	for (i = 0, oh = *od->hwmods; i<  od->hwmods_cnt; i++, oh++) {
+> -		r = omap_hwmod_fill_resources(oh, res);
+> +	for (i = 0; i<  od->hwmods_cnt; i++) {
+> +		r = omap_hwmod_fill_resources(od->hwmods[i], res);
+>   		res += r;
+>   		c += r;
+>   	}
+> @@ -566,7 +564,6 @@ int omap_device_shutdown(struct platform_device *pdev)
+>   {
+>   	int ret, i;
+>   	struct omap_device *od;
+> -	struct omap_hwmod *oh;
+>
+>   	od = _find_by_pdev(pdev);
+>
+> @@ -579,8 +576,8 @@ int omap_device_shutdown(struct platform_device *pdev)
+>
+>   	ret = _omap_device_deactivate(od, IGNORE_WAKEUP_LAT);
+>
+> -	for (i = 0, oh = *od->hwmods; i<  od->hwmods_cnt; i++, oh++)
+> -		omap_hwmod_shutdown(oh);
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		omap_hwmod_shutdown(od->hwmods[i]);
+>
+>   	od->_state = OMAP_DEVICE_STATE_SHUTDOWN;
+>
+> @@ -692,11 +689,10 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
+>    */
+>   int omap_device_enable_hwmods(struct omap_device *od)
+>   {
+> -	struct omap_hwmod *oh;
+>   	int i;
+>
+> -	for (i = 0, oh = *od->hwmods; i<  od->hwmods_cnt; i++, oh++)
+> -		omap_hwmod_enable(oh);
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		omap_hwmod_enable(od->hwmods[i]);
+>
+>   	/* XXX pass along return value here? */
+>   	return 0;
+> @@ -710,11 +706,10 @@ int omap_device_enable_hwmods(struct omap_device *od)
+>    */
+>   int omap_device_idle_hwmods(struct omap_device *od)
+>   {
+> -	struct omap_hwmod *oh;
+>   	int i;
+>
+> -	for (i = 0, oh = *od->hwmods; i<  od->hwmods_cnt; i++, oh++)
+> -		omap_hwmod_idle(oh);
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		omap_hwmod_idle(od->hwmods[i]);
+>
+>   	/* XXX pass along return value here? */
+>   	return 0;
+> @@ -729,11 +724,10 @@ int omap_device_idle_hwmods(struct omap_device *od)
+>    */
+>   int omap_device_disable_clocks(struct omap_device *od)
+>   {
+> -	struct omap_hwmod *oh;
+>   	int i;
+>
+> -	for (i = 0, oh = *od->hwmods; i<  od->hwmods_cnt; i++, oh++)
+> -		omap_hwmod_disable_clocks(oh);
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		omap_hwmod_disable_clocks(od->hwmods[i]);
+>
+>   	/* XXX pass along return value here? */
+>   	return 0;
+> @@ -748,11 +742,10 @@ int omap_device_disable_clocks(struct omap_device *od)
+>    */
+>   int omap_device_enable_clocks(struct omap_device *od)
+>   {
+> -	struct omap_hwmod *oh;
+>   	int i;
+>
+> -	for (i = 0, oh = *od->hwmods; i<  od->hwmods_cnt; i++, oh++)
+> -		omap_hwmod_enable_clocks(oh);
+> +	for (i = 0; i<  od->hwmods_cnt; i++)
+> +		omap_hwmod_enable_clocks(od->hwmods[i]);
+>
+>   	/* XXX pass along return value here? */
+>   	return 0;
 
-Should this be IS_RW_PRIORITY? Same typo seems to be also in other patches which
-add hwmod structures.
-
-Regards,
-MW
-
-
-> +	.lch_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT,
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap2430_dma_system_irqs[] = {
-> +	{ .name = "0", .irq = INT_24XX_SDMA_IRQ0 },
-> +	{ .name = "1", .irq = INT_24XX_SDMA_IRQ1 },
-> +	{ .name = "2", .irq = INT_24XX_SDMA_IRQ2 },
-> +	{ .name = "3", .irq = INT_24XX_SDMA_IRQ3 },
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap2430_dma_system_addrs[] = {
-> +	{
-> +		.pa_start	= 0x48056000,
-> +		.pa_end		= 0x4a0560ff,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +};
-> +
-> +/* dma_system -> L3 */
-> +static struct omap_hwmod_ocp_if omap2430_dma_system__l3 = {
-> +	.master		= &omap2430_dma_system_hwmod,
-> +	.slave		= &omap2430_l3_main_hwmod,
-> +	.clk		= "l3_div_ck",
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* dma_system master ports */
-> +static struct omap_hwmod_ocp_if *omap2430_dma_system_masters[] = {
-> +	&omap2430_dma_system__l3,
-> +};
-> +
-> +/* l4_cfg -> dma_system */
-> +static struct omap_hwmod_ocp_if omap2430_l4_core__dma_system = {
-> +	.master		= &omap2430_l4_core_hwmod,
-> +	.slave		= &omap2430_dma_system_hwmod,
-> +	.clk		= "l4_div_ck",
-> +	.addr		= omap2430_dma_system_addrs,
-> +	.addr_cnt	= ARRAY_SIZE(omap2430_dma_system_addrs),
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* dma_system slave ports */
-> +static struct omap_hwmod_ocp_if *omap2430_dma_system_slaves[] = {
-> +	&omap2430_l4_core__dma_system,
-> +};
-> +
-> +static struct omap_hwmod omap2430_dma_system_hwmod = {
-> +	.name		= "dma",
-> +	.class		= &omap2430_dma_hwmod_class,
-> +	.mpu_irqs	= omap2430_dma_system_irqs,
-> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap2430_dma_system_irqs),
-> +	.main_clk	= "l3_div_ck",
-> +	.slaves		= omap2430_dma_system_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap2430_dma_system_slaves),
-> +	.masters	= omap2430_dma_system_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap2430_dma_system_masters),
-> +	.dev_attr	= &dma_dev_attr,
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-> +	.flags		= HWMOD_NO_IDLEST,
-> +};
-> +
->  static __initdata struct omap_hwmod *omap2430_hwmods[] = {
->  	&omap2430_l3_main_hwmod,
->  	&omap2430_l4_core_hwmod,
->  	&omap2430_l4_wkup_hwmod,
->  	&omap2430_mpu_hwmod,
->  	&omap2430_iva_hwmod,
-> +	&omap2430_dma_system_hwmod,
->  	NULL,
->  };
->  
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
