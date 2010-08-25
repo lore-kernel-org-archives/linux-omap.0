@@ -1,62 +1,60 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: DSS2 broken with 36-rc1
-Date: Wed, 25 Aug 2010 14:17:32 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C6853FE5@dbde02.ent.ti.com>
-References: <1281962906.1888.25.camel@chotu>
-	 <4C72192A.9050801@compulab.co.il>  <4C721DFA.9010009@compulab.co.il>
- <1282723542.9299.87.camel@tubuntu.research.nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 05/20] Move dss platform driver to dss.c
+Date: Wed, 25 Aug 2010 11:49:43 +0300
+Message-ID: <1282726183.9299.105.camel@tubuntu.research.nokia.com>
+References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
+	 <1282579089-10487-2-git-send-email-svadivu@ti.com>
+	 <1282579089-10487-3-git-send-email-svadivu@ti.com>
+	 <1282579089-10487-4-git-send-email-svadivu@ti.com>
+	 <1282579089-10487-5-git-send-email-svadivu@ti.com>
+	 <1282579089-10487-6-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47291 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752618Ab0HYIro convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 04:47:44 -0400
-In-Reply-To: <1282723542.9299.87.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:62093 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752669Ab0HYIty (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 04:49:54 -0400
+In-Reply-To: <1282579089-10487-6-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, ext Mike Rapoport <mike@compulab.co.il>
-Cc: "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, linux-omap <linux-omap@vger.kernel.org>
+To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@ti.com" <khilman@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tomi Valkeinen
-> Sent: Wednesday, August 25, 2010 1:36 PM
-> To: ext Mike Rapoport
-> Cc: Palande Ameya (Nokia-MS/Helsinki); linux-omap
-> Subject: Re: DSS2 broken with 36-rc1
+On Mon, 2010-08-23 at 17:57 +0200, ext Guruswamy Senthilvadivu wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
 > 
-> Hi,
+> dsshw_probe and remove functions are moved to dss.c
+> To maintain the order of init, through the dsshw_probe, omap_dss_init2
+> is made as device_init_call_sync.
 > 
-> On Mon, 2010-08-23 at 09:06 +0200, ext Mike Rapoport wrote:
-> > Mike Rapoport wrote:
-> 
-> >  From 81e9278ad27bc91be42105321e0e26d0be9e883b Mon Sep 17 00:00:00 2001
-> > From: Mike Rapoport <mike@compulab.co.il>
-> > Date: Mon, 23 Aug 2010 09:40:09 +0300
-> > Subject: [PATCH] OMAP: DSS2: OMAPFB: use phys_to_virt for RAM mappings
-> >
-> > After commit 309caa9cc6ff39d261264ec4ff10e29489afc8f8 (ARM: Prohibit
-> > ioremap() on kernel managed RAM) it is impossible to ioremap SDRAM for
-> > the framebuffer. Use phys_to_virt for kernel managed RAM mapping and
-> > ioremap for other memory types
-> 
-> Hmm. omapfb reserves/allocates the ram using memblock, and obviously
-> memory from memblock is "kernel managed RAM". What does it mean? The RAM
-> is already mapped? I guess so, if phys_to_virt() works. (I guess the
-> whole RAM is mapped automatically). With what caching? How can we get
-> writecombining for this memory?
-> 
-> Looking at the description of "ARM: Prohibit ioremap() on kernel managed
-> RAM" it sounds to me that we cannot have writecombining for framebuffer
-> memory, if it's "kernel managed RAM".
-> 
-This is indeed the case. One way to get write combining memory is to
-use dma_alloc_coherent in kernel space. 
-You can reserve some memory outside the kernel memory map and directly
-mmap it to users pace with whatever attributes you interested in.
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Regards,
-Santosh
+
+Why is the omap_dsshw_driver moved to dss.c, but the hw_driver for other
+blocks stay in core.c?
+
+And generally about dss.c:
+
+There are confusingly two things DSS may refer to: 1) the whole display
+subsystem, including DSI/RFBI etc 2) the small main block inside DSS,
+meaning the few DSS_* registers.
+
+It would be good to have different names for those, but at the time
+being they are both "DSS". In some patch I saw names like "dss_dispc".
+Perhaps we could have "dss_dss" there too. Although it looks a bit
+confusing too =).
+
+dss.c is meant to handle the DSS_* registers, so it's about case 2.
+
+And so it doesn't contain general DSS stuff, like clock allocation etc.,
+those have been in core.c.
+
+I'm not sure if this comment is valid for this patch, but at least
+"[PATCH 07/20] Move clock functions from core driver to dss driver"
+sounds like dss.c is used like case 1.
+
+ Tomi
+
+
