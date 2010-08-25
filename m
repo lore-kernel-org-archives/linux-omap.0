@@ -1,429 +1,204 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 07/11] staging: tidspbridge: Remove cfg_get_object()
-Date: Wed, 25 Aug 2010 17:09:00 -0500
-Message-ID: <1282774144-11628-8-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 09/11] staging: tidspbridge: Remove cfg_set_object()
+Date: Wed, 25 Aug 2010 17:09:02 -0500
+Message-ID: <1282774144-11628-10-git-send-email-ivan.gomez@ti.com>
 References: <1282774144-11628-1-git-send-email-ivan.gomez@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60926 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752151Ab0HYWRJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Aug 2010 18:17:09 -0400
 In-Reply-To: <1282774144-11628-1-git-send-email-ivan.gomez@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@suse.de
 Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, omar.ramirez@ti.com, ohad@wizery.com, rene.sapiens@ti.com, nm@ti.com, ernesto@ti.com, x0095078@ti.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-As the services directory is going to be removed, the cfg_get_object
+As the services directory is going to be removed, the cfg_set_object
 function has also to be removed.
 
 Since the driver object handle is retrieved from the drv_data structure,
 then the word "Registry" is replaced by "driver data" in the comments.
 
-Also, the hdrv_obj is not used in function omap34_xx_bridge_remove(), so
-it is removed.
-
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- .../staging/tidspbridge/include/dspbridge/cfg.h    |   17 --------
- drivers/staging/tidspbridge/pmgr/dev.c             |   10 ++++-
- drivers/staging/tidspbridge/rmgr/drv.c             |   34 ++++++++++++---
- drivers/staging/tidspbridge/rmgr/drv_interface.c   |    9 +++-
- drivers/staging/tidspbridge/rmgr/dspdrv.c          |    9 +++-
- drivers/staging/tidspbridge/rmgr/mgr.c             |   28 ++++++++++---
- drivers/staging/tidspbridge/rmgr/proc.c            |   20 +++++++--
- drivers/staging/tidspbridge/services/cfg.c         |   44 --------------------
- 8 files changed, 85 insertions(+), 86 deletions(-)
+ .../staging/tidspbridge/include/dspbridge/cfg.h    |   17 -----------
+ drivers/staging/tidspbridge/rmgr/drv.c             |   24 +++++++++++++---
+ drivers/staging/tidspbridge/rmgr/mgr.c             |   20 +++++++++++--
+ drivers/staging/tidspbridge/services/cfg.c         |   29 --------------------
+ 4 files changed, 36 insertions(+), 54 deletions(-)
 
 diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfg.h b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
-index 11f5bde..834b25b 100644
+index e1ae1bc..238215b 100644
 --- a/drivers/staging/tidspbridge/include/dspbridge/cfg.h
 +++ b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
-@@ -41,23 +41,6 @@
- extern int cfg_get_cd_version(u32 *version);
+@@ -78,21 +78,4 @@ extern void cfg_get_perf_value(bool *enable_perf);
+ extern int cfg_get_zl_file(struct cfg_devnode *dev_node_obj,
+ 				  u32 buf_size, char *str_zl_file_name);
  
- /*
-- *  ======== cfg_get_object ========
+-/*
+- *  ======== CFG_SetDrvObject ========
 - *  Purpose:
-- *      Retrieve the Driver Object handle From the Registry
+- *      Store the Driver Object handle.
 - *  Parameters:
-- *      value:      Ptr to location to store the value.
-- *      dw_type      Type of Object to Get
+- *      value:          Arbitrary value to store.
+- *      dw_type          Type of Object to Store
 - *  Returns:
-- *      0:    Success.
+- *      0:        Success.
+- *      -EPERM:      Internal Error.
 - *  Requires:
 - *      CFG initialized.
 - *  Ensures:
-- *      0:    *value is set to the retrieved u32(non-Zero).
-- *      else:       *value is set to 0L.
+- *      0:        The Private u32 was successfully set.
 - */
--extern int cfg_get_object(u32 *value, u8 dw_type);
+-extern int cfg_set_object(u32 value, u8 dw_type);
 -
--/*
-  *  ======== cfg_get_perf_value ========
-  *  Purpose:
-  *      Retrieve a flag indicating whether PERF should log statistics for the
-diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
-index 7893f9a..8077bdc 100644
---- a/drivers/staging/tidspbridge/pmgr/dev.c
-+++ b/drivers/staging/tidspbridge/pmgr/dev.c
-@@ -148,6 +148,7 @@ int dev_create_device(struct dev_object **device_obj,
- 	struct io_attrs io_mgr_attrs;
- 	u32 num_windows;
- 	struct drv_object *hdrv_obj = NULL;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 	int status = 0;
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(device_obj != NULL);
-@@ -163,10 +164,15 @@ int dev_create_device(struct dev_object **device_obj,
- 
- 	/*  Get the Bridge driver interface functions */
- 	bridge_drv_entry(&drv_fxns, driver_file_name);
--	if (cfg_get_object((u32 *) &hdrv_obj, REG_DRV_OBJECT)) {
--		/* don't propogate CFG errors from this PROC function */
-+
-+	/* Retrieve the Object handle from the driver data */
-+	if (drv_datap && drv_datap->drv_object) {
-+		hdrv_obj = drv_datap->drv_object;
-+	} else {
- 		status = -EPERM;
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
- 	}
-+
- 	/* Create the device object, and pass a handle to the Bridge driver for
- 	 * storage. */
- 	if (!status) {
+ #endif /* CFG_ */
 diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
-index 8a8dea6..fc1f49b 100644
+index fc1f49b..519053f 100644
 --- a/drivers/staging/tidspbridge/rmgr/drv.c
 +++ b/drivers/staging/tidspbridge/rmgr/drv.c
-@@ -438,11 +438,15 @@ u32 drv_get_first_dev_object(void)
+@@ -309,6 +309,7 @@ int drv_create(struct drv_object **drv_obj)
  {
- 	u32 dw_dev_object = 0;
- 	struct drv_object *pdrv_obj;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
--	if (!cfg_get_object((u32 *) &pdrv_obj, REG_DRV_OBJECT)) {
-+	if (drv_datap && drv_datap->drv_object) {
-+		pdrv_obj = drv_datap->drv_object;
- 		if ((pdrv_obj->dev_list != NULL) &&
- 		    !LST_IS_EMPTY(pdrv_obj->dev_list))
- 			dw_dev_object = (u32) lst_first(pdrv_obj->dev_list);
-+	} else {
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
- 	}
- 
- 	return dw_dev_object;
-@@ -458,14 +462,17 @@ u32 drv_get_first_dev_extension(void)
- {
- 	u32 dw_dev_extension = 0;
- 	struct drv_object *pdrv_obj;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
--	if (!cfg_get_object((u32 *) &pdrv_obj, REG_DRV_OBJECT)) {
--
-+	if (drv_datap && drv_datap->drv_object) {
-+		pdrv_obj = drv_datap->drv_object;
- 		if ((pdrv_obj->dev_node_string != NULL) &&
- 		    !LST_IS_EMPTY(pdrv_obj->dev_node_string)) {
- 			dw_dev_extension =
- 			    (u32) lst_first(pdrv_obj->dev_node_string);
- 		}
-+	} else {
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
- 	}
- 
- 	return dw_dev_extension;
-@@ -482,18 +489,22 @@ u32 drv_get_next_dev_object(u32 hdev_obj)
- {
- 	u32 dw_next_dev_object = 0;
- 	struct drv_object *pdrv_obj;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
- 	DBC_REQUIRE(hdev_obj != 0);
- 
--	if (!cfg_get_object((u32 *) &pdrv_obj, REG_DRV_OBJECT)) {
--
-+	if (drv_datap && drv_datap->drv_object) {
-+		pdrv_obj = drv_datap->drv_object;
- 		if ((pdrv_obj->dev_list != NULL) &&
- 		    !LST_IS_EMPTY(pdrv_obj->dev_list)) {
- 			dw_next_dev_object = (u32) lst_next(pdrv_obj->dev_list,
- 							    (struct list_head *)
- 							    hdev_obj);
- 		}
-+	} else {
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
- 	}
-+
- 	return dw_next_dev_object;
- }
- 
-@@ -509,16 +520,20 @@ u32 drv_get_next_dev_extension(u32 dev_extension)
- {
- 	u32 dw_dev_extension = 0;
- 	struct drv_object *pdrv_obj;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
- 	DBC_REQUIRE(dev_extension != 0);
- 
--	if (!cfg_get_object((u32 *) &pdrv_obj, REG_DRV_OBJECT)) {
-+	if (drv_datap && drv_datap->drv_object) {
-+		pdrv_obj = drv_datap->drv_object;
- 		if ((pdrv_obj->dev_node_string != NULL) &&
- 		    !LST_IS_EMPTY(pdrv_obj->dev_node_string)) {
- 			dw_dev_extension =
- 			    (u32) lst_next(pdrv_obj->dev_node_string,
- 					   (struct list_head *)dev_extension);
- 		}
-+	} else {
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
- 	}
- 
- 	return dw_dev_extension;
-@@ -616,6 +631,7 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
  	int status = 0;
- 	struct drv_object *pdrv_object;
- 	struct drv_ext *pszdev_node;
+ 	struct drv_object *pdrv_object = NULL;
 +	struct drv_data *drv_datap = dev_get_drvdata(bridge);
  
- 	DBC_REQUIRE(dw_context != 0);
- 	DBC_REQUIRE(dev_node_strg != NULL);
-@@ -626,7 +642,11 @@ int drv_request_resources(u32 dw_context, u32 *dev_node_strg)
- 	 *  list.
- 	 */
- 
--	status = cfg_get_object((u32 *) &pdrv_object, REG_DRV_OBJECT);
-+	if (!drv_datap || !drv_datap->drv_object)
-+		status = -ENODATA;
-+	else
-+		pdrv_object = drv_datap->drv_object;
+ 	DBC_REQUIRE(drv_obj != NULL);
+ 	DBC_REQUIRE(refs > 0);
+@@ -335,9 +336,16 @@ int drv_create(struct drv_object **drv_obj)
+ 	} else {
+ 		status = -ENOMEM;
+ 	}
+-	/* Store the DRV Object in the Registry */
+-	if (!status)
+-		status = cfg_set_object((u32) pdrv_object, REG_DRV_OBJECT);
++	/* Store the DRV Object in the driver data */
++	if (!status) {
++		if (drv_datap) {
++			drv_datap->drv_object = (void *)pdrv_object;
++		} else {
++			status = -EPERM;
++			pr_err("%s: Failed to store DRV object\n", __func__);
++		}
++	}
 +
  	if (!status) {
- 		pszdev_node = kzalloc(sizeof(struct drv_ext), GFP_KERNEL);
- 		if (pszdev_node) {
-diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-index 7ee8949..3d20454 100644
---- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-@@ -394,11 +394,14 @@ static int __devexit omap34_xx_bridge_remove(struct platform_device *pdev)
- 	dev_t devno;
- 	bool ret;
+ 		*drv_obj = pdrv_object;
+ 	} else {
+@@ -374,6 +382,7 @@ int drv_destroy(struct drv_object *driver_obj)
+ {
  	int status = 0;
--	void *hdrv_obj = NULL;
+ 	struct drv_object *pdrv_object = (struct drv_object *)driver_obj;
 +	struct drv_data *drv_datap = dev_get_drvdata(bridge);
  
--	status = cfg_get_object((u32 *) &hdrv_obj, REG_DRV_OBJECT);
--	if (status)
-+	/* Retrieve the Object handle from the driver data */
-+	if (!drv_datap || !drv_datap->drv_object) {
-+		status = -ENODATA;
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
- 		goto func_cont;
-+	}
- 
- #ifdef CONFIG_TIDSPBRIDGE_DVFS
- 	if (cpufreq_unregister_notifier(&iva_clk_notifier,
-diff --git a/drivers/staging/tidspbridge/rmgr/dspdrv.c b/drivers/staging/tidspbridge/rmgr/dspdrv.c
-index 714f348..2ad291d 100644
---- a/drivers/staging/tidspbridge/rmgr/dspdrv.c
-+++ b/drivers/staging/tidspbridge/rmgr/dspdrv.c
-@@ -121,6 +121,7 @@ bool dsp_deinit(u32 device_context)
- 	bool ret = true;
- 	u32 device_node;
- 	struct mgr_object *mgr_obj = NULL;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
- 	while ((device_node = drv_get_first_dev_extension()) != 0) {
- 		(void)dev_remove_device((struct cfg_devnode *)device_node);
-@@ -131,10 +132,14 @@ bool dsp_deinit(u32 device_context)
- 
- 	(void)drv_destroy((struct drv_object *)device_context);
- 
--	/* Get the Manager Object from Registry
-+	/* Get the Manager Object from driver data
- 	 * MGR Destroy will unload the DCD dll */
--	if (!cfg_get_object((u32 *) &mgr_obj, REG_MGR_OBJECT))
-+	if (drv_datap && drv_datap->mgr_object) {
-+		mgr_obj = drv_datap->mgr_object;
- 		(void)mgr_destroy(mgr_obj);
+ 	DBC_REQUIRE(refs > 0);
+ 	DBC_REQUIRE(pdrv_object);
+@@ -386,8 +395,13 @@ int drv_destroy(struct drv_object *driver_obj)
+ 	kfree(pdrv_object->dev_list);
+ 	kfree(pdrv_object->dev_node_string);
+ 	kfree(pdrv_object);
+-	/* Update the DRV Object in Registry to be 0 */
+-	(void)cfg_set_object(0, REG_DRV_OBJECT);
++	/* Update the DRV Object in the driver data */
++	if (drv_datap) {
++		drv_datap->drv_object = NULL;
 +	} else {
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
++		status = -EPERM;
++		pr_err("%s: Failed to store DRV object\n", __func__);
 +	}
  
- 	api_exit();
- 
+ 	return status;
+ }
 diff --git a/drivers/staging/tidspbridge/rmgr/mgr.c b/drivers/staging/tidspbridge/rmgr/mgr.c
-index 57a39b9..c6131c4 100644
+index c6131c4..48702bb 100644
 --- a/drivers/staging/tidspbridge/rmgr/mgr.c
 +++ b/drivers/staging/tidspbridge/rmgr/mgr.c
-@@ -123,6 +123,7 @@ int mgr_enum_node_info(u32 node_id, struct dsp_ndbprops *pndb_props,
- 	u32 node_index = 0;
- 	struct dcd_genericobj gen_obj;
+@@ -58,6 +58,7 @@ int mgr_create(struct mgr_object **mgr_obj,
+ {
+ 	int status = 0;
  	struct mgr_object *pmgr_obj = NULL;
 +	struct drv_data *drv_datap = dev_get_drvdata(bridge);
  
- 	DBC_REQUIRE(pndb_props != NULL);
- 	DBC_REQUIRE(pu_num_nodes != NULL);
-@@ -130,10 +131,14 @@ int mgr_enum_node_info(u32 node_id, struct dsp_ndbprops *pndb_props,
+ 	DBC_REQUIRE(mgr_obj != NULL);
  	DBC_REQUIRE(refs > 0);
- 
- 	*pu_num_nodes = 0;
--	/* Get The Manager Object from the Registry */
--	status = cfg_get_object((u32 *) &pmgr_obj, REG_MGR_OBJECT);
--	if (status)
-+	/* Get the Manager Object from the driver data */
-+	if (!drv_datap || !drv_datap->mgr_object) {
-+		status = -ENODATA;
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
- 		goto func_cont;
-+	} else {
-+		pmgr_obj = drv_datap->mgr_object;
-+	}
- 
- 	DBC_ASSERT(pmgr_obj);
- 	/* Forever loop till we hit failed or no more items in the
-@@ -195,6 +200,7 @@ int mgr_enum_processor_info(u32 processor_id,
- 	struct drv_object *hdrv_obj;
- 	u8 dev_type;
- 	struct cfg_devnode *dev_node;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 	bool proc_detect = false;
- 
- 	DBC_REQUIRE(processor_info != NULL);
-@@ -203,7 +209,15 @@ int mgr_enum_processor_info(u32 processor_id,
- 	DBC_REQUIRE(refs > 0);
- 
- 	*pu_num_procs = 0;
--	status = cfg_get_object((u32 *) &hdrv_obj, REG_DRV_OBJECT);
-+
-+	/* Retrieve the Object handle from the driver data */
-+	if (!drv_datap || !drv_datap->drv_object) {
-+		status = -ENODATA;
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
-+	} else {
-+		hdrv_obj = drv_datap->drv_object;
-+	}
-+
- 	if (!status) {
- 		status = drv_get_dev_object(processor_id, hdrv_obj, &hdev_obj);
+@@ -67,7 +68,14 @@ int mgr_create(struct mgr_object **mgr_obj,
+ 		status = dcd_create_manager(ZLDLLNAME, &pmgr_obj->hdcd_mgr);
  		if (!status) {
-@@ -219,8 +233,10 @@ int mgr_enum_processor_info(u32 processor_id,
- 	if (status)
- 		goto func_end;
- 
--	/* Get The Manager Object from the Registry */
--	if (cfg_get_object((u32 *) &pmgr_obj, REG_MGR_OBJECT)) {
-+	/* Get The Manager Object from the driver data */
-+	if (drv_datap && drv_datap->mgr_object) {
-+		pmgr_obj = drv_datap->mgr_object;
-+	} else {
- 		dev_dbg(bridge, "%s: Failed to get MGR Object\n", __func__);
- 		goto func_end;
- 	}
-diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
-index 0a7e30b..295845b 100644
---- a/drivers/staging/tidspbridge/rmgr/proc.c
-+++ b/drivers/staging/tidspbridge/rmgr/proc.c
-@@ -280,6 +280,7 @@ proc_attach(u32 processor_id,
- 	struct proc_object *p_proc_object = NULL;
- 	struct mgr_object *hmgr_obj = NULL;
- 	struct drv_object *hdrv_obj = NULL;
+ 			/* If succeeded store the handle in the MGR Object */
+-			status = cfg_set_object((u32) pmgr_obj, REG_MGR_OBJECT);
++			if (drv_datap) {
++				drv_datap->mgr_object = (void *)pmgr_obj;
++			} else {
++				status = -EPERM;
++				pr_err("%s: Failed to store MGR object\n",
++								__func__);
++			}
++
+ 			if (!status) {
+ 				*mgr_obj = pmgr_obj;
+ 			} else {
+@@ -94,6 +102,7 @@ int mgr_destroy(struct mgr_object *hmgr_obj)
+ {
+ 	int status = 0;
+ 	struct mgr_object *pmgr_obj = (struct mgr_object *)hmgr_obj;
 +	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 	u8 dev_type;
  
  	DBC_REQUIRE(refs > 0);
-@@ -291,9 +292,13 @@ proc_attach(u32 processor_id,
- 	}
+ 	DBC_REQUIRE(hmgr_obj);
+@@ -103,8 +112,13 @@ int mgr_destroy(struct mgr_object *hmgr_obj)
+ 		dcd_destroy_manager(hmgr_obj->hdcd_mgr);
  
- 	/* Get the Driver and Manager Object Handles */
--	status = cfg_get_object((u32 *) &hdrv_obj, REG_DRV_OBJECT);
--	if (!status)
--		status = cfg_get_object((u32 *) &hmgr_obj, REG_MGR_OBJECT);
-+	if (!drv_datap || !drv_datap->drv_object || !drv_datap->mgr_object) {
-+		status = -ENODATA;
-+		pr_err("%s: Failed to get object handles\n", __func__);
+ 	kfree(pmgr_obj);
+-	/* Update the Registry with NULL for MGR Object */
+-	(void)cfg_set_object(0, REG_MGR_OBJECT);
++	/* Update the driver data with NULL for MGR Object */
++	if (drv_datap) {
++		drv_datap->mgr_object = NULL;
 +	} else {
-+		hdrv_obj = drv_datap->drv_object;
-+		hmgr_obj = drv_datap->mgr_object;
++		status = -EPERM;
++		pr_err("%s: Failed to store MGR object\n", __func__);
 +	}
  
- 	if (!status) {
- 		/* Get the Device Object */
-@@ -440,6 +445,7 @@ int proc_auto_start(struct cfg_devnode *dev_node_obj,
- 	char sz_exec_file[MAXCMDLINELEN];
- 	char *argv[2];
- 	struct mgr_object *hmgr_obj = NULL;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 	u8 dev_type;
- 
- 	DBC_REQUIRE(refs > 0);
-@@ -447,9 +453,13 @@ int proc_auto_start(struct cfg_devnode *dev_node_obj,
- 	DBC_REQUIRE(hdev_obj != NULL);
- 
- 	/* Create a Dummy PROC Object */
--	status = cfg_get_object((u32 *) &hmgr_obj, REG_MGR_OBJECT);
--	if (status)
-+	if (!drv_datap || !drv_datap->mgr_object) {
-+		status = -ENODATA;
-+		pr_err("%s: Failed to retrieve the object handle\n", __func__);
- 		goto func_end;
-+	} else {
-+		hmgr_obj = drv_datap->mgr_object;
-+	}
- 
- 	p_proc_object = kzalloc(sizeof(struct proc_object), GFP_KERNEL);
- 	if (p_proc_object == NULL) {
+ 	return status;
+ }
 diff --git a/drivers/staging/tidspbridge/services/cfg.c b/drivers/staging/tidspbridge/services/cfg.c
-index 302eadd..94d8ebe 100644
+index 5517201..32bb934 100644
 --- a/drivers/staging/tidspbridge/services/cfg.c
 +++ b/drivers/staging/tidspbridge/services/cfg.c
-@@ -31,50 +31,6 @@
+@@ -30,32 +30,3 @@
+ #include <dspbridge/cfg.h>
  #include <dspbridge/drv.h>
  
- /*
-- *  ======== cfg_get_object ========
+-/*
+- *  ======== cfg_set_object ========
 - *  Purpose:
-- *      Retrieve the Object handle from the Registry
+- *      Store the Driver Object handle
 - */
--int cfg_get_object(u32 *value, u8 dw_type)
+-int cfg_set_object(u32 value, u8 dw_type)
 -{
 -	int status = -EINVAL;
 -	struct drv_data *drv_datap = dev_get_drvdata(bridge);
--
--	DBC_REQUIRE(value != NULL);
 -
 -	if (!drv_datap)
 -		return -EPERM;
 -
 -	switch (dw_type) {
 -	case (REG_DRV_OBJECT):
--		if (drv_datap->drv_object) {
--			*value = (u32)drv_datap->drv_object;
--			status = 0;
--		} else {
--			status = -ENODATA;
--		}
+-		drv_datap->drv_object = (void *)value;
+-		status = 0;
 -		break;
 -	case (REG_MGR_OBJECT):
--		if (drv_datap->mgr_object) {
--			*value = (u32)drv_datap->mgr_object;
--			status = 0;
--		} else {
--			status = -ENODATA;
--		}
+-		drv_datap->mgr_object = (void *)value;
+-		status = 0;
 -		break;
--
 -	default:
 -		break;
 -	}
--	if (status) {
--		*value = 0;
+-	if (status)
 -		pr_err("%s: Failed, status 0x%x\n", __func__, status);
--	}
--	DBC_ENSURE((!status && *value != 0) || (status && *value == 0));
 -	return status;
 -}
--
--/*
-  *  ======== cfg_set_dev_object ========
-  *  Purpose:
-  *      Store the Device Object handle and dev_node pointer for a given devnode.
 -- 
 1.7.0.3
+
