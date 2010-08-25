@@ -1,51 +1,50 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Wed, 25 Aug 2010 09:05:49 +0300
-Message-ID: <AANLkTi=4YYvyHdL=F_FYQ4e5v-+K3RMZFngdfuKPQ-4L@mail.gmail.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
-	<1277943660-4112-3-git-send-email-x0095840@ti.com>
-	<1277943660-4112-4-git-send-email-x0095840@ti.com>
-	<1277943660-4112-5-git-send-email-x0095840@ti.com>
-	<1277943660-4112-6-git-send-email-x0095840@ti.com>
-	<1277943660-4112-7-git-send-email-x0095840@ti.com>
-	<1277943660-4112-8-git-send-email-x0095840@ti.com>
-	<1277943660-4112-9-git-send-email-x0095840@ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
-	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
-	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
-	<AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3995@dlee06.ent.ti.com>
-	<AANLkTinjMujus-28DcLzZ+16GAGpLohwhPhuTi5uKhB8@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
-	<AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
+From: "Henk Geraads" <linux@hf-electronics.com>
+Subject: gpmc_cs_request behaviour
+Date: Wed, 25 Aug 2010 09:05:52 +0200
+Message-ID: <NGBBLNEOGLJIIJKLFLPFOEPHFCAA.linux@hf-electronics.com>
+References: <NGBBLNEOGLJIIJKLFLPFOEECFCAA.linux@hf-electronics.com>
+Reply-To: <linux@hf-electronics.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from relay56.tele2.vuurwerk.nl ([62.250.3.56]:51555 "EHLO
+	relay.versatel.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752129Ab0HYHGB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 03:06:01 -0400
+Received: from [87.213.192.4] (helo=hf-electronics.com)
+	by relay.versatel.net with smtp (Exim 4.69)
+	(envelope-from <linux@hf-electronics.com>)
+	id 1OoA3a-0006n9-0W
+	for linux-omap@vger.kernel.org; Wed, 25 Aug 2010 09:05:58 +0200
+In-Reply-To: <NGBBLNEOGLJIIJKLFLPFOEECFCAA.linux@hf-electronics.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Jos Aerts <jos.aerts@hf-electronics.com>
 
-On Wed, Aug 25, 2010 at 12:55 AM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
->> However, from what I can see iovmm can be used instead of dmm
->> even if the switch to iommu is not yet there.
->
-> Iovmm have a list of memory used (reserved, that is what dmm module
-> does) and also maps the buffer, So we can not use iovmm without removing
-> The mapping which is done inside dspbridge because it will conflic with
-> The mapping doing inside iovmm module. So that means for using iovmm, the
-> Mapping in dspbridge had to be removed in order to work properly.
+Hi,
 
-Or the whole iovmm.c can be copied and just remove the mapping.
+I am new on kernel module programming for a OMAP2. I want to access a external device through nCS3 of an OMAP3530. I expect that the function "gpmc_cs_request" enables you the access to that memoryregion and that the variable "cs_mem_base" is set to the memory starting point of the requested nCSx.
 
--- 
-Felipe Contreras
+But in my case the variable has the value of the requested memory size (SZ_16M).
+
+What do I wrong?
+
+Henk 
+
+
+snipped of the code:
+
+  if (register_chrdev(MYDEV_MAJOR,"Device",&mydev_fops))
+  {
+    printk("\rFiFo: Failed to get major %d\n\r", MYDEV_MAJOR);
+    return -EIO;
+  }
+
+  if (gpmc_cs_request(3, SZ_16M, &cs_mem_base) < 0) {
+	printk("CM-T35: Failed request CS3 for GPMC mem for Device\n");
+	return -ENODEV;
+  }
+  printk("\rMemory Address: %lx\n\r",cs_mem_base);
+
