@@ -1,115 +1,82 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 02/20] Move DSS driver register from board to mach_omap2
-Date: Wed, 25 Aug 2010 11:31:16 +0300
-Message-ID: <1282725076.9299.94.camel@tubuntu.research.nokia.com>
-References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
-	 <1282579089-10487-2-git-send-email-svadivu@ti.com>
-	 <1282579089-10487-3-git-send-email-svadivu@ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 2/5] OMAP2xxx: hwmod: add I2C hwmods for OMAP2420, 2430
+Date: Wed, 25 Aug 2010 14:12:12 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003B39A3EB9@dbde02.ent.ti.com>
+References: <1281364586-26323-1-git-send-email-rnayak@ti.com>
+	<1281364586-26323-2-git-send-email-rnayak@ti.com>
+ <87mxsdvupw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:27178 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751207Ab0HYIbW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 04:31:22 -0400
-In-Reply-To: <1282579089-10487-3-git-send-email-svadivu@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:39752 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752143Ab0HYImS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 04:42:18 -0400
+In-Reply-To: <87mxsdvupw.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@ti.com" <khilman@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-On Mon, 2010-08-23 at 17:57 +0200, ext Guruswamy Senthilvadivu wrote:
-> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+
+
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Tuesday, August 24, 2010 3:49 AM
+> To: Nayak, Rajendra
+> Cc: linux-omap@vger.kernel.org; Paul Walmsley
+> Subject: Re: [PATCH 2/5] OMAP2xxx: hwmod: add I2C hwmods for OMAP2420, 2430
 > 
-> Move the DSS driver register from board file to devices.c.
-> Regulator initialisation done with driver name instead of the device name.
+> Rajendra Nayak <rnayak@ti.com> writes:
 > 
-> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-> ---
+> > From: Paul Walmsley <paul@pwsan.com>
+> >
+> > Add hwmod structures for I2C controllers on OMAP2420/2430.
+> >
+> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  134
+> ++++++++++++++++++++++++++-
+> >  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  140
+> +++++++++++++++++++++++++++-
+> >  2 files changed, 270 insertions(+), 4 deletions(-)
+> >
+> 
+> [...]
+> 
+> > +static struct omap_hwmod omap2420_i2c1_hwmod = {
+> > +	.name		= "i2c1",
+> > +	.mpu_irqs	= i2c1_mpu_irqs,
+> > +	.mpu_irqs_cnt	= ARRAY_SIZE(i2c1_mpu_irqs),
+> > +	.sdma_chs	= i2c1_sdma_chs,
+> > +	.sdma_chs_cnt	= ARRAY_SIZE(i2c1_sdma_chs),
+> > +	.main_clk	= "i2c1_fck",
+> > +	.prcm		= {
+> > +		.omap2 = {
+> > +			.prcm_reg_id = 1,
+> > +			.module_bit = OMAP2420_EN_I2C1_SHIFT,
+> > +		},
+> > +	},
+> 
+> This needs to be validated on OMAP2.
+> 
+> I think the enable will fail without the .idlest* fields filled out.
 
->  
->  /*---------------------------------------------------------------------------*/
-> +#ifdef CONFIG_OMAP2_DSS
-> +
-> +static struct platform_device omap_display_device = {
-> +	.name          = "omapdss",
-> +	.id            = -1,
-> +	.dev            = {
-> +		.platform_data = NULL,
-> +	},
-> +};
+Hi Kevin,
 
-Could we call these "dss" instead of "display". Display sounds that it
-could include panel.
+I'll make sure I boot test on a N800 before I post the next version
+of this series.
 
-> +
-> +void __init omap_display_init(struct omap_dss_board_info
-> +					*board_data)
-> +{
-> +
-> +	omap_display_device.dev.platform_data = board_data;
-> +
-> +	if (platform_device_register(&omap_display_device) < 0)
-> +		printk(KERN_ERR "Unable to register OMAP-Display device\n");
-> +
-> +
-> +	return ;
-> +}
-> +
-> +#else
-> +void __init omap_display_init(struct omap_dss_board_info *board_data)
-> +{
-> +}
-> +#endif
-> +
-> +
-> +/*---------------------------------------------------------------------------*/
->  
->  #if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
->  	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
-> diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-> index 1c529ce..f5da4ae 100644
-> --- a/arch/arm/plat-omap/include/plat/display.h
-> +++ b/arch/arm/plat-omap/include/plat/display.h
-> @@ -23,6 +23,7 @@
->  #include <linux/list.h>
->  #include <linux/kobject.h>
->  #include <linux/device.h>
-> +#include <linux/platform_device.h>
->  #include <asm/atomic.h>
->  
->  #define DISPC_IRQ_FRAMEDONE		(1 << 0)
-> @@ -251,6 +252,9 @@ struct omap_dss_board_info {
->  	struct omap_dss_device *default_device;
->  };
->  
-> +/* Init with the board info */
-> +extern void omap_display_init(struct omap_dss_board_info *board_data);
-> +
->  struct omap_video_timings {
->  	/* Unit: pixels */
->  	u16 x_res;
-> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-> index b3a498f..bcbb077 100644
-> --- a/drivers/video/omap2/dss/core.c
-> +++ b/drivers/video/omap2/dss/core.c
-> @@ -52,6 +52,7 @@ static struct {
->  	struct regulator *vdds_dsi_reg;
->  	struct regulator *vdds_sdi_reg;
->  	struct regulator *vdda_dac_reg;
-> +	struct omap_dss_board_info *pdata;
->  } core;
->  
->  static void dss_clk_enable_all_no_ctx(void);
-> @@ -501,6 +502,7 @@ static int omap_dss_probe(struct platform_device *pdev)
->  	int i;
->  
->  	core.pdev = pdev;
-> +	core.pdata = pdev->dev.platform_data;
-
-Why is pdata stored? It is available through pdev anyway.
-
- Tomi
+Thanks,
+Rajendra
 
 
+> 
+> Kevin
+> 
+> 
+> > +
