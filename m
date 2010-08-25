@@ -1,151 +1,121 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 7/8 v2] OMAP: Hwmod api changes
-Date: Wed, 25 Aug 2010 16:42:05 -0700
-Message-ID: <877hje8dki.fsf@deeprootsystems.com>
-References: <1282140652-29837-1-git-send-email-hemahk@ti.com>
+Subject: Re: [PATCH 0/8 v2]usb: musb: hwmod and runtime pm support for musb
+Date: Wed, 25 Aug 2010 16:59:11 -0700
+Message-ID: <877hje6y7k.fsf@deeprootsystems.com>
+References: <1282140177-28089-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:33824 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205Ab0HYXmI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 19:42:08 -0400
-In-Reply-To: <1282140652-29837-1-git-send-email-hemahk@ti.com> (Hema HK's
-	message of "Wed, 18 Aug 2010 19:40:52 +0530")
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:35577 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922Ab0HYX7Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 19:59:16 -0400
+In-Reply-To: <1282140177-28089-1-git-send-email-hemahk@ti.com> (Hema HK's
+	message of "Wed, 18 Aug 2010 19:32:57 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hema HK <hemahk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, "Basak, Partha" <p-basak2@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
 Hema HK <hemahk@ti.com> writes:
 
-> OMAP USBOTG modules has a requirement to set the auto idle bit only after
-> setting smart idle bit. Modified the _sys_enable api to set the smart idle
-> first and then the autoidle bit. Setting this will not have any impact on the
-> other modules.
->
-> Added 2 wrapper APIs in the omap device layer for wakeup enable/disable
-> and sidle/mstandby settings.
-
-This should be a separate patch, with an description of who the users of
-this API would be and why.
-
-> Signed-off-by: Hema HK <hemahk@ti.com>
-> Signed-off-by: Basak, Partha <p-basak2@ti.com>
->
 > Cc: Felipe Balbi <felipe.balbi@nokia.com>
 > Cc: Tony Lindgren <tony@atomide.com>
 > Cc: Kevin Hilman <khilman@deeprootsystems.com>
 > Cc: Cousson, Benoit <b-cousson@ti.com>
 > Cc: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c              |   18 +++++++---
->  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
->  arch/arm/plat-omap/omap_device.c              |   43 +++++++++++++++++++++++++
->  3 files changed, 57 insertions(+), 6 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 9bd99ad..55507a6 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -654,12 +654,6 @@ static void _sysc_enable(struct omap_hwmod *oh)
->  		_set_master_standbymode(oh, idlemode, &v);
->  	}
->  
-> -	if (sf & SYSC_HAS_AUTOIDLE) {
-> -		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
-> -			0 : 1;
-> -		_set_module_autoidle(oh, idlemode, &v);
-> -	}
-> -
->  	/* XXX OCP ENAWAKEUP bit? */
->  
->  	/*
-> @@ -672,6 +666,18 @@ static void _sysc_enable(struct omap_hwmod *oh)
->  		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
->  
->  	_write_sysconfig(v, oh);
-> +
-> +	/* Set the auto idle bit only after setting the smartidle bit
-> +	 * as this is requirement for some modules like USBOTG
-> +	 * setting this will not have any impact on the other modues.
-> +	 */
+> This patch series makes OMAP2PLUS musb Module implemented
+> in HWMOD FW way. It also implements musb driver to
+> use the runtime pm apis.
+>
+> PATCH[1/8 v2] and [PATCH 2/8 v2] are the pre-requisites for the hwmod
+> support for the usb module.
+>
+> PATCH[6/8 v2] is core-offmode usb fix patch for the OMAP3
+> in idle path.
+>
+> As per the OMAP usbotg specification[1] musb sysconfig register
+> has to be set to force idle and force standby when not used
+> and set smart idle/standby during operation.otherwise core-off
+> will be prevented by musb.
+>
+> [1]: http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
+>
+> This patch series is created on "origin/pm-wip/hwmods-omap4".
+>
+> This patch series is tested on OMAP3630 zoom3 and OMAP4430 SDP.
+> On OMAP3630 zoom3, off mode is tested on "origin/pm" branch using 
+> omap3_pm_defconfig.
 
-Please fix multi-line comment style.  (search for multi-line in
-Documentation/CodingStyle)
+This IP is on OMAP2 as well, but I don't see any hwmods for OMAP2.
+
+Please also add hwmods for OMAP2 and test as well.
+
+Thanks,
 
 Kevin
 
-> +	if (sf & SYSC_HAS_AUTOIDLE) {
-> +		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
-> +			0 : 1;
-> +		_set_module_autoidle(oh, idlemode, &v);
-> +	}
-> +	_write_sysconfig(v, oh);
->  }
->  
->  /**
-> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-> index 25cd9ac..c3eb07e 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_device.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
-> @@ -116,6 +116,8 @@ int omap_device_enable_hwmods(struct omap_device *od);
->  int omap_device_disable_clocks(struct omap_device *od);
->  int omap_device_enable_clocks(struct omap_device *od);
->  
-> +int omap_device_enable_wakeup(struct platform_device *pdev);
-> +int omap_device_disable_wakeup(struct platform_device *pdev);
->  
->  /*
->   * Entries should be kept in latency order ascending
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index d2b1609..10182b1 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -757,3 +757,46 @@ int omap_device_enable_clocks(struct omap_device *od)
->  	/* XXX pass along return value here? */
->  	return 0;
->  }
-> +
-> +/**
-> + * omap_device_enable_wakeup - Enable the wakeup bit
-> + * @od: struct omap_device *od
-> + *
-> + * Enable the wakup bit for omap_hwmods associated
-> + * with the omap_device.  Returns 0.
-> + */
-> +int omap_device_enable_wakeup(struct platform_device *pdev)
-> +{
-> +	struct omap_hwmod *oh;
-> +	struct omap_device *od = _find_by_pdev(pdev);
-> +	int i;
-> +
-> +	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
-> +		omap_hwmod_enable_wakeup(oh);
-> +
-> +	/* XXX pass along return value here? */
-> +	return 0;
-> +}
-> +
-> +/**
-> + * omap_device_disable_wakeup -Disable the wakeup bit
-> + * @od: struct omap_device *od
-> + *
-> + * Disable the wakup bit for omap_hwmods associated
-> + * with the omap_device.  Returns 0.
-> + */
-> +
-> +
-> +int omap_device_disable_wakeup(struct platform_device *pdev)
-> +{
-> +	struct omap_hwmod *oh;
-> +	struct omap_device *od = _find_by_pdev(pdev);
-> +	int i;
-> +
-> +	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
-> +		omap_hwmod_disable_wakeup(oh);
-> +
-> +	/* XXX pass along return value here? */
-> +	return 0;
-> +}
-> +
+
+>
+> Version History:
+> ---------------
+> Vesrion v2:
+>
+> Fixed review comments.
+> Removed the omap_hwmod.h inclusion from musb.h file which was 
+> breaking the non-omap platform build.
+> Using the runtime pm apis in the idle path(interrupts disabled).
+> Added the omap4 hwmod data base.
+>
+> Version v1:
+> initial version of the patch series.
+>
+> Some of the links for v1
+> ------------------------
+>
+> http://www.spinics.net/lists/linux-usb/msg34570.html
+> http://www.spinics.net/lists/linux-omap/msg34568.html
+> http://www.spinics.net/lists/linux-usb/msg34544.html
+> http://www.spinics.net/lists/linux-usb/msg34540.html
+> http://www.spinics.net/lists/linux-usb/msg34589.html
+> http://www.spinics.net/lists/linux-usb/msg34554.html
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32973.html
+>
+>
+> Cousson, Benoit (1):
+>   usb: musb: HWMOD database structures addition for OMAP4
+>
+> Hema HK (7):
+>   usb: musb: Adding names for IRQs in resource structure
+>   usb: musb: Remove board_data parameter from musb_platform_init()
+>   usb: musb: HWMOD database structures addition for OMAP3
+>   usb: musb: Using omap_device_build for musb device registration
+>   usb: musb: Offmode fix for idle path
+>   OMAP: Hwmod api changes
+>   usb : musb: Using runtime pm apis for musb.
+>
+>  arch/arm/mach-davinci/usb.c                   |    2 +
+>  arch/arm/mach-omap2/omap_hwmod.c              |   18 ++-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  100 +++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   92 ++++++++++++
+>  arch/arm/mach-omap2/pm34xx.c                  |    9 ++
+>  arch/arm/mach-omap2/usb-musb.c                |  188 ++++++++++++++++++++-----
+>  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+>  arch/arm/plat-omap/include/plat/usb.h         |    9 ++
+>  arch/arm/plat-omap/omap_device.c              |   43 ++++++
+>  arch/blackfin/mach-bf527/boards/cm_bf527.c    |    2 +
+>  arch/blackfin/mach-bf527/boards/ezbrd.c       |    2 +
+>  arch/blackfin/mach-bf527/boards/ezkit.c       |    2 +
+>  arch/blackfin/mach-bf548/boards/cm_bf548.c    |    2 +
+>  arch/blackfin/mach-bf548/boards/ezkit.c       |    2 +
+>  drivers/usb/musb/blackfin.c                   |    2 +-
+>  drivers/usb/musb/cppi_dma.c                   |    2 +-
+>  drivers/usb/musb/davinci.c                    |    2 +-
+>  drivers/usb/musb/musb_core.c                  |   26 +++-
+>  drivers/usb/musb/musb_core.h                  |    3 +-
+>  drivers/usb/musb/musbhsdma.c                  |    2 +-
+>  drivers/usb/musb/omap2430.c                   |   87 ++++++------
+>  drivers/usb/musb/tusb6010.c                   |    2 +-
+>  include/linux/usb/musb.h                      |   20 +++
+>  23 files changed, 522 insertions(+), 97 deletions(-)
