@@ -1,204 +1,436 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 09/11] staging: tidspbridge: Remove cfg_set_object()
-Date: Wed, 25 Aug 2010 17:09:02 -0500
-Message-ID: <1282774144-11628-10-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 10/11] staging: tidspbridge: Remove cfg.c and cfg.h files
+Date: Wed, 25 Aug 2010 17:09:03 -0500
+Message-ID: <1282774144-11628-11-git-send-email-ivan.gomez@ti.com>
 References: <1282774144-11628-1-git-send-email-ivan.gomez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60926 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59099 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752151Ab0HYWRJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Aug 2010 18:17:09 -0400
+	id S1752802Ab0HYWRS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Aug 2010 18:17:18 -0400
 In-Reply-To: <1282774144-11628-1-git-send-email-ivan.gomez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@suse.de
 Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, omar.ramirez@ti.com, ohad@wizery.com, rene.sapiens@ti.com, nm@ti.com, ernesto@ti.com, x0095078@ti.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
 
-As the services directory is going to be removed, the cfg_set_object
-function has also to be removed.
-
-Since the driver object handle is retrieved from the drv_data structure,
-then the word "Registry" is replaced by "driver data" in the comments.
+So far, the cfg.c file is empty, and the function prototypes in cfg.h
+are not used in any place. So they can be removed.
 
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- .../staging/tidspbridge/include/dspbridge/cfg.h    |   17 -----------
- drivers/staging/tidspbridge/rmgr/drv.c             |   24 +++++++++++++---
- drivers/staging/tidspbridge/rmgr/mgr.c             |   20 +++++++++++--
- drivers/staging/tidspbridge/services/cfg.c         |   29 --------------------
- 4 files changed, 36 insertions(+), 54 deletions(-)
+ drivers/staging/tidspbridge/Makefile               |    3 +-
+ drivers/staging/tidspbridge/core/chnl_sm.c         |    1 -
+ drivers/staging/tidspbridge/core/dsp-clock.c       |    1 -
+ drivers/staging/tidspbridge/core/io_sm.c           |    1 -
+ drivers/staging/tidspbridge/core/tiomap3430.c      |    1 -
+ drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |    4 +-
+ drivers/staging/tidspbridge/core/tiomap_io.c       |    1 -
+ .../staging/tidspbridge/include/dspbridge/cfg.h    |   81 --------------------
+ drivers/staging/tidspbridge/pmgr/chnl.c            |    1 -
+ drivers/staging/tidspbridge/pmgr/cmm.c             |    1 -
+ drivers/staging/tidspbridge/pmgr/dev.c             |    1 -
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |    1 -
+ drivers/staging/tidspbridge/pmgr/io.c              |    3 -
+ drivers/staging/tidspbridge/rmgr/drv.c             |    1 -
+ drivers/staging/tidspbridge/rmgr/drv_interface.c   |    1 -
+ drivers/staging/tidspbridge/rmgr/dspdrv.c          |    3 -
+ drivers/staging/tidspbridge/rmgr/mgr.c             |    4 +-
+ drivers/staging/tidspbridge/rmgr/node.c            |    1 -
+ drivers/staging/tidspbridge/rmgr/proc.c            |    1 -
+ drivers/staging/tidspbridge/rmgr/strm.c            |    1 -
+ drivers/staging/tidspbridge/services/cfg.c         |   32 --------
+ drivers/staging/tidspbridge/services/services.c    |    1 -
+ 22 files changed, 7 insertions(+), 138 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/cfg.h
+ delete mode 100644 drivers/staging/tidspbridge/services/cfg.c
 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfg.h b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
-index e1ae1bc..238215b 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/cfg.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
-@@ -78,21 +78,4 @@ extern void cfg_get_perf_value(bool *enable_perf);
- extern int cfg_get_zl_file(struct cfg_devnode *dev_node_obj,
- 				  u32 buf_size, char *str_zl_file_name);
+diff --git a/drivers/staging/tidspbridge/Makefile b/drivers/staging/tidspbridge/Makefile
+index 8a13982..8f0ca88 100644
+--- a/drivers/staging/tidspbridge/Makefile
++++ b/drivers/staging/tidspbridge/Makefile
+@@ -1,8 +1,7 @@
+ obj-$(CONFIG_TIDSPBRIDGE)	+= bridgedriver.o
  
+ libgen = gen/gb.o gen/gs.o gen/gh.o gen/uuidutil.o
+-libservices = services/cfg.o \
+-		services/services.o
++libservices = services/services.o
+ libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
+ 		core/tiomap3430_pwr.o core/tiomap_io.o \
+ 		core/ue_deh.o core/wdt.o core/dsp-clock.o core/sync.o
+diff --git a/drivers/staging/tidspbridge/core/chnl_sm.c b/drivers/staging/tidspbridge/core/chnl_sm.c
+index bee2b23..662a5b5 100644
+--- a/drivers/staging/tidspbridge/core/chnl_sm.c
++++ b/drivers/staging/tidspbridge/core/chnl_sm.c
+@@ -54,7 +54,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/sync.h>
+ 
+ /*  ----------------------------------- Bridge Driver */
+diff --git a/drivers/staging/tidspbridge/core/dsp-clock.c b/drivers/staging/tidspbridge/core/dsp-clock.c
+index 5b1a0c5..46d17c7 100644
+--- a/drivers/staging/tidspbridge/core/dsp-clock.c
++++ b/drivers/staging/tidspbridge/core/dsp-clock.c
+@@ -25,7 +25,6 @@
+ 
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/dbdefs.h>
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/drv.h>
+ #include <dspbridge/dev.h>
+ #include "_tiomap.h"
+diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
+index 02c660d..5718645 100644
+--- a/drivers/staging/tidspbridge/core/io_sm.c
++++ b/drivers/staging/tidspbridge/core/io_sm.c
+@@ -36,7 +36,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /* Services Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/sync.h>
+ 
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index f914829..f1e59e8 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -30,7 +30,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/drv.h>
+ #include <dspbridge/sync.h>
+ 
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
+index b789f8f..b9d0753 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
+@@ -16,9 +16,11 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
++/*  ----------------------------------- Host OS */
++#include <dspbridge/host_os.h>
++
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/dbdefs.h>
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/drv.h>
+ #include <dspbridge/io_sm.h>
+ 
+diff --git a/drivers/staging/tidspbridge/core/tiomap_io.c b/drivers/staging/tidspbridge/core/tiomap_io.c
+index 190c028..e78a7cd 100644
+--- a/drivers/staging/tidspbridge/core/tiomap_io.c
++++ b/drivers/staging/tidspbridge/core/tiomap_io.c
+@@ -27,7 +27,6 @@
+ #include <dspbridge/drv.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/wdt.h>
+ 
+ /*  ----------------------------------- specific to this file */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfg.h b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
+deleted file mode 100644
+index 238215b..0000000
+--- a/drivers/staging/tidspbridge/include/dspbridge/cfg.h
++++ /dev/null
+@@ -1,81 +0,0 @@
 -/*
-- *  ======== CFG_SetDrvObject ========
+- * cfg.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * PM Configuration module.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef CFG_
+-#define CFG_
+-#include <dspbridge/host_os.h>
+-#include <dspbridge/cfgdefs.h>
+-
+-/*
+- *  ======== cfg_get_cd_version ========
 - *  Purpose:
-- *      Store the Driver Object handle.
+- *      Retrieves the version of the PM Class Driver.
 - *  Parameters:
-- *      value:          Arbitrary value to store.
-- *      dw_type          Type of Object to Store
+- *      version:    Ptr to u32 to contain version number upon return.
 - *  Returns:
-- *      0:        Success.
-- *      -EPERM:      Internal Error.
+- *      0:    Success.  version contains Class Driver version in
+- *                  the form: 0xAABBCCDD where AABB is Major version and
+- *                  CCDD is Minor.
+- *      -EPERM:  Failure.
 - *  Requires:
 - *      CFG initialized.
 - *  Ensures:
-- *      0:        The Private u32 was successfully set.
+- *      0:    Success.
+- *      else:       *version is NULL.
 - */
--extern int cfg_set_object(u32 value, u8 dw_type);
+-extern int cfg_get_cd_version(u32 *version);
 -
- #endif /* CFG_ */
+-/*
+- *  ======== cfg_get_perf_value ========
+- *  Purpose:
+- *      Retrieve a flag indicating whether PERF should log statistics for the
+- *      PM class driver.
+- *  Parameters:
+- *      enable_perf:    Location to store flag.  0 indicates the key was
+- *                      not found, or had a zero value.  A nonzero value
+- *                      means the key was found and had a nonzero value.
+- *  Returns:
+- *  Requires:
+- *      enable_perf != NULL;
+- *  Ensures:
+- */
+-extern void cfg_get_perf_value(bool *enable_perf);
+-
+-/*
+- *  ======== cfg_get_zl_file ========
+- *  Purpose:
+- *      Retreive the ZLFile, if any, for this board.
+- *  Parameters:
+- *      dev_node_obj: Handle to the dev_node who's driver we are querying.
+- *      buf_size:       Size of buffer.
+- *      str_zl_file_name: Ptr to character buf to hold ZLFileName.
+- *  Returns:
+- *      0:                Success.
+- *      -EFAULT: str_zl_file_name is invalid or dev_node_obj is invalid.
+- *      -ENODATA: couldn't find the ZLFileName.
+- *  Requires:
+- *      CFG initialized.
+- *  Ensures:
+- *      0:    Not more than buf_size bytes were copied into
+- *                  str_zl_file_name, and *str_zl_file_name contains ZLFileName
+- *                  for this devnode.
+- */
+-extern int cfg_get_zl_file(struct cfg_devnode *dev_node_obj,
+-				  u32 buf_size, char *str_zl_file_name);
+-
+-#endif /* CFG_ */
+diff --git a/drivers/staging/tidspbridge/pmgr/chnl.c b/drivers/staging/tidspbridge/pmgr/chnl.c
+index 90317b5..78b0d0f 100644
+--- a/drivers/staging/tidspbridge/pmgr/chnl.c
++++ b/drivers/staging/tidspbridge/pmgr/chnl.c
+@@ -28,7 +28,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/sync.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+diff --git a/drivers/staging/tidspbridge/pmgr/cmm.c b/drivers/staging/tidspbridge/pmgr/cmm.c
+index ce3dc88..e3f77bd 100644
+--- a/drivers/staging/tidspbridge/pmgr/cmm.c
++++ b/drivers/staging/tidspbridge/pmgr/cmm.c
+@@ -38,7 +38,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/list.h>
+ #include <dspbridge/sync.h>
+ #include <dspbridge/utildefs.h>
+diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
+index b0bcbd9..132e960 100644
+--- a/drivers/staging/tidspbridge/pmgr/dev.c
++++ b/drivers/staging/tidspbridge/pmgr/dev.c
+@@ -27,7 +27,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/ldr.h>
+ #include <dspbridge/list.h>
+ 
+diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/staging/tidspbridge/pmgr/dspapi.c
+index d9bb3ea..10a1444 100644
+--- a/drivers/staging/tidspbridge/pmgr/dspapi.c
++++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
+@@ -28,7 +28,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/services.h>
+ 
+diff --git a/drivers/staging/tidspbridge/pmgr/io.c b/drivers/staging/tidspbridge/pmgr/io.c
+index 7970fe5..20cbb9f 100644
+--- a/drivers/staging/tidspbridge/pmgr/io.c
++++ b/drivers/staging/tidspbridge/pmgr/io.c
+@@ -26,9 +26,6 @@
+ /*  ----------------------------------- Trace & Debug */
+ #include <dspbridge/dbc.h>
+ 
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+-
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/dev.h>
+ 
 diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
-index fc1f49b..519053f 100644
+index 519053f..81b1b90 100644
 --- a/drivers/staging/tidspbridge/rmgr/drv.c
 +++ b/drivers/staging/tidspbridge/rmgr/drv.c
-@@ -309,6 +309,7 @@ int drv_create(struct drv_object **drv_obj)
- {
- 	int status = 0;
- 	struct drv_object *pdrv_object = NULL;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+@@ -27,7 +27,6 @@
+ #include <dspbridge/dbc.h>
  
- 	DBC_REQUIRE(drv_obj != NULL);
- 	DBC_REQUIRE(refs > 0);
-@@ -335,9 +336,16 @@ int drv_create(struct drv_object **drv_obj)
- 	} else {
- 		status = -ENOMEM;
- 	}
--	/* Store the DRV Object in the Registry */
--	if (!status)
--		status = cfg_set_object((u32) pdrv_object, REG_DRV_OBJECT);
-+	/* Store the DRV Object in the driver data */
-+	if (!status) {
-+		if (drv_datap) {
-+			drv_datap->drv_object = (void *)pdrv_object;
-+		} else {
-+			status = -EPERM;
-+			pr_err("%s: Failed to store DRV object\n", __func__);
-+		}
-+	}
-+
- 	if (!status) {
- 		*drv_obj = pdrv_object;
- 	} else {
-@@ -374,6 +382,7 @@ int drv_destroy(struct drv_object *driver_obj)
- {
- 	int status = 0;
- 	struct drv_object *pdrv_object = (struct drv_object *)driver_obj;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/list.h>
  
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(pdrv_object);
-@@ -386,8 +395,13 @@ int drv_destroy(struct drv_object *driver_obj)
- 	kfree(pdrv_object->dev_list);
- 	kfree(pdrv_object->dev_node_string);
- 	kfree(pdrv_object);
--	/* Update the DRV Object in Registry to be 0 */
--	(void)cfg_set_object(0, REG_DRV_OBJECT);
-+	/* Update the DRV Object in the driver data */
-+	if (drv_datap) {
-+		drv_datap->drv_object = NULL;
-+	} else {
-+		status = -EPERM;
-+		pr_err("%s: Failed to store DRV object\n", __func__);
-+	}
+ /*  ----------------------------------- This */
+diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+index 3d20454..ae28b96 100644
+--- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
++++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+@@ -54,7 +54,6 @@
+ /*  ----------------------------------- This */
+ #include <drv_interface.h>
  
- 	return status;
- }
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/resourcecleanup.h>
+ #include <dspbridge/chnl.h>
+ #include <dspbridge/proc.h>
+diff --git a/drivers/staging/tidspbridge/rmgr/dspdrv.c b/drivers/staging/tidspbridge/rmgr/dspdrv.c
+index 2ad291d..7a6fc73 100644
+--- a/drivers/staging/tidspbridge/rmgr/dspdrv.c
++++ b/drivers/staging/tidspbridge/rmgr/dspdrv.c
+@@ -26,9 +26,6 @@
+ /*  ----------------------------------- Trace & Debug */
+ #include <dspbridge/dbc.h>
+ 
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+-
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/drv.h>
+ #include <dspbridge/dev.h>
 diff --git a/drivers/staging/tidspbridge/rmgr/mgr.c b/drivers/staging/tidspbridge/rmgr/mgr.c
-index c6131c4..48702bb 100644
+index 48702bb..0ea89a1 100644
 --- a/drivers/staging/tidspbridge/rmgr/mgr.c
 +++ b/drivers/staging/tidspbridge/rmgr/mgr.c
-@@ -58,6 +58,7 @@ int mgr_create(struct mgr_object **mgr_obj,
- {
- 	int status = 0;
- 	struct mgr_object *pmgr_obj = NULL;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+@@ -20,6 +20,9 @@
  
- 	DBC_REQUIRE(mgr_obj != NULL);
- 	DBC_REQUIRE(refs > 0);
-@@ -67,7 +68,14 @@ int mgr_create(struct mgr_object **mgr_obj,
- 		status = dcd_create_manager(ZLDLLNAME, &pmgr_obj->hdcd_mgr);
- 		if (!status) {
- 			/* If succeeded store the handle in the MGR Object */
--			status = cfg_set_object((u32) pmgr_obj, REG_MGR_OBJECT);
-+			if (drv_datap) {
-+				drv_datap->mgr_object = (void *)pmgr_obj;
-+			} else {
-+				status = -EPERM;
-+				pr_err("%s: Failed to store MGR object\n",
-+								__func__);
-+			}
+ #include <linux/types.h>
+ 
++/*  ----------------------------------- Host OS */
++#include <dspbridge/host_os.h>
 +
- 			if (!status) {
- 				*mgr_obj = pmgr_obj;
- 			} else {
-@@ -94,6 +102,7 @@ int mgr_destroy(struct mgr_object *hmgr_obj)
- {
- 	int status = 0;
- 	struct mgr_object *pmgr_obj = (struct mgr_object *)hmgr_obj;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/dbdefs.h>
  
- 	DBC_REQUIRE(refs > 0);
- 	DBC_REQUIRE(hmgr_obj);
-@@ -103,8 +112,13 @@ int mgr_destroy(struct mgr_object *hmgr_obj)
- 		dcd_destroy_manager(hmgr_obj->hdcd_mgr);
+@@ -27,7 +30,6 @@
+ #include <dspbridge/dbc.h>
  
- 	kfree(pmgr_obj);
--	/* Update the Registry with NULL for MGR Object */
--	(void)cfg_set_object(0, REG_MGR_OBJECT);
-+	/* Update the driver data with NULL for MGR Object */
-+	if (drv_datap) {
-+		drv_datap->mgr_object = NULL;
-+	} else {
-+		status = -EPERM;
-+		pr_err("%s: Failed to store MGR object\n", __func__);
-+	}
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/sync.h>
  
- 	return status;
- }
+ /*  ----------------------------------- Others */
+diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
+index 6e9441e..84882dc 100644
+--- a/drivers/staging/tidspbridge/rmgr/node.c
++++ b/drivers/staging/tidspbridge/rmgr/node.c
+@@ -27,7 +27,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/list.h>
+ #include <dspbridge/memdefs.h>
+ #include <dspbridge/proc.h>
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
+index 295845b..b47d7aa 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -29,7 +29,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/list.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/sync.h>
+diff --git a/drivers/staging/tidspbridge/rmgr/strm.c b/drivers/staging/tidspbridge/rmgr/strm.c
+index ef2ec94..f4986b7 100644
+--- a/drivers/staging/tidspbridge/rmgr/strm.c
++++ b/drivers/staging/tidspbridge/rmgr/strm.c
+@@ -42,7 +42,6 @@
+ /*  ----------------------------------- This */
+ #include <dspbridge/strm.h>
+ 
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/resourcecleanup.h>
+ 
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
 diff --git a/drivers/staging/tidspbridge/services/cfg.c b/drivers/staging/tidspbridge/services/cfg.c
-index 5517201..32bb934 100644
+deleted file mode 100644
+index 32bb934..0000000
 --- a/drivers/staging/tidspbridge/services/cfg.c
-+++ b/drivers/staging/tidspbridge/services/cfg.c
-@@ -30,32 +30,3 @@
- #include <dspbridge/cfg.h>
- #include <dspbridge/drv.h>
- 
++++ /dev/null
+@@ -1,32 +0,0 @@
 -/*
-- *  ======== cfg_set_object ========
-- *  Purpose:
-- *      Store the Driver Object handle
+- * cfg.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Implementation of platform specific config services.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 - */
--int cfg_set_object(u32 value, u8 dw_type)
--{
--	int status = -EINVAL;
--	struct drv_data *drv_datap = dev_get_drvdata(bridge);
 -
--	if (!drv_datap)
--		return -EPERM;
+-#include <linux/types.h>
 -
--	switch (dw_type) {
--	case (REG_DRV_OBJECT):
--		drv_datap->drv_object = (void *)value;
--		status = 0;
--		break;
--	case (REG_MGR_OBJECT):
--		drv_datap->mgr_object = (void *)value;
--		status = 0;
--		break;
--	default:
--		break;
--	}
--	if (status)
--		pr_err("%s: Failed, status 0x%x\n", __func__, status);
--	return status;
--}
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/dbdefs.h>
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-
+-/*  ----------------------------------- OS Adaptation Layer */
+-
+-/*  ----------------------------------- This */
+-#include <dspbridge/cfg.h>
+-#include <dspbridge/drv.h>
+-
+diff --git a/drivers/staging/tidspbridge/services/services.c b/drivers/staging/tidspbridge/services/services.c
+index 47bac21..3d0497e 100644
+--- a/drivers/staging/tidspbridge/services/services.c
++++ b/drivers/staging/tidspbridge/services/services.c
+@@ -27,7 +27,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/cfg.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/sync.h>
+ #include <dspbridge/clk.h>
 -- 
 1.7.0.3
 
