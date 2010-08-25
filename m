@@ -1,99 +1,51 @@
-From: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
-Subject: [PATCH 2/4]  Low-level init of hsmmc controller for LogicPD's OMAP3530LV SOM and OMAP 35x Torpedo dev boards
-Date: Wed, 25 Aug 2010 00:00:25 -0400
-Message-ID: <1282708825-26501-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:28101 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750699Ab0HYEBm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Aug 2010 00:01:42 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
+Date: Wed, 25 Aug 2010 09:05:49 +0300
+Message-ID: <AANLkTi=4YYvyHdL=F_FYQ4e5v-+K3RMZFngdfuKPQ-4L@mail.gmail.com>
+References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
+	<1277943660-4112-2-git-send-email-x0095840@ti.com>
+	<1277943660-4112-3-git-send-email-x0095840@ti.com>
+	<1277943660-4112-4-git-send-email-x0095840@ti.com>
+	<1277943660-4112-5-git-send-email-x0095840@ti.com>
+	<1277943660-4112-6-git-send-email-x0095840@ti.com>
+	<1277943660-4112-7-git-send-email-x0095840@ti.com>
+	<1277943660-4112-8-git-send-email-x0095840@ti.com>
+	<1277943660-4112-9-git-send-email-x0095840@ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
+	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
+	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
+	<AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3995@dlee06.ent.ti.com>
+	<AANLkTinjMujus-28DcLzZ+16GAGpLohwhPhuTi5uKhB8@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
+	<AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
 
-    	ARM: OMAP3LOGIC: Adding SDMMC support
-             Add low-level initialization for hsmmc controller for
-             LogicPD's OMAP 3530 LV SOM and OMAP 35x Torpedo board.
+On Wed, Aug 25, 2010 at 12:55 AM, Guzman Lugo, Fernando
+<fernando.lugo@ti.com> wrote:
+>> However, from what I can see iovmm can be used instead of dmm
+>> even if the switch to iommu is not yet there.
+>
+> Iovmm have a list of memory used (reserved, that is what dmm module
+> does) and also maps the buffer, So we can not use iovmm without removing
+> The mapping which is done inside dspbridge because it will conflic with
+> The mapping doing inside iovmm module. So that means for using iovmm, the
+> Mapping in dspbridge had to be removed in order to work properly.
 
-	Tested against: 81e09f50c93edff607259cbe374a3006c9c5fa74
-	Signed-off-by: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
----
- arch/arm/mach-omap2/board-omap3logic.c |   40 +++++++++++++++++++++++++++++++-
- 1 files changed, 39 insertions(+), 1 deletions(-)
+Or the whole iovmm.c can be copied and just remove the mapping.
 
-diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-index 30af7da..bd83a83 100644
---- a/arch/arm/mach-omap2/board-omap3logic.c
-+++ b/arch/arm/mach-omap2/board-omap3logic.c
-@@ -33,6 +33,7 @@
- #include <asm/mach/map.h>
- 
- #include "mux.h"
-+#include "hsmmc.h"
- 
- #include <plat/mux.h>
- #include <plat/board.h>
-@@ -110,6 +111,7 @@ static struct twl4030_platform_data omap3logic_twldata = {
- 
- 	/* platform_data for children goes here */
- 	.gpio		= &omap3logic_gpio_data,
-+	.vmmc1		= &omap3logic_vmmc1,
- };
- 
- static struct i2c_board_info __initdata omap3logic_i2c_boardinfo[] = {
-@@ -128,6 +130,42 @@ static int __init omap3logic_i2c_init(void)
- 	return 0;
- }
- 
-+static struct omap2_hsmmc_info __initdata board_mmc_info[] = {
-+	{
-+		.name		= "external",
-+		.mmc		= 1,
-+		.wires		= 4,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{}      /* Terminator */
-+};
-+
-+static void __init board_mmc_init(void)
-+{
-+	/* OMAP3530 LV SOM board */
-+	if (machine_is_omap3530_lv_som()) {
-+		board_mmc_info[0].gpio_cd = OMAP3530_LV_SOM_MMC_GPIO_CD;
-+		board_mmc_info[0].gpio_wp = OMAP3530_LV_SOM_MMC_GPIO_WP;
-+		omap_mux_init_signal("gpio_110", OMAP_PIN_OUTPUT);
-+		omap_mux_init_signal("gpio_126", OMAP_PIN_OUTPUT);
-+
-+
-+	/* OMAP3 Torpedo board */
-+	} else if (machine_is_omap3_torpedo()) {
-+		board_mmc_info[0].gpio_cd = OMAP3_TORPEDO_MMC_GPIO_CD;
-+		omap_mux_init_signal("gpio_127", OMAP_PIN_OUTPUT);
-+	/* unsupported board */
-+	} else {
-+		printk(KERN_ERR "%s(): unknown machine type\n", __func__);
-+	return;
-+	}
-+
-+	omap2_hsmmc_init(board_mmc_info);
-+	/* link regulators to MMC adapters */
-+	omap3logic_vmmc1_supply.dev = board_mmc_info[0].dev;
-+}
-+
- static void __init omap3logic_init_irq(void)
- {
- 	init_sdram(mt46h32m32lf6_sdrc_params);
-@@ -141,7 +179,7 @@ static void __init omap3logic_init(void)
- {
- 	omap3logic_i2c_init();
- 	omap_serial_init();
--
-+	board_mmc_init();
- 	/* Ensure SDRC pins are mux'd for self-refresh */
- 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
- 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
 -- 
-1.7.2.1
-
+Felipe Contreras
