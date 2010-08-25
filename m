@@ -1,81 +1,88 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Wed, 25 Aug 2010 11:00:52 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F0FA3D20@dlee06.ent.ti.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
-	<1277943660-4112-3-git-send-email-x0095840@ti.com>
-	<1277943660-4112-4-git-send-email-x0095840@ti.com>
-	<1277943660-4112-5-git-send-email-x0095840@ti.com>
-	<1277943660-4112-6-git-send-email-x0095840@ti.com>
-	<1277943660-4112-7-git-send-email-x0095840@ti.com>
-	<1277943660-4112-8-git-send-email-x0095840@ti.com>
-	<1277943660-4112-9-git-send-email-x0095840@ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
-	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
-	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
-	<AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3995@dlee06.ent.ti.com>
-	<AANLkTinjMujus-28DcLzZ+16GAGpLohwhPhuTi5uKhB8@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
-	<AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
- <AANLkTi=4YYvyHdL=F_FYQ4e5v-+K3RMZFngdfuKPQ-4L@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC][PATCH 2/2] OMAP4: PRCM: Fix usage of prm/cm accessor api's for OMAP4
+Date: Wed, 25 Aug 2010 11:16:16 -0700
+Message-ID: <87aaoah827.fsf@deeprootsystems.com>
+References: <1281452576-5705-1-git-send-email-rnayak@ti.com>
+	<1281452576-5705-2-git-send-email-rnayak@ti.com>
+	<1281452576-5705-3-git-send-email-rnayak@ti.com>
+	<87mxsbn10l.fsf@deeprootsystems.com>
+	<0680EC522D0CC943BC586913CF3768C003B39A3ED5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39135 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752522Ab0HYQA6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 12:00:58 -0400
-In-Reply-To: <AANLkTi=4YYvyHdL=F_FYQ4e5v-+K3RMZFngdfuKPQ-4L@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:41094 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906Ab0HYSQT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 14:16:19 -0400
+Received: by pzk9 with SMTP id 9so300059pzk.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Aug 2010 11:16:18 -0700 (PDT)
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003B39A3ED5@dbde02.ent.ti.com>
+	(Rajendra Nayak's message of "Wed, 25 Aug 2010 14:26:03 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
- 
+"Nayak, Rajendra" <rnayak@ti.com> writes:
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
-> Sent: Wednesday, August 25, 2010 1:06 AM
-> To: Guzman Lugo, Fernando
-> Cc: Kanigeri, Hari; linux-omap@vger.kernel.org; 
-> linux-kernel@vger.kernel.org; ohad@wizery.com; 
-> hiroshi.doyu@nokia.com; ameya.palande@nokia.com; 
-> felipe.contreras@nokia.com
-> Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
-> 
-> On Wed, Aug 25, 2010 at 12:55 AM, Guzman Lugo, Fernando 
-> <fernando.lugo@ti.com> wrote:
-> >> However, from what I can see iovmm can be used instead of 
-> dmm even if 
-> >> the switch to iommu is not yet there.
-> >
-> > Iovmm have a list of memory used (reserved, that is what dmm module
-> > does) and also maps the buffer, So we can not use iovmm without 
-> > removing The mapping which is done inside dspbridge because it will 
-> > conflic with The mapping doing inside iovmm module. So that 
-> means for 
-> > using iovmm, the Mapping in dspbridge had to be removed in 
-> order to work properly.
-> 
-> Or the whole iovmm.c can be copied and just remove the mapping.
+>> -----Original Message-----
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>> Sent: Wednesday, August 25, 2010 3:10 AM
+>> To: Nayak, Rajendra
+>> Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit
+>> Subject: Re: [RFC][PATCH 2/2] OMAP4: PRCM: Fix usage of prm/cm accessor api's for
+>> OMAP4
+>> 
+>> Rajendra Nayak <rnayak@ti.com> writes:
+>> 
+>> > OMAP's have always had PRCM split into PRM for power and reset
+>> > management and CM for clock management.
+>> > In OMAP4 the split (physically) is not very straight forward and
+>> > there are instances of clock management control registers in PRM
+>> > and vice versa.
+>> > However it still makes sense, even on OMAP4 to logically split
+>> > PRCM into PRM and CM for better understanding and to avoid adding
+>> > additonal complexity in higher level frameworks which rely on the
+>> > accessor api;s to do the low level register accesses.
+>> >
+>> > Hence this patch makes sure that any clock management code can
+>> > use the cm_read/write* accessor apis (without knowing the physical split)
+>> > and power and reset management code can use prm_read/write*
+>> > accessor api;s.
+>> >
+>> > To do this the submodule offsets within PRM/CM1 and CM2 have additonal
+>> > info embedded in them specifying what base address to use while
+>> > trying to access registers in the given submodule.
+>> >
+>> > The 16 bit signed submodule offset is defined for OMAP4 as
+>> > <Bit 15>	| <Bit 14:13> 		| <Bit 12:0>
+>> > <Sign bit>	| <base identifier>	| <submodule offset from base>
+>> >
+>> > For older OMAP's the base identifier is always set to 0.
+>> >
+>> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> > Cc: Paul Walmsley <paul@pwsan.com>
+>> > Cc: Benoit Cousson <b-cousson@ti.com>
+>> 
+>> I'm OK with this approach, but I don't like the extra overhead added for
+>> every PRCM access on OMAP2/3.
+>> 
+>> What if you keep the original functions and add new functions for OMAP4,
+>> and use function pointers init'd at runtime (based on the existence of
+>> prcm_mpu_base)
 
-That is the migration patches do, remove custom bridge mapping and
-use iovmm module instead.
+> I actually have a series to split the powerdomain f/w into platform
+> specific and platform independent functions. With that I should be
+> able to get rid of this single function (for prm) for omap2/3 and
+> omap4 and have separate functions. I can do a similar split for
+> clockdomain framework and do the same for the cm functions.  I will
+> post the powerdomain split patches soon for review.
 
-Regards,
-Fernando.
+OK.
 
-> 
-> --
-> Felipe Contreras
-> 
+> Do you think it still makes sense to have this function pointer approach in the interim?
+
+No, it sounds like your split-up approach is better all around.
+
+Kevin
