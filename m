@@ -1,110 +1,129 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 02/11] staging: tidspbridge: Remove ntfy.c
-Date: Wed, 25 Aug 2010 17:08:55 -0500
-Message-ID: <1282774144-11628-3-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 03/11] staging: tidspbridge: Remove cfg_get_auto_start()
+Date: Wed, 25 Aug 2010 17:08:56 -0500
+Message-ID: <1282774144-11628-4-git-send-email-ivan.gomez@ti.com>
 References: <1282774144-11628-1-git-send-email-ivan.gomez@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43366 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752323Ab0HYWQ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 18:16:29 -0400
 In-Reply-To: <1282774144-11628-1-git-send-email-ivan.gomez@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@suse.de
 Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, omar.ramirez@ti.com, ohad@wizery.com, rene.sapiens@ti.com, nm@ti.com, ernesto@ti.com, x0095078@ti.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
 As the services directory is going to be removed, this patch is needed.
 
-ntfy.c only contained the function dsp_notifier_event(), and since this
-function calls sync_set_event(), then the dsp_notifier_event() is moved
-to the sync.c file.
+The function cfg_get_auto_start() only assigns a value to the flag
+tmp, and it is only called by the function api_init_complete2(). So
+the function cfg_get_auto_start() is not required.
 
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- drivers/staging/tidspbridge/Makefile        |    2 +-
- drivers/staging/tidspbridge/core/sync.c     |   17 ++++++++++++++
- drivers/staging/tidspbridge/services/ntfy.c |   31 ---------------------------
- 3 files changed, 18 insertions(+), 32 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/services/ntfy.c
+ .../staging/tidspbridge/include/dspbridge/cfg.h    |   19 --------------
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |   10 ++++---
+ drivers/staging/tidspbridge/services/cfg.c         |   26 --------------------
+ 3 files changed, 6 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/Makefile b/drivers/staging/tidspbridge/Makefile
-index 50be983..8a13982 100644
---- a/drivers/staging/tidspbridge/Makefile
-+++ b/drivers/staging/tidspbridge/Makefile
-@@ -2,7 +2,7 @@ obj-$(CONFIG_TIDSPBRIDGE)	+= bridgedriver.o
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfg.h b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
+index 05a8999..a84fa2b 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/cfg.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
+@@ -35,25 +35,6 @@
+ extern void cfg_exit(void);
  
- libgen = gen/gb.o gen/gs.o gen/gh.o gen/uuidutil.o
- libservices = services/cfg.o \
--		services/ntfy.o services/services.o
-+		services/services.o
- libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
- 		core/tiomap3430_pwr.o core/tiomap_io.o \
- 		core/ue_deh.o core/wdt.o core/dsp-clock.o core/sync.o
-diff --git a/drivers/staging/tidspbridge/core/sync.c b/drivers/staging/tidspbridge/core/sync.c
-index 9010b37..995986a 100644
---- a/drivers/staging/tidspbridge/core/sync.c
-+++ b/drivers/staging/tidspbridge/core/sync.c
-@@ -21,6 +21,7 @@
+ /*
+- *  ======== cfg_get_auto_start ========
+- *  Purpose:
+- *      Retreive the autostart mask, if any, for this board.
+- *  Parameters:
+- *      dev_node_obj:  Handle to the dev_node who's driver we are querying.
+- *      auto_start:   Ptr to location for 32 bit autostart mask.
+- *  Returns:
+- *      0:                Success.
+- *      -EFAULT:  dev_node_obj is invalid.
+- *      -ENODATA: Unable to retreive resource.
+- *  Requires:
+- *      CFG initialized.
+- *  Ensures:
+- *      0:        *auto_start contains autostart mask for this devnode.
+- */
+-extern int cfg_get_auto_start(struct cfg_devnode *dev_node_obj,
+-				     u32 *auto_start);
+-
+-/*
+  *  ======== cfg_get_cd_version ========
+  *  Purpose:
+  *      Retrieves the version of the PM Class Driver.
+diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/staging/tidspbridge/pmgr/dspapi.c
+index 7b42f72..d9bb3ea 100644
+--- a/drivers/staging/tidspbridge/pmgr/dspapi.c
++++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
+@@ -381,8 +381,8 @@ int api_init_complete2(void)
+ 	int status = 0;
+ 	struct cfg_devnode *dev_node;
+ 	struct dev_object *hdev_obj;
++	struct drv_data *drv_datap;
+ 	u8 dev_type;
+-	u32 tmp;
  
- /*  ----------------------------------- This */
- #include <dspbridge/sync.h>
-+#include <dspbridge/ntfy.h>
+ 	DBC_REQUIRE(api_c_refs > 0);
  
- DEFINE_SPINLOCK(sync_lock);
+@@ -397,10 +397,12 @@ int api_init_complete2(void)
+ 		if (dev_get_dev_type(hdev_obj, &dev_type))
+ 			continue;
  
-@@ -102,3 +103,19 @@ func_end:
+-		if ((dev_type == DSP_UNIT) || (dev_type == IVA_UNIT))
+-			if (cfg_get_auto_start(dev_node, &tmp) == 0
+-									&& tmp)
++		if ((dev_type == DSP_UNIT) || (dev_type == IVA_UNIT)) {
++			drv_datap = dev_get_drvdata(bridge);
++
++			if (drv_datap && drv_datap->base_img)
+ 				proc_auto_start(dev_node, hdev_obj);
++		}
+ 	}
+ 
  	return status;
+diff --git a/drivers/staging/tidspbridge/services/cfg.c b/drivers/staging/tidspbridge/services/cfg.c
+index a7af74f..e9cdbf6 100644
+--- a/drivers/staging/tidspbridge/services/cfg.c
++++ b/drivers/staging/tidspbridge/services/cfg.c
+@@ -46,32 +46,6 @@ void cfg_exit(void)
  }
  
-+/**
-+ * dsp_notifier_event() - callback function to nofity events
-+ * @this:		pointer to itself struct notifier_block
-+ * @event:	event to be notified.
-+ * @data:		Currently not used.
-+ *
-+ */
-+int dsp_notifier_event(struct notifier_block *this, unsigned long event,
-+							void *data)
-+{
-+	struct  ntfy_event *ne = container_of(this, struct ntfy_event,
-+							noti_block);
-+	if (ne->event & event)
-+		sync_set_event(&ne->sync_obj);
-+	return NOTIFY_OK;
-+}
-diff --git a/drivers/staging/tidspbridge/services/ntfy.c b/drivers/staging/tidspbridge/services/ntfy.c
-deleted file mode 100644
-index a2ea698..0000000
---- a/drivers/staging/tidspbridge/services/ntfy.c
-+++ /dev/null
-@@ -1,31 +0,0 @@
--/*
-- * ntfy.c
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Manage lists of notification events.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ /*
+- *  ======== cfg_get_auto_start ========
+- *  Purpose:
+- *      Retreive the autostart mask, if any, for this board.
 - */
--
--/*  ----------------------------------- This */
--#include <dspbridge/ntfy.h>
--
--int dsp_notifier_event(struct notifier_block *this, unsigned long event,
--			   void *data)
+-int cfg_get_auto_start(struct cfg_devnode *dev_node_obj,
+-			      u32 *auto_start)
 -{
--	struct  ntfy_event *ne = container_of(this, struct ntfy_event,
--							noti_block);
--	if (ne->event & event)
--		sync_set_event(&ne->sync_obj);
--	return NOTIFY_OK;
+-	int status = 0;
+-	u32 dw_buf_size;
+-	struct drv_data *drv_datap = dev_get_drvdata(bridge);
+-
+-	dw_buf_size = sizeof(*auto_start);
+-	if (!dev_node_obj)
+-		status = -EFAULT;
+-	if (!auto_start || !drv_datap)
+-		status = -EFAULT;
+-	if (!status)
+-		*auto_start = (drv_datap->base_img) ? 1 : 0;
+-
+-	DBC_ENSURE((status == 0 &&
+-		    (*auto_start == 0 || *auto_start == 1))
+-		   || status != 0);
+-	return status;
 -}
 -
+-/*
+  *  ======== cfg_get_dev_object ========
+  *  Purpose:
+  *      Retrieve the Device Object handle for a given devnode.
 -- 
 1.7.0.3
+
