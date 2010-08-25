@@ -1,157 +1,108 @@
 From: Laine Walker-Avina <lwalkera@ieee.org>
-Subject: Re: DSS2 broken with 36-rc1
-Date: Tue, 24 Aug 2010 17:21:48 -0700
-Message-ID: <AANLkTinZkdd289cbzfgymK5Tkk2JRi0gd+bfNxGG-HoA@mail.gmail.com>
-References: <1281962906.1888.25.camel@chotu>
-	<4C72192A.9050801@compulab.co.il>
-	<4C721DFA.9010009@compulab.co.il>
+Subject: Re: AM3517 (Sitara) MMC2 help
+Date: Tue, 24 Aug 2010 17:29:36 -0700
+Message-ID: <AANLkTinQWpYbFzDeAdsjpLsiW63q5q9XLkhef0NiujM1@mail.gmail.com>
+References: <4C73BE1C.7080503@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45333 "EHLO
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:50159 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752376Ab0HYAVt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 20:21:49 -0400
-Received: by wyb35 with SMTP id 35so1165519wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 17:21:48 -0700 (PDT)
-In-Reply-To: <4C721DFA.9010009@compulab.co.il>
+	with ESMTP id S1751626Ab0HYA3h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Aug 2010 20:29:37 -0400
+Received: by wyb35 with SMTP id 35so1172822wyb.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Aug 2010 17:29:36 -0700 (PDT)
+In-Reply-To: <4C73BE1C.7080503@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Ameya Palande <ameya.palande@nokia.com>, tomi.valkeinen@nokia.com, linux-omap <linux-omap@vger.kernel.org>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Aug 23, 2010 at 12:06 AM, Mike Rapoport <mike@compulab.co.il> w=
-rote:
-> Mike Rapoport wrote:
->>
->> Hi Ameya,
->>
->> Ameya Palande wrote:
->>>
->>> Hi Tomi,
->>>
->>> When I tried to boot 2.6.36-rc1 kernel on Nokia N900, omapfb failed=
- with
->>> following error messages:
->>>
->>> [ =C2=A0 =C2=A00.124145] OMAP DSS rev 2.0
->>> [ =C2=A0 =C2=A00.124237] OMAP DISPC rev 3.0
->>>
->>> [ =C2=A0 =C2=A00.303833] acx565akm spi1.2: omapfb: acx565akm rev 8b=
- LCD detected
->>>
->>> [ =C2=A0 =C2=A00.805419] omapfb omapfb: failed to allocate framebuf=
-fer
->>> [ =C2=A0 =C2=A00.810882] omapfb omapfb: failed to allocate fbmem
->>> [ =C2=A0 =C2=A00.815856] omapfb omapfb: failed to setup omapfb
->>> [ =C2=A0 =C2=A00.820648] omapfb: probe of omapfb failed with error =
--12
->>
+On Tue, Aug 24, 2010 at 5:42 AM, Igor Grinberg <grinberg@compulab.co.il=
+> wrote:
+> =C2=A0Hi,
 >
-> Please discard the previous patch, it's buggy :(
-> Sorry for the noise.
+> I have am3517 based board and Libertas sdio (4 wires)
+> wifi connected directly (no transceiver / level shifter) on mmc2
+> (which is named mmc1 in s/w).
 >
-> From 81e9278ad27bc91be42105321e0e26d0be9e883b Mon Sep 17 00:00:00 200=
-1
-> From: Mike Rapoport <mike@compulab.co.il>
-> Date: Mon, 23 Aug 2010 09:40:09 +0300
-> Subject: [PATCH] OMAP: DSS2: OMAPFB: use phys_to_virt for RAM mapping=
-s
+> am3517 is configured (h/w) for 3.3V and so is Libertas wifi.
 >
-> After commit 309caa9cc6ff39d261264ec4ff10e29489afc8f8 (ARM: Prohibit
-> ioremap() on kernel managed RAM) it is impossible to ioremap SDRAM fo=
-r
-> the framebuffer. Use phys_to_virt for kernel managed RAM mapping and
-> ioremap for other memory types
+> dmesg | grep mmc1 shows:
 >
-> Reported-by: Ameya Palande <ameya.palande@nokia.com>
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> ---
-> =C2=A0arch/arm/plat-omap/include/plat/vram.h =C2=A0 | =C2=A0 =C2=A01 =
-+
-> =C2=A0drivers/video/omap2/omapfb/omapfb-main.c | =C2=A0 =C2=A02 +-
-> =C2=A0drivers/video/omap2/vram.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 | =C2=A0 10 ++++++++++
-> =C2=A03 files changed, 12 insertions(+), 1 deletions(-)
+> --------------cut------------------
+> mux: Setting signal sdmmc1_clk.sdmmc1_clk 0x0000 -> 0x0118
+> mux: Setting signal sdmmc1_cmd.sdmmc1_cmd 0x0000 -> 0x0118
+> mux: Setting signal sdmmc1_dat0.sdmmc1_dat0 0x0100 -> 0x0118
+> mux: Setting signal sdmmc1_dat1.sdmmc1_dat1 0x0100 -> 0x0118
+> mux: Setting signal sdmmc1_dat2.sdmmc1_dat2 0x0100 -> 0x0118
+> mux: Setting signal sdmmc1_dat3.sdmmc1_dat3 0x0100 -> 0x0118
+> mmc1: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 timing 0
+> mmc1: clock 0Hz busmode 1 powermode 1 cs 0 Vdd 20 width 0 timing 0
+> mmc1: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 20 width 0 timing=
+ 0
+> mmc1: starting CMD52 arg 00000c00 flags 00000195
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD52, argument 0x00000c00
+> mmc1: req done (CMD52): -110: 00000000 00000000 00000000 00000000
+> mmc1: starting CMD52 arg 80000c08 flags 00000195
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD52, argument 0x80000c08
+> mmc1: req done (CMD52): -110: 00000000 00000000 00000000 00000000
+> mmc1: clock 400000Hz busmode 1 powermode 2 cs 1 Vdd 20 width 0 timing=
+ 0
+> mmc1: starting CMD0 arg 00000000 flags 000000c0
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD0, argument 0x00000000
+> mmc1: req done (CMD0): 0: 00000000 00000000 00000000 00000000
+> mmc1: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 20 width 0 timing=
+ 0
+> mmc1: starting CMD8 arg 000001aa flags 000002f5
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD8, argument 0x000001aa
+> mmc1: req done (CMD8): -110: 00000000 00000000 00000000 00000000
+> mmc1: starting CMD5 arg 00000000 flags 000002e1
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD5, argument 0x00000000
+> mmc1: req failed (CMD5): -110, retrying...
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD5, argument 0x00000000
+> mmc1: req failed (CMD5): -110, retrying...
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD5, argument 0x00000000
+> mmc1: req failed (CMD5): -110, retrying...
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD5, argument 0x00000000
+> mmc1: req done (CMD5): -110: 00000000 00000000 00000000 00000000
+> mmc1: starting CMD55 arg 00000000 flags 000000f5
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD55, argument 0x00000000
+> mmc1: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+> mmc1: starting CMD55 arg 00000000 flags 000000f5
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD55, argument 0x00000000
+> mmc1: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+> mmc1: starting CMD55 arg 00000000 flags 000000f5
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD55, argument 0x00000000
+> mmc1: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+> mmc1: starting CMD55 arg 00000000 flags 000000f5
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD55, argument 0x00000000
+> mmc1: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+> mmc1: starting CMD1 arg 00000000 flags 000000e1
+> mmci-omap-hs mmci-omap-hs.1: mmc1: CMD1, argument 0x00000000
+> mmc1: req done (CMD1): -110: 00000000 00000000 00000000 00000000
+> mmc1: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 timing 0
+> -------------------cut---------------------
 >
-> diff --git a/arch/arm/plat-omap/include/plat/vram.h
-> b/arch/arm/plat-omap/include/plat/vram.h
-> index 0aa4ecd..b1b137c 100644
-> --- a/arch/arm/plat-omap/include/plat/vram.h
-> +++ b/arch/arm/plat-omap/include/plat/vram.h
-> @@ -33,6 +33,7 @@ extern int omap_vram_alloc(int mtype, size_t size,
-> unsigned long *paddr);
-> =C2=A0extern int omap_vram_reserve(unsigned long paddr, size_t size);
-> =C2=A0extern void omap_vram_get_info(unsigned long *vram, unsigned lo=
-ng
-> *free_vram,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned long =
-*largest_free_block);
-> +extern void __iomem *omap_vram_remap(size_t size, unsigned long padd=
-r);
+> Libertas is powered up and gets reseted properly.
+> On the oscilloscope, I see some communication going
+> on the CMD line and stops after some time.
 >
-> =C2=A0#ifdef CONFIG_OMAP2_VRAM
-> =C2=A0extern void omap_vram_set_sdram_vram(u32 size, u32 start);
-> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c
-> b/drivers/video/omap2/omapfb/omapfb-main.c
-> index 04034d4..39f53b1 100644
-> --- a/drivers/video/omap2/omapfb/omapfb-main.c
-> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
-> @@ -1436,7 +1436,7 @@ static int omapfb_alloc_fbmem(struct fb_info *f=
-bi,
-> unsigned long size,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> am3517 PSP from TI, does not even registers/enables
+> the wifi combo found on am3517evm.
 >
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ofbi->rotation_type !=3D OMAP_DSS_ROT_=
-VRFB) {
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 vaddr =3D ioremap_=
-wc(paddr, size);
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 vaddr =3D omap_vra=
-m_remap(size, paddr);
+> Have anybody got the mmc2 working on am3517?
+> May be with transceiver?
 >
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!vaddr) {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0dev_err(fbdev->dev, "failed to ioremap
-> framebuffer\n");
-> diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
-> index f6fdc20..37557b6 100644
-> --- a/drivers/video/omap2/vram.c
-> +++ b/drivers/video/omap2/vram.c
-> @@ -30,6 +30,7 @@
-> =C2=A0#include <linux/debugfs.h>
-> =C2=A0#include <linux/jiffies.h>
-> =C2=A0#include <linux/module.h>
-> +#include <linux/io.h>
+> Any help will be appreciated.
 >
-> =C2=A0#include <asm/setup.h>
->
-> @@ -425,6 +426,15 @@ void omap_vram_get_info(unsigned long *vram,
-> =C2=A0}
-> =C2=A0EXPORT_SYMBOL(omap_vram_get_info);
->
-> +void __iomem *omap_vram_remap(size_t size, unsigned long paddr)
-> +{
-> + =C2=A0 =C2=A0 =C2=A0 if (region_mem_type(paddr) =3D=3D OMAP_VRAM_ME=
-MTYPE_SDRAM)
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return phys_to_vir=
-t(paddr);
-> +
-> + =C2=A0 =C2=A0 =C2=A0 return ioremap_wc(paddr, size);
-> +}
-> +EXPORT_SYMBOL(omap_vram_remap);
-> +
-> =C2=A0#if defined(CONFIG_DEBUG_FS)
-> =C2=A0static int vram_debug_show(struct seq_file *s, void *unused)
-> =C2=A0{
-> --
-> 1.6.6.2
->
->
+> Thanks
 >
 > --
-> Sincerely yours,
-> Mike.
+> Regards,
+> Igor.
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap"=
  in
@@ -160,11 +111,10 @@ t(paddr);
 ml
 >
 
-I just tried this on my custom board, and it solves my issue with
-ioremap. As a point of consistency, I'd reverse the order of the
-parameters on omap_vram_remap() so that they match the old
-ioremap_wc() call. Otherwise, I'd ACK this patch.
-
+Make sure the MMC2_CLK pin is muxed as an input so the clock can
+feedback to the module. Also, you may need to set
+CONTROL_DEVCONF1.MMCSDIO2ADPCLKISEL=3D1 if that exists on the Sitara. I
+had the same problem on the OMAP3x.
 
 --=20
 Laine Walker-Avina
