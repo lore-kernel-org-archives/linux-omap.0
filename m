@@ -1,18 +1,16 @@
 From: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
 Subject: [PATCH 2/4]  Low-level init of hsmmc controller for LogicPD's OMAP3530LV SOM and OMAP 35x Torpedo dev boards
-Date: Tue, 24 Aug 2010 23:55:42 -0400
-Message-ID: <1282708542-26455-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
+Date: Wed, 25 Aug 2010 00:00:25 -0400
+Message-ID: <1282708825-26501-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:28008 "EHLO smtp.logicpd.com"
+Received: from mail.logicpd.com ([66.162.60.3]:28101 "EHLO smtp.logicpd.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751812Ab0HYD4u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Aug 2010 23:56:50 -0400
+	id S1750699Ab0HYEBm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Aug 2010 00:01:42 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-
-From: jake <jake@Glados.(none)>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
 
     	ARM: OMAP3LOGIC: Adding SDMMC support
              Add low-level initialization for hsmmc controller for
