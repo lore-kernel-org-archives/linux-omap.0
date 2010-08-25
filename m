@@ -1,152 +1,208 @@
 From: Ivan Gomez Castellanos <ivan.gomez@ti.com>
-Subject: [PATCH 08/11] staging: tidspbridge: Remove cfg_set_dev_object()
-Date: Wed, 25 Aug 2010 17:09:01 -0500
-Message-ID: <1282774144-11628-9-git-send-email-ivan.gomez@ti.com>
+Subject: [PATCH 11/11] staging: tidspbridge: Remove services.c and services.h
+Date: Wed, 25 Aug 2010 17:09:04 -0500
+Message-ID: <1282774144-11628-12-git-send-email-ivan.gomez@ti.com>
 References: <1282774144-11628-1-git-send-email-ivan.gomez@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39333 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752151Ab0HYWRD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Aug 2010 18:17:03 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1282774144-11628-1-git-send-email-ivan.gomez@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, gregkh@suse.de
 Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, felipe.contreras@nokia.com, omar.ramirez@ti.com, ohad@wizery.com, rene.sapiens@ti.com, nm@ti.com, ernesto@ti.com, x0095078@ti.com, Ivan Gomez Castellanos <ivan.gomez@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-As the services directory is going to be removed, the cfg_set_dev_object
-function has also to be removed.
+The services_init() and services_exit() functions don't do anything,
+so they are removed, and as these are the only two functions defined
+in services.c and services.h, then these files are also removed.
 
 Signed-off-by: Ivan Gomez Castellanos <ivan.gomez@ti.com>
 ---
- .../staging/tidspbridge/include/dspbridge/cfg.h    |   19 ------------
- drivers/staging/tidspbridge/pmgr/dev.c             |   28 ++++++++++--------
- drivers/staging/tidspbridge/services/cfg.c         |   30 --------------------
- 3 files changed, 16 insertions(+), 61 deletions(-)
+ drivers/staging/tidspbridge/Makefile               |    1 -
+ .../tidspbridge/include/dspbridge/services.h       |   50 -----------------
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |    1 -
+ drivers/staging/tidspbridge/rmgr/drv_interface.c   |    4 --
+ drivers/staging/tidspbridge/services/services.c    |   57 --------------------
+ 5 files changed, 0 insertions(+), 113 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/services.h
+ delete mode 100644 drivers/staging/tidspbridge/services/services.c
 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfg.h b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
-index 834b25b..e1ae1bc 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/cfg.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/cfg.h
-@@ -79,25 +79,6 @@ extern int cfg_get_zl_file(struct cfg_devnode *dev_node_obj,
- 				  u32 buf_size, char *str_zl_file_name);
+diff --git a/drivers/staging/tidspbridge/Makefile b/drivers/staging/tidspbridge/Makefile
+index 8f0ca88..8082d5c 100644
+--- a/drivers/staging/tidspbridge/Makefile
++++ b/drivers/staging/tidspbridge/Makefile
+@@ -1,7 +1,6 @@
+ obj-$(CONFIG_TIDSPBRIDGE)	+= bridgedriver.o
  
- /*
-- *  ======== cfg_set_dev_object ========
-- *  Purpose:
-- *      Store the Device Object handle for a given devnode.
-- *  Parameters:
-- *      dev_node_obj:   Platform's dev_node handle we are storing value with.
-- *      value:    Arbitrary value to store.
-- *  Returns:
-- *      0:                Success.
-- *      -EFAULT:  dev_node_obj is invalid.
-- *      -EPERM:              Internal Error.
-- *  Requires:
-- *      CFG initialized.
-- *  Ensures:
-- *      0:    The Private u32 was successfully set.
+ libgen = gen/gb.o gen/gs.o gen/gh.o gen/uuidutil.o
+-libservices = services/services.o
+ libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
+ 		core/tiomap3430_pwr.o core/tiomap_io.o \
+ 		core/ue_deh.o core/wdt.o core/dsp-clock.o core/sync.o
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/services.h b/drivers/staging/tidspbridge/include/dspbridge/services.h
+deleted file mode 100644
+index eb26c86..0000000
+--- a/drivers/staging/tidspbridge/include/dspbridge/services.h
++++ /dev/null
+@@ -1,50 +0,0 @@
+-/*
+- * services.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Provide loading and unloading of SERVICES modules.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 - */
--extern int cfg_set_dev_object(struct cfg_devnode *dev_node_obj,
--				     u32 value);
+-
+-#ifndef SERVICES_
+-#define SERVICES_
+-
+-#include <dspbridge/host_os.h>
+-/*
+- *  ======== services_exit ========
+- *  Purpose:
+- *      Discontinue usage of module; free resources when reference count
+- *      reaches 0.
+- *  Parameters:
+- *  Returns:
+- *  Requires:
+- *      SERVICES initialized.
+- *  Ensures:
+- *      Resources used by module are freed when cRef reaches zero.
+- */
+-extern void services_exit(void);
 -
 -/*
-  *  ======== CFG_SetDrvObject ========
-  *  Purpose:
-  *      Store the Driver Object handle.
-diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
-index 8077bdc..b0bcbd9 100644
---- a/drivers/staging/tidspbridge/pmgr/dev.c
-+++ b/drivers/staging/tidspbridge/pmgr/dev.c
-@@ -898,6 +898,7 @@ int dev_start_device(struct cfg_devnode *dev_node_obj)
- 	char bridge_file_name[CFG_MAXSEARCHPATHLEN] = "UMA";
- 	int status;
- 	struct mgr_object *hmgr_obj = NULL;
-+	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
- 	DBC_REQUIRE(refs > 0);
- 
-@@ -906,24 +907,27 @@ int dev_start_device(struct cfg_devnode *dev_node_obj)
- 				   dev_node_obj);
- 	if (!status) {
- 		/* Store away the hdev_obj with the DEVNODE */
--		status = cfg_set_dev_object(dev_node_obj, (u32) hdev_obj);
-+		if (!drv_datap || !dev_node_obj) {
-+			status = -EFAULT;
-+			pr_err("%s: Failed, status 0x%x\n", __func__, status);
-+		} else if (!(strcmp((char *)dev_node_obj, "TIOMAP1510"))) {
-+			drv_datap->dev_object = (void *) hdev_obj;
-+		}
-+		if (!status) {
-+			/* Create the Manager Object */
-+			status = mgr_create(&hmgr_obj, dev_node_obj);
-+			if (status && !(strcmp((char *)dev_node_obj,
-+							"TIOMAP1510"))) {
-+				/* Ensure the device extension is NULL */
-+				drv_datap->dev_object = NULL;
-+			}
-+		}
- 		if (status) {
- 			/* Clean up */
- 			dev_destroy_device(hdev_obj);
- 			hdev_obj = NULL;
- 		}
- 	}
--	if (!status) {
--		/* Create the Manager Object */
--		status = mgr_create(&hmgr_obj, dev_node_obj);
--	}
--	if (status) {
--		if (hdev_obj)
--			dev_destroy_device(hdev_obj);
--
--		/* Ensure the device extension is NULL */
--		cfg_set_dev_object(dev_node_obj, 0L);
--	}
- 
- 	return status;
- }
-diff --git a/drivers/staging/tidspbridge/services/cfg.c b/drivers/staging/tidspbridge/services/cfg.c
-index 94d8ebe..5517201 100644
---- a/drivers/staging/tidspbridge/services/cfg.c
-+++ b/drivers/staging/tidspbridge/services/cfg.c
-@@ -31,36 +31,6 @@
- #include <dspbridge/drv.h>
- 
- /*
-- *  ======== cfg_set_dev_object ========
+- *  ======== services_init ========
 - *  Purpose:
-- *      Store the Device Object handle and dev_node pointer for a given devnode.
+- *      Initializes SERVICES modules.
+- *  Parameters:
+- *  Returns:
+- *      TRUE if all modules initialized; otherwise FALSE.
+- *  Requires:
+- *  Ensures:
+- *      SERVICES modules initialized.
 - */
--int cfg_set_dev_object(struct cfg_devnode *dev_node_obj, u32 value)
+-extern bool services_init(void);
+-
+-#endif /* SERVICES_ */
+diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/staging/tidspbridge/pmgr/dspapi.c
+index 10a1444..b23591b 100644
+--- a/drivers/staging/tidspbridge/pmgr/dspapi.c
++++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
+@@ -29,7 +29,6 @@
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/ntfy.h>
+-#include <dspbridge/services.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/chnl.h>
+diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+index ae28b96..4c0b9ee 100644
+--- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
++++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+@@ -39,7 +39,6 @@
+ #include <dspbridge/dbc.h>
+ 
+ /*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/services.h>
+ #include <dspbridge/clk.h>
+ #include <dspbridge/sync.h>
+ 
+@@ -270,7 +269,6 @@ static int omap3_bridge_startup(struct platform_device *pdev)
+ #endif
+ 
+ 	dsp_clk_init();
+-	services_init();
+ 
+ 	drv_datap = kzalloc(sizeof(struct drv_data), GFP_KERNEL);
+ 	if (!drv_datap) {
+@@ -327,7 +325,6 @@ err1:
+ 					CPUFREQ_TRANSITION_NOTIFIER);
+ #endif
+ 	dsp_clk_exit();
+-	services_exit();
+ 
+ 	return err;
+ }
+@@ -420,7 +417,6 @@ func_cont:
+ 	mem_ext_phys_pool_release();
+ 
+ 	dsp_clk_exit();
+-	services_exit();
+ 
+ 	devno = MKDEV(driver_major, 0);
+ 	cdev_del(&bridge_cdev);
+diff --git a/drivers/staging/tidspbridge/services/services.c b/drivers/staging/tidspbridge/services/services.c
+deleted file mode 100644
+index 3d0497e..0000000
+--- a/drivers/staging/tidspbridge/services/services.c
++++ /dev/null
+@@ -1,57 +0,0 @@
+-/*
+- * services.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Provide SERVICES loading.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#include <linux/types.h>
+-
+-#include <dspbridge/host_os.h>
+-
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/dbdefs.h>
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/ntfy.h>
+-#include <dspbridge/sync.h>
+-#include <dspbridge/clk.h>
+-
+-/*  ----------------------------------- This */
+-#include <dspbridge/services.h>
+-
+-/*
+- *  ======== services_exit ========
+- *  Purpose:
+- *      Discontinue usage of module; free resources when reference count
+- *      reaches 0.
+- */
+-void services_exit(void)
 -{
--	int status = 0;
--	struct drv_data *drv_datap = dev_get_drvdata(bridge);
--
--	if (!drv_datap) {
--		pr_err("%s: Failed, status 0x%x\n", __func__, status);
--		return -EPERM;
--	}
--
--	if (!dev_node_obj)
--		status = -EFAULT;
--
--	if (!status) {
--		/* Store the Bridge device object in the Registry */
--
--		if (!(strcmp((char *)dev_node_obj, "TIOMAP1510")))
--			drv_datap->dev_object = (void *) value;
--	}
--	if (status)
--		pr_err("%s: Failed, status 0x%x\n", __func__, status);
--
--	return status;
 -}
 -
 -/*
-  *  ======== cfg_set_object ========
-  *  Purpose:
-  *      Store the Driver Object handle
+- *  ======== services_init ========
+- *  Purpose:
+- *      Initializes SERVICES modules.
+- */
+-bool services_init(void)
+-{
+-	bool ret = true;
+-
+-	return ret;
+-}
 -- 
 1.7.0.3
-
