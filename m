@@ -1,36 +1,84 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCHv2]  OMAP:DSS:Add support for Additional color modes
- supported by OMAP4
-Date: Thu, 26 Aug 2010 12:47:52 +0300
-Message-ID: <1282816072.9299.326.camel@tubuntu.research.nokia.com>
-References: <1282216761-14464-1-git-send-email-mythripk@ti.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706BE2A677E@dbde02.ent.ti.com>
-	 <1282731750.9299.197.camel@tubuntu.research.nokia.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706BE2A6AB9@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
+Date: Thu, 26 Aug 2010 13:04:43 +0300
+Message-ID: <AANLkTiksJpU5=NtBMDmUzVfHNsGe7REtananNDL10FX_@mail.gmail.com>
+References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
+	<1277943660-4112-2-git-send-email-x0095840@ti.com>
+	<1277943660-4112-3-git-send-email-x0095840@ti.com>
+	<1277943660-4112-4-git-send-email-x0095840@ti.com>
+	<1277943660-4112-5-git-send-email-x0095840@ti.com>
+	<1277943660-4112-6-git-send-email-x0095840@ti.com>
+	<1277943660-4112-7-git-send-email-x0095840@ti.com>
+	<1277943660-4112-8-git-send-email-x0095840@ti.com>
+	<1277943660-4112-9-git-send-email-x0095840@ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
+	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
+	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
+	<AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3995@dlee06.ent.ti.com>
+	<AANLkTinjMujus-28DcLzZ+16GAGpLohwhPhuTi5uKhB8@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
+	<AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
+	<AANLkTi=4YYvyHdL=F_FYQ4e5v-+K3RMZFngdfuKPQ-4L@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F0FA3D20@dlee06.ent.ti.com>
+	<AANLkTi=VRROWWZ4x-znXshz9KWNZAaizVFt=M92D3ByW@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F142E143@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:35182 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751582Ab0HZJr5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 05:47:57 -0400
-In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BE2A6AB9@dbde02.ent.ti.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:65511 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401Ab0HZKEp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 06:04:45 -0400
+In-Reply-To: <496565EC904933469F292DDA3F1663E602F142E143@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Semwal, Sumit" <sumit.semwal@ti.com>
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
 
-On Thu, 2010-08-26 at 07:20 +0200, ext K, Mythri P wrote:
-> Hi Tomi,
-> I have resent the original mail , Both HDMI RFC patch set and additional color mode support. 
-> Can you please comment on this updated patch for Additional color modes supported by omap4?
-> I have moved the color modes to omap4 color modes.
+On Wed, Aug 25, 2010 at 10:42 PM, Guzman Lugo, Fernando
+<fernando.lugo@ti.com> wrote:
+>> On Wed, Aug 25, 2010 at 7:00 PM, Guzman Lugo, Fernando
+>> <fernando.lugo@ti.com> wrote:
+>> >> Or the whole iovmm.c can be copied and just remove the mapping.
+>> >
+>> > That is the migration patches do, remove custom bridge
+>> mapping and use
+>> > iovmm module instead.
+>>
+>> You didn't get me; copy the iovmm.c code into dmm.c, and
+>> remove the mapping.
+>
+> It sounds like double work, changing the dmm.c which will disappear.
 
-I can see the HDMI patches, but there's still no color mode patch. I can
-find the patch contents from your reply, though. But there's something
-wrong with your mail setup if they go through only randomly.
+But in the meantime the bug is still there, and there's no timeline
+when it will disappear.
 
- Tomi
+> Also I think what you want is only the change from array to
+> Linked list.
 
+That's what I said.
 
+> Otherwise copying iovmm.c into dmm.c and adapting
+> To how dspbridge is at this momment it will need too much changes,
+
+Yeah, I just said that it was possible.
+
+> It is better to think like: take memory reservation (linked list)
+> Implementation from iovmm and map it to dmm.c.
+
+I think so too.
+
+> But I don't see the point of doing that, if dmm.c is about to
+> Dissapear.
+
+When exactly?
+
+-- 
+Felipe Contreras
