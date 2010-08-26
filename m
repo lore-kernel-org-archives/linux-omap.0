@@ -1,127 +1,57 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PM-OPP][PATCH] OMAP: Modifying the frequency comparison logic.
-Date: Wed, 25 Aug 2010 19:30:10 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0140B00512@dlee02.ent.ti.com>
-References: <1281758292-18895-1-git-send-email-thara@ti.com>
-	<87occromt4.fsf@deeprootsystems.com>
-	<7A436F7769CA33409C6B44B358BFFF0C014062250C@dlee02.ent.ti.com>
-	<87eidnogqy.fsf@deeprootsystems.com>
-	<7A436F7769CA33409C6B44B358BFFF0C01406226EA@dlee02.ent.ti.com>
- <87fwy2b9ir.fsf@deeprootsystems.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 08/10] OMAP4: Smartreflex framework extensions
+Date: Thu, 26 Aug 2010 10:42:53 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02C68544CB@dbde02.ent.ti.com>
+References: <1282130191-9062-1-git-send-email-thara@ti.com>
+	<1282130191-9062-9-git-send-email-thara@ti.com>
+ <8762yy9tib.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47953 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643Ab0HZAaO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Aug 2010 20:30:14 -0400
-In-Reply-To: <87fwy2b9ir.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44683 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752816Ab0HZFNA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 01:13:00 -0400
+In-Reply-To: <8762yy9tib.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Wednesday, August 25, 2010 5:41 PM
-> To: Menon, Nishanth
-> Cc: Gopinath, Thara; linux-omap@vger.kernel.org
-> Subject: Re: [PM-OPP][PATCH] OMAP: Modifying the frequency comparison
-> logic.
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Thursday, August 26, 2010 4:42 AM
+> To: Gopinath, Thara
+> Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Sripathy, Vishwanath;
+> Sawant, Anand; Cousson, Benoit
+> Subject: Re: [PATCH 08/10] OMAP4: Smartreflex framework extensions
 > 
-> "Menon, Nishanth" <nm@ti.com> writes:
+> Thara Gopinath <thara@ti.com> writes:
 > 
-> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> >> Sent: Tuesday, August 24, 2010 4:14 PM
+> > This patch extends the smartreflex framework to support
+> > OMAP4. The changes are minor like compiling smartreflex Kconfig
+> > option for OMAP4 also, and a couple of OMAP4 checks in
+> > the smartreflex framework.
 > >
-> >
-> >>
-> >> "Menon, Nishanth" <nm@ti.com> writes:
-> >>
-> >> >>
-> >> >> thara gopinath <thara@ti.com> writes:
-> >> >>
-> >> >> > From: Thara Gopinath <thara@ti.com>
-> >> >> >
-> >
-> > [...]
-> >> >> >
-> >> >> > The above is not correct as we expect the framework to return back
-> >> >> > the opp table entry corresponding to 266 Mhz.
-> >> >> >
-> >
-> > [...]
-> >> >> >
-> >> >> > 	b. Do the comparison in Mhz in the opp layer rather than in Hz.
-> >> >> > 	   This would mean we will divide the rate passed into the opp
-> layer
-> >> >> > 	  API and the rates stored in the opp tables by 1000000 to get
-> the
-> >> >> > 	  rates in Mhz and do the necessary comparision. In this
-> approach
-> >> >> any
-> >> >> > 	  vague frequency like 266.045Mhz will get mapped to 266 Mhz
-> in the
-> >> >> > 	  opp table. But if the passed rate is 267 Mhz, the opp
-> framework
-> >> >> > 	  will still rerturn an error or the next highest opp table
-> entry
-> >> >> >
-> >> >> > This patch implements solution b. The scenario mentioned above is
-> >> >> > esp true for OMAP4 dpll_iva where we do end up with such weird
-> >> >> frequencies
-> >> >> > due to sys clk being at 38.4 Mhz.
-> >> >>
-> >> >> I agree that solution b is better, although it makes the '_exact'
-> >> >> function a bit less exact. :/
-> >> >>
-> >> >> solution b is fine with me, but the kerneldoc for these find
-> functions
-> >> >> should be updated to describe the new matching technique.
-> >> >
-> >> > I agree, I suggest one improvement though - the search accuracy will
-> >> vary
-> >> > Based on the silicon rev, one size will probably not fit every
-> silicon
-> >> and
-> >> > Domains we have - I suggest having accuracy as a parameter as part of
-> >> domain
-> >> > Registration/configurable parameter
-> >> > e.g.
-> >> >> > +			unsigned long rate = temp_opp->rate / 1000000;
-> >> > Will probably configurable to the "exactness" we expect to handle per
-> >> domain/silicon family.
-> >> >
-> >>
-> >> The more I think about, I think we should leave the 'exact' find the
-> way
-> >> it is, especially as we move to device OPPs we will probably want to
-> >> have more precise matching.
-> >>
-> >> What about adding another function that does a "find closest"?
+> > The change in sr_device.c where new logic has to be introduced
+> > for reading the efuse registers are due to two reasons.
+> > 	a. Currently in mainline OMAP4 control base offset is actually
+> > 	from the mux/padconf module start. Hence a omap_ctrl_read will
+> > 	not read from the correct offset for the efuse registers.
+> > 	This is currently being fixed through modfications in the
+> > 	control layer but till that is finalised, we will have to do
+> > 	a ioremap of the general control module  base and do a
+> > 	__raw_read to retrieve the efuse values.
 > 
-> > Just my 2cents: With accuracy as a param?
+> Is this the series posted by Santosh?
 > 
-> Why would you need accuracy for "find closest"?
+>    [PATCH 0/4] omap4: Control module series
 > 
-How close should "closest" be? There has to be a parameter for this - 
-something like as close as 10Mhz,  but beyond the match fails. 
-Currently this patch introduces a hardcoded accuracy which could be
-Carried forward.
-
-But, On different silicon the deltas due to sysclk can vary - there is no 
-silver  bullet algo we can write which will be accurate for all silicon and 
-domain  combination..
-
-
-Further, is'nt ceil and floor functions we have a more specific 
-Implementation of "closest"? in the sense, it says closest to which 
-Direction - up or down..
-
-[...]
-Rest of the discussion seems aligned.
+Yep. This series should address the SR control module
+issue
 
 Regards,
-Nishanth Menon
+Santosh
