@@ -1,78 +1,58 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 5/5 v3] OMAP2PLUS: WDT: Conversion to runtime PM
-Date: Thu, 26 Aug 2010 16:03:36 -0700
-Message-ID: <874oehx9h3.fsf@deeprootsystems.com>
-References: <1281965809-20585-1-git-send-email-charu@ti.com>
-	<1281965809-20585-2-git-send-email-charu@ti.com>
-	<1281965809-20585-3-git-send-email-charu@ti.com>
-	<1281965809-20585-4-git-send-email-charu@ti.com>
-	<1281965809-20585-5-git-send-email-charu@ti.com>
-	<1281965809-20585-6-git-send-email-charu@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v2.6.36
+Date: Thu, 26 Aug 2010 16:10:35 -0700
+Message-ID: <20100826231035.GE12567@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:44004 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752464Ab0HZXDk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 19:03:40 -0400
-Received: by gwj17 with SMTP id 17so890967gwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 16:03:39 -0700 (PDT)
-In-Reply-To: <1281965809-20585-6-git-send-email-charu@ti.com> (Charulatha V.'s
-	message of "Mon, 16 Aug 2010 19:06:49 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63145 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752464Ab0HZXKj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 19:10:39 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Charulatha V <charu@ti.com>
-Cc: linux-omap@vger.kernel.org, wim@iguana.be, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Charulatha V <charu@ti.com> writes:
+Hi Linus,
 
-> This patch converts the OMAP Watchdog timer driver to
-> get adapted to HWMOD FW and to use the runtime PM APIs.
+Please pull omap-fixes from:
 
-Technically, the driver knows nothing about the HWMOD framework, as
-that's an OMAP core implementation detail.
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 
-What's really happening here is two separate things:
+Regards,
 
-1) conversion of driver to runtime PM instead of clock framework
-2) convert platform_device/_data over to be omap_device-based
+Tony
 
-These should be done in two separate patches (and in that order.) 
 
-Other than that, the patch contents look good.  Some minor comments below...
+The following changes since commit 76be97c1fc945db08aae1f1b746012662d643e97:
 
-> Signed-off-by: Charulatha V <charu@ti.com>
-> Signed-off-by: Basak, Partha <p-basak2@ti.com>
-> ---
->  arch/arm/plat-omap/devices.c |   64 ++++++++++++++++++++++++++++-------------
->  drivers/watchdog/omap_wdt.c  |   43 +++++-----------------------
->  2 files changed, 52 insertions(+), 55 deletions(-)
->
+  Linux 2.6.36-rc2 (2010-08-22 17:43:29 -0700)
 
-[...]
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
 
-> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-> index 76b58ab..7645ca3 100644
-> --- a/drivers/watchdog/omap_wdt.c
-> +++ b/drivers/watchdog/omap_wdt.c
-> @@ -38,13 +38,14 @@
->  #include <linux/err.h>
->  #include <linux/platform_device.h>
->  #include <linux/moduleparam.h>
-> -#include <linux/clk.h>
->  #include <linux/bitops.h>
->  #include <linux/io.h>
->  #include <linux/uaccess.h>
->  #include <linux/slab.h>
-> +#include <linux/pm_runtime.h>
->  #include <mach/hardware.h>
->  #include <plat/prcm.h>
-> +#include <plat/omap_device.h>
+Kevin Hilman (1):
+      OMAP3: PM: ensure IO wakeups are properly disabled
 
-This should not be needed in the driver, as there is no need for driver
-to call omap_device API.
+Nishanth Menon (1):
+      omap3: id: fix 3630 rev detection
 
-[...]
+Tony Lindgren (3):
+      omap: Fix sev instruction usage for multi-omap
+      omap: Use CONFIG_SMP for test_for_ipi and test_for_ltirq
+      omap: Fix omap_4430sdp_defconfig for make oldconfig
 
-Kevin
+stanley.miao (1):
+      OMAP3: Fix a cpu type check problem
 
+ arch/arm/configs/omap_4430sdp_defconfig        |    3 +++
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/clock3xxx_data.c           |   14 +++++++-------
+ arch/arm/mach-omap2/id.c                       |    2 +-
+ arch/arm/mach-omap2/include/mach/entry-macro.S |    6 ++++--
+ arch/arm/mach-omap2/omap-smp.c                 |    3 +--
+ arch/arm/mach-omap2/pm34xx.c                   |    4 +++-
+ arch/arm/plat-omap/include/plat/smp.h          |    7 -------
+ 8 files changed, 20 insertions(+), 20 deletions(-)
