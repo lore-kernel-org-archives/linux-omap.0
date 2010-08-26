@@ -1,13 +1,13 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH 06/11] OMAP: McBSP: Fix static function warning
-Date: Fri, 27 Aug 2010 02:26:44 +0530
-Message-ID: <1282856209-15645-7-git-send-email-manjugk@ti.com>
+Subject: [PATCH 07/11] OMAP: HSMMC: Fix unused variable warning
+Date: Fri, 27 Aug 2010 02:26:45 +0530
+Message-ID: <1282856209-15645-8-git-send-email-manjugk@ti.com>
 References: <1282856209-15645-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35378 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752993Ab0HZU6J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Aug 2010 16:58:09 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:45113 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753036Ab0HZU6M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 16:58:12 -0400
 In-Reply-To: <1282856209-15645-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,30 +16,30 @@ Cc: Manjunatha GK <manjugk@ti.com>, Tony Lindgren <tony@atomide.com>, Nishanth M
 
 From: Manjunatha GK <manjugk@ti.com>
 
-This patch fixes sparse warning due non declaration of static function
+Fixes warning due to unused variable.
 
-sound/soc/omap/omap-mcbsp.c:783:5: warning: symbol 'omap_mcbsp_st_info_volsw' was not declared. Should it be static?
+drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_suspend':
+drivers/mmc/host/omap_hsmmc.c:2308: warning: unused variable 'state'
 
 Signed-off-by: Manjunatha GK <manjugk@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Nishanth Menon <nm@ti.com>
 ---
- sound/soc/omap/omap-mcbsp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 86f2139..5768381 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -780,7 +780,7 @@ struct snd_soc_dai omap_mcbsp_dai[] = {
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 4a8776f..fb6446a 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2305,7 +2305,6 @@ static int omap_hsmmc_suspend(struct device *dev)
+ 	int ret = 0;
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct omap_hsmmc_host *host = platform_get_drvdata(pdev);
+-	pm_message_t state = PMSG_SUSPEND; /* unused by MMC core */
  
- EXPORT_SYMBOL_GPL(omap_mcbsp_dai);
- 
--int omap_mcbsp_st_info_volsw(struct snd_kcontrol *kcontrol,
-+static int omap_mcbsp_st_info_volsw(struct snd_kcontrol *kcontrol,
- 			struct snd_ctl_elem_info *uinfo)
- {
- 	struct soc_mixer_control *mc =
+ 	if (host && host->suspended)
+ 		return 0;
 -- 
 1.7.0.4
 
