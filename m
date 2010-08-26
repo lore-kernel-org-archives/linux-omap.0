@@ -1,63 +1,49 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] i2c-omap: Make sure i2c bus is free before setting it
- to idle
-Date: Thu, 26 Aug 2010 10:41:18 +0300
-Message-ID: <20100826074118.GH23263@nokia.com>
-References: <1282808204-1689-1-git-send-email-mathias.nyman@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Subject: RE: [RFC  PATCH] Board support for the the GPIO keys
+Date: Thu, 26 Aug 2010 14:17:13 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003B3A39E75@dbde02.ent.ti.com>
+References: <1282218130-17111-1-git-send-email-shubhrajyoti@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0324222967@dbde02.ent.ti.com>
+ <877hje5iti.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:40184 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751843Ab0HZHmQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 03:42:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1282808204-1689-1-git-send-email-mathias.nyman@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56333 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753372Ab0HZIrV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 04:47:21 -0400
+In-Reply-To: <877hje5iti.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nyman Mathias (Nokia-MS/Helsinki)" <Mathias.Nyman@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-i2c@vger.kernel.org, ben-linux@fluff.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Thanks for the review
 
-On Thu, Aug 26, 2010 at 09:36:44AM +0200, Nyman Mathias (Nokia-MS/Helsinki) wrote:
->If the i2c bus receives an interrupt with both BB (bus busy) and
->ARDY (register access ready) statuses set during the tranfer of the last message
->the bus was put to idle while still busy.
->
->This caused bus to timeout.
->
->Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Thursday, August 26, 2010 5:47 AM
+> To: Gadiyar, Anand
+> Cc: Datta, Shubhrajyoti; linux-omap@vger.kernel.org; linux-
+> input@vger.kernel.org
+> Subject: Re: [RFC PATCH] Board support for the the GPIO keys
+> 
+> "Gadiyar, Anand" <gadiyar@ti.com> writes:
+> 
+> > Datta, Shubhrajyoti wrote:
+> >> Subject: [RFC PATCH] Board support for the the GPIO keys
+> >>
+> >
+> > Please tag $SUBJECT with something like "omap: 4430sdp: "
+> 
+> and add "add proximity sensor support via GPIO keys"
+> 
+Yes, missed it in this patch. Tried to fix it later.
+Please review the following patch.
 
-adding linux-i2c and Ben Dooks to Cc list.
+https://patchwork.kernel.org/patch/125521/
 
->---
-> drivers/i2c/busses/i2c-omap.c |    2 ++
-> 1 files changed, 2 insertions(+), 0 deletions(-)
->
->diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->index 824ac1c..3271ce1 100644
->--- a/drivers/i2c/busses/i2c-omap.c
->+++ b/drivers/i2c/busses/i2c-omap.c
->@@ -602,6 +602,8 @@ omap_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[], int num)
->
-> 	if (r == 0)
-> 		r = num;
->+
->+	omap_i2c_wait_for_bb(dev);
-> out:
-> 	omap_i2c_idle(dev);
-> 	return r;
->-- 
->1.5.6.5
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-balbi
-
-DefectiveByDesign.org
+> Kevin
