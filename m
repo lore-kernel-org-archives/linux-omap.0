@@ -1,19 +1,19 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [pm-wip/mmc][PATCH 00/10] OMAP MMC Hwmod & Runtime patches
-Date: Thu, 26 Aug 2010 16:17:29 -0700
-Message-ID: <87hbihvu9i.fsf@deeprootsystems.com>
-References: <16071.10.24.255.18.1282335017.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PATCH 06/10] [PM-WIP-UART] OMAP4 hwmod : Adding hwmod data for  UART
+Date: Thu, 26 Aug 2010 16:17:38 -0700
+Message-ID: <87fwy1vu99.fsf@deeprootsystems.com>
+References: <16865.10.24.255.18.1282335403.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:53430 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754282Ab0HZXRc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 19:17:32 -0400
-Received: by pwi7 with SMTP id 7so911767pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 16:17:32 -0700 (PDT)
-In-Reply-To: <16071.10.24.255.18.1282335017.squirrel@dbdmail.itg.ti.com>
-	(kishore kadiyala's message of "Sat, 21 Aug 2010 01:40:17 +0530
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:39533 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754282Ab0HZXRl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 19:17:41 -0400
+Received: by pvg2 with SMTP id 2so839030pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 16:17:40 -0700 (PDT)
+In-Reply-To: <16865.10.24.255.18.1282335403.squirrel@dbdmail.itg.ti.com>
+	(kishore kadiyala's message of "Sat, 21 Aug 2010 01:46:43 +0530
 	(IST)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -22,62 +22,274 @@ Cc: linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com
 
 "kishore kadiyala" <kishore.kadiyala@ti.com> writes:
 
-> Hi,
->
-> 1) The patch series has dependency on Tony's patches
->    http://www.spinics.net/lists/linux-omap/msg34835.html
->    http://www.spinics.net/lists/linux-omap/msg34834.html
->
-> 2) The patch series has some updations of hwmod data
->    for MMC controller's on MMC2/3.
-> 3) Also adds & updates hwmod data for mmc and uart for OMAP4.
->    Adding UART for OMAP4 helps to validate MMC cards from console
-> 4) Also the series includes couple of fixes
->    a) runtime crash seen currently on tree. Validated on OMAP3430.
->    b) crash on OMAP4430 when CONFIG_MMC_OMAP_HS is not set.
->
-> The entire series has been tested on OMAP4430 SDP with omap3_defconfig
-> Currently working on runtime for MMC and will update later.
+> From: Benoit Cousson <b-cousson@ti.com>
+> Adding HWMOD data for UART on OMAP4
 
-This needs testing on OMAP2 as well.
+This is not really related to this series, but I understand you needed
+it because my pm-wip/mmc is based on pm-wip/uart.
 
-Please take over responsibility of the pm-wip/mmc branch and feel free
-to combine those patches with yours.  They are there just to get
-started, but you are free to take them and do what you like with them.
-
-For the next rev, just include/merge the patches from pm-wip/mmc with
-yours and post them against my pm-core branch (a.k.a. pm-wip/hwmods-omap4)
-
-> Kishore Kadiyala (7):
->   [PM-WIP-MMC] OMAP2 HWMOD: Updating MMC Controller data
->   [PM-WIP-MMC] OMAP3 HWMOD: Updating MMC controller data
->   [PM-WIP-MMC] OMAP2/OMAP3: Updating hwmod name for MMC controller
->   [PM-WIP-MMC] OMAP4 hwmod: Updating hwmod data for MMC controllers
-
-Some minor nits on naming:  let's use the prefix:
-
-     <soc>: hwmod data: <shortlog>
-
-e.g. OMAP3: hwmod data: add MMC controllers
+But after you incoporate the pm-wip/mmc patches into your next rev, you
+can base it directly on my pm-core branch, and will not need to fixup
+the UARTs.
 
 Kevin
 
->   [PM-WIP-MMC] OMAP MMC: Remove MMC controller reset
->   [PM-WIP-MMC] OMAP MMC: Register offset handling
->   [PM-WIP-MMC] OMAP MMC : Fix crash with CONFIG_PM_RUNTIME
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  234 ++++++++++++++++++++++++++++
+>  1 files changed, 234 insertions(+), 0 deletions(-)
 >
-> Benoit Cousson (3):
->   [PM-WIP-MMC] OMAP4 hwmod: Adding hwmod data for MMC controller
->   [PM-WIP-UART] OMAP4 hwmod : Adding hwmod data for UART
->   [PM-WIP-MMC] omap4 hsmmc: Fix the init if CONFIG_MMC_OMAP_HS is not
->     set
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index db62b84..8266b5c 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -778,6 +778,235 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>  };
 >
->  arch/arm/mach-omap2/board-4430sdp.c        |    7 +-
->  arch/arm/mach-omap2/devices.c              |  106 +-----
->  arch/arm/mach-omap2/hsmmc.c                |    6 +
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |    9 +-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   11 +-
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  567 +++++++++++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/mmc.h      |   76 ++++
->  drivers/mmc/host/omap_hsmmc.c              |  256 ++++++-------
->  8 files changed, 785 insertions(+), 253 deletions(-)
+> +/*
+> + * 'uart' class
+> + * universal asynchronous receiver/transmitter (uart)
+> + */
+> +
+> +static struct omap_hwmod_class_sysconfig omap44xx_uart_sysc = {
+> +	.rev_offs	= 0x0050,
+> +	.sysc_offs	= 0x0054,
+> +	.syss_offs	= 0x0058,
+> +	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
+> +			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
+> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_fields	= &omap_hwmod_sysc_type1,
+> +};
+> +
+> +static struct omap_hwmod_class omap44xx_uart_hwmod_class = {
+> +	.name = "uart",
+> +	.sysc = &omap44xx_uart_sysc,
+> +};
+> +
+> +/* uart1 */
+> +static struct omap_hwmod omap44xx_uart1_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_uart1_irqs[] = {
+> +	{ .irq = 72 + OMAP44XX_IRQ_GIC_START },
+> +};
+> +
+> +static struct omap_hwmod_dma_info omap44xx_uart1_sdma_reqs[] = {
+> +	{ .name = "tx", .dma_req = 48 + OMAP44XX_DMA_REQ_START },
+> +	{ .name = "rx", .dma_req = 49 + OMAP44XX_DMA_REQ_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_uart1_addrs[] = {
+> +	{
+> +		.pa_start	= 0x4806a000,
+> +		.pa_end		= 0x4806a0ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_per -> uart1 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_per__uart1 = {
+> +	.master		= &omap44xx_l4_per_hwmod,
+> +	.slave		= &omap44xx_uart1_hwmod,
+> +	.clk		= "l4_div_ck",
+> +	.addr		= omap44xx_uart1_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_uart1_addrs),
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +/* uart1 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_uart1_slaves[] = {
+> +	&omap44xx_l4_per__uart1,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_uart1_hwmod = {
+> +	.name		= "uart1",
+> +	.class		= &omap44xx_uart_hwmod_class,
+> +	.mpu_irqs	= omap44xx_uart1_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart1_irqs),
+> +	.sdma_reqs	= omap44xx_uart1_sdma_reqs,
+> +	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart1_sdma_reqs),
+> +	.main_clk	= "uart1_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM_L4PER_UART1_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_uart1_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart1_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+> +/* uart2 */
+> +static struct omap_hwmod omap44xx_uart2_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_uart2_irqs[] = {
+> +	{ .irq = 73 + OMAP44XX_IRQ_GIC_START },
+> +};
+> +
+> +static struct omap_hwmod_dma_info omap44xx_uart2_sdma_reqs[] = {
+> +	{ .name = "tx", .dma_req = 50 + OMAP44XX_DMA_REQ_START },
+> +	{ .name = "rx", .dma_req = 51 + OMAP44XX_DMA_REQ_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_uart2_addrs[] = {
+> +	{
+> +		.pa_start	= 0x4806c000,
+> +		.pa_end		= 0x4806c0ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_per -> uart2 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_per__uart2 = {
+> +	.master		= &omap44xx_l4_per_hwmod,
+> +	.slave		= &omap44xx_uart2_hwmod,
+> +	.clk		= "l4_div_ck",
+> +	.addr		= omap44xx_uart2_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_uart2_addrs),
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +/* uart2 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_uart2_slaves[] = {
+> +	&omap44xx_l4_per__uart2,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_uart2_hwmod = {
+> +	.name		= "uart2",
+> +	.class		= &omap44xx_uart_hwmod_class,
+> +	.mpu_irqs	= omap44xx_uart2_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart2_irqs),
+> +	.sdma_reqs	= omap44xx_uart2_sdma_reqs,
+> +	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart2_sdma_reqs),
+> +	.main_clk	= "uart2_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM_L4PER_UART2_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_uart2_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart2_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+> +/* uart3 */
+> +static struct omap_hwmod omap44xx_uart3_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_uart3_irqs[] = {
+> +	{ .irq = 74 + OMAP44XX_IRQ_GIC_START },
+> +};
+> +
+> +static struct omap_hwmod_dma_info omap44xx_uart3_sdma_reqs[] = {
+> +	{ .name = "tx", .dma_req = 52 + OMAP44XX_DMA_REQ_START },
+> +	{ .name = "rx", .dma_req = 53 + OMAP44XX_DMA_REQ_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_uart3_addrs[] = {
+> +	{
+> +		.pa_start	= 0x48020000,
+> +		.pa_end		= 0x480200ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_per -> uart3 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_per__uart3 = {
+> +	.master		= &omap44xx_l4_per_hwmod,
+> +	.slave		= &omap44xx_uart3_hwmod,
+> +	.clk		= "l4_div_ck",
+> +	.addr		= omap44xx_uart3_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_uart3_addrs),
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +/* uart3 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_uart3_slaves[] = {
+> +	&omap44xx_l4_per__uart3,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_uart3_hwmod = {
+> +	.name		= "uart3",
+> +	.class		= &omap44xx_uart_hwmod_class,
+> +	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
+> +	.mpu_irqs	= omap44xx_uart3_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart3_irqs),
+> +	.sdma_reqs	= omap44xx_uart3_sdma_reqs,
+> +	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart3_sdma_reqs),
+> +	.main_clk	= "uart3_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM_L4PER_UART3_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_uart3_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart3_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+> +/* uart4 */
+> +static struct omap_hwmod omap44xx_uart4_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_uart4_irqs[] = {
+> +	{ .irq = 70 + OMAP44XX_IRQ_GIC_START },
+> +};
+> +
+> +static struct omap_hwmod_dma_info omap44xx_uart4_sdma_reqs[] = {
+> +	{ .name = "tx", .dma_req = 54 + OMAP44XX_DMA_REQ_START },
+> +	{ .name = "rx", .dma_req = 55 + OMAP44XX_DMA_REQ_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_uart4_addrs[] = {
+> +	{
+> +		.pa_start	= 0x4806e000,
+> +		.pa_end		= 0x4806e0ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_per -> uart4 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_per__uart4 = {
+> +	.master		= &omap44xx_l4_per_hwmod,
+> +	.slave		= &omap44xx_uart4_hwmod,
+> +	.clk		= "l4_div_ck",
+> +	.addr		= omap44xx_uart4_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_uart4_addrs),
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +/* uart4 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_uart4_slaves[] = {
+> +	&omap44xx_l4_per__uart4,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_uart4_hwmod = {
+> +	.name		= "uart4",
+> +	.class		= &omap44xx_uart_hwmod_class,
+> +	.mpu_irqs	= omap44xx_uart4_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart4_irqs),
+> +	.sdma_reqs	= omap44xx_uart4_sdma_reqs,
+> +	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart4_sdma_reqs),
+> +	.main_clk	= "uart4_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM_L4PER_UART4_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_uart4_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart4_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+>  static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>  	/* dmm class */
+>  	&omap44xx_dmm_hwmod,
+> @@ -801,6 +1030,11 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>  	&omap44xx_mmc3_hwmod,
+>  	&omap44xx_mmc4_hwmod,
+>  	&omap44xx_mmc5_hwmod,
+> +	/* uart class */
+> +	&omap44xx_uart1_hwmod,
+> +	&omap44xx_uart2_hwmod,
+> +	&omap44xx_uart3_hwmod,
+> +	&omap44xx_uart4_hwmod,
+>  	/* mpu class */
+>  	&omap44xx_mpu_hwmod,
+>  	NULL,
