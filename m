@@ -1,33 +1,27 @@
-From: Arno Steffen <arno.steffen@googlemail.com>
-Subject: Bug in omap mtd nand driver
-Date: Thu, 26 Aug 2010 10:55:17 +0200
-Message-ID: <AANLkTi=O0S-NWKQqXf3=NC4n_j-Sq91GeNJrWxAhJc7_@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: Try 3, ETM/JTAG components states across OFF modes
+Date: Thu, 26 Aug 2010 12:14:23 +0300
+Message-ID: <1282814066-23537-1-git-send-email-virtuoso@slind.org>
+References: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:40263 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246Ab0HZIzS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 04:55:18 -0400
-Received: by iwn5 with SMTP id 5so1404666iwn.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 01:55:17 -0700 (PDT)
+Received: from filtteri6.pp.htv.fi ([213.243.153.189]:44882 "EHLO
+	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617Ab0HZJR4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 05:17:56 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203BADA0745@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>
 
-The setting NAND_NO_SUBPAGE_WRITE in omap_nand_platform_data is not used.
-I am using SLC NAND - MT29F1G16ABC , which seems not to support subpages.
-I can observe that kernel allows sub-page-writes.
-I tried to find out what is happend with the options, but after a
-while I get lost in numerous copies of structs ...
+This is a rebased version of the previously posted patchset, only omap
+patches included this time.
 
-Options are still correct in beginning of omap_nand_probe but finally
-it ends up in setting its option independent from platform options.
-	info->nand.options  |= NAND_SKIP_BBTSCAN;
-	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
-								== 0x1000)
-		info->nand.options  |= NAND_BUSWIDTH_16;
+It depends on a etm patch [1] (won't compile without it), which is still
+in incoming queue of Russell's patch tracker.
 
-This observations are done in a plain vanilla 2.6.33 kernel on an OMAP3 board.
+[1] http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=6291/1
 
-Can someone confirm that and know how to change that in a clean way?
+Regards,
+--
+Alex
