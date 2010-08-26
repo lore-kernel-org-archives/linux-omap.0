@@ -1,84 +1,194 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 8/9] dspbridge: add map support for big buffers
-Date: Thu, 26 Aug 2010 13:04:43 +0300
-Message-ID: <AANLkTiksJpU5=NtBMDmUzVfHNsGe7REtananNDL10FX_@mail.gmail.com>
-References: <1277943660-4112-1-git-send-email-x0095840@ti.com>
-	<1277943660-4112-2-git-send-email-x0095840@ti.com>
-	<1277943660-4112-3-git-send-email-x0095840@ti.com>
-	<1277943660-4112-4-git-send-email-x0095840@ti.com>
-	<1277943660-4112-5-git-send-email-x0095840@ti.com>
-	<1277943660-4112-6-git-send-email-x0095840@ti.com>
-	<1277943660-4112-7-git-send-email-x0095840@ti.com>
-	<1277943660-4112-8-git-send-email-x0095840@ti.com>
-	<1277943660-4112-9-git-send-email-x0095840@ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD34D5@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3ADE@dlee06.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4CAD39F6@dlee03.ent.ti.com>
-	<496565EC904933469F292DDA3F1663E602CBDD3BB2@dlee06.ent.ti.com>
-	<AANLkTimENxUjUWJQSZ1dmdkX_9hQ0pjat-kyR9oNjVxf@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3883@dlee06.ent.ti.com>
-	<AANLkTi=NuPu6bvv6KF7sXRp02bvfz7oRkG1SG1PstA-H@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA397F@dlee06.ent.ti.com>
-	<AANLkTinaJ=xn_CAJznVtMcA0nwK_-gbo05OQKM7PuoYA@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3995@dlee06.ent.ti.com>
-	<AANLkTinjMujus-28DcLzZ+16GAGpLohwhPhuTi5uKhB8@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA39BA@dlee06.ent.ti.com>
-	<AANLkTikQCTtwOkAmt3PZrOkxi=VzJtfNKGsH=YXawt9t@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3AED@dlee06.ent.ti.com>
-	<AANLkTi=4YYvyHdL=F_FYQ4e5v-+K3RMZFngdfuKPQ-4L@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F0FA3D20@dlee06.ent.ti.com>
-	<AANLkTi=VRROWWZ4x-znXshz9KWNZAaizVFt=M92D3ByW@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F142E143@dlee06.ent.ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: [PATCHv2]  OMAP:DSS:Add support for Additional color modes
+ supported by OMAP4
+Date: Thu, 26 Aug 2010 15:45:52 +0530
+Message-ID: <FF55437E1F14DA4BAEB721A458B6701706BE2A6C1C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:65511 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401Ab0HZKEp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 06:04:45 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602F142E143@dlee06.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55273 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752150Ab0HZKP6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 06:15:58 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "ohad@wizery.com" <ohad@wizery.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>
 
-On Wed, Aug 25, 2010 at 10:42 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
->> On Wed, Aug 25, 2010 at 7:00 PM, Guzman Lugo, Fernando
->> <fernando.lugo@ti.com> wrote:
->> >> Or the whole iovmm.c can be copied and just remove the mapping.
->> >
->> > That is the migration patches do, remove custom bridge
->> mapping and use
->> > iovmm module instead.
->>
->> You didn't get me; copy the iovmm.c code into dmm.c, and
->> remove the mapping.
->
-> It sounds like double work, changing the dmm.c which will disappear.
 
-But in the meantime the bug is still there, and there's no timeline
-when it will disappear.
+From: Sumit semwal <sumit.semwal@ti.com>
 
-> Also I think what you want is only the change from array to
-> Linked list.
+Signed-off-by: Mythri P K <mythripk@ti.com>
+---
+ arch/arm/plat-omap/include/plat/display.h |   17 +++++++++-
+ drivers/video/omap2/dss/dispc.c           |   53 ++++++++++++++++++++++-------
+ drivers/video/omap2/dss/overlay.c         |   15 +++++---
+ 3 files changed, 66 insertions(+), 19 deletions(-)
 
-That's what I said.
-
-> Otherwise copying iovmm.c into dmm.c and adapting
-> To how dspbridge is at this momment it will need too much changes,
-
-Yeah, I just said that it was possible.
-
-> It is better to think like: take memory reservation (linked list)
-> Implementation from iovmm and map it to dmm.c.
-
-I think so too.
-
-> But I don't see the point of doing that, if dmm.c is about to
-> Dissapear.
-
-When exactly?
-
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index 7a6eedd..c8ff8f6 100644
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -89,6 +89,12 @@ enum omap_color_mode {
+ 	OMAP_DSS_COLOR_ARGB32	= 1 << 11, /* ARGB32 */
+ 	OMAP_DSS_COLOR_RGBA32	= 1 << 12, /* RGBA32 */
+ 	OMAP_DSS_COLOR_RGBX32	= 1 << 13, /* RGBx32 */
++	OMAP_DSS_COLOR_NV12	= 1 << 14, /* NV12 format: YUV 4:2:0 */
++	OMAP_DSS_COLOR_RGBA12	= 1 << 15, /* RGBA12 - 4444 */
++	OMAP_DSS_COLOR_XRGB12	= 1 << 16, /* xRGB12, 16-bit container */
++	OMAP_DSS_COLOR_ARGB16_1555	= 1 << 17, /* ARGB16-1555 */
++	OMAP_DSS_COLOR_RGBX24_32_ALGN	= 1 << 18, /* 32-msb aligned 24bit */
++	OMAP_DSS_COLOR_XRGB15	= 1 << 19, /* xRGB15: 1555*/
+ 
+ 	OMAP_DSS_COLOR_GFX_OMAP2 =
+ 		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
+@@ -121,7 +127,16 @@ enum omap_color_mode {
+ 		OMAP_DSS_COLOR_UYVY | OMAP_DSS_COLOR_ARGB32 |
+ 		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
+ 
+-	OMAP_DSS_COLOR_VID3_OMAP3 = OMAP_DSS_COLOR_VID2_OMAP3,
++	OMAP_DSS_COLOR_VID_OMAP4 =
++		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB12U |
++		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_ARGB16_1555 |
++		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_NV12 |
++		OMAP_DSS_COLOR_RGBA12 | OMAP_DSS_COLOR_RGB24U |
++		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_UYVY |
++		OMAP_DSS_COLOR_ARGB16 | OMAP_DSS_COLOR_XRGB15 |
++		OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_XRGB12 |
++		OMAP_DSS_COLOR_RGBX24_32_ALGN,
++
+ };
+ 
+ enum omap_lcd_display_type {
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index d4a7e10..86702c5 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1059,18 +1059,38 @@ static void _dispc_set_color_mode(enum omap_plane plane,
+ 		enum omap_color_mode color_mode)
+ {
+ 	u32 m = 0;
+-
+ 	switch (color_mode) {
+-	case OMAP_DSS_COLOR_CLUT1:
+-		m = 0x0; break;
+-	case OMAP_DSS_COLOR_CLUT2:
+-		m = 0x1; break;
+-	case OMAP_DSS_COLOR_CLUT4:
+-		m = 0x2; break;
+-	case OMAP_DSS_COLOR_CLUT8:
+-		m = 0x3; break;
++		if ((!cpu_is_omap44xx()) || (OMAP_DSS_GFX == plane)) {
++			case OMAP_DSS_COLOR_CLUT1:
++				m = 0x0; break;
++			case OMAP_DSS_COLOR_CLUT2:
++				m = 0x1; break;
++			case OMAP_DSS_COLOR_CLUT4:
++				m = 0x2; break;
++			case OMAP_DSS_COLOR_CLUT8:
++				m = 0x3; break;
++			case OMAP_DSS_COLOR_RGBX32:
++				m = 0xe; break;
++		} else {
++			case OMAP_DSS_COLOR_NV12:
++				m = 0x0; break;
++			case OMAP_DSS_COLOR_RGBA12:
++				m = 0x2; break;
++			case OMAP_DSS_COLOR_XRGB12:
++				m = 0x4; break;
++			case OMAP_DSS_COLOR_ARGB16_1555:
++				m = 0x7; break;
++			case OMAP_DSS_COLOR_RGBX24_32_ALGN:
++				m = 0xe; break;
++			case OMAP_DSS_COLOR_XRGB15:
++				m = 0xf; break;
++		}
+ 	case OMAP_DSS_COLOR_RGB12U:
+-		m = 0x4; break;
++		if ((!cpu_is_omap44xx()) || (OMAP_DSS_GFX == plane))
++			m = 0x4;
++		else
++			m = 0x1;
++			break;
+ 	case OMAP_DSS_COLOR_ARGB16:
+ 		m = 0x5; break;
+ 	case OMAP_DSS_COLOR_RGB16:
+@@ -1087,8 +1107,6 @@ static void _dispc_set_color_mode(enum omap_plane plane,
+ 		m = 0xc; break;
+ 	case OMAP_DSS_COLOR_RGBA32:
+ 		m = 0xd; break;
+-	case OMAP_DSS_COLOR_RGBX32:
+-		m = 0xe; break;
+ 	default:
+ 		BUG(); break;
+ 	}
+@@ -1901,7 +1919,16 @@ static int _dispc_setup_plane(enum omap_plane plane,
+ 		case OMAP_DSS_COLOR_RGBA32:
+ 			if (cpu_is_omap24xx())
+ 				return -EINVAL;
+-			if (plane == OMAP_DSS_VIDEO1)
++			if ((!cpu_is_omap44xx()) && (plane == OMAP_DSS_VIDEO1))
++				return -EINVAL;
++			break;
++
++		case OMAP_DSS_COLOR_RGBA12:
++		case OMAP_DSS_COLOR_XRGB12:
++		case OMAP_DSS_COLOR_ARGB16_1555:
++		case OMAP_DSS_COLOR_RGBX24_32_ALGN:
++		case OMAP_DSS_COLOR_XRGB15:
++			if (!cpu_is_omap44xx())
+ 				return -EINVAL;
+ 			break;
+ 
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index 0c189f8..4a2d908 100644
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -588,7 +588,8 @@ void dss_init_overlays(struct platform_device *pdev)
+ 		case 0:
+ 			ovl->name = "gfx";
+ 			ovl->id = OMAP_DSS_GFX;
+-			ovl->supported_modes = cpu_is_omap34xx() ?
++			ovl->supported_modes = (cpu_is_omap44xx() |
++				cpu_is_omap34xx()) ?
+ 				OMAP_DSS_COLOR_GFX_OMAP3 :
+ 				OMAP_DSS_COLOR_GFX_OMAP2;
+ 			ovl->caps = OMAP_DSS_OVL_CAP_DISPC;
+@@ -598,7 +599,9 @@ void dss_init_overlays(struct platform_device *pdev)
+ 		case 1:
+ 			ovl->name = "vid1";
+ 			ovl->id = OMAP_DSS_VIDEO1;
+-			ovl->supported_modes = cpu_is_omap34xx() ?
++			ovl->supported_modes =	cpu_is_omap44xx() ?
++				OMAP_DSS_COLOR_VID_OMAP4 :
++				cpu_is_omap34xx() ?
+ 				OMAP_DSS_COLOR_VID1_OMAP3 :
+ 				OMAP_DSS_COLOR_VID_OMAP2;
+ 			ovl->caps = OMAP_DSS_OVL_CAP_SCALE |
+@@ -611,8 +614,10 @@ void dss_init_overlays(struct platform_device *pdev)
+ 		case 2:
+ 			ovl->name = "vid2";
+ 			ovl->id = OMAP_DSS_VIDEO2;
+-			ovl->supported_modes = cpu_is_omap34xx() ?
+-				OMAP_DSS_COLOR_VID2_OMAP3 :
++			ovl->supported_modes = cpu_is_omap44xx() ?
++				OMAP_DSS_COLOR_VID_OMAP4 :
++				cpu_is_omap34xx() ?
++				OMAP_DSS_COLOR_VID1_OMAP3 :
+ 				OMAP_DSS_COLOR_VID_OMAP2;
+ 			ovl->caps = OMAP_DSS_OVL_CAP_SCALE |
+ 				OMAP_DSS_OVL_CAP_DISPC;
+@@ -624,7 +629,7 @@ void dss_init_overlays(struct platform_device *pdev)
+ 		case 3:
+ 			ovl->name = "vid3";
+ 			ovl->id = OMAP_DSS_VIDEO3;
+-			ovl->supported_modes = OMAP_DSS_COLOR_VID3_OMAP3;
++			ovl->supported_modes = OMAP_DSS_COLOR_VID_OMAP4;
+ 			ovl->caps = OMAP_DSS_OVL_CAP_SCALE |
+ 				OMAP_DSS_OVL_CAP_DISPC;
+ 			ovl->info.global_alpha = 255;
 -- 
-Felipe Contreras
+1.5.6.3
+
