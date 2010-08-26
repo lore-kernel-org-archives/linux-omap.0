@@ -1,49 +1,33 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: RE: [RFC  PATCH] Board support for the the GPIO keys
-Date: Thu, 26 Aug 2010 14:17:13 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003B3A39E75@dbde02.ent.ti.com>
-References: <1282218130-17111-1-git-send-email-shubhrajyoti@ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0324222967@dbde02.ent.ti.com>
- <877hje5iti.fsf@deeprootsystems.com>
+From: Arno Steffen <arno.steffen@googlemail.com>
+Subject: Bug in omap mtd nand driver
+Date: Thu, 26 Aug 2010 10:55:17 +0200
+Message-ID: <AANLkTi=O0S-NWKQqXf3=NC4n_j-Sq91GeNJrWxAhJc7_@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56333 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753372Ab0HZIrV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 04:47:21 -0400
-In-Reply-To: <877hje5iti.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:40263 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753246Ab0HZIzS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 04:55:18 -0400
+Received: by iwn5 with SMTP id 5so1404666iwn.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 01:55:17 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-Thanks for the review
+The setting NAND_NO_SUBPAGE_WRITE in omap_nand_platform_data is not used.
+I am using SLC NAND - MT29F1G16ABC , which seems not to support subpages.
+I can observe that kernel allows sub-page-writes.
+I tried to find out what is happend with the options, but after a
+while I get lost in numerous copies of structs ...
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, August 26, 2010 5:47 AM
-> To: Gadiyar, Anand
-> Cc: Datta, Shubhrajyoti; linux-omap@vger.kernel.org; linux-
-> input@vger.kernel.org
-> Subject: Re: [RFC PATCH] Board support for the the GPIO keys
-> 
-> "Gadiyar, Anand" <gadiyar@ti.com> writes:
-> 
-> > Datta, Shubhrajyoti wrote:
-> >> Subject: [RFC PATCH] Board support for the the GPIO keys
-> >>
-> >
-> > Please tag $SUBJECT with something like "omap: 4430sdp: "
-> 
-> and add "add proximity sensor support via GPIO keys"
-> 
-Yes, missed it in this patch. Tried to fix it later.
-Please review the following patch.
+Options are still correct in beginning of omap_nand_probe but finally
+it ends up in setting its option independent from platform options.
+	info->nand.options  |= NAND_SKIP_BBTSCAN;
+	if ((gpmc_cs_read_reg(info->gpmc_cs, GPMC_CS_CONFIG1) & 0x3000)
+								== 0x1000)
+		info->nand.options  |= NAND_BUSWIDTH_16;
 
-https://patchwork.kernel.org/patch/125521/
+This observations are done in a plain vanilla 2.6.33 kernel on an OMAP3 board.
 
-
-> Kevin
+Can someone confirm that and know how to change that in a clean way?
