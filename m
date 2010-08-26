@@ -1,48 +1,78 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 3/3] davinci: Map sram using MT_MEMORY_NONCACHED instead  of MT_DEVICE
-Date: Thu, 26 Aug 2010 14:37:28 -0700
-Message-ID: <87hbih2gyv.fsf@deeprootsystems.com>
-References: <1281262702-27732-1-git-send-email-santosh.shilimkar@ti.com>
-	<AANLkTi=9k19RUmfnNBO8AfFj_LtyNtsPPVYC_=-AW5yE@mail.gmail.com>
+Subject: Re: [PATCH 0/5 v3] OMAP2PLUS: WDT: Implement WDT in HWMOD way
+Date: Thu, 26 Aug 2010 15:54:46 -0700
+Message-ID: <87y6btx9vt.fsf@deeprootsystems.com>
+References: <1281965809-20585-1-git-send-email-charu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:39249 "EHLO
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:46684 "EHLO
 	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751943Ab0HZVhb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 17:37:31 -0400
-Received: by pzk9 with SMTP id 9so786084pzk.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 14:37:31 -0700 (PDT)
-In-Reply-To: <AANLkTi=9k19RUmfnNBO8AfFj_LtyNtsPPVYC_=-AW5yE@mail.gmail.com>
-	(Kevin Hilman's message of "Thu, 19 Aug 2010 11:29:27 -0700")
+	with ESMTP id S1752887Ab0HZWyt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 18:54:49 -0400
+Received: by pzk9 with SMTP id 9so807167pzk.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 15:54:49 -0700 (PDT)
+In-Reply-To: <1281965809-20585-1-git-send-email-charu@ti.com> (Charulatha V.'s
+	message of "Mon, 16 Aug 2010 19:06:44 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, davinci-linux-open-source@linux.davincidsp.com
+To: Charulatha V <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, wim@iguana.be, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Charulatha V <charu@ti.com> writes:
 
-> On Sun, Aug 8, 2010 at 3:18 AM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com> wrote:
->> On Davinci SRAM is mapped as MT_DEVICE becasue of the section
->> mapping pre-requisite instead of intended MT_MEMORY_NONCACHED
->>
->> Since the section mapping limitation gets fixed with first
->> patch in this series, the MT_MEMORY_NONCACHED can be used now.
->>
->> Have not tested this, so somebody with Davinci hardware can
->> try this out
->>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: davinci-linux-open-source@linux.davincidsp.com
->> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> This patch series makes OMAP2PLUS Watchdog Timer Module implemented
+> in HWMOD FW way. It also implements Watchdog timer driver to
+> use the runtime PM layer.
+
+minor nit: hwmod should not be capitalized, as it's not an acronym.
+This common across the other conversions as well, so it's not unique to
+you.  You just got lucky and got picked on today. :)
+
+> This patch series is created on "origin/pm-wip/hwmods-omap4".
 >
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> This patch series is tested on OMAP3430 SDP and OMAP4430 SDP.
+> It would be of great help if someone could test the same on
+> OMAP1 and OMAP2 boards.
 
-Also, FYI... while not a very thorough test, I boot-tested this series
-on DaVinci (dm355, omapl138) and it worked fine.
-
-I'll include in davinci git (in the davinci-testing branch) so it gets a
-bit more testing.
+At a bare minimum, this should be at least compile tested for OMAP1 &
+OMAP2.  Also, your team should have some OMAP2 hardware.  Please boot
+test there.
 
 Kevin
+
+> Version History:
+> ---------------
+> Vesrion v3:
+> Fix Minor comments like renaming omap1 watchdog structures
+> with an omap1_ prefix
+>
+> Version v2:
+> Rebase to latest kernel
+> Some of the v2 links:
+> http://www.spinics.net/lists/linux-omap/msg34741.html
+> http://www.spinics.net/lists/linux-omap/msg34673.html
+>
+> Version v1:
+> Initial series
+> Some of the v1 links:
+> http://www.spinics.net/lists/linux-omap/msg30628.html
+> http://www.spinics.net/lists/linux-omap/msg30625.html
+>
+> Benoit Cousson (1):
+>   OMAP4 HWMOD: Add watchdog hwmods.
+>
+> Charulatha V (4):
+>   OMAP3: WDT: Add watchdog timer HWMOD data for OMAP3
+>   OMAP2420: WDT: Add watchdog timer HWMOD data for OMAP2420
+>   OMAP2430: WDT: Add watchdog timer HWMOD data for OMAP2430
+>   OMAP2PLUS: WDT: Conversion to runtime PM
+>
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   59 ++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   59 ++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   61 +++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   68 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/prcm-common.h          |    4 ++
+>  arch/arm/plat-omap/devices.c               |   64 ++++++++++++++++++--------
+>  drivers/watchdog/omap_wdt.c                |   43 +++--------------
+>  7 files changed, 303 insertions(+), 55 deletions(-)
