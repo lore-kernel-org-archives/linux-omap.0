@@ -1,38 +1,33 @@
 From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH 6/8 v2] usb: musb: Offmode fix for idle path
-Date: Wed, 25 Aug 2010 17:09:36 -0700
-Message-ID: <87iq2y5j5r.fsf@deeprootsystems.com>
-References: <1282140624-29715-1-git-send-email-hemahk@ti.com>
+Subject: Re: [PATCH 8/8 v2] usb : musb: Using runtime pm apis for musb.
+Date: Wed, 25 Aug 2010 17:13:32 -0700
+Message-ID: <87bp8q5iz7.fsf@deeprootsystems.com>
+References: <1282140679-29963-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1282140624-29715-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org> (Hema HK's
-	message of "Wed, 18 Aug 2010 19:40:24 +0530")
+In-Reply-To: <1282140679-29963-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org> (Hema HK's
+	message of "Wed, 18 Aug 2010 19:41:19 +0530")
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 Hema HK <hemahk-l0cyMroinI0@public.gmane.org> writes:
 
-> With OMAP core-off support musb was not functional as context was getting
-> lost after wakeup from core-off. And also musb was blocking the core-off
-> after loading the gadget driver even with no cable connected sometimes.
+> Calling runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
+> for enabling/disabling the clocks,sysconfig settings.
 >
-> Added the conext save/restore api in the platform layer which will
-> be called in the idle and wakeup path.
+> used omap_hwmod_enable_wakeup & omap_hwmod_disable_wakeup apis to set/clear
+> the wakeup enable bit.
+> Also need to put the USB in force standby and force idle mode when usb not used
+> and set it back to smart idle and smart stndby after wakeup.
+> these cases are handled using the oh flags.
+> For omap3430 auto idle bit has to be disabled because of the errata.So using
+> HWMOD_NO_OCP_AUTOIDLE flag for OMAP3430.
 >
-> Changed the usb sysconfig settings as per the usbotg functional spec.
-> When the device is not used, configure to force idle and force standby mode.
-> When it is being used, configure in smart standby and smart idle mode.
-> So while attempting to coreoff the usb is configured to force standby and
-> force idle mode, after wakeup configured in smart idle and smart standby.
-
-You don't describe the new .clk_autogated field added here.  That part
-should be a separate patch as it's not directly related to $SUBJECT patch.
-
 > Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Basak, Partha <p-basak2-l0cyMroinI0@public.gmane.org>
 >
 > Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
@@ -40,290 +35,418 @@ should be a separate patch as it's not directly related to $SUBJECT patch.
 > Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
 > Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 > ---
->  arch/arm/mach-omap2/pm34xx.c          |    5 +++
->  arch/arm/mach-omap2/usb-musb.c        |   42 ++++++++++++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/usb.h |    2 +
->  drivers/usb/musb/musb_core.c          |   10 +++----
->  drivers/usb/musb/musb_core.h          |    1 -
->  drivers/usb/musb/omap2430.c           |   48 ++++++++++++++++++++++++++++++---
->  include/linux/usb/musb.h              |    6 ++++
->  7 files changed, 102 insertions(+), 12 deletions(-)
+>  arch/arm/mach-omap2/pm34xx.c          |    8 ++-
+>  arch/arm/mach-omap2/usb-musb.c        |   86 ++++++++++++++++++++++++++++++--
+>  arch/arm/plat-omap/include/plat/usb.h |    9 +++-
+>  drivers/usb/musb/musb_core.c          |   12 +++++
+>  drivers/usb/musb/omap2430.c           |   65 +++++--------------------
+>  include/linux/usb/musb.h              |    8 +++
+>  6 files changed, 127 insertions(+), 61 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index fb4994a..7b34201 100644
+> index 7b34201..0eb39b3 100644
 > --- a/arch/arm/mach-omap2/pm34xx.c
 > +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -39,6 +39,7 @@
->  #include <plat/gpmc.h>
->  #include <plat/dma.h>
->  #include <plat/dmtimer.h>
-> +#include <plat/usb.h>
->  
->  #include <asm/tlbflush.h>
->  
-> @@ -416,6 +417,8 @@ void omap_sram_idle(void)
->  		if (core_next_state == PWRDM_POWER_OFF) {
+> @@ -418,7 +418,9 @@ void omap_sram_idle(void)
 >  			omap3_core_save_context();
 >  			omap3_prcm_save_context();
-> +			/* Save MUSB context */
-> +			musb_context_save_restore(1);
+>  			/* Save MUSB context */
+> -			musb_context_save_restore(1);
+> +			musb_context_save_restore(save_context);
+> +		} else {
+> +			musb_context_save_restore(disable_clk);
+
+Presumably the 'disable_clk' is meant to mean "no need to save context,
+just disable clock", in which case the function name is not really
+accurate anymore.  
+
+What is needed is just a general function that takes the next power
+state and let the function internals make the decision.  The idle loop
+should not have IP-specific logic in it.
+
+I don't really want any IP specific logic in this part of the idle loop.
+What I really would like to see is all of this driver specific stuff
+moved out of the core idle path and done before interrupts are disabled.
+
+If we can do this before interrups are disabled (a bit earlier in the
+CPUidle path), then we can just use the normal runtime PM API and not
+have to handle the special cases of doing all this black magic inside
+the core idle path.
+
 >  		}
 >  	}
 >  
-> @@ -458,6 +461,8 @@ void omap_sram_idle(void)
->  			omap3_prcm_restore_context();
+> @@ -462,7 +464,9 @@ void omap_sram_idle(void)
 >  			omap3_sram_restore_context();
 >  			omap2_sms_restore_context();
-> +			/* restore MUSB context */
-> +			musb_context_save_restore(0);
+>  			/* restore MUSB context */
+> -			musb_context_save_restore(0);
+> +			musb_context_save_restore(restore_context);
+> +		} else {
+> +			musb_context_save_restore(enable_clk);
 >  		}
 >  		omap_uart_resume_idle(0);
 >  		omap_uart_resume_idle(1);
 > diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> index c228cc0..9d10440 100644
+> index 9d10440..b7736d2 100644
 > --- a/arch/arm/mach-omap2/usb-musb.c
 > +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -35,6 +35,7 @@
+> @@ -23,6 +23,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/io.h>
+> +#include <linux/pm_runtime.h>
 >  
->  static const char name[] = "musb_hdrc";
->  #define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
-> +struct omap_hwmod *oh_p =NULL;
+>  #include <linux/usb/musb.h>
 >  
->  static struct musb_hdrc_config musb_config = {
->  	.multipoint	= 1,
-> @@ -59,6 +60,9 @@ static struct musb_hdrc_platform_data musb_plat = {
->  	 * "mode", and should be passed to usb_musb_init().
->  	 */
->  	.power		= 50,			/* up to 100 mA */
-> +
-> +	/* supports clock autogating */
-> +	.clk_autogated	= 1,
-
-This appears unrelated, and should be a separate patch.
-
+> @@ -64,13 +65,32 @@ static struct musb_hdrc_platform_data musb_plat = {
+>  	/* supports clock autogating */
+>  	.clk_autogated	= 1,
 >  };
->  
+> +static int usb_idle_hwmod(struct omap_device *od)
+> +{
+> +	struct omap_hwmod *oh = *od->hwmods;
+> +	if (irqs_disabled())
+> +		_omap_hwmod_idle(oh);
+> +	else
+> +		omap_device_idle_hwmods(od);
+> +	return 0;
+> +}
+> +
+> +static int usb_enable_hwmod(struct omap_device *od)
+> +{
+> +	struct omap_hwmod *oh = *od->hwmods;
+> +	if (irqs_disabled())
+> +		_omap_hwmod_enable(oh);
+> +	else
+> +		omap_device_enable_hwmods(od);
+> +	return 0;
+> +}
+
+see above.  Please move the musb pre-idle outside of the interrupts
+disabled part of the idle loop and you can get rid of this special
+handling.
+
 >  static u64 musb_dmamask = DMA_BIT_MASK(32);
-> @@ -97,7 +101,7 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>  
+>  static struct omap_device_pm_latency omap_musb_latency[] = {
+>  	{
+> -		.deactivate_func = omap_device_idle_hwmods,
+> -		.activate_func   = omap_device_enable_hwmods,
+> +		.deactivate_func = usb_idle_hwmod,
+> +		.activate_func   = usb_enable_hwmod,
+>  		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>  	},
+>  };
+> @@ -100,6 +120,8 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>  	musb_plat.power = board_data->power >> 1;
 >  	musb_plat.mode = board_data->mode;
 >  	musb_plat.extvbus = board_data->extvbus;
+> +	musb_plat.enable_wakeup = omap_device_enable_wakeup;
+> +	musb_plat.disable_wakeup = omap_device_disable_wakeup;
 >  	pdata = &musb_plat;
-> -
-> +	oh_p = oh;
+>  	oh_p = oh;
 >  	od = omap_device_build(name, bus_id, oh, pdata,
->  			       sizeof(struct musb_hdrc_platform_data),
->  						omap_musb_latency,
-> @@ -116,8 +120,44 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+> @@ -120,7 +142,7 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
 >  
 >  }
 >  
-> +void musb_context_save_restore(int save)
-> +{
-> +	struct omap_hwmod *oh = oh_p;
-> +	struct omap_device *od;
-> +	struct platform_device *pdev;
-> +	struct device *dev;
-> +	struct device_driver *drv;
-> +	struct musb_hdrc_platform_data *pdata;
-> +	const struct dev_pm_ops *pm;
+> -void musb_context_save_restore(int save)
+> +void musb_context_save_restore(enum musb_state state)
+>  {
+>  	struct omap_hwmod *oh = oh_p;
+>  	struct omap_device *od;
+> @@ -145,10 +167,62 @@ void musb_context_save_restore(int save)
+>  
+>  		if (!pdata->is_usb_active(dev)) {
+>  
+> -			if (save)
+> +			switch (state) {
+> +			case save_context:
+> +				/* As per the OMAP USBOTG specicifcation,
+> +				 * if USB device is not active and attempting
+> +				 * to core off then save the context,
+> +				 * set the sysconfig reg to force standby
+> +				 * force idle and disable the clock.
+> +				 */
+> +				oh->flags |= HWMOD_SWSUP_SIDLE
+> +						| HWMOD_SWSUP_MSTANDBY;
+>  				pm->suspend(dev);
+> -			else
+> +				pm_runtime_put_sync(dev);
 > +
-> +	if (!oh)
-> +		return;
-> +	od = oh->od;
-> +	pdev = &od->pdev;
-> +	if (!pdev)
-> +		return;
-> +	dev = &pdev->dev;
-> +	drv = dev->driver;
+> +				break;
 > +
-> +	if (drv) {
-> +		pdata = dev->platform_data;
-> +		pm = drv->pm;
+> +			case disable_clk:
+> +				/* If the USB device not active then
+> +				 * set the sysconfig setting
+> +				 * to force standby force idle and
+> +				 * disable the clock.
+> +				 */
+> +				oh->flags |= HWMOD_SWSUP_SIDLE
+> +					| HWMOD_SWSUP_MSTANDBY;
+> +				pm_runtime_put_sync(dev);
 > +
-> +		if (!pdata->is_usb_active(dev)) {
+> +				break;
 > +
-> +			if (save)
-> +				pm->suspend(dev);
-> +			else
-> +				pm->resume_noirq(dev);
-
--ECONFUSED
-
-First, this 'save_restore' function neither saves or restores anything.
-
-Second, I'm thoroughly confused about why you are simulating a system
-suspend/resume here? 
-
-Kevin
-
-> +		}
-> +	}
-> +}
+> +			case restore_context:
+> +				/* As per the OMAP USBOTG specicifcation,
+> +				 * configure the USB into smart idle and smart
+> +				 * standbyduring active. Enable the
+> +				 * clock, set the sysconfig back to smart idle
+> +				 * and smart stndby and restore the context
+> +				 * after wakeup from core-off.
+> +				 */
+> +				oh->flags &= ~(HWMOD_SWSUP_SIDLE
+> +					| HWMOD_SWSUP_MSTANDBY);
+> +				pm_runtime_get_sync(dev);
+>  				pm->resume_noirq(dev);
 > +
->  #else
+> +				break;
+> +
+> +			case enable_clk:
+> +				/* Set the sysconfig back to smart
+> +				 * idle and smart stndby after wakeup and
+> +				 * enable the clock.
+> +				 */
+> +				oh->flags &= ~(HWMOD_SWSUP_SIDLE
+> +					| HWMOD_SWSUP_MSTANDBY);
+> +				pm_runtime_get_sync(dev);
+> +
+> +				break;
+> +
+> +			default:
+> +				break;
+> +			}
+>  		}
+>  	}
+>  }
+> @@ -157,7 +231,7 @@ void musb_context_save_restore(int save)
 >  void __init usb_musb_init(struct omap_musb_board_data *board_data)
 >  {
 >  }
-> +void musb_context_save_restore(int save)
-> +{
-> +}
+> -void musb_context_save_restore(int save)
+> +void musb_context_save_restore(enum musb_state state)
+>  {
+>  }
 >  #endif /* CONFIG_USB_MUSB_SOC */
 > diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-> index 2a9427c..ed2b41a 100644
+> index ed2b41a..82b8618 100644
 > --- a/arch/arm/plat-omap/include/plat/usb.h
 > +++ b/arch/arm/plat-omap/include/plat/usb.h
-> @@ -79,6 +79,8 @@ extern void usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata);
+> @@ -71,6 +71,13 @@ struct omap_musb_board_data {
+>  	unsigned extvbus:1;
+>  };
 >  
+> +enum musb_state {
+> +	save_context = 1,
+> +	disable_clk,
+> +	restore_context,
+> +	enable_clk,
+> +	};
+> +
+>  enum musb_interface    {MUSB_INTERFACE_ULPI, MUSB_INTERFACE_UTMI};
+>  
+>  extern void usb_musb_init(struct omap_musb_board_data *board_data);
+> @@ -80,7 +87,7 @@ extern void usb_ehci_init(const struct ehci_hcd_omap_platform_data *pdata);
 >  extern void usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata);
 >  
-> +/* For saving and restoring the musb context during off/wakeup*/
-> +extern void musb_context_save_restore(int save);
+>  /* For saving and restoring the musb context during off/wakeup*/
+> -extern void musb_context_save_restore(int save);
+> +extern void musb_context_save_restore(enum musb_state state);
 >  #endif
 >  
 >  
 > diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 2a50d12..8510e55 100644
+> index 8510e55..e875c83 100644
 > --- a/drivers/usb/musb/musb_core.c
 > +++ b/drivers/usb/musb/musb_core.c
-> @@ -2410,6 +2410,7 @@ static int musb_suspend(struct device *dev)
->  	struct platform_device *pdev = to_platform_device(dev);
->  	unsigned long	flags;
->  	struct musb	*musb = dev_to_musb(&pdev->dev);
-> +	struct musb_hdrc_platform_data *plat = dev->platform_data;
+> @@ -2456,9 +2456,21 @@ static int musb_resume_noirq(struct device *dev)
+>  	return 0;
+>  }
+>  
+> +static int musb_runtime_suspend(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int musb_runtime_resume(struct device *dev)
+> +{
+> +	return 0;
+> +}
+> +
+>  static const struct dev_pm_ops musb_dev_pm_ops = {
+>  	.suspend	= musb_suspend,
+>  	.resume_noirq	= musb_resume_noirq,
+> +	.runtime_suspend = musb_runtime_suspend,
+> +	.runtime_resume	 = musb_runtime_resume,
+>  };
+>  
+>  #define MUSB_DEV_PM_OPS (&musb_dev_pm_ops)
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index dcba935..d83b644 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -31,6 +31,8 @@
+>  #include <linux/list.h>
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/platform_device.h>
+>  
+>  #include <plat/mux.h>
+>  
+> @@ -219,22 +221,6 @@ int __init musb_platform_init(struct musb *musb)
+>  	}
+>  
+>  	musb_platform_resume(musb);
+> -
+> -	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+> -	l &= ~ENABLEWAKEUP;	/* disable wakeup */
+> -	l &= ~NOSTDBY;		/* remove possible nostdby */
+> -	l |= SMARTSTDBY;	/* enable smart standby */
+> -	l &= ~AUTOIDLE;		/* disable auto idle */
+> -	l &= ~NOIDLE;		/* remove possible noidle */
+> -	l |= SMARTIDLE;		/* enable smart idle */
+> -	/*
+> -	 * MUSB AUTOIDLE don't work in 3430.
+> -	 * Workaround by Richard Woodruff/TI
+> -	 */
+> -	if (!cpu_is_omap3430())
+> -		l |= AUTOIDLE;		/* enable auto idle */
+> -	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+> -
+>  	l = musb_readl(musb->mregs, OTG_INTERFSEL);
+>  
+>  	if (data->interface_type == MUSB_INTERFACE_UTMI) {
+> @@ -274,16 +260,6 @@ void musb_platform_save_context(struct musb *musb,
+>  	 */
+>  	void __iomem *musb_base = musb->mregs;
+>  
+> -	musb_writel(musb_base, OTG_FORCESTDBY, 0);
+> -
+> -	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> -				OTG_SYSCONFIG) & ~(NOSTDBY | SMARTSTDBY));
+> -
+> -	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> -					OTG_SYSCONFIG) & ~AUTOIDLE);
+> -
+> -	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> -				OTG_SYSCONFIG) & ~(NOIDLE | SMARTIDLE));
+>  
+>  	musb_writel(musb_base, OTG_FORCESTDBY, 1);
+>  }
+> @@ -298,18 +274,15 @@ void musb_platform_restore_context(struct musb *musb,
+>  	void __iomem *musb_base = musb->mregs;
+>  
+>  	musb_writel(musb_base, OTG_FORCESTDBY, 0);
+> -
+> -	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> -				OTG_SYSCONFIG) | SMARTSTDBY);
+> -
+> -	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
+> -				OTG_SYSCONFIG) | SMARTIDLE | ENABLEWAKEUP);
+>  }
+>  #endif
+>  
+>  static int musb_platform_suspend(struct musb *musb)
+>  {
+>  	u32 l;
+> +	struct device *dev = musb->controller;
+> +	struct musb_hdrc_platform_data *pdata = dev->platform_data;
+> +	struct platform_device *pdev = to_platform_device(dev);
 >  
 >  	if (!musb->clock)
 >  		return 0;
-> @@ -2428,9 +2429,7 @@ static int musb_suspend(struct device *dev)
->  
->  	musb_save_context(musb);
->  
+> @@ -318,17 +291,9 @@ static int musb_platform_suspend(struct musb *musb)
+>  	l = musb_readl(musb->mregs, OTG_FORCESTDBY);
+>  	l |= ENABLEFORCE;	/* enable MSTANDBY */
+>  	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+> -
+> -	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+> -	l |= ENABLEWAKEUP;	/* enable wakeup */
+> -	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+> -
+> +	pdata->enable_wakeup(pdev);
+>  	otg_set_suspend(musb->xceiv, 1);
+> -
 > -	if (musb->set_clock)
 > -		musb->set_clock(musb->clock, 0);
 > -	else
-> +	if (!plat->clk_autogated)
->  		clk_disable(musb->clock);
->  	spin_unlock_irqrestore(&musb->lock, flags);
+> -		clk_disable(musb->clock);
+> +	pm_runtime_put_sync(dev);
+>  
 >  	return 0;
-> @@ -2440,13 +2439,12 @@ static int musb_resume_noirq(struct device *dev)
+>  }
+> @@ -336,21 +301,17 @@ static int musb_platform_suspend(struct musb *musb)
+>  static int musb_platform_resume(struct musb *musb)
 >  {
->  	struct platform_device *pdev = to_platform_device(dev);
->  	struct musb	*musb = dev_to_musb(&pdev->dev);
-> +	struct musb_hdrc_platform_data *plat = dev->platform_data;
+>  	u32 l;
+> +	struct device *dev = musb->controller;
+> +	struct musb_hdrc_platform_data *pdata = dev->platform_data;
+> +	struct platform_device *pdev = to_platform_device(dev);
 >  
 >  	if (!musb->clock)
 >  		return 0;
 >  
+>  	otg_set_suspend(musb->xceiv, 0);
+> -
 > -	if (musb->set_clock)
 > -		musb->set_clock(musb->clock, 1);
 > -	else
-> +	if (!plat->clk_autogated)
->  		clk_enable(musb->clock);
->  
->  	musb_restore_context(musb);
-> diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-> index 85a92fd..bfdf54d 100644
-> --- a/drivers/usb/musb/musb_core.h
-> +++ b/drivers/usb/musb/musb_core.h
-> @@ -472,7 +472,6 @@ struct musb_context_registers {
->  
->  #if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
->      defined(CONFIG_ARCH_OMAP4)
-> -	u32 otg_sysconfig, otg_forcestandby;
->  #endif
->  	u8 power;
->  	u16 intrtxe, intrrxe;
-> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-> index 3bae428..dcba935 100644
-> --- a/drivers/usb/musb/omap2430.c
-> +++ b/drivers/usb/musb/omap2430.c
-> @@ -188,6 +188,18 @@ int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
->  
->  	return 0;
->  }
-> +int is_musb_active(struct device *dev)
-> +{
-> +	struct musb *musb;
-> +
-> +#ifdef CONFIG_USB_MUSB_HDRC_HCD
-> +	/* usbcore insists dev->driver_data is a "struct hcd *" */
-> +	musb = hcd_to_musb(dev_get_drvdata(dev));
-> +#else
-> +	musb = dev_get_drvdata(dev);
-> +#endif
-> +	return musb->is_active;
-> +}
->  
->  int __init musb_platform_init(struct musb *musb)
->  {
-> @@ -246,6 +258,7 @@ int __init musb_platform_init(struct musb *musb)
->  	if (is_host_enabled(musb))
->  		musb->board_set_vbus = omap_set_vbus;
->  
-> +	plat->is_usb_active = is_musb_active;
->  	setup_timer(&musb_idle_timer, musb_do_idle, (unsigned long) musb);
->  
->  	return 0;
-> @@ -255,15 +268,42 @@ int __init musb_platform_init(struct musb *musb)
->  void musb_platform_save_context(struct musb *musb,
->  		struct musb_context_registers *musb_context)
->  {
-> -	musb_context->otg_sysconfig = musb_readl(musb->mregs, OTG_SYSCONFIG);
-> -	musb_context->otg_forcestandby = musb_readl(musb->mregs, OTG_FORCESTDBY);
-> +	/*
-> +	 * As per the omap-usbotg specification, configure it to forced standby
-> +	 * and  force idle mode when no activity on usb.
-> +	 */
-> +	void __iomem *musb_base = musb->mregs;
-> +
-> +	musb_writel(musb_base, OTG_FORCESTDBY, 0);
-> +
-> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
-> +				OTG_SYSCONFIG) & ~(NOSTDBY | SMARTSTDBY));
-> +
-> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
-> +					OTG_SYSCONFIG) & ~AUTOIDLE);
-> +
-> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
-> +				OTG_SYSCONFIG) & ~(NOIDLE | SMARTIDLE));
-> +
-> +	musb_writel(musb_base, OTG_FORCESTDBY, 1);
->  }
->  
->  void musb_platform_restore_context(struct musb *musb,
->  		struct musb_context_registers *musb_context)
->  {
-> -	musb_writel(musb->mregs, OTG_SYSCONFIG, musb_context->otg_sysconfig);
-> -	musb_writel(musb->mregs, OTG_FORCESTDBY, musb_context->otg_forcestandby);
-> +	/*
-> +	 * As per the omap-usbotg specification, configure it smart standby
-> +	 * and smart idle during operation.
-> +	 */
-> +	void __iomem *musb_base = musb->mregs;
-> +
-> +	musb_writel(musb_base, OTG_FORCESTDBY, 0);
-> +
-> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
-> +				OTG_SYSCONFIG) | SMARTSTDBY);
-> +
-> +	musb_writel(musb_base, OTG_SYSCONFIG, musb_readl(musb_base,
-> +				OTG_SYSCONFIG) | SMARTIDLE | ENABLEWAKEUP);
->  }
->  #endif
->  
+> -		clk_enable(musb->clock);
+> -
+> -	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
+> -	l &= ~ENABLEWAKEUP;	/* disable wakeup */
+> -	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
+> -
+> +	pm_runtime_enable(dev);
+> +	pm_runtime_get_sync(dev);
+> +	pdata->enable_wakeup(pdev);
+
+I think you mean ->disable_wakeup() here, right?
+
+Also, remember that usage of the runtime PM API is usecount based, and
+the low level functions are only called when the usecount transitions
+to/from zero.
+
+Therefore, anything you want to happen when the actual HW transition
+happens should be done in the drivers .runtime_suspend & .runtime_resume
+callbacks instead of done when you call the runtime PM API.
+
+Alternatively, don't do this from the driver at all.  Your device layer
+already has customized hooks for the idle transitions.  Just do it
+there, and avoid the need to add another pdata hook.
+
+>  	l = musb_readl(musb->mregs, OTG_FORCESTDBY);
+>  	l &= ~ENABLEFORCE;	/* disable MSTANDBY */
+>  	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+
+Shouldn't this part be removed too?
+
 > diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-> index ee2dd1d..da134ab 100644
+> index da134ab..20b2cc8 100644
 > --- a/include/linux/usb/musb.h
 > +++ b/include/linux/usb/musb.h
-> @@ -126,6 +126,12 @@ struct musb_hdrc_platform_data {
+> @@ -93,6 +93,8 @@ struct musb_hdrc_config {
 >  
->  	/* Architecture specific board data	*/
->  	void		*board_data;
+>  };
+>  
+> +struct platform_device;
 > +
-> +	/* check usb device active state*/
-> +	int		(*is_usb_active)(struct device *dev);
+>  struct musb_hdrc_platform_data {
+>  	/* MUSB_HOST, MUSB_PERIPHERAL, or MUSB_OTG */
+>  	u8		mode;
+> @@ -132,6 +134,12 @@ struct musb_hdrc_platform_data {
+>  
+>  	/*  indiates whether clock is autogated */
+>  	int		clk_autogated;
 > +
-> +	/*  indiates whether clock is autogated */
-> +	int		clk_autogated;
+> +	/* set the enable wakeup bit of sysconfig register */
+> +	int		(*enable_wakeup)(struct platform_device *pdev);
+> +
+> +	/* Clear the enable wakeup bit  of sysconfig register */
+> +	int		(*disable_wakeup)(struct platform_device *pdev);
 >  };
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
