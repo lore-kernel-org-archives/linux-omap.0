@@ -1,27 +1,23 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 08/20] Replace clk_enable/disable APIs with HWMOD APIs
-Date: Thu, 26 Aug 2010 16:37:36 -0700
-Message-ID: <87sk21t073.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 04/20] Create platform_driver for each DSS HW IP
+Date: Thu, 26 Aug 2010 16:52:20 -0700
+Message-ID: <877hjdszij.fsf@deeprootsystems.com>
 References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
 	<1282579089-10487-2-git-send-email-svadivu@ti.com>
 	<1282579089-10487-3-git-send-email-svadivu@ti.com>
 	<1282579089-10487-4-git-send-email-svadivu@ti.com>
 	<1282579089-10487-5-git-send-email-svadivu@ti.com>
-	<1282579089-10487-6-git-send-email-svadivu@ti.com>
-	<1282579089-10487-7-git-send-email-svadivu@ti.com>
-	<1282579089-10487-8-git-send-email-svadivu@ti.com>
-	<1282579089-10487-9-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:54677 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753297Ab0HZXhi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 19:37:38 -0400
-Received: by pwi7 with SMTP id 7so917308pwi.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 16:37:38 -0700 (PDT)
-In-Reply-To: <1282579089-10487-9-git-send-email-svadivu@ti.com> (Guruswamy
-	Senthilvadivu's message of "Mon, 23 Aug 2010 21:27:57 +0530")
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:62566 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015Ab0HZXwY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 19:52:24 -0400
+Received: by gyd8 with SMTP id 8so895392gyd.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 16:52:23 -0700 (PDT)
+In-Reply-To: <1282579089-10487-5-git-send-email-svadivu@ti.com> (Guruswamy
+	Senthilvadivu's message of "Mon, 23 Aug 2010 21:27:53 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Guruswamy Senthilvadivu <svadivu@ti.com>
@@ -31,86 +27,171 @@ Guruswamy Senthilvadivu <svadivu@ti.com> writes:
 
 > From: Senthilvadivu Guruswamy <svadivu@ti.com>
 >
-> when DSS ICK, FCK are requested, dss HWMOD APIs are used for enable
-> and disable. The remaining clocks (dss opt clks in HWMOD database)
-> continue to use clk APIs, since HWMOD APIs are not fully available
-> for the dss opt clocks without the usage of clk framework.
+> Platform driver of DSS HW IP are to be registered in sequence before
+> the omapdss platform driver is registered.
+>
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> ---
+>  drivers/video/omap2/dss/core.c |  121 ++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 121 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+> index bcbb077..3b6a309 100644
+> --- a/drivers/video/omap2/dss/core.c
+> +++ b/drivers/video/omap2/dss/core.c
+> @@ -707,6 +707,62 @@ static int omap_dss_resume(struct platform_device *pdev)
+>  	return dss_resume_all_devices();
+>  }
+>  
+> +/* DSS HW IP initialisation */
+> +static int omap_dsshw_probe(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int omap_dsshw_remove(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
 
-The clocks that are managed by omap_device/omap_hwmod should be
-controlled by using the runtime PM API, not by using pdata function
-pointers.
+It's not customary to create dummy, empty functions in one patch and
+then fill them in later.  In this case, you create them here, move them
+in PATCH 05/20, then fill them in later.
 
-Since the runtime PM core implements use-counting, you can probably get
-rid of the use_count management too.
+It would be easier to review if you created the platform_drivers when
+needed.
+
+Anyways, I'm not crazy about this approach, but Tomi can decide.
+
+
+> +/* DISPC HW IP initialisation */
+> +static int omap_dispchw_probe(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int omap_dispchw_remove(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +/* DSI1 HW IP initialisation */
+> +static int omap_dsi1hw_probe(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int omap_dsi1hw_remove(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +/* RFBI HW IP initialisation */
+> +static int omap_rfbihw_probe(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int omap_rfbihw_remove(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +/* VENC HW IP initialisation */
+> +static int omap_venchw_probe(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int omap_venchw_remove(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +
+>  static struct platform_driver omap_dss_driver = {
+>  	.probe          = omap_dss_probe,
+>  	.remove         = omap_dss_remove,
+> @@ -719,6 +775,66 @@ static struct platform_driver omap_dss_driver = {
+>  	},
+>  };
+>  
+> +static struct platform_driver omap_dsshw_driver = {
+> +	.probe          = omap_dsshw_probe,
+> +	.remove         = omap_dsshw_remove,
+> +	.shutdown	= NULL,
+> +	.suspend	= NULL,
+> +	.resume		= NULL,
+
+Just leave them out if they're NULL since that is the default.
 
 Kevin
 
-> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
-> ---
->  drivers/video/omap2/dss/dss.c |   28 ++++++++++++++++++++--------
->  1 files changed, 20 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-> index 15d0399..098ff96 100644
-> --- a/drivers/video/omap2/dss/dss.c
-> +++ b/drivers/video/omap2/dss/dss.c
-> @@ -61,6 +61,7 @@ struct dss_reg {
+> +	.driver         = {
+> +		.name   = "dss",
+> +		.owner  = THIS_MODULE,
+> +	},
+> +};
+> +
+> +static struct platform_driver omap_dispchw_driver = {
+> +	.probe          = omap_dispchw_probe,
+> +	.remove         = omap_dispchw_remove,
+> +	.shutdown	= NULL,
+> +	.suspend	= NULL,
+> +	.resume		= NULL,
+> +	.driver         = {
+> +		.name   = "dss_dispc",
+> +		.owner  = THIS_MODULE,
+> +	},
+> +};
+> +
+> +static struct platform_driver omap_dsi1hw_driver = {
+> +	.probe          = omap_dsi1hw_probe,
+> +	.remove         = omap_dsi1hw_remove,
+> +	.shutdown	= NULL,
+> +	.suspend	= NULL,
+> +	.resume		= NULL,
+> +	.driver         = {
+> +		.name   = "dss_dsi1",
+> +		.owner  = THIS_MODULE,
+> +	},
+> +};
+> +
+> +static struct platform_driver omap_rfbihw_driver = {
+> +	.probe          = omap_rfbihw_probe,
+> +	.remove         = omap_rfbihw_remove,
+> +	.shutdown	= NULL,
+> +	.suspend	= NULL,
+> +	.resume		= NULL,
+> +	.driver         = {
+> +		.name   = "dss_rfbi",
+> +		.owner  = THIS_MODULE,
+> +	},
+> +};
+> +
+> +static struct platform_driver omap_venchw_driver = {
+> +	.probe          = omap_venchw_probe,
+> +	.remove         = omap_venchw_remove,
+> +	.shutdown	= NULL,
+> +	.suspend	= NULL,
+> +	.resume		= NULL,
+> +	.driver         = {
+> +		.name   = "dss_venc",
+> +		.owner  = THIS_MODULE,
+> +	},
+> +};
+> +
+>  /* BUS */
+>  static int dss_bus_match(struct device *dev, struct device_driver *driver)
+>  {
+> @@ -984,6 +1100,11 @@ static int __init omap_dss_init(void)
 >  
->  static struct {
->  	struct platform_device *pdev;
-> +	struct omap_display_platform_data *pdata;
->  
->  	void __iomem    *base;
->  	int		ctx_id;
-> @@ -310,14 +311,26 @@ static unsigned count_clk_bits(enum dss_clock clks)
->  	return num_clks;
+>  static int __init omap_dss_init2(void)
+>  {
+> +	platform_driver_register(&omap_dsshw_driver);
+> +	platform_driver_register(&omap_dispchw_driver);
+> +	platform_driver_register(&omap_dsi1hw_driver);
+> +	platform_driver_register(&omap_rfbihw_driver);
+> +	platform_driver_register(&omap_venchw_driver);
+>  	return platform_driver_register(&omap_dss_driver);
 >  }
->  
-> +static inline void enable_clocks(bool enable)
-> + {
-> +	static int use_count;
-> +
-> +	use_count += enable ? 1 : -1;
-> +	if (use_count < 0)
-> +		use_count = 0;
-> +
-> +	if (enable && use_count == 1)
-> +		dss.pdata->device_enable(dss.pdev);
-> +	else if (!enable && use_count == 0)
-> +		dss.pdata->device_idle(dss.pdev);
-> +}
-> +
->  static void dss_clk_enable_no_ctx(enum dss_clock clks)
->  {
->  	unsigned num_clks = count_clk_bits(clks);
->  
-> -	if (clks & DSS_CLK_ICK)
-> -		clk_enable(dss.dss_ick);
-> -	if (clks & DSS_CLK_FCK1)
-> -		clk_enable(dss.dss1_fck);
-> +	if ((clks & DSS_CLK_ICK) || (clks & DSS_CLK_FCK1))
-> +		enable_clocks(1);
->  	if (clks & DSS_CLK_FCK2)
->  		clk_enable(dss.dss2_fck);
->  	if (clks & DSS_CLK_54M)
-> @@ -342,10 +355,8 @@ static void dss_clk_disable_no_ctx(enum dss_clock clks)
->  {
->  	unsigned num_clks = count_clk_bits(clks);
->  
-> -	if (clks & DSS_CLK_ICK)
-> -		clk_disable(dss.dss_ick);
-> -	if (clks & DSS_CLK_FCK1)
-> -		clk_disable(dss.dss1_fck);
-> +	if ((clks & DSS_CLK_ICK) || (clks & DSS_CLK_FCK1))
-> +		enable_clocks(0);
->  	if (clks & DSS_CLK_FCK2)
->  		clk_disable(dss.dss2_fck);
->  	if (clks & DSS_CLK_54M)
-> @@ -447,6 +458,7 @@ static int omap_dsshw_probe(struct platform_device *pdev)
->  	int r;
->  
->  	dss.pdev = pdev;
-> +	dss.pdata = dss.pdev->dev.platform_data;
->  
->  	r = dss_get_clocks();
->  	if (r)
