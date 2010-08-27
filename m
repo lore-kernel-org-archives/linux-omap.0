@@ -1,79 +1,104 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/9] omap: mux: Add new style pin multiplexing code for
- omap3
-Date: Fri, 27 Aug 2010 11:24:37 +0200
-Message-ID: <4C778455.8050108@ti.com>
-References: <S1752576Ab0H0BhI/20100827013708Z+1681@vger.kernel.org> <1282876196.13328.45.camel@I097020.innocomm.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
+Date: Fri, 27 Aug 2010 11:46:52 +0200
+Message-ID: <AANLkTin9sPHQD8v11_5iUDetJ0MsjfQ+NtENA3y92emN@mail.gmail.com>
+References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56920 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753622Ab0H0JYo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Aug 2010 05:24:44 -0400
-In-Reply-To: <1282876196.13328.45.camel@I097020.innocomm.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:41410 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754674Ab0H0Jqy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 05:46:54 -0400
+Received: by qyk33 with SMTP id 33so2681391qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 27 Aug 2010 02:46:54 -0700 (PDT)
+In-Reply-To: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rockefeller <rockefeller.lin@innocomm.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: vishwanath.sripathy@linaro.org
+Cc: linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org
 
-On 8/27/2010 4:29 AM, rockefeller wrote:
-> Hi Tony,
->     In the implementation of omap_mux_init_signal(char *muxname, int val)
-> in arch/arm/mach-omap2/mux.c, it will modify the muxname of
-> caller that passed in and not recover it, did you mean to implement
-> to do so?(I try to explain my point of view as 2 examples below).
+Hi,
 
-I'm not sure it was really done on purpose. It works today because none 
-of the following cases are really happening.
+On Sat, Aug 28, 2010 at 12:08 AM,  <vishwanath.sripathy@linaro.org> wro=
+te:
+> From: Vishwanath BS <vishwanath.sripathy@linaro.org>
+>
+> This patch has instrumentation code for measuring latencies for
+> various CPUIdle C states for OMAP. Idea here is to capture the
+> timestamp at various phases of CPU Idle and then compute the sw
+> latency for various c states. For OMAP, 32k clock is chosen as
+> reference clock this as is an always on clock. wkup domain memory
+> (scratchpad memory) is used for storing timestamps. One can see the
+> worstcase latencies in below sysfs entries (after enabling CONFIG_CPU=
+_IDLE_PROF
+> in .config). This information can be used to correctly configure cpu =
+idle
+> latencies for various C states after adding HW latencies for each of
+> these sw latencies.
+> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/actual_latency
+> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/sleep_latency
+> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/wkup_latency
+>
+> THis patch is tested on OMAP ZOOM3 using kevin's pm branch.
+>
+> Signed-off-by: Vishwanath BS <vishwanath.sripathy@linaro.org>
+> Cc: linaro-dev@lists.linaro.org
+> ---
+=2E..
 
 >
-> [Example 1]
-> For a XIP device(NOR type), a caller function might be codeed like
-> below:
->
-> omap_mux_init_signal("muxname.mode7", 0xFFFF);
->
-> and in this case, the string "muxname.mode7" might be a const string
-> and not be modified.
+> +#ifdef CONFIG_CPU_IDLE_PROF
+> + =A0 =A0 =A0 sleep_time =3D omap3_sram_get_sleep_time();
+> + =A0 =A0 =A0 wkup_time =3D omap3_sram_get_wkup_time();
+> +
+> + =A0 =A0 =A0 /* take care of overflow */
+> + =A0 =A0 =A0 if (postidle_time < preidle_time)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 postidle_time +=3D (u32) 0xffffffff;
+> + =A0 =A0 =A0 if (wkup_time < sleep_time)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 wkup_time +=3D (u32) 0xffffffff;
+> +
+> + =A0 =A0 =A0 idle_time =3D postidle_time - preidle_time;
+> + =A0 =A0 =A0 total_sleep_time =3D wkup_time - =A0sleep_time;
+> + =A0 =A0 =A0 latency =3D idle_time - total_sleep_time;
+> + =A0 =A0 =A0 sleep_time =3D omap3_sram_get_sleep_time();
+> + =A0 =A0 =A0 wkup_time =3D omap3_sram_get_wkup_time();
+Is it needed to re-read the sleep_time and wkup_time values from the sc=
+ratchpad?
+What about the 32k timer overflow? Could that cause the sleep_latency
+and/or wkup_latency to be <0?
 
-That case seems to be a valid one.
+> +
+> + =A0 =A0 =A0 /* calculate average latency after ignoring sprious one=
+s */
+> + =A0 =A0 =A0 if ((total_sleep_time > 0) && (latency > state->actual_=
+latency)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 && (latency >=3D 0)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 state->actual_latency =3D CONVERT_32K_U=
+SEC(latency);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 latency =3D (sleep_time - preidle_time)=
+;
+Risk of overflow?
 
->
-> [Example 2]
-> For a NAND device, a caller might be coded like below:
->
-> static char *pin_mux_name = "muxname.mode7";
->
-> function1()
-> {
-> omap_mux_init_signal(pin_mux_name, 0xFFFF);
-> }
->
-> function2()
-> {
-> omap_mux_init_signal(pin_mux_name, 0x0000);
-> }
->
-> void main()
-> {
-> function1();
-> function2();
-> }
->
-> Because "muxname.mode7" in in RAM is modifiable, after function call
-> to function1(), the *pine_mux_name will be "muxname" and therefore when
-> calls to function2() to try to set this pin in mode7 with value 0x0000
-> might be un-expected result.
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 state->sleep_latency =3D CONVERT_32K_US=
+EC(latency);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 latency =3D postidle_time - wkup_time;
+Risk of overflow?
 
-In theory the pin mux is done once at init time, so I'm not sure this 
-case is supposed to happen. Is it a real case?
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 state->wkup_latency =3D CONVERT_32K_USE=
+C(latency);
+> + =A0 =A0 =A0 }
+> +#endif
+> +
+> =A0 =A0 =A0 =A0return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_se=
+c * USEC_PER_SEC;
+> =A0}
+>
 
-Anyway, I think that a simple strlcpy(tmp, muxname, 32) in 
-omap_mux_init_signal can fix it.
-
-Do you mind submitting a patch to fix that?
-
-Thanks,
-Benoit
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
