@@ -1,77 +1,79 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH 07/11] OMAP: HSMMC: Fix unused variable warning
-Date: Fri, 27 Aug 2010 14:33:35 +0530
-Message-ID: <AANLkTik55GAh3_E_-gW4WcyjAmypZmNq3ywOWN3JNoph@mail.gmail.com>
-References: <1282856209-15645-1-git-send-email-manjugk@ti.com>
-	<1282856209-15645-8-git-send-email-manjugk@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/9] omap: mux: Add new style pin multiplexing code for
+ omap3
+Date: Fri, 27 Aug 2010 11:24:37 +0200
+Message-ID: <4C778455.8050108@ti.com>
+References: <S1752576Ab0H0BhI/20100827013708Z+1681@vger.kernel.org> <1282876196.13328.45.camel@I097020.innocomm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:34070 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752906Ab0H0JDg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 05:03:36 -0400
-Received: by vws3 with SMTP id 3so2645194vws.19
-        for <linux-omap@vger.kernel.org>; Fri, 27 Aug 2010 02:03:35 -0700 (PDT)
-In-Reply-To: <1282856209-15645-8-git-send-email-manjugk@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56920 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753622Ab0H0JYo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Aug 2010 05:24:44 -0400
+In-Reply-To: <1282876196.13328.45.camel@I097020.innocomm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+To: rockefeller <rockefeller.lin@innocomm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi Manju,
+On 8/27/2010 4:29 AM, rockefeller wrote:
+> Hi Tony,
+>     In the implementation of omap_mux_init_signal(char *muxname, int val)
+> in arch/arm/mach-omap2/mux.c, it will modify the muxname of
+> caller that passed in and not recover it, did you mean to implement
+> to do so?(I try to explain my point of view as 2 examples below).
 
-Patch already posted here :
-https://patchwork.kernel.org/patch/118871/
+I'm not sure it was really done on purpose. It works today because none 
+of the following cases are really happening.
 
-Regards,
-Kishore
+>
+> [Example 1]
+> For a XIP device(NOR type), a caller function might be codeed like
+> below:
+>
+> omap_mux_init_signal("muxname.mode7", 0xFFFF);
+>
+> and in this case, the string "muxname.mode7" might be a const string
+> and not be modified.
 
-On Fri, Aug 27, 2010 at 2:26 AM, G, Manjunath Kondaiah <manjugk@ti.com>=
- wrote:
-> From: Manjunatha GK <manjugk@ti.com>
+That case seems to be a valid one.
+
 >
-> Fixes warning due to unused variable.
+> [Example 2]
+> For a NAND device, a caller might be coded like below:
 >
-> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_suspend':
-> drivers/mmc/host/omap_hsmmc.c:2308: warning: unused variable 'state'
+> static char *pin_mux_name = "muxname.mode7";
 >
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> ---
-> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A01 -
-> =A01 files changed, 0 insertions(+), 1 deletions(-)
+> function1()
+> {
+> omap_mux_init_signal(pin_mux_name, 0xFFFF);
+> }
 >
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
-mmc.c
-> index 4a8776f..fb6446a 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2305,7 +2305,6 @@ static int omap_hsmmc_suspend(struct device *de=
-v)
-> =A0 =A0 =A0 =A0int ret =3D 0;
-> =A0 =A0 =A0 =A0struct platform_device *pdev =3D to_platform_device(de=
-v);
-> =A0 =A0 =A0 =A0struct omap_hsmmc_host *host =3D platform_get_drvdata(=
-pdev);
-> - =A0 =A0 =A0 pm_message_t state =3D PMSG_SUSPEND; /* unused by MMC c=
-ore */
+> function2()
+> {
+> omap_mux_init_signal(pin_mux_name, 0x0000);
+> }
 >
-> =A0 =A0 =A0 =A0if (host && host->suspended)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
-> --
-> 1.7.0.4
+> void main()
+> {
+> function1();
+> function2();
+> }
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Because "muxname.mode7" in in RAM is modifiable, after function call
+> to function1(), the *pine_mux_name will be "muxname" and therefore when
+> calls to function2() to try to set this pin in mode7 with value 0x0000
+> might be un-expected result.
+
+In theory the pin mux is done once at init time, so I'm not sure this 
+case is supposed to happen. Is it a real case?
+
+Anyway, I think that a simple strlcpy(tmp, muxname, 32) in 
+omap_mux_init_signal can fix it.
+
+Do you mind submitting a patch to fix that?
+
+Thanks,
+Benoit
