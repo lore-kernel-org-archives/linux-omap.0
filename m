@@ -1,53 +1,43 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: omap_hsmmc.c: use resource_size()
-Date: Fri, 27 Aug 2010 16:48:03 -0400
-Message-ID: <m37hjb6av0.fsf@pullcord.laptop.org>
+From: Tony Lindgren <tony.m.lindgren@gmail.com>
+Subject: Re: [PATCH 2/9] omap: mux: Add new style pin multiplexing code for
+ omap3
+Date: Fri, 27 Aug 2010 14:26:41 -0700
+Message-ID: <20100827212640.GE28816@atomide.com>
+References: <S1752576Ab0H0BhI/20100827013708Z+1681@vger.kernel.org>
+ <1282876196.13328.45.camel@I097020.innocomm.com>
+ <4C778455.8050108@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63061 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751235Ab0H0V0r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 17:26:47 -0400
+Content-Disposition: inline
+In-Reply-To: <4C778455.8050108@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: rockefeller <rockefeller.lin@innocomm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Use resource_size().
+* Cousson, Benoit <b-cousson@ti.com> [100827 02:17]:
+> On 8/27/2010 4:29 AM, rockefeller wrote:
+> >
+> >Because "muxname.mode7" in in RAM is modifiable, after function call
+> >to function1(), the *pine_mux_name will be "muxname" and therefore when
+> >calls to function2() to try to set this pin in mode7 with value 0x0000
+> >might be un-expected result.
+> 
+> In theory the pin mux is done once at init time, so I'm not sure
+> this case is supposed to happen. Is it a real case?
+> 
+> Anyway, I think that a simple strlcpy(tmp, muxname, 32) in
+> omap_mux_init_signal can fix it.
+> 
+> Do you mind submitting a patch to fix that?
 
-Signed-off-by: Chris Ball <cjb@laptop.org>
----
- drivers/mmc/host/omap_hsmmc.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+Yeah that's a bug, we should not trash the muxname.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 4a8776f..077bbdb 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2003,7 +2003,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 	if (res == NULL || irq < 0)
- 		return -ENXIO;
- 
--	res = request_mem_region(res->start, res->end - res->start + 1,
-+	res = request_mem_region(res->start, resource_size(res),
- 							pdev->name);
- 	if (res == NULL)
- 		return -EBUSY;
-@@ -2256,7 +2256,7 @@ err1:
- err_alloc:
- 	omap_hsmmc_gpio_free(pdata);
- err:
--	release_mem_region(res->start, res->end - res->start + 1);
-+	release_mem_region(res->start, resource_size(res));
- 	return ret;
- }
- 
-@@ -2293,7 +2293,7 @@ static int omap_hsmmc_remove(struct platform_device *pdev)
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res)
--		release_mem_region(res->start, res->end - res->start + 1);
-+		release_mem_region(res->start, resource_size(res));
- 	platform_set_drvdata(pdev, NULL);
- 
- 	return 0;
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Regards,
+
+Tony
