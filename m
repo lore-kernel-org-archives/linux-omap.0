@@ -1,68 +1,42 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
-Date: Fri, 27 Aug 2010 12:15:18 -0700
-Message-ID: <87bp8nn9yx.fsf@deeprootsystems.com>
-References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+Date: Fri, 27 Aug 2010 20:22:48 +0100
+Message-ID: <20100827192248.GJ20407@void.printf.net>
+References: <cover.1266847842.git.david.vrabel@csr.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:41157 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab0H0TPU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 15:15:20 -0400
-Received: by pvg2 with SMTP id 2so1195059pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 27 Aug 2010 12:15:20 -0700 (PDT)
-In-Reply-To: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
-	(vishwanath sripathy's message of "Sat, 28 Aug 2010 03:38:33 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1266847842.git.david.vrabel@csr.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: David Vrabel <david.vrabel@csr.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, Mike Rapoport <mike@compulab.co.il>
 List-Id: linux-omap@vger.kernel.org
-To: vishwanath.sripathy@linaro.org
-Cc: linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org
 
-vishwanath.sripathy@linaro.org writes:
+Hi David,
 
-> From: Vishwanath BS <vishwanath.sripathy@linaro.org>
->
-> This patch has instrumentation code for measuring latencies for
-> various CPUIdle C states for OMAP. Idea here is to capture the
-> timestamp at various phases of CPU Idle and then compute the sw
-> latency for various c states.  For OMAP, 32k clock is chosen as
-> reference clock this as is an always on clock.  wkup domain memory
-> (scratchpad memory) is used for storing timestamps.  One can see the
-> worstcase latencies in below sysfs entries (after enabling
-> CONFIG_CPU_IDLE_PROF in .config). This information can be used to
-> correctly configure cpu idle latencies for various C states after
-> adding HW latencies for each of these sw latencies.
-> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/actual_latency
-> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/sleep_latency
-> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/wkup_latency
->
-> THis patch is tested on OMAP ZOOM3 using kevin's pm branch.
->
-> Signed-off-by: Vishwanath BS <vishwanath.sripathy@linaro.org>
-> Cc: linaro-dev@lists.linaro.org
+On Mon, Feb 22, 2010 at 02:24:17PM +0000, David Vrabel wrote:
+> These patches add support for SDIO cards to the omap_hsmmc driver.
+> Power management changes to prevent SDIO cards from being turned off
+> and losing all state, and card interrupts.
+> 
+> I've been unable to test these exact patches as I only have an N900 for 
+> testing and the N900 support in mainline is incomplete.
+> 
+> Changes since v1:
+> - (hopefully) get all cards working again by removing a second call to
+>   read MMCi_STAT in the interrupt handler.
+> - flush posted writes after enabling/disabling SDIO interrupts.
+> - tweak the FIXME commit on disabling FCLK to better match what really
+>   going on (at least I think so anyway).
+> 
+> David Vrabel (2):
+>   mmc: omap_hsmmc: don't turn SDIO cards off when idle
+>   mmc: omap_hsmmc: enable SDIO card interrupts
 
-While I have many problems with the implementation details, I won't go
-into them because in general this is the wrong direction for kernel
-instrumentation.
+Looks like this patchset wasn't merged.  Mike Rapoport replied with a 
+fix for libertas.  Would you like to resubmit it?
 
-This approach adds quite a bit overhead to the idle path itself.  With
-all the reads/writes from/to the scratchpad(?) and all the multiplications
-and divides in every idle path, as well as the wait-for-idlest in both
-the sleep and resume paths.  The additional overhead added is non trivial.
-
-Basically, I'd like get away from custom instrumentation and measurement
-coded inside the kernel itself.  This kind of code never stops growing
-and morphing into ugliness, and rarely scales well when new SoCs are
-added.
-
-With ftrace/perf, we can add tracepoints at specific points and use
-external tools to extract and analyze the delays, latencys etc.
-
-The point is to keep the minimum possible in the kernel: just the
-tracepoints we're interested in.   The rest (calculations, averages,
-analysis, etc.) does not need to be in the kernel and can be done easier
-and with more powerful tools outside the kernel.
-
-Kevin
-
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
