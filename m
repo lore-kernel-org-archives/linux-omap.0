@@ -1,65 +1,65 @@
-From: rockefeller <rockefeller.lin@innocomm.com>
-Subject: RE:[PATCH 2/9] omap: mux: Add new style pin multiplexing code for
- omap3
-Date: Fri, 27 Aug 2010 10:29:56 +0800
-Message-ID: <1282876196.13328.45.camel@I097020.innocomm.com>
-References: <S1752576Ab0H0BhI/20100827013708Z+1681@vger.kernel.org>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 3/3] davinci: Map sram using MT_MEMORY_NONCACHED instead
+  of MT_DEVICE
+Date: Fri, 27 Aug 2010 10:16:54 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCA86A68@dbde02.ent.ti.com>
+References: <1281262702-27732-1-git-send-email-santosh.shilimkar@ti.com>
+	<AANLkTi=9k19RUmfnNBO8AfFj_LtyNtsPPVYC_=-AW5yE@mail.gmail.com>
+ <87hbih2gyv.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from vfe4.seed.net.tw ([139.175.252.119]:60870 "EHLO
-	vfe4.seed.net.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549Ab0H0DFp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 23:05:45 -0400
-Received: from [210.68.184.147] (port=33334 helo=[192.168.16.64])
-	by vfe4.seed.net.tw:g with esmtp (Seednet 4.69:1)
-	id 1OoohT-000CRU-HF
-	for linux-omap@vger.kernel.org; Fri, 27 Aug 2010 10:29:51 +0800
-In-Reply-To: <S1752576Ab0H0BhI/20100827013708Z+1681@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53427 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752897Ab0H0ErG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 00:47:06 -0400
+In-Reply-To: <87hbih2gyv.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
 
-Hi Tony,
-   In the implementation of omap_mux_init_signal(char *muxname, int val)
-in arch/arm/mach-omap2/mux.c, it will modify the muxname of
-caller that passed in and not recover it, did you mean to implement 
-to do so?(I try to explain my point of view as 2 examples below).
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Friday, August 27, 2010 3:07 AM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> davinci-linux-open-source@linux.davincidsp.com
+> Subject: Re: [PATCH 3/3] davinci: Map sram using MT_MEMORY_NONCACHED
+> instead of MT_DEVICE
+> 
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
+> 
+> > On Sun, Aug 8, 2010 at 3:18 AM, Santosh Shilimkar
+> > <santosh.shilimkar@ti.com> wrote:
+> >> On Davinci SRAM is mapped as MT_DEVICE becasue of the section
+> >> mapping pre-requisite instead of intended MT_MEMORY_NONCACHED
+> >>
+> >> Since the section mapping limitation gets fixed with first
+> >> patch in this series, the MT_MEMORY_NONCACHED can be used now.
+> >>
+> >> Have not tested this, so somebody with Davinci hardware can
+> >> try this out
+> >>
+> >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> >> Cc: davinci-linux-open-source@linux.davincidsp.com
+> >> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> >
+> > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> Also, FYI... while not a very thorough test, I boot-tested this series
+> on DaVinci (dm355, omapl138) and it worked fine.
+> 
+> I'll include in davinci git (in the davinci-testing branch) so it gets a
+> bit more testing.
 
-[Example 1]
-For a XIP device(NOR type), a caller function might be codeed like
-below:
+Thanks a lot Kevin!!
 
-omap_mux_init_signal("muxname.mode7", 0xFFFF);
+Tony, 
+Can you merge this in lo master as well. Actually I want all these
+3 patches go together so that it doesn't break OMAP/DAVINCI.
 
-and in this case, the string "muxname.mode7" might be a const string
-and not be modified.
-
-[Example 2]
-For a NAND device, a caller might be coded like below:
-
-static char *pin_mux_name = "muxname.mode7";
-
-function1()
-{
-omap_mux_init_signal(pin_mux_name, 0xFFFF);
-}
-
-function2()
-{
-omap_mux_init_signal(pin_mux_name, 0x0000);
-}
-
-void main()
-{
-function1();
-function2();
-}
-
-Because "muxname.mode7" in in RAM is modifiable, after function call
-to function1(), the *pine_mux_name will be "muxname" and therefore when
-calls to function2() to try to set this pin in mode7 with value 0x0000
-might be un-expected result.
-
-
+Regards,
+Santosh
