@@ -1,64 +1,35 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP2: add cpuidle and cpufreq events tracing
-Date: Thu, 26 Aug 2010 17:01:45 -0700
-Message-ID: <87iq2wsz2u.fsf@deeprootsystems.com>
-References: <AANLkTim-n+3sTzrxKStniAjHFWxGx4xVAf=FkZ4U282f@mail.gmail.com>
-	<87r5hmft7c.fsf@deeprootsystems.com>
-	<AANLkTiknAXe4SNavZpwSVY__v4bRTiWZEA5NxMMi5y10@mail.gmail.com>
+From: John Faith <jfaith7@gmail.com>
+Subject: DMA from GPMC peripheral to external RAM
+Date: Thu, 26 Aug 2010 18:32:38 -0700
+Message-ID: <AANLkTimfbGTiSY9BHQ8YP4NjUp71YZz1NNcR82Gs+Grd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:42685 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754913Ab0H0ABt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 20:01:49 -0400
-Received: by pvg2 with SMTP id 2so851221pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 17:01:48 -0700 (PDT)
-In-Reply-To: <AANLkTiknAXe4SNavZpwSVY__v4bRTiWZEA5NxMMi5y10@mail.gmail.com>
-	(Jean Pihet's message of "Thu, 26 Aug 2010 18:56:04 +0200")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:46670 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752397Ab0H0Bcj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Aug 2010 21:32:39 -0400
+Received: by vws3 with SMTP id 3so2385814vws.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Aug 2010 18:32:38 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+Hi,
+I'm trying to transfer from an FPGA peripheral on the 3530's GPMC bus
+to external RAM on a 2.6.32 kernel.  Transferring words using
+*ram_buffer = __raw_readw(peripheral_addr) works for non-DMA copies
+and I've checked that the DMA cycle works in my driver by using
+another location in RAM as the source instead of the peripheral
+register and I get values and an interrupt as expected, but when using
+the FPGA as source all values are 0xff.  The FPGA uses WAIT1 to signal
+read/write completion and I've set GPMC_CONFIG6_CYCLE2CYCLEDELAY so
+chip select is toggled between transfers as the FPGA hardware
+currently requires.
 
-> Hi Kevin,
->
-> On Wed, Aug 25, 2010 at 8:22 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> Hi Jean,
->>
->> Jean Pihet <jean.pihet@newoldbits.com> writes:
->>
-> ...
->>
->>> Add the cpuidle power_start and power_end events. The state
->>> parameter of power_start has the following meaning:
->>> - -1: from the suspend handler (omap3_pm_suspend),
->>> - 1: from the default idle handler (omap3_pm_idle),
->>> - other values are the C-states from the cpuidle handler
->>> =A0 =A0(omap3_enter_idle).
->>
->> Are these definitions standard across other arches too? =A0The use o=
-f
->> POWER_CSTATE from supend seems less than intuitive.
-> Only x86 is using those events, and only for idle (values >=3D 0).
-> I have added -1 to differentiate the suspend from the regular idle bu=
-t
-> it sems that it is not the best option.
-> Is a new type of power event more suited, e.g. POWER_SSTATE? If so I
-> will have to add it in the event definition header (in
-> include/trace/events/power.h) and the patch will be submitted to LKML=
-=2E
+Does a DMA transfer use GPMC settings for timing?  Are there other
+settings I need to worry about for this case?
 
-Yes, I think a new event is probably more appropriate, but should be
-discussed on LKML.
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks!
+,
+John
