@@ -1,72 +1,107 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
-Date: Fri, 27 Aug 2010 19:11:27 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCA86EE6@dbde02.ent.ti.com>
-References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
-	<4C7792AD.80804@ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 2/2] USB: musb-gadget: fix OUT transfer in double buffer
+ case
+Date: Fri, 27 Aug 2010 19:17:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1CB4B@dbde02.ent.ti.com>
+References: <1282909068-2968-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <4C7792AD.80804-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45359 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753371Ab0H0NsT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 09:48:19 -0400
+In-Reply-To: <1282909068-2968-1-git-send-email-tom.leiming@gmail.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, "vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Sripathy, Vishwanath" <vishwanath.bs-l0cyMroinI0@public.gmane.org>
-Cc: "Chalhoub, Nicole" <n-chalhoub-l0cyMroinI0@public.gmane.org>, Jean Pihet <jean.pihet-BedXh0tyk8Y@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "Bour,
-	Vincent" <v-bour-l0cyMroinI0@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, "felipe.balbi@nokia.com" <feli>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Frysinger <vapier@gentoo.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-Benoit,
-> -----Original Message-----
-> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Cousson, Benoit
-> Sent: Friday, August 27, 2010 3:56 PM
-> To: vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org; Sripathy, Vishwanath
-> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org; Jean Pihet;
-> Chalhoub, Nicole; Bour, Vincent
-> Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
+tom.leiming@gmail.com wrote:
+> From: Ming Lei <tom.leiming@gmail.com>
 > 
-> Hi Vishwa,
+> This patch fixes two bugs of OUT transfer in double buffer case:
 > 
-> On 8/28/2010 12:08 AM, vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> > From: Vishwanath BS<vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >
-> > This patch has instrumentation code for measuring latencies for
-> > various CPUIdle C states for OMAP. Idea here is to capture the
-> > timestamp at various phases of CPU Idle and then compute the sw
-> > latency for various c states. For OMAP, 32k clock is chosen as
-> > reference clock this as is an always on clock. wkup domain memory
-> > (scratchpad memory) is used for storing timestamps. One can see the
-> > worstcase latencies in below sysfs entries (after enabling
-> CONFIG_CPU_IDLE_PROF
-> > in .config). This information can be used to correctly configure cpu
-> idle
-> > latencies for various C states after adding HW latencies for each of
-> > these sw latencies.
-> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/actual_latency
-> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/sleep_latency
-> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/wkup_latency
+> 	-USE_MODE1 should be enabled except for ANOMALY_05000456 case, or
+> 	else may cause infinite hang and data error bug in double buffer
 > 
-> FYI, Jean is currently working on using standard Linux probes in order
-> to instrument CPUIdle / CPUfreq. I'm not sure it is doable, but it might
-> better to use standard method to do that instead of purely OMAP3
-> specific stuff. This code will not scale easily on OMAP4.
-> 
-Just discussed how to scale this for all OMAPs. Firstly we need to
-get this code to common place instead of tying it to OMAP3/OMAP4 
-specific low level code. Since on OMAP3, we can push C-functions
-on SRAM and for OMAP4 we don't have any limitation, all this
-code can be converted to C. 
 
-Vishwa is planning to attempt that in next version.
+Double buffering should still work with or without mode1 DMA.
+I'm not sure using Mode1 DMA is the fix for enabling double buffering.
 
-Regards,
-santosh
+> 	-DMA length should not go beyond the availabe space of request buffer
+> 
+> Without this patch, test #5 of usbtest can't be passed if we configure musb as
+> g_zero and use fifo mode 3 to enable double buffer mode.
+> 
+> With this patch, on my beagle B5, test#5(queued bulk out) may go beyond 14Mbyte/s
+> if musb is configured as g_zero and fifo mode 3 is taken, follows the test command:
+> 
+> 	#./testusb -D DEV_NAME -c 1024 -t 5 -s 32768 -g 8   [1]
+> 
+> [1],
+>     -source of testusb : tools/usb/testusb.c under linux kernel;
+> 
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+> Cc: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Mike Frysinger <vapier@gentoo.org>
+> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+
+The DMA length part is a good fix. However, I'm not so sure I like the
+combining of the MODE1 RX change here.
+
+With current code, only g_zero and g_file_storage work well with
+Mode1 DMA RX. g_ether used to break (have not tested recently with mode1).
+Did you test g_ether with your patch?
+
+We know that at least on OMAPs, MODE1 DMA RX works reliably with patches
+Felipe submitted last December. These have not been resubmitted and we're
+waiting on that.
+
+- Anand
+
+
+> 
+> ---
+>  drivers/usb/musb/musb_dma.h    |    2 ++
+>  drivers/usb/musb/musb_gadget.c |    5 +++--
+>  2 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
+> index 916065b..dff91ce 100644
+> --- a/drivers/usb/musb/musb_dma.h
+> +++ b/drivers/usb/musb/musb_dma.h
+> @@ -89,6 +89,8 @@ struct musb_hw_ep;
+>  # if !ANOMALY_05000456
+>  #  define USE_MODE1
+>  # endif
+> +#else
+> +#  define USE_MODE1
+>  #endif
+>  
+>  /*
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> index e0bd1c1..f1c44b9 100644
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -662,10 +662,11 @@ static void rxstate(struct musb *musb, 
+> struct musb_request *req)
+>  				if (request->actual < request->length) {
+>  					int transfer_size = 0;
+>  #ifdef USE_MODE1
+> -					transfer_size = min(request->length,
+> +					transfer_size = min(request->length - request->actual,
+>  							channel->max_len);
+>  #else
+> -					transfer_size = len;
+> +					transfer_size = min(request->length - request->actual,
+> +							len);
+>  #endif
+>  					if (transfer_size <= musb_ep->packet_sz)
+>  						musb_ep->dma->desired_mode = 0;
+> -- 
+> 1.6.2.5
+> 
+> 
