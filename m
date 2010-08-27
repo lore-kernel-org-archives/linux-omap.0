@@ -1,85 +1,114 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 10/20] Move rfbi init to rfbi probe
-Date: Fri, 27 Aug 2010 15:54:31 +0200
-Message-ID: <4C77C397.5010502@ti.com>
-References: <1282579089-10487-1-git-send-email-svadivu@ti.com> <1282579089-10487-2-git-send-email-svadivu@ti.com> <1282579089-10487-3-git-send-email-svadivu@ti.com> <1282579089-10487-4-git-send-email-svadivu@ti.com> <1282579089-10487-5-git-send-email-svadivu@ti.com> <1282579089-10487-6-git-send-email-svadivu@ti.com> <1282579089-10487-7-git-send-email-svadivu@ti.com> <1282579089-10487-8-git-send-email-svadivu@ti.com> <1282579089-10487-9-git-send-email-svadivu@ti.com> <1282579089-10487-10-git-send-email-svadivu@ti.com> <1282579089-10487-11-git-send-email-svadivu@ti.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [pm-wip/mmc][PATCH 00/10] OMAP MMC Hwmod & Runtime patches
+Date: Fri, 27 Aug 2010 19:43:47 +0530
+Message-ID: <AANLkTimReVkTE2gvR+zqc7oWUh1_cVbSdDCqy-dCVz8j@mail.gmail.com>
+References: <16071.10.24.255.18.1282335017.squirrel@dbdmail.itg.ti.com>
+	<87hbihvu9i.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45787 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753769Ab0H0Nyk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Aug 2010 09:54:40 -0400
-In-Reply-To: <1282579089-10487-11-git-send-email-svadivu@ti.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:55157 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753900Ab0H0ONv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 10:13:51 -0400
+Received: by vws3 with SMTP id 3so2895824vws.19
+        for <linux-omap@vger.kernel.org>; Fri, 27 Aug 2010 07:13:51 -0700 (PDT)
+In-Reply-To: <87hbihvu9i.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, b-cousson@ti.com
 
-On 8/23/2010 5:57 PM, Guruswamy, Senthilvadivu wrote:
-> From: Senthilvadivu Guruswamy<svadivu@ti.com>
->
-> RFBI init and exit moved to rfbi probe and remove.
->
-> Signed-off-by: Senthilvadivu Guruswamy<svadivu@ti.com>
-> ---
->   drivers/video/omap2/dss/core.c |   21 +++++++++++----------
->   1 files changed, 11 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-> index 90a8f77..5030a84 100644
-> --- a/drivers/video/omap2/dss/core.c
-> +++ b/drivers/video/omap2/dss/core.c
-> @@ -199,12 +199,6 @@ static int omap_dss_probe(struct platform_device *pdev)
->
->   	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
->
-> -	r = rfbi_init();
-> -	if (r) {
-> -		DSSERR("Failed to initialize rfbi\n");
-> -		goto err_rfbi;
-> -	}
-> -
->   	r = dpi_init(pdev);
->   	if (r) {
->   		DSSERR("Failed to initialize dpi\n");
-> @@ -278,8 +272,6 @@ err_venc:
->   err_dispc:
->   	dpi_exit();
->   err_dpi:
-> -	rfbi_exit();
-> -err_rfbi:
->   	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
->
->   	return r;
-> @@ -296,7 +288,6 @@ static int omap_dss_remove(struct platform_device *pdev)
->   	venc_exit();
->   	dispc_exit();
->   	dpi_exit();
-> -	rfbi_exit();
->   	if (cpu_is_omap34xx()) {
->   		dsi_exit();
->   		sdi_exit();
-> @@ -357,11 +348,21 @@ static int omap_dsi1hw_remove(struct platform_device *pdev)
->   /* RFBI HW IP initialisation */
->   static int omap_rfbihw_probe(struct platform_device *pdev)
->   {
-> -	return 0;
-> +	int r;
-> +	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
-> +	r = rfbi_init();
-> +	if (r) {
-> +		DSSERR("Failed to initialize rfbi\n");
-> +		goto err_rfbi;
-> +	}
-> +err_rfbi:
-> +	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
-> +	return r;
+Thanks Kevin, I will take up things for MMC from here.
+Currently working on runtime for MMC and post out once done.
 
-There is probably something wrong in this sequence? The same thing is 
-done whatever the return state (except the error log).
-You should probably return 0 and not disable the clocks if the rfbi_init 
-is successful.
+Regards,
+Kishore
 
-Benoit
+On Fri, Aug 27, 2010 at 4:47 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> "kishore kadiyala" <kishore.kadiyala@ti.com> writes:
+>
+>> Hi,
+>>
+>> 1) The patch series has dependency on Tony's patches
+>> =A0 =A0http://www.spinics.net/lists/linux-omap/msg34835.html
+>> =A0 =A0http://www.spinics.net/lists/linux-omap/msg34834.html
+>>
+>> 2) The patch series has some updations of hwmod data
+>> =A0 =A0for MMC controller's on MMC2/3.
+>> 3) Also adds & updates hwmod data for mmc and uart for OMAP4.
+>> =A0 =A0Adding UART for OMAP4 helps to validate MMC cards from consol=
+e
+>> 4) Also the series includes couple of fixes
+>> =A0 =A0a) runtime crash seen currently on tree. Validated on OMAP343=
+0.
+>> =A0 =A0b) crash on OMAP4430 when CONFIG_MMC_OMAP_HS is not set.
+>>
+>> The entire series has been tested on OMAP4430 SDP with omap3_defconf=
+ig
+>> Currently working on runtime for MMC and will update later.
+>
+> This needs testing on OMAP2 as well.
+>
+> Please take over responsibility of the pm-wip/mmc branch and feel fre=
+e
+> to combine those patches with yours. =A0They are there just to get
+> started, but you are free to take them and do what you like with them=
+=2E
+>
+> For the next rev, just include/merge the patches from pm-wip/mmc with
+> yours and post them against my pm-core branch (a.k.a. pm-wip/hwmods-o=
+map4)
+>
+>> Kishore Kadiyala (7):
+>> =A0 [PM-WIP-MMC] OMAP2 HWMOD: Updating MMC Controller data
+>> =A0 [PM-WIP-MMC] OMAP3 HWMOD: Updating MMC controller data
+>> =A0 [PM-WIP-MMC] OMAP2/OMAP3: Updating hwmod name for MMC controller
+>> =A0 [PM-WIP-MMC] OMAP4 hwmod: Updating hwmod data for MMC controller=
+s
+>
+> Some minor nits on naming: =A0let's use the prefix:
+>
+> =A0 =A0 <soc>: hwmod data: <shortlog>
+>
+> e.g. OMAP3: hwmod data: add MMC controllers
+>
+> Kevin
+>
+>> =A0 [PM-WIP-MMC] OMAP MMC: Remove MMC controller reset
+>> =A0 [PM-WIP-MMC] OMAP MMC: Register offset handling
+>> =A0 [PM-WIP-MMC] OMAP MMC : Fix crash with CONFIG_PM_RUNTIME
+>>
+>> Benoit Cousson (3):
+>> =A0 [PM-WIP-MMC] OMAP4 hwmod: Adding hwmod data for MMC controller
+>> =A0 [PM-WIP-UART] OMAP4 hwmod : Adding hwmod data for UART
+>> =A0 [PM-WIP-MMC] omap4 hsmmc: Fix the init if CONFIG_MMC_OMAP_HS is =
+not
+>> =A0 =A0 set
+>>
+>> =A0arch/arm/mach-omap2/board-4430sdp.c =A0 =A0 =A0 =A0| =A0 =A07 +-
+>> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0106=
+ +-----
+>> =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =
+=A06 +
+>> =A0arch/arm/mach-omap2/omap_hwmod_2430_data.c | =A0 =A09 +-
+>> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0 11 +-
+>> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0567 +++++++++++++=
+++++++++++++++-
+>> =A0arch/arm/plat-omap/include/plat/mmc.h =A0 =A0 =A0| =A0 76 ++++
+>> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0256=
+ ++++++-------
+>> =A08 files changed, 785 insertions(+), 253 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
