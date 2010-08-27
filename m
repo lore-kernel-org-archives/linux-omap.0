@@ -1,12 +1,12 @@
 From: tom.leiming@gmail.com
-Subject: [PATCH 1/2] USB: musb-gadget: fix bulk IN infinite hangs in double buffer case
-Date: Fri, 27 Aug 2010 19:37:20 +0800
-Message-ID: <1282909040-2936-1-git-send-email-tom.leiming@gmail.com>
+Subject: [PATCH 2/2] USB: musb-gadget: fix OUT transfer in double buffer case
+Date: Fri, 27 Aug 2010 19:37:48 +0800
+Message-ID: <1282909068-2968-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:60423 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754976Ab0H0Lht (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 07:37:49 -0400
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:60351 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643Ab0H0LiT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 07:38:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: greg@kroah.com, dbrownell@users.sourceforge.net, felipe.balbi@nokia.com
@@ -14,28 +14,20 @@ Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Ming Lei <tom.leiming
 
 From: Ming Lei <tom.leiming@gmail.com>
 
-This patch fixes one infinite hang of bulk IN transfer in double buffer
-case, the hang can be observed easily by test #6 of usbtest if musb is
-configured as g_zero and fifo mode 3 is taken to enable double fifo.
+This patch fixes two bugs of OUT transfer in double buffer case:
 
-In fact, the patch only removes the check for non-empty fifo before
-loading data from new request into fifo since the check is not correct:
+	-USE_MODE1 should be enabled except for ANOMALY_05000456 case, or
+	else may cause infinite hang and data error bug in double buffer
 
-	-in double buffer case, fifo may accommodate more than one packet,
-	even though it has contained one packet already and is non-empty
+	-DMA length should not go beyond the availabe space of request buffer
 
-	-since last DMA is completed before calling musb_g_tx, it is sure
-	that fifo may accommodate at least one packet
+Without this patch, test #5 of usbtest can't be passed if we configure musb as
+g_zero and use fifo mode 3 to enable double buffer mode.
 
-Without applying the patch, new requst enqueued from .complte may not
-have a chance to be loaded into fifo, then will never be completed and
-cause infinite hangs.
+With this patch, on my beagle B5, test#5(queued bulk out) may go beyond 14Mbyte/s
+if musb is configured as g_zero and fifo mode 3 is taken, follows the test command:
 
-With the patch, on my beagle B5, test#6(queued bulk in) can be passed and
-test result may go beyond 33Mbyte/s if musb is configured as g_zero and
-fifo mode 3 is taken, follows the test command:
-
-	#testusb -D DEV_NAME -c 1024 -t 6 -s 32768 -g 8   [1]
+	#./testusb -D DEV_NAME -c 1024 -t 5 -s 32768 -g 8   [1]
 
 [1],
     -source of testusb : tools/usb/testusb.c under linux kernel;
@@ -46,32 +38,41 @@ Cc: Mike Frysinger <vapier@gentoo.org>
 Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
 ---
- drivers/usb/musb/musb_gadget.c |   12 ------------
- 1 files changed, 0 insertions(+), 12 deletions(-)
+ drivers/usb/musb/musb_dma.h    |    2 ++
+ drivers/usb/musb/musb_gadget.c |    5 +++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma.h
+index 916065b..dff91ce 100644
+--- a/drivers/usb/musb/musb_dma.h
++++ b/drivers/usb/musb/musb_dma.h
+@@ -89,6 +89,8 @@ struct musb_hw_ep;
+ # if !ANOMALY_05000456
+ #  define USE_MODE1
+ # endif
++#else
++#  define USE_MODE1
+ #endif
+ 
+ /*
 diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 550b397..e0bd1c1 100644
+index e0bd1c1..f1c44b9 100644
 --- a/drivers/usb/musb/musb_gadget.c
 +++ b/drivers/usb/musb/musb_gadget.c
-@@ -506,18 +506,6 @@ void musb_g_tx(struct musb *musb, u8 epnum)
- 			/* ... or if not, then complete it. */
- 			musb_g_giveback(musb_ep, request, 0);
- 
--			/*
--			 * Kickstart next transfer if appropriate;
--			 * the packet that just completed might not
--			 * be transmitted for hours or days.
--			 * REVISIT for double buffering...
--			 * FIXME revisit for stalls too...
--			 */
--			musb_ep_select(mbase, epnum);
--			csr = musb_readw(epio, MUSB_TXCSR);
--			if (csr & MUSB_TXCSR_FIFONOTEMPTY)
--				return;
--
- 			request = musb_ep->desc ? next_request(musb_ep) : NULL;
- 			if (!request) {
- 				DBG(4, "%s idle now\n",
+@@ -662,10 +662,11 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 				if (request->actual < request->length) {
+ 					int transfer_size = 0;
+ #ifdef USE_MODE1
+-					transfer_size = min(request->length,
++					transfer_size = min(request->length - request->actual,
+ 							channel->max_len);
+ #else
+-					transfer_size = len;
++					transfer_size = min(request->length - request->actual,
++							len);
+ #endif
+ 					if (transfer_size <= musb_ep->packet_sz)
+ 						musb_ep->dma->desired_mode = 0;
 -- 
 1.6.2.5
 
