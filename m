@@ -1,48 +1,89 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 1/2] USB: musb-gadget: fix bulk IN infinite hangs in
- double buffer case
-Date: Fri, 27 Aug 2010 20:36:19 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1CB8E@dbde02.ent.ti.com>
-References: <1282909040-2936-1-git-send-email-tom.leiming@gmail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0328C1CB42@dbde02.ent.ti.com>
- <AANLkTinY5XoknTuB670atr5dRHPgF0bL0t4qD+_HxXws@mail.gmail.com>
+Subject: RE: [PATCH 1/2] USB: musb-gadget: enable autoclear for OUT transfer
+ in both DMA 0 and DMA 1
+Date: Fri, 27 Aug 2010 20:42:24 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1CB91@dbde02.ent.ti.com>
+References: <1282920723-12459-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57815 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50468 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753009Ab0H0PGl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 11:06:41 -0400
-In-Reply-To: <AANLkTinY5XoknTuB670atr5dRHPgF0bL0t4qD+_HxXws@mail.gmail.com>
+	id S1753016Ab0H0PMr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 11:12:47 -0400
+In-Reply-To: <1282920723-12459-1-git-send-email-tom.leiming@gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: "greg@kroah.com" <greg@kroah.com>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Frysinger <vapier@gentoo.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
+To: "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, "felipe.balbi@nokia.com" <feli>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Frysinger <vapier@gentoo.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-Ming Lei wrote:
-> 2010/8/27 Gadiyar, Anand <gadiyar@ti.com>:
-> > tom.leiming@gmail.com wrote:
-> >> From: Ming Lei <tom.leiming@gmail.com>
-> >>
-> >> This patch fixes one infinite hang of bulk IN transfer in double buffer
-> >> case, the hang can be observed easily by test #6 of usbtest if musb is
-> >> configured as g_zero and fifo mode 3 is taken to enable double fifo.
-> > I sent out this patch a while ago [1]. I've tested it on
-> > OMAP3 and OMAP4 silicon.
+tom.leiming@gmail.com wrote:
 > 
-> Oh, I did not see your patch before,  you have seen the issue
-> for long time,  why not merge into mainline?
+> From: Ming Lei <tom.leiming@gmail.com>
 > 
+> This patch fixes one bugs of OUT transfer in double buffer case:
+> 
+> -the current code only enable autoclear for dma mode 1, and not
+> for dma mode 0
+> 
+> Without this patch, test #5 of usbtest can't be passed if we
+> configure musb as g_zero and use fifo mode 3 to enable double
+> buffer mode.
+> 
+> With this patch and the following patch(fix dma length),
+> on my beagle B5, test#5(queued bulk out) may go beyond
+> 18Mbyte/s(seems dma mode 0 is quicker in double buffer case)
+> if musb is configured as g_zero and fifo mode 3 is taken, follows
+> the test command:
+> 
+>     #./testusb -D DEV_NAME -c 1024 -t 5 -s 32768 -g 8   [1]
+> 
+> Also I have tested this patch can't make g_ether broken.
+> 
+> [1],
+>     -source of testusb : tools/usb/testusb.c under linux kernel;
+> 
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+> Cc: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Mike Frysinger <vapier@gentoo.org>
+> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-I discovered this a week or so before sending it out doing some
-weekend spare-time debugging of the double-buffering problem. I
-posted it out to get some feedback, and then forgot about it. :(
+I'm not 100% sure why not having autoclear was causing a failure
+with double-buffering enabled. I'd like this patch to be tested
+more on OMAP as well as on Blackfin/Davinci.
 
-MUSB in general has been hammered by many lost patches in the
-recent past - I know folks have been busy getting products out,
-and haven't followed up as well as they could have. Hopefully
-this will change in future.
+I'll need time to study MUSB specs again to understand this,
+so I'll skip acking this patch and let Felipe/Sergei/Mike/Ajay
+take a look.
+
+Thanks for taking the time to debug this - if this patch series
+makes double buffering work reliably, that's a very good boost
+to throughput.
 
 - Anand
+
+> ---
+>  drivers/usb/musb/musb_gadget.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> index e0bd1c1..c0dfec4 100644
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -645,9 +645,9 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+>  	 */
+>  
+>  				csr |= MUSB_RXCSR_DMAENAB;
+> -#ifdef USE_MODE1
+>  				if (!musb_ep->hb_mult)
+>  					csr |= MUSB_RXCSR_AUTOCLEAR;
+> +#ifdef USE_MODE1
+>  				/* csr |= MUSB_RXCSR_DMAMODE; */
+>  
+>  				/* this special sequence (enabling and then
+> -- 
+> 1.6.2.5
+> 
+> 
