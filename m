@@ -1,155 +1,146 @@
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] USB: musb-gadget: fix OUT transfer in double buffer case
-Date: Fri, 27 Aug 2010 22:23:12 +0800
-Message-ID: <AANLkTikogXSNmjb5VFP15jaj6_VCodBFzCina-DdpSXc@mail.gmail.com>
-References: <1282909068-2968-1-git-send-email-tom.leiming@gmail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0328C1CB4B@dbde02.ent.ti.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH 05/10] [PM-WIP-MMC] OMAP4 hwmod: Updating hwmod data for
+ MMC controllers
+Date: Fri, 27 Aug 2010 20:04:52 +0530
+Message-ID: <AANLkTik7Z32wj97ggGn40qPYnLfBOxt4fy6Rn_w9d_1x@mail.gmail.com>
+References: <16128.10.24.255.18.1282335050.squirrel@dbdmail.itg.ti.com>
+	<4C722AAA.9040905@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1CB4B-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: "greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org" <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:36725 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753535Ab0H0Oex convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 10:34:53 -0400
+Received: by vws3 with SMTP id 3so2918275vws.19
+        for <linux-omap@vger.kernel.org>; Fri, 27 Aug 2010 07:34:53 -0700 (PDT)
+In-Reply-To: <4C722AAA.9040905@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>
 
-Thanks for your review.
+Benoit,
 
-2010/8/27 Gadiyar, Anand <gadiyar-l0cyMroinI0@public.gmane.org>:
-> tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
->> From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>
->> This patch fixes two bugs of OUT transfer in double buffer case:
->>
->> =A0 =A0 =A0 -USE_MODE1 should be enabled except for ANOMALY_05000456=
- case, or
->> =A0 =A0 =A0 else may cause infinite hang and data error bug in doubl=
-e buffer
->>
+On Mon, Aug 23, 2010 at 1:30 PM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> Hi Kishore,
 >
-> Double buffering should still work with or without mode1 DMA.
-> I'm not sure using Mode1 DMA is the fix for enabling double buffering=
-=2E
-
-I see why enabling mode 1 may fix the TX transfer in double buffer case=
-=2E
-
-We only enable auto clear for dma mode 1 case and for dma mode 0,
-so it should be a bug.
-
->
->> =A0 =A0 =A0 -DMA length should not go beyond the availabe space of r=
-equest buffer
+> On 8/20/2010 10:10 PM, Kadiyala, Kishore wrote:
 >>
->> Without this patch, test #5 of usbtest can't be passed if we configu=
-re musb as
->> g_zero and use fifo mode 3 to enable double buffer mode.
+>> Update register offsets and dev attributes for MMC controllers on
+>> OMAP4
 >>
->> With this patch, on my beagle B5, test#5(queued bulk out) may go bey=
-ond 14Mbyte/s
->> if musb is configured as g_zero and fifo mode 3 is taken, follows th=
-e test command:
->>
->> =A0 =A0 =A0 #./testusb -D DEV_NAME -c 1024 -t 5 -s 32768 -g 8 =A0 [1=
-]
->>
->> [1],
->> =A0 =A0 -source of testusb : tools/usb/testusb.c under linux kernel;
->>
->> Signed-off-by: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
->> Cc: Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
->> Cc: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
->
-> The DMA length part is a good fix. However, I'm not so sure I like th=
-e
-> combining of the MODE1 RX change here.
-
-I will submit two patches to fix the issue, one is to add  'auto clear'
-for both dma 0 and dma 1, another fix the DMA length.  I will submit th=
-e
-two patches later for your review.
-
->
-> With current code, only g_zero and g_file_storage work well with
-> Mode1 DMA RX. g_ether used to break (have not tested recently with mo=
-de1).
-> Did you test g_ether with your patch?
-
-Yes, I test the g_ether just now and find it is broken with the previou=
-s patch.
-
->
-> We know that at least on OMAPs, MODE1 DMA RX works reliably with patc=
-hes
-> Felipe submitted last December. These have not been resubmitted and w=
-e're
-> waiting on that.
->
-> - Anand
->
->
->>
+>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+>> Cc: Benoit Cousson<b-cousson@ti.com>
+>> Signed-off-by: Kishore Kadiyala<kishore.kadiyala@ti.com>
 >> ---
->> =A0drivers/usb/musb/musb_dma.h =A0 =A0| =A0 =A02 ++
->> =A0drivers/usb/musb/musb_gadget.c | =A0 =A05 +++--
->> =A02 files changed, 5 insertions(+), 2 deletions(-)
+>> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 17 +++++++++++++=
+++--
+>> =A01 files changed, 15 insertions(+), 2 deletions(-)
 >>
->> diff --git a/drivers/usb/musb/musb_dma.h b/drivers/usb/musb/musb_dma=
-=2Eh
->> index 916065b..dff91ce 100644
->> --- a/drivers/usb/musb/musb_dma.h
->> +++ b/drivers/usb/musb/musb_dma.h
->> @@ -89,6 +89,8 @@ struct musb_hw_ep;
->> =A0# if !ANOMALY_05000456
->> =A0# =A0define USE_MODE1
->> =A0# endif
->> +#else
->> +# =A0define USE_MODE1
->> =A0#endif
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> index b7268f6..db62b84 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> @@ -22,6 +22,7 @@
 >>
->> =A0/*
->> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_=
-gadget.c
->> index e0bd1c1..f1c44b9 100644
->> --- a/drivers/usb/musb/musb_gadget.c
->> +++ b/drivers/usb/musb/musb_gadget.c
->> @@ -662,10 +662,11 @@ static void rxstate(struct musb *musb,
->> struct musb_request *req)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (requ=
-est->actual < request->length) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 int transfer_size =3D 0;
->> =A0#ifdef USE_MODE1
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 transfer_size =3D min(request->length,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 transfer_size =3D min(request->length - request->actual,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 channel->max_len);
->> =A0#else
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 transfer_size =3D len;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 transfer_size =3D min(request->length - request->actual,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 len);
->> =A0#endif
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 if (transfer_size <=3D musb_ep->packet_sz)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 musb_ep->dma->desired_mode =3D 0;
->> --
->> 1.6.2.5
+>> =A0#include<plat/omap_hwmod.h>
+>> =A0#include<plat/cpu.h>
+>> +#include<plat/mmc.h>
 >>
+>> =A0#include "omap_hwmod_common_data.h"
 >>
+>> @@ -408,8 +409,8 @@ static struct omap_hwmod omap44xx_l4_wkup_hwmod =
+=3D {
+>> =A0 */
+>>
+>> =A0static struct omap_hwmod_class_sysconfig omap44xx_mmc_sysc =3D {
+>> - =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0000,
+>> - =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0010,
+>> + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x02FC,
+>> + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0110,
+>
+> You should not use these registers. MMC is one of the few IP that con=
+tains
+> both legacy and highlander version of the registers, hence the _HL pr=
+efix
+> for the MMCHS_HL_REV and MMCHS_HL_SYSCONFIG.
+>
+> I don't know why the legacy registers are still there, but you should=
+ use
+> the highlander version.
 
+Thanks for the info. I will drop the patch.
 
-
---=20
-Lei Ming
+Regards,
+Kishore
+>
+> Regards,
+> Benoit
+>
+>> =A0 =A0 =A0 =A0.syss_offs =A0 =A0 =A0=3D 0x0114,
+>> =A0 =A0 =A0 =A0.sysc_flags =A0 =A0 =3D (SYSC_HAS_SIDLEMODE | SYSC_HA=
+S_EMUFREE |
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 SYSC_HAS_SOFTRES=
+ET | SYSC_HAS_MIDLEMODE),
+>> @@ -424,6 +425,11 @@ static struct omap_hwmod_class
+>> omap44xx_mmc_hwmod_class =3D {
+>> =A0};
+>>
+>> =A0/* mmc1 */
+>> +
+>> +static struct mmc_dev_attr mmc1_dev_attr =3D {
+>> + =A0 =A0 =A0 .flags =3D MMC_INTERNAL_XCVR,
+>> +};
+>> +
+>> =A0static struct omap_hwmod_irq_info omap44xx_mmc1_irqs[] =3D {
+>> =A0 =A0 =A0 =A0{ .irq =3D 83 + OMAP44XX_IRQ_GIC_START },
+>> =A0};
+>> @@ -478,10 +484,16 @@ static struct omap_hwmod omap44xx_mmc1_hwmod =3D=
+ {
+>> =A0 =A0 =A0 =A0.slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap44xx_mmc1_slav=
+es),
+>> =A0 =A0 =A0 =A0.masters =A0 =A0 =A0 =A0=3D omap44xx_mmc1_masters,
+>> =A0 =A0 =A0 =A0.masters_cnt =A0 =A0=3D ARRAY_SIZE(omap44xx_mmc1_mast=
+ers),
+>> + =A0 =A0 =A0 .dev_attr =A0 =A0 =A0 =3D&mmc1_dev_attr,
+>> =A0 =A0 =A0 =A0.omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP=
+4430),
+>> =A0};
+>>
+>> =A0/* mmc2 */
+>> +
+>> +static struct mmc_dev_attr mmc2_dev_attr =3D {
+>> + =A0 =A0 =A0 .flags =3D MMC_SUPPORTS_EXTERNAL_XCVR,
+>> +};
+>> +
+>> =A0static struct omap_hwmod_irq_info omap44xx_mmc2_irqs[] =3D {
+>> =A0 =A0 =A0 =A0{ .irq =3D 86 + OMAP44XX_IRQ_GIC_START },
+>> =A0};
+>> @@ -536,6 +548,7 @@ static struct omap_hwmod omap44xx_mmc2_hwmod =3D=
+ {
+>> =A0 =A0 =A0 =A0.slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap44xx_mmc2_slav=
+es),
+>> =A0 =A0 =A0 =A0.masters =A0 =A0 =A0 =A0=3D omap44xx_mmc2_masters,
+>> =A0 =A0 =A0 =A0.masters_cnt =A0 =A0=3D ARRAY_SIZE(omap44xx_mmc2_mast=
+ers),
+>> + =A0 =A0 =A0 .dev_attr =A0 =A0 =A0 =3D&mmc2_dev_attr,
+>> =A0 =A0 =A0 =A0.omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP=
+4430),
+>> =A0};
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
