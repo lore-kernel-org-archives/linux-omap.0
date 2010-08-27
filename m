@@ -1,55 +1,101 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
-Date: Fri, 27 Aug 2010 15:04:00 +0200
-Message-ID: <AANLkTi=cktg9PM-AmyCEjQRJf0NA9CAmnzcjYpq_NSzJ@mail.gmail.com>
-References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
-	<4C7792AD.80804@ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 1/2] USB: musb-gadget: fix bulk IN infinite hangs in
+ double buffer case
+Date: Fri, 27 Aug 2010 19:10:19 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1CB42@dbde02.ent.ti.com>
+References: <1282909040-2936-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:52187 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753212Ab0H0NEB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 09:04:01 -0400
-Received: by qwh6 with SMTP id 6so2702543qwh.19
-        for <linux-omap@vger.kernel.org>; Fri, 27 Aug 2010 06:04:00 -0700 (PDT)
-In-Reply-To: <4C7792AD.80804@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45047 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753301Ab0H0Nks convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 09:40:48 -0400
+In-Reply-To: <1282909040-2936-1-git-send-email-tom.leiming@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "vishwanath.sripathy@linaro.org" <vishwanath.sripathy@linaro.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, Jean Pihet <jean.pihet@swing.be>, Nicole Chalhoub <n-chalhoub@ti.com>, Vincent Bour <v-bour@ti.com>
+To: "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, "felipe.balbi@nokia.com" <feli>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Frysinger <vapier@gentoo.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-Benoit,
+tom.leiming@gmail.com wrote:
+> From: Ming Lei <tom.leiming@gmail.com>
+> 
+> This patch fixes one infinite hang of bulk IN transfer in double buffer
+> case, the hang can be observed easily by test #6 of usbtest if musb is
+> configured as g_zero and fifo mode 3 is taken to enable double fifo.
+> 
+> In fact, the patch only removes the check for non-empty fifo before
+> loading data from new request into fifo since the check is 
+> not correct:
+> 
+> 	-in double buffer case, fifo may accommodate more than one packet,
+> 	even though it has contained one packet already and is non-empty
+> 
+> 	-since last DMA is completed before calling musb_g_tx, it is sure
+> 	that fifo may accommodate at least one packet
+> 
+> Without applying the patch, new requst enqueued from .complte may not
+> have a chance to be loaded into fifo, then will never be completed and
+> cause infinite hangs.
+> 
+> With the patch, on my beagle B5, test#6(queued bulk in) can be passed and
+> test result may go beyond 33Mbyte/s if musb is configured as g_zero and
+> fifo mode 3 is taken, follows the test command:
+> 
+> 	#testusb -D DEV_NAME -c 1024 -t 6 -s 32768 -g 8   [1]
+> 
+> [1],
+>     -source of testusb : tools/usb/testusb.c under linux kernel;
+> 
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+> Cc: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Mike Frysinger <vapier@gentoo.org>
+> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+> 
 
-On Fri, Aug 27, 2010 at 12:25 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
->> This patch has instrumentation code for measuring latencies for
->> various CPUIdle C states for OMAP. Idea here is to capture the
->> timestamp at various phases of CPU Idle and then compute the sw
->> latency for various c states. For OMAP, 32k clock is chosen as
->> reference clock this as is an always on clock. wkup domain memory
->> (scratchpad memory) is used for storing timestamps. One can see the
->> worstcase latencies in below sysfs entries (after enabling
->> CONFIG_CPU_IDLE_PROF
->> in .config). This information can be used to correctly configure cpu idle
->> latencies for various C states after adding HW latencies for each of
->> these sw latencies.
->> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/actual_latency
->> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/sleep_latency
->> /sys/devices/system/cpu/cpu0/cpuidle/state<n>/wkup_latency
->
-> FYI, Jean is currently working on using standard Linux probes in order to
-> instrument CPUIdle / CPUfreq. I'm not sure it is doable, but it might better
-> to use standard method to do that instead of purely OMAP3 specific stuff.
-> This code will not scale easily on OMAP4.
-The proposed code looks OK to me since it is exporting the cpuidle
-latency figures through the generic cpuidle driver (in
-drivers/cpuidle/sysfs.c, via
-/sys/devices/system/cpu/cpu0/cpuidle/state<n>/).
-Once that code gets approved I can (and will) add some trace points in
-it, so that all PM related events can be traced vs time.
+For OMAPs,
+Acked-by: Anand Gadiyar <gadiyar@ti.com>
 
+I sent out this patch a while ago [1]. I've tested it on
+OMAP3 and OMAP4 silicon.
 
->
-> Do you have a dump of the latency you measured do far?
+It does look like a logic bug to me, but I'd like the Blackfin
+and Davinci guys to take a look at the code as well.
 
-Jean
+- Anand
+
+[1] <http://marc.info/?l=linux-usb&m=127055442703499&w=2>
+
+> ---
+>  drivers/usb/musb/musb_gadget.c |   12 ------------
+>  1 files changed, 0 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> index 550b397..e0bd1c1 100644
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -506,18 +506,6 @@ void musb_g_tx(struct musb *musb, u8 epnum)
+>  			/* ... or if not, then complete it. */
+>  			musb_g_giveback(musb_ep, request, 0);
+>  
+> -			/*
+> -			 * Kickstart next transfer if appropriate;
+> -			 * the packet that just completed might not
+> -			 * be transmitted for hours or days.
+> -			 * REVISIT for double buffering...
+> -			 * FIXME revisit for stalls too...
+> -			 */
+> -			musb_ep_select(mbase, epnum);
+> -			csr = musb_readw(epio, MUSB_TXCSR);
+> -			if (csr & MUSB_TXCSR_FIFONOTEMPTY)
+> -				return;
+> -
+>  			request = musb_ep->desc ? next_request(musb_ep) : NULL;
+>  			if (!request) {
+>  				DBG(4, "%s idle now\n",
+> -- 
+> 1.6.2.5
+> 
+> 
