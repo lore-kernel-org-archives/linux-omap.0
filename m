@@ -1,97 +1,64 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH 5/5 v3] OMAP2PLUS: WDT: Conversion to runtime PM
-Date: Fri, 27 Aug 2010 20:09:15 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCA86F2A@dbde02.ent.ti.com>
-References: <1281965809-20585-1-git-send-email-charu@ti.com>
-	<1281965809-20585-2-git-send-email-charu@ti.com>
-	<1281965809-20585-3-git-send-email-charu@ti.com>
-	<1281965809-20585-4-git-send-email-charu@ti.com>
-	<1281965809-20585-5-git-send-email-charu@ti.com>
-	<1281965809-20585-6-git-send-email-charu@ti.com>
- <874oehx9h3.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: tom.leiming@gmail.com
+Subject: [PATCH 1/2] USB: musb-gadget: enable autoclear for OUT transfer in both DMA 0 and DMA 1
+Date: Fri, 27 Aug 2010 22:52:03 +0800
+Message-ID: <1282920723-12459-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56174 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751562Ab0H0OjX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 10:39:23 -0400
-In-Reply-To: <874oehx9h3.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:59413 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753516Ab0H0Owg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 10:52:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "wim@iguana.be" <wim@iguana.be>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: greg@kroah.com, dbrownell@users.sourceforge.net, felipe.balbi@nokia.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>, Anand Gadiyar <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
+From: Ming Lei <tom.leiming@gmail.com>
 
+This patch fixes one bugs of OUT transfer in double buffer case:
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Friday, August 27, 2010 4:34 AM
-> To: Varadarajan, Charulatha
-> Cc: linux-omap@vger.kernel.org; wim@iguana.be; paul@pwsan.com; Cousson,
-> Benoit; Nayak, Rajendra; Basak, Partha
-> Subject: Re: [PATCH 5/5 v3] OMAP2PLUS: WDT: Conversion to runtime PM
-> 
-> Charulatha V <charu@ti.com> writes:
-> 
-> > This patch converts the OMAP Watchdog timer driver to
-> > get adapted to HWMOD FW and to use the runtime PM APIs.
-> 
-> Technically, the driver knows nothing about the HWMOD framework, as
-> that's an OMAP core implementation detail.
-> 
-> What's really happening here is two separate things:
-> 
-> 1) conversion of driver to runtime PM instead of clock framework
-> 2) convert platform_device/_data over to be omap_device-based
-> 
-> These should be done in two separate patches (and in that order.)
+-the current code only enable autoclear for dma mode 1, and not
+for dma mode 0
 
-Okay.
+Without this patch, test #5 of usbtest can't be passed if we
+configure musb as g_zero and use fifo mode 3 to enable double
+buffer mode.
 
-> 
-> Other than that, the patch contents look good.  Some minor comments
-> below...
-> 
-> > Signed-off-by: Charulatha V <charu@ti.com>
-> > Signed-off-by: Basak, Partha <p-basak2@ti.com>
-> > ---
-> >  arch/arm/plat-omap/devices.c |   64 ++++++++++++++++++++++++++++-------
-> ------
-> >  drivers/watchdog/omap_wdt.c  |   43 +++++-----------------------
-> >  2 files changed, 52 insertions(+), 55 deletions(-)
-> >
-> 
-> [...]
-> 
-> > diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-> > index 76b58ab..7645ca3 100644
-> > --- a/drivers/watchdog/omap_wdt.c
-> > +++ b/drivers/watchdog/omap_wdt.c
-> > @@ -38,13 +38,14 @@
-> >  #include <linux/err.h>
-> >  #include <linux/platform_device.h>
-> >  #include <linux/moduleparam.h>
-> > -#include <linux/clk.h>
-> >  #include <linux/bitops.h>
-> >  #include <linux/io.h>
-> >  #include <linux/uaccess.h>
-> >  #include <linux/slab.h>
-> > +#include <linux/pm_runtime.h>
-> >  #include <mach/hardware.h>
-> >  #include <plat/prcm.h>
-> > +#include <plat/omap_device.h>
-> 
-> This should not be needed in the driver, as there is no need for driver
-> to call omap_device API.
-> 
+With this patch and the following patch(fix dma length),
+on my beagle B5, test#5(queued bulk out) may go beyond
+18Mbyte/s(seems dma mode 0 is quicker in double buffer case)
+if musb is configured as g_zero and fifo mode 3 is taken, follows
+the test command:
 
+    #./testusb -D DEV_NAME -c 1024 -t 5 -s 32768 -g 8   [1]
 
-Yes, I will not include it.
+Also I have tested this patch can't make g_ether broken.
 
-> [...]
-> 
-> Kevin
+[1],
+    -source of testusb : tools/usb/testusb.c under linux kernel;
+
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+---
+ drivers/usb/musb/musb_gadget.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index e0bd1c1..c0dfec4 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -645,9 +645,9 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+ 	 */
+ 
+ 				csr |= MUSB_RXCSR_DMAENAB;
+-#ifdef USE_MODE1
+ 				if (!musb_ep->hb_mult)
+ 					csr |= MUSB_RXCSR_AUTOCLEAR;
++#ifdef USE_MODE1
+ 				/* csr |= MUSB_RXCSR_DMAMODE; */
+ 
+ 				/* this special sequence (enabling and then
+-- 
+1.6.2.5
 
