@@ -1,257 +1,435 @@
-From: "K, Mythri P" <mythripk@ti.com>
-Subject: RE: [PATCHv2]  OMAP:DSS:Add support for Additional color modes
- supported by OMAP4 -
-Date: Fri, 27 Aug 2010 12:51:35 +0530
-Message-ID: <FF55437E1F14DA4BAEB721A458B6701706C539EFE7@dbde02.ent.ti.com>
-References: <FF55437E1F14DA4BAEB721A458B6701706BE2A6C1C@dbde02.ent.ti.com>
- <1282820487.9299.359.camel@tubuntu.research.nokia.com>
+From: vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Subject: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
+Date: Sat, 28 Aug 2010 03:38:33 +0530
+Message-ID: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37540 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752517Ab0H0HVn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Aug 2010 03:21:43 -0400
-In-Reply-To: <1282820487.9299.359.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tomi,
+From: Vishwanath BS <vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-Please find the OMAP4 TRM in 
-http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?templateId=6123&navigationId=12667
+This patch has instrumentation code for measuring latencies for
+various CPUIdle C states for OMAP. Idea here is to capture the
+timestamp at various phases of CPU Idle and then compute the sw
+latency for various c states. For OMAP, 32k clock is chosen as
+reference clock this as is an always on clock. wkup domain memory
+(scratchpad memory) is used for storing timestamps. One can see the
+worstcase latencies in below sysfs entries (after enabling CONFIG_CPU_IDLE_PROF
+in .config). This information can be used to correctly configure cpu idle
+latencies for various C states after adding HW latencies for each of
+these sw latencies.
+/sys/devices/system/cpu/cpu0/cpuidle/state<n>/actual_latency
+/sys/devices/system/cpu/cpu0/cpuidle/state<n>/sleep_latency
+/sys/devices/system/cpu/cpu0/cpuidle/state<n>/wkup_latency
 
-Thanks and regards,
-Mythri.
+THis patch is tested on OMAP ZOOM3 using kevin's pm branch.
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Thursday, August 26, 2010 4:31 PM
-> To: K, Mythri P
-> Cc: linux-omap@vger.kernel.org; Semwal, Sumit
-> Subject: Re: [PATCHv2] OMAP:DSS:Add support for Additional color
-> modes supported by OMAP4
-> 
-> On Thu, 2010-08-26 at 12:15 +0200, ext K, Mythri P wrote:
-> > From: Sumit semwal <sumit.semwal@ti.com>
-> >
-> > Signed-off-by: Mythri P K <mythripk@ti.com>
-> > ---
-> >  arch/arm/plat-omap/include/plat/display.h |   17 +++++++++-
-> >  drivers/video/omap2/dss/dispc.c           |   53
-> ++++++++++++++++++++++-------
-> >  drivers/video/omap2/dss/overlay.c         |   15 +++++---
-> >  3 files changed, 66 insertions(+), 19 deletions(-)
-> 
-> This doesn't apply. The patch seems to be based on some other kernel
-> than mainline linux or my DSS2 tree.
-> 
-> > diff --git a/arch/arm/plat-omap/include/plat/display.h
-> b/arch/arm/plat-omap/include/plat/display.h
-> > index 7a6eedd..c8ff8f6 100644
-> > --- a/arch/arm/plat-omap/include/plat/display.h
-> > +++ b/arch/arm/plat-omap/include/plat/display.h
-> > @@ -89,6 +89,12 @@ enum omap_color_mode {
-> >  	OMAP_DSS_COLOR_ARGB32	= 1 << 11, /* ARGB32 */
-> >  	OMAP_DSS_COLOR_RGBA32	= 1 << 12, /* RGBA32 */
-> >  	OMAP_DSS_COLOR_RGBX32	= 1 << 13, /* RGBx32 */
-> > +	OMAP_DSS_COLOR_NV12	= 1 << 14, /* NV12 format: YUV 4:2:0
-> */
-> > +	OMAP_DSS_COLOR_RGBA12	= 1 << 15, /* RGBA12 - 4444 */
-> > +	OMAP_DSS_COLOR_XRGB12	= 1 << 16, /* xRGB12, 16-bit container
-> */
-> 
-> OMAP4's xRGB12-4444 is the same as OMAP3's RGB12
-> (OMAP_DSS_COLOR_RGB12U), so there's no need to add XRGB12. Or is
-> this
-> supposed to be RGBx12-4444?
-> 
-> > +	OMAP_DSS_COLOR_ARGB16_1555	= 1 << 17, /* ARGB16-1555 */
-> > +	OMAP_DSS_COLOR_RGBX24_32_ALGN	= 1 << 18, /* 32-msb aligned
-> 24bit */
-> > +	OMAP_DSS_COLOR_XRGB15	= 1 << 19, /* xRGB15: 1555*/
-> 
-> As these is kernel internal enum, I think it should be re-ordered to
-> match OMAP4's color format order (the one in GFX/VID_ATTR:FORMAT
-> register), to make it a bit more clear when comparing code and TRM.
-> 
-> >  	OMAP_DSS_COLOR_GFX_OMAP2 =
-> >  		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
-> > @@ -121,7 +127,16 @@ enum omap_color_mode {
-> >  		OMAP_DSS_COLOR_UYVY | OMAP_DSS_COLOR_ARGB32 |
-> >  		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
-> >
-> > -	OMAP_DSS_COLOR_VID3_OMAP3 = OMAP_DSS_COLOR_VID2_OMAP3,
-> 
-> There's no such line in the kernel.
-> 
-> > +	OMAP_DSS_COLOR_VID_OMAP4 =
-> > +		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB12U |
-> > +		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_ARGB16_1555 |
-> > +		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_NV12 |
-> > +		OMAP_DSS_COLOR_RGBA12 | OMAP_DSS_COLOR_RGB24U |
-> > +		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_UYVY |
-> > +		OMAP_DSS_COLOR_ARGB16 | OMAP_DSS_COLOR_XRGB15 |
-> > +		OMAP_DSS_COLOR_ARGB32 | OMAP_DSS_COLOR_XRGB12 |
-> > +		OMAP_DSS_COLOR_RGBX24_32_ALGN,
-> 
-> Does OMAP4 VID overlay support the same modes as OMAP3? If so, then
-> this
-> could be defined as OMAP_DSS_COLOR_VID2_OMAP3 | newmodes... to make
-> it
-> clear which modes are new. Or, if you want to state the modes
-> explicitely, the order should be the same as in the existing OMAP3
-> enums
-> to make it clear.
-> 
-> >  };
-> >
-> >  enum omap_lcd_display_type {
-> > diff --git a/drivers/video/omap2/dss/dispc.c
-> b/drivers/video/omap2/dss/dispc.c
-> > index d4a7e10..86702c5 100644
-> > --- a/drivers/video/omap2/dss/dispc.c
-> > +++ b/drivers/video/omap2/dss/dispc.c
-> > @@ -1059,18 +1059,38 @@ static void _dispc_set_color_mode(enum
-> omap_plane plane,
-> >  		enum omap_color_mode color_mode)
-> >  {
-> >  	u32 m = 0;
-> > -
-> >  	switch (color_mode) {
-> > -	case OMAP_DSS_COLOR_CLUT1:
-> > -		m = 0x0; break;
-> > -	case OMAP_DSS_COLOR_CLUT2:
-> > -		m = 0x1; break;
-> > -	case OMAP_DSS_COLOR_CLUT4:
-> > -		m = 0x2; break;
-> > -	case OMAP_DSS_COLOR_CLUT8:
-> > -		m = 0x3; break;
-> > +		if ((!cpu_is_omap44xx()) || (OMAP_DSS_GFX == plane)) {
-> > +			case OMAP_DSS_COLOR_CLUT1:
-> > +				m = 0x0; break;
-> > +			case OMAP_DSS_COLOR_CLUT2:
-> > +				m = 0x1; break;
-> > +			case OMAP_DSS_COLOR_CLUT4:
-> > +				m = 0x2; break;
-> > +			case OMAP_DSS_COLOR_CLUT8:
-> > +				m = 0x3; break;
-> > +			case OMAP_DSS_COLOR_RGBX32:
-> > +				m = 0xe; break;
-> > +		} else {
-> > +			case OMAP_DSS_COLOR_NV12:
-> > +				m = 0x0; break;
-> > +			case OMAP_DSS_COLOR_RGBA12:
-> > +				m = 0x2; break;
-> > +			case OMAP_DSS_COLOR_XRGB12:
-> > +				m = 0x4; break;
-> > +			case OMAP_DSS_COLOR_ARGB16_1555:
-> > +				m = 0x7; break;
-> > +			case OMAP_DSS_COLOR_RGBX24_32_ALGN:
-> > +				m = 0xe; break;
-> > +			case OMAP_DSS_COLOR_XRGB15:
-> > +				m = 0xf; break;
-> > +		}
-> >  	case OMAP_DSS_COLOR_RGB12U:
-> > -		m = 0x4; break;
-> > +		if ((!cpu_is_omap44xx()) || (OMAP_DSS_GFX == plane))
-> > +			m = 0x4;
-> > +		else
-> > +			m = 0x1;
-> > +			break;
-> 
-> You have lots of ifs here. Isn't OMAP4's format register just
-> extended
-> from OMAP3, and so all the old modes work as such? And so there
-> shouldn't be any need for ifs.
-> 
-> >  	case OMAP_DSS_COLOR_ARGB16:
-> >  		m = 0x5; break;
-> >  	case OMAP_DSS_COLOR_RGB16:
-> > @@ -1087,8 +1107,6 @@ static void _dispc_set_color_mode(enum
-> omap_plane plane,
-> >  		m = 0xc; break;
-> >  	case OMAP_DSS_COLOR_RGBA32:
-> >  		m = 0xd; break;
-> > -	case OMAP_DSS_COLOR_RGBX32:
-> > -		m = 0xe; break;
-> >  	default:
-> >  		BUG(); break;
-> >  	}
-> > @@ -1901,7 +1919,16 @@ static int _dispc_setup_plane(enum
-> omap_plane plane,
-> >  		case OMAP_DSS_COLOR_RGBA32:
-> >  			if (cpu_is_omap24xx())
-> >  				return -EINVAL;
-> > -			if (plane == OMAP_DSS_VIDEO1)
-> > +			if ((!cpu_is_omap44xx()) && (plane ==
-> OMAP_DSS_VIDEO1))
-> > +				return -EINVAL;
-> > +			break;
-> > +
-> > +		case OMAP_DSS_COLOR_RGBA12:
-> > +		case OMAP_DSS_COLOR_XRGB12:
-> > +		case OMAP_DSS_COLOR_ARGB16_1555:
-> > +		case OMAP_DSS_COLOR_RGBX24_32_ALGN:
-> > +		case OMAP_DSS_COLOR_XRGB15:
-> > +			if (!cpu_is_omap44xx())
-> >  				return -EINVAL;
-> >  			break;
-> >
-> > diff --git a/drivers/video/omap2/dss/overlay.c
-> b/drivers/video/omap2/dss/overlay.c
-> > index 0c189f8..4a2d908 100644
-> > --- a/drivers/video/omap2/dss/overlay.c
-> > +++ b/drivers/video/omap2/dss/overlay.c
-> > @@ -588,7 +588,8 @@ void dss_init_overlays(struct platform_device
-> *pdev)
-> >  		case 0:
-> >  			ovl->name = "gfx";
-> >  			ovl->id = OMAP_DSS_GFX;
-> > -			ovl->supported_modes = cpu_is_omap34xx() ?
-> > +			ovl->supported_modes = (cpu_is_omap44xx() |
-> > +				cpu_is_omap34xx()) ?
-> >  				OMAP_DSS_COLOR_GFX_OMAP3 :
-> >  				OMAP_DSS_COLOR_GFX_OMAP2;
-> >  			ovl->caps = OMAP_DSS_OVL_CAP_DISPC;
-> > @@ -598,7 +599,9 @@ void dss_init_overlays(struct platform_device
-> *pdev)
-> >  		case 1:
-> >  			ovl->name = "vid1";
-> >  			ovl->id = OMAP_DSS_VIDEO1;
-> > -			ovl->supported_modes = cpu_is_omap34xx() ?
-> > +			ovl->supported_modes =	cpu_is_omap44xx() ?
-> > +				OMAP_DSS_COLOR_VID_OMAP4 :
-> > +				cpu_is_omap34xx() ?
-> >  				OMAP_DSS_COLOR_VID1_OMAP3 :
-> >  				OMAP_DSS_COLOR_VID_OMAP2;
-> >  			ovl->caps = OMAP_DSS_OVL_CAP_SCALE |
-> > @@ -611,8 +614,10 @@ void dss_init_overlays(struct platform_device
-> *pdev)
-> >  		case 2:
-> >  			ovl->name = "vid2";
-> >  			ovl->id = OMAP_DSS_VIDEO2;
-> > -			ovl->supported_modes = cpu_is_omap34xx() ?
-> > -				OMAP_DSS_COLOR_VID2_OMAP3 :
-> > +			ovl->supported_modes = cpu_is_omap44xx() ?
-> > +				OMAP_DSS_COLOR_VID_OMAP4 :
-> > +				cpu_is_omap34xx() ?
-> > +				OMAP_DSS_COLOR_VID1_OMAP3 :
-> >  				OMAP_DSS_COLOR_VID_OMAP2;
-> 
-> This is getting a bit confusing. Perhaps a simple
-> if (cpu_is_omap44xx())
->   ovl->supported_modes = ...
-> else if (cpu_is_omap34xx())
->  ovl->supported_modes = ..
-> ...
-> 
-> would be more readable.
-> 
->  Tomi
-> 
+Signed-off-by: Vishwanath BS <vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |   58 ++++++++++++++++--
+ arch/arm/mach-omap2/pm.h          |    5 ++
+ arch/arm/mach-omap2/sleep34xx.S   |  121 +++++++++++++++++++++++++++++++++++++
+ drivers/cpuidle/Kconfig           |    5 ++
+ drivers/cpuidle/sysfs.c           |   16 +++++-
+ include/linux/cpuidle.h           |    3 +
+ 6 files changed, 202 insertions(+), 6 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 3d3d035..398bef8
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -25,6 +25,7 @@
+ #include <linux/sched.h>
+ #include <linux/cpuidle.h>
+ 
++#include <linux/clk.h>
+ #include <plat/prcm.h>
+ #include <plat/irqs.h>
+ #include <plat/powerdomain.h>
+@@ -86,6 +87,11 @@ static struct cpuidle_params cpuidle_params_table[] = {
+ 	{1, 10000, 30000, 300000},
+ };
+ 
++#ifdef CONFIG_CPU_IDLE_PROF
++static struct clk *clk_32k;
++#define CONVERT_32K_USEC(lat) (lat * (USEC_PER_SEC/clk_get_rate(clk_32k)))
++#endif
++
+ static int omap3_idle_bm_check(void)
+ {
+ 	if (!omap3_can_sleep())
+@@ -115,21 +121,28 @@ static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
+  * Called from the CPUidle framework to program the device to the
+  * specified target state selected by the governor.
+  */
++
+ static int omap3_enter_idle(struct cpuidle_device *dev,
+ 			struct cpuidle_state *state)
+ {
+ 	struct omap3_processor_cx *cx = cpuidle_get_statedata(state);
+ 	struct timespec ts_preidle, ts_postidle, ts_idle;
+ 	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
++#ifdef CONFIG_CPU_IDLE_PROF
++	int idle_time, latency;
++	long sleep_time, wkup_time, total_sleep_time;
++	long preidle_time, postidle_time;
++#endif
+ 
+ 	current_cx_state = *cx;
+ 
+-	/* Used to keep track of the total time in idle */
+-	getnstimeofday(&ts_preidle);
+-
+ 	local_irq_disable();
+ 	local_fiq_disable();
+-
++	/* Used to keep track of the total time in idle */
++	getnstimeofday(&ts_preidle);
++#ifdef CONFIG_CPU_IDLE_PROF
++	preidle_time = omap3_sram_get_32k_tick();
++#endif
+ 	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
+ 	pwrdm_set_next_pwrst(core_pd, core_state);
+ 
+@@ -153,9 +166,39 @@ return_sleep_time:
+ 	getnstimeofday(&ts_postidle);
+ 	ts_idle = timespec_sub(ts_postidle, ts_preidle);
+ 
++#ifdef CONFIG_CPU_IDLE_PROF
++	postidle_time = omap3_sram_get_32k_tick();
++#endif
+ 	local_irq_enable();
+ 	local_fiq_enable();
+ 
++#ifdef CONFIG_CPU_IDLE_PROF
++	sleep_time = omap3_sram_get_sleep_time();
++	wkup_time = omap3_sram_get_wkup_time();
++
++	/* take care of overflow */
++	if (postidle_time < preidle_time)
++		postidle_time += (u32) 0xffffffff;
++	if (wkup_time < sleep_time)
++		wkup_time += (u32) 0xffffffff;
++
++	idle_time = postidle_time - preidle_time;
++	total_sleep_time = wkup_time -  sleep_time;
++	latency = idle_time - total_sleep_time;
++	sleep_time = omap3_sram_get_sleep_time();
++	wkup_time = omap3_sram_get_wkup_time();
++
++	/* calculate average latency after ignoring sprious ones */
++	if ((total_sleep_time > 0) && (latency > state->actual_latency)
++		&& (latency >= 0)) {
++		state->actual_latency = CONVERT_32K_USEC(latency);
++		latency = (sleep_time - preidle_time);
++		state->sleep_latency = CONVERT_32K_USEC(latency);
++		latency = postidle_time - wkup_time;
++		state->wkup_latency = CONVERT_32K_USEC(latency);
++	}
++#endif
++
+ 	return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_sec * USEC_PER_SEC;
+ }
+ 
+@@ -423,7 +466,9 @@ int __init omap3_idle_init(void)
+ 	struct omap3_processor_cx *cx;
+ 	struct cpuidle_state *state;
+ 	struct cpuidle_device *dev;
+-
++#ifdef CONFIG_CPU_IDLE_PROF
++	static struct device dummy_device;
++#endif
+ 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
+ 	core_pd = pwrdm_lookup("core_pwrdm");
+ 
+@@ -456,6 +501,9 @@ int __init omap3_idle_init(void)
+ 
+ 	omap3_cpuidle_update_states();
+ 
++#ifdef CONFIG_CPU_IDLE_PROF
++	clk_32k = clk_get(&dummy_device, "wkup_32k_fck");
++#endif
+ 	if (cpuidle_register_device(dev)) {
+ 		printk(KERN_ERR "%s: CPUidle register device failed\n",
+ 		       __func__);
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 3de6ece..e62e87d 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -82,4 +82,9 @@ extern unsigned int save_secure_ram_context_sz;
+ extern unsigned int omap24xx_cpu_suspend_sz;
+ extern unsigned int omap34xx_cpu_suspend_sz;
+ 
++#ifdef CONFIG_CPU_IDLE_PROF
++extern u32 omap3_sram_get_wkup_time();
++extern u32 omap3_sram_get_sleep_time();
++extern u32 omap3_sram_get_32k_tick();
++#endif
+ #endif
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index d522cd7..8dec5ef 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -59,6 +59,20 @@
+ #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+ #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+ 
++#define TIMER_32K_SYNC_P	0x48320010
++#define TIMER_32K_SYNC		OMAP2_L4_IO_ADDRESS(TIMER_32K_SYNC_P)
++
++#define SCRATCHPAD_SLEEP_TIME_OFFSET 0x9f8
++#define SCRATCHPAD_WKUP_TIME_OFFSET 0x9fc
++#define SCRATCHPAD_SLEEP_TIME	OMAP343X_CTRL_REGADDR(SCRATCHPAD_SLEEP_TIME_OFFSET)
++#define SCRATCHPAD_WKUP_TIME	OMAP343X_CTRL_REGADDR(SCRATCHPAD_WKUP_TIME_OFFSET)
++#define SCRATCHPAD_WKUP_TIME_P	OMAP343X_CTRL_BASE + SCRATCHPAD_WKUP_TIME_OFFSET
++
++#define CM_ICLKEN_WKUP	OMAP34XX_CM_REGADDR(WKUP_MOD, CM_ICLKEN)
++#define CM_ICLKEN_WKUP_P	OMAP3430_CM_BASE + WKUP_MOD + CM_ICLKEN
++#define CM_IDLEST_WKUP	OMAP34XX_CM_REGADDR(WKUP_MOD, CM_IDLEST)
++#define CM_IDLEST_WKUP_P	OMAP3430_CM_BASE + WKUP_MOD + CM_IDLEST
++
+         .text
+ /* Function to aquire the semaphore in scratchpad */
+ ENTRY(lock_scratchpad_sem)
+@@ -183,7 +197,31 @@ api_params:
+ 	.word	0x4, 0x0, 0x0, 0x1, 0x1
+ ENTRY(save_secure_ram_context_sz)
+ 	.word	. - save_secure_ram_context
++#ifdef CONFIG_CPU_IDLE_PROF
++ENTRY(omap3_sram_get_wkup_time)
++    stmfd   sp!, {lr}     @ save registers on stack
++	ldr r0, wkup_time
++	ldr r0, [r0]
++    ldmfd   sp!, {pc}     @ restore regs and return
++ENTRY(omap3_sram_get_wkup_time_sz)
++        .word   . - omap3_sram_get_wkup_time
++
++ENTRY(omap3_sram_get_sleep_time)
++    stmfd   sp!, {lr}     @ save registers on stack
++	ldr r0, sleep_time
++	ldr r0, [r0]
++    ldmfd   sp!, {pc}     @ restore regs and return
++ENTRY(omap3_sram_get_sleep_time_sz)
++        .word   . - omap3_sram_get_sleep_time
+ 
++ENTRY(omap3_sram_get_32k_tick)
++    stmfd   sp!, {lr}     @ save registers on stack
++	ldr r0, sync_32k_timer
++	ldr r0, [r0]
++    ldmfd   sp!, {pc}     @ restore regs and return
++ENTRY(omap3_sram_get_32k_tick_sz)
++        .word   . - omap3_sram_get_32k_tick
++#endif
+ /*
+  * Forces OMAP into idle state
+  *
+@@ -207,6 +245,13 @@ loop:
+ 	cmp	r1, #0x0
+ 	/* If context save is required, do that and execute wfi */
+ 	bne	save_context_wfi
++
++#ifdef CONFIG_CPU_IDLE_PROF
++	ldr r4, sync_32k_timer
++	ldr     r5, [r4]
++	ldr r6, sleep_time
++	str r5, [r6]
++#endif
+ 	/* Data memory barrier and Data sync barrier */
+ 	mov	r1, #0
+ 	mcr	p15, 0, r1, c7, c10, 4
+@@ -224,8 +269,25 @@ loop:
+ 	nop
+ 	nop
+ 	nop
++#ifdef CONFIG_CPU_IDLE_PROF
++	ldr r4, iclken_wkup
++	ldr r5, [r4]
++	orr r5, r5, #0x4
++	str r5, [r4]
++	ldr r4, idlest_wkup
++wait_idlest:
++	ldr r5, [r4]
++	and	r5, r5, #0x4
++	cmp	r5, #0x0
++	bne	wait_idlest
++	ldr r4, sync_32k_timer
++	ldr     r5, [r4]
++	ldr r6, wkup_time
++	str r5, [r6]
++#endif
+ 	bl wait_sdrc_ok
+ 
++
+ 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
+ restore_es3:
+ 	/*b restore_es3*/		@ Enable to debug restore code
+@@ -247,6 +309,23 @@ copy_to_sram:
+ 	blx	r1
+ restore:
+ 	/* b restore*/  @ Enable to debug restore code
++#ifdef CONFIG_CPU_IDLE_PROF
++	ldr r4, iclken_wkup_p
++	ldr r5, [r4]
++	orr r5, r5, #0x4
++	str r5, [r4]
++	ldr r4, idlest_wkup_p
++wait_idlest1:
++	ldr r5, [r4]
++	and	r5, r5, #0x4
++	cmp	r5, #0x0
++	bne	wait_idlest1
++	ldr r4, sync_32k_timer_p
++	ldr r5, [r4]
++	ldr r6, wkup_time_p
++	str r5, [r6]
++#endif
++
+         /* Check what was the reason for mpu reset and store the reason in r9*/
+         /* 1 - Only L1 and logic lost */
+         /* 2 - Only L2 lost - In this case, we wont be here */
+@@ -587,6 +666,12 @@ finished:
+ 	mcr     p15, 2, r10, c0, c0, 0
+ 	isb
+ skip_l2_inval:
++#ifdef CONFIG_CPU_IDLE_PROF
++	ldr r4, sync_32k_timer
++	ldr     r5, [r4]
++	ldr r6, sleep_time
++	str r5, [r6]
++#endif
+ 	/* Data memory barrier and Data sync barrier */
+ 	mov     r1, #0
+ 	mcr     p15, 0, r1, c7, c10, 4
+@@ -603,6 +688,22 @@ skip_l2_inval:
+ 	nop
+ 	nop
+ 	nop
++#ifdef CONFIG_CPU_IDLE_PROF
++	ldr r4, iclken_wkup
++	ldr r5, [r4]
++	orr r5, r5, #0x4
++	str r5, [r4]
++	ldr r4, idlest_wkup
++wait_idlest2:
++	ldr r5, [r4]
++	and	r5, r5, #0x4
++	cmp	r5, #0x0
++	bne	wait_idlest2
++	ldr r4, sync_32k_timer
++	ldr     r5, [r4]
++	ldr r6, wkup_time
++	str r5, [r6]
++#endif
+ 	bl wait_sdrc_ok
+ 	/* restore regs and return */
+ 	ldmfd   sp!, {r0-r12, pc}
+@@ -668,5 +769,25 @@ cache_pred_disable_mask:
+ 	.word	0xFFFFE7FB
+ control_stat:
+ 	.word	CONTROL_STAT
++#ifdef CONFIG_CPU_IDLE_PROF
++sync_32k_timer:
++	.word TIMER_32K_SYNC
++sync_32k_timer_p:
++	.word TIMER_32K_SYNC_P
++sleep_time:
++	.word SCRATCHPAD_SLEEP_TIME
++wkup_time:
++	.word SCRATCHPAD_WKUP_TIME
++wkup_time_p:
++	.word SCRATCHPAD_WKUP_TIME_P
++iclken_wkup:
++	.word CM_ICLKEN_WKUP
++iclken_wkup_p:
++	.word CM_ICLKEN_WKUP_P
++idlest_wkup:
++	.word CM_IDLEST_WKUP
++idlest_wkup_p:
++	.word CM_IDLEST_WKUP_P
++#endif
+ ENTRY(omap34xx_cpu_suspend_sz)
+ 	.word	. - omap34xx_cpu_suspend
+diff --git a/drivers/cpuidle/Kconfig b/drivers/cpuidle/Kconfig
+index 7dbc4a8..147456d 100644
+--- a/drivers/cpuidle/Kconfig
++++ b/drivers/cpuidle/Kconfig
+@@ -18,3 +18,8 @@ config CPU_IDLE_GOV_MENU
+ 	bool
+ 	depends on CPU_IDLE && NO_HZ
+ 	default y
++
++config CPU_IDLE_PROF
++	bool
++	depends on CPU_IDLE
++	default n
+diff --git a/drivers/cpuidle/sysfs.c b/drivers/cpuidle/sysfs.c
+index 0310ffa..a3e9db1 100644
+--- a/drivers/cpuidle/sysfs.c
++++ b/drivers/cpuidle/sysfs.c
+@@ -249,6 +249,11 @@ define_show_state_ull_function(usage)
+ define_show_state_ull_function(time)
+ define_show_state_str_function(name)
+ define_show_state_str_function(desc)
++#ifdef CONFIG_CPU_IDLE_PROF
++define_show_state_function(actual_latency)
++define_show_state_function(sleep_latency)
++define_show_state_function(wkup_latency)
++#endif
+ 
+ define_one_state_ro(name, show_state_name);
+ define_one_state_ro(desc, show_state_desc);
+@@ -256,7 +261,11 @@ define_one_state_ro(latency, show_state_exit_latency);
+ define_one_state_ro(power, show_state_power_usage);
+ define_one_state_ro(usage, show_state_usage);
+ define_one_state_ro(time, show_state_time);
+-
++#ifdef CONFIG_CPU_IDLE_PROF
++define_one_state_ro(actual_latency, show_state_actual_latency);
++define_one_state_ro(sleep_latency, show_state_sleep_latency);
++define_one_state_ro(wkup_latency, show_state_wkup_latency);
++#endif
+ static struct attribute *cpuidle_state_default_attrs[] = {
+ 	&attr_name.attr,
+ 	&attr_desc.attr,
+@@ -264,6 +273,11 @@ static struct attribute *cpuidle_state_default_attrs[] = {
+ 	&attr_power.attr,
+ 	&attr_usage.attr,
+ 	&attr_time.attr,
++#ifdef CONFIG_CPU_IDLE_PROF
++	&attr_actual_latency.attr,
++	&attr_sleep_latency.attr,
++	&attr_wkup_latency.attr,
++#endif
+ 	NULL
+ };
+ 
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 55215cc..6474f6a 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -43,6 +43,9 @@ struct cpuidle_state {
+ 
+ 	int (*enter)	(struct cpuidle_device *dev,
+ 			 struct cpuidle_state *state);
++#ifdef CONFIG_CPU_IDLE_PROF
++	u32 actual_latency, sleep_latency, wkup_latency;
++#endif
+ };
+ 
+ /* Idle State Flags */
+-- 
+1.7.0.4
