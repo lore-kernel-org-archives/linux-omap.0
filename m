@@ -1,41 +1,77 @@
 From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
-Date: Fri, 27 Aug 2010 20:22:48 +0100
-Message-ID: <20100827192248.GJ20407@void.printf.net>
-References: <cover.1266847842.git.david.vrabel@csr.com>
+Subject: Re: [PATCH 01/03] omap hsmmc: prevent race between dma and hsmmc
+	callback
+Date: Fri, 27 Aug 2010 20:37:27 +0100
+Message-ID: <20100827193727.GF23079@void.printf.net>
+References: <618f0c911003100611q42e7f23cuc3c8d3f116ca7eb3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1266847842.git.david.vrabel@csr.com>
+In-Reply-To: <618f0c911003100611q42e7f23cuc3c8d3f116ca7eb3@mail.gmail.com>
 Sender: linux-mmc-owner@vger.kernel.org
-To: David Vrabel <david.vrabel@csr.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, Mike Rapoport <mike@compulab.co.il>
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi David,
+Hi,
 
-On Mon, Feb 22, 2010 at 02:24:17PM +0000, David Vrabel wrote:
-> These patches add support for SDIO cards to the omap_hsmmc driver.
-> Power management changes to prevent SDIO cards from being turned off
-> and losing all state, and card interrupts.
-> 
-> I've been unable to test these exact patches as I only have an N900 for 
-> testing and the N900 support in mainline is incomplete.
-> 
-> Changes since v1:
-> - (hopefully) get all cards working again by removing a second call to
->   read MMCi_STAT in the interrupt handler.
-> - flush posted writes after enabling/disabling SDIO interrupts.
-> - tweak the FIXME commit on disabling FCLK to better match what really
->   going on (at least I think so anyway).
-> 
-> David Vrabel (2):
->   mmc: omap_hsmmc: don't turn SDIO cards off when idle
->   mmc: omap_hsmmc: enable SDIO card interrupts
+Looks like the discussion on this patch stopped: do we think there's a
+race worth fixing here?
 
-Looks like this patchset wasn't merged.  Mike Rapoport replied with a 
-fix for libertas.  Would you like to resubmit it?
+On Wed, Mar 10, 2010 at 07:41:38PM +0530, Venkatraman S wrote:
+> See previous post http://patchwork.kernel.org/patch/82907/
+> Rebased to 2.6.34-rc1 and fixed comment alignment.
+> 
+> CC: Adrian Hunter <adrian.hunter@nokia.com>
+> CC: Madhusudhan C <madhu.cr@ti.com>
+> CC: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   19 +++++++++++--------
+>  1 files changed, 11 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 83f0aff..ea2a082 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1046,8 +1046,18 @@ static irqreturn_t omap_hsmmc_irq(int irq, void *dev_id)
+> 
+>  	if (end_cmd || ((status & CC) && host->cmd))
+>  		omap_hsmmc_cmd_done(host, host->cmd);
+> -	if ((end_trans || (status & TC)) && host->mrq)
+> +	if ((end_trans || (status & TC)) && host->mrq) {
+>  		omap_hsmmc_xfer_done(host, data);
+> +		if (host->dma_ch != -1) {
+> +			omap_free_dma(host->dma_ch);
+> +			host->dma_ch = -1;
+> +			/*
+> +			 * Callback: run in interrupt context.
+> +			 * mutex_unlock will throw a kernel warning if used.
+> +			 */
+> +			up(&host->sem);
+> +		}
+> +	}
+> 
+>  	spin_unlock(&host->irq_lock);
+> 
+> @@ -1267,13 +1277,6 @@ static void omap_hsmmc_dma_cb(int lch, u16
+> ch_status, void *data)
+>  		return;
+>  	}
+> 
+> -	omap_free_dma(host->dma_ch);
+> -	host->dma_ch = -1;
+> -	/*
+> -	 * DMA Callback: run in interrupt context.
+> -	 * mutex_unlock will throw a kernel warning if used.
+> -	 */
+> -	up(&host->sem);
+>  }
+> 
+>  /*
+> -- 
+> 1.6.3.3
 
 -- 
 Chris Ball   <cjb@laptop.org>   <http://printf.net/>
