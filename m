@@ -1,81 +1,94 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PM-SR][PATCH 1/2 v2] omap3: sr: fix memory leak and simplify
- the code
-Date: Mon, 30 Aug 2010 19:29:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1D05F@dbde02.ent.ti.com>
-References: <1278687874-26123-1-git-send-email-nm@ti.com>
- <87vd6zn1oy.fsf@deeprootsystems.com>
+Subject: RE: [PATCH v2] OMAP4: pm.c extensions for OMAP4 support
+Date: Mon, 30 Aug 2010 19:32:34 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1D065@dbde02.ent.ti.com>
+References: <1282019798-2443-1-git-send-email-thara@ti.com>
+	 <87fwy3n04p.fsf@deeprootsystems.com> <1282691573.11841.50.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52755 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755451Ab0H3OAH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Aug 2010 10:00:07 -0400
-In-Reply-To: <87vd6zn1oy.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58540 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755514Ab0H3OCl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Aug 2010 10:02:41 -0400
+In-Reply-To: <1282691573.11841.50.camel@localhost>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>, Peter p2 De Schrijver <peter.de-schrijver@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-
-
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Wednesday, August 25, 2010 2:55 AM
->>To: Menon, Nishanth; Gopinath, Thara
->>Cc: linux-omap; Artem Bityutskiy; Peter p2 De Schrijver
->>Subject: Re: [PM-SR][PATCH 1/2 v2] omap3: sr: fix memory leak and simplify the code
->>
->>Nishanth Menon <nm@ti.com> writes:
->>
->>> From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
->>>
->>> This patch fixes the following problem indicated by kmemleak:
->>>
->>> kmemleak: unreferenced object 0xdf93c280 (size 64):
->>> kmemleak:   backtrace:
->>> kmemleak:     [<c00df6d4>] create_object+0x104/0x200
->>> kmemleak:     [<c00d7638>] kmem_cache_alloc+0xe4/0xf4
->>> kmemleak:     [<c000fc38>] omap_devinit_smartreflex+0x44/0x244
->>> kmemleak:     [<c003a33c>] do_one_initcall+0x5c/0x1b8
->>> kmemleak:     [<c00083fc>] kernel_init+0x94/0x110
->>> kmemleak:     [<c003ba04>] kernel_thread_exit+0x0/0x8
->>>
->>> The reason is that 'omap_devinit_smartreflex()' allocates 'sr_data',
->>> then passes it to 'omap_device_build()', which 'kmemdup()'s it and
->>> uses the copy. But 'omap_devinit_smartreflex()' never frees 'sr_data'.
->>>
->>> This patch make 'sr_data' to be a stack variable, which eliminates
->>> the memory leak and simplifies the code a bit.
->>>
->>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>> Cc: Thara Gopinath <thara@ti.com>,
->>> Cc: Peter p2 De Schrijver <peter.de-schrijver@nokia.com>
->>> Cc: Nishanth Menon <nm@ti.com>
->>>
->>> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
->>> Acked-by: Nishanth Menon <nm@ti.com>
->>> ---
->>> Changes from V1:
->>> 	rebased to latest pm-sr branch
->>> 	default of sr_data set to 0 to make it equivalent to kzalloc
->>>
->>> NOTE: this probably should be squashed when being send upstream along with
->>> rest of SR series
->>
->>Thara, you appear to have fixed this problem differently in your latest
->>series.  Looks like you just ensured kfree() was always done, correct?
->>
->>In the future, it would be helpful if you would reply to these proposed
->>fixes on the list so we know if they are incorporated or handled
->>differently.
-
-Yes.. you r correct.. I missed replying on this one. Sorry for the confusion.
-Will take care of this in future.
-It is indeed fixed by ensuring kfree() always.
-
-Regards,
-Thara
+DQoNCj4+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+RnJvbTogS2V2aW4gSGlsbWFuIFtt
+YWlsdG86a2hpbG1hbkBkZWVwcm9vdHN5c3RlbXMuY29tXQ0KPj5TZW50OiBXZWRuZXNkYXksIEF1
+Z3VzdCAyNSwgMjAxMCA0OjQzIEFNDQo+PlRvOiBHb3BpbmF0aCwgVGhhcmENCj4+Q2M6IGxpbnV4
+LW9tYXBAdmdlci5rZXJuZWwub3JnOyBwYXVsQHB3c2FuLmNvbTsgU3JpcGF0aHksIFZpc2h3YW5h
+dGg7IFNhd2FudCwgQW5hbmQNCj4+U3ViamVjdDogUmU6IFtQQVRDSCB2Ml0gT01BUDQ6IHBtLmMg
+ZXh0ZW5zaW9ucyBmb3IgT01BUDQgc3VwcG9ydA0KPj4NCj4+T24gVHVlLCAyMDEwLTA4LTI0IGF0
+IDE0OjU4IC0wNzAwLCBLZXZpbiBIaWxtYW4gd3JvdGU6DQo+Pj4gVGhhcmEgR29waW5hdGggPHRo
+YXJhQHRpLmNvbT4gd3JpdGVzOg0KPj4+DQo+Pj4gPiBPTUFQNCBoYXMgYW4gaXZhIGRldmljZSBh
+bmQgYSBkc3AgZGV2Y2ljZSB3aGVyZSBhcyBPTUFQMi8zDQo+Pj4gPiBoYXMgb25seSBhbiBpdmEg
+ZGV2aWNlLiBJbiB0aGlzIGZpbGUgdGhlIGl2YSBkZXZpY2UgaW4gdGhlDQo+Pj4gPiBzeXN0ZW0g
+aXMgcmVnaXN0ZXJlZCB1bmRlciB0aGUgbmFtZSBkc3BfZGV2IGFuZCB0aGUgQVBJDQo+Pj4gPiB0
+byByZXRyaWV2ZSB0aGUgaXZhIGRldmljZSBpcyBvbWFwMl9nZXRfZHNwX2RldmljZS4NCj4+PiA+
+IFRoaXMgcGF0Y2ggcmVuYW1lcyB0aGUgZHNwX2RldiB0byBpdmFfZGV2LCByZW5hbWVzDQo+Pj4g
+PiBvbWFwMl9nZXRfZHNwX2RldmljZSB0byBvbWFwMl9nZXRfaXZhX2RldmljZSwNCj4+PiA+IHJl
+Z2lzdGVycyBkc3BfZGV2IGZvciBPTUFQNCBhbmQgYWRkcyBhIG5ldyBBUEkNCj4+PiA+IG9tYXA0
+X2dldF9kc3BfZGV2aWNlIHRvIHJldHJpZXZlIHRoZSBkZXBfZGV2Lg0KPj4+ID4NCj4+PiA+IFNp
+Z25lZC1vZmYtYnk6IFRoYXJhIEdvcGluYXRoIDx0aGFyYUB0aS5jb20+DQo+Pj4gPiAtLS0NCj4+
+PiA+IHYyOiBSZW1vdmVkIGZpeGluZyBvZiBsM19tYWluIGh3bW9kIGZvciBPTUFQNCBhcyBCZW5v
+aXQgaGFzDQo+Pj4gPiAgICAgYWxyZWFkeSBzdWJtaXR0ZWQgYSBwYWNoIGZpeGluZyB0aGUgc2Ft
+ZS4NCj4+Pg0KPj4+IE9LLCBhcHBseWluZyB0aGlzIHRvIHBtLWZpeGVzLg0KPj4NCj4+Tm8gc2Vj
+b25kIHRob3VnaHQsIG5vdCB5ZXQuLi4NCj4+DQo+Pj4NCj4+PiA+ICBhcmNoL2FybS9tYWNoLW9t
+YXAyL3BtLmMgICAgICAgICAgICAgICAgIHwgICAxOSArKysrKysrKysrKysrKy0tLS0tDQo+Pj4g
+PiAgYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9jb21tb24uaCB8ICAgIDMgKystDQo+
+Pj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCAxNiBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQ0K
+Pj4+ID4NCj4+PiA+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMgYi9hcmNo
+L2FybS9tYWNoLW9tYXAyL3BtLmMNCj4+PiA+IGluZGV4IDY4ZjlmMmUuLmE5OGI1ZTggMTAwNjQ0
+DQo+Pj4gPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMNCj4+PiA+ICsrKyBiL2FyY2gv
+YXJtL21hY2gtb21hcDIvcG0uYw0KPj4+ID4gQEAgLTIxLDggKzIxLDkgQEANCj4+PiA+ICBzdGF0
+aWMgc3RydWN0IG9tYXBfZGV2aWNlX3BtX2xhdGVuY3kgKnBtX2xhdHM7DQo+Pj4gPg0KPj4+ID4g
+IHN0YXRpYyBzdHJ1Y3QgZGV2aWNlICptcHVfZGV2Ow0KPj4+ID4gLXN0YXRpYyBzdHJ1Y3QgZGV2
+aWNlICpkc3BfZGV2Ow0KPj4+ID4gK3N0YXRpYyBzdHJ1Y3QgZGV2aWNlICppdmFfZGV2Ow0KPj4+
+ID4gIHN0YXRpYyBzdHJ1Y3QgZGV2aWNlICpsM19kZXY7DQo+Pj4gPiArc3RhdGljIHN0cnVjdCBk
+ZXZpY2UgKmRzcF9kZXY7DQo+Pj4gPg0KPj4+ID4gIHN0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9t
+cHVzc19kZXZpY2Uodm9pZCkNCj4+PiA+ICB7DQo+Pj4gPiBAQCAtMzAsMTAgKzMxLDEwIEBAIHN0
+cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9tcHVzc19kZXZpY2Uodm9pZCkNCj4+PiA+ICAJcmV0dXJu
+IG1wdV9kZXY7DQo+Pj4gPiAgfQ0KPj4+ID4NCj4+PiA+IC1zdHJ1Y3QgZGV2aWNlICpvbWFwMl9n
+ZXRfZHNwX2RldmljZSh2b2lkKQ0KPj4+ID4gK3N0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9pdmFf
+ZGV2aWNlKHZvaWQpDQo+Pj4gPiAgew0KPj4+ID4gLQlXQVJOX09OX09OQ0UoIWRzcF9kZXYpOw0K
+Pj4+ID4gLQlyZXR1cm4gZHNwX2RldjsNCj4+PiA+ICsJV0FSTl9PTl9PTkNFKCFpdmFfZGV2KTsN
+Cj4+PiA+ICsJcmV0dXJuIGl2YV9kZXY7DQo+Pj4gPiAgfQ0KPj4+ID4NCj4+PiA+ICBzdHJ1Y3Qg
+ZGV2aWNlICpvbWFwMl9nZXRfbDNfZGV2aWNlKHZvaWQpDQo+Pj4gPiBAQCAtNDIsNiArNDMsMTMg
+QEAgc3RydWN0IGRldmljZSAqb21hcDJfZ2V0X2wzX2RldmljZSh2b2lkKQ0KPj4+ID4gIAlyZXR1
+cm4gbDNfZGV2Ow0KPj4+ID4gIH0NCj4+PiA+DQo+Pj4gPiArc3RydWN0IGRldmljZSAqb21hcDRf
+Z2V0X2RzcF9kZXZpY2Uodm9pZCkNCj4+PiA+ICt7DQo+Pj4gPiArCVdBUk5fT05fT05DRSghZHNw
+X2Rldik7DQo+Pj4gPiArCXJldHVybiBkc3BfZGV2Ow0KPj4+ID4gK30NCj4+PiA+ICtFWFBPUlRf
+U1lNQk9MKG9tYXA0X2dldF9kc3BfZGV2aWNlKTsNCj4+PiA+ICsNCj4+PiA+ICAvKiBzdGF0aWMg
+aW50IF9pbml0X29tYXBfZGV2aWNlKHN0cnVjdCBvbWFwX2h3bW9kICpvaCwgdm9pZCAqdXNlcikg
+Ki8NCj4+PiA+ICBzdGF0aWMgaW50IF9pbml0X29tYXBfZGV2aWNlKGNoYXIgKm5hbWUsIHN0cnVj
+dCBkZXZpY2UgKipuZXdfZGV2KQ0KPj4+ID4gIHsNCj4+PiA+IEBAIC02OSw3ICs3Nyw4IEBAIHN0
+YXRpYyBpbnQgX2luaXRfb21hcF9kZXZpY2UoY2hhciAqbmFtZSwgc3RydWN0IGRldmljZSAqKm5l
+d19kZXYpDQo+Pj4gPiAgc3RhdGljIHZvaWQgb21hcDJfaW5pdF9wcm9jZXNzb3JfZGV2aWNlcyh2
+b2lkKQ0KPj4+ID4gIHsNCj4+PiA+ICAJX2luaXRfb21hcF9kZXZpY2UoIm1wdSIsICZtcHVfZGV2
+KTsNCj4+PiA+IC0JX2luaXRfb21hcF9kZXZpY2UoIml2YSIsICZkc3BfZGV2KTsNCj4+PiA+ICsJ
+X2luaXRfb21hcF9kZXZpY2UoIml2YSIsICZpdmFfZGV2KTsNCj4+PiA+ICsJX2luaXRfb21hcF9k
+ZXZpY2UoImRzcCIsICZkc3BfZGV2KTsNCj4+DQo+PnRoaXMgb25lIGNhdXNlcyB0aGUgbm9pc3kg
+V0FSTiB0byBiZSB0aXJnZ2VyZWQgb24gIU9NQVA0LiAgIFNpbmNlICFPTUFQNA0KPj5kb2Vzbid0
+IGhhdmUgYSBEU1AsIHdlIHNob3VsZG4ndCBiZSB3YXJuaW5nIHVzZXJzIGFib3V0IGEgbWlzc2lu
+ZyBkc3ANCj4+aHdtb2QuDQpIZWxsbyBLZXZpbiwNCg0KSSB3aWxsIHB1dCBhIE9NQVA0IGNoZWNr
+IGFjcm9zcyB0aGlzIGFuZCByZXBvc3QuDQoNClJlZ2FyZHMNClRoYXJhDQoNCj4+DQo+Pktldmlu
+DQo+Pg0KPj4+ID4gIAlfaW5pdF9vbWFwX2RldmljZSgibDNfbWFpbiIsICZsM19kZXYpOw0KPj4+
+ID4gIH0NCj4+PiA+DQo+Pj4gPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1
+ZGUvcGxhdC9jb21tb24uaCBiL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvY29tbW9u
+LmgNCj4+PiA+IGluZGV4IDk3NzZiNDEuLmM0NWRiYjkgMTAwNjQ0DQo+Pj4gPiAtLS0gYS9hcmNo
+L2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5oDQo+Pj4gPiArKysgYi9hcmNoL2Fy
+bS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5oDQo+Pj4gPiBAQCAtOTEsNyArOTEsOCBA
+QCB2b2lkIG9tYXAzX21hcF9pbyh2b2lkKTsNCj4+PiA+ICB9KQ0KPj4+ID4NCj4+PiA+ICBleHRl
+cm4gc3RydWN0IGRldmljZSAqb21hcDJfZ2V0X21wdXNzX2RldmljZSh2b2lkKTsNCj4+PiA+IC1l
+eHRlcm4gc3RydWN0IGRldmljZSAqb21hcDJfZ2V0X2RzcF9kZXZpY2Uodm9pZCk7DQo+Pj4gPiAr
+ZXh0ZXJuIHN0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9pdmFfZGV2aWNlKHZvaWQpOw0KPj4+ID4g
+IGV4dGVybiBzdHJ1Y3QgZGV2aWNlICpvbWFwMl9nZXRfbDNfZGV2aWNlKHZvaWQpOw0KPj4+ID4g
+K2V4dGVybiBzdHJ1Y3QgZGV2aWNlICpvbWFwNF9nZXRfZHNwX2RldmljZSh2b2lkKTsNCj4+PiA+
+DQo+Pj4gPiAgI2VuZGlmIC8qIF9fQVJDSF9BUk1fTUFDSF9PTUFQX0NPTU1PTl9IICovDQo+Pg0K
+DQo=
