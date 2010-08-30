@@ -1,104 +1,224 @@
-From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
- CMA3000 Accelerometer driver)
-Date: Mon, 30 Aug 2010 18:41:55 +0100
-Message-ID: <4C7BED63.2010706@jic23.retrosnub.co.uk>
-References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <20100829184904.GC26209@core.coreip.homeip.net> <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com> <20100830162855.GA17325@core.coreip.homeip.net> <d6b6aa8195784d6baf3ffcdc365c6361@secure211.sgcpanel.com>
+From: "kishore kadiyala" <kishore.kadiyala@ti.com>
+Subject: [PATCH 1/3] omap4 hsmmc : Adding card detect support for MMC1
+Date: Mon, 30 Aug 2010 23:18:23 +0530 (IST)
+Message-ID: <23529.10.24.255.18.1283190503.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <d6b6aa8195784d6baf3ffcdc365c6361@secure211.sgcpanel.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, igor.stoppa@nokia.com, kai.svahn@nokia.com, mathias.nyman@nokia.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, akpm@linux-foundation.org, madhu.cr@ti.com, adrian.hunter@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-On 08/30/10 18:10, Felipe Balbi wrote:
-> Hi,
-> 
-> On Mon, 30 Aug 2010 09:28:56 -0700, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
->>> When we tried to push N900's accelerometer driver as an
->>> input device you commented you didn't want sensors such
->>> as accelerometers, magnetometers, proximity, etc on the
->>> input layer because "they are not user input", although
->>> I didn't fully agree with you, we had to modify the drivers
->>> and, I believe, one of them is sitting in staging under
->>> the industrial i/o subsystem.
->>>
->>> Are you now accepting sensor drivers on the input layer ?
->>> that will make our life a lot easier but we need some
->>> definition to avoid having to re-work drivers when we
->>> want to push them to mainline.
->>>
->>
->> I got persuaded that 3-axis accelerometers are most often indended to be
->> used as input devices so I decided I should take these in (adxl134x is
->> there). I still think that sensor devices in general are better suited
->> to IIO subsystem and I hope it will get out of staging soon.
->>
->> Once it is out of staging we may think about creating a IIO-to-input
->> bridge (copuld be either in kernel or a userspace solution based on
->> uinput) to route sensors that are indeed used as HIDs.
-I'll look into the userspace option.  Might well be a quicker option
-in the near future not to mention providing a good example of using
-our userspace interfaces...
->>
->> Hope this makes sense.
-> 
-> It kinda does, but such sensors will be more and more used as
-> input devices, specially for gaming on mobile devices.
-> 
-> For example a proximity sensor might be used as the trigger
-> button on a first person shooting game; accelerometers will
-> be used to walk through the map and a magnetometer might be
-> used to look behind you and a gyroscope to turn around your
-> own axis.
-> 
-> In the end, the user is the one moving the device around and
-> generating such events, so why not avoiding yet another
-> subsystem if we will have to resort to solutions such as
-> iio-to-input bridge, which smells like a hackish solution
-> to get input events from sensors anyway.
-> 
-> I really hope I could convince you that, on mobile at least,
-> sensors will be mostly used as HID devices and will give
-> app developers new ways for them to allow users to interact
-> with their app.
-> 
-> Take a look at how a gyroscope is used on iphone, for
-> instance [1].
-> 
-> [1] http://www.youtube.com/watch?v=ORcu-c-qnjg
-> 
-Kind of an obvious point, but there are lots of sensors in these
-classes that no one is ever going to use for input. Take
-a high g acceleromter (anything above c.10g for this purpose)
-or the sorts of IMU's IIO currently has, which are simply too
-expensive / large. Or take mid to high spec ADCs.
-For other uses the requirements are typically very
-different and could not be added to input without major disruption.
-Personally I see no problem with having two drivers in kernel for
-a device assuming they are sufficiently different in purpose.
+Adding card detect callback function and card detect configuration
+function for MMC1 Controller.
 
-I agree we have some fragmentation here and ideally
-these device might all sit on some 'uber' subsystem providing
-all things to all men.  Unfortunately that would probably come with
-massive complexity and at the end of the day we already
-have subsystems doing a very good job of handling some classes
-of device.  The intent of IIO was always to cover the ground
-that is out of scope for hwmon and input.  As you have probably
-seen this does indeed add a fair bit of complexity!
+Card detect configuration function does initial configuration of the
+MMC Control & PullUp-PullDown registers of Phoenix.
 
-We're working on cleaning things up.  Large set of fixes on
-linux-iio today (including a few abi fixes for
-the magnetometer you mention above :)  Still if anyone wants
-to speed up our move to mainline we always appreciate code review!
-*looks hopeful*  I'm always happy to direct people towards the
-most dubious bits or advise anyone porting a driver.  We have
-a reasonable team now (thanks partly to exposure we got by
-being in staging!), but more help is always good.
+For MMC1 Controller, Card detect interrupt source is
+twl6030 and the card detect call back function provides card present/absent
+status by reading MMC Control register.
 
-Jonathan
-(IIO 'maintainer' in case anyone didn't guess)
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+
+---
+ arch/arm/mach-omap2/board-4430sdp.c |    7 +++-
+ drivers/mfd/twl6030-irq.c           |   76 +++++++++++++++++++++++++++++++++++
+ drivers/mmc/host/omap_hsmmc.c       |    4 +-
+ include/linux/i2c/twl.h             |   31 ++++++++++++++
+ 4 files changed, 115 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 9447644..a49f285 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -227,9 +227,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+ 	struct omap_mmc_platform_data *pdata = dev->platform_data;
+
+ 	/* Setting MMC1 Card detect Irq */
+-	if (pdev->id == 0)
++	if (pdev->id == 0) {
++		ret = twl6030_mmc_card_detect_config();
++		if (ret)
++			pr_err("Failed configuring MMC1 card detect\n");
+ 		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
+ 						MMCDETECT_INTR_OFFSET;
++		pdata->slots[0].card_detect = twl6030_mmc_card_detect;
++	}
+ 	return ret;
+ }
+
+diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
+index 10bf228..91a6a45 100644
+--- a/drivers/mfd/twl6030-irq.c
++++ b/drivers/mfd/twl6030-irq.c
+@@ -36,6 +36,7 @@
+ #include <linux/irq.h>
+ #include <linux/kthread.h>
+ #include <linux/i2c/twl.h>
++#include <linux/platform_device.h>
+
+ /*
+  * TWL6030 (unlike its predecessors, which had two level interrupt handling)
+@@ -223,6 +224,81 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offset)
+ }
+ EXPORT_SYMBOL(twl6030_interrupt_mask);
+
++int twl6030_mmc_card_detect_config(void)
++{
++	int ret;
++	u8 reg_val = 0;
++
++	/* Unmasking the Card detect Interrupt line for MMC1 from Phoenix */
++	if (twl_class_is_6030()) {
++		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
++							REG_INT_MSK_LINE_B);
++		twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
++							REG_INT_MSK_STS_B);
++	}
++
++	/*
++	 * Intially Configuring MMC_CTRL for receving interrupts &
++	 * Card status on TWL6030 for MMC1
++	 */
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val, TWL6030_MMCCTRL);
++	if (ret < 0) {
++		pr_err("twl6030: Failed to read MMCCTRL, error %d\n", ret);
++		return ret;
++	}
++	reg_val &= ~VMMC_AUTO_OFF;
++	reg_val |= SW_FC;
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, TWL6030_MMCCTRL);
++	if (ret < 0) {
++		return ret;
++		pr_err("twl6030: Failed to write MMCCTRL, error %d\n", ret);
++	}
++
++	/* Configuring PullUp-PullDown register */
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
++						TWL6030_CFG_INPUT_PUPD3);
++	if (ret < 0) {
++		return ret;
++		pr_err("twl6030: Failed to read CFG_INPUT_PUPD3, error %d\n",
++									ret);
++	}
++	reg_val &= ~(MMC_PU | MMC_PD);
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
++						TWL6030_CFG_INPUT_PUPD3);
++	if (ret < 0) {
++		pr_err("twl6030: Failed to write CFG_INPUT_PUPD3, error %d\n",
++									ret);
++		return ret;
++	}
++	return 0;
++}
++EXPORT_SYMBOL(twl6030_mmc_card_detect_config);
++
++int twl6030_mmc_card_detect(struct device *dev, int slot)
++{
++	int ret = -EIO;
++	u8 read_reg = 0;
++	struct platform_device *pdev = container_of(dev,
++					struct platform_device, dev);
++
++	switch (pdev->id) {
++	case 0:
++		/*
++		 * BIT0 of REG_MMC_CTRL
++		 * 0 - Card not present ,1 - Card present
++		 */
++		ret = twl_i2c_read_u8(TWL6030_MODULE_ID0, &read_reg,
++							TWL6030_MMCCTRL);
++		if (ret >= 0)
++			ret = read_reg & STS_MMC;
++		break;
++	default:
++		pr_err("Unkown MMC controller %d in %s\n", pdev->id, __func__);
++	}
++	return ret;
++}
++EXPORT_SYMBOL(twl6030_mmc_card_detect);
++
+ int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
+ {
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 4a8776f..caa0163 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -466,8 +466,6 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_platform_data *pdata)
+ 	int ret;
+
+ 	if (gpio_is_valid(pdata->slots[0].switch_pin)) {
+-		pdata->suspend = omap_hsmmc_suspend_cdirq;
+-		pdata->resume = omap_hsmmc_resume_cdirq;
+ 		if (pdata->slots[0].cover)
+ 			pdata->slots[0].get_cover_state =
+ 					omap_hsmmc_get_cover_state;
+@@ -2203,6 +2201,8 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 				"Unable to grab MMC CD IRQ\n");
+ 			goto err_irq_cd;
+ 		}
++		pdata->suspend = omap_hsmmc_suspend_cdirq;
++		pdata->resume = omap_hsmmc_resume_cdirq;
+ 	}
+
+ 	omap_hsmmc_disable_irq(host);
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index 6de90bf..4c97161 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -141,6 +141,16 @@
+ #define TWL6030_CHARGER_CTRL_INT_MASK 	0x10
+ #define TWL6030_CHARGER_FAULT_INT_MASK 	0x60
+
++#define TWL6030_MMCCTRL		0xEE
++#define VMMC_AUTO_OFF			(0x1 << 3)
++#define SW_FC				(0x1 << 2)
++#define STS_MMC			0x1
++
++#define TWL6030_CFG_INPUT_PUPD3	0xF2
++#define MMC_PU				(0x1 << 3)
++#define MMC_PD				(0x1 << 2)
++
++
+
+ #define TWL4030_CLASS_ID 		0x4030
+ #define TWL6030_CLASS_ID 		0x6030
+@@ -173,6 +183,27 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
+ int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
+ int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+
++/* Card detect Configuration for MMC1 Controller on OMAP4 */
++#ifdef(CONFIG_TWL4030_CORE)
++int twl6030_mmc_card_detect_config(void);
++#else
++static inline int twl6030_mmc_card_detect_config(void)
++{
++	pr_err("twl6030_mmc_card_detect_config not supported\n");
++	return 0;
++}
++#endif
++
++/* MMC1 Controller on OMAP4 uses Phoenix irq for Card detect */
++#if defined(CONFIG_TWL4030_CORE)
++int twl6030_mmc_card_detect(struct device *dev, int slot);
++#else
++static inline int twl6030_mmc_card_detect(struct device *dev, int slot)
++{
++	pr_err("Call back twl6030_mmc_card_detect not supported\n");
++	return -EIO;
++}
++#endif
+ /*----------------------------------------------------------------------*/
+
+ /*
+-- 
+1.7.0.4
+
