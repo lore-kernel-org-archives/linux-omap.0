@@ -1,61 +1,49 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Nagging free/reclaim gpio's
-Date: Mon, 30 Aug 2010 13:54:51 -0500
-Message-ID: <d468ab8f1c720366e645de5e2150d53e@secure211.sgcpanel.com>
-References: <4C7BF7A3.3000900@balister.org>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2]
+ input: CMA3000 Accelerometer driver)
+Date: Mon, 30 Aug 2010 21:40:25 +0100
+Message-ID: <20100830214025.2f9677a1@lxorguk.ukuu.org.uk>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
+	<20100829184904.GC26209@core.coreip.homeip.net>
+	<36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:39976 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733Ab0H3Syu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Aug 2010 14:54:50 -0400
-In-Reply-To: <4C7BF7A3.3000900@balister.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, igor.stoppa@nokia.com, kai.svahn@nokia.com, matthias.nyman@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Philip Balister <philip@balister.org>
-Cc: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 30 Aug 2010 11:04:39 -0500
+Felipe Balbi <me@felipebalbi.com> wrote:
 
-On Mon, 30 Aug 2010 14:25:39 -0400, Philip Balister <philip@balister.org>
-wrote:
-> I've got a module that claims gpio's when it is loaded and frees them 
-> when it is unloaded. It looks like something goes wrong when I free
-them:
+> Hi Dmitry,
 > 
-> gpio_unexport: gpio144 status -22
-> gpio_unexport: gpio146 status -22
-> gpio_unexport: gpio14 status -22
-> gpio_unexport: gpio21 status -22
-> gpio_unexport: gpio22 status -22
-> gpio_unexport: gpio23 status -22
-
-this is telling you, you have entered invalid
-arguments to gpio_unexport.
-
-> Then when I try to reclaim them I get this:
+> When we tried to push N900's accelerometer driver as an
+> input device you commented you didn't want sensors such
+> as accelerometers, magnetometers, proximity, etc on the
+> input layer because "they are not user input", although
+> I didn't fully agree with you, we had to modify the drivers
+> and, I believe, one of them is sitting in staging under
+> the industrial i/o subsystem.
 > 
-> gpio_request: gpio-175 (sysfs) status -16
-> export_store: status -16
-> gpio_request: gpio-175 (sysfs) status -16
-> export_store: status -16
-> gpio_request: gpio-114 (sysfs) status -16
-> export_store: status -16
-> gpio_request: gpio-114 (sysfs) status -16
-> export_store: status -16
-> gpio_request: gpio-173 (sysfs) status -16
-> export_store: status -16
-> gpio_request: gpio-173 (sysfs) status -16
-> export_store: status -16
-> 
-> 
-> This has to be silly, but I can't find the problem. Everything works 
-> fine, I just would like the messages to go away :)
+> Are you now accepting sensor drivers on the input layer ?
+> that will make our life a lot easier but we need some
+> definition to avoid having to re-work drivers when we
+> want to push them to mainline.
 
-it's telling you that the gpio is busy, claimed by sysfs usage,
-so you can't claim it again.
+I would certainly vote for them being input when they are sometimes used
+that way - compasses for example do get used by applications (like
+compass programs, some of the real cool visualisation tools and things
+like live/game mixed gaming environments) and accelerometers are gaming
+inputs. Proximity is also input for some stuff although usually of much
+more interest to the GUI manager than the GUI apps.
 
--- 
-balbi
+ALS is more of a dual purpose thing -light levels are input features to
+the GUI on PDAs, although on many embedded devices they are most
+definitely part of the IIO subsystem.
+
+
+
