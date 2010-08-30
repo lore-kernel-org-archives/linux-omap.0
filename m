@@ -1,52 +1,51 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
 Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
  CMA3000 Accelerometer driver)
-Date: Mon, 30 Aug 2010 10:21:44 -0700
-Message-ID: <20100830172143.GA28275@core.coreip.homeip.net>
-References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
- <20100829184904.GC26209@core.coreip.homeip.net>
- <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
- <20100830162855.GA17325@core.coreip.homeip.net>
- <d6b6aa8195784d6baf3ffcdc365c6361@secure211.sgcpanel.com>
+Date: Mon, 30 Aug 2010 18:41:55 +0100
+Message-ID: <4C7BED63.2010706@jic23.retrosnub.co.uk>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <20100829184904.GC26209@core.coreip.homeip.net> <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com> <20100830162855.GA17325@core.coreip.homeip.net> <d6b6aa8195784d6baf3ffcdc365c6361@secure211.sgcpanel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <d6b6aa8195784d6baf3ffcdc365c6361@secure211.sgcpanel.com>
 Sender: linux-input-owner@vger.kernel.org
 To: Felipe Balbi <me@felipebalbi.com>
-Cc: Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, igor.stoppa@nokia.com, kai.svahn@nokia.com, mathias.nyman@nokia.com
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, igor.stoppa@nokia.com, kai.svahn@nokia.com, mathias.nyman@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 30, 2010 at 12:10:41PM -0500, Felipe Balbi wrote:
+On 08/30/10 18:10, Felipe Balbi wrote:
 > Hi,
 > 
 > On Mon, 30 Aug 2010 09:28:56 -0700, Dmitry Torokhov
 > <dmitry.torokhov@gmail.com> wrote:
-> >> When we tried to push N900's accelerometer driver as an
-> >> input device you commented you didn't want sensors such
-> >> as accelerometers, magnetometers, proximity, etc on the
-> >> input layer because "they are not user input", although
-> >> I didn't fully agree with you, we had to modify the drivers
-> >> and, I believe, one of them is sitting in staging under
-> >> the industrial i/o subsystem.
-> >> 
-> >> Are you now accepting sensor drivers on the input layer ?
-> >> that will make our life a lot easier but we need some
-> >> definition to avoid having to re-work drivers when we
-> >> want to push them to mainline.
-> >> 
-> > 
-> > I got persuaded that 3-axis accelerometers are most often indended to be
-> > used as input devices so I decided I should take these in (adxl134x is
-> > there). I still think that sensor devices in general are better suited
-> > to IIO subsystem and I hope it will get out of staging soon.
-> > 
-> > Once it is out of staging we may think about creating a IIO-to-input
-> > bridge (copuld be either in kernel or a userspace solution based on
-> > uinput) to route sensors that are indeed used as HIDs.
-> > 
-> > Hope this makes sense.
+>>> When we tried to push N900's accelerometer driver as an
+>>> input device you commented you didn't want sensors such
+>>> as accelerometers, magnetometers, proximity, etc on the
+>>> input layer because "they are not user input", although
+>>> I didn't fully agree with you, we had to modify the drivers
+>>> and, I believe, one of them is sitting in staging under
+>>> the industrial i/o subsystem.
+>>>
+>>> Are you now accepting sensor drivers on the input layer ?
+>>> that will make our life a lot easier but we need some
+>>> definition to avoid having to re-work drivers when we
+>>> want to push them to mainline.
+>>>
+>>
+>> I got persuaded that 3-axis accelerometers are most often indended to be
+>> used as input devices so I decided I should take these in (adxl134x is
+>> there). I still think that sensor devices in general are better suited
+>> to IIO subsystem and I hope it will get out of staging soon.
+>>
+>> Once it is out of staging we may think about creating a IIO-to-input
+>> bridge (copuld be either in kernel or a userspace solution based on
+>> uinput) to route sensors that are indeed used as HIDs.
+I'll look into the userspace option.  Might well be a quicker option
+in the near future not to mention providing a good example of using
+our userspace interfaces...
+>>
+>> Hope this makes sense.
 > 
 > It kinda does, but such sensors will be more and more used as
 > input devices, specially for gaming on mobile devices.
@@ -73,12 +72,33 @@ On Mon, Aug 30, 2010 at 12:10:41PM -0500, Felipe Balbi wrote:
 > 
 > [1] http://www.youtube.com/watch?v=ORcu-c-qnjg
 > 
+Kind of an obvious point, but there are lots of sensors in these
+classes that no one is ever going to use for input. Take
+a high g acceleromter (anything above c.10g for this purpose)
+or the sorts of IMU's IIO currently has, which are simply too
+expensive / large. Or take mid to high spec ADCs.
+For other uses the requirements are typically very
+different and could not be added to input without major disruption.
+Personally I see no problem with having two drivers in kernel for
+a device assuming they are sufficiently different in purpose.
 
-My response to this - are gyroscopes will _only_ be used to turn around
-in a game? Are proximity sensor is _only_ usable as a trigger in FPS?
-Won't we ever see such chips controlling technological processes?
+I agree we have some fragmentation here and ideally
+these device might all sit on some 'uber' subsystem providing
+all things to all men.  Unfortunately that would probably come with
+massive complexity and at the end of the day we already
+have subsystems doing a very good job of handling some classes
+of device.  The intent of IIO was always to cover the ground
+that is out of scope for hwmon and input.  As you have probably
+seen this does indeed add a fair bit of complexity!
 
-I do hope that answerrs are no, no and yes.
+We're working on cleaning things up.  Large set of fixes on
+linux-iio today (including a few abi fixes for
+the magnetometer you mention above :)  Still if anyone wants
+to speed up our move to mainline we always appreciate code review!
+*looks hopeful*  I'm always happy to direct people towards the
+most dubious bits or advise anyone porting a driver.  We have
+a reasonable team now (thanks partly to exposure we got by
+being in staging!), but more help is always good.
 
--- 
-Dmitry
+Jonathan
+(IIO 'maintainer' in case anyone didn't guess)
