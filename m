@@ -1,50 +1,72 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+From: Felipe Balbi <me@felipebalbi.com>
 Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
  CMA3000 Accelerometer driver)
-Date: Mon, 30 Aug 2010 09:28:56 -0700
-Message-ID: <20100830162855.GA17325@core.coreip.homeip.net>
-References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
- <20100829184904.GC26209@core.coreip.homeip.net>
- <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
+Date: Mon, 30 Aug 2010 12:10:41 -0500
+Message-ID: <d6b6aa8195784d6baf3ffcdc365c6361@secure211.sgcpanel.com>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <20100829184904.GC26209@core.coreip.homeip.net> <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com> <20100830162855.GA17325@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, igor.stoppa@nokia.com, kai.svahn@nokia.com, matthias.nyman@nokia.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20100830162855.GA17325@core.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, igor.stoppa@nokia.com, kai.svahn@nokia.com, mathias.nyman@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
+Hi,
 
-On Mon, Aug 30, 2010 at 11:04:39AM -0500, Felipe Balbi wrote:
-> Hi Dmitry,
+On Mon, 30 Aug 2010 09:28:56 -0700, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+>> When we tried to push N900's accelerometer driver as an
+>> input device you commented you didn't want sensors such
+>> as accelerometers, magnetometers, proximity, etc on the
+>> input layer because "they are not user input", although
+>> I didn't fully agree with you, we had to modify the drivers
+>> and, I believe, one of them is sitting in staging under
+>> the industrial i/o subsystem.
+>> 
+>> Are you now accepting sensor drivers on the input layer ?
+>> that will make our life a lot easier but we need some
+>> definition to avoid having to re-work drivers when we
+>> want to push them to mainline.
+>> 
 > 
-> When we tried to push N900's accelerometer driver as an
-> input device you commented you didn't want sensors such
-> as accelerometers, magnetometers, proximity, etc on the
-> input layer because "they are not user input", although
-> I didn't fully agree with you, we had to modify the drivers
-> and, I believe, one of them is sitting in staging under
-> the industrial i/o subsystem.
+> I got persuaded that 3-axis accelerometers are most often indended to be
+> used as input devices so I decided I should take these in (adxl134x is
+> there). I still think that sensor devices in general are better suited
+> to IIO subsystem and I hope it will get out of staging soon.
 > 
-> Are you now accepting sensor drivers on the input layer ?
-> that will make our life a lot easier but we need some
-> definition to avoid having to re-work drivers when we
-> want to push them to mainline.
+> Once it is out of staging we may think about creating a IIO-to-input
+> bridge (copuld be either in kernel or a userspace solution based on
+> uinput) to route sensors that are indeed used as HIDs.
 > 
+> Hope this makes sense.
 
-I got persuaded that 3-axis accelerometers are most often indended to be
-used as input devices so I decided I should take these in (adxl134x is
-there). I still think that sensor devices in general are better suited
-to IIO subsystem and I hope it will get out of staging soon.
+It kinda does, but such sensors will be more and more used as
+input devices, specially for gaming on mobile devices.
 
-Once it is out of staging we may think about creating a IIO-to-input
-bridge (copuld be either in kernel or a userspace solution based on
-uinput) to route sensors that are indeed used as HIDs.
+For example a proximity sensor might be used as the trigger
+button on a first person shooting game; accelerometers will
+be used to walk through the map and a magnetometer might be
+used to look behind you and a gyroscope to turn around your
+own axis.
 
-Hope this makes sense.
+In the end, the user is the one moving the device around and
+generating such events, so why not avoiding yet another
+subsystem if we will have to resort to solutions such as
+iio-to-input bridge, which smells like a hackish solution
+to get input events from sensors anyway.
+
+I really hope I could convince you that, on mobile at least,
+sensors will be mostly used as HID devices and will give
+app developers new ways for them to allow users to interact
+with their app.
+
+Take a look at how a gyroscope is used on iphone, for
+instance [1].
+
+[1] http://www.youtube.com/watch?v=ORcu-c-qnjg
 
 -- 
-Dmitry
+balbi
