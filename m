@@ -1,37 +1,171 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: OMAP3 Clock & CPU frequency
-Date: Mon, 30 Aug 2010 15:58:44 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1CF59@dbde02.ent.ti.com>
-References: <20100829120317.a6cb228ce30b55731ad61a39b8aeb07d.747596df1b.wbe@email00.secureserver.net>
+Subject: RE: [PATCH v2] omap: 4430sdp board support for the the GPIO keys
+Date: Mon, 30 Aug 2010 16:45:29 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1CFA1@dbde02.ent.ti.com>
+References: <1282627653-31510-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48518 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50086 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754997Ab0H3K2w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Aug 2010 06:28:52 -0400
-In-Reply-To: <20100829120317.a6cb228ce30b55731ad61a39b8aeb07d.747596df1b.wbe@email00.secureserver.net>
+	with ESMTP id S1755305Ab0H3LPe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Aug 2010 07:15:34 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7UBFVPc024382
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 30 Aug 2010 06:15:33 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o7UBFURp009062
+	for <linux-omap@vger.kernel.org>; Mon, 30 Aug 2010 16:45:30 +0530 (IST)
+In-Reply-To: <1282627653-31510-1-git-send-email-shubhrajyoti@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "msinger@eastcoreng.com" <msinger@eastcoreng.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
 
-DQoNCj4+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+RnJvbTogbGludXgtb21hcC1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVsLm9y
-Z10gT24gQmVoYWxmIE9mDQo+Pm1zaW5nZXJAZWFzdGNvcmVuZy5jb20NCj4+U2VudDogTW9uZGF5
-LCBBdWd1c3QgMzAsIDIwMTAgMTI6MzMgQU0NCj4+VG86IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwu
-b3JnDQo+PlN1YmplY3Q6IE9NQVAzIENsb2NrICYgQ1BVIGZyZXF1ZW5jeQ0KPj4NCj4+DQo+Pktl
-dmluIEhpbG1hbiB3cm90ZToNCj4+DQo+Pj4+RldJVywgdGhlIFNSIGh3bW9kcyBhcmUgc3RpbGwg
-bm90IGVuYWJsaW5nIGJ5IGRlZmF1bHQgYmVjYXVzZSB0aGUgY2xvY2sNCj4+Pj5md2sgZmFpbHMg
-ZHVlIHRvIG1pc3NpbmcgY2xvY2tkb21haW4uDQo+Pj4+DQo+Pj4+SSd2ZSBiZWVuIG1hbnVhbGx5
-IHdvcmtpbmcgYXJvdW5kIGJ5IGFkZGluZw0KPj4+Pg0KPj4+PgkuY2xrZG1fbmFtZQk9ICJ3a3Vw
-X2Nsa2RtIiwNCj4+Pj4NCj4+Pj50byBzcipfZmNrLCBidXQgSSBrbm93IHRoYXQncyBub3QgdGhl
-IGNvcnJlY3QgZml4Lg0KPj4+Pg0KPj4+PktldmluDQo+Pg0KPj5UaGF0IG9ubHkgc2VlbXMgdG8g
-ZWxpbWluYXRlIHRoZSB3YXJuaW5nLiAgSSdtIHNlZWluZyBvbWFwX2h3bW9kOg0KPj5zcjFfaHdt
-b2Q6IGNhbm5vdCBiZSBlbmFibGVkICgzKQ0KPj5iZWNhdXNlIG9oLT5wcmNtLm9tYXAyIGlzIE51
-bGwgb24gdGhlIGNhbGwgdG8NCj4+b21hcDJfY21fd2FpdF9tb2R1bGVfcmVhZHkoKQ0KPj4NCj4+
-Y3B1ZnJlcSBjaGFuZ2luZyBkb2VzIG5vdCBvY2N1ci4NCg0KDQpXaGljaCB2ZXJzaW9uIG9mIHRo
-ZXNlIHBhdGNoZXMgYXJlIHlvdSB1c2luZz8NClRoZSBWMiB2ZXJzaW9uIGRvZXMgaGF2ZSBvaC0+
-cHJjbS5vbWFwMiBwb3B1bGF0ZWQgZm9yDQpzbWFydHJlZmxleC4NCg0KUmVnYXJkcw0KVGhhcmEN
-Cg==
+
+
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>>Shubhrajyoti D
+>>Sent: Tuesday, August 24, 2010 10:58 AM
+>>To: linux-omap@vger.kernel.org
+>>Cc: Datta, Shubhrajyoti
+>>Subject: [PATCH v2] omap: 4430sdp board support for the the GPIO keys
+>>
+>>omap 4430sdp board support for the GPIO keys.
+>>The proximity sensor is connected to GPIO and is registered as a
+>>GPIO key.
+>>- Making the default state of the sensor off at bootup
+>>
+>>Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+>>---
+>> arch/arm/mach-omap2/board-4430sdp.c |   61 +++++++++++++++++++++++++++++++++++
+>> 1 files changed, 61 insertions(+), 0 deletions(-)
+>>
+>>diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+>>index 9447644..85b0e0c 100644
+>>--- a/arch/arm/mach-omap2/board-4430sdp.c
+>>+++ b/arch/arm/mach-omap2/board-4430sdp.c
+>>@@ -20,6 +20,7 @@
+>> #include <linux/usb/otg.h>
+>> #include <linux/spi/spi.h>
+>> #include <linux/i2c/twl.h>
+>>+#include <linux/gpio_keys.h>
+>> #include <linux/regulator/machine.h>
+>> #include <linux/leds.h>
+>>
+>>@@ -40,6 +41,8 @@
+>> #define ETH_KS8851_IRQ			34
+>> #define ETH_KS8851_POWER_ON		48
+>> #define ETH_KS8851_QUART		138
+>>+#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
+>>+#define OMAP4_SFH7741_ENABLE_GPIO		188
+>>
+>> static struct gpio_led sdp4430_gpio_leds[] = {
+>> 	{
+>>@@ -77,11 +80,47 @@ static struct gpio_led sdp4430_gpio_leds[] = {
+>>
+>> };
+>>
+>>+static struct gpio_keys_button sdp4430_gpio_keys[] = {
+>>+	{
+>>+		.desc			= "Proximity Sensor",
+>>+		.type			= EV_SW,
+>>+		.code			= SW_FRONT_PROXIMITY,
+>>+		.gpio			= OMAP4_SFH7741_SENSOR_OUTPUT_GPIO,
+>>+		.active_low		= 0,
+>>+	}
+>>+};
+>>+
+>> static struct gpio_led_platform_data sdp4430_led_data = {
+>> 	.leds	= sdp4430_gpio_leds,
+>> 	.num_leds	= ARRAY_SIZE(sdp4430_gpio_leds),
+>> };
+>>
+>>+static int omap_prox_activate(struct device *dev)
+>>+{
+>>+	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 1);
+>>+	return 0;
+>>+}
+>>+
+>>+static void omap_prox_deactivate(struct device *dev)
+>>+{
+>>+	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 0);
+>>+}
+>>+
+>>+static struct gpio_keys_platform_data sdp4430_gpio_keys_data = {
+>>+	.buttons	= sdp4430_gpio_keys,
+>>+	.nbuttons	= ARRAY_SIZE(sdp4430_gpio_keys),
+>>+	.enable		= omap_prox_activate,
+>>+	.disable	= omap_prox_deactivate,
+>>+};
+>>+
+>>+static struct platform_device sdp4430_gpio_keys_device = {
+>>+	.name	= "gpio-keys",
+>>+	.id	= -1,
+>>+	.dev	= {
+>>+		.platform_data	= &sdp4430_gpio_keys_data,
+>>+	},
+>>+};
+>>+
+>> static struct platform_device sdp4430_leds_gpio = {
+>> 	.name	= "leds-gpio",
+>> 	.id	= -1,
+>>@@ -161,6 +200,7 @@ static struct platform_device sdp4430_lcd_device = {
+>>
+>> static struct platform_device *sdp4430_devices[] __initdata = {
+>> 	&sdp4430_lcd_device,
+>>+	&sdp4430_gpio_keys_device,
+>> 	&sdp4430_leds_gpio,
+>> };
+>>
+>>@@ -426,6 +466,26 @@ static int __init omap4_i2c_init(void)
+>> 	omap_register_i2c_bus(4, 400, NULL, 0);
+>> 	return 0;
+>> }
+>>+
+>>+static void __init omap_sfh7741prox_init(void)
+>>+{
+>>+	int  error;
+>>+
+>>+	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
+>>+	if (error < 0) {
+>>+		pr_err("%s:failed to request GPIO %d, error %d\n",
+>>+			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
+>>+		return;
+>>+	}
+>>+
+>>+	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 0);
+>>+	if (error < 0) {
+>>+		pr_err("%s: GPIO configuration failed: GPIO %d,error %d\n",
+>>+			 __func__, OMAP4_SFH7741_ENABLE_GPIO, error);
+>>+		gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
+>>+	}
+>>+}
+>>+
+>> static void __init omap_4430sdp_init(void)
+>> {
+>> 	int status;
+>>@@ -448,6 +508,7 @@ static void __init omap_4430sdp_init(void)
+>> 		spi_register_board_info(sdp4430_spi_board_info,
+>> 				ARRAY_SIZE(sdp4430_spi_board_info));
+>> 	}
+>>+	omap_sfh7741prox_init();
+
+Hello Shubro,
+
+I believe you are calling omap_sfh7741prox_init at the end of omap_4430sdp_init
+which means your sdp4430_gpio_keys_device is registered much before this.
+This could mean that the probe of your gpio-keys driver could get called before
+omap_sfh7741prox_init. Assume this is the case and your probe calls into pdata->enable
+or pdata->disable which is omap_prox_activate/omap_prox_deactivate as per this
+patch, these API's will try accessing gpio APIs for OMAP4_SFH7741_ENABLE_GPIO without
+a gpio_request happening for this pin as omap_sfh7741prox_init is called later.
+Maybe such a case might never arise. But I would say you should do a request_gpio for
+OMAP4_SFH7741_ENABLE_GPIO before the driver probe is called.
+
+Regards
+Thara
