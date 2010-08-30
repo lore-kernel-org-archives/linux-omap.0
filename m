@@ -1,94 +1,96 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v2] OMAP4: pm.c extensions for OMAP4 support
-Date: Mon, 30 Aug 2010 19:32:34 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1D065@dbde02.ent.ti.com>
-References: <1282019798-2443-1-git-send-email-thara@ti.com>
-	 <87fwy3n04p.fsf@deeprootsystems.com> <1282691573.11841.50.camel@localhost>
+Subject: RE: OMAP3 Clock & CPU frequency
+Date: Mon, 30 Aug 2010 20:42:02 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1D094@dbde02.ent.ti.com>
+References: <20100829120317.a6cb228ce30b55731ad61a39b8aeb07d.747596df1b.wbe@email00.secureserver.net>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0328C1CF59@dbde02.ent.ti.com>
+ <FD0C0605F3FF45D2B85DAAF553EE8E16@Matt4400>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58540 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755514Ab0H3OCl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Aug 2010 10:02:41 -0400
-In-Reply-To: <1282691573.11841.50.camel@localhost>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44801 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753071Ab0H3PMJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Aug 2010 11:12:09 -0400
+In-Reply-To: <FD0C0605F3FF45D2B85DAAF553EE8E16@Matt4400>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Matt Singer <msinger@eastcoreng.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-DQoNCj4+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+RnJvbTogS2V2aW4gSGlsbWFuIFtt
-YWlsdG86a2hpbG1hbkBkZWVwcm9vdHN5c3RlbXMuY29tXQ0KPj5TZW50OiBXZWRuZXNkYXksIEF1
-Z3VzdCAyNSwgMjAxMCA0OjQzIEFNDQo+PlRvOiBHb3BpbmF0aCwgVGhhcmENCj4+Q2M6IGxpbnV4
-LW9tYXBAdmdlci5rZXJuZWwub3JnOyBwYXVsQHB3c2FuLmNvbTsgU3JpcGF0aHksIFZpc2h3YW5h
-dGg7IFNhd2FudCwgQW5hbmQNCj4+U3ViamVjdDogUmU6IFtQQVRDSCB2Ml0gT01BUDQ6IHBtLmMg
-ZXh0ZW5zaW9ucyBmb3IgT01BUDQgc3VwcG9ydA0KPj4NCj4+T24gVHVlLCAyMDEwLTA4LTI0IGF0
-IDE0OjU4IC0wNzAwLCBLZXZpbiBIaWxtYW4gd3JvdGU6DQo+Pj4gVGhhcmEgR29waW5hdGggPHRo
-YXJhQHRpLmNvbT4gd3JpdGVzOg0KPj4+DQo+Pj4gPiBPTUFQNCBoYXMgYW4gaXZhIGRldmljZSBh
-bmQgYSBkc3AgZGV2Y2ljZSB3aGVyZSBhcyBPTUFQMi8zDQo+Pj4gPiBoYXMgb25seSBhbiBpdmEg
-ZGV2aWNlLiBJbiB0aGlzIGZpbGUgdGhlIGl2YSBkZXZpY2UgaW4gdGhlDQo+Pj4gPiBzeXN0ZW0g
-aXMgcmVnaXN0ZXJlZCB1bmRlciB0aGUgbmFtZSBkc3BfZGV2IGFuZCB0aGUgQVBJDQo+Pj4gPiB0
-byByZXRyaWV2ZSB0aGUgaXZhIGRldmljZSBpcyBvbWFwMl9nZXRfZHNwX2RldmljZS4NCj4+PiA+
-IFRoaXMgcGF0Y2ggcmVuYW1lcyB0aGUgZHNwX2RldiB0byBpdmFfZGV2LCByZW5hbWVzDQo+Pj4g
-PiBvbWFwMl9nZXRfZHNwX2RldmljZSB0byBvbWFwMl9nZXRfaXZhX2RldmljZSwNCj4+PiA+IHJl
-Z2lzdGVycyBkc3BfZGV2IGZvciBPTUFQNCBhbmQgYWRkcyBhIG5ldyBBUEkNCj4+PiA+IG9tYXA0
-X2dldF9kc3BfZGV2aWNlIHRvIHJldHJpZXZlIHRoZSBkZXBfZGV2Lg0KPj4+ID4NCj4+PiA+IFNp
-Z25lZC1vZmYtYnk6IFRoYXJhIEdvcGluYXRoIDx0aGFyYUB0aS5jb20+DQo+Pj4gPiAtLS0NCj4+
-PiA+IHYyOiBSZW1vdmVkIGZpeGluZyBvZiBsM19tYWluIGh3bW9kIGZvciBPTUFQNCBhcyBCZW5v
-aXQgaGFzDQo+Pj4gPiAgICAgYWxyZWFkeSBzdWJtaXR0ZWQgYSBwYWNoIGZpeGluZyB0aGUgc2Ft
-ZS4NCj4+Pg0KPj4+IE9LLCBhcHBseWluZyB0aGlzIHRvIHBtLWZpeGVzLg0KPj4NCj4+Tm8gc2Vj
-b25kIHRob3VnaHQsIG5vdCB5ZXQuLi4NCj4+DQo+Pj4NCj4+PiA+ICBhcmNoL2FybS9tYWNoLW9t
-YXAyL3BtLmMgICAgICAgICAgICAgICAgIHwgICAxOSArKysrKysrKysrKysrKy0tLS0tDQo+Pj4g
-PiAgYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9jb21tb24uaCB8ICAgIDMgKystDQo+
-Pj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCAxNiBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQ0K
-Pj4+ID4NCj4+PiA+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMgYi9hcmNo
-L2FybS9tYWNoLW9tYXAyL3BtLmMNCj4+PiA+IGluZGV4IDY4ZjlmMmUuLmE5OGI1ZTggMTAwNjQ0
-DQo+Pj4gPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmMNCj4+PiA+ICsrKyBiL2FyY2gv
-YXJtL21hY2gtb21hcDIvcG0uYw0KPj4+ID4gQEAgLTIxLDggKzIxLDkgQEANCj4+PiA+ICBzdGF0
-aWMgc3RydWN0IG9tYXBfZGV2aWNlX3BtX2xhdGVuY3kgKnBtX2xhdHM7DQo+Pj4gPg0KPj4+ID4g
-IHN0YXRpYyBzdHJ1Y3QgZGV2aWNlICptcHVfZGV2Ow0KPj4+ID4gLXN0YXRpYyBzdHJ1Y3QgZGV2
-aWNlICpkc3BfZGV2Ow0KPj4+ID4gK3N0YXRpYyBzdHJ1Y3QgZGV2aWNlICppdmFfZGV2Ow0KPj4+
-ID4gIHN0YXRpYyBzdHJ1Y3QgZGV2aWNlICpsM19kZXY7DQo+Pj4gPiArc3RhdGljIHN0cnVjdCBk
-ZXZpY2UgKmRzcF9kZXY7DQo+Pj4gPg0KPj4+ID4gIHN0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9t
-cHVzc19kZXZpY2Uodm9pZCkNCj4+PiA+ICB7DQo+Pj4gPiBAQCAtMzAsMTAgKzMxLDEwIEBAIHN0
-cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9tcHVzc19kZXZpY2Uodm9pZCkNCj4+PiA+ICAJcmV0dXJu
-IG1wdV9kZXY7DQo+Pj4gPiAgfQ0KPj4+ID4NCj4+PiA+IC1zdHJ1Y3QgZGV2aWNlICpvbWFwMl9n
-ZXRfZHNwX2RldmljZSh2b2lkKQ0KPj4+ID4gK3N0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9pdmFf
-ZGV2aWNlKHZvaWQpDQo+Pj4gPiAgew0KPj4+ID4gLQlXQVJOX09OX09OQ0UoIWRzcF9kZXYpOw0K
-Pj4+ID4gLQlyZXR1cm4gZHNwX2RldjsNCj4+PiA+ICsJV0FSTl9PTl9PTkNFKCFpdmFfZGV2KTsN
-Cj4+PiA+ICsJcmV0dXJuIGl2YV9kZXY7DQo+Pj4gPiAgfQ0KPj4+ID4NCj4+PiA+ICBzdHJ1Y3Qg
-ZGV2aWNlICpvbWFwMl9nZXRfbDNfZGV2aWNlKHZvaWQpDQo+Pj4gPiBAQCAtNDIsNiArNDMsMTMg
-QEAgc3RydWN0IGRldmljZSAqb21hcDJfZ2V0X2wzX2RldmljZSh2b2lkKQ0KPj4+ID4gIAlyZXR1
-cm4gbDNfZGV2Ow0KPj4+ID4gIH0NCj4+PiA+DQo+Pj4gPiArc3RydWN0IGRldmljZSAqb21hcDRf
-Z2V0X2RzcF9kZXZpY2Uodm9pZCkNCj4+PiA+ICt7DQo+Pj4gPiArCVdBUk5fT05fT05DRSghZHNw
-X2Rldik7DQo+Pj4gPiArCXJldHVybiBkc3BfZGV2Ow0KPj4+ID4gK30NCj4+PiA+ICtFWFBPUlRf
-U1lNQk9MKG9tYXA0X2dldF9kc3BfZGV2aWNlKTsNCj4+PiA+ICsNCj4+PiA+ICAvKiBzdGF0aWMg
-aW50IF9pbml0X29tYXBfZGV2aWNlKHN0cnVjdCBvbWFwX2h3bW9kICpvaCwgdm9pZCAqdXNlcikg
-Ki8NCj4+PiA+ICBzdGF0aWMgaW50IF9pbml0X29tYXBfZGV2aWNlKGNoYXIgKm5hbWUsIHN0cnVj
-dCBkZXZpY2UgKipuZXdfZGV2KQ0KPj4+ID4gIHsNCj4+PiA+IEBAIC02OSw3ICs3Nyw4IEBAIHN0
-YXRpYyBpbnQgX2luaXRfb21hcF9kZXZpY2UoY2hhciAqbmFtZSwgc3RydWN0IGRldmljZSAqKm5l
-d19kZXYpDQo+Pj4gPiAgc3RhdGljIHZvaWQgb21hcDJfaW5pdF9wcm9jZXNzb3JfZGV2aWNlcyh2
-b2lkKQ0KPj4+ID4gIHsNCj4+PiA+ICAJX2luaXRfb21hcF9kZXZpY2UoIm1wdSIsICZtcHVfZGV2
-KTsNCj4+PiA+IC0JX2luaXRfb21hcF9kZXZpY2UoIml2YSIsICZkc3BfZGV2KTsNCj4+PiA+ICsJ
-X2luaXRfb21hcF9kZXZpY2UoIml2YSIsICZpdmFfZGV2KTsNCj4+PiA+ICsJX2luaXRfb21hcF9k
-ZXZpY2UoImRzcCIsICZkc3BfZGV2KTsNCj4+DQo+PnRoaXMgb25lIGNhdXNlcyB0aGUgbm9pc3kg
-V0FSTiB0byBiZSB0aXJnZ2VyZWQgb24gIU9NQVA0LiAgIFNpbmNlICFPTUFQNA0KPj5kb2Vzbid0
-IGhhdmUgYSBEU1AsIHdlIHNob3VsZG4ndCBiZSB3YXJuaW5nIHVzZXJzIGFib3V0IGEgbWlzc2lu
-ZyBkc3ANCj4+aHdtb2QuDQpIZWxsbyBLZXZpbiwNCg0KSSB3aWxsIHB1dCBhIE9NQVA0IGNoZWNr
-IGFjcm9zcyB0aGlzIGFuZCByZXBvc3QuDQoNClJlZ2FyZHMNClRoYXJhDQoNCj4+DQo+Pktldmlu
-DQo+Pg0KPj4+ID4gIAlfaW5pdF9vbWFwX2RldmljZSgibDNfbWFpbiIsICZsM19kZXYpOw0KPj4+
-ID4gIH0NCj4+PiA+DQo+Pj4gPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1
-ZGUvcGxhdC9jb21tb24uaCBiL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL3BsYXQvY29tbW9u
-LmgNCj4+PiA+IGluZGV4IDk3NzZiNDEuLmM0NWRiYjkgMTAwNjQ0DQo+Pj4gPiAtLS0gYS9hcmNo
-L2FybS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5oDQo+Pj4gPiArKysgYi9hcmNoL2Fy
-bS9wbGF0LW9tYXAvaW5jbHVkZS9wbGF0L2NvbW1vbi5oDQo+Pj4gPiBAQCAtOTEsNyArOTEsOCBA
-QCB2b2lkIG9tYXAzX21hcF9pbyh2b2lkKTsNCj4+PiA+ICB9KQ0KPj4+ID4NCj4+PiA+ICBleHRl
-cm4gc3RydWN0IGRldmljZSAqb21hcDJfZ2V0X21wdXNzX2RldmljZSh2b2lkKTsNCj4+PiA+IC1l
-eHRlcm4gc3RydWN0IGRldmljZSAqb21hcDJfZ2V0X2RzcF9kZXZpY2Uodm9pZCk7DQo+Pj4gPiAr
-ZXh0ZXJuIHN0cnVjdCBkZXZpY2UgKm9tYXAyX2dldF9pdmFfZGV2aWNlKHZvaWQpOw0KPj4+ID4g
-IGV4dGVybiBzdHJ1Y3QgZGV2aWNlICpvbWFwMl9nZXRfbDNfZGV2aWNlKHZvaWQpOw0KPj4+ID4g
-K2V4dGVybiBzdHJ1Y3QgZGV2aWNlICpvbWFwNF9nZXRfZHNwX2RldmljZSh2b2lkKTsNCj4+PiA+
-DQo+Pj4gPiAgI2VuZGlmIC8qIF9fQVJDSF9BUk1fTUFDSF9PTUFQX0NPTU1PTl9IICovDQo+Pg0K
-DQo=
+
+
+>>-----Original Message-----
+>>From: Matt Singer [mailto:msinger@eastcoreng.com]
+>>Sent: Monday, August 30, 2010 6:02 PM
+>>To: Gopinath, Thara; linux-omap@vger.kernel.org
+>>Subject: RE: OMAP3 Clock & CPU frequency
+>>
+>>Is it in mainline yet or still a patch?
+
+Hello Matt,
+
+It is not in mainline and is only a patch series.
+Link to the series
+	http://marc.info/?l=linux-omap&m=128170725127719&w=2
+Link to the specific patch 
+	http://marc.info/?l=linux-omap&m=128170725327731&w=2
+Hope this helps you.
+
+One advice to you would be not to top post while replying
+to the mailing list. It is a bad etiquette.
+
+Regards
+Thara
+
+>>
+>>-----Original Message-----
+>>From: Gopinath, Thara [mailto:thara@ti.com]
+>>Sent: Monday, August 30, 2010 6:29 AM
+>>To: msinger@eastcoreng.com; linux-omap@vger.kernel.org
+>>Subject: RE: OMAP3 Clock & CPU frequency
+>>
+>>
+>>
+>>>>-----Original Message-----
+>>>>From: linux-omap-owner@vger.kernel.org
+>>>>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>>>>msinger@eastcoreng.com
+>>>>Sent: Monday, August 30, 2010 12:33 AM
+>>>>To: linux-omap@vger.kernel.org
+>>>>Subject: OMAP3 Clock & CPU frequency
+>>>>
+>>>>
+>>>>Kevin Hilman wrote:
+>>>>
+>>>>>>FWIW, the SR hwmods are still not enabling by default because the
+>>>>>>clock fwk fails due to missing clockdomain.
+>>>>>>
+>>>>>>I've been manually working around by adding
+>>>>>>
+>>>>>>	.clkdm_name	= "wkup_clkdm",
+>>>>>>
+>>>>>>to sr*_fck, but I know that's not the correct fix.
+>>>>>>
+>>>>>>Kevin
+>>>>
+>>>>That only seems to eliminate the warning.  I'm seeing omap_hwmod:
+>>>>sr1_hwmod: cannot be enabled (3)
+>>>>because oh->prcm.omap2 is Null on the call to
+>>>>omap2_cm_wait_module_ready()
+>>>>
+>>>>cpufreq changing does not occur.
+>>
+>>
+>>Which version of these patches are you using?
+>>The V2 version does have oh->prcm.omap2 populated for smartreflex.
+>>
+>>Regards
+>>Thara
+>>
+>>No virus found in this incoming message.
+>>Checked by AVG - www.avg.com
+>>Version: 9.0.851 / Virus Database: 271.1.1/3093 - Release Date: 08/29/10
+>>14:34:00
+
