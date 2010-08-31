@@ -1,59 +1,85 @@
-From: Chris Hudson <chudson@kionix.com>
-Subject: RE: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2]
- input: CMA3000 Accelerometer driver)
-Date: Tue, 31 Aug 2010 18:21:33 -0400
-Message-ID: <4142B4ACE1A0344D9B6150EDE4AC4FE0B59D9BD4@K-Ex02.kionix2.com>
-References: <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
- <20100830214025.2f9677a1@lxorguk.ukuu.org.uk>
- <20100830204412.GA28711@core.coreip.homeip.net>
- <AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com>
- <20100830214355.GB28865@core.coreip.homeip.net>
- <AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com>
- <20100830224352.GF28865@core.coreip.homeip.net>
- <20100831104446.321fd4f4@lxorguk.ukuu.org.uk>
- <20100831161730.GA30947@core.coreip.homeip.net>
- <20100831175937.70a59a91@lxorguk.ukuu.org.uk>
- <20100831170923.GB30947@core.coreip.homeip.net>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [PATCH] I2C: Fix for suspend/resume issue in i2c-core
+Date: Wed, 1 Sep 2010 01:12:11 +0200
+Message-ID: <201009010112.11834.rjw@sisk.pl>
+References: <1283219414-8798-1-git-send-email-vishwanath.bs@ti.com> <87wrr83pro.fsf@deeprootsystems.com> <20100831111611.GF20849@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rrcs-208-125-96-138.nys.biz.rr.com ([208.125.96.138]:60149 "EHLO
-	mail.kionix.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755227Ab0HaWSO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 18:18:14 -0400
-In-Reply-To: <20100831170923.GB30947@core.coreip.homeip.net>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100831111611.GF20849-HF5t3jzXg/6ND3a5+9QAFujbO/Zr0HzV@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <me@felipebalbi.com>, Hemanth V <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "kai.svahn@nokia.com" <kai.svahn@nokia.com>, "matthias.nyman@nokia.com" <matthias.nyman@nokia.com>
 
-> OK, so let's say we start moving some of the devices into input. Which
-> ones we consider suitable for input? I guess some 3-digit
-> accelerometers, what else? Also, what new event types would we need?
-> Let's take GPS - I do not think that ABS_X and ABS_Y are the best events
-> to be used for such devices: I am trying to allow applications being
-> ignorant of what exact device they are talking to and rather concentrate
-> on device capabilities (list of events supported). GPS is sufficiently
-> different from a tablet/touchscreen; while some might want to use both
-> as inputs to a game most applications would want to know which one
-> which. 
+On Tuesday, August 31, 2010, Mark Brown wrote:
+> On Mon, Aug 30, 2010 at 11:43:23AM -0700, Kevin Hilman wrote:
+> > Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org> writes:
+> > 
+> > > In current i2c core driver, pm_runtime_set_active call from i2c_device_pm_resume
+> > > is not balanced by pm_runtime_set_suspended call from i2c_device_pm_suspend.
+> > > pm_runtime_set_active called from resume path will increase the child_count of
+> > > the device's parent. However, matching pm_runtime_set_suspended is not called
+> > > in suspend routine because of which child_count of the device's parent
+> > > is not balanced, preventing the parent device to idle.
+> > > Issue has been fixed by adding pm_runtime_set_suspended call inside suspend
+> > > reoutine which will make sure that child_counts are balanced.
+> > > This fix has been tested on OMAP4430.
+> > >
+> > > Signed-off-by: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
+> > > Signed-off-by: Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+> > >
+> > > Cc: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+> > > Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+> > > Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+> > 
+> > Also Cc'ing Mark Brown as original author of runtime PM for i2-core.
+> 
+> Also Jean Delvare who maintains the I2C core.  To be honest Rafael did
+> all the actual work here (and has since rewritten the code anyway).
 
-> Also, GPS, liek ALS, would probably be polling, no?
+Sorry for the delay.
 
-> -- 
-> Dmitry
-> --
+The fix looks reasonable to me.
 
-Hello Dmitry,
+Thanks,
+Rafael
 
-Current-generation accelerometers typically have some functions built-in that provide an interrupt signal under certain conditions.  For instance, orientation and motion detection can be calculated at the hardware level to reduce the need for constant polling and software to handle the algorithms.  Some devices have built-in tap detection, which can require data at several hundred samples per second, something that is certainly not efficiently supported in software.
 
-I have been using ABS_MISC to pack 4 bytes of interrupt status information, but it might be a good idea to consider having a separate field for:
-Orientation (screen rotation)
-Motion Detection (or sleep detection)
-Tap Detection
-
-Regards,
-Chris Hudson
+> > > ---
+> > >  drivers/i2c/i2c-core.c |   12 ++++++++++--
+> > >  1 files changed, 10 insertions(+), 2 deletions(-)
+> > >
+> > > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> > > index 6649176..3146bff
+> > > --- a/drivers/i2c/i2c-core.c
+> > > +++ b/drivers/i2c/i2c-core.c
+> > > @@ -196,14 +196,22 @@ static int i2c_legacy_resume(struct device *dev)
+> > >  static int i2c_device_pm_suspend(struct device *dev)
+> > >  {
+> > >  	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
+> > > +	int ret;
+> > >  
+> > >  	if (pm_runtime_suspended(dev))
+> > >  		return 0;
+> > >  
+> > >  	if (pm)
+> > > -		return pm->suspend ? pm->suspend(dev) : 0;
+> > > +		ret = pm->suspend ? pm->suspend(dev) : 0;
+> > > +	else
+> > > +		ret = i2c_legacy_suspend(dev, PMSG_SUSPEND);
+> > >  
+> > > -	return i2c_legacy_suspend(dev, PMSG_SUSPEND);
+> > > +	if (!ret) {
+> > > +		pm_runtime_disable(dev);
+> > > +		pm_runtime_set_suspended(dev);
+> > > +		pm_runtime_enable(dev);
+> > > +	}
+> > > +	return ret;
+> > >  }
+> > >  
+> > >  static int i2c_device_pm_resume(struct device *dev)
+> 
+> 
