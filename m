@@ -1,98 +1,76 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 10/20] Move rfbi init to rfbi probe
-Date: Tue, 31 Aug 2010 18:38:13 +0200
-Message-ID: <4C7D2FF5.3020300@ti.com>
-References: <1282579089-10487-1-git-send-email-svadivu@ti.com> <1282579089-10487-2-git-send-email-svadivu@ti.com> <1282579089-10487-3-git-send-email-svadivu@ti.com> <1282579089-10487-4-git-send-email-svadivu@ti.com> <1282579089-10487-5-git-send-email-svadivu@ti.com> <1282579089-10487-6-git-send-email-svadivu@ti.com> <1282579089-10487-7-git-send-email-svadivu@ti.com> <1282579089-10487-8-git-send-email-svadivu@ti.com> <1282579089-10487-9-git-send-email-svadivu@ti.com> <1282579089-10487-10-git-send-email-svadivu@ti.com> <1282579089-10487-11-git-send-email-svadivu@ti.com> <4C77C397.5010502@ti.com> <FCCFB4CDC6E5564B9182F639FC35608703114AA762@dbde02.ent.ti.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2]
+ input: CMA3000 Accelerometer driver)
+Date: Tue, 31 Aug 2010 17:59:37 +0100
+Message-ID: <20100831175937.70a59a91@lxorguk.ukuu.org.uk>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
+	<20100829184904.GC26209@core.coreip.homeip.net>
+	<36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
+	<20100830214025.2f9677a1@lxorguk.ukuu.org.uk>
+	<20100830204412.GA28711@core.coreip.homeip.net>
+	<AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com>
+	<20100830214355.GB28865@core.coreip.homeip.net>
+	<AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com>
+	<20100830224352.GF28865@core.coreip.homeip.net>
+	<20100831104446.321fd4f4@lxorguk.ukuu.org.uk>
+	<20100831161730.GA30947@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59408 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752330Ab0HaQiU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 12:38:20 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703114AA762@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20100831161730.GA30947@core.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <me@felipebalbi.com>, Hemanth V <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "kai.svahn@nokia.com" <kai.svahn@nokia.com>, "matthias.nyman@nokia.com" <matthias.nyman@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
 
-On 8/31/2010 2:57 PM, Guruswamy, Senthilvadivu wrote:
->
->
->> -----Original Message-----
->> From: Cousson, Benoit
->> Sent: Friday, August 27, 2010 7:25 PM
->> To: Guruswamy, Senthilvadivu
->> Cc: linux-omap@vger.kernel.org; tomi.valkeinen@nokia.com;
->> paul@pwsan.com; Hilman, Kevin
->> Subject: Re: [PATCH 10/20] Move rfbi init to rfbi probe
->>
->> On 8/23/2010 5:57 PM, Guruswamy, Senthilvadivu wrote:
->>> From: Senthilvadivu Guruswamy<svadivu@ti.com>
->>>
-> [...]
->>> @@ -199,12 +199,6 @@ static int omap_dss_probe(struct
->> platform_device *pdev)
->>>
->>>    	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
->>>
->>> -	r = rfbi_init();
->>> -	if (r) {
->>> -		DSSERR("Failed to initialize rfbi\n");
->>> -		goto err_rfbi;
->>> -	}
->>> -
->>>    	r = dpi_init(pdev);
->>>    	if (r) {
->>>    		DSSERR("Failed to initialize dpi\n");
->>> @@ -278,8 +272,6 @@ err_venc:
->>>    err_dispc:
->>>    	dpi_exit();
->>>    err_dpi:
->>> -	rfbi_exit();
->>> -err_rfbi:
->>>    	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
->>>
->>>    	return r;
->>> @@ -296,7 +288,6 @@ static int omap_dss_remove(struct
->> platform_device *pdev)
->>>    	venc_exit();
->>>    	dispc_exit();
->>>    	dpi_exit();
->>> -	rfbi_exit();
->>>    	if (cpu_is_omap34xx()) {
->>>    		dsi_exit();
->>>    		sdi_exit();
->>> @@ -357,11 +348,21 @@ static int omap_dsi1hw_remove(struct
->> platform_device *pdev)
->>>    /* RFBI HW IP initialisation */
->>>    static int omap_rfbihw_probe(struct platform_device *pdev)
->>>    {
->>> -	return 0;
->>> +	int r;
->>> +	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
->>> +	r = rfbi_init();
->>> +	if (r) {
->>> +		DSSERR("Failed to initialize rfbi\n");
->>> +		goto err_rfbi;
->>> +	}
->>> +err_rfbi:
->>> +	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
->>> +	return r;
->>
->> There is probably something wrong in this sequence? The same thing is
->> done whatever the return state (except the error log).
->> You should probably return 0 and not disable the clocks if
->> the rfbi_init
->> is successful.
->>
-> [Senthil] I don't see any wrong in functionality, but creates confusion.
-> Let me init r =0.  dss_clk_disable has to be called at the end of probe
-> irrespective of error. I can remove err_rfbi: since no specific error handling is getting done now.
+> > If non-input uses later need non-input interfaces they can switch to that
+> > with an input bridge when there is one and when it happens, which
+> > probably won't.
+> 
+> Would there even be an argument which subsystem to use if IIO->input
+> bridge existed today? Because if the answer is "no" then push into input
+> is driven by convenience and not because it is the right solution. 
 
-It is indeed very confusing, so in that case you can just remove the label.
-You don't have to initialize r to zero, since you are always calling 
-rfbi_init that will initialize it.
+Probably because most of these devices have nothing to do with industrial
+I/O at all.
 
-Benoit
+> If application does take something as an input it does not make it
+> necessarily a human interface device. By this reasoning cameras should
+> be represented as an input devices (why, some applications take input
+
+That's not what I asked. 
+
+> I really believe that input should represent purely human interface
+> devices, not arbitrary data acquisition devices.
+
+That tends to make little sense where the API is the same and
+applications benefit enormously from consistency. I'd rather have an
+input->IIO bridge because that is the real world today !
+
+The question is what does the API make *sense* for. Not what can you use
+the API for. Unix (and Linux) are enormously powerful because of the use
+of common interfaces and APIs.
+
+So a voltmeter really makes no sense. It's not a set of keys and it
+doesn't give X/Y/Z style readings. Nor does a camera. But a lot of things
+do fit this to varying degrees.
+
+I'm actually more dubious than Linus about ALS - because ALS tends not
+produce 'events' but to be sampled, and there are significant power
+implications to unnecessary polling.
+
+See it as a curse of success - because you got the API right and made it
+flexible people want to use it. And the more it's used the less special
+code is needed in user or kernel space for PDAs and phones - instead they
+just work.
+
+> > In a game
+> > context can I suggest the Zombies game is an example ?
+> 
+> I am not familiar with this game, sorry.
+
+It uses GPS and networking to stage an 'in real world' zombie dodging
+game.
+
+Alan
