@@ -1,44 +1,35 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] OMAP: McBSP: Do not enable SRG in slave mode
-Date: Tue, 31 Aug 2010 13:36:14 +0300
-Message-ID: <20100831133614.a7d0c031.jhnikula@gmail.com>
-References: <1283242304-27738-1-git-send-email-peter.ujfalusi@nokia.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 2/2] omap2: McBSP: Remove mux code for OMAP2420 McBSP2 and do cleanups
+Date: Tue, 31 Aug 2010 13:53:46 +0300
+Message-ID: <201008311353.46607.peter.ujfalusi@nokia.com>
+References: <1281098342-5161-1-git-send-email-jhnikula@gmail.com> <1283249576-24652-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:40940 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754068Ab0HaKfG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 06:35:06 -0400
-Received: by ewy23 with SMTP id 23so3615537ewy.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Aug 2010 03:35:05 -0700 (PDT)
-In-Reply-To: <1283242304-27738-1-git-send-email-peter.ujfalusi@nokia.com>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:37184 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757138Ab0HaKxv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 06:53:51 -0400
+In-Reply-To: <1283249576-24652-1-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Tue, 31 Aug 2010 11:11:44 +0300
-Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+On Tuesday 31 August 2010 13:12:56 ext Jarkko Nikula wrote:
+> This 'legacy' OMAP2420 McBSP2 muxing code is currently broken after recent
+> conversion to new mux code. The omap_mcbsp_request calling this code is
+> usually called after booting whereas the omap_mux_init_signal is __init
+> marked so null pointer dereference would occur.
+> 
+> Fix this by removing the muxing code and let the bootloader or board file
+> to do it if necessary. Remove also omap2_mcbsp_ops as there is no use for
+> it.
+> 
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
 
-> McBSP SRG (Sample Rate Generator) and FSG (Frame Sync
-> Generator) is only needed to be enabled, when McBSP
-> is master.
-> In McBSP slave mode, the SRG, and FSG can be kept disabled,
-> which might save some power at the end in this configuration.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-> ---
-> 
-> Hello Jarkko,
-> 
-> I have tested this on OMAP3, but I think this should be
-> applicable for other OMAP versions as well.
-> When McBSP was slave the audio worked fine, when I left
-> the SRG, and FSG disabled.
-> 
-Sounds logical if there is no need to keep SRG and FSG active when
-McBSP is slave. I tested this on N810.
+Sounds reasonable.
 
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
