@@ -1,63 +1,53 @@
-From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH 05/20] Move dss platform driver to dss.c
-Date: Tue, 31 Aug 2010 14:43:01 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703114AA761@dbde02.ent.ti.com>
-References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
-	 <1282579089-10487-2-git-send-email-svadivu@ti.com>
-	 <1282579089-10487-3-git-send-email-svadivu@ti.com>
-	 <1282579089-10487-4-git-send-email-svadivu@ti.com>
-	 <1282579089-10487-5-git-send-email-svadivu@ti.com>
-	 <1282579089-10487-6-git-send-email-svadivu@ti.com>
- <1282726183.9299.105.camel@tubuntu.research.nokia.com>
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2]
+ input: CMA3000 Accelerometer driver)
+Date: Tue, 31 Aug 2010 10:44:46 +0100
+Message-ID: <20100831104446.321fd4f4@lxorguk.ukuu.org.uk>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
+	<20100829184904.GC26209@core.coreip.homeip.net>
+	<36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
+	<20100830214025.2f9677a1@lxorguk.ukuu.org.uk>
+	<20100830204412.GA28711@core.coreip.homeip.net>
+	<AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com>
+	<20100830214355.GB28865@core.coreip.homeip.net>
+	<AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com>
+	<20100830224352.GF28865@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37420 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756689Ab0HaJO4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Aug 2010 05:14:56 -0400
-In-Reply-To: <1282726183.9299.105.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:43310 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756720Ab0HaJ1P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 05:27:15 -0400
+In-Reply-To: <20100830224352.GF28865@core.coreip.homeip.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <me@felipebalbi.com>, Hemanth V <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "kai.svahn@nokia.com" <kai.svahn@nokia.com>, "matthias.nyman@nokia.com" <matthias.nyman@nokia.com>
 
-IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWkgVmFsa2VpbmVu
-IFttYWlsdG86dG9taS52YWxrZWluZW5Abm9raWEuY29tXSANCj4gU2VudDogV2VkbmVzZGF5LCBB
-dWd1c3QgMjUsIDIwMTAgMjoyMCBQTQ0KPiBUbzogR3VydXN3YW15LCBTZW50aGlsdmFkaXZ1DQo+
-IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZzsgcGF1bEBwd3Nhbi5jb207IEhpbG1hbiwg
-S2V2aW4NCj4gU3ViamVjdDogUmU6IFtQQVRDSCAwNS8yMF0gTW92ZSBkc3MgcGxhdGZvcm0gZHJp
-dmVyIHRvIGRzcy5jDQo+IA0KPiBPbiBNb24sIDIwMTAtMDgtMjMgYXQgMTc6NTcgKzAyMDAsIGV4
-dCBHdXJ1c3dhbXkgU2VudGhpbHZhZGl2dSB3cm90ZToNCj4gPiBGcm9tOiBTZW50aGlsdmFkaXZ1
-IEd1cnVzd2FteSA8c3ZhZGl2dUB0aS5jb20+DQo+ID4gDQo+ID4gZHNzaHdfcHJvYmUgYW5kIHJl
-bW92ZSBmdW5jdGlvbnMgYXJlIG1vdmVkIHRvIGRzcy5jDQo+ID4gVG8gbWFpbnRhaW4gdGhlIG9y
-ZGVyIG9mIGluaXQsIHRocm91Z2ggdGhlIGRzc2h3X3Byb2JlLCANCj4gb21hcF9kc3NfaW5pdDIN
-Cj4gPiBpcyBtYWRlIGFzIGRldmljZV9pbml0X2NhbGxfc3luYy4NCj4gPiANCj4gPiBTaWduZWQt
-b2ZmLWJ5OiBTZW50aGlsdmFkaXZ1IEd1cnVzd2FteSA8c3ZhZGl2dUB0aS5jb20+DQo+IA0KPiAN
-Cj4gV2h5IGlzIHRoZSBvbWFwX2Rzc2h3X2RyaXZlciBtb3ZlZCB0byBkc3MuYywgYnV0IHRoZSAN
-Cj4gaHdfZHJpdmVyIGZvciBvdGhlcg0KPiBibG9ja3Mgc3RheSBpbiBjb3JlLmM/DQo+IA0KSWRl
-YWxseSB0aGUgcGxhbiBpcyB0byBtb3ZlIGFsbCB0aGUgSVAgYmxvY2tzIHRvIGl0cyBjb3JyZXNw
-b25kaW5nIGZpbGVzLg0KQXMgSSBtZW50aW9uZWQgaW4gdGhlIFRPRE8gbGlzdCBJIHdpbGwgdHJ5
-IHRvIG1vdmUgZGlzcGMsIHZlbmMsIHJmYmksIGRzaSBpbiB0aGUgbmV4dCB2ZXJzaW9ucy4NCg0K
-PiBBbmQgZ2VuZXJhbGx5IGFib3V0IGRzcy5jOg0KPiANCj4gVGhlcmUgYXJlIGNvbmZ1c2luZ2x5
-IHR3byB0aGluZ3MgRFNTIG1heSByZWZlciB0bzogMSkgdGhlIA0KPiB3aG9sZSBkaXNwbGF5DQo+
-IHN1YnN5c3RlbSwgaW5jbHVkaW5nIERTSS9SRkJJIGV0YyAyKSB0aGUgc21hbGwgbWFpbiBibG9j
-ayBpbnNpZGUgRFNTLA0KPiBtZWFuaW5nIHRoZSBmZXcgRFNTXyogcmVnaXN0ZXJzLg0KPiANCj4g
-SXQgd291bGQgYmUgZ29vZCB0byBoYXZlIGRpZmZlcmVudCBuYW1lcyBmb3IgdGhvc2UsIGJ1dCBh
-dCB0aGUgdGltZQ0KPiBiZWluZyB0aGV5IGFyZSBib3RoICJEU1MiLiBJbiBzb21lIHBhdGNoIEkg
-c2F3IG5hbWVzIGxpa2UgImRzc19kaXNwYyIuDQo+IFBlcmhhcHMgd2UgY291bGQgaGF2ZSAiZHNz
-X2RzcyIgdGhlcmUgdG9vLiBBbHRob3VnaCBpdCBsb29rcyBhIGJpdA0KPiBjb25mdXNpbmcgdG9v
-ID0pLg0KPiANCj4gZHNzLmMgaXMgbWVhbnQgdG8gaGFuZGxlIHRoZSBEU1NfKiByZWdpc3RlcnMs
-IHNvIGl0J3MgYWJvdXQgY2FzZSAyLg0KPiANCj4gQW5kIHNvIGl0IGRvZXNuJ3QgY29udGFpbiBn
-ZW5lcmFsIERTUyBzdHVmZiwgbGlrZSBjbG9jayANCj4gYWxsb2NhdGlvbiBldGMuLA0KPiB0aG9z
-ZSBoYXZlIGJlZW4gaW4gY29yZS5jLg0KPiANCj4gSSdtIG5vdCBzdXJlIGlmIHRoaXMgY29tbWVu
-dCBpcyB2YWxpZCBmb3IgdGhpcyBwYXRjaCwgYnV0IGF0IGxlYXN0DQo+ICJbUEFUQ0ggMDcvMjBd
-IE1vdmUgY2xvY2sgZnVuY3Rpb25zIGZyb20gY29yZSBkcml2ZXIgdG8gZHNzIGRyaXZlciINCj4g
-c291bmRzIGxpa2UgZHNzLmMgaXMgdXNlZCBsaWtlIGNhc2UgMS4NCj4gDQpPbmNlIG9wdCBjbG9j
-a3MgYXJlIGF2YWlsYWJsZSBmb3IgZWFjaCBvZiB0aGUgRFNTIElQIGJsb2NrcyBsaWtlIHZlbmMs
-DQpEc2kgYWxzbywgdGhlbiBJIHNob3VsZCBiZSBhYmxlIHRvIG1vdmUgdGhlIGNsb2NrcyB0byB0
-aGUgcmVzcGVjdGl2ZSBmaWxlcw0KTGVhdmluZyBvbmx5IGRzcyByZWxhdGVkIGNsb2NrcyBpbiBk
-c3MuYy4gDQoNClNvIHRoZSBhaW0gaXMgdG8gbWFpbnRhaW4gZHNzLmMgcmVzdHJpY3RlZCB0byBm
-ZXcgRFNTXyogcmVnaXN0ZXJzLg0KDQoNCj4gIFRvbWkNCj4gDQo+IA0KPiA=
+> 1. Input transport via evdev is very convenient
+> 2. There is no other standard alternative
+> 
+> Once there is standard interface for such sensors they will happily use
+> it and will not look back.
+
+I think the fact that most of the interest in IIO is "how do we make an
+IIO/Input bridge" speaks volumes.
+
+> Sure, for a particular cell phone there is no ambiguity, the sensor has
+> certain functionality assigned that is well known. But does this mean
+> that we should not expect parts being reused at all anymore?
+
+If non-input uses later need non-input interfaces they can switch to that
+with an input bridge when there is one and when it happens, which
+probably won't.
+
+> I am unsure how you would play a game with GPS as an input device.
+
+In a non-game context take a look at things like the British Museum
+application that allows you to view wherever you are and as it was long
+ago by fishing out a relevant photograph as you walk around. In a game
+context can I suggest the Zombies game is an example ?
+
+Alan
