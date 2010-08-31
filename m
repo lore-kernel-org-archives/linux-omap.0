@@ -1,110 +1,122 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
- CMA3000 Accelerometer driver)
-Date: Tue, 31 Aug 2010 00:15:11 -0500
-Message-ID: <43fd040585e2eca4416f7619eba86515@secure211.sgcpanel.com>
-References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <20100829184904.GC26209@core.coreip.homeip.net> <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com> <20100830214025.2f9677a1@lxorguk.ukuu.org.uk> <20100830204412.GA28711@core.coreip.homeip.net> <AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com> <20100830214355.GB28865@core.coreip.homeip.net> <AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com> <20100830224352.GF28865@core.coreip.homeip.net>
+From: kishon <a0393678@ti.com>
+Subject: Re: [RFC: PATCH] OMAP: hwmod: New API to modify the autoidle bits
+ of sysconfig register
+Date: Tue, 31 Aug 2010 10:53:36 +0530
+Message-ID: <4C7C91D8.5030809@ti.com>
+References: <1282823155-18328-1-git-send-email-kishon@ti.com> <878w3o9l6f.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100830224352.GF28865@core.coreip.homeip.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, igor.stoppa@nokia.com, kai.svahn@nokia.com, matthias.nyman@nokia.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:56069 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753740Ab0HaFXq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Aug 2010 01:23:46 -0400
+In-Reply-To: <878w3o9l6f.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-Hi,
 
-On Mon, 30 Aug 2010 15:43:52 -0700, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On Mon, Aug 30, 2010 at 03:05:32PM -0700, Linus Torvalds wrote:
->> On Monday, August 30, 2010, Dmitry Torokhov <dmitry.torokhov@gmail.com>
->> wrote:
->> >
->> > That is why I started taking accelerometers in. But I am concerned
-that
->> > taking accelerometers (which indeed are most often input devices)
-will
->> > lead people to try and use the same for temperature, ALS and other
->> > sensors that are more often used in industrial process controls.
->> 
->> You're just being silly.
->> 
->> Nobody writes a driver for a "temperature sensor" or "ambient light
->> sensor". They write a driver for a specific *chip* that is used in
->> cellphones etc, and that happens to have an ambient light and
->> temperature sensor on it.
-> 
-> And? Yes, they have a ALS and temperature sensors. They also have
-> voltage regulators, pwm, ADC and a bunch of other stuff wired on. You
-> are not arguing that all of those should be input devices just because
-> they happen to reside on the same chip?
-> 
->> 
->> And in that context, it really does make sense to see it as an input
->> driver. And the fact that there are industrial uses for ALS sensors
->> that aren't necessarily at all interested on the input layer should
->> not matter at all.
-> 
-> I think it does matter; we should have standard interface for certain
-> functionality that makes sense for everyone. So far cellphone guys
-> wanted to plumb such devices through input not necessarily because these
-> are HID events but because:
-> 
-> 1. Input transport via evdev is very convenient
-> 2. There is no other standard alternative
-> 
-> Once there is standard interface for such sensors they will happily use
-> it and will not look back.
 
-I disagree. If the device is used as input and currently
-app developers have to find other ways to use such input
-data, having a standard interface other than input layer
-will just make the mess standardized, but it will still
-be a mess.
+On Monday 30 August 2010 08:56 PM, Kevin Hilman wrote:
+> Kishon Vijay Abraham I<kishon@ti.com>  writes:
+>
+>    
+>> Though the sysconfig register values shouldn't be modified directly by
+>> the driver, MCBSP should be considered a special case where sysconfig
+>> registers need to be modified dynamically by the driver.
+>>
+>> For e.g MCBSP 2 and 3 in OMAP3 has sidetone feature which requires
+>> autoidle to be disabled before starting the sidetone.
+>>
+>> This patch creates a new API that forms a wrapper to
+>> _set_module_autoidle() to modify the AUTOIDLE bit.
+>>      
+> Since driver should not be using hwmod directly, how is this API going
+> to be used?  Will this only be called from arch/arm/mach-omap2/mcbsp.c?
+>    
+     Though driver shouldn't be using hwmod directly, there is no 
+corresponding API in omap_device to do the same. So we are planning to
+     store the omap_hwmod structure in platform_data during 
+arch_initcall (in the callback to omap_hwmod_for_each_by_class). So 
+whenever the
+     AUTOIDLE bits need to be reset or set, we pass the stored 
+omap_hwmod structure to this API. Currently, the functions that needs 
+AUTOIDLE
+     bit to be modified (omap_st_on, omap_st_off) resides in plat-omap.
 
->> So don't bring up "ALS isn't always input" because within the context
->> of a driver for some highly integrated cellphone model, it really IS
->> input, and there is no ambiguity at all.
->> 
->> So your "sometimes it is, and sometimes it isn't" argument is bogus.
->> The ambiguity simply doesn't exist when seen in context.
-> 
-> Sure, for a particular cell phone there is no ambiguity, the sensor has
-> certain functionality assigned that is well known. But does this mean
-> that we should not expect parts being reused at all anymore?
-
-Why are we trying to overengineer on such simple devices ? Wasn't
-it so that we will design and implement solutions when the problem
-arrives ? Why are we trying to think of all cases such a simple
-device might be used just for the sake of not being input device ?
-
->> >> (or GPS device, for that matter) really be?
->> >
->> > But why GPS should be input device? It has nothing to do with user
->> > input.
->> 
->> What? OF COURSE it is an input driver. It's the user moving the device
->> around. It's EXACTLY the same thing as an accelerometer in that
->> respect. Sure, it's a bit less precise and measures movement wrt some
->> external frame, but technically they are almost exactly the same.
->> 
->> If you se doing a navigation app, the accelerometer, the compass and
->> the GPS are all equally (but differently) important.
->> 
->> Again - it's not a user touching buttons. But it IS a user moving
-around.
-> 
-> Right, but do you expect that movement to cause an immediate action?
-> When you press a key - something happens; when you swing a Wii
-> controller - the device reacts. And really you can swap joysticks,
-> motion controllers, Sony's 6-axis and so forth and the application would
-> be hard pressed to tell the difference. I am unsure how you would play a
-> game with GPS as an input device.
-
-it might not be used on a game, but on a map application, that IS input.
-You're failing to see input devices are used in cases other than gaming.
-
--- 
-balbi
+     -Kishon
+>    
+>> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+>> Signed-off-by: Charulatha V<charu@ti.com>
+>> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+>>
+>> Cc: Paul Walmsley<paul@pwsan.com>
+>> Cc: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Partha Basak<p-basak2@ti.com>
+>>      
+> Subject should contain prefix like 'OMAP: hwmod: ...'
+>
+> Kevin
+>
+>    
+>> ---
+>>   arch/arm/mach-omap2/omap_hwmod.c             |   29 ++++++++++++++++++++++++++
+>>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+>>   2 files changed, 30 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+>> index 9bd99ad..0d38404 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -969,6 +969,35 @@ int _omap_hwmod_idle(struct omap_hwmod *oh)
+>>   }
+>>
+>>   /**
+>> + * omap_hwmod_set_module_autoidle - set the hwmod's OCP slave autoidle
+>> + * @oh: struct omap_hwmod *
+>> + * @autoidle: desired AUTOIDLE bitfield value (0 or 1)
+>> + *
+>> + * Sets the IP block's OCP slave autoidle in hardware, and updates our
+>> + * local copy. Intended to be used by drivers that have some erratum
+>> + * that requires direct manipulation of the AUTOIDLE bits.  Returns
+>> + * -EINVAL if @oh is null, or passes along the return value from
+>> + * _set_module_autoidle().
+>> + */
+>> +int omap_hwmod_set_module_autoidle(struct omap_hwmod *oh, u8 autoidle)
+>> +{
+>> +	u32 v;
+>> +	int retval = 0;
+>> +
+>> +	if (!oh)
+>> +		return -EINVAL;
+>> +
+>> +	v = oh->_sysc_cache;
+>> +
+>> +	retval = _set_module_autoidle(oh, autoidle,&v);
+>> +
+>> +	if (!retval)
+>> +		_write_sysconfig(v, oh);
+>> +
+>> +	return retval;
+>> +}
+>> +
+>> +/**
+>>    * _shutdown - shutdown an omap_hwmod
+>>    * @oh: struct omap_hwmod *
+>>    *
+>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> index 6adbb63..7042b86 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> @@ -526,6 +526,7 @@ int omap_hwmod_hardreset_deassert(struct omap_hwmod *oh, const char *name);
+>>   int omap_hwmod_hardreset_state(struct omap_hwmod *oh, const char *name);
+>>
+>>   int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
+>> +int omap_hwmod_set_module_autoidle(struct omap_hwmod *oh, u8 autoidle);
+>>
+>>   int omap_hwmod_reset(struct omap_hwmod *oh);
+>>   void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
+>>      
