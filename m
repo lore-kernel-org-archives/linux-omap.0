@@ -1,17 +1,17 @@
 From: "Kalliguddi, Hema" <hemahk@ti.com>
 Subject: RE: [PATCH 0/8 v2]usb: musb: hwmod and runtime pm support for musb
-Date: Tue, 31 Aug 2010 10:57:57 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402780D3ED8@dbde02.ent.ti.com>
+Date: Tue, 31 Aug 2010 11:10:41 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402780D3F05@dbde02.ent.ti.com>
 References: <1282140177-28089-1-git-send-email-hemahk@ti.com>
  <877hje6y7k.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58125 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49735 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751919Ab0HaF2J convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 01:28:09 -0400
+	id S1751919Ab0HaFkv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 01:40:51 -0400
 In-Reply-To: <877hje6y7k.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
