@@ -1,66 +1,28 @@
-From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
- CMA3000 Accelerometer driver)
-Date: Tue, 31 Aug 2010 13:35:49 +0100
-Message-ID: <4C7CF725.50503@jic23.retrosnub.co.uk>
-References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>	<20100829184904.GC26209@core.coreip.homeip.net>	<36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>	<20100830214025.2f9677a1@lxorguk.ukuu.org.uk>	<20100830204412.GA28711@core.coreip.homeip.net>	<AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com>	<20100830214355.GB28865@core.coreip.homeip.net>	<AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com>	<20100830224352.GF28865@core.coreip.homeip.net> <20100831104446.321fd4f4@lxorguk.ukuu.org.uk>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH 1/2] crypto: updates to enable omap aes
+Date: Tue, 31 Aug 2010 20:38:48 +0800
+Message-ID: <20100831123848.GA31105@gondor.apana.org.au>
+References: <cover.1282311763.git.dmitry.kasatkin@nokia.com> <f419b9c0bc0aa64a1a012a57e52aa9477b91b23f.1282311763.git.dmitry.kasatkin@nokia.com> <4C7CC2CB.5020208@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20100831104446.321fd4f4@lxorguk.ukuu.org.uk>
-Sender: linux-input-owner@vger.kernel.org
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <me@felipebalbi.com>, Hemanth V <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "kai.svahn@nokia.com" <kai.svahn@nokia.com>, "matthias.nyman@nokia.com" <matthias.nyman@nokia.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4C7CC2CB.5020208@nokia.com>
+Sender: linux-crypto-owner@vger.kernel.org
+To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 08/31/10 10:44, Alan Cox wrote:
->> 1. Input transport via evdev is very convenient
->> 2. There is no other standard alternative
->>
->> Once there is standard interface for such sensors they will happily use
->> it and will not look back.
+On Tue, Aug 31, 2010 at 11:52:27AM +0300, Dmitry Kasatkin wrote:
+> Hi,
 > 
-> I think the fact that most of the interest in IIO is "how do we make an
-> IIO/Input bridge" speaks volumes.
-It isn't.  Most of the interest on LKML might be, but that is because all
-of those interested in the 'industrial' side of things are keeping
-their discussion on linux-iio@vger list.  Most of the noise on LKML may
-be on the input bridge side, but most of the actual work and current
-developers / users are not.  The needs we have are not all met by input,
-(and nor should they be) hence the reason IIO exists.
+> Does anyone want to comment on this?
 
-Take a look at the work Analog have been doing with it. There are
-few devices in their set that would fall into the blurred area we are
-debating here. 3 phase energy meters for input anyone?
-> 
->> Sure, for a particular cell phone there is no ambiguity, the sensor has
->> certain functionality assigned that is well known. But does this mean
->> that we should not expect parts being reused at all anymore?
-> 
-> If non-input uses later need non-input interfaces they can switch to that
-> with an input bridge when there is one and when it happens, which
-> probably won't.
-I guess I'll just have to write the bridge :)  To put in userspace
-code for a particular device should be trivial.  It may take a little
-more time and thought to get a configurable general version in place.
+Please be patient.  Your patches are still in my queue.  Resending
+them is only going to slow them down.
 
-It may not be the right option for some devices, but it will provide
-a means if someone wants to take one of Analog's rather nice IMU's
-or a 200G accelerometer and use it to drive their gaming rig ;)
-Also, there are always devices using analog sensors connected to
-much more general purpose ADCs to further blur the boundaries.
-There has to be divide somewhere. Dmitry is merely trying to avoid
-a flood of inappropriate drivers.
-> 
->> I am unsure how you would play a game with GPS as an input device.
-> 
-> In a non-game context take a look at things like the British Museum
-> application that allows you to view wherever you are and as it was long
-> ago by fishing out a relevant photograph as you walk around. In a game
-> context can I suggest the Zombies game is an example ?
-> 
-> Alan
-
-Jonathan
-
+Thanks,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
