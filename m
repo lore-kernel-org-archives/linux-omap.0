@@ -1,63 +1,75 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 06/11] OMAP: McBSP: Fix static function warning
-Date: Tue, 31 Aug 2010 10:34:37 +0300
-Message-ID: <201008311034.37939.peter.ujfalusi@nokia.com>
-References: <1282856209-15645-1-git-send-email-manjugk@ti.com> <1282856209-15645-7-git-send-email-manjugk@ti.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH] OMAP: McBSP: Do not enable SRG in slave mode
+Date: Tue, 31 Aug 2010 11:11:44 +0300
+Message-ID: <1283242304-27738-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:33796 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:36238 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756832Ab0HaHvo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 03:51:44 -0400
-In-Reply-To: <1282856209-15645-7-git-send-email-manjugk@ti.com>
+	with ESMTP id S1756998Ab0HaIMc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 04:12:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, jhnikula@gmail.com
 
-Hi,
+McBSP SRG (Sample Rate Generator) and FSG (Frame Sync
+Generator) is only needed to be enabled, when McBSP
+is master.
+In McBSP slave mode, the SRG, and FSG can be kept disabled,
+which might save some power at the end in this configuration.
 
-this is audio related file, so use the alsa-devel for this patch, and a=
-lso CC=20
-the maintainers (Jarkko, Liam, Mark, and me).
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+---
 
-On Thursday 26 August 2010 23:56:44 ext G, Manjunath Kondaiah wrote:
-> From: Manjunatha GK <manjugk@ti.com>
->=20
-> This patch fixes sparse warning due non declaration of static functio=
-n
->=20
-> sound/soc/omap/omap-mcbsp.c:783:5: warning: symbol
-> 'omap_mcbsp_st_info_volsw' was not declared. Should it be static?
->=20
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Nishanth Menon <nm@ti.com>
-> ---
->  sound/soc/omap/omap-mcbsp.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.=
-c
-> index 86f2139..5768381 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -780,7 +780,7 @@ struct snd_soc_dai omap_mcbsp_dai[] =3D {
->=20
->  EXPORT_SYMBOL_GPL(omap_mcbsp_dai);
->=20
-> -int omap_mcbsp_st_info_volsw(struct snd_kcontrol *kcontrol,
-> +static int omap_mcbsp_st_info_volsw(struct snd_kcontrol *kcontrol,
->  			struct snd_ctl_elem_info *uinfo)
->  {
->  	struct soc_mixer_control *mc =3D
+Hello Jarkko,
 
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have tested this on OMAP3, but I think this should be
+applicable for other OMAP versions as well.
+When McBSP was slave the audio worked fine, when I left
+the SRG, and FSG disabled.
+
+ arch/arm/plat-omap/mcbsp.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index e31496e..ecbfe39 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -878,7 +878,7 @@ EXPORT_SYMBOL(omap_mcbsp_free);
+ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ {
+ 	struct omap_mcbsp *mcbsp;
+-	int idle;
++	int enable_srg = 0;
+ 	u16 w;
+ 
+ 	if (!omap_mcbsp_check_valid_id(id)) {
+@@ -893,10 +893,13 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ 	mcbsp->rx_word_length = (MCBSP_READ_CACHE(mcbsp, RCR1) >> 5) & 0x7;
+ 	mcbsp->tx_word_length = (MCBSP_READ_CACHE(mcbsp, XCR1) >> 5) & 0x7;
+ 
+-	idle = !((MCBSP_READ_CACHE(mcbsp, SPCR2) |
+-			MCBSP_READ_CACHE(mcbsp, SPCR1)) & 1);
++	/* Only enable SRG, if McBSP is master */
++	w = MCBSP_READ_CACHE(mcbsp, PCR0);
++	if (w & (FSXM | FSRM | CLKXM | CLKRM))
++		enable_srg = !((MCBSP_READ_CACHE(mcbsp, SPCR2) |
++				MCBSP_READ_CACHE(mcbsp, SPCR1)) & 1);
+ 
+-	if (idle) {
++	if (enable_srg) {
+ 		/* Start the sample generator */
+ 		w = MCBSP_READ_CACHE(mcbsp, SPCR2);
+ 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 6));
+@@ -919,7 +922,7 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ 	 */
+ 	udelay(500);
+ 
+-	if (idle) {
++	if (enable_srg) {
+ 		/* Start frame sync */
+ 		w = MCBSP_READ_CACHE(mcbsp, SPCR2);
+ 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 7));
+-- 
+1.7.2.2
+
