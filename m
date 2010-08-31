@@ -1,71 +1,79 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC: PATCH] OMAP: hwmod: New API to modify the autoidle bits
- of sysconfig register
-Date: Tue, 31 Aug 2010 18:16:24 +0200
-Message-ID: <4C7D2AD8.9050808@ti.com>
-References: <1282823155-18328-1-git-send-email-kishon@ti.com> <878w3o9l6f.fsf@deeprootsystems.com> <4C7C91D8.5030809@ti.com> <958980504a3ab43f3a7c5d86e968ea67@secure211.sgcpanel.com> <4C7D148A.8040403@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
+ CMA3000 Accelerometer driver)
+Date: Tue, 31 Aug 2010 09:17:30 -0700
+Message-ID: <20100831161730.GA30947@core.coreip.homeip.net>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
+ <20100829184904.GC26209@core.coreip.homeip.net>
+ <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
+ <20100830214025.2f9677a1@lxorguk.ukuu.org.uk>
+ <20100830204412.GA28711@core.coreip.homeip.net>
+ <AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com>
+ <20100830214355.GB28865@core.coreip.homeip.net>
+ <AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com>
+ <20100830224352.GF28865@core.coreip.homeip.net>
+ <20100831104446.321fd4f4@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60249 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752209Ab0HaQQf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Aug 2010 12:16:35 -0400
-In-Reply-To: <4C7D148A.8040403@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100831104446.321fd4f4@lxorguk.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <me@felipebalbi.com>, Hemanth V <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "kai.svahn@nokia.com" <kai.svahn@nokia.com>, "matthias.nyman@nokia.com" <matthias.nyman@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, Paul Walmsley <paul@pwsan.com>, "Basak, Partha" <p-basak2@ti.com>
 
-On 8/31/2010 4:41 PM, ABRAHAM, KISHON VIJAY wrote:
->
->
-> On Tuesday 31 August 2010 01:43 PM, Felipe Balbi wrote:
->> On Tue, 31 Aug 2010 10:53:36 +0530, kishon<a0393678@ti.com>   wrote:
->>
->>>        Though driver shouldn't be using hwmod directly, there is no
->>> corresponding API in omap_device to do the same. So we are planning to
->>>        store the omap_hwmod structure in platform_data during
->>> arch_initcall (in the callback to omap_hwmod_for_each_by_class). So
->>> whenever the
->>>        AUTOIDLE bits need to be reset or set, we pass the stored
->>> omap_hwmod structure to this API. Currently, the functions that needs
->>> AUTOIDLE
->>>        bit to be modified (omap_st_on, omap_st_off) resides in plat-omap.
->>>
->> couldn't your API instead be something like:
->>
->> int omap_hwmod_set_autoidle(struct device *dev, u8 autoidle)
->> {
->> 	struct omap_hwmod *oh = dev_to_hwmod(dev);
->>
->> 	if (!oh)
->> 		return -ENODEV;
->> 	[...]
->>
->> 	return 0;
->> }
->>
->       Balbi,
->           I couldn't find "dev_to_hwmod()" function. Do you actually mean
-> implementing dev_to_hwmod() function?
->       I created this API based on "omap_hwmod_set_slave_idlemode()"
-> present in lo (omap_hwmod.c) for changing the smart idle bit
->       of SYSCONFIG register.
->
->       -Kishon
+On Tue, Aug 31, 2010 at 10:44:46AM +0100, Alan Cox wrote:
+> > 1. Input transport via evdev is very convenient
+> > 2. There is no other standard alternative
+> > 
+> > Once there is standard interface for such sensors they will happily use
+> > it and will not look back.
+> 
+> I think the fact that most of the interest in IIO is "how do we make an
+> IIO/Input bridge" speaks volumes.
 
-That API does not exist. And since a device can contains several hwmods, 
-like in your case, this API cannot exist in that form.
+Like Jonathan mentioned, we so far only hear from mobile users here on
+LKML.
 
-The real issue is that we do not want to expose any API relative to PRCM 
-management to the driver. Even if you hide that behind some pdata, it is 
-still the driver that will call it.
+> 
+> > Sure, for a particular cell phone there is no ambiguity, the sensor has
+> > certain functionality assigned that is well known. But does this mean
+> > that we should not expect parts being reused at all anymore?
+> 
+> If non-input uses later need non-input interfaces they can switch to that
+> with an input bridge when there is one and when it happens, which
+> probably won't.
 
-I know that some IPs like MUSB or McBSP requires some unusual idle mode 
-change due to HW bugs, but in general, you should try to find a better 
-way to handle that in the core framework if possible.
+Would there even be an argument which subsystem to use if IIO->input
+bridge existed today? Because if the answer is "no" then push into input
+is driven by convenience and not because it is the right solution. 
 
-Regards,
-Benoit
+> 
+> > I am unsure how you would play a game with GPS as an input device.
+> 
+> In a non-game context take a look at things like the British Museum
+> application that allows you to view wherever you are and as it was long
+> ago by fishing out a relevant photograph as you walk around.
+
+If application does take something as an input it does not make it
+necessarily a human interface device. By this reasoning cameras should
+be represented as an input devices (why, some applications take input
+from it), hwmon should be input as well (detect your move from
+Arkhangelsk to Cairo by changes in your chassis temperature while under
+the same load?). Serial ports? Input. Sound - speech recognition should
+be implemented as an input device converting microphone input directly
+into EV_KEY/KEY_x stream bypassing sound subsystem completely? And if
+someone decides to use it differently - why, let's just write a second
+driver. This way is madness.
+
+I really believe that input should represent purely human interface
+devices, not arbitrary data acquisition devices.
+
+> In a game
+> context can I suggest the Zombies game is an example ?
+
+I am not familiar with this game, sorry.
+
+-- 
+Dmitry
