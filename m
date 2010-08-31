@@ -1,75 +1,46 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH] OMAP: McBSP: Do not enable SRG in slave mode
-Date: Tue, 31 Aug 2010 11:11:44 +0300
-Message-ID: <1283242304-27738-1-git-send-email-peter.ujfalusi@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [RFC: PATCH] OMAP: hwmod: New API to modify the autoidle bits of
+ sysconfig register
+Date: Tue, 31 Aug 2010 03:13:23 -0500
+Message-ID: <958980504a3ab43f3a7c5d86e968ea67@secure211.sgcpanel.com>
+References: <1282823155-18328-1-git-send-email-kishon@ti.com> <878w3o9l6f.fsf@deeprootsystems.com> <4C7C91D8.5030809@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:36238 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756998Ab0HaIMc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 04:12:32 -0400
+Received: from ns1.siteground211.com ([209.62.36.12]:50517 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756974Ab0HaINj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 04:13:39 -0400
+In-Reply-To: <4C7C91D8.5030809@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, jhnikula@gmail.com
+To: kishon <a0393678@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-McBSP SRG (Sample Rate Generator) and FSG (Frame Sync
-Generator) is only needed to be enabled, when McBSP
-is master.
-In McBSP slave mode, the SRG, and FSG can be kept disabled,
-which might save some power at the end in this configuration.
+On Tue, 31 Aug 2010 10:53:36 +0530, kishon <a0393678@ti.com> wrote:
+>      Though driver shouldn't be using hwmod directly, there is no 
+> corresponding API in omap_device to do the same. So we are planning to
+>      store the omap_hwmod structure in platform_data during 
+> arch_initcall (in the callback to omap_hwmod_for_each_by_class). So 
+> whenever the
+>      AUTOIDLE bits need to be reset or set, we pass the stored 
+> omap_hwmod structure to this API. Currently, the functions that needs 
+> AUTOIDLE
+>      bit to be modified (omap_st_on, omap_st_off) resides in plat-omap.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
----
+couldn't your API instead be something like:
 
-Hello Jarkko,
+int omap_hwmod_set_autoidle(struct device *dev, u8 autoidle)
+{
+	struct omap_hwmod *oh = dev_to_hwmod(dev);
 
-I have tested this on OMAP3, but I think this should be
-applicable for other OMAP versions as well.
-When McBSP was slave the audio worked fine, when I left
-the SRG, and FSG disabled.
+	if (!oh)
+		return -ENODEV;
+	[...]
 
- arch/arm/plat-omap/mcbsp.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+	return 0;
+}
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e31496e..ecbfe39 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -878,7 +878,7 @@ EXPORT_SYMBOL(omap_mcbsp_free);
- void omap_mcbsp_start(unsigned int id, int tx, int rx)
- {
- 	struct omap_mcbsp *mcbsp;
--	int idle;
-+	int enable_srg = 0;
- 	u16 w;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
-@@ -893,10 +893,13 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
- 	mcbsp->rx_word_length = (MCBSP_READ_CACHE(mcbsp, RCR1) >> 5) & 0x7;
- 	mcbsp->tx_word_length = (MCBSP_READ_CACHE(mcbsp, XCR1) >> 5) & 0x7;
- 
--	idle = !((MCBSP_READ_CACHE(mcbsp, SPCR2) |
--			MCBSP_READ_CACHE(mcbsp, SPCR1)) & 1);
-+	/* Only enable SRG, if McBSP is master */
-+	w = MCBSP_READ_CACHE(mcbsp, PCR0);
-+	if (w & (FSXM | FSRM | CLKXM | CLKRM))
-+		enable_srg = !((MCBSP_READ_CACHE(mcbsp, SPCR2) |
-+				MCBSP_READ_CACHE(mcbsp, SPCR1)) & 1);
- 
--	if (idle) {
-+	if (enable_srg) {
- 		/* Start the sample generator */
- 		w = MCBSP_READ_CACHE(mcbsp, SPCR2);
- 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 6));
-@@ -919,7 +922,7 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
- 	 */
- 	udelay(500);
- 
--	if (idle) {
-+	if (enable_srg) {
- 		/* Start frame sync */
- 		w = MCBSP_READ_CACHE(mcbsp, SPCR2);
- 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 7));
 -- 
-1.7.2.2
-
+balbi
