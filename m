@@ -1,77 +1,139 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 03/20] Build omap_device for each DSS HW IP
-Date: Tue, 31 Aug 2010 08:29:35 -0700
-Message-ID: <87zkw2ssv4.fsf@deeprootsystems.com>
-References: <1282579089-10487-1-git-send-email-svadivu@ti.com>
-	<1282579089-10487-2-git-send-email-svadivu@ti.com>
-	<1282579089-10487-3-git-send-email-svadivu@ti.com>
-	<1282579089-10487-4-git-send-email-svadivu@ti.com>
-	<874oehuez7.fsf@deeprootsystems.com>
-	<FCCFB4CDC6E5564B9182F639FC35608703114AA768@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] omap: 4430sdp board support for the the GPIO keys
+Date: Tue, 31 Aug 2010 21:16:18 +0530
+Message-ID: <1283269578-3962-1-git-send-email-shubhrajyoti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:54936 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932343Ab0HaP3h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 11:29:37 -0400
-Received: by pzk9 with SMTP id 9so2471437pzk.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Aug 2010 08:29:37 -0700 (PDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703114AA768@dbde02.ent.ti.com>
-	(Senthilvadivu Guruswamy's message of "Tue, 31 Aug 2010 18:31:15
-	+0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:56013 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757102Ab0HaPqX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 11:46:23 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7VFkJnF005185
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 31 Aug 2010 10:46:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-"Guruswamy, Senthilvadivu" <svadivu@ti.com> writes:
+omap 4430sdp board support for the GPIO keys.
+The proximity sensor is connected to GPIO and is registered as a
+GPIO key.
+- Making the default state of the sensor off at bootup
+- The init is called before platform_add_devices
 
-[...]
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |   61 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 61 insertions(+), 0 deletions(-)
 
->> > From: Senthilvadivu Guruswamy <svadivu@ti.com>
->> >
->> > Looks up the HWMOD database for each of the given DSS HW IP
->> > and builds omap_device which inturn does the platform device
->> > register for each of DSS HW IP
->> >
->> > Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
->> 
->> [...]
->> 
->> > +	for (i = 0; i < 5; i++) {
->> > +		l = snprintf(oh_name[i], MAX_OMAP_DSS_HWMOD_NAME_LEN,
->> > +				 oh_name[i]);
->> > +		WARN(l >= MAX_OMAP_DSS_HWMOD_NAME_LEN,
->> > +			"String buffer overflow in DSS device setup\n");
->> > +
->> > +		oh = omap_hwmod_lookup(oh_name[i]);
->> > +		if (!oh) {
->> > +			pr_err("Could not look up %s\n", oh_name[i]);
->> > +			return ;
->> > +		}
->> > +		strcpy(pdata.name, oh_name[i]);
->> > +		pdata.board_data		=       board_data;
->> > +		pdata.board_data->get_last_off_on_transaction_id = NULL;
->> > +		pdata.device_enable    =       omap_device_enable;
->> > +		pdata.device_idle      =       omap_device_idle;
->> > +		pdata.device_shutdown  =       omap_device_shutdown;
->> 
->> Please use runtime PM API in driver instead of calling these using
->> pdata function pointers.
->
-> [Senthil] when I used pm_runtime API, the clocks were not getting enabled.
-> Probably the complete support is not yet in this pm branch.
-> Once available I would change to pm_runtime and discard the use_count variable too.
-
-Runtime PM is available and working in current pm-core branch
-(a.k.a. pm-wip/hwmods-omap4) Several other hwmod conversions are using
-that branch to get working runtime PM.
-
-Rather than use the pdata-> methods, please debug why runtime PM isn't
-working for your driver.
-
-Thanks,
-
-Kevin
-
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 9447644..f31d68e 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -20,6 +20,7 @@
+ #include <linux/usb/otg.h>
+ #include <linux/spi/spi.h>
+ #include <linux/i2c/twl.h>
++#include <linux/gpio_keys.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/leds.h>
+ 
+@@ -40,6 +41,8 @@
+ #define ETH_KS8851_IRQ			34
+ #define ETH_KS8851_POWER_ON		48
+ #define ETH_KS8851_QUART		138
++#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
++#define OMAP4_SFH7741_ENABLE_GPIO		188
+ 
+ static struct gpio_led sdp4430_gpio_leds[] = {
+ 	{
+@@ -77,11 +80,47 @@ static struct gpio_led sdp4430_gpio_leds[] = {
+ 
+ };
+ 
++static struct gpio_keys_button sdp4430_gpio_keys[] = {
++	{
++		.desc			= "Proximity Sensor",
++		.type			= EV_SW,
++		.code			= SW_FRONT_PROXIMITY,
++		.gpio			= OMAP4_SFH7741_SENSOR_OUTPUT_GPIO,
++		.active_low		= 0,
++	}
++};
++
+ static struct gpio_led_platform_data sdp4430_led_data = {
+ 	.leds	= sdp4430_gpio_leds,
+ 	.num_leds	= ARRAY_SIZE(sdp4430_gpio_leds),
+ };
+ 
++static int omap_prox_activate(struct device *dev)
++{
++	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 1);
++	return 0;
++}
++
++static void omap_prox_deactivate(struct device *dev)
++{
++	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 0);
++}
++
++static struct gpio_keys_platform_data sdp4430_gpio_keys_data = {
++	.buttons	= sdp4430_gpio_keys,
++	.nbuttons	= ARRAY_SIZE(sdp4430_gpio_keys),
++	.enable		= omap_prox_activate,
++	.disable	= omap_prox_deactivate,
++};
++
++static struct platform_device sdp4430_gpio_keys_device = {
++	.name	= "gpio-keys",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &sdp4430_gpio_keys_data,
++	},
++};
++
+ static struct platform_device sdp4430_leds_gpio = {
+ 	.name	= "leds-gpio",
+ 	.id	= -1,
+@@ -161,6 +200,7 @@ static struct platform_device sdp4430_lcd_device = {
+ 
+ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_lcd_device,
++	&sdp4430_gpio_keys_device,
+ 	&sdp4430_leds_gpio,
+ };
+ 
+@@ -426,11 +466,32 @@ static int __init omap4_i2c_init(void)
+ 	omap_register_i2c_bus(4, 400, NULL, 0);
+ 	return 0;
+ }
++
++static void __init omap_sfh7741prox_init(void)
++{
++	int  error;
++
++	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
++	if (error < 0) {
++		pr_err("%s:failed to request GPIO %d, error %d\n",
++			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
++		return;
++	}
++
++	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 0);
++	if (error < 0) {
++		pr_err("%s: GPIO configuration failed: GPIO %d,error %d\n",
++			 __func__, OMAP4_SFH7741_ENABLE_GPIO, error);
++		gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
++	}
++}
++
+ static void __init omap_4430sdp_init(void)
+ {
+ 	int status;
+ 
+ 	omap4_i2c_init();
++	omap_sfh7741prox_init();
+ 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+ 	omap_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
