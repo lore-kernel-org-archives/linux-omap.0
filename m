@@ -1,122 +1,139 @@
-From: kishon <a0393678@ti.com>
-Subject: Re: [RFC: PATCH] OMAP: hwmod: New API to modify the autoidle bits
- of sysconfig register
-Date: Tue, 31 Aug 2010 10:53:36 +0530
-Message-ID: <4C7C91D8.5030809@ti.com>
-References: <1282823155-18328-1-git-send-email-kishon@ti.com> <878w3o9l6f.fsf@deeprootsystems.com>
+From: "Kalliguddi, Hema" <hemahk@ti.com>
+Subject: RE: [PATCH 0/8 v2]usb: musb: hwmod and runtime pm support for musb
+Date: Tue, 31 Aug 2010 10:57:57 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402780D3ED8@dbde02.ent.ti.com>
+References: <1282140177-28089-1-git-send-email-hemahk@ti.com>
+ <877hje6y7k.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56069 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58125 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753740Ab0HaFXq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Aug 2010 01:23:46 -0400
-In-Reply-To: <878w3o9l6f.fsf@deeprootsystems.com>
+	id S1751919Ab0HaF2J convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 01:28:09 -0400
+In-Reply-To: <877hje6y7k.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
+ 
 
-
-On Monday 30 August 2010 08:56 PM, Kevin Hilman wrote:
-> Kishon Vijay Abraham I<kishon@ti.com>  writes:
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: Thursday, August 26, 2010 5:29 AM
+>To: Kalliguddi, Hema
+>Cc: linux-omap@vger.kernel.org; linux-usb@vger.kernel.org; 
+>Felipe Balbi; Tony Lindgren; Cousson, Benoit; Paul Walmsley
+>Subject: Re: [PATCH 0/8 v2]usb: musb: hwmod and runtime pm 
+>support for musb
 >
->    
->> Though the sysconfig register values shouldn't be modified directly by
->> the driver, MCBSP should be considered a special case where sysconfig
->> registers need to be modified dynamically by the driver.
+>Hema HK <hemahk@ti.com> writes:
+>
+>> Cc: Felipe Balbi <felipe.balbi@nokia.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>> Cc: Cousson, Benoit <b-cousson@ti.com>
+>> Cc: Paul Walmsley <paul@pwsan.com>
 >>
->> For e.g MCBSP 2 and 3 in OMAP3 has sidetone feature which requires
->> autoidle to be disabled before starting the sidetone.
+>> This patch series makes OMAP2PLUS musb Module implemented
+>> in HWMOD FW way. It also implements musb driver to
+>> use the runtime pm apis.
 >>
->> This patch creates a new API that forms a wrapper to
->> _set_module_autoidle() to modify the AUTOIDLE bit.
->>      
-> Since driver should not be using hwmod directly, how is this API going
-> to be used?  Will this only be called from arch/arm/mach-omap2/mcbsp.c?
->    
-     Though driver shouldn't be using hwmod directly, there is no 
-corresponding API in omap_device to do the same. So we are planning to
-     store the omap_hwmod structure in platform_data during 
-arch_initcall (in the callback to omap_hwmod_for_each_by_class). So 
-whenever the
-     AUTOIDLE bits need to be reset or set, we pass the stored 
-omap_hwmod structure to this API. Currently, the functions that needs 
-AUTOIDLE
-     bit to be modified (omap_st_on, omap_st_off) resides in plat-omap.
+>> PATCH[1/8 v2] and [PATCH 2/8 v2] are the pre-requisites for the hwmod
+>> support for the usb module.
+>>
+>> PATCH[6/8 v2] is core-offmode usb fix patch for the OMAP3
+>> in idle path.
+>>
+>> As per the OMAP usbotg specification[1] musb sysconfig register
+>> has to be set to force idle and force standby when not used
+>> and set smart idle/standby during operation.otherwise core-off
+>> will be prevented by musb.
+>>
+>> [1]: http://focus.ti.com/pdfs/wtbu/SWPU223D_Final_EPDF_06_07_2010.pdf
+>>
+>> This patch series is created on "origin/pm-wip/hwmods-omap4".
+>>
+>> This patch series is tested on OMAP3630 zoom3 and OMAP4430 SDP.
+>> On OMAP3630 zoom3, off mode is tested on "origin/pm" branch using 
+>> omap3_pm_defconfig.
+>
+>This IP is on OMAP2 as well, but I don't see any hwmods for OMAP2.
+>
+>Please also add hwmods for OMAP2 and test as well.
+>
 
-     -Kishon
->    
->> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
->> Signed-off-by: Charulatha V<charu@ti.com>
->> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
->>
->> Cc: Paul Walmsley<paul@pwsan.com>
->> Cc: Benoit Cousson<b-cousson@ti.com>
->> Cc: Partha Basak<p-basak2@ti.com>
->>      
-> Subject should contain prefix like 'OMAP: hwmod: ...'
+OK. I will do that and post a patch.
+
+>Thanks,
 >
-> Kevin
+>Kevin
 >
->    
->> ---
->>   arch/arm/mach-omap2/omap_hwmod.c             |   29 ++++++++++++++++++++++++++
->>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
->>   2 files changed, 30 insertions(+), 0 deletions(-)
+>
 >>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index 9bd99ad..0d38404 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -969,6 +969,35 @@ int _omap_hwmod_idle(struct omap_hwmod *oh)
->>   }
+>> Version History:
+>> ---------------
+>> Vesrion v2:
 >>
->>   /**
->> + * omap_hwmod_set_module_autoidle - set the hwmod's OCP slave autoidle
->> + * @oh: struct omap_hwmod *
->> + * @autoidle: desired AUTOIDLE bitfield value (0 or 1)
->> + *
->> + * Sets the IP block's OCP slave autoidle in hardware, and updates our
->> + * local copy. Intended to be used by drivers that have some erratum
->> + * that requires direct manipulation of the AUTOIDLE bits.  Returns
->> + * -EINVAL if @oh is null, or passes along the return value from
->> + * _set_module_autoidle().
->> + */
->> +int omap_hwmod_set_module_autoidle(struct omap_hwmod *oh, u8 autoidle)
->> +{
->> +	u32 v;
->> +	int retval = 0;
->> +
->> +	if (!oh)
->> +		return -EINVAL;
->> +
->> +	v = oh->_sysc_cache;
->> +
->> +	retval = _set_module_autoidle(oh, autoidle,&v);
->> +
->> +	if (!retval)
->> +		_write_sysconfig(v, oh);
->> +
->> +	return retval;
->> +}
->> +
->> +/**
->>    * _shutdown - shutdown an omap_hwmod
->>    * @oh: struct omap_hwmod *
->>    *
->> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> index 6adbb63..7042b86 100644
->> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
->> @@ -526,6 +526,7 @@ int omap_hwmod_hardreset_deassert(struct omap_hwmod *oh, const char *name);
->>   int omap_hwmod_hardreset_state(struct omap_hwmod *oh, const char *name);
+>> Fixed review comments.
+>> Removed the omap_hwmod.h inclusion from musb.h file which was 
+>> breaking the non-omap platform build.
+>> Using the runtime pm apis in the idle path(interrupts disabled).
+>> Added the omap4 hwmod data base.
 >>
->>   int omap_hwmod_set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode);
->> +int omap_hwmod_set_module_autoidle(struct omap_hwmod *oh, u8 autoidle);
+>> Version v1:
+>> initial version of the patch series.
 >>
->>   int omap_hwmod_reset(struct omap_hwmod *oh);
->>   void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
->>      
+>> Some of the links for v1
+>> ------------------------
+>>
+>> http://www.spinics.net/lists/linux-usb/msg34570.html
+>> http://www.spinics.net/lists/linux-omap/msg34568.html
+>> http://www.spinics.net/lists/linux-usb/msg34544.html
+>> http://www.spinics.net/lists/linux-usb/msg34540.html
+>> http://www.spinics.net/lists/linux-usb/msg34589.html
+>> http://www.spinics.net/lists/linux-usb/msg34554.html
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32973.html
+>>
+>>
+>> Cousson, Benoit (1):
+>>   usb: musb: HWMOD database structures addition for OMAP4
+>>
+>> Hema HK (7):
+>>   usb: musb: Adding names for IRQs in resource structure
+>>   usb: musb: Remove board_data parameter from musb_platform_init()
+>>   usb: musb: HWMOD database structures addition for OMAP3
+>>   usb: musb: Using omap_device_build for musb device registration
+>>   usb: musb: Offmode fix for idle path
+>>   OMAP: Hwmod api changes
+>>   usb : musb: Using runtime pm apis for musb.
+>>
+>>  arch/arm/mach-davinci/usb.c                   |    2 +
+>>  arch/arm/mach-omap2/omap_hwmod.c              |   18 ++-
+>>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  100 +++++++++++++
+>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   92 ++++++++++++
+>>  arch/arm/mach-omap2/pm34xx.c                  |    9 ++
+>>  arch/arm/mach-omap2/usb-musb.c                |  188 
+>++++++++++++++++++++-----
+>>  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
+>>  arch/arm/plat-omap/include/plat/usb.h         |    9 ++
+>>  arch/arm/plat-omap/omap_device.c              |   43 ++++++
+>>  arch/blackfin/mach-bf527/boards/cm_bf527.c    |    2 +
+>>  arch/blackfin/mach-bf527/boards/ezbrd.c       |    2 +
+>>  arch/blackfin/mach-bf527/boards/ezkit.c       |    2 +
+>>  arch/blackfin/mach-bf548/boards/cm_bf548.c    |    2 +
+>>  arch/blackfin/mach-bf548/boards/ezkit.c       |    2 +
+>>  drivers/usb/musb/blackfin.c                   |    2 +-
+>>  drivers/usb/musb/cppi_dma.c                   |    2 +-
+>>  drivers/usb/musb/davinci.c                    |    2 +-
+>>  drivers/usb/musb/musb_core.c                  |   26 +++-
+>>  drivers/usb/musb/musb_core.h                  |    3 +-
+>>  drivers/usb/musb/musbhsdma.c                  |    2 +-
+>>  drivers/usb/musb/omap2430.c                   |   87 ++++++------
+>>  drivers/usb/musb/tusb6010.c                   |    2 +-
+>>  include/linux/usb/musb.h                      |   20 +++
+>>  23 files changed, 522 insertions(+), 97 deletions(-)
+>
