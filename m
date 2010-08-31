@@ -1,28 +1,55 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 1/2] crypto: updates to enable omap aes
-Date: Tue, 31 Aug 2010 20:38:48 +0800
-Message-ID: <20100831123848.GA31105@gondor.apana.org.au>
-References: <cover.1282311763.git.dmitry.kasatkin@nokia.com> <f419b9c0bc0aa64a1a012a57e52aa9477b91b23f.1282311763.git.dmitry.kasatkin@nokia.com> <4C7CC2CB.5020208@nokia.com>
+From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
+ CMA3000 Accelerometer driver)
+Date: Tue, 31 Aug 2010 13:51:29 +0100
+Message-ID: <4C7CFAD1.6030707@jic23.retrosnub.co.uk>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>	<20100829184904.GC26209@core.coreip.homeip.net>	<36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>	<20100830214025.2f9677a1@lxorguk.ukuu.org.uk>	<20100830204412.GA28711@core.coreip.homeip.net>	<AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com>	<20100830214355.GB28865@core.coreip.homeip.net> <20100831104659.11ebc8a0@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-crypto-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4C7CC2CB.5020208@nokia.com>
-Sender: linux-crypto-owner@vger.kernel.org
-To: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-Cc: "linux-crypto@vger.kernel.org" <linux-crypto@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20100831104659.11ebc8a0@lxorguk.ukuu.org.uk>
+Sender: linux-input-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <me@felipebalbi.com>, Hemanth V <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "kai.svahn@nokia.com" <kai.svahn@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 31, 2010 at 11:52:27AM +0300, Dmitry Kasatkin wrote:
-> Hi,
+On 08/31/10 10:46, Alan Cox wrote:
+>> IIO which is currently in staging.
 > 
-> Does anyone want to comment on this?
+> Except we had ALS before that as a layer and Linus vetoed it. So there is
+> zero faith in IIO ever going anywhere.
+I have more faith - those developing it have limited time, but we will get
+there. (another plug for anyone interested to get involved!)
 
-Please be patient.  Your patches are still in my queue.  Resending
-them is only going to slow them down.
+IIRC Linus and others disliked ALS for two reasons...
+* It was too specific.  They didn't want to fragment sensors types that much.
+* Userspace is used to dealing input and in some cases a light sensor can look
+  like a switch.
+The first certainly doesn't apply to IIO, the second will be fixed via an
+input bridge.
 
-Thanks,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+If Linus isn't happy we'll just have to work on convincing him.
+> 
+> Instead we now have about ten different light sensor APIs to the point
+> developers are writing a toolkit userspace plugin for *each* sensor.
+I agree. This is a big problem.  We have in the past talked about
+allowing interfaces to be standardized even if the underlying subsystem
+is still open to debate.  
+We did openly debate the interface for some time with ALS...
+
+After we went over this with IIO we decided to match / extend hwmon where
+ever possible. Obviously that only covers sysfs interfaces, but it is a start.
+We also openly debate all new elements (and in theory at least keep
+the admittedly huge abi document up to date).  A large set of doc updates and
+code fixes relating to the interface from Manuel Stahl went to Greg KH
+this morning as result of his work on general userspace tools.
+
+On the chrdev side of things life is much more complex as performance
+and overheads become an issue.
+
+Jonathan
+
+p.s. Matthias Nyman's email address is bouncing so I've removed it from the cc list.
+
+
