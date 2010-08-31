@@ -1,182 +1,51 @@
-From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 7/8 v2] OMAP: Hwmod api changes
-Date: Tue, 31 Aug 2010 14:25:16 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402780D410B@dbde02.ent.ti.com>
-References: <1282140652-29837-1-git-send-email-hemahk@ti.com>
- <877hje8dki.fsf@deeprootsystems.com>
+From: David Vrabel <david.vrabel@csr.com>
+Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+Date: Tue, 31 Aug 2010 09:59:44 +0100
+Message-ID: <4C7CC480.2040903@csr.com>
+References: <cover.1266847842.git.david.vrabel@csr.com> <20100827192248.GJ20407@void.printf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <877hje8dki.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from queue02.mail.zen.net.uk ([212.23.3.27]:48747 "EHLO
+	queue02.mail.zen.net.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753345Ab0HaJCO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 05:02:14 -0400
+In-Reply-To: <20100827192248.GJ20407@void.printf.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, Mike Rapoport <mike@compulab.co.il>
 
-Hi, 
-
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org] 
->Sent: Thursday, August 26, 2010 5:12 AM
->To: Kalliguddi, Hema
->Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
->Basak, Partha; Felipe Balbi; Tony Lindgren; Cousson, Benoit; 
->Paul Walmsley
->Subject: Re: [PATCH 7/8 v2] OMAP: Hwmod api changes
->
->Hema HK <hemahk-l0cyMroinI0@public.gmane.org> writes:
->
->> OMAP USBOTG modules has a requirement to set the auto idle 
->bit only after
->> setting smart idle bit. Modified the _sys_enable api to set 
->the smart idle
->> first and then the autoidle bit. Setting this will not have 
->any impact on the
->> other modules.
+On 27/08/2010 20:22, Chris Ball wrote:
+> Hi David,
+> 
+> On Mon, Feb 22, 2010 at 02:24:17PM +0000, David Vrabel wrote:
+>> These patches add support for SDIO cards to the omap_hsmmc driver.
+>> Power management changes to prevent SDIO cards from being turned off
+>> and losing all state, and card interrupts.
 >>
->> Added 2 wrapper APIs in the omap device layer for wakeup 
->enable/disable
->> and sidle/mstandby settings.
->
->This should be a separate patch, with an description of who 
->the users of
->this API would be and why.
->
-Ok. I can post it as separate patch also.  But I think there was plan from Rajendra to
-Enable the wakeup as part of the sysc_enable() if smart idle/standby is configured.
-If that implementation is done then there is no need of this patch.
-
-
->> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Basak, Partha <p-basak2-l0cyMroinI0@public.gmane.org>
+>> I've been unable to test these exact patches as I only have an N900 for 
+>> testing and the N900 support in mainline is incomplete.
 >>
->> Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
->> ---
->>  arch/arm/mach-omap2/omap_hwmod.c              |   18 +++++++---
->>  arch/arm/plat-omap/include/plat/omap_device.h |    2 +
->>  arch/arm/plat-omap/omap_device.c              |   43 
->+++++++++++++++++++++++++
->>  3 files changed, 57 insertions(+), 6 deletions(-)
+>> Changes since v1:
+>> - (hopefully) get all cards working again by removing a second call to
+>>   read MMCi_STAT in the interrupt handler.
+>> - flush posted writes after enabling/disabling SDIO interrupts.
+>> - tweak the FIXME commit on disabling FCLK to better match what really
+>>   going on (at least I think so anyway).
 >>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c 
->b/arch/arm/mach-omap2/omap_hwmod.c
->> index 9bd99ad..55507a6 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -654,12 +654,6 @@ static void _sysc_enable(struct omap_hwmod *oh)
->>  		_set_master_standbymode(oh, idlemode, &v);
->>  	}
->>  
->> -	if (sf & SYSC_HAS_AUTOIDLE) {
->> -		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
->> -			0 : 1;
->> -		_set_module_autoidle(oh, idlemode, &v);
->> -	}
->> -
->>  	/* XXX OCP ENAWAKEUP bit? */
->>  
->>  	/*
->> @@ -672,6 +666,18 @@ static void _sysc_enable(struct omap_hwmod *oh)
->>  		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
->>  
->>  	_write_sysconfig(v, oh);
->> +
->> +	/* Set the auto idle bit only after setting the smartidle bit
->> +	 * as this is requirement for some modules like USBOTG
->> +	 * setting this will not have any impact on the other modues.
->> +	 */
->
->Please fix multi-line comment style.  (search for multi-line in
->Documentation/CodingStyle)
->
-Sure I will fix it.
+>> David Vrabel (2):
+>>   mmc: omap_hsmmc: don't turn SDIO cards off when idle
+>>   mmc: omap_hsmmc: enable SDIO card interrupts
+> 
+> Looks like this patchset wasn't merged.  Mike Rapoport replied with a 
+> fix for libertas.  Would you like to resubmit it?
 
->Kevin
->
->> +	if (sf & SYSC_HAS_AUTOIDLE) {
->> +		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
->> +			0 : 1;
->> +		_set_module_autoidle(oh, idlemode, &v);
->> +	}
->> +	_write_sysconfig(v, oh);
->>  }
->>  
->>  /**
->> diff --git a/arch/arm/plat-omap/include/plat/omap_device.h 
->b/arch/arm/plat-omap/include/plat/omap_device.h
->> index 25cd9ac..c3eb07e 100644
->> --- a/arch/arm/plat-omap/include/plat/omap_device.h
->> +++ b/arch/arm/plat-omap/include/plat/omap_device.h
->> @@ -116,6 +116,8 @@ int omap_device_enable_hwmods(struct 
->omap_device *od);
->>  int omap_device_disable_clocks(struct omap_device *od);
->>  int omap_device_enable_clocks(struct omap_device *od);
->>  
->> +int omap_device_enable_wakeup(struct platform_device *pdev);
->> +int omap_device_disable_wakeup(struct platform_device *pdev);
->>  
->>  /*
->>   * Entries should be kept in latency order ascending
->> diff --git a/arch/arm/plat-omap/omap_device.c 
->b/arch/arm/plat-omap/omap_device.c
->> index d2b1609..10182b1 100644
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -757,3 +757,46 @@ int omap_device_enable_clocks(struct 
->omap_device *od)
->>  	/* XXX pass along return value here? */
->>  	return 0;
->>  }
->> +
->> +/**
->> + * omap_device_enable_wakeup - Enable the wakeup bit
->> + * @od: struct omap_device *od
->> + *
->> + * Enable the wakup bit for omap_hwmods associated
->> + * with the omap_device.  Returns 0.
->> + */
->> +int omap_device_enable_wakeup(struct platform_device *pdev)
->> +{
->> +	struct omap_hwmod *oh;
->> +	struct omap_device *od = _find_by_pdev(pdev);
->> +	int i;
->> +
->> +	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
->> +		omap_hwmod_enable_wakeup(oh);
->> +
->> +	/* XXX pass along return value here? */
->> +	return 0;
->> +}
->> +
->> +/**
->> + * omap_device_disable_wakeup -Disable the wakeup bit
->> + * @od: struct omap_device *od
->> + *
->> + * Disable the wakup bit for omap_hwmods associated
->> + * with the omap_device.  Returns 0.
->> + */
->> +
->> +
->> +int omap_device_disable_wakeup(struct platform_device *pdev)
->> +{
->> +	struct omap_hwmod *oh;
->> +	struct omap_device *od = _find_by_pdev(pdev);
->> +	int i;
->> +
->> +	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
->> +		omap_hwmod_disable_wakeup(oh);
->> +
->> +	/* XXX pass along return value here? */
->> +	return 0;
->> +}
->> +
->--
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I thought Madhu had picked this up and was going to submit it.
+
+Regardless of whether that is the case, I think it needs to be submitted
+by someone who can run mainline kernels (I can't) and ideally someone
+who can test it with SDIO cards.
+
+David
