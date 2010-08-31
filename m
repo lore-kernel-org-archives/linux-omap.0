@@ -1,189 +1,110 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
-Date: Tue, 31 Aug 2010 10:28:41 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870310FA8A80@dbde02.ent.ti.com>
-References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
-	<87bp8nn9yx.fsf@deeprootsystems.com>
-	<FCCFB4CDC6E5564B9182F639FC3560870310FA8865@dbde02.ent.ti.com>
- <AANLkTi=uOyqbBxvhDHza8oV6TBDVPMFKqN_3Z+jqtJwR@mail.gmail.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
+ CMA3000 Accelerometer driver)
+Date: Tue, 31 Aug 2010 00:15:11 -0500
+Message-ID: <43fd040585e2eca4416f7619eba86515@secure211.sgcpanel.com>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <20100829184904.GC26209@core.coreip.homeip.net> <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com> <20100830214025.2f9677a1@lxorguk.ukuu.org.uk> <20100830204412.GA28711@core.coreip.homeip.net> <AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com> <20100830214355.GB28865@core.coreip.homeip.net> <AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com> <20100830224352.GF28865@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54356 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752595Ab0HaE6v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 00:58:51 -0400
-In-Reply-To: <AANLkTi=uOyqbBxvhDHza8oV6TBDVPMFKqN_3Z+jqtJwR@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100830224352.GF28865@core.coreip.homeip.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, igor.stoppa@nokia.com, kai.svahn@nokia.com, matthias.nyman@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Silesh C V <saileshcv@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "vishwanath.sripathy@linaro.org" <vishwanath.sripathy@linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
+Hi,
 
+On Mon, 30 Aug 2010 15:43:52 -0700, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> On Mon, Aug 30, 2010 at 03:05:32PM -0700, Linus Torvalds wrote:
+>> On Monday, August 30, 2010, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+>> wrote:
+>> >
+>> > That is why I started taking accelerometers in. But I am concerned
+that
+>> > taking accelerometers (which indeed are most often input devices)
+will
+>> > lead people to try and use the same for temperature, ALS and other
+>> > sensors that are more often used in industrial process controls.
+>> 
+>> You're just being silly.
+>> 
+>> Nobody writes a driver for a "temperature sensor" or "ambient light
+>> sensor". They write a driver for a specific *chip* that is used in
+>> cellphones etc, and that happens to have an ambient light and
+>> temperature sensor on it.
+> 
+> And? Yes, they have a ALS and temperature sensors. They also have
+> voltage regulators, pwm, ADC and a bunch of other stuff wired on. You
+> are not arguing that all of those should be input devices just because
+> they happen to reside on the same chip?
+> 
+>> 
+>> And in that context, it really does make sense to see it as an input
+>> driver. And the fact that there are industrial uses for ALS sensors
+>> that aren't necessarily at all interested on the input layer should
+>> not matter at all.
+> 
+> I think it does matter; we should have standard interface for certain
+> functionality that makes sense for everyone. So far cellphone guys
+> wanted to plumb such devices through input not necessarily because these
+> are HID events but because:
+> 
+> 1. Input transport via evdev is very convenient
+> 2. There is no other standard alternative
+> 
+> Once there is standard interface for such sensors they will happily use
+> it and will not look back.
 
-> -----Original Message-----
-> From: Silesh C V [mailto:saileshcv@gmail.com]
-> Sent: Tuesday, August 31, 2010 9:53 AM
-> To: Sripathy, Vishwanath
-> Cc: Kevin Hilman; vishwanath.sripathy@linaro.org; linux-omap@vger.ker=
-nel.org;
-> linaro-dev@lists.linaro.org
-> Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
->=20
-> Hi Vishwa,
->=20
-> On Mon, Aug 30, 2010 at 6:29 PM, Sripathy, Vishwanath
-> <vishwanath.bs@ti.com> wrote:
-> > Kevin,
-> >
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> >> Sent: Saturday, August 28, 2010 12:45 AM
-> >> To: vishwanath.sripathy@linaro.org
-> >> Cc: linux-omap@vger.kernel.org; linaro-dev@lists.linaro.org
-> >> Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
-> >>
-> >> vishwanath.sripathy@linaro.org writes:
-> >>
-> >> > From: Vishwanath BS <vishwanath.sripathy@linaro.org>
-> >> >
-> >> > This patch has instrumentation code for measuring latencies for
-> >> > various CPUIdle C states for OMAP. Idea here is to capture the
-> >> > timestamp at various phases of CPU Idle and then compute the sw
-> >> > latency for various c states. =A0For OMAP, 32k clock is chosen a=
-s
-> >> > reference clock this as is an always on clock. =A0wkup domain me=
-mory
-> >> > (scratchpad memory) is used for storing timestamps. =A0One can s=
-ee the
-> >> > worstcase latencies in below sysfs entries (after enabling
-> >> > CONFIG_CPU_IDLE_PROF in .config). This information can be used t=
-o
-> >> > correctly configure cpu idle latencies for various C states afte=
-r
-> >> > adding HW latencies for each of these sw latencies.
-> >> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/actual_latency
-> >> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/sleep_latency
-> >> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/wkup_latency
-> >> >
-> >> > THis patch is tested on OMAP ZOOM3 using kevin's pm branch.
-> >> >
-> >> > Signed-off-by: Vishwanath BS <vishwanath.sripathy@linaro.org>
-> >> > Cc: linaro-dev@lists.linaro.org
-> >>
-> >> While I have many problems with the implementation details, I won'=
-t go
-> >> into them because in general this is the wrong direction for kerne=
-l
-> >> instrumentation.
-> >>
-> >> This approach adds quite a bit overhead to the idle path itself. =A0=
-With
-> >> all the reads/writes from/to the scratchpad(?) and all the multipl=
-ications
-> >> and divides in every idle path, as well as the wait-for-idlest in =
-both
-> >> the sleep and resume paths. =A0The additional overhead added is no=
-n trivial.
-> >>
-> >> Basically, I'd like get away from custom instrumentation and measu=
-rement
-> >> coded inside the kernel itself. =A0This kind of code never stops g=
-rowing
-> >> and morphing into ugliness, and rarely scales well when new SoCs a=
-re
-> >> added.
-> >>
-> >> With ftrace/perf, we can add tracepoints at specific points and us=
-e
-> >> external tools to extract and analyze the delays, latencys etc.
-> >>
-> >> The point is to keep the minimum possible in the kernel: just the
-> >> tracepoints we're interested in. =A0 The rest (calculations, avera=
-ges,
-> >> analysis, etc.) does not need to be in the kernel and can be done =
-easier
-> >> and with more powerful tools outside the kernel.
-> > The challenge here is that we need to take time stamp at the fag en=
-d of CPU Idle
-> which means we have no access to DDR, MMU/Caches are disabled etc (on=
- OMAP3).
-> So I am not sure if we will be able to use ftrace/perf kind of tools =
-here. If we choose
-> to exclude assembly code part for measurement, then we will be omitti=
-ng major
-> contributor to CPU Idle latency namely ARM context save/restoration p=
-art.
-> >
-> > Also these calculations are done only when we enable CPUIDLE profil=
-ing feature.
-> > In the normal production system, these will not come into picture a=
-t all. So I am
-> not sure latencies involved in these calculations are still an issue =
->when we are just
-> doing profiling.
->=20
->=20
-> There are two other issues when we use 32k timer for latency measurem=
-ent.
->=20
-> <snip>
-> +
-> +       /* take care of overflow */
-> +       if (postidle_time < preidle_time)
-> +               postidle_time +=3D (u32) 0xffffffff;
-> +       if (wkup_time < sleep_time)
-> +               wkup_time +=3D (u32) 0xffffffff;
-> +
-> <snip>
->=20
-> 1.We are checking postidle_time < preidle_time to find out whether
-> there had been an
->    over flow or not. There can be situations in which the timer
-> overflows and still we have
->    a greater postidle_time.
->=20
-> 2. We are doing the correction for one overflow. What happens if the
-> timer overflows for
->    a second or third time. Can we keep track of the number of
-> overflows and then do the
->    correction accordingly?
+I disagree. If the device is used as input and currently
+app developers have to find other ways to use such input
+data, having a standard interface other than input layer
+will just make the mess standardized, but it will still
+be a mess.
 
-Unfortunately, there is no way to check if overflow happens more than o=
-nce in 32k timer and as you said, theoretically it's possible that if t=
-imer overflows more than once, these calculation will wrong. Having sai=
-d that, do you really see any usecase where system will idle for more t=
-han 37 hours in single cpuidle execution to cause timer overflow?
+>> So don't bring up "ALS isn't always input" because within the context
+>> of a driver for some highly integrated cellphone model, it really IS
+>> input, and there is no ambiguity at all.
+>> 
+>> So your "sometimes it is, and sometimes it isn't" argument is bogus.
+>> The ambiguity simply doesn't exist when seen in context.
+> 
+> Sure, for a particular cell phone there is no ambiguity, the sensor has
+> certain functionality assigned that is well known. But does this mean
+> that we should not expect parts being reused at all anymore?
 
-Vishwa
->=20
-> Regards,
-> Silesh
->=20
-> >
-> > Regards
-> > Vishwa
-> >>
-> >> Kevin
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-om=
-ap" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-> >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why are we trying to overengineer on such simple devices ? Wasn't
+it so that we will design and implement solutions when the problem
+arrives ? Why are we trying to think of all cases such a simple
+device might be used just for the sake of not being input device ?
+
+>> >> (or GPS device, for that matter) really be?
+>> >
+>> > But why GPS should be input device? It has nothing to do with user
+>> > input.
+>> 
+>> What? OF COURSE it is an input driver. It's the user moving the device
+>> around. It's EXACTLY the same thing as an accelerometer in that
+>> respect. Sure, it's a bit less precise and measures movement wrt some
+>> external frame, but technically they are almost exactly the same.
+>> 
+>> If you se doing a navigation app, the accelerometer, the compass and
+>> the GPS are all equally (but differently) important.
+>> 
+>> Again - it's not a user touching buttons. But it IS a user moving
+around.
+> 
+> Right, but do you expect that movement to cause an immediate action?
+> When you press a key - something happens; when you swing a Wii
+> controller - the device reacts. And really you can swap joysticks,
+> motion controllers, Sony's 6-axis and so forth and the application would
+> be hard pressed to tell the difference. I am unsure how you would play a
+> game with GPS as an input device.
+
+it might not be used on a game, but on a map application, that IS input.
+You're failing to see input devices are used in cases other than gaming.
+
+-- 
+balbi
