@@ -1,105 +1,96 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v3] OMAP4: pm.c extensions for OMAP4 support
-Date: Wed,  1 Sep 2010 13:44:53 +0530
-Message-ID: <1283328893-14556-1-git-send-email-thara@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49606 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205Ab0IAIPE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Sep 2010 04:15:04 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] I2C: Fix for suspend/resume issue in i2c-core
+Date: Wed, 1 Sep 2010 10:40:52 +0200
+Message-ID: <20100901104052.5967ca25@hyperion.delvare>
+References: <1283219414-8798-1-git-send-email-vishwanath.bs@ti.com>
+	<87wrr83pro.fsf@deeprootsystems.com>
+	<20100831111611.GF20849@rakim.wolfsonmicro.main>
+	<201009010112.11834.rjw@sisk.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201009010112.11834.rjw-KKrjLPT3xs0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Cc: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-OMAP4 has an iva device and a dsp devcice where as OMAP2/3
-has only an iva device. In this file the iva device in the
-system is registered under the name dsp_dev and the API
-to retrieve the iva device is omap2_get_dsp_device.
-This patch renames the dsp_dev to iva_dev, renames
-omap2_get_dsp_device to omap2_get_iva_device,
-registers dsp_dev for OMAP4 and adds a new API
-omap4_get_dsp_device to retrieve the dep_dev.
+On Wed, 1 Sep 2010 01:12:11 +0200, Rafael J. Wysocki wrote:
+> On Tuesday, August 31, 2010, Mark Brown wrote:
+> > On Mon, Aug 30, 2010 at 11:43:23AM -0700, Kevin Hilman wrote:
+> > > Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org> writes:
+> > > 
+> > > > In current i2c core driver, pm_runtime_set_active call from i2c_device_pm_resume
+> > > > is not balanced by pm_runtime_set_suspended call from i2c_device_pm_suspend.
+> > > > pm_runtime_set_active called from resume path will increase the child_count of
+> > > > the device's parent. However, matching pm_runtime_set_suspended is not called
+> > > > in suspend routine because of which child_count of the device's parent
+> > > > is not balanced, preventing the parent device to idle.
+> > > > Issue has been fixed by adding pm_runtime_set_suspended call inside suspend
+> > > > reoutine which will make sure that child_counts are balanced.
+> > > > This fix has been tested on OMAP4430.
+> > > >
+> > > > Signed-off-by: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
+> > > > Signed-off-by: Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+> > > >
+> > > > Cc: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+> > > > Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+> > > > Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+> > > 
+> > > Also Cc'ing Mark Brown as original author of runtime PM for i2-core.
+> > 
+> > Also Jean Delvare who maintains the I2C core.  To be honest Rafael did
+> > all the actual work here (and has since rewritten the code anyway).
+> 
+> Sorry for the delay.
+> 
+> The fix looks reasonable to me.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
-v2: Removed fixing of l3_main hwmod for OMAP4 as Benoit has
-    already submitted a pach fixing the same.
-v3: Put OMAP4 check across dsp_dev init so that on other
-    OMAP's this init does not throw a warn.
+I take this as an Acked-by. Patch applied, thanks.
 
- arch/arm/mach-omap2/pm.c                 |   20 +++++++++++++++-----
- arch/arm/plat-omap/include/plat/common.h |    3 ++-
- 2 files changed, 17 insertions(+), 6 deletions(-)
+> 
+> > > > ---
+> > > >  drivers/i2c/i2c-core.c |   12 ++++++++++--
+> > > >  1 files changed, 10 insertions(+), 2 deletions(-)
+> > > >
+> > > > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> > > > index 6649176..3146bff
+> > > > --- a/drivers/i2c/i2c-core.c
+> > > > +++ b/drivers/i2c/i2c-core.c
+> > > > @@ -196,14 +196,22 @@ static int i2c_legacy_resume(struct device *dev)
+> > > >  static int i2c_device_pm_suspend(struct device *dev)
+> > > >  {
+> > > >  	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
+> > > > +	int ret;
+> > > >  
+> > > >  	if (pm_runtime_suspended(dev))
+> > > >  		return 0;
+> > > >  
+> > > >  	if (pm)
+> > > > -		return pm->suspend ? pm->suspend(dev) : 0;
+> > > > +		ret = pm->suspend ? pm->suspend(dev) : 0;
+> > > > +	else
+> > > > +		ret = i2c_legacy_suspend(dev, PMSG_SUSPEND);
+> > > >  
+> > > > -	return i2c_legacy_suspend(dev, PMSG_SUSPEND);
+> > > > +	if (!ret) {
+> > > > +		pm_runtime_disable(dev);
+> > > > +		pm_runtime_set_suspended(dev);
+> > > > +		pm_runtime_enable(dev);
+> > > > +	}
+> > > > +	return ret;
+> > > >  }
+> > > >  
+> > > >  static int i2c_device_pm_resume(struct device *dev)
+> > 
+> > 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 68f9f2e..c93921d 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -21,8 +21,9 @@
- static struct omap_device_pm_latency *pm_lats;
- 
- static struct device *mpu_dev;
--static struct device *dsp_dev;
-+static struct device *iva_dev;
- static struct device *l3_dev;
-+static struct device *dsp_dev;
- 
- struct device *omap2_get_mpuss_device(void)
- {
-@@ -30,10 +31,10 @@ struct device *omap2_get_mpuss_device(void)
- 	return mpu_dev;
- }
- 
--struct device *omap2_get_dsp_device(void)
-+struct device *omap2_get_iva_device(void)
- {
--	WARN_ON_ONCE(!dsp_dev);
--	return dsp_dev;
-+	WARN_ON_ONCE(!iva_dev);
-+	return iva_dev;
- }
- 
- struct device *omap2_get_l3_device(void)
-@@ -42,6 +43,13 @@ struct device *omap2_get_l3_device(void)
- 	return l3_dev;
- }
- 
-+struct device *omap4_get_dsp_device(void)
-+{
-+	WARN_ON_ONCE(!dsp_dev);
-+	return dsp_dev;
-+}
-+EXPORT_SYMBOL(omap4_get_dsp_device);
-+
- /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
- static int _init_omap_device(char *name, struct device **new_dev)
- {
-@@ -69,7 +77,9 @@ static int _init_omap_device(char *name, struct device **new_dev)
- static void omap2_init_processor_devices(void)
- {
- 	_init_omap_device("mpu", &mpu_dev);
--	_init_omap_device("iva", &dsp_dev);
-+	_init_omap_device("iva", &iva_dev);
-+	if (cpu_is_omap44xx())
-+		_init_omap_device("dsp", &dsp_dev);
- 	_init_omap_device("l3_main", &l3_dev);
- }
- 
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 9776b41..c45dbb9 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -91,7 +91,8 @@ void omap3_map_io(void);
- })
- 
- extern struct device *omap2_get_mpuss_device(void);
--extern struct device *omap2_get_dsp_device(void);
-+extern struct device *omap2_get_iva_device(void);
- extern struct device *omap2_get_l3_device(void);
-+extern struct device *omap4_get_dsp_device(void);
- 
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+
 -- 
-1.7.0.4
-
+Jean Delvare
