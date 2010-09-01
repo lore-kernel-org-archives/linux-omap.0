@@ -1,139 +1,51 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH] omap: 4430sdp board support for proximity sensor
-Date: Wed,  1 Sep 2010 11:46:46 +0530
-Message-ID: <1283321806-8210-1-git-send-email-shubhrajyoti@ti.com>
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Subject: RE: [PATCH] omap: 4430sdp board support for the the GPIO keys
+Date: Wed, 1 Sep 2010 11:49:08 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003C1CA4D7B@dbde02.ent.ti.com>
+References: <1283269578-3962-1-git-send-email-shubhrajyoti@ti.com>
+ <87vd6qsrd0.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39064 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44961 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751126Ab0IAGQv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Sep 2010 02:16:51 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o816GmAA022636
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 1 Sep 2010 01:16:50 -0500
+	id S1751269Ab0IAGTP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Sep 2010 02:19:15 -0400
+In-Reply-To: <87vd6qsrd0.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-omap 4430sdp board support for the  proximity sensor via GPIO keys.
-The proximity sensor is connected to GPIO and is registered as a
-GPIO key.
-- Making the default state of the sensor off at bootup
-- The init is called before platform_add_devices
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   61 +++++++++++++++++++++++++++++++++++
- 1 files changed, 61 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 9447644..f31d68e 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -20,6 +20,7 @@
- #include <linux/usb/otg.h>
- #include <linux/spi/spi.h>
- #include <linux/i2c/twl.h>
-+#include <linux/gpio_keys.h>
- #include <linux/regulator/machine.h>
- #include <linux/leds.h>
- 
-@@ -40,6 +41,8 @@
- #define ETH_KS8851_IRQ			34
- #define ETH_KS8851_POWER_ON		48
- #define ETH_KS8851_QUART		138
-+#define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
-+#define OMAP4_SFH7741_ENABLE_GPIO		188
- 
- static struct gpio_led sdp4430_gpio_leds[] = {
- 	{
-@@ -77,11 +80,47 @@ static struct gpio_led sdp4430_gpio_leds[] = {
- 
- };
- 
-+static struct gpio_keys_button sdp4430_gpio_keys[] = {
-+	{
-+		.desc			= "Proximity Sensor",
-+		.type			= EV_SW,
-+		.code			= SW_FRONT_PROXIMITY,
-+		.gpio			= OMAP4_SFH7741_SENSOR_OUTPUT_GPIO,
-+		.active_low		= 0,
-+	}
-+};
-+
- static struct gpio_led_platform_data sdp4430_led_data = {
- 	.leds	= sdp4430_gpio_leds,
- 	.num_leds	= ARRAY_SIZE(sdp4430_gpio_leds),
- };
- 
-+static int omap_prox_activate(struct device *dev)
-+{
-+	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 1);
-+	return 0;
-+}
-+
-+static void omap_prox_deactivate(struct device *dev)
-+{
-+	gpio_set_value(OMAP4_SFH7741_ENABLE_GPIO , 0);
-+}
-+
-+static struct gpio_keys_platform_data sdp4430_gpio_keys_data = {
-+	.buttons	= sdp4430_gpio_keys,
-+	.nbuttons	= ARRAY_SIZE(sdp4430_gpio_keys),
-+	.enable		= omap_prox_activate,
-+	.disable	= omap_prox_deactivate,
-+};
-+
-+static struct platform_device sdp4430_gpio_keys_device = {
-+	.name	= "gpio-keys",
-+	.id	= -1,
-+	.dev	= {
-+		.platform_data	= &sdp4430_gpio_keys_data,
-+	},
-+};
-+
- static struct platform_device sdp4430_leds_gpio = {
- 	.name	= "leds-gpio",
- 	.id	= -1,
-@@ -161,6 +200,7 @@ static struct platform_device sdp4430_lcd_device = {
- 
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_lcd_device,
-+	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- };
- 
-@@ -426,11 +466,32 @@ static int __init omap4_i2c_init(void)
- 	omap_register_i2c_bus(4, 400, NULL, 0);
- 	return 0;
- }
-+
-+static void __init omap_sfh7741prox_init(void)
-+{
-+	int  error;
-+
-+	error = gpio_request(OMAP4_SFH7741_ENABLE_GPIO, "sfh7741");
-+	if (error < 0) {
-+		pr_err("%s:failed to request GPIO %d, error %d\n",
-+			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
-+		return;
-+	}
-+
-+	error = gpio_direction_output(OMAP4_SFH7741_ENABLE_GPIO , 0);
-+	if (error < 0) {
-+		pr_err("%s: GPIO configuration failed: GPIO %d,error %d\n",
-+			 __func__, OMAP4_SFH7741_ENABLE_GPIO, error);
-+		gpio_free(OMAP4_SFH7741_ENABLE_GPIO);
-+	}
-+}
-+
- static void __init omap_4430sdp_init(void)
- {
- 	int status;
- 
- 	omap4_i2c_init();
-+	omap_sfh7741prox_init();
- 	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
- 	omap_serial_init();
- 	omap4_twl6030_hsmmc_init(mmc);
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Tuesday, August 31, 2010 9:32 PM
+> To: Datta, Shubhrajyoti
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] omap: 4430sdp board support for the the GPIO keys
+> 
+> Shubhrajyoti D <shubhrajyoti@ti.com> writes:
+> 
+> > omap 4430sdp board support for the GPIO keys.
+> > The proximity sensor is connected to GPIO and is registered as a
+> > GPIO key.
+> > - Making the default state of the sensor off at bootup
+> > - The init is called before platform_add_devices
+> >
+> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> 
+> I still think the subject is wrong:  You're adding support for the
+> proximity sensor *using* GPIO keys, not adding support for GPIO keys:
+> 
+>     OMAP: 4430SDP: add proximity sensor via GPIO keys
+> 
+> or something like that.
+Yes agree just sent a patch attempting to correct it.
+Thanks,
+> 
+> Kevin
+
