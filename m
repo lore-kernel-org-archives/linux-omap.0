@@ -1,51 +1,49 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: RE: [PATCH] omap: 4430sdp board support for the the GPIO keys
-Date: Wed, 1 Sep 2010 11:49:08 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003C1CA4D7B@dbde02.ent.ti.com>
-References: <1283269578-3962-1-git-send-email-shubhrajyoti@ti.com>
- <87vd6qsrd0.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44961 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751269Ab0IAGTP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Sep 2010 02:19:15 -0400
-In-Reply-To: <87vd6qsrd0.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] V4L/DVB: OMAP_VOUT: Remove unneseccasry code in omap_vout_calculate_offset
+Date: Wed,  1 Sep 2010 13:38:12 +0530
+Message-ID: <1283328492-23715-1-git-send-email-archit@ti.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: hvaibhav@ti.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+In omap_vout_calculate_offset(), cur_display is assigned ovl->manager->device, but
+isn't used for anything. The corresponding code is removed.
 
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/media/video/omap/omap_vout.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Tuesday, August 31, 2010 9:32 PM
-> To: Datta, Shubhrajyoti
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] omap: 4430sdp board support for the the GPIO keys
-> 
-> Shubhrajyoti D <shubhrajyoti@ti.com> writes:
-> 
-> > omap 4430sdp board support for the GPIO keys.
-> > The proximity sensor is connected to GPIO and is registered as a
-> > GPIO key.
-> > - Making the default state of the sensor off at bootup
-> > - The init is called before platform_add_devices
-> >
-> > Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> 
-> I still think the subject is wrong:  You're adding support for the
-> proximity sensor *using* GPIO keys, not adding support for GPIO keys:
-> 
->     OMAP: 4430SDP: add proximity sensor via GPIO keys
-> 
-> or something like that.
-Yes agree just sent a patch attempting to correct it.
-Thanks,
-> 
-> Kevin
-
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 929073e..255cd99
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -506,11 +506,9 @@ static int v4l2_rot_to_dss_rot(int v4l2_rotation,
+  */
+ static int omap_vout_calculate_offset(struct omap_vout_device *vout)
+ {
+-	struct omap_overlay *ovl;
+ 	enum dss_rotation rotation;
+ 	struct omapvideo_info *ovid;
+ 	bool mirroring = vout->mirror;
+-	struct omap_dss_device *cur_display;
+ 	struct v4l2_rect *crop = &vout->crop;
+ 	struct v4l2_pix_format *pix = &vout->pix;
+ 	int *cropped_offset = &vout->cropped_offset;
+@@ -518,12 +516,6 @@ static int omap_vout_calculate_offset(struct omap_vout_device *vout)
+ 	int offset = 0, ctop = 0, cleft = 0, line_length = 0;
+ 
+ 	ovid = &vout->vid_info;
+-	ovl = ovid->overlays[0];
+-	/* get the display device attached to the overlay */
+-	if (!ovl->manager || !ovl->manager->device)
+-		return -1;
+-
+-	cur_display = ovl->manager->device;
+ 	rotation = calc_rotation(vout);
+ 
+ 	if (V4L2_PIX_FMT_YUYV == pix->pixelformat ||
+-- 
+1.7.0.4
