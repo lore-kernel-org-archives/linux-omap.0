@@ -1,85 +1,104 @@
-From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Subject: Re: [PATCH] I2C: Fix for suspend/resume issue in i2c-core
-Date: Wed, 1 Sep 2010 01:12:11 +0200
-Message-ID: <201009010112.11834.rjw@sisk.pl>
-References: <1283219414-8798-1-git-send-email-vishwanath.bs@ti.com> <87wrr83pro.fsf@deeprootsystems.com> <20100831111611.GF20849@rakim.wolfsonmicro.main>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100831111611.GF20849-HF5t3jzXg/6ND3a5+9QAFujbO/Zr0HzV@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 1/2] Revert "OMAP: omap_device: add omap_device_is_valid()"
+Date: Tue, 31 Aug 2010 17:03:14 -0700
+Message-ID: <1283299395-24193-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:44753 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752517Ab0IAADV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Aug 2010 20:03:21 -0400
+Received: by gyd8 with SMTP id 8so2780608gyd.19
+        for <linux-omap@vger.kernel.org>; Tue, 31 Aug 2010 17:03:20 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com
 
-On Tuesday, August 31, 2010, Mark Brown wrote:
-> On Mon, Aug 30, 2010 at 11:43:23AM -0700, Kevin Hilman wrote:
-> > Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org> writes:
-> > 
-> > > In current i2c core driver, pm_runtime_set_active call from i2c_device_pm_resume
-> > > is not balanced by pm_runtime_set_suspended call from i2c_device_pm_suspend.
-> > > pm_runtime_set_active called from resume path will increase the child_count of
-> > > the device's parent. However, matching pm_runtime_set_suspended is not called
-> > > in suspend routine because of which child_count of the device's parent
-> > > is not balanced, preventing the parent device to idle.
-> > > Issue has been fixed by adding pm_runtime_set_suspended call inside suspend
-> > > reoutine which will make sure that child_counts are balanced.
-> > > This fix has been tested on OMAP4430.
-> > >
-> > > Signed-off-by: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
-> > > Signed-off-by: Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>
-> > >
-> > > Cc: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
-> > > Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-> > > Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-> > 
-> > Also Cc'ing Mark Brown as original author of runtime PM for i2-core.
-> 
-> Also Jean Delvare who maintains the I2C core.  To be honest Rafael did
-> all the actual work here (and has since rewritten the code anyway).
+From: Kevin Hilman <khilman@ti.com>
 
-Sorry for the delay.
+This reverts commit 0007122ad85cc36b1c18c0b59344093ca210d206.
 
-The fix looks reasonable to me.
+The dereference method of checking for a valid omap_device when
+wrapping a platform_device is rather unsafe and dangerous.
 
-Thanks,
-Rafael
+Instead, a better way of checking for a valid omap-device is
+to use a common parent device for all omap_devices, then a check
+can simply be made using the device parent.  The only user of this
+API was the initial version of the runtime PM core for OMAP.  This
+has now been switched to check device parent, so there are no more
+users of this API.
 
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/plat-omap/include/plat/omap_device.h |    2 --
+ arch/arm/plat-omap/omap_device.c              |   20 --------------------
+ 2 files changed, 0 insertions(+), 22 deletions(-)
 
-> > > ---
-> > >  drivers/i2c/i2c-core.c |   12 ++++++++++--
-> > >  1 files changed, 10 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> > > index 6649176..3146bff
-> > > --- a/drivers/i2c/i2c-core.c
-> > > +++ b/drivers/i2c/i2c-core.c
-> > > @@ -196,14 +196,22 @@ static int i2c_legacy_resume(struct device *dev)
-> > >  static int i2c_device_pm_suspend(struct device *dev)
-> > >  {
-> > >  	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-> > > +	int ret;
-> > >  
-> > >  	if (pm_runtime_suspended(dev))
-> > >  		return 0;
-> > >  
-> > >  	if (pm)
-> > > -		return pm->suspend ? pm->suspend(dev) : 0;
-> > > +		ret = pm->suspend ? pm->suspend(dev) : 0;
-> > > +	else
-> > > +		ret = i2c_legacy_suspend(dev, PMSG_SUSPEND);
-> > >  
-> > > -	return i2c_legacy_suspend(dev, PMSG_SUSPEND);
-> > > +	if (!ret) {
-> > > +		pm_runtime_disable(dev);
-> > > +		pm_runtime_set_suspended(dev);
-> > > +		pm_runtime_enable(dev);
-> > > +	}
-> > > +	return ret;
-> > >  }
-> > >  
-> > >  static int i2c_device_pm_resume(struct device *dev)
-> 
-> 
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 25cd9ac..bad4c3d 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -62,7 +62,6 @@
+  *
+  */
+ struct omap_device {
+-	u32                             magic;
+ 	struct platform_device		pdev;
+ 	struct omap_hwmod		**hwmods;
+ 	struct omap_device_pm_latency	*pm_lats;
+@@ -82,7 +81,6 @@ int omap_device_shutdown(struct platform_device *pdev);
+ 
+ /* Core code interface */
+ 
+-bool omap_device_is_valid(struct omap_device *od);
+ int omap_device_count_resources(struct omap_device *od);
+ int omap_device_fill_resources(struct omap_device *od, struct resource *res);
+ 
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index d2b1609..7f05f49 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -90,12 +90,6 @@
+ #define USE_WAKEUP_LAT			0
+ #define IGNORE_WAKEUP_LAT		1
+ 
+-/*
+- * OMAP_DEVICE_MAGIC: used to determine whether a struct omap_device
+- * obtained via container_of() is in fact a struct omap_device
+- */
+-#define OMAP_DEVICE_MAGIC		 0xf00dcafe
+-
+ /* Private functions */
+ 
+ /**
+@@ -414,8 +408,6 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	od->pm_lats = pm_lats;
+ 	od->pm_lats_cnt = pm_lats_cnt;
+ 
+-	od->magic = OMAP_DEVICE_MAGIC;
+-
+ 	if (is_early_device)
+ 		ret = omap_early_device_register(od);
+ 	else
+@@ -627,18 +619,6 @@ int omap_device_align_pm_lat(struct platform_device *pdev,
+ }
+ 
+ /**
+- * omap_device_is_valid - Check if pointer is a valid omap_device
+- * @od: struct omap_device *
+- *
+- * Return whether struct omap_device pointer @od points to a valid
+- * omap_device.
+- */
+-bool omap_device_is_valid(struct omap_device *od)
+-{
+-	return (od && od->magic == OMAP_DEVICE_MAGIC);
+-}
+-
+-/**
+  * omap_device_get_pwrdm - return the powerdomain * associated with @od
+  * @od: struct omap_device *
+  *
+-- 
+1.7.2.1
+
