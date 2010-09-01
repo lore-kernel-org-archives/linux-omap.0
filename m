@@ -1,96 +1,62 @@
-From: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-Subject: Re: [PATCH] I2C: Fix for suspend/resume issue in i2c-core
-Date: Wed, 1 Sep 2010 10:40:52 +0200
-Message-ID: <20100901104052.5967ca25@hyperion.delvare>
-References: <1283219414-8798-1-git-send-email-vishwanath.bs@ti.com>
-	<87wrr83pro.fsf@deeprootsystems.com>
-	<20100831111611.GF20849@rakim.wolfsonmicro.main>
-	<201009010112.11834.rjw@sisk.pl>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCHv2 6/13] dmtimer: hwmod: OMAP2PLUS: device registration
+Date: Wed, 1 Sep 2010 14:50:54 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03291AD32E@dbde02.ent.ti.com>
+References: <1281800238-15135-1-git-send-email-tarun.kanti@ti.com>
+ <87tymkq38r.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201009010112.11834.rjw-KKrjLPT3xs0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
-Cc: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53441 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754055Ab0IAJVE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Sep 2010 05:21:04 -0400
+In-Reply-To: <87tymkq38r.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, 1 Sep 2010 01:12:11 +0200, Rafael J. Wysocki wrote:
-> On Tuesday, August 31, 2010, Mark Brown wrote:
-> > On Mon, Aug 30, 2010 at 11:43:23AM -0700, Kevin Hilman wrote:
-> > > Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org> writes:
-> > > 
-> > > > In current i2c core driver, pm_runtime_set_active call from i2c_device_pm_resume
-> > > > is not balanced by pm_runtime_set_suspended call from i2c_device_pm_suspend.
-> > > > pm_runtime_set_active called from resume path will increase the child_count of
-> > > > the device's parent. However, matching pm_runtime_set_suspended is not called
-> > > > in suspend routine because of which child_count of the device's parent
-> > > > is not balanced, preventing the parent device to idle.
-> > > > Issue has been fixed by adding pm_runtime_set_suspended call inside suspend
-> > > > reoutine which will make sure that child_counts are balanced.
-> > > > This fix has been tested on OMAP4430.
-> > > >
-> > > > Signed-off-by: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
-> > > > Signed-off-by: Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>
-> > > >
-> > > > Cc: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
-> > > > Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-> > > > Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-> > > 
-> > > Also Cc'ing Mark Brown as original author of runtime PM for i2-core.
-> > 
-> > Also Jean Delvare who maintains the I2C core.  To be honest Rafael did
-> > all the actual work here (and has since rewritten the code anyway).
+Kevin,
+
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Tuesday, August 24, 2010 5:41 AM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Gopinath, Thara; Basak, Partha; Nayak,
+> Rajendra; Paul Walmsley; Tony Lindgren
+> Subject: Re: [PATCHv2 6/13] dmtimer: hwmod: OMAP2PLUS: device registration
 > 
-> Sorry for the delay.
+> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 > 
-> The fix looks reasonable to me.
-
-I take this as an Acked-by. Patch applied, thanks.
-
+> > +/**
+> > +* omap2_dm_timer_early_init - top level early timer initialization
+> > +* called in the last part of omap2_init_common_hw
+> > +*
+> > +* uses dedicated hwmod api to parse through hwmod database for
+> > +* given class name and then build and register the timer device.
+> > +* at the end driver is registered and early probe initiated.
+> > +**/
+> > +void __init omap2_dm_timer_early_init(void)
+> > +{
+> > +	omap_hwmod_for_each_by_class("timer_1ms",
+> > +				omap_dm_timer_early_init, NULL);
+> > +	omap2_dm_timer_setup();
+> > +	early_platform_driver_register_all("earlytimer");
+> > +	early_platform_driver_probe("earlytimer", early_timer_count + 1, 0);
+> > +}
 > 
-> > > > ---
-> > > >  drivers/i2c/i2c-core.c |   12 ++++++++++--
-> > > >  1 files changed, 10 insertions(+), 2 deletions(-)
-> > > >
-> > > > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> > > > index 6649176..3146bff
-> > > > --- a/drivers/i2c/i2c-core.c
-> > > > +++ b/drivers/i2c/i2c-core.c
-> > > > @@ -196,14 +196,22 @@ static int i2c_legacy_resume(struct device *dev)
-> > > >  static int i2c_device_pm_suspend(struct device *dev)
-> > > >  {
-> > > >  	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
-> > > > +	int ret;
-> > > >  
-> > > >  	if (pm_runtime_suspended(dev))
-> > > >  		return 0;
-> > > >  
-> > > >  	if (pm)
-> > > > -		return pm->suspend ? pm->suspend(dev) : 0;
-> > > > +		ret = pm->suspend ? pm->suspend(dev) : 0;
-> > > > +	else
-> > > > +		ret = i2c_legacy_suspend(dev, PMSG_SUSPEND);
-> > > >  
-> > > > -	return i2c_legacy_suspend(dev, PMSG_SUSPEND);
-> > > > +	if (!ret) {
-> > > > +		pm_runtime_disable(dev);
-> > > > +		pm_runtime_set_suspended(dev);
-> > > > +		pm_runtime_enable(dev);
-> > > > +	}
-> > > > +	return ret;
-> > > >  }
-> > > >  
-> > > >  static int i2c_device_pm_resume(struct device *dev)
-> > 
-> > 
+> It's not clear (or documented) why on the 1ms timers should be the only
+> earlydevices.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> For example, GPT12 is used as the system timer on Beagle due to a board
+> bug in early revs of the board.  That will no longer function with this
+> approach.
+>
+OK, I will change the design so that any timers could be used as early timers.
+ 
+> Kevin
+> 
 
-
--- 
-Jean Delvare
