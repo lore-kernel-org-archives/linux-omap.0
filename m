@@ -1,41 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/3] OMAP: hwmod: Force a softreset during _setup
-Date: Wed, 1 Sep 2010 16:51:40 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009011645410.23624@utopia.booyaka.com>
-References: <1280959968-23933-1-git-send-email-b-cousson@ti.com> <1280959968-23933-4-git-send-email-b-cousson@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301E81E9434@dbde02.ent.ti.com> <4C6BF591.1010007@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301E82ACD94@dbde02.ent.ti.com>
- <4C727E3F.7060502@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage domain instance in the voltage driver.
+Date: Wed, 01 Sep 2010 15:51:40 -0700
+Message-ID: <87eiddgjr7.fsf@deeprootsystems.com>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+	<1282130412-12027-2-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34342 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754653Ab0IAWvl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Sep 2010 18:51:41 -0400
-In-Reply-To: <4C727E3F.7060502@ti.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:46481 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755041Ab0IAWvp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Sep 2010 18:51:45 -0400
+Received: by pxi10 with SMTP id 10so3035086pxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 01 Sep 2010 15:51:45 -0700 (PDT)
+In-Reply-To: <1282130412-12027-2-git-send-email-thara@ti.com> (Thara
+	Gopinath's message of "Wed, 18 Aug 2010 16:50:00 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Basak, Partha" <p-basak2@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, vishwanath.bs@ti.com, sawant@ti.com, b-cousson@ti.com, thomas.petazzoni@free-electrons.com
 
-On Mon, 23 Aug 2010, Cousson, Benoit wrote:
+Thara Gopinath <thara@ti.com> writes:
 
-> Here is a small patch that should fix that issue:
-> The approach is quite basic, I'm just enabling all the optional clocks if the
-> flag is set.
-> 
-> Could you give it a try?
+> This patch introduces a user list of devices associated with each
+> voltage domain instance. The user list is implemented using plist
+> structure with priority node populated with the voltage values.
+> This patch also adds an API which will take in a device and
+> requested voltage as parameters, adds the info to the user list
+> and returns back the maximum voltage requested by all the user
+> devices. This can be used anytime to get the voltage that the
+> voltage domain instance can be transitioned into.
+>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
 
-This approach seems good.  Maybe we should add a flags field in 
-struct omap_hwmod_opt_clks to indicate that a particular clock needs to be 
-enabled during the reset process?  That way the specific clocks that are 
-necessary can be enabled, rather than all of the clocks.
+Looking closer at this, keeping track of a list of devices and
+constraints is what the regulator framework does as well.  
 
-One other general comment on an earlier part of this discussion: the goal 
-is to reset almost every module during boot: this is to clear any bogus 
-configurations that the bootloader may have written to the hardware.  The 
-goal is to have a consistent, known hardware configuration in the kernel, 
-independent of the bootloader.
+Before we get too far down this path, we need to start working with
+Thomas Petazzoni to better understand how we can use the regulator
+framework for much of the management levels of the voltage layer.
 
-Partha, does this patch work for you?
+I'd rather not re-invent some of the management/constraints management
+that could be done by the regulator framework.
 
-- Paul
+Basically, I think
+
+  r = regulator_get(dev, voltdm->name)
+  regulator_set_voltage(r, volt)
+
+would basially be the equivalent of
+
+  omap_voltage_add_userreq(voldm, dev, &volt);
+  omap_scale_voltage(voltdm, volt)
+
+The regulator framework not only provides management of the users and
+constraints, but also provides post-change notifiers where things like
+dependent voltages could be handled.
+
+Kevin
