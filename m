@@ -1,102 +1,138 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH 3/3] omap3/omap4 hsmmc: Register offset handling
-Date: Wed, 1 Sep 2010 19:04:35 +0530
-Message-ID: <AANLkTinC2aaKJmyVyfi_pEGswxY2L6MFdm2VCv0dfwyh@mail.gmail.com>
-References: <23570.10.24.255.18.1283190527.squirrel@dbdmail.itg.ti.com>
-	<4C7E4680.1060208@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/2] OMAP: omap_device: make all devices a child of a new omap_bus device
+Date: Wed, 01 Sep 2010 08:16:12 -0700
+Message-ID: <87occhmr43.fsf@deeprootsystems.com>
+References: <1283299395-24193-1-git-send-email-khilman@deeprootsystems.com>
+	<1283299395-24193-2-git-send-email-khilman@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0328C1D64F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4C7E4680.1060208@nokia.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: kishore kadiyala <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "madhu.cr@ti.com" <madhu.cr@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:50846 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755215Ab0IAPQQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Sep 2010 11:16:16 -0400
+Received: by pwi3 with SMTP id 3so802054pwi.19
+        for <linux-omap@vger.kernel.org>; Wed, 01 Sep 2010 08:16:15 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0328C1D64F@dbde02.ent.ti.com>
+	(Thara Gopinath's message of "Wed, 1 Sep 2010 10:12:46 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Wed, Sep 1, 2010 at 5:56 PM, Adrian Hunter <adrian.hunter@nokia.com>=
- wrote:
-> kishore kadiyala wrote:
->>
->> OMAP4 not only have newly added hsmmc registers but also
->> have registers which were there in OMAP3 and which doesn't
->> have a common offset deviation compared to OMAP3.
->>
->> For generic handling, OMAP3 and OMAP4 has different array's of
->> register offset maintained and right one is choosen during run time.
->>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Adrian Hunter <adrian.hunter@nokia.com>
->> Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 | =A0 30 +++--
->> =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 | =A0 =A06 +
->> =A0arch/arm/plat-omap/include/plat/mmc.h | =A0 78 ++++++++++-
->> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 | =A0251
->> +++++++++++++++------------------
->> =A04 files changed, 218 insertions(+), 147 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/dev=
-ices.c
->> index 2dbb265..03add6e 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -506,6 +506,8 @@ static inline void omap_init_sham(void) { }
->> =A0#define MMCHS_SYSCONFIG_SWRESET =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1=
- << 1)
->> =A0#define MMCHS_SYSSTATUS =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A00x0014
->> =A0#define MMCHS_SYSSTATUS_RESETDONE =A0 =A0 =A0(1 << 0)
->> +#define OMAP4_MMCHS_SYSCONFIG_SWRESET =A0(1 << 0)
->> +#define OMAP4_MMCHS_OFFSET =A0 =A0 =A0 =A0 =A0 =A0 0x100
->>
->> =A0static struct platform_device dummy_pdev =3D {
->> =A0 =A0 =A0 =A0.dev =3D {
->> @@ -528,6 +530,8 @@ static struct platform_device dummy_pdev =3D {
->> =A0static void __init omap_hsmmc_reset(void)
->> =A0{
->> =A0 =A0 =A0 =A0u32 i, nr_controllers;
->> + =A0 =A0 =A0 u32 reg_val =3D 0;
->> + =A0 =A0 =A0 u32 reg_off =3D 0;
->>
->> =A0 =A0 =A0 =A0if (cpu_is_omap242x())
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
->> @@ -562,9 +566,6 @@ static void __init omap_hsmmc_reset(void)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->>
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx())
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 base +=3D OMAP4_MMC_RE=
-G_OFFSET;
->> -
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dummy_pdev.id =3D i;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_set_name(&dummy_pdev.dev, "mmci-o=
-map-hs.%d", i);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0iclk =3D clk_get(dev, "ick");
->> @@ -582,9 +583,18 @@ static void __init omap_hsmmc_reset(void)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->>
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_writel(MMCHS_SYSCONFIG_SWRESET, b=
-ase +
->> MMCHS_SYSCONFIG);
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 v =3D omap_readl(base + MMCHS_SYSSTATU=
-S);
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (!(omap_readl(base + MMCHS_SYSST=
-ATUS) &
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx())
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg_val =3D MMCHS_SYSC=
-ONFIG_SWRESET;
+"Gopinath, Thara" <thara@ti.com> writes:
+
+>>>-----Original Message-----
+>>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+>>>Hilman
+>>>Sent: Wednesday, September 01, 2010 5:33 AM
+>>>To: linux-omap@vger.kernel.org
+>>>Cc: paul@pwsan.com
+>>>Subject: [PATCH 2/2] OMAP: omap_device: make all devices a child of a new omap_bus device
+>>>
+>>>From: Kevin Hilman <khilman@ti.com>
+>>>
+>>>In order to help differentiate omap_devices from normal
+>>>platform_devices, make them all a parent of a new omap_bus device.
+>>>
+>>>Then, in order to determine if a platform_device is also an
+>>>omap_device, checking the parent is all that is needed.
+>>>
+>>>Users of this feature are the runtime PM core for OMAP, where we need
+>>>to know if a device being passed in is an omap_device or not in order
+>>>to know whether to call the omap_device API with it.
+>>>
+>>>In addition, all omap_devices will now show up under /sys/devices/omap
+>>>instead of /sys/devices/platform
 >
-> Should this be OMAP4_MMCHS_SYSCONFIG_SWRESET?
+> Hello Kevin,
+>
+> Couple of minor queries/comments below.
 
-Yes, it should be as mentioned [Late night post's take's away quality :=
-) ] ,
-will correct it and repost .
+Hi Thara, 
 
-<snip>
+Thanks for the review.
 
-Thanks,
-Kishore
+>>>
+>>>Signed-off-by: Kevin Hilman <khilman@ti.com>
+>>>---
+>>> arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
+>>> arch/arm/plat-omap/omap_device.c              |   18 ++++++++++++++++++
+>>> 2 files changed, 20 insertions(+), 0 deletions(-)
+>>>
+>>>diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-
+>>>omap/include/plat/omap_device.h
+>>>index bad4c3d..26d0c10 100644
+>>>--- a/arch/arm/plat-omap/include/plat/omap_device.h
+>>>+++ b/arch/arm/plat-omap/include/plat/omap_device.h
+>>>@@ -36,6 +36,8 @@
+>>>
+>>> #include <plat/omap_hwmod.h>
+>>>
+>>>+extern struct device omap_bus;
+>>>+
+>
+> Why is this extern declaration needed? Is it later on
+> to check in runtime pm code pdev->dev.parent == omap_bus??
+
+Yes.
+
+>>> /* omap_device._state values */
+>>> #define OMAP_DEVICE_STATE_UNKNOWN	0
+>>> #define OMAP_DEVICE_STATE_ENABLED	1
+>>>diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+>>>index 7f05f49..3e215fa 100644
+>>>--- a/arch/arm/plat-omap/omap_device.c
+>>>+++ b/arch/arm/plat-omap/omap_device.c
+>>>@@ -463,8 +463,11 @@ int omap_early_device_register(struct omap_device *od)
+>>>  */
+>>> int omap_device_register(struct omap_device *od)
+>>> {
+>>>+	struct platform_device *pdev = &od->pdev;
+>>>+
+>>> 	pr_debug("omap_device: %s: registering\n", od->pdev.name);
+>>>
+>>>+	pdev->dev.parent = &omap_bus;
+>
+> What if device_register(&omap_bus) has returned an
+> error? Do we still go ahead with assigning omap_bus
+> as parent?
+
+Good point.  I followed the lead of the platform_bus here which does the
+same thing, and bascially assumes that device_register() does not fail.
+
+I'll take a look to see if this could be handled cleaner.  Thanks.
+
+>>> 	return platform_device_register(&od->pdev);
+>>> }
+>>>
+>>>@@ -737,3 +740,18 @@ int omap_device_enable_clocks(struct omap_device *od)
+>>> 	/* XXX pass along return value here? */
+>>> 	return 0;
+>>> }
+>>>+
+>>>+struct device omap_bus = {
+>>>+	.init_name	= "omap",
+>>>+};
+>>>+
+>>>+static int __init omap_device_init(void)
+>>>+{
+>>>+	int error = 0;
+>
+> Is the initialization to 0 needed?
+
+Nope
+
+>>>+
+>>>+	printk("%s:\n", __func__);
+>
+> Spurious printk???
+
+Yup.
+
+Oops, I cleaned those two up locally but sent the wrong version.
+
+Thanks for catching,
+
+Kevin
