@@ -1,82 +1,53 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCHv2 6/13] dmtimer: hwmod: OMAP2PLUS: device registration
-Date: Thu, 2 Sep 2010 18:02:05 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03291AD64A@dbde02.ent.ti.com>
-References: <1281800238-15135-1-git-send-email-tarun.kanti@ti.com>
-	<87zkwcq3g5.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03291AD382@dbde02.ent.ti.com>
- <87d3sxmqhp.fsf@deeprootsystems.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/4] initial support for LogicPD's OMAP3530LV SOM and
+	OMAP35x Torpedo dev boards
+Date: Thu, 2 Sep 2010 14:20:58 +0100
+Message-ID: <20100902132058.GE26319@n2100.arm.linux.org.uk>
+References: <1282708420-26418-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58174 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752167Ab0IBMcS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 08:32:18 -0400
-In-Reply-To: <87d3sxmqhp.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41378 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754861Ab0IBNVL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 09:21:11 -0400
+Content-Disposition: inline
+In-Reply-To: <1282708420-26418-1-git-send-email-Jacob.Tanenbaum@logicpd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+To: Jacob Tanenbaum <Jacob.Tanenbaum@logicpd.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Kevin,
+On Tue, Aug 24, 2010 at 11:53:37PM -0400, Jacob Tanenbaum wrote:
+> +/* Micron MT46H32M32LF-6 */
+> +/* FIXME: borrowed from sdram-micron-mt46h32m32lf-6.h because on LogicPD
+> + * boards we can't use the default values -- why? I suspect the reason
+> + * lies in the boot strap code. We correct this part if we have ported
+> + * U-Boot and X-Load. */
+> +void init_sdram(struct omap_sdrc_params *sdrc_cs0){
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Wednesday, September 01, 2010 9:00 PM
-> To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; Gopinath, Thara; Basak, Partha; Nayak,
-> Rajendra; Paul Walmsley; Tony Lindgren
-> Subject: Re: [PATCHv2 6/13] dmtimer: hwmod: OMAP2PLUS: device registration
-> 
-> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
-> 
-> [...]
-> 
-> >> > +static void omap2_dm_timer_enable(struct platform_device *pdev)
-> >> > +{
-> >> > +   if (!pdev) {
-> >> > +           dev_err(&pdev->dev, "%s: invalid pdev\n", __func__);
-> >> > +           return;
-> >> > +   }
-> >> > +   pm_runtime_get_sync(&pdev->dev);
-> >> > +}
-> >> > +
-> >> > +static void omap2_dm_timer_disable(struct platform_device *pdev)
-> >> > +{
-> >> > +   if (!pdev) {
-> >> > +           dev_err(&pdev->dev, "%s: invalid pdev\n", __func__);
-> >> > +           return;
-> >> > +   }
-> >> > +   pm_runtime_put_sync(&pdev->dev);
-> >> > +}
-> >>
-> >> There is no need for these functions.  Driver should be calling runtime
-> >> PM API directly.
-> >>
-> 
-> > In that case, driver will have to make call by directly accessing
-> > acquired timer's internal variables as shown below.
-> > pm_runtime_put_sync(&timer->pdev->dev);
-> >
-> > However, I believe we would like other drivers' perform all operations
-> > on acquired timers through exported APIs and keep the
-> > pm_runtime_put_sync() call internal to exported APIs as is the case
-> > current implementation.
-> >
-> > Let me know if I am missing anything here!!
-> 
-> These new functions are not part of the exported API.  You have made
-> them static, and part of the device layer.
-> 
-> These are created as wrappers to pm_runtime_* API which are then called
-> by the driver layer.  What I suggest is not creating these functions
-> (and the pdata-> function pointers to wrap them) but instead calling the
-> runtime PM api directly instead of using the pdata-> function pointers.
-> 
-OK.
+static?  { on the following line?
 
-> Kevin
+> +	sdrc_cs0[0].actim_ctrla = 0xaa9db4c6;
+> +	sdrc_cs0[0].actim_ctrlb = 0x00011517;
+> +	sdrc_cs0[0].rfr_ctrl    = 0x0004e201;
+> +	sdrc_cs0[1].rate        = 165941176;
+> +	sdrc_cs0[1].actim_ctrla = 0xaa9db4c6;
+> +	sdrc_cs0[1].actim_ctrlb = 0x00011217;
+> +	sdrc_cs0[1].rfr_ctrl    = 0x0004dc01;
+> +	sdrc_cs0[2].actim_ctrla = 0x8a99b481;
+> +	sdrc_cs0[2].actim_ctrlb = 0x00011312;
+> +	sdrc_cs0[2].rfr_ctrl    = 0x0003de017;
+
+36-bit hex numbers?
+
+> +	sdrc_cs0[3].actim_ctrla = 0x8a99b481;
+> +	sdrc_cs0[3].actim_ctrlb = 0x00011312;
+> +	sdrc_cs0[3].rfr_ctrl    = 0x0003de01;
+> +}
+> +
+> +static struct regulator_consumer_supply omap3logic_vmmc1_supply = {
+> +		.supply			= "vmmc",
+
+Any reason for the additional tabs?
 
