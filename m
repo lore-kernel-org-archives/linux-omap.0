@@ -1,66 +1,75 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage domain
- instance in the voltage driver.
-Date: Thu, 2 Sep 2010 03:17:56 -0500
-Message-ID: <4C7F5DB4.70306@ti.com>
-References: <1282130412-12027-1-git-send-email-thara@ti.com>	<1282130412-12027-2-git-send-email-thara@ti.com>	<87eiddgjr7.fsf@deeprootsystems.com> <20100902094327.31a96174@surf>
+From: Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
+Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
+Date: Thu, 2 Sep 2010 11:08:43 +0200
+Message-ID: <AANLkTinmWTAwckEJJs8d4BW3PVRHSBwy4i-w=MNe5eDX@mail.gmail.com>
+References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
+	<87bp8nn9yx.fsf@deeprootsystems.com>
+	<20100902075605.GB2962@matterhorn.lan>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CCED1488@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48221 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604Ab0IBISB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 04:18:01 -0400
-In-Reply-To: <20100902094327.31a96174@surf>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CCED1488-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Thomas Petazzoni had written, on 09/02/2010 02:43 AM, the following:
-> Hello,
-> 
-> On Wed, 01 Sep 2010 15:51:40 -0700
-> Kevin Hilman <khilman@deeprootsystems.com> wrote:
-> 
->> Looking closer at this, keeping track of a list of devices and
->> constraints is what the regulator framework does as well.  
+Hi Amit, Santosh,
+
+On Thu, Sep 2, 2010 at 10:11 AM, Shilimkar, Santosh
+<santosh.shilimkar-l0cyMroinI0@public.gmane.org> wrote:
+...
+>> > The point is to keep the minimum possible in the kernel: just the
+>> > tracepoints we're interested in. =A0 The rest (calculations, averages,
+>> > analysis, etc.) does not need to be in the kernel and can be done easi=
+er
+>> > and with more powerful tools outside the kernel.
 >>
->> Before we get too far down this path, we need to start working with
->> Thomas Petazzoni to better understand how we can use the regulator
->> framework for much of the management levels of the voltage layer.
-> 
-> Yes, as discussed on IRC with Kevin, I think that some of this voltage
-> layer mechanisms would benefit from using the existing kernel regulator
-> framework.
-> 
-> The regulator framework already keeps tracks of consumers (in your
-> patch set called "vdd users"), and for each consumer, keeps track of
-> the requested voltage. The maximum requested voltage is then applied to
-> the regulator. It seems to fit quite well some of the mechanisms you're
-> introducing in this patch set.
+>> Kevin,
+>>
+>> I agree. We discussed this a little in our weekly meeting. Vishwa's main
+>> concern was the lack of ability to instrument the last bit of SRAM code.
+>>
+>> I have a feeling that even with caches on when we enter this code, we
+>> won't
+>> see too much variance in the latency to execute this bit of code. Vishwa
+>> is
+>> going to confirm that now. If that hypothesis is true, we can indeed move
+>> to
+>> using tracepoints in the idle path and use external tools to track laten=
+cy.
+I agree. Can you confirm this asap?
+I am looking at the instrumentation tracepoints now. I think it would
+be ideal to provide multiple tracepoints in both sleep and wake-up
+paths.
 
-Just brainstorming -> if we use the regulator framework - there are 
-potential benefits - agreed. BUT, consider the cpuidle path -> currently 
-we disable SR while hitting off/ret for class3, this is done in irq 
-locked context while the regulator framework uses locks by itself - we 
-would probably have to evolve an entirely different mechanism to handle 
-this.
+> There will be difference with and without caches but the delta latency wi=
+ll be constant with caches and without caches. Another important point is
+> he lowest level code should be just profiled once and for worst CPU/BUS c=
+lock speed.
+Ok.
 
-SR by itself can easily be represented I believe and my thoughts  when i 
-initialy looked at that option had been:
-a) latency overheads
-b) flexibility we achieve vs complexity in s/w implementation
-c) lock handling - esp impact on omap_sram_idle paths..
+>> Even if it isn't true, the rest of the idle path could still contain
+>> tracepoints.
+I am looking at the best way to introduce tracepoints in the low level
+code, in case it is needed.
 
--- 
-Regards,
-Nishanth Menon
+> I also think this would be better approach considering a generic solution.
+Good!
 
-PS:personally though concept of latency additions when scaling voltages, 
-disabling SR etc should be a parameter in userspace governor decisions 
-(the fact that cpuidle and cpufreq are independent statemachine is not 
-my personal fav either). But this is a larger topic of discussion not 
-pertinent to this thread..
+>
+> Regards,
+> Santosh
+>
 
+Jean
