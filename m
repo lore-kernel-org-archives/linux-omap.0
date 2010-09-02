@@ -1,119 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for
- multi-omap
-Date: Thu, 2 Sep 2010 12:30:01 -0700
-Message-ID: <20100902193000.GX11597@atomide.com>
-References: <20100817154035.GD20325@n2100.arm.linux.org.uk>
- <20100819073810.GR12184@atomide.com>
- <4C6CFBAF.6020407@canonical.com>
- <20100819095705.GU12184@atomide.com>
- <20100819102025.GA32151@n2100.arm.linux.org.uk>
- <20100820120622.GL25742@atomide.com>
- <20100830225527.GC11597@atomide.com>
- <20100902133637.GJ26319@n2100.arm.linux.org.uk>
- <20100902161659.GJ11597@atomide.com>
- <20100902162337.GP11597@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 7/8] : Hwmod api changes
+Date: Thu, 2 Sep 2010 15:30:03 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009021518560.17425@utopia.booyaka.com>
+References: <1281115688-1429-1-git-send-email-hemahk@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB032401D2AC@dbde02.ent.ti.com> <alpine.DEB.2.00.1008090156250.8958@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB032401D438@dbde02.ent.ti.com>
+ <4C601953.7070309@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="SWTRyWv/ijrBap1m"
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1188270133-1283463003=:17425"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58656 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754246Ab0IBTaJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 15:30:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20100902162337.GP11597@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:53939 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754305Ab0IBVaF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 17:30:05 -0400
+In-Reply-To: <4C601953.7070309@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "Kalliguddi, Hema" <hemahk@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--155748971-1188270133-1283463003=:17425
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hello Beno=EEt, Rajendra, Hema,
+
+On Mon, 9 Aug 2010, Cousson, Benoit wrote:
+
+> On 8/9/2010 11:37 AM, Nayak, Rajendra wrote:
+> >=20
+> > > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > > Sent: Monday, August 09, 2010 1:51 PM
+> > >=20
+> > > On Mon, 9 Aug 2010, Nayak, Rajendra wrote:
+> > >=20
+> > > > Does it make sense for the framework itself to enable wakeup
+> > > > for all devices when the slave port is programmed to be in
+> > > > Smartidle
+> > >=20
+> > > It seems to me that they are separate mechanisms?  If a module is
+> > > programmed for slave smart-idle, then the module prevents the
+> > > PRCM from
+> > > shutting off the module clock(s) until the module is not
+> > > busy.  This seems
+> > > distinct from ENAWAKEUP, which I thought simply controlled
+> > > whether the
+> > > module would assert the SWakeup signal to the PRCM when an
+> > > external wakeup
+> > > condition occurred for that module.  Is that an accurate summary?
+> >=20
+> > hmm.. the reason I thought the two were related was because the need to
+> > assert a SWakeup will arise only when the module is programmed in
+> > smart-idle.
+> > If the module is either in no-idle (in which case no idle-ack is assert=
+ed
+> > by the module) or force-idle (when the module is forced to idle and
+> > expected to stay idle) there might not be a need for the module to be
+> > capable of asserting a SWakeup.
+>=20
+> In fact, the SWakeup is asserted as soon as the module is in idle (idle_a=
+ck =3D
+> 1) and cannot use the OCP interface to communicate a IRQ_REQ or DMA_REQ.
+> But the wakeup capability is disabled by setting the SidleMode to Force-I=
+dle,
+> regardless of the value of Wakeup enable.
+> Bottom-line is that the SWakeup can be asserted only if the module is in
+> smart-idle.
+
+In that case, it sounds like Rajendra's patch would be useful (to=20
+automatically enable ENAWAKEUP during target smart-idle, and disable it=20
+during target no-idle or force-idle, would be worthwhile)?
+
+One other situation that we should consider would be if it ever makes=20
+sense to program a module to target smart-idle, but disable ENAWAKEUP.  I=
+=20
+suppose it should only be necessary if there is a hardware bug where an IP=
+=20
+block generates spurious SWakeups.  -- But if we have no current need for=
+=20
+this type of workaround, maybe we can just ignore this case and have the=20
+ENAWAKEUP bit follow target smart-idle status.  Then if such a hardware=20
+bug appears, we can separate ENAWAKEUP programming later.
+
+Thoughts?
 
 
---SWTRyWv/ijrBap1m
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Tony Lindgren <tony@atomide.com> [100902 09:16]:
-> From c04a57fc3b41d886f56ccdc27cf9758de0c95202 Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Tue, 17 Aug 2010 13:33:23 +0300
-> Subject: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for multi-omap
-> 
-> Fix SMP on UP interrupt handling for multi-omap
-
-Here's this one updated to use !smp_cpu() instead of smp_on_up().
-Looks like the description and subject needed some refreshing too.
-
-Tony
-
---SWTRyWv/ijrBap1m
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="smp-on-up-omap.patch"
-
->From e791c682fe2e3989e76f0bce7e0c9d97e65c2137 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 17 Aug 2010 13:33:23 +0300
-Subject: [PATCH] omap: Fix SMP on UP initialization for multi-omap
-
-Fix SMP on UP initialization for multi-omap.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 9e9f70e..3695232 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -22,6 +22,7 @@
- 
- #include <asm/cacheflush.h>
- #include <asm/localtimer.h>
-+#include <asm/smp_plat.h>
- #include <asm/smp_scu.h>
- #include <mach/hardware.h>
- #include <mach/omap4-common.h>
-@@ -114,11 +115,15 @@ void __init smp_init_cpus(void)
- {
- 	unsigned int i, ncores;
- 
--	/* Never released */
--	scu_base = ioremap(OMAP44XX_SCU_BASE, SZ_256);
--	BUG_ON(!scu_base);
-+	if (!smp_cpu()) {
-+		ncores = 1;
-+	} else {
-+		/* Never released */
-+		scu_base = ioremap(OMAP44XX_SCU_BASE, SZ_256);
-+		BUG_ON(!scu_base);
- 
--	ncores = get_core_count();
-+		ncores = get_core_count();
-+	}
- 
- 	for (i = 0; i < ncores; i++)
- 		set_cpu_possible(i, true);
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index 74fbed8..a21b4a4 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -37,6 +37,7 @@
- #include <linux/clockchips.h>
- 
- #include <asm/mach/time.h>
-+#include <asm/smp_plat.h>
- #include <plat/dmtimer.h>
- #include <asm/localtimer.h>
- 
-@@ -228,8 +229,10 @@ static void __init omap2_gp_clocksource_init(void)
- static void __init omap2_gp_timer_init(void)
- {
- #ifdef CONFIG_LOCAL_TIMERS
--	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
--	BUG_ON(!twd_base);
-+	if (!smp_cpu()) {
-+		twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
-+		BUG_ON(!twd_base);
-+	}
- #endif
- 	omap_dm_timer_init();
- 
-
---SWTRyWv/ijrBap1m--
+- Paul
+--155748971-1188270133-1283463003=:17425--
