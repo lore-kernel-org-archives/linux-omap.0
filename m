@@ -1,29 +1,54 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/6] ARM: Fix v7wbi_tlb_flags for SMP on UP
-Date: Thu, 2 Sep 2010 17:25:37 +0100
-Message-ID: <20100902162537.GU26319@n2100.arm.linux.org.uk>
-References: <20100817154035.GD20325@n2100.arm.linux.org.uk> <20100819073810.GR12184@atomide.com> <4C6CFBAF.6020407@canonical.com> <20100819095705.GU12184@atomide.com> <20100819102025.GA32151@n2100.arm.linux.org.uk> <20100820120622.GL25742@atomide.com> <20100830225527.GC11597@atomide.com> <20100902133637.GJ26319@n2100.arm.linux.org.uk> <20100902161659.GJ11597@atomide.com> <20100902162039.GM11597@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] omap: Fix SMP on UP interrupt handling for
+ multi-omap
+Date: Thu, 2 Sep 2010 09:27:43 -0700
+Message-ID: <20100902162743.GQ11597@atomide.com>
+References: <20100817104414.19061.38999.stgit@baageli.muru.com>
+ <20100817105332.19061.44765.stgit@baageli.muru.com>
+ <1282043269.32205.13.camel@bnru01>
+ <20100817113045.GH12184@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42542 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752893Ab0IBQZr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 12:25:47 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51223 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082Ab0IBQ1t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 12:27:49 -0400
 Content-Disposition: inline
-In-Reply-To: <20100902162039.GM11597@atomide.com>
+In-Reply-To: <20100817113045.GH12184@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
+To: srinidhi <srinidhi.kasagar@stericsson.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>
 
-On Thu, Sep 02, 2010 at 09:20:40AM -0700, Tony Lindgren wrote:
-> >From 253e91b76e104dbdf05c5c3eaf9cbf426972c938 Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Wed, 1 Sep 2010 16:49:13 -0700
-> Subject: [PATCH 3/6] ARM: Fix v7wbi_tlb_flags for SMP on UP
+* Tony Lindgren <tony@atomide.com> [100817 04:23]:
+> * srinidhi <srinidhi.kasagar@stericsson.com> [100817 14:00]:
+> > On Tue, 2010-08-17 at 12:53 +0200, Tony Lindgren wrote:
+> > > Fix SMP on UP interrupt handling for multi-omap
+> > > 
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > ---
+> > >  arch/arm/mach-omap2/include/mach/entry-macro.S |   22 ++++++++++++++++++++++
+> > >  arch/arm/mach-omap2/omap-smp.c                 |   16 ++++++++++++----
+> > >  arch/arm/mach-omap2/timer-gp.c                 |    7 +++++--
+> > >  3 files changed, 39 insertions(+), 6 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/mach-omap2/include/mach/entry-macro.S b/arch/arm/mach-omap2/include/mach/entry-macro.S
+> > > index 06e64e1..75c67aa 100644
+> > > --- a/arch/arm/mach-omap2/include/mach/entry-macro.S
+> > > +++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
+> > 
+> > There is one patch lying in Russell's tracker (6284/1) which attempts to
+> > use the common IRQ helper macros instead of platforms duplicating this
+> > file. Perhaps you may need to re-base to that if Russell is ok with that
+> > patch, of course.
 > 
-> Fix v7wbi_tlb_flags for SMP on UP. Note that we must enable MULTI_TLB
-> to avoid undefined reference to cpu_tlb error.
+> Nice to see. Ideally test_for_ipi and test_for_ltirq would return
+> early automatically when running SMP kernel on UP.
 
-This isn't required, as it is already covered by my patch.
+For the record, posted a patch to return early, so no more hacks
+needed for the entry-macro.S.
+
+Regards,
+
+Tony
