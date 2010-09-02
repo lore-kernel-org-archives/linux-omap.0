@@ -1,52 +1,143 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage domain instance in the voltage driver.
-Date: Thu, 02 Sep 2010 11:56:55 -0700
-Message-ID: <87occg3rew.fsf@deeprootsystems.com>
-References: <1282130412-12027-1-git-send-email-thara@ti.com>
-	<1282130412-12027-2-git-send-email-thara@ti.com>
-	<87eiddgjr7.fsf@deeprootsystems.com> <20100902094327.31a96174@surf>
-	<4C7F5DB4.70306@ti.com> <87aao082bb.fsf@deeprootsystems.com>
-	<4C7FF100.5090204@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/6] ARM: Add inline function smp_cpu() for early init
+ testing
+Date: Thu, 2 Sep 2010 12:26:59 -0700
+Message-ID: <20100902192659.GW11597@atomide.com>
+References: <4C6CFBAF.6020407@canonical.com>
+ <20100819095705.GU12184@atomide.com>
+ <20100819102025.GA32151@n2100.arm.linux.org.uk>
+ <20100820120622.GL25742@atomide.com>
+ <20100830225527.GC11597@atomide.com>
+ <20100902133637.GJ26319@n2100.arm.linux.org.uk>
+ <20100902161659.GJ11597@atomide.com>
+ <20100902161846.GK11597@atomide.com>
+ <20100902170830.GW26319@n2100.arm.linux.org.uk>
+ <20100902174244.GU11597@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="jL2BoiuKMElzg3CS"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:51553 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753970Ab0IBS47 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 14:56:59 -0400
-Received: by qyk36 with SMTP id 36so2342572qyk.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Sep 2010 11:56:59 -0700 (PDT)
-In-Reply-To: <4C7FF100.5090204@ti.com> (Nishanth Menon's message of "Thu, 2
-	Sep 2010 13:46:24 -0500")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54135 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756182Ab0IBT1L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 15:27:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20100902174244.GU11597@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
 
-Nishanth Menon <nm@ti.com> writes:
 
-> Kevin Hilman had written, on 09/02/2010 12:47 PM, the following:
+--jL2BoiuKMElzg3CS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-[...]
+* Tony Lindgren <tony@atomide.com> [100902 10:35]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100902 10:00]:
+> > On Thu, Sep 02, 2010 at 09:18:47AM -0700, Tony Lindgren wrote:
+> > 
+> > > --- a/arch/arm/include/asm/smp_plat.h
+> > > +++ b/arch/arm/include/asm/smp_plat.h
+> > > @@ -39,4 +39,20 @@ static inline int cache_ops_need_broadcast(void)
+> > >  #define UP(instr...)	_str(instr)
+> > >  #endif
+> > >  
+> > > +static inline int smp_on_up(void)
+> > > +{
+> > > +#ifdef CONFIG_SMP_ON_UP
+> > > +	int smp_on_up;
+> > > +
+> > > +	asm(							\
+> > > +		SMP(mov	%0, #0)					\
+> > > +		UP(mov	%0, #1)					\
+> > > +		: "=r" (smp_on_up));
+> > > +
+> > > +	return smp_on_up;
+> > > +#else
+> > > +	return 0;
+> > > +#endif
+> > 
+> > I think this is the wrong approach - rather than a function which tells us
+> > just if we are a SMP kernel running on UP, why not something which returns
+> > whether we're running on SMP and use that to eliminate some of these ifdefs?
+> 
+> Sure. Will has something like this in his patches:
+> 
+> static inline int cpu_is_part_of_mp_system(void)
+> {
+> 	u32 mpidr;
+> 	asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r" (mpidr));
+> 	return (mpidr >> 31) ? !(mpidr >> 30) : 0;
+> }
+> 
+> BTW, so far looks like we should only need this during init to set up things.
 
->>
->> If you look at the current PM branch (specifically pm-sr), you'll see
->> that with the updated SR layer, there is no SR enable/disable in the
->> idle path because there is no voltage scaling during idle.
+Here's this one updated to replace smp_cpu() instead of smp_on_up().
 
-[...]
+Tony
 
->>
->> That being said, even if this is add later, the idle path can potentialy
->> call the SR API directly if needed for the enable/disable.
->
-> not clean if it was directly implemented by regulator framework
->
+--jL2BoiuKMElzg3CS
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="smp-cpu.patch"
 
-The idea (so far) is that there will still be a low-level SmartReflex
-API, and just a regulator "wrapper."  Thomas P. is experimenting with
-extending the regulator framework to be able to call into external
-low-level code which does the heavy lifting.  He can probably post an
-RFC soon.
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 30 Aug 2010 14:00:54 -0700
+Subject: [PATCH] ARM: Add inline function smp_cpu() for early init testing
 
-Kevin
+Add inline function smp_cpu() for early init checks, and
+change build_mem_type_table to use it.
+
+Inline function copied from cpu_is_part_of_mp_system() by
+Will Deacon <will.deacon@arm.com>.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/include/asm/smp_plat.h b/arch/arm/include/asm/smp_plat.h
+index 8db3512..82bc488 100644
+--- a/arch/arm/include/asm/smp_plat.h
++++ b/arch/arm/include/asm/smp_plat.h
+@@ -39,4 +39,11 @@ static inline int cache_ops_need_broadcast(void)
+ #define UP(instr...)	_str(instr)
+ #endif
+ 
++static inline int smp_cpu(void)
++{
++        u32 mpidr;
++        asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r" (mpidr));
++        return (mpidr >> 31) ? !(mpidr >> 30) : 0;
++}
++
+ #endif
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 6e1c4f6..2bfaefd 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -430,15 +430,17 @@ static void __init build_mem_type_table(void)
+ 		/*
+ 		 * Mark memory with the "shared" attribute for SMP systems
+ 		 */
+-		user_pgprot |= L_PTE_SHARED;
+-		kern_pgprot |= L_PTE_SHARED;
+-		vecs_pgprot |= L_PTE_SHARED;
+-		mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
+-		mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
+-		mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
+-		mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
+-		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
+-		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
++		if (smp_cpu()) {
++			user_pgprot |= L_PTE_SHARED;
++			kern_pgprot |= L_PTE_SHARED;
++			vecs_pgprot |= L_PTE_SHARED;
++			mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
++			mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
++			mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
++			mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
++			mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
++			mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
++		}
+ #endif
+ 	}
+ 
+
+--jL2BoiuKMElzg3CS--
