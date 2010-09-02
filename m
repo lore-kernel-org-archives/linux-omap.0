@@ -1,85 +1,59 @@
-From: Amit Kucheria <amit.kucheria-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
-Date: Thu, 2 Sep 2010 10:56:05 +0300
-Message-ID: <20100902075605.GB2962@matterhorn.lan>
-References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
-	<87bp8nn9yx.fsf@deeprootsystems.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: [PATCH 1/5] ARM: omap/fb: move omap_init_fb to .init.text
+Date: Thu,  2 Sep 2010 10:03:38 +0200
+Message-ID: <1283414622-2663-1-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <1283408230-22652-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87bp8nn9yx.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38625 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751509Ab0IBIDp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 04:03:45 -0400
+In-Reply-To: <1283408230-22652-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On 10 Aug 27, Kevin Hilman wrote:
-> vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org writes:
-> 
-> > From: Vishwanath BS <vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >
-> > This patch has instrumentation code for measuring latencies for
-> > various CPUIdle C states for OMAP. Idea here is to capture the
-> > timestamp at various phases of CPU Idle and then compute the sw
-> > latency for various c states.  For OMAP, 32k clock is chosen as
-> > reference clock this as is an always on clock.  wkup domain memory
-> > (scratchpad memory) is used for storing timestamps.  One can see the
-> > worstcase latencies in below sysfs entries (after enabling
-> > CONFIG_CPU_IDLE_PROF in .config). This information can be used to
-> > correctly configure cpu idle latencies for various C states after
-> > adding HW latencies for each of these sw latencies.
-> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/actual_latency
-> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/sleep_latency
-> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/wkup_latency
-> >
-> > THis patch is tested on OMAP ZOOM3 using kevin's pm branch.
-> >
-> > Signed-off-by: Vishwanath BS <vishwanath.sripathy-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-> 
-> While I have many problems with the implementation details, I won't go
-> into them because in general this is the wrong direction for kernel
-> instrumentation.
-> 
-> This approach adds quite a bit overhead to the idle path itself.  With
-> all the reads/writes from/to the scratchpad(?) and all the multiplications
-> and divides in every idle path, as well as the wait-for-idlest in both
-> the sleep and resume paths.  The additional overhead added is non trivial.
-> 
-> Basically, I'd like get away from custom instrumentation and measurement
-> coded inside the kernel itself.  This kind of code never stops growing
-> and morphing into ugliness, and rarely scales well when new SoCs are
-> added.
-> 
-> With ftrace/perf, we can add tracepoints at specific points and use
-> external tools to extract and analyze the delays, latencys etc.
-> 
-> The point is to keep the minimum possible in the kernel: just the
-> tracepoints we're interested in.   The rest (calculations, averages,
-> analysis, etc.) does not need to be in the kernel and can be done easier
-> and with more powerful tools outside the kernel.
+omap_init_fb() is only called as arch_initcall and so can live in
+=2Einit.text.
 
-Kevin,
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+---
+ arch/arm/plat-omap/fb.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-I agree. We discussed this a little in our weekly meeting. Vishwa's main
-concern was the lack of ability to instrument the last bit of SRAM code.
+diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
+index 0054b95..a727133 100644
+--- a/arch/arm/plat-omap/fb.c
++++ b/arch/arm/plat-omap/fb.c
+@@ -336,7 +336,7 @@ void omapfb_set_ctrl_platform_data(void *data)
+ 	omapfb_config.ctrl_platform_data =3D data;
+ }
+=20
+-static inline int omap_init_fb(void)
++static int __init omap_init_fb(void)
+ {
+ 	const struct omap_lcd_config *conf;
+=20
+@@ -381,7 +381,7 @@ void omapfb_set_platform_data(struct omapfb_platfor=
+m_data *data)
+ 	omapfb_config =3D *data;
+ }
+=20
+-static inline int omap_init_fb(void)
++static int __init omap_init_fb(void)
+ {
+ 	return platform_device_register(&omap_fb_device);
+ }
+--=20
+1.7.1
 
-I have a feeling that even with caches on when we enter this code, we won't
-see too much variance in the latency to execute this bit of code. Vishwa is
-going to confirm that now. If that hypothesis is true, we can indeed move to
-using tracepoints in the idle path and use external tools to track latency.
-
-Even if it isn't true, the rest of the idle path could still contain tracepoints.
-
-Regards,
-Amit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
