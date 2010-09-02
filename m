@@ -1,43 +1,58 @@
-From: David Barksdale <amatus.amongus@gmail.com>
-Subject: [PATCH] OMAP: Fix TI Innovator 1510/1610 LCD regression
-Date: Thu, 2 Sep 2010 01:52:17 -0400
-Message-ID: <AANLkTiki6Gz-G4qX1WuaT6Fo3jK6XBgNm=1ddwepnqdj@mail.gmail.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+Date: Thu, 02 Sep 2010 09:02:55 +0300
+Message-ID: <4C7F3E0F.2080402@compulab.co.il>
+References: <cover.1266847842.git.david.vrabel@csr.com> <20100827192248.GJ20407@void.printf.net> <4C7CC480.2040903@csr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:55951 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039Ab0IBFwS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 01:52:18 -0400
-Received: by vws3 with SMTP id 3so85839vws.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Sep 2010 22:52:17 -0700 (PDT)
+Received: from compulab.co.il ([67.18.134.219]:51975 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751204Ab0IBGEA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 2 Sep 2010 02:04:00 -0400
+In-Reply-To: <4C7CC480.2040903@csr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: David Vrabel <david.vrabel@csr.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com, Mike Rapoport <mike@compulab.co.il>
 
-This patch fixes a regression introduced by the "OMAP: UART: drop
-OMAP_TAG_UART, enable all UARTs, auto-disabled on idle" patch.
+David Vrabel wrote:
+> On 27/08/2010 20:22, Chris Ball wrote:
+>> Hi David,
+>>
+>> On Mon, Feb 22, 2010 at 02:24:17PM +0000, David Vrabel wrote:
+>>> These patches add support for SDIO cards to the omap_hsmmc driver.
+>>> Power management changes to prevent SDIO cards from being turned off
+>>> and losing all state, and card interrupts.
+>>>
+>>> I've been unable to test these exact patches as I only have an N900 for 
+>>> testing and the N900 support in mainline is incomplete.
+>>>
+>>> Changes since v1:
+>>> - (hopefully) get all cards working again by removing a second call to
+>>>   read MMCi_STAT in the interrupt handler.
+>>> - flush posted writes after enabling/disabling SDIO interrupts.
+>>> - tweak the FIXME commit on disabling FCLK to better match what really
+>>>   going on (at least I think so anyway).
+>>>
+>>> David Vrabel (2):
+>>>   mmc: omap_hsmmc: don't turn SDIO cards off when idle
+>>>   mmc: omap_hsmmc: enable SDIO card interrupts
+>> Looks like this patchset wasn't merged.  Mike Rapoport replied with a 
+>> fix for libertas.  Would you like to resubmit it?
+> 
+> I thought Madhu had picked this up and was going to submit it.
+> 
+> Regardless of whether that is the case, I think it needs to be submitted
+> by someone who can run mainline kernels (I can't) and ideally someone
+> who can test it with SDIO cards.
 
-Signed-off-by: David Barksdale <amatus.amongus@gmail.com>
----
-diff --git a/arch/arm/mach-omap1/board-innovator.c
-b/arch/arm/mach-omap1/board-innovator.c
-index 3daf87a..2ee8a70 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -423,13 +423,13 @@ static void __init innovator_init(void)
- #ifdef CONFIG_ARCH_OMAP15XX
-        if (cpu_is_omap1510()) {
-                omap1_usb_init(&innovator1510_usb_config);
--               innovator_config[1].data = &innovator1510_lcd_config;
-+               innovator_config[0].data = &innovator1510_lcd_config;
-        }
- #endif
- #ifdef CONFIG_ARCH_OMAP16XX
-        if (cpu_is_omap1610()) {
-                omap1_usb_init(&h2_usb_config);
--               innovator_config[1].data = &innovator1610_lcd_config;
-+               innovator_config[0].data = &innovator1610_lcd_config;
-        }
- #endif
-        omap_board_config = innovator_config;
+I'll try to update the patches in the next few days.
+
+> David
+
+
+-- 
+Sincerely yours,
+Mike.
