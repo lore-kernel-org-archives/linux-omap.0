@@ -1,71 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/6] ARM: Add inline function smp_on_up() for early
- init testing
-Date: Thu, 2 Sep 2010 10:42:44 -0700
-Message-ID: <20100902174244.GU11597@atomide.com>
-References: <20100819073810.GR12184@atomide.com>
- <4C6CFBAF.6020407@canonical.com>
- <20100819095705.GU12184@atomide.com>
- <20100819102025.GA32151@n2100.arm.linux.org.uk>
- <20100820120622.GL25742@atomide.com>
- <20100830225527.GC11597@atomide.com>
- <20100902133637.GJ26319@n2100.arm.linux.org.uk>
- <20100902161659.GJ11597@atomide.com>
- <20100902161846.GK11597@atomide.com>
- <20100902170830.GW26319@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage domain instance in the voltage driver.
+Date: Thu, 02 Sep 2010 10:47:52 -0700
+Message-ID: <87aao082bb.fsf@deeprootsystems.com>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+	<1282130412-12027-2-git-send-email-thara@ti.com>
+	<87eiddgjr7.fsf@deeprootsystems.com> <20100902094327.31a96174@surf>
+	<4C7F5DB4.70306@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62840 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750868Ab0IBRmx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 13:42:53 -0400
-Content-Disposition: inline
-In-Reply-To: <20100902170830.GW26319@n2100.arm.linux.org.uk>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:33521 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752783Ab0IBRsG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 13:48:06 -0400
+Received: by pvg2 with SMTP id 2so252658pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 02 Sep 2010 10:48:05 -0700 (PDT)
+In-Reply-To: <4C7F5DB4.70306@ti.com> (Nishanth Menon's message of "Thu, 2 Sep
+	2010 03:17:56 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [100902 10:00]:
-> On Thu, Sep 02, 2010 at 09:18:47AM -0700, Tony Lindgren wrote:
-> 
-> > --- a/arch/arm/include/asm/smp_plat.h
-> > +++ b/arch/arm/include/asm/smp_plat.h
-> > @@ -39,4 +39,20 @@ static inline int cache_ops_need_broadcast(void)
-> >  #define UP(instr...)	_str(instr)
-> >  #endif
-> >  
-> > +static inline int smp_on_up(void)
-> > +{
-> > +#ifdef CONFIG_SMP_ON_UP
-> > +	int smp_on_up;
-> > +
-> > +	asm(							\
-> > +		SMP(mov	%0, #0)					\
-> > +		UP(mov	%0, #1)					\
-> > +		: "=r" (smp_on_up));
-> > +
-> > +	return smp_on_up;
-> > +#else
-> > +	return 0;
-> > +#endif
-> 
-> I think this is the wrong approach - rather than a function which tells us
-> just if we are a SMP kernel running on UP, why not something which returns
-> whether we're running on SMP and use that to eliminate some of these ifdefs?
+Nishanth Menon <nm@ti.com> writes:
 
-Sure. Will has something like this in his patches:
+> Thomas Petazzoni had written, on 09/02/2010 02:43 AM, the following:
+>> Hello,
+>>
+>> On Wed, 01 Sep 2010 15:51:40 -0700
+>> Kevin Hilman <khilman@deeprootsystems.com> wrote:
+>>
+>>> Looking closer at this, keeping track of a list of devices and
+>>> constraints is what the regulator framework does as well.  
+>>>
+>>> Before we get too far down this path, we need to start working with
+>>> Thomas Petazzoni to better understand how we can use the regulator
+>>> framework for much of the management levels of the voltage layer.
+>>
+>> Yes, as discussed on IRC with Kevin, I think that some of this voltage
+>> layer mechanisms would benefit from using the existing kernel regulator
+>> framework.
+>>
+>> The regulator framework already keeps tracks of consumers (in your
+>> patch set called "vdd users"), and for each consumer, keeps track of
+>> the requested voltage. The maximum requested voltage is then applied to
+>> the regulator. It seems to fit quite well some of the mechanisms you're
+>> introducing in this patch set.
+>
+> Just brainstorming -> if we use the regulator framework - there are
+> potential benefits - agreed. BUT, consider the cpuidle path ->
+> currently we disable SR while hitting off/ret for class3, this is done
+> in irq locked context while the regulator framework uses locks by
+> itself - we would probably have to evolve an entirely different
+> mechanism to handle this.
+>
+> SR by itself can easily be represented I believe and my thoughts  when
+> i initialy looked at that option had been:
+> a) latency overheads
+> b) flexibility we achieve vs complexity in s/w implementation
+> c) lock handling - esp impact on omap_sram_idle paths..
 
-static inline int cpu_is_part_of_mp_system(void)
-{
-	u32 mpidr;
-	asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r" (mpidr));
-	return (mpidr >> 31) ? !(mpidr >> 30) : 0;
-}
+If you look at the current PM branch (specifically pm-sr), you'll see
+that with the updated SR layer, there is no SR enable/disable in the
+idle path because there is no voltage scaling during idle.
 
-BTW, so far looks like we should only need this during init to set up things.
+That being said, even if this is add later, the idle path can potentialy
+call the SR API directly if needed for the enable/disable.
 
-Regards,
+The concern Thomas and I are raising is that we don't want to re-invent
+regulator framework functionality in the OMAP voltage layer.  Rather, we
+should keep the OMAP voltage layer as the part that touches the HW, but
+use the regulator framework for the higher-level management of users and
+constraints.
 
-Tony
+Performance issues can be addressed as we hit them, but at this level of
+the design, I want to make sure the frameworks make sense.
+
+Kevin
+
