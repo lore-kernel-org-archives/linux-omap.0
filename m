@@ -1,50 +1,235 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 5/6] ARM: Don't set TLB ops broadcasting on UP ARMv7
-Date: Thu, 2 Sep 2010 19:18:37 +0100
-Message-ID: <20100902181837.GZ26319@n2100.arm.linux.org.uk>
-References: <20100819102025.GA32151@n2100.arm.linux.org.uk> <20100820120622.GL25742@atomide.com> <20100830225527.GC11597@atomide.com> <20100902133637.GJ26319@n2100.arm.linux.org.uk> <20100902161659.GJ11597@atomide.com> <20100902162220.GO11597@atomide.com> <20100902165756.GV26319@n2100.arm.linux.org.uk> <20100902172133.GT11597@atomide.com> <20100902180153.GY26319@n2100.arm.linux.org.uk> <20100902181317.GV11597@atomide.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] USB: otg: twl4030: fix phy initialization
+Date: Thu, 02 Sep 2010 13:28:39 -0500
+Message-ID: <ee6a42fe148f72518d475ff3838fc32a@secure211.sgcpanel.com>
+References: <1283443098-15262-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59309 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753152Ab0IBSSp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 14:18:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20100902181317.GV11597@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1283443098-15262-1-git-send-email-tom.leiming@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tom.leiming@gmail.com
+Cc: greg@kroah.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>, Anand Gadiyar <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
 
-On Thu, Sep 02, 2010 at 11:13:17AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100902 10:54]:
-> > On Thu, Sep 02, 2010 at 10:21:33AM -0700, Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [100902 09:50]:
-> > > > On Thu, Sep 02, 2010 at 09:22:20AM -0700, Tony Lindgren wrote:
-> > > > > diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
-> > > > > index 07fc660..51a063d 100644
-> > > > > --- a/arch/arm/mm/proc-v7.S
-> > > > > +++ b/arch/arm/mm/proc-v7.S
-> > > > > @@ -191,7 +191,8 @@ __v7_setup:
-> > > > >  	UP(mov	r0, #(1 << 6))			@ fake it for UP
-> > > > 
-> > > > If it's UP, we set r0 to 1 << 6, which...
-> > > > 
-> > > > >  	tst	r0, #(1 << 6)			@ SMP/nAMP mode enabled?
-> > > > 
-> > > > means this test produces a non-zero result.
-> > > > 
-> > > > >  	orreq	r0, r0, #(1 << 6) | (1 << 0)	@ Enable SMP/nAMP mode and
-> > > > > -	mcreq	p15, 0, r0, c1, c0, 1		@ TLB ops broadcasting
-> > > > 
-> > > > And therefore these instructions will not be executed.
-> > > 
-> > > AFAIK these bits are different for Cortex-A8 and A9, bit 6 is IBE on A8.
-> > 
-> > So what?
-> 
-> Ah right, sorry I should have looked more carefully. You're right, this patch
-> is no longer needed either.
+Hi,
 
-Thanks - I was wondering whether I was missing something.
+On Thu,  2 Sep 2010 23:58:18 +0800, tom.leiming@gmail.com wrote:
+> From: Ming Lei <tom.leiming@gmail.com>
+>=20
+> Commit 461c317705eca5cac09a360f488715927fd0a927(into 2.6.36-v3)
+> is put forward to power down phy if no usb cable is connected,
+> but does introduce the two issues below:
+>=20
+> 1), phy is not into work state if usb cable is connected
+> with PC during poweron, so musb device mode is not usable
+> in such case, follows the reasons:
+
+I'm pretty sure I verified both cases.
+
+> 	-twl4030_phy_resume is not called, so
+> 		regulators are not enabled
+> 		i2c access are not enabled
+> 		usb mode not configurated
+>=20
+> 2), The kernel warings[1] of regulators 'unbalanced disables'
+> is caused if poweron without usb cable connected
+> with PC or b-device.
+>=20
+> This patch fixes the two issues above:
+> 	-power down phy only if no usb cable is connected with PC
+> and b-device
+> 	-do phy initialization(via __twl4030_phy_resume) if usb cable
+> is connected with PC(vbus event) or another b-device(ID event) in
+> twl4030_usb_probe.
+>=20
+> This patch is verified OK on Beagle board either connected with
+> usb cable or not when poweron.
+
+I kinda doubt it, would have to test it myself, but I'm without
+enough gear to test it again.
+
+> [1]. warnings of 'unbalanced disables' of regulators.
+> [root@OMAP3EVM /]# dmesg
+> ------------[ cut here ]------------
+> WARNING: at drivers/regulator/core.c:1357
+_regulator_disable+0x38/0x128()
+
+this should not have been caused by that patch, though.
+
+
+> Cc: Felipe Balbi <felipe.balbi@nokia.com>
+
+this email doesn't exist anymore... I'm yet to subscribe the new one,
+for now keep this one in Cc, sorry for that.
+
+> diff --git a/drivers/usb/otg/twl4030-usb.c
+b/drivers/usb/otg/twl4030-usb.c
+> index 05aaac1..df6381f 100644
+> --- a/drivers/usb/otg/twl4030-usb.c
+> +++ b/drivers/usb/otg/twl4030-usb.c
+> @@ -347,11 +347,22 @@ static void twl4030_i2c_access(struct twl4030_u=
+sb
+> *twl, int on)
+>  	}
+>  }
+> =20
+> -static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+> +static void __twl4030_phy_power(struct twl4030_usb *twl, int on)
+>  {
+> +	u8 old_pwr =3D twl4030_usb_read(twl, PHY_PWR_CTRL);
+>  	u8 pwr;
+> =20
+> -	pwr =3D twl4030_usb_read(twl, PHY_PWR_CTRL);
+> +	if (on)
+> +		pwr =3D old_pwr & ~PHY_PWR_PHYPWD;
+> +	else
+> +		pwr =3D old_pwr | PHY_PWR_PHYPWD;
+> +
+> +	if (pwr !=3D old_pwr)
+> +		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+
+writing 1 if register is one won't cause any problems, you're just
+wasting a variable.
+
+> +static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+> +{
+>  	if (on) {
+>  		regulator_enable(twl->usb3v1);
+>  		regulator_enable(twl->usb1v8);
+> @@ -365,15 +376,13 @@ static void twl4030_phy_power(struct twl4030_us=
+b
+> *twl, int on)
+>  		twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0,
+>  							VUSB_DEDICATED2);
+>  		regulator_enable(twl->usb1v5);
+> -		pwr &=3D ~PHY_PWR_PHYPWD;
+> -		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+> +		__twl4030_phy_power(twl, 1);
+>  		twl4030_usb_write(twl, PHY_CLK_CTRL,
+>  				  twl4030_usb_read(twl, PHY_CLK_CTRL) |
+>  					(PHY_CLK_CTRL_CLOCKGATING_EN |
+>  						PHY_CLK_CTRL_CLK32K_EN));
+>  	} else  {
+> -		pwr |=3D PHY_PWR_PHYPWD;
+> -		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+> +		__twl4030_phy_power(twl, 0);
+>  		regulator_disable(twl->usb1v5);
+>  		regulator_disable(twl->usb1v8);
+>  		regulator_disable(twl->usb3v1);
+> @@ -387,19 +396,25 @@ static void twl4030_phy_suspend(struct twl4030_=
+usb
+> *twl, int controller_off)
+> =20
+>  	twl4030_phy_power(twl, 0);
+>  	twl->asleep =3D 1;
+> +	dev_dbg(twl->dev, "%s\n", __func__);
+
+this is noise.
+
+>  }
+> =20
+> -static void twl4030_phy_resume(struct twl4030_usb *twl)
+> +static void __twl4030_phy_resume(struct twl4030_usb *twl)
+>  {
+> -	if (!twl->asleep)
+> -		return;
+> -
+>  	twl4030_phy_power(twl, 1);
+>  	twl4030_i2c_access(twl, 1);
+>  	twl4030_usb_set_mode(twl, twl->usb_mode);
+>  	if (twl->usb_mode =3D=3D T2_USB_MODE_ULPI)
+>  		twl4030_i2c_access(twl, 0);
+> +}
+> +
+> +static void twl4030_phy_resume(struct twl4030_usb *twl)
+> +{
+> +	if (!twl->asleep)
+> +		return;
+> +	__twl4030_phy_resume(twl);
+>  	twl->asleep =3D 0;
+> +	dev_dbg(twl->dev, "%s\n", __func__);
+
+this is noise.
+
+> @@ -502,6 +517,26 @@ static irqreturn_t twl4030_usb_irq(int irq, void
+> *_twl)
+>  	return IRQ_HANDLED;
+>  }
+> =20
+> +static void twl4030_usb_phy_init(struct twl4030_usb *twl)
+> +{
+> +	int status;
+> +
+> +	status =3D twl4030_usb_linkstat(twl);
+> +	if (status >=3D 0) {
+> +		if (status =3D=3D USB_EVENT_NONE) {
+> +			__twl4030_phy_power(twl, 0);
+> +			twl->asleep =3D 1;
+> +		} else {
+> +			__twl4030_phy_resume(twl);
+
+this might break people who are using charger detection, although I
+would have to revisit some code to be sure.
+
+> +			twl->asleep =3D 0;
+> +		}
+> +
+> +		blocking_notifier_call_chain(&twl->otg.notifier, status,
+> +				twl->otg.gadget);
+> +	}
+> +	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+
+th=C3=ADs should only be called from IRQ handler and is duplicating
+code.
+
+> @@ -550,7 +585,6 @@ static int __devinit twl4030_usb_probe(struct
+> platform_device *pdev)
+>  	struct twl4030_usb_data *pdata =3D pdev->dev.platform_data;
+>  	struct twl4030_usb	*twl;
+>  	int			status, err;
+> -	u8			pwr;
+> =20
+>  	if (!pdata) {
+>  		dev_dbg(&pdev->dev, "platform_data not available\n");
+> @@ -569,10 +603,7 @@ static int __devinit twl4030_usb_probe(struct
+> platform_device *pdev)
+>  	twl->otg.set_peripheral	=3D twl4030_set_peripheral;
+>  	twl->otg.set_suspend	=3D twl4030_set_suspend;
+>  	twl->usb_mode		=3D pdata->usb_mode;
+> -
+> -	pwr =3D twl4030_usb_read(twl, PHY_PWR_CTRL);
+> -
+> -	twl->asleep		=3D (pwr & PHY_PWR_PHYPWD);
+> +	twl->asleep =3D 1;
+
+and now you're lying to the driver again. What happens if
+bootloader has put transceiver to sleep ??
+
+> @@ -610,15 +641,10 @@ static int __devinit twl4030_usb_probe(struct
+> platform_device *pdev)
+>  		return status;
+>  	}
+> =20
+> -	/* The IRQ handler just handles changes from the previous states
+> -	 * of the ID and VBUS pins ... in probe() we must initialize that
+> -	 * previous state.  The easy way:  fake an IRQ.
+> -	 *
+> -	 * REVISIT:  a real IRQ might have happened already, if PREEMPT is
+> -	 * enabled.  Else the IRQ may not yet be configured or enabled,
+> -	 * because of scheduling delays.
+> +	/* Power down phy or make it work according to
+> +	 * current link state.
+
+if you're changing the comment you might as well fix the comment style.
+
+>  	 */
+> -	twl4030_usb_irq(twl->irq, twl);
+> +	twl4030_usb_phy_init(twl);
+
+now I see, this doesn't care about that flag, so why even setting
+it above ??
+
+--=20
+balbi
