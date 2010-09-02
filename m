@@ -1,143 +1,119 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/6] ARM: Add inline function smp_cpu() for early init
- testing
-Date: Thu, 2 Sep 2010 12:26:59 -0700
-Message-ID: <20100902192659.GW11597@atomide.com>
-References: <4C6CFBAF.6020407@canonical.com>
+Subject: Re: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for
+ multi-omap
+Date: Thu, 2 Sep 2010 12:30:01 -0700
+Message-ID: <20100902193000.GX11597@atomide.com>
+References: <20100817154035.GD20325@n2100.arm.linux.org.uk>
+ <20100819073810.GR12184@atomide.com>
+ <4C6CFBAF.6020407@canonical.com>
  <20100819095705.GU12184@atomide.com>
  <20100819102025.GA32151@n2100.arm.linux.org.uk>
  <20100820120622.GL25742@atomide.com>
  <20100830225527.GC11597@atomide.com>
  <20100902133637.GJ26319@n2100.arm.linux.org.uk>
  <20100902161659.GJ11597@atomide.com>
- <20100902161846.GK11597@atomide.com>
- <20100902170830.GW26319@n2100.arm.linux.org.uk>
- <20100902174244.GU11597@atomide.com>
+ <20100902162337.GP11597@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="jL2BoiuKMElzg3CS"
+Content-Type: multipart/mixed; boundary="SWTRyWv/ijrBap1m"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54135 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58656 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756182Ab0IBT1L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 15:27:11 -0400
+	with ESMTP id S1754246Ab0IBTaJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 15:30:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20100902174244.GU11597@atomide.com>
+In-Reply-To: <20100902162337.GP11597@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
 
 
---jL2BoiuKMElzg3CS
+--SWTRyWv/ijrBap1m
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-* Tony Lindgren <tony@atomide.com> [100902 10:35]:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100902 10:00]:
-> > On Thu, Sep 02, 2010 at 09:18:47AM -0700, Tony Lindgren wrote:
-> > 
-> > > --- a/arch/arm/include/asm/smp_plat.h
-> > > +++ b/arch/arm/include/asm/smp_plat.h
-> > > @@ -39,4 +39,20 @@ static inline int cache_ops_need_broadcast(void)
-> > >  #define UP(instr...)	_str(instr)
-> > >  #endif
-> > >  
-> > > +static inline int smp_on_up(void)
-> > > +{
-> > > +#ifdef CONFIG_SMP_ON_UP
-> > > +	int smp_on_up;
-> > > +
-> > > +	asm(							\
-> > > +		SMP(mov	%0, #0)					\
-> > > +		UP(mov	%0, #1)					\
-> > > +		: "=r" (smp_on_up));
-> > > +
-> > > +	return smp_on_up;
-> > > +#else
-> > > +	return 0;
-> > > +#endif
-> > 
-> > I think this is the wrong approach - rather than a function which tells us
-> > just if we are a SMP kernel running on UP, why not something which returns
-> > whether we're running on SMP and use that to eliminate some of these ifdefs?
+* Tony Lindgren <tony@atomide.com> [100902 09:16]:
+> From c04a57fc3b41d886f56ccdc27cf9758de0c95202 Mon Sep 17 00:00:00 2001
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Tue, 17 Aug 2010 13:33:23 +0300
+> Subject: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for multi-omap
 > 
-> Sure. Will has something like this in his patches:
-> 
-> static inline int cpu_is_part_of_mp_system(void)
-> {
-> 	u32 mpidr;
-> 	asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r" (mpidr));
-> 	return (mpidr >> 31) ? !(mpidr >> 30) : 0;
-> }
-> 
-> BTW, so far looks like we should only need this during init to set up things.
+> Fix SMP on UP interrupt handling for multi-omap
 
-Here's this one updated to replace smp_cpu() instead of smp_on_up().
+Here's this one updated to use !smp_cpu() instead of smp_on_up().
+Looks like the description and subject needed some refreshing too.
 
 Tony
 
---jL2BoiuKMElzg3CS
+--SWTRyWv/ijrBap1m
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="smp-cpu.patch"
+Content-Disposition: inline; filename="smp-on-up-omap.patch"
 
+>From e791c682fe2e3989e76f0bce7e0c9d97e65c2137 Mon Sep 17 00:00:00 2001
 From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 30 Aug 2010 14:00:54 -0700
-Subject: [PATCH] ARM: Add inline function smp_cpu() for early init testing
+Date: Tue, 17 Aug 2010 13:33:23 +0300
+Subject: [PATCH] omap: Fix SMP on UP initialization for multi-omap
 
-Add inline function smp_cpu() for early init checks, and
-change build_mem_type_table to use it.
-
-Inline function copied from cpu_is_part_of_mp_system() by
-Will Deacon <will.deacon@arm.com>.
+Fix SMP on UP initialization for multi-omap.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/include/asm/smp_plat.h b/arch/arm/include/asm/smp_plat.h
-index 8db3512..82bc488 100644
---- a/arch/arm/include/asm/smp_plat.h
-+++ b/arch/arm/include/asm/smp_plat.h
-@@ -39,4 +39,11 @@ static inline int cache_ops_need_broadcast(void)
- #define UP(instr...)	_str(instr)
- #endif
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 9e9f70e..3695232 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -22,6 +22,7 @@
  
-+static inline int smp_cpu(void)
-+{
-+        u32 mpidr;
-+        asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=r" (mpidr));
-+        return (mpidr >> 31) ? !(mpidr >> 30) : 0;
-+}
-+
+ #include <asm/cacheflush.h>
+ #include <asm/localtimer.h>
++#include <asm/smp_plat.h>
+ #include <asm/smp_scu.h>
+ #include <mach/hardware.h>
+ #include <mach/omap4-common.h>
+@@ -114,11 +115,15 @@ void __init smp_init_cpus(void)
+ {
+ 	unsigned int i, ncores;
+ 
+-	/* Never released */
+-	scu_base = ioremap(OMAP44XX_SCU_BASE, SZ_256);
+-	BUG_ON(!scu_base);
++	if (!smp_cpu()) {
++		ncores = 1;
++	} else {
++		/* Never released */
++		scu_base = ioremap(OMAP44XX_SCU_BASE, SZ_256);
++		BUG_ON(!scu_base);
+ 
+-	ncores = get_core_count();
++		ncores = get_core_count();
++	}
+ 
+ 	for (i = 0; i < ncores; i++)
+ 		set_cpu_possible(i, true);
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 74fbed8..a21b4a4 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -37,6 +37,7 @@
+ #include <linux/clockchips.h>
+ 
+ #include <asm/mach/time.h>
++#include <asm/smp_plat.h>
+ #include <plat/dmtimer.h>
+ #include <asm/localtimer.h>
+ 
+@@ -228,8 +229,10 @@ static void __init omap2_gp_clocksource_init(void)
+ static void __init omap2_gp_timer_init(void)
+ {
+ #ifdef CONFIG_LOCAL_TIMERS
+-	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
+-	BUG_ON(!twd_base);
++	if (!smp_cpu()) {
++		twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
++		BUG_ON(!twd_base);
++	}
  #endif
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 6e1c4f6..2bfaefd 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -430,15 +430,17 @@ static void __init build_mem_type_table(void)
- 		/*
- 		 * Mark memory with the "shared" attribute for SMP systems
- 		 */
--		user_pgprot |= L_PTE_SHARED;
--		kern_pgprot |= L_PTE_SHARED;
--		vecs_pgprot |= L_PTE_SHARED;
--		mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
--		mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
--		mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
--		mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
--		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
--		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		if (smp_cpu()) {
-+			user_pgprot |= L_PTE_SHARED;
-+			kern_pgprot |= L_PTE_SHARED;
-+			vecs_pgprot |= L_PTE_SHARED;
-+			mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
-+			mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
-+			mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		}
- #endif
- 	}
+ 	omap_dm_timer_init();
  
 
---jL2BoiuKMElzg3CS--
+--SWTRyWv/ijrBap1m--
