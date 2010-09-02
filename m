@@ -1,99 +1,53 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
-Date: Thu, 02 Sep 2010 10:55:23 -0700
-Message-ID: <87mxs06nec.fsf@deeprootsystems.com>
-References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
-	<87bp8nn9yx.fsf@deeprootsystems.com>
-	<20100902075605.GB2962@matterhorn.lan>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 5/6] ARM: Don't set TLB ops broadcasting on UP ARMv7
+Date: Thu, 2 Sep 2010 19:01:53 +0100
+Message-ID: <20100902180153.GY26319@n2100.arm.linux.org.uk>
+References: <4C6CFBAF.6020407@canonical.com> <20100819095705.GU12184@atomide.com> <20100819102025.GA32151@n2100.arm.linux.org.uk> <20100820120622.GL25742@atomide.com> <20100830225527.GC11597@atomide.com> <20100902133637.GJ26319@n2100.arm.linux.org.uk> <20100902161659.GJ11597@atomide.com> <20100902162220.GO11597@atomide.com> <20100902165756.GV26319@n2100.arm.linux.org.uk> <20100902172133.GT11597@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:39701 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761Ab0IBRz1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 13:55:27 -0400
-Received: by pvg2 with SMTP id 2so257030pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Sep 2010 10:55:26 -0700 (PDT)
-In-Reply-To: <20100902075605.GB2962@matterhorn.lan> (Amit Kucheria's message
-	of "Thu, 2 Sep 2010 10:56:05 +0300")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59235 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799Ab0IBSCE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 14:02:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20100902172133.GT11597@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: vishwanath.sripathy@linaro.org
-Cc: linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
 
-Amit Kucheria <amit.kucheria@linaro.org> writes:
+On Thu, Sep 02, 2010 at 10:21:33AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100902 09:50]:
+> > On Thu, Sep 02, 2010 at 09:22:20AM -0700, Tony Lindgren wrote:
+> > > >From 8b22546af2ba9a0d96c2f419bfcec1f3c01a414d Mon Sep 17 00:00:00 2001
+> > > From: Tony Lindgren <tony@atomide.com>
+> > > Date: Mon, 30 Aug 2010 14:03:28 -0700
+> > > Subject: [PATCH 5/6] ARM: Don't set TLB ops broadcasting on UP ARMv7
+> > > 
+> > > Don't set TLB ops broadcasting on UP ARMv7. Looks like these bits
+> > > are also different on A8 and A9.
+> > 
+> > This is already taken care of.
+> > 
+> > > diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+> > > index 07fc660..51a063d 100644
+> > > --- a/arch/arm/mm/proc-v7.S
+> > > +++ b/arch/arm/mm/proc-v7.S
+> > > @@ -191,7 +191,8 @@ __v7_setup:
+> > >  	UP(mov	r0, #(1 << 6))			@ fake it for UP
+> > 
+> > If it's UP, we set r0 to 1 << 6, which...
+> > 
+> > >  	tst	r0, #(1 << 6)			@ SMP/nAMP mode enabled?
+> > 
+> > means this test produces a non-zero result.
+> > 
+> > >  	orreq	r0, r0, #(1 << 6) | (1 << 0)	@ Enable SMP/nAMP mode and
+> > > -	mcreq	p15, 0, r0, c1, c0, 1		@ TLB ops broadcasting
+> > 
+> > And therefore these instructions will not be executed.
+> 
+> AFAIK these bits are different for Cortex-A8 and A9, bit 6 is IBE on A8.
 
-> On 10 Aug 27, Kevin Hilman wrote:
->> vishwanath.sripathy@linaro.org writes:
->> 
->> > From: Vishwanath BS <vishwanath.sripathy@linaro.org>
->> >
->> > This patch has instrumentation code for measuring latencies for
->> > various CPUIdle C states for OMAP. Idea here is to capture the
->> > timestamp at various phases of CPU Idle and then compute the sw
->> > latency for various c states.  For OMAP, 32k clock is chosen as
->> > reference clock this as is an always on clock.  wkup domain memory
->> > (scratchpad memory) is used for storing timestamps.  One can see the
->> > worstcase latencies in below sysfs entries (after enabling
->> > CONFIG_CPU_IDLE_PROF in .config). This information can be used to
->> > correctly configure cpu idle latencies for various C states after
->> > adding HW latencies for each of these sw latencies.
->> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/actual_latency
->> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/sleep_latency
->> > /sys/devices/system/cpu/cpu0/cpuidle/state<n>/wkup_latency
->> >
->> > THis patch is tested on OMAP ZOOM3 using kevin's pm branch.
->> >
->> > Signed-off-by: Vishwanath BS <vishwanath.sripathy@linaro.org>
->> > Cc: linaro-dev@lists.linaro.org
->> 
->> While I have many problems with the implementation details, I won't go
->> into them because in general this is the wrong direction for kernel
->> instrumentation.
->> 
->> This approach adds quite a bit overhead to the idle path itself.  With
->> all the reads/writes from/to the scratchpad(?) and all the multiplications
->> and divides in every idle path, as well as the wait-for-idlest in both
->> the sleep and resume paths.  The additional overhead added is non trivial.
->> 
->> Basically, I'd like get away from custom instrumentation and measurement
->> coded inside the kernel itself.  This kind of code never stops growing
->> and morphing into ugliness, and rarely scales well when new SoCs are
->> added.
->> 
->> With ftrace/perf, we can add tracepoints at specific points and use
->> external tools to extract and analyze the delays, latencys etc.
->> 
->> The point is to keep the minimum possible in the kernel: just the
->> tracepoints we're interested in.   The rest (calculations, averages,
->> analysis, etc.) does not need to be in the kernel and can be done easier
->> and with more powerful tools outside the kernel.
->
-> Kevin,
->
-> I agree. We discussed this a little in our weekly meeting. Vishwa's main
-> concern was the lack of ability to instrument the last bit of SRAM code.
->
-> I have a feeling that even with caches on when we enter this code, we won't
-> see too much variance in the latency to execute this bit of code. Vishwa is
-> going to confirm that now. If that hypothesis is true, we can indeed move to
-> using tracepoints in the idle path and use external tools to track latency.
->
-> Even if it isn't true, the rest of the idle path could still contain tracepoints.
-
-Yes.
-
-As Santosh pointed out, that low-level code be a fixed latency and can
-likely be profiled once.
-
-That being said, it should still be possible to trace the low-level code.
-Jean Pihet and I discussed implementing a "fake" tracepoint in SRAM
-during that part of the execution which could then be copied out later.
-This would minimize the custom tracing code and allow us to continue to
-use userspace tools to analyze the entire path.
-
-Jean is investigating this now.
-
-Kevin
-
-
+So what?
