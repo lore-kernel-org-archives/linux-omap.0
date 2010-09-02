@@ -1,50 +1,82 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage domain
- instance in the voltage driver.
-Date: Thu, 02 Sep 2010 06:16:26 -0500
-Message-ID: <6adbfbc898429de0777fa39ff2ec6fdd@secure211.sgcpanel.com>
-References: <1282130412-12027-1-git-send-email-thara@ti.com>	<1282130412-12027-2-git-send-email-thara@ti.com>	<87eiddgjr7.fsf@deeprootsystems.com> <20100902094327.31a96174@surf> <4C7F5DB4.70306@ti.com> <38353bada7f16740e8008e6d3f2748bd@secure211.sgcpanel.com> <4C7F799D.8020207@ti.com> <2aa29e22fb1502b14ac7850a12e68e5b@secure211.sgcpanel.com> <4C7F7F38.1050709@ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCHv2 6/13] dmtimer: hwmod: OMAP2PLUS: device registration
+Date: Thu, 2 Sep 2010 18:02:05 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03291AD64A@dbde02.ent.ti.com>
+References: <1281800238-15135-1-git-send-email-tarun.kanti@ti.com>
+	<87zkwcq3g5.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03291AD382@dbde02.ent.ti.com>
+ <87d3sxmqhp.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:48802 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094Ab0IBLQb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 07:16:31 -0400
-In-Reply-To: <4C7F7F38.1050709@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58174 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752167Ab0IBMcS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 08:32:18 -0400
+In-Reply-To: <87d3sxmqhp.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Gopinath, Thara" <thara@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Hi,
+Kevin,
 
-On Thu, 2 Sep 2010 05:40:56 -0500, Nishanth Menon <nm@ti.com> wrote:
-> Felipe Balbi had written, on 09/02/2010 05:28 AM, the following:
->> Hi,
->> 
->> On Thu, 2 Sep 2010 05:17:01 -0500, Nishanth Menon <nm@ti.com> wrote:
->>> note - if we allow unlock of irqs at this point, we cannot predictably
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Wednesday, September 01, 2010 9:00 PM
+> To: DebBarma, Tarun Kanti
+> Cc: linux-omap@vger.kernel.org; Gopinath, Thara; Basak, Partha; Nayak,
+> Rajendra; Paul Walmsley; Tony Lindgren
+> Subject: Re: [PATCHv2 6/13] dmtimer: hwmod: OMAP2PLUS: device registration
+> 
+> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+> 
+> [...]
+> 
+> >> > +static void omap2_dm_timer_enable(struct platform_device *pdev)
+> >> > +{
+> >> > +   if (!pdev) {
+> >> > +           dev_err(&pdev->dev, "%s: invalid pdev\n", __func__);
+> >> > +           return;
+> >> > +   }
+> >> > +   pm_runtime_get_sync(&pdev->dev);
+> >> > +}
+> >> > +
+> >> > +static void omap2_dm_timer_disable(struct platform_device *pdev)
+> >> > +{
+> >> > +   if (!pdev) {
+> >> > +           dev_err(&pdev->dev, "%s: invalid pdev\n", __func__);
+> >> > +           return;
+> >> > +   }
+> >> > +   pm_runtime_put_sync(&pdev->dev);
+> >> > +}
+> >>
+> >> There is no need for these functions.  Driver should be calling runtime
+> >> PM API directly.
+> >>
+> 
+> > In that case, driver will have to make call by directly accessing
+> > acquired timer's internal variables as shown below.
+> > pm_runtime_put_sync(&timer->pdev->dev);
+> >
+> > However, I believe we would like other drivers' perform all operations
+> > on acquired timers through exported APIs and keep the
+> > pm_runtime_put_sync() call internal to exported APIs as is the case
+> > current implementation.
+> >
+> > Let me know if I am missing anything here!!
+> 
+> These new functions are not part of the exported API.  You have made
+> them static, and part of the device layer.
+> 
+> These are created as wrappers to pm_runtime_* API which are then called
+> by the driver layer.  What I suggest is not creating these functions
+> (and the pdata-> function pointers to wrap them) but instead calling the
+> runtime PM api directly instead of using the pdata-> function pointers.
+> 
+OK.
 
->>> progress down the logic.
->> 
->> spin_unlock() would not re-enable IRQs, would it ? Isn't it so that
->> spin_unlock_irq() would be the one re-enabling IRQ ?
->> 
-> oopss.. my bad.. if we were to do regulator based implementation of 
-> voltage framework, looking closer at the code, driver/regulator/core.c 
-> -> rdev->mutex is held for set_voltage, set_mode and all entry functions
+> Kevin
 
-> for regulator operations -> this would be the only concern i have.. I 
-> may be barking up the wrong tree here, but i think if i read 
-> Documentation/mutex-design.txt right, "contexts such as tasklets and 
-> timers" and "mutexes may not be used in hardware or software interrupt" 
-> means to me dont do this in irq locked context such as the sitn in 
-> omap_sram_idle?
-
-true, some re-work would have to be done if you want to use requlator
-framework.
-
--- 
-balbi
