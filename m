@@ -1,123 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/6] ARM: Add inline function smp_cpu() for early init
- testing
-Date: Thu, 2 Sep 2010 19:22:01 -0700
-Message-ID: <20100903022201.GI11597@atomide.com>
-References: <20100819102025.GA32151@n2100.arm.linux.org.uk>
- <20100820120622.GL25742@atomide.com>
- <20100830225527.GC11597@atomide.com>
- <20100902133637.GJ26319@n2100.arm.linux.org.uk>
- <20100902161659.GJ11597@atomide.com>
- <20100902161846.GK11597@atomide.com>
- <20100902170830.GW26319@n2100.arm.linux.org.uk>
- <20100902174244.GU11597@atomide.com>
- <20100902192659.GW11597@atomide.com>
- <20100903000817.GG11597@atomide.com>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [PATCH V2] OMAP: DSS2: don't power off a panel twice
+Date: Fri, 03 Sep 2010 10:52:46 +0800
+Message-ID: <4C8062FE.9090004@windriver.com>
+References: <1281496753-17471-1-git-send-email-stanley.miao@windriver.com> <1282041251.2348.24.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="cDtQGJ/EJIRf/Cpq"
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64771 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754682Ab0ICCWN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 22:22:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20100903000817.GG11597@atomide.com>
+Received: from mail.windriver.com ([147.11.1.11]:44674 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755003Ab0ICCx3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Sep 2010 22:53:29 -0400
+In-Reply-To: <1282041251.2348.24.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lwalkera@ieee.org" <lwalkera@ieee.org>, "lwalkera@gmail.com" <lwalkera@gmail.com>, bryan.wu@canonical.com, Mathieu Poirier <mathieu.poirier@canonical.com>
 
+Hi, Tomi,
 
---cDtQGJ/EJIRf/Cpq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Tomi Valkeinen wrote:
+> <snip>
+>
+> Otherwise this looks fine, except that panel-taal.c does not need
+> modifications, as it already handles this case.
+>   
 
-* Tony Lindgren <tony@atomide.com> [100902 17:00]:
-> * Tony Lindgren <tony@atomide.com> [100902 12:20]:
-> 
-> Heh, turns out there's a bit of a bug in the code snippet above :) It should
-> be !((mpidr >> 30) & 1) instead, otherwise it always returns 0.
+I will send a V3 to remove the panel-taal.c part.
 
-This too can check for value of 2. Also we probably want to do the
-CPU type checks too. Updated patch below.
+> Also, at some point I (or somebody else =) should think how to do proper
+> locking for the panel drivers. Currently it's rather broken, and, for
+> example, enabling and disabling a panel at the same time will cause
+> problems. Except for panel-taal, which uses its own lock.
+>   
 
-Tony
+First, I don't think there is any occasion where you need to enable and 
+disable a panel at the same time.
+If so, what kind of result do you want ? enabled or disabled ?
 
---cDtQGJ/EJIRf/Cpq
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="smp-cpu.patch"
+Second, now the dssdev->state can do the lock job properly. It can 
+ensure only one function can run if both disable()
+and enable are called at the same time.
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 30 Aug 2010 14:00:54 -0700
-Subject: [PATCH] ARM: Add inline function smp_cpu() for early init testing
+Stanley.
 
-Add inline function smp_cpu() for early init checks, and
-change build_mem_type_table to use it.
+>  Tomi
+>
+>
+>
+>   
 
-Inline function copied from cpu_is_part_of_mp_system() by
-Will Deacon <will.deacon@arm.com>.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/include/asm/smp_plat.h b/arch/arm/include/asm/smp_plat.h
-index 8db3512..50a4f0b 100644
---- a/arch/arm/include/asm/smp_plat.h
-+++ b/arch/arm/include/asm/smp_plat.h
-@@ -39,4 +39,24 @@ static inline int cache_ops_need_broadcast(void)
- #define UP(instr...)	_str(instr)
- #endif
- 
-+static inline int smp_cpu(void)
-+{
-+        u32 val;
-+
-+	val = read_cpuid(CPUID_ID);
-+
-+	/* Check for ARM CPU */
-+	if ((val & 0xff000000) != 0x41000000)
-+		return 0;
-+
-+	/* Check for ARMv6 or 7 */
-+	if ((val & 0x00070000) != 0x00070000)
-+		return 0;
-+
-+	/* Check MPIDR */
-+        asm ("mrc p15, 0, %0, c0, c0, 5" : "=r" (val));
-+
-+        return (val >> 30) == 2;
-+}
-+
- #endif
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 6e1c4f6..2bfaefd 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -430,15 +430,17 @@ static void __init build_mem_type_table(void)
- 		/*
- 		 * Mark memory with the "shared" attribute for SMP systems
- 		 */
--		user_pgprot |= L_PTE_SHARED;
--		kern_pgprot |= L_PTE_SHARED;
--		vecs_pgprot |= L_PTE_SHARED;
--		mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
--		mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
--		mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
--		mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
--		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
--		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		if (smp_cpu()) {
-+			user_pgprot |= L_PTE_SHARED;
-+			kern_pgprot |= L_PTE_SHARED;
-+			vecs_pgprot |= L_PTE_SHARED;
-+			mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
-+			mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
-+			mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		}
- #endif
- 	}
- 
-
---cDtQGJ/EJIRf/Cpq--
