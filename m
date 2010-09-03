@@ -1,34 +1,90 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/6] ARM: Add inline function smp_cpu() for early init
-	testing
-Date: Fri, 3 Sep 2010 10:02:41 +0100
-Message-ID: <20100903090241.GI26319@n2100.arm.linux.org.uk>
-References: <20100830225527.GC11597@atomide.com> <20100902133637.GJ26319@n2100.arm.linux.org.uk> <20100902161659.GJ11597@atomide.com> <20100902161846.GK11597@atomide.com> <20100902170830.GW26319@n2100.arm.linux.org.uk> <20100902174244.GU11597@atomide.com> <20100902192659.GW11597@atomide.com> <20100903000817.GG11597@atomide.com> <20100903022201.GI11597@atomide.com> <004601cb4b46$2bf3c120$83db4360$@deacon@arm.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH] dmtimer: hwmod: add omap2420 database
+Date: Fri, 3 Sep 2010 14:33:39 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402781CE640@dbde02.ent.ti.com>
+References: <1281798868-14599-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51711 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752752Ab0ICJCz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 05:02:55 -0400
-Content-Disposition: inline
-In-Reply-To: <004601cb4b46$2bf3c120$83db4360$@deacon@arm.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33939 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754432Ab0ICJDs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 05:03:48 -0400
+In-Reply-To: <1281798868-14599-1-git-send-email-tarun.kanti@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: 'Tony Lindgren' <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Basak, Partha" <p-basak2@ti.com>, "Gopinath, Thara" <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-On Fri, Sep 03, 2010 at 09:58:23AM +0100, Will Deacon wrote:
-> Your patches are turning up as attachments here, so I can't comment
-> inline. The only problem I can see is for SMP v6 platforms (ARM11MPCore)
-> where the MPIDR is actually the `CPU ID register' with bits 31:12 set to
-> zero, so we'll say it's a UP core.
-> 
-> Since 11MPCore is the only ARM SMP v6 processor and you're checking
-> the implementor ID anyway, it might be easier to check for the 11MPCore
-> explicitly, ((read_cpuid_id() & 0xfff0) == 0xB020) rather than check for v6/v7.
-> 
-> Or we could just ignore v6 for now.
 
-We can't.  We need to get this correct so the head.S code can also get it
-right.
+Tarun,
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> DebBarma, Tarun Kanti
+> Sent: Saturday, August 14, 2010 8:44 PM
+> To: linux-omap@vger.kernel.org
+> Cc: DebBarma, Tarun Kanti; Basak, Partha; Gopinath, Thara; 
+> Paul Walmsley; Kevin Hilman; Tony Lindgren
+> Subject: [PATCH] dmtimer: hwmod: add omap2420 database
+> 
+> This patch adds hwmod database for omap2420.
+> 
+> Signed-off-by: Partha Basak <p-basak2@ti.com>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  597 
+> ++++++++++++++++++++++++++++
+>  1 files changed, 597 insertions(+), 0 deletions(-)
+>  mode change 100644 => 100755 
+> arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c 
+> b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> old mode 100644
+> new mode 100755
+> index 3cc768e..7f87924
+> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> @@ -15,6 +15,7 @@
+>  #include <mach/irqs.h>
+>  #include <plat/cpu.h>
+>  #include <plat/dma.h>
+> +#include <plat/dmtimer.h>
+>  
+>  #include "omap_hwmod_common_data.h"
+>  
+> @@ -121,6 +122,590 @@ static struct omap_hwmod 
+> omap2420_l4_wkup_hwmod = {
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+>  	.flags		= HWMOD_NO_IDLEST,
+>  };
+> +/* Timer Common */
+> +static struct omap_hwmod_class_sysconfig omap2420_timer_sysc = {
+> +	.rev_offs	= 0x0000,
+> +	.sysc_offs	= 0x0010,
+> +	.syss_offs	= 0x0014,
+> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
+> +			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
+> +			   SYSC_HAS_AUTOIDLE),
+> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_fields    = &omap_hwmod_sysc_type1,
+> +};
+> +
+> +static struct omap_hwmod_class omap2420_timer_hwmod_class = {
+> +	.name = "timer",
+> +	.sysc = &omap2420_timer_sysc,
+> +	.rev = OMAP_TIMER_IP_LEGACY,
+
+Applying only this patch breaks build. Take care to address dependenices
+for each patch in the series so that, git bisect works with any patch in the
+series.
+
+-Manjunath
