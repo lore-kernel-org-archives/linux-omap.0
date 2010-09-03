@@ -1,38 +1,37 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 00/10] split out emac cpdma and mdio for reuse
-Date: Fri, 03 Sep 2010 11:32:42 -0700
-Message-ID: <87eidaznhx.fsf@deeprootsystems.com>
-References: <1283465008-18606-1-git-send-email-cyril@ti.com>
-	<87eida3fl9.fsf@deeprootsystems.com> <4C813C7F.5090602@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/6] ARM: Fix v7wbi_tlb_flags for SMP on UP
+Date: Fri, 3 Sep 2010 20:36:45 +0100
+Message-ID: <20100903193645.GB2978@n2100.arm.linux.org.uk>
+References: <20100830225527.GC11597@atomide.com> <20100902133637.GJ26319@n2100.arm.linux.org.uk> <20100902161659.GJ11597@atomide.com> <20100902162039.GM11597@atomide.com> <20100902162537.GU26319@n2100.arm.linux.org.uk> <20100902163453.GR11597@atomide.com> <20100902234746.GF11597@atomide.com> <20100903090734.GJ26319@n2100.arm.linux.org.uk> <20100903091029.GK26319@n2100.arm.linux.org.uk> <20100903170403.GM11597@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:42617 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753211Ab0ICScp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 14:32:45 -0400
-In-Reply-To: <4C813C7F.5090602@ti.com> (Cyril Chemparathy's message of "Fri,
-	03 Sep 2010 14:20:47 -0400")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35525 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756583Ab0ICTgx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 15:36:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20100903170403.GM11597@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: cyril@ti.com
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Govindarajan, Sriramakrishnan" <srk@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Parrot, Benoit" <bparrot@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>
 
-Cyril Chemparathy <cyril@ti.com> writes:
+On Fri, Sep 03, 2010 at 10:04:03AM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100903 02:02]:
+> > On Fri, Sep 03, 2010 at 10:07:34AM +0100, Russell King - ARM Linux wrote:
+> > > On Thu, Sep 02, 2010 at 04:47:46PM -0700, Tony Lindgren wrote:
+> > > > Correction, only boots on SMP hardawre. On UP hardware I still
+> > > > need the following patch.
+> > > 
+> > > This should fix that properly.
+> > 
+> > Correction - the order of the config tests was wrong.
+> 
+> OK that works now.
+> 
+> Looks like your new patch is missing smp_midr.h BTW.
 
-> Hi Kevin,
->
-> [...]
->>> Although am3517 (omap) board support code has been updated as needed,
->>> emac does not work on this platform.
->> 
->> Just to clarify... did EMAC work on AM3517 before this series?
->
-> No.  It didn't work before this series.  To get AM3517 EMAC working, the
-> driver needs another patch to enable the interface clock in addition to
-> the functional clock.
-
-Thanks for the clarification.
-
-Kevin
-
+Damn git.  Hate it when keeping patches external to git, even in git diff
+form.  Luckily the file is just sitting around in my tree rather than
+having been deleted entirely...
