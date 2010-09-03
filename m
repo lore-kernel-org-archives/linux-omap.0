@@ -1,25 +1,42 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 00/10] split out emac cpdma and mdio for reuse
-Date: Fri, 03 Sep 2010 10:24:34 -0700
-Message-ID: <87eida3fl9.fsf@deeprootsystems.com>
-References: <1283465008-18606-1-git-send-email-cyril@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage
+ domain instance in the voltage driver.
+Date: Fri, 3 Sep 2010 18:30:47 +0100
+Message-ID: <20100903173046.GA32226@rakim.wolfsonmicro.main>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+ <1282130412-12027-2-git-send-email-thara@ti.com>
+ <87eiddgjr7.fsf@deeprootsystems.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03291AD889@dbde02.ent.ti.com>
+ <87r5ha3hlk.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1283465008-18606-1-git-send-email-cyril@ti.com> (Cyril
-	Chemparathy's message of "Thu, 2 Sep 2010 18:03:18 -0400")
-Sender: netdev-owner@vger.kernel.org
-To: Cyril Chemparathy <cyril@ti.com>
-Cc: netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, nsekhar@ti.com, srk@ti.com, omar.ramirez@ti.com, bparrot@ti.com
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:43392 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753821Ab0ICRat (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 13:30:49 -0400
+Content-Disposition: inline
+In-Reply-To: <87r5ha3hlk.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Cyril Chemparathy <cyril@ti.com> writes:
+On Fri, Sep 03, 2010 at 09:41:11AM -0700, Kevin Hilman wrote:
 
-[...]
+> Like you, I'm no expert on the regulator framework internals, but it
+> appears to have a pretty thorough system of constraints management that
+> upon first glance seems to be a good fit for what we need.  It may need
+> to be extended, but I would rather see us enhance the regulator
+> framework than re-invent the constraints management.
 
-> Although am3517 (omap) board support code has been updated as needed,
-> emac does not work on this platform.
+This seems reasonable, the only thing I'm wary of with this stuff is
+adding things to manage anything outside voltages since I'm not
+convinced that the requirements of different processors for other things
+are sufficiently well understood to make a simple abstraction.  
 
-Just to clarify... did EMAC work on AM3517 before this series?
-
-Kevin
+The only thing I can think you might need to do if this is just straight
+voltage setting is re-add support for multiple consumers setting
+voltages simultaneously (there was someone from Qualcomm talking about
+that as well but I didn't see any patches from him) but the API side is
+all there and the core support ought to be relatively straightforward.
