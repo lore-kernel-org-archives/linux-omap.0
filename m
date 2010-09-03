@@ -1,75 +1,51 @@
-From: =?iso-8859-1?b?TWFzdGVyQ2FyZK4=?= International /
-	 =?iso-8859-1?b?TWljcm9zb2Z0rg==?= Corporation UK
-	<info@mastercard.co.uk>
-Subject: Estimado Ganador en efectivo
-Date: Fri, 03 Sep 2010 07:32:16 -0300
-Message-ID: <20100903073216.12377kelai10gneo@correo.fmed.edu.uy>
-Reply-To: helen-thomason@live.com
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/3] omap3/omap4 hsmmc: Register offset handling
+Date: Fri, 03 Sep 2010 08:44:30 -0700
+Message-ID: <87eida4ysh.fsf@deeprootsystems.com>
+References: <23570.10.24.255.18.1283190527.squirrel@dbdmail.itg.ti.com>
+	<4C80A76F.3060108@ti.com>
+	<AANLkTi=OW_sykGsf8u8Gi94ApLCYjiR+xS4aEu1Tf3pC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from minerva.fmed.edu.uy ([164.73.144.2]:57608 "EHLO
-	minerva.fmed.edu.uy" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405Ab0ICM7S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 08:59:18 -0400
-Content-Disposition: inline
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:52745 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752362Ab0ICPog convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 11:44:36 -0400
+In-Reply-To: <AANLkTi=OW_sykGsf8u8Gi94ApLCYjiR+xS4aEu1Tf3pC@mail.gmail.com>
+	(kishore kadiyala's message of "Fri, 3 Sep 2010 13:51:39 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>
 
+kishore kadiyala <kishorek.kadiyala@gmail.com> writes:
 
+> Hi Benoit
+>
+> <snip>
+>
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (!(omap_readl(base + reg_off)&
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCHS_SYSSTATUS_=
+RESETDONE))
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpu_relax();
+>>
+>> Why does that series not seems to be based on your hwmod migration? =
+The
+>> reset is fully handle by the hwmod framework now.
+>
+> Agree. But Kevin has  suggested to post this patch  independent of hw=
+mod.
+> Does this patch has to go in hwmod series ?
 
-MASTERCARD =AE / MICROSOFT =AE MEGA JACKPOT INTERNACIONAL.
-Director Ejecutivo: Sr. Chris Monteiro.
+I suggested that this register conversion patch could be merged before
+the hwmod conversion as it is independent of that.
 
+The hwmod conversion (based on this series) would then just remove the
+reset from here.
 
-Estimado Ganador en efectivo,
-
-
-Su direcci=F3n de correo electr=F3nico fue seleccionado y confirmado po=
-r =20
-nuestro copatrocinador Microsoft Internacional, a trav=E9s de su =20
-software m=E1s reciente de Internet. Usted tiene por lo tanto sido =20
-aprobado por MasterCard =AE Internacional / Microsoft =AE Corporation d=
-el =20
-Reino Unido la suma de =A3 952,000.00 GBP (novecientos cincuenta y dos =
-=20
-mil libras esterlinas Grande). Estos fondos son en efectivo, mediante =20
-abono en un cheque v=E1lido, con una Reg. ganar. MCIMJ N =BA: 36925/075=
-1. =20
-Estar informado de que su premio ha sido asegurado y listo para =20
-entregar el dinero a usted. Usted est=E1 en contacto con el asignado =20
-oficial de reclamaciones con su informaci=F3n requerida es:
-
-
-Nombre: Sra. Helen Thomason
-E-mail: helenthomasson@live.com
-Departamento de Reclamaciones de Verificaci=F3n.
-
-
-No enviar por encima de Administrador de Reclamaciones, a la vez con =20
-este Reclamaciones Requisitos: 1. Nombre completo: 2. Direcci=F3n: 3. =20
-Nacionalidad: 4. Edad: 5.Ocupaci=F3n: Naturaleza del Trabajo: 6. =20
-Tel=E9fono: Fax: 7. Estado de origen: Pa=EDs: 8.Sexo: 9. Ganar Email =20
-Direcci=F3n:
-
-
-Modo de env=EDo de remesas Premio: Entrega mensajero de su cheque =20
-certificado ganadora y otros documentos de manera segura ganadora a =20
-usted.
-
-
-
-Le saluda atentamente,
-El Dr. Mu=F1oz Margarita.
-Servicio de Atenci=F3n al Cliente Jefe.
-Copyright =A9 2010 MasterCard Inc Reino Unido.
-
-----------------------------------------------------------------
-=46acultad de Medicina - Universidad de la Rep=C3=BAblica
-Montevideo Uruguay
-
+Kevin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
