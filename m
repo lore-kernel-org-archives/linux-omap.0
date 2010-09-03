@@ -1,56 +1,95 @@
-From: "Will Deacon" <will.deacon@arm.com>
-Subject: RE: [PATCH 1/6] ARM: Add inline function smp_cpu() for early
-	init	testing
-Date: Fri, 3 Sep 2010 10:07:20 +0100
-Message-ID: <47263.8991698206$1283504881@news.gmane.org>
-References: <20100830225527.GC11597@atomide.com>
-	<20100902133637.GJ26319@n2100.arm.linux.org.uk>
-	<20100902161659.GJ11597@atomide.com>
-	<20100902161846.GK11597@atomide.com>
-	<20100902170830.GW26319@n2100.arm.linux.org.uk>
-	<20100902174244.GU11597@atomide.com>
-	<20100902192659.GW11597@atomide.com>
-	<20100903000817.GG11597@atomide.com>
-	<20100903022201.GI11597@atomide.com>
-	<004601cb4b46$2bf3c120$83db4360$@deacon@arm.com>
-	<20100903090241.GI26319@n2100.arm.linux.org.uk>
+From: kishon <a0393678@ti.com>
+Subject: Re: [RFC: PATCH] OMAP: hwmod: New API to modify the autoidle bits
+ of sysconfig register
+Date: Fri, 03 Sep 2010 14:38:41 +0530
+Message-ID: <4C80BB19.4020004@ti.com>
+References: <1282823155-18328-1-git-send-email-kishon@ti.com> <878w3o9l6f.fsf@deeprootsystems.com> <4C7C91D8.5030809@ti.com> <958980504a3ab43f3a7c5d86e968ea67@secure211.sgcpanel.com> <4C7D148A.8040403@ti.com> <4C7D2AD8.9050808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20100903090241.GI26319@n2100.arm.linux.org.uk>
-Content-Language: en-gb
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
-Cc: 'Tony Lindgren' <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43020 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756371Ab0ICJI7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Sep 2010 05:08:59 -0400
+In-Reply-To: <4C7D2AD8.9050808@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Felipe Balbi <me@felipebalbi.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, Paul Walmsley <paul@pwsan.com>, "Basak, Partha" <p-basak2@ti.com>
 
-> On Fri, Sep 03, 2010 at 09:58:23AM +0100, Will Deacon wrote:
-> > Your patches are turning up as attachments here, so I can't comment
-> > inline. The only problem I can see is for SMP v6 platforms (ARM11MPCore)
-> > where the MPIDR is actually the `CPU ID register' with bits 31:12 set to
-> > zero, so we'll say it's a UP core.
-> >
-> > Since 11MPCore is the only ARM SMP v6 processor and you're checking
-> > the implementor ID anyway, it might be easier to check for the 11MPCore
-> > explicitly, ((read_cpuid_id() & 0xfff0) == 0xB020) rather than check for v6/v7.
-> >
-> > Or we could just ignore v6 for now.
-> 
-> We can't.  We need to get this correct so the head.S code can also get it
-> right.
 
-Damn. Then I guess we assume a core is UP unless it's an 11MPCore or a v7
-with the relevant mpidr bits set. Actually, special casing the 11MPCore
-means that we can use cpu_architecture() to check for v7 rather than masking
-out fields from the cpuid ourselves.
 
-Will
+On Tuesday 31 August 2010 09:46 PM, Cousson, Benoit wrote:
+> On 8/31/2010 4:41 PM, ABRAHAM, KISHON VIJAY wrote:
+>    
+>>
+>> On Tuesday 31 August 2010 01:43 PM, Felipe Balbi wrote:
+>>      
+>>> On Tue, 31 Aug 2010 10:53:36 +0530, kishon<a0393678@ti.com>    wrote:
+>>>
+>>>        
+>>>>         Though driver shouldn't be using hwmod directly, there is no
+>>>> corresponding API in omap_device to do the same. So we are planning to
+>>>>         store the omap_hwmod structure in platform_data during
+>>>> arch_initcall (in the callback to omap_hwmod_for_each_by_class). So
+>>>> whenever the
+>>>>         AUTOIDLE bits need to be reset or set, we pass the stored
+>>>> omap_hwmod structure to this API. Currently, the functions that needs
+>>>> AUTOIDLE
+>>>>         bit to be modified (omap_st_on, omap_st_off) resides in plat-omap.
+>>>>
+>>>>          
+>>> couldn't your API instead be something like:
+>>>
+>>> int omap_hwmod_set_autoidle(struct device *dev, u8 autoidle)
+>>> {
+>>> 	struct omap_hwmod *oh = dev_to_hwmod(dev);
+>>>
+>>> 	if (!oh)
+>>> 		return -ENODEV;
+>>> 	[...]
+>>>
+>>> 	return 0;
+>>> }
+>>>
+>>>        
+>>        Balbi,
+>>            I couldn't find "dev_to_hwmod()" function. Do you actually mean
+>> implementing dev_to_hwmod() function?
+>>        I created this API based on "omap_hwmod_set_slave_idlemode()"
+>> present in lo (omap_hwmod.c) for changing the smart idle bit
+>>        of SYSCONFIG register.
+>>
+>>        -Kishon
+>>      
+> That API does not exist. And since a device can contains several hwmods,
+> like in your case, this API cannot exist in that form.
+>
+> The real issue is that we do not want to expose any API relative to PRCM
+> management to the driver. Even if you hide that behind some pdata, it is
+> still the driver that will call it.
+>
+> I know that some IPs like MUSB or McBSP requires some unusual idle mode
+> change due to HW bugs, but in general, you should try to find a better
+> way to handle that in the core framework if possible.
+>
+>    
+     Benoit,
+
+     I see the trend of using specific flags in hwmod which gets set
+     in pm_runtime_get_sync() for scenarios like this where auto idle
+     bits or smart idle bits need to be set/reset at runtime. The problem
+     in the case of sidetone in MCBSP is that we don't call get_sync or
+     put_sync for sidetone separately.
+     There is only two options we can think of for sidetone
+         1) Always disable autoidle for sidetone (I'm not sure if this will
+     have some power implications).
+         2) Use of the above API.
+
+     Would be helpful if you can also suggest us some other options as well.
+
+     -Kishon
+> Regards,
+> Benoit
+>    
