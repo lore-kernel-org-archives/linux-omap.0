@@ -1,55 +1,51 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage
- domain instance in the voltage driver.
-Date: Fri, 3 Sep 2010 19:20:52 +0100
-Message-ID: <20100903182052.GB32226@rakim.wolfsonmicro.main>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage domain instance in the voltage driver.
+Date: Fri, 03 Sep 2010 11:27:50 -0700
+Message-ID: <87r5haznq1.fsf@deeprootsystems.com>
 References: <1282130412-12027-1-git-send-email-thara@ti.com>
- <1282130412-12027-2-git-send-email-thara@ti.com>
- <87eiddgjr7.fsf@deeprootsystems.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB03291AD889@dbde02.ent.ti.com>
- <87r5ha3hlk.fsf@deeprootsystems.com>
- <20100903173046.GA32226@rakim.wolfsonmicro.main>
- <87pqwu1zcw.fsf@deeprootsystems.com>
+	<1282130412-12027-2-git-send-email-thara@ti.com>
+	<87eiddgjr7.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03291AD889@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:35265 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757189Ab0ICSU4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 14:20:56 -0400
-Content-Disposition: inline
-In-Reply-To: <87pqwu1zcw.fsf@deeprootsystems.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:59413 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757276Ab0ICS1y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 14:27:54 -0400
+Received: by qyk36 with SMTP id 36so270961qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 03 Sep 2010 11:27:53 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03291AD889@dbde02.ent.ti.com>
+	(Thara Gopinath's message of "Fri, 3 Sep 2010 12:39:21 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>
 
-On Fri, Sep 03, 2010 at 11:00:31AM -0700, Kevin Hilman wrote:
-> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+"Gopinath, Thara" <thara@ti.com> writes:
 
-> > The only thing I can think you might need to do if this is just straight
-> > voltage setting is re-add support for multiple consumers setting
-> > voltages simultaneously 
+[...]
 
-> Yeah, that sounds like what we need.
+> I agree probably regulator framework would be 
+> the best place for this but then IMO regulator framework needs a lot of
+> changes to support the kind of use-counting we need in the voltage layer.
+> To start with regulator_get  keeps the use counting only for enabling or
+> disabling a regulator. It does not have a mechanism of adding the requested
+> voltage to a list and picking out the highest among the added values.
+> regulator_set_voltage could be used to route the call to omap_scale_voltage
+> but then it is just a wrapper.
 
-> re-add? was it there at one point and removed?  Any pointers to the old
-> code?
+Hi Thara,
 
-It was present in the pre-merge regulator API which you can find in the
-bowels of:
+Based on feedback from regulator folks (and also remembering that we
+agreed to use the regulator framework as a later phase) let's keep your
+current approach as an interim solution, but knowing that we will
+eventually switch to use the regulator framework for handling multiple
+requests.
 
-   git://opensource.wolfsonmicro.com/linux-2.6-audioplus
+In the background Thomas and I will continue to research the changes
+needed in the regulator framework.
 
-but was removed to simplify review during the merge.  It's fairly simple
-to do, it's just that there's been no demand.
+Thanks,
 
-Essentially all that needs doing is that when regulator_set_voltage() is
-called instead of merging with the machine constraints and applying the
-setting immediately we store the constraints that are specified in the
-consumer then iterate over all enabled consumers applying all the
-constraints that they've set in addition to those from the machine.
-This results in a configuration which is the lowest possible voltage
-which satisfies all the constraints that have been supplied and for
-supplies with only one consumer it gives the same behaviour as we have
-currently.
+Kevin
