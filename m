@@ -1,8 +1,8 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 4/6] ARM: Do not call test_for_ipi or test_for_ltrirq on
- UP systems
-Date: Fri, 3 Sep 2010 17:30:57 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE7590@dbde02.ent.ti.com>
+Subject: RE: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for
+ multi-omap
+Date: Fri, 3 Sep 2010 17:36:27 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE759D@dbde02.ent.ti.com>
 References: <20100817141210.GJ12184@atomide.com>
  <20100817154035.GD20325@n2100.arm.linux.org.uk>
  <20100819073810.GR12184@atomide.com> <4C6CFBAF.6020407@canonical.com>
@@ -10,16 +10,16 @@ References: <20100817141210.GJ12184@atomide.com>
  <20100819102025.GA32151@n2100.arm.linux.org.uk>
  <20100820120622.GL25742@atomide.com> <20100830225527.GC11597@atomide.com>
  <20100902133637.GJ26319@n2100.arm.linux.org.uk>
- <20100902161659.GJ11597@atomide.com> <20100902162124.GN11597@atomide.com>
+ <20100902161659.GJ11597@atomide.com> <20100902162337.GP11597@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33625 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:33901 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757688Ab0ICMBe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 08:01:34 -0400
-In-Reply-To: <20100902162124.GN11597@atomide.com>
+	id S1753229Ab0ICMGy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 08:06:54 -0400
+In-Reply-To: <20100902162337.GP11597@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -29,55 +29,89 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel
 > -----Original Message-----
 > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
 > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Thursday, September 02, 2010 9:51 PM
+> Sent: Thursday, September 02, 2010 9:54 PM
 > To: Russell King - ARM Linux
 > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
 > Bryan Wu; Will Deacon
-> Subject: [PATCH 4/6] ARM: Do not call test_for_ipi or test_for_ltrirq on
-> UP systems
+> Subject: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for multi-omap
 > 
-> From f80d3cc85327ba84748646bb44a0c45103ef66bc Mon Sep 17 00:00:00 2001
+> From c04a57fc3b41d886f56ccdc27cf9758de0c95202 Mon Sep 17 00:00:00 2001
 > From: Tony Lindgren <tony@atomide.com>
-> Date: Wed, 1 Sep 2010 20:40:47 -0700
-> Subject: [PATCH 4/6] ARM: Do not call test_for_ipi or test_for_ltrirq on
-> UP systems
+> Date: Tue, 17 Aug 2010 13:33:23 +0300
+> Subject: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for multi-omap
 > 
-> Do not call test_for_ipi or test_for_ltrirq on UP systems.
-> 
-> Note that we can't put test_for_ltriq into SMP statement as
-> it's inlined into the code and the remaining lines of the
-> macro would still run before UP macro line.
+> Fix SMP on UP interrupt handling for multi-omap
 > 
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  arch/arm/kernel/entry-armv.S |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/omap-smp.c |   13 +++++++++----
+>  arch/arm/mach-omap2/timer-gp.c |    7 +++++--
+>  2 files changed, 14 insertions(+), 6 deletions(-)
 > 
-> diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
-> index bb2ef60..b8c1ec7 100644
-> --- a/arch/arm/kernel/entry-armv.S
-> +++ b/arch/arm/kernel/entry-armv.S
-> @@ -40,6 +40,11 @@
->  	bne	asm_do_IRQ
+> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-
+> smp.c
+> index 9e9f70e..a8bb49c 100644
+> --- a/arch/arm/mach-omap2/omap-smp.c
+> +++ b/arch/arm/mach-omap2/omap-smp.c
+> @@ -22,6 +22,7 @@
 > 
->  #ifdef CONFIG_SMP
-Do we need this code to be under " CONFIG_SMP" now ?
-> +#ifdef CONFIG_SMP_ON_UP
-> +	adr	lr, BSYM(2f)	@ set lr to end of macro for early return
-> +	SMP(nop)		@ continue on SMP hardware
-> +	UP(mov	pc, lr)		@ return early on UP
-> +#endif
->  	/*
->  	 * XXX
->  	 *
-> @@ -57,6 +62,7 @@
->  	adrne	lr, BSYM(1b)
->  	bne	do_local_timer
+>  #include <asm/cacheflush.h>
+>  #include <asm/localtimer.h>
+> +#include <asm/smp_plat.h>
+>  #include <asm/smp_scu.h>
+>  #include <mach/hardware.h>
+>  #include <mach/omap4-common.h>
+> @@ -114,11 +115,15 @@ void __init smp_init_cpus(void)
+>  {
+>  	unsigned int i, ncores;
+> 
+> -	/* Never released */
+> -	scu_base = ioremap(OMAP44XX_SCU_BASE, SZ_256);
+> -	BUG_ON(!scu_base);
+> +	if (smp_on_up()) {
+> +		ncores = 1;
+I am not sure if this is the correct approach. The SCU 
+hardware is not present other than OMAP4. So we should
+just return here when the silicon is not omap4.
+	if (!cpu_is_omap44xx())
+		return -ENODEV;
+> +	} else {
+> +		/* Never released */
+> +		scu_base = ioremap(OMAP44XX_SCU_BASE, SZ_256);
+> +		BUG_ON(!scu_base);
+> 
+> -	ncores = get_core_count();
+> +		ncores = get_core_count();
+> +	}
+> 
+>  	for (i = 0; i < ncores; i++)
+>  		set_cpu_possible(i, true);
+> diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-
+> gp.c
+> index 74fbed8..badf5f2 100644
+> --- a/arch/arm/mach-omap2/timer-gp.c
+> +++ b/arch/arm/mach-omap2/timer-gp.c
+> @@ -37,6 +37,7 @@
+>  #include <linux/clockchips.h>
+> 
+>  #include <asm/mach/time.h>
+> +#include <asm/smp_plat.h>
+>  #include <plat/dmtimer.h>
+>  #include <asm/localtimer.h>
+> 
+> @@ -228,8 +229,10 @@ static void __init omap2_gp_clocksource_init(void)
+>  static void __init omap2_gp_timer_init(void)
+>  {
+>  #ifdef CONFIG_LOCAL_TIMERS
+> -	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
+> -	BUG_ON(!twd_base);
+> +	if (smp_on_up()) {
+> +		twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
+> +		BUG_ON(!twd_base);
+> +	}
 >  #endif
-> +2:
->  #endif
+>  	omap_dm_timer_init();
 > 
->  	.endm
 > --
 > 1.7.1
 > 
