@@ -1,148 +1,140 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH 3/3] omap3/omap4 hsmmc: Register offset handling
-Date: Fri, 3 Sep 2010 13:51:39 +0530
-Message-ID: <AANLkTi=OW_sykGsf8u8Gi94ApLCYjiR+xS4aEu1Tf3pC@mail.gmail.com>
-References: <23570.10.24.255.18.1283190527.squirrel@dbdmail.itg.ti.com>
-	<4C80A76F.3060108@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 0/1] omap: fix section mismatch errors
+Date: Fri, 3 Sep 2010 13:59:51 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301F6BC8986@dbde02.ent.ti.com>
+References: <1281972664-1587-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4C80A76F.3060108@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40797 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752430Ab0ICI35 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 04:29:57 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o838Tr47013813
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 3 Sep 2010 03:29:56 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o838TrVX014551
+	for <linux-omap@vger.kernel.org>; Fri, 3 Sep 2010 13:59:53 +0530 (IST)
+In-Reply-To: <1281972664-1587-1-git-send-email-premi@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Benoit
+> -----Original Message-----
+> From: Premi, Sanjeev 
+> Sent: Monday, August 16, 2010 9:01 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Premi, Sanjeev
+> Subject: [PATCH 0/1] omap: fix section mismatch errors
+> 
+> Multiple section mismatches are observed with the latest
+> master. While attempting to fix the ones listed below, I
+> came across more instances.
+> 
+> The patch in this series fixes all these issues.
+> 
+> Though most of the changes are straight-forward, but for
+> these (for now annotated as ___refdata):
+> 
+> 1) arch/arm/plat-omap/cpu-omap.c
+>    Variable omap_driver may be required beyond __init
+>    lifetime.
+>  
+> 2) drivers/mfd/twl-core.c
+>    Variable twl_driver is used both in __init and __exit
+>    context.
+> 
+> There are few more similar errors in some of the modules
+> would submit them separately.
+> 
+> 
+> WARNING: vmlinux.o(.text+0x187c0): Section mismatch in 
+> reference from the function zoom_twl_gpio_setup() to the 
+> (unknown reference) .init.data:(unknown)
+> The function zoom_twl_gpio_setup() references
+> the (unknown reference) __initdata (unknown).
+> This is often because zoom_twl_gpio_setup lacks a __initdata
+> annotation or the annotation of (unknown) is wrong.
+> 
+> WARNING: vmlinux.o(.text+0x189b0): Section mismatch in 
+> reference from the function cm_t35_twl_gpio_setup() to the 
+> (unknown reference) .init.data:(unknown)
+> The function cm_t35_twl_gpio_setup() references
+> the (unknown reference) __initdata (unknown).
+> This is often because cm_t35_twl_gpio_setup lacks a __initdata
+> annotation or the annotation of (unknown) is wrong.
+> 
+> WARNING: vmlinux.o(.data+0x19e38): Section mismatch in 
+> reference from the variable h4_config to the (unknown 
+> reference) .init.data:(unknown)
+> The variable h4_config references
+> the (unknown reference) __initdata (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name 
+> the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+> 
+> WARNING: vmlinux.o(.data+0x1a670): Section mismatch in 
+> reference from the variable sdp2430_config to the (unknown 
+> reference) .init.data:(unknown)
+> The variable sdp2430_config references
+> the (unknown reference) __initdata (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name 
+> the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+> 
+> WARNING: vmlinux.o(.data+0x1ac50): Section mismatch in 
+> reference from the variable apollon_config to the (unknown 
+> reference) .init.data:(unknown)
+> The variable apollon_config references
+> the (unknown reference) __initdata (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name 
+> the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+> 
+> WARNING: vmlinux.o(.data+0x2e378): Section mismatch in 
+> reference from the variable omap_driver to the function 
+> .init.text:omap_cpu_init()
+> The variable omap_driver references
+> the function __init omap_cpu_init()
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name 
+> the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+> 
+> WARNING: vmlinux.o(.data+0x1b9dcc): Section mismatch in 
+> reference from the variable twl_driver to the function 
+> .init.text:twl_probe()
+> The variable twl_driver references
+> the function __init twl_probe()
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name 
+> the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console,
+> 
+> Sanjeev Premi (1):
+>   omap: fix section mismatch errors
+> 
+>  arch/arm/mach-omap2/board-2430sdp.c          |    2 +-
+>  arch/arm/mach-omap2/board-apollon.c          |    2 +-
+>  arch/arm/mach-omap2/board-cm-t35.c           |    8 ++++----
+>  arch/arm/mach-omap2/board-h4.c               |    2 +-
+>  arch/arm/mach-omap2/board-zoom-peripherals.c |   18 
+> +++++++++---------
+>  arch/arm/plat-omap/cpu-omap.c                |    2 +-
+>  drivers/mfd/twl-core.c                       |    2 +-
+>  7 files changed, 18 insertions(+), 18 deletions(-)
+> 
+> 
+Hi Tony,
 
-<snip>
+Did you look at this as well?
 
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (!(omap_readl(base + reg_off)&
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCHS_SYSSTATUS_R=
-ESETDONE))
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpu_relax();
->
-> Why does that series not seems to be based on your hwmod migration? T=
-he
-> reset is fully handle by the hwmod framework now.
-
-Agree. But Kevin has  suggested to post this patch  independent of hwmo=
-d.
-Does this patch has to go in hwmod series ?
-
->
-> BTW, when do you have to apply a reset in your case? Do you have the =
-need
-> for an API accessible by the driver?
-> I'm asking because for the moment the framework does not expose the r=
-eset
-> API and use it only at init time.
-
-Correct , I don't need reset API access in the driver.
-
-<snip>
-
->>
->> +enum {
->> + =A0 =A0 =A0 OMAP_HSMMC_SYSCONFIG =3D 0,
->> + =A0 =A0 =A0 OMAP_HSMMC_SYSSTATUS,
->> + =A0 =A0 =A0 OMAP_HSMMC_CON,
->> + =A0 =A0 =A0 OMAP_HSMMC_BLK,
->> + =A0 =A0 =A0 OMAP_HSMMC_ARG,
->> + =A0 =A0 =A0 OMAP_HSMMC_CMD,
->> + =A0 =A0 =A0 OMAP_HSMMC_RSP10,
->> + =A0 =A0 =A0 OMAP_HSMMC_RSP32,
->> + =A0 =A0 =A0 OMAP_HSMMC_RSP54,
->> + =A0 =A0 =A0 OMAP_HSMMC_RSP76,
->> + =A0 =A0 =A0 OMAP_HSMMC_DATA,
->> + =A0 =A0 =A0 OMAP_HSMMC_PSTATE,
->> + =A0 =A0 =A0 OMAP_HSMMC_HCTL,
->> + =A0 =A0 =A0 OMAP_HSMMC_SYSCTL,
->> + =A0 =A0 =A0 OMAP_HSMMC_STAT,
->> + =A0 =A0 =A0 OMAP_HSMMC_IE,
->> + =A0 =A0 =A0 OMAP_HSMMC_ISE,
->> + =A0 =A0 =A0 OMAP_HSMMC_CAPA,
->> + =A0 =A0 =A0 OMAP_HSMMC_REV,
->> + =A0 =A0 =A0 OMAP_HSMMC_CUR_CAPA,
->> + =A0 =A0 =A0 OMAP_HSMMC_FE,
->> + =A0 =A0 =A0 OMAP_HSMMC_ADMA_ES,
->> + =A0 =A0 =A0 OMAP_HSMMC_ADMA_SAL,
->> +};
->> +
->> +static const u16 omap3_mmc_reg_map[] =3D {
->> + =A0 =A0 =A0 [OMAP_HSMMC_SYSCONFIG] =3D 0x0010,
->> + =A0 =A0 =A0 [OMAP_HSMMC_SYSSTATUS] =3D 0x0014,
->> + =A0 =A0 =A0 [OMAP_HSMMC_CON] =3D 0x002C,
->> + =A0 =A0 =A0 [OMAP_HSMMC_BLK] =3D 0x0104,
->> + =A0 =A0 =A0 [OMAP_HSMMC_ARG] =3D 0x0108,
->> + =A0 =A0 =A0 [OMAP_HSMMC_CMD] =3D 0x010C,
->> + =A0 =A0 =A0 [OMAP_HSMMC_RSP10] =3D 0x0110,
->> + =A0 =A0 =A0 [OMAP_HSMMC_RSP32] =3D 0x0114,
->> + =A0 =A0 =A0 [OMAP_HSMMC_RSP54] =3D 0x0118,
->> + =A0 =A0 =A0 [OMAP_HSMMC_RSP76] =3D 0x011C,
->> + =A0 =A0 =A0 [OMAP_HSMMC_DATA] =3D 0x0120,
->> + =A0 =A0 =A0 [OMAP_HSMMC_PSTATE] =3D 0x0124,
->> + =A0 =A0 =A0 [OMAP_HSMMC_HCTL] =3D 0x0128,
->> + =A0 =A0 =A0 [OMAP_HSMMC_SYSCTL] =3D 0x012C,
->> + =A0 =A0 =A0 [OMAP_HSMMC_STAT] =3D 0x0130,
->> + =A0 =A0 =A0 [OMAP_HSMMC_IE] =3D 0x0134,
->> + =A0 =A0 =A0 [OMAP_HSMMC_ISE] =3D 0x0138,
->> + =A0 =A0 =A0 [OMAP_HSMMC_CAPA] =3D 0x0140,
->> + =A0 =A0 =A0 [OMAP_HSMMC_REV] =3D 0x01FC,
->> +};
->> +
->> +static const u16 omap4_mmc_reg_map[] =3D {
->> + =A0 =A0 =A0 [OMAP_HSMMC_SYSCONFIG] =3D 0x0010, =A0 =A0 =A0 =A0/* U=
-se Highlander Version
->> */
->> + =A0 =A0 =A0 [OMAP_HSMMC_SYSSTATUS] =3D 0x0114,
->
-> In fact that sysstatus is a legacy register that is not needed anymor=
-e in
-> the highlander version. The resetdone is in the sysconfig now.
-> So you can ignore it in OMAP4.
-
-Just verified and thanks for pointing this.
-ok will avoid checking resetdone in sysstatus for OMAP4
-
->
->> + =A0 =A0 =A0 [OMAP_HSMMC_CON] =3D 0x012C,
->> + =A0 =A0 =A0 [OMAP_HSMMC_BLK] =3D 0x0204,
->> + =A0 =A0 =A0 [OMAP_HSMMC_ARG] =3D 0x0208,
->> + =A0 =A0 =A0 [OMAP_HSMMC_CMD] =3D 0x020C,
->> + =A0 =A0 =A0 [OMAP_HSMMC_RSP10] =3D 0x0210,
->> + =A0 =A0 =A0 [OMAP_HSMMC_RSP32] =3D 0x0214,
->> + =A0 =A0 =A0 [OMAP_HSMMC_RSP54] =3D 0x0218,
->> + =A0 =A0 =A0 [OMAP_HSMMC_RSP76] =3D 0x021C,
->> + =A0 =A0 =A0 [OMAP_HSMMC_DATA] =3D 0x0220,
->> + =A0 =A0 =A0 [OMAP_HSMMC_PSTATE] =3D 0x0224,
->> + =A0 =A0 =A0 [OMAP_HSMMC_HCTL] =3D 0x0228,
->> + =A0 =A0 =A0 [OMAP_HSMMC_SYSCTL] =3D 0x022C,
->> + =A0 =A0 =A0 [OMAP_HSMMC_STAT] =3D 0x0230,
->> + =A0 =A0 =A0 [OMAP_HSMMC_IE] =3D 0x0234,
->> + =A0 =A0 =A0 [OMAP_HSMMC_ISE] =3D 0x0238,
->> + =A0 =A0 =A0 [OMAP_HSMMC_CAPA] =3D 0x0240,
->> + =A0 =A0 =A0 [OMAP_HSMMC_REV] =3D 0x0000, =A0 =A0 =A0/* Use Highlan=
-der Version */
->> + =A0 =A0 =A0 [OMAP_HSMMC_CUR_CAPA] =3D 0x0248,
->> + =A0 =A0 =A0 [OMAP_HSMMC_FE] =3D 0x0250,
->> + =A0 =A0 =A0 [OMAP_HSMMC_ADMA_ES] =3D 0x0254,
->> + =A0 =A0 =A0 [OMAP_HSMMC_ADMA_SAL] =3D 0x0258,
->
-> I didn't check all the registers, but it seems that there is a consta=
-nt
-> 0x100 offset for most of these registers. Cannot you simplify this ta=
-ble?
-
-Sure will simplify and post.
-
->
-> Regards,
-> Benoit
->
-
-<snip>
-
-Regards,
-Kishore
+Best regards,
+Sanjeev
