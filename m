@@ -1,66 +1,34 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage domain instance in the voltage driver.
-Date: Fri, 03 Sep 2010 11:00:31 -0700
-Message-ID: <87pqwu1zcw.fsf@deeprootsystems.com>
-References: <1282130412-12027-1-git-send-email-thara@ti.com>
-	<1282130412-12027-2-git-send-email-thara@ti.com>
-	<87eiddgjr7.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03291AD889@dbde02.ent.ti.com>
-	<87r5ha3hlk.fsf@deeprootsystems.com>
-	<20100903173046.GA32226@rakim.wolfsonmicro.main>
+From: Cyril Chemparathy <cyril@ti.com>
+Subject: Re: [PATCH v2 00/10] split out emac cpdma and mdio for reuse
+Date: Fri, 03 Sep 2010 14:20:47 -0400
+Message-ID: <4C813C7F.5090602@ti.com>
+References: <1283465008-18606-1-git-send-email-cyril@ti.com> <87eida3fl9.fsf@deeprootsystems.com>
+Reply-To: cyril@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:56795 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756909Ab0ICSAf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 14:00:35 -0400
-Received: by qyk36 with SMTP id 36so242408qyk.19
-        for <linux-omap@vger.kernel.org>; Fri, 03 Sep 2010 11:00:35 -0700 (PDT)
-In-Reply-To: <20100903173046.GA32226@rakim.wolfsonmicro.main> (Mark Brown's
-	message of "Fri, 3 Sep 2010 18:30:47 +0100")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46501 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756909Ab0ICSUv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Sep 2010 14:20:51 -0400
+In-Reply-To: <87eida3fl9.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Govindarajan, Sriramakrishnan" <srk@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Parrot, Benoit" <bparrot@ti.com>
 
-Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+Hi Kevin,
 
-> On Fri, Sep 03, 2010 at 09:41:11AM -0700, Kevin Hilman wrote:
->
->> Like you, I'm no expert on the regulator framework internals, but it
->> appears to have a pretty thorough system of constraints management that
->> upon first glance seems to be a good fit for what we need.  It may need
->> to be extended, but I would rather see us enhance the regulator
->> framework than re-invent the constraints management.
->
-> This seems reasonable, the only thing I'm wary of with this stuff is
-> adding things to manage anything outside voltages since I'm not
-> convinced that the requirements of different processors for other things
-> are sufficiently well understood to make a simple abstraction.  
+[...]
+>> Although am3517 (omap) board support code has been updated as needed,
+>> emac does not work on this platform.
+> 
+> Just to clarify... did EMAC work on AM3517 before this series?
 
-Mark, thanks for your input.
+No.  It didn't work before this series.  To get AM3517 EMAC working, the
+driver needs another patch to enable the interface clock in addition to
+the functional clock.
 
-For now, at least on OMAP, we're only thinking of managing voltages for
-the primary voltage rails on chip.
-
-We already have well defined layers for managing our power domains and
-clockdomains and prefer to keep that as OMAP-internal code, as it's
-nothing that drivers really need to be aware of.
-
-> The only thing I can think you might need to do if this is just straight
-> voltage setting is re-add support for multiple consumers setting
-> voltages simultaneously 
-
-Yeah, that sounds like what we need.
-
-re-add? was it there at one point and removed?  Any pointers to the old
-code?
-
-> (there was someone from Qualcomm talking about
-> that as well but I didn't see any patches from him) but the API side is
-> all there and the core support ought to be relatively straightforward.
-
-OK, thanks for the feedback.
-
-Kevin
+Regards
+Cyril.
