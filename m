@@ -1,43 +1,25 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] ARM: Fix v7wbi_tlb_flags for SMP on UP
-Date: Fri, 3 Sep 2010 10:04:03 -0700
-Message-ID: <20100903170403.GM11597@atomide.com>
-References: <20100820120622.GL25742@atomide.com>
- <20100830225527.GC11597@atomide.com>
- <20100902133637.GJ26319@n2100.arm.linux.org.uk>
- <20100902161659.GJ11597@atomide.com>
- <20100902162039.GM11597@atomide.com>
- <20100902162537.GU26319@n2100.arm.linux.org.uk>
- <20100902163453.GR11597@atomide.com>
- <20100902234746.GF11597@atomide.com>
- <20100903090734.GJ26319@n2100.arm.linux.org.uk>
- <20100903091029.GK26319@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 00/10] split out emac cpdma and mdio for reuse
+Date: Fri, 03 Sep 2010 10:24:34 -0700
+Message-ID: <87eida3fl9.fsf@deeprootsystems.com>
+References: <1283465008-18606-1-git-send-email-cyril@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53922 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755221Ab0ICREN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 13:04:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20100903091029.GK26319@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1283465008-18606-1-git-send-email-cyril@ti.com> (Cyril
+	Chemparathy's message of "Thu, 2 Sep 2010 18:03:18 -0400")
+Sender: netdev-owner@vger.kernel.org
+To: Cyril Chemparathy <cyril@ti.com>
+Cc: netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, nsekhar@ti.com, srk@ti.com, omar.ramirez@ti.com, bparrot@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [100903 02:02]:
-> On Fri, Sep 03, 2010 at 10:07:34AM +0100, Russell King - ARM Linux wrote:
-> > On Thu, Sep 02, 2010 at 04:47:46PM -0700, Tony Lindgren wrote:
-> > > Correction, only boots on SMP hardawre. On UP hardware I still
-> > > need the following patch.
-> > 
-> > This should fix that properly.
-> 
-> Correction - the order of the config tests was wrong.
+Cyril Chemparathy <cyril@ti.com> writes:
 
-OK that works now.
+[...]
 
-Looks like your new patch is missing smp_midr.h BTW.
+> Although am3517 (omap) board support code has been updated as needed,
+> emac does not work on this platform.
 
-Tony
+Just to clarify... did EMAC work on AM3517 before this series?
+
+Kevin
