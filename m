@@ -1,20 +1,20 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 08/11] OMAP: DMA: Convert DMA library into DMA platform Driver
-Date: Fri, 03 Sep 2010 15:34:19 -0700
-Message-ID: <878w3iv4lw.fsf@deeprootsystems.com>
+Subject: Re: [PATCH v2 09/11] OMAP: DMA: Implement generic errata handling
+Date: Fri, 03 Sep 2010 15:42:29 -0700
+Message-ID: <87sk1qtpnu.fsf@deeprootsystems.com>
 References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
-	<1282647866-6918-9-git-send-email-manjugk@ti.com>
+	<1282647866-6918-10-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:37917 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362Ab0ICWeY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 18:34:24 -0400
-Received: by gyd8 with SMTP id 8so1003219gyd.19
-        for <linux-omap@vger.kernel.org>; Fri, 03 Sep 2010 15:34:23 -0700 (PDT)
-In-Reply-To: <1282647866-6918-9-git-send-email-manjugk@ti.com> (Manjunatha
-	GK's message of "Tue, 24 Aug 2010 16:34:23 +0530")
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:45827 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752433Ab0ICWmc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 18:42:32 -0400
+Received: by pzk9 with SMTP id 9so692977pzk.19
+        for <linux-omap@vger.kernel.org>; Fri, 03 Sep 2010 15:42:31 -0700 (PDT)
+In-Reply-To: <1282647866-6918-10-git-send-email-manjugk@ti.com> (Manjunatha
+	GK's message of "Tue, 24 Aug 2010 16:34:24 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Manjunatha GK <manjugk@ti.com>
@@ -22,232 +22,218 @@ Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shili
 
 Manjunatha GK <manjugk@ti.com> writes:
 
-> This patch converts DMA library into DMA platform driver and make use
-> of platform data provided by HWMOD data base for OMAP2PLUS onwards.
-> For OMAP1 processors, the DMA driver in mach-omap uses resource structures
-> for getting platform data.
->
-> Also, it enables and uses run time PM API's
+> This patch introduces generic way of handling all OMAP DMA
+> errata's which are applicable for OMAP1 and OMAP2PLUS processors.
 >
 > Signed-off-by: Manjunatha GK <manjugk@ti.com>
 > Cc: Benoit Cousson <b-cousson@ti.com>
 > Cc: Kevin Hilman <khilman@deeprootsystems.com>
 > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > ---
->  arch/arm/mach-omap1/Makefile           |    2 +-
->  arch/arm/mach-omap1/include/mach/dma.h |   66 +++++++++
->  arch/arm/mach-omap2/Makefile           |    2 +-
->  arch/arm/mach-omap2/include/mach/dma.h |   83 +++++++++++
->  arch/arm/plat-omap/dma.c               |  244 +++++++++++++++++---------------
->  arch/arm/plat-omap/include/plat/dma.h  |  157 ++-------------------
->  6 files changed, 290 insertions(+), 264 deletions(-)
+>  arch/arm/mach-omap1/dma.c             |    6 ++++
+>  arch/arm/mach-omap2/dma.c             |   34 +++++++++++++++++++++++
+>  arch/arm/plat-omap/dma.c              |   48 ++++++++++++++++++--------------
+>  arch/arm/plat-omap/include/plat/dma.h |    9 ++++++
+>  4 files changed, 76 insertions(+), 21 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
-> index 9a304d8..b7dfc54 100644
-> --- a/arch/arm/mach-omap1/Makefile
-> +++ b/arch/arm/mach-omap1/Makefile
-> @@ -3,7 +3,7 @@
->  #
+> diff --git a/arch/arm/mach-omap1/dma.c b/arch/arm/mach-omap1/dma.c
+> index 26ab6e3..615c5f5 100644
+> --- a/arch/arm/mach-omap1/dma.c
+> +++ b/arch/arm/mach-omap1/dma.c
+> @@ -170,6 +170,12 @@ static int __init omap1_system_dma_init(void)
+>  		goto exit_device_put;
+>  	}
 >  
->  # Common support
-> -obj-y := io.o id.o sram.o irq.o mux.o flash.o serial.o devices.o
-> +obj-y := io.o id.o sram.o irq.o mux.o flash.o serial.o devices.o dma.o
->  obj-y += clock.o clock_data.o opp_data.o
+> +	/* Errata handling for all omap1 plus processors */
+> +	pdata->errata			= 0;
+
+This isn't needed as you just kzalloc'd pdata.
+
+> +	if (cpu_class_is_omap1() && !cpu_is_omap15xx())
+
+You don't need cpu_class_is_omap1() as this is OMAP1 specific code.
+
+> +		pdata->errata		|= OMAP3_3_ERRATUM;
+> +
+>  	d = pdata->dma_attr;
 >  
->  obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
-> diff --git a/arch/arm/mach-omap1/include/mach/dma.h b/arch/arm/mach-omap1/include/mach/dma.h
-> index d446cdd..1eb0d31 100644
-> --- a/arch/arm/mach-omap1/include/mach/dma.h
-> +++ b/arch/arm/mach-omap1/include/mach/dma.h
-> @@ -77,4 +77,70 @@
->  #define OMAP1_DMA_CCR2(n)		(0x40 * (n) + 0x24)
->  #define OMAP1_DMA_LCH_CTRL(n)		(0x40 * (n) + 0x2a)
+>  	/* Valid attributes for omap1 plus processors */
+> diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+> index f369bee..8832bd1 100644
+> --- a/arch/arm/mach-omap2/dma.c
+> +++ b/arch/arm/mach-omap2/dma.c
+> @@ -80,6 +80,40 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *user)
 >  
-> +/* Dummy defines to support multi omap code */
-
-These should not be needed anymore as this is now an OMAP1-specific
-header.
-
-> +/* Channel specific registers */
-> +#define OMAP_DMA4_CCR(n)		0
-> +#define OMAP_DMA4_CSDP(n)		0
-> +#define OMAP_DMA4_CEN(n)		0
-> +#define OMAP_DMA4_CFN(n)		0
-> +#define OMAP_DMA4_COLOR(n)		0
-> +#define OMAP_DMA4_CSSA(n)		0
-> +#define OMAP_DMA4_CSEI(n)		0
-> +#define OMAP_DMA4_CSFI(n)		0
-> +#define OMAP_DMA4_CDSA(n)		0
-> +#define OMAP_DMA4_CDEI(n)		0
-> +#define OMAP_DMA4_CDFI(n)		0
-> +#define OMAP_DMA4_CSR(n)		0
-> +#define OMAP_DMA4_CICR(n)		0
-> +#define OMAP_DMA4_CLNK_CTRL(n)		0
-> +#define OMAP_DMA4_CH_BASE(n)		0
-> +#define OMAP_DMA4_CDAC(n)		0
-> +#define OMAP_DMA4_CSAC(n)		0
-> +
-> +/* Common registers */
-> +#define OMAP_DMA4_IRQENABLE_L0		0
-> +#define OMAP_DMA4_OCP_SYSCONFIG		0
-> +#define OMAP_DMA4_GCR			0
-> +#define OMAP_DMA4_IRQSTATUS_L0		0
-> +#define OMAP_DMA4_CAPS_2		0
-> +#define OMAP_DMA4_CAPS_3		0
-> +#define OMAP_DMA4_CAPS_4		0
-> +#define OMAP_DMA4_REVISION		0
-> +
-> +#define OMAP_DMA4_CCR2(n)		0
-> +#define OMAP_DMA4_LCH_CTRL(n)		0
-> +#define OMAP_DMA4_COLOR_L(n)		0
-> +#define OMAP_DMA4_COLOR_U(n)		0
-> +#define OMAP1_DMA_COLOR(n)		0
-> +#define OMAP_DMA4_CSSA_U(n)		0
-> +#define OMAP_DMA4_CSSA_L(n)		0
-> +#define OMAP1_DMA_CSSA(n)		0
-> +#define OMAP_DMA4_CDSA_U(n)		0
-> +#define OMAP_DMA4_CDSA_L(n)		0
-> +#define OMAP1_DMA_CDSA(n)		0
-> +#define OMAP_DMA4_CPC(n)		0
-> +
-> +#define OMAP1_DMA_IRQENABLE_L0		0
-> +#define OMAP1_DMA_IRQENABLE_L0		0
-> +#define OMAP1_DMA_IRQSTATUS_L0		0
-> +#define OMAP1_DMA_OCP_SYSCONFIG		0
-> +#define OMAP_DMA4_HW_ID			0
-> +#define OMAP_DMA4_CAPS_0_U		0
-> +#define OMAP_DMA4_CAPS_0_L		0
-> +#define OMAP_DMA4_CAPS_1_U		0
-> +#define OMAP_DMA4_CAPS_1_L		0
-> +#define OMAP_DMA4_GSCR			0
-> +#define OMAP1_DMA_REVISION		0
-> +
-> +struct omap_dma_lch {
-> +	int next_lch;
-> +	int dev_id;
-> +	u16 saved_csr;
-> +	u16 enabled_irqs;
-> +	const char *dev_name;
-> +	void (*callback)(int lch, u16 ch_status, void *data);
-> +	void *data;
-> +	long flags;
-> +};
-> +
->  #endif /* __ASM_ARCH_OMAP1_DMA_H */
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 9b44773..6a8b231 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -3,7 +3,7 @@
->  #
+>  	pdata->dma_attr		= (struct omap_dma_dev_attr *)oh->dev_attr;
 >  
->  # Common support
-> -obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o
-> +obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o pm.o dma.o
+> +	/* Handling Errata's for all OMAP2PLUS processors */
+> +	pdata->errata			= 0;
+
+not needed, see above
+
+> +	if (cpu_is_omap242x() ||
+> +		(cpu_is_omap243x() &&  omap_type() <= OMAP2430_REV_ES1_0))
+> +		pdata->errata		= DMA_CHAINING_ERRATA;
+> +
+> +	/*
+> +	 * Errata: On ES2.0 BUFFERING disable must be set.
+> +	 * This will always fail on ES1.0
+> +	 */
+> +	if (cpu_is_omap24xx())
+> +		pdata->errata		|= DMA_BUFF_DISABLE_ERRATA;
+> +
+> +	/*
+> +	 * Errata: OMAP2: sDMA Channel is not disabled
+> +	 * after a transaction error. So we explicitely
+> +	 * disable the channel
+> +	 */
+> +	if (cpu_class_is_omap2())
+> +		pdata->errata		|= DMA_CH_DISABLE_ERRATA;
+> +
+> +	/* Errata: OMAP3 :
+
+fix multi-line comment style
+
+> +	 * A bug in ROM code leaves IRQ status for channels 0 and 1 uncleared
+> +	 * after secure sram context save and restore. Hence we need to
+> +	 * manually clear those IRQs to avoid spurious interrupts. This
+> +	 * affects only secure devices.
+> +	 */
+> +	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
+> +		pdata->errata		|= DMA_IRQ_STATUS_ERRATA;
+> +
+> +	/* Errata3.3: Applicable for all omap2 plus */
+> +	pdata->errata			|= OMAP3_3_ERRATUM;
+> +
+>  	od = omap_device_build(name, 0, oh, pdata, sizeof(*pdata),
+>  			omap2_dma_latency, ARRAY_SIZE(omap2_dma_latency), 0);
 >  
->  omap-2-3-common				= irq.o sdrc.o
->  hwmod-common				= omap_hwmod.o \
-> diff --git a/arch/arm/mach-omap2/include/mach/dma.h b/arch/arm/mach-omap2/include/mach/dma.h
-> index 3eca7d8..22f4b41 100644
-> --- a/arch/arm/mach-omap2/include/mach/dma.h
-> +++ b/arch/arm/mach-omap2/include/mach/dma.h
-> @@ -77,4 +77,87 @@
->  #define OMAP_DMA4_CNDP(n)		(0x60 * (n) + 0xd4)
->  #define OMAP_DMA4_CCDN(n)		(0x60 * (n) + 0xd8)
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 36c3dde..409586a 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -187,6 +187,25 @@ static inline void set_gdma_dev(int req, int dev)
+>  #define set_gdma_dev(req, dev)	do {} while (0)
+>  #endif
 >  
-> +
-> +/* Dummy defines for support multi omap code */
+> +static void dma_ocpsysconfig_errata(u32 *sys_cf, bool flag)
 
-Why exactly are these here?
+Please use (or extend) hwmod layer for modifying device SYSCONFIG.
 
-> +/* Common registers */
-> +#define OMAP1_DMA_GCR				0
-> +#define OMAP1_DMA_HW_ID				0
-> +#define OMAP1_DMA_CAPS_0_U			0
-> +#define OMAP1_DMA_CAPS_0_L			0
-> +#define OMAP1_DMA_CAPS_1_U			0
-> +#define OMAP1_DMA_CAPS_1_L			0
-> +#define OMAP1_DMA_CAPS_2			0
-> +#define OMAP1_DMA_CAPS_3			0
-> +#define OMAP1_DMA_CAPS_4			0
-> +#define OMAP1_DMA_GSCR				0
+> +{
+> +	u32 l;
 > +
-> +/* Channel specific registers */
-> +#define OMAP1_DMA_CH_BASE(n)			0
-> +#define OMAP1_DMA_CCR(n)			0
-> +#define OMAP1_DMA_CSDP(n)			0
-> +#define OMAP1_DMA_CCR2(n)			0
-> +#define OMAP1_DMA_CEN(n)			0
-> +#define OMAP1_DMA_CFN(n)			0
-> +#define OMAP1_DMA_LCH_CTRL(n)			0
-> +#define OMAP1_DMA_COLOR_L(n)			0
-> +#define OMAP1_DMA_COLOR_U(n)			0
-> +#define OMAP1_DMA_CSSA_U(n)			0
-> +#define OMAP1_DMA_CSSA_L(n)			0
-> +#define OMAP1_DMA_CSEI(n)			0
-> +#define OMAP1_DMA_CSFI(n)			0
-> +#define OMAP1_DMA_CDSA_U(n)			0
-> +#define OMAP1_DMA_CDSA_L(n)			0
-> +#define OMAP1_DMA_CDEI(n)			0
-> +#define OMAP1_DMA_CDFI(n)			0
-> +#define OMAP1_DMA_CSR(n)			0
-> +#define OMAP1_DMA_CICR(n)			0
-> +#define OMAP1_DMA_CLNK_CTRL(n)			0
-> +#define OMAP1_DMA_CPC(n)			0
-> +#define OMAP1_DMA_CDAC(n)			0
-> +#define OMAP1_DMA_CSAC(n)			0
-> +#define OMAP1_DMA_CCEN(n)			0
-> +#define OMAP1_DMA_CCFN(n)			0
-> +
-> +#define OMAP_DMA4_CCR2(n)			0
-> +#define OMAP_DMA4_LCH_CTRL(n)			0
-> +#define OMAP_DMA4_COLOR_L(n)			0
-> +#define OMAP_DMA4_COLOR_U(n)			0
-> +#define OMAP1_DMA_COLOR(n)			0
-> +#define OMAP_DMA4_CSSA_U(n)			0
-> +#define OMAP_DMA4_CSSA_L(n)			0
-> +#define OMAP1_DMA_CSSA(n)			0
-> +#define OMAP_DMA4_CDSA_U(n)			0
-> +#define OMAP_DMA4_CDSA_L(n)			0
-> +#define OMAP1_DMA_CDSA(n)			0
-> +#define OMAP_DMA4_CPC(n)			0
-> +
-> +#define OMAP1_DMA_IRQENABLE_L0			0
-> +#define OMAP1_DMA_IRQSTATUS_L0			0
-> +#define OMAP1_DMA_OCP_SYSCONFIG			0
-> +#define OMAP1_DMA_OCP_SYSCONFIG			0
-> +#define OMAP_DMA4_HW_ID				0
-> +#define OMAP_DMA4_CAPS_0_U			0
-> +#define OMAP_DMA4_CAPS_0_L			0
-> +#define OMAP_DMA4_CAPS_1_U			0
-> +#define OMAP_DMA4_CAPS_1_L			0
-> +#define OMAP_DMA4_GSCR				0
-> +#define OMAP1_DMA_REVISION			0
-> +
-> +struct omap_dma_lch {
-> +	int next_lch;
-> +	int dev_id;
-> +	u16 saved_csr;
-> +	u16 enabled_irqs;
-> +	const char *dev_name;
-> +	void (*callback)(int lch, u16 ch_status, void *data);
-> +	void *data;
-> +	long flags;
-> +	/* required for Dynamic chaining */
-> +	int prev_linked_ch;
-> +	int next_linked_ch;
-> +	int state;
-> +	int chain_id;
-> +	int status;
-> +};
+> +	/*
+> +	 * DMA Errata:
+> +	 * Special programming model needed to disable DMA before end of block
+> +	 */
 
-Seems like this struct should stay common, as it's basically the same
-across all OMAPs.  Only chaining fields are different, and they can just
-be unused on OMAP1.
+Please reference Errata#
 
-Also, this breaks multi-OMAP as this struct is used in plat-omap/dma.c
-(OMAP1 and OMAP2+) but defined differently for OMAP1 and OMAP2+.
-
-[...]
+> +	if (!flag) {
+> +		*sys_cf = dma_read(OCP_SYSCONFIG);
+> +		l = *sys_cf;
+> +		/* Middle mode reg set no Standby */
+> +		l &= ~((1 << 12)|(1 << 13));
+> +		dma_write(l, OCP_SYSCONFIG);
+> +	} else
+> +		/* put back old value */
+> +		dma_write(*sys_cf, OCP_SYSCONFIG);
+> +}
+> +
+>  /* Omap1 only */
+>  static void clear_lch_regs(int lch)
+>  {
+> @@ -971,22 +990,16 @@ void omap_start_dma(int lch)
+>  
+>  			cur_lch = next_lch;
+>  		} while (next_lch != -1);
+> -	} else if (cpu_is_omap242x() ||
+> -		(cpu_is_omap243x() &&  omap_type() <= OMAP2430_REV_ES1_0)) {
+> +	}
+>  
+> -		/* Errata: Need to write lch even if not using chaining */
+> +	if (p->errata & DMA_CHAINING_ERRATA)
+>  		dma_write(lch, CLNK_CTRL(lch));
+> -	}
+>  
+>  	omap_enable_channel_irq(lch);
+>  
+>  	l = dma_read(CCR(lch));
+>  
+> -	/*
+> -	 * Errata: On ES2.0 BUFFERING disable must be set.
+> -	 * This will always fail on ES1.0
+> -	 */
+> -	if (cpu_is_omap24xx())
+> +	if (p->errata & DMA_BUFF_DISABLE_ERRATA)
+>  		l |= OMAP_DMA_CCR_EN;
+>  
+>  	l |= OMAP_DMA_CCR_EN;
+> @@ -1660,7 +1673,7 @@ int omap_stop_dma_chain_transfers(int chain_id)
+>  {
+>  	int *channels;
+>  	u32 l, i;
+> -	u32 sys_cf;
+> +	u32 get_sysconfig;
+>  
+>  	/* Check for input params */
+>  	if (unlikely((chain_id < 0 || chain_id >= dma_lch_count))) {
+> @@ -1675,15 +1688,8 @@ int omap_stop_dma_chain_transfers(int chain_id)
+>  	}
+>  	channels = dma_linked_lch[chain_id].linked_dmach_q;
+>  
+> -	/*
+> -	 * DMA Errata:
+> -	 * Special programming model needed to disable DMA before end of block
+> -	 */
+> -	sys_cf = dma_read(OCP_SYSCONFIG);
+> -	l = sys_cf;
+> -	/* Middle mode reg set no Standby */
+> -	l &= ~((1 << 12)|(1 << 13));
+> -	dma_write(l, OCP_SYSCONFIG);
+> +	if (p->errata & DMA_SYSCONFIG_ERRATA)
+> +		dma_ocpsysconfig_errata(&get_sysconfig, false);
+>  
+>  	for (i = 0; i < dma_linked_lch[chain_id].no_of_lchs_linked; i++) {
+>  
+> @@ -1702,8 +1708,8 @@ int omap_stop_dma_chain_transfers(int chain_id)
+>  	/* Reset the Queue pointers */
+>  	OMAP_DMA_CHAIN_QINIT(chain_id);
+>  
+> -	/* Errata - put in the old value */
+> -	dma_write(sys_cf, OCP_SYSCONFIG);
+> +	if (p->errata & DMA_SYSCONFIG_ERRATA)
+> +		dma_ocpsysconfig_errata(&get_sysconfig, true);
+>  
+>  	return 0;
+>  }
+> diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+> index a44b11b..ca251ac 100644
+> --- a/arch/arm/plat-omap/include/plat/dma.h
+> +++ b/arch/arm/plat-omap/include/plat/dma.h
+> @@ -269,6 +269,14 @@
+>  #define IS_WORD_16			(1 << 0xC)
+>  #define IS_RW_PRIORIY			(1 << 0xD)
+>  
+> +/* Errata Definitions */
+> +#define	DMA_CHAINING_ERRATA		(1 << 0)
+> +#define	DMA_BUFF_DISABLE_ERRATA		(1 << 1)
+> +#define	OMAP3_3_ERRATUM			(1 << 2)
+> +#define	DMA_SYSCONFIG_ERRATA		(1 << 3)
+> +#define	DMA_CH_DISABLE_ERRATA		(1 << 4)
+> +#define	DMA_IRQ_STATUS_ERRATA		(1 << 5)
+> +
+>  enum omap_dma_burst_mode {
+>  	OMAP_DMA_DATA_BURST_DIS = 0,
+>  	OMAP_DMA_DATA_BURST_4,
+> @@ -346,6 +354,7 @@ struct omap_dma_dev_attr {
+>  struct omap_system_dma_plat_info {
+>  	struct omap_dma_dev_attr *dma_attr;
+>  	void __iomem *omap_dma_base;
+> +	u32 errata;
+>  };
+>  
+>  extern void omap_set_dma_priority(int lch, int dst_port, int priority);
 
 Kevin
