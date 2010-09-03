@@ -1,45 +1,87 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 00/11] OMAP: DMA: HWMOD and DMA as platform driver
-Date: Fri, 03 Sep 2010 15:49:49 -0700
-Message-ID: <87eidatpbm.fsf@deeprootsystems.com>
-References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402781CE908@dbde02.ent.ti.com>
+From: "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>
+Subject: Re: [PATCH] I2C: Fix for suspend/resume issue in i2c-core
+Date: Sat, 4 Sep 2010 01:10:10 +0200
+Message-ID: <201009040110.10858.rjw@sisk.pl>
+References: <1283219414-8798-1-git-send-email-vishwanath.bs@ti.com> <20100901104052.5967ca25@hyperion.delvare> <FCCFB4CDC6E5564B9182F639FC35608703114DA108@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:45869 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362Ab0ICWtx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Sep 2010 18:49:53 -0400
-Received: by yxp4 with SMTP id 4so913872yxp.19
-        for <linux-omap@vger.kernel.org>; Fri, 03 Sep 2010 15:49:52 -0700 (PDT)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402781CE908@dbde02.ent.ti.com>
-	(Manjunath Kondaiah G.'s message of "Fri, 3 Sep 2010 21:51:53 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703114DA108-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Sripathy, Vishwanath" <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+Cc: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+On Friday, September 03, 2010, Sripathy, Vishwanath wrote:
+> 
+> > -----Original Message-----
+> > From: Jean Delvare [mailto:khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org]
+> > Sent: Wednesday, September 01, 2010 2:11 PM
+> > To: Rafael J. Wysocki
+> > Cc: Mark Brown; Kevin Hilman; Sripathy, Vishwanath; linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Basak, Partha; Ben Dooks
+> > Subject: Re: [PATCH] I2C: Fix for suspend/resume issue in i2c-core
+> > 
+> > On Wed, 1 Sep 2010 01:12:11 +0200, Rafael J. Wysocki wrote:
+> > > On Tuesday, August 31, 2010, Mark Brown wrote:
+> > > > On Mon, Aug 30, 2010 at 11:43:23AM -0700, Kevin Hilman wrote:
+> > > > > Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org> writes:
+> > > > >
+> > > > > > In current i2c core driver, pm_runtime_set_active call from
+> > i2c_device_pm_resume
+> > > > > > is not balanced by pm_runtime_set_suspended call from
+> > i2c_device_pm_suspend.
+> > > > > > pm_runtime_set_active called from resume path will increase the
+> > child_count of
+> > > > > > the device's parent. However, matching pm_runtime_set_suspended is not
+> > called
+> > > > > > in suspend routine because of which child_count of the device's parent
+> > > > > > is not balanced, preventing the parent device to idle.
+> > > > > > Issue has been fixed by adding pm_runtime_set_suspended call inside
+> > suspend
+> > > > > > reoutine which will make sure that child_counts are balanced.
+> > > > > > This fix has been tested on OMAP4430.
+> > > > > >
+> > > > > > Signed-off-by: Partha Basak <p-basak2-l0cyMroinI0@public.gmane.org>
+> > > > > > Signed-off-by: Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+> > > > > >
+> > > > > > Cc: Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org>
+> > > > > > Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+> > > > > > Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+> > > > >
+> > > > > Also Cc'ing Mark Brown as original author of runtime PM for i2-core.
+> > > >
+> > > > Also Jean Delvare who maintains the I2C core.  To be honest Rafael did
+> > > > all the actual work here (and has since rewritten the code anyway).
+> > >
+> > > Sorry for the delay.
+> > >
+> > > The fix looks reasonable to me.
+> > 
+> > I take this as an Acked-by. Patch applied, thanks.
+> Hi,
+> We are seeing one more issue even after making this fix. In summary, after first suspend/resume, CPU Idle no longer works since i2c module is active. 
+> Basically when the system resumed from the suspend, dpm layer (dpm_resume_end) calls device_resume which intern calls i2c_device_pm_resume (among many other calls). 
+> i2c_device_pm_resume calls pm_runtime_set_active which brings device to Active state and increases child_count of it's parent. Since the device is active and also it's parent child_count is non 0, these modules will prevent corresponding clock domains to go idle. This will break CPU Idle. This issue happens even if the module was in idle state before performing suspend/resume. In summary, the flow is 
+> 1. i2c module is idle (let's assume system is idle)
+> 2. system suspend is initiated by user
+> 3. i2c_device_pm_suspend gets called which tries to idle i2c, but it's already idled.
+> 4. system is suspended
+> 5. system resumed (because of user event/timers)
+> 6. dpm layer will call i2c_device_pm_resume
+> 7. i2c_device_pm_resume will enable i2c device by calling pm_runtime_set_active
+> So at the end of suspend/resume, a device that was idled before is getting enabled unnecessarily at the end.
+> 
+> SO I am just wondering is there any real need to call pm_runtime_set_active in resume and pm_runtime_set_suspened in suspend functions?
+> I just tried suspend/resume and CPU Idle after removing these calls in i2c and it seems to function perfectly fine on OMAP4.
 
-> If there are no further comments, can you please stage this patch
-> series on hwmods-omap4 branch?
+Your analysis appears to be entirely correct.
 
-Reviewed.  Still a long ways to go..., also  I didn't see you address
-the typo pointed out by Mika Westerberg on PATCH 03/11.
+So, instead of applying the $subject patch it might be better to remove the
+block that calls pm_runtime_set_active(dev) from i2c_device_pm_resume().
 
-Also, testing on omap3430/n900, I noticed an interesting failure during
-boot.  During boot (in the middle of omap3_pm_init(), a DMA interrupt
-fires and the SPI RX callback is called which faults when accessing it's
-registers.
+Are there any objections?
 
-I did not debug this further, but is something that needs investigation.
-
-Also, in the next version, please report how it was tested on the
-various OMAPs.  In particular, what peripherals using DMA were tested.
-Just a boot test is not sufficient when making major functional changes
-like this.  Drivers using DMA need to be tested as well.
-
-Kevin
-
-
+Rafael
