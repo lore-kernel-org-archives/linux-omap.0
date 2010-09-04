@@ -1,80 +1,66 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 3/3] davinci: Map sram using MT_MEMORY_NONCACHED instead
-  of MT_DEVICE
-Date: Sat, 4 Sep 2010 14:31:39 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE7787@dbde02.ent.ti.com>
-References: <1281262702-27732-1-git-send-email-santosh.shilimkar@ti.com>
-	<AANLkTi=9k19RUmfnNBO8AfFj_LtyNtsPPVYC_=-AW5yE@mail.gmail.com>
- <87hbih2gyv.fsf@deeprootsystems.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CCA86A68@dbde02.ent.ti.com>
+Subject: RE: [PATCH 0/4] omap4: Control module series
+Date: Sat, 4 Sep 2010 14:33:31 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE7788@dbde02.ent.ti.com>
+References: <1281967423-9346-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42221 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56023 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751316Ab0IDJBu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Sep 2010 05:01:50 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CCA86A68@dbde02.ent.ti.com>
+	id S1750910Ab0IDJDi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Sep 2010 05:03:38 -0400
+In-Reply-To: <1281967423-9346-1-git-send-email-santosh.shilimkar@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
 Tony,
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> Sent: Friday, August 27, 2010 10:17 AM
-> To: Kevin Hilman
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> davinci-linux-open-source@linux.davincidsp.com
-> Subject: RE: [PATCH 3/3] davinci: Map sram using MT_MEMORY_NONCACHED
-> instead of MT_DEVICE
+> From: Shilimkar, Santosh
+> Sent: Monday, August 16, 2010 7:34 PM
+> To: linux-omap@vger.kernel.org
+> Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson, Benoit;
+> Shilimkar, Santosh
+> Subject: [PATCH 0/4] omap4: Control module series
 > 
-> > -----Original Message-----
-> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> > Sent: Friday, August 27, 2010 3:07 AM
-> > To: Shilimkar, Santosh
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> > davinci-linux-open-source@linux.davincidsp.com
-> > Subject: Re: [PATCH 3/3] davinci: Map sram using MT_MEMORY_NONCACHED
-> > instead of MT_DEVICE
-> >
-> > Kevin Hilman <khilman@deeprootsystems.com> writes:
-> >
-> > > On Sun, Aug 8, 2010 at 3:18 AM, Santosh Shilimkar
-> > > <santosh.shilimkar@ti.com> wrote:
-> > >> On Davinci SRAM is mapped as MT_DEVICE becasue of the section
-> > >> mapping pre-requisite instead of intended MT_MEMORY_NONCACHED
-> > >>
-> > >> Since the section mapping limitation gets fixed with first
-> > >> patch in this series, the MT_MEMORY_NONCACHED can be used now.
-> > >>
-> > >> Have not tested this, so somebody with Davinci hardware can
-> > >> try this out
-> > >>
-> > >> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > >> Cc: davinci-linux-open-source@linux.davincidsp.com
-> > >> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> > >
-> > > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> >
-> > Also, FYI... while not a very thorough test, I boot-tested this series
-> > on DaVinci (dm355, omapl138) and it worked fine.
-> >
-> > I'll include in davinci git (in the davinci-testing branch) so it gets a
-> > bit more testing.
+> On omap4 control mudule is divided in four IP blocks.
+> 	CTRL_MODULE_CORE	0x4a002000
+> 	PAD_CTRL_MODULE_CORE	0x4a100000
+> 	CTRL_MODULE_WKUP	0x4a30c000
+> 	PAD_CTRL_MODULE_WKUP	0x4a31e000
+> Addressing all the modules with single base address is not possible
+> considering 16 bit offsets. The mux code manages the pad core and pad
+> wakeup related base address inside the mux framework. For other usage
+> only control core and control pad bases are necessary.
 > 
-> Thanks a lot Kevin!!
+> After some offline discussion with Tony, Paul and Benoit, following
+> approach
+> is decided to address this issue.
+>  - Most usable registers are form CTRL_MODULE_CORE and
+> PAD_CTRL_MODULE_CORE
+>  - Control core is mapped with existing APIs and to address the pad
+> control
+>    module registers, a new accessor APIs is exported for OMAP4 only.
+>  - Mux code maps the needed bases internally so they need not be exported.
 > 
-> Tony,
-> Can you merge this in lo master as well. Actually I want all these
-> 3 patches go together so that it doesn't break OMAP/DAVINCI.
+> Thanks to,
+> 	- Tony and Paul for there suggestion to manage this problem.
+> 	- And ofcourse Benoit to work with me on this series
 > 
-Ping
-
-
-Regards,
-Santosh
+> The series is generated against 2.6.36-rc1 + Tony's fixes below series
+> 	-	[PATCH 0/6] omap fixes for upcoming 2.6.36-rc1
+> 		http://www.spinics.net/lists/linux-omap/msg34830.html
+> 
+> It's tested on tested on OMAP4 and OMAP3 SDPs.
+> 
+> Santosh Shilimkar (4):
+>   omap4: control: Add ctrl_pad_base to omap_globals
+>   omap4: control: Add accessor api's for pad control module
+>   omap4: control: Add the register definition headers
+>   omap4: control: Fix the control module register accesses
+> 
+Can you please see if this is good for merge in LO master?
