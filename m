@@ -1,34 +1,27 @@
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] USB: otg: twl4030: fix phy initialization
-Date: Sat, 4 Sep 2010 23:36:39 +0800
-Message-ID: <AANLkTikiFbw6xz5jbvgPR5-X5mZxDkOjLdFuc=vG10qK@mail.gmail.com>
-References: <1283443098-15262-1-git-send-email-tom.leiming@gmail.com>
-	<ee6a42fe148f72518d475ff3838fc32a@secure211.sgcpanel.com>
-	<AANLkTimts7SjE9EKrmsSkynWsQc_VtJUVVigrFs2VtrK@mail.gmail.com>
+From: "desk@live.com" <autocicognara@fastwebnet.it>
+Subject: Mutual Support
+Date: Sat, 4 Sep 2010 17:40:03 +0200 (CEST)
+Message-ID: <9230417.1223821283614803164.JavaMail.defaultUser__55.5078303024814$1283616474$gmane$org@defaultHost>
+Reply-To: JU4343@ymail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTimts7SjE9EKrmsSkynWsQc_VtJUVVigrFs2VtrK-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Cc: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from aa012msr.fastwebnet.it ([85.18.95.72]:41496 "EHLO
+	aa012msr.fastwebnet.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754082Ab0IDQG0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Sep 2010 12:06:26 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Felipe,
+Dear Sir/Madam,
 
-Considered bit PHYPWD of PHY_PWR_CTRL is zero at default,
-say, OTG phy is not put into power down after system poweron,
-so 2.6.36-rc3 will make musb device mode broken if bootloader
-doesn't touch  PHYPWD of PHY_PWR_CTRL.
+  I am Judith Johnson a solicitor at law, i have a proposal for you kindle get b
+ack to me for more information on my private email address at:judith4343@hotmail
+.com
 
-Could you ack the patch if no further objections or give other
-suggestions?
+God Bless you and you Family.
 
-thanks,
+Sincerely,
+Judith Johnson
 
--- 
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
