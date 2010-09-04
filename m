@@ -1,68 +1,58 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH V2] I2C: Fix for suspend/resume issue in i2c-core
-Date: Sat, 04 Sep 2010 12:11:15 +0200
-Message-ID: <4C821B43.2070103@ti.com>
-References: <1283590081-14593-1-git-send-email-vishwanath.bs@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 4/6] ARM: Do not call test_for_ipi or test_for_ltrirq
+	on UP systems
+Date: Sat, 4 Sep 2010 11:55:01 +0100
+Message-ID: <20100904105501.GA12674@n2100.arm.linux.org.uk>
+References: <20100817154035.GD20325@n2100.arm.linux.org.uk> <20100819073810.GR12184@atomide.com> <4C6CFBAF.6020407@canonical.com> <20100819095705.GU12184@atomide.com> <20100819102025.GA32151@n2100.arm.linux.org.uk> <20100820120622.GL25742@atomide.com> <20100830225527.GC11597@atomide.com> <20100902133637.GJ26319@n2100.arm.linux.org.uk> <20100902161659.GJ11597@atomide.com> <20100902162124.GN11597@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1283590081-14593-1-git-send-email-vishwanath.bs-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Sripathy, Vishwanath" <vishwanath.bs-l0cyMroinI0@public.gmane.org>
-Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42794 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752376Ab0IDKzK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Sep 2010 06:55:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20100902162124.GN11597@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
 
-Hi Vishwa,
+On Thu, Sep 02, 2010 at 09:21:24AM -0700, Tony Lindgren wrote:
+> Do not call test_for_ipi or test_for_ltrirq on UP systems.
+> 
+> Note that we can't put test_for_ltriq into SMP statement as
+> it's inlined into the code and the remaining lines of the
+> macro would still run before UP macro line.
 
-I just have a couple of minors comments:
+I think we can do better than this - unfortunately the assembler gets
+a little difficult (complaining about symbols in different sections),
+but it's relatively easy to work-around by precomputing the offset
+using .equ.  I'm debating about making this a UP_B(label) and hiding
+these details beneath this macro, rather than having this kind of thing
+exposed every time we need to do something like this.
 
-On 9/4/2010 10:48 AM, Sripathy, Vishwanath wrote:
-> In current i2c core driver, call to pm_runtime_set_active from i2c_device_pm_resume
-> will unconditionally enable i2c module and increment child count of the parent.
-> Because of this, in CPU Idle path, i2c does not idle, preventing Core to
-> enter retention. Also i2c module will not be suspended upon system suspend as
-> pm_runtime_set_suspended is not called from i2c_device_pm_suspend.
-> This issue is fixed by  removing  pm_runtime_set_active call from resume path which
-Unnecessary spaces: -----^ and ----^
+diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
+index bb2ef60..947b3ab 100644
+--- a/arch/arm/kernel/entry-armv.S
++++ b/arch/arm/kernel/entry-armv.S
+@@ -46,7 +46,9 @@
+ 	 * this macro assumes that irqstat (r6) and base (r5) are
+ 	 * preserved from get_irqnr_and_base above
+ 	 */
+-	test_for_ipi r0, r6, r5, lr
++	SMP(test_for_ipi r0, r6, r5, lr)
++	.equ	off, 9997f - 9998b
++	UP(b	. + off)
+ 	movne	r0, sp
+ 	adrne	lr, BSYM(1b)
+ 	bne	do_IPI
+@@ -57,6 +59,7 @@
+ 	adrne	lr, BSYM(1b)
+ 	bne	do_local_timer
+ #endif
++9997:
+ #endif
+ 
+ 	.endm
 
-> is not necessary.
-> This fix has been tested on OMAP4430.
->
-> Signed-off-by: Partha Basak<p-basak2-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Vishwanath BS<vishwanath.bs-l0cyMroinI0@public.gmane.org>
->
-> Cc: Rafael J. Wysocki<rjw-KKrjLPT3xs0@public.gmane.org>
-> Cc: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-> Cc: Ben Dooks<ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-> Cc: Jean Delvare<khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
-> ---
->   drivers/i2c/i2c-core.c |    6 ------
->   1 files changed, 0 insertions(+), 6 deletions(-)
->   mode change 100644 =>  100755 drivers/i2c/i2c-core.c
-
-You should probably not have to change the file mode.
-
-Regards,
-Benoit
-
->
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> old mode 100644
-> new mode 100755
-> index 6649176..13927d5
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -216,12 +216,6 @@ static int i2c_device_pm_resume(struct device *dev)
->   	else
->   		ret = i2c_legacy_resume(dev);
->
-> -	if (!ret) {
-> -		pm_runtime_disable(dev);
-> -		pm_runtime_set_active(dev);
-> -		pm_runtime_enable(dev);
-> -	}
-> -
->   	return ret;
->   }
->
