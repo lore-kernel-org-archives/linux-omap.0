@@ -1,66 +1,68 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/4] omap4: Control module series
-Date: Sat, 4 Sep 2010 14:33:31 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE7788@dbde02.ent.ti.com>
-References: <1281967423-9346-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH V2] I2C: Fix for suspend/resume issue in i2c-core
+Date: Sat, 04 Sep 2010 12:11:15 +0200
+Message-ID: <4C821B43.2070103@ti.com>
+References: <1283590081-14593-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56023 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750910Ab0IDJDi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Sep 2010 05:03:38 -0400
-In-Reply-To: <1281967423-9346-1-git-send-email-santosh.shilimkar@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1283590081-14593-1-git-send-email-vishwanath.bs-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Sripathy, Vishwanath" <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Tony,
-> -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Monday, August 16, 2010 7:34 PM
-> To: linux-omap@vger.kernel.org
-> Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson, Benoit;
-> Shilimkar, Santosh
-> Subject: [PATCH 0/4] omap4: Control module series
-> 
-> On omap4 control mudule is divided in four IP blocks.
-> 	CTRL_MODULE_CORE	0x4a002000
-> 	PAD_CTRL_MODULE_CORE	0x4a100000
-> 	CTRL_MODULE_WKUP	0x4a30c000
-> 	PAD_CTRL_MODULE_WKUP	0x4a31e000
-> Addressing all the modules with single base address is not possible
-> considering 16 bit offsets. The mux code manages the pad core and pad
-> wakeup related base address inside the mux framework. For other usage
-> only control core and control pad bases are necessary.
-> 
-> After some offline discussion with Tony, Paul and Benoit, following
-> approach
-> is decided to address this issue.
->  - Most usable registers are form CTRL_MODULE_CORE and
-> PAD_CTRL_MODULE_CORE
->  - Control core is mapped with existing APIs and to address the pad
-> control
->    module registers, a new accessor APIs is exported for OMAP4 only.
->  - Mux code maps the needed bases internally so they need not be exported.
-> 
-> Thanks to,
-> 	- Tony and Paul for there suggestion to manage this problem.
-> 	- And ofcourse Benoit to work with me on this series
-> 
-> The series is generated against 2.6.36-rc1 + Tony's fixes below series
-> 	-	[PATCH 0/6] omap fixes for upcoming 2.6.36-rc1
-> 		http://www.spinics.net/lists/linux-omap/msg34830.html
-> 
-> It's tested on tested on OMAP4 and OMAP3 SDPs.
-> 
-> Santosh Shilimkar (4):
->   omap4: control: Add ctrl_pad_base to omap_globals
->   omap4: control: Add accessor api's for pad control module
->   omap4: control: Add the register definition headers
->   omap4: control: Fix the control module register accesses
-> 
-Can you please see if this is good for merge in LO master?
+Hi Vishwa,
+
+I just have a couple of minors comments:
+
+On 9/4/2010 10:48 AM, Sripathy, Vishwanath wrote:
+> In current i2c core driver, call to pm_runtime_set_active from i2c_device_pm_resume
+> will unconditionally enable i2c module and increment child count of the parent.
+> Because of this, in CPU Idle path, i2c does not idle, preventing Core to
+> enter retention. Also i2c module will not be suspended upon system suspend as
+> pm_runtime_set_suspended is not called from i2c_device_pm_suspend.
+> This issue is fixed by  removing  pm_runtime_set_active call from resume path which
+Unnecessary spaces: -----^ and ----^
+
+> is not necessary.
+> This fix has been tested on OMAP4430.
+>
+> Signed-off-by: Partha Basak<p-basak2-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Vishwanath BS<vishwanath.bs-l0cyMroinI0@public.gmane.org>
+>
+> Cc: Rafael J. Wysocki<rjw-KKrjLPT3xs0@public.gmane.org>
+> Cc: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+> Cc: Ben Dooks<ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+> Cc: Jean Delvare<khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+> ---
+>   drivers/i2c/i2c-core.c |    6 ------
+>   1 files changed, 0 insertions(+), 6 deletions(-)
+>   mode change 100644 =>  100755 drivers/i2c/i2c-core.c
+
+You should probably not have to change the file mode.
+
+Regards,
+Benoit
+
+>
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> old mode 100644
+> new mode 100755
+> index 6649176..13927d5
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -216,12 +216,6 @@ static int i2c_device_pm_resume(struct device *dev)
+>   	else
+>   		ret = i2c_legacy_resume(dev);
+>
+> -	if (!ret) {
+> -		pm_runtime_disable(dev);
+> -		pm_runtime_set_active(dev);
+> -		pm_runtime_enable(dev);
+> -	}
+> -
+>   	return ret;
+>   }
+>
