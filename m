@@ -1,62 +1,31 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
- without VRFB
-Date: Mon, 6 Sep 2010 00:44:33 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404687B222E@dbde02.ent.ti.com>
-References: <1283589705-6723-1-git-send-email-archit@ti.com>
+From: tarek attia <tarek.m.attia@gmail.com>
+Subject: Cpufreq for s3c2440 FriendlyArm
+Date: Sun, 5 Sep 2010 22:30:00 +0200
+Message-ID: <AANLkTi=mvJywPgZbyGuNu46Ty5F3AkW2wBEa+Hu=skQq@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1283589705-6723-1-git-send-email-archit@ti.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:59123 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752668Ab0IEUaB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Sep 2010 16:30:01 -0400
+Received: by iwn5 with SMTP id 5so3541335iwn.19
+        for <linux-omap@vger.kernel.org>; Sun, 05 Sep 2010 13:30:01 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Saturday, September 04, 2010 2:12 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; Taneja,
-> Archit
-> Subject: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build without
-> VRFB
-> 
-> This lets omap_vout driver build and run without VRFB. It works along the
-> lines of the following patch series:
-> OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
-> https://patchwork.kernel.org/patch/105371/
-> 
-> A variable rotation_type is introduced in omapvideo_info like the way in
-> omapfb_info to make both vrfb and non vrfb rotation possible.
-> 
-[Hiremath, Vaibhav] Archit,
+Hi all,
 
-Currently omap_vout driver only supports VRFB based rotation, it doesn't support SDMA based rotation (unlike OMAPFB) and neither you patch adds it.
+Did anyone try the cpufreq on the mini2440 ? and did anyone get it
+working on the board ?
 
-Thanks,
-Vaibhav
+Each time I do the configuration in the kernel I found nothing on the
+board ,however after the compilation I found the cpufreq.o & pll.o but
+no file concerning that on the board .
 
-> Since VRFB is tightly coupled with the omap_vout driver, a handful of
-> vrfb-specific functions have been defined and placed in omap_vout_vrfb.c
-> 
-> This series applies along with the previously submitted patch:
-> https://patchwork.kernel.org/patch/146401/
-> 
-> Archit Taneja (2):
->   V4L/DVB: OMAP_VOUT: Create a seperate vrfb functions library
->   V4L/DVB: OMAP_VOUT: Use rotation_type to choose between vrfb and
->     sdram rotation
-> 
->  drivers/media/video/omap/Kconfig          |    1 -
->  drivers/media/video/omap/Makefile         |    1 +
->  drivers/media/video/omap/omap_vout.c      |  502 ++++++------------------
-> -----
->  drivers/media/video/omap/omap_vout_vrfb.c |  417 ++++++++++++++++++++++++
->  drivers/media/video/omap/omap_vout_vrfb.h |   40 +++
->  drivers/media/video/omap/omap_voutdef.h   |   26 ++
->  6 files changed, 582 insertions(+), 405 deletions(-)
->  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
->  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
+
+Any help will be appreciated.
+
+
+Best Regards,
