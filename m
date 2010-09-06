@@ -1,93 +1,55 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
-Date: Mon, 6 Sep 2010 14:33:51 +0530
-Message-ID: <018601cb4da2$6d903880$LocalHost@wipblrx0099946>
-References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <20100829184904.GC26209@core.coreip.homeip.net> <017e01cb4b53$45925da0$LocalHost@wipblrx0099946> <20100903163438.GB2200@core.coreip.homeip.net>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH 0/4] Hacks to allow booting ARM SMP kernel on UP ARMv7
+Date: Mon, 06 Sep 2010 10:28:53 +0100
+Message-ID: <1283765333.1926.2.camel@e102109-lin.cambridge.arm.com>
+References: <20100817135205.GC20325@n2100.arm.linux.org.uk>
+	 <20100817141210.GJ12184@atomide.com>
+	 <20100817154035.GD20325@n2100.arm.linux.org.uk>
+	 <20100819073810.GR12184@atomide.com><4C6CFBAF.6020407@canonical.com>
+	 <20100819095705.GU12184@atomide.com>
+	 <20100819102025.GA32151@n2100.arm.linux.org.uk>
+	 <20100820120622.GL25742@atomide.com><20100830225527.GC11597@atomide.com>
+	 <20100902133637.GJ26319@n2100.arm.linux.org.uk>
+	 <20100902161659.GJ11597@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:37170 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752554Ab0IFJ3P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 05:29:15 -0400
+In-Reply-To: <20100902161659.GJ11597@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>
 
------ Original Message ----- 
-From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-> Hi Hemanth,
+On Thu, 2010-09-02 at 17:16 +0100, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100902 06:29]:
+> > On Mon, Aug 30, 2010 at 03:55:27PM -0700, Tony Lindgren wrote:
+> > > * Tony Lindgren <tony@atomide.com> [100820 04:59]:
+> > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [100819 13:13]:
+> > > > > On Thu, Aug 19, 2010 at 12:57:06PM +0300, Tony Lindgren wrote:
+> > > > > > Looks like something is not quite right with smp_on_up part of __fixup_smp,
+> > > > > > returning early before smp_on_up does not produce that.
+> > > > >
+> > > > > It's probably overwriting some register it shouldn't be.  I might be
+> > > > > able to look at this sometime during the coming week... assuming that
+> > > > > the weather is as bad as they forecast and I have 'net connectivity.
+> > >
+> > > This seems to fix it.
+> >
+> > Thanks, merged that into my original patch - so here it is again with
+> > everything updated.
 > 
-> On Fri, Sep 03, 2010 at 04:02:11PM +0530, Hemanth V wrote:
->> >
->> >
->> >Do not like repeated release of resources in main and error path... Can
->> >we do it like:
->> >
->> >...
->> >disable_irq();
->> >error = cma3000_set(data, CMA3000_CTRL, ctrl, "ctrl");
->> >if (!error) {
->> >/* Settling time delay required after mode change */
->> >msleep(CMA3000_SETDELAY);
->> >}
->> >enable_irq();
->> >out:
->> >mutex_unlock();
->> >return error ? error : count;
->> 
->> I am thinking I can just add the below statement, and should be able to
->> remove repeated release.
->> 
->> return error ? error : count;
->> 
-> 
-> That would make us sleep for CMA3000_SETDELAY even in case of failure...
-> ... But that should be OK.
+> Your patch sure makes things simpler! The problem still is the
+> V6 vs V7 SMP code though.
 
-I suppose it should not sleep if its the modified code segment as below
+I haven't followed your patches closely but can we restrict the ARMv6
+SMP/UP support to only those cores that have TEX remapping (most of them
+probably)?
 
-        error = CMA3000_SET(data, CMA3000_CTRL, ctrl, "ctrl");
-        if (error < 0)
-                goto err_op3_failed;
-
-        /* Settling time delay required after mode change */
-        msleep(CMA3000_SETDELAY);
-
-err_op3_failed:
-        enable_irq(data->client->irq);
-err_op2_failed:
-        mutex_unlock(&data->mutex);
-err_op1_failed:
-        return (error ? error : count);
-
-
-> 
->> >>+
->> >>+ if (data->client->irq) {
->> >>+ ret = request_threaded_irq(data->client->irq, NULL,
->> >>+ cma3000_thread_irq,
->> >>+ irqflags | IRQF_ONESHOT,
->> >>+ data->client->name, data);
->> >>+
->> >>+ if (ret < 0) {
->> >>+ dev_err(&data->client->dev,
->> >>+ "request_threaded_irq failed\n");
->> >>+ goto err_op1_failed;
->> >>+ }
->> >>+ }
->> >
->> >What is the utility of the driver when there is no IRQ line?
->> 
->> Not sure I fully understand your comments.
->> Currently probe would return a failure.
->> 
-> 
-> You have a check for data->client->irq != 0 and finish probe() with
-> success in case it is 0. The question is what is the use of the
-> device/driver combo in case when data->client->irq == 0?
-
-Yes agreed, will add a error scenario when data->client->irq == 0
-
+-- 
+Catalin
 
