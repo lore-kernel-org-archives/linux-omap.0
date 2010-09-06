@@ -1,42 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 00/10] split out emac cpdma and mdio for reuse
-Date: Mon, 06 Sep 2010 13:28:02 -0700 (PDT)
-Message-ID: <20100906.132802.260095799.davem@davemloft.net>
-References: <1283465008-18606-1-git-send-email-cyril@ti.com>
-	<87eida3fl9.fsf@deeprootsystems.com>
-	<4C813C7F.5090602@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage
+	domain instance in the voltage driver.
+Date: Mon, 6 Sep 2010 22:21:27 +0100
+Message-ID: <20100906212127.GA21003@opensource.wolfsonmicro.com>
+References: <1282130412-12027-1-git-send-email-thara@ti.com> <1282130412-12027-2-git-send-email-thara@ti.com> <87eiddgjr7.fsf@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB03291AD889@dbde02.ent.ti.com> <87r5ha3hlk.fsf@deeprootsystems.com> <20100903173046.GA32226@rakim.wolfsonmicro.main> <87pqwu1zcw.fsf@deeprootsystems.com> <20100903182052.GB32226@rakim.wolfsonmicro.main> <20100906195904.GA2864@besouro.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:48730
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753051Ab0IFU1o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 16:27:44 -0400
-In-Reply-To: <4C813C7F.5090602@ti.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:43943 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751706Ab0IFVV3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 17:21:29 -0400
+Content-Disposition: inline
+In-Reply-To: <20100906195904.GA2864@besouro.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: cyril@ti.com
-Cc: khilman@deeprootsystems.com, netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, nsekhar@ti.com, srk@ti.com, omar.ramirez@ti.com, bparrot@ti.com
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "thomas.petazzoni@free-electrons.com" <thomas.petazzoni@free-electrons.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-From: Cyril Chemparathy <cyril@ti.com>
-Date: Fri, 03 Sep 2010 14:20:47 -0400
+On Mon, Sep 06, 2010 at 10:59:05PM +0300, Eduardo Valentin wrote:
+> On Fri, Sep 03, 2010 at 08:20:52PM +0200, Mark Brown wrote:
 
-> Hi Kevin,
-> 
-> [...]
->>> Although am3517 (omap) board support code has been updated as needed,
->>> emac does not work on this platform.
->> 
->> Just to clarify... did EMAC work on AM3517 before this series?
-> 
-> No.  It didn't work before this series.  To get AM3517 EMAC working, the
-> driver needs another patch to enable the interface clock in addition to
-> the functional clock.
+> > Essentially all that needs doing is that when regulator_set_voltage() is
+> > called instead of merging with the machine constraints and applying the
+> > setting immediately we store the constraints that are specified in the
+> > consumer then iterate over all enabled consumers applying all the
+> > constraints that they've set in addition to those from the machine.
 
-Since this has dependencies on davinci board files and whatnot, why don't
-you merge this via the davinci tree and add my:
+> How about taking Thara's proposal of using priority lists?
 
-Acked-by: David S. Miller <davem@davemloft.net>
+> I mean, it could make more sense to keep the constraints into a priority list,
+> instead of "iterate over all enabled consumers"?
 
-Ok?
+Partly just that the lists tend to be short enough that it's hardly
+worth bothering with the more complex algorithm, partly because the fact
+that you have both a minimum constraint and a maximum constraint makes
+it into two priority lists you need to maintain.
