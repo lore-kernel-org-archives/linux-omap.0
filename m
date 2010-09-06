@@ -1,43 +1,50 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/2] USB: musb-gadget: enable autoclear for OUT transfer
- in both DMA 0 and DMA 1
-Date: Mon, 06 Sep 2010 20:11:40 +0400
-Message-ID: <4C8512BC.2080003@ru.mvista.com>
-References: <1282920723-12459-1-git-send-email-tom.leiming@gmail.com>	<5A47E75E594F054BAF48C5E4FC4B92AB03291AE04A@dbde02.ent.ti.com> <AANLkTim8WC_2H3tUL4nU9LD2xDjzUbB1ERhMQeA20z1K@mail.gmail.com>
+From: Jean Pihet <jean.pihet-OTs2U3NB0ngRmelmmXo44Q@public.gmane.org>
+Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
+Date: Mon, 6 Sep 2010 18:22:55 +0200
+Message-ID: <AANLkTikT+idycF5jo7h15+E3suVKN9bNB8N+vqGvRge1@mail.gmail.com>
+References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
+	<87bp8nn9yx.fsf@deeprootsystems.com>
+	<20100902075605.GB2962@matterhorn.lan>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CCED1488@dbde02.ent.ti.com>
+	<AANLkTinmWTAwckEJJs8d4BW3PVRHSBwy4i-w=MNe5eDX@mail.gmail.com>
+	<FCCFB4CDC6E5564B9182F639FC356087031162CEB7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTim8WC_2H3tUL4nU9LD2xDjzUbB1ERhMQeA20z1K-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org" <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087031162CEB7-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: "Sripathy, Vishwanath" <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+Cc: "linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Hi Vishwa,
 
-Ming Lei wrote:
+On Mon, Sep 6, 2010 at 1:15 PM, Sripathy, Vishwanath
+<vishwanath.bs-l0cyMroinI0@public.gmane.org> wrote:
+> I did some profiling of assembly code on OMAP3630 board (ZOOM3). In worst case it takes around 3.28ms and best case around 2.93ms for mpu off mode.
+Can you give a bit more details? Which measurement has been taken (ASM
+only, sleep, wake-up ...?) and what are the significant figures?
 
->> Which codebase is this patch meant for?
->> I don't see the hb_mult in current mainline code?
+>For MPU INACTIVE/RET, it is less than 30us.
+Mmh that is the resolution of the 32kHz timer, so I guess you get
+either 0 or 1 timer cycle depending when you start the measurement.
+IMO the 32kHz timer is too slow to measure those fast events.
 
->> Are there any patches which this one depends on?
+> However as Kevin mentioned in other email, it would be better to find out a way to trace inside assembly code as well.
+OK that could be done but first I would like to make sure such a
+complication is  needed.
 
-> This depends on the two iso for device mode patches:
->          http://marc.info/?l=linux-usb&m=128076716001885&w=2
->          http://marc.info/?l=linux-usb&m=128076716901924&w=2
+>
+> Regards
+> Vishwa
 
-> I plan to resend the two patches above and the double buffer patches
-> later.
-
-    I recommend that you change the ordering of patches so that fixes come 
-first, and new features last. I.e. this patch should precede the second one of 
-those two above.
-
-> thanks,
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jean
