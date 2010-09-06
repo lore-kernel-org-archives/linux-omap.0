@@ -1,68 +1,81 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v5 3/7] wireless: wl12xx: add platform data passing support
-Date: Mon, 6 Sep 2010 16:46:24 +0300
-Message-ID: <AANLkTi=z-cqdwrbXo9pv9WhZkrnb7X+zpVNbJ_-VTJ16@mail.gmail.com>
-References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
- <1283376410-9999-4-git-send-email-ohad@wizery.com> <AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
- <20100906120716.GE20903@n2100.arm.linux.org.uk>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 1/2] USB: musb-gadget: enable autoclear for OUT transfer
+ in both DMA 0 and DMA 1
+Date: Mon, 6 Sep 2010 20:27:09 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03291AE04A@dbde02.ent.ti.com>
+References: <1282920723-12459-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:54399 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750768Ab0IFNqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 09:46:45 -0400
-In-Reply-To: <20100906120716.GE20903@n2100.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:45350 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321Ab0IFO5g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 10:57:36 -0400
+In-Reply-To: <1282920723-12459-1-git-send-email-tom.leiming@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus@gmail.com>, linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, Ido Yariv <ido@wizery.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
+To: "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, "felipe.balbi@nokia.com" <feli>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mike Frysinger <vapier@gentoo.org>, Sergei Shtylyov <sshtylyov@ru.mvista.com>
 
-2010/9/6 Russell King - ARM Linux <linux@arm.linux.org.uk>:
-> We could instead make wl12xx_get_platform_data() return a const pointer
-> to its own internal storage instead, or ERR pointers for the various
-> failure cases.
+tom.leiming@gmail.com wrote:
+> 
+> From: Ming Lei <tom.leiming@gmail.com>
+> 
+> This patch fixes one bugs of OUT transfer in double buffer case:
+> 
+> -the current code only enable autoclear for dma mode 1, and not
+> for dma mode 0
+> 
+> Without this patch, test #5 of usbtest can't be passed if we
+> configure musb as g_zero and use fifo mode 3 to enable double
+> buffer mode.
+> 
+> With this patch and the following patch(fix dma length),
+> on my beagle B5, test#5(queued bulk out) may go beyond
+> 18Mbyte/s(seems dma mode 0 is quicker in double buffer case)
+> if musb is configured as g_zero and fifo mode 3 is taken, follows
+> the test command:
+> 
+>     #./testusb -D DEV_NAME -c 1024 -t 5 -s 32768 -g 8   [1]
+> 
+> Also I have tested this patch can't make g_ether broken.
+> 
+> [1],
+>     -source of testusb : tools/usb/testusb.c under linux kernel;
+> 
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+> Cc: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Mike Frysinger <vapier@gentoo.org>
+> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+> ---
+>  drivers/usb/musb/musb_gadget.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+> index e0bd1c1..c0dfec4 100644
+> --- a/drivers/usb/musb/musb_gadget.c
+> +++ b/drivers/usb/musb/musb_gadget.c
+> @@ -645,9 +645,9 @@ static void rxstate(struct musb *musb, struct musb_request *req)
+>  	 */
+>  
+>  				csr |= MUSB_RXCSR_DMAENAB;
+> -#ifdef USE_MODE1
+>  				if (!musb_ep->hb_mult)
+>  					csr |= MUSB_RXCSR_AUTOCLEAR;
 
-Sounds good:
+Hi Tom,
 
-diff --git a/drivers/net/wireless/wl12xx/wl12xx_platform_data.c
-b/drivers/net/wireless/wl12xx/wl12xx_platform_data.c
-new file mode 100644
-index 0000000..973b110
---- /dev/null
-+++ b/drivers/net/wireless/wl12xx/wl12xx_platform_data.c
-@@ -0,0 +1,28 @@
-+#include <linux/module.h>
-+#include <linux/err.h>
-+#include <linux/wl12xx.h>
-+
-+static const struct wl12xx_platform_data *platform_data;
-+
-+int __init wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
-+{
-+	if (platform_data)
-+		return -EBUSY;
-+	if (!data)
-+		return -EINVAL;
-+
-+	platform_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
-+	if (!platform_data)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+const struct wl12xx_platform_data *wl12xx_get_platform_data(void)
-+{
-+	if (!platform_data)
-+		return ERR_PTR(-ENODEV);
-+
-+	return platform_data;
-+}
-+EXPORT_SYMBOL(wl12xx_get_platform_data);
+Which codebase is this patch meant for?
+I don't see the hb_mult in current mainline code?
 
+Are there any patches which this one depends on?
 
-I'll wait a few days to see if there's any other comment, and then
-post v6 with this change.
+Thanks,
+Anand
 
->
+> +#ifdef USE_MODE1
+>  				/* csr |= MUSB_RXCSR_DMAMODE; */
+>  
+>  				/* this special sequence (enabling and then
