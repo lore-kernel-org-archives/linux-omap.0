@@ -1,126 +1,148 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH 3/6] ARM: Fix v7wbi_tlb_flags for SMP on UP
-Date: Mon, 06 Sep 2010 12:46:34 +0100
-Message-ID: <1283773594.11660.10.camel@e102109-lin.cambridge.arm.com>
-References: <20100819102025.GA32151@n2100.arm.linux.org.uk>
-	 <20100820120622.GL25742@atomide.com><20100830225527.GC11597@atomide.com>
-	 <20100902133637.GJ26319@n2100.arm.linux.org.uk>
-	 <20100902161659.GJ11597@atomide.com><20100902162039.GM11597@atomide.com>
-	 <20100902162537.GU26319@n2100.arm.linux.org.uk>
-	 <20100902163453.GR11597@atomide.com><20100902234746.GF11597@atomide.com>
-	 <20100903090734.GJ26319@n2100.arm.linux.org.uk>
-	 <20100903091029.GK26319@n2100.arm.linux.org.uk>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v5 3/7] wireless: wl12xx: add platform data passing support
+Date: Mon, 6 Sep 2010 14:55:55 +0300
+Message-ID: <AANLkTim91620+bmHWewucX5tP8Z-NUkrW2cJYJ+jpMoD@mail.gmail.com>
+References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+ <1283376410-9999-4-git-send-email-ohad@wizery.com> <AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:46607 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753646Ab0IFLqz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 07:46:55 -0400
-In-Reply-To: <20100903091029.GK26319@n2100.arm.linux.org.uk>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:58603 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750975Ab0IFL4Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 07:56:16 -0400
+In-Reply-To: <AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>
+To: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus@gmail.com>
+Cc: linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, Ido Yariv <ido@wizery.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 
-Russell,
+2010/9/4 Micha=B3 Miros=B3aw <mirqus@gmail.com>:
+> 2010/9/1 Ohad Ben-Cohen <ohad@wizery.com>:
+>> Add a simple mechanism to pass platform data to the
+>> SDIO instances of wl12xx.
+>>
+>> This way there is no confusion over who owns the 'embedded data',
+>> typechecking is preserved, and no possibility for the wrong driver t=
+o
+>> pick up the data.
+>>
+>> Originally proposed by Russell King.
+>>
+>> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+>> ---
+>> =A0drivers/net/wireless/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0| =A0 =A02 +
+>> =A0drivers/net/wireless/wl12xx/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 =A05 ++-
+>> =A0drivers/net/wireless/wl12xx/wl12xx_platform_data.c | =A0 31 +++++=
++++++++++++++++
+>> =A0include/linux/wl12xx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 | =A0 =A03 ++
+>> =A04 files changed, 40 insertions(+), 1 deletions(-)
+>> =A0create mode 100644 drivers/net/wireless/wl12xx/wl12xx_platform_da=
+ta.c
+>>
+>> diff --git a/drivers/net/wireless/Makefile b/drivers/net/wireless/Ma=
+kefile
+>> index 5d4ce4d..85af697 100644
+>> --- a/drivers/net/wireless/Makefile
+>> +++ b/drivers/net/wireless/Makefile
+>> @@ -50,5 +50,7 @@ obj-$(CONFIG_ATH_COMMON) =A0 =A0 =A0+=3D ath/
+>> =A0obj-$(CONFIG_MAC80211_HWSIM) =A0 +=3D mac80211_hwsim.o
+>>
+>> =A0obj-$(CONFIG_WL12XX) =A0 +=3D wl12xx/
+>> +# small builtin driver bit
+>> +obj-$(CONFIG_WL12XX_PLATFORM_DATA) =A0 =A0 +=3D wl12xx/wl12xx_platf=
+orm_data.o
+>>
+>> =A0obj-$(CONFIG_IWM) =A0 =A0 =A0+=3D iwmc3200wifi/
+>> diff --git a/drivers/net/wireless/wl12xx/Kconfig b/drivers/net/wirel=
+ess/wl12xx/Kconfig
+>> index 2f98058..4a8bb25 100644
+>> --- a/drivers/net/wireless/wl12xx/Kconfig
+>> +++ b/drivers/net/wireless/wl12xx/Kconfig
+>> @@ -74,4 +74,7 @@ config WL1271_SDIO
+>> =A0 =A0 =A0 =A0 =A0If you choose to build a module, it'll be called
+>> =A0 =A0 =A0 =A0 =A0wl1271_sdio. Say N if unsure.
+>>
+>> -
+>> +config WL12XX_PLATFORM_DATA
+>> + =A0 =A0 =A0 bool
+>> + =A0 =A0 =A0 depends on WL1271_SDIO !=3D n
+>> + =A0 =A0 =A0 default y
+>> diff --git a/drivers/net/wireless/wl12xx/wl12xx_platform_data.c b/dr=
+ivers/net/wireless/wl12xx/wl12xx_platform_data.c
+>> new file mode 100644
+>> index 0000000..e00973b
+>> --- /dev/null
+>> +++ b/drivers/net/wireless/wl12xx/wl12xx_platform_data.c
+>> @@ -0,0 +1,31 @@
+>> +#include <linux/module.h>
+>> +#include <linux/wl12xx.h>
+>> +
+>> +static struct wl12xx_platform_data *platform_data;
+>> +
+>> +int __init wl12xx_set_platform_data(const struct wl12xx_platform_da=
+ta *data)
+>> +{
+>> + =A0 =A0 =A0 if (platform_data)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EBUSY;
+>> + =A0 =A0 =A0 if (!data)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> +
+>> + =A0 =A0 =A0 platform_data =3D kmemdup(data, sizeof(*data), GFP_KER=
+NEL);
+>> + =A0 =A0 =A0 if (!platform_data)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+>> +
+>> + =A0 =A0 =A0 return 0;
+>> +}
+>> +
+>> +int wl12xx_get_platform_data(struct wl12xx_platform_data *data)
+>> +{
+>> + =A0 =A0 =A0 if (!platform_data)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>> + =A0 =A0 =A0 if (!data)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> +
+>> + =A0 =A0 =A0 memcpy(data, platform_data, sizeof(*data));
+>> +
+>> + =A0 =A0 =A0 return 0;
+>> +}
+>> +EXPORT_SYMBOL(wl12xx_get_platform_data);
+>> diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
+>> index 137ac89..3e33ae1 100644
+>> --- a/include/linux/wl12xx.h
+>> +++ b/include/linux/wl12xx.h
+>> @@ -31,4 +31,7 @@ struct wl12xx_platform_data {
+>> =A0 =A0 =A0 =A0bool use_eeprom;
+>> =A0};
+>>
+>> +int wl12xx_set_platform_data(const struct wl12xx_platform_data *dat=
+a);
+>> +int wl12xx_get_platform_data(struct wl12xx_platform_data *data);
+>> +
+>> =A0#endif
+>
+> Why do you need all that copying? Isn't the data constant?
 
-I can see you posted another version while writing this e-mail. But I
-think most comments still apply. 
+That was the original proposal from Russell;
 
-On Fri, 2010-09-03 at 10:10 +0100, Russell King - ARM Linux wrote:
-> diff --git a/arch/arm/include/asm/assembler.h b/arch/arm/include/asm/assembler.h
-> index 6e8f05c..55974d2 100644
-> --- a/arch/arm/include/asm/assembler.h
-> +++ b/arch/arm/include/asm/assembler.h
-> @@ -154,16 +154,32 @@
->         .long   9999b,9001f;                    \
->         .popsection
-> 
-> +#ifdef CONFIG_SMP
-> +#define SMP(instr...)                                          \
-> +9998:  instr
-> +#define UP(instr...)                                           \
-> +       .pushsection ".smpalt.init", "a"                        ;\
-> +       .word   9998b                                           ;\
-> +       instr                                                   ;\
-> +       .popsection
-> +#else
-> +#define SMP(instr...)
-> +#define UP(instr...) instr
-> +#endif
+AFAICT it's very similar to how platform device resources are handled
+- it allows marking the original definition of the data as __initdata
+(need to add that) thus freeing up its space after the initialization
+phase completes. Later, in some scenarios, it might also allow to free
+up the copied data (not done now, but the copying happen only once in
+the lifetime of the driver so I'm fine with it).
 
-Would this work with Thumb-2 kernel builds? Maybe you can add a W(instr)
-in the SMP/UP macros to make sure that the instruction is always 32-bit
-wide.
-
-> diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
-> index bb8e93a..bb2ef60 100644
-> --- a/arch/arm/kernel/entry-armv.S
-> +++ b/arch/arm/kernel/entry-armv.S
-> @@ -965,11 +965,8 @@ kuser_cmpxchg_fixup:
->         beq     1b
->         rsbs    r0, r3, #0
->         /* beware -- each __kuser slot must be 8 instructions max */
-> -#ifdef CONFIG_SMP
-> -       b       __kuser_memory_barrier
-> -#else
-> -       usr_ret lr
-> -#endif
-> +       SMP(b   __kuser_memory_barrier)
-> +       UP(usr_ret      lr)
-
-Ah, the automatic W() I mentioned above wouldn't work for macros.
-
-> @@ -333,4 +336,35 @@ __create_page_tables:
->  ENDPROC(__create_page_tables)
->         .ltorg
-> 
-> +#ifdef CONFIG_SMP_ON_UP
-> +__fixup_smp:
-> +       and     r0, r9, #0xff000000
-> +       teq     r0, #0x41000000         @ ARM CPU?
-> +       bne     smp_on_up               @ no, assume UP
-
-That's a bit restricting but I'm not sure we have a better way. If we
-have the new CPUID format (MIDR[19:16] = 0xf), we can check MMFR0[31:28]
-for 1 which means "implemented with hardware coherency support".
-
-> +       and     r0, r9, #0x00070000
-> +       teq     r0, #0x00070000         @ ARMv6/v7?
-> +       bne     smp_on_up               @ no, assume UP
-> +       mrc     p15, 0, r0, c0, c0, 5   @ read MIDR
-
-Typo in comment - MPIDR.
-
-I think this applies to the smp_midr.h file. Should we call it
-smp_mpidr.h or just mpidr.h?
-
-> +       movs    r0, r0, lsr #30
-> +       teqne   r0, #3                  @ check top two bits 00 or 11
-> +       movne   pc, lr
-> +
-> +smp_on_up:
-> +       adr     r0, 1f
-> +       ldmia   r0, {r3, r6, r7}
-> +       sub     r3, r0, r3
-> +       add     r6, r6, r3
-> +       add     r7, r7, r3
-> +2:     cmp     r6, r7
-> +       ldmia   r6!, {r0, r4}
-> +       movhs   pc, lr
-> +       str     r4, [r0, r3]
-> +       b       2b
-> +ENDPROC(__fixup_smp)
-> +
-> +1:     .word   .
-> +       .word   __smpalt_begin
-> +       .word   __smpalt_end
-
-I think a '.align 2' would be useful as Thumb-2 code may break the
-alignment of 1f.
-
--- 
-Catalin
-
+>
+> Best Regards,
+> Micha=B3 Miros=B3aw
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
