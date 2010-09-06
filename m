@@ -1,213 +1,141 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/4] Hacks to allow booting ARM SMP kernel on UP ARMv7
-Date: Mon, 6 Sep 2010 11:06:32 +0100
-Message-ID: <20100906100632.GC20903@n2100.arm.linux.org.uk>
-References: <4C6CFBAF.6020407@canonical.com> <20100819095705.GU12184@atomide.com> <20100819102025.GA32151@n2100.arm.linux.org.uk> <20100820120622.GL25742@atomide.com> <20100830225527.GC11597@atomide.com> <20100902133637.GJ26319@n2100.arm.linux.org.uk> <20100902161659.GJ11597@atomide.com> <1283765333.1926.2.camel@e102109-lin.cambridge.arm.com> <20100906093424.GB20903@n2100.arm.linux.org.uk> <1283765910.1926.4.camel@e102109-lin.cambridge.arm.com>
+From: Bryan Wu <bryan.wu@canonical.com>
+Subject: Re: [PATCH 1/6] ARM: Add inline function smp_on_up() for early init testing
+Date: Mon, 6 Sep 2010 18:17:12 +0800
+Message-ID: <AANLkTik2FNBv-72C4L7PxBoMsTENSds-PvbAzxGd-h4y@mail.gmail.com>
+References: <20100819073810.GR12184@atomide.com>
+	<4C6CFBAF.6020407@canonical.com>
+	<20100819095705.GU12184@atomide.com>
+	<20100819102025.GA32151@n2100.arm.linux.org.uk>
+	<20100820120622.GL25742@atomide.com>
+	<20100830225527.GC11597@atomide.com>
+	<20100902133637.GJ26319@n2100.arm.linux.org.uk>
+	<20100902161659.GJ11597@atomide.com>
+	<20100902161846.GK11597@atomide.com>
+	<20100902170830.GW26319@n2100.arm.linux.org.uk>
+	<20100902174244.GU11597@atomide.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CCFE75A2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34328 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750794Ab0IFKGq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 06:06:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1283765910.1926.4.camel@e102109-lin.cambridge.arm.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:43059 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab0IFKRN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 06:17:13 -0400
+Received: by vws3 with SMTP id 3so3175549vws.19
+        for <linux-omap@vger.kernel.org>; Mon, 06 Sep 2010 03:17:12 -0700 (PDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE75A2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Will Deacon <will.deacon@arm.com>
 
-On Mon, Sep 06, 2010 at 10:38:30AM +0100, Catalin Marinas wrote:
-> On Mon, 2010-09-06 at 10:34 +0100, Russell King - ARM Linux wrote:
-> > On Mon, Sep 06, 2010 at 10:28:53AM +0100, Catalin Marinas wrote:
-> > > I haven't followed your patches closely but can we restrict the ARMv6
-> > > SMP/UP support to only those cores that have TEX remapping (most of them
-> > > probably)?
-> > 
-> > We don't support TEX remapping on ARMv6.
-> 
-> I know but it's easy to enable if useful for the SMP/UP v6/v7
-> combination (with some restrictions).
+Tony,
 
-It'll make proc-v6.S much more complicated than it already is, requiring
-it to carry both the non-remap and remapping code selected via an ifdef.
+I tried your latest branch: devel-smp-on-unicore, kernel boots up but
+got lots of WARN_ON fired:
 
-Is it worth it?  For the sake of one conditional in mmu.c, I don't think
-so - and the view is that using TEX remapping to get rid of the shared
-bit is a horrible hack anyway.
+---
+------------[ cut here ]------------
+[    1.149719] WARNING: at mm/percpu-vm.c:320 pcpu_alloc+0x2fc/0x888()
+[    1.149780] Modules linked in:
+[    1.149841] [<c01b34c8>] (unwind_backtrace+0x0/0xe4) from
+[<c01e939c>] (warn_slowpath_common+0x4c/0x64)
+[    1.149902] [<c01e939c>] (warn_slowpath_common+0x4c/0x64) from
+[<c01e93cc>] (warn_slowpath_null+0x18/0x1c)
+[    1.149993] [<c01e93cc>] (warn_slowpath_null+0x18/0x1c) from
+[<c0274730>] (pcpu_alloc+0x2fc/0x888)
+[    1.150085] [<c0274730>] (pcpu_alloc+0x2fc/0x888) from [<c0279578>]
+(sget+0x198/0x43c)
+[    1.150146] [<c0279578>] (sget+0x198/0x43c) from [<c0279adc>]
+(get_sb_ns+0x20/0x90)
+[    1.150238] [<c0279adc>] (get_sb_ns+0x20/0x90) from [<c02791a4>]
+(vfs_kern_mount+0x9c/0x18c)
+[    1.150299] [<c02791a4>] (vfs_kern_mount+0x9c/0x18c) from
+[<c0022280>] (init_mqueue_fs+0x68/0xc8)
+[    1.150390] [<c0022280>] (init_mqueue_fs+0x68/0xc8) from
+[<c01ac5d0>] (do_one_initcall+0xcc/0x1a4)
+[    1.150451] [<c01ac5d0>] (do_one_initcall+0xcc/0x1a4) from
+[<c0008760>] (kernel_init+0x148/0x210)
+[    1.150543] [<c0008760>] (kernel_init+0x148/0x210) from
+[<c01adcf8>] (kernel_thread_exit+0x0/0x8)
+[    1.150604] ---[ end trace 1b75b31a2719ed74 ]---
+---
 
-In any case, it's unnecessary.  We can use my word-replacement to modify
-a variable to indicate whether we're running on SMP or not, and so have
-the test for SMP-on-UP in just one place.  Like this:
+It looks like we still missed to set some flag for chuck.
 
-diff --git a/arch/arm/include/asm/smp_plat.h b/arch/arm/include/asm/smp_plat.h
-index e621530..7de5aa5 100644
---- a/arch/arm/include/asm/smp_plat.h
-+++ b/arch/arm/include/asm/smp_plat.h
-@@ -18,4 +18,19 @@ static inline int cache_ops_need_broadcast(void)
- 	return ((read_cpuid_ext(CPUID_EXT_MMFR3) >> 12) & 0xf) < 1;
- }
- 
-+/*
-+ * Return true if we are running on a SMP platform
-+ */
-+static inline bool is_smp(void)
-+{
-+#ifndef CONFIG_SMP
-+	return false;
-+#elif defined(CONFIG_SMP_ON_UP)
-+	extern unsigned int smp_on_up;
-+	return !!smp_on_up;
-+#else
-+	return true;
-+#endif
-+}
-+
- #endif
-diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
-index 26ec521..360bf06 100644
---- a/arch/arm/kernel/head.S
-+++ b/arch/arm/kernel/head.S
-@@ -343,7 +343,7 @@ __fixup_smp:
- 	orr	r7, r7, #0x41000000	@ val 0x41070000
- 	and	r0, r9, r6
- 	teq	r0, r7			@ ARM CPU and ARMv6/v7?
--	bne	smp_on_up		@ no, assume UP
-+	bne	fixup_smp_on_up		@ no, assume UP
- 
- 	orr	r6, r6, #0x0000ff00
- 	orr	r6, r6, #0x000000f0	@ mask 0xff07fff0
-@@ -357,7 +357,7 @@ __fixup_smp:
- 	tst	r0, #1 << 31
- 	movne	pc, lr			@ bit 31 => SMP
- 
--smp_on_up:
-+fixup_smp_on_up:
- 	adr	r0, 1f
- 	ldmia	r0, {r3, r6, r7}
- 	sub	r3, r0, r3
-@@ -373,6 +373,14 @@ ENDPROC(__fixup_smp)
- 1:	.word	.
- 	.word	__smpalt_begin
- 	.word	__smpalt_end
-+
-+	.pushsection .data
-+	.globl	smp_on_up
-+smp_on_up:
-+	SMP(.long	1)
-+	UP(.long	0)
-+	.popsection
-+
- #endif
- 
- #include "head-common.S"
-diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
-index d5231ae..fe94467 100644
---- a/arch/arm/kernel/setup.c
-+++ b/arch/arm/kernel/setup.c
-@@ -36,6 +36,7 @@
- #include <asm/procinfo.h>
- #include <asm/sections.h>
- #include <asm/setup.h>
-+#include <asm/smp_plat.h>
- #include <asm/mach-types.h>
- #include <asm/cacheflush.h>
- #include <asm/cachetype.h>
-@@ -824,9 +825,8 @@ void __init setup_arch(char **cmdline_p)
- 	paging_init(mdesc);
- 	request_standard_resources(&meminfo, mdesc);
- 
--#ifdef CONFIG_SMP
--	smp_init_cpus();
--#endif
-+	if (is_smp())
-+		smp_init_cpus();
- 	reserve_crashkernel();
- 
- 	cpu_init();
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 6e1c4f6..a789320 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -303,9 +303,8 @@ static void __init build_mem_type_table(void)
- 			cachepolicy = CPOLICY_WRITEBACK;
- 		ecc_mask = 0;
- 	}
--#ifdef CONFIG_SMP
--	cachepolicy = CPOLICY_WRITEALLOC;
--#endif
-+	if (is_smp())
-+		cachepolicy = CPOLICY_WRITEALLOC;
- 
- 	/*
- 	 * Strip out features not present on earlier architectures.
-@@ -399,13 +398,11 @@ static void __init build_mem_type_table(void)
- 	cp = &cache_policies[cachepolicy];
- 	vecs_pgprot = kern_pgprot = user_pgprot = cp->pte;
- 
--#ifndef CONFIG_SMP
- 	/*
- 	 * Only use write-through for non-SMP systems
- 	 */
--	if (cpu_arch >= CPU_ARCH_ARMv5 && cachepolicy > CPOLICY_WRITETHROUGH)
-+	if (!is_smp() && cpu_arch >= CPU_ARCH_ARMv5 && cachepolicy > CPOLICY_WRITETHROUGH)
- 		vecs_pgprot = cache_policies[CPOLICY_WRITETHROUGH].pte;
--#endif
- 
- 	/*
- 	 * Enable CPU-specific coherency if supported.
-@@ -426,20 +423,21 @@ static void __init build_mem_type_table(void)
- 		mem_types[MT_MINICLEAN].prot_sect |= PMD_SECT_APX|PMD_SECT_AP_WRITE;
- 		mem_types[MT_CACHECLEAN].prot_sect |= PMD_SECT_APX|PMD_SECT_AP_WRITE;
- 
--#ifdef CONFIG_SMP
--		/*
--		 * Mark memory with the "shared" attribute for SMP systems
--		 */
--		user_pgprot |= L_PTE_SHARED;
--		kern_pgprot |= L_PTE_SHARED;
--		vecs_pgprot |= L_PTE_SHARED;
--		mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
--		mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
--		mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
--		mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
--		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
--		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
--#endif
-+		if (is_smp()) {
-+			/*
-+			 * Mark memory with the "shared" attribute
-+			 * for SMP systems
-+			 */
-+			user_pgprot |= L_PTE_SHARED;
-+			kern_pgprot |= L_PTE_SHARED;
-+			vecs_pgprot |= L_PTE_SHARED;
-+			mem_types[MT_DEVICE_WC].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_DEVICE_WC].prot_pte |= L_PTE_SHARED;
-+			mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
-+			mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
-+			mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		}
- 	}
- 
- 	/*
-@@ -802,8 +800,7 @@ static void __init sanity_check_meminfo(void)
- 			 * rather difficult.
- 			 */
- 			reason = "with VIPT aliasing cache";
--#ifdef CONFIG_SMP
--		} else if (tlb_ops_need_broadcast()) {
-+		} else if (is_smp() && tlb_ops_need_broadcast()) {
- 			/*
- 			 * kmap_high needs to occasionally flush TLB entries,
- 			 * however, if the TLB entries need to be broadcast
-@@ -813,7 +810,6 @@ static void __init sanity_check_meminfo(void)
- 			 *   (must not be called with irqs off)
- 			 */
- 			reason = "without hardware TLB ops broadcasting";
--#endif
- 		}
- 		if (reason) {
- 			printk(KERN_CRIT "HIGHMEM is not supported %s, ignoring high memory\n",
+-Bryan
 
+On Fri, Sep 3, 2010 at 8:09 PM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+>> Sent: Thursday, September 02, 2010 11:13 PM
+>> To: Russell King - ARM Linux
+>> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org=
+;
+>> Bryan Wu; Will Deacon
+>> Subject: Re: [PATCH 1/6] ARM: Add inline function smp_on_up() for ea=
+rly
+>> init testing
+>>
+>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100902 10:00]:
+>> > On Thu, Sep 02, 2010 at 09:18:47AM -0700, Tony Lindgren wrote:
+>> >
+>> > > --- a/arch/arm/include/asm/smp_plat.h
+>> > > +++ b/arch/arm/include/asm/smp_plat.h
+>> > > @@ -39,4 +39,20 @@ static inline int cache_ops_need_broadcast(vo=
+id)
+>> > > =A0#define UP(instr...) =A0 =A0 _str(instr)
+>> > > =A0#endif
+>> > >
+>> > > +static inline int smp_on_up(void)
+>> > > +{
+>> > > +#ifdef CONFIG_SMP_ON_UP
+>> > > + int smp_on_up;
+>> > > +
+>> > > + asm( =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0\
+>> > > + =A0 =A0 =A0 =A0 SMP(mov %0, #0) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+>> > > + =A0 =A0 =A0 =A0 UP(mov =A0%0, #1) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+>> > > + =A0 =A0 =A0 =A0 : "=3Dr" (smp_on_up));
+>> > > +
+>> > > + return smp_on_up;
+>> > > +#else
+>> > > + return 0;
+>> > > +#endif
+>> >
+>> > I think this is the wrong approach - rather than a function which =
+tells
+>> us
+>> > just if we are a SMP kernel running on UP, why not something which
+>> returns
+>> > whether we're running on SMP and use that to eliminate some of the=
+se
+>> ifdefs?
+>>
+>> Sure. Will has something like this in his patches:
+>>
+>> static inline int cpu_is_part_of_mp_system(void)
+>> {
+>> =A0 =A0 =A0 u32 mpidr;
+>> =A0 =A0 =A0 asm volatile("mrc p15, 0, %0, c0, c0, 5" : "=3Dr" (mpidr=
+));
+>> =A0 =A0 =A0 return (mpidr >> 31) ? !(mpidr >> 30) : 0;
+>> }
+>
+> I guess this register is only available on MP Core extensions.
+>
+> Regards,
+> Santosh
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
