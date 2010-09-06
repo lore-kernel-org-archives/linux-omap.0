@@ -1,111 +1,164 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/6] ARM: Fix v7wbi_tlb_flags for SMP on UP
-Date: Mon, 6 Sep 2010 16:34:41 +0100
-Message-ID: <20100906153440.GA27858@n2100.arm.linux.org.uk>
-References: <20100830225527.GC11597@atomide.com> <20100902133637.GJ26319@n2100.arm.linux.org.uk> <20100902161659.GJ11597@atomide.com> <20100902162039.GM11597@atomide.com> <20100902162537.GU26319@n2100.arm.linux.org.uk> <20100902163453.GR11597@atomide.com> <20100902234746.GF11597@atomide.com> <20100903090734.GJ26319@n2100.arm.linux.org.uk> <20100903091029.GK26319@n2100.arm.linux.org.uk> <1283773594.11660.10.camel@e102109-lin.cambridge.arm.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH 3/3] omap3/omap4 hsmmc: Register offset handling
+Date: Mon, 6 Sep 2010 21:19:33 +0530
+Message-ID: <AANLkTikh-bsq5K1CjWNafQGmfiLgsj-tnO6ei-C=7PpD@mail.gmail.com>
+References: <23570.10.24.255.18.1283190527.squirrel@dbdmail.itg.ti.com>
+	<4C80A76F.3060108@ti.com>
+	<AANLkTi=OW_sykGsf8u8Gi94ApLCYjiR+xS4aEu1Tf3pC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50436 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab0IFPf6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 11:35:58 -0400
-Content-Disposition: inline
-In-Reply-To: <1283773594.11660.10.camel@e102109-lin.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=OW_sykGsf8u8Gi94ApLCYjiR+xS4aEu1Tf3pC@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Bryan Wu <bryan.wu@canonical.com>
 
-On Mon, Sep 06, 2010 at 12:46:34PM +0100, Catalin Marinas wrote:
-> Russell,
-> 
-> I can see you posted another version while writing this e-mail. But I
-> think most comments still apply. 
-> 
-> On Fri, 2010-09-03 at 10:10 +0100, Russell King - ARM Linux wrote:
-> > diff --git a/arch/arm/include/asm/assembler.h b/arch/arm/include/asm/assembler.h
-> > index 6e8f05c..55974d2 100644
-> > --- a/arch/arm/include/asm/assembler.h
-> > +++ b/arch/arm/include/asm/assembler.h
-> > @@ -154,16 +154,32 @@
-> >         .long   9999b,9001f;                    \
-> >         .popsection
-> > 
-> > +#ifdef CONFIG_SMP
-> > +#define SMP(instr...)                                          \
-> > +9998:  instr
-> > +#define UP(instr...)                                           \
-> > +       .pushsection ".smpalt.init", "a"                        ;\
-> > +       .word   9998b                                           ;\
-> > +       instr                                                   ;\
-> > +       .popsection
-> > +#else
-> > +#define SMP(instr...)
-> > +#define UP(instr...) instr
-> > +#endif
-> 
-> Would this work with Thumb-2 kernel builds? Maybe you can add a W(instr)
-> in the SMP/UP macros to make sure that the instruction is always 32-bit
-> wide.
+Hi Benoit,
 
-Probably not, and it's not obvious how to make it work for T2 kernel
-builds.  For the time being, I'm going to make this available only for
-native ARM builds.  We can think about how to make this work for T2
-sometime later.
+On Fri, Sep 3, 2010 at 1:51 PM, kishore kadiyala
+<kishorek.kadiyala@gmail.com> wrote:
+> Hi Benoit
+>
+> <snip>
+>
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (!(omap_readl(base + reg_off)&
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCHS_SYSSTATUS_=
+RESETDONE))
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpu_relax();
+>>
+>> Why does that series not seems to be based on your hwmod migration? =
+The
+>> reset is fully handle by the hwmod framework now.
+>
+> Agree. But Kevin has =A0suggested to post this patch =A0independent o=
+f hwmod.
+> Does this patch has to go in hwmod series ?
+>
+>>
+>> BTW, when do you have to apply a reset in your case? Do you have the=
+ need
+>> for an API accessible by the driver?
+>> I'm asking because for the moment the framework does not expose the =
+reset
+>> API and use it only at init time.
+>
+> Correct , I don't need reset API access in the driver.
 
-> > diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
-> > index bb8e93a..bb2ef60 100644
-> > --- a/arch/arm/kernel/entry-armv.S
-> > +++ b/arch/arm/kernel/entry-armv.S
-> > @@ -965,11 +965,8 @@ kuser_cmpxchg_fixup:
-> >         beq     1b
-> >         rsbs    r0, r3, #0
-> >         /* beware -- each __kuser slot must be 8 instructions max */
-> > -#ifdef CONFIG_SMP
-> > -       b       __kuser_memory_barrier
-> > -#else
-> > -       usr_ret lr
-> > -#endif
-> > +       SMP(b   __kuser_memory_barrier)
-> > +       UP(usr_ret      lr)
-> 
-> Ah, the automatic W() I mentioned above wouldn't work for macros.
+One correction here , in case of context restore , driver does
+software reset apart from
+the initial reset. So reset is required and so both the tables needs
+registers SYSCONFIG and
+SYSSTATUS. In which case  offset deviation of 0x100 can't be maintained=
+=2E
 
-Indeed, that's only half of the problem.  On T2, some of these may be
-16-bit values, others may be 32-bit values, and this mechanism has no
-way to know the size of the areas.
-
-> > @@ -333,4 +336,35 @@ __create_page_tables:
-> >  ENDPROC(__create_page_tables)
-> >         .ltorg
-> > 
-> > +#ifdef CONFIG_SMP_ON_UP
-> > +__fixup_smp:
-> > +       and     r0, r9, #0xff000000
-> > +       teq     r0, #0x41000000         @ ARM CPU?
-> > +       bne     smp_on_up               @ no, assume UP
-> 
-> That's a bit restricting but I'm not sure we have a better way. If we
-> have the new CPUID format (MIDR[19:16] = 0xf), we can check MMFR0[31:28]
-> for 1 which means "implemented with hardware coherency support".
-> 
-> > +       and     r0, r9, #0x00070000
-> > +       teq     r0, #0x00070000         @ ARMv6/v7?
-> > +       bne     smp_on_up               @ no, assume UP
-> > +       mrc     p15, 0, r0, c0, c0, 5   @ read MIDR
-> 
-> Typo in comment - MPIDR.
-
-Fixed.
-
-> I think this applies to the smp_midr.h file. Should we call it
-> smp_mpidr.h or just mpidr.h?
-
-Already fixed.
-
-> I think a '.align 2' would be useful as Thumb-2 code may break the
-> alignment of 1f.
-
-Maybe, but if we restrict this to only ARM builds for the time being,
-there isn't a problem.
+Regards,
+Kishore
+>
+> <snip>
+>
+>>>
+>>> +enum {
+>>> + =A0 =A0 =A0 OMAP_HSMMC_SYSCONFIG =3D 0,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_SYSSTATUS,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_CON,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_BLK,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_ARG,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_CMD,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_RSP10,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_RSP32,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_RSP54,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_RSP76,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_DATA,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_PSTATE,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_HCTL,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_SYSCTL,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_STAT,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_IE,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_ISE,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_CAPA,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_REV,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_CUR_CAPA,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_FE,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_ADMA_ES,
+>>> + =A0 =A0 =A0 OMAP_HSMMC_ADMA_SAL,
+>>> +};
+>>> +
+>>> +static const u16 omap3_mmc_reg_map[] =3D {
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_SYSCONFIG] =3D 0x0010,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_SYSSTATUS] =3D 0x0014,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_CON] =3D 0x002C,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_BLK] =3D 0x0104,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_ARG] =3D 0x0108,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_CMD] =3D 0x010C,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_RSP10] =3D 0x0110,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_RSP32] =3D 0x0114,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_RSP54] =3D 0x0118,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_RSP76] =3D 0x011C,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_DATA] =3D 0x0120,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_PSTATE] =3D 0x0124,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_HCTL] =3D 0x0128,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_SYSCTL] =3D 0x012C,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_STAT] =3D 0x0130,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_IE] =3D 0x0134,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_ISE] =3D 0x0138,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_CAPA] =3D 0x0140,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_REV] =3D 0x01FC,
+>>> +};
+>>> +
+>>> +static const u16 omap4_mmc_reg_map[] =3D {
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_SYSCONFIG] =3D 0x0010, =A0 =A0 =A0 =A0/* =
+Use Highlander Version
+>>> */
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_SYSSTATUS] =3D 0x0114,
+>>
+>> In fact that sysstatus is a legacy register that is not needed anymo=
+re in
+>> the highlander version. The resetdone is in the sysconfig now.
+>> So you can ignore it in OMAP4.
+>
+> Just verified and thanks for pointing this.
+> ok will avoid checking resetdone in sysstatus for OMAP4
+>
+>>
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_CON] =3D 0x012C,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_BLK] =3D 0x0204,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_ARG] =3D 0x0208,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_CMD] =3D 0x020C,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_RSP10] =3D 0x0210,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_RSP32] =3D 0x0214,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_RSP54] =3D 0x0218,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_RSP76] =3D 0x021C,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_DATA] =3D 0x0220,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_PSTATE] =3D 0x0224,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_HCTL] =3D 0x0228,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_SYSCTL] =3D 0x022C,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_STAT] =3D 0x0230,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_IE] =3D 0x0234,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_ISE] =3D 0x0238,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_CAPA] =3D 0x0240,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_REV] =3D 0x0000, =A0 =A0 =A0/* Use Highla=
+nder Version */
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_CUR_CAPA] =3D 0x0248,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_FE] =3D 0x0250,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_ADMA_ES] =3D 0x0254,
+>>> + =A0 =A0 =A0 [OMAP_HSMMC_ADMA_SAL] =3D 0x0258,
+>>
+>> I didn't check all the registers, but it seems that there is a const=
+ant
+>> 0x100 offset for most of these registers. Cannot you simplify this t=
+able?
+>
+> Sure will simplify and post.
+>
+>>
+>> Regards,
+>> Benoit
+>>
+>
+> <snip>
+>
+> Regards,
+> Kishore
+>
