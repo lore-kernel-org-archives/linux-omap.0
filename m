@@ -1,88 +1,93 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
- without VRFB
-Date: Mon, 6 Sep 2010 13:49:41 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703114DA4A4@dbde02.ent.ti.com>
-References: <1283589705-6723-1-git-send-email-archit@ti.com>
- <19F8576C6E063C45BE387C64729E739404687B222E@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608703114DA270@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E739404687B2342@dbde02.ent.ti.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [RFC] [PATCH V2 1/2] input: CMA3000 Accelerometer driver
+Date: Mon, 6 Sep 2010 14:33:51 +0530
+Message-ID: <018601cb4da2$6d903880$LocalHost@wipblrx0099946>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com> <20100829184904.GC26209@core.coreip.homeip.net> <017e01cb4b53$45925da0$LocalHost@wipblrx0099946> <20100903163438.GB2200@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53516 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750965Ab0IFITq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 04:19:46 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404687B2342@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-Hi,
+----- Original Message ----- 
+From: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+> Hi Hemanth,
+> 
+> On Fri, Sep 03, 2010 at 04:02:11PM +0530, Hemanth V wrote:
+>> >
+>> >
+>> >Do not like repeated release of resources in main and error path... Can
+>> >we do it like:
+>> >
+>> >...
+>> >disable_irq();
+>> >error = cma3000_set(data, CMA3000_CTRL, ctrl, "ctrl");
+>> >if (!error) {
+>> >/* Settling time delay required after mode change */
+>> >msleep(CMA3000_SETDELAY);
+>> >}
+>> >enable_irq();
+>> >out:
+>> >mutex_unlock();
+>> >return error ? error : count;
+>> 
+>> I am thinking I can just add the below statement, and should be able to
+>> remove repeated release.
+>> 
+>> return error ? error : count;
+>> 
+> 
+> That would make us sleep for CMA3000_SETDELAY even in case of failure...
+> ... But that should be OK.
 
-Hiremath, Vaibhav wrote:
->> -----Original Message-----
->> From: Taneja, Archit
->> Sent: Monday, September 06, 2010 9:31 AM
->> To: Hiremath, Vaibhav
->> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org
->> Subject: RE: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
->> without VRFB 
->> 
->> Hi,
->> 
->> Hiremath, Vaibhav wrote:
->>>> -----Original Message-----
->>>> From: Taneja, Archit
->>>> Sent: Saturday, September 04, 2010 2:12 PM
->>>> To: Hiremath, Vaibhav
->>>> Cc: linux-omap@vger.kernel.org;
->>> linux-media@vger.kernel.org; Taneja,
->>>> Archit
->>>> Subject: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build without
->>>> VRFB 
->>>> 
->>>> This lets omap_vout driver build and run without VRFB. It works
->>>> along the lines of the following patch series:
->>>> OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
->>>> https://patchwork.kernel.org/patch/105371/
->>>> 
->>>> A variable rotation_type is introduced in omapvideo_info like the
->>>> way in omapfb_info to make both vrfb and non vrfb rotation possible.
->>>> 
->>> [Hiremath, Vaibhav] Archit,
->>> 
->>> Currently omap_vout driver only supports VRFB based rotation, it
->>> doesn't support SDMA based rotation (unlike OMAPFB) and neither you patch
->>> adds it.
->> 
->> [Archit]The above description in the git commit is a mistake from my end.
->> The main purpose of the patch is to get omap_vout running without VRFB.
->> 
->> I am not sure if we need to enable SDMA rotation for V4L2 though, we
->> would always have vrfb and tiler on omap3 and omap4 respectively.
-> [Hiremath, Vaibhav] No, for me SDMA based rotation doesn't
-> make sense, since SDMA rotation suffers from bandwidth issue.
-> On OMAPFB it has been observed that, DSS throws FIFO
-> underflow error very frequently in SDMA based rotation.
-> 
-> 
->> 
->> How do you think things should be handled in the non vrfb case? Should we
->> try to get rotation running or should the driver return an error if
->> userspace tries to enable rotation in a non-vrfb mode?
-> [Hiremath, Vaibhav] We can handle this in 2 ways,
-> 
-> - Driver can return -ERANGE error, in case of OMAP4 (or non-vrfb platform)
-> 
-> - Driver can choose/fall-down 0 degree rotation gracefully
-> 
-> As per V4L2 spec both options are acceptable.
+I suppose it should not sleep if its the modified code segment as below
 
-Thanks for the clarification. I will work on this change.
+        error = CMA3000_SET(data, CMA3000_CTRL, ctrl, "ctrl");
+        if (error < 0)
+                goto err_op3_failed;
 
-Archit
+        /* Settling time delay required after mode change */
+        msleep(CMA3000_SETDELAY);
+
+err_op3_failed:
+        enable_irq(data->client->irq);
+err_op2_failed:
+        mutex_unlock(&data->mutex);
+err_op1_failed:
+        return (error ? error : count);
+
+
+> 
+>> >>+
+>> >>+ if (data->client->irq) {
+>> >>+ ret = request_threaded_irq(data->client->irq, NULL,
+>> >>+ cma3000_thread_irq,
+>> >>+ irqflags | IRQF_ONESHOT,
+>> >>+ data->client->name, data);
+>> >>+
+>> >>+ if (ret < 0) {
+>> >>+ dev_err(&data->client->dev,
+>> >>+ "request_threaded_irq failed\n");
+>> >>+ goto err_op1_failed;
+>> >>+ }
+>> >>+ }
+>> >
+>> >What is the utility of the driver when there is no IRQ line?
+>> 
+>> Not sure I fully understand your comments.
+>> Currently probe would return a failure.
+>> 
+> 
+> You have a check for data->client->irq != 0 and finish probe() with
+> success in case it is 0. The question is what is the use of the
+> device/driver combo in case when data->client->irq == 0?
+
+Yes agreed, will add a error scenario when data->client->irq == 0
+
+
