@@ -1,67 +1,68 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH 0/2] OMAP: DSS2: Framework to handle omap version
- specific DSS features
-Date: Mon, 6 Sep 2010 18:48:12 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087031162CF5B@dbde02.ent.ti.com>
-References: <1282826618-24584-1-git-send-email-archit@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v5 3/7] wireless: wl12xx: add platform data passing support
+Date: Mon, 6 Sep 2010 16:46:24 +0300
+Message-ID: <AANLkTi=z-cqdwrbXo9pv9WhZkrnb7X+zpVNbJ_-VTJ16@mail.gmail.com>
+References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+ <1283376410-9999-4-git-send-email-ohad@wizery.com> <AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
+ <20100906120716.GE20903@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48812 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752661Ab0IFNSV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 09:18:21 -0400
-In-Reply-To: <1282826618-24584-1-git-send-email-archit@ti.com>
-Content-Language: en-US
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:54399 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750768Ab0IFNqp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Sep 2010 09:46:45 -0400
+In-Reply-To: <20100906120716.GE20903@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus@gmail.com>, linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, Ido Yariv <ido@wizery.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+2010/9/6 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> We could instead make wl12xx_get_platform_data() return a const pointer
+> to its own internal storage instead, or ERR pointers for the various
+> failure cases.
 
-Could you comment on the dss_feature patches? I can start reworking the floating omap4
-patches with this finalized :)
+Sounds good:
 
-Thanks,
+diff --git a/drivers/net/wireless/wl12xx/wl12xx_platform_data.c
+b/drivers/net/wireless/wl12xx/wl12xx_platform_data.c
+new file mode 100644
+index 0000000..973b110
+--- /dev/null
++++ b/drivers/net/wireless/wl12xx/wl12xx_platform_data.c
+@@ -0,0 +1,28 @@
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/wl12xx.h>
++
++static const struct wl12xx_platform_data *platform_data;
++
++int __init wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
++{
++	if (platform_data)
++		return -EBUSY;
++	if (!data)
++		return -EINVAL;
++
++	platform_data = kmemdup(data, sizeof(*data), GFP_KERNEL);
++	if (!platform_data)
++		return -ENOMEM;
++
++	return 0;
++}
++
++const struct wl12xx_platform_data *wl12xx_get_platform_data(void)
++{
++	if (!platform_data)
++		return ERR_PTR(-ENODEV);
++
++	return platform_data;
++}
++EXPORT_SYMBOL(wl12xx_get_platform_data);
 
-Archit
 
-Taneja, Archit wrote:
-> This is a simple approach to prevent scattered
-> cpu_is_omapxxxx checks in DSS2 by bringing all omap version
-> specific DSS features/values to one single place, initialize
-> them and expose a set of functions to DSS2 driver files which
-> return the value/existance of a feature.
-> 
-> This method provides the following:
->   -A set of functions which give the value of a feature.
->   -Functions which add and return the start and end bits of a register field
->    which varies across omaps.
->   -A function which checks if a DSS2 feature exists or not on the present
->    omap (omap_dss_has_feature)
-> 
-> Whenever a new DSS feature is introduced, its value/existance
-> is specified for all omaps in omap_dss_feature_init().
-> 
-> This patch also fills up a minimal list of features in
-> omap_dss_features_init(). The second patch in the series makes use of
-> dss_features to remove some of the existing omapxxxx checks.
-> 
-> Archit Taneja (2):
->   OMAP: DSS2: Introduce dss_features files
->   OMAP: DSS2: Use dss_features framework on DSS2 code
-> 
->  arch/arm/plat-omap/include/plat/display.h |   31 -----
->  drivers/video/omap2/dss/Makefile          |    2 +-
->  drivers/video/omap2/dss/core.c            |    5 +
->  drivers/video/omap2/dss/dispc.c           |   56 +++++----
->  drivers/video/omap2/dss/dss_features.c    |  197
-> +++++++++++++++++++++++++++++
->  drivers/video/omap2/dss/dss_features.h    |   48 +++++++
->  drivers/video/omap2/dss/manager.c         |   33 +++---
->  drivers/video/omap2/dss/overlay.c         |   24 ++--
->  8 files changed, 308 insertions(+), 88 deletions(-)  create
-> mode 100644 drivers/video/omap2/dss/dss_features.c
->  create mode 100644 drivers/video/omap2/dss/dss_features.h
+I'll wait a few days to see if there's any other comment, and then
+post v6 with this change.
+
+>
