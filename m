@@ -1,63 +1,93 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 3/6] omap4: l2x0: Override the default l2x0_disable
-Date: Tue,  7 Sep 2010 13:27:20 +0530
-Message-ID: <1283846243-11600-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 2/6] arm: Implement l2x0 cache disable functions
+Date: Tue,  7 Sep 2010 13:27:19 +0530
+Message-ID: <1283846243-11600-3-git-send-email-santosh.shilimkar@ti.com>
 References: <1283846243-11600-1-git-send-email-santosh.shilimkar@ti.com>
  <1283846243-11600-2-git-send-email-santosh.shilimkar@ti.com>
- <1283846243-11600-3-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42707 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51124 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751878Ab0IGH6F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Sep 2010 03:58:05 -0400
-In-Reply-To: <1283846243-11600-3-git-send-email-santosh.shilimkar@ti.com>
+	id S1751878Ab0IGH6J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Sep 2010 03:58:09 -0400
+In-Reply-To: <1283846243-11600-2-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: tglx@linutronix.de, catalin.marinas@arm.com, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tglx@linutronix.de, catalin.marinas@arm.com, linux-omap@vger.kernel.orgtglx@linutronix.de@vger.kernel.org
 
-The machine_kexec() calls outer_disable which can crash on OMAP4
-becasue of trustzone restrictions.
+From: Thomas Gleixner <[tglx@linutronix.de]>
 
-This patch overrides the default l2x0_disable with a OMAP4
-specific implementation taking care of trustzone
+Add flush_all, inv_all and disable functions to the l2x0 code. These
+functions are called from kexec code to prevent random crashes in the
+new kernel.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Platforms like OMAP which control L2 enable/disable via SMI mode can
+override the outer_cache.disable() function to implement their own.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 ---
- arch/arm/mach-omap2/omap4-common.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+ arch/arm/mm/cache-l2x0.c |   28 +++++++++++++++++++++++++++-
+ 1 files changed, 27 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index 13dc979..b557cc2 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -44,6 +44,13 @@ void __init gic_init_irq(void)
+diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+index edb43ff..9310d61 100644
+--- a/arch/arm/mm/cache-l2x0.c
++++ b/arch/arm/mm/cache-l2x0.c
+@@ -112,12 +112,26 @@ static void l2x0_cache_sync(void)
+ 	spin_unlock_irqrestore(&l2x0_lock, flags);
  }
  
- #ifdef CONFIG_CACHE_L2X0
-+
-+static void omap4_l2x0_disable(void)
+-static inline void l2x0_inv_all(void)
++static void l2x0_flush_all(void)
 +{
-+	/* Disable PL310 L2 Cache controller */
-+	omap_smc1(0x102, 0x0);
++	unsigned long flags;
++
++	/* clean all ways */
++	spin_lock_irqsave(&l2x0_lock, flags);
++	writel_relaxed(l2x0_way_mask, l2x0_base + L2X0_CLEAN_INV_WAY);
++	cache_wait_way(l2x0_base + L2X0_CLEAN_INV_WAY, l2x0_way_mask);
++	cache_sync();
++	spin_unlock_irqrestore(&l2x0_lock, flags);
 +}
 +
- static int __init omap_l2_cache_init(void)
++static void l2x0_inv_all(void)
  {
- 	/*
-@@ -66,6 +73,12 @@ static int __init omap_l2_cache_init(void)
- 	 */
- 	l2x0_init(l2cache_base, 0x0e050000, 0xc0000fff);
+ 	unsigned long flags;
  
-+	/*
-+	 * Override default outer_cache.disable with a OMAP4
-+	 * specific one
-+	*/
-+	outer_cache.disable = omap4_l2x0_disable;
-+
- 	return 0;
+ 	/* invalidate all ways */
+ 	spin_lock_irqsave(&l2x0_lock, flags);
++	/* Invalidating when L2 is enabled is a nono */
++	BUG_ON(readl(l2x0_base + L2X0_CTRL) & 1);
+ 	writel_relaxed(l2x0_way_mask, l2x0_base + L2X0_INV_WAY);
+ 	cache_wait_way(l2x0_base + L2X0_INV_WAY, l2x0_way_mask);
+ 	cache_sync();
+@@ -215,6 +229,15 @@ static void l2x0_flush_range(unsigned long start, unsigned long end)
+ 	spin_unlock_irqrestore(&l2x0_lock, flags);
  }
- early_initcall(omap_l2_cache_init);
+ 
++static void l2x0_disable(void)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&l2x0_lock, flags);
++	writel(0, l2x0_base + L2X0_CTRL);
++	spin_unlock_irqrestore(&l2x0_lock, flags);
++}
++
+ void __init l2x0_init(void __iomem *base, __u32 aux_val, __u32 aux_mask)
+ {
+ 	__u32 aux;
+@@ -272,6 +295,9 @@ void __init l2x0_init(void __iomem *base, __u32 aux_val, __u32 aux_mask)
+ 	outer_cache.clean_range = l2x0_clean_range;
+ 	outer_cache.flush_range = l2x0_flush_range;
+ 	outer_cache.sync = l2x0_cache_sync;
++	outer_cache.flush_all = l2x0_flush_all;
++	outer_cache.inv_all = l2x0_inv_all;
++	outer_cache.disable = l2x0_disable;
+ 
+ 	printk(KERN_INFO "%s cache controller enabled\n", type);
+ 	printk(KERN_INFO "l2x0: %d ways, CACHE_ID 0x%08x, AUX_CTRL 0x%08x\n",
 -- 
 1.6.0.4
 
