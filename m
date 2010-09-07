@@ -1,7 +1,7 @@
 From: tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: [RESEND/PATCH 4/6] USB: musb-gadget: fix DMA length for OUT transfer
-Date: Tue,  7 Sep 2010 23:23:32 +0800
-Message-ID: <1283873014-32511-5-git-send-email-tom.leiming@gmail.com>
+Subject: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if data is transfered over
+Date: Tue,  7 Sep 2010 23:23:33 +0800
+Message-ID: <1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
 References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1283873014-32511-1-git-send-email-tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -12,42 +12,25 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-DMA length should not go beyond the availabe space of request buffer,
-so fix it.
+Complete the current request only if the data transfer is over.
 
 Signed-off-by: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Acked-by:   Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 Cc: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
 Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 Cc: Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
 Cc: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_gadget.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/usb/musb/musb_gadget.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 176e127..f3ee04f 100644
+index f3ee04f..fa826f9 100644
 --- a/drivers/usb/musb/musb_gadget.c
 +++ b/drivers/usb/musb/musb_gadget.c
-@@ -659,10 +659,11 @@ static void rxstate(struct musb *musb, struct musb_request *req)
- 				if (request->actual < request->length) {
- 					int transfer_size = 0;
- #ifdef USE_MODE1
--					transfer_size = min(request->length,
-+					transfer_size = min(request->length - request->actual,
- 							channel->max_len);
- #else
--					transfer_size = len;
-+					transfer_size = min(request->length - request->actual,
-+							(unsigned)len);
- #endif
- 					if (transfer_size <= musb_ep->packet_sz)
- 						musb_ep->dma->desired_mode = 0;
--- 
-1.6.2.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+@@ -501,14 +501,14 @@ void musb_g_tx(struct musb *musb, u8 epnum)
+ 				request->zero = 0;
+ 			}
+ 
+-			/* ... or if not, then complete it. */
+-			musb_g_giveback(musb_ep, request, 0);
