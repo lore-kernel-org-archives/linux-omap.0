@@ -1,51 +1,64 @@
-From: venki kaps <venkiece2005-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] USB: otg: twl4030: fix phy initialization(v1)
-Date: Tue, 7 Sep 2010 11:49:38 +0900
-Message-ID: <AANLkTinGSXdfWBABm9dmGDxnbf-_udg0ZvVCyH8FX-aO@mail.gmail.com>
-References: <AANLkTinnHiCodvHrSxiMCAQXAETczRiZ+sDu2aQXSeG0@mail.gmail.com>
-	<0dfed6f7fe2c07da3ce8108a4c5620c3@secure211.sgcpanel.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
+Date: Tue, 7 Sep 2010 11:49:47 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087031162D17B@dbde02.ent.ti.com>
+References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
+	<87bp8nn9yx.fsf@deeprootsystems.com>	<20100902075605.GB2962@matterhorn.lan>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CCED1488@dbde02.ent.ti.com>
+	<AANLkTinmWTAwckEJJs8d4BW3PVRHSBwy4i-w=MNe5eDX@mail.gmail.com>
+	<FCCFB4CDC6E5564B9182F639FC356087031162CEB7@dbde02.ent.ti.com>
+ <AANLkTikT+idycF5jo7h15+E3suVKN9bNB8N+vqGvRge1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0dfed6f7fe2c07da3ce8108a4c5620c3-WEDJutINlwSqfKURHDCIgFDQ4js95KgL@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Cc: tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57962 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751066Ab0IGGT7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 02:19:59 -0400
+In-Reply-To: <AANLkTikT+idycF5jo7h15+E3suVKN9bNB8N+vqGvRge1@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Amit Kucheria <amit.kucheria@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Venkii.
+Hi Jean,
 
-On Tue, Sep 7, 2010 at 5:22 AM, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org> wrote=
-:
-> Hi,
->
-> On Tue, 7 Sep 2010 03:10:30 +0900, venki kaps <venkiece2005-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org=
->
-> wrote:
->> Dear USB experts,
->>
->> =A0 Is the same fix valid for omap3430 + 2.6.32 Kernel?
->
-> 3.6.32 ?? difficult to say. Why such an old kernel ? Although
-> I doubt musb or twl4030-usb driver has changed that much, it's
-> difficult to say.
->
->> =A0 I have been facing mp3 playback idle current consumption 20mA mo=
-re
->> after booting without USB cable connected
->
-> let me see if I understand you right. The consumption is higher
-> when the cable is kept plugged or the consumption is higher if
-> you boot with usb cable pugged and remove it afterwards ?
-  >> The consumption is higher if boot without usb cable.If boot when
-the cable is kept plugged
-  >> and remove it afterwards, then normal.
->
-> --
-> balbi
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
+> Sent: Monday, September 06, 2010 9:53 PM
+> To: Sripathy, Vishwanath
+> Cc: Shilimkar, Santosh; Amit Kucheria; Kevin Hilman; linaro-dev@lists.linaro.org;
+> linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
+> 
+> Hi Vishwa,
+> 
+> On Mon, Sep 6, 2010 at 1:15 PM, Sripathy, Vishwanath
+> <vishwanath.bs@ti.com> wrote:
+> > I did some profiling of assembly code on OMAP3630 board (ZOOM3). In worst case
+> it takes around 3.28ms and best case around 2.93ms for mpu off mode.
+> Can you give a bit more details? Which measurement has been taken (ASM
+> only, sleep, wake-up ...?) and what are the significant figures?
+Measurement has been done for save (as part of sleep sequence) and restore routine (part of wake up sequence) in assembly code. The above number indicates total time spent in save and restore of ARM context. 
+
+> 
+> >For MPU INACTIVE/RET, it is less than 30us.
+> Mmh that is the resolution of the 32kHz timer, so I guess you get
+> either 0 or 1 timer cycle depending when you start the measurement.
+> IMO the 32kHz timer is too slow to measure those fast events.
+Yes I agree. When we use trace events, I believe it would be more accurate as it is based on ARM perf counters. 
+
+Vishwa
+> 
+> > However as Kevin mentioned in other email, it would be better to find out a way to
+> trace inside assembly code as well.
+> OK that could be done but first I would like to make sure such a
+> complication is  needed.
+> 
+> >
+> > Regards
+> > Vishwa
+> 
+> Jean
