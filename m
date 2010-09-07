@@ -1,19 +1,18 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v2 10/11] OMAP: DMA: Use DMA device attributes
-Date: Tue, 7 Sep 2010 17:17:17 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A8E@dbde02.ent.ti.com>
+Subject: RE: [PATCH v2 00/11] OMAP: DMA: HWMOD and DMA as platform driver
+Date: Tue, 7 Sep 2010 17:17:09 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A8D@dbde02.ent.ti.com>
 References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
-	<1282647866-6918-11-git-send-email-manjugk@ti.com>
- <874oe6wo77.fsf@deeprootsystems.com>
+ <87eidawoj6.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35337 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35331 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756515Ab0IGLrW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 07:47:22 -0400
-In-Reply-To: <874oe6wo77.fsf@deeprootsystems.com>
+	id S1756118Ab0IGLrP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 07:47:15 -0400
+In-Reply-To: <87eidawoj6.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -22,60 +21,43 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit"
 
 
 
-
 > -----Original Message-----
 > From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Saturday, September 04, 2010 2:16 AM
+> Sent: Saturday, September 04, 2010 2:09 AM
 > To: G, Manjunath Kondaiah
 > Cc: linux-omap@vger.kernel.org; Cousson, Benoit; Shilimkar, Santosh
-> Subject: Re: [PATCH v2 10/11] OMAP: DMA: Use DMA device attributes
+> Subject: Re: [PATCH v2 00/11] OMAP: DMA: HWMOD and DMA as 
+> platform driver
 > 
 > Manjunatha GK <manjugk@ti.com> writes:
 > 
-> > Existing DMA API's are using cpu_is_xxxx checks for differenciating
-> > omap1 and omap2plus code.
+> > This patch series has review comments incorporated which 
+> are received
+> > for v1 version.
+> > The review comments can be found at:
+> > http://www.spinics.net/lists/linux-omap/msg34291.html
+> > http://www.spinics.net/lists/linux-omap/msg34292.html
+> > http://www.spinics.net/lists/linux-omap/msg34078.html
+> > http://www.spinics.net/lists/linux-omap/msg34083.html
 > >
-> > This patch replaces cpu_is_xxxx checks with DMA device 
-> attributes and
-> > also moves API's which are OMAP1 and OMAP2plus specific 
-> into respective
-> > mach-omap dma driver files.
+> > These changes are tested on following boards:
+> > - Zoom3     (OMAP3630)
+> > - Beagle    (OMAP3530)
+> > - OMAP4 SDP (OMAP4430)
+> > I don't have omap1 and omap2 boards and appreciate if 
+> > some one can test these boards and provides feedback.
 > >
-> > Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Build tested for both omap1 and omap2 plus boards.
 > 
-> [...]
-> 
-> >  int omap_request_dma(int dev_id, const char *dev_name,
-> >  		     void (*callback)(int lch, u16 ch_status, 
-> void *data),
-> >  		     void *data, int *dma_ch_out)
-> > @@ -754,14 +459,12 @@ int omap_request_dma(int dev_id, 
-> const char *dev_name,
-> >  	chan = dma_chan + free_ch;
-> >  	chan->dev_id = dev_id;
-> >  
-> > -	pm_runtime_get_sync(&ddev->dev);
-> > -
-> > -	if (cpu_class_is_omap1())
-> > -		clear_lch_regs(free_ch);
-> > -
-> > -	if (cpu_class_is_omap2())
-> > +	if (p->clear_lch_regs)
-> > +		p->clear_lch_regs(free_ch);
-> > +	else
-> >  		omap_clear_dma(free_ch);
-> 
-> You access HW registers here.
-> 
-> > +	pm_runtime_get_sync(&ddev->dev);
-> 
-> But don't actually enable HW until here.  
-> 
-> IOW, you need to have the 'get' before you access the HW.
+> Your team now has OMAP2 hardware, please test on OMAP2 as 
+> well as you're
+> making significant changes that affect code in OMAP2, 3 and 4.
 
-Thanks for pointing out this. I will take care of it.
+Let me check omap2 board boot status. If it is working, I can
+test next version of patches on omap2 also.
 
 -Manjunath
+
+> 
+> Kevin
+> 
