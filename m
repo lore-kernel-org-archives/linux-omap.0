@@ -1,104 +1,76 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCHv2] OMAP3: Keypad: Fix failure exit path in probe
-Date: Tue,  7 Sep 2010 16:24:03 +0300
-Message-ID: <1283865843-10178-1-git-send-email-ameya.palande@nokia.com>
-References: <1283860305-22585-1-git-send-email-manjugk@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:58932 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751657Ab0IGNYH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 09:24:07 -0400
-In-Reply-To: <1283860305-22585-1-git-send-email-manjugk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: omap3: regulator_get() failure in ads7846
+Date: Tue, 7 Sep 2010 18:56:47 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301F6C838DE@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301F6C8381A@dbde02.ent.ti.com>
+ <20100907115633.GB25830@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20100907115633.GB25830@sirena.org.uk>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, manjugk@ti.com
 
-From: ext G, Manjunath Kondaiah <manjugk@ti.com>
+> -----Original Message-----
+> From: linux-input-owner@vger.kernel.org 
+> [mailto:linux-input-owner@vger.kernel.org] On Behalf Of Mark Brown
+> Sent: Tuesday, September 07, 2010 5:27 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; linux-input@vger.kernel.org
+> Subject: Re: omap3: regulator_get() failure in ads7846
+> 
+> On Tue, Sep 07, 2010 at 05:16:44PM +0530, Premi, Sanjeev wrote:
+> 
+> > ts->reg = regulator_get(&spi->dev, "vcc");
+> 
+> > This regulator isn't defined for omap3evm. And I suspect - once
+> > defined - the name will be different than "vcc".
+> 
+> What makes you say this?  The names for regulator supplies are defined
+> in terms of the chip being supplied, not in terms of the board.
 
-The failure exit paths seems to be wrong in probe function.
-This patch corrects exit failure paths for error handling
-cases.
+[sp] The name "vcc" is too generic name for the regulator supply. If
+     there were more than one supplies as in case of the omap3evm, it
+     would be difficult to name the supply as "vcc".
 
-Boot warning incase of request irq failure:
+     Assuming there is another (different) driver which uses "vcc"
+     (as ads7846 uses currently) but uses different supply, what is
+     expected behavior?
 
-[    1.553985] twl4030_keypad twl4030_keypad: request_irq failed for irq no=369
-[    1.561157] ------------[ cut here ]------------
-[    1.565795] WARNING: at kernel/irq/manage.c:899 __free_irq+0x88/0x164()
-[    1.572418] Trying to free already-free IRQ 369
-[    1.576965] Modules linked in:
-[    1.580047] [<c00470ec>] (unwind_backtrace+0x0/0xe4) from [<c0078b5c>] (warn_slowpath_common+0x4c/0x64)
-[    1.589477] [<c0078b5c>] (warn_slowpath_common+0x4c/0x64) from [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c)
-[    1.599060] [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c) from [<c00adb90>] (__free_irq+0x88/0x164)
-[    1.607849] [<c00adb90>] (__free_irq+0x88/0x164) from [<c00adca8>] (free_irq+0x3c/0x5c)
-[    1.615875] [<c00adca8>] (free_irq+0x3c/0x5c) from [<c043ab2c>] (twl4030_kp_probe+0x308/0x374)
-[    1.624511] [<c043ab2c>] (twl4030_kp_probe+0x308/0x374) from [<c023c338>] (platform_drv_probe+0x14/0x18)
-[    1.634033] [<c023c338>] (platform_drv_probe+0x14/0x18) from [<c023b4dc>] (driver_probe_device+0xc8/0x184)
-[    1.643707] [<c023b4dc>] (driver_probe_device+0xc8/0x184) from [<c023b600>] (__driver_attach+0x68/0x8c)
-[    1.653106] [<c023b600>] (__driver_attach+0x68/0x8c) from [<c023ad34>] (bus_for_each_dev+0x48/0x74)
-[    1.662170] [<c023ad34>] (bus_for_each_dev+0x48/0x74) from [<c023a690>] (bus_add_driver+0x9c/0x210)
-[    1.671234] [<c023a690>] (bus_add_driver+0x9c/0x210) from [<c023b8f8>] (driver_register+0xa8/0x134)
-[    1.680297] [<c023b8f8>] (driver_register+0xa8/0x134) from [<c0041340>] (do_one_initcall+0x58/0x1b4)
-[    1.689453] [<c0041340>] (do_one_initcall+0x58/0x1b4) from [<c0008574>] (kernel_init+0x98/0x150)
-[    1.698272] [<c0008574>] (kernel_init+0x98/0x150) from [<c0042970>] (kernel_thread_exit+0x0/0x8)
-[    1.707214] ---[ end trace 6559b322ad3cbdfe ]---
-[    1.718292] twl4030_keypad: probe of twl4030_keypad failed with error -16
+     If, however, the name here was something like "vcc_ts", then
+     the supplies could be defined for any board as:
 
-Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- drivers/input/keyboard/twl4030_keypad.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
+     static struct regulator_consumer_supply my_board_ts_supply = {
+        .supply	= "vcc_ts",
+     };
 
-diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
-index fb16b5e..cf94850 100644
---- a/drivers/input/keyboard/twl4030_keypad.c
-+++ b/drivers/input/keyboard/twl4030_keypad.c
-@@ -345,10 +345,13 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
- 	}
- 
- 	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
-+	if (!kp)
-+		return -ENOMEM;
-+
- 	input = input_allocate_device();
--	if (!kp || !input) {
--		error = -ENOMEM;
--		goto err1;
-+	if (!input) {
-+		kfree(kp);
-+		return -ENOMEM;
- 	}
- 
- 	/* Get the debug Device */
-@@ -406,23 +409,22 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
- 	if (error) {
- 		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
- 			kp->irq);
--		goto err3;
-+		goto err2;
- 	}
- 
- 	/* Enable KP and TO interrupts now. */
- 	reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
- 	if (twl4030_kpwrite_u8(kp, reg, KEYP_IMR1)) {
- 		error = -EIO;
--		goto err4;
-+		goto err3;
- 	}
- 
- 	platform_set_drvdata(pdev, kp);
- 	return 0;
- 
--err4:
-+err3:
- 	/* mask all events - we don't care about the result */
- 	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
--err3:
- 	free_irq(kp->irq, NULL);
- err2:
- 	input_unregister_device(input);
--- 
-1.7.0.4
+     This would be more portable for other boards as well.
 
+     OR
+
+     Does regulator_get() searches by "device_name-supply_id" pair?
+     Then, my comments above don't hold... And I would try the
+     mapping you mentioned below.
+
+> 
+> > Looking at pointers on how this should be handled.
+> 
+> The best thing to do is to define the mapping for the regulator.  You
+> can work around it by enabling REGULATOR_DUMMY.
+
+[sp] Yes, this would be a workaround; but it comes with another
+     warning on console.
+
+Best regards,
+Sanjeev
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-input" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
