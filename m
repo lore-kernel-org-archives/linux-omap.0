@@ -1,58 +1,40 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 08/11] OMAP: DMA: Convert DMA library into DMA platform Driver
-Date: Tue, 07 Sep 2010 15:45:29 -0700
-Message-ID: <87aantgol2.fsf@deeprootsystems.com>
-References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
-	<1282647866-6918-9-git-send-email-manjugk@ti.com>
-	<878w3iv4lw.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A91@dbde02.ent.ti.com>
+From: Ben Dooks <ben-linux@fluff.org>
+Subject: Re: Cpufreq for s3c2440 FriendlyArm
+Date: Wed, 08 Sep 2010 00:30:26 +0100
+Message-ID: <4C86CB12.5080701@fluff.org>
+References: <AANLkTi=mvJywPgZbyGuNu46Ty5F3AkW2wBEa+Hu=skQq@mail.gmail.com>
+	<201009060540.19729.marek.vasut@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:44583 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755416Ab0IGWpc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 18:45:32 -0400
-Received: by pvg2 with SMTP id 2so1939680pvg.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Sep 2010 15:45:31 -0700 (PDT)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A91@dbde02.ent.ti.com>
-	(Manjunath Kondaiah G.'s message of "Tue, 7 Sep 2010 17:17:42 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201009060540.19729.marek.vasut@gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marek Vasut <marek.vasut@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, tarek attia <tarek.m.attia@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-
-[...]
-
->> > diff --git a/arch/arm/mach-omap1/include/mach/dma.h 
->> b/arch/arm/mach-omap1/include/mach/dma.h
->> > index d446cdd..1eb0d31 100644
->> > --- a/arch/arm/mach-omap1/include/mach/dma.h
->> > +++ b/arch/arm/mach-omap1/include/mach/dma.h
->> > @@ -77,4 +77,70 @@
->> >  #define OMAP1_DMA_CCR2(n)		(0x40 * (n) + 0x24)
->> >  #define OMAP1_DMA_LCH_CTRL(n)		(0x40 * (n) + 0x2a)
->> >  
->> > +/* Dummy defines to support multi omap code */
->> 
->> These should not be needed anymore as this is now an OMAP1-specific
->> header.
->
-> Because it is OMAP1 specific header, there are common API's used between
-> omap1 and omap2 plus in plat-omap/dma.c which needs these defines otherwise
-> build will break for omap1 since these defines exists omap2 specific header
-> Which is in respective mach directory.
-
-OK, then the split you are proposing is not the right thing to do, or
-more likely, the split was not taken far enough.
-
-defines that are used in common code should be defined in a common
-header, rather than duplicating them in both omap1 and omap2+ code.
-
-When you find yourself putting OMAP1 defines in OMAP2+ code and vice
-versa, it should be an indication that there is still some abstraction
-missing in the split
-
-Kevin
+T24gMDYvMDkvMTAgMDQ6NDAsIE1hcmVrIFZhc3V0IHdyb3RlOgo+IERuZSBOZSA1LiB6w6HFmcOt
+IDIwMTAgMjI6MzA6MDAgdGFyZWsgYXR0aWEgbmFwc2FsKGEpOgo+PiBIaSBhbGwsCj4+Cj4+IERp
+ZCBhbnlvbmUgdHJ5IHRoZSBjcHVmcmVxIG9uIHRoZSBtaW5pMjQ0MCA/IGFuZCBkaWQgYW55b25l
+IGdldCBpdAo+PiB3b3JraW5nIG9uIHRoZSBib2FyZCA/Cj4+Cj4+IEVhY2ggdGltZSBJIGRvIHRo
+ZSBjb25maWd1cmF0aW9uIGluIHRoZSBrZXJuZWwgSSBmb3VuZCBub3RoaW5nIG9uIHRoZQo+PiBi
+b2FyZCAsaG93ZXZlciBhZnRlciB0aGUgY29tcGlsYXRpb24gSSBmb3VuZCB0aGUgY3B1ZnJlcS5v
+ICYgcGxsLm8gYnV0Cj4+IG5vIGZpbGUgY29uY2VybmluZyB0aGF0IG9uIHRoZSBib2FyZCAuCj4+
+Cj4+Cj4+IEFueSBoZWxwIHdpbGwgYmUgYXBwcmVjaWF0ZWQuCj4gCj4gSSBiZWxpZXZlIHlvdSBo
+YXZlIHRoZSB3cm9uZyBtYWlsaW5nIGxpc3QgaGVyZS4gTEFLIENDZWQuCgpsaW51eC1hcm0ta2Vy
+bmVsIGlzIHRoZSByaWdodCBvbmUuCgpJJ3ZlIG5vdCB0cmllZCBvbiB0aGUgbWluaTI0NDAsIGJ1
+dCBpdCBkaWQgd29yayBvbiBvdGhlciBzM2MyNDQwCmJhc2VkIG1hY2hpbmVzLiBpdCBtYXkgYmUg
+dGhlcmUgaXMgYSBzbWFsbCBiaXQgb2YgaW5pdCBtaXNzaW5nCmZvciB0aGUgbWluaTI0NDAgdG8g
+Z2V0IHRoZSBjcHVmcmVxIHJ1bm5pbmcuCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
