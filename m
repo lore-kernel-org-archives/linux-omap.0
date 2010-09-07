@@ -1,36 +1,35 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/6] ARM: l2x0: kexex, cleanup and optimisation
-Date: Tue,  7 Sep 2010 13:27:17 +0530
-Message-ID: <1283846243-11600-1-git-send-email-santosh.shilimkar@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] tracing, perf: add more power related events
+Date: Tue, 7 Sep 2010 10:01:35 +0200
+Message-ID: <AANLkTi=PKARrwQhiFuXnMgNpJHUe=zS4GeXVMxfOcNOR@mail.gmail.com>
+References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53839 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751878Ab0IGH6N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Sep 2010 03:58:13 -0400
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:43912 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751409Ab0IGIBg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 04:01:36 -0400
+In-Reply-To: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: tglx@linutronix.de, catalin.marinas@arm.com, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>arjan@
+Cc: discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 
-This series is just repost adding Catalin's ack to the patches and
-combining Thomas's two rebased kexec patches.
-It's generated against the mainline 2.6.36-rc3 + Catalin's
-"[PATCH 0/9] Various patches for 2.6.37-rc1" series.
+Here is some more information about the patch:
 
-Santosh Shilimkar (4):
-  omap4: l2x0: Override the default l2x0_disable
-  ARM: l2x0: Fix coding-style in the cache-l2x0.h
-  ARM: l2x0: Determine the cache size
-  ARM: l2x0: Optimise the range based operations
+Initial discussion on LKML: cf.
+http://marc.info/?l=linux-kernel&m=128195697205096&w=4,
+PM debug and profiling wiki page with rationale, todo, patches, tools
+screenshots ...:
+http://omappedia.org/wiki/Power_Management_Debug_and_Profiling
 
-Thomas Gleixner (2):
-  arm: Disable outer (L2) cache in kexec
-  arm: Implement l2x0 cache disable functions
+On Tue, Sep 7, 2010 at 9:21 AM, Jean Pihet <jean.pihet@newoldbits.com> wrote:
+> Hi,
+>
+> Here is a patch proposal for adding new trace events for power management.
+> Note: thread restarted after the initial discussions on LKML.
+Sorry the thread did not get restarted because I am using the same
+e-mail subject.
 
- arch/arm/include/asm/hardware/cache-l2x0.h |    9 +++-
- arch/arm/include/asm/outercache.h          |   24 +++++++++++
- arch/arm/kernel/machine_kexec.c            |    3 +
- arch/arm/mach-omap2/omap4-common.c         |   13 ++++++
- arch/arm/mm/cache-l2x0.c                   |   63 ++++++++++++++++++++++++++-
- 5 files changed, 106 insertions(+), 6 deletions(-)
-
+Jean
