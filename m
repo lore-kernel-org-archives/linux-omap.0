@@ -1,38 +1,33 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 00/10] split out emac cpdma and mdio for reuse
-Date: Tue, 07 Sep 2010 08:23:43 -0700
-Message-ID: <87aantk268.fsf@deeprootsystems.com>
-References: <1283465008-18606-1-git-send-email-cyril@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:61953 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756942Ab0IGPXq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 11:23:46 -0400
-In-Reply-To: <1283465008-18606-1-git-send-email-cyril@ti.com> (Cyril
-	Chemparathy's message of "Thu, 2 Sep 2010 18:03:18 -0400")
-Sender: linux-omap-owner@vger.kernel.org
+From: tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Subject: [RESEND/PATCH 0/6] USB: musb-gadget: bug fix
+Date: Tue,  7 Sep 2010 23:23:28 +0800
+Message-ID: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, nsekhar@ti.com, srk@ti.com, omar.ramirez@ti.com, bparrot@ti.com, Cyril Chemparathy <cyril@ti.com>
 
-Cyril Chemparathy <cyril@ti.com> writes:
+This patch set fixes two kinds of musb-gadget bug:
 
-> Davinci's EMAC device has an in-built MDIO controller and a CPDMA engine.
-> These hardware modules are not restricted to EMAC device alone.  For example,
-> CPSW3G (3-port gigabit ethernet switch) hardware uses these very same modules
-> internally.  This patch series separates out EMAC's MDIO and CPDMA
-> functionality, allowing these individual pieces to be reused across TI
-> hardware.  
+	-fix kernel panic if using out ep with FIFO_TXRX style
 
-Tony,
+	-make double buffer mode usable, fix infinate hangs and buffer
+	corrupt bug when using double buffer mode to do data transfer;
+	now we can use musb double buffer reliably, so bootst performance
+	about 30% compared with single buffer mode.
+	
+		[RESEND/PATCH 1/6] USB: musb-gadget: fix kernel panic if using out ep with FIFO_TXRX style(v1)
+		[RESEND/PATCH 2/6] USB: musb-gadget: fix bulk IN infinite hangs in double buffer case
+		[RESEND/PATCH 3/6] USB: musb-gadget: enable autoclear for OUT transfer in both DMA 0 and DMA 1
+		[RESEND/PATCH 4/6] USB: musb-gadget: fix DMA length for OUT transfer
+		[RESEND/PATCH 5/6] USB: musb-gadget: complete request only if data is transfered over
+		[RESEND/PATCH 6/6] USB: musb-gadget: fix dma length in txstate
 
-The AM3517 also uses this davinci EMAC driver and is modified by this
-series.   With your ack, I'll merge the OMAP changes along with this
-series via the davinci tree. 
+thanks,
+Lei Ming
 
-OK with you?
-
-Kevin
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
