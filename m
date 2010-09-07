@@ -1,153 +1,121 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH 2/2] OMAP:DSS: RFC Patch to add HDMI DSS driver support
-Date: Tue, 07 Sep 2010 16:44:59 +0300
-Message-ID: <1283867099.2363.114.camel@tubuntu.research.nokia.com>
-References: <FF55437E1F14DA4BAEB721A458B6701706BE2A6AB4@dbde02.ent.ti.com>
-	 <1283865397.2363.110.camel@tubuntu.research.nokia.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706C5776EFE@dbde02.ent.ti.com>
+From: venki kaps <venkiece2005@gmail.com>
+Subject: Re: [PATCH] USB: otg: twl4030: fix phy initialization(v1)
+Date: Tue, 7 Sep 2010 19:20:06 +0530
+Message-ID: <AANLkTin7eVyosgK4XhuB_yqR2ao=YJGVidHB1x2802cr@mail.gmail.com>
+References: <AANLkTinnHiCodvHrSxiMCAQXAETczRiZ+sDu2aQXSeG0@mail.gmail.com>
+	<AANLkTiksb1AudCzs8-TWdXb11T-QcPx1G_qu6eUtJ74C@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:40310 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756159Ab0IGNpG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Sep 2010 09:45:06 -0400
-In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706C5776EFE@dbde02.ent.ti.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:63488 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756036Ab0IGNuH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 09:50:07 -0400
+In-Reply-To: <AANLkTiksb1AudCzs8-TWdXb11T-QcPx1G_qu6eUtJ74C@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: greg@kroah.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <me@felipebalbi.com>, Anand Gadiyar <gadiyar@ti.com>
 
-On Tue, 2010-09-07 at 15:37 +0200, ext K, Mythri P wrote:
-> Hi Tomi,
-> 
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Tuesday, September 07, 2010 6:47 PM
-> > To: K, Mythri P
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 2/2] OMAP:DSS: RFC Patch to add HDMI DSS driver
-> > support
-> > 
-> > On Thu, 2010-08-26 at 07:17 +0200, ext K, Mythri P wrote:
-> > > From: Mythri P K <mythripk@ti.com>
-> > >
-> > > This is an RFC patch to add support for HDMI DSS driver in OMAP.
-> > >
-> > > Signed-off-by: Mythri P K <mythripk@ti.com>
-> > > ---
-> > >  drivers/video/omap2/dss/hdmi.c |  292
-> > ++++++++++++++++++++++++++++++++++++++++
-> > >  1 files changed, 292 insertions(+), 0 deletions(-)
-> > >  create mode 100644 drivers/video/omap2/dss/hdmi.c
-> > >
-> > > diff --git a/drivers/video/omap2/dss/hdmi.c
-> > b/drivers/video/omap2/dss/hdmi.c
-> > > new file mode 100644
-> > > index 0000000..3d7acd2
-> > > --- /dev/null
-> > > +++ b/drivers/video/omap2/dss/hdmi.c
-> > > @@ -0,0 +1,292 @@
-> > > +/*
-> > > + * linux/drivers/video/omap2/dss/hdmi.c
-> > > + *
-> > > + * Copyright (C) 2009 Texas Instruments
-> > > + * Author: Yong Zhi
-> > > + *
-> > > + * HDMI settings from TI's DSS driver
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or
-> > modify it
-> > > + * under the terms of the GNU General Public License version 2 as
-> > published by
-> > > + * the Free Software Foundation.
-> > > + *
-> > > + * This program is distributed in the hope that it will be useful,
-> > but WITHOUT
-> > > + * ANY WARRANTY; without even the implied warranty of
-> > MERCHANTABILITY or
-> > > + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-> > License for
-> > > + * more details.
-> > > + *
-> > > + * You should have received a copy of the GNU General Public
-> > License along with
-> > > + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> > > + * History:
-> > > + * Mythripk <mythripk@ti.com>	-Redesigned on the driver to
-> > adhere to DSS2 model.
-> > > + *				-GPIO calls for HDMI.
-> > > + *
-> > > + *
-> > > + */
-> > > +
-> > > +#define DSS_SUBSYS_NAME "HDMI"
-> > > +
-> > > +#include <linux/kernel.h>
-> > > +#include <linux/module.h>
-> > > +#include <linux/clk.h>
-> > > +#include <linux/err.h>
-> > > +#include <linux/io.h>
-> > > +#include <linux/interrupt.h>
-> > > +#include <linux/mutex.h>
-> > > +#include <linux/completion.h>
-> > > +#include <linux/delay.h>
-> > > +#include <linux/string.h>
-> > > +#include <linux/platform_device.h>
-> > > +#include <linux/slab.h>
-> > > +#include <plat/display.h>
-> > > +#include <plat/cpu.h>
-> > > +#include <plat/gpio.h>
-> > > +
-> > > +#include "dss.h"
-> > > +
-> > > +static struct {
-> > > +	struct mutex lock;
-> > > +} hdmi;
-> > > +
-> > > +#define FLD_GET(val, start, end) (((val) & FLD_MASK(start, end))
-> > >> (end))
-> > > +#define FLD_MOD(orig, val, start, end) \
-> > > +	(((orig) & ~FLD_MASK(start, end)) | FLD_VAL(val, start, end))
-> > 
-> > These are already defined in dss.h
-> > 
-> > > +
-> > > +
-> > > +#define CPF			2
-> > > +
-> > > +int hdmi_init_display(struct omap_dss_device *dssdev)
-> > > +{
-> > > +	DSSDBG("init_display\n");
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +void compute_hdmi_pll(int clkin, int phy,
-> > > +	int n, struct hdmi_pll_info *pi)
-> > 
-> > This is a non-static function, and you don't introduce it in any
-> > header
-> > file.
-> > 
-> > It is not exported, so it should be used only from inside DSS driver.
-> > I
-> > see you call it in the next patch from the display driver, which is
-> > not
-> > ok. Only exported functions should be used from the display drivers
-> > (you'll notice the problem if you build DSS as a module...).
-> > 
-> > If the function is not static, it should have some meaningful prefix.
-> > 
-> > The same comments apply to some other functions in this file also.
-> I have introduced these in the display.h , do you suggest adding prefix like omapdss_hdmi* for all these functions ?
+thanks for your good response.
 
-Neither of the two HDMI patches you sent modify display.h...
+Venkii,
 
-Yes, if you export functions from DSS they should be prefixed, as they
-are global functions.
+On Tue, Sep 7, 2010 at 6:54 PM, Ming Lei <tom.leiming@gmail.com> wrote:
+> 2010/9/7 venki kaps <venkiece2005@gmail.com>:
+>> Dear USB experts,
+>>
+>> =A0Is the same fix valid for omap3430 + 2.6.32 Kernel?
+>>
+>> =A0I have been facing mp3 playback idle current consumption 20mA mor=
+e
+>> after booting without USB cable connected
+>> =A0but If USB cable detach and attach happen, then able to hit prope=
+r
+>> values otherwise irrespective of cold/warm reset
+>> =A0the current values increases to 20mA.
+>>
+>> =A0with cable,
+>> =A0 =A0 =A0OTG_SYSCONFIG standby mode of operation - SMART idle
+>> =A0 =A0 =A0HSOTGUSB_STANDBY - SMART standby
+>>
+>> =A0without cable,
+>> =A0 =A0 =A0 =A0OTG_SYSCONFIG standby mode of operation - SMART idle
+>> =A0 =A0 =A0 =A0HSOTGUSB_STANDBY - Active
+>>
+>> =A0Even i have applied =A0patch but still the same issue.
+>
+> Are you applying the patch below?
+>
+> =A0 =A0 =A0 =A0 http://marc.info/?l=3Dlinux-omap&m=3D128378686221264&=
+w=3D2
+>
+> The patch(USB: otg: twl4030: fix phy initialization(v1)) above is aga=
+inst
+> 2.6.36-rc3, I don't think you can apply it directly on 2.6.32. And th=
+e patch
+> is introduced to fix the problems caused by
+>
+> =A0 =A0 =A0 =A0 =A0commit 461c317705eca5cac09a360f488715927fd0a927.
+>
+> which change is committed into mainline 2.6.36-rc3.
+  >>> Yes, this patch i have applied.
 
- Tomi
+>>
+>> =A0If i use __twl4030_phy_power(twl, 0) at the end of USB LDO initia=
+lization,
+>
+> If you apply this patch against 2.6.36-rc3, you will find
+> __twl4030_phy_power(twl, 0) =A0is always called from .probe
+> if you don't connect musb with PC via cable when powering on.
+>
+>> =A0then able to hit proper values but USB ADC values are getting in =
+correct
+>> =A0with Travel adapter (Charger power supply) which means temperatur=
+e
+>> =A0shows 84 instead of 26~30 degrees.
+>>
+>> =A0Queries,
+>> =A0-----------
+>> =A0 - Is Errata 1.164 fix : OTG idle will work on 3430?
+>
+> No such errata found in ti wetsite, could you give a link?
+   In Zoom3 git,pm34xx.c file
+                        /*
+                         * Errata 1.164 fix : OTG autoidle can prevent
+                         * sleep. enable/disable iclk over OFF.
+                         */
+                        cm_rmw_mod_reg_bits(OMAP3430_EN_HSOTGUSB, 0x0,
+                                                CORE_MOD, CM_ICLKEN1);
 
+>
+>> =A0 - USBOTG_SUSPEND is enabled in Kernel 32, will it give any impac=
+t?
+>
+> Kernel does not have USBOTG_SUSPEND config option. Do you
+> mean USB_SUSPEND? If so, it is nothing to do with your issue since
+> it is only valid for host driver. Also for your case, musb works at
+> b-idle state.
+>
+   Yes,CONFIG_USB_SUSPEND.
 
+>> =A0 - Is there anything missed from Power management idle path (or)
+>> =A0 =A0USB OTG controller/Transreceiver driver part?
+>
+> Maybe with transreceiver part, musb doesn't support runtime pm now.
+>
+>>
+>> =A0Could you please provide the best approach to solve my issue?
+>
+> Sorry, this patch is not for your issue, as said above.
+>
+>
+> --
+> Lei Ming
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
