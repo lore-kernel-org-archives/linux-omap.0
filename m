@@ -1,84 +1,88 @@
-From: tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: [RESEND/PATCH 6/6] USB: musb-gadget: fix dma length in txstate
-Date: Tue,  7 Sep 2010 23:23:34 +0800
-Message-ID: <1283873014-32511-7-git-send-email-tom.leiming@gmail.com>
-References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1283873014-32511-1-git-send-email-tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] USB: otg: twl4030: fix phy initialization(v1)
+Date: Tue, 7 Sep 2010 23:40:55 +0800
+Message-ID: <AANLkTinrecJXH+uDxtBsskFLpBCz0VSZMtSiWGFW9YCr@mail.gmail.com>
+References: <AANLkTinnHiCodvHrSxiMCAQXAETczRiZ+sDu2aQXSeG0@mail.gmail.com>
+	<AANLkTiksb1AudCzs8-TWdXb11T-QcPx1G_qu6eUtJ74C@mail.gmail.com>
+	<AANLkTin7eVyosgK4XhuB_yqR2ao=YJGVidHB1x2802cr@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:42267 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757476Ab0IGPlu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 11:41:50 -0400
+In-Reply-To: <AANLkTin7eVyosgK4XhuB_yqR2ao=YJGVidHB1x2802cr@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: venki kaps <venkiece2005@gmail.com>
+Cc: greg@kroah.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <me@felipebalbi.com>, Anand Gadiyar <gadiyar@ti.com>
 
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+2010/9/7 venki kaps <venkiece2005@gmail.com>:
+> thanks for your good response.
+>
+> Venkii,
+>
+> On Tue, Sep 7, 2010 at 6:54 PM, Ming Lei <tom.leiming@gmail.com> wrot=
+e:
+>> 2010/9/7 venki kaps <venkiece2005@gmail.com>:
+>>> Dear USB experts,
+>>>
+>>> =A0Is the same fix valid for omap3430 + 2.6.32 Kernel?
+>>>
+>>> =A0I have been facing mp3 playback idle current consumption 20mA mo=
+re
+>>> after booting without USB cable connected
+>>> =A0but If USB cable detach and attach happen, then able to hit prop=
+er
+>>> values otherwise irrespective of cold/warm reset
+>>> =A0the current values increases to 20mA.
+>>>
+>>> =A0with cable,
+>>> =A0 =A0 =A0OTG_SYSCONFIG standby mode of operation - SMART idle
+>>> =A0 =A0 =A0HSOTGUSB_STANDBY - SMART standby
+>>>
+>>> =A0without cable,
+>>> =A0 =A0 =A0 =A0OTG_SYSCONFIG standby mode of operation - SMART idle
+>>> =A0 =A0 =A0 =A0HSOTGUSB_STANDBY - Active
+>>>
+>>> =A0Even i have applied =A0patch but still the same issue.
+>>
+>> Are you applying the patch below?
+>>
+>> =A0 =A0 =A0 =A0 http://marc.info/?l=3Dlinux-omap&m=3D128378686221264=
+&w=3D2
+>>
+>> The patch(USB: otg: twl4030: fix phy initialization(v1)) above is ag=
+ainst
+>> 2.6.36-rc3, I don't think you can apply it directly on 2.6.32. And t=
+he patch
+>> is introduced to fix the problems caused by
+>>
+>> =A0 =A0 =A0 =A0 =A0commit 461c317705eca5cac09a360f488715927fd0a927.
+>>
+>> which change is committed into mainline 2.6.36-rc3.
+> =A0>>> Yes, this patch i have applied.
 
-DMA length should not go beyond the availabe space of request buffer,
-so fix it.
+If you applied the patch, I guess you may see __twl4030_phy_power(twl, =
+0)
+is called from .probe.
 
-Signed-off-by: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Cc: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Cc: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
----
- drivers/usb/musb/musb_gadget.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+If called,  seems your description a little contradictory since you obs=
+erved
+__twl4030_phy_power(twl, 0) may hit proper values, right?
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index fa826f9..cacae96 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -300,6 +300,11 @@ static void txstate(struct musb *musb, struct musb_request *req)
- #ifndef	CONFIG_MUSB_PIO_ONLY
- 	if (is_dma_capable() && musb_ep->dma) {
- 		struct dma_controller	*c = musb->dma_controller;
-+		size_t request_size;
-+
-+		/* setup DMA, then program endpoint CSR */
-+		request_size = min_t(size_t, request->length - request->actual,
-+					musb_ep->dma->max_len);
- 
- 		use_dma = (request->dma != DMA_ADDR_INVALID);
- 
-@@ -307,11 +312,6 @@ static void txstate(struct musb *musb, struct musb_request *req)
- 
- #ifdef CONFIG_USB_INVENTRA_DMA
- 		{
--			size_t request_size;
--
--			/* setup DMA, then program endpoint CSR */
--			request_size = min_t(size_t, request->length,
--						musb_ep->dma->max_len);
- 			if (request_size < musb_ep->packet_sz)
- 				musb_ep->dma->desired_mode = 0;
- 			else
-@@ -373,8 +373,8 @@ static void txstate(struct musb *musb, struct musb_request *req)
- 		use_dma = use_dma && c->channel_program(
- 				musb_ep->dma, musb_ep->packet_sz,
- 				0,
--				request->dma,
--				request->length);
-+				request->dma + request->actual,
-+				request_size);
- 		if (!use_dma) {
- 			c->channel_release(musb_ep->dma);
- 			musb_ep->dma = NULL;
-@@ -386,8 +386,8 @@ static void txstate(struct musb *musb, struct musb_request *req)
- 		use_dma = use_dma && c->channel_program(
- 				musb_ep->dma, musb_ep->packet_sz,
- 				request->zero,
--				request->dma,
--				request->length);
-+				request->dma + request->actual,
-+				request_size);
- #endif
- 	}
- #endif
--- 
-1.6.2.5
+If not called, could you trace the return value of twl4030_usb_linkstat=
+ in
+twl4030_usb_phy_init?
 
+thanks,
+
+--=20
+Lei Ming
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
