@@ -1,64 +1,61 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
-Date: Tue, 7 Sep 2010 11:49:47 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087031162D17B@dbde02.ent.ti.com>
-References: <1282946913-26659-1-git-send-email-vishwanath.sripathy@linaro.org>
-	<87bp8nn9yx.fsf@deeprootsystems.com>	<20100902075605.GB2962@matterhorn.lan>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CCED1488@dbde02.ent.ti.com>
-	<AANLkTinmWTAwckEJJs8d4BW3PVRHSBwy4i-w=MNe5eDX@mail.gmail.com>
-	<FCCFB4CDC6E5564B9182F639FC356087031162CEB7@dbde02.ent.ti.com>
- <AANLkTikT+idycF5jo7h15+E3suVKN9bNB8N+vqGvRge1@mail.gmail.com>
+From: Amit Kucheria <amit.kucheria@linaro.org>
+Subject: Re: omap3 startup memory map
+Date: Tue, 7 Sep 2010 10:15:01 +0300
+Message-ID: <20100907071501.GB2569@matterhorn.lan>
+References: <AANLkTinMo8Z12fcvYS89DO-tKZ0KYtj43RCmnhQARoVg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57962 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066Ab0IGGT7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 02:19:59 -0400
-In-Reply-To: <AANLkTikT+idycF5jo7h15+E3suVKN9bNB8N+vqGvRge1@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45105 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752460Ab0IGHPI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 03:15:08 -0400
+Received: by bwz11 with SMTP id 11so3854502bwz.19
+        for <linux-omap@vger.kernel.org>; Tue, 07 Sep 2010 00:15:06 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <AANLkTinMo8Z12fcvYS89DO-tKZ0KYtj43RCmnhQARoVg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Amit Kucheria <amit.kucheria@linaro.org>, Kevin Hilman <khilman@deeprootsystems.com>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Peter Maydell <peter.maydell@linaro.org>
+Cc: linaro-dev@lists.linaro.org, Richard Woodruff <richard.woodruff@linaro.org>, Steve Sakoman <steve.sakoman@linaro.org>, List Linux Omap <linux-omap@vger.kernel.org>
 
-Hi Jean,
+Adding linux-omap to CC
 
-> -----Original Message-----
-> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
-> Sent: Monday, September 06, 2010 9:53 PM
-> To: Sripathy, Vishwanath
-> Cc: Shilimkar, Santosh; Amit Kucheria; Kevin Hilman; linaro-dev@lists.linaro.org;
-> linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] OMAP CPUIDLE: CPU Idle latency measurement
+On 10 Sep 06, Peter Maydell wrote:
+> Hi. I have a question about what the memory map of the TI OMAP3 (35xx)
+> looks like on startup, which I'm hoping somebody here can answer.
+> (Steve, Richard: you're on the CC: because Loic suggested that you
+> would be good people to ask.)
 > 
-> Hi Vishwa,
+> I'm currently looking at a bug in qemu:
+> https://bugs.launchpad.net/qemu-maemo/+bug/628471
+> where we hang on bootup. That happens because the qemu
+> implementation of NAND attached to the omap GPMC doesn't try to
+> map anything into the memory space (it only does this for NOR
+> devices).
 > 
-> On Mon, Sep 6, 2010 at 1:15 PM, Sripathy, Vishwanath
-> <vishwanath.bs@ti.com> wrote:
-> > I did some profiling of assembly code on OMAP3630 board (ZOOM3). In worst case
-> it takes around 3.28ms and best case around 2.93ms for mpu off mode.
-> Can you give a bit more details? Which measurement has been taken (ASM
-> only, sleep, wake-up ...?) and what are the significant figures?
-Measurement has been done for save (as part of sleep sequence) and restore routine (part of wake up sequence) in assembly code. The above number indicates total time spent in save and restore of ARM context. 
-
+> From reading the OMAP35xx TRM I believe that when a NAND device
+> is mapped into GPMC space (by setting GPMC_CONFIG7_i
+> appropriately) then reads and writes to any address in the mapped
+> region behave like accesses to GPMC_NAND_DATA_i. I have a patch
+> which implements this mapping for NAND devices; however this
+> causes a conflict about what should be mapped at address zero on
+> startup, because:
 > 
-> >For MPU INACTIVE/RET, it is less than 30us.
-> Mmh that is the resolution of the 32kHz timer, so I guess you get
-> either 0 or 1 timer cycle depending when you start the measurement.
-> IMO the 32kHz timer is too slow to measure those fast events.
-Yes I agree. When we use trace events, I believe it would be more accurate as it is based on ARM perf counters. 
-
-Vishwa
+> (a) at reset GPMC_CONFIG7_i is 0xf40 for CS0 and 0xf00 for CS1..7,
+> which maps CS0 to address 0. (On the Beagle board this is NAND.)
+> (b) qemu also wants to map the boot ROM in at address 0
 > 
-> > However as Kevin mentioned in other email, it would be better to find out a way to
-> trace inside assembly code as well.
-> OK that could be done but first I would like to make sure such a
-> complication is  needed.
+> The TRM isn't terribly clear (to me :-)) about what happens at address
+> zero on startup (it talks about a "1MB boot space" but doesn't say what
+> this is or what address it is at or when it stops being in effect...)
 > 
-> >
-> > Regards
-> > Vishwa
+> It's also possible that qemu is wrong about mapping boot rom related
+> things at address zero; we are emulating much of what the hardware's
+> boot ROM does rather than actually executing it. However I would expect
+> that there ought to be some real RAM/ROM there for the reset/exception
+> vectors if nothing else...
 > 
-> Jean
+> So can anybody tell me what happens on real hardware?
+> 
+> -- Peter Maydell
