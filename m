@@ -1,87 +1,101 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 5/6] ARM: l2x0: Determine the cache size
-Date: Tue,  7 Sep 2010 13:27:22 +0530
-Message-ID: <1283846243-11600-6-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 1/6] arm: Disable outer (L2) cache in kexec
+Date: Tue,  7 Sep 2010 13:27:18 +0530
+Message-ID: <1283846243-11600-2-git-send-email-santosh.shilimkar@ti.com>
 References: <1283846243-11600-1-git-send-email-santosh.shilimkar@ti.com>
- <1283846243-11600-2-git-send-email-santosh.shilimkar@ti.com>
- <1283846243-11600-3-git-send-email-santosh.shilimkar@ti.com>
- <1283846243-11600-4-git-send-email-santosh.shilimkar@ti.com>
- <1283846243-11600-5-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42697 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42696 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753399Ab0IGH5v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751878Ab0IGH5v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 7 Sep 2010 03:57:51 -0400
-In-Reply-To: <1283846243-11600-5-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1283846243-11600-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: tglx@linutronix.de, catalin.marinas@arm.com, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tglx@linutronix.de, catalin.marinas@arm.com, linux-omap@vger.kernel.orgtglx@linutronix.de@vger.kernel.org
 
-The cache size is needed for to optimise range based
-maintainance operations
+From: Thomas Gleixner <[tglx@linutronix.de]>
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+kexec does not disable the outer cache before disabling the inner
+caches in cpu_proc_fin(). So L2 is enabled across the kexec jump. When
+the new kernel enables chaches again, it randomly crashes.
+
+Disabling L2 before calling cpu_proc_fin() cures the problem.
+
+Disabling L2 requires the following new functions: flush_all(),
+inv_all() and disable(). Add them to outer_cache_fns and call them
+from the kexec code.
+
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 ---
- arch/arm/include/asm/hardware/cache-l2x0.h |    1 +
- arch/arm/mm/cache-l2x0.c                   |   13 +++++++++++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ arch/arm/include/asm/outercache.h |   24 ++++++++++++++++++++++++
+ arch/arm/kernel/machine_kexec.c   |    3 +++
+ 2 files changed, 27 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/include/asm/hardware/cache-l2x0.h b/arch/arm/include/asm/hardware/cache-l2x0.h
-index d833355..4633d2a 100644
---- a/arch/arm/include/asm/hardware/cache-l2x0.h
-+++ b/arch/arm/include/asm/hardware/cache-l2x0.h
-@@ -55,6 +55,7 @@
- #define L2X0_CACHE_ID_PART_MASK		(0xf << 6)
- #define L2X0_CACHE_ID_PART_L210		(1 << 6)
- #define L2X0_CACHE_ID_PART_L310		(3 << 6)
-+#define L2X0_AUX_CTRL_WAY_SIZE_MASK	(0x3 << 17)
+diff --git a/arch/arm/include/asm/outercache.h b/arch/arm/include/asm/outercache.h
+index 25f76ba..fc19009 100644
+--- a/arch/arm/include/asm/outercache.h
++++ b/arch/arm/include/asm/outercache.h
+@@ -25,6 +25,9 @@ struct outer_cache_fns {
+ 	void (*inv_range)(unsigned long, unsigned long);
+ 	void (*clean_range)(unsigned long, unsigned long);
+ 	void (*flush_range)(unsigned long, unsigned long);
++	void (*flush_all)(void);
++	void (*inv_all)(void);
++	void (*disable)(void);
+ #ifdef CONFIG_OUTER_CACHE_SYNC
+ 	void (*sync)(void);
+ #endif
+@@ -50,6 +53,24 @@ static inline void outer_flush_range(unsigned long start, unsigned long end)
+ 		outer_cache.flush_range(start, end);
+ }
  
- #ifndef __ASSEMBLY__
- extern void __init l2x0_init(void __iomem *base, __u32 aux_val, __u32 aux_mask);
-diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
-index 9310d61..87b487e 100644
---- a/arch/arm/mm/cache-l2x0.c
-+++ b/arch/arm/mm/cache-l2x0.c
-@@ -28,6 +28,7 @@
- static void __iomem *l2x0_base;
- static DEFINE_SPINLOCK(l2x0_lock);
- static uint32_t l2x0_way_mask;	/* Bitmask of active ways */
-+static uint32_t l2x0_size;
- 
- static inline void cache_wait_way(void __iomem *reg, unsigned long mask)
- {
-@@ -242,6 +243,7 @@ void __init l2x0_init(void __iomem *base, __u32 aux_val, __u32 aux_mask)
- {
- 	__u32 aux;
- 	__u32 cache_id;
-+	__u32 way_size = 0;
- 	int ways;
- 	const char *type;
- 
-@@ -276,6 +278,13 @@ void __init l2x0_init(void __iomem *base, __u32 aux_val, __u32 aux_mask)
- 	l2x0_way_mask = (1 << ways) - 1;
- 
- 	/*
-+	 * L2 cache Size =  Way size * Number of ways
-+	 */
-+	way_size = (aux & L2X0_AUX_CTRL_WAY_SIZE_MASK) >> 17;
-+	way_size = 1 << (way_size + 3);
-+	l2x0_size = ways * way_size;
++static inline void outer_flush_all(void)
++{
++	if (outer_cache.flush_all)
++		outer_cache.flush_all();
++}
 +
-+	/*
- 	 * Check if l2x0 controller is already enabled.
- 	 * If you are booting from non-secure mode
- 	 * accessing the below registers will fault.
-@@ -300,6 +309,6 @@ void __init l2x0_init(void __iomem *base, __u32 aux_val, __u32 aux_mask)
- 	outer_cache.disable = l2x0_disable;
++static inline void outer_inv_all(void)
++{
++	if (outer_cache.inv_all)
++		outer_cache.inv_all();
++}
++
++static inline void outer_disable(void)
++{
++	if (outer_cache.disable)
++		outer_cache.disable();
++}
++
+ #else
  
- 	printk(KERN_INFO "%s cache controller enabled\n", type);
--	printk(KERN_INFO "l2x0: %d ways, CACHE_ID 0x%08x, AUX_CTRL 0x%08x\n",
--			 ways, cache_id, aux);
-+	printk(KERN_INFO "l2x0: %d ways, CACHE_ID 0x%08x, AUX_CTRL 0x%08x, Cache size: %d KB\n",
-+			ways, cache_id, aux, l2x0_size);
+ static inline void outer_inv_range(unsigned long start, unsigned long end)
+@@ -58,6 +79,9 @@ static inline void outer_clean_range(unsigned long start, unsigned long end)
+ { }
+ static inline void outer_flush_range(unsigned long start, unsigned long end)
+ { }
++static inline void outer_flush_all(void) { }
++static inline void outer_inv_all(void) { }
++static inline void outer_disable(void) { }
+ 
+ #endif
+ 
+diff --git a/arch/arm/kernel/machine_kexec.c b/arch/arm/kernel/machine_kexec.c
+index 1fc74cb..3a8fd51 100644
+--- a/arch/arm/kernel/machine_kexec.c
++++ b/arch/arm/kernel/machine_kexec.c
+@@ -78,7 +78,10 @@ void machine_kexec(struct kimage *image)
+ 	local_fiq_disable();
+ 	setup_mm_for_reboot(0); /* mode is not used, so just pass 0*/
+ 	flush_cache_all();
++	outer_flush_all();
++	outer_disable();
+ 	cpu_proc_fin();
++	outer_inv_all();
+ 	flush_cache_all();
+ 	cpu_reset(reboot_code_buffer_phys);
  }
 -- 
 1.6.0.4
