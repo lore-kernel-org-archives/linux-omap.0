@@ -1,135 +1,61 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH 1/2] OMAP: DSS2: Introduce dss_features files
-Date: Tue, 7 Sep 2010 17:36:55 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087031162D425@dbde02.ent.ti.com>
-References: <1282826618-24584-1-git-send-email-archit@ti.com>
-	 <1282826618-24584-2-git-send-email-archit@ti.com>
-	 <1283854985.2363.47.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC356087031162D3EF@dbde02.ent.ti.com>
- <1283860777.2363.83.camel@tubuntu.research.nokia.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: omap3: regulator_get() failure in ads7846
+Date: Tue, 07 Sep 2010 15:16:21 +0300
+Message-ID: <4C862D15.1070606@compulab.co.il>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301F6C8381A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36606 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756464Ab0IGMHG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 08:07:06 -0400
-In-Reply-To: <1283860777.2363.83.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301F6C8381A@dbde02.ent.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+ Hi,
 
-Tomi Valkeinen wrote:
-> On Tue, 2010-09-07 at 13:31 +0200, ext Taneja, Archit wrote:
->> Hi,
->> 
->> Tomi Valkeinen wrote:
->>> Hi,
->>> 
->>> On Thu, 2010-08-26 at 14:43 +0200, ext Archit Taneja wrote:
->>>> Add dss_features.c and dss_features.h for the dss_features framework
->>>> 
->>>> Signed-off-by: Archit Taneja <archit@ti.com>
->>> 
->>> Would a more static approach be cleaner? I mean something like this (pseudo
->>> code):
->>> 
->>> static struct omap_dss_features omap3_dss_features = {
->>> 	/* array of register definitions */
->>> 	.registers = {
->>> 		{
->>> 			.register = FIRHINC,
->>> 			.high = 12,
->>> 			.low = 0,
->>> 		},
->>> 		{
->>> 			.register = FIRVINC,
->>> 			.high = 28,
->>> 			.low = 16,
->>> 		},
->>> 		...
->>> 	},
->>> 
->>> 	/* array of feature ids */
->>> 	.features = {
->>> 		GLOBAL_ALPHA,
->>> 		GLOBAL_ALPHA_VIDEO1,
->>> 		...
->>> 	},
->>> };
->>> 
->>> And then the code would select the omapX_dss_features struct to use
->>> depending on the omap version.
->> 
->> It looks way cleaner out here , not sure though what it would look
->> like once the whole file is filled up :)
->> 
->> One issue with having separate omapX_dss_features is something which
->> might may come later on : If there is a feature/value which is same in
->> omap2 and omap3 but different in omap4, we will sill need
-> to fill up all the structs completely.
->> 
->> We can get around this by filling one single struct on runtime :
->> 
->> all omap2 specific features filled up here { ...
->> ...
->> }
->> 
->> all common between omap2 and omap3 filled up here { ... ...
->> }
->> 
->> all omap3 specific filled up here
->> {
->> ...
->> ...
->> }
->> 
->> And so on..
->> 
->> This will save up space, but won't give a very clean look ..
->> 
->> I think by the time all omap4(and 3630) features are added and remaining
->> omap2,3 checks are removed we will have atleast 20 or so register
->> fields and a dozen features. Initializing them statically for all
->> omaps(including the ES_REV's) will really stretch up the file. But it will
->> still look clean :) 
->> 
->> What's your call on this?
-> 
-> I'd try with static structs. I agree that if there are lots
-> of features/registers which are the same on multiple omaps,
-> there's redundant code needed. But it just needs to be
-> written once, and having lots of if(omap_xxxx()) lines will
-> be a nightmare to maintain.
-> 
-> Or if things get really long, we could use multiple files,
-> one for each omap.
-> 
-> Also, we can make the definitions a bit shorter by using
-> macros where suitable. For example the registers could be
-> defined with something like FEAT_REG(FIRHINC, 12, 0), which
-> will will the fields properly.
+I think, this can help:
+http://www.spinics.net/lists/arm-kernel/msg94759.html
 
-Okay, I will try this out.
+Seems like there were not enough interest and it is still floating.
+May be a little ping can help ;)
 
-Archit
+On 09/07/10 14:46, Premi, Sanjeev wrote:
+> Hi all,
+>  
+> While booting the latest kernel (from linux-omap) on omap3evm,
+> I came across this error.
+>  
+> [    3.202575] ads7846 spi1.0: unable to get regulator: -19
+> [    3.208190] ------------[ cut here ]------------
+> [    3.212890] WARNING: at drivers/gpio/gpiolib.c:1258 gpio_free+0x114/0x140()
+> [    3.219940] Modules linked in:
+> [    3.223083] [<c004e57c>] (unwind_backtrace+0x0/0xec) from [<c007e5d8>] (warn_slowpath_common+0x4c/0x64)
+> ...
+> ...
+> [    3.342529] ---[ end trace 1b75b31a2719ed1f ]---
+>
+>  
+> In drivers/input/touchscreen/ads7846.c, we attempt to get the
+> regulator as:
+>  
+> ts->reg = regulator_get(&spi->dev, "vcc");
+>
+> This regulator isn't defined for omap3evm. And I suspect - once
+> defined - the name will be different than "vcc".
+>
+> Looking at pointers on how this should be handled.
+>  
+> Best regard,
+> Sanjeev
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-> Or there could be a define for feature IDs, which could be appended. Like:
-> 
-> #define FEAT_ID_OMAP2 AAA,\
-> 	BBB,\
-> 	CCC
-> 
-> #define FEAT_ID_OMAP3 FEAT_ID_OMAP2,\
-> 	DDD,\
-> 	EEE,\
-> 
-> But... That's getting a bit nasty, I wouldn't do things like
-> that if not absolutely needed =).
-> 
->  Tomi
+-- 
+Regards,
+Igor.
+
