@@ -1,61 +1,68 @@
-From: Amit Kucheria <amit.kucheria@linaro.org>
-Subject: Re: omap3 startup memory map
-Date: Tue, 7 Sep 2010 10:15:01 +0300
-Message-ID: <20100907071501.GB2569@matterhorn.lan>
-References: <AANLkTinMo8Z12fcvYS89DO-tKZ0KYtj43RCmnhQARoVg@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 4/4] ARM: l2x0: Optmise the range based operations
+Date: Tue, 7 Sep 2010 12:48:41 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE81D6@dbde02.ent.ti.com>
+References: <1280598372-4830-1-git-send-email-santosh.shilimkar@ti.com>
+ <1283768790.1926.10.camel@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:45105 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460Ab0IGHPI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 03:15:08 -0400
-Received: by bwz11 with SMTP id 11so3854502bwz.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Sep 2010 00:15:06 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <AANLkTinMo8Z12fcvYS89DO-tKZ0KYtj43RCmnhQARoVg@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49024 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752460Ab0IGHTG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 03:19:06 -0400
+In-Reply-To: <1283768790.1926.10.camel@e102109-lin.cambridge.arm.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Maydell <peter.maydell@linaro.org>
-Cc: linaro-dev@lists.linaro.org, Richard Woodruff <richard.woodruff@linaro.org>, Steve Sakoman <steve.sakoman@linaro.org>, List Linux Omap <linux-omap@vger.kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Adding linux-omap to CC
+> -----Original Message-----
+> From: Catalin Marinas [mailto:catalin.marinas@arm.com]
+> Sent: Monday, September 06, 2010 3:57 PM
+> To: Shilimkar, Santosh
+> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 4/4] ARM: l2x0: Optmise the range based operations
+> 
+> On Sat, 2010-07-31 at 23:16 +0530, Santosh Shilimkar wrote:
+> > For the big buffers which are in excess of cache size, the maintaince
+> > operations by PA are very slow. For such buffers the maintainace
+> > operations can be speeded up by using the WAY based method.
+> >
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Catalin Marinas <catalin.marinas@arm.com>
+> > ---
+> >  arch/arm/mm/cache-l2x0.c |   95 ++++++++++++++++++++++++++++-----------
+> -------
+> >  1 files changed, 58 insertions(+), 37 deletions(-)
+> >
+> > diff --git a/arch/arm/mm/cache-l2x0.c b/arch/arm/mm/cache-l2x0.c
+> > index b2938d4..c0d6108 100644
+> > --- a/arch/arm/mm/cache-l2x0.c
+> > +++ b/arch/arm/mm/cache-l2x0.c
+> > @@ -116,6 +116,18 @@ static void l2x0_flush_all(void)
+> >  	spin_unlock_irqrestore(&l2x0_lock, flags);
+> >  }
+> >
+> > +static void l2x0_clean_all(void)
+> > +{
+> > +	unsigned long flags;
+> > +
+> > +	/* clean all ways */
+> > +	spin_lock_irqsave(&l2x0_lock, flags);
+> > +	writel_relaxed(l2x0_way_mask, l2x0_base + L2X0_CLEAN_WAY);
+> > +	cache_wait(l2x0_base + L2X0_CLEAN_WAY, l2x0_way_mask);
+> 
+> In case you'll base this on top of my PL310 optimisation, you should use
+> cache_wait_way() as the cache_wait() becomes a no-op.
+> 
+Yep. Will fix that while rebasing.
 
-On 10 Sep 06, Peter Maydell wrote:
-> Hi. I have a question about what the memory map of the TI OMAP3 (35xx)
-> looks like on startup, which I'm hoping somebody here can answer.
-> (Steve, Richard: you're on the CC: because Loic suggested that you
-> would be good people to ask.)
-> 
-> I'm currently looking at a bug in qemu:
-> https://bugs.launchpad.net/qemu-maemo/+bug/628471
-> where we hang on bootup. That happens because the qemu
-> implementation of NAND attached to the omap GPMC doesn't try to
-> map anything into the memory space (it only does this for NOR
-> devices).
-> 
-> From reading the OMAP35xx TRM I believe that when a NAND device
-> is mapped into GPMC space (by setting GPMC_CONFIG7_i
-> appropriately) then reads and writes to any address in the mapped
-> region behave like accesses to GPMC_NAND_DATA_i. I have a patch
-> which implements this mapping for NAND devices; however this
-> causes a conflict about what should be mapped at address zero on
-> startup, because:
-> 
-> (a) at reset GPMC_CONFIG7_i is 0xf40 for CS0 and 0xf00 for CS1..7,
-> which maps CS0 to address 0. (On the Beagle board this is NAND.)
-> (b) qemu also wants to map the boot ROM in at address 0
-> 
-> The TRM isn't terribly clear (to me :-)) about what happens at address
-> zero on startup (it talks about a "1MB boot space" but doesn't say what
-> this is or what address it is at or when it stops being in effect...)
-> 
-> It's also possible that qemu is wrong about mapping boot rom related
-> things at address zero; we are emulating much of what the hardware's
-> boot ROM does rather than actually executing it. However I would expect
-> that there ought to be some real RAM/ROM there for the reset/exception
-> vectors if nothing else...
-> 
-> So can anybody tell me what happens on real hardware?
-> 
-> -- Peter Maydell
+Will post the full series with Thomas's two patches included
+on top of your "[PATCH 0/9] Various patches for 2.6.37-rc1" which
+is already in the linux-next
+
+Regards,
+Santosh
