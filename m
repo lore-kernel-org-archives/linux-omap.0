@@ -1,7 +1,7 @@
 From: tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Subject: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if data is transfered over
-Date: Tue,  7 Sep 2010 23:23:33 +0800
-Message-ID: <1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
+Subject: [RESEND/PATCH 6/6] USB: musb-gadget: fix dma length in txstate
+Date: Tue,  7 Sep 2010 23:23:34 +0800
+Message-ID: <1283873014-32511-7-git-send-email-tom.leiming@gmail.com>
 References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1283873014-32511-1-git-send-email-tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
@@ -12,7 +12,8 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Complete the current request only if the data transfer is over.
+DMA length should not go beyond the availabe space of request buffer,
+so fix it.
 
 Signed-off-by: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
@@ -21,16 +22,63 @@ Cc: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 Cc: Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
 Cc: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 ---
- drivers/usb/musb/musb_gadget.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/usb/musb/musb_gadget.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index f3ee04f..fa826f9 100644
+index fa826f9..cacae96 100644
 --- a/drivers/usb/musb/musb_gadget.c
 +++ b/drivers/usb/musb/musb_gadget.c
-@@ -501,14 +501,14 @@ void musb_g_tx(struct musb *musb, u8 epnum)
- 				request->zero = 0;
- 			}
+@@ -300,6 +300,11 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ #ifndef	CONFIG_MUSB_PIO_ONLY
+ 	if (is_dma_capable() && musb_ep->dma) {
+ 		struct dma_controller	*c = musb->dma_controller;
++		size_t request_size;
++
++		/* setup DMA, then program endpoint CSR */
++		request_size = min_t(size_t, request->length - request->actual,
++					musb_ep->dma->max_len);
  
--			/* ... or if not, then complete it. */
--			musb_g_giveback(musb_ep, request, 0);
+ 		use_dma = (request->dma != DMA_ADDR_INVALID);
+ 
+@@ -307,11 +312,6 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ 
+ #ifdef CONFIG_USB_INVENTRA_DMA
+ 		{
+-			size_t request_size;
+-
+-			/* setup DMA, then program endpoint CSR */
+-			request_size = min_t(size_t, request->length,
+-						musb_ep->dma->max_len);
+ 			if (request_size < musb_ep->packet_sz)
+ 				musb_ep->dma->desired_mode = 0;
+ 			else
+@@ -373,8 +373,8 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ 		use_dma = use_dma && c->channel_program(
+ 				musb_ep->dma, musb_ep->packet_sz,
+ 				0,
+-				request->dma,
+-				request->length);
++				request->dma + request->actual,
++				request_size);
+ 		if (!use_dma) {
+ 			c->channel_release(musb_ep->dma);
+ 			musb_ep->dma = NULL;
+@@ -386,8 +386,8 @@ static void txstate(struct musb *musb, struct musb_request *req)
+ 		use_dma = use_dma && c->channel_program(
+ 				musb_ep->dma, musb_ep->packet_sz,
+ 				request->zero,
+-				request->dma,
+-				request->length);
++				request->dma + request->actual,
++				request_size);
+ #endif
+ 	}
+ #endif
+-- 
+1.6.2.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
