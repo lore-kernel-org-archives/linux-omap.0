@@ -1,48 +1,104 @@
-From: venki kaps <venkiece2005-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] USB: otg: twl4030: fix phy initialization(v1)
-Date: Tue, 7 Sep 2010 18:48:35 +0530
-Message-ID: <AANLkTik8m2hzWCdFaVxRmv-5f=Sv5nPo1rs7PKK8CCVS@mail.gmail.com>
-References: <AANLkTinnHiCodvHrSxiMCAQXAETczRiZ+sDu2aQXSeG0@mail.gmail.com>
-	<0dfed6f7fe2c07da3ce8108a4c5620c3@secure211.sgcpanel.com>
-	<AANLkTinGSXdfWBABm9dmGDxnbf-_udg0ZvVCyH8FX-aO@mail.gmail.com>
-	<e07f55b5f77ea471f41353190431bc78@secure211.sgcpanel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e07f55b5f77ea471f41353190431bc78-WEDJutINlwSqfKURHDCIgFDQ4js95KgL@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Cc: tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCHv2] OMAP3: Keypad: Fix failure exit path in probe
+Date: Tue,  7 Sep 2010 16:24:03 +0300
+Message-ID: <1283865843-10178-1-git-send-email-ameya.palande@nokia.com>
+References: <1283860305-22585-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:58932 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751657Ab0IGNYH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 09:24:07 -0400
+In-Reply-To: <1283860305-22585-1-git-send-email-manjugk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, manjugk@ti.com
 
-Venkii,
-On Tue, Sep 7, 2010 at 6:16 PM, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org> wrote=
-:
-> Hi,
->
-> On Tue, 7 Sep 2010 11:49:38 +0900, venki kaps <venkiece2005-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org=
->
-> wrote:
->>> let me see if I understand you right. The consumption is higher
->>> when the cable is kept plugged or the consumption is higher if
->>> you boot with usb cable pugged and remove it afterwards ?
->> =A0 >> The consumption is higher if boot without usb cable.If boot w=
-hen
->> the cable is kept plugged
->> =A0 >> and remove it afterwards, then normal.
->
-> ok, so that's what I had observed and my original patch is the one
-> you want. You probably _also_ want this one though due the WARN
-  >>> Is WARN_ON created issue? or
-  >>> As you mentioned earlier, if (!regulator_is_enabled(twl->usb3v1)
-regulator_enable(twl->usb3v1); would be required?
-  >>> could you please provide more details?
->
-> --
-> balbi
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: ext G, Manjunath Kondaiah <manjugk@ti.com>
+
+The failure exit paths seems to be wrong in probe function.
+This patch corrects exit failure paths for error handling
+cases.
+
+Boot warning incase of request irq failure:
+
+[    1.553985] twl4030_keypad twl4030_keypad: request_irq failed for irq no=369
+[    1.561157] ------------[ cut here ]------------
+[    1.565795] WARNING: at kernel/irq/manage.c:899 __free_irq+0x88/0x164()
+[    1.572418] Trying to free already-free IRQ 369
+[    1.576965] Modules linked in:
+[    1.580047] [<c00470ec>] (unwind_backtrace+0x0/0xe4) from [<c0078b5c>] (warn_slowpath_common+0x4c/0x64)
+[    1.589477] [<c0078b5c>] (warn_slowpath_common+0x4c/0x64) from [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c)
+[    1.599060] [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c) from [<c00adb90>] (__free_irq+0x88/0x164)
+[    1.607849] [<c00adb90>] (__free_irq+0x88/0x164) from [<c00adca8>] (free_irq+0x3c/0x5c)
+[    1.615875] [<c00adca8>] (free_irq+0x3c/0x5c) from [<c043ab2c>] (twl4030_kp_probe+0x308/0x374)
+[    1.624511] [<c043ab2c>] (twl4030_kp_probe+0x308/0x374) from [<c023c338>] (platform_drv_probe+0x14/0x18)
+[    1.634033] [<c023c338>] (platform_drv_probe+0x14/0x18) from [<c023b4dc>] (driver_probe_device+0xc8/0x184)
+[    1.643707] [<c023b4dc>] (driver_probe_device+0xc8/0x184) from [<c023b600>] (__driver_attach+0x68/0x8c)
+[    1.653106] [<c023b600>] (__driver_attach+0x68/0x8c) from [<c023ad34>] (bus_for_each_dev+0x48/0x74)
+[    1.662170] [<c023ad34>] (bus_for_each_dev+0x48/0x74) from [<c023a690>] (bus_add_driver+0x9c/0x210)
+[    1.671234] [<c023a690>] (bus_add_driver+0x9c/0x210) from [<c023b8f8>] (driver_register+0xa8/0x134)
+[    1.680297] [<c023b8f8>] (driver_register+0xa8/0x134) from [<c0041340>] (do_one_initcall+0x58/0x1b4)
+[    1.689453] [<c0041340>] (do_one_initcall+0x58/0x1b4) from [<c0008574>] (kernel_init+0x98/0x150)
+[    1.698272] [<c0008574>] (kernel_init+0x98/0x150) from [<c0042970>] (kernel_thread_exit+0x0/0x8)
+[    1.707214] ---[ end trace 6559b322ad3cbdfe ]---
+[    1.718292] twl4030_keypad: probe of twl4030_keypad failed with error -16
+
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ drivers/input/keyboard/twl4030_keypad.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
+index fb16b5e..cf94850 100644
+--- a/drivers/input/keyboard/twl4030_keypad.c
++++ b/drivers/input/keyboard/twl4030_keypad.c
+@@ -345,10 +345,13 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
++	if (!kp)
++		return -ENOMEM;
++
+ 	input = input_allocate_device();
+-	if (!kp || !input) {
+-		error = -ENOMEM;
+-		goto err1;
++	if (!input) {
++		kfree(kp);
++		return -ENOMEM;
+ 	}
+ 
+ 	/* Get the debug Device */
+@@ -406,23 +409,22 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 	if (error) {
+ 		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
+ 			kp->irq);
+-		goto err3;
++		goto err2;
+ 	}
+ 
+ 	/* Enable KP and TO interrupts now. */
+ 	reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
+ 	if (twl4030_kpwrite_u8(kp, reg, KEYP_IMR1)) {
+ 		error = -EIO;
+-		goto err4;
++		goto err3;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, kp);
+ 	return 0;
+ 
+-err4:
++err3:
+ 	/* mask all events - we don't care about the result */
+ 	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
+-err3:
+ 	free_irq(kp->irq, NULL);
+ err2:
+ 	input_unregister_device(input);
+-- 
+1.7.0.4
+
