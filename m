@@ -1,69 +1,50 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: omap3: regulator_get() failure in ads7846
-Date: Tue, 7 Sep 2010 15:18:40 +0100
-Message-ID: <20100907141839.GA31268@opensource.wolfsonmicro.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301F6C8381A@dbde02.ent.ti.com>
- <20100907115633.GB25830@sirena.org.uk>
- <B85A65D85D7EB246BE421B3FB0FBB59301F6C838DE@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 00/10] split out emac cpdma and mdio for reuse
+Date: Tue, 07 Sep 2010 08:22:14 -0700
+Message-ID: <87iq2hk28p.fsf@deeprootsystems.com>
+References: <1283465008-18606-1-git-send-email-cyril@ti.com>
+	<87eida3fl9.fsf@deeprootsystems.com> <4C813C7F.5090602@ti.com>
+	<20100906.132802.260095799.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301F6C838DE@dbde02.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:57147 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755558Ab0IGPWT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 11:22:19 -0400
+In-Reply-To: <20100906.132802.260095799.davem@davemloft.net> (David Miller's
+	message of "Mon, 06 Sep 2010 13:28:02 -0700 (PDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: cyril@ti.com, netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, nsekhar@ti.com, srk@ti.com, omar.ramirez@ti.com, bparrot@ti.com
 
-On Tue, Sep 07, 2010 at 06:56:47PM +0530, Premi, Sanjeev wrote:
+David Miller <davem@davemloft.net> writes:
 
-> > From: linux-input-owner@vger.kernel.org 
-> > [mailto:linux-input-owner@vger.kernel.org] On Behalf Of Mark Brown
+> From: Cyril Chemparathy <cyril@ti.com>
+> Date: Fri, 03 Sep 2010 14:20:47 -0400
+>
+>> Hi Kevin,
+>> 
+>> [...]
+>>>> Although am3517 (omap) board support code has been updated as needed,
+>>>> emac does not work on this platform.
+>>> 
+>>> Just to clarify... did EMAC work on AM3517 before this series?
+>> 
+>> No.  It didn't work before this series.  To get AM3517 EMAC working, the
+>> driver needs another patch to enable the interface clock in addition to
+>> the functional clock.
+>
+> Since this has dependencies on davinci board files and whatnot, why don't
+> you merge this via the davinci tree and add my:
+>
+> Acked-by: David S. Miller <davem@davemloft.net>
+>
+> Ok?
 
-> > What makes you say this?  The names for regulator supplies are defined
-> > in terms of the chip being supplied, not in terms of the board.
+OK, will do. 
 
-> [sp] The name "vcc" is too generic name for the regulator supply. If
->      there were more than one supplies as in case of the omap3evm, it
->      would be difficult to name the supply as "vcc".
+Thanks,
 
-As I said above: these are defined in terms of the *chip* being
-supplied.  The name of the pin on the device does not change depending
-on which board they're soldered down on and is orthogonal to both the
-name of the supply on the regulator and both are orthogonal to the name
-the rail is given on a given board.
-
->      Assuming there is another (different) driver which uses "vcc"
->      (as ads7846 uses currently) but uses different supply, what is
->      expected behavior?
-
-The expected behaviour is that both devices request the supplies under
-the names that they are given by the chip.
-
->      If, however, the name here was something like "vcc_ts", then
->      the supplies could be defined for any board as:
-
->      static struct regulator_consumer_supply my_board_ts_supply = {
->         .supply	= "vcc_ts",
->      };
-
->      This would be more portable for other boards as well.
-
-Using strings like this doesn't scale - you may have two devices of a
-given type with different supply arrangements on a board, for example.
-
->      Does regulator_get() searches by "device_name-supply_id" pair?
->      Then, my comments above don't hold... And I would try the
->      mapping you mentioned below.
-
-Yes, this is the reason why we require the struct device in get().
-
-> > > Looking at pointers on how this should be handled.
-
-> > The best thing to do is to define the mapping for the regulator.  You
-> > can work around it by enabling REGULATOR_DUMMY.
-
-> [sp] Yes, this would be a workaround; but it comes with another
->      warning on console.
-
-Yes, you're not really supposed to use it in production.
+Kevin
