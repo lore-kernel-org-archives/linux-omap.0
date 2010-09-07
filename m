@@ -1,170 +1,89 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 1/2] OMAP: DSS2: Introduce dss_features files
-Date: Tue, 07 Sep 2010 13:33:04 +0300
-Message-ID: <1283855584.2363.53.camel@tubuntu.research.nokia.com>
-References: <1282826618-24584-1-git-send-email-archit@ti.com>
-	 <1282826618-24584-2-git-send-email-archit@ti.com>
+Subject: Re: [PATCH 0/2]OMAP:DSS:RFC for HDMI in OMAP4
+Date: Tue, 07 Sep 2010 13:53:11 +0300
+Message-ID: <1283856791.2363.67.camel@tubuntu.research.nokia.com>
+References: <FF55437E1F14DA4BAEB721A458B6701706BE2A6AB1@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:43338 "EHLO
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:48901 "EHLO
 	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755532Ab0IGKdK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 06:33:10 -0400
-In-Reply-To: <1282826618-24584-2-git-send-email-archit@ti.com>
+	with ESMTP id S1755532Ab0IGKxR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 06:53:17 -0400
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706BE2A6AB1@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Archit Taneja <archit@ti.com>
+To: "ext K, Mythri P" <mythripk@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
-On Thu, 2010-08-26 at 14:43 +0200, ext Archit Taneja wrote:
-> Add dss_features.c and dss_features.h for the dss_features framework
+On Thu, 2010-08-26 at 07:16 +0200, ext K, Mythri P wrote:
+> From: Mythri P K <mythripk@ti.com>
 > 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+> This patch is a outline of how the HDMI support is added to OMAP4.
 
-And some more comments inline
+Please run checkpatch.pl for the patches before you send them.
+Checkpatch reported over 300 errors.
+ 
+> HDMI is a driver that is similar to the VENC or the DSI driver to support
+> HDMI/DVI sink device.
 
-> ---
->  drivers/video/omap2/dss/dss_features.c |  197 ++++++++++++++++++++++++++++++++
->  drivers/video/omap2/dss/dss_features.h |   48 ++++++++
->  2 files changed, 245 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/video/omap2/dss/dss_features.c
->  create mode 100644 drivers/video/omap2/dss/dss_features.h
+When I made the VENC driver, I put both the core VENC and the venc panel
+into the same file, inside dss driver. The reason was that VENC is part
+of OMAP DSS, and not an external panel. I've been thinking about this a
+few times, but so far I haven't changed it.
+
+Did you have some reason to put the HDMI panel driver into displays/? 
+
+> The current Design adheres to the DSS2 Architecture.
 > 
-> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-> new file mode 100644
-> index 0000000..0ac18d2
-> --- /dev/null
-> +++ b/drivers/video/omap2/dss/dss_features.c
-> @@ -0,0 +1,197 @@
-> +/*
-> + * linux/drivers/video/omap2/dss/dss_features.c
-> + *
-> + * Copyright (C) 2010 Texas Instruments
-> + * Author: Archit Taneja <archit@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License version 2 as published by
-> + * the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * You should have received a copy of the GNU General Public License along with
-> + * this program.  If not, see <http://www.gnu.org/licenses/>.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/types.h>
-> +#include <linux/err.h>
-> +#include <linux/slab.h>
-> +
-> +#include <plat/display.h>
-> +#include <plat/cpu.h>
-> +
-> +#include "dss_features.h"
-> +
-> +static struct list_head reg_field_list;
-> +static int num_reg_fields;
-> +
-> +/* Defines a generic omap register field */
-> +struct dss_reg_field {
-> +	struct list_head list;
-> +	int id;
-> +	u8 start, end;
-> +};
-> +
-> +/* This struct is divided into 2 sets: the first gives a value corresponding
-> + * to a feature, the second tells if a dss feature exists or not */
-> +static struct
-> +{
-> +	int num_mgrs;
-> +	int num_ovls;
-> +	enum omap_display_type supported_displays[MAX_DSS_MANAGERS];
-> +	enum omap_color_mode supported_color_modes[MAX_DSS_OVERLAYS];
-> +
-> +	bool has_feature[MAX_DSS_FEATURES];
-> +} omap_dss_features;
-> +
-> +/* Functions to add/fetch the start and end bits of a DSS register field */
-> +static void dss_add_reg_field(int id, u8 start, u8 end)
-> +{
-> +	struct dss_reg_field *field;
-> +	field = kzalloc(sizeof(*field), GFP_KERNEL);
-> +
-> +	++num_reg_fields;
-> +
-> +	field->id = id;
-> +	field->start = start;
-> +	field->end = end;
-> +
-> +	list_add_tail(&field->list, &reg_field_list);
-> +}
-> +
-> +void omap_dss_get_reg_field(int id, u8 *start, u8 *end)
-> +{
-> +	struct dss_reg_field *field;
-> +
-> +	list_for_each_entry(field, &reg_field_list, list) {
-> +		if (field->id == id) {
-> +			*start = field->start;
-> +			*end = field->end;
-> +			return;
-> +		}
-> +	}
-> +	BUG();
-> +}
-> +EXPORT_SYMBOL(omap_dss_get_reg_field);
+> It is split into the HDMI DSS driver and HDMI panel Driver.
+>  
+> HDMI DSS driver  Located in drivers/video/omap2/dss/hdmi.c
+> is responsible for OMAP related configuration such as listening to the
+> DSS_HDMI irq which signals changes  such as Hot-plug detect ,
+> Physical attach/detach.
+> 
+> This driver is responsible to calculate the PLL values based on the
+> TV resolution  that is selected.
+> Yet another functionality is to call necessary configuration for the
+> Mux/GPIO settings.
 
-I don't think these need to be exported. The only users for these should
-be inside DSS driver. And, as you've probably noticed, I've been using
-(usually) omap_dss_* prefix for exported functions, and (usually) dss_*
-prefix for non-exported, non-static functions.
+Why does HDMI need mux/GPIO changes?
+ 
+> HDMI Panel Driver is located in drivers/video/omap2/displays/hdmi_omap4_panel.c.
+> This is a panel driver which acts as the HDMI source  and is responsible for all the configuration of the HDMI, based on the parameters read from the EDID of the sink device.
+> It registers hdmi driver to the omap_dss bus and calls the functionality
+> of the HDMI DSS driver.
+> This driver is responsible for configuration of the HDMI IP, which are:
+> 	1. Configuration of the PHY registers.
+> 	2. Configuration of the PLL registers and setting of the TMDS clock.
+> 	3. Configuration of the DDC to read the EDID data when available.
+> 	4. Configuration of the core reigsters to set:
+> 		a. set the video registers to the timing and format that
+> 			is selected.
+> 		b. set the audio reigsters based on the EDID value read and
+> 			user selected parameters.
+> 		c. Set the AVI info frame reigsters to configure the auxilary
+> 			info frame which are repeated.
+> It is also provides the interface for users 
+> 	1.To read the EDID contents and also confiure the timings based on EDID.
+> 	2.To configure AVI Inforframe Based on the the EDID(sink capability).
+> 
+> 
+> Mythri P K (2):
+>   OMAP:DSS:Patch to add support for HDMI as panel driver
+>   OMAP:DSS:Patch to add HDMI DSS driver support
+> 
+>  drivers/video/omap2/displays/hdmi_omap4_panel.c | 1443 +++++++++++++++++++++++
+>  drivers/video/omap2/displays/hdmi_omap4_panel.h |  672 +++++++++++
+>  drivers/video/omap2/dss/hdmi.c                  |  292 +++++
+>  3 files changed, 2407 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/hdmi_omap4_panel.c
+>  create mode 100644 drivers/video/omap2/displays/hdmi_omap4_panel.h
+>  create mode 100644 drivers/video/omap2/dss/hdmi.c
+> 
 
-Although the naming convention inside DSS is sadly quite inconsistent...
-=)
-
-> +/* Functions returning values related to a DSS feature */
-> +int omap_dss_num_mgrs(void)
-> +{
-> +	return omap_dss_features.num_mgrs;
-> +}
-> +EXPORT_SYMBOL(omap_dss_num_mgrs);
-
-Perhaps this should be dss_get_num_mgrs().
-
-> +
-> +int omap_dss_num_ovls(void)
-> +{
-> +	return omap_dss_features.num_ovls;
-> +}
-> +EXPORT_SYMBOL(omap_dss_num_ovls);
-
-And "get" here too. And for the functions below.
-
-> +enum omap_display_type omap_dss_supported_displays(int id)
-> +{
-> +	return omap_dss_features.supported_displays[id];
-> +}
-> +EXPORT_SYMBOL(omap_dss_supported_displays);
-> +
-> +enum omap_color_mode omap_dss_supported_color_modes(int id)
-> +{
-> +	return omap_dss_features.supported_color_modes[id];
-> +}
-> +EXPORT_SYMBOL(omap_dss_supported_color_modes);
-> +
-> +/* DSS has_feature check */
-> +bool omap_dss_has_feature(int id)
-> +{
-> +	return omap_dss_features.has_feature[id];
-> +}
-> +EXPORT_SYMBOL(omap_dss_has_feature);
-
- Tomi
 
