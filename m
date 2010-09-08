@@ -1,45 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] omap: Fix CONFIG_LOCAL_TIMERS initialization for multi-omap
-Date: Tue, 7 Sep 2010 20:17:48 -0700
-Message-ID: <20100908031748.GK22507@atomide.com>
-References: <20100817104414.19061.38999.stgit@baageli.muru.com>
- <20100906104413.GD20903@n2100.arm.linux.org.uk>
- <20100906180346.GC20849@atomide.com>
- <20100908030951.GH22507@atomide.com>
- <20100908031214.GI22507@atomide.com>
- <20100908031404.GJ22507@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [PATCH] OMAP: McBSP: Fix static function warning
+Date: Wed,  8 Sep 2010 08:53:43 +0530
+Message-ID: <1283916223-23567-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57092 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756145Ab0IHDR7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 23:17:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20100908031404.GJ22507@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37206 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194Ab0IHDZg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 23:25:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
+To: linux-omap@vger.kernel.org
+Cc: alsa-devel@alsa-project.org, Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-Fix CONFIG_LOCAL_TIMERS initialization for multi-omap
+This patch fixes sparse warning due non declaration of static function
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+sound/soc/omap/omap-mcbsp.c:783:5: warning: symbol 'omap_mcbsp_st_info_volsw' was not declared. Should it be static?
 
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index 74fbed8..5a3e606 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -228,8 +228,10 @@ static void __init omap2_gp_clocksource_init(void)
- static void __init omap2_gp_timer_init(void)
- {
- #ifdef CONFIG_LOCAL_TIMERS
--	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
--	BUG_ON(!twd_base);
-+	if (cpu_is_omap44xx()) {
-+		twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
-+		BUG_ON(!twd_base);
-+	}
- #endif
- 	omap_dm_timer_init();
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Cc: alsa-devel@alsa-project.org
+Cc: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>
+
+---
+ sound/soc/omap/omap-mcbsp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 86f2139..5768381 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -780,7 +780,7 @@ struct snd_soc_dai omap_mcbsp_dai[] = {
  
+ EXPORT_SYMBOL_GPL(omap_mcbsp_dai);
+ 
+-int omap_mcbsp_st_info_volsw(struct snd_kcontrol *kcontrol,
++static int omap_mcbsp_st_info_volsw(struct snd_kcontrol *kcontrol,
+ 			struct snd_ctl_elem_info *uinfo)
+ {
+ 	struct soc_mixer_control *mc =
+-- 
+1.7.0.4
+
