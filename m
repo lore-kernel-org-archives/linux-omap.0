@@ -1,83 +1,75 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] ARM: Don't try to send IPI on UP systems with CONFIG_SMP
-Date: Wed, 8 Sep 2010 13:00:38 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD0D309E@dbde02.ent.ti.com>
-References: <20100817104414.19061.38999.stgit@baageli.muru.com>
- <20100906104413.GD20903@n2100.arm.linux.org.uk>
- <20100906180346.GC20849@atomide.com> <20100908030951.GH22507@atomide.com>
- <20100908031214.GI22507@atomide.com> <20100908031404.GJ22507@atomide.com>
+Subject: RE: [PATCH 0/6] ARM: l2x0: kexex, cleanup and optimisation
+Date: Wed, 8 Sep 2010 13:04:55 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD0D30A5@dbde02.ent.ti.com>
+References: <1283846243-11600-1-git-send-email-santosh.shilimkar@ti.com>
+	<AANLkTi=chtedwbDDJnZOe5yTqobUeXz=aZYUNNUDpQQm@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49770 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756770Ab0IHHaz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 03:30:55 -0400
-In-Reply-To: <20100908031404.GJ22507@atomide.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <AANLkTi=chtedwbDDJnZOe5yTqobUeXz=aZYUNNUDpQQm@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Walleij <linus.ml.walleij@gmail.com>
+Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "per.xx.fransson@stericsson.com" <per.xx.fransson@stericsson.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Wednesday, September 08, 2010 8:44 AM
-> To: Russell King - ARM Linux
-> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org;
-> bryan.wu@canonical.com
-> Subject: [PATCH] ARM: Don't try to send IPI on UP systems with CONFIG_SMP
-> 
-> This is not needed on UP. Additionally with will cause issues when
-> booting CONFIG_SMP_ON_UP kernel on earlier ARM cores.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
-> index 401e38b..5facdbe 100644
-> --- a/arch/arm/kernel/process.c
-> +++ b/arch/arm/kernel/process.c
-> @@ -207,9 +207,7 @@ __setup("reboot=", reboot_setup);
-> 
->  void machine_shutdown(void)
->  {
-> -#ifdef CONFIG_SMP
->  	smp_send_stop();
-> -#endif
->  }
-> 
->  void machine_halt(void)
-> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-> index 40dc74f..16ca27b 100644
-> --- a/arch/arm/kernel/smp.c
-> +++ b/arch/arm/kernel/smp.c
-> @@ -560,12 +560,17 @@ asmlinkage void __exception do_IPI(struct pt_regs
-> *regs)
-> 
->  void smp_send_reschedule(int cpu)
->  {
-> -	send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
-> +	if (is_smp())
-> +		send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
->  }
-> 
->  void smp_send_stop(void)
->  {
->  	cpumask_t mask = cpu_online_map;
-> +
-> +	if (!is_smp())
-> +		return;
-> +
->  	cpu_clear(smp_processor_id(), mask);
->  	send_ipi_message(&mask, IPI_CPU_STOP);
->  }
-The IPI is called too many times, and a check in this path
-might be an overhead.
+> From: Linus Walleij [mailto:linus.ml.walleij@gmail.com]
+> Sent: Tuesday, September 07, 2010 11:49 PM
+> To: Shilimkar, Santosh
+> Cc: linux-arm-kernel@lists.infradead.org; catalin.marinas@arm.com;
+> tglx@linutronix.de; linux-omap@vger.kernel.org;
+> per.xx.fransson@stericsson.com
+> Subject: Re: [PATCH 0/6] ARM: l2x0: kexex, cleanup and optimisation
+> =
 
-Can we runtime make " smp_send_reschedule" etc NULL based
-on it's UP or SMP boot ?
+> 2010/9/7 Santosh Shilimkar <santosh.shilimkar@ti.com>:
+> =
 
-Regards
-Santosh 
+> > This series is just repost adding Catalin's ack to the patches and
+> > combining Thomas's two rebased kexec patches.
+> > It's generated against the mainline 2.6.36-rc3 + Catalin's
+> > "[PATCH 0/9] Various patches for 2.6.37-rc1" series.
+> >
+> > Santosh Shilimkar (4):
+> > =A0omap4: l2x0: Override the default l2x0_disable
+> > =A0ARM: l2x0: Fix coding-style in the cache-l2x0.h
+> > =A0ARM: l2x0: Determine the cache size
+> > =A0ARM: l2x0: Optimise the range based operations
+> >
+> > Thomas Gleixner (2):
+> > =A0arm: Disable outer (L2) cache in kexec
+> > =A0arm: Implement l2x0 cache disable functions
+> =
+
+> FWIW:
+> Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+> =
+
+Thanks !!
+> Can you also include the patch by Per Fransson I sent off to
+> Thomas and the list just a few days ago with the subject
+> "[PATCH] ARM: ux500 specific L2 cache code"
+> in this patch series?
+> =
+
+Basically I plan to push all these patches to =
+
+RMK's patch system after getting his OK. I can push =
+
+your patch along with that.
+
+Is that ok with you ?
+
+Regards,
+Santosh
