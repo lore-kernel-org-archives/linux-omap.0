@@ -1,43 +1,96 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [RESEND/PATCH 0/6] USB: musb-gadget: bug fix
-Date: Tue, 7 Sep 2010 19:19:39 -0700
-Message-ID: <20100908021939.GA20443@kroah.com>
-References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] Hacks to allow booting ARM SMP kernel on UP ARMv7
+Date: Tue, 7 Sep 2010 20:09:51 -0700
+Message-ID: <20100908030951.GH22507@atomide.com>
+References: <20100817104414.19061.38999.stgit@baageli.muru.com>
+ <20100906104413.GD20903@n2100.arm.linux.org.uk>
+ <20100906180346.GC20849@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:33930 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753399Ab0IHCXN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Sep 2010 22:23:13 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49554 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194Ab0IHDKF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 23:10:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
+In-Reply-To: <20100906180346.GC20849@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
 
-On Tue, Sep 07, 2010 at 11:23:28PM +0800, tom.leiming@gmail.com wrote:
-> This patch set fixes two kinds of musb-gadget bug:
-> 
-> 	-fix kernel panic if using out ep with FIFO_TXRX style
-> 
-> 	-make double buffer mode usable, fix infinate hangs and buffer
-> 	corrupt bug when using double buffer mode to do data transfer;
-> 	now we can use musb double buffer reliably, so bootst performance
-> 	about 30% compared with single buffer mode.
-> 	
-> 		[RESEND/PATCH 1/6] USB: musb-gadget: fix kernel panic if using out ep with FIFO_TXRX style(v1)
-> 		[RESEND/PATCH 2/6] USB: musb-gadget: fix bulk IN infinite hangs in double buffer case
-> 		[RESEND/PATCH 3/6] USB: musb-gadget: enable autoclear for OUT transfer in both DMA 0 and DMA 1
-> 		[RESEND/PATCH 4/6] USB: musb-gadget: fix DMA length for OUT transfer
-> 		[RESEND/PATCH 5/6] USB: musb-gadget: complete request only if data is transfered over
-> 		[RESEND/PATCH 6/6] USB: musb-gadget: fix dma length in txstate
+* Tony Lindgren <tony@atomide.com> [100906 10:56]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [100906 03:36]:
+> > Here's my latest patch (which is combined from two patches.)
+> > 
+> > Tony, could you follow up with patches for anything which is still
+> > required - I think there's two things you've addressed which this
+> > currently misses:
+> > 
+> > 1. not initializing twd_base (I'm not convinced this is safe - rather
+> >    making smp_prepare_cpus() return early is probably a better idea.)
 
-I seem to not have 1/6 here, did it get stuck somewhere?
+Looks like the omap spefific fix needed now is for the localtimer, and
+that can be now checked with cpu_is_omap44xx() as Santosh suggested
+earlier. Will post that shortly.
 
-Anyway, I need Felipe's ack before I can accept these.
+> > 2. __flush_icache_all()
+> > 
+> > Note that (2) seems to be complicated by the instruction only being
+> > available on ARMv7 and later.
 
-thanks,
+This is still open and needs to be fixed somehow..
 
-greg k-h
+Then the following patch is needed to fix compile if CONFIG_SMP is not set.
+
+Other than that, things are actually quite close to working. Will post
+three more patches as a reply to this mail that allow me to boot to
+shell with the same SMP kernel binary on omap2, 3 & 4 more or less.
+
+Need to track down some .config file strangeness though tomorrow to
+figure out what is causing the WARNING: at mm/percpu-vm.c:320 pcpu_alloc
+messages again.
+
+Regards,
+
+Tony
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 7 Sep 2010 19:09:57 -0700
+Subject: [PATCH] ARM: Fix smp_on_up compile when CONFIG_SMP is not set
+
+Fix undefined reference to smp_init_cpus()
+and error for the discarded section:
+
+ld:arch/arm/kernel/vmlinux.lds:517: syntax error
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index fe94467..5a82c39 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -825,8 +825,10 @@ void __init setup_arch(char **cmdline_p)
+ 	paging_init(mdesc);
+ 	request_standard_resources(&meminfo, mdesc);
+ 
++#ifdef CONFIG_SMP
+ 	if (is_smp())
+ 		smp_init_cpus();
++#endif
+ 	reserve_crashkernel();
+ 
+ 	cpu_init();
+diff --git a/arch/arm/kernel/vmlinux.lds.S b/arch/arm/kernel/vmlinux.lds.S
+index 53cb57e..b721e8b 100644
+--- a/arch/arm/kernel/vmlinux.lds.S
++++ b/arch/arm/kernel/vmlinux.lds.S
+@@ -244,7 +244,7 @@ SECTIONS
+ 	DISCARDS
+ 
+ #ifndef CONFIG_SMP_ON_UP
+-	/DISCARD/ {
++	/DISCARD/ : {
+ 		*(.smpalt.init)
+ 	}
+ #endif
