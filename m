@@ -1,61 +1,80 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 0/5] usb: omap: prepare for OMAP4 EHCI and OHCI support
-Date: Wed, 8 Sep 2010 01:55:45 -0700
-Message-ID: <20100908085545.GA15690@kroah.com>
-References: <1282100145-27485-1-git-send-email-keshava_mgowda@ti.com> <0680EC522D0CC943BC586913CF3768C003C2018B20@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: Don't try to send IPI on UP systems with
+	CONFIG_SMP
+Date: Wed, 8 Sep 2010 09:56:57 +0100
+Message-ID: <20100908085657.GA29914@n2100.arm.linux.org.uk>
+References: <20100817104414.19061.38999.stgit@baageli.muru.com> <20100906104413.GD20903@n2100.arm.linux.org.uk> <20100906180346.GC20849@atomide.com> <20100908030951.GH22507@atomide.com> <20100908031214.GI22507@atomide.com> <20100908031404.GJ22507@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:60808 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751806Ab0IHI4v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Sep 2010 04:56:51 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38063 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751122Ab0IHI5L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 04:57:11 -0400
 Content-Disposition: inline
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003C2018B20@dbde02.ent.ti.com>
+In-Reply-To: <20100908031404.GJ22507@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: "linux-usb-owner@vger.kernel.org" <linux-usb-owner@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
 
-On Wed, Sep 08, 2010 at 01:21:04PM +0530, Munegowda, Keshava wrote:
-> > -----Original Message-----
-> > From: Munegowda, Keshava
-> > Sent: Wednesday, August 18, 2010 8:26 AM
-> > To: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org
-> > Cc: Munegowda, Keshava
-> > Subject: [PATCH 0/5] usb: omap: prepare for OMAP4 EHCI and OHCI support
-> > 
-> > This series does minor code cleanup in preparation of an upcoming
-> > series to add support for EHCI and OHCI on the OMAP4 SoC.
-> > 
-> > The changes are:
-> > - Rename clock names to be consistent across OMAP3 and OMAP4
-> > - Remove hardcoding of the number of TLL channels
-> > - Move PHY reset earlier in the init sequence
-> > 
-> > These patches do not make any changes to existing functionalities.
-> > 
-> > Diffstat is below:
-> > 
-> > drivers/usb/host/ehci-omap.c                   |  104 ++++++++++++-------------
-> > drivers/usb/host/ohci-omap3.c                  |   55 ++++++-------
-> > 2 files changed
-> > ---
-> > Keshava
+On Tue, Sep 07, 2010 at 08:14:05PM -0700, Tony Lindgren wrote:
+> This is not needed on UP. Additionally with will cause issues when
+> booting CONFIG_SMP_ON_UP kernel on earlier ARM cores.
+
+Doesn't make sense.
+
 > 
-> These are minor patches required for the adding omap4 support for 
-> EHCI and OHCI in near feature.
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
+> index 401e38b..5facdbe 100644
+> --- a/arch/arm/kernel/process.c
+> +++ b/arch/arm/kernel/process.c
+> @@ -207,9 +207,7 @@ __setup("reboot=", reboot_setup);
+>  
+>  void machine_shutdown(void)
+>  {
+> -#ifdef CONFIG_SMP
+>  	smp_send_stop();
+> -#endif
 
-Do I already have them in my git tree?  Did I forward them to Linus
-already?
+This will cause a link error as smp.c is not built for uniprocessor
+builds.
 
-> Requesting for merge to the current merge window, so that the next 
-> set of EHCI and OHCI specific changes will be aligned with this patch set.
+>  }
+>  
+>  void machine_halt(void)
+> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+> index 40dc74f..16ca27b 100644
+> --- a/arch/arm/kernel/smp.c
+> +++ b/arch/arm/kernel/smp.c
+> @@ -560,12 +560,17 @@ asmlinkage void __exception do_IPI(struct pt_regs *regs)
+>  
+>  void smp_send_reschedule(int cpu)
+>  {
+> -	send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
+> +	if (is_smp())
+> +		send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
 
-What do you mean by "current"?  The merge window for .36 is closed now.
-It's bugfixes-only at the moment.  But I can easily queue up stuff for
-.37 if you want to resend these.
+There won't be any other CPUs to send an IPI to - and all places which
+call this are protected by a check for cpu == smp_processor_id() - in
+other words, this will never be called for the current CPU.
 
-thanks,
+>  }
+>  
+>  void smp_send_stop(void)
+>  {
+>  	cpumask_t mask = cpu_online_map;
+> +
+> +	if (!is_smp())
+> +		return;
+> +
+>  	cpu_clear(smp_processor_id(), mask);
 
-greg k-h
+This results in an empty CPU mask.  It might be better to do instead:
+
+	if (!cpus_empty(mask))
+
+>  	send_ipi_message(&mask, IPI_CPU_STOP);
+>  }
