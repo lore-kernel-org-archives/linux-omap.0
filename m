@@ -1,52 +1,49 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: RE: [PATCH 0/5] usb: omap: prepare for OMAP4 EHCI and OHCI support
-Date: Wed, 8 Sep 2010 13:21:04 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003C2018B20@dbde02.ent.ti.com>
-References: <1282100145-27485-1-git-send-email-keshava_mgowda@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: RE: [PATCH 2/2] OMAP:DSS: RFC Patch to add HDMI DSS driver support
+Date: Wed, 08 Sep 2010 11:31:38 +0300
+Message-ID: <1283934698.13006.4.camel@tubuntu.research.nokia.com>
+References: <FF55437E1F14DA4BAEB721A458B6701706BE2A6AB4@dbde02.ent.ti.com>
+	 <1283865397.2363.110.camel@tubuntu.research.nokia.com>
+	 <FF55437E1F14DA4BAEB721A458B6701706C5776EFE@dbde02.ent.ti.com>
+	 <1283867099.2363.114.camel@tubuntu.research.nokia.com>
+	 <FF55437E1F14DA4BAEB721A458B6701706C5776FEB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38772 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:21464 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758028Ab0IHHvL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 03:51:11 -0400
-In-Reply-To: <1282100145-27485-1-git-send-email-keshava_mgowda@ti.com>
-Content-Language: en-US
+	id S1758452Ab0IHIbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Sep 2010 04:31:44 -0400
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706C5776FEB@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-usb-owner@vger.kernel.org" <linux-usb-owner@vger.kernel.org>, "greg@kroah.com" <greg@kroah.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
+To: "ext K, Mythri P" <mythripk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Munegowda, Keshava
-> Sent: Wednesday, August 18, 2010 8:26 AM
-> To: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org
-> Cc: Munegowda, Keshava
-> Subject: [PATCH 0/5] usb: omap: prepare for OMAP4 EHCI and OHCI support
-> 
-> This series does minor code cleanup in preparation of an upcoming
-> series to add support for EHCI and OHCI on the OMAP4 SoC.
-> 
-> The changes are:
-> - Rename clock names to be consistent across OMAP3 and OMAP4
-> - Remove hardcoding of the number of TLL channels
-> - Move PHY reset earlier in the init sequence
-> 
-> These patches do not make any changes to existing functionalities.
-> 
-> Diffstat is below:
-> 
-> drivers/usb/host/ehci-omap.c                   |  104 ++++++++++++-------------
-> drivers/usb/host/ohci-omap3.c                  |   55 ++++++-------
-> 2 files changed
-> ---
-> Keshava
+On Wed, 2010-09-08 at 06:46 +0200, ext K, Mythri P wrote:
+> Hi Tomi,
 
-These are minor patches required for the adding omap4 support for 
-EHCI and OHCI in near feature.
-Requesting for merge to the current merge window, so that the next 
-set of EHCI and OHCI specific changes will be aligned with this patch set.
+> > > I have introduced these in the display.h , do you suggest adding
+> > prefix like omapdss_hdmi* for all these functions ?
+> > 
+> > Neither of the two HDMI patches you sent modify display.h...
+> > 
+> > Yes, if you export functions from DSS they should be prefixed, as
+> > they
+> > are global functions.
+> > 
+> I shall correct the function names.
+> Yes this is just a RFC patch to introduce the HDMI driver and panel as such, if you have no other comments on these 2 patch set I shall incorporate these comments and send out the complete patch series with all the relevant changes in display.h and some overlay.c and manager.c changes.
 
-Keshava Munegowda
+Please don't send incomplete patch sets. It's a waste of reviewer's time
+to try to review patches that are missing components, or are based on
+custom kernel. Also make sure checkpatch.pl doesn't give any (or just a
+few) warnings/errors.
+
+Or, if you really want to send an incomplete RFC patch set with errors,
+make it very clear in the introduction.
+
+ Tomi
+
 
