@@ -1,61 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for
- multi-omap
-Date: Tue, 7 Sep 2010 20:30:30 -0700
-Message-ID: <20100908033030.GM22507@atomide.com>
-References: <4C6CFBAF.6020407@canonical.com>
- <20100819095705.GU12184@atomide.com>
- <20100819102025.GA32151@n2100.arm.linux.org.uk>
- <20100820120622.GL25742@atomide.com>
- <20100830225527.GC11597@atomide.com>
- <20100902133637.GJ26319@n2100.arm.linux.org.uk>
- <20100902161659.GJ11597@atomide.com>
- <20100902162337.GP11597@atomide.com>
- <20100902193000.GX11597@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE75B0@dbde02.ent.ti.com>
+From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RESEND/PATCH 0/6] USB: musb-gadget: bug fix
+Date: Wed, 8 Sep 2010 12:32:19 +0800
+Message-ID: <AANLkTim605xLy8LjaKO+wR+UX2_r-dEQr=bMasXLAk22@mail.gmail.com>
+References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
+	<20100908021939.GA20443@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52002 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756496Ab0IHDao (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 23:30:44 -0400
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE75B0@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100908021939.GA20443-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Bryan Wu <bryan.wu@canonical.com>, Will Deacon <will.deacon@arm.com>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100903 05:07]:
-> 
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > Sent: Friday, September 03, 2010 1:00 AM
-> > To: Russell King - ARM Linux
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> > Bryan Wu; Will Deacon
-> > Subject: Re: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for multi-
-> > omap
-> > 
-> > * Tony Lindgren <tony@atomide.com> [100902 09:16]:
-> > > From c04a57fc3b41d886f56ccdc27cf9758de0c95202 Mon Sep 17 00:00:00 2001
-> > > From: Tony Lindgren <tony@atomide.com>
-> > > Date: Tue, 17 Aug 2010 13:33:23 +0300
-> > > Subject: [PATCH 6/6] omap: Fix SMP on UP interrupt handling for multi-
-> > omap
-> > >
-> > > Fix SMP on UP interrupt handling for multi-omap
-> > 
-> > Here's this one updated to use !smp_cpu() instead of smp_on_up().
-> > Looks like the description and subject needed some refreshing too.
-> > 
-> As I commented on other patch we should just avoid doing anything
-> When the CPU is not OMAP4. 
+CC Felipe / David / Gadiyar / Mike /  Sergei
 
-Looks like the only fix needed now is the localtimer fix. Posted
-a patch that uses cpu_is_omap44xx() to test for that.
+2010/9/8 Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>:
+> I seem to not have 1/6 here, did it get stuck somewhere?
 
-Tony
+Here is 1/6:
+
+         http://marc.info/?l=linux-usb&m=128387307419605&w=2
+
+If you need, I can send the 1/6 to you directly.
+
+>
+> Anyway, I need Felipe's ack before I can accept these.
+
+Felipe, expect your comments on the patch set...
+
+BTW: The mailbox of felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org in MAINTAINERS has been
+obsolete now, and his current box is me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, seems MAINTAINERS
+should be updated for it.
+
+-- 
+Lei Ming
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
