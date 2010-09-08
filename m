@@ -1,59 +1,43 @@
-From: Michael Williamson <michael.williamson@criticallink.com>
-Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
-Date: Tue, 07 Sep 2010 22:22:33 -0400
-Message-ID: <4C86F369.6040906@criticallink.com>
-References: <1283891142-15522-1-git-send-email-cyril@ti.com> <871v95f2xv.fsf@deeprootsystems.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [RESEND/PATCH 0/6] USB: musb-gadget: bug fix
+Date: Tue, 7 Sep 2010 19:19:39 -0700
+Message-ID: <20100908021939.GA20443@kroah.com>
+References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <871v95f2xv.fsf@deeprootsystems.com>
-Sender: netdev-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Cyril Chemparathy <cyril@ti.com>, tony@atomide.com, netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, davem@davemloft.net
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from kroah.org ([198.145.64.141]:33930 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753399Ab0IHCXN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Sep 2010 22:23:13 -0400
+Content-Disposition: inline
+In-Reply-To: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tom.leiming@gmail.com
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 09/07/2010 09:18 PM, Kevin Hilman wrote:
-> Cyril Chemparathy <cyril@ti.com> writes:
+On Tue, Sep 07, 2010 at 11:23:28PM +0800, tom.leiming@gmail.com wrote:
+> This patch set fixes two kinds of musb-gadget bug:
 > 
->> Davinci's EMAC device has an in-built MDIO controller and a CPDMA engine.
->> These hardware modules are not restricted to EMAC device alone.  For example,
->> CPSW3G (3-port gigabit ethernet switch) hardware uses these very same modules
->> internally.  This patch series separates out EMAC's MDIO and CPDMA
->> functionality, allowing these individual pieces to be reused across TI
->> hardware.  
+> 	-fix kernel panic if using out ep with FIFO_TXRX style
 > 
-> OK, queuing this series for 2.6.37 in davinci-next.
-> 
+> 	-make double buffer mode usable, fix infinate hangs and buffer
+> 	corrupt bug when using double buffer mode to do data transfer;
+> 	now we can use musb double buffer reliably, so bootst performance
+> 	about 30% compared with single buffer mode.
+> 	
+> 		[RESEND/PATCH 1/6] USB: musb-gadget: fix kernel panic if using out ep with FIFO_TXRX style(v1)
+> 		[RESEND/PATCH 2/6] USB: musb-gadget: fix bulk IN infinite hangs in double buffer case
+> 		[RESEND/PATCH 3/6] USB: musb-gadget: enable autoclear for OUT transfer in both DMA 0 and DMA 1
+> 		[RESEND/PATCH 4/6] USB: musb-gadget: fix DMA length for OUT transfer
+> 		[RESEND/PATCH 5/6] USB: musb-gadget: complete request only if data is transfered over
+> 		[RESEND/PATCH 6/6] USB: musb-gadget: fix dma length in txstate
 
-So I just pulled this to test it out on a da850 based board (mitydspl138), and I'm having
-some problems.  I'm hoping it's just operator error.
+I seem to not have 1/6 here, did it get stuck somewhere?
 
-I have a TI TLK100PHP PHY at address 0x3.  The boot log shows:
+Anyway, I need Felipe's ack before I can accept these.
 
-[snip]
-davinci_mdio davinci_mdio.0: davinci mdio revision 1.5
-davinci_mdio davinci_mdio.0: detected phy mask fffffff7
-davinci_mdio.0: probed
-davinci_mdio davinci_mdio.0: phy[3]: device 0:03, driver unknown
-[snip]
+thanks,
 
-and then in the init scripts, following udev population I get a 
-"Configuring network interfaces... "
-
-and the boot process just hangs.
-
-I went back and did a menuconfig, I didn't see an option for TI PHY support, but
-shouldn't there be a "generic" PHY driver that defaults if one isn't matched?  I 
-do have TI DaVinci EMAC/MDIO/CPDMA support enabled under the Ethernet (10 or 100 Mbit).
-
-Anyway, I've only looked at this for about 15 minutes, and I was hoping anyone might 
-point out something obvious.  If there are hints anyone might have for debugging, I'd
-appreciate them as well.  Or, if anyone has tested this with a da850 evm, that would 
-point me to a problem in the board file.
-
-Thanks for any insight.
-
--Mike
-
-
+greg k-h
