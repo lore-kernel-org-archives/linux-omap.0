@@ -1,60 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] gpmc, EXPORT_SYMBOLS, west bridge related
-Date: Wed, 8 Sep 2010 10:28:45 -0700
-Message-ID: <20100908172845.GO22507@atomide.com>
-References: <1283887607.7250.10.camel@odc-laptop>
- <20100907235800.GD12823@kroah.com>
+From: Scott Ellis <scott@jumpnowtek.com>
+Subject: [PATCH] OMAP: McBSP: tx_irq_completion used in rx_irq_handler
+Date: Wed, 08 Sep 2010 13:29:01 -0400
+Message-ID: <1283966941.3677.178.camel@quad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65288 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180Ab0IHR2t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 13:28:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20100907235800.GD12823@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-omap@vger.kernel.org, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: David Cross <david.cross@cypress.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Greg KH <greg@kroah.com> [100907 17:17]:
-> On Tue, Sep 07, 2010 at 12:26:47PM -0700, David Cross wrote:
-> > This patch exports some of the gpmc driver functions in OMAP3. The purpose behind this patch 
-> > is to allow device drivers compiled as loadable modules to be interfaced to the GPMC. I am
-> > hoping that Tony is the correct maintainer and willing to ACK this change. Please let me know 
-> > if there are any issues or concerns with this patch.
-> > Thanks,
-> > David
-> > 
-> > Signed-off-by: David Cross <david.cross@cypress.com>
-> > 
-> > diff -uprN -X linux-next-vanilla/Documentation/dontdiff linux-next-vanilla/arch/arm/mach-omap2/gpmc.c linux-next-incl-sdk/arch/arm/mach-omap2/gpmc.c
-> > --- linux-next-vanilla/arch/arm/mach-omap2/gpmc.c	2010-08-31 19:32:51.000000000 -0700
-> > +++ linux-next-incl-sdk/arch/arm/mach-omap2/gpmc.c	2010-09-01 16:10:21.000000000 -0700
-> > @@ -133,6 +133,7 @@ void gpmc_cs_write_reg(int cs, int idx, 
-> >  	reg_addr = gpmc_base + GPMC_CS0_OFFSET + (cs * GPMC_CS_SIZE) + idx;
-> >  	__raw_writel(val, reg_addr);
-> >  }
-> > +EXPORT_SYMBOL(gpmc_cs_write_reg);
-> 
-> EXPORT_SYMBOL_GPL() perhaps?
-> 
-> What about platforms that don't have this symbol, how will the driver
-> build properly then?  Shouldn't something like this be in a arch-neutral
-> place in the kernel tree?
+Looks like a typo from commit d6d834b010.
 
-I don't think exporting these functions is a good idea, so NAK from
-me for that.
+Signed-off-by: Scott Ellis <scott@jumpnowtek.com>
+---
+ arch/arm/plat-omap/mcbsp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-All the drivers should be generic, and whatever needs to be done
-that's omap specific should be done in the platform init code.
-
-If the driver needs to reconfigure something, such as memory timings,
-it can be done by passing a retime function pointer to the driver
-in the platform_data. Then the driver can call that function if
-it exists.
-
-Regards,
-
-Tony
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index e31496e..0c8612f 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -156,7 +156,7 @@ static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
+ 		/* Writing zero to RSYNC_ERR clears the IRQ */
+ 		MCBSP_WRITE(mcbsp_rx, SPCR1, MCBSP_READ_CACHE(mcbsp_rx, SPCR1));
+ 	} else {
+-		complete(&mcbsp_rx->tx_irq_completion);
++		complete(&mcbsp_rx->rx_irq_completion);
+ 	}
+ 
+ 	return IRQ_HANDLED;
