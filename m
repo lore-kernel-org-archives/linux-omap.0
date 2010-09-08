@@ -1,116 +1,106 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Don't try to send IPI on UP systems with
- CONFIG_SMP
-Date: Wed, 8 Sep 2010 12:32:44 -0700
-Message-ID: <20100908193244.GU22507@atomide.com>
-References: <20100817104414.19061.38999.stgit@baageli.muru.com>
- <20100906104413.GD20903@n2100.arm.linux.org.uk>
- <20100906180346.GC20849@atomide.com>
- <20100908030951.GH22507@atomide.com>
- <20100908031214.GI22507@atomide.com>
- <20100908031404.GJ22507@atomide.com>
- <20100908085657.GA29914@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 1/6] ARM: Add inline function smp_on_up() for early
+ init testing
+Date: Wed, 8 Sep 2010 13:26:11 -0700
+Message-ID: <20100908202611.GV22507@atomide.com>
+References: <20100820120622.GL25742@atomide.com>
+ <20100830225527.GC11597@atomide.com>
+ <20100902133637.GJ26319@n2100.arm.linux.org.uk>
+ <20100902161659.GJ11597@atomide.com>
+ <20100902161846.GK11597@atomide.com>
+ <20100902170830.GW26319@n2100.arm.linux.org.uk>
+ <20100902174244.GU11597@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02CCFE75A2@dbde02.ent.ti.com>
+ <AANLkTik2FNBv-72C4L7PxBoMsTENSds-PvbAzxGd-h4y@mail.gmail.com>
+ <20100908032642.GL22507@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52349 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64281 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753505Ab0IHTc4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 15:32:56 -0400
+	with ESMTP id S1754141Ab0IHU00 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 16:26:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20100908085657.GA29914@n2100.arm.linux.org.uk>
+In-Reply-To: <20100908032642.GL22507@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
+To: Bryan Wu <bryan.wu@canonical.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Will Deacon <will.deacon@arm.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [100908 01:49]:
-> On Tue, Sep 07, 2010 at 08:14:05PM -0700, Tony Lindgren wrote:
-> > This is not needed on UP. Additionally with will cause issues when
-> > booting CONFIG_SMP_ON_UP kernel on earlier ARM cores.
-> 
-> Doesn't make sense.
-
-Updated below. Basically it's unnecessary to send IPI for one CPU,
-and IPI may not be even supported when booting earlier cores
-with CONFIG_SMP_ON_UP.
- 
+* Tony Lindgren <tony@atomide.com> [100907 20:19]:
+> * Bryan Wu <bryan.wu@canonical.com> [100906 03:09]:
+> > Tony,
 > > 
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > I tried your latest branch: devel-smp-on-unicore, kernel boots up but
+> > got lots of WARN_ON fired:
 > > 
-> > --- a/arch/arm/kernel/process.c
-> > +++ b/arch/arm/kernel/process.c
-> > @@ -207,9 +207,7 @@ __setup("reboot=", reboot_setup);
-> >  
-> >  void machine_shutdown(void)
-> >  {
-> > -#ifdef CONFIG_SMP
-> >  	smp_send_stop();
-> > -#endif
+> > ---
+> > ------------[ cut here ]------------
+> > [    1.149719] WARNING: at mm/percpu-vm.c:320 pcpu_alloc+0x2fc/0x888()
+> > [    1.149780] Modules linked in:
+> > [    1.149841] [<c01b34c8>] (unwind_backtrace+0x0/0xe4) from
+> > [<c01e939c>] (warn_slowpath_common+0x4c/0x64)
+> > [    1.149902] [<c01e939c>] (warn_slowpath_common+0x4c/0x64) from
+> > [<c01e93cc>] (warn_slowpath_null+0x18/0x1c)
+> > [    1.149993] [<c01e93cc>] (warn_slowpath_null+0x18/0x1c) from
+> > [<c0274730>] (pcpu_alloc+0x2fc/0x888)
+> > [    1.150085] [<c0274730>] (pcpu_alloc+0x2fc/0x888) from [<c0279578>]
+> > (sget+0x198/0x43c)
+> > [    1.150146] [<c0279578>] (sget+0x198/0x43c) from [<c0279adc>]
+> > (get_sb_ns+0x20/0x90)
+> > [    1.150238] [<c0279adc>] (get_sb_ns+0x20/0x90) from [<c02791a4>]
+> > (vfs_kern_mount+0x9c/0x18c)
+> > [    1.150299] [<c02791a4>] (vfs_kern_mount+0x9c/0x18c) from
+> > [<c0022280>] (init_mqueue_fs+0x68/0xc8)
+> > [    1.150390] [<c0022280>] (init_mqueue_fs+0x68/0xc8) from
+> > [<c01ac5d0>] (do_one_initcall+0xcc/0x1a4)
+> > [    1.150451] [<c01ac5d0>] (do_one_initcall+0xcc/0x1a4) from
+> > [<c0008760>] (kernel_init+0x148/0x210)
+> > [    1.150543] [<c0008760>] (kernel_init+0x148/0x210) from
+> > [<c01adcf8>] (kernel_thread_exit+0x0/0x8)
+> > [    1.150604] ---[ end trace 1b75b31a2719ed74 ]---
+> > ---
+> > 
+> > It looks like we still missed to set some flag for chuck.
 > 
-> This will cause a link error as smp.c is not built for uniprocessor
-> builds.
+> Yeah I think there's some .config option that needs to be handled
+> properly to fix this.
 
-Right that should have not made it to the patch.
- 
-> > --- a/arch/arm/kernel/smp.c
-> > +++ b/arch/arm/kernel/smp.c
-> > @@ -560,12 +560,17 @@ asmlinkage void __exception do_IPI(struct pt_regs *regs)
-> >  
-> >  void smp_send_reschedule(int cpu)
-> >  {
-> > -	send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
-> > +	if (is_smp())
-> > +		send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
-> 
-> There won't be any other CPUs to send an IPI to - and all places which
-> call this are protected by a check for cpu == smp_processor_id() - in
-> other words, this will never be called for the current CPU.
- 
-Good point, it's not needed.
+This seems to disappear when CONFIG_LOCK_STAT is disabled,
+I wonder why?
 
-> >  void smp_send_stop(void)
-> >  {
-> >  	cpumask_t mask = cpu_online_map;
-> > +
-> > +	if (!is_smp())
-> > +		return;
-> > +
-> >  	cpu_clear(smp_processor_id(), mask);
-> 
-> This results in an empty CPU mask.  It might be better to do instead:
-> 
-> 	if (!cpus_empty(mask))
-> 
-> >  	send_ipi_message(&mask, IPI_CPU_STOP);
-> >  }
-
-OK, so this patch shrinks to the one change below.
-
-Regards,
+Here are my current changes to omap3_defconfig that I use for testing.
 
 Tony
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 7 Sep 2010 18:41:33 -0700
-Subject: [PATCH] ARM: Don't send IPI in smp_send_stop if there's only one CPU
-
-No need to send IPI if there's one CPU, especially when booting
-systems with CONFIG_SMP_ON_UP that may not even support IPI.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 40dc74f..32e16da 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -567,7 +567,8 @@ void smp_send_stop(void)
- {
- 	cpumask_t mask = cpu_online_map;
- 	cpu_clear(smp_processor_id(), mask);
--	send_ipi_message(&mask, IPI_CPU_STOP);
-+	if (!cpus_empty(mask))
-+		send_ipi_message(&mask, IPI_CPU_STOP);
- }
- 
- /*
+--- a/arch/arm/configs/omap3_defconfig
++++ b/arch/arm/configs/omap3_defconfig
+@@ -55,6 +55,7 @@ CONFIG_MACH_OMAP_4430SDP=y
+ CONFIG_ARM_THUMBEE=y
+ CONFIG_NO_HZ=y
+ CONFIG_HIGH_RES_TIMERS=y
++CONFIG_SMP=y
+ CONFIG_AEABI=y
+ CONFIG_LEDS=y
+ CONFIG_ZBOOT_ROM_TEXT=0x0
+@@ -218,9 +219,9 @@ CONFIG_USB_DEVICEFS=y
+ CONFIG_USB_SUSPEND=y
+ # CONFIG_USB_OTG_WHITELIST is not set
+ CONFIG_USB_MON=y
+-CONFIG_USB_MUSB_HDRC=y
+-CONFIG_USB_MUSB_OTG=y
+-CONFIG_USB_GADGET_MUSB_HDRC=y
++# CONFIG_USB_MUSB_HDRC is not set
++# CONFIG_USB_MUSB_OTG is not set
++# CONFIG_USB_GADGET_MUSB_HDRC is not set
+ CONFIG_USB_MUSB_DEBUG=y
+ CONFIG_USB_WDM=y
+ CONFIG_USB_STORAGE=y
+@@ -276,7 +277,7 @@ CONFIG_DEBUG_KERNEL=y
+ CONFIG_SCHEDSTATS=y
+ CONFIG_TIMER_STATS=y
+ CONFIG_PROVE_LOCKING=y
+-CONFIG_LOCK_STAT=y
++# CONFIG_LOCK_STAT is not set
+ CONFIG_DEBUG_SPINLOCK_SLEEP=y
+ # CONFIG_DEBUG_BUGVERBOSE is not set
+ CONFIG_DEBUG_INFO=y
