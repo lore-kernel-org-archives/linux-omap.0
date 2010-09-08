@@ -1,49 +1,66 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH 2/2] OMAP:DSS: RFC Patch to add HDMI DSS driver support
-Date: Wed, 08 Sep 2010 11:31:38 +0300
-Message-ID: <1283934698.13006.4.camel@tubuntu.research.nokia.com>
-References: <FF55437E1F14DA4BAEB721A458B6701706BE2A6AB4@dbde02.ent.ti.com>
-	 <1283865397.2363.110.camel@tubuntu.research.nokia.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706C5776EFE@dbde02.ent.ti.com>
-	 <1283867099.2363.114.camel@tubuntu.research.nokia.com>
-	 <FF55437E1F14DA4BAEB721A458B6701706C5776FEB@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v2 00/11] OMAP: DMA: HWMOD and DMA as platform driver
+Date: Wed, 8 Sep 2010 14:13:58 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402782B9071@dbde02.ent.ti.com>
+References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402781CE908@dbde02.ent.ti.com>
+ <87eidatpbm.fsf@deeprootsystems.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A95@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:21464 "EHLO mgw-sa01.nokia.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42409 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758452Ab0IHIbo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Sep 2010 04:31:44 -0400
-In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706C5776FEB@dbde02.ent.ti.com>
+	id S1756944Ab0IHIoG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 04:44:06 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A95@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext K, Mythri P" <mythripk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-On Wed, 2010-09-08 at 06:46 +0200, ext K, Mythri P wrote:
-> Hi Tomi,
 
-> > > I have introduced these in the display.h , do you suggest adding
-> > prefix like omapdss_hdmi* for all these functions ?
+
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G, 
+> Manjunath Kondaiah
+> Sent: Tuesday, September 07, 2010 5:18 PM
+> To: Kevin Hilman
+> Cc: linux-omap@vger.kernel.org; Cousson, Benoit; Shilimkar, 
+> Santosh; Sawant, Anand
+> Subject: RE: [PATCH v2 00/11] OMAP: DMA: HWMOD and DMA as 
+> platform driver
+> 
+>  
+> 
+> > -----Original Message-----
+> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> > Sent: Saturday, September 04, 2010 4:20 AM
+> > To: G, Manjunath Kondaiah
+> > Cc: linux-omap@vger.kernel.org; Cousson, Benoit; Shilimkar, 
+> > Santosh; Sawant, Anand
+> > Subject: Re: [PATCH v2 00/11] OMAP: DMA: HWMOD and DMA as 
+> > platform driver
 > > 
-> > Neither of the two HDMI patches you sent modify display.h...
+> > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 > > 
-> > Yes, if you export functions from DSS they should be prefixed, as
-> > they
-> > are global functions.
+> > > If there are no further comments, can you please stage this patch
+> > > series on hwmods-omap4 branch?
 > > 
-> I shall correct the function names.
-> Yes this is just a RFC patch to introduce the HDMI driver and panel as such, if you have no other comments on these 2 patch set I shall incorporate these comments and send out the complete patch series with all the relevant changes in display.h and some overlay.c and manager.c changes.
+> > Reviewed.  Still a long ways to go..., also  I didn't see 
+> you address
+> > the typo pointed out by Mika Westerberg on PATCH 03/11.
+> Sorry. I fixed it in my internal version and forgot to take 
+> that change.
+> Thanks for pointing this.
 
-Please don't send incomplete patch sets. It's a waste of reviewer's time
-to try to review patches that are missing components, or are based on
-custom kernel. Also make sure checkpatch.pl doesn't give any (or just a
-few) warnings/errors.
+It is not mistake. I was cross checking the review comments and 
+Mika Westerberg comment is for v2 version of 03/11 patch and your review is also 
+for v2 version of the series hence Mika Westerberg comments will get addressed 
+in v3 series.
 
-Or, if you really want to send an incomplete RFC patch set with errors,
-make it very clear in the introduction.
-
- Tomi
-
-
+-Manjunath
