@@ -1,90 +1,60 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/2] OMAP2+: PM: initial runtime PM core support
-Date: Wed, 08 Sep 2010 10:24:48 -0700
-Message-ID: <871v945esf.fsf@deeprootsystems.com>
-References: <1283907282-986-1-git-send-email-khilman@deeprootsystems.com>
-	<20100908162143.GD3686@angua.secretlab.ca>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] gpmc, EXPORT_SYMBOLS, west bridge related
+Date: Wed, 8 Sep 2010 10:28:45 -0700
+Message-ID: <20100908172845.GO22507@atomide.com>
+References: <1283887607.7250.10.camel@odc-laptop>
+ <20100907235800.GD12823@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:40176 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169Ab0IHRYx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 13:24:53 -0400
-Received: by qyk36 with SMTP id 36so4844943qyk.19
-        for <linux-omap@vger.kernel.org>; Wed, 08 Sep 2010 10:24:52 -0700 (PDT)
-In-Reply-To: <20100908162143.GD3686@angua.secretlab.ca> (Grant Likely's
-	message of "Wed, 8 Sep 2010 10:21:43 -0600")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65288 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752180Ab0IHR2t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 13:28:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20100907235800.GD12823@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Greg KH <greg@kroah.com>
+Cc: David Cross <david.cross@cypress.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Grant Likely <grant.likely@secretlab.ca> writes:
+* Greg KH <greg@kroah.com> [100907 17:17]:
+> On Tue, Sep 07, 2010 at 12:26:47PM -0700, David Cross wrote:
+> > This patch exports some of the gpmc driver functions in OMAP3. The purpose behind this patch 
+> > is to allow device drivers compiled as loadable modules to be interfaced to the GPMC. I am
+> > hoping that Tony is the correct maintainer and willing to ACK this change. Please let me know 
+> > if there are any issues or concerns with this patch.
+> > Thanks,
+> > David
+> > 
+> > Signed-off-by: David Cross <david.cross@cypress.com>
+> > 
+> > diff -uprN -X linux-next-vanilla/Documentation/dontdiff linux-next-vanilla/arch/arm/mach-omap2/gpmc.c linux-next-incl-sdk/arch/arm/mach-omap2/gpmc.c
+> > --- linux-next-vanilla/arch/arm/mach-omap2/gpmc.c	2010-08-31 19:32:51.000000000 -0700
+> > +++ linux-next-incl-sdk/arch/arm/mach-omap2/gpmc.c	2010-09-01 16:10:21.000000000 -0700
+> > @@ -133,6 +133,7 @@ void gpmc_cs_write_reg(int cs, int idx, 
+> >  	reg_addr = gpmc_base + GPMC_CS0_OFFSET + (cs * GPMC_CS_SIZE) + idx;
+> >  	__raw_writel(val, reg_addr);
+> >  }
+> > +EXPORT_SYMBOL(gpmc_cs_write_reg);
+> 
+> EXPORT_SYMBOL_GPL() perhaps?
+> 
+> What about platforms that don't have this symbol, how will the driver
+> build properly then?  Shouldn't something like this be in a arch-neutral
+> place in the kernel tree?
 
-> On Tue, Sep 07, 2010 at 05:54:41PM -0700, Kevin Hilman wrote:
->> From: Kevin Hilman <khilman@ti.com>
->> 
->> Implement the new runtime PM framework as a thin layer on top of the
->> omap_device API.  OMAP specific runtime PM methods are registered with
->> the as custom methods on the platform_bus.
->> 
->> In order to determine if a device is an omap_device, its parent device
->> is checked.  All omap_devices have a new 'omap_bus' device as their
->> parent device, so checking for this parent is used to check for valid
->> omap_devices.  If a device is an omap_device, then the appropriate
->> omap_device functions are called for it.  If not, only the generic
->> runtime PM functions are called.
->> 
->> Device driver's ->runtime_idle() hook is called when the runtime PM
->> usecount reaches zero for that device.  Driver's ->runtime_suspend()
->> hooks are called just before the device is disabled (via
->> omap_device_idle()), and device driver ->runtime_resume() hooks are
->> called just after device has been enabled (via omap_device_enable().)
->> 
->> OMAP4 build support from Rajendra Nayak <rnayak@ti.com>.
->> 
->> Cc: Rajendra Nayak <rnayak@ti.com>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->
+I don't think exporting these functions is a good idea, so NAK from
+me for that.
 
-[...]
+All the drivers should be generic, and whatever needs to be done
+that's omap specific should be done in the platform init code.
 
->> +static int __init omap_pm_runtime_init(void)
->> +{
->> +	const struct dev_pm_ops *pm;
->> +	struct dev_pm_ops *omap_pm;
->> +
->> +	pm = platform_bus_get_pm_ops();
->> +	if (!pm) {
->> +		pr_err("%s: unable to get dev_pm_ops from platform_bus\n",
->> +			__func__);
->> +		return -ENODEV;
->> +	}
->> +
->> +	omap_pm = kmemdup(pm, sizeof(struct dev_pm_ops), GFP_KERNEL);
->> +	if (!omap_pm) {
->> +		pr_err("%s: unable to alloc memory for new dev_pm_ops\n",
->> +			__func__);
->> +		return -ENOMEM;
->> +	}
->> +		
->> +	omap_pm->runtime_suspend = omap_pm_runtime_suspend;
->> +	omap_pm->runtime_resume = omap_pm_runtime_resume;
->
-> This will fail to build when CONFIG_PM_RUNTIME is unset.  None of this
-> file should be build when CONFIG_PM_RUNTIME=n.
+If the driver needs to reconfigure something, such as memory timings,
+it can be done by passing a retime function pointer to the driver
+in the platform_data. Then the driver can call that function if
+it exists.
 
-FYI... Rather than not building the whole file, I'm fixing this by
-adding an #else clause to the #ifdef:
+Regards,
 
-#else
-#define omap_pm_runtime_suspend NULL
-#define omap_pm_runtime_resume NULL
-#endif /* CONFIG_PM_RUNTIME */
-
-This is because I'll also be building on this to hook up the
-_[suspend|resume]_noirq() methods which are based on #ifdef
-CONFIG_SUSPEND and not CONFIG_PM_RUNTIME.
-
-Kevin
+Tony
