@@ -1,22 +1,19 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v2 08/11] OMAP: DMA: Convert DMA library into DMA
- platform Driver
-Date: Wed, 8 Sep 2010 07:16:31 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8D23@dbde02.ent.ti.com>
+Subject: RE: [PATCH v2 04/11] OMAP3: DMA: HWMOD: Add hwmod data structures
+Date: Wed, 8 Sep 2010 07:22:06 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8D29@dbde02.ent.ti.com>
 References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
-	<1282647866-6918-9-git-send-email-manjugk@ti.com>
-	<878w3iv4lw.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A91@dbde02.ent.ti.com>
- <87aantgol2.fsf@deeprootsystems.com>
+	<1282647866-6918-5-git-send-email-manjugk@ti.com>
+ <871v9awnwy.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48941 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49261 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751225Ab0IHBqj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 21:46:39 -0400
-In-Reply-To: <87aantgol2.fsf@deeprootsystems.com>
+	id S1751097Ab0IHBwO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 21:52:14 -0400
+In-Reply-To: <871v9awnwy.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -25,59 +22,53 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit"
 
 
 
-
 > -----Original Message-----
 > From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Wednesday, September 08, 2010 4:15 AM
+> Sent: Saturday, September 04, 2010 2:22 AM
 > To: G, Manjunath Kondaiah
 > Cc: linux-omap@vger.kernel.org; Cousson, Benoit; Shilimkar, Santosh
-> Subject: Re: [PATCH v2 08/11] OMAP: DMA: Convert DMA library 
-> into DMA platform Driver
+> Subject: Re: [PATCH v2 04/11] OMAP3: DMA: HWMOD: Add hwmod 
+> data structures
 > 
-> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> Manjunatha GK <manjugk@ti.com> writes:
 > 
-> [...]
+> > This patch adds OMAP3 DMA hwmod structures.
 > 
-> >> > diff --git a/arch/arm/mach-omap1/include/mach/dma.h 
-> >> b/arch/arm/mach-omap1/include/mach/dma.h
-> >> > index d446cdd..1eb0d31 100644
-> >> > --- a/arch/arm/mach-omap1/include/mach/dma.h
-> >> > +++ b/arch/arm/mach-omap1/include/mach/dma.h
-> >> > @@ -77,4 +77,70 @@
-> >> >  #define OMAP1_DMA_CCR2(n)		(0x40 * (n) + 0x24)
-> >> >  #define OMAP1_DMA_LCH_CTRL(n)		(0x40 * (n) + 0x2a)
-> >> >  
-> >> > +/* Dummy defines to support multi omap code */
-> >> 
-> >> These should not be needed anymore as this is now an OMAP1-specific
-> >> header.
-> >
-> > Because it is OMAP1 specific header, there are common API's 
-> used between
-> > omap1 and omap2 plus in plat-omap/dma.c which needs these 
-> defines otherwise
-> > build will break for omap1 since these defines exists omap2 
-> specific header
-> > Which is in respective mach directory.
-> 
-> OK, then the split you are proposing is not the right thing to do, or
-> more likely, the split was not taken far enough.
-> 
-> defines that are used in common code should be defined in a common
-> header, rather than duplicating them in both omap1 and omap2+ code.
 
-It cannot be moved to common header since it will have duplicated #defines
-(one from mach header and other one from common header.
-> 
-> When you find yourself putting OMAP1 defines in OMAP2+ code and vice
-> versa, it should be an indication that there is still some abstraction
-> missing in the split
+[..]
 
-These common API's use device attributes to differentiate between omap1 and omap2
-plus code. If we want to eliminate this, we should move these api's to respective
-mach directory. In that case, both omap1 and omap2plus dma drivers will become
-separate drivers. The rationale behind spilit is, tried to common API's as for as 
-possible in plat-oma dma and move omap1 and omap2plus specific code respectivem 
-mach dma.
+> > +
+> > +static struct omap_hwmod omap3xxx_dma_system_hwmod = {
+> > +	.name		= "dma",
+> > +	.class		= &omap3xxx_dma_hwmod_class,
+> > +	.mpu_irqs	= omap3xxx_dma_system_irqs,
+> > +	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_dma_system_irqs),
+> > +	.main_clk	= "l3_div_ck",
+> > +	.slaves		= omap3xxx_dma_system_slaves,
+> > +	.slaves_cnt	= ARRAY_SIZE(omap3xxx_dma_system_slaves),
+> > +	.masters	= omap3xxx_dma_system_masters,
+> > +	.masters_cnt	= ARRAY_SIZE(omap3xxx_dma_system_masters),
+> > +	.dev_attr	= &dma_dev_attr,
+> > +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> > +	.flags		= HWMOD_NO_IDLEST,
+> 
+> hmm, I see an ST_DMA bit in CM_IDLEST1_CORE for DMA.
+> 
+> Having this also masks the fact that you haven't filled out the
+> .prcm.omap2 fields of the hwmod, at least the idlest ones are needed
+> here.
+
+Ok. I will introduce .prcm entries as:
+	.prcm = {
+		.omap2 = {
+			.prcm_reg_id		= 1,
+			.module_bit		= OMAP3430_ST_SDMA_SHIFT,
+			.module_offs		= CORE_MOD,
+			.idlest_reg_id		= 1,
+			.idlest_idle_bit	= OMAP3430_ST_SDMA_SHIFT,
+		},
+	}
+	.flags = HWMOD_SET_DEFAULT_CLOCKACT,
 
 -Manjunath
+
