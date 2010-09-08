@@ -1,43 +1,40 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH] omap: OMAP_IOMMU not visible in menuconfig
-Date: Wed,  8 Sep 2010 20:21:21 +0530
-Message-ID: <1283957481-16682-1-git-send-email-premi@ti.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: RE: [PATCH 0/6] ARM: l2x0: kexex, cleanup and optimisation
+Date: Wed, 08 Sep 2010 16:01:29 +0100
+Message-ID: <1283958089.10137.55.camel@e102109-lin.cambridge.arm.com>
+References: <1283846243-11600-1-git-send-email-santosh.shilimkar@ti.com>
+	 <AANLkTi=chtedwbDDJnZOe5yTqobUeXz=aZYUNNUDpQQm@mail.gmail.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02CD0D30A5@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58725 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754902Ab0IHOv1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Sep 2010 10:51:27 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o88EpOs2023108
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 8 Sep 2010 09:51:26 -0500
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:45775 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750849Ab0IHPBx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 11:01:53 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD0D30A5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Linus Walleij <linus.ml.walleij@gmail.com>, linux-arm-kernel@lists.infradead.org, tglx@linutronix.de, linux-omap@vger.kernel.org, per.xx.fransson@stericsson.com
 
-The menu option to select CONFIG_OMAP_IOMMU
-was not visible in the menuconfig due to missing
-description.
+On Wed, 2010-09-08 at 08:34 +0100, Shilimkar, Santosh wrote:
+> > Can you also include the patch by Per Fransson I sent off to
+> > Thomas and the list just a few days ago with the subject
+> > "[PATCH] ARM: ux500 specific L2 cache code"
+> > in this patch series?
+> 
+> Basically I plan to push all these patches to
+> RMK's patch system after getting his OK. I can push
+> your patch along with that.
+> 
+> Is that ok with you ?
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/plat-omap/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Or rather a pull request. AFAIK (unless this was fixed recently) the
+patch system doesn't handle the "From: " line to set the correct patch
+author.
 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index e39a417..2a114a9 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -98,7 +98,7 @@ config OMAP_MBOX_KFIFO_SIZE
- 	  module parameter).
- 
- config OMAP_IOMMU
--	tristate
-+	tristate "OMAP IOMMU support"
- 
- config OMAP_IOMMU_DEBUG
-        tristate "Export OMAP IOMMU internals in DebugFS"
 -- 
-1.6.2.4
+Catalin
 
