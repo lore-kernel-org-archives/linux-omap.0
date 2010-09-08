@@ -1,63 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] gpmc, EXPORT_SYMBOLS, west bridge related
-Date: Wed, 8 Sep 2010 10:30:40 -0700
-Message-ID: <20100908173040.GP22507@atomide.com>
-References: <1283887607.7250.10.camel@odc-laptop>
- <20100907235800.GD12823@kroah.com>
- <701AE2655D844F9AAB5F2492AD477066@stanford.edu>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 1/2] OMAP2+: PM: initial runtime PM core support
+Date: Wed, 8 Sep 2010 11:39:31 -0600
+Message-ID: <20100908173931.GL3686@angua.secretlab.ca>
+References: <1283907282-986-1-git-send-email-khilman@deeprootsystems.com>
+ <20100908162143.GD3686@angua.secretlab.ca>
+ <871v945esf.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51592 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752023Ab0IHRal (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 13:30:41 -0400
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:48265 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752758Ab0IHRje (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 13:39:34 -0400
+Received: by pwi3 with SMTP id 3so161938pwi.19
+        for <linux-omap@vger.kernel.org>; Wed, 08 Sep 2010 10:39:34 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <701AE2655D844F9AAB5F2492AD477066@stanford.edu>
+In-Reply-To: <871v945esf.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Cross <david.cross@cypress.com>
-Cc: 'Greg KH' <greg@kroah.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-* David Cross <david.cross@cypress.com> [100908 09:52]:
+On Wed, Sep 08, 2010 at 10:24:48AM -0700, Kevin Hilman wrote:
+> Grant Likely <grant.likely@secretlab.ca> writes:
 > 
-> > From: Greg KH [mailto:greg@kroah.com] 
+> > On Tue, Sep 07, 2010 at 05:54:41PM -0700, Kevin Hilman wrote:
+> >> +	omap_pm->runtime_suspend = omap_pm_runtime_suspend;
+> >> +	omap_pm->runtime_resume = omap_pm_runtime_resume;
+> >
+> > This will fail to build when CONFIG_PM_RUNTIME is unset.  None of this
+> > file should be build when CONFIG_PM_RUNTIME=n.
 > 
-> > On Tue, Sep 07, 2010 at 12:26:47PM -0700, David Cross wrote:
-> > > This patch exports some of the gpmc driver functions in OMAP3. The
-> purpose behind this patch 
-> > > is to allow device drivers compiled as loadable modules to be interfaced
-> > to the GPMC. I am
-> > > hoping that Tony is the correct maintainer and willing to ACK this
-> change. Please let me know 
-> > > if there are any issues or concerns with this patch.
-> > > Thanks,
-> > > David
-> > > 
-> > > Signed-off-by: David Cross <david.cross@cypress.com>
-> > > 
-> > > diff -uprN -X linux-next-vanilla/Documentation/dontdiff
-> linux-next-vanilla/arch/arm/mach-omap2/gpmc.c
-> linux-next-incl-sdk/arch/arm/mach-omap2/gpmc.c
-> > > --- linux-next-vanilla/arch/arm/mach-omap2/gpmc.c	2010-08-31
-> 19:32:51.000000000 -0700
-> > > +++ linux-next-incl-sdk/arch/arm/mach-omap2/gpmc.c	2010-09-01
-> 16:10:21.000000000 -0700
-> > > @@ -133,6 +133,7 @@ void gpmc_cs_write_reg(int cs, int idx, 
-> > >  	reg_addr = gpmc_base + GPMC_CS0_OFFSET + (cs * GPMC_CS_SIZE) + idx;
-> > >  	__raw_writel(val, reg_addr);
-> > >  }
-> > > +EXPORT_SYMBOL(gpmc_cs_write_reg);
+> FYI... Rather than not building the whole file, I'm fixing this by
+> adding an #else clause to the #ifdef:
 > 
-> > EXPORT_SYMBOL_GPL() perhaps?
+> #else
+> #define omap_pm_runtime_suspend NULL
+> #define omap_pm_runtime_resume NULL
+> #endif /* CONFIG_PM_RUNTIME */
 > 
-> I don't have an issue with that, though I am not sure I understand why we
-> would want to limit the usage of the function to GPL'd modules. It is
-> probably Tony's call assuming he is ok with exporting the symbol.
+> This is because I'll also be building on this to hook up the
+> _[suspend|resume]_noirq() methods which are based on #ifdef
+> CONFIG_SUSPEND and not CONFIG_PM_RUNTIME.
 
-Exporting these is not a good idea, it should be done in the platform
-init code like I replied in another message.
+okay.
 
-Regards,
+g.
 
-Tony
