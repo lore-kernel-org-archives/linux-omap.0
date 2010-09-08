@@ -1,105 +1,83 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
-Date: Tue, 07 Sep 2010 18:18:20 -0700
-Message-ID: <871v95f2xv.fsf@deeprootsystems.com>
-References: <1283891142-15522-1-git-send-email-cyril@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v2 08/11] OMAP: DMA: Convert DMA library into DMA
+ platform Driver
+Date: Wed, 8 Sep 2010 07:16:31 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8D23@dbde02.ent.ti.com>
+References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
+	<1282647866-6918-9-git-send-email-manjugk@ti.com>
+	<878w3iv4lw.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A91@dbde02.ent.ti.com>
+ <87aantgol2.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:46176 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090Ab0IHBSY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 21:18:24 -0400
-In-Reply-To: <1283891142-15522-1-git-send-email-cyril@ti.com> (Cyril
-	Chemparathy's message of "Tue, 7 Sep 2010 16:25:32 -0400")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48941 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751225Ab0IHBqj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Sep 2010 21:46:39 -0400
+In-Reply-To: <87aantgol2.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cyril Chemparathy <cyril@ti.com>
-Cc: netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, davem@davemloft.net, tony@atomide.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Cyril Chemparathy <cyril@ti.com> writes:
 
-> Davinci's EMAC device has an in-built MDIO controller and a CPDMA engine.
-> These hardware modules are not restricted to EMAC device alone.  For example,
-> CPSW3G (3-port gigabit ethernet switch) hardware uses these very same modules
-> internally.  This patch series separates out EMAC's MDIO and CPDMA
-> functionality, allowing these individual pieces to be reused across TI
-> hardware.  
 
-OK, queuing this series for 2.6.37 in davinci-next.
 
-Kevin
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Wednesday, September 08, 2010 4:15 AM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; Cousson, Benoit; Shilimkar, Santosh
+> Subject: Re: [PATCH v2 08/11] OMAP: DMA: Convert DMA library 
+> into DMA platform Driver
+> 
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> 
+> [...]
+> 
+> >> > diff --git a/arch/arm/mach-omap1/include/mach/dma.h 
+> >> b/arch/arm/mach-omap1/include/mach/dma.h
+> >> > index d446cdd..1eb0d31 100644
+> >> > --- a/arch/arm/mach-omap1/include/mach/dma.h
+> >> > +++ b/arch/arm/mach-omap1/include/mach/dma.h
+> >> > @@ -77,4 +77,70 @@
+> >> >  #define OMAP1_DMA_CCR2(n)		(0x40 * (n) + 0x24)
+> >> >  #define OMAP1_DMA_LCH_CTRL(n)		(0x40 * (n) + 0x2a)
+> >> >  
+> >> > +/* Dummy defines to support multi omap code */
+> >> 
+> >> These should not be needed anymore as this is now an OMAP1-specific
+> >> header.
+> >
+> > Because it is OMAP1 specific header, there are common API's 
+> used between
+> > omap1 and omap2 plus in plat-omap/dma.c which needs these 
+> defines otherwise
+> > build will break for omap1 since these defines exists omap2 
+> specific header
+> > Which is in respective mach directory.
+> 
+> OK, then the split you are proposing is not the right thing to do, or
+> more likely, the split was not taken far enough.
+> 
+> defines that are used in common code should be defined in a common
+> header, rather than duplicating them in both omap1 and omap2+ code.
 
-> This patch series has been broadly organized as follows:
->
-> MDIO:
->   - Add new functionality
->       netdev: separate out davinci mdio controller code
->   - Hookup new functionality
->       davinci: add mdio platform devices
->       omap: add mdio platform devices
->       netdev: switch davinci emac to new mdio driver
->   - Cleanup left over cruft
->       davinci: cleanup unused davinci mdio arch code
->       omap: cleanup unused davinci mdio arch code
->       netdev: cleanup unused davinci mdio emac code
->
-> CPDMA:
->   - Add new functionality
->      netdev: separate out davinci cpdma controller code
->   - Hookup new functionality
->      netdev: switch davinci emac to new cpdma layer
->   - Cleanup left over cruft
->      netdev: cleanup unused davinci emac cpdma code
->
-> This series has been tested on dm365 and tnetv107x (with additional cpsw
-> patches) hardware.  Although am3517 (omap) board support code has been updated
-> as needed, emac does not work on this platform.
->
-> Changes from v1:
->   1. Fixed memory leak in cpdma_chan_create() failure case
->   2. Included new omap patches for am3517, avoids build breakage
->
-> Changes from v2:
->   1. Updated series to include mityomapl138 board
->   2. Minor white-space fixes
->
-> Cyril Chemparathy (10):
->   net: davinci_emac: separate out davinci mdio
->   davinci: add mdio platform devices
->   omap: add mdio platform devices
->   net: davinci_emac: switch to new mdio
->   davinci: cleanup unused davinci mdio arch code
->   omap: cleanup unused davinci mdio arch code
->   net: davinci_emac: cleanup unused mdio emac code
->   net: davinci_emac: separate out cpdma code
->   net: davinci_emac: switch to new cpdma layer
->   net: davinci_emac: cleanup unused cpdma code
->
->  arch/arm/mach-davinci/board-da830-evm.c     |    5 -
->  arch/arm/mach-davinci/board-da850-evm.c     |    6 -
->  arch/arm/mach-davinci/board-dm365-evm.c     |    7 -
->  arch/arm/mach-davinci/board-dm644x-evm.c    |    7 -
->  arch/arm/mach-davinci/board-dm646x-evm.c    |    8 -
->  arch/arm/mach-davinci/board-mityomapl138.c  |    7 -
->  arch/arm/mach-davinci/board-neuros-osd2.c   |    7 -
->  arch/arm/mach-davinci/board-sffsdr.c        |    7 -
->  arch/arm/mach-davinci/devices-da8xx.c       |   31 +-
->  arch/arm/mach-davinci/dm365.c               |   23 +-
->  arch/arm/mach-davinci/dm644x.c              |   23 +-
->  arch/arm/mach-davinci/dm646x.c              |   22 +-
->  arch/arm/mach-davinci/include/mach/dm365.h  |    2 +-
->  arch/arm/mach-davinci/include/mach/dm644x.h |    2 +-
->  arch/arm/mach-davinci/include/mach/dm646x.h |    2 +-
->  arch/arm/mach-omap2/board-am3517evm.c       |   31 +-
->  drivers/net/Kconfig                         |   21 +
->  drivers/net/Makefile                        |    2 +
->  drivers/net/davinci_cpdma.c                 |  837 +++++++++++++++++
->  drivers/net/davinci_cpdma.h                 |  105 +++
->  drivers/net/davinci_emac.c                  | 1325 ++++-----------------------
->  drivers/net/davinci_mdio.c                  |  386 ++++++++
->  include/linux/davinci_emac.h                |    8 +-
->  23 files changed, 1635 insertions(+), 1239 deletions(-)
->  create mode 100644 drivers/net/davinci_cpdma.c
->  create mode 100644 drivers/net/davinci_cpdma.h
->  create mode 100644 drivers/net/davinci_mdio.c
+It cannot be moved to common header since it will have duplicated #defines
+(one from mach header and other one from common header.
+> 
+> When you find yourself putting OMAP1 defines in OMAP2+ code and vice
+> versa, it should be an indication that there is still some abstraction
+> missing in the split
+
+These common API's use device attributes to differentiate between omap1 and omap2
+plus code. If we want to eliminate this, we should move these api's to respective
+mach directory. In that case, both omap1 and omap2plus dma drivers will become
+separate drivers. The rationale behind spilit is, tried to common API's as for as 
+possible in plat-oma dma and move omap1 and omap2plus specific code respectivem 
+mach dma.
+
+-Manjunath
