@@ -1,263 +1,452 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 1/2] OMAP: DSS2: Introduce dss_features files
-Date: Wed,  8 Sep 2010 16:47:38 +0530
-Message-ID: <1283944659-3824-2-git-send-email-archit@ti.com>
+Subject: [PATCH v2 2/2] OMAP: DSS2: Use dss_features framework on DSS2 code
+Date: Wed,  8 Sep 2010 16:47:39 +0530
+Message-ID: <1283944659-3824-3-git-send-email-archit@ti.com>
 References: <1283944659-3824-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42645 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49744 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751289Ab0IHLQw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Sep 2010 07:16:52 -0400
+	id S1751289Ab0IHLQ4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Sep 2010 07:16:56 -0400
 In-Reply-To: <1283944659-3824-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com
 Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Add dss_features.c and dss_features.h for the dss_features framework
+calls init functions of dss_features during dss_probe, and the following
+features are made omapxxxx independent:
+  - number of managers, overlays
+  - supported color modes for each overlay
+  - supported displays for each manager
+  - global aplha, and restriction of global alpha for video1 pipeline
+  - The register field ranges : FIRHINC, FIRVINC, FIFOHIGHTHRESHOLD
+    FIFOLOWTHRESHOLD and FIFOSIZE
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/dss_features.c |  171 ++++++++++++++++++++++++++++++++
- drivers/video/omap2/dss/dss_features.h |   51 ++++++++++
- 2 files changed, 222 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/dss/dss_features.c
- create mode 100644 drivers/video/omap2/dss/dss_features.h
+ arch/arm/plat-omap/include/plat/display.h |   31 ----------------
+ drivers/video/omap2/dss/Makefile          |    2 +-
+ drivers/video/omap2/dss/core.c            |    3 ++
+ drivers/video/omap2/dss/dispc.c           |   56 ++++++++++++++++-------------
+ drivers/video/omap2/dss/manager.c         |   33 ++++++++---------
+ drivers/video/omap2/dss/overlay.c         |   24 +++++-------
+ 6 files changed, 61 insertions(+), 88 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-new file mode 100644
-index 0000000..e87816f
---- /dev/null
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -0,0 +1,171 @@
-+/*
-+ * linux/drivers/video/omap2/dss/dss_features.c
-+ *
-+ * Copyright (C) 2010 Texas Instruments
-+ * Author: Archit Taneja <archit@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/types.h>
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+
-+#include <plat/display.h>
-+#include <plat/cpu.h>
-+
+diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
+index 8bd15bd..c915a66
+--- a/arch/arm/plat-omap/include/plat/display.h
++++ b/arch/arm/plat-omap/include/plat/display.h
+@@ -81,37 +81,6 @@ enum omap_color_mode {
+ 	OMAP_DSS_COLOR_ARGB32	= 1 << 11, /* ARGB32 */
+ 	OMAP_DSS_COLOR_RGBA32	= 1 << 12, /* RGBA32 */
+ 	OMAP_DSS_COLOR_RGBX32	= 1 << 13, /* RGBx32 */
+-
+-	OMAP_DSS_COLOR_GFX_OMAP2 =
+-		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
+-		OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
+-		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
+-		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P,
+-
+-	OMAP_DSS_COLOR_VID_OMAP2 =
+-		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
+-		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
+-		OMAP_DSS_COLOR_UYVY,
+-
+-	OMAP_DSS_COLOR_GFX_OMAP3 =
+-		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
+-		OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
+-		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
+-		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
+-		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_ARGB32 |
+-		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
+-
+-	OMAP_DSS_COLOR_VID1_OMAP3 =
+-		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
+-		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P |
+-		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY,
+-
+-	OMAP_DSS_COLOR_VID2_OMAP3 =
+-		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
+-		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
+-		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
+-		OMAP_DSS_COLOR_UYVY | OMAP_DSS_COLOR_ARGB32 |
+-		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
+ };
+ 
+ enum omap_lcd_display_type {
+diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
+index d71b5d9..7db17b5
+--- a/drivers/video/omap2/dss/Makefile
++++ b/drivers/video/omap2/dss/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_OMAP2_DSS) += omapdss.o
+-omapdss-y := core.o dss.o dispc.o display.o manager.o overlay.o
++omapdss-y := core.o dss.o dss_features.o dispc.o display.o manager.o overlay.o
+ omapdss-$(CONFIG_OMAP2_DSS_DPI) += dpi.o
+ omapdss-$(CONFIG_OMAP2_DSS_RFBI) += rfbi.o
+ omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
+diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
+index b3a498f..8e89f60
+--- a/drivers/video/omap2/dss/core.c
++++ b/drivers/video/omap2/dss/core.c
+@@ -37,6 +37,7 @@
+ #include <plat/clock.h>
+ 
+ #include "dss.h"
 +#include "dss_features.h"
+ 
+ static struct {
+ 	struct platform_device *pdev;
+@@ -502,6 +503,8 @@ static int omap_dss_probe(struct platform_device *pdev)
+ 
+ 	core.pdev = pdev;
+ 
++	dss_features_init();
 +
-+/* Defines a generic omap register field */
-+struct dss_reg_field {
-+	enum dss_feat_reg_field id;
-+	u8 start, end;
-+};
+ 	dss_init_overlay_managers(pdev);
+ 	dss_init_overlays(pdev);
+ 
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 90eb110..dda497c
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -39,6 +39,7 @@
+ #include <plat/display.h>
+ 
+ #include "dss.h"
++#include "dss_features.h"
+ 
+ /* DISPC */
+ #define DISPC_BASE			0x48050400
+@@ -774,12 +775,12 @@ static void _dispc_set_vid_size(enum omap_plane plane, int width, int height)
+ 
+ static void _dispc_setup_global_alpha(enum omap_plane plane, u8 global_alpha)
+ {
+-
+-	BUG_ON(plane == OMAP_DSS_VIDEO1);
+-
+-	if (cpu_is_omap24xx())
++	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
+ 		return;
+ 
++	BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
++			plane == OMAP_DSS_VIDEO1);
 +
-+struct omap_dss_features {
-+	struct dss_reg_field reg_fields[MAX_DSS_REG_FIELDS];
-+	u32 has_feature;
+ 	if (plane == OMAP_DSS_GFX)
+ 		REG_FLD_MOD(DISPC_GLOBAL_ALPHA, global_alpha, 7, 0);
+ 	else if (plane == OMAP_DSS_VIDEO2)
+@@ -949,17 +950,14 @@ static void dispc_read_plane_fifo_sizes(void)
+ 				      DISPC_VID_FIFO_SIZE_STATUS(1) };
+ 	u32 size;
+ 	int plane;
++	u8 size1, size2;
+ 
+ 	enable_clocks(1);
+ 
+-	for (plane = 0; plane < ARRAY_SIZE(dispc.fifo_size); ++plane) {
+-		if (cpu_is_omap24xx())
+-			size = FLD_GET(dispc_read_reg(fsz_reg[plane]), 8, 0);
+-		else if (cpu_is_omap34xx())
+-			size = FLD_GET(dispc_read_reg(fsz_reg[plane]), 10, 0);
+-		else
+-			BUG();
++	dss_feat_get_reg_field(FIFOSIZE, &size1, &size2);
+ 
++	for (plane = 0; plane < ARRAY_SIZE(dispc.fifo_size); ++plane) {
++		size = FLD_GET(dispc_read_reg(fsz_reg[plane]), size1, size2);
+ 		dispc.fifo_size[plane] = size;
+ 	}
+ 
+@@ -976,6 +974,8 @@ void dispc_setup_plane_fifo(enum omap_plane plane, u32 low, u32 high)
+ 	const struct dispc_reg ftrs_reg[] = { DISPC_GFX_FIFO_THRESHOLD,
+ 				       DISPC_VID_FIFO_THRESHOLD(0),
+ 				       DISPC_VID_FIFO_THRESHOLD(1) };
++	u8 high1, high2, low1, low2;
 +
-+	int num_mgrs;
-+	int num_ovls;
-+	enum omap_display_type supported_displays[MAX_DSS_MANAGERS];
-+	enum omap_color_mode supported_color_modes[MAX_DSS_OVERLAYS];
-+};
+ 	enable_clocks(1);
+ 
+ 	DSSDBG("fifo(%d) low/high old %u/%u, new %u/%u\n",
+@@ -984,12 +984,12 @@ void dispc_setup_plane_fifo(enum omap_plane plane, u32 low, u32 high)
+ 			REG_GET(ftrs_reg[plane], 27, 16),
+ 			low, high);
+ 
+-	if (cpu_is_omap24xx())
+-		dispc_write_reg(ftrs_reg[plane],
+-				FLD_VAL(high, 24, 16) | FLD_VAL(low, 8, 0));
+-	else
+-		dispc_write_reg(ftrs_reg[plane],
+-				FLD_VAL(high, 27, 16) | FLD_VAL(low, 11, 0));
++	dss_feat_get_reg_field(FIFOHIGHTHRESHOLD, &high1, &high2);
++	dss_feat_get_reg_field(FIFOLOWTHRESHOLD, &low1, &low2);
 +
-+/* This struct is assigned to one of the below during initialization */
-+static struct omap_dss_features omap_current_dss_features;
++	dispc_write_reg(ftrs_reg[plane],
++			FLD_VAL(high, high1, high2) |
++			FLD_VAL(low, low1, low2));
+ 
+ 	enable_clocks(0);
+ }
+@@ -1009,13 +1009,16 @@ static void _dispc_set_fir(enum omap_plane plane, int hinc, int vinc)
+ 	u32 val;
+ 	const struct dispc_reg fir_reg[] = { DISPC_VID_FIR(0),
+ 				      DISPC_VID_FIR(1) };
++	u8 hinc1, hinc2, vinc1, vinc2;
+ 
+ 	BUG_ON(plane == OMAP_DSS_GFX);
+ 
+-	if (cpu_is_omap24xx())
+-		val = FLD_VAL(vinc, 27, 16) | FLD_VAL(hinc, 11, 0);
+-	else
+-		val = FLD_VAL(vinc, 28, 16) | FLD_VAL(hinc, 12, 0);
++	dss_feat_get_reg_field(FIRHINC, &hinc1, &hinc2);
++	dss_feat_get_reg_field(FIRVINC, &vinc1, &vinc2);
 +
-+/* OMAP2 DSS Features */
-+static struct omap_dss_features omap2_dss_features = {
-+	.reg_fields = {
-+		{FIRHINC, 11, 0},
-+		{FIRVINC, 27, 16},
-+		{FIFOLOWTHRESHOLD, 8, 0},
-+		{FIFOHIGHTHRESHOLD, 24, 16},
-+		{FIFOSIZE, 8, 0},
-+	},
++	val = FLD_VAL(vinc, vinc1, vinc2) |
++			FLD_VAL(hinc, hinc1, hinc2);
 +
-+	.num_mgrs = 2,
-+	.num_ovls = 3,
-+	.supported_displays = {
-+		/* OMAP_DSS_CHANNEL_LCD */
-+		OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
-+		OMAP_DISPLAY_TYPE_SDI | OMAP_DISPLAY_TYPE_DSI,
+ 	dispc_write_reg(fir_reg[plane-1], val);
+ }
+ 
+@@ -1541,6 +1544,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
+ 		case OMAP_DSS_COLOR_ARGB16:
+ 		case OMAP_DSS_COLOR_ARGB32:
+ 		case OMAP_DSS_COLOR_RGBA32:
++			if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
++				return -EINVAL;
+ 		case OMAP_DSS_COLOR_RGBX32:
+ 			if (cpu_is_omap24xx())
+ 				return -EINVAL;
+@@ -1581,9 +1586,10 @@ static int _dispc_setup_plane(enum omap_plane plane,
+ 		case OMAP_DSS_COLOR_ARGB16:
+ 		case OMAP_DSS_COLOR_ARGB32:
+ 		case OMAP_DSS_COLOR_RGBA32:
+-			if (cpu_is_omap24xx())
++			if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
+ 				return -EINVAL;
+-			if (plane == OMAP_DSS_VIDEO1)
++			if (!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
++					plane == OMAP_DSS_VIDEO1)
+ 				return -EINVAL;
+ 			break;
+ 
+@@ -1976,7 +1982,7 @@ void dispc_enable_trans_key(enum omap_channel ch, bool enable)
+ }
+ void dispc_enable_alpha_blending(enum omap_channel ch, bool enable)
+ {
+-	if (cpu_is_omap24xx())
++	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
+ 		return;
+ 
+ 	enable_clocks(1);
+@@ -1990,7 +1996,7 @@ bool dispc_alpha_blending_enabled(enum omap_channel ch)
+ {
+ 	bool enabled;
+ 
+-	if (cpu_is_omap24xx())
++	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
+ 		return false;
+ 
+ 	enable_clocks(1);
+diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+index 6a649ab..545e9b9
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -33,6 +33,7 @@
+ #include <plat/cpu.h>
+ 
+ #include "dss.h"
++#include "dss_features.h"
+ 
+ static int num_managers;
+ static struct list_head manager_list;
+@@ -448,8 +449,8 @@ struct manager_cache_data {
+ 
+ static struct {
+ 	spinlock_t lock;
+-	struct overlay_cache_data overlay_cache[3];
+-	struct manager_cache_data manager_cache[2];
++	struct overlay_cache_data overlay_cache[MAX_DSS_OVERLAYS];
++	struct manager_cache_data manager_cache[MAX_DSS_MANAGERS];
+ 
+ 	bool irq_enabled;
+ } dss_cache;
+@@ -882,12 +883,12 @@ static int configure_dispc(void)
+ {
+ 	struct overlay_cache_data *oc;
+ 	struct manager_cache_data *mc;
+-	const int num_ovls = ARRAY_SIZE(dss_cache.overlay_cache);
+-	const int num_mgrs = ARRAY_SIZE(dss_cache.manager_cache);
++	const int num_ovls = dss_feat_get_num_ovls();
++	const int num_mgrs = dss_feat_get_num_mgrs();
+ 	int i;
+ 	int r;
+-	bool mgr_busy[2];
+-	bool mgr_go[2];
++	bool mgr_busy[MAX_DSS_MANAGERS];
++	bool mgr_go[MAX_DSS_MANAGERS];
+ 	bool busy;
+ 
+ 	r = 0;
+@@ -989,7 +990,7 @@ void dss_setup_partial_planes(struct omap_dss_device *dssdev,
+ {
+ 	struct overlay_cache_data *oc;
+ 	struct manager_cache_data *mc;
+-	const int num_ovls = ARRAY_SIZE(dss_cache.overlay_cache);
++	const int num_ovls = dss_feat_get_num_ovls();
+ 	struct omap_overlay_manager *mgr;
+ 	int i;
+ 	u16 x, y, w, h;
+@@ -1121,8 +1122,8 @@ void dss_start_update(struct omap_dss_device *dssdev)
+ {
+ 	struct manager_cache_data *mc;
+ 	struct overlay_cache_data *oc;
+-	const int num_ovls = ARRAY_SIZE(dss_cache.overlay_cache);
+-	const int num_mgrs = ARRAY_SIZE(dss_cache.manager_cache);
++	const int num_ovls = dss_feat_get_num_ovls();
++	const int num_mgrs = dss_feat_get_num_mgrs();
+ 	struct omap_overlay_manager *mgr;
+ 	int i;
+ 
+@@ -1151,10 +1152,10 @@ static void dss_apply_irq_handler(void *data, u32 mask)
+ {
+ 	struct manager_cache_data *mc;
+ 	struct overlay_cache_data *oc;
+-	const int num_ovls = ARRAY_SIZE(dss_cache.overlay_cache);
+-	const int num_mgrs = ARRAY_SIZE(dss_cache.manager_cache);
++	const int num_ovls = dss_feat_get_num_ovls();
++	const int num_mgrs = dss_feat_get_num_mgrs();
+ 	int i, r;
+-	bool mgr_busy[2];
++	bool mgr_busy[MAX_DSS_MANAGERS];
+ 
+ 	mgr_busy[0] = dispc_go_busy(0);
+ 	mgr_busy[1] = dispc_go_busy(1);
+@@ -1461,7 +1462,7 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ 
+ 	num_managers = 0;
+ 
+-	for (i = 0; i < 2; ++i) {
++	for (i = 0; i < dss_feat_get_num_mgrs(); ++i) {
+ 		struct omap_overlay_manager *mgr;
+ 		mgr = kzalloc(sizeof(*mgr), GFP_KERNEL);
+ 
+@@ -1471,14 +1472,10 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ 		case 0:
+ 			mgr->name = "lcd";
+ 			mgr->id = OMAP_DSS_CHANNEL_LCD;
+-			mgr->supported_displays =
+-				OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
+-				OMAP_DISPLAY_TYPE_SDI | OMAP_DISPLAY_TYPE_DSI;
+ 			break;
+ 		case 1:
+ 			mgr->name = "tv";
+ 			mgr->id = OMAP_DSS_CHANNEL_DIGIT;
+-			mgr->supported_displays = OMAP_DISPLAY_TYPE_VENC;
+ 			break;
+ 		}
+ 
+@@ -1494,6 +1491,8 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ 		mgr->disable = &dss_mgr_disable;
+ 
+ 		mgr->caps = OMAP_DSS_OVL_MGR_CAP_DISPC;
++		mgr->supported_displays =
++			dss_feat_get_supported_displays(mgr->id);
+ 
+ 		dss_overlay_setup_dispc_manager(mgr);
+ 
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index 244dca8..75642c2
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -35,6 +35,7 @@
+ #include <plat/cpu.h>
+ 
+ #include "dss.h"
++#include "dss_features.h"
+ 
+ static int num_overlays;
+ static struct list_head overlay_list;
+@@ -237,7 +238,8 @@ static ssize_t overlay_global_alpha_store(struct omap_overlay *ovl,
+ 	/* Video1 plane does not support global alpha
+ 	 * to always make it 255 completely opaque
+ 	 */
+-	if (ovl->id == OMAP_DSS_VIDEO1)
++	if (!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
++			ovl->id == OMAP_DSS_VIDEO1)
+ 		info.global_alpha = 255;
+ 	else
+ 		info.global_alpha = simple_strtoul(buf, NULL, 10);
+@@ -510,11 +512,11 @@ static void omap_dss_add_overlay(struct omap_overlay *overlay)
+ 	list_add_tail(&overlay->list, &overlay_list);
+ }
+ 
+-static struct omap_overlay *dispc_overlays[3];
++static struct omap_overlay *dispc_overlays[MAX_DSS_OVERLAYS];
+ 
+ void dss_overlay_setup_dispc_manager(struct omap_overlay_manager *mgr)
+ {
+-	mgr->num_overlays = 3;
++	mgr->num_overlays = dss_feat_get_num_ovls();
+ 	mgr->overlays = dispc_overlays;
+ }
+ 
+@@ -535,7 +537,7 @@ void dss_init_overlays(struct platform_device *pdev)
+ 
+ 	num_overlays = 0;
+ 
+-	for (i = 0; i < 3; ++i) {
++	for (i = 0; i < dss_feat_get_num_ovls(); ++i) {
+ 		struct omap_overlay *ovl;
+ 		ovl = kzalloc(sizeof(*ovl), GFP_KERNEL);
+ 
+@@ -545,18 +547,12 @@ void dss_init_overlays(struct platform_device *pdev)
+ 		case 0:
+ 			ovl->name = "gfx";
+ 			ovl->id = OMAP_DSS_GFX;
+-			ovl->supported_modes = cpu_is_omap34xx() ?
+-				OMAP_DSS_COLOR_GFX_OMAP3 :
+-				OMAP_DSS_COLOR_GFX_OMAP2;
+ 			ovl->caps = OMAP_DSS_OVL_CAP_DISPC;
+ 			ovl->info.global_alpha = 255;
+ 			break;
+ 		case 1:
+ 			ovl->name = "vid1";
+ 			ovl->id = OMAP_DSS_VIDEO1;
+-			ovl->supported_modes = cpu_is_omap34xx() ?
+-				OMAP_DSS_COLOR_VID1_OMAP3 :
+-				OMAP_DSS_COLOR_VID_OMAP2;
+ 			ovl->caps = OMAP_DSS_OVL_CAP_SCALE |
+ 				OMAP_DSS_OVL_CAP_DISPC;
+ 			ovl->info.global_alpha = 255;
+@@ -564,9 +560,6 @@ void dss_init_overlays(struct platform_device *pdev)
+ 		case 2:
+ 			ovl->name = "vid2";
+ 			ovl->id = OMAP_DSS_VIDEO2;
+-			ovl->supported_modes = cpu_is_omap34xx() ?
+-				OMAP_DSS_COLOR_VID2_OMAP3 :
+-				OMAP_DSS_COLOR_VID_OMAP2;
+ 			ovl->caps = OMAP_DSS_OVL_CAP_SCALE |
+ 				OMAP_DSS_OVL_CAP_DISPC;
+ 			ovl->info.global_alpha = 255;
+@@ -579,6 +572,9 @@ void dss_init_overlays(struct platform_device *pdev)
+ 		ovl->get_overlay_info = &dss_ovl_get_overlay_info;
+ 		ovl->wait_for_go = &dss_ovl_wait_for_go;
+ 
++		ovl->supported_modes =
++			dss_feat_get_supported_color_modes(ovl->id);
 +
-+		/* OMAP_DSS_CHANNEL_DIGIT */
-+		OMAP_DISPLAY_TYPE_VENC,
-+	},
-+	.supported_color_modes = {
-+		/* OMAP_DSS_GFX */
-+		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
-+		OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
-+		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
-+		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P,
-+
-+		/* OMAP_DSS_VIDEO1 */
-+		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
-+		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
-+		OMAP_DSS_COLOR_UYVY,
-+
-+		/* OMAP_DSS_VIDEO2 */
-+		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
-+		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
-+		OMAP_DSS_COLOR_UYVY,
-+	},
-+};
-+
-+/* OMAP3 DSS Features */
-+static struct omap_dss_features omap3_dss_features = {
-+	.reg_fields = {
-+		{FIRHINC, 12, 0},
-+		{FIRVINC, 28, 16},
-+		{FIFOLOWTHRESHOLD, 11, 0},
-+		{FIFOHIGHTHRESHOLD, 27, 16},
-+		{FIFOSIZE, 10, 0},
-+	},
-+	.has_feature	= FEAT_GLOBAL_ALPHA,
-+
-+	.num_mgrs = 2,
-+	.num_ovls = 3,
-+	.supported_displays = {
-+		/* OMAP_DSS_CHANNEL_LCD */
-+		OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
-+		OMAP_DISPLAY_TYPE_SDI | OMAP_DISPLAY_TYPE_DSI,
-+
-+		/* OMAP_DSS_CHANNEL_DIGIT */
-+		OMAP_DISPLAY_TYPE_VENC,
-+	},
-+	.supported_color_modes = {
-+		/* OMAP_DSS_GFX */
-+		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
-+		OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
-+		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
-+		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
-+		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_ARGB32 |
-+		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
-+
-+		/* OMAP_DSS_VIDEO1 */
-+		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P |
-+		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
-+		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY,
-+
-+		/* OMAP_DSS_VIDEO2 */
-+		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
-+		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
-+		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
-+		OMAP_DSS_COLOR_UYVY | OMAP_DSS_COLOR_ARGB32 |
-+		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
-+	},
-+};
-+
-+/* Functions returning values related to a DSS feature */
-+int dss_feat_get_num_mgrs(void)
-+{
-+	return omap_current_dss_features.num_mgrs;
-+}
-+
-+int dss_feat_get_num_ovls(void)
-+{
-+	return omap_current_dss_features.num_ovls;
-+}
-+
-+enum omap_display_type dss_feat_get_supported_displays(int id)
-+{
-+	return omap_current_dss_features.supported_displays[id];
-+}
-+
-+enum omap_color_mode dss_feat_get_supported_color_modes(int id)
-+{
-+	return omap_current_dss_features.supported_color_modes[id];
-+}
-+
-+/* DSS has_feature check */
-+bool dss_has_feature(enum dss_feat_id id)
-+{
-+	return omap_current_dss_features.has_feature & id;
-+}
-+
-+void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end)
-+{
-+	*start = omap_current_dss_features.reg_fields[id].start;
-+	*end = omap_current_dss_features.reg_fields[id].end;
-+}
-+
-+void dss_features_init(void)
-+{
-+	if (cpu_is_omap24xx())
-+		omap_current_dss_features = omap2_dss_features;
-+	else
-+		omap_current_dss_features = omap3_dss_features;
-+}
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-new file mode 100644
-index 0000000..f1a7e17
---- /dev/null
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -0,0 +1,51 @@
-+/*
-+ * linux/drivers/video/omap2/dss/dss_features.h
-+ *
-+ * Copyright (C) 2010 Texas Instruments
-+ * Author: Archit Taneja <archit@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __OMAP2_DSS_FEATURES_H
-+#define __OMAP2_DSS_FEATURES_H
-+
-+#define MAX_DSS_MANAGERS	2
-+#define MAX_DSS_OVERLAYS	3
-+#define MAX_DSS_REG_FIELDS	10
-+
-+/* DSS has feature id */
-+enum dss_feat_id {
-+	FEAT_GLOBAL_ALPHA	= 1 << 0,
-+	FEAT_GLOBAL_ALPHA_VID1	= 1 << 1,
-+};
-+
-+/* DSS register field id */
-+enum dss_feat_reg_field {
-+	FIRHINC,
-+	FIRVINC,
-+	FIFOHIGHTHRESHOLD,
-+	FIFOLOWTHRESHOLD,
-+	FIFOSIZE,
-+};
-+
-+/* DSS Feature Functions */
-+int dss_feat_get_num_mgrs(void);
-+int dss_feat_get_num_ovls(void);
-+enum omap_display_type dss_feat_get_supported_displays(int id);
-+enum omap_color_mode dss_feat_get_supported_color_modes(int id);
-+
-+bool dss_has_feature(enum dss_feat_id id);
-+void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end);
-+void dss_features_init(void);
-+#endif
+ 		omap_dss_add_overlay(ovl);
+ 
+ 		r = kobject_init_and_add(&ovl->kobj, &overlay_ktype,
+@@ -651,7 +647,7 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
+ 	}
+ 
+ 	if (mgr) {
+-		for (i = 0; i < 3; i++) {
++		for (i = 0; i < dss_feat_get_num_ovls(); i++) {
+ 			struct omap_overlay *ovl;
+ 			ovl = omap_dss_get_overlay(i);
+ 			if (!ovl->manager || force) {
 -- 
 1.7.0.4
 
