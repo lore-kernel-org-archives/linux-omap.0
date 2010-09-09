@@ -1,57 +1,42 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: Patch to fix swapping of front and back porches when reading
- from modedb.c
-Date: Thu, 09 Sep 2010 11:28:11 +0300
-Message-ID: <1284020891.13006.12.camel@tubuntu.research.nokia.com>
-References: <4C87920F.9050005@gmail.com>
-	 <AANLkTikkrkVMv0gwx6f8TRGEV8A8yCS1QRg1p7izfadF@mail.gmail.com>
+Subject: Re: [PATCH 1/5] ARM: omap/fb: move omap_init_fb to .init.text
+Date: Thu, 09 Sep 2010 11:40:00 +0300
+Message-ID: <1284021600.13006.16.camel@tubuntu.research.nokia.com>
+References: <1283408230-22652-1-git-send-email-u.kleine-koenig@pengutronix.de>
+	 <1283414622-2663-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:59356 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497Ab0III2O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Sep 2010 04:28:14 -0400
-In-Reply-To: <AANLkTikkrkVMv0gwx6f8TRGEV8A8yCS1QRg1p7izfadF@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:25792 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752394Ab0IIIlH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Sep 2010 04:41:07 -0400
+In-Reply-To: <1283414622-2663-1-git-send-email-u.kleine-koenig@pengutronix.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Russ Dill <russ.dill@gmail.com>, Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Uwe =?ISO-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Wed, 2010-09-08 at 15:38 +0200, ext Russ Dill wrote:
-> On Wed, Sep 8, 2010 at 6:39 AM, Tasslehoff Kjappfot <tasskjapp@gmail.com> wrote:
-> >
-> >
-> > Hi list :-)
-> >
-> > I had trouble getting a standard 800x600@60Hz VGA signal to display
-> > correctly on my monitors. Measuring the output showed that the front and
-> > back porches were swapped both for hsync and vsync. After reading the source
-> > I think I found the error in drivers/video/omap2/omapfb/omapfb-main.c. Patch
-> > attached.
-> >
-> > http://www.xfree86.org/3.3.6/fbdev6.html shows the way it should be, but
-> > todays code sets:
-> >
-> > hfp = left margin
-> > hbp = right margin
-> > vfp = upper margin
-> > vbp = lower margin
-> >
-> > I tested a patched kernel with 800x600@60Hz on two different monitors and a
-> > vga grabber, and it solved my issues.
-> 
-> This looks good. Before this came up, I also thought that front porch
-> meant left margin, and back porch meant margin, but margins are named
-> in relation to pixel data, and porches are named in relation to sync
-> pulses.
+Hi,
 
-Ah, that's new to me too =). After a few minutes of googling, it's quite
-clear that the patch is correct.
+On Thu, 2010-09-02 at 10:03 +0200, ext Uwe Kleine-K=C3=B6nig wrote:
+> omap_init_fb() is only called as arch_initcall and so can live in
+> .init.text.
+>=20
+> Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
 
-Thanks! I improved the patch description a bit, and added it to my tree.
+I picked patches 1, 2 and 3 from this patch set to my tree. They look
+fine, thanks!
+
+Patch 4 should probably go through Tony, and 5 was marked
+work-in-progress.
 
  Tomi
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
