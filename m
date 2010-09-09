@@ -1,44 +1,112 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 2/7] omap4: Temporary fix silicon version detection
-Date: Thu, 9 Sep 2010 10:55:38 -0500
-Message-ID: <4C89037A.6090706@ti.com>
-References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com> <1284031395-25988-2-git-send-email-santosh.shilimkar@ti.com> <1284031395-25988-3-git-send-email-santosh.shilimkar@ti.com> <20100909114255.GK21060@legolas.emea.dhcp.ti.com> <4C88C940.6070000@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02CD0D3A37@dbde02.ent.ti.com> <20100909120746.GB17000@legolas.emea.dhcp.ti.com> <4C88D75C.4020209@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 0/7] omap4: Fixes, hacks for es2.0
+Date: Thu, 9 Sep 2010 21:30:21 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD17EE0A@dbde02.ent.ti.com>
+References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
+	<87fwxjx7qj.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EDFA@dbde02.ent.ti.com>
+ <87y6bavrn3.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42236 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41901 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752101Ab0IIPzn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Sep 2010 11:55:43 -0400
-In-Reply-To: <4C88D75C.4020209@ti.com>
+	id S1752832Ab0IIQA1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Sep 2010 12:00:27 -0400
+In-Reply-To: <87y6bavrn3.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Thursday, September 09, 2010 9:25 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com
+> Subject: Re: [PATCH 0/7] omap4: Fixes, hacks for es2.0
+> 
+> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+> 
+> >> -----Original Message-----
+> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> >> Sent: Thursday, September 09, 2010 8:52 PM
+> >> To: Shilimkar, Santosh
+> >> Cc: linux-omap@vger.kernel.org; tony@atomide.com
+> >> Subject: Re: [PATCH 0/7] omap4: Fixes, hacks for es2.0
+> >>
+> >> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> >>
+> >> > This series has few fixes, hacks to get omap4 es2.0 working
+> >> > on mainline. The patches are generated against the mainline
+> >> > 2.6.36-rc3.
+> >>
+> >> Hi Santosh, thanks for this...
+> >>
+> >> > The series is boot tested tested on 4430 SDP, Blaze with
+> >> > omap_4430sdp_defconfig with file over NFS and MMC.
+> >> >
+> >> > Also boot tested omap3_defconfig with ramdisk on OMAP4 and OMAP3
+> >> > SDPs. Same observation with Panda
+> >> >
+> >> > With omap3_defconfig, MMC while mounting the rootfs over MMC, the
+> >> > boot hangs. Same observation with Panda
+> >>
+> >> On my ES2.0 Panda, rootfs on MMC is now working with this series.
+> >>
+> > I observed the same with MMC. Ramdisk boot worked for me on PANDA.
+> 
+> Note that I said "now working".  I think you read my message as "not
+> working."
+> 
+Yes I read it otherway ... Second time today :)
 
-On 9/9/2010 7:47 AM, Cousson, Benoit wrote:
-> On 9/9/2010 2:07 PM, Balbi, Felipe wrote:
->> Hi Santosh,
->>
->> On Thu, Sep 09, 2010 at 07:02:46AM -0500, Shilimkar, Santosh wrote:
->>> Felipe is suggesting not to add this support where as you want to
->>> have this support.
->>>
->>> Sorry if I haven't understood the comment. Care to clarify
->>
->> no, I suggested not to revert :-) So, just change the comment saying why
->> you need that extra check and remove the "this patch should be reverted
->> later" part :-)
->
-> We are fully aligned. On the other hand if the number of buggy devices
-> is very limited and not available outside TI, we'd better drop that
-> patch. But I'm afraid it is not the case :-(
+> IOW, rootfs on MMC *is* working for me on my es2.0 Panda.   I applied
+> your series to current l-o master, and it works.
+> 
+Cool!!
 
-I believe that just this week we had a case of a "buggy device" turning 
-up on one of our customer's blaze boards that was upgraded to ES2.0 but 
-appeared to be ES1.0. So this patch is good to have in the mainline.
+> >> However, rootfs over NFS is not yet working, presumably because the
+> >> OMAP4 EHCI support is needed for the USB-attached smsc95xx to work
+> >> properly.
+> >>
+> > This is correct. We need to get the MMC fixed o.w panda is unusable in
+> > it's current form.
+> >
+> >>
+> >> > [    5.794616] regulator_init_complete: incomplete constraints,
+> leaving
+> >> VUSIM on
+> >> > [    5.802764] regulator_init_complete: incomplete constraints,
+> leaving
+> >> VPP on
+> >> > [    5.816131] twl_rtc twl_rtc: setting system clock to 2000-01-01
+> >> 00:53:12 UTC (9      )
+> >> > [    5.849304] mmc0: new high speed MMC card at address 0001
+> >> > [    5.856323] mmcblk0: mmc0:0001 SEM08G 7.39 GiB
+> >> > [    5.862091]  mmcblk0: unknown partition table
+> >> > [    6.325500] omap_device: mmci-omap-hs.1: new worst case deactivate
+> >> latency 0: 6
+> >>
+> >> Based on this message, this is not a mainline kernel, but one where the
+> >> omap_device conversion for MMC has been applied.
+> >>
+> > This is mainline 2.6.36-rc3....
+> > http://dev.omapzoom.org/?p=santosh/kernel-omap4-
+> base.git;a=shortlog;h=refs/heads/omap4-for-tony
+> 
+> Then I don't understand where the 'omap_device: mmci-omap-hs.1:...'
+> message is coming from in your kernel boot log.
+> 
+> It should not be present in a mainline kernel as the MMC conversion to
+> hwmod/omap_device is not in mainline, or linux-omap.
+> 
+> That's why I assumed your boot log excerpt came from an internal kernel
+> and not a mainline kernel.
+> 
+I might have mixed kernel Images ... Just too many things together :(
 
-Cheers
-Jon
+Regards,
+Santosh 
