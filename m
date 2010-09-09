@@ -1,82 +1,53 @@
-From: Michael Williamson <michael.williamson@criticallink.com>
-Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
-Date: Wed, 08 Sep 2010 20:47:38 -0400
-Message-ID: <4C882EAA.9030903@criticallink.com>
-References: <1283891142-15522-1-git-send-email-cyril@ti.com> <871v95f2xv.fsf@deeprootsystems.com> <4C86F369.6040906@criticallink.com> <4C880733.5010909@ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] USB: otg: twl4030: fix phy initialization(v1)
+Date: Thu, 9 Sep 2010 09:49:08 +0800
+Message-ID: <AANLkTimBBRC7-kg_L7FpS1E5i63NPMi08g9rrG=jtWeD@mail.gmail.com>
+References: <AANLkTinnHiCodvHrSxiMCAQXAETczRiZ+sDu2aQXSeG0@mail.gmail.com>
+	<AANLkTiksb1AudCzs8-TWdXb11T-QcPx1G_qu6eUtJ74C@mail.gmail.com>
+	<AANLkTin7eVyosgK4XhuB_yqR2ao=YJGVidHB1x2802cr@mail.gmail.com>
+	<AANLkTinrecJXH+uDxtBsskFLpBCz0VSZMtSiWGFW9YCr@mail.gmail.com>
+	<AANLkTinkhY-y6Qv6HJnGbggksdEmULgQ9DTOrNmu1tLp@mail.gmail.com>
+	<AANLkTikZK=8HCtXDR_2dSBce1E10xNfBtyXGOJqykV83@mail.gmail.com>
+	<AANLkTin8bXvPqdkYQq++wf0iCK=ZAfZ2jnqbgL=xj8yq@mail.gmail.com>
+	<AANLkTimwMiOfvCpUfeXPSF8zh3t3YsM_8nDZbuWFcKM4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C880733.5010909@ti.com>
-Sender: netdev-owner@vger.kernel.org
-To: cyril@ti.com
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39819 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755266Ab0IIBtK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Sep 2010 21:49:10 -0400
+In-Reply-To: <AANLkTimwMiOfvCpUfeXPSF8zh3t3YsM_8nDZbuWFcKM4@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: venki kaps <venkiece2005@gmail.com>
+Cc: greg@kroah.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <me@felipebalbi.com>, Anand Gadiyar <gadiyar@ti.com>
 
-Hi Cyril,
+2010/9/8 venki kaps <venkiece2005@gmail.com>:
 
-On 09/08/2010 05:59 PM, Cyril Chemparathy wrote:
-> Hi Mike,
-> 
-> [...]
->> So I just pulled this to test it out on a da850 based board
->> (mitydspl138), and I'm having some problems.  I'm hoping it's just
->> operator error.
-> 
-> Probably not, considering that this series had not been tested on da8xx
-> platforms.  Thanks for jumping in!
-> 
+> =A0To resolve the above issue, we have made "PHY power on" in battery
+> adc on function
+> =A0and "PHY power down" in battery adc off function.
 
-Jumped, pushed, you say tomato, ... ;^)
+Good news, the temperature is bad value from battery adc if otg phy is =
+power
+down. Maybe you only need to power on otg phy before reading battery ad=
+c, then
+power down otg phy after the reading if no usb calbe is connected with =
+musb
+for decreasing power consumption. (I am not familiar with battery adc, =
+just
+for your refrerence)
 
->> I have a TI TLK100PHP PHY at address 0x3.  The boot log shows:
->>
->> [snip]
->> davinci_mdio davinci_mdio.0: davinci mdio revision 1.5
->> davinci_mdio davinci_mdio.0: detected phy mask fffffff7
->> davinci_mdio.0: probed
->> davinci_mdio davinci_mdio.0: phy[3]: device 0:03, driver unknown
->> [snip]
-> 
-> So far so good.  The MDIO code seems to have done its part and latched
-> on to the correct phy.  To answer your question from below, the "driver
-> unknown" implies that the generic phy driver has been attached to the
-> detected phy.
-> 
->> and then in the init scripts, following udev population I get a 
->> "Configuring network interfaces... "
->>
->> and the boot process just hangs.
-> 
-> Not a peep from emac? Strange.
-> 
+Anyway, your issue(reading mistaken temperature) is nothing to do with
+twl_4030 otg driver and the patch, we does need to power down otg phy
+if no vbus or ID event detected.
 
-So I went in and set the debug_level to netif_msg_init() to -1 in the davinci_emac
-driver.  The only thing I get during the boot process is:
-
-net eth0: DaVinci EMAC Probe found device (regs: 01e23000, irq: 33)
-
-which is good (I also added some debug to make sure probe actually completes), but
-I don't see *anything* else.  I guess I would have expected to see something out of 
-the emac_dev_open.  So I added some more debug in there, it's hanging in the 
-phy_connect() call.  The phy_id it came up with was correct "0:03".
-
-
-[snip]
-> 
-> I spent some time today on testing this series on a da830 evm board
-> (sorry, couldn't manage to scrounge up a da850 platform).  In the
-> process, I have had to put in some fixes, particularly for the
-> phy-association piece.  You can preview these commits on my repo's
-> gitweb [1].
-> 
-
-I did apply the requeue on early end-of-queue patch.  No difference, which is not
-surprising as it's dying in the phy_connect.  I don't think I need the others, 
-as the correct phy_id is being located by the MDIO probe headed
-into the phy_connect call (pointer is valid, string is OK, etc.).  If I have time I
-can continue to poke around, but I'm really not up on this chunk of code...
-
--Mike
-
-
+--=20
+Lei Ming
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
