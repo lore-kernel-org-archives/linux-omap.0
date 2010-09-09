@@ -1,47 +1,57 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Thu, 9 Sep 2010 09:54:03 +0200
-Message-ID: <20100909075403.GA10798@elte.hu>
-References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
- <20100908065333.GG3439@elte.hu>
- <AANLkTikpwSA411XRTi7Ybj_19URnW0mEMrf6pFYNpxVF@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: Patch to fix swapping of front and back porches when reading
+ from modedb.c
+Date: Thu, 09 Sep 2010 11:28:11 +0300
+Message-ID: <1284020891.13006.12.camel@tubuntu.research.nokia.com>
+References: <4C87920F.9050005@gmail.com>
+	 <AANLkTikkrkVMv0gwx6f8TRGEV8A8yCS1QRg1p7izfadF@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.mail.elte.hu ([157.181.151.9]:47728 "EHLO mx2.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751285Ab0IIHy1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Sep 2010 03:54:27 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTikpwSA411XRTi7Ybj_19URnW0mEMrf6pFYNpxVF@mail.gmail.com>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:59356 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751497Ab0III2O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Sep 2010 04:28:14 -0400
+In-Reply-To: <AANLkTikkrkVMv0gwx6f8TRGEV8A8yCS1QRg1p7izfadF@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Thomas Renninger <trenn@suse.de>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
+To: ext Russ Dill <russ.dill@gmail.com>, Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-* Jean Pihet <jean.pihet@newoldbits.com> wrote:
-
-> On Wed, Sep 8, 2010 at 8:53 AM, Ingo Molnar <mingo@elte.hu> wrote:
+On Wed, 2010-09-08 at 15:38 +0200, ext Russ Dill wrote:
+> On Wed, Sep 8, 2010 at 6:39 AM, Tasslehoff Kjappfot <tasskjapp@gmail.com> wrote:
 > >
-> > * Jean Pihet <jean.pihet@newoldbits.com> wrote:
 > >
-> >> Hi,
-> >>
-> >> Here is a patch proposal for adding new trace events for power management.
-> >> Note: thread restarted after the initial discussions on LKML.
+> > Hi list :-)
 > >
-> > Also mind including the ACPI tracepoints we talked about? That way a lot
-> > more people could test it, etc.
->
-> I think the ACPI tracepoints can be added on top of the proposed 
-> patch. Is that ok?
+> > I had trouble getting a standard 800x600@60Hz VGA signal to display
+> > correctly on my monitors. Measuring the output showed that the front and
+> > back porches were swapped both for hsync and vsync. After reading the source
+> > I think I found the error in drivers/video/omap2/omapfb/omapfb-main.c. Patch
+> > attached.
+> >
+> > http://www.xfree86.org/3.3.6/fbdev6.html shows the way it should be, but
+> > todays code sets:
+> >
+> > hfp = left margin
+> > hbp = right margin
+> > vfp = upper margin
+> > vbp = lower margin
+> >
+> > I tested a patched kernel with 800x600@60Hz on two different monitors and a
+> > vga grabber, and it solved my issues.
+> 
+> This looks good. Before this came up, I also thought that front porch
+> meant left margin, and back porch meant margin, but margins are named
+> in relation to pixel data, and porches are named in relation to sync
+> pulses.
 
-Yeah - and the OMAP thing can be split up too if the OMAP folks prefer 
-it that way, but we still want to _see_ all the patches in this thread 
-together so that we have a critical mass of people interested in all 
-this ...
+Ah, that's new to me too =). After a few minutes of googling, it's quite
+clear that the patch is correct.
 
-Thanks,
+Thanks! I improved the patch description a bit, and added it to my tree.
 
-	Ingo
+ Tomi
+
+
