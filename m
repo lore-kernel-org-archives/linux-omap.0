@@ -1,98 +1,121 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/5] OMAP: McSPI: Implement McSPI in HWMOD way
-Date: Fri, 10 Sep 2010 15:15:35 -0700
-Message-ID: <878w392qk8.fsf@deeprootsystems.com>
-References: <1281708323-18989-1-git-send-email-charu@ti.com>
-	<AANLkTikS0tX3GA+1LXnqbZYuuWteOTq7dH13i-icKYD2@mail.gmail.com>
-	<87fwyacd9w.fsf@deeprootsystems.com>
-	<20100910192433.GJ11284@angua.secretlab.ca>
+From: Cyril Chemparathy <cyril@ti.com>
+Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
+Date: Fri, 10 Sep 2010 18:59:38 -0400
+Message-ID: <4C8AB85A.8060909@ti.com>
+References: <1283891142-15522-1-git-send-email-cyril@ti.com> <871v95f2xv.fsf@deeprootsystems.com> <4C86F369.6040906@criticallink.com> <4C880733.5010909@ti.com> <4C882EAA.9030903@criticallink.com> <4C892AC0.80409@criticallink.com> <4C893ADE.809@ti.com> <4C8950D4.9060102@criticallink.com>
+Reply-To: cyril@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:57726 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075Ab0IJWPi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Sep 2010 18:15:38 -0400
-Received: by pxi10 with SMTP id 10so1154960pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 10 Sep 2010 15:15:37 -0700 (PDT)
-In-Reply-To: <20100910192433.GJ11284@angua.secretlab.ca> (Grant Likely's
-	message of "Fri, 10 Sep 2010 13:24:33 -0600")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4C8950D4.9060102@criticallink.com>
+Sender: netdev-owner@vger.kernel.org
+To: Michael Williamson <michael.williamson@criticallink.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Charulatha V <charu@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, dbrownell@users.sourceforge.net, spi-devel-general@lists.sourceforge.net, rnayak@ti.com, p-basak2@ti.com, govindraj.raja@ti.com, David Woodhouse <dwmw2@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Jeremy Kerr <jeremy.kerr@canonical.com>
 
-Grant Likely <grant.likely@secretlab.ca> writes:
+Hi Mike,
 
-> On Thu, Aug 19, 2010 at 05:56:43PM -0700, Kevin Hilman wrote:
->> Grant Likely <grant.likely@secretlab.ca> writes:
->> 
->> > On Fri, Aug 13, 2010 at 8:05 AM, Charulatha V <charu@ti.com> wrote:
->> >> This patch series implements McSPI Module in HWMOD FW way
->> >> and use the runtime PM layer.
->> >
->> > Hi Charulatha,
->> >
->> > I'll go through and review the patches, but I'm unfamiliar with HWMOD.
->> > Is there a description of HWMOD that you can point me at?
->> 
->> Hi Grant,
->> 
->> If you want to skip my rambling, the source for omap_hwmod is in mainline:
->> 
->>    arch/arm/mach-omap2/omap_hwmod.c
->>    arch/arm/plat-omap/include/plat/omap_hwmod.h
->> 
->> omap_hwmod is short for OMAP hardware module.  It is essentially a
->> central way of describing each IP block in an OMAP SoC, and the way they
->> are connected together to make an SoC.  An omap_hwmod for a given IP
->> block contains base address, IRQs, DMA channels etc. (as would a device
->> tree node) but also includes information on any master/slave interfaces
->> to model how IP blocks are connected on the SoC and many other details.
->
-> Hi Kevin,
->
-> This seems to be a common issue for more than just OMAP SoCs, and I've
-> seen a number of approaches to solving it; both internal to the kernel
-> (AMBA bus, HWMOD, ad-hoc pdata, etc) and via external data (FDT, SFI).
-> It doesn't seem like there is a lot of cross-pollination going on
-> either.
->
-> I'm thinking about scheduling a discussion in the embedded
-> microconference at Plumbers to talk about the encoding and handling of
-> SoC and machine interconnection data.  There should be enough examples
-> now that we can agree on some common infrastructure for handling these
-> kinds of things without inventing new infrastructure from scratch for
-> each SoC family.  What do you think?
+I have merged your latest two emails and responded to both here.
 
-The discussion is certainly worthwhile, and I would love to participate.
-As with everything, the devil is in the details.  And I'm afraid that
-while at a high-level, describing one SoC or another might look similar,
-when it gets down to the details, there will be *tons* of things that
-are unique to each SoC.
+[...]
+> Your patch doesn't work with my board.  It does attempt to reset the bus on the read call, 
+> but following wait_for_user_access() calls are timing out and the _read() and _write() calls punt.  
+> I bumped up the MDIO_TIMEOUT to 100 ms, and it works.  I'm wondering if the scanning logic 
+> has to complete an entire cycle (all 32 phys) before issuing a request, and if it's a lot 
+> slower than expected.
 
-For example, if you look into the omap_hwmod code and data structures,
-you will see that most of the stuff described in there is extremly OMAP
-specific (mostly clock/power related), and only ever visible to OMAP
-specific code.
+Based on the mdio module's state machine code, the scan does not need to
+complete before a user-request is issued.  However, when the module is
+first enabled, it _must_ poll at least one phy (phy id 0) before it
+handles the user-access request.  Consequently, the first access after
+coming out of reset may be slower than subsequent accesses.
 
-The question to me is what is the end goal of having a common
-infrastructure to model SoC-unique features that are only touched by
-SoC-specific code?  And who would maintain such an infrastructure?
+One of the patches posted on my repo [1] replaces the dumb mdelay() with
+a bit more logic that calculates the worst-case access time.  This
+mechanism may work a lot better for you.  Would you mind trying it out?
 
-Personally, I would rather keep focus on infrastructure efforts that
-would actually be common across SoCs (common kernel binaries, etc.) and
-visible to drivers (PM frameworks like CPUidle, runtime PM, etc.)  All
-the gory SoC specifics should be hidden by the SoC-specific
-implementations of these frameworks, and maintained by folks who really
-understand the SoC.  So, all that that I question the need for a common
-framework to define SoC internals.
+Since the MDIO_TIMEOUT is simply a defensive measure, I have no
+objections to raising this timeout (included in the updated stack).
 
-That being said, I'm totally in favor of the direction that the FDT is
-going in, and very much support the ways it will unify much of the
-hardware description.  However, I think it has limits.  And at least for
-OMAP, I envision using the device tree to describe connections at the
-board level, but continuing to use omap_hwmod to describe the SoC
-itself.
+> I also found that the initial scanning logic would not reliably find the PHY until I bumped
+> up the delay time following the reset operation.  Sometimes it would, sometimes no.
+> 
+> Also, your while(1) loops with the continue conditions on the second wait_for_user_access() 
+> in the read and writes might need some consideration, i.e.:
+> 
+>         while (1) {
+>                 ret = wait_for_user_access(data);
+>                 if (ret == -EAGAIN)
+>                         continue;
+>                 if (ret < 0)
+>                         break;
+> 
+>                 __raw_writel(reg, &data->regs->user[0].access);
+> 
+>                 ret = wait_for_user_access(data);
+>                 if (ret == -EAGAIN)
+>                         continue;
+>                         ^^^^^^^^^ <--- this will re-issue the request.... what you want?
 
-Kevin
+Yes, the wait_for_user_access() would have reset the controller,
+throwing the current transaction out.  The intent here is to restart the
+current transaction with a newly initialized controller.
+
+>                 if (ret < 0)
+>                         break;
+> 
+>                 reg = __raw_readl(&data->regs->user[0].access);
+>                 ret = (reg & USERACCESS_ACK) ? (reg & USERACCESS_DATA) : -EIO;
+>                 break;
+>         }
+> 
+> Also, on the shutdown, I get a major kernel trace.  Here is the dump, as much 
+> as I could catch of it.... (I need a better terminal program)
+
+[...]
+> WARNING: at drivers/net/davinci_emac.c:1025 __cpdma_chan_free+0xac/0xb0()
+
+The current code spits out a huge volume of stuff as a result of a
+WARN_ON in the rx handler.  The gitweb on [1] has a patch that fixes this.
+
+[...]
+>> > The MDIO module upgrade (rev 1.4 -> 1.5) could have something to do with
+>> > this behavior.  Even so, I can't explain why this issue wasn't seen on
+>> > da8xx prior to this series.  The original code should (at least in
+>> > theory) have sporadically locked up on emac open.
+>> > 
+> I think, if I understand it correctly, that in the previous version of 
+> this code, the emac was reset *prior* to enabling, scanning, and assigning 
+> the associated phy on the MDIO bus.  The new implementation sets up and scans 
+> the MDIO bus first, then comes back around to the EMAC second... hits a reset,
+> and doesn't re-ENABLE the MDIO.
+
+AFAICS, that isn't entirely accurate.  In the previous version, the mdio
+bus was being brought up at probe time in davinci_emac_probe().  The
+soft-reset was happening later on when the device is opened, in
+emac_hw_enable().
+
+The difference, however, is that the original code forced an
+emac_mii_reset() immediately after the emac_hw_enable().  This is not
+being done with the separated mdio, and that is the problem.  In terms
+of behavior, with the current work around, the new and old versions
+should be close to identical.  More below...
+
+> Also, maybe hitting the EMAC reset while the MDIO state machine is up is *bad*, I 
+> seem to recall some text in the user's guide about waiting for the state
+> machine to stop before disabling it.  I wonder if that also applies to reset?
+
+You are correct.  EMAC soft-reset stops the MDIO mid-transaction, quite
+unlike disabling the module via the control register.  Therefore, there
+is a risk that a badly designed phy could be left hanging in an
+arbitrary state.  However, all earlier versions of the emac code have
+been exposed to this very same vulnerability (i.e. arbitrary emac
+soft-reset regardless of mdio state) all along.
+
+Regards
+Cyril.
+
+
+[1]
+http://arago-project.org/git/people/?p=cyril/linux-tnetv107x.git;a=shortlog;h=refs/heads/emac-cpdma-mdio-fixes
