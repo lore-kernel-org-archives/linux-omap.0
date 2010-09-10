@@ -1,48 +1,78 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: Suspend to RAM broken on BeagleBoard ?
-Date: Fri, 10 Sep 2010 20:47:13 +0200
-Message-ID: <20100910204713.61e002bc@surf>
-References: <20100910174814.6e5d439e@surf>
-	<20100910170053.GB2230@legolas.emea.dhcp.ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 0/5] OMAP: McSPI: Implement McSPI in HWMOD way
+Date: Fri, 10 Sep 2010 13:24:33 -0600
+Message-ID: <20100910192433.GJ11284@angua.secretlab.ca>
+References: <1281708323-18989-1-git-send-email-charu@ti.com>
+ <AANLkTikS0tX3GA+1LXnqbZYuuWteOTq7dH13i-icKYD2@mail.gmail.com>
+ <87fwyacd9w.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:44183 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725Ab0IJSrV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Sep 2010 14:47:21 -0400
-In-Reply-To: <20100910170053.GB2230@legolas.emea.dhcp.ti.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:43733 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754386Ab0IJTYi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Sep 2010 15:24:38 -0400
+Received: by pvg2 with SMTP id 2so1096787pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 10 Sep 2010 12:24:37 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <87fwyacd9w.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Charulatha V <charu@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, dbrownell@users.sourceforge.net, spi-devel-general@lists.sourceforge.net, rnayak@ti.com, p-basak2@ti.com, govindraj.raja@ti.com, David Woodhouse <dwmw2@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Jeremy Kerr <jeremy.kerr@canonical.com>
 
-On Fri, 10 Sep 2010 20:00:53 +0300
-Felipe Balbi <balbi@ti.com> wrote:
-
-> On Fri, Sep 10, 2010 at 10:48:14AM -0500, Thomas Petazzoni wrote:
-> >I also have a problem with USB support, both on linux-omap and
-> >Kevin's pm-core branch. My USB Ethernet adapter, supported by the
-> >asix driver, isn't detected anymore. With a pm git tree of a couple
-> >of weeks ago, it was working. This is again with just a plain
-> >omap3_defconfig.
+On Thu, Aug 19, 2010 at 05:56:43PM -0700, Kevin Hilman wrote:
+> Grant Likely <grant.likely@secretlab.ca> writes:
 > 
-> is it attached to EHCI/OHCI or musb port ?
+> > On Fri, Aug 13, 2010 at 8:05 AM, Charulatha V <charu@ti.com> wrote:
+> >> This patch series implements McSPI Module in HWMOD FW way
+> >> and use the runtime PM layer.
+> >
+> > Hi Charulatha,
+> >
+> > I'll go through and review the patches, but I'm unfamiliar with HWMOD.
+> > Is there a description of HWMOD that you can point me at?
+> 
+> Hi Grant,
+> 
+> If you want to skip my rambling, the source for omap_hwmod is in mainline:
+> 
+>    arch/arm/mach-omap2/omap_hwmod.c
+>    arch/arm/plat-omap/include/plat/omap_hwmod.h
+> 
+> omap_hwmod is short for OMAP hardware module.  It is essentially a
+> central way of describing each IP block in an OMAP SoC, and the way they
+> are connected together to make an SoC.  An omap_hwmod for a given IP
+> block contains base address, IRQs, DMA channels etc. (as would a device
+> tree node) but also includes information on any master/slave interfaces
+> to model how IP blocks are connected on the SoC and many other details.
 
-It's a normal USB Ethernet adapter that is attached to the EHCI/OCHI
-port of the BeagleBoard. I have a revision C3.
+Hi Kevin,
 
-With older Git versions from the PM tree, it used to work, even if it
-wasn't 100% stable. But at least it was detected, and I was able to nfs
-mount the root filesystem. I don't know if I can easily bisect this, as
-I think the PM branches are constantly rebased.
+This seems to be a common issue for more than just OMAP SoCs, and I've
+seen a number of approaches to solving it; both internal to the kernel
+(AMBA bus, HWMOD, ad-hoc pdata, etc) and via external data (FDT, SFI).
+It doesn't seem like there is a lot of cross-pollination going on
+either.
 
-Thanks,
+I'm thinking about scheduling a discussion in the embedded
+microconference at Plumbers to talk about the encoding and handling of
+SoC and machine interconnection data.  There should be enough examples
+now that we can agree on some common infrastructure for handling these
+kinds of things without inventing new infrastructure from scratch for
+each SoC family.  What do you think?
 
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+[...]
+> You see all these changes happening in a single patch because the are
+> quite dependent on one another.  This driver seems to have needed pretty
+> significant cleanup as well, so I agree that this last patch should be
+> broken up into parts.  
+> 
+> I think it could be broken up into at least two parts:
+> cleanup/restructure work to handle more data coming via platform_data,
+> followed by the conversion to runtime PM.
+
+Yes, I like to see refactoring work separated from functional changes
+as much as possible.
+
+g.
