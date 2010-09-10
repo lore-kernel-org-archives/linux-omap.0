@@ -1,176 +1,97 @@
-From: Caglar Akyuz <caglarakyuz@gmail.com>
-Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
-Date: Fri, 10 Sep 2010 18:23:52 +0300
-Message-ID: <201009101823.52755.caglarakyuz@gmail.com>
-References: <1283891142-15522-1-git-send-email-cyril@ti.com> <4C893ADE.809@ti.com> <4C8950D4.9060102@criticallink.com>
+From: Ricardo Salveti <rsalveti@rsalveti.net>
+Subject: Re: [PATCH 0/7] omap4: Fixes, hacks for es2.0
+Date: Fri, 10 Sep 2010 12:29:31 -0300
+Message-ID: <AANLkTim6yki=wj73K1+Tv=SZ877YLXBrXrBCLnAn6P7o@mail.gmail.com>
+References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
+	<87fwxjx7qj.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EDFA@dbde02.ent.ti.com>
+	<87y6bavrn3.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EE0A@dbde02.ent.ti.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F026BF@dbde02.ent.ti.com>
+	<AANLkTimJ+tHk7ZPmPkuwHi2svU0Qw_SqGHazn4W=_ApC@mail.gmail.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F0273D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C8950D4.9060102@criticallink.com>
-Sender: netdev-owner@vger.kernel.org
-To: Michael Williamson <michael.williamson@criticallink.com>
-Cc: cyril@ti.com, Kevin Hilman <khilman@deeprootsystems.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:33744 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751282Ab0IJP3d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Sep 2010 11:29:33 -0400
+Received: by eyb6 with SMTP id 6so1766341eyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 10 Sep 2010 08:29:32 -0700 (PDT)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B0315F0273D@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On Friday 10 September 2010 12:25:40 am Michael Williamson wrote:
-> Hi Cyril,
-> 
-> On 09/09/2010 03:51 PM, Cyril Chemparathy wrote:
-> > Hi Mike,
-> >
-> > [...]
-> >
-> >> The hang is in wait_for_user_access() in the davinci_mdio_read() call. 
-> >> Looks like the state machine got put back into IDLE somewhere between
-> >> the MDIO probe and the EMAC probe. Seems like there should be some sort
-> >> of time-out and error message in the wait_for_user_access() method....
-> >> (maybe even a check for IDLE??)
-> >>
-> >> If I add a patch to check the state machine for IDLE and then re-enable
-> >> it in the davinci_mdio_read() call, it is able to press on and come up. 
-> >> I don't see any calls to the davinci_mdio_suspend() call, so I am
-> >> wondering if the EMAC probe routine, particularly the application of the
-> >> SOFTRESET, is causing the MDIO to drop back to IDLE / disabled.
-> >>
-> >> I can post the patch if you like, but it is a bit of a hack...
-> >
-> > An EMAC soft-reset clobbering the MDIO controller state is a
-> > possibility.  I will poll TI designers to see if this could be the case.
-> >
-> > In any case, a couple of unanswered questions remain:
-> >
-> >   1. Why don't other davinci devices display similar behavior?
-> >
-> >   2. If the answer to #1 above is that the timing window is pretty slim
-> >      (i.e., only if an MDIO read/write is in progress during EMAC
-> >      soft-reset), why do we hit this situation consistently on
-> >      mityomap?
-> 
-> Has it been confirmed that this only happens on mityomap?  Has anyone had
->  success using a da850 evm or other da850 platform?  The configuration for
+On Fri, Sep 10, 2010 at 12:09 PM, Ghorai, Sukumar <s-ghorai@ti.com> wro=
+te:
+>> -----Original Message-----
+>> On Fri, Sep 10, 2010 at 7:30 AM, Ghorai, Sukumar <s-ghorai@ti.com> w=
+rote:
+>> >> -----Original Message-----
+>> > [..snip..]
+>> >> > >> > The series is boot tested tested on 4430 SDP, Blaze with
+>> >> > >> > omap_4430sdp_defconfig with file over NFS and MMC.
+>> >> > >> >
+>> >> > >> > Also boot tested omap3_defconfig with ramdisk on OMAP4 and=
+ OMAP3
+>> >> > >> > SDPs. Same observation with Panda
+>> >> > >> >
+>> >> > >> > With omap3_defconfig, MMC while mounting the rootfs over M=
+MC,
+>> the
+>> >> > >> > boot hangs. Same observation with Panda
+>> >> > >>
+>> >> > >> On my ES2.0 Panda, rootfs on MMC is now working with this se=
+ries.
+>> >> > >>
+>> >> > > I observed the same with MMC. Ramdisk boot worked for me on P=
+ANDA.
+>> >> >
+>> >> > Note that I said "now working". =C2=A0I think you read my messa=
+ge as "not
+>> >> > working."
+>> >> >
+>> >> Yes I read it otherway ... Second time today :)
+>> >>
+>> >> > IOW, rootfs on MMC *is* working for me on my es2.0 Panda. =C2=A0=
+ I applied
+>> >> > your series to current l-o master, and it works.
+>> >> >
+>> >> Cool!!
+>> >
+>> > [Ghorai] I have tested MMC/SD boot using omap3_defconfig on ZOOM3,=
+ 4430
+>> ES2.0 SDP, Blaze and Panda and all booting fine.
+>> >
+>> > And omap_4430sdp_defconfig also ok omap4.
+>>
+>> Which Panda version are you using during your tests? I tried
+>> omap_4430sdp_defconfig using omap4-for-tony branch at my ES2.0 and I=
+'m
+>> unable to detect the MMC.
+>>
+>> Do I need any other patch to make the MMC work with Panda?
+> [Ghorai] I have tested based on following tree/branch and using ES2.0=
+ PANDA only. Can you share bootlog enabling mmc/sd debug message?
+> http://dev.omapzoom.org/?p=3Dsantosh/kernel-omap4-base.git;a=3Dshortl=
+og;h=3Drefs/heads/omap4-for-tony
 
-Same problem exists on another DA850 board, Hawkboard.(Sorry no support in 
-mainline yet)
+My boot log:
+http://paste.ubuntu.com/491645/
 
->  the mityomap, wrt to the EMAC/MII/MDIO, is pretty much identical to the
->  da850 evm using the MII interface. The only difference I am aware of is
->  the assigned address to the PHY chip.  The reference clocks and rates are
->  identical, AFAIK, to the evm.
-> 
-> > I have put together a quick patch (tested dm365).  See attached.
-> 
-> Your patch doesn't work with my board.  It does attempt to reset the bus on
+Using x-loader from
+http://gitorious.org/pandaboard/x-loader/commits/omap4_panda_L24.9 and
+upstream u-boot.
 
-This patch fixes the problem here. I'm using kernel IP auto configuration and 
-mounting fs over NFS. My system boots and I can login to my board.
-
-Regards,
-Caglar
-
->  the read call, but following wait_for_user_access() calls are timing out
->  and the _read() and _write() calls punt. I bumped up the MDIO_TIMEOUT to
->  100 ms, and it works.  I'm wondering if the scanning logic has to complete
->  an entire cycle (all 32 phys) before issuing a request, and if it's a lot
->  slower than expected.
-> 
-> I also found that the initial scanning logic would not reliably find the
->  PHY until I bumped up the delay time following the reset operation. 
->  Sometimes it would, sometimes no.
-> 
-> Also, your while(1) loops with the continue conditions on the second
->  wait_for_user_access() in the read and writes might need some
->  consideration, i.e.:
-> 
->         while (1) {
->                 ret = wait_for_user_access(data);
->                 if (ret == -EAGAIN)
->                         continue;
->                 if (ret < 0)
->                         break;
-> 
->                 __raw_writel(reg, &data->regs->user[0].access);
-> 
->                 ret = wait_for_user_access(data);
->                 if (ret == -EAGAIN)
->                         continue;
->                         ^^^^^^^^^ <--- this will re-issue the request....
->  what you want? if (ret < 0)
->                         break;
-> 
->                 reg = __raw_readl(&data->regs->user[0].access);
->                 ret = (reg & USERACCESS_ACK) ? (reg & USERACCESS_DATA) :
->  -EIO; break;
->         }
-> 
-> Also, on the shutdown, I get a major kernel trace.  Here is the dump, as
->  much as I could catch of it.... (I need a better terminal program)
-> 
-> Deconfiguring network interfaces... ------------[ cut here ]------------
-> WARNING: at kernel/softirq.c:143 local_bh_enable+0x40/0xb4()
-> Modules linked in:
-> [<c002e684>] (unwind_backtrace+0x0/0xec) from [<c003e284>]
->  (warn_slowpath_common+0x4c/0x64) [<c003e284>]
->  (warn_slowpath_common+0x4c/0x64) from [<c003e2b8>]
->  (warn_slowpath_null+0x1c/0x24) [<c003e2b8>] (warn_slowpath_null+0x1c/0x24)
->  from [<c0043e80>] (local_bh_enable+0x40/0xb4) [<c0043e80>]
->  (local_bh_enable+0x40/0xb4) from [<c01f3760>]
->  (__netif_receive_skb+0xf8/0x3d0) [<c01f3760>]
->  (__netif_receive_skb+0xf8/0x3d0) from [<c01d344c>]
->  (emac_rx_handler+0x40/0xcc) [<c01d344c>] (emac_rx_handler+0x40/0xcc) from
->  [<c01d3fe8>] (__cpdma_chan_free+0xac/0xb0) [<c01d3fe8>]
->  (__cpdma_chan_free+0xac/0xb0) from [<c01d40d0>]
->  (__cpdma_chan_process+0xe4/0x114) [<c01d40d0>]
->  (__cpdma_chan_process+0xe4/0x114) from [<c01d4238>]
->  (cpdma_chan_stop+0xf0/0x1c8) [<c01d4238>] (cpdma_chan_stop+0xf0/0x1c8)
->  from [<c01d4390>] (cpdma_ctlr_stop+0x80/0xe4) [<c01d4390>]
->  (cpdma_ctlr_stop+0x80/0xe4) from [<c01d2c00>] (emac_dev_stop+0xb0/0x13c)
->  [<c01d2c00>] (emac_dev_stop+0xb0/0x13c) from [<c01f5b40>]
->  (__dev_close+0x74/0x98) [<c01f5b40>] (__dev_close+0x74/0x98) from
->  [<c01f3168>] (__dev_change_flags+0xac/0x13c) [<c01f3168>]
->  (__dev_change_flags+0xac/0x13c) from [<c01f5994>]
->  (dev_change_flags+0x10/0x44) [<c01f5994>] (dev_change_flags+0x10/0x44)
->  from [<c023cf60>] (devinet_ioctl+0x2dc/0x6f4) [<c023cf60>]
->  (devinet_ioctl+0x2dc/0x6f4) from [<c01e484c>] (sock_ioctl+0x1fc/0x258)
->  [<c01e484c>] (sock_ioctl+0x1fc/0x258) from [<c00aa0f0>]
->  (do_vfs_ioctl+0x550/0x5c0) [<c00aa0f0>] (do_vfs_ioctl+0x550/0x5c0) from
->  [<c00aa198>] (sys_ioctl+0x38/0x5c) [<c00aa198>] (sys_ioctl+0x38/0x5c) from
->  [<c0029f00>] (ret_fast_syscall+0x0/0x2c) ---[ end trace 0e686330480db12e
->  ]---
-> ------------[ cut here ]------------
-> WARNING: at drivers/net/davinci_emac.c:1025 __cpdma_chan_free+0xac/0xb0()
-> Modules linked in:
-> [<c002e684>] (unwind_backtrace+0x0/0xec) from [<c003e284>]
->  (warn_slowpath_common+0x4c/0x64) [<c003e284>]
->  (warn_slowpath_common+0x4c/0x64) from [<c003e2b8>]
->  (warn_slowpath_null+0x1c/0x24) [<c003e2b8>] (warn_slowpath_null+0x1c/0x24)
->  from [<c01d3fe8>] (__cpdma_chan_free+0xac/0xb0) [<c01d3fe8>]
->  (__cpdma_chan_free+0xac/0xb0) from [<c01d40d0>]
->  (__cpdma_chan_process+0xe4/0x114) [<c01d40d0>]
->  (__cpdma_chan_process+0xe4/0x114) from [<c01d4238>]
->  (cpdma_chan_stop+0xf0/0x1c8) [<c01d4238>] (cpdma_chan_stop+0xf0/0x1c8)
->  from [<c01d4390>] (cpdma_ctlr_stop+0x80/0xe4) [<c01d4390>]
->  (cpdma_ctlr_stop+0x80/0xe4) from [<c01d2c00>] (emac_dev_stop+0xb0/0x13c)
->  [<c01d2c00>] (emac_dev_stop+0xb0/0x13c) from [<c01f5b40>]
->  (__dev_close+0x74/0x98) [<c01f5b40>] (__dev_close+0x74/0x98) from
->  [<c01f3168>] (__dev_change_flags+0xac/0x13c) [<c01f3168>]
->  (__dev_change_flags+0xac/0x13c) from [<c01f5994>]
->  (dev_change_flags+0x10/0x44) [<c01f5994>] (dev_change_flags+0x10/0x44)
->  from [<c023cf60>] (devinet_ioctl+0x2dc/0x6f4) [<c023cf60>]
->  (devinet_ioctl+0x2dc/0x6f4) from [<c01e484c>] (sock_ioctl+0x1fc/0x258)
->  [<c01e484c>] (sock_ioctl+0x1fc/0x258) from [<c00aa0f0>]
->  (do_vfs_ioctl+0x550/0x5c0) [<c00aa0f0>] (do_vfs_ioctl+0x550/0x5c0) from
->  [<c00aa198>] (sys_ioctl+0x38/0x5c) [<c00aa198>] (sys_ioctl+0x38/0x5c) from
->  [<c0029f00>] (ret_fast_syscall+0x0/0x2c) ---[ end trace 0e686330480db12f
->  ]---
-> 
-> 
-> Thanks for the help.
-> 
-> -Mike
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Cheers,
+--=20
+Ricardo Salveti de Araujo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
