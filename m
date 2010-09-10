@@ -1,7 +1,7 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 Subject: RE: [PATCH 0/7] omap4: Fixes, hacks for es2.0
-Date: Fri, 10 Sep 2010 20:39:42 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0315F0273D@dbde02.ent.ti.com>
+Date: Fri, 10 Sep 2010 20:41:46 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD17EF8E@dbde02.ent.ti.com>
 References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
 	<87fwxjx7qj.fsf@deeprootsystems.com>
 	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EDFA@dbde02.ent.ti.com>
@@ -13,18 +13,16 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37174 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754200Ab0IJPJy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Sep 2010 11:09:54 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:47884 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754315Ab0IJPMA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Sep 2010 11:12:00 -0400
 In-Reply-To: <AANLkTimJ+tHk7ZPmPkuwHi2svU0Qw_SqGHazn4W=_ApC@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Salveti <rsalveti@rsalveti.net>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
-
-
+To: Ricardo Salveti <rsalveti@rsalveti.net>, "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
 > -----Original Message-----
 > From: Ricardo Salveti [mailto:rsalveti@rsalveti.net]
@@ -83,15 +81,14 @@ m
 > unable to detect the MMC.
 >=20
 > Do I need any other patch to make the MMC work with Panda?
-[Ghorai] I have tested based on following tree/branch and using ES2.0 P=
-ANDA only. Can you share bootlog enabling mmc/sd debug message?
-http://dev.omapzoom.org/?p=3Dsantosh/kernel-omap4-base.git;a=3Dshortlog=
-;h=3Drefs/heads/omap4-for-tony
-
 >=20
-> Thanks,
-> --
-> Ricardo Salveti de Araujo
+You don't need any more patches for kernel. Just use latest
+Panda boot-loaders and it should work.
+
+Regards,
+Santosh
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
