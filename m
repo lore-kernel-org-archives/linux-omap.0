@@ -1,104 +1,120 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH v2 6/6] OMAP1: Amstrad Delta: add camera controlled LEDS trigger
-Date: Sat, 11 Sep 2010 03:28:58 +0200
-Message-ID: <201009110329.01171.jkrzyszt@tis.icnet.pl>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+Subject: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera interface
+Date: Sat, 11 Sep 2010 03:34:02 +0200
+Message-ID: <201009110334.03905.jkrzyszt@tis.icnet.pl>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009110323.12250.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:41717 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751542Ab0IKB3Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Sep 2010 21:29:24 -0400
-In-Reply-To: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201009110323.12250.jkrzyszt@tis.icnet.pl>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Tony Lindgren <tony@atomide.com>, Richard Purdie <rpurdie@rpsys.net>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-This patch extends the Amstrad Delta camera support with LEDS trigger that can 
-be used for automatic control of the on-board camera LED. The led turns on 
-automatically on camera device open and turns off on camera device close.
+This patch adds support for SoC camera interface to OMAP1 devices.
 
-Created and tested against linux-2.6.36-rc3.
+Created and tested against linux-2.6.36-rc3 on Amstrad Delta.
 
-Works on top of patch 5/6, "OMAP1: Amstrad Delta: add support for on-board 
-camera"
+For successfull compilation, requires a header file provided by PATCH 1/6 from 
+this series, "SoC Camera: add driver for OMAP1 camera interface".
 
 Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
-Having no comments received on v1 of this patch, I assume nobody could see any 
-benefit if I implemented this idea at the SoC camera or OMAP1 camera level, 
-so I'm leaveing it as an Amstrad Delta only feature, as it originally was for 
-v1.
-
-Thanks,
+Resend because of wrapped lines, sorry.
 Janusz
 
 
 v1->v2 changes:
 - no functional changes,
-- refreshed against linux-2.6.36-rc3.
+- refreshed against linux-2.6.36-rc3
 
 
- arch/arm/mach-omap1/board-ams-delta.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ arch/arm/mach-omap1/devices.c             |   43 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap1/include/mach/camera.h |    8 +++++
+ 2 files changed, 51 insertions(+)
 
 
-diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c 
-linux-2.6.36-rc3/arch/arm/mach-omap1/board-ams-delta.c
---- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c	2010-09-10 22:01:24.000000000 +0200
-+++ linux-2.6.36-rc3/arch/arm/mach-omap1/board-ams-delta.c	2010-09-10 22:08:29.000000000 +0200
-@@ -16,6 +16,7 @@
- #include <linux/init.h>
- #include <linux/input.h>
- #include <linux/interrupt.h>
-+#include <linux/leds.h>
+diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/devices.c linux-2.6.36-rc3/arch/arm/mach-omap1/devices.c
+--- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/devices.c	2010-09-03 22:29:00.000000000 +0200
++++ linux-2.6.36-rc3/arch/arm/mach-omap1/devices.c	2010-09-09 18:42:30.000000000 +0200
+@@ -15,6 +15,7 @@
  #include <linux/platform_device.h>
- #include <linux/serial_8250.h>
+ #include <linux/io.h>
+ #include <linux/spi/spi.h>
++#include <linux/dma-mapping.h>
  
-@@ -222,11 +223,30 @@ static struct i2c_board_info ams_delta_c
- 	},
- };
+ #include <mach/hardware.h>
+ #include <asm/mach/map.h>
+@@ -25,6 +26,7 @@
+ #include <mach/gpio.h>
+ #include <plat/mmc.h>
+ #include <plat/omap7xx.h>
++#include <mach/camera.h>
  
-+#ifdef CONFIG_LEDS_TRIGGERS
-+DEFINE_LED_TRIGGER(ams_delta_camera_led_trigger);
+ /*-------------------------------------------------------------------------*/
+ 
+@@ -191,6 +193,47 @@ static inline void omap_init_spi100k(voi
+ }
+ #endif
+ 
 +
-+static int ams_delta_camera_power(struct device *dev, int power)
++#define OMAP1_CAMERA_BASE	0xfffb6800
++
++static struct resource omap1_camera_resources[] = {
++	[0] = {
++		.start	= OMAP1_CAMERA_BASE,
++		.end	= OMAP1_CAMERA_BASE + OMAP1_CAMERA_IOSIZE - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	[1] = {
++		.start	= INT_CAMERA,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static u64 omap1_camera_dma_mask = DMA_BIT_MASK(32);
++
++static struct platform_device omap1_camera_device = {
++	.name		= "omap1-camera",
++	.id		= 0, /* This is used to put cameras on this interface */
++	.dev		= {
++		.dma_mask		= &omap1_camera_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++	.num_resources	= ARRAY_SIZE(omap1_camera_resources),
++	.resource	= omap1_camera_resources,
++};
++
++void __init omap1_set_camera_info(struct omap1_cam_platform_data *info)
 +{
-+	/*
-+	 * turn on camera LED
-+	 */
-+	if (power)
-+		led_trigger_event(ams_delta_camera_led_trigger, LED_FULL);
-+	else
-+		led_trigger_event(ams_delta_camera_led_trigger, LED_OFF);
-+	return 0;
-+}
-+#else
-+#define ams_delta_camera_power	NULL
-+#endif
++	struct platform_device *dev = &omap1_camera_device;
++	int ret;
 +
- static struct soc_camera_link __initdata ams_delta_iclink = {
- 	.bus_id         = 0,	/* OMAP1 SoC camera bus */
- 	.i2c_adapter_id = 1,
- 	.board_info     = &ams_delta_camera_board_info[0],
- 	.module_name    = "ov6650",
-+	.power		= ams_delta_camera_power,
- };
++	dev->dev.platform_data = info;
++
++	ret = platform_device_register(dev);
++	if (ret)
++		dev_err(&dev->dev, "unable to register device: %d\n", ret);
++}
++
++
+ /*-------------------------------------------------------------------------*/
  
- static struct platform_device ams_delta_camera_device = {
-@@ -281,6 +301,10 @@ static void __init ams_delta_init(void)
- 
- 	omap1_usb_init(&ams_delta_usb_config);
- 	omap1_set_camera_info(&ams_delta_camera_platform_data);
-+#ifdef CONFIG_LEDS_TRIGGERS
-+	led_trigger_register_simple("ams_delta_camera",
-+			&ams_delta_camera_led_trigger);
-+#endif
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
- 
- #ifdef CONFIG_AMS_DELTA_FIQ
+ static inline void omap_init_sti(void) {}
+diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h 
+linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h
+--- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h	2010-09-03 22:34:03.000000000 +0200
++++ linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h	2010-09-09 18:42:30.000000000 +0200
+@@ -0,0 +1,8 @@
++#ifndef __ASM_ARCH_CAMERA_H_
++#define __ASM_ARCH_CAMERA_H_
++
++#include <media/omap1_camera.h>
++
++extern void omap1_set_camera_info(struct omap1_cam_platform_data *);
++
++#endif /* __ASM_ARCH_CAMERA_H_ */
