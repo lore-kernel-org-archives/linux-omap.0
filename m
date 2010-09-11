@@ -1,58 +1,127 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v2 1/6] SoC Camera: add driver for OMAP1 camera interface
-Date: Sat, 11 Sep 2010 11:32:47 +0200
-Message-ID: <201009111132.49405.jkrzyszt@tis.icnet.pl>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009110321.25852.jkrzyszt@tis.icnet.pl>
+From: Michael Williamson <michael.williamson@criticallink.com>
+Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
+Date: Sat, 11 Sep 2010 09:14:14 -0400
+Message-ID: <4C8B80A6.5060609@criticallink.com>
+References: <1283891142-15522-1-git-send-email-cyril@ti.com> <871v95f2xv.fsf@deeprootsystems.com> <4C86F369.6040906@criticallink.com> <4C880733.5010909@ti.com> <4C882EAA.9030903@criticallink.com> <4C892AC0.80409@criticallink.com> <4C893ADE.809@ti.com> <4C8950D4.9060102@criticallink.com> <4C8AB85A.8060909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201009110321.25852.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: Jasmine Strong <jasmine@electronpusher.org>
-Cc: linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:41650 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751898Ab0IKNOU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Sep 2010 09:14:20 -0400
+In-Reply-To: <4C8AB85A.8060909@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: cyril@ti.com
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>
 
-Saturday 11 September 2010 04:06:02 Jasmine Strong wrote:
-> On 10 Sep 2010, at 18:21, Janusz Krzysztofik wrote:
-> >  Both paths work stable for me, even
-> > under heavy load, on my OMAP1510 based Amstrad Delta videophone, that is
-> > the oldest, least powerfull OMAP1 implementation.
->
-> You say that, but the ARM925 in OMAP1510 is known not to exhibit the bug 
+Hi Cyril,
 
-Then, lucky me ;)
+On 09/10/2010 06:59 PM, Cyril Chemparathy wrote:
+> Hi Mike,
+> 
+> I have merged your latest two emails and responded to both here.
+> 
+[...]
+> One of the patches posted on my repo [1] replaces the dumb mdelay() with
+> a bit more logic that calculates the worst-case access time.  This
+> mechanism may work a lot better for you.  Would you mind trying it out?
+> 
 
-> in  
-> OMAP1610, which causes severe slowdown to DRAM writes when the first
-> address of an STM instruction is not aligned to a d-cache line boundary. 
-> This means that at least last time I looked, the Linux ARM memcpy()
-> implementation is often faster on 1510 than 1610.
+You patch from [1] is working much more reliably now (well, 6 for 6 boot cycles as well as
+several ifup/ifdown cycles).  I do get the "resetting idled controlled" console message
+every cycle, it seems that will be expected now.
 
-This sounds like a problem that should be solved at a machine support level 
-rather than a camera driver. I don't follow general OMAP development closely 
-enough to know if this bug has ever been addressed or is going to be.
+[...]
 
-Unfortunatelly, I have no access to any OMAP machine other than Amstrad Delta, 
-so I'm not able to test the driver, including its performance, on other OMAP1 
-implementations.
+>>
+>> Also, your while(1) loops with the continue conditions on the second wait_for_user_access() 
+>> in the read and writes might need some consideration, i.e.:
+>>
+>>         while (1) {
+>>                 ret = wait_for_user_access(data);
+>>                 if (ret == -EAGAIN)
+>>                         continue;
+>>                 if (ret < 0)
+>>                         break;
+>>
+>>                 __raw_writel(reg, &data->regs->user[0].access);
+>>
+>>                 ret = wait_for_user_access(data);
+>>                 if (ret == -EAGAIN)
+>>                         continue;
+>>                         ^^^^^^^^^ <--- this will re-issue the request.... what you want?
+> 
+> Yes, the wait_for_user_access() would have reset the controller,
+> throwing the current transaction out.  The intent here is to restart the
+> current transaction with a newly initialized controller.
+> 
 
-Anyways, I think there is always a room for improvement, either in my 
-omap1_camera or maybe in the omap24xxcam driver, if someone tries to add 
-support for a camera to an OMAP1 board other than 1510, and identifies a more 
-optimal, 1610 or higher specific way of handling the OMAP camera interface.
+OK.  Makes sense.  Looking at it felt like there was a chance for end endless spin, but that
+seems unlikely given how that condition might fire.
 
-Do you think I should rename the driver to something like "omap1510cam" rather 
-than "omap1_camera" then?
+[...]
 
-Thanks,
-Janusz
+>> Also, on the shutdown, I get a major kernel trace.  Here is the dump, as much 
+>> as I could catch of it.... (I need a better terminal program)
+> 
+> [...]
+>> WARNING: at drivers/net/davinci_emac.c:1025 __cpdma_chan_free+0xac/0xb0()
+> 
+> The current code spits out a huge volume of stuff as a result of a
+> WARN_ON in the rx handler.  The gitweb on [1] has a patch that fixes this.
+> 
 
->
-> -J.
-> _______________________________________________
-> e3-hacking mailing list
-> e3-hacking@earth.li
-> http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking
+Yes,  these messages are no longer issued with the patches from [1].  Thanks.
+
+> [...]
+>>>> The MDIO module upgrade (rev 1.4 -> 1.5) could have something to do with
+>>>> this behavior.  Even so, I can't explain why this issue wasn't seen on
+>>>> da8xx prior to this series.  The original code should (at least in
+>>>> theory) have sporadically locked up on emac open.
+>>>>
+>> I think, if I understand it correctly, that in the previous version of 
+>> this code, the emac was reset *prior* to enabling, scanning, and assigning 
+>> the associated phy on the MDIO bus.  The new implementation sets up and scans 
+>> the MDIO bus first, then comes back around to the EMAC second... hits a reset,
+>> and doesn't re-ENABLE the MDIO.
+> 
+> AFAICS, that isn't entirely accurate.  In the previous version, the mdio
+> bus was being brought up at probe time in davinci_emac_probe().  The
+> soft-reset was happening later on when the device is opened, in
+> emac_hw_enable().
+> 
+> The difference, however, is that the original code forced an
+> emac_mii_reset() immediately after the emac_hw_enable().  This is not
+> being done with the separated mdio, and that is the problem.  In terms
+> of behavior, with the current work around, the new and old versions
+> should be close to identical.  More below...
+> 
+>> Also, maybe hitting the EMAC reset while the MDIO state machine is up is *bad*, I 
+>> seem to recall some text in the user's guide about waiting for the state
+>> machine to stop before disabling it.  I wonder if that also applies to reset?
+> 
+> You are correct.  EMAC soft-reset stops the MDIO mid-transaction, quite
+> unlike disabling the module via the control register.  Therefore, there
+> is a risk that a badly designed phy could be left hanging in an
+> arbitrary state.  However, all earlier versions of the emac code have
+> been exposed to this very same vulnerability (i.e. arbitrary emac
+> soft-reset regardless of mdio state) all along.
+> 
+
+Thanks for straightening me out on this, Cryil.  Your patch series in [1] seems to
+have resolved the issues I've been able to see on the da850 based board I'm using
+here.  I appreciate your patience and quick response.  I may try to beat on it a 
+bit more with some network performance tests (even though it's not at all related 
+to the immediate problems you've fixed) -- we've had that on our list of todos 
+anyway for this module.
+
+I think it would be good to float your patches over to davinci-next, if possible, before the
+37 merge window opens...  Speaking, of course, from a very partial perspective.
+
+> [1]
+> http://arago-project.org/git/people/?p=cyril/linux-tnetv107x.git;a=shortlog;h=refs/heads/emac-cpdma-mdio-fixes
+
+-Mike
