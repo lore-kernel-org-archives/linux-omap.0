@@ -1,57 +1,45 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
+From: Gary Thomas <gary@mlbassoc.com>
 Subject: Re: OMAP 3530 McBSP Frame Sync errors
-Date: Mon, 13 Sep 2010 12:07:20 +0300
-Message-ID: <AANLkTik9ULkprMe9=qGAZj8P0HdaFq9TPfNUGxmBmcwc@mail.gmail.com>
-References: <4C8903CA.9090501@mlbassoc.com>
+Date: Mon, 13 Sep 2010 05:54:40 -0600
+Message-ID: <4C8E1100.6000906@mlbassoc.com>
+References: <4C8903CA.9090501@mlbassoc.com> <AANLkTik9ULkprMe9=qGAZj8P0HdaFq9TPfNUGxmBmcwc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:63560 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481Ab0IMJHV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 05:07:21 -0400
-Received: by qyk33 with SMTP id 33so5007829qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 02:07:20 -0700 (PDT)
-In-Reply-To: <4C8903CA.9090501@mlbassoc.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:53659 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755080Ab0IMLym (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 07:54:42 -0400
+In-Reply-To: <AANLkTik9ULkprMe9=qGAZj8P0HdaFq9TPfNUGxmBmcwc@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Sep 9, 2010 at 6:56 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> I'm trying to use McBSP4 with an external CODEC which is a
-> slave device (i.e. the OMAP generates the Frame Sync pulses)
-> In this mode, the BSP is purely the master of these signals.
+On 09/13/2010 03:07 AM, Grazvydas Ignotas wrote:
+> On Thu, Sep 9, 2010 at 6:56 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> I'm trying to use McBSP4 with an external CODEC which is a
+>> slave device (i.e. the OMAP generates the Frame Sync pulses)
+>> In this mode, the BSP is purely the master of these signals.
+>>
+>> What can it possibly mean to get Frame Sync errors in this case
+>> (I'm reading from the external CODEC)?
+>>
+>> FYI, my registers look like this:
+>>   PCR0: 0x00000f0f
+>>   RCR1: 0x00000040, RCR2: 0x00008041
+>>   XCR1: 0x00000040, XCR2: 0x00008041
+>>   SRGR1: 0x00000f07, SRGR2: 0x0000101f
+>>
+>> Any ideas or help?
 >
-> What can it possibly mean to get Frame Sync errors in this case
-> (I'm reading from the external CODEC)?
->
-> FYI, my registers look like this:
-> =A0PCR0: 0x00000f0f
-> =A0RCR1: 0x00000040, RCR2: 0x00008041
-> =A0XCR1: 0x00000040, XCR2: 0x00008041
-> =A0SRGR1: 0x00000f07, SRGR2: 0x0000101f
->
-> Any ideas or help?
+> Have you set the right McBSP source clock? It's in DEVCONF1/2 registers.
 
-Have you set the right McBSP source clock? It's in DEVCONF1/2 registers=
-=2E
+Yes, the channel works fine, but I only occasionally get errant Frame Sync errors.
 
->
-> --
-> ------------------------------------------------------------
-> Gary Thomas =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0Consulting for the
-> MLB Associates =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0Embedded world
-> ------------------------------------------------------------
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
