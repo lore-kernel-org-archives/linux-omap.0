@@ -1,72 +1,72 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH 0/7] omap4: Fixes, hacks for es2.0
-Date: Mon, 13 Sep 2010 20:36:14 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0315F02F22@dbde02.ent.ti.com>
-References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
-	<87fwxjx7qj.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EDFA@dbde02.ent.ti.com>
-	<87y6bavrn3.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EE0A@dbde02.ent.ti.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F026BF@dbde02.ent.ti.com>
-	<AANLkTimJ+tHk7ZPmPkuwHi2svU0Qw_SqGHazn4W=_ApC@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F0273D@dbde02.ent.ti.com>
- <AANLkTim6yki=wj73K1+Tv=SZ877YLXBrXrBCLnAn6P7o@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: [v4 0/6] OMAP: WDT: Implement WDT in hwmod way
+Date: Mon, 13 Sep 2010 20:43:23 +0530
+Message-ID: <1284390809-11519-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36530 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44299 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751995Ab0IMPGX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 11:06:23 -0400
-In-Reply-To: <AANLkTim6yki=wj73K1+Tv=SZ877YLXBrXrBCLnAn6P7o@mail.gmail.com>
-Content-Language: en-US
+	id S1753006Ab0IMPNq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Sep 2010 11:13:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Salveti <rsalveti@rsalveti.net>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: tony@atomide.com, wim@iguana.be, linux-watchdog@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>
 
+Series of patches to port watchdog module to use hwmod
+and omap_device apis for OMAP2plus chips. For this hwmod data
+structures are poulated. This patch series also implements watchdog
+module to use PM runtime APIs.
 
+This patch series is created on "origin/pm-core" and are
+tested on OMAP2430, OMAP44430, OMAP3430 SDP boards and zoom3 board.
+Also verified that this patch series does not break the OMAP1 build.
 
-[snip]
-> >> >
-> >> > [Ghorai] I have tested MMC/SD boot using omap3_defconfig on ZOOM3,
-> 4430
-> >> ES2.0 SDP, Blaze and Panda and all booting fine.
-> >> >
-> >> > And omap_4430sdp_defconfig also ok omap4.
-> >>
-> >> Which Panda version are you using during your tests? I tried
-> >> omap_4430sdp_defconfig using omap4-for-tony branch at my ES2.0 and I'm
-> >> unable to detect the MMC.
-> >>
-> >> Do I need any other patch to make the MMC work with Panda?
-> > [Ghorai] I have tested based on following tree/branch and using ES2.0
-> PANDA only. Can you share bootlog enabling mmc/sd debug message?
-> > http://dev.omapzoom.org/?p=santosh/kernel-omap4-
-> base.git;a=shortlog;h=refs/heads/omap4-for-tony
-> 
-> My boot log:
-> http://paste.ubuntu.com/491645/
-> 
-[Ghorai] can you use this bootargs?
-setenv bootargs root=/dev/mmcblk0p2 rw rootwait mem=463M console=ttyS2,115200n8
-And here is the log from my setup.
-[    2.493194] Waiting for root device /dev/mmcblk0p2...
-[    2.502960] mmc0: host does not support reading read-only switch. assuming write-enable.
-[    2.523895] mmc0: new high speed SDHC card at address e1ed
-[    2.531616] mmcblk0: mmc0:e1ed SD04G 3.75 GiB
-[    2.539550]  mmcblk0: p1 p2
-[    2.607360] EXT3-fs: barriers not enabled
+This patch series is dependent on the following patch
+for testing on OMAP2:
+https://patchwork.kernel.org/patch/174172/
 
-> Using x-loader from
-> http://gitorious.org/pandaboard/x-loader/commits/omap4_panda_L24.9 and
-> upstream u-boot.
-[Ghorai] can you try with this x-loader
-https://docs.google.com/leaf?id=0B8fdjBBEQ4lDZGE3ZTBjNzEtOTQ0Ni00ZmFlLTlhODgtN2QzNjUwMzBkNDI2&hl=en
-In the mean time I will try with yours!
+Version History:
+---------------
+Version v4:
+*Implement hwmod adapdation first and then PM runtime adaptation
+as two different patches in the series
+*Remove inclusion of omap_device.h in the driver file.
 
-> 
-> Cheers,
-> --
-> Ricardo Salveti de Araujo
+Version v3:
+*Fix Minor comments like renaming omap1 watchdog structures
+with an omap1_ prefix
+Some of the v3 links:
+https://patchwork.kernel.org/patch/119698/
+https://patchwork.kernel.org/patch/119696/ 
+
+Version v2:
+*Rebase to latest kernel
+Some of the v2 links:
+http://www.spinics.net/lists/linux-omap/msg34741.html
+http://www.spinics.net/lists/linux-omap/msg34673.html
+
+Version v1:
+*Initial series
+Some of the v1 links:
+http://www.spinics.net/lists/linux-omap/msg30628.html
+http://www.spinics.net/lists/linux-omap/msg30625.html
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: Add watchdog timer
+
+Varadarajan, Charulatha (5):
+  OMAP3: hwmod data: Add watchdog timer
+  OMAP2420: hwmod data: Add watchdog timer
+  OMAP2430: hwmod data: Add watchdog timer
+  OMAP2PLUS: WDT: use omap_device_build for device registration
+  OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
+
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   59 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   59 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   61 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   68 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm-common.h          |    4 ++
+ arch/arm/plat-omap/devices.c               |   64 ++++++++++++++++++--------
+ drivers/watchdog/omap_wdt.c                |   57 +++++++++--------------
+ 7 files changed, 317 insertions(+), 55 deletions(-)
+
