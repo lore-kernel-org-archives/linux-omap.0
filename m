@@ -1,42 +1,59 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
- data is transfered over
-Date: Mon, 13 Sep 2010 22:34:08 +0800
-Message-ID: <AANLkTinei3u1OZ-eBiUTDF=PDjwxLcL6rBpt7iNQJgHJ@mail.gmail.com>
-References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
-	<1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
-	<4C8E18AD.8000502@ru.mvista.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Suspend to RAM broken on BeagleBoard ?
+Date: Mon, 13 Sep 2010 07:56:54 -0700
+Message-ID: <87eicx1ykp.fsf@deeprootsystems.com>
+References: <20100910174814.6e5d439e@surf>
+	<87sk1h4640.fsf@deeprootsystems.com> <20100911110007.5f7b529d@surf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:41715 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751208Ab0IMOeK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 10:34:10 -0400
-In-Reply-To: <4C8E18AD.8000502@ru.mvista.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:40391 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab0IMO46 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 10:56:58 -0400
+Received: by pvg2 with SMTP id 2so2161377pvg.19
+        for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 07:56:57 -0700 (PDT)
+In-Reply-To: <20100911110007.5f7b529d@surf> (Thomas Petazzoni's message of
+	"Sat, 11 Sep 2010 11:00:07 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: greg@kroah.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-2010/9/13 Sergei Shtylyov <sshtylyov@mvista.com>:
-> =A0 But why not modify the conditional above all that code, just excl=
-uding
-> 'is_dma' from it. This conditional already includes (request->actual =
-=3D=3D
-> request->length) check. Please recast this patch.
+Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
 
-The two condition is OR relation, not and, so we can't exclude 'is_dma'=
- simply.
-Anyway, the change is not wrong, right?
+> On Fri, 10 Sep 2010 14:54:23 -0700
+> Kevin Hilman <khilman@deeprootsystems.com> wrote:
+>
+>> It's the CPUfreq driver that's failing to suspend.
+>
+> Ok.
+>
+>> Yes, CPUfreq is not supported in l-o master or pm-core (only in the
+>> full pm branch.)  If you Kconfig out CPUfreq, this failure will go
+>> away.
+>
+> Aah, yes, I forgot about this. I know it's temporary, but wouldn't it
+> be good to disable CPUfreq in omap3_defconfig in this case ?
+
+Yes.
+
+> BTW, I'm now seeing:
+>
+> [   37.830596] Powerdomain (core_pwrdm) didn't enter target state 1
+> [   37.830627] Powerdomain (dss_pwrdm) didn't enter target state 1
+>
+> when the system is woken up.
+
+Looks like DSS has not been initialized, so is not hitting RET.
+
+Do you have the DSS driver enabled and built-in?  Without this (and
+until we have DSS converted to hwmod) the DSS HW is not in a state that
+can hit the low power mode.  If the DSS driver is allowed to initialize,
+even without a panel, it should set the DSS HW in a state that will then
+allow RET.
+
+Kevin
 
 
-thanks,
---=20
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
