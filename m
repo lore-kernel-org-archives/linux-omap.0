@@ -1,72 +1,49 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
- data is transfered over
-Date: Mon, 13 Sep 2010 16:27:25 +0400
-Message-ID: <4C8E18AD.8000502@ru.mvista.com>
-References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com> <1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
+From: Yanick Saugy <yanick.saugy@heig-vd.ch>
+Subject: LCD on Zoom2 dev board with DSS
+Date: Mon, 13 Sep 2010 14:43:27 +0200
+Message-ID: <1284381807.1801.38.camel@A05BPC17>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:51475 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754934Ab0IMM2N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 08:28:13 -0400
-In-Reply-To: <1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
+Received: from smtp2.infomaniak.ch ([84.16.68.90]:49536 "EHLO
+	smtp2.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755081Ab0IMMt0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 08:49:26 -0400
+Received: from [10.192.51.60] (pub1.heig-vd.ch [193.134.216.2])
+	(authenticated bits=0)
+	by smtp2.infomaniak.ch (8.14.2/8.14.2) with ESMTP id o8DChQh4017397
+	for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 14:43:28 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com
-Cc: greg@kroah.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
+To: linux-omap@vger.kernel.org
 
-Hello.
+Hi all, 
 
-tom.leiming@gmail.com wrote:
+I'm working on a zoom2 dev board (omap34x-II MDP). There is my actual config :
 
-> From: Ming Lei <tom.leiming@gmail.com>
+I've built kernel 2.6.35 from git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+and then applied the following patchs :
+[PATCH 1/2 V7] OMAP: ZOOM2/3&SDP3630: Add display board file for zoom boards <http://marc.info/?l=linux-omap&m=127445506720934&w=2>
+[PATCH 2/2 V7] OMAP: ZOOM2/3&SDP3630: Add display board file for zoom boards <http://marc.info/?l=linux-omap&m=127445522921326&w=2>
+[PATCH V6] OMAP: DSS: Add NEC NL8048HL11-01B display panel <http://marc.info/?l=linux-omap&m=127445535621669&w=2>
 
-> Complete the current request only if the data transfer is over.
+Finally I've enabled DSS and lcd NEC_NL8048HL11 in kernel config file.
 
-> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-> Cc: David Brownell <dbrownell@users.sourceforge.net>
-> Cc: Felipe Balbi <me@felipebalbi.com>
-> Cc: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Mike Frysinger <vapier@gentoo.org>
-> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-> ---
->  drivers/usb/musb/musb_gadget.c |   16 ++++++++--------
->  1 files changed, 8 insertions(+), 8 deletions(-)
+At this time the kernel boots well, and my LCD backlight turns on but I can't see TUX while booting, and I can't draw anything after logging in.
+I've checked, the framebuffer device is present and configured with size of 800x480.
 
-> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-> index f3ee04f..fa826f9 100644
-> --- a/drivers/usb/musb/musb_gadget.c
-> +++ b/drivers/usb/musb/musb_gadget.c
-> @@ -501,14 +501,14 @@ void musb_g_tx(struct musb *musb, u8 epnum)
->  				request->zero = 0;
->  			}
->  
-> -			/* ... or if not, then complete it. */
-> -			musb_g_giveback(musb_ep, request, 0);
-> -
-> -			request = musb_ep->desc ? next_request(musb_ep) : NULL;
-> -			if (!request) {
-> -				DBG(4, "%s idle now\n",
-> -					musb_ep->end_point.name);
-> -				return;
-> +			if (request->actual == request->length) {
+I've played with sys filesystem like on this wiki, but nothing happened:
+<http://www.omappedia.org/wiki/Bootargs_for_enabling_display>
 
-    But why not modify the conditional above all that code, just excluding 
-'is_dma' from it. This conditional already includes (request->actual == 
-request->length) check. Please recast this patch.
+To enable DSS at boot time, I passed following boot options:
+vram=10M omapdss.def_disp=lcd
 
-> +				musb_g_giveback(musb_ep, request, 0);
-> +				request = musb_ep->desc ? next_request(musb_ep) : NULL;
-> +				if (!request) {
-> +					DBG(4, "%s idle now\n",
-> +						musb_ep->end_point.name);
-> +					return;
-> +				}
->  			}
->  		}
->  
 
-WBR, Sergei
+Perhaps I've missed something?
+
+Thank you in advance.
+
+---
+Yanick
+
