@@ -1,49 +1,34 @@
-From: Yanick Saugy <yanick.saugy@heig-vd.ch>
-Subject: LCD on Zoom2 dev board with DSS
-Date: Mon, 13 Sep 2010 14:43:27 +0200
-Message-ID: <1284381807.1801.38.camel@A05BPC17>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: LCD on Zoom2 dev board with DSS
+Date: Mon, 13 Sep 2010 15:52:12 +0300
+Message-ID: <20100913125212.GA19061@legolas.emea.dhcp.ti.com>
+References: <1284381807.1801.38.camel@A05BPC17>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.infomaniak.ch ([84.16.68.90]:49536 "EHLO
-	smtp2.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755081Ab0IMMt0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 08:49:26 -0400
-Received: from [10.192.51.60] (pub1.heig-vd.ch [193.134.216.2])
-	(authenticated bits=0)
-	by smtp2.infomaniak.ch (8.14.2/8.14.2) with ESMTP id o8DChQh4017397
-	for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 14:43:28 +0200
+Received: from comal.ext.ti.com ([198.47.26.152]:34363 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754534Ab0IMMwX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Sep 2010 08:52:23 -0400
+Content-Disposition: inline
+In-Reply-To: <1284381807.1801.38.camel@A05BPC17>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Yanick Saugy <yanick.saugy@heig-vd.ch>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi all, 
+Hi,
 
-I'm working on a zoom2 dev board (omap34x-II MDP). There is my actual config :
+On Mon, Sep 13, 2010 at 07:43:27AM -0500, Yanick Saugy wrote:
+>Finally I've enabled DSS and lcd NEC_NL8048HL11 in kernel config file.
+>
+>At this time the kernel boots well, and my LCD backlight turns on but I
+>can't see TUX while booting, and I can't draw anything after logging
 
-I've built kernel 2.6.35 from git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-and then applied the following patchs :
-[PATCH 1/2 V7] OMAP: ZOOM2/3&SDP3630: Add display board file for zoom boards <http://marc.info/?l=linux-omap&m=127445506720934&w=2>
-[PATCH 2/2 V7] OMAP: ZOOM2/3&SDP3630: Add display board file for zoom boards <http://marc.info/?l=linux-omap&m=127445522921326&w=2>
-[PATCH V6] OMAP: DSS: Add NEC NL8048HL11-01B display panel <http://marc.info/?l=linux-omap&m=127445535621669&w=2>
+to see tux you need to enable CONFIG_LOGO_LINUX_CLUT224 at least. Then
+you also might want to enable the framebuffer console, just to get some
+output on the screen.
 
-Finally I've enabled DSS and lcd NEC_NL8048HL11 in kernel config file.
-
-At this time the kernel boots well, and my LCD backlight turns on but I can't see TUX while booting, and I can't draw anything after logging in.
-I've checked, the framebuffer device is present and configured with size of 800x480.
-
-I've played with sys filesystem like on this wiki, but nothing happened:
-<http://www.omappedia.org/wiki/Bootargs_for_enabling_display>
-
-To enable DSS at boot time, I passed following boot options:
-vram=10M omapdss.def_disp=lcd
-
-
-Perhaps I've missed something?
-
-Thank you in advance.
-
----
-Yanick
-
+-- 
+balbi
