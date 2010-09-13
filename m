@@ -1,43 +1,60 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Suspend to RAM broken on BeagleBoard ?
-Date: Sat, 11 Sep 2010 17:21:53 +0300
-Message-ID: <20100911142152.GA2547@legolas.emea.dhcp.ti.com>
-References: <20100910174814.6e5d439e@surf>
- <20100910170053.GB2230@legolas.emea.dhcp.ti.com>
- <20100910204713.61e002bc@surf>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH v3 0/2] OMAP: DSS2: Framework to handle omap version specific DSS features
+Date: Mon, 13 Sep 2010 11:00:08 +0530
+Message-ID: <1284355810-20899-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42068 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:56644 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765Ab0IKOV5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Sep 2010 10:21:57 -0400
-Content-Disposition: inline
-In-Reply-To: <20100910204713.61e002bc@surf>
+	with ESMTP id S1750874Ab0IMF2r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 01:28:47 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Hi,
+This is a simple approach to prevent scattered cpu_is_omapxxxx checks
+in DSS2 by bringing all omap version specific DSS features/values to one
+single place, initialize them and expose a set of functions to DSS2 driver
+files which return the value/existance of a feature.
 
-On Fri, Sep 10, 2010 at 01:47:13PM -0500, Thomas Petazzoni wrote:
->> On Fri, Sep 10, 2010 at 10:48:14AM -0500, Thomas Petazzoni wrote:
->> >I also have a problem with USB support, both on linux-omap and
->> >Kevin's pm-core branch. My USB Ethernet adapter, supported by the
->> >asix driver, isn't detected anymore. With a pm git tree of a couple
->> >of weeks ago, it was working. This is again with just a plain
->> >omap3_defconfig.
->>
->> is it attached to EHCI/OHCI or musb port ?
->
->It's a normal USB Ethernet adapter that is attached to the EHCI/OCHI
->port of the BeagleBoard. I have a revision C3.
+This method provides the following:
+  -A set of functions which give the value of a feature.
+  -Functions which add and return the start and end bits of a register field
+   which varies across omaps.
+  -A function which checks if a DSS2 feature exists or not on the present
+   omap (omap_dss_has_feature)
 
-Would you have any debugging dumps to share ? What shows up on dmesg
-after you attach the device ? (please clear the message ring buffer
-before attaching the device with dmesg -c).
+Whenever a new DSS feature is introduced, its value/existance is specified
+for all omaps in omap_dss_feature_init().
 
--- 
-balbi
+This patch also fills up a minimal list of features in omap_dss_features_init().
+The second patch in the series makes use of dss_features to remove some of the
+existing omapxxxx checks.
+
+Archit Taneja (2):
+  OMAP: DSS2: Introduce dss_features files
+  OMAP: DSS2: Use dss_features framework on DSS2 code
+
+ arch/arm/plat-omap/include/plat/display.h |   31 -----
+ drivers/video/omap2/dss/Makefile          |    2 +-
+ drivers/video/omap2/dss/core.c            |    3 +
+ drivers/video/omap2/dss/dispc.c           |   56 +++++----
+ drivers/video/omap2/dss/dss_features.c    |  191 +++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/dss_features.h    |   50 ++++++++
+ drivers/video/omap2/dss/manager.c         |   33 +++---
+ drivers/video/omap2/dss/overlay.c         |   24 ++--
+ 8 files changed, 302 insertions(+), 88 deletions(-)
+ create mode 100644 drivers/video/omap2/dss/dss_features.c
+ create mode 100644 drivers/video/omap2/dss/dss_features.h
+--
+Version 3:
+ - Naming of register fields enums is changed, dss_features struct
+   has some members changed as pointers to static arrays.
+Version 2:
+ - Features are initialized statically as opposed to runtime before,
+   function naming for dss_features files has changed.
+Version 1:
+https://patchwork.kernel.org/patch/134431/
+
+
+
