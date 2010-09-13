@@ -1,59 +1,54 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Suspend to RAM broken on BeagleBoard ?
-Date: Mon, 13 Sep 2010 07:56:54 -0700
-Message-ID: <87eicx1ykp.fsf@deeprootsystems.com>
-References: <20100910174814.6e5d439e@surf>
-	<87sk1h4640.fsf@deeprootsystems.com> <20100911110007.5f7b529d@surf>
+Subject: Re: [PATCH] OMAP2: Add pm_bus.c file for OMAP2 architecture
+Date: Mon, 13 Sep 2010 07:58:57 -0700
+Message-ID: <878w351yha.fsf@deeprootsystems.com>
+References: <1284367481-10508-1-git-send-email-charu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:40391 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752244Ab0IMO46 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 10:56:58 -0400
-Received: by pvg2 with SMTP id 2so2161377pvg.19
-        for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 07:56:57 -0700 (PDT)
-In-Reply-To: <20100911110007.5f7b529d@surf> (Thomas Petazzoni's message of
-	"Sat, 11 Sep 2010 11:00:07 +0200")
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:45522 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab0IMO7J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 10:59:09 -0400
+Received: by pwi3 with SMTP id 3so2186393pwi.19
+        for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 07:59:09 -0700 (PDT)
+In-Reply-To: <1284367481-10508-1-git-send-email-charu@ti.com> (Charulatha
+	Varadarajan's message of "Mon, 13 Sep 2010 14:14:41 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, rnayak@ti.com, p-basak2@ti.com
 
-Thomas Petazzoni <thomas.petazzoni@free-electrons.com> writes:
+"Varadarajan, Charulatha" <charu@ti.com> writes:
 
-> On Fri, 10 Sep 2010 14:54:23 -0700
-> Kevin Hilman <khilman@deeprootsystems.com> wrote:
+> This patch adds pm_bus.o for OMAP2 architecture which is required
+> while using PM runtime APIs on OMAP2.
 >
->> It's the CPUfreq driver that's failing to suspend.
+> This patch series is created on "origin/pm-core" and is
+> tested on 2430 SDP board (with watchdog and GPIO patches
+> using PM runtime APIs. These patches would be sent to
+> LO mailing list soon).
 >
-> Ok.
->
->> Yes, CPUfreq is not supported in l-o master or pm-core (only in the
->> full pm branch.)  If you Kconfig out CPUfreq, this failure will go
->> away.
->
-> Aah, yes, I forgot about this. I know it's temporary, but wouldn't it
-> be good to disable CPUfreq in omap3_defconfig in this case ?
+> Signed-off-by: Charulatha V <charu@ti.com>
 
-Yes.
-
-> BTW, I'm now seeing:
->
-> [   37.830596] Powerdomain (core_pwrdm) didn't enter target state 1
-> [   37.830627] Powerdomain (dss_pwrdm) didn't enter target state 1
->
-> when the system is woken up.
-
-Looks like DSS has not been initialized, so is not hitting RET.
-
-Do you have the DSS driver enabled and built-in?  Without this (and
-until we have DSS converted to hwmod) the DSS HW is not in a state that
-can hit the low power mode.  If the DSS driver is allowed to initialize,
-even without a panel, it should set the DSS HW in a state that will then
-allow RET.
+Thanks, will merge into runtime PM core before final version is posted.
 
 Kevin
 
-
-
+> ---
+>  arch/arm/mach-omap2/Makefile |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 56133d4..a88b75a 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -51,7 +51,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= sdrc2xxx.o
+>  # Power Management
+>  ifeq ($(CONFIG_PM),y)
+>  obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+> -obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o
+> +obj-$(CONFIG_ARCH_OMAP2)		+= sleep24xx.o pm_bus.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o pm_bus.o
+>  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
+>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
