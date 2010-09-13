@@ -1,36 +1,45 @@
-From: "Kridner, Jason" <jdk@ti.com>
-Subject: Generic PWM kernel driver (with support for OMAP3)
-Date: Mon, 13 Sep 2010 08:06:33 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E5F1B55AD@dlee03.ent.ti.com>
+From: Cyril Chemparathy <cyril@ti.com>
+Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
+Date: Mon, 13 Sep 2010 10:09:15 -0400
+Message-ID: <4C8E308B.7020003@ti.com>
+References: <1283891142-15522-1-git-send-email-cyril@ti.com> <4C8950D4.9060102@criticallink.com> <201009101823.52755.caglarakyuz@gmail.com> <201009111154.42171.caglarakyuz@gmail.com>
+Reply-To: cyril@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56487 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751116Ab0IMNGk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 09:06:40 -0400
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:51097 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754608Ab0IMOJT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 10:09:19 -0400
+In-Reply-To: <201009111154.42171.caglarakyuz@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bill Gatliff <bgat@billgatliff.com>, Varun Jewalikar <varunjewalikar@hotmail.com>, soren <soren.ssc@gmail.com>, "scott@jumpnowtek.com" <scott@jumpnowtek.com>
-Cc: "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-embedded@vger.kernel.org" <linux-embedded@vger.kernel.org>
+To: Caglar Akyuz <caglarakyuz@gmail.com>
+Cc: Michael Williamson <michael.williamson@criticallink.com>, Kevin Hilman <khilman@deeprootsystems.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Bill,
+Hi Caglar,
 
-I was looking at your PWM patch set[1] and it seems this has been pending for a long time (since February).  Do you know if this is any closer to being accepted, ie. have you done any additional work or has it been accepted to some maintainer's tree?
+[...]
+> Unfortunately emac driver is not stable after this series. I face lock-ups 
+> time to time, followed by attached kernel trace.
 
-There was a Google Summer of Code project for BeagleBoard.org[2] to put PWM code into the kernel[3], but the student (Varun, copied) has not yet submitted his patches to the linux-embedded mailing list yet and he wasn't aware of your patch set when he began his work.  His patch set[4] also misses some of the features from your patch set.  The student's work seems to be based on Scott's work[5] and branched from his tree on github[6].
+Could you elaborate on your test scenario so that I can try and
+reproduce the problem at my end?  Also, did you have the contents of my
+commit stack in this particular kernel build?
 
-Have you released an updated patch series to address the feedback comments or shall we introduce a new set?
+Assuming that the DMA got stuck at some point leading up to the transmit
+timeout, any ideas as to why a host error was not thrown?  To help
+debug, I'll post out a set of patches that dump out the MAC (and DMA)
+registers on timeout.  That should give us some visibility into the problem.
 
-Regards,
-Jason Kridner
-http://beagleboard.org/twitter 
+> [ 1651.440000] nfs: server 192.168.2.34 not responding, still trying
+> [ 1859.010000] ------------[ cut here ]------------
+> [ 1859.010000] WARNING: at net/sched/sch_generic.c:258 
+> dev_watchdog+0x184/0x294()
+> [ 1859.020000] NETDEV WATCHDOG: eth0 (davinci_emac): transmit queue 0 timed 
+> out
+[...]
 
-[1] https://patchwork.kernel.org/patch/76229/
-[2] http://beagleboard.org/gsoc
-[3] http://elinux.org/BeagleBoard/GSoC/2010_Projects/Pulse_Width_Modulation 
-[4] http://github.com/neo01124/omap3-pwm
-[5] http://www.jumpnowtek.com/index.php?option=com_content&view=article&id=56&Itemid=63 
-[6] http://github.com/scottellis/omap3-pwm 
+Regards
+Cyril.
