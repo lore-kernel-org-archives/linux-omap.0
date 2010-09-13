@@ -1,43 +1,68 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
- data is transfered over
-Date: Mon, 13 Sep 2010 20:26:52 +0400
-Message-ID: <4C8E50CC.3080705@ru.mvista.com>
-References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>	<1283873014-32511-6-git-send-email-tom.leiming@gmail.com>	<4C8E18AD.8000502@ru.mvista.com> <AANLkTinei3u1OZ-eBiUTDF=PDjwxLcL6rBpt7iNQJgHJ@mail.gmail.com> <4C8E4882.6040600@ru.mvista.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: [PATCH 3/7] omap4: l2x0: Fix init parameter for ES2.0
+Date: Mon, 13 Sep 2010 21:58:10 +0530
+Message-ID: <AANLkTik3wD+A-EC0Bs79CT53=AP8nC0Bxg3FDxm7GO16@mail.gmail.com>
+References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
+ <1284031395-25988-2-git-send-email-santosh.shilimkar@ti.com>
+ <1284031395-25988-3-git-send-email-santosh.shilimkar@ti.com> <1284031395-25988-4-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:42886 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751630Ab0IMQ1k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 12:27:40 -0400
-In-Reply-To: <4C8E4882.6040600@ru.mvista.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53144 "HELO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750920Ab0IMQe5 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Sep 2010 12:34:57 -0400
+Received: by mail-wy0-f176.google.com with SMTP id 23so6537003wyf.21
+        for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 09:34:51 -0700 (PDT)
+In-Reply-To: <1284031395-25988-4-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Ming Lei <tom.leiming@gmail.com>, greg@kroah.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@deeprootsystems.com
 
-Hello.
+On Thu, Sep 9, 2010 at 4:53 PM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> On ES2.0 the L2 cache init parameter ineeds to be changed to take
+> care of cache size. The cache size is 1MB on ES2.0 vs 512KB on ES1.0
+>
+> This patch fixes the init parameter to update the same using
+> dynamic cpu version check
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/omap4-common.c | =A0 =A05 ++++-
+> =A01 files changed, 4 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2=
+/omap4-common.c
+> index 13dc979..2b32229 100644
+> --- a/arch/arm/mach-omap2/omap4-common.c
+> +++ b/arch/arm/mach-omap2/omap4-common.c
+> @@ -64,7 +64,10 @@ static int __init omap_l2_cache_init(void)
+> =A0 =A0 =A0 =A0 * 32KB way size, 16-way associativity,
+> =A0 =A0 =A0 =A0 * parity disabled
+> =A0 =A0 =A0 =A0 */
+> - =A0 =A0 =A0 l2x0_init(l2cache_base, 0x0e050000, 0xc0000fff);
+> + =A0 =A0 =A0 if (omap_rev() =3D=3D OMAP4430_REV_ES2_0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 l2x0_init(l2cache_base, 0x0e070000, 0xc=
+0000fff);
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 l2x0_init(l2cache_base, 0x0e050000, 0xc=
+0000fff);
 
-I wrote:
 
->>>   But why not modify the conditional above all that code, just excluding
->>> 'is_dma' from it. This conditional already includes (request->actual ==
->>> request->length) check. Please recast this patch.
+It's probably better to invert this check - you need 512 kB on ES1
+alone, but ES2 and newer will need more. You need the exception only
+for the ES1 case.
 
->> The two condition is OR relation, not and, so we can't exclude 
->> 'is_dma' simply.
+(else you will end up patching this section again with newer revisions =
+as well).
 
->    Yes, we can. You're clearly handling only the DMA case with your 
-> added check, the PIO case was already handled.
-
->> Anyway, the change is not wrong, right?
-
->    Not wrong, but the check is duplicate.
-
-    Oops, I've been too fast and haven't realized that the check done here _is_ 
-actually wrong. It causes ZLP send to trigger too fast in the DMA case. So 
-please fix this patch. Felipe, please drop it for now.
-
-WBR, Sergei
+- Anand
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
