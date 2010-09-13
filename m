@@ -1,56 +1,37 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: Suspend to RAM broken on BeagleBoard ?
-Date: Mon, 13 Sep 2010 17:39:33 +0200
-Message-ID: <20100913173933.5d0a6392@surf>
-References: <20100910174814.6e5d439e@surf>
-	<87sk1h4640.fsf@deeprootsystems.com>
-	<20100911110007.5f7b529d@surf>
-	<87eicx1ykp.fsf@deeprootsystems.com>
+From: Cyril Chemparathy <cyril@ti.com>
+Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
+Date: Mon, 13 Sep 2010 11:46:00 -0400
+Message-ID: <4C8E4738.3040809@ti.com>
+References: <1283891142-15522-1-git-send-email-cyril@ti.com> <4C8950D4.9060102@criticallink.com> <201009101823.52755.caglarakyuz@gmail.com> <201009111154.42171.caglarakyuz@gmail.com> <4C8E308B.7020003@ti.com>
+Reply-To: cyril@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:42834 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006Ab0IMPjj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 11:39:39 -0400
-In-Reply-To: <87eicx1ykp.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53735 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752417Ab0IMPqE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Sep 2010 11:46:04 -0400
+In-Reply-To: <4C8E308B.7020003@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Chemparathy, Cyril" <cyril@ti.com>
+Cc: Caglar Akyuz <caglarakyuz@gmail.com>, Michael Williamson <michael.williamson@criticallink.com>, Kevin Hilman <khilman@deeprootsystems.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+Hi Caglar,
 
-On Mon, 13 Sep 2010 07:56:54 -0700
-Kevin Hilman <khilman@deeprootsystems.com> wrote:
+[...]
+> Assuming that the DMA got stuck at some point leading up to the transmit
+> timeout, any ideas as to why a host error was not thrown?  To help
+> debug, I'll post out a set of patches that dump out the MAC (and DMA)
+> registers on timeout.  That should give us some visibility into the problem.
 
-> Looks like DSS has not been initialized, so is not hitting RET.
-> 
-> Do you have the DSS driver enabled and built-in?  Without this (and
-> until we have DSS converted to hwmod) the DSS HW is not in a state that
-> can hit the low power mode.  If the DSS driver is allowed to initialize,
-> even without a panel, it should set the DSS HW in a state that will then
-> allow RET.
+I have posted a couple of additional patches for this on [1].  Would you
+mind giving these a quick try?  The register dumps should prove useful
+in figuring this out.
 
-Indeed:
+Regards
+Cyril.
 
-$ grep DSS .config
-# CONFIG_OMAP2_DSS is not set
-
-It's not enabled simply because it isn't enabled by omap3_defconfig. So
-maybe it should also be fixed for this ?
-
-I have zero knowledge of DSS, but shouldn't the kernel be able to
-suspend properly even if the DSS driver is disabled ? But maybe it's
-too complicated to have the DSS init sequence required to allow the
-system to hit RET outside the DSS driver. Thoughts ?
-
-Regards,
-
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+[1]
+http://arago-project.org/git/people/?p=cyril/linux-tnetv107x.git;a=shortlog;h=refs/heads/emac-cpdma-mdio-fixes
