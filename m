@@ -1,45 +1,42 @@
-From: Cyril Chemparathy <cyril@ti.com>
-Subject: Re: [PATCH v3 00/10] split out emac cpdma and mdio for reuse
-Date: Mon, 13 Sep 2010 10:09:15 -0400
-Message-ID: <4C8E308B.7020003@ti.com>
-References: <1283891142-15522-1-git-send-email-cyril@ti.com> <4C8950D4.9060102@criticallink.com> <201009101823.52755.caglarakyuz@gmail.com> <201009111154.42171.caglarakyuz@gmail.com>
-Reply-To: cyril@ti.com
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
+ data is transfered over
+Date: Mon, 13 Sep 2010 22:34:08 +0800
+Message-ID: <AANLkTinei3u1OZ-eBiUTDF=PDjwxLcL6rBpt7iNQJgHJ@mail.gmail.com>
+References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
+	<1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
+	<4C8E18AD.8000502@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51097 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754608Ab0IMOJT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 10:09:19 -0400
-In-Reply-To: <201009111154.42171.caglarakyuz@gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41715 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208Ab0IMOeK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 10:34:10 -0400
+In-Reply-To: <4C8E18AD.8000502@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Caglar Akyuz <caglarakyuz@gmail.com>
-Cc: Michael Williamson <michael.williamson@criticallink.com>, Kevin Hilman <khilman@deeprootsystems.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: greg@kroah.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
 
-Hi Caglar,
+2010/9/13 Sergei Shtylyov <sshtylyov@mvista.com>:
+> =A0 But why not modify the conditional above all that code, just excl=
+uding
+> 'is_dma' from it. This conditional already includes (request->actual =
+=3D=3D
+> request->length) check. Please recast this patch.
 
-[...]
-> Unfortunately emac driver is not stable after this series. I face lock-ups 
-> time to time, followed by attached kernel trace.
+The two condition is OR relation, not and, so we can't exclude 'is_dma'=
+ simply.
+Anyway, the change is not wrong, right?
 
-Could you elaborate on your test scenario so that I can try and
-reproduce the problem at my end?  Also, did you have the contents of my
-commit stack in this particular kernel build?
 
-Assuming that the DMA got stuck at some point leading up to the transmit
-timeout, any ideas as to why a host error was not thrown?  To help
-debug, I'll post out a set of patches that dump out the MAC (and DMA)
-registers on timeout.  That should give us some visibility into the problem.
-
-> [ 1651.440000] nfs: server 192.168.2.34 not responding, still trying
-> [ 1859.010000] ------------[ cut here ]------------
-> [ 1859.010000] WARNING: at net/sched/sch_generic.c:258 
-> dev_watchdog+0x184/0x294()
-> [ 1859.020000] NETDEV WATCHDOG: eth0 (davinci_emac): transmit queue 0 timed 
-> out
-[...]
-
-Regards
-Cyril.
+thanks,
+--=20
+Lei Ming
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
