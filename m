@@ -1,15 +1,15 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 1/2] OMAP3: PM: move device-specific special cases from PM core into CPUidle
-Date: Mon, 13 Sep 2010 16:02:37 -0700
-Message-ID: <1284418958-5887-2-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 2/2] OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
+Date: Mon, 13 Sep 2010 16:02:38 -0700
+Message-ID: <1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
 References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:52959 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708Ab0IMXCq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 19:02:46 -0400
-Received: by gxk23 with SMTP id 23so2203487gxk.19
-        for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 16:02:45 -0700 (PDT)
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:41384 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708Ab0IMXCt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 19:02:49 -0400
+Received: by mail-yx0-f174.google.com with SMTP id 4so2199422yxp.19
+        for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 16:02:48 -0700 (PDT)
 In-Reply-To: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,157 +18,322 @@ Cc: charu@ti.com, p-basak2@ti.com, Tero Kristo <tero.kristo@nokia.com>
 
 From: Kevin Hilman <khilman@ti.com>
 
-In an effort to simplify the core idle path, move any device-specific
-special case handling from the core PM idle path into the CPUidle
-pre-idle checking path.
+Currently, we wait until late in the idle path where interrupts are
+disabled to do runtime-PM-like management for certain special-case
+devices like GPIO.
 
-This keeps the core, interrupts-disabled idle path streamlined and
-independent of any device-specific handling, and also allows CPUidle
-to do the checking only for certain C-states as needed.  This patch
-has the device checks in place for all states with the CHECK_BM flag,
-namely all states >= C2.
+As a prerequiste to moving GPIO to the new runtime PM framework, move
+this runtime-PM-like code out of the late idle path into new device
+idle and resume functions that can be called before interrupts are
+disabled by CPUidle and/or suspend.
 
-This patch was inspired by a similar patch written by Tero Kristo as
-part of a larger series to add INACTIVE state support.
+In addition, move all the GPIO-specific logic into the GPIO core
+instead of keeping GPIO-specific knowledge of power-states, context
+saving etc. in the PM core.
 
-Cc: Tero Kristo <tero.kristo@nokia.com>
+Also, call the new device-idle and -resume methods from CPUidle and
+static suspend path.
+
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |   50 ++++++++++++++++++++++++++++++++++--
- arch/arm/mach-omap2/pm34xx.c      |   14 +---------
- 2 files changed, 48 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
+ arch/arm/mach-omap2/pm.h               |    2 +
+ arch/arm/mach-omap2/pm24xx.c           |    2 +-
+ arch/arm/mach-omap2/pm34xx.c           |   38 +++++++++------------
+ arch/arm/plat-omap/gpio.c              |   57 ++++++++++++++++++++++++--------
+ arch/arm/plat-omap/include/plat/gpio.h |    4 +--
+ 6 files changed, 67 insertions(+), 40 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 3d3d035..0923b82 100644
+index 0923b82..681d823 100644
 --- a/arch/arm/mach-omap2/cpuidle34xx.c
 +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -60,7 +60,8 @@ struct omap3_processor_cx {
+@@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 		pwrdm_set_next_pwrst(per_pd, per_next_state);
  
- struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
- struct omap3_processor_cx current_cx_state;
--struct powerdomain *mpu_pd, *core_pd;
-+struct powerdomain *mpu_pd, *core_pd, *per_pd;
-+struct powerdomain *cam_pd;
- 
- /*
-  * The latencies/thresholds for various C states have
-@@ -233,14 +234,54 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 			       struct cpuidle_state *state)
- {
- 	struct cpuidle_state *new_state = next_valid_state(dev, state);
-+	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
-+	u32 cam_state;
-+	struct omap3_processor_cx *cx;
-+	int ret;
- 
- 	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
- 		BUG_ON(!dev->safe_state);
- 		new_state = dev->safe_state;
-+		goto select_state;
-+	}
+ select_state:
++	omap3_device_idle();
 +
-+	cx = cpuidle_get_statedata(state);
-+	core_next_state = cx->core_state;
-+
-+	/*
-+	 * Prevent idle completely if CAM is active.
-+	 * CAM does not have wakeup capability in OMAP3.
-+	 */
-+	cam_state = pwrdm_read_pwrst(cam_pd);
-+	if (cam_state == PWRDM_POWER_ON) {
-+		new_state = dev->safe_state;
-+		goto select_state;
- 	}
- 
-+	/*
-+	 * Prevent PER off if CORE is not in retention or off as this
-+	 * would disable PER wakeups completely.
-+	 */
-+	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
-+	if ((per_next_state == PWRDM_POWER_OFF) &&
-+	    (core_next_state > PWRDM_POWER_RET)) {
-+		per_next_state = PWRDM_POWER_RET;
-+		pwrdm_set_next_pwrst(per_pd, per_next_state);
-+	}
-+
-+	/* Are we changing PER target state? */
-+	if (per_next_state != per_saved_state)
-+		pwrdm_set_next_pwrst(per_pd, per_next_state);
-+
-+select_state:
  	dev->last_state = new_state;
--	return omap3_enter_idle(dev, new_state);
-+	ret = omap3_enter_idle(dev, new_state);
+ 	ret = omap3_enter_idle(dev, new_state);
+ 
++	omap3_device_resume();
 +
-+	/* Restore original PER state if it was modified */
-+	if (per_next_state != per_saved_state)
-+		pwrdm_set_next_pwrst(per_pd, per_saved_state);
-+
-+	return ret;
- }
+ 	/* Restore original PER state if it was modified */
+ 	if (per_next_state != per_saved_state)
+ 		pwrdm_set_next_pwrst(per_pd, per_saved_state);
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 3de6ece..33cae4b 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -22,6 +22,8 @@ extern void omap_sram_idle(void);
+ extern int omap3_can_sleep(void);
+ extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
++extern void omap3_device_idle(void);
++extern void omap3_device_resume(void);
  
- DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
-@@ -328,7 +369,8 @@ void omap_init_power_states(void)
- 			cpuidle_params_table[OMAP3_STATE_C2].threshold;
- 	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_ON;
- 	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
--	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID;
-+	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID |
-+				CPUIDLE_FLAG_CHECK_BM;
+ struct cpuidle_params {
+ 	u8  valid;
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 6aeedea..7bbf0db 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -106,7 +106,7 @@ static void omap2_enter_full_retention(void)
+ 	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | OMAP24XX_USBSTANDBYCTRL;
+ 	omap_ctrl_writel(l, OMAP2_CONTROL_DEVCONF0);
  
- 	/* C3 . MPU CSWR + Core inactive */
- 	omap3_power_states[OMAP3_STATE_C3].valid =
-@@ -426,6 +468,8 @@ int __init omap3_idle_init(void)
+-	omap2_gpio_prepare_for_idle(PWRDM_POWER_RET);
++	omap2_gpio_prepare_for_idle();
  
- 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
- 	core_pd = pwrdm_lookup("core_pwrdm");
-+	per_pd = pwrdm_lookup("per_pwrdm");
-+	cam_pd = pwrdm_lookup("cam_pwrdm");
- 
- 	omap_init_power_states();
- 	cpuidle_register_driver(&omap3_idle_driver);
+ 	if (omap2_pm_debug) {
+ 		omap2_pm_dump(0, 0, 0);
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 429268e..bb2ba1e 100644
+index bb2ba1e..9e590d9 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -346,7 +346,6 @@ void omap_sram_idle(void)
+@@ -74,16 +74,6 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+ static struct powerdomain *core_pwrdm, *per_pwrdm;
+ static struct powerdomain *cam_pwrdm;
+ 
+-static inline void omap3_per_save_context(void)
+-{
+-	omap_gpio_save_context();
+-}
+-
+-static inline void omap3_per_restore_context(void)
+-{
+-	omap_gpio_restore_context();
+-}
+-
+ static void omap3_enable_io_chain(void)
+ {
+ 	int timeout = 0;
+@@ -332,6 +322,16 @@ static void restore_table_entry(void)
+ 	restore_control_register(control_reg_value);
+ }
+ 
++void omap3_device_idle(void)
++{
++	omap2_gpio_prepare_for_idle();
++}
++
++void omap3_device_resume(void)
++{
++	omap2_gpio_resume_after_idle();
++}
++
+ void omap_sram_idle(void)
+ {
+ 	/* Variable to tell what needs to be saved and restored
+@@ -344,7 +344,7 @@ void omap_sram_idle(void)
+ 	int mpu_next_state = PWRDM_POWER_ON;
+ 	int per_next_state = PWRDM_POWER_ON;
  	int core_next_state = PWRDM_POWER_ON;
- 	int core_prev_state, per_prev_state;
+-	int core_prev_state, per_prev_state;
++	int core_prev_state;
  	u32 sdrc_pwr = 0;
--	int per_state_modified = 0;
  
  	if (!_omap_sram_idle)
- 		return;
-@@ -391,19 +390,10 @@ void omap_sram_idle(void)
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		omap_uart_prepare_idle(2);
- 		omap2_gpio_prepare_for_idle(per_next_state);
--		if (per_next_state == PWRDM_POWER_OFF) {
--			if (core_next_state == PWRDM_POWER_ON) {
--				per_next_state = PWRDM_POWER_RET;
--				pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
--				per_state_modified = 1;
--			} else
-+		if (per_next_state == PWRDM_POWER_OFF)
- 				omap3_per_save_context();
--		}
+@@ -387,12 +387,9 @@ void omap_sram_idle(void)
  	}
  
--	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
--		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
--
+ 	/* PER */
+-	if (per_next_state < PWRDM_POWER_ON) {
++	if (per_next_state < PWRDM_POWER_ON)
+ 		omap_uart_prepare_idle(2);
+-		omap2_gpio_prepare_for_idle(per_next_state);
+-		if (per_next_state == PWRDM_POWER_OFF)
+-				omap3_per_save_context();
+-	}
++
+ 
  	/* CORE */
  	if (core_next_state < PWRDM_POWER_ON) {
- 		omap_uart_prepare_idle(0);
-@@ -470,8 +460,6 @@ void omap_sram_idle(void)
- 		if (per_prev_state == PWRDM_POWER_OFF)
- 			omap3_per_restore_context();
+@@ -454,13 +451,8 @@ void omap_sram_idle(void)
+ 	omap3_intc_resume_idle();
+ 
+ 	/* PER */
+-	if (per_next_state < PWRDM_POWER_ON) {
+-		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+-		omap2_gpio_resume_after_idle();
+-		if (per_prev_state == PWRDM_POWER_OFF)
+-			omap3_per_restore_context();
++	if (per_next_state < PWRDM_POWER_ON)
  		omap_uart_resume_idle(2);
--		if (per_state_modified)
--			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
- 	}
+-	}
  
  	/* Disable IO-PAD and IO-CHAIN wakeup */
+ 	if (omap3_has_io_wakeup() &&
+@@ -570,6 +562,7 @@ static void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
+ static int omap3_pm_prepare(void)
+ {
+ 	disable_hlt();
++	omap3_device_idle();
+ 	return 0;
+ }
+ 
+@@ -637,6 +630,7 @@ static int omap3_pm_enter(suspend_state_t unused)
+ 
+ static void omap3_pm_finish(void)
+ {
++	omap3_device_resume();
+ 	enable_hlt();
+ }
+ 
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 7951eef..b0467c1 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -29,6 +29,8 @@
+ #include <asm/mach/irq.h>
+ #include <plat/powerdomain.h>
+ 
++static struct powerdomain *per_pwrdm;
++
+ /*
+  * OMAP1510 GPIO registers
+  */
+@@ -207,6 +209,9 @@ struct gpio_bank {
+ 	u32 dbck_enable_mask;
+ };
+ 
++static void omap3_gpio_restore_context(void);
++static void omap3_gpio_save_context(void);
++
+ #define METHOD_MPUIO		0
+ #define METHOD_GPIO_1510	1
+ #define METHOD_GPIO_1610	2
+@@ -1778,6 +1783,8 @@ static int __init _omap_gpio_init(void)
+ 	}
+ #endif
+ 
++	if (cpu_class_is_omap2())
++		per_pwrdm = pwrdm_lookup("per_pwrdm");
+ 
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	if (cpu_is_omap15xx()) {
+@@ -2074,14 +2081,22 @@ static struct sys_device omap_gpio_device = {
+ 
+ static int workaround_enabled;
+ 
+-void omap2_gpio_prepare_for_idle(int power_state)
++void omap2_gpio_prepare_for_idle(void)
+ {
+-	int i, c = 0;
+-	int min = 0;
++	int i, c = 0, min = 0;
++	int per_next_state;
++
++	if (!per_pwrdm)
++		return;
++
++	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
++	if (per_next_state >= PWRDM_POWER_INACTIVE)
++		return;
+ 
+ 	if (cpu_is_omap34xx())
+ 		min = 1;
+ 
++	workaround_enabled = 0;
+ 	for (i = min; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+ 		u32 l1, l2;
+@@ -2089,7 +2104,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
+ 		if (bank->dbck_enable_mask)
+ 			clk_disable(bank->dbck);
+ 
+-		if (power_state > PWRDM_POWER_OFF)
++		if (per_next_state > PWRDM_POWER_OFF)
+ 			continue;
+ 
+ 		/* If going to OFF, remove triggering for all
+@@ -2135,20 +2150,35 @@ void omap2_gpio_prepare_for_idle(int power_state)
+ 
+ 		c++;
+ 	}
+-	if (!c) {
+-		workaround_enabled = 0;
+-		return;
+-	}
+-	workaround_enabled = 1;
++	if (c)
++		workaround_enabled = 1;
++
++	if (cpu_is_omap34xx() && (per_next_state == PWRDM_POWER_OFF))
++		omap3_gpio_save_context();
+ }
+ 
+ void omap2_gpio_resume_after_idle(void)
+ {
+-	int i;
+-	int min = 0;
++	int i, min = 0;
++	int per_next_state;
++
++	if (!per_pwrdm)
++		return;
++
++	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
++	if (per_next_state >= PWRDM_POWER_INACTIVE)
++		return;
++
++	if (cpu_is_omap34xx() && (per_next_state == PWRDM_POWER_OFF)) {
++		int per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
++
++		if (per_prev_state == PWRDM_POWER_OFF)
++			omap3_gpio_restore_context();
++	}
+ 
+ 	if (cpu_is_omap34xx())
+ 		min = 1;
++
+ 	for (i = min; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+ 		u32 l, gen, gen0, gen1;
+@@ -2235,14 +2265,13 @@ void omap2_gpio_resume_after_idle(void)
+ 			}
+ 		}
+ 	}
+-
+ }
+ 
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+ /* save the registers of bank 2-6 */
+-void omap_gpio_save_context(void)
++static void omap3_gpio_save_context(void)
+ {
+ 	int i;
+ 
+@@ -2275,7 +2304,7 @@ void omap_gpio_save_context(void)
+ }
+ 
+ /* restore the required registers of bank 2-6 */
+-void omap_gpio_restore_context(void)
++static void omap3_gpio_restore_context(void)
+ {
+ 	int i;
+ 
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index de1c604..c81ef94 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -72,12 +72,10 @@
+ 				 IH_GPIO_BASE + (nr))
+ 
+ extern int omap_gpio_init(void);	/* Call from board init only */
+-extern void omap2_gpio_prepare_for_idle(int power_state);
++extern void omap2_gpio_prepare_for_idle(void);
+ extern void omap2_gpio_resume_after_idle(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
+ extern void omap_set_gpio_debounce_time(int gpio, int enable);
+-extern void omap_gpio_save_context(void);
+-extern void omap_gpio_restore_context(void);
+ /*-------------------------------------------------------------------------*/
+ 
+ /* Wrappers for "new style" GPIO calls, using the new infrastructure
 -- 
 1.7.2.1
 
