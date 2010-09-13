@@ -1,12 +1,12 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [v4 6/6] OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
-Date: Mon, 13 Sep 2010 20:43:29 +0530
-Message-ID: <1284390809-11519-7-git-send-email-charu@ti.com>
+Subject: [v4 2/6] OMAP2420: hwmod data: Add watchdog timer
+Date: Mon, 13 Sep 2010 20:43:25 +0530
+Message-ID: <1284390809-11519-3-git-send-email-charu@ti.com>
 References: <1284390809-11519-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55543 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55542 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753015Ab0IMPNt (ORCPT
+	with ESMTP id S1753012Ab0IMPNt (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 11:13:49 -0400
 In-Reply-To: <1284390809-11519-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,150 +14,96 @@ List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, wim@iguana.be, linux-watchdog@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-Call runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
-for enabling/disabling the clocks, sysconfig settings instead of using
-clock FW APIs.
+Add watchdog timer hwmod data for OMAP2420 chip
 
 Signed-off-by: Charulatha V <charu@ti.com>
 ---
- drivers/watchdog/omap_wdt.c |   57 ++++++++++++++++--------------------------
- 1 files changed, 22 insertions(+), 35 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   59 ++++++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 76b58ab..34bf435 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -38,11 +38,11 @@
- #include <linux/err.h>
- #include <linux/platform_device.h>
- #include <linux/moduleparam.h>
--#include <linux/clk.h>
- #include <linux/bitops.h>
- #include <linux/io.h>
- #include <linux/uaccess.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
- #include <mach/hardware.h>
- #include <plat/prcm.h>
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index 3cc768e..73a516e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -33,6 +33,7 @@ static struct omap_hwmod omap2420_mpu_hwmod;
+ static struct omap_hwmod omap2420_iva_hwmod;
+ static struct omap_hwmod omap2420_l3_main_hwmod;
+ static struct omap_hwmod omap2420_l4_core_hwmod;
++static struct omap_hwmod omap2420_wd_timer2_hwmod;
  
-@@ -61,8 +61,6 @@ struct omap_wdt_dev {
- 	void __iomem    *base;          /* physical */
- 	struct device   *dev;
- 	int             omap_wdt_users;
--	struct clk      *ick;
--	struct clk      *fck;
- 	struct resource *mem;
- 	struct miscdevice omap_wdt_miscdev;
- };
-@@ -146,8 +144,7 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
- 		return -EBUSY;
- 
--	clk_enable(wdev->ick);    /* Enable the interface clock */
--	clk_enable(wdev->fck);    /* Enable the functional clock */
-+	pm_runtime_get_sync(wdev->dev);
- 
- 	/* initialize prescaler */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-@@ -177,8 +174,7 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
- 
- 	omap_wdt_disable(wdev);
- 
--	clk_disable(wdev->ick);
--	clk_disable(wdev->fck);
-+	pm_runtime_put_sync(wdev->dev);
- #else
- 	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
- #endif
-@@ -260,6 +256,21 @@ static const struct file_operations omap_wdt_fops = {
- 	.release = omap_wdt_release,
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap2420_l3_main__l4_core = {
+@@ -165,12 +166,70 @@ static struct omap_hwmod omap2420_iva_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
  };
  
-+static int wdt_runtime_suspend(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static int wdt_runtime_resume(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops gpio_pm_ops = {
-+	.runtime_suspend = wdt_runtime_suspend,
-+	.runtime_resume	 = wdt_runtime_resume,
++/* WDTIMER2 <- L4_WKUP interface */
++static struct omap_hwmod_addr_space omap2420_wd_timer2_addrs[] = {
++	{
++		.pa_start	= 0x48022000,
++		.pa_end		= 0x4802207f,
++		.flags		= ADDR_TYPE_RT
++	},
 +};
 +
- static int __devinit omap_wdt_probe(struct platform_device *pdev)
- {
- 	struct resource *res, *mem;
-@@ -292,19 +303,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
++static struct omap_hwmod_ocp_if omap2420_l4_wkup__wd_timer2 = {
++	.master		= &omap2420_l4_wkup_hwmod,
++	.slave		= &omap2420_wd_timer2_hwmod,
++	.clk		= "mpu_wdt_ick",
++	.addr		= omap2420_wd_timer2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_wd_timer2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* WDTIMER common */
++
++static struct omap_hwmod_class_sysconfig omap2420_wd_timer_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_AUTOIDLE),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap2420_wd_timer_hwmod_class = {
++	.name = "wd_timer",
++	.sysc = &omap2420_wd_timer_sysc,
++};
++
++/* WDTIMER2 */
++static struct omap_hwmod_ocp_if *omap2420_wd_timer2_slaves[] = {
++	&omap2420_l4_wkup__wd_timer2,
++};
++
++static struct omap_hwmod omap2420_wd_timer2_hwmod = {
++	.name		= "wd_timer2",
++	.class		= &omap2420_wd_timer_hwmod_class,
++	.main_clk	= "mpu_wdt_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_WDT2_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_WDT2_SHIFT,
++		},
++	},
++	.slaves		= omap2420_wd_timer2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_wd_timer2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++};
++
+ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
+ 	&omap2420_l3_main_hwmod,
+ 	&omap2420_l4_core_hwmod,
+ 	&omap2420_l4_wkup_hwmod,
+ 	&omap2420_mpu_hwmod,
+ 	&omap2420_iva_hwmod,
++	&omap2420_wd_timer2_hwmod,
+ 	NULL,
+ };
  
- 	wdev->omap_wdt_users = 0;
- 	wdev->mem = mem;
--
--	wdev->ick = clk_get(&pdev->dev, "ick");
--	if (IS_ERR(wdev->ick)) {
--		ret = PTR_ERR(wdev->ick);
--		wdev->ick = NULL;
--		goto err_clk;
--	}
--	wdev->fck = clk_get(&pdev->dev, "fck");
--	if (IS_ERR(wdev->fck)) {
--		ret = PTR_ERR(wdev->fck);
--		wdev->fck = NULL;
--		goto err_clk;
--	}
-+	wdev->dev = &pdev->dev;
- 
- 	wdev->base = ioremap(res->start, resource_size(res));
- 	if (!wdev->base) {
-@@ -314,8 +313,8 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, wdev);
- 
--	clk_enable(wdev->ick);
--	clk_enable(wdev->fck);
-+	pm_runtime_enable(wdev->dev);
-+	pm_runtime_get_sync(wdev->dev);
- 
- 	omap_wdt_disable(wdev);
- 	omap_wdt_adjust_timeout(timer_margin);
-@@ -333,11 +332,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
- 		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
- 		timer_margin);
- 
--	/* autogate OCP interface clock */
--	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
--
--	clk_disable(wdev->ick);
--	clk_disable(wdev->fck);
-+	pm_runtime_put_sync(wdev->dev);
- 
- 	omap_wdt_dev = pdev;
- 
-@@ -349,12 +344,6 @@ err_misc:
- 
- err_ioremap:
- 	wdev->base = NULL;
--
--err_clk:
--	if (wdev->ick)
--		clk_put(wdev->ick);
--	if (wdev->fck)
--		clk_put(wdev->fck);
- 	kfree(wdev);
- 
- err_kzalloc:
-@@ -386,8 +375,6 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
- 	release_mem_region(res->start, resource_size(res));
- 	platform_set_drvdata(pdev, NULL);
- 
--	clk_put(wdev->ick);
--	clk_put(wdev->fck);
- 	iounmap(wdev->base);
- 
- 	kfree(wdev);
 -- 
 1.7.0.4
 
