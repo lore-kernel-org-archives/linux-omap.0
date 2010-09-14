@@ -1,87 +1,92 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 2/2] OMAP: omap_device: make all devices a child of a new parent device
-Date: Tue, 14 Sep 2010 11:41:54 -0700
-Message-ID: <1284489714-14705-2-git-send-email-khilman@deeprootsystems.com>
-References: <1284489714-14705-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/9] post cpdma/mdio refactoring fixes
+Date: Tue, 14 Sep 2010 11:50:39 -0700
+Message-ID: <87hbhsnoqo.fsf@deeprootsystems.com>
+References: <1284401251-8846-1-git-send-email-cyril@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:45711 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752774Ab0INSmA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 14:42:00 -0400
-Received: by pwi3 with SMTP id 3so2552594pwi.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Sep 2010 11:41:59 -0700 (PDT)
-In-Reply-To: <1284489714-14705-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:43691 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049Ab0INSun (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 14:50:43 -0400
+In-Reply-To: <1284401251-8846-1-git-send-email-cyril@ti.com> (Cyril
+	Chemparathy's message of "Mon, 13 Sep 2010 14:07:22 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: paul@pwsan.com
+To: Cyril Chemparathy <cyril@ti.com>
+Cc: netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, michael.williamson@criticallink.com, caglarakyuz@gmail.com, bparrot@ti.com
 
-From: Kevin Hilman <khilman@ti.com>
+Cyril Chemparathy <cyril@ti.com> writes:
 
-In order to help differentiate omap_devices from normal
-platform_devices, make them all a parent of a new common parent
-device.
+> This series consists of fixes for issues found during broader testing of the
+> davinci cpdma/mdio separation series.
+>
+> The fixes included here are:
+>
+>   1. Ability to force 100/full rather than auto-detect phy.  This is necessary
+>      for the external switch on the da830 evm platform
+>
+>   2. Fix end-of-queue requeue to include checks at submission time (in
+>      addition to pre-existing completion time checks).
+>
+>   3. Cleanups to rx path error handling.  This prevents unnecessary stack
+>      dumps for perfectly legal situations.
+>
+>   4. Work around for emac-soft-reset tie-up to mdio controller.  This affects
+>      all da8xx family devices (and possibly am35xx as well).
+>
+>   5. Reworked hard-coded scan-time estimate to use a more accurate calculated
+>      number instead.
+>
+>   6. Code to generate cpdma register dumps, useful during debug.
+>
+>
+> Many thanks to Mike and Caglar for patiently working with me through these
+> issues
 
-Then, in order to determine if a platform_device is also an
-omap_device, checking the parent is all that is needed.
+Thanks for working with them to resolve these issues.
 
-Users of this feature are the runtime PM core for OMAP, where we need
-to know if a device being passed in is an omap_device or not in order
-to know whether to call the omap_device API with it.
+> I've taken the liberty of adding their sign offs.
 
-In addition, all omap_devices will now show up under /sys/devices/omap
-instead of /sys/devices/platform
+A sign-off is only for those on the delivery path of the patch.  Can you
+update changing those to Tested-By  tags?
 
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
-Changes since v1:
-- renamed the device from omap_bus to omap_parent_device to be more
-  clear that this is not a bus.
+If you prefer, you can respin the original series with these fixes
+included instead of creating a separate series.  I will then just drop
+the original, and queue the new one.
 
- arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
- arch/arm/plat-omap/omap_device.c              |   12 ++++++++++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+Thanks,
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index bad4c3d..28e2d1a 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -36,6 +36,8 @@
- 
- #include <plat/omap_hwmod.h>
- 
-+extern struct device omap_device_parent;
-+
- /* omap_device._state values */
- #define OMAP_DEVICE_STATE_UNKNOWN	0
- #define OMAP_DEVICE_STATE_ENABLED	1
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 7f05f49..8215b1b 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -465,6 +465,7 @@ int omap_device_register(struct omap_device *od)
- {
- 	pr_debug("omap_device: %s: registering\n", od->pdev.name);
- 
-+	od->pdev.dev.parent = &omap_device_parent;
- 	return platform_device_register(&od->pdev);
- }
- 
-@@ -737,3 +738,14 @@ int omap_device_enable_clocks(struct omap_device *od)
- 	/* XXX pass along return value here? */
- 	return 0;
- }
-+
-+struct device omap_device_parent = {
-+	.init_name	= "omap",
-+	.parent         = &platform_bus,
-+};
-+
-+static int __init omap_device_init(void)
-+{
-+	return device_register(&omap_device_parent);
-+}
-+core_initcall(omap_device_init);
--- 
-1.7.2.1
+Kevin
 
+> Cyril Chemparathy (9):
+>   net: davinci_emac: allow forced 100/full via phy_id
+>   davinci: specify phy_id rather than auto-detect
+>   net: davinci_cpdma: requeue on early end-of-queue
+>   net: davinci_emac: fix rx error handling
+>   net: davinci_mdio: separate out controller reset
+>   net: davinci_mdio: use calculated bus access times
+>   net: davinci_mdio: work around emac soft-reset during i/o
+>   net: davinci_cpdma: add register dump routines
+>   net: davinci_emac: extended register dumps on tx timeout
+>
+>  arch/arm/mach-davinci/board-da830-evm.c    |    2 +
+>  arch/arm/mach-davinci/board-da850-evm.c    |    3 +
+>  arch/arm/mach-davinci/board-dm365-evm.c    |    4 +
+>  arch/arm/mach-davinci/board-dm644x-evm.c   |    3 +
+>  arch/arm/mach-davinci/board-dm646x-evm.c   |    5 +
+>  arch/arm/mach-davinci/board-mityomapl138.c |    3 +
+>  arch/arm/mach-davinci/board-neuros-osd2.c  |    4 +
+>  arch/arm/mach-davinci/board-sffsdr.c       |    4 +
+>  drivers/net/davinci_cpdma.c                |  132 ++++++++++++++++++-
+>  drivers/net/davinci_cpdma.h                |    3 +
+>  drivers/net/davinci_emac.c                 |   31 ++++-
+>  drivers/net/davinci_mdio.c                 |  195 ++++++++++++++++++++--------
+>  include/linux/davinci_emac.h               |    7 +
+>  13 files changed, 334 insertions(+), 62 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
