@@ -1,37 +1,45 @@
-From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
-Date: Tue, 14 Sep 2010 14:10:01 +0100
-Message-ID: <4C8F7429.1080105@jic23.retrosnub.co.uk>
-References: <61033.10.24.255.18.1283926671.squirrel@dbdmail.itg.ti.com> <4C877584.7000902@jic23.retrosnub.co.uk> <20100914080003.GD15167@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100914080003.GD15167@core.coreip.homeip.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 2/3] omap: pm-debug: Enable wakeup_timer_milliseconds debugfs entry
+Date: Tue, 14 Sep 2010 19:25:47 +0530
+Message-ID: <1284472548-32151-3-git-send-email-santosh.shilimkar@ti.com>
+References: <1284472548-32151-1-git-send-email-santosh.shilimkar@ti.com>
+ <1284472548-32151-2-git-send-email-santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33806 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753655Ab0INNz5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Sep 2010 09:55:57 -0400
+In-Reply-To: <1284472548-32151-2-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, rnayak@ti.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 09/14/10 09:00, Dmitry Torokhov wrote:
-> On Wed, Sep 08, 2010 at 12:37:40PM +0100, Jonathan Cameron wrote:
->>
->> I'm happy to see your driver go in as it is currently, what bothers me is that we will end
->> up with incompatible interfaces for all the accelerometers Dmitry takes!
->>
-> 
-> This is a valid concern. How about I chicken out and will not merge any
-> new sysfs knobs until you guys decide on reasonable interface? Most set
-> up is done by board code anyways, sysfs is more of nice-to-have?
-Hemanth, would removing the sysfs hooks from this driver be ok with you?
-I'd personally have favoured a merge, add new interfaces when agreed and
-deprecate old ones approach, but it is Dmitry's call.  Perhaps it is better
-to get the majority of the device functionality in place now and add
-the bells and whistles later.
+Commit 8e2efde9 added milliseconds suspend wakeup time support but
+same interface is not exported through debugfs
 
-For input device things are probably mostly fixed for a particular board
-design.  There are definitely interesting things one can do if the knobs
-are available but they (I think) mostly fall outside of using the device
-for input!
+This patch enables the debugfs hook for wakeup_timer_milliseconds
 
-Jonathan
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/pm-debug.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 143266d..395763c 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -632,6 +632,9 @@ static int __init pm_dbg_init(void)
+ 				   &sleep_while_idle, &pm_dbg_option_fops);
+ 	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
+ 				   &wakeup_timer_seconds, &pm_dbg_option_fops);
++	(void) debugfs_create_file("wakeup_timer_milliseconds",
++			S_IRUGO | S_IWUGO, d, &wakeup_timer_milliseconds,
++			&pm_dbg_option_fops);
+ 	pm_dbg_init_done = 1;
+ 
+ 	return 0;
+-- 
+1.6.0.4
+
