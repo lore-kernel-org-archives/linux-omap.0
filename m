@@ -1,80 +1,37 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
-Date: Tue, 14 Sep 2010 14:57:11 +0300
-Message-ID: <20100914115711.GE7554@legolas.emea.dhcp.ti.com>
-References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
- <1282647866-6918-8-git-send-email-manjugk@ti.com>
- <87lj7iv8zv.fsf@deeprootsystems.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A8F@dbde02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843B8E7@dbde02.ent.ti.com>
- <20100914102407.GC7554@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843B9A8@dbde02.ent.ti.com>
-Reply-To: balbi@ti.com
+From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
+Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
+Date: Tue, 14 Sep 2010 14:10:01 +0100
+Message-ID: <4C8F7429.1080105@jic23.retrosnub.co.uk>
+References: <61033.10.24.255.18.1283926671.squirrel@dbdmail.itg.ti.com> <4C877584.7000902@jic23.retrosnub.co.uk> <20100914080003.GD15167@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45725 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751852Ab0INL5R (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Sep 2010 07:57:17 -0400
-Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027843B9A8@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100914080003.GD15167@core.coreip.homeip.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On Tue, Sep 14, 2010 at 06:44:01AM -0500, G, Manjunath Kondaiah wrote:
->
->
->> -----Original Message-----
->> From: Balbi, Felipe
->> Sent: Tuesday, September 14, 2010 3:54 PM
->> To: G, Manjunath Kondaiah
->> Cc: Kevin Hilman; linux-omap@vger.kernel.org; Cousson,
->> Benoit; Shilimkar, Santosh
->> Subject: Re: [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device
->> registration
+On 09/14/10 09:00, Dmitry Torokhov wrote:
+> On Wed, Sep 08, 2010 at 12:37:40PM +0100, Jonathan Cameron wrote:
 >>
->> Hi,
+>> I'm happy to see your driver go in as it is currently, what bothers me is that we will end
+>> up with incompatible interfaces for all the accelerometers Dmitry takes!
 >>
->> On Tue, Sep 14, 2010 at 05:18:52AM -0500, G, Manjunath Kondaiah wrote:
->> >How static inline functions are better than this?
->>
->> static inline function will at least give you type checking ??
->
->If so, even inline function has certain disadvantages such as, A.
->somtimes the compiler may not be able to inline as many functions as
->the programmer indicates.
+> 
+> This is a valid concern. How about I chicken out and will not merge any
+> new sysfs knobs until you guys decide on reasonable interface? Most set
+> up is done by board code anyways, sysfs is more of nice-to-have?
+Hemanth, would removing the sysfs hooks from this driver be ok with you?
+I'd personally have favoured a merge, add new interfaces when agreed and
+deprecate old ones approach, but it is Dmitry's call.  Perhaps it is better
+to get the majority of the device functionality in place now and add
+the bells and whistles later.
 
-show me one such example.
+For input device things are probably mostly fixed for a particular board
+design.  There are definitely interesting things one can do if the knobs
+are available but they (I think) mostly fall outside of using the device
+for input!
 
-> B. Inline functions might increcase compilation time
-
-it's possible, for sure. But for the case you just showed the arguments
-are even constant, so there's more room for compile-time optimization.
-In the end, GCC will replace your calls with:
-
-address = value;
-
-or, when reading:
-
-return address
-
->The issue in DMA driver is, if I replace dma_read/dma_write macros with
->inline functions, I need to remove OMAP_DMA4_##reg macro in dma_read
->and dma write functions and I have to expand the register names all
->over the place in DMA driver(like instead of CAPS0, it should be
->OMAP_DMA4_CAPS0, having only CAPS0 will be easier to read).
-
-it might be easier to read but this is a recipe for disaster. Avoid
-using those macros for part of the actual symbol/define/whatever name
-like that. If someone later decides to change something, it will be a
-pain. With those macros you also kill any possibility of using
-ctags/cscope for source code cross-referencing. When a developers
-searchs for the definition of CAPS0, he won't find it, as it's called
-OMAP_DMA4_CAPS0. So remove those silly things and change the defines to
-static inline functions.
-
--- 
-balbi
+Jonathan
