@@ -1,79 +1,103 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFT/PATCH 2/8] cbus: remove device_release completion
-Date: Tue, 14 Sep 2010 11:30:10 +0300
-Message-ID: <1284453016-8295-3-git-send-email-balbi@ti.com>
+Subject: [RFT/PATCH 1/8] cbus: Fix compile by converting ioctl calls to unlocked_ioctl calls
+Date: Tue, 14 Sep 2010 11:30:09 +0300
+Message-ID: <1284453016-8295-2-git-send-email-balbi@ti.com>
 References: <1284453016-8295-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46584 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46578 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752062Ab0INIa1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Sep 2010 04:30:27 -0400
+	id S1752062Ab0INIaY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Sep 2010 04:30:24 -0400
 In-Reply-To: <1284453016-8295-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-We don't do anything before releasing the device
-so we might as well return as soon as possible.
+From: Jarkko Nikula <jhnikula@gmail.com>
 
+Locked .ioctl is gone from struct file_operations by commit b19dd42
+so these cbus drivers don't compile. Also it seems there is no need for BKL
+anyway in these drivers.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/retu.c |   13 -------------
- 1 files changed, 0 insertions(+), 13 deletions(-)
+ drivers/cbus/retu-user.c  |    5 ++---
+ drivers/cbus/retu-wdt.c   |    6 +++---
+ drivers/cbus/tahvo-user.c |    5 ++---
+ 3 files changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index bc81a9b..15368dc 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -56,8 +56,6 @@ static int retu_is_vilma;
- static struct tasklet_struct retu_tasklet;
- spinlock_t retu_lock = SPIN_LOCK_UNLOCKED;
- 
--static struct completion device_release;
--
- struct retu_irq_handler_desc {
- 	int (*func)(unsigned long);
- 	unsigned long arg;
-@@ -491,11 +489,6 @@ static int __devexit retu_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--static void retu_device_release(struct device *dev)
--{
--	complete(&device_release);
--}
--
- static struct platform_driver retu_driver = {
- 	.probe		= retu_probe,
- 	.remove		= __devexit_p(retu_remove),
-@@ -507,9 +500,6 @@ static struct platform_driver retu_driver = {
- static struct platform_device retu_device = {
- 	.name		= "retu",
- 	.id		= -1,
--	.dev = {
--		.release = retu_device_release,
--	}
- };
- 
- /**
-@@ -525,8 +515,6 @@ static int __init retu_init(void)
- 		machine_is_nokia_n810() || machine_is_nokia_n810_wimax()))
- 			return -ENODEV;
- 
--	init_completion(&device_release);
--
- 	ret = platform_driver_register(&retu_driver);
- 	if (ret < 0)
- 		return ret;
-@@ -547,7 +535,6 @@ static void __exit retu_exit(void)
+diff --git a/drivers/cbus/retu-user.c b/drivers/cbus/retu-user.c
+index 953d92a..c36f356 100644
+--- a/drivers/cbus/retu-user.c
++++ b/drivers/cbus/retu-user.c
+@@ -270,8 +270,7 @@ static int retu_close(struct inode *inode, struct file *filp)
+ /*
+  * Device control (ioctl)
+  */
+-static int retu_ioctl(struct inode *inode, struct file *filp,
+-		      unsigned int cmd, unsigned long arg)
++static long retu_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
  {
- 	platform_device_unregister(&retu_device);
- 	platform_driver_unregister(&retu_driver);
--	wait_for_completion(&device_release);
+ 	struct retu_tahvo_write_parms par;
+ 	int ret;
+@@ -360,7 +359,7 @@ static unsigned retu_poll(struct file *filp, struct poll_table_struct *pt)
+ 
+ static struct file_operations retu_user_fileops = {
+ 	.owner = THIS_MODULE,
+-	.ioctl = retu_ioctl,
++	.unlocked_ioctl = retu_ioctl,
+ 	.read = retu_read,
+ 	.release = retu_close,
+ 	.poll = retu_poll
+diff --git a/drivers/cbus/retu-wdt.c b/drivers/cbus/retu-wdt.c
+index 6070a05..3d83cdc 100644
+--- a/drivers/cbus/retu-wdt.c
++++ b/drivers/cbus/retu-wdt.c
+@@ -184,8 +184,8 @@ static ssize_t retu_wdt_write(struct file *file, const char __user *data,
+ 	return len;
  }
  
- subsys_initcall(retu_init);
+-static int retu_wdt_ioctl(struct inode *inode, struct file *file,
+-					unsigned int cmd, unsigned long arg)
++static long retu_wdt_ioctl(struct file *file, unsigned int cmd,
++			   unsigned long arg)
+ {
+ 	int new_margin;
+ 
+@@ -246,7 +246,7 @@ static int __devinit retu_wdt_ping(void)
+ static const struct file_operations retu_wdt_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.write		= retu_wdt_write,
+-	.ioctl		= retu_wdt_ioctl,
++	.unlocked_ioctl	= retu_wdt_ioctl,
+ 	.open		= retu_wdt_open,
+ 	.release	= retu_wdt_release,
+ };
+diff --git a/drivers/cbus/tahvo-user.c b/drivers/cbus/tahvo-user.c
+index bd30f06..9cfc71c 100644
+--- a/drivers/cbus/tahvo-user.c
++++ b/drivers/cbus/tahvo-user.c
+@@ -254,8 +254,7 @@ static int tahvo_close(struct inode *inode, struct file *filp)
+ /*
+  * Device control (ioctl)
+  */
+-static int tahvo_ioctl(struct inode *inode, struct file *filp,
+-		       unsigned int cmd, unsigned long arg)
++static long tahvo_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ {
+ 	struct retu_tahvo_write_parms par;
+ 	int ret;
+@@ -342,7 +341,7 @@ static unsigned tahvo_poll(struct file *filp, struct poll_table_struct *pt)
+ 
+ static struct file_operations tahvo_user_fileops = {
+ 	.owner = THIS_MODULE,
+-	.ioctl = tahvo_ioctl,
++	.unlocked_ioctl = tahvo_ioctl,
+ 	.read = tahvo_read,
+ 	.release = tahvo_close,
+ 	.poll = tahvo_poll
 -- 
 1.7.3.rc0.35.g8ac8c
 
