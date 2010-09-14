@@ -1,1164 +1,1060 @@
 From: Cyril Chemparathy <cyril@ti.com>
-Subject: [PATCH v4 08/10] net: davinci_emac: separate out cpdma code
-Date: Tue, 14 Sep 2010 17:10:10 -0400
-Message-ID: <1284498612-25294-9-git-send-email-cyril@ti.com>
+Subject: [PATCH v4 10/10] net: davinci_emac: cleanup unused cpdma code
+Date: Tue, 14 Sep 2010 17:10:12 -0400
+Message-ID: <1284498612-25294-11-git-send-email-cyril@ti.com>
 References: <1284498612-25294-1-git-send-email-cyril@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57191 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754292Ab0INVKf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Sep 2010 17:10:35 -0400
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1284498612-25294-1-git-send-email-cyril@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org
 Cc: michael.williamson@criticallink.com, caglarakyuz@gmail.com, bparrot@ti.com, Cyril Chemparathy <cyril@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-In addition to being embedded into the EMAC controller, the CPDMA hardware
-block is used in TI's CPSW switch controller.  Fortunately, the programming
-interface to this hardware block remains pretty nicely consistent across these
-devices.
-
-This patch adds a new CPDMA services layer, which can then be reused across
-EMAC and CPSW drivers.
+Having switched over to the newly introduced cpdma layer, this patch now
+removes a whole bunch of code that is now unused.  This patch has been
+maintained separate strictly for reasons of readability.
 
 Signed-off-by: Cyril Chemparathy <cyril@ti.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Tested-by: Michael Williamson <michael.williamson@criticallink.com>
 Tested-by: Caglar Akyuz <caglarakyuz@gmail.com>
 ---
- drivers/net/Kconfig         |   10 +
- drivers/net/Makefile        |    1 +
- drivers/net/davinci_cpdma.c |  965 +++++++++++++++++++++++++++++++++++++++++++
- drivers/net/davinci_cpdma.h |  108 +++++
- 4 files changed, 1084 insertions(+), 0 deletions(-)
- create mode 100644 drivers/net/davinci_cpdma.c
- create mode 100644 drivers/net/davinci_cpdma.h
+ drivers/net/davinci_emac.c |  930 --------------------------------------------
+ 1 files changed, 0 insertions(+), 930 deletions(-)
 
-diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
-index 911e7f1..775fd87 100644
---- a/drivers/net/Kconfig
-+++ b/drivers/net/Kconfig
-@@ -952,6 +952,7 @@ config TI_DAVINCI_EMAC
- 	tristate "TI DaVinci EMAC Support"
- 	depends on ARM && ( ARCH_DAVINCI || ARCH_OMAP3 )
- 	select TI_DAVINCI_MDIO
-+	select TI_DAVINCI_CPDMA
- 	select PHYLIB
- 	help
- 	  This driver supports TI's DaVinci Ethernet .
-@@ -969,6 +970,15 @@ config TI_DAVINCI_MDIO
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called davinci_mdio.  This is recommended.
+diff --git a/drivers/net/davinci_emac.c b/drivers/net/davinci_emac.c
+index 67dbcfb..2a628d1 100644
+--- a/drivers/net/davinci_emac.c
++++ b/drivers/net/davinci_emac.c
+@@ -127,7 +127,6 @@ static const char emac_version_string[] = "TI DaVinci EMAC Linux v6.1";
+ /* EMAC register related defines */
+ #define EMAC_ALL_MULTI_REG_VALUE	(0xFFFFFFFF)
+ #define EMAC_NUM_MULTICAST_BITS		(64)
+-#define EMAC_TEARDOWN_VALUE		(0xFFFFFFFC)
+ #define EMAC_TX_CONTROL_TX_ENABLE_VAL	(0x1)
+ #define EMAC_RX_CONTROL_RX_ENABLE_VAL	(0x1)
+ #define EMAC_MAC_HOST_ERR_INTMASK_VAL	(0x2)
+@@ -214,24 +213,10 @@ static const char emac_version_string[] = "TI DaVinci EMAC Linux v6.1";
+ #define EMAC_DEF_MAX_MULTICAST_ADDRESSES (64) /* Max mcast addr's */
  
-+config TI_DAVINCI_CPDMA
-+	tristate "TI DaVinci CPDMA Support"
-+	depends on ARM && ( ARCH_DAVINCI || ARCH_OMAP3 )
-+	help
-+	  This driver supports TI's DaVinci CPDMA dma engine.
-+
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called davinci_cpdma.  This is recommended.
-+
- config DM9000
- 	tristate "DM9000 support"
- 	depends on ARM || BLACKFIN || MIPS
-diff --git a/drivers/net/Makefile b/drivers/net/Makefile
-index d38a7ab..65da885 100644
---- a/drivers/net/Makefile
-+++ b/drivers/net/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_PHYLIB) += phy/
+ /* EMAC Peripheral Device Register Memory Layout structure */
+-#define EMAC_TXIDVER		0x0
+-#define EMAC_TXCONTROL		0x4
+-#define EMAC_TXTEARDOWN		0x8
+-#define EMAC_RXIDVER		0x10
+-#define EMAC_RXCONTROL		0x14
+-#define EMAC_RXTEARDOWN		0x18
+-#define EMAC_TXINTSTATRAW	0x80
+-#define EMAC_TXINTSTATMASKED	0x84
+-#define EMAC_TXINTMASKSET	0x88
+-#define EMAC_TXINTMASKCLEAR	0x8C
+ #define EMAC_MACINVECTOR	0x90
  
- obj-$(CONFIG_TI_DAVINCI_EMAC) += davinci_emac.o
- obj-$(CONFIG_TI_DAVINCI_MDIO) += davinci_mdio.o
-+obj-$(CONFIG_TI_DAVINCI_CPDMA) += davinci_cpdma.o
+ #define EMAC_DM646X_MACEOIVECTOR	0x94
  
- obj-$(CONFIG_E1000) += e1000/
- obj-$(CONFIG_E1000E) += e1000e/
-diff --git a/drivers/net/davinci_cpdma.c b/drivers/net/davinci_cpdma.c
-new file mode 100644
-index 0000000..e92b2b6
---- /dev/null
-+++ b/drivers/net/davinci_cpdma.c
-@@ -0,0 +1,965 @@
-+/*
-+ * Texas Instruments CPDMA Driver
-+ *
-+ * Copyright (C) 2010 Texas Instruments
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/spinlock.h>
-+#include <linux/device.h>
-+#include <linux/slab.h>
-+#include <linux/err.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/io.h>
-+
-+#include "davinci_cpdma.h"
-+
-+/* DMA Registers */
-+#define CPDMA_TXIDVER		0x00
-+#define CPDMA_TXCONTROL		0x04
-+#define CPDMA_TXTEARDOWN	0x08
-+#define CPDMA_RXIDVER		0x10
-+#define CPDMA_RXCONTROL		0x14
-+#define CPDMA_SOFTRESET		0x1c
-+#define CPDMA_RXTEARDOWN	0x18
-+#define CPDMA_TXINTSTATRAW	0x80
-+#define CPDMA_TXINTSTATMASKED	0x84
-+#define CPDMA_TXINTMASKSET	0x88
-+#define CPDMA_TXINTMASKCLEAR	0x8c
-+#define CPDMA_MACINVECTOR	0x90
-+#define CPDMA_MACEOIVECTOR	0x94
-+#define CPDMA_RXINTSTATRAW	0xa0
-+#define CPDMA_RXINTSTATMASKED	0xa4
-+#define CPDMA_RXINTMASKSET	0xa8
-+#define CPDMA_RXINTMASKCLEAR	0xac
-+#define CPDMA_DMAINTSTATRAW	0xb0
-+#define CPDMA_DMAINTSTATMASKED	0xb4
-+#define CPDMA_DMAINTMASKSET	0xb8
-+#define CPDMA_DMAINTMASKCLEAR	0xbc
-+#define CPDMA_DMAINT_HOSTERR	BIT(1)
-+
-+/* the following exist only if has_ext_regs is set */
-+#define CPDMA_DMACONTROL	0x20
-+#define CPDMA_DMASTATUS		0x24
-+#define CPDMA_RXBUFFOFS		0x28
-+#define CPDMA_EM_CONTROL	0x2c
-+
-+/* Descriptor mode bits */
-+#define CPDMA_DESC_SOP		BIT(31)
-+#define CPDMA_DESC_EOP		BIT(30)
-+#define CPDMA_DESC_OWNER	BIT(29)
-+#define CPDMA_DESC_EOQ		BIT(28)
-+#define CPDMA_DESC_TD_COMPLETE	BIT(27)
-+#define CPDMA_DESC_PASS_CRC	BIT(26)
-+
-+#define CPDMA_TEARDOWN_VALUE	0xfffffffc
-+
-+struct cpdma_desc {
-+	/* hardware fields */
-+	u32			hw_next;
-+	u32			hw_buffer;
-+	u32			hw_len;
-+	u32			hw_mode;
-+	/* software fields */
-+	void			*sw_token;
-+	u32			sw_buffer;
-+	u32			sw_len;
-+};
-+
-+struct cpdma_desc_pool {
-+	u32			phys;
-+	void __iomem		*iomap;		/* ioremap map */
-+	void			*cpumap;	/* dma_alloc map */
-+	int			desc_size, mem_size;
-+	int			num_desc, used_desc;
-+	unsigned long		*bitmap;
-+	struct device		*dev;
-+	spinlock_t		lock;
-+};
-+
-+enum cpdma_state {
-+	CPDMA_STATE_IDLE,
-+	CPDMA_STATE_ACTIVE,
-+	CPDMA_STATE_TEARDOWN,
-+};
-+
-+const char *cpdma_state_str[] = { "idle", "active", "teardown" };
-+
-+struct cpdma_ctlr {
-+	enum cpdma_state	state;
-+	struct cpdma_params	params;
-+	struct device		*dev;
-+	struct cpdma_desc_pool	*pool;
-+	spinlock_t		lock;
-+	struct cpdma_chan	*channels[2 * CPDMA_MAX_CHANNELS];
-+};
-+
-+struct cpdma_chan {
-+	enum cpdma_state		state;
-+	struct cpdma_ctlr		*ctlr;
-+	int				chan_num;
-+	spinlock_t			lock;
-+	struct cpdma_desc __iomem	*head, *tail;
-+	int				count;
-+	void __iomem			*hdp, *cp, *rxfree;
-+	u32				mask;
-+	cpdma_handler_fn		handler;
-+	enum dma_data_direction		dir;
-+	struct cpdma_chan_stats		stats;
-+	/* offsets into dmaregs */
-+	int	int_set, int_clear, td;
-+};
-+
-+/* The following make access to common cpdma_ctlr params more readable */
-+#define dmaregs		params.dmaregs
-+#define num_chan	params.num_chan
-+
-+/* various accessors */
-+#define dma_reg_read(ctlr, ofs)		__raw_readl((ctlr)->dmaregs + (ofs))
-+#define chan_read(chan, fld)		__raw_readl((chan)->fld)
-+#define desc_read(desc, fld)		__raw_readl(&(desc)->fld)
-+#define dma_reg_write(ctlr, ofs, v)	__raw_writel(v, (ctlr)->dmaregs + (ofs))
-+#define chan_write(chan, fld, v)	__raw_writel(v, (chan)->fld)
-+#define desc_write(desc, fld, v)	__raw_writel((u32)(v), &(desc)->fld)
-+
-+/*
-+ * Utility constructs for a cpdma descriptor pool.  Some devices (e.g. davinci
-+ * emac) have dedicated on-chip memory for these descriptors.  Some other
-+ * devices (e.g. cpsw switches) use plain old memory.  Descriptor pools
-+ * abstract out these details
-+ */
-+static struct cpdma_desc_pool *
-+cpdma_desc_pool_create(struct device *dev, u32 phys, int size, int align)
-+{
-+	int bitmap_size;
-+	struct cpdma_desc_pool *pool;
-+
-+	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-+	if (!pool)
-+		return NULL;
-+
-+	spin_lock_init(&pool->lock);
-+
-+	pool->dev	= dev;
-+	pool->mem_size	= size;
-+	pool->desc_size	= ALIGN(sizeof(struct cpdma_desc), align);
-+	pool->num_desc	= size / pool->desc_size;
-+
-+	bitmap_size  = (pool->num_desc / BITS_PER_LONG) * sizeof(long);
-+	pool->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
-+	if (!pool->bitmap)
-+		goto fail;
-+
-+	if (phys) {
-+		pool->phys  = phys;
-+		pool->iomap = ioremap(phys, size);
-+	} else {
-+		pool->cpumap = dma_alloc_coherent(dev, size, &pool->phys,
-+						  GFP_KERNEL);
-+		pool->iomap = (void __force __iomem *)pool->cpumap;
-+	}
-+
-+	if (pool->iomap)
-+		return pool;
-+
-+fail:
-+	kfree(pool->bitmap);
-+	kfree(pool);
-+	return NULL;
-+}
-+
-+static void cpdma_desc_pool_destroy(struct cpdma_desc_pool *pool)
-+{
-+	unsigned long flags;
-+
-+	if (!pool)
-+		return;
-+
-+	spin_lock_irqsave(&pool->lock, flags);
-+	WARN_ON(pool->used_desc);
-+	kfree(pool->bitmap);
-+	if (pool->cpumap) {
-+		dma_free_coherent(pool->dev, pool->mem_size, pool->cpumap,
-+				  pool->phys);
-+	} else {
-+		iounmap(pool->iomap);
-+	}
-+	spin_unlock_irqrestore(&pool->lock, flags);
-+	kfree(pool);
-+}
-+
-+static inline dma_addr_t desc_phys(struct cpdma_desc_pool *pool,
-+		  struct cpdma_desc __iomem *desc)
-+{
-+	if (!desc)
-+		return 0;
-+	return pool->phys + (__force dma_addr_t)desc -
-+			    (__force dma_addr_t)pool->iomap;
-+}
-+
-+static inline struct cpdma_desc __iomem *
-+desc_from_phys(struct cpdma_desc_pool *pool, dma_addr_t dma)
-+{
-+	return dma ? pool->iomap + dma - pool->phys : NULL;
-+}
-+
-+static struct cpdma_desc __iomem *
-+cpdma_desc_alloc(struct cpdma_desc_pool *pool, int num_desc)
-+{
-+	unsigned long flags;
-+	int index;
-+	struct cpdma_desc __iomem *desc = NULL;
-+
-+	spin_lock_irqsave(&pool->lock, flags);
-+
-+	index = bitmap_find_next_zero_area(pool->bitmap, pool->num_desc, 0,
-+					   num_desc, 0);
-+	if (index < pool->num_desc) {
-+		bitmap_set(pool->bitmap, index, num_desc);
-+		desc = pool->iomap + pool->desc_size * index;
-+		pool->used_desc++;
-+	}
-+
-+	spin_unlock_irqrestore(&pool->lock, flags);
-+	return desc;
-+}
-+
-+static void cpdma_desc_free(struct cpdma_desc_pool *pool,
-+			    struct cpdma_desc __iomem *desc, int num_desc)
-+{
-+	unsigned long flags, index;
-+
-+	index = ((unsigned long)desc - (unsigned long)pool->iomap) /
-+		pool->desc_size;
-+	spin_lock_irqsave(&pool->lock, flags);
-+	bitmap_clear(pool->bitmap, index, num_desc);
-+	pool->used_desc--;
-+	spin_unlock_irqrestore(&pool->lock, flags);
-+}
-+
-+struct cpdma_ctlr *cpdma_ctlr_create(struct cpdma_params *params)
-+{
-+	struct cpdma_ctlr *ctlr;
-+
-+	ctlr = kzalloc(sizeof(*ctlr), GFP_KERNEL);
-+	if (!ctlr)
-+		return NULL;
-+
-+	ctlr->state = CPDMA_STATE_IDLE;
-+	ctlr->params = *params;
-+	ctlr->dev = params->dev;
-+	spin_lock_init(&ctlr->lock);
-+
-+	ctlr->pool = cpdma_desc_pool_create(ctlr->dev,
-+					    ctlr->params.desc_mem_phys,
-+					    ctlr->params.desc_mem_size,
-+					    ctlr->params.desc_align);
-+	if (!ctlr->pool) {
-+		kfree(ctlr);
-+		return NULL;
-+	}
-+
-+	if (WARN_ON(ctlr->num_chan > CPDMA_MAX_CHANNELS))
-+		ctlr->num_chan = CPDMA_MAX_CHANNELS;
-+	return ctlr;
-+}
-+
-+int cpdma_ctlr_start(struct cpdma_ctlr *ctlr)
-+{
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+	if (ctlr->state != CPDMA_STATE_IDLE) {
-+		spin_unlock_irqrestore(&ctlr->lock, flags);
-+		return -EBUSY;
-+	}
-+
-+	if (ctlr->params.has_soft_reset) {
-+		unsigned long timeout = jiffies + HZ/10;
-+
-+		dma_reg_write(ctlr, CPDMA_SOFTRESET, 1);
-+		while (time_before(jiffies, timeout)) {
-+			if (dma_reg_read(ctlr, CPDMA_SOFTRESET) == 0)
-+				break;
-+		}
-+		WARN_ON(!time_before(jiffies, timeout));
-+	}
-+
-+	for (i = 0; i < ctlr->num_chan; i++) {
-+		__raw_writel(0, ctlr->params.txhdp + 4 * i);
-+		__raw_writel(0, ctlr->params.rxhdp + 4 * i);
-+		__raw_writel(0, ctlr->params.txcp + 4 * i);
-+		__raw_writel(0, ctlr->params.rxcp + 4 * i);
-+	}
-+
-+	dma_reg_write(ctlr, CPDMA_RXINTMASKCLEAR, 0xffffffff);
-+	dma_reg_write(ctlr, CPDMA_TXINTMASKCLEAR, 0xffffffff);
-+
-+	dma_reg_write(ctlr, CPDMA_TXCONTROL, 1);
-+	dma_reg_write(ctlr, CPDMA_RXCONTROL, 1);
-+
-+	ctlr->state = CPDMA_STATE_ACTIVE;
-+
-+	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
-+		if (ctlr->channels[i])
-+			cpdma_chan_start(ctlr->channels[i]);
-+	}
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	return 0;
-+}
-+
-+int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr)
-+{
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+	if (ctlr->state != CPDMA_STATE_ACTIVE) {
-+		spin_unlock_irqrestore(&ctlr->lock, flags);
-+		return -EINVAL;
-+	}
-+
-+	ctlr->state = CPDMA_STATE_TEARDOWN;
-+
-+	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
-+		if (ctlr->channels[i])
-+			cpdma_chan_stop(ctlr->channels[i]);
-+	}
-+
-+	dma_reg_write(ctlr, CPDMA_RXINTMASKCLEAR, 0xffffffff);
-+	dma_reg_write(ctlr, CPDMA_TXINTMASKCLEAR, 0xffffffff);
-+
-+	dma_reg_write(ctlr, CPDMA_TXCONTROL, 0);
-+	dma_reg_write(ctlr, CPDMA_RXCONTROL, 0);
-+
-+	ctlr->state = CPDMA_STATE_IDLE;
-+
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	return 0;
-+}
-+
-+int cpdma_ctlr_dump(struct cpdma_ctlr *ctlr)
-+{
-+	struct device *dev = ctlr->dev;
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+
-+	dev_info(dev, "CPDMA: state: %s", cpdma_state_str[ctlr->state]);
-+
-+	dev_info(dev, "CPDMA: txidver: %x",
-+		 dma_reg_read(ctlr, CPDMA_TXIDVER));
-+	dev_info(dev, "CPDMA: txcontrol: %x",
-+		 dma_reg_read(ctlr, CPDMA_TXCONTROL));
-+	dev_info(dev, "CPDMA: txteardown: %x",
-+		 dma_reg_read(ctlr, CPDMA_TXTEARDOWN));
-+	dev_info(dev, "CPDMA: rxidver: %x",
-+		 dma_reg_read(ctlr, CPDMA_RXIDVER));
-+	dev_info(dev, "CPDMA: rxcontrol: %x",
-+		 dma_reg_read(ctlr, CPDMA_RXCONTROL));
-+	dev_info(dev, "CPDMA: softreset: %x",
-+		 dma_reg_read(ctlr, CPDMA_SOFTRESET));
-+	dev_info(dev, "CPDMA: rxteardown: %x",
-+		 dma_reg_read(ctlr, CPDMA_RXTEARDOWN));
-+	dev_info(dev, "CPDMA: txintstatraw: %x",
-+		 dma_reg_read(ctlr, CPDMA_TXINTSTATRAW));
-+	dev_info(dev, "CPDMA: txintstatmasked: %x",
-+		 dma_reg_read(ctlr, CPDMA_TXINTSTATMASKED));
-+	dev_info(dev, "CPDMA: txintmaskset: %x",
-+		 dma_reg_read(ctlr, CPDMA_TXINTMASKSET));
-+	dev_info(dev, "CPDMA: txintmaskclear: %x",
-+		 dma_reg_read(ctlr, CPDMA_TXINTMASKCLEAR));
-+	dev_info(dev, "CPDMA: macinvector: %x",
-+		 dma_reg_read(ctlr, CPDMA_MACINVECTOR));
-+	dev_info(dev, "CPDMA: maceoivector: %x",
-+		 dma_reg_read(ctlr, CPDMA_MACEOIVECTOR));
-+	dev_info(dev, "CPDMA: rxintstatraw: %x",
-+		 dma_reg_read(ctlr, CPDMA_RXINTSTATRAW));
-+	dev_info(dev, "CPDMA: rxintstatmasked: %x",
-+		 dma_reg_read(ctlr, CPDMA_RXINTSTATMASKED));
-+	dev_info(dev, "CPDMA: rxintmaskset: %x",
-+		 dma_reg_read(ctlr, CPDMA_RXINTMASKSET));
-+	dev_info(dev, "CPDMA: rxintmaskclear: %x",
-+		 dma_reg_read(ctlr, CPDMA_RXINTMASKCLEAR));
-+	dev_info(dev, "CPDMA: dmaintstatraw: %x",
-+		 dma_reg_read(ctlr, CPDMA_DMAINTSTATRAW));
-+	dev_info(dev, "CPDMA: dmaintstatmasked: %x",
-+		 dma_reg_read(ctlr, CPDMA_DMAINTSTATMASKED));
-+	dev_info(dev, "CPDMA: dmaintmaskset: %x",
-+		 dma_reg_read(ctlr, CPDMA_DMAINTMASKSET));
-+	dev_info(dev, "CPDMA: dmaintmaskclear: %x",
-+		 dma_reg_read(ctlr, CPDMA_DMAINTMASKCLEAR));
-+
-+	if (!ctlr->params.has_ext_regs) {
-+		dev_info(dev, "CPDMA: dmacontrol: %x",
-+			 dma_reg_read(ctlr, CPDMA_DMACONTROL));
-+		dev_info(dev, "CPDMA: dmastatus: %x",
-+			 dma_reg_read(ctlr, CPDMA_DMASTATUS));
-+		dev_info(dev, "CPDMA: rxbuffofs: %x",
-+			 dma_reg_read(ctlr, CPDMA_RXBUFFOFS));
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++)
-+		if (ctlr->channels[i])
-+			cpdma_chan_dump(ctlr->channels[i]);
-+
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	return 0;
-+}
-+
-+int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr)
-+{
-+	unsigned long flags;
-+	int ret = 0, i;
-+
-+	if (!ctlr)
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+	if (ctlr->state != CPDMA_STATE_IDLE)
-+		cpdma_ctlr_stop(ctlr);
-+
-+	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
-+		if (ctlr->channels[i])
-+			cpdma_chan_destroy(ctlr->channels[i]);
-+	}
-+
-+	cpdma_desc_pool_destroy(ctlr->pool);
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	kfree(ctlr);
-+	return ret;
-+}
-+
-+int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable)
-+{
-+	unsigned long flags;
-+	int i, reg;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+	if (ctlr->state != CPDMA_STATE_ACTIVE) {
-+		spin_unlock_irqrestore(&ctlr->lock, flags);
-+		return -EINVAL;
-+	}
-+
-+	reg = enable ? CPDMA_DMAINTMASKSET : CPDMA_DMAINTMASKCLEAR;
-+	dma_reg_write(ctlr, reg, CPDMA_DMAINT_HOSTERR);
-+
-+	for (i = 0; i < ARRAY_SIZE(ctlr->channels); i++) {
-+		if (ctlr->channels[i])
-+			cpdma_chan_int_ctrl(ctlr->channels[i], enable);
-+	}
-+
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	return 0;
-+}
-+
-+void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr)
-+{
-+	dma_reg_write(ctlr, CPDMA_MACEOIVECTOR, 0);
-+}
-+
-+struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
-+				     cpdma_handler_fn handler)
-+{
-+	struct cpdma_chan *chan;
-+	int ret, offset = (chan_num % CPDMA_MAX_CHANNELS) * 4;
-+	unsigned long flags;
-+
-+	if (__chan_linear(chan_num) >= ctlr->num_chan)
-+		return NULL;
-+
-+	ret = -ENOMEM;
-+	chan = kzalloc(sizeof(*chan), GFP_KERNEL);
-+	if (!chan)
-+		goto err_chan_alloc;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+	ret = -EBUSY;
-+	if (ctlr->channels[chan_num])
-+		goto err_chan_busy;
-+
-+	chan->ctlr	= ctlr;
-+	chan->state	= CPDMA_STATE_IDLE;
-+	chan->chan_num	= chan_num;
-+	chan->handler	= handler;
-+
-+	if (is_rx_chan(chan)) {
-+		chan->hdp	= ctlr->params.rxhdp + offset;
-+		chan->cp	= ctlr->params.rxcp + offset;
-+		chan->rxfree	= ctlr->params.rxfree + offset;
-+		chan->int_set	= CPDMA_RXINTMASKSET;
-+		chan->int_clear	= CPDMA_RXINTMASKCLEAR;
-+		chan->td	= CPDMA_RXTEARDOWN;
-+		chan->dir	= DMA_FROM_DEVICE;
-+	} else {
-+		chan->hdp	= ctlr->params.txhdp + offset;
-+		chan->cp	= ctlr->params.txcp + offset;
-+		chan->int_set	= CPDMA_TXINTMASKSET;
-+		chan->int_clear	= CPDMA_TXINTMASKCLEAR;
-+		chan->td	= CPDMA_TXTEARDOWN;
-+		chan->dir	= DMA_TO_DEVICE;
-+	}
-+	chan->mask = BIT(chan_linear(chan));
-+
-+	spin_lock_init(&chan->lock);
-+
-+	ctlr->channels[chan_num] = chan;
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	return chan;
-+
-+err_chan_busy:
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	kfree(chan);
-+err_chan_alloc:
-+	return ERR_PTR(ret);
-+}
-+
-+int cpdma_chan_destroy(struct cpdma_chan *chan)
-+{
-+	struct cpdma_ctlr *ctlr = chan->ctlr;
-+	unsigned long flags;
-+
-+	if (!chan)
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+	if (chan->state != CPDMA_STATE_IDLE)
-+		cpdma_chan_stop(chan);
-+	ctlr->channels[chan->chan_num] = NULL;
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	kfree(chan);
-+	return 0;
-+}
-+
-+int cpdma_chan_get_stats(struct cpdma_chan *chan,
-+			 struct cpdma_chan_stats *stats)
-+{
-+	unsigned long flags;
-+	if (!chan)
-+		return -EINVAL;
-+	spin_lock_irqsave(&chan->lock, flags);
-+	memcpy(stats, &chan->stats, sizeof(*stats));
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+	return 0;
-+}
-+
-+int cpdma_chan_dump(struct cpdma_chan *chan)
-+{
-+	unsigned long flags;
-+	struct device *dev = chan->ctlr->dev;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+
-+	dev_info(dev, "channel %d (%s %d) state %s",
-+		 chan->chan_num, is_rx_chan(chan) ? "rx" : "tx",
-+		 chan_linear(chan), cpdma_state_str[chan->state]);
-+	dev_info(dev, "\thdp: %x\n", chan_read(chan, hdp));
-+	dev_info(dev, "\tcp: %x\n", chan_read(chan, cp));
-+	if (chan->rxfree) {
-+		dev_info(dev, "\trxfree: %x\n",
-+			 chan_read(chan, rxfree));
-+	}
-+
-+	dev_info(dev, "\tstats head_enqueue: %d\n",
-+		 chan->stats.head_enqueue);
-+	dev_info(dev, "\tstats tail_enqueue: %d\n",
-+		 chan->stats.tail_enqueue);
-+	dev_info(dev, "\tstats pad_enqueue: %d\n",
-+		 chan->stats.pad_enqueue);
-+	dev_info(dev, "\tstats misqueued: %d\n",
-+		 chan->stats.misqueued);
-+	dev_info(dev, "\tstats desc_alloc_fail: %d\n",
-+		 chan->stats.desc_alloc_fail);
-+	dev_info(dev, "\tstats pad_alloc_fail: %d\n",
-+		 chan->stats.pad_alloc_fail);
-+	dev_info(dev, "\tstats runt_receive_buff: %d\n",
-+		 chan->stats.runt_receive_buff);
-+	dev_info(dev, "\tstats runt_transmit_buff: %d\n",
-+		 chan->stats.runt_transmit_buff);
-+	dev_info(dev, "\tstats empty_dequeue: %d\n",
-+		 chan->stats.empty_dequeue);
-+	dev_info(dev, "\tstats busy_dequeue: %d\n",
-+		 chan->stats.busy_dequeue);
-+	dev_info(dev, "\tstats good_dequeue: %d\n",
-+		 chan->stats.good_dequeue);
-+	dev_info(dev, "\tstats requeue: %d\n",
-+		 chan->stats.requeue);
-+	dev_info(dev, "\tstats teardown_dequeue: %d\n",
-+		 chan->stats.teardown_dequeue);
-+
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+	return 0;
-+}
-+
-+static void __cpdma_chan_submit(struct cpdma_chan *chan,
-+				struct cpdma_desc __iomem *desc)
-+{
-+	struct cpdma_ctlr		*ctlr = chan->ctlr;
-+	struct cpdma_desc __iomem	*prev = chan->tail;
-+	struct cpdma_desc_pool		*pool = ctlr->pool;
-+	dma_addr_t			desc_dma;
-+	u32				mode;
-+
-+	desc_dma = desc_phys(pool, desc);
-+
-+	/* simple case - idle channel */
-+	if (!chan->head) {
-+		chan->stats.head_enqueue++;
-+		chan->head = desc;
-+		chan->tail = desc;
-+		if (chan->state == CPDMA_STATE_ACTIVE)
-+			chan_write(chan, hdp, desc_dma);
-+		return;
-+	}
-+
-+	/* first chain the descriptor at the tail of the list */
-+	desc_write(prev, hw_next, desc_dma);
-+	chan->tail = desc;
-+	chan->stats.tail_enqueue++;
-+
-+	/* next check if EOQ has been triggered already */
-+	mode = desc_read(prev, hw_mode);
-+	if (((mode & (CPDMA_DESC_EOQ | CPDMA_DESC_OWNER)) == CPDMA_DESC_EOQ) &&
-+	    (chan->state == CPDMA_STATE_ACTIVE)) {
-+		desc_write(prev, hw_mode, mode & ~CPDMA_DESC_EOQ);
-+		chan_write(chan, hdp, desc_dma);
-+		chan->stats.misqueued++;
-+	}
-+}
-+
-+int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
-+		      int len, gfp_t gfp_mask)
-+{
-+	struct cpdma_ctlr		*ctlr = chan->ctlr;
-+	struct cpdma_desc __iomem	*desc;
-+	dma_addr_t			buffer;
-+	unsigned long			flags;
-+	u32				mode;
-+	int				ret = 0;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+
-+	if (chan->state == CPDMA_STATE_TEARDOWN) {
-+		ret = -EINVAL;
-+		goto unlock_ret;
-+	}
-+
-+	desc = cpdma_desc_alloc(ctlr->pool, 1);
-+	if (!desc) {
-+		chan->stats.desc_alloc_fail++;
-+		ret = -ENOMEM;
-+		goto unlock_ret;
-+	}
-+
-+	if (len < ctlr->params.min_packet_size) {
-+		len = ctlr->params.min_packet_size;
-+		chan->stats.runt_transmit_buff++;
-+	}
-+
-+	buffer = dma_map_single(ctlr->dev, data, len, chan->dir);
-+	mode = CPDMA_DESC_OWNER | CPDMA_DESC_SOP | CPDMA_DESC_EOP;
-+
-+	desc_write(desc, hw_next,   0);
-+	desc_write(desc, hw_buffer, buffer);
-+	desc_write(desc, hw_len,    len);
-+	desc_write(desc, hw_mode,   mode | len);
-+	desc_write(desc, sw_token,  token);
-+	desc_write(desc, sw_buffer, buffer);
-+	desc_write(desc, sw_len,    len);
-+
-+	__cpdma_chan_submit(chan, desc);
-+
-+	if (chan->state == CPDMA_STATE_ACTIVE && chan->rxfree)
-+		chan_write(chan, rxfree, 1);
-+
-+	chan->count++;
-+
-+unlock_ret:
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+	return ret;
-+}
-+
-+static void __cpdma_chan_free(struct cpdma_chan *chan,
-+			      struct cpdma_desc __iomem *desc,
-+			      int outlen, int status)
-+{
-+	struct cpdma_ctlr		*ctlr = chan->ctlr;
-+	struct cpdma_desc_pool		*pool = ctlr->pool;
-+	dma_addr_t			buff_dma;
-+	int				origlen;
-+	void				*token;
-+
-+	token      = (void *)desc_read(desc, sw_token);
-+	buff_dma   = desc_read(desc, sw_buffer);
-+	origlen    = desc_read(desc, sw_len);
-+
-+	dma_unmap_single(ctlr->dev, buff_dma, origlen, chan->dir);
-+	cpdma_desc_free(pool, desc, 1);
-+	(*chan->handler)(token, outlen, status);
-+}
-+
-+static int __cpdma_chan_process(struct cpdma_chan *chan)
-+{
-+	struct cpdma_ctlr		*ctlr = chan->ctlr;
-+	struct cpdma_desc __iomem	*desc;
-+	int				status, outlen;
-+	struct cpdma_desc_pool		*pool = ctlr->pool;
-+	dma_addr_t			desc_dma;
-+	unsigned long			flags;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+
-+	desc = chan->head;
-+	if (!desc) {
-+		chan->stats.empty_dequeue++;
-+		status = -ENOENT;
-+		goto unlock_ret;
-+	}
-+	desc_dma = desc_phys(pool, desc);
-+
-+	status	= __raw_readl(&desc->hw_mode);
-+	outlen	= status & 0x7ff;
-+	if (status & CPDMA_DESC_OWNER) {
-+		chan->stats.busy_dequeue++;
-+		status = -EBUSY;
-+		goto unlock_ret;
-+	}
-+	status	= status & (CPDMA_DESC_EOQ | CPDMA_DESC_TD_COMPLETE);
-+
-+	chan->head = desc_from_phys(pool, desc_read(desc, hw_next));
-+	chan_write(chan, cp, desc_dma);
-+	chan->count--;
-+	chan->stats.good_dequeue++;
-+
-+	if (status & CPDMA_DESC_EOQ) {
-+		chan->stats.requeue++;
-+		chan_write(chan, hdp, desc_phys(pool, chan->head));
-+	}
-+
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
-+	__cpdma_chan_free(chan, desc, outlen, status);
-+	return status;
-+
-+unlock_ret:
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+	return status;
-+}
-+
-+int cpdma_chan_process(struct cpdma_chan *chan, int quota)
-+{
-+	int used = 0, ret = 0;
-+
-+	if (chan->state != CPDMA_STATE_ACTIVE)
-+		return -EINVAL;
-+
-+	while (used < quota) {
-+		ret = __cpdma_chan_process(chan);
-+		if (ret < 0)
-+			break;
-+		used++;
-+	}
-+	return used;
-+}
-+
-+int cpdma_chan_start(struct cpdma_chan *chan)
-+{
-+	struct cpdma_ctlr	*ctlr = chan->ctlr;
-+	struct cpdma_desc_pool	*pool = ctlr->pool;
-+	unsigned long		flags;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	if (chan->state != CPDMA_STATE_IDLE) {
-+		spin_unlock_irqrestore(&chan->lock, flags);
-+		return -EBUSY;
-+	}
-+	if (ctlr->state != CPDMA_STATE_ACTIVE) {
-+		spin_unlock_irqrestore(&chan->lock, flags);
-+		return -EINVAL;
-+	}
-+	dma_reg_write(ctlr, chan->int_set, chan->mask);
-+	chan->state = CPDMA_STATE_ACTIVE;
-+	if (chan->head) {
-+		chan_write(chan, hdp, desc_phys(pool, chan->head));
-+		if (chan->rxfree)
-+			chan_write(chan, rxfree, chan->count);
-+	}
-+
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+	return 0;
-+}
-+
-+int cpdma_chan_stop(struct cpdma_chan *chan)
-+{
-+	struct cpdma_ctlr	*ctlr = chan->ctlr;
-+	struct cpdma_desc_pool	*pool = ctlr->pool;
-+	unsigned long		flags;
-+	int			ret;
-+	unsigned long		timeout;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	if (chan->state != CPDMA_STATE_ACTIVE) {
-+		spin_unlock_irqrestore(&chan->lock, flags);
-+		return -EINVAL;
-+	}
-+
-+	chan->state = CPDMA_STATE_TEARDOWN;
-+	dma_reg_write(ctlr, chan->int_clear, chan->mask);
-+
-+	/* trigger teardown */
-+	dma_reg_write(ctlr, chan->td, chan->chan_num);
-+
-+	/* wait for teardown complete */
-+	timeout = jiffies + HZ/10;	/* 100 msec */
-+	while (time_before(jiffies, timeout)) {
-+		u32 cp = chan_read(chan, cp);
-+		if ((cp & CPDMA_TEARDOWN_VALUE) == CPDMA_TEARDOWN_VALUE)
-+			break;
-+		cpu_relax();
-+	}
-+	WARN_ON(!time_before(jiffies, timeout));
-+	chan_write(chan, cp, CPDMA_TEARDOWN_VALUE);
-+
-+	/* handle completed packets */
-+	do {
-+		ret = __cpdma_chan_process(chan);
-+		if (ret < 0)
-+			break;
-+	} while ((ret & CPDMA_DESC_TD_COMPLETE) == 0);
-+
-+	/* remaining packets haven't been tx/rx'ed, clean them up */
-+	while (chan->head) {
-+		struct cpdma_desc __iomem *desc = chan->head;
-+		dma_addr_t next_dma;
-+
-+		next_dma = desc_read(desc, hw_next);
-+		chan->head = desc_from_phys(pool, next_dma);
-+		chan->stats.teardown_dequeue++;
-+
-+		/* issue callback without locks held */
-+		spin_unlock_irqrestore(&chan->lock, flags);
-+		__cpdma_chan_free(chan, desc, 0, -ENOSYS);
-+		spin_lock_irqsave(&chan->lock, flags);
-+	}
-+
-+	chan->state = CPDMA_STATE_IDLE;
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+	return 0;
-+}
-+
-+int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&chan->lock, flags);
-+	if (chan->state != CPDMA_STATE_ACTIVE) {
-+		spin_unlock_irqrestore(&chan->lock, flags);
-+		return -EINVAL;
-+	}
-+
-+	dma_reg_write(chan->ctlr, enable ? chan->int_set : chan->int_clear,
-+		      chan->mask);
-+	spin_unlock_irqrestore(&chan->lock, flags);
-+
-+	return 0;
-+}
-+
-+struct cpdma_control_info {
-+	u32		reg;
-+	u32		shift, mask;
-+	int		access;
-+#define ACCESS_RO	BIT(0)
-+#define ACCESS_WO	BIT(1)
-+#define ACCESS_RW	(ACCESS_RO | ACCESS_WO)
-+};
-+
-+struct cpdma_control_info controls[] = {
-+	[CPDMA_CMD_IDLE]	  = {CPDMA_DMACONTROL,	3,  1,      ACCESS_WO},
-+	[CPDMA_COPY_ERROR_FRAMES] = {CPDMA_DMACONTROL,	4,  1,      ACCESS_RW},
-+	[CPDMA_RX_OFF_LEN_UPDATE] = {CPDMA_DMACONTROL,	2,  1,      ACCESS_RW},
-+	[CPDMA_RX_OWNERSHIP_FLIP] = {CPDMA_DMACONTROL,	1,  1,      ACCESS_RW},
-+	[CPDMA_TX_PRIO_FIXED]	  = {CPDMA_DMACONTROL,	0,  1,      ACCESS_RW},
-+	[CPDMA_STAT_IDLE]	  = {CPDMA_DMASTATUS,	31, 1,      ACCESS_RO},
-+	[CPDMA_STAT_TX_ERR_CODE]  = {CPDMA_DMASTATUS,	20, 0xf,    ACCESS_RW},
-+	[CPDMA_STAT_TX_ERR_CHAN]  = {CPDMA_DMASTATUS,	16, 0x7,    ACCESS_RW},
-+	[CPDMA_STAT_RX_ERR_CODE]  = {CPDMA_DMASTATUS,	12, 0xf,    ACCESS_RW},
-+	[CPDMA_STAT_RX_ERR_CHAN]  = {CPDMA_DMASTATUS,	8,  0x7,    ACCESS_RW},
-+	[CPDMA_RX_BUFFER_OFFSET]  = {CPDMA_RXBUFFOFS,	0,  0xffff, ACCESS_RW},
-+};
-+
-+int cpdma_control_get(struct cpdma_ctlr *ctlr, int control)
-+{
-+	unsigned long flags;
-+	struct cpdma_control_info *info = &controls[control];
-+	int ret;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+
-+	ret = -ENOTSUPP;
-+	if (!ctlr->params.has_ext_regs)
-+		goto unlock_ret;
-+
-+	ret = -EINVAL;
-+	if (ctlr->state != CPDMA_STATE_ACTIVE)
-+		goto unlock_ret;
-+
-+	ret = -ENOENT;
-+	if (control < 0 || control >= ARRAY_SIZE(controls))
-+		goto unlock_ret;
-+
-+	ret = -EPERM;
-+	if ((info->access & ACCESS_RO) != ACCESS_RO)
-+		goto unlock_ret;
-+
-+	ret = (dma_reg_read(ctlr, info->reg) >> info->shift) & info->mask;
-+
-+unlock_ret:
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	return ret;
-+}
-+
-+int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value)
-+{
-+	unsigned long flags;
-+	struct cpdma_control_info *info = &controls[control];
-+	int ret;
-+	u32 val;
-+
-+	spin_lock_irqsave(&ctlr->lock, flags);
-+
-+	ret = -ENOTSUPP;
-+	if (!ctlr->params.has_ext_regs)
-+		goto unlock_ret;
-+
-+	ret = -EINVAL;
-+	if (ctlr->state != CPDMA_STATE_ACTIVE)
-+		goto unlock_ret;
-+
-+	ret = -ENOENT;
-+	if (control < 0 || control >= ARRAY_SIZE(controls))
-+		goto unlock_ret;
-+
-+	ret = -EPERM;
-+	if ((info->access & ACCESS_WO) != ACCESS_WO)
-+		goto unlock_ret;
-+
-+	val  = dma_reg_read(ctlr, info->reg);
-+	val &= ~(info->mask << info->shift);
-+	val |= (value & info->mask) << info->shift;
-+	dma_reg_write(ctlr, info->reg, val);
-+	ret = 0;
-+
-+unlock_ret:
-+	spin_unlock_irqrestore(&ctlr->lock, flags);
-+	return ret;
-+}
-diff --git a/drivers/net/davinci_cpdma.h b/drivers/net/davinci_cpdma.h
-new file mode 100644
-index 0000000..868e50e
---- /dev/null
-+++ b/drivers/net/davinci_cpdma.h
-@@ -0,0 +1,108 @@
-+/*
-+ * Texas Instruments CPDMA Driver
-+ *
-+ * Copyright (C) 2010 Texas Instruments
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+#ifndef __DAVINCI_CPDMA_H__
-+#define __DAVINCI_CPDMA_H__
-+
-+#define CPDMA_MAX_CHANNELS	BITS_PER_LONG
-+
-+#define tx_chan_num(chan)	(chan)
-+#define rx_chan_num(chan)	((chan) + CPDMA_MAX_CHANNELS)
-+#define is_rx_chan(chan)	((chan)->chan_num >= CPDMA_MAX_CHANNELS)
-+#define is_tx_chan(chan)	(!is_rx_chan(chan))
-+#define __chan_linear(chan_num)	((chan_num) & (CPDMA_MAX_CHANNELS - 1))
-+#define chan_linear(chan)	__chan_linear((chan)->chan_num)
-+
-+struct cpdma_params {
-+	struct device		*dev;
-+	void __iomem		*dmaregs;
-+	void __iomem		*txhdp, *rxhdp, *txcp, *rxcp;
-+	void __iomem		*rxthresh, *rxfree;
-+	int			num_chan;
-+	bool			has_soft_reset;
-+	int			min_packet_size;
-+	u32			desc_mem_phys;
-+	int			desc_mem_size;
-+	int			desc_align;
-+
-+	/*
-+	 * Some instances of embedded cpdma controllers have extra control and
-+	 * status registers.  The following flag enables access to these
-+	 * "extended" registers.
-+	 */
-+	bool			has_ext_regs;
-+};
-+
-+struct cpdma_chan_stats {
-+	u32			head_enqueue;
-+	u32			tail_enqueue;
-+	u32			pad_enqueue;
-+	u32			misqueued;
-+	u32			desc_alloc_fail;
-+	u32			pad_alloc_fail;
-+	u32			runt_receive_buff;
-+	u32			runt_transmit_buff;
-+	u32			empty_dequeue;
-+	u32			busy_dequeue;
-+	u32			good_dequeue;
-+	u32			requeue;
-+	u32			teardown_dequeue;
-+};
-+
-+struct cpdma_ctlr;
-+struct cpdma_chan;
-+
-+typedef void (*cpdma_handler_fn)(void *token, int len, int status);
-+
-+struct cpdma_ctlr *cpdma_ctlr_create(struct cpdma_params *params);
-+int cpdma_ctlr_destroy(struct cpdma_ctlr *ctlr);
-+int cpdma_ctlr_start(struct cpdma_ctlr *ctlr);
-+int cpdma_ctlr_stop(struct cpdma_ctlr *ctlr);
-+int cpdma_ctlr_dump(struct cpdma_ctlr *ctlr);
-+
-+struct cpdma_chan *cpdma_chan_create(struct cpdma_ctlr *ctlr, int chan_num,
-+				     cpdma_handler_fn handler);
-+int cpdma_chan_destroy(struct cpdma_chan *chan);
-+int cpdma_chan_start(struct cpdma_chan *chan);
-+int cpdma_chan_stop(struct cpdma_chan *chan);
-+int cpdma_chan_dump(struct cpdma_chan *chan);
-+
-+int cpdma_chan_get_stats(struct cpdma_chan *chan,
-+			 struct cpdma_chan_stats *stats);
-+int cpdma_chan_submit(struct cpdma_chan *chan, void *token, void *data,
-+		      int len, gfp_t gfp_mask);
-+int cpdma_chan_process(struct cpdma_chan *chan, int quota);
-+
-+int cpdma_ctlr_int_ctrl(struct cpdma_ctlr *ctlr, bool enable);
-+void cpdma_ctlr_eoi(struct cpdma_ctlr *ctlr);
-+int cpdma_chan_int_ctrl(struct cpdma_chan *chan, bool enable);
-+
-+enum cpdma_control {
-+	CPDMA_CMD_IDLE,			/* write-only */
-+	CPDMA_COPY_ERROR_FRAMES,	/* read-write */
-+	CPDMA_RX_OFF_LEN_UPDATE,	/* read-write */
-+	CPDMA_RX_OWNERSHIP_FLIP,	/* read-write */
-+	CPDMA_TX_PRIO_FIXED,		/* read-write */
-+	CPDMA_STAT_IDLE,		/* read-only */
-+	CPDMA_STAT_TX_ERR_CHAN,		/* read-only */
-+	CPDMA_STAT_TX_ERR_CODE,		/* read-only */
-+	CPDMA_STAT_RX_ERR_CHAN,		/* read-only */
-+	CPDMA_STAT_RX_ERR_CODE,		/* read-only */
-+	CPDMA_RX_BUFFER_OFFSET,		/* read-write */
-+};
-+
-+int cpdma_control_get(struct cpdma_ctlr *ctlr, int control);
-+int cpdma_control_set(struct cpdma_ctlr *ctlr, int control, int value);
-+
-+#endif
+-#define EMAC_RXINTSTATRAW	0xA0
+-#define EMAC_RXINTSTATMASKED	0xA4
+-#define EMAC_RXINTMASKSET	0xA8
+-#define EMAC_RXINTMASKCLEAR	0xAC
+ #define EMAC_MACINTSTATRAW	0xB0
+ #define EMAC_MACINTSTATMASKED	0xB4
+ #define EMAC_MACINTMASKSET	0xB8
+@@ -258,12 +243,6 @@ static const char emac_version_string[] = "TI DaVinci EMAC Linux v6.1";
+ #define EMAC_MACADDRHI		0x504
+ #define EMAC_MACINDEX		0x508
+ 
+-/* EMAC HDP and Completion registors */
+-#define EMAC_TXHDP(ch)		(0x600 + (ch * 4))
+-#define EMAC_RXHDP(ch)		(0x620 + (ch * 4))
+-#define EMAC_TXCP(ch)		(0x640 + (ch * 4))
+-#define EMAC_RXCP(ch)		(0x660 + (ch * 4))
+-
+ /* EMAC statistics registers */
+ #define EMAC_RXGOODFRAMES	0x200
+ #define EMAC_RXBCASTFRAMES	0x204
+@@ -328,120 +307,6 @@ static const char emac_version_string[] = "TI DaVinci EMAC Linux v6.1";
+ /* EMAC Stats Clear Mask */
+ #define EMAC_STATS_CLR_MASK    (0xFFFFFFFF)
+ 
+-/** net_buf_obj: EMAC network bufferdata structure
+- *
+- * EMAC network buffer data structure
+- */
+-struct emac_netbufobj {
+-	void *buf_token;
+-	char *data_ptr;
+-	int length;
+-};
+-
+-/** net_pkt_obj: EMAC network packet data structure
+- *
+- * EMAC network packet data structure - supports buffer list (for future)
+- */
+-struct emac_netpktobj {
+-	void *pkt_token; /* data token may hold tx/rx chan id */
+-	struct emac_netbufobj *buf_list; /* array of network buffer objects */
+-	int num_bufs;
+-	int pkt_length;
+-};
+-
+-/** emac_tx_bd: EMAC TX Buffer descriptor data structure
+- *
+- * EMAC TX Buffer descriptor data structure
+- */
+-struct emac_tx_bd {
+-	int h_next;
+-	int buff_ptr;
+-	int off_b_len;
+-	int mode; /* SOP, EOP, ownership, EOQ, teardown,Qstarv, length */
+-	struct emac_tx_bd __iomem *next;
+-	void *buf_token;
+-};
+-
+-/** emac_txch: EMAC TX Channel data structure
+- *
+- * EMAC TX Channel data structure
+- */
+-struct emac_txch {
+-	/* Config related */
+-	u32 num_bd;
+-	u32 service_max;
+-
+-	/* CPPI specific */
+-	u32 alloc_size;
+-	void __iomem *bd_mem;
+-	struct emac_tx_bd __iomem *bd_pool_head;
+-	struct emac_tx_bd __iomem *active_queue_head;
+-	struct emac_tx_bd __iomem *active_queue_tail;
+-	struct emac_tx_bd __iomem *last_hw_bdprocessed;
+-	u32 queue_active;
+-	u32 teardown_pending;
+-	u32 *tx_complete;
+-
+-	/** statistics */
+-	u32 proc_count;     /* TX: # of times emac_tx_bdproc is called */
+-	u32 mis_queued_packets;
+-	u32 queue_reinit;
+-	u32 end_of_queue_add;
+-	u32 out_of_tx_bd;
+-	u32 no_active_pkts; /* IRQ when there were no packets to process */
+-	u32 active_queue_count;
+-};
+-
+-/** emac_rx_bd: EMAC RX Buffer descriptor data structure
+- *
+- * EMAC RX Buffer descriptor data structure
+- */
+-struct emac_rx_bd {
+-	int h_next;
+-	int buff_ptr;
+-	int off_b_len;
+-	int mode;
+-	struct emac_rx_bd __iomem *next;
+-	void *data_ptr;
+-	void *buf_token;
+-};
+-
+-/** emac_rxch: EMAC RX Channel data structure
+- *
+- * EMAC RX Channel data structure
+- */
+-struct emac_rxch {
+-	/* configuration info */
+-	u32 num_bd;
+-	u32 service_max;
+-	u32 buf_size;
+-	char mac_addr[6];
+-
+-	/** CPPI specific */
+-	u32 alloc_size;
+-	void __iomem *bd_mem;
+-	struct emac_rx_bd __iomem *bd_pool_head;
+-	struct emac_rx_bd __iomem *active_queue_head;
+-	struct emac_rx_bd __iomem *active_queue_tail;
+-	u32 queue_active;
+-	u32 teardown_pending;
+-
+-	/* packet and buffer objects */
+-	struct emac_netpktobj pkt_queue;
+-	struct emac_netbufobj buf_queue;
+-
+-	/** statistics */
+-	u32 proc_count; /* number of times emac_rx_bdproc is called */
+-	u32 processed_bd;
+-	u32 recycled_bd;
+-	u32 out_of_rx_bd;
+-	u32 out_of_rx_buffers;
+-	u32 queue_reinit;
+-	u32 end_of_queue_add;
+-	u32 end_of_queue;
+-	u32 mis_queued_packets;
+-};
+-
+ /* emac_priv: EMAC private data structure
+  *
+  * EMAC adapter private data structure
+@@ -452,17 +317,10 @@ struct emac_priv {
+ 	struct platform_device *pdev;
+ 	struct napi_struct napi;
+ 	char mac_addr[6];
+-	spinlock_t tx_lock;
+-	spinlock_t rx_lock;
+ 	void __iomem *remap_addr;
+ 	u32 emac_base_phys;
+ 	void __iomem *emac_base;
+ 	void __iomem *ctrl_base;
+-	void __iomem *emac_ctrl_ram;
+-	u32 ctrl_ram_size;
+-	u32 hw_ram_addr;
+-	struct emac_txch *txch[EMAC_DEF_MAX_TX_CH];
+-	struct emac_rxch *rxch[EMAC_DEF_MAX_RX_CH];
+ 	struct cpdma_ctlr *dma;
+ 	struct cpdma_chan *txchan;
+ 	struct cpdma_chan *rxchan;
+@@ -491,18 +349,6 @@ struct emac_priv {
+ static struct clk *emac_clk;
+ static unsigned long emac_bus_frequency;
+ 
+-#define emac_virt_to_phys(addr, priv) \
+-	(((u32 __force)(addr) - (u32 __force)(priv->emac_ctrl_ram)) \
+-	+ priv->hw_ram_addr)
+-
+-/* Cache macros - Packet buffers would be from skb pool which is cached */
+-#define EMAC_VIRT_NOCACHE(addr) (addr)
+-
+-/* DM644x does not have BD's in cached memory - so no cache functions */
+-#define BD_CACHE_INVALIDATE(addr, size)
+-#define BD_CACHE_WRITEBACK(addr, size)
+-#define BD_CACHE_WRITEBACK_INVALIDATE(addr, size)
+-
+ /* EMAC TX Host Error description strings */
+ static char *emac_txhost_errcodes[16] = {
+ 	"No error", "SOP error", "Ownership bit not set in SOP buffer",
+@@ -545,20 +391,6 @@ static void emac_dump_regs(struct emac_priv *priv)
+ 			emac_ctrl_read(EMAC_CTRL_EWCTL),
+ 			emac_ctrl_read(EMAC_CTRL_EWINTTCNT));
+ 	}
+-	dev_info(emac_dev, "EMAC: TXID: %08X %s, RXID: %08X %s\n",
+-		emac_read(EMAC_TXIDVER),
+-		((emac_read(EMAC_TXCONTROL)) ? "enabled" : "disabled"),
+-		emac_read(EMAC_RXIDVER),
+-		((emac_read(EMAC_RXCONTROL)) ? "enabled" : "disabled"));
+-	dev_info(emac_dev, "EMAC: TXIntRaw:%08X, TxIntMasked: %08X, "\
+-		"TxIntMasSet: %08X\n", emac_read(EMAC_TXINTSTATRAW),
+-		emac_read(EMAC_TXINTSTATMASKED), emac_read(EMAC_TXINTMASKSET));
+-	dev_info(emac_dev, "EMAC: RXIntRaw:%08X, RxIntMasked: %08X, "\
+-		"RxIntMasSet: %08X\n", emac_read(EMAC_RXINTSTATRAW),
+-		emac_read(EMAC_RXINTSTATMASKED), emac_read(EMAC_RXINTMASKSET));
+-	dev_info(emac_dev, "EMAC: MacIntRaw:%08X, MacIntMasked: %08X, "\
+-		"MacInVector=%08X\n", emac_read(EMAC_MACINTSTATRAW),
+-		emac_read(EMAC_MACINTSTATMASKED), emac_read(EMAC_MACINVECTOR));
+ 	dev_info(emac_dev, "EMAC: EmuControl:%08X, FifoControl: %08X\n",
+ 		emac_read(EMAC_EMCONTROL), emac_read(EMAC_FIFOCONTROL));
+ 	dev_info(emac_dev, "EMAC: MBPEnable:%08X, RXUnicastSet: %08X, "\
+@@ -567,8 +399,6 @@ static void emac_dump_regs(struct emac_priv *priv)
+ 	dev_info(emac_dev, "EMAC: MacControl:%08X, MacStatus: %08X, "\
+ 		"MacConfig=%08X\n", emac_read(EMAC_MACCONTROL),
+ 		emac_read(EMAC_MACSTATUS), emac_read(EMAC_MACCONFIG));
+-	dev_info(emac_dev, "EMAC: TXHDP[0]:%08X, RXHDP[0]: %08X\n",
+-		emac_read(EMAC_TXHDP(0)), emac_read(EMAC_RXHDP(0)));
+ 	dev_info(emac_dev, "EMAC Statistics\n");
+ 	dev_info(emac_dev, "EMAC: rx_good_frames:%d\n",
+ 		emac_read(EMAC_RXGOODFRAMES));
+@@ -1223,373 +1053,6 @@ static void emac_tx_handler(void *token, int len, int status)
+ 	dev_kfree_skb_any(skb);
+ }
+ 
+-/** EMAC on-chip buffer descriptor memory
+- *
+- * WARNING: Please note that the on chip memory is used for both TX and RX
+- * buffer descriptor queues and is equally divided between TX and RX desc's
+- * If the number of TX or RX descriptors change this memory pointers need
+- * to be adjusted. If external memory is allocated then these pointers can
+- * pointer to the memory
+- *
+- */
+-#define EMAC_TX_BD_MEM(priv)	((priv)->emac_ctrl_ram)
+-#define EMAC_RX_BD_MEM(priv)	((priv)->emac_ctrl_ram + \
+-				(((priv)->ctrl_ram_size) >> 1))
+-
+-/**
+- * emac_init_txch: TX channel initialization
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: RX channel number
+- *
+- * Called during device init to setup a TX channel (allocate buffer desc
+- * create free pool and keep ready for transmission
+- *
+- * Returns success(0) or mem alloc failures error code
+- */
+-static int emac_init_txch(struct emac_priv *priv, u32 ch)
+-{
+-	struct device *emac_dev = &priv->ndev->dev;
+-	u32 cnt, bd_size;
+-	void __iomem *mem;
+-	struct emac_tx_bd __iomem *curr_bd;
+-	struct emac_txch *txch = NULL;
+-
+-	txch = kzalloc(sizeof(struct emac_txch), GFP_KERNEL);
+-	if (NULL == txch) {
+-		dev_err(emac_dev, "DaVinci EMAC: TX Ch mem alloc failed");
+-		return -ENOMEM;
+-	}
+-	priv->txch[ch] = txch;
+-	txch->service_max = EMAC_DEF_TX_MAX_SERVICE;
+-	txch->active_queue_head = NULL;
+-	txch->active_queue_tail = NULL;
+-	txch->queue_active = 0;
+-	txch->teardown_pending = 0;
+-
+-	/* allocate memory for TX CPPI channel on a 4 byte boundry */
+-	txch->tx_complete = kzalloc(txch->service_max * sizeof(u32),
+-				    GFP_KERNEL);
+-	if (NULL == txch->tx_complete) {
+-		dev_err(emac_dev, "DaVinci EMAC: Tx service mem alloc failed");
+-		kfree(txch);
+-		return -ENOMEM;
+-	}
+-
+-	/* allocate buffer descriptor pool align every BD on four word
+-	 * boundry for future requirements */
+-	bd_size = (sizeof(struct emac_tx_bd) + 0xF) & ~0xF;
+-	txch->num_bd = (priv->ctrl_ram_size >> 1) / bd_size;
+-	txch->alloc_size = (((bd_size * txch->num_bd) + 0xF) & ~0xF);
+-
+-	/* alloc TX BD memory */
+-	txch->bd_mem = EMAC_TX_BD_MEM(priv);
+-	__memzero((void __force *)txch->bd_mem, txch->alloc_size);
+-
+-	/* initialize the BD linked list */
+-	mem = (void __force __iomem *)
+-			(((u32 __force) txch->bd_mem + 0xF) & ~0xF);
+-	txch->bd_pool_head = NULL;
+-	for (cnt = 0; cnt < txch->num_bd; cnt++) {
+-		curr_bd = mem + (cnt * bd_size);
+-		curr_bd->next = txch->bd_pool_head;
+-		txch->bd_pool_head = curr_bd;
+-	}
+-
+-	/* reset statistics counters */
+-	txch->out_of_tx_bd = 0;
+-	txch->no_active_pkts = 0;
+-	txch->active_queue_count = 0;
+-
+-	return 0;
+-}
+-
+-/**
+- * emac_cleanup_txch: Book-keep function to clean TX channel resources
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: TX channel number
+- *
+- * Called to clean up TX channel resources
+- *
+- */
+-static void emac_cleanup_txch(struct emac_priv *priv, u32 ch)
+-{
+-	struct emac_txch *txch = priv->txch[ch];
+-
+-	if (txch) {
+-		if (txch->bd_mem)
+-			txch->bd_mem = NULL;
+-		kfree(txch->tx_complete);
+-		kfree(txch);
+-		priv->txch[ch] = NULL;
+-	}
+-}
+-
+-/**
+- * emac_net_tx_complete: TX packet completion function
+- * @priv: The DaVinci EMAC private adapter structure
+- * @net_data_tokens: packet token - skb pointer
+- * @num_tokens: number of skb's to free
+- * @ch: TX channel number
+- *
+- * Frees the skb once packet is transmitted
+- *
+- */
+-static int emac_net_tx_complete(struct emac_priv *priv,
+-				void **net_data_tokens,
+-				int num_tokens, u32 ch)
+-{
+-	struct net_device *ndev = priv->ndev;
+-	u32 cnt;
+-
+-	if (unlikely(num_tokens && netif_queue_stopped(ndev)))
+-		netif_start_queue(ndev);
+-	for (cnt = 0; cnt < num_tokens; cnt++) {
+-		struct sk_buff *skb = (struct sk_buff *)net_data_tokens[cnt];
+-		if (skb == NULL)
+-			continue;
+-		ndev->stats.tx_packets++;
+-		ndev->stats.tx_bytes += skb->len;
+-		dev_kfree_skb_any(skb);
+-	}
+-	return 0;
+-}
+-
+-/**
+- * emac_txch_teardown: TX channel teardown
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: TX channel number
+- *
+- * Called to teardown TX channel
+- *
+- */
+-static void emac_txch_teardown(struct emac_priv *priv, u32 ch)
+-{
+-	struct device *emac_dev = &priv->ndev->dev;
+-	u32 teardown_cnt = 0xFFFFFFF0; /* Some high value */
+-	struct emac_txch *txch = priv->txch[ch];
+-	struct emac_tx_bd __iomem *curr_bd;
+-
+-	while ((emac_read(EMAC_TXCP(ch)) & EMAC_TEARDOWN_VALUE) !=
+-	       EMAC_TEARDOWN_VALUE) {
+-		/* wait till tx teardown complete */
+-		cpu_relax(); /* TODO: check if this helps ... */
+-		--teardown_cnt;
+-		if (0 == teardown_cnt) {
+-			dev_err(emac_dev, "EMAC: TX teardown aborted\n");
+-			break;
+-		}
+-	}
+-	emac_write(EMAC_TXCP(ch), EMAC_TEARDOWN_VALUE);
+-
+-	/* process sent packets and return skb's to upper layer */
+-	if (1 == txch->queue_active) {
+-		curr_bd = txch->active_queue_head;
+-		while (curr_bd != NULL) {
+-			dma_unmap_single(emac_dev, curr_bd->buff_ptr,
+-				curr_bd->off_b_len & EMAC_RX_BD_BUF_SIZE,
+-				DMA_TO_DEVICE);
+-
+-			emac_net_tx_complete(priv, (void __force *)
+-					&curr_bd->buf_token, 1, ch);
+-			if (curr_bd != txch->active_queue_tail)
+-				curr_bd = curr_bd->next;
+-			else
+-				break;
+-		}
+-		txch->bd_pool_head = txch->active_queue_head;
+-		txch->active_queue_head =
+-		txch->active_queue_tail = NULL;
+-	}
+-}
+-
+-/**
+- * emac_stop_txch: Stop TX channel operation
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: TX channel number
+- *
+- * Called to stop TX channel operation
+- *
+- */
+-static void emac_stop_txch(struct emac_priv *priv, u32 ch)
+-{
+-	struct emac_txch *txch = priv->txch[ch];
+-
+-	if (txch) {
+-		txch->teardown_pending = 1;
+-		emac_write(EMAC_TXTEARDOWN, 0);
+-		emac_txch_teardown(priv, ch);
+-		txch->teardown_pending = 0;
+-		emac_write(EMAC_TXINTMASKCLEAR, BIT(ch));
+-	}
+-}
+-
+-/**
+- * emac_tx_bdproc: TX buffer descriptor (packet) processing
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: TX channel number to process buffer descriptors for
+- * @budget: number of packets allowed to process
+- * @pending: indication to caller that packets are pending to process
+- *
+- * Processes TX buffer descriptors after packets are transmitted - checks
+- * ownership bit on the TX * descriptor and requeues it to free pool & frees
+- * the SKB buffer. Only "budget" number of packets are processed and
+- * indication of pending packets provided to the caller
+- *
+- * Returns number of packets processed
+- */
+-static int emac_tx_bdproc(struct emac_priv *priv, u32 ch, u32 budget)
+-{
+-	struct device *emac_dev = &priv->ndev->dev;
+-	unsigned long flags;
+-	u32 frame_status;
+-	u32 pkts_processed = 0;
+-	u32 tx_complete_cnt = 0;
+-	struct emac_tx_bd __iomem *curr_bd;
+-	struct emac_txch *txch = priv->txch[ch];
+-	u32 *tx_complete_ptr = txch->tx_complete;
+-
+-	if (unlikely(1 == txch->teardown_pending)) {
+-		if (netif_msg_tx_err(priv) && net_ratelimit()) {
+-			dev_err(emac_dev, "DaVinci EMAC:emac_tx_bdproc: "\
+-				"teardown pending\n");
+-		}
+-		return 0;  /* dont handle any pkt completions */
+-	}
+-
+-	++txch->proc_count;
+-	spin_lock_irqsave(&priv->tx_lock, flags);
+-	curr_bd = txch->active_queue_head;
+-	if (NULL == curr_bd) {
+-		emac_write(EMAC_TXCP(ch),
+-			   emac_virt_to_phys(txch->last_hw_bdprocessed, priv));
+-		txch->no_active_pkts++;
+-		spin_unlock_irqrestore(&priv->tx_lock, flags);
+-		return 0;
+-	}
+-	BD_CACHE_INVALIDATE(curr_bd, EMAC_BD_LENGTH_FOR_CACHE);
+-	frame_status = curr_bd->mode;
+-	while ((curr_bd) &&
+-	      ((frame_status & EMAC_CPPI_OWNERSHIP_BIT) == 0) &&
+-	      (pkts_processed < budget)) {
+-		emac_write(EMAC_TXCP(ch), emac_virt_to_phys(curr_bd, priv));
+-		txch->active_queue_head = curr_bd->next;
+-		if (frame_status & EMAC_CPPI_EOQ_BIT) {
+-			if (curr_bd->next) {	/* misqueued packet */
+-				emac_write(EMAC_TXHDP(ch), curr_bd->h_next);
+-				++txch->mis_queued_packets;
+-			} else {
+-				txch->queue_active = 0; /* end of queue */
+-			}
+-		}
+-
+-		dma_unmap_single(emac_dev, curr_bd->buff_ptr,
+-				curr_bd->off_b_len & EMAC_RX_BD_BUF_SIZE,
+-				DMA_TO_DEVICE);
+-
+-		*tx_complete_ptr = (u32) curr_bd->buf_token;
+-		++tx_complete_ptr;
+-		++tx_complete_cnt;
+-		curr_bd->next = txch->bd_pool_head;
+-		txch->bd_pool_head = curr_bd;
+-		--txch->active_queue_count;
+-		pkts_processed++;
+-		txch->last_hw_bdprocessed = curr_bd;
+-		curr_bd = txch->active_queue_head;
+-		if (curr_bd) {
+-			BD_CACHE_INVALIDATE(curr_bd, EMAC_BD_LENGTH_FOR_CACHE);
+-			frame_status = curr_bd->mode;
+-		}
+-	} /* end of pkt processing loop */
+-
+-	emac_net_tx_complete(priv,
+-			     (void *)&txch->tx_complete[0],
+-			     tx_complete_cnt, ch);
+-	spin_unlock_irqrestore(&priv->tx_lock, flags);
+-	return pkts_processed;
+-}
+-
+-#define EMAC_ERR_TX_OUT_OF_BD -1
+-
+-/**
+- * emac_send: EMAC Transmit function (internal)
+- * @priv: The DaVinci EMAC private adapter structure
+- * @pkt: packet pointer (contains skb ptr)
+- * @ch: TX channel number
+- *
+- * Called by the transmit function to queue the packet in EMAC hardware queue
+- *
+- * Returns success(0) or error code (typically out of desc's)
+- */
+-static int emac_send(struct emac_priv *priv, struct emac_netpktobj *pkt, u32 ch)
+-{
+-	unsigned long flags;
+-	struct emac_tx_bd __iomem *curr_bd;
+-	struct emac_txch *txch;
+-	struct emac_netbufobj *buf_list;
+-
+-	txch = priv->txch[ch];
+-	buf_list = pkt->buf_list;   /* get handle to the buffer array */
+-
+-	/* check packet size and pad if short */
+-	if (pkt->pkt_length < EMAC_DEF_MIN_ETHPKTSIZE) {
+-		buf_list->length += (EMAC_DEF_MIN_ETHPKTSIZE - pkt->pkt_length);
+-		pkt->pkt_length = EMAC_DEF_MIN_ETHPKTSIZE;
+-	}
+-
+-	spin_lock_irqsave(&priv->tx_lock, flags);
+-	curr_bd = txch->bd_pool_head;
+-	if (curr_bd == NULL) {
+-		txch->out_of_tx_bd++;
+-		spin_unlock_irqrestore(&priv->tx_lock, flags);
+-		return EMAC_ERR_TX_OUT_OF_BD;
+-	}
+-
+-	txch->bd_pool_head = curr_bd->next;
+-	curr_bd->buf_token = buf_list->buf_token;
+-	curr_bd->buff_ptr = dma_map_single(&priv->ndev->dev, buf_list->data_ptr,
+-			buf_list->length, DMA_TO_DEVICE);
+-	curr_bd->off_b_len = buf_list->length;
+-	curr_bd->h_next = 0;
+-	curr_bd->next = NULL;
+-	curr_bd->mode = (EMAC_CPPI_SOP_BIT | EMAC_CPPI_OWNERSHIP_BIT |
+-			 EMAC_CPPI_EOP_BIT | pkt->pkt_length);
+-
+-	/* flush the packet from cache if write back cache is present */
+-	BD_CACHE_WRITEBACK_INVALIDATE(curr_bd, EMAC_BD_LENGTH_FOR_CACHE);
+-
+-	/* send the packet */
+-	if (txch->active_queue_head == NULL) {
+-		txch->active_queue_head = curr_bd;
+-		txch->active_queue_tail = curr_bd;
+-		if (1 != txch->queue_active) {
+-			emac_write(EMAC_TXHDP(ch),
+-					emac_virt_to_phys(curr_bd, priv));
+-			txch->queue_active = 1;
+-		}
+-		++txch->queue_reinit;
+-	} else {
+-		register struct emac_tx_bd __iomem *tail_bd;
+-		register u32 frame_status;
+-
+-		tail_bd = txch->active_queue_tail;
+-		tail_bd->next = curr_bd;
+-		txch->active_queue_tail = curr_bd;
+-		tail_bd = EMAC_VIRT_NOCACHE(tail_bd);
+-		tail_bd->h_next = (int)emac_virt_to_phys(curr_bd, priv);
+-		frame_status = tail_bd->mode;
+-		if (frame_status & EMAC_CPPI_EOQ_BIT) {
+-			emac_write(EMAC_TXHDP(ch),
+-				emac_virt_to_phys(curr_bd, priv));
+-			frame_status &= ~(EMAC_CPPI_EOQ_BIT);
+-			tail_bd->mode = frame_status;
+-			++txch->end_of_queue_add;
+-		}
+-	}
+-	txch->active_queue_count++;
+-	spin_unlock_irqrestore(&priv->tx_lock, flags);
+-	return 0;
+-}
+-
+ /**
+  * emac_dev_xmit: EMAC Transmit function
+  * @skb: SKB pointer
+@@ -1664,207 +1127,6 @@ static void emac_dev_tx_timeout(struct net_device *ndev)
+ }
+ 
+ /**
+- * emac_net_alloc_rx_buf: Allocate a skb for RX
+- * @priv: The DaVinci EMAC private adapter structure
+- * @buf_size: size of SKB data buffer to allocate
+- * @data_token: data token returned (skb handle for storing in buffer desc)
+- * @ch: RX channel number
+- *
+- * Called during RX channel setup - allocates skb buffer of required size
+- * and provides the skb handle and allocated buffer data pointer to caller
+- *
+- * Returns skb data pointer or 0 on failure to alloc skb
+- */
+-static void *emac_net_alloc_rx_buf(struct emac_priv *priv, int buf_size,
+-		void **data_token, u32 ch)
+-{
+-	struct net_device *ndev = priv->ndev;
+-	struct device *emac_dev = &ndev->dev;
+-	struct sk_buff *p_skb;
+-
+-	p_skb = dev_alloc_skb(buf_size);
+-	if (unlikely(NULL == p_skb)) {
+-		if (netif_msg_rx_err(priv) && net_ratelimit())
+-			dev_err(emac_dev, "DaVinci EMAC: failed to alloc skb");
+-		return NULL;
+-	}
+-
+-	/* set device pointer in skb and reserve space for extra bytes */
+-	p_skb->dev = ndev;
+-	skb_reserve(p_skb, NET_IP_ALIGN);
+-	*data_token = (void *) p_skb;
+-	return p_skb->data;
+-}
+-
+-/**
+- * emac_init_rxch: RX channel initialization
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: RX channel number
+- * @param: mac address for RX channel
+- *
+- * Called during device init to setup a RX channel (allocate buffers and
+- * buffer descriptors, create queue and keep ready for reception
+- *
+- * Returns success(0) or mem alloc failures error code
+- */
+-static int emac_init_rxch(struct emac_priv *priv, u32 ch, char *param)
+-{
+-	struct device *emac_dev = &priv->ndev->dev;
+-	u32 cnt, bd_size;
+-	void __iomem *mem;
+-	struct emac_rx_bd __iomem *curr_bd;
+-	struct emac_rxch *rxch = NULL;
+-
+-	rxch = kzalloc(sizeof(struct emac_rxch), GFP_KERNEL);
+-	if (NULL == rxch) {
+-		dev_err(emac_dev, "DaVinci EMAC: RX Ch mem alloc failed");
+-		return -ENOMEM;
+-	}
+-	priv->rxch[ch] = rxch;
+-	rxch->buf_size = priv->rx_buf_size;
+-	rxch->service_max = EMAC_DEF_RX_MAX_SERVICE;
+-	rxch->queue_active = 0;
+-	rxch->teardown_pending = 0;
+-
+-	/* save mac address */
+-	for (cnt = 0; cnt < 6; cnt++)
+-		rxch->mac_addr[cnt] = param[cnt];
+-
+-	/* allocate buffer descriptor pool align every BD on four word
+-	 * boundry for future requirements */
+-	bd_size = (sizeof(struct emac_rx_bd) + 0xF) & ~0xF;
+-	rxch->num_bd = (priv->ctrl_ram_size >> 1) / bd_size;
+-	rxch->alloc_size = (((bd_size * rxch->num_bd) + 0xF) & ~0xF);
+-	rxch->bd_mem = EMAC_RX_BD_MEM(priv);
+-	__memzero((void __force *)rxch->bd_mem, rxch->alloc_size);
+-	rxch->pkt_queue.buf_list = &rxch->buf_queue;
+-
+-	/* allocate RX buffer and initialize the BD linked list */
+-	mem = (void __force __iomem *)
+-			(((u32 __force) rxch->bd_mem + 0xF) & ~0xF);
+-	rxch->active_queue_head = NULL;
+-	rxch->active_queue_tail = mem;
+-	for (cnt = 0; cnt < rxch->num_bd; cnt++) {
+-		curr_bd = mem + (cnt * bd_size);
+-		/* for future use the last parameter contains the BD ptr */
+-		curr_bd->data_ptr = emac_net_alloc_rx_buf(priv,
+-				    rxch->buf_size,
+-				    (void __force **)&curr_bd->buf_token,
+-				    EMAC_DEF_RX_CH);
+-		if (curr_bd->data_ptr == NULL) {
+-			dev_err(emac_dev, "DaVinci EMAC: RX buf mem alloc " \
+-				"failed for ch %d\n", ch);
+-			kfree(rxch);
+-			return -ENOMEM;
+-		}
+-
+-		/* populate the hardware descriptor */
+-		curr_bd->h_next = emac_virt_to_phys(rxch->active_queue_head,
+-				priv);
+-		curr_bd->buff_ptr = dma_map_single(emac_dev, curr_bd->data_ptr,
+-				rxch->buf_size, DMA_FROM_DEVICE);
+-		curr_bd->off_b_len = rxch->buf_size;
+-		curr_bd->mode = EMAC_CPPI_OWNERSHIP_BIT;
+-
+-		/* write back to hardware memory */
+-		BD_CACHE_WRITEBACK_INVALIDATE((u32) curr_bd,
+-					      EMAC_BD_LENGTH_FOR_CACHE);
+-		curr_bd->next = rxch->active_queue_head;
+-		rxch->active_queue_head = curr_bd;
+-	}
+-
+-	/* At this point rxCppi->activeQueueHead points to the first
+-	   RX BD ready to be given to RX HDP and rxch->active_queue_tail
+-	   points to the last RX BD
+-	 */
+-	return 0;
+-}
+-
+-/**
+- * emac_rxch_teardown: RX channel teardown
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: RX channel number
+- *
+- * Called during device stop to teardown RX channel
+- *
+- */
+-static void emac_rxch_teardown(struct emac_priv *priv, u32 ch)
+-{
+-	struct device *emac_dev = &priv->ndev->dev;
+-	u32 teardown_cnt = 0xFFFFFFF0; /* Some high value */
+-
+-	while ((emac_read(EMAC_RXCP(ch)) & EMAC_TEARDOWN_VALUE) !=
+-	       EMAC_TEARDOWN_VALUE) {
+-		/* wait till tx teardown complete */
+-		cpu_relax(); /* TODO: check if this helps ... */
+-		--teardown_cnt;
+-		if (0 == teardown_cnt) {
+-			dev_err(emac_dev, "EMAC: RX teardown aborted\n");
+-			break;
+-		}
+-	}
+-	emac_write(EMAC_RXCP(ch), EMAC_TEARDOWN_VALUE);
+-}
+-
+-/**
+- * emac_stop_rxch: Stop RX channel operation
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: RX channel number
+- *
+- * Called during device stop to stop RX channel operation
+- *
+- */
+-static void emac_stop_rxch(struct emac_priv *priv, u32 ch)
+-{
+-	struct emac_rxch *rxch = priv->rxch[ch];
+-
+-	if (rxch) {
+-		rxch->teardown_pending = 1;
+-		emac_write(EMAC_RXTEARDOWN, ch);
+-		/* wait for teardown complete */
+-		emac_rxch_teardown(priv, ch);
+-		rxch->teardown_pending = 0;
+-		emac_write(EMAC_RXINTMASKCLEAR, BIT(ch));
+-	}
+-}
+-
+-/**
+- * emac_cleanup_rxch: Book-keep function to clean RX channel resources
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: RX channel number
+- *
+- * Called during device stop to clean up RX channel resources
+- *
+- */
+-static void emac_cleanup_rxch(struct emac_priv *priv, u32 ch)
+-{
+-	struct emac_rxch *rxch = priv->rxch[ch];
+-	struct emac_rx_bd __iomem *curr_bd;
+-
+-	if (rxch) {
+-		/* free the receive buffers previously allocated */
+-		curr_bd = rxch->active_queue_head;
+-		while (curr_bd) {
+-			if (curr_bd->buf_token) {
+-				dma_unmap_single(&priv->ndev->dev,
+-					curr_bd->buff_ptr,
+-					curr_bd->off_b_len
+-						& EMAC_RX_BD_BUF_SIZE,
+-					DMA_FROM_DEVICE);
+-
+-				dev_kfree_skb_any((struct sk_buff *)\
+-						  curr_bd->buf_token);
+-			}
+-			curr_bd = curr_bd->next;
+-		}
+-		if (rxch->bd_mem)
+-			rxch->bd_mem = NULL;
+-		kfree(rxch);
+-		priv->rxch[ch] = NULL;
+-	}
+-}
+-
+-/**
+  * emac_set_type0addr: Set EMAC Type0 mac address
+  * @priv: The DaVinci EMAC private adapter structure
+  * @ch: RX channel number
+@@ -2004,194 +1266,6 @@ static int emac_dev_setmac_addr(struct net_device *ndev, void *addr)
+ }
+ 
+ /**
+- * emac_addbd_to_rx_queue: Recycle RX buffer descriptor
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: RX channel number to process buffer descriptors for
+- * @curr_bd: current buffer descriptor
+- * @buffer: buffer pointer for descriptor
+- * @buf_token: buffer token (stores skb information)
+- *
+- * Prepares the recycled buffer descriptor and addes it to hardware
+- * receive queue - if queue empty this descriptor becomes the head
+- * else addes the descriptor to end of queue
+- *
+- */
+-static void emac_addbd_to_rx_queue(struct emac_priv *priv, u32 ch,
+-		struct emac_rx_bd __iomem *curr_bd,
+-		char *buffer, void *buf_token)
+-{
+-	struct emac_rxch *rxch = priv->rxch[ch];
+-
+-	/* populate the hardware descriptor */
+-	curr_bd->h_next = 0;
+-	curr_bd->buff_ptr = dma_map_single(&priv->ndev->dev, buffer,
+-				rxch->buf_size, DMA_FROM_DEVICE);
+-	curr_bd->off_b_len = rxch->buf_size;
+-	curr_bd->mode = EMAC_CPPI_OWNERSHIP_BIT;
+-	curr_bd->next = NULL;
+-	curr_bd->data_ptr = buffer;
+-	curr_bd->buf_token = buf_token;
+-
+-	/* write back  */
+-	BD_CACHE_WRITEBACK_INVALIDATE(curr_bd, EMAC_BD_LENGTH_FOR_CACHE);
+-	if (rxch->active_queue_head == NULL) {
+-		rxch->active_queue_head = curr_bd;
+-		rxch->active_queue_tail = curr_bd;
+-		if (0 != rxch->queue_active) {
+-			emac_write(EMAC_RXHDP(ch),
+-			   emac_virt_to_phys(rxch->active_queue_head, priv));
+-			rxch->queue_active = 1;
+-		}
+-	} else {
+-		struct emac_rx_bd __iomem *tail_bd;
+-		u32 frame_status;
+-
+-		tail_bd = rxch->active_queue_tail;
+-		rxch->active_queue_tail = curr_bd;
+-		tail_bd->next = curr_bd;
+-		tail_bd = EMAC_VIRT_NOCACHE(tail_bd);
+-		tail_bd->h_next = emac_virt_to_phys(curr_bd, priv);
+-		frame_status = tail_bd->mode;
+-		if (frame_status & EMAC_CPPI_EOQ_BIT) {
+-			emac_write(EMAC_RXHDP(ch),
+-					emac_virt_to_phys(curr_bd, priv));
+-			frame_status &= ~(EMAC_CPPI_EOQ_BIT);
+-			tail_bd->mode = frame_status;
+-			++rxch->end_of_queue_add;
+-		}
+-	}
+-	++rxch->recycled_bd;
+-}
+-
+-/**
+- * emac_net_rx_cb: Prepares packet and sends to upper layer
+- * @priv: The DaVinci EMAC private adapter structure
+- * @net_pkt_list: Network packet list (received packets)
+- *
+- * Invalidates packet buffer memory and sends the received packet to upper
+- * layer
+- *
+- * Returns success or appropriate error code (none as of now)
+- */
+-static int emac_net_rx_cb(struct emac_priv *priv,
+-			  struct emac_netpktobj *net_pkt_list)
+-{
+-	struct net_device *ndev = priv->ndev;
+-	struct sk_buff *p_skb = net_pkt_list->pkt_token;
+-	/* set length of packet */
+-	skb_put(p_skb, net_pkt_list->pkt_length);
+-	p_skb->protocol = eth_type_trans(p_skb, priv->ndev);
+-	netif_receive_skb(p_skb);
+-	ndev->stats.rx_bytes += net_pkt_list->pkt_length;
+-	ndev->stats.rx_packets++;
+-	return 0;
+-}
+-
+-/**
+- * emac_rx_bdproc: RX buffer descriptor (packet) processing
+- * @priv: The DaVinci EMAC private adapter structure
+- * @ch: RX channel number to process buffer descriptors for
+- * @budget: number of packets allowed to process
+- * @pending: indication to caller that packets are pending to process
+- *
+- * Processes RX buffer descriptors - checks ownership bit on the RX buffer
+- * descriptor, sends the receive packet to upper layer, allocates a new SKB
+- * and recycles the buffer descriptor (requeues it in hardware RX queue).
+- * Only "budget" number of packets are processed and indication of pending
+- * packets provided to the caller.
+- *
+- * Returns number of packets processed (and indication of pending packets)
+- */
+-static int emac_rx_bdproc(struct emac_priv *priv, u32 ch, u32 budget)
+-{
+-	unsigned long flags;
+-	u32 frame_status;
+-	u32 pkts_processed = 0;
+-	char *new_buffer;
+-	struct emac_rx_bd __iomem *curr_bd;
+-	struct emac_rx_bd __iomem *last_bd;
+-	struct emac_netpktobj *curr_pkt, pkt_obj;
+-	struct emac_netbufobj buf_obj;
+-	struct emac_netbufobj *rx_buf_obj;
+-	void *new_buf_token;
+-	struct emac_rxch *rxch = priv->rxch[ch];
+-
+-	if (unlikely(1 == rxch->teardown_pending))
+-		return 0;
+-	++rxch->proc_count;
+-	spin_lock_irqsave(&priv->rx_lock, flags);
+-	pkt_obj.buf_list = &buf_obj;
+-	curr_pkt = &pkt_obj;
+-	curr_bd = rxch->active_queue_head;
+-	BD_CACHE_INVALIDATE(curr_bd, EMAC_BD_LENGTH_FOR_CACHE);
+-	frame_status = curr_bd->mode;
+-
+-	while ((curr_bd) &&
+-	       ((frame_status & EMAC_CPPI_OWNERSHIP_BIT) == 0) &&
+-	       (pkts_processed < budget)) {
+-
+-		new_buffer = emac_net_alloc_rx_buf(priv, rxch->buf_size,
+-					&new_buf_token, EMAC_DEF_RX_CH);
+-		if (unlikely(NULL == new_buffer)) {
+-			++rxch->out_of_rx_buffers;
+-			goto end_emac_rx_bdproc;
+-		}
+-
+-		/* populate received packet data structure */
+-		rx_buf_obj = &curr_pkt->buf_list[0];
+-		rx_buf_obj->data_ptr = (char *)curr_bd->data_ptr;
+-		rx_buf_obj->length = curr_bd->off_b_len & EMAC_RX_BD_BUF_SIZE;
+-		rx_buf_obj->buf_token = curr_bd->buf_token;
+-
+-		dma_unmap_single(&priv->ndev->dev, curr_bd->buff_ptr,
+-				curr_bd->off_b_len & EMAC_RX_BD_BUF_SIZE,
+-				DMA_FROM_DEVICE);
+-
+-		curr_pkt->pkt_token = curr_pkt->buf_list->buf_token;
+-		curr_pkt->num_bufs = 1;
+-		curr_pkt->pkt_length =
+-			(frame_status & EMAC_RX_BD_PKT_LENGTH_MASK);
+-		emac_write(EMAC_RXCP(ch), emac_virt_to_phys(curr_bd, priv));
+-		++rxch->processed_bd;
+-		last_bd = curr_bd;
+-		curr_bd = last_bd->next;
+-		rxch->active_queue_head = curr_bd;
+-
+-		/* check if end of RX queue ? */
+-		if (frame_status & EMAC_CPPI_EOQ_BIT) {
+-			if (curr_bd) {
+-				++rxch->mis_queued_packets;
+-				emac_write(EMAC_RXHDP(ch),
+-					   emac_virt_to_phys(curr_bd, priv));
+-			} else {
+-				++rxch->end_of_queue;
+-				rxch->queue_active = 0;
+-			}
+-		}
+-
+-		/* recycle BD */
+-		emac_addbd_to_rx_queue(priv, ch, last_bd, new_buffer,
+-				       new_buf_token);
+-
+-		/* return the packet to the user - BD ptr passed in
+-		 * last parameter for potential *future* use */
+-		spin_unlock_irqrestore(&priv->rx_lock, flags);
+-		emac_net_rx_cb(priv, curr_pkt);
+-		spin_lock_irqsave(&priv->rx_lock, flags);
+-		curr_bd = rxch->active_queue_head;
+-		if (curr_bd) {
+-			BD_CACHE_INVALIDATE(curr_bd, EMAC_BD_LENGTH_FOR_CACHE);
+-			frame_status = curr_bd->mode;
+-		}
+-		++pkts_processed;
+-	}
+-
+-end_emac_rx_bdproc:
+-	spin_unlock_irqrestore(&priv->rx_lock, flags);
+-	return pkts_processed;
+-}
+-
+-/**
+  * emac_hw_enable: Enable EMAC hardware for packet transmission/reception
+  * @priv: The DaVinci EMAC private adapter structure
+  *
+@@ -2717,8 +1791,6 @@ static int __devinit davinci_emac_probe(struct platform_device *pdev)
+ 	priv->ndev = ndev;
+ 	priv->msg_enable = netif_msg_init(debug_level, DAVINCI_EMAC_DEBUG);
+ 
+-	spin_lock_init(&priv->tx_lock);
+-	spin_lock_init(&priv->rx_lock);
+ 	spin_lock_init(&priv->lock);
+ 
+ 	pdata = pdev->dev.platform_data;
+@@ -2766,8 +1838,6 @@ static int __devinit davinci_emac_probe(struct platform_device *pdev)
+ 	ndev->base_addr = (unsigned long)priv->remap_addr;
+ 
+ 	priv->ctrl_base = priv->remap_addr + pdata->ctrl_mod_reg_offset;
+-	priv->ctrl_ram_size = pdata->ctrl_ram_size;
+-	priv->emac_ctrl_ram = priv->remap_addr + pdata->ctrl_ram_offset;
+ 
+ 	hw_ram_addr = pdata->hw_ram_addr;
+ 	if (!hw_ram_addr)
 -- 
 1.7.0.4
 
