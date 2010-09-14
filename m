@@ -1,197 +1,152 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [RFT/PATCH 4/8] cbus: retu: avoid section mismatch
-Date: Tue, 14 Sep 2010 11:30:12 +0300
-Message-ID: <1284453016-8295-5-git-send-email-balbi@ti.com>
+Subject: [RFT/PATCH 5/8] cbus: tahvo: usb: convert to platform_driver
+Date: Tue, 14 Sep 2010 11:30:13 +0300
+Message-ID: <1284453016-8295-6-git-send-email-balbi@ti.com>
 References: <1284453016-8295-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42769 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46593 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753245Ab0INIac (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Sep 2010 04:30:32 -0400
+	id S1753284Ab0INIad (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Sep 2010 04:30:33 -0400
 In-Reply-To: <1284453016-8295-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-... by removing __init reference from platform_driver
-structure.
+tahvo-usb was already using a platform_device,
+now also convert device_driver into platform_driver.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/retu-headset.c   |    3 +--
- drivers/cbus/retu-pwrbutton.c |    9 ++++-----
- drivers/cbus/retu-rtc.c       |    7 +++----
- drivers/cbus/retu-wdt.c       |    7 +++----
- drivers/cbus/retu.c           |    9 ++++-----
- 5 files changed, 15 insertions(+), 20 deletions(-)
+ drivers/cbus/tahvo-usb.c |   49 +++++++++++++++++++++++----------------------
+ 1 files changed, 25 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/cbus/retu-headset.c b/drivers/cbus/retu-headset.c
-index c86c665..f5fb50c 100644
---- a/drivers/cbus/retu-headset.c
-+++ b/drivers/cbus/retu-headset.c
-@@ -321,7 +321,6 @@ static int retu_headset_resume(struct platform_device *pdev)
- }
- 
- static struct platform_driver retu_headset_driver = {
--	.probe		= retu_headset_probe,
- 	.remove		= retu_headset_remove,
- 	.suspend	= retu_headset_suspend,
- 	.resume		= retu_headset_resume,
-@@ -332,7 +331,7 @@ static struct platform_driver retu_headset_driver = {
- 
- static int __init retu_headset_init(void)
- {
--	return platform_driver_register(&retu_headset_driver);
-+	return platform_driver_probe(&retu_headset_driver, retu_headset_probe);
- }
- 
- static void __exit retu_headset_exit(void)
-diff --git a/drivers/cbus/retu-pwrbutton.c b/drivers/cbus/retu-pwrbutton.c
-index f0cd056..6b8dfa9 100644
---- a/drivers/cbus/retu-pwrbutton.c
-+++ b/drivers/cbus/retu-pwrbutton.c
-@@ -85,7 +85,7 @@ static void retubutton_irq(unsigned long arg)
-  * Init function.
-  * Allocates interrupt for power button and registers itself to input layer.
-  */
--static int __devinit retubutton_probe(struct platform_device *pdev)
-+static int __init retubutton_probe(struct platform_device *pdev)
- {
- 	struct retu_pwrbutton		*pwr;
- 	int				ret = 0;
-@@ -143,7 +143,7 @@ err0:
- /**
-  * Cleanup function which is called when driver is unloaded
-  */
--static int __devexit retubutton_remove(struct platform_device *pdev)
-+static int __exit retubutton_remove(struct platform_device *pdev)
- {
- 	struct retu_pwrbutton		*pwr = platform_get_drvdata(pdev);
- 
-@@ -157,8 +157,7 @@ static int __devexit retubutton_remove(struct platform_device *pdev)
- }
- 
- static struct platform_driver retu_pwrbutton_driver = {
--	.probe		= retubutton_probe,
--	.remove		= __devexit_p(retubutton_remove),
-+	.remove		= __exit_p(retubutton_remove),
- 	.driver		= {
- 		.name	= "retu-pwrbutton",
- 	},
-@@ -166,7 +165,7 @@ static struct platform_driver retu_pwrbutton_driver = {
- 
- static int __init retubutton_init(void)
- {
--	return platform_driver_register(&retu_pwrbutton_driver);
-+	return platform_driver_probe(&retu_pwrbutton_driver, retubutton_probe);
- }
- module_init(retubutton_init);
- 
-diff --git a/drivers/cbus/retu-rtc.c b/drivers/cbus/retu-rtc.c
-index b3974e2..c0fe481 100644
---- a/drivers/cbus/retu-rtc.c
-+++ b/drivers/cbus/retu-rtc.c
-@@ -273,7 +273,7 @@ static struct rtc_class_ops retu_rtc_ops = {
- 	.set_alarm		= retu_rtc_set_alarm,
- };
- 
--static int __devinit retu_rtc_probe(struct platform_device *pdev)
-+static int __init retu_rtc_probe(struct platform_device *pdev)
- {
- 	struct retu_rtc		*rtc;
- 	int			r;
-@@ -350,8 +350,7 @@ static int __devexit retu_rtc_remove(struct platform_device *pdev)
- }
- 
- static struct platform_driver retu_rtc_driver = {
--	.probe		= retu_rtc_probe,
--	.remove		= __devexit_p(retu_rtc_remove),
-+	.remove		= __exit_p(retu_rtc_remove),
- 	.driver		= {
- 		.name	= "retu-rtc",
- 	},
-@@ -359,7 +358,7 @@ static struct platform_driver retu_rtc_driver = {
- 
- static int __init retu_rtc_init(void)
- {
--	return platform_driver_register(&retu_rtc_driver);
-+	return platform_driver_probe(&retu_rtc_driver, retu_rtc_probe);
- }
- 
- static void __exit retu_rtc_exit(void)
-diff --git a/drivers/cbus/retu-wdt.c b/drivers/cbus/retu-wdt.c
-index 3d83cdc..8b87ae9 100644
---- a/drivers/cbus/retu-wdt.c
-+++ b/drivers/cbus/retu-wdt.c
-@@ -253,7 +253,7 @@ static const struct file_operations retu_wdt_fops = {
- 
- /*----------------------------------------------------------------------------*/
- 
--static int __devinit retu_wdt_probe(struct platform_device *pdev)
-+static int __init retu_wdt_probe(struct platform_device *pdev)
- {
- 	struct retu_wdt_dev *wdev;
- 	int ret;
-@@ -340,8 +340,7 @@ static int __devexit retu_wdt_remove(struct platform_device *pdev)
- }
- 
- static struct platform_driver retu_wdt_driver = {
--	.probe		= retu_wdt_probe,
--	.remove		= __devexit_p(retu_wdt_remove),
-+	.remove		= __exit_p(retu_wdt_remove),
- 	.driver		= {
- 		.name	= "retu-wdt",
- 	},
-@@ -349,7 +348,7 @@ static struct platform_driver retu_wdt_driver = {
- 
- static int __init retu_wdt_init(void)
- {
--	return platform_driver_register(&retu_wdt_driver);
-+	return platform_driver_probe(&retu_wdt_driver, retu_wdt_probe);
- }
- 
- static void __exit retu_wdt_exit(void)
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index 67b663e..1397366 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
-@@ -395,7 +395,7 @@ static int retu_allocate_children(struct device *parent)
-  * Probe for the Retu ASIC and allocate memory
-  * for its device-struct if found
-  */
--static int __devinit retu_probe(struct platform_device *pdev)
-+static int __init retu_probe(struct platform_device *pdev)
- {
- 	int rev, ret;
- 	int irq;
-@@ -453,7 +453,7 @@ static int __devinit retu_probe(struct platform_device *pdev)
+diff --git a/drivers/cbus/tahvo-usb.c b/drivers/cbus/tahvo-usb.c
+index 9dc04ad..1cb81fd 100644
+--- a/drivers/cbus/tahvo-usb.c
++++ b/drivers/cbus/tahvo-usb.c
+@@ -188,11 +188,11 @@ static int tahvo_otg_init(void)
  	return 0;
  }
  
--static int __devexit retu_remove(struct platform_device *pdev)
-+static int __exit retu_remove(struct platform_device *pdev)
+-static int omap_otg_probe(struct device *dev)
++static int __init omap_otg_probe(struct platform_device *pdev)
  {
- 	int irq;
+ 	int ret;
  
-@@ -471,8 +471,7 @@ static int __devexit retu_remove(struct platform_device *pdev)
+-	tahvo_otg_dev = to_platform_device(dev);
++	tahvo_otg_dev = pdev;
+ 	ret = tahvo_otg_init();
+ 	if (ret != 0) {
+ 		printk(KERN_ERR "tahvo-usb: tahvo_otg_init failed\n");
+@@ -204,7 +204,7 @@ static int omap_otg_probe(struct device *dev)
+ 			   &tahvo_usb_device);
  }
  
- static struct platform_driver retu_driver = {
--	.probe		= retu_probe,
--	.remove		= __devexit_p(retu_remove),
-+	.remove		= __exit_p(retu_remove),
- 	.driver		= {
- 		.name	= "retu",
- 	},
-@@ -532,7 +531,7 @@ static int __init retu_init(void)
- 	/* Set up correct gpio number on struct resource */
- 	retu_resource[0].start = gpio_to_irq(retu_irq_pin);
+-static int omap_otg_remove(struct device *dev)
++static int __exit omap_otg_remove(struct platform_device *pdev)
+ {
+ 	free_irq(tahvo_otg_dev->resource[1].start, &tahvo_usb_device);
+ 	tahvo_otg_dev = NULL;
+@@ -212,11 +212,11 @@ static int omap_otg_remove(struct device *dev)
+ 	return 0;
+ }
  
--	ret = platform_driver_register(&retu_driver);
-+	ret = platform_driver_probe(&retu_driver, retu_probe);
- 	if (ret < 0)
- 		goto err1;
+-struct device_driver omap_otg_driver = {
+-	.name		= "omap_otg",
+-	.bus		= &platform_bus_type,
+-	.probe		= omap_otg_probe,
+-	.remove		= omap_otg_remove,
++struct platform_driver omap_otg_driver = {
++	.driver		= {
++		.name	= "omap_otg",
++	},
++	.remove		= __exit_p(omap_otg_remove),
+ };
+ 
+ /*
+@@ -643,9 +643,10 @@ static ssize_t otg_mode_store(struct device *device,
+ static DEVICE_ATTR(otg_mode, 0644, otg_mode_show, otg_mode_store);
+ #endif
+ 
+-static int tahvo_usb_probe(struct device *dev)
++static int __init tahvo_usb_probe(struct platform_device *pdev)
+ {
+ 	struct tahvo_usb *tu;
++	struct device *dev = &pdev->dev;
+ 	int ret;
+ 
+ 	ret = tahvo_get_status();
+@@ -720,25 +721,25 @@ static int tahvo_usb_probe(struct device *dev)
+ 	return 0;
+ }
+ 
+-static int tahvo_usb_remove(struct device *dev)
++static int __exit tahvo_usb_remove(struct platform_device *pdev)
+ {
+-	dev_dbg(dev, "remove\n");
++	dev_dbg(&pdev->dev, "remove\n");
+ 
+ 	tahvo_free_irq(TAHVO_INT_VBUSON);
+ 	flush_scheduled_work();
+ 	otg_set_transceiver(0);
+-	device_remove_file(dev, &dev_attr_vbus_state);
++	device_remove_file(&pdev->dev, &dev_attr_vbus_state);
+ #ifdef CONFIG_USB_OTG
+-	device_remove_file(dev, &dev_attr_otg_mode);
++	device_remove_file(&pdev->dev, &dev_attr_otg_mode);
+ #endif
+ 	return 0;
+ }
+ 
+-static struct device_driver tahvo_usb_driver = {
+-	.name		= "tahvo-usb",
+-	.bus		= &platform_bus_type,
+-	.probe		= tahvo_usb_probe,
+-	.remove		= tahvo_usb_remove,
++static struct platform_driver tahvo_usb_driver = {
++	.driver		= {
++		.name	= "tahvo-usb",
++	},
++	.remove		= __exit_p(tahvo_usb_remove),
+ };
+ 
+ static struct platform_device tahvo_usb_device = {
+@@ -751,18 +752,18 @@ static int __init tahvo_usb_init(void)
+ 	int ret = 0;
+ 
+ 	printk(KERN_INFO "Tahvo USB transceiver driver initializing\n");
+-	ret = driver_register(&tahvo_usb_driver);
++	ret = platform_driver_probe(&tahvo_usb_driver, tahvo_usb_probe);
+ 	if (ret)
+ 		return ret;
+ 	ret = platform_device_register(&tahvo_usb_device);
+ 	if (ret < 0) {
+-		driver_unregister(&tahvo_usb_driver);
++		platform_driver_unregister(&tahvo_usb_driver);
+ 		return ret;
+ 	}
+-	ret = driver_register(&omap_otg_driver);
++	ret = platform_driver_probe(&omap_otg_driver, omap_otg_probe);
+ 	if (ret) {
+ 		platform_device_unregister(&tahvo_usb_device);
+-		driver_unregister(&tahvo_usb_driver);
++		platform_driver_unregister(&tahvo_usb_driver);
+ 		return ret;
+ 	}
+ 	return 0;
+@@ -772,9 +773,9 @@ subsys_initcall(tahvo_usb_init);
+ 
+ static void __exit tahvo_usb_exit(void)
+ {
+-	driver_unregister(&omap_otg_driver);
++	platform_driver_unregister(&omap_otg_driver);
+ 	platform_device_unregister(&tahvo_usb_device);
+-	driver_unregister(&tahvo_usb_driver);
++	platform_driver_unregister(&tahvo_usb_driver);
+ }
+ module_exit(tahvo_usb_exit);
  
 -- 
 1.7.3.rc0.35.g8ac8c
