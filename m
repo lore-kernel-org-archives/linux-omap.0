@@ -1,274 +1,87 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCHv2 4/8] OMAP3: PM: Adding smartreflex device file.
-Date: Tue, 14 Sep 2010 21:06:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0329441CF0@dbde02.ent.ti.com>
-References: <1281707231-3026-1-git-send-email-thara@ti.com>
-	<1281707231-3026-5-git-send-email-thara@ti.com>
- <878w3ucor1.fsf@deeprootsystems.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH 6/7] omap4: Workaround for CMD line reset.
+Date: Tue, 14 Sep 2010 21:17:23 +0530
+Message-ID: <AANLkTimd5pAFPfGfODXA1FrC4TEoAy9fGgdVibHpB-vH@mail.gmail.com>
+References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
+	<1284031395-25988-2-git-send-email-santosh.shilimkar@ti.com>
+	<1284031395-25988-3-git-send-email-santosh.shilimkar@ti.com>
+	<1284031395-25988-4-git-send-email-santosh.shilimkar@ti.com>
+	<1284031395-25988-5-git-send-email-santosh.shilimkar@ti.com>
+	<1284031395-25988-6-git-send-email-santosh.shilimkar@ti.com>
+	<1284031395-25988-7-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47720 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595Ab0INPhJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 11:37:09 -0400
-In-Reply-To: <878w3ucor1.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:45392 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752769Ab0INPrY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 11:47:24 -0400
+Received: by vws3 with SMTP id 3so98792vws.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Sep 2010 08:47:23 -0700 (PDT)
+In-Reply-To: <1284031395-25988-7-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Derrick, David" <dderrick@ti.com>
+To: Madhusudhan Chikkature <madhu.cr@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@deeprootsystems.com
 
+Hi Madhu,
 
+On Thu, Sep 9, 2010 at 4:53 PM, Santosh Shilimkar
+<santosh.shilimkar@ti.com> wrote:
+> From: Madhusudhan Chikkature <madhu.cr@ti.com>
+>
+> Add a delay after CMD line reset to accomdate the reset to complete.
+> The SYSCTL seems to reflect SRC immediately which might not really
+> be indicating the complete of reset. This is observed only with ES2.0
+> silicon
+>
+> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> ---
+> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A08 ++++++++
+> =A01 files changed, 8 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hs=
+mmc.c
+> index 4a8776f..1c359f0 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -986,6 +986,14 @@ static inline void omap_hsmmc_reset_controller_f=
+sm(struct omap_hsmmc_host *host,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(i++ < limit))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();
+>
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* On OMAP4 ES2 the SRC is zero in the first loop its=
+elf strangely
+> + =A0 =A0 =A0 =A0* vs on ES1 it takes some time.
+> + =A0 =A0 =A0 =A0* Could be a an issue on ES2 to indicate reset compl=
+ete even before
+> + =A0 =A0 =A0 =A0* it is complete.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 udelay(500);
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Thursday, August 26, 2010 3:57 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand;
->>Derrick, David
->>Subject: Re: [PATCHv2 4/8] OMAP3: PM: Adding smartreflex device file.
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>> This patch adds support for device registration of various
->>> smartreflex module present in the system. This patch introduces
->>> the platform data for smartreflex devices which include
->>> the efused and test n-target vaules, module enable/disable
->>> pointers and a parameter to indicate whether smartreflex
->>> autocompensation needs to be enabled on init or not.
->>> Currently auocompensation is enabled on init by default
->>> for OMAP3430 ES3.1 chip.
->>>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/Makefile    |    2 +-
->>>  arch/arm/mach-omap2/sr_device.c |  185 +++++++++++++++++++++++++++++++++++++++
->>>  2 files changed, 186 insertions(+), 1 deletions(-)
->>>  create mode 100644 arch/arm/mach-omap2/sr_device.c
->>>
->>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->>> index 0754886..f259bb8 100644
->>> --- a/arch/arm/mach-omap2/Makefile
->>> +++ b/arch/arm/mach-omap2/Makefile
->>> @@ -53,7 +53,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
->>>  					   cpuidle34xx.o
->>>  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o
->>>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
->>> -obj-$(CONFIG_OMAP_SMARTREFLEX)          += smartreflex.o
->>> +obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
->>>
->>>  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
->>>  AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
->>> diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
->>> new file mode 100644
->>> index 0000000..3bd0170
->>> --- /dev/null
->>> +++ b/arch/arm/mach-omap2/sr_device.c
->>> @@ -0,0 +1,185 @@
->>> +/*
->>> + * OMAP3/OMAP4 smartreflex device file
->>> + *
->>> + * Author: Thara Gopinath	<thara@ti.com>
->>> + *
->>> + * Based originally on code from smartreflex.c
->>> + * Copyright (C) 2010 Texas Instruments, Inc.
->>> + * Thara Gopinath <thara@ti.com>
->>> + *
->>> + * Copyright (C) 2008 Nokia Corporation
->>> + * Kalle Jokiniemi
->>> + *
->>> + * Copyright (C) 2007 Texas Instruments, Inc.
->>> + * Lesly A M <x0080970@ti.com>
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>> +
->>> +#include <linux/err.h>
->>> +#include <linux/slab.h>
->>> +
->>> +#include <plat/control.h>
->>> +#include <plat/omap_hwmod.h>
->>> +#include <plat/omap_device.h>
->>> +#include <plat/opp.h>
->>> +#include <plat/smartreflex.h>
->>> +#include <plat/voltage.h>
->>> +
->>> +static struct omap_device_pm_latency omap_sr_latency[] = {
->>> +	{
->>> +		.deactivate_func = omap_device_idle_hwmods,
->>> +		.activate_func	 = omap_device_enable_hwmods,
->>> +		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST
->>> +	},
->>> +};
->>> +
->>> +/* Read EFUSE values from control registers for OMAP3430 */
->>> +static void __init sr_read_efuse(struct omap_sr_dev_data *dev_data,
->>> +				struct omap_sr_data *sr_data)
->>> +{
->>> +	int i;
->>> +
->>> +	if (!dev_data || !dev_data->volts_supported || !dev_data->volt_data ||
->>> +			!dev_data->efuse_nvalues_offs) {
->>> +		pr_warning("%s: Bad parameters! dev_data = %x,"
->>> +			"dev_data->volts_supported = %x,"
->>> +			"dev_data->volt_data = %x,"
->>> +			"dev_data->efuse_nvalues_offs = %x\n", __func__,
->>> +			(unsigned int)dev_data, dev_data->volts_supported,
->>> +			(unsigned int)dev_data->volt_data,
->>> +			(unsigned int)dev_data->efuse_nvalues_offs);
->>> +		return;
->>> +	}
->>> +
->>> +	/*
->>> +	 * From OMAP3630 onwards there are no efuse registers for senn_mod
->>> +	 * and senp_mod. They have to be 0x1 by default.
->>> +	 */
->>> +	if (!dev_data->efuse_sr_control) {
->>> +		sr_data->senn_mod = 0x1;
->>> +		sr_data->senp_mod = 0x1;
->>> +	} else {
->>> +		sr_data->senn_mod =
->>> +				((omap_ctrl_readl(dev_data->efuse_sr_control) &
->>> +				(0x3 << dev_data->sennenable_shift)) >>
->>> +				dev_data->sennenable_shift);
->>> +		sr_data->senp_mod =
->>> +				((omap_ctrl_readl(dev_data->efuse_sr_control) &
->>> +				(0x3 << dev_data->senpenable_shift)) >>
->>> +				dev_data->senpenable_shift);
->>> +	}
->>> +
->>> +	for (i = 0; i < dev_data->volts_supported; i++)
->>> +		dev_data->volt_data[i].sr_nvalue = omap_ctrl_readl(
->>> +				dev_data->efuse_nvalues_offs[i]);
->>> +}
->>> +
->>> +/*
->>> + * Hard coded nvalues for testing purposes for OMAP3430,
->>> + * may cause device to hang!
->>> + */
->>> +static void __init sr_set_testing_nvalues(struct omap_sr_dev_data *dev_data,
->>> +				struct omap_sr_data *sr_data)
->>> +{
->>> +	int i;
->>> +
->>> +	if (!dev_data || !dev_data->volts_supported ||
->>> +			!dev_data->volt_data || !dev_data->test_nvalues) {
->>> +		pr_warning("%s: Bad parameters! dev_data = %x,"
->>> +			"dev_data->volts_supported = %x,"
->>> +			"dev_data->volt_data = %x,"
->>> +			"dev_data->test_nvalues = %x\n", __func__,
->>> +			(unsigned int)dev_data, dev_data->volts_supported,
->>> +			(unsigned int)dev_data->volt_data,
->>> +			(unsigned int)dev_data->test_nvalues);
->>> +		return;
->>> +	}
->>> +
->>> +	sr_data->senn_mod = dev_data->test_sennenable;
->>> +	sr_data->senp_mod = dev_data->test_senpenable;
->>> +	for (i = 0; i < dev_data->volts_supported; i++)
->>> +		dev_data->volt_data[i].sr_nvalue = dev_data->test_nvalues[i];
->>> +}
->>> +
->>> +static void __init sr_set_nvalues(struct omap_sr_dev_data *dev_data,
->>> +				struct omap_sr_data *sr_data)
->>> +{
->>> +	if (SR_TESTING_NVALUES)
->>> +		sr_set_testing_nvalues(dev_data, sr_data);
->>> +	else
->>> +		sr_read_efuse(dev_data, sr_data);
->>> +}
->>> +
->>> +static int sr_dev_init(struct omap_hwmod *oh, void *user)
->>> +{
->>> +	struct omap_sr_data *sr_data;
->>> +	struct omap_sr_dev_data *sr_dev_data;
->>> +	struct omap_device *od;
->>> +	char *name = "smartreflex";
->>> +	static int i;
->>> +
->>> +	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
->>> +	if (!sr_data) {
->>> +		pr_err("%s: Unable to allocate memory for %s sr_data.Error!\n",
->>> +			__func__, oh->name);
->>> +		return -ENOMEM;
->>> +	}
->>> +
->>> +	sr_dev_data = (struct omap_sr_dev_data *)oh->dev_attr;
->>> +	if (unlikely(!sr_dev_data)) {
->>> +		pr_err("%s: dev atrribute is NULL\n", __func__);
->>> +		goto exit;
->>> +	}
->>> +
->>> +	/*
->>> +	 * OMAP3430 ES3.1 chips by default come with Efuse burnt
->>> +	 * with parameters required for full functionality of
->>> +	 * smartreflex AVS feature like ntarget values , sennenable
->>> +	 * and senpenable. So enable the SR AVS feature during boot up
->>> +	 * itself if it is a OMAP3430 ES3.1 chip.
->>> +	 */
->>
->>here, do:
->>	sr_data->enable_on_init = false;
->>
->>> +	if (cpu_is_omap343x()) {
->>> +		if (omap_rev() == OMAP3430_REV_ES3_1)
->>> +			sr_data->enable_on_init = true;
->>
->>and drop the rest of this
->>
->>> +		else
->>> +			sr_data->enable_on_init = false;
->>> +	} else {
->>> +		sr_data->enable_on_init = false;
->>> +	}
->>
->>until here.
+Since the above work around is applicable only for OMAP4 ES2 ,
+shouldn't this udelay be avoided for other OMAP versions
 
-Will fix this one.
-
->>
->>> +	sr_data->device_enable = omap_device_enable;
->>> +	sr_data->device_shutdown = omap_device_shutdown;
->>> +	sr_data->device_idle = omap_device_idle;
->>
->>Please drop these and use runtime PM as suggested in previous patch.
-
-At this stage I am not sure whether we should make smartreflex patches
-dependent on runtime pm. I would like to do the conversion once and for all
-once runtime pm is up streamed. 
-
->>
->>> +	sr_data->voltdm = omap_voltage_domain_get(sr_dev_data->vdd_name);
->>> +	if (IS_ERR(sr_data->voltdm)) {
->>> +		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
->>> +			__func__, sr_dev_data->vdd_name);
->>> +		goto exit;
->>> +	}
->>> +	sr_dev_data->volts_supported = omap_voltage_get_volttable(
->>> +			sr_data->voltdm, &sr_dev_data->volt_data);
->>> +	if (!sr_dev_data->volts_supported) {
->>> +		pr_warning("%s: No Voltage table registerd fo VDD%d."
->>> +			"Something really wrong\n\n", __func__, i + 1);
->>> +		goto exit;
->>> +	}
->>> +	sr_set_nvalues(sr_dev_data, sr_data);
->>> +	od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
->>> +			       omap_sr_latency,
->>> +			       ARRAY_SIZE(omap_sr_latency), 0);
->>> +	if (IS_ERR(od))
->>> +		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
->>> +			__func__, name, oh->name);
->>> +exit:
->>> +	i++;
->>> +	kfree(sr_data);
->>
->>This looks like it fixes the kmemleak reported by Artem/Nishanth, right?
-Yes .. I have replied to the original mail
-
-Regards
-Thara
-
+Regards,
+Kishore
+> +
+> =A0 =A0 =A0 =A0if (OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(mmc_dev(host->mmc),
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"Timeout waiting on co=
+ntroller reset in %s\n",
+> --
+> 1.6.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
