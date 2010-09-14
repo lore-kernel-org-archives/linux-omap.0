@@ -1,28 +1,50 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
-Date: Tue, 14 Sep 2010 01:00:03 -0700
-Message-ID: <20100914080003.GD15167@core.coreip.homeip.net>
-References: <61033.10.24.255.18.1283926671.squirrel@dbdmail.itg.ti.com>
- <4C877584.7000902@jic23.retrosnub.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4C877584.7000902@jic23.retrosnub.co.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Cc: Hemanth V <hemanthv@ti.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: [RFT/PATCH 0/8] cbus patches
+Date: Tue, 14 Sep 2010 11:30:08 +0300
+Message-ID: <1284453016-8295-1-git-send-email-balbi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:52435 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751715Ab0INIaW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 04:30:22 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>
 
-On Wed, Sep 08, 2010 at 12:37:40PM +0100, Jonathan Cameron wrote:
-> 
-> I'm happy to see your driver go in as it is currently, what bothers me is that we will end
-> up with incompatible interfaces for all the accelerometers Dmitry takes!
-> 
+Hi all,
 
-This is a valid concern. How about I chicken out and will not merge any
-new sysfs knobs until you guys decide on reasonable interface? Most set
-up is done by board code anyways, sysfs is more of nice-to-have?
+if you have n8x0/n770 board getting dust, please
+spend some minutes to boot test the following
+patches on that. After you do so, please reply
+with your Tested-by tag.
+
+I'm also adding to this series Jarkko Nikula's
+ioctl fix since l-o doesn't compile without that.
+
+Felipe Balbi (7):
+  cbus: remove device_release completion
+  cbus: retu: pass irq number via struct resource
+  cbus: retu: avoid section mismatch
+  cbus: tahvo: usb: convert to platform_driver
+  cbus: tahvo: remove device_release
+  cbus: tahvo: pass irq via struct resource
+  cbus: tahvo: avoid section mismatch
+
+Jarkko Nikula (1):
+  cbus: Fix compile by converting ioctl calls to unlocked_ioctl calls
+
+ drivers/cbus/retu-headset.c   |    3 +-
+ drivers/cbus/retu-pwrbutton.c |    9 +--
+ drivers/cbus/retu-rtc.c       |    7 +-
+ drivers/cbus/retu-user.c      |    5 +-
+ drivers/cbus/retu-wdt.c       |   13 ++--
+ drivers/cbus/retu.c           |  123 ++++++++++++++++++++++-------------------
+ drivers/cbus/tahvo-usb.c      |   49 ++++++++--------
+ drivers/cbus/tahvo-user.c     |    5 +-
+ drivers/cbus/tahvo.c          |  116 +++++++++++++++++++++------------------
+ 9 files changed, 172 insertions(+), 158 deletions(-)
 
 -- 
-Dmitry
+1.7.3.rc0.35.g8ac8c
+
