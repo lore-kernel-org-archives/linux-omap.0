@@ -1,101 +1,127 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 6/7] omap4: Workaround for CMD line reset.
-Date: Tue, 14 Sep 2010 22:18:55 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F798@dbde02.ent.ti.com>
-References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com><1284031395-25988-2-git-send-email-santosh.shilimkar@ti.com><1284031395-25988-3-git-send-email-santosh.shilimkar@ti.com><1284031395-25988-4-git-send-email-santosh.shilimkar@ti.com><1284031395-25988-5-git-send-email-santosh.shilimkar@ti.com><1284031395-25988-6-git-send-email-santosh.shilimkar@ti.com><1284031395-25988-7-git-send-email-santosh.shilimkar@ti.com>
- <AANLkTimd5pAFPfGfODXA1FrC4TEoAy9fGgdVibHpB-vH@mail.gmail.com>
- <4A2EB6064EC0403DB3ADE4A8F347F65C@am.dhcp.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
+Date: Tue, 14 Sep 2010 09:57:55 -0700
+Message-ID: <87d3sgs1nw.fsf@deeprootsystems.com>
+References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
+	<1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51950 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab0INQtD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 12:49:03 -0400
-In-Reply-To: <4A2EB6064EC0403DB3ADE4A8F347F65C@am.dhcp.ti.com>
-Content-Language: en-US
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:58967 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753945Ab0INQ6E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 12:58:04 -0400
+Received: by pvg2 with SMTP id 2so2496705pvg.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Sep 2010 09:58:03 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
+	(Partha Basak's message of "Tue, 14 Sep 2010 21:39:35 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, 'kishore kadiyala' <kishorek.kadiyala@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: "Basak, Partha" <p-basak2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, Tero Kristo <tero.kristo@nokia.com>
 
-Madhu,
-> -----Original Message-----
-> From: Chikkature Rajashekar, Madhusudhan
-> Sent: Tuesday, September 14, 2010 9:28 PM
-> To: 'kishore kadiyala'; Shilimkar, Santosh
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com;
-> khilman@deeprootsystems.com
-> Subject: RE: [PATCH 6/7] omap4: Workaround for CMD line reset.
->=20
->=20
->=20
-> > -----Original Message-----
-> > From: kishore kadiyala [mailto:kishorek.kadiyala@gmail.com]
-> > Sent: Tuesday, September 14, 2010 10:47 AM
-> > To: Madhusudhan Chikkature; Santosh Shilimkar
-> > Cc: linux-omap@vger.kernel.org; tony@atomide.com;
-> > khilman@deeprootsystems.com
-> > Subject: Re: [PATCH 6/7] omap4: Workaround for CMD line reset.
-> >
-> > Hi Madhu,
-> >
-> > On Thu, Sep 9, 2010 at 4:53 PM, Santosh Shilimkar
-> > <santosh.shilimkar@ti.com> wrote:
-> > > From: Madhusudhan Chikkature <madhu.cr@ti.com>
-> > >
-> > > Add a delay after CMD line reset to accomdate the reset to comple=
-te.
-> > > The SYSCTL seems to reflect SRC immediately which might not reall=
-y
-> > > be indicating the complete of reset. This is observed only with E=
-S2.0
-> > > silicon
-> > >
-> > > Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-> > > ---
-> > > =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A08 ++++++++
-> > > =A01 files changed, 8 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/drivers/mmc/host/omap_hsmmc.c
-> > b/drivers/mmc/host/omap_hsmmc.c
-> > > index 4a8776f..1c359f0 100644
-> > > --- a/drivers/mmc/host/omap_hsmmc.c
-> > > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > > @@ -986,6 +986,14 @@ static inline void
-> > omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_host *host,
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(i++ < limit))
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();
-> > >
-> > > + =A0 =A0 =A0 /*
-> > > + =A0 =A0 =A0 =A0* On OMAP4 ES2 the SRC is zero in the first loop=
- itself
-> > strangely
-> > > + =A0 =A0 =A0 =A0* vs on ES1 it takes some time.
-> > > + =A0 =A0 =A0 =A0* Could be a an issue on ES2 to indicate reset c=
-omplete even
-> > before
-> > > + =A0 =A0 =A0 =A0* it is complete.
-> > > + =A0 =A0 =A0 =A0*/
-> > > + =A0 =A0 =A0 udelay(500);
-> >
-> > Since the above work around is applicable only for OMAP4 ES2 ,
-> > shouldn't this udelay be avoided for other OMAP versions
-> >
-> I did not post this to Linux omap at all. What patch are you talking
-> about?
->=20
-I have posted this patch on Tony and Kevin's request keeping the origin=
-al
-author. This is needed to get MMC working on ES2.0 samples.
+"Basak, Partha" <p-basak2@ti.com> writes:
 
-Do you have fresh version of this patch?
+>> From: Kevin Hilman <khilman@ti.com>
+>> 
+>> Currently, we wait until late in the idle path where interrupts are
+>> disabled to do runtime-PM-like management for certain special-case
+>> devices like GPIO.
+>> 
+>> As a prerequiste to moving GPIO to the new runtime PM framework, move
+>> this runtime-PM-like code out of the late idle path into new device
+>> idle and resume functions that can be called before interrupts are
+>> disabled by CPUidle and/or suspend.
+>> 
+>> In addition, move all the GPIO-specific logic into the GPIO core
+>> instead of keeping GPIO-specific knowledge of power-states, context
+>> saving etc. in the PM core.
+>> 
+>> Also, call the new device-idle and -resume methods from CPUidle and
+>> static suspend path.
+>> 
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
+>>  arch/arm/mach-omap2/pm.h               |    2 +
+>>  arch/arm/mach-omap2/pm24xx.c           |    2 +-
+>>  arch/arm/mach-omap2/pm34xx.c           |   38 +++++++++------------
+>>  arch/arm/plat-omap/gpio.c              |   57 
+>> ++++++++++++++++++++++++--------
+>>  arch/arm/plat-omap/include/plat/gpio.h |    4 +--
+>>  6 files changed, 67 insertions(+), 40 deletions(-)
+>> 
+>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
+>> b/arch/arm/mach-omap2/cpuidle34xx.c
+>> index 0923b82..681d823 100644
+>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>> @@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct 
+>> cpuidle_device *dev,
+>>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
+>>  
+>>  select_state:
+>> +	omap3_device_idle();
+>> +
+>>  	dev->last_state = new_state;
+>>  	ret = omap3_enter_idle(dev, new_state);
+>>  
+>> +	omap3_device_resume();
+>> +
+> In the generic cpu_idle() in process.c, interrupts are already disabled
+> before control comes to cpuidle_idle_call() via pm_idle()
+> 			local_irq_disable();
+> 			if (hlt_counter) {
+> 				local_irq_enable();
+> 				cpu_relax();
+> 			} else {
+> 				stop_critical_timings();
+> 				pm_idle();
+> 				start_critical_timings();
+> 				/*
+> 				 * This will eventually be removed - pm_idle
+> 				 * functions should always return with IRQs
+> 				 * enabled.
+> 				 */
+> 				WARN_ON(irqs_disabled());
+> 				local_irq_enable();
+> 			}
+>
+> omap3_enter_idle_bm() will be called from inside cpuidle_idle_call() 
+> via target_state->enter(dev, target_state).
+> So, interrupts are already disabled here.
+>
+> Am I missing something?
 
-Regards,
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You're right.  
+
+I knew this was the case for !CPUIDLE setup, but had thought (without
+testing) that the CPUidle core had re-enabled interrupts during the
+governor selection process etc.
+
+While I investigate ways to manage this in CPUidle, the following should
+be fine for now to include with $SUBJECT patch.
+
+Kevin
+
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 681d823..c5cb9d0 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -245,6 +245,14 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 		goto select_state;
+ 	}
+ 
++	/*
++	 * Enable IRQs during the device activity checking and idle management.
++	 * IRQs are later (re)disabled when entering the actual idle function.
++	 * Device idle management that is using runtime PM needs to have
++	 * interrupts enabled when calling into the runtime PM core.
++	 */
++	local_irq_enable();
++
+ 	cx = cpuidle_get_statedata(state);
+ 	core_next_state = cx->core_state;
+ 
+k
