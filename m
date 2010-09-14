@@ -1,339 +1,109 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 2/2] OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
-Date: Mon, 13 Sep 2010 16:02:38 -0700
-Message-ID: <1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
-References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH 0/7] omap4: Fixes, hacks for es2.0
+Date: Tue, 14 Sep 2010 09:31:35 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0315F03099@dbde02.ent.ti.com>
+References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
+	<87fwxjx7qj.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EDFA@dbde02.ent.ti.com>
+	<87y6bavrn3.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EE0A@dbde02.ent.ti.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F026BF@dbde02.ent.ti.com>
+	<AANLkTimJ+tHk7ZPmPkuwHi2svU0Qw_SqGHazn4W=_ApC@mail.gmail.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F0273D@dbde02.ent.ti.com>
+	<AANLkTim6yki=wj73K1+Tv=SZ877YLXBrXrBCLnAn6P7o@mail.gmail.com>
+	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F02F22@dbde02.ent.ti.com>
+ <AANLkTing5cmd+-7URxcyDnAktm3LKFzj0FX81woisH86@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:41384 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708Ab0IMXCt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Sep 2010 19:02:49 -0400
-Received: by mail-yx0-f174.google.com with SMTP id 4so2199422yxp.19
-        for <linux-omap@vger.kernel.org>; Mon, 13 Sep 2010 16:02:48 -0700 (PDT)
-In-Reply-To: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36261 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750707Ab0INEBs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 00:01:48 -0400
+In-Reply-To: <AANLkTing5cmd+-7URxcyDnAktm3LKFzj0FX81woisH86@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: charu@ti.com, p-basak2@ti.com, Tero Kristo <tero.kristo@nokia.com>
+To: Ricardo Salveti <rsalveti@rsalveti.net>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>
 
-From: Kevin Hilman <khilman@ti.com>
 
-Currently, we wait until late in the idle path where interrupts are
-disabled to do runtime-PM-like management for certain special-case
-devices like GPIO.
 
-As a prerequiste to moving GPIO to the new runtime PM framework, move
-this runtime-PM-like code out of the late idle path into new device
-idle and resume functions that can be called before interrupts are
-disabled by CPUidle and/or suspend.
+> -----Original Message-----
+> From: Ricardo Salveti [mailto:rsalveti@rsalveti.net]
+> Sent: Tuesday, September 14, 2010 12:22 AM
+> To: Ghorai, Sukumar
+> Cc: Shilimkar, Santosh; Kevin Hilman; linux-omap@vger.kernel.org;
+> tony@atomide.com; Bryan Wu
+> Subject: Re: [PATCH 0/7] omap4: Fixes, hacks for es2.0
+>=20
+> On Mon, Sep 13, 2010 at 12:06 PM, Ghorai, Sukumar <s-ghorai@ti.com> w=
+rote:
+> >> >> > [Ghorai] I have tested MMC/SD boot using omap3_defconfig on Z=
+OOM3,
+> >> 4430
+> >> >> ES2.0 SDP, Blaze and Panda and all booting fine.
+> >> >> >
+> >> >> > And omap_4430sdp_defconfig also ok omap4.
+> >> >>
+> >> >> Which Panda version are you using during your tests? I tried
+> >> >> omap_4430sdp_defconfig using omap4-for-tony branch at my ES2.0 =
+and
+> I'm
+> >> >> unable to detect the MMC.
+> >> >>
+> >> >> Do I need any other patch to make the MMC work with Panda?
+> >> > [Ghorai] I have tested based on following tree/branch and using =
+ES2.0
+> >> PANDA only. Can you share bootlog enabling mmc/sd debug message?
+> >> > http://dev.omapzoom.org/?p=3Dsantosh/kernel-omap4-
+> >> base.git;a=3Dshortlog;h=3Drefs/heads/omap4-for-tony
+> >>
+> >> My boot log:
+> >> http://paste.ubuntu.com/491645/
+> >>
+> > [Ghorai] can you use this bootargs?
+> > setenv bootargs root=3D/dev/mmcblk0p2 rw rootwait mem=3D463M
+> console=3DttyS2,115200n8
+> > And here is the log from my setup.
+> > [ =A0 =A02.493194] Waiting for root device /dev/mmcblk0p2...
+> > [ =A0 =A02.502960] mmc0: host does not support reading read-only sw=
+itch.
+> assuming write-enable.
+> > [ =A0 =A02.523895] mmc0: new high speed SDHC card at address e1ed
+> > [ =A0 =A02.531616] mmcblk0: mmc0:e1ed SD04G 3.75 GiB
+> > [ =A0 =A02.539550] =A0mmcblk0: p1 p2
+> > [ =A0 =A02.607360] EXT3-fs: barriers not enabled
+> >
+> >> Using x-loader from
+> >> http://gitorious.org/pandaboard/x-loader/commits/omap4_panda_L24.9=
+ and
+> >> upstream u-boot.
+> > [Ghorai] can you try with this x-loader
+> >
+> https://docs.google.com/leaf?id=3D0B8fdjBBEQ4lDZGE3ZTBjNzEtOTQ0Ni00Zm=
+=46lLTlhO
+> DgtN2QzNjUwMzBkNDI2&hl=3Den
+> > In the mean time I will try with yours!
+>=20
+> I'm unable to boot with your x-loader at my ES2.0 (6 and 8 layers),
+> however I'm able to boot it with ES1. Are you sure you're testing it
+> at an ES2 board?
+>=20
+> This is what I get, it just hangs:
+> Texas Instruments X-Loader 1.41 (Aug 11 2010 - 10:51:13)
+> Could not read bootloader!
+> X-Loader hangs
+[Ghorai] format the card and copy MLo and followed by u-boot, uImage
+And yes I am using EX 2.0 6-layer board.
 
-In addition, move all the GPIO-specific logic into the GPIO core
-instead of keeping GPIO-specific knowledge of power-states, context
-saving etc. in the PM core.
-
-Also, call the new device-idle and -resume methods from CPUidle and
-static suspend path.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
- arch/arm/mach-omap2/pm.h               |    2 +
- arch/arm/mach-omap2/pm24xx.c           |    2 +-
- arch/arm/mach-omap2/pm34xx.c           |   38 +++++++++------------
- arch/arm/plat-omap/gpio.c              |   57 ++++++++++++++++++++++++--------
- arch/arm/plat-omap/include/plat/gpio.h |    4 +--
- 6 files changed, 67 insertions(+), 40 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 0923b82..681d823 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 		pwrdm_set_next_pwrst(per_pd, per_next_state);
- 
- select_state:
-+	omap3_device_idle();
-+
- 	dev->last_state = new_state;
- 	ret = omap3_enter_idle(dev, new_state);
- 
-+	omap3_device_resume();
-+
- 	/* Restore original PER state if it was modified */
- 	if (per_next_state != per_saved_state)
- 		pwrdm_set_next_pwrst(per_pd, per_saved_state);
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 3de6ece..33cae4b 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -22,6 +22,8 @@ extern void omap_sram_idle(void);
- extern int omap3_can_sleep(void);
- extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- extern int omap3_idle_init(void);
-+extern void omap3_device_idle(void);
-+extern void omap3_device_resume(void);
- 
- struct cpuidle_params {
- 	u8  valid;
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 6aeedea..7bbf0db 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -106,7 +106,7 @@ static void omap2_enter_full_retention(void)
- 	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | OMAP24XX_USBSTANDBYCTRL;
- 	omap_ctrl_writel(l, OMAP2_CONTROL_DEVCONF0);
- 
--	omap2_gpio_prepare_for_idle(PWRDM_POWER_RET);
-+	omap2_gpio_prepare_for_idle();
- 
- 	if (omap2_pm_debug) {
- 		omap2_pm_dump(0, 0, 0);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index bb2ba1e..9e590d9 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -74,16 +74,6 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
- static struct powerdomain *cam_pwrdm;
- 
--static inline void omap3_per_save_context(void)
--{
--	omap_gpio_save_context();
--}
--
--static inline void omap3_per_restore_context(void)
--{
--	omap_gpio_restore_context();
--}
--
- static void omap3_enable_io_chain(void)
- {
- 	int timeout = 0;
-@@ -332,6 +322,16 @@ static void restore_table_entry(void)
- 	restore_control_register(control_reg_value);
- }
- 
-+void omap3_device_idle(void)
-+{
-+	omap2_gpio_prepare_for_idle();
-+}
-+
-+void omap3_device_resume(void)
-+{
-+	omap2_gpio_resume_after_idle();
-+}
-+
- void omap_sram_idle(void)
- {
- 	/* Variable to tell what needs to be saved and restored
-@@ -344,7 +344,7 @@ void omap_sram_idle(void)
- 	int mpu_next_state = PWRDM_POWER_ON;
- 	int per_next_state = PWRDM_POWER_ON;
- 	int core_next_state = PWRDM_POWER_ON;
--	int core_prev_state, per_prev_state;
-+	int core_prev_state;
- 	u32 sdrc_pwr = 0;
- 
- 	if (!_omap_sram_idle)
-@@ -387,12 +387,9 @@ void omap_sram_idle(void)
- 	}
- 
- 	/* PER */
--	if (per_next_state < PWRDM_POWER_ON) {
-+	if (per_next_state < PWRDM_POWER_ON)
- 		omap_uart_prepare_idle(2);
--		omap2_gpio_prepare_for_idle(per_next_state);
--		if (per_next_state == PWRDM_POWER_OFF)
--				omap3_per_save_context();
--	}
-+
- 
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
-@@ -454,13 +451,8 @@ void omap_sram_idle(void)
- 	omap3_intc_resume_idle();
- 
- 	/* PER */
--	if (per_next_state < PWRDM_POWER_ON) {
--		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
--		omap2_gpio_resume_after_idle();
--		if (per_prev_state == PWRDM_POWER_OFF)
--			omap3_per_restore_context();
-+	if (per_next_state < PWRDM_POWER_ON)
- 		omap_uart_resume_idle(2);
--	}
- 
- 	/* Disable IO-PAD and IO-CHAIN wakeup */
- 	if (omap3_has_io_wakeup() &&
-@@ -570,6 +562,7 @@ static void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
- static int omap3_pm_prepare(void)
- {
- 	disable_hlt();
-+	omap3_device_idle();
- 	return 0;
- }
- 
-@@ -637,6 +630,7 @@ static int omap3_pm_enter(suspend_state_t unused)
- 
- static void omap3_pm_finish(void)
- {
-+	omap3_device_resume();
- 	enable_hlt();
- }
- 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 7951eef..b0467c1 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -29,6 +29,8 @@
- #include <asm/mach/irq.h>
- #include <plat/powerdomain.h>
- 
-+static struct powerdomain *per_pwrdm;
-+
- /*
-  * OMAP1510 GPIO registers
-  */
-@@ -207,6 +209,9 @@ struct gpio_bank {
- 	u32 dbck_enable_mask;
- };
- 
-+static void omap3_gpio_restore_context(void);
-+static void omap3_gpio_save_context(void);
-+
- #define METHOD_MPUIO		0
- #define METHOD_GPIO_1510	1
- #define METHOD_GPIO_1610	2
-@@ -1778,6 +1783,8 @@ static int __init _omap_gpio_init(void)
- 	}
- #endif
- 
-+	if (cpu_class_is_omap2())
-+		per_pwrdm = pwrdm_lookup("per_pwrdm");
- 
- #ifdef CONFIG_ARCH_OMAP15XX
- 	if (cpu_is_omap15xx()) {
-@@ -2074,14 +2081,22 @@ static struct sys_device omap_gpio_device = {
- 
- static int workaround_enabled;
- 
--void omap2_gpio_prepare_for_idle(int power_state)
-+void omap2_gpio_prepare_for_idle(void)
- {
--	int i, c = 0;
--	int min = 0;
-+	int i, c = 0, min = 0;
-+	int per_next_state;
-+
-+	if (!per_pwrdm)
-+		return;
-+
-+	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
-+	if (per_next_state >= PWRDM_POWER_INACTIVE)
-+		return;
- 
- 	if (cpu_is_omap34xx())
- 		min = 1;
- 
-+	workaround_enabled = 0;
- 	for (i = min; i < gpio_bank_count; i++) {
- 		struct gpio_bank *bank = &gpio_bank[i];
- 		u32 l1, l2;
-@@ -2089,7 +2104,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
- 		if (bank->dbck_enable_mask)
- 			clk_disable(bank->dbck);
- 
--		if (power_state > PWRDM_POWER_OFF)
-+		if (per_next_state > PWRDM_POWER_OFF)
- 			continue;
- 
- 		/* If going to OFF, remove triggering for all
-@@ -2135,20 +2150,35 @@ void omap2_gpio_prepare_for_idle(int power_state)
- 
- 		c++;
- 	}
--	if (!c) {
--		workaround_enabled = 0;
--		return;
--	}
--	workaround_enabled = 1;
-+	if (c)
-+		workaround_enabled = 1;
-+
-+	if (cpu_is_omap34xx() && (per_next_state == PWRDM_POWER_OFF))
-+		omap3_gpio_save_context();
- }
- 
- void omap2_gpio_resume_after_idle(void)
- {
--	int i;
--	int min = 0;
-+	int i, min = 0;
-+	int per_next_state;
-+
-+	if (!per_pwrdm)
-+		return;
-+
-+	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
-+	if (per_next_state >= PWRDM_POWER_INACTIVE)
-+		return;
-+
-+	if (cpu_is_omap34xx() && (per_next_state == PWRDM_POWER_OFF)) {
-+		int per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
-+
-+		if (per_prev_state == PWRDM_POWER_OFF)
-+			omap3_gpio_restore_context();
-+	}
- 
- 	if (cpu_is_omap34xx())
- 		min = 1;
-+
- 	for (i = min; i < gpio_bank_count; i++) {
- 		struct gpio_bank *bank = &gpio_bank[i];
- 		u32 l, gen, gen0, gen1;
-@@ -2235,14 +2265,13 @@ void omap2_gpio_resume_after_idle(void)
- 			}
- 		}
- 	}
--
- }
- 
- #endif
- 
- #ifdef CONFIG_ARCH_OMAP3
- /* save the registers of bank 2-6 */
--void omap_gpio_save_context(void)
-+static void omap3_gpio_save_context(void)
- {
- 	int i;
- 
-@@ -2275,7 +2304,7 @@ void omap_gpio_save_context(void)
- }
- 
- /* restore the required registers of bank 2-6 */
--void omap_gpio_restore_context(void)
-+static void omap3_gpio_restore_context(void)
- {
- 	int i;
- 
-diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-index de1c604..c81ef94 100644
---- a/arch/arm/plat-omap/include/plat/gpio.h
-+++ b/arch/arm/plat-omap/include/plat/gpio.h
-@@ -72,12 +72,10 @@
- 				 IH_GPIO_BASE + (nr))
- 
- extern int omap_gpio_init(void);	/* Call from board init only */
--extern void omap2_gpio_prepare_for_idle(int power_state);
-+extern void omap2_gpio_prepare_for_idle(void);
- extern void omap2_gpio_resume_after_idle(void);
- extern void omap_set_gpio_debounce(int gpio, int enable);
- extern void omap_set_gpio_debounce_time(int gpio, int enable);
--extern void omap_gpio_save_context(void);
--extern void omap_gpio_restore_context(void);
- /*-------------------------------------------------------------------------*/
- 
- /* Wrappers for "new style" GPIO calls, using the new infrastructure
--- 
-1.7.2.1
-
+>=20
+> Cheers,
+> --
+> Ricardo Salveti de Araujo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
