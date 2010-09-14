@@ -1,32 +1,38 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 3/4] arm: remove cast from void*
-Date: Tue, 14 Sep 2010 09:04:38 +0300 (EEST)
-Message-ID: <20100914.090438.104058730.Hiroshi.DOYU@nokia.com>
-References: <1284442216-11710-1-git-send-email-mfm@muteddisk.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
+ data is transfered over
+Date: Tue, 14 Sep 2010 09:56:04 +0300
+Message-ID: <20100914065604.GD2601@legolas.emea.dhcp.ti.com>
+References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
+ <1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
+ <4C8E18AD.8000502@ru.mvista.com>
+ <AANLkTinei3u1OZ-eBiUTDF=PDjwxLcL6rBpt7iNQJgHJ@mail.gmail.com>
+ <4C8E4882.6040600@ru.mvista.com>
+ <4C8E50CC.3080705@ru.mvista.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:25911 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286Ab0INGFf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 02:05:35 -0400
-In-Reply-To: <1284442216-11710-1-git-send-email-mfm@muteddisk.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38514 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751389Ab0ING4V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Sep 2010 02:56:21 -0400
+Content-Disposition: inline
+In-Reply-To: <4C8E50CC.3080705@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mfm@muteddisk.com
-Cc: tony@atomide.com, linux@arm.linux.org.uk, s-anna@ti.com, juha_motorsportcom@luukku.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kernel-janitors@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: Ming Lei <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
 
-Hi Matt,
+Hi,
 
-From: ext matt mooney <mfm@muteddisk.com>
-Subject: [PATCH 3/4] arm: remove cast from void*
-Date: Tue, 14 Sep 2010 07:30:16 +0200
+On Mon, Sep 13, 2010 at 11:26:52AM -0500, Sergei Shtylyov wrote:
+> Oops, I've been too fast and haven't realized that the check done here
+> _is_ actually wrong. It causes ZLP send to trigger too fast in the DMA
+> case. So please fix this patch. Felipe, please drop it for now.
 
-> Unnecessary cast from void* in assignment.
-> 
-> Signed-off-by: matt mooney <mfm@muteddisk.com>
+patch is not even touching that part of the code, not even
+reading/writing TXCSR_TXPKTRDY bit care to explain please.
 
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-
-Thanks.
+-- 
+balbi
