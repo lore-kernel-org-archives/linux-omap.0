@@ -1,45 +1,34 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/3] omap: pm-debug: Enable wakeup_timer_milliseconds debugfs entry
-Date: Tue, 14 Sep 2010 19:25:47 +0530
-Message-ID: <1284472548-32151-3-git-send-email-santosh.shilimkar@ti.com>
-References: <1284472548-32151-1-git-send-email-santosh.shilimkar@ti.com>
- <1284472548-32151-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 0/3] omap: pm: Move the common code to allow re-use
+Date: Tue, 14 Sep 2010 19:25:45 +0530
+Message-ID: <1284472548-32151-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33806 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58823 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753655Ab0INNz5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Sep 2010 09:55:57 -0400
-In-Reply-To: <1284472548-32151-2-git-send-email-santosh.shilimkar@ti.com>
+	id S1753711Ab0INNz6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Sep 2010 09:55:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, rnayak@ti.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Commit 8e2efde9 added milliseconds suspend wakeup time support but
-same interface is not exported through debugfs
+This is small series moves some common pm code out of pm34xx.c so
+that omap4 can re-use this and not duplicate it.
 
-This patch enables the debugfs hook for wakeup_timer_milliseconds
+It's boot tested on OMAP3/4 with omap3_defconfig and also simple
+test with millisecond debugfs entry and suspend/resume.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm-debug.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+The following changes since commit 49553c2ef88749dd502687f4eb9c258bb10a4f44:
+  Linus Torvalds (1):
+        Linux 2.6.36-rc4
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 143266d..395763c 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -632,6 +632,9 @@ static int __init pm_dbg_init(void)
- 				   &sleep_while_idle, &pm_dbg_option_fops);
- 	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
- 				   &wakeup_timer_seconds, &pm_dbg_option_fops);
-+	(void) debugfs_create_file("wakeup_timer_milliseconds",
-+			S_IRUGO | S_IWUGO, d, &wakeup_timer_milliseconds,
-+			&pm_dbg_option_fops);
- 	pm_dbg_init_done = 1;
- 
- 	return 0;
--- 
-1.6.0.4
+Santosh Shilimkar (3):
+      omap: pm-debug: Move common debug code to pm-debug.c
+      omap: pm-debug: Enable wakeup_timer_milliseconds debugfs entry
+      omap: pm: Move set_pwrdm_state routine to common pm.c
 
+ arch/arm/mach-omap2/pm-debug.c |   26 ++++++++++++++
+ arch/arm/mach-omap2/pm.c       |   50 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h       |    8 +++--
+ arch/arm/mach-omap2/pm34xx.c   |   76 ++-------------------------------------
+ 4 files changed, 85 insertions(+), 75 deletions(-)
