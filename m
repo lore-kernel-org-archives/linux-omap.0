@@ -1,157 +1,206 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 1/3] omap: pm-debug: Move common debug code to pm-debug.c
-Date: Tue, 14 Sep 2010 19:25:46 +0530
-Message-ID: <1284472548-32151-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 3/3] omap: pm: Move set_pwrdm_state routine to common pm.c
+Date: Tue, 14 Sep 2010 19:25:48 +0530
+Message-ID: <1284472548-32151-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1284472548-32151-1-git-send-email-santosh.shilimkar@ti.com>
+ <1284472548-32151-2-git-send-email-santosh.shilimkar@ti.com>
+ <1284472548-32151-3-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52039 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753643Ab0INNz5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Sep 2010 09:55:57 -0400
-In-Reply-To: <1284472548-32151-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40486 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753661Ab0INNz5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 09:55:57 -0400
+In-Reply-To: <1284472548-32151-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, rnayak@ti.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch moves omap2_pm_wakeup_on_timer() and pm debug entries
-form pm34xx.c to pm-debug.c and export it, so that it is available
-to other OMAPs
+The set_pwrdm_state() is needed on omap4 as well so move
+this routine to common pm.c file so that it's available for omap3/4
 
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm-debug.c |   23 +++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h       |    6 ++++--
- arch/arm/mach-omap2/pm34xx.c   |   23 -----------------------
- 3 files changed, 27 insertions(+), 25 deletions(-)
+ arch/arm/mach-omap2/pm.c     |   50 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h     |    2 +-
+ arch/arm/mach-omap2/pm34xx.c |   53 +++--------------------------------------
+ 3 files changed, 55 insertions(+), 50 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 723b44e..143266d 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -31,12 +31,18 @@
- #include <plat/board.h>
- #include <plat/powerdomain.h>
- #include <plat/clockdomain.h>
-+#include <plat/dmtimer.h>
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 68f9f2e..053f01f 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -18,6 +18,9 @@
+ #include <plat/omap_device.h>
+ #include <plat/common.h>
  
- #include "prm.h"
- #include "cm.h"
- #include "pm.h"
- 
- int omap2_pm_debug;
-+u32 enable_off_mode;
-+u32 sleep_while_idle;
-+u32 wakeup_timer_seconds;
-+u32 wakeup_timer_milliseconds;
++#include <plat/powerdomain.h>
++#include <plat/clockdomain.h>
 +
+ static struct omap_device_pm_latency *pm_lats;
  
- #define DUMP_PRM_MOD_REG(mod, reg)    \
- 	regs[reg_count].name = #mod "." #reg; \
-@@ -349,6 +355,23 @@ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
- 	pwrdm->timer = t;
+ static struct device *mpu_dev;
+@@ -73,6 +76,53 @@ static void omap2_init_processor_devices(void)
+ 	_init_omap_device("l3_main", &l3_dev);
  }
  
-+void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
++/*
++ * This sets pwrdm state (other than mpu & core. Currently only ON &
++ * RET are supported. Function is assuming that clkdm doesn't have
++ * hw_sup mode enabled.
++ */
++int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
 +{
-+	u32 tick_rate, cycles;
++	u32 cur_state;
++	int sleep_switch = 0;
++	int ret = 0;
 +
-+	if (!seconds && !milliseconds)
-+		return;
++	if (pwrdm == NULL || IS_ERR(pwrdm))
++		return -EINVAL;
 +
-+	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
-+	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
-+	omap_dm_timer_stop(gptimer_wakeup);
-+	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
++	while (!(pwrdm->pwrsts & (1 << state))) {
++		if (state == PWRDM_POWER_OFF)
++			return ret;
++		state--;
++	}
 +
-+	pr_info("PM: Resume timer in %u.%03u secs"
-+		" (%d ticks at %d ticks/sec.)\n",
-+		seconds, milliseconds, cycles, tick_rate);
++	cur_state = pwrdm_read_next_pwrst(pwrdm);
++	if (cur_state == state)
++		return ret;
++
++	if (pwrdm_read_pwrst(pwrdm) < PWRDM_POWER_ON) {
++		omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
++		sleep_switch = 1;
++		pwrdm_wait_transition(pwrdm);
++	}
++
++	ret = pwrdm_set_next_pwrst(pwrdm, state);
++	if (ret) {
++		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
++		       pwrdm->name);
++		goto err;
++	}
++
++	if (sleep_switch) {
++		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
++		pwrdm_wait_transition(pwrdm);
++		pwrdm_state_switch(pwrdm);
++	}
++
++err:
++	return ret;
 +}
 +
- static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
+ static int __init omap2_common_pm_init(void)
  {
- 	struct seq_file *s = (struct seq_file *)user;
+ 	omap2_init_processor_devices();
 diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 3de6ece..c74d35c 100644
+index c74d35c..6e3c7bf 100644
 --- a/arch/arm/mach-omap2/pm.h
 +++ b/arch/arm/mach-omap2/pm.h
-@@ -15,6 +15,8 @@
- 
- extern u32 enable_off_mode;
- extern u32 sleep_while_idle;
-+extern u32 wakeup_timer_seconds;
-+extern u32 wakeup_timer_milliseconds;
- 
- extern void *omap3_secure_ram_storage;
+@@ -22,7 +22,7 @@ extern void *omap3_secure_ram_storage;
  extern void omap3_pm_off_mode_enable(int);
-@@ -42,15 +44,15 @@ inline void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
- extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
- extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+ extern void omap_sram_idle(void);
+ extern int omap3_can_sleep(void);
+-extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
++extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
  
--extern u32 wakeup_timer_seconds;
--extern u32 wakeup_timer_milliseconds;
- extern struct omap_dm_timer *gptimer_wakeup;
- 
- #ifdef CONFIG_PM_DEBUG
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
-+extern void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds);
- extern int omap2_pm_debug;
- #else
- #define omap2_pm_dump(mode, resume, us)		do {} while (0);
-+#define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
- #define omap2_pm_debug				0
- #endif
- 
+ struct cpuidle_params {
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7b03426..4fd48e0 100644
+index 4fd48e0..c33b8b9 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -38,7 +38,6 @@
- #include <plat/prcm.h>
- #include <plat/gpmc.h>
- #include <plat/dma.h>
--#include <plat/dmtimer.h>
+@@ -495,51 +495,6 @@ int omap3_can_sleep(void)
+ 	return 1;
+ }
  
- #include <asm/tlbflush.h>
- 
-@@ -55,11 +54,6 @@
- #define OMAP343X_TABLE_VALUE_OFFSET	   0x30
- #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0x32
- 
--u32 enable_off_mode;
--u32 sleep_while_idle;
--u32 wakeup_timer_seconds;
--u32 wakeup_timer_milliseconds;
--
- struct power_state {
- 	struct powerdomain *pwrdm;
- 	u32 next_state;
-@@ -567,23 +561,6 @@ out:
- #ifdef CONFIG_SUSPEND
- static suspend_state_t suspend_state;
- 
--static void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
+-/* This sets pwrdm state (other than mpu & core. Currently only ON &
+- * RET are supported. Function is assuming that clkdm doesn't have
+- * hw_sup mode enabled. */
+-int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
 -{
--	u32 tick_rate, cycles;
+-	u32 cur_state;
+-	int sleep_switch = 0;
+-	int ret = 0;
 -
--	if (!seconds && !milliseconds)
--		return;
+-	if (pwrdm == NULL || IS_ERR(pwrdm))
+-		return -EINVAL;
 -
--	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
--	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
--	omap_dm_timer_stop(gptimer_wakeup);
--	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
+-	while (!(pwrdm->pwrsts & (1 << state))) {
+-		if (state == PWRDM_POWER_OFF)
+-			return ret;
+-		state--;
+-	}
 -
--	pr_info("PM: Resume timer in %u.%03u secs"
--		" (%d ticks at %d ticks/sec.)\n",
--		seconds, milliseconds, cycles, tick_rate);
+-	cur_state = pwrdm_read_next_pwrst(pwrdm);
+-	if (cur_state == state)
+-		return ret;
+-
+-	if (pwrdm_read_pwrst(pwrdm) < PWRDM_POWER_ON) {
+-		omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
+-		sleep_switch = 1;
+-		pwrdm_wait_transition(pwrdm);
+-	}
+-
+-	ret = pwrdm_set_next_pwrst(pwrdm, state);
+-	if (ret) {
+-		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
+-		       pwrdm->name);
+-		goto err;
+-	}
+-
+-	if (sleep_switch) {
+-		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+-		pwrdm_wait_transition(pwrdm);
+-		pwrdm_state_switch(pwrdm);
+-	}
+-
+-err:
+-	return ret;
 -}
 -
- static int omap3_pm_prepare(void)
+ static void omap3_pm_idle(void)
  {
- 	disable_hlt();
+ 	local_irq_disable();
+@@ -581,7 +536,7 @@ static int omap3_pm_suspend(void)
+ 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
+ 	/* Set ones wanted by suspend */
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+-		if (set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
++		if (omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
+ 			goto restore;
+ 		if (pwrdm_clear_all_prev_pwrst(pwrst->pwrdm))
+ 			goto restore;
+@@ -602,7 +557,7 @@ restore:
+ 			       pwrst->pwrdm->name, pwrst->next_state);
+ 			ret = -1;
+ 		}
+-		set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
++		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
+ 	}
+ 	if (ret)
+ 		printk(KERN_ERR "Could not enter target state in pm_suspend\n");
+@@ -951,7 +906,7 @@ void omap3_pm_off_mode_enable(int enable)
+ 
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+ 		pwrst->next_state = state;
+-		set_pwrdm_state(pwrst->pwrdm, state);
++		omap_set_pwrdm_state(pwrst->pwrdm, state);
+ 	}
+ }
+ 
+@@ -996,7 +951,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	if (pwrdm_has_hdwr_sar(pwrdm))
+ 		pwrdm_enable_hdwr_sar(pwrdm);
+ 
+-	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
++	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+ }
+ 
+ /*
 -- 
 1.6.0.4
 
