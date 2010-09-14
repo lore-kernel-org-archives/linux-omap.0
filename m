@@ -1,127 +1,117 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
-Date: Tue, 14 Sep 2010 09:57:55 -0700
-Message-ID: <87d3sgs1nw.fsf@deeprootsystems.com>
-References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
-	<1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
+Subject: Re: [PATCHv2 3/8] OMAP3: PM: Adding smartreflex driver support.
+Date: Tue, 14 Sep 2010 10:04:09 -0700
+Message-ID: <874odss1di.fsf@deeprootsystems.com>
+References: <1281707231-3026-1-git-send-email-thara@ti.com>
+	<1281707231-3026-4-git-send-email-thara@ti.com>
+	<87iq2ycozg.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0329441CFC@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:58967 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753945Ab0INQ6E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 12:58:04 -0400
-Received: by pvg2 with SMTP id 2so2496705pvg.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Sep 2010 09:58:03 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
-	(Partha Basak's message of "Tue, 14 Sep 2010 21:39:35 +0530")
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:48838 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754502Ab0INREb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 13:04:31 -0400
+Received: by pzk34 with SMTP id 34so2501757pzk.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Sep 2010 10:04:31 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0329441CFC@dbde02.ent.ti.com>
+	(Thara Gopinath's message of "Tue, 14 Sep 2010 21:28:03 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Basak, Partha" <p-basak2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, Tero Kristo <tero.kristo@nokia.com>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Derrick, David" <dderrick@ti.com>
 
-"Basak, Partha" <p-basak2@ti.com> writes:
+"Gopinath, Thara" <thara@ti.com> writes:
 
->> From: Kevin Hilman <khilman@ti.com>
->> 
->> Currently, we wait until late in the idle path where interrupts are
->> disabled to do runtime-PM-like management for certain special-case
->> devices like GPIO.
->> 
->> As a prerequiste to moving GPIO to the new runtime PM framework, move
->> this runtime-PM-like code out of the late idle path into new device
->> idle and resume functions that can be called before interrupts are
->> disabled by CPUidle and/or suspend.
->> 
->> In addition, move all the GPIO-specific logic into the GPIO core
->> instead of keeping GPIO-specific knowledge of power-states, context
->> saving etc. in the PM core.
->> 
->> Also, call the new device-idle and -resume methods from CPUidle and
->> static suspend path.
->> 
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> ---
->>  arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
->>  arch/arm/mach-omap2/pm.h               |    2 +
->>  arch/arm/mach-omap2/pm24xx.c           |    2 +-
->>  arch/arm/mach-omap2/pm34xx.c           |   38 +++++++++------------
->>  arch/arm/plat-omap/gpio.c              |   57 
->> ++++++++++++++++++++++++--------
->>  arch/arm/plat-omap/include/plat/gpio.h |    4 +--
->>  6 files changed, 67 insertions(+), 40 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
->> b/arch/arm/mach-omap2/cpuidle34xx.c
->> index 0923b82..681d823 100644
->> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->> @@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct 
->> cpuidle_device *dev,
->>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
->>  
->>  select_state:
->> +	omap3_device_idle();
->> +
->>  	dev->last_state = new_state;
->>  	ret = omap3_enter_idle(dev, new_state);
->>  
->> +	omap3_device_resume();
->> +
-> In the generic cpu_idle() in process.c, interrupts are already disabled
-> before control comes to cpuidle_idle_call() via pm_idle()
-> 			local_irq_disable();
-> 			if (hlt_counter) {
-> 				local_irq_enable();
-> 				cpu_relax();
-> 			} else {
-> 				stop_critical_timings();
-> 				pm_idle();
-> 				start_critical_timings();
-> 				/*
-> 				 * This will eventually be removed - pm_idle
-> 				 * functions should always return with IRQs
-> 				 * enabled.
-> 				 */
-> 				WARN_ON(irqs_disabled());
-> 				local_irq_enable();
-> 			}
+[...]
+
+>>>> +   sr->is_sr_enable = 0;
+>>>> +}
+>>>> +
+>>>> +/**
+>>>> + * omap_smartreflex_enable : API to enable SR clocks and to call into the
+>>>> + * registered smartreflex class enable API.
+>>>> + * @voltdm - VDD pointer to which the SR module to be configured belongs to.
+>>>> + *
+>>>> + * This API is to be called from the kernel in order to enable
+>>>> + * a particular smartreflex module. This API will do the initial
+>>>> + * configurations to turn on the smartreflex module and in turn call
+>>>> + * into the registered smartreflex class enable API.
+>>>> + */
+>>>> +void omap_smartreflex_enable(struct voltagedomain *voltdm)
+>>>> +{
+>>>> +   struct omap_sr *sr = _sr_lookup(voltdm);
+>>>> +
+>>>> +   if (IS_ERR(sr)) {
+>>>> +           pr_warning("%s: omap_sr struct for sr_%s not found\n",
+>>>> +                   __func__, voltdm->name);
+>>>> +           return;
+>>>> +   }
+>>>> +
+>>>> +   if (!sr->is_autocomp_active)
+>>>> +           return;
+>>>
+>>>from here
+>>>
+>>>> +   if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
+>>>> +           dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
+>>>> +                   "registered\n", __func__);
+>>>> +           return;
+>>>> +   }
+>>>> +   sr_class->enable(voltdm);
+>>>
+>>>to here, this looks an awful lot like sr_start_autocomp()
 >
-> omap3_enter_idle_bm() will be called from inside cpuidle_idle_call() 
-> via target_state->enter(dev, target_state).
-> So, interrupts are already disabled here.
+> Yes both will enable smartreflex. One is called from user side and other
+> from kernel side. Are you suggesting creating a third API to just keep the above
+> piece of code ??
+
+No, I'm suggesting you just call sr_start_vddautocomp() here.
+
+[...]
+
+>>>> +};
+>>>> +
+>>>> +/*
+>>>> + * Smartreflex module enable/disable interface.
+>>>> + * NOTE: if smartreflex is not enabled from sysfs, these functions will not
+>>>> + * do anything.
+>>>> + */
+>>>> +void omap_smartreflex_enable(struct voltagedomain *voltdm);
+>>>> +void omap_smartreflex_disable(struct voltagedomain *voltdm);
+>>>> +void omap_smartreflex_disable_reset_volt(struct voltagedomain *voltdm);
+>>>> +
+>>>> +/* Smartreflex driver hooks to be called from Smartreflex class driver */
+>>>> +int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
+>>>> +void sr_disable(struct voltagedomain *voltdm);
+>>>> +int sr_configure_errgen(struct voltagedomain *voltdm);
+>>>> +int sr_configure_minmax(struct voltagedomain *voltdm);
+>>>> +
+>>>> +/* API to register the smartreflex class driver with the smartreflex driver */
+>>>> +int omap_sr_register_class(struct omap_smartreflex_class_data *class_data);
+>>>> +
+>>>> +/* API to register the pmic specific data with the smartreflex driver. */
+>>>> +void omap_sr_register_pmic(struct omap_smartreflex_pmic_data *pmic_data);
+>>>> +#else
+>>>> +static inline void omap_smartreflex_enable(struct voltagedomain *voltdm) {}
+>>>> +static inline void omap_smartreflex_disable(struct voltagedomain *voltdm) {}
+>>>> +static inline void omap_smartreflex_disable_reset_volt(
+>>>> +           struct voltagedomain *voltdm) {}
+>>>> +static inline void omap_sr_register_pmic(
+>>>> +           struct omap_smartreflex_pmic_data *pmic_data) {}
+>>>> +#endif
+>>>> +#endif
+>>>
+>>>These function names could all be unified a bit better.  Some are
+>>>'omap_smartreflex_', some are 'sr_' and some are 'omap_sr'.
+>>>
+>>>How about using 'omap_sr' for all the public functions.
 >
-> Am I missing something?
+> Yes sr_ are the APIs that will be called from smartreflex class driver
+> and omap_smartreflex are the ones that will be called from rest of the code.
+> I can change omap_smartreflex_ ones to omap_sr.
 
-You're right.  
-
-I knew this was the case for !CPUIDLE setup, but had thought (without
-testing) that the CPUidle core had re-enabled interrupts during the
-governor selection process etc.
-
-While I investigate ways to manage this in CPUidle, the following should
-be fine for now to include with $SUBJECT patch.
+OK.
 
 Kevin
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 681d823..c5cb9d0 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -245,6 +245,14 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 		goto select_state;
- 	}
- 
-+	/*
-+	 * Enable IRQs during the device activity checking and idle management.
-+	 * IRQs are later (re)disabled when entering the actual idle function.
-+	 * Device idle management that is using runtime PM needs to have
-+	 * interrupts enabled when calling into the runtime PM core.
-+	 */
-+	local_irq_enable();
-+
- 	cx = cpuidle_get_statedata(state);
- 	core_next_state = cx->core_state;
- 
-k
