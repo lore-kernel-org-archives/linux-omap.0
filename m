@@ -1,38 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
- data is transfered over
-Date: Tue, 14 Sep 2010 09:56:04 +0300
-Message-ID: <20100914065604.GD2601@legolas.emea.dhcp.ti.com>
-References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
- <1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
- <4C8E18AD.8000502@ru.mvista.com>
- <AANLkTinei3u1OZ-eBiUTDF=PDjwxLcL6rBpt7iNQJgHJ@mail.gmail.com>
- <4C8E4882.6040600@ru.mvista.com>
- <4C8E50CC.3080705@ru.mvista.com>
-Reply-To: balbi@ti.com
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2]
+ input: CMA3000 Accelerometer driver)
+Date: Tue, 14 Sep 2010 09:12:44 +0200
+Message-ID: <20100914071244.GA2672@ucw.cz>
+References: <15445.10.24.255.17.1274424777.squirrel@dbdmail.itg.ti.com>
+ <20100829184904.GC26209@core.coreip.homeip.net>
+ <36abcb34cfbf34724d9a581a75b53e76@secure211.sgcpanel.com>
+ <20100830214025.2f9677a1@lxorguk.ukuu.org.uk>
+ <20100830204412.GA28711@core.coreip.homeip.net>
+ <AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com>
+ <20100830214355.GB28865@core.coreip.homeip.net>
+ <AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com>
+ <20100830224352.GF28865@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38514 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751389Ab0ING4V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Sep 2010 02:56:21 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4C8E50CC.3080705@ru.mvista.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20100830224352.GF28865@core.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Felipe Balbi <me@felipebalbi.com>, Hemanth V <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "kai.svahn@nokia.com" <kai.svahn@nokia.com>, "matthias.nyman@nokia.com" <matthias.nyman@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: Ming Lei <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
 
-Hi,
+Hi!
 
-On Mon, Sep 13, 2010 at 11:26:52AM -0500, Sergei Shtylyov wrote:
-> Oops, I've been too fast and haven't realized that the check done here
-> _is_ actually wrong. It causes ZLP send to trigger too fast in the DMA
-> case. So please fix this patch. Felipe, please drop it for now.
+> > >> (or GPS device, for that matter) really be?
+> > >
+> > > But why GPS should be input device? It has nothing to do with user
+> > > input.
+> > 
+> > What? OF COURSE it is an input driver. It's the user moving the device
+> > around. It's EXACTLY the same thing as an accelerometer in that
+> > respect. Sure, it's a bit less precise and measures movement wrt some
+> > external frame, but technically they are almost exactly the same.
+> > 
+> > If you se doing a navigation app, the accelerometer, the compass and
+> > the GPS are all equally (but differently) important.
+> > 
+> > Again - it's not a user touching buttons. But it IS a user moving around.
+> 
+> Right, but do you expect that movement to cause an immediate action?
+> When you press a key - something happens; when you swing a Wii
+> controller - the device reacts. And really you can swap joysticks,
+> motion controllers, Sony's 6-axis and so forth and the application would
+> be hard pressed to tell the difference. I am unsure how you would play a
+> game with GPS as an input device.
 
-patch is not even touching that part of the code, not even
-reading/writing TXCSR_TXPKTRDY bit care to explain please.
+Well, there's cross between geocaching and game called 'whereigo'; I
+played it once, it is quite fun...
 
+"You bought a horse. Check if horse was fast enough by running to the
+trees you see north of you". And so you run. "Your horse is too
+slow. Try again".
+
+OTOH, for the GPS... I guess it is more complex because you have
+important and non-trivial metadata, such as precisions, fix type,
+#sats used and their positions. So NMEA might be right interface for
+that...
+
+...unless there are more chips like nokia n900 one that talk strange
+protocols. Or should we just translate them at kernel level?
+
+Anyway it would be good to have gps hardware abstraction one day.
+       	  	   	   	    	     		     Pavel
 -- 
-balbi
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
