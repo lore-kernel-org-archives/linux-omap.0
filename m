@@ -1,45 +1,206 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/3 v2] omap: pm-debug: Enable wakeup_timer_milliseconds debugfs entry
-Date: Wed, 15 Sep 2010 01:04:00 +0530
-Message-ID: <1284492841-14858-3-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 3/3 v2] omap: pm: Move set_pwrdm_state routine to common pm.c
+Date: Wed, 15 Sep 2010 01:04:01 +0530
+Message-ID: <1284492841-14858-4-git-send-email-santosh.shilimkar@ti.com>
 References: <1284492841-14858-1-git-send-email-santosh.shilimkar@ti.com>
  <1284492841-14858-2-git-send-email-santosh.shilimkar@ti.com>
+ <1284492841-14858-3-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43915 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51726 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754805Ab0INTeK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Sep 2010 15:34:10 -0400
-In-Reply-To: <1284492841-14858-2-git-send-email-santosh.shilimkar@ti.com>
+	id S1754853Ab0INTeL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Sep 2010 15:34:11 -0400
+In-Reply-To: <1284492841-14858-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, rnayak@ti.com, b-cousson@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Commit 8e2efde9 added milliseconds suspend wakeup time support but
-same interface is not exported through debugfs
+The set_pwrdm_state() is needed on omap4 as well so move
+this routine to common pm.c file so that it's available for omap3/4
 
-This patch enables the debugfs hook for wakeup_timer_milliseconds
-
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm-debug.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm.c     |   50 +++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h     |    2 +-
+ arch/arm/mach-omap2/pm34xx.c |   53 +++--------------------------------------
+ 3 files changed, 55 insertions(+), 50 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 655f9df..af00c17 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -638,6 +638,9 @@ static int __init pm_dbg_init(void)
- 				   &sleep_while_idle, &pm_dbg_option_fops);
- 	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
- 				   &wakeup_timer_seconds, &pm_dbg_option_fops);
-+	(void) debugfs_create_file("wakeup_timer_milliseconds",
-+			S_IRUGO | S_IWUGO, d, &wakeup_timer_milliseconds,
-+			&pm_dbg_option_fops);
- 	pm_dbg_init_done = 1;
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 68f9f2e..053f01f 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -18,6 +18,9 @@
+ #include <plat/omap_device.h>
+ #include <plat/common.h>
  
- 	return 0;
++#include <plat/powerdomain.h>
++#include <plat/clockdomain.h>
++
+ static struct omap_device_pm_latency *pm_lats;
+ 
+ static struct device *mpu_dev;
+@@ -73,6 +76,53 @@ static void omap2_init_processor_devices(void)
+ 	_init_omap_device("l3_main", &l3_dev);
+ }
+ 
++/*
++ * This sets pwrdm state (other than mpu & core. Currently only ON &
++ * RET are supported. Function is assuming that clkdm doesn't have
++ * hw_sup mode enabled.
++ */
++int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
++{
++	u32 cur_state;
++	int sleep_switch = 0;
++	int ret = 0;
++
++	if (pwrdm == NULL || IS_ERR(pwrdm))
++		return -EINVAL;
++
++	while (!(pwrdm->pwrsts & (1 << state))) {
++		if (state == PWRDM_POWER_OFF)
++			return ret;
++		state--;
++	}
++
++	cur_state = pwrdm_read_next_pwrst(pwrdm);
++	if (cur_state == state)
++		return ret;
++
++	if (pwrdm_read_pwrst(pwrdm) < PWRDM_POWER_ON) {
++		omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
++		sleep_switch = 1;
++		pwrdm_wait_transition(pwrdm);
++	}
++
++	ret = pwrdm_set_next_pwrst(pwrdm, state);
++	if (ret) {
++		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
++		       pwrdm->name);
++		goto err;
++	}
++
++	if (sleep_switch) {
++		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
++		pwrdm_wait_transition(pwrdm);
++		pwrdm_state_switch(pwrdm);
++	}
++
++err:
++	return ret;
++}
++
+ static int __init omap2_common_pm_init(void)
+ {
+ 	omap2_init_processor_devices();
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 4fd021f..77770a1 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -20,7 +20,7 @@ extern void *omap3_secure_ram_storage;
+ extern void omap3_pm_off_mode_enable(int);
+ extern void omap_sram_idle(void);
+ extern int omap3_can_sleep(void);
+-extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
++extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
+ 
+ struct cpuidle_params {
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index bc24fbd..f5f1dbd 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -483,51 +483,6 @@ int omap3_can_sleep(void)
+ 	return 1;
+ }
+ 
+-/* This sets pwrdm state (other than mpu & core. Currently only ON &
+- * RET are supported. Function is assuming that clkdm doesn't have
+- * hw_sup mode enabled. */
+-int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+-{
+-	u32 cur_state;
+-	int sleep_switch = 0;
+-	int ret = 0;
+-
+-	if (pwrdm == NULL || IS_ERR(pwrdm))
+-		return -EINVAL;
+-
+-	while (!(pwrdm->pwrsts & (1 << state))) {
+-		if (state == PWRDM_POWER_OFF)
+-			return ret;
+-		state--;
+-	}
+-
+-	cur_state = pwrdm_read_next_pwrst(pwrdm);
+-	if (cur_state == state)
+-		return ret;
+-
+-	if (pwrdm_read_pwrst(pwrdm) < PWRDM_POWER_ON) {
+-		omap2_clkdm_wakeup(pwrdm->pwrdm_clkdms[0]);
+-		sleep_switch = 1;
+-		pwrdm_wait_transition(pwrdm);
+-	}
+-
+-	ret = pwrdm_set_next_pwrst(pwrdm, state);
+-	if (ret) {
+-		printk(KERN_ERR "Unable to set state of powerdomain: %s\n",
+-		       pwrdm->name);
+-		goto err;
+-	}
+-
+-	if (sleep_switch) {
+-		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+-		pwrdm_wait_transition(pwrdm);
+-		pwrdm_state_switch(pwrdm);
+-	}
+-
+-err:
+-	return ret;
+-}
+-
+ static void omap3_pm_idle(void)
+ {
+ 	local_irq_disable();
+@@ -569,7 +524,7 @@ static int omap3_pm_suspend(void)
+ 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
+ 	/* Set ones wanted by suspend */
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+-		if (set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
++		if (omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state))
+ 			goto restore;
+ 		if (pwrdm_clear_all_prev_pwrst(pwrst->pwrdm))
+ 			goto restore;
+@@ -590,7 +545,7 @@ restore:
+ 			       pwrst->pwrdm->name, pwrst->next_state);
+ 			ret = -1;
+ 		}
+-		set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
++		omap_set_pwrdm_state(pwrst->pwrdm, pwrst->saved_state);
+ 	}
+ 	if (ret)
+ 		printk(KERN_ERR "Could not enter target state in pm_suspend\n");
+@@ -939,7 +894,7 @@ void omap3_pm_off_mode_enable(int enable)
+ 
+ 	list_for_each_entry(pwrst, &pwrst_list, node) {
+ 		pwrst->next_state = state;
+-		set_pwrdm_state(pwrst->pwrdm, state);
++		omap_set_pwrdm_state(pwrst->pwrdm, state);
+ 	}
+ }
+ 
+@@ -984,7 +939,7 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 	if (pwrdm_has_hdwr_sar(pwrdm))
+ 		pwrdm_enable_hdwr_sar(pwrdm);
+ 
+-	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
++	return omap_set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
+ }
+ 
+ /*
 -- 
 1.6.0.4
 
