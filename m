@@ -1,109 +1,70 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH 0/7] omap4: Fixes, hacks for es2.0
-Date: Tue, 14 Sep 2010 09:31:35 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0315F03099@dbde02.ent.ti.com>
-References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
-	<87fwxjx7qj.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EDFA@dbde02.ent.ti.com>
-	<87y6bavrn3.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EE0A@dbde02.ent.ti.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F026BF@dbde02.ent.ti.com>
-	<AANLkTimJ+tHk7ZPmPkuwHi2svU0Qw_SqGHazn4W=_ApC@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F0273D@dbde02.ent.ti.com>
-	<AANLkTim6yki=wj73K1+Tv=SZ877YLXBrXrBCLnAn6P7o@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F02F22@dbde02.ent.ti.com>
- <AANLkTing5cmd+-7URxcyDnAktm3LKFzj0FX81woisH86@mail.gmail.com>
+From: matt mooney <mfm@muteddisk.com>
+Subject: [PATCH 3/4] arm: remove cast from void*
+Date: Mon, 13 Sep 2010 22:30:16 -0700
+Message-ID: <1284442216-11710-1-git-send-email-mfm@muteddisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36261 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750707Ab0INEBs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 00:01:48 -0400
-In-Reply-To: <AANLkTing5cmd+-7URxcyDnAktm3LKFzj0FX81woisH86@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, kernel-janitors@vger.kernel.org, Juha Leppanen <juha_motorsportcom@luukku.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Suman Anna <s-anna@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Salveti <rsalveti@rsalveti.net>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Bryan Wu <bryan.wu@canonical.com>
 
+Unnecessary cast from void* in assignment.
 
+Signed-off-by: matt mooney <mfm@muteddisk.com>
+---
+ arch/arm/mach-omap2/mailbox.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-> -----Original Message-----
-> From: Ricardo Salveti [mailto:rsalveti@rsalveti.net]
-> Sent: Tuesday, September 14, 2010 12:22 AM
-> To: Ghorai, Sukumar
-> Cc: Shilimkar, Santosh; Kevin Hilman; linux-omap@vger.kernel.org;
-> tony@atomide.com; Bryan Wu
-> Subject: Re: [PATCH 0/7] omap4: Fixes, hacks for es2.0
->=20
-> On Mon, Sep 13, 2010 at 12:06 PM, Ghorai, Sukumar <s-ghorai@ti.com> w=
-rote:
-> >> >> > [Ghorai] I have tested MMC/SD boot using omap3_defconfig on Z=
-OOM3,
-> >> 4430
-> >> >> ES2.0 SDP, Blaze and Panda and all booting fine.
-> >> >> >
-> >> >> > And omap_4430sdp_defconfig also ok omap4.
-> >> >>
-> >> >> Which Panda version are you using during your tests? I tried
-> >> >> omap_4430sdp_defconfig using omap4-for-tony branch at my ES2.0 =
-and
-> I'm
-> >> >> unable to detect the MMC.
-> >> >>
-> >> >> Do I need any other patch to make the MMC work with Panda?
-> >> > [Ghorai] I have tested based on following tree/branch and using =
-ES2.0
-> >> PANDA only. Can you share bootlog enabling mmc/sd debug message?
-> >> > http://dev.omapzoom.org/?p=3Dsantosh/kernel-omap4-
-> >> base.git;a=3Dshortlog;h=3Drefs/heads/omap4-for-tony
-> >>
-> >> My boot log:
-> >> http://paste.ubuntu.com/491645/
-> >>
-> > [Ghorai] can you use this bootargs?
-> > setenv bootargs root=3D/dev/mmcblk0p2 rw rootwait mem=3D463M
-> console=3DttyS2,115200n8
-> > And here is the log from my setup.
-> > [ =A0 =A02.493194] Waiting for root device /dev/mmcblk0p2...
-> > [ =A0 =A02.502960] mmc0: host does not support reading read-only sw=
-itch.
-> assuming write-enable.
-> > [ =A0 =A02.523895] mmc0: new high speed SDHC card at address e1ed
-> > [ =A0 =A02.531616] mmcblk0: mmc0:e1ed SD04G 3.75 GiB
-> > [ =A0 =A02.539550] =A0mmcblk0: p1 p2
-> > [ =A0 =A02.607360] EXT3-fs: barriers not enabled
-> >
-> >> Using x-loader from
-> >> http://gitorious.org/pandaboard/x-loader/commits/omap4_panda_L24.9=
- and
-> >> upstream u-boot.
-> > [Ghorai] can you try with this x-loader
-> >
-> https://docs.google.com/leaf?id=3D0B8fdjBBEQ4lDZGE3ZTBjNzEtOTQ0Ni00Zm=
-=46lLTlhO
-> DgtN2QzNjUwMzBkNDI2&hl=3Den
-> > In the mean time I will try with yours!
->=20
-> I'm unable to boot with your x-loader at my ES2.0 (6 and 8 layers),
-> however I'm able to boot it with ES1. Are you sure you're testing it
-> at an ES2 board?
->=20
-> This is what I get, it just hangs:
-> Texas Instruments X-Loader 1.41 (Aug 11 2010 - 10:51:13)
-> Could not read bootloader!
-> X-Loader hangs
-[Ghorai] format the card and copy MLo and followed by u-boot, uImage
-And yes I am using EX 2.0 6-layer board.
-
->=20
-> Cheers,
-> --
-> Ricardo Salveti de Araujo
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 42dbfa4..40ddeca 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -181,7 +181,7 @@ static int omap2_mbox_fifo_full(struct omap_mbox *mbox)
+ static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
+ 		omap_mbox_type_t irq)
+ {
+-	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
++	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 
+ 	l = mbox_read_reg(p->irqenable);
+@@ -192,7 +192,7 @@ static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
+ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
+ 		omap_mbox_type_t irq)
+ {
+-	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
++	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 	l = mbox_read_reg(p->irqdisable);
+ 	l &= ~bit;
+@@ -202,7 +202,7 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
+ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
+ 		omap_mbox_type_t irq)
+ {
+-	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
++	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 
+ 	mbox_write_reg(bit, p->irqstatus);
+@@ -214,7 +214,7 @@ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
+ static int omap2_mbox_is_irq(struct omap_mbox *mbox,
+ 		omap_mbox_type_t irq)
+ {
+-	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
++	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 	u32 enable = mbox_read_reg(p->irqenable);
+ 	u32 status = mbox_read_reg(p->irqstatus);
+-- 
+1.7.2.1
