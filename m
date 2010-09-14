@@ -1,130 +1,44 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/3 v2] omap: pm-debug: Move common debug code to pm-debug.c
-Date: Tue, 14 Sep 2010 13:30:52 -0700
-Message-ID: <87zkvkkqyr.fsf@deeprootsystems.com>
-References: <1284492841-14858-1-git-send-email-santosh.shilimkar@ti.com>
-	<1284492841-14858-2-git-send-email-santosh.shilimkar@ti.com>
+From: Jayabharath Goluguri <jayabharath@ti.com>
+Subject: Re:  OMAP4430 Public TRM is Available Now!
+Date: Tue, 14 Sep 2010 15:54:08 -0500
+Message-ID: <4C8FE0F0.90106@ti.com>
+References: 4C7BD19F.5080303@ti.com <d23235dc-53a1-4ecb-95ab-86142aace13c@j2g2000vbo.googlegroups.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:59876 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009Ab0INUa7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Sep 2010 16:30:59 -0400
-Received: by pxi10 with SMTP id 10so2550780pxi.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Sep 2010 13:30:58 -0700 (PDT)
-In-Reply-To: <1284492841-14858-2-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Wed, 15 Sep 2010 01:03:59 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58099 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752935Ab0INUyK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Sep 2010 16:54:10 -0400
+In-Reply-To: <d23235dc-53a1-4ecb-95ab-86142aace13c@j2g2000vbo.googlegroups.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, b-cousson@ti.com
+To: linux-omap@vger.kernel.org, omapdiscuss@googlegroups.com
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-
-> This patch moves omap2_pm_wakeup_on_timer() and pm debug entries
-
-FYI... I cleaned up this changelog a little to remove the 'and pm debug
-entries' part which is no longer in this patch after the rebase.
-
-Kevin
-
-> form pm34xx.c to pm-debug.c and export it, so that it is available
-> to other OMAPs
+On 09/14/2010 03:44 PM, Jayabharath Goluguri wrote:
 >
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/pm-debug.c |   18 ++++++++++++++++++
->  arch/arm/mach-omap2/pm.h       |    2 ++
->  arch/arm/mach-omap2/pm34xx.c   |   18 ------------------
->  3 files changed, 20 insertions(+), 18 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 056ff17..655f9df 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -31,6 +31,7 @@
->  #include <plat/board.h>
->  #include <plat/powerdomain.h>
->  #include <plat/clockdomain.h>
-> +#include <plat/dmtimer.h>
->  
->  #include "prm.h"
->  #include "cm.h"
-> @@ -353,6 +354,23 @@ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
->  	pwrdm->timer = t;
->  }
->  
-> +void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
-> +{
-> +	u32 tick_rate, cycles;
-> +
-> +	if (!seconds && !milliseconds)
-> +		return;
-> +
-> +	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
-> +	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
-> +	omap_dm_timer_stop(gptimer_wakeup);
-> +	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
-> +
-> +	pr_info("PM: Resume timer in %u.%03u secs"
-> +		" (%d ticks at %d ticks/sec.)\n",
-> +		seconds, milliseconds, cycles, tick_rate);
-> +}
-> +
->  static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
->  {
->  	struct seq_file *s = (struct seq_file *)user;
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 3de6ece..4fd021f 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -48,9 +48,11 @@ extern struct omap_dm_timer *gptimer_wakeup;
->  
->  #ifdef CONFIG_PM_DEBUG
->  extern void omap2_pm_dump(int mode, int resume, unsigned int us);
-> +extern void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds);
->  extern int omap2_pm_debug;
->  #else
->  #define omap2_pm_dump(mode, resume, us)		do {} while (0);
-> +#define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
->  #define omap2_pm_debug				0
->  #endif
->  
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index bb2ba1e..bc24fbd 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -38,7 +38,6 @@
->  #include <plat/prcm.h>
->  #include <plat/gpmc.h>
->  #include <plat/dma.h>
-> -#include <plat/dmtimer.h>
->  
->  #include <asm/tlbflush.h>
->  
-> @@ -550,23 +549,6 @@ out:
->  #ifdef CONFIG_SUSPEND
->  static suspend_state_t suspend_state;
->  
-> -static void omap2_pm_wakeup_on_timer(u32 seconds, u32 milliseconds)
-> -{
-> -	u32 tick_rate, cycles;
-> -
-> -	if (!seconds && !milliseconds)
-> -		return;
-> -
-> -	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
-> -	cycles = tick_rate * seconds + tick_rate * milliseconds / 1000;
-> -	omap_dm_timer_stop(gptimer_wakeup);
-> -	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
-> -
-> -	pr_info("PM: Resume timer in %u.%03u secs"
-> -		" (%d ticks at %d ticks/sec.)\n",
-> -		seconds, milliseconds, cycles, tick_rate);
-> -}
-> -
->  static int omap3_pm_prepare(void)
->  {
->  	disable_hlt();
+>    On Aug 27, 2:11 pm, Felipe Balbi wrote:
+>   >  >  In addition, you can find the first public version of the
+> OMAP4430 Clock Tree Tool under "Technical Documents" section.
+>   >
+>   >  tried that one, doesn't work with ubuntu 10.04, Gentoo or Debian
+> Sid. Doesn't go passed splash screen.
+>
+> We have informed the developers of CTT. They are planning to publish
+> an
+> updated CTT tool (v1.7.0.3) with this issue fixed in a few days - stay
+> tuned.
+>
+Quick update on this thread. An updated version of the CTT tool is now 
+published at the same location 
+(http://focus.ti.com/general/docs/wtbu/wtbudocumentcenter.tsp?templateId=6123&navigationId=12037#62 
+). It has been verified under Ubuntu 10.04. Take it for a spin!
+
+Thanks to Nishant Menon & team we now have a public wiki page 
+http://omappedia.org/wiki/CTT on CTT installation instruction & steps to 
+run.
+
+
+Best Regards, --Jayabharath
