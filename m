@@ -1,83 +1,90 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: [PATCH v3 2/2] OMAP: DSS2: Use dss_features framework on DSS2
- code
-Date: Wed, 15 Sep 2010 14:06:01 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703117E9CBD@dbde02.ent.ti.com>
-References: <1284355810-20899-1-git-send-email-archit@ti.com>
-	 <1284355810-20899-3-git-send-email-archit@ti.com>
- <1284539461.2522.117.camel@tubuntu.research.nokia.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v5 0/7] native wl1271 support on ZOOM
+Date: Wed, 15 Sep 2010 11:21:19 +0200
+Message-ID: <AANLkTikedoL3HjohQfq2qa0TU5yMJR5p1GqyQJtQGrdb@mail.gmail.com>
+References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60080 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750701Ab0IOIgM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 04:36:12 -0400
-In-Reply-To: <1284539461.2522.117.camel@tubuntu.research.nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "John W. Linville" <linville@tuxdriver.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Nicolas Pitre <nico@fluxnic.net>, Ido Yariv <ido@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, "Wool, Vitaly" <Vitaly.Wool@sonyericsson.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tomi Valkeinen wrote:
-> On Mon, 2010-09-13 at 07:30 +0200, ext Archit Taneja wrote:
->> Calls init functions of dss_features during dss_probe, and the
->> following features are made omapxxxx independent:
->>   - number of managers, overlays
->>   - supported color modes for each overlay
->>   - supported displays for each manager
->>   - global aplha, and restriction of global alpha for video1 pipeline
->>   - The register field ranges : FIRHINC, FIRVINC, FIFOHIGHTHRESHOLD
->>     FIFOLOWTHRESHOLD and FIFOSIZE
->> 
->> Signed-off-by: Archit Taneja <archit@ti.com>
->> ---
->>  arch/arm/plat-omap/include/plat/display.h |   31 ----------------
->>  drivers/video/omap2/dss/core.c            |    3 ++
->>  drivers/video/omap2/dss/dispc.c           |   56
->>  ++++++++++++++++------------- drivers/video/omap2/dss/manager.c         |  
->>  33 ++++++++--------- drivers/video/omap2/dss/overlay.c         |   24
->>  +++++------- 5 files changed, 60 insertions(+), 87 deletions(-)
-> 
-> snip
-> 
->>  static void _dispc_setup_global_alpha(enum omap_plane plane, u8
->> global_alpha)  { -
->> -       BUG_ON(plane == OMAP_DSS_VIDEO1);
->> -
->> -       if (cpu_is_omap24xx())
->> +       if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
->>                 return;
->> 
->> +       BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
->> +                       plane == OMAP_DSS_VIDEO1);
->> +
->>         if (plane == OMAP_DSS_GFX)
->>                 REG_FLD_MOD(DISPC_GLOBAL_ALPHA, global_alpha, 7, 0);
->>         else if (plane == OMAP_DSS_VIDEO2) @@ -949,17 +950,14 @@
->> static void dispc_read_plane_fifo_sizes(void)
->> 
-> DISPC_VID_FIFO_SIZE_STATUS(1) };
->>         u32 size;
->>         int plane;
->> +       u8 size1, size2;
-> 
-> You have a bit inconsistent naming with these. The function
-> is defined as accepting start and end, here you use size1 and size2, below
-> you have foo1 and foo2.
-> 
+On Wed, Sep 1, 2010 at 11:26 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
+:
+> This patchset adds wl1271 support on ZOOM2/3 boards.
 
-I think I gave them names based on the name of the reg_field (size for FIFOSIZE,
-hinc for FIRHINC etc), 1 and 2 denote the start and end respectively, but yes, I
-guess it doesn't explain things that clearly, I'll give more appropriate names.
+Tony, John, let me please suggest merging this through the wireless tre=
+e.
 
-> Size is not a good name, as it's not size at all. Perhaps
-> foo_start and foo_end (or just start and end if there's only
-> one feat being used)? Or foo_msb and foo_lsb (as in most/least significant
-> bit)? 
-> 
-> Otherwise looks good.
-> 
->  Tomi
+wl1271 is a moving target - it keeps changing in the wireless tree and
+merging this patchset there will allow wl1271 developers to have
+everything in a single tree (and prevent merge conflicts in
+linux-next).
+
+If that's ok with you, I will rebase this on top of wireless-testing
+and resubmit.
+
+>
+> Only basic support is included; MMC power manipulation part is submit=
+ted separately as Runtime PM migration.
+>
+> Changes since v4:
+> - Introduce a simple (yet safe) mechanism to pass platform-specific d=
+ata to the driver, as suggested by Russell King. Currently only a singl=
+e device is supported; multi-device support will be introduced only whe=
+n/if required
+>
+> Patches are based on 2.6.36-rc3 and tested on ZOOM3.
+>
+> Thanks,
+>
+> Ohad Ben-Cohen (7):
+> =A0wireless: wl1271: make wl12xx.h common to both spi and sdio
+> =A0wireless: wl1271: support return value for the set power func
+> =A0wireless: wl12xx: add platform data passing support
+> =A0wireless: wl1271: take irq info from private board data
+> =A0wireless: wl1271: make ref_clock configurable by board
+> =A0omap: zoom: add fixed regulator device for wlan
+> =A0omap: zoom: add mmc3/wl1271 device support
+>
+> =A0arch/arm/mach-omap2/board-zoom-peripherals.c =A0 =A0 =A0 | =A0 54 =
+++++++++++++++++++++
+> =A0drivers/net/wireless/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0| =A0 =A02 +
+> =A0drivers/net/wireless/wl12xx/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 =A05 ++-
+> =A0drivers/net/wireless/wl12xx/wl1251_sdio.c =A0 =A0 =A0 =A0 =A0| =A0=
+ =A02 +-
+> =A0drivers/net/wireless/wl12xx/wl1251_spi.c =A0 =A0 =A0 =A0 =A0 | =A0=
+ =A02 +-
+> =A0drivers/net/wireless/wl12xx/wl1271.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 |=
+ =A0 =A03 +-
+> =A0drivers/net/wireless/wl12xx/wl1271_boot.c =A0 =A0 =A0 =A0 =A0| =A0=
+ =A09 ++--
+> =A0drivers/net/wireless/wl12xx/wl1271_boot.h =A0 =A0 =A0 =A0 =A0| =A0=
+ =A01 -
+> =A0drivers/net/wireless/wl12xx/wl1271_io.h =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ =A09 ++-
+> =A0drivers/net/wireless/wl12xx/wl1271_main.c =A0 =A0 =A0 =A0 =A0| =A0=
+ =A04 +-
+> =A0drivers/net/wireless/wl12xx/wl1271_sdio.c =A0 =A0 =A0 =A0 =A0| =A0=
+ 19 ++++---
+> =A0drivers/net/wireless/wl12xx/wl1271_spi.c =A0 =A0 =A0 =A0 =A0 | =A0=
+ =A08 ++-
+> =A0drivers/net/wireless/wl12xx/wl12xx_platform_data.c | =A0 31 ++++++=
++++++
+> =A0include/linux/spi/wl12xx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | =A0 34 ------------
+> =A0include/linux/wl12xx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 | =A0 38 ++++++++++++++
+> =A015 files changed, 164 insertions(+), 57 deletions(-)
+> =A0create mode 100644 drivers/net/wireless/wl12xx/wl12xx_platform_dat=
+a.c
+> =A0delete mode 100644 include/linux/spi/wl12xx.h
+> =A0create mode 100644 include/linux/wl12xx.h
+>
+>
