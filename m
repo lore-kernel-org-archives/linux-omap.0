@@ -1,109 +1,73 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v5 3/6] OMAP2430: hwmod data: Add watchdog timer
-Date: Wed, 15 Sep 2010 10:56:40 +0530
-Message-ID: <1284528403-6494-4-git-send-email-charu@ti.com>
-References: <1284528403-6494-1-git-send-email-charu@ti.com>
+Subject: RE: [v4 6/6] OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
+Date: Wed, 15 Sep 2010 11:01:02 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F989@dbde02.ent.ti.com>
+References: <1284390809-11519-1-git-send-email-charu@ti.com>
+	<1284390809-11519-7-git-send-email-charu@ti.com>
+ <87zkvknqv4.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52218 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52396 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751666Ab0IOF07 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Sep 2010 01:26:59 -0400
-In-Reply-To: <1284528403-6494-1-git-send-email-charu@ti.com>
+	id S1750774Ab0IOFbK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 01:31:10 -0400
+In-Reply-To: <87zkvknqv4.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, wim@iguana.be, linux-watchdog@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Add watchdog timer hwmod data for OMAP2430 chip
 
-Signed-off-by: Charulatha V <charu@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   59 ++++++++++++++++++++++++++++
- 1 files changed, 59 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 4526628..f74fca0 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -33,6 +33,7 @@ static struct omap_hwmod omap2430_mpu_hwmod;
- static struct omap_hwmod omap2430_iva_hwmod;
- static struct omap_hwmod omap2430_l3_main_hwmod;
- static struct omap_hwmod omap2430_l4_core_hwmod;
-+static struct omap_hwmod omap2430_wd_timer2_hwmod;
- 
- /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core = {
-@@ -165,12 +166,70 @@ static struct omap_hwmod omap2430_iva_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
- };
- 
-+/* WDTIMER2 <- L4_WKUP interface */
-+static struct omap_hwmod_addr_space omap2430_wd_timer2_addrs[] = {
-+	{
-+		.pa_start	= 0x49016000,
-+		.pa_end		= 0x4901607f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2430_l4_wkup__wd_timer2 = {
-+	.master		= &omap2430_l4_wkup_hwmod,
-+	.slave		= &omap2430_wd_timer2_hwmod,
-+	.clk		= "mpu_wdt_ick",
-+	.addr		= omap2430_wd_timer2_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_wd_timer2_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* WDTIMER common */
-+
-+static struct omap_hwmod_class_sysconfig omap2430_wd_timer_sysc = {
-+	.rev_offs	= 0x0,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2430_wd_timer_hwmod_class = {
-+	.name = "wd_timer",
-+	.sysc = &omap2430_wd_timer_sysc,
-+};
-+
-+/* WDTIMER2 */
-+static struct omap_hwmod_ocp_if *omap2430_wd_timer2_slaves[] = {
-+	&omap2430_l4_wkup__wd_timer2,
-+};
-+
-+static struct omap_hwmod omap2430_wd_timer2_hwmod = {
-+	.name		= "wd_timer2",
-+	.class		= &omap2430_wd_timer_hwmod_class,
-+	.main_clk	= "mpu_wdt_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_WDT2_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_WDT2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_wd_timer2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_wd_timer2_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
- static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_l3_main_hwmod,
- 	&omap2430_l4_core_hwmod,
- 	&omap2430_l4_wkup_hwmod,
- 	&omap2430_mpu_hwmod,
- 	&omap2430_iva_hwmod,
-+	&omap2430_wd_timer2_hwmod,
- 	NULL,
- };
- 
--- 
-1.7.0.4
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Tuesday, September 14, 2010 11:35 PM
+> To: Varadarajan, Charulatha
+> Cc: tony@atomide.com; wim@iguana.be; linux-watchdog@vger.kernel.org;
+> paul@pwsan.com; Cousson, Benoit; Nayak, Rajendra; Basak, Partha; linux-
+> omap@vger.kernel.org
+> Subject: Re: [v4 6/6] OMAP: WDT: Use PM runtime APIs instead of clk FW
+> APIs
+> 
+> "Varadarajan, Charulatha" <charu@ti.com> writes:
+> 
+> > Call runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
+> > for enabling/disabling the clocks, sysconfig settings instead of using
+> > clock FW APIs.
+> >
+> > Signed-off-by: Charulatha V <charu@ti.com>
+> 
+> Looks mostly good, one minor comment
+> 
+> [...]
+> 
+> > +static int wdt_runtime_suspend(struct device *dev)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> > +static int wdt_runtime_resume(struct device *dev)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct dev_pm_ops gpio_pm_ops = {
+> > +	.runtime_suspend = wdt_runtime_suspend,
+> > +	.runtime_resume	 = wdt_runtime_resume,
+> > +};
+> > +
+> 
+> This isn't needed anymore for 2.6.37, a fix for the return values in the
+> generic runtime PM calls has been queued for 2.6.37[1]
 
+Thanks. I've removed runtime_suspend/resume hooks from watchdog driver and
+sent the next version of the series.
+
+> 
+> Kevin
+> 
+> [1] https://lists.linux-foundation.org/pipermail/linux-pm/2010-
+> September/028466.html
