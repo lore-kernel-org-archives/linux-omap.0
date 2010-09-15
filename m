@@ -1,51 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
- frequency
-Date: Wed, 15 Sep 2010 17:10:21 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009151707370.458@utopia.booyaka.com>
-References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com> <20100915224007.GJ4174@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: Update omap3_defconfig to work with SMP_ON_UP
+Date: Wed, 15 Sep 2010 16:15:00 -0700
+Message-ID: <20100915231500.GK4174@atomide.com>
+References: <20100817104414.19061.38999.stgit@baageli.muru.com>
+ <20100906104413.GD20903@n2100.arm.linux.org.uk>
+ <20100914185907.GG8647@atomide.com>
+ <20100914190314.GH8647@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F7DB@dbde02.ent.ti.com>
+ <20100914202743.GK8647@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F9E1@dbde02.ent.ti.com>
+ <20100915161126.GS8647@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02CD25FF3B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36205 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab0IOXKW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 19:10:22 -0400
-In-Reply-To: <20100915224007.GJ4174@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63248 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751666Ab0IOXPS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 19:15:18 -0400
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD25FF3B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, khilman@deeprootsystems.com
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>
 
-On Wed, 15 Sep 2010, Tony Lindgren wrote:
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100915 11:18]:
+> > 
+> Here is the patch which fixes most of the omap4 issues with common
+> Omap3_defconfig. 
 
-> * Paul Walmsley <paul@pwsan.com> [100915 12:07]:
-> > > 
-> > > This change has been commited to both TI's android 2.6.29 and 2.6.32 kernels.
-> > > The commits can be viewed here:
-> > > http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=5679c7b1142f3cc2b9285181d53f6b40c4d0296d
-> > > http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=cf16e57823575d98e9d5165aa7a498ffb751c940
-> > > 
-> > > This patch has been rebased on the latest linux-omap tree and tested on
-> > > Kevin Hilman's pm branch.
-> 
-> Sounds like a very important fix. But also a good example of how
-> messed up things are with the TI Linux kernel development.
-> 
-> Why has this fix it been sitting in some TI internal tree since
-> Fri, 12 Mar 2010?
+Good to hear, thanks!
+ 
+> To enable local Timers for es1.0, I made some progress but looks like 
+> it needs more changes in generic code. Will have a look at it tomorrow.
 
-About two months of it is my fault, since it was posted to l-o on July 21.  
-But all the time between 12 March and 21 July is up to TI to answer.
-This really could have been a useful patch for certain vendors to have 
-that are using CORE DVFS on their currently-shipping OMAP3 devices.
+OK
+ 
+> The patch is on top of the patches being discussed here. It's boot-tested 
+> with single image on OMAP3 and OMAP4 SMP.
 
-> This same bug has been patched in three different trees? But not in
-> the mainline kernel?
-> 
-> And this is happening all the time with the TI fixes.
+Looks good to me.
 
-Yeah.
-
-
-- Paul
+Tony
