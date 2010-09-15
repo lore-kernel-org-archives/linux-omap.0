@@ -1,49 +1,48 @@
-From: "Luis R. Rodriguez" <mcgrof@gmail.com>
-Subject: Re: [PATCH 00/15] change default_llseek action
-Date: Wed, 15 Sep 2010 09:06:25 -0700
-Message-ID: <AANLkTimCsuTXM3e0D8zPEsugd2W9c7ziTK+Xx2wmkJb0@mail.gmail.com>
-References: <1284495763-7506-1-git-send-email-arnd@arndb.de> <20100915193926.ae2fe838.sfr@canb.auug.org.au>
+From: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus@gmail.com>
+Subject: Re: [PATCH v5 3/7] wireless: wl12xx: add platform data passing support
+Date: Wed, 15 Sep 2010 18:10:22 +0200
+Message-ID: <AANLkTinFs_o83az1+g1dbi6YD7RsrXYOUd=kkm0qi3wc@mail.gmail.com>
+References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+	<1283376410-9999-4-git-send-email-ohad@wizery.com>
+	<AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
+	<20100906120716.GE20903@n2100.arm.linux.org.uk>
+	<AANLkTikAFCd+3ggZKhQXY=+bG==KgLkv3qNVdEGa=GBX@mail.gmail.com>
+	<20100915082544.GA4625@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-2
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100915193926.ae2fe838.sfr@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org, Jeremy Kerr <jk@ozlabs.org>, "John W. Linville" <linville@tuxdriver.com>, Julia Lawall <julia@diku.dk>, Linus Torvalds <torvalds@linux-foundation.org>, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100915082544.GA4625@n2100.arm.linux.org.uk>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, Ido Yariv <ido@wizery.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 15, 2010 at 2:39 AM, Stephen Rothwell <sfr@canb.auug.org.au=
-> wrote:
-> Hi Arnd,
->
-> On Tue, 14 Sep 2010 22:22:28 +0200 Arnd Bergmann <arnd@arndb.de> wrot=
+W dniu 15 wrze=B6nia 2010 10:25 u=BFytkownik Russell King - ARM Linux
+<linux@arm.linux.org.uk> napisa=B3:
+> On Mon, Sep 06, 2010 at 09:42:41PM +0200, Micha=B3 Miros=B3aw wrote:
+>> W dniu 6 wrze=B6nia 2010 14:07 u=BFytkownik Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> napisa=B3:
+>> > On Sat, Sep 04, 2010 at 02:23:19PM +0200, Micha=B3 Miros=B3aw wrot=
 e:
->>
->> Stephen, please add
->> git+ssh://master.kernel.org/pub/scm/linux/kernel/git/arnd/bkl.git ll=
-seek
->
-> Added from today.
->
-> Thanks for adding your subsystem tree as a participant of linux-next.=
- =C2=A0As
-> you may know, this is not a judgment of your code. =C2=A0The purpose =
-of
-> linux-next is for integration testing and to lower the impact of
-> conflicts between subsystems in the next merge window.
->
-> You will need to ensure that the patches/commits in your tree/series =
-have
-> been:
-> =C2=A0 =C2=A0 * submitted under GPL v2 (or later) and include the Con=
-tributor's
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0Signed-off-by,
+>> >> 2010/9/1 Ohad Ben-Cohen <ohad@wizery.com>:
+>> >> > Add a simple mechanism to pass platform data to the
+>> >> > SDIO instances of wl12xx.
+>> [cut patch]
+>> >> Why do you need all that copying? Isn't the data constant?
+>> > The first copy is to allow platforms to have their data marked wit=
+h
+>> > __initdata. =A0The second copy probably isn't necessary, but avoid=
+s
+>> > problems where the driver may decide to modify the platform data.
+>> Sorry for pushing at this, but why would you mark data that's meant =
+to
+>> be used after init phase as __initdata?
+> Because you may have many instances of the data (due to multiple plat=
+form
+> support), and only need one of them at run-time.
 
-I should note this should say the code should be GPL-compatible, it
-doesn't need to be GPLv2 (or later). Furthermore the contributors of
-the subsystem respect the individual licenses of the files through the
-Developers Certificate of Origin, which tells the developers what the
-meaning of Signed-off-by means.
+Ah. That makes sense.
 
-  Luis
+Thanks,
+Micha=B3 Miros=B3aw
