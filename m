@@ -1,42 +1,131 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall
- in SDRC after a Warm-reset
-Date: Wed, 15 Sep 2010 15:35:03 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009151533560.458@utopia.booyaka.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB03229868BA@dbde02.ent.ti.com> <alpine.DEB.2.00.1005181816380.27473@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8926@dbde02.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v5 4/6] OMAP4: hwmod data: Add watchdog timer
+Date: Wed, 15 Sep 2010 23:35:17 +0200
+Message-ID: <4C913C15.6010201@ti.com>
+References: <1284528403-6494-1-git-send-email-charu@ti.com> <1284528403-6494-5-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43534 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753861Ab0IOVfF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 17:35:05 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8926@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51917 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754241Ab0IOVf0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Sep 2010 17:35:26 -0400
+In-Reply-To: <1284528403-6494-5-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, vishwanath.bs@ti.com
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Teerth, Vishwa,
+On 9/15/2010 7:26 AM, Varadarajan, Charulatha wrote:
+> From: Benoit Cousson<b-cousson@ti.com>
+>
+> Add watchdog timer hwmod data for OMAP4 chip
+>
+> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> Signed-off-by: Charulatha V<charu@ti.com>
+> ---
+> This patch is extracted from the below patch sent by Benoit
+> OMAP4: hwmod: Add partial hwmod support for OMAP4430 ES1.0
+> https://patchwork.kernel.org/patch/99052/
 
-On Tue, 25 May 2010, Reddy, Teerth wrote:
+Since that one, I sent a newer version:
+OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
+https://patchwork.kernel.org/patch/117347/
 
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Wednesday, May 19, 2010 6:03 AM
-> > To: Reddy, Teerth
-> > Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath
-> > Subject: Re: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR
-> > stall in SDRC after a Warm-reset
-> > 
-> > On Fri, 23 Apr 2010, Reddy, Teerth wrote:
-> > 
-> > > From: Teerth Reddy <teerth@ti.com>
-> > >
-> > > This patch has the workaround for errata 1.176.
+In fact the patch that really contains all the data is not there, 
+probably because of its size :-(
 
-What's the current status of this patch?  Still waiting for an updated 
-version.
+Benoit
 
+>
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   68 ++++++++++++++++++++++++++++
+>   1 files changed, 68 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index e20b0ee..06851f7 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -452,6 +452,72 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
+>   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>   };
+>
+> +/*
+> + * 'wd_timer' class
+> + * 32-bit watchdog upward counter that generates a pulse on the reset pin on
+> + * overflow condition
+> + */
+> +
+> +static struct omap_hwmod_class_sysconfig omap44xx_wd_timer_sysc = {
+> +	.rev_offs	= 0x0000,
+> +	.sysc_offs	= 0x0010,
+> +	.syss_offs	= 0x0014,
+> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_EMUFREE |
+> +			   SYSC_HAS_SOFTRESET),
+> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_fields	=&omap_hwmod_sysc_type1,
+> +};
+> +
+> +static struct omap_hwmod_class omap44xx_wd_timer_hwmod_class = {
+> +	.name = "wd_timer",
+> +	.sysc =&omap44xx_wd_timer_sysc,
+> +};
+> +
+> +/* wd_timer2 */
+> +static struct omap_hwmod omap44xx_wd_timer2_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_wd_timer2_irqs[] = {
+> +	{ .irq = 80 + OMAP44XX_IRQ_GIC_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_wd_timer2_addrs[] = {
+> +	{
+> +		.pa_start	= 0x4a314000,
+> +		.pa_end		= 0x4a31407f,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_wkup ->  wd_timer2 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_wkup__wd_timer2 = {
+> +	.master		=&omap44xx_l4_wkup_hwmod,
+> +	.slave		=&omap44xx_wd_timer2_hwmod,
+> +	.clk		= "l4_wkup_clk_mux_ck",
+> +	.addr		= omap44xx_wd_timer2_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_addrs),
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +/* wd_timer2 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_wd_timer2_slaves[] = {
+> +	&omap44xx_l4_wkup__wd_timer2,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_wd_timer2_hwmod = {
+> +	.name		= "wd_timer2",
+> +	.class		=&omap44xx_wd_timer_hwmod_class,
+> +	.mpu_irqs	= omap44xx_wd_timer2_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_irqs),
+> +	.main_clk	= "wd_timer2_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM_WKUP_WDT2_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_wd_timer2_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+>   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>   	/* dmm class */
+>   	&omap44xx_dmm_hwmod,
+> @@ -472,6 +538,8 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>
+>   	/* mpu class */
+>   	&omap44xx_mpu_hwmod,
+> +	/* wd_timer class */
+> +	&omap44xx_wd_timer2_hwmod,
+>   	NULL,
+>   };
+>
 
-- Paul
