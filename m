@@ -1,43 +1,67 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
  data is transfered over
-Date: Wed, 15 Sep 2010 14:41:39 +0400
-Message-ID: <4C90A2E3.9020300@mvista.com>
-References: <20100914105402.GD7554@legolas.emea.dhcp.ti.com> <4C8FB60D.1080906@ru.mvista.com> <20100915065345.GC3393@legolas.emea.dhcp.ti.com> <4C909961.10001@ru.mvista.com> <20100915100553.GJ3393@legolas.emea.dhcp.ti.com> <4C909B2E.3000909@ru.mvista.com> <AANLkTi=A+1ThrRTNjWoFbXr-G1OUnpThEwG5rCgGirzC@mail.gmail.com> <4C909D87.2090901@ru.mvista.com> <20100915102256.GK3393@legolas.emea.dhcp.ti.com> <4C909F99.9050300@mvista.com> <20100915103152.GM3393@legolas.emea.dhcp.ti.com>
+Date: Wed, 15 Sep 2010 13:52:51 +0300
+Message-ID: <20100915105251.GN3393@legolas.emea.dhcp.ti.com>
+References: <20100915065345.GC3393@legolas.emea.dhcp.ti.com>
+ <4C909961.10001@ru.mvista.com>
+ <20100915100553.GJ3393@legolas.emea.dhcp.ti.com>
+ <4C909B2E.3000909@ru.mvista.com>
+ <AANLkTi=A+1ThrRTNjWoFbXr-G1OUnpThEwG5rCgGirzC@mail.gmail.com>
+ <4C909D87.2090901@ru.mvista.com>
+ <20100915102256.GK3393@legolas.emea.dhcp.ti.com>
+ <4C909F99.9050300@mvista.com>
+ <20100915103152.GM3393@legolas.emea.dhcp.ti.com>
+ <4C90A2E3.9020300@mvista.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:39324 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099Ab0IOKnU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 06:43:20 -0400
-In-Reply-To: <20100915103152.GM3393@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4C90A2E3.9020300@mvista.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Ming Lei <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Ming Lei <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
 
-Hello.
+Hi,
 
-On 15-09-2010 14:31, Felipe Balbi wrote:
+On Wed, Sep 15, 2010 at 05:41:39AM -0500, Sergei Shtylyov wrote:
+>> your forgetting the fact that not always you need to send ZLP after
+>> completing a packet_size-aligned transfer,
+>
+>    So what?
 
->> IMHO, this fix as it is now is quite stupid. It's clear that the check is
->> misplaced and will be removed once the ZLP fix is done. So why not do it once
+what you're saying is that when we change the ZLP handling, the
+request->actual == request->lenght check will have to be removed, but
+that's not true because ZLP is only needed if request->zero is set.
 
-> your forgetting the fact that not always you need to send ZLP after
-> completing a packet_size-aligned transfer,
+So the final code would be something like (pseudo-code):
 
-    So what?
+if (request->lenght % musb_ep->packet_sz)
+	set_last_packet_is_short_flag(musb_request);
 
-> so that check will have to stay where it is.
+if (request->zero || last_packet_is_short(request)) {
+	set_txpktrdy(musb);
+	set_musb_request_completed_flag(musb_request);
+	return;
+}
 
-    I don't see how these two are connected at all.
+if (request->acual == request->length)
+	musb_g_giveback(musb, request);
 
- >> and for all? Is it so hard to do? FWIW, I NAK this patch as it is now.
+restart_ep_if_more_requests(musb_ep);
 
- > ok, but I don't.
 
-    Well, you're the maintainer.
+> > ok, but I don't.
+>
+>    Well, you're the maintainer.
 
-WBR, Sergei
+the thing is that this discussion is preventing me from sending me the
+other 10 patches to Greg. So either we drop it now and send the exact
+same patch (or a similar version) for next -rc or I send them all now.
+Since I'm not seeing the problem you're describing I'm more inclined to
+send them all.
+
+-- 
+balbi
