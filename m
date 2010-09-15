@@ -1,107 +1,172 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 04/10] OMAP4: pm.c extensions for OMAP4 support
-Date: Wed, 15 Sep 2010 16:55:40 -0700
-Message-ID: <1284594946-28963-5-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 03/10] OMAP3: PM: move device-specific special cases from PM core into CPUidle
+Date: Wed, 15 Sep 2010 16:55:39 -0700
+Message-ID: <1284594946-28963-4-git-send-email-khilman@deeprootsystems.com>
 References: <1284594946-28963-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:42118 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824Ab0IOXz5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 19:55:57 -0400
-Received: by yxp4 with SMTP id 4so239597yxp.19
-        for <linux-omap@vger.kernel.org>; Wed, 15 Sep 2010 16:55:57 -0700 (PDT)
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:44824 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753718Ab0IOXzz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 19:55:55 -0400
+Received: by gxk23 with SMTP id 23so239006gxk.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Sep 2010 16:55:54 -0700 (PDT)
 In-Reply-To: <1284594946-28963-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Thara Gopinath <thara@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tero Kristo <tero.kristo@nokia.com>
 
-From: Thara Gopinath <thara@ti.com>
+In an effort to simplify the core idle path, move any device-specific
+special case handling from the core PM idle path into the CPUidle
+pre-idle checking path.
 
-OMAP4 has an iva device and a dsp devcice where as OMAP2/3
-has only an iva device. In this file the iva device in the
-system is registered under the name dsp_dev and the API
-to retrieve the iva device is omap2_get_dsp_device.
-This patch renames the dsp_dev to iva_dev, renames
-omap2_get_dsp_device to omap2_get_iva_device,
-registers dsp_dev for OMAP4 and adds a new API
-omap4_get_dsp_device to retrieve the dep_dev.
+This keeps the core, interrupts-disabled idle path streamlined and
+independent of any device-specific handling, and also allows CPUidle
+to do the checking only for certain C-states as needed.  This patch
+has the device checks in place for all states with the CHECK_BM flag,
+namely all states >= C2.
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
+This patch was inspired by a similar patch written by Tero Kristo as
+part of a larger series to add INACTIVE state support.
+
+Cc: Tero Kristo <tero.kristo@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm.c                 |   20 +++++++++++++++-----
- arch/arm/plat-omap/include/plat/common.h |    3 ++-
- 2 files changed, 17 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   50 ++++++++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/pm34xx.c      |   14 +---------
+ 2 files changed, 48 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 68f9f2e..c93921d 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -21,8 +21,9 @@
- static struct omap_device_pm_latency *pm_lats;
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 3d3d035..0923b82 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -60,7 +60,8 @@ struct omap3_processor_cx {
  
- static struct device *mpu_dev;
--static struct device *dsp_dev;
-+static struct device *iva_dev;
- static struct device *l3_dev;
-+static struct device *dsp_dev;
+ struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
+ struct omap3_processor_cx current_cx_state;
+-struct powerdomain *mpu_pd, *core_pd;
++struct powerdomain *mpu_pd, *core_pd, *per_pd;
++struct powerdomain *cam_pd;
  
- struct device *omap2_get_mpuss_device(void)
+ /*
+  * The latencies/thresholds for various C states have
+@@ -233,14 +234,54 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 			       struct cpuidle_state *state)
  {
-@@ -30,10 +31,10 @@ struct device *omap2_get_mpuss_device(void)
- 	return mpu_dev;
- }
+ 	struct cpuidle_state *new_state = next_valid_state(dev, state);
++	u32 core_next_state, per_next_state = 0, per_saved_state = 0;
++	u32 cam_state;
++	struct omap3_processor_cx *cx;
++	int ret;
  
--struct device *omap2_get_dsp_device(void)
-+struct device *omap2_get_iva_device(void)
- {
--	WARN_ON_ONCE(!dsp_dev);
--	return dsp_dev;
-+	WARN_ON_ONCE(!iva_dev);
-+	return iva_dev;
- }
- 
- struct device *omap2_get_l3_device(void)
-@@ -42,6 +43,13 @@ struct device *omap2_get_l3_device(void)
- 	return l3_dev;
- }
- 
-+struct device *omap4_get_dsp_device(void)
-+{
-+	WARN_ON_ONCE(!dsp_dev);
-+	return dsp_dev;
-+}
-+EXPORT_SYMBOL(omap4_get_dsp_device);
+ 	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
+ 		BUG_ON(!dev->safe_state);
+ 		new_state = dev->safe_state;
++		goto select_state;
++	}
 +
- /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
- static int _init_omap_device(char *name, struct device **new_dev)
- {
-@@ -69,7 +77,9 @@ static int _init_omap_device(char *name, struct device **new_dev)
- static void omap2_init_processor_devices(void)
- {
- 	_init_omap_device("mpu", &mpu_dev);
--	_init_omap_device("iva", &dsp_dev);
-+	_init_omap_device("iva", &iva_dev);
-+	if (cpu_is_omap44xx())
-+		_init_omap_device("dsp", &dsp_dev);
- 	_init_omap_device("l3_main", &l3_dev);
++	cx = cpuidle_get_statedata(state);
++	core_next_state = cx->core_state;
++
++	/*
++	 * Prevent idle completely if CAM is active.
++	 * CAM does not have wakeup capability in OMAP3.
++	 */
++	cam_state = pwrdm_read_pwrst(cam_pd);
++	if (cam_state == PWRDM_POWER_ON) {
++		new_state = dev->safe_state;
++		goto select_state;
+ 	}
+ 
++	/*
++	 * Prevent PER off if CORE is not in retention or off as this
++	 * would disable PER wakeups completely.
++	 */
++	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
++	if ((per_next_state == PWRDM_POWER_OFF) &&
++	    (core_next_state > PWRDM_POWER_RET)) {
++		per_next_state = PWRDM_POWER_RET;
++		pwrdm_set_next_pwrst(per_pd, per_next_state);
++	}
++
++	/* Are we changing PER target state? */
++	if (per_next_state != per_saved_state)
++		pwrdm_set_next_pwrst(per_pd, per_next_state);
++
++select_state:
+ 	dev->last_state = new_state;
+-	return omap3_enter_idle(dev, new_state);
++	ret = omap3_enter_idle(dev, new_state);
++
++	/* Restore original PER state if it was modified */
++	if (per_next_state != per_saved_state)
++		pwrdm_set_next_pwrst(per_pd, per_saved_state);
++
++	return ret;
  }
  
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index 9776b41..c45dbb9 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -91,7 +91,8 @@ void omap3_map_io(void);
- })
+ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
+@@ -328,7 +369,8 @@ void omap_init_power_states(void)
+ 			cpuidle_params_table[OMAP3_STATE_C2].threshold;
+ 	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_ON;
+ 	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
+-	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID;
++	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID |
++				CPUIDLE_FLAG_CHECK_BM;
  
- extern struct device *omap2_get_mpuss_device(void);
--extern struct device *omap2_get_dsp_device(void);
-+extern struct device *omap2_get_iva_device(void);
- extern struct device *omap2_get_l3_device(void);
-+extern struct device *omap4_get_dsp_device(void);
+ 	/* C3 . MPU CSWR + Core inactive */
+ 	omap3_power_states[OMAP3_STATE_C3].valid =
+@@ -426,6 +468,8 @@ int __init omap3_idle_init(void)
  
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+ 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
+ 	core_pd = pwrdm_lookup("core_pwrdm");
++	per_pd = pwrdm_lookup("per_pwrdm");
++	cam_pd = pwrdm_lookup("cam_pwrdm");
+ 
+ 	omap_init_power_states();
+ 	cpuidle_register_driver(&omap3_idle_driver);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 429268e..bb2ba1e 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -346,7 +346,6 @@ void omap_sram_idle(void)
+ 	int core_next_state = PWRDM_POWER_ON;
+ 	int core_prev_state, per_prev_state;
+ 	u32 sdrc_pwr = 0;
+-	int per_state_modified = 0;
+ 
+ 	if (!_omap_sram_idle)
+ 		return;
+@@ -391,19 +390,10 @@ void omap_sram_idle(void)
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		omap_uart_prepare_idle(2);
+ 		omap2_gpio_prepare_for_idle(per_next_state);
+-		if (per_next_state == PWRDM_POWER_OFF) {
+-			if (core_next_state == PWRDM_POWER_ON) {
+-				per_next_state = PWRDM_POWER_RET;
+-				pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
+-				per_state_modified = 1;
+-			} else
++		if (per_next_state == PWRDM_POWER_OFF)
+ 				omap3_per_save_context();
+-		}
+ 	}
+ 
+-	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
+-		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+-
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
+ 		omap_uart_prepare_idle(0);
+@@ -470,8 +460,6 @@ void omap_sram_idle(void)
+ 		if (per_prev_state == PWRDM_POWER_OFF)
+ 			omap3_per_restore_context();
+ 		omap_uart_resume_idle(2);
+-		if (per_state_modified)
+-			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
+ 	}
+ 
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
 -- 
 1.7.2.1
 
