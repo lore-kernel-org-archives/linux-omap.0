@@ -1,78 +1,296 @@
-From: venki kaps <venkiece2005@gmail.com>
-Subject: Re: OMAP3 DSP MMU fault + off mode issue
-Date: Wed, 15 Sep 2010 19:25:56 +0530
-Message-ID: <AANLkTimO1UK+WA8Mc3Myi3gWBpD=D7tXDOX104a8NMKW__16002.6911566549$1284558990$gmane$org@mail.gmail.com>
-References: <AANLkTikHM+o_FCgnVzGhs8UtQ_geXFzKNQpGSZiEN7sx@mail.gmail.com>
-	<AANLkTimd_sRpOYaurOT0iSbfd0pMZvhxgUcaqbQvSobu@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "archit@ti.com" <archit@ti.com>
+Subject: [PATCH v4 1/2] OMAP: DSS2: Introduce dss_features files
+Date: Wed, 15 Sep 2010 19:39:53 +0530
+Message-ID: <1284559794-4771-2-git-send-email-archit@ti.com>
+References: <1284559794-4771-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:61994 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690Ab0IONz5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 09:55:57 -0400
-In-Reply-To: <AANLkTimd_sRpOYaurOT0iSbfd0pMZvhxgUcaqbQvSobu@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48362 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754062Ab0IOOIR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Sep 2010 10:08:17 -0400
+In-Reply-To: <1284559794-4771-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: omar.ramirez@ti.com, h-kanigeri2@ti.com, ameya.palande@nokia.com, fernando.lugo@ti.com, x0hebbar@ti.com, ernesto@ti.com, felipe.contreras@gmail.com, s-anna@ti.com, grgupta@ti.com, iva
+To: tomi.valkeinen@nokia.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Tue, Sep 14, 2010 at 8:54 PM, venki kaps <venkiece2005@gmail.com> wr=
-ote:
-> On Tue, Sep 14, 2010 at 1:28 AM, venki kaps <venkiece2005@gmail.com> =
-wrote:
->> Dear all,
->>
->> I have been facing an issue with OMAP3 PM with DSP MMU Fault (Kernel=
- 2.6.32).
->>
->> The issue is describing as below mentioned way,
->> =A0 =A0 =A0 =A01). The Device is getting DSP MMU Fault when playing =
-MP4 video clip.
->>
->> The system is not hitting off mode in the below scenario,
->> =A0 =A0 =A0 =A02). System boot ->play mp4 clip ->DSP MMU Fault -> al=
-low off
->> mode -----------> Never hits off mode
->>
->> But surprisingly the system is hitting off mode in the below scenari=
-o,
->> =A0 =A0 =A0 3). System boot ->allow off mode ->play mp4 clip ->DSP M=
-MU
->> Fault -> allow off mode -----------> perfectly works
->>
->>
->> =A0- Could you please describe the root cause about the above issues=
- 1 & 2?
->> =A0- How could solve the above issues?
->
-> I have found the issue with UART3.
-> In System configuration register (SYSC),-
-> =A0 =A0 =A0 =A0 =A0 =A0 IDLEMODE =A0- Smart idle -------> working sce=
-nario =A0------>
-> system hits off mode.
-> =A0 =A0 =A0 =A0 =A0 =A0 IDLEMODE =A0- No idle -------> Non working sc=
-enario
-> ------> system never hits off mode.
->
-> Could you please explain why UART3 is not able to hit smart idle afte=
-r
-> DSP MMU fault ( System boot ->play mp4 clip ->DSP MMU Fault -> allow
-> off -----------> Never hits off mode).,
+From: Archit Taneja <archit@ti.com>
 
-My problem is resolved.GPtimer7 was not reset during the MMU FAULT
-occurrence before the first power cycle.
-So this pending interrupt is preventing the system sleep entry.
-Now it works fine after resetting Gptimer7 in pm suspend path.
+Add dss_features.c and dss_features.h for the dss_features framework
 
-> Thanks in advance.
->
->> Best Regards,
->> Venkii
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/Makefile       |    2 +-
+ drivers/video/omap2/dss/dss_features.c |  191 ++++++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/dss_features.h |   50 ++++++++
+ 3 files changed, 242 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/video/omap2/dss/dss_features.c
+ create mode 100644 drivers/video/omap2/dss/dss_features.h
+
+diff --git a/drivers/video/omap2/dss/Makefile b/drivers/video/omap2/dss/Makefile
+index d71b5d9..7db17b5
+--- a/drivers/video/omap2/dss/Makefile
++++ b/drivers/video/omap2/dss/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_OMAP2_DSS) += omapdss.o
+-omapdss-y := core.o dss.o dispc.o display.o manager.o overlay.o
++omapdss-y := core.o dss.o dss_features.o dispc.o display.o manager.o overlay.o
+ omapdss-$(CONFIG_OMAP2_DSS_DPI) += dpi.o
+ omapdss-$(CONFIG_OMAP2_DSS_RFBI) += rfbi.o
+ omapdss-$(CONFIG_OMAP2_DSS_VENC) += venc.o
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+new file mode 100644
+index 0000000..867f68d
+--- /dev/null
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -0,0 +1,191 @@
++/*
++ * linux/drivers/video/omap2/dss/dss_features.c
++ *
++ * Copyright (C) 2010 Texas Instruments
++ * Author: Archit Taneja <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++
++#include <plat/display.h>
++#include <plat/cpu.h>
++
++#include "dss_features.h"
++
++/* Defines a generic omap register field */
++struct dss_reg_field {
++	enum dss_feat_reg_field id;
++	u8 start, end;
++};
++
++struct omap_dss_features {
++	const struct dss_reg_field *reg_fields;
++	const int num_reg_fields;
++
++	const u32 has_feature;
++
++	const int num_mgrs;
++	const int num_ovls;
++	const enum omap_display_type *supported_displays;
++	const enum omap_color_mode *supported_color_modes;
++};
++
++/* This struct is assigned to one of the below during initialization */
++static struct omap_dss_features *omap_current_dss_features;
++
++static const struct dss_reg_field omap2_dss_reg_fields[] = {
++	{ FEAT_REG_FIRHINC, 11, 0 },
++	{ FEAT_REG_FIRVINC, 27, 16 },
++	{ FEAT_REG_FIFOLOWTHRESHOLD, 8, 0 },
++	{ FEAT_REG_FIFOHIGHTHRESHOLD, 24, 16 },
++	{ FEAT_REG_FIFOSIZE, 8, 0 },
++};
++
++static const struct dss_reg_field omap3_dss_reg_fields[] = {
++	{ FEAT_REG_FIRHINC, 12, 0 },
++	{ FEAT_REG_FIRVINC, 28, 16 },
++	{ FEAT_REG_FIFOLOWTHRESHOLD, 11, 0 },
++	{ FEAT_REG_FIFOHIGHTHRESHOLD, 27, 16 },
++	{ FEAT_REG_FIFOSIZE, 10, 0 },
++};
++
++static const enum omap_display_type omap2_dss_supported_displays[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
++	OMAP_DISPLAY_TYPE_SDI | OMAP_DISPLAY_TYPE_DSI,
++
++	/* OMAP_DSS_CHANNEL_DIGIT */
++	OMAP_DISPLAY_TYPE_VENC,
++};
++
++static const enum omap_display_type omap3_dss_supported_displays[] = {
++	/* OMAP_DSS_CHANNEL_LCD */
++	OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
++	OMAP_DISPLAY_TYPE_SDI | OMAP_DISPLAY_TYPE_DSI,
++
++	/* OMAP_DSS_CHANNEL_DIGIT */
++	OMAP_DISPLAY_TYPE_VENC,
++};
++
++static const enum omap_color_mode omap2_dss_supported_color_modes[] = {
++	/* OMAP_DSS_GFX */
++	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
++	OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
++	OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
++	OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P,
++
++	/* OMAP_DSS_VIDEO1 */
++	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
++	OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
++	OMAP_DSS_COLOR_UYVY,
++
++	/* OMAP_DSS_VIDEO2 */
++	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
++	OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
++	OMAP_DSS_COLOR_UYVY,
++};
++
++static const enum omap_color_mode omap3_dss_supported_color_modes[] = {
++	/* OMAP_DSS_GFX */
++	OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
++	OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
++	OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
++	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
++	OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_ARGB32 |
++	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
++
++	/* OMAP_DSS_VIDEO1 */
++	OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P |
++	OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
++	OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY,
++
++	/* OMAP_DSS_VIDEO2 */
++	OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
++	OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
++	OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
++	OMAP_DSS_COLOR_UYVY | OMAP_DSS_COLOR_ARGB32 |
++	OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
++};
++
++/* OMAP2 DSS Features */
++static struct omap_dss_features omap2_dss_features = {
++	.reg_fields = omap2_dss_reg_fields,
++	.num_reg_fields = ARRAY_SIZE(omap2_dss_reg_fields),
++
++	.num_mgrs = 2,
++	.num_ovls = 3,
++	.supported_displays = omap2_dss_supported_displays,
++	.supported_color_modes = omap2_dss_supported_color_modes,
++};
++
++/* OMAP3 DSS Features */
++static struct omap_dss_features omap3_dss_features = {
++	.reg_fields = omap3_dss_reg_fields,
++	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
++
++	.has_feature	= FEAT_GLOBAL_ALPHA,
++
++	.num_mgrs = 2,
++	.num_ovls = 3,
++	.supported_displays = omap3_dss_supported_displays,
++	.supported_color_modes = omap3_dss_supported_color_modes,
++};
++
++/* Functions returning values related to a DSS feature */
++int dss_feat_get_num_mgrs(void)
++{
++	return omap_current_dss_features->num_mgrs;
++}
++
++int dss_feat_get_num_ovls(void)
++{
++	return omap_current_dss_features->num_ovls;
++}
++
++enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel)
++{
++	return omap_current_dss_features->supported_displays[channel];
++}
++
++enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane)
++{
++	return omap_current_dss_features->supported_color_modes[plane];
++}
++
++/* DSS has_feature check */
++bool dss_has_feature(enum dss_feat_id id)
++{
++	return omap_current_dss_features->has_feature & id;
++}
++
++void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end)
++{
++	if (id >= omap_current_dss_features->num_reg_fields)
++		BUG();
++
++	*start = omap_current_dss_features->reg_fields[id].start;
++	*end = omap_current_dss_features->reg_fields[id].end;
++}
++
++void dss_features_init(void)
++{
++	if (cpu_is_omap24xx())
++		omap_current_dss_features = &omap2_dss_features;
++	else
++		omap_current_dss_features = &omap3_dss_features;
++}
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+new file mode 100644
+index 0000000..cb231ea
+--- /dev/null
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -0,0 +1,50 @@
++/*
++ * linux/drivers/video/omap2/dss/dss_features.h
++ *
++ * Copyright (C) 2010 Texas Instruments
++ * Author: Archit Taneja <archit@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __OMAP2_DSS_FEATURES_H
++#define __OMAP2_DSS_FEATURES_H
++
++#define MAX_DSS_MANAGERS	2
++#define MAX_DSS_OVERLAYS	3
++
++/* DSS has feature id */
++enum dss_feat_id {
++	FEAT_GLOBAL_ALPHA	= 1 << 0,
++	FEAT_GLOBAL_ALPHA_VID1	= 1 << 1,
++};
++
++/* DSS register field id */
++enum dss_feat_reg_field {
++	FEAT_REG_FIRHINC,
++	FEAT_REG_FIRVINC,
++	FEAT_REG_FIFOHIGHTHRESHOLD,
++	FEAT_REG_FIFOLOWTHRESHOLD,
++	FEAT_REG_FIFOSIZE,
++};
++
++/* DSS Feature Functions */
++int dss_feat_get_num_mgrs(void);
++int dss_feat_get_num_ovls(void);
++enum omap_display_type dss_feat_get_supported_displays(enum omap_channel channel);
++enum omap_color_mode dss_feat_get_supported_color_modes(enum omap_plane plane);
++
++bool dss_has_feature(enum dss_feat_id id);
++void dss_feat_get_reg_field(enum dss_feat_reg_field id, u8 *start, u8 *end);
++void dss_features_init(void);
++#endif
+-- 
+1.7.0.4
+
