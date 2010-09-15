@@ -1,82 +1,59 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 10/10] OMAP: omap_device: make all devices a child of a new parent device
-Date: Wed, 15 Sep 2010 16:55:46 -0700
-Message-ID: <1284594946-28963-11-git-send-email-khilman@deeprootsystems.com>
-References: <1284594946-28963-1-git-send-email-khilman@deeprootsystems.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH] OMAP4: HSMMC cmd line reset change
+Date: Thu, 16 Sep 2010 05:28:11 +0530 (IST)
+Message-ID: <51627.192.168.10.89.1284595091.squirrel@dbdmail.itg.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:35690 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754472Ab0IOX4K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 19:56:10 -0400
-Received: by mail-gy0-f174.google.com with SMTP id 8so224515gyd.19
-        for <linux-omap@vger.kernel.org>; Wed, 15 Sep 2010 16:56:10 -0700 (PDT)
-In-Reply-To: <1284594946-28963-1-git-send-email-khilman@deeprootsystems.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57596 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752627Ab0IOX6X (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Sep 2010 19:58:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: cjb@laptop.org
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-In order to help differentiate omap_devices from normal
-platform_devices, make them all a parent of a new common parent
-device.
+OMAP4: HSMMC cmd line reset change
 
-Then, in order to determine if a platform_device is also an
-omap_device, checking the parent is all that is needed.
+The cmd line reset logic is changed in OMAP4 ES2. The new procedure
+is to monitor a 0->1 transition and then 1->0 transition.The earlier
+logic would fail on ES2 chips because the loop could exit even before
+the reset is actually complete.
 
-Users of this feature are the runtime PM core for OMAP, where we need
-to know if a device being passed in is an omap_device or not in order
-to know whether to call the omap_device API with it.
-
-In addition, all omap_devices will now show up under /sys/devices/omap
-instead of /sys/devices/platform
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 ---
- arch/arm/plat-omap/include/plat/omap_device.h |    2 ++
- arch/arm/plat-omap/omap_device.c              |   12 ++++++++++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index bad4c3d..28e2d1a 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -36,6 +36,8 @@
- 
- #include <plat/omap_hwmod.h>
- 
-+extern struct device omap_device_parent;
-+
- /* omap_device._state values */
- #define OMAP_DEVICE_STATE_UNKNOWN	0
- #define OMAP_DEVICE_STATE_ENABLED	1
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 7f05f49..8215b1b 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -465,6 +465,7 @@ int omap_device_register(struct omap_device *od)
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 4526d27..750ba7d 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -976,12 +976,19 @@ static inline void omap_hsmmc_reset_controller_fsm(struct
+omap_hsmmc_host *host,
+ 						   unsigned long bit)
  {
- 	pr_debug("omap_device: %s: registering\n", od->pdev.name);
- 
-+	od->pdev.dev.parent = &omap_device_parent;
- 	return platform_device_register(&od->pdev);
- }
- 
-@@ -737,3 +738,14 @@ int omap_device_enable_clocks(struct omap_device *od)
- 	/* XXX pass along return value here? */
- 	return 0;
- }
+ 	unsigned long i = 0;
++	unsigned long j = 0;
+ 	unsigned long limit = (loops_per_jiffy *
+ 				msecs_to_jiffies(MMC_TIMEOUT_MS));
+
+ 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
+
++	if (cpu_is_omap44xx() && bit == SRC) {
++		while ((!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
++				&& (j++ < limit))
++			cpu_relax();
++	}
 +
-+struct device omap_device_parent = {
-+	.init_name	= "omap",
-+	.parent         = &platform_bus,
-+};
-+
-+static int __init omap_device_init(void)
-+{
-+	return device_register(&omap_device_parent);
-+}
-+core_initcall(omap_device_init);
+ 	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
+ 		(i++ < limit))
+ 		cpu_relax();
 -- 
-1.7.2.1
+1.7.0.4
+
+
 
