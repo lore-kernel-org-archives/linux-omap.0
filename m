@@ -1,44 +1,42 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
  data is transfered over
-Date: Wed, 15 Sep 2010 14:18:47 +0400
-Message-ID: <4C909D87.2090901@ru.mvista.com>
-References: <4C8E18AD.8000502@ru.mvista.com>	<AANLkTinei3u1OZ-eBiUTDF=PDjwxLcL6rBpt7iNQJgHJ@mail.gmail.com>	<4C8E4882.6040600@ru.mvista.com>	<4C8E50CC.3080705@ru.mvista.com>	<20100914065604.GD2601@legolas.emea.dhcp.ti.com>	<4C8F527E.40408@ru.mvista.com>	<20100914105402.GD7554@legolas.emea.dhcp.ti.com>	<4C8FB60D.1080906@ru.mvista.com>	<20100915065345.GC3393@legolas.emea.dhcp.ti.com>	<4C909961.10001@ru.mvista.com>	<20100915100553.GJ3393@legolas.emea.dhcp.ti.com>	<4C909B2E.3000909@ru.mvista.com> <AANLkTi=A+1ThrRTNjWoFbXr-G1OUnpThEwG5rCgGirzC@mail.gmail.com>
+Date: Wed, 15 Sep 2010 13:22:56 +0300
+Message-ID: <20100915102256.GK3393@legolas.emea.dhcp.ti.com>
+References: <20100914065604.GD2601@legolas.emea.dhcp.ti.com>
+ <4C8F527E.40408@ru.mvista.com>
+ <20100914105402.GD7554@legolas.emea.dhcp.ti.com>
+ <4C8FB60D.1080906@ru.mvista.com>
+ <20100915065345.GC3393@legolas.emea.dhcp.ti.com>
+ <4C909961.10001@ru.mvista.com>
+ <20100915100553.GJ3393@legolas.emea.dhcp.ti.com>
+ <4C909B2E.3000909@ru.mvista.com>
+ <AANLkTi=A+1ThrRTNjWoFbXr-G1OUnpThEwG5rCgGirzC@mail.gmail.com>
+ <4C909D87.2090901@ru.mvista.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:39325 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330Ab0IOKU2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 06:20:28 -0400
-In-Reply-To: <AANLkTi=A+1ThrRTNjWoFbXr-G1OUnpThEwG5rCgGirzC@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4C909D87.2090901-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Cc: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org" <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, balbi@ti.com, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
 
-Hello.
+Hi,
 
-On 15-09-2010 14:14, Ming Lei wrote:
+On Wed, Sep 15, 2010 at 05:18:47AM -0500, Sergei Shtylyov wrote:
+>    I don't see why we should fix only this problem, while it's obvious tha
+>the fix is incomplete and leaves the other problem exposed. Please recast the
+>patch.
 
->>>> I didn't say it was duplicate for DMA, just too late.
-
->>> how come ? we need to send ZLP before giving back the request.
-
->>    Well, look at the code ionce again. We need to send ZLP *after*
->> request->actual == request->length, but as the check is inserted after the
->> ZLP send, ZLP *may* be sent once the first DMA completes, not the last.
-
-> Yes, it is really a problem, as said by balbi.  And the problem should be
-> in the check for zlp or the 'is_dma' condition.
-
-> But this patch is not addressed for the zlp problem, and is is only for
-> completing the request only if the data transfer in usb_request
-> is over, as explained before, right?
-
-    I don't see why we should fix only this problem, while it's obvious tha 
-the fix is incomplete and leaves the other problem exposed. Please recast the 
+IMO, the ZLP fix is *another* fix and as such subject to a different
 patch.
 
-WBR, Sergei
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
