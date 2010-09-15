@@ -1,46 +1,42 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 00/15] change default_llseek action
-Date: Wed, 15 Sep 2010 18:37:29 +0200
-Message-ID: <201009151837.30026.arnd@arndb.de>
-References: <1284495763-7506-1-git-send-email-arnd@arndb.de> <9828.1284565136@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 3/7] wireless: wl12xx: add platform data passing
+ support
+Date: Wed, 15 Sep 2010 09:39:39 -0700
+Message-ID: <20100915163939.GU8647@atomide.com>
+References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+ <1283376410-9999-4-git-send-email-ohad@wizery.com>
+ <AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
+ <20100906120716.GE20903@n2100.arm.linux.org.uk>
+ <AANLkTikAFCd+3ggZKhQXY=+bG==KgLkv3qNVdEGa=GBX@mail.gmail.com>
+ <AANLkTinM8vY7CygEN6DBR35WLkU-QOBwuiaRrpfwF6Mz@mail.gmail.com>
+ <AANLkTikSP874gnsPrc_M1LJYNpjX+Lz3-5=Bk5_HtgP+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9828.1284565136@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu
-Cc: linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org, Jeremy Kerr <jk@ozlabs.org>, "John W. Linville" <linville@tuxdriver.com>, Julia Lawall <julia@diku.dk>, Linus Torvalds <torvalds@linux-foundation.org>, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTikSP874gnsPrc_M1LJYNpjX+Lz3-5=Bk5_HtgP+@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Vitaly Wool <vitalywool@gmail.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King - ARM Linux <linux@arm.linux.org.uk>, akpm@linux-foundation.org, Nicolas Pitre <nico@fluxnic.net>, linux-mmc@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-wireless@vger.kernel.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, linux-omap@vger.kernel.org, Ido Yariv <ido@wizery.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 15 September 2010, Valdis.Kletnieks@vt.edu wrote:
->   Show Details
->   On Tue, 14 Sep 2010 22:22:28 +0200, Arnd Bergmann said:
+* Vitaly Wool <vitalywool@gmail.com> [100915 01:18]:
+> 2010/9/15 Ohad Ben-Cohen <ohad@wizery.com>:
+> >> Sorry for pushing at this, but why would you mark data that's meant to
+> >> be used after init phase as __initdata?
+> >
+> > I can remove the first copying as well if Russell is ok with it.
 > 
-> > This changes all instances of struct file_operations in
-> > the kernel to have a .llseek operation and then changes
-> > the default to no_llseek, which returns -ESPIPE, which
-> > is what we had decided some time ago in a discussion
-> > with Christoph Hellwig.
-> 
-> I don't suppose there's any clean way to throw a build error or a
-> printk_on_once() or something if we encounter an unconverted 'struct
-> file_operations', is there? I have this creeping fear that this patch will go
-> upstream during the merge window - as will 12 new staging/ drivers from authors
-> who didn't get the memo yet.
-> 
-> Other than the "missed converting a new usage" issue, it looks OK to me.
+> I personally think it's not worth it. This copying basically happens
+> only once and this point is soooo irrelevant. My position therefore
+> is: let's get the current implementation in, and if Michal is
+> uncomfortable with that, he can come up with the patch. Let's
+> concentrate on the real problems.
 
-One advantage of the scripted approach is that I can run the script
-repeatedly, and send a patch after -rc1 fixing up all the new file
-operations.
+This becomes an issue when compiling in support for multiple
+boards.. All the data that's not in use for the booted board
+should be __initdata.
 
-Moreover, any new drivers are by definition not regressions and staging
-drivers are expected to have issues. IIRC the most common llseek operation
-is 'noop_llseek', which usually means it should have been 'no_llseek' to
-start with, but since this has been in a released kernel, some random
-user application might expect a seek on that file to succeed without
-error.
+Regards,
 
-	Arnd
+Tony
