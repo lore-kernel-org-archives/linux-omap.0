@@ -1,54 +1,198 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] nand/omap2: fix compile error with DMA Config
-Date: Wed, 15 Sep 2010 10:37:11 -0700
-Message-ID: <20100915173710.GA4174@atomide.com>
-References: <1284153862-26332-1-git-send-email-cbrake@bec-systems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP clockdomain: initialize clockdomain registers when the
+ clockdomain layer starts
+Date: Wed, 15 Sep 2010 11:45:29 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009151144200.458@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57839 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752560Ab0IORhO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 13:37:14 -0400
-Content-Disposition: inline
-In-Reply-To: <1284153862-26332-1-git-send-email-cbrake@bec-systems.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:44633 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753847Ab0IORp3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 13:45:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cliff Brake <cbrake@bec-systems.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com
 
-* Cliff Brake <cbrake@bec-systems.com> [100910 14:46]:
-> With CONFIG_MTD_NAND_OMAP_PREFETCH_DMA, there is a compile
-> error that this patch fixes.
 
-This should go via linux-mtd, can you please repost?
+When the clockdomain layer initializes, place all clockdomains into
+software-supervised mode, and clear all wakeup and sleep dependencies
+immediately, rather than waiting for the PM code to do this later.
+This fixes a major bug where critical sleep dependencies added by the
+hwmod code are cleared during late PM init.
 
-Regards,
+As a side benefit, the _init_{wk,sleep}dep_usecount() functions are no
+longer needed, so remove them.
 
-Tony
+Kevin Hilman <khilman@deeprootsystems.com> did all the really hard work on
+this, identifying the problem and finding the bug.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |  110 +++++--------------------------------
+ arch/arm/mach-omap2/pm34xx.c      |    3 -
+ 2 files changed, 15 insertions(+), 98 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 5d80cb8..6fb61b1 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -258,97 +258,6 @@ static void _omap2_clkdm_set_hwsup(struct clockdomain *clkdm, int enable)
  
-> Signed-off-by: Cliff Brake <cbrake@bec-systems.com>
-> ---
->  drivers/mtd/nand/omap2.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 133d515..513e0a7 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -413,7 +413,7 @@ static inline int omap_nand_dma_transfer(struct mtd_info *mtd, void *addr,
->  		prefetch_status = gpmc_read_status(GPMC_PREFETCH_COUNT);
->  	} while (prefetch_status);
->  	/* disable and stop the PFPW engine */
-> -	gpmc_prefetch_reset();
-> +	gpmc_prefetch_reset(info->gpmc_cs);
->  
->  	dma_unmap_single(&info->pdev->dev, dma_addr, len, dir);
->  	return 0;
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ }
+ 
+-/**
+- * _init_wkdep_usecount - initialize wkdep usecounts to match hardware
+- * @clkdm: clockdomain to initialize wkdep usecounts
+- *
+- * Initialize the wakeup dependency usecount variables for clockdomain @clkdm.
+- * If a wakeup dependency is present in the hardware, the usecount will be
+- * set to 1; otherwise, it will be set to 0.  Software should clear all
+- * software wakeup dependencies prior to calling this function if it wishes
+- * to ensure that all usecounts start at 0.  No return value.
+- */
+-static void _init_wkdep_usecount(struct clockdomain *clkdm)
+-{
+-	u32 v;
+-	struct clkdm_dep *cd;
+-
+-	if (!clkdm->wkdep_srcs)
+-		return;
+-
+-	for (cd = clkdm->wkdep_srcs; cd->clkdm_name; cd++) {
+-		if (!omap_chip_is(cd->omap_chip))
+-			continue;
+-
+-		if (!cd->clkdm && cd->clkdm_name)
+-			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+-
+-		if (!cd->clkdm) {
+-			WARN(!cd->clkdm, "clockdomain: %s: wkdep clkdm %s not "
+-			     "found\n", clkdm->name, cd->clkdm_name);
+-			continue;
+-		}
+-
+-		v = prm_read_mod_bits_shift(clkdm->pwrdm.ptr->prcm_offs,
+-					    PM_WKDEP,
+-					    (1 << cd->clkdm->dep_bit));
+-
+-		if (v)
+-			pr_debug("clockdomain: %s: wakeup dependency already "
+-				 "set to wake up when %s wakes\n",
+-				 clkdm->name, cd->clkdm->name);
+-
+-		atomic_set(&cd->wkdep_usecount, (v) ? 1 : 0);
+-	}
+-}
+-
+-/**
+- * _init_sleepdep_usecount - initialize sleepdep usecounts to match hardware
+- * @clkdm: clockdomain to initialize sleepdep usecounts
+- *
+- * Initialize the sleep dependency usecount variables for clockdomain @clkdm.
+- * If a sleep dependency is present in the hardware, the usecount will be
+- * set to 1; otherwise, it will be set to 0.  Software should clear all
+- * software sleep dependencies prior to calling this function if it wishes
+- * to ensure that all usecounts start at 0.  No return value.
+- */
+-static void _init_sleepdep_usecount(struct clockdomain *clkdm)
+-{
+-	u32 v;
+-	struct clkdm_dep *cd;
+-
+-	if (!cpu_is_omap34xx())
+-		return;
+-
+-	if (!clkdm->sleepdep_srcs)
+-		return;
+-
+-	for (cd = clkdm->sleepdep_srcs; cd->clkdm_name; cd++) {
+-		if (!omap_chip_is(cd->omap_chip))
+-			continue;
+-
+-		if (!cd->clkdm && cd->clkdm_name)
+-			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
+-
+-		if (!cd->clkdm) {
+-			WARN(!cd->clkdm, "clockdomain: %s: sleepdep clkdm %s "
+-			     "not found\n", clkdm->name, cd->clkdm_name);
+-			continue;
+-		}
+-
+-		v = prm_read_mod_bits_shift(clkdm->pwrdm.ptr->prcm_offs,
+-					    OMAP3430_CM_SLEEPDEP,
+-					    (1 << cd->clkdm->dep_bit));
+-
+-		if (v)
+-			pr_debug("clockdomain: %s: sleep dependency already "
+-				 "set to prevent from idling until %s "
+-				 "idles\n", clkdm->name, cd->clkdm->name);
+-
+-		atomic_set(&cd->sleepdep_usecount, (v) ? 1 : 0);
+-	}
+-};
+-
+ /* Public functions */
+ 
+ /**
+@@ -379,12 +288,17 @@ void clkdm_init(struct clockdomain **clkdms,
+ 			_autodep_lookup(autodep);
+ 
+ 	/*
+-	 * Ensure that the *dep_usecount registers reflect the current
+-	 * state of the PRCM.
++	 * Put all clockdomains into software-supervised mode; PM code
++	 * should later enable hardware-supervised mode as appropriate
+ 	 */
+ 	list_for_each_entry(clkdm, &clkdm_list, node) {
+-		_init_wkdep_usecount(clkdm);
+-		_init_sleepdep_usecount(clkdm);
++		if (clkdm->flags & CLKDM_CAN_FORCE_WAKEUP)
++			omap2_clkdm_wakeup(clkdm);
++		else if (clkdm->flags & CLKDM_CAN_DISABLE_AUTO)
++			omap2_clkdm_deny_idle(clkdm);
++
++		clkdm_clear_all_wkdeps(clkdm);
++		clkdm_clear_all_sleepdeps(clkdm);
+ 	}
+ }
+ 
+@@ -592,6 +506,9 @@ int clkdm_clear_all_wkdeps(struct clockdomain *clkdm)
+ 		if (!omap_chip_is(cd->omap_chip))
+ 			continue;
+ 
++		if (!cd->clkdm && cd->clkdm_name)
++			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
++
+ 		/* PRM accesses are slow, so minimize them */
+ 		mask |= 1 << cd->clkdm->dep_bit;
+ 		atomic_set(&cd->wkdep_usecount, 0);
+@@ -752,6 +669,9 @@ int clkdm_clear_all_sleepdeps(struct clockdomain *clkdm)
+ 		if (!omap_chip_is(cd->omap_chip))
+ 			continue;
+ 
++		if (!cd->clkdm && cd->clkdm_name)
++			cd->clkdm = _clkdm_lookup(cd->clkdm_name);
++
+ 		/* PRM accesses are slow, so minimize them */
+ 		mask |= 1 << cd->clkdm->dep_bit;
+ 		atomic_set(&cd->sleepdep_usecount, 0);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 429268e..772e985 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -1024,9 +1024,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+  */
+ static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
+ {
+-	clkdm_clear_all_wkdeps(clkdm);
+-	clkdm_clear_all_sleepdeps(clkdm);
+-
+ 	if (clkdm->flags & CLKDM_CAN_ENABLE_AUTO)
+ 		omap2_clkdm_allow_idle(clkdm);
+ 	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
+-- 
+1.7.1
+
