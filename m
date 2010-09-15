@@ -1,90 +1,80 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v5 0/7] native wl1271 support on ZOOM
-Date: Wed, 15 Sep 2010 11:21:19 +0200
-Message-ID: <AANLkTikedoL3HjohQfq2qa0TU5yMJR5p1GqyQJtQGrdb@mail.gmail.com>
-References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: [PATCH 00/15] change default_llseek action
+Date: Wed, 15 Sep 2010 19:39:26 +1000
+Message-ID: <20100915193926.ae2fe838.sfr@canb.auug.org.au>
+References: <1284495763-7506-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1283376410-9999-1-git-send-email-ohad@wizery.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "John W. Linville" <linville@tuxdriver.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Nicolas Pitre <nico@fluxnic.net>, Ido Yariv <ido@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, "Wool, Vitaly" <Vitaly.Wool@sonyericsson.com>
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__15_Sep_2010_19_39_26_+1000_DQXdvYbRSl_dI/ss"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1284495763-7506-1-git-send-email-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@infradead.org>, David Airlie <airlied@linux.ie>, dri-devel@lists.freedesktop.org, Jeremy Kerr <jk@ozlabs.org>, "John W. Linville" <linville@tuxdriver.com>, Julia Lawall <julia@diku.dk>, Linus Torvalds <torvalds@linux-foundation.org>, linux-fsdevel@vger.kernel.org, linux-omap@vger.kernel.org, linuxppc-dev@ozlabs.org, linux-wireless@vger.kernel.org, netdev@vger.kernel.org, Samuel Ortiz <samuel@sortiz.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Sep 1, 2010 at 11:26 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> This patchset adds wl1271 support on ZOOM2/3 boards.
+--Signature=_Wed__15_Sep_2010_19_39_26_+1000_DQXdvYbRSl_dI/ss
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tony, John, let me please suggest merging this through the wireless tre=
-e.
+Hi Arnd,
 
-wl1271 is a moving target - it keeps changing in the wireless tree and
-merging this patchset there will allow wl1271 developers to have
-everything in a single tree (and prevent merge conflicts in
-linux-next).
+On Tue, 14 Sep 2010 22:22:28 +0200 Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> Stephen, please add
+> git+ssh://master.kernel.org/pub/scm/linux/kernel/git/arnd/bkl.git llseek
 
-If that's ok with you, I will rebase this on top of wireless-testing
-and resubmit.
+Added from today.
 
->
-> Only basic support is included; MMC power manipulation part is submit=
-ted separately as Runtime PM migration.
->
-> Changes since v4:
-> - Introduce a simple (yet safe) mechanism to pass platform-specific d=
-ata to the driver, as suggested by Russell King. Currently only a singl=
-e device is supported; multi-device support will be introduced only whe=
-n/if required
->
-> Patches are based on 2.6.36-rc3 and tested on ZOOM3.
->
-> Thanks,
->
-> Ohad Ben-Cohen (7):
-> =A0wireless: wl1271: make wl12xx.h common to both spi and sdio
-> =A0wireless: wl1271: support return value for the set power func
-> =A0wireless: wl12xx: add platform data passing support
-> =A0wireless: wl1271: take irq info from private board data
-> =A0wireless: wl1271: make ref_clock configurable by board
-> =A0omap: zoom: add fixed regulator device for wlan
-> =A0omap: zoom: add mmc3/wl1271 device support
->
-> =A0arch/arm/mach-omap2/board-zoom-peripherals.c =A0 =A0 =A0 | =A0 54 =
-++++++++++++++++++++
-> =A0drivers/net/wireless/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0| =A0 =A02 +
-> =A0drivers/net/wireless/wl12xx/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A05 ++-
-> =A0drivers/net/wireless/wl12xx/wl1251_sdio.c =A0 =A0 =A0 =A0 =A0| =A0=
- =A02 +-
-> =A0drivers/net/wireless/wl12xx/wl1251_spi.c =A0 =A0 =A0 =A0 =A0 | =A0=
- =A02 +-
-> =A0drivers/net/wireless/wl12xx/wl1271.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 |=
- =A0 =A03 +-
-> =A0drivers/net/wireless/wl12xx/wl1271_boot.c =A0 =A0 =A0 =A0 =A0| =A0=
- =A09 ++--
-> =A0drivers/net/wireless/wl12xx/wl1271_boot.h =A0 =A0 =A0 =A0 =A0| =A0=
- =A01 -
-> =A0drivers/net/wireless/wl12xx/wl1271_io.h =A0 =A0 =A0 =A0 =A0 =A0| =A0=
- =A09 ++-
-> =A0drivers/net/wireless/wl12xx/wl1271_main.c =A0 =A0 =A0 =A0 =A0| =A0=
- =A04 +-
-> =A0drivers/net/wireless/wl12xx/wl1271_sdio.c =A0 =A0 =A0 =A0 =A0| =A0=
- 19 ++++---
-> =A0drivers/net/wireless/wl12xx/wl1271_spi.c =A0 =A0 =A0 =A0 =A0 | =A0=
- =A08 ++-
-> =A0drivers/net/wireless/wl12xx/wl12xx_platform_data.c | =A0 31 ++++++=
-+++++
-> =A0include/linux/spi/wl12xx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 | =A0 34 ------------
-> =A0include/linux/wl12xx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 | =A0 38 ++++++++++++++
-> =A015 files changed, 164 insertions(+), 57 deletions(-)
-> =A0create mode 100644 drivers/net/wireless/wl12xx/wl12xx_platform_dat=
-a.c
-> =A0delete mode 100644 include/linux/spi/wl12xx.h
-> =A0create mode 100644 include/linux/wl12xx.h
->
->
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgment of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
+
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+	Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
+
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
+
+--=20
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
+
+Legal Stuff:
+By participating in linux-next, your subsystem tree contributions are
+public and will be included in the linux-next trees.  You may be sent
+e-mail messages indicating errors or other issues when the
+patches/commits from your subsystem tree are merged and tested in
+linux-next.  These messages may also be cross-posted to the linux-next
+mailing list, the linux-kernel mailing list, etc.  The linux-next tree
+project and IBM (my employer) make no warranties regarding the linux-next
+project, the testing procedures, the results, the e-mails, etc.  If you
+don't agree to these ground rules, let me know and I'll remove your tree
+from participation in linux-next.
+
+--Signature=_Wed__15_Sep_2010_19_39_26_+1000_DQXdvYbRSl_dI/ss
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJMkJROAAoJEDMEi1NhKgbsYp0H+wXse/dv0zaLotuqwSwNBEwU
+pGyUJJlbgnsQrSCuQ0RowdoQ0djjfK9vpruhdv82egNE/g/Fce/cGx7W4VH1danv
+kAEkH42TGgqfbRZ2/bzxBNrewRNLZWd35RPHraMbuYWifGWvrvcY0XqbXL8shP1a
+7yQhIdm7yhETa0pCWNgNr96Uxm6zn5Dh6VcF7ux+CoabO9OJ/UTHwnS9YSg2Jq8V
+IY9XXeTrwUbKHiZlBTyLXqexe74h04hK5Dl6xz1+PQw+cLnwwgX07lNa+MzEMeLC
+FnQcuYnjVedEKfJvTdO4omXXPscchuPj1fJAAVs6jD8/2n4/+fA6nY6UNCKzN9k=
+=B+lf
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__15_Sep_2010_19_39_26_+1000_DQXdvYbRSl_dI/ss--
