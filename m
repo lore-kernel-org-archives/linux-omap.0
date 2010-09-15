@@ -1,37 +1,76 @@
-From: Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v5 3/7] wireless: wl12xx: add platform data passing support
-Date: Wed, 15 Sep 2010 10:27:00 +0200
-Message-ID: <AANLkTikSP874gnsPrc_M1LJYNpjX+Lz3-5=Bk5_HtgP+@mail.gmail.com>
-References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
-	<1283376410-9999-4-git-send-email-ohad@wizery.com>
-	<AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
-	<20100906120716.GE20903@n2100.arm.linux.org.uk>
-	<AANLkTikAFCd+3ggZKhQXY=+bG==KgLkv3qNVdEGa=GBX@mail.gmail.com>
-	<AANLkTinM8vY7CygEN6DBR35WLkU-QOBwuiaRrpfwF6Mz@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v3 2/2] OMAP: DSS2: Use dss_features framework on DSS2
+ code
+Date: Wed, 15 Sep 2010 11:31:01 +0300
+Message-ID: <1284539461.2522.117.camel@tubuntu.research.nokia.com>
+References: <1284355810-20899-1-git-send-email-archit@ti.com>
+	 <1284355810-20899-3-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinM8vY7CygEN6DBR35WLkU-QOBwuiaRrpfwF6Mz-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:35732 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752517Ab0IOIbI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Sep 2010 04:31:08 -0400
+In-Reply-To: <1284355810-20899-3-git-send-email-archit@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Archit Taneja <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-2010/9/15 Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>:
->> Sorry for pushing at this, but why would you mark data that's meant to
->> be used after init phase as __initdata?
->
-> I can remove the first copying as well if Russell is ok with it.
+On Mon, 2010-09-13 at 07:30 +0200, ext Archit Taneja wrote:
+> Calls init functions of dss_features during dss_probe, and the following
+> features are made omapxxxx independent:
+>   - number of managers, overlays
+>   - supported color modes for each overlay
+>   - supported displays for each manager
+>   - global aplha, and restriction of global alpha for video1 pipeline
+>   - The register field ranges : FIRHINC, FIRVINC, FIFOHIGHTHRESHOLD
+>     FIFOLOWTHRESHOLD and FIFOSIZE
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/display.h |   31 ----------------
+>  drivers/video/omap2/dss/core.c            |    3 ++
+>  drivers/video/omap2/dss/dispc.c           |   56 ++++++++++++++++-------------
+>  drivers/video/omap2/dss/manager.c         |   33 ++++++++---------
+>  drivers/video/omap2/dss/overlay.c         |   24 +++++-------
+>  5 files changed, 60 insertions(+), 87 deletions(-)
 
-I personally think it's not worth it. This copying basically happens
-only once and this point is soooo irrelevant. My position therefore
-is: let's get the current implementation in, and if Michal is
-uncomfortable with that, he can come up with the patch. Let's
-concentrate on the real problems.
+snip
 
-Thanks,
-   Vitaly
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  static void _dispc_setup_global_alpha(enum omap_plane plane, u8 global_alpha)
+>  {
+> -
+> -       BUG_ON(plane == OMAP_DSS_VIDEO1);
+> -
+> -       if (cpu_is_omap24xx())
+> +       if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
+>                 return;
+> 
+> +       BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
+> +                       plane == OMAP_DSS_VIDEO1);
+> +
+>         if (plane == OMAP_DSS_GFX)
+>                 REG_FLD_MOD(DISPC_GLOBAL_ALPHA, global_alpha, 7, 0);
+>         else if (plane == OMAP_DSS_VIDEO2)
+> @@ -949,17 +950,14 @@ static void dispc_read_plane_fifo_sizes(void)
+>                                       DISPC_VID_FIFO_SIZE_STATUS(1) };
+>         u32 size;
+>         int plane;
+> +       u8 size1, size2;
+
+You have a bit inconsistent naming with these. The function is defined
+as accepting start and end, here you use size1 and size2, below you have
+foo1 and foo2.
+
+Size is not a good name, as it's not size at all. Perhaps foo_start and
+foo_end (or just start and end if there's only one feat being used)? Or
+foo_msb and foo_lsb (as in most/least significant bit)?
+
+Otherwise looks good.
+
+ Tomi
+
+
