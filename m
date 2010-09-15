@@ -1,123 +1,135 @@
-From: Bryan Wu <bryan.wu@canonical.com>
-Subject: Re: [PATCH 0/7] omap4: Fixes, hacks for es2.0
-Date: Wed, 15 Sep 2010 13:18:00 +0800
-Message-ID: <AANLkTim9tfxVoG_s-y8Re1auVcJO56-7tiX03ZUeeoj7@mail.gmail.com>
-References: <1284031395-25988-1-git-send-email-santosh.shilimkar@ti.com>
-	<87fwxjx7qj.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EDFA@dbde02.ent.ti.com>
-	<87y6bavrn3.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD17EE0A@dbde02.ent.ti.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F026BF@dbde02.ent.ti.com>
-	<AANLkTimJ+tHk7ZPmPkuwHi2svU0Qw_SqGHazn4W=_ApC@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F0273D@dbde02.ent.ti.com>
-	<AANLkTim6yki=wj73K1+Tv=SZ877YLXBrXrBCLnAn6P7o@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F02F22@dbde02.ent.ti.com>
-	<AANLkTing5cmd+-7URxcyDnAktm3LKFzj0FX81woisH86@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B0315F03099@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: [PATCH v5 1/6] OMAP3: hwmod data: Add watchdog timer
+Date: Wed, 15 Sep 2010 10:56:38 +0530
+Message-ID: <1284528403-6494-2-git-send-email-charu@ti.com>
+References: <1284528403-6494-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:58924 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752305Ab0IOFSB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 01:18:01 -0400
-Received: by vws3 with SMTP id 3so674599vws.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Sep 2010 22:18:00 -0700 (PDT)
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B0315F03099@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43787 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750844Ab0IOF06 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Sep 2010 01:26:58 -0400
+In-Reply-To: <1284528403-6494-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Cc: Ricardo Salveti <rsalveti@rsalveti.net>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: tony@atomide.com, wim@iguana.be, linux-watchdog@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-On Tue, Sep 14, 2010 at 12:01 PM, Ghorai, Sukumar <s-ghorai@ti.com> wro=
-te:
->
->
->> -----Original Message-----
->> From: Ricardo Salveti [mailto:rsalveti@rsalveti.net]
->> Sent: Tuesday, September 14, 2010 12:22 AM
->> To: Ghorai, Sukumar
->> Cc: Shilimkar, Santosh; Kevin Hilman; linux-omap@vger.kernel.org;
->> tony@atomide.com; Bryan Wu
->> Subject: Re: [PATCH 0/7] omap4: Fixes, hacks for es2.0
->>
->> On Mon, Sep 13, 2010 at 12:06 PM, Ghorai, Sukumar <s-ghorai@ti.com> =
-wrote:
->> >> >> > [Ghorai] I have tested MMC/SD boot using omap3_defconfig on =
-ZOOM3,
->> >> 4430
->> >> >> ES2.0 SDP, Blaze and Panda and all booting fine.
->> >> >> >
->> >> >> > And omap_4430sdp_defconfig also ok omap4.
->> >> >>
->> >> >> Which Panda version are you using during your tests? I tried
->> >> >> omap_4430sdp_defconfig using omap4-for-tony branch at my ES2.0=
- and
->> I'm
->> >> >> unable to detect the MMC.
->> >> >>
->> >> >> Do I need any other patch to make the MMC work with Panda?
->> >> > [Ghorai] I have tested based on following tree/branch and using=
- ES2.0
->> >> PANDA only. Can you share bootlog enabling mmc/sd debug message?
->> >> > http://dev.omapzoom.org/?p=3Dsantosh/kernel-omap4-
->> >> base.git;a=3Dshortlog;h=3Drefs/heads/omap4-for-tony
->> >>
->> >> My boot log:
->> >> http://paste.ubuntu.com/491645/
->> >>
->> > [Ghorai] can you use this bootargs?
->> > setenv bootargs root=3D/dev/mmcblk0p2 rw rootwait mem=3D463M
->> console=3DttyS2,115200n8
->> > And here is the log from my setup.
->> > [ =A0 =A02.493194] Waiting for root device /dev/mmcblk0p2...
->> > [ =A0 =A02.502960] mmc0: host does not support reading read-only s=
-witch.
->> assuming write-enable.
->> > [ =A0 =A02.523895] mmc0: new high speed SDHC card at address e1ed
->> > [ =A0 =A02.531616] mmcblk0: mmc0:e1ed SD04G 3.75 GiB
->> > [ =A0 =A02.539550] =A0mmcblk0: p1 p2
->> > [ =A0 =A02.607360] EXT3-fs: barriers not enabled
->> >
->> >> Using x-loader from
->> >> http://gitorious.org/pandaboard/x-loader/commits/omap4_panda_L24.=
-9 and
->> >> upstream u-boot.
->> > [Ghorai] can you try with this x-loader
->> >
->> https://docs.google.com/leaf?id=3D0B8fdjBBEQ4lDZGE3ZTBjNzEtOTQ0Ni00Z=
-mFlLTlhO
->> DgtN2QzNjUwMzBkNDI2&hl=3Den
->> > In the mean time I will try with yours!
->>
->> I'm unable to boot with your x-loader at my ES2.0 (6 and 8 layers),
->> however I'm able to boot it with ES1. Are you sure you're testing it
->> at an ES2 board?
->>
->> This is what I get, it just hangs:
->> Texas Instruments X-Loader 1.41 (Aug 11 2010 - 10:51:13)
->> Could not read bootloader!
->> X-Loader hangs
-> [Ghorai] format the card and copy MLo and followed by u-boot, uImage
-> And yes I am using EX 2.0 6-layer board.
->
->>
->> Cheers,
->> --
->> Ricardo Salveti de Araujo
->
+Add watchdog timer hwmod data for OMAP3 chip
 
-I also tried Santosh's patches on my ES2.0 8 layers board. It's the
-same as Ricardo:
-http://pastebin.ubuntu.com/493938/
+Signed-off-by: Charulatha V <charu@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   61 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm-common.h          |    4 ++
+ 2 files changed, 65 insertions(+), 0 deletions(-)
 
-And Ghorai, I got the same error as Ricardo when I'm trying your MLO.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 5d8eb58..a9812a8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -36,6 +36,7 @@ static struct omap_hwmod omap3xxx_iva_hwmod;
+ static struct omap_hwmod omap3xxx_l3_main_hwmod;
+ static struct omap_hwmod omap3xxx_l4_core_hwmod;
+ static struct omap_hwmod omap3xxx_l4_per_hwmod;
++static struct omap_hwmod omap3xxx_wd_timer2_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+@@ -197,6 +198,65 @@ static struct omap_hwmod omap3xxx_iva_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+ 
++/* WDTIMER2 <- L4_WKUP interface */
++static struct omap_hwmod_addr_space omap3xxx_wd_timer2_addrs[] = {
++	{
++		.pa_start	= 0x48314000,
++		.pa_end		= 0x4831407f,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__wd_timer2 = {
++	.master		= &omap3xxx_l4_wkup_hwmod,
++	.slave		= &omap3xxx_wd_timer2_hwmod,
++	.clk		= "wdt2_ick",
++	.addr		= omap3xxx_wd_timer2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_wd_timer2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* WDTIMER common */
++
++static struct omap_hwmod_class_sysconfig omap3xxx_wd_timer_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_EMUFREE |
++			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap3xxx_wd_timer_hwmod_class = {
++	.name = "wd_timer",
++	.sysc = &omap3xxx_wd_timer_sysc,
++};
++
++/* WDTIMER2 */
++static struct omap_hwmod_ocp_if *omap3xxx_wd_timer2_slaves[] = {
++	&omap3xxx_l4_wkup__wd_timer2,
++};
++
++static struct omap_hwmod omap3xxx_wd_timer2_hwmod = {
++	.name		= "wd_timer2",
++	.class		= &omap3xxx_wd_timer_hwmod_class,
++	.main_clk	= "wdt2_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_WDT2_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_WDT2_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_wd_timer2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_wd_timer2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -204,6 +264,7 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l4_wkup_hwmod,
+ 	&omap3xxx_mpu_hwmod,
+ 	&omap3xxx_iva_hwmod,
++	&omap3xxx_wd_timer2_hwmod,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 995b7ed..e190c64 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -237,6 +237,8 @@
+ #define OMAP24XX_ST_USB_MASK				(1 << 0)
+ 
+ /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP24XX_EN_WDT2_SHIFT				3
++#define OMAP24XX_EN_WDT2_MASK				(1 << 3)
+ #define OMAP24XX_EN_GPIOS_SHIFT				2
+ #define OMAP24XX_EN_GPIOS_MASK				(1 << 2)
+ #define OMAP24XX_EN_GPT1_SHIFT				0
+@@ -344,6 +346,8 @@
+ #define OMAP3430_ST_D2D_MASK				(1 << 3)
+ 
+ /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
++#define OMAP3430_EN_WDT2_SHIFT				5
++#define OMAP3430_EN_WDT2_MASK				(1 << 5)
+ #define OMAP3430_EN_GPIO1_MASK				(1 << 3)
+ #define OMAP3430_EN_GPIO1_SHIFT				3
+ #define OMAP3430_EN_GPT12_MASK				(1 << 1)
+-- 
+1.7.0.4
 
-Thanks,
--Bryan
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
