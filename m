@@ -1,54 +1,65 @@
 From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
- data is transfered over
-Date: Wed, 15 Sep 2010 17:02:45 +0400
-Message-ID: <4C90C3F5.2020202@ru.mvista.com>
-References: <20100915065345.GC3393@legolas.emea.dhcp.ti.com> <4C909961.10001@ru.mvista.com> <20100915100553.GJ3393@legolas.emea.dhcp.ti.com> <4C909B2E.3000909@ru.mvista.com> <AANLkTi=A+1ThrRTNjWoFbXr-G1OUnpThEwG5rCgGirzC@mail.gmail.com> <4C909D87.2090901@ru.mvista.com> <20100915102256.GK3393@legolas.emea.dhcp.ti.com> <4C909F99.9050300@mvista.com> <20100915103152.GM3393@legolas.emea.dhcp.ti.com> <4C90A2E3.9020300@mvista.com> <20100915105251.GN3393@legolas.emea.dhcp.ti.com>
+Subject: Re: [Discussion] USB: musb-gadget: how to fix ZLP issue in musb_g_tx
+Date: Wed, 15 Sep 2010 17:06:46 +0400
+Message-ID: <4C90C4E6.9000703@ru.mvista.com>
+References: <AANLkTinPVUBNJoOR496KgSy2TT0f6i1f5xEKVhKod2R=@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:45368 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752923Ab0IONDd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 09:03:33 -0400
-In-Reply-To: <20100915105251.GN3393@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinPVUBNJoOR496KgSy2TT0f6i1f5xEKVhKod2R=@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, balbi@ti.com, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Sergei Shtylyov <sshtylyov@mvista.com>, Ming Lei <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
 
-Felipe Balbi wrote:
+Ming Lei wrote:
+> Hi All,
 
->>> your forgetting the fact that not always you need to send ZLP after
->>> completing a packet_size-aligned transfer,
+> In another thread, Sergei pointed out there is a ZLP issue in musb_g_tx:
 
->>    So what?
+> Sergei Shtylyov <sshtylyov@mvista.com> wrote:
+>> Hello.
 
-> what you're saying is that when we change the ZLP handling, the
-> request->actual == request->lenght check will have to be removed, but
-> that's not true because ZLP is only needed if request->zero is set.
+>> On 15-09-2010 14:05, Felipe Balbi wrote:
 
-> So the final code would be something like (pseudo-code):
+>>>> I didn't say it was duplicate for DMA, just too late.
 
-> if (request->lenght % musb_ep->packet_sz)
->     set_last_packet_is_short_flag(musb_request);
+>>> how come ? we need to send ZLP before giving back the request.
 
-> if (request->zero || last_packet_is_short(request)) {
->     set_txpktrdy(musb);
->     set_musb_request_completed_flag(musb_request);
->     return;
-> }
+>>     Well, look at the code ionce again. We need to send ZLP *after*
+>> request->actual == request->length, but as the check is inserted
+>> after the ZLP send, ZLP *may* be sent once the first DMA completes,
+>> not the last.
 
-> if (request->acual == request->length)
->     musb_g_giveback(musb, request);
+>> WBR, Sergei
 
-> restart_ep_if_more_requests(musb_ep);
+> balbi also confirmed that is is really a problem.
 
-    No, this code will still send ZLP before the whole requested transfer is 
-done. The (request->actual == request->length) check is needed before we even 
-check that request->zero is set (and it is there but not for the DMA case). I 
-thought that this was quite obvious, and I was surprised that this caused such a 
-lengthy discussion.
+> I also have two related questions below for the problem:
+
+> 1),  why is the check for "is_dma" needed here?
+
+>       if (is_dma || request->actual == request->length) {
+>            ....
+>       }
+
+    I'm not sure -- it seems erratic.
+
+> 2), why is a zlp needed in the case below?
+> 
+>       #ifdef CONFIG_USB_INVENTRA_DMA
+>                   || (is_dma && (!dma->desired_mode ||
+>                      (request->actual & (musb_ep->packet_sz - 1))))
+>      #endif
+
+> Seems no request->zero is set to ask for zlp explicitly in
+> the case above.
+
+    This is not for ZLP -- this is here to set TXPktRdy for the last short 
+packet in the Inventra DMA mode 0 that doesn't set TXPktRdy in such case.
+
+> IMO, it is not difficult to give a good fix for the ZLP problem
+> if the two questions are clear.
 
 WBR, Sergei
