@@ -1,442 +1,562 @@
-From: "archit@ti.com" <archit@ti.com>
-Subject: [PATCH v4 2/2] OMAP: DSS2: Use dss_features framework on DSS2 code
-Date: Wed, 15 Sep 2010 19:39:54 +0530
-Message-ID: <1284559794-4771-3-git-send-email-archit@ti.com>
-References: <1284559794-4771-1-git-send-email-archit@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60445 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754062Ab0IOOIU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 10:08:20 -0400
-In-Reply-To: <1284559794-4771-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Cyril Chemparathy <cyril@ti.com>
+Subject: [PATCH v4 01/10] net: davinci_emac: separate out davinci mdio
+Date: Wed, 15 Sep 2010 10:11:21 -0400
+Message-ID: <1284559890-31346-2-git-send-email-cyril@ti.com>
+References: <1284559890-31346-1-git-send-email-cyril@ti.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1284559890-31346-1-git-send-email-cyril@ti.com>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org
+Cc: michael.williamson@criticallink.com, caglarakyuz@gmail.com, bparrot@ti.com, Cyril Chemparathy <cyril@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-From: Archit Taneja <archit@ti.com>
+Davinci's MDIO controller is present on other TI devices, without an
+accompanying EMAC.  For example, on tnetv107x, the same MDIO module is used in
+conjunction with a 3-port switch hardware.
 
-Calls init functions of dss_features during dss_probe, and the following
-features are made omapxxxx independent:
-  - number of managers, overlays
-  - supported color modes for each overlay
-  - supported displays for each manager
-  - global aplha, and restriction of global alpha for video1 pipeline
-  - The register field ranges : FIRHINC, FIRVINC, FIFOHIGHTHRESHOLD
-    FIFOLOWTHRESHOLD and FIFOSIZE
+By separating the MDIO controller code into its own platform driver, this
+patch allows common logic to be reused on such platforms.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
+Signed-off-by: Cyril Chemparathy <cyril@ti.com>
+Tested-by: Michael Williamson <michael.williamson@criticallink.com>
+Tested-by: Caglar Akyuz <caglarakyuz@gmail.com>
 ---
- arch/arm/plat-omap/include/plat/display.h |   31 ----------------
- drivers/video/omap2/dss/core.c            |    3 ++
- drivers/video/omap2/dss/dispc.c           |   56 ++++++++++++++++-------------
- drivers/video/omap2/dss/manager.c         |   33 ++++++++---------
- drivers/video/omap2/dss/overlay.c         |   24 +++++-------
- 5 files changed, 60 insertions(+), 87 deletions(-)
+ drivers/net/Kconfig          |   10 +
+ drivers/net/Makefile         |    1 +
+ drivers/net/davinci_mdio.c   |  475 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/davinci_emac.h |    4 +
+ 4 files changed, 490 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/net/davinci_mdio.c
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index 8bd15bd..c915a66
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -81,37 +81,6 @@ enum omap_color_mode {
- 	OMAP_DSS_COLOR_ARGB32	= 1 << 11, /* ARGB32 */
- 	OMAP_DSS_COLOR_RGBA32	= 1 << 12, /* RGBA32 */
- 	OMAP_DSS_COLOR_RGBX32	= 1 << 13, /* RGBx32 */
--
--	OMAP_DSS_COLOR_GFX_OMAP2 =
--		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
--		OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
--		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
--		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P,
--
--	OMAP_DSS_COLOR_VID_OMAP2 =
--		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
--		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
--		OMAP_DSS_COLOR_UYVY,
--
--	OMAP_DSS_COLOR_GFX_OMAP3 =
--		OMAP_DSS_COLOR_CLUT1 | OMAP_DSS_COLOR_CLUT2 |
--		OMAP_DSS_COLOR_CLUT4 | OMAP_DSS_COLOR_CLUT8 |
--		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
--		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
--		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_ARGB32 |
--		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
--
--	OMAP_DSS_COLOR_VID1_OMAP3 =
--		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_RGB16 |
--		OMAP_DSS_COLOR_RGB24U | OMAP_DSS_COLOR_RGB24P |
--		OMAP_DSS_COLOR_YUV2 | OMAP_DSS_COLOR_UYVY,
--
--	OMAP_DSS_COLOR_VID2_OMAP3 =
--		OMAP_DSS_COLOR_RGB12U | OMAP_DSS_COLOR_ARGB16 |
--		OMAP_DSS_COLOR_RGB16 | OMAP_DSS_COLOR_RGB24U |
--		OMAP_DSS_COLOR_RGB24P | OMAP_DSS_COLOR_YUV2 |
--		OMAP_DSS_COLOR_UYVY | OMAP_DSS_COLOR_ARGB32 |
--		OMAP_DSS_COLOR_RGBA32 | OMAP_DSS_COLOR_RGBX32,
- };
+diff --git a/drivers/net/Kconfig b/drivers/net/Kconfig
+index 2cc81a5..c5c86e0 100644
+--- a/drivers/net/Kconfig
++++ b/drivers/net/Kconfig
+@@ -958,6 +958,16 @@ config TI_DAVINCI_EMAC
+ 	  To compile this driver as a module, choose M here: the module
+ 	  will be called davinci_emac_driver.  This is recommended.
  
- enum omap_lcd_display_type {
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index b3a498f..8e89f60
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -37,6 +37,7 @@
- #include <plat/clock.h>
- 
- #include "dss.h"
-+#include "dss_features.h"
- 
- static struct {
- 	struct platform_device *pdev;
-@@ -502,6 +503,8 @@ static int omap_dss_probe(struct platform_device *pdev)
- 
- 	core.pdev = pdev;
- 
-+	dss_features_init();
++config TI_DAVINCI_MDIO
++	tristate "TI DaVinci MDIO Support"
++	depends on ARM && ( ARCH_DAVINCI || ARCH_OMAP3 )
++	select PHYLIB
++	help
++	  This driver supports TI's DaVinci MDIO module.
 +
- 	dss_init_overlay_managers(pdev);
- 	dss_init_overlays(pdev);
- 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 90eb110..fa40fa5
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -39,6 +39,7 @@
- #include <plat/display.h>
- 
- #include "dss.h"
-+#include "dss_features.h"
- 
- /* DISPC */
- #define DISPC_BASE			0x48050400
-@@ -774,12 +775,12 @@ static void _dispc_set_vid_size(enum omap_plane plane, int width, int height)
- 
- static void _dispc_setup_global_alpha(enum omap_plane plane, u8 global_alpha)
- {
--
--	BUG_ON(plane == OMAP_DSS_VIDEO1);
--
--	if (cpu_is_omap24xx())
-+	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
- 		return;
- 
-+	BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
-+			plane == OMAP_DSS_VIDEO1);
++	  To compile this driver as a module, choose M here: the module
++	  will be called davinci_mdio.  This is recommended.
 +
- 	if (plane == OMAP_DSS_GFX)
- 		REG_FLD_MOD(DISPC_GLOBAL_ALPHA, global_alpha, 7, 0);
- 	else if (plane == OMAP_DSS_VIDEO2)
-@@ -949,17 +950,14 @@ static void dispc_read_plane_fifo_sizes(void)
- 				      DISPC_VID_FIFO_SIZE_STATUS(1) };
- 	u32 size;
- 	int plane;
-+	u8 start, end;
+ config DM9000
+ 	tristate "DM9000 support"
+ 	depends on ARM || BLACKFIN || MIPS
+diff --git a/drivers/net/Makefile b/drivers/net/Makefile
+index 3e8f150..d38a7ab 100644
+--- a/drivers/net/Makefile
++++ b/drivers/net/Makefile
+@@ -7,6 +7,7 @@ obj-$(CONFIG_MDIO) += mdio.o
+ obj-$(CONFIG_PHYLIB) += phy/
  
- 	enable_clocks(1);
+ obj-$(CONFIG_TI_DAVINCI_EMAC) += davinci_emac.o
++obj-$(CONFIG_TI_DAVINCI_MDIO) += davinci_mdio.o
  
--	for (plane = 0; plane < ARRAY_SIZE(dispc.fifo_size); ++plane) {
--		if (cpu_is_omap24xx())
--			size = FLD_GET(dispc_read_reg(fsz_reg[plane]), 8, 0);
--		else if (cpu_is_omap34xx())
--			size = FLD_GET(dispc_read_reg(fsz_reg[plane]), 10, 0);
--		else
--			BUG();
-+	dss_feat_get_reg_field(FEAT_REG_FIFOSIZE, &start, &end);
- 
-+	for (plane = 0; plane < ARRAY_SIZE(dispc.fifo_size); ++plane) {
-+		size = FLD_GET(dispc_read_reg(fsz_reg[plane]), start, end);
- 		dispc.fifo_size[plane] = size;
- 	}
- 
-@@ -976,6 +974,8 @@ void dispc_setup_plane_fifo(enum omap_plane plane, u32 low, u32 high)
- 	const struct dispc_reg ftrs_reg[] = { DISPC_GFX_FIFO_THRESHOLD,
- 				       DISPC_VID_FIFO_THRESHOLD(0),
- 				       DISPC_VID_FIFO_THRESHOLD(1) };
-+	u8 hi_start, hi_end, lo_start, lo_end;
+ obj-$(CONFIG_E1000) += e1000/
+ obj-$(CONFIG_E1000E) += e1000e/
+diff --git a/drivers/net/davinci_mdio.c b/drivers/net/davinci_mdio.c
+new file mode 100644
+index 0000000..7615040
+--- /dev/null
++++ b/drivers/net/davinci_mdio.c
+@@ -0,0 +1,475 @@
++/*
++ * DaVinci MDIO Module driver
++ *
++ * Copyright (C) 2010 Texas Instruments.
++ *
++ * Shamelessly ripped out of davinci_emac.c, original copyrights follow:
++ *
++ * Copyright (C) 2009 Texas Instruments.
++ *
++ * ---------------------------------------------------------------------------
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ * ---------------------------------------------------------------------------
++ */
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/sched.h>
++#include <linux/slab.h>
++#include <linux/phy.h>
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/davinci_emac.h>
 +
- 	enable_clocks(1);
- 
- 	DSSDBG("fifo(%d) low/high old %u/%u, new %u/%u\n",
-@@ -984,12 +984,12 @@ void dispc_setup_plane_fifo(enum omap_plane plane, u32 low, u32 high)
- 			REG_GET(ftrs_reg[plane], 27, 16),
- 			low, high);
- 
--	if (cpu_is_omap24xx())
--		dispc_write_reg(ftrs_reg[plane],
--				FLD_VAL(high, 24, 16) | FLD_VAL(low, 8, 0));
--	else
--		dispc_write_reg(ftrs_reg[plane],
--				FLD_VAL(high, 27, 16) | FLD_VAL(low, 11, 0));
-+	dss_feat_get_reg_field(FEAT_REG_FIFOHIGHTHRESHOLD, &hi_start, &hi_end);
-+	dss_feat_get_reg_field(FEAT_REG_FIFOLOWTHRESHOLD, &lo_start, &lo_end);
++/*
++ * This timeout definition is a worst-case ultra defensive measure against
++ * unexpected controller lock ups.  Ideally, we should never ever hit this
++ * scenario in practice.
++ */
++#define MDIO_TIMEOUT		100 /* msecs */
 +
-+	dispc_write_reg(ftrs_reg[plane],
-+			FLD_VAL(high, hi_start, hi_end) |
-+			FLD_VAL(low, lo_start, lo_end));
- 
- 	enable_clocks(0);
- }
-@@ -1009,13 +1009,16 @@ static void _dispc_set_fir(enum omap_plane plane, int hinc, int vinc)
- 	u32 val;
- 	const struct dispc_reg fir_reg[] = { DISPC_VID_FIR(0),
- 				      DISPC_VID_FIR(1) };
-+	u8 hinc_start, hinc_end, vinc_start, vinc_end;
- 
- 	BUG_ON(plane == OMAP_DSS_GFX);
- 
--	if (cpu_is_omap24xx())
--		val = FLD_VAL(vinc, 27, 16) | FLD_VAL(hinc, 11, 0);
--	else
--		val = FLD_VAL(vinc, 28, 16) | FLD_VAL(hinc, 12, 0);
-+	dss_feat_get_reg_field(FEAT_REG_FIRHINC, &hinc_start, &hinc_end);
-+	dss_feat_get_reg_field(FEAT_REG_FIRVINC, &vinc_start, &vinc_end);
++#define PHY_REG_MASK		0x1f
++#define PHY_ID_MASK		0x1f
 +
-+	val = FLD_VAL(vinc, vinc_start, vinc_end) |
-+			FLD_VAL(hinc, hinc_start, hinc_end);
++#define DEF_OUT_FREQ		2200000		/* 2.2 MHz */
 +
- 	dispc_write_reg(fir_reg[plane-1], val);
- }
- 
-@@ -1541,6 +1544,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		case OMAP_DSS_COLOR_ARGB16:
- 		case OMAP_DSS_COLOR_ARGB32:
- 		case OMAP_DSS_COLOR_RGBA32:
-+			if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
-+				return -EINVAL;
- 		case OMAP_DSS_COLOR_RGBX32:
- 			if (cpu_is_omap24xx())
- 				return -EINVAL;
-@@ -1581,9 +1586,10 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		case OMAP_DSS_COLOR_ARGB16:
- 		case OMAP_DSS_COLOR_ARGB32:
- 		case OMAP_DSS_COLOR_RGBA32:
--			if (cpu_is_omap24xx())
-+			if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
- 				return -EINVAL;
--			if (plane == OMAP_DSS_VIDEO1)
-+			if (!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
-+					plane == OMAP_DSS_VIDEO1)
- 				return -EINVAL;
- 			break;
- 
-@@ -1976,7 +1982,7 @@ void dispc_enable_trans_key(enum omap_channel ch, bool enable)
- }
- void dispc_enable_alpha_blending(enum omap_channel ch, bool enable)
- {
--	if (cpu_is_omap24xx())
-+	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
- 		return;
- 
- 	enable_clocks(1);
-@@ -1990,7 +1996,7 @@ bool dispc_alpha_blending_enabled(enum omap_channel ch)
- {
- 	bool enabled;
- 
--	if (cpu_is_omap24xx())
-+	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
- 		return false;
- 
- 	enable_clocks(1);
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 6a649ab..545e9b9
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -33,6 +33,7 @@
- #include <plat/cpu.h>
- 
- #include "dss.h"
-+#include "dss_features.h"
- 
- static int num_managers;
- static struct list_head manager_list;
-@@ -448,8 +449,8 @@ struct manager_cache_data {
- 
- static struct {
- 	spinlock_t lock;
--	struct overlay_cache_data overlay_cache[3];
--	struct manager_cache_data manager_cache[2];
-+	struct overlay_cache_data overlay_cache[MAX_DSS_OVERLAYS];
-+	struct manager_cache_data manager_cache[MAX_DSS_MANAGERS];
- 
- 	bool irq_enabled;
- } dss_cache;
-@@ -882,12 +883,12 @@ static int configure_dispc(void)
- {
- 	struct overlay_cache_data *oc;
- 	struct manager_cache_data *mc;
--	const int num_ovls = ARRAY_SIZE(dss_cache.overlay_cache);
--	const int num_mgrs = ARRAY_SIZE(dss_cache.manager_cache);
-+	const int num_ovls = dss_feat_get_num_ovls();
-+	const int num_mgrs = dss_feat_get_num_mgrs();
- 	int i;
- 	int r;
--	bool mgr_busy[2];
--	bool mgr_go[2];
-+	bool mgr_busy[MAX_DSS_MANAGERS];
-+	bool mgr_go[MAX_DSS_MANAGERS];
- 	bool busy;
- 
- 	r = 0;
-@@ -989,7 +990,7 @@ void dss_setup_partial_planes(struct omap_dss_device *dssdev,
- {
- 	struct overlay_cache_data *oc;
- 	struct manager_cache_data *mc;
--	const int num_ovls = ARRAY_SIZE(dss_cache.overlay_cache);
-+	const int num_ovls = dss_feat_get_num_ovls();
- 	struct omap_overlay_manager *mgr;
- 	int i;
- 	u16 x, y, w, h;
-@@ -1121,8 +1122,8 @@ void dss_start_update(struct omap_dss_device *dssdev)
- {
- 	struct manager_cache_data *mc;
- 	struct overlay_cache_data *oc;
--	const int num_ovls = ARRAY_SIZE(dss_cache.overlay_cache);
--	const int num_mgrs = ARRAY_SIZE(dss_cache.manager_cache);
-+	const int num_ovls = dss_feat_get_num_ovls();
-+	const int num_mgrs = dss_feat_get_num_mgrs();
- 	struct omap_overlay_manager *mgr;
- 	int i;
- 
-@@ -1151,10 +1152,10 @@ static void dss_apply_irq_handler(void *data, u32 mask)
- {
- 	struct manager_cache_data *mc;
- 	struct overlay_cache_data *oc;
--	const int num_ovls = ARRAY_SIZE(dss_cache.overlay_cache);
--	const int num_mgrs = ARRAY_SIZE(dss_cache.manager_cache);
-+	const int num_ovls = dss_feat_get_num_ovls();
-+	const int num_mgrs = dss_feat_get_num_mgrs();
- 	int i, r;
--	bool mgr_busy[2];
-+	bool mgr_busy[MAX_DSS_MANAGERS];
- 
- 	mgr_busy[0] = dispc_go_busy(0);
- 	mgr_busy[1] = dispc_go_busy(1);
-@@ -1461,7 +1462,7 @@ int dss_init_overlay_managers(struct platform_device *pdev)
- 
- 	num_managers = 0;
- 
--	for (i = 0; i < 2; ++i) {
-+	for (i = 0; i < dss_feat_get_num_mgrs(); ++i) {
- 		struct omap_overlay_manager *mgr;
- 		mgr = kzalloc(sizeof(*mgr), GFP_KERNEL);
- 
-@@ -1471,14 +1472,10 @@ int dss_init_overlay_managers(struct platform_device *pdev)
- 		case 0:
- 			mgr->name = "lcd";
- 			mgr->id = OMAP_DSS_CHANNEL_LCD;
--			mgr->supported_displays =
--				OMAP_DISPLAY_TYPE_DPI | OMAP_DISPLAY_TYPE_DBI |
--				OMAP_DISPLAY_TYPE_SDI | OMAP_DISPLAY_TYPE_DSI;
- 			break;
- 		case 1:
- 			mgr->name = "tv";
- 			mgr->id = OMAP_DSS_CHANNEL_DIGIT;
--			mgr->supported_displays = OMAP_DISPLAY_TYPE_VENC;
- 			break;
- 		}
- 
-@@ -1494,6 +1491,8 @@ int dss_init_overlay_managers(struct platform_device *pdev)
- 		mgr->disable = &dss_mgr_disable;
- 
- 		mgr->caps = OMAP_DSS_OVL_MGR_CAP_DISPC;
-+		mgr->supported_displays =
-+			dss_feat_get_supported_displays(mgr->id);
- 
- 		dss_overlay_setup_dispc_manager(mgr);
- 
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index 244dca8..75642c2
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -35,6 +35,7 @@
- #include <plat/cpu.h>
- 
- #include "dss.h"
-+#include "dss_features.h"
- 
- static int num_overlays;
- static struct list_head overlay_list;
-@@ -237,7 +238,8 @@ static ssize_t overlay_global_alpha_store(struct omap_overlay *ovl,
- 	/* Video1 plane does not support global alpha
- 	 * to always make it 255 completely opaque
- 	 */
--	if (ovl->id == OMAP_DSS_VIDEO1)
-+	if (!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
-+			ovl->id == OMAP_DSS_VIDEO1)
- 		info.global_alpha = 255;
- 	else
- 		info.global_alpha = simple_strtoul(buf, NULL, 10);
-@@ -510,11 +512,11 @@ static void omap_dss_add_overlay(struct omap_overlay *overlay)
- 	list_add_tail(&overlay->list, &overlay_list);
- }
- 
--static struct omap_overlay *dispc_overlays[3];
-+static struct omap_overlay *dispc_overlays[MAX_DSS_OVERLAYS];
- 
- void dss_overlay_setup_dispc_manager(struct omap_overlay_manager *mgr)
- {
--	mgr->num_overlays = 3;
-+	mgr->num_overlays = dss_feat_get_num_ovls();
- 	mgr->overlays = dispc_overlays;
- }
- 
-@@ -535,7 +537,7 @@ void dss_init_overlays(struct platform_device *pdev)
- 
- 	num_overlays = 0;
- 
--	for (i = 0; i < 3; ++i) {
-+	for (i = 0; i < dss_feat_get_num_ovls(); ++i) {
- 		struct omap_overlay *ovl;
- 		ovl = kzalloc(sizeof(*ovl), GFP_KERNEL);
- 
-@@ -545,18 +547,12 @@ void dss_init_overlays(struct platform_device *pdev)
- 		case 0:
- 			ovl->name = "gfx";
- 			ovl->id = OMAP_DSS_GFX;
--			ovl->supported_modes = cpu_is_omap34xx() ?
--				OMAP_DSS_COLOR_GFX_OMAP3 :
--				OMAP_DSS_COLOR_GFX_OMAP2;
- 			ovl->caps = OMAP_DSS_OVL_CAP_DISPC;
- 			ovl->info.global_alpha = 255;
- 			break;
- 		case 1:
- 			ovl->name = "vid1";
- 			ovl->id = OMAP_DSS_VIDEO1;
--			ovl->supported_modes = cpu_is_omap34xx() ?
--				OMAP_DSS_COLOR_VID1_OMAP3 :
--				OMAP_DSS_COLOR_VID_OMAP2;
- 			ovl->caps = OMAP_DSS_OVL_CAP_SCALE |
- 				OMAP_DSS_OVL_CAP_DISPC;
- 			ovl->info.global_alpha = 255;
-@@ -564,9 +560,6 @@ void dss_init_overlays(struct platform_device *pdev)
- 		case 2:
- 			ovl->name = "vid2";
- 			ovl->id = OMAP_DSS_VIDEO2;
--			ovl->supported_modes = cpu_is_omap34xx() ?
--				OMAP_DSS_COLOR_VID2_OMAP3 :
--				OMAP_DSS_COLOR_VID_OMAP2;
- 			ovl->caps = OMAP_DSS_OVL_CAP_SCALE |
- 				OMAP_DSS_OVL_CAP_DISPC;
- 			ovl->info.global_alpha = 255;
-@@ -579,6 +572,9 @@ void dss_init_overlays(struct platform_device *pdev)
- 		ovl->get_overlay_info = &dss_ovl_get_overlay_info;
- 		ovl->wait_for_go = &dss_ovl_wait_for_go;
- 
-+		ovl->supported_modes =
-+			dss_feat_get_supported_color_modes(ovl->id);
++struct davinci_mdio_regs {
++	u32	version;
++	u32	control;
++#define CONTROL_IDLE		BIT(31)
++#define CONTROL_ENABLE		BIT(30)
++#define CONTROL_MAX_DIV		(0xff)
 +
- 		omap_dss_add_overlay(ovl);
++	u32	alive;
++	u32	link;
++	u32	linkintraw;
++	u32	linkintmasked;
++	u32	__reserved_0[2];
++	u32	userintraw;
++	u32	userintmasked;
++	u32	userintmaskset;
++	u32	userintmaskclr;
++	u32	__reserved_1[20];
++
++	struct {
++		u32	access;
++#define USERACCESS_GO		BIT(31)
++#define USERACCESS_WRITE	BIT(30)
++#define USERACCESS_ACK		BIT(29)
++#define USERACCESS_READ		(0)
++#define USERACCESS_DATA		(0xffff)
++
++		u32	physel;
++	}	user[0];
++};
++
++struct mdio_platform_data default_pdata = {
++	.bus_freq = DEF_OUT_FREQ,
++};
++
++struct davinci_mdio_data {
++	struct mdio_platform_data pdata;
++	struct davinci_mdio_regs __iomem *regs;
++	spinlock_t	lock;
++	struct clk	*clk;
++	struct device	*dev;
++	struct mii_bus	*bus;
++	bool		suspended;
++	unsigned long	access_time; /* jiffies */
++};
++
++static void __davinci_mdio_reset(struct davinci_mdio_data *data)
++{
++	u32 mdio_in, div, mdio_out_khz, access_time;
++
++	mdio_in = clk_get_rate(data->clk);
++	div = (mdio_in / data->pdata.bus_freq) - 1;
++	if (div > CONTROL_MAX_DIV)
++		div = CONTROL_MAX_DIV;
++
++	/* set enable and clock divider */
++	__raw_writel(div | CONTROL_ENABLE, &data->regs->control);
++
++	/*
++	 * One mdio transaction consists of:
++	 *	32 bits of preamble
++	 *	32 bits of transferred data
++	 *	24 bits of bus yield (not needed unless shared?)
++	 */
++	mdio_out_khz = mdio_in / (1000 * (div + 1));
++	access_time  = (88 * 1000) / mdio_out_khz;
++
++	/*
++	 * In the worst case, we could be kicking off a user-access immediately
++	 * after the mdio bus scan state-machine triggered its own read.  If
++	 * so, our request could get deferred by one access cycle.  We
++	 * defensively allow for 4 access cycles.
++	 */
++	data->access_time = usecs_to_jiffies(access_time * 4);
++	if (!data->access_time)
++		data->access_time = 1;
++}
++
++static int davinci_mdio_reset(struct mii_bus *bus)
++{
++	struct davinci_mdio_data *data = bus->priv;
++	u32 phy_mask, ver;
++
++	__davinci_mdio_reset(data);
++
++	/* wait for scan logic to settle */
++	msleep(PHY_MAX_ADDR * data->access_time);
++
++	/* dump hardware version info */
++	ver = __raw_readl(&data->regs->version);
++	dev_info(data->dev, "davinci mdio revision %d.%d\n",
++		 (ver >> 8) & 0xff, ver & 0xff);
++
++	/* get phy mask from the alive register */
++	phy_mask = __raw_readl(&data->regs->alive);
++	if (phy_mask) {
++		/* restrict mdio bus to live phys only */
++		dev_info(data->dev, "detected phy mask %x\n", ~phy_mask);
++		phy_mask = ~phy_mask;
++	} else {
++		/* desperately scan all phys */
++		dev_warn(data->dev, "no live phy, scanning all\n");
++		phy_mask = 0;
++	}
++	data->bus->phy_mask = phy_mask;
++
++	return 0;
++}
++
++/* wait until hardware is ready for another user access */
++static inline int wait_for_user_access(struct davinci_mdio_data *data)
++{
++	struct davinci_mdio_regs __iomem *regs = data->regs;
++	unsigned long timeout = jiffies + msecs_to_jiffies(MDIO_TIMEOUT);
++	u32 reg;
++
++	while (time_after(timeout, jiffies)) {
++		reg = __raw_readl(&regs->user[0].access);
++		if ((reg & USERACCESS_GO) == 0)
++			return 0;
++
++		reg = __raw_readl(&regs->control);
++		if ((reg & CONTROL_IDLE) == 0)
++			continue;
++
++		/*
++		 * An emac soft_reset may have clobbered the mdio controller's
++		 * state machine.  We need to reset and retry the current
++		 * operation
++		 */
++		dev_warn(data->dev, "resetting idled controller\n");
++		__davinci_mdio_reset(data);
++		return -EAGAIN;
++	}
++	dev_err(data->dev, "timed out waiting for user access\n");
++	return -ETIMEDOUT;
++}
++
++/* wait until hardware state machine is idle */
++static inline int wait_for_idle(struct davinci_mdio_data *data)
++{
++	struct davinci_mdio_regs __iomem *regs = data->regs;
++	unsigned long timeout = jiffies + msecs_to_jiffies(MDIO_TIMEOUT);
++
++	while (time_after(timeout, jiffies)) {
++		if (__raw_readl(&regs->control) & CONTROL_IDLE)
++			return 0;
++	}
++	dev_err(data->dev, "timed out waiting for idle\n");
++	return -ETIMEDOUT;
++}
++
++static int davinci_mdio_read(struct mii_bus *bus, int phy_id, int phy_reg)
++{
++	struct davinci_mdio_data *data = bus->priv;
++	u32 reg;
++	int ret;
++
++	if (phy_reg & ~PHY_REG_MASK || phy_id & ~PHY_ID_MASK)
++		return -EINVAL;
++
++	spin_lock(&data->lock);
++
++	if (data->suspended) {
++		spin_unlock(&data->lock);
++		return -ENODEV;
++	}
++
++	reg = (USERACCESS_GO | USERACCESS_READ | (phy_reg << 21) |
++	       (phy_id << 16));
++
++	while (1) {
++		ret = wait_for_user_access(data);
++		if (ret == -EAGAIN)
++			continue;
++		if (ret < 0)
++			break;
++
++		__raw_writel(reg, &data->regs->user[0].access);
++
++		ret = wait_for_user_access(data);
++		if (ret == -EAGAIN)
++			continue;
++		if (ret < 0)
++			break;
++
++		reg = __raw_readl(&data->regs->user[0].access);
++		ret = (reg & USERACCESS_ACK) ? (reg & USERACCESS_DATA) : -EIO;
++		break;
++	}
++
++	spin_unlock(&data->lock);
++
++	return ret;
++}
++
++static int davinci_mdio_write(struct mii_bus *bus, int phy_id,
++			      int phy_reg, u16 phy_data)
++{
++	struct davinci_mdio_data *data = bus->priv;
++	u32 reg;
++	int ret;
++
++	if (phy_reg & ~PHY_REG_MASK || phy_id & ~PHY_ID_MASK)
++		return -EINVAL;
++
++	spin_lock(&data->lock);
++
++	if (data->suspended) {
++		spin_unlock(&data->lock);
++		return -ENODEV;
++	}
++
++	reg = (USERACCESS_GO | USERACCESS_WRITE | (phy_reg << 21) |
++		   (phy_id << 16) | (phy_data & USERACCESS_DATA));
++
++	while (1) {
++		ret = wait_for_user_access(data);
++		if (ret == -EAGAIN)
++			continue;
++		if (ret < 0)
++			break;
++
++		__raw_writel(reg, &data->regs->user[0].access);
++
++		ret = wait_for_user_access(data);
++		if (ret == -EAGAIN)
++			continue;
++		break;
++	}
++
++	spin_unlock(&data->lock);
++
++	return 0;
++}
++
++static int __devinit davinci_mdio_probe(struct platform_device *pdev)
++{
++	struct mdio_platform_data *pdata = pdev->dev.platform_data;
++	struct device *dev = &pdev->dev;
++	struct davinci_mdio_data *data;
++	struct resource *res;
++	struct phy_device *phy;
++	int ret, addr;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data) {
++		dev_err(dev, "failed to alloc device data\n");
++		return -ENOMEM;
++	}
++
++	data->pdata = pdata ? (*pdata) : default_pdata;
++
++	data->bus = mdiobus_alloc();
++	if (!data->bus) {
++		dev_err(dev, "failed to alloc mii bus\n");
++		ret = -ENOMEM;
++		goto bail_out;
++	}
++
++	data->bus->name		= dev_name(dev);
++	data->bus->read		= davinci_mdio_read,
++	data->bus->write	= davinci_mdio_write,
++	data->bus->reset	= davinci_mdio_reset,
++	data->bus->parent	= dev;
++	data->bus->priv		= data;
++	snprintf(data->bus->id, MII_BUS_ID_SIZE, "%x", pdev->id);
++
++	data->clk = clk_get(dev, NULL);
++	if (IS_ERR(data->clk)) {
++		data->clk = NULL;
++		dev_err(dev, "failed to get device clock\n");
++		ret = PTR_ERR(data->clk);
++		goto bail_out;
++	}
++
++	clk_enable(data->clk);
++
++	dev_set_drvdata(dev, data);
++	data->dev = dev;
++	spin_lock_init(&data->lock);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(dev, "could not find register map resource\n");
++		ret = -ENOENT;
++		goto bail_out;
++	}
++
++	res = devm_request_mem_region(dev, res->start, resource_size(res),
++					    dev_name(dev));
++	if (!res) {
++		dev_err(dev, "could not allocate register map resource\n");
++		ret = -ENXIO;
++		goto bail_out;
++	}
++
++	data->regs = devm_ioremap_nocache(dev, res->start, resource_size(res));
++	if (!data->regs) {
++		dev_err(dev, "could not map mdio registers\n");
++		ret = -ENOMEM;
++		goto bail_out;
++	}
++
++	/* register the mii bus */
++	ret = mdiobus_register(data->bus);
++	if (ret)
++		goto bail_out;
++
++	/* scan and dump the bus */
++	for (addr = 0; addr < PHY_MAX_ADDR; addr++) {
++		phy = data->bus->phy_map[addr];
++		if (phy) {
++			dev_info(dev, "phy[%d]: device %s, driver %s\n",
++				 phy->addr, dev_name(&phy->dev),
++				 phy->drv ? phy->drv->name : "unknown");
++		}
++	}
++
++	return 0;
++
++bail_out:
++	if (data->bus)
++		mdiobus_free(data->bus);
++
++	if (data->clk) {
++		clk_disable(data->clk);
++		clk_put(data->clk);
++	}
++
++	kfree(data);
++
++	return ret;
++}
++
++static int __devexit davinci_mdio_remove(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct davinci_mdio_data *data = dev_get_drvdata(dev);
++
++	if (data->bus)
++		mdiobus_free(data->bus);
++
++	if (data->clk) {
++		clk_disable(data->clk);
++		clk_put(data->clk);
++	}
++
++	dev_set_drvdata(dev, NULL);
++
++	kfree(data);
++
++	return 0;
++}
++
++static int davinci_mdio_suspend(struct device *dev)
++{
++	struct davinci_mdio_data *data = dev_get_drvdata(dev);
++	u32 ctrl;
++
++	spin_lock(&data->lock);
++
++	/* shutdown the scan state machine */
++	ctrl = __raw_readl(&data->regs->control);
++	ctrl &= ~CONTROL_ENABLE;
++	__raw_writel(ctrl, &data->regs->control);
++	wait_for_idle(data);
++
++	if (data->clk)
++		clk_disable(data->clk);
++
++	data->suspended = true;
++	spin_unlock(&data->lock);
++
++	return 0;
++}
++
++static int davinci_mdio_resume(struct device *dev)
++{
++	struct davinci_mdio_data *data = dev_get_drvdata(dev);
++	u32 ctrl;
++
++	spin_lock(&data->lock);
++	if (data->clk)
++		clk_enable(data->clk);
++
++	/* restart the scan state machine */
++	ctrl = __raw_readl(&data->regs->control);
++	ctrl |= CONTROL_ENABLE;
++	__raw_writel(ctrl, &data->regs->control);
++
++	data->suspended = false;
++	spin_unlock(&data->lock);
++
++	return 0;
++}
++
++static const struct dev_pm_ops davinci_mdio_pm_ops = {
++	.suspend	= davinci_mdio_suspend,
++	.resume		= davinci_mdio_resume,
++};
++
++static struct platform_driver davinci_mdio_driver = {
++	.driver = {
++		.name	 = "davinci_mdio",
++		.owner	 = THIS_MODULE,
++		.pm	 = &davinci_mdio_pm_ops,
++	},
++	.probe = davinci_mdio_probe,
++	.remove = __devexit_p(davinci_mdio_remove),
++};
++
++static int __init davinci_mdio_init(void)
++{
++	return platform_driver_register(&davinci_mdio_driver);
++}
++device_initcall(davinci_mdio_init);
++
++static void __exit davinci_mdio_exit(void)
++{
++	platform_driver_unregister(&davinci_mdio_driver);
++}
++module_exit(davinci_mdio_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("DaVinci MDIO driver");
+diff --git a/include/linux/davinci_emac.h b/include/linux/davinci_emac.h
+index 7c930db..a04fd8c 100644
+--- a/include/linux/davinci_emac.h
++++ b/include/linux/davinci_emac.h
+@@ -14,6 +14,10 @@
+ #include <linux/if_ether.h>
+ #include <linux/memory.h>
  
- 		r = kobject_init_and_add(&ovl->kobj, &overlay_ktype,
-@@ -651,7 +647,7 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
- 	}
- 
- 	if (mgr) {
--		for (i = 0; i < 3; i++) {
-+		for (i = 0; i < dss_feat_get_num_ovls(); i++) {
- 			struct omap_overlay *ovl;
- 			ovl = omap_dss_get_overlay(i);
- 			if (!ovl->manager || force) {
++struct mdio_platform_data {
++	unsigned long		bus_freq;
++};
++
+ struct emac_platform_data {
+ 	char mac_addr[ETH_ALEN];
+ 	u32 ctrl_reg_offset;
 -- 
 1.7.0.4
 
