@@ -1,88 +1,66 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Re: Upcoming merge window, marked all the patchwork patches before
- v2.6.35 as archived
-Date: Thu, 16 Sep 2010 00:14:16 +0530
-Message-ID: <AANLkTikA1eOPe-GGW4egFHO9=Kw8bdEaTW8RC5o_A2JK@mail.gmail.com>
-References: <20100915183141.GF4174@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
+ frequency
+Date: Wed, 15 Sep 2010 13:15:11 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com>
+References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:42055 "HELO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754906Ab0IOSoj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Sep 2010 14:44:39 -0400
-Received: by mail-wy0-f169.google.com with SMTP id 36so739596wyb.14
-        for <linux-omap@vger.kernel.org>; Wed, 15 Sep 2010 11:44:37 -0700 (PDT)
-In-Reply-To: <20100915183141.GF4174@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:48805 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753220Ab0IOTPN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 15:15:13 -0400
+In-Reply-To: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, khilman@deeprootsystems.com, tony@atomide.com
 
-On Thu, Sep 16, 2010 at 12:01 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi all,
->
-> Here's some important info regarding posted patches and the
-> upcoming merge window.
->
->
-> UPCOMING MERGE WINDOW
->
-> Just to remind everybody, we want to have our omap patches reviewed
-> and queued into for-next by -rc6. That is less than two weeks from
-> today.
->
-> If you have a larger set of patches, please set them up into a git
-> branch after review for pulling. Please remember that anything
-> touching arch/arm/*omap*/ must be also reviewed on the linux-arm-kernel
-> list, so Cc that list too so I don't have to repost the patches before
-> applying. Basically see the instructions here (server currently down?):
->
-> http://www.elinux.org/OMAP_patch_merging_process
->
->
-> POSTED PATCHES AND PATCHWORK
->
-> To cope with the patch overload, I added all the patchwork
-> patches into archived-v2.6.35 bundle when v2.6.35 got tagged:
->
-> http://patchwork.kernel.org/bundle/tmlind/archived-v2.6.35/?archive=both
->
-> However, at that point the patchwork instance on kernel.org was buggy,
-> and I could not mark them all archived.
->
-> Anyways, I've marked them all archived now. This means they do not
-> appear as new patches any longer, and patchwork.kernel.org is
-> usable again for tracking what's already queued up.
->
-> I plan on archiving everything when a new major release comes out,
-> maybe even after some -rc releases if necessary.
->
-> So the current list of patches we're working with for the upcoming
-> merge window is:
->
-> http://patchwork.kernel.org/project/linux-omap/list/
->
-> Please everybody, check if your patch got archived, and if so,
-> repost as needed against v2.6.36-rc4.
->
-> In general, if something got archived, please don't consider it
-> rejected. It just means that you have to repost, fix and complain
-> until the patch is ready and integrated :) The standard Linux way
-> you know.
->
+Hi Jon,
 
-Tony,
+I regret the delay:
 
-I posted this patch [1] a while ago fixing a bunch of compile warnings
-that show up with omap3_defconfig and omap_4430sdp_defconfig builds. I
-can't seem to locate it in patchworks; not sure how that happened.
+On Wed, 21 Jul 2010, Jon Hunter wrote:
 
-Any chance you can pick this up (before more folks on LAKML start
-yelling about no-one caring for build warnings...)? Would you like me
-to post this again?
+> From: Jon Hunter <jon-hunter@ti.com>
+> 
+> When changing the L3 clock frequency, the CPU is executing from internal RAM
+> and the SDRC clock is disabled. During this time accesses made to external
+> DDR are stalled. If the ARM subsystem attempts to access the DDR while the
+> SDRC clock is disabled this will stall the CPU until the access to the SDRC
+> timeouts. A timeout on the SDRC should never occur. Once a timeout occurs all
+> the following accesses will be aborted and the DDR is no longer accessible.
+> 
+> Although the code being executed in the internal RAM does not directly access
+> the DDR, it was found that the branch prediction logic in the CPU may cause
+> the CPU to prefetch code from a DDR location while the SDRC clock is disabled.
+> This was causing an SDRC timeout which resulted in a system hang.
+> 
+> This patch fixes this problem by ensuring the branch prediction logic is
+> disabled while changing the L3 clock frequency. The branch prediction logic
+> is disabled by clearing the Z-bit in the ARM AUX CTRL register.
+> 
+> Disabling the branch prediction logic does not have any noticable impact
+> on the execution time of this code section. The hardware observability
+> signals were used to monitor the sdrc idle time with and without this
+> patch when operating at different CPU frequencies (150MHz, 500MHz and
+> 600MHz) and the total sdrc idle time when changing frequenct was in
+> the range of 9-11us. This was measured on an omap3430 SDP running the
+> omapzoom p-android-omap-2.6.29 branch.
+> 
+> This change has been commited to both TI's android 2.6.29 and 2.6.32 kernels.
+> The commits can be viewed here:
+> http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=5679c7b1142f3cc2b9285181d53f6b40c4d0296d
+> http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=cf16e57823575d98e9d5165aa7a498ffb751c940
+> 
+> This patch has been rebased on the latest linux-omap tree and tested on
+> Kevin Hilman's pm branch.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 
-- Anand
+Really nice changelog.  I wish every patch had a description this good.  
+Patch looks really good, too.  Queued for 2.6.37.
 
-[1] http://marc.info/?l=linux-omap&m=128212353619711&w=2
+
+- Paul
