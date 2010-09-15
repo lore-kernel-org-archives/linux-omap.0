@@ -1,48 +1,61 @@
-From: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus@gmail.com>
-Subject: Re: [PATCH v5 3/7] wireless: wl12xx: add platform data passing support
-Date: Wed, 15 Sep 2010 18:10:22 +0200
-Message-ID: <AANLkTinFs_o83az1+g1dbi6YD7RsrXYOUd=kkm0qi3wc@mail.gmail.com>
-References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
-	<1283376410-9999-4-git-send-email-ohad@wizery.com>
-	<AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
-	<20100906120716.GE20903@n2100.arm.linux.org.uk>
-	<AANLkTikAFCd+3ggZKhQXY=+bG==KgLkv3qNVdEGa=GBX@mail.gmail.com>
-	<20100915082544.GA4625@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: Update omap3_defconfig to work with SMP_ON_UP
+Date: Wed, 15 Sep 2010 09:11:26 -0700
+Message-ID: <20100915161126.GS8647@atomide.com>
+References: <20100817104414.19061.38999.stgit@baageli.muru.com>
+ <20100906104413.GD20903@n2100.arm.linux.org.uk>
+ <20100914185907.GG8647@atomide.com>
+ <20100914190314.GH8647@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F7DB@dbde02.ent.ti.com>
+ <20100914202743.GK8647@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F9E1@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100915082544.GA4625@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, Ido Yariv <ido@wizery.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55794 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752665Ab0IOQLn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 12:11:43 -0400
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F9E1@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>
 
-W dniu 15 wrze=B6nia 2010 10:25 u=BFytkownik Russell King - ARM Linux
-<linux@arm.linux.org.uk> napisa=B3:
-> On Mon, Sep 06, 2010 at 09:42:41PM +0200, Micha=B3 Miros=B3aw wrote:
->> W dniu 6 wrze=B6nia 2010 14:07 u=BFytkownik Russell King - ARM Linux
->> <linux@arm.linux.org.uk> napisa=B3:
->> > On Sat, Sep 04, 2010 at 02:23:19PM +0200, Micha=B3 Miros=B3aw wrot=
-e:
->> >> 2010/9/1 Ohad Ben-Cohen <ohad@wizery.com>:
->> >> > Add a simple mechanism to pass platform data to the
->> >> > SDIO instances of wl12xx.
->> [cut patch]
->> >> Why do you need all that copying? Isn't the data constant?
->> > The first copy is to allow platforms to have their data marked wit=
-h
->> > __initdata. =A0The second copy probably isn't necessary, but avoid=
-s
->> > problems where the driver may decide to modify the platform data.
->> Sorry for pushing at this, but why would you mark data that's meant =
-to
->> be used after init phase as __initdata?
-> Because you may have many instances of the data (due to multiple plat=
-form
-> support), and only need one of them at run-time.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100914 23:03]:
+> > 
+> > Sounds like you're having these problems anyways and they
+> > are not related to the defconfigs?
+> > 
+> Well the issues are because of defconfig but mostly fixable.
+> Will hold on my comments till I test the new defconfig on OMAP4.
 
-Ah. That makes sense.
+OK
+ 
+> > Considering Linus' earlier comments on the defconfigs, I don't
+> > see any reasonds not to merge this patch. If TI wants to fix up
+> > some other things, there's still about two weeks before -rc6.
+> >
+> Sure. I am just saying let's attempt to fix the remaining issues
+> and if it doesn't happen in next week, anyway this patch will
+> get merged.
 
-Thanks,
-Micha=B3 Miros=B3aw
+OK let's plan on doing that.
+  
+> > > > - LOCAL_TIMERS hangs on omap4, disable it for now.
+> > >
+> > > This is expected on omap4 ES1.0 and hence not enabled
+> > > in the omap_4430sdp_defconfig.
+> > 
+> > Maybe add a check for ES1.0 there to the init then?
+> > 
+> Yes but its ARM generic code and I don't want to pollute it
+> with omap checks.. Will see if some other trick can fix this.
+
+Maybe in smp_twd.c return from twd_timer_setup early if twd_base
+is NULL?
+
+Regards,
+
+Tony
