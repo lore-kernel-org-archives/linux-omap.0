@@ -1,48 +1,43 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
-Date: Wed, 15 Sep 2010 10:11:16 +0300
-Message-ID: <20100915071116.GE3393@legolas.emea.dhcp.ti.com>
-References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
- <1282647866-6918-8-git-send-email-manjugk@ti.com>
- <87lj7iv8zv.fsf@deeprootsystems.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A8F@dbde02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843B8E7@dbde02.ent.ti.com>
- <20100914102407.GC7554@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843B9A8@dbde02.ent.ti.com>
- <20100914115711.GE7554@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843BAE5@dbde02.ent.ti.com>
-Reply-To: balbi@ti.com
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v5 3/7] wireless: wl12xx: add platform data passing support
+Date: Wed, 15 Sep 2010 10:00:22 +0200
+Message-ID: <AANLkTinM8vY7CygEN6DBR35WLkU-QOBwuiaRrpfwF6Mz@mail.gmail.com>
+References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+ <1283376410-9999-4-git-send-email-ohad@wizery.com> <AANLkTi=goLEUqM1XQ__PrGu4=Erw2utaNP4qFmSgRta2@mail.gmail.com>
+ <20100906120716.GE20903@n2100.arm.linux.org.uk> <AANLkTikAFCd+3ggZKhQXY=+bG==KgLkv3qNVdEGa=GBX@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38483 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752163Ab0IOHLY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 03:11:24 -0400
-Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027843BAE5@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikAFCd+3ggZKhQXY=+bG==KgLkv3qNVdEGa=GBX@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus@gmail.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-wireless@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Kalle Valo <kalle.valo@iki.fi>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, Ido Yariv <ido@wizery.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Hi,
+2010/9/6 Micha=B3 Miros=B3aw <mirqus@gmail.com>:
+> W dniu 6 wrze=B6nia 2010 14:07 u=BFytkownik Russell King - ARM Linux
+> <linux@arm.linux.org.uk> napisa=B3:
+>> On Sat, Sep 04, 2010 at 02:23:19PM +0200, Micha=B3 Miros=B3aw wrote:
+>>> 2010/9/1 Ohad Ben-Cohen <ohad@wizery.com>:
+>>> > Add a simple mechanism to pass platform data to the
+>>> > SDIO instances of wl12xx.
+> [cut patch]
+>>> Why do you need all that copying? Isn't the data constant?
+>>
+>> The first copy is to allow platforms to have their data marked with
+>> __initdata. =A0The second copy probably isn't necessary, but avoids
+>> problems where the driver may decide to modify the platform data.
+>
+> Sorry for pushing at this, but why would you mark data that's meant t=
+o
+> be used after init phase as __initdata?
 
-On Tue, Sep 14, 2010 at 09:11:26AM -0500, G, Manjunath Kondaiah wrote:
->There are several places in kernel code (ex:
->tools/perf/util/include/linux/bitops.h:static __always_inline int
->test_bit(unsigned int nr, const unsigned long *addr)) which are using
->__always_inline attribute to make sure functions are inlined.
+I can remove the first copying as well if Russell is ok with it.
 
-those are special cases. Generally, compiler is much better than humans
-for choosing what should be inlined or not.
+Both ways work for us.
 
->Ok, Agreed.  We can have inline functions and expanding all macros in mach-omap
->dma driver code.
->However, there is common dma driver(in plat-omap) which has code for both omap1
->and omap2plus which uses this macro.
-
-well, that can be patched, right ?
-
--- 
-balbi
+>
+> Best Regards,
+> Micha=B3 Miros=B3aw
+>
