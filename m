@@ -1,43 +1,149 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
- frequency
-Date: Wed, 15 Sep 2010 15:38:47 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009151537000.458@utopia.booyaka.com>
-References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v5 6/6] OMAP: WDT: Use PM runtime APIs instead of clk
+ FW APIs
+Date: Wed, 15 Sep 2010 23:41:15 +0200
+Message-ID: <4C913D7B.10208@ti.com>
+References: <1284528403-6494-1-git-send-email-charu@ti.com> <1284528403-6494-7-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52017 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754286Ab0IOVis (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 17:38:48 -0400
-In-Reply-To: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:43893 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754286Ab0IOVlY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Sep 2010 17:41:24 -0400
+In-Reply-To: <1284528403-6494-7-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Jon,
+On 9/15/2010 7:26 AM, Varadarajan, Charulatha wrote:
+> Call runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
+> for enabling/disabling the clocks, sysconfig settings instead of using
+> clock FW APIs.
+>
+> Signed-off-by: Charulatha V<charu@ti.com>
+> ---
+>   drivers/watchdog/omap_wdt.c |   42 +++++++-----------------------------------
+>   1 files changed, 7 insertions(+), 35 deletions(-)
+>
+> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+> index 76b58ab..dbbc580 100644
+> --- a/drivers/watchdog/omap_wdt.c
+> +++ b/drivers/watchdog/omap_wdt.c
+> @@ -38,11 +38,11 @@
+>   #include<linux/err.h>
+>   #include<linux/platform_device.h>
+>   #include<linux/moduleparam.h>
+> -#include<linux/clk.h>
+>   #include<linux/bitops.h>
+>   #include<linux/io.h>
+>   #include<linux/uaccess.h>
+>   #include<linux/slab.h>
+> +#include<linux/pm_runtime.h>
+>   #include<mach/hardware.h>
+>   #include<plat/prcm.h>
 
-one other brief note:
+Why do you have to access the PRCM from the driver?
 
-On Wed, 21 Jul 2010, Jon Hunter wrote:
+Benoit
 
-> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-> index de99ba2..e87e730 100644
-> --- a/arch/arm/mach-omap2/sram34xx.S
-> +++ b/arch/arm/mach-omap2/sram34xx.S
-> @@ -129,8 +129,11 @@ ENTRY(omap3_sram_configure_core_dpll)
->  	ldr	r4, [sp, #80]
->  	str     r4, omap_sdrc_mr_1_val
->  skip_cs1_params:
-> +	mrc p15, 0, r8, c1, c0, 0	@ read aux ctrl register
-> +	bic r10, r8, #0x800		@ clear Z-bit, disable branch prediction
-> +	mcr p15, 0, r10, c1, c0, 0	@ write aux ctrl register
+>
+> @@ -61,8 +61,6 @@ struct omap_wdt_dev {
+>   	void __iomem    *base;          /* physical */
+>   	struct device   *dev;
+>   	int             omap_wdt_users;
+> -	struct clk      *ick;
+> -	struct clk      *fck;
+>   	struct resource *mem;
+>   	struct miscdevice omap_wdt_miscdev;
+>   };
+> @@ -146,8 +144,7 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
+>   	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
+>   		return -EBUSY;
+>
+> -	clk_enable(wdev->ick);    /* Enable the interface clock */
+> -	clk_enable(wdev->fck);    /* Enable the functional clock */
+> +	pm_runtime_get_sync(wdev->dev);
+>
+>   	/* initialize prescaler */
+>   	while (__raw_readl(base + OMAP_WATCHDOG_WPS)&  0x01)
+> @@ -177,8 +174,7 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
+>
+>   	omap_wdt_disable(wdev);
+>
+> -	clk_disable(wdev->ick);
+> -	clk_disable(wdev->fck);
+> +	pm_runtime_put_sync(wdev->dev);
+>   #else
+>   	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
+>   #endif
+> @@ -292,19 +288,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>
+>   	wdev->omap_wdt_users = 0;
+>   	wdev->mem = mem;
+> -
+> -	wdev->ick = clk_get(&pdev->dev, "ick");
+> -	if (IS_ERR(wdev->ick)) {
+> -		ret = PTR_ERR(wdev->ick);
+> -		wdev->ick = NULL;
+> -		goto err_clk;
+> -	}
+> -	wdev->fck = clk_get(&pdev->dev, "fck");
+> -	if (IS_ERR(wdev->fck)) {
+> -		ret = PTR_ERR(wdev->fck);
+> -		wdev->fck = NULL;
+> -		goto err_clk;
+> -	}
+> +	wdev->dev =&pdev->dev;
+>
+>   	wdev->base = ioremap(res->start, resource_size(res));
+>   	if (!wdev->base) {
+> @@ -314,8 +298,8 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>
+>   	platform_set_drvdata(pdev, wdev);
+>
+> -	clk_enable(wdev->ick);
+> -	clk_enable(wdev->fck);
+> +	pm_runtime_enable(wdev->dev);
+> +	pm_runtime_get_sync(wdev->dev);
+>
+>   	omap_wdt_disable(wdev);
+>   	omap_wdt_adjust_timeout(timer_margin);
+> @@ -333,11 +317,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>   		__raw_readl(wdev->base + OMAP_WATCHDOG_REV)&  0xFF,
+>   		timer_margin);
+>
+> -	/* autogate OCP interface clock */
+> -	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+> -
+> -	clk_disable(wdev->ick);
+> -	clk_disable(wdev->fck);
+> +	pm_runtime_put_sync(wdev->dev);
+>
+>   	omap_wdt_dev = pdev;
+>
+> @@ -349,12 +329,6 @@ err_misc:
+>
+>   err_ioremap:
+>   	wdev->base = NULL;
+> -
+> -err_clk:
+> -	if (wdev->ick)
+> -		clk_put(wdev->ick);
+> -	if (wdev->fck)
+> -		clk_put(wdev->fck);
+>   	kfree(wdev);
+>
+>   err_kzalloc:
+> @@ -386,8 +360,6 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
+>   	release_mem_region(res->start, resource_size(res));
+>   	platform_set_drvdata(pdev, NULL);
+>
+> -	clk_put(wdev->ick);
+> -	clk_put(wdev->fck);
+>   	iounmap(wdev->base);
+>
+>   	kfree(wdev);
 
-Please be careful with the whitespace between the opcode and the 
-arguments - I will fix this in the current patch but it seems best to keep 
-this consistent.
-
-
-- Paul
