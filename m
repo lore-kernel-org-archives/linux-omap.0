@@ -1,80 +1,154 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP3 DSP MMU fault + off mode issue
-Date: Wed, 15 Sep 2010 07:32:21 -0700
-Message-ID: <87mxrjgjre.fsf@deeprootsystems.com>
-References: <AANLkTikHM+o_FCgnVzGhs8UtQ_geXFzKNQpGSZiEN7sx@mail.gmail.com>
-	<AANLkTimd_sRpOYaurOT0iSbfd0pMZvhxgUcaqbQvSobu@mail.gmail.com>
-	<AANLkTimO1UK+WA8Mc3Myi3gWBpD=D7tXDOX104a8NMKW@mail.gmail.com>
+Subject: Re: [PATCH v5 6/6] OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
+Date: Wed, 15 Sep 2010 07:45:42 -0700
+Message-ID: <87fwxbgj55.fsf@deeprootsystems.com>
+References: <1284528403-6494-1-git-send-email-charu@ti.com>
+	<1284528403-6494-7-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:44163 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752560Ab0IOOcb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 10:32:31 -0400
-In-Reply-To: <AANLkTimO1UK+WA8Mc3Myi3gWBpD=D7tXDOX104a8NMKW@mail.gmail.com>
-	(venki kaps's message of "Wed, 15 Sep 2010 19:25:56 +0530")
+Received: from mail-px0-f174.google.com ([209.85.212.174]:65019 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754214Ab0IOOpt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 10:45:49 -0400
+In-Reply-To: <1284528403-6494-7-git-send-email-charu@ti.com> (Charulatha
+	Varadarajan's message of "Wed, 15 Sep 2010 10:56:43 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: venki kaps <venkiece2005@gmail.com>
-Cc: omar.ramirez@ti.com, h-kanigeri2@ti.com, ameya.palande@nokia.com, fernando.lugo@ti.com, x0hebbar@ti.com, ernesto@ti.com, felipe.contreras@gmail.com, s-anna@ti.com, grgupta@ti.com, ivan.gomez@ti.com, ext-andriy.shevchenko@nokia.com, x0095078@ti.com, deepak.chitriki@ti.com, nm@ti.com, ext-phil.2.carmody@nokia.com, ohad@wizery.com, devel@linuxdriverproject.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: wim@iguana.be
+Cc: tony@atomide.com, linux-watchdog@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-venki kaps <venkiece2005@gmail.com> writes:
+Hi Wim,
 
-> On Tue, Sep 14, 2010 at 8:54 PM, venki kaps <venkiece2005@gmail.com> =
-wrote:
->> On Tue, Sep 14, 2010 at 1:28 AM, venki kaps <venkiece2005@gmail.com>=
- wrote:
->>> Dear all,
->>>
->>> I have been facing an issue with OMAP3 PM with DSP MMU Fault (Kerne=
-l 2.6.32).
->>>
->>> The issue is describing as below mentioned way,
->>> =A0 =A0 =A0 =A01). The Device is getting DSP MMU Fault when playing=
- MP4 video clip.
->>>
->>> The system is not hitting off mode in the below scenario,
->>> =A0 =A0 =A0 =A02). System boot ->play mp4 clip ->DSP MMU Fault -> a=
-llow off
->>> mode -----------> Never hits off mode
->>>
->>> But surprisingly the system is hitting off mode in the below scenar=
-io,
->>> =A0 =A0 =A0 3). System boot ->allow off mode ->play mp4 clip ->DSP =
-MMU
->>> Fault -> allow off mode -----------> perfectly works
->>>
->>>
->>> =A0- Could you please describe the root cause about the above issue=
-s 1 & 2?
->>> =A0- How could solve the above issues?
->>
->> I have found the issue with UART3.
->> In System configuration register (SYSC),-
->> =A0 =A0 =A0 =A0 =A0 =A0 IDLEMODE =A0- Smart idle -------> working sc=
-enario =A0------>
->> system hits off mode.
->> =A0 =A0 =A0 =A0 =A0 =A0 IDLEMODE =A0- No idle -------> Non working s=
-cenario
->> ------> system never hits off mode.
->>
->> Could you please explain why UART3 is not able to hit smart idle aft=
-er
->> DSP MMU fault ( System boot ->play mp4 clip ->DSP MMU Fault -> allow
->> off -----------> Never hits off mode).,
+"Varadarajan, Charulatha" <charu@ti.com> writes:
+
+> Call runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
+> for enabling/disabling the clocks, sysconfig settings instead of using
+> clock FW APIs.
 >
-> My problem is resolved.GPtimer7 was not reset during the MMU FAULT
-> occurrence before the first power cycle.
-> So this pending interrupt is preventing the system sleep entry.
-> Now it works fine after resetting Gptimer7 in pm suspend path.
+> Signed-off-by: Charulatha V <charu@ti.com>
 
-Sounds like a patch is needed for DSPBridge who manages that timer.
+With your ack, I'll be glad to merge this via the OMAP tree since it
+depends on the rest of the series for the OMAP platform specific
+changes.
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+> ---
+>  drivers/watchdog/omap_wdt.c |   42 +++++++-----------------------------------
+>  1 files changed, 7 insertions(+), 35 deletions(-)
+>
+> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+> index 76b58ab..dbbc580 100644
+> --- a/drivers/watchdog/omap_wdt.c
+> +++ b/drivers/watchdog/omap_wdt.c
+> @@ -38,11 +38,11 @@
+>  #include <linux/err.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/moduleparam.h>
+> -#include <linux/clk.h>
+>  #include <linux/bitops.h>
+>  #include <linux/io.h>
+>  #include <linux/uaccess.h>
+>  #include <linux/slab.h>
+> +#include <linux/pm_runtime.h>
+>  #include <mach/hardware.h>
+>  #include <plat/prcm.h>
+>  
+> @@ -61,8 +61,6 @@ struct omap_wdt_dev {
+>  	void __iomem    *base;          /* physical */
+>  	struct device   *dev;
+>  	int             omap_wdt_users;
+> -	struct clk      *ick;
+> -	struct clk      *fck;
+>  	struct resource *mem;
+>  	struct miscdevice omap_wdt_miscdev;
+>  };
+> @@ -146,8 +144,7 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
+>  	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
+>  		return -EBUSY;
+>  
+> -	clk_enable(wdev->ick);    /* Enable the interface clock */
+> -	clk_enable(wdev->fck);    /* Enable the functional clock */
+> +	pm_runtime_get_sync(wdev->dev);
+>  
+>  	/* initialize prescaler */
+>  	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
+> @@ -177,8 +174,7 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
+>  
+>  	omap_wdt_disable(wdev);
+>  
+> -	clk_disable(wdev->ick);
+> -	clk_disable(wdev->fck);
+> +	pm_runtime_put_sync(wdev->dev);
+>  #else
+>  	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
+>  #endif
+> @@ -292,19 +288,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>  
+>  	wdev->omap_wdt_users = 0;
+>  	wdev->mem = mem;
+> -
+> -	wdev->ick = clk_get(&pdev->dev, "ick");
+> -	if (IS_ERR(wdev->ick)) {
+> -		ret = PTR_ERR(wdev->ick);
+> -		wdev->ick = NULL;
+> -		goto err_clk;
+> -	}
+> -	wdev->fck = clk_get(&pdev->dev, "fck");
+> -	if (IS_ERR(wdev->fck)) {
+> -		ret = PTR_ERR(wdev->fck);
+> -		wdev->fck = NULL;
+> -		goto err_clk;
+> -	}
+> +	wdev->dev = &pdev->dev;
+>  
+>  	wdev->base = ioremap(res->start, resource_size(res));
+>  	if (!wdev->base) {
+> @@ -314,8 +298,8 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>  
+>  	platform_set_drvdata(pdev, wdev);
+>  
+> -	clk_enable(wdev->ick);
+> -	clk_enable(wdev->fck);
+> +	pm_runtime_enable(wdev->dev);
+> +	pm_runtime_get_sync(wdev->dev);
+>  
+>  	omap_wdt_disable(wdev);
+>  	omap_wdt_adjust_timeout(timer_margin);
+> @@ -333,11 +317,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>  		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
+>  		timer_margin);
+>  
+> -	/* autogate OCP interface clock */
+> -	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+> -
+> -	clk_disable(wdev->ick);
+> -	clk_disable(wdev->fck);
+> +	pm_runtime_put_sync(wdev->dev);
+>  
+>  	omap_wdt_dev = pdev;
+>  
+> @@ -349,12 +329,6 @@ err_misc:
+>  
+>  err_ioremap:
+>  	wdev->base = NULL;
+> -
+> -err_clk:
+> -	if (wdev->ick)
+> -		clk_put(wdev->ick);
+> -	if (wdev->fck)
+> -		clk_put(wdev->fck);
+>  	kfree(wdev);
+>  
+>  err_kzalloc:
+> @@ -386,8 +360,6 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
+>  	release_mem_region(res->start, resource_size(res));
+>  	platform_set_drvdata(pdev, NULL);
+>  
+> -	clk_put(wdev->ick);
+> -	clk_put(wdev->fck);
+>  	iounmap(wdev->base);
+>  
+>  	kfree(wdev);
