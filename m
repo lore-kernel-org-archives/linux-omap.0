@@ -1,61 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: Update omap3_defconfig to work with SMP_ON_UP
-Date: Wed, 15 Sep 2010 09:11:26 -0700
-Message-ID: <20100915161126.GS8647@atomide.com>
-References: <20100817104414.19061.38999.stgit@baageli.muru.com>
- <20100906104413.GD20903@n2100.arm.linux.org.uk>
- <20100914185907.GG8647@atomide.com>
- <20100914190314.GH8647@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F7DB@dbde02.ent.ti.com>
- <20100914202743.GK8647@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F9E1@dbde02.ent.ti.com>
+Subject: Re: [PATCH v5 0/7] native wl1271 support on ZOOM
+Date: Wed, 15 Sep 2010 09:34:03 -0700
+Message-ID: <20100915163403.GT8647@atomide.com>
+References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+ <AANLkTikedoL3HjohQfq2qa0TU5yMJR5p1GqyQJtQGrdb@mail.gmail.com>
+ <AANLkTingdk=9Fbp9uKf6rGyAtR+b8KV4vFmYRfakkwBs@mail.gmail.com>
+ <20100915132149.GA6997@tuxdriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55794 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752665Ab0IOQLn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 12:11:43 -0400
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD25F9E1@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20100915132149.GA6997@tuxdriver.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "John W. Linville" <linville@tuxdriver.com>
+Cc: Vitaly Wool <vitalywool@gmail.com>, Ohad Ben-Cohen <ohad@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, "Wool, Vitaly" <Vitaly.Wool@sonyericsson.com>, linux-wireless@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, Ido Yariv <ido@wizery.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, linux-mmc@vger.kernel.org, Luciano Coelho <luciano.coelho@nokia.com>, linux-omap@vger.kernel.org, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "bryan.wu@canonical.com" <bryan.wu@canonical.com>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100914 23:03]:
-> > 
-> > Sounds like you're having these problems anyways and they
-> > are not related to the defconfigs?
-> > 
-> Well the issues are because of defconfig but mostly fixable.
-> Will hold on my comments till I test the new defconfig on OMAP4.
-
-OK
- 
-> > Considering Linus' earlier comments on the defconfigs, I don't
-> > see any reasonds not to merge this patch. If TI wants to fix up
-> > some other things, there's still about two weeks before -rc6.
-> >
-> Sure. I am just saying let's attempt to fix the remaining issues
-> and if it doesn't happen in next week, anyway this patch will
-> get merged.
-
-OK let's plan on doing that.
-  
-> > > > - LOCAL_TIMERS hangs on omap4, disable it for now.
+* John W. Linville <linville@tuxdriver.com> [100915 06:21]:
+> On Wed, Sep 15, 2010 at 01:08:18PM +0200, Vitaly Wool wrote:
+> > On Wed, Sep 15, 2010 at 11:21 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > > On Wed, Sep 1, 2010 at 11:26 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > >> This patchset adds wl1271 support on ZOOM2/3 boards.
 > > >
-> > > This is expected on omap4 ES1.0 and hence not enabled
-> > > in the omap_4430sdp_defconfig.
+> > > Tony, John, let me please suggest merging this through the wireless tree.
+> > >
+> > > wl1271 is a moving target - it keeps changing in the wireless tree and
+> > > merging this patchset there will allow wl1271 developers to have
+> > > everything in a single tree (and prevent merge conflicts in
+> > > linux-next).
 > > 
-> > Maybe add a check for ES1.0 there to the init then?
-> > 
-> Yes but its ARM generic code and I don't want to pollute it
-> with omap checks.. Will see if some other trick can fix this.
+> > Thanks Ohad, that's what I was about to suggest as well. :)
+> 
+> OK, that is fine with me if the omap folks agree?
 
-Maybe in smp_twd.c return from twd_timer_setup early if twd_base
-is NULL?
-
-Regards,
+Yes sounds good to me, I think there's still at least some platform_data
+conversation going on though.
 
 Tony
