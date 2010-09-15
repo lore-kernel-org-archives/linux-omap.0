@@ -1,145 +1,42 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v5 1/6] OMAP3: hwmod data: Add watchdog timer
-Date: Wed, 15 Sep 2010 23:26:54 +0200
-Message-ID: <4C913A1E.2060906@ti.com>
-References: <1284528403-6494-1-git-send-email-charu@ti.com> <1284528403-6494-2-git-send-email-charu@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall
+ in SDRC after a Warm-reset
+Date: Wed, 15 Sep 2010 15:35:03 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009151533560.458@utopia.booyaka.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB03229868BA@dbde02.ent.ti.com> <alpine.DEB.2.00.1005181816380.27473@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8926@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48164 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751961Ab0IOV1E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Sep 2010 17:27:04 -0400
-In-Reply-To: <1284528403-6494-2-git-send-email-charu@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:43534 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753861Ab0IOVfF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 17:35:05 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8926@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, vishwanath.bs@ti.com
 
-On 9/15/2010 7:26 AM, Varadarajan, Charulatha wrote:
-> Add watchdog timer hwmod data for OMAP3 chip
->
-> Signed-off-by: Charulatha V<charu@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   61 ++++++++++++++++++++++++++++
->   arch/arm/mach-omap2/prcm-common.h          |    4 ++
->   2 files changed, 65 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 5d8eb58..a9812a8 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -36,6 +36,7 @@ static struct omap_hwmod omap3xxx_iva_hwmod;
->   static struct omap_hwmod omap3xxx_l3_main_hwmod;
->   static struct omap_hwmod omap3xxx_l4_core_hwmod;
->   static struct omap_hwmod omap3xxx_l4_per_hwmod;
-> +static struct omap_hwmod omap3xxx_wd_timer2_hwmod;
->
->   /* L3 ->  L4_CORE interface */
->   static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
-> @@ -197,6 +198,65 @@ static struct omap_hwmod omap3xxx_iva_hwmod = {
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
->   };
->
-> +/* WDTIMER2<- L4_WKUP interface */
+Teerth, Vishwa,
 
-Minor point, but the name convention is wd_timerX. It is valid for all 
-other comments in this file.
+On Tue, 25 May 2010, Reddy, Teerth wrote:
 
-> +static struct omap_hwmod_addr_space omap3xxx_wd_timer2_addrs[] = {
-> +	{
-> +		.pa_start	= 0x48314000,
-> +		.pa_end		= 0x4831407f,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__wd_timer2 = {
-> +	.master		=&omap3xxx_l4_wkup_hwmod,
-> +	.slave		=&omap3xxx_wd_timer2_hwmod,
-> +	.clk		= "wdt2_ick",
-> +	.addr		= omap3xxx_wd_timer2_addrs,
-> +	.addr_cnt	= ARRAY_SIZE(omap3xxx_wd_timer2_addrs),
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* WDTIMER common */
-> +
-> +static struct omap_hwmod_class_sysconfig omap3xxx_wd_timer_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.syss_offs	= 0x0014,
-> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_EMUFREE |
-> +			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-> +			   SYSC_HAS_AUTOIDLE | SYSC_HAS_CLOCKACTIVITY),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields    =&omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap3xxx_wd_timer_hwmod_class = {
-> +	.name = "wd_timer",
-> +	.sysc =&omap3xxx_wd_timer_sysc,
-> +};
-> +
-> +/* WDTIMER2 */
-> +static struct omap_hwmod_ocp_if *omap3xxx_wd_timer2_slaves[] = {
-> +	&omap3xxx_l4_wkup__wd_timer2,
-> +};
-> +
-> +static struct omap_hwmod omap3xxx_wd_timer2_hwmod = {
-> +	.name		= "wd_timer2",
-> +	.class		=&omap3xxx_wd_timer_hwmod_class,
-> +	.main_clk	= "wdt2_fck",
-> +	.prcm		= {
-> +		.omap2 = {
-> +			.prcm_reg_id = 1,
-> +			.module_bit = OMAP3430_EN_WDT2_SHIFT,
-> +			.module_offs = WKUP_MOD,
-> +			.idlest_reg_id = 1,
-> +			.idlest_idle_bit = OMAP3430_EN_WDT2_SHIFT,
-> +		},
-> +	},
-> +	.slaves		= omap3xxx_wd_timer2_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap3xxx_wd_timer2_slaves),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +};
-> +
->   static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
->   	&omap3xxx_l3_main_hwmod,
->   	&omap3xxx_l4_core_hwmod,
-> @@ -204,6 +264,7 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
->   	&omap3xxx_l4_wkup_hwmod,
->   	&omap3xxx_mpu_hwmod,
->   	&omap3xxx_iva_hwmod,
-> +	&omap3xxx_wd_timer2_hwmod,
->   	NULL,
->   };
->
-> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-> index 995b7ed..e190c64 100644
-> --- a/arch/arm/mach-omap2/prcm-common.h
-> +++ b/arch/arm/mach-omap2/prcm-common.h
-> @@ -237,6 +237,8 @@
->   #define OMAP24XX_ST_USB_MASK				(1<<  0)
->
->   /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-> +#define OMAP24XX_EN_WDT2_SHIFT				3
-> +#define OMAP24XX_EN_WDT2_MASK				(1<<  3)
->   #define OMAP24XX_EN_GPIOS_SHIFT				2
->   #define OMAP24XX_EN_GPIOS_MASK				(1<<  2)
->   #define OMAP24XX_EN_GPT1_SHIFT				0
-> @@ -344,6 +346,8 @@
->   #define OMAP3430_ST_D2D_MASK				(1<<  3)
->
->   /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-> +#define OMAP3430_EN_WDT2_SHIFT				5
-> +#define OMAP3430_EN_WDT2_MASK				(1<<  5)
->   #define OMAP3430_EN_GPIO1_MASK				(1<<  3)
->   #define OMAP3430_EN_GPIO1_SHIFT				3
->   #define OMAP3430_EN_GPT12_MASK				(1<<  1)
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Wednesday, May 19, 2010 6:03 AM
+> > To: Reddy, Teerth
+> > Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath
+> > Subject: Re: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR
+> > stall in SDRC after a Warm-reset
+> > 
+> > On Fri, 23 Apr 2010, Reddy, Teerth wrote:
+> > 
+> > > From: Teerth Reddy <teerth@ti.com>
+> > >
+> > > This patch has the workaround for errata 1.176.
 
-That part is not related to the subject of this patch. You should 
-probably put that in another patch.
+What's the current status of this patch?  Still waiting for an updated 
+version.
 
-Benoit
+
+- Paul
