@@ -1,52 +1,55 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH V4 0/2] OMAP3: Dynamic Calculation of SDRC stall latency
- during DVFS
-Date: Wed, 15 Sep 2010 15:45:18 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009151544390.458@utopia.booyaka.com>
-References: <> <1270142216-18118-1-git-send-email-pramod.gurav@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0322986980@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB03232DAE08@dbde02.ent.ti.com> <alpine.DEB.2.00.1007011235090.13691@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 0/4] OMAP OPP layer for 2.6.37
+Date: Wed, 15 Sep 2010 14:56:35 -0700
+Message-ID: <1284587799-9637-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49468 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751744Ab0IOVpT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 17:45:19 -0400
-In-Reply-To: <alpine.DEB.2.00.1007011235090.13691@utopia.booyaka.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:37069 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751727Ab0IOV4m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 17:56:42 -0400
+Received: by pvg2 with SMTP id 2so195722pvg.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Sep 2010 14:56:41 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gurav , Pramod" <pramod.gurav@ti.com>, teerth@ti.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, b-cousson@ti.com, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-Pramod, Teerth,
+This series introduces a layer to manage Operating Performance Points (OPPs)
+for OMAP SoCs.
 
-On Thu, 1 Jul 2010, Paul Walmsley wrote:
+Special thanks to Nishanth for doing the bulk of the work on this
+series and to Thara for doing significant review, testing and updates.
 
-> Pramod, Teerth,
-> 
-> On Mon, 7 Jun 2010, Gurav , Pramod wrote:
-> 
-> > Can you please push these patches if you don't you are OK with them?
-> 
-> As we discussed in Bangalore, these patches need some changes:
-> 
-> 1. The delay needs to be precisely characterized in terms of what the 
-> hardware actually needs.  It should not be necessary to add any extra 
-> timing slop, due to unknown sources, in the code.  Unknown sources of 
-> delay can cause problems if, for example, a customer changes some board 
-> characteristics (such as sys_clk frequency, or DPLL multipliers/dividers) 
-> that the delay depends on.
-> 
-> Also, my understanding is that RX-51 shipped without unknown timing 
-> factors in this code.  Please work with the hardware people to precisely 
-> characterize the delay, assuming that it does not match what is documented 
-> in the TRM.
-> 
-> 2. Please split out the individual components of the delay calculation to 
-> the code that handles those clocks.  For example, HSDIVIDER change delay 
-> should be calculated by code that handles the HSDIVIDER.  DPLL relock 
-> delay should be calculated by code in the dpll*.c files.  etc.
+Kevin Hilman (1):
+  OMAP3: remove OPP interfaces from OMAP PM layer
 
-Any updates on these patches?
+Nishanth Menon (2):
+  OMAP: introduce OPP layer for device-specific OPPs
+  OMAP3: OPP: add OPP table data and initialization
 
+Paul Walmsley (1):
+  OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
 
-- Paul
+ Documentation/arm/OMAP/omap_pm                |   83 +++++
+ arch/arm/mach-omap2/Makefile                  |    2 +
+ arch/arm/mach-omap2/io.c                      |    3 +-
+ arch/arm/mach-omap2/opp3xxx_data.c            |  126 +++++++
+ arch/arm/mach-omap2/pm.c                      |    6 +
+ arch/arm/mach-omap2/pm.h                      |    1 +
+ arch/arm/plat-omap/Makefile                   |    6 +
+ arch/arm/plat-omap/include/plat/omap-pm.h     |   31 +--
+ arch/arm/plat-omap/include/plat/opp.h         |  145 ++++++++
+ arch/arm/plat-omap/include/plat/opp_twl_tps.h |   21 ++
+ arch/arm/plat-omap/omap-pm-noop.c             |   11 +-
+ arch/arm/plat-omap/opp.c                      |  461 +++++++++++++++++++++++++
+ arch/arm/plat-omap/opp_twl_tps.c              |   41 +++
+ 13 files changed, 904 insertions(+), 33 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/opp3xxx_data.c
+ create mode 100644 arch/arm/plat-omap/include/plat/opp.h
+ create mode 100644 arch/arm/plat-omap/include/plat/opp_twl_tps.h
+ create mode 100644 arch/arm/plat-omap/opp.c
+ create mode 100644 arch/arm/plat-omap/opp_twl_tps.c
+
+-- 
+1.7.2.1
+
