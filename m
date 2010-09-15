@@ -1,39 +1,41 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [Discussion] USB: musb-gadget: how to fix ZLP issue in musb_g_tx
-Date: Wed, 15 Sep 2010 17:10:15 +0400
-Message-ID: <4C90C5B7.7050103@ru.mvista.com>
-References: <AANLkTinPVUBNJoOR496KgSy2TT0f6i1f5xEKVhKod2R=@mail.gmail.com> <20100915105641.GO3393@legolas.emea.dhcp.ti.com> <AANLkTi=gYSsxSHqAur+isj_UinVLC-YWkdmi5j_vkSUV@mail.gmail.com> <20100915110745.GP3393@legolas.emea.dhcp.ti.com>
+From: "John W. Linville" <linville@tuxdriver.com>
+Subject: Re: [PATCH v5 0/7] native wl1271 support on ZOOM
+Date: Wed, 15 Sep 2010 09:21:50 -0400
+Message-ID: <20100915132149.GA6997@tuxdriver.com>
+References: <1283376410-9999-1-git-send-email-ohad@wizery.com>
+ <AANLkTikedoL3HjohQfq2qa0TU5yMJR5p1GqyQJtQGrdb@mail.gmail.com>
+ <AANLkTingdk=9Fbp9uKf6rGyAtR+b8KV4vFmYRfakkwBs@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100915110745.GP3393@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Ming Lei <tom.leiming@gmail.com>, Sergei Shtylyov <sshtylyov@mvista.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from charlotte.tuxdriver.com ([70.61.120.58]:48060 "EHLO
+	smtp.tuxdriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752627Ab0ION3o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 09:29:44 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTingdk=9Fbp9uKf6rGyAtR+b8KV4vFmYRfakkwBs@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vitaly Wool <vitalywool@gmail.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, "Wool, Vitaly" <Vitaly.Wool@sonyericsson.com>, linux-wireless@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Roger Quadros <roger.quadros@nokia.com>, Ido Yariv <ido@wizery.com>, San Mehat <san@google.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, linux-mmc@vger.kernel.org, Luciano Coelho <luciano.coelho@nokia.com>, linux-omap@vger.kernel.org, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org
 
-Hello.
+On Wed, Sep 15, 2010 at 01:08:18PM +0200, Vitaly Wool wrote:
+> On Wed, Sep 15, 2010 at 11:21 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> > On Wed, Sep 1, 2010 at 11:26 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> >> This patchset adds wl1271 support on ZOOM2/3 boards.
+> >
+> > Tony, John, let me please suggest merging this through the wireless tree.
+> >
+> > wl1271 is a moving target - it keeps changing in the wireless tree and
+> > merging this patchset there will allow wl1271 developers to have
+> > everything in a single tree (and prevent merge conflicts in
+> > linux-next).
+> 
+> Thanks Ohad, that's what I was about to suggest as well. :)
 
-Felipe Balbi wrote:
+OK, that is fine with me if the omap folks agree?
 
-> On Wed, Sep 15, 2010 at 06:02:22AM -0500, Ming Lei wrote:
->> If so, once the dma interrupt comes, will request->actual be same
->> with request->length in musb_g_tx?  And if it is true, could we remove 
->> the
->> check for 'is_dma'?
-
-> see that is_dma is set to true by just checking if dma in enabled in
-> txcsr, it might be that dma didn't complete everything and you need to
-> write txpktrdy by hand to send last short packet. So to remove that you
-> would need to re-work a bit more code.
-
-    I don't see what to rework. The last short packet should still satisfy 
-(request->actual == request->length) condition, no?
-
-> You need to know when this is a dma IRQ or an endpoint IRQ.
-
-    We know that -- but why check it there, before (request->actual == 
-request->length)?
-
-WBR, Sergei
+John
+-- 
+John W. Linville		Someday the world will need a hero, and you
+linville@tuxdriver.com			might be all we have.  Be ready.
