@@ -1,131 +1,47 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v5 4/6] OMAP4: hwmod data: Add watchdog timer
-Date: Wed, 15 Sep 2010 23:35:17 +0200
-Message-ID: <4C913C15.6010201@ti.com>
-References: <1284528403-6494-1-git-send-email-charu@ti.com> <1284528403-6494-5-git-send-email-charu@ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH] overo twl4030: fix twl4030 IRQ (used for usb otg detection)
+Date: Wed, 15 Sep 2010 14:28:57 -0700
+Message-ID: <AANLkTimG7i72PdjaX-2_EqhJkZBFm==StMJZKkzywCf=@mail.gmail.com>
+References: <4C90F46D.2020902@artecdesign.ee>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51917 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754241Ab0IOVf0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Sep 2010 17:35:26 -0400
-In-Reply-To: <1284528403-6494-5-git-send-email-charu@ti.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:44725 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753131Ab0IOVgo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 17:36:44 -0400
+Received: by wwd20 with SMTP id 20so8371wwd.1
+        for <linux-omap@vger.kernel.org>; Wed, 15 Sep 2010 14:36:43 -0700 (PDT)
+In-Reply-To: <4C90F46D.2020902@artecdesign.ee>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Anti Sullin <anti.sullin@artecdesign.ee>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>
 
-On 9/15/2010 7:26 AM, Varadarajan, Charulatha wrote:
-> From: Benoit Cousson<b-cousson@ti.com>
+On Wed, Sep 15, 2010 at 9:29 AM, Anti Sullin <anti.sullin@artecdesign.ee> wrote:
+> I was not getting OTG USB vbus/id pin change interrupts on Gumstix Overo
+> and the reason was a mis-configured irq. I added some more checks to avoid
+> having a non-bootable kernel on boards with bootloaders that have wrong pinmux.
+> The changes of twl4030 should be tested on other boards too.
 >
-> Add watchdog timer hwmod data for OMAP4 chip
->
-> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> Signed-off-by: Charulatha V<charu@ti.com>
 > ---
-> This patch is extracted from the below patch sent by Benoit
-> OMAP4: hwmod: Add partial hwmod support for OMAP4430 ES1.0
-> https://patchwork.kernel.org/patch/99052/
+> Gumstix Overo has TPS65950 (TWL4030) IRQ1 connected to GPIO112.
 
-Since that one, I sent a newer version:
-OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
-https://patchwork.kernel.org/patch/117347/
+I don't think that this change should be made.
 
-In fact the patch that really contains all the data is not there, 
-probably because of its size :-(
+>From what I understand from my discussions with Gumstix, early
+versions of the Overo COM used GPIO112 as indicated above.
 
-Benoit
+However all fab revisions >=2516 use GPIO0, so the code is correct for
+current and future versions of Overo COMs (as is the bootloader
+pinmuxing).
 
->
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   68 ++++++++++++++++++++++++++++
->   1 files changed, 68 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index e20b0ee..06851f7 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -452,6 +452,72 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->   };
->
-> +/*
-> + * 'wd_timer' class
-> + * 32-bit watchdog upward counter that generates a pulse on the reset pin on
-> + * overflow condition
-> + */
-> +
-> +static struct omap_hwmod_class_sysconfig omap44xx_wd_timer_sysc = {
-> +	.rev_offs	= 0x0000,
-> +	.sysc_offs	= 0x0010,
-> +	.syss_offs	= 0x0014,
-> +	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_EMUFREE |
-> +			   SYSC_HAS_SOFTRESET),
-> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.sysc_fields	=&omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap44xx_wd_timer_hwmod_class = {
-> +	.name = "wd_timer",
-> +	.sysc =&omap44xx_wd_timer_sysc,
-> +};
-> +
-> +/* wd_timer2 */
-> +static struct omap_hwmod omap44xx_wd_timer2_hwmod;
-> +static struct omap_hwmod_irq_info omap44xx_wd_timer2_irqs[] = {
-> +	{ .irq = 80 + OMAP44XX_IRQ_GIC_START },
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap44xx_wd_timer2_addrs[] = {
-> +	{
-> +		.pa_start	= 0x4a314000,
-> +		.pa_end		= 0x4a31407f,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +};
-> +
-> +/* l4_wkup ->  wd_timer2 */
-> +static struct omap_hwmod_ocp_if omap44xx_l4_wkup__wd_timer2 = {
-> +	.master		=&omap44xx_l4_wkup_hwmod,
-> +	.slave		=&omap44xx_wd_timer2_hwmod,
-> +	.clk		= "l4_wkup_clk_mux_ck",
-> +	.addr		= omap44xx_wd_timer2_addrs,
-> +	.addr_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_addrs),
-> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* wd_timer2 slave ports */
-> +static struct omap_hwmod_ocp_if *omap44xx_wd_timer2_slaves[] = {
-> +	&omap44xx_l4_wkup__wd_timer2,
-> +};
-> +
-> +static struct omap_hwmod omap44xx_wd_timer2_hwmod = {
-> +	.name		= "wd_timer2",
-> +	.class		=&omap44xx_wd_timer_hwmod_class,
-> +	.mpu_irqs	= omap44xx_wd_timer2_irqs,
-> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_irqs),
-> +	.main_clk	= "wd_timer2_fck",
-> +	.prcm = {
-> +		.omap4 = {
-> +			.clkctrl_reg = OMAP4430_CM_WKUP_WDT2_CLKCTRL,
-> +		},
-> +	},
-> +	.slaves		= omap44xx_wd_timer2_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_slaves),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-> +};
-> +
->   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
->   	/* dmm class */
->   	&omap44xx_dmm_hwmod,
-> @@ -472,6 +538,8 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
->
->   	/* mpu class */
->   	&omap44xx_mpu_hwmod,
-> +	/* wd_timer class */
-> +	&omap44xx_wd_timer2_hwmod,
->   	NULL,
->   };
->
+In fact, future versions of Overo will use GPIO112 for a revision ID.
 
+Not an ideal situation, but I think we should leave things as they are
+since it matches current and future production.
+
+People with older boards will certainly need to use this patch to get
+vbus/id interrupts.
+
+Steve
