@@ -1,80 +1,60 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND/PATCH 5/6] USB: musb-gadget: complete request only if
- data is transfered over
-Date: Wed, 15 Sep 2010 09:53:45 +0300
-Message-ID: <20100915065345.GC3393@legolas.emea.dhcp.ti.com>
+Subject: Re: [RESEND/PATCH 6/6] USB: musb-gadget: fix dma length in txstate
+Date: Wed, 15 Sep 2010 10:09:37 +0300
+Message-ID: <20100915070936.GD3393@legolas.emea.dhcp.ti.com>
 References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
- <1283873014-32511-6-git-send-email-tom.leiming@gmail.com>
- <4C8E18AD.8000502@ru.mvista.com>
- <AANLkTinei3u1OZ-eBiUTDF=PDjwxLcL6rBpt7iNQJgHJ@mail.gmail.com>
- <4C8E4882.6040600@ru.mvista.com>
- <4C8E50CC.3080705@ru.mvista.com>
- <20100914065604.GD2601@legolas.emea.dhcp.ti.com>
- <4C8F527E.40408@ru.mvista.com>
- <20100914105402.GD7554@legolas.emea.dhcp.ti.com>
- <4C8FB60D.1080906@ru.mvista.com>
+ <1283873014-32511-7-git-send-email-tom.leiming@gmail.com>
+ <4C8FB43D.5020604@ru.mvista.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55505 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751216Ab0IOGx6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Sep 2010 02:53:58 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4C8FB60D.1080906@ru.mvista.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <4C8FB43D.5020604@ru.mvista.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Ming Lei <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
+Cc: "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <me@felipebalbi.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
+List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 14, 2010 at 12:51:09PM -0500, Sergei Shtylyov wrote:
+On Tue, Sep 14, 2010 at 12:43:25PM -0500, Sergei Shtylyov wrote:
 >Hello.
 >
->Felipe Balbi wrote:
+>tom.leiming@gmail.com wrote:
 >
->>>    If a DMA interrupt comes when the whole transfer is not yet
->>> complete (and
->>> other Ming Lei's patches are making this possible),
+>> From: Ming Lei <tom.leiming@gmail.com>
 >
->    Oh, here I mixed some other patch with Ming Lei's ones...
+>> DMA length should not go beyond the availabe space of request buffer,
+>> so fix it.
 >
->>> it will pass due to the
+>> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+>> Cc: David Brownell <dbrownell@users.sourceforge.net>
+>> Cc: Felipe Balbi <me@felipebalbi.com>
+>> Cc: Anand Gadiyar <gadiyar@ti.com>
+>> Cc: Mike Frysinger <vapier@gentoo.org>
+>> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 >
->> than this is the actual problem, no ? If we're using mode1 dma (as we
->> are on tx path), we should only get dma interrupt when the whole
->> transfer has been completed.
+>[...]
 >
->    The Inventra DMA controller has serious DMA length limitation, so the whole
->transfer may take more than one DMA.
-
-When I said 'whole transfer' I meant the transfer size you programmed
-dma to transfer, see that we have (not actual code):
-
-if (transfer_size > dma->max_len)
-	transfer_size = dma->max_len;
-
-dma->channel_program(...,..., transfer_size,...);
-
-with mode1, we will only get irq when dma has transferred transfer_size
-bytes.
-
->> likewise, this was there before the patch. I don't think the real
->> problem lies with this patch, it's been there for a while, don't you
->> agree ?
+>> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+>> index fa826f9..cacae96 100644
+>> --- a/drivers/usb/musb/musb_gadget.c
+>> +++ b/drivers/usb/musb/musb_gadget.c
+>> @@ -300,6 +300,11 @@ static void txstate(struct musb *musb, struct musb_request *req)
+>>  #ifndef	CONFIG_MUSB_PIO_ONLY
+>>  	if (is_dma_capable() && musb_ep->dma) {
+>>  		struct dma_controller	*c = musb->dma_controller;
+>> +		size_t request_size;
+>> +
+>> +		/* setup DMA, then program endpoint CSR */
+>> +		request_size = min_t(size_t, request->length - request->actual,
+>> +					musb_ep->dma->max_len);
 >
->    Then what problem this patch fixes, if not this one?
+>    Er, you're moving this from under #ifdef CONFIG_USB_INVENTRA_DMA to the
+>common code, right? Do you know that not all DMA drivers initialize max_len? For
+>example CPPI driver doesn't, so it's left at zero. You're going to break DMA for
+>CPPI. Please extend your patch, adding cppi_dma.c to it.
 
-if request->length == 1MB and dma->max_len = 128KB, when is_dma is true,
-request->actual will be different from request->length for 7
-'iterations', then only on the 8th it will be the same. I believe that's
-what Ming is trying to fix.
-
-Ming, am I correct ?
-
->    Let me repeat: in the PIO mode the added check is just duplicate, in the DMA
-
-it is duplicate for PIO, but not for DMA.
+yes, please set some value on cppi_dma.c max_len field.
 
 -- 
 balbi
