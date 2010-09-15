@@ -1,60 +1,48 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RESEND/PATCH 6/6] USB: musb-gadget: fix dma length in txstate
-Date: Wed, 15 Sep 2010 10:09:37 +0300
-Message-ID: <20100915070936.GD3393@legolas.emea.dhcp.ti.com>
-References: <1283873014-32511-1-git-send-email-tom.leiming@gmail.com>
- <1283873014-32511-7-git-send-email-tom.leiming@gmail.com>
- <4C8FB43D.5020604@ru.mvista.com>
+Subject: Re: [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
+Date: Wed, 15 Sep 2010 10:11:16 +0300
+Message-ID: <20100915071116.GE3393@legolas.emea.dhcp.ti.com>
+References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
+ <1282647866-6918-8-git-send-email-manjugk@ti.com>
+ <87lj7iv8zv.fsf@deeprootsystems.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A8F@dbde02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027843B8E7@dbde02.ent.ti.com>
+ <20100914102407.GC7554@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027843B9A8@dbde02.ent.ti.com>
+ <20100914115711.GE7554@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027843BAE5@dbde02.ent.ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38483 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752163Ab0IOHLY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 03:11:24 -0400
 Content-Disposition: inline
-In-Reply-To: <4C8FB43D.5020604@ru.mvista.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "tom.leiming@gmail.com" <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <me@felipebalbi.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Mike Frysinger <vapier@gentoo.org>
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027843BAE5@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-On Tue, Sep 14, 2010 at 12:43:25PM -0500, Sergei Shtylyov wrote:
->Hello.
->
->tom.leiming@gmail.com wrote:
->
->> From: Ming Lei <tom.leiming@gmail.com>
->
->> DMA length should not go beyond the availabe space of request buffer,
->> so fix it.
->
->> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
->> Cc: David Brownell <dbrownell@users.sourceforge.net>
->> Cc: Felipe Balbi <me@felipebalbi.com>
->> Cc: Anand Gadiyar <gadiyar@ti.com>
->> Cc: Mike Frysinger <vapier@gentoo.org>
->> Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
->
->[...]
->
->> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
->> index fa826f9..cacae96 100644
->> --- a/drivers/usb/musb/musb_gadget.c
->> +++ b/drivers/usb/musb/musb_gadget.c
->> @@ -300,6 +300,11 @@ static void txstate(struct musb *musb, struct musb_request *req)
->>  #ifndef	CONFIG_MUSB_PIO_ONLY
->>  	if (is_dma_capable() && musb_ep->dma) {
->>  		struct dma_controller	*c = musb->dma_controller;
->> +		size_t request_size;
->> +
->> +		/* setup DMA, then program endpoint CSR */
->> +		request_size = min_t(size_t, request->length - request->actual,
->> +					musb_ep->dma->max_len);
->
->    Er, you're moving this from under #ifdef CONFIG_USB_INVENTRA_DMA to the
->common code, right? Do you know that not all DMA drivers initialize max_len? For
->example CPPI driver doesn't, so it's left at zero. You're going to break DMA for
->CPPI. Please extend your patch, adding cppi_dma.c to it.
+Hi,
 
-yes, please set some value on cppi_dma.c max_len field.
+On Tue, Sep 14, 2010 at 09:11:26AM -0500, G, Manjunath Kondaiah wrote:
+>There are several places in kernel code (ex:
+>tools/perf/util/include/linux/bitops.h:static __always_inline int
+>test_bit(unsigned int nr, const unsigned long *addr)) which are using
+>__always_inline attribute to make sure functions are inlined.
+
+those are special cases. Generally, compiler is much better than humans
+for choosing what should be inlined or not.
+
+>Ok, Agreed.  We can have inline functions and expanding all macros in mach-omap
+>dma driver code.
+>However, there is common dma driver(in plat-omap) which has code for both omap1
+>and omap2plus which uses this macro.
+
+well, that can be patched, right ?
 
 -- 
 balbi
