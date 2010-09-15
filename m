@@ -1,154 +1,608 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v5 6/6] OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
-Date: Wed, 15 Sep 2010 07:45:42 -0700
-Message-ID: <87fwxbgj55.fsf@deeprootsystems.com>
-References: <1284528403-6494-1-git-send-email-charu@ti.com>
-	<1284528403-6494-7-git-send-email-charu@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sukumar Ghorai <s-ghorai@ti.com>
+Subject: [PATCH] omap mmc: extended to pass host capabilities from board file
+Date: Wed, 15 Sep 2010 20:19:23 +0530
+Message-ID: <1284562163-2828-1-git-send-email-s-ghorai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:65019 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754214Ab0IOOpt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 10:45:49 -0400
-In-Reply-To: <1284528403-6494-7-git-send-email-charu@ti.com> (Charulatha
-	Varadarajan's message of "Wed, 15 Sep 2010 10:56:43 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:55088 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753294Ab0IOOta (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Sep 2010 10:49:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: wim@iguana.be
-Cc: tony@atomide.com, linux-watchdog@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-mmc@vger.kernel.org, Sukumar Ghorai <s-ghorai@ti.com>
 
-Hi Wim,
+  wires variable is renamed, extended and this single variable to be used to
+  pass the platform capabilities, e.g DDR mode. Also removed the hardcoded
+  value was using as bus-width.
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+Signed-off-by: Sukumar Ghorai <s-ghorai@ti.com>
+---
+ arch/arm/mach-omap2/board-2430sdp.c          |    3 ++-
+ arch/arm/mach-omap2/board-3430sdp.c          |    5 +++--
+ arch/arm/mach-omap2/board-4430sdp.c          |    4 ++--
+ arch/arm/mach-omap2/board-cm-t35.c           |    5 +++--
+ arch/arm/mach-omap2/board-devkit8000.c       |    3 ++-
+ arch/arm/mach-omap2/board-igep0020.c         |    5 +++--
+ arch/arm/mach-omap2/board-ldp.c              |    3 ++-
+ arch/arm/mach-omap2/board-n8x0.c             |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c      |    3 ++-
+ arch/arm/mach-omap2/board-omap3evm.c         |    3 ++-
+ arch/arm/mach-omap2/board-omap3pandora.c     |    7 ++++---
+ arch/arm/mach-omap2/board-omap3stalker.c     |    3 ++-
+ arch/arm/mach-omap2/board-omap3touchbook.c   |    3 ++-
+ arch/arm/mach-omap2/board-omap4panda.c       |    2 +-
+ arch/arm/mach-omap2/board-overo.c            |    5 +++--
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++--
+ arch/arm/mach-omap2/board-zoom-peripherals.c |    5 +++--
+ arch/arm/mach-omap2/devices.c                |   16 +++++++++-------
+ arch/arm/mach-omap2/hsmmc.c                  |   16 ++++++++++------
+ arch/arm/mach-omap2/hsmmc.h                  |    3 ++-
+ arch/arm/plat-omap/include/plat/mmc.h        |    7 +++----
+ drivers/mmc/host/omap.c                      |    2 +-
+ drivers/mmc/host/omap_hsmmc.c                |   18 ++----------------
+ 23 files changed, 67 insertions(+), 61 deletions(-)
 
-> Call runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
-> for enabling/disabling the clocks, sysconfig settings instead of using
-> clock FW APIs.
->
-> Signed-off-by: Charulatha V <charu@ti.com>
-
-With your ack, I'll be glad to merge this via the OMAP tree since it
-depends on the rest of the series for the OMAP platform specific
-changes.
-
-Kevin
-
-
-> ---
->  drivers/watchdog/omap_wdt.c |   42 +++++++-----------------------------------
->  1 files changed, 7 insertions(+), 35 deletions(-)
->
-> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-> index 76b58ab..dbbc580 100644
-> --- a/drivers/watchdog/omap_wdt.c
-> +++ b/drivers/watchdog/omap_wdt.c
-> @@ -38,11 +38,11 @@
->  #include <linux/err.h>
->  #include <linux/platform_device.h>
->  #include <linux/moduleparam.h>
-> -#include <linux/clk.h>
->  #include <linux/bitops.h>
->  #include <linux/io.h>
->  #include <linux/uaccess.h>
->  #include <linux/slab.h>
-> +#include <linux/pm_runtime.h>
->  #include <mach/hardware.h>
->  #include <plat/prcm.h>
->  
-> @@ -61,8 +61,6 @@ struct omap_wdt_dev {
->  	void __iomem    *base;          /* physical */
->  	struct device   *dev;
->  	int             omap_wdt_users;
-> -	struct clk      *ick;
-> -	struct clk      *fck;
->  	struct resource *mem;
->  	struct miscdevice omap_wdt_miscdev;
->  };
-> @@ -146,8 +144,7 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
->  	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
->  		return -EBUSY;
->  
-> -	clk_enable(wdev->ick);    /* Enable the interface clock */
-> -	clk_enable(wdev->fck);    /* Enable the functional clock */
-> +	pm_runtime_get_sync(wdev->dev);
->  
->  	/* initialize prescaler */
->  	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-> @@ -177,8 +174,7 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
->  
->  	omap_wdt_disable(wdev);
->  
-> -	clk_disable(wdev->ick);
-> -	clk_disable(wdev->fck);
-> +	pm_runtime_put_sync(wdev->dev);
->  #else
->  	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
->  #endif
-> @@ -292,19 +288,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
->  
->  	wdev->omap_wdt_users = 0;
->  	wdev->mem = mem;
-> -
-> -	wdev->ick = clk_get(&pdev->dev, "ick");
-> -	if (IS_ERR(wdev->ick)) {
-> -		ret = PTR_ERR(wdev->ick);
-> -		wdev->ick = NULL;
-> -		goto err_clk;
-> -	}
-> -	wdev->fck = clk_get(&pdev->dev, "fck");
-> -	if (IS_ERR(wdev->fck)) {
-> -		ret = PTR_ERR(wdev->fck);
-> -		wdev->fck = NULL;
-> -		goto err_clk;
-> -	}
-> +	wdev->dev = &pdev->dev;
->  
->  	wdev->base = ioremap(res->start, resource_size(res));
->  	if (!wdev->base) {
-> @@ -314,8 +298,8 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
->  
->  	platform_set_drvdata(pdev, wdev);
->  
-> -	clk_enable(wdev->ick);
-> -	clk_enable(wdev->fck);
-> +	pm_runtime_enable(wdev->dev);
-> +	pm_runtime_get_sync(wdev->dev);
->  
->  	omap_wdt_disable(wdev);
->  	omap_wdt_adjust_timeout(timer_margin);
-> @@ -333,11 +317,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
->  		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
->  		timer_margin);
->  
-> -	/* autogate OCP interface clock */
-> -	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
-> -
-> -	clk_disable(wdev->ick);
-> -	clk_disable(wdev->fck);
-> +	pm_runtime_put_sync(wdev->dev);
->  
->  	omap_wdt_dev = pdev;
->  
-> @@ -349,12 +329,6 @@ err_misc:
->  
->  err_ioremap:
->  	wdev->base = NULL;
-> -
-> -err_clk:
-> -	if (wdev->ick)
-> -		clk_put(wdev->ick);
-> -	if (wdev->fck)
-> -		clk_put(wdev->fck);
->  	kfree(wdev);
->  
->  err_kzalloc:
-> @@ -386,8 +360,6 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
->  	release_mem_region(res->start, resource_size(res));
->  	platform_set_drvdata(pdev, NULL);
->  
-> -	clk_put(wdev->ick);
-> -	clk_put(wdev->fck);
->  	iounmap(wdev->base);
->  
->  	kfree(wdev);
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 8538e41..fc178a0 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -19,6 +19,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/physmap.h>
++#include <linux/mmc/host.h>
+ #include <linux/delay.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/err.h>
+@@ -190,7 +191,7 @@ static int __init omap2430_i2c_init(void)
+ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 		.ext_clock	= 1,
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 67b95b5..3eb9839 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -24,6 +24,7 @@
+ #include <linux/regulator/machine.h>
+ #include <linux/io.h>
+ #include <linux/gpio.h>
++#include <linux/mmc/host.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -353,12 +354,12 @@ static struct omap2_hsmmc_info mmc[] = {
+ 		/* 8 bits (default) requires S6.3 == ON,
+ 		 * so the SIM card isn't used; else 4 bits.
+ 		 */
+-		.wires		= 8,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= 4,
+ 	},
+ 	{
+ 		.mmc		= 2,
+-		.wires		= 8,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= 7,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 9447644..e379bef 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -193,12 +193,12 @@ static struct omap_musb_board_data musb_board_data = {
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 8,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{
+ 		.mmc		= 2,
+-		.wires		= 8,
++		.caps		=  MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 		.nonremovable   = true,
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index e10bc10..b72009a 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -31,6 +31,7 @@
+ #include <linux/i2c/at24.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
++#include <linux/mmc/host.h>
+ 
+ #include <linux/spi/spi.h>
+ #include <linux/spi/tdo24m.h>
+@@ -579,14 +580,14 @@ static struct twl4030_keypad_data cm_t35_kp_data = {
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 
+ 	},
+ 	{
+ 		.mmc		= 2,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.transceiver	= 1,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index a07086d..de5e2c2 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -28,6 +28,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/nand.h>
++#include <linux/mmc/host.h>
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
+@@ -105,7 +106,7 @@ static struct omap_nand_platform_data devkit8000_nand_data = {
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 8,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= 29,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 175f043..f3f0280 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -20,6 +20,7 @@
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
++#include <linux/mmc/host.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -248,13 +249,13 @@ static struct regulator_init_data igep2_vmmc2 = {
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{
+ 		.mmc		= 2,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 00d9b13..58698e3 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -27,6 +27,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/io.h>
+ #include <linux/smsc911x.h>
++#include <linux/mmc/host.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -362,7 +363,7 @@ static int __init omap_i2c_init(void)
+ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index a3e2b49..64ef167 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -487,7 +487,7 @@ static struct omap_mmc_platform_data mmc1_data = {
+ 	.max_freq			= 24000000,
+ 	.dma_mask			= 0xffffffff,
+ 	.slots[0] = {
+-		.wires			= 4,
++		.caps			= MMC_CAP_4_BIT_DATA,
+ 		.set_power		= n8x0_mmc_set_power,
+ 		.set_bus_mode		= n8x0_mmc_set_bus_mode,
+ 		.get_cover_state	= n8x0_mmc_get_cover_state,
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 87969c7..51493f5 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -27,6 +27,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/nand.h>
++#include <linux/mmc/host.h>
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
+@@ -166,7 +167,7 @@ static void __init beagle_display_init(void)
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 8,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= 29,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index f76d9c0..523ba55 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -31,6 +31,7 @@
+ #include <linux/smsc911x.h>
+ 
+ #include <linux/regulator/machine.h>
++#include <linux/mmc/host.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -370,7 +371,7 @@ static struct regulator_init_data omap3evm_vsim = {
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= 63,
+ 	},
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index dd3af2b..2d2e6fc 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -32,6 +32,7 @@
+ #include <linux/input.h>
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/gpio_keys.h>
++#include <linux/mmc/host.h>
+ #include <linux/mmc/card.h>
+ 
+ #include <asm/mach-types.h>
+@@ -276,14 +277,14 @@ static void pandora_wl1251_init_card(struct mmc_card *card)
+ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= 126,
+ 		.ext_clock	= 0,
+ 	},
+ 	{
+ 		.mmc		= 2,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= 127,
+ 		.ext_clock	= 1,
+@@ -291,7 +292,7 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+ 	},
+ 	{
+ 		.mmc		= 3,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 		.init_card	= pandora_wl1251_init_card,
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index bcd01d2..c1b881d 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -26,6 +26,7 @@
+ 
+ #include <linux/regulator/machine.h>
+ #include <linux/i2c/twl.h>
++#include <linux/mmc/host.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -275,7 +276,7 @@ static struct regulator_init_data omap3stalker_vsim = {
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 	 .mmc		= 1,
+-	 .wires		= 4,
++	 .caps		= MMC_CAP_4_BIT_DATA,
+ 	 .gpio_cd	= -EINVAL,
+ 	 .gpio_wp	= 23,
+ 	 },
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 663c62d..9ab18fd 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -27,6 +27,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/nand.h>
++#include <linux/mmc/host.h>
+ 
+ #include <plat/mcspi.h>
+ #include <linux/spi/spi.h>
+@@ -108,7 +109,7 @@ static struct omap_nand_platform_data omap3touchbook_nand_data = {
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 8,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= 29,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index c03d1d5..81e756d 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -56,7 +56,7 @@ static struct omap_musb_board_data musb_board_data = {
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 8,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}	/* Terminator */
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 4c48436..93441e5 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -32,6 +32,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
++#include <linux/mmc/host.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -303,13 +304,13 @@ static void __init overo_flash_init(void)
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{
+ 		.mmc		= 2,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 		.transceiver	= true,
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 9a5eb87..a3dbaa7 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -302,7 +302,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{
+ 		.name		= "external",
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.cover_only	= true,
+ 		.gpio_cd	= 160,
+ 		.gpio_wp	= -EINVAL,
+@@ -311,7 +311,8 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{
+ 		.name		= "internal",
+ 		.mmc		= 2,
+-		.wires		= 8, /* See also rx51_mmc2_remux */
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
++						/* See also rx51_mmc2_remux */
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 		.nonremovable	= true,
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 6b39849..e5eac46 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -16,6 +16,7 @@
+ #include <linux/gpio.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
++#include <linux/mmc/host.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -155,14 +156,14 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
+ 	{
+ 		.name		= "external",
+ 		.mmc		= 1,
+-		.wires		= 4,
++		.caps		= MMC_CAP_4_BIT_DATA,
+ 		.gpio_wp	= -EINVAL,
+ 		.power_saving	= true,
+ 	},
+ 	{
+ 		.name		= "internal",
+ 		.mmc		= 2,
+-		.wires		= 8,
++		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
+ 		.nonremovable	= true,
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 2dbb265..9390750 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -624,7 +624,7 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 		omap_mux_init_signal("sdmmc_dat0", 0);
+ 		omap_mux_init_signal("sdmmc_dat_dir0", 0);
+ 		omap_mux_init_signal("sdmmc_cmd_dir", 0);
+-		if (mmc_controller->slots[0].wires == 4) {
++		if (mmc_controller->slots[0].caps & MMC_CAP_4_BIT_DATA) {
+ 			omap_mux_init_signal("sdmmc_dat1", 0);
+ 			omap_mux_init_signal("sdmmc_dat2", 0);
+ 			omap_mux_init_signal("sdmmc_dat3", 0);
+@@ -652,8 +652,8 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 				OMAP_PIN_INPUT_PULLUP);
+ 			omap_mux_init_signal("sdmmc1_dat0",
+ 				OMAP_PIN_INPUT_PULLUP);
+-			if (mmc_controller->slots[0].wires == 4 ||
+-				mmc_controller->slots[0].wires == 8) {
++			if (mmc_controller->slots[0].caps &
++				(MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
+ 				omap_mux_init_signal("sdmmc1_dat1",
+ 					OMAP_PIN_INPUT_PULLUP);
+ 				omap_mux_init_signal("sdmmc1_dat2",
+@@ -661,7 +661,8 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 				omap_mux_init_signal("sdmmc1_dat3",
+ 					OMAP_PIN_INPUT_PULLUP);
+ 			}
+-			if (mmc_controller->slots[0].wires == 8) {
++			if (mmc_controller->slots[0].caps &
++						MMC_CAP_8_BIT_DATA) {
+ 				omap_mux_init_signal("sdmmc1_dat4",
+ 					OMAP_PIN_INPUT_PULLUP);
+ 				omap_mux_init_signal("sdmmc1_dat5",
+@@ -685,8 +686,8 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			 * For 8 wire configurations, Lines DAT4, 5, 6 and 7 need to be muxed
+ 			 * in the board-*.c files
+ 			 */
+-			if (mmc_controller->slots[0].wires == 4 ||
+-				mmc_controller->slots[0].wires == 8) {
++			if (mmc_controller->slots[0].caps &
++				(MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA)) {
+ 				omap_mux_init_signal("sdmmc2_dat1",
+ 					OMAP_PIN_INPUT_PULLUP);
+ 				omap_mux_init_signal("sdmmc2_dat2",
+@@ -694,7 +695,8 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 				omap_mux_init_signal("sdmmc2_dat3",
+ 					OMAP_PIN_INPUT_PULLUP);
+ 			}
+-			if (mmc_controller->slots[0].wires == 8) {
++			if (mmc_controller->slots[0].caps &
++							MMC_CAP_8_BIT_DATA) {
+ 				omap_mux_init_signal("sdmmc2_dat4.sdmmc2_dat4",
+ 					OMAP_PIN_INPUT_PULLUP);
+ 				omap_mux_init_signal("sdmmc2_dat5.sdmmc2_dat5",
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index c8f647b..87ce6ff 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -258,7 +258,7 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 				"mmc%islot%i", c->mmc, 1);
+ 		mmc->slots[0].name = hc->name;
+ 		mmc->nr_slots = 1;
+-		mmc->slots[0].wires = c->wires;
++		mmc->slots[0].caps = c->caps;
+ 		mmc->slots[0].internal_clock = !c->ext_clock;
+ 		mmc->dma_mask = 0xffffffff;
+ 
+@@ -316,16 +316,20 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 			}
+ 
+ 			/* Omap3630 HSMMC1 supports only 4-bit */
+-			if (cpu_is_omap3630() && c->wires > 4) {
+-				c->wires = 4;
+-				mmc->slots[0].wires = c->wires;
++			if (cpu_is_omap3630() &&
++					(c->caps & MMC_CAP_8_BIT_DATA)) {
++				c->caps &= ~MMC_CAP_8_BIT_DATA;
++				c->caps |= MMC_CAP_4_BIT_DATA;
++				mmc->slots[0].caps = c->caps;
+ 			}
+ 			break;
+ 		case 2:
+ 			if (c->ext_clock)
+ 				c->transceiver = 1;
+-			if (c->transceiver && c->wires > 4)
+-				c->wires = 4;
++			if (c->transceiver && (c->caps & MMC_CAP_8_BIT_DATA)) {
++				c->caps &= ~MMC_CAP_8_BIT_DATA;
++				c->caps |= MMC_CAP_4_BIT_DATA;
++			}
+ 			/* FALLTHROUGH */
+ 		case 3:
+ 			if (mmc->slots[0].features & HSMMC_HAS_PBIAS) {
+diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
+index 1fe6f01..281e972 100644
+--- a/arch/arm/mach-omap2/hsmmc.h
++++ b/arch/arm/mach-omap2/hsmmc.h
+@@ -10,7 +10,8 @@ struct mmc_card;
+ 
+ struct omap2_hsmmc_info {
+ 	u8	mmc;		/* controller 1/2/3 */
+-	u8	wires;		/* 1/4/8 wires */
++	u32	caps;		/* 4/8 wires and any additional host
++				 * capabilities OR'd (ref. linux/mmc/host.h) */
+ 	bool	transceiver;	/* MMC-2 option */
+ 	bool	ext_clock;	/* use external pin for input clock */
+ 	bool	cover_only;	/* No card detect - just cover switch */
+diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
+index 9b89ec6..4f819fc 100644
+--- a/arch/arm/plat-omap/include/plat/mmc.h
++++ b/arch/arm/plat-omap/include/plat/mmc.h
+@@ -73,10 +73,9 @@ struct omap_mmc_platform_data {
+ 
+ 	struct omap_mmc_slot_data {
+ 
+-		/* 4 wire signaling is optional, and is used for SD/SDIO/HSMMC;
+-		 * 8 wire signaling is also optional, and is used with HSMMC
+-		 */
+-		u8 wires;
++		/* 4/8 wires and any additional host capabilities
++		 * need to OR'd all capabilities (ref. linux/mmc/host.h) */
++		u32 caps;
+ 
+ 		/*
+ 		 * nomux means "standard" muxing is wrong on this board, and
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index d98ddcf..a9d62cf 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1317,7 +1317,7 @@ static int __init mmc_omap_new_slot(struct mmc_omap_host *host, int id)
+ 	host->slots[id] = slot;
+ 
+ 	mmc->caps = 0;
+-	if (host->pdata->slots[id].wires >= 4)
++	if (host->pdata->slots[id].caps & MMC_CAP_8_BIT_DATA)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+ 
+ 	mmc->ops = &mmc_omap_ops;
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 1c359f0..fe1d391 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -2124,23 +2124,9 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+ 		     MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_ERASE;
+ 
+-	switch (mmc_slot(host).wires) {
+-	case 8:
+-		mmc->caps |= MMC_CAP_8_BIT_DATA;
+-		/* Fall through */
+-	case 4:
++	mmc->caps |= mmc_slot(host).caps;
++	if (mmc->caps & MMC_CAP_8_BIT_DATA)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+-		break;
+-	case 1:
+-		/* Nothing to crib here */
+-	case 0:
+-		/* Assuming nothing was given by board, Core use's 1-Bit */
+-		break;
+-	default:
+-		/* Completely unexpected.. Core goes with 1-Bit Width */
+-		dev_crit(mmc_dev(host->mmc), "Invalid width %d\n used!"
+-			"using 1 instead\n", mmc_slot(host).wires);
+-	}
+ 
+ 	if (mmc_slot(host).nonremovable)
+ 		mmc->caps |= MMC_CAP_NONREMOVABLE;
