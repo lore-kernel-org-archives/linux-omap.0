@@ -1,66 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
- frequency
-Date: Wed, 15 Sep 2010 13:15:11 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com>
-References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Upcoming merge window, marked all the patchwork patches before
+ v2.6.35 as archived
+Date: Wed, 15 Sep 2010 12:17:17 -0700
+Message-ID: <20100915191716.GG4174@atomide.com>
+References: <20100915183141.GF4174@atomide.com>
+ <AANLkTikA1eOPe-GGW4egFHO9=Kw8bdEaTW8RC5o_A2JK@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48805 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753220Ab0IOTPN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 15:15:13 -0400
-In-Reply-To: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64850 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755218Ab0IOTRW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 15:17:22 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTikA1eOPe-GGW4egFHO9=Kw8bdEaTW8RC5o_A2JK@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, khilman@deeprootsystems.com, tony@atomide.com
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Jon,
+* Gadiyar, Anand <gadiyar@ti.com> [100915 11:36]:
+> 
+> I posted this patch [1] a while ago fixing a bunch of compile warnings
+> that show up with omap3_defconfig and omap_4430sdp_defconfig builds. I
+> can't seem to locate it in patchworks; not sure how that happened.
+> 
+> Any chance you can pick this up (before more folks on LAKML start
+> yelling about no-one caring for build warnings...)? Would you like me
+> to post this again?
+> 
+> - Anand
+> 
+> [1] http://marc.info/?l=linux-omap&m=128212353619711&w=2
 
-I regret the delay:
+Thanks, adding that with Felipe's ack. For some reason I could not
+find this in patchwork at all, I guess it must have been pretty broken
+at some point.
 
-On Wed, 21 Jul 2010, Jon Hunter wrote:
+Anyways, for the other patches, please just repost so we'll
+have all the pending patches in one queue in patchwork.
 
-> From: Jon Hunter <jon-hunter@ti.com>
-> 
-> When changing the L3 clock frequency, the CPU is executing from internal RAM
-> and the SDRC clock is disabled. During this time accesses made to external
-> DDR are stalled. If the ARM subsystem attempts to access the DDR while the
-> SDRC clock is disabled this will stall the CPU until the access to the SDRC
-> timeouts. A timeout on the SDRC should never occur. Once a timeout occurs all
-> the following accesses will be aborted and the DDR is no longer accessible.
-> 
-> Although the code being executed in the internal RAM does not directly access
-> the DDR, it was found that the branch prediction logic in the CPU may cause
-> the CPU to prefetch code from a DDR location while the SDRC clock is disabled.
-> This was causing an SDRC timeout which resulted in a system hang.
-> 
-> This patch fixes this problem by ensuring the branch prediction logic is
-> disabled while changing the L3 clock frequency. The branch prediction logic
-> is disabled by clearing the Z-bit in the ARM AUX CTRL register.
-> 
-> Disabling the branch prediction logic does not have any noticable impact
-> on the execution time of this code section. The hardware observability
-> signals were used to monitor the sdrc idle time with and without this
-> patch when operating at different CPU frequencies (150MHz, 500MHz and
-> 600MHz) and the total sdrc idle time when changing frequenct was in
-> the range of 9-11us. This was measured on an omap3430 SDP running the
-> omapzoom p-android-omap-2.6.29 branch.
-> 
-> This change has been commited to both TI's android 2.6.29 and 2.6.32 kernels.
-> The commits can be viewed here:
-> http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=5679c7b1142f3cc2b9285181d53f6b40c4d0296d
-> http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=cf16e57823575d98e9d5165aa7a498ffb751c940
-> 
-> This patch has been rebased on the latest linux-omap tree and tested on
-> Kevin Hilman's pm branch.
-> 
-> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+Regards,
 
-Really nice changelog.  I wish every patch had a description this good.  
-Patch looks really good, too.  Queued for 2.6.37.
-
-
-- Paul
+Tony
