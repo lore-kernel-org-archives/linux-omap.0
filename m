@@ -1,53 +1,152 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v6 0/7] native wl1271 support on ZOOM
-Date: Thu, 16 Sep 2010 01:22:02 +0200
-Message-ID: <1284592929-29616-1-git-send-email-ohad@wizery.com>
+Subject: [PATCH v6 1/7] wl12xx: make wl12xx.h common to both spi and sdio
+Date: Thu, 16 Sep 2010 01:22:03 +0200
+Message-ID: <1284592929-29616-2-git-send-email-ohad@wizery.com>
+References: <1284592929-29616-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:35653 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690Ab0IOX1i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 19:27:38 -0400
+	with ESMTP id S1754048Ab0IOX1l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Sep 2010 19:27:41 -0400
+In-Reply-To: <1284592929-29616-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: "John W. Linville" <linville@tuxdriver.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Ido Yariv <ido@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Vitaly Wool <vitalywool@gmail.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-This patchset adds wl1271 support on ZOOM2/3 boards.
+Move wl12xx.h outside of the spi-specific location,
+so it can be shared with both spi and sdio solutions.
 
-Only basic support is included; power manipulation is submitted separately as SDIO Runtime PM support.
-
-Changes since v5:
-- rebase to wireless-testing
-- remove 2nd copy from wl12xx_platform_data (keep the 1st one though)
-
-Thanks,
-
-Ohad Ben-Cohen (7):
-  wl12xx: make wl12xx.h common to both spi and sdio
-  wl1271: propagate set_power's return value
-  wl12xx: add platform data passing support
-  wl1271: take irq info from private board data
-  wl1271: make ref_clock configurable by board
-  omap: zoom: add fixed regulator device for wlan
-  omap: zoom: add mmc3/wl1271 device support
-
- arch/arm/mach-omap2/board-zoom-peripherals.c       |   54 ++++++++++++++++++++
- drivers/net/wireless/Makefile                      |    2 +
- drivers/net/wireless/wl12xx/Kconfig                |    5 ++-
- drivers/net/wireless/wl12xx/wl1251_sdio.c          |    2 +-
- drivers/net/wireless/wl12xx/wl1251_spi.c           |    2 +-
- drivers/net/wireless/wl12xx/wl1271.h               |    3 +-
- drivers/net/wireless/wl12xx/wl1271_boot.c          |   11 +++--
- drivers/net/wireless/wl12xx/wl1271_boot.h          |    1 -
- drivers/net/wireless/wl12xx/wl1271_io.h            |    9 ++-
- drivers/net/wireless/wl12xx/wl1271_main.c          |    4 +-
- drivers/net/wireless/wl12xx/wl1271_sdio.c          |   31 +++++++-----
- drivers/net/wireless/wl12xx/wl1271_spi.c           |    8 ++-
- drivers/net/wireless/wl12xx/wl12xx_platform_data.c |   28 ++++++++++
- include/linux/spi/wl12xx.h                         |   34 ------------
- include/linux/wl12xx.h                             |   38 ++++++++++++++
- 15 files changed, 170 insertions(+), 62 deletions(-)
- create mode 100644 drivers/net/wireless/wl12xx/wl12xx_platform_data.c
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+---
+ drivers/net/wireless/wl12xx/wl1251_sdio.c |    2 +-
+ drivers/net/wireless/wl12xx/wl1251_spi.c  |    2 +-
+ drivers/net/wireless/wl12xx/wl1271_spi.c  |    2 +-
+ include/linux/spi/wl12xx.h                |   34 -----------------------------
+ include/linux/wl12xx.h                    |   34 +++++++++++++++++++++++++++++
+ 5 files changed, 37 insertions(+), 37 deletions(-)
  delete mode 100644 include/linux/spi/wl12xx.h
  create mode 100644 include/linux/wl12xx.h
+
+diff --git a/drivers/net/wireless/wl12xx/wl1251_sdio.c b/drivers/net/wireless/wl12xx/wl1251_sdio.c
+index c0b68b0..74ba9ce 100644
+--- a/drivers/net/wireless/wl12xx/wl1251_sdio.c
++++ b/drivers/net/wireless/wl12xx/wl1251_sdio.c
+@@ -24,7 +24,7 @@
+ #include <linux/mmc/sdio_func.h>
+ #include <linux/mmc/sdio_ids.h>
+ #include <linux/platform_device.h>
+-#include <linux/spi/wl12xx.h>
++#include <linux/wl12xx.h>
+ #include <linux/irq.h>
+ 
+ #include "wl1251.h"
+diff --git a/drivers/net/wireless/wl12xx/wl1251_spi.c b/drivers/net/wireless/wl12xx/wl1251_spi.c
+index 334ded9..320de79 100644
+--- a/drivers/net/wireless/wl12xx/wl1251_spi.c
++++ b/drivers/net/wireless/wl12xx/wl1251_spi.c
+@@ -24,7 +24,7 @@
+ #include <linux/slab.h>
+ #include <linux/crc7.h>
+ #include <linux/spi/spi.h>
+-#include <linux/spi/wl12xx.h>
++#include <linux/wl12xx.h>
+ 
+ #include "wl1251.h"
+ #include "wl1251_reg.h"
+diff --git a/drivers/net/wireless/wl12xx/wl1271_spi.c b/drivers/net/wireless/wl12xx/wl1271_spi.c
+index 4cb99c5..c3fdab7 100644
+--- a/drivers/net/wireless/wl12xx/wl1271_spi.c
++++ b/drivers/net/wireless/wl12xx/wl1271_spi.c
+@@ -25,7 +25,7 @@
+ #include <linux/module.h>
+ #include <linux/crc7.h>
+ #include <linux/spi/spi.h>
+-#include <linux/spi/wl12xx.h>
++#include <linux/wl12xx.h>
+ #include <linux/slab.h>
+ 
+ #include "wl1271.h"
+diff --git a/include/linux/spi/wl12xx.h b/include/linux/spi/wl12xx.h
+deleted file mode 100644
+index a20bccf..0000000
+--- a/include/linux/spi/wl12xx.h
++++ /dev/null
+@@ -1,34 +0,0 @@
+-/*
+- * This file is part of wl12xx
+- *
+- * Copyright (C) 2009 Nokia Corporation
+- *
+- * Contact: Luciano Coelho <luciano.coelho@nokia.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- */
+-
+-#ifndef _LINUX_SPI_WL12XX_H
+-#define _LINUX_SPI_WL12XX_H
+-
+-struct wl12xx_platform_data {
+-	void (*set_power)(bool enable);
+-	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
+-	int irq;
+-	bool use_eeprom;
+-};
+-
+-#endif
+diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
+new file mode 100644
+index 0000000..015687a
+--- /dev/null
++++ b/include/linux/wl12xx.h
+@@ -0,0 +1,34 @@
++/*
++ * This file is part of wl12xx
++ *
++ * Copyright (C) 2009 Nokia Corporation
++ *
++ * Contact: Luciano Coelho <luciano.coelho@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#ifndef _LINUX_WL12XX_H
++#define _LINUX_WL12XX_H
++
++struct wl12xx_platform_data {
++	void (*set_power)(bool enable);
++	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
++	int irq;
++	bool use_eeprom;
++};
++
++#endif
+-- 
+1.7.0.4
 
