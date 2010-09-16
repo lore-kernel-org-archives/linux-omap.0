@@ -1,37 +1,42 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v6 01/17] wl12xx: make wl12xx.h common to both spi and
- sdio
-Date: Thu, 16 Sep 2010 13:46:48 -0700
-Message-ID: <20100916204648.GO29610@atomide.com>
-References: <AANLkTikYd+TojQC-R+Vrdou6KSRwFNczBeTnsX7eTDn4@mail.gmail.com>
- <1284635762-12335-1-git-send-email-ohad@wizery.com>
- <1284662139.8951.7.camel@powerslave>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
+ frequency
+Date: Thu, 16 Sep 2010 13:49:35 -0700
+Message-ID: <20100916204935.GP29610@atomide.com>
+References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
+ <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com>
+ <20100915224007.GJ4174@atomide.com>
+ <alpine.DEB.2.00.1009151707370.458@utopia.booyaka.com>
+ <AANLkTimC7_pGag4e+Q0fasP=mdsug8xrU95UJLKOJHvf@mail.gmail.com>
+ <20100916185743.GJ29610@atomide.com>
+ <AANLkTinXdow4tzmwpx6nRe5VCN5Q8_aKz9EibxKinWWO@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59075 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756171Ab0IPUtk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 16:49:40 -0400
 Content-Disposition: inline
-In-Reply-To: <1284662139.8951.7.camel@powerslave>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: ext Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <AANLkTinXdow4tzmwpx6nRe5VCN5Q8_aKz9EibxKinWWO@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, khilman@deeprootsystems.com
 
-* Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> [100916 11:28]:
-> On Thu, 2010-09-16 at 13:16 +0200, ext Ohad Ben-Cohen wrote:
-> > Move wl12xx.h outside of the spi-specific location,
-> > so it can be shared with both spi and sdio solutions.
-> > 
-> > Update all users of spi/wl12xx.h accordingly
-> > 
-> > Signed-off-by: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-> > ---
+* Gadiyar, Anand <gadiyar@ti.com> [100916 13:16]:
+> On Fri, Sep 17, 2010 at 12:27 AM, Tony Lindgren <tony@atomide.com> wrote:
 > 
-> Acked-by: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> For the past - OMAP3 and before - we'll do our best to scrub all internal
+> trees for missing bugs/features/what not and hopefully this will
+> go upstream as we discover those.
+> 
+> Sounds fair?
 
-Looks good to me too:
+Sounds fair. But it might be worth checking that you guys have a system
+in place for collecting omap specific fixes and promptly merging them
+upstream to the mainline tree.
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
