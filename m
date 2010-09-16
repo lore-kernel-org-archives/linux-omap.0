@@ -1,68 +1,54 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH] overo twl4030: fix twl4030 IRQ (used for usb otg detection)
-Date: Thu, 16 Sep 2010 05:56:52 -0700
-Message-ID: <AANLkTi=jyrLHTKSP1UTxNzri2EHvkt8iXT1cW8LKNNM6@mail.gmail.com>
-References: <4C90F46D.2020902@artecdesign.ee>
-	<AANLkTimG7i72PdjaX-2_EqhJkZBFm==StMJZKkzywCf=@mail.gmail.com>
-	<20100916060731.GB3393@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 0/5] OMAP4: ES2 PRCM diff series
+Date: Thu, 16 Sep 2010 18:28:21 +0530
+Message-ID: <1284641906-24231-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:63893 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753581Ab0IPM45 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 08:56:57 -0400
-Received: by wyf22 with SMTP id 22so1295130wyf.19
-        for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2010 05:56:56 -0700 (PDT)
-In-Reply-To: <20100916060731.GB3393@legolas.emea.dhcp.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55388 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754115Ab0IPM6g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Sep 2010 08:58:36 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8GCwXC9014142
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2010 07:58:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Anti Sullin <anti.sullin@artecdesign.ee>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>
+To: linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>
 
-On Wed, Sep 15, 2010 at 11:07 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Wed, Sep 15, 2010 at 04:28:57PM -0500, Steve Sakoman wrote:
->>
->> On Wed, Sep 15, 2010 at 9:29 AM, Anti Sullin <anti.sullin@artecdesign.ee>
->> wrote:
->>>
->>> I was not getting OTG USB vbus/id pin change interrupts on Gumstix Overo
->>> and the reason was a mis-configured irq. I added some more checks to
->>> avoid
->>> having a non-bootable kernel on boards with bootloaders that have wrong
->>> pinmux.
->>> The changes of twl4030 should be tested on other boards too.
->>>
->>> ---
->>> Gumstix Overo has TPS65950 (TWL4030) IRQ1 connected to GPIO112.
->>
->> I don't think that this change should be made.
->>
->>> From what I understand from my discussions with Gumstix, early
->>
->> versions of the Overo COM used GPIO112 as indicated above.
->>
->> However all fab revisions >=2516 use GPIO0, so the code is correct for
->> current and future versions of Overo COMs (as is the bootloader
->> pinmuxing).
->>
->> In fact, future versions of Overo will use GPIO112 for a revision ID.
->>
->> Not an ideal situation, but I think we should leave things as they are
->> since it matches current and future production.
->>
->> People with older boards will certainly need to use this patch to get
->> vbus/id interrupts.
->
-> it would be better to get all boards working. Can't you use
-> ATAG_REVISION or system_rev to differentiate the board revisions and
-> change gpio number accordingly ??
+The PRCM IP in OMAP4430 ES2 is completely validated
+and is expected to be functional, unlike the one in ES1
+which was untested and non functional.
 
-Agreed.  Gumstix doesn't provide an easy way of determining the layout
-revision via software (the boards are marked with the rev number, but
-that doesn't do much good!).
+This series of patches brings in all the differences
+introducted by PRCM in ES2.0. Includes additional registers
+added, some removed, bitfields in registers moved around.
+Some changes in clock tree modelling and some in powerdomain
+states supported.
 
-I'm investigating methods to figure this out, but haven't yet found
-anything reliable.  When I do I'll post a patch.
+This series is tested on OMAP4430 ES2 using the below series
+http://www.spinics.net/lists/linux-omap/msg36023.html
+and also boot tested on OMAP4430 ES1 and applied on latest
+mainline.
 
-Steve
+Patches based on mainline rc4 are available here:
+http://gitorious.org/omap-pm/linux for_2.6.37
+
+Rajendra Nayak (4):
+  OMAP4: PM: Update PRCM register bitshits and masks for ES2
+  OMAP4: PM: Define additional registers for ES2
+  OMAP4: clocks: Update clock tree for ES2
+  OMAP4: powerdomain: Update DSS logic state for ES2
+
+Santosh Shilimkar (1):
+  OMAP4: powerdomain: add context_offset field
+
+ arch/arm/mach-omap2/clock44xx_data.c          |  168 ++++++--------
+ arch/arm/mach-omap2/cm-regbits-44xx.h         |  327 ++++++++++++++-----------
+ arch/arm/mach-omap2/cm44xx.h                  |   90 +++++++-
+ arch/arm/mach-omap2/powerdomains44xx.h        |   16 ++-
+ arch/arm/mach-omap2/prm-regbits-44xx.h        |  194 ++++++++++++---
+ arch/arm/mach-omap2/prm44xx.h                 |   14 +-
+ arch/arm/plat-omap/include/plat/powerdomain.h |    2 +
+ 7 files changed, 525 insertions(+), 286 deletions(-)
+
