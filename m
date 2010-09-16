@@ -1,26 +1,59 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v6 7/7] omap: zoom: add mmc3/wl1271 device support
-Date: Thu, 16 Sep 2010 10:45:12 -0700
-Message-ID: <20100916174512.GD29610@atomide.com>
-References: <1284593551-30141-1-git-send-email-ohad@wizery.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH] overo twl4030: fix twl4030 IRQ (used for usb otg detection)
+Date: Thu, 16 Sep 2010 10:46:56 -0700
+Message-ID: <AANLkTinCAjpV21ySM+6OMB0GAHDQPDVzvvLQGkCxbw=z@mail.gmail.com>
+References: <4C90F46D.2020902@artecdesign.ee>
+	<AANLkTimG7i72PdjaX-2_EqhJkZBFm==StMJZKkzywCf=@mail.gmail.com>
+	<20100916060731.GB3393@legolas.emea.dhcp.ti.com>
+	<AANLkTi=jyrLHTKSP1UTxNzri2EHvkt8iXT1cW8LKNNM6@mail.gmail.com>
+	<20100916174036.GB29610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1284593551-30141-1-git-send-email-ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33193 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755641Ab0IPRq6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 13:46:58 -0400
+Received: by wwb18 with SMTP id 18so174232wwb.1
+        for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2010 10:46:56 -0700 (PDT)
+In-Reply-To: <20100916174036.GB29610@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: balbi@ti.com, Anti Sullin <anti.sullin@artecdesign.ee>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>
 
-* Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [100915 16:23]:
-> Add MMC3 support on ZOOM, which has the wl1271 device hardwired to.
-> 
-> The wl1271 is a 4-wire, 1.8V, embedded SDIO WLAN device with an
-> external IRQ line, and power-controlled by a GPIO-based fixed regulator.
+On Thu, Sep 16, 2010 at 10:40 AM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> * Steve Sakoman <sakoman@gmail.com> [100916 05:48]:
+>>
+>> Agreed. =A0Gumstix doesn't provide an easy way of determining the la=
+yout
+>> revision via software (the boards are marked with the rev number, bu=
+t
+>> that doesn't do much good!).
+>
+> Unless you use the camera interface during early init to detect that
+> revision printed on the circuit board ;)
 
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+That was my first idea too :-)
+
+>> I'm investigating methods to figure this out, but haven't yet found
+>> anything reliable. =A0When I do I'll post a patch.
+>
+> How about add something to u-boot that allows setenv system_rev in
+> u-boot? Maybe it already has this feature as system_rev is arm-linux
+> generic atag.
+
+The hard part is creating the code to figure out how the board is wired=
+ :-)
+
+I have some promising approaches, but nothing working yet.  Once that
+is done the rest is easy!
+
+Steve
 --
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
