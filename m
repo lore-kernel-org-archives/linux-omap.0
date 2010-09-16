@@ -1,22 +1,22 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: [PATCH 04/13] OMAP: Introduce API to return a device list associated with a voltage domain
-Date: Thu, 16 Sep 2010 08:22:23 -0700
-Message-ID: <874odpems0.fsf@deeprootsystems.com>
+Date: Thu, 16 Sep 2010 08:23:21 -0700
+Message-ID: <87y6b1d85y.fsf@deeprootsystems.com>
 References: <1282130412-12027-1-git-send-email-thara@ti.com>
 	<1282130412-12027-5-git-send-email-thara@ti.com>
-	<87y6brblt3.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03294424C1@dbde02.ent.ti.com>
+	<87d3sxdlwl.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03294424CB@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:56415 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754761Ab0IPPWc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 11:22:32 -0400
-Received: by pvg2 with SMTP id 2so366962pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2010 08:22:32 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03294424C1@dbde02.ent.ti.com>
-	(Thara Gopinath's message of "Thu, 16 Sep 2010 15:34:32 +0530")
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:39729 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188Ab0IPPXn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 11:23:43 -0400
+Received: by pzk34 with SMTP id 34so366262pzk.19
+        for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2010 08:23:42 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03294424CB@dbde02.ent.ti.com>
+	(Thara Gopinath's message of "Thu, 16 Sep 2010 15:40:45 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Gopinath, Thara" <thara@ti.com>
@@ -24,31 +24,40 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 
 "Gopinath, Thara" <thara@ti.com> writes:
 
-[...]
-
->>>> +struct device **opp_init_voltage_params(struct voltagedomain *voltdm,
->>>> +					int *dev_count)
->>>> +{
->>>> +	struct device_opp *dev_opp;
->>>> +	struct device **dev_list;
->>>> +	int count = 0, i = 0;
->>>> +
->>>> +	list_for_each_entry(dev_opp, &dev_opp_list, node) {
->>>> +		if (!dev_opp->oh->vdd_name)
->>>> +			continue;
->>>> +
->>>> +		if (!strcmp(dev_opp->oh->vdd_name, voltdm->name)) {
->>>> +			dev_opp->oh->voltdm = voltdm;
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>Sent: Thursday, September 02, 2010 6:04 AM
+>>>To: Gopinath, Thara
+>>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Sripathy, Vishwanath; Sawant, Anand; Cousson, Benoit
+>>>Subject: Re: [PATCH 04/13] OMAP: Introduce API to return a device list associated with a voltage
+>>>domain
 >>>
->>>Couldn't we assign the voltdm at opp_add() time since you added it as
->>>part of the hwmod?
+>>>Thara Gopinath <thara@ti.com> writes:
+>>>
+>>>> This patch adds an API in the opp layer that
+>>>> can be used by the voltage layer to get a list of all the
+>>>> scalable devices belonging to a particular voltage domain.
+>>>> This API is to be typically called only once by the voltage
+>>>> layer per voltage domain instance and the device list should
+>>>> be stored. This approach makes it easy during dvfs to scale
+>>>> all the devices associated with a voltage domain and then
+>>>> scale the voltage domain.
+>>>>
+>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>>
+>>>I don't think the OPP layer is the right place for this after all.
+>>>
+>>>How about something like this in the voltage layer:
+>>>
+>>>  omap_voltage_add_device(struct voltagedomain *voltdm, struct device *dev)
+>>>
+>>>During omap_device_build(), if the hwmod has a voltage domain, it
+>>>calls this function to register it with the voltage layer.
 >
-> We cannot as the voltage layer is not initialized at the point of opp_add.
-> Having said this, today voltage layer is dependent on opp layer only to figure out 
-> the current nominal voltage from the opp table. If that can be some how decoupled we
-> can initialize voltage layer early on and implement this.
+> This mandates voltage layer to be initialized before the first omap_device_build
+> has happened. I think that is going to be a very confusing sequencing. Also today
+> voltage layer init happens later in the system.
 
-We could decouple the voltage init into and early init and late init to
-handle this.
+If we split into an early and late init, that would help here too.
 
 Kevin
