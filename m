@@ -1,20 +1,20 @@
 From: "Gopinath, Thara" <thara@ti.com>
 Subject: RE: [PATCH 04/13] OMAP: Introduce API to return a device list
  associated with a voltage domain
-Date: Thu, 16 Sep 2010 15:34:32 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03294424C1@dbde02.ent.ti.com>
+Date: Thu, 16 Sep 2010 15:40:45 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03294424CB@dbde02.ent.ti.com>
 References: <1282130412-12027-1-git-send-email-thara@ti.com>
 	<1282130412-12027-5-git-send-email-thara@ti.com>
- <87y6brblt3.fsf@deeprootsystems.com>
+ <87d3sxdlwl.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52389 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44052 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751532Ab0IPKEs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 06:04:48 -0400
-In-Reply-To: <87y6brblt3.fsf@deeprootsystems.com>
+	id S1751760Ab0IPKKw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 06:10:52 -0400
+In-Reply-To: <87d3sxdlwl.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -25,7 +25,7 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 
 >>-----Original Message-----
 >>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Saturday, August 28, 2010 6:23 AM
+>>Sent: Thursday, September 02, 2010 6:04 AM
 >>To: Gopinath, Thara
 >>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Sripathy, Vishwanath; Sawant, Anand; Cousson, Benoit
 >>Subject: Re: [PATCH 04/13] OMAP: Introduce API to return a device list associated with a voltage
@@ -44,9 +44,25 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 >>>
 >>> Signed-off-by: Thara Gopinath <thara@ti.com>
 >>
->>I think this should be done in two steps.
+>>I don't think the OPP layer is the right place for this after all.
 >>
->>During init, each OPP
+>>How about something like this in the voltage layer:
+>>
+>>  omap_voltage_add_device(struct voltagedomain *voltdm, struct device *dev)
+>>
+>>During omap_device_build(), if the hwmod has a voltage domain, it
+>>calls this function to register it with the voltage layer.
+
+This mandates voltage layer to be initialized before the first omap_device_build
+has happened. I think that is going to be a very confusing sequencing. Also today
+voltage layer init happens later in the system.
+
+>>
+>>This function then creates a list (internal to voltage layer) of all the
+>>devices in a voltage domain rather than having to query the OPP layer
+>>for it.
+>>
+>>Kevin
 >>
 >>> ---
 >>>  arch/arm/plat-omap/include/plat/opp.h |    9 +++++++++
@@ -108,14 +124,17 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 >>> +
 >>> +		if (!strcmp(dev_opp->oh->vdd_name, voltdm->name)) {
 >>> +			dev_opp->oh->voltdm = voltdm;
->>
->>Couldn't we assign the voltdm at opp_add() time since you added it as
->>part of the hwmod?
-
-We cannot as the voltage layer is not initialized at the point of opp_add.
-Having said this, today voltage layer is dependent on opp layer only to figure out 
-the current nominal voltage from the opp table. If that can be some how decoupled we
-can initialize voltage layer early on and implement this.
-
-Regards
-Thara
+>>> +			count++;
+>>> +		}
+>>> +	}
+>>> +
+>>> +	dev_list = kzalloc(sizeof(struct device *) * count, GFP_KERNEL);
+>>> +
+>>> +	list_for_each_entry(dev_opp, &dev_opp_list, node) {
+>>> +		if (dev_opp->oh->voltdm == voltdm)
+>>> +			dev_list[i++] = dev_opp->dev;
+>>> +	}
+>>> +
+>>> +	*dev_count = count;
+>>> +	return dev_list;
+>>> +}
