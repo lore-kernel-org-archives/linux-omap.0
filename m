@@ -1,142 +1,104 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/4] OMAP: introduce OPP layer for device-specific OPPs
-Date: Thu, 16 Sep 2010 09:01:43 -0500
-Message-ID: <4C922347.7050509@ti.com>
-References: <1284587799-9637-1-git-send-email-khilman@deeprootsystems.com> <1284587799-9637-2-git-send-email-khilman@deeprootsystems.com> <4C9221AF.9000804@nokia.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [lm-sensors] [PATCH 2/2] Makefile and Kconfig changes for
+ twl4030-madc driver
+Date: Thu, 16 Sep 2010 07:06:17 -0700
+Message-ID: <20100916140617.GA14165@ericsson.com>
+References: <1284632612-25339-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58634 "EHLO arroyo.ext.ti.com"
+Received: from imr3.ericy.com ([198.24.6.13]:53273 "EHLO imr3.ericy.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755245Ab0IPOBv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Sep 2010 10:01:51 -0400
-In-Reply-To: <4C9221AF.9000804@nokia.com>
+	id S1755148Ab0IPOGv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Sep 2010 10:06:51 -0400
+Content-Disposition: inline
+In-Reply-To: <1284632612-25339-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <roger.quadros@nokia.com>
-Cc: ext Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Keerthy <j-keerthy@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "balajitk@ti.com" <balajitk@ti.com>
 
-Roger Quadros had written, on 09/16/2010 08:54 AM, the following:
-> Since you are anyways re-sending this you might as well fix these nits.
-thanks for reviewing..
+On Thu, Sep 16, 2010 at 06:23:32AM -0400, Keerthy wrote:
+> Makefile amd Kconfig Changes for twl4030-madc driver inclusion.
+> 
+> Signed-off-by: Keerthy <j-keerthy@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |    4 ++++
+>  drivers/hwmon/Kconfig       |    4 ++++
+>  drivers/hwmon/Makefile      |    1 +
+>  3 files changed, 9 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index b48bacf..139137b 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -170,6 +170,8 @@ config MACH_OMAP_3430SDP
+>  	depends on ARCH_OMAP3
+>  	default y
+>  	select OMAP_PACKAGE_CBB
+> +	select HWMON
+> +	select TWL4030_MADC
+>  
+>  config MACH_NOKIA_N800
+>         bool
+> @@ -206,6 +208,8 @@ config MACH_OMAP_ZOOM3
+>  	depends on ARCH_OMAP3
+>  	default y
+>  	select OMAP_PACKAGE_CBP
+> +	select HWMON
+> +	select TWL4030_MADC
+>  
+>  config MACH_CM_T35
+>  	bool "CompuLab CM-T35 module"
+> diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
 
-> 
-[..]
+While it may make sense to have the above changes in a separate patch,
+the two files below should be part of patch #1, since they
+are logically part of the driver, and the driver itself won't 
+make any sense in the code without being enabled in Kconfig/Makefile.
 
->> diff --git a/arch/arm/plat-omap/opp.c b/arch/arm/plat-omap/opp.c
->> new file mode 100644
->> index 0000000..17f93b2
->> --- /dev/null
->> +++ b/arch/arm/plat-omap/opp.c
->> @@ -0,0 +1,461 @@
->> +/*
->> + * OMAP OPP Interface
->> + *
->> + * Copyright (C) 2009-2010 Texas Instruments Incorporated.
->> + *     Nishanth Menon
->> + *     Romit Dasgupta<romit@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
-> 
->> +/**
->> + * opp_get_voltage() - Gets the voltage corresponding to an opp
->> + * @opp:       opp for which voltage has to be returned for
->> + *
->> + * Return voltage in micro volt corresponding to the opp, else
->> + * return 0
->> + */
->> +unsigned long opp_get_voltage(const struct omap_opp *opp)
->> +{
->> +       if (unlikely(!opp || IS_ERR(opp)) || !opp->enabled) {
-> 
-> If !opp->enabled, then is it really an invalid parameter being passed?
-> 
-> I'm not user if people need to know the voltage of a disabled OPP, but 
-> do we need to limit it?
-> 
->> +               pr_err("%s: Invalid parameters being passed\n", __func__);
->> +               return 0;
->> +       }
->> +
->> +       return opp->u_volt;
->> +}
->> +
->> +/**
->> + * opp_get_freq() - Gets the frequency corresponding to an opp
->> + * @opp:       opp for which frequency has to be returned for
->> + *
->> + * Return frequency in hertz corresponding to the opp, else
->> + * return 0
->> + */
->> +unsigned long opp_get_freq(const struct omap_opp *opp)
->> +{
->> +       if (unlikely(!opp || IS_ERR(opp)) || !opp->enabled) {
-> 
-> ditto.
+> index 4d4d09b..47d66b9 100644
+> --- a/drivers/hwmon/Kconfig
+> +++ b/drivers/hwmon/Kconfig
+> @@ -39,6 +39,10 @@ config HWMON_DEBUG_CHIP
+>  
+>  comment "Native drivers"
+>  
+> +config TWL4030_MADC
 
-Yes, the intent here was for opp operational apis to function ONLY on 
-the enabled opps - this helps to pull out any bugs in the users
-who might be unintentionally using bad params.
+Please use SENSORS_TWL4030_MADC or SENSORS_TWL4030 to be in line
+with all other definitions. Also, please retain alphabetical order.
 
-do you have any usecase you can think of where we might want to use 
-these on a disabled opp?
+> +	tristate
+> +	depends on HWMON && TWL4030_CORE
+> +
+HWMON is really redundant here and should be removed.
 
+>  config SENSORS_ABITUGURU
+>  	tristate "Abit uGuru (rev 1 & 2)"
+>  	depends on X86 && EXPERIMENTAL
+> diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
+> index e3c2484..24b3b17 100644
+> --- a/drivers/hwmon/Makefile
+> +++ b/drivers/hwmon/Makefile
+> @@ -16,6 +16,7 @@ obj-$(CONFIG_SENSORS_W83792D)	+= w83792d.o
+>  obj-$(CONFIG_SENSORS_W83793)	+= w83793.o
+>  obj-$(CONFIG_SENSORS_W83781D)	+= w83781d.o
+>  obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
+> +obj-$(CONFIG_TWL4030_MADC)      += twl4030-madc.o
+>  
+Again, please retain alphabetical order. There is a reason for the other sensors 
+to be out of order (see comments in the Makefile), but presumably that does 
+not apply this one. If it does, please add comment/reason indicating that/if
+this is the case.
+
+>  obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
+>  obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
+> -- 
+> 1.7.0.4
 > 
->> +               pr_err("%s: Invalid parameters being passed\n", __func__);
->> +               return 0;
->> +       }
->> +
->> +       return opp->rate;
->> +}
->> +
->> +/**
->> + * opp_get_opp_count() - Get number of opps enabled in the opp list
->> + * @opp_type:  OPP type we want to count
->> + *
->> + * This functions returns the number of opps if there are any OPPs enabled,
->> + * else returns corresponding error value.
->> + */
->> +int opp_get_opp_count(struct device *dev)
->> +{
->> +       struct device_opp *dev_opp;
->> +
->> +       dev_opp = find_device_opp(dev);
->> +       if (IS_ERR(dev_opp))
->> +               return -ENODEV;
->> +
->> +       return dev_opp->enabled_opp_count;
->> +}
->> +
->> +/**
->> + * opp_find_freq_exact() - search for an exact frequency
->> + * @opp_type:  OPP type we want to search in.
->> + * @freq:      frequency to search for
->> + * @enabled:   enabled/disabled OPP to search for
->> + *
->> + * Searches for exact match in the opp list and returns handle to the matching
->> + * opp if found, else returns ERR_PTR in case of error and should be handled
->> + * using IS_ERR.
->> + *
->> + * Note enabled is a modifier for the search. if enabled=true, then the match is
 > 
-> Good to add some punctuation after 'Note'.
-
-Thanks will do
-
-> 
->> + * for exact matching frequency and is enabled. if false, the match is for exact
->> + * frequency which is disabled.
->> + */
-> 
-> cheers,
-> -roger
-
-
--- 
-Regards,
-Nishanth Menon
+> _______________________________________________
+> lm-sensors mailing list
+> lm-sensors@lm-sensors.org
+> http://lists.lm-sensors.org/mailman/listinfo/lm-sensors
