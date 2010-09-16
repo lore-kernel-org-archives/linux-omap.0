@@ -1,75 +1,64 @@
-From: Keerthy <j-keerthy@ti.com>
-Subject: [PATCH 2/2] Makefile and Kconfig changes for twl4030-madc driver
-Date: Thu, 16 Sep 2010 11:04:47 +0530
-Message-ID: <1284615287-31862-1-git-send-email-j-keerthy@ti.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR
+ stall in SDRC after a Warm-reset
+Date: Thu, 16 Sep 2010 11:19:18 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608703117EA1CA@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB03229868BA@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1005181816380.27473@utopia.booyaka.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8926@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1009151533560.458@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33291 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41872 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752826Ab0IPFfB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Sep 2010 01:35:01 -0400
+	id S1751024Ab0IPFt1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 01:49:27 -0400
+In-Reply-To: <alpine.DEB.2.00.1009151533560.458@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khali@linux-fr.org
-Cc: j-keerthy@ti.com, balajitk@ti.com
+To: Paul Walmsley <paul@pwsan.com>, "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Makefile amd Kconfig Changes for twl4030-madc driver inclusion.
+Paul,
 
-Signed-off-by: Keerthy <j-keerthy@ti.com>
----
- arch/arm/mach-omap2/Kconfig |    4 ++++
- drivers/hwmon/Kconfig       |    4 ++++
- drivers/hwmon/Makefile      |    1 +
- 3 files changed, 9 insertions(+), 0 deletions(-)
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Thursday, September 16, 2010 3:05 AM
+> To: Reddy, Teerth
+> Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath
+> Subject: RE: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall in
+> SDRC after a Warm-reset
+> 
+> Teerth, Vishwa,
+> 
+> On Tue, 25 May 2010, Reddy, Teerth wrote:
+> 
+> > > -----Original Message-----
+> > > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > > Sent: Wednesday, May 19, 2010 6:03 AM
+> > > To: Reddy, Teerth
+> > > Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath
+> > > Subject: Re: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR
+> > > stall in SDRC after a Warm-reset
+> > >
+> > > On Fri, 23 Apr 2010, Reddy, Teerth wrote:
+> > >
+> > > > From: Teerth Reddy <teerth@ti.com>
+> > > >
+> > > > This patch has the workaround for errata 1.176.
+> 
+> What's the current status of this patch?  Still waiting for an updated
+> version.
+We have realized that this errata is not applicable if reset is triggered via dpll3 reset.
+The rootcasuse of the issues was that incase of warm reset, SDRC is not sensitive to the warm reset, but the interconect is reset on the fly, thus causing a misalignment
+between SDRC logic, interconect logic and DDR memory state. Hence the workaround was proposed. However, incase of dpll3 reset, sdrc also gets reset. 
+In omap_prcm_arch_reset, system reset is triggered via dpll3 reset, so this WA is not applicable. 
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index b48bacf..139137b 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -170,6 +170,8 @@ config MACH_OMAP_3430SDP
- 	depends on ARCH_OMAP3
- 	default y
- 	select OMAP_PACKAGE_CBB
-+	select HWMON
-+	select TWL4030_MADC
- 
- config MACH_NOKIA_N800
-        bool
-@@ -206,6 +208,8 @@ config MACH_OMAP_ZOOM3
- 	depends on ARCH_OMAP3
- 	default y
- 	select OMAP_PACKAGE_CBP
-+	select HWMON
-+	select TWL4030_MADC
- 
- config MACH_CM_T35
- 	bool "CompuLab CM-T35 module"
-diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 4d4d09b..47d66b9 100644
---- a/drivers/hwmon/Kconfig
-+++ b/drivers/hwmon/Kconfig
-@@ -39,6 +39,10 @@ config HWMON_DEBUG_CHIP
- 
- comment "Native drivers"
- 
-+config TWL4030_MADC
-+	tristate
-+	depends on HWMON && TWL4030_CORE
-+
- config SENSORS_ABITUGURU
- 	tristate "Abit uGuru (rev 1 & 2)"
- 	depends on X86 && EXPERIMENTAL
-diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index e3c2484..24b3b17 100644
---- a/drivers/hwmon/Makefile
-+++ b/drivers/hwmon/Makefile
-@@ -16,6 +16,7 @@ obj-$(CONFIG_SENSORS_W83792D)	+= w83792d.o
- obj-$(CONFIG_SENSORS_W83793)	+= w83793.o
- obj-$(CONFIG_SENSORS_W83781D)	+= w83781d.o
- obj-$(CONFIG_SENSORS_W83791D)	+= w83791d.o
-+obj-$(CONFIG_TWL4030_MADC)      += twl4030-madc.o
- 
- obj-$(CONFIG_SENSORS_ABITUGURU)	+= abituguru.o
- obj-$(CONFIG_SENSORS_ABITUGURU3)+= abituguru3.o
--- 
-1.7.0.4
-
+Regards
+Vishwa
+> 
+> 
+> - Paul
