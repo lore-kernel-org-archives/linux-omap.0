@@ -1,1160 +1,520 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 1/5] OMAP4: PM: Update PRCM register bitshits and masks for ES2
-Date: Thu, 16 Sep 2010 18:28:22 +0530
-Message-ID: <1284641906-24231-2-git-send-email-rnayak@ti.com>
+Subject: [PATCH 3/5] OMAP4: clocks: Update clock tree for ES2
+Date: Thu, 16 Sep 2010 18:28:24 +0530
+Message-ID: <1284641906-24231-4-git-send-email-rnayak@ti.com>
 References: <1284641906-24231-1-git-send-email-rnayak@ti.com>
+ <1284641906-24231-2-git-send-email-rnayak@ti.com>
+ <1284641906-24231-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33700 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57630 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754522Ab0IPNoI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Sep 2010 09:44:08 -0400
-In-Reply-To: <1284641906-24231-1-git-send-email-rnayak@ti.com>
+	id S1754637Ab0IPNoJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Sep 2010 09:44:09 -0400
+In-Reply-To: <1284641906-24231-3-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Rajendra Nayak <rnayak@ti.com>, =?utf-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-This patch updates the PRM and CM register bitshifts and masks
-for OMAP4430 ES2.0.
+This patch updates the clock tree with all the
+changes in OMAP4430 ES2.
+
+clock nodes added
+-1- tie_low_clock_ck
+-2- abe_dpll_bypass_clk_mux_ck
+
+clock nodes deleted
+-1- dpll_sys_ref_clk
+-2- per_sgx_fclk
+-3- usbphyocp2scp_ick
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Beno=C3=83=C2=AEt Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/cm-regbits-44xx.h  |  327 ++++++++++++++++++------=
+ arch/arm/mach-omap2/clock44xx_data.c |  168 ++++++++++++++------------=
 --------
- arch/arm/mach-omap2/prm-regbits-44xx.h |  194 +++++++++++++++----
- 2 files changed, 342 insertions(+), 179 deletions(-)
+ 1 files changed, 70 insertions(+), 98 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm-regbits-44xx.h b/arch/arm/mach-omap=
-2/cm-regbits-44xx.h
-index ac8458e..92ebfd4 100644
---- a/arch/arm/mach-omap2/cm-regbits-44xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-44xx.h
-@@ -1,8 +1,8 @@
- /*
-  * OMAP44xx Clock Management register bits
-  *
-- * Copyright (C) 2009 Texas Instruments, Inc.
-- * Copyright (C) 2009 Nokia Corporation
-+ * Copyright (C) 2009-2010 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2010 Nokia Corporation
-  *
-  * Paul Walmsley (paul@pwsan.com)
-  * Rajendra Nayak (rnayak@ti.com)
-@@ -25,19 +25,22 @@
- #include "cm.h"
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2=
+/clock44xx_data.c
+index e10db7a..6e5a893 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -175,21 +175,27 @@ static struct clk sys_clkin_ck =3D {
+ 	.recalc		=3D &omap2_clksel_recalc,
+ };
 =20
-=20
--/* Used by CM_L3_1_DYNAMICDEP, CM_MPU_DYNAMICDEP, CM_TESLA_DYNAMICDEP =
-*/
-+/*
-+ * Used by CM_L3_1_DYNAMICDEP, CM_L3_1_DYNAMICDEP_RESTORE, CM_MPU_DYNA=
-MICDEP,
-+ * CM_TESLA_DYNAMICDEP
-+ */
- #define OMAP4430_ABE_DYNDEP_SHIFT				3
- #define OMAP4430_ABE_DYNDEP_MASK				BITFIELD(3, 3)
-=20
- /*
-  * Used by CM_D2D_STATICDEP, CM_DUCATI_STATICDEP, CM_SDMA_STATICDEP,
-- * CM_L3INIT_STATICDEP, CM_SDMA_STATICDEP_RESTORE, CM_MPU_STATICDEP,
-- * CM_TESLA_STATICDEP
-+ * CM_L3INIT_STATICDEP, CM_D2D_STATICDEP_RESTORE, CM_SDMA_STATICDEP_RE=
-STORE,
-+ * CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-  */
- #define OMAP4430_ABE_STATDEP_SHIFT				3
- #define OMAP4430_ABE_STATDEP_MASK				BITFIELD(3, 3)
-=20
--/* Used by CM_L4CFG_DYNAMICDEP */
-+/* Used by CM_L4CFG_DYNAMICDEP, CM_L4CFG_DYNAMICDEP_RESTORE */
- #define OMAP4430_ALWONCORE_DYNDEP_SHIFT				16
- #define OMAP4430_ALWONCORE_DYNDEP_MASK				BITFIELD(16, 16)
-=20
-@@ -53,7 +56,7 @@
- #define OMAP4430_AUTO_DPLL_MODE_SHIFT				0
- #define OMAP4430_AUTO_DPLL_MODE_MASK				BITFIELD(0, 2)
-=20
--/* Used by CM_L4CFG_DYNAMICDEP */
-+/* Used by CM_L4CFG_DYNAMICDEP, CM_L4CFG_DYNAMICDEP_RESTORE */
- #define OMAP4430_CEFUSE_DYNDEP_SHIFT				17
- #define OMAP4430_CEFUSE_DYNDEP_MASK				BITFIELD(17, 17)
-=20
-@@ -97,6 +100,10 @@
- #define OMAP4430_CLKACTIVITY_CAM_PHY_CTRL_GCLK_SHIFT		9
- #define OMAP4430_CLKACTIVITY_CAM_PHY_CTRL_GCLK_MASK		BITFIELD(9, 9)
-=20
-+/* Used by CM_ALWON_CLKSTCTRL */
-+#define OMAP4430_CLKACTIVITY_CORE_ALWON_32K_GFCLK_SHIFT		12
-+#define OMAP4430_CLKACTIVITY_CORE_ALWON_32K_GFCLK_MASK		BITFIELD(12, 1=
-2)
++static struct clk tie_low_clock_ck =3D {
++	.name		=3D "tie_low_clock_ck",
++	.rate		=3D 0,
++	.ops		=3D &clkops_null,
++};
 +
- /* Used by CM_EMU_CLKSTCTRL */
- #define OMAP4430_CLKACTIVITY_CORE_DPLL_EMU_CLK_SHIFT		9
- #define OMAP4430_CLKACTIVITY_CORE_DPLL_EMU_CLK_MASK		BITFIELD(9, 9)
-@@ -145,10 +152,6 @@
- #define OMAP4430_CLKACTIVITY_DUCATI_GCLK_SHIFT			8
- #define OMAP4430_CLKACTIVITY_DUCATI_GCLK_MASK			BITFIELD(8, 8)
+ static struct clk utmi_phy_clkout_ck =3D {
+ 	.name		=3D "utmi_phy_clkout_ck",
+-	.rate		=3D 12000000,
++	.rate		=3D 60000000,
+ 	.ops		=3D &clkops_null,
+ };
 =20
--/* Used by CM_L3INIT_CLKSTCTRL, CM_L3INIT_CLKSTCTRL_RESTORE */
--#define OMAP4430_CLKACTIVITY_EMAC_50MHZ_CLK_SHIFT		10
--#define OMAP4430_CLKACTIVITY_EMAC_50MHZ_CLK_MASK		BITFIELD(10, 10)
+ static struct clk xclk60mhsp1_ck =3D {
+ 	.name		=3D "xclk60mhsp1_ck",
+-	.rate		=3D 12000000,
++	.rate		=3D 60000000,
+ 	.ops		=3D &clkops_null,
+ };
+=20
+ static struct clk xclk60mhsp2_ck =3D {
+ 	.name		=3D "xclk60mhsp2_ck",
+-	.rate		=3D 12000000,
++	.rate		=3D 60000000,
+ 	.ops		=3D &clkops_null,
+ };
+=20
+@@ -201,39 +207,23 @@ static struct clk xclk60motg_ck =3D {
+=20
+ /* Module clocks and DPLL outputs */
+=20
+-static const struct clksel_rate div2_1to2_rates[] =3D {
+-	{ .div =3D 1, .val =3D 0, .flags =3D RATE_IN_4430 },
+-	{ .div =3D 2, .val =3D 1, .flags =3D RATE_IN_4430 },
+-	{ .div =3D 0 },
+-};
 -
- /* Used by CM_EMU_CLKSTCTRL */
- #define OMAP4430_CLKACTIVITY_EMU_SYS_CLK_SHIFT			8
- #define OMAP4430_CLKACTIVITY_EMU_SYS_CLK_MASK			BITFIELD(8, 8)
-@@ -185,10 +188,6 @@
- #define OMAP4430_CLKACTIVITY_HSIC_P2_GFCLK_SHIFT		27
- #define OMAP4430_CLKACTIVITY_HSIC_P2_GFCLK_MASK			BITFIELD(27, 27)
+-static const struct clksel dpll_sys_ref_clk_div[] =3D {
+-	{ .parent =3D &sys_clkin_ck, .rates =3D div2_1to2_rates },
++static const struct clksel abe_dpll_bypass_clk_mux_sel[] =3D {
++	{ .parent =3D &sys_clkin_ck, .rates =3D div_1_0_rates },
++	{ .parent =3D &sys_32k_ck, .rates =3D div_1_1_rates },
+ 	{ .parent =3D NULL },
+ };
 =20
--/* Used by CM_L3INIT_CLKSTCTRL */
--#define OMAP4430_CLKACTIVITY_INIT_32K_GFCLK_SHIFT		31
--#define OMAP4430_CLKACTIVITY_INIT_32K_GFCLK_MASK		BITFIELD(31, 31)
+-static struct clk dpll_sys_ref_clk =3D {
+-	.name		=3D "dpll_sys_ref_clk",
++static struct clk abe_dpll_bypass_clk_mux_ck =3D {
++	.name		=3D "abe_dpll_bypass_clk_mux_ck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dpll_sys_ref_clk_div,
+-	.clksel_reg	=3D OMAP4430_CM_DPLL_SYS_REF_CLKSEL,
+-	.clksel_mask	=3D OMAP4430_CLKSEL_0_0_MASK,
+ 	.ops		=3D &clkops_null,
+-	.recalc		=3D &omap2_clksel_recalc,
+-	.round_rate	=3D &omap2_clksel_round_rate,
+-	.set_rate	=3D &omap2_clksel_set_rate,
+-};
 -
- /* Used by CM_L3INIT_CLKSTCTRL, CM_L3INIT_CLKSTCTRL_RESTORE */
- #define OMAP4430_CLKACTIVITY_INIT_48MC_GFCLK_SHIFT		13
- #define OMAP4430_CLKACTIVITY_INIT_48MC_GFCLK_MASK		BITFIELD(13, 13)
-@@ -233,9 +232,9 @@
- #define OMAP4430_CLKACTIVITY_IVAHD_ROOT_CLK_SHIFT		8
- #define OMAP4430_CLKACTIVITY_IVAHD_ROOT_CLK_MASK		BITFIELD(8, 8)
+-static const struct clksel abe_dpll_refclk_mux_sel[] =3D {
+-	{ .parent =3D &dpll_sys_ref_clk, .rates =3D div_1_0_rates },
+-	{ .parent =3D &sys_32k_ck, .rates =3D div_1_1_rates },
+-	{ .parent =3D NULL },
++	.recalc		=3D &followparent_recalc,
+ };
 =20
--/* Used by CM_L3INIT_CLKSTCTRL, CM_L3INIT_CLKSTCTRL_RESTORE */
--#define OMAP4430_CLKACTIVITY_L3INIT_DPLL_ALWON_CLK_SHIFT	14
--#define OMAP4430_CLKACTIVITY_L3INIT_DPLL_ALWON_CLK_MASK		BITFIELD(14, =
-14)
-+/* Used by CM_D2D_CLKSTCTRL */
-+#define OMAP4430_CLKACTIVITY_L3X2_D2D_GICLK_SHIFT		10
-+#define OMAP4430_CLKACTIVITY_L3X2_D2D_GICLK_MASK		BITFIELD(10, 10)
+ static struct clk abe_dpll_refclk_mux_ck =3D {
+ 	.name		=3D "abe_dpll_refclk_mux_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
+-	.clksel		=3D abe_dpll_refclk_mux_sel,
++	.parent		=3D &sys_clkin_ck,
++	.clksel		=3D abe_dpll_bypass_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_ABE_PLL_REF_CLKSEL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_0_0_MASK,
+@@ -244,7 +234,7 @@ static struct clk abe_dpll_refclk_mux_ck =3D {
+ /* DPLL_ABE */
+ static struct dpll_data dpll_abe_dd =3D {
+ 	.mult_div1_reg	=3D OMAP4430_CM_CLKSEL_DPLL_ABE,
+-	.clk_bypass	=3D &sys_clkin_ck,
++	.clk_bypass	=3D &abe_dpll_bypass_clk_mux_ck,
+ 	.clk_ref	=3D &abe_dpll_refclk_mux_ck,
+ 	.control_reg	=3D OMAP4430_CM_CLKMODE_DPLL_ABE,
+ 	.modes		=3D (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+@@ -310,6 +300,12 @@ static struct clk abe_clk =3D {
+ 	.set_rate	=3D &omap2_clksel_set_rate,
+ };
 =20
- /* Used by CM_L3_1_CLKSTCTRL, CM_L3_1_CLKSTCTRL_RESTORE */
- #define OMAP4430_CLKACTIVITY_L3_1_GICLK_SHIFT			8
-@@ -337,10 +336,6 @@
- #define OMAP4430_CLKACTIVITY_PER_ABE_24M_GFCLK_SHIFT		25
- #define OMAP4430_CLKACTIVITY_PER_ABE_24M_GFCLK_MASK		BITFIELD(25, 25)
-=20
--/* Used by CM_EMU_CLKSTCTRL */
--#define OMAP4430_CLKACTIVITY_PER_DPLL_EMU_CLK_SHIFT		10
--#define OMAP4430_CLKACTIVITY_PER_DPLL_EMU_CLK_MASK		BITFIELD(10, 10)
--
- /* Used by CM_L4PER_CLKSTCTRL, CM_L4PER_CLKSTCTRL_RESTORE */
- #define OMAP4430_CLKACTIVITY_PER_MCASP2_GFCLK_SHIFT		20
- #define OMAP4430_CLKACTIVITY_PER_MCASP2_GFCLK_MASK		BITFIELD(20, 20)
-@@ -398,6 +393,14 @@
- #define OMAP4430_CLKACTIVITY_TLL_CH2_GFCLK_MASK			BITFIELD(24, 24)
-=20
- /* Used by CM_L3INIT_CLKSTCTRL, CM_L3INIT_CLKSTCTRL_RESTORE */
-+#define OMAP4430_CLKACTIVITY_UNIPRO_DPLL_CLK_SHIFT		10
-+#define OMAP4430_CLKACTIVITY_UNIPRO_DPLL_CLK_MASK		BITFIELD(10, 10)
++static const struct clksel_rate div2_1to2_rates[] =3D {
++	{ .div =3D 1, .val =3D 0, .flags =3D RATE_IN_4430 },
++	{ .div =3D 2, .val =3D 1, .flags =3D RATE_IN_4430 },
++	{ .div =3D 0 },
++};
 +
-+/* Used by CM_L3INIT_CLKSTCTRL, CM_L3INIT_CLKSTCTRL_RESTORE */
-+#define OMAP4430_CLKACTIVITY_USB_DPLL_CLK_SHIFT			14
-+#define OMAP4430_CLKACTIVITY_USB_DPLL_CLK_MASK			BITFIELD(14, 14)
+ static const struct clksel aess_fclk_div[] =3D {
+ 	{ .parent =3D &abe_clk, .rates =3D div2_1to2_rates },
+ 	{ .parent =3D NULL },
+@@ -380,14 +376,14 @@ static struct clk dpll_abe_m3_ck =3D {
+ };
+=20
+ static const struct clksel core_hsd_byp_clk_mux_sel[] =3D {
+-	{ .parent =3D &dpll_sys_ref_clk, .rates =3D div_1_0_rates },
++	{ .parent =3D &sys_clkin_ck, .rates =3D div_1_0_rates },
+ 	{ .parent =3D &dpll_abe_m3_ck, .rates =3D div_1_1_rates },
+ 	{ .parent =3D NULL },
+ };
+=20
+ static struct clk core_hsd_byp_clk_mux_ck =3D {
+ 	.name		=3D "core_hsd_byp_clk_mux_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.clksel		=3D core_hsd_byp_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_CLKSEL_DPLL_CORE,
+@@ -400,7 +396,7 @@ static struct clk core_hsd_byp_clk_mux_ck =3D {
+ static struct dpll_data dpll_core_dd =3D {
+ 	.mult_div1_reg	=3D OMAP4430_CM_CLKSEL_DPLL_CORE,
+ 	.clk_bypass	=3D &core_hsd_byp_clk_mux_ck,
+-	.clk_ref	=3D &dpll_sys_ref_clk,
++	.clk_ref	=3D &sys_clkin_ck,
+ 	.control_reg	=3D OMAP4430_CM_CLKMODE_DPLL_CORE,
+ 	.modes		=3D (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+ 	.autoidle_reg	=3D OMAP4430_CM_AUTOIDLE_DPLL_CORE,
+@@ -418,7 +414,7 @@ static struct dpll_data dpll_core_dd =3D {
+=20
+ static struct clk dpll_core_ck =3D {
+ 	.name		=3D "dpll_core_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.dpll_data	=3D &dpll_core_dd,
+ 	.init		=3D &omap2_init_dpll_parent,
+ 	.ops		=3D &clkops_null,
+@@ -596,14 +592,14 @@ static struct clk dpll_core_m7_ck =3D {
+ };
+=20
+ static const struct clksel iva_hsd_byp_clk_mux_sel[] =3D {
+-	{ .parent =3D &dpll_sys_ref_clk, .rates =3D div_1_0_rates },
++	{ .parent =3D &sys_clkin_ck, .rates =3D div_1_0_rates },
+ 	{ .parent =3D &div_iva_hs_clk, .rates =3D div_1_1_rates },
+ 	{ .parent =3D NULL },
+ };
+=20
+ static struct clk iva_hsd_byp_clk_mux_ck =3D {
+ 	.name		=3D "iva_hsd_byp_clk_mux_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.ops		=3D &clkops_null,
+ 	.recalc		=3D &followparent_recalc,
+ };
+@@ -612,7 +608,7 @@ static struct clk iva_hsd_byp_clk_mux_ck =3D {
+ static struct dpll_data dpll_iva_dd =3D {
+ 	.mult_div1_reg	=3D OMAP4430_CM_CLKSEL_DPLL_IVA,
+ 	.clk_bypass	=3D &iva_hsd_byp_clk_mux_ck,
+-	.clk_ref	=3D &dpll_sys_ref_clk,
++	.clk_ref	=3D &sys_clkin_ck,
+ 	.control_reg	=3D OMAP4430_CM_CLKMODE_DPLL_IVA,
+ 	.modes		=3D (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+ 	.autoidle_reg	=3D OMAP4430_CM_AUTOIDLE_DPLL_IVA,
+@@ -630,7 +626,7 @@ static struct dpll_data dpll_iva_dd =3D {
+=20
+ static struct clk dpll_iva_ck =3D {
+ 	.name		=3D "dpll_iva_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.dpll_data	=3D &dpll_iva_dd,
+ 	.init		=3D &omap2_init_dpll_parent,
+ 	.ops		=3D &clkops_omap3_noncore_dpll_ops,
+@@ -672,7 +668,7 @@ static struct clk dpll_iva_m5_ck =3D {
+ static struct dpll_data dpll_mpu_dd =3D {
+ 	.mult_div1_reg	=3D OMAP4430_CM_CLKSEL_DPLL_MPU,
+ 	.clk_bypass	=3D &div_mpu_hs_clk,
+-	.clk_ref	=3D &dpll_sys_ref_clk,
++	.clk_ref	=3D &sys_clkin_ck,
+ 	.control_reg	=3D OMAP4430_CM_CLKMODE_DPLL_MPU,
+ 	.modes		=3D (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+ 	.autoidle_reg	=3D OMAP4430_CM_AUTOIDLE_DPLL_MPU,
+@@ -690,7 +686,7 @@ static struct dpll_data dpll_mpu_dd =3D {
+=20
+ static struct clk dpll_mpu_ck =3D {
+ 	.name		=3D "dpll_mpu_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.dpll_data	=3D &dpll_mpu_dd,
+ 	.init		=3D &omap2_init_dpll_parent,
+ 	.ops		=3D &clkops_omap3_noncore_dpll_ops,
+@@ -724,14 +720,14 @@ static struct clk per_hs_clk_div_ck =3D {
+ };
+=20
+ static const struct clksel per_hsd_byp_clk_mux_sel[] =3D {
+-	{ .parent =3D &dpll_sys_ref_clk, .rates =3D div_1_0_rates },
++	{ .parent =3D &sys_clkin_ck, .rates =3D div_1_0_rates },
+ 	{ .parent =3D &per_hs_clk_div_ck, .rates =3D div_1_1_rates },
+ 	{ .parent =3D NULL },
+ };
+=20
+ static struct clk per_hsd_byp_clk_mux_ck =3D {
+ 	.name		=3D "per_hsd_byp_clk_mux_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.clksel		=3D per_hsd_byp_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_CLKSEL_DPLL_PER,
+@@ -744,7 +740,7 @@ static struct clk per_hsd_byp_clk_mux_ck =3D {
+ static struct dpll_data dpll_per_dd =3D {
+ 	.mult_div1_reg	=3D OMAP4430_CM_CLKSEL_DPLL_PER,
+ 	.clk_bypass	=3D &per_hsd_byp_clk_mux_ck,
+-	.clk_ref	=3D &dpll_sys_ref_clk,
++	.clk_ref	=3D &sys_clkin_ck,
+ 	.control_reg	=3D OMAP4430_CM_CLKMODE_DPLL_PER,
+ 	.modes		=3D (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+ 	.autoidle_reg	=3D OMAP4430_CM_AUTOIDLE_DPLL_PER,
+@@ -762,7 +758,7 @@ static struct dpll_data dpll_per_dd =3D {
+=20
+ static struct clk dpll_per_ck =3D {
+ 	.name		=3D "dpll_per_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.dpll_data	=3D &dpll_per_dd,
+ 	.init		=3D &omap2_init_dpll_parent,
+ 	.ops		=3D &clkops_omap3_noncore_dpll_ops,
+@@ -858,8 +854,8 @@ static struct clk dpll_per_m7_ck =3D {
+ /* DPLL_UNIPRO */
+ static struct dpll_data dpll_unipro_dd =3D {
+ 	.mult_div1_reg	=3D OMAP4430_CM_CLKSEL_DPLL_UNIPRO,
+-	.clk_bypass	=3D &dpll_sys_ref_clk,
+-	.clk_ref	=3D &dpll_sys_ref_clk,
++	.clk_bypass	=3D &sys_clkin_ck,
++	.clk_ref	=3D &sys_clkin_ck,
+ 	.control_reg	=3D OMAP4430_CM_CLKMODE_DPLL_UNIPRO,
+ 	.modes		=3D (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+ 	.autoidle_reg	=3D OMAP4430_CM_AUTOIDLE_DPLL_UNIPRO,
+@@ -877,7 +873,7 @@ static struct dpll_data dpll_unipro_dd =3D {
+=20
+ static struct clk dpll_unipro_ck =3D {
+ 	.name		=3D "dpll_unipro_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.dpll_data	=3D &dpll_unipro_dd,
+ 	.init		=3D &omap2_init_dpll_parent,
+ 	.ops		=3D &clkops_omap3_noncore_dpll_ops,
+@@ -914,7 +910,7 @@ static struct clk usb_hs_clk_div_ck =3D {
+ static struct dpll_data dpll_usb_dd =3D {
+ 	.mult_div1_reg	=3D OMAP4430_CM_CLKSEL_DPLL_USB,
+ 	.clk_bypass	=3D &usb_hs_clk_div_ck,
+-	.clk_ref	=3D &dpll_sys_ref_clk,
++	.clk_ref	=3D &sys_clkin_ck,
+ 	.control_reg	=3D OMAP4430_CM_CLKMODE_DPLL_USB,
+ 	.modes		=3D (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+ 	.autoidle_reg	=3D OMAP4430_CM_AUTOIDLE_DPLL_USB,
+@@ -933,7 +929,7 @@ static struct dpll_data dpll_usb_dd =3D {
+=20
+ static struct clk dpll_usb_ck =3D {
+ 	.name		=3D "dpll_usb_ck",
+-	.parent		=3D &dpll_sys_ref_clk,
++	.parent		=3D &sys_clkin_ck,
+ 	.dpll_data	=3D &dpll_usb_dd,
+ 	.init		=3D &omap2_init_dpll_parent,
+ 	.ops		=3D &clkops_omap3_noncore_dpll_ops,
+@@ -1222,7 +1218,7 @@ static struct clk per_abe_24m_fclk =3D {
+ static const struct clksel pmd_stm_clock_mux_sel[] =3D {
+ 	{ .parent =3D &sys_clkin_ck, .rates =3D div_1_0_rates },
+ 	{ .parent =3D &dpll_core_m6_ck, .rates =3D div_1_1_rates },
+-	{ .parent =3D &dpll_per_m7_ck, .rates =3D div_1_2_rates },
++	{ .parent =3D &tie_low_clock_ck, .rates =3D div_1_2_rates },
+ 	{ .parent =3D NULL },
+ };
+=20
+@@ -1240,10 +1236,15 @@ static struct clk pmd_trace_clk_mux_ck =3D {
+ 	.recalc		=3D &followparent_recalc,
+ };
+=20
++static const struct clksel syc_clk_div_div[] =3D {
++	{ .parent =3D &sys_clkin_ck, .rates =3D div2_1to2_rates },
++	{ .parent =3D NULL },
++};
 +
-+/* Used by CM_L3INIT_CLKSTCTRL, CM_L3INIT_CLKSTCTRL_RESTORE */
- #define OMAP4430_CLKACTIVITY_USB_DPLL_HS_CLK_SHIFT		15
- #define OMAP4430_CLKACTIVITY_USB_DPLL_HS_CLK_MASK		BITFIELD(15, 15)
+ static struct clk syc_clk_div_ck =3D {
+ 	.name		=3D "syc_clk_div_ck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dpll_sys_ref_clk_div,
++	.clksel		=3D syc_clk_div_div,
+ 	.clksel_reg	=3D OMAP4430_CM_ABE_DSS_SYS_CLKSEL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_0_0_MASK,
+ 	.ops		=3D &clkops_null,
+@@ -1407,26 +1408,9 @@ static struct clk fdif_fck =3D {
+ 	.clkdm_name	=3D "iss_clkdm",
+ };
 =20
-@@ -431,8 +434,7 @@
-=20
- /*
-  * Renamed from CLKSEL Used by CM_ABE_DSS_SYS_CLKSEL, CM_ABE_PLL_REF_C=
-LKSEL,
-- * CM_DPLL_SYS_REF_CLKSEL, CM_L4_WKUP_CLKSEL, CM_CLKSEL_DUCATI_ISS_ROO=
-T,
-- * CM_CLKSEL_USB_60MHZ
-+ * CM_L4_WKUP_CLKSEL, CM_CLKSEL_DUCATI_ISS_ROOT, CM_CLKSEL_USB_60MHZ
-  */
- #define OMAP4430_CLKSEL_0_0_SHIFT				0
- #define OMAP4430_CLKSEL_0_0_MASK				BITFIELD(0, 0)
-@@ -457,7 +459,10 @@
- #define OMAP4430_CLKSEL_CORE_SHIFT				0
- #define OMAP4430_CLKSEL_CORE_MASK				BITFIELD(0, 0)
-=20
--/* Renamed from CLKSEL_CORE Used by CM_SHADOW_FREQ_CONFIG2 */
-+/*
-+ * Renamed from CLKSEL_CORE Used by CM_SHADOW_FREQ_CONFIG2_RESTORE,
-+ * CM_SHADOW_FREQ_CONFIG2
-+ */
- #define OMAP4430_CLKSEL_CORE_1_1_SHIFT				1
- #define OMAP4430_CLKSEL_CORE_1_1_MASK				BITFIELD(1, 1)
-=20
-@@ -485,7 +490,10 @@
- #define OMAP4430_CLKSEL_L3_SHIFT				4
- #define OMAP4430_CLKSEL_L3_MASK					BITFIELD(4, 4)
-=20
--/* Renamed from CLKSEL_L3 Used by CM_SHADOW_FREQ_CONFIG2 */
-+/*
-+ * Renamed from CLKSEL_L3 Used by CM_SHADOW_FREQ_CONFIG2_RESTORE,
-+ * CM_SHADOW_FREQ_CONFIG2
-+ */
- #define OMAP4430_CLKSEL_L3_SHADOW_SHIFT				2
- #define OMAP4430_CLKSEL_L3_SHADOW_MASK				BITFIELD(2, 2)
-=20
-@@ -497,10 +505,6 @@
- #define OMAP4430_CLKSEL_OPP_SHIFT				0
- #define OMAP4430_CLKSEL_OPP_MASK				BITFIELD(0, 1)
-=20
--/* Used by CM_GFX_GFX_CLKCTRL */
--#define OMAP4430_CLKSEL_PER_192M_SHIFT				25
--#define OMAP4430_CLKSEL_PER_192M_MASK				BITFIELD(25, 26)
+-static const struct clksel per_sgx_fclk_div[] =3D {
+-	{ .parent =3D &dpll_per_m2x2_ck, .rates =3D div3_1to4_rates },
+-	{ .parent =3D NULL },
+-};
 -
- /* Used by CM_EMU_DEBUGSS_CLKCTRL */
- #define OMAP4430_CLKSEL_PMD_STM_CLK_SHIFT			27
- #define OMAP4430_CLKSEL_PMD_STM_CLK_MASK			BITFIELD(27, 29)
-@@ -555,7 +559,14 @@
- #define OMAP4430_CORE_DPLL_EMU_MULT_SHIFT			8
- #define OMAP4430_CORE_DPLL_EMU_MULT_MASK			BITFIELD(8, 18)
+-static struct clk per_sgx_fclk =3D {
+-	.name		=3D "per_sgx_fclk",
+-	.parent		=3D &dpll_per_m2x2_ck,
+-	.clksel		=3D per_sgx_fclk_div,
+-	.clksel_reg	=3D OMAP4430_CM_GFX_GFX_CLKCTRL,
+-	.clksel_mask	=3D OMAP4430_CLKSEL_PER_192M_MASK,
+-	.ops		=3D &clkops_null,
+-	.recalc		=3D &omap2_clksel_recalc,
+-	.round_rate	=3D &omap2_clksel_round_rate,
+-	.set_rate	=3D &omap2_clksel_set_rate,
+-};
+-
+ static const struct clksel sgx_clk_mux_sel[] =3D {
+ 	{ .parent =3D &dpll_core_m7_ck, .rates =3D div_1_0_rates },
+-	{ .parent =3D &per_sgx_fclk, .rates =3D div_1_1_rates },
++	{ .parent =3D &dpll_per_m7_ck, .rates =3D div_1_1_rates },
+ 	{ .parent =3D NULL },
+ };
 =20
--/* Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP */
-+/* Used by REVISION_CM2, REVISION_CM1 */
-+#define OMAP4430_CUSTOM_SHIFT					6
-+#define OMAP4430_CUSTOM_MASK					BITFIELD(6, 7)
-+
-+/*
-+ * Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_L3_2_DYNAMICDEP=
-_RESTORE,
-+ * CM_L4CFG_DYNAMICDEP_RESTORE
-+ */
- #define OMAP4430_D2D_DYNDEP_SHIFT				18
- #define OMAP4430_D2D_DYNDEP_MASK				BITFIELD(18, 18)
+@@ -1515,12 +1499,6 @@ static struct clk gpmc_ick =3D {
+ 	.recalc		=3D &followparent_recalc,
+ };
 =20
-@@ -666,14 +677,10 @@
- #define OMAP4430_DPLL_CORE_M2_DIV_SHIFT				11
- #define OMAP4430_DPLL_CORE_M2_DIV_MASK				BITFIELD(11, 15)
-=20
--/* Used by CM_SHADOW_FREQ_CONFIG2 */
-+/* Used by CM_SHADOW_FREQ_CONFIG2_RESTORE, CM_SHADOW_FREQ_CONFIG2 */
- #define OMAP4430_DPLL_CORE_M5_DIV_SHIFT				3
- #define OMAP4430_DPLL_CORE_M5_DIV_MASK				BITFIELD(3, 7)
-=20
--/* Used by CM_SHADOW_FREQ_CONFIG1_RESTORE, CM_SHADOW_FREQ_CONFIG1 */
--#define OMAP4430_DPLL_CORE_SYS_REF_CLKSEL_SHIFT			1
--#define OMAP4430_DPLL_CORE_SYS_REF_CLKSEL_MASK			BITFIELD(1, 1)
+-static const struct clksel dmt1_clk_mux_sel[] =3D {
+-	{ .parent =3D &sys_clkin_ck, .rates =3D div_1_0_rates },
+-	{ .parent =3D &sys_32k_ck, .rates =3D div_1_1_rates },
+-	{ .parent =3D NULL },
+-};
 -
  /*
-  * Used by CM_CLKSEL_DPLL_PER, CM_CLKSEL_DPLL_UNIPRO,
-  * CM_CLKSEL_DPLL_CORE_RESTORE, CM_CLKSEL_DPLL_ABE, CM_CLKSEL_DPLL_COR=
-E,
-@@ -687,9 +694,9 @@
- #define OMAP4430_DPLL_DIV_0_7_MASK				BITFIELD(0, 7)
+  * Merged dmt1_clk_mux into gptimer1
+  * gptimer1 renamed temporarily into gpt1 to match OMAP3 convention
+@@ -1528,7 +1506,7 @@ static const struct clksel dmt1_clk_mux_sel[] =3D=
+ {
+ static struct clk gpt1_fck =3D {
+ 	.name		=3D "gpt1_fck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dmt1_clk_mux_sel,
++	.clksel		=3D abe_dpll_bypass_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_WKUP_TIMER1_CLKCTRL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_MASK,
+@@ -1546,7 +1524,7 @@ static struct clk gpt1_fck =3D {
+ static struct clk gpt10_fck =3D {
+ 	.name		=3D "gpt10_fck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dmt1_clk_mux_sel,
++	.clksel		=3D abe_dpll_bypass_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_L4PER_DMTIMER10_CLKCTRL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_MASK,
+@@ -1564,7 +1542,7 @@ static struct clk gpt10_fck =3D {
+ static struct clk gpt11_fck =3D {
+ 	.name		=3D "gpt11_fck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dmt1_clk_mux_sel,
++	.clksel		=3D abe_dpll_bypass_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_L4PER_DMTIMER11_CLKCTRL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_MASK,
+@@ -1582,7 +1560,7 @@ static struct clk gpt11_fck =3D {
+ static struct clk gpt2_fck =3D {
+ 	.name		=3D "gpt2_fck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dmt1_clk_mux_sel,
++	.clksel		=3D abe_dpll_bypass_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_L4PER_DMTIMER2_CLKCTRL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_MASK,
+@@ -1600,7 +1578,7 @@ static struct clk gpt2_fck =3D {
+ static struct clk gpt3_fck =3D {
+ 	.name		=3D "gpt3_fck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dmt1_clk_mux_sel,
++	.clksel		=3D abe_dpll_bypass_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_L4PER_DMTIMER3_CLKCTRL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_MASK,
+@@ -1618,7 +1596,7 @@ static struct clk gpt3_fck =3D {
+ static struct clk gpt4_fck =3D {
+ 	.name		=3D "gpt4_fck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dmt1_clk_mux_sel,
++	.clksel		=3D abe_dpll_bypass_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_L4PER_DMTIMER4_CLKCTRL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_MASK,
+@@ -1714,7 +1692,7 @@ static struct clk gpt8_fck =3D {
+ static struct clk gpt9_fck =3D {
+ 	.name		=3D "gpt9_fck",
+ 	.parent		=3D &sys_clkin_ck,
+-	.clksel		=3D dmt1_clk_mux_sel,
++	.clksel		=3D abe_dpll_bypass_clk_mux_sel,
+ 	.init		=3D &omap2_init_clksel_parent,
+ 	.clksel_reg	=3D OMAP4430_CM_L4PER_DMTIMER9_CLKCTRL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_MASK,
+@@ -1735,11 +1713,16 @@ static struct clk hdq1w_fck =3D {
+ 	.recalc		=3D &followparent_recalc,
+ };
 =20
- /*
-- * Used by CM_CLKMODE_DPLL_PER, CM_CLKMODE_DPLL_USB,
-- * CM_CLKMODE_DPLL_CORE_RESTORE, CM_CLKMODE_DPLL_ABE, CM_CLKMODE_DPLL_=
-CORE,
-- * CM_CLKMODE_DPLL_DDRPHY, CM_CLKMODE_DPLL_IVA, CM_CLKMODE_DPLL_MPU
-+ * Used by CM_CLKMODE_DPLL_PER, CM_CLKMODE_DPLL_CORE_RESTORE,
-+ * CM_CLKMODE_DPLL_ABE, CM_CLKMODE_DPLL_CORE, CM_CLKMODE_DPLL_DDRPHY,
-+ * CM_CLKMODE_DPLL_IVA, CM_CLKMODE_DPLL_MPU
-  */
- #define OMAP4430_DPLL_DRIFTGUARD_EN_SHIFT			8
- #define OMAP4430_DPLL_DRIFTGUARD_EN_MASK			BITFIELD(8, 8)
-@@ -762,7 +769,11 @@
- #define OMAP4430_DPLL_SSC_EN_SHIFT				12
- #define OMAP4430_DPLL_SSC_EN_MASK				BITFIELD(12, 12)
-=20
--/* Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_L4PER_DYNAMICDE=
-P */
-+/*
-+ * Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_L4PER_DYNAMICDE=
-P,
-+ * CM_L3_2_DYNAMICDEP_RESTORE, CM_L4CFG_DYNAMICDEP_RESTORE,
-+ * CM_L4PER_DYNAMICDEP_RESTORE
-+ */
- #define OMAP4430_DSS_DYNDEP_SHIFT				8
- #define OMAP4430_DSS_DYNDEP_MASK				BITFIELD(8, 8)
-=20
-@@ -773,7 +784,7 @@
- #define OMAP4430_DSS_STATDEP_SHIFT				8
- #define OMAP4430_DSS_STATDEP_MASK				BITFIELD(8, 8)
-=20
--/* Used by CM_L3_2_DYNAMICDEP */
-+/* Used by CM_L3_2_DYNAMICDEP, CM_L3_2_DYNAMICDEP_RESTORE */
- #define OMAP4430_DUCATI_DYNDEP_SHIFT				0
- #define OMAP4430_DUCATI_DYNDEP_MASK				BITFIELD(0, 0)
-=20
-@@ -785,7 +796,11 @@
- #define OMAP4430_FREQ_UPDATE_SHIFT				0
- #define OMAP4430_FREQ_UPDATE_MASK				BITFIELD(0, 0)
-=20
--/* Used by CM_L3_2_DYNAMICDEP */
-+/* Used by REVISION_CM2, REVISION_CM1 */
-+#define OMAP4430_FUNC_SHIFT					16
-+#define OMAP4430_FUNC_MASK					BITFIELD(16, 27)
++static const struct clksel hsi_fclk_div[] =3D {
++	{ .parent =3D &dpll_per_m2x2_ck, .rates =3D div3_1to4_rates },
++	{ .parent =3D NULL },
++};
 +
-+/* Used by CM_L3_2_DYNAMICDEP, CM_L3_2_DYNAMICDEP_RESTORE */
- #define OMAP4430_GFX_DYNDEP_SHIFT				10
- #define OMAP4430_GFX_DYNDEP_MASK				BITFIELD(10, 10)
+ /* Merged hsi_fclk into hsi */
+ static struct clk hsi_ick =3D {
+ 	.name		=3D "hsi_ick",
+ 	.parent		=3D &dpll_per_m2x2_ck,
+-	.clksel		=3D per_sgx_fclk_div,
++	.clksel		=3D hsi_fclk_div,
+ 	.clksel_reg	=3D OMAP4430_CM_L3INIT_HSI_CLKCTRL,
+ 	.clksel_mask	=3D OMAP4430_CLKSEL_24_25_MASK,
+ 	.ops		=3D &clkops_omap2_dflt,
+@@ -2315,21 +2298,11 @@ static struct clk usb_tll_ick =3D {
+ 	.recalc		=3D &followparent_recalc,
+ };
 =20
-@@ -793,7 +808,7 @@
- #define OMAP4430_GFX_STATDEP_SHIFT				10
- #define OMAP4430_GFX_STATDEP_MASK				BITFIELD(10, 10)
-=20
--/* Used by CM_SHADOW_FREQ_CONFIG2 */
-+/* Used by CM_SHADOW_FREQ_CONFIG2_RESTORE, CM_SHADOW_FREQ_CONFIG2 */
- #define OMAP4430_GPMC_FREQ_UPDATE_SHIFT				0
- #define OMAP4430_GPMC_FREQ_UPDATE_MASK				BITFIELD(0, 0)
-=20
-@@ -910,20 +925,19 @@
- #define OMAP4430_HSDIVIDER_CLKOUT4_PWDN_MASK			BITFIELD(12, 12)
-=20
- /*
-- * Used by PRM_PRM_PROFILING_CLKCTRL, CM_WKUP_GPIO1_CLKCTRL,
-- * CM_WKUP_KEYBOARD_CLKCTRL, CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_RTC_CLKCT=
-RL,
-- * CM_WKUP_SARRAM_CLKCTRL, CM_WKUP_SYNCTIMER_CLKCTRL, CM_WKUP_TIMER12_=
-CLKCTRL,
-- * CM_WKUP_TIMER1_CLKCTRL, CM_WKUP_USIM_CLKCTRL, CM_WKUP_WDT1_CLKCTRL,
-- * CM_WKUP_WDT2_CLKCTRL, CM_EMU_DEBUGSS_CLKCTRL, CM_D2D_MODEM_ICR_CLKC=
-TRL,
-- * CM_D2D_SAD2D_CLKCTRL, CM_D2D_SAD2D_FW_CLKCTRL, CM_DUCATI_DUCATI_CLK=
-CTRL,
-- * CM_L3INSTR_L3_3_CLKCTRL, CM_L3INSTR_L3_INSTR_CLKCTRL,
-- * CM_L3INSTR_OCP_WP1_CLKCTRL, CM_L3_1_L3_1_CLKCTRL, CM_L3_2_GPMC_CLKC=
-TRL,
-- * CM_L3_2_L3_2_CLKCTRL, CM_L3_2_OCMC_RAM_CLKCTRL, CM_L4CFG_HW_SEM_CLK=
-CTRL,
-- * CM_L4CFG_L4_CFG_CLKCTRL, CM_L4CFG_MAILBOX_CLKCTRL, CM_L4CFG_SAR_ROM=
-_CLKCTRL,
-- * CM_MEMIF_DMM_CLKCTRL, CM_MEMIF_EMIF_1_CLKCTRL, CM_MEMIF_EMIF_2_CLKC=
-TRL,
-- * CM_MEMIF_EMIF_FW_CLKCTRL, CM_MEMIF_EMIF_H1_CLKCTRL,
-- * CM_MEMIF_EMIF_H2_CLKCTRL, CM_SDMA_SDMA_CLKCTRL, CM_GFX_GFX_CLKCTRL,
-- * CM_L4PER_ADC_CLKCTRL, CM_L4PER_DMTIMER10_CLKCTRL,
-+ * Used by CM_WKUP_GPIO1_CLKCTRL, CM_WKUP_KEYBOARD_CLKCTRL,
-+ * CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_RTC_CLKCTRL, CM_WKUP_SARRAM_CLKCTRL=
+-static struct clk usbphyocp2scp_ick =3D {
+-	.name		=3D "usbphyocp2scp_ick",
+-	.ops		=3D &clkops_omap2_dflt,
+-	.enable_reg	=3D OMAP4430_CM_L3INIT_USBPHYOCP2SCP_CLKCTRL,
+-	.enable_bit	=3D OMAP4430_MODULEMODE_HWCTRL,
+-	.clkdm_name	=3D "l3_init_clkdm",
+-	.parent		=3D &l4_div_ck,
+-	.recalc		=3D &followparent_recalc,
+-};
+-
+-static struct clk usim_fck =3D {
+-	.name		=3D "usim_fck",
++static struct clk usim_ick =3D {
++	.name		=3D "usim_ick",
+ 	.ops		=3D &clkops_omap2_dflt,
+ 	.enable_reg	=3D OMAP4430_CM_WKUP_USIM_CLKCTRL,
+-	.enable_bit	=3D OMAP4430_MODULEMODE_SWCTRL,
++	.enable_bit	=3D OMAP4430_MODULEMODE_HWCTRL,
+ 	.clkdm_name	=3D "l4_wkup_clkdm",
+ 	.parent		=3D &sys_32k_ck,
+ 	.recalc		=3D &followparent_recalc,
+@@ -2483,11 +2456,12 @@ static struct omap_clk omap44xx_clks[] =3D {
+ 	CLK(NULL,	"virt_27000000_ck",		&virt_27000000_ck,	CK_443X),
+ 	CLK(NULL,	"virt_38400000_ck",		&virt_38400000_ck,	CK_443X),
+ 	CLK(NULL,	"sys_clkin_ck",			&sys_clkin_ck,	CK_443X),
++	CLK(NULL,	"tie_low_clock_ck",		&tie_low_clock_ck,	CK_443X),
+ 	CLK(NULL,	"utmi_phy_clkout_ck",		&utmi_phy_clkout_ck,	CK_443X),
+ 	CLK(NULL,	"xclk60mhsp1_ck",		&xclk60mhsp1_ck,	CK_443X),
+ 	CLK(NULL,	"xclk60mhsp2_ck",		&xclk60mhsp2_ck,	CK_443X),
+ 	CLK(NULL,	"xclk60motg_ck",		&xclk60motg_ck,	CK_443X),
+-	CLK(NULL,	"dpll_sys_ref_clk",		&dpll_sys_ref_clk,	CK_443X),
++	CLK(NULL,	"abe_dpll_bypass_clk_mux_ck",	&abe_dpll_bypass_clk_mux_ck,	=
+CK_443X),
+ 	CLK(NULL,	"abe_dpll_refclk_mux_ck",	&abe_dpll_refclk_mux_ck,	CK_443X)=
 ,
-+ * CM_WKUP_SYNCTIMER_CLKCTRL, CM_WKUP_TIMER12_CLKCTRL, CM_WKUP_TIMER1_=
-CLKCTRL,
-+ * CM_WKUP_USIM_CLKCTRL, CM_WKUP_WDT1_CLKCTRL, CM_WKUP_WDT2_CLKCTRL,
-+ * CM_EMU_DEBUGSS_CLKCTRL, CM_D2D_MODEM_ICR_CLKCTRL, CM_D2D_SAD2D_CLKC=
-TRL,
-+ * CM_D2D_SAD2D_FW_CLKCTRL, CM_DUCATI_DUCATI_CLKCTRL, CM_L3INSTR_L3_3_=
-CLKCTRL,
-+ * CM_L3INSTR_L3_INSTR_CLKCTRL, CM_L3INSTR_OCP_WP1_CLKCTRL,
-+ * CM_L3_1_L3_1_CLKCTRL, CM_L3_2_GPMC_CLKCTRL, CM_L3_2_L3_2_CLKCTRL,
-+ * CM_L3_2_OCMC_RAM_CLKCTRL, CM_L4CFG_HW_SEM_CLKCTRL, CM_L4CFG_L4_CFG_=
-CLKCTRL,
-+ * CM_L4CFG_MAILBOX_CLKCTRL, CM_L4CFG_SAR_ROM_CLKCTRL, CM_MEMIF_DMM_CL=
-KCTRL,
-+ * CM_MEMIF_EMIF_1_CLKCTRL, CM_MEMIF_EMIF_2_CLKCTRL, CM_MEMIF_EMIF_FW_=
-CLKCTRL,
-+ * CM_MEMIF_EMIF_H1_CLKCTRL, CM_MEMIF_EMIF_H2_CLKCTRL, CM_SDMA_SDMA_CL=
-KCTRL,
-+ * CM_GFX_GFX_CLKCTRL, CM_L4PER_ADC_CLKCTRL, CM_L4PER_DMTIMER10_CLKCTR=
-L,
-  * CM_L4PER_DMTIMER11_CLKCTRL, CM_L4PER_DMTIMER2_CLKCTRL,
-  * CM_L4PER_DMTIMER3_CLKCTRL, CM_L4PER_DMTIMER4_CLKCTRL,
-  * CM_L4PER_DMTIMER9_CLKCTRL, CM_L4PER_ELM_CLKCTRL, CM_L4PER_GPIO2_CLK=
-CTRL,
-@@ -947,25 +961,29 @@
-  * CM_L3INIT_USB_HOST_FS_CLKCTRL, CM_L3INIT_USB_OTG_CLKCTRL,
-  * CM_L3INIT_USB_TLL_CLKCTRL, CM_L3INIT_XHPI_CLKCTRL, CM_CAM_FDIF_CLKC=
-TRL,
-  * CM_CAM_ISS_CLKCTRL, CM_CEFUSE_CEFUSE_CLKCTRL,
-- * CM_L3INIT_USB_HOST_CLKCTRL_RESTORE, CM_L3INIT_USB_TLL_CLKCTRL_RESTO=
-RE,
-- * CM_L3INSTR_L3_3_CLKCTRL_RESTORE, CM_L3INSTR_L3_INSTR_CLKCTRL_RESTOR=
-E,
-- * CM_L3INSTR_OCP_WP1_CLKCTRL_RESTORE, CM_L4PER_GPIO2_CLKCTRL_RESTORE,
-- * CM_L4PER_GPIO3_CLKCTRL_RESTORE, CM_L4PER_GPIO4_CLKCTRL_RESTORE,
-- * CM_L4PER_GPIO5_CLKCTRL_RESTORE, CM_L4PER_GPIO6_CLKCTRL_RESTORE,
-- * CM_ALWON_MDMINTC_CLKCTRL, CM_ALWON_SR_CORE_CLKCTRL, CM_ALWON_SR_IVA=
-_CLKCTRL,
-- * CM_ALWON_SR_MPU_CLKCTRL, CM_IVAHD_IVAHD_CLKCTRL, CM_IVAHD_SL2_CLKCT=
-RL,
-- * CM_DSS_DEISS_CLKCTRL, CM_DSS_DSS_CLKCTRL, CM_CM2_PROFILING_CLKCTRL,
-- * CM_MPU_MPU_CLKCTRL, CM_TESLA_TESLA_CLKCTRL, CM1_ABE_AESS_CLKCTRL,
-- * CM1_ABE_DMIC_CLKCTRL, CM1_ABE_L4ABE_CLKCTRL, CM1_ABE_MCASP_CLKCTRL,
-- * CM1_ABE_MCBSP1_CLKCTRL, CM1_ABE_MCBSP2_CLKCTRL, CM1_ABE_MCBSP3_CLKC=
-TRL,
-- * CM1_ABE_PDM_CLKCTRL, CM1_ABE_SLIMBUS_CLKCTRL, CM1_ABE_TIMER5_CLKCTR=
-L,
-- * CM1_ABE_TIMER6_CLKCTRL, CM1_ABE_TIMER7_CLKCTRL, CM1_ABE_TIMER8_CLKC=
-TRL,
-- * CM1_ABE_WDT3_CLKCTRL, CM_CM1_PROFILING_CLKCTRL
-+ * CM_CM2_PROFILING_CLKCTRL_RESTORE, CM_L3INIT_USB_HOST_CLKCTRL_RESTOR=
-E,
-+ * CM_L3INIT_USB_TLL_CLKCTRL_RESTORE, CM_L3INSTR_L3_3_CLKCTRL_RESTORE,
-+ * CM_L3INSTR_L3_INSTR_CLKCTRL_RESTORE, CM_L3INSTR_OCP_WP1_CLKCTRL_RES=
-TORE,
-+ * CM_L4PER_GPIO2_CLKCTRL_RESTORE, CM_L4PER_GPIO3_CLKCTRL_RESTORE,
-+ * CM_L4PER_GPIO4_CLKCTRL_RESTORE, CM_L4PER_GPIO5_CLKCTRL_RESTORE,
-+ * CM_L4PER_GPIO6_CLKCTRL_RESTORE, CM_ALWON_MDMINTC_CLKCTRL,
-+ * CM_ALWON_SR_CORE_CLKCTRL, CM_ALWON_SR_IVA_CLKCTRL, CM_ALWON_SR_MPU_=
-CLKCTRL,
-+ * CM_IVAHD_IVAHD_CLKCTRL, CM_IVAHD_SL2_CLKCTRL, CM_DSS_DEISS_CLKCTRL,
-+ * CM_DSS_DSS_CLKCTRL, CM_CM2_PROFILING_CLKCTRL, CM_MPU_MPU_CLKCTRL,
-+ * CM_TESLA_TESLA_CLKCTRL, CM1_ABE_AESS_CLKCTRL, CM1_ABE_DMIC_CLKCTRL,
-+ * CM1_ABE_L4ABE_CLKCTRL, CM1_ABE_MCASP_CLKCTRL, CM1_ABE_MCBSP1_CLKCTR=
-L,
-+ * CM1_ABE_MCBSP2_CLKCTRL, CM1_ABE_MCBSP3_CLKCTRL, CM1_ABE_PDM_CLKCTRL=
-,
-+ * CM1_ABE_SLIMBUS_CLKCTRL, CM1_ABE_TIMER5_CLKCTRL, CM1_ABE_TIMER6_CLK=
-CTRL,
-+ * CM1_ABE_TIMER7_CLKCTRL, CM1_ABE_TIMER8_CLKCTRL, CM1_ABE_WDT3_CLKCTR=
-L,
-+ * CM_CM1_PROFILING_CLKCTRL_RESTORE, CM_CM1_PROFILING_CLKCTRL
-  */
- #define OMAP4430_IDLEST_SHIFT					16
- #define OMAP4430_IDLEST_MASK					BITFIELD(16, 17)
-=20
--/* Used by CM_DUCATI_DYNAMICDEP, CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICD=
-EP */
-+/*
-+ * Used by CM_DUCATI_DYNAMICDEP, CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICD=
-EP,
-+ * CM_L3_2_DYNAMICDEP_RESTORE, CM_L4CFG_DYNAMICDEP_RESTORE
-+ */
- #define OMAP4430_ISS_DYNDEP_SHIFT				9
- #define OMAP4430_ISS_DYNDEP_MASK				BITFIELD(9, 9)
-=20
-@@ -976,33 +994,39 @@
- #define OMAP4430_ISS_STATDEP_SHIFT				9
- #define OMAP4430_ISS_STATDEP_MASK				BITFIELD(9, 9)
-=20
--/* Used by CM_L3_2_DYNAMICDEP, CM_TESLA_DYNAMICDEP */
-+/* Used by CM_L3_2_DYNAMICDEP, CM_L3_2_DYNAMICDEP_RESTORE, CM_TESLA_DY=
-NAMICDEP */
- #define OMAP4430_IVAHD_DYNDEP_SHIFT				2
- #define OMAP4430_IVAHD_DYNDEP_MASK				BITFIELD(2, 2)
-=20
- /*
-  * Used by CM_D2D_STATICDEP, CM_DUCATI_STATICDEP, CM_SDMA_STATICDEP,
-  * CM_GFX_STATICDEP, CM_L3INIT_STATICDEP, CM_CAM_STATICDEP,
-- * CM_SDMA_STATICDEP_RESTORE, CM_DSS_STATICDEP, CM_MPU_STATICDEP,
-- * CM_TESLA_STATICDEP
-+ * CM_D2D_STATICDEP_RESTORE, CM_SDMA_STATICDEP_RESTORE, CM_DSS_STATICD=
-EP,
-+ * CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-  */
- #define OMAP4430_IVAHD_STATDEP_SHIFT				2
- #define OMAP4430_IVAHD_STATDEP_MASK				BITFIELD(2, 2)
-=20
--/* Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_L4PER_DYNAMICDE=
-P */
-+/*
-+ * Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_L4PER_DYNAMICDE=
-P,
-+ * CM_L3_2_DYNAMICDEP_RESTORE, CM_L4CFG_DYNAMICDEP_RESTORE,
-+ * CM_L4PER_DYNAMICDEP_RESTORE
-+ */
- #define OMAP4430_L3INIT_DYNDEP_SHIFT				7
- #define OMAP4430_L3INIT_DYNDEP_MASK				BITFIELD(7, 7)
-=20
- /*
-  * Used by CM_D2D_STATICDEP, CM_DUCATI_STATICDEP, CM_SDMA_STATICDEP,
-- * CM_SDMA_STATICDEP_RESTORE, CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-+ * CM_D2D_STATICDEP_RESTORE, CM_SDMA_STATICDEP_RESTORE, CM_MPU_STATICD=
-EP,
-+ * CM_TESLA_STATICDEP
-  */
- #define OMAP4430_L3INIT_STATDEP_SHIFT				7
- #define OMAP4430_L3INIT_STATDEP_MASK				BITFIELD(7, 7)
-=20
- /*
-  * Used by CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_L3INIT_DYNAMICD=
-EP,
-- * CM_DSS_DYNAMICDEP, CM_MPU_DYNAMICDEP, CM_TESLA_DYNAMICDEP
-+ * CM_L3_2_DYNAMICDEP_RESTORE, CM_L4CFG_DYNAMICDEP_RESTORE, CM_DSS_DYN=
-AMICDEP,
-+ * CM_MPU_DYNAMICDEP, CM_TESLA_DYNAMICDEP
-  */
- #define OMAP4430_L3_1_DYNDEP_SHIFT				5
- #define OMAP4430_L3_1_DYNDEP_MASK				BITFIELD(5, 5)
-@@ -1010,8 +1034,8 @@
- /*
-  * Used by CM_D2D_STATICDEP, CM_DUCATI_STATICDEP, CM_SDMA_STATICDEP,
-  * CM_GFX_STATICDEP, CM_L4SEC_STATICDEP, CM_L3INIT_STATICDEP, CM_CAM_S=
-TATICDEP,
-- * CM_SDMA_STATICDEP_RESTORE, CM_IVAHD_STATICDEP, CM_DSS_STATICDEP,
-- * CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-+ * CM_D2D_STATICDEP_RESTORE, CM_SDMA_STATICDEP_RESTORE, CM_IVAHD_STATI=
-CDEP,
-+ * CM_DSS_STATICDEP, CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-  */
- #define OMAP4430_L3_1_STATDEP_SHIFT				5
- #define OMAP4430_L3_1_STATDEP_MASK				BITFIELD(5, 5)
-@@ -1020,7 +1044,8 @@
-  * Used by CM_EMU_DYNAMICDEP, CM_D2D_DYNAMICDEP, CM_DUCATI_DYNAMICDEP,
-  * CM_L3_1_DYNAMICDEP, CM_L4CFG_DYNAMICDEP, CM_SDMA_DYNAMICDEP,
-  * CM_GFX_DYNAMICDEP, CM_L4SEC_DYNAMICDEP, CM_L3INIT_DYNAMICDEP,
-- * CM_CAM_DYNAMICDEP, CM_IVAHD_DYNAMICDEP
-+ * CM_CAM_DYNAMICDEP, CM_D2D_DYNAMICDEP_RESTORE, CM_L3_1_DYNAMICDEP_RE=
-STORE,
-+ * CM_L4CFG_DYNAMICDEP_RESTORE, CM_IVAHD_DYNAMICDEP
-  */
- #define OMAP4430_L3_2_DYNDEP_SHIFT				6
- #define OMAP4430_L3_2_DYNDEP_MASK				BITFIELD(6, 6)
-@@ -1028,37 +1053,40 @@
- /*
-  * Used by CM_D2D_STATICDEP, CM_DUCATI_STATICDEP, CM_SDMA_STATICDEP,
-  * CM_GFX_STATICDEP, CM_L4SEC_STATICDEP, CM_L3INIT_STATICDEP, CM_CAM_S=
-TATICDEP,
-- * CM_SDMA_STATICDEP_RESTORE, CM_IVAHD_STATICDEP, CM_DSS_STATICDEP,
-- * CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-+ * CM_D2D_STATICDEP_RESTORE, CM_SDMA_STATICDEP_RESTORE, CM_IVAHD_STATI=
-CDEP,
-+ * CM_DSS_STATICDEP, CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-  */
- #define OMAP4430_L3_2_STATDEP_SHIFT				6
- #define OMAP4430_L3_2_STATDEP_MASK				BITFIELD(6, 6)
-=20
--/* Used by CM_L3_1_DYNAMICDEP */
-+/* Used by CM_L3_1_DYNAMICDEP, CM_L3_1_DYNAMICDEP_RESTORE */
- #define OMAP4430_L4CFG_DYNDEP_SHIFT				12
- #define OMAP4430_L4CFG_DYNDEP_MASK				BITFIELD(12, 12)
-=20
- /*
-  * Used by CM_D2D_STATICDEP, CM_DUCATI_STATICDEP, CM_SDMA_STATICDEP,
-- * CM_L3INIT_STATICDEP, CM_SDMA_STATICDEP_RESTORE, CM_MPU_STATICDEP,
-- * CM_TESLA_STATICDEP
-+ * CM_L3INIT_STATICDEP, CM_D2D_STATICDEP_RESTORE, CM_SDMA_STATICDEP_RE=
-STORE,
-+ * CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-  */
- #define OMAP4430_L4CFG_STATDEP_SHIFT				12
- #define OMAP4430_L4CFG_STATDEP_MASK				BITFIELD(12, 12)
-=20
--/* Used by CM_L3_2_DYNAMICDEP */
-+/* Used by CM_L3_2_DYNAMICDEP, CM_L3_2_DYNAMICDEP_RESTORE */
- #define OMAP4430_L4PER_DYNDEP_SHIFT				13
- #define OMAP4430_L4PER_DYNDEP_MASK				BITFIELD(13, 13)
-=20
- /*
-  * Used by CM_D2D_STATICDEP, CM_DUCATI_STATICDEP, CM_SDMA_STATICDEP,
-- * CM_L4SEC_STATICDEP, CM_L3INIT_STATICDEP, CM_SDMA_STATICDEP_RESTORE,
-- * CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-+ * CM_L4SEC_STATICDEP, CM_L3INIT_STATICDEP, CM_D2D_STATICDEP_RESTORE,
-+ * CM_SDMA_STATICDEP_RESTORE, CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-  */
- #define OMAP4430_L4PER_STATDEP_SHIFT				13
- #define OMAP4430_L4PER_STATDEP_MASK				BITFIELD(13, 13)
-=20
--/* Used by CM_L3_2_DYNAMICDEP, CM_L4PER_DYNAMICDEP */
-+/*
-+ * Used by CM_L3_2_DYNAMICDEP, CM_L4PER_DYNAMICDEP, CM_L3_2_DYNAMICDEP=
-_RESTORE,
-+ * CM_L4PER_DYNAMICDEP_RESTORE
-+ */
- #define OMAP4430_L4SEC_DYNDEP_SHIFT				14
- #define OMAP4430_L4SEC_DYNDEP_MASK				BITFIELD(14, 14)
-=20
-@@ -1069,7 +1097,7 @@
- #define OMAP4430_L4SEC_STATDEP_SHIFT				14
- #define OMAP4430_L4SEC_STATDEP_MASK				BITFIELD(14, 14)
-=20
--/* Used by CM_L4CFG_DYNAMICDEP */
-+/* Used by CM_L4CFG_DYNAMICDEP, CM_L4CFG_DYNAMICDEP_RESTORE */
- #define OMAP4430_L4WKUP_DYNDEP_SHIFT				15
- #define OMAP4430_L4WKUP_DYNDEP_MASK				BITFIELD(15, 15)
-=20
-@@ -1082,7 +1110,8 @@
-=20
- /*
-  * Used by CM_D2D_DYNAMICDEP, CM_L3_1_DYNAMICDEP, CM_L4CFG_DYNAMICDEP,
-- * CM_MPU_DYNAMICDEP
-+ * CM_D2D_DYNAMICDEP_RESTORE, CM_L3_1_DYNAMICDEP_RESTORE,
-+ * CM_L4CFG_DYNAMICDEP_RESTORE, CM_MPU_DYNAMICDEP
-  */
- #define OMAP4430_MEMIF_DYNDEP_SHIFT				4
- #define OMAP4430_MEMIF_DYNDEP_MASK				BITFIELD(4, 4)
-@@ -1090,8 +1119,8 @@
- /*
-  * Used by CM_D2D_STATICDEP, CM_DUCATI_STATICDEP, CM_SDMA_STATICDEP,
-  * CM_GFX_STATICDEP, CM_L4SEC_STATICDEP, CM_L3INIT_STATICDEP, CM_CAM_S=
-TATICDEP,
-- * CM_SDMA_STATICDEP_RESTORE, CM_IVAHD_STATICDEP, CM_DSS_STATICDEP,
-- * CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-+ * CM_D2D_STATICDEP_RESTORE, CM_SDMA_STATICDEP_RESTORE, CM_IVAHD_STATI=
-CDEP,
-+ * CM_DSS_STATICDEP, CM_MPU_STATICDEP, CM_TESLA_STATICDEP
-  */
- #define OMAP4430_MEMIF_STATDEP_SHIFT				4
- #define OMAP4430_MEMIF_STATDEP_MASK				BITFIELD(4, 4)
-@@ -1117,20 +1146,19 @@
- #define OMAP4430_MODFREQDIV_MANTISSA_MASK			BITFIELD(0, 6)
-=20
- /*
-- * Used by PRM_PRM_PROFILING_CLKCTRL, CM_WKUP_GPIO1_CLKCTRL,
-- * CM_WKUP_KEYBOARD_CLKCTRL, CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_RTC_CLKCT=
-RL,
-- * CM_WKUP_SARRAM_CLKCTRL, CM_WKUP_SYNCTIMER_CLKCTRL, CM_WKUP_TIMER12_=
-CLKCTRL,
-- * CM_WKUP_TIMER1_CLKCTRL, CM_WKUP_USIM_CLKCTRL, CM_WKUP_WDT1_CLKCTRL,
-- * CM_WKUP_WDT2_CLKCTRL, CM_EMU_DEBUGSS_CLKCTRL, CM_D2D_MODEM_ICR_CLKC=
-TRL,
-- * CM_D2D_SAD2D_CLKCTRL, CM_D2D_SAD2D_FW_CLKCTRL, CM_DUCATI_DUCATI_CLK=
-CTRL,
-- * CM_L3INSTR_L3_3_CLKCTRL, CM_L3INSTR_L3_INSTR_CLKCTRL,
-- * CM_L3INSTR_OCP_WP1_CLKCTRL, CM_L3_1_L3_1_CLKCTRL, CM_L3_2_GPMC_CLKC=
-TRL,
-- * CM_L3_2_L3_2_CLKCTRL, CM_L3_2_OCMC_RAM_CLKCTRL, CM_L4CFG_HW_SEM_CLK=
-CTRL,
-- * CM_L4CFG_L4_CFG_CLKCTRL, CM_L4CFG_MAILBOX_CLKCTRL, CM_L4CFG_SAR_ROM=
-_CLKCTRL,
-- * CM_MEMIF_DMM_CLKCTRL, CM_MEMIF_EMIF_1_CLKCTRL, CM_MEMIF_EMIF_2_CLKC=
-TRL,
-- * CM_MEMIF_EMIF_FW_CLKCTRL, CM_MEMIF_EMIF_H1_CLKCTRL,
-- * CM_MEMIF_EMIF_H2_CLKCTRL, CM_SDMA_SDMA_CLKCTRL, CM_GFX_GFX_CLKCTRL,
-- * CM_L4PER_ADC_CLKCTRL, CM_L4PER_DMTIMER10_CLKCTRL,
-+ * Used by CM_WKUP_GPIO1_CLKCTRL, CM_WKUP_KEYBOARD_CLKCTRL,
-+ * CM_WKUP_L4WKUP_CLKCTRL, CM_WKUP_RTC_CLKCTRL, CM_WKUP_SARRAM_CLKCTRL=
-,
-+ * CM_WKUP_SYNCTIMER_CLKCTRL, CM_WKUP_TIMER12_CLKCTRL, CM_WKUP_TIMER1_=
-CLKCTRL,
-+ * CM_WKUP_USIM_CLKCTRL, CM_WKUP_WDT1_CLKCTRL, CM_WKUP_WDT2_CLKCTRL,
-+ * CM_EMU_DEBUGSS_CLKCTRL, CM_D2D_MODEM_ICR_CLKCTRL, CM_D2D_SAD2D_CLKC=
-TRL,
-+ * CM_D2D_SAD2D_FW_CLKCTRL, CM_DUCATI_DUCATI_CLKCTRL, CM_L3INSTR_L3_3_=
-CLKCTRL,
-+ * CM_L3INSTR_L3_INSTR_CLKCTRL, CM_L3INSTR_OCP_WP1_CLKCTRL,
-+ * CM_L3_1_L3_1_CLKCTRL, CM_L3_2_GPMC_CLKCTRL, CM_L3_2_L3_2_CLKCTRL,
-+ * CM_L3_2_OCMC_RAM_CLKCTRL, CM_L4CFG_HW_SEM_CLKCTRL, CM_L4CFG_L4_CFG_=
-CLKCTRL,
-+ * CM_L4CFG_MAILBOX_CLKCTRL, CM_L4CFG_SAR_ROM_CLKCTRL, CM_MEMIF_DMM_CL=
-KCTRL,
-+ * CM_MEMIF_EMIF_1_CLKCTRL, CM_MEMIF_EMIF_2_CLKCTRL, CM_MEMIF_EMIF_FW_=
-CLKCTRL,
-+ * CM_MEMIF_EMIF_H1_CLKCTRL, CM_MEMIF_EMIF_H2_CLKCTRL, CM_SDMA_SDMA_CL=
-KCTRL,
-+ * CM_GFX_GFX_CLKCTRL, CM_L4PER_ADC_CLKCTRL, CM_L4PER_DMTIMER10_CLKCTR=
-L,
-  * CM_L4PER_DMTIMER11_CLKCTRL, CM_L4PER_DMTIMER2_CLKCTRL,
-  * CM_L4PER_DMTIMER3_CLKCTRL, CM_L4PER_DMTIMER4_CLKCTRL,
-  * CM_L4PER_DMTIMER9_CLKCTRL, CM_L4PER_ELM_CLKCTRL, CM_L4PER_GPIO2_CLK=
-CTRL,
-@@ -1154,20 +1182,21 @@
-  * CM_L3INIT_USB_HOST_FS_CLKCTRL, CM_L3INIT_USB_OTG_CLKCTRL,
-  * CM_L3INIT_USB_TLL_CLKCTRL, CM_L3INIT_XHPI_CLKCTRL, CM_CAM_FDIF_CLKC=
-TRL,
-  * CM_CAM_ISS_CLKCTRL, CM_CEFUSE_CEFUSE_CLKCTRL,
-- * CM_L3INIT_USB_HOST_CLKCTRL_RESTORE, CM_L3INIT_USB_TLL_CLKCTRL_RESTO=
-RE,
-- * CM_L3INSTR_L3_3_CLKCTRL_RESTORE, CM_L3INSTR_L3_INSTR_CLKCTRL_RESTOR=
-E,
-- * CM_L3INSTR_OCP_WP1_CLKCTRL_RESTORE, CM_L4PER_GPIO2_CLKCTRL_RESTORE,
-- * CM_L4PER_GPIO3_CLKCTRL_RESTORE, CM_L4PER_GPIO4_CLKCTRL_RESTORE,
-- * CM_L4PER_GPIO5_CLKCTRL_RESTORE, CM_L4PER_GPIO6_CLKCTRL_RESTORE,
-- * CM_ALWON_MDMINTC_CLKCTRL, CM_ALWON_SR_CORE_CLKCTRL, CM_ALWON_SR_IVA=
-_CLKCTRL,
-- * CM_ALWON_SR_MPU_CLKCTRL, CM_IVAHD_IVAHD_CLKCTRL, CM_IVAHD_SL2_CLKCT=
-RL,
-- * CM_DSS_DEISS_CLKCTRL, CM_DSS_DSS_CLKCTRL, CM_CM2_PROFILING_CLKCTRL,
-- * CM_MPU_MPU_CLKCTRL, CM_TESLA_TESLA_CLKCTRL, CM1_ABE_AESS_CLKCTRL,
-- * CM1_ABE_DMIC_CLKCTRL, CM1_ABE_L4ABE_CLKCTRL, CM1_ABE_MCASP_CLKCTRL,
-- * CM1_ABE_MCBSP1_CLKCTRL, CM1_ABE_MCBSP2_CLKCTRL, CM1_ABE_MCBSP3_CLKC=
-TRL,
-- * CM1_ABE_PDM_CLKCTRL, CM1_ABE_SLIMBUS_CLKCTRL, CM1_ABE_TIMER5_CLKCTR=
-L,
-- * CM1_ABE_TIMER6_CLKCTRL, CM1_ABE_TIMER7_CLKCTRL, CM1_ABE_TIMER8_CLKC=
-TRL,
-- * CM1_ABE_WDT3_CLKCTRL, CM_CM1_PROFILING_CLKCTRL
-+ * CM_CM2_PROFILING_CLKCTRL_RESTORE, CM_L3INIT_USB_HOST_CLKCTRL_RESTOR=
-E,
-+ * CM_L3INIT_USB_TLL_CLKCTRL_RESTORE, CM_L3INSTR_L3_3_CLKCTRL_RESTORE,
-+ * CM_L3INSTR_L3_INSTR_CLKCTRL_RESTORE, CM_L3INSTR_OCP_WP1_CLKCTRL_RES=
-TORE,
-+ * CM_L4PER_GPIO2_CLKCTRL_RESTORE, CM_L4PER_GPIO3_CLKCTRL_RESTORE,
-+ * CM_L4PER_GPIO4_CLKCTRL_RESTORE, CM_L4PER_GPIO5_CLKCTRL_RESTORE,
-+ * CM_L4PER_GPIO6_CLKCTRL_RESTORE, CM_ALWON_MDMINTC_CLKCTRL,
-+ * CM_ALWON_SR_CORE_CLKCTRL, CM_ALWON_SR_IVA_CLKCTRL, CM_ALWON_SR_MPU_=
-CLKCTRL,
-+ * CM_IVAHD_IVAHD_CLKCTRL, CM_IVAHD_SL2_CLKCTRL, CM_DSS_DEISS_CLKCTRL,
-+ * CM_DSS_DSS_CLKCTRL, CM_CM2_PROFILING_CLKCTRL, CM_MPU_MPU_CLKCTRL,
-+ * CM_TESLA_TESLA_CLKCTRL, CM1_ABE_AESS_CLKCTRL, CM1_ABE_DMIC_CLKCTRL,
-+ * CM1_ABE_L4ABE_CLKCTRL, CM1_ABE_MCASP_CLKCTRL, CM1_ABE_MCBSP1_CLKCTR=
-L,
-+ * CM1_ABE_MCBSP2_CLKCTRL, CM1_ABE_MCBSP3_CLKCTRL, CM1_ABE_PDM_CLKCTRL=
-,
-+ * CM1_ABE_SLIMBUS_CLKCTRL, CM1_ABE_TIMER5_CLKCTRL, CM1_ABE_TIMER6_CLK=
-CTRL,
-+ * CM1_ABE_TIMER7_CLKCTRL, CM1_ABE_TIMER8_CLKCTRL, CM1_ABE_WDT3_CLKCTR=
-L,
-+ * CM_CM1_PROFILING_CLKCTRL_RESTORE, CM_CM1_PROFILING_CLKCTRL
-  */
- #define OMAP4430_MODULEMODE_SHIFT				0
- #define OMAP4430_MODULEMODE_MASK				BITFIELD(0, 1)
-@@ -1180,9 +1209,9 @@
- #define OMAP4430_OPTFCLKEN_BGAP_32K_SHIFT			8
- #define OMAP4430_OPTFCLKEN_BGAP_32K_MASK			BITFIELD(8, 8)
-=20
--/* Used by CM_L3INIT_USBPHYOCP2SCP_CLKCTRL */
--#define OMAP4430_OPTFCLKEN_CLK32K_SHIFT				9
--#define OMAP4430_OPTFCLKEN_CLK32K_MASK				BITFIELD(9, 9)
-+/* Used by CM_ALWON_USBPHY_CLKCTRL */
-+#define OMAP4430_OPTFCLKEN_CLK32K_SHIFT				8
-+#define OMAP4430_OPTFCLKEN_CLK32K_MASK				BITFIELD(8, 8)
-=20
- /* Used by CM_CAM_ISS_CLKCTRL */
- #define OMAP4430_OPTFCLKEN_CTRLCLK_SHIFT			8
-@@ -1206,6 +1235,10 @@
- #define OMAP4430_OPTFCLKEN_DSSCLK_SHIFT				8
- #define OMAP4430_OPTFCLKEN_DSSCLK_MASK				BITFIELD(8, 8)
-=20
-+/* Used by CM_WKUP_USIM_CLKCTRL */
-+#define OMAP4430_OPTFCLKEN_FCLK_SHIFT				8
-+#define OMAP4430_OPTFCLKEN_FCLK_MASK				BITFIELD(8, 8)
-+
- /* Used by CM1_ABE_SLIMBUS_CLKCTRL */
- #define OMAP4430_OPTFCLKEN_FCLK0_SHIFT				8
- #define OMAP4430_OPTFCLKEN_FCLK0_MASK				BITFIELD(8, 8)
-@@ -1298,7 +1331,7 @@
- #define OMAP4430_OPTFCLKEN_XCLK_SHIFT				8
- #define OMAP4430_OPTFCLKEN_XCLK_MASK				BITFIELD(8, 8)
-=20
--/* Used by CM_EMU_OVERRIDE_DPLL_PER, CM_EMU_OVERRIDE_DPLL_CORE */
-+/* Used by CM_EMU_OVERRIDE_DPLL_CORE */
- #define OMAP4430_OVERRIDE_ENABLE_SHIFT				19
- #define OMAP4430_OVERRIDE_ENABLE_MASK				BITFIELD(19, 19)
-=20
-@@ -1318,14 +1351,6 @@
- #define OMAP4430_PERF_REQ_SHIFT					0
- #define OMAP4430_PERF_REQ_MASK					BITFIELD(0, 7)
-=20
--/* Used by CM_EMU_OVERRIDE_DPLL_PER */
--#define OMAP4430_PER_DPLL_EMU_DIV_SHIFT				0
--#define OMAP4430_PER_DPLL_EMU_DIV_MASK				BITFIELD(0, 6)
--
--/* Used by CM_EMU_OVERRIDE_DPLL_PER */
--#define OMAP4430_PER_DPLL_EMU_MULT_SHIFT			8
--#define OMAP4430_PER_DPLL_EMU_MULT_MASK				BITFIELD(8, 18)
--
- /* Used by CM_RESTORE_ST */
- #define OMAP4430_PHASE1_COMPLETED_SHIFT				0
- #define OMAP4430_PHASE1_COMPLETED_MASK				BITFIELD(0, 0)
-@@ -1346,13 +1371,13 @@
- #define OMAP4430_PMD_TRACE_MUX_CTRL_SHIFT			22
- #define OMAP4430_PMD_TRACE_MUX_CTRL_MASK			BITFIELD(22, 23)
-=20
--/* Used by CM_DYN_DEP_PRESCAL */
-+/* Used by CM_DYN_DEP_PRESCAL_RESTORE, CM_DYN_DEP_PRESCAL */
- #define OMAP4430_PRESCAL_SHIFT					0
- #define OMAP4430_PRESCAL_MASK					BITFIELD(0, 5)
-=20
- /* Used by REVISION_CM2, REVISION_CM1 */
--#define OMAP4430_REV_SHIFT					0
--#define OMAP4430_REV_MASK					BITFIELD(0, 7)
-+#define OMAP4430_R_RTL_SHIFT					11
-+#define OMAP4430_R_RTL_MASK					BITFIELD(11, 15)
-=20
- /*
-  * Used by CM_L3INIT_USB_HOST_CLKCTRL, CM_L3INIT_USB_TLL_CLKCTRL,
-@@ -1365,7 +1390,11 @@
- #define OMAP4430_SCALE_FCLK_SHIFT				0
- #define OMAP4430_SCALE_FCLK_MASK				BITFIELD(0, 0)
-=20
--/* Used by CM_L4CFG_DYNAMICDEP */
-+/* Used by REVISION_CM2, REVISION_CM1 */
-+#define OMAP4430_SCHEME_SHIFT					30
-+#define OMAP4430_SCHEME_MASK					BITFIELD(30, 31)
-+
-+/* Used by CM_L4CFG_DYNAMICDEP, CM_L4CFG_DYNAMICDEP_RESTORE */
- #define OMAP4430_SDMA_DYNDEP_SHIFT				11
- #define OMAP4430_SDMA_DYNDEP_MASK				BITFIELD(11, 11)
-=20
-@@ -1452,11 +1481,19 @@
- #define OMAP4430_ST_HSDIVIDER_CLKOUT4_SHIFT			9
- #define OMAP4430_ST_HSDIVIDER_CLKOUT4_MASK			BITFIELD(9, 9)
-=20
-+/*
-+ * Used by CM_IDLEST_DPLL_PER, CM_IDLEST_DPLL_UNIPRO, CM_IDLEST_DPLL_U=
-SB,
-+ * CM_IDLEST_DPLL_ABE, CM_IDLEST_DPLL_CORE, CM_IDLEST_DPLL_DDRPHY,
-+ * CM_IDLEST_DPLL_IVA, CM_IDLEST_DPLL_MPU
-+ */
-+#define OMAP4430_ST_MN_BYPASS_SHIFT				8
-+#define OMAP4430_ST_MN_BYPASS_MASK				BITFIELD(8, 8)
-+
- /* Used by CM_SYS_CLKSEL */
- #define OMAP4430_SYS_CLKSEL_SHIFT				0
- #define OMAP4430_SYS_CLKSEL_MASK				BITFIELD(0, 2)
-=20
--/* Used by CM_L4CFG_DYNAMICDEP */
-+/* Used by CM_L4CFG_DYNAMICDEP, CM_L4CFG_DYNAMICDEP_RESTORE */
- #define OMAP4430_TESLA_DYNDEP_SHIFT				1
- #define OMAP4430_TESLA_DYNDEP_MASK				BITFIELD(1, 1)
-=20
-@@ -1467,8 +1504,18 @@
- /*
-  * Used by CM_EMU_DYNAMICDEP, CM_D2D_DYNAMICDEP, CM_DUCATI_DYNAMICDEP,
-  * CM_L3_1_DYNAMICDEP, CM_L3_2_DYNAMICDEP, CM_L4CFG_DYNAMICDEP,
-- * CM_L4PER_DYNAMICDEP, CM_MPU_DYNAMICDEP, CM_TESLA_DYNAMICDEP
-+ * CM_L4PER_DYNAMICDEP, CM_D2D_DYNAMICDEP_RESTORE, CM_L3_1_DYNAMICDEP_=
-RESTORE,
-+ * CM_L3_2_DYNAMICDEP_RESTORE, CM_L4CFG_DYNAMICDEP_RESTORE,
-+ * CM_L4PER_DYNAMICDEP_RESTORE, CM_MPU_DYNAMICDEP, CM_TESLA_DYNAMICDEP
-  */
- #define OMAP4430_WINDOWSIZE_SHIFT				24
- #define OMAP4430_WINDOWSIZE_MASK				BITFIELD(24, 27)
-+
-+/* Used by REVISION_CM2, REVISION_CM1 */
-+#define OMAP4430_X_MAJOR_SHIFT					8
-+#define OMAP4430_X_MAJOR_MASK					BITFIELD(8, 10)
-+
-+/* Used by REVISION_CM2, REVISION_CM1 */
-+#define OMAP4430_Y_MINOR_SHIFT					0
-+#define OMAP4430_Y_MINOR_MASK					BITFIELD(0, 5)
- #endif
-diff --git a/arch/arm/mach-omap2/prm-regbits-44xx.h b/arch/arm/mach-oma=
-p2/prm-regbits-44xx.h
-index 597be4a..9a2902f 100644
---- a/arch/arm/mach-omap2/prm-regbits-44xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-44xx.h
-@@ -1,8 +1,8 @@
- /*
-  * OMAP44xx Power Management register bits
-  *
-- * Copyright (C) 2009 Texas Instruments, Inc.
-- * Copyright (C) 2009 Nokia Corporation
-+ * Copyright (C) 2009-2010 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2010 Nokia Corporation
-  *
-  * Paul Walmsley (paul@pwsan.com)
-  * Rajendra Nayak (rnayak@ti.com)
-@@ -94,6 +94,22 @@
- #define OMAP4430_AUTO_CTRL_VDD_MPU_L_SHIFT				2
- #define OMAP4430_AUTO_CTRL_VDD_MPU_L_MASK				BITFIELD(2, 3)
-=20
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_BYPS_RA_ERR_SHIFT					25
-+#define OMAP4430_BYPS_RA_ERR_MASK					BITFIELD(25, 25)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_BYPS_SA_ERR_SHIFT					24
-+#define OMAP4430_BYPS_SA_ERR_MASK					BITFIELD(24, 24)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_BYPS_TIMEOUT_ERR_SHIFT					26
-+#define OMAP4430_BYPS_TIMEOUT_ERR_MASK					BITFIELD(26, 26)
-+
-+/* Used by PRM_RSTST */
-+#define OMAP4430_C2C_RST_SHIFT						10
-+#define OMAP4430_C2C_RST_MASK						BITFIELD(10, 10)
-+
- /* Used by PM_CAM_PWRSTCTRL */
- #define OMAP4430_CAM_MEM_ONSTATE_SHIFT					16
- #define OMAP4430_CAM_MEM_ONSTATE_MASK					BITFIELD(16, 17)
-@@ -154,6 +170,10 @@
- #define OMAP4430_CORE_OTHER_BANK_STATEST_SHIFT				4
- #define OMAP4430_CORE_OTHER_BANK_STATEST_MASK				BITFIELD(4, 5)
-=20
-+/* Used by REVISION_PRM */
-+#define OMAP4430_CUSTOM_SHIFT						6
-+#define OMAP4430_CUSTOM_MASK						BITFIELD(6, 7)
-+
- /* Used by PRM_VC_VAL_BYPASS */
- #define OMAP4430_DATA_SHIFT						16
- #define OMAP4430_DATA_MASK						BITFIELD(16, 23)
-@@ -166,11 +186,18 @@
- #define OMAP4430_DFILTEREN_SHIFT					6
- #define OMAP4430_DFILTEREN_MASK						BITFIELD(6, 6)
-=20
--/* Used by PRM_IRQENABLE_MPU, PRM_IRQENABLE_TESLA */
-+/*
-+ * Used by PRM_LDO_SRAM_CORE_SETUP, PRM_LDO_SRAM_IVA_SETUP,
-+ * PRM_LDO_SRAM_MPU_SETUP, PRM_SRAM_WKUP_SETUP
-+ */
-+#define OMAP4430_DISABLE_RTA_EXPORT_SHIFT				0
-+#define OMAP4430_DISABLE_RTA_EXPORT_MASK				BITFIELD(0, 0)
-+
-+/* Used by PRM_IRQENABLE_DUCATI, PRM_IRQENABLE_MPU, PRM_IRQENABLE_TESL=
-A */
- #define OMAP4430_DPLL_ABE_RECAL_EN_SHIFT				4
- #define OMAP4430_DPLL_ABE_RECAL_EN_MASK					BITFIELD(4, 4)
-=20
--/* Used by PRM_IRQSTATUS_MPU, PRM_IRQSTATUS_TESLA */
-+/* Used by PRM_IRQSTATUS_DUCATI, PRM_IRQSTATUS_MPU, PRM_IRQSTATUS_TESL=
-A */
- #define OMAP4430_DPLL_ABE_RECAL_ST_SHIFT				4
- #define OMAP4430_DPLL_ABE_RECAL_ST_MASK					BITFIELD(4, 4)
-=20
-@@ -222,14 +249,6 @@
- #define OMAP4430_DPLL_UNIPRO_RECAL_ST_SHIFT				7
- #define OMAP4430_DPLL_UNIPRO_RECAL_ST_MASK				BITFIELD(7, 7)
-=20
--/* Used by PRM_IRQENABLE_MPU */
--#define OMAP4430_DPLL_USB_RECAL_EN_SHIFT				5
--#define OMAP4430_DPLL_USB_RECAL_EN_MASK					BITFIELD(5, 5)
--
--/* Used by PRM_IRQSTATUS_MPU */
--#define OMAP4430_DPLL_USB_RECAL_ST_SHIFT				5
--#define OMAP4430_DPLL_USB_RECAL_ST_MASK					BITFIELD(5, 5)
--
- /* Used by PM_DSS_PWRSTCTRL */
- #define OMAP4430_DSS_MEM_ONSTATE_SHIFT					16
- #define OMAP4430_DSS_MEM_ONSTATE_MASK					BITFIELD(16, 17)
-@@ -296,24 +315,17 @@
-=20
- /*
-  * Used by PRM_LDO_SRAM_CORE_SETUP, PRM_LDO_SRAM_IVA_SETUP,
-- * PRM_LDO_SRAM_MPU_SETUP, PRM_SRAM_WKUP_SETUP
-- */
--#define OMAP4430_ENABLE_RTA_EXPORT_SHIFT				0
--#define OMAP4430_ENABLE_RTA_EXPORT_MASK					BITFIELD(0, 0)
--
--/*
-- * Used by PRM_LDO_SRAM_CORE_SETUP, PRM_LDO_SRAM_IVA_SETUP,
-  * PRM_LDO_SRAM_MPU_SETUP
-  */
--#define OMAP4430_ENFUNC1_SHIFT						3
--#define OMAP4430_ENFUNC1_MASK						BITFIELD(3, 3)
-+#define OMAP4430_ENFUNC1_EXPORT_SHIFT					3
-+#define OMAP4430_ENFUNC1_EXPORT_MASK					BITFIELD(3, 3)
-=20
- /*
-  * Used by PRM_LDO_SRAM_CORE_SETUP, PRM_LDO_SRAM_IVA_SETUP,
-  * PRM_LDO_SRAM_MPU_SETUP
-  */
--#define OMAP4430_ENFUNC3_SHIFT						5
--#define OMAP4430_ENFUNC3_MASK						BITFIELD(5, 5)
-+#define OMAP4430_ENFUNC3_EXPORT_SHIFT					5
-+#define OMAP4430_ENFUNC3_EXPORT_MASK					BITFIELD(5, 5)
-=20
- /*
-  * Used by PRM_LDO_SRAM_CORE_SETUP, PRM_LDO_SRAM_IVA_SETUP,
-@@ -357,6 +369,10 @@
- #define OMAP4430_FORCEWKUP_ST_SHIFT					10
- #define OMAP4430_FORCEWKUP_ST_MASK					BITFIELD(10, 10)
-=20
-+/* Used by REVISION_PRM */
-+#define OMAP4430_FUNC_SHIFT						16
-+#define OMAP4430_FUNC_MASK						BITFIELD(16, 27)
-+
- /* Used by PM_GFX_PWRSTCTRL */
- #define OMAP4430_GFX_MEM_ONSTATE_SHIFT					16
- #define OMAP4430_GFX_MEM_ONSTATE_MASK					BITFIELD(16, 17)
-@@ -486,6 +502,13 @@
- #define OMAP4430_L3INIT_BANK1_STATEST_MASK				BITFIELD(4, 5)
-=20
- /*
-+ * Used by PM_CORE_PWRSTST, PM_L3INIT_PWRSTST, PM_ABE_PWRSTST, PM_MPU_=
-PWRSTST,
-+ * PM_L4PER_PWRSTST, PM_TESLA_PWRSTST, PM_IVAHD_PWRSTST
-+ */
-+#define OMAP4430_LASTPOWERSTATEENTERED_SHIFT				24
-+#define OMAP4430_LASTPOWERSTATEENTERED_MASK				BITFIELD(24, 25)
-+
-+/*
-  * Used by PM_CORE_PWRSTCTRL, PM_L3INIT_PWRSTCTRL, PM_ABE_PWRSTCTRL,
-  * PM_MPU_PWRSTCTRL, PM_DSS_PWRSTCTRL, PM_L4PER_PWRSTCTRL, PM_TESLA_PW=
-RSTCTRL,
-  * PM_IVAHD_PWRSTCTRL
-@@ -511,10 +534,11 @@
-  * RM_L3INSTR_L3_INSTR_CONTEXT, RM_L3INSTR_OCP_WP1_CONTEXT,
-  * RM_L3_1_L3_1_CONTEXT, RM_L3_2_L3_2_CONTEXT, RM_L3_2_OCMC_RAM_CONTEX=
-T,
-  * RM_L4CFG_L4_CFG_CONTEXT, RM_L4CFG_SAR_ROM_CONTEXT, RM_MEMIF_DLL_CON=
-TEXT,
-- * RM_MEMIF_DLL_H_CONTEXT, RM_MEMIF_DMM_CONTEXT, RM_MEMIF_EMIF_FW_CONT=
-EXT,
-- * RM_CAM_FDIF_CONTEXT, RM_CAM_ISS_CONTEXT, RM_L3INIT_CCPTX_CONTEXT,
-- * RM_L3INIT_EMAC_CONTEXT, RM_L3INIT_P1500_CONTEXT, RM_L3INIT_PCIESS_C=
-ONTEXT,
-- * RM_L3INIT_SATA_CONTEXT, RM_L3INIT_TPPSS_CONTEXT, RM_L3INIT_UNIPRO1_=
-CONTEXT,
-+ * RM_MEMIF_DLL_H_CONTEXT, RM_MEMIF_DMM_CONTEXT, RM_MEMIF_EMIF_1_CONTE=
-XT,
-+ * RM_MEMIF_EMIF_2_CONTEXT, RM_MEMIF_EMIF_FW_CONTEXT, RM_CAM_FDIF_CONT=
-EXT,
-+ * RM_CAM_ISS_CONTEXT, RM_L3INIT_CCPTX_CONTEXT, RM_L3INIT_EMAC_CONTEXT=
-,
-+ * RM_L3INIT_P1500_CONTEXT, RM_L3INIT_PCIESS_CONTEXT, RM_L3INIT_SATA_C=
-ONTEXT,
-+ * RM_L3INIT_TPPSS_CONTEXT, RM_L3INIT_UNIPRO1_CONTEXT,
-  * RM_L3INIT_USBPHYOCP2SCP_CONTEXT, RM_L3INIT_XHPI_CONTEXT,
-  * RM_ABE_AESS_CONTEXT, RM_ABE_DMIC_CONTEXT, RM_ABE_MCASP_CONTEXT,
-  * RM_ABE_MCBSP1_CONTEXT, RM_ABE_MCBSP2_CONTEXT, RM_ABE_MCBSP3_CONTEXT=
-,
-@@ -693,10 +717,6 @@
- #define OMAP4430_LOWPOWERSTATECHANGE_SHIFT				4
- #define OMAP4430_LOWPOWERSTATECHANGE_MASK				BITFIELD(4, 4)
-=20
--/* Used by PM_CORE_PWRSTCTRL */
--#define OMAP4430_MEMORYCHANGE_SHIFT					3
--#define OMAP4430_MEMORYCHANGE_MASK					BITFIELD(3, 3)
--
- /* Used by PRM_MODEM_IF_CTRL */
- #define OMAP4430_MODEM_READY_SHIFT					1
- #define OMAP4430_MODEM_READY_MASK					BITFIELD(1, 1)
-@@ -788,10 +808,6 @@
- #define OMAP4430_OFF_SHIFT						0
- #define OMAP4430_OFF_MASK						BITFIELD(0, 7)
-=20
--/* Used by PRM_LDO_BANDGAP_CTRL */
--#define OMAP4430_OFF_ENABLE_SHIFT					0
--#define OMAP4430_OFF_ENABLE_MASK					BITFIELD(0, 0)
--
- /*
-  * Used by PRM_VC_VAL_CMD_VDD_CORE_L, PRM_VC_VAL_CMD_VDD_IVA_L,
-  * PRM_VC_VAL_CMD_VDD_MPU_L
-@@ -969,10 +985,6 @@
- #define OMAP4430_RETMODE_ENABLE_SHIFT					0
- #define OMAP4430_RETMODE_ENABLE_MASK					BITFIELD(0, 0)
-=20
--/* Used by REVISION_PRM */
--#define OMAP4430_REV_SHIFT						0
--#define OMAP4430_REV_MASK						BITFIELD(0, 7)
--
- /* Used by RM_DUCATI_RSTCTRL, RM_TESLA_RSTCTRL, RM_IVAHD_RSTCTRL */
- #define OMAP4430_RST1_SHIFT						0
- #define OMAP4430_RST1_MASK						BITFIELD(0, 0)
-@@ -1013,6 +1025,10 @@
- #define OMAP4430_RST_GLOBAL_WARM_SW_SHIFT				0
- #define OMAP4430_RST_GLOBAL_WARM_SW_MASK				BITFIELD(0, 0)
-=20
-+/* Used by REVISION_PRM */
-+#define OMAP4430_R_RTL_SHIFT						11
-+#define OMAP4430_R_RTL_MASK						BITFIELD(11, 15)
-+
- /* Used by PRM_VC_CFG_CHANNEL */
- #define OMAP4430_SA_VDD_CORE_L_SHIFT					0
- #define OMAP4430_SA_VDD_CORE_L_MASK					BITFIELD(0, 0)
-@@ -1037,6 +1053,10 @@
- #define OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_SHIFT			16
- #define OMAP4430_SA_VDD_MPU_L_PRM_VC_SMPS_SA_MASK			BITFIELD(16, 22)
-=20
-+/* Used by REVISION_PRM */
-+#define OMAP4430_SCHEME_SHIFT						30
-+#define OMAP4430_SCHEME_MASK						BITFIELD(30, 31)
-+
- /* Used by PRM_VC_CFG_I2C_CLK */
- #define OMAP4430_SCLH_SHIFT						0
- #define OMAP4430_SCLH_MASK						BITFIELD(0, 7)
-@@ -1081,6 +1101,42 @@
- #define OMAP4430_SMPSWAITTIMEMIN_SHIFT					8
- #define OMAP4430_SMPSWAITTIMEMIN_MASK					BITFIELD(8, 23)
-=20
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_RA_ERR_CORE_SHIFT					1
-+#define OMAP4430_SMPS_RA_ERR_CORE_MASK					BITFIELD(1, 1)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_RA_ERR_IVA_SHIFT					9
-+#define OMAP4430_SMPS_RA_ERR_IVA_MASK					BITFIELD(9, 9)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_RA_ERR_MPU_SHIFT					17
-+#define OMAP4430_SMPS_RA_ERR_MPU_MASK					BITFIELD(17, 17)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_SA_ERR_CORE_SHIFT					0
-+#define OMAP4430_SMPS_SA_ERR_CORE_MASK					BITFIELD(0, 0)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_SA_ERR_IVA_SHIFT					8
-+#define OMAP4430_SMPS_SA_ERR_IVA_MASK					BITFIELD(8, 8)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_SA_ERR_MPU_SHIFT					16
-+#define OMAP4430_SMPS_SA_ERR_MPU_MASK					BITFIELD(16, 16)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_TIMEOUT_ERR_CORE_SHIFT				2
-+#define OMAP4430_SMPS_TIMEOUT_ERR_CORE_MASK				BITFIELD(2, 2)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_TIMEOUT_ERR_IVA_SHIFT				10
-+#define OMAP4430_SMPS_TIMEOUT_ERR_IVA_MASK				BITFIELD(10, 10)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_SMPS_TIMEOUT_ERR_MPU_SHIFT				18
-+#define OMAP4430_SMPS_TIMEOUT_ERR_MPU_MASK				BITFIELD(18, 18)
-+
- /* Used by PRM_LDO_ABB_IVA_SETUP, PRM_LDO_ABB_MPU_SETUP */
- #define OMAP4430_SR2EN_SHIFT						0
- #define OMAP4430_SR2EN_MASK						BITFIELD(0, 0)
-@@ -1123,6 +1179,14 @@
- #define OMAP4430_STABLE_PRESCAL_SHIFT					8
- #define OMAP4430_STABLE_PRESCAL_MASK					BITFIELD(8, 9)
-=20
-+/* Used by PRM_LDO_BANDGAP_SETUP */
-+#define OMAP4430_STARTUP_COUNT_SHIFT					0
-+#define OMAP4430_STARTUP_COUNT_MASK					BITFIELD(0, 7)
-+
-+/* Renamed from STARTUP_COUNT Used by PRM_SRAM_COUNT */
-+#define OMAP4430_STARTUP_COUNT_24_31_SHIFT				24
-+#define OMAP4430_STARTUP_COUNT_24_31_MASK				BITFIELD(24, 31)
-+
- /* Used by PM_IVAHD_PWRSTCTRL */
- #define OMAP4430_TCM1_MEM_ONSTATE_SHIFT					20
- #define OMAP4430_TCM1_MEM_ONSTATE_MASK					BITFIELD(20, 21)
-@@ -1220,6 +1284,14 @@
- #define OMAP4430_VC_BYPASSACK_ST_MASK					BITFIELD(14, 14)
-=20
- /* Used by PRM_IRQENABLE_DUCATI, PRM_IRQENABLE_MPU */
-+#define OMAP4430_VC_CORE_VPACK_EN_SHIFT					22
-+#define OMAP4430_VC_CORE_VPACK_EN_MASK					BITFIELD(22, 22)
-+
-+/* Used by PRM_IRQSTATUS_DUCATI, PRM_IRQSTATUS_MPU */
-+#define OMAP4430_VC_CORE_VPACK_ST_SHIFT					22
-+#define OMAP4430_VC_CORE_VPACK_ST_MASK					BITFIELD(22, 22)
-+
-+/* Used by PRM_IRQENABLE_DUCATI, PRM_IRQENABLE_MPU */
- #define OMAP4430_VC_IVA_VPACK_EN_SHIFT					30
- #define OMAP4430_VC_IVA_VPACK_EN_MASK					BITFIELD(30, 30)
-=20
-@@ -1299,6 +1371,42 @@
- #define OMAP4430_VDD_MPU_VOLT_MGR_RST_SHIFT				6
- #define OMAP4430_VDD_MPU_VOLT_MGR_RST_MASK				BITFIELD(6, 6)
-=20
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_RA_ERR_CORE_SHIFT					4
-+#define OMAP4430_VFSM_RA_ERR_CORE_MASK					BITFIELD(4, 4)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_RA_ERR_IVA_SHIFT					12
-+#define OMAP4430_VFSM_RA_ERR_IVA_MASK					BITFIELD(12, 12)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_RA_ERR_MPU_SHIFT					20
-+#define OMAP4430_VFSM_RA_ERR_MPU_MASK					BITFIELD(20, 20)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_SA_ERR_CORE_SHIFT					3
-+#define OMAP4430_VFSM_SA_ERR_CORE_MASK					BITFIELD(3, 3)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_SA_ERR_IVA_SHIFT					11
-+#define OMAP4430_VFSM_SA_ERR_IVA_MASK					BITFIELD(11, 11)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_SA_ERR_MPU_SHIFT					19
-+#define OMAP4430_VFSM_SA_ERR_MPU_MASK					BITFIELD(19, 19)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_TIMEOUT_ERR_CORE_SHIFT				5
-+#define OMAP4430_VFSM_TIMEOUT_ERR_CORE_MASK				BITFIELD(5, 5)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_TIMEOUT_ERR_IVA_SHIFT				13
-+#define OMAP4430_VFSM_TIMEOUT_ERR_IVA_MASK				BITFIELD(13, 13)
-+
-+/* Used by PRM_VC_ERRST */
-+#define OMAP4430_VFSM_TIMEOUT_ERR_MPU_SHIFT				21
-+#define OMAP4430_VFSM_TIMEOUT_ERR_MPU_MASK				BITFIELD(21, 21)
-+
- /* Used by PRM_VC_VAL_SMPS_RA_VOL */
- #define OMAP4430_VOLRA_VDD_CORE_L_SHIFT					0
- #define OMAP4430_VOLRA_VDD_CORE_L_MASK					BITFIELD(0, 7)
-@@ -2202,4 +2310,12 @@
- /* Used by PRM_IO_PMCTRL */
- #define OMAP4430_WUCLK_STATUS_SHIFT					9
- #define OMAP4430_WUCLK_STATUS_MASK					BITFIELD(9, 9)
-+
-+/* Used by REVISION_PRM */
-+#define OMAP4430_X_MAJOR_SHIFT						8
-+#define OMAP4430_X_MAJOR_MASK						BITFIELD(8, 10)
-+
-+/* Used by REVISION_PRM */
-+#define OMAP4430_Y_MINOR_SHIFT						0
-+#define OMAP4430_Y_MINOR_MASK						BITFIELD(0, 5)
- #endif
+ 	CLK(NULL,	"dpll_abe_ck",			&dpll_abe_ck,	CK_443X),
+ 	CLK(NULL,	"dpll_abe_m2x2_ck",		&dpll_abe_m2x2_ck,	CK_443X),
+@@ -2566,7 +2540,6 @@ static struct omap_clk omap44xx_clks[] =3D {
+ 	CLK(NULL,	"emif1_ick",			&emif1_ick,	CK_443X),
+ 	CLK(NULL,	"emif2_ick",			&emif2_ick,	CK_443X),
+ 	CLK(NULL,	"fdif_fck",			&fdif_fck,	CK_443X),
+-	CLK(NULL,	"per_sgx_fclk",			&per_sgx_fclk,	CK_443X),
+ 	CLK(NULL,	"gfx_fck",			&gfx_fck,	CK_443X),
+ 	CLK(NULL,	"gpio1_ick",			&gpio1_ick,	CK_443X),
+ 	CLK(NULL,	"gpio2_ick",			&gpio2_ick,	CK_443X),
+@@ -2637,8 +2610,7 @@ static struct omap_clk omap44xx_clks[] =3D {
+ 	CLK(NULL,	"usb_host_fs_fck",		&usb_host_fs_fck,	CK_443X),
+ 	CLK("musb_hdrc",	"ick",				&usb_otg_ick,	CK_443X),
+ 	CLK(NULL,	"usb_tll_ick",			&usb_tll_ick,	CK_443X),
+-	CLK(NULL,	"usbphyocp2scp_ick",		&usbphyocp2scp_ick,	CK_443X),
+-	CLK(NULL,	"usim_fck",			&usim_fck,	CK_443X),
++	CLK(NULL,	"usim_ick",			&usim_ick,	CK_443X),
+ 	CLK("omap_wdt",	"fck",				&wdt2_fck,	CK_443X),
+ 	CLK(NULL,	"wdt3_fck",			&wdt3_fck,	CK_443X),
+ 	CLK(NULL,	"otg_60m_gfclk_ck",		&otg_60m_gfclk_ck,	CK_443X),
 --=20
 1.6.0.4
 
