@@ -1,61 +1,45 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 3/6] omap4: l2x0: Override the default l2x0_disable
-Date: Thu, 16 Sep 2010 11:26:39 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD260130@dbde02.ent.ti.com>
-References: <1283846243-11600-1-git-send-email-santosh.shilimkar@ti.com>
- <1283846243-11600-2-git-send-email-santosh.shilimkar@ti.com>
- <1283846243-11600-3-git-send-email-santosh.shilimkar@ti.com>
- <1283846243-11600-4-git-send-email-santosh.shilimkar@ti.com>
- <20100916002134.GL4174@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
+Date: Thu, 16 Sep 2010 09:03:29 +0300
+Message-ID: <20100916060329.GZ3393@legolas.emea.dhcp.ti.com>
+References: <1282647866-6918-8-git-send-email-manjugk@ti.com>
+ <87lj7iv8zv.fsf@deeprootsystems.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A8F@dbde02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027843B8E7@dbde02.ent.ti.com>
+ <20100914102407.GC7554@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027843B9A8@dbde02.ent.ti.com>
+ <20100914115711.GE7554@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027843BAE5@dbde02.ent.ti.com>
+ <20100915071116.GE3393@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027843C3C3@dbde02.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42157 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753175Ab0IPF5E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 01:57:04 -0400
-In-Reply-To: <20100916002134.GL4174@atomide.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:53518 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269Ab0IPGDn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 02:03:43 -0400
+Content-Disposition: inline
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027843C3C3@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, September 16, 2010 5:52 AM
-> To: Shilimkar, Santosh
-> Cc: linux-arm-kernel@lists.infradead.org; tglx@linutronix.de;
-> catalin.marinas@arm.com; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 3/6] omap4: l2x0: Override the default l2x0_disable
-> 
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [100907 00:50]:
-> > The machine_kexec() calls outer_disable which can crash on OMAP4
-> > becasue of trustzone restrictions.
-> >
-> > This patch overrides the default l2x0_disable with a OMAP4
-> > specific implementation taking care of trustzone
-> 
-> <snip>
-> 
-> > @@ -66,6 +73,12 @@ static int __init omap_l2_cache_init(void)
-> >
-> >  	 */
-> >  	l2x0_init(l2cache_base, 0x0e050000, 0xc0000fff);
-> >
-> > +	/*
-> > +	 * Override default outer_cache.disable with a OMAP4
-> > +	 * specific one
-> > +	*/
-> > +	outer_cache.disable = omap4_l2x0_disable;
-> > +
-> >  	return 0;
-> >  }
-> >  early_initcall(omap_l2_cache_init);
-> 
-> Just to be sure.. No outer_cache functions get set unless
-> l2x0_init gets called, right? So omap2 and omap3 functions
-> always stay NULL with omap3_defconfig?
-> 
-Yes.
+Hi,
+
+On Wed, Sep 15, 2010 at 10:40:08PM -0500, G, Manjunath Kondaiah wrote:
+>In that case, the dma_read/dma_write macros will be splitted into:
+>
+>static inline void omap1_dma_write(...);
+>static inline void omap2_dma_write(...);
+>static inline u32 omap1_dma_read(...);
+>static inline u32 omap2_dma_read(...);
+>
+>i.e., Two macro definitions will expand into four internal functions.
+
+why do you need separate methods for omap1 and omap2 ??
+
+-- 
+balbi
