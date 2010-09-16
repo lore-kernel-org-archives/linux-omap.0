@@ -1,43 +1,67 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH v6 01/17] wl12xx: make wl12xx.h common to both spi and
- sdio
-Date: Thu, 16 Sep 2010 23:00:59 +0300
-Message-ID: <1284667259.8951.75.camel@powerslave>
-References: <AANLkTikYd+TojQC-R+Vrdou6KSRwFNczBeTnsX7eTDn4@mail.gmail.com>
-	 <1284635762-12335-1-git-send-email-ohad@wizery.com>
-	 <1284662139.8951.7.camel@powerslave>
-	 <AANLkTinQ3EVOTjfnOy7EXP==b=tpSicDdokBAZ67Lc7O@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing frequency
+Date: Fri, 17 Sep 2010 01:53:54 +0530
+Message-ID: <AANLkTinXdow4tzmwpx6nRe5VCN5Q8_aKz9EibxKinWWO@mail.gmail.com>
+References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
+ <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com> <20100915224007.GJ4174@atomide.com>
+ <alpine.DEB.2.00.1009151707370.458@utopia.booyaka.com> <AANLkTimC7_pGag4e+Q0fasP=mdsug8xrU95UJLKOJHvf@mail.gmail.com>
+ <20100916185743.GJ29610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:61311 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752309Ab0IPUCF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Sep 2010 16:02:05 -0400
-In-Reply-To: <AANLkTinQ3EVOTjfnOy7EXP==b=tpSicDdokBAZ67Lc7O@mail.gmail.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:39148 "HELO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753907Ab0IPUYQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Sep 2010 16:24:16 -0400
+Received: by mail-ww0-f44.google.com with SMTP id 18so268301wwb.13
+        for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2010 13:24:14 -0700 (PDT)
+In-Reply-To: <20100916185743.GJ29610@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "John W. Linville" <linville@tuxdriver.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, San Mehat <san@google.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Ido Yariv <ido@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Vitaly Wool <vitalywool@gmail.com>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, khilman@deeprootsystems.com
 
-On Thu, 2010-09-16 at 21:56 +0200, ext Ohad Ben-Cohen wrote:
-> On Thu, Sep 16, 2010 at 8:35 PM, Luciano Coelho
-> <luciano.coelho@nokia.com> wrote:
-> > Acked-by: Luciano Coelho <luciano.coelho@nokia.com>
-> >
-> > I just wonder why the wl12xx.h move wasn't detected as a rename.  Did
-> > you forget to use the -M option in format-patch?
-> 
-> I thought it's because I stripped the SPI_ from the
-> #ifndef _LINUX_SPI_WL12XX_H, but it should be smarter than that.
-> Probably the -M.
+On Fri, Sep 17, 2010 at 12:27 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Gadiyar, Anand <gadiyar@ti.com> [100915 21:51]:
+>>
+>> > About two months of it is my fault, since it was posted to l-o on July 21.
+>> > But all the time between 12 March and 21 July is up to TI to answer.
+>> > This really could have been a useful patch for certain vendors to have
+>> > that are using CORE DVFS on their currently-shipping OMAP3 devices.
+>>
+>> Sure, and I'm certain those other vendors have an equal number of critical
+>> bug fixes sitting in their own trees, which they steadfastly refuse to
+>> share with
+>> other competing vendors until their own products are out. (I have specific
+>> examples in mind, but don't want to start another flame war).
+>>
+>> Grow up - when a bug is discovered in the field, people are not likely to
+>> share with others in the interest of their own product timelines. While
+>> this may overall be less beneficial for everyone, that is indeed how many
+>> think and work.
+>
+> I don't buy this. But maybe some of TI's customers can comment on this?
+>
+> AFAIK everybody wants to avoid the duplicate effort of finding and fixing
+> these bugs.
+>
+> TI is the only party who is even aware of all the bugs fixed in various
+> places. And it's TI who should follow up that the bugfixes get posted
+> in a timely manner.
+>
 
-Yes, it is smarter than that.  With small changes like this, -M will
-still show it as a rename and show the diff instead of the whole file
--ed and +ed back ;)
+We're committed 100% to making sure mainline is working well
+on OMAPs. This means that any bugs we discover will be reported,
+and any fixes we have will make their way upstream as soon as possible.
 
--- 
-Cheers,
-Luca.
+I'm not going to go and fight what's happened in the past. But for the
+future, we're taking steps to make sure mainline works well.
 
+For the past - OMAP3 and before - we'll do our best to scrub all internal
+trees for missing bugs/features/what not and hopefully this will
+go upstream as we discover those.
+
+Sounds fair?
+
+- Anand
