@@ -1,68 +1,34 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v6 2/7] wl1271: propagate set_power's return value
-Date: Thu, 16 Sep 2010 21:53:39 +0200
-Message-ID: <AANLkTimp2JT4XT5EHwKwmMQ+5KYgHTOzpqDwF3UjGDBh@mail.gmail.com>
-References: <1284592929-29616-1-git-send-email-ohad@wizery.com>
- <1284592929-29616-3-git-send-email-ohad@wizery.com> <1284666018.8951.66.camel@powerslave>
+From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v6 01/17] wl12xx: make wl12xx.h common to both spi and sdio
+Date: Thu, 16 Sep 2010 21:56:57 +0200
+Message-ID: <AANLkTinQ3EVOTjfnOy7EXP==b=tpSicDdokBAZ67Lc7O@mail.gmail.com>
+References: <AANLkTikYd+TojQC-R+Vrdou6KSRwFNczBeTnsX7eTDn4@mail.gmail.com>
+ <1284635762-12335-1-git-send-email-ohad@wizery.com> <1284662139.8951.7.camel@powerslave>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:44929 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309Ab0IPTyB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 15:54:01 -0400
-In-Reply-To: <1284666018.8951.66.camel@powerslave>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1284662139.8951.7.camel@powerslave>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Luciano Coelho <luciano.coelho@nokia.com>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "John W. Linville" <linville@tuxdriver.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, San Mehat <san@google.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Ido Yariv <ido@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Vitaly Wool <vitalywool@gmail.com>
 
-On Thu, Sep 16, 2010 at 9:40 PM, Luciano Coelho
-<luciano.coelho@nokia.com> wrote:
->> + =A0 =A0 int ret =3D wl->if_ops->power(wl, true);
+On Thu, Sep 16, 2010 at 8:35 PM, Luciano Coelho
+<luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> wrote:
+> Acked-by: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 >
-> I think it look nicer if you keep the "int ret" in one line by itself
-> and then do a ret =3D wl->if_ops... on another one.
+> I just wonder why the wl12xx.h move wasn't detected as a rename. =A0D=
+id
+> you forget to use the -M option in format-patch?
 
-=46ixed.
-
->> +static int wl1271_sdio_power_on(struct wl1271 *wl)
->> =A0{
->> =A0 =A0 =A0 struct sdio_func *func =3D wl_to_func(wl);
->>
->> =A0 =A0 =A0 sdio_claim_host(func);
->> =A0 =A0 =A0 sdio_enable_func(func);
->> =A0 =A0 =A0 sdio_release_host(func);
->> +
->> + =A0 =A0 return 0;
->> =A0}
->
-> You seem to always return 0, so the whole chain to pass the value up
-> seems unnecessary. =A0Is this just a preparation for a future patch?
-
-Yes, it's soon going to be:
-
-static int wl1271_sdio_power_on(struct wl1271 *wl)
-{
- =A0 =A0 =A0 struct sdio_func *func =3D wl_to_func(wl);
-       int ret;
-
-       ret =3D pm_runtime_get_sync(&func->dev);
-       if (ret)
-                 goto out;
-
- =A0 =A0 =A0 sdio_claim_host(func);
- =A0 =A0 =A0 sdio_enable_func(func);
- =A0 =A0 =A0 sdio_release_host(func);
-
-out:
-   =A0 =A0 return ret;
-}
-
+I thought it's because I stripped the SPI_ from the
+#ifndef _LINUX_SPI_WL12XX_H, but it should be smarter than that.
+Probably the -M.
 
 Thanks,
 Ohad.
+
 
 >
 > --
@@ -71,7 +37,7 @@ Ohad.
 >
 >
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-wireles=
+s" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
