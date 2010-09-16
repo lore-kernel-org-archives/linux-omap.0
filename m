@@ -1,232 +1,78 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v6 1/7] wl12xx: make wl12xx.h common to both spi and sdio
-Date: Thu, 16 Sep 2010 13:50:25 +0200
-Message-ID: <AANLkTim0VpLFSM3cqZ+P4+o+8v3-t1NNfi_-_qrqMkB+@mail.gmail.com>
-References: <AANLkTikYd+TojQC-R+Vrdou6KSRwFNczBeTnsX7eTDn4@mail.gmail.com> <1284635762-12335-1-git-send-email-ohad@wizery.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
+Date: Thu, 16 Sep 2010 07:15:05 -0500
+Message-ID: <4C920A49.5010105@ti.com>
+References: <1284587799-9637-1-git-send-email-khilman@deeprootsystems.com> <1284587799-9637-3-git-send-email-khilman@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB03294424F5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:36348 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225Ab0IPLuq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 07:50:46 -0400
-In-Reply-To: <1284635762-12335-1-git-send-email-ohad@wizery.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40397 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753856Ab0IPMPK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 08:15:10 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03294424F5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "John W. Linville" <linville@tuxdriver.com>
-Cc: linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Ido Yariv <ido@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Vitaly Wool <vitalywool@gmail.com>, Teemu Paasikivi <ext-teemu.3.paasikivi@nokia.com>, Ohad Ben-Cohen <ohad@wizery.com>
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi John,
+Gopinath, Thara had written, on 09/16/2010 05:40 AM, the following:
+> 
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+>>> Hilman
+>>> Sent: Thursday, September 16, 2010 3:27 AM
+>>> To: linux-omap@vger.kernel.org
+>>> Cc: linux-arm-kernel@lists.infradead.org
+>>> Subject: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
+>>>
+>>> From: Paul Walmsley <paul@pwsan.com>
+>>>
+>>> The OPP layer code should be independent of the PMIC,
+>>> introduce the TWL/TPS-specific code out to its own file.
+> 
+> Hello Kevin,
+> 
+> I have been using this code for a while now. I really do not think wee need a separate
+> file for implementing the vsel to voltage in (uV) and vice versa formulas. Today only voltage
+This split introduces a PMIC level abstraction already. Do you have a 
+suggestion which file it should go to? It is definitely not part of 
+opp.c, not part of other existing twl files as well. the job of this 
+file was to introduce conversion routines which can be used by any layer 
+(voltage layer if need be - it used to be srf and smartreflex before)..
+in fact one of your voltage layer patches introduces capability for 6030 
+as well
+http://marc.info/?l=linux-omap&m=128213020927919&w=2
 
-On Thu, Sep 16, 2010 at 1:16 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> Move wl12xx.h outside of the spi-specific location,
-> so it can be shared with both spi and sdio solutions.
->
-> Update all users of spi/wl12xx.h accordingly
->
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> ---
+> layer is interested in these conversions. Voltage layer has a structure that can be populated with
+> the information required from the PMIC. We only need to add two more function pointers to this structure.
+ > This info can then be passed from the actual PMIC driver file. This 
+will make it much
+> more simpler for OMAP4 where we have different formulas between different revisions of PMIC. Also
+> in the omap voltage code we will no longer have to hard code omap_twl_vsel_to_uv and omap_twl_uv_to_vsel.
+I think the problem is with the voltage layer (which has not been posted 
+upstream) which is using hard coded function pointer. What the patchset 
+should have done is to introduce function pointers registration from 
+twl_tps.c to voltage layer and voltage layer should ideally been using 
+function pointers by itself.
 
-This updates the first patch in the patchset.
+ > So please consider dropping this patch from this series.
+I think I disagree - rationale for having this separated as a pmic 
+specific file is still sound, only the implementation of the future 
+framework should have changed (it should be using function pointers 
+instead of hardcoded function names). in fact I can add additional 
+suggestion for the voltage layer: the pmic selection should be done from 
+a board file - This will allow voltage layer to handle numerous PMICs 
+and combination of PMICs controlling various domains as well.. the only 
+neat way to handle it is ofcourse using function pointers.
 
-Please tell me if you prefer me to resubmit the whole set.
 
-Thanks,
-Ohad.
+PS: Suggestion
+- please fix your mailer to round off for 70/80 chars..
+- might be good to point folks to rfc patchset for voltage layer to give 
+context.
 
-> =A0MAINTAINERS =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0| =A0 =A02 +-
-> =A0arch/arm/mach-omap2/board-omap3pandora.c =A0 =A0 | =A0 =A02 +-
-> =A0arch/arm/mach-omap2/board-rx51-peripherals.c | =A0 =A02 +-
-> =A0drivers/net/wireless/wl12xx/wl1251_sdio.c =A0 =A0| =A0 =A02 +-
-> =A0drivers/net/wireless/wl12xx/wl1251_spi.c =A0 =A0 | =A0 =A02 +-
-> =A0drivers/net/wireless/wl12xx/wl1271_spi.c =A0 =A0 | =A0 =A02 +-
-> =A0include/linux/spi/wl12xx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 34 --------------------------
-> =A0include/linux/wl12xx.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- | =A0 34 ++++++++++++++++++++++++++
-> =A08 files changed, 40 insertions(+), 40 deletions(-)
-> =A0delete mode 100644 include/linux/spi/wl12xx.h
-> =A0create mode 100644 include/linux/wl12xx.h
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 14ab8ca..b656c14 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6416,7 +6416,7 @@ W: =A0 =A0 =A0 =A0http://wireless.kernel.org
-> =A0T: =A0 =A0 git git://git.kernel.org/pub/scm/linux/kernel/git/linvi=
-lle/wireless-testing.git
-> =A0S: =A0 =A0 Maintained
-> =A0F: =A0 =A0 drivers/net/wireless/wl12xx/wl1271*
-> -F: =A0 =A0 include/linux/spi/wl12xx.h
-> +F: =A0 =A0 include/linux/wl12xx.h
->
-> =A0WL3501 WIRELESS PCMCIA CARD DRIVER
-> =A0M: =A0 =A0 Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
-> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach=
--omap2/board-omap3pandora.c
-> index dd3af2b..7ea1eb4 100644
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -25,7 +25,7 @@
-> =A0#include <linux/spi/ads7846.h>
-> =A0#include <linux/regulator/machine.h>
-> =A0#include <linux/i2c/twl.h>
-> -#include <linux/spi/wl12xx.h>
-> +#include <linux/wl12xx.h>
-> =A0#include <linux/mtd/partitions.h>
-> =A0#include <linux/mtd/nand.h>
-> =A0#include <linux/leds.h>
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/=
-mach-omap2/board-rx51-peripherals.c
-> index 9a5eb87..ce28a85 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -14,7 +14,7 @@
-> =A0#include <linux/input.h>
-> =A0#include <linux/input/matrix_keypad.h>
-> =A0#include <linux/spi/spi.h>
-> -#include <linux/spi/wl12xx.h>
-> +#include <linux/wl12xx.h>
-> =A0#include <linux/i2c.h>
-> =A0#include <linux/i2c/twl.h>
-> =A0#include <linux/clk.h>
-> diff --git a/drivers/net/wireless/wl12xx/wl1251_sdio.c b/drivers/net/=
-wireless/wl12xx/wl1251_sdio.c
-> index c0b68b0..74ba9ce 100644
-> --- a/drivers/net/wireless/wl12xx/wl1251_sdio.c
-> +++ b/drivers/net/wireless/wl12xx/wl1251_sdio.c
-> @@ -24,7 +24,7 @@
-> =A0#include <linux/mmc/sdio_func.h>
-> =A0#include <linux/mmc/sdio_ids.h>
-> =A0#include <linux/platform_device.h>
-> -#include <linux/spi/wl12xx.h>
-> +#include <linux/wl12xx.h>
-> =A0#include <linux/irq.h>
->
-> =A0#include "wl1251.h"
-> diff --git a/drivers/net/wireless/wl12xx/wl1251_spi.c b/drivers/net/w=
-ireless/wl12xx/wl1251_spi.c
-> index 334ded9..320de79 100644
-> --- a/drivers/net/wireless/wl12xx/wl1251_spi.c
-> +++ b/drivers/net/wireless/wl12xx/wl1251_spi.c
-> @@ -24,7 +24,7 @@
-> =A0#include <linux/slab.h>
-> =A0#include <linux/crc7.h>
-> =A0#include <linux/spi/spi.h>
-> -#include <linux/spi/wl12xx.h>
-> +#include <linux/wl12xx.h>
->
-> =A0#include "wl1251.h"
-> =A0#include "wl1251_reg.h"
-> diff --git a/drivers/net/wireless/wl12xx/wl1271_spi.c b/drivers/net/w=
-ireless/wl12xx/wl1271_spi.c
-> index 4cb99c5..c3fdab7 100644
-> --- a/drivers/net/wireless/wl12xx/wl1271_spi.c
-> +++ b/drivers/net/wireless/wl12xx/wl1271_spi.c
-> @@ -25,7 +25,7 @@
-> =A0#include <linux/module.h>
-> =A0#include <linux/crc7.h>
-> =A0#include <linux/spi/spi.h>
-> -#include <linux/spi/wl12xx.h>
-> +#include <linux/wl12xx.h>
-> =A0#include <linux/slab.h>
->
-> =A0#include "wl1271.h"
-> diff --git a/include/linux/spi/wl12xx.h b/include/linux/spi/wl12xx.h
-> deleted file mode 100644
-> index a20bccf..0000000
-> --- a/include/linux/spi/wl12xx.h
-> +++ /dev/null
-> @@ -1,34 +0,0 @@
-> -/*
-> - * This file is part of wl12xx
-> - *
-> - * Copyright (C) 2009 Nokia Corporation
-> - *
-> - * Contact: Luciano Coelho <luciano.coelho@nokia.com>
-> - *
-> - * This program is free software; you can redistribute it and/or
-> - * modify it under the terms of the GNU General Public License
-> - * version 2 as published by the Free Software Foundation.
-> - *
-> - * This program is distributed in the hope that it will be useful, b=
-ut
-> - * WITHOUT ANY WARRANTY; without even the implied warranty of
-> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the G=
-NU
-> - * General Public License for more details.
-> - *
-> - * You should have received a copy of the GNU General Public License
-> - * along with this program; if not, write to the Free Software
-> - * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> - * 02110-1301 USA
-> - *
-> - */
-> -
-> -#ifndef _LINUX_SPI_WL12XX_H
-> -#define _LINUX_SPI_WL12XX_H
-> -
-> -struct wl12xx_platform_data {
-> - =A0 =A0 =A0 void (*set_power)(bool enable);
-> - =A0 =A0 =A0 /* SDIO only: IRQ number if WLAN_IRQ line is used, 0 fo=
-r SDIO IRQs */
-> - =A0 =A0 =A0 int irq;
-> - =A0 =A0 =A0 bool use_eeprom;
-> -};
-> -
-> -#endif
-> diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
-> new file mode 100644
-> index 0000000..015687a
-> --- /dev/null
-> +++ b/include/linux/wl12xx.h
-> @@ -0,0 +1,34 @@
-> +/*
-> + * This file is part of wl12xx
-> + *
-> + * Copyright (C) 2009 Nokia Corporation
-> + *
-> + * Contact: Luciano Coelho <luciano.coelho@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, b=
-ut
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the G=
-NU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#ifndef _LINUX_WL12XX_H
-> +#define _LINUX_WL12XX_H
-> +
-> +struct wl12xx_platform_data {
-> + =A0 =A0 =A0 void (*set_power)(bool enable);
-> + =A0 =A0 =A0 /* SDIO only: IRQ number if WLAN_IRQ line is used, 0 fo=
-r SDIO IRQs */
-> + =A0 =A0 =A0 int irq;
-> + =A0 =A0 =A0 bool use_eeprom;
-> +};
-> +
-> +#endif
-> --
-> 1.7.0.4
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Nishanth Menon
