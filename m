@@ -1,49 +1,55 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
- frequency
-Date: Thu, 16 Sep 2010 01:05:38 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203D6E954B9@dlee02.ent.ti.com>
-References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
- <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] overo twl4030: fix twl4030 IRQ (used for usb otg
+ detection)
+Date: Thu, 16 Sep 2010 09:07:31 +0300
+Message-ID: <20100916060731.GB3393@legolas.emea.dhcp.ti.com>
+References: <4C90F46D.2020902@artecdesign.ee>
+ <AANLkTimG7i72PdjaX-2_EqhJkZBFm==StMJZKkzywCf=@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34369 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752083Ab0IPGFn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 02:05:43 -0400
-In-Reply-To: <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:53689 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752083Ab0IPGH5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 02:07:57 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTimG7i72PdjaX-2_EqhJkZBFm==StMJZKkzywCf=@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: Anti Sullin <anti.sullin@artecdesign.ee>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>
 
+On Wed, Sep 15, 2010 at 04:28:57PM -0500, Steve Sakoman wrote:
+>On Wed, Sep 15, 2010 at 9:29 AM, Anti Sullin <anti.sullin@artecdesign.ee> wrote:
+>> I was not getting OTG USB vbus/id pin change interrupts on Gumstix Overo
+>> and the reason was a mis-configured irq. I added some more checks to avoid
+>> having a non-bootable kernel on boards with bootloaders that have wrong pinmux.
+>> The changes of twl4030 should be tested on other boards too.
+>>
+>> ---
+>> Gumstix Overo has TPS65950 (TWL4030) IRQ1 connected to GPIO112.
+>
+>I don't think that this change should be made.
+>
+>>From what I understand from my discussions with Gumstix, early
+>versions of the Overo COM used GPIO112 as indicated above.
+>
+>However all fab revisions >=2516 use GPIO0, so the code is correct for
+>current and future versions of Overo COMs (as is the bootloader
+>pinmuxing).
+>
+>In fact, future versions of Overo will use GPIO112 for a revision ID.
+>
+>Not an ideal situation, but I think we should leave things as they are
+>since it matches current and future production.
+>
+>People with older boards will certainly need to use this patch to get
+>vbus/id interrupts.
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Wednesday, September 15, 2010 2:15 PM
+it would be better to get all boards working. Can't you use
+ATAG_REVISION or system_rev to differentiate the board revisions and
+change gpio number accordingly ??
 
-> > This patch fixes this problem by ensuring the branch prediction logic is
-> > disabled while changing the L3 clock frequency. The branch prediction logic
-> > is disabled by clearing the Z-bit in the ARM AUX CTRL register.
-
-Small correction, Z bit is in CR register. AUX CTRL figures in with the ASA feature.
-
-> Really nice changelog.  I wish every patch had a description this good.
-> Patch looks really good, too.  Queued for 2.6.37.
-
-It is system specific if this change is required. It is probably safer to have it than not.
-
-If the AUX CTRL register has the ASA bit/feature active to allow speculative accesses to propagate past the L2 boundary the Z bit should be cleared as in the patch.
-
-However, if ASA bit is not activated then Z bit clearing should not be necessary as speculation will be squashed if there is no L2 hit (so no DDR request will be generated).
-
-It is not recommended to enable ASA bit as it is known to cause some issues on EMU/HS devices. It was also projected as loosing more than it gained across some benchmarks.
-
-Early boot loaders used to set the ASA.  It was removed long back.  Some kernels kept the value and opened up the lockup window.  I don't recall the linux-omap open kernel having the issue. Some vendor ones did over time.
-
-Regards,
-Richard W.
-
+-- 
+balbi
