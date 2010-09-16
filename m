@@ -1,51 +1,26 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 6/7] omap: zoom: add fixed regulator device for wlan
-Date: Thu, 16 Sep 2010 10:44:31 -0700
-Message-ID: <20100916174431.GC29610@atomide.com>
-References: <1284593529-30100-1-git-send-email-ohad@wizery.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v6 7/7] omap: zoom: add mmc3/wl1271 device support
+Date: Thu, 16 Sep 2010 10:45:12 -0700
+Message-ID: <20100916174512.GD29610@atomide.com>
+References: <1284593551-30141-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58442 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754045Ab0IPRop (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 13:44:45 -0400
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1284593529-30100-1-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1284593551-30141-1-git-send-email-ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-wireless@vger.kernel.org, linux-omap@vger.kernel.org, "John W. Linville" <linville@tuxdriver.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, Luciano Coelho <luciano.coelho@nokia.com>, San Mehat <san@google.com>, Roger Quadros <roger.quadros@nokia.com>, Nicolas Pitre <nico@fluxnic.net>, Ido Yariv <ido@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Vitaly Wool <vitalywool@gmail.com>
 
-* Ohad Ben-Cohen <ohad@wizery.com> [100915 16:23]:
-> Add a fixed regulator vmmc device to enable power control
-> of the wl1271 wlan device.
+* Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org> [100915 16:23]:
+> Add MMC3 support on ZOOM, which has the wl1271 device hardwired to.
+> 
+> The wl1271 is a 4-wire, 1.8V, embedded SDIO WLAN device with an
+> external IRQ line, and power-controlled by a GPIO-based fixed regulator.
 
-<snip>
-
-> +static struct fixed_voltage_config zoom_vwlan = {
-> +	.supply_name = "vwl1271",
-> +	.microvolts = 1800000, /* 1.8V */
-> +	.gpio = OMAP_ZOOM_WLAN_PMENA_GPIO,
-> +	.startup_delay = 70000, /* 70msec */
-> +	.enable_high = 1,
-> +	.enabled_at_boot = 0,
-> +	.init_data = &zoom_vmmc3,
-> +};
-
-These are usually aligned with tabs before the = sign.
-
-> +static struct platform_device omap_vwlan_device = {
-> +	.name		= "reg-fixed-voltage",
-> +	.id		= 1,
-> +	.dev = {
-> +		.platform_data = &zoom_vwlan,
-> +	},
-> +};
-
-Like in this struct.
-
-After that's fixed, here's my ack for these to go via the
-wireless tree:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
