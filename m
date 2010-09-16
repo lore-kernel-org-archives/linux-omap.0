@@ -1,54 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: LCD on Zoom2 dev board with DSS
-Date: Thu, 16 Sep 2010 13:42:57 -0700
-Message-ID: <20100916204256.GN29610@atomide.com>
-References: <1284381807.1801.38.camel@A05BPC17>
- <1284641813.1798.589.camel@A05BPC17>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH v6 01/17] wl12xx: make wl12xx.h common to both spi and
+ sdio
+Date: Thu, 16 Sep 2010 13:46:48 -0700
+Message-ID: <20100916204648.GO29610@atomide.com>
+References: <AANLkTikYd+TojQC-R+Vrdou6KSRwFNczBeTnsX7eTDn4@mail.gmail.com>
+ <1284635762-12335-1-git-send-email-ohad@wizery.com>
+ <1284662139.8951.7.camel@powerslave>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59048 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754346Ab0IPUnB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 16:43:01 -0400
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1284641813.1798.589.camel@A05BPC17>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1284662139.8951.7.camel@powerslave>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: ext Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Chikkature Rajashekar Madhusudhan <madhu.cr-l0cyMroinI0@public.gmane.org>, San Mehat <san-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Vitaly Wool <vitalywool-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Paasikivi Teemu.3 (EXT-Ixonos/Tampere)" <ext-teemu.3.paasikivi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Yanick Saugy <yanick.saugy@heig-vd.ch>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Yanick Saugy <yanick.saugy@heig-vd.ch> [100916 05:48]:
-> Hi,
+* Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> [100916 11:28]:
+> On Thu, 2010-09-16 at 13:16 +0200, ext Ohad Ben-Cohen wrote:
+> > Move wl12xx.h outside of the spi-specific location,
+> > so it can be shared with both spi and sdio solutions.
+> > 
+> > Update all users of spi/wl12xx.h accordingly
+> > 
+> > Signed-off-by: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+> > ---
 > 
-> I solved my problem. It appeared the PIN which controls LCD's reset
-> signal (VGA_nRESET/h_GPIO_96) was not configured as a GPIO, and the
-> driver tries to use it as GPIO, so the logical value was 0. We had to
-> modify the OMAP MUX, and select this PIN (CAM_XCLKA) as an output GPIO
-> (OMAP_MUX_MODE4).
-> 
-> Be aware of changing this PIN will probably disable the camera, because
-> it was previously configured as a clock.
-> 
-> There is the patch for the LCD (diff -Naur):
-> 
-> --- a/arch/arm/mach-omap2/board-zoom2.c	2010-09-15 15:27:05.148399721
-> +0200
-> +++ b/arch/arm/mach-omap2/board-zoom2.c	2010-09-15 14:46:09.792900019
-> +0200
-> @@ -71,6 +71,7 @@
->  
->  #ifdef CONFIG_OMAP_MUX
->  static struct omap_board_mux board_mux[] __initdata = {
-> +	OMAP3_MUX(CAM_XCLKA, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
->  	{ .reg_offset = OMAP_MUX_TERMINATOR },
->  };
->  #else
+> Acked-by: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-Please repost with proper Signed-off-by. You might want to also
-Cc Tomi Valkeinen.
+Looks good to me too:
 
-Regards,
-
-Tony
-
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
