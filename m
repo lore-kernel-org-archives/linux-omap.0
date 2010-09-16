@@ -1,76 +1,109 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 0/5] OMAP4: ES2 PRCM diff series
-Date: Thu, 16 Sep 2010 19:19:10 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003C210F718@dbde02.ent.ti.com>
-References: <1284643241-17203-1-git-send-email-rnayak@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
+Date: Thu, 16 Sep 2010 19:21:42 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032944262A@dbde02.ent.ti.com>
+References: <1284587799-9637-1-git-send-email-khilman@deeprootsystems.com>
+ <1284587799-9637-3-git-send-email-khilman@deeprootsystems.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03294424F5@dbde02.ent.ti.com>
+ <4C920A49.5010105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33989 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53682 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752601Ab0IPNtO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 09:49:14 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8GDnAgw024802
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2010 08:49:13 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o8GDnAww001838
-	for <linux-omap@vger.kernel.org>; Thu, 16 Sep 2010 19:19:10 +0530 (IST)
-In-Reply-To: <1284643241-17203-1-git-send-email-rnayak@ti.com>
+	id S1754860Ab0IPNvv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 09:51:51 -0400
+In-Reply-To: <4C920A49.5010105@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This patch series seems to be posted twice on the list due to some
-issues with my mailer. Sorry for that. 
 
-Regards,
-Rajendra
 
-> -----Original Message-----
-> From: Nayak, Rajendra
-> Sent: Thursday, September 16, 2010 6:51 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Nayak, Rajendra
-> Subject: [PATCH 0/5] OMAP4: ES2 PRCM diff series
-> 
-> The PRCM IP in OMAP4430 ES2 is completely validated
-> and is expected to be functional, unlike the one in ES1
-> which was untested and non functional.
-> 
-> This series of patches brings in all the differences
-> introducted by PRCM in ES2.0. Includes additional registers
-> added, some removed, bitfields in registers moved around.
-> Some changes in clock tree modelling and some in powerdomain
-> states supported.
-> 
-> This series is tested on OMAP4430 ES2 using the below series
-> http://www.spinics.net/lists/linux-omap/msg36023.html
-> and also boot tested on OMAP4430 ES1 and applied on latest
-> mainline.
-> 
-> Patches based on mainline rc4 are available here:
-> http://gitorious.org/omap-pm/linux for_2.6.37
-> 
-> Rajendra Nayak (4):
->   OMAP4: PM: Update PRCM register bitshits and masks for ES2
->   OMAP4: PM: Define additional registers for ES2
->   OMAP4: clocks: Update clock tree for ES2
->   OMAP4: powerdomain: Update DSS logic state for ES2
-> 
-> Santosh Shilimkar (1):
->   OMAP4: powerdomain: add context_offset field
-> 
->  arch/arm/mach-omap2/clock44xx_data.c          |  168 ++++++--------
->  arch/arm/mach-omap2/cm-regbits-44xx.h         |  327 ++++++++++++++--------
-> ---
->  arch/arm/mach-omap2/cm44xx.h                  |   90 +++++++-
->  arch/arm/mach-omap2/powerdomains44xx.h        |   16 ++-
->  arch/arm/mach-omap2/prm-regbits-44xx.h        |  194 ++++++++++++---
->  arch/arm/mach-omap2/prm44xx.h                 |   14 +-
->  arch/arm/plat-omap/include/plat/powerdomain.h |    2 +
->  7 files changed, 525 insertions(+), 286 deletions(-)
+>>-----Original Message-----
+>>From: Menon, Nishanth
+>>Sent: Thursday, September 16, 2010 5:45 PM
+>>To: Gopinath, Thara
+>>Cc: Kevin Hilman; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>>Subject: Re: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
+>>
+>>Gopinath, Thara had written, on 09/16/2010 05:40 AM, the following:
+>>>
+>>>>> -----Original Message-----
+>>>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>>Kevin
+>>>>> Hilman
+>>>>> Sent: Thursday, September 16, 2010 3:27 AM
+>>>>> To: linux-omap@vger.kernel.org
+>>>>> Cc: linux-arm-kernel@lists.infradead.org
+>>>>> Subject: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
+>>>>>
+>>>>> From: Paul Walmsley <paul@pwsan.com>
+>>>>>
+>>>>> The OPP layer code should be independent of the PMIC,
+>>>>> introduce the TWL/TPS-specific code out to its own file.
+>>>
+>>> Hello Kevin,
+>>>
+>>> I have been using this code for a while now. I really do not think wee need a separate
+>>> file for implementing the vsel to voltage in (uV) and vice versa formulas. Today only voltage
+>>This split introduces a PMIC level abstraction already. Do you have a
+>>suggestion which file it should go to? It is definitely not part of
+>>opp.c, not part of other existing twl files as well. the job of this
+>>file was to introduce conversion routines which can be used by any layer
+>>(voltage layer if need be - it used to be srf and smartreflex before)..
+>>in fact one of your voltage layer patches introduces capability for 6030
+>>as well
+>>http://marc.info/?l=linux-omap&m=128213020927919&w=2
 
+Yes one of my patches has introduces this coz I had no other way
+to add OMAP4 support. But I still do not understand why cant these
+APIs be implemented in twl-core.c or twl4030-power.c? 
+
+>>
+>>> layer is interested in these conversions. Voltage layer has a structure that can be populated with
+>>> the information required from the PMIC. We only need to add two more function pointers to this
+>>structure.
+>> > This info can then be passed from the actual PMIC driver file. This
+>>will make it much
+>>> more simpler for OMAP4 where we have different formulas between different revisions of PMIC. Also
+>>> in the omap voltage code we will no longer have to hard code omap_twl_vsel_to_uv and
+>>omap_twl_uv_to_vsel.
+>>I think the problem is with the voltage layer (which has not been posted
+>>upstream) which is using hard coded function pointer. What the patchset
+>>should have done is to introduce function pointers registration from
+>>twl_tps.c to voltage layer and voltage layer should ideally been using
+>>function pointers by itself.
+>>
+>> > So please consider dropping this patch from this series.
+>>I think I disagree - rationale for having this separated as a pmic
+>>specific file is still sound, only the implementation of the future
+>>framework should have changed (it should be using function pointers
+>>instead of hardcoded function names). in fact I can add additional
+>>suggestion for the voltage layer: the pmic selection should be done from
+>>a board file - This will allow voltage layer to handle numerous PMICs
+>>and combination of PMICs controlling various domains as well.. the only
+>>neat way to handle it is ofcourse using function pointers.
+
+Exactly if voltage layer has to use a func ptr, why not let them be populated
+by the PMIC driver files directly?
+
+>>
+>>
+>>PS: Suggestion
+>>- please fix your mailer to round off for 70/80 char.
+
+Will try.
+
+>>- might be good to point folks to rfc patchset for voltage layer to give
+>>context.
+
+https://patchwork.kernel.org/patch/119429/
+
+>>
+>>--
+>>Regards,
+>>Nishanth Menon
