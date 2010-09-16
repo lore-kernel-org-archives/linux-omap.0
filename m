@@ -1,41 +1,45 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
-Date: Thu, 16 Sep 2010 10:05:24 +0300
-Message-ID: <20100916070524.GI3393@legolas.emea.dhcp.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E94027843B9A8@dbde02.ent.ti.com>
- <20100914115711.GE7554@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843BAE5@dbde02.ent.ti.com>
- <20100915071116.GE3393@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843C3C3@dbde02.ent.ti.com>
- <20100916060329.GZ3393@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843C55C@dbde02.ent.ti.com>
- <20100916064039.GG3393@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027843C598@dbde02.ent.ti.com>
- <4C91C005.6010404@ti.com>
-Reply-To: balbi@ti.com
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH 0/2] twl4030-madc driver
+Date: Thu, 16 Sep 2010 09:05:57 +0200
+Message-ID: <20100916090557.6fb05bc6@hyperion.delvare>
+References: <1284615264-31789-1-git-send-email-j-keerthy@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55974 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753983Ab0IPHFi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 03:05:38 -0400
-Content-Disposition: inline
-In-Reply-To: <4C91C005.6010404@ti.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:34859 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754140Ab0IPHGK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 03:06:10 -0400
+In-Reply-To: <1284615264-31789-1-git-send-email-j-keerthy@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, j-keerthy@ti.com, balajitk@ti.com
 
-Hi,
+On Thu, 16 Sep 2010 11:04:24 +0530, Keerthy wrote:
+> MADC(Monitoring ADC) driver enables monitoring analog signals using 
+> analog-to-digital conversion (ADC) on the input source. The MADC driver
+> is being added under the Hwmon class of drivers. 
+> To get the context, the last set of comments can be found here:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg19981.html
+> 
+> Several people have contributed to this driver on the linux-omap list.
+> 
+> Keerthy (2):
+>   hwmon: twl4030: Driver for twl4030 madc module
+>   Makefile and Kconfig changes for twl4030-madc driver
+> 
+>  arch/arm/mach-omap2/Kconfig      |    4 +
+>  drivers/hwmon/Kconfig            |    4 +
+>  drivers/hwmon/Makefile           |    1 +
+>  drivers/hwmon/twl4030-madc.c     |  584 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/i2c/twl4030-madc.h |  118 ++++++++
+>  5 files changed, 711 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/hwmon/twl4030-madc.c
+>  create mode 100644 include/linux/i2c/twl4030-madc.h
 
-On Thu, Sep 16, 2010 at 01:58:13AM -0500, Cousson, Benoit wrote:
->Stupid question, is your first name Felipe or balbi?
->You sign with balbi... that's with it is confusing...
-
-Felipe.
-
-Balbi is family name.
+Please send hwmon drivers to the lm-sensors list as instructed by
+MAINTAINERS.
 
 -- 
-balbi
+Jean Delvare
