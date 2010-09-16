@@ -1,55 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] overo twl4030: fix twl4030 IRQ (used for usb otg
- detection)
-Date: Thu, 16 Sep 2010 09:07:31 +0300
-Message-ID: <20100916060731.GB3393@legolas.emea.dhcp.ti.com>
-References: <4C90F46D.2020902@artecdesign.ee>
- <AANLkTimG7i72PdjaX-2_EqhJkZBFm==StMJZKkzywCf=@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: [Discussion] USB: musb-gadget: how to fix ZLP issue in musb_g_tx
+Date: Thu, 16 Sep 2010 11:45:32 +0530
+Message-ID: <AANLkTi=y-HfvDOvhW-WhLFq5TUCjGA-52cuyByCHMvvV@mail.gmail.com>
+References: <AANLkTinPVUBNJoOR496KgSy2TT0f6i1f5xEKVhKod2R=@mail.gmail.com>
+ <20100915105641.GO3393@legolas.emea.dhcp.ti.com> <AANLkTi=gYSsxSHqAur+isj_UinVLC-YWkdmi5j_vkSUV@mail.gmail.com>
+ <20100915110745.GP3393@legolas.emea.dhcp.ti.com> <4C90C5B7.7050103@ru.mvista.com>
+ <20100916060520.GA3393@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53689 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083Ab0IPGH5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 02:07:57 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTimG7i72PdjaX-2_EqhJkZBFm==StMJZKkzywCf=@mail.gmail.com>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:39674 "HELO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753119Ab0IPGPy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Sep 2010 02:15:54 -0400
+In-Reply-To: <20100916060520.GA3393@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Anti Sullin <anti.sullin@artecdesign.ee>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>
+To: balbi@ti.com
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>, Ming Lei <tom.leiming@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>, Mike Frysinger <vapier@gentoo.org>
 
-On Wed, Sep 15, 2010 at 04:28:57PM -0500, Steve Sakoman wrote:
->On Wed, Sep 15, 2010 at 9:29 AM, Anti Sullin <anti.sullin@artecdesign.ee> wrote:
->> I was not getting OTG USB vbus/id pin change interrupts on Gumstix Overo
->> and the reason was a mis-configured irq. I added some more checks to avoid
->> having a non-bootable kernel on boards with bootloaders that have wrong pinmux.
->> The changes of twl4030 should be tested on other boards too.
+On Thu, Sep 16, 2010 at 11:35 AM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Wed, Sep 15, 2010 at 08:10:15AM -0500, Sergei Shtylyov wrote:
 >>
->> ---
->> Gumstix Overo has TPS65950 (TWL4030) IRQ1 connected to GPIO112.
+>> =A0 I don't see what to rework. The last short packet should still s=
+atisfy
+>> (request->actual =3D=3D request->length) condition, no?
 >
->I don't think that this change should be made.
+> of course not, it's short not zero. so the last short packet can be
+> anything from 1 to 511 bytes.
 >
->>From what I understand from my discussions with Gumstix, early
->versions of the Overo COM used GPIO112 as indicated above.
->
->However all fab revisions >=2516 use GPIO0, so the code is correct for
->current and future versions of Overo COMs (as is the bootloader
->pinmuxing).
->
->In fact, future versions of Overo will use GPIO112 for a revision ID.
->
->Not an ideal situation, but I think we should leave things as they are
->since it matches current and future production.
->
->People with older boards will certainly need to use this patch to get
->vbus/id interrupts.
 
-it would be better to get all boards working. Can't you use
-ATAG_REVISION or system_rev to differentiate the board revisions and
-change gpio number accordingly ??
+If it's TX, both condtions should automatically be true, right?
 
--- 
-balbi
+- Anand
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
