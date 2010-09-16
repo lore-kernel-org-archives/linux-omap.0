@@ -1,187 +1,69 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH v5 6/6] OMAP: WDT: Use PM runtime APIs instead of clk FW
- APIs
-Date: Thu, 16 Sep 2010 19:07:10 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD260574@dbde02.ent.ti.com>
-References: <1284528403-6494-1-git-send-email-charu@ti.com>
- <1284528403-6494-7-git-send-email-charu@ti.com> <4C913D7B.10208@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 4/5] OMAP4: powerdomain: Update DSS logic state for ES2
+Date: Thu, 16 Sep 2010 18:28:25 +0530
+Message-ID: <1284641906-24231-5-git-send-email-rnayak@ti.com>
+References: <1284641906-24231-1-git-send-email-rnayak@ti.com>
+ <1284641906-24231-2-git-send-email-rnayak@ti.com>
+ <1284641906-24231-3-git-send-email-rnayak@ti.com>
+ <1284641906-24231-4-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33281 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33699 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754287Ab0IPNhU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 09:37:20 -0400
-In-Reply-To: <4C913D7B.10208@ti.com>
-Content-Language: en-US
+	id S1754400Ab0IPNoI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Sep 2010 09:44:08 -0400
+In-Reply-To: <1284641906-24231-4-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>, =?utf-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
+DSS on ES2 supports only OSWR, hence remove the support
+for CSWR from the powerdomain framework.
 
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Beno=C3=83=C2=AEt Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/powerdomains44xx.h        |    2 +-
+ arch/arm/plat-omap/include/plat/powerdomain.h |    1 +
+ 2 files changed, 2 insertions(+), 1 deletions(-)
 
-> -----Original Message-----
-> From: Cousson, Benoit
-> Sent: Thursday, September 16, 2010 3:11 AM
-> To: Varadarajan, Charulatha
-> Cc: tony@atomide.com; wim@iguana.be; linux-watchdog@vger.kernel.org;
-> khilman@deeprootsystems.com; paul@pwsan.com; Nayak, Rajendra; Basak,
-> Partha; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v5 6/6] OMAP: WDT: Use PM runtime APIs instead of clk
-> FW APIs
-> 
-> On 9/15/2010 7:26 AM, Varadarajan, Charulatha wrote:
-> > Call runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
-> > for enabling/disabling the clocks, sysconfig settings instead of using
-> > clock FW APIs.
-> >
-> > Signed-off-by: Charulatha V<charu@ti.com>
-> > ---
-> >   drivers/watchdog/omap_wdt.c |   42 +++++++----------------------------
-> -------
-> >   1 files changed, 7 insertions(+), 35 deletions(-)
-> >
-> > diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-> > index 76b58ab..dbbc580 100644
-> > --- a/drivers/watchdog/omap_wdt.c
-> > +++ b/drivers/watchdog/omap_wdt.c
-> > @@ -38,11 +38,11 @@
-> >   #include<linux/err.h>
-> >   #include<linux/platform_device.h>
-> >   #include<linux/moduleparam.h>
-> > -#include<linux/clk.h>
-> >   #include<linux/bitops.h>
-> >   #include<linux/io.h>
-> >   #include<linux/uaccess.h>
-> >   #include<linux/slab.h>
-> > +#include<linux/pm_runtime.h>
-> >   #include<mach/hardware.h>
-> >   #include<plat/prcm.h>
-> 
-> Why do you have to access the PRCM from the driver?
+diff --git a/arch/arm/mach-omap2/powerdomains44xx.h b/arch/arm/mach-oma=
+p2/powerdomains44xx.h
+index c721951..9c01b55 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx.h
++++ b/arch/arm/mach-omap2/powerdomains44xx.h
+@@ -98,7 +98,7 @@ static struct powerdomain dss_44xx_pwrdm =3D {
+ 	.prcm_offs	  =3D OMAP4430_PRM_DSS_MOD,
+ 	.omap_chip	  =3D OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  =3D PWRSTS_OFF_RET_ON,
+-	.pwrsts_logic_ret =3D PWRSTS_OFF_RET,
++	.pwrsts_logic_ret =3D PWRSTS_OFF,
+ 	.banks		  =3D 1,
+ 	.pwrsts_mem_ret	=3D {
+ 		[0] =3D PWRDM_POWER_OFF,	/* dss_mem */
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/p=
+lat-omap/include/plat/powerdomain.h
+index fb6ec74..3ea7220 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -32,6 +32,7 @@
+=20
+ /* Powerdomain allowable state bitfields */
+ #define PWRSTS_ON		(1 << PWRDM_POWER_ON)
++#define PWRSTS_OFF		(1 << PWRDM_POWER_OFF)
+ #define PWRSTS_OFF_ON		((1 << PWRDM_POWER_OFF) | \
+ 				 (1 << PWRDM_POWER_ON))
+=20
+--=20
+1.6.0.4
 
-This has nothing to do with hwmod patch series. 
-
-The reason for using prcm header is to support
-GET_BOOT_STATUS ioctl which uses "omap_prcm_get_reset_sources()"
-
-case WDIOC_GETBOOTSTATUS:
-                if (cpu_is_omap16xx())
-                        return put_user(__raw_readw(ARM_SYSST),
-                                        (int __user *)arg);
-                if (cpu_is_omap24xx())
-                        return put_user(omap_prcm_get_reset_sources(),
-                                        (int __user *)arg);
-
--V Charulatha
-
-
-> 
-> Benoit
-> 
-> >
-> > @@ -61,8 +61,6 @@ struct omap_wdt_dev {
-> >   	void __iomem    *base;          /* physical */
-> >   	struct device   *dev;
-> >   	int             omap_wdt_users;
-> > -	struct clk      *ick;
-> > -	struct clk      *fck;
-> >   	struct resource *mem;
-> >   	struct miscdevice omap_wdt_miscdev;
-> >   };
-> > @@ -146,8 +144,7 @@ static int omap_wdt_open(struct inode *inode, struct
-> file *file)
-> >   	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
-> >   		return -EBUSY;
-> >
-> > -	clk_enable(wdev->ick);    /* Enable the interface clock */
-> > -	clk_enable(wdev->fck);    /* Enable the functional clock */
-> > +	pm_runtime_get_sync(wdev->dev);
-> >
-> >   	/* initialize prescaler */
-> >   	while (__raw_readl(base + OMAP_WATCHDOG_WPS)&  0x01)
-> > @@ -177,8 +174,7 @@ static int omap_wdt_release(struct inode *inode,
-> struct file *file)
-> >
-> >   	omap_wdt_disable(wdev);
-> >
-> > -	clk_disable(wdev->ick);
-> > -	clk_disable(wdev->fck);
-> > +	pm_runtime_put_sync(wdev->dev);
-> >   #else
-> >   	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
-> >   #endif
-> > @@ -292,19 +288,7 @@ static int __devinit omap_wdt_probe(struct
-> platform_device *pdev)
-> >
-> >   	wdev->omap_wdt_users = 0;
-> >   	wdev->mem = mem;
-> > -
-> > -	wdev->ick = clk_get(&pdev->dev, "ick");
-> > -	if (IS_ERR(wdev->ick)) {
-> > -		ret = PTR_ERR(wdev->ick);
-> > -		wdev->ick = NULL;
-> > -		goto err_clk;
-> > -	}
-> > -	wdev->fck = clk_get(&pdev->dev, "fck");
-> > -	if (IS_ERR(wdev->fck)) {
-> > -		ret = PTR_ERR(wdev->fck);
-> > -		wdev->fck = NULL;
-> > -		goto err_clk;
-> > -	}
-> > +	wdev->dev =&pdev->dev;
-> >
-> >   	wdev->base = ioremap(res->start, resource_size(res));
-> >   	if (!wdev->base) {
-> > @@ -314,8 +298,8 @@ static int __devinit omap_wdt_probe(struct
-> platform_device *pdev)
-> >
-> >   	platform_set_drvdata(pdev, wdev);
-> >
-> > -	clk_enable(wdev->ick);
-> > -	clk_enable(wdev->fck);
-> > +	pm_runtime_enable(wdev->dev);
-> > +	pm_runtime_get_sync(wdev->dev);
-> >
-> >   	omap_wdt_disable(wdev);
-> >   	omap_wdt_adjust_timeout(timer_margin);
-> > @@ -333,11 +317,7 @@ static int __devinit omap_wdt_probe(struct
-> platform_device *pdev)
-> >   		__raw_readl(wdev->base + OMAP_WATCHDOG_REV)&  0xFF,
-> >   		timer_margin);
-> >
-> > -	/* autogate OCP interface clock */
-> > -	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
-> > -
-> > -	clk_disable(wdev->ick);
-> > -	clk_disable(wdev->fck);
-> > +	pm_runtime_put_sync(wdev->dev);
-> >
-> >   	omap_wdt_dev = pdev;
-> >
-> > @@ -349,12 +329,6 @@ err_misc:
-> >
-> >   err_ioremap:
-> >   	wdev->base = NULL;
-> > -
-> > -err_clk:
-> > -	if (wdev->ick)
-> > -		clk_put(wdev->ick);
-> > -	if (wdev->fck)
-> > -		clk_put(wdev->fck);
-> >   	kfree(wdev);
-> >
-> >   err_kzalloc:
-> > @@ -386,8 +360,6 @@ static int __devexit omap_wdt_remove(struct
-> platform_device *pdev)
-> >   	release_mem_region(res->start, resource_size(res));
-> >   	platform_set_drvdata(pdev, NULL);
-> >
-> > -	clk_put(wdev->ick);
-> > -	clk_put(wdev->fck);
-> >   	iounmap(wdev->base);
-> >
-> >   	kfree(wdev);
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
