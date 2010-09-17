@@ -1,88 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode support
-Date: Fri, 17 Sep 2010 10:55:04 -0700
-Message-ID: <20100917175504.GG29610@atomide.com>
-References: <1284624059-1741-1-git-send-email-s-ghorai@ti.com>
- <1284624059-1741-2-git-send-email-s-ghorai@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
+ frequency
+Date: Fri, 17 Sep 2010 12:30:13 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009171229170.6562@utopia.booyaka.com>
+References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE896716203D6E954B9@dlee02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02CD26018C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63579 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478Ab0IQRzK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 13:55:10 -0400
-Content-Disposition: inline
-In-Reply-To: <1284624059-1741-2-git-send-email-s-ghorai@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:53860 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754938Ab0IQSaR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 14:30:17 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD26018C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sukumar Ghorai <s-ghorai@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Vimal Singh <vimalsingh@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "Hunter, Jon" <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>
 
-* Sukumar Ghorai <s-ghorai@ti.com> [100916 00:53]:
-> This patch enable prefetch-irq mode for NAND.
+Hi Richard, Santosh,
+
+On Thu, 16 Sep 2010, Shilimkar, Santosh wrote:
+
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Woodruff, Richard
+> > Sent: Thursday, September 16, 2010 11:36 AM
+> > To: Paul Walmsley; Hunter, Jon
+> > Cc: linux-omap; khilman@deeprootsystems.com; tony@atomide.com
+> > Subject: RE: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
+> > frequency
+> > 
+> > 
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> > > Sent: Wednesday, September 15, 2010 2:15 PM
+> > 
+> > > > This patch fixes this problem by ensuring the branch prediction logic
+> > is
+> > > > disabled while changing the L3 clock frequency. The branch prediction
+> > logic
+> > > > is disabled by clearing the Z-bit in the ARM AUX CTRL register.
+> > 
+> > Small correction, Z bit is in CR register. AUX CTRL figures in with the
+> > ASA feature.
+> > 
+> > > Really nice changelog.  I wish every patch had a description this good.
+> > > Patch looks really good, too.  Queued for 2.6.37.
+> > 
+> > It is system specific if this change is required. It is probably safer to
+> > have it than not.
+> > 
+> > If the AUX CTRL register has the ASA bit/feature active to allow
+> > speculative accesses to propagate past the L2 boundary the Z bit should be
+> > cleared as in the patch.
+> > 
+> > However, if ASA bit is not activated then Z bit clearing should not be
+> > necessary as speculation will be squashed if there is no L2 hit (so no DDR
+> > request will be generated).
+> > 
+> > It is not recommended to enable ASA bit as it is known to cause some
+> > issues on EMU/HS devices. It was also projected as loosing more than it
+> > gained across some benchmarks.
+> > 
+> > Early boot loaders used to set the ASA.  It was removed long back.  Some
+> > kernels kept the value and opened up the lockup window.  I don't recall
+> > the linux-omap open kernel having the issue. Some vendor ones did over
+> > time.
+> > 
+> The code seems to be correct but just the description has typo. The code
+> is using control register. I just corrected the description and white
+> space issue. Here is updated patch. 
 > 
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -467,6 +485,152 @@ static void omap_write_buf_dma_pref(struct mtd_info *mtd,
->  		omap_nand_dma_transfer(mtd, (u_char *) buf, len, 0x1);
->  }
->  
-> +/*
-> + * omap_nand_irq - GMPC irq handler
-> + * @this_irq: gpmc irq number
-> + * @dev: omap_nand_info structure pointer is passed here
-> + */
-> +static irqreturn_t omap_nand_irq(int this_irq, void *dev)
-> +{
-> +	struct omap_nand_info *info = (struct omap_nand_info *) dev;
-> +	u32 bytes;
-> +	u32 irq_stat;
-> +
-> +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> +	bytes = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
-> +	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
-> +	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
-> +		if (irq_stat & 0x2)
-> +			goto done;
-> +
-> +		if (info->buf_len & (info->buf_len < bytes))
-> +			bytes = info->buf_len;
-> +		else if (!info->buf_len)
-> +			bytes = 0;
-> +		iowrite32_rep(info->nand.IO_ADDR_W,
-> +						(u32 *)info->buf, bytes >> 2);
-> +		info->buf = info->buf + bytes;
-> +		info->buf_len -= bytes;
-> +
-> +	} else {
-> +		ioread32_rep(info->nand.IO_ADDR_R,
-> +						(u32 *)info->buf, bytes >> 2);
-> +		info->buf = info->buf + bytes;
-> +
-> +		if (irq_stat & 0x2)
-> +			goto done;
-> +	}
-> +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
-> +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> +
-> +	return IRQ_HANDLED;
-> +
-> +done:
-> +	complete(&info->comp);
-> +	/* disable irq */
-> +	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
-> +
-> +	/* clear status */
-> +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
-> +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> +
-> +	return IRQ_HANDLED;
-> +}
+> Paul,
+> You can use this version if you like
 
-This handler should be in gpmc.c as it may be needed for other GPMC
-connected devices on the same system. You can use chained irq handlers
-to allow all the drivers to use the interrupt then.
+Thanks for the fixes, will update the patch..
 
-Regards,
 
-Tony
+- Paul
