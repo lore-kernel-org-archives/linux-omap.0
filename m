@@ -1,12 +1,12 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v6 1/7] OMAP2PLUS: WDT: Add ICLKEN, FCLKEN, WKEN shared bits for WDT
-Date: Fri, 17 Sep 2010 19:48:50 +0530
-Message-ID: <1284733136-20952-2-git-send-email-charu@ti.com>
+Subject: [PATCH v6 3/7] OMAP2420: hwmod data: Add watchdog timer
+Date: Fri, 17 Sep 2010 19:48:52 +0530
+Message-ID: <1284733136-20952-4-git-send-email-charu@ti.com>
 References: <1284733136-20952-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39133 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40777 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752159Ab0IQOTV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1752801Ab0IQOTV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 17 Sep 2010 10:19:21 -0400
 In-Reply-To: <1284733136-20952-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,36 +14,100 @@ List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, wim@iguana.be, linux-watchdog@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-This patch adds the CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP
-shared bits for OMAP2PLUS watchdog timer module.
+Add watchdog timer hwmod data for OMAP2420 chip
 
 Signed-off-by: Charulatha V <charu@ti.com>
 ---
- arch/arm/mach-omap2/prcm-common.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   63 ++++++++++++++++++++++++++++
+ 1 files changed, 63 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 995b7ed..e190c64 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -237,6 +237,8 @@
- #define OMAP24XX_ST_USB_MASK				(1 << 0)
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index 3cc768e..a075bfd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -33,6 +33,7 @@ static struct omap_hwmod omap2420_mpu_hwmod;
+ static struct omap_hwmod omap2420_iva_hwmod;
+ static struct omap_hwmod omap2420_l3_main_hwmod;
+ static struct omap_hwmod omap2420_l4_core_hwmod;
++static struct omap_hwmod omap2420_wd_timer2_hwmod;
  
- /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-+#define OMAP24XX_EN_WDT2_SHIFT				3
-+#define OMAP24XX_EN_WDT2_MASK				(1 << 3)
- #define OMAP24XX_EN_GPIOS_SHIFT				2
- #define OMAP24XX_EN_GPIOS_MASK				(1 << 2)
- #define OMAP24XX_EN_GPT1_SHIFT				0
-@@ -344,6 +346,8 @@
- #define OMAP3430_ST_D2D_MASK				(1 << 3)
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap2420_l3_main__l4_core = {
+@@ -165,12 +166,74 @@ static struct omap_hwmod omap2420_iva_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+ };
  
- /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
-+#define OMAP3430_EN_WDT2_SHIFT				5
-+#define OMAP3430_EN_WDT2_MASK				(1 << 5)
- #define OMAP3430_EN_GPIO1_MASK				(1 << 3)
- #define OMAP3430_EN_GPIO1_SHIFT				3
- #define OMAP3430_EN_GPT12_MASK				(1 << 1)
++/* l4_wkup -> wd_timer2 */
++static struct omap_hwmod_addr_space omap2420_wd_timer2_addrs[] = {
++	{
++		.pa_start	= 0x48022000,
++		.pa_end		= 0x4802207f,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap2420_l4_wkup__wd_timer2 = {
++	.master		= &omap2420_l4_wkup_hwmod,
++	.slave		= &omap2420_wd_timer2_hwmod,
++	.clk		= "mpu_wdt_ick",
++	.addr		= omap2420_wd_timer2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_wd_timer2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/*
++ * 'wd_timer' class
++ * 32-bit watchdog upward counter that generates a pulse on the reset pin on
++ * overflow condition
++ */
++
++static struct omap_hwmod_class_sysconfig omap2420_wd_timer_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_AUTOIDLE),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap2420_wd_timer_hwmod_class = {
++	.name = "wd_timer",
++	.sysc = &omap2420_wd_timer_sysc,
++};
++
++/* wd_timer2 */
++static struct omap_hwmod_ocp_if *omap2420_wd_timer2_slaves[] = {
++	&omap2420_l4_wkup__wd_timer2,
++};
++
++static struct omap_hwmod omap2420_wd_timer2_hwmod = {
++	.name		= "wd_timer2",
++	.class		= &omap2420_wd_timer_hwmod_class,
++	.main_clk	= "mpu_wdt_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_WDT2_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_WDT2_SHIFT,
++		},
++	},
++	.slaves		= omap2420_wd_timer2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_wd_timer2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
++};
++
+ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
+ 	&omap2420_l3_main_hwmod,
+ 	&omap2420_l4_core_hwmod,
+ 	&omap2420_l4_wkup_hwmod,
+ 	&omap2420_mpu_hwmod,
+ 	&omap2420_iva_hwmod,
++	&omap2420_wd_timer2_hwmod,
+ 	NULL,
+ };
+ 
 -- 
 1.7.0.4
 
