@@ -1,57 +1,57 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
-Date: Fri, 17 Sep 2010 17:18:47 +0100
-Message-ID: <1284740327.32322.24.camel@e102109-lin.cambridge.arm.com>
-References: <1276841055-13843-1-git-send-email-Hiroshi.DOYU@nokia.com>
-	 <1277736372.25271.102.camel@e102109-lin.cambridge.arm.com>
-	 <20100629.074423.71111160.Hiroshi.DOYU@nokia.com>
-	 <20100810.184903.214240645.Hiroshi.DOYU@nokia.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] opp: introduce library for device-specific OPPs
+Date: Fri, 17 Sep 2010 11:20:10 -0500
+Message-ID: <4C93953A.3010702@ti.com>
+References: <[PATCH 1/4] OMAP: introduce OPP layer for device-specific OPPs>
+	<1284686973-13993-1-git-send-email-nm@ti.com>
+	<A24693684029E5489D1D202277BE89447260B073@dlee02.ent.ti.com>
+	<4C93898B.2070606@ti.com>
+	<A24693684029E5489D1D202277BE89447260B287@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:58070 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753266Ab0IQQSv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Sep 2010 12:18:51 -0400
-In-Reply-To: <20100810.184903.214240645.Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <A24693684029E5489D1D202277BE89447260B287@dlee02.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>, linux-doc <linux-doc@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Randy Dunlap <rdunlap@xenotime.net>, Pavel Machek <pavel@ucw.cz>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Andi Kleen <ak@linux.intel.com>, "Sripathy,
+	Vishwanath" <vishwanath.bs@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, "romit@ti.com" <romit@ti.com>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-omap <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linus Walleij <linus.walleij@stericsson.com>, Paul Walmsley <paul@pws>
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
 
-On Tue, 2010-08-10 at 18:49 +0300, Hiroshi DOYU wrote:
-> Now there's not much difference with the attached patch, a new version
-> of alias.
+Aguirre, Sergio had written, on 09/17/2010 11:15 AM, the following:
+>>>>> diff --git a/include/linux/opp.h b/include/linux/opp.h
+>>>>> new file mode 100644
+>>>>> index 0000000..94a552b
+>>>>> --- /dev/null
+>>>>> +++ b/include/linux/opp.h
+>>>>> @@ -0,0 +1,136 @@
+>>>>> +/*
+>>>>> + * Generic OPP Interface
+>>>>> + *
+>>>>> + * Copyright (C) 2009-2010 Texas Instruments Incorporated.
+>>>>> + *   Nishanth Menon
+>>>>> + *   Romit Dasgupta <romit@ti.com>
+>>>>> + * Copyright (C) 2009 Deep Root Systems, LLC.
+>>>>> + *   Kevin Hilman
+>>>> Just curious why only Romit's e-mail address is there, and not Kevin's
+>>> or
+>>>> yours...
+>>> personal choice I guess, Romit prefered his email id added Kevin and I
+>>> did not.
+>> OK. No problem then :)
 > 
-> / # modprobe kmemleak-special-test use_alias=0
-> / # time echo scan > /sys/kernel/debug/kmemleak
-> real    0m 2.30s
-> user    0m 0.00s
-> sys     0m 2.30s
-> 
-> / # modprobe kmemleak-special-test use_alias=1
-> / # time echo scan > /sys/kernel/debug/kmemleak
-> real    0m 3.91s
-> user    0m 0.00s
-> sys     0m 3.91s
-
-So to understand - the first case is memory scanning without any aliases
-configured. The second case is the alias scanning using a separate
-prio_tree. The impact seems to be quite big.
-
-But I wouldn't complicate the code with the callback mechanism,
-especially when loadable modules are considered. Is the pointer
-conversion always linear? Maybe we can just add an offset to the
-scan_area structure that is used for conversion rather than a callback.
-
-Another advantage of the linear offset would be that we can avoid the
-call for removing the conversion.
-
-Is this feasible for your needs? No point really in making it too
-generic if the simple offset would (hopefully) do.
+> Actually, Romit's e-mail address seems to be invalid... Is he still having that address? (OR is he still working in TI? 8-| )
+On an internal thread, I am told to remove the email id - so will remove 
+Romit's email id and cc from v2 patch.
 
 -- 
-Catalin
-
+Regards,
+Nishanth Menon
