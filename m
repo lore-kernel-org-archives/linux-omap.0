@@ -1,38 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 0/7] OMAP: WDT: Implement WDT in hwmod way
-Date: Fri, 17 Sep 2010 10:22:15 -0700
-Message-ID: <20100917172215.GE29610@atomide.com>
-References: <1284733136-20952-1-git-send-email-charu@ti.com>
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+Date: Fri, 17 Sep 2010 20:28:34 +0300
+Message-ID: <20100917172834.GK20325@esdhcp04044.research.nokia.com>
+References: <20100629.074423.71111160.Hiroshi.DOYU@nokia.com> <20100810.184903.214240645.Hiroshi.DOYU@nokia.com> <1284740327.32322.24.camel@e102109-lin.cambridge.arm.com> <20100917.200640.71092280.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58256 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752761Ab0IQRWX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 13:22:23 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1284733136-20952-1-git-send-email-charu@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20100917.200640.71092280.Hiroshi.DOYU@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Doyu Hiroshi (Nokia-MS/Helsinki)" <hiroshi.doyu@nokia.com>
+Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: wim@iguana.be, linux-watchdog@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org
 
-* Varadarajan, Charulatha <charu@ti.com> [100917 07:11]:
-> Series of patches to port watchdog module to use hwmod APIs
-> for OMAP2PLUS chips and use runtime APIs for all OMAP chips.
-> For this hwmod database for OMAP2PLUS watchdog instances are
-> populated. This patch series also implements watchdog
-> module to use PM runtime APIs.
+On 17/09/10 19:06 +0200, Doyu Hiroshi (Nokia-MS/Helsinki) wrote:
+> Hi Catalin,
 > 
-> This patch series is created on "origin/pm-core" and is
-> tested on OMAP2430, OMAP44430, OMAP3430 SDP boards and zoom3 board.
-> Also verified that this patch series does not break the OMAP1 build.
+> From: ext Catalin Marinas <catalin.marinas@arm.com>
+> Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+> Date: Fri, 17 Sep 2010 18:18:47 +0200
 > 
-> This series is tested on OMAP4430 ES2 using the below series
-> http://www.spinics.net/lists/linux-omap/msg36023.html
+> > On Tue, 2010-08-10 at 18:49 +0300, Hiroshi DOYU wrote:
+> >> Now there's not much difference with the attached patch, a new version
+> >> of alias.
+> >> 
+> >> / # modprobe kmemleak-special-test use_alias=0
+> >> / # time echo scan > /sys/kernel/debug/kmemleak
+> >> real    0m 2.30s
+> >> user    0m 0.00s
+> >> sys     0m 2.30s
+> >> 
+> >> / # modprobe kmemleak-special-test use_alias=1
+> >> / # time echo scan > /sys/kernel/debug/kmemleak
+> >> real    0m 3.91s
+> >> user    0m 0.00s
+> >> sys     0m 3.91s
+> > 
+> > So to understand - the first case is memory scanning without any aliases
+> > configured. The second case is the alias scanning using a separate
+> > prio_tree. The impact seems to be quite big.
+> > 
+> > But I wouldn't complicate the code with the callback mechanism,
+> > especially when loadable modules are considered. Is the pointer
+> > conversion always linear? Maybe we can just add an offset to the
+> > scan_area structure that is used for conversion rather than a callback.
+> >
+> > Another advantage of the linear offset would be that we can avoid the
+> > call for removing the conversion.
+> > 
+> > Is this feasible for your needs?
+> 
+> The formula is:
+> 
+>   new_value = virt_to_phys(original address) | each attributes;
+> 
+> Attribute bits must be ingored. So the conversion is:
+> 
+>   new_value &= ~each attributes;
+>   original address = phys_to_virt(new_value);
+> 
+> Could adding an offset to the scan_area solve this case?
+>
+> > No point really in making it too
+> > generic if the simple offset would (hopefully) do.
+> 
+> I guess other iommu pagetable may be same?
 
-Can you please list the exact dependencies to other patches
-for the mainline kernel? Are they the same as for the
-omap serial driver just posted?
+I wondered if having a scaling factor would be useful for the case
+where pages are allocated, and the page address is separated from
+the offset. (Did I see this in SG lists?)
 
-Tony
+I'm glad that we're all converging on an efficient solution.
+
+Phil
