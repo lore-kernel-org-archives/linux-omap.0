@@ -1,153 +1,121 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] opp: introduce library for device-specific
-	OPPs
-Date: Fri, 17 Sep 2010 18:33:37 -0500
-Message-ID: <4C93FAD1.80108@ti.com>
-References: <[PATCH 1/4] OMAP: introduce OPP layer for device-specific OPPs>
-	<20100917121958.1dbb57af.akpm@linux-foundation.org>
-	<4C93DC4E.5020506@ti.com> <201009180107.51664.rjw@sisk.pl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 00/11] OMAP: Serial: Add omap-serial driver with platform  support
+Date: Fri, 17 Sep 2010 16:41:13 -0700
+Message-ID: <87tylorl9i.fsf@deeprootsystems.com>
+References: <13965.10.24.255.18.1284739547.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <201009180107.51664.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>, linux-doc <linux-doc@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Matthew@smtp1.linux-foundation.org, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Aguirre,
-	Sergio" <saaguirre@ti.com>, Benjamin@smtp1.linux-foundation.org, Andi Kleen <ak@linux.intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linus Walleij <linus.walleij@stericsson.com>, "Granados Dorado,
-	Roberto" <x0095451@ti.com>, "Martin K. Petersen" <martin.peterse>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <13965.10.24.255.18.1284739547.squirrel@dbdmail.itg.ti.com>
+	(Govindraj R.'s message of "Fri, 17 Sep 2010 21:35:47 +0530 (IST)")
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Rafael J. Wysocki had written, on 09/17/2010 06:07 PM, the following:
-> On Friday, September 17, 2010, Nishanth Menon wrote:
->> Andrew Morton had written, on 09/17/2010 02:19 PM, the following:
->>> On Thu, 16 Sep 2010 20:29:33 -0500
->>> Nishanth Menon <nm@ti.com> wrote:
->>>
->> [...]
->>>>  Documentation/power/00-INDEX |    2 +
->>>>  include/linux/opp.h          |  136 +++++++++++++
->>>>  kernel/power/Kconfig         |   14 ++
->>>>  lib/Makefile                 |    2 +
->>>>  lib/opp.c                    |  440 ++++++++++++++++++++++++++++++++++++++++++
->>> ./lib/ is an unusual place to put a driver-like thing such as this. 
->>> The lib/ directory is mainly for generic kernel-wide support things. 
->>> I'd suggest that ./drivers/opp/ would be a better place.
->> we had an interesting debate on this topic on the the thread starting
->> http://marc.info/?l=linux-arm-kernel&m=128465710624421&w=2
->>
->> It really does not provide any driver like feature here. it is just a 
->> bunch of helper functions which any SOC framework can use to build up to 
->> implement either:
->> a) cpufreq implementation with various OPPs
->> b) bootup in a specific opp in a set of supported OPPs and stay there 
->> (e.g. mpurate support on OMAP platforms)
-> 
-> Generally, some files under drivers/base/power contain helper functions of
-> similar nature.  You can put it in there, as far as I'm concerned.
-Ack. thanks for the suggestion. it looks like a good place to me too. 
-will do it as part of v2.
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-> 
->> I had considered putting it in drivers/power, but it looks to contain 
->> mostly regulator stuff, the other alternative would be to include it in 
->> kernel/power or as Kevin H, Linus W and you mention drivers/opp
->>
->> Personally, I dont have a strong feeling about it as long as it is 
->> reusable across SOCs and am hoping to hear some alignment :).
->>
->>>> ...
->>>>
->>>> +/*
->>>> + * Initialization wrapper used to define an OPP.
->>>> + * To point at the end of a terminator of a list of OPPs,
->>>> + * use OPP_DEF(0, 0, 0)
->>>> + */
->>>> +#define OPP_DEF(_enabled, _freq, _uv)	\
->>>> +{						\
->>>> +	.enabled	= _enabled,		\
->>>> +	.freq		= _freq,		\
->>>> +	.u_volt		= _uv,			\
->>>> +}
->>> OPP_DEF is a somewhat atypical name.  OPP_INITIALIZER would be more
->>> conventional.
->> Thanks. will incorporate this in v2 of my patchset.
->>
->>> However OPP_DEF has no usage in this patch so perhaps this can be
->>> removed?
->> there were a few OMAP followon patches from
->> http://marc.info/?l=linux-omap&m=128152135801634&w=2
->> which will actually use this for OMAP3 platform.
-> 
-> Still, the $subject patch doesn't use it.  So perhaps add it in a separate patch?
-was hoping to align on the approach with v2, the follow on OMAP patch
-https://patchwork.kernel.org/patch/183742/ will post with needed changes 
-be part of Kevin's thread for OMAP3 if we are ok with it, or Do we want 
-to see it in this series as reference?
+> This patch series adds a serial driver to handle uarts on omap platforms.
+> Currenlty omap-uarts are handled with 8250 driver, since updating
+> this driver with omap specific features will over load
+> the 8250 driver with all omap-specific data thus a new driver
+> is added to configure and support features like
+> dma, h/w, s/w flowcontrol for omap-uarts.
+> Also the patch series updates various low level platform specific
+> serial data to support omap-uarts with hwmod framework and adds support
+> for uart4 on OMAP3630.
 
-> 
->>>> +static LIST_HEAD(dev_opp_list);
->>> There's no locking for this list.  That's OK under some circumstances,
->>> but I do think there should be a comment here explaining this apparent
->>> bug: why is no locking needed, what are the lifetime rules for entries
->>> on this list.
->> Locking:
->> arrgh.. my bad.. I had documented it in the missing and later on posted 
->> opp.txt http://marc.info/?l=linux-arm-kernel&m=128473931626114&w=2
->>
->> The OPP layer implementation expects to be used in multiple contexts
->> (including calls from interrupt locked context) based on SOC framework 
->> implementation. It is recommended to use appropriate locking schemes 
->> within the SOC framework itself.
-> 
-> That should be stated directly in the kerneldoc comments.  The requirement
-> that the caller is supposed to ensure suitable locking is by no means
-> a trivial one.
-Agreed. thanks for pointing this out. I have done this as part of v2 of 
-my patch. will post in a few hrs.
+This series is missing a couple things to work more broadly on all
+boards, specifically 3630-based boards.
 
-> 
-> Apart from this, it might be a good idea to help callers a bit and actually
-> introduce some sort of locking into the framework.
-in OMAP implementation we have need to use these apis from irq_locked 
-contexts as well.. lock implementation will prevent thier necessary 
-usage. instead we have implemented lock mechanisms in higher layers and 
-ensured that the opp table does not change once created - the rest of 
-them are query functions - the risk is on opp_enable/disable.
+First, due to the current UART idle code base, you need to enable all
+OMAP UARTs 36xx.  Enabling less than all OMAP UARTs will break the
+current idle code.  As we discussed, the next phase we will move the
+idle management from this serial.c hackery into the omap-serial driver
+iteself.  Until then, you need to call omap_serial_init() on
+Zoom2/Zoom3.  Patch below[1]
 
-> 
->> In terms of the lifetime rules on the nodes in the list:
->> The list is expected to be maintained once created, entries are expected 
->> to be added optimally and not expected to be destroyed, the choice of 
->> list implementation was for reducing the complexity of the code itself 
->> and not yet meant as a mechanism to dynamically add and delete nodes on 
->> the fly.. Essentially, it was intended for the SOC framework to ensure 
->> it plugs in the OPP entries optimally and not create a humongous list of 
->> all possible OPPs for all families of the vendor SOCs - even though it 
->> is possible to use the OPP layer so - it just wont be smart to do so 
->> considering list scan latencies on hot paths such as cpufreq transitions 
->> or idle transitions.
-> 
-> If the list nodes are not supposed to be added and removed dynamically,
-> it probably would make sense to create data structures containing
-> the "available" OPPs only, once they are known, and simply free the object
-> representing the other ones.
-I covered the usage in my reply here: 
-http://marc.info/?l=linux-arm-kernel&m=128476570300466&w=2
-but to repeat, the list is dynamic during initialization but remains 
-static after initialization based on SOC framework implementation - this 
-is best implemented with a list (we had started with an original array 
-implementation which evolved to the current list implementation 
-http://marc.info/?l=linux-omap&m=125912217718770&w=2)
+Also, you previously had a patch that updated omap_uart_idle_init() to
+handle 36xx and specifically UART4.  Without that, struct
+omap_uart_state is not setup correctly for UART4, and thus cannot be
+properly idled on 3630.
 
--- 
-Regards,
-Nishanth Menon
+Also, it's been a while since I tested this on OMAP2.  Please re-test on
+OMAP2 with the whole series.  Also, please report here the other
+platforms this was tested on.  The final needs to be tested on OMAP2, 3
+and 4 before merge.
+
+> This patch series is tested on mainline 2.6.36-rc4
+> and has dependencies on:
+>
+> 1) https://patchwork.kernel.org/patch/117148/
+> 	This patch to support all hwmod data with proper structure name.
+>
+> 2) https://patchwork.kernel.org/patch/117347/
+> 	This patch is needed to apply omap4 uart hwmods.
+
+Can you rebase this against my pm-core branch, which already has these
+dependencies, as well as several other fixes to the hwmod and PM cores
+that are queued for 2.6.37?
+
+Thanks, 
+
+Kevin
+
+> 3) http://marc.info/?l=linux-omap&m=128403141221947&w=2
+> 	This patch series is needed for omap4430SDP ES2.0 validation.
+>
+>
+> Benoit Cousson (1):
+>   OMAP4: UART: Add uart1-4 hwmods data for omap4
+>
+> Govindraj.R (6):
+>   OMAP2: UART: remove set_uart_globals.
+>   OMAP clock: Add uart4_ick/fck definitions for 3630
+>   OMAP3: PRCM: Consider UART4 for 3630 chip in prcm_setup_regs
+>   OMAP3: PM: Add prepare idle and resume idle call for uart4
+>   serial: Add OMAP high-speed UART driver
+>   OMAP: SERIAL: Enable omap-serial driver in Kconfig.
+>
+> Kevin Hilman (4):
+>   OMAP2/3: UART: add omap_hwmod data for UARTs 1-4
+>   OMAP: UART: omap_device converions, remove implicit 8520 assumptions
+>   OMAP: UART: don't do automatic bus-level suspend/resume
+>   OMAP: UART: use non-locking versions of hwmod enable/idle functions
+>
+>  arch/arm/mach-omap2/Kconfig                   |   11 +-
+>  arch/arm/mach-omap2/clock3xxx_data.c          |   22 +
+>  arch/arm/mach-omap2/cm-regbits-34xx.h         |    2 +
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c    |  193 ++++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c    |  193 ++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  253 +++++-
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  235 +++++
+>  arch/arm/mach-omap2/pm34xx.c                  |   17 +-
+>  arch/arm/mach-omap2/prcm-common.h             |    5 +
+>  arch/arm/mach-omap2/prm-regbits-34xx.h        |    1 +
+>  arch/arm/mach-omap2/serial.c                  |  548 +++++-----
+>  arch/arm/plat-omap/common.c                   |   16 -
+>  arch/arm/plat-omap/include/plat/common.h      |    1 -
+>  arch/arm/plat-omap/include/plat/dma.h         |    2 +
+>  arch/arm/plat-omap/include/plat/irqs.h        |    2 +
+>  arch/arm/plat-omap/include/plat/omap-serial.h |  129 +++
+>  drivers/serial/Kconfig                        |   27 +
+>  drivers/serial/Makefile                       |    1 +
+>  drivers/serial/omap-serial.c                  | 1332 +++++++++++++++++++++++++
+>  include/linux/serial_core.h                   |    3 +
+>  20 files changed, 2699 insertions(+), 294 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/include/plat/omap-serial.h
+>  create mode 100644 drivers/serial/omap-serial.c
+
+
+[1] 
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 6b39849..641765a 100644
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -282,4 +282,5 @@ void __init zoom_peripherals_init(void)
+ 	omap_i2c_init();
+ 	usb_musb_init(&musb_board_data);
+ 	enable_board_wakeup_source();
++	omap_serial_init();
+ }
