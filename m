@@ -1,59 +1,120 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 14/14] omap4: Fix bootup crash observed with higher CPU
- clocks
-Date: Fri, 17 Sep 2010 16:54:00 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD307D34@dbde02.ent.ti.com>
-References: <1284716878-27667-12-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-13-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-14-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-15-git-send-email-santosh.shilimkar@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C014F13A77C@dlee02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CD307C7B@dbde02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C014F13A782@dlee02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CD307CA7@dbde02.ent.ti.com>
- <20100917104133.GP26474@legolas.emea.dhcp.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CD307D21@dbde02.ent.ti.com>
- <20100917111924.GU26474@legolas.emea.dhcp.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v2 09/11] OMAP: DMA: Implement generic errata handling
+Date: Fri, 17 Sep 2010 16:58:08 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402784DCB8E@dbde02.ent.ti.com>
+References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
+	<1282647866-6918-10-git-send-email-manjugk@ti.com>
+ <87sk1qtpnu.fsf@deeprootsystems.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A93@dbde02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402784DC7D5@dbde02.ent.ti.com>
+ <4C9317B5.3050308@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402784DC994@dbde02.ent.ti.com>
+ <4C9342FB.30401@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58270 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751801Ab0IQLYH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 07:24:07 -0400
-In-Reply-To: <20100917111924.GU26474@legolas.emea.dhcp.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49357 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751801Ab0IQL2N convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 07:28:13 -0400
+In-Reply-To: <4C9342FB.30401@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+
+
+ 
 
 > -----Original Message-----
-> From: Balbi, Felipe
-> Sent: Friday, September 17, 2010 4:49 PM
-> To: Shilimkar, Santosh
-> Cc: Balbi, Felipe; Menon, Nishanth; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; Nayak, Rajendra; Kevin Hilman
-> Subject: Re: [PATCH 14/14] omap4: Fix bootup crash observed with higher
-> CPU clocks
+> From: Cousson, Benoit 
+> Sent: Friday, September 17, 2010 3:59 PM
+> To: G, Manjunath Kondaiah
+> Cc: Kevin Hilman; linux-omap@vger.kernel.org; Shilimkar, Santosh
+> Subject: Re: [PATCH v2 09/11] OMAP: DMA: Implement generic 
+> errata handling
 > 
-> Hi,
-> 
-> On Fri, Sep 17, 2010 at 06:17:47AM -0500, Shilimkar, Santosh wrote:
-> >On OMAP4 specifically, the wait IDLEST support isn't there in the
-> >clock framework.  This is taken care now in hwmod framework. With
-> >that we see that we don't need this delay anymore.
+> On 9/17/2010 10:09 AM, G, Manjunath Kondaiah wrote:
+> > Hi Benoit,
 > >
-> >The delay change is there for some time. May be there were issue
-> >with wait IDLEST.
 > 
-> ok, I see.
+> <...>
 > 
-> Kevin, any plans to remove this hack ?
+> >>>
+> >>> I assume you are ok with option #1. Let me know if you have any 
+> >>> issues/concenrs with above approach. I am in the process of
+> >> consolidating
+> >>> all the review comments and addressing all applicable
+> >> review comments.
+> >>
+> >> Not really, the option #1 will still require you to use the oh 
+> >> pointer, which is supposed to be private to the omap_device.
+> >>
+> >> What is still not clear is why and when you need to change the 
+> >> sysconfig setting.
+> >
+> > It is required before stopping DMA chain transfer.
 > 
-It's removed already in the timer hwmod series which is getting
-developed in parallel.
+> OK, but why? What happen if you do not do that? Could you 
+> please give the full errata description to help us understanding?
 
-Regards,
+Here is summary of errata description:
 
+Software will program DMA to transfer an arbitrary high number of data, and disable the DMA
+channel whenever it is sure that all the data have been read from the source and transferred to the
+destination.
+
+When doing this, software must ensure that the DMA is configured in No Standby mode
+(DMAx_OCP_SYSCONFIG.MIDLEMODE = "01"). If this is not the case, the software may disable the
+channel when it is transitioning to standby state. This would cause the DMA internal 
+FIFO pointer not to be reset correctly and available DMA FIFO space to be artificially 
+decreased. The consequences range from unnecessary unaligned accesses performed,
+to complete DMA transfer hanging.
+
+WORKAROUND
+The correct procedure to disable a DMA channel before it reaches end of block is:
+1. Set OCP_SYSCONFIG.MIDLEMODE to "01"
+2. Disable DMA channel by writing bit DMA4_CCR_i[7].Enable='0'
+3. Ensure current DMA transfer is completed by polling the relevant DMA4_CCR_i[9].RD_ACTIVE/
+DMA4_CCR_i[10].WR_ACTIVE bit.
+4. Restore OCP_SYSCONFIG.MIDLEMODE to its previous value.
+
+
+> 
+> >> Do you have a details explanation? Ideally you should try 
+> to couple 
+> >> the sysconfig change along with pm_runtime / hwmod state 
+> change, then 
+> >> we will be able to handle that smoothly in the framework.
+> >
+> > Since channel is already requested(and there is possibility 
+> of other 
+> > channels also used at the same time), using pm_runtime 
+> API's will only 
+> > increase usage count and will not invoke omap_device_enable.
+> 
+> This is the part that is not clear, and where the full errata 
+> should help, because if you do have other channel in use, you 
+> will not be able to do any clock gating anyway, that why 
+> changing the sysconfig at that time might be useless.
+
+Errata description provided.
+
+> 
+> >> If you cannot do that, you will need to add an omap_device API as 
+> >> well.
+> >
+> > There is already one such API exists in hwmod layer for 
+> handling this 
+> > type of errata(omap_hwmod_set_slave_idlemode in omap_hwmod.c).
+> > Above proposal is based on similar implementation.
+> 
+> Maybe, but this is not enough. In both case you should not 
+> use directly this API from the driver, so if you want to use 
+> that kind of approach, you will need the omap_device layer as well.
+
+Does that mean, extending omap device layer for modifying sysconfig?
+
+-Manjunath
