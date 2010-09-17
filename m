@@ -1,57 +1,62 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 02/14] omap: Map only available sram memory
-Date: Fri, 17 Sep 2010 16:41:00 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD307D10@dbde02.ent.ti.com>
-References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
- <20100917101531.GB27467@n2100.arm.linux.org.uk>
+Subject: RE: [PATCH 14/14] omap4: Fix bootup crash observed with higher CPU
+ clocks
+Date: Fri, 17 Sep 2010 16:47:47 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD307D21@dbde02.ent.ti.com>
+References: <1284716878-27667-10-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-11-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-12-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-13-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-14-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-15-git-send-email-santosh.shilimkar@ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C014F13A77C@dlee02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02CD307C7B@dbde02.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C014F13A782@dlee02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02CD307CA7@dbde02.ent.ti.com>
+ <20100917104133.GP26474@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40316 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751660Ab0IQLLP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 07:11:15 -0400
-In-Reply-To: <20100917101531.GB27467@n2100.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:48979 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660Ab0IQLRy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 07:17:54 -0400
+In-Reply-To: <20100917104133.GP26474@legolas.emea.dhcp.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
 > -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Friday, September 17, 2010 3:46 PM
+> From: Balbi, Felipe
+> Sent: Friday, September 17, 2010 4:12 PM
 > To: Shilimkar, Santosh
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 02/14] omap: Map only available sram memory
+> Cc: Menon, Nishanth; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Nayak, Rajendra
+> Subject: Re: [PATCH 14/14] omap4: Fix bootup crash observed with higher
+> CPU clocks
 > 
-> On Fri, Sep 17, 2010 at 03:17:46PM +0530, Santosh Shilimkar wrote:
-> > Currently we map 1 MB section while setting up SRAM on OMAPs.
-> > The actual physcal OCM RAM available on OMAP SOCs is in order
+> hi,
 > 
-> physical
+> On Fri, Sep 17, 2010 at 05:30:30AM -0500, Shilimkar, Santosh wrote:
+> >Second your thought. Infact I wasn't ok to push this patch to start
+> >with but it's needed till the timer hwmod gets merged
 > 
-> > of KBs. This patch maps only available sram and removes some
-> > non necessary cpu_is_xxx checks.
-> >
-> > On the newer ARMs with speculation, this is dangerous and can
-> > result in untraceable aborts.
+> to me, it just looks like "omap_test_timeout()" is timing out and that
+> function is omap_dm_timer_set_source() is returning with a
+> still-disabled clock.
 > 
-> "this" should be expanded (otherwise it is unclear whether it refers to
-> the original code or the new code.)
+> could you check if you get "cm: Module associated with clock
+> gpt<blablabla> didn't enabled in 100000 tries" message on your dmesg ??
+> 
+On OMAP4 specifically, the wait IDLEST support isn't there in the
+clock framework.  This is taken care now in hwmod framework. With
+that we see that we don't need this delay anymore.
 
-Will fix the change log as below.
+The delay change is there for some time. May be there were issue 
+with wait IDLEST.
 
-omap: Map only available sram memory
-
-Currently we map 1 MB section while setting up SRAM on OMAPs
-Regardless of the actual memory. The physical OCM RAM available
-on OMAP SOCs is in order of KBs. This patch maps only available
-sram and cleans up some un-necessary cpu_is_xxx checks.
-
-Mapping un-available or non-accessible(secure) memory on the newer ARM
-processor is dangerous. Because ARM CPUs can now speculatively prefetch,
-we should avoid mapping any no-existing or secure memory.
+Regards,
+Santosh
