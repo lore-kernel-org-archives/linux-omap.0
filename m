@@ -1,95 +1,57 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 03/14] davinci: map sram using MT_MEMORY_NONCACHED instead of MT_DEVICE
-Date: Fri, 17 Sep 2010 15:17:47 +0530
-Message-ID: <1284716878-27667-4-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 11/14] omap4: Fix silicon version detection for early samples
+Date: Fri, 17 Sep 2010 15:17:55 +0530
+Message-ID: <1284716878-27667-12-git-send-email-santosh.shilimkar@ti.com>
 References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-4-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-5-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-6-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-7-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-8-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-9-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-10-git-send-email-santosh.shilimkar@ti.com>
+ <1284716878-27667-11-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37168 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56815 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846Ab0IQJsL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Sep 2010 05:48:11 -0400
-In-Reply-To: <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
+	id S1752224Ab0IQJsM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Sep 2010 05:48:12 -0400
+In-Reply-To: <1284716878-27667-11-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Davinci SRAM is mapped as MT_DEVICE becasue of the section
-mapping pre-requisite instead of intended MT_MEMORY_NONCACHED
-
-Since the section mapping limitation gets fixed with first
-patch in this series, the MT_MEMORY_NONCACHED can be used now.
-
-Have not tested this, so somebody with Davinci hardware can
-try this out
+Few initial omap4 es2 samples IDCODE is same as es1. This patch
+uses ARM cpuid register to detect the ES version for such samples
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-davinci/dm355.c  |    3 +--
- arch/arm/mach-davinci/dm365.c  |    3 +--
- arch/arm/mach-davinci/dm644x.c |    3 +--
- arch/arm/mach-davinci/dm646x.c |    3 +--
- 4 files changed, 4 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/id.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index 3d996b6..9be261b 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -769,8 +769,7 @@ static struct map_desc dm355_io_desc[] = {
- 		.virtual	= SRAM_VIRT,
- 		.pfn		= __phys_to_pfn(0x00010000),
- 		.length		= SZ_32K,
--		/* MT_MEMORY_NONCACHED requires supersection alignment */
--		.type		= MT_DEVICE,
-+		.type		= MT_MEMORY_NONCACHED,
- 	},
- };
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index ae70ae9..0412233 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -308,6 +308,15 @@ static void __init omap4_check_revision(void)
+ 	hawkeye = (idcode >> 12) & 0xffff;
+ 	rev = (idcode >> 28) & 0xff;
  
-diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index 6b6f4c6..7781e35 100644
---- a/arch/arm/mach-davinci/dm365.c
-+++ b/arch/arm/mach-davinci/dm365.c
-@@ -969,8 +969,7 @@ static struct map_desc dm365_io_desc[] = {
- 		.virtual	= SRAM_VIRT,
- 		.pfn		= __phys_to_pfn(0x00010000),
- 		.length		= SZ_32K,
--		/* MT_MEMORY_NONCACHED requires supersection alignment */
--		.type		= MT_DEVICE,
-+		.type		= MT_MEMORY_NONCACHED,
- 	},
- };
- 
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 40fec31..5e5b0a7 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -653,8 +653,7 @@ static struct map_desc dm644x_io_desc[] = {
- 		.virtual	= SRAM_VIRT,
- 		.pfn		= __phys_to_pfn(0x00008000),
- 		.length		= SZ_16K,
--		/* MT_MEMORY_NONCACHED requires supersection alignment */
--		.type		= MT_DEVICE,
-+		.type		= MT_MEMORY_NONCACHED,
- 	},
- };
- 
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index e4a3df1..26e8a9c 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -737,8 +737,7 @@ static struct map_desc dm646x_io_desc[] = {
- 		.virtual	= SRAM_VIRT,
- 		.pfn		= __phys_to_pfn(0x00010000),
- 		.length		= SZ_32K,
--		/* MT_MEMORY_NONCACHED requires supersection alignment */
--		.type		= MT_DEVICE,
-+		.type		= MT_MEMORY_NONCACHED,
- 	},
- };
- 
++	/*
++	 * Few initial ES2.0 samples IDCODE is same as ES1.0
++	 * Use ARM register to detect the correct ES version
++	 */
++	if (!rev) {
++		idcode = read_cpuid(CPUID_ID);
++		rev = (idcode & 0xf) - 1;
++	}
++
+ 	switch (hawkeye) {
+ 	case 0xb852:
+ 		switch (rev) {
 -- 
 1.6.0.4
 
