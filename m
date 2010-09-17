@@ -1,78 +1,120 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 07/11] OMAP clock: Add uart4_ick/fck definitions for 3630
-Date: Fri, 17 Sep 2010 21:37:25 +0530 (IST)
-Message-ID: <14163.10.24.255.18.1284739645.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 08/11] OMAP3: PRCM: Consider UART4 for 3630 chip in
+     prcm_setup_regs
+Date: Fri, 17 Sep 2010 21:37:33 +0530 (IST)
+Message-ID: <14179.10.24.255.18.1284739653.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47095 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755067Ab0IQQHn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Sep 2010 12:07:43 -0400
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Sergio Aguirre <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
-List-Id: linux-omap@vger.kernel.org
 
-This is only valid for omap 36xx family of chips.
+To standarize among other uarts (1 to 3), we shall now:
+
+ - Enable uart4 autodile bit.
+ - Enable uart4 wakeup in PER.
+ - Allow uart4 to wakeup the MPU.
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/clock3xxx_data.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cm-regbits-34xx.h  |    2 ++
+ arch/arm/mach-omap2/pm34xx.c           |   15 +++++++++++++--
+ arch/arm/mach-omap2/prcm-common.h      |    2 ++
+ arch/arm/mach-omap2/prm-regbits-34xx.h |    1 +
+ 4 files changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index dfdce2d..90a4198 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -2465,6 +2465,16 @@ static struct clk uart3_fck = {
- 	.recalc		= &followparent_recalc,
- };
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index fe82b79..4f959a7 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -649,6 +649,8 @@
+ #define OMAP3430_ST_MCBSP2_MASK				(1 << 0)
 
-+static struct clk uart4_fck = {
-+	.name		= "uart4_fck",
-+	.ops		= &clkops_omap2_dflt_wait,
-+	.parent		= &per_48m_fck,
-+	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
-+	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
-+	.clkdm_name	= "per_clkdm",
-+	.recalc		= &followparent_recalc,
-+};
+ /* CM_AUTOIDLE_PER */
++#define OMAP3630_AUTO_UART4_MASK			(1 << 18)
++#define OMAP3630_AUTO_UART4_SHIFT			18
+ #define OMAP3430_AUTO_GPIO6_MASK			(1 << 17)
+ #define OMAP3430_AUTO_GPIO6_SHIFT			17
+ #define OMAP3430_AUTO_GPIO5_MASK			(1 << 16)
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 7b03426..13bf73f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -756,6 +756,14 @@ static void __init omap3_d2d_idle(void)
+
+ static void __init prcm_setup_regs(void)
+ {
++	u32 omap3630_auto_uart4_mask = cpu_is_omap3630() ?
++					OMAP3630_AUTO_UART4_MASK : 0;
++	u32 omap3630_en_uart4_mask = cpu_is_omap3630() ?
++					OMAP3630_EN_UART4_MASK : 0;
++	u32 omap3630_grpsel_uart4_mask = cpu_is_omap3630() ?
++					OMAP3630_GRPSEL_UART4_MASK : 0;
 +
- static struct clk gpt2_fck = {
- 	.name		= "gpt2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
-@@ -2715,6 +2725,16 @@ static struct clk uart3_ick = {
- 	.recalc		= &followparent_recalc,
- };
-
-+static struct clk uart4_ick = {
-+	.name		= "uart4_ick",
-+	.ops		= &clkops_omap2_dflt_wait,
-+	.parent		= &per_l4_ick,
-+	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
-+	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
-+	.clkdm_name	= "per_clkdm",
-+	.recalc		= &followparent_recalc,
-+};
 +
- static struct clk gpt9_ick = {
- 	.name		= "gpt9_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
-@@ -3349,6 +3369,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
- 	CLK(NULL,	"per_48m_fck",	&per_48m_fck,	CK_3XXX),
- 	CLK(NULL,	"uart3_fck",	&uart3_fck,	CK_3XXX),
-+	CLK(NULL,	"uart4_fck",	&uart4_fck,	CK_36XX),
- 	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_3XXX),
- 	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_3XXX),
- 	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_3XXX),
-@@ -3372,6 +3393,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_3XXX),
- 	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_3XXX),
- 	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_3XXX),
-+	CLK(NULL,	"uart4_ick",	&uart4_ick,	CK_36XX),
- 	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_3XXX),
- 	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_3XXX),
- 	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_3XXX),
+ 	/* XXX Reset all wkdeps. This should be done when initializing
+ 	 * powerdomains */
+ 	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, PM_WKDEP);
+@@ -842,6 +850,7 @@ static void __init prcm_setup_regs(void)
+ 		CM_AUTOIDLE);
+
+ 	cm_write_mod_reg(
++		omap3630_auto_uart4_mask |
+ 		OMAP3430_AUTO_GPIO6_MASK |
+ 		OMAP3430_AUTO_GPIO5_MASK |
+ 		OMAP3430_AUTO_GPIO4_MASK |
+@@ -918,14 +927,16 @@ static void __init prcm_setup_regs(void)
+ 				OMAP3430_DSS_MOD, PM_WKEN);
+
+ 	/* Enable wakeups in PER */
+-	prm_write_mod_reg(OMAP3430_EN_GPIO2_MASK | OMAP3430_EN_GPIO3_MASK |
++	prm_write_mod_reg(omap3630_en_uart4_mask |
++			  OMAP3430_EN_GPIO2_MASK | OMAP3430_EN_GPIO3_MASK |
+ 			  OMAP3430_EN_GPIO4_MASK | OMAP3430_EN_GPIO5_MASK |
+ 			  OMAP3430_EN_GPIO6_MASK | OMAP3430_EN_UART3_MASK |
+ 			  OMAP3430_EN_MCBSP2_MASK | OMAP3430_EN_MCBSP3_MASK |
+ 			  OMAP3430_EN_MCBSP4_MASK,
+ 			  OMAP3430_PER_MOD, PM_WKEN);
+ 	/* and allow them to wake up MPU */
+-	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2_MASK |
++	prm_write_mod_reg(omap3630_grpsel_uart4_mask |
++			  OMAP3430_GRPSEL_GPIO2_MASK |
+ 			  OMAP3430_GRPSEL_GPIO3_MASK |
+ 			  OMAP3430_GRPSEL_GPIO4_MASK |
+ 			  OMAP3430_GRPSEL_GPIO5_MASK |
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 86edcf9..298a22a 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -425,6 +425,8 @@
+ #define OMAP3430_EN_MCBSP2_SHIFT			0
+
+ /* CM_IDLEST_PER, PM_WKST_PER shared bits */
++#define OMAP3630_ST_UART4_SHIFT				18
++#define OMAP3630_ST_UART4_MASK				(1 << 18)
+ #define OMAP3430_ST_GPIO6_SHIFT				17
+ #define OMAP3430_ST_GPIO6_MASK				(1 << 17)
+ #define OMAP3430_ST_GPIO5_SHIFT				16
+diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+index 7fd6023..9e63cb7 100644
+--- a/arch/arm/mach-omap2/prm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+@@ -122,6 +122,7 @@
+ #define OMAP3430_MEMRETSTATE_MASK			(1 << 8)
+
+ /* PM_MPUGRPSEL_PER, PM_IVA2GRPSEL_PER shared bits */
++#define OMAP3630_GRPSEL_UART4_MASK			(1 << 18)
+ #define OMAP3430_GRPSEL_GPIO6_MASK			(1 << 17)
+ #define OMAP3430_GRPSEL_GPIO5_MASK			(1 << 16)
+ #define OMAP3430_GRPSEL_GPIO4_MASK			(1 << 15)
 -- 
 1.6.3.3
 
