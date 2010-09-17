@@ -1,86 +1,119 @@
 From: Thomas Renninger <trenn@suse.de>
 Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Fri, 17 Sep 2010 23:58:17 +0200
-Message-ID: <201009172358.18652.trenn@suse.de>
+Date: Sat, 18 Sep 2010 00:04:37 +0200
+Message-ID: <201009180004.38103.trenn@suse.de>
 References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com> <201009171508.46471.trenn@suse.de> <AANLkTi=W_Lo2m=hkA2F48oUziqGzt4Tr8y6KhfgqRnbz@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:45681 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750844Ab0IQV6c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Sep 2010 17:58:32 -0400
+Return-path: <linux-trace-users-owner@vger.kernel.org>
 In-Reply-To: <AANLkTi=W_Lo2m=hkA2F48oUziqGzt4Tr8y6KhfgqRnbz@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-trace-users-owner@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
 Cc: Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Some patches for cleanup...
-compile tested only...
-Should not break existing user space apps, but they should
-get converted asap to use power_swtich_state...
+power-trace: Use power_switch_state instead of power_start and power_end
 
----
+No need to have power_start and power_end. power_switch_state of state=0
+means we exited power saving state. Userspace has all the information
+it needs to detect power enter/exit case.
 
-power-trace: Rename power frequency to power_switch_state
-
-this interface/function is not intended for frequency changes
-only, but should get used for any P- (processor frequency),
-C- (processor sleep), T- (processor throttling), or S- (machine sleep)
-state.
-
-Since it's used in cpufreq.c which must be compiled in
-and not in acpi-cpufreq.c anymore there is no need to export it
-for modules.
+Export it, so that intel_idle can make use of it, even if compiled as module.
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 
 ---
- drivers/cpufreq/cpufreq.c    |    1 +
- include/trace/events/power.h |    7 +++++++
- kernel/trace/power-traces.c  |    1 -
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ arch/x86/kernel/process.c   |    9 +++++++--
+ drivers/cpuidle/cpuidle.c   |    3 +++
+ drivers/idle/intel_idle.c   |    3 +++
+ kernel/trace/power-traces.c |    2 +-
+ 4 files changed, 14 insertions(+), 3 deletions(-)
 
-Index: linux-2.6.35-master/drivers/cpufreq/cpufreq.c
+Index: linux-2.6.35-master/arch/x86/kernel/process.c
 ===================================================================
---- linux-2.6.35-master.orig/drivers/cpufreq/cpufreq.c
-+++ linux-2.6.35-master/drivers/cpufreq/cpufreq.c
-@@ -354,6 +354,7 @@ void cpufreq_notify_transition(struct cp
- 		adjust_jiffies(CPUFREQ_POSTCHANGE, freqs);
- 		dprintk("FREQ: %lu - CPU: %lu", (unsigned long)freqs->new,
- 			(unsigned long)freqs->cpu);
-+		trace_power_switch_state(POWER_PSTATE, freqs->new, freqs->cpu);
- 		trace_power_frequency(POWER_PSTATE, freqs->new, freqs->cpu);
- 		srcu_notifier_call_chain(&cpufreq_transition_notifier_list,
- 				CPUFREQ_POSTCHANGE, freqs);
-Index: linux-2.6.35-master/include/trace/events/power.h
+--- linux-2.6.35-master.orig/arch/x86/kernel/process.c
++++ linux-2.6.35-master/arch/x86/kernel/process.c
+@@ -375,7 +375,10 @@ static inline int hlt_use_halt(void)
+ void default_idle(void)
+ {
+ 	if (hlt_use_halt()) {
++		/* trace_power_start is deprecated, remove it after a while */
+ 		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
++		trace_power_switch_state(POWER_CSTATE, 1, smp_processor_id());
++
+ 		current_thread_info()->status &= ~TS_POLLING;
+ 		/*
+ 		 * TS_POLLING-cleared state must be visible before we
+@@ -446,6 +449,8 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
+ void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
+ {
+ 	trace_power_start(POWER_CSTATE, (ax>>4)+1, smp_processor_id());
++	trace_power_switch_state(POWER_CSTATE, (ax>>4)+1, smp_processor_id());
++
+ 	if (!need_resched()) {
+ 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
+ 			clflush((void *)&current_thread_info()->flags);
+@@ -462,6 +467,8 @@ static void mwait_idle(void)
+ {
+ 	if (!need_resched()) {
+ 		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
++		trace_power_switch_state(POWER_CSTATE, 1, smp_processor_id());
++
+ 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
+ 			clflush((void *)&current_thread_info()->flags);
+ 
+@@ -482,11 +489,9 @@ static void mwait_idle(void)
+  */
+ static void poll_idle(void)
+ {
+-	trace_power_start(POWER_CSTATE, 0, smp_processor_id());
+ 	local_irq_enable();
+ 	while (!need_resched())
+ 		cpu_relax();
+-	trace_power_end(0);
+ }
+ 
+ /*
+Index: linux-2.6.35-master/drivers/cpuidle/cpuidle.c
 ===================================================================
---- linux-2.6.35-master.orig/include/trace/events/power.h
-+++ linux-2.6.35-master/include/trace/events/power.h
-@@ -38,6 +38,13 @@ DECLARE_EVENT_CLASS(power,
- 		(unsigned long)__entry->state, (unsigned long)__entry->cpu_id)
- );
+--- linux-2.6.35-master.orig/drivers/cpuidle/cpuidle.c
++++ linux-2.6.35-master/drivers/cpuidle/cpuidle.c
+@@ -106,7 +106,10 @@ static void cpuidle_idle_call(void)
+ 	/* give the governor an opportunity to reflect on the outcome */
+ 	if (cpuidle_curr_governor->reflect)
+ 		cpuidle_curr_governor->reflect(dev);
++
++	/* trace_power_end is deprecated, remove it after a while */
+ 	trace_power_end(smp_processor_id());
++	trace_power_switch_state(POWER_CSTATE, 0, smp_processor_id());
+ }
  
-+DEFINE_EVENT(power, power_switch_state,
-+
-+	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
-+
-+	TP_ARGS(type, state, cpu_id)
-+);
-+
- DEFINE_EVENT(power, power_start,
+ /**
+Index: linux-2.6.35-master/drivers/idle/intel_idle.c
+===================================================================
+--- linux-2.6.35-master.orig/drivers/idle/intel_idle.c
++++ linux-2.6.35-master/drivers/idle/intel_idle.c
+@@ -192,8 +192,11 @@ static int intel_idle(struct cpuidle_dev
  
- 	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
+ 	stop_critical_timings();
+ #ifndef MODULE
++	/* trace_power_start is deprecated, remove it after a while */
+ 	trace_power_start(POWER_CSTATE, (eax >> 4) + 1, cpu);
+ #endif
++	trace_power_switch_state(POWER_CSTATE, (eax >> 4) + 1, smp_processor_id());
++
+ 	if (!need_resched()) {
+ 
+ 		__monitor((void *)&current_thread_info()->flags, 0, 0);
 Index: linux-2.6.35-master/kernel/trace/power-traces.c
 ===================================================================
 --- linux-2.6.35-master.orig/kernel/trace/power-traces.c
 +++ linux-2.6.35-master/kernel/trace/power-traces.c
-@@ -13,5 +13,4 @@
+@@ -13,4 +13,4 @@
  #define CREATE_TRACE_POINTS
  #include <trace/events/power.h>
  
--EXPORT_TRACEPOINT_SYMBOL_GPL(power_frequency);
- 
+-
++EXPORT_TRACEPOINT_SYMBOL_GPL(power_switch_state);
