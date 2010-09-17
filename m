@@ -1,78 +1,57 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
-Date: Fri, 17 Sep 2010 20:41:46 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0329539FE3@dbde02.ent.ti.com>
-References: <1284587799-9637-1-git-send-email-khilman@deeprootsystems.com>
-	<1284587799-9637-3-git-send-email-khilman@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03294424F5@dbde02.ent.ti.com>
- <874odpbodr.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v5 4/6] OMAP4: hwmod data: Add watchdog timer
+Date: Fri, 17 Sep 2010 08:18:32 -0700
+Message-ID: <877hik1jqv.fsf@deeprootsystems.com>
+References: <1284528403-6494-1-git-send-email-charu@ti.com>
+	<1284528403-6494-5-git-send-email-charu@ti.com>
+	<4C91382F.1060505@ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CD307BEA@dbde02.ent.ti.com>
+	<4C933B1F.2040100@ti.com> <8762y44f8d.fsf@deeprootsystems.com>
+	<4C937C52.60300@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53053 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755319Ab0IQPLy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 11:11:54 -0400
-In-Reply-To: <874odpbodr.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:39096 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753284Ab0IQPSo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 11:18:44 -0400
+In-Reply-To: <4C937C52.60300@ti.com> (Benoit Cousson's message of "Fri, 17 Sep
+	2010 16:33:54 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
+[...]
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Thursday, September 16, 2010 10:46 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
->>Subject: Re: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
->>
->>"Gopinath, Thara" <thara@ti.com> writes:
->>
->>[...]
->>
->>>>>From: Paul Walmsley <paul@pwsan.com>
->>>>>
->>>>>The OPP layer code should be independent of the PMIC,
->>>>>introduce the TWL/TPS-specific code out to its own file.
+>>>>
+>>>> As you mentioned, wd_timer3 in OMAP4 is an IVA3 watchdog timer.
+>>>>
+>>>> Also the current watchdog driver (omap_wdt.c) does not support more
+>>>> than one watchdog timer. To add this support we need to first
+>>>> redesign the driver code and then add wd_timer3 to the database.
+>>>>
+>>>> This patch series is intended to make watchdog driver to use
+>>>> omap_hwmod APIs and PM runtime APIs. Driver modification to support
+>>>> more than one watchdog timers can be taken up as a separate
+>>>> activity later.
 >>>
->>> Hello Kevin,
->>>
->>> I have been using this code for a while now. I really do not think wee
->>> need a separate file for implementing the vsel to voltage in (uV) and
->>> vice versa formulas. Today only voltage layer is interested in these
->>> conversions. Voltage layer has a structure that can be populated with
->>> the information required from the PMIC. We only need to add two more
->>> function pointers to this structure. This info can then be passed from
->>> the actual PMIC driver file. This will make it much more simpler for
->>> OMAP4 where we have different formulas between different revisions of
->>> PMIC. Also in the omap voltage code we will no longer have to hard
->>> code omap_twl_vsel_to_uv and omap_twl_uv_to_vsel.
+>>> No necessarily, even if you do not manage this watchdog, we do need to
+>>> expose its hwmod in order to allow dspbridge/syslink to potentially
+>>> enable or disable it.
 >>
->>Feel free to post an RFC series for what you're proposing.
->>
->>IMHO, even the voltage layer should not care about these conversions.
->>The voltage layer should care about voltages, and the PMIC layer should
->>handle these conversions.  IOW, this stuff is best abstracted in the
->>PMIC code, or board- or SoC-specific hooks that can be registered with
->>the PMIC.
->>
->>> So please consider dropping this patch from this series.
->>
->>If you pick this up as part of your voltage series (or more likely as a
->>pre-requisite of your voltage series) we can surely drop it from this
->>series, at it doesn't really belong with the OPP series.
+>> We also should expose it in the hwmod db so that it is initialized and
+>> properly reset on init.
+>
+> Correct, so you do recommend to expose most hwmods as soon as they are
+> not crashing at boot?  So far, the plan was to add only the ones
+> validated with the drivers.
 
-Hello Kevin/Nishant
+I think all hwmods for a given class should be posted at the same time.
 
-My suggestion is introduce two new APIs in drivers/twl-core.c. Then once voltage
-layer support is added call into an API provided by voltage layer to register two APIs.
-If both Nishant and you are ok with this I will post this change as par of my voltage
-and smartreflex series.
+If they are not validated with the driver, that is fine and the reason
+should be clearly stated in the changelog.
 
-Regards
-Thara
-
+Kevin
