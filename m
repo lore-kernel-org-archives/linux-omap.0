@@ -1,116 +1,129 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 09/11] OMAP: DMA: Implement generic errata handling
-Date: Fri, 17 Sep 2010 16:51:18 +0200
-Message-ID: <4C938066.2080908@ti.com>
-References: <1282647866-6918-1-git-send-email-manjugk@ti.com>	<1282647866-6918-10-git-send-email-manjugk@ti.com> <87sk1qtpnu.fsf@deeprootsystems.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A93@dbde02.ent.ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402784DC7D5@dbde02.ent.ti.com> <4C9317B5.3050308@ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402784DC994@dbde02.ent.ti.com> <4C9342FB.30401@ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402784DCB8E@dbde02.ent.ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 05/13] OMAP: Introduce device specific set rate and get
+ rate in device opp structures.
+Date: Fri, 17 Sep 2010 20:25:52 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0329539FDE@dbde02.ent.ti.com>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+	<1282130412-12027-6-git-send-email-thara@ti.com>
+	<87fwxrzpan.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03294424DF@dbde02.ent.ti.com>
+ <87aanhd7xj.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59989 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754864Ab0IQOvY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 10:51:24 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402784DCB8E@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51701 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754889Ab0IQOz7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 10:55:59 -0400
+In-Reply-To: <87aanhd7xj.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On 9/17/2010 1:28 PM, G, Manjunath Kondaiah wrote:
->> From: Cousson, Benoit
->> Sent: Friday, September 17, 2010 3:59 PM
+
+
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Thursday, September 16, 2010 8:58 PM
+>>To: Gopinath, Thara; Paul Walmsley
+>>Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath; Sawant, Anand; Cousson, Benoit
+>>Subject: Re: [PATCH 05/13] OMAP: Introduce device specific set rate and get rate in device opp
+>>structures.
 >>
->> On 9/17/2010 10:09 AM, G, Manjunath Kondaiah wrote:
->>> Hi Benoit,
->>>
+>>"Gopinath, Thara" <thara@ti.com> writes:
 >>
->> <...>
->>
+>>>>>-----Original Message-----
+>>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>>>Sent: Friday, September 03, 2010 5:12 AM
+>>>>>To: Gopinath, Thara
+>>>>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Sripathy, Vishwanath; Sawant, Anand; Cousson,
+>>Benoit
+>>>>>Subject: Re: [PATCH 05/13] OMAP: Introduce device specific set rate and get rate in device opp
+>>>>>structures.
 >>>>>
->>>>> I assume you are ok with option #1. Let me know if you have any
->>>>> issues/concenrs with above approach. I am in the process of
->>>> consolidating
->>>>> all the review comments and addressing all applicable
->>>> review comments.
->>>>
->>>> Not really, the option #1 will still require you to use the oh
->>>> pointer, which is supposed to be private to the omap_device.
->>>>
->>>> What is still not clear is why and when you need to change the
->>>> sysconfig setting.
+>>>>>Thara Gopinath <thara@ti.com> writes:
+>>>>>
+>>>>>> This patch extends the device opp structure to contain
+>>>>>> pointers to scale the operating rate of the
+>>>>>> device and to retrieve the operating rate of the device.
+>>>>>> This patch also adds the three new APIs in the opp layer
+>>>>>> namely opp_set_rate that can be called to set a new operating
+>>>>>> rate for a device, opp_get_rate that can be called to retrieve
+>>>>>> the operating frequency for a device and opp_populate_rate_fns
+>>>>>> to populte the device specific set_rate and get_rate API's.
+>>>>>> The opp_set_rate and opp_get_rate does some routine error
+>>>>>> checks and finally calls into the device specific set_rate
+>>>>>> and get_rate APIs populated through opp_populate_rate_fns.
+>>>>>>
+>>>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>>>>
+>>>>>As I think about this more, I'm not sure the OPP layer is the right
+>>>>>layer for the get/set rate functions.  The OPP layer is currently just
+>>>>>the data store for OPP data. To me, these set/get functions are better
+>>>>>associated directly with an omap_device instead of an OPP.
+>>>>>
+>>>>>For instance, the new OPP APIs are a bit confusing in terms of OPPs.
+>>>>>e.g: opp_get_rate().  What is the "rate" of an OPP, and what's the
+>>>>>difference with opp_get_freq()?
+>>>>>
+>>>>>What's really happening is the rate is being changed for a device, and
+>>>>>the need for specific hooks are at the device level, not the OPP level.
+>>>>>For example, this current approach would not scale if you needed
+>>>>>multiple devices in the same domain that each needed custom
+>>>>>set_rate/get_rate hooks.
+>>>>>
+>>>>>So instead, what about adding custom hooks at the omap_device level?
+>>>>>They could be registered at omap_device_build() time in the device
+>>>>>specific code.
 >>>
->>> It is required before stopping DMA chain transfer.
+>>> This is exactly what I had in my mind when I started implementing this.
+>>> But then Paul said hwmod or omap_device is not the place to keep it.
 >>
->> OK, but why? What happen if you do not do that? Could you
->> please give the full errata description to help us understanding?
->
-> Here is summary of errata description:
->
-> Software will program DMA to transfer an arbitrary high number of data, and disable the DMA
-> channel whenever it is sure that all the data have been read from the source and transferred to the
-> destination.
->
-> When doing this, software must ensure that the DMA is configured in No Standby mode
-> (DMAx_OCP_SYSCONFIG.MIDLEMODE = "01"). If this is not the case, the software may disable the
-> channel when it is transitioning to standby state. This would cause the DMA internal
-> FIFO pointer not to be reset correctly and available DMA FIFO space to be artificially
-> decreased. The consequences range from unnecessary unaligned accesses performed,
-> to complete DMA transfer hanging.
-
-Thanks for the details.
-
-That's an interesting bug to handle...
-
-And what happen if you do not disable the DMA channel at that time?
-
-
-> WORKAROUND
-> The correct procedure to disable a DMA channel before it reaches end of block is:
-
-That part is not clear: Why do we have to disable a channel before its 
-completion? Cannot we wait?
-
-> 1. Set OCP_SYSCONFIG.MIDLEMODE to "01"
-> 2. Disable DMA channel by writing bit DMA4_CCR_i[7].Enable='0'
-> 3. Ensure current DMA transfer is completed by polling the relevant DMA4_CCR_i[9].RD_ACTIVE/
-> DMA4_CCR_i[10].WR_ACTIVE bit.
-> 4. Restore OCP_SYSCONFIG.MIDLEMODE to its previous value.
-
->>>> Do you have a details explanation? Ideally you should try
->> to couple
->>>> the sysconfig change along with pm_runtime / hwmod state
->> change, then
->>>> we will be able to handle that smoothly in the framework.
->>>
->>> Since channel is already requested(and there is possibility
->> of other
->>> channels also used at the same time), using pm_runtime
->> API's will only
->>> increase usage count and will not invoke omap_device_enable.
+>>IIRC, Paul's concern was that *hwmod* was not the right place for this
+>>(and I agree.)  However, I think omap_device is the right place for
+>>this.
 >>
->> This is the part that is not clear, and where the full errata
->> should help, because if you do have other channel in use, you
->> will not be able to do any clock gating anyway, that why
->> changing the sysconfig at that time might be useless.
->
-> Errata description provided.
->
+>>Paul?
 >>
->>>> If you cannot do that, you will need to add an omap_device API as
->>>> well.
->>>
->>> There is already one such API exists in hwmod layer for
->> handling this
->>> type of errata(omap_hwmod_set_slave_idlemode in omap_hwmod.c).
->>> Above proposal is based on similar implementation.
+>>> Also I do not want the set rate get rate APIs for devices that require
+>>> changes dividers in the PRCM clock module to be spread out in the
+>>> system. Makes it very very difficult to debug.  If we agree to add the
+>>> set_rate and get_rate in the omap_device structure, I would like to
+>>> have one more API in the omap_device layer to register these APIs
+>>> device wise. Thus we can keep these set rate and get rate APIs in one
+>>> single file.
 >>
->> Maybe, but this is not enough. In both case you should not
->> use directly this API from the driver, so if you want to use
->> that kind of approach, you will need the omap_device layer as well.
->
-> Does that mean, extending omap device layer for modifying sysconfig?
+>>Agreed.  And those functions should be in the respective
+>>device-specific file, where the omap_device_build() etc are done for
+>>that device.
 
-Yes,
+Hello Kevin,
 
-Benoit
+I basically agree with all your other suggestions except this. I do not
+think device files are the correct place for this. For starters definitely mpu,
+l3 and iva devices are not built from any device file. I do not like the idea
+of device set rate APIs spread across different files. 
+What I am proposing is like we have  opp_populate_rate_fns(which I have introduced)
+we should have something like omap_device_populate_rate_fns. This can be then called
+from one file to register the set_rate and get_rate APIs for all the relevant devices
+for a Soc. This will be done through an init function. And the device specific
+set_rate and get_rate can be implemented in this file. I am not sure which is
+this file at this point of time. Maybe for OMAP3 opp3xxx_data.c or pm34xx.c. What
+do you think about this?
+
+Regards
+Thara
+
+>>
+>>> Also if we move these hooks to omap_device struct we will need to
+>>> rename the current omap_device_set_rate (the main API) to
+>>> omap_device_scale and introduce a new omap_device_set_rate which just
+>>> finds out the omap device from the passed dev pointer and does a
+>>> od->set_rate. Similarly for get rate also.
+>>
+>>Yes, that's what I was thinking.
+>>
+>>Kevin
