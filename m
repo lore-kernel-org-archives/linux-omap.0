@@ -1,392 +1,85 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 1/5] OMAP2xxx: hwmod: add I2C hwmods for OMAP2420, 2430
-Date: Fri, 17 Sep 2010 20:07:05 +0530
-Message-ID: <1284734229-16281-2-git-send-email-rnayak@ti.com>
-References: <1284734229-16281-1-git-send-email-rnayak@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 04/13] OMAP: Introduce API to return a device list
+ associated with a voltage domain
+Date: Fri, 17 Sep 2010 20:18:02 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0329539FDB@dbde02.ent.ti.com>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+	<1282130412-12027-5-git-send-email-thara@ti.com>
+	<87y6brblt3.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03294424C1@dbde02.ent.ti.com>
+ <874odpems0.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40147 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42407 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754696Ab0IQOhS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Sep 2010 10:37:18 -0400
-In-Reply-To: <1284734229-16281-1-git-send-email-rnayak@ti.com>
+	id S1754062Ab0IQOsW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 10:48:22 -0400
+In-Reply-To: <874odpems0.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-From: Paul Walmsley <paul@pwsan.com>
 
-Add hwmod structures for I2C controllers on OMAP2420/2430.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  138 ++++++++++++++++++++++++++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |  144 +++++++++++++++++++++++++++-
- 2 files changed, 278 insertions(+), 4 deletions(-)
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Thursday, September 16, 2010 8:52 PM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Sripathy, Vishwanath; Sawant, Anand; Cousson, Benoit
+>>Subject: Re: [PATCH 04/13] OMAP: Introduce API to return a device list associated with a voltage
+>>domain
+>>
+>>"Gopinath, Thara" <thara@ti.com> writes:
+>>
+>>[...]
+>>
+>>>>>> +struct device **opp_init_voltage_params(struct voltagedomain *voltdm,
+>>>>>> +					int *dev_count)
+>>>>>> +{
+>>>>>> +	struct device_opp *dev_opp;
+>>>>>> +	struct device **dev_list;
+>>>>>> +	int count = 0, i = 0;
+>>>>>> +
+>>>>>> +	list_for_each_entry(dev_opp, &dev_opp_list, node) {
+>>>>>> +		if (!dev_opp->oh->vdd_name)
+>>>>>> +			continue;
+>>>>>> +
+>>>>>> +		if (!strcmp(dev_opp->oh->vdd_name, voltdm->name)) {
+>>>>>> +			dev_opp->oh->voltdm = voltdm;
+>>>>>
+>>>>>Couldn't we assign the voltdm at opp_add() time since you added it as
+>>>>>part of the hwmod?
+>>>
+>>> We cannot as the voltage layer is not initialized at the point of opp_add.
+>>> Having said this, today voltage layer is dependent on opp layer only to figure out
+>>> the current nominal voltage from the opp table. If that can be some how decoupled we
+>>> can initialize voltage layer early on and implement this.
+>>
+>>We could decouple the voltage init into and early init and late init to
+>>handle this.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 3cc768e..ec730e4 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -15,9 +15,12 @@
- #include <mach/irqs.h>
- #include <plat/cpu.h>
- #include <plat/dma.h>
-+#include <plat/i2c.h>
-+#include <plat/omap24xx.h>
- 
- #include "omap_hwmod_common_data.h"
- 
-+#include "cm-regbits-24xx.h"
- #include "prm-regbits-24xx.h"
- 
- /*
-@@ -71,6 +74,8 @@ static struct omap_hwmod omap2420_l3_main_hwmod = {
- };
- 
- static struct omap_hwmod omap2420_l4_wkup_hwmod;
-+static struct omap_hwmod omap2420_i2c1_hwmod;
-+static struct omap_hwmod omap2420_i2c2_hwmod;
- 
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap2420_l4_core__l4_wkup = {
-@@ -79,6 +84,45 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__l4_wkup = {
- 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
- };
- 
-+/* I2C IP block address space length (in bytes) */
-+#define OMAP2_I2C_AS_LEN		128
-+
-+/* L4 CORE -> I2C1 interface */
-+static struct omap_hwmod_addr_space omap2420_i2c1_addr_space[] = {
-+	{
-+		.pa_start	= 0x48070000,
-+		.pa_end		= 0x48070000 + OMAP2_I2C_AS_LEN - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2420_l4_core__i2c1 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_i2c1_hwmod,
-+	.clk		= "i2c1_ick",
-+	.addr		= omap2420_i2c1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_i2c1_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 CORE -> I2C2 interface */
-+static struct omap_hwmod_addr_space omap2420_i2c2_addr_space[] = {
-+	{
-+		.pa_start	= 0x48072000,
-+		.pa_end		= 0x48072000 + OMAP2_I2C_AS_LEN - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2420_l4_core__i2c2 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_i2c2_hwmod,
-+	.clk		= "i2c2_ick",
-+	.addr		= omap2420_i2c2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_i2c2_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap2420_l4_core_slaves[] = {
- 	&omap2420_l3_main__l4_core,
-@@ -87,6 +131,8 @@ static struct omap_hwmod_ocp_if *omap2420_l4_core_slaves[] = {
- /* Master interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap2420_l4_core_masters[] = {
- 	&omap2420_l4_core__l4_wkup,
-+	&omap2420_l4_core__i2c1,
-+	&omap2420_l4_core__i2c2
- };
- 
- /* L4 CORE */
-@@ -165,6 +211,96 @@ static struct omap_hwmod omap2420_iva_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
- };
- 
-+/* I2C common */
-+static struct omap_hwmod_class_sysconfig i2c_sysc = {
-+	.rev_offs	= 0x00,
-+	.sysc_offs	= 0x20,
-+	.syss_offs	= 0x10,
-+	.sysc_flags	= SYSC_HAS_SOFTRESET,
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class i2c_class = {
-+	.name		= "i2c",
-+	.sysc		= &i2c_sysc,
-+};
-+
-+static struct omap_i2c_dev_attr i2c_dev_attr;
-+
-+/* I2C1 */
-+
-+static struct omap_hwmod_irq_info i2c1_mpu_irqs[] = {
-+	{ .irq = INT_24XX_I2C1_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info i2c1_sdma_reqs[] = {
-+	{ .name = "tx", .dma_req = OMAP24XX_DMA_I2C1_TX },
-+	{ .name = "rx", .dma_req = OMAP24XX_DMA_I2C1_RX },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2420_i2c1_slaves[] = {
-+	&omap2420_l4_core__i2c1,
-+};
-+
-+static struct omap_hwmod omap2420_i2c1_hwmod = {
-+	.name		= "i2c1",
-+	.mpu_irqs	= i2c1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(i2c1_mpu_irqs),
-+	.sdma_reqs	= i2c1_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(i2c1_sdma_reqs),
-+	.main_clk	= "i2c1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP2420_EN_I2C1_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP2420_EN_I2C1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_i2c1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_i2c1_slaves),
-+	.class		= &i2c_class,
-+	.dev_attr	= &i2c_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+/* I2C2 */
-+
-+static struct omap_hwmod_irq_info i2c2_mpu_irqs[] = {
-+	{ .irq = INT_24XX_I2C2_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info i2c2_sdma_reqs[] = {
-+	{ .name = "tx", .dma_req = OMAP24XX_DMA_I2C2_TX },
-+	{ .name = "rx", .dma_req = OMAP24XX_DMA_I2C2_RX },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2420_i2c2_slaves[] = {
-+	&omap2420_l4_core__i2c2,
-+};
-+
-+static struct omap_hwmod omap2420_i2c2_hwmod = {
-+	.name		= "i2c2",
-+	.mpu_irqs	= i2c2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(i2c2_mpu_irqs),
-+	.sdma_reqs	= i2c2_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(i2c2_sdma_reqs),
-+	.main_clk	= "i2c2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP2420_EN_I2C2_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP2420_EN_I2C2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_i2c2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_i2c2_slaves),
-+	.class		= &i2c_class,
-+	.dev_attr	= &i2c_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
- static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_l3_main_hwmod,
- 	&omap2420_l4_core_hwmod,
-@@ -178,5 +314,3 @@ int __init omap2420_hwmod_init(void)
- {
- 	return omap_hwmod_init(omap2420_hwmods);
- }
--
--
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 4526628..9884db6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -15,10 +15,13 @@
- #include <mach/irqs.h>
- #include <plat/cpu.h>
- #include <plat/dma.h>
-+#include <plat/i2c.h>
-+#include <plat/omap24xx.h>
- 
- #include "omap_hwmod_common_data.h"
- 
- #include "prm-regbits-24xx.h"
-+#include "cm-regbits-24xx.h"
- 
- /*
-  * OMAP2430 hardware module integration data
-@@ -71,6 +74,47 @@ static struct omap_hwmod omap2430_l3_main_hwmod = {
- };
- 
- static struct omap_hwmod omap2430_l4_wkup_hwmod;
-+static struct omap_hwmod omap2430_i2c1_hwmod;
-+static struct omap_hwmod omap2430_i2c2_hwmod;
-+
-+/* I2C IP block address space length (in bytes) */
-+#define OMAP2_I2C_AS_LEN		128
-+
-+/* L4 CORE -> I2C1 interface */
-+static struct omap_hwmod_addr_space omap2430_i2c1_addr_space[] = {
-+	{
-+		.pa_start	= 0x48070000,
-+		.pa_end		= 0x48070000 + OMAP2_I2C_AS_LEN - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2430_l4_core__i2c1 = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_i2c1_hwmod,
-+	.clk		= "i2c1_ick",
-+	.addr		= omap2430_i2c1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_i2c1_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 CORE -> I2C2 interface */
-+static struct omap_hwmod_addr_space omap2430_i2c2_addr_space[] = {
-+	{
-+		.pa_start	= 0x48072000,
-+		.pa_end		= 0x48072000 + OMAP2_I2C_AS_LEN - 1,
-+		.flags		= ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2430_l4_core__i2c2 = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_i2c2_hwmod,
-+	.clk		= "i2c2_ick",
-+	.addr		= omap2430_i2c2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_i2c2_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
- 
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
-@@ -165,6 +209,104 @@ static struct omap_hwmod omap2430_iva_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
- };
- 
-+/* I2C common */
-+static struct omap_hwmod_class_sysconfig i2c_sysc = {
-+	.rev_offs	= 0x00,
-+	.sysc_offs	= 0x20,
-+	.syss_offs	= 0x10,
-+	.sysc_flags	= (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class i2c_class = {
-+	.name		= "i2c",
-+	.sysc		= &i2c_sysc,
-+};
-+
-+static struct omap_i2c_dev_attr i2c_dev_attr;
-+
-+/* I2C1 */
-+
-+static struct omap_i2c_dev_attr i2c1_dev_attr = {
-+	.fifo_depth	= 8, /* bytes */
-+};
-+
-+static struct omap_hwmod_irq_info i2c1_mpu_irqs[] = {
-+	{ .irq = INT_24XX_I2C1_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info i2c1_sdma_reqs[] = {
-+	{ .name = "tx", .dma_req = OMAP24XX_DMA_I2C1_TX },
-+	{ .name = "rx", .dma_req = OMAP24XX_DMA_I2C1_RX },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_i2c1_slaves[] = {
-+	&omap2430_l4_core__i2c1,
-+};
-+
-+static struct omap_hwmod omap2430_i2c1_hwmod = {
-+	.name		= "i2c1",
-+	.mpu_irqs	= i2c1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(i2c1_mpu_irqs),
-+	.sdma_reqs	= i2c1_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(i2c1_sdma_reqs),
-+	.main_clk	= "i2c1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP2430_EN_I2CHS1_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP2430_EN_I2CHS1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_i2c1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_i2c1_slaves),
-+	.class		= &i2c_class,
-+	.dev_attr	= &i2c1_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/* I2C2 */
-+
-+static struct omap_i2c_dev_attr i2c2_dev_attr = {
-+	.fifo_depth	= 8, /* bytes */
-+};
-+
-+static struct omap_hwmod_irq_info i2c2_mpu_irqs[] = {
-+	{ .irq = INT_24XX_I2C2_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info i2c2_sdma_reqs[] = {
-+	{ .name = "tx", .dma_req = OMAP24XX_DMA_I2C2_TX },
-+	{ .name = "rx", .dma_req = OMAP24XX_DMA_I2C2_RX },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_i2c2_slaves[] = {
-+	&omap2430_l4_core__i2c2,
-+};
-+
-+static struct omap_hwmod omap2430_i2c2_hwmod = {
-+	.name		= "i2c2_hwmod",
-+	.mpu_irqs	= i2c2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(i2c2_mpu_irqs),
-+	.sdma_reqs	= i2c2_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(i2c2_sdma_reqs),
-+	.main_clk	= "i2c2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP2430_EN_I2CHS2_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP2430_EN_I2CHS2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_i2c2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_i2c2_slaves),
-+	.class		= &i2c_class,
-+	.dev_attr	= &i2c2_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
- static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_l3_main_hwmod,
- 	&omap2430_l4_core_hwmod,
-@@ -178,5 +320,3 @@ int __init omap2430_hwmod_init(void)
- {
- 	return omap_hwmod_init(omap2430_hwmods);
- }
--
--
--- 
-1.7.0.4
+Hello Kevin,
 
+Yes we could. In fact I do not like the idea of voltage layer dependent
+on opp layer itself. So here is my proposal. Maintain a variable in the main
+per vdd structure omap_vdd_info curr_volt which will get updated each time a
+voltage scale is attempted. Now the only issue is during boot up how does the voltage
+layer know what voltage each vdd should be put into ? A piece of code can be
+implemented in pm34xx.c/pm44xx.c init functions to read the clock rate associated
+with each vdd , call into the opp layer to get the corresponding
+voltage ( basically the sequence we do today everytime in voltage layer
+when the API to get  nominal voltage is called) and call omap_voltage_scale_vdd with
+the corresponding voltage. This way we can fully decouple voltage laye from opp layer
+and make voltage init an early_initcall. We might still need a late_initcall to register
+debugfs entries though.
+What is your take on this ?
+
+Regards
+Thara
+
+>>
+>>Kevin
