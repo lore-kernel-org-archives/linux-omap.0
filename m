@@ -1,129 +1,84 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 05/13] OMAP: Introduce device specific set rate and get
- rate in device opp structures.
-Date: Fri, 17 Sep 2010 20:25:52 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0329539FDE@dbde02.ent.ti.com>
-References: <1282130412-12027-1-git-send-email-thara@ti.com>
-	<1282130412-12027-6-git-send-email-thara@ti.com>
-	<87fwxrzpan.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03294424DF@dbde02.ent.ti.com>
- <87aanhd7xj.fsf@deeprootsystems.com>
+Subject: RE: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
+Date: Fri, 17 Sep 2010 20:27:10 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0329539FDF@dbde02.ent.ti.com>
+References: <1284587799-9637-1-git-send-email-khilman@deeprootsystems.com>
+ <1284587799-9637-3-git-send-email-khilman@deeprootsystems.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03294424F5@dbde02.ent.ti.com>
+ <4C920A49.5010105@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB032944262A@dbde02.ent.ti.com>
+ <4C92246C.3010404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51701 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41452 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754889Ab0IQOz7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 10:55:59 -0400
-In-Reply-To: <87aanhd7xj.fsf@deeprootsystems.com>
+	id S1754895Ab0IQO5U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 10:57:20 -0400
+In-Reply-To: <4C92246C.3010404@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
 
 >>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Thursday, September 16, 2010 8:58 PM
->>To: Gopinath, Thara; Paul Walmsley
->>Cc: linux-omap@vger.kernel.org; Sripathy, Vishwanath; Sawant, Anand; Cousson, Benoit
->>Subject: Re: [PATCH 05/13] OMAP: Introduce device specific set rate and get rate in device opp
->>structures.
+>>From: Menon, Nishanth
+>>Sent: Thursday, September 16, 2010 7:37 PM
+>>To: Gopinath, Thara
+>>Cc: Kevin Hilman; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>>Subject: Re: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
 >>
->>"Gopinath, Thara" <thara@ti.com> writes:
->>
->>>>>-----Original Message-----
->>>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>Sent: Friday, September 03, 2010 5:12 AM
->>>>>To: Gopinath, Thara
->>>>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Sripathy, Vishwanath; Sawant, Anand; Cousson,
->>Benoit
->>>>>Subject: Re: [PATCH 05/13] OMAP: Introduce device specific set rate and get rate in device opp
->>>>>structures.
->>>>>
->>>>>Thara Gopinath <thara@ti.com> writes:
->>>>>
->>>>>> This patch extends the device opp structure to contain
->>>>>> pointers to scale the operating rate of the
->>>>>> device and to retrieve the operating rate of the device.
->>>>>> This patch also adds the three new APIs in the opp layer
->>>>>> namely opp_set_rate that can be called to set a new operating
->>>>>> rate for a device, opp_get_rate that can be called to retrieve
->>>>>> the operating frequency for a device and opp_populate_rate_fns
->>>>>> to populte the device specific set_rate and get_rate API's.
->>>>>> The opp_set_rate and opp_get_rate does some routine error
->>>>>> checks and finally calls into the device specific set_rate
->>>>>> and get_rate APIs populated through opp_populate_rate_fns.
->>>>>>
->>>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>>>>
->>>>>As I think about this more, I'm not sure the OPP layer is the right
->>>>>layer for the get/set rate functions.  The OPP layer is currently just
->>>>>the data store for OPP data. To me, these set/get functions are better
->>>>>associated directly with an omap_device instead of an OPP.
->>>>>
->>>>>For instance, the new OPP APIs are a bit confusing in terms of OPPs.
->>>>>e.g: opp_get_rate().  What is the "rate" of an OPP, and what's the
->>>>>difference with opp_get_freq()?
->>>>>
->>>>>What's really happening is the rate is being changed for a device, and
->>>>>the need for specific hooks are at the device level, not the OPP level.
->>>>>For example, this current approach would not scale if you needed
->>>>>multiple devices in the same domain that each needed custom
->>>>>set_rate/get_rate hooks.
->>>>>
->>>>>So instead, what about adding custom hooks at the omap_device level?
->>>>>They could be registered at omap_device_build() time in the device
->>>>>specific code.
+>>Gopinath, Thara had written, on 09/16/2010 08:51 AM, the following:
 >>>
->>> This is exactly what I had in my mind when I started implementing this.
->>> But then Paul said hwmod or omap_device is not the place to keep it.
->>
->>IIRC, Paul's concern was that *hwmod* was not the right place for this
->>(and I agree.)  However, I think omap_device is the right place for
->>this.
->>
->>Paul?
->>
->>> Also I do not want the set rate get rate APIs for devices that require
->>> changes dividers in the PRCM clock module to be spread out in the
->>> system. Makes it very very difficult to debug.  If we agree to add the
->>> set_rate and get_rate in the omap_device structure, I would like to
->>> have one more API in the omap_device layer to register these APIs
->>> device wise. Thus we can keep these set rate and get rate APIs in one
->>> single file.
->>
->>Agreed.  And those functions should be in the respective
->>device-specific file, where the omap_device_build() etc are done for
->>that device.
+>>>>> -----Original Message-----
+>>>>> From: Menon, Nishanth
+>>>>> Sent: Thursday, September 16, 2010 5:45 PM
+>>>>> To: Gopinath, Thara
+>>>>> Cc: Kevin Hilman; linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>>>>> Subject: Re: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
+>>>>>
+>>>>> Gopinath, Thara had written, on 09/16/2010 05:40 AM, the following:
+>>>>>>>> -----Original Message-----
+>>>>>>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>>>>> Kevin
+>>>>>>>> Hilman
+>>>>>>>> Sent: Thursday, September 16, 2010 3:27 AM
+>>>>>>>> To: linux-omap@vger.kernel.org
+>>>>>>>> Cc: linux-arm-kernel@lists.infradead.org
+>>>>>>>> Subject: [PATCH 2/4] OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code
+>>>>>>>>
+>>>>>>>> From: Paul Walmsley <paul@pwsan.com>
+>>>>>>>>
+>>>>>>>> The OPP layer code should be independent of the PMIC,
+>>>>>>>> introduce the TWL/TPS-specific code out to its own file.
+>>>>>> Hello Kevin,
+>>>>>>
+>>>>>> I have been using this code for a while now. I really do not think wee need a separate
+>>>>>> file for implementing the vsel to voltage in (uV) and vice versa formulas. Today only voltage
+>>>>> This split introduces a PMIC level abstraction already. Do you have a
+>>>>> suggestion which file it should go to? It is definitely not part of
+>>>>> opp.c, not part of other existing twl files as well. the job of this
+>>>>> file was to introduce conversion routines which can be used by any layer
+>>>>> (voltage layer if need be - it used to be srf and smartreflex before)..
+>>>>> in fact one of your voltage layer patches introduces capability for 6030
+>>>>> as well
+>>>>> http://marc.info/?l=linux-omap&m=128213020927919&w=2
+>>>
+>>> Yes one of my patches has introduces this coz I had no other way
+>>> to add OMAP4 support. But I still do not understand why cant these
+>>> APIs be implemented in twl-core.c or twl4030-power.c?
+>>Why there? Twl power does regulator operations not conversion
+>>operations. core is not the place either as it is function independent.
 
-Hello Kevin,
+Hello Nishant,
 
-I basically agree with all your other suggestions except this. I do not
-think device files are the correct place for this. For starters definitely mpu,
-l3 and iva devices are not built from any device file. I do not like the idea
-of device set rate APIs spread across different files. 
-What I am proposing is like we have  opp_populate_rate_fns(which I have introduced)
-we should have something like omap_device_populate_rate_fns. This can be then called
-from one file to register the set_rate and get_rate APIs for all the relevant devices
-for a Soc. This will be done through an init function. And the device specific
-set_rate and get_rate can be implemented in this file. I am not sure which is
-this file at this point of time. Maybe for OMAP3 opp3xxx_data.c or pm34xx.c. What
-do you think about this?
+Why  do you say core is not the place. For me core is exactly
+the place. It is the PMIC driver file.
 
 Regards
 Thara
 
->>
->>> Also if we move these hooks to omap_device struct we will need to
->>> rename the current omap_device_set_rate (the main API) to
->>> omap_device_scale and introduce a new omap_device_set_rate which just
->>> finds out the omap device from the passed dev pointer and does a
->>> od->set_rate. Similarly for get rate also.
->>
->>Yes, that's what I was thinking.
->>
->>Kevin
