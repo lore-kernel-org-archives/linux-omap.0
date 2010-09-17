@@ -1,44 +1,68 @@
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Subject: Re: [linux-pm] [PATCH] opp: introduce library for device-specific OPPs
-Date: Fri, 17 Sep 2010 19:45:43 +0300
-Message-ID: <20100917164543.GI20325@esdhcp04044.research.nokia.com>
-References: <1284686973-13993-1-git-send-email-nm@ti.com>
-	<20100917153643.GC29739@sirena.org.uk>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+Date: Fri, 17 Sep 2010 20:06:40 +0300 (EEST)
+Message-ID: <20100917.200640.71092280.Hiroshi.DOYU@nokia.com>
+References: <20100629.074423.71111160.Hiroshi.DOYU@nokia.com>
+	<20100810.184903.214240645.Hiroshi.DOYU@nokia.com>
+	<1284740327.32322.24.camel@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20100917153643.GC29739@sirena.org.uk>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Nishanth Menon <nm@ti.com>, linux-doc <linux-doc@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Andi Kleen <ak@linux.intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, "Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, Thara Gopinath <thara@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Roberto Granados Dorado <x0095451@ti.com>, Linus Walleij <linus.walleij@stericsson.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, lkml <linux-kernel@vger.kernel.org>, Romit Dasgupta <ro.mit@ti.com>, "Kristo Tero (Nokia-MS/Tampere)" <Tero.Kristo@nokia.com>, Andrew Morton <akpm@lin>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1284740327.32322.24.camel@e102109-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: catalin.marinas@arm.com
+Cc: linux-kernel@vger.kernel.org, ext-phil.2.carmody@nokia.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On 17/09/10 17:36 +0200, ext Mark Brown wrote:
-> On Thu, Sep 16, 2010 at 08:29:33PM -0500, Nishanth Menon wrote:
-> 
-> > +struct opp_def {
-> > +	unsigned long freq;
-> > +	unsigned long u_volt;
-> > +
-> > +	bool enabled;
-> > +};
-> 
-> It might be clearer to use some term other than enabled in the code -
-> when reading I wasn't immediately sure if enabled meant that it was
-> available to be selected or if it was the active operating point.  How
-  ^^^^^^^^^
-> about 'allowed' (though I'm not 100% happy with that)?
+Hi Catalin,
 
-I think your query contains its own answer.
+From: ext Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [RFC][PATCH 0/1] kmemleak: Fix false positive with alias
+Date: Fri, 17 Sep 2010 18:18:47 +0200
 
-Phil
+> On Tue, 2010-08-10 at 18:49 +0300, Hiroshi DOYU wrote:
+>> Now there's not much difference with the attached patch, a new version
+>> of alias.
+>> 
+>> / # modprobe kmemleak-special-test use_alias=0
+>> / # time echo scan > /sys/kernel/debug/kmemleak
+>> real    0m 2.30s
+>> user    0m 0.00s
+>> sys     0m 2.30s
+>> 
+>> / # modprobe kmemleak-special-test use_alias=1
+>> / # time echo scan > /sys/kernel/debug/kmemleak
+>> real    0m 3.91s
+>> user    0m 0.00s
+>> sys     0m 3.91s
+> 
+> So to understand - the first case is memory scanning without any aliases
+> configured. The second case is the alias scanning using a separate
+> prio_tree. The impact seems to be quite big.
+> 
+> But I wouldn't complicate the code with the callback mechanism,
+> especially when loadable modules are considered. Is the pointer
+> conversion always linear? Maybe we can just add an offset to the
+> scan_area structure that is used for conversion rather than a callback.
+>
+> Another advantage of the linear offset would be that we can avoid the
+> call for removing the conversion.
+> 
+> Is this feasible for your needs?
+
+The formula is:
+
+  new_value = virt_to_phys(original address) | each attributes;
+
+Attribute bits must be ingored. So the conversion is:
+
+  new_value &= ~each attributes;
+  original address = phys_to_virt(new_value);
+
+Could adding an offset to the scan_area solve this case?
+
+> No point really in making it too
+> generic if the simple offset would (hopefully) do.
+
+I guess other iommu pagetable may be same?
