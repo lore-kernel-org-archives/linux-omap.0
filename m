@@ -1,81 +1,283 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 00/11] OMAP: Serial: Add omap-serial driver with platform
-     support
-Date: Fri, 17 Sep 2010 21:35:47 +0530 (IST)
-Message-ID: <13965.10.24.255.18.1284739547.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 01/11] OMAP4: UART: Add uart1-4 hwmods data for omap4
+Date: Fri, 17 Sep 2010 21:36:01 +0530 (IST)
+Message-ID: <13974.10.24.255.18.1284739561.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:36459 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753989Ab0IQQGH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 12:06:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-This patch series adds a serial driver to handle uarts on omap platforms.
-Currenlty omap-uarts are handled with 8250 driver, since updating
-this driver with omap specific features will over load
-the 8250 driver with all omap-specific data thus a new driver
-is added to configure and support features like
-dma, h/w, s/w flowcontrol for omap-uarts.
-Also the patch series updates various low level platform specific
-serial data to support omap-uarts with hwmod framework and adds support
-for uart4 on OMAP3630.
+From: Benoit Cousson <b-cousson@ti.com>
 
-This patch series is tested on mainline 2.6.36-rc4
-and has dependencies on:
+Add uart1-4 hwmod data into omap4_hwmod data file.
 
-1) https://patchwork.kernel.org/patch/117148/
-	This patch to support all hwmod data with proper structure name.
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  235 ++++++++++++++++++++++++++++
+ 1 files changed, 235 insertions(+), 0 deletions(-)
 
-2) https://patchwork.kernel.org/patch/117347/
-	This patch is needed to apply omap4 uart hwmods.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index e20b0ee..afcbd48 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -452,6 +452,235 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
 
-3) http://marc.info/?l=linux-omap&m=128403141221947&w=2
-	This patch series is needed for omap4430SDP ES2.0 validation.
++/*
++ * 'uart' class
++ * universal asynchronous receiver/transmitter (uart)
++ */
++
++static struct omap_hwmod_class_sysconfig omap44xx_uart_sysc = {
++	.rev_offs	= 0x0050,
++	.sysc_offs	= 0x0054,
++	.syss_offs	= 0x0058,
++	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap44xx_uart_hwmod_class = {
++	.name = "uart",
++	.sysc = &omap44xx_uart_sysc,
++};
++
++/* uart1 */
++static struct omap_hwmod omap44xx_uart1_hwmod;
++static struct omap_hwmod_irq_info omap44xx_uart1_irqs[] = {
++	{ .irq = 72 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_uart1_sdma_reqs[] = {
++	{ .name = "tx", .dma_req = 48 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx", .dma_req = 49 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_uart1_addrs[] = {
++	{
++		.pa_start	= 0x4806a000,
++		.pa_end		= 0x4806a0ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> uart1 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__uart1 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_uart1_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_uart1_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_uart1_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* uart1 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_uart1_slaves[] = {
++	&omap44xx_l4_per__uart1,
++};
++
++static struct omap_hwmod omap44xx_uart1_hwmod = {
++	.name		= "uart1",
++	.class		= &omap44xx_uart_hwmod_class,
++	.mpu_irqs	= omap44xx_uart1_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart1_irqs),
++	.sdma_reqs	= omap44xx_uart1_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart1_sdma_reqs),
++	.main_clk	= "uart1_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_UART1_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_uart1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart1_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* uart2 */
++static struct omap_hwmod omap44xx_uart2_hwmod;
++static struct omap_hwmod_irq_info omap44xx_uart2_irqs[] = {
++	{ .irq = 73 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_uart2_sdma_reqs[] = {
++	{ .name = "tx", .dma_req = 50 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx", .dma_req = 51 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_uart2_addrs[] = {
++	{
++		.pa_start	= 0x4806c000,
++		.pa_end		= 0x4806c0ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> uart2 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__uart2 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_uart2_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_uart2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_uart2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* uart2 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_uart2_slaves[] = {
++	&omap44xx_l4_per__uart2,
++};
++
++static struct omap_hwmod omap44xx_uart2_hwmod = {
++	.name		= "uart2",
++	.class		= &omap44xx_uart_hwmod_class,
++	.mpu_irqs	= omap44xx_uart2_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart2_irqs),
++	.sdma_reqs	= omap44xx_uart2_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart2_sdma_reqs),
++	.main_clk	= "uart2_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_UART2_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_uart2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* uart3 */
++static struct omap_hwmod omap44xx_uart3_hwmod;
++static struct omap_hwmod_irq_info omap44xx_uart3_irqs[] = {
++	{ .irq = 74 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_uart3_sdma_reqs[] = {
++	{ .name = "tx", .dma_req = 52 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx", .dma_req = 53 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_uart3_addrs[] = {
++	{
++		.pa_start	= 0x48020000,
++		.pa_end		= 0x480200ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> uart3 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__uart3 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_uart3_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_uart3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_uart3_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* uart3 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_uart3_slaves[] = {
++	&omap44xx_l4_per__uart3,
++};
++
++static struct omap_hwmod omap44xx_uart3_hwmod = {
++	.name		= "uart3",
++	.class		= &omap44xx_uart_hwmod_class,
++	.flags		= (HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET),
++	.mpu_irqs	= omap44xx_uart3_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart3_irqs),
++	.sdma_reqs	= omap44xx_uart3_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart3_sdma_reqs),
++	.main_clk	= "uart3_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_UART3_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_uart3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart3_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* uart4 */
++static struct omap_hwmod omap44xx_uart4_hwmod;
++static struct omap_hwmod_irq_info omap44xx_uart4_irqs[] = {
++	{ .irq = 70 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_uart4_sdma_reqs[] = {
++	{ .name = "tx", .dma_req = 54 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx", .dma_req = 55 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_uart4_addrs[] = {
++	{
++		.pa_start	= 0x4806e000,
++		.pa_end		= 0x4806e0ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> uart4 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__uart4 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_uart4_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_uart4_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_uart4_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* uart4 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_uart4_slaves[] = {
++	&omap44xx_l4_per__uart4,
++};
++
++static struct omap_hwmod omap44xx_uart4_hwmod = {
++	.name		= "uart4",
++	.class		= &omap44xx_uart_hwmod_class,
++	.mpu_irqs	= omap44xx_uart4_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_uart4_irqs),
++	.sdma_reqs	= omap44xx_uart4_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_uart4_sdma_reqs),
++	.main_clk	= "uart4_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_UART4_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_uart4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_uart4_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	/* dmm class */
+ 	&omap44xx_dmm_hwmod,
+@@ -472,6 +701,12 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
 
+ 	/* mpu class */
+ 	&omap44xx_mpu_hwmod,
++
++	/* uart class */
++	&omap44xx_uart1_hwmod,
++	&omap44xx_uart2_hwmod,
++	&omap44xx_uart3_hwmod,
++	&omap44xx_uart4_hwmod,
+ 	NULL,
+ };
 
-Benoit Cousson (1):
-  OMAP4: UART: Add uart1-4 hwmods data for omap4
-
-Govindraj.R (6):
-  OMAP2: UART: remove set_uart_globals.
-  OMAP clock: Add uart4_ick/fck definitions for 3630
-  OMAP3: PRCM: Consider UART4 for 3630 chip in prcm_setup_regs
-  OMAP3: PM: Add prepare idle and resume idle call for uart4
-  serial: Add OMAP high-speed UART driver
-  OMAP: SERIAL: Enable omap-serial driver in Kconfig.
-
-Kevin Hilman (4):
-  OMAP2/3: UART: add omap_hwmod data for UARTs 1-4
-  OMAP: UART: omap_device converions, remove implicit 8520 assumptions
-  OMAP: UART: don't do automatic bus-level suspend/resume
-  OMAP: UART: use non-locking versions of hwmod enable/idle functions
-
- arch/arm/mach-omap2/Kconfig                   |   11 +-
- arch/arm/mach-omap2/clock3xxx_data.c          |   22 +
- arch/arm/mach-omap2/cm-regbits-34xx.h         |    2 +
- arch/arm/mach-omap2/omap_hwmod_2420_data.c    |  193 ++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c    |  193 ++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  253 +++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  235 +++++
- arch/arm/mach-omap2/pm34xx.c                  |   17 +-
- arch/arm/mach-omap2/prcm-common.h             |    5 +
- arch/arm/mach-omap2/prm-regbits-34xx.h        |    1 +
- arch/arm/mach-omap2/serial.c                  |  548 +++++-----
- arch/arm/plat-omap/common.c                   |   16 -
- arch/arm/plat-omap/include/plat/common.h      |    1 -
- arch/arm/plat-omap/include/plat/dma.h         |    2 +
- arch/arm/plat-omap/include/plat/irqs.h        |    2 +
- arch/arm/plat-omap/include/plat/omap-serial.h |  129 +++
- drivers/serial/Kconfig                        |   27 +
- drivers/serial/Makefile                       |    1 +
- drivers/serial/omap-serial.c                  | 1332 +++++++++++++++++++++++++
- include/linux/serial_core.h                   |    3 +
- 20 files changed, 2699 insertions(+), 294 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/plat/omap-serial.h
- create mode 100644 drivers/serial/omap-serial.c
-
-
+-- 
+1.6.3.3
 
 
