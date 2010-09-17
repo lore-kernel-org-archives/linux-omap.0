@@ -1,50 +1,67 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] omap3: Prevent SDRC deadlock when L3 is changing
- frequency
-Date: Thu, 16 Sep 2010 19:05:55 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203D6F095D9@dlee02.ent.ti.com>
-References: <1279728155-2643-1-git-send-email-jon-hunter@ti.com>
- <alpine.DEB.2.00.1009151300190.458@utopia.booyaka.com>
- <20100915224007.GJ4174@atomide.com>
- <alpine.DEB.2.00.1009151707370.458@utopia.booyaka.com>
- <AANLkTimC7_pGag4e+Q0fasP=mdsug8xrU95UJLKOJHvf@mail.gmail.com>
- <20100916185743.GJ29610@atomide.com>
- <AANLkTinXdow4tzmwpx6nRe5VCN5Q8_aKz9EibxKinWWO@mail.gmail.com>
- <20100916204935.GP29610@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFT/PATCH 0/8] cbus patches
+Date: Thu, 16 Sep 2010 17:09:00 -0700
+Message-ID: <20100917000900.GV29610@atomide.com>
+References: <1284453016-8295-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52708 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754798Ab0IQAGA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 20:06:00 -0400
-In-Reply-To: <20100916204935.GP29610@atomide.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58127 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753Ab0IQAJE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Sep 2010 20:09:04 -0400
+Content-Disposition: inline
+In-Reply-To: <1284453016-8295-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>
 
+* Felipe Balbi <balbi@ti.com> [100914 01:22]:
+> Hi all,
+> 
+> if you have n8x0/n770 board getting dust, please
+> spend some minutes to boot test the following
+> patches on that. After you do so, please reply
+> with your Tested-by tag.
+> 
+> I'm also adding to this series Jarkko Nikula's
+> ioctl fix since l-o doesn't compile without that.
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Thursday, September 16, 2010 3:50 PM
-
-> Sounds fair. But it might be worth checking that you guys have a system
-> in place for collecting omap specific fixes and promptly merging them
-> upstream to the mainline tree.
-
-Many times there will be lag.  In many cases the customer has written significant code.  Until they publish this code or publicly post it for review its not something TI should not repost as is.
-
-I think many of the engineers do see the benefit of sharing. However, if they don't have a policy in place which allows them to post until after the production is released it won't happen early.
-
-Anymore, I like to advise a customer's team that it is ok to post patches for RFC even if they don't have time to follow up or it is against an 'old' kernel.
-
-Once this is done TI and others are free to make use of the info to better the common tree.  The customer who found it will re-use the tree likely and get this plus other benefits.
-
-Its best to get this policy set at project start. Asking near launch may very well be denied.
+Seems to kick the watchdog on N800 at least after
+the following fix. So I've pushed them all into the
+cbus branch for more testing :)
 
 Regards,
-Richard W.
 
+Tony
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 16 Sep 2010 17:02:33 -0700
+Subject: [PATCH] cbus: Fix retu init order
+
+Device needs to be registered before the driver. Otherwise
+the driver register will fail.
+
+Eventually the device register will move to the board-*.c files.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
+index 1397366..4a072da 100644
+--- a/drivers/cbus/retu.c
++++ b/drivers/cbus/retu.c
+@@ -531,11 +531,11 @@ static int __init retu_init(void)
+ 	/* Set up correct gpio number on struct resource */
+ 	retu_resource[0].start = gpio_to_irq(retu_irq_pin);
+ 
+-	ret = platform_driver_probe(&retu_driver, retu_probe);
++	ret = platform_device_register(&retu_device);
+ 	if (ret < 0)
+ 		goto err1;
+ 
+-	ret = platform_device_register(&retu_device);
++	ret = platform_driver_probe(&retu_driver, retu_probe);
+ 	if (ret < 0)
+ 		goto err2;
+ 
