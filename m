@@ -1,106 +1,63 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 14/14] omap4: Fix bootup crash observed with higher CPU
- clocks
-Date: Fri, 17 Sep 2010 15:46:44 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD307C7B@dbde02.ent.ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH 05/14] omap4: control: Add accessor api's for pad
+ control module
+Date: Fri, 17 Sep 2010 05:17:18 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C014F13A77E@dlee02.ent.ti.com>
 References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-4-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-5-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-6-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-7-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-8-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-9-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-10-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-11-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-12-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-13-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-14-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-15-git-send-email-santosh.shilimkar@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C014F13A77C@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38406 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57934 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751298Ab0IQKQv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 06:16:51 -0400
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C014F13A77C@dlee02.ent.ti.com>
+	id S1751298Ab0IQKRW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 06:17:22 -0400
+In-Reply-To: <1284716878-27667-6-git-send-email-santosh.shilimkar@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
 > -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Friday, September 17, 2010 3:45 PM
-> To: Shilimkar, Santosh; linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; Nayak, Rajendra
-> Subject: RE: [PATCH 14/14] omap4: Fix bootup crash observed with higher
-> CPU clocks
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Santosh Shilimkar
+> Sent: Friday, September 17, 2010 4:48 AM
 > 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> > Sent: Friday, September 17, 2010 4:48 AM
-> > To: linux-omap@vger.kernel.org
-> > Cc: linux-arm-kernel@lists.infradead.org; Shilimkar, Santosh; Nayak,
-> > Rajendra
-> > Subject: [PATCH 14/14] omap4: Fix bootup crash observed with higher CPU
-> > clocks
-> >
-> > This patch is temporary fix to below crash. This is observed when
-> > CPU is clocked more than 600 MHz.
-> >
-> > Unhandled fault: imprecise external abort (0x1406) at 0xbf9ef65c
-> > Internal error: : 1406 [#1] PREEMPT SMP
-> > last sysfs file:
-> > Modules linked in:
-> > CPU: 0    Not tainted  (2.6.36-rc3+ #18)
-> > PC is at kernel_thread_helper+0x0/0x14
-> > LR is at kernel_thread_helper+0x0/0x14
-> > pc : [<c003ce14>]    lr : [<c003ce14>]    psr: 00000093
-> > sp : dc83bff8  ip : 00000000  fp : 00000000
-> > r10: 00000000  r9 : 00000000  r8 : 00000000
-> > r7 : 00000013  r6 : c003ce28  r5 : c008935c  r4 : 00000000
-> > r3 : 00000000  r2 : 00000000  r1 : 00000000  r0 : 00000000
-> > Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> > Control: 10c53c7f  Table: 8000404a  DAC: 00000017
-> > Process swapper (pid: 2, stack limit = 0xdc83a2f0)
-> > Stack: (0xdc83bff8 to 0xdc83c000)
-> > bfe0: 00000000 ffffffff
-> > [<c003ce14>] (kernel_thread_helper+0x0/0x14) from [<fffffffe>]
-> > (0xfffffffe)
-> > Code: c03a0ba3 c03a5fcb c045c880 c0394035 (eb017701)
-> > ---[ end trace 1b75b31a2719ed1c ]---
-> >
-> > The timer hwmod adaptation will eventually fix it in a proper way.
-> >
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > ---
-> >  arch/arm/plat-omap/dmtimer.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> > index 44bafda..1d706cf 100644
-> > --- a/arch/arm/plat-omap/dmtimer.c
-> > +++ b/arch/arm/plat-omap/dmtimer.c
-> > @@ -581,7 +581,7 @@ int omap_dm_timer_set_source(struct omap_dm_timer
-> > *timer, int source)
-> >  	 * When the functional clock disappears, too quick writes seem
-> >  	 * to cause an abort. XXX Is this still necessary?
-> >  	 */
-> > -	__delay(150000);
-> > +	__delay(300000);
-> What is the rationale for this increase? Lets say we have a CPU bumped up
-> to 1GHz or something will we have weird numbers again?
+> On OMAP4 control pad are not addressable from control
+> core base. So the common omap_ctrl_read/write APIs breaks
+> Hence export separate APIs to manage the omap4 pad control
+> registers.
 > 
-This is the max what we need at any clock speed. As mentioned in commit
-"The timer hwmod adaptation will eventually fix it in a proper way"
+> This APIs will work only for OMAP4
+
+Cosmetic comment below:
+
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/control.c             |   18 ++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/control.h |    4 ++++
+>  2 files changed, 22 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index 99c0eb6..4ace2d1 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -138,6 +138,7 @@ static struct omap3_control_regs control_context;
+>  #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+> 
+>  #define OMAP_CTRL_REGADDR(reg)		(omap2_ctrl_base + (reg))
+> +#define OMAP_CTRL_PAD_REGADDR(reg)	(omap4_ctrl_pad_base + (reg))
+s/ OMAP_CTRL_PAD_REGADDR/OMAP4_CTRL_PAD_REGADDR ?
+[...]
+
 
 Regards,
-Santosh
+Nishanth Menon
+
