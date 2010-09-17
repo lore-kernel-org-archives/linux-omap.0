@@ -1,79 +1,38 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Sat, 18 Sep 2010 00:17:03 +0200
-Message-ID: <201009180017.03821.trenn@suse.de>
-References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com> <201009171508.46471.trenn@suse.de> <AANLkTi=W_Lo2m=hkA2F48oUziqGzt4Tr8y6KhfgqRnbz@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH] opp: introduce library for device-specific OPPs
+Date: Sat, 18 Sep 2010 00:22:50 +0200
+Message-ID: <201009180022.51011.rjw@sisk.pl>
+References: <1284686973-13993-1-git-send-email-nm@ti.com> <20100917153643.GC29739@sirena.org.uk> <4C938EE2.1010307@ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=W_Lo2m=hkA2F48oUziqGzt4Tr8y6KhfgqRnbz@mail.gmail.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <4C938EE2.1010307@ti.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, Phil Carmody <ext-phil.2.carmody@nokia.com>, linux-doc <linux-doc@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, Andi Kleen <ak@linux.intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, Linus Walleij <linus.walleij@stericsson.com>, "Granados Dorado, Roberto" <x0095451@ti.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Romit Dasgupta <ro.mit@ti.com>, Tero Kristo <Tero.Kristo@nokia.co>
 List-Id: linux-omap@vger.kernel.org
 
-DO NOT APPLY THIS ONE!!!
-	
-The others should go into a mainline tree if Jean is ok with them.
+On Friday, September 17, 2010, Nishanth Menon wrote:
+> Mark Brown had written, on 09/17/2010 10:36 AM, the following:
+> > On Thu, Sep 16, 2010 at 08:29:33PM -0500, Nishanth Menon wrote:
+> > 
+> >> +struct opp_def {
+> >> +	unsigned long freq;
+> >> +	unsigned long u_volt;
+> >> +
+> >> +	bool enabled;
+> >> +};
+> > 
+> > It might be clearer to use some term other than enabled in the code -
+> > when reading I wasn't immediately sure if enabled meant that it was
+> > available to be selected or if it was the active operating point.  How
+> > about 'allowed' (though I'm not 100% happy with that)?
+> ;).. The opp is enabled or disabled if it is populated, it is implicit 
+> as being available but not enabled- how about active? this would change 
+> the opp_enable/disable functions to opp_activate, opp_deactivate..
 
-This one does not work, due to some include dependencies or whatever
-else I can't see right now.
+Would that mean that "active" is the one currently in use?
 
-The idea: Provide old trace power interfaces via .config option to not break
-existing perf/powertop/.. binaries.
-Not sure whether it's worth looking at it further. It shouldn't be needed...
-
-       Thomas
-
----
- include/trace/events/power.h |   11 +++++++++++
- kernel/trace/Kconfig         |    4 ++++
- 2 files changed, 15 insertions(+)
-
-Index: linux-2.6.35-master/kernel/trace/Kconfig
-===================================================================
---- linux-2.6.35-master.orig/kernel/trace/Kconfig
-+++ linux-2.6.35-master/kernel/trace/Kconfig
-@@ -64,6 +64,10 @@ config EVENT_TRACING
- 	select CONTEXT_SWITCH_TRACER
- 	bool
- 
-+config DEPRECATED_POWER_EVENT_TRACING
-+       bool
-+       default n
-+
- config CONTEXT_SWITCH_TRACER
- 	bool
- 
-Index: linux-2.6.35-master/include/trace/events/power.h
-===================================================================
---- linux-2.6.35-master.orig/include/trace/events/power.h
-+++ linux-2.6.35-master/include/trace/events/power.h
-@@ -50,6 +50,7 @@ DEFINE_EVENT(power, power_switch_state,
- 	TP_ARGS(type, state, cpu_id)
- );
- 
-+#ifdef CONFIG_DEPRECATED_POWER_EVENT_TRACING
- DEFINE_EVENT(power, power_start,
- 
- 	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
-@@ -81,6 +82,16 @@ TRACE_EVENT(power_end,
- 	TP_printk("cpu_id=%lu", (unsigned long)__entry->cpu_id)
- 
- );
-+#else
-+inline void trace_power_end(unsigned int cpu_id)
-+{}
-+inline void trace_power_start(unsigned int type, unsigned int state,
-+			      unsigned int cpu_id)
-+{}
-+inline void trace_power_frequency(unsigned int type, unsigned int state,
-+				  unsigned int cpu_id)
-+{}
-+#endif
- 
- /*
-  * The clock events are used for clock enable/disable and for
-
+Rafael
