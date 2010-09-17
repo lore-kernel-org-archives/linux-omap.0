@@ -1,128 +1,96 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCH] OMAP3630 PM: Update C state latencies
-Date: Fri, 17 Sep 2010 19:43:10 +0530
-Message-ID: <1284732790-13440-1-git-send-email-vishwanath.bs@ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: [PATCH v6 0/7] OMAP: WDT: Implement WDT in hwmod way
+Date: Fri, 17 Sep 2010 19:48:49 +0530
+Message-ID: <1284733136-20952-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57933 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934Ab0IQOPZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 10:15:25 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8HEFMFt002430
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 17 Sep 2010 09:15:24 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:39132 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750695Ab0IQOTV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Sep 2010 10:19:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vishwanath BS <vishwanath.bs@ti.com>, Nicole Chalhoub <n-chalhoub@ti.com>
+To: tony@atomide.com, wim@iguana.be, linux-watchdog@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org, "Varadarajan, Charulatha" <charu@ti.com>
 
-This patch has changes to update the C state latencies for OMAP3630
-and removes the useless C-States, keeping only the optimized ones with 
-their corresponding measured latencies.
-Only 4 C-states are kept instead of 7 C-States:
-  * 	C1 . MPU WFI clock gated + Core autogating
-  *	C3 . MPU CSWR + Core inactive
-  *	C5 . MPU CSWR + Core CSWR
-  *	C7 . MPU OFF + Core OFF
- A new C-State C1 is created which is the same as the existing C1 but clocks 
- gated. It will be the default state. When calling the safe state, the clocks
- gating is denied as it was the case previously. With these changes, gain is 
- in power consumption is observed on some use cases.
+Series of patches to port watchdog module to use hwmod APIs
+for OMAP2PLUS chips and use runtime APIs for all OMAP chips.
+For this hwmod database for OMAP2PLUS watchdog instances are
+populated. This patch series also implements watchdog
+module to use PM runtime APIs.
 
-Thanks to Nicole Chaloub<n-chalhoub@ti.com> and Vincent Bour <v-bour@ti.com>
-for their investigation.
+This patch series is created on "origin/pm-core" and is
+tested on OMAP2430, OMAP44430, OMAP3430 SDP boards and zoom3 board.
+Also verified that this patch series does not break the OMAP1 build.
 
-Tested on ZOOM3 board using latest pm branch.
+This series is tested on OMAP4430 ES2 using the below series
+http://www.spinics.net/lists/linux-omap/msg36023.html
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Signed-off-by: Nicole Chalhoub <n-chalhoub@ti.com>
----
- arch/arm/mach-omap2/board-zoom3.c |   19 +++++++++++++++++++
- arch/arm/mach-omap2/cpuidle34xx.c |    9 ++++++---
- 2 files changed, 25 insertions(+), 3 deletions(-)
+Version History:
+---------------
+Version v6:
+*Split omap_init_wdt() into separate omap_init_wdt functions
+under mach-omap1 and mach-omap2 and set them up with
+subsys_initcall
+*Include wd_timer3 database for OMAP4
+*In hwmod database follow naming convention "wd_timerX"
 
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index 03411b2..c47b2a3 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -25,10 +25,28 @@
- #include "mux.h"
- #include "sdram-hynix-h8mbx00u0mer-0em.h"
- #include "smartreflex-class3.h"
-+#include "pm.h"
- 
- static struct omap_board_config_kernel zoom_config[] __initdata = {
- };
- 
-+static struct cpuidle_params omap3_cpuidle_params_table[] = {
-+	/* C1 */
-+	{1, 74, 78, 152},
-+	/* C2 */
-+	{0, 165, 90, 255},
-+	/* C3 */
-+	{1, 163, 180, 345},
-+	/* C4 */
-+	{0, 2852, 605, 3457},
-+	/* C5 */
-+	{1, 800, 366, 2120},
-+	/* C6 */
-+	{0, 4080, 801, 4881},
-+	/* C7 */
-+	{1, 4300, 8794, 159000},
-+};
-+
- static struct mtd_partition zoom_nand_partitions[] = {
- 	/* All the partition sizes are listed in terms of NAND block size */
- 	{
-@@ -74,6 +92,7 @@ static void __init omap_zoom_init_irq(void)
- {
- 	omap_board_config = zoom_config;
- 	omap_board_config_size = ARRAY_SIZE(zoom_config);
-+	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
- 	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
- 			h8mbx00u0mer0em_sdrc_params);
- 	omap_init_irq();
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 3d3d035..2bbfc43 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -136,7 +136,8 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
- 
--	if (cx->type == OMAP3_STATE_C1) {
-+	/* deny idle only if we are entering safe state */
-+	if (dev->last_state != state) {
- 		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
- 		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
- 	}
-@@ -144,7 +145,7 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	/* Execute ARM wfi */
- 	omap_sram_idle();
- 
--	if (cx->type == OMAP3_STATE_C1) {
-+	if (dev->last_state != state) {
- 		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
- 		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
- 	}
-@@ -233,14 +234,16 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 			       struct cpuidle_state *state)
- {
- 	struct cpuidle_state *new_state = next_valid_state(dev, state);
-+	int t;
- 
- 	if ((state->flags & CPUIDLE_FLAG_CHECK_BM) && omap3_idle_bm_check()) {
- 		BUG_ON(!dev->safe_state);
- 		new_state = dev->safe_state;
- 	}
- 
-+	t = omap3_enter_idle(dev, new_state);
- 	dev->last_state = new_state;
--	return omap3_enter_idle(dev, new_state);
-+	return t;
- }
- 
- DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
--- 
-1.7.0.4
+Version v5:
+*Delete wdt_runtime_resume and wdt_runtime_suspend
+functions as the fix for the return values in the generic
+runtime PM calls has been queued for 2.6.37 (see below link)
+https://lists.linux-foundation.org/pipermail/linux-pm/2010-September/028466.html
+Some of the v5 links:
+https://patchwork.kernel.org/patch/181812/
+https://patchwork.kernel.org/patch/181782/
+https://patchwork.kernel.org/patch/181772/
+https://patchwork.kernel.org/patch/181792/
+
+Version v4:
+*Implement hwmod adapdation first and then PM runtime adaptation
+as two different patches in the series
+*Remove inclusion of omap_device.h in the driver file.
+Some of the v4 links:
+https://patchwork.kernel.org/patch/174672/
+https://patchwork.kernel.org/patch/174662/
+
+Version v3:
+*Fix Minor comments like renaming omap1 watchdog structures
+with an omap1_ prefix
+Some of the v3 links:
+https://patchwork.kernel.org/patch/119698/
+https://patchwork.kernel.org/patch/119696/ 
+
+Version v2:
+*Rebase to latest kernel
+Some of the v2 links:
+http://www.spinics.net/lists/linux-omap/msg34741.html
+http://www.spinics.net/lists/linux-omap/msg34673.html
+
+Version v1:
+*Initial series
+Some of the v1 links:
+http://www.spinics.net/lists/linux-omap/msg30628.html
+http://www.spinics.net/lists/linux-omap/msg30625.html
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: Add watchdog timer
+
+Varadarajan, Charulatha (6):
+  OMAP2PLUS: WDT: Add ICLKEN, FCLKEN, WKEN shared bits for WDT
+  OMAP3: hwmod data: Add watchdog timer
+  OMAP2420: hwmod data: Add watchdog timer
+  OMAP2430: hwmod data: Add watchdog timer
+  OMAP2PLUS: WDT: use omap_device_build for device registration
+  OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
+
+ arch/arm/mach-omap1/devices.c              |   27 ++++++
+ arch/arm/mach-omap2/devices.c              |   38 ++++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   63 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   63 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   65 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  135 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm-common.h          |    4 +
+ arch/arm/plat-omap/devices.c               |   41 ---------
+ drivers/watchdog/omap_wdt.c                |   42 ++-------
+ 9 files changed, 402 insertions(+), 76 deletions(-)
 
