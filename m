@@ -1,7 +1,8 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 02/11] OMAP2/3: UART: add omap_hwmod data for UARTs 1-4
-Date: Fri, 17 Sep 2010 21:36:25 +0530 (IST)
-Message-ID: <14045.10.24.255.18.1284739585.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 03/11] OMAP: UART: omap_device converions,
+      remove implicit 8520 assumptions
+Date: Fri, 17 Sep 2010 21:36:41 +0530 (IST)
+Message-ID: <14049.10.24.255.18.1284739601.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
@@ -11,852 +12,818 @@ To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@deeprootsystems.com>
+From: Kevin Hilman <khilman@ti.com>
 
-This patch adds omap_hwmod data for UARTs on OMAP2 and OMAP3
-platforms.
+Major rework of OMAP UART init for omap_device conversion as well as
+use with either 8250 driver or new omap-serial driver.
 
-UART4 support for 3630 and OMAP2 hwmod data added by Govindraj R.
+In preparation for a new omap-serial driver, remove 8250 assumptions
+and dependencies from the serial core.
 
-Cc: Govindraj.R <govindraj.raja@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Convert UART core and PM support to use omap_device layer. Also add
+support for both console on 8250 or omap-serial driver.
+
+omap_device conversion:
+- Convert clock API calls to omap_device calls
+- Remove all static platform_data setup and configuration.  This is
+  all done by the omap_device build phase.
+
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  193 +++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |  193 +++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  253 +++++++++++++++++++++++++++-
- arch/arm/mach-omap2/prcm-common.h          |    3 +
- arch/arm/plat-omap/include/plat/dma.h      |    2 +
- arch/arm/plat-omap/include/plat/irqs.h     |    2 +
- 6 files changed, 644 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/serial.c |  528 +++++++++++++++++++++---------------------
+ 1 files changed, 259 insertions(+), 269 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index 3cc768e..ba145f7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -15,6 +15,7 @@
- #include <mach/irqs.h>
- #include <plat/cpu.h>
- #include <plat/dma.h>
-+#include <plat/serial.h>
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 566e991..703605e 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -19,19 +19,29 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+-#include <linux/serial_8250.h>
+ #include <linux/serial_reg.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/serial_8250.h>
++
++#ifdef CONFIG_SERIAL_OMAP
++#include <plat/omap-serial.h>
++#endif
 
- #include "omap_hwmod_common_data.h"
+ #include <plat/common.h>
+ #include <plat/board.h>
+ #include <plat/clock.h>
+ #include <plat/control.h>
++#include <plat/dma.h>
++#include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
 
-@@ -71,6 +72,9 @@ static struct omap_hwmod omap2420_l3_main_hwmod = {
+ #include "prm.h"
+ #include "pm.h"
++#include "cm.h"
+ #include "prm-regbits-34xx.h"
+
+ #define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
+@@ -48,6 +58,8 @@
+  */
+ #define DEFAULT_TIMEOUT 0
+
++#define MAX_UART_HWMOD_NAME_LEN		16
++
+ struct omap_uart_state {
+ 	int num;
+ 	int can_sleep;
+@@ -58,14 +70,21 @@ struct omap_uart_state {
+ 	void __iomem *wk_en;
+ 	u32 wk_mask;
+ 	u32 padconf;
++	u32 dma_enabled;
+
+ 	struct clk *ick;
+ 	struct clk *fck;
+ 	int clocked;
+
+-	struct plat_serial8250_port *p;
++	int irq;
++	int regshift;
++	int irqflags;
++	void __iomem *membase;
++	resource_size_t mapbase;
++
+ 	struct list_head node;
+-	struct platform_device pdev;
++	struct omap_hwmod *oh;
++	struct platform_device *pdev;
+
+ 	u32 errata;
+ #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+@@ -83,75 +102,33 @@ struct omap_uart_state {
  };
 
- static struct omap_hwmod omap2420_l4_wkup_hwmod;
-+static struct omap_hwmod omap2420_uart1_hwmod;
-+static struct omap_hwmod omap2420_uart2_hwmod;
-+static struct omap_hwmod omap2420_uart3_hwmod;
+ static LIST_HEAD(uart_list);
++static u8 num_uarts;
 
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap2420_l4_core__l4_wkup = {
-@@ -79,6 +83,60 @@ static struct omap_hwmod_ocp_if omap2420_l4_core__l4_wkup = {
- 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
- };
+-static struct plat_serial8250_port serial_platform_data0[] = {
+-	{
+-		.irq		= 72,
+-		.flags		= UPF_BOOT_AUTOCONF,
+-		.iotype		= UPIO_MEM,
+-		.regshift	= 2,
+-		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+-	}, {
+-		.flags		= 0
+-	}
+-};
+-
+-static struct plat_serial8250_port serial_platform_data1[] = {
+-	{
+-		.irq		= 73,
+-		.flags		= UPF_BOOT_AUTOCONF,
+-		.iotype		= UPIO_MEM,
+-		.regshift	= 2,
+-		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+-	}, {
+-		.flags		= 0
+-	}
+-};
+-
+-static struct plat_serial8250_port serial_platform_data2[] = {
+-	{
+-		.irq		= 74,
+-		.flags		= UPF_BOOT_AUTOCONF,
+-		.iotype		= UPIO_MEM,
+-		.regshift	= 2,
+-		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+-	}, {
+-		.flags		= 0
+-	}
+-};
+-
+-static struct plat_serial8250_port serial_platform_data3[] = {
+-	{
+-		.irq		= 70,
+-		.flags		= UPF_BOOT_AUTOCONF,
+-		.iotype		= UPIO_MEM,
+-		.regshift	= 2,
+-		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+-	}, {
+-		.flags		= 0
+-	}
+-};
 
-+/* L4 CORE -> UART1 interface */
-+static struct omap_hwmod_addr_space omap2420_uart1_addr_space[] = {
-+	{
-+		.pa_start	= OMAP2_UART1_BASE,
-+		.pa_end		= OMAP2_UART1_BASE + SZ_8K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2_l4_core__uart1 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_uart1_hwmod,
-+	.clk		= "uart1_ick",
-+	.addr		= omap2420_uart1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_uart1_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 CORE -> UART2 interface */
-+static struct omap_hwmod_addr_space omap2420_uart2_addr_space[] = {
-+	{
-+		.pa_start	= OMAP2_UART2_BASE,
-+		.pa_end		= OMAP2_UART2_BASE + SZ_1K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2_l4_core__uart2 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_uart2_hwmod,
-+	.clk		= "uart2_ick",
-+	.addr		= omap2420_uart2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_uart2_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> UART3 interface */
-+static struct omap_hwmod_addr_space omap2420_uart3_addr_space[] = {
-+	{
-+		.pa_start	= OMAP2_UART3_BASE,
-+		.pa_end		= OMAP2_UART3_BASE + SZ_1K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2_l4_core__uart3 = {
-+	.master		= &omap2420_l4_core_hwmod,
-+	.slave		= &omap2420_uart3_hwmod,
-+	.clk		= "uart3_ick",
-+	.addr		= omap2420_uart3_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2420_uart3_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap2420_l4_core_slaves[] = {
- 	&omap2420_l3_main__l4_core,
-@@ -87,6 +145,9 @@ static struct omap_hwmod_ocp_if *omap2420_l4_core_slaves[] = {
- /* Master interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap2420_l4_core_masters[] = {
- 	&omap2420_l4_core__l4_wkup,
-+	&omap2_l4_core__uart1,
-+	&omap2_l4_core__uart2,
-+	&omap2_l4_core__uart3,
- };
-
- /* L4 CORE */
-@@ -165,12 +226,144 @@ static struct omap_hwmod omap2420_iva_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
- };
-
-+/* UART */
-+
-+static struct omap_hwmod_class_sysconfig uart_sysc = {
-+	.rev_offs	= 0x50,
-+	.sysc_offs	= 0x54,
-+	.syss_offs	= 0x58,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class uart_class = {
-+	.name = "uart",
-+	.sysc = &uart_sysc,
-+};
-+
-+/* UART1 */
-+
-+static struct omap_hwmod_irq_info uart1_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART1_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart1_sdma_reqs[] = {
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART1_RX, },
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART1_TX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2420_uart1_slaves[] = {
-+	&omap2_l4_core__uart1,
-+};
-+
-+static struct omap_hwmod omap2420_uart1_hwmod = {
-+	.name		= "uart1",
-+	.mpu_irqs	= uart1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart1_mpu_irqs),
-+	.sdma_reqs	= uart1_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart1_sdma_reqs),
-+	.main_clk	= "uart1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_UART1_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_UART1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_uart1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_uart1_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+/* UART2 */
-+
-+static struct omap_hwmod_irq_info uart2_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART2_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart2_sdma_reqs[] = {
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART2_RX, },
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART2_TX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2420_uart2_slaves[] = {
-+	&omap2_l4_core__uart2,
-+};
-+
-+static struct omap_hwmod omap2420_uart2_hwmod = {
-+	.name		= "uart2",
-+	.mpu_irqs	= uart2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart2_mpu_irqs),
-+	.sdma_reqs	= uart2_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart2_sdma_reqs),
-+	.main_clk	= "uart2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_UART2_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_UART2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_uart2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_uart2_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+/* UART3 */
-+
-+static struct omap_hwmod_irq_info uart3_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART3_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart3_sdma_reqs[] = {
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART3_RX, },
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART3_TX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2420_uart3_slaves[] = {
-+	&omap2_l4_core__uart3,
-+};
-+
-+static struct omap_hwmod omap2420_uart3_hwmod = {
-+	.name		= "uart3",
-+	.mpu_irqs	= uart3_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart3_mpu_irqs),
-+	.sdma_reqs	= uart3_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart3_sdma_reqs),
-+	.main_clk	= "uart3_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 2,
-+			.module_bit = OMAP24XX_EN_UART3_SHIFT,
-+			.idlest_reg_id = 2,
-+			.idlest_idle_bit = OMAP24XX_EN_UART3_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_uart3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_uart3_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
- static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_l3_main_hwmod,
- 	&omap2420_l4_core_hwmod,
- 	&omap2420_l4_wkup_hwmod,
- 	&omap2420_mpu_hwmod,
- 	&omap2420_iva_hwmod,
-+	&omap2420_uart1_hwmod,
-+	&omap2420_uart2_hwmod,
-+	&omap2420_uart3_hwmod,
- 	NULL,
- };
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 4526628..145f9ef 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -15,6 +15,7 @@
- #include <mach/irqs.h>
- #include <plat/cpu.h>
- #include <plat/dma.h>
-+#include <plat/serial.h>
-
- #include "omap_hwmod_common_data.h"
-
-@@ -71,6 +72,9 @@ static struct omap_hwmod omap2430_l3_main_hwmod = {
- };
-
- static struct omap_hwmod omap2430_l4_wkup_hwmod;
-+static struct omap_hwmod omap2430_uart1_hwmod;
-+static struct omap_hwmod omap2430_uart2_hwmod;
-+static struct omap_hwmod omap2430_uart3_hwmod;
-
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
-@@ -79,6 +83,60 @@ static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
- 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
- };
-
-+/* L4 CORE -> UART1 interface */
-+static struct omap_hwmod_addr_space omap2430_uart1_addr_space[] = {
-+	{
-+		.pa_start	= OMAP2_UART1_BASE,
-+		.pa_end		= OMAP2_UART1_BASE + SZ_8K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2_l4_core__uart1 = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_uart1_hwmod,
-+	.clk		= "uart1_ick",
-+	.addr		= omap2430_uart1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_uart1_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 CORE -> UART2 interface */
-+static struct omap_hwmod_addr_space omap2430_uart2_addr_space[] = {
-+	{
-+		.pa_start	= OMAP2_UART2_BASE,
-+		.pa_end		= OMAP2_UART2_BASE + SZ_1K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2_l4_core__uart2 = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_uart2_hwmod,
-+	.clk		= "uart2_ick",
-+	.addr		= omap2430_uart2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_uart2_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> UART3 interface */
-+static struct omap_hwmod_addr_space omap2430_uart3_addr_space[] = {
-+	{
-+		.pa_start	= OMAP2_UART3_BASE,
-+		.pa_end		= OMAP2_UART3_BASE + SZ_1K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2_l4_core__uart3 = {
-+	.master		= &omap2430_l4_core_hwmod,
-+	.slave		= &omap2430_uart3_hwmod,
-+	.clk		= "uart3_ick",
-+	.addr		= omap2430_uart3_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_uart3_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap2430_l4_core_slaves[] = {
- 	&omap2430_l3_main__l4_core,
-@@ -104,6 +162,9 @@ static struct omap_hwmod omap2430_l4_core_hwmod = {
- /* Slave interfaces on the L4_WKUP interconnect */
- static struct omap_hwmod_ocp_if *omap2430_l4_wkup_slaves[] = {
- 	&omap2430_l4_core__l4_wkup,
-+	&omap2_l4_core__uart1,
-+	&omap2_l4_core__uart2,
-+	&omap2_l4_core__uart3,
- };
-
- /* Master interfaces on the L4_WKUP interconnect */
-@@ -165,12 +226,144 @@ static struct omap_hwmod omap2430_iva_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
- };
-
-+/* UART */
-+
-+static struct omap_hwmod_class_sysconfig uart_sysc = {
-+	.rev_offs	= 0x50,
-+	.sysc_offs	= 0x54,
-+	.syss_offs	= 0x58,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class uart_class = {
-+	.name = "uart",
-+	.sysc = &uart_sysc,
-+};
-+
-+/* UART1 */
-+
-+static struct omap_hwmod_irq_info uart1_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART1_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart1_sdma_reqs[] = {
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART1_RX, },
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART1_TX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_uart1_slaves[] = {
-+	&omap2_l4_core__uart1,
-+};
-+
-+static struct omap_hwmod omap2430_uart1_hwmod = {
-+	.name		= "uart1",
-+	.mpu_irqs	= uart1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart1_mpu_irqs),
-+	.sdma_reqs	= uart1_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart1_sdma_reqs),
-+	.main_clk	= "uart1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_UART1_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_UART1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_uart1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_uart1_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/* UART2 */
-+
-+static struct omap_hwmod_irq_info uart2_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART2_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart2_sdma_reqs[] = {
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART2_RX, },
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART2_TX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_uart2_slaves[] = {
-+	&omap2_l4_core__uart2,
-+};
-+
-+static struct omap_hwmod omap2430_uart2_hwmod = {
-+	.name		= "uart2",
-+	.mpu_irqs	= uart2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart2_mpu_irqs),
-+	.sdma_reqs	= uart2_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart2_sdma_reqs),
-+	.main_clk	= "uart2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_UART2_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_UART2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_uart2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_uart2_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+/* UART3 */
-+
-+static struct omap_hwmod_irq_info uart3_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART3_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart3_sdma_reqs[] = {
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART3_RX, },
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART3_TX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap2430_uart3_slaves[] = {
-+	&omap2_l4_core__uart3,
-+};
-+
-+static struct omap_hwmod omap2430_uart3_hwmod = {
-+	.name		= "uart3",
-+	.mpu_irqs	= uart3_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart3_mpu_irqs),
-+	.sdma_reqs	= uart3_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart3_sdma_reqs),
-+	.main_clk	= "uart3_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_UART3_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_EN_UART3_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_uart3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_uart3_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
- static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_l3_main_hwmod,
- 	&omap2430_l4_core_hwmod,
- 	&omap2430_l4_wkup_hwmod,
- 	&omap2430_mpu_hwmod,
- 	&omap2430_iva_hwmod,
-+	&omap2430_uart1_hwmod,
-+	&omap2430_uart2_hwmod,
-+	&omap2430_uart3_hwmod,
- 	NULL,
- };
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 5d8eb58..4773b16 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -17,6 +17,7 @@
- #include <mach/irqs.h>
- #include <plat/cpu.h>
- #include <plat/dma.h>
-+#include <plat/serial.h>
-
- #include "omap_hwmod_common_data.h"
-
-@@ -82,6 +83,10 @@ static struct omap_hwmod omap3xxx_l3_main_hwmod = {
- };
-
- static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
-+static struct omap_hwmod omap3xxx_uart1_hwmod;
-+static struct omap_hwmod omap3xxx_uart2_hwmod;
-+static struct omap_hwmod omap3xxx_uart3_hwmod;
-+static struct omap_hwmod omap3xxx_uart4_hwmod;
-
- /* L4_CORE -> L4_WKUP interface */
- static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
-@@ -90,6 +95,78 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
- 	.user	= OCP_USER_MPU | OCP_USER_SDMA,
- };
-
-+/* L4 CORE -> UART1 interface */
-+static struct omap_hwmod_addr_space omap3xxx_uart1_addr_space[] = {
-+	{
-+		.pa_start	= OMAP3_UART1_BASE,
-+		.pa_end		= OMAP3_UART1_BASE + SZ_8K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3_l4_core__uart1 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_uart1_hwmod,
-+	.clk		= "uart1_ick",
-+	.addr		= omap3xxx_uart1_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_uart1_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 CORE -> UART2 interface */
-+static struct omap_hwmod_addr_space omap3xxx_uart2_addr_space[] = {
-+	{
-+		.pa_start	= OMAP3_UART2_BASE,
-+		.pa_end		= OMAP3_UART2_BASE + SZ_1K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3_l4_core__uart2 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_uart2_hwmod,
-+	.clk		= "uart2_ick",
-+	.addr		= omap3xxx_uart2_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_uart2_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> UART3 interface */
-+static struct omap_hwmod_addr_space omap3xxx_uart3_addr_space[] = {
-+	{
-+		.pa_start	= OMAP3_UART3_BASE,
-+		.pa_end		= OMAP3_UART3_BASE + SZ_1K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3_l4_per__uart3 = {
-+	.master		= &omap3xxx_l4_per_hwmod,
-+	.slave		= &omap3xxx_uart3_hwmod,
-+	.clk		= "uart3_ick",
-+	.addr		= omap3xxx_uart3_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_uart3_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L4 PER -> UART4 interface */
-+static struct omap_hwmod_addr_space omap3xxx_uart4_addr_space[] = {
-+	{
-+		.pa_start	= OMAP3_UART4_BASE,
-+		.pa_end		= OMAP3_UART4_BASE + SZ_1K - 1,
-+		.flags		= ADDR_MAP_ON_INIT | ADDR_TYPE_RT,
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap3_l4_per__uart4 = {
-+	.master		= &omap3xxx_l4_per_hwmod,
-+	.slave		= &omap3xxx_uart4_hwmod,
-+	.clk		= "uart4_ick",
-+	.addr		= omap3xxx_uart4_addr_space,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_uart4_addr_space),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* Slave interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
- 	&omap3xxx_l3_main__l4_core,
-@@ -98,6 +175,8 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_core_slaves[] = {
- /* Master interfaces on the L4_CORE interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l4_core_masters[] = {
- 	&omap3xxx_l4_core__l4_wkup,
-+	&omap3_l4_core__uart1,
-+	&omap3_l4_core__uart2,
- };
-
- /* L4 CORE */
-@@ -119,6 +198,8 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_per_slaves[] = {
-
- /* Master interfaces on the L4_PER interconnect */
- static struct omap_hwmod_ocp_if *omap3xxx_l4_per_masters[] = {
-+	&omap3_l4_per__uart3,
-+	&omap3_l4_per__uart4,
- };
-
- /* L4 PER */
-@@ -197,6 +278,172 @@ static struct omap_hwmod omap3xxx_iva_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
- };
-
-+/* UART common */
-+
-+static struct omap_hwmod_class_sysconfig uart_sysc = {
-+	.rev_offs	= 0x50,
-+	.sysc_offs	= 0x54,
-+	.syss_offs	= 0x58,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class uart_class = {
-+	.name = "uart",
-+	.sysc = &uart_sysc,
-+};
-+
-+/* UART1 */
-+
-+static struct omap_hwmod_irq_info uart1_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART1_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart1_sdma_reqs[] = {
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART1_TX, },
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART1_RX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_uart1_slaves[] = {
-+	&omap3_l4_core__uart1,
-+};
-+
-+static struct omap_hwmod omap3xxx_uart1_hwmod = {
-+	.name		= "uart1",
-+	.mpu_irqs	= uart1_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart1_mpu_irqs),
-+	.sdma_reqs	= uart1_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart1_sdma_reqs),
-+	.main_clk	= "uart1_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_UART1_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_EN_UART1_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3xxx_uart1_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_uart1_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* UART2 */
-+
-+static struct omap_hwmod_irq_info uart2_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART2_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart2_sdma_reqs[] = {
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART2_TX, },
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART2_RX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_uart2_slaves[] = {
-+	&omap3_l4_core__uart2,
-+};
-+
-+static struct omap_hwmod omap3xxx_uart2_hwmod = {
-+	.name		= "uart2",
-+	.mpu_irqs	= uart2_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart2_mpu_irqs),
-+	.sdma_reqs	= uart2_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart2_sdma_reqs),
-+	.main_clk	= "uart2_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = CORE_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_UART2_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_EN_UART2_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3xxx_uart2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_uart2_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* UART3 */
-+
-+static struct omap_hwmod_irq_info uart3_mpu_irqs[] = {
-+	{ .irq = INT_24XX_UART3_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart3_sdma_reqs[] = {
-+	{ .name = "tx",	.dma_req = OMAP24XX_DMA_UART3_TX, },
-+	{ .name = "rx",	.dma_req = OMAP24XX_DMA_UART3_RX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_uart3_slaves[] = {
-+	&omap3_l4_per__uart3,
-+};
-+
-+static struct omap_hwmod omap3xxx_uart3_hwmod = {
-+	.name		= "uart3",
-+	.mpu_irqs	= uart3_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart3_mpu_irqs),
-+	.sdma_reqs	= uart3_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart3_sdma_reqs),
-+	.main_clk	= "uart3_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = OMAP3430_PER_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3430_EN_UART3_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3430_EN_UART3_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3xxx_uart3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_uart3_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+/* UART4 */
-+
-+static struct omap_hwmod_irq_info uart4_mpu_irqs[] = {
-+	{ .irq = INT_36XX_UART4_IRQ, },
-+};
-+
-+static struct omap_hwmod_dma_info uart4_sdma_reqs[] = {
-+	{ .name = "rx",	.dma_req = OMAP36XX_DMA_UART4_RX, },
-+	{ .name = "tx",	.dma_req = OMAP36XX_DMA_UART4_TX, },
-+};
-+
-+static struct omap_hwmod_ocp_if *omap3xxx_uart4_slaves[] = {
-+	&omap3_l4_per__uart4,
-+};
-+
-+static struct omap_hwmod omap3xxx_uart4_hwmod = {
-+	.name		= "uart4",
-+	.mpu_irqs	= uart4_mpu_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(uart4_mpu_irqs),
-+	.sdma_reqs	= uart4_sdma_reqs,
-+	.sdma_reqs_cnt	= ARRAY_SIZE(uart4_sdma_reqs),
-+	.main_clk	= "uart4_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.module_offs = OMAP3430_PER_MOD,
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP3630_EN_UART4_SHIFT,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP3630_EN_UART4_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3xxx_uart4_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_uart4_slaves),
-+	.class		= &uart_class,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3630ES1),
-+};
-+
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_main_hwmod,
- 	&omap3xxx_l4_core_hwmod,
-@@ -204,6 +451,10 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l4_wkup_hwmod,
- 	&omap3xxx_mpu_hwmod,
- 	&omap3xxx_iva_hwmod,
-+	&omap3xxx_uart1_hwmod,
-+	&omap3xxx_uart2_hwmod,
-+	&omap3xxx_uart3_hwmod,
-+	&omap3xxx_uart4_hwmod,
- 	NULL,
- };
-
-@@ -211,5 +462,3 @@ int __init omap3xxx_hwmod_init(void)
+ void __init omap2_set_globals_uart(struct omap_globals *omap2_globals)
  {
- 	return omap_hwmod_init(omap3xxx_hwmods);
+-	serial_platform_data0[0].mapbase = omap2_globals->uart1_phys;
+-	serial_platform_data1[0].mapbase = omap2_globals->uart2_phys;
+-	serial_platform_data2[0].mapbase = omap2_globals->uart3_phys;
+-	serial_platform_data3[0].mapbase = omap2_globals->uart4_phys;
  }
--
--
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 995b7ed..86edcf9 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -382,6 +382,9 @@
- #define OMAP3430_EN_MPU_SHIFT				1
 
- /* CM_FCLKEN_PER, CM_ICLKEN_PER, PM_WKEN_PER shared bits */
++static struct omap_device_pm_latency omap_uart_latency[] = {
++	{
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func	 = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++	},
++};
 +
-+#define OMAP3630_EN_UART4_MASK				(1 << 18)
-+#define OMAP3630_EN_UART4_SHIFT				18
- #define OMAP3430_EN_GPIO6_MASK				(1 << 17)
- #define OMAP3430_EN_GPIO6_SHIFT				17
- #define OMAP3430_EN_GPIO5_MASK				(1 << 16)
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index af3a039..098f154 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -319,6 +319,8 @@
- #define OMAP34XX_DMA_USIM_TX		79	/* S_DMA_78 */
- #define OMAP34XX_DMA_USIM_RX		80	/* S_DMA_79 */
+ static inline unsigned int __serial_read_reg(struct uart_port *up,
+-					   int offset)
++					     int offset)
+ {
+ 	offset <<= up->regshift;
+ 	return (unsigned int)__raw_readb(up->membase + offset);
+ }
 
-+#define OMAP36XX_DMA_UART4_TX		81	/* S_DMA_80 */
-+#define OMAP36XX_DMA_UART4_RX		82	/* S_DMA_81 */
- /*----------------------------------------------------------------------------*/
+-static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
++static inline unsigned int serial_read_reg(struct omap_uart_state *uart,
+ 					   int offset)
+ {
+-	offset <<= up->regshift;
+-	return (unsigned int)__raw_readb(up->membase + offset);
++	offset <<= uart->regshift;
++	return (unsigned int)__raw_readb(uart->membase + offset);
+ }
 
- #define OMAP1_DMA_TOUT_IRQ		(1 << 0)
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index c01d9f0..65e20a6 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -345,6 +345,8 @@
- #define INT_34XX_MMC3_IRQ	94
- #define INT_34XX_GPT12_IRQ	95
+ static inline void __serial_write_reg(struct uart_port *up, int offset,
+@@ -161,11 +138,11 @@ static inline void __serial_write_reg(struct uart_port *up, int offset,
+ 	__raw_writeb(value, up->membase + offset);
+ }
 
-+#define INT_36XX_UART4_IRQ	80
+-static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
++static inline void serial_write_reg(struct omap_uart_state *uart, int offset,
+ 				    int value)
+ {
+-	offset <<= p->regshift;
+-	__raw_writeb(value, p->membase + offset);
++	offset <<= uart->regshift;
++	__raw_writeb(value, uart->membase + offset);
+ }
+
+ /*
+@@ -173,14 +150,12 @@ static inline void serial_write_reg(struct plat_serial8250_port *p, int offset,
+  * properly. Note that the TX watermark initialization may not be needed
+  * once the 8250.c watermark handling code is merged.
+  */
 +
- #define INT_35XX_HECC0_IRQ		24
- #define INT_35XX_HECC1_IRQ		28
- #define INT_35XX_EMAC_C0_RXTHRESH_IRQ	67
+ static inline void __init omap_uart_reset(struct omap_uart_state *uart)
+ {
+-	struct plat_serial8250_port *p = uart->p;
+-
+-	serial_write_reg(p, UART_OMAP_MDR1, 0x07);
+-	serial_write_reg(p, UART_OMAP_SCR, 0x08);
+-	serial_write_reg(p, UART_OMAP_MDR1, 0x00);
+-	serial_write_reg(p, UART_OMAP_SYSC, (0x02 << 3) | (1 << 2) | (1 << 0));
++	serial_write_reg(uart, UART_OMAP_MDR1, 0x07);
++	serial_write_reg(uart, UART_OMAP_SCR, 0x08);
++	serial_write_reg(uart, UART_OMAP_MDR1, 0x00);
+ }
+
+ #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
+@@ -197,24 +172,23 @@ static inline void __init omap_uart_reset(struct omap_uart_state *uart)
+ static void omap_uart_mdr1_errataset(struct omap_uart_state *uart, u8 mdr1_val,
+ 		u8 fcr_val)
+ {
+-	struct plat_serial8250_port *p = uart->p;
+ 	u8 timeout = 255;
+
+-	serial_write_reg(p, UART_OMAP_MDR1, mdr1_val);
++	serial_write_reg(uart, UART_OMAP_MDR1, mdr1_val);
+ 	udelay(2);
+-	serial_write_reg(p, UART_FCR, fcr_val | UART_FCR_CLEAR_XMIT |
++	serial_write_reg(uart, UART_FCR, fcr_val | UART_FCR_CLEAR_XMIT |
+ 			UART_FCR_CLEAR_RCVR);
+ 	/*
+ 	 * Wait for FIFO to empty: when empty, RX_FIFO_E bit is 0 and
+ 	 * TX_FIFO_E bit is 1.
+ 	 */
+-	while (UART_LSR_THRE != (serial_read_reg(p, UART_LSR) &
++	while (UART_LSR_THRE != (serial_read_reg(uart, UART_LSR) &
+ 				(UART_LSR_THRE | UART_LSR_DR))) {
+ 		timeout--;
+ 		if (!timeout) {
+ 			/* Should *never* happen. we warn and carry on */
+-			dev_crit(&uart->pdev.dev, "Errata i202: timedout %x\n",
+-				serial_read_reg(p, UART_LSR));
++			dev_crit(&uart->pdev->dev, "Errata i202: timedout %x\n",
++			serial_read_reg(uart, UART_LSR));
+ 			break;
+ 		}
+ 		udelay(1);
+@@ -224,23 +198,22 @@ static void omap_uart_mdr1_errataset(struct omap_uart_state *uart, u8 mdr1_val,
+ static void omap_uart_save_context(struct omap_uart_state *uart)
+ {
+ 	u16 lcr = 0;
+-	struct plat_serial8250_port *p = uart->p;
+
+ 	if (!enable_off_mode)
+ 		return;
+
+-	lcr = serial_read_reg(p, UART_LCR);
+-	serial_write_reg(p, UART_LCR, 0xBF);
+-	uart->dll = serial_read_reg(p, UART_DLL);
+-	uart->dlh = serial_read_reg(p, UART_DLM);
+-	serial_write_reg(p, UART_LCR, lcr);
+-	uart->ier = serial_read_reg(p, UART_IER);
+-	uart->sysc = serial_read_reg(p, UART_OMAP_SYSC);
+-	uart->scr = serial_read_reg(p, UART_OMAP_SCR);
+-	uart->wer = serial_read_reg(p, UART_OMAP_WER);
+-	serial_write_reg(p, UART_LCR, 0x80);
+-	uart->mcr = serial_read_reg(p, UART_MCR);
+-	serial_write_reg(p, UART_LCR, lcr);
++	lcr = serial_read_reg(uart, UART_LCR);
++	serial_write_reg(uart, UART_LCR, 0xBF);
++	uart->dll = serial_read_reg(uart, UART_DLL);
++	uart->dlh = serial_read_reg(uart, UART_DLM);
++	serial_write_reg(uart, UART_LCR, lcr);
++	uart->ier = serial_read_reg(uart, UART_IER);
++	uart->sysc = serial_read_reg(uart, UART_OMAP_SYSC);
++	uart->scr = serial_read_reg(uart, UART_OMAP_SCR);
++	uart->wer = serial_read_reg(uart, UART_OMAP_WER);
++	serial_write_reg(uart, UART_LCR, 0x80);
++	uart->mcr = serial_read_reg(uart, UART_MCR);
++	serial_write_reg(uart, UART_LCR, lcr);
+
+ 	uart->context_valid = 1;
+ }
+@@ -248,7 +221,6 @@ static void omap_uart_save_context(struct omap_uart_state *uart)
+ static void omap_uart_restore_context(struct omap_uart_state *uart)
+ {
+ 	u16 efr = 0;
+-	struct plat_serial8250_port *p = uart->p;
+
+ 	if (!enable_off_mode)
+ 		return;
+@@ -261,29 +233,30 @@ static void omap_uart_restore_context(struct omap_uart_state *uart)
+ 	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
+ 		omap_uart_mdr1_errataset(uart, 0x07, 0xA0);
+ 	else
+-		serial_write_reg(p, UART_OMAP_MDR1, 0x7);
+-	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+-	efr = serial_read_reg(p, UART_EFR);
+-	serial_write_reg(p, UART_EFR, UART_EFR_ECB);
+-	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
+-	serial_write_reg(p, UART_IER, 0x0);
+-	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+-	serial_write_reg(p, UART_DLL, uart->dll);
+-	serial_write_reg(p, UART_DLM, uart->dlh);
+-	serial_write_reg(p, UART_LCR, 0x0); /* Operational mode */
+-	serial_write_reg(p, UART_IER, uart->ier);
+-	serial_write_reg(p, UART_LCR, 0x80);
+-	serial_write_reg(p, UART_MCR, uart->mcr);
+-	serial_write_reg(p, UART_LCR, 0xBF); /* Config B mode */
+-	serial_write_reg(p, UART_EFR, efr);
+-	serial_write_reg(p, UART_LCR, UART_LCR_WLEN8);
+-	serial_write_reg(p, UART_OMAP_SCR, uart->scr);
+-	serial_write_reg(p, UART_OMAP_WER, uart->wer);
+-	serial_write_reg(p, UART_OMAP_SYSC, uart->sysc);
++		serial_write_reg(uart, UART_OMAP_MDR1, 0x7);
++	serial_write_reg(uart, UART_LCR, 0xBF); /* Config B mode */
++	efr = serial_read_reg(uart, UART_EFR);
++	serial_write_reg(uart, UART_EFR, UART_EFR_ECB);
++	serial_write_reg(uart, UART_LCR, 0x0); /* Operational mode */
++	serial_write_reg(uart, UART_IER, 0x0);
++	serial_write_reg(uart, UART_LCR, 0xBF); /* Config B mode */
++	serial_write_reg(uart, UART_DLL, uart->dll);
++	serial_write_reg(uart, UART_DLM, uart->dlh);
++	serial_write_reg(uart, UART_LCR, 0x0); /* Operational mode */
++	serial_write_reg(uart, UART_IER, uart->ier);
++	serial_write_reg(uart, UART_LCR, 0x80);
++	serial_write_reg(uart, UART_MCR, uart->mcr);
++	serial_write_reg(uart, UART_LCR, 0xBF); /* Config B mode */
++	serial_write_reg(uart, UART_EFR, efr);
++	serial_write_reg(uart, UART_LCR, UART_LCR_WLEN8);
++	serial_write_reg(uart, UART_OMAP_SCR, uart->scr);
++	serial_write_reg(uart, UART_OMAP_WER, uart->wer);
++	serial_write_reg(uart, UART_OMAP_SYSC, uart->sysc);
+ 	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
+ 		omap_uart_mdr1_errataset(uart, 0x00, 0xA1);
+ 	else
+-		serial_write_reg(p, UART_OMAP_MDR1, 0x00); /* UART 16x mode */
++		/* UART 16x mode */
++		serial_write_reg(uart, UART_OMAP_MDR1, 0x00);
+ }
+ #else
+ static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+@@ -295,8 +268,7 @@ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+ 	if (uart->clocked)
+ 		return;
+
+-	clk_enable(uart->ick);
+-	clk_enable(uart->fck);
++	omap_device_enable(uart->pdev);
+ 	uart->clocked = 1;
+ 	omap_uart_restore_context(uart);
+ }
+@@ -310,8 +282,7 @@ static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
+
+ 	omap_uart_save_context(uart);
+ 	uart->clocked = 0;
+-	clk_disable(uart->ick);
+-	clk_disable(uart->fck);
++	omap_device_idle(uart->pdev);
+ }
+
+ static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+@@ -349,18 +320,24 @@ static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+ }
+
+ static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+-					  int enable)
++					       int enable)
+ {
+-	struct plat_serial8250_port *p = uart->p;
+-	u16 sysc;
++	u8 idlemode;
+
+-	sysc = serial_read_reg(p, UART_OMAP_SYSC) & 0x7;
+-	if (enable)
+-		sysc |= 0x2 << 3;
+-	else
+-		sysc |= 0x1 << 3;
++	if (enable) {
++		/**
++		 * Errata 2.15: [UART]:Cannot Acknowledge Idle Requests
++		 * in Smartidle Mode When Configured for DMA Operations.
++		 */
++		if (uart->dma_enabled)
++			idlemode = HWMOD_IDLEMODE_FORCE;
++		else
++			idlemode = HWMOD_IDLEMODE_SMART;
++	} else {
++		idlemode = HWMOD_IDLEMODE_NO;
++	}
+
+-	serial_write_reg(p, UART_OMAP_SYSC, sysc);
++	omap_hwmod_set_slave_idlemode(uart->oh, idlemode);
+ }
+
+ static void omap_uart_block_sleep(struct omap_uart_state *uart)
+@@ -377,7 +354,7 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
+
+ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+ {
+-	if (device_may_wakeup(&uart->pdev.dev))
++	if (device_may_wakeup(&uart->pdev->dev))
+ 		omap_uart_enable_wakeup(uart);
+ 	else
+ 		omap_uart_disable_wakeup(uart);
+@@ -472,6 +449,7 @@ int omap_uart_can_sleep(void)
+  * UART will not idle or sleep for its timeout period.
+  *
+  **/
++/* static int first_interrupt; */
+ static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+ {
+ 	struct omap_uart_state *uart = dev_id;
+@@ -483,7 +461,6 @@ static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+
+ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ {
+-	struct plat_serial8250_port *p = uart->p;
+ 	int ret;
+
+ 	uart->can_sleep = 0;
+@@ -546,9 +523,9 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		uart->padconf = 0;
+ 	}
+
+-	p->irqflags |= IRQF_SHARED;
+-	ret = request_irq(p->irq, omap_uart_interrupt, IRQF_SHARED,
+-			  "serial idle", (void *)uart);
++	uart->irqflags |= IRQF_SHARED;
++	ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
++				   IRQF_SHARED, "serial idle", (void *)uart);
+ 	WARN_ON(ret);
+ }
+
+@@ -559,10 +536,13 @@ void omap_uart_enable_irqs(int enable)
+
+ 	list_for_each_entry(uart, &uart_list, node) {
+ 		if (enable)
+-			ret = request_irq(uart->p->irq, omap_uart_interrupt,
+-				IRQF_SHARED, "serial idle", (void *)uart);
++			ret = request_threaded_irq(uart->irq, NULL,
++						   omap_uart_interrupt,
++						   IRQF_SHARED,
++						   "serial idle",
++						   (void *)uart);
+ 		else
+-			free_irq(uart->p->irq, (void *)uart);
++			free_irq(uart->irq, (void *)uart);
+ 	}
+ }
+
+@@ -570,10 +550,9 @@ static ssize_t sleep_timeout_show(struct device *dev,
+ 				  struct device_attribute *attr,
+ 				  char *buf)
+ {
+-	struct platform_device *pdev = container_of(dev,
+-					struct platform_device, dev);
+-	struct omap_uart_state *uart = container_of(pdev,
+-					struct omap_uart_state, pdev);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *odev = to_omap_device(pdev);
++	struct omap_uart_state *uart = odev->hwmods[0]->dev_attr;
+
+ 	return sprintf(buf, "%u\n", uart->timeout / HZ);
+ }
+@@ -582,10 +561,9 @@ static ssize_t sleep_timeout_store(struct device *dev,
+ 				   struct device_attribute *attr,
+ 				   const char *buf, size_t n)
+ {
+-	struct platform_device *pdev = container_of(dev,
+-					struct platform_device, dev);
+-	struct omap_uart_state *uart = container_of(pdev,
+-					struct omap_uart_state, pdev);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *odev = to_omap_device(pdev);
++	struct omap_uart_state *uart = odev->hwmods[0]->dev_attr;
+ 	unsigned int value;
+
+ 	if (sscanf(buf, "%u", &value) != 1) {
+@@ -608,48 +586,11 @@ static DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show,
+ #define DEV_CREATE_FILE(dev, attr) WARN_ON(device_create_file(dev, attr))
+ #else
+ static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
++static void omap_uart_block_sleep(struct omap_uart_state *uart) {}
+ #define DEV_CREATE_FILE(dev, attr)
+ #endif /* CONFIG_PM */
+
+-static struct omap_uart_state omap_uart[] = {
+-	{
+-		.pdev = {
+-			.name			= "serial8250",
+-			.id			= PLAT8250_DEV_PLATFORM,
+-			.dev			= {
+-				.platform_data	= serial_platform_data0,
+-			},
+-		},
+-	}, {
+-		.pdev = {
+-			.name			= "serial8250",
+-			.id			= PLAT8250_DEV_PLATFORM1,
+-			.dev			= {
+-				.platform_data	= serial_platform_data1,
+-			},
+-		},
+-	}, {
+-		.pdev = {
+-			.name			= "serial8250",
+-			.id			= PLAT8250_DEV_PLATFORM2,
+-			.dev			= {
+-				.platform_data	= serial_platform_data2,
+-			},
+-		},
+-	},
+-#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+-	{
+-		.pdev = {
+-			.name			= "serial8250",
+-			.id			= 3,
+-			.dev			= {
+-				.platform_data	= serial_platform_data3,
+-			},
+-		},
+-	},
+-#endif
+-};
+-
++#ifndef CONFIG_SERIAL_OMAP
+ /*
+  * Override the default 8250 read handler: mem_serial_in()
+  * Empty RX fifo read causes an abort on omap3630 and omap4
+@@ -682,71 +623,44 @@ static void serial_out_override(struct uart_port *up, int offset, int value)
+ 	}
+ 	__serial_write_reg(up, offset, value);
+ }
++#endif
++
+ void __init omap_serial_early_init(void)
+ {
+-	int i, nr_ports;
+-	char name[16];
++	int i = 0;
+
+-	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
+-		nr_ports = 3;
+-	else
+-		nr_ports = ARRAY_SIZE(omap_uart);
++	do {
++		char oh_name[MAX_UART_HWMOD_NAME_LEN];
++		struct omap_hwmod *oh;
++		struct omap_uart_state *uart;
+
+-	/*
+-	 * Make sure the serial ports are muxed on at this point.
+-	 * You have to mux them off in device drivers later on
+-	 * if not needed.
+-	 */
++		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
++			 "uart%d", i + 1);
++		oh = omap_hwmod_lookup(oh_name);
++		if (!oh)
++			break;
+
+-	for (i = 0; i < nr_ports; i++) {
+-		struct omap_uart_state *uart = &omap_uart[i];
+-		struct platform_device *pdev = &uart->pdev;
+-		struct device *dev = &pdev->dev;
+-		struct plat_serial8250_port *p = dev->platform_data;
++		uart = kzalloc(sizeof(struct omap_uart_state), GFP_KERNEL);
++		if (WARN_ON(!uart))
++			return;
++
++		uart->oh = oh;
++		uart->num = i++;
++		list_add_tail(&uart->node, &uart_list);
++		num_uarts++;
+
+-		/* Don't map zero-based physical address */
+-		if (p->mapbase == 0) {
+-			dev_warn(dev, "no physical address for uart#%d,"
+-				 " so skipping early_init...\n", i);
+-			continue;
+-		}
+ 		/*
+-		 * Module 4KB + L4 interconnect 4KB
+-		 * Static mapping, never released
++		 * NOTE: omap_hwmod_init() has not yet been called,
++		 *       so no hwmod functions will work yet.
+ 		 */
+-		p->membase = ioremap(p->mapbase, SZ_8K);
+-		if (!p->membase) {
+-			dev_err(dev, "ioremap failed for uart%i\n", i + 1);
+-			continue;
+-		}
+-
+-		sprintf(name, "uart%d_ick", i + 1);
+-		uart->ick = clk_get(NULL, name);
+-		if (IS_ERR(uart->ick)) {
+-			dev_err(dev, "Could not get uart%d_ick\n", i + 1);
+-			uart->ick = NULL;
+-		}
+-
+-		sprintf(name, "uart%d_fck", i+1);
+-		uart->fck = clk_get(NULL, name);
+-		if (IS_ERR(uart->fck)) {
+-			dev_err(dev, "Could not get uart%d_fck\n", i + 1);
+-			uart->fck = NULL;
+-		}
+-
+-		/* FIXME: Remove this once the clkdev is ready */
+-		if (!cpu_is_omap44xx()) {
+-			if (!uart->ick || !uart->fck)
+-				continue;
+-		}
+-
+-		uart->num = i;
+-		p->private_data = uart;
+-		uart->p = p;
+
+-		if (cpu_is_omap44xx())
+-			p->irq += 32;
+-	}
++		/*
++		 * During UART early init, device need to be probed
++		 * to determine SoC specific init before omap_device
++		 * is ready.  Therefore, don't allow idle here
++		 */
++		uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
++	} while (1);
+ }
+
+ /**
+@@ -763,53 +677,134 @@ void __init omap_serial_early_init(void)
+ void __init omap_serial_init_port(int port)
+ {
+ 	struct omap_uart_state *uart;
+-	struct platform_device *pdev;
+-	struct device *dev;
+-
+-	BUG_ON(port < 0);
+-	BUG_ON(port >= ARRAY_SIZE(omap_uart));
+-
+-	uart = &omap_uart[port];
+-	pdev = &uart->pdev;
+-	dev = &pdev->dev;
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++	void *pdata = NULL;
++	u32 pdata_size = 0;
++	char *name;
++#ifndef CONFIG_SERIAL_OMAP
++	struct plat_serial8250_port ports[2] = {
++		{},
++		{.flags = 0},
++	};
++	struct plat_serial8250_port *p = &ports[0];
++#else
++	struct omap_uart_port_info omap_up;
++#endif
+
+-	/* Don't proceed if there's no clocks available */
+-	if (unlikely(!uart->ick || !uart->fck)) {
+-		WARN(1, "%s: can't init uart%d, no clocks available\n",
+-		     kobject_name(&dev->kobj), port);
++	if (WARN_ON(port < 0))
++		return;
++	if (WARN_ON(port >= num_uarts))
+ 		return;
+-	}
+-
+-	omap_uart_enable_clocks(uart);
+-
+-	omap_uart_reset(uart);
+-	omap_uart_idle_init(uart);
+
+-	list_add_tail(&uart->node, &uart_list);
++	list_for_each_entry(uart, &uart_list, node)
++		if (port == uart->num)
++			break;
+
+-	if (WARN_ON(platform_device_register(pdev)))
+-		return;
++	oh = uart->oh;
++	uart->dma_enabled = 0;
++#ifndef CONFIG_SERIAL_OMAP
++	name = "serial8250";
+
+-	if ((cpu_is_omap34xx() && uart->padconf) ||
+-	    (uart->wk_en && uart->wk_mask)) {
+-		device_init_wakeup(dev, true);
+-		DEV_CREATE_FILE(dev, &dev_attr_sleep_timeout);
+-	}
++	/*
++	 * !! 8250 driver does not use standard IORESOURCE* It
++	 * has it's own custom pdata that can be taken from
++	 * the hwmod resource data.  But, this needs to be
++	 * done after the build.
++	 *
++	 * ?? does it have to be done before the register ??
++	 * YES, because platform_device_data_add() copies
++	 * pdata, it does not use a pointer.
++	 */
++	p->flags = UPF_BOOT_AUTOCONF;
++	p->iotype = UPIO_MEM;
++	p->regshift = 2;
++	p->uartclk = OMAP24XX_BASE_BAUD * 16;
++	p->irq = oh->mpu_irqs[0].irq;
++	p->mapbase = oh->slaves[0]->addr->pa_start;
++	p->membase = omap_hwmod_get_mpu_rt_va(oh);
++	p->irqflags = IRQF_SHARED;
++	p->private_data = uart;
+
+ 	/*
+ 	 * omap44xx: Never read empty UART fifo
+ 	 * omap3xxx: Never read empty UART fifo on UARTs
+ 	 * with IP rev >=0x52
+ 	 */
++	uart->regshift = p->regshift;
++	uart->membase = p->membase;
+ 	if (cpu_is_omap44xx())
+ 		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
+-	else if ((serial_read_reg(uart->p, UART_OMAP_MVER) & 0xFF)
++	else if ((serial_read_reg(uart, UART_OMAP_MVER) & 0xFF)
+ 			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
+ 		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
+
+ 	if (uart->errata & UART_ERRATA_FIFO_FULL_ABORT) {
+-		uart->p->serial_in = serial_in_override;
+-		uart->p->serial_out = serial_out_override;
++		p->serial_in = serial_in_override;
++		p->serial_out = serial_out_override;
++	}
++
++	pdata = &ports[0];
++	pdata_size = 2 * sizeof(struct plat_serial8250_port);
++#else
++
++	name = DRIVER_NAME;
++
++	omap_up.dma_enabled = uart->dma_enabled;
++	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
++	omap_up.mapbase = oh->slaves[0]->addr->pa_start;
++	omap_up.membase = omap_hwmod_get_mpu_rt_va(oh);
++	omap_up.irqflags = IRQF_SHARED;
++	omap_up.flags = UPF_BOOT_AUTOCONF | UPF_SHARE_IRQ;
++
++	pdata = &omap_up;
++	pdata_size = sizeof(struct omap_uart_port_info);
++#endif
++
++	if (WARN_ON(!oh))
++		return;
++
++	od = omap_device_build(name, uart->num, oh, pdata, pdata_size,
++			       omap_uart_latency,
++			       ARRAY_SIZE(omap_uart_latency), false);
++	WARN(IS_ERR(od), "Could not build omap_device for %s: %s.\n",
++	     name, oh->name);
++
++	uart->irq = oh->mpu_irqs[0].irq;
++	uart->regshift = 2;
++	uart->mapbase = oh->slaves[0]->addr->pa_start;
++	uart->membase = omap_hwmod_get_mpu_rt_va(oh);
++	uart->pdev = &od->pdev;
++
++	oh->dev_attr = uart;
++
++	/*
++	 * Because of early UART probing, UART did not get idled
++	 * on init.  Now that omap_device is ready, ensure full idle
++	 * before doing omap_device_enable().
++	 */
++	omap_hwmod_idle(uart->oh);
++
++	omap_device_enable(uart->pdev);
++	omap_uart_idle_init(uart);
++	omap_uart_reset(uart);
++	omap_hwmod_enable_wakeup(uart->oh);
++	omap_device_idle(uart->pdev);
++
++	/*
++	 * Need to block sleep long enough for interrupt driven
++	 * driver to start.  Console driver is in polling mode
++	 * so device needs to be kept enabled while polling driver
++	 * is in use.
++	 */
++	uart->timeout = (30 * HZ);
++	omap_uart_block_sleep(uart);
++	uart->timeout = DEFAULT_TIMEOUT;
++
++	if ((cpu_is_omap34xx() && uart->padconf) ||
++	    (uart->wk_en && uart->wk_mask)) {
++		device_init_wakeup(&od->pdev.dev, true);
++		DEV_CREATE_FILE(&od->pdev.dev, &dev_attr_sleep_timeout);
+ 	}
+
+ 	/* Enable the MDR1 errata for OMAP3 */
+@@ -826,13 +821,8 @@ void __init omap_serial_init_port(int port)
+  */
+ void __init omap_serial_init(void)
+ {
+-	int i, nr_ports;
+-
+-	if (!(cpu_is_omap3630() || cpu_is_omap4430()))
+-		nr_ports = 3;
+-	else
+-		nr_ports = ARRAY_SIZE(omap_uart);
++	struct omap_uart_state *uart;
+
+-	for (i = 0; i < nr_ports; i++)
+-		omap_serial_init_port(i);
++	list_for_each_entry(uart, &uart_list, node)
++		omap_serial_init_port(uart->num);
+ }
 -- 
 1.6.3.3
+
 
 
 
