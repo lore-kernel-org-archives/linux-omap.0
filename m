@@ -1,94 +1,33 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 14/14] omap4: Fix bootup crash observed with higher CPU
- clocks
-Date: Fri, 17 Sep 2010 05:14:59 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C014F13A77C@dlee02.ent.ti.com>
-References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-4-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-5-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-6-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-7-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-8-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-9-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-10-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-11-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-12-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-13-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-14-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-15-git-send-email-santosh.shilimkar@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 02/14] omap: Map only available sram memory
+Date: Fri, 17 Sep 2010 11:15:31 +0100
+Message-ID: <20100917101531.GB27467@n2100.arm.linux.org.uk>
+References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com> <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com> <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38349 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752099Ab0IQKPD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 06:15:03 -0400
-In-Reply-To: <1284716878-27667-15-git-send-email-santosh.shilimkar@ti.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35917 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751947Ab0IQKPn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 06:15:43 -0400
+Content-Disposition: inline
+In-Reply-To: <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> Sent: Friday, September 17, 2010 4:48 AM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; Shilimkar, Santosh; Nayak,
-> Rajendra
-> Subject: [PATCH 14/14] omap4: Fix bootup crash observed with higher CPU
-> clocks
-> 
-> This patch is temporary fix to below crash. This is observed when
-> CPU is clocked more than 600 MHz.
-> 
-> Unhandled fault: imprecise external abort (0x1406) at 0xbf9ef65c
-> Internal error: : 1406 [#1] PREEMPT SMP
-> last sysfs file:
-> Modules linked in:
-> CPU: 0    Not tainted  (2.6.36-rc3+ #18)
-> PC is at kernel_thread_helper+0x0/0x14
-> LR is at kernel_thread_helper+0x0/0x14
-> pc : [<c003ce14>]    lr : [<c003ce14>]    psr: 00000093
-> sp : dc83bff8  ip : 00000000  fp : 00000000
-> r10: 00000000  r9 : 00000000  r8 : 00000000
-> r7 : 00000013  r6 : c003ce28  r5 : c008935c  r4 : 00000000
-> r3 : 00000000  r2 : 00000000  r1 : 00000000  r0 : 00000000
-> Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 10c53c7f  Table: 8000404a  DAC: 00000017
-> Process swapper (pid: 2, stack limit = 0xdc83a2f0)
-> Stack: (0xdc83bff8 to 0xdc83c000)
-> bfe0: 00000000 ffffffff
-> [<c003ce14>] (kernel_thread_helper+0x0/0x14) from [<fffffffe>]
-> (0xfffffffe)
-> Code: c03a0ba3 c03a5fcb c045c880 c0394035 (eb017701)
-> ---[ end trace 1b75b31a2719ed1c ]---
-> 
-> The timer hwmod adaptation will eventually fix it in a proper way.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/plat-omap/dmtimer.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index 44bafda..1d706cf 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -581,7 +581,7 @@ int omap_dm_timer_set_source(struct omap_dm_timer
-> *timer, int source)
->  	 * When the functional clock disappears, too quick writes seem
->  	 * to cause an abort. XXX Is this still necessary?
->  	 */
-> -	__delay(150000);
-> +	__delay(300000);
-What is the rationale for this increase? Lets say we have a CPU bumped up to 1GHz or something will we have weird numbers again?
+On Fri, Sep 17, 2010 at 03:17:46PM +0530, Santosh Shilimkar wrote:
+> Currently we map 1 MB section while setting up SRAM on OMAPs.
+> The actual physcal OCM RAM available on OMAP SOCs is in order
 
-Regards,
-Nishanth Menon
+physical
 
+> of KBs. This patch maps only available sram and removes some
+> non necessary cpu_is_xxx checks.
+> 
+> On the newer ARMs with speculation, this is dangerous and can
+> result in untraceable aborts.
+
+"this" should be expanded (otherwise it is unclear whether it refers to
+the original code or the new code.)
