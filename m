@@ -1,45 +1,51 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [linux-pm] [PATCH] opp: introduce library for device-specific
- OPPs
-Date: Fri, 17 Sep 2010 17:26:34 -0500
-Message-ID: <4C93EB1A.7020203@ti.com>
-References: <1284686973-13993-1-git-send-email-nm@ti.com> <20100917153643.GC29739@sirena.org.uk> <4C938EE2.1010307@ti.com> <201009180022.51011.rjw@sisk.pl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v6 0/7] OMAP: WDT: Implement WDT in hwmod way
+Date: Fri, 17 Sep 2010 15:34:36 -0700
+Message-ID: <87mxrguhhf.fsf@deeprootsystems.com>
+References: <1284733136-20952-1-git-send-email-charu@ti.com>
+	<20100917172215.GE29610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <201009180022.51011.rjw@sisk.pl>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, Phil Carmody <ext-phil.2.carmody@nokia.com>, linux-doc <linux-doc@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Aguirre, Sergio" <saaguirre@ti.com>, Andi Kleen <ak@linux.intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, Linus Walleij <linus.walleij@stericsson.com>, "Granados Dorado, Roberto" <x0095451@ti.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Romit Dasgupta <ro.mit@ti.com>, Tero Kristo <Tero.Kristo@nokia.com>And
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:39472 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754016Ab0IQWel (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 18:34:41 -0400
+In-Reply-To: <20100917172215.GE29610@atomide.com> (Tony Lindgren's message of
+	"Fri, 17 Sep 2010 10:22:15 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, wim@iguana.be, linux-watchdog@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org
 
-Rafael J. Wysocki had written, on 09/17/2010 05:22 PM, the following:
-> On Friday, September 17, 2010, Nishanth Menon wrote:
->> Mark Brown had written, on 09/17/2010 10:36 AM, the following:
->>> On Thu, Sep 16, 2010 at 08:29:33PM -0500, Nishanth Menon wrote:
->>>
->>>> +struct opp_def {
->>>> +	unsigned long freq;
->>>> +	unsigned long u_volt;
->>>> +
->>>> +	bool enabled;
->>>> +};
->>> It might be clearer to use some term other than enabled in the code -
->>> when reading I wasn't immediately sure if enabled meant that it was
->>> available to be selected or if it was the active operating point.  How
->>> about 'allowed' (though I'm not 100% happy with that)?
->> ;).. The opp is enabled or disabled if it is populated, it is implicit 
->> as being available but not enabled- how about active? this would change 
->> the opp_enable/disable functions to opp_activate, opp_deactivate..
-> 
-> Would that mean that "active" is the one currently in use?
+Tony Lindgren <tony@atomide.com> writes:
 
-I like the idea Phil pointed out[1] on using "available" instead.. 
-opp_enable and disable will make the OPP available or not. does this 
-sound better?
+> * Varadarajan, Charulatha <charu@ti.com> [100917 07:11]:
+>> Series of patches to port watchdog module to use hwmod APIs
+>> for OMAP2PLUS chips and use runtime APIs for all OMAP chips.
+>> For this hwmod database for OMAP2PLUS watchdog instances are
+>> populated. This patch series also implements watchdog
+>> module to use PM runtime APIs.
+>> 
+>> This patch series is created on "origin/pm-core" and is
+>> tested on OMAP2430, OMAP44430, OMAP3430 SDP boards and zoom3 board.
+>> Also verified that this patch series does not break the OMAP1 build.
+>> 
+>> This series is tested on OMAP4430 ES2 using the below series
+>> http://www.spinics.net/lists/linux-omap/msg36023.html
+>
+> Can you please list the exact dependencies to other patches
+> for the mainline kernel? Are they the same as for the
+> omap serial driver just posted?
 
-[1] http://marc.info/?l=linux-arm-kernel&m=128474217132058&w=2
--- 
-Regards,
-Nishanth Menon
+Hi Tony,
+
+This series is based on my pm-core branch which is basically the the
+stuff I have submitted upstream (my pm-next series, the runtime PM core)
+and a collection of hwmod fixes that Paul/Benoit have lined up
+for 2.6.37.
+
+I will gladly queue these hwmod conversion patches in my tree if you
+prefer since I am already managing all the dependencies.
+
+Kevin
