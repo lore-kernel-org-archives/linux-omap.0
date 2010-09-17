@@ -1,52 +1,92 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 09/14] omap4: sram: Fix start address
-Date: Fri, 17 Sep 2010 15:17:53 +0530
-Message-ID: <1284716878-27667-10-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 01/14] ARM: mmu: Setup MT_MEMORY and MT_MEMORY_NONCACHED L1 entries
+Date: Fri, 17 Sep 2010 15:17:45 +0530
+Message-ID: <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
 References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-4-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-5-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-6-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-7-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-8-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-9-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37171 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37170 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751532Ab0IQJsL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751447Ab0IQJsL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 17 Sep 2010 05:48:11 -0400
-In-Reply-To: <1284716878-27667-9-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+This patch populates the L1 entries for MT_MEMORY and MT_MEMORY_NONCACHED
+types so that at boot-up, we can map memories outside system memory
+at page level granularity
 
-On OMAP4 there is no need to have SRAM_BOOTLOADER_SZ provision
+Previously the mapping was limiting to section level, which creates
+unnecessary addiotional mapping for which physical memory may not
+present. On the newer ARM with speculation, this is dangerous and can
+result in untraceable aborts.
 
-Hence put this macro under CONFIG_ARCH_OMAP2PLUS check
-
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Reviewed-by: Russell King <linux@arm.linux.org.uk>
 ---
- arch/arm/plat-omap/sram.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mm/mmu.c |   17 +++++++++++++++--
+ 1 files changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 1faaa6e..33ee6b8 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -53,7 +53,7 @@
- #define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
- #define OMAP4_SRAM_PUB_VA	(OMAP4_SRAM_VA + 0x4000)
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 6e1c4f6..3e986a6 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -246,6 +246,9 @@ static struct mem_type mem_types[] = {
+ 		.domain    = DOMAIN_USER,
+ 	},
+ 	[MT_MEMORY] = {
++		.prot_pte  = L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
++				L_PTE_USER | L_PTE_EXEC,
++		.prot_l1   = PMD_TYPE_TABLE,
+ 		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
+@@ -254,6 +257,9 @@ static struct mem_type mem_types[] = {
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
+ 	[MT_MEMORY_NONCACHED] = {
++		.prot_pte  = L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
++				L_PTE_USER | L_PTE_EXEC | L_PTE_MT_BUFFERABLE,
++		.prot_l1   = PMD_TYPE_TABLE,
+ 		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
+@@ -411,9 +417,12 @@ static void __init build_mem_type_table(void)
+ 	 * Enable CPU-specific coherency if supported.
+ 	 * (Only available on XSC3 at the moment.)
+ 	 */
+-	if (arch_is_coherent() && cpu_is_xsc3())
++	if (arch_is_coherent() && cpu_is_xsc3()) {
+ 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
+-
++		mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
++		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
++	}
+ 	/*
+ 	 * ARMv6 and above have extended page tables.
+ 	 */
+@@ -438,7 +447,9 @@ static void __init build_mem_type_table(void)
+ 		mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
+ 		mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
+ 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
+ 		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
+ #endif
+ 	}
  
--#if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
-+#if defined(CONFIG_ARCH_OMAP2PLUS)
- #define SRAM_BOOTLOADER_SZ	0x00
- #else
- #define SRAM_BOOTLOADER_SZ	0x80
+@@ -475,6 +486,8 @@ static void __init build_mem_type_table(void)
+ 	mem_types[MT_LOW_VECTORS].prot_l1 |= ecc_mask;
+ 	mem_types[MT_HIGH_VECTORS].prot_l1 |= ecc_mask;
+ 	mem_types[MT_MEMORY].prot_sect |= ecc_mask | cp->pmd;
++	mem_types[MT_MEMORY].prot_pte |= kern_pgprot;
++	mem_types[MT_MEMORY_NONCACHED].prot_sect |= ecc_mask;
+ 	mem_types[MT_ROM].prot_sect |= cp->pmd;
+ 
+ 	switch (cp->pmd) {
 -- 
 1.6.0.4
 
