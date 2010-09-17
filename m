@@ -1,77 +1,73 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 14/14] omap4: Fix bootup crash observed with higher CPU
- clocks
-Date: Fri, 17 Sep 2010 05:27:08 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C014F13A782@dlee02.ent.ti.com>
-References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-4-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-5-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-6-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-7-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-8-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-9-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-10-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-11-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-12-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-13-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-14-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-15-git-send-email-santosh.shilimkar@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C014F13A77C@dlee02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CD307C7B@dbde02.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 09/11] OMAP: DMA: Implement generic errata handling
+Date: Fri, 17 Sep 2010 12:29:15 +0200
+Message-ID: <4C9342FB.30401@ti.com>
+References: <1282647866-6918-1-git-send-email-manjugk@ti.com>	<1282647866-6918-10-git-send-email-manjugk@ti.com> <87sk1qtpnu.fsf@deeprootsystems.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A93@dbde02.ent.ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402784DC7D5@dbde02.ent.ti.com> <4C9317B5.3050308@ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402784DC994@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38780 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753106Ab0IQK1M convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 06:27:12 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD307C7B@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:47403 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751789Ab0IQK3V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 06:29:21 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402784DC994@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-> -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Friday, September 17, 2010 5:17 AM
-[..]
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> > > Sent: Friday, September 17, 2010 4:48 AM
+On 9/17/2010 10:09 AM, G, Manjunath Kondaiah wrote:
+> Hi Benoit,
+>
 
-[...]
-> > > ---
-> > >  arch/arm/plat-omap/dmtimer.c |    2 +-
-> > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > >
-> > > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-
-> omap/dmtimer.c
-> > > index 44bafda..1d706cf 100644
-> > > --- a/arch/arm/plat-omap/dmtimer.c
-> > > +++ b/arch/arm/plat-omap/dmtimer.c
-> > > @@ -581,7 +581,7 @@ int omap_dm_timer_set_source(struct omap_dm_timer
-> > > *timer, int source)
-> > >  	 * When the functional clock disappears, too quick writes seem
-> > >  	 * to cause an abort. XXX Is this still necessary?
-> > >  	 */
-> > > -	__delay(150000);
-> > > +	__delay(300000);
-> > What is the rationale for this increase? Lets say we have a CPU bumped
-> up
-> > to 1GHz or something will we have weird numbers again?
-> >
-> This is the max what we need at any clock speed. As mentioned in commit
-> "The timer hwmod adaptation will eventually fix it in a proper way"
+<...>
 
-Okay.. taking your word for it ;) 
+>>>
+>>> I assume you are ok with option #1. Let me know if you have any
+>>> issues/concenrs with above approach. I am in the process of
+>> consolidating
+>>> all the review comments and addressing all applicable
+>> review comments.
+>>
+>> Not really, the option #1 will still require you to use the
+>> oh pointer,
+>> which is supposed to be private to the omap_device.
+>>
+>> What is still not clear is why and when you need to change
+>> the sysconfig
+>> setting.
+>
+> It is required before stopping DMA chain transfer.
 
-PS: hard coded numbers + delays makes the red blue and white lights in my head to go off..(it even makes the siren sound too) ;)
+OK, but why? What happen if you do not do that? Could you please give 
+the full errata description to help us understanding?
+
+>> Do you have a details explanation? Ideally you should try to
+>> couple the
+>> sysconfig change along with pm_runtime / hwmod state change, then we
+>> will be able to handle that smoothly in the framework.
+>
+> Since channel is already requested(and there is possibility of other channels
+> also used at the same time), using pm_runtime API's will only increase
+> usage count and will not invoke omap_device_enable.
+
+This is the part that is not clear, and where the full errata should 
+help, because if you do have other channel in use, you will not be able 
+to do any clock gating anyway, that why changing the sysconfig at that 
+time might be useless.
+
+>> If you cannot do that, you will need to add an omap_device
+>> API as well.
+>
+> There is already one such API exists in hwmod layer for handling this type
+> of errata(omap_hwmod_set_slave_idlemode in omap_hwmod.c).
+> Above proposal is based on similar implementation.
+
+Maybe, but this is not enough. In both case you should not use directly 
+this API from the driver, so if you want to use that kind of approach, 
+you will need the omap_device layer as well.
+
 
 Regards,
-Nishanth Menon
-
+Benoit
