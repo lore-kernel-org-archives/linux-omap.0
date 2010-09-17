@@ -1,57 +1,173 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v5 4/6] OMAP4: hwmod data: Add watchdog timer
-Date: Fri, 17 Sep 2010 08:18:32 -0700
-Message-ID: <877hik1jqv.fsf@deeprootsystems.com>
-References: <1284528403-6494-1-git-send-email-charu@ti.com>
-	<1284528403-6494-5-git-send-email-charu@ti.com>
-	<4C91382F.1060505@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD307BEA@dbde02.ent.ti.com>
-	<4C933B1F.2040100@ti.com> <8762y44f8d.fsf@deeprootsystems.com>
-	<4C937C52.60300@ti.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] tracing, perf: add more power related events
+Date: Fri, 17 Sep 2010 17:29:02 +0200
+Message-ID: <201009171729.02569.trenn@suse.de>
+References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com> <201009171508.46471.trenn@suse.de> <AANLkTi=W_Lo2m=hkA2F48oUziqGzt4Tr8y6KhfgqRnbz@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:39096 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284Ab0IQPSo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 11:18:44 -0400
-In-Reply-To: <4C937C52.60300@ti.com> (Benoit Cousson's message of "Fri, 17 Sep
-	2010 16:33:54 +0200")
+Received: from cantor2.suse.de ([195.135.220.15]:34133 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755262Ab0IQP3K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Sep 2010 11:29:10 -0400
+In-Reply-To: <AANLkTi=W_Lo2m=hkA2F48oUziqGzt4Tr8y6KhfgqRnbz@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, discuss@lesswatts.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+On Friday 17 September 2010 16:05:51 Jean Pihet wrote:
+> Hi Thomas,
+> 
+> On Fri, Sep 17, 2010 at 3:08 PM, Thomas Renninger <trenn@suse.de> wrote:
+> > Hi,
+> >
+> > I had a quick look at this and it's amazing how broken
+> > the whole power event tracing interfaces are.
+> > It's not your fault, Jean, they always were and adding your stuff is
+> > fine.
+> That is the whole point! This code needs a serious clean-up and reorganization.
+> The patch I submitted is now merged in the tip tree, but the can be
+> corrected once the new power trace API is agreed on.
+Your generic patch is ok. Not that sure about the clock stuff.
+How many different clocks do exist on ARM/OMAP?
+Possibly this can all go into a:
+power_switch_state(type=, state=)
+interface and you define some ARM specific static ones like:
++       POWER_NONE      = 0,
++       POWER_CSTATE    = 1,    /* C-State */
++       POWER_PSTATE    = 2,    /* Fequency change or DVFS */
++       POWER_SSTATE    = 3,    /* Suspend */
++       POWER_OMAP_CLOCK_1   = 4,    /* OMAP clock XY */
++       POWER_OMAP_CLOCK_2   = 5,    /* OMAP clock XYZ */
+...
+> 
+> > Some questions, maybe I've overseen something:
+> >
+> > Why does this event:
+> > DEFINE_EVENT(power, power_frequency,
+> > exist and takes a C-/P-state, now also an S-state type as argument?
+> There is no clear link between the POWER_ types enum and the API, that
+> needs to change.
+Yep. At least for the frequency (P-state) and idle (C-state) states
+I have a reasonable solution, see below.
+> 
+> > It should be named more generic, like:
+> > DEFINE_EVENT(power, power_switch,
+> > then it could get invoked when any P-/C-/S-/X- state
+> > switch happened.
+> Agree. We need some better definitions for the events and at the same
+> time a more flexible way to pass extra arguments (e.g. like a return
+> code or the real HW state in case the desired state is not reached).
+> Also it is required to be able to track sub-states.
+> The idea is to identify the C-states latency in the low power entry
+> and exit paths, using 2 new macros in the enum and a sub state
+> argument. Cf. http://omappedia.org/images/b/b9/Pytimechart_screenshot9_rs.jpg
+> (from http://omappedia.org/wiki/Power_Management_Debug_and_Profiling).
+IMO one does not need an exit path, see below.
+ 
+> > What kind of hack is this:
+> > TRACE_EVENT(power_end,
+> > showing up as:
+> > power_end: dummy=65535
+> > What ends here?
+> > I know it's a workaround/hack for userspace apps to be
+> > able to detect leaving of a sleep state, but how would someone
+> > know or how would someone describe this in a proper API documentation?
+> That was a hack, it is now gone. The new power_end only takes the
+> cpu_id argument.
+The CPU/machine/device always is in a C-/P-/T-/S- whatever state.
+Typically 0 means it's in a non-power saving state.
+So issueing a power_switch_state(type=X, state=0)
+would be the exit path. There is no need for a separate:
+power_end(type=X) call.
+Compare with my S-state ACPI example, I'll send in a minute.
 
-[...]
+> > Apropos documentation..., are the power trace events documented
+> > somewhere?
+> No. We need something like Documentation/trace/events-kmem.txt. I can
+> write that with for the new power API.
+> 
+> > At least the state should still be passed, then the _start/_end thing
+> > can be reused by something else than C-states.
+> >
+> > I can't see the use of having _start/_end events at all.
+> > You are always in a state, having one:
+> > power_switch
+> > as suggested above, is enough to track everything.
+> Most of the events can be converted to power_switch, but not all.
+> Example: you need to know when the suspend ends.
+power_switch_state(type=POWER_SSTATE, state=0)
 
->>>>
->>>> As you mentioned, wd_timer3 in OMAP4 is an IVA3 watchdog timer.
->>>>
->>>> Also the current watchdog driver (omap_wdt.c) does not support more
->>>> than one watchdog timer. To add this support we need to first
->>>> redesign the driver code and then add wd_timer3 to the database.
->>>>
->>>> This patch series is intended to make watchdog driver to use
->>>> omap_hwmod APIs and PM runtime APIs. Driver modification to support
->>>> more than one watchdog timers can be taken up as a separate
->>>> activity later.
->>>
->>> No necessarily, even if you do not manage this watchdog, we do need to
->>> expose its hwmod in order to allow dspbridge/syslink to potentially
->>> enable or disable it.
->>
->> We also should expose it in the hwmod db so that it is initialized and
->> properly reset on init.
->
-> Correct, so you do recommend to expose most hwmods as soon as they are
-> not crashing at boot?  So far, the plan was to add only the ones
-> validated with the drivers.
+> >
+> > Examples:
+> >
+> > Today's C-state tracking:
+> > power_start: type=1 state=1  -> C1 entered
+> > power_end: dummy=65535       -> C-state left
+> > power_start: type=1 state=2  -> C2 entered
+> > power_end: dummy=65535       -> C-state left
+> > would then be:
+> > power_switch: type=1 state=1  -> C1 entered
+> > power_switch: type=1 state=0  -> C0 entered -> means C1 left...
+> > power_switch: type=1 state=2  -> C2 entered
+> > power_switch: type=1 state=0  -> C0 entered -> means C2 left...
+> > ...
+> >
+> > Todays P-state tracking:
+> > power_frequency: type=2 state=125000000     -> P-state change to 125 MHz
+> > power_frequency: type=2 state=90000000      -> P-state change to 90 MHz
+> > would then be:
+> > power_switch: type=2 state=125000000       -> P-state change to 125 MHz
+> > power_switch: type=2 state=90000000        -> P-state change to 90 MHz
+> >
+> > The S-state and T-state tracking would fit into that without
+> > modification.
+> > Thinking one step further, a possibility to track D-states would
+> What are the T- and D- states?
+T-states are processor throttling. Should only get used in critical
+thermal conditions, fits nice into this interface.
 
-I think all hwmods for a given class should be posted at the same time.
+D-states are device states, defined in ACPI from D0 (no power savings
+active, up to D3 (max powersavings active). It's up to the device what
+it's doing with it.
+This one does not fit into a generic power_switch_state, because:
+   - you want a connection to the device exported
+   - possibly you want to be smarter than ACPI and tell what exactly
+     a device switches off.
+I'd leave device specific events out of the discussion for now.
 
-If they are not validated with the driver, that is fine and the reason
-should be clearly stated in the changelog.
+> > need an additional field, a pointer to the device, best a sysfs path
+> > or similar.
+> Agree on that. As said above I would like to have extra args.
+> 
+> > Jean, I do not think tracing the S-state with power_start is a
+> > good idea. Best would be the power_frequency gets renamed
+> 
+> >(yes, breaks
+> > userspace, but those have to be adjusted)
+> BTW I can patch pytimechart. What other tools have to change? powertop ...?
+That would be great.
+AFAIK the code use trace/perf events in powertop is not yet released.
 
-Kevin
+> > and used for P- and S-
+> > state tracking (and C-state tracking as well, but this would need
+> > additional userspace modifications).
+> OK
+> 
+> > How do you track when the S-states end?
+> Two options: 1) have new arguments that indicates enter/exit and a
+> sub-state; 2) a new event fot the exit.
+> I am in favor of 1 which is more generic.
+See above, I'd use:
+power_switch_state(type=POWER_SSTATE, state=0)
+
+I'll post patches to get C-states and S-states making use of
+a generic:
+power_switch_state(...)
+function with still providing old events to not break existing
+tools.
+
+    Thomas
