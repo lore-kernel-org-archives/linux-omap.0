@@ -1,71 +1,100 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 08/14] omap: sram: fix is_sram_locked check
-Date: Fri, 17 Sep 2010 15:17:52 +0530
-Message-ID: <1284716878-27667-9-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 05/14] omap4: control: Add accessor api's for pad control module
+Date: Fri, 17 Sep 2010 15:17:49 +0530
+Message-ID: <1284716878-27667-6-git-send-email-santosh.shilimkar@ti.com>
 References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-4-git-send-email-santosh.shilimkar@ti.com>
  <1284716878-27667-5-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-6-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-7-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-8-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37172 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54849 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242Ab0IQJsM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Sep 2010 05:48:12 -0400
-In-Reply-To: <1284716878-27667-8-git-send-email-santosh.shilimkar@ti.com>
+	id S1751783Ab0IQJsO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Sep 2010 05:48:14 -0400
+In-Reply-To: <1284716878-27667-5-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+On OMAP4 control pad are not addressable from control
+core base. So the common omap_ctrl_read/write APIs breaks
+Hence export separate APIs to manage the omap4 pad control
+registers.
 
-For OMAP24xx/34xx/44xx: omap_type() returns the correct type:
- OMAP2_DEVICE_TYPE_TEST
- OMAP2_DEVICE_TYPE_EMU
- OMAP2_DEVICE_TYPE_SEC
- OMAP2_DEVICE_TYPE_GP
- OMAP2_DEVICE_TYPE_BAD
+This APIs will work only for OMAP4
 
-In current implementation there are two problems:
-Problem 1:
-For 34xx, the current if check will never return true.
-
-Problem 2:
-For 24xx the correct type check should be with omap_type() function
-Verified by checking the TRM 24xx for CONTROL_STATUS register bits
-
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/plat-omap/sram.c |   11 +----------
- 1 files changed, 1 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/control.c             |   18 ++++++++++++++++++
+ arch/arm/plat-omap/include/plat/control.h |    4 ++++
+ 2 files changed, 22 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 10b3b4c..1faaa6e 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -93,16 +93,7 @@ extern unsigned long omapfb_reserve_sram(unsigned long sram_pstart,
-  */
- static int is_sram_locked(void)
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 99c0eb6..4ace2d1 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -138,6 +138,7 @@ static struct omap3_control_regs control_context;
+ #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
+ 
+ #define OMAP_CTRL_REGADDR(reg)		(omap2_ctrl_base + (reg))
++#define OMAP_CTRL_PAD_REGADDR(reg)	(omap4_ctrl_pad_base + (reg))
+ 
+ void __init omap2_set_globals_control(struct omap_globals *omap2_globals)
  {
--	int type = 0;
--
--	if (cpu_is_omap44xx())
--		/* Not yet supported */
--		return 0;
--
--	if (cpu_is_omap242x())
--		type = omap_rev() & OMAP2_DEVICETYPE_MASK;
--
--	if (type == GP_DEVICE) {
-+	if (OMAP2_DEVICE_TYPE_GP == omap_type()) {
- 		/* RAMFW: R/W access to all initiators for all qualifier sets */
- 		if (cpu_is_omap242x()) {
- 			__raw_writel(0xFF, OMAP24XX_VA_REQINFOPERM0); /* all q-vects */
+@@ -189,6 +190,23 @@ void omap_ctrl_writel(u32 val, u16 offset)
+ 	__raw_writel(val, OMAP_CTRL_REGADDR(offset));
+ }
+ 
++/*
++ * On OMAP4 control pad are not addressable from control
++ * core base. So the common omap_ctrl_read/write APIs breaks
++ * Hence export separate APIs to manage the omap4 pad control
++ * registers. This APIs will work only for OMAP4
++ */
++
++u32 omap4_ctrl_pad_readl(u16 offset)
++{
++	return __raw_readl(OMAP_CTRL_PAD_REGADDR(offset));
++}
++
++void omap4_ctrl_pad_writel(u32 val, u16 offset)
++{
++	__raw_writel(val, OMAP_CTRL_PAD_REGADDR(offset));
++}
++
+ #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+ /*
+  * Clears the scratchpad contents in case of cold boot-
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index 131bf40..2916b7e 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -354,9 +354,11 @@ extern void __iomem *omap_ctrl_base_get(void);
+ extern u8 omap_ctrl_readb(u16 offset);
+ extern u16 omap_ctrl_readw(u16 offset);
+ extern u32 omap_ctrl_readl(u16 offset);
++extern u32 omap4_ctrl_pad_readl(u16 offset);
+ extern void omap_ctrl_writeb(u8 val, u16 offset);
+ extern void omap_ctrl_writew(u16 val, u16 offset);
+ extern void omap_ctrl_writel(u32 val, u16 offset);
++extern void omap4_ctrl_pad_writel(u32 val, u16 offset);
+ 
+ extern void omap3_save_scratchpad_contents(void);
+ extern void omap3_clear_scratchpad_contents(void);
+@@ -371,9 +373,11 @@ extern void omap3_control_restore_context(void);
+ #define omap_ctrl_readb(x)		0
+ #define omap_ctrl_readw(x)		0
+ #define omap_ctrl_readl(x)		0
++#define omap4_ctrl_pad_readl(x)		0
+ #define omap_ctrl_writeb(x, y)		WARN_ON(1)
+ #define omap_ctrl_writew(x, y)		WARN_ON(1)
+ #define omap_ctrl_writel(x, y)		WARN_ON(1)
++#define omap4_ctrl_pad_writel(x, y)	WARN_ON(1)
+ #endif
+ #endif	/* __ASSEMBLY__ */
+ 
 -- 
 1.6.0.4
 
