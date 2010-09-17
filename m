@@ -1,92 +1,90 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v5 4/6] OMAP4: hwmod data: Add watchdog timer
-Date: Fri, 17 Sep 2010 16:33:54 +0200
-Message-ID: <4C937C52.60300@ti.com>
-References: <1284528403-6494-1-git-send-email-charu@ti.com>	<1284528403-6494-5-git-send-email-charu@ti.com>	<4C91382F.1060505@ti.com>	<EAF47CD23C76F840A9E7FCE10091EFAB02CD307BEA@dbde02.ent.ti.com>	<4C933B1F.2040100@ti.com> <8762y44f8d.fsf@deeprootsystems.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 01/13] OMAP: Introduce a user list for each voltage
+ domain instance in the voltage driver.
+Date: Fri, 17 Sep 2010 20:03:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0329539FD6@dbde02.ent.ti.com>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+	<1282130412-12027-2-git-send-email-thara@ti.com>
+	<87iq2vipe7.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03294424BB@dbde02.ent.ti.com>
+ <87bp7xemv7.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50459 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752944Ab0IQOeF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Sep 2010 10:34:05 -0400
-In-Reply-To: <8762y44f8d.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58969 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754602Ab0IQOeG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 10:34:06 -0400
+In-Reply-To: <87bp7xemv7.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On 9/17/2010 4:27 PM, Kevin Hilman wrote:
-> "Cousson, Benoit"<b-cousson@ti.com>  writes:
->
->> Hi Charu,
+
+
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Thursday, September 16, 2010 8:50 PM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Sripathy, Vishwanath; Sawant, Anand; Cousson, Benoit
+>>Subject: Re: [PATCH 01/13] OMAP: Introduce a user list for each voltage domain instance in the
+>>voltage driver.
 >>
->> On 9/17/2010 11:23 AM, Varadarajan, Charulatha wrote:
->>>
->>>
->>>> -----Original Message-----
->>>> From: Cousson, Benoit
->>>> Sent: Thursday, September 16, 2010 2:49 AM
->>>> To: Varadarajan, Charulatha
->>>> Cc: tony@atomide.com; wim@iguana.be; linux-watchdog@vger.kernel.org;
->>>> khilman@deeprootsystems.com; paul@pwsan.com; Nayak, Rajendra; Basak,
->>>> Partha; linux-omap@vger.kernel.org
->>>> Subject: Re: [PATCH v5 4/6] OMAP4: hwmod data: Add watchdog timer
->>>>
->>>> Hi Charu,
->>>>
->>>> On 9/15/2010 7:26 AM, Varadarajan, Charulatha wrote:
->>>>> From: Benoit Cousson<b-cousson@ti.com>
->>>>>
->>>>> Add watchdog timer hwmod data for OMAP4 chip
->>>>>
->>>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->>>>> Signed-off-by: Charulatha V<charu@ti.com>
->>>>> ---
->>> <<snip>>
->>>
->>>>> @@ -472,6 +538,8 @@ static __initdata struct omap_hwmod
->>>> *omap44xx_hwmods[] = {
->>>>>
->>>>>     	/* mpu class */
->>>>>     	&omap44xx_mpu_hwmod,
->>>>> +	/* wd_timer class */
->>>>> +	&omap44xx_wd_timer2_hwmod,
->>>>>     	NULL,
->>>>>     };
->>>>
->>>> What about the wd_timer3? It is in the audio backend, and I'm not sure
->>>> who will use it, but it does exist.
->>>
->>> As you mentioned, wd_timer3 in OMAP4 is an IVA3 watchdog timer.
->>>
->>> Also the current watchdog driver (omap_wdt.c) does not support more than one watchdog timer. To add this support we need to first redesign the driver code and then add wd_timer3 to the database.
->>>
->>> This patch series is intended to make watchdog driver to use omap_hwmod APIs and PM runtime APIs. Driver modification to support more than one watchdog timers can be taken up as a separate activity later.
+>>"Gopinath, Thara" <thara@ti.com> writes:
 >>
->> No necessarily, even if you do not manage this watchdog, we do need to
->> expose its hwmod in order to allow dspbridge/syslink to potentially
->> enable or disable it.
->
-> We also should expose it in the hwmod db so that it is initialized and
-> properly reset on init.
-
-Correct, so you do recommend to expose most hwmods as soon as they are 
-not crashing at boot?
-So far, the plan was to add only the ones validated with the drivers.
-
-Benoit
-
->
-> Later on bridge/syslink can initialize and use as desired.
->
-> Kevin
->
->> Maybe, it should be up to syslink people to do that then.
->> In that case, please add comment in the DB to explain that we do have
->> other instances but they are not managed yet.
+>>[...]
 >>
->> Thanks,
->> Benoit
+>>>>>> + * omap_voltage_add_userreq : API to keep track of various requests to
+>>>>>> + *			    scale the VDD and returns the best possible
+>>>>>> + *			    voltage the VDD can be put to.
+>>>>>> + * @volt_domain: pointer to the voltage domain.
+>>>>>> + * @dev : the device pointer.
+>>>>>> + * @volt : the voltage which is requested by the device.
+>>>>>> + *
+>>>>>> + * This API is to be called before the actual voltage scaling is
+>>>>>> + * done to determine what is the best possible voltage the VDD can
+>>>>>> + * be put to. This API adds the device <dev> in the user list of the
+>>>>>> + * vdd <volt_domain> with <volt> as the requested voltage. The user list
+>>>>>> + * is a plist with the priority element absolute voltage values.
+>>>>>> + * The API then finds the maximum of all the requested voltages for
+>>>>>> + * the VDD and returns it back through <volt> pointer itself.
+>>>>>> + * Returns error value in case of any errors.
+>>>>>> + */
+>>>>>> +int omap_voltage_add_userreq(struct voltagedomain *voltdm, struct device *dev,
+>>>>>> +		unsigned long *volt)
+>>>>>
+>>>>>How about just omap_voltage_add_request()
+>>>>>
+>>>>>Also, do we need both voltdm and dev?  With your other patches, can't we
+>>>>>look up the voltm based on dev?  Or, is there a need for a device to add
+>>>>>a request in a voltage domain other than the one to which it belongs?
+>>>>>
+>>>>>Also, how does one remove a voltage request?
+>>>
+>>> Hello Kevin,
+>>>
+>>> I could rename this API to what you have suggested. Yes we do need voltdm and dev.
+>>> Let us say I have three devices in a voltdm and I need to maintain a request for each
+>>> of these devices.
+>>
+>>OK, thanks for clarifying.
+>>
+>>> When a omap_device_set_rate API is called by the device to lower its rate the voltage
+>>> request will automatically get lowered.
+>>
+>>OK, but what about removing a request when a device no longer has any
+>>voltage constraints.
+Hi Kevin,
+
+The devices will use omap_device_set_rate to lower their frequency.
+This will in turn call the use counting API in voltage layer and add
+which in turn will remove the old request for the device and add the new
+request which will be for a lower voltage. Hence releasing gets taken
+care of.
+
+Regards
+Thara
 
