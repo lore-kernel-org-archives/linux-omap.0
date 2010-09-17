@@ -1,92 +1,83 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 01/14] ARM: mmu: Setup MT_MEMORY and MT_MEMORY_NONCACHED L1 entries
-Date: Fri, 17 Sep 2010 15:17:45 +0530
-Message-ID: <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
-References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 00/14] omap sram, omap4 control module and es2.0 support
+Date: Fri, 17 Sep 2010 15:17:44 +0530
+Message-ID: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37170 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751447Ab0IQJsL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Sep 2010 05:48:11 -0400
-In-Reply-To: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45878 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136Ab0IQJsL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 05:48:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch populates the L1 entries for MT_MEMORY and MT_MEMORY_NONCACHED
-types so that at boot-up, we can map memories outside system memory
-at page level granularity
+This is consolidated patch series targetted for 2.6.37 merge window.
+All of these patches have been already posted/reviewed on the list.
 
-Previously the mapping was limiting to section level, which creates
-unnecessary addiotional mapping for which physical memory may not
-present. On the newer ARM with speculation, this is dangerous and can
-result in untraceable aborts.
+The series contains
+	- SRAM mapping fixes to avoid speculative aborts
+	- omap4 control module support
+	- Fixes for omap4 HS/GP detection
+	- omap4 es2.0 fixes. MMC and ethernet fixes are queued in respective
+	  trees
+	  
+Boot tested with omap3_defconfig on
+			- OMAP4430 SPP
+			- OMAP4 Panda
+			- OMAP4 Blaze
+			- OMAP3430 SDP
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Reviewed-by: Russell King <linux@arm.linux.org.uk>
----
- arch/arm/mm/mmu.c |   17 +++++++++++++++--
- 1 files changed, 15 insertions(+), 2 deletions(-)
+The following changes since commit 03a7ab083e4d619136d6f07ce70fa9de0bc436fc:
+  Linus Torvalds (1):
+        Merge git://git.kernel.org/.../sfrench/cifs-2.6
 
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 6e1c4f6..3e986a6 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -246,6 +246,9 @@ static struct mem_type mem_types[] = {
- 		.domain    = DOMAIN_USER,
- 	},
- 	[MT_MEMORY] = {
-+		.prot_pte  = L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
-+				L_PTE_USER | L_PTE_EXEC,
-+		.prot_l1   = PMD_TYPE_TABLE,
- 		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
- 		.domain    = DOMAIN_KERNEL,
- 	},
-@@ -254,6 +257,9 @@ static struct mem_type mem_types[] = {
- 		.domain    = DOMAIN_KERNEL,
- 	},
- 	[MT_MEMORY_NONCACHED] = {
-+		.prot_pte  = L_PTE_PRESENT | L_PTE_YOUNG | L_PTE_DIRTY |
-+				L_PTE_USER | L_PTE_EXEC | L_PTE_MT_BUFFERABLE,
-+		.prot_l1   = PMD_TYPE_TABLE,
- 		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
- 		.domain    = DOMAIN_KERNEL,
- 	},
-@@ -411,9 +417,12 @@ static void __init build_mem_type_table(void)
- 	 * Enable CPU-specific coherency if supported.
- 	 * (Only available on XSC3 at the moment.)
- 	 */
--	if (arch_is_coherent() && cpu_is_xsc3())
-+	if (arch_is_coherent() && cpu_is_xsc3()) {
- 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
--
-+		mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
-+		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
-+	}
- 	/*
- 	 * ARMv6 and above have extended page tables.
- 	 */
-@@ -438,7 +447,9 @@ static void __init build_mem_type_table(void)
- 		mem_types[MT_DEVICE_CACHED].prot_sect |= PMD_SECT_S;
- 		mem_types[MT_DEVICE_CACHED].prot_pte |= L_PTE_SHARED;
- 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
-+		mem_types[MT_MEMORY].prot_pte |= L_PTE_SHARED;
- 		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
-+		mem_types[MT_MEMORY_NONCACHED].prot_pte |= L_PTE_SHARED;
- #endif
- 	}
- 
-@@ -475,6 +486,8 @@ static void __init build_mem_type_table(void)
- 	mem_types[MT_LOW_VECTORS].prot_l1 |= ecc_mask;
- 	mem_types[MT_HIGH_VECTORS].prot_l1 |= ecc_mask;
- 	mem_types[MT_MEMORY].prot_sect |= ecc_mask | cp->pmd;
-+	mem_types[MT_MEMORY].prot_pte |= kern_pgprot;
-+	mem_types[MT_MEMORY_NONCACHED].prot_sect |= ecc_mask;
- 	mem_types[MT_ROM].prot_sect |= cp->pmd;
- 
- 	switch (cp->pmd) {
--- 
-1.6.0.4
+are available in the git repository at:
 
+  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap_for_2.6.37
+
+David Anders (1):
+      omap4: Panda: Add DEBUG_LL support
+
+Santosh Shilimkar (11):
+      ARM: mmu: Setup MT_MEMORY and MT_MEMORY_NONCACHED L1 entries
+      omap: Map only available sram memory
+      davinci: map sram using MT_MEMORY_NONCACHED instead of MT_DEVICE
+      omap4: control: Add ctrl_pad_base to omap_globals
+      omap4: control: Add accessor api's for pad control module
+      omap4: control: Add the register definition headers
+      omap4: control: Fix the control module register accesses
+      omap4: Update id.c and cpu.h for es2.0
+      omap4: Fix silicon version detection for early samples
+      omap4: l2x0: Fix init parameter for es2.0
+      omap4: Fix bootup crash observed with higher CPU clocks
+
+Vikram Pandita (2):
+      omap: sram: fix is_sram_locked check
+      omap4: sram: Fix start address
+
+ arch/arm/mach-davinci/dm355.c                      |    3 +-
+ arch/arm/mach-davinci/dm365.c                      |    3 +-
+ arch/arm/mach-davinci/dm644x.c                     |    3 +-
+ arch/arm/mach-davinci/dm646x.c                     |    3 +-
+ arch/arm/mach-omap2/control.c                      |   25 +
+ arch/arm/mach-omap2/hsmmc.c                        |   67 +-
+ arch/arm/mach-omap2/id.c                           |   40 +-
+ .../include/mach/ctrl_module_core_44xx.h           |  391 ++++++
+ .../include/mach/ctrl_module_pad_core_44xx.h       | 1409 ++++++++++++++++++++
+ .../include/mach/ctrl_module_pad_wkup_44xx.h       |  236 ++++
+ .../include/mach/ctrl_module_wkup_44xx.h           |   92 ++
+ arch/arm/mach-omap2/omap4-common.c                 |   10 +-
+ arch/arm/mm/mmu.c                                  |   17 +-
+ arch/arm/plat-omap/common.c                        |    3 +-
+ arch/arm/plat-omap/dmtimer.c                       |    2 +-
+ arch/arm/plat-omap/include/plat/common.h           |    1 +
+ arch/arm/plat-omap/include/plat/control.h          |   31 +-
+ arch/arm/plat-omap/include/plat/cpu.h              |    5 +-
+ arch/arm/plat-omap/include/plat/uncompress.h       |    1 +
+ arch/arm/plat-omap/sram.c                          |   38 +-
+ 20 files changed, 2271 insertions(+), 109 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_44xx.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_pad_wkup_44xx.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.h
