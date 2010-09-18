@@ -1,114 +1,91 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode support
-Date: Sat, 18 Sep 2010 23:54:55 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B031606213F@dbde02.ent.ti.com>
-References: <1284624059-1741-1-git-send-email-s-ghorai@ti.com>
- <1284624059-1741-2-git-send-email-s-ghorai@ti.com>
- <20100917175504.GG29610@atomide.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] opp: introduce library for device-specific OPPs
+Date: Sat, 18 Sep 2010 20:41:41 +0200
+Message-ID: <201009182041.41675.rjw@sisk.pl>
+References: <[PATCH 1/4] OMAP: introduce OPP layer for device-specific OPPs> <201009180107.51664.rjw@sisk.pl> <4C93FAD1.80108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33561 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751887Ab0IRSZG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Sep 2010 14:25:06 -0400
-In-Reply-To: <20100917175504.GG29610@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4C93FAD1.80108@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeproo>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+[Trimming the CC list.]
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, September 17, 2010 11:25 PM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> kernel@lists.infradead.org; Vimal Singh
-> Subject: Re: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode
-> support
-> 
-> * Sukumar Ghorai <s-ghorai@ti.com> [100916 00:53]:
-> > This patch enable prefetch-irq mode for NAND.
-> >
-> > --- a/drivers/mtd/nand/omap2.c
-> > +++ b/drivers/mtd/nand/omap2.c
-> > @@ -467,6 +485,152 @@ static void omap_write_buf_dma_pref(struct
-> mtd_info *mtd,
-> >  		omap_nand_dma_transfer(mtd, (u_char *) buf, len, 0x1);
-> >  }
-> >
-> > +/*
-> > + * omap_nand_irq - GMPC irq handler
-> > + * @this_irq: gpmc irq number
-> > + * @dev: omap_nand_info structure pointer is passed here
-> > + */
-> > +static irqreturn_t omap_nand_irq(int this_irq, void *dev)
-> > +{
-> > +	struct omap_nand_info *info = (struct omap_nand_info *) dev;
-> > +	u32 bytes;
-> > +	u32 irq_stat;
-> > +
-> > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > +	bytes = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
-> > +	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
-> > +	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
-> > +		if (irq_stat & 0x2)
-> > +			goto done;
-> > +
-> > +		if (info->buf_len & (info->buf_len < bytes))
-> > +			bytes = info->buf_len;
-> > +		else if (!info->buf_len)
-> > +			bytes = 0;
-> > +		iowrite32_rep(info->nand.IO_ADDR_W,
-> > +						(u32 *)info->buf, bytes >> 2);
-> > +		info->buf = info->buf + bytes;
-> > +		info->buf_len -= bytes;
-> > +
-> > +	} else {
-> > +		ioread32_rep(info->nand.IO_ADDR_R,
-> > +						(u32 *)info->buf, bytes >> 2);
-> > +		info->buf = info->buf + bytes;
-> > +
-> > +		if (irq_stat & 0x2)
-> > +			goto done;
-> > +	}
-> > +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
-> > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > +
-> > +	return IRQ_HANDLED;
-> > +
-> > +done:
-> > +	complete(&info->comp);
-> > +	/* disable irq */
-> > +	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
-> > +
-> > +	/* clear status */
-> > +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
-> > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > +
-> > +	return IRQ_HANDLED;
-> > +}
-> 
-> This handler should be in gpmc.c as it may be needed for other GPMC
-> connected devices on the same system. You can use chained irq handlers
-> to allow all the drivers to use the interrupt then.
+On Saturday, September 18, 2010, Nishanth Menon wrote:
+> Rafael J. Wysocki had written, on 09/17/2010 06:07 PM, the following:
+...
+> > 
+> > Apart from this, it might be a good idea to help callers a bit and actually
+> > introduce some sort of locking into the framework.
+> in OMAP implementation we have need to use these apis from irq_locked 
+> contexts as well..  lock implementation will prevent thier necessary 
+> usage.
 
-[Ghorai] 
-You mean as this function used the gpmc-irq number in nand file, so handler should move to gpmc.c file? 
-	1. For that we need to add one io-struct (to keep io buffer status) in gpmc.c; 
+Why so?  You can use spin_lock_irqsave/spin_unclock_irqrestore  to
+avoid that.
 
-	2. Also need help how to sync between gpmc.c/omap_nand_irq() and omap2.c/omap_write_buf_irq_pref(), men how read/write function know that work done in interrupt-context? Or you prefer to move the complete IO function (omap_read/write_buf_irq_pref) to gpmc.c?
+> instead we have implemented lock mechanisms in higher layers and 
+> ensured that the opp table does not change once created - the rest of 
+> them are query functions - the risk is on opp_enable/disable.
 
-	3. gpmc does not now about the read and write address that's applicable for NAND. So how to pass the IO address from omap2.c to gpmc.c, interrupt handler?
+OK, but this way you practically make the users of the framework duplicate
+some code for the locking purposes.  This is kind of suboptimal, and error
+prone too.
 
+> >> In terms of the lifetime rules on the nodes in the list:
+> >> The list is expected to be maintained once created, entries are expected 
+> >> to be added optimally and not expected to be destroyed, the choice of 
+> >> list implementation was for reducing the complexity of the code itself 
+> >> and not yet meant as a mechanism to dynamically add and delete nodes on 
+> >> the fly.. Essentially, it was intended for the SOC framework to ensure 
+> >> it plugs in the OPP entries optimally and not create a humongous list of 
+> >> all possible OPPs for all families of the vendor SOCs - even though it 
+> >> is possible to use the OPP layer so - it just wont be smart to do so 
+> >> considering list scan latencies on hot paths such as cpufreq transitions 
+> >> or idle transitions.
+> > 
+> > If the list nodes are not supposed to be added and removed dynamically,
+> > it probably would make sense to create data structures containing
+> > the "available" OPPs only, once they are known, and simply free the object
+> > representing the other ones.
+> I covered the usage in my reply here: 
+> http://marc.info/?l=linux-arm-kernel&m=128476570300466&w=2
+> but to repeat, the list is dynamic during initialization but remains 
+> static after initialization based on SOC framework implementation - this 
+> is best implemented with a list (we had started with an original array 
+> implementation which evolved to the current list implementation 
+> http://marc.info/?l=linux-omap&m=125912217718770&w=2)
 
-So, please let me know your suggestion again such that I can post this time itself. Otherwise again it will miss from coming release, this was posted/reviewed for last release too. And suggest to void repeating of missing release window again.
+Well, my point is, since the _final_ set of OPPs doesn't really change, there's
+no need to use a list for storing it in principle.
 
-> 
-> Regards,
-> 
-> Tony
+Your current algorithm seems to be:
+(1) Create a list of all _possible_ OPPs.
+(2) Mark the ones that can actually be used on the given hardware as
+    "available".
+(3) Whenever we need to find an OPP to use, browse the entire list.
+
+This isn't optimal, because the OPPs that are not marked as "available" in (2)
+will never be used, although they _will_ be inspected while browsing the list.
+So, I think a better algorithm would be:
+(1) Create a list of all possible OPPs.
+(2) Drop the nonavailable OPPs from the list.
+(3) Whenever we need to find an OPP to use, browse the entire list.
+
+But then, it may be better to simply move the list we get in (2) into an
+array, because the browsing is going to require fewer memory accesses in
+that case (also, an array would use less memory than the list).  So, perhaps,
+it's better to change the algorithm even further:
+(1) Create a list of all possible OPPs.
+(2) Drop the nonavailable OPPs from the list.
+(3) Move the list we got in (2) into a sorted array.
+(4) Whenever we need to find an OPP to use, browse the array
+     (perhaps using binary search).
+
+Thanks,
+Rafael
