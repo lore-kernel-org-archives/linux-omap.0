@@ -1,201 +1,423 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v6 00/13] OMAP: GPIO: Implement GPIO in hwmod way
-Date: Sat, 18 Sep 2010 19:45:40 +0530
-Message-ID: <1284819353-8512-1-git-send-email-charu@ti.com>
+Subject: [PATCH v6 07/13] OMAP3: hwmod data: Add GPIO
+Date: Sat, 18 Sep 2010 19:45:47 +0530
+Message-ID: <1284819353-8512-8-git-send-email-charu@ti.com>
+References: <1284819353-8512-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48460 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755404Ab0IROQQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Sep 2010 10:16:16 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56367 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755465Ab0IROQR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Sep 2010 10:16:17 -0400
+In-Reply-To: <1284819353-8512-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
 
-This patch series makes OMAP2PLUS specific GPIO implemented in hwmod
-FW way. This is done by implementing GPIO module in platform device model.
+Add GPIO hwmod data for OMAP3 chip
 
-This patch series is generated on "origin/pm-wip/pm-core" which
-has Kevin's pm-next series, the runtime PM core patch series,
-and a collection of hwmod fixes that Paul/Benoit have lined up
-for 2.6.37.
+Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  364 ++++++++++++++++++++++++++++
+ 1 files changed, 364 insertions(+), 0 deletions(-)
 
-Tested on OMAP2430, OMAP44430, OMAP3430 SDP and zoom3 boards.
-Also verified that this patch series does not break the OMAP1 build.
-
-This patch series is created on top of the following patches:
-1. OMAP: HWMOD: Handle opt clocks using clk_add_alias
-[https://patchwork.kernel.org/patch/124531/]
-2. OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
-[https://patchwork.kernel.org/patch/176172/]
-3. OMAP: CPUIDLE: Enable IRQs during device activity check and idle management
-by Kevin
-
-This series is tested on OMAP4430 ES2 using the below series
-http://www.spinics.net/lists/linux-omap/msg36023.html
-
-Version History:
----------------
-v6 Series:
--use PM runtime APIs for gpio in cpu idle/resume after
- idle path when interrupts are enabled.
--Do not use omap_device_* calls in the gpio driver
--Use clock alias names for debounce clocks while using clock
- framework APIs to do clk_get.
--do a kfree of pdata after doing omap_device_build()
--use PM runtime APIs during probe before and after accessing
- gpio registers
--Remove sysconfig register access from GPIO driver
--Use ARRAY_SIZE instead on size_of in OMAP1 gpio_init
-
-v5 Series:
-Some link for v5 series:
-https://patchwork.kernel.org/patch/117790/
-https://patchwork.kernel.org/patch/117789/
-https://patchwork.kernel.org/patch/117788/
-https://patchwork.kernel.org/patch/117785/
-https://patchwork.kernel.org/patch/117796/
-Comments Fixed in v5:
-- Use dev_pm_ops instead of sys_dev_class
-- Use runtime suspend/resume hooks for GPIO device
-- extend the usage of mod_usage flag to all cpu classes.( Earlier it was
-   used only for OMAP2PLUS)
-- Make gpio_context as part of gpio_bank structure
-
-v4 Series:
-Some link for v4 series:
-https://patchwork.kernel.org/patch/107411/
-Comments Fixed in v4:
-- Remove gpio_bank_count from dev_attr field and derive it from
-   hwmod class iteration count
-- Add TODOs for future omap gpio code cleanup related activity
-- Rename gpio's platform_data 'method' to 'bank_type'
-- Rename gpio's platform_data 'gpio_bank_bits' to 'gpio_bank_width'
-- Add 'rev' field to gpio class in hwmod datbase and get 'bank_type'
-   based on 'rev' field
-- Filename removed from file description when a new file is created
-
-v3 Series:
-Some of the v3 links:
-https://patchwork.kernel.org/patch/106224/
-Comments Fixed in v3:
-- .module_offs populated in hwmod structures
-- If not defined CONFIG_PM_RUNTIME is not handled in GPIO driver
-- No changes to mach-omap2/clockxxxx-data.c to handle clocks by dev ptr
-    as it is taken care using clock get by name in hwmod & omap_device layer
-- Using "ick" instead of "arm_gpio_ck" for OMAP15xx clock
-- SoC base addresses moved to plat-omap/omapXXXX.h that should be
-    used only by the omap_hwmod_xxxx_data.c file
-- OMAP2/3 hwmod structures naming convention changed as it is
-    followed in OMAP4
-- omap24xx_gpio_init() uses cpu_is_omap24xx() instead of separate
-    checks for 2420 & 2430 in OMAP2 specific init call (mach-omap layer)
-- Reason for using postcore_initcall is added to patch description for
-    the patch "OMAP: GPIO: Introduce support for OMAP2PLUS chip GPIO init"
-- Comments added for usage of dbck_flag and other elements
-    in dev_attr structure
-- Uses dev_dbg() and dev_err() instead of pr_dbg() and pr_err()
-- Corrects the gpio clock details in OMAP4 hwmod database
-
-v2 series:
-Some important links to patch v2 series and comments:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30262.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28787.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30263.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30295.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg30259.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28933.html
-Comments Fixed in V2:
-- GPIO dev attr was added for SoC specific chip info (eg., gpio bank count)
-- Removed omap_gpio_init() usage from board files 
-- platform_get_resource() used instead of pdata->base for
-    OMAP2+ base addresses
-- postcore_initcall used for gpio init instead of making
-    GPIO as an early platform device. SoC specific gpio_init
-    needs to be done before machine_init functions access gpio
-    APIs. Hence making SoC specific gpio_init as postcore_initcall.
-- getting gpio dbck is moved to omap_set_gpio_debounce()
-    instead of doing it in probe
-
-v1 series:
-Some important links to patch v1 series and comments:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26934.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg27860.html
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28183.html
-Highlights in v1:
-- Introduces SoC specific functions at mach-omap layer
-- Implements GPIO as a platform device
-- Make gpio an early device and make it implemented in
-
-Benoit Cousson (1):
-  OMAP4: hwmod data: Add GPIO
-
-Varadarajan, Charulatha (12):
-  OMAP: GPIO: Modify init() in preparation for platform device
-    implementation
-  OMAP: GPIO: Introduce support for OMAP15xx chip GPIO init
-  OMAP: GPIO: Introduce support for OMAP16xx chip GPIO init
-  OMAP: GPIO: Introduce support for OMAP7xx chip GPIO init
-  OMAP2420: hwmod data: Add GPIO
-  OMAP2430: hwmod data: Add GPIO
-  OMAP3: hwmod data: Add GPIO
-  OMAP2PLUS: GPIO: use omap_device_build for device registration
-  OMAP: GPIO: Implement GPIO as a platform device
-  OMAP: GPIO: Make gpio_context as part of gpio_bank structure
-  OMAP: GPIO: Use dev_pm_ops instead of sys_dev_class
-  OMAP: GPIO: Remove omap_gpio_init()
-
- arch/arm/mach-omap1/Makefile               |    6 +
- arch/arm/mach-omap1/board-ams-delta.c      |    1 -
- arch/arm/mach-omap1/board-fsample.c        |    1 -
- arch/arm/mach-omap1/board-h2.c             |    1 -
- arch/arm/mach-omap1/board-h3.c             |    1 -
- arch/arm/mach-omap1/board-htcherald.c      |    1 -
- arch/arm/mach-omap1/board-innovator.c      |    1 -
- arch/arm/mach-omap1/board-nokia770.c       |    1 -
- arch/arm/mach-omap1/board-osk.c            |    1 -
- arch/arm/mach-omap1/board-palmte.c         |    1 -
- arch/arm/mach-omap1/board-palmz71.c        |    1 -
- arch/arm/mach-omap1/board-perseus2.c       |    1 -
- arch/arm/mach-omap1/board-sx1.c            |    1 -
- arch/arm/mach-omap1/board-voiceblue.c      |    1 -
- arch/arm/mach-omap1/clock_data.c           |    4 +-
- arch/arm/mach-omap1/gpio15xx.c             |  101 +++
- arch/arm/mach-omap1/gpio16xx.c             |  208 +++++
- arch/arm/mach-omap1/gpio7xx.c              |  274 ++++++
- arch/arm/mach-omap2/Makefile               |    3 +-
- arch/arm/mach-omap2/board-2430sdp.c        |    1 -
- arch/arm/mach-omap2/board-3430sdp.c        |    1 -
- arch/arm/mach-omap2/board-3630sdp.c        |    1 -
- arch/arm/mach-omap2/board-4430sdp.c        |    1 -
- arch/arm/mach-omap2/board-am3517evm.c      |    1 -
- arch/arm/mach-omap2/board-apollon.c        |    1 -
- arch/arm/mach-omap2/board-cm-t35.c         |    1 -
- arch/arm/mach-omap2/board-devkit8000.c     |    1 -
- arch/arm/mach-omap2/board-h4.c             |    1 -
- arch/arm/mach-omap2/board-igep0020.c       |    1 -
- arch/arm/mach-omap2/board-ldp.c            |    1 -
- arch/arm/mach-omap2/board-n8x0.c           |    1 -
- arch/arm/mach-omap2/board-omap3beagle.c    |    1 -
- arch/arm/mach-omap2/board-omap3evm.c       |    1 -
- arch/arm/mach-omap2/board-omap3pandora.c   |    1 -
- arch/arm/mach-omap2/board-omap3stalker.c   |    1 -
- arch/arm/mach-omap2/board-omap3touchbook.c |    1 -
- arch/arm/mach-omap2/board-omap4panda.c     |    1 -
- arch/arm/mach-omap2/board-overo.c          |    1 -
- arch/arm/mach-omap2/board-rx51.c           |    1 -
- arch/arm/mach-omap2/board-zoom2.c          |    1 -
- arch/arm/mach-omap2/board-zoom3.c          |    1 -
- arch/arm/mach-omap2/gpio.c                 |   92 ++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |  227 +++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |  273 ++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  364 ++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  341 ++++++++
- arch/arm/plat-omap/gpio.c                  | 1283 ++++++++++++----------------
- arch/arm/plat-omap/include/plat/gpio.h     |   25 +
- 48 files changed, 2473 insertions(+), 763 deletions(-)
- create mode 100644 arch/arm/mach-omap1/gpio15xx.c
- create mode 100644 arch/arm/mach-omap1/gpio16xx.c
- create mode 100644 arch/arm/mach-omap1/gpio7xx.c
- create mode 100644 arch/arm/mach-omap2/gpio.c
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 5d8eb58..43ed2ab 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -17,6 +17,7 @@
+ #include <mach/irqs.h>
+ #include <plat/cpu.h>
+ #include <plat/dma.h>
++#include <plat/gpio.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -36,6 +37,12 @@ static struct omap_hwmod omap3xxx_iva_hwmod;
+ static struct omap_hwmod omap3xxx_l3_main_hwmod;
+ static struct omap_hwmod omap3xxx_l4_core_hwmod;
+ static struct omap_hwmod omap3xxx_l4_per_hwmod;
++static struct omap_hwmod omap3xxx_gpio1_hwmod;
++static struct omap_hwmod omap3xxx_gpio2_hwmod;
++static struct omap_hwmod omap3xxx_gpio3_hwmod;
++static struct omap_hwmod omap3xxx_gpio4_hwmod;
++static struct omap_hwmod omap3xxx_gpio5_hwmod;
++static struct omap_hwmod omap3xxx_gpio6_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+@@ -197,6 +204,357 @@ static struct omap_hwmod omap3xxx_iva_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+ };
+ 
++/* l4_wkup -> gpio1 */
++static struct omap_hwmod_addr_space omap3xxx_gpio1_addrs[] = {
++	{
++		.pa_start	= 0x48310000,
++		.pa_end		= 0x483101ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__gpio1 = {
++	.master		= &omap3xxx_l4_wkup_hwmod,
++	.slave		= &omap3xxx_gpio1_hwmod,
++	.clk		= "gpio1_ick",
++	.addr		= omap3xxx_gpio1_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio1_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio2 */
++static struct omap_hwmod_addr_space omap3xxx_gpio2_addrs[] = {
++	{
++		.pa_start	= 0x49050000,
++		.pa_end		= 0x490501ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio2 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio2_hwmod,
++	.clk		= "gpio2_ick",
++	.addr		= omap3xxx_gpio2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio3 */
++static struct omap_hwmod_addr_space omap3xxx_gpio3_addrs[] = {
++	{
++		.pa_start	= 0x49052000,
++		.pa_end		= 0x490521ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio3 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio3_hwmod,
++	.clk		= "gpio3_ick",
++	.addr		= omap3xxx_gpio3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio3_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio4 */
++static struct omap_hwmod_addr_space omap3xxx_gpio4_addrs[] = {
++	{
++		.pa_start	= 0x49054000,
++		.pa_end		= 0x490541ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio4 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio4_hwmod,
++	.clk		= "gpio4_ick",
++	.addr		= omap3xxx_gpio4_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio4_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio5 */
++static struct omap_hwmod_addr_space omap3xxx_gpio5_addrs[] = {
++	{
++		.pa_start	= 0x49056000,
++		.pa_end		= 0x490561ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio5 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio5_hwmod,
++	.clk		= "gpio5_ick",
++	.addr		= omap3xxx_gpio5_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio5_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* l4_per -> gpio6 */
++static struct omap_hwmod_addr_space omap3xxx_gpio6_addrs[] = {
++	{
++		.pa_start	= 0x49058000,
++		.pa_end		= 0x490581ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++static struct omap_hwmod_ocp_if omap3xxx_l4_per__gpio6 = {
++	.master		= &omap3xxx_l4_per_hwmod,
++	.slave		= &omap3xxx_gpio6_hwmod,
++	.clk		= "gpio6_ick",
++	.addr		= omap3xxx_gpio6_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap3xxx_gpio6_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/*
++ * 'gpio' class
++ * general purpose io module
++ */
++
++static struct omap_hwmod_class_sysconfig omap3xxx_gpio_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap3xxx_gpio_hwmod_class = {
++	.name = "gpio",
++	.sysc = &omap3xxx_gpio_sysc,
++	.rev = 1,
++};
++
++/* gpio_dev_attr*/
++static struct omap_gpio_dev_attr gpio_dev_attr = {
++	.bank_width = 32,
++	.dbck_flag = true,
++};
++
++/* gpio1 */
++static struct omap_hwmod_irq_info omap3xxx_gpio1_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK1 },
++};
++
++static struct omap_hwmod_opt_clk gpio1_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio1_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio1_slaves[] = {
++	&omap3xxx_l4_wkup__gpio1,
++};
++
++static struct omap_hwmod omap3xxx_gpio1_hwmod = {
++	.name		= "gpio1",
++	.mpu_irqs	= omap3xxx_gpio1_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio1_irqs),
++	.main_clk	= NULL,
++	.opt_clks	= gpio1_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio1_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO1_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_GPIO1_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio1_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio2 */
++static struct omap_hwmod_irq_info omap3xxx_gpio2_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK2 },
++};
++
++static struct omap_hwmod_opt_clk gpio2_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio2_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio2_slaves[] = {
++	&omap3xxx_l4_per__gpio2,
++};
++
++static struct omap_hwmod omap3xxx_gpio2_hwmod = {
++	.name		= "gpio2",
++	.mpu_irqs	= omap3xxx_gpio2_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio2_irqs),
++	.main_clk	= NULL,
++	.opt_clks	= gpio2_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio2_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO2_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_GPIO2_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio2_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio3 */
++static struct omap_hwmod_irq_info omap3xxx_gpio3_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK3 },
++};
++
++static struct omap_hwmod_opt_clk gpio3_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio3_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio3_slaves[] = {
++	&omap3xxx_l4_per__gpio3,
++};
++
++static struct omap_hwmod omap3xxx_gpio3_hwmod = {
++	.name		= "gpio3",
++	.mpu_irqs	= omap3xxx_gpio3_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio3_irqs),
++	.main_clk	= NULL,
++	.opt_clks	= gpio3_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio3_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO3_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_GPIO3_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio3_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio4 */
++static struct omap_hwmod_irq_info omap3xxx_gpio4_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK4 },
++};
++
++static struct omap_hwmod_opt_clk gpio4_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio4_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio4_slaves[] = {
++	&omap3xxx_l4_per__gpio4,
++};
++
++static struct omap_hwmod omap3xxx_gpio4_hwmod = {
++	.name		= "gpio4",
++	.mpu_irqs	= omap3xxx_gpio4_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio4_irqs),
++	.main_clk	= NULL,
++	.opt_clks	= gpio4_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio4_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO4_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_GPIO4_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio4_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio5 */
++static struct omap_hwmod_irq_info omap3xxx_gpio5_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK5 },
++};
++
++static struct omap_hwmod_opt_clk gpio5_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio5_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio5_slaves[] = {
++	&omap3xxx_l4_per__gpio5,
++};
++
++static struct omap_hwmod omap3xxx_gpio5_hwmod = {
++	.name		= "gpio5",
++	.mpu_irqs	= omap3xxx_gpio5_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio5_irqs),
++	.main_clk	= NULL,
++	.opt_clks	= gpio5_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio5_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO5_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_GPIO5_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio5_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio5_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++/* gpio6 */
++static struct omap_hwmod_irq_info omap3xxx_gpio6_irqs[] = {
++	{ .name = "gpio_mpu_irq", .irq = INT_34XX_GPIO_BANK6 },
++};
++
++static struct omap_hwmod_opt_clk gpio6_opt_clks[] = {
++	{ .role = "dbclk", .clk = "gpio6_dbck", },
++};
++
++static struct omap_hwmod_ocp_if *omap3xxx_gpio6_slaves[] = {
++	&omap3xxx_l4_per__gpio6,
++};
++
++static struct omap_hwmod omap3xxx_gpio6_hwmod = {
++	.name		= "gpio6",
++	.mpu_irqs	= omap3xxx_gpio6_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_gpio6_irqs),
++	.main_clk	= NULL,
++	.opt_clks	= gpio6_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(gpio6_opt_clks),
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_GPIO6_SHIFT,
++			.module_offs = OMAP3430_PER_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_EN_GPIO6_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_gpio6_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_gpio6_slaves),
++	.class		= &omap3xxx_gpio_hwmod_class,
++	.dev_attr	= &gpio_dev_attr,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -204,6 +562,12 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l4_wkup_hwmod,
+ 	&omap3xxx_mpu_hwmod,
+ 	&omap3xxx_iva_hwmod,
++	&omap3xxx_gpio1_hwmod,
++	&omap3xxx_gpio2_hwmod,
++	&omap3xxx_gpio3_hwmod,
++	&omap3xxx_gpio4_hwmod,
++	&omap3xxx_gpio5_hwmod,
++	&omap3xxx_gpio6_hwmod,
+ 	NULL,
+ };
+ 
+-- 
+1.7.0.4
 
