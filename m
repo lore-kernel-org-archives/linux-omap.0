@@ -1,312 +1,513 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v6 01/13] OMAP: GPIO: Modify init() in preparation for platform device implementation
-Date: Sat, 18 Sep 2010 19:45:41 +0530
-Message-ID: <1284819353-8512-2-git-send-email-charu@ti.com>
+Subject: [PATCH v6 13/13] OMAP: GPIO: Remove omap_gpio_init()
+Date: Sat, 18 Sep 2010 19:45:53 +0530
+Message-ID: <1284819353-8512-14-git-send-email-charu@ti.com>
 References: <1284819353-8512-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48462 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755439Ab0IROQQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Sep 2010 10:16:16 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:56492 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755404Ab0IROQT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Sep 2010 10:16:19 -0400
 In-Reply-To: <1284819353-8512-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
 
-This is in prepartion for implementing GPIO as a platform device.
-gpio bank's base addresses are moved from gpio.c to plat/gpio.h.
-
-This patch also modifies omap_gpio_init() to make use of
-omap_gpio_chip_init() and omap_gpio_mod_init(). omap_gpio_mod_init() does
-the module init by clearing the status register and initializing the
-GPIO control register. omap_gpio_chip_init() initializes the chip request,
-free, get, set and other function pointers and sets the gpio irq handler.
+This patch removes the usage of omap_gpio_init() from all
+omap board files since omap_gpio_init() does nothing, after gpio
+is implemented as a platform device.
 
 Signed-off-by: Charulatha V <charu@ti.com>
 ---
- arch/arm/plat-omap/gpio.c |  231 ++++++++++++++++++++++-----------------------
- 1 files changed, 115 insertions(+), 116 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c      |    1 -
+ arch/arm/mach-omap1/board-fsample.c        |    1 -
+ arch/arm/mach-omap1/board-h2.c             |    1 -
+ arch/arm/mach-omap1/board-h3.c             |    1 -
+ arch/arm/mach-omap1/board-htcherald.c      |    1 -
+ arch/arm/mach-omap1/board-innovator.c      |    1 -
+ arch/arm/mach-omap1/board-nokia770.c       |    1 -
+ arch/arm/mach-omap1/board-osk.c            |    1 -
+ arch/arm/mach-omap1/board-palmte.c         |    1 -
+ arch/arm/mach-omap1/board-palmz71.c        |    1 -
+ arch/arm/mach-omap1/board-perseus2.c       |    1 -
+ arch/arm/mach-omap1/board-sx1.c            |    1 -
+ arch/arm/mach-omap1/board-voiceblue.c      |    1 -
+ arch/arm/mach-omap2/board-2430sdp.c        |    1 -
+ arch/arm/mach-omap2/board-3430sdp.c        |    1 -
+ arch/arm/mach-omap2/board-3630sdp.c        |    1 -
+ arch/arm/mach-omap2/board-4430sdp.c        |    1 -
+ arch/arm/mach-omap2/board-am3517evm.c      |    1 -
+ arch/arm/mach-omap2/board-apollon.c        |    1 -
+ arch/arm/mach-omap2/board-cm-t35.c         |    1 -
+ arch/arm/mach-omap2/board-devkit8000.c     |    1 -
+ arch/arm/mach-omap2/board-h4.c             |    1 -
+ arch/arm/mach-omap2/board-igep0020.c       |    1 -
+ arch/arm/mach-omap2/board-ldp.c            |    1 -
+ arch/arm/mach-omap2/board-n8x0.c           |    1 -
+ arch/arm/mach-omap2/board-omap3beagle.c    |    1 -
+ arch/arm/mach-omap2/board-omap3evm.c       |    1 -
+ arch/arm/mach-omap2/board-omap3pandora.c   |    1 -
+ arch/arm/mach-omap2/board-omap3stalker.c   |    1 -
+ arch/arm/mach-omap2/board-omap3touchbook.c |    1 -
+ arch/arm/mach-omap2/board-omap4panda.c     |    1 -
+ arch/arm/mach-omap2/board-overo.c          |    1 -
+ arch/arm/mach-omap2/board-rx51.c           |    1 -
+ arch/arm/mach-omap2/board-zoom2.c          |    1 -
+ arch/arm/mach-omap2/board-zoom3.c          |    1 -
+ arch/arm/plat-omap/gpio.c                  |    6 ------
+ arch/arm/plat-omap/include/plat/gpio.h     |    1 -
+ 37 files changed, 0 insertions(+), 42 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index 41992ab..774867f 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -136,7 +136,6 @@ static void __init ams_delta_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static struct map_desc ams_delta_io_desc[] __initdata = {
+diff --git a/arch/arm/mach-omap1/board-fsample.c b/arch/arm/mach-omap1/board-fsample.c
+index 180ce79..09b6165 100644
+--- a/arch/arm/mach-omap1/board-fsample.c
++++ b/arch/arm/mach-omap1/board-fsample.c
+@@ -325,7 +325,6 @@ static void __init omap_fsample_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ 	fsample_init_smc91x();
+ }
+ 
+diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
+index d2cda58..cf9aaff 100644
+--- a/arch/arm/mach-omap1/board-h2.c
++++ b/arch/arm/mach-omap1/board-h2.c
+@@ -374,7 +374,6 @@ static void __init h2_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ 	h2_init_smc91x();
+ }
+ 
+diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
+index c2ef4ff..423b45e 100644
+--- a/arch/arm/mach-omap1/board-h3.c
++++ b/arch/arm/mach-omap1/board-h3.c
+@@ -435,7 +435,6 @@ static void __init h3_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ 	h3_init_smc91x();
+ }
+ 
+diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap1/board-htcherald.c
+index 311899f..bc8f56f 100644
+--- a/arch/arm/mach-omap1/board-htcherald.c
++++ b/arch/arm/mach-omap1/board-htcherald.c
+@@ -278,7 +278,6 @@ static void __init htcherald_init(void)
+ {
+ 	printk(KERN_INFO "HTC Herald init.\n");
+ 
+-	omap_gpio_init();
+ 
+ 	omap_board_config = htcherald_config;
+ 	omap_board_config_size = ARRAY_SIZE(htcherald_config);
+diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
+index 3daf87a..27c283d 100644
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -290,7 +290,6 @@ static void __init innovator_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	if (cpu_is_omap1510()) {
+ 		omap1510_fpga_init_irq();
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index 51a4539..397febe 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -246,7 +246,6 @@ static void __init omap_nokia770_init(void)
+ 	platform_add_devices(nokia770_devices, ARRAY_SIZE(nokia770_devices));
+ 	spi_register_board_info(nokia770_spi_board_info,
+ 				ARRAY_SIZE(nokia770_spi_board_info));
+-	omap_gpio_init();
+ 	omap_serial_init();
+ 	omap_register_i2c_bus(1, 100, NULL, 0);
+ 	hwa742_dev_init();
+diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
+index 679740c..fcd67d0 100644
+--- a/arch/arm/mach-omap1/board-osk.c
++++ b/arch/arm/mach-omap1/board-osk.c
+@@ -283,7 +283,6 @@ static void __init osk_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ 	osk_init_smc91x();
+ 	osk_init_cf();
+ }
+diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
+index 782bb25..69708ac 100644
+--- a/arch/arm/mach-omap1/board-palmte.c
++++ b/arch/arm/mach-omap1/board-palmte.c
+@@ -63,7 +63,6 @@ static void __init omap_palmte_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static const int palmte_keymap[] = {
+diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
+index 6636290..644d217 100644
+--- a/arch/arm/mach-omap1/board-palmz71.c
++++ b/arch/arm/mach-omap1/board-palmz71.c
+@@ -62,7 +62,6 @@ omap_palmz71_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static int palmz71_keymap[] = {
+diff --git a/arch/arm/mach-omap1/board-perseus2.c b/arch/arm/mach-omap1/board-perseus2.c
+index 34ab354..d8dbb4a 100644
+--- a/arch/arm/mach-omap1/board-perseus2.c
++++ b/arch/arm/mach-omap1/board-perseus2.c
+@@ -293,7 +293,6 @@ static void __init omap_perseus2_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ 	perseus2_init_smc91x();
+ }
+ /* Only FPGA needs to be mapped here. All others are done with ioremap */
+diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
+index 2eb148b..18093a5 100644
+--- a/arch/arm/mach-omap1/board-sx1.c
++++ b/arch/arm/mach-omap1/board-sx1.c
+@@ -409,7 +409,6 @@ static void __init omap_sx1_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ /*----------------------------------------*/
+ 
+diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
+index 6b3cf14..794c497 100644
+--- a/arch/arm/mach-omap1/board-voiceblue.c
++++ b/arch/arm/mach-omap1/board-voiceblue.c
+@@ -158,7 +158,6 @@ static void __init voiceblue_init_irq(void)
+ {
+ 	omap1_init_common_hw();
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static void __init voiceblue_init(void)
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 8538e41..b86824e 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -144,7 +144,6 @@ static void __init omap_2430sdp_init_irq(void)
+ 	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
+ 	omap2_init_common_hw(NULL, NULL);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static struct twl4030_gpio_platform_data sdp2430_gpio_data = {
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 67b95b5..9f38f5f 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -328,7 +328,6 @@ static void __init omap_3430sdp_init_irq(void)
+ 	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+ 	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static int sdp3430_batt_table[] = {
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+index b359c3f..78973f5 100644
+--- a/arch/arm/mach-omap2/board-3630sdp.c
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -76,7 +76,6 @@ static void __init omap_sdp_init_irq(void)
+ 	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
+ 			h8mbx00u0mer0em_sdrc_params);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ #ifdef CONFIG_OMAP_MUX
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 9447644..b7f6369 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -181,7 +181,6 @@ static void __init omap_4430sdp_init_irq(void)
+ 	omap2_gp_clockevent_set_gptimer(1);
+ #endif
+ 	gic_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 4d0f585..dd7aa66 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -372,7 +372,6 @@ static void __init am3517_evm_init_irq(void)
+ 
+ 	omap2_init_common_hw(NULL, NULL);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index c6421a7..cd70971 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -280,7 +280,6 @@ static void __init omap_apollon_init_irq(void)
+ 	omap_board_config_size = ARRAY_SIZE(apollon_config);
+ 	omap2_init_common_hw(NULL, NULL);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ 	apollon_init_smc91x();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index e10bc10..000c7d4 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -687,7 +687,6 @@ static void __init cm_t35_init_irq(void)
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+ 			     mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static struct omap_board_mux board_mux[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index a07086d..82b73e5 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -452,7 +452,6 @@ static void __init devkit8000_init_irq(void)
+ #ifdef CONFIG_OMAP_32K_TIMER
+ 	omap2_gp_clockevent_set_gptimer(12);
+ #endif
+-	omap_gpio_init();
+ }
+ 
+ static void __init devkit8000_ads7846_init(void)
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index e09bd68..4eb7c24 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -293,7 +293,6 @@ static void __init omap_h4_init_irq(void)
+ 	omap_board_config_size = ARRAY_SIZE(h4_config);
+ 	omap2_init_common_hw(NULL, NULL);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ 	h4_init_flash();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+index 175f043..63a68ef 100644
+--- a/arch/arm/mach-omap2/board-igep0020.c
++++ b/arch/arm/mach-omap2/board-igep0020.c
+@@ -406,7 +406,6 @@ static void __init igep2_init_irq(void)
+ 	omap_board_config_size = ARRAY_SIZE(igep2_config);
+ 	omap2_init_common_hw(m65kxxxxam_sdrc_params, m65kxxxxam_sdrc_params);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static struct twl4030_codec_audio_data igep2_audio_data = {
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 00d9b13..097c8b9 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -292,7 +292,6 @@ static void __init omap_ldp_init_irq(void)
+ 	omap_board_config_size = ARRAY_SIZE(ldp_config);
+ 	omap2_init_common_hw(NULL, NULL);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ 	ldp_init_smsc911x();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index a3e2b49..afa0ce5 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -648,7 +648,6 @@ static void __init n8x0_init_irq(void)
+ {
+ 	omap2_init_common_hw(NULL, NULL);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ #ifdef CONFIG_OMAP_MUX
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 87969c7..fda730b 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -393,7 +393,6 @@ static void __init omap3_beagle_init_irq(void)
+ #ifdef CONFIG_OMAP_32K_TIMER
+ 	omap2_gp_clockevent_set_gptimer(12);
+ #endif
+-	omap_gpio_init();
+ }
+ 
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index f76d9c0..995ca51 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -624,7 +624,6 @@ static void __init omap3_evm_init_irq(void)
+ 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static struct platform_device *omap3_evm_devices[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index dd3af2b..47f7de6 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -604,7 +604,6 @@ static void __init omap3pandora_init_irq(void)
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+ 			     mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static void pandora_wl1251_set_power(bool enable)
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index bcd01d2..1fbce09 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -588,7 +588,6 @@ static void __init omap3_stalker_init_irq(void)
+ #ifdef CONFIG_OMAP_32K_TIMER
+ 	omap2_gp_clockevent_set_gptimer(12);
+ #endif
+-	omap_gpio_init();
+ }
+ 
+ static struct platform_device *omap3_stalker_devices[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index 663c62d..6118042 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -427,7 +427,6 @@ static void __init omap3_touchbook_init_irq(void)
+ #ifdef CONFIG_OMAP_32K_TIMER
+ 	omap2_gp_clockevent_set_gptimer(12);
+ #endif
+-	omap_gpio_init();
+ }
+ 
+ static struct platform_device *omap3_touchbook_devices[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index c03d1d5..09b0da1 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -44,7 +44,6 @@ static void __init omap4_panda_init_irq(void)
+ {
+ 	omap2_init_common_hw(NULL, NULL);
+ 	gic_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static struct omap_musb_board_data musb_board_data = {
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 4c48436..099f4f7 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -415,7 +415,6 @@ static void __init overo_init_irq(void)
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+ 			     mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ static struct platform_device *overo_devices[] __initdata = {
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index a58e8cb..04b0259 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -108,7 +108,6 @@ static void __init rx51_init_irq(void)
+ 	sdrc_params = rx51_get_sdram_timings();
+ 	omap2_init_common_hw(sdrc_params, sdrc_params);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ extern void __init rx51_peripherals_init(void);
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 3ad9ecf..634b05b 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -31,7 +31,6 @@ static void __init omap_zoom2_init_irq(void)
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+ 				 mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ /* REVISIT: These audio entries can be removed once MFD code is merged */
+diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
+index 6ca0b83..a048981 100644
+--- a/arch/arm/mach-omap2/board-zoom3.c
++++ b/arch/arm/mach-omap2/board-zoom3.c
+@@ -76,7 +76,6 @@ static void __init omap_zoom_init_irq(void)
+ 	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
+ 			h8mbx00u0mer0em_sdrc_params);
+ 	omap_init_irq();
+-	omap_gpio_init();
+ }
+ 
+ #ifdef CONFIG_OMAP_MUX
 diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index b0467c1..dc8c0dc 100644
+index 1f07317..2f5c1eb 100644
 --- a/arch/arm/plat-omap/gpio.c
 +++ b/arch/arm/plat-omap/gpio.c
-@@ -192,14 +192,12 @@ struct gpio_bank {
- 	u32 suspend_wakeup;
- 	u32 saved_wakeup;
- #endif
--#ifdef CONFIG_ARCH_OMAP2PLUS
- 	u32 non_wakeup_gpios;
- 	u32 enabled_non_wakeup_gpios;
+@@ -2197,12 +2197,6 @@ static int __init omap_gpio_drv_reg(void)
+ }
+ postcore_initcall(omap_gpio_drv_reg);
  
- 	u32 saved_datain;
- 	u32 saved_fallingdetect;
- 	u32 saved_risingdetect;
--#endif
- 	u32 level_mask;
- 	u32 toggle_mask;
- 	spinlock_t lock;
-@@ -1718,10 +1716,122 @@ static void __init omap_gpio_show_rev(void)
-  */
- static struct lock_class_key gpio_lock_class;
- 
-+static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
-+{
-+	if (cpu_class_is_omap2()) {
-+		if (cpu_is_omap44xx()) {
-+			__raw_writel(0xffffffff, bank->base +
-+					OMAP4_GPIO_IRQSTATUSCLR0);
-+			__raw_writel(0x00000000, bank->base +
-+					 OMAP4_GPIO_DEBOUNCENABLE);
-+			/* Initialize interface clk ungated, module enabled */
-+			__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
-+		} else if (cpu_is_omap34xx()) {
-+			__raw_writel(0x00000000, bank->base +
-+					OMAP24XX_GPIO_IRQENABLE1);
-+			__raw_writel(0xffffffff, bank->base +
-+					OMAP24XX_GPIO_IRQSTATUS1);
-+			__raw_writel(0x00000000, bank->base +
-+					OMAP24XX_GPIO_DEBOUNCE_EN);
-+
-+			/* Initialize interface clk ungated, module enabled */
-+			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
-+		} else if (cpu_is_omap24xx()) {
-+			static const u32 non_wakeup_gpios[] = {
-+				0xe203ffc0, 0x08700040
-+			};
-+			if (id < ARRAY_SIZE(non_wakeup_gpios))
-+				bank->non_wakeup_gpios = non_wakeup_gpios[id];
-+		}
-+	} else if (cpu_class_is_omap1()) {
-+		if (bank_is_mpuio(bank))
-+			__raw_writew(0xffff, bank->base
-+						+ OMAP_MPUIO_GPIO_MASKIT);
-+		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
-+			__raw_writew(0xffff, bank->base
-+						+ OMAP1510_GPIO_INT_MASK);
-+			__raw_writew(0x0000, bank->base
-+						+ OMAP1510_GPIO_INT_STATUS);
-+		}
-+		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
-+			__raw_writew(0x0000, bank->base
-+						+ OMAP1610_GPIO_IRQENABLE1);
-+			__raw_writew(0xffff, bank->base
-+						+ OMAP1610_GPIO_IRQSTATUS1);
-+			__raw_writew(0x0014, bank->base
-+						+ OMAP1610_GPIO_SYSCONFIG);
-+
-+			/* Enable system clock for GPIO module.
-+			 * The CAM_CLK_CTRL *is* really the right place. */
-+			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
-+						ULPD_CAM_CLK_CTRL);
-+		}
-+		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
-+			__raw_writel(0xffffffff, bank->base
-+						+ OMAP7XX_GPIO_INT_MASK);
-+			__raw_writel(0x00000000, bank->base
-+						+ OMAP7XX_GPIO_INT_STATUS);
-+		}
-+	}
-+}
-+
-+static void __init omap_gpio_chip_init(struct gpio_bank *bank)
-+{
-+	int j, bank_width = 16;
-+	static int gpio;
-+
-+	if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX)
-+		bank_width = 32; /* 7xx has 32-bit GPIOs */
-+
-+	if ((bank->method == METHOD_GPIO_24XX) ||
-+			(bank->method == METHOD_GPIO_44XX))
-+		bank_width = 32;
-+
-+	bank->mod_usage = 0;
-+	/* REVISIT eventually switch from OMAP-specific gpio structs
-+	 * over to the generic ones
-+	 */
-+	bank->chip.request = omap_gpio_request;
-+	bank->chip.free = omap_gpio_free;
-+	bank->chip.direction_input = gpio_input;
-+	bank->chip.get = gpio_get;
-+	bank->chip.direction_output = gpio_output;
-+	bank->chip.set_debounce = gpio_debounce;
-+	bank->chip.set = gpio_set;
-+	bank->chip.to_irq = gpio_2irq;
-+	if (bank_is_mpuio(bank)) {
-+		bank->chip.label = "mpuio";
-+#ifdef CONFIG_ARCH_OMAP16XX
-+		bank->chip.dev = &omap_mpuio_device.dev;
-+#endif
-+		bank->chip.base = OMAP_MPUIO(0);
-+	} else {
-+		bank->chip.label = "gpio";
-+		bank->chip.base = gpio;
-+		gpio += bank_width;
-+	}
-+	bank->chip.ngpio = bank_width;
-+
-+	gpiochip_add(&bank->chip);
-+
-+	for (j = bank->virtual_irq_start;
-+		     j < bank->virtual_irq_start + bank_width; j++) {
-+		lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
-+		set_irq_chip_data(j, bank);
-+		if (bank_is_mpuio(bank))
-+			set_irq_chip(j, &mpuio_irq_chip);
-+		else
-+			set_irq_chip(j, &gpio_irq_chip);
-+		set_irq_handler(j, handle_simple_irq);
-+		set_irq_flags(j, IRQF_VALID);
-+	}
-+	set_irq_chained_handler(bank->irq, gpio_irq_handler);
-+	set_irq_data(bank->irq, bank);
-+}
-+
- static int __init _omap_gpio_init(void)
+-/* TODO: Remove omap_gpio_init() and its usage from board files */
+-int __init omap_gpio_init(void)
+-{
+-	return 0;
+-}
+-
+ static int __init omap_gpio_sysinit(void)
  {
- 	int i;
--	int gpio = 0;
- 	struct gpio_bank *bank;
- 	int bank_size = SZ_8K;	/* Module 4KB + L4 4KB except on omap1 */
- 	char clk_name[11];
-@@ -1830,7 +1940,6 @@ static int __init _omap_gpio_init(void)
- 	}
- #endif
- 	for (i = 0; i < gpio_bank_count; i++) {
--		int j, gpio_count = 16;
+ 	mpuio_init();
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index 60370bd..0fb4149 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -96,7 +96,6 @@ struct omap_gpio_platform_data {
+ /* TODO: Analyze removing gpio_bank_count usage from driver code */
+ extern int gpio_bank_count;
  
- 		bank = &gpio_bank[i];
- 		spin_lock_init(&bank->lock);
-@@ -1842,107 +1951,8 @@ static int __init _omap_gpio_init(void)
- 			continue;
- 		}
- 
--		if (bank_is_mpuio(bank))
--			__raw_writew(0xffff, bank->base + OMAP_MPUIO_GPIO_MASKIT);
--		if (cpu_is_omap15xx() && bank->method == METHOD_GPIO_1510) {
--			__raw_writew(0xffff, bank->base + OMAP1510_GPIO_INT_MASK);
--			__raw_writew(0x0000, bank->base + OMAP1510_GPIO_INT_STATUS);
--		}
--		if (cpu_is_omap16xx() && bank->method == METHOD_GPIO_1610) {
--			__raw_writew(0x0000, bank->base + OMAP1610_GPIO_IRQENABLE1);
--			__raw_writew(0xffff, bank->base + OMAP1610_GPIO_IRQSTATUS1);
--			__raw_writew(0x0014, bank->base + OMAP1610_GPIO_SYSCONFIG);
--		}
--		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
--			__raw_writel(0xffffffff, bank->base + OMAP7XX_GPIO_INT_MASK);
--			__raw_writel(0x00000000, bank->base + OMAP7XX_GPIO_INT_STATUS);
--
--			gpio_count = 32; /* 7xx has 32-bit GPIOs */
--		}
--
--#ifdef CONFIG_ARCH_OMAP2PLUS
--		if ((bank->method == METHOD_GPIO_24XX) ||
--				(bank->method == METHOD_GPIO_44XX)) {
--			static const u32 non_wakeup_gpios[] = {
--				0xe203ffc0, 0x08700040
--			};
--
--			if (cpu_is_omap44xx()) {
--				__raw_writel(0xffffffff, bank->base +
--						OMAP4_GPIO_IRQSTATUSCLR0);
--				__raw_writew(0x0015, bank->base +
--						OMAP4_GPIO_SYSCONFIG);
--				__raw_writel(0x00000000, bank->base +
--						 OMAP4_GPIO_DEBOUNCENABLE);
--				/*
--				 * Initialize interface clock ungated,
--				 * module enabled
--				 */
--				__raw_writel(0, bank->base + OMAP4_GPIO_CTRL);
--			} else {
--				__raw_writel(0x00000000, bank->base +
--						OMAP24XX_GPIO_IRQENABLE1);
--				__raw_writel(0xffffffff, bank->base +
--						OMAP24XX_GPIO_IRQSTATUS1);
--				__raw_writew(0x0015, bank->base +
--						OMAP24XX_GPIO_SYSCONFIG);
--				__raw_writel(0x00000000, bank->base +
--						OMAP24XX_GPIO_DEBOUNCE_EN);
--
--				/*
--				 * Initialize interface clock ungated,
--				 * module enabled
--				 */
--				__raw_writel(0, bank->base +
--						OMAP24XX_GPIO_CTRL);
--			}
--			if (cpu_is_omap24xx() &&
--			    i < ARRAY_SIZE(non_wakeup_gpios))
--				bank->non_wakeup_gpios = non_wakeup_gpios[i];
--			gpio_count = 32;
--		}
--#endif
--
--		bank->mod_usage = 0;
--		/* REVISIT eventually switch from OMAP-specific gpio structs
--		 * over to the generic ones
--		 */
--		bank->chip.request = omap_gpio_request;
--		bank->chip.free = omap_gpio_free;
--		bank->chip.direction_input = gpio_input;
--		bank->chip.get = gpio_get;
--		bank->chip.direction_output = gpio_output;
--		bank->chip.set_debounce = gpio_debounce;
--		bank->chip.set = gpio_set;
--		bank->chip.to_irq = gpio_2irq;
--		if (bank_is_mpuio(bank)) {
--			bank->chip.label = "mpuio";
--#ifdef CONFIG_ARCH_OMAP16XX
--			bank->chip.dev = &omap_mpuio_device.dev;
--#endif
--			bank->chip.base = OMAP_MPUIO(0);
--		} else {
--			bank->chip.label = "gpio";
--			bank->chip.base = gpio;
--			gpio += gpio_count;
--		}
--		bank->chip.ngpio = gpio_count;
--
--		gpiochip_add(&bank->chip);
--
--		for (j = bank->virtual_irq_start;
--		     j < bank->virtual_irq_start + gpio_count; j++) {
--			lockdep_set_class(&irq_desc[j].lock, &gpio_lock_class);
--			set_irq_chip_data(j, bank);
--			if (bank_is_mpuio(bank))
--				set_irq_chip(j, &mpuio_irq_chip);
--			else
--				set_irq_chip(j, &gpio_irq_chip);
--			set_irq_handler(j, handle_simple_irq);
--			set_irq_flags(j, IRQF_VALID);
--		}
--		set_irq_chained_handler(bank->irq, gpio_irq_handler);
--		set_irq_data(bank->irq, bank);
-+		omap_gpio_mod_init(bank, i);
-+		omap_gpio_chip_init(bank);
- 
- 		if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
- 			sprintf(clk_name, "gpio%d_dbck", i + 1);
-@@ -1952,17 +1962,6 @@ static int __init _omap_gpio_init(void)
- 		}
- 	}
- 
--	/* Enable system clock for GPIO module.
--	 * The CAM_CLK_CTRL *is* really the right place. */
--	if (cpu_is_omap16xx())
--		omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04, ULPD_CAM_CLK_CTRL);
--
--	/* Enable autoidle for the OCP interface */
--	if (cpu_is_omap24xx())
--		omap_writel(1 << 0, 0x48019010);
--	if (cpu_is_omap34xx())
--		omap_writel(1 << 0, 0x48306814);
--
- 	omap_gpio_show_rev();
- 
- 	return 0;
+-extern int omap_gpio_init(void);	/* Call from board init only */
+ extern void omap2_gpio_prepare_for_idle(void);
+ extern void omap2_gpio_resume_after_idle(void);
+ extern void omap_set_gpio_debounce(int gpio, int enable);
 -- 
 1.7.0.4
 
