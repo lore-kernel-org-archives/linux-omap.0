@@ -1,44 +1,58 @@
-From: Greg KH <gregkh@suse.de>
+From: Nishanth Menon <nm@ti.com>
 Subject: Re: [PATCH v2] power: introduce library for device-specific OPPs
-Date: Fri, 17 Sep 2010 22:38:49 -0700
-Message-ID: <20100918053849.GA19709@suse.de>
+Date: Sat, 18 Sep 2010 00:42:17 -0500
+Message-ID: <4C945139.20602@ti.com>
 References: <1284787459-25643-1-git-send-email-nm@ti.com>
+	<20100918053849.GA19709@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:57456 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751986Ab0IRFiE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 18 Sep 2010 01:38:04 -0400
-Content-Disposition: inline
-In-Reply-To: <1284787459-25643-1-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20100918053849.GA19709@suse.de>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Greg KH <gregkh@suse.de>
+Cc: Len Brown <len.brown@intel.com>, Phil <ext-phil.2.carmody@nokia.com>, Lnus Walleij <linus.walleij@stericsson.com>, Kevin <khilman@deeprootsystems.com>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Randy Dunlap <rdunlap@xenotime.net>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Matthew Garrett <mjg@redhat.com>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, Matthew Garrett <mjg@redhat.com>, Pavel Machek <pavel@ucw.cz>, Randy Dunlap <rdunlap@xenotime.net>, Lnus Walleij <linus.walleij@stericsson.com>, Phil <ext-phil.2.carmody@nokia.com>, Kevin <khilman@deeprootsystems.com>
 
-On Sat, Sep 18, 2010 at 12:24:19AM -0500, Nishanth Menon wrote:
-> This is hence introduced under lib allowing all architectures to
-> selectively enable the feature based on their capabilities.
+Greg KH had written, on 09/18/2010 12:38 AM, the following:
+> On Sat, Sep 18, 2010 at 12:24:19AM -0500, Nishanth Menon wrote:
+>> This is hence introduced under lib allowing all architectures to
+>> selectively enable the feature based on their capabilities.
+> 
+> <snip>
+> 
+>>  Documentation/power/00-INDEX |    2 +
+>>  Documentation/power/opp.txt  |  326 ++++++++++++++++++++++++++
+>>  drivers/base/power/Makefile  |    1 +
+>>  drivers/base/power/opp.c     |  527 ++++++++++++++++++++++++++++++++++++++++++
+>>  include/linux/opp.h          |  126 ++++++++++
+>>  kernel/power/Kconfig         |   14 ++
+>>  6 files changed, 996 insertions(+), 0 deletions(-)
+>>  create mode 100644 Documentation/power/opp.txt
+>>  create mode 100644 drivers/base/power/opp.c
+>>  create mode 100644 include/linux/opp.h
+> 
+> That doesn't look like the files are under lib/
+> 
+> Did you forget to move them, or do you need to update the changelog
+> message?
 
-<snip>
+Aww... and I thought I fixed them all.. the commit message is wrong.
+we had an alignment earlier today to move it from lib to 
+drivers/base/power [1] :(
 
->  Documentation/power/00-INDEX |    2 +
->  Documentation/power/opp.txt  |  326 ++++++++++++++++++++++++++
->  drivers/base/power/Makefile  |    1 +
->  drivers/base/power/opp.c     |  527 ++++++++++++++++++++++++++++++++++++++++++
->  include/linux/opp.h          |  126 ++++++++++
->  kernel/power/Kconfig         |   14 ++
->  6 files changed, 996 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/power/opp.txt
->  create mode 100644 drivers/base/power/opp.c
->  create mode 100644 include/linux/opp.h
+Thanks for catching it. Will fix it in rev 3 after collating any further 
+comments as well.
 
-That doesn't look like the files are under lib/
-
-Did you forget to move them, or do you need to update the changelog
-message?
-
-thanks,
-
-greg k-h
+[1] http://marc.info/?l=linux-arm-kernel&m=128476405731191&w=2
+-- 
+Regards,
+Nishanth Menon
