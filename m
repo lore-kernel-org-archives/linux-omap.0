@@ -1,68 +1,91 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 03/11] OMAP: UART: omap_device converions, remove implicit 8520 assumptions
-Date: Fri, 17 Sep 2010 16:43:23 -0700
-Message-ID: <87ocbwrl5w.fsf@deeprootsystems.com>
-References: <14049.10.24.255.18.1284739601.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [linux-pm] [PATCH] opp: introduce library for device-specific OPPs
+Date: Fri, 17 Sep 2010 17:37:06 -0700
+Message-ID: <87hbhnq43x.fsf@deeprootsystems.com>
+References: <1284686973-13993-1-git-send-email-nm@ti.com>
+	<20100917153643.GC29739@sirena.org.uk> <4C938EE2.1010307@ti.com>
+	<20100917155937.GB29596@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <14049.10.24.255.18.1284739601.squirrel@dbdmail.itg.ti.com>
-	(Govindraj R.'s message of "Fri, 17 Sep 2010 21:36:41 +0530 (IST)")
-Sender: linux-serial-owner@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:51625 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab0IRAhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 20:37:09 -0400
+In-Reply-To: <20100917155937.GB29596@rakim.wolfsonmicro.main> (Mark Brown's
+	message of "Fri, 17 Sep 2010 16:59:37 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, Phil Carmody <ext-phil.2.carmody@nokia.com>, linux-pm <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, linux-omap <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@stericsson.com>, Andrew Morton <akpm@linux-foundation.org>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+[trimmed Cc list a bit, as vger bounced my last reply due to header too long]
 
-> From: Kevin Hilman <khilman@ti.com>
+Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+
+> On Fri, Sep 17, 2010 at 10:53:06AM -0500, Nishanth Menon wrote:
+>> Mark Brown had written, on 09/17/2010 10:36 AM, the following:
 >
-> Major rework of OMAP UART init for omap_device conversion as well as
-> use with either 8250 driver or new omap-serial driver.
+>> >It might be clearer to use some term other than enabled in the code -
+>> >when reading I wasn't immediately sure if enabled meant that it was
+>> >available to be selected or if it was the active operating point.  How
+>> >about 'allowed' (though I'm not 100% happy with that)?
 >
-> In preparation for a new omap-serial driver, remove 8250 assumptions
-> and dependencies from the serial core.
+>> ;).. The opp is enabled or disabled if it is populated, it is
+>> implicit as being available but not enabled- how about active? this
+>> would change the opp_enable/disable functions to opp_activate,
+>> opp_deactivate..
 >
-> Convert UART core and PM support to use omap_device layer. Also add
-> support for both console on 8250 or omap-serial driver.
+>> Recommendations folks?
 >
-> omap_device conversion:
-> - Convert clock API calls to omap_device calls
-> - Remove all static platform_data setup and configuration.  This is
->   all done by the omap_device build phase.
+> The enable/disable thing wasn't so noticable in the API itself, it was
+> in the data structures that I found it confusing - the core has a
+> different idea about what's going on with the system as a whole compared
+> to the decision that an individual device is taking.
+
+Can you clarify your confusion here?  I don't follow the problem you're
+raising.
+
+The enabled flag in the internal data structure is set to true when
+opp_enable() is called and set to false when opp_disable() is called.
+I'm not sure
+
+At least as we're currently using it, this API has know knowlege of what
+OPP is currently active on the system.  IOW, it has no idea what the
+current frequency/voltage a given device is set to.  It's intended more
+like an OPP database with some convience functions to search through the
+OPPs and to make OPPs available (or not.)  The users of this API (in our
+case, CPUfreq and voltage scaling code) are the ones which
+keep track of which OPP is actually in use.
+
+As I write this, I agree with what Phil pointed out; that 'available' is
+probably the right name for this flag, instead of 'enabled.'
+
+>> >When reading the description I'd expected to see some facility to
+>> >trigger selection of an active operating point in the library (possibly
+>> >as a separate call since you might have a bunch of operating points
+>> >being updated in quick succession) but it looks like that needs to be
+>> >supplied externally at the minute?
 >
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  arch/arm/mach-omap2/serial.c |  528 +++++++++++++++++++++---------------------
->  1 files changed, 259 insertions(+), 269 deletions(-)
+>> The intent is we use the opp_search* functions to pick up the opp
+>> and enable/activate it and disable/deactivate it.
 >
+> Sure, I get that bit.  What I meant was that I was expecting something
+> that would say that changes had been made to the enabled/disabled sets
+> and that it'd be a good idea to rescan, especially for cases where the
+> devices change their requirements but the OPPs need to be done over a
+> larger block.
 
-[...]
+I guess you're thinking of notifiers, so if the list of available OPPs
+changes, a driver could (re)search to see if a more optimal OPP was
+available?
 
-> +	/*
-> +	 * Need to block sleep long enough for interrupt driven
-> +	 * driver to start.  Console driver is in polling mode
-> +	 * so device needs to be kept enabled while polling driver
-> +	 * is in use.
-> +	 */
-> +	uart->timeout = (30 * HZ);
+Certainly sounds possible, but not sure how useful in practice.  OPP
+change decisions are not very often, so any OPP database updates may not
+affect a device OPP change currently in progress, but would take effect
+the next time that device makes an OPP change.
 
-My fault, but there's a bug here.  This long timeout is only needed
-when the init-time timout is non-zero, so should be:
-
-	if (uart->timeout)
-		uart->timeout = (30 * HZ);
-
-Without this, even though the default timeout is zero (meaning, UARTs
-should not timeout and go idle), a timer will fire 30 seconds after boot
-and cause the UARTs to go idle.
-
-I discovered this when seeing the UARTs go idle, even though the
-timeouts were all set to zero.
-
-Can you fold this into your the next version?
-
-Thanks,
+Either way, this is something that could easily be added if it seems
+useful.
 
 Kevin
