@@ -1,73 +1,114 @@
-From: "kishore kadiyala" <kishore.kadiyala@ti.com>
-Subject: [PATCH v2 4/4] omap4 hsmmc: Update ocr mask for MMC2 for regulator
-     to use
-Date: Sat, 18 Sep 2010 22:04:24 +0530 (IST)
-Message-ID: <33993.10.24.255.17.1284827664.squirrel@dbdmail.itg.ti.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode support
+Date: Sat, 18 Sep 2010 23:54:55 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B031606213F@dbde02.ent.ti.com>
+References: <1284624059-1741-1-git-send-email-s-ghorai@ti.com>
+ <1284624059-1741-2-git-send-email-s-ghorai@ti.com>
+ <20100917175504.GG29610@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33561 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751887Ab0IRSZG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Sep 2010 14:25:06 -0400
+In-Reply-To: <20100917175504.GG29610@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On OMAP4, MMC2 controller has eMMC which draws power from VAUX regulator
-on TWL. Though the eMMC supports dual voltage[1.8v/3v] as per ocr register,
-its VCC is fixed at 3V for operation. With this once the mmc core selects
-the minimum voltage supported based on the ocr value read from OCR register,
-eMMC will not get detected. Thus the platform data for MMC2 is updated with ocr
-mask and same will be communicated to core which will set the regulator to
-always operate at 3V when turned ON.
+Tony,
 
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |    1 +
- drivers/mmc/host/omap_hsmmc.c       |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 0 deletions(-)
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, September 17, 2010 11:25 PM
+> To: Ghorai, Sukumar
+> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
+> kernel@lists.infradead.org; Vimal Singh
+> Subject: Re: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode
+> support
+> 
+> * Sukumar Ghorai <s-ghorai@ti.com> [100916 00:53]:
+> > This patch enable prefetch-irq mode for NAND.
+> >
+> > --- a/drivers/mtd/nand/omap2.c
+> > +++ b/drivers/mtd/nand/omap2.c
+> > @@ -467,6 +485,152 @@ static void omap_write_buf_dma_pref(struct
+> mtd_info *mtd,
+> >  		omap_nand_dma_transfer(mtd, (u_char *) buf, len, 0x1);
+> >  }
+> >
+> > +/*
+> > + * omap_nand_irq - GMPC irq handler
+> > + * @this_irq: gpmc irq number
+> > + * @dev: omap_nand_info structure pointer is passed here
+> > + */
+> > +static irqreturn_t omap_nand_irq(int this_irq, void *dev)
+> > +{
+> > +	struct omap_nand_info *info = (struct omap_nand_info *) dev;
+> > +	u32 bytes;
+> > +	u32 irq_stat;
+> > +
+> > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
+> > +	bytes = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
+> > +	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
+> > +	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
+> > +		if (irq_stat & 0x2)
+> > +			goto done;
+> > +
+> > +		if (info->buf_len & (info->buf_len < bytes))
+> > +			bytes = info->buf_len;
+> > +		else if (!info->buf_len)
+> > +			bytes = 0;
+> > +		iowrite32_rep(info->nand.IO_ADDR_W,
+> > +						(u32 *)info->buf, bytes >> 2);
+> > +		info->buf = info->buf + bytes;
+> > +		info->buf_len -= bytes;
+> > +
+> > +	} else {
+> > +		ioread32_rep(info->nand.IO_ADDR_R,
+> > +						(u32 *)info->buf, bytes >> 2);
+> > +		info->buf = info->buf + bytes;
+> > +
+> > +		if (irq_stat & 0x2)
+> > +			goto done;
+> > +	}
+> > +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
+> > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
+> > +
+> > +	return IRQ_HANDLED;
+> > +
+> > +done:
+> > +	complete(&info->comp);
+> > +	/* disable irq */
+> > +	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
+> > +
+> > +	/* clear status */
+> > +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
+> > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
+> > +
+> > +	return IRQ_HANDLED;
+> > +}
+> 
+> This handler should be in gpmc.c as it may be needed for other GPMC
+> connected devices on the same system. You can use chained irq handlers
+> to allow all the drivers to use the interrupt then.
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index ac8541c..9fd1044 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -202,6 +202,7 @@ static struct omap2_hsmmc_info mmc[] = {
- 		.gpio_cd	= -EINVAL,
- 		.gpio_wp	= -EINVAL,
- 		.nonremovable   = true,
-+		.ocr_mask	= MMC_VDD_29_30,
- 	},
- 	{}	/* Terminator */
- };
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index bfca9ca..00d16d1 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -364,6 +364,7 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- {
- 	struct regulator *reg;
- 	int ret = 0;
-+	int ocr_value = 0;
+[Ghorai] 
+You mean as this function used the gpmc-irq number in nand file, so handler should move to gpmc.c file? 
+	1. For that we need to add one io-struct (to keep io buffer status) in gpmc.c; 
 
- 	switch (host->id) {
- 	case OMAP_MMC1_DEVID:
-@@ -396,6 +397,17 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host *host)
- 		}
- 	} else {
- 		host->vcc = reg;
-+		ocr_value = mmc_regulator_get_ocrmask(reg);
-+		if (!mmc_slot(host).ocr_mask) {
-+			mmc_slot(host).ocr_mask = ocr_value;
-+		} else {
-+			if (!(mmc_slot(host).ocr_mask & ocr_value)) {
-+				pr_err("MMC%d ocrmask %x is not supported\n",
-+					host->id, mmc_slot(host).ocr_mask);
-+				mmc_slot(host).ocr_mask = 0;
-+				return -EINVAL;
-+			}
-+		}
- 		mmc_slot(host).ocr_mask = mmc_regulator_get_ocrmask(reg);
+	2. Also need help how to sync between gpmc.c/omap_nand_irq() and omap2.c/omap_write_buf_irq_pref(), men how read/write function know that work done in interrupt-context? Or you prefer to move the complete IO function (omap_read/write_buf_irq_pref) to gpmc.c?
 
- 		/* Allow an aux regulator */
--- 
-1.7.0.4
+	3. gpmc does not now about the read and write address that's applicable for NAND. So how to pass the IO address from omap2.c to gpmc.c, interrupt handler?
 
 
+So, please let me know your suggestion again such that I can post this time itself. Otherwise again it will miss from coming release, this was posted/reviewed for last release too. And suggest to void repeating of missing release window again.
+
+> 
+> Regards,
+> 
+> Tony
