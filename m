@@ -1,143 +1,200 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 05/13] OMAP: Introduce device specific set rate and get
- rate in device opp structures.
-Date: Sat, 18 Sep 2010 12:13:13 +0200
-Message-ID: <4C9490B9.7090002@ti.com>
-References: <1282130412-12027-1-git-send-email-thara@ti.com>	<1282130412-12027-6-git-send-email-thara@ti.com>	<87fwxrzpan.fsf@deeprootsystems.com>	<5A47E75E594F054BAF48C5E4FC4B92AB03294424DF@dbde02.ent.ti.com> <87aanhd7xj.fsf@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB0329539FDE@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: [PATCH v6 02/13] OMAP: GPIO: Introduce support for OMAP15xx chip GPIO init
+Date: Sat, 18 Sep 2010 19:45:42 +0530
+Message-ID: <1284819353-8512-3-git-send-email-charu@ti.com>
+References: <1284819353-8512-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33557 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753364Ab0IRKNU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 18 Sep 2010 06:13:20 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0329539FDE@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48459 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755290Ab0IROQQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Sep 2010 10:16:16 -0400
+In-Reply-To: <1284819353-8512-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
 
-Hi Thara,
+This patch introduces platform_data structure for
+GPIO so that GPIO module can be implemented in
+platform device model.
 
-On 9/17/2010 4:55 PM, Gopinath, Thara wrote:
->
->>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>> Sent: Thursday, September 16, 2010 8:58 PM
->>>
->>> "Gopinath, Thara"<thara@ti.com>  writes:
->>>
->>>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>> Sent: Friday, September 03, 2010 5:12 AM
->>>>>>
->>>>>> Thara Gopinath<thara@ti.com>  writes:
->>>>>>
->>>>>>> This patch extends the device opp structure to contain
->>>>>>> pointers to scale the operating rate of the
->>>>>>> device and to retrieve the operating rate of the device.
->>>>>>> This patch also adds the three new APIs in the opp layer
->>>>>>> namely opp_set_rate that can be called to set a new operating
->>>>>>> rate for a device, opp_get_rate that can be called to retrieve
->>>>>>> the operating frequency for a device and opp_populate_rate_fns
->>>>>>> to populte the device specific set_rate and get_rate API's.
->>>>>>> The opp_set_rate and opp_get_rate does some routine error
->>>>>>> checks and finally calls into the device specific set_rate
->>>>>>> and get_rate APIs populated through opp_populate_rate_fns.
->>>>>>>
->>>>>>> Signed-off-by: Thara Gopinath<thara@ti.com>
->>>>>>
->>>>>> As I think about this more, I'm not sure the OPP layer is the right
->>>>>> layer for the get/set rate functions.  The OPP layer is currently just
->>>>>> the data store for OPP data. To me, these set/get functions are better
->>>>>> associated directly with an omap_device instead of an OPP.
->>>>>>
->>>>>> For instance, the new OPP APIs are a bit confusing in terms of OPPs.
->>>>>> e.g: opp_get_rate().  What is the "rate" of an OPP, and what's the
->>>>>> difference with opp_get_freq()?
->>>>>>
->>>>>> What's really happening is the rate is being changed for a device, and
->>>>>> the need for specific hooks are at the device level, not the OPP level.
->>>>>> For example, this current approach would not scale if you needed
->>>>>> multiple devices in the same domain that each needed custom
->>>>>> set_rate/get_rate hooks.
->>>>>>
->>>>>> So instead, what about adding custom hooks at the omap_device level?
->>>>>> They could be registered at omap_device_build() time in the device
->>>>>> specific code.
->>>>
->>>> This is exactly what I had in my mind when I started implementing this.
->>>> But then Paul said hwmod or omap_device is not the place to keep it.
->>>
->>> IIRC, Paul's concern was that *hwmod* was not the right place for this
->>> (and I agree.)  However, I think omap_device is the right place for
->>> this.
->>>
->>> Paul?
->>>
->>>> Also I do not want the set rate get rate APIs for devices that require
->>>> changes dividers in the PRCM clock module to be spread out in the
->>>> system. Makes it very very difficult to debug.  If we agree to add the
->>>> set_rate and get_rate in the omap_device structure, I would like to
->>>> have one more API in the omap_device layer to register these APIs
->>>> device wise. Thus we can keep these set rate and get rate APIs in one
->>>> single file.
->>>
->>> Agreed.  And those functions should be in the respective
->>> device-specific file, where the omap_device_build() etc are done for
->>> that device.
->
-> Hello Kevin,
->
-> I basically agree with all your other suggestions except this. I do not
-> think device files are the correct place for this. For starters definitely mpu,
-> l3 and iva devices are not built from any device file. I do not like the idea
-> of device set rate APIs spread across different files.
+This patch also adds support for handling OMAP15xx
+specific gpio_init by providing platform device data
+and doing device registration.
 
-I don't not understand the reason?
-If we need to add specific device function for mpu, l3, or iva, we can 
-easily add a file to contain that.
-BTW, thanks to work done by Santosh and Felipe we will probably soon 
-introduce a l3 driver that will allow to handle interconnect errors. We 
-will thus have a real device for l3 as well.
+Signed-off-by: Charulatha V <charu@ti.com>
+---
+ arch/arm/mach-omap1/gpio15xx.c         |  101 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/gpio.c              |    7 --
+ arch/arm/plat-omap/include/plat/gpio.h |   22 +++++++
+ 3 files changed, 123 insertions(+), 7 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/gpio15xx.c
 
-A device set_rate is clearly device specific. If a device will have to 
-play with its own internal dividers along with PRCM dividers, that code 
-still belong to the device.
-
-I do not see the need nor the advantage to centralize that? You will 
-end-up with a huge file that every driver owners will have to hack in 
-order to add set_rate support for their device.
-
-At device build time, IP with set_rate support will just add non-null 
-parameters to the omap_device_build(), et voila.
-
-For the debug point of view, you can just add a new sysfs entry for 
-scalable devices that will allow you to track scalable device vs regular 
-ones.
-
-Regards,
-Benoit
-
-
-> What I am proposing is like we have  opp_populate_rate_fns(which I have introduced)
-> we should have something like omap_device_populate_rate_fns. This can be then called
-> from one file to register the set_rate and get_rate APIs for all the relevant devices
-> for a Soc. This will be done through an init function. And the device specific
-> set_rate and get_rate can be implemented in this file. I am not sure which is
-> this file at this point of time. Maybe for OMAP3 opp3xxx_data.c or pm34xx.c. What
-> do you think about this?
->
-> Regards
-> Thara
->
->>>
->>>> Also if we move these hooks to omap_device struct we will need to
->>>> rename the current omap_device_set_rate (the main API) to
->>>> omap_device_scale and introduce a new omap_device_set_rate which just
->>>> finds out the omap device from the passed dev pointer and does a
->>>> od->set_rate. Similarly for get rate also.
->>>
->>> Yes, that's what I was thinking.
->>>
->>> Kevin
+diff --git a/arch/arm/mach-omap1/gpio15xx.c b/arch/arm/mach-omap1/gpio15xx.c
+new file mode 100644
+index 0000000..b2daa66
+--- /dev/null
++++ b/arch/arm/mach-omap1/gpio15xx.c
+@@ -0,0 +1,101 @@
++/*
++ * OMAP15XX-specific gpio code
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ *
++ * Author:
++ *	Charulatha V <charu@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/gpio.h>
++
++#define OMAP1_MPUIO_VBASE		OMAP1_MPUIO_BASE
++#define OMAP1510_GPIO_BASE		0xfffce000
++
++static struct omap_gpio_dev_attr omap15xx_gpio_attr = {
++	.bank_width = 16,
++};
++
++/*
++ * OMAP15XX GPIO1 interface data
++ */
++static struct __initdata resource omap15xx_mpu_gpio_resources[] = {
++	{
++		.start	= OMAP1_MPUIO_VBASE,
++		.end	= OMAP1_MPUIO_VBASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_MPUIO,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct __initdata omap_gpio_platform_data omap15xx_mpu_gpio_config = {
++	.virtual_irq_start	= IH_MPUIO_BASE,
++	.bank_type		= METHOD_MPUIO,
++	.gpio_attr		= &omap15xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap15xx_mpu_gpio = {
++	.name           = "omap-gpio",
++	.id             = 0,
++	.dev            = {
++		.platform_data = &omap15xx_mpu_gpio_config,
++	},
++	.num_resources = ARRAY_SIZE(omap15xx_mpu_gpio_resources),
++	.resource = omap15xx_mpu_gpio_resources,
++};
++
++/*
++ * OMAP15XX GPIO2 interface data
++ */
++static struct __initdata resource omap15xx_gpio_resources[] = {
++	{
++		.start	= OMAP1510_GPIO_BASE,
++		.end	= OMAP1510_GPIO_BASE + SZ_2K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_GPIO_BANK1,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct __initdata omap_gpio_platform_data omap15xx_gpio_config = {
++	.virtual_irq_start	= IH_GPIO_BASE,
++	.bank_type		= METHOD_GPIO_1510,
++	.gpio_attr		= &omap15xx_gpio_attr,
++};
++
++static struct __initdata platform_device omap15xx_gpio = {
++	.name           = "omap-gpio",
++	.id             = 1,
++	.dev            = {
++		.platform_data = &omap15xx_gpio_config,
++	},
++	.num_resources = ARRAY_SIZE(omap15xx_gpio_resources),
++	.resource = omap15xx_gpio_resources,
++};
++
++/*
++ * omap15xx_gpio_init needs to be done before
++ * machine_init functions access gpio APIs.
++ * Hence omap15xx_gpio_init is a postcore_initcall.
++ */
++static int __init omap15xx_gpio_init(void)
++{
++	if (!cpu_is_omap15xx())
++		return -EINVAL;
++
++	platform_device_register(&omap15xx_mpu_gpio);
++	platform_device_register(&omap15xx_gpio);
++
++	gpio_bank_count = 2,
++	return 0;
++}
++postcore_initcall(omap15xx_gpio_init);
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index dc8c0dc..e34bc60 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -210,13 +210,6 @@ struct gpio_bank {
+ static void omap3_gpio_restore_context(void);
+ static void omap3_gpio_save_context(void);
+ 
+-#define METHOD_MPUIO		0
+-#define METHOD_GPIO_1510	1
+-#define METHOD_GPIO_1610	2
+-#define METHOD_GPIO_7XX		3
+-#define METHOD_GPIO_24XX	5
+-#define METHOD_GPIO_44XX	6
+-
+ #ifdef CONFIG_ARCH_OMAP16XX
+ static struct gpio_bank gpio_bank_1610[5] = {
+ 	{ OMAP1_MPUIO_VBASE, NULL, INT_MPUIO, IH_MPUIO_BASE,
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index c81ef94..c8a70d7 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -28,6 +28,9 @@
+ 
+ #include <linux/io.h>
+ #include <mach/irqs.h>
++#include <linux/platform_device.h>
++
++#include <plat/powerdomain.h>
+ 
+ #define OMAP1_MPUIO_BASE			0xfffb5000
+ 
+@@ -71,6 +74,25 @@
+ 				 IH_MPUIO_BASE + ((nr) & 0x0f) : \
+ 				 IH_GPIO_BASE + (nr))
+ 
++#define METHOD_MPUIO		0
++#define METHOD_GPIO_1510	1
++#define METHOD_GPIO_1610	2
++#define METHOD_GPIO_7XX		3
++#define METHOD_GPIO_24XX	5
++#define METHOD_GPIO_44XX	6
++
++struct omap_gpio_dev_attr {
++	int bank_width;		/* GPIO bank width */
++	bool dbck_flag;		/* dbck required or not - True for OMAP3&4 */
++};
++
++struct omap_gpio_platform_data {
++	u16 virtual_irq_start;
++	int bank_type;
++	struct omap_gpio_dev_attr *gpio_attr;
++	struct powerdomain *pwrdm;
++};
++
+ extern int omap_gpio_init(void);	/* Call from board init only */
+ extern void omap2_gpio_prepare_for_idle(void);
+ extern void omap2_gpio_resume_after_idle(void);
+-- 
+1.7.0.4
 
