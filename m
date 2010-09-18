@@ -1,94 +1,80 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
 Subject: RE: [PATCH v2 09/11] OMAP: DMA: Implement generic errata handling
-Date: Sat, 18 Sep 2010 06:45:07 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402784DCD79@dbde02.ent.ti.com>
+Date: Sat, 18 Sep 2010 06:49:30 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402784DCD7B@dbde02.ent.ti.com>
 References: <1282647866-6918-1-git-send-email-manjugk@ti.com>
- <1282647866-6918-10-git-send-email-manjugk@ti.com> <4C938D0C.9000801@ti.com>
+	<1282647866-6918-10-git-send-email-manjugk@ti.com>
+	<87sk1qtpnu.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402782B8A93@dbde02.ent.ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402784DC7D5@dbde02.ent.ti.com>
+	<4C9317B5.3050308@ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402784DC994@dbde02.ent.ti.com>
+	<4C9342FB.30401@ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402784DCB8E@dbde02.ent.ti.com>
+	<4C938066.2080908@ti.com> <87hbhoz8qw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40450 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50372 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752867Ab0IRBPO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 21:15:14 -0400
-In-Reply-To: <4C938D0C.9000801@ti.com>
+	id S1753916Ab0IRBTi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Sep 2010 21:19:38 -0400
+In-Reply-To: <87hbhoz8qw.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
 
 
 > -----Original Message-----
-> From: Cousson, Benoit 
-> Sent: Friday, September 17, 2010 9:15 PM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; Kevin Hilman; Shilimkar, Santosh
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Friday, September 17, 2010 9:02 PM
+> To: Cousson, Benoit
+> Cc: G, Manjunath Kondaiah; linux-omap@vger.kernel.org; 
+> Shilimkar, Santosh
 > Subject: Re: [PATCH v2 09/11] OMAP: DMA: Implement generic 
 > errata handling
 > 
-> On 8/24/2010 1:04 PM, G, Manjunath Kondaiah wrote:
-> > This patch introduces generic way of handling all OMAP DMA errata's 
-> > which are applicable for OMAP1 and OMAP2PLUS processors.
+> "Cousson, Benoit" <b-cousson@ti.com> writes:
 > 
-> <...>
+> [...]
 > 
-> > diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c 
-> > index f369bee..8832bd1 100644
-> > --- a/arch/arm/mach-omap2/dma.c
-> > +++ b/arch/arm/mach-omap2/dma.c
-> > @@ -80,6 +80,40 @@ static int __init 
-> omap2_system_dma_init_dev(struct 
-> > omap_hwmod *oh, void *user)
+> >>>>> If you cannot do that, you will need to add an 
+> omap_device API as 
+> >>>>> well.
+> >>>>
+> >>>> There is already one such API exists in hwmod layer for handling 
+> >>>> this type of errata(omap_hwmod_set_slave_idlemode in 
+> omap_hwmod.c).
+> >>>> Above proposal is based on similar implementation.
+> >>>
+> >>> Maybe, but this is not enough. In both case you should not use 
+> >>> directly this API from the driver, so if you want to use 
+> that kind 
+> >>> of approach, you will need the omap_device layer as well.
+> >>
+> >> Does that mean, extending omap device layer for modifying 
+> sysconfig?
 > >
-> >   	pdata->dma_attr		= (struct omap_dma_dev_attr 
-> *)oh->dev_attr;
+> > Yes,
 > >
-> > +	/* Handling Errata's for all OMAP2PLUS processors */
-> > +	pdata->errata			= 0;
-> > +
-> > +	if (cpu_is_omap242x() ||
-> > +		(cpu_is_omap243x()&&   omap_type()<= 
-> OMAP2430_REV_ES1_0))
-> > +		pdata->errata		= DMA_CHAINING_ERRATA;
-> > +
-> > +	/*
-> > +	 * Errata: On ES2.0 BUFFERING disable must be set.
-> > +	 * This will always fail on ES1.0
-> > +	 */
-> > +	if (cpu_is_omap24xx())
-> > +		pdata->errata		|= DMA_BUFF_DISABLE_ERRATA;
-> > +
-> > +	/*
-> > +	 * Errata: OMAP2: sDMA Channel is not disabled
-> > +	 * after a transaction error. So we explicitely
-> > +	 * disable the channel
-> > +	 */
-> > +	if (cpu_class_is_omap2())
-> > +		pdata->errata		|= DMA_CH_DISABLE_ERRATA;
-> > +
-> > +	/* Errata: OMAP3 :
-> > +	 * A bug in ROM code leaves IRQ status for channels 0 
-> and 1 uncleared
-> > +	 * after secure sram context save and restore. Hence we need to
-> > +	 * manually clear those IRQs to avoid spurious interrupts. This
-> > +	 * affects only secure devices.
-> > +	 */
-> > +	if (cpu_is_omap34xx()&&  (omap_type() != OMAP2_DEVICE_TYPE_GP))
-> > +		pdata->errata		|= DMA_IRQ_STATUS_ERRATA;
-> > +
-> > +	/* Errata3.3: Applicable for all omap2 plus */
-> > +	pdata->errata			|= OMAP3_3_ERRATUM;
-> > +
 > 
-> The DMA_SYSCONFIG_ERRATA does not seems to be initialized 
-> there. How are you enabling that errata?
+> Just to re-iterate Benoit's point:
+> 
+> Driver's should not have any knowledge of omap_hwmods.  All 
+> the interaction with hwmods is done via the omap_device layer. 
+> 
+> So, if it is decide that you need a new API for this 
+> sysconfig change, you have to add it to *both* the hwmod 
+> layer and the omap_device layer.
+> 
+> As with all the other functions, driver calls omap_device, 
+> and omap_device calls omap_hwmod as needed.
 
-Thanks. I have already identified this and taken care in my internal version. It 
-will be enabled in next version.
+Ok. Agreed.
 
 -Manjunath
-
+ 
