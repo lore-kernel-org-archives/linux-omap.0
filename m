@@ -1,91 +1,137 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH] opp: introduce library for device-specific OPPs
-Date: Sat, 18 Sep 2010 20:41:41 +0200
-Message-ID: <201009182041.41675.rjw@sisk.pl>
-References: <[PATCH 1/4] OMAP: introduce OPP layer for device-specific OPPs> <201009180107.51664.rjw@sisk.pl> <4C93FAD1.80108@ti.com>
+Date: Sat, 18 Sep 2010 21:11:25 +0200
+Message-ID: <201009182111.26065.rjw__26465.8991284252$1284837204$gmane$org@sisk.pl>
+References: <1284686973-13993-1-git-send-email-nm@ti.com> <201009180045.56122.rjw@sisk.pl> <4C93F794.1030308@ti.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4C93FAD1.80108@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeproo>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:43221 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756031Ab0IRTMY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Sep 2010 15:12:24 -0400
+In-Reply-To: <4C93F794.1030308@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-o
+Cc: lkml <linux-kernel@vger.kernel.org>
 
-[Trimming the CC list.]
+[Trimming the CC list]
 
 On Saturday, September 18, 2010, Nishanth Menon wrote:
-> Rafael J. Wysocki had written, on 09/17/2010 06:07 PM, the following:
+> Rafael J. Wysocki had written, on 09/17/2010 05:45 PM, the following:
+> 
+> Thanks for your review. few views below..
+> 
+> > On Friday, September 17, 2010, Nishanth Menon wrote:
+> >> Nishanth Menon had written, on 09/17/2010 10:05 AM, the following:
+> >>> Linus Walleij had written, on 09/17/2010 08:41 AM, the following:
+> >>>> 2010/9/17 Nishanth Menon <nm@ti.com>:
+> >>>>
+> >>>>> diff --git a/Documentation/power/00-INDEX b/Documentation/power/00-INDEX
+> >>>>> index fb742c2..45e9d4a 100644
+> >>>>> --- a/Documentation/power/00-INDEX
+> >>>>> +++ b/Documentation/power/00-INDEX
+> >>>>> @@ -14,6 +14,8 @@ interface.txt
+> >>>>>        - Power management user interface in /sys/power
+> >>>>>  notifiers.txt
+> >>>>>        - Registering suspend notifiers in device drivers
+> >>>>> +opp.txt
+> >>>>> +       - Operating Performance Point library
+> >>>>>  pci.txt
+> >>>>>        - How the PCI Subsystem Does Power Management
+> >>>> Hm you add the documentation to the index but not the documentation
+> >>>> itself (easy slip) would you mind posting it?
+> >>> ouch.. Sorry.. I realized that I missed adding MAINTAINER entry as 
+> >>> well.. v2 coming up..
+> >>>
+> >> while the review goes on, I will till end of the day before posting a v2 
+> >> will collated comments, here is the opp.txt documentation for the same.. 
+> >> apologies on missing in my v1..
+> > 
+> > OK, I'm not generally familiar with these things, so a couple of questions.
+> > 
+> >> OPP Layer
+> >> ==============
+> >> SOCs have a standard set of tuples consisting of frequency and
+> >> voltage pairs that the device will support per voltage domain. This
+> >> is called Operating Performance Point or OPP. The actual definitions
+> >> of OPP varies over silicon within the same family of devices.
+> >> For a specific domain, you can have a set of {frequency, voltage}
+> >> pairs. As the kernel boots and more information is available, a set
+> >> of these are activated based on the precise nature of device the kernel
+> >> boots up on.
+> > 
+> > Does it mean that the full set of possible OPPs is already known from the
+> > hardware configuration and the ones that are actually useable are found
+> > during boot?
+> 
+> yes. example - https://patchwork.kernel.org/patch/183742/ (based on 
+> original patch posted to l-arm, this will need some tweaks with the 
+> latest evolution, the concepts remain the same).
+> 
+> For example, consider in the patch above where we have a opp definitions 
+> we can choose from omap3430 and 3630,
+> 
+> when using 3630 silicon as a specific, certain boards wish to enable 
+> 1GHz, this allows us to do something as follows:
+> in the generic omap code, we do init of all opps
+> in the board specific file, we enable 1Ghz
+> 
+> The selection of oppset and actual availability is done on the fly.
+
+OK, so why don't you simply drop the OPPs you're not going to use from the
+list in the board-specific file?
+
 ...
+> >> OPP layer organizes the data internally using device pointers representing
+> >> individual voltage domains.
 > > 
-> > Apart from this, it might be a good idea to help callers a bit and actually
-> > introduce some sort of locking into the framework.
-> in OMAP implementation we have need to use these apis from irq_locked 
-> contexts as well..  lock implementation will prevent thier necessary 
-> usage.
+> > Can you please describe these data structures in a bit more detail?
+> probably a dumb question: Is'nt it enough to give detailed verbose 
+> information in the  struct comment header? why duplicate here as well.. 
+> other than giving an overview?
 
-Why so?  You can use spin_lock_irqsave/spin_unclock_irqrestore  to
-avoid that.
+I meant "explain it to me" rather than "explain it in the doc". :-)  Sorry for
+not being clear enough.
 
-> instead we have implemented lock mechanisms in higher layers and 
-> ensured that the opp table does not change once created - the rest of 
-> them are query functions - the risk is on opp_enable/disable.
-
-OK, but this way you practically make the users of the framework duplicate
-some code for the locking purposes.  This is kind of suboptimal, and error
-prone too.
-
-> >> In terms of the lifetime rules on the nodes in the list:
-> >> The list is expected to be maintained once created, entries are expected 
-> >> to be added optimally and not expected to be destroyed, the choice of 
-> >> list implementation was for reducing the complexity of the code itself 
-> >> and not yet meant as a mechanism to dynamically add and delete nodes on 
-> >> the fly.. Essentially, it was intended for the SOC framework to ensure 
-> >> it plugs in the OPP entries optimally and not create a humongous list of 
-> >> all possible OPPs for all families of the vendor SOCs - even though it 
-> >> is possible to use the OPP layer so - it just wont be smart to do so 
-> >> considering list scan latencies on hot paths such as cpufreq transitions 
-> >> or idle transitions.
+> >> NOTE:
+> >> a) the OPP layer implementation expects to be used in multiple contexts
+> >> based on SOC implementation and recommends locking schemes appropriate to
+> >> the usage of SOC.
+> >> b) All pointer returns are expected to be handled by standard error checks
+> >> such as IS_ERR() and appropriate actions taken by the caller.
 > > 
-> > If the list nodes are not supposed to be added and removed dynamically,
-> > it probably would make sense to create data structures containing
-> > the "available" OPPs only, once they are known, and simply free the object
-> > representing the other ones.
-> I covered the usage in my reply here: 
-> http://marc.info/?l=linux-arm-kernel&m=128476570300466&w=2
-> but to repeat, the list is dynamic during initialization but remains 
-> static after initialization based on SOC framework implementation - this 
-> is best implemented with a list (we had started with an original array 
-> implementation which evolved to the current list implementation 
-> http://marc.info/?l=linux-omap&m=125912217718770&w=2)
+> > I noticed that in a few places it isn't really necessary to return a pointer.
+> > I think you can simply return int in such cases.
+> could you help and point these to me. opp_find_freq_exact, 
+> opp_find_freq_ceil, opp_find_freq_floor are the only ones that return 
+> pointers and they need to return the pointer to the opp they found to 
+> operate on them such as add_freq etc..
 
-Well, my point is, since the _final_ set of OPPs doesn't really change, there's
-no need to use a list for storing it in principle.
+Hmm, OK.  I must have made a mistake, sorry.
 
-Your current algorithm seems to be:
-(1) Create a list of all _possible_ OPPs.
-(2) Mark the ones that can actually be used on the given hardware as
-    "available".
-(3) Whenever we need to find an OPP to use, browse the entire list.
+...
+> >> Data Structures:
+> >> ---------------
+> >> struct opp * is a handle structure whose internals are known only
+> >> to the OPP layer and is meant to hide the complexity away from users of
+> >> opp layer.
+> >>
+> >> struct opp_def * is the definitions that users can interface with
+> >> opp layer and is meant to define one OPP for a domain device.
+> > 
+> > The data structures require some more description IMHO.  They aren't completely
+> > intuitive.
+> 
+> ok, a repeat question -> why duplicate the information defined in the 
+> structure comment header?
 
-This isn't optimal, because the OPPs that are not marked as "available" in (2)
-will never be used, although they _will_ be inspected while browsing the list.
-So, I think a better algorithm would be:
-(1) Create a list of all possible OPPs.
-(2) Drop the nonavailable OPPs from the list.
-(3) Whenever we need to find an OPP to use, browse the entire list.
+Because it doesn't imply the specific implementation, AFAICS.
 
-But then, it may be better to simply move the list we get in (2) into an
-array, because the browsing is going to require fewer memory accesses in
-that case (also, an array would use less memory than the list).  So, perhaps,
-it's better to change the algorithm even further:
-(1) Create a list of all possible OPPs.
-(2) Drop the nonavailable OPPs from the list.
-(3) Move the list we got in (2) into a sorted array.
-(4) Whenever we need to find an OPP to use, browse the array
-     (perhaps using binary search).
+Like what the list heads in your structures are used for etc.
 
 Thanks,
 Rafael
