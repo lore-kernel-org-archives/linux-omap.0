@@ -1,63 +1,67 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2] power: introduce library for device-specific OPPs
-Date: Sat, 18 Sep 2010 00:48:54 -0500
-Message-ID: <4C9452C6.8010308@ti.com>
-References: <1284787459-25643-1-git-send-email-nm@ti.com>
-	<20100918053849.GA19709@suse.de> <4C945139.20602@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 00/14] omap sram, omap4 control module and es2.0 support
+Date: Sat, 18 Sep 2010 13:02:31 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD307F35@dbde02.ent.ti.com>
+References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
+ <alpine.DEB.2.00.1009171147560.6562@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4C945139.20602@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg KH <gregkh@suse.de>
-Cc: Len Brown <len.brown@intel.com>, Phil <ext-phil.2.carmody@nokia.com>, Lnus Walleij <linus.walleij@stericsson.com>, Kevin <khilman@deeprootsystems.com>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, Randy Dunlap <rdunlap@xenotime.net>, Pavel Machek <pavel@ucw.cz>, Andrew Morton <akpm@linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Matthew Garrett <mjg@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48290 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752105Ab0IRHcl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Sep 2010 03:32:41 -0400
+In-Reply-To: <alpine.DEB.2.00.1009171147560.6562@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Menon, Nishanth had written, on 09/18/2010 12:42 AM, the following:
-> Greg KH had written, on 09/18/2010 12:38 AM, the following:
->> On Sat, Sep 18, 2010 at 12:24:19AM -0500, Nishanth Menon wrote:
->>> This is hence introduced under lib allowing all architectures to
->>> selectively enable the feature based on their capabilities.
->> <snip>
->>
->>>  Documentation/power/00-INDEX |    2 +
->>>  Documentation/power/opp.txt  |  326 ++++++++++++++++++++++++++
->>>  drivers/base/power/Makefile  |    1 +
->>>  drivers/base/power/opp.c     |  527 ++++++++++++++++++++++++++++++++++++++++++
->>>  include/linux/opp.h          |  126 ++++++++++
->>>  kernel/power/Kconfig         |   14 ++
->>>  6 files changed, 996 insertions(+), 0 deletions(-)
->>>  create mode 100644 Documentation/power/opp.txt
->>>  create mode 100644 drivers/base/power/opp.c
->>>  create mode 100644 include/linux/opp.h
->> That doesn't look like the files are under lib/
->>
->> Did you forget to move them, or do you need to update the changelog
->> message?
+ -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Friday, September 17, 2010 11:21 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 00/14] omap sram, omap4 control module and es2.0
+> support
 > 
-> Aww... and I thought I fixed them all.. the commit message is wrong.
-> we had an alignment earlier today to move it from lib to 
-> drivers/base/power [1] :(
+> Hello Santosh
 > 
-> Thanks for catching it. Will fix it in rev 3 after collating any further 
-> comments as well.
+> On Fri, 17 Sep 2010, Santosh Shilimkar wrote:
 > 
-> [1] http://marc.info/?l=linux-arm-kernel&m=128476405731191&w=2
-Yikes..sleepy eyes and long threads don't go well together :(
+> > This is consolidated patch series targetted for 2.6.37 merge window.
+> > All of these patches have been already posted/reviewed on the list.
+> 
+> Patch 6 is missing, could you please look into why?
+> 
+Mostly because of size of the patch, You can pick this from the
+below git link 
 
-[1] http://marc.info/?l=linux-arm-kernel&m=128476651001280&w=2 is the 
-link I had intended
+> Also, please split all of the SCM changes out into a separate
+> series/branch since they will be going in through my tree.  Am reviewing
+> those now.
+> 
+Ok done. I have split the series and kept scm changes on 'omap4_scm_2.6.37'
+head and rest on 'omap_for_2.6.37'
 
-apologies on the spam.. :(
--- 
 Regards,
-Nishanth Menon
+Santosh
+---
+The following changes since commit 03a7ab083e4d619136d6f07ce70fa9de0bc436fc:
+  Linus Torvalds (1):
+        Merge git://git.kernel.org/.../sfrench/cifs-2.6
+
+are available in the git repository at:
+
+  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4_scm_2.6.37
+
+Santosh Shilimkar (4):
+      omap4: control: Add ctrl_pad_base to omap_globals
+      omap4: control: Add accessor api's for pad control module
+      omap4: control: Add the register definition headers
+      omap4: control: Fix the control module register accesses
+
+ 
+
