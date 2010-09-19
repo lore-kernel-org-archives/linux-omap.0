@@ -1,52 +1,45 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 1/5] omap3: Introduce CompuLab CM-T3517 module.
-Date: Sun, 19 Sep 2010 10:58:35 +0200
-Message-ID: <4C95D0BB.4010304@compulab.co.il>
-References: <1284627281-26059-1-git-send-email-grinberg@compulab.co.il> <1284627281-26059-2-git-send-email-grinberg@compulab.co.il> <20100916175317.GF29610@atomide.com>
+Subject: Re: [PATCH 3/5] omap3: cm-t3517: add support for usb host.
+Date: Sun, 19 Sep 2010 11:00:02 +0200
+Message-ID: <4C95D112.5020500@compulab.co.il>
+References: <1284627281-26059-1-git-send-email-grinberg@compulab.co.il> <1284627281-26059-4-git-send-email-grinberg@compulab.co.il> <20100916090018.GM3393@legolas.emea.dhcp.ti.com> <4C91DF66.6020003@compulab.co.il> <20100916174847.GE29610@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:46559 "EHLO compulab.co.il"
+Received: from compulab.co.il ([67.18.134.219]:46582 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751973Ab0ISI6l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Sep 2010 04:58:41 -0400
-In-Reply-To: <20100916175317.GF29610@atomide.com>
+	id S1751946Ab0ISJAM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 19 Sep 2010 05:00:12 -0400
+In-Reply-To: <20100916174847.GE29610@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: balbi@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
- On 09/16/10 19:53, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [100916 01:46]:
->> Add basic suppot, enable uart and led.
+
+
+On 09/16/10 19:48, Tony Lindgren wrote:
+> * Igor Grinberg <grinberg@compulab.co.il> [100916 02:04]:
+>>  Hi,
 >>
->> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
->> ---
->>  arch/arm/mach-omap2/Kconfig          |    7 ++
->>  arch/arm/mach-omap2/Makefile         |    1 +
->>  arch/arm/mach-omap2/board-cm-t3517.c |  109 ++++++++++++++++++++++++++++++++++
->>  3 files changed, 117 insertions(+), 0 deletions(-)
->>  create mode 100644 arch/arm/mach-omap2/board-cm-t3517.c
-> Looks like you're missing the debug uart entry for
-> arch/arm/plat-omap/include/plat/uncompress.h?
->
-> You can test this by enabling DEBUG_LL and EARLY_PRINTK
-> in your .config, then pass earlyprintk in the kernel
-> cmdline. Might become handy for debugging the early
-> init process for your board.
+>> On 09/16/10 11:00, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Thu, Sep 16, 2010 at 03:54:39AM -0500, Igor Grinberg wrote:
+>>>
+>>> put a description here.
+>> This is a relatively small patch, is the subject not descriptive enough?
+> In that case just copy the subject (without the [PATCH] part) to the
+> description for all of your patches.
 
-Indeed can be useful.
+Ok, will do and re-spin.
 
-Thanks.
+Thanks
 
 > Regards,
 >
 > Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 
 -- 
