@@ -1,48 +1,79 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 3/5] omap3: cm-t3517: add support for usb host.
-Date: Sun, 19 Sep 2010 11:00:02 +0200
-Message-ID: <4C95D112.5020500@compulab.co.il>
-References: <1284627281-26059-1-git-send-email-grinberg@compulab.co.il> <1284627281-26059-4-git-send-email-grinberg@compulab.co.il> <20100916090018.GM3393@legolas.emea.dhcp.ti.com> <4C91DF66.6020003@compulab.co.il> <20100916174847.GE29610@atomide.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC v.4] omap: hwspinlock: Added hwspinlock driver
+Date: Sun, 19 Sep 2010 16:45:19 +0200
+Message-ID: <AANLkTin3J6E8e5uTPoomfcpvP1+t4-Svuah3Mv6Nj1Fc@mail.gmail.com>
+References: <F39349C6FA641B4A831B7BF4EBF4D4E1475D1B0F@dlee03.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301E80AC50C@dbde02.ent.ti.com> <8F7AF80515AF0D4D93307E594F3CB40E4D79679E@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:46582 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751946Ab0ISJAM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Sep 2010 05:00:12 -0400
-In-Reply-To: <20100916174847.GE29610@atomide.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:45092 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752423Ab0ISOpj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Sep 2010 10:45:39 -0400
+Received: by iwn5 with SMTP id 5so3474557iwn.19
+        for <linux-omap@vger.kernel.org>; Sun, 19 Sep 2010 07:45:39 -0700 (PDT)
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E4D79679E@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: balbi@ti.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: "Basak, Partha" <p-basak2@ti.com>, "Que, Simon" <sque@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
+Hi Hari,
 
-
-On 09/16/10 19:48, Tony Lindgren wrote:
-> * Igor Grinberg <grinberg@compulab.co.il> [100916 02:04]:
->>  Hi,
+On Thu, Aug 12, 2010 at 12:44 AM, Kanigeri, Hari <h-kanigeri2@ti.com> w=
+rote:
+>> > +/* Attempt to acquire a spinlock once */
+>> > +int hwspinlock_trylock(struct hwspinlock *handle)
+>> > +{
+>> > + =A0 =A0 =A0 int retval =3D 0;
+>> > +
+>> > + =A0 =A0 =A0 if (WARN_ON(handle =3D=3D NULL))
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> > +
+>> > + =A0 =A0 =A0 if (WARN_ON(in_irq()))
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EPERM;
+>> > +
+>> > + =A0 =A0 =A0 if (pm_runtime_get(&handle->pdev->dev) < 0)
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>> > +
+>> > + =A0 =A0 =A0 /* Attempt to acquire the lock by reading from it */
+>> > + =A0 =A0 =A0 retval =3D readl(handle->lock_reg);
+>> > +
+>> > + =A0 =A0 =A0 if (retval =3D=3D HWSPINLOCK_BUSY)
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put(&handle->pdev->dev);
+>> Any reason for using pm_runtime_put instead of pm_runtime_put_sync?
 >>
->> On 09/16/10 11:00, Felipe Balbi wrote:
->>> Hi,
->>>
->>> On Thu, Sep 16, 2010 at 03:54:39AM -0500, Igor Grinberg wrote:
->>>
->>> put a description here.
->> This is a relatively small patch, is the subject not descriptive enough?
-> In that case just copy the subject (without the [PATCH] part) to the
-> description for all of your patches.
-
-Ok, will do and re-spin.
-
-Thanks
-
-> Regards,
+>> Using pm_runtime_gett_sync & pm_runtime_put_sync have been recommend=
+ed by
+>> Kevin Hilman.
 >
-> Tony
+> Actually is there a need to call pm_runtime_put_sync for hwspinlock ?=
+ Spinlocks are used by the co-processors and we have to ensure that the=
+ device doesn't enter some low power mode without the knowledge of Co-p=
+rocessor. I don't think run time PM is needed for hwspinlock.
 >
+> Just doing pm_runtime_get_sync at probe time for all the spinlock ins=
+tances should be good.
 
--- 
-Regards,
-Igor.
 
+It would probably make more sense to call pm_runtime_get_sync during
+hwspinlock_request{_specific}, and then call pm_runtime_put during
+hwspinlock_free.
+
+This way the runtime PM's usage_count will reflect the number of locks
+that are actually used, and if that number drops to (or never go
+beyond) zero, it is desirable to have the hwspinlock's clock disabled.
+
+This is also safe since no other core will use the hwspinlock if it
+wasn't requested by the MPU beforehand (and if it does, we better know
+about it and fix it).
+
+Thanks,
+Ohad.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
