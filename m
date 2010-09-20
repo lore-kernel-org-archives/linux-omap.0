@@ -1,44 +1,66 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] opp: introduce library for device-specific
-	OPPs
-Date: Sun, 19 Sep 2010 20:46:44 +0100
-Message-ID: <20100919194643.GB9871@sirena.org.uk>
-References: <20100917121958.1dbb57af.akpm@linux-foundation.org>
-	<4C93DC4E.5020506@ti.com> <201009180107.51664.rjw@sisk.pl>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH 04/11] OMAP: mach-omap2: Fix miscellaneous sparse
+ warnings
+Date: Mon, 20 Sep 2010 11:27:35 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402784DD04B@dbde02.ent.ti.com>
+References: <1282856209-15645-1-git-send-email-manjugk@ti.com>
+ <1282856209-15645-5-git-send-email-manjugk@ti.com>
+ <20100916192758.GL29610@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <201009180107.51664.rjw@sisk.pl>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Nishanth Menon <nm@ti.com>, Phil Carmody <ext-phil.2.carmody@nokia.com>, linux-doc <linux-doc@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, "Chikkature Rajashekar,
-	Madhusudhan" <madhu.cr@ti.com>, "Aguirre,
-	Sergio" <saaguirre@ti.com>, Andi Kleen <ak@linux.intel.com>, linux-pm <linux-pm@lists.linux-foundation.org>, Matthew Garrett <mjg@redhat.com>, Len Brown <len.brown@intel.com>, Eduardo Valentin <eduardo.valentin@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, "Granados Dorado, Roberto" <x0095451@ti.com>, Linus Walleij <linus.walleij@stericsson.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, lkml <linux-kernel@vg>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:47996 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751200Ab0ITF5q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 01:57:46 -0400
+In-Reply-To: <20100916192758.GL29610@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>
 
-On Sat, Sep 18, 2010 at 01:07:51AM +0200, Rafael J. Wysocki wrote:
-> On Friday, September 17, 2010, Nishanth Menon wrote:
 
-> > there were a few OMAP followon patches from
-> > http://marc.info/?l=linux-omap&m=128152135801634&w=2
-> > which will actually use this for OMAP3 platform.
 
-> Still, the $subject patch doesn't use it.  So perhaps add it in a separate patch?
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Friday, September 17, 2010 12:58 AM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; Menon, Nishanth
+> Subject: Re: [PATCH 04/11] OMAP: mach-omap2: Fix 
+> miscellaneous sparse warnings
+> 
+> * G, Manjunath Kondaiah <manjugk@ti.com> [100826 13:50]:
+> > From: Manjunatha GK <manjugk@ti.com>
 
-By the same argument nothing in this patch causes the code to become
-used so we may as well not include it at all :)
+...
 
-More seriously, looking at a lot of the questions that people are
-raising it might make the review a bit easier if the patch were posted
-in a series along with an initial user or two to provide some context
-for the expected usage.
+> >  		I2C_BOARD_INFO("s35390a", 0x30),
+> > -		.type		= "s35390a",
+> >  	},
+> >  };
+> 
+> OK, I2C_BOARD_INFO sets it too.
+>   
+> > diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c 
+> > index 26aeef5..02fd942 100644
+> > --- a/arch/arm/mach-omap2/irq.c
+> > +++ b/arch/arm/mach-omap2/irq.c
+> > @@ -47,7 +47,7 @@ static struct omap_irq_bank {  } __attribute__ 
+> > ((aligned(4))) irq_banks[] = {
+> >  	{
+> >  		/* MPU INTC */
+> > -		.base_reg	= 0,
+> > +		.base_reg	= (void __iomem *)0,
+> >  		.nr_irqs	= 96,
+> >  	},
+> >  };
+> 
+> The base_reg line you can remove, the static data area gets 
+> zeroed during init.
+
+Ok.
+
+-Manjunath
+
