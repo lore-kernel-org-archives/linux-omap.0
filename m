@@ -1,137 +1,65 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode support
-Date: Mon, 20 Sep 2010 19:01:16 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0316062730@dbde02.ent.ti.com>
-References: <1284624059-1741-1-git-send-email-s-ghorai@ti.com>
- <1284624059-1741-2-git-send-email-s-ghorai@ti.com>
- <20100917175504.GG29610@atomide.com>
+From: Guenter Roeck <guenter.roeck@ericsson.com>
+Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: twl4030: Driver for twl4030
+ madc module
+Date: Mon, 20 Sep 2010 07:09:05 -0700
+Message-ID: <20100920140905.GB1306@ericsson.com>
+References: <1284632604-25303-1-git-send-email-j-keerthy@ti.com>
+ <20100916151736.GC14165@ericsson.com>
+ <FF55437E1F14DA4BAEB721A458B6701706C5991EB8@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45774 "EHLO arroyo.ext.ti.com"
+Received: from imr4.ericy.com ([198.24.6.8]:59947 "EHLO imr4.ericy.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754620Ab0ITNbZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 09:31:25 -0400
-Content-Language: en-US
+	id S1754274Ab0ITOKN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Sep 2010 10:10:13 -0400
+Content-Disposition: inline
+In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706C5991EB8@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "J, KEERTHY" <j-keerthy@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-Tony,
-
-> -----Original Message-----
-> From: Ghorai, Sukumar
-> Sent: Saturday, September 18, 2010 11:55 PM
-> To: 'Tony Lindgren'
-> Cc: 'linux-omap@vger.kernel.org'; 'linux-mtd@lists.infradead.org'; 'linux-
-> arm-kernel@lists.infradead.org'
-> Subject: RE: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode
-> support
+Hi,
+On Mon, Sep 20, 2010 at 06:34:24AM -0400, J, KEERTHY wrote:
 > 
-> Tony,
 > 
 > > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Friday, September 17, 2010 11:25 PM
-> > To: Ghorai, Sukumar
-> > Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-
-> arm-
-> > kernel@lists.infradead.org; Vimal Singh
-> > Subject: Re: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode
-> > support
+> > From: Guenter Roeck [mailto:guenter.roeck@ericsson.com]
+> > Sent: Thursday, September 16, 2010 8:48 PM
+> > To: J, KEERTHY
+> > Cc: linux-omap@vger.kernel.org; lm-sensors@lm-sensors.org; Krishnamoorthy,
+> > Balaji T
+> > Subject: Re: [lm-sensors] [PATCH 1/2] hwmon: twl4030: Driver for twl4030
+> > madc module
 > >
-> > * Sukumar Ghorai <s-ghorai@ti.com> [100916 00:53]:
-> > > This patch enable prefetch-irq mode for NAND.
-> > >
-> > > --- a/drivers/mtd/nand/omap2.c
-> > > +++ b/drivers/mtd/nand/omap2.c
-> > > @@ -467,6 +485,152 @@ static void omap_write_buf_dma_pref(struct
-> > mtd_info *mtd,
-> > >  		omap_nand_dma_transfer(mtd, (u_char *) buf, len, 0x1);
-> > >  }
-> > >
-> > > +/*
-> > > + * omap_nand_irq - GMPC irq handler
-> > > + * @this_irq: gpmc irq number
-> > > + * @dev: omap_nand_info structure pointer is passed here
-> > > + */
-> > > +static irqreturn_t omap_nand_irq(int this_irq, void *dev)
-> > > +{
-> > > +	struct omap_nand_info *info = (struct omap_nand_info *) dev;
-> > > +	u32 bytes;
-> > > +	u32 irq_stat;
+[...]
+> > > +EXPORT_SYMBOL(twl4030_madc_conversion);
 > > > +
-> > > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > > +	bytes = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
-> > > +	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
-> > > +	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write io */
-> > > +		if (irq_stat & 0x2)
-> > > +			goto done;
-> > > +
-> > > +		if (info->buf_len & (info->buf_len < bytes))
-> > > +			bytes = info->buf_len;
-> > > +		else if (!info->buf_len)
-> > > +			bytes = 0;
-> > > +		iowrite32_rep(info->nand.IO_ADDR_W,
-> > > +						(u32 *)info->buf, bytes >> 2);
-> > > +		info->buf = info->buf + bytes;
-> > > +		info->buf_len -= bytes;
-> > > +
-> > > +	} else {
-> > > +		ioread32_rep(info->nand.IO_ADDR_R,
-> > > +						(u32 *)info->buf, bytes >> 2);
-> > > +		info->buf = info->buf + bytes;
-> > > +
-> > > +		if (irq_stat & 0x2)
-> > > +			goto done;
-> > > +	}
-> > > +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
-> > > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > > +
-> > > +	return IRQ_HANDLED;
-> > > +
-> > > +done:
-> > > +	complete(&info->comp);
-> > > +	/* disable irq */
-> > > +	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
-> > > +
-> > > +	/* clear status */
-> > > +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS, irq_stat);
-> > > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > > +
-> > > +	return IRQ_HANDLED;
-> > > +}
+> > If this function is going to be called  from external code, it should not
+> > really be defined here. I would suggest to move it to a global location
+> > such as
+> > mfd instead, including all related functions.
 > >
-> > This handler should be in gpmc.c as it may be needed for other GPMC
-> > connected devices on the same system. You can use chained irq handlers
-> > to allow all the drivers to use the interrupt then.
+> > The existence of this function export indicates that another non-hwmon
+> > driver depends on this one, which should not really be the case. Another
+> > reason to have a separate common driver instead, and mfd might just be the
+> > place for it.
+> Few kernel modules need to perform ADC conversion to measure battery
+> voltage, battery temperature, VBUS voltage via twl4030_madc_conversion.
+> the_madc is needed as those drivers will not have this device pointer.
 > 
-> [Ghorai]
-> You mean as this function used the gpmc-irq number in nand file, so
-> handler should move to gpmc.c file?
-> 	1. For that we need to add one io-struct (to keep io buffer status)
-> in gpmc.c;
-> 
-> 	2. Also need help how to sync between gpmc.c/omap_nand_irq() and
-> omap2.c/omap_write_buf_irq_pref(), men how read/write function know that
-> work done in interrupt-context? Or you prefer to move the complete IO
-> function (omap_read/write_buf_irq_pref) to gpmc.c?
-> 
-> 	3. gpmc does not now about the read and write address that's
-> applicable for NAND. So how to pass the IO address from omap2.c to gpmc.c,
-> interrupt handler?
-> 
-> 
-> So, please let me know your suggestion again such that I can post this
-> time itself. Otherwise again it will miss from coming release, this was
-> posted/reviewed for last release too. And suggest to void repeating of
-> missing release window again.
+The point I was trying to make is that this function (as well as the ioctl)
+should not be in this driver in the first place. hwmon is about providing 
+hwmon information, not about providing adc readings to another driver.
 
-[Ghorai] Please reply with your 2nd suggestion.
-> 
-> >
-> > Regards,
-> >
-> > Tony
+Or, in other words, hwmon should be a consumer of information from other drivers,
+not a producer of information to other drivers.
+
+There should be a higher level driver (presumably a mfd driver) to provide
+adc readings to all consumers, ie to all callers of twl4030_madc_conversion().
+This driver can provide all data and information needed by more than one driver,
+and would also be the logical place for the ioctl providing raw adc readings 
+to the user.
+
+Guenter
