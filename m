@@ -1,104 +1,94 @@
-From: Jorge Bustamante <jbustamante.init@gmail.com>
-Subject: Requirement for DSI video mode support
-Date: Mon, 20 Sep 2010 15:18:29 -0500
-Message-ID: <AANLkTikBn63Y1CofZksexds7tBqzxrNvX3MD=tZ49hDw@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v6 0/7] OMAP: WDT: Implement WDT in hwmod way
+Date: Mon, 20 Sep 2010 13:48:51 -0700
+Message-ID: <87sk14rvik.fsf@deeprootsystems.com>
+References: <1284733136-20952-1-git-send-email-charu@ti.com>
+	<20100917172215.GE29610@atomide.com>
+	<87mxrguhhf.fsf@deeprootsystems.com>
+	<20100920171653.GE4611@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:57718 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757445Ab0ITUSa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 16:18:30 -0400
-Received: by qyk36 with SMTP id 36so3171350qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2010 13:18:29 -0700 (PDT)
+Received: from mail-px0-f174.google.com ([209.85.212.174]:49820 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754833Ab0ITUsx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 16:48:53 -0400
+In-Reply-To: <20100920171653.GE4611@atomide.com> (Tony Lindgren's message of
+	"Mon, 20 Sep 2010 10:16:53 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tomi.valkeinen@nokia.com
-Cc: m-iovescu1@ti.com, nm@ti.com, archit@ti.com, y-qassid@ti.com, a-aguirre@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, wim@iguana.be, linux-watchdog@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org
 
-Hi,
+Tony Lindgren <tony@atomide.com> writes:
 
-We (TI) have been working on a DSI video mode driver for OMAP4 and I
-am aware that other people are working with similar drivers. We had to
-tweak the code to make the drivers work with current code but we would
-like to make it the correct way, that is, introducing a proper
-functionality instead of inserting tweaks in the present command mode
-driver. Therefore, there is an initiative from us to modify current
-dss/dsi code to support DSI video mode.
+> * Kevin Hilman <khilman@deeprootsystems.com> [100917 15:26]:
+>> Tony Lindgren <tony@atomide.com> writes:
+>> 
+>> > * Varadarajan, Charulatha <charu@ti.com> [100917 07:11]:
+>> >> Series of patches to port watchdog module to use hwmod APIs
+>> >> for OMAP2PLUS chips and use runtime APIs for all OMAP chips.
+>> >> For this hwmod database for OMAP2PLUS watchdog instances are
+>> >> populated. This patch series also implements watchdog
+>> >> module to use PM runtime APIs.
+>> >> 
+>> >> This patch series is created on "origin/pm-core" and is
+>> >> tested on OMAP2430, OMAP44430, OMAP3430 SDP boards and zoom3 board.
+>> >> Also verified that this patch series does not break the OMAP1 build.
+>> >> 
+>> >> This series is tested on OMAP4430 ES2 using the below series
+>> >> http://www.spinics.net/lists/linux-omap/msg36023.html
+>> >
+>> > Can you please list the exact dependencies to other patches
+>> > for the mainline kernel? Are they the same as for the
+>> > omap serial driver just posted?
+>> 
+>> Hi Tony,
+>> 
+>> This series is based on my pm-core branch which is basically the the
+>> stuff I have submitted upstream (my pm-next series, the runtime PM core)
+>> and a collection of hwmod fixes that Paul/Benoit have lined up
+>> for 2.6.37.
+>
+> OK thanks for the summary.
+>
+> So let's get all the dependencies out of the way and pull them into linux-omap
+> master branch for testing. Sounds like we should base this on Paul's core
+> hwmod branch and your pm-next.
 
-We have collected a list of requirements and ideas (with the help of
-ppl copied) from our experience working with these drivers, but it
-would be great if you can discuss/comment further on this.
+Yes, those two branches are required as the bare minimum.
 
-Requirements:
+> Then for the runtime PM core, let's just keep merging them from Greg's
+> queue into l-o master until they are merged to the mainline tree.
+>
+> I assume that the runtime PM core patches are the ones at [1] below?
 
-- A better way of exposing VC's to a panel driver, since most panels
-use more than one VC. Currently the design supports only one per
-panel. Perhaps a VC resource pool could be created.
-- A way of imposing restrictions on clock sources based on dsi mode.
-- Runtime calculation of required clocks and PLL parameters. This is
-to reduce complexity in clock calculations, specially when having two
-panels running at the same time.
-- A way to pass specific requirements from panel driver to DSI driver
-(enable/disable BTA, set HS Clk always on, etc).
-- Remove some hardcoded values in dsi.c and make the panel pass the
-information to DSI driver(RX, TX fifo sizes of VCs, enabling/disabling
-dsi timers, etc)
-- A cleaner way of handling both DSI1 and DSI2 blocks(and more in
-omap5) in the same driver.
-- A way to easily set non-burst event mode, non-burst pulse mode and
-burst mode configuration as defined on DSI protocol specs.
-- A way to calculate correct DSI blanking parameters based on panel
-blanking requirements (for DSI Video panels, these will be have to be
-specified statically somewhere, much like DPI displays).
-- Remove timeout error/warnings when disabling dsi phy interface since
-on video mode it should wait instead for next vsync.
+I should've said runtime PM core for OMAP, by which I mean:
 
+   http://marc.info/?l=linux-omap&m=128459521813724&w=2
 
-Design ideas:
+That series has a dependency on only one of the patches from Greg's
+queue you mentioned. Specifically, the one from me:
 
-- It could actually be worthwhile to have separate files for command
-and video mode and a core dsi driver file.
+   driver core: platform_bus: allow runtime override of dev_pm_ops
 
-- We can have a enum like this to choose between modes:
+which I also have in my pm-backports branch.
 
-plat/display.h can have an enum like:
-enum omap_dss_dsi_mode {
-=A0=A0=A0 OMAP_DSS_DSI_CMDMODE=A0=A0 =3D 1 << 0,
-=A0=A0=A0 OMAP_DSS_DSI_VIDEOMODE =3D 1 << 1,
+>> I will gladly queue these hwmod conversion patches in my tree if you
+>> prefer since I am already managing all the dependencies.
+>
+> Yes, once we have dependencies queued up, then let's pull these
+> in, at least for testing.
+>
+> For merging some hwdmod drivers to mainline, do we have all the
+> necessary acks from the driver maintainers?
 
-};
-Nit pick - either make it #define and have bit offset as above OR
-Better still, you wont need both at the same time, so bit offset wont b=
-e
-useful too much.. OMAP_DSS_DSI_CMDMODE =3D 1, OMAP_DSS_DSI_VIDEOMODE =3D=
- 2,
+The only one that's currently ready is watchdog, and for that one I have
+an Ack from Wim to merge this via linux-omap.
 
-- If we want a user to switch between modes, we may need to have a
-member like "supported_modes" which could check if the desired mode is
-supported by the panel. Switching between modes at runtime would be
-quite unlikely (and hard). We might want to stick with the above if we
-want a member like supported_modes:
-=A0=A0=A0 .supported_modes =3D OMAP_DSS_DSI_CMDMODE | OMAP_DSS_DSI_VIDE=
-OMODE;
+For the others that are close (UART, GPIO, i2c) I've asked that the next
+versions of those be posted to LAKML as well as the subsystem lists.
+>From there, I will ask the subsystem maintainers for an ack so we can
+merge them via linux-omap along with all the platform changes.
 
-- The dssdev struct can have a member dsi_mode of the above type.
-
-- This would look nice in the board file and would also be useful if
-there are multiple panels.
-
-- We can have a bootarg to choose one of the modes (module parameter),
-the driver can check against this member during init.
-
-
-Let me know any comments...
-
-
-Regards,
-Jorge Bustamante
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
