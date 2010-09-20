@@ -1,95 +1,160 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC v.4] omap: hwspinlock: Added hwspinlock driver
-Date: Mon, 20 Sep 2010 10:30:07 -0700
-Message-ID: <8762y0z5k0.fsf@deeprootsystems.com>
-References: <F39349C6FA641B4A831B7BF4EBF4D4E1475D1B0F@dlee03.ent.ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301E80AC50C@dbde02.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E4D79679E@dlee03.ent.ti.com>
-	<AANLkTin3J6E8e5uTPoomfcpvP1+t4-Svuah3Mv6Nj1Fc@mail.gmail.com>
+Subject: Re: [PATCH 05/13] OMAP: Introduce device specific set rate and get rate in device opp structures.
+Date: Mon, 20 Sep 2010 10:35:13 -0700
+Message-ID: <87vd60xqr2.fsf@deeprootsystems.com>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+	<1282130412-12027-6-git-send-email-thara@ti.com>
+	<87fwxrzpan.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03294424DF@dbde02.ent.ti.com>
+	<87aanhd7xj.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0329539FDE@dbde02.ent.ti.com>
+	<4C9490B9.7090002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:46439 "EHLO
+Received: from mail-px0-f174.google.com ([209.85.212.174]:37215 "EHLO
 	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754328Ab0ITRaN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 13:30:13 -0400
-Received: by pxi10 with SMTP id 10so1215941pxi.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2010 10:30:12 -0700 (PDT)
-In-Reply-To: <AANLkTin3J6E8e5uTPoomfcpvP1+t4-Svuah3Mv6Nj1Fc@mail.gmail.com>
-	(Ohad Ben-Cohen's message of "Sun, 19 Sep 2010 16:45:19 +0200")
+	with ESMTP id S1754127Ab0ITRfQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 13:35:16 -0400
+Received: by pxi10 with SMTP id 10so1217848pxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2010 10:35:16 -0700 (PDT)
+In-Reply-To: <4C9490B9.7090002@ti.com> (Benoit Cousson's message of "Sat, 18
+	Sep 2010 12:13:13 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Que, Simon" <sque@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Ohad Ben-Cohen <ohad@wizery.com> writes:
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-> Hi Hari,
+> Hi Thara,
 >
-> On Thu, Aug 12, 2010 at 12:44 AM, Kanigeri, Hari <h-kanigeri2@ti.com>=
- wrote:
->>> > +/* Attempt to acquire a spinlock once */
->>> > +int hwspinlock_trylock(struct hwspinlock *handle)
->>> > +{
->>> > + =A0 =A0 =A0 int retval =3D 0;
->>> > +
->>> > + =A0 =A0 =A0 if (WARN_ON(handle =3D=3D NULL))
->>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->>> > +
->>> > + =A0 =A0 =A0 if (WARN_ON(in_irq()))
->>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EPERM;
->>> > +
->>> > + =A0 =A0 =A0 if (pm_runtime_get(&handle->pdev->dev) < 0)
->>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
->>> > +
->>> > + =A0 =A0 =A0 /* Attempt to acquire the lock by reading from it *=
-/
->>> > + =A0 =A0 =A0 retval =3D readl(handle->lock_reg);
->>> > +
->>> > + =A0 =A0 =A0 if (retval =3D=3D HWSPINLOCK_BUSY)
->>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put(&handle->pdev->dev);
->>> Any reason for using pm_runtime_put instead of pm_runtime_put_sync?
->>>
->>> Using pm_runtime_gett_sync & pm_runtime_put_sync have been recommen=
-ded by
->>> Kevin Hilman.
+> On 9/17/2010 4:55 PM, Gopinath, Thara wrote:
 >>
->> Actually is there a need to call pm_runtime_put_sync for hwspinlock =
-? Spinlocks are used by the co-processors and we have to ensure that th=
-e device doesn't enter some low power mode without the knowledge of Co-=
-processor. I don't think run time PM is needed for hwspinlock.
+>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>> Sent: Thursday, September 16, 2010 8:58 PM
+>>>>
+>>>> "Gopinath, Thara"<thara@ti.com>  writes:
+>>>>
+>>>>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>>>>> Sent: Friday, September 03, 2010 5:12 AM
+>>>>>>>
+>>>>>>> Thara Gopinath<thara@ti.com>  writes:
+>>>>>>>
+>>>>>>>> This patch extends the device opp structure to contain
+>>>>>>>> pointers to scale the operating rate of the
+>>>>>>>> device and to retrieve the operating rate of the device.
+>>>>>>>> This patch also adds the three new APIs in the opp layer
+>>>>>>>> namely opp_set_rate that can be called to set a new operating
+>>>>>>>> rate for a device, opp_get_rate that can be called to retrieve
+>>>>>>>> the operating frequency for a device and opp_populate_rate_fns
+>>>>>>>> to populte the device specific set_rate and get_rate API's.
+>>>>>>>> The opp_set_rate and opp_get_rate does some routine error
+>>>>>>>> checks and finally calls into the device specific set_rate
+>>>>>>>> and get_rate APIs populated through opp_populate_rate_fns.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Thara Gopinath<thara@ti.com>
+>>>>>>>
+>>>>>>> As I think about this more, I'm not sure the OPP layer is the right
+>>>>>>> layer for the get/set rate functions.  The OPP layer is currently just
+>>>>>>> the data store for OPP data. To me, these set/get functions are better
+>>>>>>> associated directly with an omap_device instead of an OPP.
+>>>>>>>
+>>>>>>> For instance, the new OPP APIs are a bit confusing in terms of OPPs.
+>>>>>>> e.g: opp_get_rate().  What is the "rate" of an OPP, and what's the
+>>>>>>> difference with opp_get_freq()?
+>>>>>>>
+>>>>>>> What's really happening is the rate is being changed for a device, and
+>>>>>>> the need for specific hooks are at the device level, not the OPP level.
+>>>>>>> For example, this current approach would not scale if you needed
+>>>>>>> multiple devices in the same domain that each needed custom
+>>>>>>> set_rate/get_rate hooks.
+>>>>>>>
+>>>>>>> So instead, what about adding custom hooks at the omap_device level?
+>>>>>>> They could be registered at omap_device_build() time in the device
+>>>>>>> specific code.
+>>>>>
+>>>>> This is exactly what I had in my mind when I started implementing this.
+>>>>> But then Paul said hwmod or omap_device is not the place to keep it.
+>>>>
+>>>> IIRC, Paul's concern was that *hwmod* was not the right place for this
+>>>> (and I agree.)  However, I think omap_device is the right place for
+>>>> this.
+>>>>
+>>>> Paul?
+>>>>
+>>>>> Also I do not want the set rate get rate APIs for devices that require
+>>>>> changes dividers in the PRCM clock module to be spread out in the
+>>>>> system. Makes it very very difficult to debug.  If we agree to add the
+>>>>> set_rate and get_rate in the omap_device structure, I would like to
+>>>>> have one more API in the omap_device layer to register these APIs
+>>>>> device wise. Thus we can keep these set rate and get rate APIs in one
+>>>>> single file.
+>>>>
+>>>> Agreed.  And those functions should be in the respective
+>>>> device-specific file, where the omap_device_build() etc are done for
+>>>> that device.
 >>
->> Just doing pm_runtime_get_sync at probe time for all the spinlock in=
-stances should be good.
+>> Hello Kevin,
+>>
+>> I basically agree with all your other suggestions except this. I do not
+>> think device files are the correct place for this. For starters definitely mpu,
+>> l3 and iva devices are not built from any device file. I do not like the idea
+>> of device set rate APIs spread across different files.
 >
+> I don't not understand the reason?
+> If we need to add specific device function for mpu, l3, or iva, we can
+> easily add a file to contain that.
+> BTW, thanks to work done by Santosh and Felipe we will probably soon
+> introduce a l3 driver that will allow to handle interconnect
+> errors. We will thus have a real device for l3 as well.
 >
-> It would probably make more sense to call pm_runtime_get_sync during
-> hwspinlock_request{_specific}, and then call pm_runtime_put during
-> hwspinlock_free.
+> A device set_rate is clearly device specific. If a device will have to
+> play with its own internal dividers along with PRCM dividers, that
+> code still belong to the device.
 >
-> This way the runtime PM's usage_count will reflect the number of lock=
-s
-> that are actually used, and if that number drops to (or never go
-> beyond) zero, it is desirable to have the hwspinlock's clock disabled=
-=2E
+> I do not see the need nor the advantage to centralize that? You will
+> end-up with a huge file that every driver owners will have to hack in
+> order to add set_rate support for their device.
 >
-> This is also safe since no other core will use the hwspinlock if it
-> wasn't requested by the MPU beforehand (and if it does, we better kno=
-w
-> about it and fix it).
+> At device build time, IP with set_rate support will just add non-null
+> parameters to the omap_device_build(), et voila.
+>
+> For the debug point of view, you can just add a new sysfs entry for
+> scalable devices that will allow you to track scalable device vs
+> regular ones.
 
-=46WIW, I agree with Ohad.
+I agree with Benoit.
 
-An additional benefit of using runtime PM is that the runtime PM core i=
-s
-growing some useful debug and statistics features so that userspace
-tools (including newer versions of powertop) can present useful stats
-about which devices are active and how often etc.
+For MPU, IVA/DSP, L3, they are currently done in pm.c because they have
+not device init or device file associate with them.   For those, the
+new rate functions belong there, since that' where the omap_device_build
+is done.
+
+For all others, they should stay in device specific init.
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+>> What I am proposing is like we have  opp_populate_rate_fns(which I have introduced)
+>> we should have something like omap_device_populate_rate_fns. This can be then called
+>> from one file to register the set_rate and get_rate APIs for all the relevant devices
+>> for a Soc. This will be done through an init function. And the device specific
+>> set_rate and get_rate can be implemented in this file. I am not sure which is
+>> this file at this point of time. Maybe for OMAP3 opp3xxx_data.c or pm34xx.c. What
+>> do you think about this?
+>>
+>> Regards
+>> Thara
+>>
+>>>>
+>>>>> Also if we move these hooks to omap_device struct we will need to
+>>>>> rename the current omap_device_set_rate (the main API) to
+>>>>> omap_device_scale and introduce a new omap_device_set_rate which just
+>>>>> finds out the omap device from the passed dev pointer and does a
+>>>>> od->set_rate. Similarly for get rate also.
+>>>>
+>>>> Yes, that's what I was thinking.
+>>>>
+>>>> Kevin
