@@ -1,160 +1,128 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 05/13] OMAP: Introduce device specific set rate and get rate in device opp structures.
-Date: Mon, 20 Sep 2010 10:35:13 -0700
-Message-ID: <87vd60xqr2.fsf@deeprootsystems.com>
-References: <1282130412-12027-1-git-send-email-thara@ti.com>
-	<1282130412-12027-6-git-send-email-thara@ti.com>
-	<87fwxrzpan.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB03294424DF@dbde02.ent.ti.com>
-	<87aanhd7xj.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0329539FDE@dbde02.ent.ti.com>
-	<4C9490B9.7090002@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] opp: introduce library for device-specific OPPs
+Date: Mon, 20 Sep 2010 19:35:17 +0200
+Message-ID: <201009201935.17255.rjw@sisk.pl>
+References: <201009180107.51664.rjw@sisk.pl> <201009201838.59013.rjw@sisk.pl> <87eicoz5yi.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:37215 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754127Ab0ITRfQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 13:35:16 -0400
-Received: by pxi10 with SMTP id 10so1217848pxi.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2010 10:35:16 -0700 (PDT)
-In-Reply-To: <4C9490B9.7090002@ti.com> (Benoit Cousson's message of "Sat, 18
-	Sep 2010 12:13:13 +0200")
+Received: from ogre.sisk.pl ([217.79.144.158]:51002 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751131Ab0ITRgO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Sep 2010 13:36:14 -0400
+In-Reply-To: <87eicoz5yi.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Gopinath, Thara" <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Andrew Morton <akpm@linux-foundation.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+On Monday, September 20, 2010, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> 
+> > On Monday, September 20, 2010, Kevin Hilman wrote:
+> >> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> >> 
+> >> [...]
+> >> 
+> >> >> >> In terms of the lifetime rules on the nodes in the list:
+> >> >> >> The list is expected to be maintained once created, entries are expected 
+> >> >> >> to be added optimally and not expected to be destroyed, the choice of 
+> >> >> >> list implementation was for reducing the complexity of the code itself 
+> >> >> >> and not yet meant as a mechanism to dynamically add and delete nodes on 
+> >> >> >> the fly.. Essentially, it was intended for the SOC framework to ensure 
+> >> >> >> it plugs in the OPP entries optimally and not create a humongous list of 
+> >> >> >> all possible OPPs for all families of the vendor SOCs - even though it 
+> >> >> >> is possible to use the OPP layer so - it just wont be smart to do so 
+> >> >> >> considering list scan latencies on hot paths such as cpufreq transitions 
+> >> >> >> or idle transitions.
+> >> >> > 
+> >> >> > If the list nodes are not supposed to be added and removed dynamically,
+> >> >> > it probably would make sense to create data structures containing
+> >> >> > the "available" OPPs only, once they are known, and simply free the object
+> >> >> > representing the other ones.
+> >> >> I covered the usage in my reply here: 
+> >> >> http://marc.info/?l=linux-arm-kernel&m=128476570300466&w=2
+> >> >> but to repeat, the list is dynamic during initialization but remains 
+> >> >> static after initialization based on SOC framework implementation - this 
+> >> >> is best implemented with a list (we had started with an original array 
+> >> >> implementation which evolved to the current list implementation 
+> >> >> http://marc.info/?l=linux-omap&m=125912217718770&w=2)
+> >> >
+> >> > Well, my point is, since the _final_ set of OPPs doesn't really
+> >> > change, there's no need to use a list for storing it in principle.
+> >> >
+> >> > Your current algorithm seems to be:
+> >> > (1) Create a list of all _possible_ OPPs.
+> >> > (2) Mark the ones that can actually be used on the given hardware as
+> >> >     "available".
+> >> > (3) Whenever we need to find an OPP to use, browse the entire list.
+> >> > This isn't optimal, because the OPPs that are not marked as "available" in (2)
+> >> > will never be used, although they _will_ be inspected while browsing the list.
+> >> 
+> >> A little clarificaion about "will never be used" below...
+> >> 
+> >> > So, I think a better algorithm would be:
+> >> > (1) Create a list of all possible OPPs.
+> >> > (2) Drop the nonavailable OPPs from the list.
+> >> > (3) Whenever we need to find an OPP to use, browse the entire list.
+> >> >
+> >> > But then, it may be better to simply move the list we get in (2) into an
+> >> > array, because the browsing is going to require fewer memory accesses in
+> >> > that case (also, an array would use less memory than the list).  So, perhaps,
+> >> > it's better to change the algorithm even further:
+> >> > (1) Create a list of all possible OPPs.
+> >> > (2) Drop the nonavailable OPPs from the list.
+> >> > (3) Move the list we got in (2) into a sorted array.
+> >> > (4) Whenever we need to find an OPP to use, browse the array
+> >> >      (perhaps using binary search).
+> >> 
+> >> Just a little clarification on "available."  The intended use of this flag
+> >> was not just a one-time "available on hardware X."  It was also intended
+> >> to be able to add/remove availbale OPPs dynamically at run-time.
+> >> 
+> >> More specifically, it's intended for use to *temporarily* remove an OPP
+> >> from being selected.  The production usage of this would primarily for
+> >> thermal considerations (e.g. don't use OPPx until the temperature drops)
+> >> 
+> >> However, for PM development & debug, we also use this to temporarily
+> >> take a class of OPPs out of the running for test/debug purposes
+> >> (e.g. driver X runs great at OPPx and OPPy, but not OPPz.)  So the
+> >> ability to temporarily be selective about OPPs at runtime for
+> >> debug/development is extremely useful.
+> >> 
+> >> So, to summarize, "most of the time", all the OPPs that were added (via
+> >> opp_add()) will be "available".  Ones that are !availble will likely
+> >> only be so temporarily, so I'm not sure that the overhead of keeping a
+> >> separate structure for the available and !available OPPs is worth it.
+> >> Especially, since OPP changes are relatively infrequent.
+> >
+> > Well, the Nishanth's description doesn't match this, so thanks for the
+> > clarification.
+> 
+> Agreed, we need to update the doc file to reflect this.
+> 
+> > In that case you might consider using a red-black tree for storing the
+> > "available" OPPs, so that you can add-remove them dynamically, but
+> > you can avoid a linear search through the entire list every time you need to
+> > find and available OPP.  Since we have standard helpers for handling rbtrees,
+> > that shouldn't be a big deal.
+> 
+> That's a possibility, but do you think rbtrees are worth it for a
+> relatively small number of OPPs for any given device?  We're using this
+> to track a list of OPPs for any struct device, so there may be multiple
+> independent OPP lists, but each would have a small number of OPPs.
+> 
+> For example, on OMAP, while the CPU might have a larger number of OPPs
+> (5-6), most devices will have a small number of OPPs (1-3.)  I gather
+> this is similar for many of the embedded SoCs available today.
+> 
+> Considering such a small number of OPPs, is the extra complexity of an
+> rbtree worth it?
 
-> Hi Thara,
->
-> On 9/17/2010 4:55 PM, Gopinath, Thara wrote:
->>
->>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>> Sent: Thursday, September 16, 2010 8:58 PM
->>>>
->>>> "Gopinath, Thara"<thara@ti.com>  writes:
->>>>
->>>>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>>> Sent: Friday, September 03, 2010 5:12 AM
->>>>>>>
->>>>>>> Thara Gopinath<thara@ti.com>  writes:
->>>>>>>
->>>>>>>> This patch extends the device opp structure to contain
->>>>>>>> pointers to scale the operating rate of the
->>>>>>>> device and to retrieve the operating rate of the device.
->>>>>>>> This patch also adds the three new APIs in the opp layer
->>>>>>>> namely opp_set_rate that can be called to set a new operating
->>>>>>>> rate for a device, opp_get_rate that can be called to retrieve
->>>>>>>> the operating frequency for a device and opp_populate_rate_fns
->>>>>>>> to populte the device specific set_rate and get_rate API's.
->>>>>>>> The opp_set_rate and opp_get_rate does some routine error
->>>>>>>> checks and finally calls into the device specific set_rate
->>>>>>>> and get_rate APIs populated through opp_populate_rate_fns.
->>>>>>>>
->>>>>>>> Signed-off-by: Thara Gopinath<thara@ti.com>
->>>>>>>
->>>>>>> As I think about this more, I'm not sure the OPP layer is the right
->>>>>>> layer for the get/set rate functions.  The OPP layer is currently just
->>>>>>> the data store for OPP data. To me, these set/get functions are better
->>>>>>> associated directly with an omap_device instead of an OPP.
->>>>>>>
->>>>>>> For instance, the new OPP APIs are a bit confusing in terms of OPPs.
->>>>>>> e.g: opp_get_rate().  What is the "rate" of an OPP, and what's the
->>>>>>> difference with opp_get_freq()?
->>>>>>>
->>>>>>> What's really happening is the rate is being changed for a device, and
->>>>>>> the need for specific hooks are at the device level, not the OPP level.
->>>>>>> For example, this current approach would not scale if you needed
->>>>>>> multiple devices in the same domain that each needed custom
->>>>>>> set_rate/get_rate hooks.
->>>>>>>
->>>>>>> So instead, what about adding custom hooks at the omap_device level?
->>>>>>> They could be registered at omap_device_build() time in the device
->>>>>>> specific code.
->>>>>
->>>>> This is exactly what I had in my mind when I started implementing this.
->>>>> But then Paul said hwmod or omap_device is not the place to keep it.
->>>>
->>>> IIRC, Paul's concern was that *hwmod* was not the right place for this
->>>> (and I agree.)  However, I think omap_device is the right place for
->>>> this.
->>>>
->>>> Paul?
->>>>
->>>>> Also I do not want the set rate get rate APIs for devices that require
->>>>> changes dividers in the PRCM clock module to be spread out in the
->>>>> system. Makes it very very difficult to debug.  If we agree to add the
->>>>> set_rate and get_rate in the omap_device structure, I would like to
->>>>> have one more API in the omap_device layer to register these APIs
->>>>> device wise. Thus we can keep these set rate and get rate APIs in one
->>>>> single file.
->>>>
->>>> Agreed.  And those functions should be in the respective
->>>> device-specific file, where the omap_device_build() etc are done for
->>>> that device.
->>
->> Hello Kevin,
->>
->> I basically agree with all your other suggestions except this. I do not
->> think device files are the correct place for this. For starters definitely mpu,
->> l3 and iva devices are not built from any device file. I do not like the idea
->> of device set rate APIs spread across different files.
->
-> I don't not understand the reason?
-> If we need to add specific device function for mpu, l3, or iva, we can
-> easily add a file to contain that.
-> BTW, thanks to work done by Santosh and Felipe we will probably soon
-> introduce a l3 driver that will allow to handle interconnect
-> errors. We will thus have a real device for l3 as well.
->
-> A device set_rate is clearly device specific. If a device will have to
-> play with its own internal dividers along with PRCM dividers, that
-> code still belong to the device.
->
-> I do not see the need nor the advantage to centralize that? You will
-> end-up with a huge file that every driver owners will have to hack in
-> order to add set_rate support for their device.
->
-> At device build time, IP with set_rate support will just add non-null
-> parameters to the omap_device_build(), et voila.
->
-> For the debug point of view, you can just add a new sysfs entry for
-> scalable devices that will allow you to track scalable device vs
-> regular ones.
+OK, probably not.  If there's so few of them, I agree that using lists is
+probably better, but please put the numbers information into the doc too. :-)
 
-I agree with Benoit.
-
-For MPU, IVA/DSP, L3, they are currently done in pm.c because they have
-not device init or device file associate with them.   For those, the
-new rate functions belong there, since that' where the omap_device_build
-is done.
-
-For all others, they should stay in device specific init.
-
-Kevin
-
-
-
->> What I am proposing is like we have  opp_populate_rate_fns(which I have introduced)
->> we should have something like omap_device_populate_rate_fns. This can be then called
->> from one file to register the set_rate and get_rate APIs for all the relevant devices
->> for a Soc. This will be done through an init function. And the device specific
->> set_rate and get_rate can be implemented in this file. I am not sure which is
->> this file at this point of time. Maybe for OMAP3 opp3xxx_data.c or pm34xx.c. What
->> do you think about this?
->>
->> Regards
->> Thara
->>
->>>>
->>>>> Also if we move these hooks to omap_device struct we will need to
->>>>> rename the current omap_device_set_rate (the main API) to
->>>>> omap_device_scale and introduce a new omap_device_set_rate which just
->>>>> finds out the omap device from the passed dev pointer and does a
->>>>> od->set_rate. Similarly for get rate also.
->>>>
->>>> Yes, that's what I was thinking.
->>>>
->>>> Kevin
+Thanks,
+Rafael
