@@ -1,119 +1,95 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] opp: introduce library for device-specific OPPs
-Date: Mon, 20 Sep 2010 10:21:25 -0700
-Message-ID: <87eicoz5yi.fsf@deeprootsystems.com>
-References: <201009180107.51664.rjw@sisk.pl> <201009182041.41675.rjw@sisk.pl>
-	<878w2w4erv.fsf@deeprootsystems.com> <201009201838.59013.rjw@sisk.pl>
+Subject: Re: [RFC v.4] omap: hwspinlock: Added hwspinlock driver
+Date: Mon, 20 Sep 2010 10:30:07 -0700
+Message-ID: <8762y0z5k0.fsf@deeprootsystems.com>
+References: <F39349C6FA641B4A831B7BF4EBF4D4E1475D1B0F@dlee03.ent.ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301E80AC50C@dbde02.ent.ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E4D79679E@dlee03.ent.ti.com>
+	<AANLkTin3J6E8e5uTPoomfcpvP1+t4-Svuah3Mv6Nj1Fc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201009201838.59013.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Mon, 20 Sep 2010 18:38:58 +0200")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Andrew Morton <akpm@linux-foundation.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:46439 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754328Ab0ITRaN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 13:30:13 -0400
+Received: by pxi10 with SMTP id 10so1215941pxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2010 10:30:12 -0700 (PDT)
+In-Reply-To: <AANLkTin3J6E8e5uTPoomfcpvP1+t4-Svuah3Mv6Nj1Fc@mail.gmail.com>
+	(Ohad Ben-Cohen's message of "Sun, 19 Sep 2010 16:45:19 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Que, Simon" <sque@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Ohad Ben-Cohen <ohad@wizery.com> writes:
 
-> On Monday, September 20, 2010, Kevin Hilman wrote:
->> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
->> 
->> [...]
->> 
->> >> >> In terms of the lifetime rules on the nodes in the list:
->> >> >> The list is expected to be maintained once created, entries are expected 
->> >> >> to be added optimally and not expected to be destroyed, the choice of 
->> >> >> list implementation was for reducing the complexity of the code itself 
->> >> >> and not yet meant as a mechanism to dynamically add and delete nodes on 
->> >> >> the fly.. Essentially, it was intended for the SOC framework to ensure 
->> >> >> it plugs in the OPP entries optimally and not create a humongous list of 
->> >> >> all possible OPPs for all families of the vendor SOCs - even though it 
->> >> >> is possible to use the OPP layer so - it just wont be smart to do so 
->> >> >> considering list scan latencies on hot paths such as cpufreq transitions 
->> >> >> or idle transitions.
->> >> > 
->> >> > If the list nodes are not supposed to be added and removed dynamically,
->> >> > it probably would make sense to create data structures containing
->> >> > the "available" OPPs only, once they are known, and simply free the object
->> >> > representing the other ones.
->> >> I covered the usage in my reply here: 
->> >> http://marc.info/?l=linux-arm-kernel&m=128476570300466&w=2
->> >> but to repeat, the list is dynamic during initialization but remains 
->> >> static after initialization based on SOC framework implementation - this 
->> >> is best implemented with a list (we had started with an original array 
->> >> implementation which evolved to the current list implementation 
->> >> http://marc.info/?l=linux-omap&m=125912217718770&w=2)
->> >
->> > Well, my point is, since the _final_ set of OPPs doesn't really
->> > change, there's no need to use a list for storing it in principle.
->> >
->> > Your current algorithm seems to be:
->> > (1) Create a list of all _possible_ OPPs.
->> > (2) Mark the ones that can actually be used on the given hardware as
->> >     "available".
->> > (3) Whenever we need to find an OPP to use, browse the entire list.
->> > This isn't optimal, because the OPPs that are not marked as "available" in (2)
->> > will never be used, although they _will_ be inspected while browsing the list.
->> 
->> A little clarificaion about "will never be used" below...
->> 
->> > So, I think a better algorithm would be:
->> > (1) Create a list of all possible OPPs.
->> > (2) Drop the nonavailable OPPs from the list.
->> > (3) Whenever we need to find an OPP to use, browse the entire list.
->> >
->> > But then, it may be better to simply move the list we get in (2) into an
->> > array, because the browsing is going to require fewer memory accesses in
->> > that case (also, an array would use less memory than the list).  So, perhaps,
->> > it's better to change the algorithm even further:
->> > (1) Create a list of all possible OPPs.
->> > (2) Drop the nonavailable OPPs from the list.
->> > (3) Move the list we got in (2) into a sorted array.
->> > (4) Whenever we need to find an OPP to use, browse the array
->> >      (perhaps using binary search).
->> 
->> Just a little clarification on "available."  The intended use of this flag
->> was not just a one-time "available on hardware X."  It was also intended
->> to be able to add/remove availbale OPPs dynamically at run-time.
->> 
->> More specifically, it's intended for use to *temporarily* remove an OPP
->> from being selected.  The production usage of this would primarily for
->> thermal considerations (e.g. don't use OPPx until the temperature drops)
->> 
->> However, for PM development & debug, we also use this to temporarily
->> take a class of OPPs out of the running for test/debug purposes
->> (e.g. driver X runs great at OPPx and OPPy, but not OPPz.)  So the
->> ability to temporarily be selective about OPPs at runtime for
->> debug/development is extremely useful.
->> 
->> So, to summarize, "most of the time", all the OPPs that were added (via
->> opp_add()) will be "available".  Ones that are !availble will likely
->> only be so temporarily, so I'm not sure that the overhead of keeping a
->> separate structure for the available and !available OPPs is worth it.
->> Especially, since OPP changes are relatively infrequent.
+> Hi Hari,
 >
-> Well, the Nishanth's description doesn't match this, so thanks for the
-> clarification.
+> On Thu, Aug 12, 2010 at 12:44 AM, Kanigeri, Hari <h-kanigeri2@ti.com>=
+ wrote:
+>>> > +/* Attempt to acquire a spinlock once */
+>>> > +int hwspinlock_trylock(struct hwspinlock *handle)
+>>> > +{
+>>> > + =A0 =A0 =A0 int retval =3D 0;
+>>> > +
+>>> > + =A0 =A0 =A0 if (WARN_ON(handle =3D=3D NULL))
+>>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>>> > +
+>>> > + =A0 =A0 =A0 if (WARN_ON(in_irq()))
+>>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EPERM;
+>>> > +
+>>> > + =A0 =A0 =A0 if (pm_runtime_get(&handle->pdev->dev) < 0)
+>>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+>>> > +
+>>> > + =A0 =A0 =A0 /* Attempt to acquire the lock by reading from it *=
+/
+>>> > + =A0 =A0 =A0 retval =3D readl(handle->lock_reg);
+>>> > +
+>>> > + =A0 =A0 =A0 if (retval =3D=3D HWSPINLOCK_BUSY)
+>>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put(&handle->pdev->dev);
+>>> Any reason for using pm_runtime_put instead of pm_runtime_put_sync?
+>>>
+>>> Using pm_runtime_gett_sync & pm_runtime_put_sync have been recommen=
+ded by
+>>> Kevin Hilman.
+>>
+>> Actually is there a need to call pm_runtime_put_sync for hwspinlock =
+? Spinlocks are used by the co-processors and we have to ensure that th=
+e device doesn't enter some low power mode without the knowledge of Co-=
+processor. I don't think run time PM is needed for hwspinlock.
+>>
+>> Just doing pm_runtime_get_sync at probe time for all the spinlock in=
+stances should be good.
+>
+>
+> It would probably make more sense to call pm_runtime_get_sync during
+> hwspinlock_request{_specific}, and then call pm_runtime_put during
+> hwspinlock_free.
+>
+> This way the runtime PM's usage_count will reflect the number of lock=
+s
+> that are actually used, and if that number drops to (or never go
+> beyond) zero, it is desirable to have the hwspinlock's clock disabled=
+=2E
+>
+> This is also safe since no other core will use the hwspinlock if it
+> wasn't requested by the MPU beforehand (and if it does, we better kno=
+w
+> about it and fix it).
 
-Agreed, we need to update the doc file to reflect this.
+=46WIW, I agree with Ohad.
 
-> In that case you might consider using a red-black tree for storing the
-> "available" OPPs, so that you can add-remove them dynamically, but
-> you can avoid a linear search through the entire list every time you need to
-> find and available OPP.  Since we have standard helpers for handling rbtrees,
-> that shouldn't be a big deal.
-
-That's a possibility, but do you think rbtrees are worth it for a
-relatively small number of OPPs for any given device?  We're using this
-to track a list of OPPs for any struct device, so there may be multiple
-independent OPP lists, but each would have a small number of OPPs.
-
-For example, on OMAP, while the CPU might have a larger number of OPPs
-(5-6), most devices will have a small number of OPPs (1-3.)  I gather
-this is similar for many of the embedded SoCs available today.
-
-Considering such a small number of OPPs, is the extra complexity of an
-rbtree worth it?
+An additional benefit of using runtime PM is that the runtime PM core i=
+s
+growing some useful debug and statistics features so that userspace
+tools (including newer versions of powertop) can present useful stats
+about which devices are active and how often etc.
 
 Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
