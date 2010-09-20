@@ -1,103 +1,104 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/11] OMAP: Serial: Add omap-serial driver with platform support
-Date: Mon, 20 Sep 2010 09:21:19 -0700
-Message-ID: <87wrqg2xog.fsf@deeprootsystems.com>
-References: <13965.10.24.255.18.1284739547.squirrel@dbdmail.itg.ti.com>
-	<87tylorl9i.fsf@deeprootsystems.com>
-	<AANLkTik-+RC7y=dJnDdxzrqMFnTzRV-j8s5FtmMy8ZhE@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] opp: introduce library for device-specific OPPs
+Date: Mon, 20 Sep 2010 18:38:58 +0200
+Message-ID: <201009201838.59013.rjw@sisk.pl>
+References: <201009180107.51664.rjw@sisk.pl> <201009182041.41675.rjw@sisk.pl> <878w2w4erv.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:52411 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275Ab0ITQVX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 12:21:23 -0400
-In-Reply-To: <AANLkTik-+RC7y=dJnDdxzrqMFnTzRV-j8s5FtmMy8ZhE@mail.gmail.com>
-	(Govindraj's message of "Sat, 18 Sep 2010 14:47:22 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <878w2w4erv.fsf@deeprootsystems.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Andrew Morton <akpm@linux-foundation.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Govindraj <govindraj.ti@gmail.com> writes:
+On Monday, September 20, 2010, Kevin Hilman wrote:
+> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+> 
+> [...]
+> 
+> >> >> In terms of the lifetime rules on the nodes in the list:
+> >> >> The list is expected to be maintained once created, entries are expected 
+> >> >> to be added optimally and not expected to be destroyed, the choice of 
+> >> >> list implementation was for reducing the complexity of the code itself 
+> >> >> and not yet meant as a mechanism to dynamically add and delete nodes on 
+> >> >> the fly.. Essentially, it was intended for the SOC framework to ensure 
+> >> >> it plugs in the OPP entries optimally and not create a humongous list of 
+> >> >> all possible OPPs for all families of the vendor SOCs - even though it 
+> >> >> is possible to use the OPP layer so - it just wont be smart to do so 
+> >> >> considering list scan latencies on hot paths such as cpufreq transitions 
+> >> >> or idle transitions.
+> >> > 
+> >> > If the list nodes are not supposed to be added and removed dynamically,
+> >> > it probably would make sense to create data structures containing
+> >> > the "available" OPPs only, once they are known, and simply free the object
+> >> > representing the other ones.
+> >> I covered the usage in my reply here: 
+> >> http://marc.info/?l=linux-arm-kernel&m=128476570300466&w=2
+> >> but to repeat, the list is dynamic during initialization but remains 
+> >> static after initialization based on SOC framework implementation - this 
+> >> is best implemented with a list (we had started with an original array 
+> >> implementation which evolved to the current list implementation 
+> >> http://marc.info/?l=linux-omap&m=125912217718770&w=2)
+> >
+> > Well, my point is, since the _final_ set of OPPs doesn't really
+> > change, there's no need to use a list for storing it in principle.
+> >
+> > Your current algorithm seems to be:
+> > (1) Create a list of all _possible_ OPPs.
+> > (2) Mark the ones that can actually be used on the given hardware as
+> >     "available".
+> > (3) Whenever we need to find an OPP to use, browse the entire list.
+> > This isn't optimal, because the OPPs that are not marked as "available" in (2)
+> > will never be used, although they _will_ be inspected while browsing the list.
+> 
+> A little clarificaion about "will never be used" below...
+> 
+> > So, I think a better algorithm would be:
+> > (1) Create a list of all possible OPPs.
+> > (2) Drop the nonavailable OPPs from the list.
+> > (3) Whenever we need to find an OPP to use, browse the entire list.
+> >
+> > But then, it may be better to simply move the list we get in (2) into an
+> > array, because the browsing is going to require fewer memory accesses in
+> > that case (also, an array would use less memory than the list).  So, perhaps,
+> > it's better to change the algorithm even further:
+> > (1) Create a list of all possible OPPs.
+> > (2) Drop the nonavailable OPPs from the list.
+> > (3) Move the list we got in (2) into a sorted array.
+> > (4) Whenever we need to find an OPP to use, browse the array
+> >      (perhaps using binary search).
+> 
+> Just a little clarification on "available."  The intended use of this flag
+> was not just a one-time "available on hardware X."  It was also intended
+> to be able to add/remove availbale OPPs dynamically at run-time.
+> 
+> More specifically, it's intended for use to *temporarily* remove an OPP
+> from being selected.  The production usage of this would primarily for
+> thermal considerations (e.g. don't use OPPx until the temperature drops)
+> 
+> However, for PM development & debug, we also use this to temporarily
+> take a class of OPPs out of the running for test/debug purposes
+> (e.g. driver X runs great at OPPx and OPPy, but not OPPz.)  So the
+> ability to temporarily be selective about OPPs at runtime for
+> debug/development is extremely useful.
+> 
+> So, to summarize, "most of the time", all the OPPs that were added (via
+> opp_add()) will be "available".  Ones that are !availble will likely
+> only be so temporarily, so I'm not sure that the overhead of keeping a
+> separate structure for the available and !available OPPs is worth it.
+> Especially, since OPP changes are relatively infrequent.
 
-> On Sat, Sep 18, 2010 at 5:11 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> "Govindraj.R" <govindraj.raja@ti.com> writes:
->>
->>> This patch series adds a serial driver to handle uarts on omap plat=
-forms.
->>> Currenlty omap-uarts are handled with 8250 driver, since updating
->>> this driver with omap specific features will over load
->>> the 8250 driver with all omap-specific data thus a new driver
->>> is added to configure and support features like
->>> dma, h/w, s/w flowcontrol for omap-uarts.
->>> Also the patch series updates various low level platform specific
->>> serial data to support omap-uarts with hwmod framework and adds sup=
-port
->>> for uart4 on OMAP3630.
->>
->> This series is missing a couple things to work more broadly on all
->> boards, specifically 3630-based boards.
->>
->> First, due to the current UART idle code base, you need to enable al=
-l
->> OMAP UARTs 36xx. =A0Enabling less than all OMAP UARTs will break the
->> current idle code. =A0As we discussed, the next phase we will move t=
-he
->> idle management from this serial.c hackery into the omap-serial driv=
-er
->> iteself. =A0Until then, you need to call omap_serial_init() on
->> Zoom2/Zoom3. =A0Patch below[1]
->>
->> Also, you previously had a patch that updated omap_uart_idle_init() =
-to
->> handle 36xx and specifically UART4. =A0Without that, struct
->> omap_uart_state is not setup correctly for UART4, and thus cannot be
->> properly idled on 3630.
->
-> ok fine, I will I incorporate initialize all uarts patch for zoom boa=
-rds.
->
-> Are you referring to this patch?
-> https://patchwork.kernel.org/patch/108066/
->
-> Is this still needed if we have initialized all uarts?
-> This patch might not needed if we have initialized all uarts right?
+Well, the Nishanth's description doesn't match this, so thanks for the
+clarification.
 
-Right.  We don't need the above patchwork patch if all UARTs are
-initialized.
-
-The other patch I was referring to was the one that added UART4 support
-to omap_uart_idle_init() (added the wk_en, wk_st, padconf etc.)  I had =
-a
-pending request for you to drop the muxmode from that patch, but the
-rest of it was still needed.
-
->>
->> Also, it's been a while since I tested this on OMAP2. =A0Please re-t=
-est on
->> OMAP2 with the whole series. =A0Also, please report here the other
->> platforms this was tested on. =A0The final needs to be tested on OMA=
-P2, 3
->> and 4 before merge.
->
-> Yes Sure,
->
-> Just FYI this patch series was also tested on omap2,3,4.
->
-
-OK, be sure to test Zoom3, because my testing on Zoom3 led to a crash a=
-s
-soon as idle was enabled due to the missing init of all UARTs.
+In that case you might consider using a red-black tree for storing the
+"available" OPPs, so that you can add-remove them dynamically, but
+you can avoid a linear search through the entire list every time you need to
+find and available OPP.  Since we have standard helpers for handling rbtrees,
+that shouldn't be a big deal.
 
 Thanks,
-
-Kevin
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Rafael
