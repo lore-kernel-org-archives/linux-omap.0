@@ -1,77 +1,126 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v6 0/7] OMAP: WDT: Implement WDT in hwmod way
-Date: Mon, 20 Sep 2010 13:56:30 -0700
-Message-ID: <20100920205630.GJ4611@atomide.com>
-References: <1284733136-20952-1-git-send-email-charu@ti.com>
- <20100917172215.GE29610@atomide.com>
- <87mxrguhhf.fsf@deeprootsystems.com>
- <20100920171653.GE4611@atomide.com>
- <87sk14rvik.fsf@deeprootsystems.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 3/4] omap4 hsmmc: Register offset handling
+Date: Mon, 20 Sep 2010 22:56:48 +0200
+Message-ID: <4C97CA90.9030706@ti.com>
+References: <33958.10.24.255.17.1284827654.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53007 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754839Ab0ITU4d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 16:56:33 -0400
-Content-Disposition: inline
-In-Reply-To: <87sk14rvik.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39758 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754839Ab0ITU45 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 16:56:57 -0400
+In-Reply-To: <33958.10.24.255.17.1284827654.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, wim@iguana.be, linux-watchdog@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org
+To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [100920 13:40]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > So let's get all the dependencies out of the way and pull them into linux-omap
-> > master branch for testing. Sounds like we should base this on Paul's core
-> > hwmod branch and your pm-next.
-> 
-> Yes, those two branches are required as the bare minimum.
-> 
-> > Then for the runtime PM core, let's just keep merging them from Greg's
-> > queue into l-o master until they are merged to the mainline tree.
-> >
-> > I assume that the runtime PM core patches are the ones at [1] below?
-> 
-> I should've said runtime PM core for OMAP, by which I mean:
-> 
->    http://marc.info/?l=linux-omap&m=128459521813724&w=2
+Hi Kishore
 
-OK
- 
-> That series has a dependency on only one of the patches from Greg's
-> queue you mentioned. Specifically, the one from me:
-> 
->    driver core: platform_bus: allow runtime override of dev_pm_ops
-> 
-> which I also have in my pm-backports branch.
+On 9/18/2010 6:34 PM, Kadiyala, Kishore wrote:
+> The offset handling implementation of omap4 mmc registers which
+> was already present can't be reused once hwmod modifications are done
+> for mmc driver.
+> Since hwmod data file for OMAP4 is an auto generated the base
+> address for MMC will remain same as OMAP3 and thus the offset deviation
+> of registers should be updated in the hsmmc driver.
 
-OK, I'll add that to omap-testing as well.
- 
-> >> I will gladly queue these hwmod conversion patches in my tree if you
-> >> prefer since I am already managing all the dependencies.
-> >
-> > Yes, once we have dependencies queued up, then let's pull these
-> > in, at least for testing.
-> >
-> > For merging some hwdmod drivers to mainline, do we have all the
-> > necessary acks from the driver maintainers?
-> 
-> The only one that's currently ready is watchdog, and for that one I have
-> an Ack from Wim to merge this via linux-omap.
-
-OK
- 
-> For the others that are close (UART, GPIO, i2c) I've asked that the next
-> versions of those be posted to LAKML as well as the subsystem lists.
-> From there, I will ask the subsystem maintainers for an ack so we can
-> merge them via linux-omap along with all the platform changes.
-
-OK, well if you have something ready, we could some of those branches
-into linux-omap master branch too for testing.
+That explanation does not sound very accurate to me.
+The fact that the hwmods are auto-generated has nothing to do with your 
+offset problem. The real cause is due to the update of the IP to support 
+the new PM programming model.
+Because of that, and to keep a certain level of compatibility, the 
+legacy registers were all shifted by 0x100 and the new one were added 
+from offset 0 to 0x10.
 
 Regards,
+Benoit
 
-Tony
+> The omap-mmc platform data is updated with a register offset which
+> will be updated and used in the driver accordingly.
+>
+> Signed-off-by: Kishore Kadiyala<kishore.kadiyala@ti.com>
+> ---
+>   arch/arm/mach-omap2/devices.c         |    8 +++-----
+>   arch/arm/mach-omap2/hsmmc.c           |    4 ++++
+>   arch/arm/plat-omap/include/plat/mmc.h |    3 +++
+>   drivers/mmc/host/omap_hsmmc.c         |    2 +-
+>   4 files changed, 11 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 2dbb265..bb7ec13 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -745,13 +745,13 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
+>   		case 3:
+>   			if (!cpu_is_omap44xx())
+>   				return;
+> -			base = OMAP4_MMC4_BASE + OMAP4_MMC_REG_OFFSET;
+> +			base = OMAP4_MMC4_BASE;
+>   			irq = OMAP44XX_IRQ_MMC4;
+>   			break;
+>   		case 4:
+>   			if (!cpu_is_omap44xx())
+>   				return;
+> -			base = OMAP4_MMC5_BASE + OMAP4_MMC_REG_OFFSET;
+> +			base = OMAP4_MMC5_BASE;
+>   			irq = OMAP44XX_IRQ_MMC5;
+>   			break;
+>   		default:
+> @@ -762,10 +762,8 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
+>   			size = OMAP2420_MMC_SIZE;
+>   			name = "mmci-omap";
+>   		} else if (cpu_is_omap44xx()) {
+> -			if (i<  3) {
+> -				base += OMAP4_MMC_REG_OFFSET;
+> +			if (i<  3)
+>   				irq += OMAP44XX_IRQ_GIC_START;
+> -			}
+>   			size = OMAP4_HSMMC_SIZE;
+>   			name = "mmci-omap-hs";
+>   		} else {
+> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+> index c8f647b..49d76a7 100644
+> --- a/arch/arm/mach-omap2/hsmmc.c
+> +++ b/arch/arm/mach-omap2/hsmmc.c
+> @@ -261,6 +261,10 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+>   		mmc->slots[0].wires = c->wires;
+>   		mmc->slots[0].internal_clock = !c->ext_clock;
+>   		mmc->dma_mask = 0xffffffff;
+> +		if (cpu_is_omap44xx())
+> +			mmc->reg_offset = OMAP4_MMC_REG_OFFSET;
+> +		else
+> +			mmc->reg_offset = 0;
+>
+>   		mmc->get_context_loss_count = hsmmc_get_context_loss;
+>
+> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
+> index 9b89ec6..4e6ef07 100644
+> --- a/arch/arm/plat-omap/include/plat/mmc.h
+> +++ b/arch/arm/plat-omap/include/plat/mmc.h
+> @@ -71,6 +71,9 @@ struct omap_mmc_platform_data {
+>
+>   	u64 dma_mask;
+>
+> +	/* Register offset deviation */
+> +	u16 reg_offset;
+> +
+>   	struct omap_mmc_slot_data {
+>
+>   		/* 4 wire signaling is optional, and is used for SD/SDIO/HSMMC;
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index a51894d..bfca9ca 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2034,7 +2034,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+>   	host->irq	= irq;
+>   	host->id	= pdev->id;
+>   	host->slot_id	= 0;
+> -	host->mapbase	= res->start;
+> +	host->mapbase	= res->start + pdata->reg_offset;
+>   	host->base	= ioremap(host->mapbase, SZ_4K);
+>   	host->power_mode = MMC_POWER_OFF;
+>
+
