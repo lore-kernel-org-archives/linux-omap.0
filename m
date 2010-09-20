@@ -1,57 +1,90 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 0/5] Convert I2C driver to use omap_device/runtime PM
-Date: Mon, 20 Sep 2010 11:15:43 -0700
-Message-ID: <87tylkwab4.fsf@deeprootsystems.com>
-References: <1284734229-16281-1-git-send-email-rnayak@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4 v2] omap: hwspinlock: Created driver for OMAP
+ hardware spinlock.
+Date: Mon, 20 Sep 2010 12:13:52 -0700
+Message-ID: <20100920191351.GH4611@atomide.com>
+References: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E48@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:58380 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753647Ab0ITSPq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 14:15:46 -0400
-Received: by pzk34 with SMTP id 34so1231538pzk.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2010 11:15:45 -0700 (PDT)
-In-Reply-To: <1284734229-16281-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Fri, 17 Sep 2010 20:07:04 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50642 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835Ab0ITTNw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 15:13:52 -0400
+Content-Disposition: inline
+In-Reply-To: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E48@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Que, Simon" <sque@ti.com>
+Cc: Linux Omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
-Rajendra Nayak <rnayak@ti.com> writes:
+* Que, Simon <sque@ti.com> [100811 17:22]:
+> Created driver for OMAP hardware spinlock.
+> 
+>  - Reserved spinlocks for internal use
+>  - Dynamic allocation of unreserved locks
+>  - Lock, unlock, and trylock functions, with or without disabling irqs/preempt
+>  - Registered as a platform device driver
+ 
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/hwspinlocks.c
+> @@ -0,0 +1,65 @@
+> +int __init hwspinlocks_init(void)
+> +{
+> +       int retval = 0;
+> +
+> +       struct omap_hwmod *oh;
+> +       const char *oh_name, *pdev_name;
+> +
+> +       oh_name = "spinlock";
+> +       oh = omap_hwmod_lookup(oh_name);
+> +       if (WARN_ON(oh == NULL))
+> +               return -EINVAL;
+> +
+> +       pdev_name = "hwspinlock";
+> +
+> +       /* Pass data to device initialization */
+> +       omap_device_build(pdev_name, 0, oh, NULL, 0, omap_spinlock_latency,
+> +                               ARRAY_SIZE(omap_spinlock_latency), false);
+> +
+> +       return retval;
+> +}
+> +postcore_initcall(hwspinlocks_init);
 
-> This series makes I2C device registration use hwmod
-> and omap_device api's and converts the I2C driver to use
-> runtime PM api's.
->
-> Patches apply on the pm-core branch from Kevin's tree.
->
-> v2 has minor review comment fixes over v1 and is additionally
-> boot tested on a 2430sdp platform along with being tested on
-> 3430sdp and 4430sdp.
->
-> 4430sdp tests are done using the below series
-> http://www.spinics.net/lists/linux-omap/msg36023.html
+Is this initcall safe to run on all omaps or do you need some
+extra checks for it?
 
-Hi Rajendra,
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/hwspinlock.c
+> @@ -0,0 +1,353 @@
+> +EXPORT_SYMBOL(hwspinlock_lock);
+> +EXPORT_SYMBOL(hwspinlock_trylock);
+> +EXPORT_SYMBOL(hwspinlock_unlock);
+> +EXPORT_SYMBOL(hwspinlock_request);
+> +EXPORT_SYMBOL(hwspinlock_request_specific);
+> +EXPORT_SYMBOL(hwspinlock_free);
 
-This series looks good to queue for 2.6.37.
+Do we really want to export these functions? I think we're better
+off implementing low-level functions in the platform init code that
+are passed to the drivers in the platform_data.
 
-Can you re-post one more time with linux-arm-kernel in CC as well as the
-I2C list and Ben Dooks (MAINAINERS excerpt below for addresses.)
+This way the drivers stay generic, and we don't add yet another
+non-standard layer that will get misused all over the drivers.
 
-I will gladly merge patches 1-4, but I'll need an ack/signoff from Ben
-to merge patch 5.
+If you really want to export these functions to the drivers,
+then all this code should live somewherew under drivers as well.
 
-Thanks,
+> +static int __init hwspinlock_init(void)
+> +{
+> +       int retval = 0;
+> +
+> +       /* Register spinlock driver */
+> +       retval = platform_driver_register(&hwspinlock_driver);
+> +
+> +       return retval;
+> +}
+> +postcore_initcall(hwspinlock_init);
 
-Kevin
+Is this initcall safe to run on all omaps?
 
-
-I2C SUBSYSTEM
-M:	"Jean Delvare (PC drivers, core)" <khali@linux-fr.org>
-M:	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>
-L:	linux-i2c@vger.kernel.org
-
-
+Tony
