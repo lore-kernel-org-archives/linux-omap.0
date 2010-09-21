@@ -1,120 +1,110 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 01/11] OMAP: hwmod: Rename dma_ch to dma_req
-Date: Tue, 21 Sep 2010 10:34:42 -0600
-Message-ID: <20100921163438.20258.13212.stgit@twilight.localdomain>
-References: <20100921163021.20258.87587.stgit@twilight.localdomain>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH] OMAP: hwmod: Fix softreset status check for some new OMAP4 IPs
+Date: Tue, 21 Sep 2010 18:57:59 +0200
+Message-ID: <1285088279-425-3-git-send-email-b-cousson@ti.com>
+References: <1285088279-425-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47015 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756369Ab0IUQfj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:35:39 -0400
-In-Reply-To: <20100921163021.20258.87587.stgit@twilight.localdomain>
+Received: from comal.ext.ti.com ([198.47.26.152]:59610 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754985Ab0IUQ6K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 12:58:10 -0400
+In-Reply-To: <1285088279-425-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, rnayak@ti.com, p-basak2@ti.com, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Benoit Cousson <b-cousson@ti.com>
+In OMAP3 a specific SYSSTATUS register was used to get the softreset status.
+Starting in OMAP4, some IPs does not have SYSSTATUS register and instead
+use the SYSC softreset bit to provide the status.
 
-The dma request line attribute was named dma channel, which leads
-to confusion with the real dma channel definition.
+Other cases might exist:
+- Some IPs like McBSP does have a softreset control but no reset status.
+- Some IPs that represent subsystem, like the DSS, can contains
+a reset status without softreset control. The status is the aggregation
+of all the sub modules reset status.
+
+- Add a new flag (SYSC_HAS_RESET_STATUS) to identify the new programming model
+and replace the previous SYSS_MISSING, that was used to flag IP with
+softreset control but without the SYSSTATUS register, with a specific
+SYSS_HAS_RESET_STATUS flag.
+
+- MCSPI and MMC contains both programming models, so the legacy one
+will be prevented by removing the syss offset field that become useless.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   10 +++++-----
- arch/arm/plat-omap/include/plat/omap_hwmod.h |   12 ++++++------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |   22 +++++++++++++++++-----
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 ++-
+ 2 files changed, 19 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index cb911d7..8bf19a7 100644
+index 4309107..4819a49 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1468,7 +1468,7 @@ int omap_hwmod_count_resources(struct omap_hwmod *oh)
+@@ -997,6 +997,12 @@ static int _read_hardreset(struct omap_hwmod *oh, const char *name)
+  * enabled for this to work.  Returns -EINVAL if the hwmod cannot be
+  * reset this way or if the hwmod is in the wrong state, -ETIMEDOUT if
+  * the module did not reset in time, or 0 upon success.
++ *
++ * In OMAP3 a specific SYSSTATUS register is used to get the reset status.
++ * Starting in OMAP4, some IPs does not have SYSSTATUS register and instead
++ * use the SYSCONFIG softreset bit to provide the status.
++ *
++ * Note that some IP like McBSP does have a reset control but no reset status.
+  */
+ static int _reset(struct omap_hwmod *oh)
  {
- 	int ret, i;
+@@ -1005,8 +1011,7 @@ static int _reset(struct omap_hwmod *oh)
+ 	int ret = 0;
  
--	ret = oh->mpu_irqs_cnt + oh->sdma_chs_cnt;
-+	ret = oh->mpu_irqs_cnt + oh->sdma_reqs_cnt;
+ 	if (!oh->class->sysc ||
+-	    !(oh->class->sysc->sysc_flags & SYSC_HAS_SOFTRESET) ||
+-	    (oh->class->sysc->sysc_flags & SYSS_MISSING))
++	    !(oh->class->sysc->sysc_flags & SYSC_HAS_SOFTRESET))
+ 		return -EINVAL;
  
- 	for (i = 0; i < oh->slaves_cnt; i++)
- 		ret += oh->slaves[i]->addr_cnt;
-@@ -1501,10 +1501,10 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
- 		r++;
- 	}
+ 	/* clocks must be on for this operation */
+@@ -1028,9 +1033,16 @@ static int _reset(struct omap_hwmod *oh)
+ 		goto dis_opt_clks;
+ 	_write_sysconfig(v, oh);
  
--	for (i = 0; i < oh->sdma_chs_cnt; i++) {
--		(res + r)->name = (oh->sdma_chs + i)->name;
--		(res + r)->start = (oh->sdma_chs + i)->dma_ch;
--		(res + r)->end = (oh->sdma_chs + i)->dma_ch;
-+	for (i = 0; i < oh->sdma_reqs_cnt; i++) {
-+		(res + r)->name = (oh->sdma_reqs + i)->name;
-+		(res + r)->start = (oh->sdma_reqs + i)->dma_req;
-+		(res + r)->end = (oh->sdma_reqs + i)->dma_req;
- 		(res + r)->flags = IORESOURCE_DMA;
- 		r++;
- 	}
+-	omap_test_timeout((omap_hwmod_readl(oh, oh->class->sysc->syss_offs) &
+-			   SYSS_RESETDONE_MASK),
+-			  MAX_MODULE_SOFTRESET_WAIT, c);
++	if (oh->class->sysc->sysc_flags & SYSS_HAS_RESET_STATUS)
++		omap_test_timeout((omap_hwmod_readl(oh,
++						    oh->class->sysc->syss_offs)
++				   & SYSS_RESETDONE_MASK),
++				  MAX_MODULE_SOFTRESET_WAIT, c);
++	else if (oh->class->sysc->sysc_flags & SYSC_HAS_RESET_STATUS)
++		omap_test_timeout(!(omap_hwmod_readl(oh,
++						     oh->class->sysc->sysc_offs)
++				   & SYSC_TYPE2_SOFTRESET_MASK),
++				  MAX_MODULE_SOFTRESET_WAIT, c);
+ 
+ 	if (c == MAX_MODULE_SOFTRESET_WAIT)
+ 		pr_warning("omap_hwmod: %s: softreset failed (waited %d usec)\n",
 diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index a4e508d..5506d80 100644
+index 878f919..ee53758 100644
 --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
 +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -96,7 +96,7 @@ struct omap_hwmod_irq_info {
- /**
-  * struct omap_hwmod_dma_info - DMA channels used by the hwmod
-  * @name: name of the DMA channel (module local name)
-- * @dma_ch: DMA channel ID
-+ * @dma_req: DMA request ID
-  *
-  * @name should be something short, e.g., "tx" or "rx".  It is for use
-  * by platform_get_resource_byname().  It is defined locally to the
-@@ -104,7 +104,7 @@ struct omap_hwmod_irq_info {
-  */
- struct omap_hwmod_dma_info {
- 	const char	*name;
--	u16		dma_ch;
-+	u16		dma_req;
- };
+@@ -251,8 +251,9 @@ struct omap_hwmod_ocp_if {
+ #define SYSC_HAS_CLOCKACTIVITY	(1 << 4)
+ #define SYSC_HAS_SIDLEMODE	(1 << 5)
+ #define SYSC_HAS_MIDLEMODE	(1 << 6)
+-#define SYSS_MISSING		(1 << 7)
++#define SYSS_HAS_RESET_STATUS	(1 << 7)
+ #define SYSC_NO_CACHE		(1 << 8)  /* XXX SW flag, belongs elsewhere */
++#define SYSC_HAS_RESET_STATUS	(1 << 9)
  
- /**
-@@ -410,7 +410,7 @@ struct omap_hwmod_class {
-  * @class: struct omap_hwmod_class * to the class of this hwmod
-  * @od: struct omap_device currently associated with this hwmod (internal use)
-  * @mpu_irqs: ptr to an array of MPU IRQs (see also mpu_irqs_cnt)
-- * @sdma_chs: ptr to an array of SDMA channel IDs (see also sdma_chs_cnt)
-+ * @sdma_reqs: ptr to an array of System DMA request IDs (see sdma_reqs_cnt)
-  * @prcm: PRCM data pertaining to this hwmod
-  * @main_clk: main clock: OMAP clock name
-  * @_clk: pointer to the main struct clk (filled in at runtime)
-@@ -424,7 +424,7 @@ struct omap_hwmod_class {
-  * @msuspendmux_reg_id: CONTROL_MSUSPENDMUX register ID (1-6)
-  * @msuspendmux_shift: CONTROL_MSUSPENDMUX register bit shift
-  * @mpu_irqs_cnt: number of @mpu_irqs
-- * @sdma_chs_cnt: number of @sdma_chs
-+ * @sdma_reqs_cnt: number of @sdma_reqs
-  * @opt_clks_cnt: number of @opt_clks
-  * @master_cnt: number of @master entries
-  * @slaves_cnt: number of @slave entries
-@@ -448,7 +448,7 @@ struct omap_hwmod {
- 	struct omap_hwmod_class		*class;
- 	struct omap_device		*od;
- 	struct omap_hwmod_irq_info	*mpu_irqs;
--	struct omap_hwmod_dma_info	*sdma_chs;
-+	struct omap_hwmod_dma_info	*sdma_reqs;
- 	union {
- 		struct omap_hwmod_omap2_prcm omap2;
- 		struct omap_hwmod_omap4_prcm omap4;
-@@ -468,7 +468,7 @@ struct omap_hwmod {
- 	u8				msuspendmux_shift;
- 	u8				response_lat;
- 	u8				mpu_irqs_cnt;
--	u8				sdma_chs_cnt;
-+	u8				sdma_reqs_cnt;
- 	u8				opt_clks_cnt;
- 	u8				masters_cnt;
- 	u8				slaves_cnt;
-
+ /* omap_hwmod_sysconfig.clockact flags */
+ #define CLOCKACT_TEST_BOTH	0x0
+-- 
+1.6.0.4
 
