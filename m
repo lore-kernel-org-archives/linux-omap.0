@@ -1,95 +1,51 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-Date: Tue, 21 Sep 2010 17:19:30 +0530
-Message-ID: <1285069770-4261-1-git-send-email-manjugk@ti.com>
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-input@vger.kernel.org, Dmitry Torokhov <dtor@mail.ru>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+From: Yanick Saugy <yanick.saugy@heig-vd.ch>
+Subject: [PATCH] OMAP: ZOOM2: Change GPIO to enable LCD NEC NL8048HL11-01B
+ on OMAP34x-II MDP
+Date: Tue, 21 Sep 2010 14:21:30 +0200
+Message-ID: <1285071690.1783.34.camel@A05BPC17>
+References: <1284381807.1801.38.camel@A05BPC17>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:45388 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514Ab0IUMVo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 08:21:44 -0400
+In-Reply-To: <1284381807.1801.38.camel@A05BPC17>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, Rajkumar N <rajkumar.nagarajan@ti.com>
 
-The failure exit paths seems to be wrong in probe function.
-This patch corrects exit failure paths for error handling
-cases.
+The PIN which controls LCD's reset signal (VGA_nRESET/h_GPIO_96) was not
+configured as a GPIO. We had to modify the OMAP MUX, and select this PIN
+(CAM_XCLKA) as an output GPIO (OMAP_MUX_MODE4). (kernel 2.6.35)
 
-Boot warning incase of request irq failure:
+Be aware of changing this PIN will probably disable the camera, because
+it was previously configured as a camera clock.
 
-[    1.553985] twl4030_keypad twl4030_keypad: request_irq failed for irq no=369
-[    1.561157] ------------[ cut here ]------------
-[    1.565795] WARNING: at kernel/irq/manage.c:899 __free_irq+0x88/0x164()
-[    1.572418] Trying to free already-free IRQ 369
-[    1.576965] Modules linked in:
-[    1.580047] [<c00470ec>] (unwind_backtrace+0x0/0xe4) from [<c0078b5c>] (warn_slowpath_common+0x4c/0x64)
-[    1.589477] [<c0078b5c>] (warn_slowpath_common+0x4c/0x64) from [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c)
-[    1.599060] [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c) from [<c00adb90>] (__free_irq+0x88/0x164)
-[    1.607849] [<c00adb90>] (__free_irq+0x88/0x164) from [<c00adca8>] (free_irq+0x3c/0x5c)
-[    1.615875] [<c00adca8>] (free_irq+0x3c/0x5c) from [<c043ab2c>] (twl4030_kp_probe+0x308/0x374)
-[    1.624511] [<c043ab2c>] (twl4030_kp_probe+0x308/0x374) from [<c023c338>] (platform_drv_probe+0x14/0x18)
-[    1.634033] [<c023c338>] (platform_drv_probe+0x14/0x18) from [<c023b4dc>] (driver_probe_device+0xc8/0x184)
-[    1.643707] [<c023b4dc>] (driver_probe_device+0xc8/0x184) from [<c023b600>] (__driver_attach+0x68/0x8c)
-[    1.653106] [<c023b600>] (__driver_attach+0x68/0x8c) from [<c023ad34>] (bus_for_each_dev+0x48/0x74)
-[    1.662170] [<c023ad34>] (bus_for_each_dev+0x48/0x74) from [<c023a690>] (bus_add_driver+0x9c/0x210)
-[    1.671234] [<c023a690>] (bus_add_driver+0x9c/0x210) from [<c023b8f8>] (driver_register+0xa8/0x134)
-[    1.680297] [<c023b8f8>] (driver_register+0xa8/0x134) from [<c0041340>] (do_one_initcall+0x58/0x1b4)
-[    1.689453] [<c0041340>] (do_one_initcall+0x58/0x1b4) from [<c0008574>] (kernel_init+0x98/0x150)
-[    1.698272] [<c0008574>] (kernel_init+0x98/0x150) from [<c0042970>] (kernel_thread_exit+0x0/0x8)
-[    1.707214] ---[ end trace 6559b322ad3cbdfe ]---
-[    1.718292] twl4030_keypad: probe of twl4030_keypad failed with error -16
 
-Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-Cc: linux-input@vger.kernel.org
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-input@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
----
- version v1 : initial patch
- version v2 : CC'ed input subsystem and arm kernel mailing lists.
+Signed-off-by: Yanick Saugy <yanick.saugy@heig-vd.ch>
 
- drivers/input/keyboard/twl4030_keypad.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
-index fb16b5e..39a9f30 100644
---- a/drivers/input/keyboard/twl4030_keypad.c
-+++ b/drivers/input/keyboard/twl4030_keypad.c
-@@ -347,8 +347,7 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
- 	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
- 	input = input_allocate_device();
- 	if (!kp || !input) {
--		error = -ENOMEM;
--		goto err1;
-+		return -ENOMEM;
- 	}
+--- a/arch/arm/mach-omap2/board-zoom2.c 2010-09-15 15:27:05.148399721 +0200
++++ b/arch/arm/mach-omap2/board-zoom2.c 2010-09-15 14:46:09.792900019 +0200
+@@ -71,6 +71,7 @@ static struct twl4030_platform_data zoom
  
- 	/* Get the debug Device */
-@@ -406,23 +405,22 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
- 	if (error) {
- 		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
- 			kp->irq);
--		goto err3;
-+		goto err2;
- 	}
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++   OMAP3_MUX(CAM_XCLKA, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+    { .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+@@ -82,6 +83,7 @@ static void __init omap_zoom2_init(void)
+    omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+    zoom_peripherals_init();
+    zoom_debugboard_init();
++    zoom_display_init(OMAP_DSS_VENC_TYPE_COMPOSITE);
+ }
  
- 	/* Enable KP and TO interrupts now. */
- 	reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
- 	if (twl4030_kpwrite_u8(kp, reg, KEYP_IMR1)) {
- 		error = -EIO;
--		goto err4;
-+		goto err3;
- 	}
- 
- 	platform_set_drvdata(pdev, kp);
- 	return 0;
- 
--err4:
-+err3:
- 	/* mask all events - we don't care about the result */
- 	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
--err3:
- 	free_irq(kp->irq, NULL);
- err2:
- 	input_unregister_device(input);
--- 
-1.7.0.4
+ static void __init omap_zoom2_map_io(void)
+
+
 
