@@ -1,141 +1,219 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH 00/11] OMAP: Serial: Add omap-serial driver with platform
-	support
-Date: Tue, 21 Sep 2010 21:07:29 +0530
-Message-ID: <AANLkTinqiknLaBmMj17fi31TsZ+eaSkCcgd-wbQvMpz-@mail.gmail.com>
-References: <13965.10.24.255.18.1284739547.squirrel@dbdmail.itg.ti.com>
-	<87tylorl9i.fsf@deeprootsystems.com>
-	<AANLkTik-+RC7y=dJnDdxzrqMFnTzRV-j8s5FtmMy8ZhE@mail.gmail.com>
-	<87wrqg2xog.fsf@deeprootsystems.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: SMP_ON_UP? - Build break with custom minimal defconfig
+Date: Tue, 21 Sep 2010 21:10:28 +0530
+Message-ID: <AANLkTim-mQjFnqGo_G971yTbU9FLnUja2t_axytGM5LN@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87wrqg2xog.fsf@deeprootsystems.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:36010 "HELO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756960Ab0IUPqh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 11:46:37 -0400
+Received: by mail-ww0-f51.google.com with SMTP id 28so6749581wwb.8
+        for <linux-omap@vger.kernel.org>; Tue, 21 Sep 2010 08:46:34 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-<SNIP>
+Hi all,
 
->>>> Also the patch series updates various low level platform specific
->>>> serial data to support omap-uarts with hwmod framework and adds support
->>>> for uart4 on OMAP3630.
->>>
->>> This series is missing a couple things to work more broadly on all
->>> boards, specifically 3630-based boards.
->>>
->>> First, due to the current UART idle code base, you need to enable all
->>> OMAP UARTs 36xx. =A0Enabling less than all OMAP UARTs will break the
->>> current idle code. =A0As we discussed, the next phase we will move the
->>> idle management from this serial.c hackery into the omap-serial driver
->>> iteself. =A0Until then, you need to call omap_serial_init() on
->>> Zoom2/Zoom3. =A0Patch below[1]
->>>
->>> Also, you previously had a patch that updated omap_uart_idle_init() to
->>> handle 36xx and specifically UART4. =A0Without that, struct
->>> omap_uart_state is not setup correctly for UART4, and thus cannot be
->>> properly idled on 3630.
->>
->> ok fine, I will I incorporate initialize all uarts patch for zoom boards.
->>
->> Are you referring to this patch?
->> https://patchwork.kernel.org/patch/108066/
->>
->> Is this still needed if we have initialized all uarts?
->> This patch might not needed if we have initialized all uarts right?
->
-> Right. =A0We don't need the above patchwork patch if all UARTs are
-> initialized.
->
-> The other patch I was referring to was the one that added UART4 support
-> to omap_uart_idle_init() (added the wk_en, wk_st, padconf etc.) =A0I had a
-> pending request for you to drop the muxmode from that patch, but the
-> rest of it was still needed.
->
->>>
->>> Also, it's been a while since I tested this on OMAP2. =A0Please re-test=
- on
->>> OMAP2 with the whole series. =A0Also, please report here the other
->>> platforms this was tested on. =A0The final needs to be tested on OMAP2,=
- 3
->>> and 4 before merge.
->>
->> Yes Sure,
->>
->> Just FYI this patch series was also tested on omap2,3,4.
->>
->
-> OK, be sure to test Zoom3, because my testing on Zoom3 led to a crash as
-> soon as idle was enabled due to the missing init of all UARTs.
+I was trying to use current linux-omap master to put together a custom
+minimal defconfig for a beagleboard, and I'm seeing a compile error:
 
+  CC      init/main.o
+In file included from include/linux/highmem.h:9,
+                 from include/linux/pagemap.h:10,
+                 from include/linux/mempolicy.h:70,
+                 from init/main.c:50:
+/home/userdata/a0393673/kernels/tony/linux-omap-2.6/arch/arm/include/asm/cacheflush.h:
+In function '__flush_icache_all':
+/home/userdata/a0393673/kernels/tony/linux-omap-2.6/arch/arm/include/asm/cacheflush.h:332:
+error: implicit declaration of function '__flush_icache_preferred'
+make[1]: *** [init/main.o] Error 1
+make: *** [init] Error 2
 
-This patch series applied on top of pm-core branch
+I think this is related to the recent SMP_ON_UP patches.
 
-commit 4c1f85cdc189d41ee53c1bc3957a908c91cffc00
-Merge: ca1684b 96c4e27
-Author: Kevin Hilman <khilman@deeprootsystems.com>
-Date:   Thu Sep 16 15:29:06 2010 -0700
+The reduced .config I'm using (generated using `make savedefconfig`) is below.
 
-with below changes:
+I'll try and debug in a while, but just reporting for now.
 
-1) if (uart->timeout)
-                uart->timeout =3D (30 * HZ);
+- Anand
 
-2) #define DEFAULT_TIMEOUT 5 [temporary change for timeout]
-
-I see ret count getting incremented on ZOOM3 even without "UART4 support
-to omap_uart_idle_init()" patch.
-
-I dont see any crash.
-
-Logs Snip:
-
-/ # mount -t debugfs debugfs /debug
-/ #
-/ #
-/ # echo 1 > /debug/pm_debug/sleep_while_idle
-
-/ # cat /debug/pm_debug/count
-usbhost_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF=
-:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-per_pwrdm (ON),OFF:0,RET:773,INA:0,ON:774,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:0,RET:794,INA:0,ON:795,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF=
-:0,RET-MEMBANK2-OFF:0
-neon_pwrdm (ON),OFF:0,RET:796,INA:0,ON:797,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:0,RET:796,INA:0,ON:797,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,=
-RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-per_clkdm->per_pwrdm (11)
-usbhost_clkdm->usbhost_pwrdm (0)
-cam_clkdm->cam_pwrdm (0)
-dss_clkdm->dss_pwrdm (0)
-core_l4_clkdm->core_pwrdm (9)
-core_l3_clkdm->core_pwrdm (5)
-d2d_clkdm->core_pwrdm (0)
-sgx_clkdm->sgx_pwrdm (0)
-iva2_clkdm->iva2_pwrdm (0)
-neon_clkdm->neon_pwrdm (0)
-mpu_clkdm->mpu_pwrdm (0)
-prm_clkdm->wkup_pwrdm (0)
-cm_clkdm->core_pwrdm (0)
-
-
-
--- =
-
----
-Regards,
-Govindraj.R
+========== CUT HERE ==============
+CONFIG_EXPERIMENTAL=y
+CONFIG_SYSVIPC=y
+CONFIG_BSD_PROCESS_ACCT=y
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_LOG_BUF_SHIFT=16
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_EMBEDDED=y
+# CONFIG_SYSCTL_SYSCALL is not set
+CONFIG_KALLSYMS_EXTRA_PASS=y
+CONFIG_PERF_EVENTS=y
+CONFIG_SLAB=y
+CONFIG_MODULES=y
+CONFIG_MODULE_FORCE_LOAD=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODULE_FORCE_UNLOAD=y
+CONFIG_MODVERSIONS=y
+CONFIG_MODULE_SRCVERSION_ALL=y
+# CONFIG_BLK_DEV_BSG is not set
+CONFIG_ARCH_OMAP=y
+CONFIG_OMAP_RESET_CLOCKS=y
+CONFIG_OMAP_MUX_DEBUG=y
+CONFIG_OMAP_DM_TIMER=y
+# CONFIG_ARCH_OMAP2PLUS_TYPICAL is not set
+# CONFIG_ARCH_OMAP2 is not set
+# CONFIG_ARCH_OMAP4 is not set
+# CONFIG_MACH_DEVKIT8000 is not set
+# CONFIG_MACH_OMAP_LDP is not set
+# CONFIG_MACH_OVERO is not set
+# CONFIG_MACH_OMAP3EVM is not set
+# CONFIG_MACH_OMAP3517EVM is not set
+# CONFIG_MACH_OMAP3_PANDORA is not set
+# CONFIG_MACH_OMAP3_TOUCHBOOK is not set
+# CONFIG_MACH_OMAP_3430SDP is not set
+# CONFIG_MACH_NOKIA_RX51 is not set
+# CONFIG_MACH_OMAP_ZOOM2 is not set
+# CONFIG_MACH_OMAP_ZOOM3 is not set
+# CONFIG_MACH_CM_T35 is not set
+# CONFIG_MACH_IGEP0020 is not set
+# CONFIG_MACH_SBC3530 is not set
+# CONFIG_MACH_OMAP_3630SDP is not set
+CONFIG_ARM_THUMBEE=y
+CONFIG_NO_HZ=y
+CONFIG_HIGH_RES_TIMERS=y
+CONFIG_AEABI=y
+CONFIG_LEDS=y
+CONFIG_ZBOOT_ROM_TEXT=0x0
+CONFIG_ZBOOT_ROM_BSS=0x0
+CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyS2,115200"
+CONFIG_KEXEC=y
+CONFIG_FPE_NWFPE=y
+CONFIG_VFP=y
+CONFIG_NEON=y
+CONFIG_BINFMT_MISC=y
+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+CONFIG_MTD=y
+CONFIG_MTD_CONCAT=y
+CONFIG_MTD_CMDLINE_PARTS=y
+CONFIG_MTD_CHAR=y
+CONFIG_MTD_BLOCK=y
+CONFIG_MTD_OOPS=y
+CONFIG_MTD_CFI=y
+CONFIG_MTD_CFI_INTELEXT=y
+CONFIG_MTD_NAND=y
+CONFIG_MTD_NAND_OMAP2=y
+CONFIG_MTD_ONENAND=y
+CONFIG_MTD_ONENAND_VERIFY_WRITE=y
+CONFIG_MTD_ONENAND_OMAP2=y
+CONFIG_MTD_UBI=y
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_BLK_DEV_RAM=y
+CONFIG_BLK_DEV_RAM_SIZE=16384
+CONFIG_EEPROM_LEGACY=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_SCSI_MULTI_LUN=y
+CONFIG_SCSI_SCAN_ASYNC=y
+# CONFIG_INPUT_MOUSEDEV is not set
+CONFIG_INPUT_EVDEV=y
+# CONFIG_INPUT_KEYBOARD is not set
+# CONFIG_INPUT_MOUSE is not set
+CONFIG_INPUT_MISC=y
+CONFIG_INPUT_TWL4030_PWRBUTTON=y
+CONFIG_SERIO_LIBPS2=y
+CONFIG_VT_HW_CONSOLE_BINDING=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_SERIAL_8250_NR_UARTS=32
+CONFIG_SERIAL_8250_EXTENDED=y
+CONFIG_SERIAL_8250_MANY_PORTS=y
+CONFIG_SERIAL_8250_SHARE_IRQ=y
+CONFIG_SERIAL_8250_DETECT_IRQ=y
+CONFIG_SERIAL_8250_RSA=y
+# CONFIG_LEGACY_PTYS is not set
+CONFIG_HW_RANDOM=y
+CONFIG_I2C=y
+CONFIG_I2C_CHARDEV=y
+CONFIG_I2C_OMAP=y
+CONFIG_GPIO_SYSFS=y
+CONFIG_GPIO_TWL4030=y
+CONFIG_WATCHDOG=y
+CONFIG_OMAP_WATCHDOG=y
+CONFIG_TWL4030_WATCHDOG=y
+CONFIG_TWL4030_CORE=y
+CONFIG_TWL4030_POWER=y
+CONFIG_REGULATOR=y
+CONFIG_REGULATOR_TWL4030=y
+CONFIG_REGULATOR_TPS65023=y
+CONFIG_REGULATOR_TPS6507X=y
+CONFIG_USB_GADGET=y
+CONFIG_USB_GADGET_DEBUG=y
+CONFIG_USB_GADGET_DEBUG_FILES=y
+CONFIG_USB_GADGET_DEBUG_FS=y
+CONFIG_USB_FILE_STORAGE=m
+CONFIG_TWL4030_USB=y
+CONFIG_MMC=y
+CONFIG_MMC_UNSAFE_RESUME=y
+CONFIG_SDIO_UART=y
+CONFIG_MMC_OMAP=y
+CONFIG_MMC_OMAP_HS=y
+CONFIG_NEW_LEDS=y
+CONFIG_LEDS_CLASS=y
+CONFIG_LEDS_GPIO=y
+CONFIG_LEDS_TRIGGERS=y
+CONFIG_LEDS_TRIGGER_TIMER=y
+CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_DRV_TWL4030=y
+CONFIG_EXT2_FS=y
+CONFIG_EXT3_FS=y
+# CONFIG_EXT3_FS_XATTR is not set
+CONFIG_QUOTA=y
+CONFIG_QFMT_V2=y
+CONFIG_MSDOS_FS=y
+CONFIG_VFAT_FS=y
+CONFIG_TMPFS=y
+CONFIG_JFFS2_FS=y
+CONFIG_JFFS2_SUMMARY=y
+CONFIG_JFFS2_FS_XATTR=y
+CONFIG_JFFS2_COMPRESSION_OPTIONS=y
+CONFIG_JFFS2_LZO=y
+CONFIG_JFFS2_RUBIN=y
+CONFIG_UBIFS_FS=y
+CONFIG_CRAMFS=y
+CONFIG_PARTITION_ADVANCED=y
+CONFIG_NLS_CODEPAGE_437=y
+CONFIG_NLS_ISO8859_1=y
+CONFIG_PRINTK_TIME=y
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_DEBUG_FS=y
+CONFIG_DEBUG_KERNEL=y
+CONFIG_SCHEDSTATS=y
+CONFIG_TIMER_STATS=y
+CONFIG_PROVE_LOCKING=y
+CONFIG_DEBUG_SPINLOCK_SLEEP=y
+# CONFIG_DEBUG_BUGVERBOSE is not set
+CONFIG_DEBUG_INFO=y
+# CONFIG_RCU_CPU_STALL_DETECTOR is not set
+CONFIG_KEYS=y
+CONFIG_SECURITY=y
+CONFIG_CRYPTO_CBC=y
+CONFIG_CRYPTO_ECB=y
+CONFIG_CRYPTO_MD5=y
+CONFIG_CRYPTO_MICHAEL_MIC=y
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_ARC4=y
+CONFIG_CRYPTO_DES=y
+# CONFIG_CRYPTO_ANSI_CPRNG is not set
+CONFIG_CRC_CCITT=y
+CONFIG_CRC_T10DIF=y
+CONFIG_CRC_ITU_T=y
+CONFIG_CRC7=y
+CONFIG_LIBCRC32C=y
+===================================
