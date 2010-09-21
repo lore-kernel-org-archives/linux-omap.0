@@ -1,45 +1,50 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH v2 07/10] TWL CORE: Fix sparse warning
-Date: Tue, 21 Sep 2010 15:31:17 +0530
-Message-ID: <1285063280-4057-8-git-send-email-manjugk@ti.com>
+Subject: [PATCH v2 06/10] OMAP: NAND: Fix static declaration warning
+Date: Tue, 21 Sep 2010 15:31:16 +0530
+Message-ID: <1285063280-4057-7-git-send-email-manjugk@ti.com>
 References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43452 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756997Ab0IUKCJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 06:02:09 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47482 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756997Ab0IUKCG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 06:02:06 -0400
 In-Reply-To: <1285063280-4057-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-Fixes below sparse warning.
+This patch fixes sparse warning for static declaration of variable "use_dma"
 
-drivers/mfd/twl-core.c:258:20: warning: symbol 'twl_map' was not declared. Should it be static?
+drivers/mtd/nand/omap2.c:114:11: warning: symbol 'use_dma' was not declared. Should it be static?
 
 Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
 Cc: linux-arm-kernel@lists.infradead.org
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-mtd@lists.infradead.org
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Nishanth Menon <nm@ti.com>
 ---
- drivers/mfd/twl-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/mtd/nand/omap2.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 720e099..53c371a 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -255,7 +255,7 @@ struct twl_mapping {
- 	unsigned char sid;	/* Slave ID */
- 	unsigned char base;	/* base address */
- };
--struct twl_mapping *twl_map;
-+static struct twl_mapping *twl_map;
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 133d515..439e80d 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -111,11 +111,11 @@ static int use_dma = 1;
+ module_param(use_dma, bool, 0);
+ MODULE_PARM_DESC(use_dma, "enable/disable use of DMA");
+ #else
+-const int use_dma;
++static const int use_dma;
+ #endif
+ #else
+ const int use_prefetch;
+-const int use_dma;
++static const int use_dma;
+ #endif
  
- static struct twl_mapping twl4030_map[TWL4030_MODULE_LAST + 1] = {
- 	/*
+ struct omap_nand_info {
 -- 
 1.7.0.4
 
