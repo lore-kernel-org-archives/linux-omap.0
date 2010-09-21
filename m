@@ -1,126 +1,117 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 3/4] omap4 hsmmc: Register offset handling
-Date: Mon, 20 Sep 2010 22:56:48 +0200
-Message-ID: <4C97CA90.9030706@ti.com>
-References: <33958.10.24.255.17.1284827654.squirrel@dbdmail.itg.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCHv3 0/17] OMAP dmtimer hwmod
+Date: Tue, 21 Sep 2010 14:20:29 +0530
+Message-ID: <1285059029-26291-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39758 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:42849 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754839Ab0ITU45 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 16:56:57 -0400
-In-Reply-To: <33958.10.24.255.17.1284827654.squirrel@dbdmail.itg.ti.com>
+	with ESMTP id S1757779Ab0ITVtd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 17:49:33 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8KLnURj023975
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2010 16:49:32 -0500
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id o8KLnTwE017725
+	for <linux-omap@vger.kernel.org>; Tue, 21 Sep 2010 03:19:29 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>
-Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
 
-Hi Kishore
+This patch series implements dmtimer hwmod.
 
-On 9/18/2010 6:34 PM, Kadiyala, Kishore wrote:
-> The offset handling implementation of omap4 mmc registers which
-> was already present can't be reused once hwmod modifications are done
-> for mmc driver.
-> Since hwmod data file for OMAP4 is an auto generated the base
-> address for MMC will remain same as OMAP3 and thus the offset deviation
-> of registers should be updated in the hsmmc driver.
+Version 3
+*********
+(1) multi-line comment error correction
 
-That explanation does not sound very accurate to me.
-The fact that the hwmods are auto-generated has nothing to do with your 
-offset problem. The real cause is due to the update of the IP to support 
-the new PM programming model.
-Because of that, and to keep a certain level of compatibility, the 
-legacy registers were all shifted by 0x100 and the new one were added 
-from offset 0 to 0x10.
+(2) provision to allow any of the available dmtimers as early timers
+instead of restricting them to millisecond timers only. 
 
-Regards,
-Benoit
+(3) in 'struct omap_dmtimer{}' is_initialized flag is redundant and
+so must be removed. if the element is found in the list it is already
+initialized.
 
-> The omap-mmc platform data is updated with a register offset which
-> will be updated and used in the driver accordingly.
->
-> Signed-off-by: Kishore Kadiyala<kishore.kadiyala@ti.com>
-> ---
->   arch/arm/mach-omap2/devices.c         |    8 +++-----
->   arch/arm/mach-omap2/hsmmc.c           |    4 ++++
->   arch/arm/plat-omap/include/plat/mmc.h |    3 +++
->   drivers/mmc/host/omap_hsmmc.c         |    2 +-
->   4 files changed, 11 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 2dbb265..bb7ec13 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -745,13 +745,13 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
->   		case 3:
->   			if (!cpu_is_omap44xx())
->   				return;
-> -			base = OMAP4_MMC4_BASE + OMAP4_MMC_REG_OFFSET;
-> +			base = OMAP4_MMC4_BASE;
->   			irq = OMAP44XX_IRQ_MMC4;
->   			break;
->   		case 4:
->   			if (!cpu_is_omap44xx())
->   				return;
-> -			base = OMAP4_MMC5_BASE + OMAP4_MMC_REG_OFFSET;
-> +			base = OMAP4_MMC5_BASE;
->   			irq = OMAP44XX_IRQ_MMC5;
->   			break;
->   		default:
-> @@ -762,10 +762,8 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
->   			size = OMAP2420_MMC_SIZE;
->   			name = "mmci-omap";
->   		} else if (cpu_is_omap44xx()) {
-> -			if (i<  3) {
-> -				base += OMAP4_MMC_REG_OFFSET;
-> +			if (i<  3)
->   				irq += OMAP44XX_IRQ_GIC_START;
-> -			}
->   			size = OMAP4_HSMMC_SIZE;
->   			name = "mmci-omap-hs";
->   		} else {
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index c8f647b..49d76a7 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -261,6 +261,10 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
->   		mmc->slots[0].wires = c->wires;
->   		mmc->slots[0].internal_clock = !c->ext_clock;
->   		mmc->dma_mask = 0xffffffff;
-> +		if (cpu_is_omap44xx())
-> +			mmc->reg_offset = OMAP4_MMC_REG_OFFSET;
-> +		else
-> +			mmc->reg_offset = 0;
->
->   		mmc->get_context_loss_count = hsmmc_get_context_loss;
->
-> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
-> index 9b89ec6..4e6ef07 100644
-> --- a/arch/arm/plat-omap/include/plat/mmc.h
-> +++ b/arch/arm/plat-omap/include/plat/mmc.h
-> @@ -71,6 +71,9 @@ struct omap_mmc_platform_data {
->
->   	u64 dma_mask;
->
-> +	/* Register offset deviation */
-> +	u16 reg_offset;
-> +
->   	struct omap_mmc_slot_data {
->
->   		/* 4 wire signaling is optional, and is used for SD/SDIO/HSMMC;
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index a51894d..bfca9ca 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2034,7 +2034,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
->   	host->irq	= irq;
->   	host->id	= pdev->id;
->   	host->slot_id	= 0;
-> -	host->mapbase	= res->start;
-> +	host->mapbase	= res->start + pdata->reg_offset;
->   	host->base	= ioremap(host->mapbase, SZ_4K);
->   	host->power_mode = MMC_POWER_OFF;
->
+(4) remove 'found' flag in omap_dm_timer_request() and
+omap_dm_timer_request_specific() functions.
+this is not needed with alternate implementation.
+
+(5) use .init_name to initialize device names so that it can be identified
+during early boot as well. This is to avoid duplicate functions for clock
+manipulations during early boot and later.
+
+(6) remove redundant functions from mach-omap2 which are created just to
+call pm functions like: pm_runtime_get_sync(),pm_runtime_put_sync(),..
+and instead call them directly from plat-omap function api's.
+
+(7) timer clock source names made part of hwmod database. source_clock[]
+of type 'struct clk' is made part of platform data.
+
+(8) clockactivity field initialized in hwmod database to preserve fclk
+during idle. code which manipulate OCP config removed since they are
+already taken care by hwmod framework.
+
+(9) omap2_dm_timer_set_src() is optimized. Clock enable/disbale routines
+moved to plat-omap layer and simplfied to the level so as not to sacrifice
+intended functionality.
+
+NOTE: During early boot clock management was requested to be placed upon
+client drivers responsibility. this has not been done keeping in mind
+that it would entail (i) multiple modifications of client drivers (ii) it
+would violate the purpose of having a framework (open to debate).
+
+(10) dmtimer register maps moved to hwmod database
+
+Baseline
+********
+origin/pm-core
+
+Test info
+*********
+OMAP4430SDP
+OMAP3630SDP
+OMAP3430SDP
+OMAP2430SDP
+OMAP1710SDP(Bootup)
+
+
+Tarun Kanti DebBarma (17):
+  OMAP2/3/4:dmtimer:add device names to flck nodes
+  dmtimer: infrastructure to support hwmod
+  dmtimer: add omap2420 hwmod database
+  dmtimer: add omap2430 hwmod database
+  dmtimer: add omap3xxx hwmod database
+  dmtimer: add omap44xx hwmod database
+  dmtimer: use list instead of static array
+  dmtimer: register mappings moved to hwmod database
+  OMAP: dmtimer platform driver
+  OMAP1: dmtimer conversion to platform devices
+  dmtimer: early boot infrastructure
+  OMAP2/3/4: dmtimers: convert to platform devices
+  dmtimer: switch-over to platform device driver with hwmod
+  dmtimer pm_runtime support
+  dmtimer: OMAP4 specific change in plat-omap
+  dmtimer: clean redundant code
+  dmtimer: remove OCP config code from plat-omap
+
+ arch/arm/mach-omap1/Makefile               |    2 +-
+ arch/arm/mach-omap1/dmtimer.c              |  174 ++++++
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/clock2420_data.c       |   24 +-
+ arch/arm/mach-omap2/clock2430_data.c       |   24 +-
+ arch/arm/mach-omap2/clock3xxx_data.c       |   24 +-
+ arch/arm/mach-omap2/clock44xx_data.c       |   22 +-
+ arch/arm/mach-omap2/dmtimer.c              |  288 ++++++++++
+ arch/arm/mach-omap2/dmtimer.h              |   25 +
+ arch/arm/mach-omap2/io.c                   |    2 +
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  739 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  737 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  815 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  796 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/timer-gp.c             |    1 -
+ arch/arm/plat-omap/dmtimer.c               |  679 +++++++++++------------
+ arch/arm/plat-omap/include/plat/dmtimer.h  |   80 +++
+ 17 files changed, 4030 insertions(+), 404 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/dmtimer.c
+ create mode 100644 arch/arm/mach-omap2/dmtimer.c
+ create mode 100644 arch/arm/mach-omap2/dmtimer.h
 
