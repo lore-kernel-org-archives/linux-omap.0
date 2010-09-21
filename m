@@ -1,194 +1,63 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 5/5] OMAP: I2C: Convert i2c driver to use PM runtime api's
-Date: Tue, 21 Sep 2010 19:37:16 +0530
-Message-ID: <1285078036-12789-6-git-send-email-rnayak@ti.com>
-References: <1285078036-12789-1-git-send-email-rnayak@ti.com>
- <1285078036-12789-2-git-send-email-rnayak@ti.com>
- <1285078036-12789-3-git-send-email-rnayak@ti.com>
- <1285078036-12789-4-git-send-email-rnayak@ti.com>
- <1285078036-12789-5-git-send-email-rnayak@ti.com>
+Subject: [PATCH] OMAP: hwmod: Enable module wakeup if in smartidle
+Date: Tue, 21 Sep 2010 19:58:30 +0530
+Message-ID: <1285079310-15888-1-git-send-email-rnayak@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48160 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60825 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755849Ab0IUOH6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Sep 2010 10:07:58 -0400
-In-Reply-To: <1285078036-12789-5-git-send-email-rnayak@ti.com>
+	id S1751456Ab0IUO2j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 10:28:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, ben-linux@fluff.org, khali@linux-fr.org, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, =?utf-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-This patch converts the i2c driver to use PM runtime apis
+If a module's OCP slave port is programmed to be in smartidle,
+its also necessary that they have module level wakeup enabled.
+Update _sysc_enable in hwmod framework to do this.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Partha Basak <p-basak2@ti.com>
+Signed-off-by: Beno=C3=83=C2=AEt Cousson <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   67 +++++++++++++----------------------------
- 1 files changed, 21 insertions(+), 46 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 7674efb..126bde9 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -39,6 +39,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/i2c-omap.h>
-+#include <linux/pm_runtime.h>
- 
- /* I2C controller revisions */
- #define OMAP_I2C_REV_2			0x20
-@@ -175,8 +176,6 @@ struct omap_i2c_dev {
- 	void __iomem		*base;		/* virtual */
- 	int			irq;
- 	int			reg_shift;      /* bit shift for I2C register addresses */
--	struct clk		*iclk;		/* Interface clock */
--	struct clk		*fclk;		/* Functional clock */
- 	struct completion	cmd_complete;
- 	struct resource		*ioarea;
- 	u32			latency;	/* maximum mpu wkup latency */
-@@ -265,45 +264,18 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
- }
- 
--static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-+static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- {
--	int ret;
-+	struct platform_device *pdev;
-+	struct omap_i2c_bus_platform_data *pdata;
- 
--	dev->iclk = clk_get(dev->dev, "ick");
--	if (IS_ERR(dev->iclk)) {
--		ret = PTR_ERR(dev->iclk);
--		dev->iclk = NULL;
--		return ret;
--	}
-+	WARN_ON(!dev->idle);
- 
--	dev->fclk = clk_get(dev->dev, "fck");
--	if (IS_ERR(dev->fclk)) {
--		ret = PTR_ERR(dev->fclk);
--		if (dev->iclk != NULL) {
--			clk_put(dev->iclk);
--			dev->iclk = NULL;
--		}
--		dev->fclk = NULL;
--		return ret;
--	}
-+	pdev = to_platform_device(dev->dev);
-+	pdata = pdev->dev.platform_data;
- 
--	return 0;
--}
-+	pm_runtime_get_sync(&pdev->dev);
- 
--static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
--{
--	clk_put(dev->fclk);
--	dev->fclk = NULL;
--	clk_put(dev->iclk);
--	dev->iclk = NULL;
--}
--
--static void omap_i2c_unidle(struct omap_i2c_dev *dev)
--{
--	WARN_ON(!dev->idle);
--
--	clk_enable(dev->iclk);
--	clk_enable(dev->fclk);
- 	if (cpu_is_omap34xx()) {
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-@@ -326,10 +298,15 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- 
- static void omap_i2c_idle(struct omap_i2c_dev *dev)
- {
-+	struct platform_device *pdev;
-+	struct omap_i2c_bus_platform_data *pdata;
- 	u16 iv;
- 
- 	WARN_ON(dev->idle);
- 
-+	pdev = to_platform_device(dev->dev);
-+	pdata = pdev->dev.platform_data;
-+
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 	if (dev->rev >= OMAP_I2C_REV_ON_4430)
- 		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-@@ -345,8 +322,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index cb911d7..d82e7e8 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -659,8 +659,6 @@ static void _sysc_enable(struct omap_hwmod *oh)
+ 		_set_module_autoidle(oh, idlemode, &v);
  	}
- 	dev->idle = 1;
--	clk_disable(dev->fclk);
--	clk_disable(dev->iclk);
-+
-+	pm_runtime_put_sync(&pdev->dev);
- }
- 
- static int omap_i2c_init(struct omap_i2c_dev *dev)
-@@ -356,6 +333,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	unsigned long fclk_rate = 12000000;
- 	unsigned long timeout;
- 	unsigned long internal_clk = 0;
-+	struct clk *fclk;
- 
- 	if (dev->rev >= OMAP_I2C_REV_2) {
- 		/* Disable I2C controller before soft reset */
-@@ -414,7 +392,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 		 * always returns 12MHz for the functional clock, we can
- 		 * do this bit unconditionally.
- 		 */
--		fclk_rate = clk_get_rate(dev->fclk);
-+		fclk = clk_get(dev->dev, "fck");
-+		fclk_rate = clk_get_rate(fclk);
- 
- 		/* TRM for 5912 says the I2C clock must be prescaled to be
- 		 * between 7 - 12 MHz. The XOR input clock is typically
-@@ -443,7 +422,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			internal_clk = 9600;
- 		else
- 			internal_clk = 4000;
--		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-+		fclk = clk_get(dev->dev, "fck");
-+		fclk_rate = clk_get_rate(fclk) / 1000;
- 
- 		/* Compute prescaler divisor */
- 		psc = fclk_rate / internal_clk;
-@@ -1046,14 +1026,12 @@ omap_i2c_probe(struct platform_device *pdev)
- 	else
- 		dev->reg_shift = 2;
- 
--	if ((r = omap_i2c_get_clocks(dev)) != 0)
--		goto err_iounmap;
+=20
+-	/* XXX OCP ENAWAKEUP bit? */
 -
- 	if (cpu_is_omap44xx())
- 		dev->regs = (u8 *) omap4_reg_map;
- 	else
- 		dev->regs = (u8 *) reg_map;
- 
-+	pm_runtime_enable(&pdev->dev);
- 	omap_i2c_unidle(dev);
- 
- 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-@@ -1125,8 +1103,6 @@ err_free_irq:
- err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	omap_i2c_idle(dev);
--	omap_i2c_put_clocks(dev);
--err_iounmap:
- 	iounmap(dev->base);
- err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
-@@ -1148,7 +1124,6 @@ omap_i2c_remove(struct platform_device *pdev)
- 	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--	omap_i2c_put_clocks(dev);
- 	iounmap(dev->base);
- 	kfree(dev);
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--- 
-1.5.4.7
+ 	/*
+ 	 * XXX The clock framework should handle this, by
+ 	 * calling into this code.  But this must wait until the
+@@ -671,6 +669,10 @@ static void _sysc_enable(struct omap_hwmod *oh)
+ 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
+=20
+ 	_write_sysconfig(v, oh);
++
++	/* If slave is in SMARTIDLE, also enable wakeup */
++	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
++			_enable_wakeup(oh);
+ }
+=20
+ /**
+--=20
+1.7.0.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
