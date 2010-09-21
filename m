@@ -1,162 +1,71 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode support
-Date: Tue, 21 Sep 2010 18:24:39 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B031610E073@dbde02.ent.ti.com>
-References: <1284624059-1741-1-git-send-email-s-ghorai@ti.com>
- <1284624059-1741-2-git-send-email-s-ghorai@ti.com>
- <20100917175504.GG29610@atomide.com>
-  <2A3DCF3DA181AD40BDE86A3150B27B6B0316062730@dbde02.ent.ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH v2 1/5] OMAP2xxx: hwmod: add I2C hwmods for OMAP2420,
+ 2430
+Date: Tue, 21 Sep 2010 19:00:38 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EE253@dbde02.ent.ti.com>
+References: <1284734229-16281-1-git-send-email-rnayak@ti.com>
+ <1284734229-16281-2-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.1009210101560.17727@utopia.booyaka.com>
+ <0680EC522D0CC943BC586913CF3768C003C21EE0E9@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1009210126260.17727@utopia.booyaka.com>
+ <alpine.DEB.2.00.1009210200450.17727@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43872 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57334 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753341Ab0IUMyv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 08:54:51 -0400
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B0316062730@dbde02.ent.ti.com>
+	id S1751767Ab0IUNao convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 09:30:44 -0400
+In-Reply-To: <alpine.DEB.2.00.1009210200450.17727@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Tony,
+
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Ghorai, Sukumar
-> Sent: Monday, September 20, 2010 7:01 PM
-> To: Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> kernel@lists.infradead.org
-> Subject: RE: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode
-> support
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Tuesday, September 21, 2010 1:36 PM
+> To: Nayak, Rajendra
+> Cc: linux-omap@vger.kernel.org; Kevin Hilman
+> Subject: RE: [PATCH v2 1/5] OMAP2xxx: hwmod: add I2C hwmods for OMAP2420,
+> 2430
 > 
-> Tony,
+> On Tue, 21 Sep 2010, Paul Walmsley wrote:
 > 
-> > -----Original Message-----
-> > From: Ghorai, Sukumar
-> > Sent: Saturday, September 18, 2010 11:55 PM
-> > To: 'Tony Lindgren'
-> > Cc: 'linux-omap@vger.kernel.org'; 'linux-mtd@lists.infradead.org';
-> 'linux-
-> > arm-kernel@lists.infradead.org'
-> > Subject: RE: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode
-> > support
+> > My original comment was somewhat inaccurate.  Looking again at the 2430
+> > TRM, it looks like the idlest_reg_id is correct, but that the prcm_reg_id
+> > is not quite correct, at least for the FCLKEN register - not currently
+> > used by hwmod.  We may have to add a workaround flag for the 2430 I2CHS
+> > case.
 > >
-> > Tony,
+> > I can see why this didn't cause a problem in your testing.  The clock
+> > framework writes to the correct FCLKEN bit, and the hwmod code currently
+> > doesn't touch the FCLKEN bit.  And then the hwmod code checks the
+> > correct IDLEST bit.
 > >
-> > > -----Original Message-----
-> > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > Sent: Friday, September 17, 2010 11:25 PM
-> > > To: Ghorai, Sukumar
-> > > Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-
-> > arm-
-> > > kernel@lists.infradead.org; Vimal Singh
-> > > Subject: Re: [PATCH RESEND v4 1/4] omap3: nand: prefetch in irq mode
-> > > support
-> > >
-> > > * Sukumar Ghorai <s-ghorai@ti.com> [100916 00:53]:
-> > > > This patch enable prefetch-irq mode for NAND.
-> > > >
-> > > > --- a/drivers/mtd/nand/omap2.c
-> > > > +++ b/drivers/mtd/nand/omap2.c
-> > > > @@ -467,6 +485,152 @@ static void omap_write_buf_dma_pref(struct
-> > > mtd_info *mtd,
-> > > >  		omap_nand_dma_transfer(mtd, (u_char *) buf, len, 0x1);
-> > > >  }
-> > > >
-> > > > +/*
-> > > > + * omap_nand_irq - GMPC irq handler
-> > > > + * @this_irq: gpmc irq number
-> > > > + * @dev: omap_nand_info structure pointer is passed here
-> > > > + */
-> > > > +static irqreturn_t omap_nand_irq(int this_irq, void *dev)
-> > > > +{
-> > > > +	struct omap_nand_info *info = (struct omap_nand_info *) dev;
-> > > > +	u32 bytes;
-> > > > +	u32 irq_stat;
-> > > > +
-> > > > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > > > +	bytes = gpmc_read_status(GPMC_PREFETCH_FIFO_CNT);
-> > > > +	bytes = bytes  & 0xFFFC; /* io in multiple of 4 bytes */
-> > > > +	if (info->iomode == OMAP_NAND_IO_WRITE) { /* checks for write
-> io */
-> > > > +		if (irq_stat & 0x2)
-> > > > +			goto done;
-> > > > +
-> > > > +		if (info->buf_len & (info->buf_len < bytes))
-> > > > +			bytes = info->buf_len;
-> > > > +		else if (!info->buf_len)
-> > > > +			bytes = 0;
-> > > > +		iowrite32_rep(info->nand.IO_ADDR_W,
-> > > > +						(u32 *)info->buf, bytes >> 2);
-> > > > +		info->buf = info->buf + bytes;
-> > > > +		info->buf_len -= bytes;
-> > > > +
-> > > > +	} else {
-> > > > +		ioread32_rep(info->nand.IO_ADDR_R,
-> > > > +						(u32 *)info->buf, bytes >> 2);
-> > > > +		info->buf = info->buf + bytes;
-> > > > +
-> > > > +		if (irq_stat & 0x2)
-> > > > +			goto done;
-> > > > +	}
-> > > > +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS,
-> irq_stat);
-> > > > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > > > +
-> > > > +	return IRQ_HANDLED;
-> > > > +
-> > > > +done:
-> > > > +	complete(&info->comp);
-> > > > +	/* disable irq */
-> > > > +	gpmc_cs_configure(info->gpmc_cs, GPMC_ENABLE_IRQ, 0);
-> > > > +
-> > > > +	/* clear status */
-> > > > +	gpmc_cs_configure(info->gpmc_cs, GPMC_SET_IRQ_STATUS,
-> irq_stat);
-> > > > +	irq_stat = gpmc_read_status(GPMC_GET_IRQ_STATUS);
-> > > > +
-> > > > +	return IRQ_HANDLED;
-> > > > +}
-> > >
-> > > This handler should be in gpmc.c as it may be needed for other GPMC
-> > > connected devices on the same system. You can use chained irq handlers
-> > > to allow all the drivers to use the interrupt then.
-> >
-> > [Ghorai]
-> > You mean as this function used the gpmc-irq number in nand file, so
-> > handler should move to gpmc.c file?
-> > 	1. For that we need to add one io-struct (to keep io buffer status)
-> > in gpmc.c;
-> >
-> > 	2. Also need help how to sync between gpmc.c/omap_nand_irq() and
-> > omap2.c/omap_write_buf_irq_pref(), men how read/write function know that
-> > work done in interrupt-context? Or you prefer to move the complete IO
-> > function (omap_read/write_buf_irq_pref) to gpmc.c?
-> >
-> > 	3. gpmc does not now about the read and write address that's
-> > applicable for NAND. So how to pass the IO address from omap2.c to
-> gpmc.c,
-> > interrupt handler?
-> >
-> >
-> > So, please let me know your suggestion again such that I can post this
-> > time itself. Otherwise again it will miss from coming release, this was
-> > posted/reviewed for last release too. And suggest to void repeating of
-> > missing release window again.
+> > It may be that the clock framework is also buggy for the 2430 I2CHS case -
+> > that code will probably write to CM_ICLKEN2_CORE for 2430 I2CHS, but it
+> > should write to CM_ICLKEN1_CORE.  sigh...
 > 
-> [Ghorai] Please reply with your 2nd suggestion.
-[Ghorai] Please reply with your 2nd suggestion.
+> Just double-checked the clock code and data - it looks like the clock code
+> is doing the right thing for 2430 I2CHS: it uses CM_ICLKEN1_CORE,
+> CM_FCLKEN2_CORE, and CM_IDLEST1_CORE, despite the commit log comments on
+> 3dc2197579089c5b74c7fba666c8ccf1a449afb4, which are wrong.
+> 
+> So, that issue that I raised was a false alarm.  But it would be good if
+> you could drop a comment at the top of the two 2430 I2CHS hwmod
+> structures, and simply note that the CM_FCLKEN* registers for those IP
+> blocks don't follow the usual pattern.  That way, that knowledge won't be
+> lost completely once the IDLEST handling is removed from the clock
+> framework, which we'll do as soon as the I2C hwmod code is merged.
 
-> >
-> > >
-> > > Regards,
-> > >
-> > > Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sure, will add a note on this.
+
+> 
+> Sorry about the confusion,
+> 
+> - Paul
