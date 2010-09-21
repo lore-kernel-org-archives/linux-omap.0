@@ -1,219 +1,49 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: SMP_ON_UP? - Build break with custom minimal defconfig
-Date: Tue, 21 Sep 2010 21:10:28 +0530
-Message-ID: <AANLkTim-mQjFnqGo_G971yTbU9FLnUja2t_axytGM5LN@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: SMP_ON_UP? - Build break with custom minimal defconfig
+Date: Tue, 21 Sep 2010 08:54:00 -0700
+Message-ID: <20100921155400.GR4611@atomide.com>
+References: <AANLkTim-mQjFnqGo_G971yTbU9FLnUja2t_axytGM5LN@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:36010 "HELO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756960Ab0IUPqh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Sep 2010 11:46:37 -0400
-Received: by mail-ww0-f51.google.com with SMTP id 28so6749581wwb.8
-        for <linux-omap@vger.kernel.org>; Tue, 21 Sep 2010 08:46:34 -0700 (PDT)
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57466 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757209Ab0IUPx6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 11:53:58 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTim-mQjFnqGo_G971yTbU9FLnUja2t_axytGM5LN@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi all,
+* Gadiyar, Anand <gadiyar@ti.com> [100921 08:41]:
+> Hi all,
+> 
+> I was trying to use current linux-omap master to put together a custom
+> minimal defconfig for a beagleboard, and I'm seeing a compile error:
+> 
+>   CC      init/main.o
+> In file included from include/linux/highmem.h:9,
+>                  from include/linux/pagemap.h:10,
+>                  from include/linux/mempolicy.h:70,
+>                  from init/main.c:50:
+> /home/userdata/a0393673/kernels/tony/linux-omap-2.6/arch/arm/include/asm/cacheflush.h:
+> In function '__flush_icache_all':
+> /home/userdata/a0393673/kernels/tony/linux-omap-2.6/arch/arm/include/asm/cacheflush.h:332:
+> error: implicit declaration of function '__flush_icache_preferred'
+> make[1]: *** [init/main.o] Error 1
+> make: *** [init] Error 2
+> 
+> I think this is related to the recent SMP_ON_UP patches.
+> 
+> The reduced .config I'm using (generated using `make savedefconfig`) is below.
+> 
+> I'll try and debug in a while, but just reporting for now.
 
-I was trying to use current linux-omap master to put together a custom
-minimal defconfig for a beagleboard, and I'm seeing a compile error:
+Yes that sounds like a bug in a smp_on_up related patch. Will try your
+defconfig here too.
 
-  CC      init/main.o
-In file included from include/linux/highmem.h:9,
-                 from include/linux/pagemap.h:10,
-                 from include/linux/mempolicy.h:70,
-                 from init/main.c:50:
-/home/userdata/a0393673/kernels/tony/linux-omap-2.6/arch/arm/include/asm/cacheflush.h:
-In function '__flush_icache_all':
-/home/userdata/a0393673/kernels/tony/linux-omap-2.6/arch/arm/include/asm/cacheflush.h:332:
-error: implicit declaration of function '__flush_icache_preferred'
-make[1]: *** [init/main.o] Error 1
-make: *** [init] Error 2
+Thanks,
 
-I think this is related to the recent SMP_ON_UP patches.
-
-The reduced .config I'm using (generated using `make savedefconfig`) is below.
-
-I'll try and debug in a while, but just reporting for now.
-
-- Anand
-
-========== CUT HERE ==============
-CONFIG_EXPERIMENTAL=y
-CONFIG_SYSVIPC=y
-CONFIG_BSD_PROCESS_ACCT=y
-CONFIG_IKCONFIG=y
-CONFIG_IKCONFIG_PROC=y
-CONFIG_LOG_BUF_SHIFT=16
-CONFIG_BLK_DEV_INITRD=y
-CONFIG_EMBEDDED=y
-# CONFIG_SYSCTL_SYSCALL is not set
-CONFIG_KALLSYMS_EXTRA_PASS=y
-CONFIG_PERF_EVENTS=y
-CONFIG_SLAB=y
-CONFIG_MODULES=y
-CONFIG_MODULE_FORCE_LOAD=y
-CONFIG_MODULE_UNLOAD=y
-CONFIG_MODULE_FORCE_UNLOAD=y
-CONFIG_MODVERSIONS=y
-CONFIG_MODULE_SRCVERSION_ALL=y
-# CONFIG_BLK_DEV_BSG is not set
-CONFIG_ARCH_OMAP=y
-CONFIG_OMAP_RESET_CLOCKS=y
-CONFIG_OMAP_MUX_DEBUG=y
-CONFIG_OMAP_DM_TIMER=y
-# CONFIG_ARCH_OMAP2PLUS_TYPICAL is not set
-# CONFIG_ARCH_OMAP2 is not set
-# CONFIG_ARCH_OMAP4 is not set
-# CONFIG_MACH_DEVKIT8000 is not set
-# CONFIG_MACH_OMAP_LDP is not set
-# CONFIG_MACH_OVERO is not set
-# CONFIG_MACH_OMAP3EVM is not set
-# CONFIG_MACH_OMAP3517EVM is not set
-# CONFIG_MACH_OMAP3_PANDORA is not set
-# CONFIG_MACH_OMAP3_TOUCHBOOK is not set
-# CONFIG_MACH_OMAP_3430SDP is not set
-# CONFIG_MACH_NOKIA_RX51 is not set
-# CONFIG_MACH_OMAP_ZOOM2 is not set
-# CONFIG_MACH_OMAP_ZOOM3 is not set
-# CONFIG_MACH_CM_T35 is not set
-# CONFIG_MACH_IGEP0020 is not set
-# CONFIG_MACH_SBC3530 is not set
-# CONFIG_MACH_OMAP_3630SDP is not set
-CONFIG_ARM_THUMBEE=y
-CONFIG_NO_HZ=y
-CONFIG_HIGH_RES_TIMERS=y
-CONFIG_AEABI=y
-CONFIG_LEDS=y
-CONFIG_ZBOOT_ROM_TEXT=0x0
-CONFIG_ZBOOT_ROM_BSS=0x0
-CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyS2,115200"
-CONFIG_KEXEC=y
-CONFIG_FPE_NWFPE=y
-CONFIG_VFP=y
-CONFIG_NEON=y
-CONFIG_BINFMT_MISC=y
-CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-CONFIG_MTD=y
-CONFIG_MTD_CONCAT=y
-CONFIG_MTD_CMDLINE_PARTS=y
-CONFIG_MTD_CHAR=y
-CONFIG_MTD_BLOCK=y
-CONFIG_MTD_OOPS=y
-CONFIG_MTD_CFI=y
-CONFIG_MTD_CFI_INTELEXT=y
-CONFIG_MTD_NAND=y
-CONFIG_MTD_NAND_OMAP2=y
-CONFIG_MTD_ONENAND=y
-CONFIG_MTD_ONENAND_VERIFY_WRITE=y
-CONFIG_MTD_ONENAND_OMAP2=y
-CONFIG_MTD_UBI=y
-CONFIG_BLK_DEV_LOOP=y
-CONFIG_BLK_DEV_RAM=y
-CONFIG_BLK_DEV_RAM_SIZE=16384
-CONFIG_EEPROM_LEGACY=y
-CONFIG_SCSI=y
-CONFIG_BLK_DEV_SD=y
-CONFIG_SCSI_MULTI_LUN=y
-CONFIG_SCSI_SCAN_ASYNC=y
-# CONFIG_INPUT_MOUSEDEV is not set
-CONFIG_INPUT_EVDEV=y
-# CONFIG_INPUT_KEYBOARD is not set
-# CONFIG_INPUT_MOUSE is not set
-CONFIG_INPUT_MISC=y
-CONFIG_INPUT_TWL4030_PWRBUTTON=y
-CONFIG_SERIO_LIBPS2=y
-CONFIG_VT_HW_CONSOLE_BINDING=y
-CONFIG_SERIAL_8250=y
-CONFIG_SERIAL_8250_CONSOLE=y
-CONFIG_SERIAL_8250_NR_UARTS=32
-CONFIG_SERIAL_8250_EXTENDED=y
-CONFIG_SERIAL_8250_MANY_PORTS=y
-CONFIG_SERIAL_8250_SHARE_IRQ=y
-CONFIG_SERIAL_8250_DETECT_IRQ=y
-CONFIG_SERIAL_8250_RSA=y
-# CONFIG_LEGACY_PTYS is not set
-CONFIG_HW_RANDOM=y
-CONFIG_I2C=y
-CONFIG_I2C_CHARDEV=y
-CONFIG_I2C_OMAP=y
-CONFIG_GPIO_SYSFS=y
-CONFIG_GPIO_TWL4030=y
-CONFIG_WATCHDOG=y
-CONFIG_OMAP_WATCHDOG=y
-CONFIG_TWL4030_WATCHDOG=y
-CONFIG_TWL4030_CORE=y
-CONFIG_TWL4030_POWER=y
-CONFIG_REGULATOR=y
-CONFIG_REGULATOR_TWL4030=y
-CONFIG_REGULATOR_TPS65023=y
-CONFIG_REGULATOR_TPS6507X=y
-CONFIG_USB_GADGET=y
-CONFIG_USB_GADGET_DEBUG=y
-CONFIG_USB_GADGET_DEBUG_FILES=y
-CONFIG_USB_GADGET_DEBUG_FS=y
-CONFIG_USB_FILE_STORAGE=m
-CONFIG_TWL4030_USB=y
-CONFIG_MMC=y
-CONFIG_MMC_UNSAFE_RESUME=y
-CONFIG_SDIO_UART=y
-CONFIG_MMC_OMAP=y
-CONFIG_MMC_OMAP_HS=y
-CONFIG_NEW_LEDS=y
-CONFIG_LEDS_CLASS=y
-CONFIG_LEDS_GPIO=y
-CONFIG_LEDS_TRIGGERS=y
-CONFIG_LEDS_TRIGGER_TIMER=y
-CONFIG_LEDS_TRIGGER_HEARTBEAT=y
-CONFIG_LEDS_TRIGGER_DEFAULT_ON=y
-CONFIG_RTC_CLASS=y
-CONFIG_RTC_DRV_TWL4030=y
-CONFIG_EXT2_FS=y
-CONFIG_EXT3_FS=y
-# CONFIG_EXT3_FS_XATTR is not set
-CONFIG_QUOTA=y
-CONFIG_QFMT_V2=y
-CONFIG_MSDOS_FS=y
-CONFIG_VFAT_FS=y
-CONFIG_TMPFS=y
-CONFIG_JFFS2_FS=y
-CONFIG_JFFS2_SUMMARY=y
-CONFIG_JFFS2_FS_XATTR=y
-CONFIG_JFFS2_COMPRESSION_OPTIONS=y
-CONFIG_JFFS2_LZO=y
-CONFIG_JFFS2_RUBIN=y
-CONFIG_UBIFS_FS=y
-CONFIG_CRAMFS=y
-CONFIG_PARTITION_ADVANCED=y
-CONFIG_NLS_CODEPAGE_437=y
-CONFIG_NLS_ISO8859_1=y
-CONFIG_PRINTK_TIME=y
-CONFIG_MAGIC_SYSRQ=y
-CONFIG_DEBUG_FS=y
-CONFIG_DEBUG_KERNEL=y
-CONFIG_SCHEDSTATS=y
-CONFIG_TIMER_STATS=y
-CONFIG_PROVE_LOCKING=y
-CONFIG_DEBUG_SPINLOCK_SLEEP=y
-# CONFIG_DEBUG_BUGVERBOSE is not set
-CONFIG_DEBUG_INFO=y
-# CONFIG_RCU_CPU_STALL_DETECTOR is not set
-CONFIG_KEYS=y
-CONFIG_SECURITY=y
-CONFIG_CRYPTO_CBC=y
-CONFIG_CRYPTO_ECB=y
-CONFIG_CRYPTO_MD5=y
-CONFIG_CRYPTO_MICHAEL_MIC=y
-CONFIG_CRYPTO_AES=y
-CONFIG_CRYPTO_ARC4=y
-CONFIG_CRYPTO_DES=y
-# CONFIG_CRYPTO_ANSI_CPRNG is not set
-CONFIG_CRC_CCITT=y
-CONFIG_CRC_T10DIF=y
-CONFIG_CRC_ITU_T=y
-CONFIG_CRC7=y
-CONFIG_LIBCRC32C=y
-===================================
+Tony
