@@ -1,12 +1,12 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCHv3 9/17] OMAP: dmtimer platform driver
-Date: Tue, 21 Sep 2010 14:24:07 +0530
-Message-ID: <1285059247-26516-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCHv3 10/17] OMAP1: dmtimer conversion to platform devices
+Date: Tue, 21 Sep 2010 14:24:27 +0530
+Message-ID: <1285059267-26541-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48007 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35398 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932112Ab0ITVxU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Sep 2010 17:53:20 -0400
+	id S1750960Ab0ITVxg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Sep 2010 17:53:36 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -14,10 +14,9 @@ Cc: Thara Gopinath <thara@ti.com>, Partha Basak <p-basak2@ti.com>, Tarun Kanti D
 
 From: Thara Gopinath <thara@ti.com>
 
-This patch adds dmtimer platform driver which include:
-(1) platform driver initialization
-(2) driver probe function
-(3) driver remove function
+This patch coverts OMAP1 dmtimers into a platform devices
+and then registers with device model framework so that it
+can be bound to corresponding driver.
 
 Signed-off-by: Partha Basak <p-basak2@ti.com>
 Signed-off-by: Thara Gopinath <thara@ti.com>
@@ -27,220 +26,299 @@ Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/dmtimer.c |  186 +++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 185 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap1/Makefile  |    2 +-
+ arch/arm/mach-omap1/dmtimer.c |  174 +++++++++++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/dmtimer.c  |   46 ++---------
+ 3 files changed, 182 insertions(+), 40 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/dmtimer.c
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 9a22623..fc3513e 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -43,7 +43,9 @@
- #include <linux/delay.h>
- #include <linux/io.h>
- #include <linux/module.h>
-+#include <linux/slab.h>
- #include <mach/hardware.h>
-+#include <linux/pm_runtime.h>
- #include <plat/dmtimer.h>
- #include <mach/irqs.h>
+diff --git a/arch/arm/mach-omap1/Makefile b/arch/arm/mach-omap1/Makefile
+index 9a304d8..0001659 100644
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -4,7 +4,7 @@
  
-@@ -780,13 +782,195 @@ int __init omap_dm_timer_init(void)
- 			timer->fclk = clk_get(NULL, clk_name);
- 		}
+ # Common support
+ obj-y := io.o id.o sram.o irq.o mux.o flash.o serial.o devices.o
+-obj-y += clock.o clock_data.o opp_data.o
++obj-y += clock.o clock_data.o opp_data.o dmtimer.o
  
-+#endif
- 		timer->id = i;
- 		/* add the timer element to the list */
- 		spin_lock_irqsave(&dm_timer_lock, flags);
- 		list_add_tail(&timer->node, &omap_timer_list);
- 		spin_unlock_irqrestore(&dm_timer_lock, flags);
--#endif
- 	}
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
  
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap1/dmtimer.c b/arch/arm/mach-omap1/dmtimer.c
+new file mode 100644
+index 0000000..75ce978
+--- /dev/null
++++ b/arch/arm/mach-omap1/dmtimer.c
+@@ -0,0 +1,174 @@
 +/**
-+ * omap_dm_timer_probe - probe function called for every registered device
-+ * @pdev:	pointer to current timer platform device
++ * OMAP1 Dual-Mode Timers
 + *
-+ * called by driver framework at the end of device registration for all
-+ * timer devices
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Thara Gopinath <thara@ti.com>
++ * Tarun Kanti DebBarma <tarun.kanti@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+static int __devinit omap_dm_timer_probe(struct platform_device *pdev)
++
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/err.h>
++#include <linux/slab.h>
++#include <mach/irqs.h>
++#include <plat/dmtimer.h>
++#include <plat/omap_device.h>
++
++#define OMAP1610_GPTIMER1_BASE		0xfffb1400
++#define OMAP1610_GPTIMER2_BASE		0xfffb1c00
++#define OMAP1610_GPTIMER3_BASE		0xfffb2400
++#define OMAP1610_GPTIMER4_BASE		0xfffb2c00
++#define OMAP1610_GPTIMER5_BASE		0xfffb3400
++#define OMAP1610_GPTIMER6_BASE		0xfffb3c00
++#define OMAP1610_GPTIMER7_BASE		0xfffb7400
++#define OMAP1610_GPTIMER8_BASE		0xfffbd400
++
++#define OMAP1_DM_TIMER_COUNT		8
++/* omap 1 timers register map */
++static u32 omap_timer_reg_map_v1[] = {
++	[OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_STAT_REG]           = (0x18 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_INT_EN_REG]         = (0x1c | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_WAKEUP_EN_REG]      = (0x20 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_CTRL_REG]           = (0x24 | (WP_TCLR << WPSHIFT)),
++	[OMAP_TIMER_COUNTER_REG]        = (0x28 | (WP_TCRR << WPSHIFT)),
++	[OMAP_TIMER_LOAD_REG]           = (0x2c | (WP_TLDR << WPSHIFT)),
++	[OMAP_TIMER_TRIGGER_REG]        = (0x30 | (WP_TTGR << WPSHIFT)),
++	[OMAP_TIMER_WRITE_PEND_REG]     = (0x34 | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_MATCH_REG]          = (0x38 | (WP_TMAR << WPSHIFT)),
++	[OMAP_TIMER_CAPTURE_REG]        = (0x3c | (WP_NONE << WPSHIFT)),
++	[OMAP_TIMER_IF_CTRL_REG]        = (0x40 | (WP_NONE << WPSHIFT)),
++};
++
++static int omap1_dm_timer_set_src(struct platform_device *pdev,
++				int source)
 +{
++	int n = (pdev->id) << 1;
++	u32 l;
++
++	l = omap_readl(MOD_CONF_CTRL_1) & ~(0x03 << n);
++	l |= source << n;
++	omap_writel(l, MOD_CONF_CTRL_1);
++
++	return 0;
++}
++
++int __init omap1_dmtimer_device_init(void)
++{
++	int i;
 +	int ret;
-+	unsigned long flags;
-+	struct omap_dm_timer *timer;
-+	struct resource *mem, *irq, *ioarea;
-+	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
++	struct dmtimer_platform_data *pdata;
++	struct platform_device *pdev;
 +
-+	dev_dbg(&pdev->dev, "%s:+\n", __func__);
++	pr_debug("%s:+\n", __func__);
 +
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "%s: no platform data\n", __func__);
-+		return -ENODEV;
-+	}
-+	/*
-+	 * early timers are already registered and in list.
-+	 * what we need to do during second phase of probe
-+	 * is to assign the newly allocated/configured pdev
-+	 * to already registered timer->pdev. we also call
-+	 * pm_runtime_enable() for each device because it
-+	 * could not be called during early boot because
-+	 * pm_runtime framework was not yet up and running.
-+	 */
-+	spin_lock_irqsave(&dm_timer_lock, flags);
-+	list_for_each_entry(timer, &omap_timer_list, node)
-+		if (timer->id == pdev->id) {
-+			timer->pdev = pdev;
-+			spin_unlock_irqrestore(&dm_timer_lock, flags);
-+			pm_runtime_enable(&pdev->dev);
-+			if (timer->enabled) {
-+				/*
-+				 * Disable the clock and reenable via runtime
-+				 * framework so that reference count at
-+				 * at PM Runtime, OMAP device & clock fw are
-+				 * consistent.
-+				 */
-+				omap_dm_timer_disable(timer);
-+				pm_runtime_get_sync(&pdev->dev);
-+			}
-+			dev_dbg(&pdev->dev, "pm_runtime ENABLED\n");
-+			return 0;
++	if (!cpu_is_omap16xx())
++		return 0;
++
++	for (i = 0; i < OMAP1_DM_TIMER_COUNT; i++) {
++		struct resource res[2];
++		u32 base, irq;
++
++		switch (i) {
++		case 0:
++			base = OMAP1610_GPTIMER1_BASE;
++			irq = INT_1610_GPTIMER1;
++			break;
++		case 1:
++			base = OMAP1610_GPTIMER2_BASE;
++			irq = INT_1610_GPTIMER2;
++			break;
++		case 2:
++			base = OMAP1610_GPTIMER3_BASE;
++			irq = INT_1610_GPTIMER3;
++			break;
++		case 3:
++			base = OMAP1610_GPTIMER4_BASE;
++			irq = INT_1610_GPTIMER4;
++			break;
++		case 4:
++			base = OMAP1610_GPTIMER5_BASE;
++			irq = INT_1610_GPTIMER5;
++			break;
++		case 5:
++			base = OMAP1610_GPTIMER6_BASE;
++			irq = INT_1610_GPTIMER6;
++			break;
++		case 6:
++			base = OMAP1610_GPTIMER7_BASE;
++			irq = INT_1610_GPTIMER7;
++			break;
++		case 7:
++			base = OMAP1610_GPTIMER8_BASE;
++			irq = INT_1610_GPTIMER8;
++			break;
++		default:
++			/* Should never reach here */
++			return  -EINVAL;
 +		}
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
 +
-+	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	if (unlikely(!irq)) {
-+		dev_err(&pdev->dev, "%s: no IRQ resource\n", __func__);
-+		ret = -ENODEV;
-+		goto err_free_pdev;
++		pdev = platform_device_alloc("dmtimer", i);
++		if (!pdev) {
++			pr_err("%s: Unable to device alloc for dmtimer%d\n",
++				__func__, i);
++			return -ENOMEM;
++		}
++
++		memset(res, 0, 2 * sizeof(struct resource));
++		res[0].start = base;
++		res[0].end = base + 0xff;
++		res[0].flags = IORESOURCE_MEM;
++		res[1].start = res[1].end = irq;
++		res[1].flags = IORESOURCE_IRQ;
++		ret = platform_device_add_resources(pdev, res,
++				ARRAY_SIZE(res));
++		if (ret) {
++			pr_err("%s: Unable to add resources for %s.%d\n",
++				__func__, pdev->name, pdev->id);
++			goto err_free_pdev;
++		}
++
++		pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			pr_err("%s: Unable to allocate pdata for %s.%d\n",
++				__func__, pdev->name, pdev->id);
++			ret = -ENOMEM;
++			goto err_free_pdev;
++		}
++
++		pdata->set_timer_src = omap1_dm_timer_set_src;
++		pdata->reg_map = omap_timer_reg_map_v1;
++		pdata->is_early_init = 0;
++		ret = platform_device_add_data(pdev, pdata, sizeof(*pdata));
++		if (ret) {
++			pr_err("%s: Unable to add platform data for %s.%d\n",
++				__func__, pdev->name, pdev->id);
++			goto err_free_pdata;
++		}
++		ret = platform_device_add(pdev);
++		if (ret) {
++			pr_err("%s: Unable to add platform device for %s.%d\n",
++				__func__, pdev->name, pdev->id);
++			goto err_free_pdata;
++		}
++
++		pr_info("%s.%d: registered\n", pdev->name, pdev->id);
 +	}
-+
-+	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (unlikely(!mem)) {
-+		dev_err(&pdev->dev, "%s: no memory resource\n", __func__);
-+		ret = -ENODEV;
-+		goto err_free_pdev;
-+	}
-+
-+	ioarea = request_mem_region(mem->start, resource_size(mem),
-+			pdev->name);
-+	if (!ioarea) {
-+		dev_err(&pdev->dev, "%s: region already claimed\n", __func__);
-+		ret = -EBUSY;
-+		goto err_free_pdev;
-+	}
-+
-+	timer = kzalloc(sizeof(struct omap_dm_timer), GFP_KERNEL);
-+	if (!timer) {
-+		dev_err(&pdev->dev, "%s: no memory for omap_dm_timer\n",
-+			__func__);
-+		ret = -ENOMEM;
-+		goto err_release_ioregion;
-+	}
-+
-+	timer->io_base = ioremap(mem->start, resource_size(mem));
-+	if (!timer->io_base) {
-+		dev_err(&pdev->dev, "%s: ioremap failed\n", __func__);
-+		ret = -ENOMEM;
-+		goto err_free_mem;
-+	}
-+
-+	timer->irq = irq->start;
-+	timer->pdev = pdev;
-+	timer->id = pdev->id;
-+	timer->reserved = 0;
-+	/*
-+	 * if pm_runtime is not defined hwmod by default enables the clock.
-+	 * in order to avoid back to back enabling of device clock using
-+	 * omap_dm_timer_enable(), timer->enabled flag is set here.
-+	 */
-+#ifndef CONFIG_PM_RUNTIME
-+	timer->enabled = 1;
-+#endif
-+
-+	/* add the timer element to the list */
-+	spin_lock_irqsave(&dm_timer_lock, flags);
-+	list_add_tail(&timer->node, &omap_timer_list);
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
-+
-+	dev_dbg(&pdev->dev, " bound to its driver\n");
 +
 +	return 0;
 +
-+err_free_mem:
-+	kfree(timer);
-+
-+err_release_ioregion:
-+	release_mem_region(mem->start, resource_size(mem));
++err_free_pdata:
++	kfree(pdata);
 +
 +err_free_pdev:
 +	platform_device_del(pdev);
 +
 +	return ret;
 +}
-+
-+/**
-+ * omap_dm_timer_remove - cleanup a registered timer device
-+ * @pdev:	pointer to current timer platform device
-+ *
-+ * called by driver framework whenever a timer device is unregistered.
-+ * it addition to freeing platform resources it also deletes the timer
-+ * entry from the local list.
-+ */
-+static int __devexit omap_dm_timer_remove(struct platform_device *pdev)
-+{
-+	struct omap_dm_timer *timer, *tmp;
-+	unsigned long flags;
-+	int ret = -EINVAL;
-+	struct dmtimer_platform_data *pdata = pdev->dev.platform_data;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "%s: no platform data\n", __func__);
-+		return -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&dm_timer_lock, flags);
-+	list_for_each_entry_safe(timer, tmp, &omap_timer_list, node) {
-+		if (timer->id == pdev->id) {
-+			platform_device_del(timer->pdev);
-+			list_del(&timer->node);
-+			kfree(timer);
-+			ret = 0;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&dm_timer_lock, flags);
-+
-+	return ret;
-+}
-+
-+static struct platform_driver omap_dmtimer_driver = {
-+	.probe	= omap_dm_timer_probe,
-+	.remove	= omap_dm_timer_remove,
-+	.driver	= {
-+		.name   = "dmtimer",
-+	},
-+};
-+
-+static int __init omap_dmtimer_driver_init(void)
-+{
-+	return platform_driver_register(&omap_dmtimer_driver);
-+}
-+
-+static void __exit omap_dmtimer_driver_exit(void)
-+{
-+	platform_driver_unregister(&omap_dmtimer_driver);
-+}
-+
-+module_init(omap_dmtimer_driver_init);
-+module_exit(omap_dmtimer_driver_exit);
-+
-+MODULE_DESCRIPTION("OMAP DUAL MODE TIMER DRIVER");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DRIVER_NAME);
-+MODULE_AUTHOR("Texas Instruments Inc");
++arch_initcall(omap1_dmtimer_device_init);
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index fc3513e..2017b1d 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -163,25 +163,6 @@ struct omap_dm_timer {
+ 
+ static int dm_timer_count;
+ 
+-#ifdef CONFIG_ARCH_OMAP1
+-static struct omap_dm_timer omap1_dm_timers[] = {
+-	{ .phys_base = 0xfffb1400, .irq = INT_1610_GPTIMER1 },
+-	{ .phys_base = 0xfffb1c00, .irq = INT_1610_GPTIMER2 },
+-	{ .phys_base = 0xfffb2400, .irq = INT_1610_GPTIMER3 },
+-	{ .phys_base = 0xfffb2c00, .irq = INT_1610_GPTIMER4 },
+-	{ .phys_base = 0xfffb3400, .irq = INT_1610_GPTIMER5 },
+-	{ .phys_base = 0xfffb3c00, .irq = INT_1610_GPTIMER6 },
+-	{ .phys_base = 0xfffb7400, .irq = INT_1610_GPTIMER7 },
+-	{ .phys_base = 0xfffbd400, .irq = INT_1610_GPTIMER8 },
+-};
+-
+-static const int omap1_dm_timer_count = ARRAY_SIZE(omap1_dm_timers);
+-
+-#else
+-#define omap1_dm_timers			NULL
+-#define omap1_dm_timer_count		0
+-#endif	/* CONFIG_ARCH_OMAP1 */
+-
+ #ifdef CONFIG_ARCH_OMAP2
+ static struct omap_dm_timer omap2_dm_timers[] = {
+ 	{ .phys_base = 0x48028000, .irq = INT_24XX_GPTIMER1 },
+@@ -548,22 +529,9 @@ void omap_dm_timer_stop(struct omap_dm_timer *timer)
+ }
+ EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
+ 
+-#ifdef CONFIG_ARCH_OMAP1
+ 
+-int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+-{
+-	int n = (timer - dm_timers) << 1;
+-	u32 l;
+ 
+-	l = omap_readl(MOD_CONF_CTRL_1) & ~(0x03 << n);
+-	l |= source << n;
+-	omap_writel(l, MOD_CONF_CTRL_1);
+ 
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(omap_dm_timer_set_source);
+-
+-#else
+ 
+ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ {
+@@ -572,9 +540,14 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ 	if (source < 0 || source >= 3)
+ 		return -EINVAL;
+ 
++#ifdef CONFIG_ARCH_OMAP1
++	if (pdata->set_timer_src)
++		ret = pdata->set_timer_src(timer->pdev, source);
++#else
+ 	clk_disable(timer->fclk);
+ 	ret = clk_set_parent(timer->fclk, dm_source_clocks[source]);
+ 	clk_enable(timer->fclk);
++#endif
+ 
+ 	/*
+ 	 * When the functional clock disappears, too quick writes seem
+@@ -586,7 +559,6 @@ int omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
+ }
+ EXPORT_SYMBOL_GPL(omap_dm_timer_set_source);
+ 
+-#endif
+ 
+ void omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
+ 			    unsigned int load)
+@@ -734,15 +706,11 @@ int __init omap_dm_timer_init(void)
+ 	struct omap_dm_timer *timer;
+ 	int i, map_size = SZ_8K;	/* Module 4KB + L4 4KB except on omap1 */
+ 
+-	if (!(cpu_is_omap16xx() || cpu_class_is_omap2()))
++	if (!cpu_class_is_omap2())
+ 		return -ENODEV;
+ 
+ 
+-	if (cpu_class_is_omap1()) {
+-		dm_timers = omap1_dm_timers;
+-		dm_timer_count = omap1_dm_timer_count;
+-		map_size = SZ_2K;
+-	} else if (cpu_is_omap24xx()) {
++	if (cpu_is_omap24xx()) {
+ 		dm_timers = omap2_dm_timers;
+ 		dm_timer_count = omap2_dm_timer_count;
+ 		dm_source_names = omap2_dm_source_names;
 -- 
 1.6.0.4
 
