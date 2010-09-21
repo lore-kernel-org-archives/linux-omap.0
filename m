@@ -1,164 +1,682 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCHv3 2/17] dmtimer: infrastructure to support hwmod
-Date: Tue, 21 Sep 2010 14:21:28 +0530
-Message-ID: <1285059089-26341-1-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCHv3 3/17] dmtimer: add omap2420 hwmod database
+Date: Tue, 21 Sep 2010 14:21:56 +0530
+Message-ID: <1285059116-26366-1-git-send-email-tarun.kanti@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48298 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47887 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757269Ab0ITVug (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Sep 2010 17:50:36 -0400
+	id S1757321Ab0ITVvD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Sep 2010 17:51:03 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Partha Basak <p-basak2@ti.com>, Thara Gopinath <thara@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
+Cc: Thara Gopinath <thara@ti.com>, Partha Basak <p-basak2@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-This patch introduces data structures and new fields on
-existing data structures to support dmtimer conversion
-to platform driver and support hwmod database for the diferent
-OMAP platforms.
+From: Thara Gopinath <thara@ti.com>
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+This patch adds hwmod database for OMAP2420.
+In the hwmod class definition .rev field is
+initialized with timer ip version to distinguish
+the timers in different OMAP platforms.
+
 Signed-off-by: Partha Basak <p-basak2@ti.com>
 Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Cc: Cousson, Benoit <b-cousson@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/dmtimer.h             |   25 +++++++++++++++++
- arch/arm/plat-omap/dmtimer.c              |    9 ++++++
- arch/arm/plat-omap/include/plat/dmtimer.h |   42 +++++++++++++++++++++++++++++
- 3 files changed, 76 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/dmtimer.h
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  622 ++++++++++++++++++++++++++++
+ 1 files changed, 622 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/dmtimer.h b/arch/arm/mach-omap2/dmtimer.h
-new file mode 100644
-index 0000000..3355725
---- /dev/null
-+++ b/arch/arm/mach-omap2/dmtimer.h
-@@ -0,0 +1,25 @@
-+/**
-+ * linux/arch/arm/mach-omap2/dmtimer.h
-+ *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Thara Gopinath <thara@ti.com>
-+ * Tarun Kanti DebBarma <tarun.kanti@ti.com>
-+ *
-+ * OMAP2 Dual-Mode Timers
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __ASM_ARCH_DMTIMER_H
-+#define __ASM_ARCH_DMTIMER_H
-+
-+/*
-+ * dmtimer is required during early part of boot sequence even before
-+ * device model and pm_runtime if fully up and running. this function
-+ * provides hook to omap2_init_common_hw() which is triggered from
-+ * start_kernel()->init_irq() of kernel initalization sequence.
-+ */
-+void __init omap2_dm_timer_early_init(void);
-+
-+#endif
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 44bafda..a7b1679 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -10,6 +10,12 @@
-  * Copyright (C) 2009 Texas Instruments
-  * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-  *
-+ * Copyright (C) 2010 Texas Instruments, Inc.
-+ * Thara Gopinath <thara@ti.com>
-+ * Tarun Kanti DebBarma <tarun.kanti@ti.com>
-+ * - hwmod support
-+ * - omap4 support
-+ *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-  * Free Software Foundation; either version 2 of the License, or (at your
-@@ -151,6 +157,8 @@
- 		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR << WPSHIFT))
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index 3cc768e..6003c2e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -16,6 +16,8 @@
+ #include <plat/cpu.h>
+ #include <plat/dma.h>
  
- struct omap_dm_timer {
-+	int id;
-+	unsigned long fclk_rate;
- 	unsigned long phys_base;
- 	int irq;
- #ifdef CONFIG_ARCH_OMAP2PLUS
-@@ -160,6 +168,7 @@ struct omap_dm_timer {
- 	unsigned reserved:1;
- 	unsigned enabled:1;
- 	unsigned posted:1;
-+	struct platform_device *pdev;
++#include <plat/dmtimer.h>
++#include <plat/omap_device.h>
+ #include "omap_hwmod_common_data.h"
+ 
+ #include "prm-regbits-24xx.h"
+@@ -121,6 +123,614 @@ static struct omap_hwmod omap2420_l4_wkup_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+ 	.flags		= HWMOD_NO_IDLEST,
+ };
++/* Timer Common */
++static char *timer_clk_src_names[] = {
++	"sys_ck",
++	"func_32k_ck",
++	"alt_ck",
++	NULL,
++};
++
++static struct omap_timer_dev_attr timer_dev_attr = {
++	.clk_names	= timer_clk_src_names,
++};
++
++static struct omap_hwmod_class_sysconfig omap2420_timer_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
++			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap2420_timer_hwmod_class = {
++	.name = "timer",
++	.sysc = &omap2420_timer_sysc,
++	.rev = OMAP_TIMER_IP_VERSION_1,
++};
++
++/* timer1 */
++static struct omap_hwmod omap2420_timer1_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer1_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER1, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer1_addrs[] = {
++	{
++		.pa_start	= 0x48028000,
++		.pa_end		= 0x48028000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_wkup -> timer1 */
++static struct omap_hwmod_ocp_if omap2420_l4_wkup__timer1 = {
++	.master		= &omap2420_l4_wkup_hwmod,
++	.slave		= &omap2420_timer1_hwmod,
++	.clk		= "gpt1_ick",
++	.addr		= omap2420_timer1_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer1_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer1 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer1_slaves[] = {
++	&omap2420_l4_wkup__timer1,
++};
++/* timer1 hwmod */
++static struct omap_hwmod omap2420_timer1_hwmod = {
++	.name		= "timer1",
++	.mpu_irqs	= omap2420_timer1_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer1_mpu_irqs),
++	.main_clk	= "gpt1_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT1_SHIFT,
++			.module_offs = WKUP_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT1_SHIFT,
++		},
++	},
++	.dev_attr	= &timer_dev_attr,
++	.slaves		= omap2420_timer1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer1_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++
++/* timer2 */
++static struct omap_hwmod omap2420_timer2_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer2_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER2, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer2_addrs[] = {
++	{
++		.pa_start	= 0x4802a000,
++		.pa_end		= 0x4802a000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer2 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer2 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer2_hwmod,
++	.clk		= "gpt2_ick",
++	.addr		= omap2420_timer2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer2 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer2_slaves[] = {
++	&omap2420_l4_core__timer2,
++};
++/* timer2 hwmod */
++static struct omap_hwmod omap2420_timer2_hwmod = {
++	.name		= "timer2",
++	.mpu_irqs	= omap2420_timer2_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer2_mpu_irqs),
++	.main_clk	= "gpt2_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT2_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT2_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer2_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++
++/* timer3 */
++static struct omap_hwmod omap2420_timer3_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer3_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER3, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer3_addrs[] = {
++	{
++		.pa_start	= 0x48078000,
++		.pa_end		= 0x48078000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer3 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer3 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer3_hwmod,
++	.clk		= "gpt3_ick",
++	.addr		= omap2420_timer3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer3_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer3 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer3_slaves[] = {
++	&omap2420_l4_core__timer3,
++};
++/* timer3 hwmod */
++static struct omap_hwmod omap2420_timer3_hwmod = {
++	.name		= "timer3",
++	.mpu_irqs	= omap2420_timer3_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer3_mpu_irqs),
++	.main_clk	= "gpt3_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT3_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT3_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer3_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++/* timer4 */
++static struct omap_hwmod omap2420_timer4_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer4_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER4, },
++};
++static struct omap_hwmod_addr_space omap2420_timer4_addrs[] = {
++	{
++		.pa_start	= 0x4807a000,
++		.pa_end		= 0x4807a000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer4 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer4 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer4_hwmod,
++	.clk		= "gpt4_ick",
++	.addr		= omap2420_timer4_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer4_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer4 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer4_slaves[] = {
++	&omap2420_l4_core__timer4,
++};
++/* timer4 hwmod */
++static struct omap_hwmod omap2420_timer4_hwmod = {
++	.name		= "timer4",
++	.mpu_irqs	= omap2420_timer4_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer4_mpu_irqs),
++	.main_clk	= "gpt4_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT4_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT4_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer4_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++
++/* timer5 */
++static struct omap_hwmod omap2420_timer5_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer5_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER5, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer5_addrs[] = {
++	{
++		.pa_start	= 0x4807c000,
++		.pa_end		= 0x4807c000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer5 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer5 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer5_hwmod,
++	.clk		= "gpt5_ick",
++	.addr		= omap2420_timer5_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer5_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer5 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer5_slaves[] = {
++	&omap2420_l4_core__timer5,
++};
++/* timer5 hwmod */
++static struct omap_hwmod omap2420_timer5_hwmod = {
++	.name		= "timer5",
++	.mpu_irqs	= omap2420_timer5_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer5_mpu_irqs),
++	.main_clk	= "gpt5_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT5_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT5_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer5_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer5_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++
++/* timer6 */
++static struct omap_hwmod omap2420_timer6_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer6_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER6, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer6_addrs[] = {
++	{
++		.pa_start	= 0x4807e000,
++		.pa_end		= 0x4807e000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer6 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer6 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer6_hwmod,
++	.clk		= "gpt6_ick",
++	.addr		= omap2420_timer6_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer6_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer6 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer6_slaves[] = {
++	&omap2420_l4_core__timer6,
++};
++/* timer6 hwmod */
++static struct omap_hwmod omap2420_timer6_hwmod = {
++	.name		= "timer6",
++	.mpu_irqs	= omap2420_timer6_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer6_mpu_irqs),
++	.main_clk	= "gpt6_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT6_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT6_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer6_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer6_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++/* timer7 */
++static struct omap_hwmod omap2420_timer7_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer7_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER7, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer7_addrs[] = {
++	{
++		.pa_start	= 0x48080000,
++		.pa_end		= 0x48080000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer7 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer7 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer7_hwmod,
++	.clk		= "gpt7_ick",
++	.addr		= omap2420_timer7_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer7_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer7 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer7_slaves[] = {
++	&omap2420_l4_core__timer7,
++};
++/* timer7 hwmod */
++static struct omap_hwmod omap2420_timer7_hwmod = {
++	.name		= "timer7",
++	.mpu_irqs	= omap2420_timer7_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer7_mpu_irqs),
++	.main_clk	= "gpt7_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT7_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT7_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer7_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer7_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++/* timer8 */
++static struct omap_hwmod omap2420_timer8_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer8_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER8, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer8_addrs[] = {
++	{
++		.pa_start	= 0x48082000,
++		.pa_end		= 0x48082000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer8 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer8 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer8_hwmod,
++	.clk		= "gpt8_ick",
++	.addr		= omap2420_timer8_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer8_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer8 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer8_slaves[] = {
++	&omap2420_l4_core__timer8,
++};
++/* timer8 hwmod */
++static struct omap_hwmod omap2420_timer8_hwmod = {
++	.name		= "timer8",
++	.mpu_irqs	= omap2420_timer8_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer8_mpu_irqs),
++	.main_clk	= "gpt8_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT8_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT8_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer8_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer8_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++/* timer9 */
++static struct omap_hwmod omap2420_timer9_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer9_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER9, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer9_addrs[] = {
++	{
++		.pa_start	= 0x48084000,
++		.pa_end		= 0x48084000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer9 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer9 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer9_hwmod,
++	.clk		= "gpt9_ick",
++	.addr		= omap2420_timer9_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer9_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer9 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer9_slaves[] = {
++	&omap2420_l4_core__timer9,
++};
++/* timer9 hwmod */
++static struct omap_hwmod omap2420_timer9_hwmod = {
++	.name		= "timer9",
++	.mpu_irqs	= omap2420_timer9_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer9_mpu_irqs),
++	.main_clk	= "gpt9_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT9_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT9_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer9_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer9_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++/* timer10 */
++static struct omap_hwmod omap2420_timer10_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer10_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER10, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer10_addrs[] = {
++	{
++		.pa_start	= 0x48086000,
++		.pa_end		= 0x48086000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer10 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer10 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer10_hwmod,
++	.clk		= "gpt10_ick",
++	.addr		= omap2420_timer10_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer10_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer10 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer10_slaves[] = {
++	&omap2420_l4_core__timer10,
++};
++/* timer10 hwmod */
++static struct omap_hwmod omap2420_timer10_hwmod = {
++	.name		= "timer10",
++	.mpu_irqs	= omap2420_timer10_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer10_mpu_irqs),
++	.main_clk	= "gpt10_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT10_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT10_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer10_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer10_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++/* timer11 */
++static struct omap_hwmod omap2420_timer11_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer11_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER11, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer11_addrs[] = {
++	{
++		.pa_start	= 0x48088000,
++		.pa_end		= 0x48088000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer11 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer11 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer11_hwmod,
++	.clk		= "gpt11_ick",
++	.addr		= omap2420_timer11_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer11_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer11 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer11_slaves[] = {
++	&omap2420_l4_core__timer11,
++};
++/* timer11 hwmod */
++static struct omap_hwmod omap2420_timer11_hwmod = {
++	.name		= "timer11",
++	.mpu_irqs	= omap2420_timer11_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer11_mpu_irqs),
++	.main_clk	= "gpt11_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT11_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT11_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer11_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer11_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
++
++/* timer12 */
++static struct omap_hwmod omap2420_timer12_hwmod;
++static struct omap_hwmod_irq_info omap2420_timer12_mpu_irqs[] = {
++	{ .irq = INT_24XX_GPTIMER12, },
++};
++
++static struct omap_hwmod_addr_space omap2420_timer12_addrs[] = {
++	{
++		.pa_start	= 0x4808a000,
++		.pa_end		= 0x4808a000 + SZ_1K - 1,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++/* l4_core -> timer12 */
++static struct omap_hwmod_ocp_if omap2420_l4_core__timer12 = {
++	.master		= &omap2420_l4_core_hwmod,
++	.slave		= &omap2420_timer12_hwmod,
++	.clk		= "gpt12_ick",
++	.addr		= omap2420_timer12_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap2420_timer12_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++/* timer12 slave port */
++static struct omap_hwmod_ocp_if *omap2420_timer12_slaves[] = {
++	&omap2420_l4_core__timer12,
++};
++/* timer12 hwmod */
++static struct omap_hwmod omap2420_timer12_hwmod = {
++	.name		= "timer12",
++	.mpu_irqs	= omap2420_timer12_mpu_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap2420_timer12_mpu_irqs),
++	.main_clk	= "gpt12_fck",
++	.prcm		= {
++		.omap2 = {
++			.prcm_reg_id = 1,
++			.module_bit = OMAP24XX_EN_GPT12_SHIFT,
++			.module_offs = CORE_MOD,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP24XX_EN_GPT12_SHIFT,
++		},
++	},
++	.dev_attr       = &timer_dev_attr,
++	.slaves		= omap2420_timer12_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_timer12_slaves),
++	.class		= &omap2420_timer_hwmod_class,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
++};
+ 
+ /* Master interfaces on the MPU device */
+ static struct omap_hwmod_ocp_if *omap2420_mpu_masters[] = {
+@@ -171,6 +781,18 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
+ 	&omap2420_l4_wkup_hwmod,
+ 	&omap2420_mpu_hwmod,
+ 	&omap2420_iva_hwmod,
++	&omap2420_timer1_hwmod,
++	&omap2420_timer2_hwmod,
++	&omap2420_timer3_hwmod,
++	&omap2420_timer4_hwmod,
++	&omap2420_timer5_hwmod,
++	&omap2420_timer6_hwmod,
++	&omap2420_timer7_hwmod,
++	&omap2420_timer8_hwmod,
++	&omap2420_timer9_hwmod,
++	&omap2420_timer10_hwmod,
++	&omap2420_timer11_hwmod,
++	&omap2420_timer12_hwmod,
+ 	NULL,
  };
  
- static int dm_timer_count;
-diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-omap/include/plat/dmtimer.h
-index 20f1054..3ec17c5 100644
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -29,6 +29,8 @@
- #ifndef __ASM_ARCH_DMTIMER_H
- #define __ASM_ARCH_DMTIMER_H
- 
-+#include <linux/platform_device.h>
-+
- /* clock sources */
- #define OMAP_TIMER_SRC_SYS_CLK			0x00
- #define OMAP_TIMER_SRC_32_KHZ			0x01
-@@ -44,9 +46,49 @@
- #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
- #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
- 
-+/* timer ip constants */
-+#define OMAP_TIMER_IP_VERSION_1			0x1 /* OMAP1/2/3 timers */
-+#define OMAP_TIMER_IP_VERSION_2			0x2 /* OMAP4 timers */
-+
-+/*
-+ * number of clock sources supported in the current platform.
-+ * for the time being keeping it to 6 just to accomodate future.
-+ * expansion. currently, only upto a maximum of 3 clock sources
-+ * supported on OMAP4.
-+ */
-+#define NR_CLK_SOURCES			3
-+
-+
-+/**
-+ * omap_timer_dev_attr - timer device attribute
-+ *
-+ * current implementation contains array of clock source names supported
-+ * by different timers. for example, in the case of OMAP4, timer[5-8]
-+ * supports different set of input clock sources as compared to the rest.
-+ * these array of clock names are used during timer initialization to
-+ * parse through timer list and obtain their corresponding struct clk*.
-+ * this is subsequently used for changing the timer input clock sources
-+ * by client drivers.
-+ */
-+struct omap_timer_dev_attr {
-+	char **clk_names;
-+	u32 *reg_map;
-+};
-+
- struct omap_dm_timer;
- struct clk;
- 
-+struct dmtimer_platform_data {
-+	int (*set_timer_src)
-+		(struct platform_device *pdev, int source);
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+	struct clk *source_clocks[NR_CLK_SOURCES];
-+#endif
-+	u32 *reg_map;
-+	int timer_ip_type;
-+	bool is_early_init;
-+};
-+
- int omap_dm_timer_init(void);
- 
- struct omap_dm_timer *omap_dm_timer_request(void);
 -- 
 1.6.0.4
 
