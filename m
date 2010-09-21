@@ -1,51 +1,44 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP: hwmod: Enable module wakeup if in smartidle
-Date: Tue, 21 Sep 2010 14:03:59 -0700
-Message-ID: <871v8mizb4.fsf@deeprootsystems.com>
-References: <1285079310-15888-1-git-send-email-rnayak@ti.com>
-	<alpine.DEB.2.00.1009211400460.4677@utopia.booyaka.com>
-	<878w2uj1tv.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.1009211425530.4677@utopia.booyaka.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH] OMAP4: clock: Fix missing optional clocks
+Date: Tue, 21 Sep 2010 23:10:29 +0200
+Message-ID: <1285103430-5964-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:47457 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754626Ab0IUVEE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 17:04:04 -0400
-Received: by pvg2 with SMTP id 2so1565367pvg.19
-        for <linux-omap@vger.kernel.org>; Tue, 21 Sep 2010 14:04:04 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1009211425530.4677@utopia.booyaka.com> (Paul
-	Walmsley's message of "Tue, 21 Sep 2010 14:27:09 -0600 (MDT)")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55138 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754693Ab0IUVKf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 17:10:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, Partha Basak <p-basak2@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>
+To: paul@pwsan.com
+Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+Hi Paul,
 
-> On Tue, 21 Sep 2010, Kevin Hilman wrote:
->
->> FWIW
->> 
->> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
->> 
->> as I'm using this for testing the various hwmod conversions.
->
-> Thanks Kevin, added that in.  I know you've been testing some of the other 
-> patches here too, so please let me know if you would like Tested-by:'s or 
-> Acked-by:'s there.
+The previous OMAP4 clock data did not contain the nodes to allow the modules
+to enable the proper bit in the CLKCTRL register.
 
-I guess you can put a Tested-by for me on everything in your
-hwmod_2.6.37 branch as I've been staging and testing those for a bit
-now.
+This patch is based on kevin/pm-wip/hwmods-omap4 rebased on top of your 
+hwmod_hardreset_dev branch + my reset-fixes series + Partha's patch...
+...and that's all.
 
-Also, one other thing I noticed in that branch: the locking patch from
-me:
+This is also available here:
+git://gitorious.org/omap-pm/linux.git pm-wip/hwmods-clocks
 
-   OMAP: hwmod: separate list locking and hwmod hardware locking
+The pm-wip/hwmods-omap4-full will be then rebased on this branch.
 
-has a stray '[PATCH]' in the shortlog which should probably be removed
-as well.
+Please note that the diff is pretty bad for the clock table. It looks like
+everything has changed. I don't know if there is a way to have a better diff
+with git.
 
-Kevin
+Thanks,
+Benoit
+
+
+Benoit Cousson (1):
+  OMAP4: clock: Add optional clock nodes
+
+ arch/arm/mach-omap2/clock44xx_data.c |  893 ++++++++++++++++++++++++----------
+ 1 files changed, 625 insertions(+), 268 deletions(-)
+
