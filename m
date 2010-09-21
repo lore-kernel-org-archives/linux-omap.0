@@ -1,35 +1,69 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH v6 4/7] wl1271: take irq info from private board data
-Date: Tue, 21 Sep 2010 08:38:57 +0300
-Message-ID: <1285047537.17849.12.camel@powerslave>
-References: <1284593495-30012-1-git-send-email-ohad@wizery.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH v2 0/5] Convert I2C driver to use omap_device/runtime PM
+Date: Tue, 21 Sep 2010 11:16:43 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EE070@dbde02.ent.ti.com>
+References: <1284734229-16281-1-git-send-email-rnayak@ti.com>
+ <87tylkwab4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1284593495-30012-1-git-send-email-ohad@wizery.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ext Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Nicolas Pitre <nico@fluxnic.net>, Tony Lindgren <tony@atomide.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "John W. Linville" <linville@tuxdriver.com>, San Mehat <san@google.com>, Vitaly Wool <vitalywool@gmail.com>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ido Yariv <ido@wizery.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33102 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab0IUFqu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 01:46:50 -0400
+In-Reply-To: <87tylkwab4.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 2010-09-16 at 01:31 +0200, ext Ohad Ben-Cohen wrote:
-> Remove the hard coded irq information, and instead take
-> the irq information from the board's platform data.
+
+
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Monday, September 20, 2010 11:46 PM
+> To: Nayak, Rajendra
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH v2 0/5] Convert I2C driver to use omap_device/runtime PM
 > 
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> ---
+> Rajendra Nayak <rnayak@ti.com> writes:
+> 
+> > This series makes I2C device registration use hwmod
+> > and omap_device api's and converts the I2C driver to use
+> > runtime PM api's.
+> >
+> > Patches apply on the pm-core branch from Kevin's tree.
+> >
+> > v2 has minor review comment fixes over v1 and is additionally
+> > boot tested on a 2430sdp platform along with being tested on
+> > 3430sdp and 4430sdp.
+> >
+> > 4430sdp tests are done using the below series
+> > http://www.spinics.net/lists/linux-omap/msg36023.html
+> 
+> Hi Rajendra,
+> 
+> This series looks good to queue for 2.6.37.
+> 
+> Can you re-post one more time with linux-arm-kernel in CC as well as the
+> I2C list and Ben Dooks (MAINAINERS excerpt below for addresses.)
 
-Acked-by: Luciano Coelho <luciano.coelho@nokia.com>
+Ok, thanks. Will do.
 
--- 
-Cheers,
-Luca.
+> 
+> I will gladly merge patches 1-4, but I'll need an ack/signoff from Ben
+> to merge patch 5.
+> 
+> Thanks,
+> 
+> Kevin
+> 
+> 
+> I2C SUBSYSTEM
+> M:	"Jean Delvare (PC drivers, core)" <khali@linux-fr.org>
+> M:	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>
+> L:	linux-i2c@vger.kernel.org
+> 
+
