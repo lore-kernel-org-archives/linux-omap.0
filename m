@@ -1,112 +1,82 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH 4/5] omap3: cm-t3517: add support for NAND flash
-Date: Tue, 21 Sep 2010 18:03:12 +0200
-Message-ID: <1285084993-27683-5-git-send-email-grinberg@compulab.co.il>
-References: <1285084993-27683-1-git-send-email-grinberg@compulab.co.il>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 0/3] OMAP: hwmod: Add hardreset and softreset management
+Date: Tue, 21 Sep 2010 18:04:49 +0200
+Message-ID: <4C98D7A1.9080400@ti.com>
+References: <1280959968-23933-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1009202257140.17727@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:37428 "EHLO compulab.co.il"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38850 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754981Ab0IUQD2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Sep 2010 12:03:28 -0400
-In-Reply-To: <1285084993-27683-1-git-send-email-grinberg@compulab.co.il>
+	id S1752188Ab0IUQEy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 12:04:54 -0400
+In-Reply-To: <alpine.DEB.2.00.1009202257140.17727@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-add support for NAND flash.
+Hi Paul,
 
-Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
----
- arch/arm/mach-omap2/board-cm-t3517.c |   54 ++++++++++++++++++++++++++++++++++
- 1 files changed, 54 insertions(+), 0 deletions(-)
+On 9/21/2010 7:03 AM, Paul Walmsley wrote:
+> Hi Beno=EEt,
+>
+> I regret the delay -
 
-diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index 2c7082d..4c26cf5 100644
---- a/arch/arm/mach-omap2/board-cm-t3517.c
-+++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -29,6 +29,9 @@
- #include <linux/gpio.h>
- #include <linux/leds.h>
- #include <linux/rtc-v3020.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/nand.h>
-+#include <linux/mtd/partitions.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -38,6 +41,8 @@
- #include <plat/common.h>
- #include <plat/control.h>
- #include <plat/usb.h>
-+#include <plat/nand.h>
-+#include <plat/gpmc.h>
- 
- #include "mux.h"
- 
-@@ -143,6 +148,54 @@ static inline int cm_t3517_init_usbh(void)
- }
- #endif
- 
-+#if defined(CONFIG_MTD_NAND_OMAP2) || defined(CONFIG_MTD_NAND_OMAP2_MODULE)
-+#define NAND_BLOCK_SIZE		SZ_128K
-+
-+static struct mtd_partition cm_t3517_nand_partitions[] = {
-+	{
-+		.name           = "xloader",
-+		.offset         = 0,			/* Offset = 0x00000 */
-+		.size           = 4 * NAND_BLOCK_SIZE,
-+		.mask_flags     = MTD_WRITEABLE
-+	},
-+	{
-+		.name           = "uboot",
-+		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-+		.size           = 15 * NAND_BLOCK_SIZE,
-+	},
-+	{
-+		.name           = "uboot environment",
-+		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
-+		.size           = 2 * NAND_BLOCK_SIZE,
-+	},
-+	{
-+		.name           = "linux",
-+		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
-+		.size           = 32 * NAND_BLOCK_SIZE,
-+	},
-+	{
-+		.name           = "rootfs",
-+		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
-+		.size           = MTDPART_SIZ_FULL,
-+	},
-+};
-+
-+static struct omap_nand_platform_data cm_t3517_nand_data = {
-+	.parts			= cm_t3517_nand_partitions,
-+	.nr_parts		= ARRAY_SIZE(cm_t3517_nand_partitions),
-+	.dma_channel		= -1,	/* disable DMA in OMAP NAND driver */
-+	.cs			= 0,
-+};
-+
-+static void __init cm_t3517_init_nand(void)
-+{
-+	if (gpmc_nand_init(&cm_t3517_nand_data) < 0)
-+		pr_err("CM-T3517: NAND initialization failed\n");
-+}
-+#else
-+static inline void cm_t3517_init_nand(void) {}
-+#endif
-+
- static struct omap_board_config_kernel cm_t3517_config[] __initdata = {
- };
- 
-@@ -179,6 +232,7 @@ static void __init cm_t3517_init(void)
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
- 	cm_t3517_init_leds();
-+	cm_t3517_init_nand();
- 	cm_t3517_init_rtc();
- 	cm_t3517_init_usbh();
- }
--- 
-1.7.1
+Considering the job you did on that reset series, you are already=20
+forgiven :-)
 
+>
+> On Thu, 5 Aug 2010, Benoit Cousson wrote:
+>
+>> Here are a reset management series.
+>>
+>> - The first patch will be removed as soon as we will have the proper
+>>    OMAP4 support for the prm_xxx accessors.
+>> - The second one is adding hardreset support in order to allow
+>>    syslink driver to manage properly the DSP and IPU processor
+>>    reset.
+>> - The last one is forcing a sofreset after the first init.
+>>    Some IP might require sofreset after each wakeup
+>>    from power domain OFF mode. That still needs to be confirm.
+>
+> I've reviewed these patches and made a few changes.  The PRM register
+> twiddling has been moved out into a prm44xx.c file.  I also added OMA=
+P2/3
+> hardreset support, based on your code.  Could you take a quick look a=
+t the
+> updated series (in subsequent E-mails, or the git branch below) and l=
+et me
+> know if you are okay with it?  I took some liberties in preserving yo=
+ur
+> changelogs and Signed-off-by's across the changes, so please let me k=
+now
+> if you'd like any changes in that regard.
+
+That's really good. The low level reset does indeed belong to PRM more=20
+than the hwmod core code.
+Thanks for the OMAP2/3 stuff as well, IVA people were starting to ping=20
+me for that support.
+
+I've just rebased my OMAP4 hwmods series on top on this one, and it wor=
+k=20
+fine.
+
+Are you targeting that series for 2.6.37?
+I have a couple of patches on top of that code that will fix the=20
+softreset with optional clocks. This code is fixing the GPIO reset issu=
+e=20
+that I observed in the past.
+
+I'll send you that soon.
+
+Thanks,
+Benoit
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
