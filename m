@@ -1,69 +1,64 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH v2 0/5] Convert I2C driver to use omap_device/runtime PM
-Date: Tue, 21 Sep 2010 11:16:43 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EE070@dbde02.ent.ti.com>
-References: <1284734229-16281-1-git-send-email-rnayak@ti.com>
- <87tylkwab4.fsf@deeprootsystems.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
+Date: Tue, 21 Sep 2010 11:16:25 +0530
+Message-ID: <007601cb5950$55d52980$LocalHost@wipblrx0099946>
+References: <61033.10.24.255.18.1283926671.squirrel@dbdmail.itg.ti.com> <4C877584.7000902@jic23.retrosnub.co.uk> <20100914080003.GD15167@core.coreip.homeip.net> <4C8F7429.1080105@jic23.retrosnub.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33102 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750739Ab0IUFqu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 01:46:50 -0400
-In-Reply-To: <87tylkwab4.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+----- Original Message ----- 
+From: "Jonathan Cameron" <kernel@jic23.retrosnub.co.uk>
+To: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
+Cc: "Hemanth V" <hemanthv@ti.com>; <linux-input@vger.kernel.org>; 
+<linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>
+Sent: Tuesday, September 14, 2010 6:40 PM
+Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
 
 
+> On 09/14/10 09:00, Dmitry Torokhov wrote:
+>> On Wed, Sep 08, 2010 at 12:37:40PM +0100, Jonathan Cameron wrote:
+>>>
+>>> I'm happy to see your driver go in as it is currently, what bothers me 
+>>> is that we will end
+>>> up with incompatible interfaces for all the accelerometers Dmitry takes!
+>>>
+>>
+>> This is a valid concern. How about I chicken out and will not merge any
+>> new sysfs knobs until you guys decide on reasonable interface? Most set
+>> up is done by board code anyways, sysfs is more of nice-to-have?
+> Hemanth, would removing the sysfs hooks from this driver be ok with you?
+> I'd personally have favoured a merge, add new interfaces when agreed and
+> deprecate old ones approach, but it is Dmitry's call.  Perhaps it is 
+> better
+> to get the majority of the device functionality in place now and add
+> the bells and whistles later.
+>
+> For input device things are probably mostly fixed for a particular board
+> design.  There are definitely interesting things one can do if the knobs
+> are available but they (I think) mostly fall outside of using the device
+> for input!
+>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Monday, September 20, 2010 11:46 PM
-> To: Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v2 0/5] Convert I2C driver to use omap_device/runtime PM
-> 
-> Rajendra Nayak <rnayak@ti.com> writes:
-> 
-> > This series makes I2C device registration use hwmod
-> > and omap_device api's and converts the I2C driver to use
-> > runtime PM api's.
-> >
-> > Patches apply on the pm-core branch from Kevin's tree.
-> >
-> > v2 has minor review comment fixes over v1 and is additionally
-> > boot tested on a 2430sdp platform along with being tested on
-> > 3430sdp and 4430sdp.
-> >
-> > 4430sdp tests are done using the below series
-> > http://www.spinics.net/lists/linux-omap/msg36023.html
-> 
-> Hi Rajendra,
-> 
-> This series looks good to queue for 2.6.37.
-> 
-> Can you re-post one more time with linux-arm-kernel in CC as well as the
-> I2C list and Ben Dooks (MAINAINERS excerpt below for addresses.)
+Dmitry, Jonathan
 
-Ok, thanks. Will do.
+I am ok to remove the sysfs entries for now, but would cause some 
+limitations
+like not being able to change sampling frequency / disabling interrupts 
+runtime.
 
-> 
-> I will gladly merge patches 1-4, but I'll need an ack/signoff from Ben
-> to merge patch 5.
-> 
-> Thanks,
-> 
-> Kevin
-> 
-> 
-> I2C SUBSYSTEM
-> M:	"Jean Delvare (PC drivers, core)" <khali@linux-fr.org>
-> M:	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>
-> L:	linux-i2c@vger.kernel.org
-> 
+Wanted to clarify if the intention is to come up with a standard sysfs 
+interface
+for all accelerometer drivers under input/misc including adxl34x.
+
+Thanks
+Hemanth 
 
