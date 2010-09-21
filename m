@@ -1,238 +1,58 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 05/11] [PATCH] OMAP: hwmod: separate list locking and hwmod
-	hardware locking
-Date: Tue, 21 Sep 2010 10:34:47 -0600
-Message-ID: <20100921163446.20258.84736.stgit@twilight.localdomain>
+Subject: [PATCH 02/11] OMAP: hwmod: Do not disable clocks if hwmod already in
+	idle
+Date: Tue, 21 Sep 2010 10:34:44 -0600
+Message-ID: <20100921163442.20258.7393.stgit@twilight.localdomain>
 References: <20100921163021.20258.87587.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47034 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47019 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755873Ab0IUQfk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:35:40 -0400
+	with ESMTP id S1756789Ab0IUQfj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:35:39 -0400
 In-Reply-To: <20100921163021.20258.87587.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
 
-From: Kevin Hilman <khilman@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
 
-Currently omap_hwmod_mutex is being used to protect both the list
-access/modification and concurrent access to hwmod functions.  This
-patch separates these two types of locking.
+The disable function was disabling clocks and dependencies
+from both enable and idle state. Since idle function is already
+disabling both, an enable -> idle -> disable sequence will
+try to disable twice the clocks and thus generate a
+"Trying disable clock XXX with 0 usecount" warning.
 
-First, omap_hwmod_mutex is used only to protect access and
-modification of omap_hwmod_list.  Also cleaned up some comments
-referring to this mutex that are no longer needed.
-
-Then, for protecting concurrent access to hwmod functions, use a
-per-hwmod mutex.  This protects concurrent access to a single hwmod,
-but would allow concurrent access to different hwmods.
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-[paul@pwsan.com: added structure documentation; changed mutex variable
- name]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   62 +++++++++++++-------------
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 +
- 2 files changed, 33 insertions(+), 32 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 100115f..3084409 100644
+index 8bf19a7..5bb25e3 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -767,10 +767,10 @@ static struct omap_hwmod *_lookup(const char *name)
-  * @data: not used; pass NULL
-  *
-  * Called by omap_hwmod_late_init() (after omap2_clk_init()).
-- * Resolves all clock names embedded in the hwmod.  Must be called
-- * with omap_hwmod_mutex held.  Returns -EINVAL if the omap_hwmod
-- * has not yet been registered or if the clocks have already been
-- * initialized, 0 on success, or a non-zero error on failure.
-+ * Resolves all clock names embedded in the hwmod.  Returns -EINVAL if
-+ * the omap_hwmod has not yet been registered or if the clocks have
-+ * already been initialized, 0 on success, or a non-zero error on
-+ * failure.
-  */
- static int _init_clocks(struct omap_hwmod *oh, void *data)
- {
-@@ -838,10 +838,9 @@ static int _wait_target_ready(struct omap_hwmod *oh)
-  * @oh: struct omap_hwmod *
-  *
-  * Resets an omap_hwmod @oh via the OCP_SYSCONFIG bit.  hwmod must be
-- * enabled for this to work.  Must be called with omap_hwmod_mutex
-- * held.  Returns -EINVAL if the hwmod cannot be reset this way or if
-- * the hwmod is in the wrong state, -ETIMEDOUT if the module did not
-- * reset in time, or 0 upon success.
-+ * enabled for this to work.  Returns -EINVAL if the hwmod cannot be
-+ * reset this way or if the hwmod is in the wrong state, -ETIMEDOUT if
-+ * the module did not reset in time, or 0 upon success.
-  */
- static int _reset(struct omap_hwmod *oh)
- {
-@@ -891,9 +890,8 @@ static int _reset(struct omap_hwmod *oh)
-  * @oh: struct omap_hwmod *
-  *
-  * Enables an omap_hwmod @oh such that the MPU can access the hwmod's
-- * register target.  Must be called with omap_hwmod_mutex held.
-- * Returns -EINVAL if the hwmod is in the wrong state or passes along
-- * the return value of _wait_target_ready().
-+ * register target.  Returns -EINVAL if the hwmod is in the wrong
-+ * state or passes along the return value of _wait_target_ready().
-  */
- int _omap_hwmod_enable(struct omap_hwmod *oh)
- {
-@@ -1004,11 +1002,10 @@ static int _shutdown(struct omap_hwmod *oh)
-  * @skip_setup_idle_p: do not idle hwmods at the end of the fn if 1
-  *
-  * Writes the CLOCKACTIVITY bits @clockact to the hwmod @oh
-- * OCP_SYSCONFIG register.  Must be called with omap_hwmod_mutex held.
-- * @skip_setup_idle is intended to be used on a system that will not
-- * call omap_hwmod_enable() to enable devices (e.g., a system without
-- * PM runtime).  Returns -EINVAL if the hwmod is in the wrong state or
-- * returns 0.
-+ * OCP_SYSCONFIG register.  @skip_setup_idle is intended to be used on
-+ * a system that will not call omap_hwmod_enable() to enable devices
-+ * (e.g., a system without PM runtime).  Returns -EINVAL if the hwmod
-+ * is in the wrong state or returns 0.
-  */
- static int _setup(struct omap_hwmod *oh, void *data)
- {
-@@ -1038,6 +1035,7 @@ static int _setup(struct omap_hwmod *oh, void *data)
- 		}
- 	}
+@@ -982,9 +982,13 @@ static int _shutdown(struct omap_hwmod *oh)
  
-+	mutex_init(&oh->_mutex);
- 	oh->_state = _HWMOD_STATE_INITIALIZED;
+ 	if (oh->class->sysc)
+ 		_sysc_shutdown(oh);
+-	_del_initiator_dep(oh, mpu_oh);
+-	/* XXX what about the other system initiators here? DMA, tesla, d2d */
+-	_disable_clocks(oh);
++
++	/* clocks and deps are already disabled in idle */
++	if (oh->_state == _HWMOD_STATE_ENABLED) {
++		_del_initiator_dep(oh, mpu_oh);
++		/* XXX what about the other system initiators here? dma, dsp */
++		_disable_clocks(oh);
++	}
+ 	/* XXX Should this code also force-disable the optional clocks? */
  
- 	r = _omap_hwmod_enable(oh);
-@@ -1323,9 +1321,9 @@ int omap_hwmod_enable(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->_mutex);
- 	r = _omap_hwmod_enable(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->_mutex);
- 
- 	return r;
- }
-@@ -1343,9 +1341,9 @@ int omap_hwmod_idle(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->_mutex);
- 	_omap_hwmod_idle(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->_mutex);
- 
- 	return 0;
- }
-@@ -1363,9 +1361,9 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->_mutex);
- 	_shutdown(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->_mutex);
- 
- 	return 0;
- }
-@@ -1378,9 +1376,9 @@ int omap_hwmod_shutdown(struct omap_hwmod *oh)
-  */
- int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
- {
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->_mutex);
- 	_enable_clocks(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->_mutex);
- 
- 	return 0;
- }
-@@ -1393,9 +1391,9 @@ int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
-  */
- int omap_hwmod_disable_clocks(struct omap_hwmod *oh)
- {
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->_mutex);
- 	_disable_clocks(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->_mutex);
- 
- 	return 0;
- }
-@@ -1443,9 +1441,9 @@ int omap_hwmod_reset(struct omap_hwmod *oh)
- 	if (!oh)
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->_mutex);
- 	r = _reset(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->_mutex);
- 
- 	return r;
- }
-@@ -1646,9 +1644,9 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->_mutex);
- 	_enable_wakeup(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->_mutex);
- 
- 	return 0;
- }
-@@ -1671,9 +1669,9 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- 	    !(oh->class->sysc->sysc_flags & SYSC_HAS_ENAWAKEUP))
- 		return -EINVAL;
- 
--	mutex_lock(&omap_hwmod_mutex);
-+	mutex_lock(&oh->_mutex);
- 	_disable_wakeup(oh);
--	mutex_unlock(&omap_hwmod_mutex);
-+	mutex_unlock(&oh->_mutex);
- 
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 5506d80..03350ba 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -35,6 +35,7 @@
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/ioport.h>
-+#include <linux/mutex.h>
- #include <plat/cpu.h>
- 
- struct omap_device;
-@@ -433,6 +434,7 @@ struct omap_hwmod_class {
-  * @_state: internal-use hwmod state
-  * @flags: hwmod flags (documented below)
-  * @omap_chip: OMAP chips this hwmod is present on
-+ * @_mutex: mutex serializing operations on this hwmod
-  * @node: list node for hwmod list (internal use)
-  *
-  * @main_clk refers to this module's "main clock," which for our
-@@ -461,6 +463,7 @@ struct omap_hwmod {
- 	void				*dev_attr;
- 	u32				_sysc_cache;
- 	void __iomem			*_mpu_rt_va;
-+	struct mutex			_mutex;
- 	struct list_head		node;
- 	u16				flags;
- 	u8				_mpu_port_index;
+ 	/* XXX mux any associated balls to safe mode */
 
 
