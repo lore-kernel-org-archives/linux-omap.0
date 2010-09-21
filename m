@@ -1,58 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: fix build break due to typo in cacheflush.h
-Date: Tue, 21 Sep 2010 09:07:46 -0700
-Message-ID: <20100921160746.GS4611@atomide.com>
-References: <1285085120-29780-1-git-send-email-gadiyar@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/3] OMAP: hwmod: Add hardreset and softreset
+ management
+Date: Tue, 21 Sep 2010 10:09:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009211006360.21792@utopia.booyaka.com>
+References: <1280959968-23933-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1009202257140.17727@utopia.booyaka.com> <4C98D7A1.9080400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1925040719-1285085360=:21792"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50257 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754115Ab0IUQHo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:07:44 -0400
-Content-Disposition: inline
-In-Reply-To: <1285085120-29780-1-git-send-email-gadiyar@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40606 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757825Ab0IUQJV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:09:21 -0400
+In-Reply-To: <4C98D7A1.9080400@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-* Anand Gadiyar <gadiyar@ti.com> [100921 08:57]:
-> commit 9d85ac1e6 introduced a small typo. This causes the build
-> to break when CONFIG_CPU_V7 is set and CONFIG_CPU_V6 and
-> CONFIG_SMP_ON_UP are not. (log below)
-> 
->   CC      init/main.o
-> In file included from include/linux/highmem.h:9,
->                  from include/linux/pagemap.h:10,
->                  from include/linux/mempolicy.h:70,
->                  from init/main.c:50:
-> arch/arm/include/asm/cacheflush.h: In function '__flush_icache_all':
-> arch/arm/include/asm/cacheflush.h:332: error: implicit declaration of function '__flush_icache_preferred'
-> make[1]: *** [init/main.o] Error 1
-> make: *** [init] Error 2
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/include/asm/cacheflush.h |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Index: linux-omap-2.6/arch/arm/include/asm/cacheflush.h
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/include/asm/cacheflush.h
-> +++ linux-omap-2.6/arch/arm/include/asm/cacheflush.h
-> @@ -324,7 +324,7 @@ extern void copy_to_user_page(struct vm_
->  #elif __LINUX_ARM_ARCH__ == 6 && defined(CONFIG_ARM_ERRATA_411920)
->  #define __flush_icache_preferred	__cpuc_flush_icache_all
->  #else
-> -#define __fluch_icache_preferred	__flush_icache_all_generic
-> +#define __flush_icache_preferred	__flush_icache_all_generic
->  #endif
->  
->  static inline void __flush_icache_all(void)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks, will merge that into the original patch with your S-O-B
-and repost.
+--155748971-1925040719-1285085360=:21792
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Tony
+Hi Beno=EEt,
+
+On Tue, 21 Sep 2010, Cousson, Benoit wrote:
+
+> That's really good. The low level reset does indeed belong to PRM more th=
+an
+> the hwmod core code.
+> Thanks for the OMAP2/3 stuff as well, IVA people were starting to ping me=
+ for
+> that support.
+>=20
+> I've just rebased my OMAP4 hwmods series on top on this one, and it work =
+fine.
+
+Cool.
+
+> Are you targeting that series for 2.6.37?
+
+Yep, I'll send those patches to the linux-arm-kernel mailing list today,=20
+along with the other hwmod base patches; I'd like to get those in for=20
+2.6.37.
+
+> I have a couple of patches on top of that code that will fix the softrese=
+t
+> with optional clocks. This code is fixing the GPIO reset issue that I obs=
+erved
+> in the past.
+>=20
+> I'll send you that soon.
+
+OK, sounds good.  If you cc the linux-arm-kernel mailing list when you=20
+send them out, that will make it easier to add those to the 2.6.37 queue=20
+if they arrive on time.
+
+Thanks for the review and for the comments,
+
+
+- Paul
+--155748971-1925040719-1285085360=:21792--
