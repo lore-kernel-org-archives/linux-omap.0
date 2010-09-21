@@ -1,79 +1,69 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 10/11] OMAP: hwmod: Force a softreset during _setup
-Date: Tue, 21 Sep 2010 10:34:53 -0600
-Message-ID: <20100921163452.20258.37165.stgit@twilight.localdomain>
+Subject: [PATCH 03/11] OMAP: hwmod: Fix omap_hwmod_reset wrong state test
+Date: Tue, 21 Sep 2010 10:34:45 -0600
+Message-ID: <20100921163444.20258.66902.stgit@twilight.localdomain>
 References: <20100921163021.20258.87587.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47052 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47023 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757631Ab0IUQfl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:35:41 -0400
+	with ESMTP id S1757031Ab0IUQfj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:35:39 -0400
 In-Reply-To: <20100921163021.20258.87587.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-From: Benoit Cousson <b-cousson@ti.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
 
-Force the softreset of every IPs during the _setup phase.
-IPs that cannot support softreset or that should not
-be reset must set the HWMOD_INIT_NO_RESET flag in the
-hwmod struct.
+The reset function wrongly used the state flag as a bit mask and was trying
+to re-enable after a reset.
 
+hwmod is still enabled for the PRCM point of view after a softreset
+so there is no need to re-enable.
+
+Remove the state check from omap_hwmod_reset since the _reset
+function is checking that as well and in addition can generate
+a warning
+
+Signed-off-by: Liam Girdwood <lrg@slimlogic.co.uk>
+[b-cousson@ti.com: remove the wrong test, remove the re-enable]
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index f4a569c..3e90984 100644
+index 5bb25e3..100115f 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -980,8 +980,8 @@ static int _reset(struct omap_hwmod *oh)
+@@ -1434,19 +1434,17 @@ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh)
+  *
+  * Under some conditions, a driver may wish to reset the entire device.
+  * Called from omap_device code.  Returns -EINVAL on error or passes along
+- * the return value from _reset()/_enable().
++ * the return value from _reset().
+  */
+ int omap_hwmod_reset(struct omap_hwmod *oh)
+ {
+ 	int r;
  
- 	/* clocks must be on for this operation */
- 	if (oh->_state != _HWMOD_STATE_ENABLED) {
--		WARN(1, "omap_hwmod: %s: reset can only be entered from "
--		     "enabled state\n", oh->name);
-+		pr_warning("omap_hwmod: %s: reset can only be entered from "
-+			   "enabled state\n", oh->name);
+-	if (!oh || !(oh->_state & _HWMOD_STATE_ENABLED))
++	if (!oh)
  		return -EINVAL;
- 	}
  
-@@ -998,8 +998,8 @@ static int _reset(struct omap_hwmod *oh)
- 			  MAX_MODULE_SOFTRESET_WAIT, c);
+ 	mutex_lock(&omap_hwmod_mutex);
+ 	r = _reset(oh);
+-	if (!r)
+-		r = _omap_hwmod_enable(oh);
+ 	mutex_unlock(&omap_hwmod_mutex);
  
- 	if (c == MAX_MODULE_SOFTRESET_WAIT)
--		WARN(1, "omap_hwmod: %s: softreset failed (waited %d usec)\n",
--		     oh->name, MAX_MODULE_SOFTRESET_WAIT);
-+		pr_warning("omap_hwmod: %s: softreset failed (waited %d usec)\n",
-+			   oh->name, MAX_MODULE_SOFTRESET_WAIT);
- 	else
- 		pr_debug("omap_hwmod: %s: softreset in %d usec\n", oh->name, c);
- 
-@@ -1198,12 +1198,12 @@ static int _setup(struct omap_hwmod *oh, void *data)
- 	}
- 
- 	if (!(oh->flags & HWMOD_INIT_NO_RESET)) {
-+		_reset(oh);
-+
- 		/*
--		 * XXX Do the OCP_SYSCONFIG bits need to be
--		 * reprogrammed after a reset?  If not, then this can
--		 * be removed.  If they do, then probably the
--		 * _omap_hwmod_enable() function should be split to avoid the
--		 * rewrite of the OCP_SYSCONFIG register.
-+		 * OCP_SYSCONFIG bits need to be reprogrammed after a softreset.
-+		 * The _omap_hwmod_enable() function should be split to
-+		 * avoid the rewrite of the OCP_SYSCONFIG register.
- 		 */
- 		if (oh->class->sysc) {
- 			_update_sysc_cache(oh);
+ 	return r;
 
 
