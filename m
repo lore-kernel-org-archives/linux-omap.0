@@ -1,109 +1,192 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH] OMAP: hwmod: Handle opt clocks node using clk_add_alias
-Date: Tue, 21 Sep 2010 19:23:04 +0200
-Message-ID: <1285089784-2786-1-git-send-email-b-cousson@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v6 00/13] OMAP: GPIO: Implement GPIO in hwmod way
+Date: Tue, 21 Sep 2010 10:57:15 -0700
+Message-ID: <87zkvbj7yc.fsf@deeprootsystems.com>
+References: <1284819353-8512-1-git-send-email-charu@ti.com>
+	<87r5goq7ro.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02CD3C16FE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60961 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754034Ab0IURXI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Sep 2010 13:23:08 -0400
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64704 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754149Ab0IUR5W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 13:57:22 -0400
+Received: by wwi17 with SMTP id 17so269185wwi.1
+        for <linux-omap@vger.kernel.org>; Tue, 21 Sep 2010 10:57:21 -0700 (PDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD3C16FE@dbde02.ent.ti.com>
+	(Charulatha Varadarajan's message of "Tue, 21 Sep 2010 19:36:46
+	+0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, "Basak, Partha" <p-basak2@ti.com>, Charulatha V <charu@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-From: Basak, Partha <p-basak2@ti.com>
+"Varadarajan, Charulatha" <charu@ti.com> writes:
 
-For every optional clock present per hwmod per omap-device, this function
-adds an entry in the clocks list of the form <dev-id=dev_name, con-id=role>,
-if an entry is already present in the list of the form <dev-id=NULL, con-id=role>.
+>> 
+>> "Varadarajan, Charulatha" <charu@ti.com> writes:
+>> 
+>> > This patch series makes OMAP2PLUS specific GPIO implemented in hwmod
+>> > FW way. This is done by implementing GPIO module in platform device
+>> model.
+>> >
+>> > This patch series is generated on "origin/pm-wip/pm-core" which
+>> > has Kevin's pm-next series, the runtime PM core patch series,
+>> > and a collection of hwmod fixes that Paul/Benoit have lined up
+>> > for 2.6.37.
+>> >
+>> > Tested on OMAP2430, OMAP44430, OMAP3430 SDP and zoom3 boards.
+>> > Also verified that this patch series does not break the OMAP1 build.
+>> >
+>> > This patch series is created on top of the following patches:
+>> > 1. OMAP: HWMOD: Handle opt clocks using clk_add_alias
+>> > [https://patchwork.kernel.org/patch/124531/]
+>> > 2. OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
+>> > [https://patchwork.kernel.org/patch/176172/]
+>> > 3. OMAP: CPUIDLE: Enable IRQs during device activity check and idle
+>> management
+>> > by Kevin
+>> >
+>> > This series is tested on OMAP4430 ES2 using the below series
+>> > http://www.spinics.net/lists/linux-omap/msg36023.html
+>> 
+>> Hi Charu,
+>> 
+>> I haven't been fully through the series, but here's some quick feedback
+>> based on what I tried today.
+>> 
+>> Basically, I got stuck because the first board I tried it on was the
+>> 35xx-based OMAP3EVM platform, which uses a GPIO-based interrupt for the
+>> network.  My setup uses DHCP + nfsroot, so the GPIO IRQ must be working
+>> during boot.
+>> 
+>> The first thing I noticed, is that GPIO interrupts are not firing during
+>> boot, so neither the DHCP or the nfsroot works during boot.  I haven't
+>> been able to fully debug this, but the 3430SDP should have the same
+>> issue for its smc91x if you set it up for DHCP + nfsroot.  This is
+>> working fine on my pm-wip/idle-reorg branch which has the prerequisites
+>> you mentioned, but didn't work when I applied the clk_alias patch plus
+>> this series.
+>
+> I tested this GPIO series in pm-wip/idle-reorg branch with clock
+> add alias patch and I did not see any issues. I tested with DHCP + nfsroot
+> on SDP3430. Please provide me some more info on this.
 
-The function is called from within the framework inside omap_device_build_ss(),
-after omap_device_register.
+Hmm, I don't have many more details yet.  All I can see is that the GPIO
+bank that has the smc91x interrupt (GPIO6) is loosing interrupts, and
+thus preventing DHCP and nfsroot from working.
 
-This allows drivers to get a pointer to its optional clocks based on its role
-by calling clk_get(<dev*>, <role>).
+Can you test using omap3_defconfig plus 
 
-Link to discussions related to this patch:
-http://www.spinics.net/lists/linux-omap/msg34809.html
+# CONFIG_CPU_FREQ is not set
+CONFIG_CPU_IDLE=y
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Signed-off-by: Basak, Partha <p-basak2@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/plat-omap/omap_device.c |   39 +++++++++++++++++++++++++++++++++++++-
- 1 files changed, 38 insertions(+), 1 deletions(-)
+Thanks,
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index d2b1609..d876cec 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -82,6 +82,7 @@
- #include <linux/slab.h>
- #include <linux/err.h>
- #include <linux/io.h>
-+#include <linux/clk.h>
- 
- #include <plat/omap_device.h>
- #include <plat/omap_hwmod.h>
-@@ -243,6 +244,40 @@ static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
- 	return container_of(pdev, struct omap_device, pdev);
- }
- 
-+/**
-+ * _add_optional_clock_alias - Add clock alias for hwmod optional clocks
-+ * @od: struct omap_device *od
-+ *
-+ * For every optional clock present per hwmod per omap_device, this function
-+ * adds an entry in the clocks list of the form <dev-id=dev_name, con-id=role>
-+ * if an entry is already present in it with the form <dev-id=NULL, con-id=role>
-+ *
-+ * The function is called from inside omap_device_build_ss(), after
-+ * omap_device_register.
-+ *
-+ * This allows drivers to get a pointer to its optional clocks based on its role
-+ * by calling clk_get(<dev*>, <role>).
-+ */
-+static void _add_optional_clock_alias(struct omap_device *od,
-+				      struct omap_hwmod *oh)
-+{
-+	int i;
-+	struct omap_hwmod_opt_clk *oc;
-+
-+	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
-+		int ret;
-+
-+		if (!oc->_clk || !IS_ERR(clk_get(&od->pdev.dev, oc->role)))
-+			return;
-+
-+		ret = clk_add_alias(oc->role, dev_name(&od->pdev.dev),
-+				    (char *)oc->clk, NULL);
-+		if (ret)
-+			pr_err("omap_device: clk_add_alias for %s failed\n",
-+			       oc->role);
-+	}
-+}
-+
- 
- /* Public functions for use by core code */
- 
-@@ -421,8 +456,10 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
- 	else
- 		ret = omap_device_register(od);
- 
--	for (i = 0; i < oh_cnt; i++)
-+	for (i = 0; i < oh_cnt; i++) {
- 		hwmods[i]->od = od;
-+		_add_optional_clock_alias(od, hwmods[i]);
-+	}
- 
- 	if (ret)
- 		goto odbs_exit4;
--- 
-1.6.0.4
+Kevin
 
+
+>> 
+>> The other change when debugging I made was to make the
+>> 'workaround_enable' hack bank specific.  Now that the bank idles can be
+>> called independetly, this would get cleared as soon as one of the banks
+>> clears it.  It should be a per-bank flag[1]
+>
+> Agreed. Even I was wondering why this was not bank specific in the
+> original code. Will do this in the next series after we get the above
+> issue fixed.
+
+ok
+
+>> 
+>> Another thing I noticed was that ENWAKEUP is no longer set in the
+>> SYSCONFIG register for each bank, as it was before.  To avoid this kind
+>> of functional change, I did[2]
+
+What about this one?  I see Rajendra just posted a fix that should take
+care of this in a different manner.
+
+Kevin
+
+
+>> I'll get back to digging a bit tomorrow, but hopefully you can debug
+>> this further before I get to it.
+>> 
+>> Kevin
+>> 
+>> 
+>> [1]
+>> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+>> index 2f5c1eb..3b60418 100644
+>> --- a/arch/arm/plat-omap/gpio.c
+>> +++ b/arch/arm/plat-omap/gpio.c
+>> @@ -170,6 +170,7 @@ struct gpio_bank {
+>>  	struct omap_gpio_regs gpio_context;
+>>  	struct powerdomain *pwrdm;
+>>  	bool dbck_flag;
+>> +	int workaround_enabled;
+>>  };
+>> 
+>>  static void omap_gpio_save_context(struct device *dev);
+>> @@ -1830,8 +1831,6 @@ static int omap_gpio_resume(struct device *dev)
+>>  	return 0;
+>>  }
+>> 
+>> -static int workaround_enabled;
+>> -
+>>  static int gpio_bank_runtime_suspend(struct device *dev)
+>>  {
+>>  	struct platform_device *pdev = to_platform_device(dev);
+>> @@ -1887,7 +1886,7 @@ static int gpio_bank_runtime_suspend(struct device
+>> *dev)
+>>  		__raw_writel(l2, bank->base + OMAP4_GPIO_RISINGDETECT);
+>>  	}
+>> 
+>> -	workaround_enabled = 1;
+>> +	bank->workaround_enabled = 1;
+>> 
+>>  	return 0;
+>>  }
+>> @@ -1900,7 +1899,7 @@ static int gpio_bank_runtime_resume(struct device
+>> *dev)
+>>  	if (bank->dbck_enable_mask)
+>>  		clk_enable(bank->dbck);
+>> 
+>> -	if ((!workaround_enabled) || (!(bank->enabled_non_wakeup_gpios)))
+>> +	if ((!bank->workaround_enabled) || (!(bank-
+>> >enabled_non_wakeup_gpios)))
+>>  		return 0;
+>> 
+>>  	if (bank->method == METHOD_GPIO_24XX) {
+>> @@ -2110,11 +2109,11 @@ void omap2_gpio_prepare_for_idle(void)
+>>  {
+>>  	int i;
+>> 
+>> -	workaround_enabled = 0;
+>> -
+>>  	for (i = 0; i < gpio_bank_count; i++) {
+>>  		struct gpio_bank *bank = &gpio_bank[i];
+>> 
+>> +		bank->workaround_enabled = 0;
+>> +
+>>  		/* If the gpio bank is not used, do nothing */
+>>  		if ((!bank->pwrdm) || !(bank->mod_usage))
+>>  			continue;
+>> 
+>> 
+>> [2]
+>> diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+>> index e759311..ae7487f 100644
+>> --- a/arch/arm/mach-omap2/gpio.c
+>> +++ b/arch/arm/mach-omap2/gpio.c
+>> @@ -54,6 +54,8 @@ static int omap2_init_gpio(struct omap_hwmod *oh, void
+>> *user)
+>>  	pdata->virtual_irq_start = IH_GPIO_BASE + 32 * gpio_bank_count;
+>>  	pdata->pwrdm = omap_hwmod_get_pwrdm(oh);
+>> 
+>> +	omap_hwmod_enable_wakeup(oh);
+>> +
+>>  	switch (oh->class->rev) {
+>>  	case 0:
+>>  	case 1:
