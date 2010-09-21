@@ -1,274 +1,106 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Handle __flush_icache_all for CONFIG_SMP_ON_UP
-Date: Tue, 21 Sep 2010 09:16:00 -0700
-Message-ID: <20100921161600.GT4611@atomide.com>
-References: <20100817104414.19061.38999.stgit@baageli.muru.com>
- <20100906104413.GD20903@n2100.arm.linux.org.uk>
- <20100914185907.GG8647@atomide.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: [PATCH 3/5] omap3: cm-t3517: add support for usb host.
+Date: Tue, 21 Sep 2010 21:56:22 +0530
+Message-ID: <AANLkTin+canp9yrE-Jmv=n56dPFByZWU73uaRNBkruP6@mail.gmail.com>
+References: <1285084993-27683-1-git-send-email-grinberg@compulab.co.il> <1285084993-27683-4-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53340 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752188Ab0IUQQE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:16:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20100914185907.GG8647@atomide.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:34243 "HELO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756369Ab0IUQ0t convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 12:26:49 -0400
+Received: by mail-ww0-f42.google.com with SMTP id 18so425104wwi.5
+        for <linux-omap@vger.kernel.org>; Tue, 21 Sep 2010 09:26:42 -0700 (PDT)
+In-Reply-To: <1285084993-27683-4-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, bryan.wu@canonical.com
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [100914 12:04]:
-> 
-> Here's a patch for __flush_icache_all. I believe this is the last
-> remaining patch we need.
-> 
-> The only other thing I can think of are the conflicts with
-> CONFIG_CPU_32v6K, on early ARM1136 and later ARM11 systems if somebody
-> wants to compile a kernel that supports both. But that's not needed for
-> omap2, so we can boot now omap2, 3 and 4 with a single defconfig :)
+On Tue, Sep 21, 2010 at 9:33 PM, Igor Grinberg <grinberg@compulab.co.il=
+> wrote:
+> add support for hsusb host ports 1, 2 and on-module usb hub.
+>
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> ---
+> =A0arch/arm/mach-omap2/board-cm-t3517.c | =A0 50 ++++++++++++++++++++=
+++++++++++++++
 
-Here's an updated version with a typo fix s/fluch/flush/ from Anand.
+=2E..
 
-Regards,
+> @@ -100,6 +102,47 @@ static void __init cm_t3517_init_rtc(void)
+> =A0static inline void cm_t3517_init_rtc(void) {}
+> =A0#endif
+>
+> +#if defined(CONFIG_USB_EHCI_HCD) || defined(CONFIG_USB_EHCI_HCD_MODU=
+LE)
 
-Tony
+Hi Igor,
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 20 Sep 2010 16:37:16 -0700
-Subject: [PATCH] ARM: Handle __flush_icache_all for CONFIG_SMP_ON_UP
 
-Do this by adding flush_icache_all to cache_fns for ARMv6 and 7.
-As flush_icache_all may neeed to be called from flush_kern_cache_all,
-add it as the first entry in the cache_fns.
+Do we really need to make these conditional on the driver being built?
 
-Note that now we can remove the ARM_ERRATA_411920 dependency
-to !SMP so it can be selected on UP ARMv6 processors, such
-as omap2.
+The hardware is present on the board at all times, right?
+It should be okay to execute this code independent of whether
+the driver is built or not. The device registration can be unconditiona=
+l
+and if there is no driver present, we won't probe anyway.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+(I see some similar logic in usb-ehci.c - probably a good idea to remov=
+e
+it as well).
 
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1017,7 +1017,7 @@ endif
- 
- config ARM_ERRATA_411920
- 	bool "ARM errata: Invalidation of the Instruction Cache operation can fail"
--	depends on CPU_V6 && !SMP
-+	depends on CPU_V6
- 	help
- 	  Invalidation of the Instruction Cache operation can
- 	  fail. This erratum is present in 1136 (before r1p4), 1156 and 1176.
---- a/arch/arm/include/asm/cacheflush.h
-+++ b/arch/arm/include/asm/cacheflush.h
-@@ -156,6 +156,12 @@
-  *	Please note that the implementation of these, and the required
-  *	effects are cache-type (VIVT/VIPT/PIPT) specific.
-  *
-+ *	flush_icache_all()
-+ *
-+ *		Unconditionally clean and invalidate the entire icache.
-+ *		Currently only needed for cache-v6.S and cache-v7.S, see
-+ *		__flush_icache_all for the generic implementation.
-+ *
-  *	flush_kern_all()
-  *
-  *		Unconditionally clean and invalidate the entire cache.
-@@ -206,6 +212,7 @@
-  */
- 
- struct cpu_cache_fns {
-+	void (*flush_icache_all)(void);
- 	void (*flush_kern_all)(void);
- 	void (*flush_user_all)(void);
- 	void (*flush_user_range)(unsigned long, unsigned long, unsigned int);
-@@ -227,6 +234,7 @@ struct cpu_cache_fns {
- 
- extern struct cpu_cache_fns cpu_cache;
- 
-+#define __cpuc_flush_icache_all		cpu_cache.flush_icache_all
- #define __cpuc_flush_kern_all		cpu_cache.flush_kern_all
- #define __cpuc_flush_user_all		cpu_cache.flush_user_all
- #define __cpuc_flush_user_range		cpu_cache.flush_user_range
-@@ -246,6 +254,7 @@ extern struct cpu_cache_fns cpu_cache;
- 
- #else
- 
-+#define __cpuc_flush_icache_all		__glue(_CACHE,_flush_icache_all)
- #define __cpuc_flush_kern_all		__glue(_CACHE,_flush_kern_cache_all)
- #define __cpuc_flush_user_all		__glue(_CACHE,_flush_user_cache_all)
- #define __cpuc_flush_user_range		__glue(_CACHE,_flush_user_cache_range)
-@@ -253,6 +262,7 @@ extern struct cpu_cache_fns cpu_cache;
- #define __cpuc_coherent_user_range	__glue(_CACHE,_coherent_user_range)
- #define __cpuc_flush_dcache_area	__glue(_CACHE,_flush_kern_dcache_area)
- 
-+extern void __cpuc_flush_icache_all(void);
- extern void __cpuc_flush_kern_all(void);
- extern void __cpuc_flush_user_all(void);
- extern void __cpuc_flush_user_range(unsigned long, unsigned long, unsigned int);
-@@ -291,6 +301,37 @@ extern void copy_to_user_page(struct vm_area_struct *, struct page *,
- /*
-  * Convert calls to our calling convention.
-  */
-+
-+/* Invalidate I-cache */
-+#define __flush_icache_all_generic()					\
-+	asm("mcr	p15, 0, %0, c7, c5, 0"				\
-+	    : : "r" (0));
-+
-+/* Invalidate I-cache inner shareable */
-+#define __flush_icache_all_v7_smp()					\
-+	asm("mcr	p15, 0, %0, c7, c1, 0"				\
-+	    : : "r" (0));
-+
-+/*
-+ * Optimized __flush_icache_all for the common cases. Note that UP ARMv7
-+ * will fall through to use __flush_icache_all_generic.
-+ */
-+#if (defined(CONFIG_CPU_V7) && defined(CONFIG_CPU_V6)) ||		\
-+	defined(CONFIG_SMP_ON_UP)
-+#define __flush_icache_preferred	__cpuc_flush_icache_all
-+#elif __LINUX_ARM_ARCH__ >= 7 && defined(CONFIG_SMP)
-+#define __flush_icache_preferred	__flush_icache_all_v7_smp
-+#elif __LINUX_ARM_ARCH__ == 6 && defined(CONFIG_ARM_ERRATA_411920)
-+#define __flush_icache_preferred	__cpuc_flush_icache_all
-+#else
-+#define __flush_icache_preferred	__flush_icache_all_generic
-+#endif
-+
-+static inline void __flush_icache_all(void)
-+{
-+	__flush_icache_preferred();
-+}
-+
- #define flush_cache_all()		__cpuc_flush_kern_all()
- 
- static inline void vivt_flush_cache_mm(struct mm_struct *mm)
-@@ -366,21 +407,6 @@ extern void flush_cache_page(struct vm_area_struct *vma, unsigned long user_addr
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
- extern void flush_dcache_page(struct page *);
- 
--static inline void __flush_icache_all(void)
--{
--#ifdef CONFIG_ARM_ERRATA_411920
--	extern void v6_icache_inval_all(void);
--	v6_icache_inval_all();
--#elif defined(CONFIG_SMP) && __LINUX_ARM_ARCH__ >= 7
--	asm("mcr	p15, 0, %0, c7, c1, 0	@ invalidate I-cache inner shareable\n"
--	    :
--	    : "r" (0));
--#else
--	asm("mcr	p15, 0, %0, c7, c5, 0	@ invalidate I-cache\n"
--	    :
--	    : "r" (0));
--#endif
--}
- static inline void flush_kernel_vmap_range(void *addr, int size)
- {
- 	if ((cache_is_vivt() || cache_is_vipt_aliasing()))
---- a/arch/arm/mm/cache-v6.S
-+++ b/arch/arm/mm/cache-v6.S
-@@ -21,18 +21,22 @@
- #define D_CACHE_LINE_SIZE	32
- #define BTB_FLUSH_SIZE		8
- 
--#ifdef CONFIG_ARM_ERRATA_411920
- /*
-- * Invalidate the entire I cache (this code is a workaround for the ARM1136
-- * erratum 411920 - Invalidate Instruction Cache operation can fail. This
-- * erratum is present in 1136, 1156 and 1176. It does not affect the MPCore.
-+ *	v6_flush_icache_all()
-+ *
-+ *	Flush the whole I-cache.
-  *
-- * Registers:
-- *   r0 - set to 0
-- *   r1 - corrupted
-+ *	ARM1136 erratum 411920 - Invalidate Instruction Cache operation can fail.
-+ *	This erratum is present in 1136, 1156 and 1176. It does not affect the
-+ *	MPCore.
-+ *
-+ *	Registers:
-+ *	r0 - set to 0
-+ *	r1 - corrupted
-  */
--ENTRY(v6_icache_inval_all)
-+ENTRY(v6_flush_icache_all)
- 	mov	r0, #0
-+#ifdef CONFIG_ARM_ERRATA_411920
- 	mrs	r1, cpsr
- 	cpsid	ifa				@ disable interrupts
- 	mcr	p15, 0, r0, c7, c5, 0		@ invalidate entire I-cache
-@@ -43,8 +47,11 @@ ENTRY(v6_icache_inval_all)
- 	.rept	11				@ ARM Ltd recommends at least
- 	nop					@ 11 NOPs
- 	.endr
--	mov	pc, lr
-+#else
-+	mcr	p15, 0, r0, c7, c5, 0		@ invalidate I-cache
- #endif
-+	mov	pc, lr
-+ENDPROC(v6_flush_icache_all)
- 
- /*
-  *	v6_flush_cache_all()
-@@ -60,7 +67,7 @@ ENTRY(v6_flush_kern_cache_all)
- #ifndef CONFIG_ARM_ERRATA_411920
- 	mcr	p15, 0, r0, c7, c5, 0		@ I+BTB cache invalidate
- #else
--	b	v6_icache_inval_all
-+	b	v6_flush_icache_all
- #endif
- #else
- 	mcr	p15, 0, r0, c7, c15, 0		@ Cache clean+invalidate
-@@ -138,7 +145,7 @@ ENTRY(v6_coherent_user_range)
- #ifndef CONFIG_ARM_ERRATA_411920
- 	mcr	p15, 0, r0, c7, c5, 0		@ I+BTB cache invalidate
- #else
--	b	v6_icache_inval_all
-+	b	v6_flush_icache_all
- #endif
- #else
- 	mcr	p15, 0, r0, c7, c5, 6		@ invalidate BTB
-@@ -312,6 +319,7 @@ ENDPROC(v6_dma_unmap_area)
- 
- 	.type	v6_cache_fns, #object
- ENTRY(v6_cache_fns)
-+	.long	v6_flush_icache_all
- 	.long	v6_flush_kern_cache_all
- 	.long	v6_flush_user_cache_all
- 	.long	v6_flush_user_cache_range
---- a/arch/arm/mm/cache-v7.S
-+++ b/arch/arm/mm/cache-v7.S
-@@ -18,6 +18,21 @@
- #include "proc-macros.S"
- 
- /*
-+ *	v7_flush_icache_all()
-+ *
-+ *	Flush the whole I-cache.
-+ *
-+ *	Registers:
-+ *	r0 - set to 0
-+ */
-+ENTRY(v7_flush_icache_all)
-+	mov	r0, #0
-+	ALT_SMP(mcr	p15, 0, r0, c7, c1, 0)		@ invalidate I-cache inner shareable
-+	ALT_UP(mcr	p15, 0, r0, c7, c5, 0)		@ I+BTB cache invalidate
-+	mov	pc, lr
-+ENDPROC(v7_flush_icache_all)
-+
-+/*
-  *	v7_flush_dcache_all()
-  *
-  *	Flush the whole D-cache.
-@@ -303,6 +318,7 @@ ENDPROC(v7_dma_unmap_area)
- 
- 	.type	v7_cache_fns, #object
- ENTRY(v7_cache_fns)
-+	.long	v7_flush_icache_all
- 	.long	v7_flush_kern_cache_all
- 	.long	v7_flush_user_cache_all
- 	.long	v7_flush_user_cache_range
+- Anand
+
+> +#define HSUSB1_RESET_GPIO =A0 =A0 =A0(146)
+> +#define HSUSB2_RESET_GPIO =A0 =A0 =A0(147)
+> +#define USB_HUB_RESET_GPIO =A0 =A0 (152)
+> +
+> +static struct ehci_hcd_omap_platform_data cm_t3517_ehci_pdata __init=
+data =3D {
+> + =A0 =A0 =A0 .port_mode[0] =3D EHCI_HCD_OMAP_MODE_PHY,
+> + =A0 =A0 =A0 .port_mode[1] =3D EHCI_HCD_OMAP_MODE_PHY,
+> + =A0 =A0 =A0 .port_mode[2] =3D EHCI_HCD_OMAP_MODE_UNKNOWN,
+> +
+> + =A0 =A0 =A0 .phy_reset =A0=3D true,
+> + =A0 =A0 =A0 .reset_gpio_port[0] =A0=3D HSUSB1_RESET_GPIO,
+> + =A0 =A0 =A0 .reset_gpio_port[1] =A0=3D HSUSB2_RESET_GPIO,
+> + =A0 =A0 =A0 .reset_gpio_port[2] =A0=3D -EINVAL,
+> +};
+> +
+> +static int cm_t3517_init_usbh(void)
+> +{
+> + =A0 =A0 =A0 int err;
+> +
+> + =A0 =A0 =A0 err =3D gpio_request(USB_HUB_RESET_GPIO, "usb hub rst")=
+;
+> + =A0 =A0 =A0 if (err) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("CM-T3517: usb hub rst gpio requ=
+est failed: %d\n", err);
+> + =A0 =A0 =A0 } else {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_direction_output(USB_HUB_RESET_GPI=
+O, 0);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 udelay(10);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 gpio_set_value(USB_HUB_RESET_GPIO, 1);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 msleep(1);
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 usb_ehci_init(&cm_t3517_ehci_pdata);
+> +
+> + =A0 =A0 =A0 return 0;
+> +}
+> +#else
+> +static inline int cm_t3517_init_usbh(void)
+> +{
+> + =A0 =A0 =A0 return 0;
+> +}
+> +#endif
+> +
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
