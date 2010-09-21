@@ -1,139 +1,85 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/11] OMAP: Serial: Add omap-serial driver with platform support
-Date: Tue, 21 Sep 2010 13:05:57 -0700
-Message-ID: <87lj6uj1zu.fsf@deeprootsystems.com>
-References: <13965.10.24.255.18.1284739547.squirrel@dbdmail.itg.ti.com>
-	<87tylorl9i.fsf@deeprootsystems.com>
-	<AANLkTik-+RC7y=dJnDdxzrqMFnTzRV-j8s5FtmMy8ZhE@mail.gmail.com>
-	<87wrqg2xog.fsf@deeprootsystems.com>
-	<AANLkTinqiknLaBmMj17fi31TsZ+eaSkCcgd-wbQvMpz-@mail.gmail.com>
+Subject: Re: [PATCH] OMAP: hwmod: Enable module wakeup if in smartidle
+Date: Tue, 21 Sep 2010 13:09:32 -0700
+Message-ID: <878w2uj1tv.fsf@deeprootsystems.com>
+References: <1285079310-15888-1-git-send-email-rnayak@ti.com>
+	<alpine.DEB.2.00.1009211400460.4677@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinqiknLaBmMj17fi31TsZ+eaSkCcgd-wbQvMpz-@mail.gmail.com>
-	(Govindraj's message of "Tue, 21 Sep 2010 21:07:29 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:61266 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751131Ab0IUUJf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 16:09:35 -0400
+Received: by pxi10 with SMTP id 10so1556967pxi.19
+        for <linux-omap@vger.kernel.org>; Tue, 21 Sep 2010 13:09:35 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1009211400460.4677@utopia.booyaka.com> (Paul
+	Walmsley's message of "Tue, 21 Sep 2010 14:02:48 -0600 (MDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, Partha Basak <p-basak2@ti.com>, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>
 
-Govindraj <govindraj.ti@gmail.com> writes:
+Paul Walmsley <paul@pwsan.com> writes:
 
-> <SNIP>
+> Hi Rajendra,
 >
->>>>> Also the patch series updates various low level platform specific
->>>>> serial data to support omap-uarts with hwmod framework and adds s=
-upport
->>>>> for uart4 on OMAP3630.
->>>>
->>>> This series is missing a couple things to work more broadly on all
->>>> boards, specifically 3630-based boards.
->>>>
->>>> First, due to the current UART idle code base, you need to enable =
-all
->>>> OMAP UARTs 36xx. =A0Enabling less than all OMAP UARTs will break t=
-he
->>>> current idle code. =A0As we discussed, the next phase we will move=
- the
->>>> idle management from this serial.c hackery into the omap-serial dr=
-iver
->>>> iteself. =A0Until then, you need to call omap_serial_init() on
->>>> Zoom2/Zoom3. =A0Patch below[1]
->>>>
->>>> Also, you previously had a patch that updated omap_uart_idle_init(=
-) to
->>>> handle 36xx and specifically UART4. =A0Without that, struct
->>>> omap_uart_state is not setup correctly for UART4, and thus cannot =
-be
->>>> properly idled on 3630.
->>>
->>> ok fine, I will I incorporate initialize all uarts patch for zoom b=
-oards.
->>>
->>> Are you referring to this patch?
->>> https://patchwork.kernel.org/patch/108066/
->>>
->>> Is this still needed if we have initialized all uarts?
->>> This patch might not needed if we have initialized all uarts right?
->>
->> Right. =A0We don't need the above patchwork patch if all UARTs are
->> initialized.
->>
->> The other patch I was referring to was the one that added UART4 supp=
-ort
->> to omap_uart_idle_init() (added the wk_en, wk_st, padconf etc.) =A0I=
- had a
->> pending request for you to drop the muxmode from that patch, but the
->> rest of it was still needed.
->>
->>>>
->>>> Also, it's been a while since I tested this on OMAP2. =A0Please re=
--test on
->>>> OMAP2 with the whole series. =A0Also, please report here the other
->>>> platforms this was tested on. =A0The final needs to be tested on O=
-MAP2, 3
->>>> and 4 before merge.
->>>
->>> Yes Sure,
->>>
->>> Just FYI this patch series was also tested on omap2,3,4.
->>>
->>
->> OK, be sure to test Zoom3, because my testing on Zoom3 led to a cras=
-h as
->> soon as idle was enabled due to the missing init of all UARTs.
+> On Tue, 21 Sep 2010, Rajendra Nayak wrote:
+>
+>> If a module's OCP slave port is programmed to be in smartidle,
+>> its also necessary that they have module level wakeup enabled.
+>> Update _sysc_enable in hwmod framework to do this.
+>
+> Thanks, queued for 2.6.37 with a slightly modified changelog.  One br=
+ief=20
+> comment:
+>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> Signed-off-by: Partha Basak <p-basak2@ti.com>
+>> Signed-off-by: Beno????t Cousson <b-cousson@ti.com>
+>
+> Looks like something in your mail path is mangling 8-bit characters..=
+=2E=20
+> fixed in the queued version.
 >
 >
-> This patch series applied on top of pm-core branch
+> - Paul
 >
-> commit 4c1f85cdc189d41ee53c1bc3957a908c91cffc00
-> Merge: ca1684b 96c4e27
-> Author: Kevin Hilman <khilman@deeprootsystems.com>
-> Date:   Thu Sep 16 15:29:06 2010 -0700
 >
-> with below changes:
+> From: Rajendra Nayak <rnayak@ti.com>
+> Date: Tue, 21 Sep 2010 19:58:30 +0530
+> Subject: [PATCH] OMAP: hwmod: Enable module wakeup if in smartidle
+> MIME-Version: 1.0
+> Content-Type: text/plain; charset=3DUTF-8
+> Content-Transfer-Encoding: 8bit
 >
-> 1) if (uart->timeout)
->                 uart->timeout =3D (30 * HZ);
+> If a module's OCP slave port is programmed to be in smartidle,
+> its also necessary that they have module level wakeup enabled.
+> Update _sysc_enable in hwmod framework to do this.
 >
-> 2) #define DEFAULT_TIMEOUT 5 [temporary change for timeout]
-
-Doing this masks the problem.  If you do 1 without 2, you'll see that
-UART4 can never go idle.
-
-Please test without this change and use the sysfs files to enable the
-timeouts:
-
-  echo 5 > /sys/devices/platform/omap/omap-hsuart.0/sleep_timeout=20
-  echo 5 > /sys/devices/platform/omap/omap-hsuart.1/sleep_timeout=20
-  echo 5 > /sys/devices/platform/omap/omap-hsuart.2/sleep_timeout=20
-  echo 5 > /sys/devices/platform/omap/omap-hsuart.3/sleep_timeout=20
-
-> I see ret count getting incremented on ZOOM3 even without "UART4 supp=
-ort
-> to omap_uart_idle_init()" patch.
+> The thread "[PATCH 7/8] : Hwmod api changes" archived here:
 >
-> I dont see any crash.
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34212.html
+>
+> has additional technical information on the rationale of this patch.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Partha Basak <p-basak2@ti.com>
+> Signed-off-by: Beno=EEt Cousson <b-cousson@ti.com>
+> [paul@pwsan.com: revised patch description]
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-It has to do more than not crash for this to be acceptable.   All UARTs
-need to have the same capabilities.
+=46WIW
 
-Currently, UART4 has no padconf, wk_en, or wk_st fields set.  This mean=
-s
-1) it's sysfs entry  doesn't get a 'sleep_timeout' file so it cannot be
-made changed and 2) wakeups on UART4 cannot work.
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-As I said before, you had all this stuff in a previous series.  I only
-requested you drop the 'muxmode' stuff from that patch, but everything
-else (padconf, wk_en, wk_st) was fine.
-
-Please add this back to the series.
+as I'm using this for testing the various hwmod conversions.
 
 Kevin
-
 --
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
