@@ -1,253 +1,279 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v3 4/5] OMAP: I2C: split device registration and convert OMAP2+ to omap_device
-Date: Tue, 21 Sep 2010 19:37:15 +0530
-Message-ID: <1285078036-12789-5-git-send-email-rnayak@ti.com>
+From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 3/5] OMAP4: hwmod: add I2C hwmods for OMAP4430
+Date: Tue, 21 Sep 2010 19:37:14 +0530
+Message-ID: <1285078036-12789-4-git-send-email-rnayak@ti.com>
 References: <1285078036-12789-1-git-send-email-rnayak@ti.com>
  <1285078036-12789-2-git-send-email-rnayak@ti.com>
  <1285078036-12789-3-git-send-email-rnayak@ti.com>
- <1285078036-12789-4-git-send-email-rnayak@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55753 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521Ab0IUOHy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 10:07:54 -0400
-In-Reply-To: <1285078036-12789-4-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1285078036-12789-3-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, ben-linux@fluff.org, khali@linux-fr.org, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+Add hwmod structures for I2C controllers on OMAP4430.
 
-Split the OMAP1 and OMAP2+ platform_device build and register code.
-Convert the OMAP2+ variant to use omap_device.
-
-This patch was developed in collaboration with Rajendra Nayak
-<rnayak@ti.com>.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/plat-omap/i2c.c |  124 ++++++++++++++++++----------------------------
- include/linux/i2c-omap.h |    5 ++
- 2 files changed, 54 insertions(+), 75 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  237 ++++++++++++++++++++++++++++
+ 1 files changed, 237 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index a5ce4f0..a5bff9c 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -27,18 +27,18 @@
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
- #include <linux/i2c-omap.h>
-+#include <linux/slab.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
- 
- #include <mach/irqs.h>
- #include <plat/mux.h>
- #include <plat/i2c.h>
- #include <plat/omap-pm.h>
-+#include <plat/omap_device.h>
- 
- #define OMAP_I2C_SIZE		0x3f
- #define OMAP1_I2C_BASE		0xfffb3800
--#define OMAP2_I2C_BASE1		0x48070000
--#define OMAP2_I2C_BASE2		0x48072000
--#define OMAP2_I2C_BASE3		0x48060000
--#define OMAP4_I2C_BASE4		0x48350000
- 
- static const char name[] = "i2c_omap";
- 
-@@ -55,15 +55,6 @@ static const char name[] = "i2c_omap";
- 
- static struct resource i2c_resources[][2] = {
- 	{ I2C_RESOURCE_BUILDER(0, 0) },
--#if	defined(CONFIG_ARCH_OMAP2PLUS)
--	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, 0) },
--#endif
--#if	defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
--	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, 0) },
--#endif
--#if	defined(CONFIG_ARCH_OMAP4)
--	{ I2C_RESOURCE_BUILDER(OMAP4_I2C_BASE4, 0) },
--#endif
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index e20b0ee..2cb63fc 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -383,6 +383,238 @@ static struct omap_hwmod omap44xx_l4_wkup_hwmod = {
  };
  
- #define I2C_DEV_BUILDER(bus_id, res, data)		\
-@@ -77,18 +68,11 @@ static struct resource i2c_resources[][2] = {
- 		},					\
- 	}
- 
--static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
-+#define MAX_OMAP_I2C_HWMOD_NAME_LEN	16
-+#define OMAP_I2C_MAX_CONTROLLERS 4
-+static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
- static struct platform_device omap_i2c_devices[] = {
- 	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
--#if	defined(CONFIG_ARCH_OMAP2PLUS)
--	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
--#endif
--#if	defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
--	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
--#endif
--#if	defined(CONFIG_ARCH_OMAP4)
--	I2C_DEV_BUILDER(4, i2c_resources[3], &i2c_pdata[3]),
--#endif
- };
- 
- #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
-@@ -109,35 +93,20 @@ static int __init omap_i2c_nr_ports(void)
- 	return ports;
- }
- 
--/* Shared between omap2 and 3 */
--static resource_size_t omap2_i2c_irq[3] __initdata = {
--	INT_24XX_I2C1_IRQ,
--	INT_24XX_I2C2_IRQ,
--	INT_34XX_I2C3_IRQ,
--};
--
--static resource_size_t omap4_i2c_irq[4] __initdata = {
--	OMAP44XX_IRQ_I2C1,
--	OMAP44XX_IRQ_I2C2,
--	OMAP44XX_IRQ_I2C3,
--	OMAP44XX_IRQ_I2C4,
--};
--
--static inline int omap1_i2c_add_bus(struct platform_device *pdev, int bus_id)
-+static inline int omap1_i2c_add_bus(int bus_id)
- {
--	struct omap_i2c_bus_platform_data *pd;
--	struct resource *res;
--
--	pd = pdev->dev.platform_data;
--	res = pdev->resource;
--	res[0].start = OMAP1_I2C_BASE;
--	res[0].end = res[0].start + OMAP_I2C_SIZE;
--	res[1].start = INT_I2C;
-+	struct platform_device *pdev;
-+	struct omap_i2c_bus_platform_data *pdata;
-+
- 	omap1_i2c_mux_pins(bus_id);
- 
-+	pdev = &omap_i2c_devices[bus_id - 1];
-+	pdata = &i2c_pdata[bus_id - 1];
-+
- 	return platform_device_register(pdev);
- }
- 
-+
  /*
-  * XXX This function is a temporary compatibility wrapper - only
-  * needed until the I2C driver can be converted to call
-@@ -148,52 +117,57 @@ static void omap_pm_set_max_mpu_wakeup_lat_compat(struct device *dev, long t)
- 	omap_pm_set_max_mpu_wakeup_lat(dev, t);
- }
- 
--static inline int omap2_i2c_add_bus(struct platform_device *pdev, int bus_id)
--{
--	struct resource *res;
--	resource_size_t *irq;
-+static struct omap_device_pm_latency omap_i2c_latency[] = {
-+	[0] = {
-+		.deactivate_func	= omap_device_idle_hwmods,
-+		.activate_func		= omap_device_enable_hwmods,
-+		.flags			= OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++ * 'i2c' class
++ * multimaster high-speed i2c controller
++ */
++
++static struct omap_hwmod_class_sysconfig omap44xx_i2c_sysc = {
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0090,
++	.sysc_flags	= (SYSC_HAS_ENAWAKEUP | SYSC_HAS_SIDLEMODE |
++			   SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_SOFTRESET |
++			   SYSC_HAS_AUTOIDLE),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
++	.name = "i2c",
++	.sysc = &omap44xx_i2c_sysc,
++};
++
++/* i2c1 */
++static struct omap_hwmod omap44xx_i2c1_hwmod;
++static struct omap_hwmod_irq_info omap44xx_i2c1_irqs[] = {
++	{ .irq = 56 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_i2c1_sdma_reqs[] = {
++	{ .name = "tx", .dma_req = 26 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx", .dma_req = 27 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_i2c1_addrs[] = {
++	{
++		.pa_start	= 0x48070000,
++		.pa_end		= 0x480700ff,
++		.flags		= ADDR_TYPE_RT
 +	},
 +};
- 
--	res = pdev->resource;
-+static inline int omap2_i2c_add_bus(int bus_id)
-+{
-+	int l;
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+	char oh_name[MAX_OMAP_I2C_HWMOD_NAME_LEN];
-+	struct omap_i2c_bus_platform_data *pdata;
- 
--	if (!cpu_is_omap44xx())
--		irq = omap2_i2c_irq;
--	else
--		irq = omap4_i2c_irq;
-+	omap2_i2c_mux_pins(bus_id);
- 
--	if (bus_id == 1) {
--		res[0].start = OMAP2_I2C_BASE1;
--		res[0].end = res[0].start + OMAP_I2C_SIZE;
-+	l = snprintf(oh_name, MAX_OMAP_I2C_HWMOD_NAME_LEN, "i2c%d", bus_id);
-+	WARN(l >= MAX_OMAP_I2C_HWMOD_NAME_LEN,
-+		"String buffer overflow in I2C%d device setup\n", bus_id);
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+			pr_err("Could not look up %s\n", oh_name);
-+			return -EEXIST;
- 	}
- 
--	res[1].start = irq[bus_id - 1];
--	omap2_i2c_mux_pins(bus_id);
--
-+	pdata = &i2c_pdata[bus_id - 1];
- 	/*
- 	 * When waiting for completion of a i2c transfer, we need to
- 	 * set a wake up latency constraint for the MPU. This is to
- 	 * ensure quick enough wakeup from idle, when transfer
- 	 * completes.
-+	 * Only omap3 has support for constraints
- 	 */
--	if (cpu_is_omap34xx()) {
--		struct omap_i2c_bus_platform_data *pd;
--
--		pd = pdev->dev.platform_data;
--		pd->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
--	}
--
--	return platform_device_register(pdev);
-+	if (cpu_is_omap34xx())
-+		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
-+	od = omap_device_build(name, bus_id, oh, pdata,
-+			sizeof(struct omap_i2c_bus_platform_data),
-+			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
-+	WARN(IS_ERR(od), "Could not build omap_device for %s\n", name);
 +
-+	return PTR_ERR(od);
- }
- 
- static int __init omap_i2c_add_bus(int bus_id)
- {
--	struct platform_device *pdev;
--
--	pdev = &omap_i2c_devices[bus_id - 1];
--
- 	if (cpu_class_is_omap1())
--		return omap1_i2c_add_bus(pdev, bus_id);
-+		return omap1_i2c_add_bus(bus_id);
- 	else
--		return omap2_i2c_add_bus(pdev, bus_id);
-+		return omap2_i2c_add_bus(bus_id);
- }
- 
- /**
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-index 78ebf50..7472449 100644
---- a/include/linux/i2c-omap.h
-+++ b/include/linux/i2c-omap.h
-@@ -1,9 +1,14 @@
- #ifndef __I2C_OMAP_H__
- #define __I2C_OMAP_H__
- 
-+#include <linux/platform_device.h>
++/* l4_per -> i2c1 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__i2c1 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_i2c1_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_i2c1_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_i2c1_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
 +
- struct omap_i2c_bus_platform_data {
- 	u32		clkrate;
- 	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
-+	int		(*device_enable) (struct platform_device *pdev);
-+	int		(*device_shutdown) (struct platform_device *pdev);
-+	int		(*device_idle) (struct platform_device *pdev);
- };
++/* i2c1 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_i2c1_slaves[] = {
++	&omap44xx_l4_per__i2c1,
++};
++
++static struct omap_hwmod omap44xx_i2c1_hwmod = {
++	.name		= "i2c1",
++	.class		= &omap44xx_i2c_hwmod_class,
++	.flags		= HWMOD_INIT_NO_RESET,
++	.mpu_irqs	= omap44xx_i2c1_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_irqs),
++	.sdma_reqs	= omap44xx_i2c1_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c1_sdma_reqs),
++	.main_clk	= "i2c1_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_I2C1_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_i2c1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c1_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* i2c2 */
++static struct omap_hwmod omap44xx_i2c2_hwmod;
++static struct omap_hwmod_irq_info omap44xx_i2c2_irqs[] = {
++	{ .irq = 57 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_i2c2_sdma_reqs[] = {
++	{ .name = "tx", .dma_req = 28 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx", .dma_req = 29 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_i2c2_addrs[] = {
++	{
++		.pa_start	= 0x48072000,
++		.pa_end		= 0x480720ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> i2c2 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__i2c2 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_i2c2_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_i2c2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_i2c2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* i2c2 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_i2c2_slaves[] = {
++	&omap44xx_l4_per__i2c2,
++};
++
++static struct omap_hwmod omap44xx_i2c2_hwmod = {
++	.name		= "i2c2",
++	.class		= &omap44xx_i2c_hwmod_class,
++	.flags		= HWMOD_INIT_NO_RESET,
++	.mpu_irqs	= omap44xx_i2c2_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_irqs),
++	.sdma_reqs	= omap44xx_i2c2_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c2_sdma_reqs),
++	.main_clk	= "i2c2_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_I2C2_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_i2c2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* i2c3 */
++static struct omap_hwmod omap44xx_i2c3_hwmod;
++static struct omap_hwmod_irq_info omap44xx_i2c3_irqs[] = {
++	{ .irq = 61 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_i2c3_sdma_reqs[] = {
++	{ .name = "tx", .dma_req = 24 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx", .dma_req = 25 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_i2c3_addrs[] = {
++	{
++		.pa_start	= 0x48060000,
++		.pa_end		= 0x480600ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> i2c3 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__i2c3 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_i2c3_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_i2c3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_i2c3_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* i2c3 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_i2c3_slaves[] = {
++	&omap44xx_l4_per__i2c3,
++};
++
++static struct omap_hwmod omap44xx_i2c3_hwmod = {
++	.name		= "i2c3",
++	.class		= &omap44xx_i2c_hwmod_class,
++	.flags		= HWMOD_INIT_NO_RESET,
++	.mpu_irqs	= omap44xx_i2c3_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_irqs),
++	.sdma_reqs	= omap44xx_i2c3_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c3_sdma_reqs),
++	.main_clk	= "i2c3_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_I2C3_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_i2c3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c3_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/* i2c4 */
++static struct omap_hwmod omap44xx_i2c4_hwmod;
++static struct omap_hwmod_irq_info omap44xx_i2c4_irqs[] = {
++	{ .irq = 62 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_dma_info omap44xx_i2c4_sdma_reqs[] = {
++	{ .name = "tx", .dma_req = 123 + OMAP44XX_DMA_REQ_START },
++	{ .name = "rx", .dma_req = 124 + OMAP44XX_DMA_REQ_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_i2c4_addrs[] = {
++	{
++		.pa_start	= 0x48350000,
++		.pa_end		= 0x483500ff,
++		.flags		= ADDR_TYPE_RT
++	},
++};
++
++/* l4_per -> i2c4 */
++static struct omap_hwmod_ocp_if omap44xx_l4_per__i2c4 = {
++	.master		= &omap44xx_l4_per_hwmod,
++	.slave		= &omap44xx_i2c4_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_i2c4_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_i2c4_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* i2c4 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_i2c4_slaves[] = {
++	&omap44xx_l4_per__i2c4,
++};
++
++static struct omap_hwmod omap44xx_i2c4_hwmod = {
++	.name		= "i2c4",
++	.class		= &omap44xx_i2c_hwmod_class,
++	.flags		= HWMOD_INIT_NO_RESET,
++	.mpu_irqs	= omap44xx_i2c4_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_irqs),
++	.sdma_reqs	= omap44xx_i2c4_sdma_reqs,
++	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_i2c4_sdma_reqs),
++	.main_clk	= "i2c4_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_L4PER_I2C4_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_i2c4_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_i2c4_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
++/*
+  * 'mpu_bus' class
+  * instance(s): mpu_private
+  */
+@@ -467,6 +699,11 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_l4_cfg_hwmod,
+ 	&omap44xx_l4_per_hwmod,
+ 	&omap44xx_l4_wkup_hwmod,
++	/* i2c class */
++	&omap44xx_i2c1_hwmod,
++	&omap44xx_i2c2_hwmod,
++	&omap44xx_i2c3_hwmod,
++	&omap44xx_i2c4_hwmod,
+ 	/* mpu_bus class */
+ 	&omap44xx_mpu_private_hwmod,
  
- #endif
 -- 
 1.5.4.7
-
