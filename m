@@ -1,62 +1,95 @@
-From: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>
-Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
-Date: Tue, 21 Sep 2010 11:27:12 +0100
-Message-ID: <4C988880.4060609@jic23.retrosnub.co.uk>
-References: <61033.10.24.255.18.1283926671.squirrel@dbdmail.itg.ti.com> <4C877584.7000902@jic23.retrosnub.co.uk> <20100914080003.GD15167@core.coreip.homeip.net> <4C8F7429.1080105@jic23.retrosnub.co.uk> <007601cb5950$55d52980$LocalHost@wipblrx0099946>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
+Date: Tue, 21 Sep 2010 17:19:30 +0530
+Message-ID: <1285069770-4261-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <007601cb5950$55d52980$LocalHost@wipblrx0099946>
 Sender: linux-input-owner@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-input@vger.kernel.org, Dmitry Torokhov <dtor@mail.ru>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 09/21/10 06:46, Hemanth V wrote:
-> ----- Original Message ----- From: "Jonathan Cameron" <kernel@jic23.retrosnub.co.uk>
-> To: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-> Cc: "Hemanth V" <hemanthv@ti.com>; <linux-input@vger.kernel.org>; <linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>
-> Sent: Tuesday, September 14, 2010 6:40 PM
-> Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
-> 
-> 
->> On 09/14/10 09:00, Dmitry Torokhov wrote:
->>> On Wed, Sep 08, 2010 at 12:37:40PM +0100, Jonathan Cameron wrote:
->>>>
->>>> I'm happy to see your driver go in as it is currently, what bothers me is that we will end
->>>> up with incompatible interfaces for all the accelerometers Dmitry takes!
->>>>
->>>
->>> This is a valid concern. How about I chicken out and will not merge any
->>> new sysfs knobs until you guys decide on reasonable interface? Most set
->>> up is done by board code anyways, sysfs is more of nice-to-have?
->> Hemanth, would removing the sysfs hooks from this driver be ok with you?
->> I'd personally have favoured a merge, add new interfaces when agreed and
->> deprecate old ones approach, but it is Dmitry's call.  Perhaps it is better
->> to get the majority of the device functionality in place now and add
->> the bells and whistles later.
->>
->> For input device things are probably mostly fixed for a particular board
->> design.  There are definitely interesting things one can do if the knobs
->> are available but they (I think) mostly fall outside of using the device
->> for input!
->>
-> 
-> Dmitry, Jonathan
-> 
-> I am ok to remove the sysfs entries for now, but would cause some limitations
-> like not being able to change sampling frequency / disabling interrupts runtime.
-> 
-> Wanted to clarify if the intention is to come up with a standard sysfs interface
-> for all accelerometer drivers under input/misc including adxl34x.
-The intent is to come up with an interface covering a much wider range of devices
-if at all possible. I've proposed options for conventional threshold and rate of
-change interrupts on IIO (you were cc'd IIRC). I'll propose those on to lkml shortly
-and suggest that others suggest the interfaces they would like to see added (or
-object to the syntax for the ones I've covered!)
+The failure exit paths seems to be wrong in probe function.
+This patch corrects exit failure paths for error handling
+cases.
 
-To be honest, sampling frequency is much more general and I would imagine applies to
-lots of input drivers.  Do you already have a standard for this Dmitry?
+Boot warning incase of request irq failure:
 
-Jonathan
+[    1.553985] twl4030_keypad twl4030_keypad: request_irq failed for irq no=369
+[    1.561157] ------------[ cut here ]------------
+[    1.565795] WARNING: at kernel/irq/manage.c:899 __free_irq+0x88/0x164()
+[    1.572418] Trying to free already-free IRQ 369
+[    1.576965] Modules linked in:
+[    1.580047] [<c00470ec>] (unwind_backtrace+0x0/0xe4) from [<c0078b5c>] (warn_slowpath_common+0x4c/0x64)
+[    1.589477] [<c0078b5c>] (warn_slowpath_common+0x4c/0x64) from [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c)
+[    1.599060] [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c) from [<c00adb90>] (__free_irq+0x88/0x164)
+[    1.607849] [<c00adb90>] (__free_irq+0x88/0x164) from [<c00adca8>] (free_irq+0x3c/0x5c)
+[    1.615875] [<c00adca8>] (free_irq+0x3c/0x5c) from [<c043ab2c>] (twl4030_kp_probe+0x308/0x374)
+[    1.624511] [<c043ab2c>] (twl4030_kp_probe+0x308/0x374) from [<c023c338>] (platform_drv_probe+0x14/0x18)
+[    1.634033] [<c023c338>] (platform_drv_probe+0x14/0x18) from [<c023b4dc>] (driver_probe_device+0xc8/0x184)
+[    1.643707] [<c023b4dc>] (driver_probe_device+0xc8/0x184) from [<c023b600>] (__driver_attach+0x68/0x8c)
+[    1.653106] [<c023b600>] (__driver_attach+0x68/0x8c) from [<c023ad34>] (bus_for_each_dev+0x48/0x74)
+[    1.662170] [<c023ad34>] (bus_for_each_dev+0x48/0x74) from [<c023a690>] (bus_add_driver+0x9c/0x210)
+[    1.671234] [<c023a690>] (bus_add_driver+0x9c/0x210) from [<c023b8f8>] (driver_register+0xa8/0x134)
+[    1.680297] [<c023b8f8>] (driver_register+0xa8/0x134) from [<c0041340>] (do_one_initcall+0x58/0x1b4)
+[    1.689453] [<c0041340>] (do_one_initcall+0x58/0x1b4) from [<c0008574>] (kernel_init+0x98/0x150)
+[    1.698272] [<c0008574>] (kernel_init+0x98/0x150) from [<c0042970>] (kernel_thread_exit+0x0/0x8)
+[    1.707214] ---[ end trace 6559b322ad3cbdfe ]---
+[    1.718292] twl4030_keypad: probe of twl4030_keypad failed with error -16
+
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Cc: linux-input@vger.kernel.org
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-input@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ version v1 : initial patch
+ version v2 : CC'ed input subsystem and arm kernel mailing lists.
+
+ drivers/input/keyboard/twl4030_keypad.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
+index fb16b5e..39a9f30 100644
+--- a/drivers/input/keyboard/twl4030_keypad.c
++++ b/drivers/input/keyboard/twl4030_keypad.c
+@@ -347,8 +347,7 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
+ 	input = input_allocate_device();
+ 	if (!kp || !input) {
+-		error = -ENOMEM;
+-		goto err1;
++		return -ENOMEM;
+ 	}
+ 
+ 	/* Get the debug Device */
+@@ -406,23 +405,22 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 	if (error) {
+ 		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
+ 			kp->irq);
+-		goto err3;
++		goto err2;
+ 	}
+ 
+ 	/* Enable KP and TO interrupts now. */
+ 	reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
+ 	if (twl4030_kpwrite_u8(kp, reg, KEYP_IMR1)) {
+ 		error = -EIO;
+-		goto err4;
++		goto err3;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, kp);
+ 	return 0;
+ 
+-err4:
++err3:
+ 	/* mask all events - we don't care about the result */
+ 	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
+-err3:
+ 	free_irq(kp->irq, NULL);
+ err2:
+ 	input_unregister_device(input);
+-- 
+1.7.0.4
+
