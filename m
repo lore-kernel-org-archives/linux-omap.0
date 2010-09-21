@@ -1,91 +1,100 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH 2/5] omap3: cm-t3517: add support for v3020 rtc.
-Date: Tue, 21 Sep 2010 18:03:10 +0200
-Message-ID: <1285084993-27683-3-git-send-email-grinberg@compulab.co.il>
+Subject: [PATCH 5/5] omap3: cm-t3517: add support for TI HECC
+Date: Tue, 21 Sep 2010 18:03:13 +0200
+Message-ID: <1285084993-27683-6-git-send-email-grinberg@compulab.co.il>
 References: <1285084993-27683-1-git-send-email-grinberg@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:37422 "EHLO compulab.co.il"
+Received: from compulab.co.il ([67.18.134.219]:37431 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754517Ab0IUQD0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Sep 2010 12:03:26 -0400
+	id S1754517Ab0IUQD3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 12:03:29 -0400
 In-Reply-To: <1285084993-27683-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-add support for v3020 rtc.
+add support for TI HECC.
 
 Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
 ---
- arch/arm/mach-omap2/board-cm-t3517.c |   36 ++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-cm-t3517.c |   45 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 45 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
-index 507d2d5..2b41c6d 100644
+index 4c26cf5..1115b8a 100644
 --- a/arch/arm/mach-omap2/board-cm-t3517.c
 +++ b/arch/arm/mach-omap2/board-cm-t3517.c
-@@ -27,6 +27,7 @@
- #include <linux/platform_device.h>
- #include <linux/gpio.h>
- #include <linux/leds.h>
-+#include <linux/rtc-v3020.h>
+@@ -32,6 +32,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>
++#include <linux/can/platform/ti_hecc.h>
  
  #include <asm/mach-types.h>
  #include <asm/mach/arch.h>
-@@ -69,6 +70,35 @@ static void __init cm_t3517_init_leds(void)
+@@ -44,6 +45,8 @@
+ #include <plat/nand.h>
+ #include <plat/gpmc.h>
+ 
++#include <mach/am35xx.h>
++
+ #include "mux.h"
+ 
+ #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+@@ -77,6 +80,47 @@ static void __init cm_t3517_init_leds(void)
  static inline void cm_t3517_init_leds(void) {}
  #endif
  
-+#if defined(CONFIG_RTC_DRV_V3020) || defined(CONFIG_RTC_DRV_V3020_MODULE)
-+#define RTC_IO_GPIO		(153)
-+#define RTC_WR_GPIO		(154)
-+#define RTC_RD_GPIO		(160)
-+#define RTC_CS_GPIO		(163)
-+
-+struct v3020_platform_data cm_t3517_v3020_pdata = {
-+	.use_gpio	= 1,
-+	.gpio_cs	= RTC_CS_GPIO,
-+	.gpio_wr	= RTC_WR_GPIO,
-+	.gpio_rd	= RTC_RD_GPIO,
-+	.gpio_io	= RTC_IO_GPIO,
++#if defined(CONFIG_CAN_TI_HECC) || defined(CONFIG_CAN_TI_HECC_MODULE)
++static struct resource cm_t3517_hecc_resources[] = {
++	{
++		.start	= AM35XX_IPSS_HECC_BASE,
++		.end	= AM35XX_IPSS_HECC_BASE + SZ_16K - 1,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= INT_35XX_HECC0_IRQ,
++		.end	= INT_35XX_HECC0_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
 +};
 +
-+static struct platform_device cm_t3517_rtc_device = {
-+	.name		= "v3020",
-+	.id		= -1,
++static struct ti_hecc_platform_data cm_t3517_hecc_pdata = {
++	.scc_hecc_offset	= AM35XX_HECC_SCC_HECC_OFFSET,
++	.scc_ram_offset		= AM35XX_HECC_SCC_RAM_OFFSET,
++	.hecc_ram_offset	= AM35XX_HECC_RAM_OFFSET,
++	.mbx_offset		= AM35XX_HECC_MBOX_OFFSET,
++	.int_line		= AM35XX_HECC_INT_LINE,
++	.version		= AM35XX_HECC_VERSION,
++};
++
++static struct platform_device cm_t3517_hecc_device = {
++	.name		= "ti_hecc",
++	.id		= 1,
++	.num_resources	= ARRAY_SIZE(cm_t3517_hecc_resources),
++	.resource	= cm_t3517_hecc_resources,
 +	.dev		= {
-+		.platform_data = &cm_t3517_v3020_pdata,
-+	}
++		.platform_data	= &cm_t3517_hecc_pdata,
++	},
 +};
 +
-+static void __init cm_t3517_init_rtc(void)
++static void cm_t3517_init_hecc(void)
 +{
-+	platform_device_register(&cm_t3517_rtc_device);
++	platform_device_register(&cm_t3517_hecc_device);
 +}
 +#else
-+static inline void cm_t3517_init_rtc(void) {}
++static inline void cm_t3517_init_hecc(void) {}
 +#endif
- 
- static struct omap_board_config_kernel cm_t3517_config[] __initdata = {
- };
-@@ -86,6 +116,11 @@ static void __init cm_t3517_init_irq(void)
- static struct omap_board_mux board_mux[] __initdata = {
- 	/* GPIO186 - Green LED */
- 	OMAP3_MUX(SYS_CLKOUT2, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
-+	/* RTC GPIOs: IO, WR#, RD#, CS# */
-+	OMAP3_MUX(MCBSP4_DR, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP4_DX, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(MCBSP_CLKS, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
-+	OMAP3_MUX(UART3_CTS_RCTX, OMAP_MUX_MODE4 | OMAP_PIN_INPUT),
- 
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
-@@ -95,6 +130,7 @@ static void __init cm_t3517_init(void)
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap_serial_init();
- 	cm_t3517_init_leds();
-+	cm_t3517_init_rtc();
++
+ #if defined(CONFIG_RTC_DRV_V3020) || defined(CONFIG_RTC_DRV_V3020_MODULE)
+ #define RTC_IO_GPIO		(153)
+ #define RTC_WR_GPIO		(154)
+@@ -235,6 +279,7 @@ static void __init cm_t3517_init(void)
+ 	cm_t3517_init_nand();
+ 	cm_t3517_init_rtc();
+ 	cm_t3517_init_usbh();
++	cm_t3517_init_hecc();
  }
  
  MACHINE_START(CM_T3517, "Compulab CM-T3517")
