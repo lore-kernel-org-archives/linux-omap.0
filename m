@@ -1,64 +1,104 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
-Date: Tue, 21 Sep 2010 11:16:25 +0530
-Message-ID: <007601cb5950$55d52980$LocalHost@wipblrx0099946>
-References: <61033.10.24.255.18.1283926671.squirrel@dbdmail.itg.ti.com> <4C877584.7000902@jic23.retrosnub.co.uk> <20100914080003.GD15167@core.coreip.homeip.net> <4C8F7429.1080105@jic23.retrosnub.co.uk>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [PATCH v6 5/7] wl1271: make ref_clock configurable by board
+Date: Tue, 21 Sep 2010 08:51:54 +0300
+Message-ID: <1285048314.17849.20.camel@powerslave>
+References: <1284593511-30052-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: Jonathan Cameron <kernel@jic23.retrosnub.co.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:61439 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752545Ab0IUFwk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 01:52:40 -0400
+In-Reply-To: <1284593511-30052-1-git-send-email-ohad@wizery.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "John W. Linville" <linville@tuxdriver.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Chikkature Rajashekar Madhusudhan <madhu.cr@ti.com>, San Mehat <san@google.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, Ido Yariv <ido@wizery.com>, Kalle Valo <kalle.valo@iki.fi>, Russell King <linux@arm.linux.org.uk>, Vitaly Wool <vitalywool@gmail.com>
 
------ Original Message ----- 
-From: "Jonathan Cameron" <kernel@jic23.retrosnub.co.uk>
-To: "Dmitry Torokhov" <dmitry.torokhov@gmail.com>
-Cc: "Hemanth V" <hemanthv@ti.com>; <linux-input@vger.kernel.org>; 
-<linux-kernel@vger.kernel.org>; <linux-omap@vger.kernel.org>
-Sent: Tuesday, September 14, 2010 6:40 PM
-Subject: Re: [PATCH V3 1/2] input: CMA3000 Accelerometer driver
+On Thu, 2010-09-16 at 01:31 +0200, ext Ohad Ben-Cohen wrote:
+> The wl1271 device is using a reference clock that may change
+> between board to board.
+> 
+> Make the ref_clock parameter configurable by board settings
+> instead of having a hard coded value in the sources.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> ---
+
+Acked-by: Luciano Coelho <luciano.coelho@nokia.com>
+
+With some small cosmetic comments below.
 
 
-> On 09/14/10 09:00, Dmitry Torokhov wrote:
->> On Wed, Sep 08, 2010 at 12:37:40PM +0100, Jonathan Cameron wrote:
->>>
->>> I'm happy to see your driver go in as it is currently, what bothers me 
->>> is that we will end
->>> up with incompatible interfaces for all the accelerometers Dmitry takes!
->>>
->>
->> This is a valid concern. How about I chicken out and will not merge any
->> new sysfs knobs until you guys decide on reasonable interface? Most set
->> up is done by board code anyways, sysfs is more of nice-to-have?
-> Hemanth, would removing the sysfs hooks from this driver be ok with you?
-> I'd personally have favoured a merge, add new interfaces when agreed and
-> deprecate old ones approach, but it is Dmitry's call.  Perhaps it is 
-> better
-> to get the majority of the device functionality in place now and add
-> the bells and whistles later.
->
-> For input device things are probably mostly fixed for a particular board
-> design.  There are definitely interesting things one can do if the knobs
-> are available but they (I think) mostly fall outside of using the device
-> for input!
->
+> diff --git a/drivers/net/wireless/wl12xx/wl1271_boot.c b/drivers/net/wireless/wl12xx/wl1271_boot.c
+> index f36430b..fc21db8 100644
+> --- a/drivers/net/wireless/wl12xx/wl1271_boot.c
+> +++ b/drivers/net/wireless/wl12xx/wl1271_boot.c
+> @@ -457,17 +457,20 @@ int wl1271_boot(struct wl1271 *wl)
+>  {
+>  	int ret = 0;
+>  	u32 tmp, clk, pause;
+> +	int ref_clock = wl->ref_clock;
 
-Dmitry, Jonathan
+I guess you don't need this local ref_clock.  Can't you just use
+wl->ref_clock directly?
 
-I am ok to remove the sysfs entries for now, but would cause some 
-limitations
-like not being able to change sampling frequency / disabling interrupts 
-runtime.
+ 
+>  	wl1271_boot_hw_version(wl);
+>  
+> -	if (REF_CLOCK == 0 || REF_CLOCK == 2 || REF_CLOCK == 4)
+> +	if (ref_clock == 0 || ref_clock == 2 || ref_clock == 4)
+>  		/* ref clk: 19.2/38.4/38.4-XTAL */
+>  		clk = 0x3;
+> -	else if (REF_CLOCK == 1 || REF_CLOCK == 3)
+> +	else if (ref_clock == 1 || ref_clock == 3)
+>  		/* ref clk: 26/52 */
+>  		clk = 0x5;
+> +	else
+> +		return -EINVAL;
+>  
+> -	if (REF_CLOCK != 0) {
+> +	if (ref_clock != 0) {
+>  		u16 val;
+>  		/* Set clock type (open drain) */
+>  		val = wl1271_top_reg_read(wl, OCP_REG_CLK_TYPE);
+> @@ -516,7 +519,7 @@ int wl1271_boot(struct wl1271 *wl)
+>  	wl1271_debug(DEBUG_BOOT, "clk2 0x%x", clk);
+>  
+>  	/* 2 */
+> -	clk |= (REF_CLOCK << 1) << 4;
+> +	clk |= (ref_clock << 1) << 4;
 
-Wanted to clarify if the intention is to come up with a standard sysfs 
-interface
-for all accelerometer drivers under input/misc including adxl34x.
+While you're at it, you could remove this useless /* 2 */ comment from
+here.  This was a reference to TI's reference driver, but the need for
+it is loooong gone. ;)
 
-Thanks
-Hemanth 
+
+> diff --git a/include/linux/wl12xx.h b/include/linux/wl12xx.h
+> index bd70563..95deae3 100644
+> --- a/include/linux/wl12xx.h
+> +++ b/include/linux/wl12xx.h
+> @@ -29,6 +29,7 @@ struct wl12xx_platform_data {
+>  	/* SDIO only: IRQ number if WLAN_IRQ line is used, 0 for SDIO IRQs */
+>  	int irq;
+>  	bool use_eeprom;
+> +	int board_ref_clock;
+
+Could we add a comment here explaining the possible values for ref_clock
+and what they mean?
+
+I guess it's something like this:
+
+0 = 19.2
+1 = 26
+2 = 38.4
+3 = 52
+4 = 38.4 XTAL
+
+
+-- 
+Cheers,
+Luca.
 
