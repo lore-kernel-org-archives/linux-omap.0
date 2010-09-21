@@ -1,112 +1,148 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCHv3 17/17] dmtimer: remove OCP config code from plat-omap
-Date: Tue, 21 Sep 2010 14:26:44 +0530
-Message-ID: <1285059404-26718-1-git-send-email-tarun.kanti@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v6 00/13] OMAP: GPIO: Implement GPIO in hwmod way
+Date: Mon, 20 Sep 2010 17:07:07 -0700
+Message-ID: <87r5goq7ro.fsf@deeprootsystems.com>
+References: <1284819353-8512-1-git-send-email-charu@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48563 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751094Ab0ITVzv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Sep 2010 17:55:51 -0400
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:64990 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755400Ab0IUAHK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Sep 2010 20:07:10 -0400
+Received: by pzk34 with SMTP id 34so1285328pzk.19
+        for <linux-omap@vger.kernel.org>; Mon, 20 Sep 2010 17:07:09 -0700 (PDT)
+In-Reply-To: <1284819353-8512-1-git-send-email-charu@ti.com> (Charulatha
+	Varadarajan's message of "Sat, 18 Sep 2010 19:45:40 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, Partha Basak <p-basak2@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com
 
-This patch removes the ocp config code from omap-plat
-because they are supposed to be taken care of by the
-hwmod framework. Specifically, following changes are
-incorporated:
-(1) setting of smart-idle and wakeup-enable is already
-taken care in existing code and so they are simply removed
-from plat-omap
-(2) clockactivity configuration is not present in the present
-hwmod database. Therefore this filed is initialized to '1' in
-respective database.
+"Varadarajan, Charulatha" <charu@ti.com> writes:
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Signed-off-by: Partha Basak <p-basak2@ti.com>
-Cc: Cousson, Benoit <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    1 +
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    1 +
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    1 +
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
- arch/arm/plat-omap/dmtimer.c               |   11 -----------
- 5 files changed, 4 insertions(+), 11 deletions(-)
+> This patch series makes OMAP2PLUS specific GPIO implemented in hwmod
+> FW way. This is done by implementing GPIO module in platform device model.
+>
+> This patch series is generated on "origin/pm-wip/pm-core" which
+> has Kevin's pm-next series, the runtime PM core patch series,
+> and a collection of hwmod fixes that Paul/Benoit have lined up
+> for 2.6.37.
+>
+> Tested on OMAP2430, OMAP44430, OMAP3430 SDP and zoom3 boards.
+> Also verified that this patch series does not break the OMAP1 build.
+>
+> This patch series is created on top of the following patches:
+> 1. OMAP: HWMOD: Handle opt clocks using clk_add_alias
+> [https://patchwork.kernel.org/patch/124531/]
+> 2. OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
+> [https://patchwork.kernel.org/patch/176172/]
+> 3. OMAP: CPUIDLE: Enable IRQs during device activity check and idle management
+> by Kevin
+>
+> This series is tested on OMAP4430 ES2 using the below series
+> http://www.spinics.net/lists/linux-omap/msg36023.html
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index fc761a5..25111bf 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -168,6 +168,7 @@ static struct omap_hwmod_class_sysconfig omap2420_timer_sysc = {
- 			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
- 			   SYSC_HAS_AUTOIDLE),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.clockact       = 1, /* preserve fclk on idle */
- 	.sysc_fields    = &omap_hwmod_sysc_type1,
+Hi Charu,
+
+I haven't been fully through the series, but here's some quick feedback
+based on what I tried today.
+
+Basically, I got stuck because the first board I tried it on was the
+35xx-based OMAP3EVM platform, which uses a GPIO-based interrupt for the
+network.  My setup uses DHCP + nfsroot, so the GPIO IRQ must be working
+during boot.
+
+The first thing I noticed, is that GPIO interrupts are not firing during
+boot, so neither the DHCP or the nfsroot works during boot.  I haven't
+been able to fully debug this, but the 3430SDP should have the same
+issue for its smc91x if you set it up for DHCP + nfsroot.  This is
+working fine on my pm-wip/idle-reorg branch which has the prerequisites
+you mentioned, but didn't work when I applied the clk_alias patch plus
+this series.
+
+The other change when debugging I made was to make the
+'workaround_enable' hack bank specific.  Now that the bank idles can be
+called independetly, this would get cleared as soon as one of the banks
+clears it.  It should be a per-bank flag[1]
+
+Another thing I noticed was that ENWAKEUP is no longer set in the
+SYSCONFIG register for each bank, as it was before.  To avoid this kind
+of functional change, I did[2]
+
+I'll get back to digging a bit tomorrow, but hopefully you can debug
+this further before I get to it.
+
+Kevin
+
+
+[1]
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 2f5c1eb..3b60418 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -170,6 +170,7 @@ struct gpio_bank {
+ 	struct omap_gpio_regs gpio_context;
+ 	struct powerdomain *pwrdm;
+ 	bool dbck_flag;
++	int workaround_enabled;
  };
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 2ac463f..93d5c3d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -174,6 +174,7 @@ static struct omap_hwmod_class_sysconfig omap2430_timer_sysc = {
- 			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
- 			   SYSC_HAS_AUTOIDLE),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.clockact       = 1, /* preserve fclk on idle */
- 	.sysc_fields    = &omap_hwmod_sysc_type1,
- };
+ static void omap_gpio_save_context(struct device *dev);
+@@ -1830,8 +1831,6 @@ static int omap_gpio_resume(struct device *dev)
+ 	return 0;
+ }
  
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 1ce40e0..c64c95b 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -147,6 +147,7 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_1ms_sysc = {
- 				SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
- 				SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.clockact       = 1, /* preserve fclk on idle */
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 9edc518..a816d30 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -538,6 +538,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
- 			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE |
- 			   SYSS_MISSING),
- 	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.clockact	= 1, /* preserve fclk on idle */
- 	.sysc_fields	= &omap_hwmod_sysc_type1,
- };
- 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index 7d57605..6211501 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -157,17 +157,6 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
+-static int workaround_enabled;
+-
+ static int gpio_bank_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+@@ -1887,7 +1886,7 @@ static int gpio_bank_runtime_suspend(struct device *dev)
+ 		__raw_writel(l2, bank->base + OMAP4_GPIO_RISINGDETECT);
  	}
- 	omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
  
--	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
--	l |= 0x02 << 3;  /* Set to smart-idle mode */
--	l |= 0x2 << 8;   /* Set clock activity to perserve f-clock on idle */
+-	workaround_enabled = 1;
++	bank->workaround_enabled = 1;
+ 
+ 	return 0;
+ }
+@@ -1900,7 +1899,7 @@ static int gpio_bank_runtime_resume(struct device *dev)
+ 	if (bank->dbck_enable_mask)
+ 		clk_enable(bank->dbck);
+ 
+-	if ((!workaround_enabled) || (!(bank->enabled_non_wakeup_gpios)))
++	if ((!bank->workaround_enabled) || (!(bank->enabled_non_wakeup_gpios)))
+ 		return 0;
+ 
+ 	if (bank->method == METHOD_GPIO_24XX) {
+@@ -2110,11 +2109,11 @@ void omap2_gpio_prepare_for_idle(void)
+ {
+ 	int i;
+ 
+-	workaround_enabled = 0;
 -
--	/*
--	 * Enable wake-up on OMAP2 CPUs.
--	 */
--	if (cpu_class_is_omap2())
--		l |= 1 << 2;
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_OCP_CFG_REG, l);
--
- 	/* Match hardware reset default of posted mode */
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG,
- 			OMAP_TIMER_CTRL_POSTED);
--- 
-1.6.0.4
+ 	for (i = 0; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+ 
++		bank->workaround_enabled = 0;
++
+ 		/* If the gpio bank is not used, do nothing */
+ 		if ((!bank->pwrdm) || !(bank->mod_usage))
+ 			continue;
 
+
+[2]
+diff --git a/arch/arm/mach-omap2/gpio.c b/arch/arm/mach-omap2/gpio.c
+index e759311..ae7487f 100644
+--- a/arch/arm/mach-omap2/gpio.c
++++ b/arch/arm/mach-omap2/gpio.c
+@@ -54,6 +54,8 @@ static int omap2_init_gpio(struct omap_hwmod *oh, void *user)
+ 	pdata->virtual_irq_start = IH_GPIO_BASE + 32 * gpio_bank_count;
+ 	pdata->pwrdm = omap_hwmod_get_pwrdm(oh);
+ 
++	omap_hwmod_enable_wakeup(oh);
++
+ 	switch (oh->class->rev) {
+ 	case 0:
+ 	case 1:
