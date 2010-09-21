@@ -1,62 +1,109 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] OMAP: hwmod: softreset fixes with opt clocks
-Date: Tue, 21 Sep 2010 19:17:17 +0200
-Message-ID: <4C98E89D.8030106@ti.com>
-References: <1285088279-425-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1009211102250.29015@utopia.booyaka.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH] OMAP: hwmod: Handle opt clocks node using clk_add_alias
+Date: Tue, 21 Sep 2010 19:23:04 +0200
+Message-ID: <1285089784-2786-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43119 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60961 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752475Ab0IURRV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Sep 2010 13:17:21 -0400
-In-Reply-To: <alpine.DEB.2.00.1009211102250.29015@utopia.booyaka.com>
+	id S1754034Ab0IURXI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Sep 2010 13:23:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: paul@pwsan.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, "Basak, Partha" <p-basak2@ti.com>, Charulatha V <charu@ti.com>, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-On 9/21/2010 7:05 PM, Paul Walmsley wrote:
-> Hi Beno=EEt,
->
-> On Tue, 21 Sep 2010, Benoit Cousson wrote:
->
->> Here are some fixes for the softreset issues that were highlighted
->> on some IPs like GPIO or DSS.
->>
->> For the moment they are still based on your previous series:
->> git://git.pwsan.com/linux-2.6 hwmod_hardreset_dev
->>
->> If you are OK with these, I'll rebase that on top of your latest sub=
-mission to l-o / linux-arm-kernel.
->
-> Just took a quick look at them; they both look fine to me.  I do have=
- one
-> minor comment on the optional clock patch; I will post it as a reply =
-to
-> that message.
->
-> That hwmod_hardreset_dev branch is almost identical to the hwmod_2.6.=
-37
-> branch.  Maybe I should just add your patches to the hwmod_2.6.37 bra=
-nch,
-> along with Rajendra's ENAWAKEUP patch, and post those three to lakml,=
- if
-> you are okay with that?
+From: Basak, Partha <p-basak2@ti.com>
 
-OK, I'm fine with that.
+For every optional clock present per hwmod per omap-device, this function
+adds an entry in the clocks list of the form <dev-id=dev_name, con-id=role>,
+if an entry is already present in the list of the form <dev-id=NULL, con-id=role>.
 
-I think I should as well re-send the one from Partha:  OMAP: hwmod:=20
-Handle opt clocks node using clk_add_alias.
-That one is fine for me, but I didn't see much comment on it.
-The GPIO series has a dependency on it as well.
+The function is called from within the framework inside omap_device_build_ss(),
+after omap_device_register.
 
-Thanks,
-Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This allows drivers to get a pointer to its optional clocks based on its role
+by calling clk_get(<dev*>, <role>).
+
+Link to discussions related to this patch:
+http://www.spinics.net/lists/linux-omap/msg34809.html
+
+Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Basak, Partha <p-basak2@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/plat-omap/omap_device.c |   39 +++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 38 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index d2b1609..d876cec 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -82,6 +82,7 @@
+ #include <linux/slab.h>
+ #include <linux/err.h>
+ #include <linux/io.h>
++#include <linux/clk.h>
+ 
+ #include <plat/omap_device.h>
+ #include <plat/omap_hwmod.h>
+@@ -243,6 +244,40 @@ static inline struct omap_device *_find_by_pdev(struct platform_device *pdev)
+ 	return container_of(pdev, struct omap_device, pdev);
+ }
+ 
++/**
++ * _add_optional_clock_alias - Add clock alias for hwmod optional clocks
++ * @od: struct omap_device *od
++ *
++ * For every optional clock present per hwmod per omap_device, this function
++ * adds an entry in the clocks list of the form <dev-id=dev_name, con-id=role>
++ * if an entry is already present in it with the form <dev-id=NULL, con-id=role>
++ *
++ * The function is called from inside omap_device_build_ss(), after
++ * omap_device_register.
++ *
++ * This allows drivers to get a pointer to its optional clocks based on its role
++ * by calling clk_get(<dev*>, <role>).
++ */
++static void _add_optional_clock_alias(struct omap_device *od,
++				      struct omap_hwmod *oh)
++{
++	int i;
++	struct omap_hwmod_opt_clk *oc;
++
++	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
++		int ret;
++
++		if (!oc->_clk || !IS_ERR(clk_get(&od->pdev.dev, oc->role)))
++			return;
++
++		ret = clk_add_alias(oc->role, dev_name(&od->pdev.dev),
++				    (char *)oc->clk, NULL);
++		if (ret)
++			pr_err("omap_device: clk_add_alias for %s failed\n",
++			       oc->role);
++	}
++}
++
+ 
+ /* Public functions for use by core code */
+ 
+@@ -421,8 +456,10 @@ struct omap_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 	else
+ 		ret = omap_device_register(od);
+ 
+-	for (i = 0; i < oh_cnt; i++)
++	for (i = 0; i < oh_cnt; i++) {
+ 		hwmods[i]->od = od;
++		_add_optional_clock_alias(od, hwmods[i]);
++	}
+ 
+ 	if (ret)
+ 		goto odbs_exit4;
+-- 
+1.6.0.4
+
