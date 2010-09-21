@@ -1,69 +1,120 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 03/11] OMAP: hwmod: Fix omap_hwmod_reset wrong state test
-Date: Tue, 21 Sep 2010 10:34:45 -0600
-Message-ID: <20100921163444.20258.66902.stgit@twilight.localdomain>
+Subject: [PATCH 01/11] OMAP: hwmod: Rename dma_ch to dma_req
+Date: Tue, 21 Sep 2010 10:34:42 -0600
+Message-ID: <20100921163438.20258.13212.stgit@twilight.localdomain>
 References: <20100921163021.20258.87587.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47023 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47015 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757031Ab0IUQfj (ORCPT
+	with ESMTP id S1756369Ab0IUQfj (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 12:35:39 -0400
 In-Reply-To: <20100921163021.20258.87587.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Benoit Cousson <b-cousson@ti.com>
 
-From: Liam Girdwood <lrg@slimlogic.co.uk>
+From: Benoit Cousson <b-cousson@ti.com>
 
-The reset function wrongly used the state flag as a bit mask and was trying
-to re-enable after a reset.
+The dma request line attribute was named dma channel, which leads
+to confusion with the real dma channel definition.
 
-hwmod is still enabled for the PRCM point of view after a softreset
-so there is no need to re-enable.
-
-Remove the state check from omap_hwmod_reset since the _reset
-function is checking that as well and in addition can generate
-a warning
-
-Signed-off-by: Liam Girdwood <lrg@slimlogic.co.uk>
-[b-cousson@ti.com: remove the wrong test, remove the re-enable]
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |   10 +++++-----
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   12 ++++++------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 5bb25e3..100115f 100644
+index cb911d7..8bf19a7 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1434,19 +1434,17 @@ void omap_hwmod_ocp_barrier(struct omap_hwmod *oh)
-  *
-  * Under some conditions, a driver may wish to reset the entire device.
-  * Called from omap_device code.  Returns -EINVAL on error or passes along
-- * the return value from _reset()/_enable().
-+ * the return value from _reset().
-  */
- int omap_hwmod_reset(struct omap_hwmod *oh)
+@@ -1468,7 +1468,7 @@ int omap_hwmod_count_resources(struct omap_hwmod *oh)
  {
- 	int r;
+ 	int ret, i;
  
--	if (!oh || !(oh->_state & _HWMOD_STATE_ENABLED))
-+	if (!oh)
- 		return -EINVAL;
+-	ret = oh->mpu_irqs_cnt + oh->sdma_chs_cnt;
++	ret = oh->mpu_irqs_cnt + oh->sdma_reqs_cnt;
  
- 	mutex_lock(&omap_hwmod_mutex);
- 	r = _reset(oh);
--	if (!r)
--		r = _omap_hwmod_enable(oh);
- 	mutex_unlock(&omap_hwmod_mutex);
+ 	for (i = 0; i < oh->slaves_cnt; i++)
+ 		ret += oh->slaves[i]->addr_cnt;
+@@ -1501,10 +1501,10 @@ int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
+ 		r++;
+ 	}
  
- 	return r;
+-	for (i = 0; i < oh->sdma_chs_cnt; i++) {
+-		(res + r)->name = (oh->sdma_chs + i)->name;
+-		(res + r)->start = (oh->sdma_chs + i)->dma_ch;
+-		(res + r)->end = (oh->sdma_chs + i)->dma_ch;
++	for (i = 0; i < oh->sdma_reqs_cnt; i++) {
++		(res + r)->name = (oh->sdma_reqs + i)->name;
++		(res + r)->start = (oh->sdma_reqs + i)->dma_req;
++		(res + r)->end = (oh->sdma_reqs + i)->dma_req;
+ 		(res + r)->flags = IORESOURCE_DMA;
+ 		r++;
+ 	}
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index a4e508d..5506d80 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -96,7 +96,7 @@ struct omap_hwmod_irq_info {
+ /**
+  * struct omap_hwmod_dma_info - DMA channels used by the hwmod
+  * @name: name of the DMA channel (module local name)
+- * @dma_ch: DMA channel ID
++ * @dma_req: DMA request ID
+  *
+  * @name should be something short, e.g., "tx" or "rx".  It is for use
+  * by platform_get_resource_byname().  It is defined locally to the
+@@ -104,7 +104,7 @@ struct omap_hwmod_irq_info {
+  */
+ struct omap_hwmod_dma_info {
+ 	const char	*name;
+-	u16		dma_ch;
++	u16		dma_req;
+ };
+ 
+ /**
+@@ -410,7 +410,7 @@ struct omap_hwmod_class {
+  * @class: struct omap_hwmod_class * to the class of this hwmod
+  * @od: struct omap_device currently associated with this hwmod (internal use)
+  * @mpu_irqs: ptr to an array of MPU IRQs (see also mpu_irqs_cnt)
+- * @sdma_chs: ptr to an array of SDMA channel IDs (see also sdma_chs_cnt)
++ * @sdma_reqs: ptr to an array of System DMA request IDs (see sdma_reqs_cnt)
+  * @prcm: PRCM data pertaining to this hwmod
+  * @main_clk: main clock: OMAP clock name
+  * @_clk: pointer to the main struct clk (filled in at runtime)
+@@ -424,7 +424,7 @@ struct omap_hwmod_class {
+  * @msuspendmux_reg_id: CONTROL_MSUSPENDMUX register ID (1-6)
+  * @msuspendmux_shift: CONTROL_MSUSPENDMUX register bit shift
+  * @mpu_irqs_cnt: number of @mpu_irqs
+- * @sdma_chs_cnt: number of @sdma_chs
++ * @sdma_reqs_cnt: number of @sdma_reqs
+  * @opt_clks_cnt: number of @opt_clks
+  * @master_cnt: number of @master entries
+  * @slaves_cnt: number of @slave entries
+@@ -448,7 +448,7 @@ struct omap_hwmod {
+ 	struct omap_hwmod_class		*class;
+ 	struct omap_device		*od;
+ 	struct omap_hwmod_irq_info	*mpu_irqs;
+-	struct omap_hwmod_dma_info	*sdma_chs;
++	struct omap_hwmod_dma_info	*sdma_reqs;
+ 	union {
+ 		struct omap_hwmod_omap2_prcm omap2;
+ 		struct omap_hwmod_omap4_prcm omap4;
+@@ -468,7 +468,7 @@ struct omap_hwmod {
+ 	u8				msuspendmux_shift;
+ 	u8				response_lat;
+ 	u8				mpu_irqs_cnt;
+-	u8				sdma_chs_cnt;
++	u8				sdma_reqs_cnt;
+ 	u8				opt_clks_cnt;
+ 	u8				masters_cnt;
+ 	u8				slaves_cnt;
 
 
