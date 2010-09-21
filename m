@@ -1,63 +1,45 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] OMAP: hwmod: Enable module wakeup if in smartidle
-Date: Tue, 21 Sep 2010 19:58:30 +0530
-Message-ID: <1285079310-15888-1-git-send-email-rnayak@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP4: HSMMC cmd line reset change
+Date: Tue, 21 Sep 2010 07:47:05 -0700
+Message-ID: <20100921144705.GP4611@atomide.com>
+References: <51627.192.168.10.89.1284595091.squirrel@dbdmail.itg.ti.com>
+ <20100917154803.GB29610@atomide.com>
+ <738912BD0A0F48FC9E3159F923571E9E@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60825 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751456Ab0IUO2j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Sep 2010 10:28:39 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56766 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138Ab0IUOrH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 10:47:07 -0400
+Content-Disposition: inline
+In-Reply-To: <738912BD0A0F48FC9E3159F923571E9E@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, =?utf-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: cjb@laptop.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-If a module's OCP slave port is programmed to be in smartidle,
-its also necessary that they have module level wakeup enabled.
-Update _sysc_enable in hwmod framework to do this.
+* Madhusudhan <madhu.cr@ti.com> [100920 09:06]:
+> > 
+> > Please don't use cpu_is_omapxxxx tests in the drivers, drivers
+> > should be generic.
+> > 
+> > Instead, just pass a feature flag in the platform_data for this
+> > feature like HSMMC_REVERSE_RESET_LOGIC or similar.
+> > 
+> 
+> This is not a feature. It is like an ERRATA fix. I am yet to receive an
+> errata number though. How about dealing with this like an errata fix similar
+> to the way in arch/mach-omap2/serial.c done for the uart case? 
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Partha Basak <p-basak2@ti.com>
-Signed-off-by: Beno=C3=83=C2=AEt Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+Yes setting some HSMMC_ERRATA_XYZ flag works too.
+ 
+> The mmc ip revision will not help because it really does not change to
+> distinguish such issues.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
-p_hwmod.c
-index cb911d7..d82e7e8 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -659,8 +659,6 @@ static void _sysc_enable(struct omap_hwmod *oh)
- 		_set_module_autoidle(oh, idlemode, &v);
- 	}
-=20
--	/* XXX OCP ENAWAKEUP bit? */
--
- 	/*
- 	 * XXX The clock framework should handle this, by
- 	 * calling into this code.  But this must wait until the
-@@ -671,6 +669,10 @@ static void _sysc_enable(struct omap_hwmod *oh)
- 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
-=20
- 	_write_sysconfig(v, oh);
-+
-+	/* If slave is in SMARTIDLE, also enable wakeup */
-+	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
-+			_enable_wakeup(oh);
- }
-=20
- /**
---=20
-1.7.0.4
+OK. Then I guess your only option is to pass the errata flag in
+the platform_data.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
