@@ -1,53 +1,25 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP: hwmod: Enable module wakeup if in smartidle
-Date: Tue, 21 Sep 2010 15:13:38 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009211512570.4677@utopia.booyaka.com>
-References: <1285079310-15888-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1009211400460.4677@utopia.booyaka.com> <878w2uj1tv.fsf@deeprootsystems.com> <alpine.DEB.2.00.1009211425530.4677@utopia.booyaka.com> <871v8mizb4.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: David Anders <x0132446@ti.com>
+Subject: [PATCH 0/4] omap4: pandaboard: machine cleanups
+Date: Tue, 21 Sep 2010 16:24:00 -0500
+Message-ID: <1285104244-32274-1-git-send-email-x0132446@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46476 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755582Ab0IUVNj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 17:13:39 -0400
-In-Reply-To: <871v8mizb4.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53949 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756181Ab0IUVYH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 17:24:07 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, Partha Basak <p-basak2@ti.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
+To: jayabharath@ti.com, gadiyar@ti.com, vpasam@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
+Cc: David Anders <x0132446@ti.com>
 
-On Tue, 21 Sep 2010, Kevin Hilman wrote:
+PandaBoard machine file related cleanups.
 
-> Paul Walmsley <paul@pwsan.com> writes:
-> 
-> > On Tue, 21 Sep 2010, Kevin Hilman wrote:
-> >
-> >> FWIW
-> >> 
-> >> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> >> 
-> >> as I'm using this for testing the various hwmod conversions.
-> >
-> > Thanks Kevin, added that in.  I know you've been testing some of the other 
-> > patches here too, so please let me know if you would like Tested-by:'s or 
-> > Acked-by:'s there.
-> 
-> I guess you can put a Tested-by for me on everything in your
-> hwmod_2.6.37 branch as I've been staging and testing those for a bit
-> now.
+David Anders (4):
+  omap4: pandaboard: remove unused hsmmc definition
+  omap4: pandaboard: Fix the init if CONFIG_MMC_OMAP_HS is not set
+  omap4: pandaboard: Adding card detect support for MMC1
+  omap4: pandaboard: enable the ehci port on pandaboard
 
-OK, sounds good.  How about the updated hardreset code - have you given 
-that a try?
+ arch/arm/mach-omap2/board-omap4panda.c |   76 +++++++++++++++++++++++++++++---
+ 1 files changed, 69 insertions(+), 7 deletions(-)
 
-> Also, one other thing I noticed in that branch: the locking patch from
-> me:
-> 
->    OMAP: hwmod: separate list locking and hwmod hardware locking
-> 
-> has a stray '[PATCH]' in the shortlog which should probably be removed
-> as well.
-
-Thanks, fixed.
-
-
-- Paul
