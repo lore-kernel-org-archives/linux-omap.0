@@ -1,49 +1,39 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Branch with the recent OMAP4 clock and PRCM patches for testing
-Date: Wed, 22 Sep 2010 09:39:52 +0200
-Message-ID: <4C99B2C8.1060405@ti.com>
-References: <alpine.DEB.2.00.1009220134120.21002@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Branch with the recent OMAP4 clock and PRCM patches for testing
+Date: Wed, 22 Sep 2010 01:37:21 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009220134120.21002@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-555839496-1285141041=:21002"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32851 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751250Ab0IVHj4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 03:39:56 -0400
-In-Reply-To: <alpine.DEB.2.00.1009220134120.21002@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:60908 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753210Ab0IVHhW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 03:37:22 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: b-cousson@ti.com, rnayak@ti.com
+Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
 
-Hi Paul,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On 9/22/2010 9:37 AM, Paul Walmsley wrote:
->
-> Hi Rajendra, Beno=EEt,
->
-> in case it is useful, here is a branch based on v2.6.36-rc5 with the =
-hwmod
-> fixes included, and the OMAP4 clock/PRCM patches that we've discussed
-> today:
->
-> git://git.pwsan.com/linux-2.6 omap4_2.6.37
->
-> Tomorrow, I will probably keep adding to this branch, but I think I a=
-m
-> done for tonight :-)
+--155748971-555839496-1285141041=:21002
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-I'll rebase my stuff on top of that, and keep you inform.
-You can go to bed... meanwhile I'll have a coffee before starting my da=
-y.
 
-Thanks,
-Benoit
+Hi Rajendra, Beno=EEt,=20
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+in case it is useful, here is a branch based on v2.6.36-rc5 with the hwmod=
+=20
+fixes included, and the OMAP4 clock/PRCM patches that we've discussed=20
+today:
+
+git://git.pwsan.com/linux-2.6 omap4_2.6.37
+
+Tomorrow, I will probably keep adding to this branch, but I think I am=20
+done for tonight :-)
+
+
+- Paul
+--155748971-555839496-1285141041=:21002--
