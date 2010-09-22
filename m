@@ -1,375 +1,419 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
-Date: Wed, 22 Sep 2010 20:30:46 -0400
-Message-ID: <1285201846-26599-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: "Kalliguddi, Hema" <hemahk@ti.com>
+Subject: RE: [PATCH 2/2] OMAP2+: GPIO: move late PM out of
+ interrupts-disabled idle path
+Date: Wed, 22 Sep 2010 20:39:31 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D635@dbde02.ent.ti.com>
+References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
+	<1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402785A38C5@dbde02.ent.ti.com>
+ <87sk11etze.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46615 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753396Ab0IVPJm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 11:09:42 -0400
+In-Reply-To: <87sk11etze.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Basak, Partha" <p-basak2@ti.com>, Tero Kristo <tero.kristo@nokia.com>
 
-With OMAP core-off support musb was not functional as context was getting
-lost after wakeup from core-off. And also musb was blocking the core-off
-after loading the gadget driver even with no cable connected sometimes.
+ 
 
-Added the idle and wakeup APIs in the platform layer which will
-be called in the idle and wakeup path.
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: Wednesday, September 22, 2010 7:55 PM
+>To: Kalliguddi, Hema
+>Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; 
+>Basak, Partha; Tero Kristo
+>Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
+>interrupts-disabled idle path
+>
+>"Kalliguddi, Hema" <hemahk@ti.com> writes:
+>
+>>>-----Original Message-----
+>>>From: linux-omap-owner@vger.kernel.org 
+>>>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>>>Sent: Tuesday, September 14, 2010 4:33 AM
+>>>To: linux-omap@vger.kernel.org
+>>>Cc: Varadarajan, Charulatha; Basak, Partha; Tero Kristo
+>>>Subject: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
+>>>interrupts-disabled idle path
+>>>
+>>>From: Kevin Hilman <khilman@ti.com>
+>>>
+>>>Currently, we wait until late in the idle path where interrupts are
+>>>disabled to do runtime-PM-like management for certain special-case
+>>>devices like GPIO.
+>>>
+>>>As a prerequiste to moving GPIO to the new runtime PM framework, move
+>>>this runtime-PM-like code out of the late idle path into new device
+>>>idle and resume functions that can be called before interrupts are
+>>>disabled by CPUidle and/or suspend.
+>>>
+>>>In addition, move all the GPIO-specific logic into the GPIO core
+>>>instead of keeping GPIO-specific knowledge of power-states, context
+>>>saving etc. in the PM core.
+>>>
+>>>Also, call the new device-idle and -resume methods from CPUidle and
+>>>static suspend path.
+>>>
+>>>Signed-off-by: Kevin Hilman <khilman@ti.com>
+>>>---
+>>> arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
+>>> arch/arm/mach-omap2/pm.h               |    2 +
+>>> arch/arm/mach-omap2/pm24xx.c           |    2 +-
+>>> arch/arm/mach-omap2/pm34xx.c           |   38 +++++++++------------
+>>> arch/arm/plat-omap/gpio.c              |   57 
+>>>++++++++++++++++++++++++--------
+>>> arch/arm/plat-omap/include/plat/gpio.h |    4 +--
+>>> 6 files changed, 67 insertions(+), 40 deletions(-)
+>>>
+>>>diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
+>>>b/arch/arm/mach-omap2/cpuidle34xx.c
+>>>index 0923b82..681d823 100644
+>>>--- a/arch/arm/mach-omap2/cpuidle34xx.c
+>>>+++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>>>@@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct 
+>>>cpuidle_device *dev,
+>>> 		pwrdm_set_next_pwrst(per_pd, per_next_state);
+>>> 
+>>> select_state:
+>>>+	omap3_device_idle();
+>>>+
+>>> 	dev->last_state = new_state;
+>>> 	ret = omap3_enter_idle(dev, new_state);
+>>> 
+>>>+	omap3_device_resume();
+>>>+
+>>> 	/* Restore original PER state if it was modified */
+>>> 	if (per_next_state != per_saved_state)
+>>> 		pwrdm_set_next_pwrst(per_pd, per_saved_state);
+>>>diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+>>>index 3de6ece..33cae4b 100644
+>>>--- a/arch/arm/mach-omap2/pm.h
+>>>+++ b/arch/arm/mach-omap2/pm.h
+>>>@@ -22,6 +22,8 @@ extern void omap_sram_idle(void);
+>>> extern int omap3_can_sleep(void);
+>>> extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+>>> extern int omap3_idle_init(void);
+>>>+extern void omap3_device_idle(void);
+>>>+extern void omap3_device_resume(void);
+>>> 
+>>> struct cpuidle_params {
+>>> 	u8  valid;
+>>>diff --git a/arch/arm/mach-omap2/pm24xx.c 
+>>>b/arch/arm/mach-omap2/pm24xx.c
+>>>index 6aeedea..7bbf0db 100644
+>>>--- a/arch/arm/mach-omap2/pm24xx.c
+>>>+++ b/arch/arm/mach-omap2/pm24xx.c
+>>>@@ -106,7 +106,7 @@ static void omap2_enter_full_retention(void)
+>>> 	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | 
+>>>OMAP24XX_USBSTANDBYCTRL;
+>>> 	omap_ctrl_writel(l, OMAP2_CONTROL_DEVCONF0);
+>>> 
+>>>-	omap2_gpio_prepare_for_idle(PWRDM_POWER_RET);
+>>>+	omap2_gpio_prepare_for_idle();
+>>> 
+>>> 	if (omap2_pm_debug) {
+>>> 		omap2_pm_dump(0, 0, 0);
+>>>diff --git a/arch/arm/mach-omap2/pm34xx.c 
+>>>b/arch/arm/mach-omap2/pm34xx.c
+>>>index bb2ba1e..9e590d9 100644
+>>>--- a/arch/arm/mach-omap2/pm34xx.c
+>>>+++ b/arch/arm/mach-omap2/pm34xx.c
+>>>@@ -74,16 +74,6 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+>>> static struct powerdomain *core_pwrdm, *per_pwrdm;
+>>> static struct powerdomain *cam_pwrdm;
+>>> 
+>>>-static inline void omap3_per_save_context(void)
+>>>-{
+>>>-	omap_gpio_save_context();
+>>>-}
+>>>-
+>>>-static inline void omap3_per_restore_context(void)
+>>>-{
+>>>-	omap_gpio_restore_context();
+>>>-}
+>>>-
+>>> static void omap3_enable_io_chain(void)
+>>> {
+>>> 	int timeout = 0;
+>>>@@ -332,6 +322,16 @@ static void restore_table_entry(void)
+>>> 	restore_control_register(control_reg_value);
+>>> }
+>>> 
+>>>+void omap3_device_idle(void)
+>>>+{
+>>>+	omap2_gpio_prepare_for_idle();
+>>>+}
+>>>+
+>>
+>> Is not it is a good idea to pass the new_state as the 
+>parameter for the driver calls?
+>> It will reduce each individual drivers reading the PRCM 
+>register to findout the next state.
+>> This might save some time in the idle loop. 
+>
+>I chose not to pass the parameters on purpose.  All of the intelligence
+>for device idle (including which powerdomain state to check) 
+>should live
+>in the driver code.
+>
+OK agree.
 
-Used the pm_runtime_put_sysc API to configure the
-musb to force idle/standby modes, saving the context and disable the clk in 
-while idling if there is no activity on the usb bus. 
+>If reading the PRCM registers is becoming a problem, it will 
+>be a simple
+>patch to patch the powerdomain core to cache the current value of it's
+>next state so at least reads of next_state will be fast.
+>
+This is good idea, with this we can avoid n number of PRCM register reads.
+Today it may not be a problem as there are few hooks in the idle path
+But if there are more number of driver calls, then it might be useful patch.
+~Hema
 
-Used the pm_runtime_get_sync API to configure the musb to
-no idle/standby modes, enable the clock and restore the context
-after wakeup when there is no activity on the usb bus.
-
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Maulik Mankad <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-
----
- arch/arm/mach-omap2/cpuidle34xx.c     |    1 
- arch/arm/mach-omap2/pm34xx.c          |    3 
- arch/arm/mach-omap2/usb-musb.c        |  107 ++++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/usb.h |    2 
- drivers/usb/musb/musb_core.c          |   15 ++++
- drivers/usb/musb/omap2430.c           |   14 ++++
- include/linux/usb/musb.h              |    9 ++
- 7 files changed, 149 insertions(+), 2 deletions(-)
-
-Index: linux-omap-pm/arch/arm/mach-omap2/cpuidle34xx.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/cpuidle34xx.c
-+++ linux-omap-pm/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -31,6 +31,7 @@
- #include <plat/clockdomain.h>
- #include <plat/control.h>
- #include <plat/serial.h>
-+#include <plat/usb.h>
- 
- #include "pm.h"
- 
-Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c
-+++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
-@@ -38,6 +38,7 @@
- #include <plat/prcm.h>
- #include <plat/gpmc.h>
- #include <plat/dma.h>
-+#include <plat/usb.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -324,11 +325,13 @@ static void restore_table_entry(void)
- void omap3_device_idle(void)
- {
- 	omap2_gpio_prepare_for_idle();
-+	musb_prepare_for_idle();
- }
- 
- void omap3_device_resume(void)
- {
- 	omap2_gpio_resume_after_idle();
-+	musb_wakeup_from_idle();
- }
- 
- void omap_sram_idle(void)
-Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
-+++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-@@ -25,16 +25,21 @@
- #include <linux/io.h>
- 
- #include <linux/usb/musb.h>
-+#include <linux/pm_runtime.h>
- 
- #include <mach/hardware.h>
- #include <mach/irqs.h>
- #include <plat/usb.h>
- #include <plat/omap_device.h>
-+#include <plat/powerdomain.h>
- 
- #ifdef CONFIG_USB_MUSB_SOC
- static const char name[] = "musb_hdrc";
- #define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
- 
-+struct omap_hwmod *oh_p;
-+static struct powerdomain *core_pwrdm;
-+
- static struct musb_hdrc_config musb_config = {
- 	.multipoint	= 1,
- 	.dyn_fifo	= 1,
-@@ -58,6 +63,10 @@ static struct musb_hdrc_platform_data mu
- 	 * "mode", and should be passed to usb_musb_init().
- 	 */
- 	.power		= 50,			/* up to 100 mA */
-+
-+	/* OMAP supports offmode */
-+	.save_context	= 1,
-+	.restore_context	= 1,
- };
- 
- static u64 musb_dmamask = DMA_BIT_MASK(32);
-@@ -80,6 +89,7 @@ void __init usb_musb_init(struct omap_mu
- 	const char *oh_name = "usb_otg_hs";
- 	struct musb_hdrc_platform_data *pdata;
- 
-+	core_pwrdm = pwrdm_lookup("per_pwrdm");
- 	oh = omap_hwmod_lookup(oh_name);
- 
- 	if (!oh) {
-@@ -97,6 +107,7 @@ void __init usb_musb_init(struct omap_mu
- 	musb_plat.extvbus = board_data->extvbus;
- 
- 	pdata = &musb_plat;
-+	oh_p = oh;
- 
- 	od = omap_device_build(name, bus_id, oh, pdata,
- 			       sizeof(struct musb_hdrc_platform_data),
-@@ -115,8 +126,101 @@ void __init usb_musb_init(struct omap_mu
- 	put_device(dev);
- }
- 
-+void musb_prepare_for_idle()
-+{
-+	int core_next_state;
-+	struct omap_hwmod *oh = oh_p;
-+	struct omap_device *od;
-+	struct platform_device *pdev;
-+	struct musb_hdrc_platform_data *pdata;
-+	struct device *dev;
-+
-+	if (!core_pwrdm)
-+		return;
-+
-+	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-+	if (core_next_state >= PWRDM_POWER_INACTIVE)
-+		return;
-+	if (!oh)
-+		return;
-+
-+	od = oh->od;
-+	pdev = &od->pdev;
-+
-+	if (!pdev)
-+		return;
-+	dev = &pdev->dev;
-+
-+	if (dev->driver) {
-+		pdata = dev->platform_data;
-+
-+	if (pdata->is_usb_active)
-+		if (!pdata->is_usb_active(dev)) {
-+			if (core_next_state == PWRDM_POWER_OFF) {
-+				pdata->save_context = 1;
-+				pm_runtime_put_sync(dev);
-+			} else if  (core_next_state == PWRDM_POWER_RET) {
-+				pdata->save_context = 0;
-+				pm_runtime_put_sync(dev);
-+			}
-+		}
-+	}
-+}
-+
-+void musb_wakeup_from_idle()
-+{
-+	int core_next_state;
-+	int core_prev_state;
-+	struct omap_hwmod *oh = oh_p;
-+	struct omap_device *od;
-+	struct platform_device *pdev;
-+	struct device *dev;
-+	struct musb_hdrc_platform_data *pdata;
-+
-+	if (!core_pwrdm)
-+		return;
-+
-+	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-+
-+	if (core_next_state >= PWRDM_POWER_INACTIVE)
-+		return;
-+	 core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
-+
-+	 if (!oh)
-+		return;
-+	 od = oh->od;
-+	 pdev = &od->pdev;
-+
-+	 if (!pdev)
-+		return;
-+
-+	 dev = &pdev->dev;
-+
-+	 if (dev->driver) {
-+		pdata = dev->platform_data;
-+
-+		if (pdata->is_usb_active)
-+			if (!pdata->is_usb_active(dev)) {
-+				if (core_prev_state == PWRDM_POWER_OFF) {
-+					pdata->restore_context = 1;
-+					 pm_runtime_get_sync(dev);
-+				} else {
-+					 pdata->restore_context = 0;
-+					 pm_runtime_get_sync(dev);
-+				}
-+			 }
-+	 }
-+}
- #else
- void __init usb_musb_init(struct omap_musb_board_data *board_data)
- {
- }
-+
-+void musb_prepare_for_idle()
-+{
-+}
-+
-+void musb_wakeup_from_idle()
-+{
-+}
- #endif /* CONFIG_USB_MUSB_SOC */
-Index: linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h
-===================================================================
---- linux-omap-pm.orig/arch/arm/plat-omap/include/plat/usb.h
-+++ linux-omap-pm/arch/arm/plat-omap/include/plat/usb.h
-@@ -79,6 +79,8 @@ extern void usb_ehci_init(const struct e
- 
- extern void usb_ohci_init(const struct ohci_hcd_omap_platform_data *pdata);
- 
-+extern void musb_prepare_for_idle(void);
-+extern void musb_wakeup_from_idle(void);
- #endif
- 
- 
-Index: linux-omap-pm/drivers/usb/musb/musb_core.c
-===================================================================
---- linux-omap-pm.orig/drivers/usb/musb/musb_core.c
-+++ linux-omap-pm/drivers/usb/musb/musb_core.c
-@@ -2410,6 +2410,7 @@ static int musb_suspend(struct device *d
- 	struct platform_device *pdev = to_platform_device(dev);
- 	unsigned long	flags;
- 	struct musb	*musb = dev_to_musb(&pdev->dev);
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
- 
- 	if (!musb->clock)
- 		return 0;
-@@ -2425,6 +2426,9 @@ static int musb_suspend(struct device *d
- 		 * they will even be wakeup-enabled.
- 		 */
- 	}
-+
-+	if (plat->save_context)
-+		plat->save_context = 1;
- 	pm_runtime_put_sync(dev);
- 
- #ifndef CONFIG_PM_RUNTIME
-@@ -2443,10 +2447,13 @@ static int musb_resume_noirq(struct devi
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct musb	*musb = dev_to_musb(&pdev->dev);
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
- 
- 	if (!musb->clock)
- 		return 0;
- 
-+	if (plat->restore_context)
-+		plat->restore_context = 1;
- 	pm_runtime_get_sync(dev);
- 
- #ifndef CONFIG_PM_RUNTIME
-@@ -2468,16 +2475,20 @@ static int musb_resume_noirq(struct devi
- static int musb_runtime_suspend(struct device *dev)
- {
- 	struct musb	*musb = dev_to_musb(dev);
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
- 
--	musb_save_context(musb);
-+	if (plat->save_context)
-+		musb_save_context(musb);
- 	return 0;
- }
- 
- static int musb_runtime_resume(struct device *dev)
- {
- 	struct musb	*musb = dev_to_musb(dev);
-+	struct musb_hdrc_platform_data *plat = dev->platform_data;
- 
--	musb_restore_context(musb);
-+	if (plat->restore_context)
-+		musb_restore_context(musb);
- 	return 0;
- }
- static const struct dev_pm_ops musb_dev_pm_ops = {
-Index: linux-omap-pm/drivers/usb/musb/omap2430.c
-===================================================================
---- linux-omap-pm.orig/drivers/usb/musb/omap2430.c
-+++ linux-omap-pm/drivers/usb/musb/omap2430.c
-@@ -189,6 +189,19 @@ int musb_platform_set_mode(struct musb *
- 	return 0;
- }
- 
-+int is_musb_active(struct device *dev)
-+{
-+	struct musb *musb;
-+
-+#ifdef CONFIG_USB_MUSB_HDRC_HCD
-+	/* usbcore insists dev->driver_data is a "struct hcd *" */
-+	musb = hcd_to_musb(dev_get_drvdata(dev));
-+#else
-+	musb = dev_get_drvdata(dev);
-+#endif
-+	return musb->is_active;
-+}
-+
- int __init musb_platform_init(struct musb *musb)
- {
- 	u32 l;
-@@ -232,6 +245,7 @@ int __init musb_platform_init(struct mus
- 		musb->board_set_vbus = omap_set_vbus;
- 
- 	setup_timer(&musb_idle_timer, musb_do_idle, (unsigned long) musb);
-+	plat->is_usb_active = is_musb_active;
- 
- 	return 0;
- }
-Index: linux-omap-pm/include/linux/usb/musb.h
-===================================================================
---- linux-omap-pm.orig/include/linux/usb/musb.h
-+++ linux-omap-pm/include/linux/usb/musb.h
-@@ -93,6 +93,8 @@ struct musb_hdrc_config {
- 
- };
- 
-+struct device;
-+
- struct musb_hdrc_platform_data {
- 	/* MUSB_HOST, MUSB_PERIPHERAL, or MUSB_OTG */
- 	u8		mode;
-@@ -126,6 +128,17 @@ struct musb_hdrc_platform_data {
- 
- 	/* Architecture specific board data	*/
- 	void		*board_data;
-+
-+	/* check usb device active state*/
-+	int		(*is_usb_active)(struct device *dev);
-+
-+	/*
-+	 * Used for saving and restoring the registers only when core
-+	 * next state is off and previous state was off.
-+	 * Otherwise avoid save restore.
-+	 */
-+	int		save_context;
-+	int		restore_context;
- };
- 
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Kevin
+>
+>>>+void omap3_device_resume(void)
+>>>+{
+>>>+	omap2_gpio_resume_after_idle();
+>>>+}
+>>>+
+>>
+>> Here we will need to pass the next_state as well as 
+>previous_state as parameters. If we agree to
+>> pass the parameters.
+>>
+>> ~Hema
+>>
+>>> void omap_sram_idle(void)
+>>> {
+>>> 	/* Variable to tell what needs to be saved and restored
+>>>@@ -344,7 +344,7 @@ void omap_sram_idle(void)
+>>> 	int mpu_next_state = PWRDM_POWER_ON;
+>>> 	int per_next_state = PWRDM_POWER_ON;
+>>> 	int core_next_state = PWRDM_POWER_ON;
+>>>-	int core_prev_state, per_prev_state;
+>>>+	int core_prev_state;
+>>> 	u32 sdrc_pwr = 0;
+>>> 
+>>> 	if (!_omap_sram_idle)
+>>>@@ -387,12 +387,9 @@ void omap_sram_idle(void)
+>>> 	}
+>>> 
+>>> 	/* PER */
+>>>-	if (per_next_state < PWRDM_POWER_ON) {
+>>>+	if (per_next_state < PWRDM_POWER_ON)
+>>> 		omap_uart_prepare_idle(2);
+>>>-		omap2_gpio_prepare_for_idle(per_next_state);
+>>>-		if (per_next_state == PWRDM_POWER_OFF)
+>>>-				omap3_per_save_context();
+>>>-	}
+>>>+
+>>> 
+>>> 	/* CORE */
+>>> 	if (core_next_state < PWRDM_POWER_ON) {
+>>>@@ -454,13 +451,8 @@ void omap_sram_idle(void)
+>>> 	omap3_intc_resume_idle();
+>>> 
+>>> 	/* PER */
+>>>-	if (per_next_state < PWRDM_POWER_ON) {
+>>>-		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+>>>-		omap2_gpio_resume_after_idle();
+>>>-		if (per_prev_state == PWRDM_POWER_OFF)
+>>>-			omap3_per_restore_context();
+>>>+	if (per_next_state < PWRDM_POWER_ON)
+>>> 		omap_uart_resume_idle(2);
+>>>-	}
+>>> 
+>>> 	/* Disable IO-PAD and IO-CHAIN wakeup */
+>>> 	if (omap3_has_io_wakeup() &&
+>>>@@ -570,6 +562,7 @@ static void omap2_pm_wakeup_on_timer(u32 
+>>>seconds, u32 milliseconds)
+>>> static int omap3_pm_prepare(void)
+>>> {
+>>> 	disable_hlt();
+>>>+	omap3_device_idle();
+>>> 	return 0;
+>>> }
+>>> 
+>>>@@ -637,6 +630,7 @@ static int omap3_pm_enter(suspend_state_t unused)
+>>> 
+>>> static void omap3_pm_finish(void)
+>>> {
+>>>+	omap3_device_resume();
+>>> 	enable_hlt();
+>>> }
+>>> 
+>>>diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+>>>index 7951eef..b0467c1 100644
+>>>--- a/arch/arm/plat-omap/gpio.c
+>>>+++ b/arch/arm/plat-omap/gpio.c
+>>>@@ -29,6 +29,8 @@
+>>> #include <asm/mach/irq.h>
+>>> #include <plat/powerdomain.h>
+>>> 
+>>>+static struct powerdomain *per_pwrdm;
+>>>+
+>>> /*
+>>>  * OMAP1510 GPIO registers
+>>>  */
+>>>@@ -207,6 +209,9 @@ struct gpio_bank {
+>>> 	u32 dbck_enable_mask;
+>>> };
+>>> 
+>>>+static void omap3_gpio_restore_context(void);
+>>>+static void omap3_gpio_save_context(void);
+>>>+
+>>> #define METHOD_MPUIO		0
+>>> #define METHOD_GPIO_1510	1
+>>> #define METHOD_GPIO_1610	2
+>>>@@ -1778,6 +1783,8 @@ static int __init _omap_gpio_init(void)
+>>> 	}
+>>> #endif
+>>> 
+>>>+	if (cpu_class_is_omap2())
+>>>+		per_pwrdm = pwrdm_lookup("per_pwrdm");
+>>> 
+>>> #ifdef CONFIG_ARCH_OMAP15XX
+>>> 	if (cpu_is_omap15xx()) {
+>>>@@ -2074,14 +2081,22 @@ static struct sys_device omap_gpio_device = {
+>>> 
+>>> static int workaround_enabled;
+>>> 
+>>>-void omap2_gpio_prepare_for_idle(int power_state)
+>>>+void omap2_gpio_prepare_for_idle(void)
+>>> {
+>>>-	int i, c = 0;
+>>>-	int min = 0;
+>>>+	int i, c = 0, min = 0;
+>>>+	int per_next_state;
+>>>+
+>>>+	if (!per_pwrdm)
+>>>+		return;
+>>>+
+>>>+	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+>>>+	if (per_next_state >= PWRDM_POWER_INACTIVE)
+>>>+		return;
+>>> 
+>>> 	if (cpu_is_omap34xx())
+>>> 		min = 1;
+>>> 
+>>>+	workaround_enabled = 0;
+>>> 	for (i = min; i < gpio_bank_count; i++) {
+>>> 		struct gpio_bank *bank = &gpio_bank[i];
+>>> 		u32 l1, l2;
+>>>@@ -2089,7 +2104,7 @@ void omap2_gpio_prepare_for_idle(int 
+>power_state)
+>>> 		if (bank->dbck_enable_mask)
+>>> 			clk_disable(bank->dbck);
+>>> 
+>>>-		if (power_state > PWRDM_POWER_OFF)
+>>>+		if (per_next_state > PWRDM_POWER_OFF)
+>>> 			continue;
+>>> 
+>>> 		/* If going to OFF, remove triggering for all
+>>>@@ -2135,20 +2150,35 @@ void omap2_gpio_prepare_for_idle(int 
+>>>power_state)
+>>> 
+>>> 		c++;
+>>> 	}
+>>>-	if (!c) {
+>>>-		workaround_enabled = 0;
+>>>-		return;
+>>>-	}
+>>>-	workaround_enabled = 1;
+>>>+	if (c)
+>>>+		workaround_enabled = 1;
+>>>+
+>>>+	if (cpu_is_omap34xx() && (per_next_state == PWRDM_POWER_OFF))
+>>>+		omap3_gpio_save_context();
+>>> }
+>>> 
+>>> void omap2_gpio_resume_after_idle(void)
+>>> {
+>>>-	int i;
+>>>-	int min = 0;
+>>>+	int i, min = 0;
+>>>+	int per_next_state;
+>>>+
+>>>+	if (!per_pwrdm)
+>>>+		return;
+>>>+
+>>>+	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+>>>+	if (per_next_state >= PWRDM_POWER_INACTIVE)
+>>>+		return;
+>>>+
+>>>+	if (cpu_is_omap34xx() && (per_next_state == PWRDM_POWER_OFF)) {
+>>>+		int per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+>>>+
+>>>+		if (per_prev_state == PWRDM_POWER_OFF)
+>>>+			omap3_gpio_restore_context();
+>>>+	}
+>>> 
+>>> 	if (cpu_is_omap34xx())
+>>> 		min = 1;
+>>>+
+>>> 	for (i = min; i < gpio_bank_count; i++) {
+>>> 		struct gpio_bank *bank = &gpio_bank[i];
+>>> 		u32 l, gen, gen0, gen1;
+>>>@@ -2235,14 +2265,13 @@ void omap2_gpio_resume_after_idle(void)
+>>> 			}
+>>> 		}
+>>> 	}
+>>>-
+>>> }
+>>> 
+>>> #endif
+>>> 
+>>> #ifdef CONFIG_ARCH_OMAP3
+>>> /* save the registers of bank 2-6 */
+>>>-void omap_gpio_save_context(void)
+>>>+static void omap3_gpio_save_context(void)
+>>> {
+>>> 	int i;
+>>> 
+>>>@@ -2275,7 +2304,7 @@ void omap_gpio_save_context(void)
+>>> }
+>>> 
+>>> /* restore the required registers of bank 2-6 */
+>>>-void omap_gpio_restore_context(void)
+>>>+static void omap3_gpio_restore_context(void)
+>>> {
+>>> 	int i;
+>>> 
+>>>diff --git a/arch/arm/plat-omap/include/plat/gpio.h 
+>>>b/arch/arm/plat-omap/include/plat/gpio.h
+>>>index de1c604..c81ef94 100644
+>>>--- a/arch/arm/plat-omap/include/plat/gpio.h
+>>>+++ b/arch/arm/plat-omap/include/plat/gpio.h
+>>>@@ -72,12 +72,10 @@
+>>> 				 IH_GPIO_BASE + (nr))
+>>> 
+>>> extern int omap_gpio_init(void);	/* Call from board init only */
+>>>-extern void omap2_gpio_prepare_for_idle(int power_state);
+>>>+extern void omap2_gpio_prepare_for_idle(void);
+>>> extern void omap2_gpio_resume_after_idle(void);
+>>> extern void omap_set_gpio_debounce(int gpio, int enable);
+>>> extern void omap_set_gpio_debounce_time(int gpio, int enable);
+>>>-extern void omap_gpio_save_context(void);
+>>>-extern void omap_gpio_restore_context(void);
+>>> 
+>>>/*-------------------------------------------------------------
+>>>------------*/
+>>> 
+>>> /* Wrappers for "new style" GPIO calls, using the new infrastructure
+>>>-- 
+>>>1.7.2.1
+>>>
+>>>--
+>>>To unsubscribe from this list: send the line "unsubscribe 
+>>>linux-omap" in
+>>>the body of a message to majordomo@vger.kernel.org
+>>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>
