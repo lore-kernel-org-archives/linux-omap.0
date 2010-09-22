@@ -1,164 +1,1409 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v3 06/11] OMAP3: PM: Adding smartreflex class3 driver
-Date: Wed, 22 Sep 2010 20:15:14 +0530
-Message-ID: <1285166719-19352-7-git-send-email-thara@ti.com>
+Subject: [PATCH v3 03/11] OMAP3: PM: Adding smartreflex driver support.
+Date: Wed, 22 Sep 2010 20:15:11 +0530
+Message-ID: <1285166719-19352-4-git-send-email-thara@ti.com>
 References: <1285166719-19352-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55263 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55254 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753581Ab0IVOpp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 10:45:45 -0400
+	id S1753581Ab0IVOpm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Sep 2010 10:45:42 -0400
 In-Reply-To: <1285166719-19352-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-Smartreflex Class3 implementation continuously monitors
-silicon performance  and instructs the Voltage Processors
-to increase or decrease the voltage.
-This patch adds smartreflex class 3 driver. This driver hooks
-up with the generic smartreflex driver smartreflex.c to abstract
-out class specific implementations out of the generic driver.
+SmartReflex modules do adaptive voltage control for real-time
+voltage adjustments. With Smartreflex the power supply voltage
+can be adapted to the silicon performance(manufacturing process,
+temperature induced performance, age induced performance etc).
+
+There are differnet classes of smartreflex implementation.
+	Class-0: Manufacturing Test Calibration
+	Class-1: Boot-Time Software Calibration
+	Class-2: Continuous Software Calibration
+	Class-3: Continuous Hardware Calibration
+	Class-4: Fully Integrated Power Management
+
+OMAP3 has two smartreflex modules one associated with VDD1 and the
+other associated with VDD2.
+This patch adds support for  smartreflex driver. The driver is designed
+for Class-1 , Class-2 and Class-3 support and is  a platform driver.
+Smartreflex driver can be enabled through a Kconfig option
+"SmartReflex support" under "System type"->"TI OMAP implementations" menu.
+
+Smartreflex autocompensation feature can be enabled runtime through
+a debug fs option.
+To enable smartreflex autocompensation feature
+	echo 1 > /debugfs/pm_debug/smartreflex/sr_<X>/autocomp
+To disable smartreflex autocompensation feature
+	echo 0 > /debugfs/pm_debug/smartreflex/sr_<X>/autocomp
+
+where X can be mpu, core , iva etc.
+
+This patch contains code originally in linux omap pm branch.
+Major contributors to this driver are
+Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
+Nishant Menon, Kevin Hilman.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/Makefile             |    1 +
- arch/arm/mach-omap2/smartreflex-class3.c |   61 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/smartreflex-class3.h |   23 +++++++++++
- arch/arm/plat-omap/Kconfig               |    9 ++++
- 4 files changed, 94 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
- create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
+ arch/arm/mach-omap2/Makefile                  |    1 +
+ arch/arm/mach-omap2/smartreflex.c             | 1003 +++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig                    |   32 +
+ arch/arm/plat-omap/include/plat/smartreflex.h |  277 +++++++
+ 4 files changed, 1313 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/smartreflex.c
+ create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index abc377a..4f6139c 100644
+index 4f74f2b..8dd32a7 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -57,6 +57,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
+@@ -56,6 +56,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
+ 					   cpuidle34xx.o pm_bus.o
  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
- obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
-+obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
++obj-$(CONFIG_OMAP_SMARTREFLEX)          += smartreflex.o
  
  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
  AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
 new file mode 100644
-index 0000000..f1ade08
+index 0000000..7fc3138
 --- /dev/null
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -0,0 +1,61 @@
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -0,0 +1,1003 @@
 +/*
-+ * Smart reflex Class 3 specific implementations
++ * OMAP SmartReflex Voltage Control
 + *
-+ * Author: Thara Gopinath       <thara@ti.com>
++ * Author: Thara Gopinath	<thara@ti.com>
 + *
 + * Copyright (C) 2010 Texas Instruments, Inc.
 + * Thara Gopinath <thara@ti.com>
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Kalle Jokiniemi
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
++#include <linux/interrupt.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++#include <linux/debugfs.h>
++#include <linux/delay.h>
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++
++#include <plat/omap_device.h>
++#include <plat/common.h>
 +#include <plat/smartreflex.h>
 +
-+#include "smartreflex-class3.h"
++#include "pm.h"
 +
-+static int sr_class3_enable(struct voltagedomain *voltdm)
++#define SMARTREFLEX_NAME_LEN	16
++#define SR_DISABLE_TIMEOUT	200
++
++struct dentry *sr_dbg_dir;
++
++struct omap_sr {
++	int			srid;
++	bool			sr_enable;
++	bool			autocomp_active;
++	int			ip_type;
++	u32			clk_length;
++	u32			err_weight;
++	u32			err_minlimit;
++	u32			err_maxlimit;
++	u32			accum_data;
++	u32			senn_avgweight;
++	u32			senp_avgweight;
++	unsigned int		irq;
++	void __iomem		*base;
++	struct platform_device	*pdev;
++	struct list_head	node;
++	struct voltagedomain	*voltdm;
++};
++
++/* sr_list contains all the instances of smartreflex module */
++static LIST_HEAD(sr_list);
++
++static struct omap_smartreflex_class_data *sr_class;
++static struct omap_smartreflex_pmic_data *sr_pmic_data;
++
++static inline void sr_write_reg(struct omap_sr *sr, unsigned offset, u32 value)
 +{
-+	unsigned long volt = 0;
-+
-+	volt = omap_voltage_get_nom_volt(voltdm);
-+	if (!volt) {
-+		pr_warning("%s: Curr voltage unknown. Cannot enable sr_%s\n",
-+				__func__, voltdm->name);
-+		return -ENODATA;
-+	}
-+
-+	omap_vp_enable(voltdm);
-+	return sr_enable(voltdm, volt);
++	__raw_writel(value, (sr->base + offset));
 +}
 +
-+static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
++static inline void sr_modify_reg(struct omap_sr *sr, unsigned offset, u32 mask,
++					u32 value)
 +{
-+	omap_vp_disable(voltdm);
-+	sr_disable(voltdm);
-+	if (is_volt_reset)
-+		omap_voltage_reset(voltdm);
++	u32 reg_val;
++	u32 errconfig_offs, errconfig_mask;
++
++	reg_val = __raw_readl(sr->base + offset);
++	reg_val &= ~mask;
++
++	/*
++	 * Smartreflex error config register is special as it contains
++	 * certain status bits which if written a 1 into means a clear
++	 * of those bits. So in order to make sure no accidental write of
++	 * 1 happens to those status bits, do a clear of them in the read
++	 * value. Now if there is an actual reguest to write to these bits
++	 * they will be set in the nex step.
++	 */
++	if (sr->ip_type == SR_TYPE_V1) {
++		errconfig_offs = ERRCONFIG_V1;
++		errconfig_mask = ERRCONFIG_STATUS_V1_MASK;
++	} else if (sr->ip_type == SR_TYPE_V2) {
++		errconfig_offs = ERRCONFIG_V2;
++		errconfig_mask = ERRCONFIG_VPBOUNDINTST_V2;
++	}
++
++	if (offset == errconfig_offs)
++		reg_val &= ~errconfig_mask;
++
++	reg_val |= value;
++
++	__raw_writel(reg_val, (sr->base + offset));
++}
++
++static inline u32 sr_read_reg(struct omap_sr *sr, unsigned offset)
++{
++	return __raw_readl(sr->base + offset);
++}
++
++static struct omap_sr *_sr_lookup(struct voltagedomain *voltdm)
++{
++	struct omap_sr *sr_info;
++
++	if (!voltdm) {
++		pr_err("%s: Null voltage domain passed!\n", __func__);
++		return ERR_PTR(-EINVAL);
++	}
++
++	list_for_each_entry(sr_info, &sr_list, node) {
++		if (voltdm == sr_info->voltdm)
++			return sr_info;
++	}
++
++	return ERR_PTR(-ENODATA);
++}
++
++static irqreturn_t sr_omap_isr(int irq, void *data)
++{
++	struct omap_sr *sr_info = (struct omap_sr *)data;
++	u32 status = 0;
++
++	if (sr_info->ip_type == SR_TYPE_V1) {
++		/* Read the status bits */
++		status = sr_read_reg(sr_info, ERRCONFIG_V1);
++
++		/* Clear them by writing back */
++		sr_write_reg(sr_info, ERRCONFIG_V1, status);
++	} else if (sr_info->ip_type == SR_TYPE_V2) {
++		/* Read the status bits */
++		sr_read_reg(sr_info, IRQSTATUS);
++
++		/* Clear them by writing back */
++		sr_write_reg(sr_info, IRQSTATUS, status);
++	}
++
++	/* Call the class driver notify function if registered*/
++	if (sr_class->class_type == SR_CLASS2 && sr_class->notify)
++		sr_class->notify(sr_info->voltdm, status);
++
++	return IRQ_HANDLED;
++}
++
++static void sr_set_clk_length(struct omap_sr *sr)
++{
++	struct clk *sys_ck;
++	u32 sys_clk_speed;
++
++	sys_ck = clk_get(NULL, "sys_ck");
++	if (IS_ERR(sys_ck)) {
++		dev_err(&sr->pdev->dev, "%s: unable to get sys clk\n",
++			__func__);
++		return;
++	}
++	sys_clk_speed = clk_get_rate(sys_ck);
++	clk_put(sys_ck);
++
++	switch (sys_clk_speed) {
++	case 12000000:
++		sr->clk_length = SRCLKLENGTH_12MHZ_SYSCLK;
++		break;
++	case 13000000:
++		sr->clk_length = SRCLKLENGTH_13MHZ_SYSCLK;
++		break;
++	case 19200000:
++		sr->clk_length = SRCLKLENGTH_19MHZ_SYSCLK;
++		break;
++	case 26000000:
++		sr->clk_length = SRCLKLENGTH_26MHZ_SYSCLK;
++		break;
++	case 38400000:
++		sr->clk_length = SRCLKLENGTH_38MHZ_SYSCLK;
++		break;
++	default:
++		dev_err(&sr->pdev->dev, "%s: Invalid sysclk value: %d\n",
++			__func__, sys_clk_speed);
++		break;
++	}
++}
++
++static void sr_set_regfields(struct omap_sr *sr)
++{
++	/*
++	 * For time being these values are defined in smartreflex.h
++	 * and populated during init. May be they can be moved to board
++	 * file or pmic specific data structure. In that case these structure
++	 * fields will have to be populated using the pdata or pmic structure.
++	 */
++	if (cpu_is_omap34xx()) {
++		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
++		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
++		sr->accum_data = OMAP3430_SR_ACCUMDATA;
++		if (!(strcmp(sr->voltdm->name, "mpu"))) {
++			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
++			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
++		} else {
++			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
++			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
++		}
++	}
++	/* TODO: 3630 and Omap4 specific bit field values */
++}
++
++static void sr_start_vddautocomp(struct omap_sr *sr)
++{
++	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
++		dev_warn(&sr->pdev->dev,
++			"%s: smartreflex class driver not registered\n",
++			__func__);
++		return;
++	}
++
++	if (!sr_class->enable(sr->voltdm))
++		sr->autocomp_active = true;
++}
++
++static void sr_stop_vddautocomp(struct omap_sr *sr)
++{
++	if (!sr_class || !(sr_class->disable)) {
++		dev_warn(&sr->pdev->dev,
++			"%s: smartreflex class driver not registered\n",
++			__func__);
++		return;
++	}
++
++	if (sr->autocomp_active) {
++		sr_class->disable(sr->voltdm, 1);
++		sr->autocomp_active = false;
++	}
++}
++
++/*
++ * This function handles the intializations which have to be done
++ * only when both sr device and class driver regiter has
++ * completed. This will be attempted to be called from both sr class
++ * driver register and sr device intializtion API's. Only one call
++ * will ultimately succeed.
++ *
++ * Currenly this function registers interrrupt handler for a particular SR
++ * if smartreflex class driver is already registered and has
++ * requested for interrupts and the SR interrupt line in present.
++ */
++static int sr_late_init(struct omap_sr *sr_info)
++{
++	char *name;
++	struct omap_sr_data *pdata = sr_info->pdev->dev.platform_data;
++	int ret = 0;
++
++	if (sr_class->class_type == SR_CLASS2 &&
++		sr_class->notify_flags && sr_info->irq) {
++
++		name = kzalloc(SMARTREFLEX_NAME_LEN + 1, GFP_KERNEL);
++		strcpy(name, "sr_");
++		strcat(name, sr_info->voltdm->name);
++		ret = request_irq(sr_info->irq, sr_omap_isr,
++				IRQF_DISABLED, name, (void *)sr_info);
++		if (ret) {
++			struct resource *mem;
++
++			iounmap(sr_info->base);
++			mem = platform_get_resource(sr_info->pdev,
++				IORESOURCE_MEM, 0);
++			release_mem_region(mem->start, resource_size(mem));
++			list_del(&sr_info->node);
++			dev_err(&sr_info->pdev->dev, "%s: ERROR in registering"
++				"interrupt handler. Smartreflex will"
++				"not function as desired\n", __func__);
++
++			kfree(sr_info);
++			return ret;
++		}
++	}
++
++	if (pdata && pdata->enable_on_init)
++		sr_start_vddautocomp(sr_info);
++
++	return ret;
++}
++
++static void sr_v1_disable(struct omap_sr *sr)
++{
++	int timeout = 0;
++
++	/* Enable MCUDisableAcknowledge interrupt */
++	sr_modify_reg(sr, ERRCONFIG_V1,
++			ERRCONFIG_MCUDISACKINTEN, ERRCONFIG_MCUDISACKINTEN);
++
++	/* SRCONFIG - disable SR */
++	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
++
++	/* Disable all other SR interrupts and clear the status */
++	sr_modify_reg(sr, ERRCONFIG_V1,
++			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
++			ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_VPBOUNDINTEN_V1),
++			(ERRCONFIG_MCUACCUMINTST | ERRCONFIG_MCUVALIDINTST |
++			ERRCONFIG_MCUBOUNDINTST |
++			ERRCONFIG_VPBOUNDINTST_V1));
++
++	/*
++	 * Wait for SR to be disabled.
++	 * wait until ERRCONFIG.MCUDISACKINTST = 1. Typical latency is 1us.
++	 */
++	omap_test_timeout((sr_read_reg(sr, ERRCONFIG_V1) &
++			ERRCONFIG_MCUDISACKINTST), SR_DISABLE_TIMEOUT,
++			timeout);
++
++	if (timeout >= SR_DISABLE_TIMEOUT)
++		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
++			__func__);
++
++	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt */
++	sr_modify_reg(sr, ERRCONFIG_V1, ERRCONFIG_MCUDISACKINTEN,
++			ERRCONFIG_MCUDISACKINTST);
++}
++
++static void sr_v2_disable(struct omap_sr *sr)
++{
++	int timeout = 0;
++
++	/* Enable MCUDisableAcknowledge interrupt */
++	sr_write_reg(sr, IRQENABLE_SET, IRQENABLE_MCUDISABLEACKINT);
++
++	/* SRCONFIG - disable SR */
++	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
++
++	/* Disable all other SR interrupts and clear the status */
++	sr_modify_reg(sr, ERRCONFIG_V2, ERRCONFIG_VPBOUNDINTEN_V2,
++			ERRCONFIG_VPBOUNDINTST_V2);
++	sr_write_reg(sr, IRQENABLE_CLR, (IRQENABLE_MCUACCUMINT |
++			IRQENABLE_MCUVALIDINT |
++			IRQENABLE_MCUBOUNDSINT));
++	sr_write_reg(sr, IRQSTATUS, (IRQSTATUS_MCUACCUMINT |
++			IRQSTATUS_MCVALIDINT |
++			IRQSTATUS_MCBOUNDSINT));
++
++	/*
++	 * Wait for SR to be disabled.
++	 * wait until IRQSTATUS.MCUDISACKINTST = 1. Typical latency is 1us.
++	 */
++	omap_test_timeout((sr_read_reg(sr, IRQSTATUS) &
++			IRQSTATUS_MCUDISABLEACKINT), SR_DISABLE_TIMEOUT,
++			timeout);
++
++	if (timeout >= SR_DISABLE_TIMEOUT)
++		dev_warn(&sr->pdev->dev, "%s: Smartreflex disable timedout\n",
++			__func__);
++
++	/* Disable MCUDisableAcknowledge interrupt & clear pending interrupt */
++	sr_write_reg(sr, IRQENABLE_CLR, IRQENABLE_MCUDISABLEACKINT);
++	sr_write_reg(sr, IRQSTATUS, IRQSTATUS_MCUDISABLEACKINT);
++}
++
++/* Public Functions */
++
++/**
++ * sr_configure_errgen() - Configures the smrtreflex to perform AVS using the
++ *			 error generator module.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the smartreflex class driver to
++ * configure the error generator module inside the smartreflex module.
++ * SR settings if using the ERROR module inside Smartreflex.
++ * SR CLASS 3 by default uses only the ERROR module where as
++ * SR CLASS 2 can choose between ERROR module and MINMAXAVG
++ * module. Returns 0 on success and error value in case of failure.
++ */
++int sr_configure_errgen(struct voltagedomain *voltdm)
++{
++	u32 sr_config, sr_errconfig, errconfig_offs, vpboundint_en;
++	u32 vpboundint_st, senp_en = 0, senn_en = 0;
++	u8 senp_shift, senn_shift;
++	struct omap_sr *sr = _sr_lookup(voltdm);
++	struct omap_sr_data *pdata;
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return -EINVAL;
++	}
++
++	pdata = sr->pdev->dev.platform_data;
++
++	if (!sr->clk_length)
++		sr_set_clk_length(sr);
++
++	if (pdata) {
++		senp_en = pdata->senp_mod;
++		senn_en = pdata->senn_mod;
++	} else {
++		dev_warn(&sr->pdev->dev, "%s: Missing pdata\n", __func__);
++	}
++
++	sr_config = (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
++		SRCONFIG_SENENABLE | SRCONFIG_ERRGEN_EN;
++
++	if (sr->ip_type == SR_TYPE_V1) {
++		sr_config |= SRCONFIG_DELAYCTRL;
++		senn_shift = SRCONFIG_SENNENABLE_V1_SHIFT;
++		senp_shift = SRCONFIG_SENPENABLE_V1_SHIFT;
++		errconfig_offs = ERRCONFIG_V1;
++		vpboundint_en = ERRCONFIG_VPBOUNDINTEN_V1;
++		vpboundint_st = ERRCONFIG_VPBOUNDINTST_V1;
++	} else if (sr->ip_type == SR_TYPE_V2) {
++		senn_shift = SRCONFIG_SENNENABLE_V2_SHIFT;
++		senp_shift = SRCONFIG_SENPENABLE_V2_SHIFT;
++		errconfig_offs = ERRCONFIG_V2;
++		vpboundint_en = ERRCONFIG_VPBOUNDINTEN_V2;
++		vpboundint_st = ERRCONFIG_VPBOUNDINTST_V2;
++	} else {
++		dev_err(&sr->pdev->dev, "%s: Trying to Configure smartreflex"
++			"module without specifying the ip\n", __func__);
++		return -EINVAL;
++	}
++
++	sr_config |= ((senn_en << senn_shift) | (senp_en << senp_shift));
++	sr_write_reg(sr, SRCONFIG, sr_config);
++	sr_errconfig = (sr->err_weight << ERRCONFIG_ERRWEIGHT_SHIFT) |
++		(sr->err_maxlimit << ERRCONFIG_ERRMAXLIMIT_SHIFT) |
++		(sr->err_minlimit <<  ERRCONFIG_ERRMINLIMIT_SHIFT);
++	sr_modify_reg(sr, errconfig_offs, (SR_ERRWEIGHT_MASK |
++		SR_ERRMAXLIMIT_MASK | SR_ERRMINLIMIT_MASK),
++		sr_errconfig);
++
++	/* Enabling the interrupts if the ERROR module is used */
++	sr_modify_reg(sr, errconfig_offs,
++		vpboundint_en, (vpboundint_en | vpboundint_st));
 +
 +	return 0;
 +}
 +
-+static int sr_class3_configure(struct voltagedomain *voltdm)
++/**
++ * sr_configure_minmax() - Configures the smrtreflex to perform AVS using the
++ *			 minmaxavg module.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the smartreflex class driver to
++ * configure the minmaxavg module inside the smartreflex module.
++ * SR settings if using the ERROR module inside Smartreflex.
++ * SR CLASS 3 by default uses only the ERROR module where as
++ * SR CLASS 2 can choose between ERROR module and MINMAXAVG
++ * module. Returns 0 on success and error value in case of failure.
++ */
++int sr_configure_minmax(struct voltagedomain *voltdm)
 +{
-+	return sr_configure_errgen(voltdm);
++	u32 sr_config, sr_avgwt;
++	u32 senp_en = 0, senn_en = 0;
++	u8 senp_shift, senn_shift;
++	struct omap_sr *sr = _sr_lookup(voltdm);
++	struct omap_sr_data *pdata;
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return -EINVAL;
++	}
++
++	pdata = sr->pdev->dev.platform_data;
++
++	if (!sr->clk_length)
++		sr_set_clk_length(sr);
++
++	if (pdata) {
++		senp_en = pdata->senp_mod;
++		senn_en = pdata->senn_mod;
++	} else {
++		dev_warn(&sr->pdev->dev, "%s: Missing pdata\n", __func__);
++	}
++
++	sr_config = (sr->clk_length << SRCONFIG_SRCLKLENGTH_SHIFT) |
++		SRCONFIG_SENENABLE |
++		(sr->accum_data << SRCONFIG_ACCUMDATA_SHIFT);
++
++	if (sr->ip_type == SR_TYPE_V1) {
++		sr_config |= SRCONFIG_DELAYCTRL;
++		senn_shift = SRCONFIG_SENNENABLE_V1_SHIFT;
++		senp_shift = SRCONFIG_SENPENABLE_V1_SHIFT;
++	} else if (sr->ip_type == SR_TYPE_V2) {
++		senn_shift = SRCONFIG_SENNENABLE_V2_SHIFT;
++		senp_shift = SRCONFIG_SENPENABLE_V2_SHIFT;
++	} else {
++		dev_err(&sr->pdev->dev, "%s: Trying to Configure smartreflex"
++			"module without specifying the ip\n", __func__);
++		return -EINVAL;
++	}
++
++	sr_config |= ((senn_en << senn_shift) | (senp_en << senp_shift));
++	sr_write_reg(sr, SRCONFIG, sr_config);
++	sr_avgwt = (sr->senp_avgweight << AVGWEIGHT_SENPAVGWEIGHT_SHIFT) |
++		(sr->senn_avgweight << AVGWEIGHT_SENNAVGWEIGHT_SHIFT);
++	sr_write_reg(sr, AVGWEIGHT, sr_avgwt);
++
++	/*
++	 * Enabling the interrupts if MINMAXAVG module is used.
++	 * TODO: check if all the interrupts are mandatory
++	 */
++	if (sr->ip_type == SR_TYPE_V1) {
++		sr_modify_reg(sr, ERRCONFIG_V1,
++			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
++			ERRCONFIG_MCUBOUNDINTEN),
++			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUACCUMINTST |
++			 ERRCONFIG_MCUVALIDINTEN | ERRCONFIG_MCUVALIDINTST |
++			 ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_MCUBOUNDINTST));
++	} else if (sr->ip_type == SR_TYPE_V2) {
++		sr_write_reg(sr, IRQSTATUS,
++			IRQSTATUS_MCUACCUMINT | IRQSTATUS_MCVALIDINT |
++			IRQSTATUS_MCBOUNDSINT | IRQSTATUS_MCUDISABLEACKINT);
++		sr_write_reg(sr, IRQENABLE_SET,
++			IRQENABLE_MCUACCUMINT | IRQENABLE_MCUVALIDINT |
++			IRQENABLE_MCUBOUNDSINT | IRQENABLE_MCUDISABLEACKINT);
++	}
++
++	return 0;
 +}
 +
-+/* SR class3 structure */
-+static struct omap_smartreflex_class_data class3_data = {
-+	.enable = sr_class3_enable,
-+	.disable = sr_class3_disable,
-+	.configure = sr_class3_configure,
-+	.class_type = SR_CLASS3,
++/**
++ * sr_enable() - Enables the smartreflex module.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ * @volt:	The voltage at which the Voltage domain associated with
++ *		the smartreflex module is operating at.
++ *		This is required only to program the correct Ntarget value.
++ *
++ * This API is to be called from the smartreflex class driver to
++ * enable a smartreflex module. Returns 0 on success. Returns error
++ * value if the voltage passed is wrong or if ntarget value is wrong.
++ */
++int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
++{
++	u32 nvalue_reciprocal;
++	struct omap_volt_data *volt_data;
++	struct omap_sr *sr = _sr_lookup(voltdm);
++	int ret;
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return -EINVAL;
++	}
++
++	volt_data = omap_voltage_get_voltdata(voltdm, volt);
++
++	if (IS_ERR(volt_data)) {
++		dev_warn(&sr->pdev->dev, "%s: Unable to get voltage table"
++			" for nominal voltage %ld\n", __func__, volt);
++		return -ENODATA;
++	}
++
++	nvalue_reciprocal = volt_data->sr_nvalue;
++
++	if (!nvalue_reciprocal) {
++		dev_warn(&sr->pdev->dev, "%s: NVALUE = 0 at voltage %ld\n",
++			__func__, volt);
++		return -ENODATA;
++	}
++
++	/* errminlimit is opp dependent and hence linked to voltage */
++	sr->err_minlimit = volt_data->sr_errminlimit;
++
++	/* Enable the clocks */
++	if (!sr->sr_enable) {
++		pm_runtime_get_sync(&sr->pdev->dev);
++		sr->sr_enable = true;
++	}
++
++	/* Check if SR is already enabled. If yes do nothing */
++	if (sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE)
++		return 0;
++
++	/* Configure SR */
++	ret = sr_class->configure(voltdm);
++	if (ret)
++		return ret;
++
++	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
++
++	/* SRCONFIG - enable SR */
++	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
++	return 0;
++}
++
++/**
++ * sr_disable() - Disables the smartreflex module.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the smartreflex class driver to
++ * disable a smartreflex module.
++ */
++void sr_disable(struct voltagedomain *voltdm)
++{
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return;
++	}
++
++	/* Check if SR clocks are already disabled. If yes do nothing */
++	if (!sr->sr_enable)
++		return;
++
++	/* Check if SR is already disabled. If yes just disable the clocks */
++	if (!(sr_read_reg(sr, SRCONFIG) & SRCONFIG_SRENABLE))
++		goto disable_clocks;
++
++	if (sr->ip_type == SR_TYPE_V1)
++		sr_v1_disable(sr);
++	else if (sr->ip_type == SR_TYPE_V2)
++		sr_v2_disable(sr);
++
++disable_clocks:
++	pm_runtime_put_sync(&sr->pdev->dev);
++	sr->sr_enable = false;
++}
++
++/**
++ * sr_register_class() - API to register a smartreflex class parameters.
++ * @class_data:	The structure containing various sr class specific data.
++ *
++ * This API is to be called by the smartreflex class driver to register itself
++ * with the smartreflex driver during init. Returns 0 on success else the
++ * error value.
++ */
++int sr_register_class(struct omap_smartreflex_class_data *class_data)
++{
++	struct omap_sr *sr_info;
++
++	if (!class_data) {
++		pr_warning("%s:, Smartreflex class data passed is NULL\n",
++			__func__);
++		return -EINVAL;
++	}
++
++	if (sr_class) {
++		pr_warning("%s: Smartreflex class driver already registered\n",
++			__func__);
++		return -EBUSY;
++	}
++
++	sr_class = class_data;
++
++	/*
++	 * Call into late init to do intializations that require
++	 * both sr driver and sr class driver to be initiallized.
++	 */
++	list_for_each_entry(sr_info, &sr_list, node)
++		sr_late_init(sr_info);
++
++	return 0;
++}
++
++/**
++ * omap_sr_enable() -  API to enable SR clocks and to call into the
++ *			registered smartreflex class enable API.
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the kernel in order to enable
++ * a particular smartreflex module. This API will do the initial
++ * configurations to turn on the smartreflex module and in turn call
++ * into the registered smartreflex class enable API.
++ */
++void omap_sr_enable(struct voltagedomain *voltdm)
++{
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return;
++	}
++
++	if (!sr->autocomp_active)
++		return;
++
++	if (!sr_class || !(sr_class->enable) || !(sr_class->configure)) {
++		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
++			"registered\n", __func__);
++		return;
++	}
++
++	sr_class->enable(voltdm);
++}
++
++/**
++ * omap_sr_disable() - API to disable SR without resetting the voltage
++ *			processor voltage
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the kernel in order to disable
++ * a particular smartreflex module. This API will in turn call
++ * into the registered smartreflex class disable API. This API will tell
++ * the smartreflex class disable not to reset the VP voltage after
++ * disabling smartreflex.
++ */
++void omap_sr_disable(struct voltagedomain *voltdm)
++{
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return;
++	}
++
++	if (!sr->autocomp_active)
++		return;
++
++	if (!sr_class || !(sr_class->disable)) {
++		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
++			"registered\n", __func__);
++		return;
++	}
++
++	sr_class->disable(voltdm, 0);
++}
++
++/**
++ * omap_sr_disable_reset_volt() - API to disable SR and reset the
++ *				voltage processor voltage
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ *
++ * This API is to be called from the kernel in order to disable
++ * a particular smartreflex module. This API will in turn call
++ * into the registered smartreflex class disable API. This API will tell
++ * the smartreflex class disable to reset the VP voltage after
++ * disabling smartreflex.
++ */
++void omap_sr_disable_reset_volt(struct voltagedomain *voltdm)
++{
++	struct omap_sr *sr = _sr_lookup(voltdm);
++
++	if (IS_ERR(sr)) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, voltdm->name);
++		return;
++	}
++
++	if (!sr->autocomp_active)
++		return;
++
++	if (!sr_class || !(sr_class->disable)) {
++		dev_warn(&sr->pdev->dev, "%s: smartreflex class driver not"
++			"registered\n", __func__);
++		return;
++	}
++
++	sr_class->disable(voltdm, 1);
++}
++
++/**
++ * omap_sr_register_pmic() - API to register pmic specific info.
++ * @pmic_data:	The structure containing pmic specific data.
++ *
++ * This API is to be called from the PMIC specific code to register with
++ * smartreflex driver pmic specific info. Currently the only info required
++ * is the smartreflex init on the PMIC side.
++ */
++void omap_sr_register_pmic(struct omap_smartreflex_pmic_data *pmic_data)
++{
++	if (!pmic_data) {
++		pr_warning("%s: Trying to register NULL PMIC data structure"
++			"with smartreflex\n", __func__);
++		return;
++	}
++
++	sr_pmic_data = pmic_data;
++}
++
++/* PM Debug Fs enteries to enable disable smartreflex. */
++static int omap_sr_autocomp_show(void *data, u64 *val)
++{
++	struct omap_sr *sr_info = (struct omap_sr *) data;
++
++	if (!sr_info) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, sr_info->voltdm->name);
++		return -EINVAL;
++	}
++
++	*val = sr_info->autocomp_active;
++
++	return 0;
++}
++
++static int omap_sr_autocomp_store(void *data, u64 val)
++{
++	struct omap_sr *sr_info = (struct omap_sr *) data;
++
++	if (!sr_info) {
++		pr_warning("%s: omap_sr struct for sr_%s not found\n",
++			__func__, sr_info->voltdm->name);
++		return -EINVAL;
++	}
++
++	/* Sanity check */
++	if (val && (val != 1)) {
++		pr_warning("%s: Invalid argument %lld\n", __func__, val);
++		return -EINVAL;
++	}
++
++	if (!val)
++		sr_stop_vddautocomp(sr_info);
++	else
++		sr_start_vddautocomp(sr_info);
++
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(pm_sr_fops, omap_sr_autocomp_show,
++		omap_sr_autocomp_store, "%llu\n");
++
++static int __init omap_smartreflex_probe(struct platform_device *pdev)
++{
++	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
++	struct omap_device *odev = to_omap_device(pdev);
++	struct omap_sr_data *pdata = pdev->dev.platform_data;
++	struct resource *mem, *irq;
++	struct dentry *dbg_dir;
++	char *name;
++	int ret = 0;
++
++	if (!sr_info) {
++		dev_err(&pdev->dev, "%s: unable to allocate sr_info\n",
++			__func__);
++		return -ENOMEM;
++	}
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
++		return -EINVAL;
++	}
++
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!mem) {
++		dev_err(&pdev->dev, "%s: no mem resource\n", __func__);
++		ret = -ENODEV;
++		goto err_free_devinfo;
++	}
++
++	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++
++	pm_runtime_enable(&pdev->dev);
++
++	sr_info->pdev = pdev;
++	sr_info->srid = pdev->id;
++	sr_info->voltdm = pdata->voltdm;
++	sr_info->autocomp_active = false;
++	sr_info->ip_type = odev->hwmods[0]->class->rev;
++	sr_info->base = ioremap(mem->start, resource_size(mem));
++	if (!sr_info->base) {
++		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
++		ret = -ENOMEM;
++		goto err_release_region;
++	}
++
++	if (irq)
++		sr_info->irq = irq->start;
++
++	sr_set_clk_length(sr_info);
++	sr_set_regfields(sr_info);
++
++	list_add(&sr_info->node, &sr_list);
++
++	/*
++	 * Call into late init to do intializations that require
++	 * both sr driver and sr class driver to be initiallized.
++	 */
++	if (sr_class) {
++		ret = sr_late_init(sr_info);
++		if (ret) {
++			pr_warning("%s: Error in SR late init\n", __func__);
++			return ret;
++		}
++	}
++
++	dev_info(&pdev->dev, "%s: SmartReflex driver initialized\n", __func__);
++
++	/*
++	 * If the Smartreflex main debugfs directory is not created, do
++	 * not try to create rest of the debugfs entries.
++	 */
++	if (!sr_dbg_dir)
++		return ret;
++
++	name = kzalloc(SMARTREFLEX_NAME_LEN + 1, GFP_KERNEL);
++	if (!name) {
++		dev_err(&pdev->dev, "%s: Unable to allocate name for"
++			"debufs entry", __func__);
++		return ret;
++	}
++
++	/* Create the debug fs enteries */
++	strcpy(name, "sr_");
++	strcat(name, sr_info->voltdm->name);
++
++	dbg_dir = debugfs_create_dir(name, sr_dbg_dir);
++	if (IS_ERR(dbg_dir)) {
++		dev_err(&pdev->dev, "%s: Unable to create debugfs directory\n",
++			__func__);
++		return ret;
++	}
++
++	(void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
++				(void *)sr_info, &pm_sr_fops);
++
++	return ret;
++
++err_release_region:
++	release_mem_region(mem->start, resource_size(mem));
++err_free_devinfo:
++	kfree(sr_info);
++
++	return ret;
++}
++
++static int __devexit omap_smartreflex_remove(struct platform_device *pdev)
++{
++	struct omap_sr_data *pdata = pdev->dev.platform_data;
++	struct omap_sr *sr_info;
++	struct resource *mem;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
++		return -EINVAL;
++	}
++
++	sr_info = _sr_lookup(pdata->voltdm);
++	if (!sr_info) {
++		dev_warn(&pdev->dev, "%s: omap_sr struct not found\n",
++			__func__);
++		return -EINVAL;
++	}
++
++	/* Disable Autocompensation if enabled before removing the module */
++	if (sr_info->autocomp_active)
++		sr_stop_vddautocomp(sr_info);
++
++	list_del(&sr_info->node);
++	iounmap(sr_info->base);
++	kfree(sr_info);
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	release_mem_region(mem->start, resource_size(mem));
++
++	return 0;
++}
++
++static struct platform_driver smartreflex_driver = {
++	.remove         = omap_smartreflex_remove,
++	.driver		= {
++		.name	= "smartreflex",
++	},
 +};
 +
-+/* Smartreflex CLASS3 init API to be called from board file */
-+int __init sr_class3_init(void)
++static int __init sr_init(void)
 +{
-+	pr_info("SmartReflex CLASS3 initialized\n");
-+	return sr_register_class(&class3_data);
++	int ret = 0;
++
++	/*
++	 * sr_init is a late init. If by then a pmic specific API is not
++	 * registered either there is no need for anything to be done on
++	 * the PMIC side or somebody has forgotten to register a PMIC
++	 * handler. Warn for the second condition.
++	 */
++	if (sr_pmic_data && sr_pmic_data->sr_pmic_init)
++		sr_pmic_data->sr_pmic_init();
++	else
++		pr_warning("%s: No PMIC hook to init smartreflex\n", __func__);
++
++	if (pm_dbg_main_dir) {
++		struct dentry *d;
++
++		d = debugfs_create_dir("smartreflex", pm_dbg_main_dir);
++		if (!IS_ERR(d))
++			sr_dbg_dir = d;
++	}
++
++	ret = platform_driver_probe(&smartreflex_driver,
++				omap_smartreflex_probe);
++	if (ret) {
++		pr_err("%s: platform driver register failed for SR\n",
++			__func__);
++		return ret;
++	}
++
++	return 0;
 +}
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.h b/arch/arm/mach-omap2/smartreflex-class3.h
++
++static void __exit sr_exit(void)
++{
++	platform_driver_unregister(&smartreflex_driver);
++}
++late_initcall(sr_init);
++module_exit(sr_exit);
++
++MODULE_DESCRIPTION("OMAP SMARTREFLEX DRIVER");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRIVER_NAME);
++MODULE_AUTHOR("Texas Instruments Inc");
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index e39a417..8056349 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -35,6 +35,38 @@ config OMAP_DEBUG_LEDS
+ 	depends on OMAP_DEBUG_DEVICES
+ 	default y if LEDS
+ 
++config OMAP_SMARTREFLEX
++	bool "SmartReflex support"
++	depends on ARCH_OMAP3 && PM
++	help
++	  Say Y if you want to enable SmartReflex.
++
++	  SmartReflex can perform continuous dynamic voltage
++	  scaling around the nominal operating point voltage
++	  according to silicon characteristics and operating
++	  conditions. Enabling SmartReflex reduces power
++	  consumption.
++
++	  Please note, that by default SmartReflex is only
++	  initialized. To enable the automatic voltage
++	  compensation for VDD1 and VDD2, user must write 1 to
++	  /debug/pm_debug/Smartreflex/SR<X>/autocomp,
++	  where X is 1 or 2 for OMAP3
++
++config OMAP_SMARTREFLEX_TESTING
++	bool "Smartreflex testing support"
++	depends on OMAP_SMARTREFLEX
++	default n
++	help
++	  Say Y if you want to enable SmartReflex testing with SW hardcoded
++	  NVALUES intead of E-fuse NVALUES set in factory silicon testing.
++
++	  In some devices the E-fuse values have not been set, even though
++	  SmartReflex modules are included. Using these hardcoded values set
++	  in software, one can test the SmartReflex features without E-fuse.
++
++	  WARNING: Enabling this option may cause your device to hang!
++
+ config OMAP_RESET_CLOCKS
+ 	bool "Reset unused clocks during boot"
+ 	depends on ARCH_OMAP
+diff --git a/arch/arm/plat-omap/include/plat/smartreflex.h b/arch/arm/plat-omap/include/plat/smartreflex.h
 new file mode 100644
-index 0000000..4d86037
+index 0000000..1ad03ea
 --- /dev/null
-+++ b/arch/arm/mach-omap2/smartreflex-class3.h
-@@ -0,0 +1,23 @@
++++ b/arch/arm/plat-omap/include/plat/smartreflex.h
+@@ -0,0 +1,277 @@
 +/*
-+ * Smartreflex Class 3 Routines
++ * OMAP Smartreflex Defines and Routines
 + *
-+ * Author: Thara Gopinath      <thara@ti.com>
++ * Author: Thara Gopinath	<thara@ti.com>
 + *
 + * Copyright (C) 2010 Texas Instruments, Inc.
 + * Thara Gopinath <thara@ti.com>
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Kalle Jokiniemi
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Lesly A M <x0080970@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#ifndef __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
-+#define __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
++#ifndef __ASM_ARM_OMAP_SMARTREFLEX_H
++#define __ASM_ARM_OMAP_SMARTREFLEX_H
 +
-+#ifdef CONFIG_OMAP_SMARTREFLEX_CLASS3
-+int sr_class3_init(void);
++#include <linux/platform_device.h>
++#include <plat/voltage.h>
++
++#ifdef CONFIG_PM_DEBUG
++extern struct dentry *pm_dbg_main_dir;
++extern struct dentry *sr_dbg_dir;
++#endif
++
++/*
++ * Different Smartreflex IPs version. The v1 is the 65nm version used in
++ * OMAP3430. The v2 is the update for the 45nm version of the IP
++ * used in OMAP3630 and OMAP4430
++ */
++#define SR_TYPE_V1	1
++#define SR_TYPE_V2	2
++
++/* SMART REFLEX REG ADDRESS OFFSET */
++#define SRCONFIG		0x00
++#define SRSTATUS		0x04
++#define SENVAL			0x08
++#define SENMIN			0x0C
++#define SENMAX			0x10
++#define SENAVG			0x14
++#define AVGWEIGHT		0x18
++#define NVALUERECIPROCAL	0x1c
++#define SENERROR_V1		0x20
++#define ERRCONFIG_V1		0x24
++#define IRQ_EOI			0x20
++#define IRQSTATUS_RAW		0x24
++#define IRQSTATUS		0x28
++#define IRQENABLE_SET		0x2C
++#define IRQENABLE_CLR		0x30
++#define SENERROR_V2		0x34
++#define ERRCONFIG_V2		0x38
++
++/* Bit/Shift Positions */
++
++/* SRCONFIG */
++#define SRCONFIG_ACCUMDATA_SHIFT	22
++#define SRCONFIG_SRCLKLENGTH_SHIFT	12
++#define SRCONFIG_SENNENABLE_V1_SHIFT	5
++#define SRCONFIG_SENPENABLE_V1_SHIFT	3
++#define SRCONFIG_SENNENABLE_V2_SHIFT	1
++#define SRCONFIG_SENPENABLE_V2_SHIFT	0
++#define SRCONFIG_CLKCTRL_SHIFT		0
++
++#define SRCONFIG_ACCUMDATA_MASK		(0x3ff << 22)
++
++#define SRCONFIG_SRENABLE		BIT(11)
++#define SRCONFIG_SENENABLE		BIT(10)
++#define SRCONFIG_ERRGEN_EN		BIT(9)
++#define SRCONFIG_MINMAXAVG_EN		BIT(8)
++#define SRCONFIG_DELAYCTRL		BIT(2)
++
++/* AVGWEIGHT */
++#define AVGWEIGHT_SENPAVGWEIGHT_SHIFT	2
++#define AVGWEIGHT_SENNAVGWEIGHT_SHIFT	0
++
++/* NVALUERECIPROCAL */
++#define NVALUERECIPROCAL_SENPGAIN_SHIFT	20
++#define NVALUERECIPROCAL_SENNGAIN_SHIFT	16
++#define NVALUERECIPROCAL_RNSENP_SHIFT	8
++#define NVALUERECIPROCAL_RNSENN_SHIFT	0
++
++/* ERRCONFIG */
++#define ERRCONFIG_ERRWEIGHT_SHIFT	16
++#define ERRCONFIG_ERRMAXLIMIT_SHIFT	8
++#define ERRCONFIG_ERRMINLIMIT_SHIFT	0
++
++#define SR_ERRWEIGHT_MASK		(0x07 << 16)
++#define SR_ERRMAXLIMIT_MASK		(0xff << 8)
++#define SR_ERRMINLIMIT_MASK		(0xff << 0)
++
++#define ERRCONFIG_VPBOUNDINTEN_V1	BIT(31)
++#define ERRCONFIG_VPBOUNDINTST_V1	BIT(30)
++#define	ERRCONFIG_MCUACCUMINTEN		BIT(29)
++#define ERRCONFIG_MCUACCUMINTST		BIT(28)
++#define	ERRCONFIG_MCUVALIDINTEN		BIT(27)
++#define ERRCONFIG_MCUVALIDINTST		BIT(26)
++#define ERRCONFIG_MCUBOUNDINTEN		BIT(25)
++#define	ERRCONFIG_MCUBOUNDINTST		BIT(24)
++#define	ERRCONFIG_MCUDISACKINTEN	BIT(23)
++#define ERRCONFIG_VPBOUNDINTST_V2	BIT(23)
++#define ERRCONFIG_MCUDISACKINTST	BIT(22)
++#define ERRCONFIG_VPBOUNDINTEN_V2	BIT(22)
++
++#define ERRCONFIG_STATUS_V1_MASK	(ERRCONFIG_VPBOUNDINTST_V1 | \
++					ERRCONFIG_MCUACCUMINTST | \
++					ERRCONFIG_MCUVALIDINTST | \
++					ERRCONFIG_MCUBOUNDINTST | \
++					ERRCONFIG_MCUDISACKINTST)
++/* IRQSTATUS */
++#define IRQSTATUS_MCUACCUMINT		BIT(3)
++#define IRQSTATUS_MCVALIDINT		BIT(2)
++#define IRQSTATUS_MCBOUNDSINT		BIT(1)
++#define IRQSTATUS_MCUDISABLEACKINT	BIT(0)
++
++/* IRQENABLE_SET and IRQENABLE_CLEAR */
++#define IRQENABLE_MCUACCUMINT		BIT(3)
++#define IRQENABLE_MCUVALIDINT		BIT(2)
++#define IRQENABLE_MCUBOUNDSINT		BIT(1)
++#define IRQENABLE_MCUDISABLEACKINT	BIT(0)
++
++/* Common Bit values */
++
++#define SRCLKLENGTH_12MHZ_SYSCLK	0x3c
++#define SRCLKLENGTH_13MHZ_SYSCLK	0x41
++#define SRCLKLENGTH_19MHZ_SYSCLK	0x60
++#define SRCLKLENGTH_26MHZ_SYSCLK	0x82
++#define SRCLKLENGTH_38MHZ_SYSCLK	0xC0
++
++/*
++ * 3430 specific values. Maybe these should be passed from board file or
++ * pmic structures.
++ */
++#define OMAP3430_SR_ACCUMDATA		0x1f4
++
++#define OMAP3430_SR1_SENPAVGWEIGHT	0x03
++#define OMAP3430_SR1_SENNAVGWEIGHT	0x03
++
++#define OMAP3430_SR2_SENPAVGWEIGHT	0x01
++#define OMAP3430_SR2_SENNAVGWEIGHT	0x01
++
++#define OMAP3430_SR_ERRWEIGHT		0x04
++#define OMAP3430_SR_ERRMAXLIMIT		0x02
++
++/* TODO:3630/OMAP4 values if it has to come from this file */
++
++/**
++ * omap_smartreflex_dev_data - Smartreflex device specific data
++ *
++ * @volts_supported	: Number of distinct voltages possible for the VDD
++ *			  associated with this smartreflex module.
++ * @efuse_sr_control	: The regisrter offset of control_fuse_sr efuse
++ *			  register from which sennenable and senpenable values
++ *			  are obtained.
++ * @sennenable_shift	: The shift in the control_fuse_sr register for
++ *			  obtaining the sennenable value for this smartreflex
++ *			  module.
++ * @senpenable_shift	: The shift in the control_fuse_sr register for
++ *			  obtaining the senpenable value for this smartreflex
++ *			  module.
++ * @efuse_nvalues_offs	: Array of efuse offsets from which ntarget values can
++ *			  be retrieved. Number of efuse offsets in this arrray
++ *			  is equal to the volts_supported value ie one efuse
++ *			  register per supported voltage.
++ * @test_sennenable	: SENNENABLE test value
++ * @test_senpenable	: SENPENABLE test value.
++ * @test_nvalues	: Array of test ntarget values.
++ * @vdd_name		: Name of the voltage domain associated with this
++ *			  Smartreflex device.
++ * @volt_data		: Voltage table associated with this smartreflex module
++ */
++struct omap_sr_dev_data {
++	int volts_supported;
++	u32 efuse_sr_control;
++	u32 sennenable_shift;
++	u32 senpenable_shift;
++	u32 *efuse_nvalues_offs;
++	u32 test_sennenable;
++	u32 test_senpenable;
++	u32 *test_nvalues;
++	char *vdd_name;
++	struct omap_volt_data *volt_data;
++};
++
++/**
++ * omap_smartreflex_pmic_data : Strucutre to be populated by pmic code to pass
++ * pmic specific info to smartreflex driver
++ *
++ * @sr_pmic_init - API to initialize smartreflex on the PMIC side.
++ */
++struct omap_smartreflex_pmic_data {
++	void (*sr_pmic_init) (void);
++};
++
++#ifdef CONFIG_OMAP_SMARTREFLEX
++/*
++ * The smart reflex driver supports CLASS1 CLASS2 and CLASS3 SR.
++ * The smartreflex class driver should pass the class type.
++ * Should be used to populate the class_type field of the
++ * omap_smartreflex_class_data structure.
++ */
++#define SR_CLASS1	0x1
++#define SR_CLASS2	0x2
++#define SR_CLASS3	0x3
++
++/**
++ * omap_smartreflex_class_data : Structure to be populated by
++ * Smartreflex class driver with corresponding class enable disable API's
++ *
++ * @enable - API to enable a particular class smaartreflex.
++ * @disable - API to disable a particular class smartreflex.
++ * @configure - API to configure a particular class smartreflex.
++ * @notify - API to notify the class driver about an event in SR. Not needed
++ *		for class3.
++ * @notify_flags - specify the events to be notified to the class driver
++ * @class_type - specify which smartreflex class. Can be used by the SR driver
++ *		to take any class based decisions.
++ */
++struct omap_smartreflex_class_data {
++	int (*enable)(struct voltagedomain *voltdm);
++	int (*disable)(struct voltagedomain *voltdm, int is_volt_reset);
++	int (*configure)(struct voltagedomain *voltdm);
++	int (*notify)(struct voltagedomain *voltdm, u32 status);
++	u8 notify_flags;
++	u8 class_type;
++};
++
++/**
++ * omap_smartreflex_data - Smartreflex platform data
++ *
++ * @senp_mod		: SENPENABLE value for the sr
++ * @senn_mod		: SENNENABLE value for sr
++ * @sr_nvalue		: array of n target values for sr
++ * @enable_on_init	: whether this sr module needs to enabled at
++ *			  boot up or not.
++ * @voltdm		: Pointer to the voltage domain associated with the SR
++ */
++struct omap_sr_data {
++	u32				senp_mod;
++	u32				senn_mod;
++	bool				enable_on_init;
++	struct voltagedomain		*voltdm;
++};
++
++/*
++ * Smartreflex module enable/disable interface.
++ * NOTE: if smartreflex is not enabled from sysfs, these functions will not
++ * do anything.
++ */
++void omap_sr_enable(struct voltagedomain *voltdm);
++void omap_sr_disable(struct voltagedomain *voltdm);
++void omap_sr_disable_reset_volt(struct voltagedomain *voltdm);
++
++/* API to register the pmic specific data with the smartreflex driver. */
++void omap_sr_register_pmic(struct omap_smartreflex_pmic_data *pmic_data);
++
++/* Smartreflex driver hooks to be called from Smartreflex class driver */
++int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
++void sr_disable(struct voltagedomain *voltdm);
++int sr_configure_errgen(struct voltagedomain *voltdm);
++int sr_configure_minmax(struct voltagedomain *voltdm);
++
++/* API to register the smartreflex class driver with the smartreflex driver */
++int sr_register_class(struct omap_smartreflex_class_data *class_data);
 +#else
-+static int sr_class3_init(void) { return 0; }
++static inline void omap_sr_enable(struct voltagedomain *voltdm) {}
++static inline void omap_sr_disable(struct voltagedomain *voltdm) {}
++static inline void omap_sr_disable_reset_volt(
++		struct voltagedomain *voltdm) {}
++static inline void omap_sr_register_pmic(
++		struct omap_smartreflex_pmic_data *pmic_data) {}
 +#endif
-+
 +#endif
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 8056349..af7acc9 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -67,6 +67,15 @@ config OMAP_SMARTREFLEX_TESTING
- 
- 	  WARNING: Enabling this option may cause your device to hang!
- 
-+config OMAP_SMARTREFLEX_CLASS3
-+	bool "Class 3 mode of Smartreflex Implementation"
-+	depends on OMAP_SMARTREFLEX && TWL4030_CORE
-+	help
-+	  Say Y to enable Class 3 implementation of Smartreflex
-+
-+	  Class 3 implementation of Smartreflex employs continuous hardware
-+	  voltage caliberation.
-+
- config OMAP_RESET_CLOCKS
- 	bool "Reset unused clocks during boot"
- 	depends on ARCH_OMAP
 -- 
 1.7.1.GIT
 
