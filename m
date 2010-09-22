@@ -1,95 +1,97 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 3/4 v2] omap: hwspinlock: Created driver for OMAP
- hardware spinlock.
-Date: Wed, 22 Sep 2010 10:21:35 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E5F57C028@dlee03.ent.ti.com>
-References: <F39349C6FA641B4A831B7BF4EBF4D4E1480D9E48@dlee03.ent.ti.com>
- <20100920191351.GH4611@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/5] OMAP: hwmod: Enable module wakeup if in smartidle
+Date: Wed, 22 Sep 2010 09:22:39 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009220920100.21002@utopia.booyaka.com>
+References: <20100922001834.8621.76144.stgit@twilight.localdomain> <20100922001931.8621.46565.stgit@twilight.localdomain> <4C99CF3A.9080901@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1080219525-1285168959=:21002"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58874 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752414Ab0IVPVj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 11:21:39 -0400
-In-Reply-To: <20100920191351.GH4611@atomide.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:50669 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754427Ab0IVPWk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 11:22:40 -0400
+In-Reply-To: <4C99CF3A.9080901@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux Omap <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Premi, Sanjeev" <premi@ti.com>
+To: Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Partha Basak <p-basak2@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-Tony,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Thanks for your comments.
+--155748971-1080219525-1285168959=:21002
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> * Que, Simon <sque@ti.com> [100811 17:22]:
-> > Created driver for OMAP hardware spinlock.
-> >
-> >  - Reserved spinlocks for internal use
-> >  - Dynamic allocation of unreserved locks
-> >  - Lock, unlock, and trylock functions, with or without disabling
-> irqs/preempt
-> >  - Registered as a platform device driver
-> 
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/hwspinlocks.c
-> > @@ -0,0 +1,65 @@
-> > +int __init hwspinlocks_init(void)
-> > +{
-> > +       int retval = 0;
-> > +
-> > +       struct omap_hwmod *oh;
-> > +       const char *oh_name, *pdev_name;
-> > +
-> > +       oh_name = "spinlock";
-> > +       oh = omap_hwmod_lookup(oh_name);
-> > +       if (WARN_ON(oh == NULL))
-> > +               return -EINVAL;
-> > +
-> > +       pdev_name = "hwspinlock";
-> > +
-> > +       /* Pass data to device initialization */
-> > +       omap_device_build(pdev_name, 0, oh, NULL, 0,
-> omap_spinlock_latency,
-> > +                               ARRAY_SIZE(omap_spinlock_latency),
-> false);
-> > +
-> > +       return retval;
-> > +}
-> > +postcore_initcall(hwspinlocks_init);
-> 
-> Is this initcall safe to run on all omaps or do you need some
-> extra checks for it?
+Hello Sergei,
 
-It is not since hwspinlock is not even present in pre-omap4. Do you suggest adding a check for " if (cpu_is_omap44xx())" in the init function ?
+On Wed, 22 Sep 2010, Sergei Shtylyov wrote:
+
+>    This line is overindented...
+
+Thanks, updated the patch (below).
+
+- Paul
 
 
-> 
-> > --- /dev/null
-> > +++ b/arch/arm/plat-omap/hwspinlock.c
-> > @@ -0,0 +1,353 @@
-> > +EXPORT_SYMBOL(hwspinlock_lock);
-> > +EXPORT_SYMBOL(hwspinlock_trylock);
-> > +EXPORT_SYMBOL(hwspinlock_unlock);
-> > +EXPORT_SYMBOL(hwspinlock_request);
-> > +EXPORT_SYMBOL(hwspinlock_request_specific);
-> > +EXPORT_SYMBOL(hwspinlock_free);
-> 
-> Do we really want to export these functions? I think we're better
-> off implementing low-level functions in the platform init code that
-> are passed to the drivers in the platform_data.
-> 
-> This way the drivers stay generic, and we don't add yet another
-> non-standard layer that will get misused all over the drivers.
-> 
-> If you really want to export these functions to the drivers,
-> then all this code should live somewherew under drivers as well.
+From=209980ce53c97392a3dbdc9d1ac3e455d79b4167ed Mon Sep 17 00:00:00 2001
+From: Rajendra Nayak <rnayak@ti.com>
+Date: Tue, 21 Sep 2010 19:58:30 +0530
+Subject: [PATCH] OMAP: hwmod: Enable module wakeup if in smartidle
+MIME-Version: 1.0
+Content-Type: text/plain; charset=3DUTF-8
+Content-Transfer-Encoding: 8bit
 
-I agree. Will make this change in next revision.
+If a module's OCP slave port is programmed to be in smartidle,
+its also necessary that they have module level wakeup enabled.
+Update _sysc_enable in hwmod framework to do this.
 
-> 
-Thank you,
-Best regards,
-Hari
+The thread "[PATCH 7/8] : Hwmod api changes" archived here:
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34212.html
+
+has additional technical information on the rationale of this patch.
+
+Sergei Shtylyov <sshtylyov@mvista.com> identified an indentation
+problem with this patch - thanks, Sergei.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Partha Basak <p-basak2@ti.com>
+Signed-off-by: Beno=C3=AEt Cousson <b-cousson@ti.com>
+[paul@pwsan.com: revised patch description]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Sergei Shtylyov <sshtylyov@mvista.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hw=
+mod.c
+index f320cfb..d694067 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -691,8 +691,6 @@ static void _sysc_enable(struct omap_hwmod *oh)
+ =09=09_set_module_autoidle(oh, idlemode, &v);
+ =09}
+=20
+-=09/* XXX OCP ENAWAKEUP bit? */
+-
+ =09/*
+ =09 * XXX The clock framework should handle this, by
+ =09 * calling into this code.  But this must wait until the
+@@ -703,6 +701,10 @@ static void _sysc_enable(struct omap_hwmod *oh)
+ =09=09_set_clockactivity(oh, oh->class->sysc->clockact, &v);
+=20
+ =09_write_sysconfig(v, oh);
++
++=09/* If slave is in SMARTIDLE, also enable wakeup */
++=09if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
++=09=09_enable_wakeup(oh);
+ }
+=20
+ /**
+--=20
+1.7.1
+
+--155748971-1080219525-1285168959=:21002--
