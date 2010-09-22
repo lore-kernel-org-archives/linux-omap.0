@@ -1,44 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5] OMAP4: PM: Update PRCM register bitshits and masks
- for ES2
-Date: Wed, 22 Sep 2010 10:10:25 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009221010020.21002@utopia.booyaka.com>
-References: <1284641906-24231-1-git-send-email-rnayak@ti.com> <1284641906-24231-2-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1009220014340.21002@utopia.booyaka.com> <0680EC522D0CC943BC586913CF3768C003C21EE40F@dbde02.ent.ti.com>
- <4C9A29E8.4020509@ti.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 7/9 v3] OMAP: Hwmod api changes
+Date: Wed, 22 Sep 2010 20:11:19 +0400
+Message-ID: <4C9A2AA7.4030504@ru.mvista.com>
+References: <1285201816-26516-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39385 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218Ab0IVQK0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 12:10:26 -0400
-In-Reply-To: <4C9A29E8.4020509@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1285201816-26516-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Wed, 22 Sep 2010, Cousson, Benoit wrote:
+Hello.
 
-> On 9/22/2010 8:43 AM, Nayak, Rajendra wrote:
-> > 
-> > > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > > Sent: Wednesday, September 22, 2010 11:47 AM
-> > > 
-> > > We should really get rid of all these 'BITFIELD' defines, and just replace
-> > > them with simple bitshifts.  Care to spin a patch to do that during the
-> > > 2.6.38 timeframe?
-> > 
-> > Sure, there's already a patch for this which I guess Benoit should be
-> > posting pretty soon.
-> 
-> Yes, I already updated the scripts a couple of weeks ago to fix that on top of
-> Rajendra's series.
-> Since it was not critical, I kind of forgot it :-)
-> 
-> I can sent the fix to you right now if you want?
+Hema HK wrote:
 
-Sure, if you have it ready to go, I'll take it.
+> OMAP USBOTG modules has a requirement to set the auto idle bit only after
+> setting smart idle bit. Modified the _sys_enable api to set the smart idle
+> first and then the autoidle bit. Setting this will not have any impact on the
+> other modules.
 
+> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Basak, Partha <p-basak2-l0cyMroinI0@public.gmane.org>
+> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
+> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod.c |   18 ++++++++++++------
+>  1 file changed, 12 insertions(+), 6 deletions(-)
 
-- Paul
+> Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod.c
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod.c
+> +++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod.c
+[...]
+> @@ -672,6 +666,19 @@ static void _sysc_enable(struct omap_hwm
+>  		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
+>  
+>  	_write_sysconfig(v, oh);
+> +
+> +	/*
+> +	 * Set the auto idle bit only after setting the smartidle bit
+> +	 * as this is requirement for some modules like USBOTG
+
+    Need period at the end of sentense, and the next sentense should satrt with 
+capital letter. Sorry for the grammar nitpicking. :-)
+
+> +	 * setting this will not have any impact on the other modues.
+> +	 */
+
+WBR, Sergei
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
