@@ -1,7 +1,7 @@
-From: Steven Rostedt <rostedt@goodmis.org>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Wed, 22 Sep 2010 14:36:14 -0400
-Message-ID: <1285180574.26872.51.camel@gandalf.stny.rr.com>
+Date: Wed, 22 Sep 2010 20:43:53 +0200
+Message-ID: <1285181033.2275.1042.camel@laptop>
 References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
 	 <201009171736.14170.trenn@suse.de>	<20100917162412.GB3341@elte.hu>
 	 <201009180026.59482.trenn@suse.de>
@@ -12,69 +12,34 @@ References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
 	 <4C9A37AE.2010509@linux.intel.com>  <1285176629.2275.1033.camel@laptop>
 	 <1285179355.26872.27.camel@gandalf.stny.rr.com>
 	 <1285180000.2275.1036.camel@laptop>
+	 <1285180574.26872.51.camel@gandalf.stny.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <1285180000.2275.1036.camel@laptop>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, Jean Pihet <jean.pihet@newoldbits.com>, Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from casper.infradead.org ([85.118.1.10]:48537 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab0IVSoF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 14:44:05 -0400
+In-Reply-To: <1285180574.26872.51.camel@gandalf.stny.rr.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, Jean Pihet <jean.pihet@newoldbits.com>, Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
 
-On Wed, 2010-09-22 at 20:26 +0200, Peter Zijlstra wrote:
-> On Wed, 2010-09-22 at 14:15 -0400, Steven Rostedt wrote:
-> > On Wed, 2010-09-22 at 19:30 +0200, Peter Zijlstra wrote:
-> > > On Wed, 2010-09-22 at 10:06 -0700, Arjan van de Ven wrote:
-> > > 
-> > 
-> > > That said, I really didn't read this discussion much, but your stance
-> > > seems to be that any tracepoint you use must stay valid, and I object to
-> > > that.
-> > 
-> > We could add a TRACE_EVENT_ABI() as Ingo has been suggesting. If
-> > anything, it could mean that the given tracepoint will always have the
-> > same name. And perhaps the data it holds will always be there, but may
-> > also be extended.
+On Wed, 2010-09-22 at 14:36 -0400, Steven Rostedt wrote:
+> > I still don't see why you need TRACE_EVENT_ABI for that, if its the same
+> > name and the format can be extended you get the same results with what
+> > we've got. Apps need to read/parse the format thing anyway.
 > 
-> I still don't see why you need TRACE_EVENT_ABI for that, if its the same
-> name and the format can be extended you get the same results with what
-> we've got. Apps need to read/parse the format thing anyway.
+> Just a marker that these trace points are being used by apps.
 
-Just a marker that these trace points are being used by apps.
+I really don't see any additional value in that. Its not like we won't
+change them if we have to.
 
-> 
-> > > 
-> > > What will do you do when we include a new scheduling policy and all the
-> > > scheduler tracepoints need to change? (yes that's really going to
-> > > happen)
-> > 
-> > The tracepoint sched_switch should stay the same. We may add more data,
-> > but the comm, pid, prio => comm, pid, prio, I don't see going away.
-> 
-> Right, it would need additional fields. Preferably not only at the end.
+> But then again, we present the fields in the data. The tools should use
+> a parse library (which a generic one will soon be out too). This way, we
+> don't need them at the "end" but the parsing tools could find the fields
+> no matter where they are in the record. 
 
-Why not at the end? The tools should easily be able to represent them in
-anyway they want. The print-fmt field helps in this regard too.
-
-But then again, we present the fields in the data. The tools should use
-a parse library (which a generic one will soon be out too). This way, we
-don't need them at the "end" but the parsing tools could find the fields
-no matter where they are in the record.
-
-> 
-> > > I'm not going to carry double tracepoints, and I'm not going to not
-
-"not going to not" eeek! double negative!
-
-> > > merge that policy. 
-> > 
-> > Not sure what you mean by "double tracepoints"
-> 
-> Two different tracepoints in the same location.
-
-Agreed, that is wrong to have.
-
--- Steve
-
-
+Right. They should use the full format specification.
