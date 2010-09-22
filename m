@@ -1,129 +1,61 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-Date: Wed, 22 Sep 2010 14:38:59 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A3920@dbde02.ent.ti.com>
-References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
- <1285076060.14206.3.camel@chotu>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402785A3478@dbde02.ent.ti.com>
- <20100921162658.GA2310@core.coreip.homeip.net>
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: Re: [RFC 0/3] Improve fallback LPJ calculation
+Date: Wed, 22 Sep 2010 12:22:28 +0300
+Message-ID: <20100922092228.GJ2926@esdhcp04044.research.nokia.com>
+References: <1284112468-18498-1-git-send-email-ext-phil.2.carmody@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20100921162658.GA2310@core.coreip.homeip.net>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1284112468-18498-1-git-send-email-ext-phil.2.carmody@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "mingo@elte.hu" <mingo@elte.hu>, "gregkh@suse.de" <gregkh@suse.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "travis@sgi.com" <travis@sgi.com>, "akataria@vmware.com" <akataria@vmware.com>, tony@atomide.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry,
 
-> -----Original Message-----
-> From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com] 
-> Sent: Tuesday, September 21, 2010 9:57 PM
-> To: G, Manjunath Kondaiah
-> Cc: Ameya Palande; linux-omap@vger.kernel.org; 
-> linux-input@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Tony Lindgren
-> Subject: Re: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-> 
-> Hi,
-> 
-> On Tue, Sep 21, 2010 at 07:11:01PM +0530, G, Manjunath Kondaiah wrote:
-> > 
-> > Hi,
-> > 
-> > > -----Original Message-----
-> > > From: Ameya Palande [mailto:ameya.palande@nokia.com]
-> > > Sent: Tuesday, September 21, 2010 7:04 PM
-> > > To: G, Manjunath Kondaiah
-> > > Cc: linux-omap@vger.kernel.org; 
-> linux-input@vger.kernel.org; Dmitry 
-> > > Torokhov; linux-arm-kernel@lists.infradead.org; Tony Lindgren
-> > > Subject: Re: [PATCH v2] OMAP3: Keypad: Fix failure exit path in 
-> > > probe
-> > > 
-> > > Hi Manjunath,
-> > > 
-> > > On Tue, 2010-09-21 at 13:49 +0200, ext G, Manjunath 
-> Kondaiah wrote:
-> > > > The failure exit paths seems to be wrong in probe function.
-> > > > This patch corrects exit failure paths for error handling cases.
-> > > 
-> 
-> And also adds memory leak...
-> 
-> 
-> > > https://patchwork.kernel.org/patch/160551/
-> > > Any comments on this?
-> > 
-> > Looks fine. Sorry, I didn't look at the change. This 
-> version seems to 
-> > be better.
-> > 
-> 
-> I do not understand why we need to separate memory 
-> allocations. It looks
-> like the minimal patch should be like one below.
+Adding Tony and Linux-OMAP cc:, as this patchset was written specifically
+with the OMAP in mind (thread rooted at http://lkml.org/lkml/2010/9/10/104 ).
+Any comments would be appreciated.
 
-Thanks. I am ok with this minimal patch.
+Phil
 
--Manjunath
-
+On 10/09/10 11:54 +0200, Carmody Phil.2 (EXT-Ixonos/Helsinki) wrote:
 > 
-> Thanks.
+> The motivation for patch 2/3 is that currently our OMAP calibrates
+> itself using the trial-and-error binary chop fallback that some other
+> architectures no longer need to perform. This is a lengthy process, 
+> taking 0.2s in an environment where boot time is of great interest.
 > 
-> -- 
-> Dmitry
+> The patch has two optimisations. Firstly, it replaces the initial 
+> repeated-doubling to find the relevant power of 2 with a tight loop 
+> that just does as much as it can in a jiffy. Secondly, it doesn't 
+> binary chop over an entire power of 2 range, it choses a much smaller
+> range based on how much it squeezed in, and failed to squeeze in, 
+> during the first stage. Both are significant optimisations, and 
+> bring our calibration down from 23 jiffies to 6, and, in the process,
+> arrive at a more accurate lpj value.
 > 
+> The 'bands' and 'sub-logarithmic' growth may look over-engineered,
+> but they cost a small level of in inaccuracy of the initial guess
+> (for all architectures) in order to avoid the very large inaccuracies 
+> that appeared during testing (on x86_64 architectures, and presumably 
+> others with less metronomic operation). Note that due to the existence
+> of the TSC and other timers, the x86_64 doesn't use this fallback 
+> routine, but I wanted to code defensively, able to cope with all kinds
+> of processor behaviours.
 > 
-> Input: twl4030_keypad - fix error handling path
+> 1/3 is simply cosmetic to prepare for 2/3. 
+> 3/3 is simply to assist testing and not intended for integration.
 > 
-> From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> I would appreciate it if people with exotic or unusual architectures
+> could help test this.
 > 
-> We should not try to call free_irq() when request_irq() failed.
-> 
-> Reported-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
-> 
->  drivers/input/keyboard/twl4030_keypad.c |    7 +++----
->  1 files changed, 3 insertions(+), 4 deletions(-)
-> 
-> 
-> diff --git a/drivers/input/keyboard/twl4030_keypad.c 
-> b/drivers/input/keyboard/twl4030_keypad.c
-> index fb16b5e..09bef79 100644
-> --- a/drivers/input/keyboard/twl4030_keypad.c
-> +++ b/drivers/input/keyboard/twl4030_keypad.c
-> @@ -406,23 +406,22 @@ static int __devinit 
-> twl4030_kp_probe(struct platform_device *pdev)
->  	if (error) {
->  		dev_info(kp->dbg_dev, "request_irq failed for 
-> irq no=%d\n",
->  			kp->irq);
-> -		goto err3;
-> +		goto err2;
->  	}
->  
->  	/* Enable KP and TO interrupts now. */
->  	reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
->  	if (twl4030_kpwrite_u8(kp, reg, KEYP_IMR1)) {
->  		error = -EIO;
-> -		goto err4;
-> +		goto err3;
->  	}
->  
->  	platform_set_drvdata(pdev, kp);
->  	return 0;
->  
-> -err4:
-> +err3:
->  	/* mask all events - we don't care about the result */
->  	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
-> -err3:
->  	free_irq(kp->irq, NULL);
->  err2:
->  	input_unregister_device(input);
+> Cheers,
+> Phil
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
