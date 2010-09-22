@@ -1,97 +1,52 @@
-From: David Anders <x0132446@ti.com>
-Subject: Re: [PATCH 3/4] omap4: pandaboard: Adding card detect support for
- MMC1
-Date: Wed, 22 Sep 2010 09:40:08 -0500
-Message-ID: <4C9A1548.7070609@ti.com>
-References: <1285104244-32274-1-git-send-email-x0132446@ti.com> <1285104244-32274-4-git-send-email-x0132446@ti.com> <AANLkTi=Us2g=+E50MRPXHuOnNYa2aV3tmxZj3sGS-kQ8@mail.gmail.com> <AANLkTi==h+sBQ08R2=XhjSNXjA5n6yFQWut=djrc2txo@mail.gmail.com>
+From: Peter Barada <peter.barada@gmail.com>
+Subject: Re: How to enable sys_clkout1 for use by brf6300
+Date: Wed, 22 Sep 2010 10:40:28 -0400
+Message-ID: <1285166428.3138.0.camel@thunk>
+References: <AANLkTim9o3XdNAK5shVm8u6wa8_0rV7i9PkR3-qgskYK@mail.gmail.com>
+	 <874odkxpe1.fsf@deeprootsystems.com>
+Reply-To: peter.barada@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55934 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753505Ab0IVOkL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 10:40:11 -0400
-In-Reply-To: <AANLkTi==h+sBQ08R2=XhjSNXjA5n6yFQWut=djrc2txo@mail.gmail.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:58110 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753505Ab0IVOkb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 10:40:31 -0400
+Received: by yxp4 with SMTP id 4so180487yxp.19
+        for <linux-omap@vger.kernel.org>; Wed, 22 Sep 2010 07:40:30 -0700 (PDT)
+In-Reply-To: <874odkxpe1.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Bryan Wu <bryan.wu@canonical.com>, "Goluguri, Jayabharath" <jayabharath@ti.com>, "Pasam, Vijay" <vpasam@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-On 09/22/2010 03:43 AM, Gadiyar, Anand wrote:
-> On Wed, Sep 22, 2010 at 12:58 PM, Bryan Wu<bryan.wu@canonical.com>  wrote:
->    
->> On Wed, Sep 22, 2010 at 5:24 AM, David Anders<x0132446@ti.com>  wrote:
->>      
->>> Adding card detect callback function and card detect configuration
->>> function for MMC1 Controller.
->>>
->>> Signed-off-by: David Anders<x0132446@ti.com>
->>> Signed-off-by: Anand Gadiyar<gadiyar@ti.com>
->>> ---
->>>
->>> patch depends on https://patchwork.kernel.org/patch/189952/
->>>
->>>   arch/arm/mach-omap2/board-omap4panda.c |    7 ++++++-
->>>   1 files changed, 6 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
->>> index 697c0bd..94e819c 100644
->>> --- a/arch/arm/mach-omap2/board-omap4panda.c
->>> +++ b/arch/arm/mach-omap2/board-omap4panda.c
->>> @@ -77,9 +77,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
->>>         struct omap_mmc_platform_data *pdata = dev->platform_data;
->>>
->>>         /* Setting MMC1 Card detect Irq */
->>> -       if (pdev->id == 0)
->>> +       if (pdev->id == 0) {
->>> +               ret = twl6030_mmc_card_detect_config();
->>>        
->> It looks like we need this function from twl6030 driver, otherwise we
->> will get this compiling error:
->>
->> ----
->> In file included from arch/arm/mach-omap2/board-omap4panda.c:38:
->> arch/arm/plat-omap/include/plat/usb.h:109: warning: return type
->> defaults to 'int'
->> arch/arm/mach-omap2/board-omap4panda.c: In function
->> 'omap4_twl6030_hsmmc_late_init':
->> arch/arm/mach-omap2/board-omap4panda.c:81: error: implicit declaration
->> of function 'twl6030_mmc_card_detect_config'
->> arch/arm/mach-omap2/board-omap4panda.c:86: error:
->> 'twl6030_mmc_card_detect' undeclared (first use in this function)
->> arch/arm/mach-omap2/board-omap4panda.c:86: error: (Each undeclared
->> identifier is reported only once
->> arch/arm/mach-omap2/board-omap4panda.c:86: error: for each function it
->> appears in.)
->> arch/arm/mach-omap2/board-omap4panda.c: In function 'omap4_panda_init':
->> arch/arm/mach-omap2/board-omap4panda.c:285: warning: unused variable 'status'
->> ----
->>
->> Thanks,
->> -Bryan
->>      
-> I thought the dependent patch [1] took care of this in the header file?
-> (Haven't actually tried this out - will take a look in a bit)
->
-> [1] https://patchwork.kernel.org/patch/189952/
->    
+On Mon, 2010-09-20 at 11:04 -0700, Kevin Hilman wrote:
+> Hi Peter,
+> 
+> Peter Barada <peter.barada@gmail.com> writes:
+> 
+> > I have a brf6300 that requires sys_clkout1, and I have it working fine
+> > right now, but if I enable CONFIG_OMAP_RESET_CLOCKS, then
+> > sys_clkou1 is disabled.
+> 
+> Yes, any unused clocks will be disabled.  Where "unused" means it has a
+> zero use-count (nobody has called clk_enable)
+> 
+> > How do I tell the system that I need sys_clkout1 enabled for the
+> > brf6300 chip to work?  Should I use "clk = clk_get(NULL,
+> > "sys_clkout1"); clk_enable(clk)'"?
+> 
+> Yes.
+> 
+> Did that not work for you?
 
-correct! this patch depends on the reference patch being applied.
+No, that worked fine.  Next challenge is to add into the brf6300 driver
+proper suspend/resume support to allow
+disabling/enabling the clock.
 
->    
->>
->>      
->>> +               if (ret)
->>> +                       pr_err("Failed configuring MMC1 card detect\n");
->>>                 pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
->>>                                                 MMCDETECT_INTR_OFFSET;
->>> +               pdata->slots[0].card_detect = twl6030_mmc_card_detect;
->>> +       }
->>>         return ret;
->>>   }
->>>
->>>        
-> \
->    
+Thanks!
+
+> Kevin
+
 
