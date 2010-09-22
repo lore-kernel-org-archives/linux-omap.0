@@ -1,88 +1,68 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: RE: [PATCH 13/13 v2] OMAP3: SERIAL: Initialize all omap-uarts for
- zoom      boards
-Date: Wed, 22 Sep 2010 11:06:09 -0500
-Message-ID: <A24693684029E5489D1D202277BE894472767CED@dlee02.ent.ti.com>
-References: <37596.172.24.137.131.1285168492.squirrel@dbdmail.itg.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/5] OMAP4: PM: Update PRCM register bitshits and masks
+ for ES2
+Date: Wed, 22 Sep 2010 18:08:08 +0200
+Message-ID: <4C9A29E8.4020509@ti.com>
+References: <1284641906-24231-1-git-send-email-rnayak@ti.com> <1284641906-24231-2-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1009220014340.21002@utopia.booyaka.com> <0680EC522D0CC943BC586913CF3768C003C21EE40F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <37596.172.24.137.131.1285168492.squirrel@dbdmail.itg.ti.com>
-Content-Language: en-US
-Sender: linux-serial-owner@vger.kernel.org
-To: "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33421 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752033Ab0IVQIN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Sep 2010 12:08:13 -0400
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003C21EE40F@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi Govindraj,
+On 9/22/2010 8:43 AM, Nayak, Rajendra wrote:
+>
+>> From: Paul Walmsley [mailto:paul@pwsan.com]
+>> Sent: Wednesday, September 22, 2010 11:47 AM
+>>
+>> Hi Rajendra
+>>
+>> On Thu, 16 Sep 2010, Rajendra Nayak wrote:
+>>
+>>> This patch updates the PRM and CM register bitshifts and masks
+>>> for OMAP4430 ES2.0.
+>>>
+>>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>>> Signed-off-by: Beno=C3=AEt Cousson<b-cousson@ti.com>
+>>> Cc: Paul Walmsley<paul@pwsan.com>
+>>> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+>>
+>> Thanks, queued for 2.6.37 (with the UTF-8 fix in the patch descripti=
+on).
+>>
+>> One other note:
+>>
+>>>   #define OMAP4430_IDLEST_MASK					BITFIELD(16,
+>> 17)
+>>
+>> We should really get rid of all these 'BITFIELD' defines, and just r=
+eplace
+>> them with simple bitshifts.  Care to spin a patch to do that during =
+the
+>> 2.6.38 timeframe?
+>
+> Sure, there's already a patch for this which I guess Benoit should be=
+ posting pretty soon.
 
-Just one non-functional comment below.
+Yes, I already updated the scripts a couple of weeks ago to fix that on=
+=20
+top of Rajendra's series.
+Since it was not critical, I kind of forgot it :-)
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Raja, Govindraj
-> Sent: Wednesday, September 22, 2010 10:15 AM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; linux-serial@vger.kernel.org;
-> Kevin Hilman; Tony Lindgren; Gadiyar, Anand
-> Subject: [PATCH 13/13 v2] OMAP3: SERIAL: Initialize all omap-uarts for
-> zoom boards
-> 
-> Iniatize all omap-uarts for zoom boards.
-> Remove serial_init from 3630sdp board init
-> as zoom_peripheral_init does the same.
+I can sent the fix to you right now if you want?
 
-I think this description mismatches slightly to what is really 
-being done in the patch.
-
-I mean, the way you say it, it's like the omap_serial_init
-was already in zoom_peripheral_init... which is not.
-
-Regards,
-Sergio
-
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
->  arch/arm/mach-omap2/board-3630sdp.c          |    1 -
->  arch/arm/mach-omap2/board-zoom-peripherals.c |    1 +
->  2 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-
-> omap2/board-3630sdp.c
-> index b359c3f..d510451 100644
-> --- a/arch/arm/mach-omap2/board-3630sdp.c
-> +++ b/arch/arm/mach-omap2/board-3630sdp.c
-> @@ -208,7 +208,6 @@ static struct flash_partitions sdp_flash_partitions[]
-> = {
->  static void __init omap_sdp_init(void)
->  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
-> -	omap_serial_init();
->  	zoom_peripherals_init();
->  	board_smc91x_init();
->  	board_flash_init(sdp_flash_partitions, chip_sel_sdp);
-> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> index 6b39849..641765a 100644
-> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> @@ -282,4 +282,5 @@ void __init zoom_peripherals_init(void)
->  	omap_i2c_init();
->  	usb_musb_init(&musb_board_data);
->  	enable_board_wakeup_source();
-> +	omap_serial_init();
->  }
-> --
-> 1.6.3.3
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
