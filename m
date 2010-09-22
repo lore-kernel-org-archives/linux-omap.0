@@ -1,79 +1,87 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: [PATCH 1/2 v3]Update broken web addresses.
-Date: Tue, 21 Sep 2010 20:57:08 -0700
-Message-ID: <4C997E94.8070407@gmail.com>
-References: <1285118957-24965-1-git-send-email-justinmattock@gmail.com> <alpine.LNX.2.00.1009221310500.4570@nippy.intranet>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR
+ stall in SDRC after a Warm-reset
+Date: Wed, 22 Sep 2010 09:49:45 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870311976EF2@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB03229868BA@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1005181816380.27473@utopia.booyaka.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8926@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1009151533560.458@utopia.booyaka.com>
+ <FCCFB4CDC6E5564B9182F639FC35608703117EA1CA@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1009211859090.4677@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-laptop-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1009221310500.4570@nippy.intranet>
-Sender: linux-laptop-owner@vger.kernel.org
-To: Finn Thain <fthain@telegraphics.com.au>
-Cc: trivial@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-m32r@ml.linux-m32r.org, linux-m68k@lists.linux-m68k.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux-laptop@vger.kernel.org, "Maciej W. Rozycki" <macro@linux-mips.org>, Randy Dunlap <rdunlap@xenotime.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33265 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750730Ab0IVETu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 00:19:50 -0400
+In-Reply-To: <alpine.DEB.2.00.1009211859090.4677@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 09/21/2010 08:25 PM, Finn Thain wrote:
->
-> On Tue, 21 Sep 2010, Justin P. Mattock wrote:
->
->> Below is an update from the original, with changes to the broken web
->> addresses and removal of archive.org and moved to a seperate patch for
->> you guys to decide if you want to use this and/or just leave the old url
->> in and leave it at that..
->> Please dont apply this to anything just comments and fixes for now,
->
-> You can use [RFC] in the Subject line instead of [PATCH] to indicate this.
->
+Hi Paul,
 
-alright..
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Wednesday, September 22, 2010 6:37 AM
+> To: Sripathy, Vishwanath
+> Cc: Reddy, Teerth; linux-omap@vger.kernel.org
+> Subject: RE: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall in
+> SDRC after a Warm-reset
+> 
+> Hello Vishwa,
+> 
+> Thanks for the info.
+> 
+> a few quick questions:
+> 
+> On Thu, 16 Sep 2010, Sripathy, Vishwanath wrote:
+> 
+> > > -----Original Message-----
+> > > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > > Sent: Thursday, September 16, 2010 3:05 AM
+> > >
+> > > On Tue, 25 May 2010, Reddy, Teerth wrote:
+> > >
+> > > > > -----Original Message-----
+> > > > > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > > > > Sent: Wednesday, May 19, 2010 6:03 AM
+> > > > > To: Reddy, Teerth
+> > > > >
+> > > > > On Fri, 23 Apr 2010, Reddy, Teerth wrote:
+> > > > >
+> > > > > > From: Teerth Reddy <teerth@ti.com>
+> > > > > >
+> > > > > > This patch has the workaround for errata 1.176.
+> > >
+> > > What's the current status of this patch?  Still waiting for an updated
+> > > version.
+> >
+> > We have realized that this errata is not applicable if reset is
+> > triggered via dpll3 reset. The rootcasuse of the issues was that incase
+> > of warm reset, SDRC is not sensitive to the warm reset, but the
+> > interconect is reset on the fly, thus causing a misalignment between
+> > SDRC logic, interconect logic and DDR memory state. Hence the workaround
+> > was proposed. However, incase of dpll3 reset, sdrc also gets reset. In
+> > omap_prcm_arch_reset, system reset is triggered via dpll3 reset, so this
+> > WA is not applicable.
+> 
+> 
+> 1. So by "warm reset," are you referring to the software warm reset
+> triggered by GLOBAL_SW_RST, or by another mechanism?
+> Yes, warm reset by means of GLOBAL_SW_RST.
 
->
->> diff --git a/arch/m68k/mac/macboing.c b/arch/m68k/mac/macboing.c
->> index 8f06408..234d9ee 100644
->> --- a/arch/m68k/mac/macboing.c
->> +++ b/arch/m68k/mac/macboing.c
->> @@ -114,7 +114,8 @@ static void mac_init_asc( void )
->>   			 *   16-bit I/O functionality.  The PowerBook 500 series computers
->>   			 *   support 16-bit stereo output, but only mono input."
->>   			 *
->> -			 *   http://til.info.apple.com/techinfo.nsf/artnum/n16405
->> +			 *   Article number 16405:
->> +			 *   http://support.apple.com/kb/TA32601
->>   			 *
->>   			 * --David Kilzer
->>   			 */
->
-> "TIL article number 16405" would allow people to find the document by
-> number...
->
+> 2. If GLOBAL_SW_RST, what do you think about adding a brief comment in the
+> code warning people not to use GLOBAL_SW_RST unless they implement the
+> Errata 1.176 sequence?
+Yes, a note can be added. I will send a patch with this comment.
 
-so putting this "TIL article number 16405" is correct instead of Article 
-number 16405:
-
->
->> diff --git a/arch/m68k/q40/README b/arch/m68k/q40/README
->> index 6bdbf48..92806c0 100644
->> --- a/arch/m68k/q40/README
->> +++ b/arch/m68k/q40/README
->> @@ -3,7 +3,7 @@ Linux for the Q40
->>
->>   You may try http://www.geocities.com/SiliconValley/Bay/2602/ for
->>   some up to date information. Booter and other tools will be also
->> -available from this place or ftp.uni-erlangen.de/linux/680x0/q40/
->> +available from this place or http://www.linux-m68k.org/mail.html
->>   and mirrors.
->>
->>   Hints to documentation usually refer to the linux source tree in
->
-> No. We already discussed this change. Please refer back to my review of
-> the first version of the patch. You got it right in the second version
-> (that I also reviewed), but now you've gone back to the first version...
->
-> Finn
->
-
-pretty bad.. I don't know what happened there..
-
-
-Justin P. Mattock
+Vishwa
+> 
+> 
+> - Paul
