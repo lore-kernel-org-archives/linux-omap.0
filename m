@@ -1,69 +1,64 @@
-From: tom.leiming@gmail.com
-Subject: [PATCH] mfd: speedup twl4030 irq response time and decrease irq disable time
-Date: Wed, 22 Sep 2010 09:49:31 +0800
-Message-ID: <1285120171-3030-1-git-send-email-tom.leiming@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:62232 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755547Ab0IVBtj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 21:49:39 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Finn Thain <fthain@telegraphics.com.au>
+Subject: Re: [PATCH 1/2 v3]Update broken web addresses.
+Date: Wed, 22 Sep 2010 13:25:46 +1000 (EST)
+Message-ID: <alpine.LNX.2.00.1009221310500.4570@nippy.intranet>
+References: <1285118957-24965-1-git-send-email-justinmattock@gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1285118957-24965-1-git-send-email-justinmattock@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: trivial@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-m32r@ml.linux-m32r.org, linux-m68k@lists.linux-m68k.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux-laptop@vger.kernel.org, "Maciej W. Rozycki" <macro@linux-mips.org>, Randy Dunlap <rdunlap@xenotime.net>
 List-Id: linux-omap@vger.kernel.org
-To: sameo@linux.intel.com
-Cc: linux-omap@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org
 
-From: Ming Lei <tom.leiming@gmail.com>
 
-This patch sets scheduler policy of twl4030 irq thread
-(twl4030_irq_thread) as SCHED_FIFO to speedup irq response
-time, just like taken by kernel threaded irq in irq_thread
-(kernel/irq/manage.c). Also higher priority than that of
-threaded irq is taken to avoid preemption from twl4030
-subchips's threaded irq handler, so pih irq disable time may
-be decreased.
+On Tue, 21 Sep 2010, Justin P. Mattock wrote:
 
-The pih irq is disabled in handle_twl4030_pih which may
-wakeup twl4030 irq thread, and the pih irq will be enabled
-again until complete of all sih irqs' handling in twl4030
-irq thread.
+> Below is an update from the original, with changes to the broken web 
+> addresses and removal of archive.org and moved to a seperate patch for 
+> you guys to decide if you want to use this and/or just leave the old url 
+> in and leave it at that..
+> Please dont apply this to anything just comments and fixes for now,
 
-Also for each one interrupt line of twl4030 subchip, only
-two irq events can be buffered by twl4030(4.4.2.3 of TPS65950 TRM).
+You can use [RFC] in the Subject line instead of [PATCH] to indicate this.
 
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Balaji T K <balajitk@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-kernel@vger.kernel.org
----
- drivers/mfd/twl4030-irq.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index 097f24d..d1e0d80 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -286,8 +286,16 @@ static int twl4030_irq_thread(void *data)
- 	long irq = (long)data;
- 	static unsigned i2c_errors;
- 	static const unsigned max_i2c_errors = 100;
--
--
-+	struct sched_param param = {
-+		.sched_priority = MAX_USER_RT_PRIO/2 + 10,
-+	};
-+
-+	/* Take higher priority than threaded irq to make us immune of
-+ 	 * preemption from twl4030 subchips's threaded irq handler, then
-+ 	 * we can complete all SIH irqs' handling and enable PIH irq
-+ 	 * again asap.
-+ 	 * */
-+	sched_setscheduler(current, SCHED_FIFO, &param);
- 	current->flags |= PF_NOFREEZE;
- 
- 	while (!kthread_should_stop()) {
--- 
-1.6.2.5
+> diff --git a/arch/m68k/mac/macboing.c b/arch/m68k/mac/macboing.c
+> index 8f06408..234d9ee 100644
+> --- a/arch/m68k/mac/macboing.c
+> +++ b/arch/m68k/mac/macboing.c
+> @@ -114,7 +114,8 @@ static void mac_init_asc( void )
+>  			 *   16-bit I/O functionality.  The PowerBook 500 series computers
+>  			 *   support 16-bit stereo output, but only mono input."
+>  			 *
+> -			 *   http://til.info.apple.com/techinfo.nsf/artnum/n16405
+> +			 *   Article number 16405:
+> +			 *   http://support.apple.com/kb/TA32601 
+>  			 *
+>  			 * --David Kilzer
+>  			 */
 
+"TIL article number 16405" would allow people to find the document by 
+number...
+
+
+> diff --git a/arch/m68k/q40/README b/arch/m68k/q40/README
+> index 6bdbf48..92806c0 100644
+> --- a/arch/m68k/q40/README
+> +++ b/arch/m68k/q40/README
+> @@ -3,7 +3,7 @@ Linux for the Q40
+>  
+>  You may try http://www.geocities.com/SiliconValley/Bay/2602/ for
+>  some up to date information. Booter and other tools will be also
+> -available from this place or ftp.uni-erlangen.de/linux/680x0/q40/
+> +available from this place or http://www.linux-m68k.org/mail.html 
+>  and mirrors.
+>  
+>  Hints to documentation usually refer to the linux source tree in
+
+No. We already discussed this change. Please refer back to my review of 
+the first version of the patch. You got it right in the second version 
+(that I also reviewed), but now you've gone back to the first version...
+
+Finn
