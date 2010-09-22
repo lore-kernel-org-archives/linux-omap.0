@@ -1,40 +1,97 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v6 00/13] OMAP: GPIO: Implement GPIO in hwmod way
-Date: Wed, 22 Sep 2010 07:33:24 -0700
-Message-ID: <87k4mdetl7.fsf@deeprootsystems.com>
-References: <1284819353-8512-1-git-send-email-charu@ti.com>
-	<87r5goq7ro.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD3C16FE@dbde02.ent.ti.com>
-	<87zkvbj7yc.fsf@deeprootsystems.com>
-	<87k4mefz70.fsf@deeprootsystems.com>
-	<87bp7qfx6g.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02CD3C1E71@dbde02.ent.ti.com>
+From: David Anders <x0132446@ti.com>
+Subject: Re: [PATCH 3/4] omap4: pandaboard: Adding card detect support for
+ MMC1
+Date: Wed, 22 Sep 2010 09:40:08 -0500
+Message-ID: <4C9A1548.7070609@ti.com>
+References: <1285104244-32274-1-git-send-email-x0132446@ti.com> <1285104244-32274-4-git-send-email-x0132446@ti.com> <AANLkTi=Us2g=+E50MRPXHuOnNYa2aV3tmxZj3sGS-kQ8@mail.gmail.com> <AANLkTi==h+sBQ08R2=XhjSNXjA5n6yFQWut=djrc2txo@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:54990 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753483Ab0IVOd1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 10:33:27 -0400
-Received: by pvg2 with SMTP id 2so137755pvg.19
-        for <linux-omap@vger.kernel.org>; Wed, 22 Sep 2010 07:33:27 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD3C1E71@dbde02.ent.ti.com>
-	(Charulatha Varadarajan's message of "Wed, 22 Sep 2010 19:57:44
-	+0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:55934 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753505Ab0IVOkL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Sep 2010 10:40:11 -0400
+In-Reply-To: <AANLkTi==h+sBQ08R2=XhjSNXjA5n6yFQWut=djrc2txo@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: Bryan Wu <bryan.wu@canonical.com>, "Goluguri, Jayabharath" <jayabharath@ti.com>, "Pasam, Vijay" <vpasam@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+On 09/22/2010 03:43 AM, Gadiyar, Anand wrote:
+> On Wed, Sep 22, 2010 at 12:58 PM, Bryan Wu<bryan.wu@canonical.com>  wrote:
+>    
+>> On Wed, Sep 22, 2010 at 5:24 AM, David Anders<x0132446@ti.com>  wrote:
+>>      
+>>> Adding card detect callback function and card detect configuration
+>>> function for MMC1 Controller.
+>>>
+>>> Signed-off-by: David Anders<x0132446@ti.com>
+>>> Signed-off-by: Anand Gadiyar<gadiyar@ti.com>
+>>> ---
+>>>
+>>> patch depends on https://patchwork.kernel.org/patch/189952/
+>>>
+>>>   arch/arm/mach-omap2/board-omap4panda.c |    7 ++++++-
+>>>   1 files changed, 6 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+>>> index 697c0bd..94e819c 100644
+>>> --- a/arch/arm/mach-omap2/board-omap4panda.c
+>>> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+>>> @@ -77,9 +77,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+>>>         struct omap_mmc_platform_data *pdata = dev->platform_data;
+>>>
+>>>         /* Setting MMC1 Card detect Irq */
+>>> -       if (pdev->id == 0)
+>>> +       if (pdev->id == 0) {
+>>> +               ret = twl6030_mmc_card_detect_config();
+>>>        
+>> It looks like we need this function from twl6030 driver, otherwise we
+>> will get this compiling error:
+>>
+>> ----
+>> In file included from arch/arm/mach-omap2/board-omap4panda.c:38:
+>> arch/arm/plat-omap/include/plat/usb.h:109: warning: return type
+>> defaults to 'int'
+>> arch/arm/mach-omap2/board-omap4panda.c: In function
+>> 'omap4_twl6030_hsmmc_late_init':
+>> arch/arm/mach-omap2/board-omap4panda.c:81: error: implicit declaration
+>> of function 'twl6030_mmc_card_detect_config'
+>> arch/arm/mach-omap2/board-omap4panda.c:86: error:
+>> 'twl6030_mmc_card_detect' undeclared (first use in this function)
+>> arch/arm/mach-omap2/board-omap4panda.c:86: error: (Each undeclared
+>> identifier is reported only once
+>> arch/arm/mach-omap2/board-omap4panda.c:86: error: for each function it
+>> appears in.)
+>> arch/arm/mach-omap2/board-omap4panda.c: In function 'omap4_panda_init':
+>> arch/arm/mach-omap2/board-omap4panda.c:285: warning: unused variable 'status'
+>> ----
+>>
+>> Thanks,
+>> -Bryan
+>>      
+> I thought the dependent patch [1] took care of this in the header file?
+> (Haven't actually tried this out - will take a look in a bit)
+>
+> [1] https://patchwork.kernel.org/patch/189952/
+>    
 
-[...]
+correct! this patch depends on the reference patch being applied.
 
-> I could reproduce this issue on 35xxEVM board (ES3.1). I am debugging
-> the issue. Will get back to you soon in this regard.
+>    
+>>
+>>      
+>>> +               if (ret)
+>>> +                       pr_err("Failed configuring MMC1 card detect\n");
+>>>                 pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
+>>>                                                 MMCDETECT_INTR_OFFSET;
+>>> +               pdata->slots[0].card_detect = twl6030_mmc_card_detect;
+>>> +       }
+>>>         return ret;
+>>>   }
+>>>
+>>>        
+> \
+>    
 
-Thanks for the update.  
-
-I'll try and debug the suspend problem on n900 today as well.
-
-Kevin
