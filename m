@@ -1,125 +1,109 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 3/5] omap3: cm-t3517: add support for usb host.
-Date: Wed, 22 Sep 2010 10:24:53 +0200
-Message-ID: <4C99BD55.3070706@compulab.co.il>
-References: <1285084993-27683-1-git-send-email-grinberg@compulab.co.il> <1285084993-27683-4-git-send-email-grinberg@compulab.co.il> <AANLkTin+canp9yrE-Jmv=n56dPFByZWU73uaRNBkruP6@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: [PATCH 3/4] omap4: pandaboard: Adding card detect support for MMC1
+Date: Wed, 22 Sep 2010 14:13:09 +0530
+Message-ID: <AANLkTi==h+sBQ08R2=XhjSNXjA5n6yFQWut=djrc2txo@mail.gmail.com>
+References: <1285104244-32274-1-git-send-email-x0132446@ti.com>
+ <1285104244-32274-4-git-send-email-x0132446@ti.com> <AANLkTi=Us2g=+E50MRPXHuOnNYa2aV3tmxZj3sGS-kQ8@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:42801 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751131Ab0IVIZD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 04:25:03 -0400
-In-Reply-To: <AANLkTin+canp9yrE-Jmv=n56dPFByZWU73uaRNBkruP6@mail.gmail.com>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:37752 "HELO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752362Ab0IVInb convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Sep 2010 04:43:31 -0400
+Received: by mail-ww0-f45.google.com with SMTP id 36so333819wwa.2
+        for <linux-omap@vger.kernel.org>; Wed, 22 Sep 2010 01:43:30 -0700 (PDT)
+In-Reply-To: <AANLkTi=Us2g=+E50MRPXHuOnNYa2aV3tmxZj3sGS-kQ8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Bryan Wu <bryan.wu@canonical.com>
+Cc: David Anders <x0132446@ti.com>, jayabharath@ti.com, vpasam@ti.com, tony@atomide.com, linux-omap@vger.kernel.org
 
- On 09/21/10 18:26, Gadiyar, Anand wrote:
-> On Tue, Sep 21, 2010 at 9:33 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
->> add support for hsusb host ports 1, 2 and on-module usb hub.
+On Wed, Sep 22, 2010 at 12:58 PM, Bryan Wu <bryan.wu@canonical.com> wro=
+te:
+> On Wed, Sep 22, 2010 at 5:24 AM, David Anders <x0132446@ti.com> wrote=
+:
+>> Adding card detect callback function and card detect configuration
+>> function for MMC1 Controller.
 >>
->> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+>> Signed-off-by: David Anders <x0132446@ti.com>
+>> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 >> ---
->>  arch/arm/mach-omap2/board-cm-t3517.c |   50 ++++++++++++++++++++++++++++++++++
-> ...
->
->> @@ -100,6 +102,47 @@ static void __init cm_t3517_init_rtc(void)
->>  static inline void cm_t3517_init_rtc(void) {}
->>  #endif
 >>
->> +#if defined(CONFIG_USB_EHCI_HCD) || defined(CONFIG_USB_EHCI_HCD_MODULE)
-> Hi Igor,
-
-Hi
-
-> Do we really need to make these conditional on the driver being built?
-
-This is depends on what are we trying to achieve...
-I can think of two things:
-[1] Simple, clear and nice code without ifdefs
-[2] Smaller kernel, a bit less resources wasted and a bit faster boot time
-
-> The hardware is present on the board at all times, right?
-
-Yes, it is inside the SoC, except for the usb hub.
-
-> It should be okay to execute this code independent of whether
-> the driver is built or not. The device registration can be unconditional
-> and if there is no driver present, we won't probe anyway.
-
-It is ok, but again it depends on what we are trying to achieve here.
-
-If we want [1], then indeed we need to remove the ifdefs also inside usb-ehci.c,
-so pros:
- * we'll get nice and clean code,
-cons:
- * a bit bigger kernel,
- * "floating" device without a driver,
- * a bit resources wasted for this device,
- * a bit slower startup time (device registration, gpio toggling, etc.).
-
-If we want [2], then we'll have the opposite of [1] ;)
-
-Personally, I don't mind either way... ,
-but I want the code to be consistent (in this case with usb-ehci.c).
-
-> (I see some similar logic in usb-ehci.c - probably a good idea to remove
-> it as well).
-
-...
-
-> - Anand
+>> patch depends on https://patchwork.kernel.org/patch/189952/
+>>
+>> =A0arch/arm/mach-omap2/board-omap4panda.c | =A0 =A07 ++++++-
+>> =A01 files changed, 6 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-=
+omap2/board-omap4panda.c
+>> index 697c0bd..94e819c 100644
+>> --- a/arch/arm/mach-omap2/board-omap4panda.c
+>> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+>> @@ -77,9 +77,14 @@ static int omap4_twl6030_hsmmc_late_init(struct d=
+evice *dev)
+>> =A0 =A0 =A0 =A0struct omap_mmc_platform_data *pdata =3D dev->platfor=
+m_data;
+>>
+>> =A0 =A0 =A0 =A0/* Setting MMC1 Card detect Irq */
+>> - =A0 =A0 =A0 if (pdev->id =3D=3D 0)
+>> + =A0 =A0 =A0 if (pdev->id =3D=3D 0) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl6030_mmc_card_detect_config=
+();
 >
->> +#define HSUSB1_RESET_GPIO      (146)
->> +#define HSUSB2_RESET_GPIO      (147)
->> +#define USB_HUB_RESET_GPIO     (152)
->> +
->> +static struct ehci_hcd_omap_platform_data cm_t3517_ehci_pdata __initdata = {
->> +       .port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
->> +       .port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
->> +       .port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
->> +
->> +       .phy_reset  = true,
->> +       .reset_gpio_port[0]  = HSUSB1_RESET_GPIO,
->> +       .reset_gpio_port[1]  = HSUSB2_RESET_GPIO,
->> +       .reset_gpio_port[2]  = -EINVAL,
->> +};
->> +
->> +static int cm_t3517_init_usbh(void)
->> +{
->> +       int err;
->> +
->> +       err = gpio_request(USB_HUB_RESET_GPIO, "usb hub rst");
->> +       if (err) {
->> +               pr_err("CM-T3517: usb hub rst gpio request failed: %d\n", err);
->> +       } else {
->> +               gpio_direction_output(USB_HUB_RESET_GPIO, 0);
->> +               udelay(10);
->> +               gpio_set_value(USB_HUB_RESET_GPIO, 1);
->> +               msleep(1);
->> +       }
->> +
->> +       usb_ehci_init(&cm_t3517_ehci_pdata);
->> +
->> +       return 0;
->> +}
->> +#else
->> +static inline int cm_t3517_init_usbh(void)
->> +{
->> +       return 0;
->> +}
->> +#endif
->> +
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It looks like we need this function from twl6030 driver, otherwise we
+> will get this compiling error:
 >
+> ----
+> In file included from arch/arm/mach-omap2/board-omap4panda.c:38:
+> arch/arm/plat-omap/include/plat/usb.h:109: warning: return type
+> defaults to 'int'
+> arch/arm/mach-omap2/board-omap4panda.c: In function
+> 'omap4_twl6030_hsmmc_late_init':
+> arch/arm/mach-omap2/board-omap4panda.c:81: error: implicit declaratio=
+n
+> of function 'twl6030_mmc_card_detect_config'
+> arch/arm/mach-omap2/board-omap4panda.c:86: error:
+> 'twl6030_mmc_card_detect' undeclared (first use in this function)
+> arch/arm/mach-omap2/board-omap4panda.c:86: error: (Each undeclared
+> identifier is reported only once
+> arch/arm/mach-omap2/board-omap4panda.c:86: error: for each function i=
+t
+> appears in.)
+> arch/arm/mach-omap2/board-omap4panda.c: In function 'omap4_panda_init=
+':
+> arch/arm/mach-omap2/board-omap4panda.c:285: warning: unused variable =
+'status'
+> ----
+>
+> Thanks,
+> -Bryan
 
--- 
-Regards,
-Igor.
+I thought the dependent patch [1] took care of this in the header file?
+(Haven't actually tried this out - will take a look in a bit)
 
+[1] https://patchwork.kernel.org/patch/189952/
+
+>
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Failed configu=
+ring MMC1 card detect\n");
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect_irq =3D T=
+WL6030_IRQ_BASE +
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0MMCDETECT_INTR_OFFSET;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->slots[0].card_detect =3D twl603=
+0_mmc_card_detect;
+>> + =A0 =A0 =A0 }
+>> =A0 =A0 =A0 =A0return ret;
+>> =A0}
+>>
+\
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
