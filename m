@@ -1,34 +1,43 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] OMAP4: HSMMC cmd line reset change
-Date: Wed, 22 Sep 2010 18:25:19 +0100
-Message-ID: <20100922172519.GA3150@void.printf.net>
-References: <51627.192.168.10.89.1284595091.squirrel@dbdmail.itg.ti.com> <20100917154803.GB29610@atomide.com> <738912BD0A0F48FC9E3159F923571E9E@am.dhcp.ti.com> <20100921144705.GP4611@atomide.com> <16904B7F1B384B42B8D5F85D0414A47D@am.dhcp.ti.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH] tracing, perf: add more power related events
+Date: Wed, 22 Sep 2010 19:30:29 +0200
+Message-ID: <1285176629.2275.1033.camel@laptop>
+References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
+	 <201009171736.14170.trenn@suse.de>	<20100917162412.GB3341@elte.hu>
+	 <201009180026.59482.trenn@suse.de>
+	 <AANLkTimMAr9kEzybFGai3qGyXx36v055iPpXq_C1vW8C@mail.gmail.com>
+	 <4C9A21AD.1000800@linux.intel.com>
+	 <AANLkTim6B+Je=LykgJb9=0vK5Br1rkft619BRJkBcHdP@mail.gmail.com>
+	 <4C9A2FB3.105@linux.intel.com> <1285173835.2275.1026.camel@laptop>
+	 <4C9A37AE.2010509@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:45981 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752113Ab0IVRZV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 13:25:21 -0400
-Content-Disposition: inline
-In-Reply-To: <16904B7F1B384B42B8D5F85D0414A47D@am.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <4C9A37AE.2010509@linux.intel.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Tony Lindgren' <tony@atomide.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 
-Hi Madhu,
+On Wed, 2010-09-22 at 10:06 -0700, Arjan van de Ven wrote:
 
-On Wed, Sep 22, 2010 at 12:13:51PM -0500, Madhusudhan wrote:
-> Can you please drop this patch? Sorry, I spoke bit too early on this patch.
-> I need to sort out some stuff internally (seems like it will not be released
-> as an errata). I will post a revised version a bit later.
+> In this case we're talking about basically a suprious rename of 
+> something that isn't really an improvement
+> (because it makes it harder to subscribe to only one type of event)... 
+> that's not a good thing.
 
-No problem, I dropped this after seeing Tony's comments.  I'll keep
-an eye out for a new patch with his ACK.
+People have been talking about more/more comprehensive power tracepoints
+for a while, and I think that's a valid goal, if its really a rename I'm
+sure you can work it out.
 
-Thanks,
+That said, I really didn't read this discussion much, but your stance
+seems to be that any tracepoint you use must stay valid, and I object to
+that.
 
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+What will do you do when we include a new scheduling policy and all the
+scheduler tracepoints need to change? (yes that's really going to
+happen)
+
+I'm not going to carry double tracepoints, and I'm not going to not
+merge that policy. 
