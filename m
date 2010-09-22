@@ -1,45 +1,67 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v6 0/7] OMAP: WDT: Implement WDT in hwmod way
-Date: Tue, 21 Sep 2010 18:35:40 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009211833150.4677@utopia.booyaka.com>
-References: <1284733136-20952-1-git-send-email-charu@ti.com> <20100917172215.GE29610@atomide.com> <87mxrguhhf.fsf@deeprootsystems.com> <20100920171653.GE4611@atomide.com> <87sk14rvik.fsf@deeprootsystems.com> <20100920205630.GJ4611@atomide.com>
+Subject: RE: [PATCHV4] OMAP3: SDRC : Errata 1.176 Fix - Accesses to DDR stall
+ in SDRC after a Warm-reset
+Date: Tue, 21 Sep 2010 19:06:43 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009211859090.4677@utopia.booyaka.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB03229868BA@dbde02.ent.ti.com> <alpine.DEB.2.00.1005181816380.27473@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB0322FA8926@dbde02.ent.ti.com> <alpine.DEB.2.00.1009151533560.458@utopia.booyaka.com>
+ <FCCFB4CDC6E5564B9182F639FC35608703117EA1CA@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48717 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46440 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754732Ab0IVAfl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 20:35:41 -0400
-In-Reply-To: <20100920205630.GJ4611@atomide.com>
+	with ESMTP id S1755919Ab0IVBGo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Sep 2010 21:06:44 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608703117EA1CA@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Varadarajan, Charulatha" <charu@ti.com>, wim@iguana.be, linux-watchdog@vger.kernel.org, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, linux-omap@vger.kernel.org
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 20 Sep 2010, Tony Lindgren wrote:
+Hello Vishwa,
 
-> * Kevin Hilman <khilman@deeprootsystems.com> [100920 13:40]:
-> > Tony Lindgren <tony@atomide.com> writes:
+Thanks for the info.
+
+a few quick questions:
+
+On Thu, 16 Sep 2010, Sripathy, Vishwanath wrote:
+
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Thursday, September 16, 2010 3:05 AM
 > > 
-> > > So let's get all the dependencies out of the way and pull them into linux-omap
-> > > master branch for testing. Sounds like we should base this on Paul's core
-> > > hwmod branch and your pm-next.
+> > On Tue, 25 May 2010, Reddy, Teerth wrote:
 > > 
-> > Yes, those two branches are required as the bare minimum.
+> > > > -----Original Message-----
+> > > > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > > > Sent: Wednesday, May 19, 2010 6:03 AM
+> > > > To: Reddy, Teerth
+> > > >
+> > > > On Fri, 23 Apr 2010, Reddy, Teerth wrote:
+> > > >
+> > > > > From: Teerth Reddy <teerth@ti.com>
+> > > > >
+> > > > > This patch has the workaround for errata 1.176.
+> > 
+> > What's the current status of this patch?  Still waiting for an updated
+> > version.
+>
+> We have realized that this errata is not applicable if reset is 
+> triggered via dpll3 reset. The rootcasuse of the issues was that incase 
+> of warm reset, SDRC is not sensitive to the warm reset, but the 
+> interconect is reset on the fly, thus causing a misalignment between 
+> SDRC logic, interconect logic and DDR memory state. Hence the workaround 
+> was proposed. However, incase of dpll3 reset, sdrc also gets reset. In 
+> omap_prcm_arch_reset, system reset is triggered via dpll3 reset, so this 
+> WA is not applicable.
 
-Just a quick note - the branch
 
-git://git.pwsan.com/linux-2.6 hwmod_2.6.37
+1. So by "warm reset," are you referring to the software warm reset 
+triggered by GLOBAL_SW_RST, or by another mechanism?
 
-contains the current set of hwmod core patches that I'd like to get 
-upstream for 2.6.37.  Will send a pull request tomorrow.
-
-I plan to have a few more branches for 2.6.37 with some SCM, SDRC, clock, 
-clockdomain, and powerdomain patches.  Will post those separately and also 
-assemble a composite 'for_2.6.37' branch with both the hwmod and the 
-clock/clockdomain/powerdomain/SCM/SDRC patches.
-
-regards,
+2. If GLOBAL_SW_RST, what do you think about adding a brief comment in the 
+code warning people not to use GLOBAL_SW_RST unless they implement the 
+Errata 1.176 sequence?
 
 
 - Paul
