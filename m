@@ -1,194 +1,69 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v2 1/4] omap4 hsmmc: Adding card detect support for MMC1
-Date: Wed, 22 Sep 2010 15:08:35 +0530
-Message-ID: <AANLkTimMgAtKeiodbhNdsZnhP=Kbrk_-ZgqnzS9gPgyp@mail.gmail.com>
-References: <33908.10.24.255.17.1284827636.squirrel@dbdmail.itg.ti.com>
-	<20100922085119.GD29725@legolas.emea.dhcp.ti.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH 3/5] OMAP: hwmod: Enable module wakeup if in smartidle
+Date: Wed, 22 Sep 2010 13:41:14 +0400
+Message-ID: <4C99CF3A.9080901@ru.mvista.com>
+References: <20100922001834.8621.76144.stgit@twilight.localdomain> <20100922001931.8621.46565.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:37254 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752630Ab0IVJig convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 05:38:36 -0400
-In-Reply-To: <20100922085119.GD29725@legolas.emea.dhcp.ti.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49087 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753396Ab0IVJm6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 05:42:58 -0400
+Received: by eyb6 with SMTP id 6so76422eyb.19
+        for <linux-omap@vger.kernel.org>; Wed, 22 Sep 2010 02:42:57 -0700 (PDT)
+In-Reply-To: <20100922001931.8621.46565.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: kishore kadiyala <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Partha Basak <p-basak2@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, =?UTF-8?B?QmVub8OudCBDb3Vzc29u?= <b-cousson@ti.com>
 
-Hi balbi,
+Hello.
 
-On Wed, Sep 22, 2010 at 2:21 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Sat, Sep 18, 2010 at 11:33:56AM -0500, kishore kadiyala wrote:
->>
->> @@ -223,6 +224,81 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offs=
-et)
->> }
->> EXPORT_SYMBOL(twl6030_interrupt_mask);
->>
->> +int twl6030_mmc_card_detect_config(void)
->> +{
->> + =A0 =A0 =A0 int ret;
->> + =A0 =A0 =A0 u8 reg_val =3D 0;
->> +
->> + =A0 =A0 =A0 /* Unmasking the Card detect Interrupt line for MMC1 f=
-rom Phoenix
->> */
->> + =A0 =A0 =A0 if (twl_class_is_6030()) {
->
-> which other class can this be ?
+On 22-09-2010 4:19, Paul Walmsley wrote:
 
-It can only be a 6030 class.
-as twl6030_mmc_card_detect_config is called only in board file I can
-remove the check.
+> From: Rajendra Nayak<rnayak@ti.com>
 
->
->> + =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0* Intially Configuring MMC_CTRL for receving interr=
-upts &
->> + =A0 =A0 =A0 =A0* Card status on TWL6030 for MMC1
->> + =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
->> TWL6030_MMCCTRL);
->> + =A0 =A0 =A0 if (ret < 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to read MMCCTR=
-L, error %d\n",
->> ret);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 reg_val &=3D ~VMMC_AUTO_OFF;
->> + =A0 =A0 =A0 reg_val |=3D SW_FC;
->> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
->> TWL6030_MMCCTRL);
->> + =A0 =A0 =A0 if (ret < 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to write MMCCT=
-RL, error %d\n",
->> ret);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 }
->> +
->> + =A0 =A0 =A0 /* Configuring PullUp-PullDown register */
->> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
->
-> is this a gpio ? Could gpiolib take care of this ?
+> If a module's OCP slave port is programmed to be in smartidle,
+> its also necessary that they have module level wakeup enabled.
+> Update _sysc_enable in hwmod framework to do this.
 
-This is not a gpio but an interrupt line from twl6030 to MMC controller
+> The thread "[PATCH 7/8] : Hwmod api changes" archived here:
 
->
->> + =A0 =A0 =A0 if (ret < 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to read CFG_IN=
-PUT_PUPD3, error
->> %d\n",
->> +
->> ret);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 reg_val &=3D ~(MMC_PU | MMC_PD);
->> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
->
-> ditto.
-This is not a gpio
->
->> +int twl6030_mmc_card_detect(struct device *dev, int slot)
->> +{
->> + =A0 =A0 =A0 int ret =3D -EIO;
->> + =A0 =A0 =A0 u8 read_reg =3D 0;
->> + =A0 =A0 =A0 struct platform_device *pdev =3D container_of(dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 struct platform_device, dev);
->
-> how about:
->
-> =A0 =A0 =A0 =A0struct platform_device *pdev =3D to_platform_device(de=
-v);
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34212.html
 
-ok will use this .
+> has additional technical information on the rationale of this patch.
 
+> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> Signed-off-by: Partha Basak<p-basak2@ti.com>
+> Signed-off-by: Beno=C3=AEt Cousson<b-cousson@ti.com>
+> [paul@pwsan.com: revised patch description]
+> Signed-off-by: Paul Walmsley<paul@pwsan.com>
+> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod.c |    6 ++++--
+>   1 files changed, 4 insertions(+), 2 deletions(-)
+
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
+map_hwmod.c
+> index f320cfb..3f3d61a 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+[...]
+> @@ -703,6 +701,10 @@ static void _sysc_enable(struct omap_hwmod *oh)
+>   		_set_clockactivity(oh, oh->class->sysc->clockact,&v);
 >
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
-smmc.c
->> index 562dbbb..a51894d 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -466,8 +466,6 @@ static int omap_hsmmc_gpio_init(struct
->> omap_mmc_platform_data *pdata)
->> =A0 =A0 =A0 =A0int ret;
->>
->> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].switch_pin)) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->suspend =3D omap_hsmmc_suspend_=
-cdirq;
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->resume =3D omap_hsmmc_resume_cd=
-irq;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (pdata->slots[0].cover)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].get_c=
-over_state =3D
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0omap_hsmmc_get_cover_state;
->> @@ -2211,6 +2209,8 @@ static int __init omap_hsmmc_probe(struct
->> platform_device *pdev)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"Unab=
-le to grab MMC CD IRQ\n");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_irq_cd;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->suspend =3D omap_hsmmc_suspend_=
-cdirq;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->resume =3D omap_hsmmc_resume_cd=
-irq;
->
-> this doesn't look to be part of $SUBJECT, care to explain ?
+>   	_write_sysconfig(v, oh);
+> +
+> +	/* If slave is in SMARTIDLE, also enable wakeup */
+> +	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
+> +			_enable_wakeup(oh);
 
-I've just moved the initialization of suspend & resume which was
-previously done in omap_hsmmc_gpio_init.
-Ok will update in the log
+    This line is overindented...
 
->
->> @@ -173,6 +183,27 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg,
->> unsigned num_bytes);
->> int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
->> int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
->>
->> +/* Card detect Configuration for MMC1 Controller on OMAP4 */
->> +#ifdef CONFIG_TWL4030_CORE
->> +int twl6030_mmc_card_detect_config(void);
->> +#else
->> +static inline int twl6030_mmc_card_detect_config(void)
->> +{
->> + =A0 =A0 =A0 pr_err("twl6030_mmc_card_detect_config not supported\n=
-");
->
-> pr_debug() would be better ??
-
-ok will update with pr_debug
-
->
->> +/* MMC1 Controller on OMAP4 uses Phoenix irq for Card detect */
->> +#ifdef CONFIG_TWL4030_CORE
->> +int twl6030_mmc_card_detect(struct device *dev, int slot);
->> +#else
->> +static inline int twl6030_mmc_card_detect(struct device *dev, int s=
-lot)
->> +{
->> + =A0 =A0 =A0 pr_err("Call back twl6030_mmc_card_detect not supporte=
-d\n");
->
-> ditto.
-
-ok will update with pr_debug
-
->
-> --
-> balbi
-
-Regards,
-Kishore
+WBR, Sergei
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
