@@ -1,62 +1,50 @@
-From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v3 11/11] OMAP3: PM: Register TWL4030 pmic info with the voltage driver.
-Date: Wed, 22 Sep 2010 20:15:19 +0530
-Message-ID: <1285166719-19352-12-git-send-email-thara@ti.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55279 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754956Ab0IVOpz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 10:45:55 -0400
-In-Reply-To: <1285166719-19352-1-git-send-email-thara@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: =?ISO-8859-1?Q?Anders_Grafstr=F6m?= <grfstrm@users.sourceforge.net>
+Subject: Re: [RFC] ARM: DMA coherent allocator: align remapped addresses
+Date: Wed, 22 Sep 2010 16:49:22 +0200
+Message-ID: <4C9A1772.4000502@users.sourceforge.net>
+References: <20100725135024.GA6609@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20100725135024.GA6609@n2100.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch registers the TWL4030 PMIC specific informtion
-with the voltage driver. Failing this patch the voltage driver
-is unware of the formula to use for vsel to voltage and vice versa
-conversion.
+On 2010-07-25 15:50, Russell King - ARM Linux wrote:
+> +	 * Align the virtual region allocation - maximum alignment is
+> +	 * a section size, minimum is a page size.  This helps reduce
+> +	 * fragmentation of the DMA space, and also prevents allocations
+> +	 * smaller than a section from crossing a section boundary.
+> +	 */
+> +	bit = fls(size - 1) + 1;
+> +	if (bit > SECTION_SHIFT)
+> +		bit = SECTION_SHIFT;
+> +	align = 1 << bit;
 
-Signed-off-by: Thara Gopinath <thara@ti.com>
----
- arch/arm/plat-omap/opp_twl_tps.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+A size of 4096 results in an alignment of 8192. Is that really intended?
+ixp4xx seems to run out of vmregion due to this. The patch below makes it work again.
 
-diff --git a/arch/arm/plat-omap/opp_twl_tps.c b/arch/arm/plat-omap/opp_twl_tps.c
-index 112f106..4448fc5 100644
---- a/arch/arm/plat-omap/opp_twl_tps.c
-+++ b/arch/arm/plat-omap/opp_twl_tps.c
-@@ -13,7 +13,10 @@
-  * XXX This code should be part of some other TWL/TPS code.
-  */
- 
-+#include <linux/module.h>
-+
- #include <plat/opp_twl_tps.h>
-+#include <plat/voltage.h>
- 
- /**
-  * omap_twl_vsel_to_vdc - convert TWL/TPS VSEL value to microvolts DC
-@@ -39,3 +42,17 @@ u8 omap_twl_uv_to_vsel(unsigned long uv)
- 	/* Round up to higher voltage */
- 	return DIV_ROUND_UP(uv - 600000, 12500);
- }
-+
-+static struct omap_volt_pmic_info twl_volt_info = {
-+	.slew_rate	= 4000,
-+	.step_size	= 12500,
-+	.vsel_to_uv	= omap_twl_vsel_to_uv,
-+	.uv_to_vsel	= omap_twl_uv_to_vsel,
-+};
-+
-+static int __init omap_twl_init(void)
-+{
-+	omap_voltage_register_pmic(&twl_volt_info);
-+	return 0;
-+}
-+arch_initcall(omap_twl_init);
--- 
-1.7.1.GIT
-
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 4bc43e5..7012105 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -198,7 +198,7 @@ __dma_alloc_remap(struct page *page, size_t size, gfp_t gfp, pgprot_t prot)
+ 	 * fragmentation of the DMA space, and also prevents allocations
+ 	 * smaller than a section from crossing a section boundary.
+ 	 */
+-	bit = fls(size - 1) + 1;
++	bit = fls(size - 1);
+ 	if (bit > SECTION_SHIFT)
+ 		bit = SECTION_SHIFT;
+ 	align = 1 << bit;
