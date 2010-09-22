@@ -1,46 +1,61 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Wed, 22 Sep 2010 10:06:54 -0700
-Message-ID: <4C9A37AE.2010509@linux.intel.com>
-References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>	 <201009171736.14170.trenn@suse.de>	<20100917162412.GB3341@elte.hu>	 <201009180026.59482.trenn@suse.de>	 <AANLkTimMAr9kEzybFGai3qGyXx36v055iPpXq_C1vW8C@mail.gmail.com>	 <4C9A21AD.1000800@linux.intel.com>	 <AANLkTim6B+Je=LykgJb9=0vK5Br1rkft619BRJkBcHdP@mail.gmail.com>	 <4C9A2FB3.105@linux.intel.com> <1285173835.2275.1026.camel@laptop>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH] OMAP4: HSMMC cmd line reset change
+Date: Wed, 22 Sep 2010 12:13:51 -0500
+Message-ID: <16904B7F1B384B42B8D5F85D0414A47D@am.dhcp.ti.com>
+References: <51627.192.168.10.89.1284595091.squirrel@dbdmail.itg.ti.com> <20100917154803.GB29610@atomide.com> <738912BD0A0F48FC9E3159F923571E9E@am.dhcp.ti.com> <20100921144705.GP4611@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20011 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751868Ab0IVRHT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 13:07:19 -0400
-In-Reply-To: <1285173835.2275.1026.camel@laptop>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100921144705.GP4611@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: 'Tony Lindgren' <tony@atomide.com>
+Cc: cjb@laptop.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, santosh.shilimkar@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
 
-  On 9/22/2010 9:43 AM, Peter Zijlstra wrote:
-> On Wed, 2010-09-22 at 09:32 -0700, Arjan van de Ven wrote:
->>> What are the apps that are using it? I know about builtin-timechart,
->>> pytimechart. Is powertop using this as well?
->> powertop 2.x codebase is as well.
->>
->> and a bunch of tools we have internal here at Intel.
->>
->> the thing with ABIs is that you don't know how many users you have.. at
->> least here you know the lower bound is 3 different tools that are open
->> source.
->> .... and likely many local tools that aren't.
-> These tools should be smart enough to look up the tracepoint name, fail
-> it its not available, read the tracepoint format, again fail if not
-> compatible.
-it's not very useful if none of the critical information is available.
 
-you can't at the one hand push people to use perf for critical pieces 
-(like machine checks etc etc) and on
-the other hand say that it's not ABI stable and should not be used really.
 
-In this case we're talking about basically a suprious rename of 
-something that isn't really an improvement
-(because it makes it harder to subscribe to only one type of event)... 
-that's not a good thing.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Tuesday, September 21, 2010 9:47 AM
+> To: Madhusudhan
+> Cc: cjb@laptop.org; linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org;
+> santosh.shilimkar@ti.com
+> Subject: Re: [PATCH] OMAP4: HSMMC cmd line reset change
+> 
+> * Madhusudhan <madhu.cr@ti.com> [100920 09:06]:
+> > >
+> > > Please don't use cpu_is_omapxxxx tests in the drivers, drivers
+> > > should be generic.
+> > >
+> > > Instead, just pass a feature flag in the platform_data for this
+> > > feature like HSMMC_REVERSE_RESET_LOGIC or similar.
+> > >
+> >
+> > This is not a feature. It is like an ERRATA fix. I am yet to receive an
+> > errata number though. How about dealing with this like an errata fix
+> similar
+> > to the way in arch/mach-omap2/serial.c done for the uart case?
+> 
+> Yes setting some HSMMC_ERRATA_XYZ flag works too.
+> 
+> > The mmc ip revision will not help because it really does not change to
+> > distinguish such issues.
+> 
+> OK. Then I guess your only option is to pass the errata flag in
+> the platform_data.
+> 
+Chris,
 
+Can you please drop this patch? Sorry, I spoke bit too early on this patch.
+I need to sort out some stuff internally (seems like it will not be released
+as an errata). I will post a revised version a bit later.
+
+Regards,
+Madhu
+
+> Regards,
+> 
+> Tony
 
