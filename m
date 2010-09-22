@@ -1,70 +1,80 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 05/13 v2] OMAP: UART: don't do automatic bus-level
-	suspend/resume
-Date: Wed, 22 Sep 2010 20:43:51 +0530 (IST)
-Message-ID: <37596.172.24.137.131.1285168431.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 07/13 v2] OMAP clock: Add uart4_ick/fck definitions for 3630
+Date: Wed, 22 Sep 2010 20:44:06 +0530 (IST)
+Message-ID: <37596.172.24.137.131.1285168446.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Kevin Hilman <khilman@deeprootsystems.com>
+This is only valid for omap 36xx family of chips.
 
-Since the omap_device for UART is currently managed inside the idle
-path itself,  don't let the bus-level code suspend/resume the UART.
-
-To prevent this, pm_runtime_get() is used when preparing for suspend
-and pm_runtime_put() is used when finished with suspend.
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 6ffbc92..ff83e91 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -26,6 +26,7 @@
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/serial_8250.h>
-+#include <linux/pm_runtime.h>
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index dfdce2d..90a4198 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -2465,6 +2465,16 @@ static struct clk uart3_fck = {
+ 	.recalc		= &followparent_recalc,
+ };
 
- #ifdef CONFIG_SERIAL_OMAP
- #include <plat/omap-serial.h>
-@@ -530,14 +531,17 @@ void omap_uart_enable_irqs(int enable)
- 	struct omap_uart_state *uart;
++static struct clk uart4_fck = {
++	.name		= "uart4_fck",
++	.ops		= &clkops_omap2_dflt_wait,
++	.parent		= &per_48m_fck,
++	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
++	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
++	.clkdm_name	= "per_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
+ static struct clk gpt2_fck = {
+ 	.name		= "gpt2_fck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+@@ -2715,6 +2725,16 @@ static struct clk uart3_ick = {
+ 	.recalc		= &followparent_recalc,
+ };
 
- 	list_for_each_entry(uart, &uart_list, node) {
--		if (enable)
-+		if (enable) {
-+			pm_runtime_put_sync(&uart->pdev->dev);
- 			ret = request_threaded_irq(uart->irq, NULL,
- 						   omap_uart_interrupt,
- 						   IRQF_SHARED,
- 						   "serial idle",
- 						   (void *)uart);
--		else
-+		} else {
-+			pm_runtime_get_noresume(&uart->pdev->dev);
- 			free_irq(uart->irq, (void *)uart);
-+		}
- 	}
- }
-
++static struct clk uart4_ick = {
++	.name		= "uart4_ick",
++	.ops		= &clkops_omap2_dflt_wait,
++	.parent		= &per_l4_ick,
++	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_ICLKEN),
++	.enable_bit	= OMAP3630_EN_UART4_SHIFT,
++	.clkdm_name	= "per_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
+ static struct clk gpt9_ick = {
+ 	.name		= "gpt9_ick",
+ 	.ops		= &clkops_omap2_dflt_wait,
+@@ -3349,6 +3369,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"per_48m_fck",	&per_48m_fck,	CK_3XXX),
+ 	CLK(NULL,	"uart3_fck",	&uart3_fck,	CK_3XXX),
++	CLK(NULL,	"uart4_fck",	&uart4_fck,	CK_36XX),
+ 	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_3XXX),
+ 	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_3XXX),
+ 	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_3XXX),
+@@ -3372,6 +3393,7 @@ static struct omap_clk omap3xxx_clks[] = {
+ 	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_3XXX),
+ 	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_3XXX),
+ 	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_3XXX),
++	CLK(NULL,	"uart4_ick",	&uart4_ick,	CK_36XX),
+ 	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_3XXX),
 -- 
 1.6.3.3
+
+
+
