@@ -1,228 +1,164 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v3 04/11] OMAP3: PM: Adding smartreflex device file.
-Date: Wed, 22 Sep 2010 20:15:12 +0530
-Message-ID: <1285166719-19352-5-git-send-email-thara@ti.com>
+Subject: [PATCH v3 06/11] OMAP3: PM: Adding smartreflex class3 driver
+Date: Wed, 22 Sep 2010 20:15:14 +0530
+Message-ID: <1285166719-19352-7-git-send-email-thara@ti.com>
 References: <1285166719-19352-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45258 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55263 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753581Ab0IVOpn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 10:45:43 -0400
+	id S1753581Ab0IVOpp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Sep 2010 10:45:45 -0400
 In-Reply-To: <1285166719-19352-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch adds support for device registration of various
-smartreflex module present in the system. This patch introduces
-the platform data for smartreflex devices which include
-the efused and test n-target vaules, module enable/disable
-pointers and a parameter to indicate whether smartreflex
-autocompensation needs to be enabled on init or not.
-Currently auocompensation is enabled on init by default
-for OMAP3430 ES3.1 chip.
+Smartreflex Class3 implementation continuously monitors
+silicon performance  and instructs the Voltage Processors
+to increase or decrease the voltage.
+This patch adds smartreflex class 3 driver. This driver hooks
+up with the generic smartreflex driver smartreflex.c to abstract
+out class specific implementations out of the generic driver.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/Makefile    |    2 +-
- arch/arm/mach-omap2/sr_device.c |  174 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 175 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/sr_device.c
+ arch/arm/mach-omap2/Makefile             |    1 +
+ arch/arm/mach-omap2/smartreflex-class3.c |   61 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/smartreflex-class3.h |   23 +++++++++++
+ arch/arm/plat-omap/Kconfig               |    9 ++++
+ 4 files changed, 94 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 8dd32a7..abc377a 100644
+index abc377a..4f6139c 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -56,7 +56,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
- 					   cpuidle34xx.o pm_bus.o
+@@ -57,6 +57,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
--obj-$(CONFIG_OMAP_SMARTREFLEX)          += smartreflex.o
-+obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+ obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
++obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
  
  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
  AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
-diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
 new file mode 100644
-index 0000000..606da59
+index 0000000..f1ade08
 --- /dev/null
-+++ b/arch/arm/mach-omap2/sr_device.c
-@@ -0,0 +1,174 @@
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -0,0 +1,61 @@
 +/*
-+ * OMAP3/OMAP4 smartreflex device file
++ * Smart reflex Class 3 specific implementations
 + *
-+ * Author: Thara Gopinath	<thara@ti.com>
++ * Author: Thara Gopinath       <thara@ti.com>
 + *
-+ * Based originally on code from smartreflex.c
 + * Copyright (C) 2010 Texas Instruments, Inc.
 + * Thara Gopinath <thara@ti.com>
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Kalle Jokiniemi
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Lesly A M <x0080970@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+
-+#include <plat/control.h>
-+#include <plat/omap_device.h>
 +#include <plat/smartreflex.h>
-+#include <plat/voltage.h>
 +
-+static struct omap_device_pm_latency omap_sr_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func	 = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST
-+	},
-+};
++#include "smartreflex-class3.h"
 +
-+#ifdef OMAP_SMARTREFLEX_TESTING
-+/*
-+ * Hard coded nvalues for testing purposes for OMAP3430,
-+ * may cause device to hang!
-+ */
-+static void __init sr_set_nvalues(struct omap_sr_dev_data *dev_data,
-+				struct omap_sr_data *sr_data)
++static int sr_class3_enable(struct voltagedomain *voltdm)
 +{
-+	int i;
++	unsigned long volt = 0;
 +
-+	if (!dev_data || !dev_data->volts_supported ||
-+			!dev_data->volt_data || !dev_data->test_nvalues) {
-+		pr_warning("%s: Bad parameters! dev_data = %x,"
-+			"dev_data->volts_supported = %x,"
-+			"dev_data->volt_data = %x,"
-+			"dev_data->test_nvalues = %x\n", __func__,
-+			(unsigned int)dev_data, dev_data->volts_supported,
-+			(unsigned int)dev_data->volt_data,
-+			(unsigned int)dev_data->test_nvalues);
-+		return;
++	volt = omap_voltage_get_nom_volt(voltdm);
++	if (!volt) {
++		pr_warning("%s: Curr voltage unknown. Cannot enable sr_%s\n",
++				__func__, voltdm->name);
++		return -ENODATA;
 +	}
 +
-+	sr_data->senn_mod = dev_data->test_sennenable;
-+	sr_data->senp_mod = dev_data->test_senpenable;
-+	for (i = 0; i < dev_data->volts_supported; i++)
-+		dev_data->volt_data[i].sr_nvalue = dev_data->test_nvalues[i];
++	omap_vp_enable(voltdm);
++	return sr_enable(voltdm, volt);
 +}
-+#else
-+/* Read EFUSE values from control registers for OMAP3430 */
-+static void __init sr_set_nvalues(struct omap_sr_dev_data *dev_data,
-+				struct omap_sr_data *sr_data)
++
++static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
 +{
-+	int i;
++	omap_vp_disable(voltdm);
++	sr_disable(voltdm);
++	if (is_volt_reset)
++		omap_voltage_reset(voltdm);
 +
-+	if (!dev_data || !dev_data->volts_supported || !dev_data->volt_data ||
-+			!dev_data->efuse_nvalues_offs) {
-+		pr_warning("%s: Bad parameters! dev_data = %x,"
-+			"dev_data->volts_supported = %x,"
-+			"dev_data->volt_data = %x,"
-+			"dev_data->efuse_nvalues_offs = %x\n", __func__,
-+			(unsigned int)dev_data, dev_data->volts_supported,
-+			(unsigned int)dev_data->volt_data,
-+			(unsigned int)dev_data->efuse_nvalues_offs);
-+		return;
-+	}
-+
-+	/*
-+	 * From OMAP3630 onwards there are no efuse registers for senn_mod
-+	 * and senp_mod. They have to be 0x1 by default.
-+	 */
-+	if (!dev_data->efuse_sr_control) {
-+		sr_data->senn_mod = 0x1;
-+		sr_data->senp_mod = 0x1;
-+	} else {
-+		sr_data->senn_mod =
-+				((omap_ctrl_readl(dev_data->efuse_sr_control) &
-+				(0x3 << dev_data->sennenable_shift)) >>
-+				dev_data->sennenable_shift);
-+		sr_data->senp_mod =
-+				((omap_ctrl_readl(dev_data->efuse_sr_control) &
-+				(0x3 << dev_data->senpenable_shift)) >>
-+				dev_data->senpenable_shift);
-+	}
-+
-+	for (i = 0; i < dev_data->volts_supported; i++)
-+		dev_data->volt_data[i].sr_nvalue = omap_ctrl_readl(
-+				dev_data->efuse_nvalues_offs[i]);
-+}
-+#endif
-+
-+static int sr_dev_init(struct omap_hwmod *oh, void *user)
-+{
-+	struct omap_sr_data *sr_data;
-+	struct omap_sr_dev_data *sr_dev_data;
-+	struct omap_device *od;
-+	char *name = "smartreflex";
-+	static int i;
-+
-+	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
-+	if (!sr_data) {
-+		pr_err("%s: Unable to allocate memory for %s sr_data.Error!\n",
-+			__func__, oh->name);
-+		return -ENOMEM;
-+	}
-+
-+	sr_dev_data = (struct omap_sr_dev_data *)oh->dev_attr;
-+	if (unlikely(!sr_dev_data)) {
-+		pr_err("%s: dev atrribute is NULL\n", __func__);
-+		goto exit;
-+	}
-+
-+	/*
-+	 * OMAP3430 ES3.1 chips by default come with Efuse burnt
-+	 * with parameters required for full functionality of
-+	 * smartreflex AVS feature like ntarget values , sennenable
-+	 * and senpenable. So enable the SR AVS feature during boot up
-+	 * itself if it is a OMAP3430 ES3.1 chip.
-+	 */
-+	sr_data->enable_on_init = false;
-+	if (cpu_is_omap343x()) {
-+		if (omap_rev() == OMAP3430_REV_ES3_1)
-+			sr_data->enable_on_init = true;
-+	}
-+
-+	sr_data->voltdm = omap_voltage_domain_get(sr_dev_data->vdd_name);
-+	if (IS_ERR(sr_data->voltdm)) {
-+		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
-+			__func__, sr_dev_data->vdd_name);
-+		goto exit;
-+	}
-+
-+	sr_dev_data->volts_supported = omap_voltage_get_volttable(
-+			sr_data->voltdm, &sr_dev_data->volt_data);
-+	if (!sr_dev_data->volts_supported) {
-+		pr_warning("%s: No Voltage table registerd fo VDD%d."
-+			"Something really wrong\n\n", __func__, i + 1);
-+		goto exit;
-+	}
-+
-+	sr_set_nvalues(sr_dev_data, sr_data);
-+
-+	od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
-+			       omap_sr_latency,
-+			       ARRAY_SIZE(omap_sr_latency), 0);
-+	if (IS_ERR(od))
-+		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
-+			__func__, name, oh->name);
-+exit:
-+	i++;
-+	kfree(sr_data);
 +	return 0;
 +}
 +
-+static int __init omap_devinit_smartreflex(void)
++static int sr_class3_configure(struct voltagedomain *voltdm)
 +{
-+	return omap_hwmod_for_each_by_class("smartreflex", sr_dev_init, NULL);
++	return sr_configure_errgen(voltdm);
 +}
-+device_initcall(omap_devinit_smartreflex);
++
++/* SR class3 structure */
++static struct omap_smartreflex_class_data class3_data = {
++	.enable = sr_class3_enable,
++	.disable = sr_class3_disable,
++	.configure = sr_class3_configure,
++	.class_type = SR_CLASS3,
++};
++
++/* Smartreflex CLASS3 init API to be called from board file */
++int __init sr_class3_init(void)
++{
++	pr_info("SmartReflex CLASS3 initialized\n");
++	return sr_register_class(&class3_data);
++}
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.h b/arch/arm/mach-omap2/smartreflex-class3.h
+new file mode 100644
+index 0000000..4d86037
+--- /dev/null
++++ b/arch/arm/mach-omap2/smartreflex-class3.h
+@@ -0,0 +1,23 @@
++/*
++ * Smartreflex Class 3 Routines
++ *
++ * Author: Thara Gopinath      <thara@ti.com>
++ *
++ * Copyright (C) 2010 Texas Instruments, Inc.
++ * Thara Gopinath <thara@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
++#define __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
++
++#ifdef CONFIG_OMAP_SMARTREFLEX_CLASS3
++int sr_class3_init(void);
++#else
++static int sr_class3_init(void) { return 0; }
++#endif
++
++#endif
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 8056349..af7acc9 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -67,6 +67,15 @@ config OMAP_SMARTREFLEX_TESTING
+ 
+ 	  WARNING: Enabling this option may cause your device to hang!
+ 
++config OMAP_SMARTREFLEX_CLASS3
++	bool "Class 3 mode of Smartreflex Implementation"
++	depends on OMAP_SMARTREFLEX && TWL4030_CORE
++	help
++	  Say Y to enable Class 3 implementation of Smartreflex
++
++	  Class 3 implementation of Smartreflex employs continuous hardware
++	  voltage caliberation.
++
+ config OMAP_RESET_CLOCKS
+ 	bool "Reset unused clocks during boot"
+ 	depends on ARCH_OMAP
 -- 
 1.7.1.GIT
 
