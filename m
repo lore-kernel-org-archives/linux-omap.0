@@ -1,44 +1,47 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] OMAP4: clock: Fix missing optional clocks
-Date: Wed, 22 Sep 2010 09:37:11 +0200
-Message-ID: <4C99B227.6050301@ti.com>
-References: <1285103430-5964-1-git-send-email-b-cousson@ti.com> <alpine.DEB.2.00.1009220123540.21002@utopia.booyaka.com>
+Subject: Re: Branch with the recent OMAP4 clock and PRCM patches for testing
+Date: Wed, 22 Sep 2010 09:39:52 +0200
+Message-ID: <4C99B2C8.1060405@ti.com>
+References: <alpine.DEB.2.00.1009220134120.21002@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41225 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:32851 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753178Ab0IVHhO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 03:37:14 -0400
-In-Reply-To: <alpine.DEB.2.00.1009220123540.21002@utopia.booyaka.com>
+	id S1751250Ab0IVHj4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Sep 2010 03:39:56 -0400
+In-Reply-To: <alpine.DEB.2.00.1009220134120.21002@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 9/22/2010 9:25 AM, Paul Walmsley wrote:
-> Hi Beno=EEt,
->
-> On Tue, 21 Sep 2010, Benoit Cousson wrote:
->
->> Please note that the diff is pretty bad for the clock table. It look=
-s like
->> everything has changed. I don't know if there is a way to have a bet=
-ter diff
->> with git.
->
-> It's due to an extra tab that somehow got added between the second an=
-d
-> third fields of the clkdev table in your patch.  I've removed that to
-> reduce the diff noise in the updated patch (forthcoming in a few minu=
-tes).
+Hi Paul,
 
-OK, it missed that, this is probably because of our super smart auto=20
-aligned tab to the longest string script :-)
+On 9/22/2010 9:37 AM, Paul Walmsley wrote:
+>
+> Hi Rajendra, Beno=EEt,
+>
+> in case it is useful, here is a branch based on v2.6.36-rc5 with the =
+hwmod
+> fixes included, and the OMAP4 clock/PRCM patches that we've discussed
+> today:
+>
+> git://git.pwsan.com/linux-2.6 omap4_2.6.37
+>
+> Tomorrow, I will probably keep adding to this branch, but I think I a=
+m
+> done for tonight :-)
 
+I'll rebase my stuff on top of that, and keep you inform.
+You can go to bed... meanwhile I'll have a coffee before starting my da=
+y.
+
+Thanks,
 Benoit
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
