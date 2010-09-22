@@ -1,111 +1,46 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v2 2/6] OMAP1: Add support for SoC camera
-	interface
-Date: Wed, 22 Sep 2010 20:20:52 +0200
-Message-ID: <201009222020.53798.jkrzyszt@tis.icnet.pl>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
-	<201009110323.12250.jkrzyszt@tis.icnet.pl>
-	<Pine.LNX.4.64.1009220848580.32562@axis700.grange>
-Reply-To: Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] tracing, perf: add more power related events
+Date: Wed, 22 Sep 2010 20:23:56 +0200
+Message-ID: <20100922182356.GB9058@elte.hu>
+References: <20100917162412.GB3341@elte.hu>
+ <201009180026.59482.trenn@suse.de>
+ <AANLkTimMAr9kEzybFGai3qGyXx36v055iPpXq_C1vW8C@mail.gmail.com>
+ <4C9A21AD.1000800@linux.intel.com>
+ <AANLkTim6B+Je=LykgJb9=0vK5Br1rkft619BRJkBcHdP@mail.gmail.com>
+ <4C9A2FB3.105@linux.intel.com>
+ <1285173835.2275.1026.camel@laptop>
+ <4C9A37AE.2010509@linux.intel.com>
+ <1285176629.2275.1033.camel@laptop>
+ <1285179355.26872.27.camel@gandalf.stny.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <e3-hacking-bounces@earth.li>
-In-Reply-To: <Pine.LNX.4.64.1009220848580.32562@axis700.grange>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:46761 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753932Ab0IVSYK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Sep 2010 14:24:10 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
-List-Archive: <http://www.earth.li/pipermail/e3-hacking>
-List-Post: <mailto:e3-hacking@earth.li>
-List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
-List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=subscribe>
-Sender: e3-hacking-bounces@earth.li
-Errors-To: e3-hacking-bounces@earth.li
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <1285179355.26872.27.camel@gandalf.stny.rr.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Jean Pihet <jean.pihet@newoldbits.com>, Thomas Renninger <trenn@suse.de>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
 
-V2VkbmVzZGF5IDIyIFNlcHRlbWJlciAyMDEwIDA4OjUzOjE5IEd1ZW5uYWRpIExpYWtob3ZldHNr
-aSBuYXBpc2HFgihhKToKPiBUaGF0J3MgdXAgdG8gdGhlIHBsYXRmb3JtIG1haW50YWluZXIgdG8g
-cmV2aWV3IC8gYXBwbHkgdGhpcyBvbmUsIGJ1dCBpZgo+IHlvdSBsaWtlLCBhIGNvdXBsZSBvZiBu
-aXQtcGlja3MgZnJvbSBtZToKCkd1ZW5uYWRpLApUaGFua3MgZm9yIGFsc28gbG9va2luZyBhdCB0
-aGlzIQoKPiBPbiBTYXQsIDExIFNlcCAyMDEwLCBKYW51c3ogS3J6eXN6dG9maWsgd3JvdGU6Cj4g
-PiBUaGlzIHBhdGNoIGFkZHMgc3VwcG9ydCBmb3IgU29DIGNhbWVyYSBpbnRlcmZhY2UgdG8gT01B
-UDEgZGV2aWNlcy4KPiA+Cj4gPiBDcmVhdGVkIGFuZCB0ZXN0ZWQgYWdhaW5zdCBsaW51eC0yLjYu
-MzYtcmMzIG9uIEFtc3RyYWQgRGVsdGEuCj4gPgo+ID4gRm9yIHN1Y2Nlc3NmdWxsIGNvbXBpbGF0
-aW9uLCByZXF1aXJlcyBhIGhlYWRlciBmaWxlIHByb3ZpZGVkIGJ5IFBBVENIIDEvNgo+ID4gZnJv
-bSB0aGlzIHNlcmllcywgIlNvQyBDYW1lcmE6IGFkZCBkcml2ZXIgZm9yIE9NQVAxIGNhbWVyYSBp
-bnRlcmZhY2UiLgo+ID4KPiA+IFNpZ25lZC1vZmYtYnk6IEphbnVzeiBLcnp5c3p0b2ZpayA8amty
-enlzenRAdGlzLmljbmV0LnBsPgo+ID4gLS0tCj4gPiB2MS0+djIgY2hhbmdlczoKPiA+IC0gbm8g
-ZnVuY3Rpb25hbCBjaGFuZ2VzLAo+ID4gLSByZWZyZXNoZWQgYWdhaW5zdCBsaW51eC0yLjYuMzYt
-cmMzCj4gPgo+ID4KPiA+ICBhcmNoL2FybS9tYWNoLW9tYXAxL2RldmljZXMuYyAgICAgICAgICAg
-ICB8ICAgNDMKPiA+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+ID4gIGFyY2gvYXJt
-L21hY2gtb21hcDEvaW5jbHVkZS9tYWNoL2NhbWVyYS5oIHwgICAgOCArKysrKwo+ID4gIDIgZmls
-ZXMgY2hhbmdlZCwgNTEgaW5zZXJ0aW9ucygrKQo+ID4KPiA+Cj4gPiBkaWZmIC11cHIgbGludXgt
-Mi42LjM2LXJjMy5vcmlnL2FyY2gvYXJtL21hY2gtb21hcDEvZGV2aWNlcy5jCj4gPiBsaW51eC0y
-LjYuMzYtcmMzL2FyY2gvYXJtL21hY2gtb21hcDEvZGV2aWNlcy5jCj4gPiAtLS0gbGludXgtMi42
-LjM2LXJjMy5vcmlnL2FyY2gvYXJtL21hY2gtb21hcDEvZGV2aWNlcy5jCTIwMTAtMDktMDMKPiA+
-IDIyOjI5OjAwLjAwMDAwMDAwMCArMDIwMAo+ID4gKysrIGxpbnV4LTIuNi4zNi1yYzMvYXJjaC9h
-cm0vbWFjaC1vbWFwMS9kZXZpY2VzLmMJMjAxMC0wOS0wOQo+ID4gMTg6NDI6MzAuMDAwMDAwMDAw
-ICswMjAwCj4gPiBAQCAtMTUsNiArMTUsNyBAQAo+ID4gICNpbmNsdWRlIDxsaW51eC9wbGF0Zm9y
-bV9kZXZpY2UuaD4KPiA+ICAjaW5jbHVkZSA8bGludXgvaW8uaD4KPiA+ICAjaW5jbHVkZSA8bGlu
-dXgvc3BpL3NwaS5oPgo+ID4gKyNpbmNsdWRlIDxsaW51eC9kbWEtbWFwcGluZy5oPgo+ID4KPiA+
-ICAjaW5jbHVkZSA8bWFjaC9oYXJkd2FyZS5oPgo+ID4gICNpbmNsdWRlIDxhc20vbWFjaC9tYXAu
-aD4KPiA+IEBAIC0yNSw2ICsyNiw3IEBACj4gPiAgI2luY2x1ZGUgPG1hY2gvZ3Bpby5oPgo+ID4g
-ICNpbmNsdWRlIDxwbGF0L21tYy5oPgo+ID4gICNpbmNsdWRlIDxwbGF0L29tYXA3eHguaD4KPiA+
-ICsjaW5jbHVkZSA8bWFjaC9jYW1lcmEuaD4KPgo+IFlvdSBtaWdodCB3YW50IHRvIHRyeSB0byBn
-cm91cCBoZWFkZXJzIGFjY29yZGluZyB0byB0aGVpciBsb2NhdGlvbiwgaS5lLiwKPiBwdXQgPG1h
-Y2gvLi4uPiBoaWdoZXIgLSB0b2dldGhlciB3aXRoIDxtYWNoL2dwaW8uaD4sIGFsc28gaXQgaGVs
-cHMgdG8gaGF2ZQo+IGhlYWRlcnMgYWxwaGFiZXRpY2FsbHkgb3JkZXJlZC4KClllcywgSSB3aWxs
-LCB0aGFuayB5b3UuCgo+ID4gCj4gPiAvKi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPi0tKi8KPiA+Cj4gPiBA
-QCAtMTkxLDYgKzE5Myw0NyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgb21hcF9pbml0X3NwaTEwMGso
-dm9pCj4gPiAgfQo+ID4gICNlbmRpZgo+ID4KPiA+ICsKPiA+ICsjZGVmaW5lIE9NQVAxX0NBTUVS
-QV9CQVNFCTB4ZmZmYjY4MDAKPiA+ICsKPiA+ICtzdGF0aWMgc3RydWN0IHJlc291cmNlIG9tYXAx
-X2NhbWVyYV9yZXNvdXJjZXNbXSA9IHsKPiA+ICsJWzBdID0gewo+ID4gKwkJLnN0YXJ0CT0gT01B
-UDFfQ0FNRVJBX0JBU0UsCj4gPiArCQkuZW5kCT0gT01BUDFfQ0FNRVJBX0JBU0UgKyBPTUFQMV9D
-QU1FUkFfSU9TSVpFIC0gMSwKPiA+ICsJCS5mbGFncwk9IElPUkVTT1VSQ0VfTUVNLAo+ID4gKwl9
-LAo+ID4gKwlbMV0gPSB7Cj4gPiArCQkuc3RhcnQJPSBJTlRfQ0FNRVJBLAo+ID4gKwkJLmZsYWdz
-CT0gSU9SRVNPVVJDRV9JUlEsCj4gPiArCX0sCj4gPiArfTsKPiA+ICsKPiA+ICtzdGF0aWMgdTY0
-IG9tYXAxX2NhbWVyYV9kbWFfbWFzayA9IERNQV9CSVRfTUFTSygzMik7Cj4gPiArCj4gPiArc3Rh
-dGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugb21hcDFfY2FtZXJhX2RldmljZSA9IHsKPiA+ICsJ
-Lm5hbWUJCT0gIm9tYXAxLWNhbWVyYSIsCj4gPiArCS5pZAkJPSAwLCAvKiBUaGlzIGlzIHVzZWQg
-dG8gcHV0IGNhbWVyYXMgb24gdGhpcyBpbnRlcmZhY2UgKi8KPiA+ICsJLmRldgkJPSB7Cj4gPiAr
-CQkuZG1hX21hc2sJCT0gJm9tYXAxX2NhbWVyYV9kbWFfbWFzaywKPiA+ICsJCS5jb2hlcmVudF9k
-bWFfbWFzawk9IERNQV9CSVRfTUFTSygzMiksCj4gPiArCX0sCj4gPiArCS5udW1fcmVzb3VyY2Vz
-CT0gQVJSQVlfU0laRShvbWFwMV9jYW1lcmFfcmVzb3VyY2VzKSwKPiA+ICsJLnJlc291cmNlCT0g
-b21hcDFfY2FtZXJhX3Jlc291cmNlcywKPiA+ICt9Owo+ID4gKwo+ID4gK3ZvaWQgX19pbml0IG9t
-YXAxX3NldF9jYW1lcmFfaW5mbyhzdHJ1Y3Qgb21hcDFfY2FtX3BsYXRmb3JtX2RhdGEgKmluZm8p
-Cj4gPiArewo+ID4gKwlzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpkZXYgPSAmb21hcDFfY2FtZXJh
-X2RldmljZTsKPiA+ICsJaW50IHJldDsKPiA+ICsKPiA+ICsJZGV2LT5kZXYucGxhdGZvcm1fZGF0
-YSA9IGluZm87Cj4gPiArCj4gPiArCXJldCA9IHBsYXRmb3JtX2RldmljZV9yZWdpc3RlcihkZXYp
-Owo+ID4gKwlpZiAocmV0KQo+ID4gKwkJZGV2X2VycigmZGV2LT5kZXYsICJ1bmFibGUgdG8gcmVn
-aXN0ZXIgZGV2aWNlOiAlZFxuIiwgcmV0KTsKPiA+ICt9Cj4gPiArCj4gPiArCj4gPiAKPiA+IC8q
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0KPiA+LS0qLwo+ID4KPiA+ICBzdGF0aWMgaW5saW5lIHZvaWQgb21hcF9p
-bml0X3N0aSh2b2lkKSB7fQo+ID4gZGlmZiAtdXByIGxpbnV4LTIuNi4zNi1yYzMub3JpZy9hcmNo
-L2FybS9tYWNoLW9tYXAxL2luY2x1ZGUvbWFjaC9jYW1lcmEuaAo+ID4gbGludXgtMi42LjM2LXJj
-My9hcmNoL2FybS9tYWNoLW9tYXAxL2luY2x1ZGUvbWFjaC9jYW1lcmEuaAo+ID4gLS0tCj4gPiBs
-aW51eC0yLjYuMzYtcmMzLm9yaWcvYXJjaC9hcm0vbWFjaC1vbWFwMS9pbmNsdWRlL21hY2gvY2Ft
-ZXJhLmgJMjAxMC0wOS0wCj4gPjMgMjI6MzQ6MDMuMDAwMDAwMDAwICswMjAwCj4gPiArKysgbGlu
-dXgtMi42LjM2LXJjMy9hcmNoL2FybS9tYWNoLW9tYXAxL2luY2x1ZGUvbWFjaC9jYW1lcmEuaAky
-MDEwLTA5LTA5Cj4gPiAxODo0MjozMC4wMDAwMDAwMDAgKzAyMDAKPiA+IEBAIC0wLDAgKzEsOCBA
-QAo+ID4gKyNpZm5kZWYgX19BU01fQVJDSF9DQU1FUkFfSF8KPiA+ICsjZGVmaW5lIF9fQVNNX0FS
-Q0hfQ0FNRVJBX0hfCj4gPiArCj4gPiArI2luY2x1ZGUgPG1lZGlhL29tYXAxX2NhbWVyYS5oPgo+
-ID4gKwo+ID4gK2V4dGVybiB2b2lkIG9tYXAxX3NldF9jYW1lcmFfaW5mbyhzdHJ1Y3Qgb21hcDFf
-Y2FtX3BsYXRmb3JtX2RhdGEgKik7Cj4KPiBmdW5jdGlvbiBkZWNsYXJhdGlvbnMgZG9uJ3QgbmVl
-ZCBhbiAiZXh0ZXJuIiAtIHNvbWV0aGluZyBJJ3ZlIGFsc28gYmVlbgo+IGRvaW5nIG5lZWRsZXNz
-bHkgZm9yIGEgZmV3IHllYXJzLi4uCgpHb29kIHRvIGtub3cuIEknbGwgZHJvcCBpdC4KClRvbnks
-CkFueSBjb21tZW50cyBmcm9tIHlvdSBiZWZvcmUgSSBzdWJtaXQgYSBob3BlZnVsbHkgZmluYWwg
-dmVyc2lvbj8KClRoYW5rcywKSmFudXN6Cgo+ID4gKwo+ID4gKyNlbmRpZiAvKiBfX0FTTV9BUkNI
-X0NBTUVSQV9IXyAqLwo+Cj4gVGhhbmtzCj4gR3Vlbm5hZGkKPiAtLS0KPiBHdWVubmFkaSBMaWFr
-aG92ZXRza2ksIFBoLkQuCj4gRnJlZWxhbmNlIE9wZW4tU291cmNlIFNvZnR3YXJlIERldmVsb3Bl
-cgo+IGh0dHA6Ly93d3cub3Blbi10ZWNobm9sb2d5LmRlLwo+IC0tCj4gVG8gdW5zdWJzY3JpYmUg
-ZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBp
-bgo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4g
-TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8t
-aW5mby5odG1sCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmUzLWhhY2tpbmcgbWFpbGluZyBsaXN0CmUzLWhhY2tpbmdAZWFydGgubGkKaHR0cDovL3d3
-dy5lYXJ0aC5saS9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vZTMtaGFja2luZwo=
+
+* Steven Rostedt <rostedt@goodmis.org> wrote:
+
+> We could add a TRACE_EVENT_ABI() as Ingo has been suggesting. [...]
+
+That would be rather useful.
+
+We could still be flexible about experimental tracepoints (they dont 
+hurt), but apps should stick to ABI bits - or at least not complain when 
+non-ABI tracepoints change for good reasons. (arbitrary, avoidable 
+changes are still bad obviously, regardless of the type of the 
+tracepoint)
+
+We'd be more stringent with marking tracepoints an ABI.
+
+So yes, this would be lovely to have.
+
+	Ingo
