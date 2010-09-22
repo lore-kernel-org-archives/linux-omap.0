@@ -1,47 +1,44 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH v3 1/4] omap4 hsmmc: Adding card detect support for MMC1
-Date: Wed, 22 Sep 2010 14:49:17 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E5F57C548@dlee03.ent.ti.com>
-References: <14833.10.24.255.18.1285173812.squirrel@dbdmail.itg.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 00/13 v2] OMAP: Serial: Add omap-serial driver with  platform support
+Date: Wed, 22 Sep 2010 13:14:58 -0700
+Message-ID: <87k4mda62l.fsf@deeprootsystems.com>
+References: <37596.172.24.137.131.1285168390.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <14833.10.24.255.18.1285173812.squirrel@dbdmail.itg.ti.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@li
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <37596.172.24.137.131.1285168390.squirrel@dbdmail.itg.ti.com>
+	(Govindraj R.'s message of "Wed, 22 Sep 2010 20:43:10 +0530 (IST)")
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-Kishore,
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-> +int twl6030_mmc_card_detect(struct device *dev, int slot)
-> +{
-> +	int ret = -EIO;
-> +	u8 read_reg = 0;
-> +	struct platform_device *pdev = to_platform_device(dev);
-> +
-> +	switch (pdev->id) {
-> +	case 0:
-> +		/*
-> +		 * BIT0 of REG_MMC_CTRL
-> +		 * 0 - Card not present ,1 - Card present
-> +		 */
-> +		ret = twl_i2c_read_u8(TWL6030_MODULE_ID0, &read_reg,
-> +							TWL6030_MMCCTRL);
-> +		if (ret >= 0)
-> +			ret = read_reg & STS_MMC;
-> +		break;
+> This patch series adds a serial driver to handle uarts on omap platforms.
+> Currenlty omap-uarts are handled with 8250 driver, since updating
+> this driver with omap specific features will over load
+> the 8250 driver with all omap-specific data thus a new driver
+> is added to configure and support features like
+> dma, h/w, s/w flowcontrol for omap-uarts.
+> Also the patch series updates various low level platform specific
+> serial data to support omap-uarts with hwmod framework and adds support
+> for uart4 on OMAP3630.
+>
+> v1 to v2 changes:
+> ----------------
+> 1) Incorporate timeout check
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35106.html
+> 2) Add wk_st, padconf etc for uart4
+> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35105.html
 
-nitpick: may be you don't need a switch statement for only one case.
+3) All UARTs initialized for Zoom2/3
 
-> +	default:
-> +		pr_err("Unkown MMC controller %d in %s\n", pdev->id,
-> __func__);
+Also, please report platforms this was tested on, and what was tested.
+You need to validate retention and off-mode during idle and suspend, as
+well as enabling/disabling the UART sleep_timeout values via sysfs.
 
+Thanks,
 
-Thank you,
-Best regards,
-Hari
-
+Kevin
 
