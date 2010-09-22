@@ -1,153 +1,252 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Wed, 22 Sep 2010 20:49:17 +0200
-Message-ID: <201009222049.18154.rjw@sisk.pl>
-References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com> <201009180026.59482.trenn@suse.de> <AANLkTimMAr9kEzybFGai3qGyXx36v055iPpXq_C1vW8C@mail.gmail.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCHv3 8/17] dmtimer: register mappings moved to hwmod
+ database
+Date: Thu, 23 Sep 2010 00:30:00 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D705@dbde02.ent.ti.com>
+References: <1285059226-26491-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59931 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754788Ab0IVSuO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Sep 2010 14:50:14 -0400
-In-Reply-To: <AANLkTimMAr9kEzybFGai3qGyXx36v055iPpXq_C1vW8C@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43327 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754476Ab0IVTAJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 15:00:09 -0400
+In-Reply-To: <1285059226-26491-1-git-send-email-tarun.kanti@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Basak, Partha" <p-basak2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-[Dropping discuss@lesswatts.org from the CC list.]
 
-On Wednesday, September 22, 2010, Jean Pihet wrote:
-> Hi,
+Hi Tarun,
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> DebBarma, Tarun Kanti
+> Sent: Tuesday, September 21, 2010 2:24 PM
+> To: linux-omap@vger.kernel.org
+> Cc: DebBarma, Tarun Kanti; Basak, Partha; Shilimkar, Santosh; 
+> Cousson, Benoit; Paul Walmsley; Kevin Hilman; Tony Lindgren
+> Subject: [PATCHv3 8/17] dmtimer: register mappings moved to 
+> hwmod database
 > 
-> Here is a patch that redefines the power events API. The advantages
-> are: easier maintainance of the kernel and the
-> user space tools, a cleaner and more generic interface, more
-> parameters for fine tracing and even documentation!
+> This patch adds dmtimer register mappings to hwmod database.
+> This is to avoid maintaining different several mappings 
+> within the omap-plat. The mapping is made available to 
+> platform through dev_attr during device build. The pointer to 
+> register map is preserved in the platform data.
 > 
-> Thomas, this patch has your patch above merged in ('power-trace: Use
-> power_switch_state instead of power_start and power_end'). The revised
-> ACPI patch is coming asap.
+> Please note that the cleanup of register map from plat-omap 
+> will be removed in later patch after conversion to platform driver.
 > 
-> The trace points for x86 and OMAP are also udated accordingly.
-> 
-> The pytimechart tool needs an update for the new API. This can be done
-> as soon as the kernel code gets merged in.
-> Please note the point below about the existing code in builtin-timechart.c.
-> 
-> On Sat, Sep 18, 2010 at 12:26 AM, Thomas Renninger <trenn@suse.de> wrote:
-> > On Friday 17 September 2010 18:24:12 Ingo Molnar wrote:
-> >>
-> >> * Thomas Renninger <trenn@suse.de> wrote:
-> >>
-> >> > On Friday 17 September 2010 16:24:59 Ingo Molnar wrote:
-> >
-> >> [ You dont even have to document it, as good code is self-explanatory ;-) ]
-> > I recently posted a patch exporting some things through /sys/kernel/debug/...
-> > Greg complained that a file for Documentation/ABI/{testing,stable}/* is missing
-> > and I fully agree.
-> The proposed patch has the documentation in
-> Documentation/trace/events-power.txt.
-> 
-> > If different userspace apps should make use of this (in above case nobody
-> > than my debug userspace tool will...) and this should be called something like an API,
-> > it should be documented and if something changes, it should
-> > first be marked deprecated, etc.
-> Note: the exsiting code in tools/perf/builtin-timechart.c needs an
-> update for the new events API. Is this code still maintained? I not,
-> could pytimechart be merged in instead?
-> 
-> Feedback is welcome!
-> 
-> >
-> >     Thomas
-> >
-> 
-> Thanks,
-> Jean
-> 
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> Signed-off-by: Partha Basak <p-basak2@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Cousson, Benoit <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 > ---
-> From f37d1875050d33273b10e99497b4059b37e6680d Mon Sep 17 00:00:00 2001
-> From: Jean Pihet <jean.pihet@newoldbits.com>
-> Date: Wed, 22 Sep 2010 17:10:47 +0200
-> Subject: [PATCH] tools, perf: redefine the power events API
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   25 ++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   25 ++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   25 ++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   67 
+> ++++++++++++++++++++++++---
+>  arch/arm/plat-omap/dmtimer.c               |   13 -----
+>  arch/arm/plat-omap/include/plat/dmtimer.h  |   38 ++++++++++++++++
+>  6 files changed, 172 insertions(+), 21 deletions(-)
 > 
-> Redefine the API with:
-> - power_switch_state for C-, P- and S-states,
-> - clock and power_domain events
-> 
-> The new API allows easier maintainance of the kernel and the
-> user space tools, a cleaner and more generic interface,
-> more parameters for fine tracing and even documentation.
-> 
-> The new events are used by the x86 and OMAP platforms.
-> 
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ---
->  Documentation/trace/events-power.txt |   70 +++++++++++++++++++++++++
->  arch/arm/mach-omap2/cpuidle34xx.c    |    3 +
->  arch/arm/mach-omap2/pm34xx.c         |   11 ++++
->  arch/arm/mach-omap2/powerdomain.c    |    3 +
->  arch/arm/plat-omap/clock.c           |   13 ++++-
->  arch/arm/plat-omap/cpu-omap.c        |    3 +
->  arch/x86/kernel/process.c            |   13 +++--
->  arch/x86/kernel/process_32.c         |    3 +-
->  arch/x86/kernel/process_64.c         |    3 +-
->  drivers/cpufreq/cpufreq.c            |    3 +-
->  drivers/cpuidle/cpuidle.c            |    2 +-
->  drivers/idle/intel_idle.c            |    2 +-
->  include/trace/events/power.h         |   95 ++++++++++++++++------------------
->  kernel/trace/power-traces.c          |    2 -
->  14 files changed, 161 insertions(+), 65 deletions(-)
->  create mode 100644 Documentation/trace/events-power.txt
-> 
-> diff --git a/Documentation/trace/events-power.txt
-> b/Documentation/trace/events-power.txt
-> new file mode 100644
-> index 0000000..967f842
-> --- /dev/null
-> +++ b/Documentation/trace/events-power.txt
-> @@ -0,0 +1,70 @@
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c 
+> b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> index 6003c2e..b3dd8ac 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> @@ -131,8 +131,33 @@ static char *timer_clk_src_names[] = {
+>  	NULL,
+>  };
+>  
+> +/* OMAP2/3 timers register map */
+> +static u32 omap_timer_reg_map_v1[] = {
+> +	[OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_STAT_REG]           = (0x18 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_INT_EN_REG]         = (0x1c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_WAKEUP_EN_REG]      = (0x20 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CTRL_REG]           = (0x24 | (WP_TCLR << WPSHIFT)),
+> +	[OMAP_TIMER_COUNTER_REG]        = (0x28 | (WP_TCRR << WPSHIFT)),
+> +	[OMAP_TIMER_LOAD_REG]           = (0x2c | (WP_TLDR << WPSHIFT)),
+> +	[OMAP_TIMER_TRIGGER_REG]        = (0x30 | (WP_TTGR << WPSHIFT)),
+> +	[OMAP_TIMER_WRITE_PEND_REG]     = (0x34 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_MATCH_REG]          = (0x38 | (WP_TMAR << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE_REG]        = (0x3c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_IF_CTRL_REG]        = (0x40 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE2_REG]       = (0x44 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_POS_REG]       = (0x48 | (WP_TPIR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_NEG_REG]       = (0x4c | (WP_TNIR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_COUNT_REG]     = (0x50 | (WP_TCVR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_INT_MASK_SET_REG]      = (0x54 | 
+> (WP_TOCR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_INT_MASK_COUNT_REG]    = (0x58 | 
+> (WP_TOWR << WPSHIFT)),
+> +};
 > +
-> +			Subsystem Trace Points: power
+>  static struct omap_timer_dev_attr timer_dev_attr = {
+>  	.clk_names	= timer_clk_src_names,
+> +	.reg_map	= omap_timer_reg_map_v1,
+>  };
+>  
+>  static struct omap_hwmod_class_sysconfig omap2420_timer_sysc 
+> = { diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c 
+> b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> index 4b43fb9..787d3ce 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> @@ -137,8 +137,33 @@ static char *timer_clk_src_names[] = {
+>  	NULL
+>  };
+>  
+> +/* OMAP2/3 timers register map */
+> +static u32 omap_timer_reg_map_v1[] = {
+> +	[OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_STAT_REG]           = (0x18 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_INT_EN_REG]         = (0x1c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_WAKEUP_EN_REG]      = (0x20 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CTRL_REG]           = (0x24 | (WP_TCLR << WPSHIFT)),
+> +	[OMAP_TIMER_COUNTER_REG]        = (0x28 | (WP_TCRR << WPSHIFT)),
+> +	[OMAP_TIMER_LOAD_REG]           = (0x2c | (WP_TLDR << WPSHIFT)),
+> +	[OMAP_TIMER_TRIGGER_REG]        = (0x30 | (WP_TTGR << WPSHIFT)),
+> +	[OMAP_TIMER_WRITE_PEND_REG]     = (0x34 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_MATCH_REG]          = (0x38 | (WP_TMAR << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE_REG]        = (0x3c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_IF_CTRL_REG]        = (0x40 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE2_REG]       = (0x44 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_POS_REG]       = (0x48 | (WP_TPIR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_NEG_REG]       = (0x4c | (WP_TNIR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_COUNT_REG]     = (0x50 | (WP_TCVR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_INT_MASK_SET_REG]      = (0x54 | 
+> (WP_TOCR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_INT_MASK_COUNT_REG]    = (0x58 | 
+> (WP_TOWR << WPSHIFT)),
+> +};
 > +
-> +The power tracing system captures events related to power transitions
-> +within the kernel. Broadly speaking there are three major subheadings:
+>  static struct omap_timer_dev_attr timer_dev_attr = {
+>  	.clk_names	= timer_clk_src_names,
+> +	.reg_map	= omap_timer_reg_map_v1,
+>  };
+>  
+>  static struct omap_hwmod_class_sysconfig omap2430_timer_sysc 
+> = { diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c 
+> b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 70446d7..e477ce8 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -109,8 +109,33 @@ static char *timer_clk_src_names[] = {
+>  	NULL,
+>  };
+>  
+> +/* OMAP2/3 timers register map */
+> +static u32 omap_timer_reg_map_v1[] = {
+> +	[OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_STAT_REG]           = (0x18 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_INT_EN_REG]         = (0x1c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_WAKEUP_EN_REG]      = (0x20 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CTRL_REG]           = (0x24 | (WP_TCLR << WPSHIFT)),
+> +	[OMAP_TIMER_COUNTER_REG]        = (0x28 | (WP_TCRR << WPSHIFT)),
+> +	[OMAP_TIMER_LOAD_REG]           = (0x2c | (WP_TLDR << WPSHIFT)),
+> +	[OMAP_TIMER_TRIGGER_REG]        = (0x30 | (WP_TTGR << WPSHIFT)),
+> +	[OMAP_TIMER_WRITE_PEND_REG]     = (0x34 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_MATCH_REG]          = (0x38 | (WP_TMAR << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE_REG]        = (0x3c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_IF_CTRL_REG]        = (0x40 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE2_REG]       = (0x44 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_POS_REG]       = (0x48 | (WP_TPIR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_NEG_REG]       = (0x4c | (WP_TNIR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_COUNT_REG]     = (0x50 | (WP_TCVR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_INT_MASK_SET_REG]      = (0x54 | 
+> (WP_TOCR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_INT_MASK_COUNT_REG]    = (0x58 | 
+> (WP_TOWR << WPSHIFT)),
+> +};
 > +
-> +  o Power state switch which reports events related to suspend (S-states),
-> +     cpuidle (C-states) and cpufreq (P-states)
-> +  o System clock related changes
-> +  o Power domains related changes and transitions
+>  static struct omap_timer_dev_attr timer_dev_attr = {
+>  	.clk_names	= timer_clk_src_names,
+> +	.reg_map	= omap_timer_reg_map_v1,
+>  };
+>  
+>  /* timer class */
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c 
+> b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 7c68228..1f60f8a 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -471,12 +471,63 @@ static char *timer_clk_src_names_abe[] = {
+>  	NULL,
+>  };
+>  
+> -static struct omap_timer_dev_attr timer_dev_attr = {
+> +/* OMAP2/3 timers register map */
+> +static u32 omap_timer_reg_map_v1[] = {
+> +	[OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_STAT_REG]           = (0x18 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_INT_EN_REG]         = (0x1c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_WAKEUP_EN_REG]      = (0x20 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CTRL_REG]           = (0x24 | (WP_TCLR << WPSHIFT)),
+> +	[OMAP_TIMER_COUNTER_REG]        = (0x28 | (WP_TCRR << WPSHIFT)),
+> +	[OMAP_TIMER_LOAD_REG]           = (0x2c | (WP_TLDR << WPSHIFT)),
+> +	[OMAP_TIMER_TRIGGER_REG]        = (0x30 | (WP_TTGR << WPSHIFT)),
+> +	[OMAP_TIMER_WRITE_PEND_REG]     = (0x34 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_MATCH_REG]          = (0x38 | (WP_TMAR << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE_REG]        = (0x3c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_IF_CTRL_REG]        = (0x40 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE2_REG]       = (0x44 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_POS_REG]       = (0x48 | (WP_TPIR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_NEG_REG]       = (0x4c | (WP_TNIR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_COUNT_REG]     = (0x50 | (WP_TCVR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_INT_MASK_SET_REG]      = (0x54 | 
+> (WP_TOCR << WPSHIFT)),
+> +	[OMAP_TIMER_TICK_INT_MASK_COUNT_REG]    = (0x58 | 
+> (WP_TOWR << WPSHIFT)),
+> +};
 > +
-> +This document describes what each of the tracepoints is and why they
-> +might be useful.
+> +/* OMAP4 timers register map */
+> +static u32 omap_timer_reg_map_v2[] = {
+> +	[OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_STAT_REG]           = (0x28 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_INT_EN_REG]         = (0x2c | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_WAKEUP_EN_REG]      = (0x34 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CTRL_REG]           = (0x38 | (WP_TCLR << WPSHIFT)),
+> +	[OMAP_TIMER_COUNTER_REG]        = (0x3c | (WP_TCRR << WPSHIFT)),
+> +	[OMAP_TIMER_LOAD_REG]           = (0x40 | (WP_TLDR << WPSHIFT)),
+> +	[OMAP_TIMER_TRIGGER_REG]        = (0x44 | (WP_TTGR << WPSHIFT)),
+> +	[OMAP_TIMER_WRITE_PEND_REG]     = (0x48 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_MATCH_REG]          = (0x4c | (WP_TMAR << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE_REG]        = (0x50 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_IF_CTRL_REG]        = (0x54 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_CAPTURE2_REG]       = (0x58 | (WP_NONE << WPSHIFT)),
+> +	[OMAP_TIMER_INT_CLR_REG]        = (0x30 | (WP_NONE << WPSHIFT)),
+> +};
 > +
-> +Cf. include/trace/events/power.h for the events definitions.
-> +
-> +1. Power state switch events
-> +============================
-> +
-> +power_switch_state	type=%lu state=%lu sub_state=%lu cpu_id=%lu
-> +
-> +The 'type' parameter takes one of those macros:
-> + . POWER_NONE	= 0,
-> + . POWER_CSTATE	= 1,	/* C-State */
-> + . POWER_PSTATE	= 2,	/* Fequency change or DVFS */
-> + . POWER_SSTATE	= 3,	/* Suspend */
 
-This POWER_SSTATE thing seems to be totally artificial and omap-specific.
+Why not these defines in mach-omap2/dmtimer.c? since register offsets are
+same for omap2plus except omap4 which has additional register offsets. Same
+register offsets are getting repeated in all the omap2plus hwmod database.
 
-Why do you want it to be done this way?
+As kevin suggested for DMA hwmod, i2c driver is already using these defines
+in .c file even though register offsets are different within omap2plus processors.
+through dev structure.
 
-Or is the ACPI handling added in the ACPI patch?  In which case, why don't you
-put that power_switch_state(POWER_SSTATE, 1, 0, cpu) into
-kernel/power/suspend.c:suspend_enter() (and analogously for
-power_switch_state(POWER_SSTATE, 0, 0, cpu)).
+Can we have similar kind of usage for all upcoming driver hwmod adaptations?
 
-Moreover, why is the cpu argument necessary for POWER_SSTATE at all?
-
-Thanks,
-Rafael
+-Manjunath
