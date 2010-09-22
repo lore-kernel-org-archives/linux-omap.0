@@ -1,1142 +1,742 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v3] power: introduce library for device-specific OPPs
-Date: Wed, 22 Sep 2010 16:47:34 -0500
-Message-ID: <1285192054-454-1-git-send-email-nm@ti.com>
-References: <[PATCH] opp: introduce library for device-specific OPPs>
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <[PATCH] opp: introduce library for device-specific OPPs>
-Sender: linux-doc-owner@vger.kernel.org
-To: lkml <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, linux-doc <linux-do>
-Cc: Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, Randy Dunlap <rdunlap@xenotime.net>, Greg Kroah-Hartman <gregkh@suse.de>, Linus Walleij <linus.walleij@stericsson.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>
+From: Laine Walker-Avina <lwalkera@pasco.com>
+Subject: SYS_OFF_MODE signaling and CORE domain Transition to OFF Mode
+Date: Wed, 22 Sep 2010 15:18:30 -0700
+Message-ID: <AANLkTinmYY-tVqD77SMeE-YVZWuY-=yscaBNDSOYM=Ub@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62880 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818Ab0IVWSc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 18:18:32 -0400
+Received: by wwb34 with SMTP id 34so114284wwb.1
+        for <linux-omap@vger.kernel.org>; Wed, 22 Sep 2010 15:18:30 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-SOCs have a standard set of tuples consisting of frequency and
-voltage pairs that the device will support per voltage domain. These
-are called Operating Performance Points or OPPs. The actual
-definitions of OPP varies over silicon versions. For a specific domain,
-we can have a set of {frequency, voltage} pairs. As the kernel boots
-and more information is available, a default set of these are activated
-based on the precise nature of device. Further on operation, based on
-conditions prevailing in the system (such as temperature), some OPP
-availability may be temporarily controlled by the SoC frameworks.
+Hi all,
 
-To implement an OPP, some sort of power management support is necessary
-hence this library depends on CONFIG_PM.
+I'm having some troubles putting my OMAP3503(the one without the DSP
+or SGX modules) board to sleep. I'm using the current master on the
+l-o git repository.
 
-Contributions include:
-Sanjeev Premi for the initial concept:
-	http://patchwork.kernel.org/patch/50998/
-Kevin Hilman for converting original design to device-based
-Kevin Hilman and Paul Walmsey for cleaning up many of the function
-abstractions, improvements and data structure handling
-Romit Dasgupta for using enums instead of opp pointers
-Thara Gopinath, Eduardo Valentin and Vishwanath BS for fixes and
-cleanups.
-Linus Walleij for recommending this layer be made generic for usage
-in other architectures beyond OMAP and ARM.
-Mark Brown, Andrew Morton, Rafael J Wysocki for valuable improvements.
+This is the output from dmesg and the count file after suspending
+twice. The first time it wakes immediately after going down, and the
+second time stays asleep but says that the core domain didn't enter
+OFF mode. In either case, the SYS_OFF_MODE signal never asserts. I
+added some debug code into  map_sram_idle() to capture CM_CORE_IDLEST1
+and 3 right before it jumps to the final sleep code in SRAM.
 
-Discussions and comments from:
-http://marc.info/?l=linux-omap&m=126033945313269&w=2
-http://marc.info/?l=linux-omap&m=125482970102327&w=2
-http://marc.info/?t=125809247500002&r=1&w=2
-http://marc.info/?l=linux-omap&m=126025973426007&w=2
-http://marc.info/?t=128152609200064&r=1&w=2
-http://marc.info/?t=128468723000002&r=1&w=2
-incorporated.
+root@spark:~$ echo mem > /sys/power/state
+[ =C2=A0530.299621] PM: Syncing filesystems ... done.
+[ =C2=A0530.307556] PM: Preparing system for mem sleep
+[ =C2=A0530.313995] PM: Adding info for No Bus:vcs63
+[ =C2=A0530.317504] PM: Adding info for No Bus:vcsa63
+[ =C2=A0530.353698] mmc0: card bed5 removed
+[ =C2=A0530.357238] PM: Removing info for mmc:mmc0:bed5
+[ =C2=A0530.369903] PM: Removing info for No Bus:mmcblk0p2
+[ =C2=A0530.401275] PM: Removing info for No Bus:mmcblk0p1
+[ =C2=A0530.409484] PM: Removing info for No Bus:179:0
+[ =C2=A0530.445098] PM: Removing info for No Bus:mmcblk0
+[ =C2=A0530.488220] ------------[ cut here ]------------
+[ =C2=A0530.493255] WARNING: at drivers/regulator/core.c:1357
+_regulator_disable+0x54/0x164()
+[ =C2=A0530.501312] unbalanced disables for vMMC
+[ =C2=A0530.505279] Modules linked in:
+[ =C2=A0530.508605] [<c0237960>] (unwind_backtrace+0x0/0xf0) from
+[<c025ae10>] (warn_slowpath_common+0x4c/0x64)
+[ =C2=A0530.518310] [<c025ae10>] (warn_slowpath_common+0x4c/0x64) from
+[<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c)
+[ =C2=A0530.528167] [<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c) from
+[<c03b9b40>] (_regulator_disable+0x54/0x164)
+[ =C2=A0530.537902] [<c03b9b40>] (_regulator_disable+0x54/0x164) from
+[<c03b9d3c>] (regulator_disable+0x20/0x34)
+[ =C2=A0530.547668] [<c03b9d3c>] (regulator_disable+0x20/0x34) from
+[<c042d158>] (omap_hsmmc_1_set_power+0x64/0xa0)
+[ =C2=A0530.557678] [<c042d158>] (omap_hsmmc_1_set_power+0x64/0xa0) fro=
+m
+[<c042bd00>] (omap_hsmmc_set_ios+0x70/0x410)
+[ =C2=A0530.567840] [<c042bd00>] (omap_hsmmc_set_ios+0x70/0x410) from
+[<c0422144>] (mmc_power_off+0x50/0x54)
+[ =C2=A0530.577270] [<c0422144>] (mmc_power_off+0x50/0x54) from
+[<c0422b88>] (mmc_detach_bus+0x74/0xbc)
+[ =C2=A0530.586212] [<c0422b88>] (mmc_detach_bus+0x74/0xbc) from
+[<c04231d4>] (mmc_pm_notify+0x90/0xd8)
+[ =C2=A0530.595184] [<c04231d4>] (mmc_pm_notify+0x90/0xd8) from
+[<c0277954>] (notifier_call_chain+0x2c/0x70)
+[ =C2=A0530.604614] [<c0277954>] (notifier_call_chain+0x2c/0x70) from
+[<c0277db0>] (__blocking_notifier_call_chain+0x48/0x5c)
+[ =C2=A0530.615509] [<c0277db0>] (__blocking_notifier_call_chain+0x48/0=
+x5c)
+from [<c0277dd8>] (blocking_notifier_call_chain+0x14/0x18)
+[ =C2=A0530.627197] [<c0277dd8>] (blocking_notifier_call_chain+0x14/0x1=
+8)
+from [<c028ec1c>] (pm_notifier_call_chain+0x14/0x2c)
+[ =C2=A0530.638183] [<c028ec1c>] (pm_notifier_call_chain+0x14/0x2c) fro=
+m
+[<c028f448>] (enter_state+0x7c/0x120)
+[ =C2=A0530.647766] [<c028f448>] (enter_state+0x7c/0x120) from [<c028eb=
+80>]
+(state_store+0xa0/0xbc)
+[ =C2=A0530.656402] [<c028eb80>] (state_store+0xa0/0xbc) from [<c0393e0=
+8>]
+(kobj_attr_store+0x18/0x1c)
+[ =C2=A0530.665283] [<c0393e08>] (kobj_attr_store+0x18/0x1c) from
+[<c0309244>] (sysfs_write_file+0x10c/0x140)
+[ =C2=A0530.674774] [<c0309244>] (sysfs_write_file+0x10c/0x140) from
+[<c02c09e4>] (vfs_write+0xac/0x134)
+[ =C2=A0530.683837] [<c02c09e4>] (vfs_write+0xac/0x134) from [<c02c0b18=
+>]
+(sys_write+0x3c/0x68)
+[ =C2=A0530.692077] [<c02c0b18>] (sys_write+0x3c/0x68) from [<c0231f40>=
+]
+(ret_fast_syscall+0x0/0x3c)
+[ =C2=A0530.700744] ---[ end trace 7a172f77f33931a3 ]---
+[ =C2=A0530.814514] Freezing user space processes ... (elapsed 0.01 sec=
+onds) done.
+[ =C2=A0530.839202] Freezing remaining freezable tasks ... (elapsed 0.0=
+2
+seconds) done.
+[ =C2=A0530.870666] PM: Entering mem sleep
+[ =C2=A0530.874908] Suspending console(s) (use no_console_suspend to de=
+bug)
+[ =C2=A0530.881652] platform reg-dummy: preparing suspend
+[ =C2=A0530.881866] omapdss omapdss: preparing suspend
+[ =C2=A0530.881927] reg-fixed-voltage reg-fixed-voltage.1: preparing su=
+spend
+[ =C2=A0530.881988] nop_usb_xceiv nop_usb_xceiv: preparing suspend
+[ =C2=A0530.882049] serial8250 serial8250.0: preparing suspend
+[ =C2=A0530.882110] serial8250 serial8250.1: preparing suspend
+[ =C2=A0530.882141] serial8250 serial8250.2: preparing suspend
+[ =C2=A0530.882202] musb_hdrc musb_hdrc: preparing suspend
+[ =C2=A0530.882263] mmci-omap-hs mmci-omap-hs.0: preparing suspend
+[ =C2=A0530.882324] mmci-omap-hs mmci-omap-hs.1: preparing suspend
+[ =C2=A0530.882354] platform arm-pmu.0: preparing suspend
+[ =C2=A0530.882415] omapfb omapfb: preparing suspend
+[ =C2=A0530.884063] platform mpu.0: preparing suspend
+[ =C2=A0530.884124] platform iva.0: preparing suspend
+[ =C2=A0530.884185] platform l3_main.0: preparing suspend
+[ =C2=A0530.884277] serial8250 serial8250: preparing suspend
+[ =C2=A0530.885833] mmcblk mmc1:0001: legacy suspend
+[ =C2=A0530.887176] serial8250 serial8250: suspend
+[ =C2=A0530.887298] platform l3_main.0: suspend
+[ =C2=A0530.887390] platform iva.0: suspend
+[ =C2=A0530.887451] platform mpu.0: suspend
+[ =C2=A0530.889007] omapfb omapfb: suspend
+[ =C2=A0530.889068] platform arm-pmu.0: suspend
+[ =C2=A0530.889129] mmci-omap-hs mmci-omap-hs.1: suspend
+[ =C2=A0530.890258] ------------[ cut here ]------------
+[ =C2=A0530.890350] WARNING: at drivers/regulator/core.c:1357
+_regulator_disable+0x54/0x164()
+[ =C2=A0530.890350] unbalanced disables for dummy
+[ =C2=A0530.890380] Modules linked in:
+[ =C2=A0530.890472] [<c0237960>] (unwind_backtrace+0x0/0xf0) from
+[<c025ae10>] (warn_slowpath_common+0x4c/0x64)
+[ =C2=A0530.890502] [<c025ae10>] (warn_slowpath_common+0x4c/0x64) from
+[<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c)
+[ =C2=A0530.890563] [<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c) from
+[<c03b9b40>] (_regulator_disable+0x54/0x164)
+[ =C2=A0530.890625] [<c03b9b40>] (_regulator_disable+0x54/0x164) from
+[<c03b9d3c>] (regulator_disable+0x20/0x34)
+[ =C2=A0530.890655] [<c03b9d3c>] (regulator_disable+0x20/0x34) from
+[<c042d0b8>] (omap_hsmmc_23_set_power+0xb4/0xf0)
+[ =C2=A0530.890686] [<c042d0b8>] (omap_hsmmc_23_set_power+0xb4/0xf0) fr=
+om
+[<c042bd00>] (omap_hsmmc_set_ios+0x70/0x410)
+[ =C2=A0530.890930] [<c042bd00>] (omap_hsmmc_set_ios+0x70/0x410) from
+[<c0422144>] (mmc_power_off+0x50/0x54)
+[ =C2=A0530.890991] [<c0422144>] (mmc_power_off+0x50/0x54) from
+[<c0422ad0>] (mmc_suspend_host+0x128/0x134)
+[ =C2=A0530.891052] [<c0422ad0>] (mmc_suspend_host+0x128/0x134) from
+[<c042b69c>] (omap_hsmmc_suspend+0x60/0x108)
+[ =C2=A0530.891113] [<c042b69c>] (omap_hsmmc_suspend+0x60/0x108) from
+[<c03dd21c>] (platform_pm_suspend+0x2c/0x54)
+[ =C2=A0530.891143] [<c03dd21c>] (platform_pm_suspend+0x2c/0x54) from
+[<c03df918>] (pm_op+0x4c/0xb4)
+[ =C2=A0530.891204] [<c03df918>] (pm_op+0x4c/0xb4) from [<c03e0490>]
+(__device_suspend+0x140/0x1c0)
+[ =C2=A0530.891235] [<c03e0490>] (__device_suspend+0x140/0x1c0) from
+[<c03e08c4>] (dpm_suspend_start+0x368/0x49c)
+[ =C2=A0530.891296] [<c03e08c4>] (dpm_suspend_start+0x368/0x49c) from
+[<c028f214>] (suspend_devices_and_enter+0x48/0x200)
+[ =C2=A0530.891357] [<c028f214>] (suspend_devices_and_enter+0x48/0x200)
+from [<c028f488>] (enter_state+0xbc/0x120)
+[ =C2=A0530.891387] [<c028f488>] (enter_state+0xbc/0x120) from [<c028eb=
+80>]
+(state_store+0xa0/0xbc)
+[ =C2=A0530.891448] [<c028eb80>] (state_store+0xa0/0xbc) from [<c0393e0=
+8>]
+(kobj_attr_store+0x18/0x1c)
+[ =C2=A0530.891479] [<c0393e08>] (kobj_attr_store+0x18/0x1c) from
+[<c0309244>] (sysfs_write_file+0x10c/0x140)
+[ =C2=A0530.891540] [<c0309244>] (sysfs_write_file+0x10c/0x140) from
+[<c02c09e4>] (vfs_write+0xac/0x134)
+[ =C2=A0530.891571] [<c02c09e4>] (vfs_write+0xac/0x134) from [<c02c0b18=
+>]
+(sys_write+0x3c/0x68)
+[ =C2=A0530.891632] [<c02c0b18>] (sys_write+0x3c/0x68) from [<c0231f40>=
+]
+(ret_fast_syscall+0x0/0x3c)
+[ =C2=A0530.891662] ---[ end trace 7a172f77f33931a4 ]---
+[ =C2=A0530.891815] mmci-omap-hs mmci-omap-hs.0: suspend
+[ =C2=A0530.892517] musb_hdrc musb_hdrc: suspend
+[ =C2=A0530.892852] serial8250 serial8250.2: suspend
+[ =C2=A0530.893707] serial8250 serial8250.1: suspend
+[ =C2=A0530.893829] serial8250 serial8250.0: suspend
+[ =C2=A0530.893920] nop_usb_xceiv nop_usb_xceiv: suspend
+[ =C2=A0530.893981] reg-fixed-voltage reg-fixed-voltage.1: suspend
+[ =C2=A0530.894042] omapdss omapdss: suspend
+[ =C2=A0530.907653] ------------[ cut here ]------------
+[ =C2=A0530.907745] WARNING: at drivers/regulator/core.c:1357
+_regulator_disable+0x54/0x164()
+[ =C2=A0530.907745] unbalanced disables for dummy
+[ =C2=A0530.907775] Modules linked in:
+[ =C2=A0530.907836] [<c0237960>] (unwind_backtrace+0x0/0xf0) from
+[<c025ae10>] (warn_slowpath_common+0x4c/0x64)
+[ =C2=A0530.907897] [<c025ae10>] (warn_slowpath_common+0x4c/0x64) from
+[<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c)
+[ =C2=A0530.907958] [<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c) from
+[<c03b9b40>] (_regulator_disable+0x54/0x164)
+[ =C2=A0530.907989] [<c03b9b40>] (_regulator_disable+0x54/0x164) from
+[<c03b9d3c>] (regulator_disable+0x20/0x34)
+[ =C2=A0530.908050] [<c03b9d3c>] (regulator_disable+0x20/0x34) from
+[<c03b2060>] (omapdss_dpi_display_disable+0x2c/0x3c)
+[ =C2=A0530.908111] [<c03b2060>] (omapdss_dpi_display_disable+0x2c/0x3c=
+)
+from [<c03b769c>] (generic_panel_suspend+0xc/0x1c)
+[ =C2=A0530.908142] [<c03b769c>] (generic_panel_suspend+0xc/0x1c) from
+[<c03af0c0>] (dss_suspend_device+0x44/0x54)
+[ =C2=A0530.908203] [<c03af0c0>] (dss_suspend_device+0x44/0x54) from
+[<c03dbaa8>] (bus_for_each_dev+0x48/0x84)
+[ =C2=A0530.908233] [<c03dbaa8>] (bus_for_each_dev+0x48/0x84) from
+[<c03af21c>] (dss_suspend_all_devices+0x18/0x30)
+[ =C2=A0530.908294] [<c03af21c>] (dss_suspend_all_devices+0x18/0x30) fr=
+om
+[<c03dd238>] (platform_pm_suspend+0x48/0x54)
+[ =C2=A0530.908325] [<c03dd238>] (platform_pm_suspend+0x48/0x54) from
+[<c03df918>] (pm_op+0x4c/0xb4)
+[ =C2=A0530.908386] [<c03df918>] (pm_op+0x4c/0xb4) from [<c03e0490>]
+(__device_suspend+0x140/0x1c0)
+[ =C2=A0530.908416] [<c03e0490>] (__device_suspend+0x140/0x1c0) from
+[<c03e08c4>] (dpm_suspend_start+0x368/0x49c)
+[ =C2=A0530.908477] [<c03e08c4>] (dpm_suspend_start+0x368/0x49c) from
+[<c028f214>] (suspend_devices_and_enter+0x48/0x200)
+[ =C2=A0530.908538] [<c028f214>] (suspend_devices_and_enter+0x48/0x200)
+from [<c028f488>] (enter_state+0xbc/0x120)
+[ =C2=A0530.908569] [<c028f488>] (enter_state+0xbc/0x120) from [<c028eb=
+80>]
+(state_store+0xa0/0xbc)
+[ =C2=A0530.908599] [<c028eb80>] (state_store+0xa0/0xbc) from [<c0393e0=
+8>]
+(kobj_attr_store+0x18/0x1c)
+[ =C2=A0530.908660] [<c0393e08>] (kobj_attr_store+0x18/0x1c) from
+[<c0309244>] (sysfs_write_file+0x10c/0x140)
+[ =C2=A0530.908721] [<c0309244>] (sysfs_write_file+0x10c/0x140) from
+[<c02c09e4>] (vfs_write+0xac/0x134)
+[ =C2=A0530.908752] [<c02c09e4>] (vfs_write+0xac/0x134) from [<c02c0b18=
+>]
+(sys_write+0x3c/0x68)
+[ =C2=A0530.908782] [<c02c0b18>] (sys_write+0x3c/0x68) from [<c0231f40>=
+]
+(ret_fast_syscall+0x0/0x3c)
+[ =C2=A0530.908813] ---[ end trace 7a172f77f33931a5 ]---
+[ =C2=A0530.909088] platform reg-dummy: suspend
+[ =C2=A0530.909393] PM: suspend of devices complete after 23.890 msecs
+[ =C2=A0530.910949] serial8250 serial8250: LATE suspend
+[ =C2=A0530.910980] platform l3_main.0: LATE suspend
+[ =C2=A0530.911010] platform iva.0: LATE suspend
+[ =C2=A0530.911041] platform mpu.0: LATE suspend
+[ =C2=A0530.911132] omapfb omapfb: LATE suspend
+[ =C2=A0530.911163] platform arm-pmu.0: LATE suspend
+[ =C2=A0530.911163] mmci-omap-hs mmci-omap-hs.1: LATE suspend
+[ =C2=A0530.911193] mmci-omap-hs mmci-omap-hs.0: LATE suspend
+[ =C2=A0530.911224] musb_hdrc musb_hdrc: LATE suspend
+[ =C2=A0530.911224] serial8250 serial8250.2: LATE suspend
+[ =C2=A0530.911254] serial8250 serial8250.1: LATE suspend
+[ =C2=A0530.911285] serial8250 serial8250.0: LATE suspend
+[ =C2=A0530.911285] nop_usb_xceiv nop_usb_xceiv: LATE suspend
+[ =C2=A0530.911315] reg-fixed-voltage reg-fixed-voltage.1: LATE suspend
+[ =C2=A0530.911346] omapdss omapdss: LATE suspend
+[ =C2=A0530.911376] platform reg-dummy: LATE suspend
+[ =C2=A0530.911407] PM: late suspend of devices complete after 1.983 ms=
+ecs
+[ =C2=A0530.918731] sdrc_pwr before:00000009 now:00000129
+[ =C2=A0530.918792] core idlest1:ffffffbd idlest3:0000000d
+[ =C2=A0530.918823] Successfully put all powerdomains to target state
+[ =C2=A0530.919464] platform reg-dummy: EARLY resume
+[ =C2=A0530.919555] omapdss omapdss: EARLY resume
+[ =C2=A0530.919616] reg-fixed-voltage reg-fixed-voltage.1: EARLY resume
+[ =C2=A0530.919647] nop_usb_xceiv nop_usb_xceiv: EARLY resume
+[ =C2=A0530.919677] serial8250 serial8250.0: EARLY resume
+[ =C2=A0530.919708] serial8250 serial8250.1: EARLY resume
+[ =C2=A0530.919738] serial8250 serial8250.2: EARLY resume
+[ =C2=A0530.919769] musb_hdrc musb_hdrc: EARLY resume
+[ =C2=A0530.920104] mmci-omap-hs mmci-omap-hs.0: EARLY resume
+[ =C2=A0530.920166] mmci-omap-hs mmci-omap-hs.1: EARLY resume
+[ =C2=A0530.920196] platform arm-pmu.0: EARLY resume
+[ =C2=A0530.920227] omapfb omapfb: EARLY resume
+[ =C2=A0530.920440] platform mpu.0: EARLY resume
+[ =C2=A0530.920471] platform iva.0: EARLY resume
+[ =C2=A0530.920501] platform l3_main.0: EARLY resume
+[ =C2=A0530.920562] serial8250 serial8250: EARLY resume
+[ =C2=A0530.920745] PM: early resume of devices complete after 1.342 ms=
+ecs
+[ =C2=A0530.920898] irqstatus 00000200
+[ =C2=A0530.921783] platform reg-dummy: resume
+[ =C2=A0530.922119] omapdss omapdss: resume
+[ =C2=A0530.924804] reg-fixed-voltage reg-fixed-voltage.1: resume
+[ =C2=A0530.924926] nop_usb_xceiv nop_usb_xceiv: resume
+[ =C2=A0530.925048] serial8250 serial8250.0: resume
+[ =C2=A0530.925201] serial8250 serial8250.1: resume
+[ =C2=A0530.925354] serial8250 serial8250.2: resume
+[ =C2=A0530.929779] musb_hdrc musb_hdrc: resume
+[ =C2=A0530.929901] mmci-omap-hs mmci-omap-hs.0: resume
+[ =C2=A0530.930389] mmci-omap-hs mmci-omap-hs.1: resume
+[ =C2=A0530.954437] sdrc_pwr before:00000129 now:00000169
+[ =C2=A0530.954467] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0530.954772] irqstatus 00000001
+[ =C2=A0530.977600] sdrc_pwr before:00000169 now:00000169
+[ =C2=A0530.977630] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0530.977935] irqstatus 00000001
+[ =C2=A0530.985565] sdrc_pwr before:00000169 now:00000129
+[ =C2=A0530.985595] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0531.008850] sdrc_pwr before:00000129 now:00000169
+[ =C2=A0531.008880] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0531.009185] irqstatus 00000001
+[ =C2=A0531.013275] sdrc_pwr before:00000169 now:00000129
+[ =C2=A0531.013336] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0531.032196] sdrc_pwr before:00000129 now:00000169
+[ =C2=A0531.032257] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0531.032562] irqstatus 00000001
+[ =C2=A0531.036834] sdrc_pwr before:00000169 now:00000129
+[ =C2=A0531.036895] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0531.040924] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0531.040954] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0531.045043] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0531.045074] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0531.049133] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0531.049163] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0531.053253] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0531.053283] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0531.057312] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0531.057342] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0531.071166] sdrc_pwr before:00000129 now:00000169
+[ =C2=A0531.071228] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0531.071533] irqstatus 00000001
+[ =C2=A0531.075683] sdrc_pwr before:00000169 now:00000129
+[ =C2=A0531.075744] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0531.076324] platform arm-pmu.0: resume
+[ =C2=A0531.076477] omapfb omapfb: resume
+[ =C2=A0531.078826] platform mpu.0: resume
+[ =C2=A0531.078948] platform iva.0: resume
+[ =C2=A0531.079040] platform l3_main.0: resume
+[ =C2=A0531.079193] serial8250 serial8250: resume
+[ =C2=A0531.080657] mmcblk mmc1:0001: legacy resume
+[ =C2=A0531.081298] PM: resume of devices complete after 160.002 msecs
+[ =C2=A0531.082885] serial8250 serial8250: completing resume
+[ =C2=A0531.083007] platform l3_main.0: completing resume
+[ =C2=A0531.083099] platform iva.0: completing resume
+[ =C2=A0531.083160] platform mpu.0: completing resume
+[ =C2=A0531.085083] omapfb omapfb: completing resume
+[ =C2=A0531.085144] platform arm-pmu.0: completing resume
+[ =C2=A0531.085235] mmci-omap-hs mmci-omap-hs.1: completing resume
+[ =C2=A0531.085296] mmci-omap-hs mmci-omap-hs.0: completing resume
+[ =C2=A0531.085388] musb_hdrc musb_hdrc: completing resume
+[ =C2=A0531.085784] serial8250 serial8250.2: completing resume
+[ =C2=A0531.085906] serial8250 serial8250.1: completing resume
+[ =C2=A0531.085998] serial8250 serial8250.0: completing resume
+[ =C2=A0531.086059] nop_usb_xceiv nop_usb_xceiv: completing resume
+[ =C2=A0531.086151] reg-fixed-voltage reg-fixed-voltage.1: completing r=
+esume
+[ =C2=A0531.086212] omapdss omapdss: completing resume
+[ =C2=A0531.086486] platform reg-dummy: completing resume
+[ =C2=A0532.160278] PM: Finishing wakeup.
+[ =C2=A0532.163970] Restarting tasks ... done.
+root@spark:~$ [ =C2=A0532.402130] mmc0: host does not support reading
+read-only switch. assuming write-enable.
+[ =C2=A0532.410980] mmc0: new SD card at address bed5
+[ =C2=A0532.416748] PM: Adding info for mmc:mmc0:bed5
+[ =C2=A0532.430267] mmcblk0: mmc0:bed5 SU02G 1.84 GiB
+[ =C2=A0532.436187] PM: Adding info for No Bus:mmcblk0
+[ =C2=A0532.453125] =C2=A0mmcblk0: p1 p2
+[ =C2=A0532.457611] PM: Adding info for No Bus:mmcblk0p1
+[ =C2=A0532.464080] PM: Adding info for No Bus:mmcblk0p2
+[ =C2=A0532.503845] PM: Adding info for No Bus:179:0
+root@spark:~$ devmem 0x48307260
+0x0000000C
+root@spark:~$ echo mem > /sys/power/state
+[ =C2=A0558.495269] PM: Syncing filesystems ... done.
+[ =C2=A0558.500610] PM: Preparing system for mem sleep
+[ =C2=A0558.506378] mmc0: card bed5 removed
+[ =C2=A0558.510253] PM: Removing info for mmc:mmc0:bed5
+[ =C2=A0558.516632] PM: Removing info for No Bus:mmcblk0p2
+[ =C2=A0558.526306] PM: Removing info for No Bus:mmcblk0p1
+[ =C2=A0558.547790] PM: Removing info for No Bus:179:0
+[ =C2=A0558.579101] PM: Removing info for No Bus:mmcblk0
+[ =C2=A0558.620605] ------------[ cut here ]------------
+[ =C2=A0558.625854] WARNING: at drivers/regulator/core.c:1357
+_regulator_disable+0x54/0x164()
+[ =C2=A0558.634063] unbalanced disables for vMMC
+[ =C2=A0558.638031] Modules linked in:
+[ =C2=A0558.641540] [<c0237960>] (unwind_backtrace+0x0/0xf0) from
+[<c025ae10>] (warn_slowpath_common+0x4c/0x64)
+[ =C2=A0558.651397] [<c025ae10>] (warn_slowpath_common+0x4c/0x64) from
+[<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c)
+[ =C2=A0558.661407] [<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c) from
+[<c03b9b40>] (_regulator_disable+0x54/0x164)
+[ =C2=A0558.671386] [<c03b9b40>] (_regulator_disable+0x54/0x164) from
+[<c03b9d3c>] (regulator_disable+0x20/0x34)
+[ =C2=A0558.681304] [<c03b9d3c>] (regulator_disable+0x20/0x34) from
+[<c042d158>] (omap_hsmmc_1_set_power+0x64/0xa0)
+[ =C2=A0558.691467] [<c042d158>] (omap_hsmmc_1_set_power+0x64/0xa0) fro=
+m
+[<c042bd00>] (omap_hsmmc_set_ios+0x70/0x410)
+[ =C2=A0558.701782] [<c042bd00>] (omap_hsmmc_set_ios+0x70/0x410) from
+[<c0422144>] (mmc_power_off+0x50/0x54)
+[ =C2=A0558.711364] [<c0422144>] (mmc_power_off+0x50/0x54) from
+[<c0422b88>] (mmc_detach_bus+0x74/0xbc)
+[ =C2=A0558.720550] [<c0422b88>] (mmc_detach_bus+0x74/0xbc) from
+[<c04231d4>] (mmc_pm_notify+0x90/0xd8)
+[ =C2=A0558.729705] [<c04231d4>] (mmc_pm_notify+0x90/0xd8) from
+[<c0277954>] (notifier_call_chain+0x2c/0x70)
+[ =C2=A0558.739318] [<c0277954>] (notifier_call_chain+0x2c/0x70) from
+[<c0277db0>] (__blocking_notifier_call_chain+0x48/0x5c)
+[ =C2=A0558.750396] [<c0277db0>] (__blocking_notifier_call_chain+0x48/0=
+x5c)
+from [<c0277dd8>] (blocking_notifier_call_chain+0x14/0x18)
+[ =C2=A0558.762237] [<c0277dd8>] (blocking_notifier_call_chain+0x14/0x1=
+8)
+from [<c028ec1c>] (pm_notifier_call_chain+0x14/0x2c)
+[ =C2=A0558.773406] [<c028ec1c>] (pm_notifier_call_chain+0x14/0x2c) fro=
+m
+[<c028f448>] (enter_state+0x7c/0x120)
+[ =C2=A0558.783142] [<c028f448>] (enter_state+0x7c/0x120) from [<c028eb=
+80>]
+(state_store+0xa0/0xbc)
+[ =C2=A0558.791931] [<c028eb80>] (state_store+0xa0/0xbc) from [<c0393e0=
+8>]
+(kobj_attr_store+0x18/0x1c)
+[ =C2=A0558.800994] [<c0393e08>] (kobj_attr_store+0x18/0x1c) from
+[<c0309244>] (sysfs_write_file+0x10c/0x140)
+[ =C2=A0558.810638] [<c0309244>] (sysfs_write_file+0x10c/0x140) from
+[<c02c09e4>] (vfs_write+0xac/0x134)
+[ =C2=A0558.819854] [<c02c09e4>] (vfs_write+0xac/0x134) from [<c02c0b18=
+>]
+(sys_write+0x3c/0x68)
+[ =C2=A0558.828277] [<c02c0b18>] (sys_write+0x3c/0x68) from [<c0231f40>=
+]
+(ret_fast_syscall+0x0/0x3c)
+[ =C2=A0558.837097] ---[ end trace 7a172f77f33931a6 ]---
+[ =C2=A0558.945281] Freezing user space processes ... (elapsed 0.01 sec=
+onds) done.
+[ =C2=A0558.971588] Freezing remaining freezable tasks ... (elapsed 0.0=
+2
+seconds) done.
+[ =C2=A0559.002960] PM: Entering mem sleep
+[ =C2=A0559.006591] Suspending console(s) (use no_console_suspend to de=
+bug)
+[ =C2=A0559.013366] platform reg-dummy: preparing suspend
+[ =C2=A0559.013641] omapdss omapdss: preparing suspend
+[ =C2=A0559.013732] reg-fixed-voltage reg-fixed-voltage.1: preparing su=
+spend
+[ =C2=A0559.013824] nop_usb_xceiv nop_usb_xceiv: preparing suspend
+[ =C2=A0559.013916] serial8250 serial8250.0: preparing suspend
+[ =C2=A0559.013977] serial8250 serial8250.1: preparing suspend
+[ =C2=A0559.014068] serial8250 serial8250.2: preparing suspend
+[ =C2=A0559.014129] musb_hdrc musb_hdrc: preparing suspend
+[ =C2=A0559.014221] mmci-omap-hs mmci-omap-hs.0: preparing suspend
+[ =C2=A0559.014282] mmci-omap-hs mmci-omap-hs.1: preparing suspend
+[ =C2=A0559.014373] platform arm-pmu.0: preparing suspend
+[ =C2=A0559.014465] omapfb omapfb: preparing suspend
+[ =C2=A0559.016632] platform mpu.0: preparing suspend
+[ =C2=A0559.016723] platform iva.0: preparing suspend
+[ =C2=A0559.016815] platform l3_main.0: preparing suspend
+[ =C2=A0559.016937] serial8250 serial8250: preparing suspend
+[ =C2=A0559.018707] mmcblk mmc1:0001: legacy suspend
+[ =C2=A0559.020141] serial8250 serial8250: suspend
+[ =C2=A0559.020324] platform l3_main.0: suspend
+[ =C2=A0559.020416] platform iva.0: suspend
+[ =C2=A0559.020538] platform mpu.0: suspend
+[ =C2=A0559.022460] omapfb omapfb: suspend
+[ =C2=A0559.022552] platform arm-pmu.0: suspend
+[ =C2=A0559.022644] mmci-omap-hs mmci-omap-hs.1: suspend
+[ =C2=A0559.023406] ------------[ cut here ]------------
+[ =C2=A0559.023498] WARNING: at drivers/regulator/core.c:1357
+_regulator_disable+0x54/0x164()
+[ =C2=A0559.023559] unbalanced disables for dummy
+[ =C2=A0559.023559] Modules linked in:
+[ =C2=A0559.023712] [<c0237960>] (unwind_backtrace+0x0/0xf0) from
+[<c025ae10>] (warn_slowpath_common+0x4c/0x64)
+[ =C2=A0559.023773] [<c025ae10>] (warn_slowpath_common+0x4c/0x64) from
+[<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c)
+[ =C2=A0559.023834] [<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c) from
+[<c03b9b40>] (_regulator_disable+0x54/0x164)
+[ =C2=A0559.023895] [<c03b9b40>] (_regulator_disable+0x54/0x164) from
+[<c03b9d3c>] (regulator_disable+0x20/0x34)
+[ =C2=A0559.023956] [<c03b9d3c>] (regulator_disable+0x20/0x34) from
+[<c042d0b8>] (omap_hsmmc_23_set_power+0xb4/0xf0)
+[ =C2=A0559.024017] [<c042d0b8>] (omap_hsmmc_23_set_power+0xb4/0xf0) fr=
+om
+[<c042bd00>] (omap_hsmmc_set_ios+0x70/0x410)
+[ =C2=A0559.024078] [<c042bd00>] (omap_hsmmc_set_ios+0x70/0x410) from
+[<c0422144>] (mmc_power_off+0x50/0x54)
+[ =C2=A0559.024139] [<c0422144>] (mmc_power_off+0x50/0x54) from
+[<c0422ad0>] (mmc_suspend_host+0x128/0x134)
+[ =C2=A0559.024200] [<c0422ad0>] (mmc_suspend_host+0x128/0x134) from
+[<c042b69c>] (omap_hsmmc_suspend+0x60/0x108)
+[ =C2=A0559.024261] [<c042b69c>] (omap_hsmmc_suspend+0x60/0x108) from
+[<c03dd21c>] (platform_pm_suspend+0x2c/0x54)
+[ =C2=A0559.024322] [<c03dd21c>] (platform_pm_suspend+0x2c/0x54) from
+[<c03df918>] (pm_op+0x4c/0xb4)
+[ =C2=A0559.024383] [<c03df918>] (pm_op+0x4c/0xb4) from [<c03e0490>]
+(__device_suspend+0x140/0x1c0)
+[ =C2=A0559.024414] [<c03e0490>] (__device_suspend+0x140/0x1c0) from
+[<c03e08c4>] (dpm_suspend_start+0x368/0x49c)
+[ =C2=A0559.024505] [<c03e08c4>] (dpm_suspend_start+0x368/0x49c) from
+[<c028f214>] (suspend_devices_and_enter+0x48/0x200)
+[ =C2=A0559.024566] [<c028f214>] (suspend_devices_and_enter+0x48/0x200)
+from [<c028f488>] (enter_state+0xbc/0x120)
+[ =C2=A0559.024627] [<c028f488>] (enter_state+0xbc/0x120) from [<c028eb=
+80>]
+(state_store+0xa0/0xbc)
+[ =C2=A0559.024688] [<c028eb80>] (state_store+0xa0/0xbc) from [<c0393e0=
+8>]
+(kobj_attr_store+0x18/0x1c)
+[ =C2=A0559.024780] [<c0393e08>] (kobj_attr_store+0x18/0x1c) from
+[<c0309244>] (sysfs_write_file+0x10c/0x140)
+[ =C2=A0559.024841] [<c0309244>] (sysfs_write_file+0x10c/0x140) from
+[<c02c09e4>] (vfs_write+0xac/0x134)
+[ =C2=A0559.024902] [<c02c09e4>] (vfs_write+0xac/0x134) from [<c02c0b18=
+>]
+(sys_write+0x3c/0x68)
+[ =C2=A0559.024963] [<c02c0b18>] (sys_write+0x3c/0x68) from [<c0231f40>=
+]
+(ret_fast_syscall+0x0/0x3c)
+[ =C2=A0559.024993] ---[ end trace 7a172f77f33931a7 ]---
+[ =C2=A0559.025268] mmci-omap-hs mmci-omap-hs.0: suspend
+[ =C2=A0559.026031] musb_hdrc musb_hdrc: suspend
+[ =C2=A0559.026245] serial8250 serial8250.2: suspend
+[ =C2=A0559.026611] serial8250 serial8250.1: suspend
+[ =C2=A0559.026794] serial8250 serial8250.0: suspend
+[ =C2=A0559.026947] nop_usb_xceiv nop_usb_xceiv: suspend
+[ =C2=A0559.027038] reg-fixed-voltage reg-fixed-voltage.1: suspend
+[ =C2=A0559.027130] omapdss omapdss: suspend
+[ =C2=A0559.033630] ------------[ cut here ]------------
+[ =C2=A0559.033752] WARNING: at drivers/regulator/core.c:1357
+_regulator_disable+0x54/0x164()
+[ =C2=A0559.033782] unbalanced disables for dummy
+[ =C2=A0559.033782] Modules linked in:
+[ =C2=A0559.033935] [<c0237960>] (unwind_backtrace+0x0/0xf0) from
+[<c025ae10>] (warn_slowpath_common+0x4c/0x64)
+[ =C2=A0559.034027] [<c025ae10>] (warn_slowpath_common+0x4c/0x64) from
+[<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c)
+[ =C2=A0559.034088] [<c025aea8>] (warn_slowpath_fmt+0x2c/0x3c) from
+[<c03b9b40>] (_regulator_disable+0x54/0x164)
+[ =C2=A0559.034149] [<c03b9b40>] (_regulator_disable+0x54/0x164) from
+[<c03b9d3c>] (regulator_disable+0x20/0x34)
+[ =C2=A0559.034240] [<c03b9d3c>] (regulator_disable+0x20/0x34) from
+[<c03b2060>] (omapdss_dpi_display_disable+0x2c/0x3c)
+[ =C2=A0559.034301] [<c03b2060>] (omapdss_dpi_display_disable+0x2c/0x3c=
+)
+from [<c03b769c>] (generic_panel_suspend+0xc/0x1c)
+[ =C2=A0559.034362] [<c03b769c>] (generic_panel_suspend+0xc/0x1c) from
+[<c03af0c0>] (dss_suspend_device+0x44/0x54)
+[ =C2=A0559.034423] [<c03af0c0>] (dss_suspend_device+0x44/0x54) from
+[<c03dbaa8>] (bus_for_each_dev+0x48/0x84)
+[ =C2=A0559.034454] [<c03dbaa8>] (bus_for_each_dev+0x48/0x84) from
+[<c03af21c>] (dss_suspend_all_devices+0x18/0x30)
+[ =C2=A0559.034515] [<c03af21c>] (dss_suspend_all_devices+0x18/0x30) fr=
+om
+[<c03dd238>] (platform_pm_suspend+0x48/0x54)
+[ =C2=A0559.034576] [<c03dd238>] (platform_pm_suspend+0x48/0x54) from
+[<c03df918>] (pm_op+0x4c/0xb4)
+[ =C2=A0559.034637] [<c03df918>] (pm_op+0x4c/0xb4) from [<c03e0490>]
+(__device_suspend+0x140/0x1c0)
+[ =C2=A0559.034698] [<c03e0490>] (__device_suspend+0x140/0x1c0) from
+[<c03e08c4>] (dpm_suspend_start+0x368/0x49c)
+[ =C2=A0559.034790] [<c03e08c4>] (dpm_suspend_start+0x368/0x49c) from
+[<c028f214>] (suspend_devices_and_enter+0x48/0x200)
+[ =C2=A0559.034851] [<c028f214>] (suspend_devices_and_enter+0x48/0x200)
+from [<c028f488>] (enter_state+0xbc/0x120)
+[ =C2=A0559.034912] [<c028f488>] (enter_state+0xbc/0x120) from [<c028eb=
+80>]
+(state_store+0xa0/0xbc)
+[ =C2=A0559.034973] [<c028eb80>] (state_store+0xa0/0xbc) from [<c0393e0=
+8>]
+(kobj_attr_store+0x18/0x1c)
+[ =C2=A0559.035034] [<c0393e08>] (kobj_attr_store+0x18/0x1c) from
+[<c0309244>] (sysfs_write_file+0x10c/0x140)
+[ =C2=A0559.035125] [<c0309244>] (sysfs_write_file+0x10c/0x140) from
+[<c02c09e4>] (vfs_write+0xac/0x134)
+[ =C2=A0559.035156] [<c02c09e4>] (vfs_write+0xac/0x134) from [<c02c0b18=
+>]
+(sys_write+0x3c/0x68)
+[ =C2=A0559.035217] [<c02c0b18>] (sys_write+0x3c/0x68) from [<c0231f40>=
+]
+(ret_fast_syscall+0x0/0x3c)
+[ =C2=A0559.035278] ---[ end trace 7a172f77f33931a8 ]---
+[ =C2=A0559.035675] platform reg-dummy: suspend
+[ =C2=A0559.035919] PM: suspend of devices complete after 17.486 msecs
+[ =C2=A0559.037841] serial8250 serial8250: LATE suspend
+[ =C2=A0559.037902] platform l3_main.0: LATE suspend
+[ =C2=A0559.037933] platform iva.0: LATE suspend
+[ =C2=A0559.037963] platform mpu.0: LATE suspend
+[ =C2=A0559.038177] omapfb omapfb: LATE suspend
+[ =C2=A0559.038208] platform arm-pmu.0: LATE suspend
+[ =C2=A0559.038238] mmci-omap-hs mmci-omap-hs.1: LATE suspend
+[ =C2=A0559.038269] mmci-omap-hs mmci-omap-hs.0: LATE suspend
+[ =C2=A0559.038269] musb_hdrc musb_hdrc: LATE suspend
+[ =C2=A0559.038299] serial8250 serial8250.2: LATE suspend
+[ =C2=A0559.038330] serial8250 serial8250.1: LATE suspend
+[ =C2=A0559.038360] serial8250 serial8250.0: LATE suspend
+[ =C2=A0559.038391] nop_usb_xceiv nop_usb_xceiv: LATE suspend
+[ =C2=A0559.038421] reg-fixed-voltage reg-fixed-voltage.1: LATE suspend
+[ =C2=A0559.038452] omapdss omapdss: LATE suspend
+[ =C2=A0559.038848] platform reg-dummy: LATE suspend
+[ =C2=A0559.038940] PM: late suspend of devices complete after 2.960 ms=
+ecs
+[ =C2=A0568.066253] sdrc_pwr before:00000129 now:00000169
+[ =C2=A0568.066284] core idlest1:ffffffbd idlest3:0000000d
+[ =C2=A0568.066345] Powerdomain (core_pwrdm) didn't enter target state =
+0
+[ =C2=A0568.066375] Could not enter target state in pm_suspend
+[ =C2=A0568.066711] platform reg-dummy: EARLY resume
+[ =C2=A0568.066802] omapdss omapdss: EARLY resume
+[ =C2=A0568.066833] reg-fixed-voltage reg-fixed-voltage.1: EARLY resume
+[ =C2=A0568.066864] nop_usb_xceiv nop_usb_xceiv: EARLY resume
+[ =C2=A0568.066894] serial8250 serial8250.0: EARLY resume
+[ =C2=A0568.066925] serial8250 serial8250.1: EARLY resume
+[ =C2=A0568.066955] serial8250 serial8250.2: EARLY resume
+[ =C2=A0568.066986] musb_hdrc musb_hdrc: EARLY resume
+[ =C2=A0568.067077] mmci-omap-hs mmci-omap-hs.0: EARLY resume
+[ =C2=A0568.067108] mmci-omap-hs mmci-omap-hs.1: EARLY resume
+[ =C2=A0568.067138] platform arm-pmu.0: EARLY resume
+[ =C2=A0568.067169] omapfb omapfb: EARLY resume
+[ =C2=A0568.067382] platform mpu.0: EARLY resume
+[ =C2=A0568.067413] platform iva.0: EARLY resume
+[ =C2=A0568.067443] platform l3_main.0: EARLY resume
+[ =C2=A0568.067474] serial8250 serial8250: EARLY resume
+[ =C2=A0568.067687] PM: early resume of devices complete after 1.007 ms=
+ecs
+[ =C2=A0568.067810] irqstatus 00000200
+[ =C2=A0568.068420] platform reg-dummy: resume
+[ =C2=A0568.068725] omapdss omapdss: resume
+[ =C2=A0568.071411] reg-fixed-voltage reg-fixed-voltage.1: resume
+[ =C2=A0568.071533] nop_usb_xceiv nop_usb_xceiv: resume
+[ =C2=A0568.071624] serial8250 serial8250.0: resume
+[ =C2=A0568.071807] serial8250 serial8250.1: resume
+[ =C2=A0568.071929] serial8250 serial8250.2: resume
+[ =C2=A0568.074096] musb_hdrc musb_hdrc: resume
+[ =C2=A0568.074218] mmci-omap-hs mmci-omap-hs.0: resume
+[ =C2=A0568.074707] mmci-omap-hs mmci-omap-hs.1: resume
+[ =C2=A0568.098571] sdrc_pwr before:00000169 now:00000169
+[ =C2=A0568.098602] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0568.098907] irqstatus 00000001
+[ =C2=A0568.121948] sdrc_pwr before:00000169 now:00000169
+[ =C2=A0568.121978] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0568.122314] irqstatus 00000001
+[ =C2=A0568.129913] sdrc_pwr before:00000169 now:00000129
+[ =C2=A0568.129974] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0568.153228] sdrc_pwr before:00000129 now:00000169
+[ =C2=A0568.153259] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0568.153594] irqstatus 00000001
+[ =C2=A0568.157714] sdrc_pwr before:00000169 now:00000129
+[ =C2=A0568.157745] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0568.176605] sdrc_pwr before:00000129 now:00000169
+[ =C2=A0568.176635] core idlest1:fcffff9d idlest3:0000000d
+[ =C2=A0568.176940] irqstatus 00000001
+[ =C2=A0568.181243] sdrc_pwr before:00000169 now:00000129
+[ =C2=A0568.181274] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0568.185333] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0568.185363] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0568.189422] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0568.189453] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0568.193511] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0568.193542] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0568.197631] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0568.197692] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0568.201721] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0568.201751] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0568.205932] sdrc_pwr before:00000129 now:00000129
+[ =C2=A0568.205963] core idlest1:fdffff9d idlest3:0000000d
+[ =C2=A0568.206787] platform arm-pmu.0: resume
+[ =C2=A0568.206939] omapfb omapfb: resume
+[ =C2=A0568.208923] platform mpu.0: resume
+[ =C2=A0568.209014] platform iva.0: resume
+[ =C2=A0568.209106] platform l3_main.0: resume
+[ =C2=A0568.209259] serial8250 serial8250: resume
+[ =C2=A0568.210693] mmcblk mmc1:0001: legacy resume
+[ =C2=A0568.211395] PM: resume of devices complete after 143.188 msecs
+[ =C2=A0568.212982] serial8250 serial8250: completing resume
+[ =C2=A0568.213134] platform l3_main.0: completing resume
+[ =C2=A0568.213226] platform iva.0: completing resume
+[ =C2=A0568.213287] platform mpu.0: completing resume
+[ =C2=A0568.215515] omapfb omapfb: completing resume
+[ =C2=A0568.215637] platform arm-pmu.0: completing resume
+[ =C2=A0568.215698] mmci-omap-hs mmci-omap-hs.1: completing resume
+[ =C2=A0568.215789] mmci-omap-hs mmci-omap-hs.0: completing resume
+[ =C2=A0568.215881] musb_hdrc musb_hdrc: completing resume
+[ =C2=A0568.215942] serial8250 serial8250.2: completing resume
+[ =C2=A0568.216033] serial8250 serial8250.1: completing resume
+[ =C2=A0568.216125] serial8250 serial8250.0: completing resume
+[ =C2=A0568.216186] nop_usb_xceiv nop_usb_xceiv: completing resume
+[ =C2=A0568.216247] reg-fixed-voltage reg-fixed-voltage.1: completing r=
+esume
+[ =C2=A0568.216339] omapdss omapdss: completing resume
+[ =C2=A0568.216583] platform reg-dummy: completing resume
+[ =C2=A0569.282806] PM: Finishing wakeup.
+[ =C2=A0569.286468] Restarting tasks ... done.
+root@spark:~$ [ =C2=A0569.522857] mmc0: host does not support reading
+read-only switch. assuming write-enable.
+[ =C2=A0569.531677] mmc0: new SD card at address bed5
+[ =C2=A0569.537506] PM: Adding info for mmc:mmc0:bed5
+[ =C2=A0569.551300] mmcblk0: mmc0:bed5 SU02G 1.84 GiB
+[ =C2=A0569.557250] PM: Adding info for No Bus:mmcblk0
+[ =C2=A0569.574157] =C2=A0mmcblk0: p1 p2
+[ =C2=A0569.578369] PM: Adding info for No Bus:mmcblk0p1
+[ =C2=A0569.584808] PM: Adding info for No Bus:mmcblk0p2
+[ =C2=A0569.624908] PM: Adding info for No Bus:179:0
 
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Cc: Roberto Granados Dorado <x0095451@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
-Cc: Tero Kristo <Tero.Kristo@nokia.com>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Sanjeev Premi <premi@ti.com>
-Cc: Thara Gopinath <thara@ti.com>
-Cc: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+root@spark:~$ cat /debug/pm_debug/count
+usbhost_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1=
+-OFF:0
+sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:0,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF=
+:0
+per_pwrdm (ON),OFF:11,RET:0,INA:0,ON:12,RET-LOGIC-OFF:0,RET-MEMBANK1-OF=
+=46:0
+dss_pwrdm (ON),OFF:2,RET:3,INA:4,ON:9,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:=
+0
+cam_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF=
+:0
+core_pwrdm (ON),OFF:1,RET:0,INA:0,ON:2,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF=
+:0,RET-MEMBANK2-OFF:0
+neon_pwrdm (ON),OFF:11,RET:0,INA:0,ON:12,RET-LOGIC-OFF:0
+mpu_pwrdm (ON),OFF:11,RET:0,INA:0,ON:12,RET-LOGIC-OFF:0,RET-MEMBANK1-OF=
+=46:0
+iva2_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OF=
+=46:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
+per_clkdm->per_pwrdm (9)
+usbhost_clkdm->usbhost_pwrdm (0)
+cam_clkdm->cam_pwrdm (0)
+dss_clkdm->dss_pwrdm (2)
+core_l4_clkdm->core_pwrdm (9)
+core_l3_clkdm->core_pwrdm (5)
+d2d_clkdm->core_pwrdm (0)
+sgx_clkdm->sgx_pwrdm (0)
+iva2_clkdm->iva2_pwrdm (0)
+neon_clkdm->neon_pwrdm (0)
+mpu_clkdm->mpu_pwrdm (0)
+prm_clkdm->wkup_pwrdm (0)
+cm_clkdm->core_pwrdm (0)
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-V3:
-  Bunch of documentation update based on feedback
-  removed opp_def - opp_add enables the opp by default
-  lock usage optimization
+Any ideas?
 
-Sample usage:
- http://pastebin.mozilla.org/794786 -> cleanups for OMAP power
- http://pastebin.mozilla.org/794787 -> Sample OPP initialization for OMAP
-
-V2:
-https://patchwork.kernel.org/patch/189532/
-  Incorporated review comments from v1. major changes being:
-  $subject change to reflect this is for power.
-  Documentation revamp and including it in the patch :)
-  OPP_DEF removed - lets introduce this if needed or leave it to
-  SOC frameworks to organize code as needed.
-  Rename of enable to available to better reflect the intent
-  few fixes and typos
-  Introduced mutex based locking for controlling access to list
-  modification (note: query functions are still unsafe- rationale
-		 in the patch below)
-  A new home for opp.c in drivers/base/power (moved from lib/)
-  A few optimization in function flow and additional error checks
-  added to exposed functions
-  offline aligned with Kevin for cleaning up the copyrights
-
-V1:
-	http://marc.info/?t=128468723000002&r=1&w=2
-
- Documentation/power/00-INDEX |    2 +
- Documentation/power/opp.txt  |  330 ++++++++++++++++++++++++++
- drivers/base/power/Makefile  |    1 +
- drivers/base/power/opp.c     |  534 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/opp.h          |  103 ++++++++
- kernel/power/Kconfig         |   14 ++
- 6 files changed, 984 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/power/opp.txt
- create mode 100644 drivers/base/power/opp.c
- create mode 100644 include/linux/opp.h
-
-diff --git a/Documentation/power/00-INDEX b/Documentation/power/00-INDEX
-index fb742c2..45e9d4a 100644
---- a/Documentation/power/00-INDEX
-+++ b/Documentation/power/00-INDEX
-@@ -14,6 +14,8 @@ interface.txt
- 	- Power management user interface in /sys/power
- notifiers.txt
- 	- Registering suspend notifiers in device drivers
-+opp.txt
-+	- Operating Performance Point library
- pci.txt
- 	- How the PCI Subsystem Does Power Management
- pm_qos_interface.txt
-diff --git a/Documentation/power/opp.txt b/Documentation/power/opp.txt
-new file mode 100644
-index 0000000..7e41e33
---- /dev/null
-+++ b/Documentation/power/opp.txt
-@@ -0,0 +1,330 @@
-+*=============*
-+* OPP Library *
-+*=============*
-+
-+Contents
-+--------
-+1. Introduction
-+2. Initial OPP List Registration
-+3. OPP Search Functions
-+4. OPP Availability Control Functions
-+5. OPP Data Retrieval Functions
-+6. Cpufreq Table Generation
-+7. Data Structures
-+
-+1. Introduction
-+===============
-+Complex SOCs of today consists of a multiple sub-modules working in conjunction.
-+In an operational system executing varied use cases, not all modules in the SoC
-+need to function at their highest performing frequency all the time. To
-+facilitate this, sub-modules in a SoC are grouped into domains, allowing some
-+domains to run at lower voltage and frequency while other domains are loaded
-+more. The set of discrete tuples consisting of frequency and voltage pairs that
-+the device will support per domain are called Operating Performance Points or
-+OPPs.
-+
-+OPP library provides a set of helper functions to organize and query the OPP
-+information. The library is located in drivers/base/power/opp.c and the header
-+is located in include/linux/opp.h. OPP library can be enabled by enabling
-+CONFIG_PM_OPP from power management menuconfig menu. OPP library depends on
-+CONFIG_PM as certain SOCs such as Texas Instrument's OMAP framework allows to
-+optionally boot at a certain OPP without needing cpufreq.
-+
-+Typical usage of the OPP library is as follows:
-+(users)		-> registers a set of default OPPs		-> (library)
-+SoC framework	-> modifies on required cases certain OPPs	-> OPP layer
-+		-> queries to search/retrieve information	->
-+
-+OPP layer expects each domain to be represented by a unique device pointer. SoC
-+framework registers a set of initial OPPs per device with the OPP layer. This
-+list is expected to be an optimally small number typically around 5 per device.
-+This initial list contains a set of OPPs that the framework expects to be safely
-+enabled by default in the system.
-+
-+Note on OPP Availability:
-+------------------------
-+As the system proceeds to operate, SoC framework may choose to make certain
-+OPPs available or not available on each device based on various external
-+factors. Example usage: Thermal management or other exceptional situations where
-+SoC framework might choose to disable a higher frequency OPP to safely continue
-+operations until that OPP could be re-enabled if possible.
-+
-+OPP library facilitates this concept in it's implementation. The following
-+operational functions operate only on available opps:
-+opp_find_freq_{ceil, floor}, opp_get_voltage, opp_get_freq, opp_get_opp_count
-+and opp_init_cpufreq_table
-+
-+opp_find_freq_exact is meant to be used to find the opp pointer which can then
-+be used for opp_enable/disable functions to make an opp available as required.
-+
-+WARNING: Users of OPP library should refresh their availability count using
-+get_opp_count if opp_enable/disable functions are invoked for a device, the
-+exact mechanism to trigger these or the notification mechanism to other
-+dependent subsystems such as cpufreq are left to the discretion of the SoC
-+specific framework which uses the OPP library. Similar care needs to be taken
-+care to refresh the cpufreq table in cases of these operations.
-+
-+WARNING on OPP List Modification Vs Query operations:
-+----------------------------------------------------
-+The OPP layer's query functions are expected to be used in multiple contexts
-+(including calls from interrupt locked context) based on SoC framework
-+implementation. Only OPP modification functions are guaranteed exclusivity by
-+the OPP library. Exclusivity between query functions and modification functions
-+should be handled by the users such as the SoC framework appropriately; else,
-+there is a risk for the query functions to retrieve stale data.
-+
-+2. Initial OPP List Registration
-+================================
-+The SoC implementation calls opp_add function iteratively to add OPPs per
-+device. It is expected that the SoC framework will register the OPP entries
-+optimally- typical numbers range to be less than 5. The list generated by
-+registering the OPPs is maintained by OPP library throughout the device
-+operation. The SoC framework can subsequently control the availability of the
-+OPPs dynamically using the opp_enable / disable functions.
-+
-+opp_add - Add a new OPP for a specific domain represented by the device pointer.
-+	The OPP is defined using the frequency and voltage. Once added, the OPP
-+	is assumed to be available and control of it's availability can be done
-+	with the opp_enable/disable functions. OPP library internally stores
-+	and manages this information in the opp struct. This function may be
-+	used by SoC framework to define a optimal list as per the demands of
-+	SoC usage environment.
-+
-+	WARNING: Do not use these functions in interrupt context.
-+
-+	Example:
-+	 soc_pm_init()
-+	 {
-+		/* Do things */
-+		r = opp_add(mpu_dev, 1000000, 900000);
-+		if (!r) {
-+			pr_err("%s: unable to register mpu opp(%d)\n", r);
-+			goto no_cpufreq;
-+		}
-+		/* Do cpufreq things */
-+	 no_cpufreq:
-+		/* Do remaining things */
-+	 }
-+
-+3. OPP Search Functions
-+=======================
-+High level framework such as cpufreq operates on frequencies. To map the
-+frequency back to the corresponding OPP, OPP library provides handy functions
-+to search the OPP list that OPP library internally manages. These search
-+functions return the matching pointer representing the opp if a match is
-+found, else returns error. These errors are expected to be handled by standard
-+error checks such as IS_ERR() and appropriate actions taken by the caller.
-+
-+opp_find_freq_exact - Search for an OPP based on an *exact* frequency and
-+	availability. This function is especially useful to enable an OPP which
-+	is not available by default.
-+	Example: In a case when SoC framework detects a situation where a
-+	higher frequency could be made available, it can use this function to
-+	find the OPP prior to call the opp_enable to actually make it available.
-+	 opp = opp_find_freq_exact(dev, 1000000000, false);
-+	 if (!IS_ERR(opp))
-+		ret = opp_enable(opp);
-+	NOTE: This is the only search function that operates on OPPs which are
-+	not available.
-+
-+opp_find_freq_floor - Search for an available OPP which is *at most* the
-+	provided frequency. This function is useful while searching for a lesser
-+	match OR operating on OPP information in the order of decreasing
-+	frequency.
-+	Example: To find the highest opp for a device:
-+	 freq = ULONG_MAX;
-+	 opp_find_freq_floor(dev, &freq);
-+
-+opp_find_freq_ceil - Search for an available OPP which is *at least* the
-+	provided frequency. This function is useful while searching for a
-+	higher match OR operating on OPP information in the order of increasing
-+	frequency.
-+	Example 1: To find the lowest opp for a device:
-+	 freq = 0;
-+	 opp_find_freq_ceil(dev, &freq);
-+	Example 2: A simplified implementation of a SoC cpufreq_driver->target:
-+	 soc_cpufreq_target(..)
-+	 {
-+		/* Do stuff like policy checks etc. */
-+		/* Find the best frequency match for the req */
-+		opp = opp_find_freq_ceil(dev, &freq);
-+		if (!IS_ERR(opp))
-+			soc_switch_to_freq_voltage(opp, freq);
-+		else
-+			/* do something when we cant satisfy the req */
-+		/* do other stuff */
-+	 }
-+
-+4. OPP Availability Control Functions
-+=====================================
-+A default OPP list registered with the OPP library may not cater to all possible
-+situation. The OPP library provides a set of functions to modify the
-+availability of a OPP within the OPP list. This allows SoC frameworks to have
-+fine grained dynamic control of which sets of OPPs are operationally available.
-+These functions are intended to *temporarily* remove an OPP in conditions such
-+as thermal considerations (e.g. don't use OPPx until the temperature drops).
-+
-+WARNING: Do not use these functions in interrupt context.
-+
-+opp_enable - Make a OPP available for operation.
-+	Example: Lets say that 1GHz OPP is to be made available only if the
-+	SoC temperature is lower than a certain threshold. The SoC framework
-+	implementation might choose to do something as follows:
-+	 if (cur_temp < temp_low_thresh) {
-+		/* Enable 1GHz if it was disabled */
-+		opp = opp_find_freq_exact(dev, 1000000000, false);
-+		if (!IS_ERR(opp))
-+			ret = opp_enable(opp);
-+	 }
-+
-+opp_disable - Make an OPP to be not available for operation
-+	Example: Lets say that 1GHz OPP is to be disabled if the temperature
-+	exceeds a threshold value. The SoC framework implementation might
-+	choose to do something as follows:
-+	 if (cur_temp > temp_high_thresh) {
-+		/* Disable 1GHz if it was enabled */
-+		opp = opp_find_freq_exact(dev, 1000000000, true);
-+		if (!IS_ERR(opp))
-+			ret = opp_disable(opp);
-+	 }
-+
-+5. OPP Data Retrieval Functions
-+===============================
-+Since OPP library abstracts away the OPP information, a set of functions to pull
-+information from the OPP structure is necessary. Once an OPP pointer is
-+retrieved using the search functions, the following functions can be used by SoC
-+framework to retrieve the information represented inside the OPP layer.
-+
-+opp_get_voltage - Retrieve the voltage represented by the opp pointer.
-+	Example: At a cpufreq transition to a different frequency, SoC
-+	framework requires to set the voltage represented by the OPP using
-+	the regulator framework to the Power Management chip providing the
-+	voltage.
-+	 soc_switch_to_freq_voltage(opp, ..)
-+	 {
-+		/* do things */
-+		v = opp_get_voltage(opp);
-+		if (v)
-+			regulator_set_voltage(.., v);
-+		/* do other things */
-+	 }
-+
-+opp_get_freq - Retrieve the freq represented by the opp pointer.
-+	Example: Lets say the SoC framework stores the pointes to the min
-+	and max OPPs that a device supports to save on a search during a hot
-+	path such as switching OPPs.
-+	 soc_pm_init()
-+	 {
-+		/* do things */
-+		freq = ULONG_MAX;
-+		max_opp = opp_find_freq_floor(dev, &freq);
-+		freq = 0;
-+		min_opp = opp_find_freq_ceil(dev, &freq);
-+		/* do other things */
-+	 }
-+	A simplified implementation of a SoC cpufreq_driver->target:
-+	 soc_cpufreq_target(..)
-+	 {
-+		/* do things.. */
-+		if (target_freq > opp_get_freq(max_opp) ||
-+				target_freq < opp_get_freq(min_opp))
-+			return -EINVAL;
-+		/* do other things */
-+	 }
-+
-+opp_get_opp_count - Retrieve the number of available opps for a device
-+	Example: Lets say a co-processor in the SoC needs to know the available
-+	frequencies in a table, the main processor can notify as following:
-+	 soc_notify_coproc_available_frequencies()
-+	 {
-+		/* Do things */
-+		num_available = opp_get_opp_count(dev);
-+		speeds = kzalloc(sizeof(u32) * num_available, GFP_KERNEL);
-+		/* populate the table in increasing order */
-+		freq = 0;
-+		while (!IS_ERR(opp = opp_find_freq_ceil(dev, &freq))) {
-+			speeds[i] = freq;
-+			freq++;
-+			i++;
-+		}
-+		soc_notify_coproc(AVAILABLE_FREQs, speeds, num_available);
-+		/* Do other things */
-+	 }
-+
-+6. Cpufreq Table Generation
-+===========================
-+opp_init_cpufreq_table - cpufreq framework typically is initialized with
-+	cpufreq_frequency_table_cpuinfo which is provided with the list of
-+	frequencies that are available for operation. This function provides
-+	a ready to use conversion routine to translate the OPP layer's internal
-+	information about the available frequencies into a format readily
-+	providable to cpufreq.
-+	Example:
-+	 soc_pm_init()
-+	 {
-+		/* Do things */
-+		r = opp_init_cpufreq_table(dev, &freq_table);
-+		if (!r)
-+			cpufreq_frequency_table_cpuinfo(policy, freq_table);
-+		/* Do other things */
-+	 }
-+
-+	NOTE: This function is available only if CONFIG_CPU_FREQ is enabled in
-+	addition to CONFIG_PM as power management feature is required to
-+	dynamically scale voltage and frequency in a system.
-+
-+7. Data Structures
-+==================
-+Typically an SoC contains multiple voltage domains which are variable. Each
-+domain is represented by a device pointer. The relationship to OPP can be
-+represented as follows:
-+SoC
-+ |- device 1
-+ |	|- opp 1 (availability, freq, voltage)
-+ |	|- opp 2 ..
-+ ...	...
-+ |	`- opp n ..
-+ |- device 2
-+ ...
-+ `- device m
-+
-+OPP library maintains a internal list that the SoC framework populates and
-+accessed by various functions as described above. However, the structures
-+representing the actual OPPs and domains are internal to the OPP library itself
-+to allow for suitable abstraction reusable across systems.
-+
-+struct opp - The internal data structure of OPP library which is used to
-+	represent an OPP. In addition to the freq, voltage, availability
-+	information, it also contains internal book keeping information required
-+	for the OPP library to operate on.  Pointer to this structure is
-+	provided back to the users such as SoC framework to be used as a
-+	identifier for OPP in the interactions with OPP layer.
-+
-+	WARNING: The struct opp pointer should not be parsed or modified by the
-+	users. The defaults of for an instance is populated by opp_add, but the
-+	availability of the OPP can be modified by opp_enable/disable functions.
-+
-+struct device - This is used to identify a domain to the OPP layer. The
-+	nature of the device and it's implementation is left to the user of
-+	OPP library such as the SoC framework.
-+
-+Overall, in a simplistic view, the data structure operations is represented as
-+following:
-+
-+Initialization / modification:
-+            +-----+        /- opp_enable
-+opp_add --> | opp | <-------
-+  |         +-----+        \- opp_disable
-+  \-------> domain_info(device)
-+
-+Search functions:
-+             /-- opp_find_freq_ceil  ---\   +-----+
-+domain_info<---- opp_find_freq_exact -----> | opp |
-+             \-- opp_find_freq_floor ---/   +-----+
-+
-+Retrieval functions:
-++-----+     /- opp_get_voltage
-+| opp | <---
-++-----+     \- opp_get_freq
-+
-+domain_info <- opp_get_opp_count
-diff --git a/drivers/base/power/Makefile b/drivers/base/power/Makefile
-index cbccf9a..abe46ed 100644
---- a/drivers/base/power/Makefile
-+++ b/drivers/base/power/Makefile
-@@ -3,6 +3,7 @@ obj-$(CONFIG_PM_SLEEP)	+= main.o wakeup.o
- obj-$(CONFIG_PM_RUNTIME)	+= runtime.o
- obj-$(CONFIG_PM_OPS)	+= generic_ops.o
- obj-$(CONFIG_PM_TRACE_RTC)	+= trace.o
-+obj-$(CONFIG_PM_OPP)	+= opp.o
- 
- ccflags-$(CONFIG_DEBUG_DRIVER) := -DDEBUG
- ccflags-$(CONFIG_PM_VERBOSE)   += -DDEBUG
-diff --git a/drivers/base/power/opp.c b/drivers/base/power/opp.c
-new file mode 100644
-index 0000000..311fd7f
---- /dev/null
-+++ b/drivers/base/power/opp.c
-@@ -0,0 +1,534 @@
-+/*
-+ * Generic OPP Interface
-+ *
-+ * Copyright (C) 2009-2010 Texas Instruments Incorporated.
-+ *	Nishanth Menon
-+ *	Romit Dasgupta
-+ *	Kevin Hilman
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/cpufreq.h>
-+#include <linux/list.h>
-+#include <linux/opp.h>
-+
-+/*
-+ * Internal data structure organization with the OPP layer library is as
-+ * follows:
-+ * dev_opp_list (root)
-+ *	|- device 1 (represents voltage domain 1)
-+ *	|	|- opp 1 (availability, freq, voltage)
-+ *	|	|- opp 2 ..
-+ *	...	...
-+ *	|	`- opp n ..
-+ *	|- device 2 (represents the next voltage domain)
-+ *	...
-+ *	`- device m (represents mth voltage domain)
-+ * device 1, 2.. are represented by dev_opp structure while each opp
-+ * is represented by the opp structure.
-+ */
-+
-+/**
-+ * struct opp - Generic OPP description structure
-+ * @node:	opp list node. The nodes are maintained throughout the lifetime
-+ *		of boot. It is expected only an optimal set of OPPs are
-+ *		added to the library by the SoC framework.
-+ *		IMPORTANT: the opp nodes should be maintained in increasing
-+ *		order
-+ * @available:	true/false - marks if this OPP as available or not
-+ * @rate:	Frequency in hertz
-+ * @u_volt:	Nominal voltage in microvolts corresponding to this OPP
-+ * @dev_opp:	points back to the device_opp struct this opp belongs to
-+ *
-+ * This structure stores the OPP information for a given device.
-+ */
-+struct opp {
-+	struct list_head node;
-+
-+	bool available;
-+	unsigned long rate;
-+	unsigned long u_volt;
-+
-+	struct device_opp *dev_opp;
-+};
-+
-+/**
-+ * struct device_opp - Device opp structure
-+ * @node:	list node - contains the devices with OPPs that
-+ *		have been registered
-+ * @lock:	Lock to allow exclusive modification in the list for the device
-+ * @dev:	device pointer
-+ * @opp_list:	list of opps
-+ * @available_opp_count: how many opps are actually available
-+ *
-+ * This is an internal data structure maintaining the link to opps attached to
-+ * a device. This structure is not meant to be shared to users as it is
-+ * meant for book keeping and private to OPP library
-+ */
-+struct device_opp {
-+	struct list_head node;
-+	/* mutex for exclusive modification of device OPP list */
-+	struct mutex lock;
-+
-+	struct device *dev;
-+
-+	struct list_head opp_list;
-+	u32 available_opp_count;
-+};
-+
-+/*
-+ * The root of the list of all devices. All device_opp structures branch off
-+ * from here, with each device_opp containing the list of opp it supports in
-+ * various states of availability.
-+ */
-+static LIST_HEAD(dev_opp_list);
-+/* Lock to allow exclusive modification to the device list */
-+static DEFINE_MUTEX(dev_opp_list_lock);
-+
-+/**
-+ * find_device_opp() - find device_opp struct using device pointer
-+ * @dev:	device pointer used to lookup device OPPs
-+ *
-+ * Search list of device OPPs for one containing matching device.
-+ *
-+ * Returns pointer to 'struct device_opp' if found, otherwise -ENODEV or
-+ * -EINVAL based on type of error.
-+ */
-+static struct device_opp *find_device_opp(struct device *dev)
-+{
-+	struct device_opp *tmp_dev_opp, *dev_opp = ERR_PTR(-ENODEV);
-+
-+	if (unlikely(!dev || IS_ERR(dev))) {
-+		pr_err("%s: Invalid parameters being passed\n", __func__);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	list_for_each_entry(tmp_dev_opp, &dev_opp_list, node) {
-+		if (tmp_dev_opp->dev == dev) {
-+			dev_opp = tmp_dev_opp;
-+			break;
-+		}
-+	}
-+
-+	return dev_opp;
-+}
-+
-+/**
-+ * opp_get_voltage() - Gets the voltage corresponding to an available opp
-+ * @opp:	opp for which voltage has to be returned for
-+ *
-+ * Return voltage in micro volt corresponding to the opp, else
-+ * return 0
-+ *
-+ * WARNING: using this api simultaneously with opp_add/enable/disable may
-+ * result in stale data. To ensure sanity of results, callers must ensure
-+ * exclusivity from mentioned functions in some form.
-+ */
-+unsigned long opp_get_voltage(const struct opp *opp)
-+{
-+	if (unlikely(!opp || IS_ERR(opp)) || !opp->available) {
-+		pr_err("%s: Invalid parameters being passed\n", __func__);
-+		return 0;
-+	}
-+
-+	return opp->u_volt;
-+}
-+
-+/**
-+ * opp_get_freq() - Gets the frequency corresponding to an available opp
-+ * @opp:	opp for which frequency has to be returned for
-+ *
-+ * Return frequency in hertz corresponding to the opp, else
-+ * return 0
-+ *
-+ * WARNING: using this api simultaneously with opp_add/enable/disable may
-+ * result in stale data. To ensure sanity of results, callers must ensure
-+ * exclusivity from mentioned functions in some form.
-+ */
-+unsigned long opp_get_freq(const struct opp *opp)
-+{
-+	if (unlikely(!opp || IS_ERR(opp)) || !opp->available) {
-+		pr_err("%s: Invalid parameters being passed\n", __func__);
-+		return 0;
-+	}
-+
-+	return opp->rate;
-+}
-+
-+/**
-+ * opp_get_opp_count() - Get number of opps available in the opp list
-+ * @dev:	device for which we do this operation
-+ *
-+ * This function returns the number of available opps if there are any,
-+ * else returns 0 if none or the corresponding error value.
-+ *
-+ * WARNING: using this api simultaneously with opp_add/enable/disable may
-+ * result in stale data. To ensure sanity of results, callers must ensure
-+ * exclusivity from mentioned functions in some form.
-+ */
-+int opp_get_opp_count(struct device *dev)
-+{
-+	struct device_opp *dev_opp;
-+
-+	dev_opp = find_device_opp(dev);
-+	if (IS_ERR(dev_opp))
-+		return PTR_ERR(dev_opp);
-+
-+	return dev_opp->available_opp_count;
-+}
-+
-+/**
-+ * opp_find_freq_exact() - search for an exact frequency
-+ * @dev:		device for which we do this operation
-+ * @freq:		frequency to search for
-+ * @is_available:	true/false - match for available opp
-+ *
-+ * Searches for exact match in the opp list and returns pointer to the matching
-+ * opp if found, else returns ERR_PTR in case of error and should be handled
-+ * using IS_ERR.
-+ *
-+ * Note: available is a modifier for the search. if available=true, then the
-+ * match is for exact matching frequency and is available in the stored OPP
-+ * table. if false, the match is for exact frequency which is not available.
-+ *
-+ * This provides a mechanism to enable an opp which is not available currently
-+ * or the opposite as well.
-+ *
-+ * WARNING: using this api simultaneously with opp_add/enable/disable may
-+ * result in stale data. To ensure sanity of results, callers must ensure
-+ * exclusivity from mentioned functions in some form.
-+ */
-+struct opp *opp_find_freq_exact(struct device *dev,
-+				     unsigned long freq, bool available)
-+{
-+	struct device_opp *dev_opp;
-+	struct opp *temp_opp, *opp = ERR_PTR(-ENODEV);
-+
-+	dev_opp = find_device_opp(dev);
-+	if (IS_ERR(dev_opp))
-+		return opp;
-+
-+	list_for_each_entry(temp_opp, &dev_opp->opp_list, node) {
-+		if (temp_opp->available == available &&
-+				temp_opp->rate == freq) {
-+			opp = temp_opp;
-+			break;
-+		}
-+	}
-+
-+	return opp;
-+}
-+
-+/**
-+ * opp_find_freq_ceil() - Search for an rounded ceil freq
-+ * @dev:	device for which we do this operation
-+ * @freq:	Start frequency
-+ *
-+ * Search for the matching ceil *available* OPP from a starting freq
-+ * for a device.
-+ *
-+ * Returns matching *opp and refreshes *freq accordingly, else returns
-+ * ERR_PTR in case of error and should be handled using IS_ERR.
-+ *
-+ * Example usages:
-+ *	* find match/next highest available frequency *
-+ *	freq = 350000;
-+ *	opp = opp_find_freq_ceil(dev, &freq))
-+ *	if (IS_ERR(opp))
-+ *		pr_err("unable to find a higher frequency\n");
-+ *	else
-+ *		pr_info("match freq = %ld\n", freq);
-+ *
-+ *	* print all supported frequencies in ascending order *
-+ *	freq = 0; * Search for the lowest available frequency *
-+ *	while (!IS_ERR(opp = opp_find_freq_ceil(OPP_MPU, &freq)) {
-+ *		pr_info("freq = %ld\n", freq);
-+ *		freq++; * for next higher match *
-+ *	}
-+ *
-+ * WARNING: using this api simultaneously with opp_add/enable/disable may
-+ * result in stale data. To ensure sanity of results, callers must ensure
-+ * exclusivity from mentioned functions in some form.
-+ */
-+struct opp *opp_find_freq_ceil(struct device *dev, unsigned long *freq)
-+{
-+	struct device_opp *dev_opp;
-+	struct opp *temp_opp, *opp = ERR_PTR(-ENODEV);
-+
-+	if (!dev || !freq) {
-+		pr_err("%s: invalid param dev=%p freq=%p\n", __func__,
-+				dev, freq);
-+		return ERR_PTR(-EINVAL);
-+	}
-+	dev_opp = find_device_opp(dev);
-+	if (IS_ERR(dev_opp))
-+		return opp;
-+
-+	list_for_each_entry(temp_opp, &dev_opp->opp_list, node) {
-+		if (temp_opp->available && temp_opp->rate >= *freq) {
-+			opp = temp_opp;
-+			*freq = opp->rate;
-+			break;
-+		}
-+	}
-+
-+	return opp;
-+}
-+
-+/**
-+ * opp_find_freq_floor() - Search for a rounded floor freq
-+ * @dev:	device for which we do this operation
-+ * @freq:	Start frequency
-+ *
-+ * Search for the matching floor *available* OPP from a starting freq
-+ * for a device.
-+ *
-+ * Returns matching *opp and refreshes *freq accordingly, else returns
-+ * ERR_PTR in case of error and should be handled using IS_ERR.
-+ *
-+ * WARNING: using this api simultaneously with opp_add/enable/disable may
-+ * result in stale data. To ensure sanity of results, callers must ensure
-+ * exclusivity from mentioned functions in some form.
-+ *
-+ * Example usages:
-+ *	* find match/next lowest available frequency
-+ *	freq = 350000;
-+ *	opp = opp_find_freq_floor(dev, &freq)))
-+ *	if (IS_ERR(opp))
-+ *		pr_err ("unable to find a lower frequency\n");
-+ *	else
-+ *		pr_info("match freq = %ld\n", freq);
-+ *
-+ *	* print all supported frequencies in descending order *
-+ *	freq = ULONG_MAX; * search highest available frequency *
-+ *	while (!IS_ERR(opp = opp_find_freq_floor(OPP_MPU, &freq)) {
-+ *		pr_info("freq = %ld\n", freq);
-+ *		freq--; * for next lower match *
-+ *	}
-+ *
-+ * WARNING: using this api simultaneously with opp_add/enable/disable may
-+ * result in stale data. To ensure sanity of results, callers must ensure
-+ * exclusivity from mentioned functions in some form.
-+ */
-+struct opp *opp_find_freq_floor(struct device *dev, unsigned long *freq)
-+{
-+	struct device_opp *dev_opp;
-+	struct opp *temp_opp, *opp = ERR_PTR(-ENODEV);
-+
-+	if (!dev || !freq) {
-+		pr_err("%s: invalid param dev=%p freq=%p\n", __func__,
-+				dev, freq);
-+		return ERR_PTR(-EINVAL);
-+	}
-+	dev_opp = find_device_opp(dev);
-+	if (IS_ERR(dev_opp))
-+		return opp;
-+
-+	list_for_each_entry_reverse(temp_opp, &dev_opp->opp_list, node) {
-+		if (temp_opp->available && temp_opp->rate <= *freq) {
-+			opp = temp_opp;
-+			*freq = opp->rate;
-+			break;
-+		}
-+	}
-+
-+	return opp;
-+}
-+
-+/**
-+ * opp_add()  - Add an OPP table from a table definitions
-+ * @dev:	device for which we do this operation
-+ * @freq:	Frequency in Hz for this OPP
-+ * @u_volt:	Voltage in uVolts for this OPP
-+ *
-+ * This function adds an opp definition to the opp list and returns status.
-+ * The opp is made available by default and it can be controlled using
-+ * opp_enable/disable functions.
-+ *
-+ * WARNING: This function should not be used in interrupt context.
-+ */
-+int opp_add(struct device *dev, unsigned long freq, unsigned long u_volt)
-+{
-+	struct device_opp *tmp_dev_opp, *dev_opp = NULL;
-+	struct opp *opp, *new_opp;
-+	struct list_head *head;
-+
-+	/* Check for existing list for 'dev' */
-+	list_for_each_entry(tmp_dev_opp, &dev_opp_list, node) {
-+		if (dev == tmp_dev_opp->dev) {
-+			dev_opp = tmp_dev_opp;
-+			break;
-+		}
-+	}
-+
-+	/* allocate new OPP node */
-+	new_opp = kzalloc(sizeof(struct opp), GFP_KERNEL);
-+	if (!new_opp) {
-+		pr_warning("%s: unable to allocate new opp node\n",
-+			__func__);
-+		return -ENOMEM;
-+	}
-+
-+	if (!dev_opp) {
-+		/* Allocate a new device OPP table */
-+		dev_opp = kzalloc(sizeof(struct device_opp), GFP_KERNEL);
-+		if (!dev_opp) {
-+			kfree(new_opp);
-+			pr_warning("%s: unable to allocate device structure\n",
-+				__func__);
-+			return -ENOMEM;
-+		}
-+
-+		dev_opp->dev = dev;
-+		INIT_LIST_HEAD(&dev_opp->opp_list);
-+		mutex_init(&dev_opp->lock);
-+
-+		/* Secure the device list modification */
-+		mutex_lock(&dev_opp_list_lock);
-+		list_add(&dev_opp->node, &dev_opp_list);
-+		mutex_unlock(&dev_opp_list_lock);
-+	}
-+
-+	/* populate the opp table */
-+	new_opp->rate = freq;
-+	new_opp->u_volt = u_volt;
-+	new_opp->available = true;
-+
-+	/* make the dev_opp modification safe */
-+	mutex_lock(&dev_opp->lock);
-+	/* Insert new OPP in order of increasing frequency */
-+	head = &dev_opp->opp_list;
-+	list_for_each_entry_reverse(opp, &dev_opp->opp_list, node) {
-+		if (new_opp->rate >= opp->rate) {
-+			head = &opp->node;
-+			break;
-+		}
-+	}
-+	list_add(&new_opp->node, head);
-+	if (new_opp->available)
-+		dev_opp->available_opp_count++;
-+	mutex_unlock(&dev_opp->lock);
-+
-+	return 0;
-+}
-+
-+/**
-+ * opp_enable() - Enable a specific OPP
-+ * @opp:	Pointer to opp
-+ *
-+ * Enables a provided opp. If the operation is valid, this returns 0, else the
-+ * corresponding error value. It is meant to be used for users an OPP available
-+ * after being temporarily made unavailable with opp_disable.
-+ *
-+ * OPP used here is from the opp_find_freq_* or other search functions
-+ * WARNING: This function should not be used in interrupt context.
-+ */
-+int opp_enable(struct opp *opp)
-+{
-+	if (unlikely(!opp || IS_ERR(opp))) {
-+		pr_err("%s: Invalid parameters being passed\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&opp->dev_opp->lock);
-+	if (!opp->available && opp->dev_opp)
-+		opp->dev_opp->available_opp_count++;
-+
-+	opp->available = true;
-+	mutex_unlock(&opp->dev_opp->lock);
-+
-+	return 0;
-+}
-+
-+/**
-+ * opp_disable() - Disable a specific OPP
-+ * @opp:	Pointer to opp
-+ *
-+ * Disables a provided opp. If the operation is valid, this returns
-+ * 0, else the corresponding error value. It is meant to be a temporary
-+ * control by users to make this OPP not available until the circumstances are
-+ * right to make it available again (with a call to opp_enable).
-+ *
-+ * OPP used here is from the opp_find_freq_* or other search functions
-+ * WARNING: This function should not be used in interrupt context.
-+ */
-+int opp_disable(struct opp *opp)
-+{
-+	if (unlikely(!opp || IS_ERR(opp))) {
-+		pr_err("%s: Invalid parameters being passed\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&opp->dev_opp->lock);
-+	if (opp->available && opp->dev_opp)
-+		opp->dev_opp->available_opp_count--;
-+
-+	opp->available = false;
-+	mutex_unlock(&opp->dev_opp->lock);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_CPU_FREQ
-+/**
-+ * opp_init_cpufreq_table() - create a cpufreq table for a device
-+ * @dev:	device for which we do this operation
-+ * @table:	Cpufreq table returned back to caller
-+ *
-+ * Generate a cpufreq table for a provided device- this assumes that the
-+ * opp list is already initialized and ready for usage.
-+ *
-+ * This function allocates required memory for the cpufreq table. It is
-+ * expected that the caller does the required maintenance such as freeing
-+ * the table as required.
-+ *
-+ * WARNING: using this api simultaneously with opp_add/enable/disable may
-+ * result in stale data. To ensure sanity of results, callers must ensure
-+ * exclusivity from mentioned functions in some form. It is equally important
-+ * for the callers to ensure refreshing their copy of the table if any of the
-+ * mentioned functions have been invoked in the interim.
-+ */
-+void opp_init_cpufreq_table(struct device *dev,
-+			    struct cpufreq_frequency_table **table)
-+{
-+	struct device_opp *dev_opp;
-+	struct opp *opp;
-+	struct cpufreq_frequency_table *freq_table;
-+	int i = 0;
-+
-+	dev_opp = find_device_opp(dev);
-+	if (IS_ERR(dev_opp)) {
-+		pr_warning("%s: unable to find device\n", __func__);
-+		return;
-+	}
-+
-+	freq_table = kzalloc(sizeof(struct cpufreq_frequency_table) *
-+			     (dev_opp->available_opp_count + 1), GFP_ATOMIC);
-+	if (!freq_table) {
-+		pr_warning("%s: failed to allocate frequency table\n",
-+			   __func__);
-+		return;
-+	}
-+
-+	list_for_each_entry(opp, &dev_opp->opp_list, node) {
-+		if (opp->available) {
-+			freq_table[i].index = i;
-+			freq_table[i].frequency = opp->rate / 1000;
-+			i++;
-+		}
-+	}
-+
-+	freq_table[i].index = i;
-+	freq_table[i].frequency = CPUFREQ_TABLE_END;
-+
-+	*table = &freq_table[0];
-+}
-+#endif		/* CONFIG_CPU_FREQ */
-diff --git a/include/linux/opp.h b/include/linux/opp.h
-new file mode 100644
-index 0000000..c29f93b
---- /dev/null
-+++ b/include/linux/opp.h
-@@ -0,0 +1,103 @@
-+/*
-+ * Generic OPP Interface
-+ *
-+ * Copyright (C) 2009-2010 Texas Instruments Incorporated.
-+ *	Nishanth Menon
-+ *	Romit Dasgupta
-+ *	Kevin Hilman
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef __ASM_OPP_H
-+#define __ASM_OPP_H
-+
-+#include <linux/err.h>
-+#include <linux/cpufreq.h>
-+
-+struct opp;
-+
-+#if defined(CONFIG_PM_OPP)
-+
-+unsigned long opp_get_voltage(const struct opp *opp);
-+
-+unsigned long opp_get_freq(const struct opp *opp);
-+
-+int opp_get_opp_count(struct device *dev);
-+
-+struct opp *opp_find_freq_exact(struct device *dev, unsigned long freq,
-+				bool available);
-+
-+struct opp *opp_find_freq_floor(struct device *dev, unsigned long *freq);
-+
-+struct opp *opp_find_freq_ceil(struct device *dev, unsigned long *freq);
-+
-+int opp_add(struct device *dev, unsigned long freq, unsigned long u_volt);
-+
-+int opp_enable(struct opp *opp);
-+
-+int opp_disable(struct opp *opp);
-+
-+#else
-+static inline unsigned long opp_get_voltage(const struct opp *opp)
-+{
-+	return 0;
-+}
-+
-+static inline unsigned long opp_get_freq(const struct opp *opp)
-+{
-+	return 0;
-+}
-+
-+static inline int opp_get_opp_count(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static inline struct opp *opp_find_freq_exact(struct device *dev,
-+					unsigned long freq, bool available)
-+{
-+	return ERR_PTR(-EINVAL);
-+}
-+
-+static inline struct opp *opp_find_freq_floor(struct device *dev,
-+					unsigned long *freq)
-+{
-+	return ERR_PTR(-EINVAL);
-+}
-+
-+static inline struct opp *opp_find_freq_ceil(struct device *dev,
-+					unsigned long *freq)
-+{
-+	return ERR_PTR(-EINVAL);
-+}
-+
-+static inline int opp_add(struct device *dev, unsigned long freq,
-+					unsigned long u_volt);
-+{
-+	return -EINVAL;
-+}
-+
-+static inline int opp_enable(struct opp *opp)
-+{
-+	return 0;
-+}
-+
-+static inline int opp_disable(struct opp *opp)
-+{
-+	return 0;
-+}
-+#endif		/* CONFIG_PM */
-+
-+#if defined(CONFIG_CPU_FREQ) && defined(CONFIG_PM_OPP)
-+void opp_init_cpufreq_table(struct device *dev,
-+			    struct cpufreq_frequency_table **table);
-+#else
-+static inline void opp_init_cpufreq_table(struct device *dev,
-+			    struct cpufreq_frequency_table **table)
-+{
-+}
-+#endif		/* CONFIG_CPU_FREQ */
-+
-+#endif		/* __ASM_OPP_H */
-diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-index ca6066a..634eab6 100644
---- a/kernel/power/Kconfig
-+++ b/kernel/power/Kconfig
-@@ -242,3 +242,17 @@ config PM_OPS
- 	bool
- 	depends on PM_SLEEP || PM_RUNTIME
- 	default y
-+
-+config PM_OPP
-+	bool "Enable Operating Performance Point(OPP) Layer library"
-+	depends on PM
-+	---help---
-+	  SOCs have a standard set of tuples consisting of frequency and
-+	  voltage pairs that the device will support per voltage domain. This
-+	  is called Operating Performance Point or OPP. The actual definitions
-+	  of OPP varies over silicon within the same family of devices.
-+
-+	  OPP layer organizes the data internally using device pointers
-+	  representing individual voltage domains and provides SOC
-+	  implementations a ready to use framework to manage OPPs.
-+	  For more information, read <file:Documentation/power/opp.txt>
--- 
-1.6.3.3
-
+--=20
+Laine Walker-Avina
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
