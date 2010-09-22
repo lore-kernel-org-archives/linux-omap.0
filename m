@@ -1,50 +1,52 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Wed, 22 Sep 2010 19:57:56 +0200
-Message-ID: <201009221957.57845.trenn@suse.de>
-References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com> <AANLkTimMAr9kEzybFGai3qGyXx36v055iPpXq_C1vW8C@mail.gmail.com> <4C9A21AD.1000800@linux.intel.com>
+From: Sergei Shtylyov <sshtylyov@mvista.com>
+Subject: Re: [PATCH v3 2/4] omap4 hsmmc: Fix the init if CONFIG_MMC_OMAP_HS
+ is 	not set
+Date: Wed, 22 Sep 2010 22:05:47 +0400
+Message-ID: <4C9A457B.4060500@ru.mvista.com>
+References: <14880.10.24.255.18.1285173821.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <4C9A21AD.1000800@linux.intel.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@linux.intel.com>, linux-pm@lists.linux-foundation.org
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:50170 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab0IVSGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 14:06:32 -0400
+In-Reply-To: <14880.10.24.255.18.1285173821.squirrel@dbdmail.itg.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: kishore kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 22 September 2010 17:33:01 Arjan van de Ven wrote:
->   On 9/22/2010 8:31 AM, Jean Pihet wrote:
-> > Hi,
-> >
-> > Here is a patch that redefines the power events API. The advantages
-> > are: easier maintainance of the kernel and the
-> > user space tools, a cleaner and more generic interface, more
-> > parameters for fine tracing and even documentation!
-> >
-> > Thomas, this patch has your patch above merged in ('power-trace: Use
-> > power_switch_state instead of power_start and power_end'). The revised
-> > ACPI patch is coming asap.
-> >
-> > The trace points for x86 and OMAP are also udated accordingly.
-> >
-> > The pytimechart tool needs an update for the new API. This can be done
-> > as soon as the kernel code gets merged in.
+Hello.
+
+kishore kadiyala wrote:
+
+> From: Benoit Cousson <b-cousson@ti.com>
+
+> Avoid possible crash if CONFIG_MMC_OMAP_HS is not set
+
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-4430sdp.c |    8 +++++++-
+>  1 files changed, 7 insertions(+), 1 deletions(-)
 > 
-> unfortunately this code is changing a userspace ABI... we really 
-> shouldn't do that if we can avoid it,
-> and here we can avoid it.
-Wow, this is your first post on this thread and you needed 1 min, 20 secs
-to reply and comment on work that probably took several weeks and which is quite
-an improvement.
-You did not even start to read the documentation/patch in this minute, did you?
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index a49f285..ac8541c 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -240,8 +240,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+> 
+>  static __init void omap4_twl6030_hsmmc_set_late_init(struct device *dev)
+>  {
+> -	struct omap_mmc_platform_data *pdata = dev->platform_data;
+> +	struct omap_mmc_platform_data *pdata;
+> 
+> +	/* dev can be null if CONFIG_MMC_OMAP_HS is not set */
+> +	if (!dev) {
+> +		pr_err("Failed omap4_twl6030_hsmmc_set_late_init\n");
 
-> applications ARE using this stuff!
-The current interfaces do not make sense at all.
-Things must be changed now before even more ARE using the broken stuff
-and things get more complicated.
-You should be happy that someone is helping/doing it.
+    pr_err("Failed %s\n", __func__);
 
-    Thomas
-
+WBR, Sergei
