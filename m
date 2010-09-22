@@ -1,59 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/5] OMAP4: clocks: Update clock tree for ES2
-Date: Tue, 21 Sep 2010 23:03:54 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009212300560.21002@utopia.booyaka.com>
-References: <1284641906-24231-1-git-send-email-rnayak@ti.com> <1284641906-24231-2-git-send-email-rnayak@ti.com> <1284641906-24231-3-git-send-email-rnayak@ti.com> <1284641906-24231-4-git-send-email-rnayak@ti.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 1/6] SoC Camera: add driver for OMAP1 camera interface
+Date: Wed, 22 Sep 2010 08:08:21 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1009220801340.32562@axis700.grange>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+ <201009110321.25852.jkrzyszt@tis.icnet.pl>  <Pine.LNX.4.64.1009211639410.11896@axis700.grange>
+ <1285114243.5561.31.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2028730998-1285131834=:21002"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37584 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab0IVFDz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 01:03:55 -0400
-In-Reply-To: <1284641906-24231-4-git-send-email-rnayak@ti.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:59602 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1750808Ab0IVGIP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Sep 2010 02:08:15 -0400
+In-Reply-To: <1285114243.5561.31.camel@pc07.localdom.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Wed, 22 Sep 2010, hermann pitton wrote:
 
---155748971-2028730998-1285131834=:21002
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+> Am Mittwoch, den 22.09.2010, 01:23 +0200 schrieb Guennadi Liakhovetski:
+> > On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
+> > 
+> > > This is a V4L2 driver for TI OMAP1 SoC camera interface.
+> 
+> [snip]
+> 
+> > > +
+> > > +	} else {
+> > > +		dev_warn(dev, "%s: unhandled camera interrupt, status == "
+> > > +				"0x%0x\n", __func__, it_status);
+> > 
+> > Please, don't split strings
+> 
+> sorry for any OT interference.
+> 
+> But, are there any new rules out?
+> 
+> Maybe I missed them.
+> 
+> Either way, the above was forced during the last three years.
+> 
+> Not at all ?
 
-Hello Rajendra, Beno=C3=AEt,
+No. Splitting print strings has always been discouraged, because it makes 
+tracking back kernel logs difficult. The reason for this has been the 80 
+character line length limit, which has now been effectively lifted. I'm 
+sure you can find enough links on the internet for any of these topics.
 
-On Thu, 16 Sep 2010, Rajendra Nayak wrote:
-
-> This patch updates the clock tree with all the
-> changes in OMAP4430 ES2.
->=20
-> clock nodes added
-> -1- tie_low_clock_ck
-> -2- abe_dpll_bypass_clk_mux_ck
->=20
-> clock nodes deleted
-> -1- dpll_sys_ref_clk
-> -2- per_sgx_fclk
-> -3- usbphyocp2scp_ick
->=20
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Beno=C3=83=C2=AEt Cousson <b-cousson@ti.com>
-
-UTF-8 problem again here...
-
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-
-The clock tree resulting from this patch doesn't match the output from=20
-the current OMAP4 clock autogen script.  Seems like it should.  Could you=
-=20
-help me understand that?
-
-
-thanks
-
-- Paul
---155748971-2028730998-1285131834=:21002--
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
