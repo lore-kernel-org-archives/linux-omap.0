@@ -1,114 +1,142 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v8 0/6] OMAP: WDT: Implement WDT in hwmod way
-Date: Thu, 23 Sep 2010 20:02:37 +0530
-Message-ID: <1285252363-3630-1-git-send-email-charu@ti.com>
+Subject: [PATCH v8 6/6] OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
+Date: Thu, 23 Sep 2010 20:02:43 +0530
+Message-ID: <1285252363-3630-7-git-send-email-charu@ti.com>
+References: <1285252363-3630-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57601 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57605 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753991Ab0IWOd2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Sep 2010 10:33:28 -0400
+	id S1755057Ab0IWOd3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Sep 2010 10:33:29 -0400
+In-Reply-To: <1285252363-3630-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, wim@iguana.be, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
 
-Series of patches to port watchdog module to use hwmod APIs
-for OMAP2PLUS chips and use runtime APIs for all OMAP chips.
-For this hwmod database for OMAP2PLUS watchdog instances are
-populated and implements watchdog module to use PM runtime APIs.
+Call runtime pm APIs pm_runtime_put_sync() and pm_runtime_get_sync()
+for enabling/disabling the clocks, sysconfig settings instead of using
+clock FW APIs.
 
-This patch series is generated on "origin/pm-core" which
-has Kevin's pm-next series, the runtime PM core patch series,
-and a collection of hwmod fixes that Paul/Benoit have lined up
-for 2.6.37.
+Signed-off-by: Charulatha V <charu@ti.com>
+Acked-by: Cousson, Benoit <b-cousson@ti.com>
+---
+ drivers/watchdog/omap_wdt.c |   42 +++++++-----------------------------------
+ 1 files changed, 7 insertions(+), 35 deletions(-)
 
-Tested on OMAP2430, OMAP4430 (ES1.0 & ES2.0), OMAP3430 SDP boards
-and zoom3 board. Also verified that this patch series does not
-break the OMAP1 build.
-
-This series is tested on OMAP4430 ES2 using the below series
-(dependency series for ES2.0 silicon)
-http://www.spinics.net/lists/linux-omap/msg36023.html
-
-Version History:
----------------
-Version v8:
-*Enable wd_timer3 in the hwmod list
-
-Version v7:
-*Use EN_*SHIFT macros for module_bit and ST_*SHIFT macros for
-idlest_idle_bit in OMAP2&3 hwmod database
-(based on suggestions given by Paul for I2C hwmod series)
-*Remove new definitions of EN_*SHIFT macros as they already exist
-Some of the v7 links:
-https://patchwork.kernel.org/patch/197022/
-
-Version v6:
-*Split omap_init_wdt() into separate omap_init_wdt functions
-under mach-omap1 and mach-omap2 and set them up with
-subsys_initcall
-*Include wd_timer3 database for OMAP4
-*In hwmod database follow naming convention "wd_timerX"
-Some of the v6 links:
-http://www.spinics.net/lists/linux-omap/msg36678.html
-https://patchwork.kernel.org/patch/188242/
-https://patchwork.kernel.org/patch/188222/
-
-Version v5:
-*Delete wdt_runtime_resume and wdt_runtime_suspend
-functions as the fix for the return values in the generic
-runtime PM calls has been queued for 2.6.37 (see below link)
-https://lists.linux-foundation.org/pipermail/linux-pm/2010-September/028466.html
-Some of the v5 links:
-https://patchwork.kernel.org/patch/181812/
-https://patchwork.kernel.org/patch/181782/
-https://patchwork.kernel.org/patch/181772/
-https://patchwork.kernel.org/patch/181792/
-
-Version v4:
-*Implement hwmod adapdation first and then PM runtime adaptation
-as two different patches in the series
-*Remove inclusion of omap_device.h in the driver file.
-Some of the v4 links:
-https://patchwork.kernel.org/patch/174672/
-https://patchwork.kernel.org/patch/174662/
-
-Version v3:
-*Fix Minor comments like renaming omap1 watchdog structures
-with an omap1_ prefix
-Some of the v3 links:
-https://patchwork.kernel.org/patch/119698/
-https://patchwork.kernel.org/patch/119696/ 
-
-Version v2:
-*Rebase to latest kernel
-Some of the v2 links:
-http://www.spinics.net/lists/linux-omap/msg34741.html
-http://www.spinics.net/lists/linux-omap/msg34673.html
-
-Version v1:
-*Initial series
-Some of the v1 links:
-http://www.spinics.net/lists/linux-omap/msg30628.html
-http://www.spinics.net/lists/linux-omap/msg30625.html
-
-Benoit Cousson (1):
-  OMAP4: hwmod data: Add watchdog timer
-
-Varadarajan, Charulatha (5):
-  OMAP3: hwmod data: Add watchdog timer
-  OMAP2420: hwmod data: Add watchdog timer
-  OMAP2430: hwmod data: Add watchdog timer
-  OMAP2PLUS: WDT: use omap_device_build for device registration
-  OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
-
- arch/arm/mach-omap1/devices.c              |   27 ++++++
- arch/arm/mach-omap2/devices.c              |   39 ++++++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   64 +++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   64 +++++++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   66 ++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  135 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/devices.c               |   41 ---------
- drivers/watchdog/omap_wdt.c                |   42 ++-------
- 8 files changed, 402 insertions(+), 76 deletions(-)
+diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+index 76b58ab..dbbc580 100644
+--- a/drivers/watchdog/omap_wdt.c
++++ b/drivers/watchdog/omap_wdt.c
+@@ -38,11 +38,11 @@
+ #include <linux/err.h>
+ #include <linux/platform_device.h>
+ #include <linux/moduleparam.h>
+-#include <linux/clk.h>
+ #include <linux/bitops.h>
+ #include <linux/io.h>
+ #include <linux/uaccess.h>
+ #include <linux/slab.h>
++#include <linux/pm_runtime.h>
+ #include <mach/hardware.h>
+ #include <plat/prcm.h>
+ 
+@@ -61,8 +61,6 @@ struct omap_wdt_dev {
+ 	void __iomem    *base;          /* physical */
+ 	struct device   *dev;
+ 	int             omap_wdt_users;
+-	struct clk      *ick;
+-	struct clk      *fck;
+ 	struct resource *mem;
+ 	struct miscdevice omap_wdt_miscdev;
+ };
+@@ -146,8 +144,7 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
+ 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
+ 		return -EBUSY;
+ 
+-	clk_enable(wdev->ick);    /* Enable the interface clock */
+-	clk_enable(wdev->fck);    /* Enable the functional clock */
++	pm_runtime_get_sync(wdev->dev);
+ 
+ 	/* initialize prescaler */
+ 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
+@@ -177,8 +174,7 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
+ 
+ 	omap_wdt_disable(wdev);
+ 
+-	clk_disable(wdev->ick);
+-	clk_disable(wdev->fck);
++	pm_runtime_put_sync(wdev->dev);
+ #else
+ 	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
+ #endif
+@@ -292,19 +288,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+ 
+ 	wdev->omap_wdt_users = 0;
+ 	wdev->mem = mem;
+-
+-	wdev->ick = clk_get(&pdev->dev, "ick");
+-	if (IS_ERR(wdev->ick)) {
+-		ret = PTR_ERR(wdev->ick);
+-		wdev->ick = NULL;
+-		goto err_clk;
+-	}
+-	wdev->fck = clk_get(&pdev->dev, "fck");
+-	if (IS_ERR(wdev->fck)) {
+-		ret = PTR_ERR(wdev->fck);
+-		wdev->fck = NULL;
+-		goto err_clk;
+-	}
++	wdev->dev = &pdev->dev;
+ 
+ 	wdev->base = ioremap(res->start, resource_size(res));
+ 	if (!wdev->base) {
+@@ -314,8 +298,8 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, wdev);
+ 
+-	clk_enable(wdev->ick);
+-	clk_enable(wdev->fck);
++	pm_runtime_enable(wdev->dev);
++	pm_runtime_get_sync(wdev->dev);
+ 
+ 	omap_wdt_disable(wdev);
+ 	omap_wdt_adjust_timeout(timer_margin);
+@@ -333,11 +317,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+ 		__raw_readl(wdev->base + OMAP_WATCHDOG_REV) & 0xFF,
+ 		timer_margin);
+ 
+-	/* autogate OCP interface clock */
+-	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+-
+-	clk_disable(wdev->ick);
+-	clk_disable(wdev->fck);
++	pm_runtime_put_sync(wdev->dev);
+ 
+ 	omap_wdt_dev = pdev;
+ 
+@@ -349,12 +329,6 @@ err_misc:
+ 
+ err_ioremap:
+ 	wdev->base = NULL;
+-
+-err_clk:
+-	if (wdev->ick)
+-		clk_put(wdev->ick);
+-	if (wdev->fck)
+-		clk_put(wdev->fck);
+ 	kfree(wdev);
+ 
+ err_kzalloc:
+@@ -386,8 +360,6 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
+ 	release_mem_region(res->start, resource_size(res));
+ 	platform_set_drvdata(pdev, NULL);
+ 
+-	clk_put(wdev->ick);
+-	clk_put(wdev->fck);
+ 	iounmap(wdev->base);
+ 
+ 	kfree(wdev);
+-- 
+1.7.0.4
 
