@@ -1,73 +1,119 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [RFC 0/8] Split powerdomain framework into plat specfic/independent
-Date: Thu, 23 Sep 2010 18:04:43 +0530
-Message-ID: <1285245291-26442-1-git-send-email-rnayak@ti.com>
+Subject: [RFC 2/8] OMAP: powerdomain: Infrastructure to put arch specific code
+Date: Thu, 23 Sep 2010 18:04:45 +0530
+Message-ID: <1285245291-26442-3-git-send-email-rnayak@ti.com>
+References: <1285245291-26442-1-git-send-email-rnayak@ti.com>
+ <1285245291-26442-2-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40350 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50026 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753547Ab0IWMfC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755163Ab0IWMfC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 23 Sep 2010 08:35:02 -0400
+In-Reply-To: <1285245291-26442-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-OMAP4 powerdomains have some inherent differences as compared
-to OMAP2/3 powerdomains, starting with register offsets being different
-to clubbing of multiple controls into one register and in some cases
-splitting of control into multiple registers.
-There are also new features like lowpowerstatechange bits and features
-like HW SAR which are no longer present in the older form.
+Put infrastructure in place, so arch specific func pointers
+can be hooked up to the platform-independent part of the
+framework.
 
-Supporting all these in the existing powerdomain framework would mean adding
-a lot of cpu_is_* checks which makes code unmaintainable going fwd.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/io.c                      |    2 +-
+ arch/arm/plat-omap/include/plat/powerdomain.h |   22 +++++++++++++++++++++-
+ arch/arm/plat-omap/powerdomain.c              |   12 ++++++++++--
+ 3 files changed, 32 insertions(+), 4 deletions(-)
 
-Hence this RFC series is an attempt to split the existing powerdomain framework
-into platform independent part (which does error checking, usecounting et al)
-which can be reused across OMAP's and hook up platform specific functions to
-do low level programming which varies across OMAP's.
-
-The series has a dependency on the following patch series
-http://marc.info/?l=linux-omap&m=128146137929118&w=2
-http://marc.info/?l=linux-omap&m=128464495603506&w=2
-
-This series along with all the dependent series patches can be
-found here
-git://gitorious.org/omap-pm/linux.git powerdomain-split
-
-Rajendra Nayak (6):
-  OMAP: powerdomain: Move powerdomain.c from mach-omap2 to plat-omap
-  OMAP: powerdomain: Infrastructure to put arch specific code
-  OMAP: powerdomain: Arch specific funcs for state control
-  OMAP: powerdomain: Arch specific funcs for logic control
-  OMAP: powerdomain: Arch specific funcs for mem control
-  OMAP: PRM: split the prm accessor api funcs for omap2/3 and omap4
-
-Santosh Shilimkar (2):
-  omap4: powerdomain: add context_offset field
-  omap4: powerdomain: Add pwrdm_clear_all_prev_pwrst
-
- arch/arm/mach-omap2/Makefile                     |   10 +-
- arch/arm/mach-omap2/clockdomain.c                |   16 +-
- arch/arm/mach-omap2/control.c                    |    8 +-
- arch/arm/mach-omap2/io.c                         |    5 +-
- arch/arm/mach-omap2/pm-debug.c                   |    4 +-
- arch/arm/mach-omap2/pm24xx.c                     |   48 ++--
- arch/arm/mach-omap2/pm34xx.c                     |   98 +++---
- arch/arm/mach-omap2/powerdomains.c               |  111 ++++++
- arch/arm/mach-omap2/powerdomains.h               |   13 +
- arch/arm/mach-omap2/powerdomains2xxx.c           |  212 ++++++++++++
- arch/arm/mach-omap2/powerdomains44xx.c           |  177 ++++++++++
- arch/arm/mach-omap2/powerdomains44xx.h           |   14 +
- arch/arm/mach-omap2/prcm.c                       |  123 +++++---
- arch/arm/mach-omap2/prm.h                        |   26 +-
- arch/arm/plat-omap/Makefile                      |    6 +-
- arch/arm/plat-omap/include/plat/powerdomain.h    |   24 ++-
- arch/arm/plat-omap/include/plat/prcm.h           |   12 +-
- arch/arm/{mach-omap2 => plat-omap}/powerdomain.c |  399 ++++++----------------
- 18 files changed, 868 insertions(+), 438 deletions(-)
- create mode 100644 arch/arm/mach-omap2/powerdomains.c
- create mode 100644 arch/arm/mach-omap2/powerdomains2xxx.c
- create mode 100644 arch/arm/mach-omap2/powerdomains44xx.c
- rename arch/arm/{mach-omap2 => plat-omap}/powerdomain.c (70%)
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index b9ea70b..6cb5a39 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -315,7 +315,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+ {
+ 	u8 skip_setup_idle = 0;
+ 
+-	pwrdm_init(powerdomains_omap);
++	pwrdm_init(powerdomains_omap, NULL);
+ 	clkdm_init(clockdomains_omap, clkdm_autodeps);
+ 	if (cpu_is_omap242x())
+ 		omap2420_hwmod_init();
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+index 3ea7220..18b722d 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -117,8 +117,28 @@ struct powerdomain {
+ #endif
+ };
+ 
++struct pwrdm_functions {
++	int	(*pwrdm_set_next_pwrst)(struct powerdomain *pwrdm, u8 pwrst);
++	int	(*pwrdm_read_next_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_prev_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_set_logic_retst)(struct powerdomain *pwrdm, u8 pwrst);
++	int	(*pwrdm_set_mem_onst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
++	int	(*pwrdm_set_mem_retst)(struct powerdomain *pwrdm, u8 bank, u8 pwrst);
++	int	(*pwrdm_read_logic_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_prev_logic_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_logic_retst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_read_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
++	int	(*pwrdm_read_prev_mem_pwrst)(struct powerdomain *pwrdm, u8 bank);
++	int	(*pwrdm_read_mem_retst)(struct powerdomain *pwrdm, u8 bank);
++	int	(*pwrdm_clear_all_prev_pwrst)(struct powerdomain *pwrdm);
++	int	(*pwrdm_enable_hdwr_sar)(struct powerdomain *pwrdm);
++	int	(*pwrdm_disable_hdwr_sar)(struct powerdomain *pwrdm);
++	int	(*pwrdm_set_lowpwrstchange)(struct powerdomain *pwrdm);
++	int	(*pwrdm_wait_transition)(struct powerdomain *pwrdm);
++};
+ 
+-void pwrdm_init(struct powerdomain **pwrdm_list);
++void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_functions *custom_funcs);
+ 
+ struct powerdomain *pwrdm_lookup(const char *name);
+ 
+diff --git a/arch/arm/plat-omap/powerdomain.c b/arch/arm/plat-omap/powerdomain.c
+index 9204799..f90bfd3 100644
+--- a/arch/arm/plat-omap/powerdomain.c
++++ b/arch/arm/plat-omap/powerdomain.c
+@@ -80,6 +80,8 @@ static u16 pwrstst_reg_offs;
+ /* pwrdm_list contains all registered struct powerdomains */
+ static LIST_HEAD(pwrdm_list);
+ 
++static struct pwrdm_functions *arch_pwrdm;
++
+ /* Private functions */
+ 
+ static struct powerdomain *_pwrdm_lookup(const char *name)
+@@ -218,7 +220,7 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+  * registered.  No return value.  XXX pwrdm_list is not really a
+  * "list"; it is an array.  Rename appropriately.
+  */
+-void pwrdm_init(struct powerdomain **pwrdm_list)
++void pwrdm_init(struct powerdomain **pwrdm_list, struct pwrdm_functions * custom_funcs)
+ {
+ 	struct powerdomain **p = NULL;
+ 
+@@ -234,6 +236,13 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+ 		return;
+ 	}
+ 
++	if (!custom_funcs) {
++		printk(KERN_ERR "No custom pwrdm functions registered\n");
++		BUG();
++	}
++
++	arch_pwrdm = custom_funcs;
++
+ 	if (pwrdm_list) {
+ 		for (p = pwrdm_list; *p; p++)
+ 			_pwrdm_register(*p);
+@@ -1074,4 +1083,3 @@ int pwrdm_post_transition(void)
+ 	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
+ 	return 0;
+ }
+-
+-- 
+1.7.0.4
 
