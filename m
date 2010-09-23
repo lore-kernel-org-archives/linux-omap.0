@@ -1,71 +1,25 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH 10/13 v2] OMAP3: serial: Fix uart4 handling for 3630
-Date: Thu, 23 Sep 2010 16:45:20 +0530
-Message-ID: <AANLkTikYO5=3PE9YbkFteJ63hsR4n1zE80voNz23P+6X@mail.gmail.com>
-References: <37596.172.24.137.131.1285168469.squirrel@dbdmail.itg.ti.com>
-	<87d3s5a5k7.fsf@deeprootsystems.com>
+From: Linus Walleij <linus.walleij@stericsson.com>
+Subject: Re: [PATCH v3] power: introduce library for device-specific OPPs
+Date: Thu, 23 Sep 2010 13:30:02 +0200
+Message-ID: <4C9B3A3A.8040908@stericsson.com>
+References: <[PATCH] opp: introduce library for device-specific OPPs> <1285192054-454-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87d3s5a5k7.fsf@deeprootsystems.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1285192054-454-1-git-send-email-nm@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: lkml <linux-kernel@vger.kernel.org>, linux-pm <linux-pm@lists.linux-foundation.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, linux-doc <linux-doc@vger.kernel.org>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, "Rafael J. Wysocki" <rjw@sisk.pl>, Randy Dunlap <rdunlap@xenotime.net>, Greg Kroah-Hartman <gregkh@suse.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Andrew Morton <akpm@linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 23, 2010 at 1:56 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> This patch makes the following:
->> =A0- Adds missing wakeup padding register handling.
->> =A0- Fixes a hardcode to use PER module ONLY on UART3.
->>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/serial.c | =A0 =A08 ++++++--
->> =A01 files changed, 6 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seri=
-al.c
->> index 72b5c98..c1404af 100644
->> --- a/arch/arm/mach-omap2/serial.c
->> +++ b/arch/arm/mach-omap2/serial.c
->> @@ -57,7 +57,7 @@
->> =A0 * disabled via sysfs. This also causes that any deeper omap slee=
-p states are
->> =A0 * blocked.
->> =A0 */
->> -#define DEFAULT_TIMEOUT 0
->> +#define DEFAULT_TIMEOUT 5
->
-> Oops
->
-> Please leave this at zero.
+Nishanth Menon wrote:
 
-Yes my mistake.
-Will correct this.
+> To implement an OPP, some sort of power management support is necessary
+> hence this library depends on CONFIG_PM.
 
->
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-seria=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+Suits my needs, so FWIW
+Acked-by: Linus Walleij <linus.walleij@stericsson.com>
 
-
-
---=20
----
-Regards,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yours,
+Linus Walleij
