@@ -1,66 +1,91 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v3 1/4] omap4 hsmmc: Adding card detect support for MMC1
-Date: Thu, 23 Sep 2010 11:22:20 +0530
-Message-ID: <AANLkTikLqi4=OOJ_ciMqTt7HKJzDo-WsZJ8D2CpP712c@mail.gmail.com>
-References: <14833.10.24.255.18.1285173812.squirrel@dbdmail.itg.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E5F57C548@dlee03.ent.ti.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCHv3 2/17] dmtimer: infrastructure to support hwmod
+Date: Thu, 23 Sep 2010 11:34:39 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB032963EBE8@dbde02.ent.ti.com>
+References: <1285059089-26341-1-git-send-email-tarun.kanti@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863D708@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:57997 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753153Ab0IWFwV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 01:52:21 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E5F57C548@dlee03.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:54703 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753330Ab0IWGEq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 02:04:46 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D708@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Basak, Partha" <p-basak2@ti.com>, "Gopinath, Thara" <thara@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Hari,
 
-On Thu, Sep 23, 2010 at 1:19 AM, Kanigeri, Hari <h-kanigeri2@ti.com> wr=
-ote:
-> Kishore,
->
->> +int twl6030_mmc_card_detect(struct device *dev, int slot)
->> +{
->> + =A0 =A0 int ret =3D -EIO;
->> + =A0 =A0 u8 read_reg =3D 0;
->> + =A0 =A0 struct platform_device *pdev =3D to_platform_device(dev);
->> +
->> + =A0 =A0 switch (pdev->id) {
->> + =A0 =A0 case 0:
->> + =A0 =A0 =A0 =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* BIT0 of REG_MMC_CTRL
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0* 0 - Card not present ,1 - Card presen=
-t
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0=
-, &read_reg,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_MMCCTRL);
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (ret >=3D 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D read_reg & STS_MMC=
-;
->> + =A0 =A0 =A0 =A0 =A0 =A0 break;
->
-> nitpick: may be you don't need a switch statement for only one case.
-
-=46rom future perspective,since there are 5 MMC controllers on OMAP4
-and current patch supports card detect feature only for one controller =
-i.e MMC1
-as of now. Once the interfaces connected on the remaining 4 MMC control=
-lers
-are defined further additions will be required for respective cases.
-
-<snip>
-
-Regards,
-Kishore
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: G, Manjunath Kondaiah
+> Sent: Thursday, September 23, 2010 12:31 AM
+> To: DebBarma, Tarun Kanti; linux-omap@vger.kernel.org
+> Cc: Basak, Partha; Gopinath, Thara; Cousson, Benoit; Paul Walmsley; Kevin
+> Hilman; Tony Lindgren
+> Subject: RE: [PATCHv3 2/17] dmtimer: infrastructure to support hwmod
+> 
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> > DebBarma, Tarun Kanti
+> > Sent: Tuesday, September 21, 2010 2:21 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: DebBarma, Tarun Kanti; Basak, Partha; Gopinath, Thara;
+> > Cousson, Benoit; Paul Walmsley; Kevin Hilman; Tony Lindgren
+> > Subject: [PATCHv3 2/17] dmtimer: infrastructure to support hwmod
+> >
+> > This patch introduces data structures and new fields on
+> > existing data structures to support dmtimer conversion to
+> > platform driver and support hwmod database for the diferent
+> > OMAP platforms.
+> >
+> > Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > Signed-off-by: Partha Basak <p-basak2@ti.com>
+> > Signed-off-by: Thara Gopinath <thara@ti.com>
+> > Cc: Cousson, Benoit <b-cousson@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/mach-omap2/dmtimer.h             |   25 +++++++++++++++++
+> >  arch/arm/plat-omap/dmtimer.c              |    9 ++++++
+> >  arch/arm/plat-omap/include/plat/dmtimer.h |   42
+> > +++++++++++++++++++++++++++++
+> >  3 files changed, 76 insertions(+), 0 deletions(-)  create
+> > mode 100644 arch/arm/mach-omap2/dmtimer.h
+> >
+> > diff --git a/arch/arm/mach-omap2/dmtimer.h
+> > b/arch/arm/mach-omap2/dmtimer.h new file mode 100644 index
+> > 0000000..3355725
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/dmtimer.h
+> > @@ -0,0 +1,25 @@
+> > +/**
+> > + * linux/arch/arm/mach-omap2/dmtimer.h
+> > + *
+> > + * Copyright (C) 2010 Texas Instruments, Inc.
+> > + * Thara Gopinath <thara@ti.com>
+> > + * Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > + *
+> > + * OMAP2 Dual-Mode Timers
+> > + * This program is free software; you can redistribute it
+> > and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#ifndef __ASM_ARCH_DMTIMER_H
+> > +#define __ASM_ARCH_DMTIMER_H
+> 
+> This header guard name is same as plat-omap dmtimer.h header guard. If
+> both
+> the headers are used in same file, it will result in build break. Change
+> the name. May be __ASM_ARCH_DMTIMER_H__ and __ASM_PLAT_DMTIMER_H__ ?
+OK.
