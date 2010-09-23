@@ -1,65 +1,89 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: [PATCH 7/9 v3] OMAP: Hwmod api changes
-Date: Thu, 23 Sep 2010 12:30:21 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D99B@dbde02.ent.ti.com>
-References: <1285201816-26516-1-git-send-email-hemahk@ti.com>
- <4C9A6A62.5000100@ti.com> <20100923062317.GD2563@legolas.emea.dhcp.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] OMAP: hwmod fixes and improvements for 2.6.37
+Date: Thu, 23 Sep 2010 01:23:12 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009230121290.18576@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1478681438-1285226592=:18576"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38038 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753436Ab0IWHA1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 03:00:27 -0400
-In-Reply-To: <20100923062317.GD2563@legolas.emea.dhcp.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:58633 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242Ab0IWHXN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 03:23:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, linux-arm-kernel@lists.infradead.org
 
-Hi, 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
->-----Original Message-----
->From: Balbi, Felipe 
->Sent: Thursday, September 23, 2010 11:53 AM
->To: Cousson, Benoit
->Cc: Kalliguddi, Hema; linux-omap@vger.kernel.org; 
->linux-usb@vger.kernel.org; Basak, Partha; Balbi, Felipe; Tony 
->Lindgren; Kevin Hilman; Paul Walmsley
->Subject: Re: [PATCH 7/9 v3] OMAP: Hwmod api changes
->
->On Wed, Sep 22, 2010 at 03:43:14PM -0500, Cousson, Benoit wrote:
->>Hi Hema,
->>
->>On 9/23/2010 2:30 AM, Kalliguddi, Hema wrote:
->>> OMAP USBOTG modules has a requirement to set the auto idle 
->bit only after
->>> setting smart idle bit. Modified the _sys_enable api to set 
->the smart idle
->>> first and then the autoidle bit. Setting this will not have 
->any impact on the
->>> other modules.
->>
->>I think you should change the subject, because it does not reflect
->>accurately the patch.
->>
->>Just a little bit of nitpicking...
->>For me, an API change is a change in the signature of the API, not a
->>change inside an API. Otherwise, since 99% of the code is inside a
->>function, we can call most patches like that...
->>Moreover I don't think _sysc_enable can be considered as an 
->API since it
->>is a pure static helper function not exported to the outside.
->>
->>Something like that seems more accurate for my point of view:
->>
->>OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
->
->+1
->
-I Agree. I will do the changes accordingly and post the patch.
->-- 
->balbi
->
+--155748971-1478681438-1285226592=:18576
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+Hi Tony,
+
+The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c=
+:
+
+  Linux 2.6.36-rc5 (2010-09-20 16:56:53 -0700)
+
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 hwmod_2.6.37
+
+Benoit Cousson (6):
+      OMAP: hwmod: Rename dma_ch to dma_req
+      OMAP: hwmod: Do not disable clocks if hwmod already in idle
+      OMAP4: prcm: Add temporarily helper functions for rmw and read inside=
+ the PRM
+      OMAP: hwmod: Force a softreset during _setup
+      OMAP: hwmod: Fix softreset status check for some new OMAP4 IPs
+      OMAP: hwmod: Fix softreset for modules with optional clocks
+
+Beno=EEt Cousson (2):
+      OMAP4: PRM: add module hard reset support
+      OMAP: hwmod: Add hardreset management support
+
+Kevin Hilman (1):
+      OMAP: hwmod: separate list locking and hwmod hardware locking
+
+Liam Girdwood (1):
+      OMAP: hwmod: Fix omap_hwmod_reset wrong state test
+
+Partha Basak (1):
+      OMAP: hwmod: Handle opt clocks node using clk_add_alias
+
+Paul Walmsley (3):
+      OMAP2/3: PRM: add module hard reset support
+      OMAP: hwmod: add an hardreset API for use by other core code
+      OMAP: hwmod: improve documentation, clean up function names
+
+Rajeev Kulkarni (1):
+      OMAP4: prcm: Fix global warm reset bit position
+
+Rajendra Nayak (1):
+      OMAP: hwmod: Enable module wakeup if in smartidle
+
+ arch/arm/mach-omap2/Makefile                 |    4 +-
+ arch/arm/mach-omap2/omap_hwmod.c             |  562 +++++++++++++++++++++-=
+---
+ arch/arm/mach-omap2/prcm.c                   |   29 ++-
+ arch/arm/mach-omap2/prm.h                    |   18 +-
+ arch/arm/mach-omap2/prm2xxx_3xxx.c           |  110 +++++
+ arch/arm/mach-omap2/prm44xx.c                |  116 ++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   55 ++-
+ arch/arm/plat-omap/include/plat/prcm.h       |    2 +
+ arch/arm/plat-omap/omap_device.c             |   43 ++-
+ 9 files changed, 829 insertions(+), 110 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/prm2xxx_3xxx.c
+ create mode 100644 arch/arm/mach-omap2/prm44xx.c
+
+
+There may be a few more minor hwmod patches coming, but these are the=20
+important ones that some of the driver hwmod conversions depend on.
+
+
+- Paul
+
+--155748971-1478681438-1285226592=:18576--
