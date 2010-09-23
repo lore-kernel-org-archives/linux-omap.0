@@ -1,151 +1,98 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv3 8/17] dmtimer: register mappings moved to hwmod database
-Date: Thu, 23 Sep 2010 18:44:49 +0200
-Message-ID: <4C9B8401.3070704@ti.com>
-References: <1285059226-26491-1-git-send-email-tarun.kanti@ti.com>	<E0D41E29EB0DAC4E9F3FF173962E9E94027863D705@dbde02.ent.ti.com> <87mxr98nkg.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301F6FE83CE@dbde02.ent.ti.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [RFC] omap: mailbox: fix detection for previously supported
+ chips
+Date: Thu, 23 Sep 2010 11:50:00 -0500
+Message-ID: <A24693684029E5489D1D202277BE894472802DDC@dlee02.ent.ti.com>
+References: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
+ <A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
+ <27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37196 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37480 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754484Ab0IWQoz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Sep 2010 12:44:55 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301F6FE83CE@dbde02.ent.ti.com>
+	id S1755139Ab0IWQuF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 12:50:05 -0400
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Basak, Partha" <p-basak2@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Anna, Suman" <s-a>
 
-On 9/23/2010 11:34 AM, Basak, Partha wrote:
->
->
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Thursday, September 23, 2010 3:10 AM
->>
->> "G, Manjunath Kondaiah"<manjugk@ti.com>  writes:
->>
->>> Hi Tarun,
->>>
->>>> From: linux-omap-owner@vger.kernel.org
->>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->>>> DebBarma, Tarun Kanti
->>>>
+Hi Omar,
 
-<...>
+> -----Original Message-----
+> From: Ramirez Luna, Omar
+> Sent: Thursday, September 23, 2010 11:12 AM
+> To: Aguirre, Sergio; Tony Lindgren; Hiroshi DOYU; Felipe Contreras; Anna,
+> Suman; linux-omap@vger.kernel.org
+> Subject: RE: [RFC] omap: mailbox: fix detection for previously supported
+> chips
+> 
+> Hi Sergio,
+> 
+> Aguirre, Sergio wrote:
+> > Hi Omar,
+> >>
+> ...
+> >> +#if defined(CONFIG_ARCH_OMAP2)
+> >> +	else if (cpu_is_omap2430()) {
+> >> +		list = omap2_mboxes;
+> >> +
+> >> +		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+> >> +	} else if (cpu_is_omap2420()) {
+> >
+> > Isn't both 2430 and 2420 doing the exact same?
+> >
+> 
+> Code is not the same, it is 2 line which apply for both but couldn't find
+> an easy way of making them share the request for dsp mailbox without
+> changing more code, perhaps a macro to detect if omap2 and then a nested
+> if for the 2420 case, but since HWMOD should handle it better, I left it
+> as is.
+> 
+> As the code previous to reorganization treated 2430 has a user with one
+> single mailbox (same as omap3) I added the code to at least detect it,
+> 2420 has 2 mailboxes one for iva and other for the dsp. From the diagrams
+> for OMAP2430[1] and OMAP2420[2], it made sense as in the later both dsp
+> and iva seem to be separated entities; unfortunately I don't have the
+> hardware to test on any of them.
+> 
+> The patched code should look like:
+> 
+> #if defined(CONFIG_ARCH_OMAP2)
+>         else if (cpu_is_omap2430()) {
+>                 list = omap2_mboxes;
+> 
+>                 list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+>         } else if (cpu_is_omap2420()) {
+>                 list = omap2_mboxes;
+> 
+>                 list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+>                 list[1]->irq = platform_get_irq_byname(pdev, "iva");
+>         }
+> #endif
 
->>>> +static u32 omap_timer_reg_map_v1[] = {
->>>> +  [OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_STAT_REG]           = (0x18 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_INT_EN_REG]         = (0x1c | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_WAKEUP_EN_REG]      = (0x20 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_CTRL_REG]           = (0x24 | (WP_TCLR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_COUNTER_REG]        = (0x28 | (WP_TCRR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_LOAD_REG]           = (0x2c | (WP_TLDR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_TRIGGER_REG]        = (0x30 | (WP_TTGR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_WRITE_PEND_REG]     = (0x34 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_MATCH_REG]          = (0x38 | (WP_TMAR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_CAPTURE_REG]        = (0x3c | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_IF_CTRL_REG]        = (0x40 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_CAPTURE2_REG]       = (0x44 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_TICK_POS_REG]       = (0x48 | (WP_TPIR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_TICK_NEG_REG]       = (0x4c | (WP_TNIR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_TICK_COUNT_REG]     = (0x50 | (WP_TCVR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_TICK_INT_MASK_SET_REG]      = (0x54 |
->>>> (WP_TOCR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_TICK_INT_MASK_COUNT_REG]    = (0x58 |
->>>> (WP_TOWR<<  WPSHIFT)),
->>>> +};
->>>> +
->>>> +/* OMAP4 timers register map */
->>>> +static u32 omap_timer_reg_map_v2[] = {
->>>> +  [OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_STAT_REG]           = (0x28 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_INT_EN_REG]         = (0x2c | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_WAKEUP_EN_REG]      = (0x34 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_CTRL_REG]           = (0x38 | (WP_TCLR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_COUNTER_REG]        = (0x3c | (WP_TCRR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_LOAD_REG]           = (0x40 | (WP_TLDR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_TRIGGER_REG]        = (0x44 | (WP_TTGR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_WRITE_PEND_REG]     = (0x48 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_MATCH_REG]          = (0x4c | (WP_TMAR<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_CAPTURE_REG]        = (0x50 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_IF_CTRL_REG]        = (0x54 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_CAPTURE2_REG]       = (0x58 | (WP_NONE<<  WPSHIFT)),
->>>> +  [OMAP_TIMER_INT_CLR_REG]        = (0x30 | (WP_NONE<<  WPSHIFT)),
->>>> +};
->>>> +
->>>
->>> Why not these defines in mach-omap2/dmtimer.c? since
->> register offsets are
->>> same for omap2plus except omap4 which has additional
->> register offsets. Same
->>> register offsets are getting repeated in all the omap2plus
->> hwmod database.
->>
->> I agree with Manjunath.
->
-> Manju, the number of tables needed to manage the information are same really.
-> Its only where they are located changes from the mach layer to the hwmod
-> database. So, thats not the point. dev_attrs are pointing to the reg-map
-> tables, they are not duplicating them.
->
->
-> The offset differences are stemming from the IP differences.
-> To my understanding, only IP-integration specific idiosyncrasies into a given
-> SOC qualifiy as dev_attrs.
-> IP specific details like reg-map information should be maintained within the driver.
-> So, this approach will break this paradigm&  also not follow existing implementation
-> of drivers which support this. A given driver may support a set of IPs but still
-> may cater to even non-OMAP platforms not supporting hwmod.
->
-> However, if we see the general usage of dev_attrs, there is no clear line of demarcation
-> really what should make it and what should not, as is used to plug this sort of
-> small gotchas and reduce CPU checks in the code.
+Ok, I understand.
 
-You do not really need that to reduce the CPU check in the code.
-In that case, only the IP version should be stored in the dev_attr. 
-Based on that IP version, you know exactly what register map you have to 
-handle. For the moment you just have 2 layouts to handle + the extra 
-register for the 1ms timers.
+I guess I missed to see the second element in the list for acquiring IVA irq.
 
-Also, I'm not sure that you have to handle each register separately 
-considering that you have one offset to handle for the functional register.
-The change in sysconfig and interrupt register are all standard mapping 
-that stick to TI highlander standard.
-Meaning, as soon as an IP is a v2 (highlander version) all these 
-registers will be at the same place... at least in theory :-)
+Thanks for the explanation.
 
-Here are the deltas between the legacy and the new one:
+Regards,
+Sergio
 
-[OMAP_TIMER_ID_REG]             0x00,
-[OMAP_TIMER_OCP_CFG_REG]        0x10, same
-[OMAP_TIMER_SYS_STAT_REG]       0x14, (not used anymore)
-
-You should not care about these ones, because hwmod will handle them.
-
-[OMAP_TIMER_STAT_REG]           0x28, +10
-[OMAP_TIMER_INT_EN_REG]         0x2c, +10
-[OMAP_TIMER_INT_CLR_REG]        0x30, (new)
-
-These ones are standard registers
-
-[OMAP_TIMER_WAKEUP_EN_REG]      0x34, +14
-[OMAP_TIMER_CTRL_REG]           0x38, +14
-[OMAP_TIMER_COUNTER_REG]        0x3c, +14
-[OMAP_TIMER_LOAD_REG]           0x40, +14
-[OMAP_TIMER_TRIGGER_REG]        0x44, +14
-[OMAP_TIMER_WRITE_PEND_REG]     0x48, +14
-[OMAP_TIMER_MATCH_REG]          0x4c, +14
-[OMAP_TIMER_CAPTURE_REG]        0x50, +14
-[OMAP_TIMER_IF_CTRL_REG]        0x54, +14
-[OMAP_TIMER_CAPTURE2_REG]       0x58, +14
-
-You can probably handle that with only 2 offsets instead of having one 
-address per registers.
-
-Benoit
+> 
+> Regards,
+> 
+> Omar
+> 
+> ---
+> 
+> [1]
+> http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?contentId=467
+> 2&navigationId=12609&templateId=6123
+> [2]
+> http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=61
+> 23&navigationId=11990&contentId=4671
