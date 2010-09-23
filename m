@@ -1,164 +1,137 @@
 From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 4/9 v3] usb: musb: HWMOD database structures addition for OMAP4
-Date: Wed, 22 Sep 2010 20:28:55 -0400
-Message-ID: <1285201735-26393-1-git-send-email-hemahk@ti.com>
+Subject: [PATCH 5/9 v3] usb: musb: Using omap_device_build for musb device registration
+Date: Wed, 22 Sep 2010 20:29:10 -0400
+Message-ID: <1285201750-26438-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
+Using omap_device_build api instead of platform_device_register for musb
+device registration.The device specific resources defined in centralized
+database will be used. So removed the resource definitions from the musb
+platform file.
 
-OMAP4 hwmod data stuctures are populated with base address, L3 and L4
-interface clocks, IRQs,and sysconfig register details.
-
-Signed-off-by: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
 Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
 Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   99 +++++++++++++++++++++++++++++
- 1 file changed, 99 insertions(+)
 
-Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+---
+ arch/arm/mach-omap2/usb-musb.c |   75 ++++++++++++++++++++---------------------
+ 1 file changed, 38 insertions(+), 37 deletions(-)
+
+Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -47,6 +47,7 @@ static struct omap_hwmod omap44xx_l4_per
- static struct omap_hwmod omap44xx_l4_wkup_hwmod;
- static struct omap_hwmod omap44xx_mpu_hwmod;
- static struct omap_hwmod omap44xx_mpu_private_hwmod;
-+static struct omap_hwmod omap44xx_usb_otg_hs_hwmod;
+--- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
++++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+@@ -29,24 +29,11 @@
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <plat/usb.h>
++#include <plat/omap_device.h>
  
- /*
-  * Interconnects omap_hwmod structures
-@@ -223,10 +224,20 @@ static struct omap_hwmod_ocp_if omap44xx
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+ #ifdef CONFIG_USB_MUSB_SOC
+-
+-static struct resource musb_resources[] = {
+-	[0] = { /* start and end set dynamically */
+-		.flags	= IORESOURCE_MEM,
+-	},
+-	[1] = {	/* general IRQ */
+-		.start	= INT_243X_HS_USB_MC,
+-		.flags	= IORESOURCE_IRQ,
+-		.name	= "mc",
+-	},
+-	[2] = {	/* DMA IRQ */
+-		.start	= INT_243X_HS_USB_DMA,
+-		.flags	= IORESOURCE_IRQ,
+-		.name	= "dma",
+-	},
+-};
++static const char name[] = "musb_hdrc";
++#define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
  
-+/* usb_otg_hs -> l3_main_2 */
-+static struct omap_hwmod_ocp_if omap44xx_usb_otg_hs__l3_main_2 = {
-+	.master		= &omap44xx_usb_otg_hs_hwmod,
-+	.slave		= &omap44xx_l3_main_2_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* l3_main_2 slave ports */
- static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
- 	&omap44xx_l3_main_1__l3_main_2,
- 	&omap44xx_l4_cfg__l3_main_2,
-+	&omap44xx_usb_otg_hs__l3_main_2,
-+
- };
+ static struct musb_hdrc_config musb_config = {
+ 	.multipoint	= 1,
+@@ -75,31 +62,30 @@ static struct musb_hdrc_platform_data mu
  
- static struct omap_hwmod omap44xx_l3_main_2_hwmod = {
-@@ -452,6 +463,93 @@ static struct omap_hwmod omap44xx_mpu_hw
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
- };
+ static u64 musb_dmamask = DMA_BIT_MASK(32);
  
-+/*
-+ * 'usb_otg_hs' class
-+ * high-speed on-the-go universal serial bus (usb_otg_hs) controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_usb_otg_hs_sysc = {
-+	.rev_offs	= 0x0400,
-+	.sysc_offs	= 0x0404,
-+	.syss_offs	= 0x0408,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE|
-+			  SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			  SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			  MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap44xx_usb_otg_hs_hwmod_class = {
-+	.name = "usb_otg_hs",
-+	.sysc = &omap44xx_usb_otg_hs_sysc,
-+};
-+
-+/* usb_otg_hs */
-+static struct omap_hwmod_irq_info omap44xx_usb_otg_hs_irqs[] = {
-+	{ .name = "mc", .irq = 92 + OMAP44XX_IRQ_GIC_START },
-+	{ .name = "dma", .irq = 93 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+/* usb_otg_hs master ports */
-+static struct omap_hwmod_ocp_if *omap44xx_usb_otg_hs_masters[] = {
-+	&omap44xx_usb_otg_hs__l3_main_2,
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_usb_otg_hs_addrs[] = {
+-static struct platform_device musb_device = {
+-	.name		= "musb_hdrc",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &musb_dmamask,
+-		.coherent_dma_mask	= DMA_BIT_MASK(32),
+-		.platform_data		= &musb_plat,
++static struct omap_device_pm_latency omap_musb_latency[] = {
 +	{
-+		.pa_start	= 0x4a0ab000,
-+		.pa_end		= 0x4a0ab003,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_cfg -> usb_otg_hs */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__usb_otg_hs = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_usb_otg_hs_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_usb_otg_hs_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* usb_otg_hs slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_usb_otg_hs_slaves[] = {
-+	&omap44xx_l4_cfg__usb_otg_hs,
-+};
-+
-+static struct omap_hwmod_opt_clk usb_otg_hs_opt_clks[] = {
-+	{ .role = "xclk", .clk = "otg_60m_gfclk_ck" },
-+};
-+
-+static struct omap_hwmod omap44xx_usb_otg_hs_hwmod = {
-+	.name		= "usb_otg_hs",
-+	.class		= &omap44xx_usb_otg_hs_hwmod_class,
-+	.mpu_irqs	= omap44xx_usb_otg_hs_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_irqs),
-+	.main_clk	= "usb_otg_hs_ick",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_L3INIT_USB_OTG_CLKCTRL,
-+		},
-+	},
-+	.opt_clks	= usb_otg_hs_opt_clks,
-+	.opt_clks_cnt = ARRAY_SIZE(usb_otg_hs_opt_clks),
-+	.slaves		= omap44xx_usb_otg_hs_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_slaves),
-+	.masters	= omap44xx_usb_otg_hs_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap44xx_usb_otg_hs_masters),
-+
-+	/*
-+	 * As per OMAP USBOTG specification, need to configure the USBOTG
-+	 * to smart idle/standby or no idle/standby during data transfer and
-+	 * force idle/standby when not in use to support retention and offmode.
-+	 */
-+	.flags		= HWMOD_SWSUP_SIDLE | HWMOD_SWSUP_MSTANDBY,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	/* dmm class */
- 	&omap44xx_dmm_hwmod,
-@@ -472,6 +570,7 @@ static __initdata struct omap_hwmod *oma
- 
- 	/* mpu class */
- 	&omap44xx_mpu_hwmod,
-+	&omap44xx_usb_otg_hs_hwmod,
- 	NULL,
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+ 	},
+-	.num_resources	= ARRAY_SIZE(musb_resources),
+-	.resource	= musb_resources,
  };
  
+ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+-	if (cpu_is_omap243x()) {
+-		musb_resources[0].start = OMAP243X_HS_BASE;
+-	} else if (cpu_is_omap34xx()) {
+-		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+-	} else if (cpu_is_omap44xx()) {
+-		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+-		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+-		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
++	struct omap_hwmod *oh;
++	struct omap_device *od;
++	struct platform_device *pdev;
++	struct device	*dev;
++	int bus_id = -1;
++	const char *oh_name = "usb_otg_hs";
++	struct musb_hdrc_platform_data *pdata;
++
++	oh = omap_hwmod_lookup(oh_name);
++
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++		return;
+ 	}
+-	musb_resources[0].end = musb_resources[0].start + SZ_4K - 1;
+-
+ 	/*
+ 	 * REVISIT: This line can be removed once all the platforms using
+ 	 * musb_core.c have been converted to use use clkdev.
+@@ -110,8 +96,23 @@ void __init usb_musb_init(struct omap_mu
+ 	musb_plat.mode = board_data->mode;
+ 	musb_plat.extvbus = board_data->extvbus;
+ 
+-	if (platform_device_register(&musb_device) < 0)
+-		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
++	pdata = &musb_plat;
++
++	od = omap_device_build(name, bus_id, oh, pdata,
++			       sizeof(struct musb_hdrc_platform_data),
++						omap_musb_latency,
++			       ARRAY_SIZE(omap_musb_latency), false);
++	if (IS_ERR(od)) {
++		pr_err("Could not build omap_device for %s %s\n",
++						name, oh_name);
++		return;
++	}
++	pdev = &od->pdev;
++	dev = &pdev->dev;
++	get_device(dev);
++	dev->dma_mask = &musb_dmamask;
++	dev->coherent_dma_mask = musb_dmamask;
++	put_device(dev);
+ }
+ 
+ #else
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
