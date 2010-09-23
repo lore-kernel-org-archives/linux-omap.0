@@ -1,61 +1,55 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 2/3] OMAP4: pm: Change l3_main to l3_main_1 during bus device
-	init
-Date: Thu, 23 Sep 2010 11:18:54 -0700
-Message-ID: <1285265935-3477-3-git-send-email-khilman@deeprootsystems.com>
-References: <1285265935-3477-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [GIT PULL] runtime PM core for OMAP for 2.6.37
+Date: Thu, 23 Sep 2010 11:30:40 -0700
+Message-ID: <877hicz50v.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1285265935-3477-1-git-send-email-khilman@deeprootsystems.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:38181 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754499Ab0IWSan (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 14:30:43 -0400
+Received: by gwj17 with SMTP id 17so675484gwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2010 11:30:42 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Benoit Cousson <b-cousson@ti.com>
+Tony,
 
-The OMAP4 L3 interconnect is split in 3 part for power saving reason.
-Because of that there is no l3_main like on OMAP2 & 3 but 3 differentes
-l3_main_X instances.
+Pull request below to add the runtime PM core for OMAP.
 
-In the case of OMAP4, query only the l3_main_1 part. The clock and
-voltage are shared across the 3 instances.
+Also note that this depends on an additional driver core patch from me
+that is queued by Greg KH for 2.6.37:
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+  driver core: platform_bus: allow runtime override of dev_pm_ops
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 4477d5d..59ca03b 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -81,9 +81,12 @@ static void omap2_init_processor_devices(void)
- {
- 	_init_omap_device("mpu", &mpu_dev);
- 	_init_omap_device("iva", &iva_dev);
--	if (cpu_is_omap44xx())
-+	if (cpu_is_omap44xx()) {
-+		_init_omap_device("l3_main_1", &l3_dev);
- 		_init_omap_device("dsp", &dsp_dev);
--	_init_omap_device("l3_main", &l3_dev);
-+	} else {
-+		_init_omap_device("l3_main", &l3_dev);
-+	}
- }
- 
- /*
--- 
-1.7.2.1
+You can find this as commit 441d87898e039c155493c12696a4d7cfd7001b49
+in linux-next, or you can cherry-pick it from my pm-backports branch and
+put it in omap-testing until the final merge.
+
+Thanks,
+
+Kevin
+
+
+The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
+
+  Linux 2.6.36-rc5 (2010-09-20 16:56:53 -0700)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-runtime
+
+Kevin Hilman (2):
+      OMAP2+: PM: initial runtime PM core support
+      OMAP1: PM: add simple runtime PM layer to manage clocks
+
+ arch/arm/mach-omap1/Makefile |    2 +-
+ arch/arm/mach-omap1/pm_bus.c |   98 ++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/Makefile |   10 +++-
+ arch/arm/mach-omap2/pm_bus.c |   85 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 191 insertions(+), 4 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/pm_bus.c
+ create mode 100644 arch/arm/mach-omap2/pm_bus.c
+
