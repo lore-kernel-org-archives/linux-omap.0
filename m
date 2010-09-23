@@ -1,111 +1,220 @@
-From: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] omap: beagle: add support for wl1271 on the board
- file
-Date: Thu, 23 Sep 2010 21:52:00 +0300
-Message-ID: <1285267920.1562.43.camel@powerslave>
-References: <1285230003-5065-1-git-send-email-luciano.coelho@nokia.com>
-	 <AANLkTinLjQbvbTj3LTnw+54S-ojWzojqgyd=-3F783We@mail.gmail.com>
-	 <AANLkTimce-=MP2DDNTpRh_oRFW15_gSkKZJ6fQzwc4yJ@mail.gmail.com>
-	 <1285246353.3231.84.camel@chilepepper>
-	 <AANLkTi=1QqxE3P_+5goP43YNvcaQLjQUk5XWo-Oq51iW@mail.gmail.com>
+From: "Basak, Partha" <p-basak2@ti.com>
+Subject: RE: [PATCH 2/2] OMAP2+: GPIO: move late PM out of
+ interrupts-disabled idle path
+Date: Fri, 24 Sep 2010 01:27:31 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301F6FE8768@dbde02.ent.ti.com>
+References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
+	<1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
+	<87d3sgs1nw.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F6FE85CD@dbde02.ent.ti.com>
+ <87mxr84gip.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTi=1QqxE3P_+5goP43YNvcaQLjQUk5XWo-Oq51iW-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Robert Nelson <robertcnelson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44799 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750855Ab0IWT5n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 15:57:43 -0400
+In-Reply-To: <87mxr84gip.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, Tero Kristo <tero.kristo@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Thu, 2010-09-23 at 15:42 +0200, ext Robert Nelson wrote:
-> On Thu, Sep 23, 2010 at 7:52 AM, Luciano Coelho
-> <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> wrote:
-> > On Thu, 2010-09-23 at 14:03 +0200, ext Robert Nelson wrote:
-> >> On Thu, Sep 23, 2010 at 5:30 AM, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> >> > On Thu, Sep 23, 2010 at 11:20 AM, Luciano Coelho
-> >> > <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> wrote:
-> >> >> Add board configuration for the wl1271 daughter board.  This patch is based
-> >> >> on Ohad Ben-Cohen's patches for Zoom boards.
+ 
+
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Thursday, September 23, 2010 9:08 PM
+> To: Basak, Partha
+> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; Tero Kristo
+> Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
+> interrupts-disabled idle path
+> 
+> "Basak, Partha" <p-basak2@ti.com> writes:
+> 
+> >  
+> >
+> >> -----Original Message-----
+> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> >> Sent: Tuesday, September 14, 2010 10:28 PM
+> >> To: Basak, Partha
+> >> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; 
+> Tero Kristo
+> >> Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
+> >> interrupts-disabled idle path
+> >> 
+> >> "Basak, Partha" <p-basak2@ti.com> writes:
+> >> 
+> >> >> From: Kevin Hilman <khilman@ti.com>
+> >> >> 
+> >> >> Currently, we wait until late in the idle path where 
+> interrupts are
+> >> >> disabled to do runtime-PM-like management for certain 
+> special-case
+> >> >> devices like GPIO.
+> >> >> 
+> >> >> As a prerequiste to moving GPIO to the new runtime PM 
+> >> framework, move
+> >> >> this runtime-PM-like code out of the late idle path 
+> into new device
+> >> >> idle and resume functions that can be called before 
+> interrupts are
+> >> >> disabled by CPUidle and/or suspend.
+> >> >> 
+> >> >> In addition, move all the GPIO-specific logic into the GPIO core
+> >> >> instead of keeping GPIO-specific knowledge of 
+> power-states, context
+> >> >> saving etc. in the PM core.
+> >> >> 
+> >> >> Also, call the new device-idle and -resume methods from 
+> CPUidle and
+> >> >> static suspend path.
+> >> >> 
+> >> >> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> >> >> ---
+> >> >>  arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
+> >> >>  arch/arm/mach-omap2/pm.h               |    2 +
+> >> >>  arch/arm/mach-omap2/pm24xx.c           |    2 +-
+> >> >>  arch/arm/mach-omap2/pm34xx.c           |   38 
+> >> +++++++++------------
+> >> >>  arch/arm/plat-omap/gpio.c              |   57 
+> >> >> ++++++++++++++++++++++++--------
+> >> >>  arch/arm/plat-omap/include/plat/gpio.h |    4 +--
+> >> >>  6 files changed, 67 insertions(+), 40 deletions(-)
+> >> >> 
+> >> >> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
+> >> >> b/arch/arm/mach-omap2/cpuidle34xx.c
+> >> >> index 0923b82..681d823 100644
+> >> >> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> >> >> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> >> >> @@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct 
+> >> >> cpuidle_device *dev,
+> >> >>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
+> >> >>  
+> >> >>  select_state:
+> >> >> +	omap3_device_idle();
+> >> >> +
+> >> >>  	dev->last_state = new_state;
+> >> >>  	ret = omap3_enter_idle(dev, new_state);
+> >> >>  
+> >> >> +	omap3_device_resume();
+> >> >> +
+> >> > In the generic cpu_idle() in process.c, interrupts are 
+> >> already disabled
+> >> > before control comes to cpuidle_idle_call() via pm_idle()
+> >> > 			local_irq_disable();
+> >> > 			if (hlt_counter) {
+> >> > 				local_irq_enable();
+> >> > 				cpu_relax();
+> >> > 			} else {
+> >> > 				stop_critical_timings();
+> >> > 				pm_idle();
+> >> > 				start_critical_timings();
+> >> > 				/*
+> >> > 				 * This will eventually be 
+> >> removed - pm_idle
+> >> > 				 * functions should always 
+> >> return with IRQs
+> >> > 				 * enabled.
+> >> > 				 */
+> >> > 				WARN_ON(irqs_disabled());
+> >> > 				local_irq_enable();
+> >> > 			}
 > >> >
-> >> > Hm can that daughter board be detected? With your patch all beagle
-> >> > users will get GPIO139 toggled, and if someone has that wired to
-> >> > chainsaw switch somebody might get hurt.
-> >>
-> >> Expansion boards really need to follow:
-> >>
-> >> http://elinux.org/BeagleBoardPinMux#Expansion_boards
-> >>
-> >> Is there any eeprom on i2c bus #2 for identification on this board?
+> >> > omap3_enter_idle_bm() will be called from inside 
+> >> cpuidle_idle_call() 
+> >> > via target_state->enter(dev, target_state).
+> >> > So, interrupts are already disabled here.
+> >> >
+> >> > Am I missing something?
+> >> 
+> >> You're right.  
+> >> 
+> >> I knew this was the case for !CPUIDLE setup, but had 
+> thought (without
+> >> testing) that the CPUidle core had re-enabled interrupts during the
+> >> governor selection process etc.
+> >> 
+> >> While I investigate ways to manage this in CPUidle, the 
+> >> following should
+> >> be fine for now to include with $SUBJECT patch.
+> >> 
+> >> Kevin
+> >> 
+> >> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
+> >> b/arch/arm/mach-omap2/cpuidle34xx.c
+> >> index 681d823..c5cb9d0 100644
+> >> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> >> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> >> @@ -245,6 +245,14 @@ static int omap3_enter_idle_bm(struct 
+> >> cpuidle_device *dev,
+> >>  		goto select_state;
+> >>  	}
+> >>  
+> >> +	/*
+> >> +	 * Enable IRQs during the device activity checking and 
+> >> idle management.
+> >> +	 * IRQs are later (re)disabled when entering the actual 
+> >> idle function.
+> >> +	 * Device idle management that is using runtime PM needs to have
+> >> +	 * interrupts enabled when calling into the runtime PM core.
+> >> +	 */
+> >> +	local_irq_enable();
 > >
-> > Hmmm... <checking the schematics>
+> > After put_sync() retuns, there will be a time window where 
+> interrupts
+> > are enabled but clocks are disabled before the interrupts 
+> are disabled again.
+> > Accessing any register to service a device interrupt coming 
+> during this window
+> > will lead to a crash for cases where iclk and fclks are 
+> same and we have the
+> > iclk defined as the main_clk as well.
 > >
-> > Yes, it does. :) This makes perfect sense.
-> >
-> > My bootloader (U-Boot 2010.03) doesn't seem to detect it, though:
-> >
-> > <clip>
-> > Probing for expansion boards, if none are connected you'll see a
-> > harmless I2C error.
-> >
-> > No EEPROM on expansion board
-> > <clip>
+> > Same argument holds while returning from Idle. We are 
+> facing this issue for OMAP3 
+> > GPIO while trying to define the main_clk = interface clock 
+> based on your other commment.
 > 
-> I'd first add the board to the list on the wiki to protect the
-> expansion board id.
-
-Okay, I'll do that.
-
-
-> Here's the current patch for u-boot for these expansion boards, it
-> only implements id's for the boards listed at the time.
+> This is the same problem as has existed in static/suspend resume.
 > 
-> http://www.sakoman.com/cgi-bin/gitweb.cgi?p=u-boot.git;a=commit;h=95993d1fee62ef64b2f58c1e186176ca9033c35e
-
-Thanks for the pointer.  Now I understand how this works.
-
-
-> > Do I need a special bootloader?
-> >
-> > Is there any standard way to recognize the expansion board and configure
-> > it properly?
+> IOW, if it's possible for a device interrupt to arrive between device
+> suspend and actual suspend, then the device interrupt should be
+> disabled in the suspend hook (or runtime_suspend hook in your case.)
 > 
-> Yeap, you need a special bootloader, which is a downside to the
-> current implementation...  It relies on u-boot to do the i2c probing
-> and detect which expansion board is connected, it would be nice if the
-> kernel could do it on it's own..
+> The catch is how to handle these interrupts if they are 
+> wakeup sources.
 
-Is there any technical problem which would prevent this from being done
-in the kernel? Or is it just legacy and nobody has implemented it
-properly in the kernel side?
+Precisely.
+For example, the ethernet interrupts over GPIO are causing problem.
 
-
-> So currently u-boot probes, then notifies the kernel thru a "buddy"
-> variable that gets passed with the bootargs..
-
-I see.  The good thing is that if someone is using a boot loader that is
-not probing and passing the variable, it can be specified manually in
-the kernel bootargs.
-
-
-> board-omap3beagle.c then parse's the "buddy" variable to setup the
-> expansion device, like as shown for the zippy1/2 expansion boards:
 > 
-> http://cgit.openembedded.org/cgit.cgi/openembedded/tree/recipes/linux/linux-omap-psp-2.6.32/0007-ARM-OMAP-beagleboard-Add-infrastructure-to-do-fixups.patch
+> If these interrupt are wakeup sources, then they should not 
+> be disabled
+> in the [runtime_]suspend path, but rather the ISR for that 
+> device should
+> just do a get_sync() and continue.
+
+We cannot do a get_sync() from ISR context, right?
+
+For GPIOs in particular, this problem can be resolved if we do not tie up
+the interface clock as the main_clk. So long the interface/slave clock
+is not also a main_clk & OCPIF_SWSUP_IDLE flag is not set for a hwmod
+there is no issue, as slave clocks are NOT turned on/off in _enable_clocks()
+/_disable_clocks() inside hwmod fw.
+
+Alternatively, we could have thought of removing get_sync/put_sync altogether
+from the Idle path for GPIO. But though this would work fine for OMAP3/OMAP4 &
+OMAP2420/2430 Wakeup domain GPIOs, but for OMAP2430 CORE domain GPIOs, since it 
+has a separate fclk & iclk, we would still need to cut the fclk in the Idle-path
+to enable CORE transition, thereby needing a get_sync/put_sync .
+
+If this is OK, we can consider this approach.
+
 > 
-> (note there are patches applied before this and after, so it's won't
-> apply cleanly to mainline)
-
-Thanks for this pointer too.  I see that the beagle board files are
-indeed different from what is in the mainline.  Any ideas if/when this
-is going to be integrated into the mainline?
-
-
--- 
-Cheers,
-Luca.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Kevin
+> 
