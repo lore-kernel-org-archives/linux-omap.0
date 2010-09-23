@@ -1,225 +1,124 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v2 1/6] SoC Camera: add driver for OMAP1 camera interface
-Date: Thu, 23 Sep 2010 16:51:35 +0200
-Message-ID: <201009231651.36589.jkrzyszt@tis.icnet.pl>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009222013.58035.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1009231514000.23561@axis700.grange>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 5/9 v3] usb: musb: Using omap_device_build for musb device registration
+Date: Thu, 23 Sep 2010 08:23:17 -0700
+Message-ID: <87bp7o5vru.fsf@deeprootsystems.com>
+References: <1285201750-26438-1-git-send-email-hemahk@ti.com>
+	<20100923062044.GB2563@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:51466 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985Ab0IWOwO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 10:52:14 -0400
-In-Reply-To: <Pine.LNX.4.64.1009231514000.23561@axis700.grange>
-Content-Disposition: inline
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:49575 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753084Ab0IWPXV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 11:23:21 -0400
+In-Reply-To: <20100923062044.GB2563@legolas.emea.dhcp.ti.com> (Felipe Balbi's
+	message of "Thu, 23 Sep 2010 09:20:44 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+To: balbi@ti.com
+Cc: "Kalliguddi, Hema" <hemahk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Thursday 23 September 2010 15:33:54 Guennadi Liakhovetski napisa=C5=82(=
-a):
-> On Wed, 22 Sep 2010, Janusz Krzysztofik wrote:
-> > Wednesday 22 September 2010 01:23:22 Guennadi Liakhovetski napisa=C5=
-=82(a):
-> > > On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
-> > > > +
-> > > > +	vb =3D &buf->vb;
-> > > > +	if (waitqueue_active(&vb->done)) {
-> > > > +		if (!pcdev->ready && result !=3D VIDEOBUF_ERROR)
-> > > > +			/*
-> > > > +			 * No next buffer has been entered into the DMA
-> > > > +			 * programming register set on time, so best we can do
-> > > > +			 * is stopping the capture before last DMA block,
-> > > > +			 * whether our CONTIG mode whole buffer or its last
-> > > > +			 * sgbuf in SG mode, gets overwritten by next frame.
-> > > > +			 */
-> > >
-> > > Hm, why do you think it's a good idea? This specific buffer compl=
-eted
-> > > successfully, but you want to fail it just because the next buffe=
-r is
-> > > missing? Any specific reason for this?
-> >
-> > Maybe my comment is not clear enough, but the below suspend_capture=
-()
-> > doesn't indicate any failure on a frame just captured. It only prev=
-ents
-> > the frame from being overwritten by the already autoreinitialized D=
-MA
-> > engine, pointing back to the same buffer once again.
-> >
-> > > Besides, you seem to also be
-> > > considering the possibility of your ->ready =3D=3D NULL, but the =
-queue
-> > > non-empty, in which case you just take the next buffer from the q=
-ueue
-> > > and continue with it. Why error out in this case?
-> >
-> > pcdev->ready =3D=3D NULL means no buffer was available when it was =
-time to
-> > put it into the DMA programming register set.
+Felipe Balbi <balbi@ti.com> writes:
+
+> Hi,
 >
-> But how? Buffers are added onto the list in omap1_videobuf_queue() un=
-der
-> spin_lock_irqsave(); and there you also check ->ready and fill it in.=
-=20
-
-Guennadi,
-Yes, but only if pcdev->active is NULL, ie. both DMA and FIFO are idle,=
- never=20
-if active:
-
-+	list_add_tail(&vb->queue, &pcdev->capture);
-+	vb->state =3D VIDEOBUF_QUEUED;
-+
-+	if (pcdev->active)
-+		return;
-
-Since the transfer of the DMA programming register set content to the D=
-MA=20
-working register set is done automatically by the DMA hardware, this ca=
-n=20
-pretty well happen while I keep the lock here, so I can't be sure if it=
-'s not=20
-too late for entering new data into the programming register set. Then,=
- I=20
-decided that this operation should be done only just after the DMA inte=
-rrupt=20
-occured, ie. the current DMA programming register set content has just =
-been=20
-used and can be overwriten.
-
-I'll emphasize the above return; with a comment.
-
-> In=20
-> your completion you set ->ready =3D NULL, but then also call
-> prepare_next_vb() to get the next buffer from the list - if there are=
- any,
-> so, how can it be NULL with a non-empty list?
-
-It happens after the above mentioned prepare_next_vb() gets nothing fro=
-m an=20
-empty queue, so nothing is entered into the DMA programming register se=
-t,=20
-only the last, just activated, buffer is processed, then=20
-omap1_videobuf_queue() puts a new buffer into the queue while the activ=
-e=20
-buffer is still filled in, and finally the DMA ISR is called on this la=
-st=20
-active buffer completion.
-
-I hope this helps.
-
-> > As a result, a next DMA transfer has
-> > just been autoreinitialized with the same buffer parameters as befo=
-re. To
-> > protect the buffer from being overwriten unintentionally, we have t=
-o stop
-> > the DMA transfer as soon as possible, hopefully before the sensor s=
-tarts
-> > sending out next frame data.
-> >
-> > If a new buffer has been queued meanwhile, best we can do is stoppi=
-ng
-> > everything, programming the DMA with the new buffer, and setting up=
- for a
-> > new transfer hardware auto startup on nearest frame start, be it th=
-e next
-> > one if we are lucky enough, or one after the next if we are too slo=
-w.
-> >
-> > > And even if also the queue
-> > > is empty - still not sure, why.
-> >
-> > I hope the above explanation clarifies why.
-> >
-> > I'll try to rework the above comment to be more clear, OK? Any hint=
-s?
-> >
-> > > > linux-2.6.36-rc3.orig/include/media/omap1_camera.h	2010-09-03
-> > > > 22:34:02.000000000 +0200 +++
-> > > > linux-2.6.36-rc3/include/media/omap1_camera.h	2010-09-08
-> > > > 23:41:12.000000000 +0200 @@ -0,0 +1,35 @@
-> > > > +/*
-> > > > + * Header for V4L2 SoC Camera driver for OMAP1 Camera Interfac=
-e
-> > > > + *
-> > > > + * Copyright (C) 2010, Janusz Krzysztofik <jkrzyszt@tis.icnet.=
-pl>
-> > > > + *
-> > > > + * This program is free software; you can redistribute it and/=
-or
-> > > > modify + * it under the terms of the GNU General Public License
-> > > > version 2 as + * published by the Free Software Foundation.
-> > > > + */
-> > > > +
-> > > > +#ifndef __MEDIA_OMAP1_CAMERA_H_
-> > > > +#define __MEDIA_OMAP1_CAMERA_H_
-> > > > +
-> > > > +#include <linux/bitops.h>
-> > > > +
-> > > > +#define OMAP1_CAMERA_IOSIZE		0x1c
-> > > > +
-> > > > +enum omap1_cam_vb_mode {
-> > > > +	CONTIG =3D 0,
-> > > > +	SG,
-> > > > +};
-> > >
-> > > See above - are these needed here?
-> > >
-> > > > +
-> > > > +#define OMAP1_CAMERA_MIN_BUF_COUNT(x)	((x) =3D=3D CONTIG ? 3 :=
- 2)
-> > >
-> > > ditto
-> >
-> > I moved them both over to the header file because I was using the
-> > OMAP1_CAMERA_MIN_BUF_COUNT(CONTIG) macro once from the platform cod=
-e in
-> > order to calculate the buffer size when calling the then NAKed
-> > dma_preallocate_coherent_memory(). Now I could put them back into t=
-he
-> > driver code, but if we ever get back to the concept of preallocatin=
-g a
-> > contignuos piece of memory from the platform init code, we might ne=
-ed
-> > them back here, so maybe I should rather keep them, only rename the=
- two
-> > enum values using a distinct name space. What do you think is bette=
-r for
-> > now?
+> On Wed, Sep 22, 2010 at 07:29:10PM -0500, Kalliguddi, Hema wrote:
+>>+#define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
 >
-> Yeah, up to you, I'd say, but if you decide to keep them in the heade=
-r,
-> please, use a namespace.
+> this isn't used anywhere.
+>
+>>@@ -75,31 +62,30 @@ static struct musb_hdrc_platform_data mu
+>>
+>> static u64 musb_dmamask = DMA_BIT_MASK(32);
+>>
+>>-static struct platform_device musb_device = {
+>>-	.name		= "musb_hdrc",
+>>-	.id		= -1,
+>>-	.dev = {
+>>-		.dma_mask		= &musb_dmamask,
+>>-		.coherent_dma_mask	= DMA_BIT_MASK(32),
+>>-		.platform_data		= &musb_plat,
+>>+static struct omap_device_pm_latency omap_musb_latency[] = {
+>>+	{
+>>+		.deactivate_func = omap_device_idle_hwmods,
+>>+		.activate_func   = omap_device_enable_hwmods,
+>>+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+>> 	},
+>>-	.num_resources	= ARRAY_SIZE(musb_resources),
+>>-	.resource	= musb_resources,
+>> };
+>>
+>> void __init usb_musb_init(struct omap_musb_board_data *board_data)
+>> {
+>>-	if (cpu_is_omap243x()) {
+>>-		musb_resources[0].start = OMAP243X_HS_BASE;
+>>-	} else if (cpu_is_omap34xx()) {
+>>-		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+>>-	} else if (cpu_is_omap44xx()) {
+>>-		musb_resources[0].start = OMAP44XX_HSUSB_OTG_BASE;
+>>-		musb_resources[1].start = OMAP44XX_IRQ_HS_USB_MC_N;
+>>-		musb_resources[2].start = OMAP44XX_IRQ_HS_USB_DMA_N;
+>>+	struct omap_hwmod *oh;
+>>+	struct omap_device *od;
+>>+	struct platform_device *pdev;
+>>+	struct device	*dev;
+>>+	int bus_id = -1;
+>>+	const char *oh_name = "usb_otg_hs";
+>>+	struct musb_hdrc_platform_data *pdata;
+>>+
+>>+	oh = omap_hwmod_lookup(oh_name);
+>>+
+>>+	if (!oh) {
+>>+		pr_err("Could not look up %s\n", oh_name);
+>>+		return;
+>> 	}
+>
+> Paul, Kevin, to me it looks like a duplication that all devices will
+> have to:
+>
+> oh = omap_hwmod_lookup("my_hwmod_name");
+> omap_device_build("my_device_name", bus_id, oh, pdata, sizeof(*pdata));
+>
+> could the omap_hwmod_lookup() part be moved to omap_device_build ? Or
+> maybe create a omap_hwmod_lookup_and_build(oh_name, dev_name, bus_id,
+> pdata, sizeof(*pdata)) ??
 
-OK, I'll use a namespace then.
+I don't think that this is too much extra work.
 
-> I'm satisfied with your answers to the rest of my questions / comment=
-s:)
+Also, many drivers are not doing a single hwmod lookup, they are using
+an iterator to iterate over a bunch of hwmods in a given class (c.f.
+omap_hwmod_for_each_by_class)
 
-Glad to hear :)
+So, IMO, keeping the lookup and build separate is better.
 
-Thanks,
-Janusz
+>>@@ -110,8 +96,23 @@ void __init usb_musb_init(struct omap_mu
+>> 	musb_plat.mode = board_data->mode;
+>> 	musb_plat.extvbus = board_data->extvbus;
+>>
+>>-	if (platform_device_register(&musb_device) < 0)
+>>-		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
+>>+	pdata = &musb_plat;
+>>+
+>>+	od = omap_device_build(name, bus_id, oh, pdata,
+>>+			       sizeof(struct musb_hdrc_platform_data),
+>
+> use sizeof(*pdata), if we change the name of that structure (very
+> unlikely, but still) it'll avoid unwanted compile breakage.
+>
+>>+	pdev = &od->pdev;
+>>+	dev = &pdev->dev;
+>>+	get_device(dev);
+>>+	dev->dma_mask = &musb_dmamask;
+>>+	dev->coherent_dma_mask = musb_dmamask;
+>>+	put_device(dev);
+>
+> I think this is also a duplication, it's gonna on all hwmod device
+> registration, no ?
 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Only for devices setting DMA masks.
+
+This is no more duplication than we have today for all platform_devices.
+
+Kevin
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
