@@ -1,21 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] Adding i2c eeprom driver to read EDID
-Date: Thu, 23 Sep 2010 13:33:08 -0400
-Message-ID: <notify-1285263187@atomide.com>
-References: <1282337779.5433.14.camel@black>
+Subject: [APPLIED] [PATCH]omap: i2c: Avoid compilation error in case the header is
+Date: Thu, 23 Sep 2010 13:33:58 -0400
+Message-ID: <notify-1285263238@atomide.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301E835183B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53951 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55142 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755091Ab0IWRdI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 13:33:08 -0400
+	with ESMTP id S1755984Ab0IWRd6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 13:33:58 -0400
 Received: from c-67-188-36-105.hsd1.ca.comcast.net ([67.188.36.105] helo=localhost.localdomain)
 	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
 	(envelope-from <tony@atomide.com>)
-	id 1OypfP-000OCv-9v
-	for linux-omap@vger.kernel.org; Thu, 23 Sep 2010 17:33:07 +0000
-In-Reply-To: <1282337779.5433.14.camel@black>
+	id 1OypgD-000Ocj-0h
+	for linux-omap@vger.kernel.org; Thu, 23 Sep 2010 17:33:57 +0000
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301E835183B@dbde02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -24,14 +24,14 @@ To: linux-omap@vger.kernel.org
 This patch has been applied to the linux-omap
 by youw fwiendly patch wobot.
 
-Branch in linux-omap: devel-boards
+Branch in linux-omap: devel-omap-misc
 
-Initial commit ID (Likely to change): 0e84240346c171b552177ac792bb46037d7bac7a
+Initial commit ID (Likely to change): 6ce3fc011cdd5b7eb72d0cacb236bbfa51f17dad
 
 PatchWorks
-http://patchwork.kernel.org/patch/120871/
+http://patchwork.kernel.org/patch/127371/
 
 Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=0e84240346c171b552177ac792bb46037d7bac7a
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=6ce3fc011cdd5b7eb72d0cacb236bbfa51f17dad
 
 
