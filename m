@@ -1,12 +1,12 @@
 From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: [PATCH] omap: beagle: add support for wl1271 on the board file
-Date: Thu, 23 Sep 2010 11:14:23 +0300
-Message-ID: <1285229663-4224-1-git-send-email-luciano.coelho@nokia.com>
+Subject: [PATCH v2] omap: beagle: add support for wl1271 on the board file
+Date: Thu, 23 Sep 2010 11:20:03 +0300
+Message-ID: <1285230003-5065-1-git-send-email-luciano.coelho@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17714 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:18657 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750750Ab0IWIOe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 04:14:34 -0400
+	with ESMTP id S1750779Ab0IWIUl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 04:20:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -18,11 +18,15 @@ on Ohad Ben-Cohen's patches for Zoom boards.
 Cc: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   71 +++++++++++++++++++++++++++++++
- 1 files changed, 71 insertions(+), 0 deletions(-)
+There was a useless variable defined in omap3_beagle_init() that was causing a
+warning.  I have removed it in v2.
+
+ arch/arm/mach-omap2/board-omap3beagle.c |   69 +++++++++++++++++++++++++++++++
+ drivers/net/wireless/wl12xx/wl1271.h    |    2 +-
+ 2 files changed, 70 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 87969c7..820a198 100644
+index 87969c7..755df29 100644
 --- a/arch/arm/mach-omap2/board-omap3beagle.c
 +++ b/arch/arm/mach-omap2/board-omap3beagle.c
 @@ -29,7 +29,9 @@
@@ -135,12 +139,9 @@ index 87969c7..820a198 100644
  	{ .reg_offset = OMAP_MUX_TERMINATOR },
  };
  #else
-@@ -463,10 +527,17 @@ static struct omap_musb_board_data musb_board_data = {
- 
+@@ -464,9 +528,14 @@ static struct omap_musb_board_data musb_board_data = {
  static void __init omap3_beagle_init(void)
  {
-+	int ret;
-+
  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
 +	if (wl12xx_set_platform_data(&omap_beagle_wlan_data))
 +		pr_err("error setting wl12xx data\n");
@@ -153,6 +154,19 @@ index 87969c7..820a198 100644
  	omap_serial_init();
  
  	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
+diff --git a/drivers/net/wireless/wl12xx/wl1271.h b/drivers/net/wireless/wl12xx/wl1271.h
+index 4134f44..8bb028e 100644
+--- a/drivers/net/wireless/wl12xx/wl1271.h
++++ b/drivers/net/wireless/wl12xx/wl1271.h
+@@ -60,7 +60,7 @@ enum {
+ 	DEBUG_ALL	= ~0,
+ };
+ 
+-#define DEBUG_LEVEL (DEBUG_NONE)
++#define DEBUG_LEVEL (DEBUG_MAC80211 | DEBUG_CMD | DEBUG_ACX | DEBUG_BOOT)
+ 
+ #define DEBUG_DUMP_LIMIT 1024
+ 
 -- 
 1.6.3.3
 
