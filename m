@@ -1,7 +1,7 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [RFC 8/8] omap4: powerdomain: Add pwrdm_clear_all_prev_pwrst
-Date: Thu, 23 Sep 2010 18:04:51 +0530
-Message-ID: <1285245291-26442-9-git-send-email-rnayak@ti.com>
+Subject: [RFC 7/8] omap4: powerdomain: add context_offset field
+Date: Thu, 23 Sep 2010 18:04:50 +0530
+Message-ID: <1285245291-26442-8-git-send-email-rnayak@ti.com>
 References: <1285245291-26442-1-git-send-email-rnayak@ti.com>
  <1285245291-26442-2-git-send-email-rnayak@ti.com>
  <1285245291-26442-3-git-send-email-rnayak@ti.com>
@@ -9,13 +9,12 @@ References: <1285245291-26442-1-git-send-email-rnayak@ti.com>
  <1285245291-26442-5-git-send-email-rnayak@ti.com>
  <1285245291-26442-6-git-send-email-rnayak@ti.com>
  <1285245291-26442-7-git-send-email-rnayak@ti.com>
- <1285245291-26442-8-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50874 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50027 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755110Ab0IWMfC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755155Ab0IWMfC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 23 Sep 2010 08:35:02 -0400
-In-Reply-To: <1285245291-26442-8-git-send-email-rnayak@ti.com>
+In-Reply-To: <1285245291-26442-7-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -23,49 +22,154 @@ Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, Santosh Shili
 
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-OMAP4430 ES2 has additional bitfields in PWRSTST register which help
-identify the previous power state entered by the powerdomain.
-Add pwrdm_clear_all_prev_pwrst api to support this. The context
-register is seperate and needs to be cleared as well
+Context register in various power domain is not at same offset
+on OMAP4. Mainly the CPUx context resgiters againts rest of
+them. This patch adds a field in power-domain strucures to handle
+this.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/powerdomains44xx.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/powerdomains44xx.h        |   14 ++++++++++++++
+ arch/arm/plat-omap/include/plat/powerdomain.h |    2 ++
+ 2 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains44xx.c b/arch/arm/mach-omap2/powerdomains44xx.c
-index 3c4b060..7248647 100644
---- a/arch/arm/mach-omap2/powerdomains44xx.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx.c
-@@ -44,6 +44,19 @@ int omap4_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
- 				OMAP4430_LASTPOWERSTATEENTERED_MASK);
- }
- 
-+int omap4_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
-+{
-+	u32 reg;
-+
-+	omap4_prm_rmw_mod_reg_bits(OMAP4430_LASTPOWERSTATEENTERED_MASK,
-+			0x3 << OMAP4430_LASTPOWERSTATEENTERED_SHIFT,
-+				pwrdm->prcm_offs, OMAP4_PM_PWSTST);
-+	reg = omap4_prm_read_mod_reg(pwrdm->prcm_offs, pwrdm->context_offset);
-+	omap4_prm_write_mod_reg(reg, pwrdm->prcm_offs, pwrdm->context_offset);
-+
-+	return 0;
-+}
-+
- int omap4_pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
- {
- 	omap4_prm_rmw_mod_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
-@@ -151,6 +164,7 @@ struct pwrdm_functions omap4_pwrdm_functions = {
- 	.pwrdm_read_next_pwrst	= omap4_pwrdm_read_next_pwrst,
- 	.pwrdm_read_pwrst	= omap4_pwrdm_read_pwrst,
- 	.pwrdm_read_prev_pwrst	= omap4_pwrdm_read_prev_pwrst,
-+	.pwrdm_clear_all_prev_pwrst	= omap4_pwrdm_clear_all_prev_pwrst,
- 	.pwrdm_set_lowpwrstchange	= omap4_pwrdm_set_lowpwrstchange,
- 	.pwrdm_set_logic_retst	= omap4_pwrdm_set_logic_retst,
- 	.pwrdm_read_logic_pwrst	= omap4_pwrdm_read_logic_pwrst,
+diff --git a/arch/arm/mach-omap2/powerdomains44xx.h b/arch/arm/mach-omap2/powerdomains44xx.h
+index 9c01b55..65e919b 100644
+--- a/arch/arm/mach-omap2/powerdomains44xx.h
++++ b/arch/arm/mach-omap2/powerdomains44xx.h
+@@ -40,6 +40,7 @@ static struct powerdomain core_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 5,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* core_nret_bank */
+ 		[1] = PWRSTS_OFF_RET,	/* core_ocmram */
+@@ -64,6 +65,7 @@ static struct powerdomain gfx_44xx_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* gfx_mem */
+ 	},
+@@ -81,6 +83,7 @@ static struct powerdomain abe_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_OFF,
+ 	.banks		  = 2,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_RET,	/* aessmem */
+ 		[1] = PWRDM_POWER_OFF,	/* periphmem */
+@@ -100,6 +103,7 @@ static struct powerdomain dss_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF,
+ 	.banks		  = 1,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* dss_mem */
+ 	},
+@@ -117,6 +121,7 @@ static struct powerdomain tesla_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_RET,	/* tesla_edma */
+ 		[1] = PWRSTS_OFF_RET,	/* tesla_l1 */
+@@ -137,6 +142,7 @@ static struct powerdomain wkup_44xx_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  = PWRSTS_ON,
+ 	.banks		  = 1,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* wkup_bank */
+ 	},
+@@ -153,6 +159,7 @@ static struct powerdomain cpu0_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
++	.context_offset	  = 0x18,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRSTS_OFF_RET,	/* cpu0_l1 */
+ 	},
+@@ -169,6 +176,7 @@ static struct powerdomain cpu1_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
++	.context_offset	  = 0x18,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRSTS_OFF_RET,	/* cpu1_l1 */
+ 	},
+@@ -184,6 +192,7 @@ static struct powerdomain emu_44xx_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* emu_bank */
+ 	},
+@@ -200,6 +209,7 @@ static struct powerdomain mpu_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 3,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRSTS_OFF_RET,	/* mpu_l1 */
+ 		[1] = PWRSTS_OFF_RET,	/* mpu_l2 */
+@@ -220,6 +230,7 @@ static struct powerdomain ivahd_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_OFF,
+ 	.banks		  = 4,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* hwa_mem */
+ 		[1] = PWRSTS_OFF_RET,	/* sl2_mem */
+@@ -242,6 +253,7 @@ static struct powerdomain cam_44xx_pwrdm = {
+ 	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ 	.pwrsts		  = PWRSTS_OFF_ON,
+ 	.banks		  = 1,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* cam_mem */
+ 	},
+@@ -259,6 +271,7 @@ static struct powerdomain l3init_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 1,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* l3init_bank1 */
+ 	},
+@@ -276,6 +289,7 @@ static struct powerdomain l4per_44xx_pwrdm = {
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRSTS_OFF_RET,
+ 	.banks		  = 2,
++	.context_offset	  = 0x24,
+ 	.pwrsts_mem_ret	= {
+ 		[0] = PWRDM_POWER_OFF,	/* nonretained_bank */
+ 		[1] = PWRDM_POWER_RET,	/* retained_bank */
+diff --git a/arch/arm/plat-omap/include/plat/powerdomain.h b/arch/arm/plat-omap/include/plat/powerdomain.h
+index 18b722d..96bf746 100644
+--- a/arch/arm/plat-omap/include/plat/powerdomain.h
++++ b/arch/arm/plat-omap/include/plat/powerdomain.h
+@@ -85,6 +85,7 @@ struct powerdomain;
+  * @pwrsts_logic_ret: Possible logic power states when pwrdm in RETENTION
+  * @flags: Powerdomain flags
+  * @banks: Number of software-controllable memory banks in this powerdomain
++ * @context_offset: Offset for the context register, used only on OMAP4
+  * @pwrsts_mem_ret: Possible memory bank pwrstates when pwrdm in RETENTION
+  * @pwrsts_mem_on: Possible memory bank pwrstates when pwrdm in ON
+  * @pwrdm_clkdms: Clockdomains in this powerdomain
+@@ -102,6 +103,7 @@ struct powerdomain {
+ 	const u8 pwrsts_logic_ret;
+ 	const u8 flags;
+ 	const u8 banks;
++	const u8 context_offset;
+ 	const u8 pwrsts_mem_ret[PWRDM_MAX_MEM_BANKS];
+ 	const u8 pwrsts_mem_on[PWRDM_MAX_MEM_BANKS];
+ 	struct clockdomain *pwrdm_clkdms[PWRDM_MAX_CLKDMS];
 -- 
 1.7.0.4
 
