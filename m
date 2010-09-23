@@ -1,347 +1,170 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
-Date: Thu, 23 Sep 2010 21:07:22 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863DD49@dbde02.ent.ti.com>
-References: <1285201846-26599-1-git-send-email-hemahk@ti.com>
- <20100923064910.GF2563@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863D9EB@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
+Date: Thu, 23 Sep 2010 08:38:06 -0700
+Message-ID: <87mxr84gip.fsf@deeprootsystems.com>
+References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
+	<1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
+	<87d3sgs1nw.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F6FE85CD@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33308 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165Ab0IWPhj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 11:37:39 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D9EB@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-px0-f174.google.com ([209.85.212.174]:56336 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753830Ab0IWPiK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 11:38:10 -0400
+Received: by pxi10 with SMTP id 10so453165pxi.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2010 08:38:10 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301F6FE85CD@dbde02.ent.ti.com>
+	(Partha Basak's message of "Thu, 23 Sep 2010 18:24:06 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Mankad, Maulik Ojas" <x0082077@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Basak, Partha" <p-basak2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, Tero Kristo <tero.kristo@nokia.com>
 
- Kevin,
+"Basak, Partha" <p-basak2@ti.com> writes:
 
+>  
+>
+>> -----Original Message-----
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>> Sent: Tuesday, September 14, 2010 10:28 PM
+>> To: Basak, Partha
+>> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; Tero Kristo
+>> Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
+>> interrupts-disabled idle path
+>> 
+>> "Basak, Partha" <p-basak2@ti.com> writes:
+>> 
+>> >> From: Kevin Hilman <khilman@ti.com>
+>> >> 
+>> >> Currently, we wait until late in the idle path where interrupts are
+>> >> disabled to do runtime-PM-like management for certain special-case
+>> >> devices like GPIO.
+>> >> 
+>> >> As a prerequiste to moving GPIO to the new runtime PM 
+>> framework, move
+>> >> this runtime-PM-like code out of the late idle path into new device
+>> >> idle and resume functions that can be called before interrupts are
+>> >> disabled by CPUidle and/or suspend.
+>> >> 
+>> >> In addition, move all the GPIO-specific logic into the GPIO core
+>> >> instead of keeping GPIO-specific knowledge of power-states, context
+>> >> saving etc. in the PM core.
+>> >> 
+>> >> Also, call the new device-idle and -resume methods from CPUidle and
+>> >> static suspend path.
+>> >> 
+>> >> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> >> ---
+>> >>  arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
+>> >>  arch/arm/mach-omap2/pm.h               |    2 +
+>> >>  arch/arm/mach-omap2/pm24xx.c           |    2 +-
+>> >>  arch/arm/mach-omap2/pm34xx.c           |   38 
+>> +++++++++------------
+>> >>  arch/arm/plat-omap/gpio.c              |   57 
+>> >> ++++++++++++++++++++++++--------
+>> >>  arch/arm/plat-omap/include/plat/gpio.h |    4 +--
+>> >>  6 files changed, 67 insertions(+), 40 deletions(-)
+>> >> 
+>> >> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
+>> >> b/arch/arm/mach-omap2/cpuidle34xx.c
+>> >> index 0923b82..681d823 100644
+>> >> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+>> >> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>> >> @@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct 
+>> >> cpuidle_device *dev,
+>> >>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
+>> >>  
+>> >>  select_state:
+>> >> +	omap3_device_idle();
+>> >> +
+>> >>  	dev->last_state = new_state;
+>> >>  	ret = omap3_enter_idle(dev, new_state);
+>> >>  
+>> >> +	omap3_device_resume();
+>> >> +
+>> > In the generic cpu_idle() in process.c, interrupts are 
+>> already disabled
+>> > before control comes to cpuidle_idle_call() via pm_idle()
+>> > 			local_irq_disable();
+>> > 			if (hlt_counter) {
+>> > 				local_irq_enable();
+>> > 				cpu_relax();
+>> > 			} else {
+>> > 				stop_critical_timings();
+>> > 				pm_idle();
+>> > 				start_critical_timings();
+>> > 				/*
+>> > 				 * This will eventually be 
+>> removed - pm_idle
+>> > 				 * functions should always 
+>> return with IRQs
+>> > 				 * enabled.
+>> > 				 */
+>> > 				WARN_ON(irqs_disabled());
+>> > 				local_irq_enable();
+>> > 			}
+>> >
+>> > omap3_enter_idle_bm() will be called from inside 
+>> cpuidle_idle_call() 
+>> > via target_state->enter(dev, target_state).
+>> > So, interrupts are already disabled here.
+>> >
+>> > Am I missing something?
+>> 
+>> You're right.  
+>> 
+>> I knew this was the case for !CPUIDLE setup, but had thought (without
+>> testing) that the CPUidle core had re-enabled interrupts during the
+>> governor selection process etc.
+>> 
+>> While I investigate ways to manage this in CPUidle, the 
+>> following should
+>> be fine for now to include with $SUBJECT patch.
+>> 
+>> Kevin
+>> 
+>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
+>> b/arch/arm/mach-omap2/cpuidle34xx.c
+>> index 681d823..c5cb9d0 100644
+>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>> @@ -245,6 +245,14 @@ static int omap3_enter_idle_bm(struct 
+>> cpuidle_device *dev,
+>>  		goto select_state;
+>>  	}
+>>  
+>> +	/*
+>> +	 * Enable IRQs during the device activity checking and 
+>> idle management.
+>> +	 * IRQs are later (re)disabled when entering the actual 
+>> idle function.
+>> +	 * Device idle management that is using runtime PM needs to have
+>> +	 * interrupts enabled when calling into the runtime PM core.
+>> +	 */
+>> +	local_irq_enable();
+>
+> After put_sync() retuns, there will be a time window where interrupts
+> are enabled but clocks are disabled before the interrupts are disabled again.
+> Accessing any register to service a device interrupt coming during this window
+> will lead to a crash for cases where iclk and fclks are same and we have the
+> iclk defined as the main_clk as well.
+>
+> Same argument holds while returning from Idle. We are facing this issue for OMAP3 
+> GPIO while trying to define the main_clk = interface clock based on your other commment.
 
->-----Original Message-----
->From: linux-usb-owner@vger.kernel.org 
->[mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Kalliguddi, Hema
->Sent: Thursday, September 23, 2010 1:29 PM
->To: Balbi, Felipe
->Cc: linux-omap@vger.kernel.org; linux-usb@vger.kernel.org; 
->Mankad, Maulik Ojas; Tony Lindgren; Kevin Hilman; Cousson, 
->Benoit; Paul Walmsley
->Subject: RE: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
->
-> Hi,
->
->>-----Original Message-----
->>From: Balbi, Felipe 
->>Sent: Thursday, September 23, 2010 12:19 PM
->>To: Kalliguddi, Hema
->>Cc: linux-omap@vger.kernel.org; linux-usb@vger.kernel.org; 
->>Mankad, Maulik Ojas; Balbi, Felipe; Tony Lindgren; Kevin 
->>Hilman; Cousson, Benoit; Paul Walmsley
->>Subject: Re: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
->>
->>Hi,
->>
->>On Wed, Sep 22, 2010 at 07:30:46PM -0500, Kalliguddi, Hema wrote:
->>>With OMAP core-off support musb was not functional as context 
->>was getting
->>>lost after wakeup from core-off. And also musb was blocking 
->>the core-off
->>>after loading the gadget driver even with no cable connected 
->>sometimes.
->>>
->>>Added the idle and wakeup APIs in the platform layer which will
->>>be called in the idle and wakeup path.
->>>
->>>Used the pm_runtime_put_sysc API to configure the
->>
->>pm_runtime_put_sync(), typo.
->>
->>>musb to force idle/standby modes, saving the context and 
->>disable the clk in
->>>while idling if there is no activity on the usb bus.
->>
->>this part is a bit fuzzy, care to re-phrase ?
->>
->Ok. I will re-phrase it. 
->
->>>Used the pm_runtime_get_sync API to configure the musb to
->>>no idle/standby modes, enable the clock and restore the context
->>>after wakeup when there is no activity on the usb bus.
->>>
->>>Signed-off-by: Hema HK <hemahk@ti.com>
->>>Signed-off-by: Maulik Mankad <x0082077@ti.com>
->>>Cc: Felipe Balbi <balbi@ti.com>
->>>Cc: Tony Lindgren <tony@atomide.com>
->>>Cc: Kevin Hilman <khilman@deeprootsystems.com>
->>>Cc: Cousson, Benoit <b-cousson@ti.com>
->>>Cc: Paul Walmsley <paul@pwsan.com>
->>>
->>>---
->>> arch/arm/mach-omap2/cpuidle34xx.c     |    1
->>> arch/arm/mach-omap2/pm34xx.c          |    3
->>> arch/arm/mach-omap2/usb-musb.c        |  107 
->>++++++++++++++++++++++++++++++++++
->>> arch/arm/plat-omap/include/plat/usb.h |    2
->>> drivers/usb/musb/musb_core.c          |   15 ++++
->>> drivers/usb/musb/omap2430.c           |   14 ++++
->>> include/linux/usb/musb.h              |    9 ++
->>> 7 files changed, 149 insertions(+), 2 deletions(-)
->>>
->>>Index: linux-omap-pm/arch/arm/mach-omap2/cpuidle34xx.c
->>>===================================================================
->>>--- linux-omap-pm.orig/arch/arm/mach-omap2/cpuidle34xx.c
->>>+++ linux-omap-pm/arch/arm/mach-omap2/cpuidle34xx.c
->>>@@ -31,6 +31,7 @@
->>> #include <plat/clockdomain.h>
->>> #include <plat/control.h>
->>> #include <plat/serial.h>
->>>+#include <plat/usb.h>
->>>
->>> #include "pm.h"
->>>
->>>Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
->>>===================================================================
->>>--- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c
->>>+++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
->>>@@ -38,6 +38,7 @@
->>> #include <plat/prcm.h>
->>> #include <plat/gpmc.h>
->>> #include <plat/dma.h>
->>>+#include <plat/usb.h>
->>>
->>> #include <asm/tlbflush.h>
->>>
->>>@@ -324,11 +325,13 @@ static void restore_table_entry(void)
->>> void omap3_device_idle(void)
->>> {
->>> 	omap2_gpio_prepare_for_idle();
->>>+	musb_prepare_for_idle();
->>> }
->>>
->>> void omap3_device_resume(void)
->>> {
->>> 	omap2_gpio_resume_after_idle();
->>>+	musb_wakeup_from_idle();
->>> }
->>>
->>> void omap_sram_idle(void)
->>>Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
->>>===================================================================
->>>--- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
->>>+++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
->>>@@ -25,16 +25,21 @@
->>> #include <linux/io.h>
->>>
->>> #include <linux/usb/musb.h>
->>>+#include <linux/pm_runtime.h>
->>>
->>> #include <mach/hardware.h>
->>> #include <mach/irqs.h>
->>> #include <plat/usb.h>
->>> #include <plat/omap_device.h>
->>>+#include <plat/powerdomain.h>
->>>
->>> #ifdef CONFIG_USB_MUSB_SOC
->>> static const char name[] = "musb_hdrc";
->>> #define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
->>>
->>>+struct omap_hwmod *oh_p;
->>>+static struct powerdomain *core_pwrdm;
->>>+
->>> static struct musb_hdrc_config musb_config = {
->>> 	.multipoint	= 1,
->>> 	.dyn_fifo	= 1,
->>>@@ -58,6 +63,10 @@ static struct musb_hdrc_platform_data mu
->>> 	 * "mode", and should be passed to usb_musb_init().
->>> 	 */
->>> 	.power		= 50,			/* up to 100 mA */
->>>+
->>>+	/* OMAP supports offmode */
->>>+	.save_context	= 1,
->>>+	.restore_context	= 1,
->>> };
->>>
->>> static u64 musb_dmamask = DMA_BIT_MASK(32);
->>>@@ -80,6 +89,7 @@ void __init usb_musb_init(struct omap_mu
->>> 	const char *oh_name = "usb_otg_hs";
->>> 	struct musb_hdrc_platform_data *pdata;
->>>
->>>+	core_pwrdm = pwrdm_lookup("per_pwrdm");
->>
->>per or core ???
->>
->Oh! It should be core. Now I understand why save/restore 
->counts were not matching with
->Core-off counts.
->Thanks for pointing this out.
+This is the same problem as has existed in static/suspend resume.
 
-If I call pm_runtime_put_sync and pm_runtime_get_sync based on the core domain state then
-the USB connect/reset interrupt is not triggered once the core hits off.
+IOW, if it's possible for a device interrupt to arrive between device
+suspend and actual suspend, then the device interrupt should be
+disabled in the suspend hook (or runtime_suspend hook in your case.)
 
-In omap3_enter_idle_bm() there is no core next state being programmed to PRCM register,
-but the drivers functions which are called from omap3_device_idle are suppose to read the
-core next state from the PRCM register.
-I am missing something here?
+The catch is how to handle these interrupts if they are wakeup sources.
 
-If I use the per_pwrdm states to save the context and restore everything works fine.
+If these interrupt are wakeup sources, then they should not be disabled
+in the [runtime_]suspend path, but rather the ISR for that device should
+just do a get_sync() and continue.
 
->
->>>@@ -97,6 +107,7 @@ void __init usb_musb_init(struct omap_mu
->>> 	musb_plat.extvbus = board_data->extvbus;
->>>
->>> 	pdata = &musb_plat;
->>>+	oh_p = oh;
->>>
->>> 	od = omap_device_build(name, bus_id, oh, pdata,
->>> 			       sizeof(struct musb_hdrc_platform_data),
->>>@@ -115,8 +126,101 @@ void __init usb_musb_init(struct omap_mu
->>> 	put_device(dev);
->>> }
->>>
->>>+void musb_prepare_for_idle()
->>>+{
->>>+	int core_next_state;
->>>+	struct omap_hwmod *oh = oh_p;
->>>+	struct omap_device *od;
->>>+	struct platform_device *pdev;
->>>+	struct musb_hdrc_platform_data *pdata;
->>>+	struct device *dev;
->>>+
->>>+	if (!core_pwrdm)
->>>+		return;
->>>+
->>>+	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
->>>+	if (core_next_state >= PWRDM_POWER_INACTIVE)
->>>+		return;
->>>+	if (!oh)
->>>+		return;
->>>+
->>>+	od = oh->od;
->>>+	pdev = &od->pdev;
->>>+
->>>+	if (!pdev)
->>>+		return;
->>>+	dev = &pdev->dev;
->>>+
->>>+	if (dev->driver) {
->>>+		pdata = dev->platform_data;
->>>+
->>>+	if (pdata->is_usb_active)
->>
->>indentation is wrong. And you can save some of it:
->
->Maulik is pointed this out and I will fixing it.
->>
->>	if (!dev->driver)
->>		return;
->>	
->>	pdata = dev->platform_data;
->>
->>	if (!pdata->is_usb_active)
->>		return;
->>	
->>	if (!pdata->is_usb_active(dev)) {
->>		switch (core_next_state) {
->>		case PWRDM_POWER_OFF:
->>			pdata->save_context = 1;
->>			pm_runtime_put_sync(dev);
->>			break;
->>		case PWRDM_POWER_RET:
->>			pdata->save_context = 0;
->>			pm_runtime_put_sync(dev);
->>			break;
->>		default:
->>			pr_debug("what ??\n");
->>		}
->>	}
->>
->>>Index: linux-omap-pm/drivers/usb/musb/musb_core.c
->>>===================================================================
->>>--- linux-omap-pm.orig/drivers/usb/musb/musb_core.c
->>>+++ linux-omap-pm/drivers/usb/musb/musb_core.c
->>>@@ -2410,6 +2410,7 @@ static int musb_suspend(struct device *d
->>> 	struct platform_device *pdev = to_platform_device(dev);
->>> 	unsigned long	flags;
->>> 	struct musb	*musb = dev_to_musb(&pdev->dev);
->>>+	struct musb_hdrc_platform_data *plat = dev->platform_data;
->>>
->>> 	if (!musb->clock)
->>> 		return 0;
->>>@@ -2425,6 +2426,9 @@ static int musb_suspend(struct device *d
->>> 		 * they will even be wakeup-enabled.
->>> 		 */
->>> 	}
->>>+
->>>+	if (plat->save_context)
->>>+		plat->save_context = 1;
->>
->>what ??
->>
->>if plat->save_context is 1, then set it to 1 ???
->>
->This is mistake. I messed it up. I had another flag
->for offmode support, which I removed later.
->i will correct this.
->
->>>@@ -2443,10 +2447,13 @@ static int musb_resume_noirq(struct devi
->>> {
->>> 	struct platform_device *pdev = to_platform_device(dev);
->>> 	struct musb	*musb = dev_to_musb(&pdev->dev);
->>
->>just now I notice these, hah, funny :-p pdev isn't even 
->>needed. Has been
->>there for quite a while I believe.
->>
->>Commit 48fea965 should have changed that line, but that's ok, we will
->>clean it later.
->>
->Yehh :-)
->If it is OK, I can clean it up with this patch only.
->
->>>+	struct musb_hdrc_platform_data *plat = dev->platform_data;
->>>
->>> 	if (!musb->clock)
->>> 		return 0;
->>>
->>>+	if (plat->restore_context)
->>>+		plat->restore_context = 1;
->>
->>also here?? there's something wrong.
->>
->Yes...
->
->>>@@ -2468,16 +2475,20 @@ static int musb_resume_noirq(struct devi
->>> static int musb_runtime_suspend(struct device *dev)
->>> {
->>> 	struct musb	*musb = dev_to_musb(dev);
->>>+	struct musb_hdrc_platform_data *plat = dev->platform_data;
->>>
->>>-	musb_save_context(musb);
->>>+	if (plat->save_context)
->>>+		musb_save_context(musb);
->>
->>this looks better.
->>
->>>@@ -126,6 +128,17 @@ struct musb_hdrc_platform_data {
->>>
->>> 	/* Architecture specific board data	*/
->>> 	void		*board_data;
->>>+
->>>+	/* check usb device active state*/
->>>+	int		(*is_usb_active)(struct device *dev);
->>
->>where is it used ??
->>
->This you got it already.
->>-- 
->>balbi
->>--
->To unsubscribe from this list: send the line "unsubscribe linux-usb" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Kevin
