@@ -1,64 +1,64 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [RFC] omap: mailbox: fix detection for previously supported
- chips
-Date: Thu, 23 Sep 2010 11:11:30 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
-References: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
- <A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH 1/2] omap: zoom2: Fix ASoC multi-component build breakage by removing dead code
+Date: Thu, 23 Sep 2010 19:11:53 +0300
+Message-ID: <1285258314-23721-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37898 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753671Ab0IWQLj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 12:11:39 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:60869 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755546Ab0IWQOI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 12:14:08 -0400
+Received: by ewy23 with SMTP id 23so511609ewy.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2010 09:14:07 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Anna, Suman" <s-anna@ti>
+To: alsa-devel@alsa-project.org
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, Vikram Pandita <vikram.pandita@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Sergio,
+ASoC Multi-Component Support patch removes #if 0 in board-zoom2.c that was
+used to protect some uncompiling dead code. Remove that code as it seems to
+be here quite some time since commit 479f12c.
 
-Aguirre, Sergio wrote:
-> Hi Omar,
->> 
-...
->> +#if defined(CONFIG_ARCH_OMAP2)
->> +	else if (cpu_is_omap2430()) {
->> +		list = omap2_mboxes;
->> +
->> +		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
->> +	} else if (cpu_is_omap2420()) {
-> 
-> Isn't both 2430 and 2420 doing the exact same?
-> 
-
-Code is not the same, it is 2 line which apply for both but couldn't find an easy way of making them share the request for dsp mailbox without changing more code, perhaps a macro to detect if omap2 and then a nested if for the 2420 case, but since HWMOD should handle it better, I left it as is.
-
-As the code previous to reorganization treated 2430 has a user with one single mailbox (same as omap3) I added the code to at least detect it, 2420 has 2 mailboxes one for iva and other for the dsp. From the diagrams for OMAP2430[1] and OMAP2420[2], it made sense as in the later both dsp and iva seem to be separated entities; unfortunately I don't have the hardware to test on any of them.
-
-The patched code should look like:
-
-#if defined(CONFIG_ARCH_OMAP2)
-        else if (cpu_is_omap2430()) {
-                list = omap2_mboxes;
-
-                list[0]->irq = platform_get_irq_byname(pdev, "dsp");
-        } else if (cpu_is_omap2420()) {
-                list = omap2_mboxes;
-
-                list[0]->irq = platform_get_irq_byname(pdev, "dsp");
-                list[1]->irq = platform_get_irq_byname(pdev, "iva");
-        }
-#endif
-
-Regards,
-
-Omar
-
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
+Sorry for not noticing this before. Somehow my own test config didn't include
+zoom2 like omap3_defconfig does.
+---
+ arch/arm/mach-omap2/board-zoom2.c |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
 
-[1] http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?contentId=4672&navigationId=12609&templateId=6123
-[2] http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=11990&contentId=4671
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index efbcd8f..86d4515 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -41,10 +41,6 @@ void zoom2_set_hs_extmute(int mute)
+ 	gpio_set_value(ZOOM2_HEADSET_EXTMUTE_GPIO, mute);
+ }
+ 
+-static struct twl4030_madc_platform_data zoom2_madc_data = {
+-	.irq_line	= 1,
+-};
+-
+ static struct twl4030_codec_audio_data zoom2_audio_data = {
+ 	.audio_mclk = 26000000,
+ 	.ramp_delay_value = 3,	/* 161 ms */
+@@ -62,15 +58,7 @@ static struct twl4030_platform_data zoom2_twldata = {
+ 	.irq_end	= TWL4030_IRQ_END,
+ 
+ 	/* platform_data for children goes here */
+-	.bci		= &zoom2_bci_data,
+-	.madc		= &zoom2_madc_data,
+-	.usb		= &zoom2_usb_data,
+-	.gpio		= &zoom2_gpio_data,
+-	.keypad		= &zoom2_kp_twl4030_data,
+ 	.codec		= &zoom2_codec_data,
+-	.vmmc1          = &zoom2_vmmc1,
+-	.vmmc2          = &zoom2_vmmc2,
+-	.vsim           = &zoom2_vsim,
+ };
+ 
+ static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
+-- 
+1.7.1
+
