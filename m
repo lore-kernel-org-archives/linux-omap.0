@@ -1,161 +1,92 @@
-From: "Basak, Partha" <p-basak2@ti.com>
-Subject: RE: [PATCH 2/2] OMAP2+: GPIO: move late PM out of
- interrupts-disabled idle path
-Date: Thu, 23 Sep 2010 18:24:06 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301F6FE85CD@dbde02.ent.ti.com>
-References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
-	<1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
- <87d3sgs1nw.fsf@deeprootsystems.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: RE: [RFC] omap: mailbox: fix detection for previously supported
+ chips
+Date: Thu, 23 Sep 2010 07:56:05 -0500
+Message-ID: <A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
+References: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51731 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753646Ab0IWMyQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 08:54:16 -0400
-In-Reply-To: <87d3sgs1nw.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54385 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753080Ab0IWM4M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 08:56:12 -0400
+In-Reply-To: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, Tero Kristo <tero.kristo@nokia.com>
+To: Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Anna, Suman" <s-a>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
- 
+Hi Omar,
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Tuesday, September 14, 2010 10:28 PM
-> To: Basak, Partha
-> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; Tero Kristo
-> Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
-> interrupts-disabled idle path
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Omar Ramirez Luna
+> Sent: Wednesday, September 22, 2010 7:22 PM
+> To: Tony Lindgren; Hiroshi DOYU; Felipe Contreras; Anna, Suman; linux-
+> omap@vger.kernel.org
+> Cc: Ramirez Luna, Omar
+> Subject: [RFC] omap: mailbox: fix detection for previously supported chips
 > 
-> "Basak, Partha" <p-basak2@ti.com> writes:
+> Fix the mailbox support detection for OMAP3630, 3530/25 and 2430.
 > 
-> >> From: Kevin Hilman <khilman@ti.com>
-> >> 
-> >> Currently, we wait until late in the idle path where interrupts are
-> >> disabled to do runtime-PM-like management for certain special-case
-> >> devices like GPIO.
-> >> 
-> >> As a prerequiste to moving GPIO to the new runtime PM 
-> framework, move
-> >> this runtime-PM-like code out of the late idle path into new device
-> >> idle and resume functions that can be called before interrupts are
-> >> disabled by CPUidle and/or suspend.
-> >> 
-> >> In addition, move all the GPIO-specific logic into the GPIO core
-> >> instead of keeping GPIO-specific knowledge of power-states, context
-> >> saving etc. in the PM core.
-> >> 
-> >> Also, call the new device-idle and -resume methods from CPUidle and
-> >> static suspend path.
-> >> 
-> >> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> >> ---
-> >>  arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
-> >>  arch/arm/mach-omap2/pm.h               |    2 +
-> >>  arch/arm/mach-omap2/pm24xx.c           |    2 +-
-> >>  arch/arm/mach-omap2/pm34xx.c           |   38 
-> +++++++++------------
-> >>  arch/arm/plat-omap/gpio.c              |   57 
-> >> ++++++++++++++++++++++++--------
-> >>  arch/arm/plat-omap/include/plat/gpio.h |    4 +--
-> >>  6 files changed, 67 insertions(+), 40 deletions(-)
-> >> 
-> >> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
-> >> b/arch/arm/mach-omap2/cpuidle34xx.c
-> >> index 0923b82..681d823 100644
-> >> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> >> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> >> @@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct 
-> >> cpuidle_device *dev,
-> >>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
-> >>  
-> >>  select_state:
-> >> +	omap3_device_idle();
-> >> +
-> >>  	dev->last_state = new_state;
-> >>  	ret = omap3_enter_idle(dev, new_state);
-> >>  
-> >> +	omap3_device_resume();
-> >> +
-> > In the generic cpu_idle() in process.c, interrupts are 
-> already disabled
-> > before control comes to cpuidle_idle_call() via pm_idle()
-> > 			local_irq_disable();
-> > 			if (hlt_counter) {
-> > 				local_irq_enable();
-> > 				cpu_relax();
-> > 			} else {
-> > 				stop_critical_timings();
-> > 				pm_idle();
-> > 				start_critical_timings();
-> > 				/*
-> > 				 * This will eventually be 
-> removed - pm_idle
-> > 				 * functions should always 
-> return with IRQs
-> > 				 * enabled.
-> > 				 */
-> > 				WARN_ON(irqs_disabled());
-> > 				local_irq_enable();
-> > 			}
-> >
-> > omap3_enter_idle_bm() will be called from inside 
-> cpuidle_idle_call() 
-> > via target_state->enter(dev, target_state).
-> > So, interrupts are already disabled here.
-> >
-> > Am I missing something?
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> ---
+> - Testing was made under 3630 and 3430 boards.
+> - Given that 2430 uses similar initialization than OMAP3, changes
+>   to handle this case was added to the patch.
+> - HWMOD adaptation hopefully should solve this mess, but as of now
+>   mailbox should work as before at least.
 > 
-> You're right.  
+>  arch/arm/mach-omap2/mailbox.c |   12 ++++++++----
+>  1 files changed, 8 insertions(+), 4 deletions(-)
 > 
-> I knew this was the case for !CPUIDLE setup, but had thought (without
-> testing) that the CPUidle core had re-enabled interrupts during the
-> governor selection process etc.
+> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> index 42dbfa4..26d6fb0 100644
+> --- a/arch/arm/mach-omap2/mailbox.c
+> +++ b/arch/arm/mach-omap2/mailbox.c
+> @@ -394,15 +394,19 @@ static int __devinit omap2_mbox_probe(struct
+> platform_device *pdev)
 > 
-> While I investigate ways to manage this in CPUidle, the 
-> following should
-> be fine for now to include with $SUBJECT patch.
+>  	if (false)
+>  		;
+> -#if defined(CONFIG_ARCH_OMAP3430)
+> -	else if (cpu_is_omap3430()) {
+> +#if defined(CONFIG_ARCH_OMAP3)
+> +	else if (omap3_has_iva()) {
+>  		list = omap3_mboxes;
 > 
-> Kevin
-> 
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
-> b/arch/arm/mach-omap2/cpuidle34xx.c
-> index 681d823..c5cb9d0 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -245,6 +245,14 @@ static int omap3_enter_idle_bm(struct 
-> cpuidle_device *dev,
->  		goto select_state;
+>  		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
 >  	}
->  
-> +	/*
-> +	 * Enable IRQs during the device activity checking and 
-> idle management.
-> +	 * IRQs are later (re)disabled when entering the actual 
-> idle function.
-> +	 * Device idle management that is using runtime PM needs to have
-> +	 * interrupts enabled when calling into the runtime PM core.
-> +	 */
-> +	local_irq_enable();
-
-After put_sync() retuns, there will be a time window where interrupts
-are enabled but clocks are disabled before the interrupts are disabled again.
-Accessing any register to service a device interrupt coming during this window
-will lead to a crash for cases where iclk and fclks are same and we have the
-iclk defined as the main_clk as well.
-
-Same argument holds while returning from Idle. We are facing this issue for OMAP3 
-GPIO while trying to define the main_clk = interface clock based on your other commment.
-
-
+>  #endif
+> -#if defined(CONFIG_ARCH_OMAP2420)
+> -	else if (cpu_is_omap2420()) {
+> +#if defined(CONFIG_ARCH_OMAP2)
+> +	else if (cpu_is_omap2430()) {
+> +		list = omap2_mboxes;
 > +
->  	cx = cpuidle_get_statedata(state);
->  	core_next_state = cx->core_state;
->  
-> k
+> +		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+> +	} else if (cpu_is_omap2420()) {
+
+Isn't both 2430 and 2420 doing the exact same?
+
+If yes, How about just doing:
+
+	else if (cpu_is_omap2430() || cpu_is_omap2420()) {
+
+>  		list = omap2_mboxes;
 > 
+>  		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+
+Regards,
+Sergio
+
+> --
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
