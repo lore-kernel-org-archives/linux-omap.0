@@ -1,59 +1,158 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
-Date: Thu, 23 Sep 2010 11:10:10 +0300
-Message-ID: <20100923081010.GD4580@legolas.emea.dhcp.ti.com>
-References: <1285201846-26599-1-git-send-email-hemahk@ti.com>
- <20100923064910.GF2563@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863D9EB@dbde02.ent.ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D9EB-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Mankad, Maulik Ojas" <x0082077-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: [PATCH] omap: beagle: add support for wl1271 on the board file
+Date: Thu, 23 Sep 2010 11:14:23 +0300
+Message-ID: <1285229663-4224-1-git-send-email-luciano.coelho@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:17714 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750Ab0IWIOe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 04:14:34 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-wireless@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>
 
-Hi,
+Add board configuration for the wl1271 daughter board.  This patch is based
+on Ohad Ben-Cohen's patches for Zoom boards.
 
-On Thu, Sep 23, 2010 at 02:59:29AM -0500, Kalliguddi, Hema wrote:
->Oh! It should be core. Now I understand why save/restore counts were not matching with
->Core-off counts.
->Thanks for pointing this out.
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   71 +++++++++++++++++++++++++++++++
+ 1 files changed, 71 insertions(+), 0 deletions(-)
 
-ok, please be more careful next time, we could have committed without
-noticing this :-)
-
->>if plat->save_context is 1, then set it to 1 ???
->>
->This is mistake. I messed it up. I had another flag
->for offmode support, which I removed later.
->i will correct this.
-
-ok.
-
->>>@@ -2443,10 +2447,13 @@ static int musb_resume_noirq(struct devi
->>> {
->>> 	struct platform_device *pdev = to_platform_device(dev);
->>> 	struct musb	*musb = dev_to_musb(&pdev->dev);
->>
->>just now I notice these, hah, funny :-p pdev isn't even
->>needed. Has been
->>there for quite a while I believe.
->>
->>Commit 48fea965 should have changed that line, but that's ok, we will
->>clean it later.
->>
->Yehh :-)
->If it is OK, I can clean it up with this patch only.
-
-nope, it's not part of this patch. leave it as is for now.
-
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 87969c7..820a198 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -29,7 +29,9 @@
+ #include <linux/mtd/nand.h>
+ 
+ #include <linux/regulator/machine.h>
++#include <linux/regulator/fixed.h>
+ #include <linux/i2c/twl.h>
++#include <linux/wl12xx.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -48,6 +50,9 @@
+ #include "mux.h"
+ #include "hsmmc.h"
+ 
++#define OMAP_BEAGLE_WLAN_EN_GPIO    (139)
++#define OMAP_BEAGLE_WLAN_IRQ_GPIO   (137)
++
+ #define NAND_BLOCK_SIZE		SZ_128K
+ 
+ static struct mtd_partition omap3beagle_nand_partitions[] = {
+@@ -163,12 +168,25 @@ static void __init beagle_display_init(void)
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ 
++struct wl12xx_platform_data omap_beagle_wlan_data __initdata = {
++	.irq = OMAP_GPIO_IRQ(OMAP_BEAGLE_WLAN_IRQ_GPIO),
++	.board_ref_clock = 2, /* 38.4 MHz */
++};
++
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+ 		.wires		= 8,
+ 		.gpio_wp	= 29,
+ 	},
++	{
++		.name           = "wl1271",
++		.mmc            = 2,
++		.wires          = 4,
++		.gpio_wp        = -EINVAL,
++		.gpio_cd        = -EINVAL,
++		.nonremovable   = true,
++	},
+ 	{}	/* Terminator */
+ };
+ 
+@@ -176,10 +194,43 @@ static struct regulator_consumer_supply beagle_vmmc1_supply = {
+ 	.supply			= "vmmc",
+ };
+ 
++static struct regulator_consumer_supply beagle_vmmc2_supply = {
++	.supply         = "vmmc",
++	.dev_name       = "mmci-omap-hs.1",
++};
++
++
+ static struct regulator_consumer_supply beagle_vsim_supply = {
+ 	.supply			= "vmmc_aux",
+ };
+ 
++
++static struct regulator_init_data beagle_vmmc2 = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies = 1,
++	.consumer_supplies = &beagle_vmmc2_supply,
++};
++
++static struct fixed_voltage_config beagle_vwlan = {
++	.supply_name = "vwl1271",
++	.microvolts = 1800000,  /* 1.8V */
++	.gpio = OMAP_BEAGLE_WLAN_EN_GPIO,
++	.startup_delay = 70000, /* 70ms */
++	.enable_high = 1,
++	.enabled_at_boot = 0,
++	.init_data = &beagle_vmmc2,
++};
++
++static struct platform_device omap_vwlan_device = {
++	.name           = "reg-fixed-voltage",
++	.id             = 1,
++	.dev = {
++		.platform_data = &beagle_vwlan,
++	},
++};
++
+ static struct gpio_led gpio_leds[];
+ 
+ static int beagle_twl_gpio_setup(struct device *dev,
+@@ -449,6 +500,19 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* WLAN IRQ - GPIO 137 */
++	OMAP3_MUX(SDMMC2_DAT5,  OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
++	/* WLAN POWER ENABLE - GPIO 139 */
++	OMAP3_MUX(SDMMC2_DAT7,  OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
++	/* WLAN SDIO: MMC2 CMD */
++	OMAP3_MUX(SDMMC2_CMD,   OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	/* WLAN SDIO: MMC2 CLK */
++	OMAP3_MUX(SDMMC2_CLK,   OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	/* WLAN SDIO: MMC2 DAT[0-3] */
++	OMAP3_MUX(SDMMC2_DAT0,  OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	OMAP3_MUX(SDMMC2_DAT1,  OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	OMAP3_MUX(SDMMC2_DAT2,  OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	OMAP3_MUX(SDMMC2_DAT3,  OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+@@ -463,10 +527,17 @@ static struct omap_musb_board_data musb_board_data = {
+ 
+ static void __init omap3_beagle_init(void)
+ {
++	int ret;
++
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++	if (wl12xx_set_platform_data(&omap_beagle_wlan_data))
++		pr_err("error setting wl12xx data\n");
++
+ 	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
++	platform_device_register(&omap_vwlan_device);
++
+ 	omap_serial_init();
+ 
+ 	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
 -- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.6.3.3
+
