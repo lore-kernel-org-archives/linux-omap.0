@@ -1,66 +1,28 @@
-From: Hema HK <hemahk@ti.com>
-Subject: [PATCH] OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
-Date: Thu, 23 Sep 2010 23:47:19 -0400
-Message-ID: <1285300039-6384-1-git-send-email-hemahk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap4: board-omap4panda: adding leds status1 and
+ status2
+Date: Thu, 23 Sep 2010 11:17:57 -0700
+Message-ID: <20100923181757.GQ4211@atomide.com>
+References: <1283810541-9247-1-git-send-email-ricardo.salveti@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59284 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753342Ab0IWSQ6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Sep 2010 14:16:58 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54165 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753341Ab0IWSR7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 14:17:59 -0400
+Content-Disposition: inline
+In-Reply-To: <1283810541-9247-1-git-send-email-ricardo.salveti@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hema HK <hemahk@ti.com>, "Basak, Partha" <p-basak2@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+Cc: linux-omap@vger.kernel.org, Bryan Wu <bryan.wu@canonical.com>
 
-OMAP USBOTG module has a requirement to set the autoidle bit only after
-setting smartidle bit. Modified the _sys_enable api to set the smartidle
-first and then the autoidle bit. Setting this will not have any impact on the
-other modules.
+* Ricardo Salveti de Araujo <ricardo.salveti@canonical.com> [100906 14:55]:
+> At Pandaboard we have 2 status leds, so adding them with similar usage as
+> we have for Beagleboard (heartbeat and mmc0). The patch basically adds the
+> platform data required by leds-gpio driver.
 
-Signed-off-by: Hema HK <hemahk@ti.com>
-Signed-off-by: Basak, Partha <p-basak2@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Cousson, Benoit <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+Adding this, thanks.
 
-Index: linux-omap-pm/arch/arm/mach-omap2/omap_hwmod.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/omap_hwmod.c
-+++ linux-omap-pm/arch/arm/mach-omap2/omap_hwmod.c
-@@ -654,12 +654,6 @@ static void _sysc_enable(struct omap_hwm
- 		_set_master_standbymode(oh, idlemode, &v);
- 	}
- 
--	if (sf & SYSC_HAS_AUTOIDLE) {
--		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
--			0 : 1;
--		_set_module_autoidle(oh, idlemode, &v);
--	}
--
- 	/* XXX OCP ENAWAKEUP bit? */
- 
- 	/*
-@@ -672,6 +666,18 @@ static void _sysc_enable(struct omap_hwm
- 		_set_clockactivity(oh, oh->class->sysc->clockact, &v);
- 
- 	_write_sysconfig(v, oh);
-+
-+	/*
-+	 * Set the autoidle bit only after setting the smartidle bit
-+	 * as this is requirement for some modules like USBOTG.
-+	 * Setting this will not have any impact on the other modules.
-+	 */
-+	if (sf & SYSC_HAS_AUTOIDLE) {
-+		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
-+			0 : 1;
-+		_set_module_autoidle(oh, idlemode, &v);
-+		_write_sysconfig(v, oh);
-+	}
- }
- 
- /**
+Tony
