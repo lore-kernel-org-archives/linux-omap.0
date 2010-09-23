@@ -1,258 +1,57 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of interrupts-disabled idle path
-Date: Thu, 23 Sep 2010 16:18:53 -0700
-Message-ID: <87y6asqc9u.fsf@deeprootsystems.com>
-References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
-	<1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
-	<87d3sgs1nw.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F6FE85CD@dbde02.ent.ti.com>
-	<87mxr84gip.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F6FE8768@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera
+ interface
+Date: Thu, 23 Sep 2010 16:23:10 -0700
+Message-ID: <20100923232309.GV4211@atomide.com>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+ <201009110323.12250.jkrzyszt@tis.icnet.pl>
+ <201009110334.03905.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:58279 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755917Ab0IWXS4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 19:18:56 -0400
-Received: by pxi10 with SMTP id 10so648962pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2010 16:18:56 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301F6FE8768@dbde02.ent.ti.com>
-	(Partha Basak's message of "Fri, 24 Sep 2010 01:27:31 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53816 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254Ab0IWXXN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 19:23:13 -0400
+Content-Disposition: inline
+In-Reply-To: <201009110334.03905.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Basak, Partha" <p-basak2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, Tero Kristo <tero.kristo@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-"Basak, Partha" <p-basak2@ti.com> writes:
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:26]:
+> This patch adds support for SoC camera interface to OMAP1 devices.
+> 
+> Created and tested against linux-2.6.36-rc3 on Amstrad Delta.
+> 
+> For successfull compilation, requires a header file provided by PATCH 1/6 from 
+> this series, "SoC Camera: add driver for OMAP1 camera interface".
 
->  
->
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> Sent: Thursday, September 23, 2010 9:08 PM
->> To: Basak, Partha
->> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; Tero Kristo
->> Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
->> interrupts-disabled idle path
->> 
->> "Basak, Partha" <p-basak2@ti.com> writes:
->> 
->> >  
->> >
->> >> -----Original Message-----
->> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> >> Sent: Tuesday, September 14, 2010 10:28 PM
->> >> To: Basak, Partha
->> >> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; 
->> Tero Kristo
->> >> Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
->> >> interrupts-disabled idle path
->> >> 
->> >> "Basak, Partha" <p-basak2@ti.com> writes:
->> >> 
->> >> >> From: Kevin Hilman <khilman@ti.com>
->> >> >> 
->> >> >> Currently, we wait until late in the idle path where 
->> interrupts are
->> >> >> disabled to do runtime-PM-like management for certain 
->> special-case
->> >> >> devices like GPIO.
->> >> >> 
->> >> >> As a prerequiste to moving GPIO to the new runtime PM 
->> >> framework, move
->> >> >> this runtime-PM-like code out of the late idle path 
->> into new device
->> >> >> idle and resume functions that can be called before 
->> interrupts are
->> >> >> disabled by CPUidle and/or suspend.
->> >> >> 
->> >> >> In addition, move all the GPIO-specific logic into the GPIO core
->> >> >> instead of keeping GPIO-specific knowledge of 
->> power-states, context
->> >> >> saving etc. in the PM core.
->> >> >> 
->> >> >> Also, call the new device-idle and -resume methods from 
->> CPUidle and
->> >> >> static suspend path.
->> >> >> 
->> >> >> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> >> >> ---
->> >> >>  arch/arm/mach-omap2/cpuidle34xx.c      |    4 ++
->> >> >>  arch/arm/mach-omap2/pm.h               |    2 +
->> >> >>  arch/arm/mach-omap2/pm24xx.c           |    2 +-
->> >> >>  arch/arm/mach-omap2/pm34xx.c           |   38 
->> >> +++++++++------------
->> >> >>  arch/arm/plat-omap/gpio.c              |   57 
->> >> >> ++++++++++++++++++++++++--------
->> >> >>  arch/arm/plat-omap/include/plat/gpio.h |    4 +--
->> >> >>  6 files changed, 67 insertions(+), 40 deletions(-)
->> >> >> 
->> >> >> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
->> >> >> b/arch/arm/mach-omap2/cpuidle34xx.c
->> >> >> index 0923b82..681d823 100644
->> >> >> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->> >> >> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->> >> >> @@ -274,9 +274,13 @@ static int omap3_enter_idle_bm(struct 
->> >> >> cpuidle_device *dev,
->> >> >>  		pwrdm_set_next_pwrst(per_pd, per_next_state);
->> >> >>  
->> >> >>  select_state:
->> >> >> +	omap3_device_idle();
->> >> >> +
->> >> >>  	dev->last_state = new_state;
->> >> >>  	ret = omap3_enter_idle(dev, new_state);
->> >> >>  
->> >> >> +	omap3_device_resume();
->> >> >> +
->> >> > In the generic cpu_idle() in process.c, interrupts are 
->> >> already disabled
->> >> > before control comes to cpuidle_idle_call() via pm_idle()
->> >> > 			local_irq_disable();
->> >> > 			if (hlt_counter) {
->> >> > 				local_irq_enable();
->> >> > 				cpu_relax();
->> >> > 			} else {
->> >> > 				stop_critical_timings();
->> >> > 				pm_idle();
->> >> > 				start_critical_timings();
->> >> > 				/*
->> >> > 				 * This will eventually be 
->> >> removed - pm_idle
->> >> > 				 * functions should always 
->> >> return with IRQs
->> >> > 				 * enabled.
->> >> > 				 */
->> >> > 				WARN_ON(irqs_disabled());
->> >> > 				local_irq_enable();
->> >> > 			}
->> >> >
->> >> > omap3_enter_idle_bm() will be called from inside 
->> >> cpuidle_idle_call() 
->> >> > via target_state->enter(dev, target_state).
->> >> > So, interrupts are already disabled here.
->> >> >
->> >> > Am I missing something?
->> >> 
->> >> You're right.  
->> >> 
->> >> I knew this was the case for !CPUIDLE setup, but had 
->> thought (without
->> >> testing) that the CPUidle core had re-enabled interrupts during the
->> >> governor selection process etc.
->> >> 
->> >> While I investigate ways to manage this in CPUidle, the 
->> >> following should
->> >> be fine for now to include with $SUBJECT patch.
->> >> 
->> >> Kevin
->> >> 
->> >> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
->> >> b/arch/arm/mach-omap2/cpuidle34xx.c
->> >> index 681d823..c5cb9d0 100644
->> >> --- a/arch/arm/mach-omap2/cpuidle34xx.c
->> >> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
->> >> @@ -245,6 +245,14 @@ static int omap3_enter_idle_bm(struct 
->> >> cpuidle_device *dev,
->> >>  		goto select_state;
->> >>  	}
->> >>  
->> >> +	/*
->> >> +	 * Enable IRQs during the device activity checking and 
->> >> idle management.
->> >> +	 * IRQs are later (re)disabled when entering the actual 
->> >> idle function.
->> >> +	 * Device idle management that is using runtime PM needs to have
->> >> +	 * interrupts enabled when calling into the runtime PM core.
->> >> +	 */
->> >> +	local_irq_enable();
->> >
->> > After put_sync() retuns, there will be a time window where 
->> interrupts
->> > are enabled but clocks are disabled before the interrupts 
->> are disabled again.
->> > Accessing any register to service a device interrupt coming 
->> during this window
->> > will lead to a crash for cases where iclk and fclks are 
->> same and we have the
->> > iclk defined as the main_clk as well.
->> >
->> > Same argument holds while returning from Idle. We are 
->> facing this issue for OMAP3 
->> > GPIO while trying to define the main_clk = interface clock 
->> based on your other commment.
->> 
->> This is the same problem as has existed in static/suspend resume.
->> 
->> IOW, if it's possible for a device interrupt to arrive between device
->> suspend and actual suspend, then the device interrupt should be
->> disabled in the suspend hook (or runtime_suspend hook in your case.)
->> 
->> The catch is how to handle these interrupts if they are 
->> wakeup sources.
->
-> Precisely.
-> For example, the ethernet interrupts over GPIO are causing problem.
->
->> 
->> If these interrupt are wakeup sources, then they should not 
->> be disabled
->> in the [runtime_]suspend path, but rather the ISR for that 
->> device should
->> just do a get_sync() and continue.
->
-> We cannot do a get_sync() from ISR context, right?
+<snip>
 
-Right, but we *should* be able to.  ;)
+> diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h 
+> linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h
+> --- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h	2010-09-03 22:34:03.000000000 +0200
+> +++ linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h	2010-09-09 18:42:30.000000000 +0200
+> @@ -0,0 +1,8 @@
+> +#ifndef __ASM_ARCH_CAMERA_H_
+> +#define __ASM_ARCH_CAMERA_H_
+> +
+> +#include <media/omap1_camera.h>
+> +
+> +extern void omap1_set_camera_info(struct omap1_cam_platform_data *);
+> +
+> +#endif /* __ASM_ARCH_CAMERA_H_ */
 
-I'm still trying to craft a good description of this problem so I can
-argue better for it on linux-pm.
+Care to refresh this patch so it does not include media/omap1_camera.h?
 
-Until then...
+That way things keep building if I merge this one along with the omap
+patches and the drivers/media patches can get merged their via media.
 
-A bit of a hack, but you could do a _get_noresume() (which is safe from
-interrupt context) and directly call the drivers ->runtime_resume()
-method, which would be the equivalent of a _get_sync().  Followed of
-course by a _put() (async version, also interrupt safe) at the end of
-the ISR to keep the usecount correct.
+I think you can just move the OMAP1_CAMERA_IOSIZE to the devices.c or
+someplace like that?
 
-> For GPIOs in particular, this problem can be resolved if we do not tie up
-> the interface clock as the main_clk. So long the interface/slave clock
-> is not also a main_clk & OCPIF_SWSUP_IDLE flag is not set for a hwmod
-> there is no issue, as slave clocks are NOT turned on/off in _enable_clocks()
-> /_disable_clocks() inside hwmod fw.
+Regards,
 
-The problem though is that without a main clock, autodeps are not
-tracked which means that PER might transition independently of the
-initiator (in this case, MPU) which we do not want either.
-
-I discussed this a little more with Paul, and the root of the problem is
-that the clock framework really should not disable iclks if iclk
-autoidle is enabled.  This is a change that is needed in the clock
-framework that might have other side effects so is to late to attempt
-for this merge window.
-
-So for now, I suggest we try the above hack (well commented in the code,
-of course.)
-
-> Alternatively, we could have thought of removing get_sync/put_sync altogether
-> from the Idle path for GPIO. But though this would work fine for OMAP3/OMAP4 &
-> OMAP2420/2430 Wakeup domain GPIOs, but for OMAP2430 CORE domain GPIOs, since it 
-> has a separate fclk & iclk, we would still need to cut the fclk in the Idle-path
-> to enable CORE transition, thereby needing a get_sync/put_sync .
->
-> If this is OK, we can consider this approach.
-
-This would certainly be the ideal solution.
-
-It would be great to get rid of the need for calling GPIO core in the
-idle path, but I'm not yet convinced we can do that.
-
-For example, there is some other errata handling in my pm-gpio branch
-(that I've been waiting to rework until after this hwmod conversion.)  I
-would want to be sure that those things can still be correctly handled.
-
-Also How would you propose to handle 2430 CORE GPIOs?
-
-Kevin
+Tony
