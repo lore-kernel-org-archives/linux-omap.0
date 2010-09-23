@@ -1,323 +1,114 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [RFC][PATCH 2/2] OMAP4: PRCM: Fix usage of prm/cm accessor
- api's for OMAP4
-Date: Thu, 23 Sep 2010 19:45:11 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EE8CA@dbde02.ent.ti.com>
-References: <1281452576-5705-1-git-send-email-rnayak@ti.com>
- <1281452576-5705-2-git-send-email-rnayak@ti.com>
- <1281452576-5705-3-git-send-email-rnayak@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: [PATCH v8 0/6] OMAP: WDT: Implement WDT in hwmod way
+Date: Thu, 23 Sep 2010 20:02:37 +0530
+Message-ID: <1285252363-3630-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45619 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57601 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753773Ab0IWOPU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 10:15:20 -0400
-In-Reply-To: <1281452576-5705-3-git-send-email-rnayak@ti.com>
-Content-Language: en-US
+	id S1753991Ab0IWOd2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Sep 2010 10:33:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: tony@atomide.com, wim@iguana.be, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
 
+Series of patches to port watchdog module to use hwmod APIs
+for OMAP2PLUS chips and use runtime APIs for all OMAP chips.
+For this hwmod database for OMAP2PLUS watchdog instances are
+populated and implements watchdog module to use PM runtime APIs.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Nayak, Rajendra
-> Sent: Tuesday, August 10, 2010 8:33 PM
-> To: linux-omap@vger.kernel.org
-> Cc: khilman@deeprootsystems.com; paul@pwsan.com; Cousson, Benoit; Nayak,
-> Rajendra
-> Subject: [RFC][PATCH 2/2] OMAP4: PRCM: Fix usage of prm/cm accessor api's for
-> OMAP4
-> 
-> OMAP's have always had PRCM split into PRM for power and reset
-> management and CM for clock management.
-> In OMAP4 the split (physically) is not very straight forward and
-> there are instances of clock management control registers in PRM
-> and vice versa.
-> However it still makes sense, even on OMAP4 to logically split
-> PRCM into PRM and CM for better understanding and to avoid adding
-> additonal complexity in higher level frameworks which rely on the
-> accessor api;s to do the low level register accesses.
-> 
-> Hence this patch makes sure that any clock management code can
-> use the cm_read/write* accessor apis (without knowing the physical split)
-> and power and reset management code can use prm_read/write*
-> accessor api;s.
-> 
-> To do this the submodule offsets within PRM/CM1 and CM2 have additonal
-> info embedded in them specifying what base address to use while
-> trying to access registers in the given submodule.
-> 
-> The 16 bit signed submodule offset is defined for OMAP4 as
-> <Bit 15>	| <Bit 14:13> 		| <Bit 12:0>
-> <Sign bit>	| <base identifier>	| <submodule offset from base>
-> 
-> For older OMAP's the base identifier is always set to 0.
+This patch series is generated on "origin/pm-core" which
+has Kevin's pm-next series, the runtime PM core patch series,
+and a collection of hwmod fixes that Paul/Benoit have lined up
+for 2.6.37.
 
-Hi Paul,
+Tested on OMAP2430, OMAP4430 (ES1.0 & ES2.0), OMAP3430 SDP boards
+and zoom3 board. Also verified that this patch series does not
+break the OMAP1 build.
 
-Any thoughts on this patch/approach?
+This series is tested on OMAP4430 ES2 using the below series
+(dependency series for ES2.0 silicon)
+http://www.spinics.net/lists/linux-omap/msg36023.html
 
-Regards,
-Rajendra
+Version History:
+---------------
+Version v8:
+*Enable wd_timer3 in the hwmod list
 
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> ---
->  arch/arm/mach-omap2/cm.h          |    4 +-
->  arch/arm/mach-omap2/prcm-common.h |   58 ++++++++++++++++++++------
-> -----
->  arch/arm/mach-omap2/prcm.c        |   68
-> ++++++++++++++++++++++++++++++++++--
->  arch/arm/mach-omap2/prm.h         |    4 +-
->  4 files changed, 105 insertions(+), 29 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-> index a02ca30..7b7ef09 100644
-> --- a/arch/arm/mach-omap2/cm.h
-> +++ b/arch/arm/mach-omap2/cm.h
-> @@ -23,9 +23,9 @@
->  #define OMAP34XX_CM_REGADDR(module, reg)				\
->  			OMAP2_L4_IO_ADDRESS(OMAP3430_CM_BASE + (module) +
-> (reg))
->  #define OMAP44XX_CM1_REGADDR(module, reg)				\
-> -			OMAP2_L4_IO_ADDRESS(OMAP4430_CM1_BASE + (module) +
-> (reg))
-> +			OMAP2_L4_IO_ADDRESS(OMAP4430_CM1_BASE + ((module) &
-> (MOD_MASK)) + (reg))
->  #define OMAP44XX_CM2_REGADDR(module, reg)				\
-> -			OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE + (module) +
-> (reg))
-> +			OMAP2_L4_IO_ADDRESS(OMAP4430_CM2_BASE + ((module) &
-> (MOD_MASK)) + (reg))
-> 
->  #include "cm44xx.h"
-> 
-> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-
-> common.h
-> index 995b7ed..b93d33e 100644
-> --- a/arch/arm/mach-omap2/prcm-common.h
-> +++ b/arch/arm/mach-omap2/prcm-common.h
-> @@ -57,10 +57,26 @@
->  #define BITFIELD(l_bit, u_bit)	\
->  	(BITS(u_bit) & ~((BITS(l_bit)) >> 1))
-> 
-> -/* OMAP44XX specific module offsets */
-> +/*
-> + * OMAP44XX specific module offsets
-> + * The 16 bit submodule offset is defined for OMAP4 as
-> + * <Bit 15>	| <Bit 14:13> 		| <Bit 12:0>
-> + * <Sign bit>	| <base identifier>	| <submodule offset from base>
-> + */
-> 
-> -/* CM1 instances */
-> +#define DEFAULT_BASE	0x0
-> +#define PRM_BASE	0x1
-> +#define PRCM_MPU_BASE	0x2
-> +#define CM2_BASE	0x3
-> 
-> +#define BASE_ID_SHIFT	13
-> +#define MOD_MASK	((1 << BASE_ID_SHIFT)-1)
-> +
-> +#define PRM_BASE_ID		(PRM_BASE << BASE_ID_SHIFT)
-> +#define PRCM_MPU_BASE_ID	(PRCM_MPU_BASE << BASE_ID_SHIFT)
-> +#define CM2_BASE_ID		(CM2_BASE << BASE_ID_SHIFT)
-> +
-> +/* CM1 instances */
->  #define OMAP4430_CM1_OCP_SOCKET_MOD	0x0000
->  #define OMAP4430_CM1_CKGEN_MOD		0x0100
->  #define OMAP4430_CM1_MPU_MOD		0x0300
-> @@ -71,19 +87,19 @@
-> 
->  /* CM2 instances */
-> 
-> -#define OMAP4430_CM2_OCP_SOCKET_MOD	0x0000
-> -#define OMAP4430_CM2_CKGEN_MOD		0x0100
-> -#define OMAP4430_CM2_ALWAYS_ON_MOD	0x0600
-> -#define OMAP4430_CM2_CORE_MOD		0x0700
-> -#define OMAP4430_CM2_IVAHD_MOD		0x0f00
-> -#define OMAP4430_CM2_CAM_MOD		0x1000
-> -#define OMAP4430_CM2_DSS_MOD		0x1100
-> -#define OMAP4430_CM2_GFX_MOD		0x1200
-> -#define OMAP4430_CM2_L3INIT_MOD		0x1300
-> -#define OMAP4430_CM2_L4PER_MOD		0x1400
-> -#define OMAP4430_CM2_CEFUSE_MOD		0x1600
-> -#define OMAP4430_CM2_RESTORE_MOD	0x1e00
-> -#define OMAP4430_CM2_INSTR_MOD		0x1f00
-> +#define OMAP4430_CM2_OCP_SOCKET_MOD	0x0000 | CM2_BASE_ID
-> +#define OMAP4430_CM2_CKGEN_MOD		0x0100 | CM2_BASE_ID
-> +#define OMAP4430_CM2_ALWAYS_ON_MOD	0x0600 | CM2_BASE_ID
-> +#define OMAP4430_CM2_CORE_MOD		0x0700 | CM2_BASE_ID
-> +#define OMAP4430_CM2_IVAHD_MOD		0x0f00 | CM2_BASE_ID
-> +#define OMAP4430_CM2_CAM_MOD		0x1000 | CM2_BASE_ID
-> +#define OMAP4430_CM2_DSS_MOD		0x1100 | CM2_BASE_ID
-> +#define OMAP4430_CM2_GFX_MOD		0x1200 | CM2_BASE_ID
-> +#define OMAP4430_CM2_L3INIT_MOD		0x1300 | CM2_BASE_ID
-> +#define OMAP4430_CM2_L4PER_MOD		0x1400 | CM2_BASE_ID
-> +#define OMAP4430_CM2_CEFUSE_MOD		0x1600 | CM2_BASE_ID
-> +#define OMAP4430_CM2_RESTORE_MOD	0x1e00 | CM2_BASE_ID
-> +#define OMAP4430_CM2_INSTR_MOD		0x1f00 | CM2_BASE_ID
-> 
->  /* PRM instances */
-> 
-> @@ -102,9 +118,9 @@
->  #define OMAP4430_PRM_L4PER_MOD		0x1400
->  #define OMAP4430_PRM_CEFUSE_MOD		0x1600
->  #define OMAP4430_PRM_WKUP_MOD		0x1700
-> -#define OMAP4430_PRM_WKUP_CM_MOD	0x1800
-> +#define OMAP4430_PRM_WKUP_CM_MOD	0x1800 | PRM_BASE_ID
->  #define OMAP4430_PRM_EMU_MOD		0x1900
-> -#define OMAP4430_PRM_EMU_CM_MOD		0x1a00
-> +#define OMAP4430_PRM_EMU_CM_MOD		0x1a00 | PRM_BASE_ID
->  #define OMAP4430_PRM_DEVICE_MOD		0x1b00
->  #define OMAP4430_PRM_INSTR_MOD		0x1f00
-> 
-> @@ -114,10 +130,10 @@
-> 
->  /* PRCM_MPU instances */
-> 
-> -#define OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_MOD	0x0000
-> -#define OMAP4430_PRCM_MPU_DEVICE_PRM_MOD	0x0200
-> -#define OMAP4430_PRCM_MPU_CPU0_MOD		0x0400
-> -#define OMAP4430_PRCM_MPU_CPU1_MOD		0x0800
-> +#define OMAP4430_PRCM_MPU_OCP_SOCKET_PRCM_MOD	0x0000 |
-> PRCM_MPU_BASE_ID
-> +#define OMAP4430_PRCM_MPU_DEVICE_PRM_MOD	0x0200 |
-> PRCM_MPU_BASE_ID
-> +#define OMAP4430_PRCM_MPU_CPU0_MOD		0x0400 |
-> PRCM_MPU_BASE_ID
-> +#define OMAP4430_PRCM_MPU_CPU1_MOD		0x0800 |
-> PRCM_MPU_BASE_ID
-> 
-> 
->  /* 24XX register bits shared between CM & PRM registers */
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index 4df30d0..124e866 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -182,13 +182,40 @@ static inline void __omap_prcm_write(u32 value, void
-> __iomem *base,
->  /* Read a register in a PRM module */
->  u32 prm_read_mod_reg(s16 module, u16 idx)
->  {
-> -	return __omap_prcm_read(prm_base, module, idx);
-> +	u32 base = 0;
-> +
-> +	base = abs(module) >> BASE_ID_SHIFT;
-> +	module &= MOD_MASK;
-> +
-> +	switch (base) {
-> +	case PRCM_MPU_BASE:
-> +		return __omap_prcm_read(prcm_mpu_base, module, idx);
-> +	case DEFAULT_BASE:
-> +		return __omap_prcm_read(prm_base, module, idx);
-> +	default:
-> +		pr_err("Unknown PRM submodule base\n");
-> +	}
-> +	return 0;
->  }
-> 
->  /* Write into a register in a PRM module */
->  void prm_write_mod_reg(u32 val, s16 module, u16 idx)
->  {
-> -	__omap_prcm_write(val, prm_base, module, idx);
-> +	u32 base = 0;
-> +
-> +	base = abs(module) >> BASE_ID_SHIFT;
-> +
-> +	switch (base) {
-> +	case PRCM_MPU_BASE:
-> +		__omap_prcm_write(val, prcm_mpu_base, module, idx);
-> +		break;
-> +	case DEFAULT_BASE:
-> +		__omap_prcm_write(val, prm_base, module, idx);
-> +		break;
-> +	default:
-> +		pr_err("Unknown PRM submodule base\n");
-> +		break;
-> +	}
->  }
-> 
->  /* Read-modify-write a register in a PRM module. Caller must lock */
-> @@ -219,13 +246,46 @@ u32 prm_read_mod_bits_shift(s16 domain, s16 idx, u32
-> mask)
->  /* Read a register in a CM module */
->  u32 cm_read_mod_reg(s16 module, u16 idx)
->  {
-> -	return __omap_prcm_read(cm_base, module, idx);
-> +	u32 base = 0;
-> +
-> +	base = abs(module) >> BASE_ID_SHIFT;
-> +	module &= MOD_MASK;
-> +
-> +	switch (base) {
-> +	case PRM_BASE:
-> +		return __omap_prcm_read(prm_base, module, idx);
-> +	case CM2_BASE:
-> +		return __omap_prcm_read(cm2_base, module, idx);
-> +	case DEFAULT_BASE:
-> +		return __omap_prcm_read(cm_base, module, idx);
-> +	default:
-> +		pr_err("Unknown CM submodule base\n");
-> +	}
-> +	return 0;
->  }
-> 
->  /* Write into a register in a CM module */
->  void cm_write_mod_reg(u32 val, s16 module, u16 idx)
->  {
-> -	__omap_prcm_write(val, cm_base, module, idx);
-> +	u32 base = 0;
-> +
-> +	base = abs(module) >> BASE_ID_SHIFT;
-> +	module &= MOD_MASK;
-> +
-> +	switch (base) {
-> +	case PRM_BASE:
-> +		__omap_prcm_write(val, prm_base, module, idx);
-> +		break;
-> +	case CM2_BASE:
-> +		__omap_prcm_write(val, cm2_base, module, idx);
-> +		break;
-> +	case DEFAULT_BASE:
-> +		__omap_prcm_write(val, cm_base, module, idx);
-> +		break;
-> +	default:
-> +		pr_err("Unknown CM submodule base\n");
-> +		break;
-> +	}
->  }
-> 
->  /* Read-modify-write a register in a CM module. Caller must lock */
-> diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-> index 588873b..72456cc 100644
-> --- a/arch/arm/mach-omap2/prm.h
-> +++ b/arch/arm/mach-omap2/prm.h
-> @@ -23,9 +23,9 @@
->  #define OMAP34XX_PRM_REGADDR(module, reg)				\
->  		OMAP2_L4_IO_ADDRESS(OMAP3430_PRM_BASE + (module) + (reg))
->  #define OMAP44XX_PRM_REGADDR(module, reg)				\
-> -		OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE + (module) + (reg))
-> +		OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE +	((module) &
-> (MOD_MASK)) + (reg))
->  #define OMAP44XX_PRCM_MPU_REGADDR(module, reg)				\
-> -		OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE + (module) +
-> (reg))
-> +		OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE + ((module) &
-> (MOD_MASK)) + (reg))
-> 
->  #include "prm44xx.h"
-> 
-> --
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Version v7:
+*Use EN_*SHIFT macros for module_bit and ST_*SHIFT macros for
+idlest_idle_bit in OMAP2&3 hwmod database
+(based on suggestions given by Paul for I2C hwmod series)
+*Remove new definitions of EN_*SHIFT macros as they already exist
+Some of the v7 links:
+https://patchwork.kernel.org/patch/197022/
+
+Version v6:
+*Split omap_init_wdt() into separate omap_init_wdt functions
+under mach-omap1 and mach-omap2 and set them up with
+subsys_initcall
+*Include wd_timer3 database for OMAP4
+*In hwmod database follow naming convention "wd_timerX"
+Some of the v6 links:
+http://www.spinics.net/lists/linux-omap/msg36678.html
+https://patchwork.kernel.org/patch/188242/
+https://patchwork.kernel.org/patch/188222/
+
+Version v5:
+*Delete wdt_runtime_resume and wdt_runtime_suspend
+functions as the fix for the return values in the generic
+runtime PM calls has been queued for 2.6.37 (see below link)
+https://lists.linux-foundation.org/pipermail/linux-pm/2010-September/028466.html
+Some of the v5 links:
+https://patchwork.kernel.org/patch/181812/
+https://patchwork.kernel.org/patch/181782/
+https://patchwork.kernel.org/patch/181772/
+https://patchwork.kernel.org/patch/181792/
+
+Version v4:
+*Implement hwmod adapdation first and then PM runtime adaptation
+as two different patches in the series
+*Remove inclusion of omap_device.h in the driver file.
+Some of the v4 links:
+https://patchwork.kernel.org/patch/174672/
+https://patchwork.kernel.org/patch/174662/
+
+Version v3:
+*Fix Minor comments like renaming omap1 watchdog structures
+with an omap1_ prefix
+Some of the v3 links:
+https://patchwork.kernel.org/patch/119698/
+https://patchwork.kernel.org/patch/119696/ 
+
+Version v2:
+*Rebase to latest kernel
+Some of the v2 links:
+http://www.spinics.net/lists/linux-omap/msg34741.html
+http://www.spinics.net/lists/linux-omap/msg34673.html
+
+Version v1:
+*Initial series
+Some of the v1 links:
+http://www.spinics.net/lists/linux-omap/msg30628.html
+http://www.spinics.net/lists/linux-omap/msg30625.html
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: Add watchdog timer
+
+Varadarajan, Charulatha (5):
+  OMAP3: hwmod data: Add watchdog timer
+  OMAP2420: hwmod data: Add watchdog timer
+  OMAP2430: hwmod data: Add watchdog timer
+  OMAP2PLUS: WDT: use omap_device_build for device registration
+  OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
+
+ arch/arm/mach-omap1/devices.c              |   27 ++++++
+ arch/arm/mach-omap2/devices.c              |   39 ++++++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   64 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   64 +++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   66 ++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  135 ++++++++++++++++++++++++++++
+ arch/arm/plat-omap/devices.c               |   41 ---------
+ drivers/watchdog/omap_wdt.c                |   42 ++-------
+ 8 files changed, 402 insertions(+), 76 deletions(-)
+
