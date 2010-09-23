@@ -1,118 +1,125 @@
-From: Felipe Balbi <balbi@ti.com>
+From: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH v2] omap: beagle: add support for wl1271 on the board
  file
-Date: Thu, 23 Sep 2010 14:45:28 +0300
-Message-ID: <20100923114528.GL4580@legolas.emea.dhcp.ti.com>
+Date: Thu, 23 Sep 2010 14:56:38 +0300
+Message-ID: <1285242998.3231.57.camel@chilepepper>
 References: <1285230003-5065-1-git-send-email-luciano.coelho@nokia.com>
-Reply-To: balbi@ti.com
+	 <AANLkTinLjQbvbTj3LTnw+54S-ojWzojqgyd=-3F783We@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47868 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752833Ab0IWLpi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Sep 2010 07:45:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1285230003-5065-1-git-send-email-luciano.coelho@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTinLjQbvbTj3LTnw+54S-ojWzojqgyd=-3F783We-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Luciano Coelho <luciano.coelho@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>
 
-Hi,
+On Thu, 2010-09-23 at 12:30 +0200, ext Grazvydas Ignotas wrote:
+> On Thu, Sep 23, 2010 at 11:20 AM, Luciano Coelho
+> <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> wrote:
+> > Add board configuration for the wl1271 daughter board.  This patch is based
+> > on Ohad Ben-Cohen's patches for Zoom boards.
+> 
+> Hm can that daughter board be detected? With your patch all beagle
+> users will get GPIO139 toggled, and if someone has that wired to
+> chainsaw switch somebody might get hurt.
 
-On Thu, Sep 23, 2010 at 03:20:03AM -0500, Luciano Coelho wrote:
-> static struct mtd_partition omap3beagle_nand_partitions[] = {
->@@ -163,12 +168,25 @@ static void __init beagle_display_init(void)
->
-> #include "sdram-micron-mt46h32m32lf-6.h"
->
->+struct wl12xx_platform_data omap_beagle_wlan_data __initdata = {
->+	.irq = OMAP_GPIO_IRQ(OMAP_BEAGLE_WLAN_IRQ_GPIO),
+Very good point.  This was just me, working on my chainsaw-free bubble,
+who didn't realize the danger of the code! :)
 
-can you pass IRQ as a struct resource ?
+But actually I have no idea how to detect what kind of daughter board is
+connected.  Hopefully there is generic way of doing this in beagle
+boards.  Otherwise the only way I can think of is to add a Kconfig
+option for this... :/
 
->+	.board_ref_clock = 2, /* 38.4 MHz */
->+};
->+
-> static struct omap2_hsmmc_info mmc[] = {
-> 	{
-> 		.mmc		= 1,
-> 		.wires		= 8,
-> 		.gpio_wp	= 29,
-> 	},
->+	{
->+		.name           = "wl1271",
->+		.mmc            = 2,
->+		.wires          = 4,
->+		.gpio_wp        = -EINVAL,
->+		.gpio_cd        = -EINVAL,
->+		.nonremovable   = true,
->+	},
-> 	{}	/* Terminator */
-> };
->
->@@ -176,10 +194,43 @@ static struct regulator_consumer_supply beagle_vmmc1_supply = {
-> 	.supply			= "vmmc",
-> };
->
->+static struct regulator_consumer_supply beagle_vmmc2_supply = {
->+	.supply         = "vmmc",
->+	.dev_name       = "mmci-omap-hs.1",
->+};
 
-this should be:
+> > Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+> > Signed-off-by: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> > ---
+> > There was a useless variable defined in omap3_beagle_init() that was causing a
+> > warning.  I have removed it in v2.
+> >
+> >  arch/arm/mach-omap2/board-omap3beagle.c |   69 +++++++++++++++++++++++++++++++
+> >  drivers/net/wireless/wl12xx/wl1271.h    |    2 +-
+> >  2 files changed, 70 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> > index 87969c7..755df29 100644
+> > --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> > +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> 
+> <snip>
+> 
+> > +static struct regulator_consumer_supply beagle_vmmc2_supply = {
+> > +       .supply         = "vmmc",
+> > +       .dev_name       = "mmci-omap-hs.1",
+> > +};
+> > +
+> > +
+> 
+> single newline is enough.
 
-static struct regulator_consume_supply beagle_vmmc2_supplies = {
-	{
-		.supply		= "vmmc",
-		.dev_name	= "mmci-omap-hs.1",
-	},
-};
+I'll fix it.
 
->+static struct regulator_init_data beagle_vmmc2 = {
->+	.constraints = {
->+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
->+	},
->+	.num_consumer_supplies = 1,
->+	.consumer_supplies = &beagle_vmmc2_supply,
 
-please tabify, it's easier for reading, same for all below:
+> >  static struct regulator_consumer_supply beagle_vsim_supply = {
+> >        .supply                 = "vmmc_aux",
+> >  };
+> >
+> > +
+> 
+> here too.
 
-	constrants	= {
-		.valid_ops_mask	= REGULATOR_CHANGE_STATUS,
-	},
-	.num_consumer_supplies	= ARRAY_SIZE(beagle_vmmc2_supplies),
-	.consumer_supplies	= beagle_vmmc2_supplies,
+Here too.
 
->@@ -464,9 +528,14 @@ static struct omap_musb_board_data musb_board_data = {
-> static void __init omap3_beagle_init(void)
-> {
-> 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->+	if (wl12xx_set_platform_data(&omap_beagle_wlan_data))
->+		pr_err("error setting wl12xx data\n");
->+
-> 	omap3_beagle_i2c_init();
-> 	platform_add_devices(omap3_beagle_devices,
-> 			ARRAY_SIZE(omap3_beagle_devices));
->+	platform_device_register(&omap_vwlan_device);
->+
 
-trailing blank line. Also, you could just add omap_vwlan_device to
-omap3_beagle_devices.
+> > +static struct regulator_init_data beagle_vmmc2 = {
+> > +       .constraints = {
+> > +               .valid_ops_mask = REGULATOR_CHANGE_STATUS,
+> > +       },
+> > +       .num_consumer_supplies = 1,
+> > +       .consumer_supplies = &beagle_vmmc2_supply,
+> > +};
+> > +
+> > +static struct fixed_voltage_config beagle_vwlan = {
+> > +       .supply_name = "vwl1271",
+> > +       .microvolts = 1800000,  /* 1.8V */
+> > +       .gpio = OMAP_BEAGLE_WLAN_EN_GPIO,
+> > +       .startup_delay = 70000, /* 70ms */
+> > +       .enable_high = 1,
+> > +       .enabled_at_boot = 0,
+> > +       .init_data = &beagle_vmmc2,
+> > +};
+> 
+> We tabify all structures in board files, take a look at other structures.
 
->diff --git a/drivers/net/wireless/wl12xx/wl1271.h b/drivers/net/wireless/wl12xx/wl1271.h
->index 4134f44..8bb028e 100644
->--- a/drivers/net/wireless/wl12xx/wl1271.h
->+++ b/drivers/net/wireless/wl12xx/wl1271.h
->@@ -60,7 +60,7 @@ enum {
-> 	DEBUG_ALL	= ~0,
-> };
->
->-#define DEBUG_LEVEL (DEBUG_NONE)
->+#define DEBUG_LEVEL (DEBUG_MAC80211 | DEBUG_CMD | DEBUG_ACX | DEBUG_BOOT)
+Sure, I'll do that.  I just copied this from a previous patch to which
+someone commented the same thing.  I just forgot to fix it before
+submitting, because I got so excited when it worked :)
 
-some debugging trash came into commit ??
+
+> > diff --git a/drivers/net/wireless/wl12xx/wl1271.h b/drivers/net/wireless/wl12xx/wl1271.h
+> > index 4134f44..8bb028e 100644
+> > --- a/drivers/net/wireless/wl12xx/wl1271.h
+> > +++ b/drivers/net/wireless/wl12xx/wl1271.h
+> > @@ -60,7 +60,7 @@ enum {
+> >        DEBUG_ALL       = ~0,
+> >  };
+> >
+> > -#define DEBUG_LEVEL (DEBUG_NONE)
+> > +#define DEBUG_LEVEL (DEBUG_MAC80211 | DEBUG_CMD | DEBUG_ACX | DEBUG_BOOT)
+> 
+> I guess you didn't want that?
+
+No, I certainly didn't.  I have already sent a v3 without that.
+
 
 -- 
-balbi
+Cheers,
+Luca.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
