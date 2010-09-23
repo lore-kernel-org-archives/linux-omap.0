@@ -1,171 +1,157 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
-Date: Thu, 23 Sep 2010 13:47:08 +0400
-Message-ID: <4C9B221C.5090807@ru.mvista.com>
-References: <1285201846-26599-1-git-send-email-hemahk@ti.com> <CE25F9D2A56A423C84BED8BC132A07FB@apr.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CE25F9D2A56A423C84BED8BC132A07FB-wD+IZp/g4/2mHdYHvhjUOg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maulik <x0082077-l0cyMroinI0@public.gmane.org>
-Cc: 'Hema HK' <hemahk-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Felipe Balbi' <balbi-l0cyMroinI0@public.gmane.org>, 'Tony Lindgren' <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, 'Kevin Hilman' <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "'Cousson, Benoit'" <b-cousson-l0cyMroinI0@public.gmane.org>, 'Paul Walmsley' <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: [PATCH v3] omap: beagle: add support for wl1271 on the board file
+Date: Thu, 23 Sep 2010 13:03:35 +0300
+Message-ID: <1285236215-21136-1-git-send-email-luciano.coelho@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:25961 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab0IWKD5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 06:03:57 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-wireless@vger.kernel.org, Ido Yariv <ido@wizery.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-Hello.
+Add board configuration for the wl1271 daughter board.  This patch is based
+on Ohad Ben-Cohen's patches for Zoom boards.
 
-On 23-09-2010 9:50, Maulik wrote:
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
+---
+from v2 to v3: removed accidental change to wl1271.h
 
->> -----Original Message-----
->> From: Hema HK [mailto:hemahk-l0cyMroinI0@public.gmane.org]
->> Sent: Thursday, September 23, 2010 6:01 AM
->> To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Cc: Hema HK; Maulik Mankad; Felipe Balbi; Tony Lindgren; Kevin Hilman;
->> Cousson, Benoit; Paul Walmsley
->> Subject: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
+ arch/arm/mach-omap2/board-omap3beagle.c |   69 +++++++++++++++++++++++++++++++
+ 1 files changed, 69 insertions(+), 0 deletions(-)
 
->> With OMAP core-off support musb was not functional as context was getting
->> lost after wakeup from core-off. And also musb was blocking the core-off
->> after loading the gadget driver even with no cable connected sometimes.
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 87969c7..755df29 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -29,7 +29,9 @@
+ #include <linux/mtd/nand.h>
+ 
+ #include <linux/regulator/machine.h>
++#include <linux/regulator/fixed.h>
+ #include <linux/i2c/twl.h>
++#include <linux/wl12xx.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -48,6 +50,9 @@
+ #include "mux.h"
+ #include "hsmmc.h"
+ 
++#define OMAP_BEAGLE_WLAN_EN_GPIO    (139)
++#define OMAP_BEAGLE_WLAN_IRQ_GPIO   (137)
++
+ #define NAND_BLOCK_SIZE		SZ_128K
+ 
+ static struct mtd_partition omap3beagle_nand_partitions[] = {
+@@ -163,12 +168,25 @@ static void __init beagle_display_init(void)
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ 
++struct wl12xx_platform_data omap_beagle_wlan_data __initdata = {
++	.irq = OMAP_GPIO_IRQ(OMAP_BEAGLE_WLAN_IRQ_GPIO),
++	.board_ref_clock = 2, /* 38.4 MHz */
++};
++
+ static struct omap2_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+ 		.wires		= 8,
+ 		.gpio_wp	= 29,
+ 	},
++	{
++		.name           = "wl1271",
++		.mmc            = 2,
++		.wires          = 4,
++		.gpio_wp        = -EINVAL,
++		.gpio_cd        = -EINVAL,
++		.nonremovable   = true,
++	},
+ 	{}	/* Terminator */
+ };
+ 
+@@ -176,10 +194,43 @@ static struct regulator_consumer_supply beagle_vmmc1_supply = {
+ 	.supply			= "vmmc",
+ };
+ 
++static struct regulator_consumer_supply beagle_vmmc2_supply = {
++	.supply         = "vmmc",
++	.dev_name       = "mmci-omap-hs.1",
++};
++
++
+ static struct regulator_consumer_supply beagle_vsim_supply = {
+ 	.supply			= "vmmc_aux",
+ };
+ 
++
++static struct regulator_init_data beagle_vmmc2 = {
++	.constraints = {
++		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies = 1,
++	.consumer_supplies = &beagle_vmmc2_supply,
++};
++
++static struct fixed_voltage_config beagle_vwlan = {
++	.supply_name = "vwl1271",
++	.microvolts = 1800000,  /* 1.8V */
++	.gpio = OMAP_BEAGLE_WLAN_EN_GPIO,
++	.startup_delay = 70000, /* 70ms */
++	.enable_high = 1,
++	.enabled_at_boot = 0,
++	.init_data = &beagle_vmmc2,
++};
++
++static struct platform_device omap_vwlan_device = {
++	.name           = "reg-fixed-voltage",
++	.id             = 1,
++	.dev = {
++		.platform_data = &beagle_vwlan,
++	},
++};
++
+ static struct gpio_led gpio_leds[];
+ 
+ static int beagle_twl_gpio_setup(struct device *dev,
+@@ -449,6 +500,19 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* WLAN IRQ - GPIO 137 */
++	OMAP3_MUX(SDMMC2_DAT5,  OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP),
++	/* WLAN POWER ENABLE - GPIO 139 */
++	OMAP3_MUX(SDMMC2_DAT7,  OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
++	/* WLAN SDIO: MMC2 CMD */
++	OMAP3_MUX(SDMMC2_CMD,   OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	/* WLAN SDIO: MMC2 CLK */
++	OMAP3_MUX(SDMMC2_CLK,   OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	/* WLAN SDIO: MMC2 DAT[0-3] */
++	OMAP3_MUX(SDMMC2_DAT0,  OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	OMAP3_MUX(SDMMC2_DAT1,  OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	OMAP3_MUX(SDMMC2_DAT2,  OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
++	OMAP3_MUX(SDMMC2_DAT3,  OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+@@ -464,9 +528,14 @@ static struct omap_musb_board_data musb_board_data = {
+ static void __init omap3_beagle_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++	if (wl12xx_set_platform_data(&omap_beagle_wlan_data))
++		pr_err("error setting wl12xx data\n");
++
+ 	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
++	platform_device_register(&omap_vwlan_device);
++
+ 	omap_serial_init();
+ 
+ 	omap_mux_init_gpio(170, OMAP_PIN_INPUT);
+-- 
+1.6.3.3
 
->> Added the idle and wakeup APIs in the platform layer which will
->> be called in the idle and wakeup path.
-
->> Used the pm_runtime_put_sysc API to configure the
->> musb to force idle/standby modes, saving the context and disable the clk
->> in
->> while idling if there is no activity on the usb bus.
-
->> Used the pm_runtime_get_sync API to configure the musb to
->> no idle/standby modes, enable the clock and restore the context
->> after wakeup when there is no activity on the usb bus.
-
->> Signed-off-by: Hema HK<hemahk-l0cyMroinI0@public.gmane.org>
->> Signed-off-by: Maulik Mankad<x0082077-l0cyMroinI0@public.gmane.org>
->> Cc: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
->> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Kevin Hilman<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->> Cc: Cousson, Benoit<b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Paul Walmsley<paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-
-[...]
-
->> Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
->> ===================================================================
->> --- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
->> +++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-[...]
->> @@ -115,8 +126,101 @@ void __init usb_musb_init(struct omap_mu
->>   	put_device(dev);
->>   }
->>
->> +void musb_prepare_for_idle()
->> +{
->> +	int core_next_state;
->> +	struct omap_hwmod *oh = oh_p;
->> +	struct omap_device *od;
->> +	struct platform_device *pdev;
->> +	struct musb_hdrc_platform_data *pdata;
->> +	struct device *dev;
->> +
->> +	if (!core_pwrdm)
->> +		return;
->> +
->> +	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
->> +	if (core_next_state>= PWRDM_POWER_INACTIVE)
->> +		return;
->> +	if (!oh)
->> +		return;
->> +
->> +	od = oh->od;
->> +	pdev =&od->pdev;
->> +
->> +	if (!pdev)
->> +		return;
->> +	dev =&pdev->dev;
->> +
->> +	if (dev->driver) {
->> +		pdata = dev->platform_data;
->> +
->> +	if (pdata->is_usb_active)
-
-> Don't you need a start brace here?
-
-    No if the *if* only embraces one statement as here. But the next *if* can 
-be collapsed into this one.
-
-> Also a tab is required if this if condition is under if (dev->driver)
-
-    Yeah.
-
->> +		if (!pdata->is_usb_active(dev)) {
-
-    Brace not necessary.
-
->> +			if (core_next_state == PWRDM_POWER_OFF) {
->> +				pdata->save_context = 1;
->> +				pm_runtime_put_sync(dev);
->> +			} else if  (core_next_state == PWRDM_POWER_RET) {
->> +				pdata->save_context = 0;
->> +				pm_runtime_put_sync(dev);
->> +			}
->> +		}
->> +	}
->> +}
->> +
->> +void musb_wakeup_from_idle()
->> +{
->> +	int core_next_state;
->> +	int core_prev_state;
->> +	struct omap_hwmod *oh = oh_p;
->> +	struct omap_device *od;
->> +	struct platform_device *pdev;
->> +	struct device *dev;
->> +	struct musb_hdrc_platform_data *pdata;
->> +
->> +	if (!core_pwrdm)
->> +		return;
->> +
->> +	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
->> +
->> +	if (core_next_state>= PWRDM_POWER_INACTIVE)
->> +		return;
->> +	 core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
->> +
->> +	 if (!oh)
->> +		return;
->> +	 od = oh->od;
->> +	 pdev =&od->pdev;
->> +
->> +	 if (!pdev)
->> +		return;
->> +
->> +	 dev =&pdev->dev;
->> +
->> +	 if (dev->driver) {
->> +		pdata = dev->platform_data;
->> +
->> +		if (pdata->is_usb_active)
-
-> Braces needed for this if condition?
-
-    No. But the next *if* can be collapsed into the previous.
-
->> +			if (!pdata->is_usb_active(dev)) {
->> +				if (core_prev_state == PWRDM_POWER_OFF) {
->> +					pdata->restore_context = 1;
->> +					 pm_runtime_get_sync(dev);
->> +				} else {
->> +					 pdata->restore_context = 0;
->> +					 pm_runtime_get_sync(dev);
->> +				}
->> +			 }
->> +	 }
->> +}
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
