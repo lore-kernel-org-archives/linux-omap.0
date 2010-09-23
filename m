@@ -1,122 +1,63 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v8 3/6] OMAP2430: hwmod data: Add watchdog timer
-Date: Thu, 23 Sep 2010 20:02:40 +0530
-Message-ID: <1285252363-3630-4-git-send-email-charu@ti.com>
-References: <1285252363-3630-1-git-send-email-charu@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46897 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755603Ab0IWOdg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Sep 2010 10:33:36 -0400
-In-Reply-To: <1285252363-3630-1-git-send-email-charu@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3] power: introduce library for device-specific OPPs
+Date: Thu, 23 Sep 2010 07:39:33 -0700
+Message-ID: <871v8k7cd6.fsf@deeprootsystems.com>
+References: <1285192054-454-1-git-send-email-nm@ti.com>
+	<201009230203.09230.rjw@sisk.pl> <4C9A9F84.7000104@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4C9A9F84.7000104@ti.com> (Nishanth Menon's message of "Wed, 22
+	Sep 2010 19:29:56 -0500")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-doc <linux-doc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm <linux-pm@lists.linux-foundation.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, wim@iguana.be, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
 
-Add watchdog timer hwmod data for OMAP2430 chip
+Nishanth Menon <nm@ti.com> writes:
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   64 ++++++++++++++++++++++++++++
- 1 files changed, 64 insertions(+), 0 deletions(-)
+> Rafael J. Wysocki had written, on 09/22/2010 07:03 PM, the following:
+>> [Trimming the CC list slightly.]
+> [...]
+>
+>> ...
+>>
+>> First, thanks for addressing the previous comments, things look much better
+>> now.  In particular the documentation has been improved a lot in my view.
+> Thanks for the excellent reviews :)
+>
+> [...]
+>
+>>> +
+>>> +WARNING on OPP List Modification Vs Query operations:
+>>> +----------------------------------------------------
+>>> +The OPP layer's query functions are expected to be used in multiple contexts
+>>> +(including calls from interrupt locked context) based on SoC framework
+>>> +implementation. Only OPP modification functions are guaranteed exclusivity by
+>>> +the OPP library. Exclusivity between query functions and modification functions
+>>> +should be handled by the users such as the SoC framework appropriately; else,
+>>> +there is a risk for the query functions to retrieve stale data.
+>>
+>> Well, this sounds like a good use case for RCU.
+> Kevin did point out rwlock but am I confusing with
+> http://lwn.net/Articles/364583/
+> If I get the message right, rwlock is more or less on it's way out?
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 4526628..7ec927a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -19,6 +19,7 @@
- #include "omap_hwmod_common_data.h"
- 
- #include "prm-regbits-24xx.h"
-+#include "cm-regbits-24xx.h"
- 
- /*
-  * OMAP2430 hardware module integration data
-@@ -33,6 +34,7 @@ static struct omap_hwmod omap2430_mpu_hwmod;
- static struct omap_hwmod omap2430_iva_hwmod;
- static struct omap_hwmod omap2430_l3_main_hwmod;
- static struct omap_hwmod omap2430_l4_core_hwmod;
-+static struct omap_hwmod omap2430_wd_timer2_hwmod;
- 
- /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core = {
-@@ -165,12 +167,74 @@ static struct omap_hwmod omap2430_iva_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
- };
- 
-+/* l4_wkup -> wd_timer2 */
-+static struct omap_hwmod_addr_space omap2430_wd_timer2_addrs[] = {
-+	{
-+		.pa_start	= 0x49016000,
-+		.pa_end		= 0x4901607f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+static struct omap_hwmod_ocp_if omap2430_l4_wkup__wd_timer2 = {
-+	.master		= &omap2430_l4_wkup_hwmod,
-+	.slave		= &omap2430_wd_timer2_hwmod,
-+	.clk		= "mpu_wdt_ick",
-+	.addr		= omap2430_wd_timer2_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap2430_wd_timer2_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/*
-+ * 'wd_timer' class
-+ * 32-bit watchdog upward counter that generates a pulse on the reset pin on
-+ * overflow condition
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2430_wd_timer_sysc = {
-+	.rev_offs	= 0x0,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_EMUFREE | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_AUTOIDLE),
-+	.sysc_fields    = &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap2430_wd_timer_hwmod_class = {
-+	.name = "wd_timer",
-+	.sysc = &omap2430_wd_timer_sysc,
-+};
-+
-+/* wd_timer2 */
-+static struct omap_hwmod_ocp_if *omap2430_wd_timer2_slaves[] = {
-+	&omap2430_l4_wkup__wd_timer2,
-+};
-+
-+static struct omap_hwmod omap2430_wd_timer2_hwmod = {
-+	.name		= "wd_timer2",
-+	.class		= &omap2430_wd_timer_hwmod_class,
-+	.main_clk	= "mpu_wdt_fck",
-+	.prcm		= {
-+		.omap2 = {
-+			.prcm_reg_id = 1,
-+			.module_bit = OMAP24XX_EN_MPU_WDT_SHIFT,
-+			.module_offs = WKUP_MOD,
-+			.idlest_reg_id = 1,
-+			.idlest_idle_bit = OMAP24XX_ST_MPU_WDT_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_wd_timer2_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_wd_timer2_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
- static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_l3_main_hwmod,
- 	&omap2430_l4_core_hwmod,
- 	&omap2430_l4_wkup_hwmod,
- 	&omap2430_mpu_hwmod,
- 	&omap2430_iva_hwmod,
-+	&omap2430_wd_timer2_hwmod,
- 	NULL,
- };
- 
--- 
-1.7.0.4
+RCU is different from the reader-writer locks that are on their way out.
 
+Let's think about RCU a little more and see if it might be worth using.
+
+As these APIs are infrequencly accessed, I'm thinking a single spinlock
+to protect the whole list from concurrent access/modification is
+sufficient.
+
+Kevin
