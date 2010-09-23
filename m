@@ -1,199 +1,317 @@
-From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
-Date: Thu, 23 Sep 2010 13:21:12 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D9E5@dbde02.ent.ti.com>
-References: <1285201830-26561-1-git-send-email-hemahk@ti.com>
- <20100923063604.GE2563@legolas.emea.dhcp.ti.com>
+From: "Kalliguddi, Hema" <hemahk@ti.com>
+Subject: RE: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
+Date: Thu, 23 Sep 2010 13:29:29 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D9EB@dbde02.ent.ti.com>
+References: <1285201846-26599-1-git-send-email-hemahk@ti.com>
+ <20100923064910.GF2563@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100923063604.GE2563-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39961 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753625Ab0IWH7g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 03:59:36 -0400
+In-Reply-To: <20100923064910.GF2563@legolas.emea.dhcp.ti.com>
 Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Mankad, Maulik Ojas" <x0082077@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
- 
+ Hi,
 
 >-----Original Message-----
 >From: Balbi, Felipe 
->Sent: Thursday, September 23, 2010 12:06 PM
+>Sent: Thursday, September 23, 2010 12:19 PM
 >To: Kalliguddi, Hema
->Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
->Basak, Partha; Balbi, Felipe; Tony Lindgren; Kevin Hilman; 
->Cousson, Benoit; Paul Walmsley
->Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
+>Cc: linux-omap@vger.kernel.org; linux-usb@vger.kernel.org; 
+>Mankad, Maulik Ojas; Balbi, Felipe; Tony Lindgren; Kevin 
+>Hilman; Cousson, Benoit; Paul Walmsley
+>Subject: Re: [PATCH 9/9 v3] usb : musb: Offmode fix for idle path
 >
 >Hi,
 >
->On Wed, Sep 22, 2010 at 07:30:30PM -0500, Kalliguddi, Hema wrote:
->>Calling runtime pm APIs pm_runtime_put_sync() and 
->pm_runtime_get_sync()
->>for enabling/disabling the clocks,sysconfig settings.
+>On Wed, Sep 22, 2010 at 07:30:46PM -0500, Kalliguddi, Hema wrote:
+>>With OMAP core-off support musb was not functional as context 
+>was getting
+>>lost after wakeup from core-off. And also musb was blocking 
+>the core-off
+>>after loading the gadget driver even with no cable connected 
+>sometimes.
 >>
->>Also need to put the USB in force standby and force idle mode 
->when usb not used
->>and set it back to no idle and no stndby after wakeup.
->>For OMAP3 auto idle bit has to be disabled because of the 
->errata.So using
->>HWMOD_NO_OCP_AUTOIDLE flag for OMAP3430.
+>>Added the idle and wakeup APIs in the platform layer which will
+>>be called in the idle and wakeup path.
 >>
->>Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
->>Signed-off-by: Basak, Partha <p-basak2-l0cyMroinI0@public.gmane.org>
->>Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
->>Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->>Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->>Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
->>Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+>>Used the pm_runtime_put_sysc API to configure the
 >
->these two should a separate series, otherwise it's difficult for
->different maintainers to decide what they need to pick up :-)
+>pm_runtime_put_sync(), typo.
 >
-I don't mind 
->Anyways, let me continue;
+>>musb to force idle/standby modes, saving the context and 
+>disable the clk in
+>>while idling if there is no activity on the usb bus.
 >
->>@@ -2424,13 +2425,16 @@ static int musb_suspend(struct device *d
->> 		 * they will even be wakeup-enabled.
->> 		 */
->> 	}
->>+	pm_runtime_put_sync(dev);
->>
->>+#ifndef CONFIG_PM_RUNTIME
->> 	musb_save_context(musb);
->>
->> 	if (musb->set_clock)
->> 		musb->set_clock(musb->clock, 0);
->> 	else
->> 		clk_disable(musb->clock);
->>+#endif
+>this part is a bit fuzzy, care to re-phrase ?
 >
->I would rather remove these, adding ifdefs is bad :-( Unless 
->other archs
->(blackfin, davinci) would have problems if we remove those.
->
-If we remove this then how the clock will be enabled for the other platforms where runtime
-pm is not used?
+Ok. I will re-phrase it. 
 
->>@@ -2457,9 +2465,26 @@ static int musb_resume_noirq(struct devi
->> 	return 0;
+>>Used the pm_runtime_get_sync API to configure the musb to
+>>no idle/standby modes, enable the clock and restore the context
+>>after wakeup when there is no activity on the usb bus.
+>>
+>>Signed-off-by: Hema HK <hemahk@ti.com>
+>>Signed-off-by: Maulik Mankad <x0082077@ti.com>
+>>Cc: Felipe Balbi <balbi@ti.com>
+>>Cc: Tony Lindgren <tony@atomide.com>
+>>Cc: Kevin Hilman <khilman@deeprootsystems.com>
+>>Cc: Cousson, Benoit <b-cousson@ti.com>
+>>Cc: Paul Walmsley <paul@pwsan.com>
+>>
+>>---
+>> arch/arm/mach-omap2/cpuidle34xx.c     |    1
+>> arch/arm/mach-omap2/pm34xx.c          |    3
+>> arch/arm/mach-omap2/usb-musb.c        |  107 
+>++++++++++++++++++++++++++++++++++
+>> arch/arm/plat-omap/include/plat/usb.h |    2
+>> drivers/usb/musb/musb_core.c          |   15 ++++
+>> drivers/usb/musb/omap2430.c           |   14 ++++
+>> include/linux/usb/musb.h              |    9 ++
+>> 7 files changed, 149 insertions(+), 2 deletions(-)
+>>
+>>Index: linux-omap-pm/arch/arm/mach-omap2/cpuidle34xx.c
+>>===================================================================
+>>--- linux-omap-pm.orig/arch/arm/mach-omap2/cpuidle34xx.c
+>>+++ linux-omap-pm/arch/arm/mach-omap2/cpuidle34xx.c
+>>@@ -31,6 +31,7 @@
+>> #include <plat/clockdomain.h>
+>> #include <plat/control.h>
+>> #include <plat/serial.h>
+>>+#include <plat/usb.h>
+>>
+>> #include "pm.h"
+>>
+>>Index: linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+>>===================================================================
+>>--- linux-omap-pm.orig/arch/arm/mach-omap2/pm34xx.c
+>>+++ linux-omap-pm/arch/arm/mach-omap2/pm34xx.c
+>>@@ -38,6 +38,7 @@
+>> #include <plat/prcm.h>
+>> #include <plat/gpmc.h>
+>> #include <plat/dma.h>
+>>+#include <plat/usb.h>
+>>
+>> #include <asm/tlbflush.h>
+>>
+>>@@ -324,11 +325,13 @@ static void restore_table_entry(void)
+>> void omap3_device_idle(void)
+>> {
+>> 	omap2_gpio_prepare_for_idle();
+>>+	musb_prepare_for_idle();
 >> }
 >>
->>+static int musb_runtime_suspend(struct device *dev)
->>+{
->>+	struct musb	*musb = dev_to_musb(dev);
->
->missing lock ??
-I am wondering whether we need the lock here? As these functions are supposed to be
-Called by runtime pm framework only. 
->
->>+	musb_save_context(musb);
->
->shouldn't you disable the clock here ?
->
-This hook is called when we call pm_runtime_put_sync api which takes care of disabling
-clocks and configuring the sysconfig register.
-
->>+	return 0;
->>+}
+>> void omap3_device_resume(void)
+>> {
+>> 	omap2_gpio_resume_after_idle();
+>>+	musb_wakeup_from_idle();
+>> }
+>>
+>> void omap_sram_idle(void)
+>>Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+>>===================================================================
+>>--- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
+>>+++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+>>@@ -25,16 +25,21 @@
+>> #include <linux/io.h>
+>>
+>> #include <linux/usb/musb.h>
+>>+#include <linux/pm_runtime.h>
+>>
+>> #include <mach/hardware.h>
+>> #include <mach/irqs.h>
+>> #include <plat/usb.h>
+>> #include <plat/omap_device.h>
+>>+#include <plat/powerdomain.h>
+>>
+>> #ifdef CONFIG_USB_MUSB_SOC
+>> static const char name[] = "musb_hdrc";
+>> #define MAX_OMAP_MUSB_HWMOD_NAME_LEN	16
+>>
+>>+struct omap_hwmod *oh_p;
+>>+static struct powerdomain *core_pwrdm;
 >>+
->>+static int musb_runtime_resume(struct device *dev)
->>+{
->>+	struct musb	*musb = dev_to_musb(dev);
->
->re-enable clock here and missing lock ??
->
-
-Not required. This hook gets aclled when pm_runtime_get_sync is called by the driver
-Which will take care of enabling the clock.
-
-I am just wondering whether we need the lock here? As these functions are supposed to be
-Called by runtime pm framework only. 
-
->>@@ -253,15 +240,13 @@ int __init musb_platform_init(struct mus
->> void musb_platform_save_context(struct musb *musb,
->> 		struct musb_context_registers *musb_context)
->> {
->>-	musb_context->otg_sysconfig = musb_readl(musb->mregs, 
->OTG_SYSCONFIG);
->>-	musb_context->otg_forcestandby = 
->musb_readl(musb->mregs, OTG_FORCESTDBY);
->>+	musb_writel(musb->mregs, OTG_FORCESTDBY, ENABLEFORCE);
->
->not really saving context anymore :-p but that's ok, we will 
->need change
->all that mess anyway.
->
-Yehh :-)
-
->>@@ -277,37 +262,23 @@ static int musb_platform_suspend(struct
->> 	l |= ENABLEFORCE;	/* enable MSTANDBY */
->> 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+>> static struct musb_hdrc_config musb_config = {
+>> 	.multipoint	= 1,
+>> 	.dyn_fifo	= 1,
+>>@@ -58,6 +63,10 @@ static struct musb_hdrc_platform_data mu
+>> 	 * "mode", and should be passed to usb_musb_init().
+>> 	 */
+>> 	.power		= 50,			/* up to 100 mA */
+>>+
+>>+	/* OMAP supports offmode */
+>>+	.save_context	= 1,
+>>+	.restore_context	= 1,
+>> };
 >>
->>-	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
->>-	l |= ENABLEWAKEUP;	/* enable wakeup */
->>-	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
->>-
->> 	otg_set_suspend(musb->xceiv, 1);
+>> static u64 musb_dmamask = DMA_BIT_MASK(32);
+>>@@ -80,6 +89,7 @@ void __init usb_musb_init(struct omap_mu
+>> 	const char *oh_name = "usb_otg_hs";
+>> 	struct musb_hdrc_platform_data *pdata;
 >>
->>-	if (musb->set_clock)
->>-		musb->set_clock(musb->clock, 0);
->>-	else
->>-		clk_disable(musb->clock);
->>-
+>>+	core_pwrdm = pwrdm_lookup("per_pwrdm");
 >
->should you pm_runtime_put_sync(dev) here ??
+>per or core ???
 >
-Calling pm_runtime_put_sync leading to crash as
-driver_detach calls __device_release_driver which intern calls 
-pm_runtime_put_sync function, with this the musb clocks are already disabled
-And usecount is 0.
- 
->> 	return 0;
+Oh! It should be core. Now I understand why save/restore counts were not matching with
+Core-off counts.
+Thanks for pointing this out.
+
+>>@@ -97,6 +107,7 @@ void __init usb_musb_init(struct omap_mu
+>> 	musb_plat.extvbus = board_data->extvbus;
+>>
+>> 	pdata = &musb_plat;
+>>+	oh_p = oh;
+>>
+>> 	od = omap_device_build(name, bus_id, oh, pdata,
+>> 			       sizeof(struct musb_hdrc_platform_data),
+>>@@ -115,8 +126,101 @@ void __init usb_musb_init(struct omap_mu
+>> 	put_device(dev);
 >> }
 >>
->> static int musb_platform_resume(struct musb *musb)
->> {
->> 	u32 l;
->>+	struct device *dev = musb->controller;
+>>+void musb_prepare_for_idle()
+>>+{
+>>+	int core_next_state;
+>>+	struct omap_hwmod *oh = oh_p;
+>>+	struct omap_device *od;
+>>+	struct platform_device *pdev;
+>>+	struct musb_hdrc_platform_data *pdata;
+>>+	struct device *dev;
+>>+
+>>+	if (!core_pwrdm)
+>>+		return;
+>>+
+>>+	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+>>+	if (core_next_state >= PWRDM_POWER_INACTIVE)
+>>+		return;
+>>+	if (!oh)
+>>+		return;
+>>+
+>>+	od = oh->od;
+>>+	pdev = &od->pdev;
+>>+
+>>+	if (!pdev)
+>>+		return;
+>>+	dev = &pdev->dev;
+>>+
+>>+	if (dev->driver) {
+>>+		pdata = dev->platform_data;
+>>+
+>>+	if (pdata->is_usb_active)
+>
+>indentation is wrong. And you can save some of it:
+
+Maulik is pointed this out and I will fixing it.
+>
+>	if (!dev->driver)
+>		return;
+>	
+>	pdata = dev->platform_data;
+>
+>	if (!pdata->is_usb_active)
+>		return;
+>	
+>	if (!pdata->is_usb_active(dev)) {
+>		switch (core_next_state) {
+>		case PWRDM_POWER_OFF:
+>			pdata->save_context = 1;
+>			pm_runtime_put_sync(dev);
+>			break;
+>		case PWRDM_POWER_RET:
+>			pdata->save_context = 0;
+>			pm_runtime_put_sync(dev);
+>			break;
+>		default:
+>			pr_debug("what ??\n");
+>		}
+>	}
+>
+>>Index: linux-omap-pm/drivers/usb/musb/musb_core.c
+>>===================================================================
+>>--- linux-omap-pm.orig/drivers/usb/musb/musb_core.c
+>>+++ linux-omap-pm/drivers/usb/musb/musb_core.c
+>>@@ -2410,6 +2410,7 @@ static int musb_suspend(struct device *d
+>> 	struct platform_device *pdev = to_platform_device(dev);
+>> 	unsigned long	flags;
+>> 	struct musb	*musb = dev_to_musb(&pdev->dev);
+>>+	struct musb_hdrc_platform_data *plat = dev->platform_data;
 >>
 >> 	if (!musb->clock)
 >> 		return 0;
+>>@@ -2425,6 +2426,9 @@ static int musb_suspend(struct device *d
+>> 		 * they will even be wakeup-enabled.
+>> 		 */
+>> 	}
+>>+
+>>+	if (plat->save_context)
+>>+		plat->save_context = 1;
 >
->you're not touching clock anymore, this can go too.
+>what ??
 >
-Yes. This can be removed.
+>if plat->save_context is 1, then set it to 1 ???
+>
+This is mistake. I messed it up. I had another flag
+for offmode support, which I removed later.
+i will correct this.
 
->> 	otg_set_suspend(musb->xceiv, 0);
+>>@@ -2443,10 +2447,13 @@ static int musb_resume_noirq(struct devi
+>> {
+>> 	struct platform_device *pdev = to_platform_device(dev);
+>> 	struct musb	*musb = dev_to_musb(&pdev->dev);
+>
+>just now I notice these, hah, funny :-p pdev isn't even 
+>needed. Has been
+>there for quite a while I believe.
+>
+>Commit 48fea965 should have changed that line, but that's ok, we will
+>clean it later.
+>
+Yehh :-)
+If it is OK, I can clean it up with this patch only.
+
+>>+	struct musb_hdrc_platform_data *plat = dev->platform_data;
 >>
->>-	if (musb->set_clock)
->>-		musb->set_clock(musb->clock, 1);
->>-	else
->>-		clk_enable(musb->clock);
->>-
->>-	l = musb_readl(musb->mregs, OTG_SYSCONFIG);
->>-	l &= ~ENABLEWAKEUP;	/* disable wakeup */
->>-	musb_writel(musb->mregs, OTG_SYSCONFIG, l);
->>+	pm_runtime_enable(dev);
->>+	pm_runtime_get_sync(dev);
+>> 	if (!musb->clock)
+>> 		return 0;
+>>
+>>+	if (plat->restore_context)
+>>+		plat->restore_context = 1;
 >
->seems like you're going to call pm_runtime_get_sync twice ? once here
->and another time on musb_resume_noirq(). why ?
-
-pm_runtime_get_sync is called in the musb_platform_resume function 
-during the initialization of the driver. Where we need to enable the clocks
-and put the sysconfig registers to known configurations.
-
-pm_runtime_get_sync is called in musb_resume_noirq() to re-enable the cloks
-and configure the sysconfig because the clocks are disabled in musb_suspend()
-by calling pm_runtime_put_sync() during global suspend/resume.
-
-
+>also here?? there's something wrong.
 >
+Yes...
+
+>>@@ -2468,16 +2475,20 @@ static int musb_resume_noirq(struct devi
+>> static int musb_runtime_suspend(struct device *dev)
+>> {
+>> 	struct musb	*musb = dev_to_musb(dev);
+>>+	struct musb_hdrc_platform_data *plat = dev->platform_data;
+>>
+>>-	musb_save_context(musb);
+>>+	if (plat->save_context)
+>>+		musb_save_context(musb);
+>
+>this looks better.
+>
+>>@@ -126,6 +128,17 @@ struct musb_hdrc_platform_data {
+>>
+>> 	/* Architecture specific board data	*/
+>> 	void		*board_data;
+>>+
+>>+	/* check usb device active state*/
+>>+	int		(*is_usb_active)(struct device *dev);
+>
+>where is it used ??
+>
+This you got it already.
 >-- 
 >balbi
->--
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
