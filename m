@@ -1,193 +1,186 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH v8 5/6] OMAP: WDT: Split OMAP1 and OMAP2PLUS device registration
-Date: Thu, 23 Sep 2010 20:02:42 +0530
-Message-ID: <1285252363-3630-6-git-send-email-charu@ti.com>
+Subject: [PATCH v8 4/6] OMAP4: hwmod data: Add watchdog timer
+Date: Thu, 23 Sep 2010 20:02:41 +0530
+Message-ID: <1285252363-3630-5-git-send-email-charu@ti.com>
 References: <1285252363-3630-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46887 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46886 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755548Ab0IWOd3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755107Ab0IWOd3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 23 Sep 2010 10:33:29 -0400
 In-Reply-To: <1285252363-3630-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, wim@iguana.be, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
+Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, Charulatha V <charu@ti.com>
 
-This patch splits omap_init_wdt() into separate omap_init_wdt()
-functions under mach-omap1 and mach-omap2 and set them up with
-subsys_initcall.
+From: Benoit Cousson <b-cousson@ti.com>
 
-Also it uses  omap_device_build() API instead of
-platform_device_register() for watchdog timer device registration
-for OMAP2plus chips.
+Add watchdog timer hwmod data for OMAP4 chip
 
-For OMAP2plus chips, the device specific data defined in centralized
-hwmod database will be used.
+Note: wd_timer3 in enabled in the hwmod list but it is
+not yet supported by the watchdog driver.
 
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Charulatha V <charu@ti.com>
-Acked-by: Cousson, Benoit <b-cousson@ti.com>
 ---
- arch/arm/mach-omap1/devices.c |   27 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/devices.c |   39 +++++++++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/devices.c  |   41 -----------------------------------------
- 3 files changed, 66 insertions(+), 41 deletions(-)
+This patch is extracted from the below patch sent by Benoit
+https://patchwork.kernel.org/patch/117347/
 
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index aa07256..39447fa 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -232,3 +232,30 @@ static int __init omap1_init_devices(void)
- }
- arch_initcall(omap1_init_devices);
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  135 ++++++++++++++++++++++++++++
+ 1 files changed, 135 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index e20b0ee..8660fea 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -452,6 +452,136 @@ static struct omap_hwmod omap44xx_mpu_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
  
-+#if defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
++/*
++ * 'wd_timer' class
++ * 32-bit watchdog upward counter that generates a pulse on the reset pin on
++ * overflow condition
++ */
 +
-+static struct resource wdt_resources[] = {
++static struct omap_hwmod_class_sysconfig omap44xx_wd_timer_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.syss_offs	= 0x0014,
++	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_EMUFREE |
++			   SYSC_HAS_SOFTRESET),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap44xx_wd_timer_hwmod_class = {
++	.name = "wd_timer",
++	.sysc = &omap44xx_wd_timer_sysc,
++};
++
++/* wd_timer2 */
++static struct omap_hwmod omap44xx_wd_timer2_hwmod;
++static struct omap_hwmod_irq_info omap44xx_wd_timer2_irqs[] = {
++	{ .irq = 80 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_wd_timer2_addrs[] = {
 +	{
-+		.start		= 0xfffeb000,
-+		.end		= 0xfffeb07F,
-+		.flags		= IORESOURCE_MEM,
++		.pa_start	= 0x4a314000,
++		.pa_end		= 0x4a31407f,
++		.flags		= ADDR_TYPE_RT
 +	},
 +};
 +
-+static struct platform_device omap_wdt_device = {
-+	.name	   = "omap_wdt",
-+	.id	     = -1,
-+	.num_resources	= ARRAY_SIZE(wdt_resources),
-+	.resource	= wdt_resources,
++/* l4_wkup -> wd_timer2 */
++static struct omap_hwmod_ocp_if omap44xx_l4_wkup__wd_timer2 = {
++	.master		= &omap44xx_l4_wkup_hwmod,
++	.slave		= &omap44xx_wd_timer2_hwmod,
++	.clk		= "l4_wkup_clk_mux_ck",
++	.addr		= omap44xx_wd_timer2_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_addrs),
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
-+static int __init omap_init_wdt(void)
-+{
-+	if (!cpu_is_omap16xx())
-+		return;
++/* wd_timer2 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_wd_timer2_slaves[] = {
++	&omap44xx_l4_wkup__wd_timer2,
++};
 +
-+	platform_device_register(&omap_wdt_device);
-+	return 0;
-+}
-+subsys_initcall(omap_init_wdt);
-+#endif
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 2dbb265..439bfb3 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -15,6 +15,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/clk.h>
-+#include <linux/err.h>
- 
- #include <mach/hardware.h>
- #include <mach/irqs.h>
-@@ -28,6 +29,8 @@
- #include <mach/gpio.h>
- #include <plat/mmc.h>
- #include <plat/dma.h>
-+#include <plat/omap_hwmod.h>
-+#include <plat/omap_device.h>
- 
- #include "mux.h"
- 
-@@ -859,3 +862,39 @@ static int __init omap2_init_devices(void)
- 	return 0;
- }
- arch_initcall(omap2_init_devices);
++static struct omap_hwmod omap44xx_wd_timer2_hwmod = {
++	.name		= "wd_timer2",
++	.class		= &omap44xx_wd_timer_hwmod_class,
++	.mpu_irqs	= omap44xx_wd_timer2_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_irqs),
++	.main_clk	= "wd_timer2_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_WKUP_WDT2_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_wd_timer2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer2_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
 +
-+#if defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
-+struct omap_device_pm_latency omap_wdt_latency[] = {
-+	[0] = {
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func   = omap_device_enable_hwmods,
-+		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
++/* wd_timer3 */
++static struct omap_hwmod omap44xx_wd_timer3_hwmod;
++static struct omap_hwmod_irq_info omap44xx_wd_timer3_irqs[] = {
++	{ .irq = 36 + OMAP44XX_IRQ_GIC_START },
++};
++
++static struct omap_hwmod_addr_space omap44xx_wd_timer3_addrs[] = {
++	{
++		.pa_start	= 0x40130000,
++		.pa_end		= 0x4013007f,
++		.flags		= ADDR_TYPE_RT
 +	},
 +};
 +
-+static int __init omap_init_wdt(void)
-+{
-+	int id = -1;
-+	struct omap_device *od;
-+	struct omap_hwmod *oh;
-+	char *oh_name = "wd_timer2";
-+	char *dev_name = "omap_wdt";
++/* l4_abe -> wd_timer3 */
++static struct omap_hwmod_ocp_if omap44xx_l4_abe__wd_timer3 = {
++	.master		= &omap44xx_l4_abe_hwmod,
++	.slave		= &omap44xx_wd_timer3_hwmod,
++	.clk		= "ocp_abe_iclk",
++	.addr		= omap44xx_wd_timer3_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_addrs),
++	.user		= OCP_USER_MPU,
++};
 +
-+	if (!cpu_class_is_omap2())
-+		return 0;
++/* l4_abe -> wd_timer3 (dma) */
++static struct omap_hwmod_addr_space omap44xx_wd_timer3_dma_addrs[] = {
++	{
++		.pa_start	= 0x49030000,
++		.pa_end		= 0x4903007f,
++		.flags		= ADDR_TYPE_RT
++	},
++};
 +
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("Could not look up wd_timer%d hwmod\n", id);
-+		return -EINVAL;
-+	}
++static struct omap_hwmod_ocp_if omap44xx_l4_abe__wd_timer3_dma = {
++	.master		= &omap44xx_l4_abe_hwmod,
++	.slave		= &omap44xx_wd_timer3_hwmod,
++	.clk		= "ocp_abe_iclk",
++	.addr		= omap44xx_wd_timer3_dma_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_dma_addrs),
++	.user		= OCP_USER_SDMA,
++};
 +
-+	od = omap_device_build(dev_name, id, oh, NULL, 0,
-+				omap_wdt_latency,
-+				ARRAY_SIZE(omap_wdt_latency), 0);
-+	WARN(IS_ERR(od), "Cant build omap_device for %s:%s.\n",
-+				dev_name, oh->name);
-+	return 0;
-+}
-+subsys_initcall(omap_init_wdt);
-+#endif
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index d1920be..8e88e0e 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -232,46 +232,6 @@ static void omap_init_uwire(void)
- static inline void omap_init_uwire(void) {}
- #endif
++/* wd_timer3 slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_wd_timer3_slaves[] = {
++	&omap44xx_l4_abe__wd_timer3,
++	&omap44xx_l4_abe__wd_timer3_dma,
++};
++
++static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
++	.name		= "wd_timer3",
++	.class		= &omap44xx_wd_timer_hwmod_class,
++	.mpu_irqs	= omap44xx_wd_timer3_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_irqs),
++	.main_clk	= "wd_timer3_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM1_ABE_WDT3_CLKCTRL,
++		},
++	},
++	.slaves		= omap44xx_wd_timer3_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++};
++
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	/* dmm class */
+ 	&omap44xx_dmm_hwmod,
+@@ -472,6 +602,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
  
--/*-------------------------------------------------------------------------*/
--
--#if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
--
--static struct resource wdt_resources[] = {
--	{
--		.flags		= IORESOURCE_MEM,
--	},
--};
--
--static struct platform_device omap_wdt_device = {
--	.name	   = "omap_wdt",
--	.id	     = -1,
--	.num_resources	= ARRAY_SIZE(wdt_resources),
--	.resource	= wdt_resources,
--};
--
--static void omap_init_wdt(void)
--{
--	if (cpu_is_omap16xx())
--		wdt_resources[0].start = 0xfffeb000;
--	else if (cpu_is_omap2420())
--		wdt_resources[0].start = 0x48022000; /* WDT2 */
--	else if (cpu_is_omap2430())
--		wdt_resources[0].start = 0x49016000; /* WDT2 */
--	else if (cpu_is_omap343x())
--		wdt_resources[0].start = 0x48314000; /* WDT2 */
--	else if (cpu_is_omap44xx())
--		wdt_resources[0].start = 0x4a314000;
--	else
--		return;
--
--	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
--
--	(void) platform_device_register(&omap_wdt_device);
--}
--#else
--static inline void omap_init_wdt(void) {}
--#endif
--
- /*
-  * This gets called after board-specific INIT_MACHINE, and initializes most
-  * on-chip peripherals accessible on this board (except for few like USB):
-@@ -300,7 +260,6 @@ static int __init omap_init_devices(void)
- 	omap_init_rng();
- 	omap_init_mcpdm();
- 	omap_init_uwire();
--	omap_init_wdt();
- 	return 0;
- }
- arch_initcall(omap_init_devices);
+ 	/* mpu class */
+ 	&omap44xx_mpu_hwmod,
++	/* wd_timer class */
++	&omap44xx_wd_timer2_hwmod,
++	&omap44xx_wd_timer3_hwmod,
+ 	NULL,
+ };
+ 
 -- 
 1.7.0.4
 
