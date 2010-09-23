@@ -1,79 +1,151 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] omap: fix section mismatch errors
-Date: Thu, 23 Sep 2010 09:36:44 -0700
-Message-ID: <20100923163644.GK4211@atomide.com>
-References: <1281972677-1636-1-git-send-email-premi@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv3 8/17] dmtimer: register mappings moved to hwmod database
+Date: Thu, 23 Sep 2010 18:44:49 +0200
+Message-ID: <4C9B8401.3070704@ti.com>
+References: <1285059226-26491-1-git-send-email-tarun.kanti@ti.com>	<E0D41E29EB0DAC4E9F3FF173962E9E94027863D705@dbde02.ent.ti.com> <87mxr98nkg.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301F6FE83CE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60934 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754360Ab0IWQgq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 12:36:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1281972677-1636-1-git-send-email-premi@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:37196 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754484Ab0IWQoz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Sep 2010 12:44:55 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301F6FE83CE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: "Basak, Partha" <p-basak2@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-* Sanjeev Premi <premi@ti.com> [100816 08:24]:
-> This patch fixes miltiple section mismatch errors
-> observed with the latest master.
+On 9/23/2010 11:34 AM, Basak, Partha wrote:
+>
+>
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>> Sent: Thursday, September 23, 2010 3:10 AM
+>>
+>> "G, Manjunath Kondaiah"<manjugk@ti.com>  writes:
+>>
+>>> Hi Tarun,
+>>>
+>>>> From: linux-omap-owner@vger.kernel.org
+>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>>>> DebBarma, Tarun Kanti
+>>>>
 
-Few comments below.
- 
-> @@ -134,7 +134,7 @@ static inline void board_smc91x_init(void)
->  
->  #endif
->  
-> -static struct omap_board_config_kernel sdp2430_config[] = {
-> +static struct omap_board_config_kernel sdp2430_config[] __initdata = {
->  	{OMAP_TAG_LCD, &sdp2430_lcd_config},
->  };
-...
-  
-Let's just get rid of omap_get_config stuff. The OMAP_TAG_LCD
-and OMAP_TAG_FBMEM are the last remaining legacy tags. They should
-be replaced with just platform_data. And while at it, it should
-be done for all the boards.
+<...>
 
-Tomi, do you see any problems with that?
+>>>> +static u32 omap_timer_reg_map_v1[] = {
+>>>> +  [OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_STAT_REG]           = (0x18 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_INT_EN_REG]         = (0x1c | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_WAKEUP_EN_REG]      = (0x20 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_CTRL_REG]           = (0x24 | (WP_TCLR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_COUNTER_REG]        = (0x28 | (WP_TCRR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_LOAD_REG]           = (0x2c | (WP_TLDR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_TRIGGER_REG]        = (0x30 | (WP_TTGR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_WRITE_PEND_REG]     = (0x34 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_MATCH_REG]          = (0x38 | (WP_TMAR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_CAPTURE_REG]        = (0x3c | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_IF_CTRL_REG]        = (0x40 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_CAPTURE2_REG]       = (0x44 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_TICK_POS_REG]       = (0x48 | (WP_TPIR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_TICK_NEG_REG]       = (0x4c | (WP_TNIR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_TICK_COUNT_REG]     = (0x50 | (WP_TCVR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_TICK_INT_MASK_SET_REG]      = (0x54 |
+>>>> (WP_TOCR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_TICK_INT_MASK_COUNT_REG]    = (0x58 |
+>>>> (WP_TOWR<<  WPSHIFT)),
+>>>> +};
+>>>> +
+>>>> +/* OMAP4 timers register map */
+>>>> +static u32 omap_timer_reg_map_v2[] = {
+>>>> +  [OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_STAT_REG]           = (0x28 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_INT_EN_REG]         = (0x2c | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_WAKEUP_EN_REG]      = (0x34 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_CTRL_REG]           = (0x38 | (WP_TCLR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_COUNTER_REG]        = (0x3c | (WP_TCRR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_LOAD_REG]           = (0x40 | (WP_TLDR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_TRIGGER_REG]        = (0x44 | (WP_TTGR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_WRITE_PEND_REG]     = (0x48 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_MATCH_REG]          = (0x4c | (WP_TMAR<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_CAPTURE_REG]        = (0x50 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_IF_CTRL_REG]        = (0x54 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_CAPTURE2_REG]       = (0x58 | (WP_NONE<<  WPSHIFT)),
+>>>> +  [OMAP_TIMER_INT_CLR_REG]        = (0x30 | (WP_NONE<<  WPSHIFT)),
+>>>> +};
+>>>> +
+>>>
+>>> Why not these defines in mach-omap2/dmtimer.c? since
+>> register offsets are
+>>> same for omap2plus except omap4 which has additional
+>> register offsets. Same
+>>> register offsets are getting repeated in all the omap2plus
+>> hwmod database.
+>>
+>> I agree with Manjunath.
+>
+> Manju, the number of tables needed to manage the information are same really.
+> Its only where they are located changes from the mach layer to the hwmod
+> database. So, thats not the point. dev_attrs are pointing to the reg-map
+> tables, they are not duplicating them.
+>
+>
+> The offset differences are stemming from the IP differences.
+> To my understanding, only IP-integration specific idiosyncrasies into a given
+> SOC qualifiy as dev_attrs.
+> IP specific details like reg-map information should be maintained within the driver.
+> So, this approach will break this paradigm&  also not follow existing implementation
+> of drivers which support this. A given driver may support a set of IPs but still
+> may cater to even non-OMAP platforms not supporting hwmod.
+>
+> However, if we see the general usage of dev_attrs, there is no clear line of demarcation
+> really what should make it and what should not, as is used to plug this sort of
+> small gotchas and reduce CPU checks in the code.
 
-> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-> @@ -171,7 +171,7 @@ static struct omap2_hsmmc_info mmc[] __initdata = {
->  	{}      /* Terminator */
->  };
->  
-> -static int zoom_twl_gpio_setup(struct device *dev,
-> +static int __init zoom_twl_gpio_setup(struct device *dev,
->  		unsigned gpio, unsigned ngpio)
->  {
->  	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+You do not really need that to reduce the CPU check in the code.
+In that case, only the IP version should be stored in the dev_attr. 
+Based on that IP version, you know exactly what register map you have to 
+handle. For the moment you just have 2 layouts to handle + the extra 
+register for the 1ms timers.
 
-This should be safe to do for all the board, pdata->setup is only
-called during the probe.
+Also, I'm not sure that you have to handle each register separately 
+considering that you have one offset to handle for the functional register.
+The change in sysconfig and interrupt register are all standard mapping 
+that stick to TI highlander standard.
+Meaning, as soon as an IP is a v2 (highlander version) all these 
+registers will be at the same place... at least in theory :-)
 
-> @@ -209,27 +209,27 @@ static struct twl4030_usb_data zoom_usb_data = {
->  	.usb_mode	= T2_USB_MODE_ULPI,
->  };
->  
-> -static struct twl4030_gpio_platform_data zoom_gpio_data = {
-> +static struct twl4030_gpio_platform_data zoom_gpio_data __initdata = {
->  	.gpio_base	= OMAP_MAX_GPIO_LINES,
->  	.irq_base	= TWL4030_GPIO_IRQ_BASE,
->  	.irq_end	= TWL4030_GPIO_IRQ_END,
->  	.setup		= zoom_twl_gpio_setup,
->  };
+Here are the deltas between the legacy and the new one:
 
-But this is not safe to do as twl4030-gpio.c uses pdata in
-gpio_twl4030_remove.
+[OMAP_TIMER_ID_REG]             0x00,
+[OMAP_TIMER_OCP_CFG_REG]        0x10, same
+[OMAP_TIMER_SYS_STAT_REG]       0x14, (not used anymore)
 
-It's best to split the initdata changes so you make one change for
-all the boards per patch, that way it's possible to check if it's
-OK to do that change from the driver point of view.
+You should not care about these ones, because hwmod will handle them.
 
-Regards,
+[OMAP_TIMER_STAT_REG]           0x28, +10
+[OMAP_TIMER_INT_EN_REG]         0x2c, +10
+[OMAP_TIMER_INT_CLR_REG]        0x30, (new)
 
-Tony
+These ones are standard registers
+
+[OMAP_TIMER_WAKEUP_EN_REG]      0x34, +14
+[OMAP_TIMER_CTRL_REG]           0x38, +14
+[OMAP_TIMER_COUNTER_REG]        0x3c, +14
+[OMAP_TIMER_LOAD_REG]           0x40, +14
+[OMAP_TIMER_TRIGGER_REG]        0x44, +14
+[OMAP_TIMER_WRITE_PEND_REG]     0x48, +14
+[OMAP_TIMER_MATCH_REG]          0x4c, +14
+[OMAP_TIMER_CAPTURE_REG]        0x50, +14
+[OMAP_TIMER_IF_CTRL_REG]        0x54, +14
+[OMAP_TIMER_CAPTURE2_REG]       0x58, +14
+
+You can probably handle that with only 2 offsets instead of having one 
+address per registers.
+
+Benoit
