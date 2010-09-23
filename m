@@ -1,34 +1,33 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 1/9 v3] usb: musb: Adding names for IRQs in resource
- structure
-Date: Thu, 23 Sep 2010 09:50:37 +0300
-Message-ID: <20100923065037.GG2563@legolas.emea.dhcp.ti.com>
-References: <1285201631-26266-1-git-send-email-hemahk@ti.com>
- <20100923061022.GA2563@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863D94D@dbde02.ent.ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 5/9 v3] usb: musb: Using omap_device_build for musb
+ device registration
+Date: Thu, 23 Sep 2010 09:51:41 +0300
+Message-ID: <20100923065141.GH2563@legolas.emea.dhcp.ti.com>
+References: <1285201750-26438-1-git-send-email-hemahk@ti.com>
+ <20100923062044.GB2563@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863D978@dbde02.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56217 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753874Ab0IWGvr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Sep 2010 02:51:47 -0400
 Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D94D-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027863D978@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Kalliguddi, Hema" <hemahk@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
 Hi,
 
-On Thu, Sep 23, 2010 at 01:24:19AM -0500, Kalliguddi, Hema wrote:
->I understand that. I forgot to Cc Mike for blackfin arch files change.
->I will post it again today Cc ing him and try my luck :-)
+On Thu, Sep 23, 2010 at 01:46:51AM -0500, Kalliguddi, Hema wrote:
+>Any driver which uses the device->dma_mask will have to it after the
+>device build.
 
-let's hope for the best, but while at that, would you take care of the
-comments on the other patches ?
+yeah, let's see what Kevin, Paul and Tony say about it.
 
 -- 
 balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
