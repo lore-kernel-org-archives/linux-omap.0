@@ -1,37 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [RFC PATCH] hmc5843: Digital compass board file
-Date: Thu, 23 Sep 2010 12:10:52 -0400
-Message-ID: <notify-1285258249@atomide.com>
-References: <1281940289-18188-1-git-send-email-shubhrajyoti@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [RFC] omap: mailbox: fix detection for previously supported
+ chips
+Date: Thu, 23 Sep 2010 11:11:30 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
+References: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
+ <A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52271 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754406Ab0IWQKw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 12:10:52 -0400
-Received: from c-67-188-36-105.hsd1.ca.comcast.net ([67.188.36.105] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1OyoNl-0006c1-S0
-	for linux-omap@vger.kernel.org; Thu, 23 Sep 2010 16:10:50 +0000
-In-Reply-To: <1281940289-18188-1-git-send-email-shubhrajyoti@ti.com>
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:37898 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753671Ab0IWQLj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 12:11:39 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Anna, Suman" <s-anna@ti>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+Hi Sergio,
 
-Branch in linux-omap: devel-boards
+Aguirre, Sergio wrote:
+> Hi Omar,
+>> 
+...
+>> +#if defined(CONFIG_ARCH_OMAP2)
+>> +	else if (cpu_is_omap2430()) {
+>> +		list = omap2_mboxes;
+>> +
+>> +		list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+>> +	} else if (cpu_is_omap2420()) {
+> 
+> Isn't both 2430 and 2420 doing the exact same?
+> 
 
-Initial commit ID (Likely to change): 4a65d1d872bc6ae3c59936a10feb0694d24b8c78
+Code is not the same, it is 2 line which apply for both but couldn't find an easy way of making them share the request for dsp mailbox without changing more code, perhaps a macro to detect if omap2 and then a nested if for the 2420 case, but since HWMOD should handle it better, I left it as is.
 
-PatchWorks
-http://patchwork.kernel.org/patch/119657/
+As the code previous to reorganization treated 2430 has a user with one single mailbox (same as omap3) I added the code to at least detect it, 2420 has 2 mailboxes one for iva and other for the dsp. From the diagrams for OMAP2430[1] and OMAP2420[2], it made sense as in the later both dsp and iva seem to be separated entities; unfortunately I don't have the hardware to test on any of them.
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=4a65d1d872bc6ae3c59936a10feb0694d24b8c78
+The patched code should look like:
 
+#if defined(CONFIG_ARCH_OMAP2)
+        else if (cpu_is_omap2430()) {
+                list = omap2_mboxes;
 
+                list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+        } else if (cpu_is_omap2420()) {
+                list = omap2_mboxes;
+
+                list[0]->irq = platform_get_irq_byname(pdev, "dsp");
+                list[1]->irq = platform_get_irq_byname(pdev, "iva");
+        }
+#endif
+
+Regards,
+
+Omar
+
+---
+
+[1] http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?contentId=4672&navigationId=12609&templateId=6123
+[2] http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=11990&contentId=4671
