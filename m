@@ -1,63 +1,225 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3] power: introduce library for device-specific OPPs
-Date: Thu, 23 Sep 2010 07:39:33 -0700
-Message-ID: <871v8k7cd6.fsf@deeprootsystems.com>
-References: <1285192054-454-1-git-send-email-nm@ti.com>
-	<201009230203.09230.rjw@sisk.pl> <4C9A9F84.7000104@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v2 1/6] SoC Camera: add driver for OMAP1 camera interface
+Date: Thu, 23 Sep 2010 16:51:35 +0200
+Message-ID: <201009231651.36589.jkrzyszt@tis.icnet.pl>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009222013.58035.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1009231514000.23561@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4C9A9F84.7000104@ti.com> (Nishanth Menon's message of "Wed, 22
-	Sep 2010 19:29:56 -0500")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-doc <linux-doc@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm <linux-pm@lists.linux-foundation.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:51466 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750985Ab0IWOwO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 10:52:14 -0400
+In-Reply-To: <Pine.LNX.4.64.1009231514000.23561@axis700.grange>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-Nishanth Menon <nm@ti.com> writes:
-
-> Rafael J. Wysocki had written, on 09/22/2010 07:03 PM, the following:
->> [Trimming the CC list slightly.]
-> [...]
+Thursday 23 September 2010 15:33:54 Guennadi Liakhovetski napisa=C5=82(=
+a):
+> On Wed, 22 Sep 2010, Janusz Krzysztofik wrote:
+> > Wednesday 22 September 2010 01:23:22 Guennadi Liakhovetski napisa=C5=
+=82(a):
+> > > On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
+> > > > +
+> > > > +	vb =3D &buf->vb;
+> > > > +	if (waitqueue_active(&vb->done)) {
+> > > > +		if (!pcdev->ready && result !=3D VIDEOBUF_ERROR)
+> > > > +			/*
+> > > > +			 * No next buffer has been entered into the DMA
+> > > > +			 * programming register set on time, so best we can do
+> > > > +			 * is stopping the capture before last DMA block,
+> > > > +			 * whether our CONTIG mode whole buffer or its last
+> > > > +			 * sgbuf in SG mode, gets overwritten by next frame.
+> > > > +			 */
+> > >
+> > > Hm, why do you think it's a good idea? This specific buffer compl=
+eted
+> > > successfully, but you want to fail it just because the next buffe=
+r is
+> > > missing? Any specific reason for this?
+> >
+> > Maybe my comment is not clear enough, but the below suspend_capture=
+()
+> > doesn't indicate any failure on a frame just captured. It only prev=
+ents
+> > the frame from being overwritten by the already autoreinitialized D=
+MA
+> > engine, pointing back to the same buffer once again.
+> >
+> > > Besides, you seem to also be
+> > > considering the possibility of your ->ready =3D=3D NULL, but the =
+queue
+> > > non-empty, in which case you just take the next buffer from the q=
+ueue
+> > > and continue with it. Why error out in this case?
+> >
+> > pcdev->ready =3D=3D NULL means no buffer was available when it was =
+time to
+> > put it into the DMA programming register set.
 >
->> ...
->>
->> First, thanks for addressing the previous comments, things look much better
->> now.  In particular the documentation has been improved a lot in my view.
-> Thanks for the excellent reviews :)
+> But how? Buffers are added onto the list in omap1_videobuf_queue() un=
+der
+> spin_lock_irqsave(); and there you also check ->ready and fill it in.=
+=20
+
+Guennadi,
+Yes, but only if pcdev->active is NULL, ie. both DMA and FIFO are idle,=
+ never=20
+if active:
+
++	list_add_tail(&vb->queue, &pcdev->capture);
++	vb->state =3D VIDEOBUF_QUEUED;
++
++	if (pcdev->active)
++		return;
+
+Since the transfer of the DMA programming register set content to the D=
+MA=20
+working register set is done automatically by the DMA hardware, this ca=
+n=20
+pretty well happen while I keep the lock here, so I can't be sure if it=
+'s not=20
+too late for entering new data into the programming register set. Then,=
+ I=20
+decided that this operation should be done only just after the DMA inte=
+rrupt=20
+occured, ie. the current DMA programming register set content has just =
+been=20
+used and can be overwriten.
+
+I'll emphasize the above return; with a comment.
+
+> In=20
+> your completion you set ->ready =3D NULL, but then also call
+> prepare_next_vb() to get the next buffer from the list - if there are=
+ any,
+> so, how can it be NULL with a non-empty list?
+
+It happens after the above mentioned prepare_next_vb() gets nothing fro=
+m an=20
+empty queue, so nothing is entered into the DMA programming register se=
+t,=20
+only the last, just activated, buffer is processed, then=20
+omap1_videobuf_queue() puts a new buffer into the queue while the activ=
+e=20
+buffer is still filled in, and finally the DMA ISR is called on this la=
+st=20
+active buffer completion.
+
+I hope this helps.
+
+> > As a result, a next DMA transfer has
+> > just been autoreinitialized with the same buffer parameters as befo=
+re. To
+> > protect the buffer from being overwriten unintentionally, we have t=
+o stop
+> > the DMA transfer as soon as possible, hopefully before the sensor s=
+tarts
+> > sending out next frame data.
+> >
+> > If a new buffer has been queued meanwhile, best we can do is stoppi=
+ng
+> > everything, programming the DMA with the new buffer, and setting up=
+ for a
+> > new transfer hardware auto startup on nearest frame start, be it th=
+e next
+> > one if we are lucky enough, or one after the next if we are too slo=
+w.
+> >
+> > > And even if also the queue
+> > > is empty - still not sure, why.
+> >
+> > I hope the above explanation clarifies why.
+> >
+> > I'll try to rework the above comment to be more clear, OK? Any hint=
+s?
+> >
+> > > > linux-2.6.36-rc3.orig/include/media/omap1_camera.h	2010-09-03
+> > > > 22:34:02.000000000 +0200 +++
+> > > > linux-2.6.36-rc3/include/media/omap1_camera.h	2010-09-08
+> > > > 23:41:12.000000000 +0200 @@ -0,0 +1,35 @@
+> > > > +/*
+> > > > + * Header for V4L2 SoC Camera driver for OMAP1 Camera Interfac=
+e
+> > > > + *
+> > > > + * Copyright (C) 2010, Janusz Krzysztofik <jkrzyszt@tis.icnet.=
+pl>
+> > > > + *
+> > > > + * This program is free software; you can redistribute it and/=
+or
+> > > > modify + * it under the terms of the GNU General Public License
+> > > > version 2 as + * published by the Free Software Foundation.
+> > > > + */
+> > > > +
+> > > > +#ifndef __MEDIA_OMAP1_CAMERA_H_
+> > > > +#define __MEDIA_OMAP1_CAMERA_H_
+> > > > +
+> > > > +#include <linux/bitops.h>
+> > > > +
+> > > > +#define OMAP1_CAMERA_IOSIZE		0x1c
+> > > > +
+> > > > +enum omap1_cam_vb_mode {
+> > > > +	CONTIG =3D 0,
+> > > > +	SG,
+> > > > +};
+> > >
+> > > See above - are these needed here?
+> > >
+> > > > +
+> > > > +#define OMAP1_CAMERA_MIN_BUF_COUNT(x)	((x) =3D=3D CONTIG ? 3 :=
+ 2)
+> > >
+> > > ditto
+> >
+> > I moved them both over to the header file because I was using the
+> > OMAP1_CAMERA_MIN_BUF_COUNT(CONTIG) macro once from the platform cod=
+e in
+> > order to calculate the buffer size when calling the then NAKed
+> > dma_preallocate_coherent_memory(). Now I could put them back into t=
+he
+> > driver code, but if we ever get back to the concept of preallocatin=
+g a
+> > contignuos piece of memory from the platform init code, we might ne=
+ed
+> > them back here, so maybe I should rather keep them, only rename the=
+ two
+> > enum values using a distinct name space. What do you think is bette=
+r for
+> > now?
 >
-> [...]
->
->>> +
->>> +WARNING on OPP List Modification Vs Query operations:
->>> +----------------------------------------------------
->>> +The OPP layer's query functions are expected to be used in multiple contexts
->>> +(including calls from interrupt locked context) based on SoC framework
->>> +implementation. Only OPP modification functions are guaranteed exclusivity by
->>> +the OPP library. Exclusivity between query functions and modification functions
->>> +should be handled by the users such as the SoC framework appropriately; else,
->>> +there is a risk for the query functions to retrieve stale data.
->>
->> Well, this sounds like a good use case for RCU.
-> Kevin did point out rwlock but am I confusing with
-> http://lwn.net/Articles/364583/
-> If I get the message right, rwlock is more or less on it's way out?
+> Yeah, up to you, I'd say, but if you decide to keep them in the heade=
+r,
+> please, use a namespace.
 
-RCU is different from the reader-writer locks that are on their way out.
+OK, I'll use a namespace then.
 
-Let's think about RCU a little more and see if it might be worth using.
+> I'm satisfied with your answers to the rest of my questions / comment=
+s:)
 
-As these APIs are infrequencly accessed, I'm thinking a single spinlock
-to protect the whole list from concurrent access/modification is
-sufficient.
+Glad to hear :)
 
-Kevin
+Thanks,
+Janusz
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
