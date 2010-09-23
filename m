@@ -1,203 +1,118 @@
-From: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/9 v3] usb: musb: Adding names for IRQs in resource structure
-Date: Wed, 22 Sep 2010 20:27:11 -0400
-Message-ID: <1285201631-26266-1-git-send-email-hemahk@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+From: Hema HK <hemahk@ti.com>
+Subject: [PATCH 2/9 v3] usb: musb: Remove board_data parameter from musb_platform_init()
+Date: Wed, 22 Sep 2010 20:27:40 -0400
+Message-ID: <1285201660-26309-1-git-send-email-hemahk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:57165 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753276Ab0IVO5O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Sep 2010 10:57:14 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Hema HK <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Modified the Omap,Blackfin and Davinci board files to add the name of the IRQs
-in the resource structures and musb driver to use the get_irq_byname() api to
-get the mc and dma irq numbers instead of using the index as the order of
-resource definition need not be always in order of device interrupt and
-then dma interrupt
+Removed the board_data parameter being passed to musb_platform_init function
+as board data can be extracted from device structure which is already member of
+musb structure.
 
-Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Hema HK <hemahk@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 
 ---
- arch/arm/mach-davinci/usb.c                |    2 ++
- arch/arm/mach-omap2/usb-musb.c             |    2 ++
- arch/blackfin/mach-bf527/boards/cm_bf527.c |    2 ++
- arch/blackfin/mach-bf527/boards/ezbrd.c    |    2 ++
- arch/blackfin/mach-bf527/boards/ezkit.c    |    2 ++
- arch/blackfin/mach-bf548/boards/cm_bf548.c |    2 ++
- arch/blackfin/mach-bf548/boards/ezkit.c    |    2 ++
- drivers/usb/musb/cppi_dma.c                |    2 +-
- drivers/usb/musb/musb_core.c               |    2 +-
- drivers/usb/musb/musbhsdma.c               |    2 +-
- 10 files changed, 17 insertions(+), 3 deletions(-)
+ drivers/usb/musb/blackfin.c  |    2 +-
+ drivers/usb/musb/davinci.c   |    2 +-
+ drivers/usb/musb/musb_core.c |    2 +-
+ drivers/usb/musb/musb_core.h |    2 +-
+ drivers/usb/musb/omap2430.c  |    6 ++++--
+ drivers/usb/musb/tusb6010.c  |    2 +-
+ 6 files changed, 9 insertions(+), 7 deletions(-)
 
-Index: linux-omap-pm/arch/arm/mach-davinci/usb.c
+Index: linux-omap-pm/drivers/usb/musb/blackfin.c
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-davinci/usb.c
-+++ linux-omap-pm/arch/arm/mach-davinci/usb.c
-@@ -64,10 +64,12 @@ static struct resource usb_resources[] =
- 	{
- 		.start          = IRQ_USBINT,
- 		.flags          = IORESOURCE_IRQ,
-+		.name		= "mc"
- 	},
- 	{
- 		/* placeholder for the dedicated CPPI IRQ */
- 		.flags          = IORESOURCE_IRQ,
-+		.name		= "dma"
- 	},
- };
+--- linux-omap-pm.orig/drivers/usb/musb/blackfin.c
++++ linux-omap-pm/drivers/usb/musb/blackfin.c
+@@ -323,7 +323,7 @@ int musb_platform_set_mode(struct musb *
+ 	return -EIO;
+ }
  
-Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+-int __init musb_platform_init(struct musb *musb, void *board_data)
++int __init musb_platform_init(struct musb *musb)
+ {
+ 
+ 	/*
+Index: linux-omap-pm/drivers/usb/musb/davinci.c
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
-+++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-@@ -39,10 +39,12 @@ static struct resource musb_resources[] 
- 	[1] = {	/* general IRQ */
- 		.start	= INT_243X_HS_USB_MC,
- 		.flags	= IORESOURCE_IRQ,
-+		.name	= "mc",
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= INT_243X_HS_USB_DMA,
- 		.flags	= IORESOURCE_IRQ,
-+		.name	= "dma",
- 	},
- };
+--- linux-omap-pm.orig/drivers/usb/musb/davinci.c
++++ linux-omap-pm/drivers/usb/musb/davinci.c
+@@ -376,7 +376,7 @@ int musb_platform_set_mode(struct musb *
+ 	return -EIO;
+ }
  
-Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/cm_bf527.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/cm_bf527.c
-+++ linux-omap-pm/arch/blackfin/mach-bf527/boards/cm_bf527.c
-@@ -82,11 +82,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/ezbrd.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/ezbrd.c
-+++ linux-omap-pm/arch/blackfin/mach-bf527/boards/ezbrd.c
-@@ -46,11 +46,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/ezkit.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/ezkit.c
-+++ linux-omap-pm/arch/blackfin/mach-bf527/boards/ezkit.c
-@@ -86,11 +86,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf548/boards/cm_bf548.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf548/boards/cm_bf548.c
-+++ linux-omap-pm/arch/blackfin/mach-bf548/boards/cm_bf548.c
-@@ -482,11 +482,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf548/boards/ezkit.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf548/boards/ezkit.c
-+++ linux-omap-pm/arch/blackfin/mach-bf548/boards/ezkit.c
-@@ -587,11 +587,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/drivers/usb/musb/cppi_dma.c
-===================================================================
---- linux-omap-pm.orig/drivers/usb/musb/cppi_dma.c
-+++ linux-omap-pm/drivers/usb/musb/cppi_dma.c
-@@ -1307,7 +1307,7 @@ dma_controller_create(struct musb *musb,
- 	struct cppi		*controller;
- 	struct device		*dev = musb->controller;
- 	struct platform_device	*pdev = to_platform_device(dev);
--	int			irq = platform_get_irq(pdev, 1);
-+	int			irq = platform_get_irq_byname(pdev, "dma");
- 
- 	controller = kzalloc(sizeof *controller, GFP_KERNEL);
- 	if (!controller)
+-int __init musb_platform_init(struct musb *musb, void *board_data)
++int __init musb_platform_init(struct musb *musb)
+ {
+ 	void __iomem	*tibase = musb->ctrl_base;
+ 	u32		revision;
 Index: linux-omap-pm/drivers/usb/musb/musb_core.c
 ===================================================================
 --- linux-omap-pm.orig/drivers/usb/musb/musb_core.c
 +++ linux-omap-pm/drivers/usb/musb/musb_core.c
-@@ -2203,7 +2203,7 @@ static u64	*orig_dma_mask;
- static int __init musb_probe(struct platform_device *pdev)
- {
- 	struct device	*dev = &pdev->dev;
--	int		irq = platform_get_irq(pdev, 0);
-+	int		irq = platform_get_irq_byname(pdev, "mc");
- 	int		status;
- 	struct resource	*iomem;
- 	void __iomem	*base;
-Index: linux-omap-pm/drivers/usb/musb/musbhsdma.c
-===================================================================
---- linux-omap-pm.orig/drivers/usb/musb/musbhsdma.c
-+++ linux-omap-pm/drivers/usb/musb/musbhsdma.c
-@@ -363,7 +363,7 @@ dma_controller_create(struct musb *musb,
- 	struct musb_dma_controller *controller;
- 	struct device *dev = musb->controller;
- 	struct platform_device *pdev = to_platform_device(dev);
--	int irq = platform_get_irq(pdev, 1);
-+	int irq = platform_get_irq_byname(pdev, "dma");
+@@ -2022,7 +2022,7 @@ bad_config:
+ 	 * isp1504, non-OTG, etc) mostly hooking up through ULPI.
+ 	 */
+ 	musb->isr = generic_interrupt;
+-	status = musb_platform_init(musb, plat->board_data);
++	status = musb_platform_init(musb);
+ 	if (status < 0)
+ 		goto fail2;
  
- 	if (irq == 0) {
- 		dev_err(dev, "No DMA interrupt line!\n");
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Index: linux-omap-pm/drivers/usb/musb/musb_core.h
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/musb_core.h
++++ linux-omap-pm/drivers/usb/musb/musb_core.h
+@@ -612,7 +612,7 @@ extern int musb_platform_get_vbus_status
+ #define musb_platform_get_vbus_status(x)	0
+ #endif
+ 
+-extern int __init musb_platform_init(struct musb *musb, void *board_data);
++extern int __init musb_platform_init(struct musb *musb);
+ extern int musb_platform_exit(struct musb *musb);
+ 
+ #endif	/* __MUSB_CORE_H__ */
+Index: linux-omap-pm/drivers/usb/musb/omap2430.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/omap2430.c
++++ linux-omap-pm/drivers/usb/musb/omap2430.c
+@@ -187,10 +187,12 @@ int musb_platform_set_mode(struct musb *
+ 	return 0;
+ }
+ 
+-int __init musb_platform_init(struct musb *musb, void *board_data)
++int __init musb_platform_init(struct musb *musb)
+ {
+ 	u32 l;
+-	struct omap_musb_board_data *data = board_data;
++	struct device *dev = musb->controller;
++	struct musb_hdrc_platform_data *plat = dev->platform_data;
++	struct omap_musb_board_data *data = plat->board_data;
+ 
+ 	/* We require some kind of external transceiver, hooked
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+Index: linux-omap-pm/drivers/usb/musb/tusb6010.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/tusb6010.c
++++ linux-omap-pm/drivers/usb/musb/tusb6010.c
+@@ -1091,7 +1091,7 @@ err:
+ 	return -ENODEV;
+ }
+ 
+-int __init musb_platform_init(struct musb *musb, void *board_data)
++int __init musb_platform_init(struct musb *musb)
+ {
+ 	struct platform_device	*pdev;
+ 	struct resource		*mem;
