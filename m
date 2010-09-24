@@ -1,82 +1,75 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 12/12] omap3: Prevent SDRC deadlock when L3 is changing
-	frequency
-Date: Fri, 24 Sep 2010 01:08:32 -0600
-Message-ID: <20100924070826.14014.40979.stgit@twilight.localdomain>
-References: <20100924070643.14014.11359.stgit@twilight.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] OMAP4: PM: Declare idle modules as functional too
+Date: Fri, 24 Sep 2010 12:40:48 +0530
+Message-ID: <1285312248-15734-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33675 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756648Ab0IXHJG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 03:09:06 -0400
-In-Reply-To: <20100924070643.14014.11359.stgit@twilight.localdomain>
+Received: from comal.ext.ti.com ([198.47.26.152]:59017 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751963Ab0IXHK7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Sep 2010 03:10:59 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, Richard Woodruff <r-woodruff2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Jon Hunter <jon-hunter@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-From: Jon Hunter <jon-hunter@ti.com>
+The omap4_cm_wait_module_ready function would only check for
+the modules to be completely functional before declaring them
+ready to be accessed.
+There might also be instances where in the module is actually
+in idle (under h/w control) but should still be declared
+accessible, as the h/w control would make it functional when
+needed.
 
-When changing the L3 clock frequency, the CPU is executing from internal RAM
-and the SDRC clock is disabled. During this time accesses made to external
-DDR are stalled. If the ARM subsystem attempts to access the DDR while the
-SDRC clock is disabled this will stall the CPU until the access to the SDRC
-timeouts. A timeout on the SDRC should never occur. Once a timeout occurs all
-the following accesses will be aborted and the DDR is no longer accessible.
+Hence make omap4_cm_wait_module_ready return true in case
+the module is fully functional *or* in idle state.
+Fail only if the module is fully disabled or stuck intransition.
 
-Although the code being executed in the internal RAM does not directly access
-the DDR, it was found that the branch prediction logic in the CPU may cause
-the CPU to prefetch code from a DDR location while the SDRC clock is disabled.
-This was causing an SDRC timeout which resulted in a system hang.
+The explaination from the TRM for the idlest bits on OMAP4 is as
+below for quick reference
 
-This patch fixes this problem by ensuring the branch prediction logic is
-disabled while changing the L3 clock frequency. The branch prediction logic
-is disabled by clearing the Z-bit in the ARM CTRL register.
+Module idle state:
+0x0 func:     Module is fully functional, including OCP
+0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
+              abortion
+0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
+              using separate functional clock
+0x3 disabled: Module is disabled and cannot be accessed
 
-Disabling the branch prediction logic does not have any noticable impact
-on the execution time of this code section. The hardware observability
-signals were used to monitor the sdrc idle time with and without this
-patch when operating at different CPU frequencies (150MHz, 500MHz and
-600MHz) and the total sdrc idle time when changing frequenct was in
-the range of 9-11us. This was measured on an omap3430 SDP running the
-omapzoom p-android-omap-2.6.29 branch.
-
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Partha Basak <p-basak2@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/sram34xx.S |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/cm4xxx.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index de99ba2..3637274 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -129,8 +129,11 @@ ENTRY(omap3_sram_configure_core_dpll)
- 	ldr	r4, [sp, #80]
- 	str     r4, omap_sdrc_mr_1_val
- skip_cs1_params:
-+	mrc	p15, 0, r8, c1, c0, 0	@ read ctrl register
-+	bic	r10, r8, #0x800		@ clear Z-bit, disable branch prediction
-+	mcr	p15, 0, r10, c1, c0, 0	@ write ctrl register
- 	dsb				@ flush buffered writes to interconnect
--
-+	isb				@ prevent speculative exec past here
- 	cmp	r3, #1			@ if increasing SDRC clk rate,
- 	bleq	configure_sdrc		@ program the SDRC regs early (for RFR)
- 	cmp	r1, #SDRC_UNLOCK_DLL	@ set the intended DLL state
-@@ -148,6 +151,7 @@ skip_cs1_params:
- 	beq	return_to_sdram		@ return to SDRAM code, otherwise,
- 	bl	configure_sdrc		@ reprogram SDRC regs now
- return_to_sdram:
-+	mcr	p15, 0, r8, c1, c0, 0	@ restore ctrl register
- 	isb				@ prevent speculative exec past here
- 	mov 	r0, #0 			@ return value
- 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
-
+diff --git a/arch/arm/mach-omap2/cm4xxx.c b/arch/arm/mach-omap2/cm4xxx.c
+index b101091..f8a660a 100644
+--- a/arch/arm/mach-omap2/cm4xxx.c
++++ b/arch/arm/mach-omap2/cm4xxx.c
+@@ -43,7 +43,6 @@
+  *                 using separate functional clock
+  *   0x3 disabled: Module is disabled and cannot be accessed
+  *
+- * TODO: Need to handle module accessible in idle state
+  */
+ int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
+ {
+@@ -52,9 +51,11 @@ int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
+ 	if (!clkctrl_reg)
+ 		return 0;
+ 
+-	omap_test_timeout(((__raw_readl(clkctrl_reg) &
+-			    OMAP4430_IDLEST_MASK) == 0),
+-			  MAX_MODULE_READY_TIME, i);
++	omap_test_timeout((
++		((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) == 0) ||
++		 (((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) >>
++		  OMAP4430_IDLEST_SHIFT) == 0x2)),
++		MAX_MODULE_READY_TIME, i);
+ 
+ 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+ }
+-- 
+1.7.0.4
 
