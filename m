@@ -1,52 +1,30 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera interface
-Date: Fri, 24 Sep 2010 12:28:24 +0200
-Message-ID: <201009241228.26466.jkrzyszt@tis.icnet.pl>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <20100923235444.GX4211@atomide.com> <Pine.LNX.4.64.1009240853080.14966@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1009240853080.14966@axis700.grange>
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCH 0/2] OMAP3 PM: sleep code clean up
+Date: Fri, 24 Sep 2010 16:17:17 +0530
+Message-ID: <1285325239-6110-1-git-send-email-vishwanath.bs@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:54027 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754106Ab0IXKtb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 06:49:31 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8OAnS6U031047
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 05:49:30 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath BS <vishwanath.bs@ti.com>
 
-=46riday 24 September 2010 08:54:20 Guennadi Liakhovetski napisa=C5=82(=
-a):
-> On Thu, 23 Sep 2010, Tony Lindgren wrote:
-> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100923 16:37]:
-> > > Friday 24 September 2010 01:23:10 Tony Lindgren napisa=C5=82(a):
-> > > > I think you can just move the OMAP1_CAMERA_IOSIZE to the device=
-s.c or
-> > > > someplace like that?
-> > >
-> > > Tony,
-> > > Not exactly. I use the OMAP1_CAMERA_IOSIZE inside the driver when
-> > > reserving space for register cache.
-> > >
-> > > I think that I could just duplicate its definition in the devices=
-=2Ec for
-> > > now, than clean things up with a folloup patch when both parts al=
-ready
-> > > get merged. Would this be acceptable?
-> >
-> > Yeah, that sounds good to me.
->
-> ...better yet put a zero-length cache array at the end of your struct
-> omap1_cam_dev and allocate it dynamically, calculated from the resour=
-ce
-> size.
+This patch series has some clean up in OMAP3 sleep code.
+Patches have been rebased to latest kevin's pm branch.
 
-Guennadi,
-Yes, this seems the best solution, thank you.
+Vishwanath BS (2):
+  OMAP3 PM: move omap3 sleep to ddr
+  OMAP3 PM: sleep code clean up
 
-Tony,
-You'll soon get it as you ask: <media/camera.h> no longer included from=
-=20
-<mach/camera.h>.
+ arch/arm/mach-omap2/pm34xx.c              |    9 +-
+ arch/arm/mach-omap2/sleep34xx.S           |  377 ++++++++++++++---------------
+ arch/arm/plat-omap/include/plat/control.h |    2 +
+ 3 files changed, 190 insertions(+), 198 deletions(-)
 
-Thanks,
-Janusz
