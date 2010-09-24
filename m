@@ -1,81 +1,49 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/3] OMAP4: PM: Declare idle modules as functional too
-Date: Fri, 24 Sep 2010 10:40:14 -0600
-Message-ID: <20100924164012.19418.32263.stgit@twilight.localdomain>
-References: <20100924163936.19418.47065.stgit@twilight.localdomain>
+Subject: [PATCH 0/3] OMAP: hwmod/device/CM: bug fixes for 2.6.37
+Date: Fri, 24 Sep 2010 10:40:11 -0600
+Message-ID: <20100924163936.19418.47065.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56383 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56374 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933042Ab0IXQlV (ORCPT
+	with ESMTP id S932941Ab0IXQlV (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:41:21 -0400
-In-Reply-To: <20100924163936.19418.47065.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Partha Basak <p-basak2@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+Hello,
 
-The omap4_cm_wait_module_ready function would only check for
-the modules to be completely functional before declaring them
-ready to be accessed.
-There might also be instances where in the module is actually
-in idle (under h/w control) but should still be declared
-accessible, as the h/w control would make it functional when
-needed.
+Here are a few bugfix patches for the omap_hwmod, omap_device,
+and CM code, intended to be merged in 2.6.37 via Tony's tree.
+ 
+This series applies on top of the 2.6.37 hwmod patches sent earlier;
+unfortunately the third patch touches the same code as a patch in that
+series, so this series can't be based on v2.6.36-rc5.
 
-Hence make omap4_cm_wait_module_ready return true in case
-the module is fully functional *or* in idle state.
-Fail only if the module is fully disabled or stuck intransition.
 
-The explaination from the TRM for the idlest bits on OMAP4 is as
-below for quick reference
+- Paul
 
-Module idle state:
-0x0 func:     Module is fully functional, including OCP
-0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
-              abortion
-0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
-              using separate functional clock
-0x3 disabled: Module is disabled and cannot be accessed
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Partha Basak <p-basak2@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/cm4xxx.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm4xxx.c b/arch/arm/mach-omap2/cm4xxx.c
-index b101091..f8a660a 100644
---- a/arch/arm/mach-omap2/cm4xxx.c
-+++ b/arch/arm/mach-omap2/cm4xxx.c
-@@ -43,7 +43,6 @@
-  *                 using separate functional clock
-  *   0x3 disabled: Module is disabled and cannot be accessed
-  *
-- * TODO: Need to handle module accessible in idle state
-  */
- int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
- {
-@@ -52,9 +51,11 @@ int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
- 	if (!clkctrl_reg)
- 		return 0;
- 
--	omap_test_timeout(((__raw_readl(clkctrl_reg) &
--			    OMAP4430_IDLEST_MASK) == 0),
--			  MAX_MODULE_READY_TIME, i);
-+	omap_test_timeout((
-+		((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) == 0) ||
-+		 (((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) >>
-+		  OMAP4430_IDLEST_SHIFT) == 0x2)),
-+		MAX_MODULE_READY_TIME, i);
- 
- 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
- }
+   text	   data	    bss	    dec	    hex	filename
+3361500	 176832	  99336	3637668	 3781a4	vmlinux.omap_4430sdp_defconfig.orig
+3361468	 176832	  99336	3637636	 378184	vmlinux.omap_4430sdp_defconfig.patched
 
+Hema HK (1):
+      OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
+
+Kishon Vijay Abraham I (1):
+      OMAP: omap_device: Fix to support multiple hwmods for a single device
+
+Rajendra Nayak (1):
+      OMAP4: PM: Declare idle modules as functional too
+
+
+ arch/arm/mach-omap2/cm4xxx.c     |    9 +++++----
+ arch/arm/mach-omap2/omap_hwmod.c |   17 +++++++++++------
+ arch/arm/plat-omap/omap_device.c |   35 ++++++++++++++---------------------
+ 3 files changed, 30 insertions(+), 31 deletions(-)
 
