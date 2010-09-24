@@ -1,102 +1,142 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v2 5/6] OMAP1: Amstrad Delta: add support for camera
-Date: Fri, 24 Sep 2010 13:08:38 +0200
-Message-ID: <201009241308.39948.jkrzyszt@tis.icnet.pl>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <20100924004936.GZ4211@atomide.com> <Pine.LNX.4.64.1009240854470.14966@axis700.grange>
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
+Date: Fri, 24 Sep 2010 17:00:05 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EEB60@dbde02.ent.ti.com>
+References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:52393 "EHLO d1.icnet.pl"
+Received: from bear.ext.ti.com ([192.94.94.41]:50787 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752690Ab0IXLJL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 07:09:11 -0400
-In-Reply-To: <Pine.LNX.4.64.1009240854470.14966@axis700.grange>
-Content-Disposition: inline
+	id S1751391Ab0IXLaR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 07:30:17 -0400
+In-Reply-To: <1285069770-4261-1-git-send-email-manjugk@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Tony Lindgren <tony@atomide.com>, Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Dmitry Torokhov <dtor@mail.ru>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 
-=46riday 24 September 2010 08:57:06 Guennadi Liakhovetski napisa=C5=82(=
-a):
-> On Thu, 23 Sep 2010, Tony Lindgren wrote:
-> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100923 16:52]:
-> > > Friday 24 September 2010 01:26:17 Tony Lindgren napisa=C5=82(a):
-> > > > * Tony Lindgren <tony@atomide.com> [100923 16:06]:
-> > > > > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:20]:
-> > > > > > This patch adds configuration data and initialization code
-> > > > > > required for camera support to the Amstrad Delta board.
-> > > > > >
-> > > > > > Three devices are declared: SoC camera, OMAP1 camera interf=
-ace
-> > > > > > and OV6650 sensor.
-> > > > > >
-> > > > > > Default 12MHz clock has been selected for driving the senso=
-r.
-> > > > > > Pixel clock has been limited to get reasonable frame rates,=
- not
-> > > > > > exceeding the board capabilities. Since both devices (inter=
-face
-> > > > > > and sensor) support both pixel clock polarities, decision o=
-n
-> > > > > > polarity selection has been left to drivers. Interface GPIO=
- line
-> > > > > > has been found not functional, thus not configured.
-> > > > > >
-> > > > > > Created and tested against linux-2.6.36-rc3.
-> > > > > >
-> > > > > > Works on top of previous patches from the series, at least =
-1/6,
-> > > > > > 2/6 and 3/6.
-> > > > >
-> > > > > Queuing these last two patches of the series (5/6 and 6/6) fo=
-r the
-> > > > > upcoming merge window.
-> > > >
-> > > > BTW, these still depend on updated 2/6 to make compile happy.
-> > >
-> > > Not so simple: still depends on struct omap1_cam_platform_data
-> > > definition from <media/omap1_camera.h>, included from <mach/camer=
-a.h>.
-> > > Are you ready to accept another temporary workaround?
-> >
-> > Heh I guess so. Or do you want to queue everything via linux-media?
 
-AFAIK we can expect my arch/arm/mach-omap1/devices.c changes already re=
-sulting=20
-in a confilct with some ASoC OMAP related changes going via the sound t=
-ree,=20
-so the 2/6 should be better queued via the OMAP tree for Tony to keep c=
-ontrol=20
-over it, with the rest of the seriers going either way.
 
-> Yes, we often have to select via which tree to go, then the maintaine=
-r of
-> the other tree just acks the patches. Sometimes we push them via diff=
-erent
-> trees and try to enforce a specific merge order...
+> -----Original Message-----
+> From: linux-input-owner@vger.kernel.org [mailto:linux-input-
+> owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
+> Sent: Tuesday, September 21, 2010 5:20 PM
+> To: linux-omap@vger.kernel.org
+> Cc: linux-input@vger.kernel.org; Dmitry Torokhov; linux-arm-
+> kernel@lists.infradead.org; Tony Lindgren
+> Subject: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
+> 
+> The failure exit paths seems to be wrong in probe function.
+> This patch corrects exit failure paths for error handling
+> cases.
+> 
+> Boot warning incase of request irq failure:
+> 
+> [    1.553985] twl4030_keypad twl4030_keypad: request_irq failed for irq
+> no=369
+> [    1.561157] ------------[ cut here ]------------
+> [    1.565795] WARNING: at kernel/irq/manage.c:899 __free_irq+0x88/0x164()
+> [    1.572418] Trying to free already-free IRQ 369
+> [    1.576965] Modules linked in:
+> [    1.580047] [<c00470ec>] (unwind_backtrace+0x0/0xe4) from [<c0078b5c>]
+> (warn_slowpath_common+0x4c/0x64)
+> [    1.589477] [<c0078b5c>] (warn_slowpath_common+0x4c/0x64) from
+> [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c)
+> [    1.599060] [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c) from
+> [<c00adb90>] (__free_irq+0x88/0x164)
+> [    1.607849] [<c00adb90>] (__free_irq+0x88/0x164) from [<c00adca8>]
+> (free_irq+0x3c/0x5c)
+> [    1.615875] [<c00adca8>] (free_irq+0x3c/0x5c) from [<c043ab2c>]
+> (twl4030_kp_probe+0x308/0x374)
+> [    1.624511] [<c043ab2c>] (twl4030_kp_probe+0x308/0x374) from
+> [<c023c338>] (platform_drv_probe+0x14/0x18)
+> [    1.634033] [<c023c338>] (platform_drv_probe+0x14/0x18) from
+> [<c023b4dc>] (driver_probe_device+0xc8/0x184)
+> [    1.643707] [<c023b4dc>] (driver_probe_device+0xc8/0x184) from
+> [<c023b600>] (__driver_attach+0x68/0x8c)
+> [    1.653106] [<c023b600>] (__driver_attach+0x68/0x8c) from [<c023ad34>]
+> (bus_for_each_dev+0x48/0x74)
+> [    1.662170] [<c023ad34>] (bus_for_each_dev+0x48/0x74) from [<c023a690>]
+> (bus_add_driver+0x9c/0x210)
+> [    1.671234] [<c023a690>] (bus_add_driver+0x9c/0x210) from [<c023b8f8>]
+> (driver_register+0xa8/0x134)
+> [    1.680297] [<c023b8f8>] (driver_register+0xa8/0x134) from [<c0041340>]
+> (do_one_initcall+0x58/0x1b4)
+> [    1.689453] [<c0041340>] (do_one_initcall+0x58/0x1b4) from [<c0008574>]
+> (kernel_init+0x98/0x150)
+> [    1.698272] [<c0008574>] (kernel_init+0x98/0x150) from [<c0042970>]
+> (kernel_thread_exit+0x0/0x8)
+> [    1.707214] ---[ end trace 6559b322ad3cbdfe ]---
+> [    1.718292] twl4030_keypad: probe of twl4030_keypad failed with error -
+> 16
+> 
+> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> Cc: linux-input@vger.kernel.org
+> Cc: Dmitry Torokhov <dtor@mail.ru>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-input@vger.kernel.org
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  version v1 : initial patch
+>  version v2 : CC'ed input subsystem and arm kernel mailing lists.
+> 
+>  drivers/input/keyboard/twl4030_keypad.c |   10 ++++------
+>  1 files changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/input/keyboard/twl4030_keypad.c
+> b/drivers/input/keyboard/twl4030_keypad.c
+> index fb16b5e..39a9f30 100644
+> --- a/drivers/input/keyboard/twl4030_keypad.c
+> +++ b/drivers/input/keyboard/twl4030_keypad.c
+> @@ -347,8 +347,7 @@ static int __devinit twl4030_kp_probe(struct
+> platform_device *pdev)
+>  	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
+>  	input = input_allocate_device();
+>  	if (!kp || !input) {
+> -		error = -ENOMEM;
+> -		goto err1;
+Wont you leak memory here ?
 
-What about
 
-+ void omap1_set_camera_info(struct omap1_cam_platform_data *);
-
-put temporarily into to the arch/arm/mach-omap1/board-ams-delta.c inste=
-ad of=20
-including <mach/camera.h>, that could be replaced with <media/omap1_cam=
-era.h>=20
-then? May sound better than redefining struct omap1_cam_platform_data t=
-here,=20
-and should be safe to push everything except 2/6 via the media tree.
-
-Then, replace the above hack back with #include <mach/camera.h> as a fi=
-x after=20
-both are merged.
-
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +		return -ENOMEM;
+>  	}
+> 
+>  	/* Get the debug Device */
+> @@ -406,23 +405,22 @@ static int __devinit twl4030_kp_probe(struct
+> platform_device *pdev)
+>  	if (error) {
+>  		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
+>  			kp->irq);
+> -		goto err3;
+> +		goto err2;
+>  	}
+> 
+>  	/* Enable KP and TO interrupts now. */
+>  	reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
+>  	if (twl4030_kpwrite_u8(kp, reg, KEYP_IMR1)) {
+>  		error = -EIO;
+> -		goto err4;
+> +		goto err3;
+>  	}
+> 
+>  	platform_set_drvdata(pdev, kp);
+>  	return 0;
+> 
+> -err4:
+> +err3:
+>  	/* mask all events - we don't care about the result */
+>  	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
+> -err3:
+>  	free_irq(kp->irq, NULL);
+>  err2:
+>  	input_unregister_device(input);
+> --
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-input" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
