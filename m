@@ -1,49 +1,75 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/3] OMAP: hwmod/device/CM: bug fixes for 2.6.37
-Date: Fri, 24 Sep 2010 10:40:11 -0600
-Message-ID: <20100924163936.19418.47065.stgit@twilight.localdomain>
+Subject: [PATCH 3/3] OMAP: hwmod: Set autoidle after smartidle during
+	_sysc_enable
+Date: Fri, 24 Sep 2010 10:40:15 -0600
+Message-ID: <20100924164014.19418.88198.stgit@twilight.localdomain>
+References: <20100924163936.19418.47065.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56374 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56389 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932941Ab0IXQlV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:41:21 -0400
+	with ESMTP id S933054Ab0IXQlW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:41:22 -0400
+In-Reply-To: <20100924163936.19418.47065.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Hema HK <hemahk@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, Partha Basak <p-basak2@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hello,
+From: Hema HK <hemahk@ti.com>
 
-Here are a few bugfix patches for the omap_hwmod, omap_device,
-and CM code, intended to be merged in 2.6.37 via Tony's tree.
- 
-This series applies on top of the 2.6.37 hwmod patches sent earlier;
-unfortunately the third patch touches the same code as a patch in that
-series, so this series can't be based on v2.6.36-rc5.
+OMAP USBOTG module has a requirement to set the autoidle bit only after
+setting smartidle bit. Modified the _sys_enable api to set the smartidle
+first and then the autoidle bit. Setting this will not have any impact on the
+other modules.
 
-
-- Paul
-
+Signed-off-by: Hema HK <hemahk@ti.com>
+Signed-off-by: Partha Basak <p-basak2@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Acked-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
-
-   text	   data	    bss	    dec	    hex	filename
-3361500	 176832	  99336	3637668	 3781a4	vmlinux.omap_4430sdp_defconfig.orig
-3361468	 176832	  99336	3637636	 378184	vmlinux.omap_4430sdp_defconfig.patched
-
-Hema HK (1):
-      OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
-
-Kishon Vijay Abraham I (1):
-      OMAP: omap_device: Fix to support multiple hwmods for a single device
-
-Rajendra Nayak (1):
-      OMAP4: PM: Declare idle modules as functional too
-
-
- arch/arm/mach-omap2/cm4xxx.c     |    9 +++++----
  arch/arm/mach-omap2/omap_hwmod.c |   17 +++++++++++------
- arch/arm/plat-omap/omap_device.c |   35 ++++++++++++++---------------------
- 3 files changed, 30 insertions(+), 31 deletions(-)
+ 1 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index c3a5889..955861a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -777,12 +777,6 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 		_set_master_standbymode(oh, idlemode, &v);
+ 	}
+ 
+-	if (sf & SYSC_HAS_AUTOIDLE) {
+-		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
+-			0 : 1;
+-		_set_module_autoidle(oh, idlemode, &v);
+-	}
+-
+ 	/*
+ 	 * XXX The clock framework should handle this, by
+ 	 * calling into this code.  But this must wait until the
+@@ -797,6 +791,17 @@ static void _enable_sysc(struct omap_hwmod *oh)
+ 	/* If slave is in SMARTIDLE, also enable wakeup */
+ 	if ((sf & SYSC_HAS_SIDLEMODE) && !(oh->flags & HWMOD_SWSUP_SIDLE))
+ 		_enable_wakeup(oh);
++
++	/*
++	 * Set the autoidle bit only after setting the smartidle bit
++	 * Setting this will not have any impact on the other modules.
++	 */
++	if (sf & SYSC_HAS_AUTOIDLE) {
++		idlemode = (oh->flags & HWMOD_NO_OCP_AUTOIDLE) ?
++			0 : 1;
++		_set_module_autoidle(oh, idlemode, &v);
++		_write_sysconfig(v, oh);
++	}
+ }
+ 
+ /**
+
 
