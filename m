@@ -1,155 +1,89 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/3] OMAP: omap_device: Fix to support multiple hwmods for a
-	single device
-Date: Fri, 24 Sep 2010 10:40:12 -0600
-Message-ID: <20100924164011.19418.20378.stgit@twilight.localdomain>
-References: <20100924163936.19418.47065.stgit@twilight.localdomain>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 1/2] OMAP: features: export symbol omap3_features
+Date: Fri, 24 Sep 2010 11:51:58 -0500
+Message-ID: <4C9CD72E.40407@ti.com>
+References: <1285299665-21639-1-git-send-email-omar.ramirez@ti.com>
+	<alpine.DEB.2.00.1009240920370.10678@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56376 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932956Ab0IXQlV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:41:21 -0400
-In-Reply-To: <20100924163936.19418.47065.stgit@twilight.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1009240920370.10678@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi,
+	Sanjeev" <premi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Shubhrajyoti D <shubhrajyoti@ti.com>, Charulatha V <charu@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
 
-From: Kishon Vijay Abraham I <kishon@ti.com>
+Paul Walmsley had written, on 09/24/2010 10:34 AM, the following:
+[...]
+>>  
+>>  u32 omap3_features;
+>> +EXPORT_SYMBOL(omap3_features);
+>>  
+>>  unsigned int omap_rev(void)
+>>  {
+>> -- 
+>> 1.7.1
+>>
+> 
+> This omap3_features variable should not be used directly by any device 
+> drivers since it is an OMAP-ism.  This type of feature info should be 
+> passed through struct platform_data.  Looks like this would be quite easy 
+> to add by editing mach-omap2/devices.c and adding platform_data?
+> 
+> ...
+> 
+> In the medium-term, definitely all of those 
+> 
+>     #if defined(CONFIG_ARCH_OMAP*)
+> 
+> and 
+> 
+>     if (cpu_is_omap*()) {
+> 
+> in this driver need to be removed.  The integration code (currently in 
+> mach-omap2/devices.c) is what should handle this, or better yet, struct 
+> dev_attr from hwmod.
+> 
+> Also the entire mailboxes driver at some point should be moved into 
+> drivers/* ...
+just my 2 cents:
 
-Currently there is a bug in the existing omap_device core code when
-extracting the hwmod structures passed to omap_device_build_ss(). This bug
-gets exposed only when passing multiple hwmod structures to
-omap_device_build_ss() resulting in incorrect extraction from second hwmod
-structure.
+The intent of omap_has_featureX() is to ensure that the drivers dont do 
+cpu_is_omap123(). Now if we had OMAP dma driver which has DMA chaining - 
+what options do we have DMA driver?
 
-This fix uses the pointer to pointer to omap_hwmod structure (array of
-pointers to omap_hwmod structure) passed to omap_device_build_ss() to
-correctly extract the appropriate omap_hwmod structure.
+a) we introduce it based on cpu_is_omap123() -> bad bad nightmare for 
+maintenance
+b) we introduce it based on module h/w block(TI internal terminology "IP 
+block") revision -> unfortunately no luck in some of the h/w blocks.
+c) we use if (omap_has_dma_chaining())
 
-This patch has been created and tested on lo/master and mainline.
+If the hwmod itself was expanded to contain feature, and erratas then it 
+is excellent solution - one stop information source for all drivers and 
+a standardized soln as well.. (but we dont have it on omap1).
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Acked-by: Benoit Cousson <b-cousson@ti.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Charulatha V <charu@ti.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- arch/arm/plat-omap/omap_device.c |   35 ++++++++++++++---------------------
- 1 files changed, 14 insertions(+), 21 deletions(-)
+by not exporting this, the drivers are restricted to being static, and 
+exporting allows those omap specific ones to be loadable (if someone 
+really wants so minimalist a system - i believe i2c is an example of 
+loadable module)..
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index ceba58a..533ad13 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -296,12 +296,11 @@ static void _add_optional_clock_alias(struct omap_device *od,
-  */
- int omap_device_count_resources(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int c = 0;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		c += omap_hwmod_count_resources(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		c += omap_hwmod_count_resources(od->hwmods[i]);
- 
- 	pr_debug("omap_device: %s: counted %d total resources across %d "
- 		 "hwmods\n", od->pdev.name, c, od->hwmods_cnt);
-@@ -328,12 +327,11 @@ int omap_device_count_resources(struct omap_device *od)
-  */
- int omap_device_fill_resources(struct omap_device *od, struct resource *res)
- {
--	struct omap_hwmod *oh;
- 	int c = 0;
- 	int i, r;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++) {
--		r = omap_hwmod_fill_resources(oh, res);
-+	for (i = 0; i < od->hwmods_cnt; i++) {
-+		r = omap_hwmod_fill_resources(od->hwmods[i], res);
- 		res += r;
- 		c += r;
- 	}
-@@ -607,7 +605,6 @@ int omap_device_shutdown(struct platform_device *pdev)
- {
- 	int ret, i;
- 	struct omap_device *od;
--	struct omap_hwmod *oh;
- 
- 	od = _find_by_pdev(pdev);
- 
-@@ -620,8 +617,8 @@ int omap_device_shutdown(struct platform_device *pdev)
- 
- 	ret = _omap_device_deactivate(od, IGNORE_WAKEUP_LAT);
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_shutdown(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_shutdown(od->hwmods[i]);
- 
- 	od->_state = OMAP_DEVICE_STATE_SHUTDOWN;
- 
-@@ -733,11 +730,10 @@ void __iomem *omap_device_get_rt_va(struct omap_device *od)
-  */
- int omap_device_enable_hwmods(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_enable(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_enable(od->hwmods[i]);
- 
- 	/* XXX pass along return value here? */
- 	return 0;
-@@ -751,11 +747,10 @@ int omap_device_enable_hwmods(struct omap_device *od)
-  */
- int omap_device_idle_hwmods(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_idle(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_idle(od->hwmods[i]);
- 
- 	/* XXX pass along return value here? */
- 	return 0;
-@@ -770,11 +765,10 @@ int omap_device_idle_hwmods(struct omap_device *od)
-  */
- int omap_device_disable_clocks(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_disable_clocks(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_disable_clocks(od->hwmods[i]);
- 
- 	/* XXX pass along return value here? */
- 	return 0;
-@@ -789,11 +783,10 @@ int omap_device_disable_clocks(struct omap_device *od)
-  */
- int omap_device_enable_clocks(struct omap_device *od)
- {
--	struct omap_hwmod *oh;
- 	int i;
- 
--	for (i = 0, oh = *od->hwmods; i < od->hwmods_cnt; i++, oh++)
--		omap_hwmod_enable_clocks(oh);
-+	for (i = 0; i < od->hwmods_cnt; i++)
-+		omap_hwmod_enable_clocks(od->hwmods[i]);
- 
- 	/* XXX pass along return value here? */
- 	return 0;
+I believe omap_has_feature() is a readable and maintainable way of 
+handling features and exporting helps those drivers to become modules 
+(yes with the risk of some other driver misusing it as well) - this 
+definitely is something we've been doing for some time in l-o I guess.. 
+a better alternative might be hwmod - but I am no expert to comment on 
+it's feasibility..
 
-
+-- 
+Regards,
+Nishanth Menon
