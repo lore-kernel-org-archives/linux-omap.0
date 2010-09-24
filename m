@@ -1,84 +1,99 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
-Date: Fri, 24 Sep 2010 08:38:37 -0700
-Message-ID: <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
-References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
- <1282106146-7727-1-git-send-email-darkstar6262@gmail.com> <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
+From: "Taneja, Archit" <archit@ti.com>
+Subject: RE: Query on clock naming conventions in clockxxxx_data.c
+Date: Fri, 24 Sep 2010 21:10:39 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870311A2F475@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
+ <0680EC522D0CC943BC586913CF3768C003C21EEBFA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:33357 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756812Ab0IXPjA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:39:00 -0400
-Received: by wyb28 with SMTP id 28so2026152wyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:38:58 -0700 (PDT)
-In-Reply-To: <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36187 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753572Ab0IXPkn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:40:43 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8OFeeq1006812
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 10:40:42 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o8OFeeQh016304
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 21:10:40 +0530 (IST)
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003C21EEBFA@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 
-2010/9/24 Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>:
-> 2010/8/18 Cory Maccarrone <darkstar6262@gmail.com>:
->> This change adds in MMC and I2C support to the HTC Herald board, as =
-well
->> as adding the HTCPLD driver for the PLD used on this phone. =C2=A0It=
- also
->> adds in the gpio-keys entries for the front directional keys and
->> selector and the cursor keys on the slide-out keyboard, and gpio-led=
-s
->> support for the LEDs attached to the htcpld.
->>
->> Additionally, SPI bus support (using the spi100k driver) and
->> touchscreen support (using the ads7846 driver) were added.
->>
->> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
->> ---
-> [...]
->> +/* MMC Card */
->> +#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
->> +static struct omap_mmc_platform_data htc_mmc1_data =3D {
->> + =C2=A0 =C2=A0 =C2=A0 .nr_slots =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D 1,
->> + =C2=A0 =C2=A0 =C2=A0 .switch_slot =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D NULL,
->> + =C2=A0 =C2=A0 =C2=A0 .slots[0] =C2=A0 =C2=A0 =C2=A0 =3D {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .ocr_mask =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D MMC_VDD_28_29 | MMC_VDD_3=
-0_31 |
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- MMC_VDD_32_33 | MMC_VDD_33_34,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .name =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D "mmcblk",
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .nomux =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D 1,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .wires =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D 4,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .switch_pin =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D -1,
->> + =C2=A0 =C2=A0 =C2=A0 },
->> +};
-> [...]
->
-> What voltages can this MMC controller provide? That's a rather unusua=
-l OCR mask.
->
-> Best Regards,
-> Micha=C5=82 Miros=C5=82aw
->
+Hi,
 
-Not really sure, I wasn't the one who first came up with that mask.
-All I know is that it seems to work, and not just for my device, but
-lots of other HTC OMAP850 devices we've tried it on too.
+Thanks for this info.
 
-I'm interested though, what in particular makes it unusual?
+Regards,
 
-- Cory
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Archit
+
+Nayak, Rajendra wrote:
+> Archit,
+> 
+>> -----Original Message-----
+>> From: Taneja, Archit
+>> Sent: Friday, September 24, 2010 6:11 PM
+>> To: Nayak, Rajendra
+>> Cc: linux-omap@vger.kernel.org; Guruswamy, Senthilvadivu
+>> Subject: Query on clock naming conventions in clockxxxx_data.c
+>> 
+>> Hi,
+>> 
+>> I had a couple of queries regarding the clock structures in the
+>> clockxxxx_data.c files: 
+>> 
+>> -I have seen that the name of the structure itself explains the name
+>> of the clock as given in the TRM.
+>> -The member "name" also tries to mimic the clock name.
+>> 
+>> The drivers get the clock struct using the "name" member in the
+>> clk_get() api. Is it okay if we can change the "name" member to a more
+>> generic string. So that the driver code stays more generic?
+>> 
+>> For example, the SYS_CLK which comes into DSS is called "dss2_alwon_fck" on
+>> omap3 and
+>> "dss_sys_clk" on omap4. This will make our driver need to have
+>> cpu_is_omap checks while calling clk_get().
+> 
+> The right way to use the clk_get api is by passing the dev
+> pointer to identify the device and a generic identifier like
+> fck or ick to identify the type/functionality of the clock.
+> Its not advisable to hardcode clock names, the very reason
+> being that it gets difficult to maintain clock node names
+> across processor families and eventually you end up with cpu_is_* checks.
+> 
+> Doing this however requires the clkdev tables to be updated
+> with the mapping of device names and generic clock
+> identifiers to the actual clock node.
+> 
+> So if you today have something like
+> if (cpu_is_omap34xx())
+> 	clk_get(NULL, " dss2_alwon_fck");
+> else
+> 	clk_get(NULL, " dss_sys_clk");
+> 
+> It can very easily be replaced with a
+> clk_get(dev, "fck");
+> 
+> with the clkdev table entry for omap3 like
+> CLK("dss-omap","fck", &dss2_alwon_fck...
+> and the clkdev table entry for omap4 having something like
+> CLK("dss-omap","fck", & dss_sys_clk...
+> 
+> Now, however since all drivers are using pm_runtime api's
+> which hide the clk control from drivers, this might not have be needed anyway.
+> 
+> Regards,
+> Rajendra
+> 
+>> 
+>> Thanks,
+>> 
+>> Archit
