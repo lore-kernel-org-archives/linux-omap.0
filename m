@@ -1,102 +1,282 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 09/12] omap4: control: Add accessor api's for pad control
-	module
-Date: Fri, 24 Sep 2010 01:08:24 -0600
-Message-ID: <20100924070822.14014.90464.stgit@twilight.localdomain>
+Subject: [PATCH 05/12] OMAP4: PM: Define additional registers for ES2
+Date: Fri, 24 Sep 2010 01:08:15 -0600
+Message-ID: <20100924070814.14014.8747.stgit@twilight.localdomain>
 References: <20100924070643.14014.11359.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33665 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:33646 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756559Ab0IXHJF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 03:09:05 -0400
+	with ESMTP id S1755819Ab0IXHJE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 03:09:04 -0400
 In-Reply-To: <20100924070643.14014.11359.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+=46rom: Rajendra Nayak <rnayak@ti.com>
 
-On OMAP4 control pad are not addressable from control
-core base. So the common omap_ctrl_read/write APIs breaks
-Hence export separate APIs to manage the omap4 pad control
-registers.
+4430 ES2 has a few new registers added and a few modified
+from ES1. This patch adds all the register changes in PRM
+and CM for OMAP4430 ES2.
 
-This APIs will work only for OMAP4
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Beno=C3=AEt Cousson <b-cousson@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/control.c             |   18 ++++++++++++++++++
- arch/arm/plat-omap/include/plat/control.h |    4 ++++
- 2 files changed, 22 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cm44xx.h  |   90 +++++++++++++++++++++++++++++++++=
++++++++-
+ arch/arm/mach-omap2/prm44xx.h |   14 ++++--
+ 2 files changed, 96 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 99c0eb6..8b3c469 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -138,6 +138,7 @@ static struct omap3_control_regs control_context;
- #endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
- 
- #define OMAP_CTRL_REGADDR(reg)		(omap2_ctrl_base + (reg))
-+#define OMAP4_CTRL_PAD_REGADDR(reg)	(omap4_ctrl_pad_base + (reg))
- 
- void __init omap2_set_globals_control(struct omap_globals *omap2_globals)
- {
-@@ -189,6 +190,23 @@ void omap_ctrl_writel(u32 val, u16 offset)
- 	__raw_writel(val, OMAP_CTRL_REGADDR(offset));
- }
- 
-+/*
-+ * On OMAP4 control pad are not addressable from control
-+ * core base. So the common omap_ctrl_read/write APIs breaks
-+ * Hence export separate APIs to manage the omap4 pad control
-+ * registers. This APIs will work only for OMAP4
-+ */
+diff --git a/arch/arm/mach-omap2/cm44xx.h b/arch/arm/mach-omap2/cm44xx.=
+h
+index 336d948..3c35a87 100644
+--- a/arch/arm/mach-omap2/cm44xx.h
++++ b/arch/arm/mach-omap2/cm44xx.h
+@@ -195,6 +195,42 @@
+ #define OMAP4_CM1_ABE_WDT3_CLKCTRL_OFFSET		0x0088
+ #define OMAP4430_CM1_ABE_WDT3_CLKCTRL			OMAP44XX_CM1_REGADDR(OMAP4430_=
+CM1_ABE_MOD, 0x0088)
+=20
++/* CM1.RESTORE_CM1 register offsets */
++#define OMAP4_CM_CLKSEL_CORE_RESTORE_OFFSET		0x0000
++#define OMAP4430_CM_CLKSEL_CORE_RESTORE			OMAP44XX_CM1_REGADDR(OMAP443=
+0_CM1_RESTORE_MOD, 0x0000)
++#define OMAP4_CM_DIV_M2_DPLL_CORE_RESTORE_OFFSET	0x0004
++#define OMAP4430_CM_DIV_M2_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMA=
+P4430_CM1_RESTORE_MOD, 0x0004)
++#define OMAP4_CM_DIV_M3_DPLL_CORE_RESTORE_OFFSET	0x0008
++#define OMAP4430_CM_DIV_M3_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMA=
+P4430_CM1_RESTORE_MOD, 0x0008)
++#define OMAP4_CM_DIV_M4_DPLL_CORE_RESTORE_OFFSET	0x000c
++#define OMAP4430_CM_DIV_M4_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMA=
+P4430_CM1_RESTORE_MOD, 0x000c)
++#define OMAP4_CM_DIV_M5_DPLL_CORE_RESTORE_OFFSET	0x0010
++#define OMAP4430_CM_DIV_M5_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMA=
+P4430_CM1_RESTORE_MOD, 0x0010)
++#define OMAP4_CM_DIV_M6_DPLL_CORE_RESTORE_OFFSET	0x0014
++#define OMAP4430_CM_DIV_M6_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMA=
+P4430_CM1_RESTORE_MOD, 0x0014)
++#define OMAP4_CM_DIV_M7_DPLL_CORE_RESTORE_OFFSET	0x0018
++#define OMAP4430_CM_DIV_M7_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMA=
+P4430_CM1_RESTORE_MOD, 0x0018)
++#define OMAP4_CM_CLKSEL_DPLL_CORE_RESTORE_OFFSET	0x001c
++#define OMAP4430_CM_CLKSEL_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OMA=
+P4430_CM1_RESTORE_MOD, 0x001c)
++#define OMAP4_CM_SSC_DELTAMSTEP_DPLL_CORE_RESTORE_OFFSET	0x0020
++#define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_CORE_RESTORE	OMAP44XX_CM1_REGA=
+DDR(OMAP4430_CM1_RESTORE_MOD, 0x0020)
++#define OMAP4_CM_SSC_MODFREQDIV_DPLL_CORE_RESTORE_OFFSET	0x0024
++#define OMAP4430_CM_SSC_MODFREQDIV_DPLL_CORE_RESTORE	OMAP44XX_CM1_REGA=
+DDR(OMAP4430_CM1_RESTORE_MOD, 0x0024)
++#define OMAP4_CM_CLKMODE_DPLL_CORE_RESTORE_OFFSET	0x0028
++#define OMAP4430_CM_CLKMODE_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(OM=
+AP4430_CM1_RESTORE_MOD, 0x0028)
++#define OMAP4_CM_SHADOW_FREQ_CONFIG2_RESTORE_OFFSET	0x002c
++#define OMAP4430_CM_SHADOW_FREQ_CONFIG2_RESTORE		OMAP44XX_CM1_REGADDR(=
+OMAP4430_CM1_RESTORE_MOD, 0x002c)
++#define OMAP4_CM_SHADOW_FREQ_CONFIG1_RESTORE_OFFSET	0x0030
++#define OMAP4430_CM_SHADOW_FREQ_CONFIG1_RESTORE		OMAP44XX_CM1_REGADDR(=
+OMAP4430_CM1_RESTORE_MOD, 0x0030)
++#define OMAP4_CM_AUTOIDLE_DPLL_CORE_RESTORE_OFFSET	0x0034
++#define OMAP4430_CM_AUTOIDLE_DPLL_CORE_RESTORE		OMAP44XX_CM1_REGADDR(O=
+MAP4430_CM1_RESTORE_MOD, 0x0034)
++#define OMAP4_CM_MPU_CLKSTCTRL_RESTORE_OFFSET		0x0038
++#define OMAP4430_CM_MPU_CLKSTCTRL_RESTORE		OMAP44XX_CM1_REGADDR(OMAP44=
+30_CM1_RESTORE_MOD, 0x0038)
++#define OMAP4_CM_CM1_PROFILING_CLKCTRL_RESTORE_OFFSET	0x003c
++#define OMAP4430_CM_CM1_PROFILING_CLKCTRL_RESTORE	OMAP44XX_CM1_REGADDR=
+(OMAP4430_CM1_RESTORE_MOD, 0x003c)
++#define OMAP4_CM_DYN_DEP_PRESCAL_RESTORE_OFFSET		0x0040
++#define OMAP4430_CM_DYN_DEP_PRESCAL_RESTORE		OMAP44XX_CM1_REGADDR(OMAP=
+4430_CM1_RESTORE_MOD, 0x0040)
 +
-+u32 omap4_ctrl_pad_readl(u16 offset)
-+{
-+	return __raw_readl(OMAP4_CTRL_PAD_REGADDR(offset));
-+}
+ /* CM2 */
+=20
+ /* CM2.OCP_SOCKET_CM2 register offsets */
+@@ -252,8 +288,6 @@
+ #define OMAP4430_CM_SSC_DELTAMSTEP_DPLL_PER		OMAP44XX_CM2_REGADDR(OMAP=
+4430_CM2_CKGEN_MOD, 0x0068)
+ #define OMAP4_CM_SSC_MODFREQDIV_DPLL_PER_OFFSET		0x006c
+ #define OMAP4430_CM_SSC_MODFREQDIV_DPLL_PER		OMAP44XX_CM2_REGADDR(OMAP=
+4430_CM2_CKGEN_MOD, 0x006c)
+-#define OMAP4_CM_EMU_OVERRIDE_DPLL_PER_OFFSET		0x0070
+-#define OMAP4430_CM_EMU_OVERRIDE_DPLL_PER		OMAP44XX_CM2_REGADDR(OMAP44=
+30_CM2_CKGEN_MOD, 0x0070)
+ #define OMAP4_CM_CLKMODE_DPLL_USB_OFFSET		0x0080
+ #define OMAP4430_CM_CLKMODE_DPLL_USB			OMAP44XX_CM2_REGADDR(OMAP4430_C=
+M2_CKGEN_MOD, 0x0080)
+ #define OMAP4_CM_IDLEST_DPLL_USB_OFFSET			0x0084
+@@ -296,6 +330,8 @@
+ #define OMAP4430_CM_ALWON_SR_IVA_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP443=
+0_CM2_ALWAYS_ON_MOD, 0x0030)
+ #define OMAP4_CM_ALWON_SR_CORE_CLKCTRL_OFFSET		0x0038
+ #define OMAP4430_CM_ALWON_SR_CORE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP44=
+30_CM2_ALWAYS_ON_MOD, 0x0038)
++#define OMAP4_CM_ALWON_USBPHY_CLKCTRL_OFFSET		0x0040
++#define OMAP4430_CM_ALWON_USBPHY_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP443=
+0_CM2_ALWAYS_ON_MOD, 0x0040)
+=20
+ /* CM2.CORE_CM2 register offsets */
+ #define OMAP4_CM_L3_1_CLKSTCTRL_OFFSET			0x0000
+@@ -578,4 +614,54 @@
+ #define OMAP4430_CM_CEFUSE_CLKSTCTRL			OMAP44XX_CM2_REGADDR(OMAP4430_C=
+M2_CEFUSE_MOD, 0x0000)
+ #define OMAP4_CM_CEFUSE_CEFUSE_CLKCTRL_OFFSET		0x0020
+ #define OMAP4430_CM_CEFUSE_CEFUSE_CLKCTRL		OMAP44XX_CM2_REGADDR(OMAP44=
+30_CM2_CEFUSE_MOD, 0x0020)
 +
-+void omap4_ctrl_pad_writel(u32 val, u16 offset)
-+{
-+	__raw_writel(val, OMAP4_CTRL_PAD_REGADDR(offset));
-+}
-+
- #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
- /*
-  * Clears the scratchpad contents in case of cold boot-
-diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index 131bf40..2916b7e 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -354,9 +354,11 @@ extern void __iomem *omap_ctrl_base_get(void);
- extern u8 omap_ctrl_readb(u16 offset);
- extern u16 omap_ctrl_readw(u16 offset);
- extern u32 omap_ctrl_readl(u16 offset);
-+extern u32 omap4_ctrl_pad_readl(u16 offset);
- extern void omap_ctrl_writeb(u8 val, u16 offset);
- extern void omap_ctrl_writew(u16 val, u16 offset);
- extern void omap_ctrl_writel(u32 val, u16 offset);
-+extern void omap4_ctrl_pad_writel(u32 val, u16 offset);
- 
- extern void omap3_save_scratchpad_contents(void);
- extern void omap3_clear_scratchpad_contents(void);
-@@ -371,9 +373,11 @@ extern void omap3_control_restore_context(void);
- #define omap_ctrl_readb(x)		0
- #define omap_ctrl_readw(x)		0
- #define omap_ctrl_readl(x)		0
-+#define omap4_ctrl_pad_readl(x)		0
- #define omap_ctrl_writeb(x, y)		WARN_ON(1)
- #define omap_ctrl_writew(x, y)		WARN_ON(1)
- #define omap_ctrl_writel(x, y)		WARN_ON(1)
-+#define omap4_ctrl_pad_writel(x, y)	WARN_ON(1)
++/* CM2.RESTORE_CM2 register offsets */
++#define OMAP4_CM_L3_1_CLKSTCTRL_RESTORE_OFFSET		0x0000
++#define OMAP4430_CM_L3_1_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4=
+430_CM2_RESTORE_MOD, 0x0000)
++#define OMAP4_CM_L3_2_CLKSTCTRL_RESTORE_OFFSET		0x0004
++#define OMAP4430_CM_L3_2_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4=
+430_CM2_RESTORE_MOD, 0x0004)
++#define OMAP4_CM_L4CFG_CLKSTCTRL_RESTORE_OFFSET		0x0008
++#define OMAP4430_CM_L4CFG_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP=
+4430_CM2_RESTORE_MOD, 0x0008)
++#define OMAP4_CM_MEMIF_CLKSTCTRL_RESTORE_OFFSET		0x000c
++#define OMAP4430_CM_MEMIF_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP=
+4430_CM2_RESTORE_MOD, 0x000c)
++#define OMAP4_CM_L4PER_CLKSTCTRL_RESTORE_OFFSET		0x0010
++#define OMAP4430_CM_L4PER_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMAP=
+4430_CM2_RESTORE_MOD, 0x0010)
++#define OMAP4_CM_L3INIT_CLKSTCTRL_RESTORE_OFFSET	0x0014
++#define OMAP4430_CM_L3INIT_CLKSTCTRL_RESTORE		OMAP44XX_CM2_REGADDR(OMA=
+P4430_CM2_RESTORE_MOD, 0x0014)
++#define OMAP4_CM_L3INSTR_L3_3_CLKCTRL_RESTORE_OFFSET	0x0018
++#define OMAP4430_CM_L3INSTR_L3_3_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADDR(=
+OMAP4430_CM2_RESTORE_MOD, 0x0018)
++#define OMAP4_CM_L3INSTR_L3_INSTR_CLKCTRL_RESTORE_OFFSET	0x001c
++#define OMAP4430_CM_L3INSTR_L3_INSTR_CLKCTRL_RESTORE	OMAP44XX_CM2_REGA=
+DDR(OMAP4430_CM2_RESTORE_MOD, 0x001c)
++#define OMAP4_CM_L3INSTR_OCP_WP1_CLKCTRL_RESTORE_OFFSET	0x0020
++#define OMAP4430_CM_L3INSTR_OCP_WP1_CLKCTRL_RESTORE	OMAP44XX_CM2_REGAD=
+DR(OMAP4430_CM2_RESTORE_MOD, 0x0020)
++#define OMAP4_CM_CM2_PROFILING_CLKCTRL_RESTORE_OFFSET	0x0024
++#define OMAP4430_CM_CM2_PROFILING_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADDR=
+(OMAP4430_CM2_RESTORE_MOD, 0x0024)
++#define OMAP4_CM_D2D_STATICDEP_RESTORE_OFFSET		0x0028
++#define OMAP4430_CM_D2D_STATICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMAP44=
+30_CM2_RESTORE_MOD, 0x0028)
++#define OMAP4_CM_L3_1_DYNAMICDEP_RESTORE_OFFSET		0x002c
++#define OMAP4430_CM_L3_1_DYNAMICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMAP=
+4430_CM2_RESTORE_MOD, 0x002c)
++#define OMAP4_CM_L3_2_DYNAMICDEP_RESTORE_OFFSET		0x0030
++#define OMAP4430_CM_L3_2_DYNAMICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMAP=
+4430_CM2_RESTORE_MOD, 0x0030)
++#define OMAP4_CM_D2D_DYNAMICDEP_RESTORE_OFFSET		0x0034
++#define OMAP4430_CM_D2D_DYNAMICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4=
+430_CM2_RESTORE_MOD, 0x0034)
++#define OMAP4_CM_L4CFG_DYNAMICDEP_RESTORE_OFFSET	0x0038
++#define OMAP4430_CM_L4CFG_DYNAMICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMA=
+P4430_CM2_RESTORE_MOD, 0x0038)
++#define OMAP4_CM_L4PER_DYNAMICDEP_RESTORE_OFFSET	0x003c
++#define OMAP4430_CM_L4PER_DYNAMICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMA=
+P4430_CM2_RESTORE_MOD, 0x003c)
++#define OMAP4_CM_L4PER_GPIO2_CLKCTRL_RESTORE_OFFSET	0x0040
++#define OMAP4430_CM_L4PER_GPIO2_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(=
+OMAP4430_CM2_RESTORE_MOD, 0x0040)
++#define OMAP4_CM_L4PER_GPIO3_CLKCTRL_RESTORE_OFFSET	0x0044
++#define OMAP4430_CM_L4PER_GPIO3_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(=
+OMAP4430_CM2_RESTORE_MOD, 0x0044)
++#define OMAP4_CM_L4PER_GPIO4_CLKCTRL_RESTORE_OFFSET	0x0048
++#define OMAP4430_CM_L4PER_GPIO4_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(=
+OMAP4430_CM2_RESTORE_MOD, 0x0048)
++#define OMAP4_CM_L4PER_GPIO5_CLKCTRL_RESTORE_OFFSET	0x004c
++#define OMAP4430_CM_L4PER_GPIO5_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(=
+OMAP4430_CM2_RESTORE_MOD, 0x004c)
++#define OMAP4_CM_L4PER_GPIO6_CLKCTRL_RESTORE_OFFSET	0x0050
++#define OMAP4430_CM_L4PER_GPIO6_CLKCTRL_RESTORE		OMAP44XX_CM2_REGADDR(=
+OMAP4430_CM2_RESTORE_MOD, 0x0050)
++#define OMAP4_CM_L3INIT_USB_HOST_CLKCTRL_RESTORE_OFFSET	0x0054
++#define OMAP4430_CM_L3INIT_USB_HOST_CLKCTRL_RESTORE	OMAP44XX_CM2_REGAD=
+DR(OMAP4430_CM2_RESTORE_MOD, 0x0054)
++#define OMAP4_CM_L3INIT_USB_TLL_CLKCTRL_RESTORE_OFFSET	0x0058
++#define OMAP4430_CM_L3INIT_USB_TLL_CLKCTRL_RESTORE	OMAP44XX_CM2_REGADD=
+R(OMAP4430_CM2_RESTORE_MOD, 0x0058)
++#define OMAP4_CM_SDMA_STATICDEP_RESTORE_OFFSET		0x005c
++#define OMAP4430_CM_SDMA_STATICDEP_RESTORE		OMAP44XX_CM2_REGADDR(OMAP4=
+430_CM2_RESTORE_MOD, 0x005c)
  #endif
- #endif	/* __ASSEMBLY__ */
- 
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44x=
+x.h
+index fe8ef26..59839db 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -44,14 +44,12 @@
+ #define OMAP4430_PRM_IRQSTATUS_TESLA			OMAP44XX_PRM_REGADDR(OMAP4430_P=
+RM_OCP_SOCKET_MOD, 0x0030)
+ #define OMAP4_PRM_IRQENABLE_TESLA_OFFSET		0x0038
+ #define OMAP4430_PRM_IRQENABLE_TESLA			OMAP44XX_PRM_REGADDR(OMAP4430_P=
+RM_OCP_SOCKET_MOD, 0x0038)
+-#define OMAP4_PRM_PRM_PROFILING_CLKCTRL_OFFSET		0x0040
+-#define OMAP4430_PRM_PRM_PROFILING_CLKCTRL		OMAP44XX_PRM_REGADDR(OMAP4=
+430_PRM_OCP_SOCKET_MOD, 0x0040)
++#define OMAP4_CM_PRM_PROFILING_CLKCTRL_OFFSET		0x0040
++#define OMAP4430_CM_PRM_PROFILING_CLKCTRL		OMAP44XX_PRM_REGADDR(OMAP44=
+30_PRM_OCP_SOCKET_MOD, 0x0040)
+=20
+ /* PRM.CKGEN_PRM register offsets */
+ #define OMAP4_CM_ABE_DSS_SYS_CLKSEL_OFFSET		0x0000
+ #define OMAP4430_CM_ABE_DSS_SYS_CLKSEL			OMAP44XX_PRM_REGADDR(OMAP4430=
+_PRM_CKGEN_MOD, 0x0000)
+-#define OMAP4_CM_DPLL_SYS_REF_CLKSEL_OFFSET		0x0004
+-#define OMAP4430_CM_DPLL_SYS_REF_CLKSEL			OMAP44XX_PRM_REGADDR(OMAP443=
+0_PRM_CKGEN_MOD, 0x0004)
+ #define OMAP4_CM_L4_WKUP_CLKSEL_OFFSET			0x0008
+ #define OMAP4430_CM_L4_WKUP_CLKSEL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM=
+_CKGEN_MOD, 0x0008)
+ #define OMAP4_CM_ABE_PLL_REF_CLKSEL_OFFSET		0x000c
+@@ -686,8 +684,8 @@
+ #define OMAP4430_PRM_LDO_ABB_IVA_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430=
+_PRM_DEVICE_MOD, 0x00d8)
+ #define OMAP4_PRM_LDO_ABB_IVA_CTRL_OFFSET		0x00dc
+ #define OMAP4430_PRM_LDO_ABB_IVA_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_=
+PRM_DEVICE_MOD, 0x00dc)
+-#define OMAP4_PRM_LDO_BANDGAP_CTRL_OFFSET		0x00e0
+-#define OMAP4430_PRM_LDO_BANDGAP_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_=
+PRM_DEVICE_MOD, 0x00e0)
++#define OMAP4_PRM_LDO_BANDGAP_SETUP_OFFSET		0x00e0
++#define OMAP4430_PRM_LDO_BANDGAP_SETUP			OMAP44XX_PRM_REGADDR(OMAP4430=
+_PRM_DEVICE_MOD, 0x00e0)
+ #define OMAP4_PRM_DEVICE_OFF_CTRL_OFFSET		0x00e4
+ #define OMAP4430_PRM_DEVICE_OFF_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_P=
+RM_DEVICE_MOD, 0x00e4)
+ #define OMAP4_PRM_PHASE1_CNDP_OFFSET			0x00e8
+@@ -698,6 +696,8 @@
+ #define OMAP4430_PRM_PHASE2B_CNDP			OMAP44XX_PRM_REGADDR(OMAP4430_PRM_=
+DEVICE_MOD, 0x00f0)
+ #define OMAP4_PRM_MODEM_IF_CTRL_OFFSET			0x00f4
+ #define OMAP4430_PRM_MODEM_IF_CTRL			OMAP44XX_PRM_REGADDR(OMAP4430_PRM=
+_DEVICE_MOD, 0x00f4)
++#define OMAP4_PRM_VC_ERRST_OFFSET			0x00f8
++#define OMAP4430_PRM_VC_ERRST				OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEV=
+ICE_MOD, 0x00f8)
+=20
+ /*
+  * PRCM_MPU
+@@ -715,6 +715,8 @@
+ /* PRCM_MPU.DEVICE_PRM register offsets */
+ #define OMAP4_PRCM_MPU_PRM_RSTST_OFFSET			0x0000
+ #define OMAP4430_PRCM_MPU_PRM_RSTST			OMAP44XX_PRCM_MPU_REGADDR(OMAP44=
+30_PRCM_MPU_DEVICE_PRM_MOD, 0x0000)
++#define OMAP4_PRCM_MPU_PRM_PSCON_COUNT_OFFSET		0x0004
++#define OMAP4430_PRCM_MPU_PRM_PSCON_COUNT		OMAP44XX_PRCM_MPU_REGADDR(O=
+MAP4430_PRCM_MPU_DEVICE_PRM_MOD, 0x0004)
+=20
+ /* PRCM_MPU.CPU0 register offsets */
+ #define OMAP4_PM_CPU0_PWRSTCTRL_OFFSET			0x0000
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
