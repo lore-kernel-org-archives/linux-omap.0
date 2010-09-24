@@ -1,68 +1,51 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: Query on clock naming conventions in clockxxxx_data.c
-Date: Fri, 24 Sep 2010 08:40:42 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E5F6223DA@dlee03.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv2 0/1] omap2/3: Update revision identification
+Date: Fri, 24 Sep 2010 19:34:19 +0530
+Message-ID: <1285337059-11720-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33414 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334Ab0IXNkm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 09:40:42 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8ODegi6016607
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57724 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932218Ab0IXOE1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Sep 2010 10:04:27 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8OE4O30029602
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:40:42 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id o8ODefp7015923
-	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:40:41 -0500 (CDT)
-Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o8ODefII001735
-	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:40:41 -0500 (CDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
-Content-Language: en-US
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 09:04:26 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Archit,
+This patch unifies the definition of revision bits that
+are were using different base (nibble) since revision bits
+for OMAP3630 were defined.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Taneja, Archit
-> Sent: Friday, September 24, 2010 7:41 AM
-> To: Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org; Guruswamy, Senthilvadivu
-> Subject: Query on clock naming conventions in clockxxxx_data.c
-> 
-> Hi,
-> 
-> I had a couple of queries regarding the clock structures in the
-> clockxxxx_data.c files:
-> 
-> -I have seen that the name of the structure itself explains the name of
-> the clock as
-> given in the TRM.
-> -The member "name" also tries to mimic the clock name.
-> 
-> The drivers get the clock struct using the "name" member in the clk_get()
-> api. Is it
-> okay if we can change the "name" member to a more generic string. So that
-> the driver
-> code stays more generic?
-> 
-> For example, the SYS_CLK which comes into DSS is called "dss2_alwon_fck"
-> on omap3 and
-> "dss_sys_clk" on omap4. This will make our driver need to have cpu_is_omap
-> checks while
-> calling clk_get().
-> 
+The changes are:
+1) Common definition of revision bits starting at lower
+   nibble.
+2) Generic CLASS has been defined for each processor in
+   the OMAP family.
+3) Revision bits are ORed with processor class to complete
+   the identification.
 
-I guess migrating to hwmod should resolve the issue you mentioned.
+This patch version addresses all comments and suggetions
+by Tony[1] and adds support to identify AM3505/17 ES1.1.
 
-Thank you,
-Best regards,
-Hari
+  [1] http://marc.info/?l=linux-omap&m=128526100030661&w=2
+
+The patch has been tested against these processors:
+ * OMAP3630 ES1.1
+ * OMAP3530 ES3.1
+ * AM3517 ES1.0
+ * AM3517 ES1.1
+
+Sanjeev Premi (1):
+  omap2/3: Update revision identification
+
+ arch/arm/mach-omap2/id.c              |   72 ++++++++++++++++++++++-----------
+ arch/arm/plat-omap/include/plat/cpu.h |   36 ++++++++--------
+ 2 files changed, 66 insertions(+), 42 deletions(-)
+
+-- 
+1.7.2.2
+
