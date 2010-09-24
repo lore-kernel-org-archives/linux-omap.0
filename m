@@ -1,40 +1,52 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
-Date: Fri, 24 Sep 2010 08:01:54 -0700
-Message-ID: <87y6arjicd.fsf@deeprootsystems.com>
-References: <1285201830-26561-1-git-send-email-hemahk@ti.com>
-	<20100923063604.GE2563@legolas.emea.dhcp.ti.com>
-	<87wrqc4gwd.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94027863DD4D@dbde02.ent.ti.com>
-	<87fwx02wl5.fsf@deeprootsystems.com>
-	<20100924110129.GV8365@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH] OMAP: PM: CPUFREQ: Fix conditional compilation
+Date: Fri, 24 Sep 2010 08:06:01 -0700
+Message-ID: <87pqw3ji5i.fsf@deeprootsystems.com>
+References: <1285318494-22092-1-git-send-email-silesh@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:62070 "EHLO
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:49447 "EHLO
 	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755971Ab0IXPB5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:01:57 -0400
-In-Reply-To: <20100924110129.GV8365@legolas.emea.dhcp.ti.com> (Felipe Balbi's
-	message of "Fri, 24 Sep 2010 14:01:30 +0300")
+	with ESMTP id S1751651Ab0IXPGD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:06:03 -0400
+Received: by pvg2 with SMTP id 2so683710pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:06:03 -0700 (PDT)
+In-Reply-To: <1285318494-22092-1-git-send-email-silesh@ti.com> (Silesh C. V.'s
+	message of "Fri, 24 Sep 2010 14:24:54 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "Kalliguddi, Hema" <hemahk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Silesh C V <silesh@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Felipe Balbi <balbi@ti.com> writes:
+Silesh C V <silesh@ti.com> writes:
 
-> Hi,
->
-> On Thu, Sep 23, 2010 at 12:33:58PM -0500, Kevin Hilman wrote:
->>I guess that's Felipe's call, but I don't like that option.
->>
->>I think it's cleaner to have the ->set_clock hook be a noop on OMAP and
->>the runtime hooks be noops on the other platforms.
->
-> Agreed. We should focus on removing ->set_clock for .38 actually. Is
-> DaVinci already using clkdev, Kevin ?
+> Fix conditional compilation.
+ 
+What excatly was the compile error?  and with which compiler?
 
-Yes, it was one of the first to convert.
+The current pm branch  seems to compile fine for me.
 
 Kevin
+
+> Signed-off-by: Silesh C V <silesh@ti.com>
+> ---
+>
+> Applies on top of the latest pm branch.
+>
+>  arch/arm/plat-omap/cpu-omap.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+> index df08829..02e4865 100644
+> --- a/arch/arm/plat-omap/cpu-omap.c
+> +++ b/arch/arm/plat-omap/cpu-omap.c
+> @@ -41,7 +41,7 @@ static struct cpufreq_frequency_table *freq_table;
+>  
+>  #ifdef CONFIG_ARCH_OMAP1
+>  #define MPU_CLK		"mpu"
+> -#elif CONFIG_ARCH_OMAP3
+> +#elif defined(CONFIG_ARCH_OMAP3)
+>  #define MPU_CLK		"arm_fck"
+>  #else
+>  #define MPU_CLK		"virt_prcm_set"
