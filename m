@@ -1,32 +1,41 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC] omap: mailbox: fix detection for previously supported chips
-Date: Fri, 24 Sep 2010 12:49:25 +0300
-Message-ID: <AANLkTikGzx09Zp-oKAYnZOhoZ02iExfZ3d3+byRnJJdA@mail.gmail.com>
-References: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
-	<A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
-	<27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
+Subject: Re: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Fri, 24 Sep 2010 13:00:49 +0300
+Message-ID: <AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+References: <20100924014938.10325.35279.stgit@baageli.muru.com>
+	<20100924015056.10325.95854.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:34388 "EHLO
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:48750 "EHLO
 	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292Ab0IXJt0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 05:49:26 -0400
-Received: by iwn5 with SMTP id 5so2265813iwn.19
-        for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 02:49:26 -0700 (PDT)
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
+	with ESMTP id S1751781Ab0IXKAv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 06:00:51 -0400
+Received: by iwn5 with SMTP id 5so2273493iwn.19
+        for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 03:00:50 -0700 (PDT)
+In-Reply-To: <20100924015056.10325.95854.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Anna, Suman" <s-anna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>, Yogesh Marathe <yogesh_marathe@ti.com>
 
-On Thu, Sep 23, 2010 at 7:11 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
-> Code is not the same, it is 2 line which apply for both but couldn't find an easy way of making them share the request for dsp mailbox without changing more code, perhaps a macro to detect if omap2 and then a nested if for the 2420 case, but since HWMOD should handle it better, I left it as is.
+On Fri, Sep 24, 2010 at 4:50 AM, Tony Lindgren <tony@atomide.com> wrote:
+> From: Yogesh Marathe <yogesh_marathe@ti.com>
+>
+> The definition of "iva2" device in iommu_device
+> is wrapped inside CONFIG_MPU_BRIDGE_IOMMU, but
+> this option is not defined in KConfig.
+>
+> This patch removes the wrapper and makes "iva2"
+> available as another iommu_device.
 
-I sent some patches to migrate to hwmod, at least it was working on
-OMAP3, somebody would need to fill the values for OMAP2. Would you
-like me to rebase and send them again?
+NAK.
+
+This would break tidspbridge's MMU. This was discussed before:
+http://thread.gmane.org/gmane.linux.ports.arm.kernel/58302/focus=58305
+
+When tidspbridge has migrated to iommu, then it should define
+CONFIG_MPU_BRIDGE_IOMMU.
 
 -- 
 Felipe Contreras
