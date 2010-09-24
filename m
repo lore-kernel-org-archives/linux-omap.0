@@ -1,78 +1,77 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [GIT PULL] pm-next: misc. PM updates for 2.6.37
-Date: Thu, 23 Sep 2010 17:24:43 -0700
-Message-ID: <87iq1wm1is.fsf@deeprootsystems.com>
+Subject: Re: [RFC] omap: mailbox: fix detection for previously supported chips
+Date: Thu, 23 Sep 2010 17:30:25 -0700
+Message-ID: <878w2sm19a.fsf@deeprootsystems.com>
+References: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
+	<27F9C60D11D683428E133F85D2BB4A530450EDDD15@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:53056 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756232Ab0IXAYs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 20:24:48 -0400
-Received: by pzk34 with SMTP id 34so484859pzk.19
-        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2010 17:24:45 -0700 (PDT)
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:63093 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751990Ab0IXAa1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 20:30:27 -0400
+Received: by pvg2 with SMTP id 2so525762pvg.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Sep 2010 17:30:27 -0700 (PDT)
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530450EDDD15@dlee03.ent.ti.com>
+	(Ramirez Luna's message of "Thu, 23 Sep 2010 19:08:29 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Anna, Suman" <s-anna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Tony,
+"Ramirez Luna, Omar" <omar.ramirez@ti.com> writes:
 
-Please pull the misc PM updates below for 2.6.37.
+> Ramirez Luna, Omar wrote:
+>> Fix the mailbox support detection for OMAP3630, 3530/25 and 2430.
+>> 
+>> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+>> ---
+>> - Testing was made under 3630 and 3430 boards.
+>> - Given that 2430 uses similar initialization than OMAP3, changes
+>>   to handle this case was added to the patch.
+>> - HWMOD adaptation hopefully should solve this mess, but as of now
+>>   mailbox should work as before at least.
+>> 
+>>  arch/arm/mach-omap2/mailbox.c |   12 ++++++++----
+>>  1 files changed, 8 insertions(+), 4 deletions(-)
+>> 
+>> diff --git a/arch/arm/mach-omap2/mailbox.c
+>> b/arch/arm/mach-omap2/mailbox.c index 42dbfa4..26d6fb0 100644 ---
+>> a/arch/arm/mach-omap2/mailbox.c +++ b/arch/arm/mach-omap2/mailbox.c
+>> @@ -394,15 +394,19 @@ static int __devinit omap2_mbox_probe(struct
+>> platform_device *pdev) 
+>> 
+>>  	if (false)
+>>  		;
+>> -#if defined(CONFIG_ARCH_OMAP3430)
+>> -	else if (cpu_is_omap3430()) {
+>> +#if defined(CONFIG_ARCH_OMAP3)
+>> +	else if (omap3_has_iva()) {
+>
+> Hmm, seems omap3_has_ ##feat are only available for built-in and not module configurations, this patch is not so good after all since it throws:
+>
+> ERROR: "omap3_features" [arch/arm/mach-omap2/mailbox_mach.ko] undefined!
 
-Note that this pull request should've come before the pm-runtime one
-since the pm-runtime branch has some a build dependency on the omap_device
-patches in this series.
+Well, feature detection certainly should be available to modules.
 
-Thanks,
+How about proposing a simple fix for this.  Something like the following
+(untested) should work, since the individual omap3_has_* checks are
+static inlines.
 
 Kevin
 
 
-The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 9a879f9..a8c6d19 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -31,6 +31,7 @@ static struct omap_chip_id omap_chip;
+ static unsigned int omap_revision;
+ 
+ u32 omap3_features;
++EXPORT_SYMBOL(omap3_features);
+ 
+ unsigned int omap_rev(void)
+ {
 
-  Linux 2.6.36-rc5 (2010-09-20 16:56:53 -0700)
-
-are available in the git repository at:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-next
-
-Benoit Cousson (2):
-      OMAP4: hwmod: Add initial data for OMAP4430 ES1 & ES2
-      OMAP4: pm: Change l3_main to l3_main_1 during bus device init
-
-Kevin Hilman (5):
-      OMAP3: PM: whitespace cleanup around IO wakeup enable
-      OMAP3: PM: move device-specific special cases from PM core into CPUidle
-      Revert "OMAP: omap_device: add omap_device_is_valid()"
-      OMAP: omap_device: make all devices a child of a new parent device
-      OMAP: GPIO: ensure debounce clocks are disabled during idle/suspend
-
-Paul Walmsley (1):
-      OMAP clockdomain: initialize clockdomain registers when the clockdomain layer starts
-
-Santosh Shilimkar (3):
-      omap: pm-debug: Move common debug code to pm-debug.c
-      omap: pm-debug: Enable wakeup_timer_milliseconds debugfs entry
-      omap: pm: Move set_pwrdm_state routine to common pm.c
-
-Thara Gopinath (2):
-      OMAP: PM debugfs removing OMAP3 hardcodings.
-      OMAP4: pm.c extensions for OMAP4 support
-
- arch/arm/mach-omap2/Makefile                  |    1 +
- arch/arm/mach-omap2/clockdomain.c             |  110 +-----
- arch/arm/mach-omap2/cpuidle34xx.c             |   58 +++-
- arch/arm/mach-omap2/io.c                      |    7 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  482 +++++++++++++++++++++++++
- arch/arm/mach-omap2/pm-debug.c                |   42 ++-
- arch/arm/mach-omap2/pm.c                      |   75 ++++-
- arch/arm/mach-omap2/pm.h                      |    4 +-
- arch/arm/mach-omap2/pm34xx.c                  |   99 +-----
- arch/arm/plat-omap/Makefile                   |    2 +-
- arch/arm/plat-omap/gpio.c                     |    6 +-
- arch/arm/plat-omap/include/plat/common.h      |    3 +-
- arch/arm/plat-omap/include/plat/omap_device.h |    4 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h  |    1 +
- arch/arm/plat-omap/omap_device.c              |   32 +-
- 15 files changed, 696 insertions(+), 230 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_44xx_data.c
