@@ -1,142 +1,99 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [linux-pm] runtime_pm_get_sync() from ISR with IRQs disabled?
-Date: Fri, 24 Sep 2010 14:52:44 -0700
-Message-ID: <87lj6q3j2r.fsf@deeprootsystems.com>
-References: <Pine.LNX.4.44L0.1009241547010.1287-100000@iolanthe.rowland.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
+Date: Fri, 24 Sep 2010 15:52:55 -0700
+Message-ID: <20100924225254.GK4211@atomide.com>
+References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
+ <1282106146-7727-1-git-send-email-darkstar6262@gmail.com>
+ <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
+ <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
+ <AANLkTikNLn-VuCQb2q7wZVbYORxV6uhia_oOBsQg3ZiJ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:38589 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758163Ab0IXVwr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 17:52:47 -0400
-Received: by pxi10 with SMTP id 10so926074pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 14:52:47 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1009241547010.1287-100000@iolanthe.rowland.org>
-	(Alan Stern's message of "Fri, 24 Sep 2010 16:27:25 -0400 (EDT)")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65443 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755517Ab0IXWwz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 18:52:55 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTikNLn-VuCQb2q7wZVbYORxV6uhia_oOBsQg3ZiJ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm@lists.linux-foundation.org, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
+To: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>
+Cc: Cory Maccarrone <darkstar6262@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+* Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com> [100924 09:03]:
+> W dniu 24 wrze=C5=9Bnia 2010 17:38 u=C5=BCytkownik Cory Maccarrone
+> <darkstar6262@gmail.com> napisa=C5=82:
+> > 2010/9/24 Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>:
+> >> 2010/8/18 Cory Maccarrone <darkstar6262@gmail.com>:
+> >>> This change adds in MMC and I2C support to the HTC Herald board, =
+as well
+> >>> as adding the HTCPLD driver for the PLD used on this phone. =C2=A0=
+It also
+> >>> adds in the gpio-keys entries for the front directional keys and
+> >>> selector and the cursor keys on the slide-out keyboard, and gpio-=
+leds
+> >>> support for the LEDs attached to the htcpld.
+> >>>
+> >>> Additionally, SPI bus support (using the spi100k driver) and
+> >>> touchscreen support (using the ads7846 driver) were added.
+> >>>
+> >>> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+> >>> ---
+> >> [...]
+> >>> +/* MMC Card */
+> >>> +#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
+> >>> +static struct omap_mmc_platform_data htc_mmc1_data =3D {
+> >>> + =C2=A0 =C2=A0 =C2=A0 .nr_slots =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D 1,
+> >>> + =C2=A0 =C2=A0 =C2=A0 .switch_slot =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D NULL,
+> >>> + =C2=A0 =C2=A0 =C2=A0 .slots[0] =C2=A0 =C2=A0 =C2=A0 =3D {
+> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .ocr_mask =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D MMC_VDD_28_29 | MMC_VDD_=
+30_31 |
+> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 MMC_VDD_32_33 | MMC_VDD_33_34,
+> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .name =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D "mmcblk",
+> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .nomux =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D 1,
+> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .wires =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D 4,
+> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .switch_pin =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D -1,
+> >>> + =C2=A0 =C2=A0 =C2=A0 },
+> >>> +};
+> >> [...]
+> >> What voltages can this MMC controller provide? That's a rather unu=
+sual OCR mask.
+> > Not really sure, I wasn't the one who first came up with that mask.
+> > All I know is that it seems to work, and not just for my device, bu=
+t
+> > lots of other HTC OMAP850 devices we've tried it on too.
+> >
+> > I'm interested though, what in particular makes it unusual?
+>=20
+> It specifies, that device supports voltage ranges:
+> 2.8V - 2.9V, 3.0V - 3.1V, 3.2V - 3.4V
+> (so: 2.9V - 3.0V and 3.1V - 3.2V are not available).
+> Are there really 2.8V, 3.0V, 3.3V VDDs settable?
+>=20
+> If the host supports only VDD =3D 3.3V for example, then correct OCR
+> mask would be: MMC_VDD_32_33 | MMC_VDD_33_34 (or just one flag).
 
-> On Fri, 24 Sep 2010, Kevin Hilman wrote:
->
->> >> So, what is the "right" thing to do here?
->> >
->> > You should call pm_runtime_get(), turn off the interrupt source, and
->> > return.  Then your resume routine should check for an outstanding
->> > interrupt or wakeup request and handle it (the easiest way may be 
->> > simply to call the ISR).
->> 
->> For a "normal" device driver, your solution makes complete sense.  The
->> only catch is that it introduces potentically significant latency in the
->> interrupt handling and it requires the interrupt source to be masked,
->> potentially loosing other interrupts, while waiting for the runtime PM
->> workqueue to schedule.  For chained handlers in particular, this means
->> that *all* interrupts managed by the chained handler would be masked for
->> this additional time.  Not good.
->
-> Masking an interrupt source doesn't cause any interrupts to be lost, if 
-> you mask it at a time when you couldn't handle the interrupts anyway.
+Looks like also board-sx1-mmc.c and board-h[23]-mmc.c have the
+same spotty voltage range.
 
-Sure, but the "mask in ISR, handle in ->runtime_resume()" proposal
-would keeping them masked while we actually could be handling them.
+Cory, care to do a patch that fixes it for all of them?
 
-Even in our current GPIO code, we have a tiny (but bounded) window where
-we might miss an edge-triggered GPIO interrupt while we're still
-detecting the previous one.  However, this is a very small window in an
-interrupts-disabled chained handler.  
+Regards,
 
->> The problematic device for me as an on-chip GPIO controller, and the ISR
->> in question is a chained handler (run with interrupts disabled) which
->> does the GPIO demux and then dispatches to the actual ISR.  Following the
->> above approach means that all GPIO interrupts (in that bank) would be
->> masked until ->runtime_resume() is called.  For a GPIO bank with
->> multiple edge-triggered IRQs, masked IRQs for that amount of time could
->> mean several missed interrupts while waiting.
->
-> Wait a minute, you're confusing me.  I take it that the GPIO controller
-> is the device being runtime suspended, right?  
-
-Right.
-
-> And you said that while it is suspended you can't access its
-> registers.  So then how can you mask it?
-
-The interrupt to be masked would be the main GPIO bank IRQ (for the
-chained handler) and it would be masked at the IRQ controller, which
-is not (yet) suspended.
-
-> Do you mean that you have to mask the entire IRQ line because there's
-> no way to turn off the interrupt-request source in the GPIO controller?  
-
-Right. Because in order to determine the exact interrupt source, you
-have to access the GPIO controller registers and figure out which GPIO
-in the GPIO bank was the source.  And then, the only way to turn off the
-source is to know which device is connected to that IRQ, and disable it
-via the driver for that device (e.g. network driver using a GPIO IRQ.)
-
-IOW, When the bank IRQ fires, all we know is that (at least) one of the 32
-GPIOs in the GPIO bank has an interrupt pending.  In order to determine
-which one it was, we have to read GPIO controller registers, but we
-can't do that until ->runtime_resume().  In order for the bank IRQ not
-to continually re-fire, it would have to be kept masked until
-the ISR is triggered from ->runtime_resume().
-
-> That's different from what you wrote above.
-
-Right, I should have said the GPIO bank IRQ needs to be masked instead
-of all GPIOs in the bank need to be masked.
-
->>  Hoever, this isn't a
->> major concern as we don't (currently) have IRQF_DISABLED handlers hooked
->> up to GPIO IRQs (that I know of.)
->
-> Isn't IRQF_DISABLED on its way out, anyway?
-
-Yes, that's why it's not really a concern.
-
->> It may seem like I'm trying to fight the design, but I'm actually trying
->> to find ways to use it.  I want to use the API (and we're using it
->> successfully in most of our drivers now.)  The problem is only in a few
->> of these corner cases where using it introduces significant changes from
->> previous behavior like introducing long, unbounded windows for missed
->> interrupts.
->
-> Assuming the problem of missed interrupts didn't exist, would you still 
-> be unhappy about the latency issue?
-
-Yes.
-
-> In the general case there's no way to avoid it.  Even though a device
-> like your GPIO controller may be able to return to full power very
-> quickly, the fact that it was suspended may have led the PM core to
-> suspend its parent as well.  And the parent may be slow to resume,
-> requiring a full process context.
-
-In the general case, I agree.
-
-> It seems as though what you really need is a way to tell the PM core 
-> that your device can change its power state quickly with no need for a 
-> process context.  Given that, pm_runtime_get() could invoke your 
-> runtime_resume callback directly; you wouldn't have to wait for the 
-> workqueue.  (Unless your device had a suspended parent that _did_ need 
-> a long time to resume.)
->
-> Would that solve your problem?  It seems like a reasonable sort of 
-> feature to add.
-
-Yes, that would definitely solve the problem, and is basically the
-hack/workaround I'm using locally:
-
-  pm_runtime_get_noresume()
-  dev->pm->runtime_resume()
-  /* handle IRQ */
-  pm_runtime_put();
-
-because I know this on-chip device is 1) already suspended, 2) has no
-runtime PM capable parents and 3) not runtime_resume'd elsewhere.
-
-Kevin
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
