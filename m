@@ -1,42 +1,81 @@
-From: "Lopez Cruz, Misael" <misael.lopez@ti.com>
-Subject: RE: [PATCH 2/2] omap: zoom: Move new code introduced by ASoC m-c to
- board-zoom-peripherals
-Date: Fri, 24 Sep 2010 11:31:46 -0500
-Message-ID: <C9D59C82B94F474B872F2092A87F26141272FF6109@dlee07.ent.ti.com>
-References: <1285258314-23721-1-git-send-email-jhnikula@gmail.com>
- <1285258314-23721-2-git-send-email-jhnikula@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 2/3] OMAP4: PM: Declare idle modules as functional too
+Date: Fri, 24 Sep 2010 10:40:14 -0600
+Message-ID: <20100924164012.19418.32263.stgit@twilight.localdomain>
+References: <20100924163936.19418.47065.stgit@twilight.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37666 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756853Ab0IXQb7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:31:59 -0400
-In-Reply-To: <1285258314-23721-2-git-send-email-jhnikula@gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:56383 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933042Ab0IXQlV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:41:21 -0400
+In-Reply-To: <20100924163936.19418.47065.stgit@twilight.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Candelaria Villarreal, Jorge" <jorge.candelaria@ti.com>, Tony Lindgren <tony@atomide.com>, "Lopez Cruz, Misael" <misael.lopez@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Partha Basak <p-basak2@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Hi Jarkko,
+From: Rajendra Nayak <rnayak@ti.com>
 
-> ASoC Multi-Component Support moves some code from sound/soc/omap/zoom2.c
-> into
-> arch/arm/mach-omap2/board-zoom2.c. However, that code should go to
-> board-zoom-peripherals.c instead as there is common code and registration
-> for zoom boards.
-> 
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> Cc: Vikram Pandita <vikram.pandita@ti.com>
-> Cc: Lopez Cruz, Misael <x0052729@ti.com>
-> Cc: Jorge Eduardo Candelaria <jorge.candelaria@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
-> I don't have this HW so not tested.
-Tested on zoom2 using the 2 patches of your series, compilation break is
-gone and audio works fine.
+The omap4_cm_wait_module_ready function would only check for
+the modules to be completely functional before declaring them
+ready to be accessed.
+There might also be instances where in the module is actually
+in idle (under h/w control) but should still be declared
+accessible, as the h/w control would make it functional when
+needed.
 
-Thanks,
--Misael
+Hence make omap4_cm_wait_module_ready return true in case
+the module is fully functional *or* in idle state.
+Fail only if the module is fully disabled or stuck intransition.
+
+The explaination from the TRM for the idlest bits on OMAP4 is as
+below for quick reference
+
+Module idle state:
+0x0 func:     Module is fully functional, including OCP
+0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
+              abortion
+0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
+              using separate functional clock
+0x3 disabled: Module is disabled and cannot be accessed
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Partha Basak <p-basak2@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/cm4xxx.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cm4xxx.c b/arch/arm/mach-omap2/cm4xxx.c
+index b101091..f8a660a 100644
+--- a/arch/arm/mach-omap2/cm4xxx.c
++++ b/arch/arm/mach-omap2/cm4xxx.c
+@@ -43,7 +43,6 @@
+  *                 using separate functional clock
+  *   0x3 disabled: Module is disabled and cannot be accessed
+  *
+- * TODO: Need to handle module accessible in idle state
+  */
+ int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
+ {
+@@ -52,9 +51,11 @@ int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
+ 	if (!clkctrl_reg)
+ 		return 0;
+ 
+-	omap_test_timeout(((__raw_readl(clkctrl_reg) &
+-			    OMAP4430_IDLEST_MASK) == 0),
+-			  MAX_MODULE_READY_TIME, i);
++	omap_test_timeout((
++		((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) == 0) ||
++		 (((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) >>
++		  OMAP4430_IDLEST_SHIFT) == 0x2)),
++		MAX_MODULE_READY_TIME, i);
+ 
+ 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+ }
+
+
