@@ -1,75 +1,49 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] OMAP4: PM: Declare idle modules as functional too
-Date: Fri, 24 Sep 2010 12:40:48 +0530
-Message-ID: <1285312248-15734-1-git-send-email-rnayak@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59017 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751963Ab0IXHK7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Sep 2010 03:10:59 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 5/9 v3] usb: musb: Using omap_device_build for musb
+ device registration
+Date: Fri, 24 Sep 2010 10:25:05 +0300
+Message-ID: <20100924072505.GD8365@legolas.emea.dhcp.ti.com>
+References: <1285201750-26438-1-git-send-email-hemahk@ti.com>
+ <20100923062044.GB2563@legolas.emea.dhcp.ti.com>
+ <87bp7o5vru.fsf@deeprootsystems.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <87bp7o5vru.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-The omap4_cm_wait_module_ready function would only check for
-the modules to be completely functional before declaring them
-ready to be accessed.
-There might also be instances where in the module is actually
-in idle (under h/w control) but should still be declared
-accessible, as the h/w control would make it functional when
-needed.
+Hi,
 
-Hence make omap4_cm_wait_module_ready return true in case
-the module is fully functional *or* in idle state.
-Fail only if the module is fully disabled or stuck intransition.
+On Thu, Sep 23, 2010 at 10:23:17AM -0500, Kevin Hilman wrote:
+>> could the omap_hwmod_lookup() part be moved to omap_device_build ? Or
+>> maybe create a omap_hwmod_lookup_and_build(oh_name, dev_name, bus_id,
+>> pdata, sizeof(*pdata)) ??
+>
+>I don't think that this is too much extra work.
+>
+>Also, many drivers are not doing a single hwmod lookup, they are using
+>an iterator to iterate over a bunch of hwmods in a given class (c.f.
+>omap_hwmod_for_each_by_class)
+>
+>So, IMO, keeping the lookup and build separate is better.
+>
+>> I think this is also a duplication, it's gonna on all hwmod device
+>> registration, no ?
+>
+>Only for devices setting DMA masks.
+>
+>This is no more duplication than we have today for all platform_devices.
 
-The explaination from the TRM for the idlest bits on OMAP4 is as
-below for quick reference
+ok, agreed.
 
-Module idle state:
-0x0 func:     Module is fully functional, including OCP
-0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
-              abortion
-0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
-              using separate functional clock
-0x3 disabled: Module is disabled and cannot be accessed
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Partha Basak <p-basak2@ti.com>
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/cm4xxx.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cm4xxx.c b/arch/arm/mach-omap2/cm4xxx.c
-index b101091..f8a660a 100644
---- a/arch/arm/mach-omap2/cm4xxx.c
-+++ b/arch/arm/mach-omap2/cm4xxx.c
-@@ -43,7 +43,6 @@
-  *                 using separate functional clock
-  *   0x3 disabled: Module is disabled and cannot be accessed
-  *
-- * TODO: Need to handle module accessible in idle state
-  */
- int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
- {
-@@ -52,9 +51,11 @@ int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg)
- 	if (!clkctrl_reg)
- 		return 0;
- 
--	omap_test_timeout(((__raw_readl(clkctrl_reg) &
--			    OMAP4430_IDLEST_MASK) == 0),
--			  MAX_MODULE_READY_TIME, i);
-+	omap_test_timeout((
-+		((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) == 0) ||
-+		 (((__raw_readl(clkctrl_reg) & OMAP4430_IDLEST_MASK) >>
-+		  OMAP4430_IDLEST_SHIFT) == 0x2)),
-+		MAX_MODULE_READY_TIME, i);
- 
- 	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
- }
 -- 
-1.7.0.4
-
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
