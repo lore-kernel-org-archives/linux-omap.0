@@ -1,49 +1,39 @@
-From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH] staging: tidspbridge: disable all peripherals at bridge_brd_stop
-Date: Fri, 24 Sep 2010 16:02:03 -0500
-Message-ID: <1285362123-31323-1-git-send-email-ernesto@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3] omap: beagle: add support for wl1271 on the board
+ file
+Date: Fri, 24 Sep 2010 14:08:33 -0700
+Message-ID: <20100924210833.GJ4211@atomide.com>
+References: <1285236215-21136-1-git-send-email-luciano.coelho@nokia.com>
+ <20100924180316.GE8077@tuxdriver.com>
+ <1285354249.9779.3.camel@powerslave>
+ <20100924191139.GI4211@atomide.com>
+ <AANLkTimixgHuhKYRP9X17V+z20T70Pn0vJJEsO_HgXQ4@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51520 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750816Ab0IXUzp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Sep 2010 16:55:45 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63035 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755170Ab0IXVIg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 17:08:36 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTimixgHuhKYRP9X17V+z20T70Pn0vJJEsO_HgXQ4@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: gregkh@suse.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: ameya.palande@nokia.com, felipe.contreras@gmail.com, andy.shevchenko@gmail.com, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: Luciano Coelho <luciano.coelho@nokia.com>, "ext John W. Linville" <linville@tuxdriver.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ido Yariv <ido@wizery.com>, Ohad Ben-Cohen <ohad@wizery.com>
 
-DSP Bridge needs to disable the peripheral clocks when switches to
-BRD_STOPPED since that would prevent the domain to enter in OFF state.
+* Gadiyar, Anand <gadiyar@ti.com> [100924 12:13]:
+> On Sat, Sep 25, 2010 at 12:41 AM, Tony Lindgren <tony@atomide.com> wrote:
+> 
+> This seems to be a generic problem that many boards with potential for
+> adding expansion boards seem to have. How about one of these options:
+> (a) having u-boot modify ATAGS_REVISION based on an environment variable
+> or
+> (b) add a generic board_revision kernel command line parameter that
+> each such board file can parse
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/staging/tidspbridge/core/tiomap3430.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+There is already system_rev that can be used for that and has an
+ARM generic atag for it. Just needs to be passed from u-boot,
+and should have setenv option for it in u-boot also.
 
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index 0e3558a..8b73ac9 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -552,7 +552,7 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 	int status = 0;
- 	struct bridge_dev_context *dev_context = dev_ctxt;
- 	u32 dsp_pwr_state;
--	int clk_status, i;
-+	int i;
- 	struct bridge_ioctl_extproc *tlb = dev_context->atlb_entry;
- 	struct dspbridge_platform_data *pdata =
- 				omap_dspbridge_dev->dev.platform_data;
-@@ -621,7 +621,8 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 	(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2_MASK,
- 		OMAP3430_RST2_IVA2_MASK, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
- 
--	clk_status = dsp_clk_disable(DSP_CLK_IVA2);
-+	dsp_clock_disable_all(dev_context->dsp_per_clks);
-+	dsp_clk_disable(DSP_CLK_IVA2);
- 
- 	return status;
- }
--- 
-1.5.4.5
-
+Tony
