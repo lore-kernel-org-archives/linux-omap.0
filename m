@@ -1,79 +1,51 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 00/14] omap sram, omap4 control module and es2.0 support
-Date: Fri, 24 Sep 2010 12:12:21 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02CD469D24@dbde02.ent.ti.com>
-References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
- <alpine.DEB.2.00.1009171147560.6562@utopia.booyaka.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02CD307F35@dbde02.ent.ti.com>
- <20100924011323.GC4211@atomide.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera interface
+Date: Fri, 24 Sep 2010 08:54:20 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1009240853080.14966@axis700.grange>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+ <201009110334.03905.jkrzyszt@tis.icnet.pl> <20100923232309.GV4211@atomide.com>
+ <201009240144.47422.jkrzyszt@tis.icnet.pl> <20100923235444.GX4211@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40628 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752298Ab0IXGmd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 02:42:33 -0400
-In-Reply-To: <20100924011323.GC4211@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20100923235444.GX4211@atomide.com>
+Sender: linux-media-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+List-Id: linux-omap@vger.kernel.org
 
-Tony,
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, September 24, 2010 6:43 AM
-> To: Shilimkar, Santosh
-> Cc: Paul Walmsley; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH 00/14] omap sram, omap4 control module and es2.0
-> support
-> 
+On Thu, 23 Sep 2010, Tony Lindgren wrote:
 
-<snip..>
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100923 16:37]:
+> > Friday 24 September 2010 01:23:10 Tony Lindgren napisa=C5=82(a):
+> > >
+> > > I think you can just move the OMAP1_CAMERA_IOSIZE to the devices.=
+c or
+> > > someplace like that?
+> >=20
+> > Tony,
+> > Not exactly. I use the OMAP1_CAMERA_IOSIZE inside the driver when r=
+eserving=20
+> > space for register cache.
+> >=20
+> > I think that I could just duplicate its definition in the devices.c=
+ for now,=20
+> > than clean things up with a folloup patch when both parts already g=
+et merged.=20
+> > Would this be acceptable?
+>=20
+> Yeah, that sounds good to me.
 
-> Santosh, the "Setup MT_MEMORY and MT_MEMORY_NONCACHED L1 entries" should
-> get tested in the arm tree to avoid nasty surprises. Please do the
-> following
-> split:
-> 
-> 1. A series for Russell to pull
-> ARM: mmu: Setup MT_MEMORY and MT_MEMORY_NONCACHED L1 entries
-> omap: Map only available sram memory
-> davinci: map sram using MT_MEMORY_NONCACHED instead of MT_DEVICE
-> 
-> You can add my Acked-by: Tony Lindgren <tony@atomide.com> to
-> the "Map only available sram memory" patch.
-Have submitted above three patches to RMK's patch system with
-your ack on the mentioned patch
-	-	patch 6407/1
-	-	patch 6408/1
-	-	patch 6409/1
-They are also available at:
-git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git
-omap_for_2.6.37-rmk
+=2E..better yet put a zero-length cache array at the end of your struct=
+=20
+omap1_cam_dev and allocate it dynamically, calculated from the resource=
+=20
+size.
 
-> 
-> 2. A series for me to pull
-> omap4: sram: Fix start address
-> omap4: Update id.c and cpu.h for es2.0
-> omap4: l2x0: Fix init parameter for es2.0
-> omap4: Panda: Add DEBUG_LL support
-> omap4: Fix bootup crash observed with higher CPU clocks
->
-The pull request is sent to you with patches rebased on
-v2.6.36-rc5
- 
-> 3. A series for Paul to pull (already in omap4_scm_2.6.37)
-> omap4: control: Add ctrl_pad_base to omap_globals
-> omap4: control: Add accessor api's for pad control module
-> omap4: control: Add the register definition headers
-> omap4: control: Fix the control module register accesses
-> 
-This series is already available. I just rebased on 
-v2.6.36-rc5 as you suggested.
-
-Regards,
-Santosh
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+=46reelance Open-Source Software Developer
+http://www.open-technology.de/
