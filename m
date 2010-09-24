@@ -1,49 +1,58 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 5/9 v3] usb: musb: Using omap_device_build for musb
- device registration
-Date: Fri, 24 Sep 2010 10:25:05 +0300
-Message-ID: <20100924072505.GD8365@legolas.emea.dhcp.ti.com>
-References: <1285201750-26438-1-git-send-email-hemahk@ti.com>
- <20100923062044.GB2563@legolas.emea.dhcp.ti.com>
- <87bp7o5vru.fsf@deeprootsystems.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP4: PM: Declare idle modules as functional too
+Date: Fri, 24 Sep 2010 01:28:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009240123420.10678@utopia.booyaka.com>
+References: <1285312248-15734-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87bp7o5vru.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-171366562-1285313286=:10678"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:55071 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753429Ab0IXH2H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 03:28:07 -0400
+In-Reply-To: <1285312248-15734-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, Partha Basak <p-basak2@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Thu, Sep 23, 2010 at 10:23:17AM -0500, Kevin Hilman wrote:
->> could the omap_hwmod_lookup() part be moved to omap_device_build ? Or
->> maybe create a omap_hwmod_lookup_and_build(oh_name, dev_name, bus_id,
->> pdata, sizeof(*pdata)) ??
->
->I don't think that this is too much extra work.
->
->Also, many drivers are not doing a single hwmod lookup, they are using
->an iterator to iterate over a bunch of hwmods in a given class (c.f.
->omap_hwmod_for_each_by_class)
->
->So, IMO, keeping the lookup and build separate is better.
->
->> I think this is also a duplication, it's gonna on all hwmod device
->> registration, no ?
->
->Only for devices setting DMA masks.
->
->This is no more duplication than we have today for all platform_devices.
+--155748971-171366562-1285313286=:10678
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-ok, agreed.
+Hi Rajendra, Partha, Beno=EEt,
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, 24 Sep 2010, Rajendra Nayak wrote:
+
+> The omap4_cm_wait_module_ready function would only check for
+> the modules to be completely functional before declaring them
+> ready to be accessed.
+> There might also be instances where in the module is actually
+> in idle (under h/w control) but should still be declared
+> accessible, as the h/w control would make it functional when
+> needed.
+>=20
+> Hence make omap4_cm_wait_module_ready return true in case
+> the module is fully functional *or* in idle state.
+> Fail only if the module is fully disabled or stuck intransition.
+>=20
+> The explaination from the TRM for the idlest bits on OMAP4 is as
+> below for quick reference
+>=20
+> Module idle state:
+> 0x0 func:     Module is fully functional, including OCP
+> 0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
+>               abortion
+> 0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
+>               using separate functional clock
+
+Thanks for the detailed changelog.  Do we need to check any other=20
+registers to ensure that the OCP port is in autoidle, or to ensure that=20
+the separate functional clock is active?
+
+
+- Paul
+--155748971-171366562-1285313286=:10678--
