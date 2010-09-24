@@ -1,63 +1,88 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
-Date: Fri, 24 Sep 2010 20:47:12 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
-References: <20100924014938.10325.35279.stgit@baageli.muru.com>
-	<20100924015056.10325.95854.stgit@baageli.muru.com>
- <AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: Query on clock naming conventions in clockxxxx_data.c
+Date: Fri, 24 Sep 2010 20:49:23 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EEBFA@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34931 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:52301 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754213Ab0IXPRU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:17:20 -0400
-In-Reply-To: <AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+	id S1754181Ab0IXPT2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:19:28 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8OFJPKt018161
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 10:19:27 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o8OFJODT014013
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 20:49:25 +0530 (IST)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Marathe, Yogesh" <yogesh_marathe@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+
+Archit,
 
 > -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
-> Sent: Friday, September 24, 2010 3:31 PM
-> To: Tony Lindgren
-> Cc: linux-arm-kernel@lists.infradead.org; 
-> linux-omap@vger.kernel.org; Premi, Sanjeev; Marathe, Yogesh
-> Subject: Re: [PATCH 05/11] omap3: Remove non-existent config option
+> From: Taneja, Archit
+> Sent: Friday, September 24, 2010 6:11 PM
+> To: Nayak, Rajendra
+> Cc: linux-omap@vger.kernel.org; Guruswamy, Senthilvadivu
+> Subject: Query on clock naming conventions in clockxxxx_data.c
 > 
-> On Fri, Sep 24, 2010 at 4:50 AM, Tony Lindgren 
-> <tony@atomide.com> wrote:
-> > From: Yogesh Marathe <yogesh_marathe@ti.com>
-> >
-> > The definition of "iva2" device in iommu_device
-> > is wrapped inside CONFIG_MPU_BRIDGE_IOMMU, but
-> > this option is not defined in KConfig.
-> >
-> > This patch removes the wrapper and makes "iva2"
-> > available as another iommu_device.
+> Hi,
 > 
-> NAK.
+> I had a couple of queries regarding the clock structures in the clockxxxx_data.c files:
 > 
-> This would break tidspbridge's MMU. This was discussed before:
-> http://thread.gmane.org/gmane.linux.ports.arm.kernel/58302/focus=58305
+> -I have seen that the name of the structure itself explains the name of the clock as
+> given in the TRM.
+> -The member "name" also tries to mimic the clock name.
 > 
-> When tidspbridge has migrated to iommu, then it should define
-> CONFIG_MPU_BRIDGE_IOMMU.
+> The drivers get the clock struct using the "name" member in the clk_get() api. Is it
+> okay if we can change the "name" member to a more generic string. So that the
+> driver
+> code stays more generic?
+> 
+> For example, the SYS_CLK which comes into DSS is called "dss2_alwon_fck" on
+> omap3 and
+> "dss_sys_clk" on omap4. This will make our driver need to have cpu_is_omap checks
+> while
+> calling clk_get().
 
-Felipe,
+The right way to use the clk_get api is by passing the dev pointer to identify the device
+and a generic identifier like fck or ick to identify the type/functionality of the clock.
+Its not advisable to hardcode clock names, the very reason being that it gets difficult to
+maintain clock node names across processor families and eventually you end up with
+cpu_is_* checks.
 
-  Can you go through earlier discussion on this patch
-  http://marc.info/?l=linux-omap&m=127979007623260&w=2
+Doing this however requires the clkdev tables to be updated with the mapping of device 
+names and generic clock identifiers to the actual clock node.
 
-  I believe these concerns were discussed. I am unable to
-  open the gmane thread (getting 504) - so can't be sure
-  if Hiroshi had referred to same discussion.
+So if you today have something like
+if (cpu_is_omap34xx())
+	clk_get(NULL, " dss2_alwon_fck");
+else
+	clk_get(NULL, " dss_sys_clk");
 
-~sanjeev
+It can very easily be replaced with a 
+clk_get(dev, "fck");
+
+with the clkdev table entry for omap3 like
+CLK("dss-omap","fck", &dss2_alwon_fck...
+and the clkdev table entry for omap4 having something like
+CLK("dss-omap","fck", & dss_sys_clk...
+
+Now, however since all drivers are using pm_runtime api's which hide the clk control from drivers, this might not have be needed anyway.
+
+Regards,
+Rajendra
+
 > 
-> -- 
-> Felipe Contreras
+> Thanks,
 > 
+> Archit
+
