@@ -1,162 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/11] omap: crypto: updates to enable omap aes
-Date: Thu, 23 Sep 2010 18:51:02 -0700
-Message-ID: <20100924015102.10325.51712.stgit@baageli.muru.com>
+Subject: [PATCH 09/11] omap: McBSP: Do not enable SRG in slave mode
+Date: Thu, 23 Sep 2010 18:51:07 -0700
+Message-ID: <20100924015107.10325.41789.stgit@baageli.muru.com>
 References: <20100924014938.10325.35279.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49887 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756539Ab0IXBvC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 21:51:02 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57763 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756539Ab0IXBvH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 21:51:07 -0400
 In-Reply-To: <20100924014938.10325.35279.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>, linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-From: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-Updates to enable omap aes
+McBSP SRG (Sample Rate Generator) and FSG (Frame Sync
+Generator) is only needed to be enabled, when McBSP
+is master.
+In McBSP slave mode, the SRG, and FSG can be kept disabled,
+which might save some power at the end in this configuration.
 
-Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@nokia.com>
-[tony@atomide.com: updated to use CONFIG_ARCH_OMAP2/3 instead of old 24XX/34XX]
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock2420_data.c |    2 -
- arch/arm/mach-omap2/clock2430_data.c |    2 -
- arch/arm/mach-omap2/clock3xxx_data.c |    2 -
- arch/arm/mach-omap2/devices.c        |   71 ++++++++++++++++++++++++++++++++++
- 4 files changed, 74 insertions(+), 3 deletions(-)
+ arch/arm/plat-omap/mcbsp.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-index 37d65d6..5f2066a 100644
---- a/arch/arm/mach-omap2/clock2420_data.c
-+++ b/arch/arm/mach-omap2/clock2420_data.c
-@@ -1838,7 +1838,7 @@ static struct omap_clk omap2420_clks[] = {
- 	CLK(NULL,	"des_ick",	&des_ick,	CK_242X),
- 	CLK("omap-sham",	"ick",	&sha_ick,	CK_242X),
- 	CLK("omap_rng",	"ick",		&rng_ick,	CK_242X),
--	CLK(NULL,	"aes_ick",	&aes_ick,	CK_242X),
-+	CLK("omap-aes",	"ick",	&aes_ick,	CK_242X),
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_242X),
- 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_242X),
- 	CLK("musb_hdrc",	"fck",	&osc_ck,	CK_242X),
-diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-index b33118f..701a171 100644
---- a/arch/arm/mach-omap2/clock2430_data.c
-+++ b/arch/arm/mach-omap2/clock2430_data.c
-@@ -1926,7 +1926,7 @@ static struct omap_clk omap2430_clks[] = {
- 	CLK(NULL,	"des_ick",	&des_ick,	CK_243X),
- 	CLK("omap-sham",	"ick",	&sha_ick,	CK_243X),
- 	CLK("omap_rng",	"ick",		&rng_ick,	CK_243X),
--	CLK(NULL,	"aes_ick",	&aes_ick,	CK_243X),
-+	CLK("omap-aes",	"ick",	&aes_ick,	CK_243X),
- 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X),
- 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_243X),
- 	CLK("musb_hdrc",	"ick",	&usbhs_ick,	CK_243X),
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index dfdce2d..c73906d 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3288,7 +3288,7 @@ static struct omap_clk omap3xxx_clks[] = {
- 	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2 | CK_AM35XX),
- 	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2 | CK_AM35XX),
- 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_343X),
--	CLK(NULL,	"aes2_ick",	&aes2_ick,	CK_343X),
-+	CLK("omap-aes",	"ick",	&aes2_ick,	CK_343X),
- 	CLK("omap-sham",	"ick",	&sha12_ick,	CK_343X),
- 	CLK(NULL,	"des2_ick",	&des2_ick,	CK_343X),
- 	CLK("mmci-omap-hs.1",	"ick",	&mmchs2_ick,	CK_3XXX),
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 2dbb265..dc49c07 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -498,6 +498,76 @@ static void omap_init_sham(void)
- static inline void omap_init_sham(void) { }
- #endif
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index e31496e..ecbfe39 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -878,7 +878,7 @@ EXPORT_SYMBOL(omap_mcbsp_free);
+ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ {
+ 	struct omap_mcbsp *mcbsp;
+-	int idle;
++	int enable_srg = 0;
+ 	u16 w;
  
-+#if defined(CONFIG_CRYPTO_DEV_OMAP_AES) || defined(CONFIG_CRYPTO_DEV_OMAP_AES_MODULE)
-+
-+#ifdef CONFIG_ARCH_OMAP2
-+static struct resource omap2_aes_resources[] = {
-+	{
-+		.start	= OMAP24XX_SEC_AES_BASE,
-+		.end	= OMAP24XX_SEC_AES_BASE + 0x4C,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= OMAP24XX_DMA_AES_TX,
-+		.flags	= IORESOURCE_DMA,
-+	},
-+	{
-+		.start	= OMAP24XX_DMA_AES_RX,
-+		.flags	= IORESOURCE_DMA,
-+	}
-+};
-+static int omap2_aes_resources_sz = ARRAY_SIZE(omap2_aes_resources);
-+#else
-+#define omap2_aes_resources		NULL
-+#define omap2_aes_resources_sz		0
-+#endif
-+
-+#ifdef CONFIG_ARCH_OMAP3
-+static struct resource omap3_aes_resources[] = {
-+	{
-+		.start	= OMAP34XX_SEC_AES_BASE,
-+		.end	= OMAP34XX_SEC_AES_BASE + 0x4C,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= OMAP34XX_DMA_AES2_TX,
-+		.flags	= IORESOURCE_DMA,
-+	},
-+	{
-+		.start	= OMAP34XX_DMA_AES2_RX,
-+		.flags	= IORESOURCE_DMA,
-+	}
-+};
-+static int omap3_aes_resources_sz = ARRAY_SIZE(omap3_aes_resources);
-+#else
-+#define omap3_aes_resources		NULL
-+#define omap3_aes_resources_sz		0
-+#endif
-+
-+static struct platform_device aes_device = {
-+	.name		= "omap-aes",
-+	.id		= -1,
-+};
-+
-+static void omap_init_aes(void)
-+{
-+	if (cpu_is_omap24xx()) {
-+		aes_device.resource = omap2_aes_resources;
-+		aes_device.num_resources = omap2_aes_resources_sz;
-+	} else if (cpu_is_omap34xx()) {
-+		aes_device.resource = omap3_aes_resources;
-+		aes_device.num_resources = omap3_aes_resources_sz;
-+	} else {
-+		pr_err("%s: platform not supported\n", __func__);
-+		return;
-+	}
-+	platform_device_register(&aes_device);
-+}
-+
-+#else
-+static inline void omap_init_aes(void) { }
-+#endif
-+
- /*-------------------------------------------------------------------------*/
+ 	if (!omap_mcbsp_check_valid_id(id)) {
+@@ -893,10 +893,13 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ 	mcbsp->rx_word_length = (MCBSP_READ_CACHE(mcbsp, RCR1) >> 5) & 0x7;
+ 	mcbsp->tx_word_length = (MCBSP_READ_CACHE(mcbsp, XCR1) >> 5) & 0x7;
  
- #if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-@@ -854,6 +924,7 @@ static int __init omap2_init_devices(void)
- 	omap_hdq_init();
- 	omap_init_sti();
- 	omap_init_sham();
-+	omap_init_aes();
- 	omap_init_vout();
+-	idle = !((MCBSP_READ_CACHE(mcbsp, SPCR2) |
+-			MCBSP_READ_CACHE(mcbsp, SPCR1)) & 1);
++	/* Only enable SRG, if McBSP is master */
++	w = MCBSP_READ_CACHE(mcbsp, PCR0);
++	if (w & (FSXM | FSRM | CLKXM | CLKRM))
++		enable_srg = !((MCBSP_READ_CACHE(mcbsp, SPCR2) |
++				MCBSP_READ_CACHE(mcbsp, SPCR1)) & 1);
  
- 	return 0;
+-	if (idle) {
++	if (enable_srg) {
+ 		/* Start the sample generator */
+ 		w = MCBSP_READ_CACHE(mcbsp, SPCR2);
+ 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 6));
+@@ -919,7 +922,7 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ 	 */
+ 	udelay(500);
+ 
+-	if (idle) {
++	if (enable_srg) {
+ 		/* Start frame sync */
+ 		w = MCBSP_READ_CACHE(mcbsp, SPCR2);
+ 		MCBSP_WRITE(mcbsp, SPCR2, w | (1 << 7));
 
