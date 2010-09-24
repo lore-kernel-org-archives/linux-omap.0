@@ -1,42 +1,48 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
-Date: Fri, 24 Sep 2010 17:00:38 +0100
-Message-ID: <20100924160038.GD14809@n2100.arm.linux.org.uk>
-References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com> <1282106146-7727-1-git-send-email-darkstar6262@gmail.com> <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com> <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/9 v3] usb: musb: Using omap_device_build for musb device
+ registration
+Date: Fri, 24 Sep 2010 10:01:34 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009240956160.10678@utopia.booyaka.com>
+References: <1285201750-26438-1-git-send-email-hemahk@ti.com> <20100923062044.GB2563@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52845 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603Ab0IXQAu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:00:50 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:46332 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754449Ab0IXQBf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:01:35 -0400
+In-Reply-To: <20100923062044.GB2563@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Kalliguddi, Hema" <hemahk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Fri, Sep 24, 2010 at 08:38:37AM -0700, Cory Maccarrone wrote:
-> Not really sure, I wasn't the one who first came up with that mask.
-> All I know is that it seems to work, and not just for my device, but
-> lots of other HTC OMAP850 devices we've tried it on too.
+Hi Felipe,
+
+On Thu, 23 Sep 2010, Felipe Balbi wrote:
+
+> Paul, Kevin, to me it looks like a duplication that all devices will
+> have to:
 > 
-> I'm interested though, what in particular makes it unusual?
+> oh = omap_hwmod_lookup("my_hwmod_name");
+> omap_device_build("my_device_name", bus_id, oh, pdata, sizeof(*pdata));
+> 
+> could the omap_hwmod_lookup() part be moved to omap_device_build ? Or
+> maybe create a omap_hwmod_lookup_and_build(oh_name, dev_name, bus_id,
+> pdata, sizeof(*pdata)) ??
 
-It's normal to set all bits between the maximum and minimum voltages
-rather than alternate bits.  So if you support voltages between 3.0
-and 3.5 volts, all these should be used:
+... (re dma mask) ...
 
-#define MMC_VDD_30_31           0x00040000      /* VDD voltage 3.0 ~ 3.1 */
-#define MMC_VDD_31_32           0x00080000      /* VDD voltage 3.1 ~ 3.2 */
-#define MMC_VDD_32_33           0x00100000      /* VDD voltage 3.2 ~ 3.3 */
-#define MMC_VDD_33_34           0x00200000      /* VDD voltage 3.3 ~ 3.4 */
-#define MMC_VDD_34_35           0x00400000      /* VDD voltage 3.4 ~ 3.5 */
+> I think this is also a duplication, it's gonna on all hwmod device
+> registration, no ?
 
-rather than just MMC_VDD_30_31, MMC_VDD_32_33, MMC_VDD_34_35.
+Probably at some point in the future, once a larger set of hwmod 
+conversions are done, we can look at the way that most of the integration 
+code initializes.  Ideally, we can combine as much common code together as 
+possible into some data-driven approach.  But right now I think it's a 
+little early to do that, since I personally am not sure what most 
+drivers/devices will need to do in their integration code.  On the other 
+hand, it's not too early to start thinking about it :-)
 
-Note that if you support just one voltage, (eg, 3.3V) you should
-use the two which overlap this - MMC_VDD_32_33 and MMC_VDD_33_34.
-There are cards which go unresponsive if you supply just a single
-bit in the OCR mask.
+
+- Paul
