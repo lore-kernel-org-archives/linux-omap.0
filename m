@@ -1,60 +1,68 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Subject: Re: Sensors and the input layer (was Re: [RFC] [PATCH V2 1/2] input:
- CMA3000 Accelerometer driver)
-Date: Fri, 24 Sep 2010 14:26:01 +0100
-Message-ID: <4C9CA6E9.30707@cam.ac.uk>
-References: <20100830214025.2f9677a1@lxorguk.ukuu.org.uk> <20100830204412.GA28711@core.coreip.homeip.net> <AANLkTims1CagvPZQjTmYrOVi8REeLVbyyt3kEY_tsCtx@mail.gmail.com> <20100830214355.GB28865@core.coreip.homeip.net> <AANLkTinPConD62Ky7mvMn2ZgS=V9+Q5YUdaF5Vma8mn+@mail.gmail.com> <20100830224352.GF28865@core.coreip.homeip.net> <20100831104446.321fd4f4@lxorguk.ukuu.org.uk> <20100831161730.GA30947@core.coreip.homeip.net> <20100831175937.70a59a91@lxorguk.ukuu.org.uk> <20100831170923.GB30947@core.coreip.homeip.net> <20100924130241.GB1810@ucw.cz>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: Query on clock naming conventions in clockxxxx_data.c
+Date: Fri, 24 Sep 2010 08:40:42 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E5F6223DA@dlee03.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ppsw-31.csi.cam.ac.uk ([131.111.8.131]:50063 "EHLO
-	ppsw-31.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456Ab0IXNUs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 09:20:48 -0400
-In-Reply-To: <20100924130241.GB1810@ucw.cz>
+Received: from devils.ext.ti.com ([198.47.26.153]:33414 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334Ab0IXNkm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 09:40:42 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8ODegi6016607
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:40:42 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id o8ODefp7015923
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:40:41 -0500 (CDT)
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o8ODefII001735
+	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:40:41 -0500 (CDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, Felipe Balbi <me@felipebalbi.com>, Hemanth V <hemanthv@ti.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "igor.stoppa@nokia.com" <igor.stoppa@nokia.com>, "kai.svahn@nokia.com" <kai.svahn@nokia.com>, "matthias.nyman@nokia.com" <matthias.nyman@nokia.com>
+To: "Taneja, Archit" <archit@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
 
-On 09/24/10 14:02, Pavel Machek wrote:
-> Hi!
-> 
->>> So a voltmeter really makes no sense. It's not a set of keys and it
->>> doesn't give X/Y/Z style readings. Nor does a camera. But a lot of things
->>> do fit this to varying degrees.
->>>
->>> I'm actually more dubious than Linus about ALS - because ALS tends not
->>> produce 'events' but to be sampled, and there are significant power
->>> implications to unnecessary polling.
-> 
-> That's very similar to analog joysticks, no?
-Yes, but typically much slower. Maybe a couple of times a second at most.
-Some of them do support events.  The original proposal didn't include these
-as no driver at the time supported them. drivers/staging/iio/light/tsl2563.c
-does now though. Given the low rates, we did discuss doing this via select
-on sysfs attributes (driven off underlying hardware interrupts).
-> 
->>> And the more it's used the less special
->>> code is needed in user or kernel space for PDAs and phones - instead they
->>> just work.
->>
->> OK, so let's say we start moving some of the devices into input. Which
->> ones we consider suitable for input? I guess some 3-digit
->> accelerometers, what else? Also, what new event types would we need?
->> Let's take GPS - I do not think that ABS_X and ABS_Y are the best events
->> to be used for such devices: I am trying to allow applications being
-> 
-> I'd not put GPS into input; yes, they do present 'x,y,z' in meters,
-> but that's not what users want. 'lat,lon,alt' is better, but it is
-> actually 'lat,lon,herror,alt,verror,time' and a lot of other
-> metadata...
-> 
-> Also, we already have driver for GPSes, its called gpsd. I'd leave
-> GPSes out of input.
-> 
->> Also, GPS, liek ALS, would probably be polling, no?
-> 
-> Normally, GPS just sends you position info once a second.
+Archit,
 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Taneja, Archit
+> Sent: Friday, September 24, 2010 7:41 AM
+> To: Nayak, Rajendra
+> Cc: linux-omap@vger.kernel.org; Guruswamy, Senthilvadivu
+> Subject: Query on clock naming conventions in clockxxxx_data.c
+> 
+> Hi,
+> 
+> I had a couple of queries regarding the clock structures in the
+> clockxxxx_data.c files:
+> 
+> -I have seen that the name of the structure itself explains the name of
+> the clock as
+> given in the TRM.
+> -The member "name" also tries to mimic the clock name.
+> 
+> The drivers get the clock struct using the "name" member in the clk_get()
+> api. Is it
+> okay if we can change the "name" member to a more generic string. So that
+> the driver
+> code stays more generic?
+> 
+> For example, the SYS_CLK which comes into DSS is called "dss2_alwon_fck"
+> on omap3 and
+> "dss_sys_clk" on omap4. This will make our driver need to have cpu_is_omap
+> checks while
+> calling clk_get().
+> 
+
+I guess migrating to hwmod should resolve the issue you mentioned.
+
+Thank you,
+Best regards,
+Hari
