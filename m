@@ -1,127 +1,69 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-Date: Fri, 24 Sep 2010 17:10:51 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863E252@dbde02.ent.ti.com>
-References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
- <0680EC522D0CC943BC586913CF3768C003C21EEB60@dbde02.ent.ti.com>
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
+Date: Fri, 24 Sep 2010 17:39:03 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863E29B@dbde02.ent.ti.com>
+References: <20100923063604.GE2563@legolas.emea.dhcp.ti.com>
+ <87wrqc4gwd.fsf@deeprootsystems.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863DD4D@dbde02.ent.ti.com>
+ <87fwx02wl5.fsf@deeprootsystems.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863E087@dbde02.ent.ti.com>
+ <20100924084344.GJ8365@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863E0DC@dbde02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863E128@dbde02.ent.ti.com>
+ <20100924105646.GT8365@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863E212@dbde02.ent.ti.com>
+ <20100924110433.GW8365@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55851 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752272Ab0IXLlF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 07:41:05 -0400
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003C21EEB60@dbde02.ent.ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100924110433.GW8365-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Dmitry Torokhov <dtor@mail.ru>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 
- 
+Hi,
+>-----Original Message-----
+>From: Balbi, Felipe 
+>Sent: Friday, September 24, 2010 4:35 PM
+>To: Kalliguddi, Hema
+>Cc: Balbi, Felipe; Kevin Hilman; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
+>linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Basak, Partha; Tony Lindgren; 
+>Cousson, Benoit; Paul Walmsley
+>Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
+>
+>Hi,
+>
+>On Fri, Sep 24, 2010 at 06:00:26AM -0500, Kalliguddi, Hema wrote:
+>>then for now I can think of using set_clok platform function to call
+>>the runtime pm apis, Is there any alternative you are thinking of?
+>
+>how about not pushing a patch which isn't the best way to solve the
+>problem in the first place ? .38 isn't that far away. If we can get all
+>those cleanups by that time, converting to pm_runtime will be a lot
+>simpler and local change.
+>
+>I mean, if we keep as is for another major release cycle, it 
+>won't cause
+>problems to anyone, right ? So it's better to get things right from the
+>beginning and avoid lots of re-work later.
+>
+Agreed that it is better to get the things done in the best way from the beginning.
+This may not be the best solution for converting usb to use runtime pm apis, but given the current mainline
+code, without the cleanup, do not have other alternatives.
+Do you think the other patches are in good shape to merge after fixing the comments
+I got from Kevin and Benoit and you? 
 
-> -----Original Message-----
-> From: Datta, Shubhrajyoti 
-> Sent: Friday, September 24, 2010 5:00 PM
-> To: G, Manjunath Kondaiah; linux-omap@vger.kernel.org
-> Cc: linux-input@vger.kernel.org; Dmitry Torokhov; 
-> linux-arm-kernel@lists.infradead.org; Tony Lindgren
-> Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: linux-input-owner@vger.kernel.org [mailto:linux-input- 
-> > owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
-> > Sent: Tuesday, September 21, 2010 5:20 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: linux-input@vger.kernel.org; Dmitry Torokhov; linux-arm- 
-> > kernel@lists.infradead.org; Tony Lindgren
-> > Subject: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-> > 
-> > The failure exit paths seems to be wrong in probe function.
-> > This patch corrects exit failure paths for error handling cases.
-> > 
-> > Boot warning incase of request irq failure:
-> > 
-> > [    1.553985] twl4030_keypad twl4030_keypad: request_irq 
-> failed for irq
-> > no=369
-> > [    1.561157] ------------[ cut here ]------------
-> > [    1.565795] WARNING: at kernel/irq/manage.c:899 
-> __free_irq+0x88/0x164()
-> > [    1.572418] Trying to free already-free IRQ 369
-> > [    1.576965] Modules linked in:
-> > [    1.580047] [<c00470ec>] (unwind_backtrace+0x0/0xe4) 
-> from [<c0078b5c>]
-> > (warn_slowpath_common+0x4c/0x64)
-> > [    1.589477] [<c0078b5c>] (warn_slowpath_common+0x4c/0x64) from
-> > [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c)
-> > [    1.599060] [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c) from
-> > [<c00adb90>] (__free_irq+0x88/0x164)
-> > [    1.607849] [<c00adb90>] (__free_irq+0x88/0x164) from 
-> [<c00adca8>]
-> > (free_irq+0x3c/0x5c)
-> > [    1.615875] [<c00adca8>] (free_irq+0x3c/0x5c) from [<c043ab2c>]
-> > (twl4030_kp_probe+0x308/0x374)
-> > [    1.624511] [<c043ab2c>] (twl4030_kp_probe+0x308/0x374) from
-> > [<c023c338>] (platform_drv_probe+0x14/0x18)
-> > [    1.634033] [<c023c338>] (platform_drv_probe+0x14/0x18) from
-> > [<c023b4dc>] (driver_probe_device+0xc8/0x184)
-> > [    1.643707] [<c023b4dc>] (driver_probe_device+0xc8/0x184) from
-> > [<c023b600>] (__driver_attach+0x68/0x8c)
-> > [    1.653106] [<c023b600>] (__driver_attach+0x68/0x8c) 
-> from [<c023ad34>]
-> > (bus_for_each_dev+0x48/0x74)
-> > [    1.662170] [<c023ad34>] (bus_for_each_dev+0x48/0x74) 
-> from [<c023a690>]
-> > (bus_add_driver+0x9c/0x210)
-> > [    1.671234] [<c023a690>] (bus_add_driver+0x9c/0x210) 
-> from [<c023b8f8>]
-> > (driver_register+0xa8/0x134)
-> > [    1.680297] [<c023b8f8>] (driver_register+0xa8/0x134) 
-> from [<c0041340>]
-> > (do_one_initcall+0x58/0x1b4)
-> > [    1.689453] [<c0041340>] (do_one_initcall+0x58/0x1b4) 
-> from [<c0008574>]
-> > (kernel_init+0x98/0x150)
-> > [    1.698272] [<c0008574>] (kernel_init+0x98/0x150) from 
-> [<c0042970>]
-> > (kernel_thread_exit+0x0/0x8)
-> > [    1.707214] ---[ end trace 6559b322ad3cbdfe ]---
-> > [    1.718292] twl4030_keypad: probe of twl4030_keypad 
-> failed with error -
-> > 16
-> > 
-> > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> > Cc: linux-input@vger.kernel.org
-> > Cc: Dmitry Torokhov <dtor@mail.ru>
-> > Cc: linux-arm-kernel@lists.infradead.org
-> > Cc: linux-input@vger.kernel.org
-> > Cc: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  version v1 : initial patch
-> >  version v2 : CC'ed input subsystem and arm kernel mailing lists.
-> > 
-> >  drivers/input/keyboard/twl4030_keypad.c |   10 ++++------
-> >  1 files changed, 4 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/input/keyboard/twl4030_keypad.c
-> > b/drivers/input/keyboard/twl4030_keypad.c
-> > index fb16b5e..39a9f30 100644
-> > --- a/drivers/input/keyboard/twl4030_keypad.c
-> > +++ b/drivers/input/keyboard/twl4030_keypad.c
-> > @@ -347,8 +347,7 @@ static int __devinit twl4030_kp_probe(struct 
-> > platform_device *pdev)
-> >  	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
-> >  	input = input_allocate_device();
-> >  	if (!kp || !input) {
-> > -		error = -ENOMEM;
-> > -		goto err1;
-> Wont you leak memory here ?
+Kevin,
 
-Already catpured this comment and dmitry has posted alternate patch at:
-http://www.spinics.net/lists/arm-kernel/msg99053.html
+Do you have any other comments on the hwmod patches other than runtime pm patch and offmode patch?
+Do you accept the hwmod patches without the runtime pm conversion?
 
--Manjunath
+>-- 
+>balbi
+>--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
