@@ -1,74 +1,63 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] runtime_pm_get_sync() from ISR with IRQs disabled?
-Date: Fri, 24 Sep 2010 11:13:21 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1009241104540.1744-100000@iolanthe.rowland.org>
-References: <8762xwnh00.fsf@deeprootsystems.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Fri, 24 Sep 2010 20:47:12 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
+References: <20100924014938.10325.35279.stgit@baageli.muru.com>
+	<20100924015056.10325.95854.stgit@baageli.muru.com>
+ <AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:57439 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754181Ab0IXPNW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:13:22 -0400
-In-Reply-To: <8762xwnh00.fsf@deeprootsystems.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34931 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754213Ab0IXPRU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:17:20 -0400
+In-Reply-To: <AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-pm@lists.linux-foundation.org, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Marathe, Yogesh" <yogesh_marathe@ti.com>
 
-On Thu, 23 Sep 2010, Kevin Hilman wrote:
-
-> Hello,
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
+> Sent: Friday, September 24, 2010 3:31 PM
+> To: Tony Lindgren
+> Cc: linux-arm-kernel@lists.infradead.org; 
+> linux-omap@vger.kernel.org; Premi, Sanjeev; Marathe, Yogesh
+> Subject: Re: [PATCH 05/11] omap3: Remove non-existent config option
 > 
-> Looking for advice for a little runtime PM dilemma...
+> On Fri, Sep 24, 2010 at 4:50 AM, Tony Lindgren 
+> <tony@atomide.com> wrote:
+> > From: Yogesh Marathe <yogesh_marathe@ti.com>
+> >
+> > The definition of "iva2" device in iommu_device
+> > is wrapped inside CONFIG_MPU_BRIDGE_IOMMU, but
+> > this option is not defined in KConfig.
+> >
+> > This patch removes the wrapper and makes "iva2"
+> > available as another iommu_device.
 > 
-> After some inactivity, a driver decides to supend iteslf using
-> pm_runtime_put_sync().
+> NAK.
 > 
-> The device is now suspended, it's ->runtime_suspend() method has
-> disabled its clock, so its registers cannot be accessed anymore.
+> This would break tidspbridge's MMU. This was discussed before:
+> http://thread.gmane.org/gmane.linux.ports.arm.kernel/58302/focus=58305
 > 
-> Now, as interrupts are still enabled, an interrupt for this device might
-> still arrive.  For example, if this device is a wakeup source, its
-> ->runtime_suspend() method may not have masked its interrupt.
+> When tidspbridge has migrated to iommu, then it should define
+> CONFIG_MPU_BRIDGE_IOMMU.
 
-Right.
+Felipe,
 
-> So, the IRQ fires, and the drivers ISR is called.  The driver wants to
-> access the device registers, but since it has been runtime suspended,
-> it's registers are not available.
+  Can you go through earlier discussion on this patch
+  http://marc.info/?l=linux-omap&m=127979007623260&w=2
+
+  I believe these concerns were discussed. I am unable to
+  open the gmane thread (getting 504) - so can't be sure
+  if Hiroshi had referred to same discussion.
+
+~sanjeev
 > 
-> The first reflex would be to simply do a pm_runtime_get_sync() in the
-> ISR, however this is not safe if the ISR is an IRQs-disabled handler (as
-> is the case for me, where the problematic handler is chained handler
-> used for demuxing GPIO IRQs.)
-
-An ISR shouldn't call pm_runtime_get_sync() in any case.
-
-> So, what is the "right" thing to do here?
-
-You should call pm_runtime_get(), turn off the interrupt source, and
-return.  Then your resume routine should check for an outstanding
-interrupt or wakeup request and handle it (the easiest way may be 
-simply to call the ISR).
-
-> A quick hack would be to for the drivers ISR to do a
-> pm_runtime_get_noresume() and directly call the its ->runtime_resume()
-> method, then do its normal stuff, followed by a pm_runtime_put() at the
-> end of the ISR.
+> -- 
+> Felipe Contreras
 > 
-> Is this an acceptable hack given that it's only needed for the
-> increasingly rare cases of ISRs with interrupts disabled?
-> 
-> Or should we think of making a version of _get_sync() that is safe for
-> IRQs disabled contexts like this where we know the device is already
-> RPM_SUSPENDED?
-> 
-> Any advice appreciated...
-
-You're trying to fight the runtime-PM design instead of using it as it 
-was intended.  We already have an API for starting a resume from 
-interrupt context, and that's what you should use.
-
-Alan Stern
-
