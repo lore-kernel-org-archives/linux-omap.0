@@ -1,112 +1,51 @@
-From: "kishore kadiyala" <kishore.kadiyala@ti.com>
-Subject: [PATCH v4 3/4] omap4 hsmmc: Register offset handling
-Date: Fri, 24 Sep 2010 22:43:35 +0530 (IST)
-Message-ID: <9496.10.24.255.18.1285348415.squirrel@dbdmail.itg.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/2] OMAP: features: export symbol omap3_features
+Date: Fri, 24 Sep 2010 11:17:51 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009241114290.10678@utopia.booyaka.com>
+References: <1285299665-21639-1-git-send-email-omar.ramirez@ti.com> <alpine.DEB.2.00.1009240920370.10678@utopia.booyaka.com> <4C9CD72E.40407@ti.com> <alpine.DEB.2.00.1009241053400.10678@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: tony@atomide.com, akpm@linux-foundation.org, madhu.cr@ti.com, b-cousson@ti.com, adrian.hunter@nokia.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:43996 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985Ab0IXRRw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 13:17:52 -0400
+In-Reply-To: <alpine.DEB.2.00.1009241053400.10678@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+
+On Fri, 24 Sep 2010, Paul Walmsley wrote:
+
+> On Fri, 24 Sep 2010, Nishanth Menon wrote:
+> 
+> > The intent of omap_has_featureX() is to ensure that the drivers dont do
+> > cpu_is_omap123(). Now if we had OMAP dma driver which has DMA chaining - what
+> > options do we have DMA driver?
+> > 
+> > a) we introduce it based on cpu_is_omap123() -> bad bad nightmare for
+> > maintenance
+> > b) we introduce it based on module h/w block(TI internal terminology "IP
+> > block") revision -> unfortunately no luck in some of the h/w blocks.
+> > c) we use if (omap_has_dma_chaining())
+> 
+> d) you pass in errata/feature flags via a platform_data struct, like 
+> McBSP, McSPI, MMC, MUSB, I2C, etc. already do on OMAP.  On OMAP1, which 
+> doesn't have hwmod support, you set your platform_data in your OMAP1 
+> integration code.  On OMAP2+ (which has hwmod support), you define your 
+> errata/feature flags and any other integration data that you need to pass 
+> via the struct omap_hwmod.dev_attr field, then pass that data via struct 
+> platform_data in the OMAP2+ integration code.
+
+Just to clarify something that may be unclear: there's no problem with 
+calling cpu_is_omapXXXX(), or any other OMAP core-specific function, from 
+the OMAP<->driver integration code, living in arch/arm/*omap*.  The 
+results of those functions can then be passed through platform_data.  But 
+there is a problem with calling OMAP core-specific functions directly from 
+the driver code itself, since driver code should be completely 
+platform-independent -- e.g., the same DMA controller could exist on OMAP, 
+DaVinci, etc.
 
 
-In OMAP4, as per new PM programming model, the legacy registers
-which were there in OMAP3 are all shifted by 0x100 while new one's
-are added from offset 0 to 0x10.
-For OMAP4, the register offset appending of 0x100 done in devices.c
-currently, is moved to driver file.This change fits in for current
-implementation as well as once the driver undergoes hwmod adaptation.
-
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
----
- arch/arm/mach-omap2/devices.c         |    8 +++-----
- arch/arm/mach-omap2/hsmmc.c           |    4 ++++
- arch/arm/plat-omap/include/plat/mmc.h |    3 +++
- drivers/mmc/host/omap_hsmmc.c         |    2 ++
- 4 files changed, 12 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 2dbb265..bb7ec13 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -745,13 +745,13 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
- 		case 3:
- 			if (!cpu_is_omap44xx())
- 				return;
--			base = OMAP4_MMC4_BASE + OMAP4_MMC_REG_OFFSET;
-+			base = OMAP4_MMC4_BASE;
- 			irq = OMAP44XX_IRQ_MMC4;
- 			break;
- 		case 4:
- 			if (!cpu_is_omap44xx())
- 				return;
--			base = OMAP4_MMC5_BASE + OMAP4_MMC_REG_OFFSET;
-+			base = OMAP4_MMC5_BASE;
- 			irq = OMAP44XX_IRQ_MMC5;
- 			break;
- 		default:
-@@ -762,10 +762,8 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
- 			size = OMAP2420_MMC_SIZE;
- 			name = "mmci-omap";
- 		} else if (cpu_is_omap44xx()) {
--			if (i < 3) {
--				base += OMAP4_MMC_REG_OFFSET;
-+			if (i < 3)
- 				irq += OMAP44XX_IRQ_GIC_START;
--			}
- 			size = OMAP4_HSMMC_SIZE;
- 			name = "mmci-omap-hs";
- 		} else {
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index c8f647b..49d76a7 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -261,6 +261,10 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
- 		mmc->slots[0].wires = c->wires;
- 		mmc->slots[0].internal_clock = !c->ext_clock;
- 		mmc->dma_mask = 0xffffffff;
-+		if (cpu_is_omap44xx())
-+			mmc->reg_offset = OMAP4_MMC_REG_OFFSET;
-+		else
-+			mmc->reg_offset = 0;
-
- 		mmc->get_context_loss_count = hsmmc_get_context_loss;
-
-diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
-index 9b89ec6..4e6ef07 100644
---- a/arch/arm/plat-omap/include/plat/mmc.h
-+++ b/arch/arm/plat-omap/include/plat/mmc.h
-@@ -71,6 +71,9 @@ struct omap_mmc_platform_data {
-
- 	u64 dma_mask;
-
-+	/* Register offset deviation */
-+	u16 reg_offset;
-+
- 	struct omap_mmc_slot_data {
-
- 		/* 4 wire signaling is optional, and is used for SD/SDIO/HSMMC;
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index a51894d..8cb007c 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2009,6 +2009,8 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 	if (res == NULL || irq < 0)
- 		return -ENXIO;
-
-+	res->start += pdata->reg_offset;
-+	res->end += pdata->reg_offset;
- 	res = request_mem_region(res->start, res->end - res->start + 1,
- 							pdev->name);
- 	if (res == NULL)
--- 
-1.7.0.4
-
-
+- Paul
