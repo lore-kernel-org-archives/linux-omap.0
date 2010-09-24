@@ -1,99 +1,42 @@
-From: "Taneja, Archit" <archit@ti.com>
-Subject: RE: Query on clock naming conventions in clockxxxx_data.c
-Date: Fri, 24 Sep 2010 21:10:39 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870311A2F475@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
- <0680EC522D0CC943BC586913CF3768C003C21EEBFA@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
+Date: Fri, 24 Sep 2010 17:00:38 +0100
+Message-ID: <20100924160038.GD14809@n2100.arm.linux.org.uk>
+References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com> <1282106146-7727-1-git-send-email-darkstar6262@gmail.com> <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com> <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36187 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753572Ab0IXPkn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:40:43 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8OFeeq1006812
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 10:40:42 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o8OFeeQh016304
-	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 21:10:40 +0530 (IST)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003C21EEBFA@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52845 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751603Ab0IXQAu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:00:50 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Fri, Sep 24, 2010 at 08:38:37AM -0700, Cory Maccarrone wrote:
+> Not really sure, I wasn't the one who first came up with that mask.
+> All I know is that it seems to work, and not just for my device, but
+> lots of other HTC OMAP850 devices we've tried it on too.
+> 
+> I'm interested though, what in particular makes it unusual?
 
-Thanks for this info.
+It's normal to set all bits between the maximum and minimum voltages
+rather than alternate bits.  So if you support voltages between 3.0
+and 3.5 volts, all these should be used:
 
-Regards,
+#define MMC_VDD_30_31           0x00040000      /* VDD voltage 3.0 ~ 3.1 */
+#define MMC_VDD_31_32           0x00080000      /* VDD voltage 3.1 ~ 3.2 */
+#define MMC_VDD_32_33           0x00100000      /* VDD voltage 3.2 ~ 3.3 */
+#define MMC_VDD_33_34           0x00200000      /* VDD voltage 3.3 ~ 3.4 */
+#define MMC_VDD_34_35           0x00400000      /* VDD voltage 3.4 ~ 3.5 */
 
-Archit
+rather than just MMC_VDD_30_31, MMC_VDD_32_33, MMC_VDD_34_35.
 
-Nayak, Rajendra wrote:
-> Archit,
-> 
->> -----Original Message-----
->> From: Taneja, Archit
->> Sent: Friday, September 24, 2010 6:11 PM
->> To: Nayak, Rajendra
->> Cc: linux-omap@vger.kernel.org; Guruswamy, Senthilvadivu
->> Subject: Query on clock naming conventions in clockxxxx_data.c
->> 
->> Hi,
->> 
->> I had a couple of queries regarding the clock structures in the
->> clockxxxx_data.c files: 
->> 
->> -I have seen that the name of the structure itself explains the name
->> of the clock as given in the TRM.
->> -The member "name" also tries to mimic the clock name.
->> 
->> The drivers get the clock struct using the "name" member in the
->> clk_get() api. Is it okay if we can change the "name" member to a more
->> generic string. So that the driver code stays more generic?
->> 
->> For example, the SYS_CLK which comes into DSS is called "dss2_alwon_fck" on
->> omap3 and
->> "dss_sys_clk" on omap4. This will make our driver need to have
->> cpu_is_omap checks while calling clk_get().
-> 
-> The right way to use the clk_get api is by passing the dev
-> pointer to identify the device and a generic identifier like
-> fck or ick to identify the type/functionality of the clock.
-> Its not advisable to hardcode clock names, the very reason
-> being that it gets difficult to maintain clock node names
-> across processor families and eventually you end up with cpu_is_* checks.
-> 
-> Doing this however requires the clkdev tables to be updated
-> with the mapping of device names and generic clock
-> identifiers to the actual clock node.
-> 
-> So if you today have something like
-> if (cpu_is_omap34xx())
-> 	clk_get(NULL, " dss2_alwon_fck");
-> else
-> 	clk_get(NULL, " dss_sys_clk");
-> 
-> It can very easily be replaced with a
-> clk_get(dev, "fck");
-> 
-> with the clkdev table entry for omap3 like
-> CLK("dss-omap","fck", &dss2_alwon_fck...
-> and the clkdev table entry for omap4 having something like
-> CLK("dss-omap","fck", & dss_sys_clk...
-> 
-> Now, however since all drivers are using pm_runtime api's
-> which hide the clk control from drivers, this might not have be needed anyway.
-> 
-> Regards,
-> Rajendra
-> 
->> 
->> Thanks,
->> 
->> Archit
+Note that if you support just one voltage, (eg, 3.3V) you should
+use the two which overlap this - MMC_VDD_32_33 and MMC_VDD_33_34.
+There are cards which go unresponsive if you supply just a single
+bit in the OCR mask.
