@@ -1,70 +1,50 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v3 2/4] omap4 hsmmc: Fix the init if CONFIG_MMC_OMAP_HS is
- not set
-Date: Fri, 24 Sep 2010 21:54:36 +0530
-Message-ID: <AANLkTikADtXK=+vi_r9c7XHbwt1UjZoJv2VndmbJEqau@mail.gmail.com>
-References: <14880.10.24.255.18.1285173821.squirrel@dbdmail.itg.ti.com>
-	<4C9A457B.4060500@ru.mvista.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: hwmod: Set autoidle after smartidle during
+ _sysc_enable
+Date: Fri, 24 Sep 2010 10:29:32 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009241028210.10678@utopia.booyaka.com>
+References: <1285300039-6384-1-git-send-email-hemahk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1112539661-1285345772=:10678"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:53137 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753818Ab0IXQYh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:24:37 -0400
-In-Reply-To: <4C9A457B.4060500@ru.mvista.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:48715 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754413Ab0IXQ3d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 12:29:33 -0400
+In-Reply-To: <1285300039-6384-1-git-send-email-hemahk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Hema HK <hemahk@ti.com>
+Cc: linux-omap@vger.kernel.org, "Basak, Partha" <p-basak2@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, rnayak@ti.com, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Wed, Sep 22, 2010 at 11:35 PM, Sergei Shtylyov <sshtylyov@mvista.com=
-> wrote:
-> Hello.
->
-> kishore kadiyala wrote:
->
->> From: Benoit Cousson <b-cousson@ti.com>
->
->> Avoid possible crash if CONFIG_MMC_OMAP_HS is not set
->
->> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
->> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/board-4430sdp.c | =A0 =A08 +++++++-
->> =A01 files changed, 7 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-4430sdp.c
->> b/arch/arm/mach-omap2/board-4430sdp.c
->> index a49f285..ac8541c 100644
->> --- a/arch/arm/mach-omap2/board-4430sdp.c
->> +++ b/arch/arm/mach-omap2/board-4430sdp.c
->> @@ -240,8 +240,14 @@ static int omap4_twl6030_hsmmc_late_init(struct
->> device *dev)
->>
->> =A0static __init void omap4_twl6030_hsmmc_set_late_init(struct devic=
-e *dev)
->> =A0{
->> - =A0 =A0 =A0 struct omap_mmc_platform_data *pdata =3D dev->platform=
-_data;
->> + =A0 =A0 =A0 struct omap_mmc_platform_data *pdata;
->>
->> + =A0 =A0 =A0 /* dev can be null if CONFIG_MMC_OMAP_HS is not set */
->> + =A0 =A0 =A0 if (!dev) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Failed omap4_twl6030_hsmmc_set=
-_late_init\n");
->
-> =A0 pr_err("Failed %s\n", __func__);
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-OK , will have as mentioned
->
-> WBR, Sergei
+--155748971-1112539661-1285345772=:10678
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Regards,
-Kishore
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hello Hema,
+
+On Thu, 23 Sep 2010, Hema HK wrote:
+
+> OMAP USBOTG module has a requirement to set the autoidle bit only after
+> setting smartidle bit. Modified the _sys_enable api to set the smartidle
+> first and then the autoidle bit. Setting this will not have any impact on=
+ the
+> other modules.
+>=20
+> Signed-off-by: Hema HK <hemahk@ti.com>
+> Signed-off-by: Basak, Partha <p-basak2@ti.com>
+> Cc: Felipe Balbi <balbi@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Cousson, Benoit <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+
+Thanks, added Beno=EEt's ack, updated this to apply after Rajendra's=20
+ENAWAKEUP patch, and queued for 2.6.37.
+
+
+- Paul
+--155748971-1112539661-1285345772=:10678--
