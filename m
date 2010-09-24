@@ -1,48 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RESEND][PATCH v2 2/6] OMAP1: Add support for SoC camera
- interface
-Date: Thu, 23 Sep 2010 16:54:45 -0700
-Message-ID: <20100923235444.GX4211@atomide.com>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
- <201009110334.03905.jkrzyszt@tis.icnet.pl>
- <20100923232309.GV4211@atomide.com>
- <201009240144.47422.jkrzyszt@tis.icnet.pl>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v2 5/6] OMAP1: Amstrad Delta: add support for camera
+Date: Fri, 24 Sep 2010 02:00:19 +0200
+Message-ID: <201009240200.23301.jkrzyszt@tis.icnet.pl>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <20100923231415.GU4211@atomide.com> <20100923232617.GW4211@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53749 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753408Ab0IWXys (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 19:54:48 -0400
+Received: from d1.icnet.pl ([212.160.220.21]:42888 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751990Ab0IXAAx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Sep 2010 20:00:53 -0400
+In-Reply-To: <20100923232617.GW4211@atomide.com>
 Content-Disposition: inline
-In-Reply-To: <201009240144.47422.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100923 16:37]:
-> Friday 24 September 2010 01:23:10 Tony Lindgren napisa=C5=82(a):
+=46riday 24 September 2010 01:26:17 Tony Lindgren napisa=C5=82(a):
+> * Tony Lindgren <tony@atomide.com> [100923 16:06]:
+> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:20]:
+> > > This patch adds configuration data and initialization code requir=
+ed for
+> > > camera support to the Amstrad Delta board.
+> > >
+> > > Three devices are declared: SoC camera, OMAP1 camera interface an=
+d
+> > > OV6650 sensor.
+> > >
+> > > Default 12MHz clock has been selected for driving the sensor. Pix=
+el
+> > > clock has been limited to get reasonable frame rates, not exceedi=
+ng the
+> > > board capabilities. Since both devices (interface and sensor) sup=
+port
+> > > both pixel clock polarities, decision on polarity selection has b=
+een
+> > > left to drivers. Interface GPIO line has been found not functiona=
+l,
+> > > thus not configured.
+> > >
+> > > Created and tested against linux-2.6.36-rc3.
+> > >
+> > > Works on top of previous patches from the series, at least 1/6, 2=
+/6 and
+> > > 3/6.
 > >
-> > I think you can just move the OMAP1_CAMERA_IOSIZE to the devices.c =
-or
-> > someplace like that?
->=20
-> Tony,
-> Not exactly. I use the OMAP1_CAMERA_IOSIZE inside the driver when res=
-erving=20
-> space for register cache.
->=20
-> I think that I could just duplicate its definition in the devices.c f=
-or now,=20
-> than clean things up with a folloup patch when both parts already get=
- merged.=20
-> Would this be acceptable?
+> > Queuing these last two patches of the series (5/6 and 6/6) for the
+> > upcoming merge window.
+>
+> BTW, these still depend on updated 2/6 to make compile happy.
 
-Yeah, that sounds good to me.
+Not so simple: still depends on struct omap1_cam_platform_data definiti=
+on from=20
+<media/omap1_camera.h>, included from <mach/camera.h>. Are you ready to=
+=20
+accept another temporary workaround?
 
-Tony
+Thanks,
+Janusz
+
+
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
