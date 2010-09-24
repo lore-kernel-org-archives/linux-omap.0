@@ -1,118 +1,52 @@
-From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
-Date: Fri, 24 Sep 2010 13:46:29 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863E087@dbde02.ent.ti.com>
-References: <1285201830-26561-1-git-send-email-hemahk@ti.com>
-	<20100923063604.GE2563@legolas.emea.dhcp.ti.com>
-	<87wrqc4gwd.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E94027863DD4D@dbde02.ent.ti.com>
- <87fwx02wl5.fsf@deeprootsystems.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 1/1] omap: fix section mismatch errors
+Date: Fri, 24 Sep 2010 11:40:11 +0300
+Message-ID: <1285317611.2468.65.camel@tubuntu.research.nokia.com>
+References: <1281972677-1636-1-git-send-email-premi@ti.com>
+	 <20100923163644.GK4211@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87fwx02wl5.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:60438 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835Ab0IXIkQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 04:40:16 -0400
+In-Reply-To: <20100923163644.GK4211@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Sanjeev Premi <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+On Thu, 2010-09-23 at 18:36 +0200, ext Tony Lindgren wrote:
+> * Sanjeev Premi <premi@ti.com> [100816 08:24]:
+> > This patch fixes miltiple section mismatch errors
+> > observed with the latest master.
+> 
+> Few comments below.
+>  
+> > @@ -134,7 +134,7 @@ static inline void board_smc91x_init(void)
+> >  
+> >  #endif
+> >  
+> > -static struct omap_board_config_kernel sdp2430_config[] = {
+> > +static struct omap_board_config_kernel sdp2430_config[] __initdata = {
+> >  	{OMAP_TAG_LCD, &sdp2430_lcd_config},
+> >  };
+> ...
+>   
+> Let's just get rid of omap_get_config stuff. The OMAP_TAG_LCD
+> and OMAP_TAG_FBMEM are the last remaining legacy tags. They should
+> be replaced with just platform_data. And while at it, it should
+> be done for all the boards.
+> 
+> Tomi, do you see any problems with that?
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org] 
->Sent: Thursday, September 23, 2010 11:04 PM
->To: Kalliguddi, Hema
->Cc: Balbi, Felipe; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
->linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Basak, Partha; Tony Lindgren; 
->Cousson, Benoit; Paul Walmsley
->Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
->
->"Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org> writes:
->
->>  
->>
->>>-----Original Message-----
->>>From: Kevin Hilman [mailto:khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org] 
->>>Sent: Thursday, September 23, 2010 9:00 PM
->>>To: Balbi, Felipe
->>>Cc: Kalliguddi, Hema; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
->>>linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Basak, Partha; Tony Lindgren; 
->>>Cousson, Benoit; Paul Walmsley
->>>Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm 
->apis for musb.
->>>
->>>Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
->>>
->>>> Hi,
->>>>
->>>> On Wed, Sep 22, 2010 at 07:30:30PM -0500, Kalliguddi, Hema wrote:
->>>>>Calling runtime pm APIs pm_runtime_put_sync() and 
->>>pm_runtime_get_sync()
->>>>>for enabling/disabling the clocks,sysconfig settings.
->>>>>
->>>>>Also need to put the USB in force standby and force idle 
->>>mode when usb not used
->>>>>and set it back to no idle and no stndby after wakeup.
->>>>>For OMAP3 auto idle bit has to be disabled because of the 
->>>errata.So using
->>>>>HWMOD_NO_OCP_AUTOIDLE flag for OMAP3430.
->>>
->>>[...]
->>>
->>>>>@@ -2424,13 +2425,16 @@ static int musb_suspend(struct device *d
->>>>> 		 * they will even be wakeup-enabled.
->>>>> 		 */
->>>>> 	}
->>>>>+	pm_runtime_put_sync(dev);
->>>>>
->>>>>+#ifndef CONFIG_PM_RUNTIME
->>>>> 	musb_save_context(musb);
->>>>>
->>>>> 	if (musb->set_clock)
->>>>> 		musb->set_clock(musb->clock, 0);
->>>>> 	else
->>>>> 		clk_disable(musb->clock);
->>>>>+#endif
->>>>
->>>> I would rather remove these, adding ifdefs is bad :-( Unless 
->>>other archs
->>>> (blackfin, davinci) would have problems if we remove those.
->>>
->>>I didn't like these #ifdefs either, but davinci doesn't have 
->>>runtime PM,
->>>and I don't think blackfin does either.
->>>
->>>But, rather than the ifdef here, this could be done with different
->>>pointers in struct dev_pm_ops based on the arch.
->>>
->>>Also, this shouldn't be based on CONFIG_PM_RUNTIME, but rather on the
->>>arch.  We can still enable runtime PM on davinci for other subsystems
->>>(PCI, USB core, etc.) but not have it supported for on-chip devices.
->>>
->> Is it a good idea to use the musb->set_clock function 
->pointer for OMAP architure and
->> call the runtime pm apis from this function defined in the 
->usb platform driver(omap2430)
->
->I guess that's Felipe's call, but I don't like that option.
->
->I think it's cleaner to have the ->set_clock hook be a noop on OMAP and
->the runtime hooks be noops on the other platforms.
->
-I think the set_clock function was used for setting the platform specific clocks
-for different architecture. Anyway we need this hook or some other hook
-once we start handling the optional clocks and internal phy clocks for musb.
-Since this is already exists I thought of making use of it instand of adding another hook.
+OMAP_TAG_LCD and OMAP_TAG_FBMEM are used by the old omapfb driver.
 
-Felipe,
-What do you say?
+I don't see any problem in changing them to platform data, except that
+it's some work and somebody should do it =).
 
-~Hema
->Kevin
->
->--
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Tomi
+
+
