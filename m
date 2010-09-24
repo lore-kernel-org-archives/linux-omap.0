@@ -1,136 +1,84 @@
-From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-Date: Fri, 24 Sep 2010 21:05:59 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EEC01@dbde02.ent.ti.com>
-References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
- <0680EC522D0CC943BC586913CF3768C003C21EEB60@dbde02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863E252@dbde02.ent.ti.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
+Date: Fri, 24 Sep 2010 08:38:37 -0700
+Message-ID: <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
+References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
+ <1282106146-7727-1-git-send-email-darkstar6262@gmail.com> <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027863E252@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Dmitry Torokhov <dtor@mail.ru>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33357 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756812Ab0IXPjA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:39:00 -0400
+Received: by wyb28 with SMTP id 28so2026152wyb.19
+        for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 08:38:58 -0700 (PDT)
+In-Reply-To: <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+2010/9/24 Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>:
+> 2010/8/18 Cory Maccarrone <darkstar6262@gmail.com>:
+>> This change adds in MMC and I2C support to the HTC Herald board, as =
+well
+>> as adding the HTCPLD driver for the PLD used on this phone. =C2=A0It=
+ also
+>> adds in the gpio-keys entries for the front directional keys and
+>> selector and the cursor keys on the slide-out keyboard, and gpio-led=
+s
+>> support for the LEDs attached to the htcpld.
+>>
+>> Additionally, SPI bus support (using the spi100k driver) and
+>> touchscreen support (using the ads7846 driver) were added.
+>>
+>> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+>> ---
+> [...]
+>> +/* MMC Card */
+>> +#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
+>> +static struct omap_mmc_platform_data htc_mmc1_data =3D {
+>> + =C2=A0 =C2=A0 =C2=A0 .nr_slots =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D 1,
+>> + =C2=A0 =C2=A0 =C2=A0 .switch_slot =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D NULL,
+>> + =C2=A0 =C2=A0 =C2=A0 .slots[0] =C2=A0 =C2=A0 =C2=A0 =3D {
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .ocr_mask =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D MMC_VDD_28_29 | MMC_VDD_3=
+0_31 |
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ MMC_VDD_32_33 | MMC_VDD_33_34,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .name =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D "mmcblk",
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .nomux =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D 1,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .wires =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D 4,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .switch_pin =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D -1,
+>> + =C2=A0 =C2=A0 =C2=A0 },
+>> +};
+> [...]
+>
+> What voltages can this MMC controller provide? That's a rather unusua=
+l OCR mask.
+>
+> Best Regards,
+> Micha=C5=82 Miros=C5=82aw
+>
 
+Not really sure, I wasn't the one who first came up with that mask.
+All I know is that it seems to work, and not just for my device, but
+lots of other HTC OMAP850 devices we've tried it on too.
 
-> -----Original Message-----
-> From: G, Manjunath Kondaiah
-> Sent: Friday, September 24, 2010 5:11 PM
-> To: Datta, Shubhrajyoti; linux-omap@vger.kernel.org
-> Cc: linux-input@vger.kernel.org; Dmitry Torokhov; linux-arm-
-> kernel@lists.infradead.org; Tony Lindgren
-> Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Datta, Shubhrajyoti
-> > Sent: Friday, September 24, 2010 5:00 PM
-> > To: G, Manjunath Kondaiah; linux-omap@vger.kernel.org
-> > Cc: linux-input@vger.kernel.org; Dmitry Torokhov;
-> > linux-arm-kernel@lists.infradead.org; Tony Lindgren
-> > Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-> >
-> >
-> >
-> > > -----Original Message-----
-> > > From: linux-input-owner@vger.kernel.org [mailto:linux-input-
-> > > owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
-> > > Sent: Tuesday, September 21, 2010 5:20 PM
-> > > To: linux-omap@vger.kernel.org
-> > > Cc: linux-input@vger.kernel.org; Dmitry Torokhov; linux-arm-
-> > > kernel@lists.infradead.org; Tony Lindgren
-> > > Subject: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-> > >
-> > > The failure exit paths seems to be wrong in probe function.
-> > > This patch corrects exit failure paths for error handling cases.
-> > >
-> > > Boot warning incase of request irq failure:
-> > >
-> > > [    1.553985] twl4030_keypad twl4030_keypad: request_irq
-> > failed for irq
-> > > no=369
-> > > [    1.561157] ------------[ cut here ]------------
-> > > [    1.565795] WARNING: at kernel/irq/manage.c:899
-> > __free_irq+0x88/0x164()
-> > > [    1.572418] Trying to free already-free IRQ 369
-> > > [    1.576965] Modules linked in:
-> > > [    1.580047] [<c00470ec>] (unwind_backtrace+0x0/0xe4)
-> > from [<c0078b5c>]
-> > > (warn_slowpath_common+0x4c/0x64)
-> > > [    1.589477] [<c0078b5c>] (warn_slowpath_common+0x4c/0x64) from
-> > > [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c)
-> > > [    1.599060] [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c) from
-> > > [<c00adb90>] (__free_irq+0x88/0x164)
-> > > [    1.607849] [<c00adb90>] (__free_irq+0x88/0x164) from
-> > [<c00adca8>]
-> > > (free_irq+0x3c/0x5c)
-> > > [    1.615875] [<c00adca8>] (free_irq+0x3c/0x5c) from [<c043ab2c>]
-> > > (twl4030_kp_probe+0x308/0x374)
-> > > [    1.624511] [<c043ab2c>] (twl4030_kp_probe+0x308/0x374) from
-> > > [<c023c338>] (platform_drv_probe+0x14/0x18)
-> > > [    1.634033] [<c023c338>] (platform_drv_probe+0x14/0x18) from
-> > > [<c023b4dc>] (driver_probe_device+0xc8/0x184)
-> > > [    1.643707] [<c023b4dc>] (driver_probe_device+0xc8/0x184) from
-> > > [<c023b600>] (__driver_attach+0x68/0x8c)
-> > > [    1.653106] [<c023b600>] (__driver_attach+0x68/0x8c)
-> > from [<c023ad34>]
-> > > (bus_for_each_dev+0x48/0x74)
-> > > [    1.662170] [<c023ad34>] (bus_for_each_dev+0x48/0x74)
-> > from [<c023a690>]
-> > > (bus_add_driver+0x9c/0x210)
-> > > [    1.671234] [<c023a690>] (bus_add_driver+0x9c/0x210)
-> > from [<c023b8f8>]
-> > > (driver_register+0xa8/0x134)
-> > > [    1.680297] [<c023b8f8>] (driver_register+0xa8/0x134)
-> > from [<c0041340>]
-> > > (do_one_initcall+0x58/0x1b4)
-> > > [    1.689453] [<c0041340>] (do_one_initcall+0x58/0x1b4)
-> > from [<c0008574>]
-> > > (kernel_init+0x98/0x150)
-> > > [    1.698272] [<c0008574>] (kernel_init+0x98/0x150) from
-> > [<c0042970>]
-> > > (kernel_thread_exit+0x0/0x8)
-> > > [    1.707214] ---[ end trace 6559b322ad3cbdfe ]---
-> > > [    1.718292] twl4030_keypad: probe of twl4030_keypad
-> > failed with error -
-> > > 16
-> > >
-> > > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> > > Cc: linux-input@vger.kernel.org
-> > > Cc: Dmitry Torokhov <dtor@mail.ru>
-> > > Cc: linux-arm-kernel@lists.infradead.org
-> > > Cc: linux-input@vger.kernel.org
-> > > Cc: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > >  version v1 : initial patch
-> > >  version v2 : CC'ed input subsystem and arm kernel mailing lists.
-> > >
-> > >  drivers/input/keyboard/twl4030_keypad.c |   10 ++++------
-> > >  1 files changed, 4 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/drivers/input/keyboard/twl4030_keypad.c
-> > > b/drivers/input/keyboard/twl4030_keypad.c
-> > > index fb16b5e..39a9f30 100644
-> > > --- a/drivers/input/keyboard/twl4030_keypad.c
-> > > +++ b/drivers/input/keyboard/twl4030_keypad.c
-> > > @@ -347,8 +347,7 @@ static int __devinit twl4030_kp_probe(struct
-> > > platform_device *pdev)
-> > >  	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
-> > >  	input = input_allocate_device();
-> > >  	if (!kp || !input) {
-> > > -		error = -ENOMEM;
-> > > -		goto err1;
-> > Wont you leak memory here ?
-> 
-> Already catpured this comment and dmitry has posted alternate patch at:
-> http://www.spinics.net/lists/arm-kernel/msg99053.html
-Apologies missed it.
- 
-> 
-> -Manjunath
+I'm interested though, what in particular makes it unusual?
+
+- Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
