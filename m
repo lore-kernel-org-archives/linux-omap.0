@@ -1,53 +1,57 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 5/5] ARM: OMAP3LOGIC: Adding low-level debug support
-Date: Fri, 24 Sep 2010 15:59:58 -0700
-Message-ID: <20100924225957.GM4211@atomide.com>
-References: <1285358338-3403-1-git-send-email-tim.nordell@logicpd.com>
- <1285358338-3403-6-git-send-email-tim.nordell@logicpd.com>
+Subject: Re: [GIT PULL] omap: sram fixes and omap4 es2.0 support
+Date: Fri, 24 Sep 2010 16:03:22 -0700
+Message-ID: <20100924230322.GN4211@atomide.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02CD469D0D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54117 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757348Ab0IXXDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 19:03:21 -0400
 Content-Disposition: inline
-In-Reply-To: <1285358338-3403-6-git-send-email-tim.nordell@logicpd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tim Nordell <tim.nordell@logicpd.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02CD469D0D@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Tim Nordell <tim.nordell@logicpd.com> [100924 13:08]:
-> Defined UART1 as the low-level debug port for both the
-> omap3530_lv_som board and the omap3_torpedo board.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [100923 23:24]:
+> Tony,
+> 
+> The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
+>   Linus Torvalds (1):
+>         Linux 2.6.36-rc5
+> 
+> are available in the git repository at:
+> 
+>   git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap_for_2.6.37
 
-Ah the DEBUG_LL support is here, please merge this one into
-the first patch.
-
-Thanks,
+Thanks, pulling these into omap-for-linus.
 
 Tony
  
-> Signed-off-by: Tim Nordell <tim.nordell@logicpd.com>
-> ---
->  arch/arm/plat-omap/include/plat/uncompress.h |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+> David Anders (1):
+>       omap4: Panda: Add DEBUG_LL support
 > 
-> diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-> index ddf723b..ff9f3a2 100644
-> --- a/arch/arm/plat-omap/include/plat/uncompress.h
-> +++ b/arch/arm/plat-omap/include/plat/uncompress.h
-> @@ -139,6 +139,8 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
->  		DEBUG_LL_OMAP2(1, omap3evm);
->  		DEBUG_LL_OMAP3(1, omap_3430sdp);
->  		DEBUG_LL_OMAP3(1, omap_3630sdp);
-> +		DEBUG_LL_OMAP3(1, omap3530_lv_som);
-> +		DEBUG_LL_OMAP3(1, omap3_torpedo);
->  
->  		/* omap3 based boards using UART3 */
->  		DEBUG_LL_OMAP3(3, cm_t35);
-> -- 
-> 1.7.1
+> Santosh Shilimkar (3):
+>       omap4: Update id.c and cpu.h for es2.0
+>       omap4: l2x0: Fix init parameter for es2.0
+>       omap4: Fix bootup crash observed with higher CPU clocks
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> Vikram Pandita (2):
+>       omap: sram: fix is_sram_locked check
+>       omap4: sram: Fix start address
+> 
+>  arch/arm/mach-omap2/id.c                     |   38 +++++++++++++++++++++-----
+>  arch/arm/mach-omap2/omap4-common.c           |   10 +++++--
+>  arch/arm/plat-omap/dmtimer.c                 |    2 +-
+>  arch/arm/plat-omap/include/plat/cpu.h        |    5 +++-
+>  arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+>  arch/arm/plat-omap/sram.c                    |   13 +-------
+>  6 files changed, 46 insertions(+), 23 deletions(-)
+> 
+> Regards,
+> Santosh
+> (As per thread: http://www.spinics.net/lists/linux-omap/msg37131.html)
