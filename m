@@ -1,86 +1,48 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] OMAP: features: export symbol omap3_features
-Date: Fri, 24 Sep 2010 11:06:21 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009241053400.10678@utopia.booyaka.com>
-References: <1285299665-21639-1-git-send-email-omar.ramirez@ti.com> <alpine.DEB.2.00.1009240920370.10678@utopia.booyaka.com> <4C9CD72E.40407@ti.com>
+From: "kishore kadiyala" <kishore.kadiyala@ti.com>
+Subject: [PATCH v4 0/4] omap4 hsmmc: Card detect and Register offset
+     handling
+Date: Fri, 24 Sep 2010 22:42:06 +0530 (IST)
+Message-ID: <7100.10.24.255.18.1285348326.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44464 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756857Ab0IXRGW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 13:06:22 -0400
-In-Reply-To: <4C9CD72E.40407@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41289 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932250Ab0IXRMJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Sep 2010 13:12:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, 24 Sep 2010, Nishanth Menon wrote:
+The patch series is based on mainline 2.6.36-rc5.
+The series is tested on OMAP3430SDP and OMAP4430SDP and has dependency on
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34718.html
 
-> Paul Walmsley had written, on 09/24/2010 10:34 AM, the following:
-> [...]
-> > >   u32 omap3_features;
-> > > +EXPORT_SYMBOL(omap3_features);
-> > >   unsigned int omap_rev(void)
-> > >  {
-> > > -- 
-> > > 1.7.1
-> > > 
-> > 
-> > This omap3_features variable should not be used directly by any device
-> > drivers since it is an OMAP-ism.  This type of feature info should be passed
-> > through struct platform_data.  Looks like this would be quite easy to add by
-> > editing mach-omap2/devices.c and adding platform_data?
-> > 
-> > ...
-> > 
-> > In the medium-term, definitely all of those 
-> >     #if defined(CONFIG_ARCH_OMAP*)
-> > 
-> > and 
-> >     if (cpu_is_omap*()) {
-> > 
-> > in this driver need to be removed.  The integration code (currently in
-> > mach-omap2/devices.c) is what should handle this, or better yet, struct
-> > dev_attr from hwmod.
-> > 
-> > Also the entire mailboxes driver at some point should be moved into
-> > drivers/* ...
-> just my 2 cents:
-> 
-> The intent of omap_has_featureX() is to ensure that the drivers dont do
-> cpu_is_omap123(). Now if we had OMAP dma driver which has DMA chaining - what
-> options do we have DMA driver?
-> 
-> a) we introduce it based on cpu_is_omap123() -> bad bad nightmare for
-> maintenance
-> b) we introduce it based on module h/w block(TI internal terminology "IP
-> block") revision -> unfortunately no luck in some of the h/w blocks.
-> c) we use if (omap_has_dma_chaining())
+V3:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35423.html
 
-d) you pass in errata/feature flags via a platform_data struct, like 
-McBSP, McSPI, MMC, MUSB, I2C, etc. already do on OMAP.  On OMAP1, which 
-doesn't have hwmod support, you set your platform_data in your OMAP1 
-integration code.  On OMAP2+ (which has hwmod support), you define your 
-errata/feature flags and any other integration data that you need to pass 
-via the struct omap_hwmod.dev_attr field, then pass that data via struct 
-platform_data in the OMAP2+ integration code.  See for example
+V2:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35135.html
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg13288.html
+V1:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34040.html
 
-and
+Kishore Kadiyala (3):
+  omap4 hsmmc : Adding card detect support for MMC1
+  omap4 hsmmc: Register offset handling
+  omap4 hsmmc: Update ocr mask for MMC2 for regulator to use
 
-http://marc.info/?l=linux-omap&m=124419789124570&w=2
+Benoit Cousson (1);
+  omap4 hsmmc: Fix the init if CONFIG_MMC_OMAP_HS is not set
 
-(search for "dev_attr" in both cases)
-
-...
-
-As an aside, I think that any errata/features that can be automatically 
-discriminated by the IP block revision register are better handled that 
-way than by platform_data; but of course, as you mention, the hardware 
-people sometimes neglect to bump that when they change something.
+ arch/arm/mach-omap2/board-4430sdp.c   |   16 ++++++-
+ arch/arm/mach-omap2/devices.c         |    8 +--
+ arch/arm/mach-omap2/hsmmc.c           |    4 ++
+ arch/arm/plat-omap/include/plat/mmc.h |    3 +
+ drivers/mfd/twl6030-irq.c             |   73 +++++++++++++++++++++++++++++++++
+ drivers/mmc/host/omap_hsmmc.c         |   18 +++++++-
+ include/linux/i2c/twl.h               |   31 ++++++++++++++
+ 7 files changed, 144 insertions(+), 9 deletions(-)
 
 
-- Paul
