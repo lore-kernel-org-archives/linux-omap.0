@@ -1,147 +1,53 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [GIT PULL] omap2 sparse fixes
-Date: Sat, 25 Sep 2010 01:13:14 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A390E@dbde02.ent.ti.com>
- <20100923225851.GR4211@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
+Subject: Re: [PATCH v3] omap: beagle: add support for wl1271 on the board file
+Date: Fri, 24 Sep 2010 21:42:58 +0200
+Message-ID: <8004B807-6120-41C0-979B-214BFB75E5CA@dominion.thruhere.net>
+References: <1285236215-21136-1-git-send-email-luciano.coelho@nokia.com> <20100924180316.GE8077@tuxdriver.com> <1285354249.9779.3.camel@powerslave> <20100924191139.GI4211@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v1081)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48382 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757937Ab0IXTlu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 15:41:50 -0400
-In-Reply-To: <20100923225851.GR4211@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100924191139.GI4211-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "ext John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 
-Tony,
-Here is new pull request which is rebased to 2.6.36-rc5.
+Op 24 sep 2010, om 21:11 heeft Tony Lindgren het volgende geschreven:
 
--Manjunath
-
-The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
-  Linus Torvalds (1):
-        Linux 2.6.36-rc5
-
-are available in the git repository at:
-
-  git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git sparse_fixes
-
-G, Manjunath Kondaiah (10):
-      OMAP: mach-omap2: Fix incorrect assignment warnings
-      OMAP: mach-omap2: Fix static declaration warnings
-      OMAP: mach-omap2: Fix static function warnings
-      OMAP: mach-omap2: Fix miscellaneous sparse warnings
-      OMAP: plat-omap: Fix static function warnings
-      OMAP: NAND: Fix static declaration warning
-      TWL CORE: Fix sparse warning
-      TWL IRQ: Fix fucntion declaration warnings
-      OMAP2/3: Convert write/read functions to raw read/write
-      OMAP3: Keypad: Fix incorrect type initializer
-
- arch/arm/mach-omap2/board-3430sdp.c            |    2 +-
- arch/arm/mach-omap2/board-am3517evm.c          |    5 +--
- arch/arm/mach-omap2/board-cm-t35.c             |    2 +-
- arch/arm/mach-omap2/board-devkit8000.c         |    2 +-
- arch/arm/mach-omap2/board-igep0020.c           |    4 +-
- arch/arm/mach-omap2/board-ldp.c                |    2 +-
- arch/arm/mach-omap2/board-n8x0.c               |   16 +------------
- arch/arm/mach-omap2/board-omap3evm.c           |    8 +++---
- arch/arm/mach-omap2/board-omap3stalker.c       |    4 +-
- arch/arm/mach-omap2/board-omap3touchbook.c     |    2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c   |    4 ++-
- arch/arm/mach-omap2/board-rx51-sdram.c         |    2 +-
- arch/arm/mach-omap2/board-rx51-video.c         |    2 +
- arch/arm/mach-omap2/board-zoom-debugboard.c    |    2 +
- arch/arm/mach-omap2/board-zoom-peripherals.c   |    4 ++-
- arch/arm/mach-omap2/control.c                  |    5 ++-
- arch/arm/mach-omap2/gpmc-onenand.c             |    8 +++---
- arch/arm/mach-omap2/include/mach/board-flash.h |    2 +
- arch/arm/mach-omap2/include/mach/board-rx51.h  |   11 +++++++++
- arch/arm/mach-omap2/irq.c                      |    1 -
- arch/arm/mach-omap2/mux2420.c                  |    2 +-
- arch/arm/mach-omap2/mux2430.c                  |    2 +-
- arch/arm/mach-omap2/mux34xx.c                  |   12 +++++-----
- arch/arm/mach-omap2/pm-debug.c                 |    2 +-
- arch/arm/mach-omap2/pm34xx.c                   |    2 +-
- arch/arm/mach-omap2/powerdomain.c              |   28 ------------------------
- arch/arm/mach-omap2/prcm.c                     |    2 +-
- arch/arm/mach-omap2/timer-gp.c                 |    1 +
- arch/arm/plat-omap/cpu-omap.c                  |    4 +-
- arch/arm/plat-omap/dmtimer.c                   |    6 ++--
- arch/arm/plat-omap/fb.c                        |    1 +
- arch/arm/plat-omap/include/plat/dmtimer.h      |    4 ++-
- arch/arm/plat-omap/include/plat/sdrc.h         |    1 +
- arch/arm/plat-omap/mcbsp.c                     |   10 ++++----
- arch/arm/plat-omap/sram.c                      |   13 ++++++-----
- drivers/mfd/twl-core.c                         |    2 +-
- drivers/mtd/nand/omap2.c                       |    6 ++--
- drivers/mtd/onenand/omap2.c                    |    2 +-
- include/linux/i2c/twl.h                        |    5 ++++
- include/linux/omapfb.h                         |    5 ++++
- 40 files changed, 96 insertions(+), 102 deletions(-)
- create mode 100644 arch/arm/mach-omap2/include/mach/board-rx51.h 
-
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Friday, September 24, 2010 4:29 AM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [GIT PULL] omap2 sparse fixes
+> * Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> [100924 11:42]:
+>> On Fri, 2010-09-24 at 20:03 +0200, ext John W. Linville wrote:
+>>> On Thu, Sep 23, 2010 at 01:03:35PM +0300, Luciano Coelho wrote:
+>>>> Add board configuration for the wl1271 daughter board.  This patch is based
+>>>> on Ohad Ben-Cohen's patches for Zoom boards.
+>>>> 
+>>>> Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+>>>> Signed-off-by: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+>>>> ---
+>>>> from v2 to v3: removed accidental change to wl1271.h
+>>> 
+>>> I presume that this should come through my tree as well (since it
+>>> contains the move of wl12xx.h)?
+>> 
+>> Yes, this is based on your tree.  But please hold on, because there were
+>> some comments (namely, the expansion board should be detected, not
+>> configured for wl1271 by default), which I still have to fix.  I'm
+>> waiting for the manufacturer of the expansion board to provide me with
+>> some more info for proper detection.
+>> 
+>> Also, I know that there are some other work being done in the beagle
+>> board file, so we may need to rethink how to sync this.
+>> 
+>> So, for now, let's skip this patch and I'll provide another one when
+>> these issues are addressed.
 > 
-> * G, Manjunath Kondaiah <manjugk@ti.com> [100922 01:48]:
-> > Hi Tony,
-> >  
-> > Please pull omap2 sparse fixes from:
-> >  
-> >   git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git 
-> > sparse_fixes
-> >  
-> > Regards,
-> > Manjunath
-> >  
-> >  
-> > The following changes since commit 
-> 8b15575cae7a93a784c3005c42b069edd9ba64dd:
-> >   Sage Weil (1):
-> >         fs: {lock,unlock}_flocks() stubs to prepare for BKL removal
-> >  
-> > are available in the git repository at:
-> >  
-> >   git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git 
-> > sparse_fixes
-> >  
-> > G, Manjunath Kondaiah (10):
-> >       OMAP: mach-omap2: Fix incorrect assignment warnings
-> >       OMAP: mach-omap2: Fix static declaration warnings
-> >       OMAP: mach-omap2: Fix static function warnings
-> >       OMAP: mach-omap2: Fix miscellaneous sparse warnings
-> >       OMAP: plat-omap: Fix static function warnings
-> >       OMAP: NAND: Fix static declaration warning
-> >       TWL CORE: Fix sparse warning
-> >       TWL IRQ: Fix fucntion declaration warnings
-> >       OMAP2/3: Convert write/read functions to raw read/write
-> >       OMAP3: Keypad: Fix incorrect type initializer
-> 
-> Manjunath, this looks safe to pull, however one request though:
-> Can you please rebase it on v2.6.35 or v2.6.36-rc5?
-> 
-> Now your branch is on some commit after the -rc5 tag.
-> It's better to base branches at the most recent stable tag
-> (v2.6.35) or a recent -rc tag (v2.6.36-rc5).
-> 
-> Otherwise we end up moving our linux-omap tree forward too 
-> unless I use git pull --rebase option.. I've updated the 
-> elinux.org wiki instructions for that too, sorry if the 
-> earlier instructions there were a bit unclear.
-> 
-> Thanks,
-> 
-> Tony
-> 
+> You could also do it based on some kernel cmdline option. Of course
+> detection during the runtime would be better.
+
+That's what we're currently doing in the beagle kernels: http://gitorious.org/beagleboard-validation/linux/commit/17c1b214b918c6f9efc5579134a7ff71d51b60bf
+
+That needs forward porting to .37 before I can submit is as RFC here :)--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
