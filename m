@@ -1,43 +1,34 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [RFC] omap: mailbox: fix detection for previously supported
- chips
-Date: Fri, 24 Sep 2010 09:11:58 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A530450EDDEFB@dlee03.ent.ti.com>
-References: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
-	<A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
-	<27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
- <AANLkTikGzx09Zp-oKAYnZOhoZ02iExfZ3d3+byRnJJdA@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
+Date: Fri, 24 Sep 2010 18:49:34 +0400
+Message-ID: <4C9CBA7E.9090107@ru.mvista.com>
+References: <1285201830-26561-1-git-send-email-hemahk@ti.com> <20100923063604.GE2563@legolas.emea.dhcp.ti.com> <87wrqc4gwd.fsf@deeprootsystems.com> <E0D41E29EB0DAC4E9F3FF173962E9E94027863DD4D@dbde02.ent.ti.com> <87fwx02wl5.fsf@deeprootsystems.com> <20100924110129.GV8365@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58899 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752514Ab0IXOMG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 10:12:06 -0400
-In-Reply-To: <AANLkTikGzx09Zp-oKAYnZOhoZ02iExfZ3d3+byRnJJdA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100924110129.GV8365-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Anna, Suman" <s-anna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Felipe Contreras wrote:
-> On Thu, Sep 23, 2010 at 7:11 PM, Ramirez Luna, Omar
-> <omar.ramirez@ti.com> wrote: 
->> Code is not the same, it is 2 line which apply for both but couldn't
->> find an easy way of making them share the request for dsp mailbox
->> without changing more code, perhaps a macro to detect if omap2 and
->> then a nested if for the 2420 case, but since HWMOD should handle it
->> better, I left it as is.    
-> 
-> I sent some patches to migrate to hwmod, at least it was working on
-> OMAP3, somebody would need to fill the values for OMAP2. Would you
-> like me to rebase and send them again?  
-> 
+Hello.
 
-Yes, I just found them, I can take care of the rebase if you don't beat me to it.
+Felipe Balbi wrote:
 
-Regards,
+>> I guess that's Felipe's call, but I don't like that option.
 
-Omar
+>> I think it's cleaner to have the ->set_clock hook be a noop on OMAP and
+>> the runtime hooks be noops on the other platforms.
+
+> Agreed. We should focus on removing ->set_clock for .38 actually. Is
+> DaVinci already using clkdev, Kevin ?
+
+    Sure. But DaVinci doesn't use ->set_clock().
+
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
