@@ -1,93 +1,72 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
-Date: Fri, 24 Sep 2010 12:57:43 -0700
-Message-ID: <87lj6q9ao8.fsf@deeprootsystems.com>
-References: <1285325785-6163-1-git-send-email-vishwanath.bs@ti.com>
-	<1285325785-6163-2-git-send-email-vishwanath.bs@ti.com>
+From: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3] omap: beagle: add support for wl1271 on the board
+ file
+Date: Fri, 24 Sep 2010 23:00:14 +0300
+Message-ID: <1285358414.9779.28.camel@powerslave>
+References: <1285236215-21136-1-git-send-email-luciano.coelho@nokia.com>
+	 <20100924180316.GE8077@tuxdriver.com> <1285354249.9779.3.camel@powerslave>
+	 <20100924191139.GI4211@atomide.com>
+	 <8004B807-6120-41C0-979B-214BFB75E5CA@dominion.thruhere.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:52743 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753168Ab0IXT5p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 15:57:45 -0400
-Received: by pwj6 with SMTP id 6so726397pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 12:57:45 -0700 (PDT)
-In-Reply-To: <1285325785-6163-2-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath BS's message of "Fri, 24 Sep 2010 16:26:24 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8004B807-6120-41C0-979B-214BFB75E5CA-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Koen Kooi <koen-QLwJDigV5abLmq1fohREcCpxlwaOVQ5f@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "ext John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ido Yariv <ido-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org
 
-Vishwanath BS <vishwanath.bs@ti.com> writes:
+On Fri, 2010-09-24 at 21:42 +0200, ext Koen Kooi wrote:
+> Op 24 sep 2010, om 21:11 heeft Tony Lindgren het volgende geschreven:
+> 
+> > * Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> [100924 11:42]:
+> >> On Fri, 2010-09-24 at 20:03 +0200, ext John W. Linville wrote:
+> >>> On Thu, Sep 23, 2010 at 01:03:35PM +0300, Luciano Coelho wrote:
+> >>>> Add board configuration for the wl1271 daughter board.  This patch is based
+> >>>> on Ohad Ben-Cohen's patches for Zoom boards.
+> >>>> 
+> >>>> Cc: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+> >>>> Signed-off-by: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> >>>> ---
+> >>>> from v2 to v3: removed accidental change to wl1271.h
+> >>> 
+> >>> I presume that this should come through my tree as well (since it
+> >>> contains the move of wl12xx.h)?
+> >> 
+> >> Yes, this is based on your tree.  But please hold on, because there were
+> >> some comments (namely, the expansion board should be detected, not
+> >> configured for wl1271 by default), which I still have to fix.  I'm
+> >> waiting for the manufacturer of the expansion board to provide me with
+> >> some more info for proper detection.
+> >> 
+> >> Also, I know that there are some other work being done in the beagle
+> >> board file, so we may need to rethink how to sync this.
+> >> 
+> >> So, for now, let's skip this patch and I'll provide another one when
+> >> these issues are addressed.
+> > 
+> > You could also do it based on some kernel cmdline option. Of course
+> > detection during the runtime would be better.
+> 
+> That's what we're currently doing in the beagle kernels: http://gitorious.org/beagleboard-validation/linux/commit/17c1b214b918c6f9efc5579134a7ff71d51b60bf
+> 
+> That needs forward porting to .37 before I can submit is as RFC here :)
 
-> There is no need to keep omap3 sleep code in SRAM. 
-> This code can be run very well on DDR.
+Yes! I have seen that as pointed out by Robert.  It would be nice if you
+could port this soon(ish) so that others can start using it (ok, maybe
+not many people, but at least me :P)
 
-/me remains skeptical
+What would you think about having the actual probing moved from u-boot
+to the kernel? Do you think that would make sense or are there some
+other reasons for having it in the bootloader?
 
-> This would help us to instrument CPUIdle latencies.
 
-Indeed, but...
+-- 
+Cheers,
+Luca.
 
-I'm afraid we will need a much more descriptive changelog here,
-describing in detail why this will still work, and what about the
-previous motiviations for running SRAM has changed such that this will
-work out of SRAM.
-
-> Tested on ZOOM3.
-
-Tested in what way?  This path is used for both idle and suspend, and 
-needs to be validated for retention and off mode.
-
-Kevin
-
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> Cc: Kevin Hillman <khilman@deeprootsystems.com>
-> Cc: <Linaro> linaro-dev@lists.linaro.org
-> ---
->  arch/arm/mach-omap2/pm34xx.c |    9 +--------
->  1 files changed, 1 insertions(+), 8 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 85ef245..ed9d12c 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -79,8 +79,6 @@ struct power_state {
->  
->  static LIST_HEAD(pwrst_list);
->  
-> -static void (*_omap_sram_idle)(u32 *addr, int save_state);
-> -
->  static int (*_omap_save_secure_sram)(u32 *addr);
->  
->  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
-> @@ -360,9 +358,6 @@ void omap_sram_idle(void)
->  	int core_prev_state, per_prev_state;
->  	u32 sdrc_pwr = 0;
->  
-> -	if (!_omap_sram_idle)
-> -		return;
-> -
->  	pwrdm_clear_all_prev_pwrst(mpu_pwrdm);
->  	pwrdm_clear_all_prev_pwrst(neon_pwrdm);
->  	pwrdm_clear_all_prev_pwrst(core_pwrdm);
-> @@ -438,7 +433,7 @@ void omap_sram_idle(void)
->  	 * get saved. The restore path then reads from this
->  	 * location and restores them back.
->  	 */
-> -	_omap_sram_idle(omap3_arm_context, save_state);
-> +	omap34xx_cpu_suspend(omap3_arm_context, save_state);
->  	cpu_init();
->  
->  	if (is_suspending())
-> @@ -995,8 +990,6 @@ static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
->  
->  void omap_push_sram_idle(void)
->  {
-> -	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
-> -					omap34xx_cpu_suspend_sz);
->  	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
->  		_omap_save_secure_sram = omap_sram_push(save_secure_ram_context,
->  				save_secure_ram_context_sz);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
