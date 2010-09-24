@@ -1,97 +1,32 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
-Date: Fri, 24 Sep 2010 14:58:35 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863E128@dbde02.ent.ti.com>
-References: <1285201830-26561-1-git-send-email-hemahk@ti.com>
- <20100923063604.GE2563@legolas.emea.dhcp.ti.com>
- <87wrqc4gwd.fsf@deeprootsystems.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863DD4D@dbde02.ent.ti.com>
- <87fwx02wl5.fsf@deeprootsystems.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863E087@dbde02.ent.ti.com>
- <20100924084344.GJ8365@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863E0DC@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC] omap: mailbox: fix detection for previously supported chips
+Date: Fri, 24 Sep 2010 12:49:25 +0300
+Message-ID: <AANLkTikGzx09Zp-oKAYnZOhoZ02iExfZ3d3+byRnJJdA@mail.gmail.com>
+References: <1285201299-18306-1-git-send-email-omar.ramirez@ti.com>
+	<A24693684029E5489D1D202277BE894472802A7F@dlee02.ent.ti.com>
+	<27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46806 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750835Ab0IXJ2n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 05:28:43 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027863E0DC@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:34388 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751292Ab0IXJt0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 05:49:26 -0400
+Received: by iwn5 with SMTP id 5so2265813iwn.19
+        for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 02:49:26 -0700 (PDT)
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530450E3FBEF@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kalliguddi, Hema" <hemahk@ti.com>, "Balbi, Felipe" <balbi@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: "Aguirre, Sergio" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Anna, Suman" <s-anna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+On Thu, Sep 23, 2010 at 7:11 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
+> Code is not the same, it is 2 line which apply for both but couldn't find an easy way of making them share the request for dsp mailbox without changing more code, perhaps a macro to detect if omap2 and then a nested if for the 2420 case, but since HWMOD should handle it better, I left it as is.
 
->-----Original Message-----
->From: linux-usb-owner@vger.kernel.org 
->[mailto:linux-usb-owner@vger.kernel.org] On Behalf Of Kalliguddi, Hema
->Sent: Friday, September 24, 2010 2:23 PM
->To: Balbi, Felipe
->Cc: Kevin Hilman; linux-omap@vger.kernel.org; 
->linux-usb@vger.kernel.org; Basak, Partha; Tony Lindgren; 
->Cousson, Benoit; Paul Walmsley
->Subject: RE: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
->
->Felipe,
-> 
->
->>-----Original Message-----
->>From: Balbi, Felipe 
->>Sent: Friday, September 24, 2010 2:14 PM
->>To: Kalliguddi, Hema
->>Cc: Kevin Hilman; Balbi, Felipe; linux-omap@vger.kernel.org; 
->>linux-usb@vger.kernel.org; Basak, Partha; Tony Lindgren; 
->>Cousson, Benoit; Paul Walmsley
->>Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm apis 
->for musb.
->>
->>Hi,
->>
->>On Fri, Sep 24, 2010 at 03:16:29AM -0500, Kalliguddi, Hema wrote:
->>>>I guess that's Felipe's call, but I don't like that option.
->>>>
->>>>I think it's cleaner to have the ->set_clock hook be a noop on OMAP
->>>>and the runtime hooks be noops on the other platforms.
->>>>
->>>I think the set_clock function was used for setting the platform
->>>specific clocks for different architecture. Anyway we need 
->>this hook or
->>>some other hook once we start handling the optional clocks 
->>and internal
->>>phy clocks for musb.  Since this is already exists I thought 
->of making
->>>use of it instand of adding another hook.
->>>
->>>Felipe, What do you say?
->>
->>Ideally we will get rid of those. It's only a matter of 
->getting DaVinci
->>to fully support clkdev. We should not have wrappers on top of clk
->>framework neither pass down clock names as platform_data to driver,
->>that's insane.
->>
->I think we will need to have some hooks for handling the clocks for
->different platform as each platforms will have different clocks.
->The way we are using set_clock is not the wrapper on top clock 
->frameowrk,
->it is a platform hook to enabling the clocks which still uses 
->the clock framework.
->
->~Hema
->
-I just noticed one more think in the code.
-there are suspend/resume function pointers in platform_driver structure.
-Why can't we use these for platform specific operations like enable/disable clocks, context save/restore?
+I sent some patches to migrate to hwmod, at least it was working on
+OMAP3, somebody would need to fill the values for OMAP2. Would you
+like me to rebase and send them again?
 
->>-- 
->>balbi
->>--
->To unsubscribe from this list: send the line "unsubscribe linux-usb" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-- 
+Felipe Contreras
