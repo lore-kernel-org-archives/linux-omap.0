@@ -1,88 +1,85 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: Query on clock naming conventions in clockxxxx_data.c
-Date: Fri, 24 Sep 2010 20:49:23 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EEBFA@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/2] OMAP: features: export symbol omap3_features
+Date: Fri, 24 Sep 2010 09:34:04 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009240920370.10678@utopia.booyaka.com>
+References: <1285299665-21639-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52301 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754181Ab0IXPT2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:19:28 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8OFJPKt018161
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 10:19:27 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o8OFJODT014013
-	for <linux-omap@vger.kernel.org>; Fri, 24 Sep 2010 20:49:25 +0530 (IST)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870311A2F3F2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:59413 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751781Ab0IXPeG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:34:06 -0400
+In-Reply-To: <1285299665-21639-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Archit,
+Hi Omar, Kevin,
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Friday, September 24, 2010 6:11 PM
-> To: Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org; Guruswamy, Senthilvadivu
-> Subject: Query on clock naming conventions in clockxxxx_data.c
+On Thu, 23 Sep 2010, Omar Ramirez Luna wrote:
+
+> From: Kevin Hilman <khilman@deeprootsystems.com>
 > 
-> Hi,
+> Since omap3_features is a global variable, only code
+> built-in the kernel can make use of it and thus use
+> omap_has ##feat functions; exporting this as a kernel
+> symbol makes modules able to use feature detection
+> framework too.
 > 
-> I had a couple of queries regarding the clock structures in the clockxxxx_data.c files:
+> Thread: http://marc.info/?l=linux-omap&m=128528822902211&w=2
 > 
-> -I have seen that the name of the structure itself explains the name of the clock as
-> given in the TRM.
-> -The member "name" also tries to mimic the clock name.
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> CC: Tony Lindgren <tony@atomide.com>
+> CC: Russell King <linux@arm.linux.org.uk>
+> CC: Nishanth Menon <nm@ti.com>
+> CC: Paul Walmsley <paul@pwsan.com>
+> CC: Sanjeev Premi <premi@ti.com>
+> CC: linux-omap@vger.kernel.org
+> CC: linux-arm-kernel@lists.infradead.org
+> ---
+>  arch/arm/mach-omap2/id.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> The drivers get the clock struct using the "name" member in the clk_get() api. Is it
-> okay if we can change the "name" member to a more generic string. So that the
-> driver
-> code stays more generic?
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 9a879f9..a8c6d19 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -31,6 +31,7 @@ static struct omap_chip_id omap_chip;
+>  static unsigned int omap_revision;
+>  
+>  u32 omap3_features;
+> +EXPORT_SYMBOL(omap3_features);
+>  
+>  unsigned int omap_rev(void)
+>  {
+> -- 
+> 1.7.1
 > 
-> For example, the SYS_CLK which comes into DSS is called "dss2_alwon_fck" on
-> omap3 and
-> "dss_sys_clk" on omap4. This will make our driver need to have cpu_is_omap checks
-> while
-> calling clk_get().
 
-The right way to use the clk_get api is by passing the dev pointer to identify the device
-and a generic identifier like fck or ick to identify the type/functionality of the clock.
-Its not advisable to hardcode clock names, the very reason being that it gets difficult to
-maintain clock node names across processor families and eventually you end up with
-cpu_is_* checks.
+This omap3_features variable should not be used directly by any device 
+drivers since it is an OMAP-ism.  This type of feature info should be 
+passed through struct platform_data.  Looks like this would be quite easy 
+to add by editing mach-omap2/devices.c and adding platform_data?
 
-Doing this however requires the clkdev tables to be updated with the mapping of device 
-names and generic clock identifiers to the actual clock node.
+...
 
-So if you today have something like
-if (cpu_is_omap34xx())
-	clk_get(NULL, " dss2_alwon_fck");
-else
-	clk_get(NULL, " dss_sys_clk");
+In the medium-term, definitely all of those 
 
-It can very easily be replaced with a 
-clk_get(dev, "fck");
+    #if defined(CONFIG_ARCH_OMAP*)
 
-with the clkdev table entry for omap3 like
-CLK("dss-omap","fck", &dss2_alwon_fck...
-and the clkdev table entry for omap4 having something like
-CLK("dss-omap","fck", & dss_sys_clk...
+and 
 
-Now, however since all drivers are using pm_runtime api's which hide the clk control from drivers, this might not have be needed anyway.
+    if (cpu_is_omap*()) {
 
-Regards,
-Rajendra
+in this driver need to be removed.  The integration code (currently in 
+mach-omap2/devices.c) is what should handle this, or better yet, struct 
+dev_attr from hwmod.
 
-> 
-> Thanks,
-> 
-> Archit
+Also the entire mailboxes driver at some point should be moved into 
+drivers/* ...
 
+
+- Paul
