@@ -1,63 +1,118 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] OMAP4: PM: Declare idle modules as functional too
-Date: Fri, 24 Sep 2010 09:50:30 +0200
-Message-ID: <4C9C5846.1000409@ti.com>
-References: <1285312248-15734-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.1009240123420.10678@utopia.booyaka.com>
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
+Date: Fri, 24 Sep 2010 13:46:29 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E94027863E087@dbde02.ent.ti.com>
+References: <1285201830-26561-1-git-send-email-hemahk@ti.com>
+	<20100923063604.GE2563@legolas.emea.dhcp.ti.com>
+	<87wrqc4gwd.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E94027863DD4D@dbde02.ent.ti.com>
+ <87fwx02wl5.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43202 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750829Ab0IXHu1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Sep 2010 03:50:27 -0400
-In-Reply-To: <alpine.DEB.2.00.1009240123420.10678@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87fwx02wl5.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Basak, Partha" <p-basak2-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>
 
-On 9/24/2010 9:28 AM, Paul Walmsley wrote:
-> Hi Rajendra, Partha, Beno=EEt,
->
-> On Fri, 24 Sep 2010, Rajendra Nayak wrote:
->
->> The omap4_cm_wait_module_ready function would only check for
->> the modules to be completely functional before declaring them
->> ready to be accessed.
->> There might also be instances where in the module is actually
->> in idle (under h/w control) but should still be declared
->> accessible, as the h/w control would make it functional when
->> needed.
->>
->> Hence make omap4_cm_wait_module_ready return true in case
->> the module is fully functional *or* in idle state.
->> Fail only if the module is fully disabled or stuck intransition.
->>
->> The explaination from the TRM for the idlest bits on OMAP4 is as
->> below for quick reference
->>
->> Module idle state:
->> 0x0 func:     Module is fully functional, including OCP
->> 0x1 trans:    Module is performing transition: wakeup, or sleep, or =
-sleep
->>                abortion
->> 0x2 idle:     Module is in Idle mode (only OCP part). It is function=
-al if
->>                using separate functional clock
->
-> Thanks for the detailed changelog.  Do we need to check any other
-> registers to ensure that the OCP port is in autoidle, or to ensure th=
-at
-> the separate functional clock is active?
+ 
 
-Unfortunately, we do not have any other status than that in OMAP4 for=20
-the modules clocks activity :-(
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org] 
+>Sent: Thursday, September 23, 2010 11:04 PM
+>To: Kalliguddi, Hema
+>Cc: Balbi, Felipe; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
+>linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Basak, Partha; Tony Lindgren; 
+>Cousson, Benoit; Paul Walmsley
+>Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
+>
+>"Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org> writes:
+>
+>>  
+>>
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org] 
+>>>Sent: Thursday, September 23, 2010 9:00 PM
+>>>To: Balbi, Felipe
+>>>Cc: Kalliguddi, Hema; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
+>>>linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Basak, Partha; Tony Lindgren; 
+>>>Cousson, Benoit; Paul Walmsley
+>>>Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm 
+>apis for musb.
+>>>
+>>>Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> writes:
+>>>
+>>>> Hi,
+>>>>
+>>>> On Wed, Sep 22, 2010 at 07:30:30PM -0500, Kalliguddi, Hema wrote:
+>>>>>Calling runtime pm APIs pm_runtime_put_sync() and 
+>>>pm_runtime_get_sync()
+>>>>>for enabling/disabling the clocks,sysconfig settings.
+>>>>>
+>>>>>Also need to put the USB in force standby and force idle 
+>>>mode when usb not used
+>>>>>and set it back to no idle and no stndby after wakeup.
+>>>>>For OMAP3 auto idle bit has to be disabled because of the 
+>>>errata.So using
+>>>>>HWMOD_NO_OCP_AUTOIDLE flag for OMAP3430.
+>>>
+>>>[...]
+>>>
+>>>>>@@ -2424,13 +2425,16 @@ static int musb_suspend(struct device *d
+>>>>> 		 * they will even be wakeup-enabled.
+>>>>> 		 */
+>>>>> 	}
+>>>>>+	pm_runtime_put_sync(dev);
+>>>>>
+>>>>>+#ifndef CONFIG_PM_RUNTIME
+>>>>> 	musb_save_context(musb);
+>>>>>
+>>>>> 	if (musb->set_clock)
+>>>>> 		musb->set_clock(musb->clock, 0);
+>>>>> 	else
+>>>>> 		clk_disable(musb->clock);
+>>>>>+#endif
+>>>>
+>>>> I would rather remove these, adding ifdefs is bad :-( Unless 
+>>>other archs
+>>>> (blackfin, davinci) would have problems if we remove those.
+>>>
+>>>I didn't like these #ifdefs either, but davinci doesn't have 
+>>>runtime PM,
+>>>and I don't think blackfin does either.
+>>>
+>>>But, rather than the ifdef here, this could be done with different
+>>>pointers in struct dev_pm_ops based on the arch.
+>>>
+>>>Also, this shouldn't be based on CONFIG_PM_RUNTIME, but rather on the
+>>>arch.  We can still enable runtime PM on davinci for other subsystems
+>>>(PCI, USB core, etc.) but not have it supported for on-chip devices.
+>>>
+>> Is it a good idea to use the musb->set_clock function 
+>pointer for OMAP architure and
+>> call the runtime pm apis from this function defined in the 
+>usb platform driver(omap2430)
+>
+>I guess that's Felipe's call, but I don't like that option.
+>
+>I think it's cleaner to have the ->set_clock hook be a noop on OMAP and
+>the runtime hooks be noops on the other platforms.
+>
+I think the set_clock function was used for setting the platform specific clocks
+for different architecture. Anyway we need this hook or some other hook
+once we start handling the optional clocks and internal phy clocks for musb.
+Since this is already exists I thought of making use of it instand of adding another hook.
 
-Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+Felipe,
+What do you say?
+
+~Hema
+>Kevin
+>
+>--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
