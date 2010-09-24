@@ -1,85 +1,136 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] OMAP: features: export symbol omap3_features
-Date: Fri, 24 Sep 2010 09:34:04 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1009240920370.10678@utopia.booyaka.com>
-References: <1285299665-21639-1-git-send-email-omar.ramirez@ti.com>
+From: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
+Date: Fri, 24 Sep 2010 21:05:59 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003C21EEC01@dbde02.ent.ti.com>
+References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
+ <0680EC522D0CC943BC586913CF3768C003C21EEB60@dbde02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863E252@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59413 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751781Ab0IXPeG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 11:34:06 -0400
-In-Reply-To: <1285299665-21639-1-git-send-email-omar.ramirez@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E94027863E252@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-input-owner@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, Dmitry Torokhov <dtor@mail.ru>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Russell King <linux@arm.linux.org.uk>, Nishanth Menon <nm@ti.com>, Sanjeev Premi <premi@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Omar, Kevin,
 
-On Thu, 23 Sep 2010, Omar Ramirez Luna wrote:
 
-> From: Kevin Hilman <khilman@deeprootsystems.com>
+> -----Original Message-----
+> From: G, Manjunath Kondaiah
+> Sent: Friday, September 24, 2010 5:11 PM
+> To: Datta, Shubhrajyoti; linux-omap@vger.kernel.org
+> Cc: linux-input@vger.kernel.org; Dmitry Torokhov; linux-arm-
+> kernel@lists.infradead.org; Tony Lindgren
+> Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
 > 
-> Since omap3_features is a global variable, only code
-> built-in the kernel can make use of it and thus use
-> omap_has ##feat functions; exporting this as a kernel
-> symbol makes modules able to use feature detection
-> framework too.
 > 
-> Thread: http://marc.info/?l=linux-omap&m=128528822902211&w=2
 > 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-> CC: Tony Lindgren <tony@atomide.com>
-> CC: Russell King <linux@arm.linux.org.uk>
-> CC: Nishanth Menon <nm@ti.com>
-> CC: Paul Walmsley <paul@pwsan.com>
-> CC: Sanjeev Premi <premi@ti.com>
-> CC: linux-omap@vger.kernel.org
-> CC: linux-arm-kernel@lists.infradead.org
-> ---
->  arch/arm/mach-omap2/id.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+> > -----Original Message-----
+> > From: Datta, Shubhrajyoti
+> > Sent: Friday, September 24, 2010 5:00 PM
+> > To: G, Manjunath Kondaiah; linux-omap@vger.kernel.org
+> > Cc: linux-input@vger.kernel.org; Dmitry Torokhov;
+> > linux-arm-kernel@lists.infradead.org; Tony Lindgren
+> > Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
+> >
+> >
+> >
+> > > -----Original Message-----
+> > > From: linux-input-owner@vger.kernel.org [mailto:linux-input-
+> > > owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
+> > > Sent: Tuesday, September 21, 2010 5:20 PM
+> > > To: linux-omap@vger.kernel.org
+> > > Cc: linux-input@vger.kernel.org; Dmitry Torokhov; linux-arm-
+> > > kernel@lists.infradead.org; Tony Lindgren
+> > > Subject: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
+> > >
+> > > The failure exit paths seems to be wrong in probe function.
+> > > This patch corrects exit failure paths for error handling cases.
+> > >
+> > > Boot warning incase of request irq failure:
+> > >
+> > > [    1.553985] twl4030_keypad twl4030_keypad: request_irq
+> > failed for irq
+> > > no=369
+> > > [    1.561157] ------------[ cut here ]------------
+> > > [    1.565795] WARNING: at kernel/irq/manage.c:899
+> > __free_irq+0x88/0x164()
+> > > [    1.572418] Trying to free already-free IRQ 369
+> > > [    1.576965] Modules linked in:
+> > > [    1.580047] [<c00470ec>] (unwind_backtrace+0x0/0xe4)
+> > from [<c0078b5c>]
+> > > (warn_slowpath_common+0x4c/0x64)
+> > > [    1.589477] [<c0078b5c>] (warn_slowpath_common+0x4c/0x64) from
+> > > [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c)
+> > > [    1.599060] [<c0078bf4>] (warn_slowpath_fmt+0x2c/0x3c) from
+> > > [<c00adb90>] (__free_irq+0x88/0x164)
+> > > [    1.607849] [<c00adb90>] (__free_irq+0x88/0x164) from
+> > [<c00adca8>]
+> > > (free_irq+0x3c/0x5c)
+> > > [    1.615875] [<c00adca8>] (free_irq+0x3c/0x5c) from [<c043ab2c>]
+> > > (twl4030_kp_probe+0x308/0x374)
+> > > [    1.624511] [<c043ab2c>] (twl4030_kp_probe+0x308/0x374) from
+> > > [<c023c338>] (platform_drv_probe+0x14/0x18)
+> > > [    1.634033] [<c023c338>] (platform_drv_probe+0x14/0x18) from
+> > > [<c023b4dc>] (driver_probe_device+0xc8/0x184)
+> > > [    1.643707] [<c023b4dc>] (driver_probe_device+0xc8/0x184) from
+> > > [<c023b600>] (__driver_attach+0x68/0x8c)
+> > > [    1.653106] [<c023b600>] (__driver_attach+0x68/0x8c)
+> > from [<c023ad34>]
+> > > (bus_for_each_dev+0x48/0x74)
+> > > [    1.662170] [<c023ad34>] (bus_for_each_dev+0x48/0x74)
+> > from [<c023a690>]
+> > > (bus_add_driver+0x9c/0x210)
+> > > [    1.671234] [<c023a690>] (bus_add_driver+0x9c/0x210)
+> > from [<c023b8f8>]
+> > > (driver_register+0xa8/0x134)
+> > > [    1.680297] [<c023b8f8>] (driver_register+0xa8/0x134)
+> > from [<c0041340>]
+> > > (do_one_initcall+0x58/0x1b4)
+> > > [    1.689453] [<c0041340>] (do_one_initcall+0x58/0x1b4)
+> > from [<c0008574>]
+> > > (kernel_init+0x98/0x150)
+> > > [    1.698272] [<c0008574>] (kernel_init+0x98/0x150) from
+> > [<c0042970>]
+> > > (kernel_thread_exit+0x0/0x8)
+> > > [    1.707214] ---[ end trace 6559b322ad3cbdfe ]---
+> > > [    1.718292] twl4030_keypad: probe of twl4030_keypad
+> > failed with error -
+> > > 16
+> > >
+> > > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> > > Cc: linux-input@vger.kernel.org
+> > > Cc: Dmitry Torokhov <dtor@mail.ru>
+> > > Cc: linux-arm-kernel@lists.infradead.org
+> > > Cc: linux-input@vger.kernel.org
+> > > Cc: Tony Lindgren <tony@atomide.com>
+> > > ---
+> > >  version v1 : initial patch
+> > >  version v2 : CC'ed input subsystem and arm kernel mailing lists.
+> > >
+> > >  drivers/input/keyboard/twl4030_keypad.c |   10 ++++------
+> > >  1 files changed, 4 insertions(+), 6 deletions(-)
+> > >
+> > > diff --git a/drivers/input/keyboard/twl4030_keypad.c
+> > > b/drivers/input/keyboard/twl4030_keypad.c
+> > > index fb16b5e..39a9f30 100644
+> > > --- a/drivers/input/keyboard/twl4030_keypad.c
+> > > +++ b/drivers/input/keyboard/twl4030_keypad.c
+> > > @@ -347,8 +347,7 @@ static int __devinit twl4030_kp_probe(struct
+> > > platform_device *pdev)
+> > >  	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
+> > >  	input = input_allocate_device();
+> > >  	if (!kp || !input) {
+> > > -		error = -ENOMEM;
+> > > -		goto err1;
+> > Wont you leak memory here ?
 > 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 9a879f9..a8c6d19 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -31,6 +31,7 @@ static struct omap_chip_id omap_chip;
->  static unsigned int omap_revision;
->  
->  u32 omap3_features;
-> +EXPORT_SYMBOL(omap3_features);
->  
->  unsigned int omap_rev(void)
->  {
-> -- 
-> 1.7.1
+> Already catpured this comment and dmitry has posted alternate patch at:
+> http://www.spinics.net/lists/arm-kernel/msg99053.html
+Apologies missed it.
+ 
 > 
-
-This omap3_features variable should not be used directly by any device 
-drivers since it is an OMAP-ism.  This type of feature info should be 
-passed through struct platform_data.  Looks like this would be quite easy 
-to add by editing mach-omap2/devices.c and adding platform_data?
-
-...
-
-In the medium-term, definitely all of those 
-
-    #if defined(CONFIG_ARCH_OMAP*)
-
-and 
-
-    if (cpu_is_omap*()) {
-
-in this driver need to be removed.  The integration code (currently in 
-mach-omap2/devices.c) is what should handle this, or better yet, struct 
-dev_attr from hwmod.
-
-Also the entire mailboxes driver at some point should be moved into 
-drivers/* ...
-
-
-- Paul
+> -Manjunath
