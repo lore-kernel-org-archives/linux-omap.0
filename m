@@ -1,23 +1,51 @@
-From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCH 0/6] omap3: Various fixes and improvements for IGEP v2 board.
-Date: Sat, 25 Sep 2010 20:19:00 +0200
-Message-ID: <1285438746-7311-1-git-send-email-eballetbo@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:54806 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448Ab0IYSTP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Sep 2010 14:19:15 -0400
-Received: by wwb34 with SMTP id 34so5554wwb.1
-        for <linux-omap@vger.kernel.org>; Sat, 25 Sep 2010 11:19:14 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v4] power: introduce library for device-specific OPPs
+Date: Sat, 25 Sep 2010 22:55:20 +0200
+Message-ID: <201009252255.20933.rjw@sisk.pl>
+References: <1285332640-16736-1-git-send-email-nm@ti.com> <20100924193742.GJ2375@linux.vnet.ibm.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100924193742.GJ2375@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com
+Cc: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hello,
+On Friday, September 24, 2010, Paul E. McKenney wrote:
+> On Fri, Sep 24, 2010 at 07:50:40AM -0500, Nishanth Menon wrote:
+...
+> 
+> Looks like a good start!!!  Some questions and suggestions about RCU
+> usage interspersed below.
+...
+> > + * Locking: RCU reader.
+> > + */
+> > +int opp_get_opp_count(struct device *dev)
+> > +{
+> > +	struct device_opp *dev_opp;
+> > +	struct opp *temp_opp;
+> > +	int count = 0;
+> > +
+> > +	dev_opp = find_device_opp(dev);
+> > +	if (IS_ERR(dev_opp))
+> > +		return PTR_ERR(dev_opp);
+> > +
+> > +	rcu_read_lock();
+> > +	list_for_each_entry_rcu(temp_opp, &dev_opp->opp_list, node) {
+> > +		if (temp_opp->available)
+> > +			count++;
+> > +	}
+> > +	rcu_read_unlock();
+> 
+> This one is OK as well.  You are returning a count, so if all of the
+> counted structures are freed at this point, no problem.  The count was
+> valid when it was accumulated, and the fact that it might now be obsolete
+> is (usually) not a problem.
 
-These patch series fixes and improves the support for IGEP v2 board. Please
-consider to add in next merge window, thanks.
+However, it looks like it should run rcu_read_lock() before calling
+find_device_opp(dev), shouldn't it?
 
-Kind regards,
-  Enric
-
+Rafael
