@@ -1,67 +1,88 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap2 sparse fixes
-Date: Fri, 24 Sep 2010 17:19:15 -0700
-Message-ID: <20100925001914.GO4211@atomide.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A390E@dbde02.ent.ti.com>
- <20100923225851.GR4211@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
+Subject: Re: [RFC 1/5] OMAP: mux: Add support for control module split in
+ several partitions
+Date: Fri, 24 Sep 2010 17:22:28 -0700
+Message-ID: <20100925002228.GP4211@atomide.com>
+References: <1285319748-28976-1-git-send-email-b-cousson@ti.com>
+ <1285319748-28976-2-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53450 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56857 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753560Ab0IYATR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 20:19:17 -0400
+	with ESMTP id S1756032Ab0IYAW0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 20:22:26 -0400
 Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
+In-Reply-To: <1285319748-28976-2-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* G, Manjunath Kondaiah <manjugk@ti.com> [100924 12:33]:
-> 
-> Tony,
-> Here is new pull request which is rebased to 2.6.36-rc5.
-> 
-> -Manjunath
-> 
-> The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
->   Linus Torvalds (1):
->         Linux 2.6.36-rc5
-> 
-> are available in the git repository at:
-> 
->   git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git sparse_fixes
-> 
-> G, Manjunath Kondaiah (10):
->       OMAP: mach-omap2: Fix incorrect assignment warnings
->       OMAP: mach-omap2: Fix static declaration warnings
->       OMAP: mach-omap2: Fix static function warnings
->       OMAP: mach-omap2: Fix miscellaneous sparse warnings
->       OMAP: plat-omap: Fix static function warnings
->       OMAP: NAND: Fix static declaration warning
->       TWL CORE: Fix sparse warning
->       TWL IRQ: Fix fucntion declaration warnings
->       OMAP2/3: Convert write/read functions to raw read/write
->       OMAP3: Keypad: Fix incorrect type initializer
+Hi Benoit,
 
-Hmm tried pulling these, but ran into an issue where at least 2430
-takes about a minute to boot with these patches with no output
-on the console intially.
+* Benoit Cousson <b-cousson@ti.com> [100924 02:07]:
+> Starting on OMAP4, the pin mux configuration is located in two
+> different partitions of the control module (CODE_PAD and WKUP_PAD).
+> The first one is inside the core power domain whereas the second
+> one is inside the wakeup.
+> Since each partition has a different physical base address, an
+> ID is added for each mux entry in order to identify the proper
+> partition and thus the correct base address.
 
-Can you please check that? Will not merge for now until we
-figure out what changes with these patches.
+Few comments below..
+ 
+>  /**
+>   * struct omap_mux - data for omap mux register offset and it's value
+>   * @reg_offset:	mux register offset from the mux base
+>   * @gpio:	GPIO number
+> + * @id:		Partition identifier
+>   * @muxnames:	available signal modes for a ball
+>   */
+>  struct omap_mux {
+>  	u16	reg_offset;
+>  	u16	gpio;
+> +	u8	id;
+>  #ifdef CONFIG_OMAP_MUX
+>  	char	*muxnames[OMAP_MUX_NR_MODES];
+>  #ifdef CONFIG_DEBUG_FS
 
-Then, I also noticed the following exports getting added:
+We might want to think a bit more how we want to handle the various
+partitions for registers.
 
-+EXPORT_SYMBOL(omap2_gp_clockevent_set_gptimer);
-+EXPORT_SYMBOL(omapfb_reserve_sram);
-+EXPORT_SYMBOL(omap_sram_init);
+What do you think of the following:
 
-These should not be exported, they are only intended to be called
-from the low-level platform init code. So exporting them is not
-the right fix for these.
+We could convert u16 reg_offset into u32 reg_phys, and build the ioremap
+areas based on those ranges.
+
+After ioremap we're copying the data for used pins anyways, so we could 
+write them as virtual addresses.
+
+struct omap_mux {
+	union mux_reg_union {
+		u32		reg_phys;
+		void __iomem	*reg_virt; 
+	};
+	u16	gpio;
+#ifdef CONFIG_OMAP_MUX
+	char	*muxnames[OMAP_MUX_NR_MODES];
+#ifdef CONFIG_DEBUG_FS
+	char	*balls[OMAP_MUX_NR_SIDES];
+#endif
+#endif
+};
+
+This would make the code more generic and simplify some parts of the
+code. Muxing signals based on the signal name or gpio number would
+work transparently
+
+Then omapX_mux_init(board_mux, OMAP_PACKAGE_XYZ) would work
+in a transparent way, but would have to figure out the partition
+from the define.
+
+If we wanted to use only the offset in the data, we could initialize
+the various sections separately. But then omapX_mux_init() would have
+to know the partition number somehow..
 
 Regards,
 
