@@ -1,88 +1,53 @@
-From: "Basak, Partha" <p-basak2@ti.com>
-Subject: RE: [PATCH 2/2] OMAP2+: GPIO: move late PM out of
- interrupts-disabled idle path
-Date: Sat, 25 Sep 2010 09:00:22 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930233C35B07@dbde02.ent.ti.com>
-References: <1284418958-5887-1-git-send-email-khilman@deeprootsystems.com>
-	<1284418958-5887-3-git-send-email-khilman@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F6DF51AF@dbde02.ent.ti.com>
-	<87d3sgs1nw.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F6FE85CD@dbde02.ent.ti.com>
-	<87mxr84gip.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F6FE8768@dbde02.ent.ti.com>
-	<87y6asqc9u.fsf@deeprootsystems.com> <87wrqcnhk1.fsf@deeprootsystems.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
+Date: Sat, 25 Sep 2010 11:22:57 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030C8FBC14@dbde02.ent.ti.com>
+References: <1285325785-6163-1-git-send-email-vishwanath.bs@ti.com>
+	<1285325785-6163-2-git-send-email-vishwanath.bs@ti.com>
+	<20100924190125.GG4211@atomide.com> <20100924190930.GH4211@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52979 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751603Ab0IYDad convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Sep 2010 23:30:33 -0400
-In-Reply-To: <87wrqcnhk1.fsf@deeprootsystems.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <20100924190930.GH4211-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Sripathy, Vishwanath" <vishwanath.bs-l0cyMroinI0@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, Tero Kristo <tero.kristo@nokia.com>, "Cousson, Benoit" <b-cousson@ti.com>
-
- 
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Friday, September 24, 2010 5:23 AM
-> To: Basak, Partha
-> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; Tero 
-> Kristo; Cousson, Benoit
-> Subject: Re: [PATCH 2/2] OMAP2+: GPIO: move late PM out of 
-> interrupts-disabled idle path
+> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Tony Lindgren
+> Sent: Saturday, September 25, 2010 12:40 AM
+> To: Sripathy, Vishwanath
+> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org; Kevin Hillman
+> Subject: Re: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
 > 
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
-> 
-> [...]
-> 
-> >>
-> >> We cannot do a get_sync() from ISR context, right?
+> * Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> [100924 11:53]:
+> > * Vishwanath BS <vishwanath.bs-l0cyMroinI0@public.gmane.org> [100924 03:50]:
+> > > There is no need to keep omap3 sleep code in SRAM. This code can be
+> run very
+> > > well on DDR. This would help us to instrument CPUIdle latencies.
 > >
-> > Right, but we *should* be able to.  ;)
-> >
-> > I'm still trying to craft a good description of this 
-> problem so I can
-> > argue better for it on linux-pm.
-> >
-> > Until then...
-> >
-> > A bit of a hack, but you could do a _get_noresume() (which 
-> is safe from
-> > interrupt context) and directly call the drivers ->runtime_resume()
-> > method, which would be the equivalent of a _get_sync().  Followed of
-> > course by a _put() (async version, also interrupt safe) at 
-> the end of
-> > the ISR to keep the usecount correct.
+> > Uhh, are you sure about this? To me it sounds like you're then
+> > relying on the code running from the cache for off-idle?
 > 
-> You probably figured this out already, but I just realized that this
-> won't currently work either as omap_hwmod is using mutexes, and is 
-> safe in ISR context either. :(
+> Actually the caches are off too for off-idle..
 > 
-> What about for now just directly enabling (and re-disabling) the hwmod
-> clocks in the ISR using omap_hwmod_[enable|disable]_clocks()
-> 
-> Since this is a core driver in arch/arm/*omap*, you can directly call
-> the omap_hwmod API.
-> 
+The low power code can be executed from DDR and need not be from
+cache. The only real implementation on OMAP3 is around DVFS code,
+where you need to put DDR to self refresh and execute some
+piece of code. That still needs to be executed from some other
+memory like (SRAM).
 
-omap_hwmod_[enable/disable]_clocks() use mutex inside & therefore cannot
-be used in the ISR context
-
-We cannot readily use the _enable_clocks/_disble_clocks directly as they are
-static APIs.
-
-But we can use the non-mutex versions, of omap_hwmod_enable/idle.
-(_omap_hwmod_enable/_omap_hwmod_disable)
-
-Do you agree?
-
-
-> Kevin
-> 
-> 
+Regards,
+Santosh
