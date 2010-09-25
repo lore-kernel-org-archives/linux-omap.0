@@ -1,65 +1,106 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH] nand: omap2: Missing arg to gpmc_prefetch_reset()
-Date: Sat, 25 Sep 2010 11:56:03 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B035609826B@dbde02.ent.ti.com>
-References: <1285364702-13922-1-git-send-email-loic.minier@linaro.org>
+From: Tim Nordell <tim.nordell@logicpd.com>
+Subject: Re: [RFC 2/5] OMAP: mux: Make low level function private
+Date: Sat, 25 Sep 2010 01:48:53 -0500
+Message-ID: <i7k5v3$nkc$1@dough.gmane.org>
+References: <1285319748-28976-1-git-send-email-b-cousson@ti.com> <1285319748-28976-3-git-send-email-b-cousson@ti.com> <AANLkTikN8M+6Q0cDdp29mnQdtqSwL4Zp5Kpoz8TL+WHu@mail.gmail.com> <4C9D3942.8080600@logicpd.com> <62d32f04402a5bf019e754bd15a70069@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44781 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751396Ab0IYG0N convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Sep 2010 02:26:13 -0400
-In-Reply-To: <1285364702-13922-1-git-send-email-loic.minier@linaro.org>
-Content-Language: en-US
+Received: from lo.gmane.org ([80.91.229.12]:50690 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752802Ab0IYGsN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 25 Sep 2010 02:48:13 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1OzOYO-0003hN-8w
+	for linux-omap@vger.kernel.org; Sat, 25 Sep 2010 08:48:12 +0200
+Received: from c-24-118-192-33.hsd1.mn.comcast.net ([24.118.192.33])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sat, 25 Sep 2010 08:48:12 +0200
+Received: from tim.nordell by c-24-118-192-33.hsd1.mn.comcast.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Sat, 25 Sep 2010 08:48:12 +0200
+In-Reply-To: <62d32f04402a5bf019e754bd15a70069@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Lo=EFc_Minier?= <loic.minier@linaro.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
+On 09/24/10 19:07, Anand Gadiyar wrote:
+>> -----Original Message-----
+>> From: Tim Nordell [mailto:tim.nordell@logicpd.com]
+>> Sent: Saturday, September 25, 2010 5:20 AM
+>> To: Gadiyar, Anand
+>> Cc: Benoit Cousson; linux-omap@vger.kernel.org; Tony
+>> Lindgren; Paul Walmsley; Kevin Hilman
+>> Subject: Re: [RFC 2/5] OMAP: mux: Make low level function private
+>>
+>> On 09/24/10 18:09, Gadiyar, Anand wrote:
+>>> On Fri, Sep 24, 2010 at 2:45 PM, Benoit Cousson
+>> <b-cousson@ti.com>  wrote:
+>>>> omap_mux_read / omap_mux_write should not be accessed directly
+>>>> outside the mux framework.
+>>>> Do we really have use case that require dynamic mux change beside
+>>>> GPIO?
+>>>>
+>>>
+>>> Only case I can think of is for any workarounds for issues
+>> that turn up.
+>>> No such cases exist today on OMAP3 at least, and none are likely to
+>>> appear in future (I hope). So your assumption is valid.
+>>>
+>>
+>> We have a use-case here - granted the code currently is a complete hack
+>> and not something clean enough for the mainline kernel.
+>>
+>> We recently rediscovered the USB3320 PHY suspend issue that is in the
+>> errata on the OMAP35x platform (Advisory 3.1.1.193) and we came up with
+>> a workaround for it (despite the errata saying there isn't any) where
+>> essentially we do:
+>>
+>> 1) Allow the EHCI controller to suspend the PHY as normal
+>> 2) Cut the power to the USB host controller using power domains.  This
+>> resets the logic states in the USB host controller so that it is usable
+>> again.
+>> 3) Remux all the pins talking to the PHY into GPIO mode
+>> 4) Monitor said pins for changes in status to know when a remote wakeup
+>> request occurs
+>> 5) Remux pins back to USB PHY mode
+>> 6) Reenable power to the USB host controller and reinitialize registers
+>
+> We've tried this technique before - you still need to re-enumerate after
+> the resume, right? So you might as well just power down the PHY and
+> you should be able to recover.
+>
+> Ajay Gupta did a lot of work on this - not sure if this worked well. We
+> basically gave up on this interoperability issue and decided to work
+> around it in newer silicon. 3630 ES1.1 and later has suspend-resume
+> working with the SMSC PHY.
 
+So, currently our patch to our local kernel essentially the downstream 
+device is reset-resumed.  We needed to be able to support USB suspend 
+with it waking up when a device is plugged into our USB port.  Since we 
+allow the PHY to suspend (rather than holding it in reset) and we're 
+monitoring the PHY pins via GPIO we can wake up the USB subsystem when 
+device is plugged into the system.
 
-> -----Original Message-----
-> From: Lo=EFc Minier [mailto:loic.minier@linaro.org]
-> Sent: Saturday, September 25, 2010 3:15 AM
-> To: linux-mtd@lists.infradead.org; linux-omap@vger.kernel.org
-> Cc: Tony Lindgren; Ghorai, Sukumar; Lo=EFc Minier
-> Subject: [PATCH] nand: omap2: Missing arg to gpmc_prefetch_reset()
->=20
-> Fix missing cs arg to gpmc_prefetch_reset() when
-> CONFIG_MTD_NAND_OMAP_PREFETCH_DMA=3Dy which caused a build failure si=
-nce
-> 948d38e799f0ab87cf8ed9113fcdaaee61acf321:
-> drivers/mtd/nand/omap2.c: In function 'omap_nand_dma_transfer':
-> drivers/mtd/nand/omap2.c:416: error: too few arguments to function
-> 'gpmc_prefetch_reset'
->=20
-> Signed-off-by: Lo=EFc Minier <loic.minier@linaro.org>
-> ---
->  drivers/mtd/nand/omap2.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index 133d515..513e0a7 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -413,7 +413,7 @@ static inline int omap_nand_dma_transfer(struct
-> mtd_info *mtd, void *addr,
->  		prefetch_status =3D gpmc_read_status(GPMC_PREFETCH_COUNT);
->  	} while (prefetch_status);
->  	/* disable and stop the PFPW engine */
-> -	gpmc_prefetch_reset();
-> +	gpmc_prefetch_reset(info->gpmc_cs);
->=20
->  	dma_unmap_single(&info->pdev->dev, dma_addr, len, dir);
->  	return 0;
-> --
-> 1.7.1
-[Ghorai] Acked-by: Sukumar Ghorai <s-ghorai@ti.com>
+It works well enough that the USB subsystem comes up immediately after 
+we plug in a device, and that it supports suspension without a device. 
+I've even done some tests where I did a remote wakeup with a HID device 
+(mouse button clicks) and some of the time the device would end up being 
+reenumerated, and sometimes a reset-resume, so our current hack isn't 
+perfect, but it does allow what we were mainly aiming for - being able 
+to wake up the USB subsystem when a device is plugged in.  That actually 
+is working quite well with our current hack.  I should note that our 
+hardware has a permanent hub downstream of the USB3320 phy - not sure if 
+this makes any difference in terms of the behavior of the PHY and doing 
+GPIO against it.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And yes, you're right that newer silicon might work better with the PHY, 
+but we also had hardware that was designed with the problematic PHY 
+before we were aware of the errata.  Having something that performs the 
+minimum functionality we needed is better than nothing.
+
+- Tim
+
