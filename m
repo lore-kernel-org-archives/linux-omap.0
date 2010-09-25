@@ -1,106 +1,129 @@
-From: Tim Nordell <tim.nordell@logicpd.com>
-Subject: Re: [RFC 2/5] OMAP: mux: Make low level function private
-Date: Sat, 25 Sep 2010 01:48:53 -0500
-Message-ID: <i7k5v3$nkc$1@dough.gmane.org>
-References: <1285319748-28976-1-git-send-email-b-cousson@ti.com> <1285319748-28976-3-git-send-email-b-cousson@ti.com> <AANLkTikN8M+6Q0cDdp29mnQdtqSwL4Zp5Kpoz8TL+WHu@mail.gmail.com> <4C9D3942.8080600@logicpd.com> <62d32f04402a5bf019e754bd15a70069@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] OMAP: clock/CM/PRM/SCM updates for OMAP4 ES2, OMAP3 CORE
+ DVFS fix: for 2.6.37
+Date: Sat, 25 Sep 2010 01:26:11 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009250124080.10678@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1392867116-1285399571=:10678"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:50690 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752802Ab0IYGsN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 25 Sep 2010 02:48:13 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1OzOYO-0003hN-8w
-	for linux-omap@vger.kernel.org; Sat, 25 Sep 2010 08:48:12 +0200
-Received: from c-24-118-192-33.hsd1.mn.comcast.net ([24.118.192.33])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sat, 25 Sep 2010 08:48:12 +0200
-Received: from tim.nordell by c-24-118-192-33.hsd1.mn.comcast.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sat, 25 Sep 2010 08:48:12 +0200
-In-Reply-To: <62d32f04402a5bf019e754bd15a70069@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:48773 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754507Ab0IYH0M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Sep 2010 03:26:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 09/24/10 19:07, Anand Gadiyar wrote:
->> -----Original Message-----
->> From: Tim Nordell [mailto:tim.nordell@logicpd.com]
->> Sent: Saturday, September 25, 2010 5:20 AM
->> To: Gadiyar, Anand
->> Cc: Benoit Cousson; linux-omap@vger.kernel.org; Tony
->> Lindgren; Paul Walmsley; Kevin Hilman
->> Subject: Re: [RFC 2/5] OMAP: mux: Make low level function private
->>
->> On 09/24/10 18:09, Gadiyar, Anand wrote:
->>> On Fri, Sep 24, 2010 at 2:45 PM, Benoit Cousson
->> <b-cousson@ti.com>  wrote:
->>>> omap_mux_read / omap_mux_write should not be accessed directly
->>>> outside the mux framework.
->>>> Do we really have use case that require dynamic mux change beside
->>>> GPIO?
->>>>
->>>
->>> Only case I can think of is for any workarounds for issues
->> that turn up.
->>> No such cases exist today on OMAP3 at least, and none are likely to
->>> appear in future (I hope). So your assumption is valid.
->>>
->>
->> We have a use-case here - granted the code currently is a complete hack
->> and not something clean enough for the mainline kernel.
->>
->> We recently rediscovered the USB3320 PHY suspend issue that is in the
->> errata on the OMAP35x platform (Advisory 3.1.1.193) and we came up with
->> a workaround for it (despite the errata saying there isn't any) where
->> essentially we do:
->>
->> 1) Allow the EHCI controller to suspend the PHY as normal
->> 2) Cut the power to the USB host controller using power domains.  This
->> resets the logic states in the USB host controller so that it is usable
->> again.
->> 3) Remux all the pins talking to the PHY into GPIO mode
->> 4) Monitor said pins for changes in status to know when a remote wakeup
->> request occurs
->> 5) Remux pins back to USB PHY mode
->> 6) Reenable power to the USB host controller and reinitialize registers
->
-> We've tried this technique before - you still need to re-enumerate after
-> the resume, right? So you might as well just power down the PHY and
-> you should be able to recover.
->
-> Ajay Gupta did a lot of work on this - not sure if this worked well. We
-> basically gave up on this interoperability issue and decided to work
-> around it in newer silicon. 3630 ES1.1 and later has suspend-resume
-> working with the SMSC PHY.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-So, currently our patch to our local kernel essentially the downstream 
-device is reset-resumed.  We needed to be able to support USB suspend 
-with it waking up when a device is plugged into our USB port.  Since we 
-allow the PHY to suspend (rather than holding it in reset) and we're 
-monitoring the PHY pins via GPIO we can wake up the USB subsystem when 
-device is plugged into the system.
+--155748971-1392867116-1285399571=:10678
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-It works well enough that the USB subsystem comes up immediately after 
-we plug in a device, and that it supports suspension without a device. 
-I've even done some tests where I did a remote wakeup with a HID device 
-(mouse button clicks) and some of the time the device would end up being 
-reenumerated, and sometimes a reset-resume, so our current hack isn't 
-perfect, but it does allow what we were mainly aiming for - being able 
-to wake up the USB subsystem when a device is plugged in.  That actually 
-is working quite well with our current hack.  I should note that our 
-hardware has a permanent hub downstream of the USB3320 phy - not sure if 
-this makes any difference in terms of the behavior of the PHY and doing 
-GPIO against it.
+Hi Tony,
 
-And yes, you're right that newer silicon might work better with the PHY, 
-but we also had hardware that was designed with the problematic PHY 
-before we were aware of the errata.  Having something that performs the 
-minimum functionality we needed is better than nothing.
+The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c=
+:
 
-- Tim
+  Linux 2.6.36-rc5 (2010-09-20 16:56:53 -0700)
 
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 omap4_and_sdrc_2.6.27
+
+Benoit Cousson (9):
+      OMAP: hwmod: Rename dma_ch to dma_req
+      OMAP: hwmod: Do not disable clocks if hwmod already in idle
+      OMAP4: prcm: Add temporarily helper functions for rmw and read inside=
+ the PRM
+      OMAP: hwmod: Force a softreset during _setup
+      OMAP: hwmod: Fix softreset status check for some new OMAP4 IPs
+      OMAP: hwmod: Fix softreset for modules with optional clocks
+      OMAP4: clock: Fix clock names and align with hwmod names
+      OMAP4: clock: Add optional clock nodes
+      OMAP4: clocks: Fix ES2 clock issues
+
+Beno=EEt Cousson (2):
+      OMAP4: PRM: add module hard reset support
+      OMAP: hwmod: Add hardreset management support
+
+Jon Hunter (1):
+      omap3: Prevent SDRC deadlock when L3 is changing frequency
+
+Kevin Hilman (1):
+      OMAP: hwmod: separate list locking and hwmod hardware locking
+
+Liam Girdwood (1):
+      OMAP: hwmod: Fix omap_hwmod_reset wrong state test
+
+Partha Basak (1):
+      OMAP: hwmod: Handle opt clocks node using clk_add_alias
+
+Paul Walmsley (3):
+      OMAP2/3: PRM: add module hard reset support
+      OMAP: hwmod: add an hardreset API for use by other core code
+      OMAP: hwmod: improve documentation, clean up function names
+
+Rajeev Kulkarni (1):
+      OMAP4: prcm: Fix global warm reset bit position
+
+Rajendra Nayak (5):
+      OMAP: hwmod: Enable module wakeup if in smartidle
+      OMAP4: clocks: Update clock tree for ES2
+      OMAP4: CM & PRM: Update PRCM register bitshifts and masks for ES2
+      OMAP4: PM: Define additional registers for ES2
+      OMAP4: powerdomain: Update DSS logic state for ES2
+
+Santosh Shilimkar (4):
+      omap4: control: Add ctrl_pad_base to omap_globals
+      omap4: control: Add accessor api's for pad control module
+      omap4: control: Add the register definition headers
+      omap4: control: Fix the control module register accesses
+
+ arch/arm/mach-omap2/Makefile                       |    4 +-
+ arch/arm/mach-omap2/clock44xx_data.c               | 1310 +++++++++++-----=
+--
+ arch/arm/mach-omap2/cm-regbits-44xx.h              | 1287 ++++++++++------=
+---
+ arch/arm/mach-omap2/cm44xx.h                       |   90 ++-
+ arch/arm/mach-omap2/control.c                      |   25 +
+ arch/arm/mach-omap2/hsmmc.c                        |   67 +-
+ arch/arm/mach-omap2/id.c                           |    2 +-
+ .../include/mach/ctrl_module_core_44xx.h           |  391 ++++++
+ .../include/mach/ctrl_module_pad_core_44xx.h       | 1409 ++++++++++++++++=
+++++
+ .../include/mach/ctrl_module_pad_wkup_44xx.h       |  236 ++++
+ .../include/mach/ctrl_module_wkup_44xx.h           |   92 ++
+ arch/arm/mach-omap2/omap_hwmod.c                   |  562 +++++++--
+ arch/arm/mach-omap2/powerdomains44xx.h             |    2 +-
+ arch/arm/mach-omap2/prcm.c                         |   29 +-
+ arch/arm/mach-omap2/prm-regbits-44xx.h             | 1314 ++++++++++------=
+---
+ arch/arm/mach-omap2/prm.h                          |   18 +-
+ arch/arm/mach-omap2/prm2xxx_3xxx.c                 |  110 ++
+ arch/arm/mach-omap2/prm44xx.c                      |  116 ++
+ arch/arm/mach-omap2/prm44xx.h                      |   14 +-
+ arch/arm/mach-omap2/sram34xx.S                     |    6 +-
+ arch/arm/plat-omap/common.c                        |    3 +-
+ arch/arm/plat-omap/include/plat/common.h           |    1 +
+ arch/arm/plat-omap/include/plat/control.h          |   31 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h       |   55 +-
+ arch/arm/plat-omap/include/plat/powerdomain.h      |    1 +
+ arch/arm/plat-omap/include/plat/prcm.h             |    2 +
+ arch/arm/plat-omap/omap_device.c                   |   43 +-
+ 27 files changed, 5328 insertions(+), 1892 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_core_44xx.=
+h
+ create mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_pad_core_4=
+4xx.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_pad_wkup_4=
+4xx.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/ctrl_module_wkup_44xx.=
+h
+ create mode 100644 arch/arm/mach-omap2/prm2xxx_3xxx.c
+ create mode 100644 arch/arm/mach-omap2/prm44xx.c
+
+
+- Paul
+--155748971-1392867116-1285399571=:10678--
