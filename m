@@ -1,60 +1,41 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH v4] power: introduce library for device-specific OPPs
-Date: Sat, 25 Sep 2010 17:56:36 -0700
-Message-ID: <20100926005636.GB3396@linux.vnet.ibm.com>
-References: <1285332640-16736-1-git-send-email-nm@ti.com>
- <20100924193742.GJ2375@linux.vnet.ibm.com>
- <201009252255.20933.rjw@sisk.pl>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] OMAP: hwmod/device/CM: bug fixes for 2.6.37
+Date: Sun, 26 Sep 2010 00:19:06 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009260018060.10678@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from e3.ny.us.ibm.com ([32.97.182.143]:42760 "EHLO e3.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754013Ab0IZA5C (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 25 Sep 2010 20:57:02 -0400
-Content-Disposition: inline
-In-Reply-To: <201009252255.20933.rjw@sisk.pl>
+Received: from utopia.booyaka.com ([72.9.107.138]:33600 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919Ab0IZGTH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Sep 2010 02:19:07 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, Sep 25, 2010 at 10:55:20PM +0200, Rafael J. Wysocki wrote:
-> On Friday, September 24, 2010, Paul E. McKenney wrote:
-> > On Fri, Sep 24, 2010 at 07:50:40AM -0500, Nishanth Menon wrote:
-> ...
-> > 
-> > Looks like a good start!!!  Some questions and suggestions about RCU
-> > usage interspersed below.
-> ...
-> > > + * Locking: RCU reader.
-> > > + */
-> > > +int opp_get_opp_count(struct device *dev)
-> > > +{
-> > > +	struct device_opp *dev_opp;
-> > > +	struct opp *temp_opp;
-> > > +	int count = 0;
-> > > +
-> > > +	dev_opp = find_device_opp(dev);
-> > > +	if (IS_ERR(dev_opp))
-> > > +		return PTR_ERR(dev_opp);
-> > > +
-> > > +	rcu_read_lock();
-> > > +	list_for_each_entry_rcu(temp_opp, &dev_opp->opp_list, node) {
-> > > +		if (temp_opp->available)
-> > > +			count++;
-> > > +	}
-> > > +	rcu_read_unlock();
-> > 
-> > This one is OK as well.  You are returning a count, so if all of the
-> > counted structures are freed at this point, no problem.  The count was
-> > valid when it was accumulated, and the fact that it might now be obsolete
-> > is (usually) not a problem.
-> 
-> However, it looks like it should run rcu_read_lock() before calling
-> find_device_opp(dev), shouldn't it?
+Hi Tony,
 
-Indeed it does appear that you are right -- good catch!!!
+The following changes since commit 74ff3a68ed11f1e9eede4fe301f42cc3cdf7396a:
 
-							Thanx, Paul
+  OMAP: hwmod: improve documentation, clean up function names (2010-09-22 09:19:55 -0600)
+
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 misc_2.6.37
+
+Hema HK (1):
+      OMAP: hwmod: Set autoidle after smartidle during _sysc_enable
+
+Kishon Vijay Abraham I (1):
+      OMAP: omap_device: Fix to support multiple hwmods for a single device
+
+Rajendra Nayak (1):
+      OMAP4: PM: Declare idle modules as functional too
+
+ arch/arm/mach-omap2/cm4xxx.c     |    9 +++++----
+ arch/arm/mach-omap2/omap_hwmod.c |   17 +++++++++++------
+ arch/arm/plat-omap/omap_device.c |   35 ++++++++++++++---------------------
+ 3 files changed, 30 insertions(+), 31 deletions(-)
+
+
+- Paul
