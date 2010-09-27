@@ -1,53 +1,40 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [linux-pm] runtime_pm_get_sync() from ISR with IRQs disabled?
-Date: Mon, 27 Sep 2010 14:11:37 -0700
-Message-ID: <87bp7inb7a.fsf@deeprootsystems.com>
-References: <Pine.LNX.4.44L0.1009271636170.1751-100000@iolanthe.rowland.org>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [PATCH 11/13 v3] serial: Add OMAP high-speed UART driver
+Date: Mon, 27 Sep 2010 14:24:58 -0700
+Message-ID: <20100927212458.GA28283@suse.de>
+References: <43868.10.24.255.17.1285599049.squirrel@dbdmail.itg.ti.com> <878w2moqi5.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:61302 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752356Ab0I0VLk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 17:11:40 -0400
-Received: by iwn5 with SMTP id 5so5061989iwn.19
-        for <linux-omap@vger.kernel.org>; Mon, 27 Sep 2010 14:11:40 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1009271636170.1751-100000@iolanthe.rowland.org>
-	(Alan Stern's message of "Mon, 27 Sep 2010 16:39:38 -0400 (EDT)")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <878w2moqi5.fsf@deeprootsystems.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm@lists.linux-foundation.org, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+On Mon, Sep 27, 2010 at 01:55:46PM -0700, Kevin Hilman wrote:
+> [resent with correct address for Greg, sorry for duplicates.]
+> 
+> Greg,
+> 
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+> 
+> > This patch adds driver support for OMAP2/3/4 high speed UART.
+> 
+> According to MAINTAINERS, you seem to be the one looking after the
+> serial core.  Are you the one to ack/merge new drivers?
 
-> On Mon, 27 Sep 2010, Rafael J. Wysocki wrote:
->
->> > How about adding another flag to the dev_pm_info structure, to indicate 
->> > that the runtime callbacks may be called in interrupt context?
->> > 
->> > Maybe that will lead to problems I haven't thought of.  But if it seems 
->> > okay to you, I can code it up easily enough.
->> 
->> Hmm.  I was thinking about adding a new RPM_ flag for that, like RPM_FASTPATH,
->> telling the PM core to assume the callbacks will not sleep and that the call
->> might be from interrupt handler.
->
-> That might appear more flexible, but is there any advantage to it?  
-> That is, would there be a situation where the driver knows that the 
-> next callback won't sleep but in general the callback might sleep 
-> sometimes?  It doesn't seem very likely.
->
-> Kevin, do you have any feelings about this?
+Yup, but Alan Cox is also a good person to get review from as well.
 
-For flexibility, I like the RPM_FASTPATH approach.
+> With your ack, we can merge this through the OMAP tree along with the
+> rest of the series that has OMAP-specific platform reorg and updates.
+> 
+> If you're not the right person, please let us know who would be the
+> right person to ack/sign-off on this.
 
-At least in the drivers I'm currently tinkering with, most of the
-callers can sleep.  It's only the occasional callback triggered from the
-ISR that can't sleep.
+Cc both of us so we can review it please.
 
-During this "normal" (non-ISR) usage, there might very well be
-concurrent or pending requests, some of which might have to sleep.  So,
-I think it's best to have the fastpath settable on a per-caller basis.
+thanks,
 
-Kevin
+greg k-h
