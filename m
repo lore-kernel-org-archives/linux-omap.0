@@ -1,76 +1,46 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH] OMAP: PM: CPUFREQ: Fix conditional compilation
-Date: Mon, 27 Sep 2010 13:00:59 +0530
-Message-ID: <AANLkTimT0bfNjBThHj8bPAZ+ybfV=PFJkj09AUL0M20g@mail.gmail.com>
-References: <1285318494-22092-1-git-send-email-silesh@ti.com>
-	<87pqw3ji5i.fsf@deeprootsystems.com>
-	<AANLkTikWWyfgUOYyXud0D0vpMwAn2xxUKM=dNPoYsCK0@mail.gmail.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH v4 1/4] omap4 hsmmc: Adding card detect support for MMC1
+Date: Mon, 27 Sep 2010 13:22:47 +0530
+Message-ID: <AANLkTikr4mG_oFngkFvH7TWEvm0P2M2M8-dZV4Xtm5B-@mail.gmail.com>
+References: <9408.10.24.255.18.1285348400.squirrel@dbdmail.itg.ti.com>
+	<20100925003859.GR4211@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64191 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751016Ab0I0HbD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 03:31:03 -0400
-Received: by wyb28 with SMTP id 28so3577039wyb.19
-        for <linux-omap@vger.kernel.org>; Mon, 27 Sep 2010 00:31:02 -0700 (PDT)
-In-Reply-To: <AANLkTikWWyfgUOYyXud0D0vpMwAn2xxUKM=dNPoYsCK0@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100925003859.GR4211@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kishore kadiyala <kishore.kadiyala@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, madhu.cr@ti.com, adrian.hunter@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Silesh C V <silesh@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-On Mon, Sep 27, 2010 at 11:49 AM, Silesh C V <silesh@ti.com> wrote:
-> On Fri, Sep 24, 2010 at 8:36 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> Silesh C V <silesh@ti.com> writes:
+Hi Tony,
+
+On Sat, Sep 25, 2010 at 6:08 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * kishore kadiyala <kishore.kadiyala@ti.com> [100924 10:05]:
+>> Adding card detect callback function and card detect configuration
+>> function for MMC1 Controller on OMAP4.
 >>
->>> Fix conditional compilation.
+>> Card detect configuration function does initial configuration of the
+>> MMC Control & PullUp-PullDown registers of Phoenix.
 >>
->> What excatly was the compile error? =A0and with which compiler?
+>> For MMC1 Controller, card detect interrupt source is
+>> twl6030 which is non-gpio. The card detect call back function provides
+>> card present/absent status by reading MMC Control register present
+>> on twl6030.
+>>
+>> Since OMAP4 doesn't use any GPIO line as used in OMAP3 for card detect,
+>> the suspend/resume initialization which was done in omap_hsmmc_gpio_init
+>> previously is moved to the probe thus making it generic for both OMAP3 & OMAP4.
 >
-> There is no compiler error.But what we need after an #elif is a
-> conditional expression.
-> The correct usage is #elif defined(CONFIG_XXX) rather than #elif CONF=
-IG_XXX.
+>> --- a/drivers/mfd/twl6030-irq.c
+>> +++ b/drivers/mfd/twl6030-irq.c
 >
-> Further, if the kernel is configured for a non-omap3 arch (eg.OMAP4),
-> you get a compiler warning:
-> arch/arm/plat-omap/cpu-omap.c:47:7: warning: "CONFIG_ARCH_OMAP3" is n=
-ot defined
-> which goes away with this patch.
->
+> Looks like this patch should be sent to Samuel Ortiz as it's mostly
+> mfd related.
 
-Silesh,
+Thanks , I will send this patch to Samuel.
 
-which defconfig are you using with multi omap-build defconfig(omap3_def=
-config)
+<snip>
 
-CONFIG_ARCH_OMAP3 will be enabled. So this compilation error will not o=
-ccur.
-
----
 Regards,
-Govindraj.R
-
-
->>
->> The current pm branch =A0seems to compile fine for me.
->>
->> Kevin
->>
->
-> Thanks,
-> Silesh.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kishore
