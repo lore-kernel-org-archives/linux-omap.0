@@ -1,76 +1,88 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 0/5] Convert I2C driver to use omap_device/runtime PM
-Date: Mon, 27 Sep 2010 13:02:47 -0700
-Message-ID: <87vd5rnee0.fsf@deeprootsystems.com>
-References: <1285078036-12789-1-git-send-email-rnayak@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC 1/5] OMAP: mux: Add support for control module split in
+ several partitions
+Date: Mon, 27 Sep 2010 22:03:15 +0200
+Message-ID: <4CA0F883.3030302@ti.com>
+References: <1285319748-28976-1-git-send-email-b-cousson@ti.com> <1285319748-28976-2-git-send-email-b-cousson@ti.com> <20100925002228.GP4211@atomide.com> <20100927154611.GT4211@atomide.com> <4CA0D33C.303@ti.com> <20100927173604.GY4211@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1285078036-12789-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Tue, 21 Sep 2010 19:37:11 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: ben-linux@fluff.org
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-i2c@vger.kernel.org, khali@linux-fr.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55285 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755947Ab0I0UDU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Sep 2010 16:03:20 -0400
+In-Reply-To: <20100927173604.GY4211@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Ben,
-
-Rajendra Nayak <rnayak@ti.com> writes:
-
-> This series makes I2C device registration use hwmod and omap_device api's
-> and converts the I2C driver to use runtime PM api's.
+On 9/27/2010 7:36 PM, Tony Lindgren wrote:
+> * Cousson, Benoit<b-cousson@ti.com>  [100927 10:15]:
+>>
+>> OK for that one, that will save the extra id to store the partition
+>> in each static data, but then you will still have to store it during
+>> the init?
 >
-> Patches apply on the pm-core branch from Kevin's tree.
+> For mux.c internal data, we can have an array of struct omap_mux_partition
+> that contains the mux array for that partition:
+>
+> struct omap_mux_partition {
+> 	void __iomem	*base;	/* Partition virt base */
+> 	struct omap_mux	*mux;	/* Partition specific mux array */
+> };
+>
+>>> ...
+>>> For omap2 and 3, we just call omap_mux_init once with the mux_pbase
+>>> as we currently already do. Then for omap4, we call omap_mux_init for
+>>> each partition.
+>>>
+>>> We also need to change omap_mux_read/write to allow specifying the
+>>> partition base address:
+>>
+>> Then you need somehow a partition information from somewhere.
+>> I don't see how we can avoid the id at that point? We can store the
+>> base address instead, but then every mux entries will have it.
+>
+> That should only need to be stored once for each partition in the
+> struct omap_mux_partition?
+>
+>> The caller of the omap_mux_read still have to figure out what base
+>> address it has to use.
+>> That move the issue to the upper layer, but we still need that.
+>
+> For the mux.c internal code, we can search through the array
+> of struct omap_mux_partition and the mux entries in each partition
+> for signal name or GPIO number.
+>
+>>> All the other mux interface functions can stay the same, we just need
+>>> to modify the mux.c code to look for signal names or GPIO number in
+>>> each registered partition.
+>>
+>> OK, now I think I understand your point... Please ignore the
+>> previous comments :-)
+>>
+>> You will guess the partition by trying each array at a time, and the
+>> first one will win.
+>>
+>> That seems pretty good in fact.
+>>
+>> I just have to do it now...
+>
+> OK cool, let me know if I can help with something.
 
-If you're OK with the driver changes in PATCH 5/5, with your Ack, we can
-queue this via the OMAP tree with all the platform changes that it
-depends on.
+Thanks, but that should be fine for moment. I think I should have the 
+updated version before the end of the week.
+
+Just one clarification, I don't think we have to use two different 
+macros in that case. The names are already unique across partition 
+today, so we can use only macro like for previous OMAP.
+
+I'm just glad I don't have to re-write these 231 entries per ES manually :-)
+
+I'll give it a try, and keep you inform if I have any un-expected issue 
+with that approach.
 
 Thanks,
-
-Kevin
-
-> v3 has minor review comment fixes over v2
-> The series is boot tested on a 2430sdp platform along with being tested
-> on 3430sdp and 4430sdp.
->
-> 4430sdp tests are done using the below series 
-> http://www.spinics.net/lists/linux-omap/msg36023.html
->
-> Paul Walmsley (2):
->   OMAP2xxx: hwmod: add I2C hwmods for OMAP2420, 2430
->   OMAP: I2C: split device registration and convert OMAP2+ to
->     omap_device
->
-> Rajendra Nayak (3):
->   OMAP3: hwmod: add I2C hwmods for OMAP3430
->   OMAP4: hwmod: add I2C hwmods for OMAP4430
->   OMAP: I2C: Convert i2c driver to use PM runtime api's
->
->  arch/arm/mach-omap2/cm-regbits-24xx.h      |    4 +
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  140 ++++++++++++++++-
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  154 ++++++++++++++++++-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  232 +++++++++++++++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  237 ++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/prm-regbits-34xx.h     |    3 +
->  arch/arm/plat-omap/i2c.c                   |  124 ++++++---------
->  arch/arm/plat-omap/include/plat/i2c.h      |   16 ++
->  arch/arm/plat-omap/include/plat/l4_3xxx.h  |   24 +++
->  drivers/i2c/busses/i2c-omap.c              |   67 +++------
->  include/linux/i2c-omap.h                   |    5 +
->  11 files changed, 881 insertions(+), 125 deletions(-)
->  create mode 100644 arch/arm/plat-omap/include/plat/l4_3xxx.h
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Benoit
