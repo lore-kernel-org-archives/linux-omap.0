@@ -1,54 +1,82 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH v3] power_supply: Add driver for TWL4030/TPS65950 BCI charger
-Date: Mon, 27 Sep 2010 16:08:41 +0300
-Message-ID: <AANLkTi=xS_=QytU0Yrh5EEiiL6GyekcO+DezjT-Zpj-7@mail.gmail.com>
-References: <1285529740-28232-1-git-send-email-notasas@gmail.com>
-	<AANLkTinkxokX9BGtxysYOr19xbZR4S8oPRYUAyneutzc@mail.gmail.com>
-	<AANLkTinh+JTwyE4E33QXdnZ8obYA8S0SU71i3kGi=wRT@mail.gmail.com>
-	<AANLkTik0LOQN8kOPjv_VohhO5To6pZDS=M0mw=q0whPp@mail.gmail.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v2 08/10] TWL IRQ: Fix fucntion declaration warnings
+Date: Mon, 27 Sep 2010 18:40:08 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F8CCE@dbde02.ent.ti.com>
+References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
+ <1285063280-4057-9-git-send-email-manjugk@ti.com>
+ <20100927111609.GF2560@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:48836 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754465Ab0I0NIm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 09:08:42 -0400
-In-Reply-To: <AANLkTik0LOQN8kOPjv_VohhO5To6pZDS=M0mw=q0whPp@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35201 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759150Ab0I0NKU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 09:10:20 -0400
+In-Reply-To: <20100927111609.GF2560@sortiz-mobl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arun Murthy <arunrmurthy.83@gmail.com>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Madhusudhan <madhu.cr@ti.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
 
-On Mon, Sep 27, 2010 at 3:35 PM, Arun Murthy <arunrmurthy.83@gmail.com> wrote:
-> On Mon, Sep 27, 2010 at 4:24 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
->> On Mon, Sep 27, 2010 at 10:21 AM, Arun Murthy <arunrmurthy.83@gmail.com> wrote:
->> The problem is that BCI is only active while charging, when it is not
->> charging most (all?) monitoring registers freeze and no monitoring
->> happens (BCI registers read frozen values from last charge). So I
->> don't register battery as it has no useful data to report. I heard it
->> is possible to use MADC to perform monitoring while not charging, so
->> battery can be added when MADC driver is merged and corresponding code
->> is written for this driver.
->>
-> How do I check the battery voltage?
-> I need to check the battery voltage/current/temp and, if I am not
-> wrong these are obtained from MADC.
-> MADC driver has to be added first and then the battery.
-> With being able to read the basic parameter battery voltage, this
-> driver becomes incomplete.
 
-Incomplete driver is better than no driver, don't you think? There are
-some boards like pandora or oswald that have additional battery
-monitoring chips (as twl monitoring is pretty crude anyway), those
-boards would have fully functional charging now. Currently mainline
-kernel is not very useful with them simply because the battery runs
-flat.
+Hi Samuel,
 
-> How do I get notified if battery voltage is low and needs charging
-> from user space?
+> -----Original Message-----
+> From: Samuel Ortiz [mailto:sameo@linux.intel.com] 
+> Sent: Monday, September 27, 2010 4:46 PM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Tony Lindgren; Menon, Nishanth
+> Subject: Re: [PATCH v2 08/10] TWL IRQ: Fix fucntion 
+> declaration warnings
+> 
+> Hi Manjunath,
+> 
+> On Tue, Sep 21, 2010 at 03:31:18PM +0530, G, Manjunath Kondaiah wrote:
+> > Fixes following sparse warnings for twl4030 and twl6030 irq files.
+> > 
+> > drivers/mfd/twl4030-irq.c:783:5: warning: symbol 
+> 'twl4030_init_irq' was not declared. Should it be static?
+> > drivers/mfd/twl4030-irq.c:863:5: warning: symbol 
+> 'twl4030_exit_irq' was not declared. Should it be static?
+> > drivers/mfd/twl4030-irq.c:873:5: warning: symbol 
+> 'twl4030_init_chip_irq' was not declared. Should it be static?
+> > 
+> > drivers/mfd/twl6030-irq.c:226:5: warning: symbol 
+> 'twl6030_init_irq' was not declared. Should it be static?
+> > drivers/mfd/twl6030-irq.c:290:5: warning: symbol 
+> 'twl6030_exit_irq' was not declared. Should it be static?
+> > 
+> > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> > Cc: linux-arm-kernel@lists.infradead.org
+> > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > ---
+> >  include/linux/i2c/twl.h |    5 +++++
+> >  1 files changed, 5 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/include/linux/i2c/twl.h 
+> b/include/linux/i2c/twl.h index 
+> > 6de90bf..c61e90a 100644
+> > --- a/include/linux/i2c/twl.h
+> > +++ b/include/linux/i2c/twl.h
+> > @@ -172,6 +172,11 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, 
+> > unsigned num_bytes);
+> >  
+> >  int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);  int 
+> > twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+> > +int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned 
+> > +irq_end); int twl6030_exit_irq(void); int twl4030_init_irq(int 
+> > +irq_num, unsigned irq_base, unsigned irq_end); int 
+> > +twl4030_exit_irq(void); int twl4030_init_chip_irq(const 
+> char *chip);
+> No, we don't want to export those. Try defining them as 
+> extern from twl*-irq.c.
 
-Either additional monitoring chip notifies you (if you are lucky and
-have one), or wait for update of this driver :) There are efforts to
-merge MADC driver [1], but it may take some time.
+Having extern in .c file will generate checkpatch warning as:
+WARNING: externs should be avoided in .c files
 
-[1] http://marc.info/?t=128461535700002&r=1&w=2
+-Manjunath
