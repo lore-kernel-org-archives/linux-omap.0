@@ -1,27 +1,77 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3] power_supply: Add driver for TWL4030/TPS65950 BCI
- charger
-Date: Mon, 27 Sep 2010 11:16:33 +0300
-Message-ID: <20100927081633.GD22913@legolas.emea.dhcp.ti.com>
-References: <1285529740-28232-1-git-send-email-notasas@gmail.com>
- <AANLkTinkxokX9BGtxysYOr19xbZR4S8oPRYUAyneutzc@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Silesh C V <saileshcv@gmail.com>
+Subject: Re: [PATCH] OMAP: PM: CPUFREQ: Fix conditional compilation
+Date: Mon, 27 Sep 2010 14:18:59 +0530
+Message-ID: <AANLkTi=kajdYN9rbdjH_9q6E5RLuy_oj-4Xsk-X6sFRg@mail.gmail.com>
+References: <1285318494-22092-1-git-send-email-silesh@ti.com>
+	<87pqw3ji5i.fsf@deeprootsystems.com>
+	<AANLkTikWWyfgUOYyXud0D0vpMwAn2xxUKM=dNPoYsCK0@mail.gmail.com>
+	<AANLkTimT0bfNjBThHj8bPAZ+ybfV=PFJkj09AUL0M20g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTinkxokX9BGtxysYOr19xbZR4S8oPRYUAyneutzc@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arun Murthy <arunrmurthy.83@gmail.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:62613 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755067Ab0I0ItA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 04:49:00 -0400
+Received: by iwn5 with SMTP id 5so4611674iwn.19
+        for <linux-omap@vger.kernel.org>; Mon, 27 Sep 2010 01:49:00 -0700 (PDT)
+In-Reply-To: <AANLkTimT0bfNjBThHj8bPAZ+ybfV=PFJkj09AUL0M20g@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-Hi,
+On Mon, Sep 27, 2010 at 1:00 PM, Govindraj <govindraj.ti@gmail.com> wro=
+te:
+> On Mon, Sep 27, 2010 at 11:49 AM, Silesh C V <silesh@ti.com> wrote:
+>> On Fri, Sep 24, 2010 at 8:36 PM, Kevin Hilman
+>> <khilman@deeprootsystems.com> wrote:
+>>> Silesh C V <silesh@ti.com> writes:
+>>>
+>>>> Fix conditional compilation.
+>>>
+>>> What excatly was the compile error? =A0and with which compiler?
+>>
+>> There is no compiler error.But what we need after an #elif is a
+>> conditional expression.
+>> The correct usage is #elif defined(CONFIG_XXX) rather than #elif CON=
+=46IG_XXX.
+>>
+>> Further, if the kernel is configured for a non-omap3 arch (eg.OMAP4)=
+,
+>> you get a compiler warning:
+>> arch/arm/plat-omap/cpu-omap.c:47:7: warning: "CONFIG_ARCH_OMAP3" is =
+not defined
+>> which goes away with this patch.
+>>
+>
+> Silesh,
+>
+> which defconfig are you using with multi omap-build defconfig(omap3_d=
+efconfig)
+>
+> CONFIG_ARCH_OMAP3 will be enabled. So this compilation error will not=
+ occur.
+>
+> ---
+> Regards,
+> Govindraj.R
+>
+>
 
-please re-send this email without the HTML formatting. Please follow the
-netiquette [1].
+As I said before there is no compilation error. But what we have to
+check for is whether CONFIG_ARCH_OMAP3 is defined or not.
+Not for the value of CONFIG_ARCH_OMAP3. We have to check for value of
+defined (CONFIG_ARCH_OMAP3). Otherwise compiler searches for the value
+of the macro and hence the warning(comes with a omap4 config).See how
+#elif + CONFIG_XXX is used elsewhere in kernel.
 
-[1] http://elinux.org/Netiquette
 
--- 
-balbi
+Thanks,
+Silesh.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
