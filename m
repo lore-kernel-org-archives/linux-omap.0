@@ -1,64 +1,46 @@
-From: =?UTF-8?q?Lo=C3=AFc=20Minier?= <loic.minier@linaro.org>
-Subject: [PATCH] OMAP: PM: Fix build when CONFIG_PM_DEBUG isn't set
-Date: Mon, 27 Sep 2010 23:04:20 +0200
-Message-ID: <1285621460-22011-1-git-send-email-loic.minier@linaro.org>
-References: <87d3rzotj6.fsf@deeprootsystems.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] runtime_pm_get_sync() from ISR with IRQs disabled?
+Date: Mon, 27 Sep 2010 23:09:22 +0200
+Message-ID: <201009272309.22530.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1009271636170.1751-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from duck.dooz.org ([194.146.227.125]:32917 "EHLO duck.dooz.org"
+Received: from ogre.sisk.pl ([217.79.144.158]:47324 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759103Ab0I0VGK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Sep 2010 17:06:10 -0400
-In-Reply-To: <87d3rzotj6.fsf@deeprootsystems.com>
+	id S1751930Ab0I0VKY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Sep 2010 17:10:24 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1009271636170.1751-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Thara Gopinath <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, =?UTF-8?q?Lo=C3=AFc=20Minier?= <loic.minier@linaro.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-pm@lists.linux-foundation.org, Kevin Hilman <khilman@deeprootsystems.com>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-Since 6cdee91257bee23a46dc869ca62469b67cba2c7e the references to
-enable_off_mode and sleep_while_idle can't be resolved when CONFIG_PM_D=
-EBUG
-isn't set:
-arch/arm/mach-omap2/built-in.o: In function `omap_uart_restore_context'=
-:
-arch/arm/mach-omap2/serial.c:253: undefined reference to `enable_off_mo=
-de'
-arch/arm/mach-omap2/built-in.o: In function `omap3_can_sleep':
-arch/arm/mach-omap2/pm34xx.c:479: undefined reference to `sleep_while_i=
-dle'
+On Monday, September 27, 2010, Alan Stern wrote:
+> On Mon, 27 Sep 2010, Rafael J. Wysocki wrote:
+> 
+> > > How about adding another flag to the dev_pm_info structure, to indicate 
+> > > that the runtime callbacks may be called in interrupt context?
+> > > 
+> > > Maybe that will lead to problems I haven't thought of.  But if it seems 
+> > > okay to you, I can code it up easily enough.
+> > 
+> > Hmm.  I was thinking about adding a new RPM_ flag for that, like RPM_FASTPATH,
+> > telling the PM core to assume the callbacks will not sleep and that the call
+> > might be from interrupt handler.
+> 
+> That might appear more flexible, but is there any advantage to it?  
+> That is, would there be a situation where the driver knows that the 
+> next callback won't sleep but in general the callback might sleep 
+> sometimes?  It doesn't seem very likely.
 
-Simply #define these in pm.h just like omap2_pm_debug.
+A flag in dev_pm_info, when set, would always make the PM core behave as
+though the call was made from interrupt context, even if it really wasn't,
+while the RPM_ flag would allow the driver to tell it to do that when it's
+really necessary.  The driver always knows which calls are made from an
+interrupt handler. :-)
 
-Signed-off-by: Lo=C3=AFc Minier <loic.minier@linaro.org>
----
- arch/arm/mach-omap2/pm.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 77770a1..68db3a7 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -13,8 +13,13 @@
-=20
- #include <plat/powerdomain.h>
-=20
-+#ifdef CONFIG_PM_DEBUG
- extern u32 enable_off_mode;
- extern u32 sleep_while_idle;
-+#else
-+#define enable_off_mode 0
-+#define sleep_while_idle 0
-+#endif
-=20
- extern void *omap3_secure_ram_storage;
- extern void omap3_pm_off_mode_enable(int);
---=20
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
