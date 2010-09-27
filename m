@@ -1,32 +1,92 @@
 From: Tim Nordell <tim.nordell@logicpd.com>
-Subject: [PATCH v4 0/4] LogicPD minimal board support for LV_SOM and Torpedo
-Date: Mon, 27 Sep 2010 11:05:46 -0500
-Message-ID: <1285603550-6382-1-git-send-email-tim.nordell@logicpd.com>
+Subject: [PATCH v4 2/4] ARM: OMAP3LOGIC: Adding SDMMC support
+Date: Mon, 27 Sep 2010 11:05:48 -0500
+Message-ID: <1285603550-6382-3-git-send-email-tim.nordell@logicpd.com>
+References: <1285603550-6382-1-git-send-email-tim.nordell@logicpd.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1285603550-6382-1-git-send-email-tim.nordell@logicpd.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Tim Nordell <tim.nordell@logicpd.com>
 List-Id: linux-omap@vger.kernel.org
 
-This was tested (and based) against 2.6.36-rc5
+Add low-level initialization for hsmmc controller for
+LogicPD's OMAP 3530 LV SOM and OMAP 35x Torpedo board.
 
-Difference from patch v3 1/4:
- - Merged DEBUG_LL support patch (patch v3 5/5) into first patch
- - Added "select OMAP_PACKAGE_CBB" into Kconfig for both boards
+Signed-off-by: Tim Nordell <tim.nordell@logicpd.com>
+---
+ arch/arm/mach-omap2/board-omap3logic.c |   38 +++++++++++++++++++++++++++++++-
+ 1 files changed, 37 insertions(+), 1 deletions(-)
 
-Tim Nordell (4):
-  Adding LogicPD OMAP3 board support
-  ARM: OMAP3LOGIC: Adding SDMMC support
-  ARM: OMAP3: Add generic smsc911x support when connected to GPMC
-  ARM: OMAP3LOGIC: Added SMSC Ethernet board support
-
- arch/arm/mach-omap2/Kconfig                     |   20 ++
- arch/arm/mach-omap2/Makefile                    |    7 +
- arch/arm/mach-omap2/board-omap3logic.c          |  244 +++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc-smsc911x.c             |  113 +++++++++++
- arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |   35 ++++
- arch/arm/plat-omap/include/plat/uncompress.h    |    2 +
- 6 files changed, 421 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap3logic.c
- create mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.c
- create mode 100644 arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index ac3b0f7..e1f8fbe 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -33,6 +33,7 @@
+ #include <asm/mach/map.h>
+ 
+ #include "mux.h"
++#include "hsmmc.h"
+ 
+ #include <plat/mux.h>
+ #include <plat/board.h>
+@@ -87,6 +88,7 @@ static struct twl4030_platform_data omap3logic_twldata = {
+ 
+ 	/* platform_data for children goes here */
+ 	.gpio		= &omap3logic_gpio_data,
++	.vmmc1		= &omap3logic_vmmc1,
+ };
+ 
+ static struct i2c_board_info __initdata omap3logic_i2c_boardinfo[] = {
+@@ -105,6 +107,40 @@ static int __init omap3logic_i2c_init(void)
+ 	return 0;
+ }
+ 
++static struct omap2_hsmmc_info __initdata board_mmc_info[] = {
++	{
++		.name		= "external",
++		.mmc		= 1,
++		.wires		= 4,
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
++	},
++	{}      /* Terminator */
++};
++
++static void __init board_mmc_init(void)
++{
++	if (machine_is_omap3530_lv_som()) {
++		/* OMAP3530 LV SOM board */
++		board_mmc_info[0].gpio_cd = OMAP3530_LV_SOM_MMC_GPIO_CD;
++		board_mmc_info[0].gpio_wp = OMAP3530_LV_SOM_MMC_GPIO_WP;
++		omap_mux_init_signal("gpio_110", OMAP_PIN_OUTPUT);
++		omap_mux_init_signal("gpio_126", OMAP_PIN_OUTPUT);
++	} else if (machine_is_omap3_torpedo()) {
++		/* OMAP3 Torpedo board */
++		board_mmc_info[0].gpio_cd = OMAP3_TORPEDO_MMC_GPIO_CD;
++		omap_mux_init_signal("gpio_127", OMAP_PIN_OUTPUT);
++	} else {
++		/* unsupported board */
++		printk(KERN_ERR "%s(): unknown machine type\n", __func__);
++		return;
++	}
++
++	omap2_hsmmc_init(board_mmc_info);
++	/* link regulators to MMC adapters */
++	omap3logic_vmmc1_supply.dev = board_mmc_info[0].dev;
++}
++
+ static void __init omap3logic_init_irq(void)
+ {
+ 	omap2_init_common_hw(NULL, NULL);
+@@ -116,7 +152,7 @@ static void __init omap3logic_init(void)
+ {
+ 	omap3logic_i2c_init();
+ 	omap_serial_init();
+-
++	board_mmc_init();
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+ 	omap_mux_init_signal("sdrc_cke1", OMAP_PIN_OUTPUT);
+-- 
+1.7.1
