@@ -1,66 +1,46 @@
-From: Arun Murthy <arunrmurthy.83@gmail.com>
-Subject: Re: [PATCH v3] power_supply: Add driver for TWL4030/TPS65950 BCI charger
-Date: Mon, 27 Sep 2010 21:43:05 +0530
-Message-ID: <AANLkTi=gsvcWJak88NOfMjTumtLcdcU6-RUE+obWcacz@mail.gmail.com>
-References: <1285529740-28232-1-git-send-email-notasas@gmail.com>
-	<AANLkTinkxokX9BGtxysYOr19xbZR4S8oPRYUAyneutzc@mail.gmail.com>
-	<AANLkTinh+JTwyE4E33QXdnZ8obYA8S0SU71i3kGi=wRT@mail.gmail.com>
-	<AANLkTik0LOQN8kOPjv_VohhO5To6pZDS=M0mw=q0whPp@mail.gmail.com>
-	<AANLkTi=xS_=QytU0Yrh5EEiiL6GyekcO+DezjT-Zpj-7@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Mon, 27 Sep 2010 09:24:20 -0700
+Message-ID: <20100927162420.GU4211@atomide.com>
+References: <20100924014938.10325.35279.stgit@baageli.muru.com>
+ <20100924015056.10325.95854.stgit@baageli.muru.com>
+ <AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
+ <AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
+ <AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=xS_=QytU0Yrh5EEiiL6GyekcO+DezjT-Zpj-7@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Madhusudhan <madhu.cr@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58622 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933211Ab0I0QYV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 12:24:21 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Marathe, Yogesh" <yogesh_marathe@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Sep 27, 2010 at 6:38 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
-> On Mon, Sep 27, 2010 at 3:35 PM, Arun Murthy <arunrmurthy.83@gmail.com> wrote:
->> On Mon, Sep 27, 2010 at 4:24 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
->>> On Mon, Sep 27, 2010 at 10:21 AM, Arun Murthy <arunrmurthy.83@gmail.com> wrote:
->>> The problem is that BCI is only active while charging, when it is not
->>> charging most (all?) monitoring registers freeze and no monitoring
->>> happens (BCI registers read frozen values from last charge). So I
->>> don't register battery as it has no useful data to report. I heard it
->>> is possible to use MADC to perform monitoring while not charging, so
->>> battery can be added when MADC driver is merged and corresponding code
->>> is written for this driver.
->>>
->> How do I check the battery voltage?
->> I need to check the battery voltage/current/temp and, if I am not
->> wrong these are obtained from MADC.
->> MADC driver has to be added first and then the battery.
->> With being able to read the basic parameter battery voltage, this
->> driver becomes incomplete.
->
-> Incomplete driver is better than no driver, don't you think? There are
-> some boards like pandora or oswald that have additional battery
-> monitoring chips (as twl monitoring is pretty crude anyway), those
-> boards would have fully functional charging now. Currently mainline
-> kernel is not very useful with them simply because the battery runs
-> flat.
-I agree, but I feel it would be better to make driver compatible with
-all boards(Zoom2, OMAP3430SDP, Chameleon, BeagleBoard etc).
-Even support for back-up battery is not supported.
-This is just a suggestion to have a full fledged driver for twl4030
-Battery Charger Interface as a module. You may discard this if you
-have some strong reasons.
+* Felipe Contreras <felipe.contreras@gmail.com> [100927 08:47]:
+> On Mon, Sep 27, 2010 at 2:02 PM, Marathe, Yogesh <yogesh_marathe@ti.com> wrote:
+> >> When you merge iommu support, then either you enable
+> >> CONFIG_MPU_BRIDGE_IOMMU unconditionally, or you apply this patch, but
+> >> this patch alone will only break things.
+> >
+> > Any other driver which does not depend on bridge and interested in using iommu should get the handle when iommu_get("iva2") is called.
+> 
+> That's a hypothetical driver, right? The only driver that would ever
+> be interested in the "iva2" iommu is tidspbridge, and this patch would
+> brake it.
+> 
+> > It is not happening in original case. I think there should not be restrictions on other drivers to define un-related compile time define if they just want to use iommu driver. I feel the implementation that is breaking due to removal of this define should be fixed.
+> 
+> I couldn't parse that correctly. However, what's wrong with the
+> proposal? Let's think about CONFIG_MPU_BRIDGE_IOMMU when the iommu
+> patches come.
 
->
->> How do I get notified if battery voltage is low and needs charging
->> from user space?
->
-> Either additional monitoring chip notifies you (if you are lucky and
-> have one), or wait for update of this driver :) There are efforts to
-> merge MADC driver [1], but it may take some time.
-But using MADC, I can get the battery voltage and by means of
-monitoring battery voltage we can get to know low battery
-notification.
->
-> [1] http://marc.info/?t=128461535700002&r=1&w=2
->
-Thanks and Regards,
-Arun R Murthy
---------------------
+Let's not break the existing code. Dropping this patch for now.
+
+Tony
