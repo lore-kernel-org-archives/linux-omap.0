@@ -1,51 +1,48 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: Issue : jffs2 and ecc layout
-Date: Mon, 27 Sep 2010 17:32:22 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03560988FC@dbde02.ent.ti.com>
-References: <1285394847-29844-1-git-send-email-vapier@gentoo.org>
- <1285570258-17068-1-git-send-email-vapier@gentoo.org>
+From: Arun Murthy <arunrmurthy.83@gmail.com>
+Subject: Re: [PATCH v3] power_supply: Add driver for TWL4030/TPS65950 BCI charger
+Date: Mon, 27 Sep 2010 18:05:22 +0530
+Message-ID: <AANLkTik0LOQN8kOPjv_VohhO5To6pZDS=M0mw=q0whPp@mail.gmail.com>
+References: <1285529740-28232-1-git-send-email-notasas@gmail.com>
+	<AANLkTinkxokX9BGtxysYOr19xbZR4S8oPRYUAyneutzc@mail.gmail.com>
+	<AANLkTinh+JTwyE4E33QXdnZ8obYA8S0SU71i3kGi=wRT@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43152 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753549Ab0I0MCa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 08:02:30 -0400
-In-Reply-To: <1285570258-17068-1-git-send-email-vapier@gentoo.org>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinh+JTwyE4E33QXdnZ8obYA8S0SU71i3kGi=wRT@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Madhusudhan <madhu.cr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-I was using the following ecc layout which is not working to mount the jffs2 File-system. I was using this in 2.6.32 kernel and was working; but same layout is not working with latest 2.6 kernel.
+On Mon, Sep 27, 2010 at 4:24 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
+> On Mon, Sep 27, 2010 at 10:21 AM, Arun Murthy <arunrmurthy.83@gmail.com> wrote:
+>> On Mon, Sep 27, 2010 at 1:05 AM, Grazvydas Ignotas <notasas@gmail.com>
+>> wrote:
+>>> ---
+>> Only AC and USB monitoring is achieved by registering with power supply
+>> class.
+>> How is battery monitored?
+>> An instance of battery is to be registered with power supply class in order
+>> to monitor battery.
+>
+> The problem is that BCI is only active while charging, when it is not
+> charging most (all?) monitoring registers freeze and no monitoring
+> happens (BCI registers read frozen values from last charge). So I
+> don't register battery as it has no useful data to report. I heard it
+> is possible to use MADC to perform monitoring while not charging, so
+> battery can be added when MADC driver is merged and corresponding code
+> is written for this driver.
+>
+How do I check the battery voltage?
+I need to check the battery voltage/current/temp and, if I am not
+wrong these are obtained from MADC.
+MADC driver has to be added first and then the battery.
+With being able to read the basic parameter battery voltage, this
+driver becomes incomplete.
 
-Observation is that - no read request issued to the driver (say omap2.c).
+How do I get notified if battery voltage is low and needs charging
+from user space?
 
-# mount -t jffs2 /dev/mtdblock4 /mnt/nand
-[   32.505218] cannot read OOB for EB at 00000000, requested 8 bytes, read 0 bytes, error -22
-mount: Mounting /dev/mtdblock4 on /mnt/nand failed: Input/output error
-
-# dmesg 
-<3>[   32.505218] cannot read OOB for EB at 00000000, requested 8 bytes, read 0 bytes, error -22
-
-Code:
- 178 static struct nand_ecclayout hw_x16_romcode_oob_64 = {
- 179         .eccbytes = 12,
- 180         .eccpos = {
- 181                     2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
- 182                   },
- 183         .oobfree = {
- 184                         {.offset = 14,
- 185                          .length = 50}
- 186                    }
- 187 };
-
- 1188              info->nand.ecc.layout = &hw_x16_romcode_oob_64;
-
-Regards,
-Ghorai
-
-
+Thanks and Regards,
+Arun R Murthy
+---------------------
