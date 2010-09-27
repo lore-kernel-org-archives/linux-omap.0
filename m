@@ -1,40 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] OMAP1: Add support for SoC camera interface
-Date: Mon, 27 Sep 2010 12:42:17 -0700
-Message-ID: <20100927194216.GZ4211@atomide.com>
-References: <201009270302.28655.jkrzyszt@tis.icnet.pl>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH v3] power_supply: Add driver for TWL4030/TPS65950 BCI charger
+Date: Mon, 27 Sep 2010 22:42:21 +0300
+Message-ID: <AANLkTikWJ-n708ou_BkVchCvk025GVo-Ljq+CHe4T5vT@mail.gmail.com>
+References: <1285529740-28232-1-git-send-email-notasas@gmail.com>
+	<AANLkTinkxokX9BGtxysYOr19xbZR4S8oPRYUAyneutzc@mail.gmail.com>
+	<AANLkTinh+JTwyE4E33QXdnZ8obYA8S0SU71i3kGi=wRT@mail.gmail.com>
+	<AANLkTik0LOQN8kOPjv_VohhO5To6pZDS=M0mw=q0whPp@mail.gmail.com>
+	<AANLkTi=xS_=QytU0Yrh5EEiiL6GyekcO+DezjT-Zpj-7@mail.gmail.com>
+	<AANLkTi=gsvcWJak88NOfMjTumtLcdcU6-RUE+obWcacz@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50721 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757289Ab0I0TmM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 15:42:12 -0400
-Content-Disposition: inline
-In-Reply-To: <201009270302.28655.jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=gsvcWJak88NOfMjTumtLcdcU6-RUE+obWcacz@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arun Murthy <arunrmurthy.83@gmail.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Madhusudhan <madhu.cr@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-media@vger.kernel.org, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100926 17:55]:
-> This patch adds a definition of the OMAP1 camera interface platform device, 
-> and a function that allows for providing a board specific platform data. 
-> The device will be used with the upcoming OMAP1 SoC camera interface driver.
-> 
-> Created and tested against linux-2.6.36-rc5 on Amstrad Delta.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> ---
-> 
-> Tony,
-> I hope this now satisfies your requirements.
-> 
-> I resubmit only this updated patch, not the other two, Amstrad Delta specific, 
-> which you have alredy applied. Those are still valid (work for me), only the 
-> not yet merged include/media/omap1_camera.h header file is required for 
-> successfull compilation of board-ams-delta.c. I hope this is not a problem.
+>>> How do I get notified if battery voltage is low and needs charging
+>>> from user space?
+>>
+>> Either additional monitoring chip notifies you (if you are lucky and
+>> have one), or wait for update of this driver :) There are efforts to
+>> merge MADC driver [1], but it may take some time.
+> But using MADC, I can get the battery voltage and by means of
+> monitoring battery voltage we can get to know low battery
+> notification.
 
-Yes thanks. Queuing these three for the upcoming merge window.
+True, but let's wait for MADC driver to be merged for that first.
 
-Tony
+>>
+>> [1] http://marc.info/?t=128461535700002&r=1&w=2
+>>
+> Thanks and Regards,
+> Arun R Murthy
+> --------------------
+>
