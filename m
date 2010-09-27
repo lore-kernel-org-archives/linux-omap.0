@@ -1,91 +1,76 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC 4/5] OMAP4: mux: Select CBL package for SDP4430 with ES1
-Date: Mon, 27 Sep 2010 09:24:52 +0200
-Message-ID: <4CA046C4.6080304@ti.com>
-References: <1285319748-28976-1-git-send-email-b-cousson@ti.com> <1285319748-28976-5-git-send-email-b-cousson@ti.com> <4245be19dc809c4c1d16a4c29eed1142@mail.gmail.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH] OMAP: PM: CPUFREQ: Fix conditional compilation
+Date: Mon, 27 Sep 2010 13:00:59 +0530
+Message-ID: <AANLkTimT0bfNjBThHj8bPAZ+ybfV=PFJkj09AUL0M20g@mail.gmail.com>
+References: <1285318494-22092-1-git-send-email-silesh@ti.com>
+	<87pqw3ji5i.fsf@deeprootsystems.com>
+	<AANLkTikWWyfgUOYyXud0D0vpMwAn2xxUKM=dNPoYsCK0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33004 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755180Ab0I0HY7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 03:24:59 -0400
-In-Reply-To: <4245be19dc809c4c1d16a4c29eed1142@mail.gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64191 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751016Ab0I0HbD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 03:31:03 -0400
+Received: by wyb28 with SMTP id 28so3577039wyb.19
+        for <linux-omap@vger.kernel.org>; Mon, 27 Sep 2010 00:31:02 -0700 (PDT)
+In-Reply-To: <AANLkTikWWyfgUOYyXud0D0vpMwAn2xxUKM=dNPoYsCK0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Silesh C V <silesh@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-On 9/25/2010 1:14 AM, Anand Gadiyar wrote:
-> Benoit Cousson wrote:
+On Mon, Sep 27, 2010 at 11:49 AM, Silesh C V <silesh@ti.com> wrote:
+> On Fri, Sep 24, 2010 at 8:36 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> Silesh C V <silesh@ti.com> writes:
+>>
+>>> Fix conditional compilation.
+>>
+>> What excatly was the compile error? =A0and with which compiler?
 >
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Tony Lindgren<tony@atomide.com>
->> Cc: Paul Walmsley<paul@pwsan.com>
->> Cc: Kevin Hilman<khilman@deeprootsystems.com>
->> ---
->>   arch/arm/mach-omap2/Kconfig         |    1 +
->>   arch/arm/mach-omap2/board-4430sdp.c |   12 ++++++++++++
->>   2 files changed, 13 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
->> index 6aede64..4a8f897 100644
->> --- a/arch/arm/mach-omap2/Kconfig
->> +++ b/arch/arm/mach-omap2/Kconfig
->> @@ -240,6 +240,7 @@ config MACH_OMAP_4430SDP
->>   	bool "OMAP 4430 SDP board"
->>   	default y
->>   	depends on ARCH_OMAP4
->> +	select OMAP_PACKAGE_CBL
->>
->>   config MACH_OMAP4_PANDA
->>   	bool "OMAP4 Panda Board"
->> diff --git a/arch/arm/mach-omap2/board-4430sdp.c
-> b/arch/arm/mach-omap2/board-4430sdp.c
->> index 9447644..d087712 100644
->> --- a/arch/arm/mach-omap2/board-4430sdp.c
->> +++ b/arch/arm/mach-omap2/board-4430sdp.c
->> @@ -35,6 +35,8 @@
->>   #include<plat/timer-gp.h>
->>   #include<plat/usb.h>
->>   #include<plat/mmc.h>
->> +
->> +#include "mux.h"
->>   #include "hsmmc.h"
->>
->>   #define ETH_KS8851_IRQ			34
->> @@ -426,10 +428,20 @@ static int __init omap4_i2c_init(void)
->>   	omap_register_i2c_bus(4, 400, NULL, 0);
->>   	return 0;
->>   }
->> +
->> +#ifdef CONFIG_OMAP_MUX
->> +static struct omap_board_mux board_mux[] __initdata = {
->> +	{ .reg_offset = OMAP_MUX_TERMINATOR },
->> +};
->> +#else
->> +#define board_mux	NULL
->> +#endif
->> +
->>   static void __init omap_4430sdp_init(void)
->>   {
->>   	int status;
->>
->> +	omap4_mux_init(board_mux, OMAP_PACKAGE_CBL);
->>   	omap4_i2c_init();
->>   	platform_add_devices(sdp4430_devices,
-> ARRAY_SIZE(sdp4430_devices));
->>   	omap_serial_init();
+> There is no compiler error.But what we need after an #elif is a
+> conditional expression.
+> The correct usage is #elif defined(CONFIG_XXX) rather than #elif CONF=
+IG_XXX.
 >
+> Further, if the kernel is configured for a non-omap3 arch (eg.OMAP4),
+> you get a compiler warning:
+> arch/arm/plat-omap/cpu-omap.c:47:7: warning: "CONFIG_ARCH_OMAP3" is n=
+ot defined
+> which goes away with this patch.
 >
-> Panda uses the same package I believe - I'll double check and update
-> that board file. I'll test this series tomorrow on both boards.
 
-Probably, please note that there is a new CBS package for ES2.0.
+Silesh,
 
-I've just generated the data, I'll send you that ASAP, since I do not 
-have ES2 board to check that anyway :-(
+which defconfig are you using with multi omap-build defconfig(omap3_def=
+config)
 
-Thanks,
-Benoit
+CONFIG_ARCH_OMAP3 will be enabled. So this compilation error will not o=
+ccur.
+
+---
+Regards,
+Govindraj.R
+
+
+>>
+>> The current pm branch =A0seems to compile fine for me.
+>>
+>> Kevin
+>>
+>
+> Thanks,
+> Silesh.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
