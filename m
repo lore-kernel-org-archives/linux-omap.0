@@ -1,78 +1,72 @@
-From: Sukumar Ghorai <s-ghorai@ti.com>
-Subject: [PATCH RESEND v5 0/5] nand prefetch-irq support and ecc layout chanage
-Date: Mon, 27 Sep 2010 19:41:45 +0530
-Message-ID: <1285596710-25658-1-git-send-email-s-ghorai@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43024 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759415Ab0I0OMD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Sep 2010 10:12:03 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v4] power: introduce library for device-specific OPPs
+Date: Mon, 27 Sep 2010 09:25:30 -0500
+Message-ID: <4CA0A95A.4000408@ti.com>
+References: <1285332640-16736-1-git-send-email-nm@ti.com>
+	<20100924193742.GJ2375@linux.vnet.ibm.com>
+	<201009252255.20933.rjw@sisk.pl>
+	<20100926005636.GB3396@linux.vnet.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20100926005636.GB3396@linux.vnet.ibm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm <linux-pm@lists.linux-foundation.org>, linux-omap <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Sukumar Ghorai <s-ghorai@ti.com>
 
-The following set of patches applies on linux-2.6.
-     
-The main motivations behind this patch series are -
-	1. support NAND I/O in irq mode.
-	2. support of different ECC schema. 
-	3. also to make ecc layout as like in romcode ecc layout
+Paul E. McKenney had written, on 09/25/2010 07:56 PM, the following:
+> On Sat, Sep 25, 2010 at 10:55:20PM +0200, Rafael J. Wysocki wrote:
+>> On Friday, September 24, 2010, Paul E. McKenney wrote:
+>>> On Fri, Sep 24, 2010 at 07:50:40AM -0500, Nishanth Menon wrote:
+>> ...
+>>> Looks like a good start!!!  Some questions and suggestions about RCU
+>>> usage interspersed below.
+>> ...
+>>>> + * Locking: RCU reader.
+>>>> + */
+>>>> +int opp_get_opp_count(struct device *dev)
+>>>> +{
+>>>> +	struct device_opp *dev_opp;
+>>>> +	struct opp *temp_opp;
+>>>> +	int count = 0;
+>>>> +
+>>>> +	dev_opp = find_device_opp(dev);
+>>>> +	if (IS_ERR(dev_opp))
+>>>> +		return PTR_ERR(dev_opp);
+>>>> +
+>>>> +	rcu_read_lock();
+>>>> +	list_for_each_entry_rcu(temp_opp, &dev_opp->opp_list, node) {
+>>>> +		if (temp_opp->available)
+>>>> +			count++;
+>>>> +	}
+>>>> +	rcu_read_unlock();
+>>> This one is OK as well.  You are returning a count, so if all of the
+>>> counted structures are freed at this point, no problem.  The count was
+>>> valid when it was accumulated, and the fact that it might now be obsolete
+>>> is (usually) not a problem.
+>> However, it looks like it should run rcu_read_lock() before calling
+>> find_device_opp(dev), shouldn't it?
+> 
+> Indeed it does appear that you are right -- good catch!!!
+> 
+> 							Thanx, Paul
+dev_opp as discussed before is safe as it is never freed 
+(find_device_opp uses it's own rcu_read_lock, the rcu_read_lock in this 
+context is for the opp list. what am I missing?
 
-v5: This address the input as to support the irq_chained in GPMC.
-And resend of
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35848.html
+ack on Paul's comments w.r.t risk on opp structures itself.. will look 
+to fix that in v5.
 
-v4: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34882.html
-and resend of 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32689.html
-
-v3: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg32071.html
-Rebase on latest codebase and previous patch(posted).	
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31963.html
-
-v2: Rebase on latest codebase and previous patch(posted).	
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg31471.html
-
-v1: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26666.html
-
-Sukumar Ghorai (5):
-  omap gpmc: enable irq mode in gpmc
-  omap3: nand: prefetch in irq mode support
-  omap3: nand: configurable fifo threshold to gain the throughput
-  omap: nand: ecc layout select from board file
-  omap: nand: making ecc layout as compatible with romcode ecc
-
- arch/arm/mach-omap2/board-2430sdp.c        |    1 +
- arch/arm/mach-omap2/board-3430sdp.c        |    1 +
- arch/arm/mach-omap2/board-3630sdp.c        |    1 +
- arch/arm/mach-omap2/board-4430sdp.c        |    2 +
- arch/arm/mach-omap2/board-am3517evm.c      |    2 +
- arch/arm/mach-omap2/board-apollon.c        |    1 +
- arch/arm/mach-omap2/board-cm-t35.c         |    1 +
- arch/arm/mach-omap2/board-devkit8000.c     |    1 +
- arch/arm/mach-omap2/board-flash.c          |    5 +-
- arch/arm/mach-omap2/board-generic.c        |    2 +
- arch/arm/mach-omap2/board-h4.c             |    1 +
- arch/arm/mach-omap2/board-igep0020.c       |    1 +
- arch/arm/mach-omap2/board-ldp.c            |    1 +
- arch/arm/mach-omap2/board-n8x0.c           |    2 +
- arch/arm/mach-omap2/board-omap3beagle.c    |    1 +
- arch/arm/mach-omap2/board-omap3evm.c       |    2 +
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 +
- arch/arm/mach-omap2/board-omap3stalker.c   |    1 +
- arch/arm/mach-omap2/board-omap3touchbook.c |    1 +
- arch/arm/mach-omap2/board-omap4panda.c     |    2 +
- arch/arm/mach-omap2/board-overo.c          |    1 +
- arch/arm/mach-omap2/board-rx51.c           |    1 +
- arch/arm/mach-omap2/board-zoom2.c          |    2 +
- arch/arm/mach-omap2/board-zoom3.c          |    2 +
- arch/arm/mach-omap2/gpmc.c                 |   48 +++++-
- arch/arm/mach-omap2/io.c                   |    2 -
- arch/arm/plat-omap/include/plat/gpmc.h     |   16 ++-
- arch/arm/plat-omap/include/plat/irqs.h     |    9 +-
- arch/arm/plat-omap/include/plat/nand.h     |    3 +
- drivers/mtd/nand/Kconfig                   |   14 ++-
- drivers/mtd/nand/omap2.c                   |  277 +++++++++++++++++++++++++---
- 31 files changed, 367 insertions(+), 39 deletions(-)
-
+-- 
+Regards,
+Nishanth Menon
