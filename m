@@ -1,65 +1,104 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
-Date: Mon, 27 Sep 2010 11:28:38 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E5F6A365B@dlee03.ent.ti.com>
-References: <20100924014938.10325.35279.stgit@baageli.muru.com>
-	<20100924015056.10325.95854.stgit@baageli.muru.com>
-	<AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
-	<AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
- <AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC 1/5] OMAP: mux: Add support for control module split in
+ several partitions
+Date: Mon, 27 Sep 2010 19:24:12 +0200
+Message-ID: <4CA0D33C.303@ti.com>
+References: <1285319748-28976-1-git-send-email-b-cousson@ti.com> <1285319748-28976-2-git-send-email-b-cousson@ti.com> <20100925002228.GP4211@atomide.com> <20100927154611.GT4211@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52680 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56025 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756879Ab0I0Q2n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 12:28:43 -0400
-In-Reply-To: <AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
-Content-Language: en-US
+	id S1759893Ab0I0RYW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Sep 2010 13:24:22 -0400
+In-Reply-To: <20100927154611.GT4211@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "Marathe, Yogesh" <yogesh_marathe@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Felipe,
+Hi Tony,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Felipe Contreras
-> Sent: Monday, September 27, 2010 10:56 AM
-> To: Marathe, Yogesh
-> Cc: Premi, Sanjeev; Tony Lindgren; linux-arm-kernel@lists.infradead.org;
-> linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 05/11] omap3: Remove non-existent config option
-> 
-> On Mon, Sep 27, 2010 at 2:02 PM, Marathe, Yogesh <yogesh_marathe@ti.com>
-> wrote:
-> >> When you merge iommu support, then either you enable
-> >> CONFIG_MPU_BRIDGE_IOMMU unconditionally, or you apply this patch, but
-> >> this patch alone will only break things.
-> >
-> > Any other driver which does not depend on bridge and interested in using
-> iommu should get the handle when iommu_get("iva2") is called.
-> 
-> That's a hypothetical driver, right? The only driver that would ever
-> be interested in the "iva2" iommu is tidspbridge, and this patch would
-> brake it.
-> 
-> > It is not happening in original case. I think there should not be
-> restrictions on other drivers to define un-related compile time define if
-> they just want to use iommu driver. I feel the implementation that is
-> breaking due to removal of this define should be fixed.
-> 
-> I couldn't parse that correctly. However, what's wrong with the
-> proposal? Let's think about CONFIG_MPU_BRIDGE_IOMMU when the iommu
-> patches come.
-> 
+On 9/27/2010 5:46 PM, Tony Lindgren wrote:
+> * Tony Lindgren<tony@atomide.com>  [100924 17:14]:
+>>
+>> * Benoit Cousson<b-cousson@ti.com>  [100924 02:07]:
+>>
+>> If we wanted to use only the offset in the data, we could initialize
+>> the various sections separately. But then omapX_mux_init() would have
+>> to know the partition number somehow..
+>
+> After thinking about this a bit more, to me it seems like this is
+> the best way to go. Then there's no need to repeat the partition data
+> for each entry. How about this:
+>
+> Earlier defines stay the same:
+>
+> #define OMAP3_MUX(mode0, mux_value)					\
+> {									\
+> 	.reg_offset	= (OMAP3_CONTROL_PADCONF_##mode0##_OFFSET),	\
+> 	.value		= (mux_value),					\
+> }
+>
+> Then for omap4, we need to add a separate board mux table for each
+> partition:
+>
+> #define OMAP4_MUX_PARTXXX(mode0, mux_value)				\
+> {									\
+> 	.reg_offset	= (OMAP4_PART_XXX_PADCONF_##mode0##_OFFSET),	\
+> 	.value		= (mux_value),					\
+> }
+>
+> #define OMAP4_MUX_PARTYYY(mode0, mux_value)				\
+> {									\
+> 	.reg_offset	= (OMAP4_PARTYYY_PADCONF_##mode0##_OFFSET),	\
+> 	.value		= (mux_value),					\
+> }
 
-Yogesh is coming from dsplink requirement to use iommu. I see his comment as why Bridge requirement should be imposed on other IPCs that need iommu.
+OK for that one, that will save the extra id to store the partition in 
+each static data, but then you will still have to store it during the init?
 
-Thank you,
-Best regards,
-Hari
+> ...
+> For omap2 and 3, we just call omap_mux_init once with the mux_pbase
+> as we currently already do. Then for omap4, we call omap_mux_init for
+> each partition.
+>
+> We also need to change omap_mux_read/write to allow specifying the
+> partition base address:
+
+Then you need somehow a partition information from somewhere.
+I don't see how we can avoid the id at that point? We can store the base 
+address instead, but then every mux entries will have it.
+
+The caller of the omap_mux_read still have to figure out what base 
+address it has to use.
+That move the issue to the upper layer, but we still need that.
+
+>
+> u16 omap_mux_read(void __iomem *base, u16 offset)
+> {
+> 	if (cpu_is_omap24xx())
+> 		return __raw_readb(base + offset);
+> 	else
+> 		return __raw_readw(base + offset);
+> }
+>
+> All the other mux interface functions can stay the same, we just need
+> to modify the mux.c code to look for signal names or GPIO number in
+> each registered partition.
+
+OK, now I think I understand your point... Please ignore the previous 
+comments :-)
+
+You will guess the partition by trying each array at a time, and the 
+first one will win.
+
+That seems pretty good in fact.
+
+I just have to do it now...
+
+Thanks,
+Benoit
+
+
