@@ -1,60 +1,76 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] runtime_pm_get_sync() from ISR with IRQs disabled?
-Date: Mon, 27 Sep 2010 22:00:49 +0200
-Message-ID: <201009272200.49330.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1009270955080.1751-100000@iolanthe.rowland.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3 0/5] Convert I2C driver to use omap_device/runtime PM
+Date: Mon, 27 Sep 2010 13:02:47 -0700
+Message-ID: <87vd5rnee0.fsf@deeprootsystems.com>
+References: <1285078036-12789-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:47153 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933518Ab0I0UBZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Sep 2010 16:01:25 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1009270955080.1751-100000@iolanthe.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1285078036-12789-1-git-send-email-rnayak@ti.com> (Rajendra
+	Nayak's message of "Tue, 21 Sep 2010 19:37:11 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: ben-linux@fluff.org
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-i2c@vger.kernel.org, khali@linux-fr.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-pm@lists.linux-foundation.org, Kevin Hilman <khilman@deeprootsystems.com>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Monday, September 27, 2010, Alan Stern wrote:
-> On Fri, 24 Sep 2010, Rafael J. Wysocki wrote:
-> 
-> > On Friday, September 24, 2010, Kevin Hilman wrote:
-> > > Alan Stern <stern@rowland.harvard.edu> writes:
-> > > 
-> > > > On Thu, 23 Sep 2010, Kevin Hilman wrote:
-> > ...
-> > > >
-> > > > You're trying to fight the runtime-PM design instead of using it as it 
-> > > > was intended.  We already have an API for starting a resume from 
-> > > > interrupt context, and that's what you should use.
-> > > 
-> > > It may seem like I'm trying to fight the design, but I'm actually trying
-> > > to find ways to use it.  I want to use the API (and we're using it
-> > > successfully in most of our drivers now.)  The problem is only in a few
-> > > of these corner cases where using it introduces significant changes from
-> > > previous behavior like introducing long, unbounded windows for missed
-> > > interrupts.
-> > 
-> > This really sounds to me like you need _noirq() runtime PM callbacks
-> > and some framework around them.
-> > 
-> > I'm not fundamentally against that, but it will require some time to introduce,
-> > if we decide that it's really necessary.
-> > 
-> > I need to think a bit more about that, thanks for the example.
-> 
-> How about adding another flag to the dev_pm_info structure, to indicate 
-> that the runtime callbacks may be called in interrupt context?
-> 
-> Maybe that will lead to problems I haven't thought of.  But if it seems 
-> okay to you, I can code it up easily enough.
+Ben,
 
-Hmm.  I was thinking about adding a new RPM_ flag for that, like RPM_FASTPATH,
-telling the PM core to assume the callbacks will not sleep and that the call
-might be from interrupt handler.
+Rajendra Nayak <rnayak@ti.com> writes:
+
+> This series makes I2C device registration use hwmod and omap_device api's
+> and converts the I2C driver to use runtime PM api's.
+>
+> Patches apply on the pm-core branch from Kevin's tree.
+
+If you're OK with the driver changes in PATCH 5/5, with your Ack, we can
+queue this via the OMAP tree with all the platform changes that it
+depends on.
 
 Thanks,
-Rafael
+
+Kevin
+
+> v3 has minor review comment fixes over v2
+> The series is boot tested on a 2430sdp platform along with being tested
+> on 3430sdp and 4430sdp.
+>
+> 4430sdp tests are done using the below series 
+> http://www.spinics.net/lists/linux-omap/msg36023.html
+>
+> Paul Walmsley (2):
+>   OMAP2xxx: hwmod: add I2C hwmods for OMAP2420, 2430
+>   OMAP: I2C: split device registration and convert OMAP2+ to
+>     omap_device
+>
+> Rajendra Nayak (3):
+>   OMAP3: hwmod: add I2C hwmods for OMAP3430
+>   OMAP4: hwmod: add I2C hwmods for OMAP4430
+>   OMAP: I2C: Convert i2c driver to use PM runtime api's
+>
+>  arch/arm/mach-omap2/cm-regbits-24xx.h      |    4 +
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c |  140 ++++++++++++++++-
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c |  154 ++++++++++++++++++-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  232 +++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  237 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/prm-regbits-34xx.h     |    3 +
+>  arch/arm/plat-omap/i2c.c                   |  124 ++++++---------
+>  arch/arm/plat-omap/include/plat/i2c.h      |   16 ++
+>  arch/arm/plat-omap/include/plat/l4_3xxx.h  |   24 +++
+>  drivers/i2c/busses/i2c-omap.c              |   67 +++------
+>  include/linux/i2c-omap.h                   |    5 +
+>  11 files changed, 881 insertions(+), 125 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/include/plat/l4_3xxx.h
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
