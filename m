@@ -1,66 +1,60 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH v4] power: introduce library for device-specific OPPs
-Date: Mon, 27 Sep 2010 21:53:13 +0200
-Message-ID: <201009272153.13232.rjw@sisk.pl>
-References: <1285332640-16736-1-git-send-email-nm@ti.com> <20100926005636.GB3396@linux.vnet.ibm.com> <4CA0A95A.4000408@ti.com>
+Subject: Re: [linux-pm] runtime_pm_get_sync() from ISR with IRQs disabled?
+Date: Mon, 27 Sep 2010 22:00:49 +0200
+Message-ID: <201009272200.49330.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1009270955080.1751-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4CA0A95A.4000408@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:47153 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933518Ab0I0UBZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Sep 2010 16:01:25 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1009270955080.1751-100000@iolanthe.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-pm@lists.linux-foundation.org, Kevin Hilman <khilman@deeprootsystems.com>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Monday, September 27, 2010, Nishanth Menon wrote:
-> Paul E. McKenney had written, on 09/25/2010 07:56 PM, the following:
-> > On Sat, Sep 25, 2010 at 10:55:20PM +0200, Rafael J. Wysocki wrote:
-> >> On Friday, September 24, 2010, Paul E. McKenney wrote:
-> >>> On Fri, Sep 24, 2010 at 07:50:40AM -0500, Nishanth Menon wrote:
-> >> ...
-> >>> Looks like a good start!!!  Some questions and suggestions about RCU
-> >>> usage interspersed below.
-> >> ...
-> >>>> + * Locking: RCU reader.
-> >>>> + */
-> >>>> +int opp_get_opp_count(struct device *dev)
-> >>>> +{
-> >>>> +	struct device_opp *dev_opp;
-> >>>> +	struct opp *temp_opp;
-> >>>> +	int count = 0;
-> >>>> +
-> >>>> +	dev_opp = find_device_opp(dev);
-> >>>> +	if (IS_ERR(dev_opp))
-> >>>> +		return PTR_ERR(dev_opp);
-> >>>> +
-> >>>> +	rcu_read_lock();
-> >>>> +	list_for_each_entry_rcu(temp_opp, &dev_opp->opp_list, node) {
-> >>>> +		if (temp_opp->available)
-> >>>> +			count++;
-> >>>> +	}
-> >>>> +	rcu_read_unlock();
-> >>> This one is OK as well.  You are returning a count, so if all of the
-> >>> counted structures are freed at this point, no problem.  The count was
-> >>> valid when it was accumulated, and the fact that it might now be obsolete
-> >>> is (usually) not a problem.
-> >> However, it looks like it should run rcu_read_lock() before calling
-> >> find_device_opp(dev), shouldn't it?
+On Monday, September 27, 2010, Alan Stern wrote:
+> On Fri, 24 Sep 2010, Rafael J. Wysocki wrote:
+> 
+> > On Friday, September 24, 2010, Kevin Hilman wrote:
+> > > Alan Stern <stern@rowland.harvard.edu> writes:
+> > > 
+> > > > On Thu, 23 Sep 2010, Kevin Hilman wrote:
+> > ...
+> > > >
+> > > > You're trying to fight the runtime-PM design instead of using it as it 
+> > > > was intended.  We already have an API for starting a resume from 
+> > > > interrupt context, and that's what you should use.
+> > > 
+> > > It may seem like I'm trying to fight the design, but I'm actually trying
+> > > to find ways to use it.  I want to use the API (and we're using it
+> > > successfully in most of our drivers now.)  The problem is only in a few
+> > > of these corner cases where using it introduces significant changes from
+> > > previous behavior like introducing long, unbounded windows for missed
+> > > interrupts.
 > > 
-> > Indeed it does appear that you are right -- good catch!!!
+> > This really sounds to me like you need _noirq() runtime PM callbacks
+> > and some framework around them.
 > > 
-> > 							Thanx, Paul
-> dev_opp as discussed before is safe as it is never freed 
-> (find_device_opp uses it's own rcu_read_lock, the rcu_read_lock in this 
-> context is for the opp list. what am I missing?
+> > I'm not fundamentally against that, but it will require some time to introduce,
+> > if we decide that it's really necessary.
+> > 
+> > I need to think a bit more about that, thanks for the example.
+> 
+> How about adding another flag to the dev_pm_info structure, to indicate 
+> that the runtime callbacks may be called in interrupt context?
+> 
+> Maybe that will lead to problems I haven't thought of.  But if it seems 
+> okay to you, I can code it up easily enough.
 
-It's simply safer to put the rcu_read_lock() before find_device_opp(), in case
-someone will make it possible to remove things from the opp list in the future.
-
-Besides, your entire data structure consists of the opp list and the per-power
-domain lists, so you should really tell the writers when you have finished to
-traverse it entirely, not in the middle of the operation.
+Hmm.  I was thinking about adding a new RPM_ flag for that, like RPM_FASTPATH,
+telling the PM core to assume the callbacks will not sleep and that the call
+might be from interrupt handler.
 
 Thanks,
 Rafael
