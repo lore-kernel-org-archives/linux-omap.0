@@ -1,114 +1,101 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [GIT PULL] omap2 sparse fixes
-Date: Mon, 27 Sep 2010 19:11:37 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F8D00@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A390E@dbde02.ent.ti.com>
- <20100923225851.GR4211@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
- <20100925001914.GO4211@atomide.com>
+Subject: RE: [PATCH v2 08/10] TWL IRQ: Fix fucntion declaration warnings
+Date: Mon, 27 Sep 2010 19:19:33 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F8D1A@dbde02.ent.ti.com>
+References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
+ <1285063280-4057-9-git-send-email-manjugk@ti.com>
+ <20100927111609.GF2560@sortiz-mobl>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F8CCE@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41243 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41651 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759373Ab0I0Nlr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 09:41:47 -0400
-In-Reply-To: <20100925001914.GO4211@atomide.com>
+	id S1751635Ab0I0Ntp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 09:49:45 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F8CCE@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
 
-
-Hi Tony, 
+ 
 
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Saturday, September 25, 2010 5:49 AM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [GIT PULL] omap2 sparse fixes
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G, 
+> Manjunath Kondaiah
+> Sent: Monday, September 27, 2010 6:40 PM
+> To: Samuel Ortiz
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Tony Lindgren; Menon, Nishanth
+> Subject: RE: [PATCH v2 08/10] TWL IRQ: Fix fucntion 
+> declaration warnings
 > 
-> * G, Manjunath Kondaiah <manjugk@ti.com> [100924 12:33]:
-> > 
-> > Tony,
-> > Here is new pull request which is rebased to 2.6.36-rc5.
-> > 
-> > -Manjunath
-> > 
-> > The following changes since commit 
-> b30a3f6257ed2105259b404d419b4964e363928c:
-> >   Linus Torvalds (1):
-> >         Linux 2.6.36-rc5
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git 
-> > sparse_fixes
-> > 
-> > G, Manjunath Kondaiah (10):
-> >       OMAP: mach-omap2: Fix incorrect assignment warnings
-> >       OMAP: mach-omap2: Fix static declaration warnings
-> >       OMAP: mach-omap2: Fix static function warnings
-> >       OMAP: mach-omap2: Fix miscellaneous sparse warnings
-> >       OMAP: plat-omap: Fix static function warnings
-> >       OMAP: NAND: Fix static declaration warning
-> >       TWL CORE: Fix sparse warning
-> >       TWL IRQ: Fix fucntion declaration warnings
-> >       OMAP2/3: Convert write/read functions to raw read/write
-> >       OMAP3: Keypad: Fix incorrect type initializer
 > 
-> Hmm tried pulling these, but ran into an issue where at least 
-> 2430 takes about a minute to boot with these patches with no 
-> output on the console intially.
-
-Here is test report for all the boards:
-
-1. omap3_defconfig with 2.6.36-rc5 code as is does not seems to be
-boot. Enabled early printk and found it was due to musb driver. 
-Boot log is here:
-2430sdp_omap3_defconfig_bootlog_nochanges2code.txt
-http://pastebin.com/wd92PMmE
-
-
-2. Disabled musb in omap3_defconfig and boot seems be fine.
-2430sdp_omap3_defconfig_bootlog_usbdisable
-http://pastebin.com/eExED5q4
-
-
-3. With sparse fix series, booting is as expected with omap3_defconfig
-2430sdp_omap3_defconfig_bootlog_usbdisable_sparse_fixes.txt
-http://pastebin.com/GMX4y2fS
-
-
-4. Here zoom3 boot log:
-Zoom3_omap3_defconfig_bootlog_usbdisable_sparse_fixes.
-http://pastebin.com/C2A6YXAL
-
-
-5. omap4 sdp boot log(with es2.0 patches pulled from for-next branch)
-omap4sdp_es2.0_omap3_defconfig_bootlog_sparse_fixes.
-http://pastebin.com/ebiP1X2h
-
-
+> Hi Samuel,
 > 
-> Can you please check that? Will not merge for now until we 
-> figure out what changes with these patches.
+> > -----Original Message-----
+> > From: Samuel Ortiz [mailto:sameo@linux.intel.com]
+> > Sent: Monday, September 27, 2010 4:46 PM
+> > To: G, Manjunath Kondaiah
+> > Cc: linux-omap@vger.kernel.org;
+> > linux-arm-kernel@lists.infradead.org; Tony Lindgren; Menon, Nishanth
+> > Subject: Re: [PATCH v2 08/10] TWL IRQ: Fix fucntion declaration 
+> > warnings
+> > 
+> > Hi Manjunath,
+> > 
+> > On Tue, Sep 21, 2010 at 03:31:18PM +0530, G, Manjunath 
+> Kondaiah wrote:
+> > > Fixes following sparse warnings for twl4030 and twl6030 irq files.
+> > > 
+> > > drivers/mfd/twl4030-irq.c:783:5: warning: symbol
+> > 'twl4030_init_irq' was not declared. Should it be static?
+> > > drivers/mfd/twl4030-irq.c:863:5: warning: symbol
+> > 'twl4030_exit_irq' was not declared. Should it be static?
+> > > drivers/mfd/twl4030-irq.c:873:5: warning: symbol
+> > 'twl4030_init_chip_irq' was not declared. Should it be static?
+> > > 
+> > > drivers/mfd/twl6030-irq.c:226:5: warning: symbol
+> > 'twl6030_init_irq' was not declared. Should it be static?
+> > > drivers/mfd/twl6030-irq.c:290:5: warning: symbol
+> > 'twl6030_exit_irq' was not declared. Should it be static?
+> > > 
+> > > Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+> > > Cc: linux-arm-kernel@lists.infradead.org
+> > > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > > Cc: Tony Lindgren <tony@atomide.com>
+> > > Cc: Nishanth Menon <nm@ti.com>
+> > > ---
+> > >  include/linux/i2c/twl.h |    5 +++++
+> > >  1 files changed, 5 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/include/linux/i2c/twl.h
+> > b/include/linux/i2c/twl.h index
+> > > 6de90bf..c61e90a 100644
+> > > --- a/include/linux/i2c/twl.h
+> > > +++ b/include/linux/i2c/twl.h
+> > > @@ -172,6 +172,11 @@ int twl_i2c_read(u8 mod_no, u8 
+> *value, u8 reg, 
+> > > unsigned num_bytes);
+> > >  
+> > >  int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);  int
+> > > twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+> > > +int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned 
+> > > +irq_end); int twl6030_exit_irq(void); int twl4030_init_irq(int 
+> > > +irq_num, unsigned irq_base, unsigned irq_end); int 
+> > > +twl4030_exit_irq(void); int twl4030_init_chip_irq(const
+> > char *chip);
+> > No, we don't want to export those. Try defining them as extern from 
+> > twl*-irq.c.
 > 
-> Then, I also noticed the following exports getting added:
-> 
-> +EXPORT_SYMBOL(omap2_gp_clockevent_set_gptimer);
-> +EXPORT_SYMBOL(omapfb_reserve_sram);
-> +EXPORT_SYMBOL(omap_sram_init);
-> 
-> These should not be exported, they are only intended to be 
-> called from the low-level platform init code. So exporting 
-> them is not the right fix for these.
+> Having extern in .c file will generate checkpatch warning as:
+> WARNING: externs should be avoided in .c files
 
-I have declared these API's as extern functions in respective
-header files. If it is ok, I can push the changes to git branch
-for pull request.
+As an alternate, how about having twl-core.h in drivers/mfd and defining them
+as extern so that these API's will be available only to files under drivers/mfd?
 
 -Manjunath
