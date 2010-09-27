@@ -1,78 +1,83 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH v3] power_supply: Add driver for TWL4030/TPS65950 BCI charger
-Date: Mon, 27 Sep 2010 13:54:36 +0300
-Message-ID: <AANLkTinh+JTwyE4E33QXdnZ8obYA8S0SU71i3kGi=wRT@mail.gmail.com>
-References: <1285529740-28232-1-git-send-email-notasas@gmail.com>
-	<AANLkTinkxokX9BGtxysYOr19xbZR4S8oPRYUAyneutzc@mail.gmail.com>
+From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
+Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Mon, 27 Sep 2010 16:32:09 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
+References: <20100924014938.10325.35279.stgit@baageli.muru.com>
+	<20100924015056.10325.95854.stgit@baageli.muru.com>
+	<AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
+ <AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTinkxokX9BGtxysYOr19xbZR4S8oPRYUAyneutzc@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arun Murthy <arunrmurthy.83@gmail.com>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Madhusudhan <madhu.cr@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58728 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752712Ab0I0LCg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 07:02:36 -0400
+In-Reply-To: <AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>, "Premi, Sanjeev" <premi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Sep 27, 2010 at 10:21 AM, Arun Murthy <arunrmurthy.83@gmail.com=
-> wrote:
-> On Mon, Sep 27, 2010 at 1:05 AM, Grazvydas Ignotas <notasas@gmail.com=
->
-> wrote:
->> ---
->> This is v3 of BCI charger driver I first sent nearly a year ago [1].
->> I've updated it to use the new OTG notifiers for VBUS notifications,
->> however it still is not able to determine charge current to use.
->> For that reason there is now a temporary module param to enable USB
->> charging, until I can figure out how to get that info from the gadge=
-t
->> stack (hopefully Felipe can help me here).
->
-> On detecting USB plug, the driver is suppose to detect the type of us=
-b
-> device. Then if the device is a PC(standard host) the charging curren=
-t is to
-> be obtained from the usb stack. Hence the driver will have to wait un=
-til the
-> usb stack or driver notifies the current that can be drawn. The usb s=
-tack or
-> driver gets to know the amount of current to be drawn through the
-> negotiations that happen between the host and device.
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Saturday, September 25, 2010 9:13 PM
+> To: Premi, Sanjeev
+> Cc: Tony Lindgren; linux-arm-kernel@lists.infradead.org; linux-
+> omap@vger.kernel.org; Marathe, Yogesh
+> Subject: Re: [PATCH 05/11] omap3: Remove non-existent config option
+>=20
+> On Fri, Sep 24, 2010 at 6:17 PM, Premi, Sanjeev <premi@ti.com> wrote:
+> >> On Fri, Sep 24, 2010 at 4:50 AM, Tony Lindgren
+> >> <tony@atomide.com> wrote:
+> >> > From: Yogesh Marathe <yogesh_marathe@ti.com>
+> >> >
+> >> > The definition of "iva2" device in iommu_device
+> >> > is wrapped inside CONFIG_MPU_BRIDGE_IOMMU, but
+> >> > this option is not defined in KConfig.
+> >> >
+> >> > This patch removes the wrapper and makes "iva2"
+> >> > available as another iommu_device.
+> >>
+> >> NAK.
+> >>
+> >> This would break tidspbridge's MMU. This was discussed before:
+> >> http://thread.gmane.org/gmane.linux.ports.arm.kernel/58302/focus=3D=
+58305
+> >>
+> >> When tidspbridge has migrated to iommu, then it should define
+> >> CONFIG_MPU_BRIDGE_IOMMU.
+> >
+> > =A0Can you go through earlier discussion on this patch
+> > =A0http://marc.info/?l=3Dlinux-omap&m=3D127979007623260&w=3D2
+> >
+> > =A0I believe these concerns were discussed. I am unable to
+> > =A0open the gmane thread (getting 504) - so can't be sure
+> > =A0if Hiroshi had referred to same discussion.
+>=20
+> When you merge iommu support, then either you enable
+> CONFIG_MPU_BRIDGE_IOMMU unconditionally, or you apply this patch, but
+> this patch alone will only break things.
+>=20
+> --
+> Felipe Contreras
 
-I'm aware of that, the question was how to get that from Linux USB
-stack (which Felipe already responded).
+=46elipe,
 
-<snip>
+Any other driver which does not depend on bridge and interested in usin=
+g iommu should get the handle when iommu_get("iva2") is called. It is n=
+ot happening in original case. I think there should not be restrictions=
+ on other drivers to define un-related compile time define if they just=
+ want to use iommu driver. I feel the implementation that is breaking d=
+ue to removal of this define should be fixed.
 
-> Only AC and USB monitoring is achieved by registering with power supp=
-ly
-> class.
-> How is battery monitored?
-> An instance of battery is to be registered with power supply class in=
- order
-> to monitor battery.
-
-The problem is that BCI is only active while charging, when it is not
-charging most (all?) monitoring registers freeze and no monitoring
-happens (BCI registers read frozen values from last charge). So I
-don't register battery as it has no useful data to report. I heard it
-is possible to use MADC to perform monitoring while not charging, so
-battery can be added when MADC driver is merged and corresponding code
-is written for this driver.
-
->>
->> +
->> +static struct platform_driver twl4030_bci_driver =3D {
->> + =A0 =A0 =A0 .probe =A0 =A0 =A0 =A0 =A0=3D twl4030_bci_probe,
->> + =A0 =A0 =A0 .remove =A0 =A0 =A0 =A0 =3D __devexit_p(twl4030_bci_re=
-move),
->> + =A0 =A0 =A0 .driver =A0 =A0 =A0 =A0 =3D {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =3D "twl4030_bci",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .owner =A0=3D THIS_MODULE,
->> + =A0 =A0 =A0 },
->> +};
->
-> dev_pm_ops can be use
-
-nothing to do there right now, the driver relies on FSM change
-interrupts from BCI to update state.
+Regards,
+Yogesh.=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
