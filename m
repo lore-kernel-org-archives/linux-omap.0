@@ -1,43 +1,51 @@
 From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the net tree with the omap tree
-Date: Mon, 27 Sep 2010 14:29:15 +1000
-Message-ID: <20100927142915.081bbf24.sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the crypto tree with the omap tree
+Date: Mon, 27 Sep 2010 14:33:00 +1000
+Message-ID: <20100927143300.9fa73063.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__27_Sep_2010_14_33_00_+1000_lY_9B/G0u/26Mr8G"
 Return-path: <linux-next-owner@vger.kernel.org>
 Sender: linux-next-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Sukumar Ghorai <s-ghorai@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Ohad Ben-Cohen <ohad@wizery.com>, "John W. Linville" <linville@tuxdriver.com>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Dmitry Kasatkin <dmitry.kasatkin@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+--Signature=_Mon__27_Sep_2010_14_33_00_+1000_lY_9B/G0u/26Mr8G
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Today's linux-next merge of the net tree got a conflict in
-arch/arm/mach-omap2/board-zoom-peripherals.c between commit
-6db649c505ddc6665176807c16745b9e01cf5031 ("omap: mmc: extended to pass
-host capabilities from board file") from the omap tree and commits
-b642fde7f137566c993991fd2e7bf6b8274bf625 ("omap: zoom: add fixed
-regulator device for wlan") and 80b517f362605f2b6a6cfe086604534290aab2de
-("omap: zoom: add mmc3/wl1271 device support") from the net tree.
+Hi Herbert,
 
-Just overlapping additions.  I fixed it up (see below) and can carry the
-fix as necessary.
--- 
+Today's linux-next merge of the crypto tree got a conflict in
+arch/arm/mach-omap2/devices.c between commit
+5d14f2792f9d63c5d25903bd048017c4b53c7d9a ("omap: crypto: updates to
+enable omap aes") from the omap tree and commit
+b744c679f62b368cb94c21c1dcd4618e42d88d63 ("crypto: updates to enable omap
+aes") from the crypto tree.
+
+Two versions of the same patch.  The version in the omap tree has been
+updated, so I used that.
+--=20
 Cheers,
 Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-diff --cc arch/arm/mach-omap2/board-zoom-peripherals.c
-index e5eac46,6aa0728..0000000
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@@ -16,7 -16,8 +16,9 @@@
-  #include <linux/gpio.h>
-  #include <linux/i2c/twl.h>
-  #include <linux/regulator/machine.h>
- +#include <linux/mmc/host.h>
-+ #include <linux/regulator/fixed.h>
-+ #include <linux/wl12xx.h>
-  
-  #include <asm/mach-types.h>
-  #include <asm/mach/arch.h>
+--Signature=_Mon__27_Sep_2010_14_33_00_+1000_lY_9B/G0u/26Mr8G
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJMoB58AAoJEDMEi1NhKgbs2g0H/1gv027JndzqJomV2omVaPi+
+M710fL0tpiFQ7d0p/d8JnFltkb2Qor0147X7Dgh3lI5maxrj71bLmUQF3NoLjToA
+aj14b5H9RCjulnVj3ZMb7nrqFvhQStvwwx6oKucoqBG2YE9p+Inh0JDUhBOl/8Vx
+MkW8uRaMzq6VFJpFB/wdEwF1g6pDQoEUv98YaVCN7Dz6N7GZiAB7GYzAqGHRCDks
+44+/ZEfpw04M6R6GotLymK+K4hTb/ZZmx0jjwD7YLGqBZlQN/TgdHGf/er/tUx4U
+KQFZIvGWBrhptW2I3LQnAC7xwVdIhVUFwIxfpXIbK7oz9v+fEsontGeWhtukSLg=
+=FfoV
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__27_Sep_2010_14_33_00_+1000_lY_9B/G0u/26Mr8G--
