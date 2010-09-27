@@ -1,47 +1,54 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 8/9 v3] usb : musb: Using runtime pm apis for musb.
-Date: Mon, 27 Sep 2010 09:07:38 +0300
-Message-ID: <20100927060738.GB8365@legolas.emea.dhcp.ti.com>
-References: <1285201830-26561-1-git-send-email-hemahk@ti.com>
- <20100923063604.GE2563@legolas.emea.dhcp.ti.com>
- <87wrqc4gwd.fsf@deeprootsystems.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863DD4D@dbde02.ent.ti.com>
- <87fwx02wl5.fsf@deeprootsystems.com>
- <20100924110129.GV8365@legolas.emea.dhcp.ti.com>
- <4C9CBA7E.9090107@ru.mvista.com>
-Reply-To: balbi@ti.com
+From: Silesh C V <silesh@ti.com>
+Subject: Re: [PATCH] OMAP: PM: CPUFREQ: Fix conditional compilation
+Date: Mon, 27 Sep 2010 11:49:46 +0530
+Message-ID: <AANLkTikWWyfgUOYyXud0D0vpMwAn2xxUKM=dNPoYsCK0@mail.gmail.com>
+References: <1285318494-22092-1-git-send-email-silesh@ti.com>
+	<87pqw3ji5i.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47580 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754012Ab0I0GJH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Sep 2010 02:09:07 -0400
-Content-Disposition: inline
-In-Reply-To: <4C9CBA7E.9090107@ru.mvista.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:37165 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753744Ab0I0GTr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 02:19:47 -0400
+Received: by iwn5 with SMTP id 5so4508118iwn.19
+        for <linux-omap@vger.kernel.org>; Sun, 26 Sep 2010 23:19:47 -0700 (PDT)
+In-Reply-To: <87pqw3ji5i.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@mvista.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Kalliguddi, Hema" <hemahk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Sep 24, 2010 at 09:49:34AM -0500, Sergei Shtylyov wrote:
->Hello.
+On Fri, Sep 24, 2010 at 8:36 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Silesh C V <silesh@ti.com> writes:
 >
->Felipe Balbi wrote:
+>> Fix conditional compilation.
 >
->>> I guess that's Felipe's call, but I don't like that option.
->
->>> I think it's cleaner to have the ->set_clock hook be a noop on OMAP and
->>> the runtime hooks be noops on the other platforms.
->
->> Agreed. We should focus on removing ->set_clock for .38 actually. Is
->> DaVinci already using clkdev, Kevin ?
->
->    Sure. But DaVinci doesn't use ->set_clock().
+> What excatly was the compile error? =A0and with which compiler?
 
-Ok, so seems like no-one is actually using that. We can already start
-patching to remove that thing, later on, we need to remove the clock
-name via platform_data.
+There is no compiler error.But what we need after an #elif is a
+conditional expression.
+The correct usage is #elif defined(CONFIG_XXX) rather than #elif CONFIG=
+_XXX.
 
--- 
-balbi
+=46urther, if the kernel is configured for a non-omap3 arch (eg.OMAP4),
+you get a compiler warning:
+arch/arm/plat-omap/cpu-omap.c:47:7: warning: "CONFIG_ARCH_OMAP3" is not=
+ defined
+which goes away with this patch.
+
+>
+> The current pm branch =A0seems to compile fine for me.
+>
+> Kevin
+>
+
+Thanks,
+Silesh.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
