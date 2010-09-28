@@ -1,137 +1,77 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [GIT PULL] omap2 sparse fixes
-Date: Tue, 28 Sep 2010 13:42:17 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F917C@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A390E@dbde02.ent.ti.com>
- <20100923225851.GR4211@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
- <20100925001914.GO4211@atomide.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] tracing, perf: add more power related events
+Date: Tue, 28 Sep 2010 10:35:27 +0200
+Message-ID: <AANLkTinJU5+s_1S6i4GpRuiOfsAPiL9UFtrxCCbtoumt@mail.gmail.com>
+References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
+	<201009180026.59482.trenn@suse.de>
+	<AANLkTimMAr9kEzybFGai3qGyXx36v055iPpXq_C1vW8C@mail.gmail.com>
+	<201009222049.18154.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59565 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750702Ab0I1IMj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 04:12:39 -0400
-In-Reply-To: <20100925001914.GO4211@atomide.com>
-Content-Language: en-US
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:39418 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752830Ab0I1If3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 04:35:29 -0400
+In-Reply-To: <201009222049.18154.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
 
+Hi,
 
-Tony,
+Here is what I am proposing, in reply to all your comments:
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Saturday, September 25, 2010 5:49 AM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [GIT PULL] omap2 sparse fixes
-> 
-> * G, Manjunath Kondaiah <manjugk@ti.com> [100924 12:33]:
-> > 
-> > Tony,
-> > Here is new pull request which is rebased to 2.6.36-rc5.
-> > 
-> > -Manjunath
-> > 
-> > The following changes since commit 
-> b30a3f6257ed2105259b404d419b4964e363928c:
-> >   Linus Torvalds (1):
-> >         Linux 2.6.36-rc5
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git 
-> > sparse_fixes
-> > 
-> > G, Manjunath Kondaiah (10):
-> >       OMAP: mach-omap2: Fix incorrect assignment warnings
-> >       OMAP: mach-omap2: Fix static declaration warnings
-> >       OMAP: mach-omap2: Fix static function warnings
-> >       OMAP: mach-omap2: Fix miscellaneous sparse warnings
-> >       OMAP: plat-omap: Fix static function warnings
-> >       OMAP: NAND: Fix static declaration warning
-> >       TWL CORE: Fix sparse warning
-> >       TWL IRQ: Fix fucntion declaration warnings
-> >       OMAP2/3: Convert write/read functions to raw read/write
-> >       OMAP3: Keypad: Fix incorrect type initializer
-> 
-> Hmm tried pulling these, but ran into an issue where at least 
-> 2430 takes about a minute to boot with these patches with no 
-> output on the console intially.
-> 
-> Can you please check that? Will not merge for now until we 
-> figure out what changes with these patches.
-> 
-> Then, I also noticed the following exports getting added:
-> 
-> +EXPORT_SYMBOL(omap2_gp_clockevent_set_gptimer);
-> +EXPORT_SYMBOL(omapfb_reserve_sram);
-> +EXPORT_SYMBOL(omap_sram_init);
-> 
-> These should not be exported, they are only intended to be 
-> called from the low-level platform init code. So exporting 
-> them is not the right fix for these.
+1) rename the events to match Thomas's proposal:
+   power:power_cpu_cstate
+   power:power_cpu_pstate
+   power:power_cpu_sstate
+   ...
 
-Similar comments received for twl irq apis's hence it was aligned
-to declare these functions as extern functions in local header(if exists) 
-or create new header in the source file directory for these declarations.
+2) introduce a new Kconfig option CONFIG_DEPRECATED_POWER_EVENTS and
+conditionally map a subset of the new events to the old ones for
+backward compatibility with the existing user apps. The apps should be
+converted to the new API asap,
 
-Three patches are fixed using above method which are:
-OMAP: mach-omap2: Fix static function warnings
-OMAP: plat-omap: Fix static function warnings
-TWL IRQ: Fix fucntion declaration warnings
+3) update documentation
 
-The patch series is tested on below boards(with omap3_defconfig)
-and links for boot logs is provided below:
+Other remarks here below:
 
-beagle boot log:
-http://pastebin.com/jz6ZGHsH
+On Wed, Sep 22, 2010 at 8:49 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
+=2E..
+> This POWER_SSTATE thing seems to be totally artificial and omap-speci=
+fic.
+>
+> Why do you want it to be done this way?
+>
+> Or is the ACPI handling added in the ACPI patch? =A0In which case, wh=
+y don't you
+> put that power_switch_state(POWER_SSTATE, 1, 0, cpu) into
+> kernel/power/suspend.c:suspend_enter() (and analogously for
+> power_switch_state(POWER_SSTATE, 0, 0, cpu)).
+The ACPI code is not using the SSTATE event.
+Indeed inserting a tracepoint at
+kernel/power/suspend.c:suspend_enter() is more generic. I will correct
+this.
 
-zoom3 boot log:
-http://pastebin.com/T0YjunCk
+> Moreover, why is the cpu argument necessary for POWER_SSTATE at all?
+The cpu_id parameter is present in all events prototypes. This is not
+needed. I will correct this.
 
-2430sdp boot log:
-http://pastebin.com/7BbpieYS
+>
+> Thanks,
+> Rafael
+>
 
-As I mentioned in other e-mail, 2430sdp with omap3_defconfig boots
-only after disabling usb. OMAP4SDPES2.0 boots with ES2.0 patches from
-for-next branch.
+A new patch should be ready in the coming days. I would like to have
+your opinion on the proposed rework before re-doing it all again.
 
-Here is all parse errors fixed with this series:
-
-Sparse warns before fixes:
-http://pastebin.com/yct2p201
-
-Sparse warns after fixes:
-http://pastebin.com/qpnTbYwL
-
-All the tested patches are pushed to new branch at:
-
-The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
-  Linus Torvalds (1):
-        Linux 2.6.36-rc5
-
-are available in the git repository at:
-
-  git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git sparse_fixes_v3
-
-G, Manjunath Kondaiah (10):
-      OMAP: mach-omap2: Fix incorrect assignment warnings
-      OMAP: mach-omap2: Fix static declaration warnings
-      OMAP2plus: Fix static function warnings
-      OMAP: mach-omap2: Fix miscellaneous sparse warnings
-      OMAP: plat-omap: Fix static function warnings
-      OMAP: NAND: Fix static declaration warning
-      TWL CORE: Fix sparse warning
-      TWL IRQ: Fix fucntion declaration warnings
-      OMAP2/3: Convert write/read functions to raw read/write
-      OMAP3: Keypad: Fix incorrect type initializer
-
-
--Manjunath
-
+Thanks,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
