@@ -1,60 +1,137 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH v3 5/5] OMAP: I2C: Convert i2c driver to use PM runtime
-	api's
-Date: Tue, 28 Sep 2010 08:48:40 +0100
-Message-ID: <20100928074840.GA29252@n2100.arm.linux.org.uk>
-References: <1285078036-12789-1-git-send-email-rnayak@ti.com> <1285078036-12789-2-git-send-email-rnayak@ti.com> <1285078036-12789-3-git-send-email-rnayak@ti.com> <1285078036-12789-4-git-send-email-rnayak@ti.com> <1285078036-12789-5-git-send-email-rnayak@ti.com> <1285078036-12789-6-git-send-email-rnayak@ti.com> <20100927223645.GJ21564@trinity.fluff.org> <0680EC522D0CC943BC586913CF3768C003FF05981F@dbde02.ent.ti.com> <0680EC522D0CC943BC586913CF3768C003FF05988F@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [GIT PULL] omap2 sparse fixes
+Date: Tue, 28 Sep 2010 13:42:17 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F917C@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A390E@dbde02.ent.ti.com>
+ <20100923225851.GR4211@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
+ <20100925001914.GO4211@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003FF05988F-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:59565 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750702Ab0I1IMj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 04:12:39 -0400
+In-Reply-To: <20100925001914.GO4211@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On Tue, Sep 28, 2010 at 12:29:01PM +0530, Nayak, Rajendra wrote:
-> <snip>...
-> > > >
-> > > >  static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > > > @@ -356,6 +333,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > > >  	unsigned long fclk_rate = 12000000;
-> > > >  	unsigned long timeout;
-> > > >  	unsigned long internal_clk = 0;
-> > > > +	struct clk *fclk;
-> > > >
-> > > >  	if (dev->rev >= OMAP_I2C_REV_2) {
-> > > >  		/* Disable I2C controller before soft reset */
-> > > > @@ -414,7 +392,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > > >  		 * always returns 12MHz for the functional clock, we can
-> > > >  		 * do this bit unconditionally.
-> > > >  		 */
-> > > > -		fclk_rate = clk_get_rate(dev->fclk);
-> > > > +		fclk = clk_get(dev->dev, "fck");
-> > > > +		fclk_rate = clk_get_rate(fclk);
-> > > >
-> > > >  		/* TRM for 5912 says the I2C clock must be prescaled to be
-> > > >  		 * between 7 - 12 MHz. The XOR input clock is typically
-> > > > @@ -443,7 +422,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > > >  			internal_clk = 9600;
-> > > >  		else
-> > > >  			internal_clk = 4000;
-> > > > -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-> > > > +		fclk = clk_get(dev->dev, "fck");
-> > > > +		fclk_rate = clk_get_rate(fclk) / 1000;
-> > >
-> > > You don't put the clk after getting it and using it once?
-> > 
-> > clk_get needs an equivalent clk_put and not clk_get_rate. clk_get_rate
-> > is used to merely know the existing rate of the clock.
+
+Tony,
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Saturday, September 25, 2010 5:49 AM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: [GIT PULL] omap2 sparse fixes
 > 
-> Sorry, I guess you did mean the clk_get above the clk_get_rate does not have
-> an equivalent clk_put.
-> I could put a clk_put for readability, but a clk_put on OMAP actually does map
-> to an empty function.
-> See arch/arm/plat-omap/include/plat/clkdev.h
-> clk_get merely returns a pointer to the clk struct and does not do any usecounting,
-> hence a clk_put does not do anything.
+> * G, Manjunath Kondaiah <manjugk@ti.com> [100924 12:33]:
+> > 
+> > Tony,
+> > Here is new pull request which is rebased to 2.6.36-rc5.
+> > 
+> > -Manjunath
+> > 
+> > The following changes since commit 
+> b30a3f6257ed2105259b404d419b4964e363928c:
+> >   Linus Torvalds (1):
+> >         Linux 2.6.36-rc5
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git 
+> > sparse_fixes
+> > 
+> > G, Manjunath Kondaiah (10):
+> >       OMAP: mach-omap2: Fix incorrect assignment warnings
+> >       OMAP: mach-omap2: Fix static declaration warnings
+> >       OMAP: mach-omap2: Fix static function warnings
+> >       OMAP: mach-omap2: Fix miscellaneous sparse warnings
+> >       OMAP: plat-omap: Fix static function warnings
+> >       OMAP: NAND: Fix static declaration warning
+> >       TWL CORE: Fix sparse warning
+> >       TWL IRQ: Fix fucntion declaration warnings
+> >       OMAP2/3: Convert write/read functions to raw read/write
+> >       OMAP3: Keypad: Fix incorrect type initializer
+> 
+> Hmm tried pulling these, but ran into an issue where at least 
+> 2430 takes about a minute to boot with these patches with no 
+> output on the console intially.
+> 
+> Can you please check that? Will not merge for now until we 
+> figure out what changes with these patches.
+> 
+> Then, I also noticed the following exports getting added:
+> 
+> +EXPORT_SYMBOL(omap2_gp_clockevent_set_gptimer);
+> +EXPORT_SYMBOL(omapfb_reserve_sram);
+> +EXPORT_SYMBOL(omap_sram_init);
+> 
+> These should not be exported, they are only intended to be 
+> called from the low-level platform init code. So exporting 
+> them is not the right fix for these.
 
-That's no reason to avoid using it.
+Similar comments received for twl irq apis's hence it was aligned
+to declare these functions as extern functions in local header(if exists) 
+or create new header in the source file directory for these declarations.
+
+Three patches are fixed using above method which are:
+OMAP: mach-omap2: Fix static function warnings
+OMAP: plat-omap: Fix static function warnings
+TWL IRQ: Fix fucntion declaration warnings
+
+The patch series is tested on below boards(with omap3_defconfig)
+and links for boot logs is provided below:
+
+beagle boot log:
+http://pastebin.com/jz6ZGHsH
+
+zoom3 boot log:
+http://pastebin.com/T0YjunCk
+
+2430sdp boot log:
+http://pastebin.com/7BbpieYS
+
+As I mentioned in other e-mail, 2430sdp with omap3_defconfig boots
+only after disabling usb. OMAP4SDPES2.0 boots with ES2.0 patches from
+for-next branch.
+
+Here is all parse errors fixed with this series:
+
+Sparse warns before fixes:
+http://pastebin.com/yct2p201
+
+Sparse warns after fixes:
+http://pastebin.com/qpnTbYwL
+
+All the tested patches are pushed to new branch at:
+
+The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
+  Linus Torvalds (1):
+        Linux 2.6.36-rc5
+
+are available in the git repository at:
+
+  git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git sparse_fixes_v3
+
+G, Manjunath Kondaiah (10):
+      OMAP: mach-omap2: Fix incorrect assignment warnings
+      OMAP: mach-omap2: Fix static declaration warnings
+      OMAP2plus: Fix static function warnings
+      OMAP: mach-omap2: Fix miscellaneous sparse warnings
+      OMAP: plat-omap: Fix static function warnings
+      OMAP: NAND: Fix static declaration warning
+      TWL CORE: Fix sparse warning
+      TWL IRQ: Fix fucntion declaration warnings
+      OMAP2/3: Convert write/read functions to raw read/write
+      OMAP3: Keypad: Fix incorrect type initializer
+
+
+-Manjunath
+
