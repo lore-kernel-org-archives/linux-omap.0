@@ -1,68 +1,38 @@
-From: Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 1/9 v3] usb: musb: Adding names for IRQs in resource structure
-Date: Tue, 28 Sep 2010 17:48:15 -0400
-Message-ID: <AANLkTi=77B2ntuJG7=J-g9GrcrJsWKUy6YbW0gm=MUQJ@mail.gmail.com>
-References: <1285201631-26266-1-git-send-email-hemahk@ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863D959@dbde02.ent.ti.com>
- <AANLkTim=ARtDA99XWP+RuB5nBh5FNAJHfSV34fiwtAk8@mail.gmail.com>
- <alpine.DEB.2.00.1009281515590.5439@utopia.booyaka.com> <AANLkTi=UpeYtuQDuxEt2FNSajB-rtMpMZwseD=GUao2Y@mail.gmail.com>
- <alpine.DEB.2.00.1009281543290.5439@utopia.booyaka.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] tracing, perf: add more power related events
+Date: Wed, 29 Sep 2010 00:05:18 +0200
+Message-ID: <201009290005.18704.rjw@sisk.pl>
+References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com> <201009282322.16291.rjw@sisk.pl> <4CA261F4.5070803@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.00.1009281543290.5439-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4CA261F4.5070803@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 28, 2010 at 17:44, Paul Walmsley wrote:
-> On Tue, 28 Sep 2010, Mike Frysinger wrote:
->> On Tue, Sep 28, 2010 at 17:18, Paul Walmsley wrote:
->> > On Tue, 28 Sep 2010, Mike Frysinger wrote:
->> >> well, currently, your resource definition must always be in the o=
-rder
->> >> of dev int and then dma int. =C2=A0if it isnt, then i dont think =
-musb is
->> >> going to work.
->> >>
->> >> not sure why you wouldnt simply change your platform resources to
->> >> match the what the driver expects ...
->> >
->> > The resource data is getting automatically populated from a set of=
- data
->> > generated from TI's hardware database for the OMAP platform, at le=
-ast.
->> > While we could hack in some exceptions to that tool to generate re=
-sources
->> > in a specific order, it seems less fragile to use the resource nam=
-e
->> > instead. =C2=A0That way, no matter what order the resources are ge=
-nerated, the
->> > driver should still work.
->>
->> guessing you're not referring to a device tree setup, but something
->> even more convoluted ?
->
-> No need to disparage it before you've seen it :-)
+On Tuesday, September 28, 2010, Arjan van de Ven wrote:
+>   On 9/28/2010 2:22 PM, Rafael J. Wysocki wrote:
+> > On Tuesday, September 28, 2010, Jean Pihet wrote:
+> >> Hi,
+> > Hi,
+> >
+> >> Here is what I am proposing, in reply to all your comments:
+> >>
+> >> 1) rename the events to match Thomas's proposal:
+> >>     power:power_cpu_cstate
+> >>     power:power_cpu_pstate
+> >>     power:power_cpu_sstate
+> > If that sstate thing is going to mean "suspend", then please drop it.
+> > "Suspend" is not a state, let alone a CPU state.  It is a procedure by which
+> > the (entire) system is put into a sleep state (that is not confined to CPUs).
+> 
+> there are also non-suspend S states, like S0i1 and S0i3 (supported in 
+> the current Intel "Moorestown" platform)
+> 
+> so it's slightly more complex than "just" suspend :)
 
-ah, but that's when i do my best work
-
->> i'd highly suggest that this patch be resent with the info you've ju=
-st
->> provided in its changelog so people can get a better understanding o=
-f
->> the "why" ... i'm not against the patch, it just seemed to be lackin=
-g
->> any background info
->
-> Hema, would you care to update the patch changelog accordingly?
-
-i'll pre-ack that for the Blackfin changes ... or, if you split those
-out, i can merge it separately for 2.6.37.
--mike
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's exactly why I used the conditional above. :-)
