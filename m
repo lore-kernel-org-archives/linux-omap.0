@@ -1,68 +1,73 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [PATCH] mfd: speedup twl4030 irq response time and decrease irq
- disable time
-Date: Tue, 28 Sep 2010 08:25:24 +0800
-Message-ID: <AANLkTikjGD32hPhwPhZfETZX9H+--_SduTtqgyuqY_72@mail.gmail.com>
-References: <1285120171-3030-1-git-send-email-tom.leiming@gmail.com>
-	<20100927154809.GI2560@sortiz-mobl>
+From: matt mooney <mfm@muteddisk.com>
+Subject: [PATCH 1/3 RESEND] arm: remove cast from void*
+Date: Mon, 27 Sep 2010 19:04:32 -0700
+Message-ID: <3502bb742dfb494eaa0faeb155fedb98dae2b946.1285638395.git.mfm@muteddisk.com>
+References: <cover.1285638395.git.mfm@muteddisk.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:46643 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811Ab0I1AZZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 20:25:25 -0400
-In-Reply-To: <20100927154809.GI2560@sortiz-mobl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <cover.1285638395.git.mfm@muteddisk.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jiri Kosina <trivial@kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, kernel-janitors@vger.kernel.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org
 
-Hi Samuel,
+Unnecessary cast from void* in assignment.
 
-     Thanks for your comment.
+Signed-off-by: matt mooney <mfm@muteddisk.com>
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/mach-omap2/mailbox.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-2010/9/27 Samuel Ortiz <sameo@linux.intel.com>:
-> Hi Tom,
->
-> On Wed, Sep 22, 2010 at 09:49:31AM +0800, tom.leiming@gmail.com wrote:
->> From: Ming Lei <tom.leiming@gmail.com>
->>
->> This patch sets scheduler policy of twl4030 irq thread
->> (twl4030_irq_thread) as SCHED_FIFO to speedup irq response
->> time, just like taken by kernel threaded irq in irq_thread
->> (kernel/irq/manage.c). Also higher priority than that of
->> threaded irq is taken to avoid preemption from twl4030
->> subchips's threaded irq handler, so pih irq disable time may
->> be decreased.
-> Wouldn't converting your twl4030_irq_thread() to the threaded IRQ framework
-> fix that problem ?
-
-IRQ_DISABLED flag is set by disable_irq_nosync called from PIH handler,
-then thread function can't be executed in irq thread function, so we can't
-convert this to threaded IRQ framework simply.
-
->
->> The pih irq is disabled in handle_twl4030_pih which may
->> wakeup twl4030 irq thread, and the pih irq will be enabled
->> again until complete of all sih irqs' handling in twl4030
->> irq thread.
->>
->> Also for each one interrupt line of twl4030 subchip, only
->> two irq events can be buffered by twl4030(4.4.2.3 of TPS65950 TRM).
-> Could you explain how is that related to the patch below ?
-
-We need to decrease PIH irq disable time as far as possible to
-make twl4030 subchip happy, or else some irqs may be lost, right?
-
-This patch will decrease PIH irq disable time:
-
-        - set schedule policy of twl4030_irq_thread as SCHED_FIFO, so
-it will get running timeslice quicker than before
-
-       - set priority of  twl4030_irq_thread higher than irq_thread of
-subchips to prevent it from being preempted by subchips' irq thread.
-
-
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 42dbfa4..40ddeca 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -181,7 +181,7 @@ static int omap2_mbox_fifo_full(struct omap_mbox *mbox)
+ static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
+ 		omap_mbox_type_t irq)
+ {
+-	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
++	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 
+ 	l = mbox_read_reg(p->irqenable);
+@@ -192,7 +192,7 @@ static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
+ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
+ 		omap_mbox_type_t irq)
+ {
+-	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
++	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 	l = mbox_read_reg(p->irqdisable);
+ 	l &= ~bit;
+@@ -202,7 +202,7 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
+ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
+ 		omap_mbox_type_t irq)
+ {
+-	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
++	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 
+ 	mbox_write_reg(bit, p->irqstatus);
+@@ -214,7 +214,7 @@ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
+ static int omap2_mbox_is_irq(struct omap_mbox *mbox,
+ 		omap_mbox_type_t irq)
+ {
+-	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
++	struct omap_mbox2_priv *p = mbox->priv;
+ 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 	u32 enable = mbox_read_reg(p->irqenable);
+ 	u32 status = mbox_read_reg(p->irqstatus);
 -- 
-Lei Ming
+1.7.2.1
