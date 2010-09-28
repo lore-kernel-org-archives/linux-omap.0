@@ -1,73 +1,30 @@
-From: matt mooney <mfm@muteddisk.com>
-Subject: [PATCH 1/3 RESEND] arm: remove cast from void*
-Date: Mon, 27 Sep 2010 19:04:32 -0700
-Message-ID: <3502bb742dfb494eaa0faeb155fedb98dae2b946.1285638395.git.mfm@muteddisk.com>
-References: <cover.1285638395.git.mfm@muteddisk.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] mfd: speedup twl4030 irq response time and decrease
+ irq disable time
+Date: Mon, 27 Sep 2010 21:24:18 -0700
+Message-ID: <20100928042416.GA9359@opensource.wolfsonmicro.com>
+References: <1285120171-3030-1-git-send-email-tom.leiming@gmail.com>
+ <20100927154809.GI2560@sortiz-mobl>
+ <AANLkTikjGD32hPhwPhZfETZX9H+--_SduTtqgyuqY_72@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1285638395.git.mfm@muteddisk.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, kernel-janitors@vger.kernel.org, linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTikjGD32hPhwPhZfETZX9H+--_SduTtqgyuqY_72@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Unnecessary cast from void* in assignment.
+On Tue, Sep 28, 2010 at 08:25:24AM +0800, Ming Lei wrote:
+> 2010/9/27 Samuel Ortiz <sameo@linux.intel.com>:
 
-Signed-off-by: matt mooney <mfm@muteddisk.com>
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/mach-omap2/mailbox.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+> > Wouldn't converting your twl4030_irq_thread() to the threaded IRQ framework
+> > fix that problem ?
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 42dbfa4..40ddeca 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -181,7 +181,7 @@ static int omap2_mbox_fifo_full(struct omap_mbox *mbox)
- static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
- 		omap_mbox_type_t irq)
- {
--	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
-+	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
- 
- 	l = mbox_read_reg(p->irqenable);
-@@ -192,7 +192,7 @@ static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
- static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
- 		omap_mbox_type_t irq)
- {
--	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
-+	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
- 	l = mbox_read_reg(p->irqdisable);
- 	l &= ~bit;
-@@ -202,7 +202,7 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
- static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
- 		omap_mbox_type_t irq)
- {
--	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
-+	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
- 
- 	mbox_write_reg(bit, p->irqstatus);
-@@ -214,7 +214,7 @@ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
- static int omap2_mbox_is_irq(struct omap_mbox *mbox,
- 		omap_mbox_type_t irq)
- {
--	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
-+	struct omap_mbox2_priv *p = mbox->priv;
- 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
- 	u32 enable = mbox_read_reg(p->irqenable);
- 	u32 status = mbox_read_reg(p->irqstatus);
--- 
-1.7.2.1
+> IRQ_DISABLED flag is set by disable_irq_nosync called from PIH handler,
+> then thread function can't be executed in irq thread function, so we can't
+> convert this to threaded IRQ framework simply.
+
+Have you raised this issue with the genirq guys?  This sounds like
+something that the core infrastructure should be able to cope with.
