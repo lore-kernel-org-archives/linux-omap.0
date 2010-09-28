@@ -1,97 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: RFC: mixing device idle and CPUidle or non-atomic idle notifiers
-Date: Wed, 29 Sep 2010 00:24:01 +0200
-Message-ID: <201009290024.01381.rjw@sisk.pl>
-References: <87iq1uwvtd.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
+Date: Tue, 28 Sep 2010 15:27:28 -0700
+Message-ID: <20100928222727.GS3117@atomide.com>
+References: <1285594634-19277-1-git-send-email-s-ghorai@ti.com>
+ <1285594634-19277-2-git-send-email-s-ghorai@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-In-Reply-To: <87iq1uwvtd.fsf@deeprootsystems.com>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Arjan van de Ven <arjan@linux.intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52355 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790Ab0I1W1c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 18:27:32 -0400
+Content-Disposition: inline
+In-Reply-To: <1285594634-19277-2-git-send-email-s-ghorai@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
-On Saturday, September 25, 2010, Kevin Hilman wrote:
-> Now that we have runtime PM for devices, I'm exploring ways of how to
-> couple the runtime PM of certain devices with CPUidle transitions.
-> Ideally, CPUidle should only manage CPU idle states, and device idle
-> states would be managed separately using runtime PM.  However, there are
-> cases where the device idle transistions need to be coordinated with CPU
-> idle transistions.  This is already a proposed topic for the PM
-> mini-conf at Plumbers'[1], so this RFC is to get the discussion started.
+* Sukumar Ghorai <s-ghorai@ti.com> [100927 06:30]:
+>   add support the irq mode in GPMC.
+>   gpmc_init() function move after omap_init_irq() as it has dependecy on irq.
 
-OK
+> --- a/arch/arm/mach-omap2/board-2430sdp.c
+> +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> @@ -144,6 +144,7 @@ static void __init omap_2430sdp_init_irq(void)
+>  	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
+>  	omap2_init_common_hw(NULL, NULL);
+>  	omap_init_irq();
+> +	gpmc_init();
+>  	omap_gpio_init();
+>  }
+>  
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+> index 67b95b5..549cd62 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -328,6 +328,7 @@ static void __init omap_3430sdp_init_irq(void)
+>  	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+>  	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
+>  	omap_init_irq();
+> +	gpmc_init();
+>  	omap_gpio_init();
+>  }
+...
 
-> In the wild west (before runtime PM), we managed these special cases on
-> OMAP by having some special hacks^Whooks for certain drivers that were
-> called during idle.  When these devices are converted to using runtime
-> PM, ideally we'd like initiate device runtime PM transitions for these
-> devices somehow coordinated with CPU idle transitions.
-> 
-> So, I started to explore how to coordinate device runtime PM transitions
-> with CPU idle transitions.
-> 
-> One of the fundamental problems is that by the time CPUidle is entered,
-> interrupts are already disabled, and runtime PM cannot be used from
-> interrupts disabled context (c.f. thread on linux-pm[1].)
+You can avoid adding gpmc_init() by making it a subsys_initcall().
+Just make sure you return early from it with if (!cpu_class_is_omap2()).
 
-This issue should be addressed by Alan, by adding the new flag to struct
-dev_pm_info that will tell the runtime PM framework that to work with the
-assumption that interrupts are off.
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -713,6 +721,31 @@ void __init gpmc_init(void)
+>  	l |= (0x02 << 3) | (1 << 0);
+>  	gpmc_write_reg(GPMC_SYSCONFIG, l);
+>  	gpmc_mem_init();
+> +
+> +	/* initalize the irq_chained */
+> +	irq = OMAP_GPMC_IRQ_BASE;
+> +	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
+> +		set_irq_handler(irq, handle_simple_irq);
+> +		set_irq_flags(irq, IRQF_VALID);
+> +		irq++;
+> +	}
+> +
+> +	if (request_irq(20, gpmc_handle_irq, IRQF_SHARED, "gpmc", gpmc_base))
+> +		printk(KERN_ERR "gpmc: irq-%d could not claim: err %d\n",
+> +							INT_34XX_GPMC_IRQ, irq);
+> +}
 
-> So that led me down the path of exploring whether we really need to have
-> interrupts disabled during the early part of CPUidle.  It seems to me
-> that during the time when the governor is selecting a state, and when
-> the platform-specific code is checking for device/bus activity,
-> interrupts do not really need to be disabled yet.  At least, I didn't
-> come up with a good reason why they need to be disabled so early, hence
-> the RFC.
-> 
-> Here's a simplified version how it works today:
-> 
-> /* arch/arm/kernel/process.c, arch/x86/kernel/process_*.c */
-> cpu_idle()  
->     local_irq_disable()    
->     pm_idle()  --> cpuidle_idle_call()
-> 
-> cpuidle_idle_call()
->     dev->prepare()
->     target_state = governor->select()  /* selects next state */
->     target_state->enter()
->         /* the ->enter hook must enable IRQs before returning */
-> 
-> As a quick hack, I just (re)enabled interrupts in our CPUidle
-> ->prepare() hook (they're later disabled again before the core idle is
-> run.)  This allowed the calling of device-specific idle functions which
-> then use runtime PM and thus allows device-specific idle to be
-> coordinated with the CPU idle.
-> 
-> So back to the main question... do we really need interrupts disabled so
-> early in the idle path? 
-> 
-> I'm sure I'm missing something obvious about why this can't work, but
-> it's Friday and my brain prefers to think about beer rather than
-> CPUidle.
-> 
-> Or, as another potential option...
-> 
-> I just discovered that x86_64 has an atomic idle_notifier called just
-> before idle (c.f. arch/x86/kernel/process_64.c.)  However this is also
-> done with interrupts disabled, so using this has the same problems with
-> interrupts disabled.  But, what about adding an additional notifier
-> chain that happens with interrupts still enabled....  hmm, will
-> ponder that over that beer...
+Hmm, this does not look right.. Shouldn't you call set_irq_chained_handler()
+somewhere too? Also, are you sure the interrupt is 20 for all of mach-omap2?
+It should be added to the irqs.h files.
 
-I must admit I haven't looked very deeply into the cpuidle code, but
-certainly there are good reasons to make it collaborate with the I/O runtime PM.
+> +static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+> +{
+> +	u8 cs;
+> +
+> +	if (irq != INT_34XX_GPMC_IRQ)
+> +		return IRQ_HANDLED;
+> +	/* check cs to invoke the irq */
+> +	cs = ((gpmc_read_reg(GPMC_PREFETCH_CONFIG1)) >> CS_NUM_SHIFT) & 0x7;
+> +	generic_handle_irq(OMAP_GPMC_IRQ_BASE+cs);
+> +
+> +	return IRQ_HANDLED;
+>  }
 
-It would be good to know if we can relax the handling of interrupts in the
-cpuidle framework a bit, this way or another.
+Doesn't doing OMAP_GPMC_IRQ_BASE + cs overlap with some other irq?
 
-[Added a few CCs to people that may be interested.]
+Regards,
 
-Thanks,
-Rafael
+Tony
