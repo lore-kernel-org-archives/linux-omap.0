@@ -1,78 +1,145 @@
-From: Arun MURTHY <arun.murthy@stericsson.com>
-Subject: RE: [PATCH 1/7] pwm: Add pwm core driver
-Date: Tue, 28 Sep 2010 11:49:53 +0200
-Message-ID: <F45880696056844FA6A73F415B568C69532DC2FBF9@EXDCVYMBSTM006.EQ1STM.local>
-References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
-       <1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
-       <201009281114.31223.anarsoul@gmail.com>
-       <F45880696056844FA6A73F415B568C69532DC2FA8F@EXDCVYMBSTM006.EQ1STM.local>
-    <63731.10.24.255.18.1285663815.squirrel@dbdmail.itg.ti.com>
-    <F45880696056844FA6A73F415B568C69532DC2FB21@EXDCVYMBSTM006.EQ1STM.local>
- <19145.10.24.255.18.1285666483.squirrel@dbdmail.itg.ti.com>
+From: Arun Murthy <arun.murthy@stericsson.com>
+Subject: [PATCH 6/7] pwm: move existing pwm driver to drivers/pwm
+Date: Tue, 28 Sep 2010 16:05:33 +0530
+Message-ID: <1285670134-18063-7-git-send-email-arun.murthy__19376.9327750944$1285670272$gmane$org@stericsson.com>
+References: <1285670134-18063-1-git-send-email-arun.murthy@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <19145.10.24.255.18.1285666483.squirrel@dbdmail.itg.ti.com>
-Content-Language: en-US
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-To: Hemanth V <hemanthv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Vasily Khoruzhick <anarsoul@gmail.com>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "grinberg@compulab.co.il" <grinberg@compulab.co.il>, "mike@compulab.co.il" <mike@compulab.co.il>, "robert.jarzmik@free.fr" <robert.jarzmik@free.fr>, "marek.vasut@gmail.com" <marek.vasut@gmail.com>, "drwyrm@gmail.com" <drwyrm@gmail.com>, "stefan@openezx.org" <stefan@openezx.org>, "laforge@openezx.org" <laforge@openezx.org>, "ospite@studenti.unina.it" <ospite@studenti.unina.it>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, "mad_soft@inbox.ru" <mad_soft@inbox.ru>, "maz@misterjones.org" <maz@misterjones.org>, "daniel@caiaq.de" <daniel@caiaq.de>, "haojian.zhuang@marvell.com" <haojian.zhuang@marvell.com>, timur@freesc
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:59293 "EHLO
+	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751391Ab0I1KgN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Sep 2010 06:36:13 -0400
+In-Reply-To: <1285670134-18063-1-git-send-email-arun.murthy@stericsson.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: lars@metafoo.de, akpm@linux-foundation.org, kernel@pengutronix.de, philipp.zabel@gmail.com, robert.jarzmik@free.fr, marek.vasut@gmail.com, eric.y.miao@gmail.com, rpurdi
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, arun.murthy@stericsson.com, STEricsson_nomadik_linux@list.st.com
 
-> >> >> On 28 of September 2010 10:40:42 Arun Murthy wrote:
-> >> >> > The existing pwm based led and backlight driver makes use of
-> the
-> >> >> > pwm(include/linux/pwm.h). So all the board specific pwm drivers
-> >> will
-> >> >> > be exposing the same set of function name as in
-> >> include/linux/pwm.h.
-> >> >> > As a result build fails.
-> >> >>
-> >> >> Which build fails? One with multi-SoC support? Please be more
-> >> specific.
-> >> > Sure will add this in v2.
-> >> >
-> >>
-> >> Could you clarify for the benefit of all, which specific issues you
-> are
-> >> trying to address with this patch series
-> > 1. Now since all the pwm driver export same set of
-> function(pwm_enable, pwm_disable,..), if it happens that there are two
-> pwm driver enabled this
-> > leads to re-declaration and results in build failure. The proper way
-> to handle this would be to have a pwm core function, and let all the
-> pwm
-> > drivers register to the pwm core driver.
-> > 2. The above scenario also occurs in place of multi-soc environment.
-> Lets say OMAP has a pwm module and that is being used for primary lcd
-> backlight
-> > and twl has a backlight that is being used for controlling the
-> charging led brightness. In this case there exists 2 pwm drivers and
-> one pwm driver
-> > will be used by pwm_bl.c and other by leds-pwm.c
-> 
-> Speaking specifically of OMAP4, twl6030 supports multiple PWMs i.e for
-> display/keypad backlight, charging
-> led. But there should not be need for multiple drivers since twl6030-
-> pwm should be able to support
-> all these (currently it doesnot though). So there would single
-> pwm_enable, pwm_disable exported and driver
-> internally takes care configuring the correct PWM based on id. Would it
-> not be similar
-> situation for other hardware also.
-> 
-You are right, there is only one pwm module in twl4030/twl6030 and this module might have any number or pwm's line PWM1, PWM2, PWM3 etc.
-My consideration is when you have two separate pwm modules on different soc. Its not in case of OMAP boards. But that was just an example that I gave.
+As of now only ab8500 and twl6030 are moved.
 
-Let me be more specific, consider an environment where there is an APE and Power Management subsystem(separate IC but on same board/platform)
-APE has a pwm module and Power Management SubSystem also has pwm module. Both are part of the platform.
-Not there exists two drivers in a single platform and both of them are enabled. Building such a kernel results in re-declaration build error.
+Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
+Acked-by: Linus Walleij <linus.walleij@stericsson.com>
+---
+ drivers/mfd/Kconfig                              |    9 ---------
+ drivers/mfd/Makefile                             |    1 -
+ drivers/misc/Kconfig                             |    9 ---------
+ drivers/misc/Makefile                            |    1 -
+ drivers/pwm/Kconfig                              |   18 ++++++++++++++++++
+ drivers/pwm/Makefile                             |    3 +++
+ drivers/{misc/ab8500-pwm.c => pwm/pwm-ab8500.c}  |    0
+ drivers/{mfd/twl6030-pwm.c => pwm/pwm-twl6040.c} |    0
+ 8 files changed, 21 insertions(+), 20 deletions(-)
+ rename drivers/{misc/ab8500-pwm.c => pwm/pwm-ab8500.c} (100%)
+ rename drivers/{mfd/twl6030-pwm.c => pwm/pwm-twl6040.c} (100%)
 
-Hope I am clear, I am not trying to distinguish the number of pwm in a pwm module, but trying to distinguish the number of pwm modules in an environment/platform.
-
-Thanks and Regards,
-Arun R Murthy
-------------
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 256fabd..ab1d376 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -186,15 +186,6 @@ config TWL4030_CODEC
+ 	select MFD_CORE
+ 	default n
  
+-config TWL6030_PWM
+-	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
+-	depends on TWL4030_CORE
+-	select HAVE_PWM
+-	default n
+-	help
+-	  Say yes here if you want support for TWL6030 PWM.
+-	  This is used to control charging LED brightness.
+-
+ config MFD_STMPE
+ 	bool "Support STMicroelectronics STMPE"
+ 	depends on I2C=y && GENERIC_HARDIRQS
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index d5968cd..1a89dbf 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -37,7 +37,6 @@ obj-$(CONFIG_MENELAUS)		+= menelaus.o
+ obj-$(CONFIG_TWL4030_CORE)	+= twl-core.o twl4030-irq.o twl6030-irq.o
+ obj-$(CONFIG_TWL4030_POWER)    += twl4030-power.o
+ obj-$(CONFIG_TWL4030_CODEC)	+= twl4030-codec.o
+-obj-$(CONFIG_TWL6030_PWM)	+= twl6030-pwm.o
+ 
+ obj-$(CONFIG_MFD_MC13783)	+= mc13783-core.o
+ 
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index ff8ea55..2c38d4e 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -62,15 +62,6 @@ config ATMEL_PWM
+ 	  purposes including software controlled power-efficient backlights
+ 	  on LCD displays, motor control, and waveform generation.
+ 
+-config AB8500_PWM
+-	bool "AB8500 PWM support"
+-	depends on AB8500_CORE
+-	select HAVE_PWM
+-	help
+-	  This driver exports functions to enable/disble/config/free Pulse
+-	  Width Modulation in the Analog Baseband Chip AB8500.
+-	  It is used by led and backlight driver to control the intensity.
+-
+ config ATMEL_TCLIB
+ 	bool "Atmel AT32/AT91 Timer/Counter Library"
+ 	depends on (AVR32 || ARCH_AT91)
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 5da82965..21b4761 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -35,5 +35,4 @@ obj-y				+= eeprom/
+ obj-y				+= cb710/
+ obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
+ obj-$(CONFIG_ARM_CHARLCD)	+= arm-charlcd.o
+-obj-$(CONFIG_AB8500_PWM)	+= ab8500-pwm.o
+ obj-$(CONFIG_PCH_PHUB)		+= pch_phub.o
+diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+index a88640c..e347365 100644
+--- a/drivers/pwm/Kconfig
++++ b/drivers/pwm/Kconfig
+@@ -14,4 +14,22 @@ menuconfig PWM_DEVICES
+ 
+ if PWM_DEVICES
+ 
++config AB8500_PWM
++	bool "AB8500 PWM support"
++	depends on AB8500_CORE
++	select HAVE_PWM
++	help
++	  This driver exports functions to enable/disble/config/free Pulse
++	  Width Modulation in the Analog Baseband Chip AB8500.
++	  It is used by led and backlight driver to control the intensity.
++
++config TWL6030_PWM
++	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
++	depends on TWL4030_CORE
++	select HAVE_PWM
++	default n
++	help
++	  Say yes here if you want support for TWL6030 PWM.
++	  This is used to control charging LED brightness.
++
+ endif # PWM_DEVICES
+diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
+index 552f969..f35afb4 100644
+--- a/drivers/pwm/Makefile
++++ b/drivers/pwm/Makefile
+@@ -1 +1,4 @@
+ obj-$(CONFIG_PWM_DEVICES)	+= pwm-core.o
++
++obj-$(CONFIG_AB8500_PWM)	+= pwm-ab8500.o
++obj-$(CONFIG_TWL6030_PWM)	+= pwm-twl6030.o
+diff --git a/drivers/misc/ab8500-pwm.c b/drivers/pwm/pwm-ab8500.c
+similarity index 100%
+rename from drivers/misc/ab8500-pwm.c
+rename to drivers/pwm/pwm-ab8500.c
+diff --git a/drivers/mfd/twl6030-pwm.c b/drivers/pwm/pwm-twl6040.c
+similarity index 100%
+rename from drivers/mfd/twl6030-pwm.c
+rename to drivers/pwm/pwm-twl6040.c
+-- 
+1.7.2.dirty
+
