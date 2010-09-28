@@ -1,307 +1,122 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v4 1/4] omap4 hsmmc: Adding card detect support for MMC1
-Date: Tue, 28 Sep 2010 12:22:38 +0530
-Message-ID: <AANLkTim5d6XP0nuJLF2DxDGP2DuBK5VUajd=YhXQnT2C@mail.gmail.com>
-References: <9408.10.24.255.18.1285348400.squirrel@dbdmail.itg.ti.com>
-	<AANLkTi=YvtrfmUTc-YBAUjEXn1v3pPLmhb92J60AhU28@mail.gmail.com>
+From: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v3 5/5] OMAP: I2C: Convert i2c driver to use PM runtime
+	api's
+Date: Tue, 28 Sep 2010 12:29:01 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003FF05988F@dbde02.ent.ti.com>
+References: <1285078036-12789-1-git-send-email-rnayak@ti.com>
+ <1285078036-12789-2-git-send-email-rnayak@ti.com>
+ <1285078036-12789-3-git-send-email-rnayak@ti.com>
+ <1285078036-12789-4-git-send-email-rnayak@ti.com>
+ <1285078036-12789-5-git-send-email-rnayak@ti.com>
+ <1285078036-12789-6-git-send-email-rnayak@ti.com>
+ <20100927223645.GJ21564@trinity.fluff.org>
+ <0680EC522D0CC943BC586913CF3768C003FF05981F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=YvtrfmUTc-YBAUjEXn1v3pPLmhb92J60AhU28@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: sameo@linux.intel.com
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, akpm@linux-foundation.org, madhu.cr@ti.com, adrian.hunter@nokia.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C003FF05981F-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Samuel,
+<snip>...
+> > >
+> > >  static int omap_i2c_init(struct omap_i2c_dev *dev)
+> > > @@ -356,6 +333,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> > >  	unsigned long fclk_rate = 12000000;
+> > >  	unsigned long timeout;
+> > >  	unsigned long internal_clk = 0;
+> > > +	struct clk *fclk;
+> > >
+> > >  	if (dev->rev >= OMAP_I2C_REV_2) {
+> > >  		/* Disable I2C controller before soft reset */
+> > > @@ -414,7 +392,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> > >  		 * always returns 12MHz for the functional clock, we can
+> > >  		 * do this bit unconditionally.
+> > >  		 */
+> > > -		fclk_rate = clk_get_rate(dev->fclk);
+> > > +		fclk = clk_get(dev->dev, "fck");
+> > > +		fclk_rate = clk_get_rate(fclk);
+> > >
+> > >  		/* TRM for 5912 says the I2C clock must be prescaled to be
+> > >  		 * between 7 - 12 MHz. The XOR input clock is typically
+> > > @@ -443,7 +422,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> > >  			internal_clk = 9600;
+> > >  		else
+> > >  			internal_clk = 4000;
+> > > -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
+> > > +		fclk = clk_get(dev->dev, "fck");
+> > > +		fclk_rate = clk_get_rate(fclk) / 1000;
+> >
+> > You don't put the clk after getting it and using it once?
+> 
+> clk_get needs an equivalent clk_put and not clk_get_rate. clk_get_rate
+> is used to merely know the existing rate of the clock.
 
-Could you please review this patch which touches mfd/twl6030-irq.c for
-card detect support
-of MMC1 controller on OMAP4.
+Sorry, I guess you did mean the clk_get above the clk_get_rate does not have
+an equivalent clk_put.
+I could put a clk_put for readability, but a clk_put on OMAP actually does map
+to an empty function.
+See arch/arm/plat-omap/include/plat/clkdev.h
+clk_get merely returns a pointer to the clk struct and does not do any usecounting,
+hence a clk_put does not do anything.
 
-Regards,
-Kishore
-
-On Mon, Sep 27, 2010 at 1:25 PM, kishore kadiyala
-<kishorek.kadiyala@gmail.com> wrote:
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
->
-> On Fri, Sep 24, 2010 at 10:43 PM, kishore kadiyala
-> <kishore.kadiyala@ti.com> wrote:
->> Adding card detect callback function and card detect configuration
->> function for MMC1 Controller on OMAP4.
->>
->> Card detect configuration function does initial configuration of the
->> MMC Control & PullUp-PullDown registers of Phoenix.
->>
->> For MMC1 Controller, card detect interrupt source is
->> twl6030 which is non-gpio. The card detect call back function provid=
-es
->> card present/absent status by reading MMC Control register present
->> on twl6030.
->>
->> Since OMAP4 doesn't use any GPIO line as used in OMAP3 for card dete=
-ct,
->> the suspend/resume initialization which was done in omap_hsmmc_gpio_=
-init
->> previously is moved to the probe thus making it generic for both OMA=
-P3 & OMAP4.
->>
->> Cc: Tony Lindgren <tony@atomide.com>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
->> Cc: Adrian Hunter <adrian.hunter@nokia.com>
->> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/board-4430sdp.c | =A0 =A07 +++-
->> =A0drivers/mfd/twl6030-irq.c =A0 =A0 =A0 =A0 =A0 | =A0 73 ++++++++++=
-+++++++++++++++++++++++++
->> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 | =A0 =A04 +-
->> =A0include/linux/i2c/twl.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 31 ++++++++=
-+++++++
->> =A04 files changed, 112 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-oma=
-p2/board-4430sdp.c
->> index 9447644..a49f285 100644
->> --- a/arch/arm/mach-omap2/board-4430sdp.c
->> +++ b/arch/arm/mach-omap2/board-4430sdp.c
->> @@ -227,9 +227,14 @@ static int omap4_twl6030_hsmmc_late_init(struct=
- device *dev)
->> =A0 =A0 =A0 =A0struct omap_mmc_platform_data *pdata =3D dev->platfor=
-m_data;
->>
->> =A0 =A0 =A0 =A0/* Setting MMC1 Card detect Irq */
->> - =A0 =A0 =A0 if (pdev->id =3D=3D 0)
->> + =A0 =A0 =A0 if (pdev->id =3D=3D 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl6030_mmc_card_detect_config=
-();
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Failed configu=
-ring MMC1 card detect\n");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect_irq =3D T=
-WL6030_IRQ_BASE +
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0MMCDETECT_INTR_OFFSET;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->slots[0].card_detect =3D twl603=
-0_mmc_card_detect;
->> + =A0 =A0 =A0 }
->> =A0 =A0 =A0 =A0return ret;
->> =A0}
->>
->> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
->> index 10bf228..2d3bb82 100644
->> --- a/drivers/mfd/twl6030-irq.c
->> +++ b/drivers/mfd/twl6030-irq.c
->> @@ -36,6 +36,7 @@
->> =A0#include <linux/irq.h>
->> =A0#include <linux/kthread.h>
->> =A0#include <linux/i2c/twl.h>
->> +#include <linux/platform_device.h>
->>
->> =A0/*
->> =A0* TWL6030 (unlike its predecessors, which had two level interrupt=
- handling)
->> @@ -223,6 +224,78 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 offs=
-et)
->> =A0}
->> =A0EXPORT_SYMBOL(twl6030_interrupt_mask);
->>
->> +int twl6030_mmc_card_detect_config(void)
->> +{
->> + =A0 =A0 =A0 int ret;
->> + =A0 =A0 =A0 u8 reg_val =3D 0;
->> +
->> + =A0 =A0 =A0 /* Unmasking the Card detect Interrupt line for MMC1 f=
-rom Phoenix */
->> + =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 REG_INT_MSK_LINE_B);
->> + =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 REG_INT_MSK_STS_B);
->> + =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0* Intially Configuring MMC_CTRL for receving interr=
-upts &
->> + =A0 =A0 =A0 =A0* Card status on TWL6030 for MMC1
->> + =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val, =
-TWL6030_MMCCTRL);
->> + =A0 =A0 =A0 if (ret < 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to read MMCCTR=
-L, error %d\n", ret);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 reg_val &=3D ~VMMC_AUTO_OFF;
->> + =A0 =A0 =A0 reg_val |=3D SW_FC;
->> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val, =
-TWL6030_MMCCTRL);
->> + =A0 =A0 =A0 if (ret < 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to write MMCCT=
-RL, error %d\n", ret);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 }
->> +
->> + =A0 =A0 =A0 /* Configuring PullUp-PullDown register */
->> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
->> + =A0 =A0 =A0 if (ret < 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to read CFG_IN=
-PUT_PUPD3, error %d\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- ret);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 reg_val &=3D ~(MMC_PU | MMC_PD);
->> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
->> + =A0 =A0 =A0 if (ret < 0) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to write CFG_I=
-NPUT_PUPD3, error %d\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- ret);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 return 0;
->> +}
->> +EXPORT_SYMBOL(twl6030_mmc_card_detect_config);
->> +
->> +int twl6030_mmc_card_detect(struct device *dev, int slot)
->> +{
->> + =A0 =A0 =A0 int ret =3D -EIO;
->> + =A0 =A0 =A0 u8 read_reg =3D 0;
->> + =A0 =A0 =A0 struct platform_device *pdev =3D to_platform_device(de=
-v);
->> +
->> + =A0 =A0 =A0 if (pdev->id) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* TWL6030 provide's Card detect suppo=
-rt for
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* only MMC1 controller.
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Unkown MMC controller %d in %s=
-\n", pdev->id, __func__);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->> + =A0 =A0 =A0 }
->> + =A0 =A0 =A0 /*
->> + =A0 =A0 =A0 =A0* BIT0 of MMC_CTRL on TWL6030 provides card status =
-for MMC1
->> + =A0 =A0 =A0 =A0* 0 - Card not present ,1 - Card present
->> + =A0 =A0 =A0 =A0*/
->> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &read_reg,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_MMCCTRL);
->> + =A0 =A0 =A0 if (ret >=3D 0)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D read_reg & STS_MMC;
->> + =A0 =A0 =A0 return ret;
->> +}
->> +EXPORT_SYMBOL(twl6030_mmc_card_detect);
->> +
->> =A0int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq=
-_end)
->> =A0{
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
-smmc.c
->> index 562dbbb..a51894d 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -466,8 +466,6 @@ static int omap_hsmmc_gpio_init(struct omap_mmc_=
-platform_data *pdata)
->> =A0 =A0 =A0 =A0int ret;
->>
->> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].switch_pin)) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->suspend =3D omap_hsmmc_suspend_=
-cdirq;
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->resume =3D omap_hsmmc_resume_cd=
-irq;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (pdata->slots[0].cover)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].get_c=
-over_state =3D
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0omap_hsmmc_get_cover_state;
->> @@ -2211,6 +2209,8 @@ static int __init omap_hsmmc_probe(struct plat=
-form_device *pdev)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"Unab=
-le to grab MMC CD IRQ\n");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_irq_cd;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->suspend =3D omap_hsmmc_suspend_=
-cdirq;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->resume =3D omap_hsmmc_resume_cd=
-irq;
->> =A0 =A0 =A0 =A0}
->>
->> =A0 =A0 =A0 =A0omap_hsmmc_disable_irq(host);
->> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
->> index 6de90bf..e64894c 100644
->> --- a/include/linux/i2c/twl.h
->> +++ b/include/linux/i2c/twl.h
->> @@ -141,6 +141,16 @@
->> =A0#define TWL6030_CHARGER_CTRL_INT_MASK =A00x10
->> =A0#define TWL6030_CHARGER_FAULT_INT_MASK =A0 =A0 =A0 =A0 0x60
->>
->> +#define TWL6030_MMCCTRL =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00xEE
->> +#define VMMC_AUTO_OFF =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(0x1 << 3)
->> +#define SW_FC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(0=
-x1 << 2)
->> +#define STS_MMC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x1
->> +
->> +#define TWL6030_CFG_INPUT_PUPD3 =A0 =A0 =A0 =A00xF2
->> +#define MMC_PU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (0x1=
- << 3)
->> +#define MMC_PD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (0x1=
- << 2)
->> +
->> +
->>
->> =A0#define TWL4030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x4030
->> =A0#define TWL6030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x6030
->> @@ -173,6 +183,27 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, =
-unsigned num_bytes);
->> =A0int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
->> =A0int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
->>
->> +/* Card detect Configuration for MMC1 Controller on OMAP4 */
->> +#ifdef CONFIG_TWL4030_CORE
->> +int twl6030_mmc_card_detect_config(void);
->> +#else
->> +static inline int twl6030_mmc_card_detect_config(void)
->> +{
->> + =A0 =A0 =A0 pr_debug("twl6030_mmc_card_detect_config not supported=
-\n");
->> + =A0 =A0 =A0 return 0;
->> +}
->> +#endif
->> +
->> +/* MMC1 Controller on OMAP4 uses Phoenix irq for Card detect */
->> +#ifdef CONFIG_TWL4030_CORE
->> +int twl6030_mmc_card_detect(struct device *dev, int slot);
->> +#else
->> +static inline int twl6030_mmc_card_detect(struct device *dev, int s=
-lot)
->> +{
->> + =A0 =A0 =A0 pr_debug("Call back twl6030_mmc_card_detect not suppor=
-ted\n");
->> + =A0 =A0 =A0 return -EIO;
->> +}
->> +#endif
->> =A0/*---------------------------------------------------------------=
--------*/
->>
->> =A0/*
->> --
->> 1.7.0.4
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-mmc"=
- in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
->
+> 
+> >
+> > >  		/* Compute prescaler divisor */
+> > >  		psc = fclk_rate / internal_clk;
+> > > @@ -1046,14 +1026,12 @@ omap_i2c_probe(struct platform_device *pdev)
+> > >  	else
+> > >  		dev->reg_shift = 2;
+> > >
+> > > -	if ((r = omap_i2c_get_clocks(dev)) != 0)
+> > > -		goto err_iounmap;
+> > > -
+> > >  	if (cpu_is_omap44xx())
+> > >  		dev->regs = (u8 *) omap4_reg_map;
+> > >  	else
+> > >  		dev->regs = (u8 *) reg_map;
+> > >
+> > > +	pm_runtime_enable(&pdev->dev);
+> > >  	omap_i2c_unidle(dev);
+> > >
+> > >  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+> > > @@ -1125,8 +1103,6 @@ err_free_irq:
+> > >  err_unuse_clocks:
+> > >  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> > >  	omap_i2c_idle(dev);
+> > > -	omap_i2c_put_clocks(dev);
+> > > -err_iounmap:
+> > >  	iounmap(dev->base);
+> > >  err_free_mem:
+> > >  	platform_set_drvdata(pdev, NULL);
+> > > @@ -1148,7 +1124,6 @@ omap_i2c_remove(struct platform_device *pdev)
+> > >  	free_irq(dev->irq, dev);
+> > >  	i2c_del_adapter(&dev->adapter);
+> > >  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> > > -	omap_i2c_put_clocks(dev);
+> > >  	iounmap(dev->base);
+> > >  	kfree(dev);
+> > >  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > > --
+> > > 1.5.4.7
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> > --
+> > --
+> > Ben
+> >
+> > Q:      What's a light-year?
+> > A:      One-third less calories than a regular year.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
