@@ -1,145 +1,79 @@
 From: Arun Murthy <arun.murthy@stericsson.com>
-Subject: [PATCH 6/7] pwm: move existing pwm driver to drivers/pwm
-Date: Tue, 28 Sep 2010 16:05:33 +0530
-Message-ID: <1285670134-18063-7-git-send-email-arun.murthy__19376.9327750944$1285670272$gmane$org@stericsson.com>
+Subject: [PATCH 7/7] pwm: Modify backlight and led Kconfig aligning to pwm core
+Date: Tue, 28 Sep 2010 16:05:34 +0530
+Message-ID: <1285670134-18063-8-git-send-email-arun.murthy__3214.5525249236$1285670272$gmane$org@stericsson.com>
 References: <1285670134-18063-1-git-send-email-arun.murthy@stericsson.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:59293 "EHLO
-	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751391Ab0I1KgN (ORCPT
+Received: from eu1sys200aog116.obsmtp.com ([207.126.144.141]:44577 "EHLO
+	eu1sys200aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751391Ab0I1KgS (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Sep 2010 06:36:13 -0400
+	Tue, 28 Sep 2010 06:36:18 -0400
 In-Reply-To: <1285670134-18063-1-git-send-email-arun.murthy@stericsson.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: lars@metafoo.de, akpm@linux-foundation.org, kernel@pengutronix.de, philipp.zabel@gmail.com, robert.jarzmik@free.fr, marek.vasut@gmail.com, eric.y.miao@gmail.com, rpurdi
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, arun.murthy@stericsson.com, STEricsson_nomadik_linux@list.st.com
 
-As of now only ab8500 and twl6030 are moved.
+PWM based backlight and led driver will not be calling the pwm drivers
+through the pwm core driver and hence adding dependancy on the same.
 
 Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
 Acked-by: Linus Walleij <linus.walleij@stericsson.com>
 ---
- drivers/mfd/Kconfig                              |    9 ---------
- drivers/mfd/Makefile                             |    1 -
- drivers/misc/Kconfig                             |    9 ---------
- drivers/misc/Makefile                            |    1 -
- drivers/pwm/Kconfig                              |   18 ++++++++++++++++++
- drivers/pwm/Makefile                             |    3 +++
- drivers/{misc/ab8500-pwm.c => pwm/pwm-ab8500.c}  |    0
- drivers/{mfd/twl6030-pwm.c => pwm/pwm-twl6040.c} |    0
- 8 files changed, 21 insertions(+), 20 deletions(-)
- rename drivers/{misc/ab8500-pwm.c => pwm/pwm-ab8500.c} (100%)
- rename drivers/{mfd/twl6030-pwm.c => pwm/pwm-twl6040.c} (100%)
+ drivers/leds/Kconfig            |    2 +-
+ drivers/pwm/Kconfig             |    2 --
+ drivers/video/backlight/Kconfig |    2 +-
+ 3 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 256fabd..ab1d376 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -186,15 +186,6 @@ config TWL4030_CODEC
- 	select MFD_CORE
- 	default n
+diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+index e411262..eba388f 100644
+--- a/drivers/leds/Kconfig
++++ b/drivers/leds/Kconfig
+@@ -244,7 +244,7 @@ config LEDS_DAC124S085
  
--config TWL6030_PWM
--	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
--	depends on TWL4030_CORE
--	select HAVE_PWM
--	default n
--	help
--	  Say yes here if you want support for TWL6030 PWM.
--	  This is used to control charging LED brightness.
--
- config MFD_STMPE
- 	bool "Support STMicroelectronics STMPE"
- 	depends on I2C=y && GENERIC_HARDIRQS
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index d5968cd..1a89dbf 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -37,7 +37,6 @@ obj-$(CONFIG_MENELAUS)		+= menelaus.o
- obj-$(CONFIG_TWL4030_CORE)	+= twl-core.o twl4030-irq.o twl6030-irq.o
- obj-$(CONFIG_TWL4030_POWER)    += twl4030-power.o
- obj-$(CONFIG_TWL4030_CODEC)	+= twl4030-codec.o
--obj-$(CONFIG_TWL6030_PWM)	+= twl6030-pwm.o
+ config LEDS_PWM
+ 	tristate "PWM driven LED Support"
+-	depends on HAVE_PWM
++	depends on HAVE_PWM || PWM_CORE
+ 	help
+ 	  This option enables support for pwm driven LEDs
  
- obj-$(CONFIG_MFD_MC13783)	+= mc13783-core.o
- 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index ff8ea55..2c38d4e 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -62,15 +62,6 @@ config ATMEL_PWM
- 	  purposes including software controlled power-efficient backlights
- 	  on LCD displays, motor control, and waveform generation.
- 
--config AB8500_PWM
--	bool "AB8500 PWM support"
--	depends on AB8500_CORE
--	select HAVE_PWM
--	help
--	  This driver exports functions to enable/disble/config/free Pulse
--	  Width Modulation in the Analog Baseband Chip AB8500.
--	  It is used by led and backlight driver to control the intensity.
--
- config ATMEL_TCLIB
- 	bool "Atmel AT32/AT91 Timer/Counter Library"
- 	depends on (AVR32 || ARCH_AT91)
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 5da82965..21b4761 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -35,5 +35,4 @@ obj-y				+= eeprom/
- obj-y				+= cb710/
- obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
- obj-$(CONFIG_ARM_CHARLCD)	+= arm-charlcd.o
--obj-$(CONFIG_AB8500_PWM)	+= ab8500-pwm.o
- obj-$(CONFIG_PCH_PHUB)		+= pch_phub.o
 diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-index a88640c..e347365 100644
+index e347365..1f8cbc0 100644
 --- a/drivers/pwm/Kconfig
 +++ b/drivers/pwm/Kconfig
-@@ -14,4 +14,22 @@ menuconfig PWM_DEVICES
+@@ -17,7 +17,6 @@ if PWM_DEVICES
+ config AB8500_PWM
+ 	bool "AB8500 PWM support"
+ 	depends on AB8500_CORE
+-	select HAVE_PWM
+ 	help
+ 	  This driver exports functions to enable/disble/config/free Pulse
+ 	  Width Modulation in the Analog Baseband Chip AB8500.
+@@ -26,7 +25,6 @@ config AB8500_PWM
+ config TWL6030_PWM
+ 	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
+ 	depends on TWL4030_CORE
+-	select HAVE_PWM
+ 	default n
+ 	help
+ 	  Say yes here if you want support for TWL6030 PWM.
+diff --git a/drivers/video/backlight/Kconfig b/drivers/video/backlight/Kconfig
+index e54a337..73fc17b 100644
+--- a/drivers/video/backlight/Kconfig
++++ b/drivers/video/backlight/Kconfig
+@@ -217,7 +217,7 @@ config BACKLIGHT_CARILLO_RANCH
  
- if PWM_DEVICES
- 
-+config AB8500_PWM
-+	bool "AB8500 PWM support"
-+	depends on AB8500_CORE
-+	select HAVE_PWM
-+	help
-+	  This driver exports functions to enable/disble/config/free Pulse
-+	  Width Modulation in the Analog Baseband Chip AB8500.
-+	  It is used by led and backlight driver to control the intensity.
-+
-+config TWL6030_PWM
-+	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
-+	depends on TWL4030_CORE
-+	select HAVE_PWM
-+	default n
-+	help
-+	  Say yes here if you want support for TWL6030 PWM.
-+	  This is used to control charging LED brightness.
-+
- endif # PWM_DEVICES
-diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
-index 552f969..f35afb4 100644
---- a/drivers/pwm/Makefile
-+++ b/drivers/pwm/Makefile
-@@ -1 +1,4 @@
- obj-$(CONFIG_PWM_DEVICES)	+= pwm-core.o
-+
-+obj-$(CONFIG_AB8500_PWM)	+= pwm-ab8500.o
-+obj-$(CONFIG_TWL6030_PWM)	+= pwm-twl6030.o
-diff --git a/drivers/misc/ab8500-pwm.c b/drivers/pwm/pwm-ab8500.c
-similarity index 100%
-rename from drivers/misc/ab8500-pwm.c
-rename to drivers/pwm/pwm-ab8500.c
-diff --git a/drivers/mfd/twl6030-pwm.c b/drivers/pwm/pwm-twl6040.c
-similarity index 100%
-rename from drivers/mfd/twl6030-pwm.c
-rename to drivers/pwm/pwm-twl6040.c
+ config BACKLIGHT_PWM
+ 	tristate "Generic PWM based Backlight Driver"
+-	depends on HAVE_PWM
++	depends on HAVE_PWM || PWM_CORE
+ 	help
+ 	  If you have a LCD backlight adjustable by PWM, say Y to enable
+ 	  this driver.
 -- 
 1.7.2.dirty
 
