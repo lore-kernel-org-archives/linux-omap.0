@@ -1,204 +1,68 @@
-From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH v3 5/5] OMAP: I2C: Convert i2c driver to use PM runtime
-	api's
-Date: Mon, 27 Sep 2010 23:36:45 +0100
-Message-ID: <20100927223645.GJ21564@trinity.fluff.org>
-References: <1285078036-12789-1-git-send-email-rnayak@ti.com> <1285078036-12789-2-git-send-email-rnayak@ti.com> <1285078036-12789-3-git-send-email-rnayak@ti.com> <1285078036-12789-4-git-send-email-rnayak@ti.com> <1285078036-12789-5-git-send-email-rnayak@ti.com> <1285078036-12789-6-git-send-email-rnayak@ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] mfd: speedup twl4030 irq response time and decrease irq
+ disable time
+Date: Tue, 28 Sep 2010 08:25:24 +0800
+Message-ID: <AANLkTikjGD32hPhwPhZfETZX9H+--_SduTtqgyuqY_72@mail.gmail.com>
+References: <1285120171-3030-1-git-send-email-tom.leiming@gmail.com>
+	<20100927154809.GI2560@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1285078036-12789-6-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:46643 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811Ab0I1AZZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Sep 2010 20:25:25 -0400
+In-Reply-To: <20100927154809.GI2560@sortiz-mobl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Balaji T K <balajitk@ti.com>, Rajendra Nayak <rnayak@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org
 
-On Tue, Sep 21, 2010 at 07:37:16PM +0530, Rajendra Nayak wrote:
-> This patch converts the i2c driver to use PM runtime apis
-> 
-> Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |   67 +++++++++++++----------------------------
->  1 files changed, 21 insertions(+), 46 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 7674efb..126bde9 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -39,6 +39,7 @@
->  #include <linux/io.h>
->  #include <linux/slab.h>
->  #include <linux/i2c-omap.h>
-> +#include <linux/pm_runtime.h>
->  
->  /* I2C controller revisions */
->  #define OMAP_I2C_REV_2			0x20
-> @@ -175,8 +176,6 @@ struct omap_i2c_dev {
->  	void __iomem		*base;		/* virtual */
->  	int			irq;
->  	int			reg_shift;      /* bit shift for I2C register addresses */
-> -	struct clk		*iclk;		/* Interface clock */
-> -	struct clk		*fclk;		/* Functional clock */
->  	struct completion	cmd_complete;
->  	struct resource		*ioarea;
->  	u32			latency;	/* maximum mpu wkup latency */
-> @@ -265,45 +264,18 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
->  				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
->  }
->  
-> -static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-> +static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  {
-> -	int ret;
-> +	struct platform_device *pdev;
-> +	struct omap_i2c_bus_platform_data *pdata;
->  
-> -	dev->iclk = clk_get(dev->dev, "ick");
-> -	if (IS_ERR(dev->iclk)) {
-> -		ret = PTR_ERR(dev->iclk);
-> -		dev->iclk = NULL;
-> -		return ret;
-> -	}
-> +	WARN_ON(!dev->idle);
->  
-> -	dev->fclk = clk_get(dev->dev, "fck");
-> -	if (IS_ERR(dev->fclk)) {
-> -		ret = PTR_ERR(dev->fclk);
-> -		if (dev->iclk != NULL) {
-> -			clk_put(dev->iclk);
-> -			dev->iclk = NULL;
-> -		}
-> -		dev->fclk = NULL;
-> -		return ret;
-> -	}
-> +	pdev = to_platform_device(dev->dev);
-> +	pdata = pdev->dev.platform_data;
->  
-> -	return 0;
-> -}
-> +	pm_runtime_get_sync(&pdev->dev);
->  
-> -static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
-> -{
-> -	clk_put(dev->fclk);
-> -	dev->fclk = NULL;
-> -	clk_put(dev->iclk);
-> -	dev->iclk = NULL;
-> -}
-> -
-> -static void omap_i2c_unidle(struct omap_i2c_dev *dev)
-> -{
-> -	WARN_ON(!dev->idle);
-> -
-> -	clk_enable(dev->iclk);
-> -	clk_enable(dev->fclk);
->  	if (cpu_is_omap34xx()) {
->  		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-> @@ -326,10 +298,15 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  
->  static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  {
-> +	struct platform_device *pdev;
-> +	struct omap_i2c_bus_platform_data *pdata;
->  	u16 iv;
->  
->  	WARN_ON(dev->idle);
->  
-> +	pdev = to_platform_device(dev->dev);
-> +	pdata = pdev->dev.platform_data;
-> +
->  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
->  	if (dev->rev >= OMAP_I2C_REV_ON_4430)
->  		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-> @@ -345,8 +322,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
->  	}
->  	dev->idle = 1;
-> -	clk_disable(dev->fclk);
-> -	clk_disable(dev->iclk);
-> +
-> +	pm_runtime_put_sync(&pdev->dev);
->  }
->  
->  static int omap_i2c_init(struct omap_i2c_dev *dev)
-> @@ -356,6 +333,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  	unsigned long fclk_rate = 12000000;
->  	unsigned long timeout;
->  	unsigned long internal_clk = 0;
-> +	struct clk *fclk;
->  
->  	if (dev->rev >= OMAP_I2C_REV_2) {
->  		/* Disable I2C controller before soft reset */
-> @@ -414,7 +392,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  		 * always returns 12MHz for the functional clock, we can
->  		 * do this bit unconditionally.
->  		 */
-> -		fclk_rate = clk_get_rate(dev->fclk);
-> +		fclk = clk_get(dev->dev, "fck");
-> +		fclk_rate = clk_get_rate(fclk);
->  
->  		/* TRM for 5912 says the I2C clock must be prescaled to be
->  		 * between 7 - 12 MHz. The XOR input clock is typically
-> @@ -443,7 +422,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			internal_clk = 9600;
->  		else
->  			internal_clk = 4000;
-> -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-> +		fclk = clk_get(dev->dev, "fck");
-> +		fclk_rate = clk_get_rate(fclk) / 1000;
+Hi Samuel,
 
-You don't put the clk after getting it and using it once?
-  
->  		/* Compute prescaler divisor */
->  		psc = fclk_rate / internal_clk;
-> @@ -1046,14 +1026,12 @@ omap_i2c_probe(struct platform_device *pdev)
->  	else
->  		dev->reg_shift = 2;
->  
-> -	if ((r = omap_i2c_get_clocks(dev)) != 0)
-> -		goto err_iounmap;
-> -
->  	if (cpu_is_omap44xx())
->  		dev->regs = (u8 *) omap4_reg_map;
->  	else
->  		dev->regs = (u8 *) reg_map;
->  
-> +	pm_runtime_enable(&pdev->dev);
->  	omap_i2c_unidle(dev);
->  
->  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-> @@ -1125,8 +1103,6 @@ err_free_irq:
->  err_unuse_clocks:
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  	omap_i2c_idle(dev);
-> -	omap_i2c_put_clocks(dev);
-> -err_iounmap:
->  	iounmap(dev->base);
->  err_free_mem:
->  	platform_set_drvdata(pdev, NULL);
-> @@ -1148,7 +1124,6 @@ omap_i2c_remove(struct platform_device *pdev)
->  	free_irq(dev->irq, dev);
->  	i2c_del_adapter(&dev->adapter);
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-> -	omap_i2c_put_clocks(dev);
->  	iounmap(dev->base);
->  	kfree(dev);
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -- 
-> 1.5.4.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+     Thanks for your comment.
+
+2010/9/27 Samuel Ortiz <sameo@linux.intel.com>:
+> Hi Tom,
+>
+> On Wed, Sep 22, 2010 at 09:49:31AM +0800, tom.leiming@gmail.com wrote:
+>> From: Ming Lei <tom.leiming@gmail.com>
+>>
+>> This patch sets scheduler policy of twl4030 irq thread
+>> (twl4030_irq_thread) as SCHED_FIFO to speedup irq response
+>> time, just like taken by kernel threaded irq in irq_thread
+>> (kernel/irq/manage.c). Also higher priority than that of
+>> threaded irq is taken to avoid preemption from twl4030
+>> subchips's threaded irq handler, so pih irq disable time may
+>> be decreased.
+> Wouldn't converting your twl4030_irq_thread() to the threaded IRQ framework
+> fix that problem ?
+
+IRQ_DISABLED flag is set by disable_irq_nosync called from PIH handler,
+then thread function can't be executed in irq thread function, so we can't
+convert this to threaded IRQ framework simply.
+
+>
+>> The pih irq is disabled in handle_twl4030_pih which may
+>> wakeup twl4030 irq thread, and the pih irq will be enabled
+>> again until complete of all sih irqs' handling in twl4030
+>> irq thread.
+>>
+>> Also for each one interrupt line of twl4030 subchip, only
+>> two irq events can be buffered by twl4030(4.4.2.3 of TPS65950 TRM).
+> Could you explain how is that related to the patch below ?
+
+We need to decrease PIH irq disable time as far as possible to
+make twl4030 subchip happy, or else some irqs may be lost, right?
+
+This patch will decrease PIH irq disable time:
+
+        - set schedule policy of twl4030_irq_thread as SCHED_FIFO, so
+it will get running timeslice quicker than before
+
+       - set priority of  twl4030_irq_thread higher than irq_thread of
+subchips to prevent it from being preempted by subchips' irq thread.
+
 
 -- 
--- 
-Ben
-
-Q:      What's a light-year?
-A:      One-third less calories than a regular year.
+Lei Ming
