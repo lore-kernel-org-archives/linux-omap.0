@@ -1,52 +1,57 @@
-From: Arun MURTHY <arun.murthy@stericsson.com>
-Subject: RE: [PATCH 1/7] pwm: Add pwm core driver
-Date: Tue, 28 Sep 2010 12:53:17 +0200
-Message-ID: <F45880696056844FA6A73F415B568C69532DC2FCA8@EXDCVYMBSTM006.EQ1STM.local>
-References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
-          <1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
-          <201009281114.31223.anarsoul@gmail.com>
-          <F45880696056844FA6A73F415B568C69532DC2FA8F@EXDCVYMBSTM006.EQ1STM.local>
-       <63731.10.24.255.18.1285663815.squirrel@dbdmail.itg.ti.com>
-       <F45880696056844FA6A73F415B568C69532DC2FB21@EXDCVYMBSTM006.EQ1STM.local>
-    <19145.10.24.255.18.1285666483.squirrel@dbdmail.itg.ti.com>
-    <F45880696056844FA6A73F415B568C69532DC2FBF9@EXDCVYMBSTM006.EQ1STM.local>
- <48808.10.24.255.18.1285670515.squirrel@dbdmail.itg.ti.com>
+From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: Re: [PATCH v4] power_supply: Add driver for TWL4030/TPS65950 BCI
+ charger
+Date: Tue, 28 Sep 2010 15:26:43 +0400
+Message-ID: <20100928112643.GC22734@oksana.dev.rtsoft.ru>
+References: <1285618704-8985-1-git-send-email-notasas@gmail.com>
+ <20100928060554.GF2702@legolas.emea.dhcp.ti.com>
+ <AANLkTikZqtXa2YQsDehoWVMRstefUyafsQn2mph7U3CZ@mail.gmail.com>
+ <20100928084251.GC3900@legolas.emea.dhcp.ti.com>
+ <AANLkTin-6BLBHeiyA1edTJVjwVAimmJLVicZj8c_VC_2@mail.gmail.com>
+ <20100928090637.GD3900@legolas.emea.dhcp.ti.com>
+ <AANLkTim28RmH28LGgp6bEJ7XbyL4oO_5_C0phLL86roY@mail.gmail.com>
+ <20100928094122.GA7081@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:35258 "EHLO
-	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751007Ab0I1Kxb convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Sep 2010 06:53:31 -0400
-In-Reply-To: <48808.10.24.255.18.1285670515.squirrel@dbdmail.itg.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100928094122.GA7081@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Arun Murthy <arunrmurthy.83@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> > Let me be more specific, consider an environment where there is an
-> APE and Power Management subsystem(separate IC but on same
-> board/platform)
-> > APE has a pwm module and Power Management SubSystem also has pwm
-> module. Both are part of the platform.
-> > Not there exists two drivers in a single platform and both of them
-> are enabled. Building such a kernel results in re-declaration build
-> error.
+On Tue, Sep 28, 2010 at 12:41:22PM +0300, Felipe Balbi wrote:
+> On Tue, Sep 28, 2010 at 04:39:17AM -0500, Grazvydas Ignotas wrote:
+> >On Tue, Sep 28, 2010 at 12:06 PM, Felipe Balbi <balbi@ti.com> wrote:
+> >>On Tue, Sep 28, 2010 at 04:02:48AM -0500, Grazvydas Ignotas wrote:
+> >>>>
+> >>>>Charger event is SENT by charger driver when it verifies it's attached
+> >>>>to a wall charger.
+> >>>
+> >>>Isn't that a job for musb/gadget? Detecting D+/D- being shorted by
+> >>>charger or something like that? I don't think BCI is able to detect
+> >>>charger.
+> >>
+> >>it's part of the charger detection right ? and according to trm, it's on
+> >>the BCI (actually BCC) role to take care of that :-)
 > >
+> >Hm you are probably talking about TWL5031, which has redesigned
+> >charger block that is named BCC. TWL4030 charger is different, called
+> >BCI and requires software charger detection from what I see in it's
+> >TRM.
 > 
-> Is this something specific to ST chipsets or do you know of any other
-> chips which might use this feature.
-> 
-It's not like specific to ST chipset. There are multi Soc systems.
-You can take ST chipset as an example.
+> ok, might be that I got confused. Then it's ok the way it is. So we need
+> other means to detect the charger :-p
 
-And also let continue our discussion on the new thread that I have mailed so that the mailing list also gets notified.
-Sorry for inconvenience.
+May we consider this as a minor issue that can be improved later?
 
-Thanks and Regards,
-Arun R Murthy
--------------
+If so, I would like to apply it, but I'll wait a day or two for
+Reviewed-by or Acked-by tags to give the proper credits.
 
+Thanks!
+
+-- 
+Anton Vorontsov
+email: cbouatmailru@gmail.com
+irc://irc.freenode.net/bd2
