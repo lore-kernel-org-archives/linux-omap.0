@@ -1,319 +1,269 @@
 From: Arun Murthy <arun.murthy@stericsson.com>
-Subject: [PATCH 5/7] platform: Update the pwm based led and backlight platform data
-Date: Tue, 28 Sep 2010 16:05:32 +0530
-Message-ID: <1285670134-18063-6-git-send-email-arun.murthy__42600.7723239765$1285670272$gmane$org@stericsson.com>
+Subject: [PATCH 1/7] pwm: Add pwm core driver
+Date: Tue, 28 Sep 2010 16:05:28 +0530
+Message-ID: <1285670134-18063-2-git-send-email-arun.murthy__28335.4686144323$1285670275$gmane$org@stericsson.com>
 References: <1285670134-18063-1-git-send-email-arun.murthy@stericsson.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog109.obsmtp.com ([207.126.144.127]:43886 "EHLO
-	eu1sys200aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104Ab0I1KgS (ORCPT
+Received: from eu1sys200aog108.obsmtp.com ([207.126.144.125]:52460 "EHLO
+	eu1sys200aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751481Ab0I1KgM (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Sep 2010 06:36:18 -0400
+	Tue, 28 Sep 2010 06:36:12 -0400
 In-Reply-To: <1285670134-18063-1-git-send-email-arun.murthy@stericsson.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: lars@metafoo.de, akpm@linux-foundation.org, kernel@pengutronix.de, philipp.zabel@gmail.com, robert.jarzmik@free.fr, marek.vasut@gmail.com, eric.y.miao@gmail.com, rpurdi
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, arun.murthy@stericsson.com, STEricsson_nomadik_linux@list.st.com
 
-	mxc-pwm: Update the platform data with pwm name for backlight
-	s3c24xx-pwm: update platform data for backlight with pwm name
+The existing pwm based led and backlight driver makes use of the
+pwm(include/linux/pwm.h). So all the board specific pwm drivers will
+be exposing the same set of function name as in include/linux/pwm.h.
+As a result build fails in case of multi soc environments where each soc
+has a pwm device in it.
+
+In order to overcome this issue all the pwm drivers must register to
+some core pwm driver with function pointers for pwm operations (i.e
+pwm_config, pwm_enable, pwm_disable).
+
+The clients of pwm device will have to call pwm_request, wherein
+they will get the pointer to struct pwm_ops. This structure include
+function pointers for pwm_config, pwm_enable and pwm_disable.
 
 Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
 Acked-by: Linus Walleij <linus.walleij@stericsson.com>
 ---
- arch/arm/mach-pxa/cm-x300.c               |    1 +
- arch/arm/mach-pxa/colibri-pxa270-income.c |    1 +
- arch/arm/mach-pxa/ezx.c                   |    1 +
- arch/arm/mach-pxa/hx4700.c                |    1 +
- arch/arm/mach-pxa/lpd270.c                |    1 +
- arch/arm/mach-pxa/magician.c              |    1 +
- arch/arm/mach-pxa/mainstone.c             |    1 +
- arch/arm/mach-pxa/mioa701.c               |    1 +
- arch/arm/mach-pxa/palm27x.c               |    1 +
- arch/arm/mach-pxa/palmtc.c                |    1 +
- arch/arm/mach-pxa/palmte2.c               |    1 +
- arch/arm/mach-pxa/pcm990-baseboard.c      |    1 +
- arch/arm/mach-pxa/raumfeld.c              |    1 +
- arch/arm/mach-pxa/tavorevb.c              |    2 ++
- arch/arm/mach-pxa/viper.c                 |    1 +
- arch/arm/mach-pxa/z2.c                    |    2 ++
- arch/arm/mach-pxa/zylonite.c              |    1 +
- arch/arm/mach-s3c2410/mach-h1940.c        |    1 +
- arch/arm/mach-s3c2440/mach-rx1950.c       |    1 +
- arch/arm/mach-s3c64xx/mach-hmt.c          |    1 +
- arch/arm/mach-s3c64xx/mach-smartq.c       |    1 +
- 21 files changed, 23 insertions(+), 0 deletions(-)
+ drivers/Kconfig        |    2 +
+ drivers/Makefile       |    1 +
+ drivers/pwm/Kconfig    |   16 ++++++
+ drivers/pwm/Makefile   |    1 +
+ drivers/pwm/pwm-core.c |  129 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/pwm.h    |   12 ++++-
+ 6 files changed, 160 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/pwm/Kconfig
+ create mode 100644 drivers/pwm/Makefile
+ create mode 100644 drivers/pwm/pwm-core.c
 
-diff --git a/arch/arm/mach-pxa/cm-x300.c b/arch/arm/mach-pxa/cm-x300.c
-index c70e6c2..ddf763b 100644
---- a/arch/arm/mach-pxa/cm-x300.c
-+++ b/arch/arm/mach-pxa/cm-x300.c
-@@ -301,6 +301,7 @@ static inline void cm_x300_init_lcd(void) {}
- #if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM_MODULE)
- static struct platform_pwm_backlight_data cm_x300_backlight_data = {
- 	.pwm_id		= 2,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 100,
- 	.dft_brightness	= 100,
- 	.pwm_period_ns	= 10000,
-diff --git a/arch/arm/mach-pxa/colibri-pxa270-income.c b/arch/arm/mach-pxa/colibri-pxa270-income.c
-index 37f0f3e..d5b5874 100644
---- a/arch/arm/mach-pxa/colibri-pxa270-income.c
-+++ b/arch/arm/mach-pxa/colibri-pxa270-income.c
-@@ -234,6 +234,7 @@ static inline void income_lcd_init(void) {}
- #if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM__MODULE)
- static struct platform_pwm_backlight_data income_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 0x3ff,
- 	.dft_brightness	= 0x1ff,
- 	.pwm_period_ns	= 1000000,
-diff --git a/arch/arm/mach-pxa/ezx.c b/arch/arm/mach-pxa/ezx.c
-index 626c82b..747f217 100644
---- a/arch/arm/mach-pxa/ezx.c
-+++ b/arch/arm/mach-pxa/ezx.c
-@@ -49,6 +49,7 @@
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index a2b902f..e042f27 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -111,4 +111,6 @@ source "drivers/xen/Kconfig"
+ source "drivers/staging/Kconfig"
  
- static struct platform_pwm_backlight_data ezx_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 1023,
- 	.dft_brightness	= 1023,
- 	.pwm_period_ns	= 78770,
-diff --git a/arch/arm/mach-pxa/hx4700.c b/arch/arm/mach-pxa/hx4700.c
-index 848c861..8e4905a 100644
---- a/arch/arm/mach-pxa/hx4700.c
-+++ b/arch/arm/mach-pxa/hx4700.c
-@@ -565,6 +565,7 @@ static struct platform_device hx4700_lcd = {
+ source "drivers/platform/Kconfig"
++
++source "drivers/pwm/Kconfig"
+ endmenu
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 4ca727d..0061ec4 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -116,3 +116,4 @@ obj-$(CONFIG_STAGING)		+= staging/
+ obj-y				+= platform/
+ obj-y				+= ieee802154/
+ obj-y				+= vbus/
++obj-$(CONFIG_PWM_DEVICES)	+= pwm/
+diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+new file mode 100644
+index 0000000..5d10106
+--- /dev/null
++++ b/drivers/pwm/Kconfig
+@@ -0,0 +1,16 @@
++#
++# PWM devices
++#
++
++menuconfig PWM_DEVICES
++	bool "PWM devices"
++	default y
++	---help---
++	  Say Y here to get to see options for device drivers from various
++	  different categories. This option alone does not add any kernel code.
++
++	  If you say N, all options in this submenu will be skipped and disabled.
++
++if PWM_DEVICES
++
++endif # PWM_DEVICES
+diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
+new file mode 100644
+index 0000000..552f969
+--- /dev/null
++++ b/drivers/pwm/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_PWM_DEVICES)	+= pwm-core.o
+diff --git a/drivers/pwm/pwm-core.c b/drivers/pwm/pwm-core.c
+new file mode 100644
+index 0000000..b84027a
+--- /dev/null
++++ b/drivers/pwm/pwm-core.c
+@@ -0,0 +1,129 @@
++/*
++ * Copyright (C) ST-Ericsson SA 2010
++ *
++ * License Terms: GNU General Public License v2
++ * Author: Arun R Murthy <arun.murthy@stericsson.com>
++ */
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/slab.h>
++#include <linux/rwsem.h>
++#include <linux/err.h>
++#include <linux/pwm.h>
++
++struct pwm_device {
++	struct pwm_ops *pops;
++	int pwm_id;
++};
++
++struct pwm_dev_info {
++	struct pwm_device *pwm_dev;
++	struct list_head list;
++};
++static struct pwm_dev_info *di;
++
++DECLARE_RWSEM(pwm_list_lock);
++
++void __deprecated pwm_free(struct pwm_device *pwm)
++{
++}
++
++int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
++{
++	return pwm->pops->pwm_config(pwm, duty_ns, period_ns);
++}
++EXPORT_SYMBOL(pwm_config);
++
++int pwm_enable(struct pwm_device *pwm)
++{
++	return pwm->pops->pwm_enable(pwm);
++}
++EXPORT_SYMBOL(pwm_enable);
++
++void pwm_disable(struct pwm_device *pwm)
++{
++	pwm->pops->pwm_disable(pwm);
++}
++EXPORT_SYMBOL(pwm_disable);
++
++int pwm_device_register(struct pwm_device *pwm_dev)
++{
++	struct pwm_dev_info *pwm;
++
++	down_write(&pwm_list_lock);
++	pwm = kzalloc(sizeof(struct pwm_dev_info), GFP_KERNEL);
++	if (!pwm) {
++		up_write(&pwm_list_lock);
++		return -ENOMEM;
++	}
++	pwm->pwm_dev = pwm_dev;
++	list_add_tail(&pwm->list, &di->list);
++	up_write(&pwm_list_lock);
++
++	return 0;
++}
++EXPORT_SYMBOL(pwm_device_register);
++
++int pwm_device_unregister(struct pwm_device *pwm_dev)
++{
++	struct pwm_dev_info *tmp;
++	struct list_head *pos, *tmp_lst;
++
++	down_write(&pwm_list_lock);
++	list_for_each_safe(pos, tmp_lst, &di->list) {
++		tmp = list_entry(pos, struct pwm_dev_info, list);
++		if (tmp->pwm_dev == pwm_dev) {
++			list_del(pos);
++			kfree(tmp);
++			up_write(&pwm_list_lock);
++			return 0;
++		}
++	}
++	up_write(&pwm_list_lock);
++	return -ENOENT;
++}
++EXPORT_SYMBOL(pwm_device_unregister);
++
++struct pwm_device *pwm_request(int pwm_id, const char *name)
++{
++	struct pwm_dev_info *pwm;
++	struct list_head *pos;
++
++	down_read(&pwm_list_lock);
++	list_for_each(pos, &di->list) {
++		pwm = list_entry(pos, struct pwm_dev_info, list);
++		if ((!strcmp(pwm->pwm_dev->pops->name, name)) &&
++				(pwm->pwm_dev->pwm_id == pwm_id)) {
++			up_read(&pwm_list_lock);
++			return pwm->pwm_dev;
++		}
++	}
++	up_read(&pwm_list_lock);
++	return ERR_PTR(-ENOENT);
++}
++EXPORT_SYMBOL(pwm_request);
++
++static int __init pwm_init(void)
++{
++	struct pwm_dev_info *pwm;
++
++	pwm = kzalloc(sizeof(struct pwm_dev_info), GFP_KERNEL);
++	if (!pwm)
++		return -ENOMEM;
++	INIT_LIST_HEAD(&pwm->list);
++	di = pwm;
++	return 0;
++}
++
++static void __exit pwm_exit(void)
++{
++	kfree(di);
++}
++
++subsys_initcall(pwm_init);
++module_exit(pwm_exit);
++
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Arun R Murthy");
++MODULE_ALIAS("core:pwm");
++MODULE_DESCRIPTION("Core pwm driver");
+diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+index 7c77575..6e7da1f 100644
+--- a/include/linux/pwm.h
++++ b/include/linux/pwm.h
+@@ -3,6 +3,13 @@
  
- static struct platform_pwm_backlight_data backlight_data = {
- 	.pwm_id         = 1,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness = 200,
- 	.dft_brightness = 100,
- 	.pwm_period_ns  = 30923,
-diff --git a/arch/arm/mach-pxa/lpd270.c b/arch/arm/mach-pxa/lpd270.c
-index d279507..91efade 100644
---- a/arch/arm/mach-pxa/lpd270.c
-+++ b/arch/arm/mach-pxa/lpd270.c
-@@ -273,6 +273,7 @@ static struct platform_device lpd270_flash_device[2] = {
+ struct pwm_device;
  
- static struct platform_pwm_backlight_data lpd270_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 1,
- 	.dft_brightness	= 1,
- 	.pwm_period_ns	= 78770,
-diff --git a/arch/arm/mach-pxa/magician.c b/arch/arm/mach-pxa/magician.c
-index e81dd0c..bb657a4 100644
---- a/arch/arm/mach-pxa/magician.c
-+++ b/arch/arm/mach-pxa/magician.c
-@@ -382,6 +382,7 @@ static void magician_backlight_exit(struct device *dev)
++struct pwm_ops {
++	int (*pwm_config)(struct pwm_device *pwm, int duty_ns, int period_ns);
++	int (*pwm_enable)(struct pwm_device *pwm);
++	int (*pwm_disable)(struct pwm_device *pwm);
++	char *name;
++};
++
+ /*
+  * pwm_request - request a PWM device
+  */
+@@ -11,7 +18,7 @@ struct pwm_device *pwm_request(int pwm_id, const char *label);
+ /*
+  * pwm_free - free a PWM device
+  */
+-void pwm_free(struct pwm_device *pwm);
++void __deprecated pwm_free(struct pwm_device *pwm);
  
- static struct platform_pwm_backlight_data backlight_data = {
- 	.pwm_id         = 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness = 272,
- 	.dft_brightness = 100,
- 	.pwm_period_ns  = 30923,
-diff --git a/arch/arm/mach-pxa/mainstone.c b/arch/arm/mach-pxa/mainstone.c
-index 5543c64..cbd359c 100644
---- a/arch/arm/mach-pxa/mainstone.c
-+++ b/arch/arm/mach-pxa/mainstone.c
-@@ -342,6 +342,7 @@ static struct platform_device mst_flash_device[2] = {
- #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
- static struct platform_pwm_backlight_data mainstone_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 1023,
- 	.dft_brightness	= 1023,
- 	.pwm_period_ns	= 78770,
-diff --git a/arch/arm/mach-pxa/mioa701.c b/arch/arm/mach-pxa/mioa701.c
-index dc66942..e442088 100644
---- a/arch/arm/mach-pxa/mioa701.c
-+++ b/arch/arm/mach-pxa/mioa701.c
-@@ -224,6 +224,7 @@ static void mio_gpio_free(struct gpio_ress *gpios, int size)
- /* LCD Screen and Backlight */
- static struct platform_pwm_backlight_data mioa701_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 100,
- 	.dft_brightness	= 50,
- 	.pwm_period_ns	= 4000 * 1024,	/* Fl = 250kHz */
-diff --git a/arch/arm/mach-pxa/palm27x.c b/arch/arm/mach-pxa/palm27x.c
-index 77ad6d3..46677a4 100644
---- a/arch/arm/mach-pxa/palm27x.c
-+++ b/arch/arm/mach-pxa/palm27x.c
-@@ -321,6 +321,7 @@ static void palm27x_backlight_exit(struct device *dev)
+ /*
+  * pwm_config - change a PWM device configuration
+@@ -28,4 +35,7 @@ int pwm_enable(struct pwm_device *pwm);
+  */
+ void pwm_disable(struct pwm_device *pwm);
  
- static struct platform_pwm_backlight_data palm27x_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 0xfe,
- 	.dft_brightness	= 0x7e,
- 	.pwm_period_ns	= 3500,
-diff --git a/arch/arm/mach-pxa/palmtc.c b/arch/arm/mach-pxa/palmtc.c
-index ce1104d..385a0b5 100644
---- a/arch/arm/mach-pxa/palmtc.c
-+++ b/arch/arm/mach-pxa/palmtc.c
-@@ -180,6 +180,7 @@ static void palmtc_backlight_exit(struct device *dev)
- 
- static struct platform_pwm_backlight_data palmtc_backlight_data = {
- 	.pwm_id		= 1,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= PALMTC_MAX_INTENSITY,
- 	.dft_brightness	= PALMTC_MAX_INTENSITY,
- 	.pwm_period_ns	= PALMTC_PERIOD_NS,
-diff --git a/arch/arm/mach-pxa/palmte2.c b/arch/arm/mach-pxa/palmte2.c
-index 93c11a0..b7e95f4 100644
---- a/arch/arm/mach-pxa/palmte2.c
-+++ b/arch/arm/mach-pxa/palmte2.c
-@@ -177,6 +177,7 @@ static void palmte2_backlight_exit(struct device *dev)
- 
- static struct platform_pwm_backlight_data palmte2_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= PALMTE2_MAX_INTENSITY,
- 	.dft_brightness	= PALMTE2_MAX_INTENSITY,
- 	.pwm_period_ns	= PALMTE2_PERIOD_NS,
-diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-index f56ae10..29c7e88 100644
---- a/arch/arm/mach-pxa/pcm990-baseboard.c
-+++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-@@ -138,6 +138,7 @@ static struct pxafb_mach_info pcm990_fbinfo __initdata = {
- 
- static struct platform_pwm_backlight_data pcm990_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 1023,
- 	.dft_brightness	= 1023,
- 	.pwm_period_ns	= 78770,
-diff --git a/arch/arm/mach-pxa/raumfeld.c b/arch/arm/mach-pxa/raumfeld.c
-index 67e04f4..98dc2e3 100644
---- a/arch/arm/mach-pxa/raumfeld.c
-+++ b/arch/arm/mach-pxa/raumfeld.c
-@@ -535,6 +535,7 @@ static void __init raumfeld_w1_init(void)
- /* PWM controlled backlight */
- static struct platform_pwm_backlight_data raumfeld_pwm_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 100,
- 	.dft_brightness	= 100,
- 	/* 10000 ns = 10 ms ^= 100 kHz */
-diff --git a/arch/arm/mach-pxa/tavorevb.c b/arch/arm/mach-pxa/tavorevb.c
-index f02dcb5..3164de8 100644
---- a/arch/arm/mach-pxa/tavorevb.c
-+++ b/arch/arm/mach-pxa/tavorevb.c
-@@ -168,6 +168,7 @@ static struct platform_pwm_backlight_data tavorevb_backlight_data[] = {
- 	[0] = {
- 		/* primary backlight */
- 		.pwm_id		= 2,
-+		.name		= "pxa25x-pwm",
- 		.max_brightness	= 100,
- 		.dft_brightness	= 100,
- 		.pwm_period_ns	= 100000,
-@@ -175,6 +176,7 @@ static struct platform_pwm_backlight_data tavorevb_backlight_data[] = {
- 	[1] = {
- 		/* secondary backlight */
- 		.pwm_id		= 0,
-+		.name		= "pxa25x-pwm",
- 		.max_brightness	= 100,
- 		.dft_brightness	= 100,
- 		.pwm_period_ns	= 100000,
-diff --git a/arch/arm/mach-pxa/viper.c b/arch/arm/mach-pxa/viper.c
-index e90114a..fdb768c 100644
---- a/arch/arm/mach-pxa/viper.c
-+++ b/arch/arm/mach-pxa/viper.c
-@@ -397,6 +397,7 @@ static void viper_backlight_exit(struct device *dev)
- 
- static struct platform_pwm_backlight_data viper_backlight_data = {
- 	.pwm_id		= 0,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 100,
- 	.dft_brightness	= 100,
- 	.pwm_period_ns	= 1000000,
-diff --git a/arch/arm/mach-pxa/z2.c b/arch/arm/mach-pxa/z2.c
-index f0d0228..bb3d821 100644
---- a/arch/arm/mach-pxa/z2.c
-+++ b/arch/arm/mach-pxa/z2.c
-@@ -204,6 +204,7 @@ static struct platform_pwm_backlight_data z2_backlight_data[] = {
- 	[0] = {
- 		/* Keypad Backlight */
- 		.pwm_id		= 1,
-+		.name		= "pxa25x-pwm",
- 		.max_brightness	= 1023,
- 		.dft_brightness	= 512,
- 		.pwm_period_ns	= 1260320,
-@@ -211,6 +212,7 @@ static struct platform_pwm_backlight_data z2_backlight_data[] = {
- 	[1] = {
- 		/* LCD Backlight */
- 		.pwm_id		= 2,
-+		.name		= "pxa25x-pwm",
- 		.max_brightness	= 1023,
- 		.dft_brightness	= 512,
- 		.pwm_period_ns	= 1260320,
-diff --git a/arch/arm/mach-pxa/zylonite.c b/arch/arm/mach-pxa/zylonite.c
-index 5ba9d99..29492bf 100644
---- a/arch/arm/mach-pxa/zylonite.c
-+++ b/arch/arm/mach-pxa/zylonite.c
-@@ -122,6 +122,7 @@ static inline void zylonite_init_leds(void) {}
- #if defined(CONFIG_FB_PXA) || defined(CONFIG_FB_PXA_MODULE)
- static struct platform_pwm_backlight_data zylonite_backlight_data = {
- 	.pwm_id		= 3,
-+	.name		= "pxa25x-pwm",
- 	.max_brightness	= 100,
- 	.dft_brightness	= 100,
- 	.pwm_period_ns	= 10000,
-diff --git a/arch/arm/mach-s3c2410/mach-h1940.c b/arch/arm/mach-s3c2410/mach-h1940.c
-index 3ba3bab..357342f 100644
---- a/arch/arm/mach-s3c2410/mach-h1940.c
-+++ b/arch/arm/mach-s3c2410/mach-h1940.c
-@@ -224,6 +224,7 @@ static void h1940_backlight_exit(struct device *dev)
- 
- static struct platform_pwm_backlight_data backlight_data = {
- 	.pwm_id         = 0,
-+	.name		= "s3c24xx-pwm",
- 	.max_brightness = 100,
- 	.dft_brightness = 50,
- 	/* tcnt = 0x31 */
-diff --git a/arch/arm/mach-s3c2440/mach-rx1950.c b/arch/arm/mach-s3c2440/mach-rx1950.c
-index 142d1f9..6d993de 100644
---- a/arch/arm/mach-s3c2440/mach-rx1950.c
-+++ b/arch/arm/mach-s3c2440/mach-rx1950.c
-@@ -291,6 +291,7 @@ static int rx1950_backlight_notify(struct device *dev, int brightness)
- 
- static struct platform_pwm_backlight_data rx1950_backlight_data = {
- 	.pwm_id = 0,
-+	.name = "s3c24xx-pwm",
- 	.max_brightness = 24,
- 	.dft_brightness = 4,
- 	.pwm_period_ns = 48000,
-diff --git a/arch/arm/mach-s3c64xx/mach-hmt.c b/arch/arm/mach-s3c64xx/mach-hmt.c
-index fba9022..14e9011 100644
---- a/arch/arm/mach-s3c64xx/mach-hmt.c
-+++ b/arch/arm/mach-s3c64xx/mach-hmt.c
-@@ -109,6 +109,7 @@ static void hmt_bl_exit(struct device *dev)
- 
- static struct platform_pwm_backlight_data hmt_backlight_data = {
- 	.pwm_id		= 1,
-+	.name		= "s3c24xx-pwm",
- 	.max_brightness	= 100 * 256,
- 	.dft_brightness	= 40 * 256,
- 	.pwm_period_ns	= 1000000000 / (100 * 256 * 20),
-diff --git a/arch/arm/mach-s3c64xx/mach-smartq.c b/arch/arm/mach-s3c64xx/mach-smartq.c
-index cb1ebeb..20999d5 100644
---- a/arch/arm/mach-s3c64xx/mach-smartq.c
-+++ b/arch/arm/mach-s3c64xx/mach-smartq.c
-@@ -145,6 +145,7 @@ static int smartq_bl_init(struct device *dev)
- 
- static struct platform_pwm_backlight_data smartq_backlight_data = {
- 	.pwm_id		= 1,
-+	.name		= "s3c24xx-pwm",
- 	.max_brightness	= 1000,
- 	.dft_brightness	= 600,
- 	.pwm_period_ns	= 1000000000 / (1000 * 20),
++int pwm_device_register(struct pwm_device *pwm_dev);
++int pwm_device_unregister(struct pwm_device *pwm_dev);
++
+ #endif /* __LINUX_PWM_H */
 -- 
 1.7.2.dirty
 
