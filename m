@@ -1,74 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Tue, 28 Sep 2010 23:22:15 +0200
-Message-ID: <201009282322.16291.rjw@sisk.pl>
-References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com> <201009222049.18154.rjw@sisk.pl> <AANLkTinJU5+s_1S6i4GpRuiOfsAPiL9UFtrxCCbtoumt@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: ZOOM2: Change GPIO to enable LCD NEC
+ NL8048HL11-01B on OMAP34x-II MDP
+Date: Tue, 28 Sep 2010 14:31:10 -0700
+Message-ID: <20100928213109.GO3117@atomide.com>
+References: <1284381807.1801.38.camel@A05BPC17>
+ <1285071690.1783.34.camel@A05BPC17>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:50736 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753315Ab0I1VXS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Sep 2010 17:23:18 -0400
-In-Reply-To: <AANLkTinJU5+s_1S6i4GpRuiOfsAPiL9UFtrxCCbtoumt@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64330 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639Ab0I1VbP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 17:31:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1285071690.1783.34.camel@A05BPC17>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
+To: Yanick Saugy <yanick.saugy@heig-vd.ch>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, Rajkumar N <rajkumar.nagarajan@ti.com>
 
-On Tuesday, September 28, 2010, Jean Pihet wrote:
-> Hi,
-
-Hi,
-
-> Here is what I am proposing, in reply to all your comments:
+* Yanick Saugy <yanick.saugy@heig-vd.ch> [100921 05:13]:
+> The PIN which controls LCD's reset signal (VGA_nRESET/h_GPIO_96) was not
+> configured as a GPIO. We had to modify the OMAP MUX, and select this PIN
+> (CAM_XCLKA) as an output GPIO (OMAP_MUX_MODE4). (kernel 2.6.35)
 > 
-> 1) rename the events to match Thomas's proposal:
->    power:power_cpu_cstate
->    power:power_cpu_pstate
->    power:power_cpu_sstate
-
-If that sstate thing is going to mean "suspend", then please drop it.
-"Suspend" is not a state, let alone a CPU state.  It is a procedure by which
-the (entire) system is put into a sleep state (that is not confined to CPUs).
-
->    ...
+> Be aware of changing this PIN will probably disable the camera, because
+> it was previously configured as a camera clock.
 > 
-> 2) introduce a new Kconfig option CONFIG_DEPRECATED_POWER_EVENTS and
-> conditionally map a subset of the new events to the old ones for
-> backward compatibility with the existing user apps. The apps should be
-> converted to the new API asap,
 > 
-> 3) update documentation
+> Signed-off-by: Yanick Saugy <yanick.saugy@heig-vd.ch>
 
-Sounds reasonable.
+I'm assuming Tomi is queuing this.
 
-> Other remarks here below:
+Acked-by: Tony Lindgren <tony@atomide.com>
+
 > 
-> On Wed, Sep 22, 2010 at 8:49 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-> ...
-> > This POWER_SSTATE thing seems to be totally artificial and omap-specific.
-> >
-> > Why do you want it to be done this way?
-> >
-> > Or is the ACPI handling added in the ACPI patch?  In which case, why don't you
-> > put that power_switch_state(POWER_SSTATE, 1, 0, cpu) into
-> > kernel/power/suspend.c:suspend_enter() (and analogously for
-> > power_switch_state(POWER_SSTATE, 0, 0, cpu)).
-> The ACPI code is not using the SSTATE event.
-> Indeed inserting a tracepoint at
-> kernel/power/suspend.c:suspend_enter() is more generic. I will correct
-> this.
-
-OK
-
-> > Moreover, why is the cpu argument necessary for POWER_SSTATE at all?
-> The cpu_id parameter is present in all events prototypes. This is not
-> needed. I will correct this.
-
-OK
-
-Thanks,
-Rafael
+> --- a/arch/arm/mach-omap2/board-zoom2.c 2010-09-15 15:27:05.148399721 +0200
+> +++ b/arch/arm/mach-omap2/board-zoom2.c 2010-09-15 14:46:09.792900019 +0200
+> @@ -71,6 +71,7 @@ static struct twl4030_platform_data zoom
+>  
+>  #ifdef CONFIG_OMAP_MUX
+>  static struct omap_board_mux board_mux[] __initdata = {
+> +   OMAP3_MUX(CAM_XCLKA, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
+>     { .reg_offset = OMAP_MUX_TERMINATOR },
+>  };
+>  #else
+> @@ -82,6 +83,7 @@ static void __init omap_zoom2_init(void)
+>     omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+>     zoom_peripherals_init();
+>     zoom_debugboard_init();
+> +    zoom_display_init(OMAP_DSS_VENC_TYPE_COMPOSITE);
+>  }
+>  
+>  static void __init omap_zoom2_map_io(void)
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
