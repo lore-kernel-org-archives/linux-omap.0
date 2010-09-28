@@ -1,46 +1,94 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 1/2] OMAP2+: defconfig: disable CPUfreq
-Date: Tue, 28 Sep 2010 12:07:28 -0700
-Message-ID: <1285700849-10000-2-git-send-email-khilman@deeprootsystems.com>
-References: <1285700849-10000-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: PM: CPUFREQ: Fix conditional compilation
+Date: Tue, 28 Sep 2010 12:17:36 -0700
+Message-ID: <87tyl9d6en.fsf@deeprootsystems.com>
+References: <1285318494-22092-1-git-send-email-silesh@ti.com>
+	<87pqw3ji5i.fsf@deeprootsystems.com>
+	<AANLkTikWWyfgUOYyXud0D0vpMwAn2xxUKM=dNPoYsCK0@mail.gmail.com>
+	<AANLkTimT0bfNjBThHj8bPAZ+ybfV=PFJkj09AUL0M20g@mail.gmail.com>
+	<AANLkTi=kajdYN9rbdjH_9q6E5RLuy_oj-4Xsk-X6sFRg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:59387 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755806Ab0I1THr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 15:07:47 -0400
-Received: by mail-px0-f174.google.com with SMTP id 10so1789948pxi.19
-        for <linux-omap@vger.kernel.org>; Tue, 28 Sep 2010 12:07:47 -0700 (PDT)
-In-Reply-To: <1285700849-10000-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:52742 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462Ab0I1TRi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 15:17:38 -0400
+Received: by pwi1 with SMTP id 1so8843pwi.19
+        for <linux-omap@vger.kernel.org>; Tue, 28 Sep 2010 12:17:38 -0700 (PDT)
+In-Reply-To: <AANLkTi=kajdYN9rbdjH_9q6E5RLuy_oj-4Xsk-X6sFRg@mail.gmail.com>
+	(Silesh C. V.'s message of "Mon, 27 Sep 2010 14:18:59 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Silesh C V <saileshcv@gmail.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, linux-omap@vger.kernel.org
 
-Disable CPUfreq since
+Silesh C V <saileshcv@gmail.com> writes:
 
-1) is not yet supported in mainline, and
-2) the current driver fails to suspend properly
+> On Mon, Sep 27, 2010 at 1:00 PM, Govindraj <govindraj.ti@gmail.com> w=
+rote:
+>> On Mon, Sep 27, 2010 at 11:49 AM, Silesh C V <silesh@ti.com> wrote:
+>>> On Fri, Sep 24, 2010 at 8:36 PM, Kevin Hilman
+>>> <khilman@deeprootsystems.com> wrote:
+>>>> Silesh C V <silesh@ti.com> writes:
+>>>>
+>>>>> Fix conditional compilation.
+>>>>
+>>>> What excatly was the compile error? =A0and with which compiler?
+>>>
+>>> There is no compiler error.But what we need after an #elif is a
+>>> conditional expression.
+>>> The correct usage is #elif defined(CONFIG_XXX) rather than #elif CO=
+NFIG_XXX.
+>>>
+>>> Further, if the kernel is configured for a non-omap3 arch (eg.OMAP4=
+),
+>>> you get a compiler warning:
+>>> arch/arm/plat-omap/cpu-omap.c:47:7: warning: "CONFIG_ARCH_OMAP3" is=
+ not defined
+>>> which goes away with this patch.
+>>>
+>>
+>> Silesh,
+>>
+>> which defconfig are you using with multi omap-build defconfig(omap3_=
+defconfig)
+>>
+>> CONFIG_ARCH_OMAP3 will be enabled. So this compilation error will no=
+t occur.
+>>
+>> ---
+>> Regards,
+>> Govindraj.R
+>>
+>>
+>
+> As I said before there is no compilation error. But what we have to
+> check for is whether CONFIG_ARCH_OMAP3 is defined or not.
+> Not for the value of CONFIG_ARCH_OMAP3. We have to check for value of
+> defined (CONFIG_ARCH_OMAP3). Otherwise compiler searches for the valu=
+e
+> of the macro and hence the warning(comes with a omap4 config).See how
+> #elif + CONFIG_XXX is used elsewhere in kernel.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/configs/omap2plus_defconfig |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+I see what you're saying now.  The current #elif clause will *always* b=
+e
+true.
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index 9ca8df0..a3db92b 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -65,10 +65,6 @@ CONFIG_ZBOOT_ROM_TEXT=0x0
- CONFIG_ZBOOT_ROM_BSS=0x0
- CONFIG_CMDLINE="root=/dev/mmcblk0p2 rootwait console=ttyS2,115200"
- CONFIG_KEXEC=y
--CONFIG_CPU_FREQ=y
--CONFIG_CPU_FREQ_STAT_DETAILS=y
--CONFIG_CPU_FREQ_GOV_USERSPACE=y
--CONFIG_CPU_FREQ_GOV_ONDEMAND=y
- CONFIG_FPE_NWFPE=y
- CONFIG_VFP=y
- CONFIG_NEON=y
--- 
-1.7.2.1
+You'll notice that all of this confusion would not have happened if the
+original changelog described the problem in detail, showing that that
+#elif clause will always be true, and especially not calling it a
+compliation fix.
 
+Please re-post with a better changelog and I will incoporate into the
+pm-cpufreq sub-branch of the PM branch.
+
+Thanks,
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
