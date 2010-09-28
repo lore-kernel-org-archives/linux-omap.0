@@ -1,189 +1,68 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 5/5] OMAP: I2C: Convert i2c driver to use PM runtime api's
-Date: Tue, 28 Sep 2010 21:02:58 +0530
-Message-ID: <1285687978-30820-1-git-send-email-rnayak@ti.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [GIT PULL] omap2 sparse fixes
+Date: Tue, 28 Sep 2010 21:05:02 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F94C9@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A390E@dbde02.ent.ti.com>
+ <20100923225851.GR4211@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
+ <20100925001914.GO4211@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F917C@dbde02.ent.ti.com>
+ <20100928152139.GB3117@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55692 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751063Ab0I1PfW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 11:35:22 -0400
+In-Reply-To: <20100928152139.GB3117@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-This patch converts the i2c driver to use PM runtime apis
 
-Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: Jean Delvare <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>
----
- v4 adds the missing clk_put
 
- drivers/i2c/busses/i2c-omap.c |   69 +++++++++++++---------------------------
- 1 files changed, 23 insertions(+), 46 deletions(-)
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Tuesday, September 28, 2010 8:52 PM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Samuel Ortiz; Dmitry 
+> Torokhov; linux-mtd@lists.infradead.org; Russell King - ARM Linux
+> Subject: Re: [GIT PULL] omap2 sparse fixes
+> 
+> * G, Manjunath Kondaiah <manjugk@ti.com> [100928 01:04]:
+> > 
+> > Three patches are fixed using above method which are:
+> > OMAP: mach-omap2: Fix static function warnings
+> > OMAP: plat-omap: Fix static function warnings TWL IRQ: Fix fucntion 
+> > declaration warnings
+> 
+> OK thanks.
+>  
+> > are available in the git repository at:
+> > 
+> >   git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git 
+> > sparse_fixes_v3
+> > 
+> > G, Manjunath Kondaiah (10):
+> >       OMAP: mach-omap2: Fix incorrect assignment warnings
+> >       OMAP: mach-omap2: Fix static declaration warnings
+> >       OMAP2plus: Fix static function warnings
+> >       OMAP: mach-omap2: Fix miscellaneous sparse warnings
+> >       OMAP: plat-omap: Fix static function warnings
+> >       OMAP: NAND: Fix static declaration warning
+> >       TWL CORE: Fix sparse warning
+> >       TWL IRQ: Fix fucntion declaration warnings
+> 
+> Didn't Samuel just reply that he has applied these two TWL fixes?
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 7674efb..f8925d9 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -39,6 +39,7 @@
- #include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/i2c-omap.h>
-+#include <linux/pm_runtime.h>
- 
- /* I2C controller revisions */
- #define OMAP_I2C_REV_2			0x20
-@@ -175,8 +176,6 @@ struct omap_i2c_dev {
- 	void __iomem		*base;		/* virtual */
- 	int			irq;
- 	int			reg_shift;      /* bit shift for I2C register addresses */
--	struct clk		*iclk;		/* Interface clock */
--	struct clk		*fclk;		/* Functional clock */
- 	struct completion	cmd_complete;
- 	struct resource		*ioarea;
- 	u32			latency;	/* maximum mpu wkup latency */
-@@ -265,45 +264,18 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
- }
- 
--static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
-+static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- {
--	int ret;
-+	struct platform_device *pdev;
-+	struct omap_i2c_bus_platform_data *pdata;
- 
--	dev->iclk = clk_get(dev->dev, "ick");
--	if (IS_ERR(dev->iclk)) {
--		ret = PTR_ERR(dev->iclk);
--		dev->iclk = NULL;
--		return ret;
--	}
-+	WARN_ON(!dev->idle);
- 
--	dev->fclk = clk_get(dev->dev, "fck");
--	if (IS_ERR(dev->fclk)) {
--		ret = PTR_ERR(dev->fclk);
--		if (dev->iclk != NULL) {
--			clk_put(dev->iclk);
--			dev->iclk = NULL;
--		}
--		dev->fclk = NULL;
--		return ret;
--	}
-+	pdev = to_platform_device(dev->dev);
-+	pdata = pdev->dev.platform_data;
- 
--	return 0;
--}
-+	pm_runtime_get_sync(&pdev->dev);
- 
--static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
--{
--	clk_put(dev->fclk);
--	dev->fclk = NULL;
--	clk_put(dev->iclk);
--	dev->iclk = NULL;
--}
--
--static void omap_i2c_unidle(struct omap_i2c_dev *dev)
--{
--	WARN_ON(!dev->idle);
--
--	clk_enable(dev->iclk);
--	clk_enable(dev->fclk);
- 	if (cpu_is_omap34xx()) {
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-@@ -326,10 +298,15 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- 
- static void omap_i2c_idle(struct omap_i2c_dev *dev)
- {
-+	struct platform_device *pdev;
-+	struct omap_i2c_bus_platform_data *pdata;
- 	u16 iv;
- 
- 	WARN_ON(dev->idle);
- 
-+	pdev = to_platform_device(dev->dev);
-+	pdata = pdev->dev.platform_data;
-+
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
- 	if (dev->rev >= OMAP_I2C_REV_ON_4430)
- 		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-@@ -345,8 +322,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
- 	}
- 	dev->idle = 1;
--	clk_disable(dev->fclk);
--	clk_disable(dev->iclk);
-+
-+	pm_runtime_put_sync(&pdev->dev);
- }
- 
- static int omap_i2c_init(struct omap_i2c_dev *dev)
-@@ -356,6 +333,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	unsigned long fclk_rate = 12000000;
- 	unsigned long timeout;
- 	unsigned long internal_clk = 0;
-+	struct clk *fclk;
- 
- 	if (dev->rev >= OMAP_I2C_REV_2) {
- 		/* Disable I2C controller before soft reset */
-@@ -414,7 +392,9 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 		 * always returns 12MHz for the functional clock, we can
- 		 * do this bit unconditionally.
- 		 */
--		fclk_rate = clk_get_rate(dev->fclk);
-+		fclk = clk_get(dev->dev, "fck");
-+		fclk_rate = clk_get_rate(fclk);
-+		clk_put(fclk);
- 
- 		/* TRM for 5912 says the I2C clock must be prescaled to be
- 		 * between 7 - 12 MHz. The XOR input clock is typically
-@@ -443,7 +423,9 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			internal_clk = 9600;
- 		else
- 			internal_clk = 4000;
--		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-+		fclk = clk_get(dev->dev, "fck");
-+		fclk_rate = clk_get_rate(fclk) / 1000;
-+		clk_put(fclk);
- 
- 		/* Compute prescaler divisor */
- 		psc = fclk_rate / internal_clk;
-@@ -1046,14 +1028,12 @@ omap_i2c_probe(struct platform_device *pdev)
- 	else
- 		dev->reg_shift = 2;
- 
--	if ((r = omap_i2c_get_clocks(dev)) != 0)
--		goto err_iounmap;
--
- 	if (cpu_is_omap44xx())
- 		dev->regs = (u8 *) omap4_reg_map;
- 	else
- 		dev->regs = (u8 *) reg_map;
- 
-+	pm_runtime_enable(&pdev->dev);
- 	omap_i2c_unidle(dev);
- 
- 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-@@ -1125,8 +1105,6 @@ err_free_irq:
- err_unuse_clocks:
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 	omap_i2c_idle(dev);
--	omap_i2c_put_clocks(dev);
--err_iounmap:
- 	iounmap(dev->base);
- err_free_mem:
- 	platform_set_drvdata(pdev, NULL);
-@@ -1148,7 +1126,6 @@ omap_i2c_remove(struct platform_device *pdev)
- 	free_irq(dev->irq, dev);
- 	i2c_del_adapter(&dev->adapter);
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--	omap_i2c_put_clocks(dev);
- 	iounmap(dev->base);
- 	kfree(dev);
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--- 
-1.7.0.4
+Samuel applied only one patch and other patch is yet to be applied.
+Do you want me to pull out these two twl patches from the series?
+
+-Manjunath
+
+
