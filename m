@@ -1,59 +1,62 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/7] pwm: Add pwm core driver
-Date: Tue, 28 Sep 2010 16:35:01 +0300
-Message-ID: <20100928133501.GB8575@legolas.emea.dhcp.ti.com>
-References: <1285670134-18063-1-git-send-email-arun.murthy@stericsson.com>
- <1285670134-18063-2-git-send-email-arun.murthy@stericsson.com>
- <040c01cb5f0c$29bcb3b0$LocalHost@wipblrx0099946>
- <20100928130610.GB20749@sortiz-mobl>
+Subject: Re: [PATCH v4] power_supply: Add driver for TWL4030/TPS65950 BCI
+ charger
+Date: Tue, 28 Sep 2010 16:33:45 +0300
+Message-ID: <20100928133345.GA8575@legolas.emea.dhcp.ti.com>
+References: <1285618704-8985-1-git-send-email-notasas@gmail.com>
+ <20100928060554.GF2702@legolas.emea.dhcp.ti.com>
+ <AANLkTikZqtXa2YQsDehoWVMRstefUyafsQn2mph7U3CZ@mail.gmail.com>
+ <20100928084251.GC3900@legolas.emea.dhcp.ti.com>
+ <AANLkTin-6BLBHeiyA1edTJVjwVAimmJLVicZj8c_VC_2@mail.gmail.com>
+ <20100928090637.GD3900@legolas.emea.dhcp.ti.com>
+ <AANLkTim28RmH28LGgp6bEJ7XbyL4oO_5_C0phLL86roY@mail.gmail.com>
+ <20100928094122.GA7081@legolas.emea.dhcp.ti.com>
+ <20100928112643.GC22734@oksana.dev.rtsoft.ru>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-mips-bounce@linux-mips.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20100928130610.GB20749@sortiz-mobl>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: "V, Hemanth" <hemanthv@ti.com>, Arun Murthy <arun.murthy@stericsson.com>, "lars@metafoo.de" <lars@metafoo.de>, Andrew Morton <akpm@linux-foundation.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, "robert.jarzmik@free.fr" <robert.jarzmik@free.fr>, "marek.vasut@gmail.com" <marek.vasut@gmail.com>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, STEricsson_no
+In-Reply-To: <20100928112643.GC22734@oksana.dev.rtsoft.ru>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Arun Murthy <arunrmurthy.83@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Sep 28, 2010 at 08:06:11AM -0500, Samuel Ortiz wrote:
->On Tue, Sep 28, 2010 at 06:23:24PM +0530, Hemanth V wrote:
->> ----- Original Message ----- From: "Arun Murthy"
->> <arun.murthy@stericsson.com>
+On Tue, Sep 28, 2010 at 06:26:43AM -0500, Anton Vorontsov wrote:
+>On Tue, Sep 28, 2010 at 12:41:22PM +0300, Felipe Balbi wrote:
+>> On Tue, Sep 28, 2010 at 04:39:17AM -0500, Grazvydas Ignotas wrote:
+>> >On Tue, Sep 28, 2010 at 12:06 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> >>On Tue, Sep 28, 2010 at 04:02:48AM -0500, Grazvydas Ignotas wrote:
+>> >>>>
+>> >>>>Charger event is SENT by charger driver when it verifies it's attached
+>> >>>>to a wall charger.
+>> >>>
+>> >>>Isn't that a job for musb/gadget? Detecting D+/D- being shorted by
+>> >>>charger or something like that? I don't think BCI is able to detect
+>> >>>charger.
+>> >>
+>> >>it's part of the charger detection right ? and according to trm, it's on
+>> >>the BCI (actually BCC) role to take care of that :-)
+>> >
+>> >Hm you are probably talking about TWL5031, which has redesigned
+>> >charger block that is named BCC. TWL4030 charger is different, called
+>> >BCI and requires software charger detection from what I see in it's
+>> >TRM.
 >>
->>
->> >The existing pwm based led and backlight driver makes use of the
->> >pwm(include/linux/pwm.h). So all the board specific pwm drivers will
->> >be exposing the same set of function name as in include/linux/pwm.h.
->> >As a result build fails in case of multi soc environments where each soc
->> >has a pwm device in it.
->>
->> This seems very specific to ST environment,
->No it's not. It's an issue Arun has hit while enabling one of the ST MFD chip,
->but he's tackling a generic issue.
+>> ok, might be that I got confused. Then it's ok the way it is. So we need
+>> other means to detect the charger :-p
 >
->> looking at the driver list from
->> ( [PATCH 4/7] pwm: Align existing pwm drivers with pwm-core ) it seems
->> most multi SOC environments might support PWM in either one of the SOC.
->>
->> arch/arm/plat-mxc/pwm.c
->> arch/arm/plat-pxa/pwm.c
->> arch/arm/plat-samsung/pwm.c
->> arch/mips/jz4740/pwm.c
->> drivers/mfd/twl6030-pwm.c
->>
->> Unless people have examples of other SOCs which might use this,
->> the better approach might be to go for a custom driver rather than changing
->> the framework.
->I wouldn't call the current pwm code a framework. It's a bunch of header
->definitions that happens to work in the specific case of 1 pwm per
->sub architecture.
->What Arun is proposing is an actual framework. And it seems to be clean and
->simple enough.
+>May we consider this as a minor issue that can be improved later?
 
-FWIW, I agree with you Sam. Sooner or later, this will hit other SoCs.
+Sure, it's fine.
+
+>If so, I would like to apply it, but I'll wait a day or two for
+>Reviewed-by or Acked-by tags to give the proper credits.
+
+Here you go.
+
+Acked-by: Felipe Balbi <balbi@ti.com>
 
 -- 
 balbi
