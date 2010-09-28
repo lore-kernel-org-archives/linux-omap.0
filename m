@@ -1,75 +1,48 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] tracing, perf: add more power related events
-Date: Tue, 28 Sep 2010 10:35:27 +0200
-Message-ID: <AANLkTinJU5+s_1S6i4GpRuiOfsAPiL9UFtrxCCbtoumt@mail.gmail.com>
-References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
-	<201009180026.59482.trenn@suse.de>
-	<AANLkTimMAr9kEzybFGai3qGyXx36v055iPpXq_C1vW8C@mail.gmail.com>
-	<201009222049.18154.rjw@sisk.pl>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH v4] power_supply: Add driver for TWL4030/TPS65950 BCI charger
+Date: Tue, 28 Sep 2010 11:37:46 +0300
+Message-ID: <AANLkTikZqtXa2YQsDehoWVMRstefUyafsQn2mph7U3CZ@mail.gmail.com>
+References: <1285618704-8985-1-git-send-email-notasas@gmail.com>
+	<20100928060554.GF2702@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:39418 "EHLO
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:45350 "EHLO
 	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830Ab0I1If3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 04:35:29 -0400
-In-Reply-To: <201009222049.18154.rjw@sisk.pl>
+	with ESMTP id S1753282Ab0I1Ihr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 04:37:47 -0400
+In-Reply-To: <20100928060554.GF2702@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Thomas Renninger <trenn@suse.de>, Ingo Molnar <mingo@elte.hu>, Arjan van de Ven <arjan@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
+To: balbi@ti.com
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-Hi,
-
-Here is what I am proposing, in reply to all your comments:
-
-1) rename the events to match Thomas's proposal:
-   power:power_cpu_cstate
-   power:power_cpu_pstate
-   power:power_cpu_sstate
-   ...
-
-2) introduce a new Kconfig option CONFIG_DEPRECATED_POWER_EVENTS and
-conditionally map a subset of the new events to the old ones for
-backward compatibility with the existing user apps. The apps should be
-converted to the new API asap,
-
-3) update documentation
-
-Other remarks here below:
-
-On Wed, Sep 22, 2010 at 8:49 PM, Rafael J. Wysocki <rjw@sisk.pl> wrote:
-=2E..
-> This POWER_SSTATE thing seems to be totally artificial and omap-speci=
-fic.
+On Tue, Sep 28, 2010 at 9:05 AM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
 >
-> Why do you want it to be done this way?
+> On Mon, Sep 27, 2010 at 03:18:24PM -0500, Grazvydas Ignotas wrote:
+>>
+>> +static int twl4030_bci_usb_ncb(struct notifier_block *nb, unsigned =
+long
+>> val,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *p=
+riv)
+>> +{
+>> + =A0 =A0 =A0 struct twl4030_bci *bci =3D container_of(nb, struct tw=
+l4030_bci,
+>> otg_nb);
+>> +
+>> + =A0 =A0 =A0 dev_dbg(bci->dev, "OTG notify %lu\n", val);
+>> +
+>> + =A0 =A0 =A0 switch (val) {
+>> + =A0 =A0 =A0 case USB_EVENT_VBUS:
+>> + =A0 =A0 =A0 case USB_EVENT_CHARGER:
 >
-> Or is the ACPI handling added in the ACPI patch? =A0In which case, wh=
-y don't you
-> put that power_switch_state(POWER_SSTATE, 1, 0, cpu) into
-> kernel/power/suspend.c:suspend_enter() (and analogously for
-> power_switch_state(POWER_SSTATE, 0, 0, cpu)).
-The ACPI code is not using the SSTATE event.
-Indeed inserting a tracepoint at
-kernel/power/suspend.c:suspend_enter() is more generic. I will correct
-this.
+> you should have removed CHARGER from here :-)
 
-> Moreover, why is the cpu argument necessary for POWER_SSTATE at all?
-The cpu_id parameter is present in all events prototypes. This is not
-needed. I will correct this.
-
->
-> Thanks,
-> Rafael
->
-
-A new patch should be ready in the coming days. I would like to have
-your opinion on the proposed rework before re-doing it all again.
-
-Thanks,
-Jean
+hm why? Don't recall you commenting on that, why can't I charge from ch=
+arger?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
