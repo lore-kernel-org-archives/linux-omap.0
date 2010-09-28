@@ -1,57 +1,61 @@
-From: Anton Vorontsov <cbouatmailru@gmail.com>
-Subject: Re: [PATCH v4] power_supply: Add driver for TWL4030/TPS65950 BCI
- charger
-Date: Tue, 28 Sep 2010 15:26:43 +0400
-Message-ID: <20100928112643.GC22734@oksana.dev.rtsoft.ru>
-References: <1285618704-8985-1-git-send-email-notasas@gmail.com>
- <20100928060554.GF2702@legolas.emea.dhcp.ti.com>
- <AANLkTikZqtXa2YQsDehoWVMRstefUyafsQn2mph7U3CZ@mail.gmail.com>
- <20100928084251.GC3900@legolas.emea.dhcp.ti.com>
- <AANLkTin-6BLBHeiyA1edTJVjwVAimmJLVicZj8c_VC_2@mail.gmail.com>
- <20100928090637.GD3900@legolas.emea.dhcp.ti.com>
- <AANLkTim28RmH28LGgp6bEJ7XbyL4oO_5_C0phLL86roY@mail.gmail.com>
- <20100928094122.GA7081@legolas.emea.dhcp.ti.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: Issue : jffs2 and ecc layout
+Date: Tue, 28 Sep 2010 18:16:31 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03560990E3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100928094122.GA7081@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Arun Murthy <arunrmurthy.83@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52620 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753712Ab0I1Mqk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 08:46:40 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Sep 28, 2010 at 12:41:22PM +0300, Felipe Balbi wrote:
-> On Tue, Sep 28, 2010 at 04:39:17AM -0500, Grazvydas Ignotas wrote:
-> >On Tue, Sep 28, 2010 at 12:06 PM, Felipe Balbi <balbi@ti.com> wrote:
-> >>On Tue, Sep 28, 2010 at 04:02:48AM -0500, Grazvydas Ignotas wrote:
-> >>>>
-> >>>>Charger event is SENT by charger driver when it verifies it's attached
-> >>>>to a wall charger.
-> >>>
-> >>>Isn't that a job for musb/gadget? Detecting D+/D- being shorted by
-> >>>charger or something like that? I don't think BCI is able to detect
-> >>>charger.
-> >>
-> >>it's part of the charger detection right ? and according to trm, it's on
-> >>the BCI (actually BCC) role to take care of that :-)
-> >
-> >Hm you are probably talking about TWL5031, which has redesigned
-> >charger block that is named BCC. TWL4030 charger is different, called
-> >BCI and requires software charger detection from what I see in it's
-> >TRM.
-> 
-> ok, might be that I got confused. Then it's ok the way it is. So we need
-> other means to detect the charger :-p
+Hi,
+I was using the following ecc layout which is not working to mount the =
+jffs2 File-system. I was in 2.6.32 kernel and working; but same layout =
+is not working with latest 2.6 kernel.
 
-May we consider this as a minor issue that can be improved later?
+Observation is that - no read request issued to the driver (say omap2.c=
+).
 
-If so, I would like to apply it, but I'll wait a day or two for
-Reviewed-by or Acked-by tags to give the proper credits.
+# mount -t jffs2 /dev/mtdblock4 /mnt/nand
+[=A0=A0 32.505218] cannot read OOB for EB at 00000000, requested 8 byte=
+s, read 0 bytes, error -22
+mount: Mounting /dev/mtdblock4 on /mnt/nand failed: Input/output error
 
-Thanks!
+# dmesg=20
+<3>[=A0=A0 32.505218] cannot read OOB for EB at 00000000, requested 8 b=
+ytes, read 0 bytes, error -22
 
--- 
-Anton Vorontsov
-email: cbouatmailru@gmail.com
-irc://irc.freenode.net/bd2
+Code:
+=A0178 static struct nand_ecclayout hw_x16_romcode_oob_64 =3D {
+=A0179=A0=A0=A0=A0=A0=A0=A0=A0 .eccbytes =3D 12,
+=A0180=A0=A0=A0=A0=A0=A0=A0=A0 .eccpos =3D {
+=A0181=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 2, 3=
+, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+=A0182=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 },
+=A0183=A0=A0=A0=A0=A0=A0=A0=A0 .oobfree =3D {
+=A0184=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0=
+=A0=A0{.offset =3D 14,
+=A0185=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0 .length =3D 50}
+=A0186=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
+=A0187 };
+
+=A01188=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 info->nand.ecc.layout =3D=
+ &hw_x16_romcode_oob_64;
+
+Regards,
+Ghorai
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
