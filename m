@@ -1,100 +1,71 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 02/11] OMAP3: PM: Adding voltage driver support for OMAP3
-Date: Wed, 29 Sep 2010 14:21:08 -0700
-Message-ID: <8739ssutyz.fsf@deeprootsystems.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-3-git-send-email-thara@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2 03/10] OMAP: mach-omap2: Fix static function
+ warnings
+Date: Wed, 29 Sep 2010 15:35:45 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1009291534210.5439@utopia.booyaka.com>
+References: <1285063280-4057-1-git-send-email-manjugk@ti.com> <1285063280-4057-4-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:56068 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755998Ab0I2VVO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 17:21:14 -0400
-Received: by pxi10 with SMTP id 10so299195pxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Sep 2010 14:21:14 -0700 (PDT)
-In-Reply-To: <1285166719-19352-3-git-send-email-thara@ti.com> (Thara
-	Gopinath's message of "Wed, 22 Sep 2010 20:15:10 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:58894 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754778Ab0I2Vfq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 17:35:46 -0400
+In-Reply-To: <1285063280-4057-4-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-Thara Gopinath <thara@ti.com> writes:
+Hello Manjunath,
 
-> This patch adds voltage driver support for OMAP3. The driver
-> allows  configuring the voltage controller and voltage
-> processors during init and exports APIs to enable/disable
-> voltage processors, scale voltage and reset voltage.
-> The driver also maintains the global voltage table on a per
-> VDD basis which contains the various voltages supported by the
-> VDD along with per voltage dependent data like smartreflex
-> n-target value, errminlimit and voltage processor errorgain.
-> The driver allows scaling of VDD voltages either through
-> "vc bypass method" or through "vp forceupdate method" the
-> choice being configurable through the board file.
->
-> This patch contains code originally in linux omap pm branch
-> smartreflex driver.  Major contributors to this driver are
-> Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
-> Nishant Menon, Kevin Hilman.
->
-> Signed-off-by: Thara Gopinath <thara@ti.com>
+one comment:
 
-[...]
+On Tue, 21 Sep 2010, G, Manjunath Kondaiah wrote:
 
-> +static void __init vdd_data_configure(struct omap_vdd_info *vdd)
-> +{
-> +	if (cpu_is_omap34xx())
-> +		omap3_vdd_data_configure(vdd);
-> +}
-> +
-> +static void __init init_voltagecontroller(void)
-> +{
-> +	if (cpu_is_omap34xx())
-> +		omap3_init_voltagecontroller();
-> +}
+>  arch/arm/mach-omap2/powerdomain.c              |   28 ------------------------
+>  12 files changed, 27 insertions(+), 47 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/include/mach/board-rx51.h
+> 
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 6527ec3..6e51079 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -981,34 +981,6 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm)
+>  }
+>  
+>  /**
+> - * pwrdm_set_lowpwrstchange - Request a low power state change
+> - * @pwrdm: struct powerdomain *
+> - *
+> - * Allows a powerdomain to transtion to a lower power sleep state
+> - * from an existing sleep state without waking up the powerdomain.
+> - * Returns -EINVAL if the powerdomain pointer is null or if the
+> - * powerdomain does not support LOWPOWERSTATECHANGE, or returns 0
+> - * upon success.
+> - */
+> -int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
+> -{
+> -	if (!pwrdm)
+> -		return -EINVAL;
+> -
+> -	if (!(pwrdm->flags & PWRDM_HAS_LOWPOWERSTATECHANGE))
+> -		return -EINVAL;
+> -
+> -	pr_debug("powerdomain: %s: setting LOWPOWERSTATECHANGE bit\n",
+> -		 pwrdm->name);
+> -
+> -	prm_rmw_mod_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
+> -			     (1 << OMAP4430_LOWPOWERSTATECHANGE_SHIFT),
+> -			     pwrdm->prcm_offs, pwrstctrl_reg_offs);
+> -
+> -	return 0;
+> -}
+> -
 
-Drop these two functions...
+Please don't delete this function.  It will be needed for OMAP4 power 
+management.  Instead, just add a prototype in 
+plat-omap/include/plat/powerdomains.h.
 
-[...]
 
-> +/**
-> + * omap_voltage_init : Volatage init API which does VP and VC init.
-> + */
-> +static int __init omap_voltage_init(void)
-> +{
-> +	int i;
-
-...and setup function pointers in these cpu_is checks.  Something like
-the below (not even compile tested.)
-
-       void (*vdd_data_configure)(void);
-       void (*init_voltageprocessor)(void);
-
-> +
-> +	if (cpu_is_omap34xx()) {
-> +		volt_mod = OMAP3430_GR_MOD;
-> +		vdd_info = omap3_vdd_info;
-> +		nr_scalable_vdd = OMAP3_NR_SCALABLE_VDD;
-
-                vdd_data_configure = omap3_vdd_data_configure;
-                init_voltageprocessor = omap3_init_voltageprocessor;
-
-> +	} else {
-> +		pr_warning("%s: voltage driver support not added\n", __func__);
-> +		return 0;
-> +	}
-> +	init_voltagecontroller();
-> +	for (i = 0; i < nr_scalable_vdd; i++) {
-> +		vdd_data_configure(&vdd_info[i]);
-> +		init_voltageprocessor(&vdd_info[i]);
-> +	}
-> +	return 0;
-> +}
-> +core_initcall(omap_voltage_init);
-
-We really want to minimize the cpu_is_* checks, and ideally they should
-only be present in the first __init function.
-
-Kevin
+- Paul
