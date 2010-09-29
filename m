@@ -1,147 +1,85 @@
 From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/3 v4] AM35x: Add musb support
-Date: Wed, 29 Sep 2010 18:15:19 +0530
-Message-ID: <1285764321-13934-1-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 3/3 v4] musb: AM35x: Workaround for fifo read issue
+Date: Wed, 29 Sep 2010 18:15:21 +0530
+Message-ID: <1285764321-13934-3-git-send-email-ajay.gupta@ti.com>
+References: <1285764321-13934-1-git-send-email-ajay.gupta@ti.com>
+ <1285764321-13934-2-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1285764321-13934-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
-It has USB phy built inside the IP itself.
+AM35x supports only 32bit read operations so we need to have
+workaround for 8bit and 16bit read operations.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
-Patch set created against latest linus's tree + Felipe's 14 patch set
-for v2.6.37.
+No change from v3.
 
-Changes from v3,
-	- Removed the new config ARCH_AM35x and added USB_MUSB_AM35X
-	  at drivers/usb/musb/Kconfig
+ drivers/usb/musb/am35x.c     |   30 ++++++++++++++++++++++++++++++
+ drivers/usb/musb/musb_core.c |    2 ++
+ 2 files changed, 32 insertions(+), 0 deletions(-)
 
- arch/arm/mach-omap2/board-am3517evm.c |   31 +++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/usb-musb.c        |    4 ++++
- arch/arm/plat-omap/include/plat/usb.h |   21 +++++++++++++++++++++
- 3 files changed, 56 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 4d0f585..6d352a2 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -35,6 +35,7 @@
- #include <plat/control.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/control.h>
- 
- #include "mux.h"
- 
-@@ -375,6 +376,31 @@ static void __init am3517_evm_init_irq(void)
- 	omap_gpio_init();
+diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+index ee0c104..dce99fc 100644
+--- a/drivers/usb/musb/am35x.c
++++ b/drivers/usb/musb/am35x.c
+@@ -508,3 +508,33 @@ void musb_platform_restore_context(struct musb *musb,
+ 	phy_on();
  }
- 
-+static struct omap_musb_board_data musb_board_data = {
-+	.interface_type         = MUSB_INTERFACE_ULPI,
-+	.mode                   = MUSB_OTG,
-+	.power                  = 500,
-+};
+ #endif
 +
-+static __init void am3517_evm_musb_init(void)
++/* AM35x supports only 32bit read operation */
++void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
 +{
-+	u32 devconf2;
++	void __iomem *fifo = hw_ep->fifo;
++	u32		val;
++	int		i;
 +
++	/* Read for 32bit-aligned destination address */
++	if (likely((0x03 & (unsigned long) dst) == 0) && len >= 4) {
++		readsl(fifo, dst, len >> 2);
++		dst += len & ~0x03;
++		len &= 0x03;
++	}
 +	/*
-+	 * Set up USB clock/mode in the DEVCONF2 register.
++	 * Now read the rest 1 to 3 bytes or complete length if
++	 * unaligned address.
 +	 */
-+	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+	/* USB2.0 PHY reference clock is 13 MHz */
-+	devconf2 &= ~(CONF2_REFFREQ | CONF2_OTGMODE | CONF2_PHY_GPIOMODE);
-+	devconf2 |=  CONF2_REFFREQ_13MHZ | CONF2_SESENDEN | CONF2_VBDTCTEN
-+			| CONF2_DATPOL;
-+
-+	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+
-+	usb_musb_init(&musb_board_data);
++	if (len > 4) {
++		for (i = 0; i < (len >> 2); i++) {
++			*(u32 *) dst = musb_readl(fifo, 0);
++			dst += 4;
++		}
++		len %= 4;
++	}
++	if (len > 0) {
++		val = musb_readl(fifo, 0);
++		memcpy(dst, &val, len);
++	}
 +}
-+
- static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
- #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
-@@ -393,6 +419,8 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
-+	/* USB OTG DRVVBUS offset = 0x212 */
-+	OMAP3_MUX(SAD2D_MCAD23, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #else
-@@ -459,6 +487,9 @@ static void __init am3517_evm_init(void)
- 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
- 	/*Ethernet*/
- 	am3517_evm_ethernet_init(&am3517_evm_emac_pdata);
-+
-+	/* MUSB */
-+	am3517_evm_musb_init();
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 472b2a7..f03a2aa 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -272,6 +272,7 @@ void musb_write_fifo(struct musb_hw_ep *hw_ep, u16 len, const u8 *src)
+ 	}
  }
  
- MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 33a5cde..7260558 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -28,6 +28,7 @@
++#if !defined(CONFIG_USB_MUSB_AM35X)
+ /*
+  * Unload an endpoint's FIFO
+  */
+@@ -309,6 +310,7 @@ void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+ 		readsb(fifo, dst, len);
+ 	}
+ }
++#endif
  
- #include <mach/hardware.h>
- #include <mach/irqs.h>
-+#include <mach/am35xx.h>
- #include <plat/usb.h>
+ #endif	/* normal PIO */
  
- #ifdef CONFIG_USB_MUSB_SOC
-@@ -89,6 +90,9 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
- {
- 	if (cpu_is_omap243x()) {
- 		musb_resources[0].start = OMAP243X_HS_BASE;
-+	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
-+		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
-+		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
- 	} else if (cpu_is_omap34xx()) {
- 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
- 	} else if (cpu_is_omap44xx()) {
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 2a9427c..9feddac 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -218,6 +218,27 @@ static inline omap2_usbfs_init(struct omap_usb_config *pdata)
- #	define	USBT2TLL5PI		(1 << 17)
- #	define	USB0PUENACTLOI		(1 << 16)
- #	define	USBSTANDBYCTRL		(1 << 15)
-+/* AM35x */
-+/* USB 2.0 PHY Control */
-+#define CONF2_PHY_GPIOMODE	(1 << 23)
-+#define CONF2_OTGMODE		(3 << 14)
-+#define CONF2_NO_OVERRIDE	(0 << 14)
-+#define CONF2_FORCE_HOST	(1 << 14)
-+#define CONF2_FORCE_DEVICE	(2 << 14)
-+#define CONF2_FORCE_HOST_VBUS_LOW (3 << 14)
-+#define CONF2_SESENDEN		(1 << 13)
-+#define CONF2_VBDTCTEN		(1 << 12)
-+#define CONF2_REFFREQ_24MHZ	(2 << 8)
-+#define CONF2_REFFREQ_26MHZ	(7 << 8)
-+#define CONF2_REFFREQ_13MHZ	(6 << 8)
-+#define CONF2_REFFREQ		(0xf << 8)
-+#define CONF2_PHYCLKGD		(1 << 7)
-+#define CONF2_VBUSSENSE		(1 << 6)
-+#define CONF2_PHY_PLLON		(1 << 5)
-+#define CONF2_RESET		(1 << 4)
-+#define CONF2_PHYPWRDN		(1 << 3)
-+#define CONF2_OTGPWRDN		(1 << 2)
-+#define CONF2_DATPOL		(1 << 1)
- 
- #if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_USB)
- u32 omap1_usb0_init(unsigned nwires, unsigned is_device);
 -- 
 1.6.2.4
 
