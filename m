@@ -1,19 +1,20 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v3 03/11] OMAP3: PM: Adding smartreflex driver support.
-Date: Wed, 29 Sep 2010 20:11:26 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E1739F5@dbde02.ent.ti.com>
+Subject: RE: [PATCH v3 07/11] OMAP3: PM: Adding T2 enabling of smartreflex
+ support
+Date: Wed, 29 Sep 2010 20:11:56 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E1739F6@dbde02.ent.ti.com>
 References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-4-git-send-email-thara@ti.com>
- <87iq1pa1jk.fsf@deeprootsystems.com>
+	<1285166719-19352-8-git-send-email-thara@ti.com>
+ <87aan19zt4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41273 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36074 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751835Ab0I2Olf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 10:41:35 -0400
-In-Reply-To: <87iq1pa1jk.fsf@deeprootsystems.com>
+	id S1752030Ab0I2OmF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 10:42:05 -0400
+In-Reply-To: <87aan19zt4.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -24,93 +25,125 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 
 >>-----Original Message-----
 >>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Wednesday, September 29, 2010 5:01 AM
+>>Sent: Wednesday, September 29, 2010 5:38 AM
 >>To: Gopinath, Thara
 >>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
 >>Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH v3 03/11] OMAP3: PM: Adding smartreflex driver support.
+>>Subject: Re: [PATCH v3 07/11] OMAP3: PM: Adding T2 enabling of smartreflex
+>>support
 >>
 >>Thara Gopinath <thara@ti.com> writes:
 >>
->>> SmartReflex modules do adaptive voltage control for real-time
->>> voltage adjustments. With Smartreflex the power supply voltage
->>> can be adapted to the silicon performance(manufacturing process,
->>> temperature induced performance, age induced performance etc).
+>>> This patch adds support in the twl4030 driver to hook up
+>>> the API enabling smartreflex support on PMIC side with the
+>>> smartreflex driver. Without this the OMAP smartreflex modules
+>>> will not function.
 >>>
->>> There are differnet classes of smartreflex implementation.
->>> 	Class-0: Manufacturing Test Calibration
->>> 	Class-1: Boot-Time Software Calibration
->>> 	Class-2: Continuous Software Calibration
->>> 	Class-3: Continuous Hardware Calibration
->>> 	Class-4: Fully Integrated Power Management
->>>
->>> OMAP3 has two smartreflex modules one associated with VDD1 and the
->>> other associated with VDD2.
->>> This patch adds support for  smartreflex driver. The driver is designed
->>> for Class-1 , Class-2 and Class-3 support and is  a platform driver.
->>> Smartreflex driver can be enabled through a Kconfig option
->>> "SmartReflex support" under "System type"->"TI OMAP implementations" menu.
->>>
->>> Smartreflex autocompensation feature can be enabled runtime through
->>> a debug fs option.
->>> To enable smartreflex autocompensation feature
->>> 	echo 1 > /debugfs/pm_debug/smartreflex/sr_<X>/autocomp
->>> To disable smartreflex autocompensation feature
->>> 	echo 0 > /debugfs/pm_debug/smartreflex/sr_<X>/autocomp
->>>
->>> where X can be mpu, core , iva etc.
->>>
+>>> Signed-off-by: Thara Gopinath <thara@ti.com>
 >>
->>[...]
+>>This one should be a separate patch with a subject something like
 >>
->>> +static void sr_set_regfields(struct omap_sr *sr)
->>> +{
->>> +	/*
->>> +	 * For time being these values are defined in smartreflex.h
->>> +	 * and populated during init. May be they can be moved to board
->>> +	 * file or pmic specific data structure. In that case these structure
->>> +	 * fields will have to be populated using the pdata or pmic structure.
->>> +	 */
->>> +	if (cpu_is_omap34xx()) {
->>> +		sr->err_weight = OMAP3430_SR_ERRWEIGHT;
->>> +		sr->err_maxlimit = OMAP3430_SR_ERRMAXLIMIT;
->>> +		sr->accum_data = OMAP3430_SR_ACCUMDATA;
->>> +		if (!(strcmp(sr->voltdm->name, "mpu"))) {
->>> +			sr->senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT;
->>> +			sr->senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT;
->>> +		} else {
->>> +			sr->senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT;
->>> +			sr->senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT;
->>> +		}
->>> +	}
->>> +	/* TODO: 3630 and Omap4 specific bit field values */
+>>     mfd: twl4030: add SmartReflex support
 >>
->>This comment is still present even after the OMAP4 series is applied.
->>
->>[...]
->>
->>> +/*
->>> + * 3430 specific values. Maybe these should be passed from board file or
->>> + * pmic structures.
->>> + */
->>> +#define OMAP3430_SR_ACCUMDATA		0x1f4
->>> +
->>> +#define OMAP3430_SR1_SENPAVGWEIGHT	0x03
->>> +#define OMAP3430_SR1_SENNAVGWEIGHT	0x03
->>> +
->>> +#define OMAP3430_SR2_SENPAVGWEIGHT	0x01
->>> +#define OMAP3430_SR2_SENNAVGWEIGHT	0x01
->>> +
->>> +#define OMAP3430_SR_ERRWEIGHT		0x04
->>> +#define OMAP3430_SR_ERRMAXLIMIT		0x02
->>> +
->>> +/* TODO:3630/OMAP4 values if it has to come from this file */
->>
->>ditto
->>
->>It's best to just not put these kind of things into the code in the
->>first place, they tend to be forgotten and stale quickly.
+>>and the changelog should indicate its dependency on this SR/voltage
+>>series.
 
-Will fix this and post V4. 
+Do you mean to say this patch should not be a part of this series at all ??
+
+Regards
+Thara
 >>
 >>Kevin
+>>
+>>> ---
+>>>  drivers/mfd/twl-core.c      |    7 +++++--
+>>>  drivers/mfd/twl4030-power.c |   29 +++++++++++++++++++++++++++++
+>>>  include/linux/i2c/twl.h     |    1 +
+>>>  3 files changed, 35 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+>>> index 720e099..677b903 100644
+>>> --- a/drivers/mfd/twl-core.c
+>>> +++ b/drivers/mfd/twl-core.c
+>>> @@ -1009,8 +1009,11 @@ twl_probe(struct i2c_client *client, const struct
+>>i2c_device_id *id)
+>>>  	clocks_init(&client->dev, pdata->clock);
+>>>
+>>>  	/* load power event scripts */
+>>> -	if (twl_has_power() && pdata->power)
+>>> -		twl4030_power_init(pdata->power);
+>>> +	if (twl_has_power()) {
+>>> +		twl4030_power_sr_init();
+>>> +		 if (pdata->power)
+>>> +			twl4030_power_init(pdata->power);
+>>> +	}
+>>>
+>>>  	/* Maybe init the T2 Interrupt subsystem */
+>>>  	if (client->irq
+>>> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+>>> index 7efa878..6d0ad2d 100644
+>>> --- a/drivers/mfd/twl4030-power.c
+>>> +++ b/drivers/mfd/twl4030-power.c
+>>> @@ -31,6 +31,8 @@
+>>>
+>>>  #include <asm/mach-types.h>
+>>>
+>>> +#include <plat/smartreflex.h>
+>>> +
+>>>  static u8 twl4030_start_script_address = 0x2b;
+>>>
+>>>  #define PWR_P1_SW_EVENTS	0x10
+>>> @@ -63,6 +65,10 @@ static u8 twl4030_start_script_address = 0x2b;
+>>>  #define R_MEMORY_ADDRESS	PHY_TO_OFF_PM_MASTER(0x59)
+>>>  #define R_MEMORY_DATA		PHY_TO_OFF_PM_MASTER(0x5a)
+>>>
+>>> +/* Smartreflex Control */
+>>> +#define R_DCDC_GLOBAL_CFG	PHY_TO_OFF_PM_RECEIVER(0x61)
+>>> +#define CFG_ENABLE_SRFLX	0x08
+>>> +
+>>>  #define R_PROTECT_KEY		0x0E
+>>>  #define R_KEY_1			0xC0
+>>>  #define R_KEY_2			0x0C
+>>> @@ -511,6 +517,29 @@ int twl4030_remove_script(u8 flags)
+>>>  	return err;
+>>>  }
+>>>
+>>> +/* API to enable smrtreflex on Triton side */
+>>> +static void twl4030_smartreflex_init(void)
+>>> +{
+>>> +	int ret = 0;
+>>> +	u8 read_val;
+>>> +
+>>> +	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &read_val,
+>>> +			R_DCDC_GLOBAL_CFG);
+>>> +	read_val |= CFG_ENABLE_SRFLX;
+>>> +	ret |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, read_val,
+>>> +			R_DCDC_GLOBAL_CFG);
+>>> +}
+>>> +
+>>> +struct omap_smartreflex_pmic_data twl4030_sr_data = {
+>>> +	.sr_pmic_init   = twl4030_smartreflex_init,
+>>> +};
+>>> +
+>>> +void __init twl4030_power_sr_init()
+>>> +{
+>>> +	/* Register the SR init API with the Smartreflex driver */
+>>> +	omap_sr_register_pmic(&twl4030_sr_data);
+>>> +}
+>>> +
+>>>  void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
+>>>  {
+>>>  	int err = 0;
+>>> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+>>> index 6de90bf..b02011e 100644
+>>> --- a/include/linux/i2c/twl.h
+>>> +++ b/include/linux/i2c/twl.h
+>>> @@ -550,6 +550,7 @@ struct twl4030_power_data {
+>>>  };
+>>>
+>>>  extern void twl4030_power_init(struct twl4030_power_data
+>>*triton2_scripts);
+>>> +extern void twl4030_power_sr_init(void);
+>>>  extern int twl4030_remove_script(u8 flags);
+>>>
+>>>  struct twl4030_codec_audio_data {
