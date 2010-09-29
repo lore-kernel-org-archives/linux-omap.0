@@ -1,60 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] OMAP: ZOOM2: Change GPIO to enable LCD NEC
- NL8048HL11-01B on OMAP34x-II MDP
-Date: Wed, 29 Sep 2010 10:35:32 +0300
-Message-ID: <1285745732.6574.130.camel@tubuntu.research.nokia.com>
-References: <1284381807.1801.38.camel@A05BPC17>
-	 <1285071690.1783.34.camel@A05BPC17>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [GIT PULL] ARM: l2x0: kexex, cleanup and optimisation for 2.6.37
+Date: Wed, 29 Sep 2010 13:09:48 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CD02838@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:22919 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750995Ab0I2Hfz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 03:35:55 -0400
-In-Reply-To: <1285071690.1783.34.camel@A05BPC17>
+Received: from comal.ext.ti.com ([198.47.26.152]:33499 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750998Ab0I2Hlr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 03:41:47 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Yanick Saugy <yanick.saugy@heig-vd.ch>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Rajkumar N <rajkumar.nagarajan@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Linus Walleij <linus.ml.walleij@gmail.com>, "per.xx.fransson@stericsson.com" <per.xx.fransson@stericsson.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
 
-Hi,
+The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
+  Linus Torvalds (1):
+        Linux 2.6.36-rc5
 
-On Tue, 2010-09-21 at 14:21 +0200, ext Yanick Saugy wrote:
-> The PIN which controls LCD's reset signal (VGA_nRESET/h_GPIO_96) was not
-> configured as a GPIO. We had to modify the OMAP MUX, and select this PIN
-> (CAM_XCLKA) as an output GPIO (OMAP_MUX_MODE4). (kernel 2.6.35)
-> 
-> Be aware of changing this PIN will probably disable the camera, because
-> it was previously configured as a camera clock.
-> 
-> 
-> Signed-off-by: Yanick Saugy <yanick.saugy@heig-vd.ch>
-> 
-> --- a/arch/arm/mach-omap2/board-zoom2.c 2010-09-15 15:27:05.148399721 +0200
-> +++ b/arch/arm/mach-omap2/board-zoom2.c 2010-09-15 14:46:09.792900019 +0200
-> @@ -71,6 +71,7 @@ static struct twl4030_platform_data zoom
->  
->  #ifdef CONFIG_OMAP_MUX
->  static struct omap_board_mux board_mux[] __initdata = {
-> +   OMAP3_MUX(CAM_XCLKA, OMAP_MUX_MODE4 | OMAP_PIN_OUTPUT),
->     { .reg_offset = OMAP_MUX_TERMINATOR },
->  };
->  #else
-> @@ -82,6 +83,7 @@ static void __init omap_zoom2_init(void)
->     omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
->     zoom_peripherals_init();
->     zoom_debugboard_init();
-> +    zoom_display_init(OMAP_DSS_VENC_TYPE_COMPOSITE);
->  }
->  
->  static void __init omap_zoom2_map_io(void)
+are available in the git repository at:
 
-How did you create this patch? It doesn't look like standard one, and
-git am chokes on it. Also, it doesn't apply to the latest linux tree, so
-you need to rebase.
+  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git l2x0-pull-rmk
 
- Tomi
+Catalin Marinas (1):
+      ARM: Improve the L2 cache performance when PL310 is used
 
+Per Fransson (1):
+      ARM: ux500 specific L2 cache code
+
+Santosh Shilimkar (4):
+      omap4: l2x0: Override the default l2x0_disable
+      ARM: l2x0: Fix coding-style in the cache-l2x0.h
+      ARM: l2x0: Determine the cache size
+      ARM: l2x0: Optimise the range based operations
+
+Thomas Gleixner (2):
+      arm: Disable outer (L2) cache in kexec
+      arm: Implement l2x0 cache disable functions
+
+ arch/arm/include/asm/hardware/cache-l2x0.h |    9 ++-
+ arch/arm/include/asm/outercache.h          |   24 +++++++++
+ arch/arm/kernel/machine_kexec.c            |    3 +
+ arch/arm/mach-omap2/omap4-common.c         |   13 +++++
+ arch/arm/mach-ux500/cpu.c                  |   45 ++++++++++++++++
+ arch/arm/mm/Kconfig                        |    8 +++
+ arch/arm/mm/cache-l2x0.c                   |   78 +++++++++++++++++++++++++--
+ 7 files changed, 171 insertions(+), 9 deletions(-)
+
+Regards,
+Santosh
+Thread where this was discussed:
+http://marc.info/?l=linux-omap&m=128396111204338&w=2
 
