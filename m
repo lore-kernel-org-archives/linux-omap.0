@@ -1,102 +1,162 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [GIT PULL] for testing: OMAP hwmod driver conversions:
- watchdog, UART, i2c
-Date: Wed, 29 Sep 2010 09:31:08 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003FF2DAF34@dbde02.ent.ti.com>
-References: <8762xpenf8.fsf@deeprootsystems.com>
-	<20100928201844.GI3117@atomide.com> <87d3rxblfu.fsf@deeprootsystems.com>
+From: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH v3 5/5] OMAP: I2C: Convert i2c driver to use PM runtime
+	api's
+Date: Wed, 29 Sep 2010 09:30:30 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003FF2DAF35@dbde02.ent.ti.com>
+References: <1285078036-12789-1-git-send-email-rnayak@ti.com>
+ <1285078036-12789-2-git-send-email-rnayak@ti.com>
+ <1285078036-12789-3-git-send-email-rnayak@ti.com>
+ <1285078036-12789-4-git-send-email-rnayak@ti.com>
+ <1285078036-12789-5-git-send-email-rnayak@ti.com>
+ <1285078036-12789-6-git-send-email-rnayak@ti.com>
+ <20100927223645.GJ21564@trinity.fluff.org>
+ <0680EC522D0CC943BC586913CF3768C003FF05981F@dbde02.ent.ti.com>
+ <0680EC522D0CC943BC586913CF3768C003FF05988F@dbde02.ent.ti.com>
+ <20100928233334.GS21564@trinity.fluff.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48687 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750728Ab0I2EEQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 00:04:16 -0400
-In-Reply-To: <87d3rxblfu.fsf@deeprootsystems.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100928233334.GS21564-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
 
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Wednesday, September 29, 2010 3:06 AM
-> To: Nayak, Rajendra; Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; Varadarajan, Charulatha; Raja, Govindraj
-> Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
+> From: Ben Dooks [mailto:ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org]
+> Sent: Wednesday, September 29, 2010 5:04 AM
+> To: Nayak, Rajendra
+> Cc: Ben Dooks; Paul Walmsley; Kevin Hilman; linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org; linux-
+> omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> Subject: Re: [PATCH v3 5/5] OMAP: I2C: Convert i2c driver to use PM runtime api's
 > 
-> Rajendra,
+> On Tue, Sep 28, 2010 at 12:29:01PM +0530, Nayak, Rajendra wrote:
+> > <snip>...
+> > > > >
+> > > > >  static int omap_i2c_init(struct omap_i2c_dev *dev)
+> > > > > @@ -356,6 +333,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> > > > >  	unsigned long fclk_rate = 12000000;
+> > > > >  	unsigned long timeout;
+> > > > >  	unsigned long internal_clk = 0;
+> > > > > +	struct clk *fclk;
+> > > > >
+> > > > >  	if (dev->rev >= OMAP_I2C_REV_2) {
+> > > > >  		/* Disable I2C controller before soft reset */
+> > > > > @@ -414,7 +392,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> > > > >  		 * always returns 12MHz for the functional clock, we can
+> > > > >  		 * do this bit unconditionally.
+> > > > >  		 */
+> > > > > -		fclk_rate = clk_get_rate(dev->fclk);
+> > > > > +		fclk = clk_get(dev->dev, "fck");
+> > > > > +		fclk_rate = clk_get_rate(fclk);
+> > > > >
+> > > > >  		/* TRM for 5912 says the I2C clock must be prescaled to be
+> > > > >  		 * between 7 - 12 MHz. The XOR input clock is typically
+> > > > > @@ -443,7 +422,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+> > > > >  			internal_clk = 9600;
+> > > > >  		else
+> > > > >  			internal_clk = 4000;
+> > > > > -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
+> > > > > +		fclk = clk_get(dev->dev, "fck");
+> > > > > +		fclk_rate = clk_get_rate(fclk) / 1000;
+> > > >
+> > > > You don't put the clk after getting it and using it once?
+> > >
+> > > clk_get needs an equivalent clk_put and not clk_get_rate. clk_get_rate
+> > > is used to merely know the existing rate of the clock.
+> >
+> > Sorry, I guess you did mean the clk_get above the clk_get_rate does not have
+> > an equivalent clk_put.
+> > I could put a clk_put for readability, but a clk_put on OMAP actually does map
+> > to an empty function.
+> > See arch/arm/plat-omap/include/plat/clkdev.h
+> > clk_get merely returns a pointer to the clk struct and does not do any usecounting,
+> > hence a clk_put does not do anything.
 > 
-> Tony Lindgren <tony@atomide.com> writes:
+> clk_get() should have a reference counter, and on many systems does.
 > 
-> > * Kevin Hilman <khilman@deeprootsystems.com> [100928 11:25]:
-> >> Tony,
-> >>
-> >> The following pull request will bring hwmod driver conversions for
-> >> watchdog, UART and i2c drivers.  It is based on your omap-for-linus
-> >> branch.
-> >>
-> >> The i2c driver is waiting for final signoff/ack from the upstream
-> >> subsystem maintainers, but are otherwise ready to go for broader
-> >> testing.  After I get the final ack, I will update the branch for a
-> >> final pull.
-> >>
-> >> In the meantime, I'd like to get them into l-o master (or omap-testing)
-> >> for broader testing.
-> >
-> > Tried pulling it but I'm getting tons of these errors on omap2:
-> >
-> > WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1237 _omap_hwmod_idle+0x28/0xd8()
-> > omap_hwmod: i2c1: idle state can only be entered from enabled state
-> > Modules linked in:
-> > [<c0054534>] (unwind_backtrace+0x0/0xec) from [<c008b55c>] (warn_slowpath_common+0x4c/0x64)
-> > [<c008b55c>] (warn_slowpath_common+0x4c/0x64) from [<c008b5f4>] (warn_slowpath_fmt+0x2c/0x3c)
-> > [<c008b5f4>] (warn_slowpath_fmt+0x2c/0x3c) from [<c005e2f8>] (_omap_hwmod_idle+0x28/0xd8)
-> > [<c005e2f8>] (_omap_hwmod_idle+0x28/0xd8) from [<c005e3d0>] (omap_hwmod_idle+0x28/0x38)
-> > [<c005e3d0>] (omap_hwmod_idle+0x28/0x38) from [<c006bc6c>] (omap_device_idle_hwmods+0x1c/0x34)
-> > [<c006bc6c>] (omap_device_idle_hwmods+0x1c/0x34) from [<c006bd40>]
-> (_omap_device_deactivate+0x4c/0x154)
-> > [<c006bd40>] (_omap_device_deactivate+0x4c/0x154) from [<c006c018>] (omap_device_idle+0x44/0x64)
-> > [<c006c018>] (omap_device_idle+0x44/0x64) from [<c005fbfc>] (omap_pm_runtime_suspend+0x2c/0x50)
-> > [<c005fbfc>] (omap_pm_runtime_suspend+0x2c/0x50) from [<c0292ecc>] (__pm_runtime_suspend+0x210/0x36c)
-> > [<c0292ecc>] (__pm_runtime_suspend+0x210/0x36c) from [<c02930c8>] (pm_runtime_suspend+0x20/0x34)
-> > [<c02930c8>] (pm_runtime_suspend+0x20/0x34) from [<c0293898>] (pm_generic_runtime_idle+0x40/0x48)
-> > [<c0293898>] (pm_generic_runtime_idle+0x40/0x48) from [<c02927d0>] (__pm_runtime_idle+0x164/0x1a0)
-> > [<c02927d0>] (__pm_runtime_idle+0x164/0x1a0) from [<c029288c>] (pm_runtime_idle+0x1c/0x30)
-> > [<c029288c>] (pm_runtime_idle+0x1c/0x30) from [<c028d5cc>] (driver_probe_device+0x168/0x188)
-> > [<c028d5cc>] (driver_probe_device+0x168/0x188) from [<c028d654>] (__driver_attach+0x68/0x8c)
-> > [<c028d654>] (__driver_attach+0x68/0x8c) from [<c028cce0>] (bus_for_each_dev+0x44/0x74)
-> > [<c028cce0>] (bus_for_each_dev+0x44/0x74) from [<c028c610>] (bus_add_driver+0x104/0x294)
-> > [<c028c610>] (bus_add_driver+0x104/0x294) from [<c028d94c>] (driver_register+0xa8/0x130)
-> > [<c028d94c>] (driver_register+0xa8/0x130) from [<c004d574>] (do_one_initcall+0xc8/0x1a0)
-> > [<c004d574>] (do_one_initcall+0xc8/0x1a0) from [<c00085f0>] (kernel_init+0x14c/0x214)
-> > [<c00085f0>] (kernel_init+0x14c/0x214) from [<c004eca8>] (kernel_thread_exit+0x0/0x8)
-> >
-> > This is with the omap2plus_defconfig and after editing cmdline to have console set
-> > to ttyO2.
-> >
-> > Would be nice to have those fixed before we merge it.
-> 
-> Rajendra, can you look into this on OMAP2?  This is happening for Tony
-> on both n8x0 and 2430sdp.
+> This is why we ask people to put clk_put() when they don't need the
+> clock any more. It may not do anything on your system, but it will
+> set a good example to anyone copying your driver code.
 
-Sure, I'll have a look.
+I agree. There is an updated patch now posted with the clk_put's in place.
 
 > 
-> >> Note this also depends on a handful of patches from my pm-backports
-> >> branch, most of which you have picked into omap-testing, except for the
-> >> one I just posted to linux-arm-kernel:
-> >>
-> >>    ARM: add cpu_idle_wait() to support CPUidle on SMP systems.
-> >>
-> >> This one is required now that the default config enables SMP.
+> As such, I should really go and read up all about this new runtime-pm
+> and hwmod stuff before further commentign on the changes.
+
+Ok. Thanks.
+
+> 
+> > >
+> > > >
+> > > > >  		/* Compute prescaler divisor */
+> > > > >  		psc = fclk_rate / internal_clk;
+> > > > > @@ -1046,14 +1026,12 @@ omap_i2c_probe(struct platform_device *pdev)
+> > > > >  	else
+> > > > >  		dev->reg_shift = 2;
+> > > > >
+> > > > > -	if ((r = omap_i2c_get_clocks(dev)) != 0)
+> > > > > -		goto err_iounmap;
+> > > > > -
+> > > > >  	if (cpu_is_omap44xx())
+> > > > >  		dev->regs = (u8 *) omap4_reg_map;
+> > > > >  	else
+> > > > >  		dev->regs = (u8 *) reg_map;
+> > > > >
+> > > > > +	pm_runtime_enable(&pdev->dev);
+> > > > >  	omap_i2c_unidle(dev);
+> > > > >
+> > > > >  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+> > > > > @@ -1125,8 +1103,6 @@ err_free_irq:
+> > > > >  err_unuse_clocks:
+> > > > >  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> > > > >  	omap_i2c_idle(dev);
+> > > > > -	omap_i2c_put_clocks(dev);
+> > > > > -err_iounmap:
+> > > > >  	iounmap(dev->base);
+> > > > >  err_free_mem:
+> > > > >  	platform_set_drvdata(pdev, NULL);
+> > > > > @@ -1148,7 +1124,6 @@ omap_i2c_remove(struct platform_device *pdev)
+> > > > >  	free_irq(dev->irq, dev);
+> > > > >  	i2c_del_adapter(&dev->adapter);
+> > > > >  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> > > > > -	omap_i2c_put_clocks(dev);
+> > > > >  	iounmap(dev->base);
+> > > > >  	kfree(dev);
+> > > > >  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > > > > --
+> > > > > 1.5.4.7
+> > > > >
+> > > > > --
+> > > > > To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> > > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > >
+> > > > --
+> > > > --
+> > > > Ben
+> > > >
+> > > > Q:      What's a light-year?
+> > > > A:      One-third less calories than a regular year.
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > >
-> > I'll apply that into omap-testing branch.
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 > 
-> Thanks,
+> --
+> --
+> Ben
 > 
-> Kevin
+> Q:      What's a light-year?
+> A:      One-third less calories than a regular year.
