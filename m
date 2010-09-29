@@ -1,54 +1,151 @@
-From: Trilok Soni <soni.trilok@gmail.com>
-Subject: Re: [PATCH 1/7] pwm: Add pwm core driver
-Date: Wed, 29 Sep 2010 17:42:31 +0530
-Message-ID: <AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
-References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
-	<1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
-	<4CA1AD2B.8000905@metafoo.de>
-	<F45880696056844FA6A73F415B568C69532DC2FB6B@EXDCVYMBSTM006.EQ1STM.local>
-	<4CA1BC16.3020702@metafoo.de>
-	<F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
-	<4CA25841.4090702@metafoo.de>
-	<F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arun MURTHY <arun.murthy@stericsson.com>
-Cc: "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, Lars-Peter Clausen <lars@metafoo.de>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Bill Gatliff <bgat@billgatliff.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, Marek Vasut <marek.vasut@gmail.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, Mattias WALLIN <mattias.wallin@stericsson.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, robert.jarzmik@f
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/3 v4] AM35x: Add musb support
+Date: Wed, 29 Sep 2010 18:15:19 +0530
+Message-ID: <1285764321-13934-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arun,
+AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
+It has USB phy built inside the IP itself.
 
-Adding Bill Gatliff (anyway, CC list already crowded)
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+---
+Patch set created against latest linus's tree + Felipe's 14 patch set
+for v2.6.37.
 
-On Wed, Sep 29, 2010 at 10:19 AM, Arun MURTHY
-<arun.murthy@stericsson.com> wrote:
->> Arun MURTHY wrote:
->> >>>> Shouldn't PWM_DEVICES select HAVE_PWM?
->> >>>
->> >>> No not required, the entire concept is to remove HAVE_PWM and use
->> >> PWM_CORE.
+Changes from v3,
+	- Removed the new config ARCH_AM35x and added USB_MUSB_AM35X
+	  at drivers/usb/musb/Kconfig
 
-There is already nice and clean framework written by Bill for PWM, if
-you grep the LKML and linux-embedded mailing list archive then you
-will get his patches, and it seems that he had promised to send the
-updated version few week back, but not heard from him (may be because
-he was travelling as per FB status).
+ arch/arm/mach-omap2/board-am3517evm.c |   31 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/usb-musb.c        |    4 ++++
+ arch/arm/plat-omap/include/plat/usb.h |   21 +++++++++++++++++++++
+ 3 files changed, 56 insertions(+), 0 deletions(-)
 
-Please evaluate that framework too.
-
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 4d0f585..6d352a2 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -35,6 +35,7 @@
+ #include <plat/control.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
++#include <plat/control.h>
+ 
+ #include "mux.h"
+ 
+@@ -375,6 +376,31 @@ static void __init am3517_evm_init_irq(void)
+ 	omap_gpio_init();
+ }
+ 
++static struct omap_musb_board_data musb_board_data = {
++	.interface_type         = MUSB_INTERFACE_ULPI,
++	.mode                   = MUSB_OTG,
++	.power                  = 500,
++};
++
++static __init void am3517_evm_musb_init(void)
++{
++	u32 devconf2;
++
++	/*
++	 * Set up USB clock/mode in the DEVCONF2 register.
++	 */
++	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
++
++	/* USB2.0 PHY reference clock is 13 MHz */
++	devconf2 &= ~(CONF2_REFFREQ | CONF2_OTGMODE | CONF2_PHY_GPIOMODE);
++	devconf2 |=  CONF2_REFFREQ_13MHZ | CONF2_SESENDEN | CONF2_VBDTCTEN
++			| CONF2_DATPOL;
++
++	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
++
++	usb_musb_init(&musb_board_data);
++}
++
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+ #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
+@@ -393,6 +419,8 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* USB OTG DRVVBUS offset = 0x212 */
++	OMAP3_MUX(SAD2D_MCAD23, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+@@ -459,6 +487,9 @@ static void __init am3517_evm_init(void)
+ 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
+ 	/*Ethernet*/
+ 	am3517_evm_ethernet_init(&am3517_evm_emac_pdata);
++
++	/* MUSB */
++	am3517_evm_musb_init();
+ }
+ 
+ MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 33a5cde..7260558 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -28,6 +28,7 @@
+ 
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
++#include <mach/am35xx.h>
+ #include <plat/usb.h>
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+@@ -89,6 +90,9 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+ 	if (cpu_is_omap243x()) {
+ 		musb_resources[0].start = OMAP243X_HS_BASE;
++	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
++		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
++		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+ 	} else if (cpu_is_omap34xx()) {
+ 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+ 	} else if (cpu_is_omap44xx()) {
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index 2a9427c..9feddac 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -218,6 +218,27 @@ static inline omap2_usbfs_init(struct omap_usb_config *pdata)
+ #	define	USBT2TLL5PI		(1 << 17)
+ #	define	USB0PUENACTLOI		(1 << 16)
+ #	define	USBSTANDBYCTRL		(1 << 15)
++/* AM35x */
++/* USB 2.0 PHY Control */
++#define CONF2_PHY_GPIOMODE	(1 << 23)
++#define CONF2_OTGMODE		(3 << 14)
++#define CONF2_NO_OVERRIDE	(0 << 14)
++#define CONF2_FORCE_HOST	(1 << 14)
++#define CONF2_FORCE_DEVICE	(2 << 14)
++#define CONF2_FORCE_HOST_VBUS_LOW (3 << 14)
++#define CONF2_SESENDEN		(1 << 13)
++#define CONF2_VBDTCTEN		(1 << 12)
++#define CONF2_REFFREQ_24MHZ	(2 << 8)
++#define CONF2_REFFREQ_26MHZ	(7 << 8)
++#define CONF2_REFFREQ_13MHZ	(6 << 8)
++#define CONF2_REFFREQ		(0xf << 8)
++#define CONF2_PHYCLKGD		(1 << 7)
++#define CONF2_VBUSSENSE		(1 << 6)
++#define CONF2_PHY_PLLON		(1 << 5)
++#define CONF2_RESET		(1 << 4)
++#define CONF2_PHYPWRDN		(1 << 3)
++#define CONF2_OTGPWRDN		(1 << 2)
++#define CONF2_DATPOL		(1 << 1)
+ 
+ #if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_USB)
+ u32 omap1_usb0_init(unsigned nwires, unsigned is_device);
 -- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+1.6.2.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
