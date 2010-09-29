@@ -1,119 +1,210 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
-Date: Wed, 29 Sep 2010 12:07:48 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356476436@dbde02.ent.ti.com>
-References: <1285594634-19277-1-git-send-email-s-ghorai@ti.com>
- <1285594634-19277-2-git-send-email-s-ghorai@ti.com>
- <20100928222727.GS3117@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Hema HK <hemahk@ti.com>
+Subject: [PATCH v4] usb: musb: Adding names for IRQs in resource structure
+Date: Wed, 29 Sep 2010 12:26:39 -0400
+Message-ID: <1285777599-24245-1-git-send-email-hemahk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46113 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37623 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751829Ab0I2Gh4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 02:37:56 -0400
-In-Reply-To: <20100928222727.GS3117@atomide.com>
-Content-Language: en-US
+	id S1751155Ab0I2G4z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Sep 2010 02:56:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Hema HK <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Frysinger <vapier@gentoo.org>
 
+The resource data is getting automatically populated from a set of data
+generated from TI's hardware database for the OMAP platform, 
+While we could hack in some exceptions to that tool to generate resources
+in a specific order, it seems less fragile to use the resource name
+instead.That way, no matter what order the resources are generated, the
+driver still work. 
 
+Modified the OMAP,Blackfin and Davinci architecture files to add the name of the IRQs
+in the resource structures and musb driver to use the get_irq_byname() api to
+get the device and dma irq numbers instead of using the index.
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, September 29, 2010 3:57 AM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> kernel@lists.infradead.org
-> Subject: Re: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
-> 
-> * Sukumar Ghorai <s-ghorai@ti.com> [100927 06:30]:
-> >   add support the irq mode in GPMC.
-> >   gpmc_init() function move after omap_init_irq() as it has dependecy on
-> irq.
-> 
-> > --- a/arch/arm/mach-omap2/board-2430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> > @@ -144,6 +144,7 @@ static void __init omap_2430sdp_init_irq(void)
-> >  	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
-> >  	omap2_init_common_hw(NULL, NULL);
-> >  	omap_init_irq();
-> > +	gpmc_init();
-> >  	omap_gpio_init();
-> >  }
-> >
-> > diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
-> omap2/board-3430sdp.c
-> > index 67b95b5..549cd62 100644
-> > --- a/arch/arm/mach-omap2/board-3430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> > @@ -328,6 +328,7 @@ static void __init omap_3430sdp_init_irq(void)
-> >  	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
-> >  	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
-> >  	omap_init_irq();
-> > +	gpmc_init();
-> >  	omap_gpio_init();
-> >  }
-> ...
-> 
-> You can avoid adding gpmc_init() by making it a subsys_initcall().
-> Just make sure you return early from it with if (!cpu_class_is_omap2()).
-[Ghorai] will do
-> 
-> > --- a/arch/arm/mach-omap2/gpmc.c
-> > +++ b/arch/arm/mach-omap2/gpmc.c
-> > @@ -713,6 +721,31 @@ void __init gpmc_init(void)
-> >  	l |= (0x02 << 3) | (1 << 0);
-> >  	gpmc_write_reg(GPMC_SYSCONFIG, l);
-> >  	gpmc_mem_init();
-> > +
-> > +	/* initalize the irq_chained */
-> > +	irq = OMAP_GPMC_IRQ_BASE;
-> > +	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
-> > +		set_irq_handler(irq, handle_simple_irq);
-> > +		set_irq_flags(irq, IRQF_VALID);
-> > +		irq++;
-> > +	}
-> > +
-> > +	if (request_irq(20, gpmc_handle_irq, IRQF_SHARED, "gpmc",
-> gpmc_base))
-> > +		printk(KERN_ERR "gpmc: irq-%d could not claim: err %d\n",
-> > +							INT_34XX_GPMC_IRQ, irq);
-> > +}
-> 
-> Hmm, this does not look right.. Shouldn't you call
-> set_irq_chained_handler()
-> somewhere too? 
-[Ghorai] its not use, as multi-lebel irq is not there.
->Also, are you sure the interrupt is 20 for all of mach-
-> omap2?
-> It should be added to the irqs.h files.
-[Ghorai] it's added in irqs.h, and will remove the hard coded value. Last minute mistake.
+Signed-off-by: Hema HK <hemahk@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Cousson, Benoit <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+---
+[Updated the changelog with background]
 
-> 
-> > +static irqreturn_t gpmc_handle_irq(int irq, void *dev)
-> > +{
-> > +	u8 cs;
-> > +
-> > +	if (irq != INT_34XX_GPMC_IRQ)
-> > +		return IRQ_HANDLED;
-> > +	/* check cs to invoke the irq */
-> > +	cs = ((gpmc_read_reg(GPMC_PREFETCH_CONFIG1)) >> CS_NUM_SHIFT) & 0x7;
-> > +	generic_handle_irq(OMAP_GPMC_IRQ_BASE+cs);
-> > +
-> > +	return IRQ_HANDLED;
-> >  }
-> 
-> Doesn't doing OMAP_GPMC_IRQ_BASE + cs overlap with some other irq?
-[Ghorai] will check the boundary condition too -
-if(OMAP_GPMC_IRQ_BASE + cs <= OMAP_GPMC_IRQ_END)
+ arch/arm/mach-davinci/usb.c                |    2 ++
+ arch/arm/mach-omap2/usb-musb.c             |    2 ++
+ arch/blackfin/mach-bf527/boards/cm_bf527.c |    2 ++
+ arch/blackfin/mach-bf527/boards/ezbrd.c    |    2 ++
+ arch/blackfin/mach-bf527/boards/ezkit.c    |    2 ++
+ arch/blackfin/mach-bf548/boards/cm_bf548.c |    2 ++
+ arch/blackfin/mach-bf548/boards/ezkit.c    |    2 ++
+ drivers/usb/musb/cppi_dma.c                |    2 +-
+ drivers/usb/musb/musb_core.c               |    2 +-
+ drivers/usb/musb/musbhsdma.c               |    2 +-
+ 10 files changed, 17 insertions(+), 3 deletions(-)
 
-And will re-submit.
-
-> 
-> Regards,
-> 
-> Tony
+Index: linux-omap-pm/arch/arm/mach-davinci/usb.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-davinci/usb.c
++++ linux-omap-pm/arch/arm/mach-davinci/usb.c
+@@ -64,10 +64,12 @@ static struct resource usb_resources[] =
+ 	{
+ 		.start          = IRQ_USBINT,
+ 		.flags          = IORESOURCE_IRQ,
++		.name		= "mc"
+ 	},
+ 	{
+ 		/* placeholder for the dedicated CPPI IRQ */
+ 		.flags          = IORESOURCE_IRQ,
++		.name		= "dma"
+ 	},
+ };
+ 
+Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
++++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
+@@ -39,10 +39,12 @@ static struct resource musb_resources[] 
+ 	[1] = {	/* general IRQ */
+ 		.start	= INT_243X_HS_USB_MC,
+ 		.flags	= IORESOURCE_IRQ,
++		.name	= "mc",
+ 	},
+ 	[2] = {	/* DMA IRQ */
+ 		.start	= INT_243X_HS_USB_DMA,
+ 		.flags	= IORESOURCE_IRQ,
++		.name	= "dma",
+ 	},
+ };
+ 
+Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/cm_bf527.c
+===================================================================
+--- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/cm_bf527.c
++++ linux-omap-pm/arch/blackfin/mach-bf527/boards/cm_bf527.c
+@@ -82,11 +82,13 @@ static struct resource musb_resources[] 
+ 		.start	= IRQ_USB_INT0,
+ 		.end	= IRQ_USB_INT0,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "mc"
+ 	},
+ 	[2] = {	/* DMA IRQ */
+ 		.start	= IRQ_USB_DMA,
+ 		.end	= IRQ_USB_DMA,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "dma"
+ 	},
+ };
+ 
+Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/ezbrd.c
+===================================================================
+--- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/ezbrd.c
++++ linux-omap-pm/arch/blackfin/mach-bf527/boards/ezbrd.c
+@@ -46,11 +46,13 @@ static struct resource musb_resources[] 
+ 		.start	= IRQ_USB_INT0,
+ 		.end	= IRQ_USB_INT0,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "mc"
+ 	},
+ 	[2] = {	/* DMA IRQ */
+ 		.start	= IRQ_USB_DMA,
+ 		.end	= IRQ_USB_DMA,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "dma"
+ 	},
+ };
+ 
+Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/ezkit.c
+===================================================================
+--- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/ezkit.c
++++ linux-omap-pm/arch/blackfin/mach-bf527/boards/ezkit.c
+@@ -86,11 +86,13 @@ static struct resource musb_resources[] 
+ 		.start	= IRQ_USB_INT0,
+ 		.end	= IRQ_USB_INT0,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "mc"
+ 	},
+ 	[2] = {	/* DMA IRQ */
+ 		.start	= IRQ_USB_DMA,
+ 		.end	= IRQ_USB_DMA,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "dma"
+ 	},
+ };
+ 
+Index: linux-omap-pm/arch/blackfin/mach-bf548/boards/cm_bf548.c
+===================================================================
+--- linux-omap-pm.orig/arch/blackfin/mach-bf548/boards/cm_bf548.c
++++ linux-omap-pm/arch/blackfin/mach-bf548/boards/cm_bf548.c
+@@ -482,11 +482,13 @@ static struct resource musb_resources[] 
+ 		.start	= IRQ_USB_INT0,
+ 		.end	= IRQ_USB_INT0,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "mc"
+ 	},
+ 	[2] = {	/* DMA IRQ */
+ 		.start	= IRQ_USB_DMA,
+ 		.end	= IRQ_USB_DMA,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "dma"
+ 	},
+ };
+ 
+Index: linux-omap-pm/arch/blackfin/mach-bf548/boards/ezkit.c
+===================================================================
+--- linux-omap-pm.orig/arch/blackfin/mach-bf548/boards/ezkit.c
++++ linux-omap-pm/arch/blackfin/mach-bf548/boards/ezkit.c
+@@ -587,11 +587,13 @@ static struct resource musb_resources[] 
+ 		.start	= IRQ_USB_INT0,
+ 		.end	= IRQ_USB_INT0,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "mc"
+ 	},
+ 	[2] = {	/* DMA IRQ */
+ 		.start	= IRQ_USB_DMA,
+ 		.end	= IRQ_USB_DMA,
+ 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
++		.name	= "dma"
+ 	},
+ };
+ 
+Index: linux-omap-pm/drivers/usb/musb/cppi_dma.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/cppi_dma.c
++++ linux-omap-pm/drivers/usb/musb/cppi_dma.c
+@@ -1307,7 +1307,7 @@ dma_controller_create(struct musb *musb,
+ 	struct cppi		*controller;
+ 	struct device		*dev = musb->controller;
+ 	struct platform_device	*pdev = to_platform_device(dev);
+-	int			irq = platform_get_irq(pdev, 1);
++	int			irq = platform_get_irq_byname(pdev, "dma");
+ 
+ 	controller = kzalloc(sizeof *controller, GFP_KERNEL);
+ 	if (!controller)
+Index: linux-omap-pm/drivers/usb/musb/musb_core.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/musb_core.c
++++ linux-omap-pm/drivers/usb/musb/musb_core.c
+@@ -2203,7 +2203,7 @@ static u64	*orig_dma_mask;
+ static int __init musb_probe(struct platform_device *pdev)
+ {
+ 	struct device	*dev = &pdev->dev;
+-	int		irq = platform_get_irq(pdev, 0);
++	int		irq = platform_get_irq_byname(pdev, "mc");
+ 	int		status;
+ 	struct resource	*iomem;
+ 	void __iomem	*base;
+Index: linux-omap-pm/drivers/usb/musb/musbhsdma.c
+===================================================================
+--- linux-omap-pm.orig/drivers/usb/musb/musbhsdma.c
++++ linux-omap-pm/drivers/usb/musb/musbhsdma.c
+@@ -363,7 +363,7 @@ dma_controller_create(struct musb *musb,
+ 	struct musb_dma_controller *controller;
+ 	struct device *dev = musb->controller;
+ 	struct platform_device *pdev = to_platform_device(dev);
+-	int irq = platform_get_irq(pdev, 1);
++	int irq = platform_get_irq_byname(pdev, "dma");
+ 
+ 	if (irq == 0) {
+ 		dev_err(dev, "No DMA interrupt line!\n");
