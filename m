@@ -1,53 +1,72 @@
-From: Petr =?iso-8859-2?Q?=A9tetiar?= <ynezz@true.cz>
-Subject: Re: [PATCH 2/2] OMAP:DSS: RFC Patch to add HDMI DSS driver support
-Date: Wed, 29 Sep 2010 11:36:09 +0200
-Message-ID: <20100929093609.GY28423@ibawizard.net>
-References: <FF55437E1F14DA4BAEB721A458B6701706BE2A6AB4@dbde02.ent.ti.com> <1283865397.2363.110.camel@tubuntu.research.nokia.com> <FF55437E1F14DA4BAEB721A458B6701706C5776EFE@dbde02.ent.ti.com> <1283867099.2363.114.camel@tubuntu.research.nokia.com> <FF55437E1F14DA4BAEB721A458B6701706C5776FEB@dbde02.ent.ti.com>
-Reply-To: Petr =?iso-8859-2?Q?=A9tetiar?= <ynezz@true.cz>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4] usb: musb: Adding names for IRQs in resource
+ structure
+Date: Wed, 29 Sep 2010 13:11:12 +0300
+Message-ID: <20100929101112.GR2728@legolas.emea.dhcp.ti.com>
+References: <1285777599-24245-1-git-send-email-hemahk@ti.com>
+ <20100929065952.GJ2728@legolas.emea.dhcp.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE486@dbde02.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ibawizard.net ([82.208.49.253]:49145 "EHLO
-	mengele.ibawizard.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059Ab0I2JoR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 05:44:17 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:44743 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751333Ab0I2KWR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Sep 2010 06:22:17 -0400
 Content-Disposition: inline
-In-Reply-To: <FF55437E1F14DA4BAEB721A458B6701706C5776FEB@dbde02.ent.ti.com>
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE486@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ricardo Salveti de Araujo <ricardo.salveti@canonical.com>
+To: "Kalliguddi, Hema" <hemahk@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Frysinger <vapier@gentoo.org>
 
-K, Mythri P <mythripk@ti.com> [2010-09-08 10:16:29]:
+On Wed, Sep 29, 2010 at 03:54:45AM -0500, Kalliguddi, Hema wrote:
+> Hi,
+>
+>>-----Original Message-----
+>>From: Balbi, Felipe
+>>Sent: Wednesday, September 29, 2010 12:30 PM
+>>To: Kalliguddi, Hema
+>>Cc: linux-omap@vger.kernel.org; linux-usb@vger.kernel.org;
+>>Balbi, Felipe; Tony Lindgren; Kevin Hilman; Cousson, Benoit;
+>>Paul Walmsley; Mike Frysinger
+>>Subject: Re: [PATCH v4] usb: musb: Adding names for IRQs in
+>>resource structure
+>>
+>>Hi,
+>>
+>>On Wed, Sep 29, 2010 at 11:26:39AM -0500, Kalliguddi, Hema wrote:
+>>>Index: linux-omap-pm/arch/arm/mach-davinci/usb.c
+>>>===================================================================
+>>>--- linux-omap-pm.orig/arch/arm/mach-davinci/usb.c
+>>>+++ linux-omap-pm/arch/arm/mach-davinci/usb.c
+>>>@@ -64,10 +64,12 @@ static struct resource usb_resources[] =
+>>> 	{
+>>> 		.start          = IRQ_USBINT,
+>>> 		.flags          = IORESOURCE_IRQ,
+>>>+		.name		= "mc"
+>>> 	},
+>>> 	{
+>>> 		/* placeholder for the dedicated CPPI IRQ */
+>>> 		.flags          = IORESOURCE_IRQ,
+>>>+		.name		= "dma"
+>>> 	},
+>>> };
+>>
+>>you add names only to the IRQs, this will still require the memory base
+>>to be the first resource. Maybe adding a name like "regs" to the memory
+>>base and changing to platform_get_resource_byname(pdev, "regs") on
+>>musb-core.c
+>>
+>It does not mandate the base address to be the first resource, as the api
+>used for getting the base address takes the resource type as parameter.
+>"platform_get_resource(struct platform_device *dev,unsigned int type,
+>unsigned int num)". but it mandates the base addresses have to be in
+>certain order if there are multiple base address.Since for musb there
+>is one base address.
 
-Hi,
+true :-p Sorry about that. Just noise.
 
-[snip]
-
-> Yes this is just a RFC patch to introduce the HDMI driver and panel as such,
-> if you have no other comments on these 2 patch set I shall incorporate these
-> comments and send out the complete patch series with all the relevant
-> changes in display.h and some overlay.c and manager.c changes.
-
-there's EDID parser[1] already in kernel, so you might better reuse it and/or
-extend it for your needs.  The next thing is, that there's and there will be
-the demand for EDID on OMAP3 also, so it might be wise to rethink it from the
-beginning and split or write the code in a way, that it can be reused on OMAP3
-also. I think, that at least the code for calculation of ideal video
-resolution and timings could be made generic and could be used on OMAP3 also.
-Or am I mistaken?
-
-I'm adding Ricardo Salveti to the CC, he showed me his first draft of EDID
-parsing[2] for OMAP3 yesterday. Yes, it's just the draft, but it's at least
-reusing the code already available in kernel. I think, that the same could or
-should apply for the OMAP4 code.
-
-What I'm trying to say is, that I'm not uber kernel hacker, but I would like
-to have EDID working on my Beagle also and I'll definitely help with this.
-
-Thanks.
-
-1. drivers/video/fbmon.c and drivers/video/edid.h
-2. http://kernel.ubuntu.com/git?p=rsalveti/ubuntu-maverick.git;a=commitdiff;h=a0ea712b64988ccd7984069b99864a1b4ac43881
-
--- ynezz
+-- 
+balbi
