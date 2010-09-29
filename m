@@ -1,108 +1,86 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 00/11] OMAP3: Adding Smartreflex and Voltage driver support
-Date: Tue, 28 Sep 2010 17:31:46 -0700
-Message-ID: <87eicd8k5p.fsf@deeprootsystems.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH V2] OMAP4 ES2:  HSMMC soft reset change
+Date: Wed, 29 Sep 2010 06:16:18 +0530 (IST)
+Message-ID: <65452.192.168.10.88.1285721178.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:60255 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752869Ab0I2Abu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 20:31:50 -0400
-Received: by pwi1 with SMTP id 1so60781pwi.19
-        for <linux-omap@vger.kernel.org>; Tue, 28 Sep 2010 17:31:50 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:51685 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754560Ab0I2AqW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Sep 2010 20:46:22 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thara Gopinath <thara@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
+To: tony@atomide.com
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, cjb@laptop.org
 
-Thara Gopinath <thara@ti.com> writes:
+The omap4 es2 hsmmc has a updated soft reset logic.After the
+reset is issued monitor a 0->1 transition first. The reset of
+CMD or DATA lines is complete only after a 0->1->0 transition
+of SRC or SRD bits.
 
-> From: thara gopinath <thara@ti.com>
->
-> This patch series introduces smartreflex and voltage driver support
-> for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
-> control for real-time voltage adjustments.
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+Tested-by: Anand Gadiyar <gadiyar@ti.com>
+---
+ arch/arm/mach-omap2/hsmmc.c           |    3 +++
+ arch/arm/plat-omap/include/plat/mmc.h |    1 +
+ drivers/mmc/host/omap_hsmmc.c         |   11 +++++++++++
+ 3 files changed, 15 insertions(+), 0 deletions(-)
 
-[...]
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index 87ce6ff..37f9f56 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -298,6 +298,9 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info
+*controllers)
+ 		else
+ 			mmc->slots[0].features |= HSMMC_HAS_PBIAS;
 
-> This patch series is based against origin/pm-core branch off
-> Kevin's pm tree which in turn is based off lo-master.
-> This series will apply against lo-master also but will
-> break compilation due to lack of opp framework support
-> on lo-master.
->
-> This patch series has been tested on OMAP3430 SDP with the extra five patches
-> from origin/cpufreq branch off Kevin's pm tree applied. This series
-> has been tested with with omap3_defconfig with the following
-> menuconfig options enabled.
-> System type -> TI OMAP Implementations -> Smartreflex Support
-> System type -> TI OMAP Implementations ->
-> 		Class 3 mode of Smartreflex Implementation
++		if (cpu_is_omap44xx() && (omap_rev() > OMAP4430_REV_ES1_0))
++			mmc->slots[0].features |= HSMMC_HAS_UPDATED_RESET;
++
+ 		switch (c->mmc) {
+ 		case 1:
+ 			if (mmc->slots[0].features & HSMMC_HAS_PBIAS) {
+diff --git a/arch/arm/plat-omap/include/plat/mmc.h
+b/arch/arm/plat-omap/include/plat/mmc.h
+index 4f819fc..2c4629a 100644
+--- a/arch/arm/plat-omap/include/plat/mmc.h
++++ b/arch/arm/plat-omap/include/plat/mmc.h
+@@ -103,6 +103,7 @@ struct omap_mmc_platform_data {
 
-Using the same baseline as you mention above (pm-core + pm-opp), I
-applied this series (and the OMAP4 series) and tested on 34xx/n900 and
-36xx/Zoom3 using omap2plus_defconfig and it booted ok.  (I also patched
-the n900 board file to call sr_class3_init(), which you should include
-as part of the series too.)
+ 		/* we can put the features above into this variable */
+ #define HSMMC_HAS_PBIAS		(1 << 0)
++#define HSMMC_HAS_UPDATED_RESET	(1 << 1)
+ 		unsigned features;
 
-I then did some experiments, including updating the pm-sr branch to be
-this latest series and testing with omap3_pm_defconfig.  With that, I
-notcied that within a few seconds of reaching the shell, the system
-rebooted.
+ 		int switch_pin;			/* gpio (card detect) */
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 53f8fa5..69858e7 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -982,6 +982,17 @@ static inline void omap_hsmmc_reset_controller_fsm(struct
+omap_hsmmc_host *host,
+ 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
 
-I tracked this down to the fact that CONFIG_OMAP_WATCHDOG was not
-enabled in omap3_pm_defconfig.  Enabling the watchdog, and it no longer
-reboots.   /me confused
++	/*
++	 * OMAP4 ES2 and greater has an updated reset logic.
++	 * Monitor a 0->1 transition first
++	 */
++	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
++		while ((!(OMAP_HSMMC_READ(host, SYSCTL) & bit))
++					&& (i++ < limit))
++			cpu_relax();
++	}
++	i = 0;
++
+ 	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
+ 		(i++ < limit))
+ 		cpu_relax();
+-- 
+1.7.0.4
 
-Using just the pm-sr branch by itself and omap2plus_defconfig, even with
-the watchdog disabled, it doesn't reboot.
-
-Do you have any ideas what else might be causing this reboot when using
-the PM branch + omap3_pm_defconfig?
-
-Kevin
 
 
-> Thara Gopinath (11):
->   OMAP: PM: Export the main pm debugfs directory
->   OMAP3: PM: Adding voltage driver support for OMAP3
->   OMAP3: PM: Adding smartreflex driver support.
->   OMAP3: PM: Adding smartreflex device file.
->   OMAP3: PM: Adding smartreflex hwmod data
->   OMAP3: PM: Adding smartreflex class3 driver
->   OMAP3: PM: Adding T2 enabling of smartreflex support
->   OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
->   OMAP3: PM: Smartreflex Class3 initialization from board files.
->   OMAP3: PM: Program correct init voltages for VDD1 and VDD2
->   OMAP3: PM: Register TWL4030 pmic info with the voltage driver.
->
->  arch/arm/mach-omap2/Makefile                  |    5 +-
->  arch/arm/mach-omap2/board-3430sdp.c           |    2 +
->  arch/arm/mach-omap2/board-zoom-peripherals.c  |    2 +
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  249 +++++
->  arch/arm/mach-omap2/pm-debug.c                |   18 +
->  arch/arm/mach-omap2/pm.c                      |   67 ++-
->  arch/arm/mach-omap2/pm.h                      |    1 +
->  arch/arm/mach-omap2/smartreflex-class3.c      |   61 ++
->  arch/arm/mach-omap2/smartreflex-class3.h      |   23 +
->  arch/arm/mach-omap2/smartreflex.c             | 1039 +++++++++++++++++++
->  arch/arm/mach-omap2/sr_device.c               |  174 ++++
->  arch/arm/mach-omap2/voltage.c                 | 1319 +++++++++++++++++++++++++
->  arch/arm/plat-omap/Kconfig                    |   41 +
->  arch/arm/plat-omap/include/plat/control.h     |   27 +
->  arch/arm/plat-omap/include/plat/smartreflex.h |  276 ++++++
->  arch/arm/plat-omap/include/plat/voltage.h     |  141 +++
->  arch/arm/plat-omap/opp_twl_tps.c              |   17 +
->  drivers/mfd/twl-core.c                        |    7 +-
->  drivers/mfd/twl4030-power.c                   |   29 +
->  include/linux/i2c/twl.h                       |    1 +
->  20 files changed, 3495 insertions(+), 4 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
->  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
->  create mode 100644 arch/arm/mach-omap2/smartreflex.c
->  create mode 100644 arch/arm/mach-omap2/sr_device.c
->  create mode 100644 arch/arm/mach-omap2/voltage.c
->  create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
->  create mode 100644 arch/arm/plat-omap/include/plat/voltage.h
