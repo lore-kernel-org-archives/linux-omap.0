@@ -1,79 +1,42 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v5 2/5] omap3: nand: prefetch in irq mode support
-Date: Wed, 29 Sep 2010 11:32:23 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B03564763D3@dbde02.ent.ti.com>
-References: <1285594634-19277-1-git-send-email-s-ghorai@ti.com>
- <1285594634-19277-3-git-send-email-s-ghorai@ti.com>
- <20100928222933.GT3117@atomide.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/9 v3] usb: musb: Adding names for IRQs in resource
+ structure
+Date: Wed, 29 Sep 2010 09:30:39 +0300
+Message-ID: <20100929063039.GE2728@legolas.emea.dhcp.ti.com>
+References: <1285201631-26266-1-git-send-email-hemahk@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863D959@dbde02.ent.ti.com>
+ <AANLkTim=ARtDA99XWP+RuB5nBh5FNAJHfSV34fiwtAk8@mail.gmail.com>
+ <alpine.DEB.2.00.1009281515590.5439@utopia.booyaka.com>
+ <AANLkTi=UpeYtuQDuxEt2FNSajB-rtMpMZwseD=GUao2Y@mail.gmail.com>
+ <alpine.DEB.2.00.1009281543290.5439@utopia.booyaka.com>
+ <AANLkTi=77B2ntuJG7=J-g9GrcrJsWKUy6YbW0gm=MUQJ@mail.gmail.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE166@dbde02.ent.ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56407 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750801Ab0I2GCg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 02:02:36 -0400
-In-Reply-To: <20100928222933.GT3117@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE166-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Cc: Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Vimal Singh <vimalsingh@ti.com>
 
+Hi,
 
+On Tue, Sep 28, 2010 at 10:32:07PM -0500, Kalliguddi, Hema wrote:
+>I will repost the patches today for blackfin and omap changes with the changelog
+>updated accordingly.
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, September 29, 2010 4:00 AM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> kernel@lists.infradead.org; Vimal Singh
-> Subject: Re: [PATCH v5 2/5] omap3: nand: prefetch in irq mode support
-> 
-> * Sukumar Ghorai <s-ghorai@ti.com> [100927 06:30]:
-> >  This patch enable prefetch-irq mode for NAND.
-> 
-> > --- a/drivers/mtd/nand/Kconfig
-> > +++ b/drivers/mtd/nand/Kconfig
-> > @@ -112,6 +112,9 @@ config MTD_NAND_OMAP_PREFETCH
-> >  	help
-> >  	 The NAND device can be accessed for Read/Write using GPMC PREFETCH
-> engine
-> >  	 to improve the performance.
-> > +	 GPMC PREFETCH can be configured eigther in MPU interrupt mode or in
-> DMA
-> > +	 interrupt mode. If not selected any of them prefetch will be used
-> in
-> > +	 polling mode.
-> >
-> >  config MTD_NAND_OMAP_PREFETCH_DMA
-> >  	depends on MTD_NAND_OMAP_PREFETCH
-> > @@ -120,7 +123,16 @@ config MTD_NAND_OMAP_PREFETCH_DMA
-> >  	help
-> >  	 The GPMC PREFETCH engine can be configured eigther in MPU interrupt
-> mode
-> >  	 or in DMA interrupt mode.
-> > -	 Say y for DMA mode or MPU mode will be used
-> > +	 Say y for DMA mode
-> > +
-> > +config MTD_NAND_OMAP_PREFETCH_IRQ
-> > +	depends on MTD_NAND_OMAP_PREFETCH && !MTD_NAND_OMAP_PREFETCH_DMA
-> > +	bool "IRQ mode"
-> > +	default n
-> > +	help
-> > +	 The GPMC PREFETCH engine can be configured eigther in MPU interrupt
-> mode
-> > +	 or in DMA interrupt mode.
-> > +	 Say y for IRQ mode
-> >
-> >  config MTD_NAND_IDS
-> >  	tristate
-> 
-> The configuration to use the prefetch IRQ should be passed in the
-> platform_data
-> from the board-*.c files. What if you want to to boot a distro kernel on
-> omap2, 3 and 4 and only some of the boards can use the prefetch interrupt?
-[Ghorai] thanks.. we will provide the interface to select the io mode and ecc mode from board file.
+Have you re-sent the patches ? I just want to know if we're gonna merge
+it through Greg or the patch will be split and merged through ARCH
+trees.
 
-> 
-> Tony
+Each way if fine by me, but 2.6.37 is getting really close.
+
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
