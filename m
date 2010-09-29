@@ -1,137 +1,91 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v8 0/6] OMAP: WDT: Implement WDT in hwmod way
-Date: Tue, 28 Sep 2010 18:05:36 -0700
-Message-ID: <877hi5740v.fsf@deeprootsystems.com>
-References: <1285252363-3630-1-git-send-email-charu@ti.com>
+From: "Kalliguddi, Hema" <hemahk-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 1/9 v3] usb: musb: Adding names for IRQs in resource
+ structure
+Date: Wed, 29 Sep 2010 09:02:07 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE166@dbde02.ent.ti.com>
+References: <1285201631-26266-1-git-send-email-hemahk@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E94027863D959@dbde02.ent.ti.com>
+ <AANLkTim=ARtDA99XWP+RuB5nBh5FNAJHfSV34fiwtAk8@mail.gmail.com>
+ <alpine.DEB.2.00.1009281515590.5439@utopia.booyaka.com>
+ <AANLkTi=UpeYtuQDuxEt2FNSajB-rtMpMZwseD=GUao2Y@mail.gmail.com>
+ <alpine.DEB.2.00.1009281543290.5439@utopia.booyaka.com>
+ <AANLkTi=77B2ntuJG7=J-g9GrcrJsWKUy6YbW0gm=MUQJ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:62895 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861Ab0I2BFj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 21:05:39 -0400
-In-Reply-To: <1285252363-3630-1-git-send-email-charu@ti.com> (Charulatha
-	Varadarajan's message of "Thu, 23 Sep 2010 20:02:37 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTi=77B2ntuJG7=J-g9GrcrJsWKUy6YbW0gm=MUQJ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: tony@atomide.com, wim@iguana.be, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com
 
-Hi Charu,
+ Hi,
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+>-----Original Message-----
+>From: vapier.adi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [mailto:vapier.adi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On=20
+>Behalf Of Mike Frysinger
+>Sent: Wednesday, September 29, 2010 3:18 AM
+>To: Paul Walmsley
+>Cc: Kalliguddi, Hema; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;=20
+>linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Balbi, Felipe; Tony Lindgren; Kevin=20
+>Hilman; Cousson, Benoit
+>Subject: Re: [PATCH 1/9 v3] usb: musb: Adding names for IRQs=20
+>in resource structure
+>
+>On Tue, Sep 28, 2010 at 17:44, Paul Walmsley wrote:
+>> On Tue, 28 Sep 2010, Mike Frysinger wrote:
+>>> On Tue, Sep 28, 2010 at 17:18, Paul Walmsley wrote:
+>>> > On Tue, 28 Sep 2010, Mike Frysinger wrote:
+>>> >> well, currently, your resource definition must always be=20
+>in the order
+>>> >> of dev int and then dma int. =A0if it isnt, then i dont=20
+>think musb is
+>>> >> going to work.
+>>> >>
+>>> >> not sure why you wouldnt simply change your platform resources t=
+o
+>>> >> match the what the driver expects ...
+>>> >
+>>> > The resource data is getting automatically populated from=20
+>a set of data
+>>> > generated from TI's hardware database for the OMAP=20
+>platform, at least.
+>>> > While we could hack in some exceptions to that tool to=20
+>generate resources
+>>> > in a specific order, it seems less fragile to use the=20
+>resource name
+>>> > instead. =A0That way, no matter what order the resources=20
+>are generated, the
+>>> > driver should still work.
+>>>
+>>> guessing you're not referring to a device tree setup, but something
+>>> even more convoluted ?
+>>
+>> No need to disparage it before you've seen it :-)
+>
+>ah, but that's when i do my best work
+>
+>>> i'd highly suggest that this patch be resent with the info=20
+>you've just
+>>> provided in its changelog so people can get a better=20
+>understanding of
+>>> the "why" ... i'm not against the patch, it just seemed to=20
+>be lacking
+>>> any background info
+>>
+>> Hema, would you care to update the patch changelog accordingly?
+>
+>i'll pre-ack that for the Blackfin changes ... or, if you split those
+>out, i can merge it separately for 2.6.37.
 
-> Series of patches to port watchdog module to use hwmod APIs
-> for OMAP2PLUS chips and use runtime APIs for all OMAP chips.
-> For this hwmod database for OMAP2PLUS watchdog instances are
-> populated and implements watchdog module to use PM runtime APIs.
->
-> This patch series is generated on "origin/pm-core" which
-> has Kevin's pm-next series, the runtime PM core patch series,
-> and a collection of hwmod fixes that Paul/Benoit have lined up
-> for 2.6.37.
->
-> Tested on OMAP2430, OMAP4430 (ES1.0 & ES2.0), OMAP3430 SDP boards
-> and zoom3 board. Also verified that this patch series does not
-> break the OMAP1 build.
+I will repost the patches today for blackfin and omap changes with the =
+changelog
+updated accordingly.
 
-I found a little snag with this series.  Try testing with
-omap2plus_defconfig and changing CONFIG_OMAP_WATCHDOG=n.
-
-If CONFIG_OMAP_WATCHDOG is not enabled in the kernel config, the system
-will reboot soon after bootup.  One of the things the bootloader
-historically has done was disable the watchdog so a driver wasn't needed.
-With a reset of the IP triggered by the hwmod init, we lose this setting
-and the watchog is armed by default.
-
-I think we need to handle this case when CONFIG_OMAP_WATCHDOG=n in the
-device init code by disabling the watchdog.
-
-Kevin
-
-
-> This series is tested on OMAP4430 ES2 using the below series
-> (dependency series for ES2.0 silicon)
-> http://www.spinics.net/lists/linux-omap/msg36023.html
->
-> Version History:
-> ---------------
-> Version v8:
-> *Enable wd_timer3 in the hwmod list
->
-> Version v7:
-> *Use EN_*SHIFT macros for module_bit and ST_*SHIFT macros for
-> idlest_idle_bit in OMAP2&3 hwmod database
-> (based on suggestions given by Paul for I2C hwmod series)
-> *Remove new definitions of EN_*SHIFT macros as they already exist
-> Some of the v7 links:
-> https://patchwork.kernel.org/patch/197022/
->
-> Version v6:
-> *Split omap_init_wdt() into separate omap_init_wdt functions
-> under mach-omap1 and mach-omap2 and set them up with
-> subsys_initcall
-> *Include wd_timer3 database for OMAP4
-> *In hwmod database follow naming convention "wd_timerX"
-> Some of the v6 links:
-> http://www.spinics.net/lists/linux-omap/msg36678.html
-> https://patchwork.kernel.org/patch/188242/
-> https://patchwork.kernel.org/patch/188222/
->
-> Version v5:
-> *Delete wdt_runtime_resume and wdt_runtime_suspend
-> functions as the fix for the return values in the generic
-> runtime PM calls has been queued for 2.6.37 (see below link)
-> https://lists.linux-foundation.org/pipermail/linux-pm/2010-September/028466.html
-> Some of the v5 links:
-> https://patchwork.kernel.org/patch/181812/
-> https://patchwork.kernel.org/patch/181782/
-> https://patchwork.kernel.org/patch/181772/
-> https://patchwork.kernel.org/patch/181792/
->
-> Version v4:
-> *Implement hwmod adapdation first and then PM runtime adaptation
-> as two different patches in the series
-> *Remove inclusion of omap_device.h in the driver file.
-> Some of the v4 links:
-> https://patchwork.kernel.org/patch/174672/
-> https://patchwork.kernel.org/patch/174662/
->
-> Version v3:
-> *Fix Minor comments like renaming omap1 watchdog structures
-> with an omap1_ prefix
-> Some of the v3 links:
-> https://patchwork.kernel.org/patch/119698/
-> https://patchwork.kernel.org/patch/119696/ 
->
-> Version v2:
-> *Rebase to latest kernel
-> Some of the v2 links:
-> http://www.spinics.net/lists/linux-omap/msg34741.html
-> http://www.spinics.net/lists/linux-omap/msg34673.html
->
-> Version v1:
-> *Initial series
-> Some of the v1 links:
-> http://www.spinics.net/lists/linux-omap/msg30628.html
-> http://www.spinics.net/lists/linux-omap/msg30625.html
->
-> Benoit Cousson (1):
->   OMAP4: hwmod data: Add watchdog timer
->
-> Varadarajan, Charulatha (5):
->   OMAP3: hwmod data: Add watchdog timer
->   OMAP2420: hwmod data: Add watchdog timer
->   OMAP2430: hwmod data: Add watchdog timer
->   OMAP2PLUS: WDT: use omap_device_build for device registration
->   OMAP: WDT: Use PM runtime APIs instead of clk FW APIs
->
->  arch/arm/mach-omap1/devices.c              |   27 ++++++
->  arch/arm/mach-omap2/devices.c              |   39 ++++++++
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c |   64 +++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c |   64 +++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   66 ++++++++++++++
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  135 ++++++++++++++++++++++++++++
->  arch/arm/plat-omap/devices.c               |   41 ---------
->  drivers/watchdog/omap_wdt.c                |   42 ++-------
->  8 files changed, 402 insertions(+), 76 deletions(-)
+>-mike
+>--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
