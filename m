@@ -1,56 +1,66 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: [GIT PULL] ARM: l2x0: kexex, cleanup and optimisation for 2.6.37
-Date: Wed, 29 Sep 2010 13:09:48 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CD02838@dbde02.ent.ti.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH] tracing, perf: add more power related events
+Date: Wed, 29 Sep 2010 09:49:33 +0200
+Message-ID: <201009290949.34245.trenn@suse.de>
+References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com> <201009282322.16291.rjw@sisk.pl> <4CA261F4.5070803@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33499 "EHLO comal.ext.ti.com"
+Received: from cantor2.suse.de ([195.135.220.15]:42173 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998Ab0I2Hlr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 03:41:47 -0400
-Content-Language: en-US
+	id S1752819Ab0I2Hti (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Sep 2010 03:49:38 -0400
+In-Reply-To: <4CA261F4.5070803@linux.intel.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Linus Walleij <linus.ml.walleij@gmail.com>, "per.xx.fransson@stericsson.com" <per.xx.fransson@stericsson.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Jean Pihet <jean.pihet@newoldbits.com>, Ingo Molnar <mingo@elte.hu>, Peter Zijlstra <peterz@infradead.org>, Len Brown <len.brown@intel.com>, arjan@infradead.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-kernel@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-trace-users@vger.kernel.org
 
-The following changes since commit b30a3f6257ed2105259b404d419b4964e363928c:
-  Linus Torvalds (1):
-        Linux 2.6.36-rc5
+On Tuesday 28 September 2010 23:45:24 Arjan van de Ven wrote:
+>   On 9/28/2010 2:22 PM, Rafael J. Wysocki wrote:
+> > On Tuesday, September 28, 2010, Jean Pihet wrote:
+> >> Hi,
+> > Hi,
+> >
+> >> Here is what I am proposing, in reply to all your comments:
+> >>
+> >> 1) rename the events to match Thomas's proposal:
+> >>     power:power_cpu_cstate
+> >>     power:power_cpu_pstate
+> >>     power:power_cpu_sstate
+I'd not name it that X86/ACPI specific.
+    power:processor_sleep
+    power:processor_frequency
+    power:system_suspend
+This would map with X86/ACPI c/p/s states but the name would
+also match fine with ARM and other archs.
 
-are available in the git repository at:
+> > If that sstate thing is going to mean "suspend", then please drop
+> > it.
+> > "Suspend" is not a state, let alone a CPU state.  It is a procedure
+> > by which the (entire) system is put into a sleep state (that is not
+> > confined to CPUs).
+> 
+> there are also non-suspend S states, like S0i1 and S0i3 (supported in 
+> the current Intel "Moorestown" platform)
+> 
+> so it's slightly more complex than "just" suspend :)
+Something specific for this arch could get introduced, similar as
+Jean did for the ARM specifics, e.g.:
+power:moorestown_suspend
+Intel probably invented three names for this new technique, one
+might fit as an event name?
+Depending whether extra info needs passed through this event it
+could also use
+    power:system_suspend
+and pass a suspend state of #define S0i1 0x100, #define S0i2 0x101...
 
-  git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git l2x0-pull-rmk
+I try to find time to come up with another cleanup patch.
+I also want to look at perf timechart then where I remember some ugly
+hacks with C-state accounting and the broken state_start, state_end and 
+frequency_switch events. Hope it won't get too ugly and perf timechart 
+can support both, the old and the cleaned up events for a while.
 
-Catalin Marinas (1):
-      ARM: Improve the L2 cache performance when PL310 is used
-
-Per Fransson (1):
-      ARM: ux500 specific L2 cache code
-
-Santosh Shilimkar (4):
-      omap4: l2x0: Override the default l2x0_disable
-      ARM: l2x0: Fix coding-style in the cache-l2x0.h
-      ARM: l2x0: Determine the cache size
-      ARM: l2x0: Optimise the range based operations
-
-Thomas Gleixner (2):
-      arm: Disable outer (L2) cache in kexec
-      arm: Implement l2x0 cache disable functions
-
- arch/arm/include/asm/hardware/cache-l2x0.h |    9 ++-
- arch/arm/include/asm/outercache.h          |   24 +++++++++
- arch/arm/kernel/machine_kexec.c            |    3 +
- arch/arm/mach-omap2/omap4-common.c         |   13 +++++
- arch/arm/mach-ux500/cpu.c                  |   45 ++++++++++++++++
- arch/arm/mm/Kconfig                        |    8 +++
- arch/arm/mm/cache-l2x0.c                   |   78 +++++++++++++++++++++++++--
- 7 files changed, 171 insertions(+), 9 deletions(-)
-
-Regards,
-Santosh
-Thread where this was discussed:
-http://marc.info/?l=linux-omap&m=128396111204338&w=2
-
+    Thomas
