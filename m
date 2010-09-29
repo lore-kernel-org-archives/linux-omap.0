@@ -1,115 +1,72 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [GIT PULL] for testing: OMAP hwmod driver conversions:
- watchdog, UART, i2c
-Date: Wed, 29 Sep 2010 20:21:43 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CD02BAE@dbde02.ent.ti.com>
-References: <8762xpenf8.fsf@deeprootsystems.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 3/3 v4] musb: AM35x: Workaround for fifo read issue
+Date: Wed, 29 Sep 2010 18:59:49 +0400
+Message-ID: <4CA35465.4000400@ru.mvista.com>
+References: <1285764321-13934-1-git-send-email-ajay.gupta@ti.com> <1285764321-13934-2-git-send-email-ajay.gupta@ti.com> <1285764321-13934-3-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36804 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750943Ab0I2Ovt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 10:51:49 -0400
-In-Reply-To: <8762xpenf8.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1285764321-13934-3-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
 
+Hello.
 
-Kevin,
+Ajay Kumar Gupta wrote:
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Tuesday, September 28, 2010 11:55 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Varadarajan, Charulatha; Nayak, Rajendra; Raja, Govindraj
-> Subject: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog,
-> UART, i2c
-> 
-> Tony,
-> 
-> The following pull request will bring hwmod driver conversions for
-> watchdog, UART and i2c drivers.  It is based on your omap-for-linus
-> branch.
-> 
-> The i2c driver is waiting for final signoff/ack from the upstream
-> subsystem maintainers, but are otherwise ready to go for broader
-> testing.  After I get the final ack, I will update the branch for a
-> final pull.
-> 
-> In the meantime, I'd like to get them into l-o master (or omap-testing)
-> for broader testing.
-> 
-> Note this also depends on a handful of patches from my pm-backports
-> branch, most of which you have picked into omap-testing, except for the
-> one I just posted to linux-arm-kernel:
-> 
->    ARM: add cpu_idle_wait() to support CPUidle on SMP systems.
-> 
-> This one is required now that the default config enables SMP.
-> 
-> Charu, Rajendra, Govindraj, since all of the hwmod data changes touch
-> the same files, pulling these together meant I had to manually merge
-> these together.  Please do a sanity check of the resulting merge.
-> Thanks.
+> AM35x supports only 32bit read operations so we need to have
+> workaround for 8bit and 16bit read operations.
 
-Minor observations as mentioned below.
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-> 
-> Kevin
-> 
-> 
-> The following changes since commit
-> b6a26b4b87d7b030a546e7bdaf390ffc58323f36:
+>  drivers/usb/musb/am35x.c     |   30 ++++++++++++++++++++++++++++++
+>  drivers/usb/musb/musb_core.c |    2 ++
+>  2 files changed, 32 insertions(+), 0 deletions(-)
 
-<<snip>>
+> diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
+> index ee0c104..dce99fc 100644
+> --- a/drivers/usb/musb/am35x.c
+> +++ b/drivers/usb/musb/am35x.c
+> @@ -508,3 +508,33 @@ void musb_platform_restore_context(struct musb *musb,
+>  	phy_on();
+>  }
+>  #endif
+> +
+> +/* AM35x supports only 32bit read operation */
+> +void musb_read_fifo(struct musb_hw_ep *hw_ep, u16 len, u8 *dst)
+> +{
+> +	void __iomem *fifo = hw_ep->fifo;
+> +	u32		val;
+> +	int		i;
+> +
+> +	/* Read for 32bit-aligned destination address */
+> +	if (likely((0x03 & (unsigned long) dst) == 0) && len >= 4) {
+> +		readsl(fifo, dst, len >> 2);
+> +		dst += len & ~0x03;
+> +		len &= 0x03;
+> +	}
+> +	/*
+> +	 * Now read the rest 1 to 3 bytes or complete length if
 
-> 
->  arch/arm/mach-omap1/devices.c                 |   27 +
->  arch/arm/mach-omap2/Kconfig                   |   11 +-
->  arch/arm/mach-omap2/board-3630sdp.c           |    1 -
->  arch/arm/mach-omap2/board-zoom-peripherals.c  |    1 +
->  arch/arm/mach-omap2/clock3xxx_data.c          |   22 +
->  arch/arm/mach-omap2/cm-regbits-24xx.h         |    4 +
->  arch/arm/mach-omap2/cm-regbits-34xx.h         |    2 +
->  arch/arm/mach-omap2/devices.c                 |   39 +
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c    |  397 ++++++++-
+    s/rest/remaining/
 
-"cm-regbits-24xx.h" is included twice in this file
+> +	 * unaligned address.
+> +	 */
+> +	if (len > 4) {
+> +		for (i = 0; i < (len >> 2); i++) {
+> +			*(u32 *) dst = musb_readl(fifo, 0);
+> +			dst += 4;
+> +		}
+> +		len %= 4;
 
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c    |  410 ++++++++-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c    |  549 ++++++++++-
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |  605 +++++++++++
+    Why not 'len &= 0x03' like above?
 
-The order of hwmod structures for different modules are mixed up.
-Example, under 'wd_timer' class, uart sysc definitions are placed.
+WBR, Sergei
 
->  arch/arm/mach-omap2/pm34xx.c                  |   17 +-
->  arch/arm/mach-omap2/prcm-common.h             |    5 +
->  arch/arm/mach-omap2/prm-regbits-34xx.h        |    4 +
->  arch/arm/mach-omap2/serial.c                  |  555 ++++++-----
->  arch/arm/plat-omap/common.c                   |   16 -
->  arch/arm/plat-omap/devices.c                  |   41 -
->  arch/arm/plat-omap/i2c.c                      |  124 +--
->  arch/arm/plat-omap/include/plat/common.h      |    1 -
->  arch/arm/plat-omap/include/plat/dma.h         |    2 +
->  arch/arm/plat-omap/include/plat/i2c.h         |   13 +
->  arch/arm/plat-omap/include/plat/irqs.h        |    2 +
->  arch/arm/plat-omap/include/plat/l4_3xxx.h     |   24 +
->  arch/arm/plat-omap/include/plat/omap-serial.h |  129 +++
->  drivers/i2c/busses/i2c-omap.c                 |   69 +-
->  drivers/serial/Kconfig                        |   27 +
->  drivers/serial/Makefile                       |    1 +
->  drivers/serial/omap-serial.c                  | 1333
-> +++++++++++++++++++++++++
->  drivers/watchdog/omap_wdt.c                   |   42 +-
->  include/linux/i2c-omap.h                      |    5 +
->  include/linux/serial_core.h                   |    3 +
->  32 files changed, 3984 insertions(+), 497 deletions(-)
->  create mode 100644 arch/arm/plat-omap/include/plat/l4_3xxx.h
->  create mode 100644 arch/arm/plat-omap/include/plat/omap-serial.h
->  create mode 100644 drivers/serial/omap-serial.c
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
