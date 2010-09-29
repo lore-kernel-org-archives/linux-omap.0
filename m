@@ -1,82 +1,117 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
-Date: Wed, 29 Sep 2010 12:40:51 -0700
-Message-ID: <87vd5oxrr0.fsf@deeprootsystems.com>
-References: <8762xpenf8.fsf@deeprootsystems.com>
-	<20100928201844.GI3117@atomide.com>
-	<87d3rxblfu.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF2DAF48@dbde02.ent.ti.com>
-	<0680EC522D0CC943BC586913CF3768C003FF2DAF49@dbde02.ent.ti.com>
-	<87bp7gz7by.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF2DAF53@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [GIT PULL] omap2 sparse fixes
+Date: Thu, 30 Sep 2010 01:21:00 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE8F9@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A390E@dbde02.ent.ti.com>
+ <20100923225851.GR4211@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
+ <20100925001914.GO4211@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F917C@dbde02.ent.ti.com>
+ <20100928152139.GB3117@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F94C9@dbde02.ent.ti.com>
+ <20100928183157.GH3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:37280 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755617Ab0I2Tky (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 15:40:54 -0400
-Received: by pzk34 with SMTP id 34so283955pzk.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Sep 2010 12:40:53 -0700 (PDT)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003FF2DAF53@dbde02.ent.ti.com>
-	(Rajendra Nayak's message of "Thu, 30 Sep 2010 00:58:12 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:39323 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753249Ab0I2TvZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 15:51:25 -0400
+In-Reply-To: <20100928183157.GH3117@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "Raja, Govindraj" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>
-
-"Nayak, Rajendra" <rnayak@ti.com> writes:
-
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Thursday, September 30, 2010 12:49 AM
->> To: Nayak, Rajendra; Raja, Govindraj
->> Cc: Tony Lindgren; linux-omap@vger.kernel.org; Varadarajan, Charulatha
->> Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
->> 
->> "Nayak, Rajendra" <rnayak@ti.com> writes:
->> 
->> [...]
->> 
->> >
->> > I forgot to mention, there are similar WARN's that I see on 2430sdp even with UART
->> >
->> 
->> Govidraj, can you look into these UART issues please?
->> 
->> Looks like you might need to double check the bitfields and the
->> module_offs for both of these.
->
-> Btw, the WARN's come only for UART3 and the error at hwmod init shows that
-> maybe _wait_target_ready fails.
->
-> [    0.000000] NR_IRQS:402
-> [    0.000000] Clocking rate (Crystal/DPLL/MPU): 13.0/660/330 MHz
-> [    0.000000] omap_hwmod: uart3: cannot be enabled (3)
->
-
-UART3 on 24xx is in CM_IDLEST2_CORE, and the 2430 hwmod data has it in
-CM_IDLEST1_CORE.
-
-Can you test the change below?  I don't have a 2430, and it appears that
-this is already correct in the 2420 hwmod data.
-
-Kevin
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index 92f4ec0..5b61f7c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -449,9 +449,9 @@ static struct omap_hwmod omap2430_uart3_hwmod = {
- 	.prcm		= {
- 		.omap2 = {
- 			.module_offs = CORE_MOD,
--			.prcm_reg_id = 1,
-+			.prcm_reg_id = 2,
- 			.module_bit = OMAP24XX_EN_UART3_SHIFT,
--			.idlest_reg_id = 1,
-+			.idlest_reg_id = 2,
- 			.idlest_idle_bit = OMAP24XX_EN_UART3_SHIFT,
- 		},
- 	},
+Tony,
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Wednesday, September 29, 2010 12:02 AM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Samuel Ortiz; Dmitry 
+> Torokhov; linux-mtd@lists.infradead.org; Russell King - ARM Linux
+> Subject: Re: [GIT PULL] omap2 sparse fixes
+> 
+> * G, Manjunath Kondaiah <manjugk@ti.com> [100928 08:26]:
+...
+
+> Yes please take out all patches that are not in arch/arm/*omap*/ path.
+> The others really should go to the driver maintainers.
+> 
+> Tony
+
+Here is new branch which has only arch/arm/*omap*/ related patches.
+
+-Manjunath
+
+The following changes since commit 899611ee7d373e5eeda08e9a8632684e1ebbbf00:
+  Linus Torvalds (1):
+        Linux 2.6.36-rc6
+
+are available in the git repository at:
+
+  git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git omap_sparse_fixes
+
+G, Manjunath Kondaiah (7):
+      OMAP: mach-omap2: Fix incorrect assignment warnings
+      OMAP: mach-omap2: Fix static declaration warnings
+      OMAP: mach-omap2: Fix static function warnings
+      OMAP: mach-omap2: Fix miscellaneous sparse warnings
+      OMAP: plat-omap: Fix static function warnings
+      OMAP: Convert write/read functions to raw read/write
+      OMAP3: Keypad: Fix incorrect type initializer
+
+ arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
+ arch/arm/mach-omap2/board-4430sdp.c                |    3 +-
+ arch/arm/mach-omap2/board-am3517evm.c              |    5 +--
+ arch/arm/mach-omap2/board-cm-t35.c                 |    2 +-
+ arch/arm/mach-omap2/board-devkit8000.c             |    4 +-
+ arch/arm/mach-omap2/board-igep0020.c               |    4 +-
+ arch/arm/mach-omap2/board-ldp.c                    |    2 +-
+ arch/arm/mach-omap2/board-n8x0.c                   |   16 +----------
+ arch/arm/mach-omap2/board-omap3beagle.c            |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c               |    8 +++---
+ arch/arm/mach-omap2/board-omap3stalker.c           |    6 ++--
+ arch/arm/mach-omap2/board-omap3touchbook.c         |    4 +-
+ arch/arm/mach-omap2/board-omap4panda.c             |    2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |    4 ++-
+ arch/arm/mach-omap2/board-rx51-sdram.c             |    2 +-
+ arch/arm/mach-omap2/board-rx51-video.c             |    2 +
+ arch/arm/mach-omap2/board-zoom-debugboard.c        |    2 +
+ arch/arm/mach-omap2/board-zoom-peripherals.c       |    4 ++-
+ arch/arm/mach-omap2/control.c                      |    5 ++-
+ arch/arm/mach-omap2/gpmc-onenand.c                 |    8 +++---
+ arch/arm/mach-omap2/include/mach/board-flash.h     |    2 +
+ arch/arm/mach-omap2/include/mach/board-rx51.h      |   11 ++++++++
+ arch/arm/mach-omap2/io.c                           |    1 +
+ arch/arm/mach-omap2/io.h                           |    7 +++++
+ arch/arm/mach-omap2/irq.c                          |    1 -
+ arch/arm/mach-omap2/mux2420.c                      |    2 +-
+ arch/arm/mach-omap2/mux2430.c                      |    2 +-
+ arch/arm/mach-omap2/mux34xx.c                      |   12 ++++----
+ arch/arm/mach-omap2/pm-debug.c                     |    2 +-
+ arch/arm/mach-omap2/pm34xx.c                       |    2 +-
+ arch/arm/mach-omap2/powerdomain.c                  |   28 --------------------
+ arch/arm/mach-omap2/prcm.c                         |    2 +-
+ .../include/plat => mach-omap2}/timer-gp.h         |    3 +-
+ arch/arm/plat-omap/cpu-omap.c                      |    4 +-
+ arch/arm/plat-omap/dmtimer.c                       |    6 ++--
+ arch/arm/plat-omap/fb.c                            |    2 +
+ arch/arm/plat-omap/fb.h                            |   10 +++++++
+ arch/arm/plat-omap/include/plat/dmtimer.h          |    4 ++-
+ arch/arm/plat-omap/include/plat/sdrc.h             |    1 +
+ arch/arm/plat-omap/include/plat/sram.h             |    1 -
+ arch/arm/plat-omap/mcbsp.c                         |   10 +++---
+ arch/arm/plat-omap/sram.c                          |   21 ++++++--------
+ arch/arm/plat-omap/sram.h                          |    6 ++++
+ 43 files changed, 115 insertions(+), 112 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/board-rx51.h
+ create mode 100644 arch/arm/mach-omap2/io.h
+ rename arch/arm/{plat-omap/include/plat => mach-omap2}/timer-gp.h (86%)
+ create mode 100644 arch/arm/plat-omap/fb.h
+ create mode 100644 arch/arm/plat-omap/sram.h
