@@ -1,91 +1,54 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: [PATCH v4] usb: musb: Adding names for IRQs in resource
- structure
-Date: Wed, 29 Sep 2010 17:08:47 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE641@dbde02.ent.ti.com>
-References: <1285777599-24245-1-git-send-email-hemahk@ti.com>
- <20100929065952.GJ2728@legolas.emea.dhcp.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE486@dbde02.ent.ti.com>
- <20100929101112.GR2728@legolas.emea.dhcp.ti.com>
+From: Trilok Soni <soni.trilok@gmail.com>
+Subject: Re: [PATCH 1/7] pwm: Add pwm core driver
+Date: Wed, 29 Sep 2010 17:42:31 +0530
+Message-ID: <AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
+References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
+	<1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
+	<4CA1AD2B.8000905@metafoo.de>
+	<F45880696056844FA6A73F415B568C69532DC2FB6B@EXDCVYMBSTM006.EQ1STM.local>
+	<4CA1BC16.3020702@metafoo.de>
+	<F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
+	<4CA25841.4090702@metafoo.de>
+	<F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50784 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751272Ab0I2LjB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 07:39:01 -0400
-In-Reply-To: <20100929101112.GR2728@legolas.emea.dhcp.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arun MURTHY <arun.murthy@stericsson.com>
+Cc: "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, Lars-Peter Clausen <lars@metafoo.de>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Bill Gatliff <bgat@billgatliff.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, Marek Vasut <marek.vasut@gmail.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, Mattias WALLIN <mattias.wallin@stericsson.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, robert.jarzmik@f
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Frysinger <vapier@gentoo.org>
 
- 
+Hi Arun,
 
->-----Original Message-----
->From: Balbi, Felipe 
->Sent: Wednesday, September 29, 2010 3:41 PM
->To: Kalliguddi, Hema
->Cc: Balbi, Felipe; linux-omap@vger.kernel.org; 
->linux-usb@vger.kernel.org; Tony Lindgren; Kevin Hilman; 
->Cousson, Benoit; Paul Walmsley; Mike Frysinger
->Subject: Re: [PATCH v4] usb: musb: Adding names for IRQs in 
->resource structure
->
->On Wed, Sep 29, 2010 at 03:54:45AM -0500, Kalliguddi, Hema wrote:
->> Hi,
->>
->>>-----Original Message-----
->>>From: Balbi, Felipe
->>>Sent: Wednesday, September 29, 2010 12:30 PM
->>>To: Kalliguddi, Hema
->>>Cc: linux-omap@vger.kernel.org; linux-usb@vger.kernel.org;
->>>Balbi, Felipe; Tony Lindgren; Kevin Hilman; Cousson, Benoit;
->>>Paul Walmsley; Mike Frysinger
->>>Subject: Re: [PATCH v4] usb: musb: Adding names for IRQs in
->>>resource structure
->>>
->>>Hi,
->>>
->>>On Wed, Sep 29, 2010 at 11:26:39AM -0500, Kalliguddi, Hema wrote:
->>>>Index: linux-omap-pm/arch/arm/mach-davinci/usb.c
->>>>===================================================================
->>>>--- linux-omap-pm.orig/arch/arm/mach-davinci/usb.c
->>>>+++ linux-omap-pm/arch/arm/mach-davinci/usb.c
->>>>@@ -64,10 +64,12 @@ static struct resource usb_resources[] =
->>>> 	{
->>>> 		.start          = IRQ_USBINT,
->>>> 		.flags          = IORESOURCE_IRQ,
->>>>+		.name		= "mc"
->>>> 	},
->>>> 	{
->>>> 		/* placeholder for the dedicated CPPI IRQ */
->>>> 		.flags          = IORESOURCE_IRQ,
->>>>+		.name		= "dma"
->>>> 	},
->>>> };
->>>
->>>you add names only to the IRQs, this will still require the 
->memory base
->>>to be the first resource. Maybe adding a name like "regs" to 
->the memory
->>>base and changing to platform_get_resource_byname(pdev, "regs") on
->>>musb-core.c
->>>
->>It does not mandate the base address to be the first 
->resource, as the api
->>used for getting the base address takes the resource type as 
->parameter.
->>"platform_get_resource(struct platform_device *dev,unsigned int type,
->>unsigned int num)". but it mandates the base addresses have to be in
->>certain order if there are multiple base address.Since for musb there
->>is one base address.
->
->true :-p Sorry about that. Just noise.
->
-That's Ok...
->-- 
->balbi
->
+Adding Bill Gatliff (anyway, CC list already crowded)
+
+On Wed, Sep 29, 2010 at 10:19 AM, Arun MURTHY
+<arun.murthy@stericsson.com> wrote:
+>> Arun MURTHY wrote:
+>> >>>> Shouldn't PWM_DEVICES select HAVE_PWM?
+>> >>>
+>> >>> No not required, the entire concept is to remove HAVE_PWM and use
+>> >> PWM_CORE.
+
+There is already nice and clean framework written by Bill for PWM, if
+you grep the LKML and linux-embedded mailing list archive then you
+will get his patches, and it seems that he had promised to send the
+updated version few week back, but not heard from him (may be because
+he was travelling as per FB status).
+
+Please evaluate that framework too.
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
