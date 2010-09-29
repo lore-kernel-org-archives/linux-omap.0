@@ -1,613 +1,93 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 2/3 v4] musb: add musb support for AM35x
-Date: Wed, 29 Sep 2010 18:15:20 +0530
-Message-ID: <1285764321-13934-2-git-send-email-ajay.gupta@ti.com>
-References: <1285764321-13934-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39956 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755860Ab0I2Mp3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Sep 2010 08:45:29 -0400
-In-Reply-To: <1285764321-13934-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH v8 0/6] OMAP: WDT: Implement WDT in hwmod way
+Date: Wed, 29 Sep 2010 18:44:03 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CD02B1E@dbde02.ent.ti.com>
+References: <1285252363-3630-1-git-send-email-charu@ti.com>
+	<877hi5740v.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <877hi5740v.fsf@deeprootsystems.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak,
+	Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson,
+	Benoit" <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-AM35x has musb interface and uses CPPI4.1 DMA engine.
-Current patch supports only PIO mode. DMA support can be
-added later once basic CPPI4.1 DMA patch is accepted.
 
-Also added USB_MUSB_AM35X which is required to differentiate musb ips
-between OMAP3x and AM35x. This config would be used to for below
-purposes,
-        - Select am35x.c instead of omap2430.c for compilation
-          at drivers/usb/musb directory. Please note there are
-          significant differneces in these two files as musb ip
-          in quite different on AM35x.
-        - Select workaround codes applicable for AM35x musb issues.
-          one such workaround is for bytewise read issue on AM35x.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
-Changes from v3, (Mostly based on Sergei's review comment)
-	- Cleaned up the clock related coding.
-	- Removed the setting of musb->a_wait_vcon
-	- Removed musb->is_active = 1 from isr routine.
-	- Moved the GPIOMODE and DATA_POLARITY PHY config to board files.
-	- Didn't add SESSSION bit write in otg_time for OTG_STATE_B_IDLE
-	  case as it always makes Vbus in switched on state.
-	- Removed waiting loop in musb_platform_exit() function.
-	
- drivers/usb/musb/Kconfig  |   13 +-
- drivers/usb/musb/Makefile |    4 +
- drivers/usb/musb/am35x.c  |  510 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 526 insertions(+), 1 deletions(-)
- create mode 100644 drivers/usb/musb/am35x.c
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Wednesday, September 29, 2010 6:36 AM
+> To: Varadarajan, Charulatha
+> Cc: tony@atomide.com; wim@iguana.be; linux-omap@vger.kernel.org; linux-
+> watchdog@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> paul@pwsan.com; Cousson, Benoit; Nayak, Rajendra; Basak, Partha
+> Subject: Re: [PATCH v8 0/6] OMAP: WDT: Implement WDT in hwmod way
+> 
+> Hi Charu,
+> 
+> "Varadarajan, Charulatha" <charu@ti.com> writes:
+> 
+> > Series of patches to port watchdog module to use hwmod APIs
+> > for OMAP2PLUS chips and use runtime APIs for all OMAP chips.
+> > For this hwmod database for OMAP2PLUS watchdog instances are
+> > populated and implements watchdog module to use PM runtime APIs.
+> >
+> > This patch series is generated on "origin/pm-core" which
+> > has Kevin's pm-next series, the runtime PM core patch series,
+> > and a collection of hwmod fixes that Paul/Benoit have lined up
+> > for 2.6.37.
+> >
+> > Tested on OMAP2430, OMAP4430 (ES1.0 & ES2.0), OMAP3430 SDP boards
+> > and zoom3 board. Also verified that this patch series does not
+> > break the OMAP1 build.
+> 
+> I found a little snag with this series.  Try testing with
+> omap2plus_defconfig and changing CONFIG_OMAP_WATCHDOG=n.
+> 
+> If CONFIG_OMAP_WATCHDOG is not enabled in the kernel config, the system
+> will reboot soon after bootup. 
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 1dd21c2..0941a32 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -60,6 +60,17 @@ comment "OMAP 44xx high speed USB support"
- comment "Blackfin high speed USB Support"
- 	depends on USB_MUSB_HDRC && ((BF54x && !BF544) || (BF52x && !BF522 && !BF523))
- 
-+config USB_MUSB_AM35X
-+	boolean "AM35X MUSB support"
-+	depends on USB_MUSB_HDRC && MACH_OMAP3517EVM
-+	select NOP_USB_XCEIV
-+	default y
-+	help
-+	  Select this option if your platform is based on AM35x. As
-+	  AM35x has an updated MUSB with CPPI4.1 DMA so this config
-+	  is introduced to differentiate musb ip between OMAP3x and
-+	  AM35x platforms.
-+
- config USB_TUSB6010
- 	boolean "TUSB 6010 support"
- 	depends on USB_MUSB_HDRC && !USB_MUSB_SOC
-@@ -147,7 +158,7 @@ config USB_MUSB_HDRC_HCD
- config MUSB_PIO_ONLY
- 	bool 'Disable DMA (always use PIO)'
- 	depends on USB_MUSB_HDRC
--	default USB_TUSB6010 || ARCH_DAVINCI_DA8XX
-+	default USB_TUSB6010 || ARCH_DAVINCI_DA8XX || USB_MUSB_AM35X
- 	help
- 	  All data is copied between memory and FIFO by the CPU.
- 	  DMA controllers are ignored.
-diff --git a/drivers/usb/musb/Makefile b/drivers/usb/musb/Makefile
-index f664ecf..217363d 100644
---- a/drivers/usb/musb/Makefile
-+++ b/drivers/usb/musb/Makefile
-@@ -23,7 +23,11 @@ ifeq ($(CONFIG_ARCH_OMAP2430),y)
- endif
- 
- ifeq ($(CONFIG_ARCH_OMAP3430),y)
-+   ifeq ($(CONFIG_USB_MUSB_AM35X),y)
-+	musb_hdrc-objs  += am35x.o
-+   else
- 	musb_hdrc-objs	+= omap2430.o
-+   endif
- endif
- 
- ifeq ($(CONFIG_ARCH_OMAP4),y)
-diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
-new file mode 100644
-index 0000000..ee0c104
---- /dev/null
-+++ b/drivers/usb/musb/am35x.c
-@@ -0,0 +1,510 @@
-+/*
-+ * Texas Instruments AM35x "glue layer"
-+ *
-+ * Copyright (c) 2010, by Texas Instruments
-+ *
-+ * Based on the DA8xx "glue layer" code.
-+ * Copyright (C) 2005-2006 by Texas Instruments
-+ * Copyright (c) 2008, MontaVista Software, Inc. <source@mvista.com>
-+ *
-+ * This file is part of the Inventra Controller Driver for Linux.
-+ *
-+ * The Inventra Controller Driver for Linux is free software; you
-+ * can redistribute it and/or modify it under the terms of the GNU
-+ * General Public License version 2 as published by the Free Software
-+ * Foundation.
-+ *
-+ * The Inventra Controller Driver for Linux is distributed in
-+ * the hope that it will be useful, but WITHOUT ANY WARRANTY;
-+ * without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-+ * License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with The Inventra Controller Driver for Linux ; if not,
-+ * write to the Free Software Foundation, Inc., 59 Temple Place,
-+ * Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+
-+#include <plat/control.h>
-+#include <plat/usb.h>
-+
-+#include "musb_core.h"
-+
-+/*
-+ * AM35x specific definitions
-+ */
-+/* USB 2.0 OTG module registers */
-+#define USB_REVISION_REG	0x00
-+#define USB_CTRL_REG		0x04
-+#define USB_STAT_REG		0x08
-+#define USB_EMULATION_REG	0x0c
-+/* 0x10 Reserved */
-+#define USB_AUTOREQ_REG		0x14
-+#define USB_SRP_FIX_TIME_REG	0x18
-+#define USB_TEARDOWN_REG	0x1c
-+#define EP_INTR_SRC_REG		0x20
-+#define EP_INTR_SRC_SET_REG	0x24
-+#define EP_INTR_SRC_CLEAR_REG	0x28
-+#define EP_INTR_MASK_REG	0x2c
-+#define EP_INTR_MASK_SET_REG	0x30
-+#define EP_INTR_MASK_CLEAR_REG	0x34
-+#define EP_INTR_SRC_MASKED_REG	0x38
-+#define CORE_INTR_SRC_REG	0x40
-+#define CORE_INTR_SRC_SET_REG	0x44
-+#define CORE_INTR_SRC_CLEAR_REG	0x48
-+#define CORE_INTR_MASK_REG	0x4c
-+#define CORE_INTR_MASK_SET_REG	0x50
-+#define CORE_INTR_MASK_CLEAR_REG 0x54
-+#define CORE_INTR_SRC_MASKED_REG 0x58
-+/* 0x5c Reserved */
-+#define USB_END_OF_INTR_REG	0x60
-+
-+/* Control register bits */
-+#define USB_SOFT_RESET_MASK	1
-+
-+/* USB interrupt register bits */
-+#define USB_INTR_USB_SHIFT	16
-+#define USB_INTR_USB_MASK	(0x1ff << USB_INTR_USB_SHIFT)
-+#define USB_INTR_DRVVBUS	0x100
-+#define USB_INTR_RX_SHIFT	16
-+#define USB_INTR_TX_SHIFT	0
-+#define AM35X_TX_EP_MASK	0xffff		/* EP0 + 15 Tx EPs */
-+#define AM35X_RX_EP_MASK	0xfffe		/* 15 Rx EPs */
-+#define AM35X_TX_INTR_MASK	(AM35X_TX_EP_MASK << USB_INTR_TX_SHIFT)
-+#define AM35X_RX_INTR_MASK	(AM35X_RX_EP_MASK << USB_INTR_RX_SHIFT)
-+
-+#define USB_MENTOR_CORE_OFFSET	0x400
-+
-+static inline void phy_on(void)
-+{
-+	unsigned long timeout = jiffies + msecs_to_jiffies(100);
-+	u32 devconf2;
-+
-+	/*
-+	 * Start the on-chip PHY and its PLL.
-+	 */
-+	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+	devconf2 &= ~(CONF2_RESET | CONF2_PHYPWRDN | CONF2_OTGPWRDN);
-+	devconf2 |= CONF2_PHY_PLLON;
-+
-+	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+
-+	DBG(1, "Waiting for PHY clock good...\n");
-+	while (!(omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2)
-+			& CONF2_PHYCLKGD)) {
-+		cpu_relax();
-+
-+		if (time_after(jiffies, timeout)) {
-+			DBG(1, "musb PHY clock good timed out\n");
-+			break;
-+		}
-+	}
-+}
-+
-+static inline void phy_off(void)
-+{
-+	u32 devconf2;
-+
-+	/*
-+	 * Power down the on-chip PHY.
-+	 */
-+	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+	devconf2 &= ~CONF2_PHY_PLLON;
-+	devconf2 |=  CONF2_PHYPWRDN | CONF2_OTGPWRDN;
-+	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+}
-+
-+/*
-+ * musb_platform_enable - enable interrupts
-+ */
-+void musb_platform_enable(struct musb *musb)
-+{
-+	void __iomem *reg_base = musb->ctrl_base;
-+	u32 epmask;
-+
-+	/* Workaround: setup IRQs through both register sets. */
-+	epmask = ((musb->epmask & AM35X_TX_EP_MASK) << USB_INTR_TX_SHIFT) |
-+	       ((musb->epmask & AM35X_RX_EP_MASK) << USB_INTR_RX_SHIFT);
-+
-+	musb_writel(reg_base, EP_INTR_MASK_SET_REG, epmask);
-+	musb_writel(reg_base, CORE_INTR_MASK_SET_REG, USB_INTR_USB_MASK);
-+
-+	/* Force the DRVVBUS IRQ so we can start polling for ID change. */
-+	if (is_otg_enabled(musb))
-+		musb_writel(reg_base, CORE_INTR_SRC_SET_REG,
-+			    USB_INTR_DRVVBUS << USB_INTR_USB_SHIFT);
-+}
-+
-+/*
-+ * musb_platform_disable - disable HDRC and flush interrupts
-+ */
-+void musb_platform_disable(struct musb *musb)
-+{
-+	void __iomem *reg_base = musb->ctrl_base;
-+
-+	musb_writel(reg_base, CORE_INTR_MASK_CLEAR_REG, USB_INTR_USB_MASK);
-+	musb_writel(reg_base, EP_INTR_MASK_CLEAR_REG,
-+			 AM35X_TX_INTR_MASK | AM35X_RX_INTR_MASK);
-+	musb_writeb(musb->mregs, MUSB_DEVCTL, 0);
-+	musb_writel(reg_base, USB_END_OF_INTR_REG, 0);
-+}
-+
-+#ifdef CONFIG_USB_MUSB_HDRC_HCD
-+#define portstate(stmt)		stmt
-+#else
-+#define portstate(stmt)
-+#endif
-+
-+static void am35x_set_vbus(struct musb *musb, int is_on)
-+{
-+	WARN_ON(is_on && is_peripheral_active(musb));
-+}
-+
-+#define	POLL_SECONDS	2
-+
-+static struct timer_list otg_workaround;
-+
-+static void otg_timer(unsigned long _musb)
-+{
-+	struct musb		*musb = (void *)_musb;
-+	void __iomem		*mregs = musb->mregs;
-+	u8			devctl;
-+	unsigned long		flags;
-+
-+	/*
-+	 * We poll because AM35x's won't expose several OTG-critical
-+	 * status change events (from the transceiver) otherwise.
-+	 */
-+	devctl = musb_readb(mregs, MUSB_DEVCTL);
-+	DBG(7, "Poll devctl %02x (%s)\n", devctl, otg_state_string(musb));
-+
-+	spin_lock_irqsave(&musb->lock, flags);
-+	switch (musb->xceiv->state) {
-+	case OTG_STATE_A_WAIT_BCON:
-+		devctl &= ~MUSB_DEVCTL_SESSION;
-+		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
-+
-+		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-+		if (devctl & MUSB_DEVCTL_BDEVICE) {
-+			musb->xceiv->state = OTG_STATE_B_IDLE;
-+			MUSB_DEV_MODE(musb);
-+		} else {
-+			musb->xceiv->state = OTG_STATE_A_IDLE;
-+			MUSB_HST_MODE(musb);
-+		}
-+		break;
-+	case OTG_STATE_A_WAIT_VFALL:
-+		musb->xceiv->state = OTG_STATE_A_WAIT_VRISE;
-+		musb_writel(musb->ctrl_base, CORE_INTR_SRC_SET_REG,
-+			    MUSB_INTR_VBUSERROR << USB_INTR_USB_SHIFT);
-+		break;
-+	case OTG_STATE_B_IDLE:
-+		if (!is_peripheral_enabled(musb))
-+			break;
-+
-+		devctl = musb_readb(mregs, MUSB_DEVCTL);
-+		if (devctl & MUSB_DEVCTL_BDEVICE)
-+			mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
-+		else
-+			musb->xceiv->state = OTG_STATE_A_IDLE;
-+		break;
-+	default:
-+		break;
-+	}
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+}
-+
-+void musb_platform_try_idle(struct musb *musb, unsigned long timeout)
-+{
-+	static unsigned long last_timer;
-+
-+	if (!is_otg_enabled(musb))
-+		return;
-+
-+	if (timeout == 0)
-+		timeout = jiffies + msecs_to_jiffies(3);
-+
-+	/* Never idle if active, or when VBUS timeout is not set as host */
-+	if (musb->is_active || (musb->a_wait_bcon == 0 &&
-+				musb->xceiv->state == OTG_STATE_A_WAIT_BCON)) {
-+		DBG(4, "%s active, deleting timer\n", otg_state_string(musb));
-+		del_timer(&otg_workaround);
-+		last_timer = jiffies;
-+		return;
-+	}
-+
-+	if (time_after(last_timer, timeout) && timer_pending(&otg_workaround)) {
-+		DBG(4, "Longer idle timer already pending, ignoring...\n");
-+		return;
-+	}
-+	last_timer = timeout;
-+
-+	DBG(4, "%s inactive, starting idle timer for %u ms\n",
-+	    otg_state_string(musb), jiffies_to_msecs(timeout - jiffies));
-+	mod_timer(&otg_workaround, timeout);
-+}
-+
-+static irqreturn_t am35x_interrupt(int irq, void *hci)
-+{
-+	struct musb  *musb = hci;
-+	void __iomem *reg_base = musb->ctrl_base;
-+	unsigned long flags;
-+	irqreturn_t ret = IRQ_NONE;
-+	u32 epintr, usbintr, lvl_intr;
-+
-+	spin_lock_irqsave(&musb->lock, flags);
-+
-+	/* Get endpoint interrupts */
-+	epintr = musb_readl(reg_base, EP_INTR_SRC_MASKED_REG);
-+
-+	if (epintr) {
-+		musb_writel(reg_base, EP_INTR_SRC_CLEAR_REG, epintr);
-+
-+		musb->int_rx =
-+			(epintr & AM35X_RX_INTR_MASK) >> USB_INTR_RX_SHIFT;
-+		musb->int_tx =
-+			(epintr & AM35X_TX_INTR_MASK) >> USB_INTR_TX_SHIFT;
-+	}
-+
-+	/* Get usb core interrupts */
-+	usbintr = musb_readl(reg_base, CORE_INTR_SRC_MASKED_REG);
-+	if (!usbintr && !epintr)
-+		goto eoi;
-+
-+	if (usbintr) {
-+		musb_writel(reg_base, CORE_INTR_SRC_CLEAR_REG, usbintr);
-+
-+		musb->int_usb =
-+			(usbintr & USB_INTR_USB_MASK) >> USB_INTR_USB_SHIFT;
-+	}
-+	/*
-+	 * DRVVBUS IRQs are the only proxy we have (a very poor one!) for
-+	 * AM35x's missing ID change IRQ.  We need an ID change IRQ to
-+	 * switch appropriately between halves of the OTG state machine.
-+	 * Managing DEVCTL.SESSION per Mentor docs requires that we know its
-+	 * value but DEVCTL.BDEVICE is invalid without DEVCTL.SESSION set.
-+	 * Also, DRVVBUS pulses for SRP (but not at 5V) ...
-+	 */
-+	if (usbintr & (USB_INTR_DRVVBUS << USB_INTR_USB_SHIFT)) {
-+		int drvvbus = musb_readl(reg_base, USB_STAT_REG);
-+		void __iomem *mregs = musb->mregs;
-+		u8 devctl = musb_readb(mregs, MUSB_DEVCTL);
-+		int err;
-+
-+		err = is_host_enabled(musb) && (musb->int_usb &
-+						MUSB_INTR_VBUSERROR);
-+		if (err) {
-+			/*
-+			 * The Mentor core doesn't debounce VBUS as needed
-+			 * to cope with device connect current spikes. This
-+			 * means it's not uncommon for bus-powered devices
-+			 * to get VBUS errors during enumeration.
-+			 *
-+			 * This is a workaround, but newer RTL from Mentor
-+			 * seems to allow a better one: "re"-starting sessions
-+			 * without waiting for VBUS to stop registering in
-+			 * devctl.
-+			 */
-+			musb->int_usb &= ~MUSB_INTR_VBUSERROR;
-+			musb->xceiv->state = OTG_STATE_A_WAIT_VFALL;
-+			mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
-+			WARNING("VBUS error workaround (delay coming)\n");
-+		} else if (is_host_enabled(musb) && drvvbus) {
-+			MUSB_HST_MODE(musb);
-+			musb->xceiv->default_a = 1;
-+			musb->xceiv->state = OTG_STATE_A_WAIT_VRISE;
-+			portstate(musb->port1_status |= USB_PORT_STAT_POWER);
-+			del_timer(&otg_workaround);
-+		} else {
-+			musb->is_active = 0;
-+			MUSB_DEV_MODE(musb);
-+			musb->xceiv->default_a = 0;
-+			musb->xceiv->state = OTG_STATE_B_IDLE;
-+			portstate(musb->port1_status &= ~USB_PORT_STAT_POWER);
-+		}
-+
-+		/* NOTE: this must complete power-on within 100 ms. */
-+		DBG(2, "VBUS %s (%s)%s, devctl %02x\n",
-+				drvvbus ? "on" : "off",
-+				otg_state_string(musb),
-+				err ? " ERROR" : "",
-+				devctl);
-+		ret = IRQ_HANDLED;
-+	}
-+
-+	if (musb->int_tx || musb->int_rx || musb->int_usb)
-+		ret |= musb_interrupt(musb);
-+
-+eoi:
-+	/* EOI needs to be written for the IRQ to be re-asserted. */
-+	if (ret == IRQ_HANDLED || epintr || usbintr) {
-+		/* clear level interrupt */
-+		lvl_intr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-+		lvl_intr |= AM35XX_USBOTGSS_INT_CLR;
-+		omap_ctrl_writel(lvl_intr, AM35XX_CONTROL_LVL_INTR_CLEAR);
-+		/* write EOI */
-+		musb_writel(reg_base, USB_END_OF_INTR_REG, 0);
-+	}
-+
-+	/* Poll for ID change */
-+	if (is_otg_enabled(musb) && musb->xceiv->state == OTG_STATE_B_IDLE)
-+		mod_timer(&otg_workaround, jiffies + POLL_SECONDS * HZ);
-+
-+	spin_unlock_irqrestore(&musb->lock, flags);
-+
-+	return ret;
-+}
-+
-+int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
-+{
-+	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+	devconf2 &= ~CONF2_OTGMODE;
-+	switch (musb_mode) {
-+#ifdef	CONFIG_USB_MUSB_HDRC_HCD
-+	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
-+		devconf2 |= CONF2_FORCE_HOST;
-+		break;
-+#endif
-+#ifdef	CONFIG_USB_GADGET_MUSB_HDRC
-+	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
-+		devconf2 |= CONF2_FORCE_DEVICE;
-+		break;
-+#endif
-+#ifdef	CONFIG_USB_MUSB_OTG
-+	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
-+		devconf2 |= CONF2_NO_OVERRIDE;
-+		break;
-+#endif
-+	default:
-+		DBG(2, "Trying to set unsupported mode %u\n", musb_mode);
-+	}
-+
-+	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+	return 0;
-+}
-+
-+int __init musb_platform_init(struct musb *musb, void *board_data)
-+{
-+	void __iomem *reg_base = musb->ctrl_base;
-+	struct clk *otg_fck;
-+	u32 rev, lvl_intr, sw_reset;
-+	int status;
-+
-+	musb->mregs += USB_MENTOR_CORE_OFFSET;
-+
-+	if (musb->set_clock)
-+		musb->set_clock(musb->clock, 1);
-+	else
-+		clk_enable(musb->clock);
-+	DBG(2, "usbotg_ck=%lud\n", clk_get_rate(musb->clock));
-+
-+	otg_fck = clk_get(musb->controller, "fck");
-+	if (IS_ERR(otg_fck)) {
-+		status = PTR_ERR(otg_fck);
-+		otg_fck = NULL;
-+		goto exit0;
-+	}
-+	clk_enable(otg_fck);
-+	DBG(2, "usbotg_phy_ck=%lud\n", clk_get_rate(otg_fck));
-+
-+	/* Returns zero if e.g. not clocked */
-+	rev = musb_readl(reg_base, USB_REVISION_REG);
-+	if (!rev) {
-+		status = -ENODEV;
-+		goto exit1;
-+	}
-+
-+	usb_nop_xceiv_register();
-+	musb->xceiv = otg_get_transceiver();
-+	if (!musb->xceiv) {
-+		status = -ENODEV;
-+		goto exit1;
-+	}
-+
-+	if (is_host_enabled(musb))
-+		setup_timer(&otg_workaround, otg_timer, (unsigned long) musb);
-+
-+	musb->board_set_vbus = am35x_set_vbus;
-+
-+	/* Global reset */
-+	sw_reset = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
-+
-+	sw_reset |= AM35XX_USBOTGSS_SW_RST;
-+	omap_ctrl_writel(sw_reset, AM35XX_CONTROL_IP_SW_RESET);
-+
-+	sw_reset &= ~AM35XX_USBOTGSS_SW_RST;
-+	omap_ctrl_writel(sw_reset, AM35XX_CONTROL_IP_SW_RESET);
-+
-+	/* Reset the controller */
-+	musb_writel(reg_base, USB_CTRL_REG, USB_SOFT_RESET_MASK);
-+
-+	/* Start the on-chip PHY and its PLL. */
-+	phy_on();
-+
-+	msleep(5);
-+
-+	musb->isr = am35x_interrupt;
-+
-+	/* clear level interrupt */
-+	lvl_intr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-+	lvl_intr |= AM35XX_USBOTGSS_INT_CLR;
-+	omap_ctrl_writel(lvl_intr, AM35XX_CONTROL_LVL_INTR_CLEAR);
-+	return 0;
-+exit1:
-+	clk_disable(otg_fck);
-+exit0:
-+	clk_disable(musb->clock);
-+	return status;
-+}
-+
-+int musb_platform_exit(struct musb *musb)
-+{
-+	struct clk *otg_fck;
-+
-+	if (is_host_enabled(musb))
-+		del_timer_sync(&otg_workaround);
-+
-+	phy_off();
-+
-+	otg_put_transceiver(musb->xceiv);
-+	usb_nop_xceiv_unregister();
-+
-+	if (musb->set_clock)
-+		musb->set_clock(musb->clock, 0);
-+	else
-+		clk_disable(musb->clock);
-+
-+	otg_fck = clk_get(musb->controller, "fck");
-+	if (IS_ERR(otg_fck)) {
-+		DBG(2, "clk_get() failed for otg_fck.\n");
-+	} else {
-+		clk_put(otg_fck);
-+		clk_put(otg_fck);
-+		clk_disable(otg_fck);
-+	}
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+void musb_platform_save_context(struct musb *musb,
-+	struct musb_context_registers *musb_context)
-+{
-+	phy_off();
-+}
-+
-+void musb_platform_restore_context(struct musb *musb,
-+	struct musb_context_registers *musb_context)
-+{
-+	phy_on();
-+}
-+#endif
--- 
-1.6.2.4
+Thanks for finding this issue.
 
+After watchdog module reset, the WDTs are enabled. The default time
+for a system reset after a watchdog module reset is ~10s as per the
+default value of the WDT registers. Hence the above problem is observed.
+
+If CONFIG_OMAP_WATCHDOG is defined, wdt's probe is called within this
+10s time and watchdog_disable is called during probe. Hence we are not
+finding this issue if CONFIG_OMAP_WATCHDOG is defined.
+
+Ideally, because of the above, watchdog should be with
+HWMOD_INIT_NO_RESET flag.
+
+If agreed, I would send the below patch (extended to other OMAPs)
+on top of my watchdog timer hwmod series with proper change log.
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-
+omap2/omap_hwmod_3xxx_data.c
+index 5bfe9c9..c567b24 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -260,6 +260,7 @@ static struct omap_hwmod omap3xxx_wd_timer2_hwmod = {
+        .slaves         = omap3xxx_wd_timer2_slaves,
+        .slaves_cnt     = ARRAY_SIZE(omap3xxx_wd_timer2_slaves),
+        .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++       .flags          = HWMOD_INIT_NO_RESET,
+ };
+
+-V Charulatha
+
+<<snip>>
