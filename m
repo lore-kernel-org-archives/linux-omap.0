@@ -1,109 +1,54 @@
-From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 2/3 v4] musb: add musb support for AM35x
-Date: Wed, 29 Sep 2010 19:38:03 +0400
-Message-ID: <4CA35D5B.8060400@ru.mvista.com>
-References: <1285764321-13934-1-git-send-email-ajay.gupta@ti.com> <1285764321-13934-2-git-send-email-ajay.gupta@ti.com> <4CA35B3A.4090707@compulab.co.il>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v8 0/6] OMAP: WDT: Implement WDT in hwmod way
+Date: Wed, 29 Sep 2010 08:43:01 -0700
+Message-ID: <87y6ak1rp6.fsf@deeprootsystems.com>
+References: <1285252363-3630-1-git-send-email-charu@ti.com>
+	<877hi5740v.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CD02B1E@dbde02.ent.ti.com>
+	<87d3rw62ft.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CD02BA7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CA35B3A.4090707-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Igor Grinberg <grinberg-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Cc: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:55784 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753532Ab0I2PnG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 11:43:06 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CD02BA7@dbde02.ent.ti.com>
+	(Charulatha Varadarajan's message of "Wed, 29 Sep 2010 20:16:41
+	+0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-Hello.
-
-Igor Grinberg wrote:
-
->> AM35x has musb interface and uses CPPI4.1 DMA engine.
->> Current patch supports only PIO mode. DMA support can be
->> added later once basic CPPI4.1 DMA patch is accepted.
-
->> Also added USB_MUSB_AM35X which is required to differentiate musb ips
->> between OMAP3x and AM35x. This config would be used to for below
->> purposes,
->>         - Select am35x.c instead of omap2430.c for compilation
->>           at drivers/usb/musb directory. Please note there are
->>           significant differneces in these two files as musb ip
->>           in quite different on AM35x.
->>         - Select workaround codes applicable for AM35x musb issues.
->>           one such workaround is for bytewise read issue on AM35x.
-
->> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+"Varadarajan, Charulatha" <charu@ti.com> writes:
 
 [...]
 
->> diff --git a/drivers/usb/musb/am35x.c b/drivers/usb/musb/am35x.c
->> new file mode 100644
->> index 0000000..ee0c104
->> --- /dev/null
->> +++ b/drivers/usb/musb/am35x.c
->> @@ -0,0 +1,510 @@
-[...]
->> +int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
->> +{
->> +	u32 devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
->> +
->> +	devconf2 &= ~CONF2_OTGMODE;
->> +	switch (musb_mode) {
->> +#ifdef	CONFIG_USB_MUSB_HDRC_HCD
->> +	case MUSB_HOST:		/* Force VBUS valid, ID = 0 */
->> +		devconf2 |= CONF2_FORCE_HOST;
->> +		break;
->> +#endif
->> +#ifdef	CONFIG_USB_GADGET_MUSB_HDRC
->> +	case MUSB_PERIPHERAL:	/* Force VBUS valid, ID = 1 */
->> +		devconf2 |= CONF2_FORCE_DEVICE;
->> +		break;
->> +#endif
->> +#ifdef	CONFIG_USB_MUSB_OTG
->> +	case MUSB_OTG:		/* Don't override the VBUS/ID comparators */
->> +		devconf2 |= CONF2_NO_OVERRIDE;
+>> 
+>> Instead, I would rather have a small piece of code in omap_init_wdt()
+>> which disarms the watchdog so we don't have any assumptions about
+>> bootloader behavior.
+>> 
+>> The question remains whether this disarm should be
+>> #ifndef CONFIG_OMAP_WATCHDOG or if it should happen all the time.  In
+>> case the watchdog is a module, it's probe may not happen within the
+>> timeout period and they system may reboot also, so I lean towards
+>> disarming the watchdog unconditionally.
+>
+> Agreed. But this shall be handled in mach-omap2/devices.c by directly
+> accessing the watchdog registers and disabling it, as the watchdog driver
+> would not be available by this time. 
 
-> This does nothing, can be removed...
+Correct.
 
-    Well, I think you should let it live -- for completeness...
+> If this okay, I would send a separate patch on top my hwmod series to
+> handle this.
 
->> +int musb_platform_exit(struct musb *musb)
->> +{
->> +	struct clk *otg_fck;
->> +
->> +	if (is_host_enabled(musb))
->> +		del_timer_sync(&otg_workaround);
->> +
->> +	phy_off();
->> +
->> +	otg_put_transceiver(musb->xceiv);
->> +	usb_nop_xceiv_unregister();
->> +
->> +	if (musb->set_clock)
->> +		musb->set_clock(musb->clock, 0);
->> +	else
->> +		clk_disable(musb->clock);
->> +
->> +	otg_fck = clk_get(musb->controller, "fck");
->> +	if (IS_ERR(otg_fck)) {
->> +		DBG(2, "clk_get() failed for otg_fck.\n");
->> +	} else {
->> +		clk_put(otg_fck);
->> +		clk_put(otg_fck);
->> +		clk_disable(otg_fck);
+Yes please.
 
-> I think the order should be:
-> clk_disable(...);
-> clk_put(...);
+Thanks,
 
-    Right...
+Kevin
 
-> And of course, it should be put only once... ;)
-
-    clk_get() is called twice, here and in musb_platform_init(), and so is 
-clk_put().
-
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
