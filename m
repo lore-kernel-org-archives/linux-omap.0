@@ -1,58 +1,119 @@
-From: "Kalliguddi, Hema" <hemahk@ti.com>
-Subject: RE: [PATCH 1/9 v3] usb: musb: Adding names for IRQs in resource
- structure
-Date: Wed, 29 Sep 2010 12:05:32 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE347@dbde02.ent.ti.com>
-References: <1285201631-26266-1-git-send-email-hemahk@ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E94027863D959@dbde02.ent.ti.com>
- <AANLkTim=ARtDA99XWP+RuB5nBh5FNAJHfSV34fiwtAk8@mail.gmail.com>
- <alpine.DEB.2.00.1009281515590.5439@utopia.booyaka.com>
- <AANLkTi=UpeYtuQDuxEt2FNSajB-rtMpMZwseD=GUao2Y@mail.gmail.com>
- <alpine.DEB.2.00.1009281543290.5439@utopia.booyaka.com>
- <AANLkTi=77B2ntuJG7=J-g9GrcrJsWKUy6YbW0gm=MUQJ@mail.gmail.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE166@dbde02.ent.ti.com>
- <20100929063039.GE2728@legolas.emea.dhcp.ti.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
+Date: Wed, 29 Sep 2010 12:07:48 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356476436@dbde02.ent.ti.com>
+References: <1285594634-19277-1-git-send-email-s-ghorai@ti.com>
+ <1285594634-19277-2-git-send-email-s-ghorai@ti.com>
+ <20100928222727.GS3117@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36365 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46113 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751445Ab0I2Gfl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 02:35:41 -0400
-In-Reply-To: <20100929063039.GE2728@legolas.emea.dhcp.ti.com>
+	id S1751829Ab0I2Gh4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 02:37:56 -0400
+In-Reply-To: <20100928222727.GS3117@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: Mike Frysinger <vapier@gentoo.org>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Felipe,
- 
->-----Original Message-----
->From: Balbi, Felipe 
->Sent: Wednesday, September 29, 2010 12:01 PM
->To: Kalliguddi, Hema
->Cc: Mike Frysinger; Paul Walmsley; linux-omap@vger.kernel.org; 
->linux-usb@vger.kernel.org; Balbi, Felipe; Tony Lindgren; Kevin 
->Hilman; Cousson, Benoit
->Subject: Re: [PATCH 1/9 v3] usb: musb: Adding names for IRQs 
->in resource structure
->
->Hi,
->
->On Tue, Sep 28, 2010 at 10:32:07PM -0500, Kalliguddi, Hema wrote:
->>I will repost the patches today for blackfin and omap changes 
->with the changelog
->>updated accordingly.
->
->Have you re-sent the patches ? I just want to know if we're gonna merge
->it through Greg or the patch will be split and merged through ARCH
->trees.
->
->Each way if fine by me, but 2.6.37 is getting really close.
->
-Then I will send a patch with changelog updated soon.
->-- 
->balbi
->
+
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, September 29, 2010 3:57 AM
+> To: Ghorai, Sukumar
+> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
+> kernel@lists.infradead.org
+> Subject: Re: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
+> 
+> * Sukumar Ghorai <s-ghorai@ti.com> [100927 06:30]:
+> >   add support the irq mode in GPMC.
+> >   gpmc_init() function move after omap_init_irq() as it has dependecy on
+> irq.
+> 
+> > --- a/arch/arm/mach-omap2/board-2430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> > @@ -144,6 +144,7 @@ static void __init omap_2430sdp_init_irq(void)
+> >  	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
+> >  	omap2_init_common_hw(NULL, NULL);
+> >  	omap_init_irq();
+> > +	gpmc_init();
+> >  	omap_gpio_init();
+> >  }
+> >
+> > diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
+> omap2/board-3430sdp.c
+> > index 67b95b5..549cd62 100644
+> > --- a/arch/arm/mach-omap2/board-3430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> > @@ -328,6 +328,7 @@ static void __init omap_3430sdp_init_irq(void)
+> >  	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+> >  	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
+> >  	omap_init_irq();
+> > +	gpmc_init();
+> >  	omap_gpio_init();
+> >  }
+> ...
+> 
+> You can avoid adding gpmc_init() by making it a subsys_initcall().
+> Just make sure you return early from it with if (!cpu_class_is_omap2()).
+[Ghorai] will do
+> 
+> > --- a/arch/arm/mach-omap2/gpmc.c
+> > +++ b/arch/arm/mach-omap2/gpmc.c
+> > @@ -713,6 +721,31 @@ void __init gpmc_init(void)
+> >  	l |= (0x02 << 3) | (1 << 0);
+> >  	gpmc_write_reg(GPMC_SYSCONFIG, l);
+> >  	gpmc_mem_init();
+> > +
+> > +	/* initalize the irq_chained */
+> > +	irq = OMAP_GPMC_IRQ_BASE;
+> > +	for (cs = 0; cs < GPMC_CS_NUM; cs++) {
+> > +		set_irq_handler(irq, handle_simple_irq);
+> > +		set_irq_flags(irq, IRQF_VALID);
+> > +		irq++;
+> > +	}
+> > +
+> > +	if (request_irq(20, gpmc_handle_irq, IRQF_SHARED, "gpmc",
+> gpmc_base))
+> > +		printk(KERN_ERR "gpmc: irq-%d could not claim: err %d\n",
+> > +							INT_34XX_GPMC_IRQ, irq);
+> > +}
+> 
+> Hmm, this does not look right.. Shouldn't you call
+> set_irq_chained_handler()
+> somewhere too? 
+[Ghorai] its not use, as multi-lebel irq is not there.
+>Also, are you sure the interrupt is 20 for all of mach-
+> omap2?
+> It should be added to the irqs.h files.
+[Ghorai] it's added in irqs.h, and will remove the hard coded value. Last minute mistake.
+
+> 
+> > +static irqreturn_t gpmc_handle_irq(int irq, void *dev)
+> > +{
+> > +	u8 cs;
+> > +
+> > +	if (irq != INT_34XX_GPMC_IRQ)
+> > +		return IRQ_HANDLED;
+> > +	/* check cs to invoke the irq */
+> > +	cs = ((gpmc_read_reg(GPMC_PREFETCH_CONFIG1)) >> CS_NUM_SHIFT) & 0x7;
+> > +	generic_handle_irq(OMAP_GPMC_IRQ_BASE+cs);
+> > +
+> > +	return IRQ_HANDLED;
+> >  }
+> 
+> Doesn't doing OMAP_GPMC_IRQ_BASE + cs overlap with some other irq?
+[Ghorai] will check the boundary condition too -
+if(OMAP_GPMC_IRQ_BASE + cs <= OMAP_GPMC_IRQ_END)
+
+And will re-submit.
+
+> 
+> Regards,
+> 
+> Tony
