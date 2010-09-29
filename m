@@ -1,210 +1,48 @@
-From: Hema HK <hemahk@ti.com>
-Subject: [PATCH v4] usb: musb: Adding names for IRQs in resource structure
-Date: Wed, 29 Sep 2010 12:26:39 -0400
-Message-ID: <1285777599-24245-1-git-send-email-hemahk@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v4] usb: musb: Adding names for IRQs in resource
+ structure
+Date: Wed, 29 Sep 2010 09:59:52 +0300
+Message-ID: <20100929065952.GJ2728@legolas.emea.dhcp.ti.com>
+References: <1285777599-24245-1-git-send-email-hemahk@ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37623 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59521 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751155Ab0I2G4z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Sep 2010 02:56:55 -0400
+	id S1751102Ab0I2HAD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Sep 2010 03:00:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1285777599-24245-1-git-send-email-hemahk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
-Cc: Hema HK <hemahk@ti.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Frysinger <vapier@gentoo.org>
+To: "Kalliguddi, Hema" <hemahk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Mike Frysinger <vapier@gentoo.org>
 
-The resource data is getting automatically populated from a set of data
-generated from TI's hardware database for the OMAP platform, 
-While we could hack in some exceptions to that tool to generate resources
-in a specific order, it seems less fragile to use the resource name
-instead.That way, no matter what order the resources are generated, the
-driver still work. 
+Hi,
 
-Modified the OMAP,Blackfin and Davinci architecture files to add the name of the IRQs
-in the resource structures and musb driver to use the get_irq_byname() api to
-get the device and dma irq numbers instead of using the index.
+On Wed, Sep 29, 2010 at 11:26:39AM -0500, Kalliguddi, Hema wrote:
+>Index: linux-omap-pm/arch/arm/mach-davinci/usb.c
+>===================================================================
+>--- linux-omap-pm.orig/arch/arm/mach-davinci/usb.c
+>+++ linux-omap-pm/arch/arm/mach-davinci/usb.c
+>@@ -64,10 +64,12 @@ static struct resource usb_resources[] =
+> 	{
+> 		.start          = IRQ_USBINT,
+> 		.flags          = IORESOURCE_IRQ,
+>+		.name		= "mc"
+> 	},
+> 	{
+> 		/* placeholder for the dedicated CPPI IRQ */
+> 		.flags          = IORESOURCE_IRQ,
+>+		.name		= "dma"
+> 	},
+> };
 
-Signed-off-by: Hema HK <hemahk@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Cousson, Benoit <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
----
-[Updated the changelog with background]
+you add names only to the IRQs, this will still require the memory base
+to be the first resource. Maybe adding a name like "regs" to the memory
+base and changing to platform_get_resource_byname(pdev, "regs") on
+musb-core.c
 
- arch/arm/mach-davinci/usb.c                |    2 ++
- arch/arm/mach-omap2/usb-musb.c             |    2 ++
- arch/blackfin/mach-bf527/boards/cm_bf527.c |    2 ++
- arch/blackfin/mach-bf527/boards/ezbrd.c    |    2 ++
- arch/blackfin/mach-bf527/boards/ezkit.c    |    2 ++
- arch/blackfin/mach-bf548/boards/cm_bf548.c |    2 ++
- arch/blackfin/mach-bf548/boards/ezkit.c    |    2 ++
- drivers/usb/musb/cppi_dma.c                |    2 +-
- drivers/usb/musb/musb_core.c               |    2 +-
- drivers/usb/musb/musbhsdma.c               |    2 +-
- 10 files changed, 17 insertions(+), 3 deletions(-)
-
-Index: linux-omap-pm/arch/arm/mach-davinci/usb.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-davinci/usb.c
-+++ linux-omap-pm/arch/arm/mach-davinci/usb.c
-@@ -64,10 +64,12 @@ static struct resource usb_resources[] =
- 	{
- 		.start          = IRQ_USBINT,
- 		.flags          = IORESOURCE_IRQ,
-+		.name		= "mc"
- 	},
- 	{
- 		/* placeholder for the dedicated CPPI IRQ */
- 		.flags          = IORESOURCE_IRQ,
-+		.name		= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/usb-musb.c
-+++ linux-omap-pm/arch/arm/mach-omap2/usb-musb.c
-@@ -39,10 +39,12 @@ static struct resource musb_resources[] 
- 	[1] = {	/* general IRQ */
- 		.start	= INT_243X_HS_USB_MC,
- 		.flags	= IORESOURCE_IRQ,
-+		.name	= "mc",
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= INT_243X_HS_USB_DMA,
- 		.flags	= IORESOURCE_IRQ,
-+		.name	= "dma",
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/cm_bf527.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/cm_bf527.c
-+++ linux-omap-pm/arch/blackfin/mach-bf527/boards/cm_bf527.c
-@@ -82,11 +82,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/ezbrd.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/ezbrd.c
-+++ linux-omap-pm/arch/blackfin/mach-bf527/boards/ezbrd.c
-@@ -46,11 +46,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf527/boards/ezkit.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf527/boards/ezkit.c
-+++ linux-omap-pm/arch/blackfin/mach-bf527/boards/ezkit.c
-@@ -86,11 +86,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf548/boards/cm_bf548.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf548/boards/cm_bf548.c
-+++ linux-omap-pm/arch/blackfin/mach-bf548/boards/cm_bf548.c
-@@ -482,11 +482,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/arch/blackfin/mach-bf548/boards/ezkit.c
-===================================================================
---- linux-omap-pm.orig/arch/blackfin/mach-bf548/boards/ezkit.c
-+++ linux-omap-pm/arch/blackfin/mach-bf548/boards/ezkit.c
-@@ -587,11 +587,13 @@ static struct resource musb_resources[] 
- 		.start	= IRQ_USB_INT0,
- 		.end	= IRQ_USB_INT0,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "mc"
- 	},
- 	[2] = {	/* DMA IRQ */
- 		.start	= IRQ_USB_DMA,
- 		.end	= IRQ_USB_DMA,
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL,
-+		.name	= "dma"
- 	},
- };
- 
-Index: linux-omap-pm/drivers/usb/musb/cppi_dma.c
-===================================================================
---- linux-omap-pm.orig/drivers/usb/musb/cppi_dma.c
-+++ linux-omap-pm/drivers/usb/musb/cppi_dma.c
-@@ -1307,7 +1307,7 @@ dma_controller_create(struct musb *musb,
- 	struct cppi		*controller;
- 	struct device		*dev = musb->controller;
- 	struct platform_device	*pdev = to_platform_device(dev);
--	int			irq = platform_get_irq(pdev, 1);
-+	int			irq = platform_get_irq_byname(pdev, "dma");
- 
- 	controller = kzalloc(sizeof *controller, GFP_KERNEL);
- 	if (!controller)
-Index: linux-omap-pm/drivers/usb/musb/musb_core.c
-===================================================================
---- linux-omap-pm.orig/drivers/usb/musb/musb_core.c
-+++ linux-omap-pm/drivers/usb/musb/musb_core.c
-@@ -2203,7 +2203,7 @@ static u64	*orig_dma_mask;
- static int __init musb_probe(struct platform_device *pdev)
- {
- 	struct device	*dev = &pdev->dev;
--	int		irq = platform_get_irq(pdev, 0);
-+	int		irq = platform_get_irq_byname(pdev, "mc");
- 	int		status;
- 	struct resource	*iomem;
- 	void __iomem	*base;
-Index: linux-omap-pm/drivers/usb/musb/musbhsdma.c
-===================================================================
---- linux-omap-pm.orig/drivers/usb/musb/musbhsdma.c
-+++ linux-omap-pm/drivers/usb/musb/musbhsdma.c
-@@ -363,7 +363,7 @@ dma_controller_create(struct musb *musb,
- 	struct musb_dma_controller *controller;
- 	struct device *dev = musb->controller;
- 	struct platform_device *pdev = to_platform_device(dev);
--	int irq = platform_get_irq(pdev, 1);
-+	int irq = platform_get_irq_byname(pdev, "dma");
- 
- 	if (irq == 0) {
- 		dev_err(dev, "No DMA interrupt line!\n");
+-- 
+balbi
