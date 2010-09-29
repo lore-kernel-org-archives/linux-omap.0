@@ -1,131 +1,190 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH 2/9 v3] usb: musb: Remove board_data parameter from musb_platform_init()
-Date: Wed, 29 Sep 2010 07:41:01 -0700
-Message-ID: <871v8c629u.fsf@deeprootsystems.com>
-References: <1285201660-26309-1-git-send-email-hemahk@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH v2 04/11] OMAP4: Extend clock data.
+Date: Wed, 29 Sep 2010 20:11:01 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E1739F3@dbde02.ent.ti.com>
+References: <1285419086-13047-1-git-send-email-thara@ti.com>
+	<1285419086-13047-5-git-send-email-thara@ti.com>
+ <874od9bh4a.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1285201660-26309-1-git-send-email-hemahk-l0cyMroinI0@public.gmane.org> (Hema HK's
-	message of "Wed, 22 Sep 2010 20:27:40 -0400")
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:41247 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750962Ab0I2OlJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 10:41:09 -0400
+In-Reply-To: <874od9bh4a.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Hema HK <hemahk-l0cyMroinI0@public.gmane.org> writes:
 
-> Removed the board_data parameter being passed to musb_platform_init function
-> as board data can be extracted from device structure which is already member of
-> musb structure.
->
-> Signed-off-by: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
-> Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-> Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-> Cc: Cousson, Benoit <b-cousson-l0cyMroinI0@public.gmane.org>
-> Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
 
-For the davinci changes:
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Wednesday, September 29, 2010 4:39 AM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
+>>Vishwanath; Sawant, Anand
+>>Subject: Re: [PATCH v2 04/11] OMAP4: Extend clock data.
+>>
+>>Thara Gopinath <thara@ti.com> writes:
+>>
+>>> This patch extends the OMAP4 clock data to include
+>>> various x2 clockc nodes as the clock framework
+>>> skips a *2 whie calculating the dpll locked frequency.
+>>>
+>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>
+>>Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+>>
+>>Please post this as a separate patch, and Paul can queue for 2.6.37.
 
-Acked-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Ok I will post this as a separate patch. 
 
-Kevin
-
-> ---
->  drivers/usb/musb/blackfin.c  |    2 +-
->  drivers/usb/musb/davinci.c   |    2 +-
->  drivers/usb/musb/musb_core.c |    2 +-
->  drivers/usb/musb/musb_core.h |    2 +-
->  drivers/usb/musb/omap2430.c  |    6 ++++--
->  drivers/usb/musb/tusb6010.c  |    2 +-
->  6 files changed, 9 insertions(+), 7 deletions(-)
->
-> Index: linux-omap-pm/drivers/usb/musb/blackfin.c
-> ===================================================================
-> --- linux-omap-pm.orig/drivers/usb/musb/blackfin.c
-> +++ linux-omap-pm/drivers/usb/musb/blackfin.c
-> @@ -323,7 +323,7 @@ int musb_platform_set_mode(struct musb *
->  	return -EIO;
->  }
->  
-> -int __init musb_platform_init(struct musb *musb, void *board_data)
-> +int __init musb_platform_init(struct musb *musb)
->  {
->  
->  	/*
-> Index: linux-omap-pm/drivers/usb/musb/davinci.c
-> ===================================================================
-> --- linux-omap-pm.orig/drivers/usb/musb/davinci.c
-> +++ linux-omap-pm/drivers/usb/musb/davinci.c
-> @@ -376,7 +376,7 @@ int musb_platform_set_mode(struct musb *
->  	return -EIO;
->  }
->  
-> -int __init musb_platform_init(struct musb *musb, void *board_data)
-> +int __init musb_platform_init(struct musb *musb)
->  {
->  	void __iomem	*tibase = musb->ctrl_base;
->  	u32		revision;
-> Index: linux-omap-pm/drivers/usb/musb/musb_core.c
-> ===================================================================
-> --- linux-omap-pm.orig/drivers/usb/musb/musb_core.c
-> +++ linux-omap-pm/drivers/usb/musb/musb_core.c
-> @@ -2022,7 +2022,7 @@ bad_config:
->  	 * isp1504, non-OTG, etc) mostly hooking up through ULPI.
->  	 */
->  	musb->isr = generic_interrupt;
-> -	status = musb_platform_init(musb, plat->board_data);
-> +	status = musb_platform_init(musb);
->  	if (status < 0)
->  		goto fail2;
->  
-> Index: linux-omap-pm/drivers/usb/musb/musb_core.h
-> ===================================================================
-> --- linux-omap-pm.orig/drivers/usb/musb/musb_core.h
-> +++ linux-omap-pm/drivers/usb/musb/musb_core.h
-> @@ -612,7 +612,7 @@ extern int musb_platform_get_vbus_status
->  #define musb_platform_get_vbus_status(x)	0
->  #endif
->  
-> -extern int __init musb_platform_init(struct musb *musb, void *board_data);
-> +extern int __init musb_platform_init(struct musb *musb);
->  extern int musb_platform_exit(struct musb *musb);
->  
->  #endif	/* __MUSB_CORE_H__ */
-> Index: linux-omap-pm/drivers/usb/musb/omap2430.c
-> ===================================================================
-> --- linux-omap-pm.orig/drivers/usb/musb/omap2430.c
-> +++ linux-omap-pm/drivers/usb/musb/omap2430.c
-> @@ -187,10 +187,12 @@ int musb_platform_set_mode(struct musb *
->  	return 0;
->  }
->  
-> -int __init musb_platform_init(struct musb *musb, void *board_data)
-> +int __init musb_platform_init(struct musb *musb)
->  {
->  	u32 l;
-> -	struct omap_musb_board_data *data = board_data;
-> +	struct device *dev = musb->controller;
-> +	struct musb_hdrc_platform_data *plat = dev->platform_data;
-> +	struct omap_musb_board_data *data = plat->board_data;
->  
->  	/* We require some kind of external transceiver, hooked
->  	 * up through ULPI.  TWL4030-family PMICs include one,
-> Index: linux-omap-pm/drivers/usb/musb/tusb6010.c
-> ===================================================================
-> --- linux-omap-pm.orig/drivers/usb/musb/tusb6010.c
-> +++ linux-omap-pm/drivers/usb/musb/tusb6010.c
-> @@ -1091,7 +1091,7 @@ err:
->  	return -ENODEV;
->  }
->  
-> -int __init musb_platform_init(struct musb *musb, void *board_data)
-> +int __init musb_platform_init(struct musb *musb)
->  {
->  	struct platform_device	*pdev;
->  	struct resource		*mem;
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Thara
+>>
+>>Thanks,
+>>
+>>Kevin
+>>
+>>> ---
+>>>  arch/arm/mach-omap2/clock44xx_data.c |   40 +++++++++++++++++++++++++++---
+>>---
+>>>  1 files changed, 32 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-
+>>omap2/clock44xx_data.c
+>>> index edf2c28..3652fda 100644
+>>> --- a/arch/arm/mach-omap2/clock44xx_data.c
+>>> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+>>> @@ -481,14 +481,21 @@ static struct clk dpll_core_m5_ck = {
+>>>  	.set_rate	= &omap2_clksel_set_rate,
+>>>  };
+>>>
+>>> +static struct clk dpll_core_m5x2_ck = {
+>>> +	.name		= "dpll_core_m5x2_ck",
+>>> +	.parent		= &dpll_core_m5_ck,
+>>> +	.ops		= &clkops_null,
+>>> +	.recalc		= &omap3_clkoutx2_recalc,
+>>> +};
+>>> +
+>>>  static const struct clksel div_core_div[] = {
+>>> -	{ .parent = &dpll_core_m5_ck, .rates = div2_1to2_rates },
+>>> +	{ .parent = &dpll_core_m5x2_ck, .rates = div2_1to2_rates },
+>>>  	{ .parent = NULL },
+>>>  };
+>>>
+>>>  static struct clk div_core_ck = {
+>>>  	.name		= "div_core_ck",
+>>> -	.parent		= &dpll_core_m5_ck,
+>>> +	.parent		= &dpll_core_m5x2_ck,
+>>>  	.clksel		= div_core_div,
+>>>  	.clksel_reg	= OMAP4430_CM_CLKSEL_CORE,
+>>>  	.clksel_mask	= OMAP4430_CLKSEL_CORE_MASK,
+>>> @@ -507,13 +514,13 @@ static const struct clksel_rate div4_1to8_rates[] = {
+>>>  };
+>>>
+>>>  static const struct clksel div_iva_hs_clk_div[] = {
+>>> -	{ .parent = &dpll_core_m5_ck, .rates = div4_1to8_rates },
+>>> +	{ .parent = &dpll_core_m5x2_ck, .rates = div4_1to8_rates },
+>>>  	{ .parent = NULL },
+>>>  };
+>>>
+>>>  static struct clk div_iva_hs_clk = {
+>>>  	.name		= "div_iva_hs_clk",
+>>> -	.parent		= &dpll_core_m5_ck,
+>>> +	.parent		= &dpll_core_m5x2_ck,
+>>>  	.clksel		= div_iva_hs_clk_div,
+>>>  	.clksel_reg	= OMAP4430_CM_BYPCLK_DPLL_IVA,
+>>>  	.clksel_mask	= OMAP4430_CLKSEL_0_1_MASK,
+>>> @@ -525,7 +532,7 @@ static struct clk div_iva_hs_clk = {
+>>>
+>>>  static struct clk div_mpu_hs_clk = {
+>>>  	.name		= "div_mpu_hs_clk",
+>>> -	.parent		= &dpll_core_m5_ck,
+>>> +	.parent		= &dpll_core_m5x2_ck,
+>>>  	.clksel		= div_iva_hs_clk_div,
+>>>  	.clksel_reg	= OMAP4430_CM_BYPCLK_DPLL_MPU,
+>>>  	.clksel_mask	= OMAP4430_CLKSEL_0_1_MASK,
+>>> @@ -651,6 +658,13 @@ static struct clk dpll_iva_m4_ck = {
+>>>  	.set_rate	= &omap2_clksel_set_rate,
+>>>  };
+>>>
+>>> +static struct clk dpll_iva_m4x2_ck = {
+>>> +	.name		= "dpll_iva_m4x2_ck",
+>>> +	.parent		= &dpll_iva_m4_ck,
+>>> +	.ops		= &clkops_null,
+>>> +	.recalc		= &omap3_clkoutx2_recalc,
+>>> +};
+>>> +
+>>>  static struct clk dpll_iva_m5_ck = {
+>>>  	.name		= "dpll_iva_m5_ck",
+>>>  	.parent		= &dpll_iva_ck,
+>>> @@ -663,6 +677,13 @@ static struct clk dpll_iva_m5_ck = {
+>>>  	.set_rate	= &omap2_clksel_set_rate,
+>>>  };
+>>>
+>>> +static struct clk dpll_iva_m5x2_ck = {
+>>> +	.name		= "dpll_iva_m5x2_ck",
+>>> +	.parent		= &dpll_iva_m5_ck,
+>>> +	.ops		= &clkops_null,
+>>> +	.recalc		= &omap3_clkoutx2_recalc,
+>>> +};
+>>> +
+>>>  /* DPLL_MPU */
+>>>  static struct dpll_data dpll_mpu_dd = {
+>>>  	.mult_div1_reg	= OMAP4430_CM_CLKSEL_DPLL_MPU,
+>>> @@ -1350,7 +1371,7 @@ static struct clk dsp_fck = {
+>>>  	.enable_reg	= OMAP4430_CM_TESLA_TESLA_CLKCTRL,
+>>>  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+>>>  	.clkdm_name	= "tesla_clkdm",
+>>> -	.parent		= &dpll_iva_m4_ck,
+>>> +	.parent		= &dpll_iva_m4x2_ck,
+>>>  	.recalc		= &followparent_recalc,
+>>>  };
+>>>
+>>> @@ -1725,7 +1746,7 @@ static struct clk iva_fck = {
+>>>  	.enable_reg	= OMAP4430_CM_IVAHD_IVAHD_CLKCTRL,
+>>>  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+>>>  	.clkdm_name	= "ivahd_clkdm",
+>>> -	.parent		= &dpll_iva_m5_ck,
+>>> +	.parent		= &dpll_iva_m5x2_ck,
+>>>  	.recalc		= &followparent_recalc,
+>>>  };
+>>>
+>>> @@ -2089,7 +2110,7 @@ static struct clk sl2if_ick = {
+>>>  	.enable_reg	= OMAP4430_CM_IVAHD_SL2_CLKCTRL,
+>>>  	.enable_bit	= OMAP4430_MODULEMODE_HWCTRL,
+>>>  	.clkdm_name	= "ivahd_clkdm",
+>>> -	.parent		= &dpll_iva_m5_ck,
+>>> +	.parent		= &dpll_iva_m5x2_ck,
+>>>  	.recalc		= &followparent_recalc,
+>>>  };
+>>>
+>>> @@ -2782,6 +2803,7 @@ static struct omap_clk omap44xx_clks[] = {
+>>>  	CLK(NULL,	"dpll_core_m2_ck",		&dpll_core_m2_ck,	CK_443X),
+>>>  	CLK(NULL,	"ddrphy_ck",			&ddrphy_ck,	CK_443X),
+>>>  	CLK(NULL,	"dpll_core_m5_ck",		&dpll_core_m5_ck,	CK_443X),
+>>> +	CLK(NULL,	"dpll_core_m5x2_ck",		&dpll_core_m5x2_ck,
+>>	CK_443X),
+>>>  	CLK(NULL,	"div_core_ck",			&div_core_ck,	CK_443X),
+>>>  	CLK(NULL,	"div_iva_hs_clk",		&div_iva_hs_clk,	CK_443X),
+>>>  	CLK(NULL,	"div_mpu_hs_clk",		&div_mpu_hs_clk,	CK_443X),
+>>> @@ -2793,7 +2815,9 @@ static struct omap_clk omap44xx_clks[] = {
+>>>  	CLK(NULL,	"iva_hsd_byp_clk_mux_ck",	&iva_hsd_byp_clk_mux_ck,
+>>	CK_443X),
+>>>  	CLK(NULL,	"dpll_iva_ck",			&dpll_iva_ck,	CK_443X),
+>>>  	CLK(NULL,	"dpll_iva_m4_ck",		&dpll_iva_m4_ck,	CK_443X),
+>>> +	CLK(NULL,	"dpll_iva_m4x2_ck",		&dpll_iva_m4x2_ck,
+>>	CK_443X),
+>>>  	CLK(NULL,	"dpll_iva_m5_ck",		&dpll_iva_m5_ck,	CK_443X),
+>>> +	CLK(NULL,	"dpll_iva_m5x2_ck",		&dpll_iva_m5x2_ck,
+>>	CK_443X),
+>>>  	CLK(NULL,	"dpll_mpu_ck",			&dpll_mpu_ck,	CK_443X),
+>>>  	CLK(NULL,	"dpll_mpu_m2_ck",		&dpll_mpu_m2_ck,	CK_443X),
+>>>  	CLK(NULL,	"per_hs_clk_div_ck",		&per_hs_clk_div_ck,
+>>	CK_443X),
