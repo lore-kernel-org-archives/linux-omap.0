@@ -1,136 +1,107 @@
-From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH v3 5/5] OMAP: I2C: Convert i2c driver to use PM runtime
-	api's
-Date: Wed, 29 Sep 2010 00:33:34 +0100
-Message-ID: <20100928233334.GS21564@trinity.fluff.org>
-References: <1285078036-12789-1-git-send-email-rnayak@ti.com> <1285078036-12789-2-git-send-email-rnayak@ti.com> <1285078036-12789-3-git-send-email-rnayak@ti.com> <1285078036-12789-4-git-send-email-rnayak@ti.com> <1285078036-12789-5-git-send-email-rnayak@ti.com> <1285078036-12789-6-git-send-email-rnayak@ti.com> <20100927223645.GJ21564@trinity.fluff.org> <0680EC522D0CC943BC586913CF3768C003FF05981F@dbde02.ent.ti.com> <0680EC522D0CC943BC586913CF3768C003FF05988F@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/9] omap: mux: Add new style pin multiplexing code for
+ omap3
+Date: Tue, 28 Sep 2010 17:06:27 -0700
+Message-ID: <20100929000627.GV3117@atomide.com>
+References: <S1752576Ab0H0BhI/20100827013708Z+1681@vger.kernel.org>
+ <1282876196.13328.45.camel@I097020.innocomm.com>
+ <4C778455.8050108@ti.com>
+ <1283131873.13307.5.camel@I097020.innocomm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61989 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab0I2AGc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Sep 2010 20:06:32 -0400
 Content-Disposition: inline
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003FF05988F-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <1283131873.13307.5.camel@I097020.innocomm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: rockefeller <rockefeller.lin@innocomm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Sep 28, 2010 at 12:29:01PM +0530, Nayak, Rajendra wrote:
-> <snip>...
-> > > >
-> > > >  static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > > > @@ -356,6 +333,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > > >  	unsigned long fclk_rate = 12000000;
-> > > >  	unsigned long timeout;
-> > > >  	unsigned long internal_clk = 0;
-> > > > +	struct clk *fclk;
-> > > >
-> > > >  	if (dev->rev >= OMAP_I2C_REV_2) {
-> > > >  		/* Disable I2C controller before soft reset */
-> > > > @@ -414,7 +392,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > > >  		 * always returns 12MHz for the functional clock, we can
-> > > >  		 * do this bit unconditionally.
-> > > >  		 */
-> > > > -		fclk_rate = clk_get_rate(dev->fclk);
-> > > > +		fclk = clk_get(dev->dev, "fck");
-> > > > +		fclk_rate = clk_get_rate(fclk);
-> > > >
-> > > >  		/* TRM for 5912 says the I2C clock must be prescaled to be
-> > > >  		 * between 7 - 12 MHz. The XOR input clock is typically
-> > > > @@ -443,7 +422,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-> > > >  			internal_clk = 9600;
-> > > >  		else
-> > > >  			internal_clk = 4000;
-> > > > -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-> > > > +		fclk = clk_get(dev->dev, "fck");
-> > > > +		fclk_rate = clk_get_rate(fclk) / 1000;
-> > >
-> > > You don't put the clk after getting it and using it once?
-> > 
-> > clk_get needs an equivalent clk_put and not clk_get_rate. clk_get_rate
-> > is used to merely know the existing rate of the clock.
-> 
-> Sorry, I guess you did mean the clk_get above the clk_get_rate does not have
-> an equivalent clk_put.
-> I could put a clk_put for readability, but a clk_put on OMAP actually does map
-> to an empty function.
-> See arch/arm/plat-omap/include/plat/clkdev.h
-> clk_get merely returns a pointer to the clk struct and does not do any usecounting,
-> hence a clk_put does not do anything.
+Hi,
 
-clk_get() should have a reference counter, and on many systems does.
+Sorry for the delay on responding to this..
 
-This is why we ask people to put clk_put() when they don't need the
-clock any more. It may not do anything on your system, but it will
-set a good example to anyone copying your driver code.
+* rockefeller <rockefeller.lin@innocomm.com> [100829 18:23]:
+> On Fri, 2010-08-27 at 11:24 +0200, Cousson, Benoit wrote:
+>
+> I would like to introduce a new function omap_mux_name_strcmp() that
+> adapted from strcmp() as below and verified with android-2.6.32 and
+> it works fine.
 
-As such, I should really go and read up all about this new runtime-pm
-and hwmod stuff before further commentign on the changes.
+Looks like we can also do it with strncmp and keep it const, then
+we don't have to ad a custom strcmp function.
+
+Care to test the following patch and see if it solves your problem?
+
+Regards,
+
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Tue, 28 Sep 2010 16:58:04 -0700
+Subject: [PATCH] omap: Fix omap_mux_init_signal not to trash muxname
+
+Otherwise the muxname passed to the function will get truncated.
+
+Based on an earlier patch by rockefeller.lin@innocomm.com.
+
+Reported-by: rockefeller.lin@innocomm.com
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 6c2f8f0..e33740c 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -127,17 +127,16 @@ int __init omap_mux_init_gpio(int gpio, int val)
+ 	return 0;
+ }
  
-> > 
-> > >
-> > > >  		/* Compute prescaler divisor */
-> > > >  		psc = fclk_rate / internal_clk;
-> > > > @@ -1046,14 +1026,12 @@ omap_i2c_probe(struct platform_device *pdev)
-> > > >  	else
-> > > >  		dev->reg_shift = 2;
-> > > >
-> > > > -	if ((r = omap_i2c_get_clocks(dev)) != 0)
-> > > > -		goto err_iounmap;
-> > > > -
-> > > >  	if (cpu_is_omap44xx())
-> > > >  		dev->regs = (u8 *) omap4_reg_map;
-> > > >  	else
-> > > >  		dev->regs = (u8 *) reg_map;
-> > > >
-> > > > +	pm_runtime_enable(&pdev->dev);
-> > > >  	omap_i2c_unidle(dev);
-> > > >
-> > > >  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-> > > > @@ -1125,8 +1103,6 @@ err_free_irq:
-> > > >  err_unuse_clocks:
-> > > >  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-> > > >  	omap_i2c_idle(dev);
-> > > > -	omap_i2c_put_clocks(dev);
-> > > > -err_iounmap:
-> > > >  	iounmap(dev->base);
-> > > >  err_free_mem:
-> > > >  	platform_set_drvdata(pdev, NULL);
-> > > > @@ -1148,7 +1124,6 @@ omap_i2c_remove(struct platform_device *pdev)
-> > > >  	free_irq(dev->irq, dev);
-> > > >  	i2c_del_adapter(&dev->adapter);
-> > > >  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-> > > > -	omap_i2c_put_clocks(dev);
-> > > >  	iounmap(dev->base);
-> > > >  	kfree(dev);
-> > > >  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> > > > --
-> > > > 1.5.4.7
-> > > >
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> > > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > >
-> > > --
-> > > --
-> > > Ben
-> > >
-> > > Q:      What's a light-year?
-> > > A:      One-third less calories than a regular year.
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-
--- 
--- 
-Ben
-
-Q:      What's a light-year?
-A:      One-third less calories than a regular year.
+-int __init omap_mux_init_signal(char *muxname, int val)
++int __init omap_mux_init_signal(const char *muxname, int val)
+ {
+ 	struct omap_mux_entry *e;
+-	char *m0_name = NULL, *mode_name = NULL;
+-	int found = 0;
++	const char *mode_name;
++	int found = 0, mode0_len = 0;
+ 
+ 	mode_name = strchr(muxname, '.');
+ 	if (mode_name) {
+-		*mode_name = '\0';
++		mode0_len = strlen(muxname) - strlen(mode_name);
+ 		mode_name++;
+-		m0_name = muxname;
+ 	} else {
+ 		mode_name = muxname;
+ 	}
+@@ -147,9 +146,11 @@ int __init omap_mux_init_signal(char *muxname, int val)
+ 		char *m0_entry = m->muxnames[0];
+ 		int i;
+ 
+-		if (m0_name && strcmp(m0_name, m0_entry))
++		/* First check for full name in mode0.muxmode format */
++		if (mode0_len && strncmp(muxname, m0_entry, mode0_len))
+ 			continue;
+ 
++		/* Then check for muxmode only */
+ 		for (i = 0; i < OMAP_MUX_NR_MODES; i++) {
+ 			char *mode_cur = m->muxnames[i];
+ 
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index a8e040c..350c04f 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -120,7 +120,7 @@ int omap_mux_init_gpio(int gpio, int val);
+  * @muxname:		Mux name in mode0_name.signal_name format
+  * @val:		Options for the mux register value
+  */
+-int omap_mux_init_signal(char *muxname, int val);
++int omap_mux_init_signal(const char *muxname, int val);
+ 
+ #else
+ 
