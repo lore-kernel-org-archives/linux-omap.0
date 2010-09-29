@@ -1,85 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap2 sparse fixes
-Date: Wed, 29 Sep 2010 14:56:36 -0700
-Message-ID: <20100929215635.GC3117@atomide.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402785A390E@dbde02.ent.ti.com>
- <20100923225851.GR4211@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
- <20100925001914.GO4211@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F917C@dbde02.ent.ti.com>
- <20100928152139.GB3117@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F94C9@dbde02.ent.ti.com>
- <20100928183157.GH3117@atomide.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE8F9@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
+Date: Wed, 29 Sep 2010 15:24:22 -0700
+Message-ID: <87tyl8rxwp.fsf@deeprootsystems.com>
+References: <8762xpenf8.fsf@deeprootsystems.com>
+	<20100928201844.GI3117@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60266 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996Ab0I2V4t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 17:56:49 -0400
-Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE8F9@dbde02.ent.ti.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:44102 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753217Ab0I2WYY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 18:24:24 -0400
+Received: by pxi10 with SMTP id 10so307847pxi.19
+        for <linux-omap@vger.kernel.org>; Wed, 29 Sep 2010 15:24:24 -0700 (PDT)
+In-Reply-To: <20100928201844.GI3117@atomide.com> (Tony Lindgren's message of
+	"Tue, 28 Sep 2010 13:18:44 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Charulatha Varadarajan <charu@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Govindraj R." <govindraj.raja@ti.com>
 
-* G, Manjunath Kondaiah <manjugk@ti.com> [100929 12:42]:
-> 
-> Tony,
-> 
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Wednesday, September 29, 2010 12:02 AM
-> > To: G, Manjunath Kondaiah
-> > Cc: linux-omap@vger.kernel.org; 
-> > linux-arm-kernel@lists.infradead.org; Samuel Ortiz; Dmitry 
-> > Torokhov; linux-mtd@lists.infradead.org; Russell King - ARM Linux
-> > Subject: Re: [GIT PULL] omap2 sparse fixes
-> > 
-> > * G, Manjunath Kondaiah <manjugk@ti.com> [100928 08:26]:
-> ...
-> 
-> > Yes please take out all patches that are not in arch/arm/*omap*/ path.
-> > The others really should go to the driver maintainers.
-> > 
-> > Tony
-> 
-> Here is new branch which has only arch/arm/*omap*/ related patches.
+Tony Lindgren <tony@atomide.com> writes:
 
-Thanks. Noticed one more thing though:
+> * Kevin Hilman <khilman@deeprootsystems.com> [100928 11:25]:
+>> Tony,
+>> 
+>> The following pull request will bring hwmod driver conversions for
+>> watchdog, UART and i2c drivers.  It is based on your omap-for-linus
+>> branch.
+>> 
+>> The i2c driver is waiting for final signoff/ack from the upstream
+>> subsystem maintainers, but are otherwise ready to go for broader
+>> testing.  After I get the final ack, I will update the branch for a
+>> final pull.
+>> 
+>> In the meantime, I'd like to get them into l-o master (or omap-testing)
+>> for broader testing.
+>
+> Tried pulling it but I'm getting tons of these errors on omap2:
 
-In your patch "OMAP: mach-omap2: Fix static function warnings" looks like
-you're adding omap2_gp_clockevent_set_gptimer twice:
+Tony, 
 
---- a/arch/arm/plat-omap/include/plat/timer-gp.h
-+++ b/arch/arm/mach-omap2/timer-gp.h
-@@ -11,7 +11,6 @@
- #ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_TIMER_GP_H
- #define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_TIMER_GP_H
- 
--int __init omap2_gp_clockevent_set_gptimer(u8 id);
-+extern int __init omap2_gp_clockevent_set_gptimer(u8 id);
- 
- #endif
--
---- a/arch/arm/plat-omap/include/plat/dmtimer.h
-+++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-@@ -81,6 +81,6 @@ unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer);
- void omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value);
- 
- int omap_dm_timers_active(void);
--
-+int omap2_gp_clockevent_set_gptimer(u8 id);
- 
- #endif /* __ASM_ARCH_DMTIMER_H */
+Can you pull the latest version of my pm-hwmods branch from:
+ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-hwmods
 
-Please also be careful that your branch contains the same patches
-as you've posted for review. Nobody wants to pull different stuff
-than what was posted! Also looks like Paul had one comment related
-to the same patch.
+This version has the updated patch from Rajendra for i2c as well as some
+UART3 fixes for a problem he noticed on 2430 as well.
 
-Regards,
+Before this is final, I'm still waiting on two things:
 
-Tony
+1) ack from Ben Dooks for the drivers/i2c change
+2) additional patch from Charu to prevent reset when
+   CONFIG_OMAP_WATCHDOG=n
+
+Kevin
