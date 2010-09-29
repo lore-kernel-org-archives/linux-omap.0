@@ -1,321 +1,145 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCH v4 1/4] omap4 hsmmc: Adding card detect support for MMC1
-Date: Wed, 29 Sep 2010 16:11:31 +0530
-Message-ID: <AANLkTi=oX7CT8RF39kT-7niutF3PEeSeC1A_L5TcWuO4@mail.gmail.com>
-References: <9408.10.24.255.18.1285348400.squirrel@dbdmail.itg.ti.com>
-	<AANLkTi=YvtrfmUTc-YBAUjEXn1v3pPLmhb92J60AhU28@mail.gmail.com>
-	<AANLkTim5d6XP0nuJLF2DxDGP2DuBK5VUajd=YhXQnT2C@mail.gmail.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 05/13] OMAP: Introduce device specific set rate and get
+ rate in device opp structures.
+Date: Wed, 29 Sep 2010 16:46:51 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E1738E5@dbde02.ent.ti.com>
+References: <1282130412-12027-1-git-send-email-thara@ti.com>
+	<1282130412-12027-6-git-send-email-thara@ti.com>
+	<87fwxrzpan.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB03294424DF@dbde02.ent.ti.com>
+ <87aanhd7xj.fsf@deeprootsystems.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0329539FDE@dbde02.ent.ti.com>
+ <4C9490B9.7090002@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTim5d6XP0nuJLF2DxDGP2DuBK5VUajd=YhXQnT2C@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: sameo@linux.intel.com
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, akpm@linux-foundation.org, madhu.cr@ti.com, adrian.hunter@nokia.com
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:49685 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753408Ab0I2LRB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Sep 2010 07:17:01 -0400
+In-Reply-To: <4C9490B9.7090002@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Gentle Reminder !
 
-Regards,
-Kishore
 
-On Tue, Sep 28, 2010 at 12:22 PM, kishore kadiyala
-<kishorek.kadiyala@gmail.com> wrote:
-> Hi Samuel,
->
-> Could you please review this patch which touches mfd/twl6030-irq.c fo=
-r
-> card detect support
-> of MMC1 controller on OMAP4.
->
-> Regards,
-> Kishore
->
-> On Mon, Sep 27, 2010 at 1:25 PM, kishore kadiyala
-> <kishorek.kadiyala@gmail.com> wrote:
->> Cc: Samuel Ortiz <sameo@linux.intel.com>
+>>-----Original Message-----
+>>From: Cousson, Benoit
+>>Sent: Saturday, September 18, 2010 3:43 PM
+>>To: Gopinath, Thara
+>>Cc: Kevin Hilman; Paul Walmsley; linux-omap@vger.kernel.org; Sripathy,
+>>Vishwanath; Sawant, Anand
+>>Subject: Re: [PATCH 05/13] OMAP: Introduce device specific set rate and get
+>>rate in device opp structures.
 >>
->> On Fri, Sep 24, 2010 at 10:43 PM, kishore kadiyala
->> <kishore.kadiyala@ti.com> wrote:
->>> Adding card detect callback function and card detect configuration
->>> function for MMC1 Controller on OMAP4.
->>>
->>> Card detect configuration function does initial configuration of th=
-e
->>> MMC Control & PullUp-PullDown registers of Phoenix.
->>>
->>> For MMC1 Controller, card detect interrupt source is
->>> twl6030 which is non-gpio. The card detect call back function provi=
-des
->>> card present/absent status by reading MMC Control register present
->>> on twl6030.
->>>
->>> Since OMAP4 doesn't use any GPIO line as used in OMAP3 for card det=
-ect,
->>> the suspend/resume initialization which was done in omap_hsmmc_gpio=
-_init
->>> previously is moved to the probe thus making it generic for both OM=
-AP3 & OMAP4.
->>>
->>> Cc: Tony Lindgren <tony@atomide.com>
->>> Cc: Andrew Morton <akpm@linux-foundation.org>
->>> Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
->>> Cc: Adrian Hunter <adrian.hunter@nokia.com>
->>> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
->>> ---
->>> =A0arch/arm/mach-omap2/board-4430sdp.c | =A0 =A07 +++-
->>> =A0drivers/mfd/twl6030-irq.c =A0 =A0 =A0 =A0 =A0 | =A0 73 +++++++++=
-++++++++++++++++++++++++++
->>> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 | =A0 =A04 +-
->>> =A0include/linux/i2c/twl.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0 31 +++++++=
-++++++++
->>> =A04 files changed, 112 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-om=
-ap2/board-4430sdp.c
->>> index 9447644..a49f285 100644
->>> --- a/arch/arm/mach-omap2/board-4430sdp.c
->>> +++ b/arch/arm/mach-omap2/board-4430sdp.c
->>> @@ -227,9 +227,14 @@ static int omap4_twl6030_hsmmc_late_init(struc=
-t device *dev)
->>> =A0 =A0 =A0 =A0struct omap_mmc_platform_data *pdata =3D dev->platfo=
-rm_data;
->>>
->>> =A0 =A0 =A0 =A0/* Setting MMC1 Card detect Irq */
->>> - =A0 =A0 =A0 if (pdev->id =3D=3D 0)
->>> + =A0 =A0 =A0 if (pdev->id =3D=3D 0) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl6030_mmc_card_detect_confi=
-g();
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Failed config=
-uring MMC1 card detect\n");
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].card_detect_irq =3D =
-TWL6030_IRQ_BASE +
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0MMCDETECT_INTR_OFFSET;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->slots[0].card_detect =3D twl60=
-30_mmc_card_detect;
->>> + =A0 =A0 =A0 }
->>> =A0 =A0 =A0 =A0return ret;
->>> =A0}
->>>
->>> diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
->>> index 10bf228..2d3bb82 100644
->>> --- a/drivers/mfd/twl6030-irq.c
->>> +++ b/drivers/mfd/twl6030-irq.c
->>> @@ -36,6 +36,7 @@
->>> =A0#include <linux/irq.h>
->>> =A0#include <linux/kthread.h>
->>> =A0#include <linux/i2c/twl.h>
->>> +#include <linux/platform_device.h>
->>>
->>> =A0/*
->>> =A0* TWL6030 (unlike its predecessors, which had two level interrup=
-t handling)
->>> @@ -223,6 +224,78 @@ int twl6030_interrupt_mask(u8 bit_mask, u8 off=
-set)
->>> =A0}
->>> =A0EXPORT_SYMBOL(twl6030_interrupt_mask);
->>>
->>> +int twl6030_mmc_card_detect_config(void)
->>> +{
->>> + =A0 =A0 =A0 int ret;
->>> + =A0 =A0 =A0 u8 reg_val =3D 0;
->>> +
->>> + =A0 =A0 =A0 /* Unmasking the Card detect Interrupt line for MMC1 =
-from Phoenix */
->>> + =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 REG_INT_MSK_LINE_B);
->>> + =A0 =A0 =A0 twl6030_interrupt_unmask(TWL6030_MMCDETECT_INT_MASK,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 REG_INT_MSK_STS_B);
->>> + =A0 =A0 =A0 /*
->>> + =A0 =A0 =A0 =A0* Intially Configuring MMC_CTRL for receving inter=
-rupts &
->>> + =A0 =A0 =A0 =A0* Card status on TWL6030 for MMC1
->>> + =A0 =A0 =A0 =A0*/
->>> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,=
- TWL6030_MMCCTRL);
->>> + =A0 =A0 =A0 if (ret < 0) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to read MMCCT=
-RL, error %d\n", ret);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->>> + =A0 =A0 =A0 }
->>> + =A0 =A0 =A0 reg_val &=3D ~VMMC_AUTO_OFF;
->>> + =A0 =A0 =A0 reg_val |=3D SW_FC;
->>> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,=
- TWL6030_MMCCTRL);
->>> + =A0 =A0 =A0 if (ret < 0) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to write MMCC=
-TRL, error %d\n", ret);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->>> + =A0 =A0 =A0 }
->>> +
->>> + =A0 =A0 =A0 /* Configuring PullUp-PullDown register */
->>> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &reg_val,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
->>> + =A0 =A0 =A0 if (ret < 0) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to read CFG_I=
-NPUT_PUPD3, error %d\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- ret);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->>> + =A0 =A0 =A0 }
->>> + =A0 =A0 =A0 reg_val &=3D ~(MMC_PU | MMC_PD);
->>> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL6030_MODULE_ID0, reg_val,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_CFG_INPUT_PUPD3);
->>> + =A0 =A0 =A0 if (ret < 0) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("twl6030: Failed to write CFG_=
-INPUT_PUPD3, error %d\n",
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- ret);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->>> + =A0 =A0 =A0 }
->>> + =A0 =A0 =A0 return 0;
->>> +}
->>> +EXPORT_SYMBOL(twl6030_mmc_card_detect_config);
->>> +
->>> +int twl6030_mmc_card_detect(struct device *dev, int slot)
->>> +{
->>> + =A0 =A0 =A0 int ret =3D -EIO;
->>> + =A0 =A0 =A0 u8 read_reg =3D 0;
->>> + =A0 =A0 =A0 struct platform_device *pdev =3D to_platform_device(d=
-ev);
->>> +
->>> + =A0 =A0 =A0 if (pdev->id) {
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* TWL6030 provide's Card detect supp=
-ort for
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* only MMC1 controller.
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Unkown MMC controller %d in %=
-s\n", pdev->id, __func__);
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
->>> + =A0 =A0 =A0 }
->>> + =A0 =A0 =A0 /*
->>> + =A0 =A0 =A0 =A0* BIT0 of MMC_CTRL on TWL6030 provides card status=
- for MMC1
->>> + =A0 =A0 =A0 =A0* 0 - Card not present ,1 - Card present
->>> + =A0 =A0 =A0 =A0*/
->>> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL6030_MODULE_ID0, &read_reg=
-,
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 TWL6030_MMCCTRL);
->>> + =A0 =A0 =A0 if (ret >=3D 0)
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D read_reg & STS_MMC;
->>> + =A0 =A0 =A0 return ret;
->>> +}
->>> +EXPORT_SYMBOL(twl6030_mmc_card_detect);
->>> +
->>> =A0int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned ir=
-q_end)
->>> =A0{
->>>
->>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_=
-hsmmc.c
->>> index 562dbbb..a51894d 100644
->>> --- a/drivers/mmc/host/omap_hsmmc.c
->>> +++ b/drivers/mmc/host/omap_hsmmc.c
->>> @@ -466,8 +466,6 @@ static int omap_hsmmc_gpio_init(struct omap_mmc=
-_platform_data *pdata)
->>> =A0 =A0 =A0 =A0int ret;
->>>
->>> =A0 =A0 =A0 =A0if (gpio_is_valid(pdata->slots[0].switch_pin)) {
->>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->suspend =3D omap_hsmmc_suspend=
-_cdirq;
->>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->resume =3D omap_hsmmc_resume_c=
-dirq;
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (pdata->slots[0].cover)
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdata->slots[0].get_=
-cover_state =3D
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0omap_hsmmc_get_cover_state;
->>> @@ -2211,6 +2209,8 @@ static int __init omap_hsmmc_probe(struct pla=
-tform_device *pdev)
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"Una=
-ble to grab MMC CD IRQ\n");
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_irq_cd;
->>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->suspend =3D omap_hsmmc_suspend=
-_cdirq;
->>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->resume =3D omap_hsmmc_resume_c=
-dirq;
->>> =A0 =A0 =A0 =A0}
->>>
->>> =A0 =A0 =A0 =A0omap_hsmmc_disable_irq(host);
->>> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
->>> index 6de90bf..e64894c 100644
->>> --- a/include/linux/i2c/twl.h
->>> +++ b/include/linux/i2c/twl.h
->>> @@ -141,6 +141,16 @@
->>> =A0#define TWL6030_CHARGER_CTRL_INT_MASK =A00x10
->>> =A0#define TWL6030_CHARGER_FAULT_INT_MASK =A0 =A0 =A0 =A0 0x60
->>>
->>> +#define TWL6030_MMCCTRL =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00xEE
->>> +#define VMMC_AUTO_OFF =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(0x1 << 3=
-)
->>> +#define SW_FC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(=
-0x1 << 2)
->>> +#define STS_MMC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x1
->>> +
->>> +#define TWL6030_CFG_INPUT_PUPD3 =A0 =A0 =A0 =A00xF2
->>> +#define MMC_PU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (0x=
-1 << 3)
->>> +#define MMC_PD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (0x=
-1 << 2)
->>> +
->>> +
->>>
->>> =A0#define TWL4030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x4030
->>> =A0#define TWL6030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x6030
->>> @@ -173,6 +183,27 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg,=
- unsigned num_bytes);
->>> =A0int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
->>> =A0int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
->>>
->>> +/* Card detect Configuration for MMC1 Controller on OMAP4 */
->>> +#ifdef CONFIG_TWL4030_CORE
->>> +int twl6030_mmc_card_detect_config(void);
->>> +#else
->>> +static inline int twl6030_mmc_card_detect_config(void)
->>> +{
->>> + =A0 =A0 =A0 pr_debug("twl6030_mmc_card_detect_config not supporte=
-d\n");
->>> + =A0 =A0 =A0 return 0;
->>> +}
->>> +#endif
->>> +
->>> +/* MMC1 Controller on OMAP4 uses Phoenix irq for Card detect */
->>> +#ifdef CONFIG_TWL4030_CORE
->>> +int twl6030_mmc_card_detect(struct device *dev, int slot);
->>> +#else
->>> +static inline int twl6030_mmc_card_detect(struct device *dev, int =
-slot)
->>> +{
->>> + =A0 =A0 =A0 pr_debug("Call back twl6030_mmc_card_detect not suppo=
-rted\n");
->>> + =A0 =A0 =A0 return -EIO;
->>> +}
->>> +#endif
->>> =A0/*--------------------------------------------------------------=
---------*/
->>>
->>> =A0/*
->>> --
->>> 1.7.0.4
->>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-mmc=
-" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
->>>
+>>Hi Thara,
 >>
->
+>>On 9/17/2010 4:55 PM, Gopinath, Thara wrote:
+>>>
+>>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>>> Sent: Thursday, September 16, 2010 8:58 PM
+>>>>>
+>>>>> "Gopinath, Thara"<thara@ti.com>  writes:
+>>>>>
+>>>>>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>>>>>> Sent: Friday, September 03, 2010 5:12 AM
+>>>>>>>>
+>>>>>>>> Thara Gopinath<thara@ti.com>  writes:
+>>>>>>>>
+>>>>>>>>> This patch extends the device opp structure to contain
+>>>>>>>>> pointers to scale the operating rate of the
+>>>>>>>>> device and to retrieve the operating rate of the device.
+>>>>>>>>> This patch also adds the three new APIs in the opp layer
+>>>>>>>>> namely opp_set_rate that can be called to set a new operating
+>>>>>>>>> rate for a device, opp_get_rate that can be called to retrieve
+>>>>>>>>> the operating frequency for a device and opp_populate_rate_fns
+>>>>>>>>> to populte the device specific set_rate and get_rate API's.
+>>>>>>>>> The opp_set_rate and opp_get_rate does some routine error
+>>>>>>>>> checks and finally calls into the device specific set_rate
+>>>>>>>>> and get_rate APIs populated through opp_populate_rate_fns.
+>>>>>>>>>
+>>>>>>>>> Signed-off-by: Thara Gopinath<thara@ti.com>
+>>>>>>>>
+>>>>>>>> As I think about this more, I'm not sure the OPP layer is the right
+>>>>>>>> layer for the get/set rate functions.  The OPP layer is currently just
+>>>>>>>> the data store for OPP data. To me, these set/get functions are better
+>>>>>>>> associated directly with an omap_device instead of an OPP.
+>>>>>>>>
+>>>>>>>> For instance, the new OPP APIs are a bit confusing in terms of OPPs.
+>>>>>>>> e.g: opp_get_rate().  What is the "rate" of an OPP, and what's the
+>>>>>>>> difference with opp_get_freq()?
+>>>>>>>>
+>>>>>>>> What's really happening is the rate is being changed for a device, and
+>>>>>>>> the need for specific hooks are at the device level, not the OPP
+>>level.
+>>>>>>>> For example, this current approach would not scale if you needed
+>>>>>>>> multiple devices in the same domain that each needed custom
+>>>>>>>> set_rate/get_rate hooks.
+>>>>>>>>
+>>>>>>>> So instead, what about adding custom hooks at the omap_device level?
+>>>>>>>> They could be registered at omap_device_build() time in the device
+>>>>>>>> specific code.
+>>>>>>
+>>>>>> This is exactly what I had in my mind when I started implementing this.
+>>>>>> But then Paul said hwmod or omap_device is not the place to keep it.
+>>>>>
+>>>>> IIRC, Paul's concern was that *hwmod* was not the right place for this
+>>>>> (and I agree.)  However, I think omap_device is the right place for
+>>>>> this.
+>>>>>
+>>>>> Paul?
+>>>>>
+>>>>>> Also I do not want the set rate get rate APIs for devices that require
+>>>>>> changes dividers in the PRCM clock module to be spread out in the
+>>>>>> system. Makes it very very difficult to debug.  If we agree to add the
+>>>>>> set_rate and get_rate in the omap_device structure, I would like to
+>>>>>> have one more API in the omap_device layer to register these APIs
+>>>>>> device wise. Thus we can keep these set rate and get rate APIs in one
+>>>>>> single file.
+>>>>>
+>>>>> Agreed.  And those functions should be in the respective
+>>>>> device-specific file, where the omap_device_build() etc are done for
+>>>>> that device.
+>>>
+>>> Hello Kevin,
+>>>
+>>> I basically agree with all your other suggestions except this. I do not
+>>> think device files are the correct place for this. For starters definitely
+>>mpu,
+>>> l3 and iva devices are not built from any device file. I do not like the
+>>idea
+>>> of device set rate APIs spread across different files.
+>>
+>>I don't not understand the reason?
+>>If we need to add specific device function for mpu, l3, or iva, we can
+>>easily add a file to contain that.
+>>BTW, thanks to work done by Santosh and Felipe we will probably soon
+>>introduce a l3 driver that will allow to handle interconnect errors. We
+>>will thus have a real device for l3 as well.
+>>
+>>A device set_rate is clearly device specific. If a device will have to
+>>play with its own internal dividers along with PRCM dividers, that code
+>>still belong to the device.
+>>
+>>I do not see the need nor the advantage to centralize that? You will
+>>end-up with a huge file that every driver owners will have to hack in
+>>order to add set_rate support for their device.
+>>
+>>At device build time, IP with set_rate support will just add non-null
+>>parameters to the omap_device_build(), et voila.
+>>
+>>For the debug point of view, you can just add a new sysfs entry for
+>>scalable devices that will allow you to track scalable device vs regular
+>>ones.
+
+Hello Benoit/Kevin,
+
+Most of the devices need not scale any internal dividers. For devices that 
+need to scale internal dividers, I agree that the set_rate and get_rate should come from the devices file. But for other devices that involve only PRCM dividers, I do not think they should be bothered with implementing these APIs and maintaining them.
+
+Regards
+Thara
