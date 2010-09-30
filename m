@@ -1,89 +1,97 @@
-From: Haribabu Narayanan <haribabu@iastate.edu>
-Subject: Re: [Beagleboard] linux-omap-pm -- cpufreq query
-Date: Thu, 30 Sep 2010 09:33:14 -0500
-Message-ID: <AANLkTi=CbgCxrkGuOcSguSUnwwLbS+cAQx5-7Q_mszA+@mail.gmail.com>
-References: <AANLkTim43rid4oGe2B8iTEXgVRMGT7=w6onNRF5zOQq=@mail.gmail.com>
- <AANLkTinBJGXBkhSRVeDX9upjwn_dMyECfSi5_rnmHhyt@mail.gmail.com> <87hbh7l4vj.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
+Date: Thu, 30 Sep 2010 07:39:34 -0700
+Message-ID: <877hi3i9cp.fsf@deeprootsystems.com>
+References: <8762xpenf8.fsf@deeprootsystems.com>
+	<20100928201844.GI3117@atomide.com>
+	<87tyl8rxwp.fsf@deeprootsystems.com>
+	<20100930021819.GD3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:41587 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756407Ab0I3Odh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 10:33:37 -0400
-Received: by yxp4 with SMTP id 4so803046yxp.19
-        for <linux-omap@vger.kernel.org>; Thu, 30 Sep 2010 07:33:36 -0700 (PDT)
-In-Reply-To: <87hbh7l4vj.fsf@deeprootsystems.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:53481 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756471Ab0I3Ojh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 10:39:37 -0400
+Received: by pwj5 with SMTP id 5so307148pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Sep 2010 07:39:37 -0700 (PDT)
+In-Reply-To: <20100930021819.GD3117@atomide.com> (Tony Lindgren's message of
+	"Wed, 29 Sep 2010 19:18:19 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Charulatha Varadarajan <charu@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Govindraj R." <govindraj.raja@ti.com>
 
-Thanks Kevin.
+Tony Lindgren <tony@atomide.com> writes:
 
-Just to confirm, is there any version/branch beyond pm-2.6.34 that has
-cpufreq functional for omap3?
+> * Kevin Hilman <khilman@deeprootsystems.com> [100929 15:15]:
+>> Tony Lindgren <tony@atomide.com> writes:
+>> 
+>> > * Kevin Hilman <khilman@deeprootsystems.com> [100928 11:25]:
+>> >> Tony,
+>> >> 
+>> >> The following pull request will bring hwmod driver conversions for
+>> >> watchdog, UART and i2c drivers.  It is based on your omap-for-linus
+>> >> branch.
+>> >> 
+>> >> The i2c driver is waiting for final signoff/ack from the upstream
+>> >> subsystem maintainers, but are otherwise ready to go for broader
+>> >> testing.  After I get the final ack, I will update the branch for a
+>> >> final pull.
+>> >> 
+>> >> In the meantime, I'd like to get them into l-o master (or omap-testing)
+>> >> for broader testing.
+>> >
+>> > Tried pulling it but I'm getting tons of these errors on omap2:
+>> 
+>> Tony, 
+>> 
+>> Can you pull the latest version of my pm-hwmods branch from:
+>> ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-hwmods
+>> 
+>> This version has the updated patch from Rajendra for i2c as well as some
+>> UART3 fixes for a problem he noticed on 2430 as well.
+>
+> Getting closer.. Now 2430sdp boots OK. But on N800 (2420) I get the following
+> very early on:
 
--hari
+> ...
+> [    0.000000] Calibrating delay loop... 318.27 BogoMIPS (lpj=1245184)
+> [    0.000000] pid_max: default: 32768 minimum: 301
+> [    0.000000] Security Framework initialized
+> [    0.000000] Mount-cache hash table entries: 512
+> [    0.000000] CPU: Testing write buffer coherency: ok
+> [    0.000000] Unhandled fault: imprecise external abort (0xc06) at 0x00000000
+> [    0.000000] Internal error: : c06 [#1] SMP
+> [    0.000000] last sysfs file:
+> [    0.000000] Modules linked in:
+> [    0.000000] CPU: 0    Not tainted  (2.6.36-rc6-08801-g332f930 #395)
+> [    0.000000] PC is at kernel_thread_helper+0x0/0x14
+> [    0.000000] LR is at kernel_thread_helper+0x0/0x14
+> [    0.000000] pc : [<c004cc94>]    lr : [<c004cc94>]    psr: 00000093
+> [    0.000000] sp : c7825ff8  ip : 00000000  fp : 00000000
+> [    0.000000] r10: 00000000  r9 : 00000000  r8 : 00000000
+> [    0.000000] r7 : 00000013  r6 : c004cca8  r5 : c00a4dc0  r4 : 00000000
+> [    0.000000] r3 : 00000000  r2 : 00000000  r1 : 00000000  r0 : 00000000
+> [    0.000000] Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+> [    0.000000] Control: 00c5387f  Table: 80004000  DAC: 00000017
+> [    0.000000] Process swapper (pid: 2, stack limit = 0xc78242f8)
+> [    0.000000] Stack: (0xc7825ff8 to 0xc7826000)
+> [    0.000000] 5fe0:                                                       ffffffff ffffffff
+> [    0.000000] [<c004cc94>] (kernel_thread_helper+0x0/0x14) from [<ffffffff>] (0xffffffff)
+> [    0.000000] Code: c04d9ba8 c04de459 c05ca0a0 c04caf13 (eb01ac97)
+> [    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
+>
 
+Hmm, this fault is very early and long before any PM code has
+initialzed.  I suspect this happens with the master branch too ??
 
-On Thu, Sep 30, 2010 at 8:48 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Haribabu Narayanan <haribabu@iastate.edu> writes:
->
->> =A0=A0 =A0Till recently I was working with Angstrom environment for
->> beagleboard =A0(with a linux-omap-pm 2.6.29 kernel) and had to migra=
-te
->> to the latest kernel version possible that is supported by
->> linux-omap-pm branch for non-omap related reasons. =A0I am sticking =
-to
->> linux-omap-pm instead of linux-omap or linux mainlines chiefly becau=
-se
->> I need cpufreq related functionalities.
->>
->> =A0=A0I was happily using the latest head from linux-omap-pm when I
->> realised that there are no frequency transitions that are=A0occurrin=
-g
->> now when I initiate requests through sys-fs writes. =A0I found out t=
-hat
->> OMAP_PM_SRF is no longer supported (which was being used earlier on
->> for helping with cpufreq changes).
->>
->> =A0=A0Is it that one cannot do cpufreq related changes with the
->> current(+/-) linux-omap-pm kernel?
->
-> That is correct.
->
->> I checked linux-omap-pm's head/cpufreq branch for example and it
->> contains only OMAP_PM_NONE and OMAP_PM_NOOP in plat-omap/Kconfig. Ar=
-e
->> there any=A0changes I can make so that I can get back cpufreq
->> functionality.
->
-> The kernel parts that enable DVFS (including SmartReflex, voltage lay=
-er
-> etc.) are being rewritten and are under review and test currently.
-> The best way to help would be to contribute to that development and o=
-r
-> test these series from Thara.
->
->> If yes, is there an general idea as to when this will
->> be available with linux-omap-pm head ?
->
-> When it's ready. ;)
->
-> This is not a commitment, but I suspect we will have this into mainli=
-ne
-> during the 2.6.38 merge window.
->
-> Kevin
->
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What config are you using to get a small enough kernel to boot on your
+n810?  nolo on my n810 only accepts a maximum size kernel of 2097152
+bytes. :(
+
+> Then trying to build for omap1 OSK fails with:
+
+phew, guess I'm off the hook on that one.
+
+Kevin
