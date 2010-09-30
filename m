@@ -1,97 +1,84 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
-Date: Thu, 30 Sep 2010 07:39:34 -0700
-Message-ID: <877hi3i9cp.fsf@deeprootsystems.com>
-References: <8762xpenf8.fsf@deeprootsystems.com>
-	<20100928201844.GI3117@atomide.com>
-	<87tyl8rxwp.fsf@deeprootsystems.com>
-	<20100930021819.GD3117@atomide.com>
+Subject: Re: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset during init
+Date: Thu, 30 Sep 2010 07:51:45 -0700
+Message-ID: <87tyl7gu7y.fsf@deeprootsystems.com>
+References: <1285834270-32766-1-git-send-email-charu@ti.com>
+	<4CA45341.3080300@ti.com> <87vd5njpyq.fsf@deeprootsystems.com>
+	<4CA49ADE.6080202@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:53481 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756471Ab0I3Ojh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 10:39:37 -0400
-Received: by pwj5 with SMTP id 5so307148pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 30 Sep 2010 07:39:37 -0700 (PDT)
-In-Reply-To: <20100930021819.GD3117@atomide.com> (Tony Lindgren's message of
-	"Wed, 29 Sep 2010 19:18:19 -0700")
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:55055 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756412Ab0I3Owd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 10:52:33 -0400
+In-Reply-To: <4CA49ADE.6080202@ti.com> (Benoit Cousson's message of "Thu, 30
+	Sep 2010 16:12:46 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Charulatha Varadarajan <charu@ti.com>, Rajendra Nayak <rnayak@ti.com>, "Govindraj R." <govindraj.raja@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, "Menon, Nishanth" <nm@ti.com>, "tony@atomide.com" <tony@atomide.com>, "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-> * Kevin Hilman <khilman@deeprootsystems.com> [100929 15:15]:
->> Tony Lindgren <tony@atomide.com> writes:
->> 
->> > * Kevin Hilman <khilman@deeprootsystems.com> [100928 11:25]:
->> >> Tony,
->> >> 
->> >> The following pull request will bring hwmod driver conversions for
->> >> watchdog, UART and i2c drivers.  It is based on your omap-for-linus
->> >> branch.
->> >> 
->> >> The i2c driver is waiting for final signoff/ack from the upstream
->> >> subsystem maintainers, but are otherwise ready to go for broader
->> >> testing.  After I get the final ack, I will update the branch for a
->> >> final pull.
->> >> 
->> >> In the meantime, I'd like to get them into l-o master (or omap-testing)
->> >> for broader testing.
->> >
->> > Tried pulling it but I'm getting tons of these errors on omap2:
->> 
->> Tony, 
->> 
->> Can you pull the latest version of my pm-hwmods branch from:
->> ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-hwmods
->> 
->> This version has the updated patch from Rajendra for i2c as well as some
->> UART3 fixes for a problem he noticed on 2430 as well.
+> On 9/30/2010 3:55 PM, Kevin Hilman wrote:
+>> "Cousson, Benoit"<b-cousson@ti.com>  writes:
+>>
+>>> Hi Charu,
+>>>
+>>> On 9/30/2010 10:11 AM, Varadarajan, Charulatha wrote:
+>>>> With OMAP2PLUS watchdog implemented in hwmod fw way, the
+>>>> module is reset during init.
+>>>
+>>> In that case hwmod fw just highlighted the real behavior that was
+>>> hidden so far by the X-loader.
+>>>
+>>> You should as well add a link to the email thread with Kevin that
+>>> raised the issue.
+>>>
+>>>> After a watchdog timer module reset, the WDTs are enabled. The
+>>>> default time for a system reset after a watchdog module reset
+>>>> is ~10s as per the default value of the WDT registers. Hence
+>>>> the system would be reset after 10s, if watchdog is not disabled
+>>>> within 10s.
+>>>>
+>>>> This patch fixes the above issue by disabling the watchdog timer
+>>>> after reset during initialization of devices.
+>>>
+>>> I'm still wondering as well what is the expected behavior of the
+>>> watchdog in a real product. If it is started by default at boot time,
+>>> this is probably for a good reason (or maybe not...).
+>>>
+>>> So, disabling it all the time is maybe not the best solution.
+>>
+>> I'm not sure what the other options are.  If you don't have a watchdog
+>> driver, and the watchdog is armed, it will reboot the system.
+>>
+>> The approach in this patch is just to continue the behavior that all
+>> bootloaders currently do, but make it explicit in the kernel.
 >
-> Getting closer.. Now 2430sdp boots OK. But on N800 (2420) I get the following
-> very early on:
+> Yes, because we are not a building a product, and for us watchdog is a
+> pain. But I'm not sure that a real product will disable that at all
+> during the boot process.
 
-> ...
-> [    0.000000] Calibrating delay loop... 318.27 BogoMIPS (lpj=1245184)
-> [    0.000000] pid_max: default: 32768 minimum: 301
-> [    0.000000] Security Framework initialized
-> [    0.000000] Mount-cache hash table entries: 512
-> [    0.000000] CPU: Testing write buffer coherency: ok
-> [    0.000000] Unhandled fault: imprecise external abort (0xc06) at 0x00000000
-> [    0.000000] Internal error: : c06 [#1] SMP
-> [    0.000000] last sysfs file:
-> [    0.000000] Modules linked in:
-> [    0.000000] CPU: 0    Not tainted  (2.6.36-rc6-08801-g332f930 #395)
-> [    0.000000] PC is at kernel_thread_helper+0x0/0x14
-> [    0.000000] LR is at kernel_thread_helper+0x0/0x14
-> [    0.000000] pc : [<c004cc94>]    lr : [<c004cc94>]    psr: 00000093
-> [    0.000000] sp : c7825ff8  ip : 00000000  fp : 00000000
-> [    0.000000] r10: 00000000  r9 : 00000000  r8 : 00000000
-> [    0.000000] r7 : 00000013  r6 : c004cca8  r5 : c00a4dc0  r4 : 00000000
-> [    0.000000] r3 : 00000000  r2 : 00000000  r1 : 00000000  r0 : 00000000
-> [    0.000000] Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> [    0.000000] Control: 00c5387f  Table: 80004000  DAC: 00000017
-> [    0.000000] Process swapper (pid: 2, stack limit = 0xc78242f8)
-> [    0.000000] Stack: (0xc7825ff8 to 0xc7826000)
-> [    0.000000] 5fe0:                                                       ffffffff ffffffff
-> [    0.000000] [<c004cc94>] (kernel_thread_helper+0x0/0x14) from [<ffffffff>] (0xffffffff)
-> [    0.000000] Code: c04d9ba8 c04de459 c05ca0a0 c04caf13 (eb01ac97)
-> [    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
->
+Maybe not.  But wouldn't a product just ensure the real watchdog
+driver is loaded?
 
-Hmm, this fault is very early and long before any PM code has
-initialzed.  I suspect this happens with the master branch too ??
+Or more likely, in addition to the hundreds of other out-of-tree
+patches, they would just remove $SUBJECT patch.  ;)
 
-What config are you using to get a small enough kernel to boot on your
-n810?  nolo on my n810 only accepts a maximum size kernel of 2097152
-bytes. :(
+> I think that disabling it should be done only if the CONFIG_OMAP_WDT
+> is not set.
 
-> Then trying to build for omap1 OSK fails with:
-
-phew, guess I'm off the hook on that one.
+That's not easy either, as the watchdog driver can be built as a module,
+and may (or may not) be loaded some unknown time from the kernel boot,
+resulting in a likely
 
 Kevin
+
+> But since I don't have a clue about a product can use that, it will be
+> good to have such inputs to understand the usecase.
+
+
+
+
