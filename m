@@ -1,137 +1,815 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt
- handlers
-Date: Thu, 30 Sep 2010 17:42:27 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1009301703270.1314-100000@iolanthe.rowland.org>
-References: <201009302215.59937.rjw@sisk.pl>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv3 11/17] dmtimer: early boot infrastructure
+Date: Thu, 30 Sep 2010 23:49:32 +0200
+Message-ID: <4CA505EC.7070105@ti.com>
+References: <1285059286-26566-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:52542 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753709Ab0I3Vmb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 17:42:31 -0400
-In-Reply-To: <201009302215.59937.rjw@sisk.pl>
+Received: from comal.ext.ti.com ([198.47.26.152]:55161 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756057Ab0I3Vtj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Sep 2010 17:49:39 -0400
+In-Reply-To: <1285059286-26566-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-On Thu, 30 Sep 2010, Rafael J. Wysocki wrote:
+On 9/21/2010 10:54 AM, DebBarma, Tarun Kanti wrote:
+> During dmtimer early init, when device model is not up yet and dmtimer
+> devices are not yet registered, the initialization routine is unable
+> to read clock sources supported by the dmtimers using clk_get() because
+> it searches the list using device names. This problem is overcome by
+> assigning timer device names to the .init_name field. The advantage is
+> that there is one common set of routines for clock access routines for
+> early init and normal access.
+>
+> This patch also modifies the name of millisecond timers (1,2,10) on
+> OMAP3 and OMAP4 from"timer_1ms" to "timer". This means all timers
 
-> > --- usb-2.6.orig/include/linux/pm.h
-> > +++ usb-2.6/include/linux/pm.h
-> > @@ -485,6 +485,7 @@ struct dev_pm_info {
-> >  	unsigned int		run_wake:1;
-> >  	unsigned int		runtime_auto:1;
-> >  	unsigned int		no_callbacks:1;
-> > +	unsigned int		callbacks_in_irq:1;
-> 
-> I kind of don't like this name.  What about irq_safe ?
+typo
 
-Sure, that's a better name.
+So here is the change that is mentioned already in the code 6 patches 
+before...
+You don't have to split that in 2 patches. You can introduce the new 
+name in the first hwmod data patch since that will not impact your code. 
+Moreover that will avoid discrepancies between the comments in the code 
+and the code.
 
-> > --- usb-2.6.orig/include/linux/pm_runtime.h
-> > +++ usb-2.6/include/linux/pm_runtime.h
-> > @@ -21,6 +21,7 @@
-> >  #define RPM_GET_PUT		0x04	/* Increment/decrement the
-> >  					    usage_count */
-> >  #define RPM_AUTO		0x08	/* Use autosuspend_delay */
-> > +#define RPM_IRQ			0x10	/* Don't enable interrupts */
-> >  
-> >  #ifdef CONFIG_PM_RUNTIME
-> >  
-> > @@ -40,6 +41,7 @@ extern int pm_generic_runtime_idle(struc
-> >  extern int pm_generic_runtime_suspend(struct device *dev);
-> >  extern int pm_generic_runtime_resume(struct device *dev);
-> >  extern void pm_runtime_no_callbacks(struct device *dev);
-> > +extern void pm_runtime_callbacks_in_irq(struct device *dev);
-> 
-> Perhaps this one can be called pm_runtime_irq_safe() in analogy to the struct
-> member?
+> now have common name. This is to allow any one of the available timers
+> as an early timer instead of restricting it just to millisecond timers.
+> The hwmod routine which searches by class name can now search and find
+> all timers for initialization and bind to device model during early init.
+>
+> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+> Cc: Cousson, Benoit<b-cousson@ti.com>
+> Cc: Paul Walmsley<paul@pwsan.com>
+> Cc: Kevin Hilman<khilman@deeprootsystems.com>
+> Cc: Tony Lindgren<tony@atomide.com>
+> ---
+>   arch/arm/mach-omap2/omap_hwmod_2420_data.c |   91 ++++++++++++++++++++++++++++
+>   arch/arm/mach-omap2/omap_hwmod_2430_data.c |   91 ++++++++++++++++++++++++++++
+>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   86 ++++++++++++++++++++++++++-
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   86 ++++++++++++++++++++++++++-
+>   4 files changed, 352 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> index b3dd8ac..fc761a5 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+> @@ -177,6 +177,85 @@ static struct omap_hwmod_class omap2420_timer_hwmod_class = {
+>          .rev = OMAP_TIMER_IP_VERSION_1,
+>   };
+>
+> +/*
+> + * during dmtimer early init, when device model is not up yet and dmtimer
+> + * devices are not yet registered, the initialization routine is unable
+> + * to read clock sources supported by the dmtimers using clk_get() because
+> + * it searches the list using device names. this problem is overcome by
+> + * assigning timer device names to the .init_name field.
+> + */
+> +static struct omap_device timer1_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.0" },
 
-Yes.
+And here is the reason why you added an include to omap_device.h 8 
+patches ago.
 
-> Hmm.  This looks rather complicated.  I don't really feel good about this
-> change.  It seems to me that it might be better to actually implement
-> the _irq() helpers from scratch.  I think I'll try to do that.
+You should not do that, at all. hwmod is about SOC HW information only. 
+It will be use by omap_device, but it does not have to know anything 
+about the layer above it.
+Moreover, in that case, you can easily extract the device name using the 
+hwmod name, so you can build these devices dynamically and only if 
+needed at init time.
 
-That might work out better, but there will be a substantial amount of
-code duplication.  Try it and see how it turns out.
+> +       },
+> +};
+> +
+> +static struct omap_device timer2_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.1" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer3_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.2" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer4_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.3" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer5_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.4" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer6_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.5" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer7_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.6" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer8_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.7" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer9_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.8" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer10_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.9" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer11_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.10" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer12_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.11" },
+> +       },
+> +};
+> +
+>   /* timer1 */
+>   static struct omap_hwmod omap2420_timer1_hwmod;
+>   static struct omap_hwmod_irq_info omap2420_timer1_mpu_irqs[] = {
+> @@ -223,6 +302,7 @@ static struct omap_hwmod omap2420_timer1_hwmod = {
+>          .slaves         = omap2420_timer1_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer1_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer1_init_name,
 
-> Overall, it looks like there's some overlap between RPM_IRQ and
-> power.callbacks_in_irq, where the latter may influence the behavior of the
-> helpers even if RPM_IRQ is unset.
+And don't do that either... this is internal pointer populated during 
+omap_device_build.
+This is not HW related information at all.
 
-Exactly.  That was intentional.
+That's enough for today, I'll try to finalize the review tomorrow.
 
-> I think we should return error code if RPM_IRQ is used, but 
-> power.callbacks_in_irq is not set.
+Benoit
 
-The patch does that.
-
->  If RPM_IRQ is not set, but
-> power.callbacks_in_irq is set, we should fall back to the normal behavior
-> (ie. do not avoid sleeping).
-
-By "do not avoid sleeping", do you mean that 
-
-	(1) the helper functions should be allowed to sleep, or
-
-	(2) the callbacks should be invoked with interrupts enabled?
-
-The patch already does (1).  By contrast, (2) isn't safe.  It means
-there is a risk of having one thread do a busy-wait with interrupts
-disabled, waiting for another thread that can sleep.
-
-> That's why I think it's better to change the name of power.callbacks_in_irq
-> to power.irq_safe.
-> 
-> Also I think we should refuse to set power.callbacks_in_irq for a device
-> whose partent (1) doesn't have power.callbacks_in_irq and (2) doesn't
-> have power.ignore_children set , and (3) doesn't have power.disable_depth > 0.
-> Then, once we've set power.callbacks_in_irq for a device, we should take
-> this into consideration when trying to change the parent's settings.
-
-That's not a bad idea, but I don't know if it's necessary in practice.  
-With the current patch, if you violate this condition you will simply
-encounter an error when the PM core refuses to resume a sleeping
-parent.  Maybe we should allow violations and the resulting refusals
-but print a warning message in the system log.
-
-> There probably is more subtelties like this, but I can't see them at the moment.
-
-There are some subtle aspects related to the interplay between idle and
-the other callbacks.  In principle, the idle and suspend callbacks
-doesn't need to have interrupts disabled -- we don't care if interrupt
-handlers can't do synchronous suspends; they only need synchronous
-resumes.  But I wanted to keep things simple, so I treated all the
-callbacks the same.
-
-Going further, I'm still a little dubious about the whole point of
-having idle notifications at all.  I don't see why the PM core can't
-notify a subsystem that a device is idle just by calling the
-runtime_suspend routine.  The routine doesn't have to suspend if it
-doesn't want to, and it can always schedule a delayed suspend or an
-autosuspend.  Maybe you know of a use case where having explicit idle
-notifications really does help, but I can't think of any.
-
-
-One more thing: I'm not sure we really need the "notify" variable in
-rpm_suspend.  When a suspend callback fails, it means the device is in
-use.  Whatever is using the device should then be responsible for
-sending its own idle notification when it is finished; we shouldn't
-need to send a notification as soon as the suspend callback fails.
-
-Also, this can theoretically lead to nasty loops.  Suspend callback
-fails, idle notification gets sent, the runtime_idle routine tries to
-do another pm_runtime_suspend, rinse and repeat...  This is made even
-worse by the fact that the rpm_idle call after a failed suspend isn't
-asynchronous -- you could overflow the kernel's stack.  Relying on the
-driver to be properly written doesn't help: The device could become
-busy when each suspend is about to begin, and it could become inactive
-again just before the idle notification.  The driver could do the right 
-thing at each step and still overflow the stack.
-
-Alan Stern
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -272,6 +352,7 @@ static struct omap_hwmod omap2420_timer2_hwmod = {
+>          .slaves         = omap2420_timer2_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer2_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer2_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -321,6 +402,7 @@ static struct omap_hwmod omap2420_timer3_hwmod = {
+>          .slaves         = omap2420_timer3_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer3_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer3_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -368,6 +450,7 @@ static struct omap_hwmod omap2420_timer4_hwmod = {
+>          .slaves         = omap2420_timer4_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer4_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer4_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -417,6 +500,7 @@ static struct omap_hwmod omap2420_timer5_hwmod = {
+>          .slaves         = omap2420_timer5_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer5_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer5_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -466,6 +550,7 @@ static struct omap_hwmod omap2420_timer6_hwmod = {
+>          .slaves         = omap2420_timer6_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer6_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer6_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -514,6 +599,7 @@ static struct omap_hwmod omap2420_timer7_hwmod = {
+>          .slaves         = omap2420_timer7_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer7_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer7_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -562,6 +648,7 @@ static struct omap_hwmod omap2420_timer8_hwmod = {
+>          .slaves         = omap2420_timer8_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer8_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer8_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -610,6 +697,7 @@ static struct omap_hwmod omap2420_timer9_hwmod = {
+>          .slaves         = omap2420_timer9_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer9_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer9_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -658,6 +746,7 @@ static struct omap_hwmod omap2420_timer10_hwmod = {
+>          .slaves         = omap2420_timer10_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer10_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer10_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -706,6 +795,7 @@ static struct omap_hwmod omap2420_timer11_hwmod = {
+>          .slaves         = omap2420_timer11_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer11_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer11_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> @@ -754,6 +844,7 @@ static struct omap_hwmod omap2420_timer12_hwmod = {
+>          .slaves         = omap2420_timer12_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2420_timer12_slaves),
+>          .class          =&omap2420_timer_hwmod_class,
+> +       .od             =&timer12_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
+>   };
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> index 787d3ce..2ac463f 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+> @@ -183,6 +183,85 @@ static struct omap_hwmod_class omap2430_timer_hwmod_class = {
+>          .rev = OMAP_TIMER_IP_VERSION_1,
+>   };
+>
+> +/*
+> + * during dmtimer early init, when device model is not up yet and dmtimer
+> + * devices are not yet registered, the initialization routine is unable
+> + * to read clock sources supported by the dmtimers using clk_get() because
+> + * it searches the list using device names. this problem is overcome by
+> + * assigning timer device names to the .init_name field.
+> + */
+> +static struct omap_device timer1_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.0" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer2_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.1" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer3_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.2" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer4_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.3" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer5_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.4" },
+> +       },
+> +};
+> +
+> +
+> +static struct omap_device timer6_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.5" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer7_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.6" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer8_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.7" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer9_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.8" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer10_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.9" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer11_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.10" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer12_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.11" },
+> +       },
+> +};
+>
+>   /* timer1 */
+>   static struct omap_hwmod omap2430_timer1_hwmod;
+> @@ -232,6 +311,7 @@ static struct omap_hwmod omap2430_timer1_hwmod = {
+>          .slaves         = omap2430_timer1_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer1_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer1_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -281,6 +361,7 @@ static struct omap_hwmod omap2430_timer2_hwmod = {
+>          .slaves         = omap2430_timer2_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer2_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer2_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -328,6 +409,7 @@ static struct omap_hwmod omap2430_timer3_hwmod = {
+>          .slaves         = omap2430_timer3_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer3_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer3_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -377,6 +459,7 @@ static struct omap_hwmod omap2430_timer4_hwmod = {
+>          .slaves         = omap2430_timer4_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer4_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer4_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -424,6 +507,7 @@ static struct omap_hwmod omap2430_timer5_hwmod = {
+>          .slaves         = omap2430_timer5_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer5_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer5_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -472,6 +556,7 @@ static struct omap_hwmod omap2430_timer6_hwmod = {
+>          .slaves         = omap2430_timer6_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer6_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer6_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -520,6 +605,7 @@ static struct omap_hwmod omap2430_timer7_hwmod = {
+>          .slaves         = omap2430_timer7_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer7_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer7_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -567,6 +653,7 @@ static struct omap_hwmod omap2430_timer8_hwmod = {
+>          .slaves         = omap2430_timer8_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer8_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer8_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -615,6 +702,7 @@ static struct omap_hwmod omap2430_timer9_hwmod = {
+>          .slaves         = omap2430_timer9_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer9_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer9_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -662,6 +750,7 @@ static struct omap_hwmod omap2430_timer10_hwmod = {
+>          .slaves         = omap2430_timer10_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer10_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer10_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -709,6 +798,7 @@ static struct omap_hwmod omap2430_timer11_hwmod = {
+>          .slaves         = omap2430_timer11_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer11_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer11_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> @@ -757,6 +847,7 @@ static struct omap_hwmod omap2430_timer12_hwmod = {
+>          .slaves         = omap2430_timer12_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap2430_timer12_slaves),
+>          .class          =&omap2430_timer_hwmod_class,
+> +       .od             =&timer12_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
+>   };
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 4765cda..1ce40e0 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -151,7 +151,7 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_1ms_sysc = {
+>   };
+>
+>   static struct omap_hwmod_class omap3xxx_timer_1ms_hwmod_class = {
+> -       .name = "timer_1ms",
+> +       .name = "timer",
+>          .sysc =&omap3xxx_timer_1ms_sysc,
+>          .rev = OMAP_TIMER_IP_VERSION_1,
+>   };
+> @@ -180,6 +180,79 @@ static struct omap_hwmod_class omap3xxx_timer_hwmod_class = {
+>          .rev =  OMAP_TIMER_IP_VERSION_1,
+>   };
+>
+> +/*
+> + * during dmtimer early init, when device model is not up yet and dmtimer
+> + * devices are not yet registered, the initialization routine is unable
+> + * to read clock sources supported by the dmtimers using clk_get() because
+> + * it searches the list using device names. this problem is overcome by
+> + * assigning timer device names to the .init_name field.
+> + */
+> +static struct omap_device timer1_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.0" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer2_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.1" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer3_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.2" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer4_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.3" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer5_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.4" },
+> +       },
+> +};
+> +
+> +
+> +static struct omap_device timer6_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.5" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer7_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.6" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer8_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.7" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer9_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.8" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer10_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.9" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer11_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.10" },
+> +       },
+> +};
+>
+>   /* timer10 */
+>   static struct omap_hwmod omap3xxx_timer10_hwmod;
+> @@ -236,6 +309,7 @@ static struct omap_hwmod omap3xxx_timer10_hwmod = {
+>          .slaves         = omap3xxx_timer10_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer10_slaves),
+>          .class          =&omap3xxx_timer_1ms_hwmod_class,
+> +       .od             =&timer10_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -294,6 +368,7 @@ static struct omap_hwmod omap3xxx_timer11_hwmod = {
+>          .slaves         = omap3xxx_timer11_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer11_slaves),
+>          .class          =&omap3xxx_timer_hwmod_class,
+> +       .od             =&timer11_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -364,6 +439,7 @@ static struct omap_hwmod omap3xxx_timer2_hwmod = {
+>          .slaves         = omap3xxx_timer2_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer2_slaves),
+>          .class          =&omap3xxx_timer_1ms_hwmod_class,
+> +       .od             =&timer2_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -422,6 +498,7 @@ static struct omap_hwmod omap3xxx_timer3_hwmod = {
+>          .slaves         = omap3xxx_timer3_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer3_slaves),
+>          .class          =&omap3xxx_timer_hwmod_class,
+> +       .od             =&timer3_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -480,6 +557,7 @@ static struct omap_hwmod omap3xxx_timer4_hwmod = {
+>          .slaves         = omap3xxx_timer4_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer4_slaves),
+>          .class          =&omap3xxx_timer_hwmod_class,
+> +       .od             =&timer4_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -538,6 +616,7 @@ static struct omap_hwmod omap3xxx_timer5_hwmod = {
+>          .slaves         = omap3xxx_timer5_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer5_slaves),
+>          .class          =&omap3xxx_timer_hwmod_class,
+> +       .od             =&timer5_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -595,6 +674,7 @@ static struct omap_hwmod omap3xxx_timer6_hwmod = {
+>          .slaves         = omap3xxx_timer6_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer6_slaves),
+>          .class          =&omap3xxx_timer_hwmod_class,
+> +       .od             =&timer6_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -653,6 +733,7 @@ static struct omap_hwmod omap3xxx_timer7_hwmod = {
+>          .slaves         = omap3xxx_timer7_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer7_slaves),
+>          .class          =&omap3xxx_timer_hwmod_class,
+> +       .od             =&timer7_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -711,6 +792,7 @@ static struct omap_hwmod omap3xxx_timer8_hwmod = {
+>          .slaves         = omap3xxx_timer8_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer8_slaves),
+>          .class          =&omap3xxx_timer_hwmod_class,
+> +       .od             =&timer8_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -770,6 +852,7 @@ static struct omap_hwmod omap3xxx_timer9_hwmod = {
+>          .slaves         = omap3xxx_timer9_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer9_slaves),
+>          .class          =&omap3xxx_timer_hwmod_class,
+> +       .od             =&timer9_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> @@ -849,6 +932,7 @@ static struct omap_hwmod omap3xxx_timer1_hwmod = {
+>          .slaves         = omap3xxx_timer1_slaves,
+>          .slaves_cnt     = ARRAY_SIZE(omap3xxx_timer1_slaves),
+>          .class          =&omap3xxx_timer_1ms_hwmod_class,
+> +       .od             =&timer1_init_name,
+>          .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
+>   };
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 0390270..9edc518 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -549,7 +549,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
+>    * belongs the .name field is assigned a uniform name 'timer'.
+>    */
+>   static struct omap_hwmod_class omap44xx_timer_1ms_hwmod_class = {
+> -       .name = "timer_1ms",
+> +       .name = "timer",
+>          .sysc =&omap44xx_timer_1ms_sysc,
+>          .rev = OMAP_TIMER_IP_VERSION_1,
+>   };
+> @@ -569,6 +569,79 @@ static struct omap_hwmod_class omap44xx_timer_hwmod_class = {
+>          .rev = OMAP_TIMER_IP_VERSION_2,
+>   };
+>
+> +/*
+> + * during dmtimer early init, when device model is not up yet and dmtimer
+> + * devices are not yet registered, the initialization routine is unable
+> + * to read clock sources supported by the dmtimers using clk_get() because
+> + * it searches the list using device names. this problem is overcome by
+> + * assigning timer device names to the .init_name field.
+> + */
+> +static struct omap_device timer1_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.0" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer2_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.1" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer3_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.2" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer4_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.3" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer5_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.4" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer6_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.5" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer7_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.6" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer8_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.7" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer9_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.8" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer10_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.9" },
+> +       },
+> +};
+> +
+> +static struct omap_device timer11_init_name = {
+> +       .pdev = {
+> +               .dev = { .init_name = "dmtimer.10" },
+> +       },
+> +};
+> +
+>   /* timer1 */
+>   static struct omap_hwmod omap44xx_timer1_hwmod;
+>   static struct omap_hwmod_irq_info omap44xx_timer1_irqs[] = {
+> @@ -601,6 +674,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer1_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer1_hwmod = {
+>          .name           = "timer1",
+>          .class          =&omap44xx_timer_1ms_hwmod_class,
+> +       .od             =&timer1_init_name,
+>          .mpu_irqs       = omap44xx_timer1_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer1_irqs),
+>          .main_clk       = "timer1_fck",
+> @@ -647,6 +721,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer2_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer2_hwmod = {
+>          .name           = "timer2",
+>          .class          =&omap44xx_timer_1ms_hwmod_class,
+> +       .od             =&timer2_init_name,
+>          .mpu_irqs       = omap44xx_timer2_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer2_irqs),
+>          .main_clk       = "timer2_fck",
+> @@ -693,6 +768,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer3_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer3_hwmod = {
+>          .name           = "timer3",
+>          .class          =&omap44xx_timer_hwmod_class,
+> +       .od             =&timer3_init_name,
+>          .mpu_irqs       = omap44xx_timer3_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer3_irqs),
+>          .main_clk       = "timer3_fck",
+> @@ -739,6 +815,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer4_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer4_hwmod = {
+>          .name           = "timer4",
+>          .class          =&omap44xx_timer_hwmod_class,
+> +       .od             =&timer4_init_name,
+>          .mpu_irqs       = omap44xx_timer4_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer4_irqs),
+>          .main_clk       = "timer4_fck",
+> @@ -804,6 +881,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer5_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer5_hwmod = {
+>          .name           = "timer5",
+>          .class          =&omap44xx_timer_hwmod_class,
+> +       .od             =&timer5_init_name,
+>          .mpu_irqs       = omap44xx_timer5_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer5_irqs),
+>          .main_clk       = "timer5_fck",
+> @@ -869,6 +947,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer6_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer6_hwmod = {
+>          .name           = "timer6",
+>          .class          =&omap44xx_timer_hwmod_class,
+> +       .od             =&timer6_init_name,
+>          .mpu_irqs       = omap44xx_timer6_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer6_irqs),
+>          .main_clk       = "timer6_fck",
+> @@ -934,6 +1013,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer7_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer7_hwmod = {
+>          .name           = "timer7",
+>          .class          =&omap44xx_timer_hwmod_class,
+> +       .od             =&timer7_init_name,
+>          .mpu_irqs       = omap44xx_timer7_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer7_irqs),
+>          .main_clk       = "timer7_fck",
+> @@ -999,6 +1079,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer8_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer8_hwmod = {
+>          .name           = "timer8",
+>          .class          =&omap44xx_timer_hwmod_class,
+> +       .od             =&timer8_init_name,
+>          .mpu_irqs       = omap44xx_timer8_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer8_irqs),
+>          .main_clk       = "timer8_fck",
+> @@ -1045,6 +1126,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer9_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer9_hwmod = {
+>          .name           = "timer9",
+>          .class          =&omap44xx_timer_hwmod_class,
+> +       .od             =&timer9_init_name,
+>          .mpu_irqs       = omap44xx_timer9_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer9_irqs),
+>          .main_clk       = "timer9_fck",
+> @@ -1091,6 +1173,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer10_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer10_hwmod = {
+>          .name           = "timer10",
+>          .class          =&omap44xx_timer_1ms_hwmod_class,
+> +       .od             =&timer10_init_name,
+>          .mpu_irqs       = omap44xx_timer10_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer10_irqs),
+>          .main_clk       = "timer10_fck",
+> @@ -1137,6 +1220,7 @@ static struct omap_hwmod_ocp_if *omap44xx_timer11_slaves[] = {
+>   static struct omap_hwmod omap44xx_timer11_hwmod = {
+>          .name           = "timer11",
+>          .class          =&omap44xx_timer_hwmod_class,
+> +       .od             =&timer11_init_name,
+>          .mpu_irqs       = omap44xx_timer11_irqs,
+>          .mpu_irqs_cnt   = ARRAY_SIZE(omap44xx_timer11_irqs),
+>          .main_clk       = "timer11_fck",
+> --
+> 1.6.0.4
+>
 
