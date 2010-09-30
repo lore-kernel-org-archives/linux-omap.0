@@ -1,117 +1,142 @@
 From: Abraham Arce <x0066660@ti.com>
-Subject: [PATCH v6 1/8] OMAP4: hwmod data: add keyboard controller
-Date: Thu, 30 Sep 2010 00:29:18 -0500
-Message-ID: <1285824565-24906-2-git-send-email-x0066660@ti.com>
+Subject: [PATCH v6 2/8] Input: omap4 - use platform device helpers
+Date: Thu, 30 Sep 2010 00:29:19 -0500
+Message-ID: <1285824565-24906-3-git-send-email-x0066660@ti.com>
 References: <1285824565-24906-1-git-send-email-x0066660@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40688 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753137Ab0I3FaN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Sep 2010 01:30:13 -0400
 In-Reply-To: <1285824565-24906-1-git-send-email-x0066660@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Benoit Cousson <b-cousson@ti.com>, Abraham Arce <x0066660@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Abraham Arce <x0066660@ti.com>
 
-From: Benoit Cousson <b-cousson@ti.com>
+Get mem and irq resources using platform helpers
 
-Add hwmod data for OMAP4 keyboard controller
-taking the following patch as base:
+ - platform_get_base
+ - platform_get_irq
 
- OMAP4: hwmod: Add partial hwmod support for OMAP4430 ES1.0
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Abraham Arce <x0066660@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   69 ++++++++++++++++++++++++++++
- 1 files changed, 69 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/plat/omap4-keypad.h |    4 +--
+ drivers/input/keyboard/omap4-keypad.c          |   40 +++++++++++++++++++++---
+ 2 files changed, 36 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index e20b0ee..c04a04d 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -413,6 +413,72 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod = {
+diff --git a/arch/arm/plat-omap/include/plat/omap4-keypad.h b/arch/arm/plat-omap/include/plat/omap4-keypad.h
+index 522a8ab..2b1d9bc 100644
+--- a/arch/arm/plat-omap/include/plat/omap4-keypad.h
++++ b/arch/arm/plat-omap/include/plat/omap4-keypad.h
+@@ -8,9 +8,7 @@ struct omap4_keypad_platform_data {
+ 
+ 	u8 rows;
+ 	u8 cols;
+-
+-	u16 irq;
+-	void __iomem *base;
  };
  
- /*
-+ * 'kbd' class
-+ * keyboard controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_kbd_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_CLOCKACTIVITY |
-+			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
-+			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap44xx_kbd_hwmod_class = {
-+	.name = "kbd",
-+	.sysc = &omap44xx_kbd_sysc,
-+};
-+
-+/* kbd */
-+static struct omap_hwmod omap44xx_kbd_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_kbd_irqs[] = {
-+	{ .irq = 120 + OMAP44XX_IRQ_GIC_START },
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_kbd_addrs[] = {
-+	{
-+		.pa_start	= 0x4a31c000,
-+		.pa_end		= 0x4a31c07f,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+};
-+
-+/* l4_wkup -> kbd */
-+static struct omap_hwmod_ocp_if omap44xx_l4_wkup__kbd = {
-+	.master		= &omap44xx_l4_wkup_hwmod,
-+	.slave		= &omap44xx_kbd_hwmod,
-+	.clk		= "l4_wkup_clk_mux_ck",
-+	.addr		= omap44xx_kbd_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap44xx_kbd_addrs),
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* kbd slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_kbd_slaves[] = {
-+	&omap44xx_l4_wkup__kbd,
-+};
-+
-+static struct omap_hwmod omap44xx_kbd_hwmod = {
-+	.name		= "kbd",
-+	.class		= &omap44xx_kbd_hwmod_class,
-+	.mpu_irqs	= omap44xx_kbd_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_kbd_irqs),
-+	.main_clk	= "kbd_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_reg = OMAP4430_CM_WKUP_KEYBOARD_CLKCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_kbd_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_kbd_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
-+};
-+
-+/*
-  * 'mpu' class
-  * mpu sub-system
-  */
-@@ -470,6 +536,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	/* mpu_bus class */
- 	&omap44xx_mpu_private_hwmod,
++extern int omap4_keyboard_init(struct omap4_keypad_platform_data *);
+ #endif
+diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
+index 975f8bb..788169d 100644
+--- a/drivers/input/keyboard/omap4-keypad.c
++++ b/drivers/input/keyboard/omap4-keypad.c
+@@ -148,7 +148,10 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 	const struct omap4_keypad_platform_data *pdata;
+ 	struct omap4_keypad *keypad_data;
+ 	struct input_dev *input_dev;
++	struct resource *res;
++	resource_size_t size;
+ 	unsigned int row_shift, max_keys;
++	int irq;
+ 	int error;
  
-+	/* kbd class */
-+	&omap44xx_kbd_hwmod,
+ 	/* platform data */
+@@ -158,12 +161,14 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!pdata->base) {
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
+ 		dev_err(&pdev->dev, "no base address specified\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!pdata->irq) {
++	irq = platform_get_irq(pdev, 0);
++	if (!irq) {
+ 		dev_err(&pdev->dev, "no keyboard irq assigned\n");
+ 		return -EINVAL;
+ 	}
+@@ -184,9 +189,23 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	keypad_data->base = pdata->base;
+-	keypad_data->irq = pdata->irq;
++	size = resource_size(res);
 +
- 	/* mpu class */
- 	&omap44xx_mpu_hwmod,
- 	NULL,
++	res = request_mem_region(res->start, size, pdev->name);
++	if (!res) {
++		dev_err(&pdev->dev, "can't request mem region\n");
++		error = -EBUSY;
++		goto err_free_keypad;
++	}
+ 
++	keypad_data->base = ioremap(res->start, resource_size(res));
++	if (!keypad_data->base) {
++		dev_err(&pdev->dev, "can't ioremap mem resource\n");
++		error = -ENOMEM;
++		goto err_release_mem;
++	}
++
++	keypad_data->irq = irq;
+ 	keypad_data->row_shift = row_shift;
+ 	keypad_data->rows = pdata->rows;
+ 	keypad_data->cols = pdata->cols;
+@@ -195,7 +214,7 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
+ 	keypad_data->input = input_dev = input_allocate_device();
+ 	if (!input_dev) {
+ 		error = -ENOMEM;
+-		goto err_free_keypad;
++		goto err_unmap;
+ 	}
+ 
+ 	input_dev->name = pdev->name;
+@@ -243,6 +262,10 @@ err_free_irq:
+ 	free_irq(keypad_data->irq, keypad_data);
+ err_free_input:
+ 	input_free_device(input_dev);
++err_unmap:
++	iounmap(keypad_data->base);
++err_release_mem:
++	release_mem_region(res->start, size);
+ err_free_keypad:
+ 	kfree(keypad_data);
+ 	return error;
+@@ -251,9 +274,16 @@ err_free_keypad:
+ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
+ {
+ 	struct omap4_keypad *keypad_data = platform_get_drvdata(pdev);
++	struct resource *res;
+ 
+ 	free_irq(keypad_data->irq, keypad_data);
+ 	input_unregister_device(keypad_data->input);
++
++	iounmap(keypad_data->base);
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	release_mem_region(res->start, resource_size(res));
++
+ 	kfree(keypad_data);
+ 	platform_set_drvdata(pdev, NULL);
+ 
 -- 
 1.6.3.3
 
