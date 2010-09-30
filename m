@@ -1,40 +1,138 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v6 7/8] OMAP4: Keyboard board support
-Date: Thu, 30 Sep 2010 00:36:40 -0700
-Message-ID: <393CAC30-2B6A-4473-9C43-15C0C1464169@gmail.com>
-References: <1285824973-25550-1-git-send-email-x0066660@ti.com> <20100930064055.GG5260@core.coreip.homeip.net> <4CA43695.3030108@ti.com>
-Mime-Version: 1.0 (iPhone Mail 8B117)
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <4CA43695.3030108@ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Abraham Arce <x0066660@ti.com>
-Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: Compilation: omap-for-linus omap2plus error
+Date: Thu, 30 Sep 2010 13:25:17 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CD02FA5@dbde02.ent.ti.com>
+References: <4CA409E3.8000800@ti.com>
+ <AANLkTinONbTyE4CKDnGfXrco-qy0=u_MpzimpCSnDZr7@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB030CD02FA5dbde02enttico_"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53691 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752047Ab0I3HzW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Sep 2010 03:55:22 -0400
+In-Reply-To: <AANLkTinONbTyE4CKDnGfXrco-qy0=u_MpzimpCSnDZr7@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Abraham Arce <abraham.arce.moreno@gmail.com>, "Arce, Abraham" <x0066660@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sep 30, 2010, at 12:04 AM, Abraham Arce <x0066660@ti.com> wrote:
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB030CD02FA5dbde02enttico_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-> Hi Dmitry,
-> 
-> Dmitry Torokhov wrote:
->> HI Abraham,
->> On Thu, Sep 30, 2010 at 12:36:13AM -0500, Abraham Arce wrote:
->>> From: Syed Rafiuddin <rafiuddin.syed@ti.com>
->>> 
->>> Keyboard support for SDP OMAP4430
->>> 
->> I think this would benefit from "const" sprinkled on it.
-> 
-> You mean?
-> 
-> -static int sdp4430_keymap[] = {
-> +static const int sdp4430_keymap[] = {
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Abraham Arce
+> Sent: Thursday, September 30, 2010 9:47 AM
+> To: Arce, Abraham
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: Compilation: omap-for-linus omap2plus error
+>=20
+> Adding more info to previous email, email account changed
+>=20
+> On Wed, Sep 29, 2010 at 10:54 PM, Abraham Arce <x0066660@ti.com> wrote:
+> > Hi,
+> >
+> > Is there any patch missing in omap-for-linus branch?
+> >
+> > =A0CC =A0 =A0 =A0arch/arm/mach-omap2/pm_bus.o
+> > arch/arm/mach-omap2/pm_bus.c: In function 'omap_pm_runtime_init':
+> > arch/arm/mach-omap2/pm_bus.c:64: error: implicit declaration of functio=
+n
+> > 'platform_bus_get_pm_ops'
+> > arch/arm/mach-omap2/pm_bus.c:64: warning: assignment makes pointer from
+> > integer without a cast
+> > arch/arm/mach-omap2/pm_bus.c:81: error: implicit declaration of functio=
+n
+> > 'platform_bus_set_pm_ops'
+> > make[1]: *** [arch/arm/mach-omap2/pm_bus.o] Error 1
+> > make: *** [arch/arm/mach-omap2] Error 2
+> >
+>=20
+> I am trying using following commit as latest
+>=20
+> Kevin Hilman
+> 7ad0e386d46e9edff64705ab25337ad9130baf63
+> OMAP2+: defconfig: disable CPUfreq
+>=20
+Looks like Kevin's platform.c patch is missing
+in omap-for-linus branch. Patch attached.
 
-Yep. 
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB030CD02FA5dbde02enttico_
+Content-Type: application/octet-stream;
+	name="0001-driver-core-platform_bus-allow-runtime-override-of.patch"
+Content-Description: 0001-driver-core-platform_bus-allow-runtime-override-of.patch
+Content-Disposition: attachment;
+	filename="0001-driver-core-platform_bus-allow-runtime-override-of.patch";
+	size=3577; creation-date="Thu, 30 Sep 2010 13:34:06 GMT";
+	modification-date="Thu, 30 Sep 2010 13:34:06 GMT"
+Content-Transfer-Encoding: base64
 
--- 
-Dmitry
+RnJvbSBmODA5M2M1YjVmNWNjNjNlZmQ4NmRkMzQxNTdlMjcxNTI2ZjA0OWQ2IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBLZXZpbiBIaWxtYW4gPGtoaWxtYW5AdGkuY29tPgpEYXRlOiBX
+ZWQsIDI5IFNlcCAyMDEwIDExOjA1OjU2IC0wNzAwClN1YmplY3Q6IFtQQVRDSF0gZHJpdmVyIGNv
+cmU6IHBsYXRmb3JtX2J1czogYWxsb3cgcnVudGltZSBvdmVycmlkZSBvZiBkZXZfcG1fb3BzCgpD
+dXJyZW50bHksIHRoZSBwbGF0Zm9ybV9idXMgYWxsb3dzIGN1c3RvbWl6YXRpb24gb2Ygc2V2ZXJh
+bCBvZiB0aGUKYnVzc2VzIGRldl9wbV9vcHMgbWV0aG9kcyBieSB1c2luZyB3ZWFrIHN5bWJvbHMg
+c28gdGhhdCBwbGF0Zm9ybSBjb2RlCmNhbiBvdmVycmlkZSB0aGVtLiAgVGhlIHdlYWstc3ltYm9s
+IGFwcHJvYWNoIGlzIG5vdCBzY2FsYWJsZSB3aGVuCndhbnRpbmcgdG8gc3VwcG9ydCBtdWx0aXBs
+ZSBwbGF0Zm9ybXMgaW4gYSBzaW5nbGUga2VybmVsIGJpbmFyeS4KCkluc3RlYWQsIHByb3ZpZGUg
+X19pbml0IG1ldGhvZHMgZm9yIHBsYXRmb3JtIGNvZGUgdG8gY3VzdG9taXplIHRoZQpkZXZfcG1f
+b3BzIG1ldGhvZHMgYXQgcnVudGltZS4KCk5PVEU6IGFmdGVyIHRoZXNlIGR5bmFtaWMgbWV0aG9k
+cyBhcmUgbWVyZ2VkLCB0aGUgd2VhayBzeW1ib2xzIHNob3VsZAogICAgICBiZSByZW1vdmVkIGZy
+b20gZHJpdmVycy9iYXNlL3BsYXRmb3JtLmMuICBBRkFJSywgdGhpcyB3aWxsIG9ubHkKICAgICAg
+YWZmZWN0IFNIIGFuZCBzaC1tb2JpbGUgd2hpY2ggc2hvdWxkIGJlIGNvbnZlcnRlZCB0byB1c2Ug
+dGhpcwogICAgICBydW50aW1lIGFwcHJvYWNoIGluc3RlYWQgb2YgdGhlIHdlYWsgc3ltYm9scy4g
+IEFmdGVyIFNIICYKICAgICAgc2gtbW9iaWxlIGFyZSBjb252ZXJ0ZWQsIHRoZSB3ZWFrIHN5bW9i
+b2xzIGNvdWxkIGJlIHJlbW92ZWQuCgpUZXN0ZWQgb24gT01BUDMuCgpDYzogTWFnbnVzIERhbW0g
+PG1hZ251cy5kYW1tQGdtYWlsLmNvbT4KQWNrZWQtYnk6IEdyYW50IExpa2VseSA8Z3JhbnQubGlr
+ZWx5QHNlY3JldGxhYi5jYT4KU2lnbmVkLW9mZi1ieTogS2V2aW4gSGlsbWFuIDxraGlsbWFuQGRl
+ZXByb290c3lzdGVtcy5jb20+ClNpZ25lZC1vZmYtYnk6IEdyZWcgS3JvYWgtSGFydG1hbiA8Z3Jl
+Z2toQHN1c2UuZGU+Ci0tLQogZHJpdmVycy9iYXNlL3BsYXRmb3JtLmMgICAgICAgICB8ICAgMzUg
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGluY2x1ZGUvbGludXgvcGxhdGZv
+cm1fZGV2aWNlLmggfCAgICAzICsrKwogMiBmaWxlcyBjaGFuZ2VkLCAzOCBpbnNlcnRpb25zKCsp
+LCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmFzZS9wbGF0Zm9ybS5jIGIv
+ZHJpdmVycy9iYXNlL3BsYXRmb3JtLmMKaW5kZXggYzZjOTMzZi4uNDY4YmJmZCAxMDA2NDQKLS0t
+IGEvZHJpdmVycy9iYXNlL3BsYXRmb3JtLmMKKysrIGIvZHJpdmVycy9iYXNlL3BsYXRmb3JtLmMK
+QEAgLTk3Niw2ICs5NzYsNDEgQEAgc3RydWN0IGJ1c190eXBlIHBsYXRmb3JtX2J1c190eXBlID0g
+ewogfTsKIEVYUE9SVF9TWU1CT0xfR1BMKHBsYXRmb3JtX2J1c190eXBlKTsKIAorLyoqCisgKiBw
+bGF0Zm9ybV9idXNfZ2V0X3BtX29wcygpIC0gcmV0dXJuIHBvaW50ZXIgdG8gYnVzc2VzIGRldl9w
+bV9vcHMKKyAqCisgKiBUaGlzIGZ1bmN0aW9uIGNhbiBiZSB1c2VkIGJ5IHBsYXRmb3JtIGNvZGUg
+dG8gZ2V0IHRoZSBjdXJyZW50CisgKiBzZXQgb2YgZGV2X3BtX29wcyBmdW5jdGlvbnMgdXNlZCBi
+eSB0aGUgcGxhdGZvcm1fYnVzX3R5cGUuCisgKi8KK2NvbnN0IHN0cnVjdCBkZXZfcG1fb3BzICog
+X19pbml0IHBsYXRmb3JtX2J1c19nZXRfcG1fb3BzKHZvaWQpCit7CisJcmV0dXJuIHBsYXRmb3Jt
+X2J1c190eXBlLnBtOworfQorCisvKioKKyAqIHBsYXRmb3JtX2J1c19zZXRfcG1fb3BzKCkgLSB1
+cGRhdGUgZGV2X3BtX29wcyBmb3IgdGhlIHBsYXRmb3JtX2J1c190eXBlCisgKgorICogQHBtOiBw
+b2ludGVyIHRvIG5ldyBkZXZfcG1fb3BzIHN0cnVjdCB0byBiZSB1c2VkIGZvciBwbGF0Zm9ybV9i
+dXNfdHlwZQorICoKKyAqIFBsYXRmb3JtIGNvZGUgY2FuIG92ZXJyaWRlIHRoZSBkZXZfcG1fb3Bz
+IG1ldGhvZHMgb2YKKyAqIHBsYXRmb3JtX2J1c190eXBlIGJ5IHVzaW5nIHRoaXMgZnVuY3Rpb24u
+ICBJdCBpcyBleHBlY3RlZCB0aGF0CisgKiBwbGF0Zm9ybSBjb2RlIHdpbGwgZmlyc3QgZG8gYSBw
+bGF0Zm9ybV9idXNfZ2V0X3BtX29wcygpLCB0aGVuCisgKiBrbWVtZHVwIGl0LCB0aGVuIGN1c3Rv
+bWl6ZSBzZWxlY3RlZCBtZXRob2RzIGFuZCBwYXNzIGEgcG9pbnRlciB0bworICogdGhlIG5ldyBz
+dHJ1Y3QgZGV2X3BtX29wcyB0byB0aGlzIGZ1bmN0aW9uLgorICoKKyAqIFNpbmNlIHBsYXRmb3Jt
+LXNwZWNpZmljIGNvZGUgaXMgY3VzdG9taXppbmcgbWV0aG9kcyBmb3IgKmFsbCoKKyAqIGRldmlj
+ZXMgKG5vdCBqdXN0IHBsYXRmb3JtLXNwZWNpZmljIGRldmljZXMpIGl0IGlzIGV4cGVjdGVkIHRo
+YXQKKyAqIGFueSBjdXN0b20gb3ZlcnJpZGVzIG9mIHRoZXNlIGZ1bmN0aW9ucyB3aWxsIGtlZXAg
+ZXhpc3RpbmcgYmVoYXZpb3IKKyAqIGFuZCBzaW1wbHkgZXh0ZW5kIGl0LiAgRm9yIGV4YW1wbGUs
+IGFueSBjdXN0b21pemF0aW9uIG9mIHRoZQorICogcnVudGltZSBQTSBtZXRob2RzIHNob3VsZCBj
+b250aW51ZSB0byBjYWxsIHRoZSBwbV9nZW5lcmljXyoKKyAqIGZ1bmN0aW9ucyBhcyB0aGUgZGVm
+YXVsdCBvbmVzIGRvIGluIGFkZGl0aW9uIHRvIHRoZQorICogcGxhdGZvcm0tc3BlY2lmaWMgYmVo
+YXZpb3IuCisgKi8KK3ZvaWQgX19pbml0IHBsYXRmb3JtX2J1c19zZXRfcG1fb3BzKGNvbnN0IHN0
+cnVjdCBkZXZfcG1fb3BzICpwbSkKK3sKKwlwbGF0Zm9ybV9idXNfdHlwZS5wbSA9IHBtOworfQor
+CiBpbnQgX19pbml0IHBsYXRmb3JtX2J1c19pbml0KHZvaWQpCiB7CiAJaW50IGVycm9yOwpkaWZm
+IC0tZ2l0IGEvaW5jbHVkZS9saW51eC9wbGF0Zm9ybV9kZXZpY2UuaCBiL2luY2x1ZGUvbGludXgv
+cGxhdGZvcm1fZGV2aWNlLmgKaW5kZXggZDdlY2FkMC4uMmU3MDBlYyAxMDA2NDQKLS0tIGEvaW5j
+bHVkZS9saW51eC9wbGF0Zm9ybV9kZXZpY2UuaAorKysgYi9pbmNsdWRlL2xpbnV4L3BsYXRmb3Jt
+X2RldmljZS5oCkBAIC0xMzgsNiArMTM4LDkgQEAgZXh0ZXJuIHN0cnVjdCBwbGF0Zm9ybV9kZXZp
+Y2UgKnBsYXRmb3JtX2NyZWF0ZV9idW5kbGUoc3RydWN0IHBsYXRmb3JtX2RyaXZlciAqZHIKIAkJ
+CQkJc3RydWN0IHJlc291cmNlICpyZXMsIHVuc2lnbmVkIGludCBuX3JlcywKIAkJCQkJY29uc3Qg
+dm9pZCAqZGF0YSwgc2l6ZV90IHNpemUpOwogCitleHRlcm4gY29uc3Qgc3RydWN0IGRldl9wbV9v
+cHMgKiBwbGF0Zm9ybV9idXNfZ2V0X3BtX29wcyh2b2lkKTsKK2V4dGVybiB2b2lkIHBsYXRmb3Jt
+X2J1c19zZXRfcG1fb3BzKGNvbnN0IHN0cnVjdCBkZXZfcG1fb3BzICpwbSk7CisKIC8qIGVhcmx5
+IHBsYXRmb3JtIGRyaXZlciBpbnRlcmZhY2UgKi8KIHN0cnVjdCBlYXJseV9wbGF0Zm9ybV9kcml2
+ZXIgewogCWNvbnN0IGNoYXIgKmNsYXNzX3N0cjsKLS0gCjEuNi4wLjQKCg==
 
-> 
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB030CD02FA5dbde02enttico_--
