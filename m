@@ -1,67 +1,35 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset during init
-Date: Thu, 30 Sep 2010 10:11:49 -0700
-Message-ID: <87bp7ff962.fsf@deeprootsystems.com>
-References: <1285834270-32766-1-git-send-email-charu@ti.com>
-	<4CA45341.3080300@ti.com> <87vd5njpyq.fsf@deeprootsystems.com>
-	<4CA49ADE.6080202@ti.com> <20100930150713.GG3117@atomide.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030CCF813E@dbde02.ent.ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030CD03185@dbde02.ent.ti.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] staging: tidspbridge: disable all peripherals at
+	bridge_brd_stop
+Date: Thu, 30 Sep 2010 04:36:34 -0700
+Message-ID: <20100930113634.GA29480@kroah.com>
+References: <1285362123-31323-1-git-send-email-ernesto@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:54568 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752265Ab0I3RMB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 13:12:01 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CD03185@dbde02.ent.ti.com>
-	(Santosh Shilimkar's message of "Thu, 30 Sep 2010 22:35:05 +0530")
+Received: from kroah.org ([198.145.64.141]:52098 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755801Ab0I3RRD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Sep 2010 13:17:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1285362123-31323-1-git-send-email-ernesto@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Menon, Nishanth" <nm@ti.com>, "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: Ernesto Ramos <ernesto@ti.com>
+Cc: gregkh@suse.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, ameya.palande@nokia.com, felipe.contreras@gmail.com, andy.shevchenko@gmail.com, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+On Fri, Sep 24, 2010 at 04:02:03PM -0500, Ernesto Ramos wrote:
+> DSP Bridge needs to disable the peripheral clocks when switches to
+> BRD_STOPPED since that would prevent the domain to enter in OFF state.
+> 
+> Signed-off-by: Ernesto Ramos <ernesto@ti.com>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Varadarajan, Charulatha
->> Sent: Thursday, September 30, 2010 9:25 PM
->> To: Tony Lindgren; Cousson, Benoit
->> Cc: Kevin Hilman; Menon, Nishanth; wim@iguana.be; linux-
->> omap@vger.kernel.org; linux-watchdog@vger.kernel.org; linux-arm-
->> kernel@lists.infradead.org; paul@pwsan.com; Nayak, Rajendra; Basak, Partha
->> Subject: RE: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset during
->> init
->> 
->> Tony/ Benoit,
->> 
->> > >
->> > > I think that disabling it should be done only if the CONFIG_OMAP_WDT
->> > > is not set.
->> >
->> > How about disabling is done always unless CONFIG_WATCHDOG_NOWAYOUT
->> > is set?
->> 
->> As given in the patch description, this patch does a disable of watchdog
->> timer, during init, to avoid the system rebooting that happens due to
->> enabling of watchdog timer after a reset of the module (during hwmod init).
->> 
->> According to the default WDT registers values, the system reboot would
->> happen in ~10s if watchdog is enabled with default values. Hence, after
->> a WDT module reset during init, the watchdog has to be disabled within 10s
->> otherwise the system will keep rebooting.
->> 
->> Hence irrespective of CONFIG_WATCHDOG_NOWAYOUT/ CONFIG_OMAP_WDT,
->> the watchdog timer needs to be disabled after a WDT reset has happened.
->> 
-> One more option is to avoid the software reset using the CONFIG_OMAP_WDT
-> flag. Something like below.
+This patch doesn't apply to the latest linux-next tree, what did you
+make it against?
 
-This was already proposed by Charu, and rejected.
+Care to fix it up and resend it?
 
-Doing this means we have a dependency on particular bootloader init, and
-we'd like to get rid of *all* assumptions about what the bootloader does
-(or does not do.)
+thanks,
 
-Kevin
+greg k-h
