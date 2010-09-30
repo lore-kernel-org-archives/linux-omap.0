@@ -1,268 +1,211 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv3 1/17] OMAP2/3/4:dmtimer:add device names to flck nodes
-Date: Thu, 30 Sep 2010 22:16:05 +0200
-Message-ID: <4CA4F005.6000208@ti.com>
-References: <1285059060-26316-1-git-send-email-tarun.kanti@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
+Date: Thu, 30 Sep 2010 22:15:59 +0200
+Message-ID: <201009302215.59937.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1009301420520.1314-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42344 "EHLO arroyo.ext.ti.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:33502 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932366Ab0I3UQK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Sep 2010 16:16:10 -0400
-In-Reply-To: <1285059060-26316-1-git-send-email-tarun.kanti@ti.com>
+	id S932088Ab0I3URI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Sep 2010 16:17:08 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1009301420520.1314-100000@iolanthe.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On 9/21/2010 10:51 AM, DebBarma, Tarun Kanti wrote:
-> From: Thara Gopinath<thara@ti.com>
->
-> This patch adds device name info to OMAP2 dmtimer fclk nodes so
+Hi,
 
-You should avoid using "that patch" in a changelog, since we already 
-know it is a patch.
-
-You can read 4.c in "The perfect patch" from Andrew Morton: 
-http://userweb.kernel.org/~akpm/stuff/tpp.txt
-
-> that the fclk nodes can be retrieved by doing a clk_get with the
-> corresponding device pointers.
-
-...or device name.
-
-> Signed-off-by: Partha Basak<p-basak2@ti.com>
-> Signed-off-by: Thara Gopinath<thara@ti.com>
-> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> Cc: Cousson, Benoit<b-cousson@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> Cc: Kevin Hilman<khilman@deeprootsystems.com>
-> Cc: Tony Lindgren<tony@atomide.com>
+On Thursday, September 30, 2010, Alan Stern wrote:
+> This patch (as1431) adds a synchronous runtime-PM interface suitable
+> for use in interrupt handlers.  Four new helper functions are defined:
+> 
+> 	pm_runtime_suspend_irq(), pm_runtime_resume_irq(),
+> 	pm_runtime_get_sync_irq(), pm_runtime_put_sync_irq(),
+> 
+> together with pm_runtime_callbacks_in_irq(), which subsystems use to
+> tell the PM core that the runtime callbacks should be invoked with
+> interrupts disabled.
+> 
+> Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+> 
 > ---
->   arch/arm/mach-omap2/clock2420_data.c |   26 +++++++++++++++-----------
->   arch/arm/mach-omap2/clock2430_data.c |   26 +++++++++++++++-----------
->   arch/arm/mach-omap2/clock3xxx_data.c |   26 +++++++++++++++-----------
->   arch/arm/mach-omap2/clock44xx_data.c |   24 ++++++++++++++----------
->   4 files changed, 59 insertions(+), 43 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
-> index 37d65d6..6378e6d 100644
-> --- a/arch/arm/mach-omap2/clock2420_data.c
-> +++ b/arch/arm/mach-omap2/clock2420_data.c
-> @@ -1765,29 +1765,33 @@ static struct omap_clk omap2420_clks[] = {
->   	CLK(NULL,	"virt_prcm_set",&virt_prcm_set, CK_242X),
->   	/* general l4 interface ck, multi-parent functional clk */
->   	CLK(NULL,	"gpt1_ick",	&gpt1_ick,	CK_242X),
-> +	/*
-> +	 * gpt1 will be modified in subsequent patch when dmtimers
-> +	 * will be fully converted to platform device
-> +	 */
->   	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_242X),
->   	CLK(NULL,	"gpt2_ick",	&gpt2_ick,	CK_242X),
-> -	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_242X),
-> +	CLK("dmtimer.1",	"fck",	&gpt2_fck,	CK_242X),
+> 
+> In the end it turned out that a new RPM_IRQ call flag was needed along
+> with the callbacks_in_irq flag in dev_pm_info.  The latter is required
+> for the reasons I explained before, and RPM_IRQ tells the core whether
+> or not it must leave interrupts disabled while waiting for a concurrent
+> state change.
+> 
+> Kevin, this should be good enough to satisfy all your needs.  How does 
+> it look?
+> 
+> Alan Stern
+> 
+> 
+> Index: usb-2.6/include/linux/pm.h
+> ===================================================================
+> --- usb-2.6.orig/include/linux/pm.h
+> +++ usb-2.6/include/linux/pm.h
+> @@ -485,6 +485,7 @@ struct dev_pm_info {
+>  	unsigned int		run_wake:1;
+>  	unsigned int		runtime_auto:1;
+>  	unsigned int		no_callbacks:1;
+> +	unsigned int		callbacks_in_irq:1;
 
-That comment is not necessarily only for you, but do we have to start 
-device id at 0?
-I think it is really confusing to name the famous gptimer1 device with 
-"dmtimer.0".
+I kind of don't like this name.  What about irq_safe ?
 
- From that list it looks like this is not even consistent across IPs. 
-McBSP start at 1 for example.
+>  	unsigned int		use_autosuspend:1;
+>  	unsigned int		timer_autosuspends:1;
+>  	enum rpm_request	request;
+> Index: usb-2.6/include/linux/pm_runtime.h
+> ===================================================================
+> --- usb-2.6.orig/include/linux/pm_runtime.h
+> +++ usb-2.6/include/linux/pm_runtime.h
+> @@ -21,6 +21,7 @@
+>  #define RPM_GET_PUT		0x04	/* Increment/decrement the
+>  					    usage_count */
+>  #define RPM_AUTO		0x08	/* Use autosuspend_delay */
+> +#define RPM_IRQ			0x10	/* Don't enable interrupts */
+>  
+>  #ifdef CONFIG_PM_RUNTIME
+>  
+> @@ -40,6 +41,7 @@ extern int pm_generic_runtime_idle(struc
+>  extern int pm_generic_runtime_suspend(struct device *dev);
+>  extern int pm_generic_runtime_resume(struct device *dev);
+>  extern void pm_runtime_no_callbacks(struct device *dev);
+> +extern void pm_runtime_callbacks_in_irq(struct device *dev);
 
+Perhaps this one can be called pm_runtime_irq_safe() in analogy to the struct
+member?
 
-Since we are in the name discussion, I'd like as well to potentially 
-stop using the dmtimer / gptimer confusing naming convention, and 
-replace that with a simple name "timer". Or potentially "omap_timer".
-Dual Mode timer does not mean at lot and General Purpose timer is not 
-that better.
+>  extern void __pm_runtime_use_autosuspend(struct device *dev, bool use);
+>  extern void pm_runtime_set_autosuspend_delay(struct device *dev, int delay);
+>  extern unsigned long pm_runtime_autosuspend_expiration(struct device *dev);
+> @@ -123,6 +125,7 @@ static inline int pm_generic_runtime_idl
+>  static inline int pm_generic_runtime_suspend(struct device *dev) { return 0; }
+>  static inline int pm_generic_runtime_resume(struct device *dev) { return 0; }
+>  static inline void pm_runtime_no_callbacks(struct device *dev) {}
+> +static inline void pm_runtime_callbacks_in_irq(struct device *dev) {}
+>  
+>  static inline void pm_runtime_mark_last_busy(struct device *dev) {}
+>  static inline void __pm_runtime_use_autosuspend(struct device *dev,
+> @@ -144,6 +147,11 @@ static inline int pm_runtime_suspend(str
+>  	return __pm_runtime_suspend(dev, 0);
+>  }
+>  
+> +static inline int pm_runtime_suspend_irq(struct device *dev)
+> +{
+> +	return __pm_runtime_suspend(dev, RPM_IRQ);
+> +}
+> +
+>  static inline int pm_runtime_autosuspend(struct device *dev)
+>  {
+>  	return __pm_runtime_suspend(dev, RPM_AUTO);
+> @@ -154,6 +162,11 @@ static inline int pm_runtime_resume(stru
+>  	return __pm_runtime_resume(dev, 0);
+>  }
+>  
+> +static inline int pm_runtime_resume_irq(struct device *dev)
+> +{
+> +	return __pm_runtime_resume(dev, RPM_IRQ);
+> +}
+> +
+>  static inline int pm_request_idle(struct device *dev)
+>  {
+>  	return __pm_runtime_idle(dev, RPM_ASYNC);
+> @@ -179,6 +192,11 @@ static inline int pm_runtime_get_sync(st
+>  	return __pm_runtime_resume(dev, RPM_GET_PUT);
+>  }
+>  
+> +static inline int pm_runtime_get_sync_irq(struct device *dev)
+> +{
+> +	return __pm_runtime_resume(dev, RPM_GET_PUT | RPM_IRQ);
+> +}
+> +
+>  static inline int pm_runtime_put(struct device *dev)
+>  {
+>  	return __pm_runtime_idle(dev, RPM_GET_PUT | RPM_ASYNC);
+> @@ -195,6 +213,11 @@ static inline int pm_runtime_put_sync(st
+>  	return __pm_runtime_idle(dev, RPM_GET_PUT);
+>  }
+>  
+> +static inline int pm_runtime_put_sync_irq(struct device *dev)
+> +{
+> +	return __pm_runtime_idle(dev, RPM_GET_PUT | RPM_IRQ);
+> +}
+> +
+>  static inline int pm_runtime_put_sync_autosuspend(struct device *dev)
+>  {
+>  	return __pm_runtime_suspend(dev, RPM_GET_PUT | RPM_AUTO);
+> Index: usb-2.6/drivers/base/power/runtime.c
+> ===================================================================
+> --- usb-2.6.orig/drivers/base/power/runtime.c
+> +++ usb-2.6/drivers/base/power/runtime.c
+> @@ -170,10 +170,13 @@ static int rpm_idle(struct device *dev, 
+>  	__releases(&dev->power.lock) __acquires(&dev->power.lock)
+>  {
+>  	int retval;
+> +	int (*func)(struct device *dev);
+>  
+>  	retval = rpm_check_suspend_allowed(dev);
+>  	if (retval < 0)
+>  		;	/* Conditions are wrong. */
+> +	else if ((rpmflags & RPM_IRQ) && !dev->power.callbacks_in_irq)
+> +		retval = -EWOULDBLOCK;
+>  
+>  	/* Idle notifications are allowed only in the RPM_ACTIVE state. */
+>  	else if (dev->power.runtime_status != RPM_ACTIVE)
+> @@ -214,25 +217,27 @@ static int rpm_idle(struct device *dev, 
+>  
+>  	dev->power.idle_notification = true;
+>  
+> -	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_idle) {
+> -		spin_unlock_irq(&dev->power.lock);
+> -
+> -		dev->bus->pm->runtime_idle(dev);
+> -
+> -		spin_lock_irq(&dev->power.lock);
+> -	} else if (dev->type && dev->type->pm && dev->type->pm->runtime_idle) {
+> -		spin_unlock_irq(&dev->power.lock);
+> +	func = NULL;
+> +	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_idle)
+> +		func = dev->bus->pm->runtime_idle;
+> +	else if (dev->type && dev->type->pm && dev->type->pm->runtime_idle)
+> +		func = dev->type->pm->runtime_idle;
+> +	else if (dev->class && dev->class->pm && dev->class->pm->runtime_idle)
+> +		func = dev->class->pm->runtime_idle;
+> +	if (func) {
+> +		if (dev->power.callbacks_in_irq) {
+> +			spin_unlock(&dev->power.lock);
 
-We already started that discussion with Kevin some time ago but didn't 
-really conclude.
+Hmm.  This looks rather complicated.  I don't really feel good about this
+change.  It seems to me that it might be better to actually implement
+the _irq() helpers from scratch.  I think I'll try to do that.
 
-Tony, Paul and Kevin,
-Do you have any opinion on that subject?
+Overall, it looks like there's some overlap between RPM_IRQ and
+power.callbacks_in_irq, where the latter may influence the behavior of the
+helpers even if RPM_IRQ is unset.
 
-Regards,
-Benoit
+I think we should return error code if RPM_IRQ is used, but 
+power.callbacks_in_irq is not set.  If RPM_IRQ is not set, but
+power.callbacks_in_irq is set, we should fall back to the normal behavior
+(ie. do not avoid sleeping).
 
+That's why I think it's better to change the name of power.callbacks_in_irq
+to power.irq_safe.
 
->   	CLK(NULL,	"gpt3_ick",	&gpt3_ick,	CK_242X),
-> -	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_242X),
-> +	CLK("dmtimer.2",	"fck",	&gpt3_fck,	CK_242X),
->   	CLK(NULL,	"gpt4_ick",	&gpt4_ick,	CK_242X),
-> -	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_242X),
-> +	CLK("dmtimer.3",	"fck",	&gpt4_fck,	CK_242X),
->   	CLK(NULL,	"gpt5_ick",	&gpt5_ick,	CK_242X),
-> -	CLK(NULL,	"gpt5_fck",	&gpt5_fck,	CK_242X),
-> +	CLK("dmtimer.4",	"fck",	&gpt5_fck,	CK_242X),
->   	CLK(NULL,	"gpt6_ick",	&gpt6_ick,	CK_242X),
-> -	CLK(NULL,	"gpt6_fck",	&gpt6_fck,	CK_242X),
-> +	CLK("dmtimer.5",	"fck",	&gpt6_fck,	CK_242X),
->   	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_242X),
-> -	CLK(NULL,	"gpt7_fck",	&gpt7_fck,	CK_242X),
-> +	CLK("dmtimer.6",	"fck",	&gpt7_fck,	CK_242X),
->   	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_242X),
-> -	CLK(NULL,	"gpt8_fck",	&gpt8_fck,	CK_242X),
-> +	CLK("dmtimer.7",	"fck",	&gpt8_fck,	CK_242X),
->   	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_242X),
-> -	CLK(NULL,	"gpt9_fck",	&gpt9_fck,	CK_242X),
-> +	CLK("dmtimer.8",	"fck",	&gpt9_fck,	CK_242X),
->   	CLK(NULL,	"gpt10_ick",	&gpt10_ick,	CK_242X),
-> -	CLK(NULL,	"gpt10_fck",	&gpt10_fck,	CK_242X),
-> +	CLK("dmtimer.9",	"fck",	&gpt10_fck,	CK_242X),
->   	CLK(NULL,	"gpt11_ick",	&gpt11_ick,	CK_242X),
-> -	CLK(NULL,	"gpt11_fck",	&gpt11_fck,	CK_242X),
-> +	CLK("dmtimer.10",	"fck",	&gpt11_fck,	CK_242X),
->   	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_242X),
-> -	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_242X),
-> +	CLK("dmtimer.11",	"fck",	&gpt12_fck,	CK_242X),
->   	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick,	CK_242X),
->   	CLK("omap-mcbsp.1", "fck",	&mcbsp1_fck,	CK_242X),
->   	CLK("omap-mcbsp.2", "ick",	&mcbsp2_ick,	CK_242X),
-> diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
-> index b33118f..ae9b44e 100644
-> --- a/arch/arm/mach-omap2/clock2430_data.c
-> +++ b/arch/arm/mach-omap2/clock2430_data.c
-> @@ -1851,29 +1851,33 @@ static struct omap_clk omap2430_clks[] = {
->   	CLK(NULL,	"virt_prcm_set",&virt_prcm_set, CK_243X),
->   	/* general l4 interface ck, multi-parent functional clk */
->   	CLK(NULL,	"gpt1_ick",	&gpt1_ick,	CK_243X),
-> +	/*
-> +	 * gpt1 will be modified in subsequent patch when dmtimers
-> +	 * will be fully converted to platform device
-> +	 */
->   	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_243X),
->   	CLK(NULL,	"gpt2_ick",	&gpt2_ick,	CK_243X),
-> -	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_243X),
-> +	CLK("dmtimer.1",	"fck",	&gpt2_fck,	CK_243X),
->   	CLK(NULL,	"gpt3_ick",	&gpt3_ick,	CK_243X),
-> -	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_243X),
-> +	CLK("dmtimer.2",	"fck",	&gpt3_fck,	CK_243X),
->   	CLK(NULL,	"gpt4_ick",	&gpt4_ick,	CK_243X),
-> -	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_243X),
-> +	CLK("dmtimer.3",	"fck",	&gpt4_fck,	CK_243X),
->   	CLK(NULL,	"gpt5_ick",	&gpt5_ick,	CK_243X),
-> -	CLK(NULL,	"gpt5_fck",	&gpt5_fck,	CK_243X),
-> +	CLK("dmtimer.4",	"fck",	&gpt5_fck,	CK_243X),
->   	CLK(NULL,	"gpt6_ick",	&gpt6_ick,	CK_243X),
-> -	CLK(NULL,	"gpt6_fck",	&gpt6_fck,	CK_243X),
-> +	CLK("dmtimer.5",	"fck",	&gpt6_fck,	CK_243X),
->   	CLK(NULL,	"gpt7_ick",	&gpt7_ick,	CK_243X),
-> -	CLK(NULL,	"gpt7_fck",	&gpt7_fck,	CK_243X),
-> +	CLK("dmtimer.6",	"fck",	&gpt7_fck,	CK_243X),
->   	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_243X),
-> -	CLK(NULL,	"gpt8_fck",	&gpt8_fck,	CK_243X),
-> +	CLK("dmtimer.7",	"fck",	&gpt8_fck,	CK_243X),
->   	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_243X),
-> -	CLK(NULL,	"gpt9_fck",	&gpt9_fck,	CK_243X),
-> +	CLK("dmtimer.8",	"fck",	&gpt9_fck,	CK_243X),
->   	CLK(NULL,	"gpt10_ick",	&gpt10_ick,	CK_243X),
-> -	CLK(NULL,	"gpt10_fck",	&gpt10_fck,	CK_243X),
-> +	CLK("dmtimer.9",	"fck",	&gpt10_fck,	CK_243X),
->   	CLK(NULL,	"gpt11_ick",	&gpt11_ick,	CK_243X),
-> -	CLK(NULL,	"gpt11_fck",	&gpt11_fck,	CK_243X),
-> +	CLK("dmtimer.10",	"fck",	&gpt11_fck,	CK_243X),
->   	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_243X),
-> -	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_243X),
-> +	CLK("dmtimer.11",	"fck",	&gpt12_fck,	CK_243X),
->   	CLK("omap-mcbsp.1", "ick",	&mcbsp1_ick,	CK_243X),
->   	CLK("omap-mcbsp.1", "fck",	&mcbsp1_fck,	CK_243X),
->   	CLK("omap-mcbsp.2", "ick",	&mcbsp2_ick,	CK_243X),
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-> index dfdce2d..1cdcaf5 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -3248,8 +3248,8 @@ static struct omap_clk omap3xxx_clks[] = {
->   	CLK(NULL,	"modem_fck",	&modem_fck,	CK_343X),
->   	CLK(NULL,	"sad2d_ick",	&sad2d_ick,	CK_343X),
->   	CLK(NULL,	"mad2d_ick",	&mad2d_ick,	CK_343X),
-> -	CLK(NULL,	"gpt10_fck",	&gpt10_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt11_fck",	&gpt11_fck,	CK_3XXX),
-> +	CLK("dmtimer.9",	"fck",	&gpt10_fck,	CK_3XXX),
-> +	CLK("dmtimer.10",	"fck",	&gpt11_fck,	CK_3XXX),
->   	CLK(NULL,	"cpefuse_fck",	&cpefuse_fck,	CK_3430ES2 | CK_AM35XX),
->   	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2 | CK_AM35XX),
->   	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2 | CK_AM35XX),
-> @@ -3334,6 +3334,10 @@ static struct omap_clk omap3xxx_clks[] = {
->   	CLK(NULL,	"usbhost_48m_fck",&usbhost_48m_fck, CK_3430ES2 | CK_AM35XX),
->   	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2 | CK_AM35XX),
->   	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2),
-> +	/*
-> +	 * gpt1 will be changed in subsequent patch when dmtimer
-> +	 * is fully converted to platform device.
-> +	 */
->   	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_3XXX),
->   	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_3XXX),
->   	CLK(NULL,	"gpio1_dbck",	&gpio1_dbck,	CK_3XXX),
-> @@ -3349,14 +3353,14 @@ static struct omap_clk omap3xxx_clks[] = {
->   	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
->   	CLK(NULL,	"per_48m_fck",	&per_48m_fck,	CK_3XXX),
->   	CLK(NULL,	"uart3_fck",	&uart3_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt2_fck",	&gpt2_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt3_fck",	&gpt3_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt4_fck",	&gpt4_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt5_fck",	&gpt5_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt6_fck",	&gpt6_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt7_fck",	&gpt7_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt8_fck",	&gpt8_fck,	CK_3XXX),
-> -	CLK(NULL,	"gpt9_fck",	&gpt9_fck,	CK_3XXX),
-> +	CLK("dmtimer.1",	"fck",	&gpt2_fck,	CK_3XXX),
-> +	CLK("dmtimer.2",	"fck",	&gpt3_fck,	CK_3XXX),
-> +	CLK("dmtimer.3",	"fck",	&gpt4_fck,	CK_3XXX),
-> +	CLK("dmtimer.4",	"fck",	&gpt5_fck,	CK_3XXX),
-> +	CLK("dmtimer.5",	"fck",	&gpt6_fck,	CK_3XXX),
-> +	CLK("dmtimer.6",	"fck",	&gpt7_fck,	CK_3XXX),
-> +	CLK("dmtimer.7",	"fck",	&gpt8_fck,	CK_3XXX),
-> +	CLK("dmtimer.8",	"fck",	&gpt9_fck,	CK_3XXX),
->   	CLK(NULL,	"per_32k_alwon_fck",&per_32k_alwon_fck, CK_3XXX),
->   	CLK(NULL,	"gpio6_dbck",	&gpio6_dbck,	CK_3XXX),
->   	CLK(NULL,	"gpio5_dbck",	&gpio5_dbck,	CK_3XXX),
-> @@ -3396,7 +3400,7 @@ static struct omap_clk omap3xxx_clks[] = {
->   	CLK(NULL,	"sr2_fck",	&sr2_fck,	CK_343X),
->   	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_343X),
->   	CLK(NULL,	"secure_32k_fck",&secure_32k_fck, CK_3XXX),
-> -	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_3XXX),
-> +	CLK("dmtimer.11",	"fck",	&gpt12_fck,	CK_3XXX),
->   	CLK(NULL,	"wdt1_fck",	&wdt1_fck,	CK_3XXX),
->   	CLK(NULL,	"ipss_ick",	&ipss_ick,	CK_AM35XX),
->   	CLK(NULL,	"rmii_ck",	&rmii_ck,	CK_AM35XX),
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-> index a0e369e..7398158 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -2574,17 +2574,21 @@ static struct omap_clk omap44xx_clks[] = {
->   	CLK(NULL,	"smartreflex_core_fck",		&smartreflex_core_fck,	CK_443X),
->   	CLK(NULL,	"smartreflex_iva_fck",		&smartreflex_iva_fck,	CK_443X),
->   	CLK(NULL,	"smartreflex_mpu_fck",		&smartreflex_mpu_fck,	CK_443X),
-> +	/*
-> +	 * gpt1 will be changed in subsequent patch when dmtimer
-> +	 * will be fully converted to platform device.
-> +	 */
->   	CLK(NULL,	"gpt1_fck",			&timer1_fck,	CK_443X),
-> -	CLK(NULL,	"gpt10_fck",			&timer10_fck,	CK_443X),
-> -	CLK(NULL,	"gpt11_fck",			&timer11_fck,	CK_443X),
-> -	CLK(NULL,	"gpt2_fck",			&timer2_fck,	CK_443X),
-> -	CLK(NULL,	"gpt3_fck",			&timer3_fck,	CK_443X),
-> -	CLK(NULL,	"gpt4_fck",			&timer4_fck,	CK_443X),
-> -	CLK(NULL,	"gpt5_fck",			&timer5_fck,	CK_443X),
-> -	CLK(NULL,	"gpt6_fck",			&timer6_fck,	CK_443X),
-> -	CLK(NULL,	"gpt7_fck",			&timer7_fck,	CK_443X),
-> -	CLK(NULL,	"gpt8_fck",			&timer8_fck,	CK_443X),
-> -	CLK(NULL,	"gpt9_fck",			&timer9_fck,	CK_443X),
-> +	CLK("dmtimer.9",	"fck",		&timer10_fck,	CK_443X),
-> +	CLK("dmtimer.10",	"fck",		&timer11_fck,	CK_443X),
-> +	CLK("dmtimer.1",	"fck",		&timer2_fck,	CK_443X),
-> +	CLK("dmtimer.2",	"fck",		&timer3_fck,	CK_443X),
-> +	CLK("dmtimer.3",	"fck",		&timer4_fck,	CK_443X),
-> +	CLK("dmtimer.4",	"fck",		&timer5_fck,	CK_443X),
-> +	CLK("dmtimer.5",	"fck",		&timer6_fck,	CK_443X),
-> +	CLK("dmtimer.6",	"fck",		&timer7_fck,	CK_443X),
-> +	CLK("dmtimer.7",	"fck",		&timer8_fck,	CK_443X),
-> +	CLK("dmtimer.8",	"fck",		&timer9_fck,	CK_443X),
->   	CLK(NULL,	"uart1_fck",			&uart1_fck,	CK_443X),
->   	CLK(NULL,	"uart2_fck",			&uart2_fck,	CK_443X),
->   	CLK(NULL,	"uart3_fck",			&uart3_fck,	CK_443X),
+Also I think we should refuse to set power.callbacks_in_irq for a device
+whose partent (1) doesn't have power.callbacks_in_irq and (2) doesn't
+have power.ignore_children set , and (3) doesn't have power.disable_depth > 0.
+Then, once we've set power.callbacks_in_irq for a device, we should take
+this into consideration when trying to change the parent's settings.
 
+There probably is more subtelties like this, but I can't see them at the moment.
+
+Thanks,
+Rafael
