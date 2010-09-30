@@ -1,142 +1,83 @@
 From: Abraham Arce <x0066660@ti.com>
-Subject: [PATCH v6 2/8] Input: omap4 - use platform device helpers
-Date: Thu, 30 Sep 2010 00:29:19 -0500
-Message-ID: <1285824565-24906-3-git-send-email-x0066660@ti.com>
+Subject: [PATCH v6 3/8] Input: omap4 - SYSCONFIG register configuration
+Date: Thu, 30 Sep 2010 00:29:20 -0500
+Message-ID: <1285824565-24906-4-git-send-email-x0066660@ti.com>
 References: <1285824565-24906-1-git-send-email-x0066660@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40688 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753137Ab0I3FaN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Sep 2010 01:30:13 -0400
+Return-path: <linux-input-owner@vger.kernel.org>
 In-Reply-To: <1285824565-24906-1-git-send-email-x0066660@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-input-owner@vger.kernel.org
 To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Abraham Arce <x0066660@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Get mem and irq resources using platform helpers
+Remove SYSCONFIG register configuration, omap hwmod framework will
+use internal API to modify as required
 
- - platform_get_base
- - platform_get_irq
+Other minor updates:
+
+- Change a variable name from DEF to VAL, this represents a value
+- Break line width to 80 characters
 
 Signed-off-by: Abraham Arce <x0066660@ti.com>
 ---
- arch/arm/plat-omap/include/plat/omap4-keypad.h |    4 +--
- drivers/input/keyboard/omap4-keypad.c          |   40 +++++++++++++++++++++---
- 2 files changed, 36 insertions(+), 8 deletions(-)
+ drivers/input/keyboard/omap4-keypad.c |   13 +++++--------
+ 1 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap4-keypad.h b/arch/arm/plat-omap/include/plat/omap4-keypad.h
-index 522a8ab..2b1d9bc 100644
---- a/arch/arm/plat-omap/include/plat/omap4-keypad.h
-+++ b/arch/arm/plat-omap/include/plat/omap4-keypad.h
-@@ -8,9 +8,7 @@ struct omap4_keypad_platform_data {
- 
- 	u8 rows;
- 	u8 cols;
--
--	u16 irq;
--	void __iomem *base;
- };
- 
-+extern int omap4_keyboard_init(struct omap4_keypad_platform_data *);
- #endif
 diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index 975f8bb..788169d 100644
+index 788169d..2b61f5f 100644
 --- a/drivers/input/keyboard/omap4-keypad.c
 +++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -148,7 +148,10 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 	const struct omap4_keypad_platform_data *pdata;
- 	struct omap4_keypad *keypad_data;
- 	struct input_dev *input_dev;
-+	struct resource *res;
-+	resource_size_t size;
- 	unsigned int row_shift, max_keys;
-+	int irq;
- 	int error;
+@@ -51,17 +51,15 @@
+ #define OMAP4_KBD_FULLCODE63_32		0x48
  
- 	/* platform data */
-@@ -158,12 +161,14 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
+ /* OMAP4 bit definitions */
+-#define OMAP4_DEF_SYSCONFIG_SOFTRST	(1 << 1)
+-#define OMAP4_DEF_SYSCONFIG_ENAWKUP	(1 << 2)
+ #define OMAP4_DEF_IRQENABLE_EVENTEN	(1 << 0)
+ #define OMAP4_DEF_IRQENABLE_LONGKEY	(1 << 1)
+ #define OMAP4_DEF_IRQENABLE_TIMEOUTEN	(1 << 2)
+ #define OMAP4_DEF_CTRL_NOSOFTMODE	(1 << 1)
+ #define OMAP4_DEF_CTRLPTVVALUE		(1 << 2)
+ #define OMAP4_DEF_CTRLPTV		(1 << 1)
+-#define OMAP4_DEF_IRQDISABLE		0x00
  
--	if (!pdata->base) {
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
- 		dev_err(&pdev->dev, "no base address specified\n");
- 		return -EINVAL;
- 	}
+ /* OMAP4 values */
++#define OMAP4_VAL_IRQDISABLE		0x00
+ #define OMAP4_VAL_DEBOUNCINGTIME	0x07
+ #define OMAP4_VAL_FUNCTIONALCFG		0x1E
  
--	if (!pdata->irq) {
-+	irq = platform_get_irq(pdev, 0);
-+	if (!irq) {
- 		dev_err(&pdev->dev, "no keyboard irq assigned\n");
- 		return -EINVAL;
- 	}
-@@ -184,9 +189,23 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 	}
+@@ -82,13 +80,11 @@ struct omap4_keypad {
  
--	keypad_data->base = pdata->base;
--	keypad_data->irq = pdata->irq;
-+	size = resource_size(res);
-+
-+	res = request_mem_region(res->start, size, pdev->name);
-+	if (!res) {
-+		dev_err(&pdev->dev, "can't request mem region\n");
-+		error = -EBUSY;
-+		goto err_free_keypad;
-+	}
- 
-+	keypad_data->base = ioremap(res->start, resource_size(res));
-+	if (!keypad_data->base) {
-+		dev_err(&pdev->dev, "can't ioremap mem resource\n");
-+		error = -ENOMEM;
-+		goto err_release_mem;
-+	}
-+
-+	keypad_data->irq = irq;
- 	keypad_data->row_shift = row_shift;
- 	keypad_data->rows = pdata->rows;
- 	keypad_data->cols = pdata->cols;
-@@ -195,7 +214,7 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 	keypad_data->input = input_dev = input_allocate_device();
- 	if (!input_dev) {
- 		error = -ENOMEM;
--		goto err_free_keypad;
-+		goto err_unmap;
- 	}
- 
- 	input_dev->name = pdev->name;
-@@ -243,6 +262,10 @@ err_free_irq:
- 	free_irq(keypad_data->irq, keypad_data);
- err_free_input:
- 	input_free_device(input_dev);
-+err_unmap:
-+	iounmap(keypad_data->base);
-+err_release_mem:
-+	release_mem_region(res->start, size);
- err_free_keypad:
- 	kfree(keypad_data);
- 	return error;
-@@ -251,9 +274,16 @@ err_free_keypad:
- static int __devexit omap4_keypad_remove(struct platform_device *pdev)
+ static void __devinit omap4_keypad_config(struct omap4_keypad *keypad_data)
  {
- 	struct omap4_keypad *keypad_data = platform_get_drvdata(pdev);
-+	struct resource *res;
+-	__raw_writel(OMAP4_DEF_SYSCONFIG_SOFTRST | OMAP4_DEF_SYSCONFIG_ENAWKUP,
+-			keypad_data->base + OMAP4_KBD_SYSCONFIG);
+ 	__raw_writel(OMAP4_VAL_FUNCTIONALCFG,
+ 			keypad_data->base + OMAP4_KBD_CTRL);
+ 	__raw_writel(OMAP4_VAL_DEBOUNCINGTIME,
+ 			keypad_data->base + OMAP4_KBD_DEBOUNCINGTIME);
+-	__raw_writel(OMAP4_DEF_IRQDISABLE,
++	__raw_writel(OMAP4_VAL_IRQDISABLE,
+ 			keypad_data->base + OMAP4_KBD_IRQSTATUS);
+ 	__raw_writel(OMAP4_DEF_IRQENABLE_EVENTEN | OMAP4_DEF_IRQENABLE_LONGKEY,
+ 			keypad_data->base + OMAP4_KBD_IRQENABLE);
+@@ -104,11 +100,12 @@ static irqreturn_t omap4_keypad_interrupt(int irq, void *dev_id)
+ 	u32 *new_state = (u32 *) key_state;
  
- 	free_irq(keypad_data->irq, keypad_data);
- 	input_unregister_device(keypad_data->input);
-+
-+	iounmap(keypad_data->base);
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	release_mem_region(res->start, resource_size(res));
-+
- 	kfree(keypad_data);
- 	platform_set_drvdata(pdev, NULL);
+ 	/* Disable interrupts */
+-	__raw_writel(OMAP4_DEF_IRQDISABLE,
++	__raw_writel(OMAP4_VAL_IRQDISABLE,
+ 		     keypad_data->base + OMAP4_KBD_IRQENABLE);
  
+ 	*new_state = __raw_readl(keypad_data->base + OMAP4_KBD_FULLCODE31_0);
+-	*(new_state + 1) = __raw_readl(keypad_data->base + OMAP4_KBD_FULLCODE63_32);
++	*(new_state + 1) = __raw_readl(keypad_data->base
++						+ OMAP4_KBD_FULLCODE63_32);
+ 
+ 	for (row = 0; row < keypad_data->rows; row++) {
+ 		changed = key_state[row] ^ keypad_data->key_state[row];
 -- 
 1.6.3.3
 
