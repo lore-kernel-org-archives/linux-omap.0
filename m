@@ -1,59 +1,62 @@
-From: Abraham Arce <x0066660@ti.com>
-Subject: [PATCH v6 8/8] Input: omap4 - pm runtime
-Date: Thu, 30 Sep 2010 00:36:40 -0500
-Message-ID: <1285825000-25622-1-git-send-email-x0066660@ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
+ Smartreflex drivers
+Date: Thu, 30 Sep 2010 11:28:58 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E173B98@dbde02.ent.ti.com>
+References: <1285166719-19352-1-git-send-email-thara@ti.com>
+	<1285166719-19352-9-git-send-email-thara@ti.com>
+ <87k4m4qgr4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55120 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:56229 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754084Ab0I3Fgp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 01:36:45 -0400
+	with ESMTP id S1751759Ab0I3F7F convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 01:59:05 -0400
+In-Reply-To: <87k4m4qgr4.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Abraham Arce <x0066660@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Enable pm runtime in driver
 
-Reviewed-by: Basak, Partha <p-basak2@ti.com>
-Signed-off-by: Abraham Arce <x0066660@ti.com>
----
- drivers/input/keyboard/omap4-keypad.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/input/keyboard/omap4-keypad.c b/drivers/input/keyboard/omap4-keypad.c
-index 45bd097..ed47e9a 100644
---- a/drivers/input/keyboard/omap4-keypad.c
-+++ b/drivers/input/keyboard/omap4-keypad.c
-@@ -29,6 +29,7 @@
- #include <linux/io.h>
- #include <linux/input.h>
- #include <linux/slab.h>
-+#include <linux/pm_runtime.h>
- 
- #include <plat/omap4-keypad.h>
- 
-@@ -239,6 +240,9 @@ static int __devinit omap4_keypad_probe(struct platform_device *pdev)
- 	matrix_keypad_build_keymap(pdata->keymap_data, row_shift,
- 			input_dev->keycode, input_dev->keybit);
- 
-+	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_get_sync(&pdev->dev);
-+
- 	omap4_keypad_config(keypad_data);
- 
- 	error = request_irq(keypad_data->irq, omap4_keypad_interrupt,
-@@ -277,6 +281,9 @@ static int __devexit omap4_keypad_remove(struct platform_device *pdev)
- 	struct omap4_keypad *keypad_data = platform_get_drvdata(pdev);
- 	struct resource *res;
- 
-+	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
-+
- 	free_irq(keypad_data->irq, keypad_data);
- 	input_unregister_device(keypad_data->input);
- 
--- 
-1.6.3.3
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Thursday, September 30, 2010 4:50 AM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
+>>Vishwanath; Sawant, Anand
+>>Subject: Re: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
+>>Smartreflex drivers
+>>
+>>Thara Gopinath <thara@ti.com> writes:
+>>
+>>[...]
+>>
+>>> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-
+>>omap/include/plat/voltage.h
+>>> index 99836a1..8978d33 100644
+>>> --- a/arch/arm/plat-omap/include/plat/voltage.h
+>>> +++ b/arch/arm/plat-omap/include/plat/voltage.h
+>>> @@ -14,6 +14,11 @@
+>>>  #ifndef __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
+>>>  #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
+>>>
+>>> +extern u32 enable_sr_vp_debug;
+>>> +#ifdef CONFIG_PM_DEBUG
+>>> +extern struct dentry *pm_dbg_main_dir;
+>>> +#endif
+>>> +
+>>>  #define VOLTSCALE_VPFORCEUPDATE		1
+>>>  #define VOLTSCALE_VCBYPASS		2
+>>
+>>This belongs in PATCH 1/11 and belongs in pm.h, not voltage.h as it's a
+>>feature of the PM debug layer, not the voltage layer.
 
+Yes indeed!! Will fix this in v4
+
+Regards
+Thara
