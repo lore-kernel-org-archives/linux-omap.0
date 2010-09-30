@@ -1,62 +1,31 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
- Smartreflex drivers
-Date: Thu, 30 Sep 2010 11:28:58 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E173B98@dbde02.ent.ti.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-9-git-send-email-thara@ti.com>
- <87k4m4qgr4.fsf@deeprootsystems.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH v6 7/8] OMAP4: Keyboard board support
+Date: Wed, 29 Sep 2010 23:40:56 -0700
+Message-ID: <20100930064055.GG5260@core.coreip.homeip.net>
+References: <1285824973-25550-1-git-send-email-x0066660@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56229 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751759Ab0I3F7F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 01:59:05 -0400
-In-Reply-To: <87k4m4qgr4.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1285824973-25550-1-git-send-email-x0066660@ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Abraham Arce <x0066660@ti.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
+HI Abraham,
 
+On Thu, Sep 30, 2010 at 12:36:13AM -0500, Abraham Arce wrote:
+> From: Syed Rafiuddin <rafiuddin.syed@ti.com>
+> 
+> Keyboard support for SDP OMAP4430
+> 
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Thursday, September 30, 2010 4:50 AM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
->>Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
->>Smartreflex drivers
->>
->>Thara Gopinath <thara@ti.com> writes:
->>
->>[...]
->>
->>> diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-
->>omap/include/plat/voltage.h
->>> index 99836a1..8978d33 100644
->>> --- a/arch/arm/plat-omap/include/plat/voltage.h
->>> +++ b/arch/arm/plat-omap/include/plat/voltage.h
->>> @@ -14,6 +14,11 @@
->>>  #ifndef __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
->>>  #define __ARCH_ARM_MACH_OMAP2_VOLTAGE_H
->>>
->>> +extern u32 enable_sr_vp_debug;
->>> +#ifdef CONFIG_PM_DEBUG
->>> +extern struct dentry *pm_dbg_main_dir;
->>> +#endif
->>> +
->>>  #define VOLTSCALE_VPFORCEUPDATE		1
->>>  #define VOLTSCALE_VCBYPASS		2
->>
->>This belongs in PATCH 1/11 and belongs in pm.h, not voltage.h as it's a
->>feature of the PM debug layer, not the voltage layer.
+I think this would benefit from "const" sprinkled on it.
 
-Yes indeed!! Will fix this in v4
+BTW, I picked up patches 2, 3, 4, 5, 8 (all touching drivers/input).
 
-Regards
-Thara
+Thanks.
+
+-- 
+Dmitry
