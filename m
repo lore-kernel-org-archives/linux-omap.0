@@ -1,100 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] omap: Keep nwires for omap1 and 2420 MMC controller (Re:
- [PATCH] omap mmc: extended to pass host capabilities from board file)
-Date: Thu, 30 Sep 2010 11:38:19 -0700
-Message-ID: <20100930183818.GK3117@atomide.com>
-References: <1284562163-2828-1-git-send-email-s-ghorai@ti.com>
- <20100923230819.GS4211@atomide.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
+Date: Thu, 30 Sep 2010 11:42:31 -0700
+Message-ID: <AANLkTinmfEYq9SRNRWY9xOkwS-FE_LDyBOeGLoyYLNtZ@mail.gmail.com>
+References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
+ <1282106146-7727-1-git-send-email-darkstar6262@gmail.com> <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
+ <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
+ <AANLkTikNLn-VuCQb2q7wZVbYORxV6uhia_oOBsQg3ZiJ@mail.gmail.com> <20100924225254.GK4211@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55478 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578Ab0I3SiZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 14:38:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20100923230819.GS4211@atomide.com>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:46673 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751578Ab0I3Smx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 14:42:53 -0400
+Received: by wwi18 with SMTP id 18so135734wwi.1
+        for <linux-omap@vger.kernel.org>; Thu, 30 Sep 2010 11:42:52 -0700 (PDT)
+In-Reply-To: <20100924225254.GK4211@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sukumar Ghorai <s-ghorai@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [100923 16:00]:
-> * Sukumar Ghorai <s-ghorai@ti.com> [100915 07:41]:
-> >   wires variable is renamed, extended and this single variable to be used to
-> >   pass the platform capabilities, e.g DDR mode. Also removed the hardcoded
-> >   value was using as bus-width.
-> 
-> This looks like a nice clean-up, I'll queue this via the omap
-> patches.
+2010/9/24 Tony Lindgren <tony@atomide.com>:
+> * Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com> [100924 09:03]:
+>> W dniu 24 wrze=C5=9Bnia 2010 17:38 u=C5=BCytkownik Cory Maccarrone
+>> <darkstar6262@gmail.com> napisa=C5=82:
+>> > 2010/9/24 Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>:
+>> >> 2010/8/18 Cory Maccarrone <darkstar6262@gmail.com>:
+>> >>> This change adds in MMC and I2C support to the HTC Herald board,=
+ as well
+>> >>> as adding the HTCPLD driver for the PLD used on this phone. =C2=A0=
+It also
+>> >>> adds in the gpio-keys entries for the front directional keys and
+>> >>> selector and the cursor keys on the slide-out keyboard, and gpio=
+-leds
+>> >>> support for the LEDs attached to the htcpld.
+>> >>>
+>> >>> Additionally, SPI bus support (using the spi100k driver) and
+>> >>> touchscreen support (using the ads7846 driver) were added.
+>> >>>
+>> >>> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+>> >>> ---
+>> >> [...]
+>> >>> +/* MMC Card */
+>> >>> +#if defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE)
+>> >>> +static struct omap_mmc_platform_data htc_mmc1_data =3D {
+>> >>> + =C2=A0 =C2=A0 =C2=A0 .nr_slots =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D 1,
+>> >>> + =C2=A0 =C2=A0 =C2=A0 .switch_slot =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D NULL,
+>> >>> + =C2=A0 =C2=A0 =C2=A0 .slots[0] =C2=A0 =C2=A0 =C2=A0 =3D {
+>> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .ocr_mask =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D MMC_VDD_28_29 | MMC_V=
+DD_30_31 |
+>> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 MMC_VDD_32_33 | MMC_VDD_33_34,
+>> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .name =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D "mmcblk",
+>> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .nomux =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D 1,
+>> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .wires =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D 4,
+>> >>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .switch_pin =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D -1,
+>> >>> + =C2=A0 =C2=A0 =C2=A0 },
+>> >>> +};
+>> >> [...]
+>> >> What voltages can this MMC controller provide? That's a rather un=
+usual OCR mask.
+>> > Not really sure, I wasn't the one who first came up with that mask=
+=2E
+>> > All I know is that it seems to work, and not just for my device, b=
+ut
+>> > lots of other HTC OMAP850 devices we've tried it on too.
+>> >
+>> > I'm interested though, what in particular makes it unusual?
+>>
+>> It specifies, that device supports voltage ranges:
+>> 2.8V - 2.9V, 3.0V - 3.1V, 3.2V - 3.4V
+>> (so: 2.9V - 3.0V and 3.1V - 3.2V are not available).
+>> Are there really 2.8V, 3.0V, 3.3V VDDs settable?
+>>
+>> If the host supports only VDD =3D 3.3V for example, then correct OCR
+>> mask would be: MMC_VDD_32_33 | MMC_VDD_33_34 (or just one flag).
+>
+> Looks like also board-sx1-mmc.c and board-h[23]-mmc.c have the
+> same spotty voltage range.
+>
+> Cory, care to do a patch that fixes it for all of them?
+>
 
-And of course this patch breaks all of mach-omap1 and omap2420.
+Yeah, I can do that.  I'll resubmit this patch too with the fixed up ra=
+nges.
 
-Sukumar, your patch modified also drivers/mmc/host/omap.c and board-n8x0.c
-to use caps instead of nwires. When you do things like that you absolutely
-_must_test_your_changes_ before sending out any patches.
-
-Planning on merging the following fix.
-
-Tony
-
-From: Tony Lindgren <tony@atomide.com>
-Date: Thu, 30 Sep 2010 10:25:46 -0700
-Subject: [PATCH] Subject: [PATCH] omap: Keep nwires for omap1 and 2420 MMC controller
-
-A patch from Sukumar Ghorai <s-ghorai@ti.com> changed the
-nwires to use caps instead. However, nwires is still
-needed for the earlier controller.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index abd7e77..6bd9d9a 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -488,7 +488,7 @@ static struct omap_mmc_platform_data mmc1_data = {
- 	.max_freq			= 24000000,
- 	.dma_mask			= 0xffffffff,
- 	.slots[0] = {
--		.caps			= MMC_CAP_4_BIT_DATA,
-+		.wires			= 4,
- 		.set_power		= n8x0_mmc_set_power,
- 		.set_bus_mode		= n8x0_mmc_set_bus_mode,
- 		.get_cover_state	= n8x0_mmc_get_cover_state,
-diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
-index 4f819fc..bc85010 100644
---- a/arch/arm/plat-omap/include/plat/mmc.h
-+++ b/arch/arm/plat-omap/include/plat/mmc.h
-@@ -73,9 +73,16 @@ struct omap_mmc_platform_data {
- 
- 	struct omap_mmc_slot_data {
- 
--		/* 4/8 wires and any additional host capabilities
--		 * need to OR'd all capabilities (ref. linux/mmc/host.h) */
--		u32 caps;
-+		/*
-+		 * 4/8 wires and any additional host capabilities
-+		 * need to OR'd all capabilities (ref. linux/mmc/host.h)
-+		 */
-+#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2420)
-+		u8  wires;	/* Used for the MMC driver on omap1 and 2420 */
-+#endif
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+		u32 caps;	/* Used for the MMC driver on 2430 and later */
-+#endif
- 
- 		/*
- 		 * nomux means "standard" muxing is wrong on this board, and
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index a9d62cf..d98ddcf 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1317,7 +1317,7 @@ static int __init mmc_omap_new_slot(struct mmc_omap_host *host, int id)
- 	host->slots[id] = slot;
- 
- 	mmc->caps = 0;
--	if (host->pdata->slots[id].caps & MMC_CAP_8_BIT_DATA)
-+	if (host->pdata->slots[id].wires >= 4)
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
- 
- 	mmc->ops = &mmc_omap_ops;
+- Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
