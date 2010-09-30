@@ -1,99 +1,58 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset during init
-Date: Thu, 30 Sep 2010 13:41:10 +0530
-Message-ID: <1285834270-32766-1-git-send-email-charu@ti.com>
+From: Abraham Arce <abraham.arce.moreno@gmail.com>
+Subject: Re: Compilation: omap-for-linus omap2plus error
+Date: Thu, 30 Sep 2010 03:55:14 -0500
+Message-ID: <AANLkTik77kJVLPm60rZEDZcGfh=X4oC_4=aFfPS+JzQj@mail.gmail.com>
+References: <4CA409E3.8000800@ti.com>
+	<AANLkTinONbTyE4CKDnGfXrco-qy0=u_MpzimpCSnDZr7@mail.gmail.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CD02FA5@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51458 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751041Ab0I3ILe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Sep 2010 04:11:34 -0400
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:64945 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754294Ab0I3IzQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 04:55:16 -0400
+Received: by fxm4 with SMTP id 4so531569fxm.19
+        for <linux-omap@vger.kernel.org>; Thu, 30 Sep 2010 01:55:15 -0700 (PDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CD02FA5@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, wim@iguana.be, linux-omap@vger.kernel.org, linux-watchdog@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@deeprootsystems.com, paul@pwsan.com, b-cousson@ti.com, rnayak@ti.com, p-basak2@ti.com, "Varadarajan, Charulatha" <charu@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "Arce, Abraham" <x0066660@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-With OMAP2PLUS watchdog implemented in hwmod fw way, the
-module is reset during init.
+Thanks Santosh,
 
-After a watchdog timer module reset, the WDTs are enabled. The
-default time for a system reset after a watchdog module reset
-is ~10s as per the default value of the WDT registers. Hence
-the system would be reset after 10s, if watchdog is not disabled
-within 10s.
+On Thu, Sep 30, 2010 at 2:55 AM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+>> > =A0CC =A0 =A0 =A0arch/arm/mach-omap2/pm_bus.o
+>> > arch/arm/mach-omap2/pm_bus.c: In function 'omap_pm_runtime_init':
+>> > arch/arm/mach-omap2/pm_bus.c:64: error: implicit declaration of fu=
+nction
+>> > 'platform_bus_get_pm_ops'
+>> > arch/arm/mach-omap2/pm_bus.c:64: warning: assignment makes pointer=
+ from
+>> > integer without a cast
+>> > arch/arm/mach-omap2/pm_bus.c:81: error: implicit declaration of fu=
+nction
+>> > 'platform_bus_set_pm_ops'
+>>
+>> I am trying using following commit as latest
+>>
+>> Kevin Hilman
+>> 7ad0e386d46e9edff64705ab25337ad9130baf63
+>> OMAP2+: defconfig: disable CPUfreq
+>>
+> Looks like Kevin's platform.c patch is missing
+> in omap-for-linus branch. Patch attached.
+>
 
-This patch fixes the above issue by disabling the watchdog timer
-after reset during initialization of devices.
+Compilation error fixed... no more issues
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Reported-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-This patch is dependent on the below patch series (wdt hwmod) and
-is created on top of pm-core branch.
-http://www.spinics.net/lists/linux-omap/msg37043.html
-
- arch/arm/mach-omap2/devices.c |   44 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 44 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 8e2f0aa..9f44fc6 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -916,11 +916,55 @@ static inline void omap_init_vout(void) {}
- 
- /*-------------------------------------------------------------------------*/
- 
-+/*
-+ * WDT mdoule is reset during init which enables the watchdog.
-+ * Hence it is required to disable the watchdog after the WDT reset
-+ * during init. Otherwise the system would reboot as per the default
-+ * watchdog timer registers settings.
-+ */
-+#define OMAP_WDT_WPS	(0x34)
-+#define OMAP_WDT_SPR	(0x48)
-+
-+static int omap2_disable_wdt(struct omap_hwmod *oh, void *user)
-+{
-+	void __iomem *base;
-+
-+	if (!oh)
-+		pr_err("Could not look up wdtimer_hwmod\n");
-+
-+	base = oh->_mpu_rt_va;
-+
-+	/* Enable the clocks before accessing the WDT registers */
-+	omap_hwmod_enable(oh);
-+
-+	/* sequence required to disable watchdog */
-+	__raw_writel(0xAAAA, base + OMAP_WDT_SPR);	/* TIMER_MODE */
-+	while (__raw_readl(base + OMAP_WDT_WPS) & 0x10)
-+		cpu_relax();
-+
-+	__raw_writel(0x5555, base + OMAP_WDT_SPR);	/* TIMER_MODE */
-+	while (__raw_readl(base + OMAP_WDT_WPS) & 0x10)
-+		cpu_relax();
-+
-+	omap_hwmod_idle(oh);
-+
-+	return 0;
-+}
-+
-+static void __init omap_disable_wdt(void)
-+{
-+	if (cpu_class_is_omap2())
-+		omap_hwmod_for_each_by_class("wd_timer",
-+						omap2_disable_wdt, NULL);
-+	return;
-+}
-+
- static int __init omap2_init_devices(void)
- {
- 	/* please keep these calls, and their implementations above,
- 	 * in alphabetical order so they're easier to sort through.
- 	 */
-+	omap_disable_wdt();
- 	omap_hsmmc_reset();
- 	omap_init_camera();
- 	omap_init_mbox();
--- 
-1.7.0.4
-
+Best Regards
+Abraham
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
