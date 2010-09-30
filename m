@@ -1,48 +1,42 @@
-From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH] staging: tidspbridge: disable all peripherals at bridge_brd_stop
-Date: Thu, 30 Sep 2010 13:49:36 -0500
-Message-ID: <1285872576-31526-1-git-send-email-ernesto@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/3] Few omap1 patches for v2.6.37 merge window
+Date: Thu, 30 Sep 2010 11:46:13 -0700
+Message-ID: <20100930184459.12052.14542.stgit@baageli.muru.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35858 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755869Ab0I3SnT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Sep 2010 14:43:19 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50463 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754892Ab0I3SqR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 14:46:17 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: gregkh@suse.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: ameya.palande@nokia.com, felipe.contreras@gmail.com, andy.shevchenko@gmail.com, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-DSP Bridge needs to disable the peripheral clocks when switches to
-BRD_STOPPED since that would prevent the domain to enter in OFF state.
+Hi all,
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+Here are some omap1 related patches I've picked up for the upcoming
+merge window.
+
+Regards,
+
+Tony
+
 ---
- drivers/staging/tidspbridge/core/tiomap3430.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index f1e59e8..e32e98a 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -625,7 +625,6 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 	struct bridge_dev_context *dev_context = dev_ctxt;
- 	struct pg_table_attrs *pt_attrs;
- 	u32 dsp_pwr_state;
--	int clk_status;
- 	struct dspbridge_platform_data *pdata =
- 				omap_dspbridge_dev->dev.platform_data;
- 
-@@ -679,7 +678,8 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 	(*pdata->dsp_prm_write)(OMAP3430_RST1_IVA2_MASK | OMAP3430_RST2_IVA2_MASK |
- 			OMAP3430_RST3_IVA2_MASK, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
- 
--	clk_status = dsp_clk_disable(DSP_CLK_IVA2);
-+	dsp_clock_disable_all(dev_context->dsp_per_clks);
-+	dsp_clk_disable(DSP_CLK_IVA2);
- 
- 	return status;
- }
+Janusz Krzysztofik (3):
+      OMAP1: Add support for SoC camera interface
+      OMAP1: Amstrad Delta: add support for camera
+      OMAP1: Amstrad Delta: add camera controlled LEDS trigger
+
+
+ arch/arm/mach-omap1/board-ams-delta.c     |   69 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap1/devices.c             |   43 ++++++++++++++++++
+ arch/arm/mach-omap1/include/mach/camera.h |   11 +++++
+ 3 files changed, 123 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/include/mach/camera.h
+
 -- 
-1.5.4.5
-
+Signature
