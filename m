@@ -1,135 +1,131 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
 Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
-Date: Thu, 30 Sep 2010 11:48:41 -0700
-Message-ID: <20100930184841.GL3117@atomide.com>
+Date: Thu, 30 Sep 2010 11:53:04 -0700
+Message-ID: <AANLkTik=Yd132X06ViLcZv3SV_0k7N2U6VQJNZLMAaeb@mail.gmail.com>
 References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
- <1282106146-7727-1-git-send-email-darkstar6262@gmail.com>
- <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
- <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
- <AANLkTikNLn-VuCQb2q7wZVbYORxV6uhia_oOBsQg3ZiJ@mail.gmail.com>
- <20100924225254.GK4211@atomide.com>
- <AANLkTinmfEYq9SRNRWY9xOkwS-FE_LDyBOeGLoyYLNtZ@mail.gmail.com>
+	<1282106146-7727-1-git-send-email-darkstar6262@gmail.com>
+	<AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
+	<AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
+	<AANLkTikNLn-VuCQb2q7wZVbYORxV6uhia_oOBsQg3ZiJ@mail.gmail.com>
+	<20100924225254.GK4211@atomide.com>
+	<AANLkTinmfEYq9SRNRWY9xOkwS-FE_LDyBOeGLoyYLNtZ@mail.gmail.com>
+	<20100930184841.GL3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53895 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755968Ab0I3Ssp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 14:48:45 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTinmfEYq9SRNRWY9xOkwS-FE_LDyBOeGLoyYLNtZ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20100930184841.GL3117@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Cory Maccarrone <darkstar6262@gmail.com> [100930 11:34]:
-> >
-> > Looks like also board-sx1-mmc.c and board-h[23]-mmc.c have the
-> > same spotty voltage range.
-> >
-> > Cory, care to do a patch that fixes it for all of them?
-> >
->=20
-> Yeah, I can do that.  I'll resubmit this patch too with the fixed up =
-ranges.
-
-Turns out I already did it :) Care to test/ack this one?
-
-Tony
-
-=46rom: Tony Lindgren <tony@atomide.com>
-Date: Thu, 30 Sep 2010 11:40:56 -0700
-Subject: [PATCH] omap: Fix spotty MMC voltages
-
-As noted by Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>, the voltages =
-should
-cover the supported voltage range instead of missing some values
-within the range.
-
-Reported-by: Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/b=
-oard-h2-mmc.c
-index b30c499..50d9032 100644
---- a/arch/arm/mach-omap1/board-h2-mmc.c
-+++ b/arch/arm/mach-omap1/board-h2-mmc.c
-@@ -58,7 +58,8 @@ static struct omap_mmc_platform_data mmc1_data =3D {
- 	.dma_mask			=3D 0xffffffff,
- 	.slots[0]       =3D {
- 		.set_power              =3D mmc_set_power,
--		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
-+		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_29_30 |
-+					  MMC_VDD_30_31 | MMC_VDD_31_32 |
- 					  MMC_VDD_32_33 | MMC_VDD_33_34,
- 		.name                   =3D "mmcblk",
- 	},
-diff --git a/arch/arm/mach-omap1/board-h3-mmc.c b/arch/arm/mach-omap1/b=
-oard-h3-mmc.c
-index 54b0f06..9f073bf 100644
---- a/arch/arm/mach-omap1/board-h3-mmc.c
-+++ b/arch/arm/mach-omap1/board-h3-mmc.c
-@@ -40,7 +40,8 @@ static struct omap_mmc_platform_data mmc1_data =3D {
- 	.dma_mask			=3D 0xffffffff,
- 	.slots[0]       =3D {
- 		.set_power              =3D mmc_set_power,
--		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
-+		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_29_30 |
-+					  MMC_VDD_30_31 | MMC_VDD_31_32 |
- 					  MMC_VDD_32_33 | MMC_VDD_33_34,
- 		.name                   =3D "mmcblk",
- 	},
-diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap=
-1/board-htcherald.c
-index 7ea75c1..909fdeb 100644
---- a/arch/arm/mach-omap1/board-htcherald.c
-+++ b/arch/arm/mach-omap1/board-htcherald.c
-@@ -410,7 +410,8 @@ static struct omap_mmc_platform_data htc_mmc1_data =
-=3D {
- 	.nr_slots                       =3D 1,
- 	.switch_slot                    =3D NULL,
- 	.slots[0]       =3D {
--		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
-+		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_29_30 |
-+					  MMC_VDD_30_31 | MMC_VDD_31_32 |
- 					  MMC_VDD_32_33 | MMC_VDD_33_34,
- 		.name                   =3D "mmcblk",
- 		.nomux                  =3D 1,
-diff --git a/arch/arm/mach-omap1/board-sx1-mmc.c b/arch/arm/mach-omap1/=
-board-sx1-mmc.c
-index 5b33ae8..be5a365 100644
---- a/arch/arm/mach-omap1/board-sx1-mmc.c
-+++ b/arch/arm/mach-omap1/board-sx1-mmc.c
-@@ -44,7 +44,8 @@ static struct omap_mmc_platform_data mmc1_data =3D {
- 	.nr_slots                       =3D 1,
- 	.slots[0]       =3D {
- 		.set_power              =3D mmc_set_power,
--		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
-+		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_29_30 |
-+					  MMC_VDD_30_31 | MMC_VDD_31_32 |
- 					  MMC_VDD_32_33 | MMC_VDD_33_34,
- 		.name                   =3D "mmcblk",
- 	},
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/boa=
-rd-n8x0.c
-index 7a93bd5..abd7e77 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -493,7 +493,8 @@ static struct omap_mmc_platform_data mmc1_data =3D =
-{
- 		.set_bus_mode		=3D n8x0_mmc_set_bus_mode,
- 		.get_cover_state	=3D n8x0_mmc_get_cover_state,
- 		.ocr_mask		=3D MMC_VDD_165_195 | MMC_VDD_30_31 |
--						MMC_VDD_32_33   | MMC_VDD_33_34,
-+						MMC_VDD_31_32 | MMC_VDD_32_33 |
-+						MMC_VDD_33_34,
- 		.name			=3D "internal",
- 	},
- 	.slots[1] =3D {
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVGh1LCBTZXAgMzAsIDIwMTAgYXQgMTE6NDggQU0sIFRvbnkgTGluZGdyZW4gPHRvbnlAYXRv
+bWlkZS5jb20+IHdyb3RlOgo+ICogQ29yeSBNYWNjYXJyb25lIDxkYXJrc3RhcjYyNjJAZ21haWwu
+Y29tPiBbMTAwOTMwIDExOjM0XToKPj4gPgo+PiA+IExvb2tzIGxpa2UgYWxzbyBib2FyZC1zeDEt
+bW1jLmMgYW5kIGJvYXJkLWhbMjNdLW1tYy5jIGhhdmUgdGhlCj4+ID4gc2FtZSBzcG90dHkgdm9s
+dGFnZSByYW5nZS4KPj4gPgo+PiA+IENvcnksIGNhcmUgdG8gZG8gYSBwYXRjaCB0aGF0IGZpeGVz
+IGl0IGZvciBhbGwgb2YgdGhlbT8KPj4gPgo+Pgo+PiBZZWFoLCBJIGNhbiBkbyB0aGF0LiDCoEkn
+bGwgcmVzdWJtaXQgdGhpcyBwYXRjaCB0b28gd2l0aCB0aGUgZml4ZWQgdXAgcmFuZ2VzLgo+Cj4g
+VHVybnMgb3V0IEkgYWxyZWFkeSBkaWQgaXQgOikgQ2FyZSB0byB0ZXN0L2FjayB0aGlzIG9uZT8K
+Pgo+IFRvbnkKPgo+IEZyb206IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gRGF0
+ZTogVGh1LCAzMCBTZXAgMjAxMCAxMTo0MDo1NiAtMDcwMAo+IFN1YmplY3Q6IFtQQVRDSF0gb21h
+cDogRml4IHNwb3R0eSBNTUMgdm9sdGFnZXMKPgo+IEFzIG5vdGVkIGJ5IE1pY2hhxYIgTWlyb3PF
+gmF3IDxtaXJxdXNAZ21haWwuY29tPiwgdGhlIHZvbHRhZ2VzIHNob3VsZAo+IGNvdmVyIHRoZSBz
+dXBwb3J0ZWQgdm9sdGFnZSByYW5nZSBpbnN0ZWFkIG9mIG1pc3Npbmcgc29tZSB2YWx1ZXMKPiB3
+aXRoaW4gdGhlIHJhbmdlLgo+Cj4gUmVwb3J0ZWQtYnk6IE1pY2hhxYIgTWlyb3PFgmF3IDxtaXJx
+dXNAZ21haWwuY29tPgo+IFNpZ25lZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlk
+ZS5jb20+Cj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1oMi1tbWMu
+YyBiL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDItbW1jLmMKPiBpbmRleCBiMzBjNDk5Li41
+MGQ5MDMyIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDItbW1jLmMK
+PiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWgyLW1tYy5jCj4gQEAgLTU4LDcgKzU4
+LDggQEAgc3RhdGljIHN0cnVjdCBvbWFwX21tY19wbGF0Zm9ybV9kYXRhIG1tYzFfZGF0YSA9IHsK
+PiDCoCDCoCDCoCDCoC5kbWFfbWFzayDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCA9
+IDB4ZmZmZmZmZmYsCj4gwqAgwqAgwqAgwqAuc2xvdHNbMF0gwqAgwqAgwqAgPSB7Cj4gwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAuc2V0X3Bvd2VyIMKgIMKgIMKgIMKgIMKgIMKgIMKgPSBtbWNfc2V0
+X3Bvd2VyLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm9jcl9tYXNrIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgID0gTU1DX1ZERF8yOF8yOSB8IE1NQ19WRERfMzBfMzEgfAo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgLm9jcl9tYXNrIMKgIMKgIMKgIMKgIMKgIMKgIMKgID0gTU1DX1ZERF8yOF8yOSB8
+IE1NQ19WRERfMjlfMzAgfAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgTU1DX1ZERF8zMF8zMSB8IE1NQ19WRERfMzFfMzIgfAo+
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgTU1DX1ZERF8zMl8zMyB8IE1NQ19WRERfMzNfMzQsCj4gwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAubmFtZSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCA9ICJtbWNibGsiLAo+IMKgIMKg
+IMKgIMKgfSwKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1oMy1tbWMu
+YyBiL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDMtbW1jLmMKPiBpbmRleCA1NGIwZjA2Li45
+ZjA3M2JmIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaDMtbW1jLmMK
+PiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWgzLW1tYy5jCj4gQEAgLTQwLDcgKzQw
+LDggQEAgc3RhdGljIHN0cnVjdCBvbWFwX21tY19wbGF0Zm9ybV9kYXRhIG1tYzFfZGF0YSA9IHsK
+PiDCoCDCoCDCoCDCoC5kbWFfbWFzayDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCA9
+IDB4ZmZmZmZmZmYsCj4gwqAgwqAgwqAgwqAuc2xvdHNbMF0gwqAgwqAgwqAgPSB7Cj4gwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAuc2V0X3Bvd2VyIMKgIMKgIMKgIMKgIMKgIMKgIMKgPSBtbWNfc2V0
+X3Bvd2VyLAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm9jcl9tYXNrIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgID0gTU1DX1ZERF8yOF8yOSB8IE1NQ19WRERfMzBfMzEgfAo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgLm9jcl9tYXNrIMKgIMKgIMKgIMKgIMKgIMKgIMKgID0gTU1DX1ZERF8yOF8yOSB8
+IE1NQ19WRERfMjlfMzAgfAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgTU1DX1ZERF8zMF8zMSB8IE1NQ19WRERfMzFfMzIgfAo+
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgTU1DX1ZERF8zMl8zMyB8IE1NQ19WRERfMzNfMzQsCj4gwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAubmFtZSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCA9ICJtbWNibGsiLAo+IMKgIMKg
+IMKgIMKgfSwKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1odGNoZXJh
+bGQuYyBiL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaHRjaGVyYWxkLmMKPiBpbmRleCA3ZWE3
+NWMxLi45MDlmZGViIDEwMDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtaHRj
+aGVyYWxkLmMKPiArKysgYi9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWh0Y2hlcmFsZC5jCj4g
+QEAgLTQxMCw3ICs0MTAsOCBAQCBzdGF0aWMgc3RydWN0IG9tYXBfbW1jX3BsYXRmb3JtX2RhdGEg
+aHRjX21tYzFfZGF0YSA9IHsKPiDCoCDCoCDCoCDCoC5ucl9zbG90cyDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCA9IDEsCj4gwqAgwqAgwqAgwqAuc3dpdGNoX3Nsb3QgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqA9IE5VTEwsCj4gwqAgwqAgwqAgwqAuc2xvdHNbMF0gwqAgwqAg
+wqAgPSB7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAub2NyX21hc2sgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgPSBNTUNfVkREXzI4XzI5IHwgTU1DX1ZERF8zMF8zMSB8Cj4gKyDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCAub2NyX21hc2sgwqAgwqAgwqAgwqAgwqAgwqAgwqAgPSBNTUNfVkREXzI4XzI5IHwg
+TU1DX1ZERF8yOV8zMCB8Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBNTUNfVkREXzMwXzMxIHwgTU1DX1ZERF8zMV8zMiB8Cj4g
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqBNTUNfVkREXzMyXzMzIHwgTU1DX1ZERF8zM18zNCwKPiDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoC5uYW1lIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgID0gIm1tY2JsayIsCj4gwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAubm9tdXggwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqA9IDEsCj4g
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtc3gxLW1tYy5jIGIvYXJjaC9h
+cm0vbWFjaC1vbWFwMS9ib2FyZC1zeDEtbW1jLmMKPiBpbmRleCA1YjMzYWU4Li5iZTVhMzY1IDEw
+MDY0NAo+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtc3gxLW1tYy5jCj4gKysrIGIv
+YXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1zeDEtbW1jLmMKPiBAQCAtNDQsNyArNDQsOCBAQCBz
+dGF0aWMgc3RydWN0IG9tYXBfbW1jX3BsYXRmb3JtX2RhdGEgbW1jMV9kYXRhID0gewo+IMKgIMKg
+IMKgIMKgLm5yX3Nsb3RzIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgID0gMSwKPiDC
+oCDCoCDCoCDCoC5zbG90c1swXSDCoCDCoCDCoCA9IHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oC5zZXRfcG93ZXIgwqAgwqAgwqAgwqAgwqAgwqAgwqA9IG1tY19zZXRfcG93ZXIsCj4gLSDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCAub2NyX21hc2sgwqAgwqAgwqAgwqAgwqAgwqAgwqAgPSBNTUNfVkRE
+XzI4XzI5IHwgTU1DX1ZERF8zMF8zMSB8Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAub2NyX21h
+c2sgwqAgwqAgwqAgwqAgwqAgwqAgwqAgPSBNTUNfVkREXzI4XzI5IHwgTU1DX1ZERF8yOV8zMCB8
+Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCBNTUNfVkREXzMwXzMxIHwgTU1DX1ZERF8zMV8zMiB8Cj4gwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBNTUNfVkREXzMy
+XzMzIHwgTU1DX1ZERF8zM18zNCwKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoC5uYW1lIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgID0gIm1tY2JsayIsCj4gwqAgwqAgwqAgwqB9LAo+IGRpZmYg
+LS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW44eDAuYyBiL2FyY2gvYXJtL21hY2gt
+b21hcDIvYm9hcmQtbjh4MC5jCj4gaW5kZXggN2E5M2JkNS4uYWJkN2U3NyAxMDA2NDQKPiAtLS0g
+YS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW44eDAuYwo+ICsrKyBiL2FyY2gvYXJtL21hY2gt
+b21hcDIvYm9hcmQtbjh4MC5jCj4gQEAgLTQ5Myw3ICs0OTMsOCBAQCBzdGF0aWMgc3RydWN0IG9t
+YXBfbW1jX3BsYXRmb3JtX2RhdGEgbW1jMV9kYXRhID0gewo+IMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgLnNldF9idXNfbW9kZSDCoCDCoCDCoCDCoCDCoCA9IG44eDBfbW1jX3NldF9idXNfbW9kZSwK
+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoC5nZXRfY292ZXJfc3RhdGUgwqAgwqAgwqAgwqA9IG44
+eDBfbW1jX2dldF9jb3Zlcl9zdGF0ZSwKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoC5vY3JfbWFz
+ayDCoCDCoCDCoCDCoCDCoCDCoCDCoCA9IE1NQ19WRERfMTY1XzE5NSB8IE1NQ19WRERfMzBfMzEg
+fAo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgTU1DX1ZERF8zMl8zMyDCoCB8IE1NQ19WRERfMzNfMzQsCj4gKyDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCBNTUNfVkREXzMxXzMyIHwgTU1DX1ZERF8zMl8zMyB8Cj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCBNTUNfVkREXzMzXzM0LAo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgLm5hbWUgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgPSAiaW50ZXJuYWwiLAo+IMKgIMKgIMKgIMKgfSwKPiDCoCDCoCDC
+oCDCoC5zbG90c1sxXSA9IHsKPgoKU3VyZSB0aGluZywgaG9wZWZ1bGx5IGluIHRoZSBuZXh0IGRh
+eSBvciB0d28uIDopCgotIENvcnkKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5l
+bEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4v
+bGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
