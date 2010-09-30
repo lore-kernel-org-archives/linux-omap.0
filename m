@@ -1,77 +1,100 @@
-From: Ernesto Ramos <ernesto@ti.com>
-Subject: [PATCH] staging:ti dspbridge: Replace find_lcm with lcm kernel func
-Date: Thu, 30 Sep 2010 13:34:13 -0500
-Message-ID: <1285871653-26944-1-git-send-email-ernesto@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] omap: Keep nwires for omap1 and 2420 MMC controller (Re:
+ [PATCH] omap mmc: extended to pass host capabilities from board file)
+Date: Thu, 30 Sep 2010 11:38:19 -0700
+Message-ID: <20100930183818.GK3117@atomide.com>
+References: <1284562163-2828-1-git-send-email-s-ghorai@ti.com>
+ <20100923230819.GS4211@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52181 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754942Ab0I3S17 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 14:27:59 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55478 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751578Ab0I3SiZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 14:38:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20100923230819.GS4211@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: gregkh@suse.de, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: ameya.palande@nokia.com, felipe.contreras@gmail.com, andy.shevchenko@gmail.com, Ernesto Ramos <ernesto@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Sukumar Ghorai <s-ghorai@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 
-Resendig this patch since it was missed in the last merge...
+* Tony Lindgren <tony@atomide.com> [100923 16:00]:
+> * Sukumar Ghorai <s-ghorai@ti.com> [100915 07:41]:
+> >   wires variable is renamed, extended and this single variable to be used to
+> >   pass the platform capabilities, e.g DDR mode. Also removed the hardcoded
+> >   value was using as bus-width.
+> 
+> This looks like a nice clean-up, I'll queue this via the omap
+> patches.
 
-Remove find_lcm within nldr.c and use standard
-kernel function lcm().
+And of course this patch breaks all of mach-omap1 and omap2420.
 
-Signed-off-by: Ernesto Ramos <ernesto@ti.com>
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/staging/tidspbridge/rmgr/nldr.c |   17 ++---------------
- 1 files changed, 2 insertions(+), 15 deletions(-)
+Sukumar, your patch modified also drivers/mmc/host/omap.c and board-n8x0.c
+to use caps instead of nwires. When you do things like that you absolutely
+_must_test_your_changes_ before sending out any patches.
 
-diff --git a/drivers/staging/tidspbridge/rmgr/nldr.c b/drivers/staging/tidspbridge/rmgr/nldr.c
-index d8f4eeb..a6ae007 100644
---- a/drivers/staging/tidspbridge/rmgr/nldr.c
-+++ b/drivers/staging/tidspbridge/rmgr/nldr.c
-@@ -35,7 +35,7 @@
- #include <dspbridge/uuidutil.h>
+Planning on merging the following fix.
+
+Tony
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 30 Sep 2010 10:25:46 -0700
+Subject: [PATCH] Subject: [PATCH] omap: Keep nwires for omap1 and 2420 MMC controller
+
+A patch from Sukumar Ghorai <s-ghorai@ti.com> changed the
+nwires to use caps instead. However, nwires is still
+needed for the earlier controller.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index abd7e77..6bd9d9a 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -488,7 +488,7 @@ static struct omap_mmc_platform_data mmc1_data = {
+ 	.max_freq			= 24000000,
+ 	.dma_mask			= 0xffffffff,
+ 	.slots[0] = {
+-		.caps			= MMC_CAP_4_BIT_DATA,
++		.wires			= 4,
+ 		.set_power		= n8x0_mmc_set_power,
+ 		.set_bus_mode		= n8x0_mmc_set_bus_mode,
+ 		.get_cover_state	= n8x0_mmc_get_cover_state,
+diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
+index 4f819fc..bc85010 100644
+--- a/arch/arm/plat-omap/include/plat/mmc.h
++++ b/arch/arm/plat-omap/include/plat/mmc.h
+@@ -73,9 +73,16 @@ struct omap_mmc_platform_data {
  
- #include <dspbridge/nldr.h>
--#include <linux/gcd.h>
-+#include <linux/lcm.h>
+ 	struct omap_mmc_slot_data {
  
- /* Name of section containing dynamic load mem */
- #define DYNMEMSECT  ".dspbridge_mem"
-@@ -304,7 +304,6 @@ static void unload_ovly(struct nldr_nodeobject *nldr_node_obj,
- 			enum nldr_phase phase);
- static bool find_in_persistent_lib_array(struct nldr_nodeobject *nldr_node_obj,
- 					 struct dbll_library_obj *lib);
--static u32 find_lcm(u32 a, u32 b);
+-		/* 4/8 wires and any additional host capabilities
+-		 * need to OR'd all capabilities (ref. linux/mmc/host.h) */
+-		u32 caps;
++		/*
++		 * 4/8 wires and any additional host capabilities
++		 * need to OR'd all capabilities (ref. linux/mmc/host.h)
++		 */
++#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2420)
++		u8  wires;	/* Used for the MMC driver on omap1 and 2420 */
++#endif
++#ifdef CONFIG_ARCH_OMAP2PLUS
++		u32 caps;	/* Used for the MMC driver on 2430 and later */
++#endif
  
- /*
-  *  ======== nldr_allocate ========
-@@ -1637,7 +1636,7 @@ static int remote_alloc(void **ref, u16 mem_sect, u32 size,
- 	    (size + nldr_obj->us_dsp_word_size -
- 	     1) / nldr_obj->us_dsp_word_size;
- 	/* Modify memory 'align' to account for DSP cache line size */
--	align = find_lcm(GEM_CACHE_LINE_SIZE, align);
-+	align = lcm(GEM_CACHE_LINE_SIZE, align);
- 	dev_dbg(bridge, "%s: memory align to 0x%x\n", __func__, align);
- 	if (segmnt_id != -1) {
- 		rmm_addr_obj->segid = segmnt_id;
-@@ -1880,18 +1879,6 @@ static bool find_in_persistent_lib_array(struct nldr_nodeobject *nldr_node_obj,
- 	return false;
- }
+ 		/*
+ 		 * nomux means "standard" muxing is wrong on this board, and
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index a9d62cf..d98ddcf 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1317,7 +1317,7 @@ static int __init mmc_omap_new_slot(struct mmc_omap_host *host, int id)
+ 	host->slots[id] = slot;
  
--/*
-- * ================ Find LCM (Least Common Multiplier ===
-- */
--static u32 find_lcm(u32 a, u32 b)
--{
--	u32 ret;
--
--	ret = a * b / gcd(a, b);
--
--	return ret;
--}
--
- #ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
- /**
-  * nldr_find_addr() - Find the closest symbol to the given address based on
--- 
-1.5.4.5
-
+ 	mmc->caps = 0;
+-	if (host->pdata->slots[id].caps & MMC_CAP_8_BIT_DATA)
++	if (host->pdata->slots[id].wires >= 4)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+ 
+ 	mmc->ops = &mmc_omap_ops;
