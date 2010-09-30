@@ -1,227 +1,164 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: add synchronous runtime interface for
-	interrupt handlers
-Date: Fri, 1 Oct 2010 00:02:19 +0200
-Message-ID: <201010010002.19204.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1009301420520.1314-100000@iolanthe.rowland.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
+Date: Thu, 30 Sep 2010 15:11:11 -0700
+Message-ID: <20100930221111.GO3117@atomide.com>
+References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
+ <1282106146-7727-1-git-send-email-darkstar6262@gmail.com>
+ <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
+ <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
+ <AANLkTikNLn-VuCQb2q7wZVbYORxV6uhia_oOBsQg3ZiJ@mail.gmail.com>
+ <20100924225254.GK4211@atomide.com>
+ <AANLkTinmfEYq9SRNRWY9xOkwS-FE_LDyBOeGLoyYLNtZ@mail.gmail.com>
+ <20100930184841.GL3117@atomide.com>
+ <AANLkTimsk+vbi15xz5bxJyQrF0yXF3i7Dn=TajjV3tkU@mail.gmail.com>
+ <20100930191535.GM3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <Pine.LNX.4.44L0.1009301420520.1314-100000@iolanthe.rowland.org>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Partha Basak <p-basak2@ti.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51531 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751150Ab0I3WLN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 18:11:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20100930191535.GM3117@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>
+Cc: Cory Maccarrone <darkstar6262@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday, September 30, 2010, Alan Stern wrote:
-> This patch (as1431) adds a synchronous runtime-PM interface suitable
-> for use in interrupt handlers.  Four new helper functions are defined:
-> 
-> 	pm_runtime_suspend_irq(), pm_runtime_resume_irq(),
-> 	pm_runtime_get_sync_irq(), pm_runtime_put_sync_irq(),
-> 
-> together with pm_runtime_callbacks_in_irq(), which subsystems use to
-> tell the PM core that the runtime callbacks should be invoked with
-> interrupts disabled.
+* Tony Lindgren <tony@atomide.com> [100930 12:07]:
+> * Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com> [100930 11:57]:
+> > 2010/9/30 Tony Lindgren <tony@atomide.com>:
+> > > * Cory Maccarrone <darkstar6262@gmail.com> [100930 11:34]:
+> > >> > Looks like also board-sx1-mmc.c and board-h[23]-mmc.c have the
+> > >> > same spotty voltage range.
+> > >> > Cory, care to do a patch that fixes it for all of them?
+> > >> Yeah, I can do that. =C2=A0I'll resubmit this patch too with the=
+ fixed up ranges.
+> > > Turns out I already did it :) Care to test/ack this one?
+> >=20
+> > [...]
+> > > diff --git a/arch/arm/mach-omap1/board-sx1-mmc.c b/arch/arm/mach-=
+omap1/board-sx1-mmc.c
+> > > index 5b33ae8..be5a365 100644
+> > > --- a/arch/arm/mach-omap1/board-sx1-mmc.c
+> > > +++ b/arch/arm/mach-omap1/board-sx1-mmc.c
+> > > @@ -44,7 +44,8 @@ static struct omap_mmc_platform_data mmc1_data =
+=3D {
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0.nr_slots =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D 1,
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0.slots[0] =C2=A0 =C2=A0 =C2=A0 =3D {
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0.set_power=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D mmc_set_power,
+> > > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .ocr_mask =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D MMC_VDD_28_29 | MMC_VDD_=
+30_31 |
+> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .ocr_mask =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D MMC_VDD_28_29 | MMC_VDD_=
+29_30 |
+> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 MMC_VDD_30_31 | MMC_VDD_31_32 |
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0MMC_VDD_32_33 | MMC_VDD_33_34,
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0.name =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =3D "mmcblk",
+> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0},
+> > [...]
+> >=20
+> > Al least this one seems wrong (haven't checked others) as the
+> > mmc_set_power() ignores vdd parameter. This suggests that the board
+> > supports only one particular voltage, not the whole range.
+>=20
+> Hmm yeah good catch. With the external power it's board specific.=20
 
-BTW, I like some changes made by your patch that aren't really related to
-the issue at hand, so I think the patch below can be applied regardless of
-the other changes, unless I made a mistake I can see now.
+Most likely they all support only 3.3V cards except for n8x0. Not chang=
+ing
+the n8x0 for what voltages it handles although it may be missing the
+MMC_VDD_27_28 voltage. Here's the updated patch.
 
-Thanks,
-Rafael
+Regards,
 
+Tony
 
----
- drivers/base/power/runtime.c |  123 +++++++++++++++++--------------------------
- 1 file changed, 51 insertions(+), 72 deletions(-)
+=46rom: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] omap: Fix spotty MMC voltages
 
-Index: linux-2.6/drivers/base/power/runtime.c
-===================================================================
---- linux-2.6.orig/drivers/base/power/runtime.c
-+++ linux-2.6/drivers/base/power/runtime.c
-@@ -153,6 +153,27 @@ static int rpm_check_suspend_allowed(str
- 	return retval;
- }
- 
-+/**
-+ * rpm_callback - Run a given runtime PM callback for a given device.
-+ * @cb: Runtime PM callback to run.
-+ * @dev: Device to run the callback for.
-+ */
-+static int rpm_callback(int (*cb)(struct device *), struct device *dev)
-+	__releases(&dev->power.lock) __acquires(&dev->power.lock)
-+{
-+	int retval;
-+
-+	if (!cb)
-+		return -ENOSYS;
-+
-+	spin_unlock_irq(&dev->power.lock);
-+
-+	retval = cb(dev);
-+
-+	spin_lock_irq(&dev->power.lock);
-+
-+	return retval;
-+}
- 
- /**
-  * rpm_idle - Notify device bus type if the device can be suspended.
-@@ -167,8 +188,8 @@ static int rpm_check_suspend_allowed(str
-  * This function must be called under dev->power.lock with interrupts disabled.
-  */
- static int rpm_idle(struct device *dev, int rpmflags)
--	__releases(&dev->power.lock) __acquires(&dev->power.lock)
- {
-+	int (*callback)(struct device *);
- 	int retval;
- 
- 	retval = rpm_check_suspend_allowed(dev);
-@@ -214,26 +235,16 @@ static int rpm_idle(struct device *dev, 
- 
- 	dev->power.idle_notification = true;
- 
--	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_idle) {
--		spin_unlock_irq(&dev->power.lock);
--
--		dev->bus->pm->runtime_idle(dev);
--
--		spin_lock_irq(&dev->power.lock);
--	} else if (dev->type && dev->type->pm && dev->type->pm->runtime_idle) {
--		spin_unlock_irq(&dev->power.lock);
--
--		dev->type->pm->runtime_idle(dev);
--
--		spin_lock_irq(&dev->power.lock);
--	} else if (dev->class && dev->class->pm
--	    && dev->class->pm->runtime_idle) {
--		spin_unlock_irq(&dev->power.lock);
-+	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_idle)
-+		callback = dev->bus->pm->runtime_idle;
-+	else if (dev->type && dev->type->pm && dev->type->pm->runtime_idle)
-+		callback = dev->type->pm->runtime_idle;
-+	else if (dev->class && dev->class->pm)
-+		callback = dev->class->pm->runtime_idle;
-+	else
-+		callback = NULL;
- 
--		dev->class->pm->runtime_idle(dev);
--
--		spin_lock_irq(&dev->power.lock);
--	}
-+	rpm_callback(callback, dev);
- 
- 	dev->power.idle_notification = false;
- 	wake_up_all(&dev->power.wait_queue);
-@@ -261,6 +272,7 @@ static int rpm_idle(struct device *dev, 
- static int rpm_suspend(struct device *dev, int rpmflags)
- 	__releases(&dev->power.lock) __acquires(&dev->power.lock)
- {
-+	int (*callback)(struct device *);
- 	struct device *parent = NULL;
- 	bool notify = false;
- 	int retval;
-@@ -351,33 +363,16 @@ static int rpm_suspend(struct device *de
- 
- 	__update_runtime_status(dev, RPM_SUSPENDING);
- 
--	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend) {
--		spin_unlock_irq(&dev->power.lock);
--
--		retval = dev->bus->pm->runtime_suspend(dev);
--
--		spin_lock_irq(&dev->power.lock);
--		dev->power.runtime_error = retval;
--	} else if (dev->type && dev->type->pm
--	    && dev->type->pm->runtime_suspend) {
--		spin_unlock_irq(&dev->power.lock);
--
--		retval = dev->type->pm->runtime_suspend(dev);
--
--		spin_lock_irq(&dev->power.lock);
--		dev->power.runtime_error = retval;
--	} else if (dev->class && dev->class->pm
--	    && dev->class->pm->runtime_suspend) {
--		spin_unlock_irq(&dev->power.lock);
--
--		retval = dev->class->pm->runtime_suspend(dev);
--
--		spin_lock_irq(&dev->power.lock);
--		dev->power.runtime_error = retval;
--	} else {
--		retval = -ENOSYS;
--	}
-+	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_suspend)
-+		callback = dev->bus->pm->runtime_suspend;
-+	else if (dev->type && dev->type->pm && dev->type->pm->runtime_suspend)
-+		callback = dev->type->pm->runtime_suspend;
-+	else if (dev->class && dev->class->pm)
-+		callback = dev->class->pm->runtime_suspend;
-+	else
-+		callback = NULL;
- 
-+	retval = rpm_callback(callback, dev);
- 	if (retval) {
- 		__update_runtime_status(dev, RPM_ACTIVE);
- 		dev->power.deferred_resume = 0;
-@@ -443,6 +438,7 @@ static int rpm_suspend(struct device *de
- static int rpm_resume(struct device *dev, int rpmflags)
- 	__releases(&dev->power.lock) __acquires(&dev->power.lock)
- {
-+	int (*callback)(struct device *);
- 	struct device *parent = NULL;
- 	int retval = 0;
- 
-@@ -563,33 +559,16 @@ static int rpm_resume(struct device *dev
- 
- 	__update_runtime_status(dev, RPM_RESUMING);
- 
--	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume) {
--		spin_unlock_irq(&dev->power.lock);
--
--		retval = dev->bus->pm->runtime_resume(dev);
--
--		spin_lock_irq(&dev->power.lock);
--		dev->power.runtime_error = retval;
--	} else if (dev->type && dev->type->pm
--	    && dev->type->pm->runtime_resume) {
--		spin_unlock_irq(&dev->power.lock);
--
--		retval = dev->type->pm->runtime_resume(dev);
--
--		spin_lock_irq(&dev->power.lock);
--		dev->power.runtime_error = retval;
--	} else if (dev->class && dev->class->pm
--	    && dev->class->pm->runtime_resume) {
--		spin_unlock_irq(&dev->power.lock);
--
--		retval = dev->class->pm->runtime_resume(dev);
--
--		spin_lock_irq(&dev->power.lock);
--		dev->power.runtime_error = retval;
--	} else {
--		retval = -ENOSYS;
--	}
-+	if (dev->bus && dev->bus->pm && dev->bus->pm->runtime_resume)
-+		callback = dev->bus->pm->runtime_resume;
-+	else if (dev->type && dev->type->pm && dev->type->pm->runtime_resume)
-+		callback = dev->type->pm->runtime_resume;
-+	else if (dev->class && dev->class->pm)
-+		callback = dev->class->pm->runtime_resume;
-+	else
-+		callback = NULL;
- 
-+	retval = rpm_callback(callback, dev);
- 	if (retval) {
- 		__update_runtime_status(dev, RPM_SUSPENDED);
- 		pm_runtime_cancel_pending(dev);
+As noted by Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>, the voltages =
+should
+cover the supported voltage range, or support only one voltage.
+
+As all these boards are using a GPIO to enable the power, chances
+are that only 3.3V cards are supported on these boards.
+
+Reported-by: Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/b=
+oard-h2-mmc.c
+index b30c499..f2fc43d 100644
+--- a/arch/arm/mach-omap1/board-h2-mmc.c
++++ b/arch/arm/mach-omap1/board-h2-mmc.c
+@@ -58,8 +58,7 @@ static struct omap_mmc_platform_data mmc1_data =3D {
+ 	.dma_mask			=3D 0xffffffff,
+ 	.slots[0]       =3D {
+ 		.set_power              =3D mmc_set_power,
+-		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
+-					  MMC_VDD_32_33 | MMC_VDD_33_34,
++		.ocr_mask               =3D MMC_VDD_32_33 | MMC_VDD_33_34,
+ 		.name                   =3D "mmcblk",
+ 	},
+ };
+diff --git a/arch/arm/mach-omap1/board-h3-mmc.c b/arch/arm/mach-omap1/b=
+oard-h3-mmc.c
+index 54b0f06..2098525 100644
+--- a/arch/arm/mach-omap1/board-h3-mmc.c
++++ b/arch/arm/mach-omap1/board-h3-mmc.c
+@@ -40,8 +40,7 @@ static struct omap_mmc_platform_data mmc1_data =3D {
+ 	.dma_mask			=3D 0xffffffff,
+ 	.slots[0]       =3D {
+ 		.set_power              =3D mmc_set_power,
+-		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
+-					  MMC_VDD_32_33 | MMC_VDD_33_34,
++		.ocr_mask               =3D MMC_VDD_32_33 | MMC_VDD_33_34,
+ 		.name                   =3D "mmcblk",
+ 	},
+ };
+diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap=
+1/board-htcherald.c
+index 7ea75c1..88c97e2 100644
+--- a/arch/arm/mach-omap1/board-htcherald.c
++++ b/arch/arm/mach-omap1/board-htcherald.c
+@@ -410,8 +410,7 @@ static struct omap_mmc_platform_data htc_mmc1_data =
+=3D {
+ 	.nr_slots                       =3D 1,
+ 	.switch_slot                    =3D NULL,
+ 	.slots[0]       =3D {
+-		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
+-					  MMC_VDD_32_33 | MMC_VDD_33_34,
++		.ocr_mask               =3D MMC_VDD_32_33 | MMC_VDD_33_34,
+ 		.name                   =3D "mmcblk",
+ 		.nomux                  =3D 1,
+ 		.wires                  =3D 4,
+diff --git a/arch/arm/mach-omap1/board-sx1-mmc.c b/arch/arm/mach-omap1/=
+board-sx1-mmc.c
+index 5b33ae8..e8ddd86 100644
+--- a/arch/arm/mach-omap1/board-sx1-mmc.c
++++ b/arch/arm/mach-omap1/board-sx1-mmc.c
+@@ -44,8 +44,7 @@ static struct omap_mmc_platform_data mmc1_data =3D {
+ 	.nr_slots                       =3D 1,
+ 	.slots[0]       =3D {
+ 		.set_power              =3D mmc_set_power,
+-		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
+-					  MMC_VDD_32_33 | MMC_VDD_33_34,
++		.ocr_mask               =3D MMC_VDD_32_33 | MMC_VDD_33_34,
+ 		.name                   =3D "mmcblk",
+ 	},
+ };
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
