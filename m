@@ -1,128 +1,135 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/3] OMAP1: Amstrad Delta: add support for camera
-Date: Thu, 30 Sep 2010 11:46:28 -0700
-Message-ID: <20100930184628.12052.829.stgit@baageli.muru.com>
-References: <20100930184459.12052.14542.stgit@baageli.muru.com>
+Subject: Re: [PATCH] [OMAP] HTCHERALD: MMC, I2C, HTCPLD, SPI, TSC2046
+Date: Thu, 30 Sep 2010 11:48:41 -0700
+Message-ID: <20100930184841.GL3117@atomide.com>
+References: <1282106047-7619-1-git-send-email-darkstar6262@gmail.com>
+ <1282106146-7727-1-git-send-email-darkstar6262@gmail.com>
+ <AANLkTik83Q8wdZdv=oG86Yp3Lgbxezp-mFtHMcQpKd8c@mail.gmail.com>
+ <AANLkTinh=oRnuf1RQ3_=UEuke4PHaPB-172peMca7Ya7@mail.gmail.com>
+ <AANLkTikNLn-VuCQb2q7wZVbYORxV6uhia_oOBsQg3ZiJ@mail.gmail.com>
+ <20100924225254.GK4211@atomide.com>
+ <AANLkTinmfEYq9SRNRWY9xOkwS-FE_LDyBOeGLoyYLNtZ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50704 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53895 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754892Ab0I3Sq2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 14:46:28 -0400
-In-Reply-To: <20100930184459.12052.14542.stgit@baageli.muru.com>
+	with ESMTP id S1755968Ab0I3Ssp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 14:48:45 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTinmfEYq9SRNRWY9xOkwS-FE_LDyBOeGLoyYLNtZ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+* Cory Maccarrone <darkstar6262@gmail.com> [100930 11:34]:
+> >
+> > Looks like also board-sx1-mmc.c and board-h[23]-mmc.c have the
+> > same spotty voltage range.
+> >
+> > Cory, care to do a patch that fixes it for all of them?
+> >
+>=20
+> Yeah, I can do that.  I'll resubmit this patch too with the fixed up =
+ranges.
 
-This patch adds configuration data and initialization code required for camera
-support to the Amstrad Delta board.
+Turns out I already did it :) Care to test/ack this one?
 
-Three devices are declared: SoC camera, OMAP1 camera interface and OV6650
-sensor.
+Tony
 
-Default 12MHz clock has been selected for driving the sensor. Pixel clock has
-been limited to get reasonable frame rates, not exceeding the board
-capabilities. Since both devices (interface and sensor) support both pixel
-clock polarities, decision on polarity selection has been left to drivers.
-Interface GPIO line has been found not functional, thus not configured.
+=46rom: Tony Lindgren <tony@atomide.com>
+Date: Thu, 30 Sep 2010 11:40:56 -0700
+Subject: [PATCH] omap: Fix spotty MMC voltages
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+As noted by Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>, the voltages =
+should
+cover the supported voltage range instead of missing some values
+within the range.
+
+Reported-by: Micha=C5=82 Miros=C5=82aw <mirqus@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap1/board-ams-delta.c |   45 +++++++++++++++++++++++++++++++++
- 1 files changed, 45 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 41992ab..12f7f60 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -19,6 +19,8 @@
- #include <linux/platform_device.h>
- #include <linux/serial_8250.h>
- 
-+#include <media/soc_camera.h>
-+
- #include <asm/serial.h>
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -32,6 +34,7 @@
- #include <plat/usb.h>
- #include <plat/board.h>
- #include <plat/common.h>
-+#include <mach/camera.h>
- 
- #include <mach/ams-delta-fiq.h>
- 
-@@ -213,10 +216,37 @@ static struct platform_device ams_delta_led_device = {
- 	.id	= -1
- };
- 
-+static struct i2c_board_info ams_delta_camera_board_info[] = {
-+	{
-+		I2C_BOARD_INFO("ov6650", 0x60),
-+	},
-+};
-+
-+static struct soc_camera_link __initdata ams_delta_iclink = {
-+	.bus_id         = 0,	/* OMAP1 SoC camera bus */
-+	.i2c_adapter_id = 1,
-+	.board_info     = &ams_delta_camera_board_info[0],
-+	.module_name    = "ov6650",
-+};
-+
-+static struct platform_device ams_delta_camera_device = {
-+	.name   = "soc-camera-pdrv",
-+	.id     = 0,
-+	.dev    = {
-+		.platform_data = &ams_delta_iclink,
-+	},
-+};
-+
-+static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
-+	.camexclk_khz	= 12000,	/* default 12MHz clock, no extra DPLL */
-+	.lclk_khz_max	= 1334,		/* results in 5fps CIF, 10fps QCIF */
-+};
-+
- static struct platform_device *ams_delta_devices[] __initdata = {
- 	&ams_delta_kp_device,
- 	&ams_delta_lcd_device,
- 	&ams_delta_led_device,
-+	&ams_delta_camera_device,
- };
- 
- static void __init ams_delta_init(void)
-@@ -225,6 +255,20 @@ static void __init ams_delta_init(void)
- 	omap_cfg_reg(UART1_TX);
- 	omap_cfg_reg(UART1_RTS);
- 
-+	/* parallel camera interface */
-+	omap_cfg_reg(H19_1610_CAM_EXCLK);
-+	omap_cfg_reg(J15_1610_CAM_LCLK);
-+	omap_cfg_reg(L18_1610_CAM_VS);
-+	omap_cfg_reg(L15_1610_CAM_HS);
-+	omap_cfg_reg(L19_1610_CAM_D0);
-+	omap_cfg_reg(K14_1610_CAM_D1);
-+	omap_cfg_reg(K15_1610_CAM_D2);
-+	omap_cfg_reg(K19_1610_CAM_D3);
-+	omap_cfg_reg(K18_1610_CAM_D4);
-+	omap_cfg_reg(J14_1610_CAM_D5);
-+	omap_cfg_reg(J19_1610_CAM_D6);
-+	omap_cfg_reg(J18_1610_CAM_D7);
-+
- 	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
- 
- 	omap_board_config = ams_delta_config;
-@@ -236,6 +280,7 @@ static void __init ams_delta_init(void)
- 	ams_delta_latch2_write(~0, 0);
- 
- 	omap1_usb_init(&ams_delta_usb_config);
-+	omap1_set_camera_info(&ams_delta_camera_platform_data);
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
- 
- #ifdef CONFIG_AMS_DELTA_FIQ
-
+diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/b=
+oard-h2-mmc.c
+index b30c499..50d9032 100644
+--- a/arch/arm/mach-omap1/board-h2-mmc.c
++++ b/arch/arm/mach-omap1/board-h2-mmc.c
+@@ -58,7 +58,8 @@ static struct omap_mmc_platform_data mmc1_data =3D {
+ 	.dma_mask			=3D 0xffffffff,
+ 	.slots[0]       =3D {
+ 		.set_power              =3D mmc_set_power,
+-		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
++		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_29_30 |
++					  MMC_VDD_30_31 | MMC_VDD_31_32 |
+ 					  MMC_VDD_32_33 | MMC_VDD_33_34,
+ 		.name                   =3D "mmcblk",
+ 	},
+diff --git a/arch/arm/mach-omap1/board-h3-mmc.c b/arch/arm/mach-omap1/b=
+oard-h3-mmc.c
+index 54b0f06..9f073bf 100644
+--- a/arch/arm/mach-omap1/board-h3-mmc.c
++++ b/arch/arm/mach-omap1/board-h3-mmc.c
+@@ -40,7 +40,8 @@ static struct omap_mmc_platform_data mmc1_data =3D {
+ 	.dma_mask			=3D 0xffffffff,
+ 	.slots[0]       =3D {
+ 		.set_power              =3D mmc_set_power,
+-		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
++		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_29_30 |
++					  MMC_VDD_30_31 | MMC_VDD_31_32 |
+ 					  MMC_VDD_32_33 | MMC_VDD_33_34,
+ 		.name                   =3D "mmcblk",
+ 	},
+diff --git a/arch/arm/mach-omap1/board-htcherald.c b/arch/arm/mach-omap=
+1/board-htcherald.c
+index 7ea75c1..909fdeb 100644
+--- a/arch/arm/mach-omap1/board-htcherald.c
++++ b/arch/arm/mach-omap1/board-htcherald.c
+@@ -410,7 +410,8 @@ static struct omap_mmc_platform_data htc_mmc1_data =
+=3D {
+ 	.nr_slots                       =3D 1,
+ 	.switch_slot                    =3D NULL,
+ 	.slots[0]       =3D {
+-		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
++		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_29_30 |
++					  MMC_VDD_30_31 | MMC_VDD_31_32 |
+ 					  MMC_VDD_32_33 | MMC_VDD_33_34,
+ 		.name                   =3D "mmcblk",
+ 		.nomux                  =3D 1,
+diff --git a/arch/arm/mach-omap1/board-sx1-mmc.c b/arch/arm/mach-omap1/=
+board-sx1-mmc.c
+index 5b33ae8..be5a365 100644
+--- a/arch/arm/mach-omap1/board-sx1-mmc.c
++++ b/arch/arm/mach-omap1/board-sx1-mmc.c
+@@ -44,7 +44,8 @@ static struct omap_mmc_platform_data mmc1_data =3D {
+ 	.nr_slots                       =3D 1,
+ 	.slots[0]       =3D {
+ 		.set_power              =3D mmc_set_power,
+-		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_30_31 |
++		.ocr_mask               =3D MMC_VDD_28_29 | MMC_VDD_29_30 |
++					  MMC_VDD_30_31 | MMC_VDD_31_32 |
+ 					  MMC_VDD_32_33 | MMC_VDD_33_34,
+ 		.name                   =3D "mmcblk",
+ 	},
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/boa=
+rd-n8x0.c
+index 7a93bd5..abd7e77 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -493,7 +493,8 @@ static struct omap_mmc_platform_data mmc1_data =3D =
+{
+ 		.set_bus_mode		=3D n8x0_mmc_set_bus_mode,
+ 		.get_cover_state	=3D n8x0_mmc_get_cover_state,
+ 		.ocr_mask		=3D MMC_VDD_165_195 | MMC_VDD_30_31 |
+-						MMC_VDD_32_33   | MMC_VDD_33_34,
++						MMC_VDD_31_32 | MMC_VDD_32_33 |
++						MMC_VDD_33_34,
+ 		.name			=3D "internal",
+ 	},
+ 	.slots[1] =3D {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
