@@ -1,90 +1,114 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP: Fix compilation warnings
-Date: Fri, 01 Oct 2010 09:00:16 -0700
-Message-ID: <87hbh5aoof.fsf@deeprootsystems.com>
-References: <1285913039-2873-1-git-send-email-pramod.gurav@ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH 2/4] iovmm: fix roundup for next area and end check for
+ the last area
+Date: Fri, 1 Oct 2010 11:10:30 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F46544F9@dlee06.ent.ti.com>
+References: <1285902536-7043-1-git-send-email-x0095840@ti.com>
+ <1285902536-7043-2-git-send-email-x0095840@ti.com>
+ <1285902536-7043-3-git-send-email-x0095840@ti.com>
+ <20101001105711.GA11617@esdhcp036161.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:34352 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988Ab0JAQAV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 12:00:21 -0400
-Received: by gye5 with SMTP id 5so1101446gye.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 09:00:20 -0700 (PDT)
-In-Reply-To: <1285913039-2873-1-git-send-email-pramod.gurav@ti.com> (pramod
-	gurav's message of "Fri, 1 Oct 2010 11:33:59 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101001105711.GA11617@esdhcp036161.research.nokia.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Cohen <david.cohen@nokia.com>
+Cc: "Doyu Hiroshi (Nokia-MS/Espoo)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-MS/Helsinki)" <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: pramod.gurav@ti.com
-Cc: linux-omap@vger.kernel.org
 
-pramod.gurav@ti.com writes:
+ 
 
-> From: Pramod Gurav <pramod.gurav@ti.com>
+> -----Original Message-----
+> From: David Cohen [mailto:david.cohen@nokia.com] 
+> Sent: Friday, October 01, 2010 5:57 AM
+> To: Guzman Lugo, Fernando
+> Cc: Doyu Hiroshi (Nokia-MS/Espoo); Contreras Felipe 
+> (Nokia-MS/Helsinki); Palande Ameya (Nokia-MS/Helsinki); 
+> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
+> linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 2/4] iovmm: fix roundup for next area and 
+> end check for the last area
+> 
+> Hi,
+> 
+> On Fri, Oct 01, 2010 at 05:08:53AM +0200, ext Fernando Guzman 
+> Lugo wrote:
+> > As da_end does not belongs to the area the roundup should 
+> be done to 
+> > da_end and not to da_end + 1.
+> > Also the end check for the last area should be ULONG_MAX - 
+> start + 1 
+> > >= bytes.
+> > 
+> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> > ---
+> >  arch/arm/plat-omap/iovmm.c |    6 +++---
+> >  1 files changed, 3 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/arm/plat-omap/iovmm.c 
+> b/arch/arm/plat-omap/iovmm.c 
+> > index 24ca9c4..fc6b109 100644
+> > --- a/arch/arm/plat-omap/iovmm.c
+> > +++ b/arch/arm/plat-omap/iovmm.c
+> > @@ -289,19 +289,19 @@ static struct iovm_struct 
+> *alloc_iovm_area(struct iommu *obj, u32 da,
+> >  	prev_end = 0;
+> >  	list_for_each_entry(tmp, &obj->mmap, list) {
+> >  
+> > -		if (prev_end >= start)
+> > +		if (prev_end > start)
+> >  			break;
+> >  
+> >  		if (start + bytes <= tmp->da_start)
+> >  			goto found;
+> >  
+> >  		if (flags & IOVMF_DA_ANON)
+> > -			start = roundup(tmp->da_end + 1, alignement);
+> > +			start = roundup(tmp->da_end, alignement);
+> 
+> There's a lack of comment here, but the purpose of 
+> tmp->da_end + 1 is to create a gap between iovm areas to 
+> force to trigger iommu faults when some access exceeds a 
+> valid area. Without this gap, such situation may produce data 
+> corruption which is much more difficult to track.
 
-patch is missing
-- more descriptive subject
-- more descriptive changelog (preferably incluing compilation error)
-- signoff (should've been noticed when running checkpatch)
+That only works when you are accessing sequencially beyond the
+End of the vm_area. However if you are accessing a random address
+Which is in the mmu tables you still can corrupt memory which does
+Not belong to you. That looks not very effective then why waste
+Memory?
 
-And after the '---', which tree this applies to since it does not apply
-to current l-o master.  In fact, it appears that all these issues have
-already been fixed in l-o master.
+Maybe other mechanism should be implemente like in the process
+Switching when if the process has DMM virtual memory area and if
+So enablig only that area (all other process areas will be
+Dissabled and it would get a mmufault in case of access). However
+That increase the time of switching between process.
 
-Kevin
+Regards,
+Fernando.
 
-> ---
->  arch/arm/mach-omap2/board-omap4panda.c |    2 --
->  arch/arm/mach-omap2/mux.c              |    2 +-
->  arch/arm/plat-omap/gpio.c              |    4 ++--
->  3 files changed, 3 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index c03d1d5..96f5bbb 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -274,8 +274,6 @@ static int __init omap4_panda_i2c_init(void)
->  }
->  static void __init omap4_panda_init(void)
->  {
-> -	int status;
-> -
->  	omap4_panda_i2c_init();
->  	omap_serial_init();
->  	omap4_twl6030_hsmmc_init(mmc);
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index ab403b2..6c2f8f0 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -87,7 +87,7 @@ static char *omap_mux_options;
->  int __init omap_mux_init_gpio(int gpio, int val)
->  {
->  	struct omap_mux_entry *e;
-> -	struct omap_mux *gpio_mux;
-> +	struct omap_mux *gpio_mux = NULL;
->  	u16 old_mode;
->  	u16 mux_mode;
->  	int found = 0;
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index f6c03a7..22f175f 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -2223,7 +2223,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
->  
->  	for (i = min; i < gpio_bank_count; i++) {
->  		struct gpio_bank *bank = &gpio_bank[i];
-> -		u32 l1, l2;
-> +		u32 l1 = 0, l2 = 0;
->  		int j;
->   
->  		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
-> @@ -2291,7 +2291,7 @@ void omap2_gpio_resume_after_idle(void)
->  		min = 1;
->  	for (i = min; i < gpio_bank_count; i++) {
->  		struct gpio_bank *bank = &gpio_bank[i];
-> -		u32 l, gen, gen0, gen1;
-> +		u32 l = 0, gen, gen0, gen1;
->  		int j;
->   
->  		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+> 
+> Br,
+> 
+> David
+> 
+> >  
+> >  		prev_end = tmp->da_end;
+> >  	}
+> >  
+> > -	if ((start > prev_end) && (ULONG_MAX - start >= bytes))
+> > +	if ((start >= prev_end) && (ULONG_MAX - start + 1 >= bytes))
+> >  		goto found;
+> >  
+> >  	dev_dbg(obj->dev, "%s: no space to fit %08x(%x) flags: %08x\n",
+> > --
+> > 1.6.3.3
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> > linux-kernel" in the body of a message to majordomo@vger.kernel.org 
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> 
