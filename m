@@ -1,13 +1,13 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 2/4] cbus: retu: move platform_device to board file
-Date: Fri,  1 Oct 2010 15:33:37 +0300
-Message-ID: <1285936419-28426-3-git-send-email-balbi@ti.com>
+Subject: [PATCH 3/4] cbus: tahvo: move platform_device to board file
+Date: Fri,  1 Oct 2010 15:33:38 +0300
+Message-ID: <1285936419-28426-4-git-send-email-balbi@ti.com>
 References: <1285936419-28426-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60202 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60205 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751495Ab0JAMdq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Oct 2010 08:33:46 -0400
+	id S1756753Ab0JAMds (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 08:33:48 -0400
 In-Reply-To: <1285936419-28426-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,223 +19,202 @@ registration to the proper location.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- arch/arm/mach-omap1/board-nokia770.c |   34 +++++++++++++++++
- arch/arm/mach-omap2/board-n8x0.c     |   34 +++++++++++++++++
- drivers/cbus/retu.c                  |   69 +---------------------------------
- 3 files changed, 69 insertions(+), 68 deletions(-)
+ arch/arm/mach-omap1/board-nokia770.c |   32 +++++++++++++++++
+ arch/arm/mach-omap2/board-n8x0.c     |   35 +++++++++++++++++--
+ drivers/cbus/tahvo.c                 |   63 +---------------------------------
+ 3 files changed, 65 insertions(+), 65 deletions(-)
 
 diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index d739dd1..ac708ba 100644
+index ac708ba..962363b 100644
 --- a/arch/arm/mach-omap1/board-nokia770.c
 +++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -12,6 +12,7 @@
- #include <linux/init.h>
- #include <linux/mutex.h>
- #include <linux/platform_device.h>
-+#include <linux/irq.h>
- #include <linux/input.h>
- #include <linux/clk.h>
- #include <linux/omapfb.h>
-@@ -112,9 +113,42 @@ static struct platform_device nokia770_cbus_device = {
- 	},
+@@ -127,6 +127,20 @@ static struct platform_device retu_device = {
+ 	.num_resources	= ARRAY_SIZE(retu_resource),
  };
  
-+static struct resource retu_resource[] = {
++static struct resource tahvo_resource[] = {
 +	{
 +		.start	= -EINVAL, /* set later */
 +		.flags	= IORESOURCE_IRQ,
-+	},
++	}
 +};
 +
-+static struct platform_device retu_device = {
-+	.name		= "retu",
++static struct platform_device tahvo_device = {
++	.name		= "tahvo",
 +	.id		= -1,
-+	.resource	= retu_resource,
-+	.num_resources	= ARRAY_SIZE(retu_resource),
++	.resource	= tahvo_resource,
++	.num_resources	= ARRAY_SIZE(tahvo_resource),
 +};
 +
  static void __init nokia770_cbus_init(void)
  {
-+	int		ret;
+ 	int		ret;
+@@ -149,6 +163,24 @@ static void __init nokia770_cbus_init(void)
+ 	set_irq_type(gpio_to_irq(62), IRQ_TYPE_EDGE_RISING);
+ 	retu_resource[0].start = gpio_to_irq(62);
+ 	platform_device_register(&retu_device);
 +
- 	platform_device_register(&nokia770_cbus_device);
-+
-+	ret = gpio_request(62, "RETU irq");
-+	if (ret < 0) {
-+		pr_err("retu: Unable to reserve IRQ GPIO\n");
-+		return;
-+	}
-+
-+	ret = gpio_direction_input(62);
-+	if (ret < 0) {
-+		pr_err("retu: Unable to change gpio direction\n");
++	ret = gpio_request(40, "TAHVO irq");
++	if (ret) {
++		pr_err("tahvo: Unable to reserve IRQ GPIO\n");
 +		gpio_free(62);
 +		return;
 +	}
 +
-+	set_irq_type(gpio_to_irq(62), IRQ_TYPE_EDGE_RISING);
-+	retu_resource[0].start = gpio_to_irq(62);
-+	platform_device_register(&retu_device);
++	ret = gpio_direction_input(40);
++	if (ret) {
++		pr_err("tahvo: Unable to change direction\n");
++		gpio_free(62);
++		gpio_free(40);
++		return;
++	}
++
++	tahvo_resource[0].start = gpio_to_irq(40);
++	platform_device_register(&tahvo_device);
  }
  
  #else
 diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index c14d398..26f938e 100644
+index 26f938e..c840710 100644
 --- a/arch/arm/mach-omap2/board-n8x0.c
 +++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -15,6 +15,7 @@
- #include <linux/delay.h>
- #include <linux/gpio.h>
- #include <linux/init.h>
-+#include <linux/irq.h>
- #include <linux/io.h>
- #include <linux/stddef.h>
- #include <linux/platform_device.h>
-@@ -221,9 +222,42 @@ static struct platform_device n8x0_cbus_device = {
- 	},
+@@ -236,6 +236,20 @@ static struct platform_device retu_device = {
+ 	.num_resources	= ARRAY_SIZE(retu_resource),
  };
  
-+static struct resource retu_resource[] = {
++static struct resource tahvo_resource[] = {
 +	{
 +		.start	= -EINVAL, /* set later */
 +		.flags	= IORESOURCE_IRQ,
-+	},
++	}
 +};
 +
-+static struct platform_device retu_device = {
-+	.name		= "retu",
++static struct platform_device tahvo_device = {
++	.name		= "tahvo",
 +	.id		= -1,
-+	.resource	= retu_resource,
-+	.num_resources	= ARRAY_SIZE(retu_resource),
++	.resource	= tahvo_resource,
++	.num_resources	= ARRAY_SIZE(tahvo_resource),
 +};
 +
  static void __init n8x0_cbus_init(void)
  {
-+	int		ret;
-+
- 	platform_device_register(&n8x0_cbus_device);
-+
-+	ret = gpio_request(108, "RETU irq");
-+	if (ret < 0) {
-+		pr_err("retu: Unable to reserve IRQ GPIO\n");
-+		return;
-+	}
-+
-+	ret = gpio_direction_input(108);
-+	if (ret < 0) {
-+		pr_err("retu: Unable to change gpio direction\n");
+ 	int		ret;
+@@ -255,9 +269,24 @@ static void __init n8x0_cbus_init(void)
+ 		return;
+ 	}
+ 
+-	set_irq_type(gpio_to_irq(108), IRQ_TYPE_EDGE_RISING);
+-	retu_resource[0].start = gpio_to_irq(108);
+-	platform_device_register(&retu_device);
++	ret = gpio_request(111, "TAHVO irq");
++	if (ret) {
++		pr_err("tahvo: Unable to reserve IRQ GPIO\n");
 +		gpio_free(108);
 +		return;
 +	}
 +
-+	set_irq_type(gpio_to_irq(108), IRQ_TYPE_EDGE_RISING);
-+	retu_resource[0].start = gpio_to_irq(108);
-+	platform_device_register(&retu_device);
++	/* Set the pin as input */
++	ret = gpio_direction_input(111);
++	if (ret) {
++		pr_err("tahvo: Unable to change direction\n");
++		gpio_free(108);
++		gpio_free(111);
++		return;
++	}
++
++	tahvo_resource[0].start = gpio_to_irq(111);
++	platform_device_register(&tahvo_device);
  }
  
  #else
-diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-index 4a072da..a2977c9 100644
---- a/drivers/cbus/retu.c
-+++ b/drivers/cbus/retu.c
+diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
+index 2ae1ac4..1abe300 100644
+--- a/drivers/cbus/tahvo.c
++++ b/drivers/cbus/tahvo.c
 @@ -50,7 +50,6 @@
- #define PFX			"retu: "
+ #define PFX			"tahvo: "
  
- static int retu_initialized;
--static int retu_irq_pin;
- static int retu_is_vilma;
+ static int tahvo_initialized;
+-static int tahvo_irq_pin;
+ static int tahvo_is_betty;
  
- static struct tasklet_struct retu_tasklet;
-@@ -477,20 +476,6 @@ static struct platform_driver retu_driver = {
+ static struct tasklet_struct tahvo_tasklet;
+@@ -374,20 +373,6 @@ static struct platform_driver tahvo_driver = {
  	},
  };
  
--static struct resource retu_resource[] = {
+-static struct resource tahvo_resource[] = {
 -	{
 -		.start	= -EINVAL, /* set later */
 -		.flags	= IORESOURCE_IRQ,
--	},
+-	}
 -};
 -
--static struct platform_device retu_device = {
--	.name		= "retu",
+-static struct platform_device tahvo_device = {
+-	.name		= "tahvo",
 -	.id		= -1,
--	.resource	= retu_resource,
--	.num_resources	= ARRAY_SIZE(retu_resource),
+-	.resource	= tahvo_resource,
+-	.num_resources	= ARRAY_SIZE(tahvo_resource),
 -};
 -
  /**
-  * retu_init - initialise Retu driver
+  * tahvo_init - initialise Tahvo driver
   *
-@@ -498,57 +483,7 @@ static struct platform_device retu_device = {
+@@ -395,53 +380,7 @@ static struct platform_device tahvo_device = {
   */
- static int __init retu_init(void)
+ static int __init tahvo_init(void)
  {
 -	int ret = 0;
 -
 -	/* REVISIT: Pass these from board-*.c files in platform_data */
 -	if (machine_is_nokia770()) {
--		retu_irq_pin = 62;
+-		tahvo_irq_pin = 40;
 -	} else if (machine_is_nokia_n800() || machine_is_nokia_n810() ||
 -			machine_is_nokia_n810_wimax()) {
--		retu_irq_pin = 108;
+-		tahvo_irq_pin = 111;
 -	} else {
--		pr_err("retu: Unsupported board for retu\n");
+-		pr_err("tahvo: Unsupported board for tahvo\n");
 -		ret = -ENODEV;
 -		goto err0;
 -	}
 -
--	ret = gpio_request(retu_irq_pin, "RETU irq");
--	if (ret < 0) {
--		pr_err("retu: Unable to reserve IRQ GPIO\n");
+-	ret = gpio_request(tahvo_irq_pin, "TAHVO irq");
+-	if (ret) {
+-		pr_err("tahvo: Unable to reserve IRQ GPIO\n");
 -		goto err0;
 -	}
 -
 -	/* Set the pin as input */
--	ret = gpio_direction_input(retu_irq_pin);
--	if (ret < 0) {
--		pr_err("retu: Unable to change gpio direction\n");
+-	ret = gpio_direction_input(tahvo_irq_pin);
+-	if (ret) {
+-		pr_err("tahvo: Unable to change direction\n");
 -		goto err1;
 -	}
 -
--	/* Rising edge triggers the IRQ */
--	set_irq_type(gpio_to_irq(retu_irq_pin), IRQ_TYPE_EDGE_RISING);
+-	tahvo_resource[0].start = gpio_to_irq(tahvo_irq_pin);
 -
--	/* Set up correct gpio number on struct resource */
--	retu_resource[0].start = gpio_to_irq(retu_irq_pin);
--
--	ret = platform_device_register(&retu_device);
--	if (ret < 0)
+-	ret = platform_driver_probe(&tahvo_driver, tahvo_probe);
+-	if (ret)
 -		goto err1;
 -
--	ret = platform_driver_probe(&retu_driver, retu_probe);
--	if (ret < 0)
+-	ret = platform_device_register(&tahvo_device);
+-	if (ret)
 -		goto err2;
 -
 -	return 0;
 -
 -err2:
--	platform_driver_unregister(&retu_driver);
+-	platform_driver_unregister(&tahvo_driver);
 -
 -err1:
--	gpio_free(retu_irq_pin);
+-	gpio_free(tahvo_irq_pin);
 -
 -err0:
 -	return ret;
-+	return platform_driver_probe(&retu_driver, retu_probe);
++	return platform_driver_probe(&tahvo_driver, tahvo_probe);
  }
  
  /*
-@@ -556,9 +491,7 @@ err0:
-  */
- static void __exit retu_exit(void)
- {
--	platform_device_unregister(&retu_device);
- 	platform_driver_unregister(&retu_driver);
--	gpio_free(retu_irq_pin);
- }
- 
- subsys_initcall(retu_init);
 -- 
 1.7.3.rc0.35.g8ac8c
 
