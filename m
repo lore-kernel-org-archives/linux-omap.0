@@ -1,58 +1,115 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH] scatterlist: define SG chain for arm architecture
-Date: Thu, 30 Sep 2010 22:50:30 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F3E074E0@dlee06.ent.ti.com>
-References: <1285903354-7378-1-git-send-email-x0095840@ti.com>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH] omap: Keep nwires for omap1 and 2420 MMC controller
+ (Re: [PATCH] omap mmc: extended to pass host capabilities from board file)
+Date: Fri, 1 Oct 2010 10:53:53 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356476F50@dbde02.ent.ti.com>
+References: <1284562163-2828-1-git-send-email-s-ghorai@ti.com>
+ <20100923230819.GS4211@atomide.com> <20100930183818.GK3117@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1285903354-7378-1-git-send-email-x0095840@ti.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20100930183818.GK3117@atomide.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
 
-Please discard this patch, it should have sent to linux-arm list.
 
-Regards,
-Fernando.
-
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, October 01, 2010 12:08 AM
+> To: Ghorai, Sukumar
+> Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
+> Subject: [PATCH] omap: Keep nwires for omap1 and 2420 MMC controller (Re:
+> [PATCH] omap mmc: extended to pass host capabilities from board file)
 > 
-> ________________________________________
-> From: Guzman Lugo, Fernando
-> Sent: Thursday, September 30, 2010 10:22 PM
-> To: tony@atomide.com
-> Cc: Hiroshi.DOYU@nokia.com; linux-kernel@vger.kernel.org; linux-omap@vger.ke
-> rnel.org; Guzman Lugo, Fernando
-> Subject: [PATCH] scatterlist: define SG chain for arm architecture
+> * Tony Lindgren <tony@atomide.com> [100923 16:00]:
+> > * Sukumar Ghorai <s-ghorai@ti.com> [100915 07:41]:
+> > >   wires variable is renamed, extended and this single variable to be
+> used to
+> > >   pass the platform capabilities, e.g DDR mode. Also removed the
+> hardcoded
+> > >   value was using as bus-width.
+> >
+> > This looks like a nice clean-up, I'll queue this via the omap
+> > patches.
 > 
-> Define SG chain for ARM architecture in order to work
-> with big buffers. This patch is needed in order to
-> iovmm users can pass a big buffer to map it and ARM
-> architecture has not issues using SG chain.
+> And of course this patch breaks all of mach-omap1 and omap2420.
 > 
-> This change was suggested by FUJITA Tomonori.
+> Sukumar, your patch modified also drivers/mmc/host/omap.c and board-n8x0.c
+> to use caps instead of nwires. When you do things like that you absolutely
+> _must_test_your_changes_ before sending out any patches.
 > 
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> ---
->  arch/arm/include/asm/scatterlist.h |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+> Planning on merging the following fix.
 > 
-> diff --git a/arch/arm/include/asm/scatterlist.h b/arch/arm/include/asm/scatt
-> erlist.h
-> index 2f87870..3de0a0b 100644
-> --- a/arch/arm/include/asm/scatterlist.h
-> +++ b/arch/arm/include/asm/scatterlist.h
-> @@ -5,4 +5,6 @@
->  #include <asm/types.h>
->  #include <asm-generic/scatterlist.h>
+> Tony
 > 
-> +#define ARCH_HAS_SG_CHAIN
-> +
->  #endif /* _ASMARM_SCATTERLIST_H */
-> --
-> 1.6.3.3
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Thu, 30 Sep 2010 10:25:46 -0700
+> Subject: [PATCH] Subject: [PATCH] omap: Keep nwires for omap1 and 2420 MMC
+> controller
 > 
+> A patch from Sukumar Ghorai <s-ghorai@ti.com> changed the
+> nwires to use caps instead. However, nwires is still
+> needed for the earlier controller.
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-
+> n8x0.c
+> index abd7e77..6bd9d9a 100644
+> --- a/arch/arm/mach-omap2/board-n8x0.c
+> +++ b/arch/arm/mach-omap2/board-n8x0.c
+> @@ -488,7 +488,7 @@ static struct omap_mmc_platform_data mmc1_data = {
+>  	.max_freq			= 24000000,
+>  	.dma_mask			= 0xffffffff,
+>  	.slots[0] = {
+> -		.caps			= MMC_CAP_4_BIT_DATA,
+> +		.wires			= 4,
+>  		.set_power		= n8x0_mmc_set_power,
+>  		.set_bus_mode		= n8x0_mmc_set_bus_mode,
+>  		.get_cover_state	= n8x0_mmc_get_cover_state,
+> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-
+> omap/include/plat/mmc.h
+> index 4f819fc..bc85010 100644
+> --- a/arch/arm/plat-omap/include/plat/mmc.h
+> +++ b/arch/arm/plat-omap/include/plat/mmc.h
+> @@ -73,9 +73,16 @@ struct omap_mmc_platform_data {
+> 
+>  	struct omap_mmc_slot_data {
+> 
+> -		/* 4/8 wires and any additional host capabilities
+> -		 * need to OR'd all capabilities (ref. linux/mmc/host.h) */
+> -		u32 caps;
+> +		/*
+> +		 * 4/8 wires and any additional host capabilities
+> +		 * need to OR'd all capabilities (ref. linux/mmc/host.h)
+> +		 */
+> +#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2420)
+> +		u8  wires;	/* Used for the MMC driver on omap1 and 2420 */
+> +#endif
+> +#ifdef CONFIG_ARCH_OMAP2PLUS
+> +		u32 caps;	/* Used for the MMC driver on 2430 and later */
+> +#endif
+> 
+>  		/*
+>  		 * nomux means "standard" muxing is wrong on this board, and
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index a9d62cf..d98ddcf 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -1317,7 +1317,7 @@ static int __init mmc_omap_new_slot(struct
+> mmc_omap_host *host, int id)
+>  	host->slots[id] = slot;
+> 
+>  	mmc->caps = 0;
+> -	if (host->pdata->slots[id].caps & MMC_CAP_8_BIT_DATA)
+> +	if (host->pdata->slots[id].wires >= 4)
+>  		mmc->caps |= MMC_CAP_4_BIT_DATA;
+> 
+>  	mmc->ops = &mmc_omap_ops;
+[Ghorai] thanks.. I am agreeing with you;
+Acked-by: Sukumar Ghorai <s-ghorai@ti.com>
