@@ -1,67 +1,91 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: [PATCHv3 1/17] OMAP2/3/4:dmtimer:add device names to flck nodes
-Date: Fri, 1 Oct 2010 09:24:14 +0200
-Message-ID: <74583B8642AB8841B30447520659FCA901D8967A56@dnce01.ent.ti.com>
-References: <1285059060-26316-1-git-send-email-tarun.kanti@ti.com>
- <4CA4F005.6000208@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB030CD032E6@dbde02.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset during init
+Date: Fri, 1 Oct 2010 12:56:14 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CD033D6@dbde02.ent.ti.com>
+References: <1285834270-32766-1-git-send-email-charu@ti.com>
+	<4CA45341.3080300@ti.com> <87vd5njpyq.fsf@deeprootsystems.com>
+	<4CA49ADE.6080202@ti.com> <20100930150713.GG3117@atomide.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CCF813E@dbde02.ent.ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CD03185@dbde02.ent.ti.com>
+ <87bp7ff962.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56274 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36292 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751434Ab0JAHZg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 03:25:36 -0400
-Content-Class: urn:content-classes:message
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CD032E6@dbde02.ent.ti.com>
+	id S1751684Ab0JAH00 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 03:26:26 -0400
+In-Reply-To: <87bp7ff962.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Menon, Nishanth" <nm@ti.com>, "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-Hi Charu,
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Thursday, September 30, 2010 10:42 PM
+> To: Shilimkar, Santosh
+> Cc: Varadarajan, Charulatha; Tony Lindgren; Cousson, Benoit; Menon,
+> Nishanth; wim@iguana.be; linux-omap@vger.kernel.org; linux-
+> watchdog@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
+> paul@pwsan.com; Nayak, Rajendra; Basak, Partha
+> Subject: Re: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset during
+> init
+> 
+> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+> 
+> >> -----Original Message-----
+> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >> owner@vger.kernel.org] On Behalf Of Varadarajan, Charulatha
+> >> Sent: Thursday, September 30, 2010 9:25 PM
+> >> To: Tony Lindgren; Cousson, Benoit
+> >> Cc: Kevin Hilman; Menon, Nishanth; wim@iguana.be; linux-
+> >> omap@vger.kernel.org; linux-watchdog@vger.kernel.org; linux-arm-
+> >> kernel@lists.infradead.org; paul@pwsan.com; Nayak, Rajendra; Basak,
+> Partha
+> >> Subject: RE: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset
+> during
+> >> init
+> >>
+> >> Tony/ Benoit,
+> >>
+> >> > >
+> >> > > I think that disabling it should be done only if the
+> CONFIG_OMAP_WDT
+> >> > > is not set.
+> >> >
+> >> > How about disabling is done always unless CONFIG_WATCHDOG_NOWAYOUT
+> >> > is set?
+> >>
+> >> As given in the patch description, this patch does a disable of
+> watchdog
+> >> timer, during init, to avoid the system rebooting that happens due to
+> >> enabling of watchdog timer after a reset of the module (during hwmod
+> init).
+> >>
+> >> According to the default WDT registers values, the system reboot would
+> >> happen in ~10s if watchdog is enabled with default values. Hence, after
+> >> a WDT module reset during init, the watchdog has to be disabled within
+> 10s
+> >> otherwise the system will keep rebooting.
+> >>
+> >> Hence irrespective of CONFIG_WATCHDOG_NOWAYOUT/ CONFIG_OMAP_WDT,
+> >> the watchdog timer needs to be disabled after a WDT reset has happened.
+> >>
+> > One more option is to avoid the software reset using the CONFIG_OMAP_WDT
+> > flag. Something like below.
+> 
+> This was already proposed by Charu, and rejected.
+> 
+> Doing this means we have a dependency on particular bootloader init, and
+> we'd like to get rid of *all* assumptions about what the bootloader does
+> (or does not do.)
+> 
+you mean is not depeding on bootloader to disable WDT. Make sense.
 
->From: Varadarajan, Charulatha
->Sent: Friday, October 01, 2010 7:27 AM
->
->Benoit,
->
->> >
->> > This patch adds device name info to OMAP2 dmtimer fclk nodes so
->>
->> You should avoid using "that patch" in a changelog, since we already
->> know it is a patch.
->>
->> You can read 4.c in "The perfect patch" from Andrew Morton:
->> http://userweb.kernel.org/~akpm/stuff/tpp.txt
->>
->
->Referring to 6.b section in the above link, is it a bad idea to have
->a cover-letter? Should we better include the content of introductory
->email in patch 1 of any patch series?
-
-I saw it as well, and was a little bit surprised at first.
-But if you look carefully the rational, it makes sense if you do not take care about the content of the cover-letter.
-
-   > Please don't do this.  There is no facility in the git tree to carry
-   > changelog-only changesets such as this (or at least, we don't do that) so
-   > the information in the introductory email will be lost.
-   >
-   > So I end up copying and pasting your nice introduction into the
-   > changelog for the first patch, so it gets into git.  I'll follow it with
-   > the text
-
-Here the concern is that some important information can be in the cover-letter but not in the patch changelog, so they will be lost.
-That issue does not appear if you use the cover-letter only to summarize the patches changelog and to provide the history or the various patch series revision.
-At the end the history and the patch series revision should no go into the changelog anyway, so it is perfectly fine to lose them.
-
-Bottom-line, keep doing cover-letter to summarize the series, but do not put information that should belong to the patch changelog only.
+Thanks
 
 Regards,
-Benoit
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
-
-
-
+Santosh
