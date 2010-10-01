@@ -1,66 +1,60 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] mfd: twl4030: add twl4030_bci platform_data back
-Date: Fri,  1 Oct 2010 13:17:50 +0300
-Message-ID: <1285928270-9302-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48427 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849Ab0JAKR5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 06:17:57 -0400
-Received: by eyb6 with SMTP id 6so1180833eyb.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 03:17:56 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Jassi Brar <jassisinghbrar@gmail.com>
+Subject: Re: [PATCH 1/7] pwm: Add pwm core driver
+Date: Fri, 1 Oct 2010 19:39:44 +0900
+Message-ID: <AANLkTi=+1y9Bok0xnFueSfRsQGwnDVmySNNbNjgY_AdQ@mail.gmail.com>
+References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
+	<1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
+	<4CA1AD2B.8000905@metafoo.de>
+	<F45880696056844FA6A73F415B568C69532DC2FB6B@EXDCVYMBSTM006.EQ1STM.local>
+	<4CA1BC16.3020702@metafoo.de>
+	<F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
+	<4CA25841.4090702@metafoo.de>
+	<F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
+	<AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
+	<F45880696056844FA6A73F415B568C69532DCF32BC@EXDCVYMBSTM006.EQ1STM.local>
+	<AANLkTikTo42Q5-yMEwyQH4mt=qLjaKrtJK3ydZNFyqai@mail.gmail.com>
+	<F45880696056844FA6A73F415B568C69532DCF33BB@EXDCVYMBSTM006.EQ1STM.local>
+	<AANLkTimPgPY9rX_MYZTv0PpRQgfWGoSeSE9WWy_ami-V@mail.gmail.com>
+	<F45880696056844FA6A73F415B568C69532DCF34AE@EXDCVYMBSTM006.EQ1STM.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <F45880696056844FA6A73F415B568C69532DCF34AE@EXDCVYMBSTM006.EQ1STM.local>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Arun MURTHY <arun.murthy@stericsson.com>
+Cc: "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, Lars-Peter Clausen <lars@metafoo.de>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Linus WALLEIJ <linus.walleij@stericsson.com>, Trilok Soni <soni.trilok@gmail.com>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Marek Vasut <marek.vasut@gmail.com>, Bill Gatliff <bgat@billgatliff.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Mattias WALLIN <mattias.wallin@stericsson.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-oma>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Samuel Ortiz <sameo@linux.intel.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-Now that we have twl4030 charger driver, add back it's platform_data
-(which was removed by f7ea2dc59ed46dcd0f1cfaccda02211f4507207b
-as unused).
+On Fri, Oct 1, 2010 at 5:46 PM, Arun MURTHY <arun.murthy@stericsson.com> wrote:
+>> On Fri, Oct 1, 2010 at 4:25 PM, Arun MURTHY
+>> <arun.murthy@stericsson.com> wrote:
+>> > You can have a look at the pwm_config_nosleep(),pwm_set_polarity(),
+>> > pwm_synchronize(),pwm_unsynchronize(), pwm_set_handler() etc.
+>> > These are not being used by the exsting pwm drivers except Atmel pwm.
+>> How would your 'simple' driver handle Atmel then ?
+>> What if future's SoCs start providing those 'advance' features like
+>> Atmel's ?
+>>
+> The pwm core driver is the intersection of all pwm drivers and not union
+> of all pwm driver. I refer this as simple pwm core driver / framework.
+> Atmel pwm is of a separate classification.
+> It includes GPIO also. Though, Atmel can use the pwm core driver framework
+> for functionalities like pwm_enable, pwm_disable, pwm_config, etc and remaining
+> functionalities specific to Atmel will be handled in Atlmel pwm driver and
+> will not be exposed to the entire kernel.
+> Its that the present day pwm device that has been made easy though, by providing
+> the same functionality.
+It's sad that Bill Gatliff didn't/couldn't take his work to conclusive end.
+The work was apparently better
+http://www.mail-archive.com/linux-embedded@vger.kernel.org/msg02599.html
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
-Well the driver is still in battery.git and linux-next, but I'm
-pretty sure it will reach Linus.
-
- drivers/mfd/twl-core.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index b0f2c00..2f5258f 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -115,6 +115,12 @@
- #define twl_has_codec()	false
- #endif
- 
-+#if defined(CONFIG_CHARGER_TWL4030) || defined(CONFIG_CHARGER_TWL4030_MODULE)
-+#define twl_has_bci()	true
-+#else
-+#define twl_has_bci()	false
-+#endif
-+
- /* Triton Core internal information (BEGIN) */
- 
- /* Last - for index max*/
-@@ -826,6 +832,17 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
-+	if (twl_has_bci() && pdata->bci &&
-+			!(features & (TPS_SUBSET | TWL5031))) {
-+		child = add_child(3, "twl4030_bci",
-+				pdata->bci, sizeof(*pdata->bci), false,
-+				/* irq0 = CHG_PRES, irq1 = BCI */
-+				pdata->irq_base + BCI_PRES_INTR_OFFSET,
-+				pdata->irq_base + BCI_INTR_OFFSET);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+	}
-+
- 	return 0;
- }
- 
--- 
-1.6.3.3
-
+Best of luck.
