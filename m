@@ -1,42 +1,162 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not
- finish
-Date: Fri, 1 Oct 2010 14:48:39 +0300
-Message-ID: <20101001144839.39b12d4b.jhnikula@gmail.com>
-References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com>
-	<201010011151.52547.peter.ujfalusi@nokia.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C2C0@dbde02.ent.ti.com>
-	<201010011341.22238.peter.ujfalusi@nokia.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C3A9@dbde02.ent.ti.com>
-	<20101001144345.d5225789.jhnikula@gmail.com>
+From: GERBER Patrick <Patrick.Gerber@heig-vd.ch>
+Subject: RE : [omap3] Nand flash initialisation error
+Date: Fri, 1 Oct 2010 13:56:56 +0200
+Message-ID: <8959501C0BAF9F40956CEBAD13FB297F17F38C757B@EINTMBX.einet.ad.eivd.ch>
+References: <8959501C0BAF9F40956CEBAD13FB297F17F38C7574@EINTMBX.einet.ad.eivd.ch>
+ <8959501C0BAF9F40956CEBAD13FB297F17F38C7575@EINTMBX.einet.ad.eivd.ch>,<2A3DCF3DA181AD40BDE86A3150B27B6B0356476FBF@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:65146 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756642Ab0JALsS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 07:48:18 -0400
-Received: by ewy23 with SMTP id 23so1199559ewy.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 04:48:17 -0700 (PDT)
-In-Reply-To: <20101001144345.d5225789.jhnikula@gmail.com>
+Received: from mailcl0.heig-vd.ch ([193.134.216.181]:44280 "EHLO heig-vd.ch"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932445Ab0JAL7v convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 07:59:51 -0400
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B0356476FBF@dbde02.ent.ti.com>
+Content-Language: fr-CH
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, 1 Oct 2010 14:43:45 +0300
-Jarkko Nikula <jhnikula@gmail.com> wrote:
+________________________________________
+De : linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org=
+] de la part de Ghorai, Sukumar [s-ghorai@ti.com]
+Date d'envoi : vendredi, 1. octobre 2010 08:02
+Objet : RE: [omap3] Nand flash initialisation error
 
-> Problem has been there probably quite some time but we were able to see
-> it only after a proper use-case. Which is buffer overrun when doing
-> audio recording only and after the commit c12abc0 (in 2.6.32).
-> 
-Problem is also somewhat HW specific. The N900 unit I have stalls
-almost immediately after the first overrun and dma stop but I haven't
-been able to reproduce it on my BeagleBoard C2. N810 typically needs a
-few overruns but stalls eventually.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of GERBER Patrick
+> Sent: Wednesday, September 29, 2010 7:35 PM
+> To: GERBER Patrick; linux-omap@vger.kernel.org
+> Subject: RE : [omap3] Nand flash initialisation error
+>
+> In complement to my previous mail I have found that if I only add a c=
+all
+> to gpmc_cs_request the info->phys_base is well initialized.
+> So I could after call the platform_device_register as usual.
+[Ghorai] I am agree with your. You can -
+408   //if (platform_device_register(&omap3beagle_nand_device) < 0)
+409   if (gpmc_nand_init(&omap3beagle_nand_data) < 0)
+
+>
+> Anyway I still  have the bogus (but working) detection of the flash:
+>
+> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron omap2-nand.=
+0)
+> NAND bus width 8 instead 16 bit
+> No NAND device found.
+> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron NAND 256MiB=
+ 1,8V
+> 16-bit)
+>
+> Any idea ?
+[Ghorai] This is ok .. because _probe is common for all omap board. And=
+ they have different NAND in different platform; and its check for any =
+8x nand preset and followed by check if any 16x device preset. And code=
+ as followes.
+
+ 877 static int __devinit omap_nand_probe(struct platform_device *pdev)
+=2E.
+ 998         if (nand_scan(&info->mtd, 1)) {
+ 999                 info->nand.options ^=3D NAND_BUSWIDTH_16;
+1000                 if (nand_scan(&info->mtd, 1)) {
+
+>[Ghorai] Are you still facing any issue other then this detection log?
 
 
--- 
-Jarkko
+No everything is now working fine. But I was a little bit disappointed =
+by the detection log. But if you say that's usual I am ok !
+
+Thank you for your help.
+
+
+> ________________________________________
+> De : linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.o=
+rg]
+> de la part de GERBER Patrick [Patrick.Gerber@heig-vd.ch]
+> Date d'envoi : mercredi, 29. septembre 2010 14:05
+> =C0 : linux-omap@vger.kernel.org
+> Objet : [omap3] Nand flash initialisation error
+>
+> Hello,
+>
+> I am using 2.6.34.5 vanilla kernel on a gumstix over Fire using OMAP3=
+530.
+> I have some problems wit the nand flash (the chip on the top of the O=
+MAP).
+> The MTD partition is not created.
+>
+> When booting the board code is well detecting a Nand on CS0 and call =
+the
+> platform_device_register.
+> The omap_nand_probe() fail with -16 (EBUSY) after calling
+> request_mem_region() with 0 as a base address.
+> So the info->phys_base is not initialized.
+>
+> After looking in older kernel I have tried to add a call
+> gpmc_nand_init(&overo_nand_data) in my board code instead of the call=
+ to
+> platform_device_register.
+> With this addition the Flash is well detected and the mtd partition
+> created.
+> But there is some errors due to misconfiguration of the flash (bus wi=
+dth,
+> detecting twice, ...). Of course my platform_device structure is not =
+used
+> because I have to pass only the omap_nand_platform_data struct to
+> gpmc_nand_init().
+>
+>  (the ## prefixed lines are personal debug addition)
+>
+> ...
+> Found NAND on CS0
+> ## gpmc_baseaddr 0xfe000000, gpmc_cs_baseaddr 0xfe000060
+> Registering NAND on CS0
+> ...
+> omap2-nand driver initializing
+> ## omap_nand_probe
+> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron omap2-nand.=
+0)
+> NAND bus width 8 instead 16 bit
+> No NAND device found.
+> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron NAND 256MiB=
+ 1,8V
+> 16-bit)
+> cmdlinepart partition parsing not available
+> Creating 5 MTD partitions on "omap2-nand.0":
+> ...
+>
+>
+> I have looked on other board initialization (beagle, igep, ...)  and =
+the
+> code seems pretty similar.
+> I would like to know if the call to gpmc_nand_init() is still necessa=
+ry
+> and why the detection is so hesitant ?
+> I'd rather use the platform_device_register()  but I dont understand =
+why
+> the info->phys_base is 0 ?!?
+>
+> Thanks in advance for any help.
+>
+> Patrick--
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
