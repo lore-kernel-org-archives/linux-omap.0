@@ -1,55 +1,63 @@
-From: Arun MURTHY <arun.murthy@stericsson.com>
-Subject: RE: [PATCH 1/7] pwm: Add pwm core driver
-Date: Fri, 1 Oct 2010 10:46:15 +0200
-Message-ID: <F45880696056844FA6A73F415B568C69532DCF34AE@EXDCVYMBSTM006.EQ1STM.local>
-References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
-        <1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
-        <4CA1AD2B.8000905@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC2FB6B@EXDCVYMBSTM006.EQ1STM.local>
-        <4CA1BC16.3020702@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
-        <4CA25841.4090702@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
-        <AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
-        <F45880696056844FA6A73F415B568C69532DCF32BC@EXDCVYMBSTM006.EQ1STM.local>
-        <AANLkTikTo42Q5-yMEwyQH4mt=qLjaKrtJK3ydZNFyqai@mail.gmail.com>
-        <F45880696056844FA6A73F415B568C69532DCF33BB@EXDCVYMBSTM006.EQ1STM.local>
- <AANLkTimPgPY9rX_MYZTv0PpRQgfWGoSeSE9WWy_ami-V@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not finish
+Date: Fri, 1 Oct 2010 11:51:52 +0300
+Message-ID: <201010011151.52547.peter.ujfalusi@nokia.com>
+References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com> <1285915146-18511-3-git-send-email-peter.ujfalusi@nokia.com> <4CA59188.5020904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <AANLkTimPgPY9rX_MYZTv0PpRQgfWGoSeSE9WWy_ami-V@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-To: Jassi Brar <jassisinghbrar@gmail.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, Lars-Peter Clausen <lars@metafoo.de>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Bill Gatliff <bgat@billgatliff.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, Marek Vasut <marek.vasut@gmail.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, Mattias WALLIN <mattias.wallin@stericsson.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, eric.y.miao@gmail.
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:29721 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754736Ab0JAIwH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 04:52:07 -0400
+In-Reply-To: <4CA59188.5020904@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Nishanth Menon <nm@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-PiBPbiBGcmksIE9jdCAxLCAyMDEwIGF0IDQ6MjUgUE0sIEFydW4gTVVSVEhZDQo+IDxhcnVuLm11
-cnRoeUBzdGVyaWNzc29uLmNvbT4gd3JvdGU6DQo+ID4gWW91IGNhbiBoYXZlIGEgbG9vayBhdCB0
-aGUgcHdtX2NvbmZpZ19ub3NsZWVwKCkscHdtX3NldF9wb2xhcml0eSgpLA0KPiA+IHB3bV9zeW5j
-aHJvbml6ZSgpLHB3bV91bnN5bmNocm9uaXplKCksIHB3bV9zZXRfaGFuZGxlcigpIGV0Yy4NCj4g
-PiBUaGVzZSBhcmUgbm90IGJlaW5nIHVzZWQgYnkgdGhlIGV4c3RpbmcgcHdtIGRyaXZlcnMgZXhj
-ZXB0IEF0bWVsIHB3bS4NCj4gSG93IHdvdWxkIHlvdXIgJ3NpbXBsZScgZHJpdmVyIGhhbmRsZSBB
-dG1lbCB0aGVuID8NCj4gV2hhdCBpZiBmdXR1cmUncyBTb0NzIHN0YXJ0IHByb3ZpZGluZyB0aG9z
-ZSAnYWR2YW5jZScgZmVhdHVyZXMgbGlrZQ0KPiBBdG1lbCdzID8NCj4gDQpUaGUgcHdtIGNvcmUg
-ZHJpdmVyIGlzIHRoZSBpbnRlcnNlY3Rpb24gb2YgYWxsIHB3bSBkcml2ZXJzIGFuZCBub3QgdW5p
-b24NCm9mIGFsbCBwd20gZHJpdmVyLiBJIHJlZmVyIHRoaXMgYXMgc2ltcGxlIHB3bSBjb3JlIGRy
-aXZlciAvIGZyYW1ld29yay4NCkF0bWVsIHB3bSBpcyBvZiBhIHNlcGFyYXRlIGNsYXNzaWZpY2F0
-aW9uLg0KSXQgaW5jbHVkZXMgR1BJTyBhbHNvLiBUaG91Z2gsIEF0bWVsIGNhbiB1c2UgdGhlIHB3
-bSBjb3JlIGRyaXZlciBmcmFtZXdvcmsNCmZvciBmdW5jdGlvbmFsaXRpZXMgbGlrZSBwd21fZW5h
-YmxlLCBwd21fZGlzYWJsZSwgcHdtX2NvbmZpZywgZXRjIGFuZCByZW1haW5pbmcNCmZ1bmN0aW9u
-YWxpdGllcyBzcGVjaWZpYyB0byBBdG1lbCB3aWxsIGJlIGhhbmRsZWQgaW4gQXRsbWVsIHB3bSBk
-cml2ZXIgYW5kDQp3aWxsIG5vdCBiZSBleHBvc2VkIHRvIHRoZSBlbnRpcmUga2VybmVsLg0KSXRz
-IHRoYXQgdGhlIHByZXNlbnQgZGF5IHB3bSBkZXZpY2UgdGhhdCBoYXMgYmVlbiBtYWRlIGVhc3kg
-dGhvdWdoLCBieSBwcm92aWRpbmcNCnRoZSBzYW1lIGZ1bmN0aW9uYWxpdHkuDQoNCj4gPiBJIG1l
-YW4gbm90IHRoZSBmdW5jdGlvbnMgYnV0IHRoZSBmdW5jdGlvbmFsaXR5Lg0KPiA+IFBXTSBpcyBh
-IHNpbXBsZSBkZXZpY2UgYW5kIG1vc3Qgb2YgaXRzIGNsaWVudHMgYXJlIGNvbnRyb2xsaW5nDQo+
-IGludGVuc2l0eQ0KPiA+IG9mIGJhY2tsaWdodCwgbGVkcywgdmlicmF0b3IgZXRjLg0KPiA+IEkg
-ZG9uJ3QgdGhpbmsgdGhlc2UgY29tcGxleCBmdW5jdGlvbmFsaXR5IGFyZSByZXF1aXJlZC4NCj4g
-b2ggZGVhciAhDQpIZXJlIEkgbWVhbiB3aHkgc2hvdWxkIGFsbCB0aG9zZSBmdW5jdGlvbiBiZSBl
-eHBvc2VkIHRvIHRoZSBlbnRpcmUga2VybmVsLA0KYXMgbW9zdCBvZiB0aGUgcHdtIGRldmljZXMg
-ZG8gbm90IHVzZSB0aGVtLg0KDQpUaGFua3MgYW5kIFJlZ2FyZHMsDQpBcnVuIFIgTXVydGh5DQot
-LS0tLS0tLS0tLS0NCg==
+On Friday 01 October 2010 10:45:12 ext Nishanth Menon wrote:
+=2E..
+> > -	l &=3D ~OMAP_DMA_CCR_EN;
+> > -	dma_write(l, CCR(lch));
+> > +	/* OMAP3 Errata: sDMA FIFO draining does not finish */
+>=20
+> would be informative to give the iXYZ id as well for some of these
+> erratas might scale across processors.
+
+In TI's site I was only able to find this public ERRATA:
+OMAP3530/25/15/03 Applications Processor Silicon Errata-Revs 3.1, 3.0, =
+2.1,&2.0=20
+(Rev. E)
+In that document it is under: Advisory 3.1.1.192, but no iXYZ is associ=
+ated with=20
+it. However I have another ERRATA document, which has the iXYZ associat=
+ed with=20
+this advisory, but the first page tells that it is confidential, and un=
+der NDA=20
+restriction. I'm not really sure, if I should refere to that number...
+But if you have the iXYZ number, which I can use, than I'm more than ha=
+ppy to=20
+add that.
+
+> > +	if (cpu_is_omap34xx() && (l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
+>=20
+> does it make sense to use an dma_errata variable and populate it?
+
+Hmmm, the errata handling via dma_errata shall be done separately IMHO,
+since if we do that, than we need to revisit other parts of the code as=
+ well,=20
+and replace the existing errata handling.
+
+But yes, it would make the code much more readable, and we can easily t=
+rack,=20
+which errata has been already addressed.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
