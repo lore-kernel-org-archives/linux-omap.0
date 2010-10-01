@@ -1,75 +1,50 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not
- finish
-Date: Fri, 1 Oct 2010 15:15:47 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C2E2@dbde02.ent.ti.com>
-References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com>
- <1285915146-18511-3-git-send-email-peter.ujfalusi@nokia.com>
- <4CA59188.5020904@ti.com> <201010011151.52547.peter.ujfalusi@nokia.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C2C0@dbde02.ent.ti.com>
- <4CA5AD3A.50700@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] omap: pandora: enable twl4030 charger
+Date: Fri,  1 Oct 2010 12:53:16 +0300
+Message-ID: <1285926796-8034-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58882 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755497Ab0JAJqL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 05:46:11 -0400
-In-Reply-To: <4CA5AD3A.50700@ti.com>
-Content-Language: en-US
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:34964 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755054Ab0JAJxW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 05:53:22 -0400
+Received: by ewy23 with SMTP id 23so1179225ewy.19
+        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 02:53:21 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
 
+Add platform data to make use of newly added charging driver.
+
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+Now that the charger driver is in power_supply battery.git,
+I'd love to have it working in next Linus kernel.
+
+ arch/arm/mach-omap2/board-omap3pandora.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index f24528e..ed1dde3 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -533,6 +533,8 @@ static struct twl4030_codec_data omap3pandora_codec_data = {
+ 	.audio = &omap3pandora_audio_data,
+ };
  
++static struct twl4030_bci_platform_data pandora_bci_data;
++
+ static struct twl4030_platform_data omap3pandora_twldata = {
+ 	.irq_base	= TWL4030_IRQ_BASE,
+ 	.irq_end	= TWL4030_IRQ_END,
+@@ -548,6 +550,7 @@ static struct twl4030_platform_data omap3pandora_twldata = {
+ 	.vaux4		= &pandora_vaux4,
+ 	.vsim		= &pandora_vsim,
+ 	.keypad		= &pandora_kp_data,
++	.bci		= &pandora_bci_data,
+ };
+ 
+ static struct i2c_board_info __initdata omap3pandora_i2c_boardinfo[] = {
+-- 
+1.6.3.3
 
-> -----Original Message-----
-> From: Menon, Nishanth 
-> Sent: Friday, October 01, 2010 3:13 PM
-> To: G, Manjunath Kondaiah
-> Cc: Peter Ujfalusi; Tony Lindgren; 
-> linux-omap@vger.kernel.org; Jarkko Nikula; Liam Girdwood
-> Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO 
-> draining does not finish
-> 
-> G, Manjunath Kondaiah had written, on 10/01/2010 04:29 AM, 
-> the following:
-> > 
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org 
-> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Peter Ujfalusi
-> >> Sent: Friday, October 01, 2010 2:22 PM
-> >> To: Menon, Nishanth
-> >> Cc: Tony Lindgren; linux-omap@vger.kernel.org; Jarkko Nikula; Liam 
-> >> Girdwood
-> >> Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO 
-> draining does 
-> >> not finish
-> > ...
-> > 
-> >>>> +	if (cpu_is_omap34xx() && (l & 
-> OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
-> >>> does it make sense to use an dma_errata variable and populate it?
-> >> Hmmm, the errata handling via dma_errata shall be done separately 
-> >> IMHO, since if we do that, than we need to revisit other 
-> parts of the 
-> >> code as well, and replace the existing errata handling.
-> >>
-> >> But yes, it would make the code much more readable, and we 
-> can easily 
-> >> track, which errata has been already addressed.
-> >>
-> > 
-> > This is already done as a part of dma hwmod which is under review.
-> > 
-> > -Manjunath
-> Apologies, but does that mean:
-> a) the errata i541 is handled as well as part of hwmod series?
-No. 
-> b) the patch needs to be ported ontop of hwmod series?
-Yes.
-
--Manjunath
