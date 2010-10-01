@@ -1,53 +1,80 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not
- finish
-Date: Fri, 1 Oct 2010 14:59:54 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C2C0@dbde02.ent.ti.com>
-References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com>
- <1285915146-18511-3-git-send-email-peter.ujfalusi@nokia.com>
- <4CA59188.5020904@ti.com> <201010011151.52547.peter.ujfalusi@nokia.com>
+From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
+Subject: RE: [PATCH 1/4] iommu: remove CONFIG_MPU_BRIDGE_IOMMU
+Date: Fri, 1 Oct 2010 15:02:42 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593023412B188@dbde02.ent.ti.com>
+References: <1285902536-7043-1-git-send-email-x0095840@ti.com>
+ <1285902536-7043-2-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36614 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45271 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751081Ab0JAJaH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 05:30:07 -0400
-In-Reply-To: <201010011151.52547.peter.ujfalusi@nokia.com>
+	id S1753951Ab0JAJcx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 05:32:53 -0400
+In-Reply-To: <1285902536-7043-2-git-send-email-x0095840@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
-
-
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>
+Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Peter Ujfalusi
-> Sent: Friday, October 01, 2010 2:22 PM
-> To: Menon, Nishanth
-> Cc: Tony Lindgren; linux-omap@vger.kernel.org; Jarkko Nikula; 
-> Liam Girdwood
-> Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO 
-> draining does not finish
-...
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Guzman Lugo, Fernando
+> Sent: Friday, October 01, 2010 8:39 AM
+> To: Hiroshi.DOYU@nokia.com
+> Cc: felipe.contreras@nokia.com; ameya.palande@nokia.com; linux-
+> kernel@vger.kernel.org; andy.shevchenko@gmail.com; linux-
+> omap@vger.kernel.org; Guzman Lugo, Fernando
+> Subject: [PATCH 1/4] iommu: remove
+> CONFIG_MPU_BRIDGE_IOMMU
+> 
+> remove CONFIG_MPU_BRIDGE_IOMMU in order to create
+> iommu_device
+> for iva2.
+> 
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap-iommu.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-
+> omap2/omap-iommu.c
+> index f5a1aad..bb8c01d 100644
+> --- a/arch/arm/mach-omap2/omap-iommu.c
+> +++ b/arch/arm/mach-omap2/omap-iommu.c
+> @@ -35,7 +35,6 @@ static struct iommu_device omap3_devices[] = {
+>  			.clk_name = "cam_ick",
+>  		},
+>  	},
+> -#if defined(CONFIG_MPU_BRIDGE_IOMMU)
+>  	{
+>  		.base = 0x5d000000,
+>  		.irq = 28,
+> @@ -45,7 +44,6 @@ static struct iommu_device omap3_devices[] = {
+>  			.clk_name = "iva2_ck",
+>  		},
+>  	},
+> -#endif
+>  };
+>  #define NR_OMAP3_IOMMU_DEVICES
+> ARRAY_SIZE(omap3_devices)
+>  static struct platform_device
+> *omap3_iommu_pdev[NR_OMAP3_IOMMU_DEVICES];
+> --
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> 
-> > > +	if (cpu_is_omap34xx() && (l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
-> > 
-> > does it make sense to use an dma_errata variable and populate it?
-> 
-> Hmmm, the errata handling via dma_errata shall be done 
-> separately IMHO, since if we do that, than we need to revisit 
-> other parts of the code as well, and replace the existing 
-> errata handling.
-> 
-> But yes, it would make the code much more readable, and we 
-> can easily track, which errata has been already addressed.
-> 
+Fernando,
 
-This is already done as a part of dma hwmod which is under review.
+I have already submitted this patch and it is being discussed here.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35615.html
 
--Manjunath
+Regards,
+Yogesh.
+
