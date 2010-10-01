@@ -1,115 +1,78 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCHv2 08/11] staging: tidspbridge: remove dw_dmmu_base from cfg_hostres struct
-Date: Thu, 30 Sep 2010 21:12:55 -0500
-Message-ID: <1285899178-14413-9-git-send-email-x0095840@ti.com>
-References: <1285899178-14413-1-git-send-email-x0095840@ti.com>
- <1285899178-14413-2-git-send-email-x0095840@ti.com>
- <1285899178-14413-3-git-send-email-x0095840@ti.com>
- <1285899178-14413-4-git-send-email-x0095840@ti.com>
- <1285899178-14413-5-git-send-email-x0095840@ti.com>
- <1285899178-14413-6-git-send-email-x0095840@ti.com>
- <1285899178-14413-7-git-send-email-x0095840@ti.com>
- <1285899178-14413-8-git-send-email-x0095840@ti.com>
+Subject: [PATCHv2 00/11] staging tidspbridge: iommu migration
+Date: Thu, 30 Sep 2010 21:12:47 -0500
+Message-ID: <1285899178-14413-1-git-send-email-x0095840@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1285899178-14413-8-git-send-email-x0095840@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@suse.de
 Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, nm@ti.com, Hiroshi.DOYU@nokia.com, ohad@wizery.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-We don't need to map iva2 iommu register base address
-anymore.
+This set of patches remove the dspbridge custom mmu
+implementation and use iommu module instead.
 
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
----
- drivers/staging/tidspbridge/core/tiomap3430.c      |    3 ---
- drivers/staging/tidspbridge/core/tiomap_io.c       |    3 +--
+Version2:
+- Comments from FUJITA Tomonori and previous patch
+  "tidspbridge: add map support for big buffers"
+  was removed and instead a patch to define
+  ARCH_HAS_SG_CHAIN in arm architecture will be
+  sent.
+- Rebase to the latest tidspbridge.
+
+
+Fernando Guzman Lugo (11):
+  staging: tidspbridge: replace iommu custom for opensource
+    implementation
+  staging: tidspbridge - move shared memory iommu maps to tiomap3430.c
+  staging: tidspbridge - rename bridge_brd_mem_map/unmap to a proper
+    name
+  staging: tidspbridge - remove custom mmu code from tiomap3430.c
+  staging: tidspbridge - fix mmufault support
+  staging: tidspbrge - remove hw directory
+  staging: tidspbridge - move all iommu related code to a new file
+  staging: tidspbridge: remove dw_dmmu_base from cfg_hostres struct
+  staging: tidspbridge - remove reserved memory clean up
+  staging: tidspbridge - deprecate reserve/unreserve_memory funtions
+  staging: tidspbridge - remove dmm custom module
+
+ drivers/staging/tidspbridge/Makefile               |    7 +-
+ drivers/staging/tidspbridge/core/_deh.h            |    5 +-
+ drivers/staging/tidspbridge/core/_tiomap.h         |   19 +-
+ drivers/staging/tidspbridge/core/dsp-mmu.c         |  316 ++++++
+ drivers/staging/tidspbridge/core/io_sm.c           |  180 +---
+ drivers/staging/tidspbridge/core/tiomap3430.c      | 1070 ++------------------
+ drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |    4 -
+ drivers/staging/tidspbridge/core/tiomap_io.c       |   17 +-
+ drivers/staging/tidspbridge/core/ue_deh.c          |  115 +---
+ drivers/staging/tidspbridge/hw/EasiGlobal.h        |   41 -
+ drivers/staging/tidspbridge/hw/MMUAccInt.h         |   76 --
+ drivers/staging/tidspbridge/hw/MMURegAcM.h         |  225 ----
+ drivers/staging/tidspbridge/hw/hw_defs.h           |   58 --
+ drivers/staging/tidspbridge/hw/hw_mmu.c            |  562 ----------
+ drivers/staging/tidspbridge/hw/hw_mmu.h            |  163 ---
  .../tidspbridge/include/dspbridge/cfgdefs.h        |    1 -
- drivers/staging/tidspbridge/rmgr/drv.c             |    4 ----
- 4 files changed, 1 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index 789cc5e..f890a0e 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -830,8 +830,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt)
- 			iounmap((void *)host_res->dw_mem_base[3]);
- 		if (host_res->dw_mem_base[4])
- 			iounmap((void *)host_res->dw_mem_base[4]);
--		if (host_res->dw_dmmu_base)
--			iounmap(host_res->dw_dmmu_base);
- 		if (host_res->dw_per_base)
- 			iounmap(host_res->dw_per_base);
- 		if (host_res->dw_per_pm_base)
-@@ -845,7 +843,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt)
- 		host_res->dw_mem_base[2] = (u32) NULL;
- 		host_res->dw_mem_base[3] = (u32) NULL;
- 		host_res->dw_mem_base[4] = (u32) NULL;
--		host_res->dw_dmmu_base = NULL;
- 		host_res->dw_sys_ctrl_base = NULL;
- 
- 		kfree(host_res);
-diff --git a/drivers/staging/tidspbridge/core/tiomap_io.c b/drivers/staging/tidspbridge/core/tiomap_io.c
-index 63d46bc..81a5401 100644
---- a/drivers/staging/tidspbridge/core/tiomap_io.c
-+++ b/drivers/staging/tidspbridge/core/tiomap_io.c
-@@ -391,7 +391,6 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
- 		omap_dspbridge_dev->dev.platform_data;
- 	struct cfg_hostres *resources = dev_context->resources;
- 	int status = 0;
--	u32 temp;
- 
- 	if (!dev_context->mbox)
- 		return 0;
-@@ -435,7 +434,7 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
- 		omap_mbox_restore_ctx(dev_context->mbox);
- 
- 		/* Access MMU SYS CONFIG register to generate a short wakeup */
--		temp = readl(resources->dw_dmmu_base + 0x10);
-+		iommu_read_reg(dev_context->dsp_mmu, MMU_SYSCONFIG);
- 
- 		dev_context->dw_brd_state = BRD_RUNNING;
- 	} else if (dev_context->dw_brd_state == BRD_RETENTION) {
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h b/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
-index 38122db..dfb55cc 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
-@@ -68,7 +68,6 @@ struct cfg_hostres {
- 	void __iomem *dw_per_base;
- 	u32 dw_per_pm_base;
- 	u32 dw_core_pm_base;
--	void __iomem *dw_dmmu_base;
- 	void __iomem *dw_sys_ctrl_base;
- };
- 
-diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
-index 81b1b90..0c857b9 100644
---- a/drivers/staging/tidspbridge/rmgr/drv.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv.c
-@@ -743,7 +743,6 @@ static int request_bridge_resources(struct cfg_hostres *res)
- 	host_res->dw_sys_ctrl_base = ioremap(OMAP_SYSC_BASE, OMAP_SYSC_SIZE);
- 	dev_dbg(bridge, "dw_mem_base[0] 0x%x\n", host_res->dw_mem_base[0]);
- 	dev_dbg(bridge, "dw_mem_base[3] 0x%x\n", host_res->dw_mem_base[3]);
--	dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
- 
- 	/* for 24xx base port is not mapping the mamory for DSP
- 	 * internal memory TODO Do a ioremap here */
-@@ -797,8 +796,6 @@ int drv_request_bridge_res_dsp(void **phost_resources)
- 							 OMAP_PER_PRM_SIZE);
- 		host_res->dw_core_pm_base = (u32) ioremap(OMAP_CORE_PRM_BASE,
- 							  OMAP_CORE_PRM_SIZE);
--		host_res->dw_dmmu_base = ioremap(OMAP_DMMU_BASE,
--						 OMAP_DMMU_SIZE);
- 
- 		dev_dbg(bridge, "dw_mem_base[0] 0x%x\n",
- 			host_res->dw_mem_base[0]);
-@@ -810,7 +807,6 @@ int drv_request_bridge_res_dsp(void **phost_resources)
- 			host_res->dw_mem_base[3]);
- 		dev_dbg(bridge, "dw_mem_base[4] 0x%x\n",
- 			host_res->dw_mem_base[4]);
--		dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
- 
- 		shm_size = drv_datap->shm_size;
- 		if (shm_size >= 0x10000) {
--- 
-1.6.3.3
+ .../staging/tidspbridge/include/dspbridge/dev.h    |   24 -
+ .../staging/tidspbridge/include/dspbridge/dmm.h    |   75 --
+ .../staging/tidspbridge/include/dspbridge/drv.h    |   10 -
+ .../tidspbridge/include/dspbridge/dsp-mmu.h        |   67 ++
+ .../tidspbridge/include/dspbridge/dspdefs.h        |   44 -
+ .../tidspbridge/include/dspbridge/dspioctl.h       |    7 -
+ .../staging/tidspbridge/include/dspbridge/proc.h   |   46 -
+ drivers/staging/tidspbridge/pmgr/dev.c             |   63 +--
+ drivers/staging/tidspbridge/pmgr/dmm.c             |  533 ----------
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |   34 +-
+ drivers/staging/tidspbridge/rmgr/drv.c             |   15 -
+ drivers/staging/tidspbridge/rmgr/drv_interface.c   |    2 -
+ drivers/staging/tidspbridge/rmgr/node.c            |   48 +-
+ drivers/staging/tidspbridge/rmgr/proc.c            |  197 +----
+ 30 files changed, 568 insertions(+), 3456 deletions(-)
+ create mode 100644 drivers/staging/tidspbridge/core/dsp-mmu.c
+ delete mode 100644 drivers/staging/tidspbridge/hw/EasiGlobal.h
+ delete mode 100644 drivers/staging/tidspbridge/hw/MMUAccInt.h
+ delete mode 100644 drivers/staging/tidspbridge/hw/MMURegAcM.h
+ delete mode 100644 drivers/staging/tidspbridge/hw/hw_defs.h
+ delete mode 100644 drivers/staging/tidspbridge/hw/hw_mmu.c
+ delete mode 100644 drivers/staging/tidspbridge/hw/hw_mmu.h
+ delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/dmm.h
+ create mode 100644 drivers/staging/tidspbridge/include/dspbridge/dsp-mmu.h
+ delete mode 100644 drivers/staging/tidspbridge/pmgr/dmm.c
