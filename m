@@ -1,50 +1,96 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not
- finish
-Date: Fri, 1 Oct 2010 16:39:42 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C3A9@dbde02.ent.ti.com>
-References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com>
- <201010011151.52547.peter.ujfalusi@nokia.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C2C0@dbde02.ent.ti.com>
- <201010011341.22238.peter.ujfalusi@nokia.com>
+From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
+Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Fri, 1 Oct 2010 16:59:01 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593023412B2C1@dbde02.ent.ti.com>
+References: <20100924014938.10325.35279.stgit@baageli.muru.com>
+	<20100924015056.10325.95854.stgit@baageli.muru.com>
+	<AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
+	<AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
+	<AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E5F6A365B@dlee03.ent.ti.com>
+	<AANLkTimD_MRbuTnBMPzAKPTmrDwjLkLVmr9bTSNROb5L@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930234006B4C@dbde02.ent.ti.com>
+ <AANLkTinZqx2nFuoYoCYpD4+PG7_J=ACLBxAwOvpVm4c9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53276 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756366Ab0JALJx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 07:09:53 -0400
-In-Reply-To: <201010011341.22238.peter.ujfalusi@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39157 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755889Ab0JAL2r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 07:28:47 -0400
+In-Reply-To: <AANLkTinZqx2nFuoYoCYpD4+PG7_J=ACLBxAwOvpVm4c9@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
-
-
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com] 
-> Sent: Friday, October 01, 2010 4:11 PM
-> To: G, Manjunath Kondaiah
-> Cc: Menon, Nishanth; Tony Lindgren; 
-> linux-omap@vger.kernel.org; Jarkko Nikula; Liam Girdwood
-> Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO 
-> draining does not finish
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Thursday, September 30, 2010 12:42 AM
+> To: Marathe, Yogesh
+> Cc: Kanigeri, Hari; Premi, Sanjeev; Tony Lindgren; linux-arm-
+> kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 05/11] omap3: Remove non-existent config
+> option
 > 
-> On Friday 01 October 2010 12:29:54 ext G, Manjunath Kondaiah wrote:
-> > > But yes, it would make the code much more readable, and we can 
-> > > easily track, which errata has been already addressed.
-> > 
-> > This is already done as a part of dma hwmod which is under review.
+> On Wed, Sep 29, 2010 at 4:28 PM, Marathe, Yogesh
+> <yogesh_marathe@ti.com> wrote:
+> > dsplink and syslink (two drivers who use iommu) should not enable
+> > CONFIG_MPU_BRIDGE_IOMMU as dspbridge and dsplink /syslink
+> > can not co-exist as they are using same resources. Not applying
+> patch
+> > breaks dsplink/sylink any one which is being used. Defining this
+> config
+> > makes them co-exist.
 > 
-> OK, so we shall not bother with this in the 'legacy' code, right?
+> No, for dsp-link you would have:
+> CONFIG_TIDSPBRIDGE=n
+> CONFIG_OMAP_IOMMU_IVA2=y
 > 
+> It would be exactly the same as applying your patch.
+> 
+> And tidspbridge is not using iommu right now.
 
-That's correct but these patches needs to be ported on top of dma
-driver with hwmod changes.
+I noticed that you have added OMAP_IOMMU_IVA2 to Kconfig. In this
+case I need CONFIG_OMAP_IOMMU_IVA2=y by default on master so
+that iommu is open to use for all other drivers by default.
 
--Manjunath
+> And AFAIK syslink is not for omap3, so omap3_devices is not relevant.
+> 
+> > I'm ok with changing name to CONFIG_OMAP_IOMMU_IVA2 but
+> ideally
+> > then that will also break the dspbridge.
+> 
+> No, grep for MPU_BRIDGE_IOMMU on the current tidspbridge in
+> mainline;
+> it's not defined anywhere, so CONFIG_OMAP_IOMMU_IVA2, or
+> CONFIG_FOOBAR, it doesn't matter for tidspbridge right now. And
+> MPU_BRIDGE_IOMMU doesn't depend on tidspbridge on any way.
 
--Manjunath
+Please explain, how removing CONFIG_MPU_BRIDGE_IOMMU
+Or any other the config name in place, breaks tidspbridge? 
+My patch is removing the 'if defined'.
+
+> 
+> > One more way would be to soure revert the patch and apply on
+> dspbridge branch if it breaks the builds on that branch rather than
+> > breaking others in master.
+> 
+> There is no tidspbrige branch; it's in mainline:
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
+> 2.6.git;a=tree;f=drivers/staging/tidspbridge
+> 
+> But that doesn't matter, even if it was in a branch, iommu should not
+> break either tidspbridge, or dsp-link, and driver branches should not
+> modify anything outside their domain (ideally).
+> 
+> All you need to do is 'select OMAP_IOMMU_IVA2', although the
+> attached
+> patch would be needed.
+> 
+> --
+> Felipe Contreras
