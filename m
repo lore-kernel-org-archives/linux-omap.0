@@ -1,159 +1,434 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCHv2 09/11] staging: tidspbridge - remove reserved memory clean up
-Date: Thu, 30 Sep 2010 21:12:56 -0500
-Message-ID: <1285899178-14413-10-git-send-email-x0095840@ti.com>
+Subject: [PATCHv2 03/11] staging: tidspbridge - rename bridge_brd_mem_map/unmap to a proper name
+Date: Thu, 30 Sep 2010 21:12:50 -0500
+Message-ID: <1285899178-14413-4-git-send-email-x0095840@ti.com>
 References: <1285899178-14413-1-git-send-email-x0095840@ti.com>
  <1285899178-14413-2-git-send-email-x0095840@ti.com>
  <1285899178-14413-3-git-send-email-x0095840@ti.com>
- <1285899178-14413-4-git-send-email-x0095840@ti.com>
- <1285899178-14413-5-git-send-email-x0095840@ti.com>
- <1285899178-14413-6-git-send-email-x0095840@ti.com>
- <1285899178-14413-7-git-send-email-x0095840@ti.com>
- <1285899178-14413-8-git-send-email-x0095840@ti.com>
- <1285899178-14413-9-git-send-email-x0095840@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1285899178-14413-9-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:42285 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752190Ab0JAB7h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Sep 2010 21:59:37 -0400
+In-Reply-To: <1285899178-14413-3-git-send-email-x0095840@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: gregkh@suse.de
 Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, nm@ti.com, Hiroshi.DOYU@nokia.com, ohad@wizery.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Now iommv module keeps track of iommu memory used,
-we do not need resource cleanup for reserved
-memories anymore.
+Now these functions only map user space addresses to dsp virtual
+addresses, so now the functions have a more meaningful name.
+Also now user_to_dsp_map returns the mapped address.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- .../staging/tidspbridge/include/dspbridge/drv.h    |    4 --
- drivers/staging/tidspbridge/rmgr/drv.c             |   11 ------
- drivers/staging/tidspbridge/rmgr/drv_interface.c   |    2 -
- drivers/staging/tidspbridge/rmgr/proc.c            |   36 --------------------
- 4 files changed, 0 insertions(+), 53 deletions(-)
+ drivers/staging/tidspbridge/core/_tiomap.h         |   24 +++
+ drivers/staging/tidspbridge/core/tiomap3430.c      |  153 ++++++++++----------
+ .../tidspbridge/include/dspbridge/dspdefs.h        |   44 ------
+ drivers/staging/tidspbridge/pmgr/dev.c             |    2 -
+ drivers/staging/tidspbridge/rmgr/proc.c            |   34 +++--
+ 5 files changed, 116 insertions(+), 141 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/drv.h b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-index c1f363e..427f38b 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/drv.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-@@ -165,10 +165,6 @@ struct process_context {
- 	struct list_head dmm_map_list;
- 	spinlock_t dmm_map_lock;
+diff --git a/drivers/staging/tidspbridge/core/_tiomap.h b/drivers/staging/tidspbridge/core/_tiomap.h
+index c1bf95d..8777492 100644
+--- a/drivers/staging/tidspbridge/core/_tiomap.h
++++ b/drivers/staging/tidspbridge/core/_tiomap.h
+@@ -383,4 +383,28 @@ extern s32 dsp_debug;
+  */
+ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val);
  
--	/* DMM reserved memory resources */
--	struct list_head dmm_rsv_list;
--	spinlock_t dmm_rsv_lock;
--
- 	/* DSP Heap resources */
- 	struct dspheap_res_object *pdspheap_list;
- 
-diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
-index 0c857b9..91cc168 100644
---- a/drivers/staging/tidspbridge/rmgr/drv.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv.c
-@@ -146,7 +146,6 @@ int drv_remove_all_dmm_res_elements(void *process_ctxt)
- 	struct process_context *ctxt = (struct process_context *)process_ctxt;
- 	int status = 0;
- 	struct dmm_map_object *temp_map, *map_obj;
--	struct dmm_rsv_object *temp_rsv, *rsv_obj;
- 
- 	/* Free DMM mapped memory resources */
- 	list_for_each_entry_safe(map_obj, temp_map, &ctxt->dmm_map_list, link) {
-@@ -156,16 +155,6 @@ int drv_remove_all_dmm_res_elements(void *process_ctxt)
- 			pr_err("%s: proc_un_map failed!"
- 			       " status = 0x%xn", __func__, status);
- 	}
--
--	/* Free DMM reserved memory resources */
--	list_for_each_entry_safe(rsv_obj, temp_rsv, &ctxt->dmm_rsv_list, link) {
--		status = proc_un_reserve_memory(ctxt->hprocessor, (void *)
--						rsv_obj->dsp_reserved_addr,
--						ctxt);
--		if (status)
--			pr_err("%s: proc_un_reserve_memory failed!"
--			       " status = 0x%xn", __func__, status);
--	}
- 	return status;
++/**
++ * user_to_dsp_map() - maps user to dsp virtual address
++ * @mmu:	Pointer to iommu handle.
++ * @uva:		Virtual user space address.
++ * @da		DSP address
++ * @size		Buffer size to map.
++ * @usr_pgs	struct page array pointer where the user pages will be stored
++ *
++ * This function maps a user space buffer into DSP virtual address.
++ *
++ */
++u32 user_to_dsp_map(struct iommu *mmu, u32 uva, u32 da, u32 size,
++						struct page **usr_pgs);
++
++/**
++ * user_to_dsp_unmap() - unmaps DSP virtual buffer.
++ * @mmu:	Pointer to iommu handle.
++ * @da		DSP address
++ *
++ * This function unmaps a user space buffer into DSP virtual address.
++ *
++ */
++int user_to_dsp_unmap(struct iommu *mmu, u32 da);
++
+ #endif /* _TIOMAP_ */
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index 721116b..8825700 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -95,12 +95,6 @@ static int bridge_brd_mem_copy(struct bridge_dev_context *dev_ctxt,
+ static int bridge_brd_mem_write(struct bridge_dev_context *dev_ctxt,
+ 				    u8 *host_buff, u32 dsp_addr,
+ 				    u32 ul_num_bytes, u32 mem_type);
+-static int bridge_brd_mem_map(struct bridge_dev_context *dev_ctxt,
+-				  u32 ul_mpu_addr, u32 virt_addr,
+-				  u32 ul_num_bytes, u32 ul_map_attr,
+-				  struct page **mapped_pages);
+-static int bridge_brd_mem_un_map(struct bridge_dev_context *dev_ctxt,
+-				     u32 da);
+ static int bridge_dev_create(struct bridge_dev_context
+ 					**dev_cntxt,
+ 					struct dev_object *hdev_obj,
+@@ -108,9 +102,6 @@ static int bridge_dev_create(struct bridge_dev_context
+ static int bridge_dev_ctrl(struct bridge_dev_context *dev_context,
+ 				  u32 dw_cmd, void *pargs);
+ static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt);
+-static int get_io_pages(struct mm_struct *mm, u32 uva, unsigned pages,
+-						struct page **usr_pgs);
+-static u32 user_va2_pa(struct mm_struct *mm, u32 address);
+ static int pte_update(struct bridge_dev_context *dev_ctxt, u32 pa,
+ 			     u32 va, u32 size,
+ 			     struct hw_mmu_map_attrs_t *map_attrs);
+@@ -180,8 +171,6 @@ static struct bridge_drv_interface drv_interface_fxns = {
+ 	bridge_brd_set_state,
+ 	bridge_brd_mem_copy,
+ 	bridge_brd_mem_write,
+-	bridge_brd_mem_map,
+-	bridge_brd_mem_un_map,
+ 	/* The following CHNL functions are provided by chnl_io.lib: */
+ 	bridge_chnl_create,
+ 	bridge_chnl_destroy,
+@@ -1151,22 +1140,77 @@ static int bridge_brd_mem_write(struct bridge_dev_context *dev_ctxt,
  }
  
-diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-index 4c0b9ee..f9a1e0b 100644
---- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-@@ -507,8 +507,6 @@ static int bridge_open(struct inode *ip, struct file *filp)
- 		pr_ctxt->res_state = PROC_RES_ALLOCATED;
- 		spin_lock_init(&pr_ctxt->dmm_map_lock);
- 		INIT_LIST_HEAD(&pr_ctxt->dmm_map_list);
--		spin_lock_init(&pr_ctxt->dmm_rsv_lock);
--		INIT_LIST_HEAD(&pr_ctxt->dmm_rsv_list);
+ /*
+- *  ======== bridge_brd_mem_map ========
+- *      This function maps MPU buffer to the DSP address space. It performs
+- *  linear to physical address translation if required. It translates each
+- *  page since linear addresses can be physically non-contiguous
+- *  All address & size arguments are assumed to be page aligned (in proc.c)
++ *  ======== user_va2_pa ========
++ *  Purpose:
++ *      This function walks through the page tables to convert a userland
++ *      virtual address to physical address
++ */
++static u32 user_va2_pa(struct mm_struct *mm, u32 address)
++{
++	pgd_t *pgd;
++	pmd_t *pmd;
++	pte_t *ptep, pte;
++
++	pgd = pgd_offset(mm, address);
++	if (!(pgd_none(*pgd) || pgd_bad(*pgd))) {
++		pmd = pmd_offset(pgd, address);
++		if (!(pmd_none(*pmd) || pmd_bad(*pmd))) {
++			ptep = pte_offset_map(pmd, address);
++			if (ptep) {
++				pte = *ptep;
++				if (pte_present(pte))
++					return pte & PAGE_MASK;
++			}
++		}
++	}
++
++	return 0;
++}
++
++/**
++ * get_io_pages() - pin and get pages of io user's buffer.
++ * @mm:		mm_struct Pointer of the process.
++ * @uva:		Virtual user space address.
++ * @pages	Pages to be pined.
++ * @usr_pgs	struct page array pointer where the user pages will be stored
+  *
+- *  TODO: Disable MMU while updating the page tables (but that'll stall DSP)
+  */
+-static int bridge_brd_mem_map(struct bridge_dev_context *dev_ctx,
+-			u32 uva, u32 da, u32 size, u32 attr,
+-			struct page **usr_pgs)
++static int get_io_pages(struct mm_struct *mm, u32 uva, unsigned pages,
++						struct page **usr_pgs)
++{
++	u32 pa;
++	int i;
++	struct page *pg;
++
++	for (i = 0; i < pages; i++) {
++		pa = user_va2_pa(mm, uva);
  
- 		pr_ctxt->node_id = kzalloc(sizeof(struct idr), GFP_KERNEL);
- 		if (pr_ctxt->node_id) {
-diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
-index 59c946b..e5fec57 100644
---- a/drivers/staging/tidspbridge/rmgr/proc.c
-+++ b/drivers/staging/tidspbridge/rmgr/proc.c
-@@ -1515,7 +1515,6 @@ int proc_reserve_memory(void *hprocessor, u32 ul_size,
- 	struct dmm_object *dmm_mgr;
- 	int status = 0;
- 	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
--	struct dmm_rsv_object *rsv_obj;
++		if (!pfn_valid(__phys_to_pfn(pa)))
++			break;
++
++		pg = PHYS_TO_PAGE(pa);
++		usr_pgs[i] = pg;
++		get_page(pg);
++	}
++	return i;
++}
++
++/**
++ * user_to_dsp_map() - maps user to dsp virtual address
++ * @mmu:	Pointer to iommu handle.
++ * @uva:		Virtual user space address.
++ * @da		DSP address
++ * @size		Buffer size to map.
++ * @usr_pgs	struct page array pointer where the user pages will be stored
++ *
++ * This function maps a user space buffer into DSP virtual address.
++ *
++ */
++u32 user_to_dsp_map(struct iommu *mmu, u32 uva, u32 da, u32 size,
++				struct page **usr_pgs)
+ {
+ 	int res, w;
+ 	unsigned pages, i;
+-	struct iommu *mmu = dev_ctx->dsp_mmu;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	struct sg_table *sgt;
+@@ -1223,7 +1267,7 @@ static int bridge_brd_mem_map(struct bridge_dev_context *dev_ctx,
+ 	da = iommu_vmap(mmu, da, sgt, IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_32);
  
- 	if (!p_proc_object) {
- 		status = -EFAULT;
-@@ -1529,22 +1528,6 @@ int proc_reserve_memory(void *hprocessor, u32 ul_size,
- 	}
+ 	if (!IS_ERR_VALUE(da))
+-		return 0;
++		return da;
+ 	res = (int)da;
  
- 	status = dmm_reserve_memory(dmm_mgr, ul_size, (u32 *) pp_rsv_addr);
--	if (status != 0)
--		goto func_end;
+ 	sg_free_table(sgt);
+@@ -1236,21 +1280,21 @@ err_pages:
+ 	return res;
+ }
+ 
+-/*
+- *  ======== bridge_brd_mem_un_map ========
+- *      Invalidate the PTEs for the DSP VA block to be unmapped.
++/**
++ * user_to_dsp_unmap() - unmaps DSP virtual buffer.
++ * @mmu:	Pointer to iommu handle.
++ * @da		DSP address
++ *
++ * This function unmaps a user space buffer into DSP virtual address.
+  *
+- *      PTEs of a mapped memory block are contiguous in any page table
+- *      So, instead of looking up the PTE address for every 4K block,
+- *      we clear consecutive PTEs until we unmap all the bytes
+  */
+-static int bridge_brd_mem_un_map(struct bridge_dev_context *dev_ctx, u32 da)
++int user_to_dsp_unmap(struct iommu *mmu, u32 da)
+ {
+ 	unsigned i;
+ 	struct sg_table *sgt;
+ 	struct scatterlist *sg;
+ 
+-	sgt = iommu_vunmap(dev_ctx->dsp_mmu, da);
++	sgt = iommu_vunmap(mmu, da);
+ 	if (!sgt)
+ 		return -EFAULT;
+ 
+@@ -1262,55 +1306,6 @@ static int bridge_brd_mem_un_map(struct bridge_dev_context *dev_ctx, u32 da)
+ 	return 0;
+ }
+ 
 -
--	/*
--	 * A successful reserve should be followed by insertion of rsv_obj
--	 * into dmm_rsv_list, so that reserved memory resource tracking
--	 * remains uptodate
--	 */
--	rsv_obj = kmalloc(sizeof(struct dmm_rsv_object), GFP_KERNEL);
--	if (rsv_obj) {
--		rsv_obj->dsp_reserved_addr = (u32) *pp_rsv_addr;
--		spin_lock(&pr_ctxt->dmm_rsv_lock);
--		list_add(&rsv_obj->link, &pr_ctxt->dmm_rsv_list);
--		spin_unlock(&pr_ctxt->dmm_rsv_lock);
--	}
+-static int get_io_pages(struct mm_struct *mm, u32 uva, unsigned pages,
+-						struct page **usr_pgs)
+-{
+-	u32 pa;
+-	int i;
+-	struct page *pg;
 -
- func_end:
- 	dev_dbg(bridge, "%s: hprocessor: 0x%p ul_size: 0x%x pp_rsv_addr: 0x%p "
- 		"status 0x%x\n", __func__, hprocessor,
-@@ -1756,7 +1739,6 @@ int proc_un_reserve_memory(void *hprocessor, void *prsv_addr,
- 	struct dmm_object *dmm_mgr;
- 	int status = 0;
- 	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
--	struct dmm_rsv_object *rsv_obj;
- 
- 	if (!p_proc_object) {
- 		status = -EFAULT;
-@@ -1770,24 +1752,6 @@ int proc_un_reserve_memory(void *hprocessor, void *prsv_addr,
- 	}
- 
- 	status = dmm_un_reserve_memory(dmm_mgr, (u32) prsv_addr);
--	if (status != 0)
--		goto func_end;
+-	for (i = 0; i < pages; i++) {
+-		pa = user_va2_pa(mm, uva);
 -
--	/*
--	 * A successful unreserve should be followed by removal of rsv_obj
--	 * from dmm_rsv_list, so that reserved memory resource tracking
--	 * remains uptodate
--	 */
--	spin_lock(&pr_ctxt->dmm_rsv_lock);
--	list_for_each_entry(rsv_obj, &pr_ctxt->dmm_rsv_list, link) {
--		if (rsv_obj->dsp_reserved_addr == (u32) prsv_addr) {
--			list_del(&rsv_obj->link);
--			kfree(rsv_obj);
+-		if (!pfn_valid(__phys_to_pfn(pa)))
 -			break;
+-
+-		pg = PHYS_TO_PAGE(pa);
+-		usr_pgs[i] = pg;
+-		get_page(pg);
+-	}
+-	return i;
+-}
+-
+-/*
+- *  ======== user_va2_pa ========
+- *  Purpose:
+- *      This function walks through the page tables to convert a userland
+- *      virtual address to physical address
+- */
+-static u32 user_va2_pa(struct mm_struct *mm, u32 address)
+-{
+-	pgd_t *pgd;
+-	pmd_t *pmd;
+-	pte_t *ptep, pte;
+-
+-	pgd = pgd_offset(mm, address);
+-	if (!(pgd_none(*pgd) || pgd_bad(*pgd))) {
+-		pmd = pmd_offset(pgd, address);
+-		if (!(pmd_none(*pmd) || pmd_bad(*pmd))) {
+-			ptep = pte_offset_map(pmd, address);
+-			if (ptep) {
+-				pte = *ptep;
+-				if (pte_present(pte))
+-					return pte & PAGE_MASK;
+-			}
 -		}
 -	}
--	spin_unlock(&pr_ctxt->dmm_rsv_lock);
 -
- func_end:
- 	dev_dbg(bridge, "%s: hprocessor: 0x%p prsv_addr: 0x%p status: 0x%x\n",
- 		__func__, hprocessor, prsv_addr, status);
+-	return 0;
+-}
+-
+ /*
+  *  ======== pte_update ========
+  *      This function calculates the optimum page-aligned addresses and sizes
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
+index 173dfbb..6153634 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dspdefs.h
+@@ -162,48 +162,6 @@ typedef int(*fxn_brd_memwrite) (struct bridge_dev_context
+ 				       u32 mem_type);
+ 
+ /*
+- *  ======== bridge_brd_mem_map ========
+- *  Purpose:
+- *      Map a MPU memory region to a DSP/IVA memory space
+- *  Parameters:
+- *      dev_ctxt:    Handle to Bridge driver defined device info.
+- *      ul_mpu_addr:      MPU memory region start address.
+- *      virt_addr:      DSP/IVA memory region u8 address.
+- *      ul_num_bytes:     Number of bytes to map.
+- *      map_attrs:       Mapping attributes (e.g. endianness).
+- *  Returns:
+- *      0:        Success.
+- *      -EPERM:      Other, unspecified error.
+- *  Requires:
+- *      dev_ctxt != NULL;
+- *  Ensures:
+- */
+-typedef int(*fxn_brd_memmap) (struct bridge_dev_context
+-				     * dev_ctxt, u32 ul_mpu_addr,
+-				     u32 virt_addr, u32 ul_num_bytes,
+-				     u32 map_attr,
+-				     struct page **mapped_pages);
+-
+-/*
+- *  ======== bridge_brd_mem_un_map ========
+- *  Purpose:
+- *      UnMap an MPU memory region from DSP/IVA memory space
+- *  Parameters:
+- *      dev_ctxt:    Handle to Bridge driver defined device info.
+- *      virt_addr:      DSP/IVA memory region u8 address.
+- *      ul_num_bytes:     Number of bytes to unmap.
+- *  Returns:
+- *      0:        Success.
+- *      -EPERM:      Other, unspecified error.
+- *  Requires:
+- *      dev_ctxt != NULL;
+- *  Ensures:
+- */
+-typedef int(*fxn_brd_memunmap) (struct bridge_dev_context
+-				       * dev_ctxt,
+-				       u32 da);
+-
+-/*
+  *  ======== bridge_brd_stop ========
+  *  Purpose:
+  *      Bring board to the BRD_STOPPED state.
+@@ -993,8 +951,6 @@ struct bridge_drv_interface {
+ 	fxn_brd_setstate pfn_brd_set_state;	/* Sets the Board State */
+ 	fxn_brd_memcopy pfn_brd_mem_copy;	/* Copies DSP Memory */
+ 	fxn_brd_memwrite pfn_brd_mem_write;	/* Write DSP Memory w/o halt */
+-	fxn_brd_memmap pfn_brd_mem_map;	/* Maps MPU mem to DSP mem */
+-	fxn_brd_memunmap pfn_brd_mem_un_map;	/* Unmaps MPU mem to DSP mem */
+ 	fxn_chnl_create pfn_chnl_create;	/* Create channel manager. */
+ 	fxn_chnl_destroy pfn_chnl_destroy;	/* Destroy channel manager. */
+ 	fxn_chnl_open pfn_chnl_open;	/* Create a new channel. */
+diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
+index 132e960..e3c78fb 100644
+--- a/drivers/staging/tidspbridge/pmgr/dev.c
++++ b/drivers/staging/tidspbridge/pmgr/dev.c
+@@ -1118,8 +1118,6 @@ static void store_interface_fxns(struct bridge_drv_interface *drv_fxns,
+ 		STORE_FXN(fxn_brd_setstate, pfn_brd_set_state);
+ 		STORE_FXN(fxn_brd_memcopy, pfn_brd_mem_copy);
+ 		STORE_FXN(fxn_brd_memwrite, pfn_brd_mem_write);
+-		STORE_FXN(fxn_brd_memmap, pfn_brd_mem_map);
+-		STORE_FXN(fxn_brd_memunmap, pfn_brd_mem_un_map);
+ 		STORE_FXN(fxn_chnl_create, pfn_chnl_create);
+ 		STORE_FXN(fxn_chnl_destroy, pfn_chnl_destroy);
+ 		STORE_FXN(fxn_chnl_open, pfn_chnl_open);
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
+index 97c5b61..59c946b 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -52,6 +52,7 @@
+ #include <dspbridge/msg.h>
+ #include <dspbridge/dspioctl.h>
+ #include <dspbridge/drv.h>
++#include <_tiomap.h>
+ 
+ /*  ----------------------------------- This */
+ #include <dspbridge/proc.h>
+@@ -1357,7 +1358,6 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 	int status = 0;
+ 	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+ 	struct dmm_map_object *map_obj;
+-	u32 tmp_addr = 0;
+ 
+ #ifdef CONFIG_TIDSPBRIDGE_CACHE_LINE_CHECK
+ 	if ((ul_map_attr & BUFMODE_MASK) != RBUF) {
+@@ -1390,24 +1390,27 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 
+ 	/* Add mapping to the page tables. */
+ 	if (!status) {
+-
+-		/* Mapped address = MSB of VA | LSB of PA */
+-		tmp_addr = (va_align | ((u32) pmpu_addr & (PG_SIZE4K - 1)));
+ 		/* mapped memory resource tracking */
+-		map_obj = add_mapping_info(pr_ctxt, pa_align, tmp_addr,
++		map_obj = add_mapping_info(pr_ctxt, pa_align, va_align,
+ 						size_align);
+-		if (!map_obj)
++		if (!map_obj) {
+ 			status = -ENOMEM;
+-		else
+-			status = (*p_proc_object->intf_fxns->pfn_brd_mem_map)
+-			    (p_proc_object->hbridge_context, pa_align, va_align,
+-			     size_align, ul_map_attr, map_obj->pages);
++		} else {
++			va_align = user_to_dsp_map(
++				p_proc_object->hbridge_context->dsp_mmu,
++				pa_align, va_align, size_align,
++				map_obj->pages);
++			if (IS_ERR_VALUE(va_align))
++				status = (int)va_align;
++		}
+ 	}
+ 	if (!status) {
+ 		/* Mapped address = MSB of VA | LSB of PA */
+-		*pp_map_addr = (void *) tmp_addr;
++		map_obj->dsp_addr = (va_align |
++					((u32)pmpu_addr & (PG_SIZE4K - 1)));
++		*pp_map_addr = (void *)map_obj->dsp_addr;
+ 	} else {
+-		remove_mapping_information(pr_ctxt, tmp_addr, size_align);
++		remove_mapping_information(pr_ctxt, va_align, size_align);
+ 		dmm_un_map_memory(dmm_mgr, va_align, &size_align);
+ 	}
+ 	mutex_unlock(&proc_lock);
+@@ -1721,10 +1724,9 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ 	 */
+ 	status = dmm_un_map_memory(dmm_mgr, (u32) va_align, &size_align);
+ 	/* Remove mapping from the page tables. */
+-	if (!status) {
+-		status = (*p_proc_object->intf_fxns->pfn_brd_mem_un_map)
+-		    (p_proc_object->hbridge_context, va_align);
+-	}
++	if (!status)
++		status = user_to_dsp_unmap(
++			p_proc_object->hbridge_context->dsp_mmu, va_align);
+ 
+ 	mutex_unlock(&proc_lock);
+ 	if (status)
 -- 
 1.6.3.3
+
