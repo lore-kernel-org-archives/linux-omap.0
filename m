@@ -1,76 +1,50 @@
-From: David Cohen <david.cohen@nokia.com>
-Subject: Re: [PATCH 2/4] iovmm: fix roundup for next area and end check for
- the last area
-Date: Fri, 1 Oct 2010 13:57:11 +0300
-Message-ID: <20101001105711.GA11617@esdhcp036161.research.nokia.com>
-References: <1285902536-7043-1-git-send-email-x0095840@ti.com>
- <1285902536-7043-2-git-send-email-x0095840@ti.com>
- <1285902536-7043-3-git-send-email-x0095840@ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not
+ finish
+Date: Fri, 1 Oct 2010 16:39:42 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C3A9@dbde02.ent.ti.com>
+References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com>
+ <201010011151.52547.peter.ujfalusi@nokia.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C2C0@dbde02.ent.ti.com>
+ <201010011341.22238.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1285902536-7043-3-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Fernando Guzman Lugo <x0095840@ti.com>
-Cc: "Doyu Hiroshi (Nokia-MS/Espoo)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-MS/Helsinki)" <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:53276 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756366Ab0JALJx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 07:09:53 -0400
+In-Reply-To: <201010011341.22238.peter.ujfalusi@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Hi,
 
-On Fri, Oct 01, 2010 at 05:08:53AM +0200, ext Fernando Guzman Lugo wrote:
-> As da_end does not belongs to the area the roundup should
-> be done to da_end and not to da_end + 1.
-> Also the end check for the last area should be
-> ULONG_MAX - start + 1 >= bytes.
+
+> -----Original Message-----
+> From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com] 
+> Sent: Friday, October 01, 2010 4:11 PM
+> To: G, Manjunath Kondaiah
+> Cc: Menon, Nishanth; Tony Lindgren; 
+> linux-omap@vger.kernel.org; Jarkko Nikula; Liam Girdwood
+> Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO 
+> draining does not finish
 > 
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> ---
->  arch/arm/plat-omap/iovmm.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
+> On Friday 01 October 2010 12:29:54 ext G, Manjunath Kondaiah wrote:
+> > > But yes, it would make the code much more readable, and we can 
+> > > easily track, which errata has been already addressed.
+> > 
+> > This is already done as a part of dma hwmod which is under review.
 > 
-> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> index 24ca9c4..fc6b109 100644
-> --- a/arch/arm/plat-omap/iovmm.c
-> +++ b/arch/arm/plat-omap/iovmm.c
-> @@ -289,19 +289,19 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
->  	prev_end = 0;
->  	list_for_each_entry(tmp, &obj->mmap, list) {
->  
-> -		if (prev_end >= start)
-> +		if (prev_end > start)
->  			break;
->  
->  		if (start + bytes <= tmp->da_start)
->  			goto found;
->  
->  		if (flags & IOVMF_DA_ANON)
-> -			start = roundup(tmp->da_end + 1, alignement);
-> +			start = roundup(tmp->da_end, alignement);
-
-There's a lack of comment here, but the purpose of tmp->da_end + 1 is to
-create a gap between iovm areas to force to trigger iommu faults when
-some access exceeds a valid area. Without this gap, such situation
-may produce data corruption which is much more difficult to track.
-
-Br,
-
-David
-
->  
->  		prev_end = tmp->da_end;
->  	}
->  
-> -	if ((start > prev_end) && (ULONG_MAX - start >= bytes))
-> +	if ((start >= prev_end) && (ULONG_MAX - start + 1 >= bytes))
->  		goto found;
->  
->  	dev_dbg(obj->dev, "%s: no space to fit %08x(%x) flags: %08x\n",
-> -- 
-> 1.6.3.3
+> OK, so we shall not bother with this in the 'legacy' code, right?
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+
+That's correct but these patches needs to be ported on top of dma
+driver with hwmod changes.
+
+-Manjunath
+
+-Manjunath
