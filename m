@@ -1,184 +1,117 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/8] omap2/3: Update revision identification
-Date: Fri, 01 Oct 2010 16:34:10 -0700
-Message-ID: <20101001233410.31894.52647.stgit@baageli.muru.com>
+Subject: [PATCH 3/8] omap: pandora: add fixed regulator for wlan
+Date: Fri, 01 Oct 2010 16:34:13 -0700
+Message-ID: <20101001233413.31894.99754.stgit@baageli.muru.com>
 References: <20101001233315.31894.49599.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50295 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873Ab0JAXeM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:34:12 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56199 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753873Ab0JAXeO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:34:14 -0400
 In-Reply-To: <20101001233315.31894.49599.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
-From: Sanjeev Premi <premi@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
 
-The existing definitions for cpu revision used
-upper nibble in the bits[15:08]. With OMAP3630,
-definitions use lower nibble.
+Instead of enabling the wifi module explicitly using GPIO, add a fixed
+regulator and hook it to MMC host card power control. This way it will
+only be enabled when SDIO subsystem wants to talk to it, saving power
+(as done by Zoom boards).
 
-This patch unifies the definitions to start
-at lower nibble.
-
-Signed-off-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/id.c              |   72 ++++++++++++++++++++++-----------
- arch/arm/plat-omap/include/plat/cpu.h |   36 ++++++++---------
- 2 files changed, 66 insertions(+), 42 deletions(-)
+ arch/arm/mach-omap2/board-omap3pandora.c |   43 ++++++++++++++++++++++--------
+ 1 files changed, 32 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 0412233..04a2fa2 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -385,30 +385,54 @@ static void __init omap3_cpuinfo(void)
- 		strcpy(cpu_name, "OMAP3503");
- 	}
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 2d2e6fc..7c222ba 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -34,6 +34,7 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/mmc/host.h>
+ #include <linux/mmc/card.h>
++#include <linux/regulator/fixed.h>
  
--	switch (rev) {
--	case OMAP_REVBITS_00:
--		strcpy(cpu_rev, "1.0");
--		break;
--	case OMAP_REVBITS_01:
--		strcpy(cpu_rev, "1.1");
--		break;
--	case OMAP_REVBITS_02:
--		strcpy(cpu_rev, "1.2");
--		break;
--	case OMAP_REVBITS_10:
--		strcpy(cpu_rev, "2.0");
--		break;
--	case OMAP_REVBITS_20:
--		strcpy(cpu_rev, "2.1");
--		break;
--	case OMAP_REVBITS_30:
--		strcpy(cpu_rev, "3.0");
--		break;
--	case OMAP_REVBITS_40:
--	/* FALLTHROUGH */
--	default:
--		/* Use the latest known revision as default */
--		strcpy(cpu_rev, "3.1");
-+	if (cpu_is_omap3630()) {
-+		switch (rev) {
-+		case OMAP_REVBITS_00:
-+			strcpy(cpu_rev, "1.0");
-+			break;
-+		case OMAP_REVBITS_01:
-+			strcpy(cpu_rev, "1.1");
-+			break;
-+		case OMAP_REVBITS_02:
-+			/* FALLTHROUGH */
-+		default:
-+			/* Use the latest known revision as default */
-+			strcpy(cpu_rev, "1.2");
-+		}
-+	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
-+		switch (rev) {
-+		case OMAP_REVBITS_00:
-+			strcpy(cpu_rev, "1.0");
-+			break;
-+		case OMAP_REVBITS_01:
-+			/* FALLTHROUGH */
-+		default:
-+			/* Use the latest known revision as default */
-+			strcpy(cpu_rev, "1.1");
-+		}
-+	} else {
-+		switch (rev) {
-+		case OMAP_REVBITS_00:
-+			strcpy(cpu_rev, "1.0");
-+			break;
-+		case OMAP_REVBITS_01:
-+			strcpy(cpu_rev, "2.0");
-+			break;
-+		case OMAP_REVBITS_02:
-+			strcpy(cpu_rev, "2.1");
-+			break;
-+		case OMAP_REVBITS_03:
-+			strcpy(cpu_rev, "3.0");
-+			break;
-+		case OMAP_REVBITS_04:
-+			strcpy(cpu_rev, "3.1");
-+			break;
-+		case OMAP_REVBITS_05:
-+			/* FALLTHROUGH */
-+		default:
-+			/* Use the latest known revision as default */
-+			strcpy(cpu_rev, "3.1.2");
-+		}
- 	}
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -345,6 +346,9 @@ static struct regulator_consumer_supply pandora_vmmc1_supply =
+ static struct regulator_consumer_supply pandora_vmmc2_supply =
+ 	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
  
- 	/* Print verbose information */
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 9b38e4b..3fd8b40 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -68,10 +68,9 @@ unsigned int omap_rev(void);
- #define OMAP_REVBITS_00		0x00
- #define OMAP_REVBITS_01		0x01
- #define OMAP_REVBITS_02		0x02
--#define OMAP_REVBITS_10		0x10
--#define OMAP_REVBITS_20		0x20
--#define OMAP_REVBITS_30		0x30
--#define OMAP_REVBITS_40		0x40
-+#define OMAP_REVBITS_03		0x03
-+#define OMAP_REVBITS_04		0x04
-+#define OMAP_REVBITS_05		0x05
- 
- /*
-  * Get the CPU revision for OMAP devices
-@@ -363,23 +362,24 @@ IS_OMAP_TYPE(3517, 0x3517)
- 
- /* Various silicon revisions for omap2 */
- #define OMAP242X_CLASS		0x24200024
--#define OMAP2420_REV_ES1_0	0x24200024
--#define OMAP2420_REV_ES2_0	0x24201024
-+#define OMAP2420_REV_ES1_0	OMAP242X_CLASS
-+#define OMAP2420_REV_ES2_0	(OMAP242X_CLASS | (OMAP_REVBITS_01 << 8))
- 
- #define OMAP243X_CLASS		0x24300024
--#define OMAP2430_REV_ES1_0	0x24300024
-+#define OMAP2430_REV_ES1_0	OMAP243X_CLASS
- 
- #define OMAP343X_CLASS		0x34300034
--#define OMAP3430_REV_ES1_0	0x34300034
--#define OMAP3430_REV_ES2_0	0x34301034
--#define OMAP3430_REV_ES2_1	0x34302034
--#define OMAP3430_REV_ES3_0	0x34303034
--#define OMAP3430_REV_ES3_1	0x34304034
--#define OMAP3430_REV_ES3_1_2	0x34305034
--
--#define OMAP3630_REV_ES1_0	0x36300034
--#define OMAP3630_REV_ES1_1	0x36300134
--#define OMAP3630_REV_ES1_2	0x36300234
-+#define OMAP3430_REV_ES1_0	OMAP343X_CLASS
-+#define OMAP3430_REV_ES2_0	(OMAP343X_CLASS | (OMAP_REVBITS_01 << 8))
-+#define OMAP3430_REV_ES2_1	(OMAP343X_CLASS | (OMAP_REVBITS_02 << 8))
-+#define OMAP3430_REV_ES3_0	(OMAP343X_CLASS | (OMAP_REVBITS_03 << 8))
-+#define OMAP3430_REV_ES3_1	(OMAP343X_CLASS | (OMAP_REVBITS_04 << 8))
-+#define OMAP3430_REV_ES3_1_2	(OMAP343X_CLASS | (OMAP_REVBITS_05 << 8))
++static struct regulator_consumer_supply pandora_vmmc3_supply =
++	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.2");
 +
-+#define OMAP363X_CLASS		0x36300034
-+#define OMAP3630_REV_ES1_0	OMAP363X_CLASS
-+#define OMAP3630_REV_ES1_1	(OMAP363X_CLASS | (OMAP_REVBITS_01 << 8))
-+#define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
+ static struct regulator_consumer_supply pandora_vdda_dac_supply =
+ 	REGULATOR_SUPPLY("vdda_dac", "omapdss");
  
- #define OMAP35XX_CLASS		0x35000034
- #define OMAP3503_REV(v)		(OMAP35XX_CLASS | (0x3503 << 16) | (v << 8))
-@@ -390,7 +390,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v << 8))
+@@ -489,6 +493,33 @@ static struct regulator_init_data pandora_vsim = {
+ 	.consumer_supplies	= &pandora_adac_supply,
+ };
  
- #define OMAP443X_CLASS		0x44300044
--#define OMAP4430_REV_ES1_0	0x44300044
-+#define OMAP4430_REV_ES1_0	OMAP443X_CLASS
- #define OMAP4430_REV_ES2_0	0x44301044
++/* Fixed regulator internal to Wifi module */
++static struct regulator_init_data pandora_vmmc3 = {
++	.constraints = {
++		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &pandora_vmmc3_supply,
++};
++
++static struct fixed_voltage_config pandora_vwlan = {
++	.supply_name		= "vwlan",
++	.microvolts		= 1800000, /* 1.8V */
++	.gpio			= PANDORA_WIFI_NRESET_GPIO,
++	.startup_delay		= 50000, /* 50ms */
++	.enable_high		= 1,
++	.enabled_at_boot	= 0,
++	.init_data		= &pandora_vmmc3,
++};
++
++static struct platform_device pandora_vwlan_device = {
++	.name		= "reg-fixed-voltage",
++	.id		= 1,
++	.dev = {
++		.platform_data = &pandora_vwlan,
++	},
++};
++
+ static struct twl4030_usb_data omap3pandora_usb_data = {
+ 	.usb_mode	= T2_USB_MODE_ULPI,
+ };
+@@ -645,19 +676,8 @@ static void pandora_wl1251_init(void)
+ 	if (pandora_wl1251_pdata.irq < 0)
+ 		goto fail_irq;
  
- /*
+-	ret = gpio_request(PANDORA_WIFI_NRESET_GPIO, "wl1251 nreset");
+-	if (ret < 0)
+-		goto fail_irq;
+-
+-	/* start powered so that it probes with MMC subsystem */
+-	ret = gpio_direction_output(PANDORA_WIFI_NRESET_GPIO, 1);
+-	if (ret < 0)
+-		goto fail_nreset;
+-
+ 	return;
+ 
+-fail_nreset:
+-	gpio_free(PANDORA_WIFI_NRESET_GPIO);
+ fail_irq:
+ 	gpio_free(PANDORA_WIFI_IRQ_GPIO);
+ fail:
+@@ -669,6 +689,7 @@ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&pandora_keys_gpio,
+ 	&pandora_dss_device,
+ 	&pandora_wl1251_data,
++	&pandora_vwlan_device,
+ };
+ 
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
 
