@@ -1,62 +1,83 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/8] omap2+ patches for v2.6.37 merge window
-Date: Fri, 01 Oct 2010 16:33:57 -0700
-Message-ID: <20101001233315.31894.49599.stgit@baageli.muru.com>
+Subject: [PATCH 1/8] omap: Fix omap_mux_init_signal not to trash muxname
+Date: Fri, 01 Oct 2010 16:34:02 -0700
+Message-ID: <20101001233402.31894.59103.stgit@baageli.muru.com>
+References: <20101001233315.31894.49599.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50151 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675Ab0JAXeC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:34:02 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56111 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753873Ab0JAXeK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:34:10 -0400
+In-Reply-To: <20101001233315.31894.49599.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, rockefeller.lin@innocomm.com
 
-Hi all,
+Otherwise the muxname passed to the function will get truncated.
 
-Here are some omap2/3/4 related patches I've picked up.
+Based on an earlier patch by rockefeller.lin@innocomm.com.
 
-Regards,
-
-Tony
-
+Reported-by: rockefeller.lin@innocomm.com
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/mach-omap2/mux.c |   13 +++++++------
+ arch/arm/mach-omap2/mux.h |    2 +-
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-Benoit Cousson (1):
-      omap4 hsmmc: Fix the init if CONFIG_MMC_OMAP_HS is not set
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 6c2f8f0..e33740c 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -127,17 +127,16 @@ int __init omap_mux_init_gpio(int gpio, int val)
+ 	return 0;
+ }
+ 
+-int __init omap_mux_init_signal(char *muxname, int val)
++int __init omap_mux_init_signal(const char *muxname, int val)
+ {
+ 	struct omap_mux_entry *e;
+-	char *m0_name = NULL, *mode_name = NULL;
+-	int found = 0;
++	const char *mode_name;
++	int found = 0, mode0_len = 0;
+ 
+ 	mode_name = strchr(muxname, '.');
+ 	if (mode_name) {
+-		*mode_name = '\0';
++		mode0_len = strlen(muxname) - strlen(mode_name);
+ 		mode_name++;
+-		m0_name = muxname;
+ 	} else {
+ 		mode_name = muxname;
+ 	}
+@@ -147,9 +146,11 @@ int __init omap_mux_init_signal(char *muxname, int val)
+ 		char *m0_entry = m->muxnames[0];
+ 		int i;
+ 
+-		if (m0_name && strcmp(m0_name, m0_entry))
++		/* First check for full name in mode0.muxmode format */
++		if (mode0_len && strncmp(muxname, m0_entry, mode0_len))
+ 			continue;
+ 
++		/* Then check for muxmode only */
+ 		for (i = 0; i < OMAP_MUX_NR_MODES; i++) {
+ 			char *mode_cur = m->muxnames[i];
+ 
+diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
+index a8e040c..350c04f 100644
+--- a/arch/arm/mach-omap2/mux.h
++++ b/arch/arm/mach-omap2/mux.h
+@@ -120,7 +120,7 @@ int omap_mux_init_gpio(int gpio, int val);
+  * @muxname:		Mux name in mode0_name.signal_name format
+  * @val:		Options for the mux register value
+  */
+-int omap_mux_init_signal(char *muxname, int val);
++int omap_mux_init_signal(const char *muxname, int val);
+ 
+ #else
+ 
 
-Grazvydas Ignotas (2):
-      omap: pandora: add fixed regulator for wlan
-      omap: pandora: enable twl4030 charger
-
-Madhusudhan Chikkature (1):
-      OMAP4 ES2: HSMMC soft reset change
-
-Sanjeev Premi (1):
-      omap2/3: Update revision identification
-
-Tony Lindgren (1):
-      omap: Fix omap_mux_init_signal not to trash muxname
-
-kishore kadiyala (2):
-      omap4 hsmmc: Register offset handling
-      omap4 hsmmc: Update ocr mask for MMC2 for regulator to use
-
-
- arch/arm/mach-omap2/board-4430sdp.c      |    9 +++-
- arch/arm/mach-omap2/board-omap3pandora.c |   46 +++++++++++++++----
- arch/arm/mach-omap2/devices.c            |    8 +--
- arch/arm/mach-omap2/hsmmc.c              |    7 +++
- arch/arm/mach-omap2/id.c                 |   72 ++++++++++++++++++++----------
- arch/arm/mach-omap2/mux.c                |   13 +++--
- arch/arm/mach-omap2/mux.h                |    2 -
- arch/arm/plat-omap/include/plat/cpu.h    |   36 ++++++++-------
- arch/arm/plat-omap/include/plat/mmc.h    |    4 ++
- drivers/mmc/host/omap_hsmmc.c            |   25 ++++++++++
- 10 files changed, 156 insertions(+), 66 deletions(-)
-
--- 
-Signature
