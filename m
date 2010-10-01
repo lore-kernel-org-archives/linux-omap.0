@@ -1,17 +1,18 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not finish
-Date: Fri, 1 Oct 2010 02:45:12 -0500
-Message-ID: <4CA59188.5020904@ti.com>
-References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com> <1285915146-18511-3-git-send-email-peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 1/2] omap: dma: Fix buffering disable bit setting for
+ omap24xx
+Date: Fri, 1 Oct 2010 02:47:10 -0500
+Message-ID: <4CA591FE.7030201@ti.com>
+References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com> <1285915146-18511-2-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60111 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60115 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752295Ab0JAIVP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Oct 2010 04:21:15 -0400
-In-Reply-To: <1285915146-18511-3-git-send-email-peter.ujfalusi@nokia.com>
+	id S1752295Ab0JAIVR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 04:21:17 -0400
+In-Reply-To: <1285915146-18511-2-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
@@ -19,37 +20,21 @@ Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@v
 
 Peter Ujfalusi had written, on 10/01/2010 01:39 AM, the following:
 [...]
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-> ---
->  arch/arm/plat-omap/dma.c              |   35 +++++++++++++++++++++++++++++++-
->  arch/arm/plat-omap/include/plat/dma.h |    3 ++
->  2 files changed, 36 insertions(+), 2 deletions(-)
-> 
 > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 7115884..590cb47 100644
+> index ec7eddf..7115884 100644
 > --- a/arch/arm/plat-omap/dma.c
 > +++ b/arch/arm/plat-omap/dma.c
-> @@ -30,6 +30,7 @@
->  #include <linux/irq.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> +#include <linux/delay.h>
->  
->  #include <asm/system.h>
->  #include <mach/hardware.h>
-> @@ -1018,8 +1019,38 @@ void omap_stop_dma(int lch)
->  		dma_write(0, CICR(lch));
->  
->  	l = dma_read(CCR(lch));
-> -	l &= ~OMAP_DMA_CCR_EN;
-> -	dma_write(l, CCR(lch));
-> +	/* OMAP3 Errata: sDMA FIFO draining does not finish */
-would be informative to give the iXYZ id as well for some of these 
-erratas might scale across processors.
-> +	if (cpu_is_omap34xx() && (l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
+> @@ -1000,7 +1000,7 @@ void omap_start_dma(int lch)
+>  	 * This will always fail on ES1.0
+>  	 */
+>  	if (cpu_is_omap24xx())
+> -		l |= OMAP_DMA_CCR_EN;
+in code comment for errata helps over time I guess.. could be my pet peeve.
+> +		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
 
-does it make sense to use an dma_errata variable and populate it?
+same comment -> would be nice to have erratas under a errata variable to 
+help track them all..
+[...]
 -- 
 Regards,
 Nishanth Menon
