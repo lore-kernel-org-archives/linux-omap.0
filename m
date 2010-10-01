@@ -1,40 +1,55 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 1/2] omap: dma: Fix buffering disable bit setting for
- omap24xx
-Date: Fri, 1 Oct 2010 02:47:10 -0500
-Message-ID: <4CA591FE.7030201@ti.com>
-References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com> <1285915146-18511-2-git-send-email-peter.ujfalusi@nokia.com>
+From: Arun MURTHY <arun.murthy@stericsson.com>
+Subject: RE: [PATCH 1/7] pwm: Add pwm core driver
+Date: Fri, 1 Oct 2010 10:46:15 +0200
+Message-ID: <F45880696056844FA6A73F415B568C69532DCF34AE@EXDCVYMBSTM006.EQ1STM.local>
+References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
+        <1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
+        <4CA1AD2B.8000905@metafoo.de>
+        <F45880696056844FA6A73F415B568C69532DC2FB6B@EXDCVYMBSTM006.EQ1STM.local>
+        <4CA1BC16.3020702@metafoo.de>
+        <F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
+        <4CA25841.4090702@metafoo.de>
+        <F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
+        <AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
+        <F45880696056844FA6A73F415B568C69532DCF32BC@EXDCVYMBSTM006.EQ1STM.local>
+        <AANLkTikTo42Q5-yMEwyQH4mt=qLjaKrtJK3ydZNFyqai@mail.gmail.com>
+        <F45880696056844FA6A73F415B568C69532DCF33BB@EXDCVYMBSTM006.EQ1STM.local>
+ <AANLkTimPgPY9rX_MYZTv0PpRQgfWGoSeSE9WWy_ami-V@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60115 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752295Ab0JAIVR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Oct 2010 04:21:17 -0400
-In-Reply-To: <1285915146-18511-2-git-send-email-peter.ujfalusi@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mips-bounce@linux-mips.org>
+In-Reply-To: <AANLkTimPgPY9rX_MYZTv0PpRQgfWGoSeSE9WWy_ami-V@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+To: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Trilok Soni <soni.trilok@gmail.com>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, Lars-Peter Clausen <lars@metafoo.de>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Bill Gatliff <bgat@billgatliff.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, Marek Vasut <marek.vasut@gmail.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, Mattias WALLIN <mattias.wallin@stericsson.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, eric.y.miao@gmail.
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Peter Ujfalusi had written, on 10/01/2010 01:39 AM, the following:
-[...]
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index ec7eddf..7115884 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -1000,7 +1000,7 @@ void omap_start_dma(int lch)
->  	 * This will always fail on ES1.0
->  	 */
->  	if (cpu_is_omap24xx())
-> -		l |= OMAP_DMA_CCR_EN;
-in code comment for errata helps over time I guess.. could be my pet peeve.
-> +		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
-
-same comment -> would be nice to have erratas under a errata variable to 
-help track them all..
-[...]
--- 
-Regards,
-Nishanth Menon
+PiBPbiBGcmksIE9jdCAxLCAyMDEwIGF0IDQ6MjUgUE0sIEFydW4gTVVSVEhZDQo+IDxhcnVuLm11
+cnRoeUBzdGVyaWNzc29uLmNvbT4gd3JvdGU6DQo+ID4gWW91IGNhbiBoYXZlIGEgbG9vayBhdCB0
+aGUgcHdtX2NvbmZpZ19ub3NsZWVwKCkscHdtX3NldF9wb2xhcml0eSgpLA0KPiA+IHB3bV9zeW5j
+aHJvbml6ZSgpLHB3bV91bnN5bmNocm9uaXplKCksIHB3bV9zZXRfaGFuZGxlcigpIGV0Yy4NCj4g
+PiBUaGVzZSBhcmUgbm90IGJlaW5nIHVzZWQgYnkgdGhlIGV4c3RpbmcgcHdtIGRyaXZlcnMgZXhj
+ZXB0IEF0bWVsIHB3bS4NCj4gSG93IHdvdWxkIHlvdXIgJ3NpbXBsZScgZHJpdmVyIGhhbmRsZSBB
+dG1lbCB0aGVuID8NCj4gV2hhdCBpZiBmdXR1cmUncyBTb0NzIHN0YXJ0IHByb3ZpZGluZyB0aG9z
+ZSAnYWR2YW5jZScgZmVhdHVyZXMgbGlrZQ0KPiBBdG1lbCdzID8NCj4gDQpUaGUgcHdtIGNvcmUg
+ZHJpdmVyIGlzIHRoZSBpbnRlcnNlY3Rpb24gb2YgYWxsIHB3bSBkcml2ZXJzIGFuZCBub3QgdW5p
+b24NCm9mIGFsbCBwd20gZHJpdmVyLiBJIHJlZmVyIHRoaXMgYXMgc2ltcGxlIHB3bSBjb3JlIGRy
+aXZlciAvIGZyYW1ld29yay4NCkF0bWVsIHB3bSBpcyBvZiBhIHNlcGFyYXRlIGNsYXNzaWZpY2F0
+aW9uLg0KSXQgaW5jbHVkZXMgR1BJTyBhbHNvLiBUaG91Z2gsIEF0bWVsIGNhbiB1c2UgdGhlIHB3
+bSBjb3JlIGRyaXZlciBmcmFtZXdvcmsNCmZvciBmdW5jdGlvbmFsaXRpZXMgbGlrZSBwd21fZW5h
+YmxlLCBwd21fZGlzYWJsZSwgcHdtX2NvbmZpZywgZXRjIGFuZCByZW1haW5pbmcNCmZ1bmN0aW9u
+YWxpdGllcyBzcGVjaWZpYyB0byBBdG1lbCB3aWxsIGJlIGhhbmRsZWQgaW4gQXRsbWVsIHB3bSBk
+cml2ZXIgYW5kDQp3aWxsIG5vdCBiZSBleHBvc2VkIHRvIHRoZSBlbnRpcmUga2VybmVsLg0KSXRz
+IHRoYXQgdGhlIHByZXNlbnQgZGF5IHB3bSBkZXZpY2UgdGhhdCBoYXMgYmVlbiBtYWRlIGVhc3kg
+dGhvdWdoLCBieSBwcm92aWRpbmcNCnRoZSBzYW1lIGZ1bmN0aW9uYWxpdHkuDQoNCj4gPiBJIG1l
+YW4gbm90IHRoZSBmdW5jdGlvbnMgYnV0IHRoZSBmdW5jdGlvbmFsaXR5Lg0KPiA+IFBXTSBpcyBh
+IHNpbXBsZSBkZXZpY2UgYW5kIG1vc3Qgb2YgaXRzIGNsaWVudHMgYXJlIGNvbnRyb2xsaW5nDQo+
+IGludGVuc2l0eQ0KPiA+IG9mIGJhY2tsaWdodCwgbGVkcywgdmlicmF0b3IgZXRjLg0KPiA+IEkg
+ZG9uJ3QgdGhpbmsgdGhlc2UgY29tcGxleCBmdW5jdGlvbmFsaXR5IGFyZSByZXF1aXJlZC4NCj4g
+b2ggZGVhciAhDQpIZXJlIEkgbWVhbiB3aHkgc2hvdWxkIGFsbCB0aG9zZSBmdW5jdGlvbiBiZSBl
+eHBvc2VkIHRvIHRoZSBlbnRpcmUga2VybmVsLA0KYXMgbW9zdCBvZiB0aGUgcHdtIGRldmljZXMg
+ZG8gbm90IHVzZSB0aGVtLg0KDQpUaGFua3MgYW5kIFJlZ2FyZHMsDQpBcnVuIFIgTXVydGh5DQot
+LS0tLS0tLS0tLS0NCg==
