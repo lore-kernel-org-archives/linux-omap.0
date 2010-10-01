@@ -1,40 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/4] CBUS patches
-Date: Fri, 1 Oct 2010 11:03:23 +0300
-Message-ID: <20101001080323.GK2925@legolas.emea.dhcp.ti.com>
-References: <1285919238-26555-1-git-send-email-balbi@ti.com>
- <20101001074808.GJ2925@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not finish
+Date: Fri, 1 Oct 2010 02:45:12 -0500
+Message-ID: <4CA59188.5020904@ti.com>
+References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com> <1285915146-18511-3-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38777 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60111 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754670Ab0JAIDW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Oct 2010 04:03:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20101001074808.GJ2925@legolas.emea.dhcp.ti.com>
+	id S1752295Ab0JAIVP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 04:21:15 -0400
+In-Reply-To: <1285915146-18511-3-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-On Fri, Oct 01, 2010 at 02:48:08AM -0500, Balbi, Felipe wrote:
->On Fri, Oct 01, 2010 at 02:47:14AM -0500, Balbi, Felipe wrote:
->>Hi Tony,
->>
->>removed a few unneeded includes and moved platform_device
->>registration to board file.
->>
->>ps: as usual, compile tested only :-p No working n810 available
->
->forgot to say, patches also available at:
->
->git://gitorious.org/usb/usb.git cbus
+Peter Ujfalusi had written, on 10/01/2010 01:39 AM, the following:
+[...]
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+> ---
+>  arch/arm/plat-omap/dma.c              |   35 +++++++++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/dma.h |    3 ++
+>  2 files changed, 36 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 7115884..590cb47 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/irq.h>
+>  #include <linux/io.h>
+>  #include <linux/slab.h>
+> +#include <linux/delay.h>
+>  
+>  #include <asm/system.h>
+>  #include <mach/hardware.h>
+> @@ -1018,8 +1019,38 @@ void omap_stop_dma(int lch)
+>  		dma_write(0, CICR(lch));
+>  
+>  	l = dma_read(CCR(lch));
+> -	l &= ~OMAP_DMA_CCR_EN;
+> -	dma_write(l, CCR(lch));
+> +	/* OMAP3 Errata: sDMA FIFO draining does not finish */
+would be informative to give the iXYZ id as well for some of these 
+erratas might scale across processors.
+> +	if (cpu_is_omap34xx() && (l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
 
-Jarkko Nikula reminded me about 770. It also has cbus so it's now
-missing the platform_devices hehe. Sorry about that. Forget about these
-patches.
-
+does it make sense to use an dma_errata variable and populate it?
 -- 
-balbi
+Regards,
+Nishanth Menon
