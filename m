@@ -1,117 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/8] omap: pandora: add fixed regulator for wlan
-Date: Fri, 01 Oct 2010 16:34:13 -0700
-Message-ID: <20101001233413.31894.99754.stgit@baageli.muru.com>
+Subject: [PATCH 5/8] OMAP4 ES2: HSMMC soft reset change
+Date: Fri, 01 Oct 2010 16:34:17 -0700
+Message-ID: <20101001233417.31894.33130.stgit@baageli.muru.com>
 References: <20101001233315.31894.49599.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56199 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56321 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873Ab0JAXeO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:34:14 -0400
+	with ESMTP id S1753873Ab0JAXeT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:34:19 -0400
 In-Reply-To: <20101001233315.31894.49599.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>
 
-From: Grazvydas Ignotas <notasas@gmail.com>
+From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Instead of enabling the wifi module explicitly using GPIO, add a fixed
-regulator and hook it to MMC host card power control. This way it will
-only be enabled when SDIO subsystem wants to talk to it, saving power
-(as done by Zoom boards).
+The omap4 es2 hsmmc has a updated soft reset logic.After the
+reset is issued monitor a 0->1 transition first. The reset of
+CMD or DATA lines is complete only after a 0->1->0 transition
+of SRC or SRD bits.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+Tested-by: Anand Gadiyar <gadiyar@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-omap3pandora.c |   43 ++++++++++++++++++++++--------
- 1 files changed, 32 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/hsmmc.c           |    3 +++
+ arch/arm/plat-omap/include/plat/mmc.h |    1 +
+ drivers/mmc/host/omap_hsmmc.c         |   11 +++++++++++
+ 3 files changed, 15 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 2d2e6fc..7c222ba 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -34,6 +34,7 @@
- #include <linux/gpio_keys.h>
- #include <linux/mmc/host.h>
- #include <linux/mmc/card.h>
-+#include <linux/regulator/fixed.h>
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index eb92b81..df1311d 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -303,6 +303,9 @@ void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 		else
+ 			mmc->slots[0].features |= HSMMC_HAS_PBIAS;
  
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -345,6 +346,9 @@ static struct regulator_consumer_supply pandora_vmmc1_supply =
- static struct regulator_consumer_supply pandora_vmmc2_supply =
- 	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.1");
- 
-+static struct regulator_consumer_supply pandora_vmmc3_supply =
-+	REGULATOR_SUPPLY("vmmc", "mmci-omap-hs.2");
++		if (cpu_is_omap44xx() && (omap_rev() > OMAP4430_REV_ES1_0))
++			mmc->slots[0].features |= HSMMC_HAS_UPDATED_RESET;
 +
- static struct regulator_consumer_supply pandora_vdda_dac_supply =
- 	REGULATOR_SUPPLY("vdda_dac", "omapdss");
+ 		switch (c->mmc) {
+ 		case 1:
+ 			if (mmc->slots[0].features & HSMMC_HAS_PBIAS) {
+diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
+index bc85010..0f0f113 100644
+--- a/arch/arm/plat-omap/include/plat/mmc.h
++++ b/arch/arm/plat-omap/include/plat/mmc.h
+@@ -110,6 +110,7 @@ struct omap_mmc_platform_data {
  
-@@ -489,6 +493,33 @@ static struct regulator_init_data pandora_vsim = {
- 	.consumer_supplies	= &pandora_adac_supply,
- };
+ 		/* we can put the features above into this variable */
+ #define HSMMC_HAS_PBIAS		(1 << 0)
++#define HSMMC_HAS_UPDATED_RESET	(1 << 1)
+ 		unsigned features;
  
-+/* Fixed regulator internal to Wifi module */
-+static struct regulator_init_data pandora_vmmc3 = {
-+	.constraints = {
-+		.valid_ops_mask		= REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &pandora_vmmc3_supply,
-+};
+ 		int switch_pin;			/* gpio (card detect) */
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 53f8fa5..69858e7 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -982,6 +982,17 @@ static inline void omap_hsmmc_reset_controller_fsm(struct omap_hsmmc_host *host,
+ 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
+ 
++	/*
++	 * OMAP4 ES2 and greater has an updated reset logic.
++	 * Monitor a 0->1 transition first
++	 */
++	if (mmc_slot(host).features & HSMMC_HAS_UPDATED_RESET) {
++		while ((!(OMAP_HSMMC_READ(host, SYSCTL) & bit))
++					&& (i++ < limit))
++			cpu_relax();
++	}
++	i = 0;
 +
-+static struct fixed_voltage_config pandora_vwlan = {
-+	.supply_name		= "vwlan",
-+	.microvolts		= 1800000, /* 1.8V */
-+	.gpio			= PANDORA_WIFI_NRESET_GPIO,
-+	.startup_delay		= 50000, /* 50ms */
-+	.enable_high		= 1,
-+	.enabled_at_boot	= 0,
-+	.init_data		= &pandora_vmmc3,
-+};
-+
-+static struct platform_device pandora_vwlan_device = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= 1,
-+	.dev = {
-+		.platform_data = &pandora_vwlan,
-+	},
-+};
-+
- static struct twl4030_usb_data omap3pandora_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
-@@ -645,19 +676,8 @@ static void pandora_wl1251_init(void)
- 	if (pandora_wl1251_pdata.irq < 0)
- 		goto fail_irq;
- 
--	ret = gpio_request(PANDORA_WIFI_NRESET_GPIO, "wl1251 nreset");
--	if (ret < 0)
--		goto fail_irq;
--
--	/* start powered so that it probes with MMC subsystem */
--	ret = gpio_direction_output(PANDORA_WIFI_NRESET_GPIO, 1);
--	if (ret < 0)
--		goto fail_nreset;
--
- 	return;
- 
--fail_nreset:
--	gpio_free(PANDORA_WIFI_NRESET_GPIO);
- fail_irq:
- 	gpio_free(PANDORA_WIFI_IRQ_GPIO);
- fail:
-@@ -669,6 +689,7 @@ static struct platform_device *omap3pandora_devices[] __initdata = {
- 	&pandora_keys_gpio,
- 	&pandora_dss_device,
- 	&pandora_wl1251_data,
-+	&pandora_vwlan_device,
- };
- 
- static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
+ 		(i++ < limit))
+ 		cpu_relax();
 
