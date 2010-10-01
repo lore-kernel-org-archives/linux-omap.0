@@ -1,42 +1,84 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not finish
-Date: Fri, 1 Oct 2010 13:43:35 +0300
-Message-ID: <201010011343.35293.peter.ujfalusi@nokia.com>
-References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com> <4CA5AD3A.50700@ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C2E2@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH v2 1/2] omap: dma: Fix buffering disable bit setting for omap24xx
+Date: Fri,  1 Oct 2010 14:04:54 +0300
+Message-ID: <1285931095-21053-2-git-send-email-peter.ujfalusi@nokia.com>
+References: <1285931095-21053-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:50172 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755147Ab0JAKnw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 06:43:52 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C2E2@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([147.243.1.47]:22877 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751210Ab0JALE4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 07:04:56 -0400
+In-Reply-To: <1285931095-21053-1-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Nishanth Menon <nm@ti.com>
 
-On Friday 01 October 2010 12:45:47 ext G, Manjunath Kondaiah wrote:
-> > Apologies, but does that mean:
-> > a) the errata i541 is handled as well as part of hwmod series?
->=20
-> No.
->=20
-> > b) the patch needs to be ported ontop of hwmod series?
->=20
-> Yes.
+From: Jarkko Nikula <jhnikula@gmail.com>
 
-I think these fixes should be sent for 2.6.36, and I think it might be =
-a good=20
-idea to send it for .35, and .34 as well, since this problem most likel=
-y can hit=20
-those kernels as well.
+An errata workaround for omap24xx is not setting the buffering disable bit
+25 what is the purpose but channel enable bit 7 instead.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Background for this fix is the DMA stalling issue with ASoC omap-mcbsp
+driver. Peter Ujfalusi <peter.ujfalusi@nokia.com> has found an issue in
+recording that the DMA stall could happen if there were a buffer overrun
+detected by ALSA and the DMA was stopped and restarted due that. This
+problem is known to occur on both OMAP2420 and OMAP3. It can recover on
+OMAP3 after dma free, dma request and reconfiguration cycle. However, on
+OMAP2420 it seems that only way to recover is a reset.
+
+Problem was not visible before the commit c12abc0. That commit changed that
+the McBSP transmitter/receiver is released from reset only when needed. That
+is, only enabled McBSP transmitter without transmission was able to prevent
+this DMA stall problem in receiving side and underlying problem did not show
+up until now. McBSP transmitter itself seems to no be reason since DMA
+stall does not recover by enabling the transmission after stall.
+
+Debugging showed that there were a DMA write active during DMA stop time and
+it never completed even when restarting the DMA. Experimenting showed that
+the DMA buffering disable bit could be used to avoid stalling when using
+source synchronized transfers. However that could have performance hit and
+OMAP3 TRM states that buffering disable is not allowed for destination
+synchronized transfers so subsequent patch will implement a method to
+complete DMA writes when stopping.
+
+This patch is based on assumtion that complete lock-up on OMAP2420 is
+different but related problem. I don't have access to OMAP2420 errata but
+I believe this old workaround here is put for a reason but unfortunately
+a wrong bit was typed and problem showed up only now.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+---
+ arch/arm/plat-omap/dma.c              |    2 +-
+ arch/arm/plat-omap/include/plat/dma.h |    1 +
+ 2 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index ec7eddf..7115884 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -1000,7 +1000,7 @@ void omap_start_dma(int lch)
+ 	 * This will always fail on ES1.0
+ 	 */
+ 	if (cpu_is_omap24xx())
+-		l |= OMAP_DMA_CCR_EN;
++		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
+ 
+ 	l |= OMAP_DMA_CCR_EN;
+ 	dma_write(l, CCR(lch));
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+index af3a039..776ba44 100644
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -335,6 +335,7 @@
+ #define OMAP2_DMA_MISALIGNED_ERR_IRQ	(1 << 11)
+ 
+ #define OMAP_DMA_CCR_EN			(1 << 7)
++#define OMAP_DMA_CCR_BUFFERING_DISABLE	(1 << 25)
+ 
+ #define OMAP_DMA_DATA_TYPE_S8		0x00
+ #define OMAP_DMA_DATA_TYPE_S16		0x01
+-- 
+1.7.3
+
