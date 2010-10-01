@@ -1,73 +1,122 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP: PM: Fix build when CONFIG_PM_DEBUG isn't set
-Date: Fri, 01 Oct 2010 13:19:07 -0700
-Message-ID: <877hi18y4k.fsf@deeprootsystems.com>
-References: <87d3rzotj6.fsf@deeprootsystems.com>
-	<1285621460-22011-1-git-send-email-loic.minier@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH] omap: zoom2: fix build break due to ASoC changes
+Date: Sat,  2 Oct 2010 02:00:11 +0530
+Message-ID: <1285965011-17384-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:49705 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752659Ab0JAUTK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 16:19:10 -0400
-Received: by pxi10 with SMTP id 10so859440pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 13:19:10 -0700 (PDT)
-In-Reply-To: <1285621460-22011-1-git-send-email-loic.minier@linaro.org>
- (=?iso-8859-1?Q?=22Lo=EFc?=
-	Minier"'s message of "Mon, 27 Sep 2010 23:04:20 +0200")
+Received: from comal.ext.ti.com ([198.47.26.152]:43051 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752870Ab0JAUaa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 16:30:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?Lo=EFc?= Minier <loic.minier@linaro.org>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Thara Gopinath <thara@ti.com>
+To: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: Anand Gadiyar <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Lo=EFc Minier <loic.minier@linaro.org> writes:
+Commit f0fba2ad1b6 (ASoC: multi-component - ASoC
+Multi-Component Support) in linux-next as of 20101001
+broke omap builds with the following errors.
 
-> Since 6cdee91257bee23a46dc869ca62469b67cba2c7e the references to
-> enable_off_mode and sleep_while_idle can't be resolved when CONFIG_PM=
-_DEBUG
-> isn't set:
-> arch/arm/mach-omap2/built-in.o: In function `omap_uart_restore_contex=
-t':
-> arch/arm/mach-omap2/serial.c:253: undefined reference to `enable_off_=
-mode'
-> arch/arm/mach-omap2/built-in.o: In function `omap3_can_sleep':
-> arch/arm/mach-omap2/pm34xx.c:479: undefined reference to `sleep_while=
-_idle'
->
-> Simply #define these in pm.h just like omap2_pm_debug.
->
-> Signed-off-by: Lo=EFc Minier <loic.minier@linaro.org>
+  CC      arch/arm/mach-omap2/board-zoom2.o
+arch/arm/mach-omap2/board-zoom2.c:65: error: 'zoom2_bci_data' undeclared here (not in a function)
+arch/arm/mach-omap2/board-zoom2.c:67: error: 'zoom2_usb_data' undeclared here (not in a function)
+arch/arm/mach-omap2/board-zoom2.c:68: error: 'zoom2_gpio_data' undeclared here (not in a function)
+arch/arm/mach-omap2/board-zoom2.c:69: error: 'zoom2_kp_twl4030_data' undeclared here (not in a function)
+arch/arm/mach-omap2/board-zoom2.c:71: error: 'zoom2_vmmc1' undeclared here (not in a function)
+arch/arm/mach-omap2/board-zoom2.c:72: error: 'zoom2_vmmc2' undeclared here (not in a function)
+arch/arm/mach-omap2/board-zoom2.c:73: error: 'zoom2_vsim' undeclared here (not in a function)
+make[1]: *** [arch/arm/mach-omap2/board-zoom2.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
-Applying this fix, but moving the change down into an existing #ifdef
+For zoom2/3, the i2c peripheral  initialization is already done in
+board-zoom-peripherals.c and should not be done in board-zoom2.c.
+Revert all of the changes made to board-zoom2.c to fix the build.
 
-Kevin
+ASoC-related changes should be done separately if needed.
 
-> ---
->  arch/arm/mach-omap2/pm.h |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 77770a1..68db3a7 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -13,8 +13,13 @@
-> =20
->  #include <plat/powerdomain.h>
-> =20
-> +#ifdef CONFIG_PM_DEBUG
->  extern u32 enable_off_mode;
->  extern u32 sleep_while_idle;
-> +#else
-> +#define enable_off_mode 0
-> +#define sleep_while_idle 0
-> +#endif
-> =20
->  extern void *omap3_secure_ram_storage;
->  extern void omap3_pm_off_mode_enable(int);
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+Liam,
+
+The only functional change I see here is the twl4030_codec_audio_data.
+That should probably go into board-zoom-peripherals.c.
+
+I'll take a deeper look in a while and fix properly there.
+
+- Anand
+
+ arch/arm/mach-omap2/board-zoom2.c |   28 +++-------------------------
+ 1 file changed, 3 insertions(+), 25 deletions(-)
+
+Index: linux-2.6/arch/arm/mach-omap2/board-zoom2.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-omap2/board-zoom2.c
++++ linux-2.6/arch/arm/mach-omap2/board-zoom2.c
+@@ -14,7 +14,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+ #include <linux/gpio.h>
+-#include <linux/i2c/twl.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -35,11 +34,8 @@ static void __init omap_zoom2_init_irq(v
+ 	omap_gpio_init();
+ }
+ 
+-/* EXTMUTE callback function */
+-void zoom2_set_hs_extmute(int mute)
+-{
+-	gpio_set_value(ZOOM2_HEADSET_EXTMUTE_GPIO, mute);
+-}
++/* REVISIT: These audio entries can be removed once MFD code is merged */
++#if 0
+ 
+ static struct twl4030_madc_platform_data zoom2_madc_data = {
+ 	.irq_line	= 1,
+@@ -47,9 +43,6 @@ static struct twl4030_madc_platform_data
+ 
+ static struct twl4030_codec_audio_data zoom2_audio_data = {
+ 	.audio_mclk = 26000000,
+-	.ramp_delay_value = 3,	/* 161 ms */
+-	.hs_extmute = 1,
+-	.set_hs_extmute = zoom2_set_hs_extmute,
+ };
+ 
+ static struct twl4030_codec_data zoom2_codec_data = {
+@@ -71,24 +64,10 @@ static struct twl4030_platform_data zoom
+ 	.vmmc1          = &zoom2_vmmc1,
+ 	.vmmc2          = &zoom2_vmmc2,
+ 	.vsim           = &zoom2_vsim,
+-};
+ 
+-static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
+-	{
+-		I2C_BOARD_INFO("twl4030", 0x48),
+-		.flags = I2C_CLIENT_WAKE,
+-		.irq = INT_34XX_SYS_NIRQ,
+-		.platform_data = &zoom2_twldata,
+-	},
+ };
+ 
+-static int __init omap3_zoom2_i2c_init(void)
+-{
+-	omap_register_i2c_bus(1, 2600, zoom2_i2c_boardinfo,
+-			ARRAY_SIZE(zoom2_i2c_boardinfo));
+-	return 0;
+-}
+-
++#endif
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
+@@ -156,7 +135,6 @@ static void __init omap_zoom2_init(void)
+ {
+ 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+ 	zoom_peripherals_init();
+-	omap3_zoom2_i2c_init();
+ 	board_nand_init(zoom_nand_partitions,
+ 			ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS);
+ 	zoom_debugboard_init();
