@@ -1,84 +1,37 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH v3 1/2] omap: dma: Fix buffering disable bit setting for omap24xx
-Date: Fri,  1 Oct 2010 15:36:16 +0300
-Message-ID: <1285936577-14881-2-git-send-email-peter.ujfalusi@nokia.com>
-References: <1285936577-14881-1-git-send-email-peter.ujfalusi@nokia.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 3/4] cbus: tahvo: move platform_device to board file
+Date: Fri, 1 Oct 2010 15:37:37 +0300
+Message-ID: <20101001123737.GT2925@legolas.emea.dhcp.ti.com>
+References: <1285936419-28426-1-git-send-email-balbi@ti.com>
+ <1285936419-28426-4-git-send-email-balbi@ti.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:39145 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756297Ab0JAMgR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 08:36:17 -0400
-In-Reply-To: <1285936577-14881-1-git-send-email-peter.ujfalusi@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60510 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756750Ab0JAMhh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 08:37:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1285936419-28426-4-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-From: Jarkko Nikula <jhnikula@gmail.com>
+On Fri, Oct 01, 2010 at 07:33:38AM -0500, Balbi, Felipe wrote:
+>@@ -255,9 +269,24 @@ static void __init n8x0_cbus_init(void)
+> 		return;
+> 	}
+>
+>-	set_irq_type(gpio_to_irq(108), IRQ_TYPE_EDGE_RISING);
+>-	retu_resource[0].start = gpio_to_irq(108);
+>-	platform_device_register(&retu_device);
 
-An errata workaround for omap24xx is not setting the buffering disable bit
-25 what is the purpose but channel enable bit 7 instead.
+hmmm, these three deleted lines look suspicious :-(
 
-Background for this fix is the DMA stalling issue with ASoC omap-mcbsp
-driver. Peter Ujfalusi <peter.ujfalusi@nokia.com> has found an issue in
-recording that the DMA stall could happen if there were a buffer overrun
-detected by ALSA and the DMA was stopped and restarted due that. This
-problem is known to occur on both OMAP2420 and OMAP3. It can recover on
-OMAP3 after dma free, dma request and reconfiguration cycle. However, on
-OMAP2420 it seems that only way to recover is a reset.
+Let these cook for a while, I'll get back to them in a day or two. CBUS
+is making me crazy :-p
 
-Problem was not visible before the commit c12abc0. That commit changed that
-the McBSP transmitter/receiver is released from reset only when needed. That
-is, only enabled McBSP transmitter without transmission was able to prevent
-this DMA stall problem in receiving side and underlying problem did not show
-up until now. McBSP transmitter itself seems to no be reason since DMA
-stall does not recover by enabling the transmission after stall.
-
-Debugging showed that there were a DMA write active during DMA stop time and
-it never completed even when restarting the DMA. Experimenting showed that
-the DMA buffering disable bit could be used to avoid stalling when using
-source synchronized transfers. However that could have performance hit and
-OMAP3 TRM states that buffering disable is not allowed for destination
-synchronized transfers so subsequent patch will implement a method to
-complete DMA writes when stopping.
-
-This patch is based on assumtion that complete lock-up on OMAP2420 is
-different but related problem. I don't have access to OMAP2420 errata but
-I believe this old workaround here is put for a reason but unfortunately
-a wrong bit was typed and problem showed up only now.
-
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
----
- arch/arm/plat-omap/dma.c              |    2 +-
- arch/arm/plat-omap/include/plat/dma.h |    1 +
- 2 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index ec7eddf..7115884 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -1000,7 +1000,7 @@ void omap_start_dma(int lch)
- 	 * This will always fail on ES1.0
- 	 */
- 	if (cpu_is_omap24xx())
--		l |= OMAP_DMA_CCR_EN;
-+		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
- 
- 	l |= OMAP_DMA_CCR_EN;
- 	dma_write(l, CCR(lch));
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index af3a039..776ba44 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -335,6 +335,7 @@
- #define OMAP2_DMA_MISALIGNED_ERR_IRQ	(1 << 11)
- 
- #define OMAP_DMA_CCR_EN			(1 << 7)
-+#define OMAP_DMA_CCR_BUFFERING_DISABLE	(1 << 25)
- 
- #define OMAP_DMA_DATA_TYPE_S8		0x00
- #define OMAP_DMA_DATA_TYPE_S16		0x01
 -- 
-1.7.3
-
+balbi
