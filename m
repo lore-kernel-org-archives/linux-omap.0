@@ -1,74 +1,148 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
-Date: Fri, 01 Oct 2010 08:07:04 -0700
-Message-ID: <87k4m2c5pj.fsf@deeprootsystems.com>
-References: <8762xpenf8.fsf@deeprootsystems.com>
-	<20100928201844.GI3117@atomide.com>
-	<87tyl8rxwp.fsf@deeprootsystems.com>
-	<20100930021819.GD3117@atomide.com>
-	<877hi3i9cp.fsf@deeprootsystems.com>
-	<87pqvvgt8g.fsf@deeprootsystems.com>
-	<877hi3gqq7.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF2DAF74@dbde02.ent.ti.com>
+From: kishore kadiyala <kishorek.kadiyala@gmail.com>
+Subject: Re: [PATCH v2 3/4] omap4 hsmmc: Register offset handling
+Date: Fri, 1 Oct 2010 20:44:11 +0530
+Message-ID: <AANLkTinoFUwMZxzkD-YxcW=L=0FD6XBHE3t-1VEv2heY@mail.gmail.com>
+References: <33958.10.24.255.17.1284827654.squirrel@dbdmail.itg.ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C50E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:34257 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753010Ab0JAPHG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 11:07:06 -0400
-Received: by pwj5 with SMTP id 5so573316pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 08:07:06 -0700 (PDT)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003FF2DAF74@dbde02.ent.ti.com>
-	(Rajendra Nayak's message of "Fri, 1 Oct 2010 18:58:43 +0530")
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:50893 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757219Ab0JAPON convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 11:14:13 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C50E@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "Kadiyala, Kishore" <kishore.kadiyala@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+Manju,
 
-[...]
-
->> >>
->> >> Hmm, this fault is very early and long before any PM code has
->> >> initialzed.  I suspect this happens with the master branch too ??
->> >
->> > I've reproduced this now, and it doesn't happen on the master branch and
->> > only happens after merge pm-hwmods.
->> >
->> > Debugging now...
->> 
->> OK, so this failure is (somehow) related to the i2c hwmods, but I did
->> not figure out how.  Rajendra, can you dig into this?  It only seems to
->> happen on 2420/n800, and all other platforms seem OK.
+On Fri, Oct 1, 2010 at 8:32 PM, G, Manjunath Kondaiah <manjugk@ti.com> =
+wrote:
 >
-> Hi Kevin,
 >
-> I was able to reproduce the crash on the n800 and have been debugging
-> it for a while.  Like you said putting a HWMOD_INIT_NO_RESET did not
-> seem to fix it for me, and the only way I can get the n800 to
-> completely bootup is by removing the sysc completely for i2c.  That is
-> quite surprising since the only thing that can be done using the
-> sysconfig on omap2420 is a softreset.
 >
-> I verified that its not the sysc read itself that causes a crash
-> (clocks seem to be enabled, idlest seems fine) but somehow just these
-> sysc reads (if I have HWMOD_INIT_NO_RESET set) seem to be enough to
-> cause the crash.  Nothing gets written back to the sysc register
-> either.  I was suspecting the omap_readl's done in hmwod framework on
-> the 16bit 2420 registers to be an issue, but I am yet to figure out
-> how.
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>> Kadiyala, Kishore
+>> Sent: Saturday, September 18, 2010 10:04 PM
+>> To: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org;
+>> linux-arm-kernel@lists.infradead.org
+>> Cc: khilman@deeprootsystems.com; Cousson, Benoit
+>> Subject: [PATCH v2 3/4] omap4 hsmmc: Register offset handling
+>>
+>> The offset handling implementation of omap4 mmc registers
+>> which was already present can't be reused once hwmod
+>> modifications are done for mmc driver.
+>> Since hwmod data file for OMAP4 is an auto generated the base
+>> address for MMC will remain same as OMAP3 and thus the offset
+>> deviation of registers should be updated in the hsmmc driver.
+>> The omap-mmc platform data is updated with a register offset
+>> which will be updated and used in the driver accordingly.
+>>
+>> Signed-off-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/devices.c =A0 =A0 =A0 =A0 | =A0 =A08 +++-----
+>> =A0arch/arm/mach-omap2/hsmmc.c =A0 =A0 =A0 =A0 =A0 | =A0 =A04 ++++
+>> =A0arch/arm/plat-omap/include/plat/mmc.h | =A0 =A03 +++
+>> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 | =A0 =A02 +-
+>> =A04 files changed, 11 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/devices.c
+>> b/arch/arm/mach-omap2/devices.c index 2dbb265..bb7ec13 100644
+>> --- a/arch/arm/mach-omap2/devices.c
+>> +++ b/arch/arm/mach-omap2/devices.c
+>> @@ -745,13 +745,13 @@ void __init omap2_init_mmc(struct
+>> omap_mmc_platform_data **mmc_data,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 case 3:
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!cpu_is_omap44xx())
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 base =3D OMAP4_MMC4_BASE +=
+ OMAP4_MMC_REG_OFFSET;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 base =3D OMAP4_MMC4_BASE;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq =3D OMAP44XX_IRQ_MMC=
+4;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 case 4:
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!cpu_is_omap44xx())
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 base =3D OMAP4_MMC5_BASE +=
+ OMAP4_MMC_REG_OFFSET;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 base =3D OMAP4_MMC5_BASE;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq =3D OMAP44XX_IRQ_MMC=
+5;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 default:
+>> @@ -762,10 +762,8 @@ void __init omap2_init_mmc(struct
+>> omap_mmc_platform_data **mmc_data,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 size =3D OMAP2420_MMC_SI=
+ZE;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 name =3D "mmci-omap";
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else if (cpu_is_omap44xx()) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (i < 3) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 base +=3D =
+OMAP4_MMC_REG_OFFSET;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (i < 3)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 irq +=3D=
+ OMAP44XX_IRQ_GIC_START;
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 size =3D OMAP4_HSMMC_SIZ=
+E;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 name =3D "mmci-omap-hs";
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
+>> diff --git a/arch/arm/mach-omap2/hsmmc.c
+>> b/arch/arm/mach-omap2/hsmmc.c index c8f647b..49d76a7 100644
+>> --- a/arch/arm/mach-omap2/hsmmc.c
+>> +++ b/arch/arm/mach-omap2/hsmmc.c
+>> @@ -261,6 +261,10 @@ void __init omap2_hsmmc_init(struct
+>> omap2_hsmmc_info *controllers)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].wires =3D c->wires;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->slots[0].internal_clock =3D !c->ext=
+_clock;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->dma_mask =3D 0xffffffff;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap44xx())
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->reg_offset =3D OMAP4_=
+MMC_REG_OFFSET;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc->reg_offset =3D 0;
 >
-> I am debugging this further, but in the meantime since this is gating
-> all other patches to get merged in omap-testing, should I just remove
-> the sysc for i2c on 2420? The only thing it will prevent is a i2c
-> softreset at boot, which anyway does not seem to be causing any issues
-> on n800.
+> 1. Since you mentioned that, this is useful for hwmod, the
+> register offsets should use enum and static tables. You can
+> refer to i2c-omap.c for more details and dma hwmod review
+> comments for more details.
+> https://patchwork.kernel.org/patch/126251/
 
-For omap-testing, I will just drop the i2c series for now until this is
-better understood.
+I've avoided using static tables for register offset handling as sugges=
+ted
+by Benoit for HSMMC driver.Instead had the offset updated in hsmmc.c
+and used in driver.
 
-Happy debugging!   this sounds like a tricky one,
+Could you check the latest version V4
+http://www.spinics.net/lists/linux-omap/msg37226.html
 
-Kevin
+
+>
+> 2. Replace macros with inline functions for low level read/write
+> functions.
+
+Didn't touch this in the latest V4
+
+Regards,
+Kishore
+>
+> =A0-Manjunath
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
