@@ -1,48 +1,102 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv3 1/17] OMAP2/3/4:dmtimer:add device names to flck nodes
-Date: Fri, 01 Oct 2010 08:49:12 -0700
-Message-ID: <87r5g9ap6v.fsf@deeprootsystems.com>
-References: <1285059060-26316-1-git-send-email-tarun.kanti@ti.com>
-	<4CA4F005.6000208@ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH 1/4] iommu: remove CONFIG_MPU_BRIDGE_IOMMU
+Date: Fri, 1 Oct 2010 10:52:48 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F46544CE@dlee06.ent.ti.com>
+References: <1285902536-7043-1-git-send-email-x0095840@ti.com>
+ <1285902536-7043-2-git-send-email-x0095840@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593023412B188@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:32869 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988Ab0JAPtR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 11:49:17 -0400
-Received: by pvg2 with SMTP id 2so799798pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 08:49:17 -0700 (PDT)
-In-Reply-To: <4CA4F005.6000208@ti.com> (Benoit Cousson's message of "Thu, 30
-	Sep 2010 22:16:05 +0200")
+Received: from bear.ext.ti.com ([192.94.94.41]:48539 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750988Ab0JAPyB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 11:54:01 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593023412B188@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>
+To: "Marathe, Yogesh" <yogesh_marathe@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>
+Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+ 
 
-[...]
+Hi Yogesh,
 
-> Since we are in the name discussion, I'd like as well to potentially
-> stop using the dmtimer / gptimer confusing naming convention, and
-> replace that with a simple name "timer". Or potentially "omap_timer".
-> Dual Mode timer does not mean at lot and General Purpose timer is not
-> that better.
->
-> We already started that discussion with Kevin some time ago but didn't
-> really conclude.
->
-> Tony, Paul and Kevin,
-> Do you have any opinion on that subject?
+> -----Original Message-----
+> From: Marathe, Yogesh 
+> Sent: Friday, October 01, 2010 4:33 AM
+> To: Guzman Lugo, Fernando; Hiroshi.DOYU@nokia.com
+> Cc: felipe.contreras@nokia.com; ameya.palande@nokia.com; 
+> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
+> linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 1/4] iommu: remove CONFIG_MPU_BRIDGE_IOMMU
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap- 
+> > owner@vger.kernel.org] On Behalf Of Guzman Lugo, Fernando
+> > Sent: Friday, October 01, 2010 8:39 AM
+> > To: Hiroshi.DOYU@nokia.com
+> > Cc: felipe.contreras@nokia.com; ameya.palande@nokia.com; linux- 
+> > kernel@vger.kernel.org; andy.shevchenko@gmail.com; linux- 
+> > omap@vger.kernel.org; Guzman Lugo, Fernando
+> > Subject: [PATCH 1/4] iommu: remove
+> > CONFIG_MPU_BRIDGE_IOMMU
+> > 
+> > remove CONFIG_MPU_BRIDGE_IOMMU in order to create iommu_device for 
+> > iva2.
+> > 
+> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap-iommu.c |    2 --
+> >  1 files changed, 0 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach- 
+> > omap2/omap-iommu.c index f5a1aad..bb8c01d 100644
+> > --- a/arch/arm/mach-omap2/omap-iommu.c
+> > +++ b/arch/arm/mach-omap2/omap-iommu.c
+> > @@ -35,7 +35,6 @@ static struct iommu_device omap3_devices[] = {
+> >  			.clk_name = "cam_ick",
+> >  		},
+> >  	},
+> > -#if defined(CONFIG_MPU_BRIDGE_IOMMU)
+> >  	{
+> >  		.base = 0x5d000000,
+> >  		.irq = 28,
+> > @@ -45,7 +44,6 @@ static struct iommu_device omap3_devices[] = {
+> >  			.clk_name = "iva2_ck",
+> >  		},
+> >  	},
+> > -#endif
+> >  };
+> >  #define NR_OMAP3_IOMMU_DEVICES
+> > ARRAY_SIZE(omap3_devices)
+> >  static struct platform_device
+> > *omap3_iommu_pdev[NR_OMAP3_IOMMU_DEVICES];
+> > --
+> > 1.6.3.3
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More 
+> majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Fernando,
+> 
+> I have already submitted this patch and it is being discussed here.
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg35615.html
 
-Since the HW teams have decided on aligned names for all the IPs, I
-think we should stick with those.  In this case, "timer".
+Thanks Yogesh I was not aware of that. So please discard this patch.
 
-However, since that is such a generic word and used throughout the
-kernel, maybe calling it omap_timer is better.
 
-I'd live with either,
+Regards,
+Fernando.
 
-Kevin
-
+> 
+> Regards,
+> Yogesh.
+> 
+> 
