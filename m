@@ -1,115 +1,40 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH] omap: Keep nwires for omap1 and 2420 MMC controller
- (Re: [PATCH] omap mmc: extended to pass host capabilities from board file)
-Date: Fri, 1 Oct 2010 10:53:53 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356476F50@dbde02.ent.ti.com>
-References: <1284562163-2828-1-git-send-email-s-ghorai@ti.com>
- <20100923230819.GS4211@atomide.com> <20100930183818.GK3117@atomide.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCHv3 1/17] OMAP2/3/4:dmtimer:add device names to flck nodes
+Date: Fri, 1 Oct 2010 10:56:47 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CD032E6@dbde02.ent.ti.com>
+References: <1285059060-26316-1-git-send-email-tarun.kanti@ti.com>
+ <4CA4F005.6000208@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20100930183818.GK3117@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:56067 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751374Ab0JAF1A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 01:27:00 -0400
+In-Reply-To: <4CA4F005.6000208@ti.com>
 Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
+Benoit,
 
+<<snip>>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, October 01, 2010 12:08 AM
-> To: Ghorai, Sukumar
-> Cc: linux-omap@vger.kernel.org; linux-mmc@vger.kernel.org
-> Subject: [PATCH] omap: Keep nwires for omap1 and 2420 MMC controller (Re:
-> [PATCH] omap mmc: extended to pass host capabilities from board file)
-> 
-> * Tony Lindgren <tony@atomide.com> [100923 16:00]:
-> > * Sukumar Ghorai <s-ghorai@ti.com> [100915 07:41]:
-> > >   wires variable is renamed, extended and this single variable to be
-> used to
-> > >   pass the platform capabilities, e.g DDR mode. Also removed the
-> hardcoded
-> > >   value was using as bus-width.
 > >
-> > This looks like a nice clean-up, I'll queue this via the omap
-> > patches.
+> > This patch adds device name info to OMAP2 dmtimer fclk nodes so
 > 
-> And of course this patch breaks all of mach-omap1 and omap2420.
+> You should avoid using "that patch" in a changelog, since we already 
+> know it is a patch.
 > 
-> Sukumar, your patch modified also drivers/mmc/host/omap.c and board-n8x0.c
-> to use caps instead of nwires. When you do things like that you absolutely
-> _must_test_your_changes_ before sending out any patches.
+> You can read 4.c in "The perfect patch" from Andrew Morton: 
+> http://userweb.kernel.org/~akpm/stuff/tpp.txt
 > 
-> Planning on merging the following fix.
-> 
-> Tony
-> 
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Thu, 30 Sep 2010 10:25:46 -0700
-> Subject: [PATCH] Subject: [PATCH] omap: Keep nwires for omap1 and 2420 MMC
-> controller
-> 
-> A patch from Sukumar Ghorai <s-ghorai@ti.com> changed the
-> nwires to use caps instead. However, nwires is still
-> needed for the earlier controller.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-
-> n8x0.c
-> index abd7e77..6bd9d9a 100644
-> --- a/arch/arm/mach-omap2/board-n8x0.c
-> +++ b/arch/arm/mach-omap2/board-n8x0.c
-> @@ -488,7 +488,7 @@ static struct omap_mmc_platform_data mmc1_data = {
->  	.max_freq			= 24000000,
->  	.dma_mask			= 0xffffffff,
->  	.slots[0] = {
-> -		.caps			= MMC_CAP_4_BIT_DATA,
-> +		.wires			= 4,
->  		.set_power		= n8x0_mmc_set_power,
->  		.set_bus_mode		= n8x0_mmc_set_bus_mode,
->  		.get_cover_state	= n8x0_mmc_get_cover_state,
-> diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-
-> omap/include/plat/mmc.h
-> index 4f819fc..bc85010 100644
-> --- a/arch/arm/plat-omap/include/plat/mmc.h
-> +++ b/arch/arm/plat-omap/include/plat/mmc.h
-> @@ -73,9 +73,16 @@ struct omap_mmc_platform_data {
-> 
->  	struct omap_mmc_slot_data {
-> 
-> -		/* 4/8 wires and any additional host capabilities
-> -		 * need to OR'd all capabilities (ref. linux/mmc/host.h) */
-> -		u32 caps;
-> +		/*
-> +		 * 4/8 wires and any additional host capabilities
-> +		 * need to OR'd all capabilities (ref. linux/mmc/host.h)
-> +		 */
-> +#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2420)
-> +		u8  wires;	/* Used for the MMC driver on omap1 and 2420 */
-> +#endif
-> +#ifdef CONFIG_ARCH_OMAP2PLUS
-> +		u32 caps;	/* Used for the MMC driver on 2430 and later */
-> +#endif
-> 
->  		/*
->  		 * nomux means "standard" muxing is wrong on this board, and
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index a9d62cf..d98ddcf 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -1317,7 +1317,7 @@ static int __init mmc_omap_new_slot(struct
-> mmc_omap_host *host, int id)
->  	host->slots[id] = slot;
-> 
->  	mmc->caps = 0;
-> -	if (host->pdata->slots[id].caps & MMC_CAP_8_BIT_DATA)
-> +	if (host->pdata->slots[id].wires >= 4)
->  		mmc->caps |= MMC_CAP_4_BIT_DATA;
-> 
->  	mmc->ops = &mmc_omap_ops;
-[Ghorai] thanks.. I am agreeing with you;
-Acked-by: Sukumar Ghorai <s-ghorai@ti.com>
+
+Referring to 6.b section in the above link, is it a bad idea to have
+a cover-letter? Should we better include the content of introductory
+email in patch 1 of any patch series?
+
+<<snip>>
