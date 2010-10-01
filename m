@@ -1,46 +1,42 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v6 7/8] OMAP4: Keyboard board support
-Date: Fri, 1 Oct 2010 16:22:16 -0700
-Message-ID: <201010011622.18204.dmitry.torokhov@gmail.com>
-References: <1285824973-25550-1-git-send-email-x0066660@ti.com> <20101001225127.GE3117@atomide.com> <87wrq14ipg.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not
+ finish
+Date: Fri, 1 Oct 2010 16:23:42 -0700
+Message-ID: <20101001232342.GK3117@atomide.com>
+References: <1285936577-14881-1-git-send-email-peter.ujfalusi@nokia.com>
+ <1285936577-14881-3-git-send-email-peter.ujfalusi@nokia.com>
+ <20101001165542.GS3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:37532 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab0JAXW0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:22:26 -0400
-In-Reply-To: <87wrq14ipg.fsf@deeprootsystems.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61273 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862Ab0JAXXr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:23:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20101001165542.GS3117@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, Abraham Arce <x0066660@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-On Friday, October 01, 2010 04:05:47 pm Kevin Hilman wrote:
-> Tony Lindgren <tony@atomide.com> writes:
-> > * Dmitry Torokhov <dmitry.torokhov@gmail.com> [100929 23:32]:
-> >> HI Abraham,
-> >> 
-> >> On Thu, Sep 30, 2010 at 12:36:13AM -0500, Abraham Arce wrote:
-> >> > From: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> >> > 
-> >> > Keyboard support for SDP OMAP4430
-> >> 
-> >> I think this would benefit from "const" sprinkled on it.
-> >> 
-> >> BTW, I picked up patches 2, 3, 4, 5, 8 (all touching drivers/input).
-> > 
-> > Thanks, I'll take 1, 6 & 7.
+* Tony Lindgren <tony@atomide.com> [101001 09:47]:
 > 
-> Dmitry,
+> Thinking about moving to use dmaengine.c, we should not use
+> cpu_is_omapxxxx except during the platform init.
 > 
-> Can you please drop patch 8 (the pm runtime one.)  As pointed out by
-> Charu,  with the proposed platform changes, this cannot work
-> correctly with runtime PM.
+> Can you please change this to be in u32 flags in dma.c that get set during
+> the init only for omap3? Then we can have something like:
+> 
+> #define OMAP_DMA_ERRATA_AAA	(1 << 2)
+> #define OMAP_DMA_ERRATA_BBB	(1 << 0)
+> ...
 
-Right, will do.
+BTW, can you also please Cc linux-arm-kernel on your patches?
+That way I don't need to repost them.
 
--- 
-Dmitry
+Also, we might be able to get these two in as fixes.
+
+Regards,
+
+Tony
