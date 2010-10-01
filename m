@@ -1,50 +1,84 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 2/3 v5] musb: add musb support for AM35x
-Date: Fri, 1 Oct 2010 12:03:49 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404A9D8B005@dbde02.ent.ti.com>
-References: <1285823949-27694-1-git-send-email-ajay.gupta@ti.com>
- <1285823949-27694-2-git-send-email-ajay.gupta@ti.com>
- <20101001060203.GD2925@legolas.emea.dhcp.ti.com>
- <19F8576C6E063C45BE387C64729E739404A9D8AFF0@dbde02.ent.ti.com>
- <20101001062318.GG2925@legolas.emea.dhcp.ti.com>
- <20101001062516.GH2925@legolas.emea.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: [PATCH 1/2] omap: dma: Fix buffering disable bit setting for omap24xx
+Date: Fri,  1 Oct 2010 09:39:05 +0300
+Message-ID: <1285915146-18511-2-git-send-email-peter.ujfalusi@nokia.com>
+References: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53134 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751917Ab0JAGdy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 02:33:54 -0400
-In-Reply-To: <20101001062516.GH2925@legolas.emea.dhcp.ti.com>
-Content-Language: en-US
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:30900 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750706Ab0JAGjJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 02:39:09 -0400
+In-Reply-To: <1285915146-18511-1-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Hi,
-[...]
-> >>I couldn't fetch your gitorious tree so I just applied 14 patch set
-> >>Manually on my branch.
-> >>
-> >>Anyways I will look into it and send the refreshed patch shortly.
-> >
-> >gitorious must be trying to make me look bad :-p
-> >
-> >Works like a charm here. Will try on a different laptop
-> 
-> fine on another laptop too. Maybe you need to check your .git/config
-> 
-> the correct address is git://gitorious.org/usb/usb.git
+From: Jarkko Nikula <jhnikula@gmail.com>
 
-I am using same address (http one) but fetch always fails while getting
-Index pack,
-484a70e99b430800a9d93198bae32df155aecfc9
+An errata workaround for omap24xx is not setting the buffering disable bit
+25 what is the purpose but channel enable bit 7 instead.
 
-Retrying..
+Background for this fix is the DMA stalling issue with ASoC omap-mcbsp
+driver. Peter Ujfalusi <peter.ujfalusi@nokia.com> has found an issue in
+recording that the DMA stall could happen if there were a buffer overrun
+detected by ALSA and the DMA was stopped and restarted due that. This
+problem is known to occur on both OMAP2420 and OMAP3. It can recover on
+OMAP3 after dma free, dma request and reconfiguration cycle. However, on
+OMAP2420 it seems that only way to recover is a reset.
 
--Ajay
-> 
-> --
-> balbi
+Problem was not visible before the commit c12abc0. That commit changed that
+the McBSP transmitter/receiver is released from reset only when needed. That
+is, only enabled McBSP transmitter without transmission was able to prevent
+this DMA stall problem in receiving side and underlying problem did not show
+up until now. McBSP transmitter itself seems to no be reason since DMA
+stall does not recover by enabling the transmission after stall.
+
+Debugging showed that there were a DMA write active during DMA stop time and
+it never completed even when restarting the DMA. Experimenting showed that
+the DMA buffering disable bit could be used to avoid stalling when using
+source synchronized transfers. However that could have performance hit and
+OMAP3 TRM states that buffering disable is not allowed for destination
+synchronized transfers so subsequent patch will implement a method to
+complete DMA writes when stopping.
+
+This patch is based on assumtion that complete lock-up on OMAP2420 is
+different but related problem. I don't have access to OMAP2420 errata but
+I believe this old workaround here is put for a reason but unfortunately
+a wrong bit was typed and problem showed up only now.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+---
+ arch/arm/plat-omap/dma.c              |    2 +-
+ arch/arm/plat-omap/include/plat/dma.h |    1 +
+ 2 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index ec7eddf..7115884 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -1000,7 +1000,7 @@ void omap_start_dma(int lch)
+ 	 * This will always fail on ES1.0
+ 	 */
+ 	if (cpu_is_omap24xx())
+-		l |= OMAP_DMA_CCR_EN;
++		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
+ 
+ 	l |= OMAP_DMA_CCR_EN;
+ 	dma_write(l, CCR(lch));
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+index af3a039..776ba44 100644
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -335,6 +335,7 @@
+ #define OMAP2_DMA_MISALIGNED_ERR_IRQ	(1 << 11)
+ 
+ #define OMAP_DMA_CCR_EN			(1 << 7)
++#define OMAP_DMA_CCR_BUFFERING_DISABLE	(1 << 25)
+ 
+ #define OMAP_DMA_DATA_TYPE_S8		0x00
+ #define OMAP_DMA_DATA_TYPE_S16		0x01
+-- 
+1.7.3
+
