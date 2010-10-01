@@ -1,60 +1,28 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH] omap: fix build break in omapfb due to a typo
-Date: Sat,  2 Oct 2010 02:05:11 +0530
-Message-ID: <1285965311-18093-1-git-send-email-gadiyar@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] omap: zoom2: fix build break due to ASoC changes
+Date: Fri, 1 Oct 2010 13:36:05 -0700
+Message-ID: <20101001203605.GE21157@opensource.wolfsonmicro.com>
+References: <1285965011-17384-1-git-send-email-gadiyar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42071 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753299Ab0JAUfS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Oct 2010 16:35:18 -0400
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:37764 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752375Ab0JAUf6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 16:35:58 -0400
+Content-Disposition: inline
+In-Reply-To: <1285965011-17384-1-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Anand Gadiyar <gadiyar@ti.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tony Lindgren <tony@atomide.com>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Fix this build break caused by a typo in commit dbe3039e64b1d
-(memblock/arm: Use memblock_region_is_memory() for omap fb) in
-linux-next as of 20101001.
+On Sat, Oct 02, 2010 at 02:00:11AM +0530, Anand Gadiyar wrote:
+> Commit f0fba2ad1b6 (ASoC: multi-component - ASoC
+> Multi-Component Support) in linux-next as of 20101001
+> broke omap builds with the following errors.
 
-s/memblock_region_is_memory/memblock_is_region_memory
+Acked-by: Mark Brown <brooonie@opensource.wolfsonmicro.com>
 
-  CC      drivers/video/omap2/vram.o
-drivers/video/omap2/vram.c: In function 'omap_vram_reserve_sdram_memblock':
-drivers/video/omap2/vram.c:568: error: implicit declaration of
-function 'memblock_region_is_memory'
-
-Reported-by: Grazvydas Ignotas <notasas@gmail.com>
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>	
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/fb.c    |    2 +-
- drivers/video/omap2/vram.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-Index: linux-2.6/arch/arm/plat-omap/fb.c
-===================================================================
---- linux-2.6.orig/arch/arm/plat-omap/fb.c
-+++ linux-2.6/arch/arm/plat-omap/fb.c
-@@ -173,7 +173,7 @@ static int check_fbmem_region(int region
- 
- static int valid_sdram(unsigned long addr, unsigned long size)
- {
--	return memblock_region_is_memory(addr, size);
-+	return memblock_is_region_memory(addr, size);
- }
- 
- static int reserve_sdram(unsigned long addr, unsigned long size)
-Index: linux-2.6/drivers/video/omap2/vram.c
-===================================================================
---- linux-2.6.orig/drivers/video/omap2/vram.c
-+++ linux-2.6/drivers/video/omap2/vram.c
-@@ -565,7 +565,7 @@ void __init omap_vram_reserve_sdram_memb
- 
- 	if (paddr) {
- 		if ((paddr & ~PAGE_MASK) ||
--		    !memblock_region_is_memory(paddr, size)) {
-+		    !memblock_is_region_memory(paddr, size)) {
- 			pr_err("Illegal SDRAM region for VRAM\n");
- 			return;
- 		}
+since it fixes build breakage but it looks like it'll result in reduced
+functionality so a nicer fix would be good.
