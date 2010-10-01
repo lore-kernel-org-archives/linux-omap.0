@@ -1,148 +1,77 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [omap3] Nand flash initialisation error
-Date: Fri, 1 Oct 2010 11:32:26 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356476FBF@dbde02.ent.ti.com>
-References: <8959501C0BAF9F40956CEBAD13FB297F17F38C7574@EINTMBX.einet.ad.eivd.ch>
- <8959501C0BAF9F40956CEBAD13FB297F17F38C7575@EINTMBX.einet.ad.eivd.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: pramod.gurav@ti.com
+Subject: [PATCH] OMAP: Fix compilation warnings
+Date: Fri,  1 Oct 2010 11:33:59 +0530
+Message-ID: <1285913039-2873-1-git-send-email-pramod.gurav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43023 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754218Ab0JAGCg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 02:02:36 -0400
-In-Reply-To: <8959501C0BAF9F40956CEBAD13FB297F17F38C7575@EINTMBX.einet.ad.eivd.ch>
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50842 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754033Ab0JAGEA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 02:04:00 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9163veN012339
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 1 Oct 2010 01:03:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: GERBER Patrick <Patrick.Gerber@heig-vd.ch>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Pramod Gurav <pramod.gurav@ti.com>
 
+From: Pramod Gurav <pramod.gurav@ti.com>
 
+---
+ arch/arm/mach-omap2/board-omap4panda.c |    2 --
+ arch/arm/mach-omap2/mux.c              |    2 +-
+ arch/arm/plat-omap/gpio.c              |    4 ++--
+ 3 files changed, 3 insertions(+), 5 deletions(-)
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of GERBER Patrick
-> Sent: Wednesday, September 29, 2010 7:35 PM
-> To: GERBER Patrick; linux-omap@vger.kernel.org
-> Subject: RE : [omap3] Nand flash initialisation error
->=20
-> In complement to my previous mail I have found that if I only add a c=
-all
-> to gpmc_cs_request the info->phys_base is well initialized.
-> So I could after call the platform_device_register as usual.
-[Ghorai] I am agree with your. You can -=20
-408   //if (platform_device_register(&omap3beagle_nand_device) < 0)
-409   if (gpmc_nand_init(&omap3beagle_nand_data) < 0)
-=20
->=20
-> Anyway I still  have the bogus (but working) detection of the flash:
->=20
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron omap2-nand.=
-0)
-> NAND bus width 8 instead 16 bit
-> No NAND device found.
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron NAND 256MiB=
- 1,8V
-> 16-bit)
->=20
-> Any idea ?
-[Ghorai] This is ok .. because _probe is common for all omap board. And=
- they have different NAND in different platform; and its check for any =
-8x nand preset and followed by check if any 16x device preset. And code=
- as followes.
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index c03d1d5..96f5bbb 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -274,8 +274,6 @@ static int __init omap4_panda_i2c_init(void)
+ }
+ static void __init omap4_panda_init(void)
+ {
+-	int status;
+-
+ 	omap4_panda_i2c_init();
+ 	omap_serial_init();
+ 	omap4_twl6030_hsmmc_init(mmc);
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index ab403b2..6c2f8f0 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -87,7 +87,7 @@ static char *omap_mux_options;
+ int __init omap_mux_init_gpio(int gpio, int val)
+ {
+ 	struct omap_mux_entry *e;
+-	struct omap_mux *gpio_mux;
++	struct omap_mux *gpio_mux = NULL;
+ 	u16 old_mode;
+ 	u16 mux_mode;
+ 	int found = 0;
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index f6c03a7..22f175f 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -2223,7 +2223,7 @@ void omap2_gpio_prepare_for_idle(int power_state)
+ 
+ 	for (i = min; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+-		u32 l1, l2;
++		u32 l1 = 0, l2 = 0;
+ 		int j;
+  
+ 		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+@@ -2291,7 +2291,7 @@ void omap2_gpio_resume_after_idle(void)
+ 		min = 1;
+ 	for (i = min; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+-		u32 l, gen, gen0, gen1;
++		u32 l = 0, gen, gen0, gen1;
+ 		int j;
+  
+ 		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+-- 
+1.7.0.4
 
- 877 static int __devinit omap_nand_probe(struct platform_device *pdev)
-=2E.
- 998         if (nand_scan(&info->mtd, 1)) {
- 999                 info->nand.options ^=3D NAND_BUSWIDTH_16;
-1000                 if (nand_scan(&info->mtd, 1)) {
-
->
-[Ghorai] Are you still facing any issue other then this detection log?
-
-=20
-> ________________________________________
-> De : linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.o=
-rg]
-> de la part de GERBER Patrick [Patrick.Gerber@heig-vd.ch]
-> Date d'envoi : mercredi, 29. septembre 2010 14:05
-> =C0 : linux-omap@vger.kernel.org
-> Objet : [omap3] Nand flash initialisation error
->=20
-> Hello,
->=20
-> I am using 2.6.34.5 vanilla kernel on a gumstix over Fire using OMAP3=
-530.
-> I have some problems wit the nand flash (the chip on the top of the O=
-MAP).
-> The MTD partition is not created.
->=20
-> When booting the board code is well detecting a Nand on CS0 and call =
-the
-> platform_device_register.
-> The omap_nand_probe() fail with -16 (EBUSY) after calling
-> request_mem_region() with 0 as a base address.
-> So the info->phys_base is not initialized.
->=20
-> After looking in older kernel I have tried to add a call
-> gpmc_nand_init(&overo_nand_data) in my board code instead of the call=
- to
-> platform_device_register.
-> With this addition the Flash is well detected and the mtd partition
-> created.
-> But there is some errors due to misconfiguration of the flash (bus wi=
-dth,
-> detecting twice, ...). Of course my platform_device structure is not =
-used
-> because I have to pass only the omap_nand_platform_data struct to
-> gpmc_nand_init().
->=20
->  (the ## prefixed lines are personal debug addition)
->=20
-> ...
-> Found NAND on CS0
-> ## gpmc_baseaddr 0xfe000000, gpmc_cs_baseaddr 0xfe000060
-> Registering NAND on CS0
-> ...
-> omap2-nand driver initializing
-> ## omap_nand_probe
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron omap2-nand.=
-0)
-> NAND bus width 8 instead 16 bit
-> No NAND device found.
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron NAND 256MiB=
- 1,8V
-> 16-bit)
-> cmdlinepart partition parsing not available
-> Creating 5 MTD partitions on "omap2-nand.0":
-> ...
->=20
->=20
-> I have looked on other board initialization (beagle, igep, ...)  and =
-the
-> code seems pretty similar.
-> I would like to know if the call to gpmc_nand_init() is still necessa=
-ry
-> and why the detection is so hesitant ?
-> I'd rather use the platform_device_register()  but I dont understand =
-why
-> the info->phys_base is 0 ?!?
->=20
-> Thanks in advance for any help.
->=20
-> Patrick--
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
