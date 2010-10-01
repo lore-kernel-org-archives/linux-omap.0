@@ -1,28 +1,35 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH v2 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not finish
-Date: Fri,  1 Oct 2010 14:04:55 +0300
-Message-ID: <1285931095-21053-3-git-send-email-peter.ujfalusi@nokia.com>
-References: <1285931095-21053-1-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCH v2 0/2] OMAP2/3: DMA: FIFO drain errata fixes
+Date: Fri,  1 Oct 2010 14:04:53 +0300
+Message-ID: <1285931095-21053-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:22879 "EHLO mgw-sa01.nokia.com"
+Received: from smtp.nokia.com ([147.243.1.47]:22904 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754125Ab0JALE4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Oct 2010 07:04:56 -0400
-In-Reply-To: <1285931095-21053-1-git-send-email-peter.ujfalusi@nokia.com>
+	id S1755068Ab0JALE5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 07:04:57 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Nishanth Menon <nm@ti.com>
 
-Implement the suggested workaround for OMAP3 regarding to sDMA draining
-issue, when the channel is disabled on the fly.
-This errata affects the following configuration:
-sDMA transfer is source synchronized
-Buffering is enabled
-SmartStandby is selected.
+Hello,
 
-The issue can be easily reproduced by creating overrun situation while
-recording audio.
+Changes since v1:
+- Errata ID added to the comment (i541)
+
+Intro mail from v1:
+
+The following series fixes the sDMA FIFO drain issue present for OMAP2 and
+OMAP3, and covered by an errata.
+For OMAP2 the omap_start_dma had a comment about this errata, but the workaround
+configured wrong bit (CCR_EN instead of the correct BUFFERING_DISABLE bit).
+The first patch from Jarkko Nikula <jhnikula@gmail.com> fixes this.
+For OMAP3 the suggestion is to set sDMA to NoStandby before disabling
+the channel, and wait for the drain to finish, than configure sDMA to
+SmartStandby again. The second patch implements this workaround for OMAP3.
+
+The FIFO drain problem can be reproduced on both OMAP2 and OMAP3 while using
+audio (capture case):
 Either introduce load to the CPU:
 nice -19 arecord -D hw:0 -M -B 10000 -F 5000 -f dat > /dev/null & \
 dd if=/dev/urandom of=/dev/null
@@ -31,94 +38,24 @@ or suspending the arecord, and resuming it:
 arecord -D hw:0 -M -B 10000 -F 5000 -f dat > /dev/null
 CTRL+Z; fg; CTRL+Z; fg; ...
 
-In case of overrun audio stops DMA, and restarts it (without reseting
-the sDMA channel). When we hit this errata in stop case (sDMA drain did
-not complete), at the coming start the sDMA will not going to be
-operational (it is still draining).
-This leads to DMA stall condition.
-On OMAP3 we can recover with sDMA channel reset, it has been observed
-that by introducing unrelated sDMA activity might also help (reading
-from MMC for example).
+On OMAP2 we can not recover from this problem. The board has to be rebooted,
+while OMAP3 can be recovered by reseting the sDMA channel, or introducing
+unrelated sDMA activity (which takes sDMA out from Standby - but this is not
+working all the time).
 
-The same errata exists for OMAP2, where the suggestion is to disable the
-buffering to avoid this type of error.
-On OMAP3 the suggestion is to set sDMA to NoStandby before disabling
-the channel, and wait for the drain to finish, than configure sDMA to
-SmartStandby again.
+PS: the same errata might exist for OMAP4, but we are not able to verify it.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- arch/arm/plat-omap/dma.c              |   35 +++++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/dma.h |    3 ++
- 2 files changed, 36 insertions(+), 2 deletions(-)
+Jarkko Nikula (1):
+  omap: dma: Fix buffering disable bit setting for omap24xx
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 7115884..287a00e 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -30,6 +30,7 @@
- #include <linux/irq.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/delay.h>
- 
- #include <asm/system.h>
- #include <mach/hardware.h>
-@@ -1018,8 +1019,38 @@ void omap_stop_dma(int lch)
- 		dma_write(0, CICR(lch));
- 
- 	l = dma_read(CCR(lch));
--	l &= ~OMAP_DMA_CCR_EN;
--	dma_write(l, CCR(lch));
-+	/* OMAP3 Errata i541: sDMA FIFO draining does not finish */
-+	if (cpu_is_omap34xx() && (l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
-+		int i = 0;
-+		u32 sys_cf;
-+
-+		/* Configure No-Standby */
-+		l = sys_cf = dma_read(OCP_SYSCONFIG);
-+		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
-+		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
-+		dma_write(l , OCP_SYSCONFIG);
-+
-+		l = dma_read(CCR(lch));
-+		l &= ~OMAP_DMA_CCR_EN;
-+		dma_write(l, CCR(lch));
-+
-+		/* Wait for sDMA FIFO drain */
-+		l = dma_read(CCR(lch));
-+		while (i < 100 && (l & (OMAP_DMA_CCR_RD_ACTIVE |
-+					OMAP_DMA_CCR_WR_ACTIVE))) {
-+			udelay(5);
-+			i++;
-+			l = dma_read(CCR(lch));
-+		}
-+		if (i >= 100)
-+			printk(KERN_ERR "DMA drain did not completed on "
-+					"lch %d\n", lch);
-+		/* Restore OCP_SYSCONFIG */
-+		dma_write(sys_cf, OCP_SYSCONFIG);
-+	} else {
-+		l &= ~OMAP_DMA_CCR_EN;
-+		dma_write(l, CCR(lch));
-+	}
- 
- 	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
- 		int next_lch, cur_lch = lch;
-diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
-index 776ba44..cf66f85 100644
---- a/arch/arm/plat-omap/include/plat/dma.h
-+++ b/arch/arm/plat-omap/include/plat/dma.h
-@@ -335,6 +335,9 @@
- #define OMAP2_DMA_MISALIGNED_ERR_IRQ	(1 << 11)
- 
- #define OMAP_DMA_CCR_EN			(1 << 7)
-+#define OMAP_DMA_CCR_RD_ACTIVE		(1 << 9)
-+#define OMAP_DMA_CCR_WR_ACTIVE		(1 << 10)
-+#define OMAP_DMA_CCR_SEL_SRC_DST_SYNC	(1 << 24)
- #define OMAP_DMA_CCR_BUFFERING_DISABLE	(1 << 25)
- 
- #define OMAP_DMA_DATA_TYPE_S8		0x00
--- 
+Peter Ujfalusi (1):
+  OMAP3: DMA: Errata: sDMA FIFO draining does not finish
+
+ arch/arm/plat-omap/dma.c              |   37 ++++++++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/dma.h |    4 +++
+ 2 files changed, 38 insertions(+), 3 deletions(-)
+
+--
 1.7.3
 
