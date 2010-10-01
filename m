@@ -1,83 +1,184 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/8] omap: Fix omap_mux_init_signal not to trash muxname
-Date: Fri, 01 Oct 2010 16:34:02 -0700
-Message-ID: <20101001233402.31894.59103.stgit@baageli.muru.com>
+Subject: [PATCH 2/8] omap2/3: Update revision identification
+Date: Fri, 01 Oct 2010 16:34:10 -0700
+Message-ID: <20101001233410.31894.52647.stgit@baageli.muru.com>
 References: <20101001233315.31894.49599.stgit@baageli.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56111 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873Ab0JAXeK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:34:10 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50295 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753873Ab0JAXeM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:34:12 -0400
 In-Reply-To: <20101001233315.31894.49599.stgit@baageli.muru.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, rockefeller.lin@innocomm.com
+Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>
 
-Otherwise the muxname passed to the function will get truncated.
+From: Sanjeev Premi <premi@ti.com>
 
-Based on an earlier patch by rockefeller.lin@innocomm.com.
+The existing definitions for cpu revision used
+upper nibble in the bits[15:08]. With OMAP3630,
+definitions use lower nibble.
 
-Reported-by: rockefeller.lin@innocomm.com
+This patch unifies the definitions to start
+at lower nibble.
+
+Signed-off-by: Sanjeev Premi <premi@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mux.c |   13 +++++++------
- arch/arm/mach-omap2/mux.h |    2 +-
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/id.c              |   72 ++++++++++++++++++++++-----------
+ arch/arm/plat-omap/include/plat/cpu.h |   36 ++++++++---------
+ 2 files changed, 66 insertions(+), 42 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 6c2f8f0..e33740c 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -127,17 +127,16 @@ int __init omap_mux_init_gpio(int gpio, int val)
- 	return 0;
- }
- 
--int __init omap_mux_init_signal(char *muxname, int val)
-+int __init omap_mux_init_signal(const char *muxname, int val)
- {
- 	struct omap_mux_entry *e;
--	char *m0_name = NULL, *mode_name = NULL;
--	int found = 0;
-+	const char *mode_name;
-+	int found = 0, mode0_len = 0;
- 
- 	mode_name = strchr(muxname, '.');
- 	if (mode_name) {
--		*mode_name = '\0';
-+		mode0_len = strlen(muxname) - strlen(mode_name);
- 		mode_name++;
--		m0_name = muxname;
- 	} else {
- 		mode_name = muxname;
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 0412233..04a2fa2 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -385,30 +385,54 @@ static void __init omap3_cpuinfo(void)
+ 		strcpy(cpu_name, "OMAP3503");
  	}
-@@ -147,9 +146,11 @@ int __init omap_mux_init_signal(char *muxname, int val)
- 		char *m0_entry = m->muxnames[0];
- 		int i;
  
--		if (m0_name && strcmp(m0_name, m0_entry))
-+		/* First check for full name in mode0.muxmode format */
-+		if (mode0_len && strncmp(muxname, m0_entry, mode0_len))
- 			continue;
+-	switch (rev) {
+-	case OMAP_REVBITS_00:
+-		strcpy(cpu_rev, "1.0");
+-		break;
+-	case OMAP_REVBITS_01:
+-		strcpy(cpu_rev, "1.1");
+-		break;
+-	case OMAP_REVBITS_02:
+-		strcpy(cpu_rev, "1.2");
+-		break;
+-	case OMAP_REVBITS_10:
+-		strcpy(cpu_rev, "2.0");
+-		break;
+-	case OMAP_REVBITS_20:
+-		strcpy(cpu_rev, "2.1");
+-		break;
+-	case OMAP_REVBITS_30:
+-		strcpy(cpu_rev, "3.0");
+-		break;
+-	case OMAP_REVBITS_40:
+-	/* FALLTHROUGH */
+-	default:
+-		/* Use the latest known revision as default */
+-		strcpy(cpu_rev, "3.1");
++	if (cpu_is_omap3630()) {
++		switch (rev) {
++		case OMAP_REVBITS_00:
++			strcpy(cpu_rev, "1.0");
++			break;
++		case OMAP_REVBITS_01:
++			strcpy(cpu_rev, "1.1");
++			break;
++		case OMAP_REVBITS_02:
++			/* FALLTHROUGH */
++		default:
++			/* Use the latest known revision as default */
++			strcpy(cpu_rev, "1.2");
++		}
++	} else if (cpu_is_omap3505() || cpu_is_omap3517()) {
++		switch (rev) {
++		case OMAP_REVBITS_00:
++			strcpy(cpu_rev, "1.0");
++			break;
++		case OMAP_REVBITS_01:
++			/* FALLTHROUGH */
++		default:
++			/* Use the latest known revision as default */
++			strcpy(cpu_rev, "1.1");
++		}
++	} else {
++		switch (rev) {
++		case OMAP_REVBITS_00:
++			strcpy(cpu_rev, "1.0");
++			break;
++		case OMAP_REVBITS_01:
++			strcpy(cpu_rev, "2.0");
++			break;
++		case OMAP_REVBITS_02:
++			strcpy(cpu_rev, "2.1");
++			break;
++		case OMAP_REVBITS_03:
++			strcpy(cpu_rev, "3.0");
++			break;
++		case OMAP_REVBITS_04:
++			strcpy(cpu_rev, "3.1");
++			break;
++		case OMAP_REVBITS_05:
++			/* FALLTHROUGH */
++		default:
++			/* Use the latest known revision as default */
++			strcpy(cpu_rev, "3.1.2");
++		}
+ 	}
  
-+		/* Then check for muxmode only */
- 		for (i = 0; i < OMAP_MUX_NR_MODES; i++) {
- 			char *mode_cur = m->muxnames[i];
+ 	/* Print verbose information */
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 9b38e4b..3fd8b40 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -68,10 +68,9 @@ unsigned int omap_rev(void);
+ #define OMAP_REVBITS_00		0x00
+ #define OMAP_REVBITS_01		0x01
+ #define OMAP_REVBITS_02		0x02
+-#define OMAP_REVBITS_10		0x10
+-#define OMAP_REVBITS_20		0x20
+-#define OMAP_REVBITS_30		0x30
+-#define OMAP_REVBITS_40		0x40
++#define OMAP_REVBITS_03		0x03
++#define OMAP_REVBITS_04		0x04
++#define OMAP_REVBITS_05		0x05
  
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index a8e040c..350c04f 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -120,7 +120,7 @@ int omap_mux_init_gpio(int gpio, int val);
-  * @muxname:		Mux name in mode0_name.signal_name format
-  * @val:		Options for the mux register value
-  */
--int omap_mux_init_signal(char *muxname, int val);
-+int omap_mux_init_signal(const char *muxname, int val);
+ /*
+  * Get the CPU revision for OMAP devices
+@@ -363,23 +362,24 @@ IS_OMAP_TYPE(3517, 0x3517)
  
- #else
+ /* Various silicon revisions for omap2 */
+ #define OMAP242X_CLASS		0x24200024
+-#define OMAP2420_REV_ES1_0	0x24200024
+-#define OMAP2420_REV_ES2_0	0x24201024
++#define OMAP2420_REV_ES1_0	OMAP242X_CLASS
++#define OMAP2420_REV_ES2_0	(OMAP242X_CLASS | (OMAP_REVBITS_01 << 8))
  
+ #define OMAP243X_CLASS		0x24300024
+-#define OMAP2430_REV_ES1_0	0x24300024
++#define OMAP2430_REV_ES1_0	OMAP243X_CLASS
+ 
+ #define OMAP343X_CLASS		0x34300034
+-#define OMAP3430_REV_ES1_0	0x34300034
+-#define OMAP3430_REV_ES2_0	0x34301034
+-#define OMAP3430_REV_ES2_1	0x34302034
+-#define OMAP3430_REV_ES3_0	0x34303034
+-#define OMAP3430_REV_ES3_1	0x34304034
+-#define OMAP3430_REV_ES3_1_2	0x34305034
+-
+-#define OMAP3630_REV_ES1_0	0x36300034
+-#define OMAP3630_REV_ES1_1	0x36300134
+-#define OMAP3630_REV_ES1_2	0x36300234
++#define OMAP3430_REV_ES1_0	OMAP343X_CLASS
++#define OMAP3430_REV_ES2_0	(OMAP343X_CLASS | (OMAP_REVBITS_01 << 8))
++#define OMAP3430_REV_ES2_1	(OMAP343X_CLASS | (OMAP_REVBITS_02 << 8))
++#define OMAP3430_REV_ES3_0	(OMAP343X_CLASS | (OMAP_REVBITS_03 << 8))
++#define OMAP3430_REV_ES3_1	(OMAP343X_CLASS | (OMAP_REVBITS_04 << 8))
++#define OMAP3430_REV_ES3_1_2	(OMAP343X_CLASS | (OMAP_REVBITS_05 << 8))
++
++#define OMAP363X_CLASS		0x36300034
++#define OMAP3630_REV_ES1_0	OMAP363X_CLASS
++#define OMAP3630_REV_ES1_1	(OMAP363X_CLASS | (OMAP_REVBITS_01 << 8))
++#define OMAP3630_REV_ES1_2	(OMAP363X_CLASS | (OMAP_REVBITS_02 << 8))
+ 
+ #define OMAP35XX_CLASS		0x35000034
+ #define OMAP3503_REV(v)		(OMAP35XX_CLASS | (0x3503 << 16) | (v << 8))
+@@ -390,7 +390,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v << 8))
+ 
+ #define OMAP443X_CLASS		0x44300044
+-#define OMAP4430_REV_ES1_0	0x44300044
++#define OMAP4430_REV_ES1_0	OMAP443X_CLASS
+ #define OMAP4430_REV_ES2_0	0x44301044
+ 
+ /*
 
