@@ -1,44 +1,115 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] Couple of omap fixes
-Date: Thu, 30 Sep 2010 15:46:59 -0700
-Message-ID: <20100930224659.GP3117@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64649 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755060Ab0I3WrF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Sep 2010 18:47:05 -0400
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCHv2 08/11] staging: tidspbridge: remove dw_dmmu_base from cfg_hostres struct
+Date: Thu, 30 Sep 2010 21:12:55 -0500
+Message-ID: <1285899178-14413-9-git-send-email-x0095840@ti.com>
+References: <1285899178-14413-1-git-send-email-x0095840@ti.com>
+ <1285899178-14413-2-git-send-email-x0095840@ti.com>
+ <1285899178-14413-3-git-send-email-x0095840@ti.com>
+ <1285899178-14413-4-git-send-email-x0095840@ti.com>
+ <1285899178-14413-5-git-send-email-x0095840@ti.com>
+ <1285899178-14413-6-git-send-email-x0095840@ti.com>
+ <1285899178-14413-7-git-send-email-x0095840@ti.com>
+ <1285899178-14413-8-git-send-email-x0095840@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1285899178-14413-8-git-send-email-x0095840@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: gregkh@suse.de
+Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, nm@ti.com, Hiroshi.DOYU@nokia.com, ohad@wizery.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Linus,
+We don't need to map iva2 iommu register base address
+anymore.
 
-Please pull two omap fixes from:
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ drivers/staging/tidspbridge/core/tiomap3430.c      |    3 ---
+ drivers/staging/tidspbridge/core/tiomap_io.c       |    3 +--
+ .../tidspbridge/include/dspbridge/cfgdefs.h        |    1 -
+ drivers/staging/tidspbridge/rmgr/drv.c             |    4 ----
+ 4 files changed, 1 insertions(+), 10 deletions(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Regards,
-
-Tony
-
-
-The following changes since commit 899611ee7d373e5eeda08e9a8632684e1ebbbf00:
-
-  Linux 2.6.36-rc6 (2010-09-28 18:01:22 -0700)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Scott Ellis (1):
-      omap: McBSP: tx_irq_completion used in rx_irq_handler
-
-Tony Lindgren (1):
-      omap: Fix compile dependency to LEDS_CLASS
-
- arch/arm/plat-omap/Kconfig |    2 +-
- arch/arm/plat-omap/mcbsp.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index 789cc5e..f890a0e 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -830,8 +830,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt)
+ 			iounmap((void *)host_res->dw_mem_base[3]);
+ 		if (host_res->dw_mem_base[4])
+ 			iounmap((void *)host_res->dw_mem_base[4]);
+-		if (host_res->dw_dmmu_base)
+-			iounmap(host_res->dw_dmmu_base);
+ 		if (host_res->dw_per_base)
+ 			iounmap(host_res->dw_per_base);
+ 		if (host_res->dw_per_pm_base)
+@@ -845,7 +843,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt)
+ 		host_res->dw_mem_base[2] = (u32) NULL;
+ 		host_res->dw_mem_base[3] = (u32) NULL;
+ 		host_res->dw_mem_base[4] = (u32) NULL;
+-		host_res->dw_dmmu_base = NULL;
+ 		host_res->dw_sys_ctrl_base = NULL;
+ 
+ 		kfree(host_res);
+diff --git a/drivers/staging/tidspbridge/core/tiomap_io.c b/drivers/staging/tidspbridge/core/tiomap_io.c
+index 63d46bc..81a5401 100644
+--- a/drivers/staging/tidspbridge/core/tiomap_io.c
++++ b/drivers/staging/tidspbridge/core/tiomap_io.c
+@@ -391,7 +391,6 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
+ 		omap_dspbridge_dev->dev.platform_data;
+ 	struct cfg_hostres *resources = dev_context->resources;
+ 	int status = 0;
+-	u32 temp;
+ 
+ 	if (!dev_context->mbox)
+ 		return 0;
+@@ -435,7 +434,7 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
+ 		omap_mbox_restore_ctx(dev_context->mbox);
+ 
+ 		/* Access MMU SYS CONFIG register to generate a short wakeup */
+-		temp = readl(resources->dw_dmmu_base + 0x10);
++		iommu_read_reg(dev_context->dsp_mmu, MMU_SYSCONFIG);
+ 
+ 		dev_context->dw_brd_state = BRD_RUNNING;
+ 	} else if (dev_context->dw_brd_state == BRD_RETENTION) {
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h b/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
+index 38122db..dfb55cc 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/cfgdefs.h
+@@ -68,7 +68,6 @@ struct cfg_hostres {
+ 	void __iomem *dw_per_base;
+ 	u32 dw_per_pm_base;
+ 	u32 dw_core_pm_base;
+-	void __iomem *dw_dmmu_base;
+ 	void __iomem *dw_sys_ctrl_base;
+ };
+ 
+diff --git a/drivers/staging/tidspbridge/rmgr/drv.c b/drivers/staging/tidspbridge/rmgr/drv.c
+index 81b1b90..0c857b9 100644
+--- a/drivers/staging/tidspbridge/rmgr/drv.c
++++ b/drivers/staging/tidspbridge/rmgr/drv.c
+@@ -743,7 +743,6 @@ static int request_bridge_resources(struct cfg_hostres *res)
+ 	host_res->dw_sys_ctrl_base = ioremap(OMAP_SYSC_BASE, OMAP_SYSC_SIZE);
+ 	dev_dbg(bridge, "dw_mem_base[0] 0x%x\n", host_res->dw_mem_base[0]);
+ 	dev_dbg(bridge, "dw_mem_base[3] 0x%x\n", host_res->dw_mem_base[3]);
+-	dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
+ 
+ 	/* for 24xx base port is not mapping the mamory for DSP
+ 	 * internal memory TODO Do a ioremap here */
+@@ -797,8 +796,6 @@ int drv_request_bridge_res_dsp(void **phost_resources)
+ 							 OMAP_PER_PRM_SIZE);
+ 		host_res->dw_core_pm_base = (u32) ioremap(OMAP_CORE_PRM_BASE,
+ 							  OMAP_CORE_PRM_SIZE);
+-		host_res->dw_dmmu_base = ioremap(OMAP_DMMU_BASE,
+-						 OMAP_DMMU_SIZE);
+ 
+ 		dev_dbg(bridge, "dw_mem_base[0] 0x%x\n",
+ 			host_res->dw_mem_base[0]);
+@@ -810,7 +807,6 @@ int drv_request_bridge_res_dsp(void **phost_resources)
+ 			host_res->dw_mem_base[3]);
+ 		dev_dbg(bridge, "dw_mem_base[4] 0x%x\n",
+ 			host_res->dw_mem_base[4]);
+-		dev_dbg(bridge, "dw_dmmu_base %p\n", host_res->dw_dmmu_base);
+ 
+ 		shm_size = drv_datap->shm_size;
+ 		if (shm_size >= 0x10000) {
+-- 
+1.6.3.3
