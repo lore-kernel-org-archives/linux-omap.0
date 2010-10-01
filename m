@@ -1,56 +1,48 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [Patch] Error when compiling without CONFIG_PM_DEBUG
-Date: Fri, 01 Oct 2010 08:15:18 -0700
-Message-ID: <871v8ac5bt.fsf@deeprootsystems.com>
-References: <8959501C0BAF9F40956CEBAD13FB297F17F38C757C@EINTMBX.einet.ad.eivd.ch>
+Subject: Re: [PATCHv3 1/17] OMAP2/3/4:dmtimer:add device names to flck nodes
+Date: Fri, 01 Oct 2010 08:49:12 -0700
+Message-ID: <87r5g9ap6v.fsf@deeprootsystems.com>
+References: <1285059060-26316-1-git-send-email-tarun.kanti@ti.com>
+	<4CA4F005.6000208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:38376 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753010Ab0JAPPV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 11:15:21 -0400
-Received: by pwj5 with SMTP id 5so575838pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 08:15:20 -0700 (PDT)
-In-Reply-To: <8959501C0BAF9F40956CEBAD13FB297F17F38C757C@EINTMBX.einet.ad.eivd.ch>
-	(GERBER Patrick's message of "Fri, 1 Oct 2010 14:46:56 +0200")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:32869 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988Ab0JAPtR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 11:49:17 -0400
+Received: by pvg2 with SMTP id 2so799798pvg.19
+        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 08:49:17 -0700 (PDT)
+In-Reply-To: <4CA4F005.6000208@ti.com> (Benoit Cousson's message of "Thu, 30
+	Sep 2010 22:16:05 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: GERBER Patrick <Patrick.Gerber@heig-vd.ch>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-GERBER Patrick <Patrick.Gerber@heig-vd.ch> writes:
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-> Hello all,
+[...]
+
+> Since we are in the name discussion, I'd like as well to potentially
+> stop using the dmtimer / gptimer confusing naming convention, and
+> replace that with a simple name "timer". Or potentially "omap_timer".
+> Dual Mode timer does not mean at lot and General Purpose timer is not
+> that better.
 >
-> I have compiled a fresh clone of the linux-omap-2.6 kernel for overo =
-and I have linker error.
+> We already started that discussion with Kevin some time ago but didn't
+> really conclude.
 >
-> The serial.c and pm34xx.c files used some variables declared as
-> extern. The real declaration of those variables are on pm-debug.c and
-> are compiled only with CONFIG_PM_DEBUG. =20
+> Tony, Paul and Kevin,
+> Do you have any opinion on that subject?
 
-Hi Patric, thanks for the patch.
+Since the HW teams have decided on aligned names for all the IPs, I
+think we should stick with those.  In this case, "timer".
 
-A couple days ago, a similar patch was posted by Lo=EFc Minier to fix t=
-he
-same issue, and I'm waiting an updated version of his patch.
+However, since that is such a generic word and used throughout the
+kernel, maybe calling it omap_timer is better.
 
-> So I have added some #ifdef to correct the error. I don't know if it'=
-s
-> the best idea but anyway with the attached patch it's work.
-
-Adding #ifdefs in this way is generally not done in the kernel.  For
-another example of how to solve the same problem, see the patch from
-Lo=EFc.  Also see the '#ifdefs are ugly' section of
-Documentation/SubmittingPatches in the kernel source.
-
-Thanks again for contributing your fixes back,
+I'd live with either,
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
