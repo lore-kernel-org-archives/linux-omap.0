@@ -1,48 +1,50 @@
 From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH] omap: zoom2/3: fix build caused by wl1271 support
-Date: Sat,  2 Oct 2010 02:03:26 +0530
-Message-ID: <1285965206-17777-1-git-send-email-gadiyar@ti.com>
+Subject: [PATCH] omap: zoom2: fix build break when CONFIG_WL12XX_PLATFORM_DATA=n
+Date: Sat,  2 Oct 2010 02:03:56 +0530
+Message-ID: <1285965236-17907-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41907 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43299 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752375Ab0JAUde (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Oct 2010 16:33:34 -0400
+	id S1754449Ab0JAUeB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 16:34:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org
 Cc: Anand Gadiyar <gadiyar@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>
 
-Patch "omap: zoom: add mmc3/wl1271 device support" in the
-wireless tree still uses .wires in struct omap2_hsmmc_info.
-.wires has now been replaced with .caps in patch "omap: mmc:
-extended to pass host capabilities from board file" in the
-OMAP tree.
+Fix this build break when CONFIG_WL12XX_PLATFORM_DATA is not set.
 
-This causes linux-next as of 20101001 build to break as
-below. Fix this.
-
-  CC      arch/arm/mach-omap2/board-zoom-peripherals.o
-arch/arm/mach-omap2/board-zoom-peripherals.c:217: error: unknown field 'wires' specified in initializer
-make[1]: *** [arch/arm/mach-omap2/board-zoom-peripherals.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+  LD      .tmp_vmlinux1
+arch/arm/mach-omap2/built-in.o: In function `zoom_peripherals_init':
+/home/userdata/a0393673/kernels/mainline/linux-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c:333: undefined reference to `wl12xx_set_platform_data'
+make: *** [.tmp_vmlinux1] Error 1
 
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-zoom-peripherals.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+There are still many warnings about the function wl12xx_set_platform_data
+being unused. Haven't fixed those. Ohad, care to take a look?
 
-Index: linux-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c
+ include/linux/wl12xx.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+Index: linux-2.6/include/linux/wl12xx.h
 ===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ linux-2.6/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -214,7 +214,7 @@ static struct omap2_hsmmc_info mmc[] __i
- 	{
- 		.name		= "wl1271",
- 		.mmc		= 3,
--		.wires		= 4,
-+		.caps		= MMC_CAP_4_BIT_DATA,
- 		.gpio_wp	= -EINVAL,
- 		.gpio_cd	= -EINVAL,
- 		.nonremovable	= true,
+--- linux-2.6.orig/include/linux/wl12xx.h
++++ linux-2.6/include/linux/wl12xx.h
+@@ -32,7 +32,14 @@ struct wl12xx_platform_data {
+ 	int board_ref_clock;
+ };
+ 
++#ifdef CONFIG_WL12XX_PLATFORM_DATA
+ int wl12xx_set_platform_data(const struct wl12xx_platform_data *data);
++#else
++static int wl12xx_set_platform_data(const struct wl12xx_platform_data *data)
++{
++	return 0;
++}
++#endif
+ const struct wl12xx_platform_data *wl12xx_get_platform_data(void);
+ 
+ #endif
