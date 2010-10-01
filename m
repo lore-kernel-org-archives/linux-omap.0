@@ -1,37 +1,47 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 0/4] CBUS patches
-Date: Fri,  1 Oct 2010 10:47:14 +0300
-Message-ID: <1285919238-26555-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 1/4] cbus: remove unneded includes
+Date: Fri,  1 Oct 2010 10:47:15 +0300
+Message-ID: <1285919238-26555-2-git-send-email-balbi@ti.com>
+References: <1285919238-26555-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57791 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57793 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753838Ab0JAHrT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 1 Oct 2010 03:47:19 -0400
+	id S1754175Ab0JAHrV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 03:47:21 -0400
+In-Reply-To: <1285919238-26555-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-Hi Tony,
+we don't use anything from those headers,
+thus removing them.
 
-removed a few unneeded includes and moved platform_device
-registration to board file.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/cbus/cbus.c |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-ps: as usual, compile tested only :-p No working n810 available
-
-Felipe Balbi (4):
-  cbus: remove unneded includes
-  cbus: retu: move platform_device to board file
-  cbus: tahvo: move platform_device to board file
-  cbus: tahvo-usb: move platform_device to board file
-
- arch/arm/mach-omap2/board-n8x0.c |   96 ++++++++++++++++++++++++++++++++++++++
- drivers/cbus/cbus.c              |    5 --
- drivers/cbus/retu.c              |   69 +---------------------------
- drivers/cbus/tahvo-usb.c         |   13 -----
- drivers/cbus/tahvo.c             |   65 +-------------------------
- 5 files changed, 98 insertions(+), 150 deletions(-)
-
+diff --git a/drivers/cbus/cbus.c b/drivers/cbus/cbus.c
+index 9e745bb..a8bbf42 100644
+--- a/drivers/cbus/cbus.c
++++ b/drivers/cbus/cbus.c
+@@ -30,15 +30,10 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+-#include <linux/delay.h>
+ #include <linux/spinlock.h>
+ #include <linux/gpio.h>
+ #include <linux/platform_device.h>
+ 
+-#include <asm/io.h>
+-#include <asm/mach-types.h>
+-
+-#include <plat/board.h>
+ #include <plat/cbus.h>
+ 
+ #include "cbus.h"
 -- 
 1.7.3.rc0.35.g8ac8c
 
