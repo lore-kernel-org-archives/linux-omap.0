@@ -1,37 +1,56 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: omap2plus_defconfig fails to compile on linux-next with OMAP2 support
-Date: Sat, 2 Oct 2010 02:23:40 +0530
-Message-ID: <d535c21381247edbf11365b7cf635577@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [GIT PULL] OMAP: couple more PM fixes for 2.6.37
+Date: Fri,  1 Oct 2010 14:01:18 -0700
+Message-ID: <1285966880-26448-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:37199 "HELO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756174Ab0JAUxu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 16:53:50 -0400
-Received: by mail-wy0-f169.google.com with SMTP id 36so3840258wyb.28
-        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 13:53:48 -0700 (PDT)
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:56120 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754380Ab0JAVBX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 17:01:23 -0400
+Received: by iwn5 with SMTP id 5so4265595iwn.19
+        for <linux-omap@vger.kernel.org>; Fri, 01 Oct 2010 14:01:23 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
 Tony,
 
-linux-next as of 20101001 fails to build on omap2plus_defconfig with
-multiple
-build errors. I've resolved many of those, but this one remains as long
-as CONFIG_ARCH_OMAP2 is enabled.
+Here are a couple more PM related fixes for 2.6.37.  The one from Lo=C3=
+=AFc
+fixes one of the compile errors that's been reported a couple times
+now.
 
-I'm not sure how to fix this, so just reporting it for now.
+This branch is based on my pm-next branch which is already pulled into
+your omap-for-linus branch, so should merge smoothly
 
-- Anand
+Kevin
 
 
-  CC      arch/arm/kernel/swp_emulate.o
-/tmp/ccxJtmP3.s: Assembler messages:
-/tmp/ccxJtmP3.s:343: Error: selected processor does not support ARM mode
-`ldrexb r6,[r5]'
-/tmp/ccxJtmP3.s:344: Error: selected processor does not support ARM mode
-`strexb r1,r3,[r5]'
-make[1]: *** [arch/arm/kernel/swp_emulate.o] Error 1
-make: *** [arch/arm/kernel] Error 2
+The following changes since commit 0aed043517ad4135cb458a46e9e99e21cbb5=
+9c69:
+
+  OMAP: GPIO: ensure debounce clocks are disabled during idle/suspend (=
+2010-09-23 17:14:17 -0700)
+
+are available in the git repository at:
+  ssh://master.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-p=
+m.git pm-next-2
+
+Kevin Hilman (1):
+      OMAP3: CPUidle: remove redundant setting of PER next power state
+
+Lo=C3=AFc Minier (1):
+      OMAP: PM: Fix build when CONFIG_PM_DEBUG isn't set
+
+ arch/arm/mach-omap2/cpuidle34xx.c |    4 +---
+ arch/arm/mach-omap2/pm.h          |    7 ++++---
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
