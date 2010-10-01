@@ -1,68 +1,92 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt
- handlers
-Date: Fri, 1 Oct 2010 10:28:59 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1010011012560.1813-100000@iolanthe.rowland.org>
-References: <201010010041.26326.rjw@sisk.pl>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH v4 1/4] omap4 hsmmc: Adding card detect support for MMC1
+Date: Fri, 1 Oct 2010 20:11:37 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE0BB@dbde02.ent.ti.com>
+References: <9408.10.24.255.18.1285348400.squirrel@dbdmail.itg.ti.com>
+	<AANLkTi=YvtrfmUTc-YBAUjEXn1v3pPLmhb92J60AhU28@mail.gmail.com>
+	<AANLkTim5d6XP0nuJLF2DxDGP2DuBK5VUajd=YhXQnT2C@mail.gmail.com>
+	<AANLkTi=oX7CT8RF39kT-7niutF3PEeSeC1A_L5TcWuO4@mail.gmail.com>
+	<AANLkTim1H=qam8Sjbv_EUXGtf09TObTViYMiN17uMFQ1@mail.gmail.com>
+	<20101001112926.GC3064@sortiz-mobl>
+ <AANLkTims1qZ_X9F4rzkJE9Gat_pwWZxO2nPkRTpa6Cc5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:60742 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932180Ab0JAO3A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 10:29:00 -0400
-In-Reply-To: <201010010041.26326.rjw@sisk.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <AANLkTims1qZ_X9F4rzkJE9Gat_pwWZxO2nPkRTpa6Cc5@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: kishore kadiyala <kishorek.kadiyala@gmail.com>, Samuel Ortiz <sameo@linux.intel.com>
+Cc: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "adrian.hunter@nokia.com" <adrian.hunter@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, 1 Oct 2010, Rafael J. Wysocki wrote:
+=20
+<<snip>>
 
-> > >  If RPM_IRQ is not set, but
-> > > power.callbacks_in_irq is set, we should fall back to the normal behavior
-> > > (ie. do not avoid sleeping).
-> > 
-> > By "do not avoid sleeping", do you mean that 
-> > 
-> > 	(1) the helper functions should be allowed to sleep, or
-> > 
-> > 	(2) the callbacks should be invoked with interrupts enabled?
-> > 
-> > The patch already does (1).  By contrast, (2) isn't safe.  It means
-> > there is a risk of having one thread do a busy-wait with interrupts
-> > disabled, waiting for another thread that can sleep.
-> 
-> In my opinion the _irq operations should really be one-shot, without
-> any looping, waking up parents etc.  I mean, if the parent is not RPM_ACTIVE,
-> the _irq resume should immediately fail and analogously for the _irq
-> suspend.  And so on.  As simple as reasonably possible.
+> >> >>>> diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.=
+h
+> >> >>>> index 6de90bf..e64894c 100644
+> >> >>>> --- a/include/linux/i2c/twl.h
+> >> >>>> +++ b/include/linux/i2c/twl.h
+> >> >>>> @@ -141,6 +141,16 @@
+> >> >>>> =A0#define TWL6030_CHARGER_CTRL_INT_MASK =A00x10
+> >> >>>> =A0#define TWL6030_CHARGER_FAULT_INT_MASK =A0 =A0 =A0 =A0 0x6=
+0
+> >> >>>>
+> >> >>>> +#define TWL6030_MMCCTRL =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00xEE
+> >> >>>> +#define VMMC_AUTO_OFF =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(0x=
+1 << 3)
+> >> >>>> +#define SW_FC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0(0x1 << 2)
+> >> >>>> +#define STS_MMC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A00x1
+> >> >>>> +
+> >> >>>> +#define TWL6030_CFG_INPUT_PUPD3 =A0 =A0 =A0 =A00xF2
+> >> >>>> +#define MMC_PU =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ (0x1 << 3)
+> >> >>>> +#define MMC_PD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ (0x1 << 2)
+> >> >>>> +
+> >> >>>> +
+> >> >>>>
+> >> >>>> =A0#define TWL4030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x403=
+0
+> >> >>>> =A0#define TWL6030_CLASS_ID =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x603=
+0
+> >> >>>> @@ -173,6 +183,27 @@ int twl_i2c_read(u8 mod_no, u8=20
+> *value, u8 reg, unsigned num_bytes);
+> >> >>>> =A0int twl6030_interrupt_unmask(u8 bit_mask, u8 offset);
+> >> >>>> =A0int twl6030_interrupt_mask(u8 bit_mask, u8 offset);
+> >> >>>>
+> >> >>>> +/* Card detect Configuration for MMC1 Controller on OMAP4 */
+> >> >>>> +#ifdef CONFIG_TWL4030_CORE
+> >> >>>> +int twl6030_mmc_card_detect_config(void);
+> >> >>>> +#else
+> >> >>>> +static inline int twl6030_mmc_card_detect_config(void)
+> >> >>>> +{
+> >> >>>> + =A0 =A0 =A0 pr_debug("twl6030_mmc_card_detect_config not=20
+> supported\n");
+> >> >>>> + =A0 =A0 =A0 return 0;
+> >> >>>> +}
+> >> >>>> +#endif
+> >> >>>> +
+> >> >>>> +/* MMC1 Controller on OMAP4 uses Phoenix irq for=20
+> Card detect */
+> >> >>>> +#ifdef CONFIG_TWL4030_CORE
+> >> >>>> +int twl6030_mmc_card_detect(struct device *dev, int slot);
+> >> >>>> +#else
+> >> >>>> +static inline int twl6030_mmc_card_detect(struct=20
+> device *dev, int slot)
+> >> >>>> +{
+> >> >>>> + =A0 =A0 =A0 pr_debug("Call back twl6030_mmc_card_detect=20
+> not supported\n");
 
-But what if the device's own status is currently SUSPENDING or
-RESUMING?  Do you want to fail when that happens, instead of waiting
-for the concurrent operation to finish?  There's no way to prevent this
-on SMP systems, because a wakeup request can arrive while a
-software-initiated resume is in progress.
+Use dev_dbg() instead of pr_debug...=20
+Same comment applies across this patch series whereever pr_err/pr_debug
+APIs are used.
 
-> > Going further, I'm still a little dubious about the whole point of
-> > having idle notifications at all.  I don't see why the PM core can't
-> > notify a subsystem that a device is idle just by calling the
-> > runtime_suspend routine.
-> 
-> Well, calling _idle is like saying "I think this device may be idle, please
-> consider suspending it", while calling _suspend is like saying "suspend
-> this device unless you can't".  I think that's enough of a difference to
-> have separate _idle.
+> >> >>>> + =A0 =A0 =A0 return -EIO;
+> >> >>>> +}
+> >> >>>> +#endif
 
-> A subsystem or a driver may want to schedule the suspend with a timeout
-> if _idle is called instead of just suspending synchronously.  The r8169 driver
-> actually does something similar (although a bit more complicated).
-
-What you are describing is basically what autosuspend was intended to
-accomplish (that is, formalizing the difference between "the device
-just became idle, you should consider when to suspend it" and "the
-device has been idle for a sufficiently long time, please suspend it
-now").  Would the r8169 driver be simplified if it used autosuspend?
-
-Alan Stern
-
+<<snip>>
