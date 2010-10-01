@@ -1,31 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: pandora: enable twl4030 charger
-Date: Fri, 1 Oct 2010 16:08:06 -0700
-Message-ID: <20101001230806.GG3117@atomide.com>
-References: <1285926796-8034-1-git-send-email-notasas@gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] omap: zoom2: fix build break when CONFIG_WL12XX_PLATFORM_DATA=n
+Date: Sat, 2 Oct 2010 01:09:16 +0200
+Message-ID: <AANLkTikuHYbj0mq8df8jHQ3Wkh0ps2SOoaOkrrXOeax=@mail.gmail.com>
+References: <1285965236-17907-1-git-send-email-gadiyar@ti.com>
+ <AANLkTi=+dtqdZLb8rfu8NZRU5GceUL5+S3B=MeW1xF=M@mail.gmail.com> <cf2c8b9dc6762d53dcaf522d874cb37b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63514 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706Ab0JAXIL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:08:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1285926796-8034-1-git-send-email-notasas@gmail.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:60457 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751735Ab0JAXJh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:09:37 -0400
+In-Reply-To: <cf2c8b9dc6762d53dcaf522d874cb37b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-* Grazvydas Ignotas <notasas@gmail.com> [101001 02:44]:
-> Add platform data to make use of newly added charging driver.
+On Sat, Oct 2, 2010 at 1:02 AM, Anand Gadiyar <gadiyar@ti.com> wrote:
+> I picked up your patch and the warnings are gone. The key difference
+> was I missed marking the alternative function as an inline.
 
-Thanks, I'll queue this for the upcoming merge window.
+Ok, thanks for the update.
 
-Grazvydas (and others too), can you please always Cc linux-arm-kernel
-mailing list too on your arch/arm/*omap*/ patches, that way I don't need
-to repost them before merging?
 
-Regards,
-
-Tony 
+>
+> Without that, I was seeing warnings like these:
+> include/linux/wl12xx.h:42: warning: 'wl12xx_set_platform_data' defined but
+> not used
+>
+> - Anand
+>
