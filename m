@@ -1,38 +1,37 @@
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Subject: Re: [PATCH 1/7] pwm: Add pwm core driver
-Date: Fri, 1 Oct 2010 16:42:48 +0900
-Message-ID: <AANLkTimPgPY9rX_MYZTv0PpRQgfWGoSeSE9WWy_ami-V@mail.gmail.com>
-References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
-        <1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
-        <4CA1AD2B.8000905@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC2FB6B@EXDCVYMBSTM006.EQ1STM.local>
-        <4CA1BC16.3020702@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
-        <4CA25841.4090702@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
-        <AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
-        <F45880696056844FA6A73F415B568C69532DCF32BC@EXDCVYMBSTM006.EQ1STM.local>
-        <AANLkTikTo42Q5-yMEwyQH4mt=qLjaKrtJK3ydZNFyqai@mail.gmail.com>
-        <F45880696056844FA6A73F415B568C69532DCF33BB@EXDCVYMBSTM006.EQ1STM.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <F45880696056844FA6A73F415B568C69532DCF33BB@EXDCVYMBSTM006.EQ1STM.local>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-To: Arun MURTHY <arun.murthy@stericsson.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, Lars-Peter Clausen <lars@metafoo.de>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Bill Gatliff <bgat@billgatliff.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, Marek Vasut <marek.vasut@gmail.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, Mattias WALLIN <mattias.wallin@stericsson.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, eric.y.miao@gmail.
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 0/4] CBUS patches
+Date: Fri,  1 Oct 2010 10:47:14 +0300
+Message-ID: <1285919238-26555-1-git-send-email-balbi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57791 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753838Ab0JAHrT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 03:47:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On Fri, Oct 1, 2010 at 4:25 PM, Arun MURTHY <arun.murthy@stericsson.com> wrote:
-> You can have a look at the pwm_config_nosleep(),pwm_set_polarity(),
-> pwm_synchronize(),pwm_unsynchronize(), pwm_set_handler() etc.
-> These are not being used by the exsting pwm drivers except Atmel pwm.
-How would your 'simple' driver handle Atmel then ?
-What if future's SoCs start providing those 'advance' features like Atmel's ?
+Hi Tony,
 
-> I mean not the functions but the functionality.
-> PWM is a simple device and most of its clients are controlling intensity
-> of backlight, leds, vibrator etc.
-> I don't think these complex functionality are required.
-oh dear !
+removed a few unneeded includes and moved platform_device
+registration to board file.
+
+ps: as usual, compile tested only :-p No working n810 available
+
+Felipe Balbi (4):
+  cbus: remove unneded includes
+  cbus: retu: move platform_device to board file
+  cbus: tahvo: move platform_device to board file
+  cbus: tahvo-usb: move platform_device to board file
+
+ arch/arm/mach-omap2/board-n8x0.c |   96 ++++++++++++++++++++++++++++++++++++++
+ drivers/cbus/cbus.c              |    5 --
+ drivers/cbus/retu.c              |   69 +---------------------------
+ drivers/cbus/tahvo-usb.c         |   13 -----
+ drivers/cbus/tahvo.c             |   65 +-------------------------
+ 5 files changed, 98 insertions(+), 150 deletions(-)
+
+-- 
+1.7.3.rc0.35.g8ac8c
+
