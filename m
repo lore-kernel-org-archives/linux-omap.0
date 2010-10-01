@@ -1,162 +1,126 @@
-From: GERBER Patrick <Patrick.Gerber@heig-vd.ch>
-Subject: RE : [omap3] Nand flash initialisation error
-Date: Fri, 1 Oct 2010 13:56:56 +0200
-Message-ID: <8959501C0BAF9F40956CEBAD13FB297F17F38C757B@EINTMBX.einet.ad.eivd.ch>
-References: <8959501C0BAF9F40956CEBAD13FB297F17F38C7574@EINTMBX.einet.ad.eivd.ch>
- <8959501C0BAF9F40956CEBAD13FB297F17F38C7575@EINTMBX.einet.ad.eivd.ch>,<2A3DCF3DA181AD40BDE86A3150B27B6B0356476FBF@dbde02.ent.ti.com>
+From: David Cohen <david.cohen@nokia.com>
+Subject: Re: [PATCH v2 2/2] OMAP3: DMA: Errata: sDMA FIFO draining does not
+ finish
+Date: Fri, 1 Oct 2010 14:50:37 +0300
+Message-ID: <20101001115037.GA12614@esdhcp036161.research.nokia.com>
+References: <1285931095-21053-1-git-send-email-peter.ujfalusi@nokia.com>
+ <1285931095-21053-3-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailcl0.heig-vd.ch ([193.134.216.181]:44280 "EHLO heig-vd.ch"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932445Ab0JAL7v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 07:59:51 -0400
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B0356476FBF@dbde02.ent.ti.com>
-Content-Language: fr-CH
+Received: from smtp.nokia.com ([147.243.1.47]:55463 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932355Ab0JAMAy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 1 Oct 2010 08:00:54 -0400
+Content-Disposition: inline
+In-Reply-To: <1285931095-21053-3-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ghorai, Sukumar" <s-ghorai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Nishanth Menon <nm@ti.com>
 
-________________________________________
-De : linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org=
-] de la part de Ghorai, Sukumar [s-ghorai@ti.com]
-Date d'envoi : vendredi, 1. octobre 2010 08:02
-Objet : RE: [omap3] Nand flash initialisation error
+Hi,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of GERBER Patrick
-> Sent: Wednesday, September 29, 2010 7:35 PM
-> To: GERBER Patrick; linux-omap@vger.kernel.org
-> Subject: RE : [omap3] Nand flash initialisation error
->
-> In complement to my previous mail I have found that if I only add a c=
-all
-> to gpmc_cs_request the info->phys_base is well initialized.
-> So I could after call the platform_device_register as usual.
-[Ghorai] I am agree with your. You can -
-408   //if (platform_device_register(&omap3beagle_nand_device) < 0)
-409   if (gpmc_nand_init(&omap3beagle_nand_data) < 0)
+On Fri, Oct 01, 2010 at 01:04:55PM +0200, ext Peter Ujfalusi wrote:
+> Implement the suggested workaround for OMAP3 regarding to sDMA draining
+> issue, when the channel is disabled on the fly.
+> This errata affects the following configuration:
+> sDMA transfer is source synchronized
+> Buffering is enabled
+> SmartStandby is selected.
+> 
+> The issue can be easily reproduced by creating overrun situation while
+> recording audio.
+> Either introduce load to the CPU:
+> nice -19 arecord -D hw:0 -M -B 10000 -F 5000 -f dat > /dev/null & \
+> dd if=/dev/urandom of=/dev/null
+> 
+> or suspending the arecord, and resuming it:
+> arecord -D hw:0 -M -B 10000 -F 5000 -f dat > /dev/null
+> CTRL+Z; fg; CTRL+Z; fg; ...
+> 
+> In case of overrun audio stops DMA, and restarts it (without reseting
+> the sDMA channel). When we hit this errata in stop case (sDMA drain did
+> not complete), at the coming start the sDMA will not going to be
+> operational (it is still draining).
+> This leads to DMA stall condition.
+> On OMAP3 we can recover with sDMA channel reset, it has been observed
+> that by introducing unrelated sDMA activity might also help (reading
+> from MMC for example).
+> 
+> The same errata exists for OMAP2, where the suggestion is to disable the
+> buffering to avoid this type of error.
+> On OMAP3 the suggestion is to set sDMA to NoStandby before disabling
+> the channel, and wait for the drain to finish, than configure sDMA to
+> SmartStandby again.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+> ---
+>  arch/arm/plat-omap/dma.c              |   35 +++++++++++++++++++++++++++++++-
+>  arch/arm/plat-omap/include/plat/dma.h |    3 ++
+>  2 files changed, 36 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 7115884..287a00e 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
 
->
-> Anyway I still  have the bogus (but working) detection of the flash:
->
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron omap2-nand.=
-0)
-> NAND bus width 8 instead 16 bit
-> No NAND device found.
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron NAND 256MiB=
- 1,8V
-> 16-bit)
->
-> Any idea ?
-[Ghorai] This is ok .. because _probe is common for all omap board. And=
- they have different NAND in different platform; and its check for any =
-8x nand preset and followed by check if any 16x device preset. And code=
- as followes.
+[snip]
 
- 877 static int __devinit omap_nand_probe(struct platform_device *pdev)
-=2E.
- 998         if (nand_scan(&info->mtd, 1)) {
- 999                 info->nand.options ^=3D NAND_BUSWIDTH_16;
-1000                 if (nand_scan(&info->mtd, 1)) {
+> +		l = sys_cf = dma_read(OCP_SYSCONFIG);
 
->[Ghorai] Are you still facing any issue other then this detection log?
+Shouldn't it be avoided?
 
+Regards,
 
-No everything is now working fine. But I was a little bit disappointed =
-by the detection log. But if you say that's usual I am ok !
+David
 
-Thank you for your help.
-
-
-> ________________________________________
-> De : linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.o=
-rg]
-> de la part de GERBER Patrick [Patrick.Gerber@heig-vd.ch]
-> Date d'envoi : mercredi, 29. septembre 2010 14:05
-> =C0 : linux-omap@vger.kernel.org
-> Objet : [omap3] Nand flash initialisation error
->
-> Hello,
->
-> I am using 2.6.34.5 vanilla kernel on a gumstix over Fire using OMAP3=
-530.
-> I have some problems wit the nand flash (the chip on the top of the O=
-MAP).
-> The MTD partition is not created.
->
-> When booting the board code is well detecting a Nand on CS0 and call =
-the
-> platform_device_register.
-> The omap_nand_probe() fail with -16 (EBUSY) after calling
-> request_mem_region() with 0 as a base address.
-> So the info->phys_base is not initialized.
->
-> After looking in older kernel I have tried to add a call
-> gpmc_nand_init(&overo_nand_data) in my board code instead of the call=
- to
-> platform_device_register.
-> With this addition the Flash is well detected and the mtd partition
-> created.
-> But there is some errors due to misconfiguration of the flash (bus wi=
-dth,
-> detecting twice, ...). Of course my platform_device structure is not =
-used
-> because I have to pass only the omap_nand_platform_data struct to
-> gpmc_nand_init().
->
->  (the ## prefixed lines are personal debug addition)
->
-> ...
-> Found NAND on CS0
-> ## gpmc_baseaddr 0xfe000000, gpmc_cs_baseaddr 0xfe000060
-> Registering NAND on CS0
-> ...
-> omap2-nand driver initializing
-> ## omap_nand_probe
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron omap2-nand.=
-0)
-> NAND bus width 8 instead 16 bit
-> No NAND device found.
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron NAND 256MiB=
- 1,8V
-> 16-bit)
-> cmdlinepart partition parsing not available
-> Creating 5 MTD partitions on "omap2-nand.0":
-> ...
->
->
-> I have looked on other board initialization (beagle, igep, ...)  and =
-the
-> code seems pretty similar.
-> I would like to know if the call to gpmc_nand_init() is still necessa=
-ry
-> and why the detection is so hesitant ?
-> I'd rather use the platform_device_register()  but I dont understand =
-why
-> the info->phys_base is 0 ?!?
->
-> Thanks in advance for any help.
->
-> Patrick--
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
+> +		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
+> +		dma_write(l , OCP_SYSCONFIG);
+> +
+> +		l = dma_read(CCR(lch));
+> +		l &= ~OMAP_DMA_CCR_EN;
+> +		dma_write(l, CCR(lch));
+> +
+> +		/* Wait for sDMA FIFO drain */
+> +		l = dma_read(CCR(lch));
+> +		while (i < 100 && (l & (OMAP_DMA_CCR_RD_ACTIVE |
+> +					OMAP_DMA_CCR_WR_ACTIVE))) {
+> +			udelay(5);
+> +			i++;
+> +			l = dma_read(CCR(lch));
+> +		}
+> +		if (i >= 100)
+> +			printk(KERN_ERR "DMA drain did not completed on "
+> +					"lch %d\n", lch);
+> +		/* Restore OCP_SYSCONFIG */
+> +		dma_write(sys_cf, OCP_SYSCONFIG);
+> +	} else {
+> +		l &= ~OMAP_DMA_CCR_EN;
+> +		dma_write(l, CCR(lch));
+> +	}
+>  
+>  	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
+>  		int next_lch, cur_lch = lch;
+> diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+> index 776ba44..cf66f85 100644
+> --- a/arch/arm/plat-omap/include/plat/dma.h
+> +++ b/arch/arm/plat-omap/include/plat/dma.h
+> @@ -335,6 +335,9 @@
+>  #define OMAP2_DMA_MISALIGNED_ERR_IRQ	(1 << 11)
+>  
+>  #define OMAP_DMA_CCR_EN			(1 << 7)
+> +#define OMAP_DMA_CCR_RD_ACTIVE		(1 << 9)
+> +#define OMAP_DMA_CCR_WR_ACTIVE		(1 << 10)
+> +#define OMAP_DMA_CCR_SEL_SRC_DST_SYNC	(1 << 24)
+>  #define OMAP_DMA_CCR_BUFFERING_DISABLE	(1 << 25)
+>  
+>  #define OMAP_DMA_DATA_TYPE_S8		0x00
+> -- 
+> 1.7.3
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
