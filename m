@@ -1,78 +1,50 @@
-From: Trilok Soni <soni.trilok@gmail.com>
-Subject: Re: [PATCH 1/7] pwm: Add pwm core driver
-Date: Fri, 1 Oct 2010 12:17:32 +0530
-Message-ID: <AANLkTikTo42Q5-yMEwyQH4mt=qLjaKrtJK3ydZNFyqai@mail.gmail.com>
-References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
-        <1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
-        <4CA1AD2B.8000905@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC2FB6B@EXDCVYMBSTM006.EQ1STM.local>
-        <4CA1BC16.3020702@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
-        <4CA25841.4090702@metafoo.de>
-        <F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
-        <AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
-        <F45880696056844FA6A73F415B568C69532DCF32BC@EXDCVYMBSTM006.EQ1STM.local>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/3 v5] musb: add musb support for AM35x
+Date: Fri, 1 Oct 2010 09:48:57 +0300
+Message-ID: <20101001064857.GI2925@legolas.emea.dhcp.ti.com>
+References: <1285823949-27694-1-git-send-email-ajay.gupta@ti.com>
+ <1285823949-27694-2-git-send-email-ajay.gupta@ti.com>
+ <20101001060203.GD2925@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404A9D8AFF0@dbde02.ent.ti.com>
+ <20101001062318.GG2925@legolas.emea.dhcp.ti.com>
+ <20101001062516.GH2925@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404A9D8B005@dbde02.ent.ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <F45880696056844FA6A73F415B568C69532DCF32BC@EXDCVYMBSTM006.EQ1STM.local>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-To: Arun MURTHY <arun.murthy@stericsson.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, "robert.jarzmik@free.fr" <robert.jarzmik@free.fr>, Marek Vasut <marek.vasut@gmail.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, Mattias WALLIN <mattias>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404A9D8B005-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Arun,
-
-On Fri, Oct 1, 2010 at 8:55 AM, Arun MURTHY <arun.murthy@stericsson.com> wrote:
-> Hi Trilok,
+On Fri, Oct 01, 2010 at 01:33:49AM -0500, Gupta, Ajay Kumar wrote:
+>Hi,
+>[...]
+>> >>I couldn't fetch your gitorious tree so I just applied 14 patch set
+>> >>Manually on my branch.
+>> >>
+>> >>Anyways I will look into it and send the refreshed patch shortly.
+>> >
+>> >gitorious must be trying to make me look bad :-p
+>> >
+>> >Works like a charm here. Will try on a different laptop
+>>
+>> fine on another laptop too. Maybe you need to check your .git/config
+>>
+>> the correct address is git://gitorious.org/usb/usb.git
 >
->> Hi Arun,
->>
->> Adding Bill Gatliff (anyway, CC list already crowded)
->>
->> On Wed, Sep 29, 2010 at 10:19 AM, Arun MURTHY
->> <arun.murthy@stericsson.com> wrote:
->> >> Arun MURTHY wrote:
->> >> >>>> Shouldn't PWM_DEVICES select HAVE_PWM?
->> >> >>>
->> >> >>> No not required, the entire concept is to remove HAVE_PWM and
->> use
->> >> >> PWM_CORE.
->>
->> There is already nice and clean framework written by Bill for PWM, if
->> you grep the LKML and linux-embedded mailing list archive then you
->> will get his patches, and it seems that he had promised to send the
->> updated version few week back, but not heard from him (may be because
->> he was travelling as per FB status).
->>
->> Please evaluate that framework too.
->>
-> Thanks for this information, I did search in linux-embedded mailing list
-> archive. Below are my views on that patch set.
-> Many of the functions that has been defined in pwm core driver
-> written by Bill Gatliff is not being used by the most of the pwm drivers
-> except Atmel PWM driver. I rather felt the pwm core driver was an attempt
-> made to generalize the Atmel pwm driver.
-> And moreover this was posted long back somewhere in the beginning of this
-> year i.e Feb and the thread is dead thereafter.
->
-> This patch has been submitted focusing all the existing pwm drivers and
-> only these are the functions that are being used by pwm drivers.
-> This patch set also included patch to align all the existing pwm driver
-> with the pwm core driver.
-> So it is an attempt to generalize most of the pwm drivers and
-> conclude with a pwm core driver.
+>I am using same address (http one) but fetch always fails while getting
+>Index pack,
+>484a70e99b430800a9d93198bae32df155aecfc9
 
-I don't agree that Bill had only atmel drivers view. The PWM framework
-was discussed in-depth and at that time reviewers also requested once
-to provide more example drivers using these drivers, someone said "we
-atleast need three drivers as rule of thumb". Let's wait until Bill
-reviews your framework, I am sure we don't need to end up the same
-problems faced by Bill while designing that framework in your code
-too.
+try to get it via git instead of http.
 
 -- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
