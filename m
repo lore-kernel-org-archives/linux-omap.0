@@ -1,91 +1,115 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset during init
-Date: Fri, 1 Oct 2010 12:56:14 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CD033D6@dbde02.ent.ti.com>
-References: <1285834270-32766-1-git-send-email-charu@ti.com>
-	<4CA45341.3080300@ti.com> <87vd5njpyq.fsf@deeprootsystems.com>
-	<4CA49ADE.6080202@ti.com> <20100930150713.GG3117@atomide.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030CCF813E@dbde02.ent.ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030CD03185@dbde02.ent.ti.com>
- <87bp7ff962.fsf@deeprootsystems.com>
+From: Arun MURTHY <arun.murthy@stericsson.com>
+Subject: RE: [PATCH 1/7] pwm: Add pwm core driver
+Date: Fri, 1 Oct 2010 09:25:15 +0200
+Message-ID: <F45880696056844FA6A73F415B568C69532DCF33BB@EXDCVYMBSTM006.EQ1STM.local>
+References: <1285659648-21409-1-git-send-email-arun.murthy@stericsson.com>
+        <1285659648-21409-2-git-send-email-arun.murthy@stericsson.com>
+        <4CA1AD2B.8000905@metafoo.de>
+        <F45880696056844FA6A73F415B568C69532DC2FB6B@EXDCVYMBSTM006.EQ1STM.local>
+        <4CA1BC16.3020702@metafoo.de>
+        <F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
+        <4CA25841.4090702@metafoo.de>
+        <F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
+        <AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
+        <F45880696056844FA6A73F415B568C69532DCF32BC@EXDCVYMBSTM006.EQ1STM.local>
+ <AANLkTikTo42Q5-yMEwyQH4mt=qLjaKrtJK3ydZNFyqai@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36292 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751684Ab0JAH00 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 03:26:26 -0400
-In-Reply-To: <87bp7ff962.fsf@deeprootsystems.com>
+Return-path: <linux-mips-bounce@linux-mips.org>
+In-Reply-To: <AANLkTikTo42Q5-yMEwyQH4mt=qLjaKrtJK3ydZNFyqai@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, "robert.jarzmik@free.fr" <robert.jarzmik@free.fr>, Marek Vasut <marek.vasut@gmail.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, Samuel Ortiz <sameo@linux.intel.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, Mattias WALLIN <mattias>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Menon, Nishanth" <nm@ti.com>, "wim@iguana.be" <wim@iguana.be>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, September 30, 2010 10:42 PM
-> To: Shilimkar, Santosh
-> Cc: Varadarajan, Charulatha; Tony Lindgren; Cousson, Benoit; Menon,
-> Nishanth; wim@iguana.be; linux-omap@vger.kernel.org; linux-
-> watchdog@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> paul@pwsan.com; Nayak, Rajendra; Basak, Partha
-> Subject: Re: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset during
-> init
-> 
-> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
-> 
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Varadarajan, Charulatha
-> >> Sent: Thursday, September 30, 2010 9:25 PM
-> >> To: Tony Lindgren; Cousson, Benoit
-> >> Cc: Kevin Hilman; Menon, Nishanth; wim@iguana.be; linux-
-> >> omap@vger.kernel.org; linux-watchdog@vger.kernel.org; linux-arm-
-> >> kernel@lists.infradead.org; paul@pwsan.com; Nayak, Rajendra; Basak,
-> Partha
-> >> Subject: RE: [PATCH] OMAP2PLUS: WDT: Fix: Disable WDT after reset
-> during
-> >> init
-> >>
-> >> Tony/ Benoit,
-> >>
-> >> > >
-> >> > > I think that disabling it should be done only if the
-> CONFIG_OMAP_WDT
-> >> > > is not set.
-> >> >
-> >> > How about disabling is done always unless CONFIG_WATCHDOG_NOWAYOUT
-> >> > is set?
-> >>
-> >> As given in the patch description, this patch does a disable of
-> watchdog
-> >> timer, during init, to avoid the system rebooting that happens due to
-> >> enabling of watchdog timer after a reset of the module (during hwmod
-> init).
-> >>
-> >> According to the default WDT registers values, the system reboot would
-> >> happen in ~10s if watchdog is enabled with default values. Hence, after
-> >> a WDT module reset during init, the watchdog has to be disabled within
-> 10s
-> >> otherwise the system will keep rebooting.
-> >>
-> >> Hence irrespective of CONFIG_WATCHDOG_NOWAYOUT/ CONFIG_OMAP_WDT,
-> >> the watchdog timer needs to be disabled after a WDT reset has happened.
-> >>
-> > One more option is to avoid the software reset using the CONFIG_OMAP_WDT
-> > flag. Something like below.
-> 
-> This was already proposed by Charu, and rejected.
-> 
-> Doing this means we have a dependency on particular bootloader init, and
-> we'd like to get rid of *all* assumptions about what the bootloader does
-> (or does not do.)
-> 
-you mean is not depeding on bootloader to disable WDT. Make sense.
+Hi Trilok,
 
-Thanks
+> Hi Arun,
+> 
+> On Fri, Oct 1, 2010 at 8:55 AM, Arun MURTHY
+> <arun.murthy@stericsson.com> wrote:
+> > Hi Trilok,
+> >
+> >> Hi Arun,
+> >>
+> >> Adding Bill Gatliff (anyway, CC list already crowded)
+> >>
+> >> On Wed, Sep 29, 2010 at 10:19 AM, Arun MURTHY
+> >> <arun.murthy@stericsson.com> wrote:
+> >> >> Arun MURTHY wrote:
+> >> >> >>>> Shouldn't PWM_DEVICES select HAVE_PWM?
+> >> >> >>>
+> >> >> >>> No not required, the entire concept is to remove HAVE_PWM and
+> >> use
+> >> >> >> PWM_CORE.
+> >>
+> >> There is already nice and clean framework written by Bill for PWM,
+> if
+> >> you grep the LKML and linux-embedded mailing list archive then you
+> >> will get his patches, and it seems that he had promised to send the
+> >> updated version few week back, but not heard from him (may be
+> because
+> >> he was travelling as per FB status).
+> >>
+> >> Please evaluate that framework too.
+> >>
+> > Thanks for this information, I did search in linux-embedded mailing
+> list
+> > archive. Below are my views on that patch set.
+> > Many of the functions that has been defined in pwm core driver
+> > written by Bill Gatliff is not being used by the most of the pwm
+> drivers
+> > except Atmel PWM driver. I rather felt the pwm core driver was an
+> attempt
+> > made to generalize the Atmel pwm driver.
+> > And moreover this was posted long back somewhere in the beginning of
+> this
+> > year i.e Feb and the thread is dead thereafter.
+> >
+> > This patch has been submitted focusing all the existing pwm drivers
+> and
+> > only these are the functions that are being used by pwm drivers.
+> > This patch set also included patch to align all the existing pwm
+> driver
+> > with the pwm core driver.
+> > So it is an attempt to generalize most of the pwm drivers and
+> > conclude with a pwm core driver.
+> 
+> I don't agree that Bill had only atmel drivers view. The PWM framework
+> was discussed in-depth and at that time reviewers also requested once
+> to provide more example drivers using these drivers, someone said "we
+> atleast need three drivers as rule of thumb". Let's wait until Bill
+> reviews your framework, I am sure we don't need to end up the same
+> problems faced by Bill while designing that framework in your code
+> too.
+> 
+You can have a look at the pwm_config_nosleep(),pwm_set_polarity(),
+pwm_synchronize(),pwm_unsynchronize(), pwm_set_handler() etc.
+These are not being used by the exsting pwm drivers except Atmel pwm.
+I mean not the functions but the functionality.
+PWM is a simple device and most of its clients are controlling intensity
+of backlight, leds, vibrator etc.
+I don't think these complex functionality are required.
+And moreover it also refers to GPIO pins, in that case it comes under
+a different classification. The one that I have suggested is a generic
+pwm core driver.
+You can have a look at the existing pwm drivers in drivers/mfd/twl6030-pwm.c,
+arch/arm/plat-samsung/pwm.c, arch/arm/plat-mxc/pwm.c, arch/arm/plat-pxa/pwm.c,
+arch/mips/jz4740/pwm.c.
+None of these include the function provided the patch " [PWM PATCH 1/5] API
+to consolidate PWM devices behind a common user and kernel interface "
+except pwm_enable, pwm_config, pwm_disable.
+I have focused on all these and come up with this design.
+And moreover Bill's patch set for pwm core driver, becomes incompatible with
+pwm based backlight and led driver(drivers/leds/leds-pwm.c,
+drivers/video/backlight/pwm_bl.c) and drivers/input/misc/pwm-beeper.c.
 
-Regards,
-Santosh
+I don't mind waiting for Bill's review on my patch, but he is not active
+since Feb 2010.
+
+Thanks and Regards,
+Arun R Murthy
+-------------
