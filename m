@@ -1,40 +1,40 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH 4/4] iovmm: replace __iounmap with omap_iounmap
-Date: Thu, 30 Sep 2010 22:08:55 -0500
-Message-ID: <1285902536-7043-5-git-send-email-x0095840@ti.com>
-References: <1285902536-7043-1-git-send-email-x0095840@ti.com>
- <1285902536-7043-2-git-send-email-x0095840@ti.com>
- <1285902536-7043-3-git-send-email-x0095840@ti.com>
- <1285902536-7043-4-git-send-email-x0095840@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1285902536-7043-4-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hiroshi.DOYU@nokia.com
-Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCH] scatterlist: define SG chain for arm architecture
+Date: Thu, 30 Sep 2010 22:22:34 -0500
+Message-ID: <1285903354-7378-1-git-send-email-x0095840@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47039 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751032Ab0JADJT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 30 Sep 2010 23:09:19 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: Hiroshi.DOYU@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
 
-Omap platform is omap_iounmap function.
+Define SG chain for ARM architecture in order to work
+with big buffers. This patch is needed in order to
+iovmm users can pass a big buffer to map it and ARM
+architecture has not issues using SG chain.
+
+This change was suggested by FUJITA Tomonori.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- arch/arm/plat-omap/iovmm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
- mode change 100644 => 100755 arch/arm/plat-omap/iovmm.c
+ arch/arm/include/asm/scatterlist.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-old mode 100644
-new mode 100755
-index e7ffec8..326776d
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -824,7 +824,7 @@ void iommu_kunmap(struct iommu *obj, u32 da)
- 	struct sg_table *sgt;
- 	typedef void (*func_t)(const void *);
+diff --git a/arch/arm/include/asm/scatterlist.h b/arch/arm/include/asm/scatterlist.h
+index 2f87870..3de0a0b 100644
+--- a/arch/arm/include/asm/scatterlist.h
++++ b/arch/arm/include/asm/scatterlist.h
+@@ -5,4 +5,6 @@
+ #include <asm/types.h>
+ #include <asm-generic/scatterlist.h>
  
--	sgt = unmap_vm_area(obj, da, (func_t)__iounmap,
-+	sgt = unmap_vm_area(obj, da, (func_t)omap_iounmap,
- 			    IOVMF_LINEAR | IOVMF_MMIO);
- 	if (!sgt)
- 		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
++#define ARCH_HAS_SG_CHAIN
++
+ #endif /* _ASMARM_SCATTERLIST_H */
 -- 
 1.6.3.3
+
