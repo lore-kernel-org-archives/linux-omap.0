@@ -1,43 +1,46 @@
-From: Abraham Arce <x0066660@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Subject: Re: [PATCH v6 7/8] OMAP4: Keyboard board support
-Date: Fri, 1 Oct 2010 18:20:46 -0500
-Message-ID: <4CA66CCE.4010208@ti.com>
-References: <1285824973-25550-1-git-send-email-x0066660@ti.com> <20100930064055.GG5260@core.coreip.homeip.net> <20101001225127.GE3117@atomide.com> <87wrq14ipg.fsf@deeprootsystems.com> <20101001231417.GI3117@atomide.com>
+Date: Fri, 1 Oct 2010 16:22:16 -0700
+Message-ID: <201010011622.18204.dmitry.torokhov@gmail.com>
+References: <1285824973-25550-1-git-send-email-x0066660@ti.com> <20101001225127.GE3117@atomide.com> <87wrq14ipg.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20101001231417.GI3117@atomide.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:37532 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862Ab0JAXW0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 1 Oct 2010 19:22:26 -0400
+In-Reply-To: <87wrq14ipg.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, Abraham Arce <x0066660@ti.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>
 
-Hi Kevin, Tony, Charu,
-
-Tony Lindgren wrote:
-> * Kevin Hilman <khilman@deeprootsystems.com> [101001 15:57]:
->> Dmitry,
->>
->> Can you please drop patch 8 (the pm runtime one.)  As pointed out by
->> Charu,  with the proposed platform changes, this cannot work
->> correctly with runtime PM.
->>
->> Tony, I also propose we don't merge the platform code yet either until
->> Abraham can respond to the platform-specific issues and runtime PM
->> issues.
->>
->> I'm fine with Dmitry merging the rest of the driver changes though.
+On Friday, October 01, 2010 04:05:47 pm Kevin Hilman wrote:
+> Tony Lindgren <tony@atomide.com> writes:
+> > * Dmitry Torokhov <dmitry.torokhov@gmail.com> [100929 23:32]:
+> >> HI Abraham,
+> >> 
+> >> On Thu, Sep 30, 2010 at 12:36:13AM -0500, Abraham Arce wrote:
+> >> > From: Syed Rafiuddin <rafiuddin.syed@ti.com>
+> >> > 
+> >> > Keyboard support for SDP OMAP4430
+> >> 
+> >> I think this would benefit from "const" sprinkled on it.
+> >> 
+> >> BTW, I picked up patches 2, 3, 4, 5, 8 (all touching drivers/input).
+> > 
+> > Thanks, I'll take 1, 6 & 7.
 > 
-> OK, I'll drop 1, 6 & 7.
+> Dmitry,
 > 
-> Merging the rest of the driver changes sounds good to me too,
-> that way there's no longer a build dependecy on the plat/omap4-keypad.h ;)
-> 
-> Tony
+> Can you please drop patch 8 (the pm runtime one.)  As pointed out by
+> Charu,  with the proposed platform changes, this cannot work
+> correctly with runtime PM.
 
-I'll take care of the changes in 2 days, out due to a high priority 
-activity.
+Right, will do.
 
-Best Regards
-Abraham
+-- 
+Dmitry
