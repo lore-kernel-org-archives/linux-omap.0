@@ -1,73 +1,37 @@
-From: David Cohen <david.cohen@nokia.com>
-Subject: Re: [PATCHv3 1/6] omap3: Add external VBUS power switch and
- overcurrent detect on IGEP v2 board.
-Date: Sat, 2 Oct 2010 11:04:27 +0300
-Message-ID: <20101002080427.GC14377@esdhcp036161.research.nokia.com>
-References: <1285967349-32767-1-git-send-email-eballetbo@gmail.com>
- <1285967349-32767-2-git-send-email-eballetbo@gmail.com>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: [PATCH] omap3: Add minimal OMAP3 IGEP module support.
+Date: Sat, 2 Oct 2010 11:41:32 +0200
+Message-ID: <AANLkTims7Tbapaubk_gNH-g1W+H2=kDwi2+3AHVj2wTW@mail.gmail.com>
+References: <1285971985-5662-1-git-send-email-eballetbo@gmail.com>
+	<20101001231947.GJ3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46734 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752599Ab0JBIO3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 2 Oct 2010 04:14:29 -0400
-Content-Disposition: inline
-In-Reply-To: <1285967349-32767-2-git-send-email-eballetbo@gmail.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:43013 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753870Ab0JBJld (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 2 Oct 2010 05:41:33 -0400
+Received: by qwh6 with SMTP id 6so1987927qwh.19
+        for <linux-omap@vger.kernel.org>; Sat, 02 Oct 2010 02:41:32 -0700 (PDT)
+In-Reply-To: <20101001231947.GJ3117@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+2010/10/2 Tony Lindgren <tony@atomide.com>:
+> * Enric Balletbo i Serra <eballetbo@gmail.com> [101001 15:18]:
+>> The OMAP3 IGEP module is a low-power, high performance production-ready
+>> system-on-module (SOM) based on TI's OMAP3 family.
+>
+> Looks OK to me, but also looks like you're missing the uncompress.h
+> DEBUG_LL/EARLY_PRINTK entry?
+>
 
-On Fri, Oct 01, 2010 at 11:09:04PM +0200, ext Enric Balletbo i Serra wrote:
-> GPIO for various devices are missing from the board initialization.
-> This patch adds support for the VBUS and over current gpios.  Without this
-> patch, input/outputs from these two sources are ignored.
-> 
-> Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
-> ---
->  arch/arm/mach-omap2/board-igep0020.c |   16 ++++++++++++++++
->  1 files changed, 16 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-> index 175f043..07dbdb7 100644
-> --- a/arch/arm/mach-omap2/board-igep0020.c
-> +++ b/arch/arm/mach-omap2/board-igep0020.c
-> @@ -274,6 +274,22 @@ static int igep2_twl_gpio_setup(struct device *dev,
->  	igep2_vmmc1_supply.dev = mmc[0].dev;
->  	igep2_vmmc2_supply.dev = mmc[1].dev;
->  
-> +	/*
-> +	 * REVISIT: need ehci-omap hooks for external VBUS
-> +	 * power switch and overcurrent detect
-> +	 */
-> +	if ((gpio_request(gpio + 1, "GPIO_EHCI_NOC") < 0) ||
-> +	    (gpio_direction_input(gpio + 1) < 0))
-> +		pr_err("IGEP2: Could not obtain gpio for EHCI NOC");
+Mmmm, I see I missed I'll send the version two...
 
-Shouldb't you return error if it can't request the GPIO?
+I'm learning a lot,  thanks for your patience :-)
 
-> +
-> +	/*
-> +	 * TWL4030_GPIO_MAX + 0 == ledA, GPIO_USBH_CPEN
-> +	 * (out, active low)
-> +	 */
-> +	if ((gpio_request(gpio + TWL4030_GPIO_MAX, "GPIO_USBH_CPEN") < 0) ||
-> +	    (gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0) < 0))
-> +		pr_err("IGEP2: Could not obtain gpio for USBH_CPEN");
+Kind regards,
 
-Same here.
-
-> +
->  	return 0;
->  };
->  
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  Enric
