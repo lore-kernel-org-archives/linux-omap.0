@@ -1,90 +1,32 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera
-	interface
-Date: Sat, 2 Oct 2010 14:45:12 +0200
-Message-ID: <201010021445.14567.jkrzyszt@tis.icnet.pl>
-References: <201009301335.51643.jkrzyszt@tis.icnet.pl>
-	<Pine.LNX.4.64.1010020803200.14599@axis700.grange>
-Reply-To: Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] omap: pandora: enable twl4030 charger
+Date: Sat, 2 Oct 2010 16:28:23 +0300
+Message-ID: <AANLkTingUDWqjCXM=a3bvy2E1oAo4FPV3bjpawwBu3K0@mail.gmail.com>
+References: <1285926796-8034-1-git-send-email-notasas@gmail.com>
+	<20101001230806.GG3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <e3-hacking-bounces@earth.li>
-In-Reply-To: <Pine.LNX.4.64.1010020803200.14599@axis700.grange>
-Content-Disposition: inline
-List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
-List-Archive: <http://www.earth.li/pipermail/e3-hacking>
-List-Post: <mailto:e3-hacking@earth.li>
-List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
-List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=subscribe>
-Sender: e3-hacking-bounces@earth.li
-Errors-To: e3-hacking-bounces@earth.li
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:33070 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755312Ab0JBN2Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 2 Oct 2010 09:28:25 -0400
+Received: by qyk36 with SMTP id 36so587544qyk.19
+        for <linux-omap@vger.kernel.org>; Sat, 02 Oct 2010 06:28:24 -0700 (PDT)
+In-Reply-To: <20101001230806.GG3117@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-U2F0dXJkYXkgMDIgT2N0b2JlciAyMDEwIDA4OjA3OjI4IEd1ZW5uYWRpIExpYWtob3ZldHNraSBu
-YXBpc2HFgihhKToKPiBTYW1lIHdpdGggdGhpcyBvbmUgLSBsZXQncyB0YWtlIGl0IGFzIGlzIGFu
-ZCBhZGRyZXNzIGEgY291cGxlIG9mIGNsZWFuLXVwcwo+IGxhdGVyLgoKR3Vlbm5hZGksClRoYW5r
-cyBmb3IgdGFraW5nIHRoZW0gYm90aC4KCkJUVywgd2hhdCBhcmUgeW91ciBpbnRlbnRpb25zIGFi
-b3V0IHRoZSBsYXN0IHBhdGNoIGZyb20gbXkgc2VyaWVzIHN0aWxsIGxlZnQgCm5vdCBjb21tZW50
-ZWQsICJTb0MgQ2FtZXJhOiBhZGQgc3VwcG9ydCBmb3IgZ19wYXJtIC8gc19wYXJtIG9wZXJhdGlv
-bnMiLApodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzIyODg3Lmh0
-bWwgPwoKPiBPbiBUaHUsIDMwIFNlcCAyMDEwLCBKYW51c3ogS3J6eXN6dG9maWsgd3JvdGU6Cj4g
-PiArc3RhdGljIHZvaWQgb21hcDFfdmlkZW9idWZfcXVldWUoc3RydWN0IHZpZGVvYnVmX3F1ZXVl
-ICp2cSwKPiA+ICsJCQkJCQlzdHJ1Y3QgdmlkZW9idWZfYnVmZmVyICp2YikKPiA+ICt7Cj4gPiAr
-CXN0cnVjdCBzb2NfY2FtZXJhX2RldmljZSAqaWNkID0gdnEtPnByaXZfZGF0YTsKPiA+ICsJc3Ry
-dWN0IHNvY19jYW1lcmFfaG9zdCAqaWNpID0gdG9fc29jX2NhbWVyYV9ob3N0KGljZC0+ZGV2LnBh
-cmVudCk7Cj4gPiArCXN0cnVjdCBvbWFwMV9jYW1fZGV2ICpwY2RldiA9IGljaS0+cHJpdjsKPiA+
-ICsJc3RydWN0IG9tYXAxX2NhbV9idWYgKmJ1ZjsKPiA+ICsJdTMyIG1vZGU7Cj4gPiArCj4gPiAr
-CWxpc3RfYWRkX3RhaWwoJnZiLT5xdWV1ZSwgJnBjZGV2LT5jYXB0dXJlKTsKPiA+ICsJdmItPnN0
-YXRlID0gVklERU9CVUZfUVVFVUVEOwo+ID4gKwo+ID4gKwlpZiAocGNkZXYtPmFjdGl2ZSkgewo+
-ID4gKwkJLyoKPiA+ICsJCSAqIENhcHR1cmUgaW4gcHJvZ3Jlc3MsIHNvIGRvbid0IHRvdWNoIHBj
-ZGV2LT5yZWFkeSBldmVuIGlmCj4gPiArCQkgKiBlbXB0eS4gU2luY2UgdGhlIHRyYW5zZmVyIG9m
-IHRoZSBETUEgcHJvZ3JhbW1pbmcgcmVnaXN0ZXIgc2V0Cj4gPiArCQkgKiBjb250ZW50IHRvIHRo
-ZSBETUEgd29ya2luZyByZWdpc3RlciBzZXQgaXMgZG9uZSBhdXRvbWF0aWNhbGx5Cj4gPiArCQkg
-KiBieSB0aGUgRE1BIGhhcmR3YXJlLCB0aGlzIGNhbiBwcmV0dHkgd2VsbCBoYXBwZW4gd2hpbGUg
-d2UKPiA+ICsJCSAqIGFyZSBrZWVwaW5nIHRoZSBsb2NrIGhlcmUuIExldmFlIGZldGNoaW5nIGl0
-IGZyb20gdGhlIHF1ZXVlCj4KPiAiTGVhdmUiCgpZZXMsIHNvcnJ5LgoKPiA+ICsJCSAqIHRvIGJl
-IGRvbmUgd2hlbiBhIG5leHQgRE1BIGludGVycnVwdCBvY2N1cmVzIGluc3RlYWQuCj4gPiArCQkg
-Ki8KPiA+ICsJCXJldHVybjsKPiA+ICsJfQo+Cj4gc3VwZXJmbHVvdXMgYnJhY2VzCgpJIHdhcyBp
-bnN0cnVjdGVkIG9uY2UgdG8gZG8gYSByZXZlcnNlIGluIGEgcGF0Y2ggYWdhaW5zdCBBU29DIHN1
-YnRyZWUgKHNlZSAKaHR0cDovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW9tYXBAdmdlci5r
-ZXJuZWwub3JnL21zZzE0ODYzLmh0bWwpLCBidXQgClRCSCwgSSBjYW4ndCBmaW5kIGEgY2xlYXIg
-ZW5vdWdoIHJlcXVpcmVtZW50IHNwZWNpZmllZCBpbiB0aGUgCkRvY3VtZW50YXRpb24vQ29kaW5n
-U3R5bGUsIHNvIEkgcHJvYmFibHkgY2hhbmdlIG15IGhhYml0cywgYXQgbGVhc3QgZm9yIHlvdSAK
-c3VidHJlZSA7KS4KCj4gPiArc3RhdGljIHZvaWQgdmlkZW9idWZfZG9uZShzdHJ1Y3Qgb21hcDFf
-Y2FtX2RldiAqcGNkZXYsCj4gPiArCQllbnVtIHZpZGVvYnVmX3N0YXRlIHJlc3VsdCkKPiA+ICt7
-Cj4gPiArCXN0cnVjdCBvbWFwMV9jYW1fYnVmICpidWYgPSBwY2Rldi0+YWN0aXZlOwo+ID4gKwlz
-dHJ1Y3QgdmlkZW9idWZfYnVmZmVyICp2YjsKPiA+ICsJc3RydWN0IGRldmljZSAqZGV2ID0gcGNk
-ZXYtPmljZC0+ZGV2LnBhcmVudDsKPiA+ICsKPiA+ICsJaWYgKFdBUk5fT04oIWJ1ZikpIHsKPiA+
-ICsJCXN1c3BlbmRfY2FwdHVyZShwY2Rldik7Cj4gPiArCQlkaXNhYmxlX2NhcHR1cmUocGNkZXYp
-Owo+ID4gKwkJcmV0dXJuOwo+ID4gKwl9Cj4gPiArCj4gPiArCWlmIChyZXN1bHQgPT0gVklERU9C
-VUZfRVJST1IpCj4gPiArCQlzdXNwZW5kX2NhcHR1cmUocGNkZXYpOwo+ID4gKwo+ID4gKwl2YiA9
-ICZidWYtPnZiOwo+ID4gKwlpZiAod2FpdHF1ZXVlX2FjdGl2ZSgmdmItPmRvbmUpKSB7Cj4gPiAr
-CQlpZiAoIXBjZGV2LT5yZWFkeSAmJiByZXN1bHQgIT0gVklERU9CVUZfRVJST1IpIHsKPiA+ICsJ
-CQkvKgo+ID4gKwkJCSAqIE5vIG5leHQgYnVmZmVyIGhhcyBiZWVuIGVudGVyZWQgaW50byB0aGUg
-RE1BCj4gPiArCQkJICogcHJvZ3JhbW1pbmcgcmVnaXN0ZXIgc2V0IG9uIHRpbWUgKGNvdWxkIGJl
-IGRvbmUgb25seQo+ID4gKwkJCSAqIHdoaWxlIHRoZSBwcmV2aW91cyBETUEgaW50ZXJ1cnB0IHdh
-cyBwcm9jZXNzZWQsIG5vdAo+ID4gKwkJCSAqIGxhdGVyKSwgc28gdGhlIGxhc3QgRE1BIGJsb2Nr
-LCBiZSBpdCBhIHdob2xlIGJ1ZmZlcgo+ID4gKwkJCSAqIGlmIGluIENPTlRJRyBvciBpdHMgbGFz
-dCBzZ2J1ZiBpZiBpbiBTRyBtb2RlLCBpcwo+ID4gKwkJCSAqIGFib3V0IHRvIGJlIHJldXNlZCBi
-eSB0aGUganVzdCBhdXRvcmVpbml0aWFsaXplZCBETUEKPiA+ICsJCQkgKiBlbmdpbmUsIGFuZCBv
-dmVyd3JpdHRlbiB3aXRoIG5leHQgZnJhbWUgZGF0YS4gQmVzdCB3ZQo+ID4gKwkJCSAqIGNhbiBk
-byBpcyBzdG9wcGluZyB0aGUgY2FwdHVyZSBhcyBzb29uIGFzIHBvc3NpYmxlLAo+ID4gKwkJCSAq
-IGhvcGVmdWxseSBiZWZvcmUgdGhlIG5leHQgZnJhbWUgc3RhcnQuCj4gPiArCQkJICovCj4gPiAr
-CQkJc3VzcGVuZF9jYXB0dXJlKHBjZGV2KTsKPiA+ICsJCX0KPgo+IHN1cGVyZmx1b3VzIGJyYWNl
-cwoKZGl0dG8uCgpJJ2xsIGFkZHJlc3MgdGhlIGlzc3VlcyB3aGVuIHJlYWR5IHdpdGggbXkgZm9y
-ZW1lbnRpb25lZCBjb3JuZXIgY2FzZSBmaXhlcy4KClRoYW5rcywKSmFudXN6Cgo+IFRoYW5rcwo+
-IEd1ZW5uYWRpCj4gLS0tCj4gR3Vlbm5hZGkgTGlha2hvdmV0c2tpLCBQaC5ELgo+IEZyZWVsYW5j
-ZSBPcGVuLVNvdXJjZSBTb2Z0d2FyZSBEZXZlbG9wZXIKPiBodHRwOi8vd3d3Lm9wZW4tdGVjaG5v
-bG9neS5kZS8KPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
-aW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2Ug
-dG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0
-dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAoKCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwplMy1oYWNraW5nIG1haWxpbmcgbGlz
-dAplMy1oYWNraW5nQGVhcnRoLmxpCmh0dHA6Ly93d3cuZWFydGgubGkvY2dpLWJpbi9tYWlsbWFu
-L2xpc3RpbmZvL2UzLWhhY2tpbmcK
+On Sat, Oct 2, 2010 at 2:08 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Grazvydas Ignotas <notasas@gmail.com> [101001 02:44]:
+>> Add platform data to make use of newly added charging driver.
+>
+> Thanks, I'll queue this for the upcoming merge window.
+>
+> Grazvydas (and others too), can you please always Cc linux-arm-kernel
+> mailing list too on your arch/arm/*omap*/ patches, that way I don't need
+> to repost them before merging?
+
+ok, will do from now on.
