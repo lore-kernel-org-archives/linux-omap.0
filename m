@@ -1,89 +1,130 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] OMAP: SCM/McBSP/clock: branch integration patches for
- 2.6.37
-Date: Sat, 2 Oct 2010 20:11:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1010022010190.22941@utopia.booyaka.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera interface
+Date: Sun, 3 Oct 2010 04:42:53 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1010030439550.15920@axis700.grange>
+References: <201009301335.51643.jkrzyszt@tis.icnet.pl>
+ <Pine.LNX.4.64.1010020803200.14599@axis700.grange> <201010021445.14567.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57648 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010Ab0JCCLx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 2 Oct 2010 22:11:53 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <201010021445.14567.jkrzyszt@tis.icnet.pl>
+Sender: linux-media-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Sat, 2 Oct 2010, Janusz Krzysztofik wrote:
 
-Hello Tony,
+> Saturday 02 October 2010 08:07:28 Guennadi Liakhovetski napisa=C5=82(=
+a):
+> > Same with this one - let's take it as is and address a couple of cl=
+ean-ups
+> > later.
+>=20
+> Guennadi,
+> Thanks for taking them both.
+>=20
+> BTW, what are your intentions about the last patch from my series sti=
+ll left=20
+> not commented, "SoC Camera: add support for g_parm / s_parm operation=
+s",
+> http://www.spinics.net/lists/linux-media/msg22887.html ?
 
-The following changes since commit 7ad0e386d46e9edff64705ab25337ad9130baf63:
+Yes, taking that one too, thanks. I see it right, that I have to apply =
+3=20
+of your patches: omap1 camera driver, ov6650 and default .[gs]_fmt for=20
+soc_camera, the rest will go via the OMAP / ARM tree, right?
 
-  OMAP2+: defconfig: disable CPUfreq (2010-09-29 10:39:02 -0700)
+> > On Thu, 30 Sep 2010, Janusz Krzysztofik wrote:
+> > > +static void omap1_videobuf_queue(struct videobuf_queue *vq,
+> > > +						struct videobuf_buffer *vb)
+> > > +{
+> > > +	struct soc_camera_device *icd =3D vq->priv_data;
+> > > +	struct soc_camera_host *ici =3D to_soc_camera_host(icd->dev.par=
+ent);
+> > > +	struct omap1_cam_dev *pcdev =3D ici->priv;
+> > > +	struct omap1_cam_buf *buf;
+> > > +	u32 mode;
+> > > +
+> > > +	list_add_tail(&vb->queue, &pcdev->capture);
+> > > +	vb->state =3D VIDEOBUF_QUEUED;
+> > > +
+> > > +	if (pcdev->active) {
+> > > +		/*
+> > > +		 * Capture in progress, so don't touch pcdev->ready even if
+> > > +		 * empty. Since the transfer of the DMA programming register s=
+et
+> > > +		 * content to the DMA working register set is done automatical=
+ly
+> > > +		 * by the DMA hardware, this can pretty well happen while we
+> > > +		 * are keeping the lock here. Levae fetching it from the queue
+> >
+> > "Leave"
+>=20
+> Yes, sorry.
+>=20
+> > > +		 * to be done when a next DMA interrupt occures instead.
+> > > +		 */
+> > > +		return;
+> > > +	}
+> >
+> > superfluous braces
+>=20
+> I was instructed once to do a reverse in a patch against ASoC subtree=
+ (see=20
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14863.html)=
+, but=20
+> TBH, I can't find a clear enough requirement specified in the=20
+> Documentation/CodingStyle, so I probably change my habits, at least f=
+or you=20
+> subtree ;).
 
-are available in the git repository at:
-  git://git.pwsan.com/linux-2.6 control_mcbsp_fix_2.6.37
+Nah, forget it, doesn't matter.
 
-Paul Walmsley (10):
-      OMAP2+: Kconfig: disallow builds for boards that don't use the currently-selected SoC
-      OMAP2420: CTRL: fix OMAP242X_CTRL_REGADDR macro
-      OMAP2420: clock: add MCBSP_CLKS node and clkdev aliases
-      OMAP2430: clock: add MCBSP_CLKS node and clkdev aliases
-      OMAP3xxx: clock: add clkdev aliases for McBSP fclk source switching
-      OMAP: McBSP: implement McBSP CLKR and FSR signal muxing via mach-omap2/mcbsp.c
-      OMAP: McBSP: implement functional clock switching via clock framework
-      OMAP: split plat-omap/common.c
-      OMAP: control: move plat-omap/control.h to mach-omap2/control.h
-      OMAP2+: clock: reduce the amount of standard debugging while disabling unused clocks
+> > > +static void videobuf_done(struct omap1_cam_dev *pcdev,
+> > > +		enum videobuf_state result)
+> > > +{
+> > > +	struct omap1_cam_buf *buf =3D pcdev->active;
+> > > +	struct videobuf_buffer *vb;
+> > > +	struct device *dev =3D pcdev->icd->dev.parent;
+> > > +
+> > > +	if (WARN_ON(!buf)) {
+> > > +		suspend_capture(pcdev);
+> > > +		disable_capture(pcdev);
+> > > +		return;
+> > > +	}
+> > > +
+> > > +	if (result =3D=3D VIDEOBUF_ERROR)
+> > > +		suspend_capture(pcdev);
+> > > +
+> > > +	vb =3D &buf->vb;
+> > > +	if (waitqueue_active(&vb->done)) {
+> > > +		if (!pcdev->ready && result !=3D VIDEOBUF_ERROR) {
+> > > +			/*
+> > > +			 * No next buffer has been entered into the DMA
+> > > +			 * programming register set on time (could be done only
+> > > +			 * while the previous DMA interurpt was processed, not
+> > > +			 * later), so the last DMA block, be it a whole buffer
+> > > +			 * if in CONTIG or its last sgbuf if in SG mode, is
+> > > +			 * about to be reused by the just autoreinitialized DMA
+> > > +			 * engine, and overwritten with next frame data. Best we
+> > > +			 * can do is stopping the capture as soon as possible,
+> > > +			 * hopefully before the next frame start.
+> > > +			 */
+> > > +			suspend_capture(pcdev);
+> > > +		}
+> >
+> > superfluous braces
+>=20
+> ditto.
+>=20
+> I'll address the issues when ready with my forementioned corner case =
+fixes.
 
- arch/arm/mach-omap2/Kconfig                        |    6 +-
- arch/arm/mach-omap2/Makefile                       |    3 +-
- arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
- arch/arm/mach-omap2/board-4430sdp.c                |    3 +-
- arch/arm/mach-omap2/board-am3517evm.c              |    2 +-
- arch/arm/mach-omap2/board-apollon.c                |    2 +-
- arch/arm/mach-omap2/board-cm-t3517.c               |    2 +-
- arch/arm/mach-omap2/board-generic.c                |   16 +-
- arch/arm/mach-omap2/board-h4.c                     |    2 +-
- arch/arm/mach-omap2/board-ldp.c                    |    2 +-
- arch/arm/mach-omap2/board-omap3logic.c             |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c             |    4 +-
- arch/arm/mach-omap2/clock.c                        |    2 +-
- arch/arm/mach-omap2/clock2420_data.c               |   40 +++-
- arch/arm/mach-omap2/clock2430_data.c               |   64 ++++-
- arch/arm/mach-omap2/clock3xxx_data.c               |   12 +-
- arch/arm/mach-omap2/clock44xx_data.c               |    2 +-
- arch/arm/mach-omap2/common.c                       |  138 +++++++++
- arch/arm/mach-omap2/control.c                      |    3 +-
- .../include/plat => mach-omap2}/control.h          |   18 +-
- arch/arm/mach-omap2/cpuidle34xx.c                  |    2 +-
- arch/arm/mach-omap2/devices.c                      |    3 +-
- arch/arm/mach-omap2/hsmmc.c                        |    2 +-
- arch/arm/mach-omap2/id.c                           |    3 +-
- arch/arm/mach-omap2/mcbsp.c                        |   83 ++++++
- arch/arm/mach-omap2/mux.c                          |    8 +-
- arch/arm/mach-omap2/pm24xx.c                       |    2 +-
- arch/arm/mach-omap2/pm34xx.c                       |    2 +-
- arch/arm/mach-omap2/prcm.c                         |    2 +-
- arch/arm/mach-omap2/serial.c                       |    2 +-
- arch/arm/mach-omap2/sleep34xx.S                    |    2 +-
- arch/arm/mach-omap2/usb-fs.c                       |    6 +-
- arch/arm/plat-omap/32ksynctimer.c                  |  184 ++++++++++++
- arch/arm/plat-omap/Makefile                        |    2 +-
- arch/arm/plat-omap/clock.c                         |    5 +-
- arch/arm/plat-omap/common.c                        |  291 --------------------
- arch/arm/plat-omap/devices.c                       |    1 -
- arch/arm/plat-omap/include/plat/mcbsp.h            |   22 ++
- arch/arm/plat-omap/include/plat/omap24xx.h         |    2 +-
- arch/arm/plat-omap/mcbsp.c                         |    3 -
- arch/arm/plat-omap/sram.c                          |    3 -
- drivers/usb/gadget/omap_udc.c                      |   18 +-
- sound/soc/omap/omap-mcbsp.c                        |  119 ++------
- 43 files changed, 633 insertions(+), 459 deletions(-)
- create mode 100644 arch/arm/mach-omap2/common.c
- rename arch/arm/{plat-omap/include/plat => mach-omap2}/control.h (97%)
- create mode 100644 arch/arm/plat-omap/32ksynctimer.c
-
-
-- Paul
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+=46reelance Open-Source Software Developer
+http://www.open-technology.de/
