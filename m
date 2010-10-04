@@ -1,51 +1,54 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-Date: Tue, 5 Oct 2010 00:22:51 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD8A@dbde02.ent.ti.com>
-References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
- <1285076060.14206.3.camel@chotu>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402785A3478@dbde02.ent.ti.com>
- <20100921162658.GA2310@core.coreip.homeip.net>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C98C@dbde02.ent.ti.com>
- <20101004182834.GE8321@core.coreip.homeip.net>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: beagle hangs in uart3 disabling clocks
+Date: Mon, 04 Oct 2010 11:54:29 -0700
+Message-ID: <87iq1hzt3u.fsf@deeprootsystems.com>
+References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com>
+	<4CA9C5F6.7060902@ti.com>
+	<AANLkTi=C55AbJhCWkFAM06vL2c5UM=aH3z2r8i4_55Mk@mail.gmail.com>
+	<AANLkTin++-F7dZWhqM6DG4v-95rfOpOwHSqj8xhTdS3k@mail.gmail.com>
+	<87wrpy0xp3.fsf@deeprootsystems.com>
+	<AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37185 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932242Ab0JDSxE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:53:04 -0400
-In-Reply-To: <20101004182834.GE8321@core.coreip.homeip.net>
-Content-Language: en-US
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:54379 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755333Ab0JDSyc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:54:32 -0400
+Received: by pzk34 with SMTP id 34so1416265pzk.19
+        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 11:54:32 -0700 (PDT)
+In-Reply-To: <AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com>
+	(Ming Lei's message of "Tue, 5 Oct 2010 00:17:23 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, Pramod <pramod.gurav@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Ming Lei <tom.leiming@gmail.com> writes:
 
+> 2010/10/4 Kevin Hilman <khilman@deeprootsystems.com>:
+>>
+>> Why? =A0What do you need from the PM branch that is not in l-o maste=
+r?
+>
+> Seems master branch works fine for me, my beagle board doesn't hang
+> uart3 disabling clocks.
 
+Master branch and PM branch have exactly the same functionality for
+UART hwmods.  The problem was that you manually enabled DEBUG in
+omap_hwmod.c.
 
-> -----Original Message-----
-> From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com] 
-> Sent: Monday, October 04, 2010 11:59 PM
-> To: G, Manjunath Kondaiah
-> Cc: Ameya Palande; linux-omap@vger.kernel.org; 
-> linux-input@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Tony Lindgren
-> Subject: Re: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-> 
-> On Mon, Oct 04, 2010 at 01:32:29PM +0530, G, Manjunath Kondaiah wrote:
-> > Dmitry,
-> > As agreed, can you push this patch?
-> > https://patchwork.kernel.org/patch/197442/
-> > 
-> 
-> Manjunath,
-> 
-> It is queued for 2.6.37 (take a peek at 'next' branch of my 
-> tree) - I do not believe that the failure is critical enough for .36.
+> I only want to have a try of the runtime pm feature of omap3, so use
+> PM branch to do the test.
 
-Thanks for queuing this patch for 2.6.37
+master branch and PM branch have exactly the same functionality for
+runtime PM
 
--Manjunath
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
