@@ -1,97 +1,81 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
-Date: Mon, 4 Oct 2010 11:45:23 -0500
-Message-ID: <C903F2608D694655921F553D0D3557E3@am.dhcp.ti.com>
-References: <cover.1266847842.git.david.vrabel@csr.com><20100827192248.GJ20407@void.printf.net><4C7CC480.2040903@csr.com><4C7F3E0F.2080402@compulab.co.il> <AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: NOTE: hwmod changes merged to linux-omap master for testing
+Date: Mon, 4 Oct 2010 22:16:21 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD4F@dbde02.ent.ti.com>
+References: <20101002004821.GN3117@atomide.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
+ <8762xi3sm1.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44328 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932085Ab0JDQqG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 12:46:06 -0400
-In-Reply-To: <AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47545 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753201Ab0JDQq3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 12:46:29 -0400
+In-Reply-To: <8762xi3sm1.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Steve Sakoman' <sakoman@gmail.com>, 'Mike Rapoport' <mike@compulab.co.il>
-Cc: 'David Vrabel' <david.vrabel@csr.com>, 'Chris Ball' <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
+ 
 
 > -----Original Message-----
-> From: Steve Sakoman [mailto:sakoman@gmail.com]
-> Sent: Monday, October 04, 2010 11:32 AM
-> To: Mike Rapoport
-> Cc: David Vrabel; Chris Ball; linux-mmc@vger.kernel.org; linux-
-> omap@vger.kernel.org; madhu.cr@ti.com
-> Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
->=20
-> On Wed, Sep 1, 2010 at 11:02 PM, Mike Rapoport <mike@compulab.co.il>
-> wrote:
-> > David Vrabel wrote:
-> >>
-> >> On 27/08/2010 20:22, Chris Ball wrote:
-> >>>
-> >>> Hi David,
-> >>>
-> >>> On Mon, Feb 22, 2010 at 02:24:17PM +0000, David Vrabel wrote:
-> >>>>
-> >>>> These patches add support for SDIO cards to the omap_hsmmc drive=
-r.
-> >>>> Power management changes to prevent SDIO cards from being turned=
- off
-> >>>> and losing all state, and card interrupts.
-> >>>>
-> >>>> I've been unable to test these exact patches as I only have an N=
-900
-> for
-> >>>> testing and the N900 support in mainline is incomplete.
-> >>>>
-> >>>> Changes since v1:
-> >>>> - (hopefully) get all cards working again by removing a second c=
-all
-> to
-> >>>> =A0read MMCi_STAT in the interrupt handler.
-> >>>> - flush posted writes after enabling/disabling SDIO interrupts.
-> >>>> - tweak the FIXME commit on disabling FCLK to better match what
-> really
-> >>>> =A0going on (at least I think so anyway).
-> >>>>
-> >>>> David Vrabel (2):
-> >>>> =A0mmc: omap_hsmmc: don't turn SDIO cards off when idle
-> >>>> =A0mmc: omap_hsmmc: enable SDIO card interrupts
-> >>>
-> >>> Looks like this patchset wasn't merged. =A0Mike Rapoport replied =
-with a
-> fix
-> >>> for libertas. =A0Would you like to resubmit it?
-> >>
-> >> I thought Madhu had picked this up and was going to submit it.
-> >>
-> >> Regardless of whether that is the case, I think it needs to be
-> submitted
-> >> by someone who can run mainline kernels (I can't) and ideally some=
-one
-> >> who can test it with SDIO cards.
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Monday, October 04, 2010 8:36 PM
+> To: G, Manjunath Kondaiah
+> Cc: Tony Lindgren; linux-omap@vger.kernel.org
+> Subject: Re: NOTE: hwmod changes merged to linux-omap master 
+> for testing
+> 
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> 
+> > Hi Tony,
+> > With latest merges on master branch with commit ID:
+> > 0882b1455797b0a104978000a622c3f2412e7cf5 omap: READ CAREFULLY: Fix 
+> > build after merging in hwmod support for testing
 > >
-> > I'll try to update the patches in the next few days.
->=20
-> Any update on the status of these patches?  I'm happy to help test!
->=20
-Steve,
+> > Booting with zoom3 seems to be fine but observed issues 
+> with omap4 blaze board. 
+> >
+> > Looks like multiple warning dumps and finally it crashes 
+> after "Freeing init memory" with both NFS and ramdisk file systems.
+> >
+> > The complete bootlogs are available at:
+> > NFS bootlog:
+> > http://pastebin.com/nrWQ5FGG
+> 
+> In the future, it helps greatly if you state what defconfig 
+> you're using, 
 
-I have not been able to test SDIO card interrupts. If you could help te=
-st
-that it's great.
+ok. I have used omap2plus_defconfig
 
-Regards,
-Madhu
+> and specifically what you've changed from the 
+> default defconfig.
+No changes to defconfig
 
-> Steve
+> 
+> Looking at this log, you've enabled CPUidle in your config, 
+> which is not
+> (yet) supported for OMAP4 in mainline.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+As I mentioned no changes to defconfig and it looks like cpu idle
+is disabled and cpu idle wait is enabled in .config after running
+make omap2plus_defconfig
+
+$ cat arch/arm/configs/omap2plus_defconfig | grep "CPU_IDLE"
+$
+$ make omap2plus_defconfig
+#
+# configuration written to .config
+#
+$ cat .config | grep "CPU_IDLE"
+CONFIG_ARCH_HAS_CPU_IDLE_WAIT=y
+# CONFIG_CPU_IDLE is not set
+$
+
+Even if I disable CPU_IDLE_WAIT manually, behaviour is same
+
+-Manjunath
