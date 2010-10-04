@@ -1,19 +1,19 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCHv2 3/6] omap3: Introduce function to detect the IGEP v2
- hardware revision.
-Date: Mon, 4 Oct 2010 10:19:15 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE345@dbde02.ent.ti.com>
+Subject: RE: [PATCHv2 5/6] omap3: Add i2c eeprom driver to read EDID on IGEP
+ v2.
+Date: Mon, 4 Oct 2010 10:21:17 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE349@dbde02.ent.ti.com>
 References: <1285962353-9586-1-git-send-email-eballetbo@gmail.com>
- <1285962353-9586-4-git-send-email-eballetbo@gmail.com>
+ <1285962353-9586-6-git-send-email-eballetbo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52165 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47221 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751583Ab0JDEtW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 00:49:22 -0400
-In-Reply-To: <1285962353-9586-4-git-send-email-eballetbo@gmail.com>
+	id S1751799Ab0JDEvW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 00:51:22 -0400
+In-Reply-To: <1285962353-9586-6-git-send-email-eballetbo@gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -28,102 +28,77 @@ To: Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <
 > Sent: Saturday, October 02, 2010 1:16 AM
 > To: linux-omap@vger.kernel.org
 > Cc: Enric Balletbo i Serra
-> Subject: [PATCHv2 3/6] omap3: Introduce function to detect 
-> the IGEP v2 hardware revision.
+> Subject: [PATCHv2 5/6] omap3: Add i2c eeprom driver to read 
+> EDID on IGEP v2.
 > 
-> There are currently two versions of IGEP v2 board, this patch 
-> introduces a
-> function to detect the hardware revision of IGEP board.
-> 
->   --------------------------
->  | Id. | Hw Rev. | GPIO 28  |
->   --------------------------
->  |  0  |   B/C   |   high   |
->  |  1  |   C     |   low    |
->   --------------------------
+> Add i2c eeprom driver to access monitor EDID binary information
+> from user space, something that is required by 'decode-edid' and
+> 'parse-edid'.
 > 
 > Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
 > ---
->  arch/arm/mach-omap2/board-igep0020.c |   47 
-> ++++++++++++++++++++++++++++++++++
->  1 files changed, 47 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/board-igep0020.c |   24 +++++++++++++++++-------
+>  1 files changed, 17 insertions(+), 7 deletions(-)
 > 
 > diff --git a/arch/arm/mach-omap2/board-igep0020.c 
 > b/arch/arm/mach-omap2/board-igep0020.c
-> index 9f25d0d..a386425 100644
+> index ec7da7f..c5eaa43 100644
 > --- a/arch/arm/mach-omap2/board-igep0020.c
 > +++ b/arch/arm/mach-omap2/board-igep0020.c
-> @@ -45,6 +45,49 @@
->  #define IGEP2_GPIO_WIFI_NPD 	94
->  #define IGEP2_GPIO_WIFI_NRESET 	95
+> @@ -539,7 +539,7 @@ static struct twl4030_platform_data 
+> igep2_twldata = {
 >  
-> +/*
-> + * IGEP2 Hardware Revision Table
-> + *
-> + *  --------------------------
-> + * | Id. | Hw Rev. | HW0 (28) |
-> + *  --------------------------
-> + * |  0  |   B/C   |   high   |
-> + * |  1  |   C     |   low    |
-> + *  --------------------------
-> + */
-> +
-> +#define IGEP2_BOARD_HWREV_B	0
-> +#define IGEP2_BOARD_HWREV_C	1
-> +
-> +static u8 hwrev;
-> +
-> +static void __init igep2_get_revision(void)
-> +{
-> +	u8 ret;
-> +
-> +	omap_mux_init_gpio(IGEP2_GPIO_LED1_RED, OMAP_PIN_INPUT);
-> +
-> +	if ((gpio_request(IGEP2_GPIO_LED1_RED, "GPIO_HW0_REV") == 0) &&
-> +	    (gpio_direction_input(IGEP2_GPIO_LED1_RED) == 0)) {
-> +		ret = gpio_get_value(IGEP2_GPIO_LED1_RED);
-> +		if (hwrev == 0) {
-> +			pr_info("IGEP2: Hardware Revision C 
-> (B-NON compatible)\n");
-> +			hwrev = IGEP2_BOARD_HWREV_C;
-> +		} else if (hwrev ==  1) {
-> +			pr_info("IGEP2: Hardware Revision B/C 
-> (B compatible)\n");
-> +			hwrev = IGEP2_BOARD_HWREV_B;
-> +		} else {
-> +			pr_err("IGEP2: Unknow Hardware Revision\n");
-
-typo - Unknow 
-
-> +			hwrev = -1;
-> +		}
-> +	} else {
-> +		pr_warning("IGEP2: Could not obtain gpio 
-> GPIO_HW0_REV\n");
-> +		pr_err("IGEP2: Unknow Hardware Revision\n");
-
-Need both the prints?
-
-> +	}
-
-typo - Unknow 
-
-> +
-> +	gpio_free(IGEP2_GPIO_LED1_RED);
-> +}
-> +
->  #if defined(CONFIG_MTD_ONENAND_OMAP2) || \
->  	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+>  };
 >  
-> @@ -535,6 +578,10 @@ static struct omap_board_mux board_mux[] 
-> __initdata = {
->  static void __init igep2_init(void)
+> -static struct i2c_board_info __initdata igep2_i2c_boardinfo[] = {
+> +static struct i2c_board_info __initdata igep2_i2c1_boardinfo[] = {
+>  	{
+>  		I2C_BOARD_INFO("twl4030", 0x48),
+>  		.flags		= I2C_CLIENT_WAKE,
+> @@ -548,13 +548,23 @@ static struct i2c_board_info __initdata 
+> igep2_i2c_boardinfo[] = {
+>  	},
+>  };
+>  
+> +static struct i2c_board_info __initdata igep2_i2c3_boardinfo[] = {
+> +	{
+> +		I2C_BOARD_INFO("eeprom", 0x50),
+> +	},
+> +};
+> +
+>  static int __init igep2_i2c_init(void)
 >  {
->  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> -	omap_register_i2c_bus(1, 2600, igep2_i2c_boardinfo,
+> -			ARRAY_SIZE(igep2_i2c_boardinfo));
+> -	/* Bus 3 is attached to the DVI port where devices like 
+> the pico DLP
+> -	 * projector don't work reliably with 400kHz */
+> -	omap_register_i2c_bus(3, 100, NULL, 0);
+> +	omap_register_i2c_bus(1, 2600, igep2_i2c1_boardinfo,
+> +			ARRAY_SIZE(igep2_i2c1_boardinfo));
+
+Check for return value.
+
+> +	/*
+> +	 * Bus 3 is attached to the DVI port where devices like 
+> the pico DLP
+> +	 * projector don't work reliably with 400kHz
+> +	 */
+> +	omap_register_i2c_bus(3, 100, igep2_i2c3_boardinfo,
+> +			 ARRAY_SIZE(igep2_i2c3_boardinfo));
+
+Check for return value.
+
 > +
-> +	/* Get IGEP2 hardware revision */
-> +	igep2_get_revision();
-> +
+>  	return 0;
+>  }
+>  
+> @@ -631,7 +641,7 @@ static void __init igep2_init(void)
+>  
+>  	/* Get IGEP2 hardware revision */
+>  	igep2_get_revision();
+> -
+> +	/* Register I2C busses and drivers */
 >  	igep2_i2c_init();
 >  	platform_add_devices(igep2_devices, ARRAY_SIZE(igep2_devices));
 >  	omap_serial_init();
