@@ -1,81 +1,67 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: tidspbridge broken?
-Date: Mon, 4 Oct 2010 19:29:51 +0300
-Message-ID: <AANLkTimH0+jeFx+zUh6u_uzqhL+rB5W6s3PYOatHMB6b@mail.gmail.com>
-References: <AANLkTi=hD1m0jC64KW7gHdywd=2GseX8gqNwPTHOh6s2@mail.gmail.com>
-	<27F9C60D11D683428E133F85D2BB4A5304680CC90F@dlee03.ent.ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+Date: Mon, 4 Oct 2010 09:32:18 -0700
+Message-ID: <AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com>
+References: <cover.1266847842.git.david.vrabel@csr.com>
+	<20100827192248.GJ20407@void.printf.net>
+	<4C7CC480.2040903@csr.com>
+	<4C7F3E0F.2080402@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:43220 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752567Ab0JDQ3x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 12:29:53 -0400
-Received: by bwz11 with SMTP id 11so3727729bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 09:29:52 -0700 (PDT)
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5304680CC90F@dlee03.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4C7F3E0F.2080402@compulab.co.il>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: David Vrabel <david.vrabel@csr.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, madhu.cr@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@suse.de" <gregkh@suse.de>, "Menon, Nishanth" <nm@ti.com>, "ohad@wizery.com" <ohad@wizery.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
 
-Hi,
-
-On Mon, Oct 4, 2010 at 6:59 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
-> Felipe Contreras wrote:
->> I was trying the iommu patches but I noticed the tidspbridge driver
->> doesn't work at all, I found two critical issues:
+On Wed, Sep 1, 2010 at 11:02 PM, Mike Rapoport <mike@compulab.co.il> wr=
+ote:
+> David Vrabel wrote:
 >>
->> First, the platform device is missing, so there's no way the driver
->> can work. It seems to have been dropped from the migration to staging
->> which happened some time ago... I would have expected somebody to
->> notice a thing like this. I already have patches that fix this.
+>> On 27/08/2010 20:22, Chris Ball wrote:
+>>>
+>>> Hi David,
+>>>
+>>> On Mon, Feb 22, 2010 at 02:24:17PM +0000, David Vrabel wrote:
+>>>>
+>>>> These patches add support for SDIO cards to the omap_hsmmc driver.
+>>>> Power management changes to prevent SDIO cards from being turned o=
+ff
+>>>> and losing all state, and card interrupts.
+>>>>
+>>>> I've been unable to test these exact patches as I only have an N90=
+0 for
+>>>> testing and the N900 support in mainline is incomplete.
+>>>>
+>>>> Changes since v1:
+>>>> - (hopefully) get all cards working again by removing a second cal=
+l to
+>>>> =A0read MMCi_STAT in the interrupt handler.
+>>>> - flush posted writes after enabling/disabling SDIO interrupts.
+>>>> - tweak the FIXME commit on disabling FCLK to better match what re=
+ally
+>>>> =A0going on (at least I think so anyway).
+>>>>
+>>>> David Vrabel (2):
+>>>> =A0mmc: omap_hsmmc: don't turn SDIO cards off when idle
+>>>> =A0mmc: omap_hsmmc: enable SDIO card interrupts
+>>>
+>>> Looks like this patchset wasn't merged. =A0Mike Rapoport replied wi=
+th a fix
+>>> for libertas. =A0Would you like to resubmit it?
+>>
+>> I thought Madhu had picked this up and was going to submit it.
+>>
+>> Regardless of whether that is the case, I think it needs to be submi=
+tted
+>> by someone who can run mainline kernels (I can't) and ideally someon=
+e
+>> who can test it with SDIO cards.
 >
-> Yes this is missing from beginning, I seeked advice on whether to send a patch for this or not, and since it would be touching mach dependent files it would be out of the scope of staging tree, however if needed:
->
-> http://dev.omapzoom.org/?p=tidspbridge/kernel-dspbridge.git;a=commit;h=4dcb41d484653d162b2bc6e1bf226c2dad0b953c
->
-> This was meant to placed under dspbridge wiki, I still have to do that one.
+> I'll try to update the patches in the next few days.
 
-This seems to be worth mentioning in the TODO file:
-* Make it actually work
+Any update on the status of these patches?  I'm happy to help test!
 
-Anyway, first, I think I tried a version similar to that one, and
-doesn't apply on mainline any more, also, bootmem doesn't seem to be
-working on ARM either, so I had to move to memblock, and third, I
-don't think that platform device is correct since it depends on the
-headers of a driver.
-
-My version is basically the same, but using memblock, and stands on
-it's own. Even if tidspbridge wasn't in staging I think this could go
-to mainline, plus, perhaps other implementations like dsp-link could
-make use of it (who knows):
-http://article.gmane.org/gmane.linux.kernel/1044209
-
->> And second, since 2.6.35, ioremap() doesn't work on RAM, so this
->> driver cannot work anymore unless 309caa9 is reverted. I am reserving
->> the memory with memblock, but it still fails the ioremap(), and
->> __va() doesn't seem to work (don't know why).
->
-> Yes that's true, so far the only solution I have seen is to move the allocation on memory outside kernel control, I believe framebuffer has the same problem, but I haven't contacted them to see if we can align on a common solution.
-
-At least on my N900 the framebuffer is not working either, and I've
-heard the same on beagleboard.
-
-Maybe something like this:
-http://article.gmane.org/gmane.linux.kernel.mm/52757
-
->> Has anyone tried the driver on 2.6.36-rcX?
->
-> Yes I have,
-
-I guess by applying your patches on top and reverting 309caa9.
-
-> I was rebasing your mailbox hwmod patches but seems something has changed since they don't work, I was trying to write my own version.
-
-You should have said so, I'll try to rebase myself.
-
-Cheers.
-
--- 
-Felipe Contreras
+Steve
