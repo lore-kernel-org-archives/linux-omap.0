@@ -1,40 +1,75 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: tidspbridge broken?
-Date: Mon, 4 Oct 2010 21:24:18 +0300
-Message-ID: <AANLkTi=Z1Ufe+Q5dHcMts5rcoTeR_S9W8DFUU58G-yRx@mail.gmail.com>
-References: <AANLkTi=hD1m0jC64KW7gHdywd=2GseX8gqNwPTHOh6s2@mail.gmail.com>
-	<27F9C60D11D683428E133F85D2BB4A5304680CC90F@dlee03.ent.ti.com>
-	<AANLkTimH0+jeFx+zUh6u_uzqhL+rB5W6s3PYOatHMB6b@mail.gmail.com>
-	<27F9C60D11D683428E133F85D2BB4A5304680CCA10@dlee03.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: NOTE: hwmod changes merged to linux-omap master for testing
+Date: Mon, 4 Oct 2010 23:56:52 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD86@dbde02.ent.ti.com>
+References: <20101002004821.GN3117@atomide.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
+ <8762xi3sm1.fsf@deeprootsystems.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD4F@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:46219 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932099Ab0JDSYU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:24:20 -0400
-Received: by bwz11 with SMTP id 11so3844404bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 11:24:18 -0700 (PDT)
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5304680CCA10@dlee03.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59484 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755256Ab0JDS07 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:26:59 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD4F@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@suse.de" <gregkh@suse.de>, "Menon, Nishanth" <nm@ti.com>, "ohad@wizery.com" <ohad@wizery.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Oct 4, 2010 at 8:34 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
-> Felipe Contreras wrote:
-> ...
->>
->> Anyway, first, I think I tried a version similar to that one, and
->> doesn't apply on mainline any more, also, bootmem doesn't seem to be
->> working on ARM either, so I had to move to memblock, and third, I
->> don't think that platform device is correct since it depends on the
->> headers of a driver.
->
-> AFAIK, bootmem is going down (http://marc.info/?l=linux-omap&m=126955999303922&w=2), I succesfully tried LMB a while back when rebasing but for the latest RCs I haven't seen it around.
+ 
 
-It's called memblock now. And yeah, bootmem is going down, but it
-should still work right now.
+ 
 
--- 
-Felipe Contreras
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G, 
+> Manjunath Kondaiah
+> Sent: Monday, October 04, 2010 10:16 PM
+> To: Kevin Hilman
+> Cc: Tony Lindgren; linux-omap@vger.kernel.org
+> Subject: RE: NOTE: hwmod changes merged to linux-omap master 
+> for testing
+> 
+>  
+> 
+> > -----Original Message-----
+> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> > Sent: Monday, October 04, 2010 8:36 PM
+> > To: G, Manjunath Kondaiah
+> > Cc: Tony Lindgren; linux-omap@vger.kernel.org
+> > Subject: Re: NOTE: hwmod changes merged to linux-omap master for 
+> > testing
+> > 
+> > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> > 
+> > > Hi Tony,
+> > > With latest merges on master branch with commit ID:
+> > > 0882b1455797b0a104978000a622c3f2412e7cf5 omap: READ 
+> CAREFULLY: Fix 
+> > > build after merging in hwmod support for testing
+> > >
+> > > Booting with zoom3 seems to be fine but observed issues
+> > with omap4 blaze board. 
+> > >
+> > > Looks like multiple warning dumps and finally it crashes
+> > after "Freeing init memory" with both NFS and ramdisk file systems.
+> > >
+> > > The complete bootlogs are available at:
+> > > NFS bootlog:
+> > > http://pastebin.com/nrWQ5FGG
+> > 
+> > In the future, it helps greatly if you state what defconfig you're 
+> > using,
+> 
+> ok. I have used omap2plus_defconfig
+> 
+
+Since this is for linux-omap master, now we have only omap2plus_defconfig
+for all omap2plus hence the reason for not mentioning defconfig.
+
+-Manjunath
