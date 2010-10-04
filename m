@@ -1,51 +1,45 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 2/4] perf: add OMAP support for the new power events
-Date: Mon, 4 Oct 2010 21:45:46 +0200
-Message-ID: <201010042145.48838.trenn@suse.de>
-References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com> <1286205661-24448-3-git-send-email-jean.pihet@newoldbits.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [alsa-devel] [PATCH] omap: devices: Avoid merge conflict
+ between ASoC and OMAP hwmod changes
+Date: Mon, 04 Oct 2010 20:49:24 +0100
+Message-ID: <1286221764.3148.135.camel@odin>
+References: <1286193893-22131-1-git-send-email-jhnikula@gmail.com>
+	 <20101004150442.GC1505@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <1286205661-24448-3-git-send-email-jean.pihet@newoldbits.com>
-Content-Disposition: inline
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, mathieu.desnoyers@efficios.com, Jean Pihet <j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63123 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755874Ab0JDTtZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 15:49:25 -0400
+Received: by wwj40 with SMTP id 40so4609458wwj.1
+        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 12:49:24 -0700 (PDT)
+In-Reply-To: <20101004150442.GC1505@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-On Monday 04 October 2010 05:20:59 pm Jean Pihet wrote:
-> The patch adds the new power management trace points for
-> the OMAP architecture.
->
-> The trace points are for cpuidle, cpufreq (DVFS), the clocks
-> changes (enable, disable, set_rate) and the power domains
-> transitions.
-...
-> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-> index 6d3d333..19d5a6c 100644
-> --- a/arch/arm/plat-omap/cpu-omap.c
-> +++ b/arch/arm/plat-omap/cpu-omap.c
-> @@ -21,6 +21,7 @@
->  #include <linux/err.h>
->  #include <linux/clk.h>
->  #include <linux/io.h>
-> +#include <trace/events/power.h>
->
->  #include <mach/hardware.h>
->  #include <plat/clock.h>
-> @@ -95,6 +96,7 @@ static int omap_target(struct cpufreq_policy *policy,
->  	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
->  	       freqs.old, freqs.new);
->  #endif
-> +	trace_processor_frequency(freqs.new, freqs.cpu);
->  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
->  	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
+On Mon, 2010-10-04 at 08:04 -0700, Mark Brown wrote:
+> On Mon, Oct 04, 2010 at 03:04:53PM +0300, Jarkko Nikula wrote:
+> > Upcoming ASoC multi-component and OMAP hwmod changes will conflict
+> > in arch/arm/mach-omap2/devices.c. Avoid this by moving a little bit
+> > include statement introduced by ASoC Multi-Component Support patch.
+> > 
+> > Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> 
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-This one is not needed, frequency power events are all fired in
-drivers/cpufreq/cpufreq.c
-for cpufreq drivers:
-static struct cpufreq_driver omap_driver = {
-        .target         = omap_target,
-}
+Applied.
+
+Thanks
+
+Liam
+-- 
+Freelance Developer, SlimLogic Ltd
+ASoC and Voltage Regulator Maintainer.
+http://www.slimlogic.co.uk
+
