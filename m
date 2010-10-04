@@ -1,55 +1,76 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 2/2] OMAP3 PM: sleep code clean up
-Date: Mon, 4 Oct 2010 15:06:42 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE613@dbde02.ent.ti.com>
-References: <1285325785-6163-1-git-send-email-vishwanath.bs@ti.com>
- <1285325785-6163-3-git-send-email-vishwanath.bs@ti.com>
- <8762xu9ac0.fsf@deeprootsystems.com>
- <FCCFB4CDC6E5564B9182F639FC356087034B6EC6A5@dbde02.ent.ti.com>
- <20101004085640.GA2529@matterhorn.lan>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: Dropping omap3430 ES1.0 support in mainline
+Date: Mon, 4 Oct 2010 11:37:42 +0200
+Message-ID: <4CA9A066.4050107@ti.com>
+References: <d0443bbf588bf1e8a7efbd0014816753@mail.gmail.com> <alpine.DEB.2.00.1010011558290.22941@utopia.booyaka.com> <3700cfbb0159d56cecbda0e06a2957e3@mail.gmail.com> <alpine.DEB.2.00.1010011615560.22941@utopia.booyaka.com> <cf484f0b347742791af6d563efefaeb4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55293 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754141Ab0JDJgv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 05:36:51 -0400
-In-Reply-To: <20101004085640.GA2529@matterhorn.lan>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:59993 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754333Ab0JDJhr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Oct 2010 05:37:47 -0400
+In-Reply-To: <cf484f0b347742791af6d563efefaeb4@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@linaro.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
+To: Anand Gadiyar <gadiyar@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Balbi, Felipe" <balbi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Amit Kucheria
-> Sent: Monday, October 04, 2010 2:27 PM
-> To: Sripathy, Vishwanath
-> Cc: Kevin Hilman; linux-omap@vger.kernel.org; linaro-dev@lists.linaro.org
-> Subject: Re: [PATCH 2/2] OMAP3 PM: sleep code clean up
-> 
-> On 10 Oct 04, Sripathy, Vishwanath wrote:
-> > Kevin,
-> 
-> [snip]
-> 
-> > >
-> > > But this also makes me wonder, if we're going to clean this up, the
-> bulk
-> > > of it could be re-written in C, with some inline asm helpers as needed.
-> > Probably yes. But as this code is specific to OMAP3, do you think it's
-> > worth spending time on rewriting the entire code in C? It might be a
-> > significant effort and it will not be reusable for other ARM SOCs.
-> 
-> The C code will be more maintainable and offer more opportunities to
-> refactor across OMAP flavours - perhaps OMAP4 as well.
-> 
-> I'm also interested in code reuse across other SoCs. We've got to be able
-> to
-> shut down the ARM core using common code instead of each SoC copying buggy
-> code from each other. Could you list reasons why you don't think the code
-> is
-> re-usable?
-Trust zone implementation and it's varients
+On 10/2/2010 12:28 AM, Anand Gadiyar wrote:
+> Paul Walmsley wrote:
+>> On Sat, 2 Oct 2010, Anand Gadiyar wrote:
+>>
+>>> Okay, so we're aligned that you guys don't have an ES1 board to test,
+>>> and TI doesn't have any either. :)
+>>>
+>>> I'd still like to know if anyone in the wild still cares about the
+> board.
+>>>
+>>> (I see Tony already said "No thanks", but I'd like to know anyway).
+>>
+>> Why would we want to remove support for a board that should work fine
+> with
+>> linux-omap and isn't causing any problems with existing code?
+>
+> I'm not sure it works fine, and if there are no users that care about
+> the board, then it would be nice to drop the support. If the board
+> works fine today, that's good, but has anyone tested the current
+> kernel on that board?
+>
+> (we're struggling to keep linux-omap working on boards available now,
+> why support something that nobody cares about. It's not like I'm asking
+> 3430 support to be dropped)
+>
+> - the ES1 chip has never been available to the outside world beyond
+> sampling quantities
+> - no new developments are likely to happen on that board
+> - nobody's likely to have one of these around and care to boot it up
+> - there are plenty of replacements like the beagles which are lower
+>    cost, easier to obtain, and can beat an ES1 in speed
+>
+> I'm okay having support for the board if someone's actually using it.
+> It's not such a big deal. It was just a thought - it came up because
+> Manju was looking at old errata docs, and came across something that
+> was specific to an ES1, but we realized there was no way to test it.
+
+If this is the SDMA bug we are talking about, it was unfortunately 
+already there in OMAP2420. For some reason I didn't find it in 2430 
+errata, but since it was still there in 3430 ES1, we can assume that 
+2430 also has the issue.
+
+
+That being said, ES1 devices for both OMAP3 and OMAP4 were supposed to 
+be engineering samples.
+There is no product out there with OMAP3 ES1, and same thing is 
+happening with 4430 ES1.
+
+So, it makes sense to keep supporting them during the transition, but as 
+soon as everybody is upgraded to the next production version, what the 
+point to keep maintaining these buggy devices?
+Hopefully the auto-destroy mode after 2 years seems to work fine :-)
+
+Regards,
+Benoit
+
+
