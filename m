@@ -1,97 +1,53 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: multiple linux-next OMAP3 build errors
-Date: Mon, 04 Oct 2010 15:43:46 -0700
-Message-ID: <4CAA58A2.6060707@kernel.org>
-References: <AANLkTim9v1Y2o9QebYcJkh+QLVQq9fFOFE5P+OoyUHXa@mail.gmail.com>	 <1286173747.2358.4.camel@tubuntu.research.nokia.com> <1286231422.2463.316.camel@pasglop>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 3/4] perf: add calls to suspend trace point
+Date: Tue, 5 Oct 2010 00:52:36 +0200
+Message-ID: <201010050052.36344.rjw@sisk.pl>
+References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com> <1286205661-24448-4-git-send-email-jean.pihet@newoldbits.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:23928 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754526Ab0JDWrN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 18:47:13 -0400
-In-Reply-To: <1286231422.2463.316.camel@pasglop>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <1286205661-24448-4-git-send-email-jean.pihet@newoldbits.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, linux-omap@vger.kernel.org, Thomas Renninger <trenn@suse.de>, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, mathieu.desnoyers@efficios.com, Jean Pihet <j-pihet@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, ext Grazvydas Ignotas <notasas@gmail.com>
 
-On 10/04/2010 03:30 PM, Benjamin Herrenschmidt wrote:
-> On Mon, 2010-10-04 at 09:29 +0300, Tomi Valkeinen wrote:
->>>   CC      drivers/video/omap2/vram.o
->>> drivers/video/omap2/vram.c: In function
->> 'omap_vram_reserve_sdram_memblock':
->>> drivers/video/omap2/vram.c:568: error: implicit declaration of
->>> function 'memblock_region_is_memory'
->>
->> Benjamin, your patch "memblock/arm: Use memblock_region_is_memory()
->> for
->> omap fb" in linux-next seems to be broken. I believe the called
->> function
->> should be memblock_is_region_memory, not memblock_region_is_memory?
+On Monday, October 04, 2010, Jean Pihet wrote:
+> Uses the machine_suspend trace point, from the
+> generic kernel suspend_enter function.
 > 
-> I suspect either I didn't push my latest version before it got merged or
-> Yinghai didn't pull the right one, since I'm pretty sure I test built
-> it, but in any case, you're probably right :-)
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> CC: Thomas Renninger <trenn@suse.de>
+
+Acked-by: Rafael J. Wysocki <rjw@sisk.pl>
+
+> ---
+>  kernel/power/suspend.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
 > 
-> I'm not in control of this patch series at the moment however. Ingo and
-> Yinghai are. Yinghai, care to fix that up ? I'm currently travelling on
-> holidays and won't be able to do much until later next week.
+> diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
+> index 7335952..10cad5c 100644
+> --- a/kernel/power/suspend.c
+> +++ b/kernel/power/suspend.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/mm.h>
+>  #include <linux/slab.h>
+>  #include <linux/suspend.h>
+> +#include <trace/events/power.h>
+>  
+>  #include "power.h"
+>  
+> @@ -164,7 +165,9 @@ static int suspend_enter(suspend_state_t state)
+>  	error = sysdev_suspend(PMSG_SUSPEND);
+>  	if (!error) {
+>  		if (!suspend_test(TEST_CORE) && pm_check_wakeup_events()) {
+> +			trace_machine_suspend(state);
+>  			error = suspend_ops->enter(state);
+> +			trace_machine_suspend(0);
+>  			events_check_enabled = false;
+>  		}
+>  		sysdev_resume();
+> 
 
-Peter or Ingo,
-
-Please replace
-
-commit dbe3039e64b1dd4cf26f782d45b524f85b444ad4
-
-in -tip core/memblock
-
-with following patch, that fixes the typo.
-
-Thanks
-
-Yinghai Lu
-
-[PATCH -v2] memblock/arm: Use memblock_is_region_memory() for omap fb
-    
-Instead of the deprecated memblock_find()
-    
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-
-diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
-index 05bf228..441af2b 100644
---- a/arch/arm/plat-omap/fb.c
-+++ b/arch/arm/plat-omap/fb.c
-@@ -173,11 +173,7 @@ static int check_fbmem_region(int region_idx, struct omapfb_mem_region *rg,
- 
- static int valid_sdram(unsigned long addr, unsigned long size)
- {
--	struct memblock_region res;
--
--	res.base = addr;
--	res.size = size;
--	return !memblock_find(&res) && res.base == addr && res.size == size;
-+	return memblock_is_region_memory(addr, size);
- }
- 
- static int reserve_sdram(unsigned long addr, unsigned long size)
-diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
-index 0f2532b..34514a8 100644
---- a/drivers/video/omap2/vram.c
-+++ b/drivers/video/omap2/vram.c
-@@ -554,12 +554,8 @@ void __init omap_vram_reserve_sdram_memblock(void)
- 	size = PAGE_ALIGN(size);
- 
- 	if (paddr) {
--		struct memblock_region res;
--
--		res.base = paddr;
--		res.size = size;
--		if ((paddr & ~PAGE_MASK) || memblock_find(&res) ||
--		    res.base != paddr || res.size != size) {
-+		if ((paddr & ~PAGE_MASK) ||
-+		    !memblock_is_region_memory(paddr, size)) {
- 			pr_err("Illegal SDRAM region for VRAM\n");
- 			return;
- 		}
