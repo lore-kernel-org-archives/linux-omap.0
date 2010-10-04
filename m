@@ -1,52 +1,148 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
-Date: Sun, 3 Oct 2010 22:33:38 +0200
-Message-ID: <201010032233.39055.rjw@sisk.pl>
-References: <Pine.LNX.4.44L0.1010031144420.26676-100000@netrider.rowland.org>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH 2/4] iovmm: fix roundup for next area and end check for
+ the last area
+Date: Sun, 3 Oct 2010 22:17:05 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F3E074E3@dlee06.ent.ti.com>
+References: <1285902536-7043-1-git-send-email-x0095840@ti.com>
+ <1285902536-7043-2-git-send-email-x0095840@ti.com>
+ <1285902536-7043-3-git-send-email-x0095840@ti.com>
+ <20101001105711.GA11617@esdhcp036161.research.nokia.com>
+ <496565EC904933469F292DDA3F1663E602F46544F9@dlee06.ent.ti.com>
+ <20101001175327.GA13657@esdhcp036161.research.nokia.com>
+ <496565EC904933469F292DDA3F1663E602F465461A@dlee06.ent.ti.com>,<20101002074944.GB14377@esdhcp036161.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:39188 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754766Ab0JCUed (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 3 Oct 2010 16:34:33 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1010031144420.26676-100000@netrider.rowland.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101002074944.GB14377@esdhcp036161.research.nokia.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Cohen <david.cohen@nokia.com>
+Cc: "Doyu Hiroshi (Nokia-MS/Espoo)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-MS/Helsinki)" <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Kevin Hilman <khilman@deeprootsystems.com>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Sunday, October 03, 2010, Alan Stern wrote:
-> On Sun, 3 Oct 2010, Rafael J. Wysocki wrote:
+
+> ________________________________________
+> From: David Cohen [david.cohen@nokia.com]
+> Sent: Saturday, October 02, 2010 2:49 AM
+> To: Guzman Lugo, Fernando
+> Cc: Doyu Hiroshi (Nokia-MS/Espoo); Contreras Felipe (Nokia-MS/Helsinki);
+>  Palande Ameya (Nokia-MS/Helsinki); linux-kernel@vger.kernel.org;
+>  andy.shevchenko@gmail.com; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 2/4] iovmm: fix roundup for next area and end check for
+>  the last area
 > 
-> > On Saturday, October 02, 2010, Alan Stern wrote:
-> > > On Fri, 1 Oct 2010, Rafael J. Wysocki wrote:
-> > ...
-> > > > At the moment it suspends when the network cable is removed from the device
-> > > > and the hack I mentioned is used during the resume after the cable has been
-> > > > reinserted (it checks if the cable is still there and schedules suspend if not).
-> > > 
-> > > That does seem like a strange hack.  Instead of scheduling a suspend,
-> > > why not simply do a suspend as soon as you learn that the cable has
-> > > been removed again?  Is there a problem about the connection status
-> > > bouncing?
-> > 
-> > I don't remember 100%, but ISTR there was a problem with that.
+> On Fri, Oct 01, 2010 at 09:21:36PM +0200, ext Guzman Lugo, Fernando wrote:
+> >
+> > > On Fri, Oct 01, 2010 at 06:10:30PM +0200, ext Guzman Lugo,
+> > > Fernando wrote:
+> > > >
+> > >
+> > > [snip]
+> > >
+> > > > > >  arch/arm/plat-omap/iovmm.c |    6 +++---
+> > > > > >  1 files changed, 3 insertions(+), 3 deletions(-)
+> > > > > >
+> > > > > > diff --git a/arch/arm/plat-omap/iovmm.c
+> > > > > b/arch/arm/plat-omap/iovmm.c
+> > > > > > index 24ca9c4..fc6b109 100644
+> > > > > > --- a/arch/arm/plat-omap/iovmm.c
+> > > > > > +++ b/arch/arm/plat-omap/iovmm.c
+> > > > > > @@ -289,19 +289,19 @@ static struct iovm_struct
+> > > > > *alloc_iovm_area(struct iommu *obj, u32 da,
+> > > > > >       prev_end = 0;
+> > > > > >       list_for_each_entry(tmp, &obj->mmap, list) {
+> > > > > >
+> > > > > > -             if (prev_end >= start)
+> > > > > > +             if (prev_end > start)
+> > > > > >                       break;
+> > > > > >
+> > > > > >               if (start + bytes <= tmp->da_start)
+> > > > > >                       goto found;
+> > > > > >
+> > > > > >               if (flags & IOVMF_DA_ANON)
+> > > > > > -                     start = roundup(tmp->da_end +
+> > > 1, alignement);
+> > > > > > +                     start = roundup(tmp->da_end,
+> > > alignement);
+> > > > >
+> > > > > There's a lack of comment here, but the purpose of
+> > > > > tmp->da_end + 1 is to create a gap between iovm areas to
+> > > > > force to trigger iommu faults when some access exceeds a
+> > > valid area.
+> > > > > Without this gap, such situation may produce data
+> > > corruption which
+> > > > > is much more difficult to track.
+> > > >
+> > > > That only works when you are accessing sequencially beyond
+> > > the End of
+> > > > the vm_area. However if you are accessing a random address
+> > > Which is in
+> > > > the mmu tables you still can corrupt memory which does Not
+> > > belong to
+> > > > you. That looks not very effective then why waste Memory?
+> > >
+> > > The main intention is to detect sequential access beyond the
+> > > end of the vm area and it is effective for that purpose.
+> > > i.e., OMAP3 ISP has a hw issue which makes its H3A submodule,
+> > > responsible to produce statistics data for the captured
+> > > image, to write more data than it should. The workaround
+> > > described in the errata wasn't enough to avoid error
+> > > conditions, so a different approach was implemented. This gap
+> > > did help me to make sure the new workaround is valid and no
+> > > data corruption was occurring anymore.
+> > > Anyway, I can't see why memory is being wasted.
+> > >
+> >
+> > I was taking about vitual memory waste (maybe not so important).
+> > Is ok for me then keep the gap. Do other changes look good to
+> > You?
 > 
-> Regardless, it seems like the sort of thing autosuspend would handle
-> easily with no need for idle notifications.  Just call
-> pm_runtime_mark_last_busy when the cable is plugged in, then do the
-> runtime resume, and then call pm_request_autosuspend.  The check for 
-> the cable being disconnected would have to move from the runtime_idle 
-> callback to the runtime_suspend callback -- but then the runtime_idle 
-> callback wouldn't have to be present at all.
+> Do you mean in this patch?
+> All changes make sense only if you're removing the gap, except for the
+> fix below.
 
-It would be necessary because of the PCI bus type's implementation of it.
+The thing is, the dspbridge needs to map some register in order to DSP 
+can read and configure some of them. We need to map some pages
+with fix addresses and to do that I use iommu_kmap. So when some
+of that pages are contiguous I get his error:
 
-Anyway, I'll have a look, but I don't use the hardware any more, so testing
-would be rather hard. :-)
+"%s: no space to fit %08x(%x) flags: %08x\n"
+
+Which is not true. The page to page perfectly fix, but the check with 1 byte
+more avoid that it could be mapped and I am getting the error.
+
+I am not agree with the gap, but I am ok when it is not fixed address as 
+below code
+
+if (flags & IOVMF_DA_ANON)
+        start = roundup(tmp->da_end + 1, alignement);
+
+But it is breaking the tidspbridge when the gap is used for fixed addresses.
+
+It should not fail when we want to map a page what is freed just because of the gap.
+Please let me know what you thing.
 
 Thanks,
-Rafael
+Fernando.
+
+> 
+> [snip]
+> 
+> > > > > >
+> > > > > >               prev_end = tmp->da_end;
+> > > > > >       }
+> > > > > >
+> > > > > > -     if ((start > prev_end) && (ULONG_MAX - start >= bytes))
+> > > > > > +     if ((start >= prev_end) && (ULONG_MAX - start +
+> > > 1 >= bytes))
+> 
+> This fix is partially valid. The correct change must be only:
+> -       if ((start > prev_end) && (ULONG_MAX - start >= bytes))
+> +       if ((start > prev_end) && (ULONG_MAX - start + 1 >= bytes))
+> 
+> Otherwise you wouldn't guarantee the gap for fixed da.
+> 
+> Br,
+> 
+> David
