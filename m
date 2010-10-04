@@ -1,54 +1,108 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH v3 1/2] omap: dma: Fix buffering disable bit setting for omap24xx
-Date: Mon, 4 Oct 2010 10:15:35 +0300
-Message-ID: <201010041015.35457.peter.ujfalusi@nokia.com>
-References: <1285936577-14881-1-git-send-email-peter.ujfalusi@nokia.com> <201010040915.27745.peter.ujfalusi@nokia.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C8C2@dbde02.ent.ti.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
+Date: Mon, 4 Oct 2010 12:56:54 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034B6EC60C@dbde02.ent.ti.com>
+References: <1285325785-6163-1-git-send-email-vishwanath.bs@ti.com>
+	<1285325785-6163-2-git-send-email-vishwanath.bs@ti.com>
+ <87lj6q9ao8.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:55682 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675Ab0JDHQA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:16:00 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C8C2@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50677 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753012Ab0JDH1G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:27:06 -0400
+In-Reply-To: <87lj6q9ao8.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
 
-On Monday 04 October 2010 09:23:18 ext G, Manjunath Kondaiah wrote:
-> No errata numbers numbers used with TI errata documents till omap2430=
-=2E
-> Errata numbers avaialable from omap3430 onwards.
->=20
-> > For OMAP3 the errata number is i541, but I do not know the
-> > iXYZ number for OMAP2 class.
->=20
-> Being said that no errata numbers for omap2 class, it's ok to use
-> omap3 errata numbers for common errata(like your patch 2/2)
+Kevin,
 
-Thanks,
-we are going to use the same errata ID for OMAP2, and OMAP3, but going =
-to use=20
-different workaround for them:
-OMAP2: disable buffering
-OMAP3: implement the workaround as it is in the errata
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Saturday, September 25, 2010 1:28 AM
+> To: Sripathy, Vishwanath
+> Cc: linux-omap@vger.kernel.org; linaro-dev@lists.linaro.org
+> Subject: Re: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
+> 
+> Vishwanath BS <vishwanath.bs@ti.com> writes:
+> 
+> > There is no need to keep omap3 sleep code in SRAM.
+> > This code can be run very well on DDR.
+> 
+> /me remains skeptical
+> 
+> > This would help us to instrument CPUIdle latencies.
+> 
+> Indeed, but...
+> 
+> I'm afraid we will need a much more descriptive changelog here,
+> describing in detail why this will still work, and what about the
+> previous motiviations for running SRAM has changed such that this will
+> work out of SRAM.
+Running the code from SRAM for CPUIdle was more of legacy from OMAP2 and there was no technical reason why it cannot be run from DDR. Also note that, once MPU enters off mode, wake up code used to run from DDR earlier (w/o these changes) as well. I will put more details in the change log.
+> 
+> > Tested on ZOOM3.
+> 
+> Tested in what way?  This path is used for both idle and suspend, and
+> needs to be validated for retention and off mode.
+I have tested for both retention and off mode in both CPU idle and suspend path. I will update the changelog in next version. 
 
-So, as Tony suggested, I'll add the errata handling, and
-we are going to have:
-DMA_ERRATA_i541_OMAP2, and DMA_ERRATA_i541_OMAP3 to differentiate the d=
-ifferent=20
-workarounds. We can than experiment, and we might use the OMAP3 workaro=
-und for=20
-OMAP2 as well.
-
-I'll send the v4 series shortly (after testing).
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Vishwa
+> 
+> Kevin
+> 
+> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> > Cc: Kevin Hillman <khilman@deeprootsystems.com>
+> > Cc: <Linaro> linaro-dev@lists.linaro.org
+> > ---
+> >  arch/arm/mach-omap2/pm34xx.c |    9 +--------
+> >  1 files changed, 1 insertions(+), 8 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> > index 85ef245..ed9d12c 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -79,8 +79,6 @@ struct power_state {
+> >
+> >  static LIST_HEAD(pwrst_list);
+> >
+> > -static void (*_omap_sram_idle)(u32 *addr, int save_state);
+> > -
+> >  static int (*_omap_save_secure_sram)(u32 *addr);
+> >
+> >  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+> > @@ -360,9 +358,6 @@ void omap_sram_idle(void)
+> >  	int core_prev_state, per_prev_state;
+> >  	u32 sdrc_pwr = 0;
+> >
+> > -	if (!_omap_sram_idle)
+> > -		return;
+> > -
+> >  	pwrdm_clear_all_prev_pwrst(mpu_pwrdm);
+> >  	pwrdm_clear_all_prev_pwrst(neon_pwrdm);
+> >  	pwrdm_clear_all_prev_pwrst(core_pwrdm);
+> > @@ -438,7 +433,7 @@ void omap_sram_idle(void)
+> >  	 * get saved. The restore path then reads from this
+> >  	 * location and restores them back.
+> >  	 */
+> > -	_omap_sram_idle(omap3_arm_context, save_state);
+> > +	omap34xx_cpu_suspend(omap3_arm_context, save_state);
+> >  	cpu_init();
+> >
+> >  	if (is_suspending())
+> > @@ -995,8 +990,6 @@ static int __init clkdms_setup(struct clockdomain *clkdm,
+> void *unused)
+> >
+> >  void omap_push_sram_idle(void)
+> >  {
+> > -	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
+> > -					omap34xx_cpu_suspend_sz);
+> >  	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
+> >  		_omap_save_secure_sram =
+> omap_sram_push(save_secure_ram_context,
+> >  				save_secure_ram_context_sz);
