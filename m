@@ -1,49 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] video/omap: remove duplicated include
-Date: Mon, 4 Oct 2010 10:54:29 -0700
-Message-ID: <20101004175429.GW3117@atomide.com>
-References: <20101004174344.21577085@absol.kitzblitz>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [linux-pm] [PATCH] tracing, perf: add more power related events
+Date: Mon, 4 Oct 2010 19:55:36 +0200
+Message-ID: <20101004175536.GD1518@ucw.cz>
+References: <AANLkTinUmbSUUuxUzc8++pcb9gd1CZFdyTQFrveTBXyV@mail.gmail.com>
+ <201009222049.18154.rjw@sisk.pl>
+ <AANLkTinJU5+s_1S6i4GpRuiOfsAPiL9UFtrxCCbtoumt@mail.gmail.com>
+ <201009282322.16291.rjw@sisk.pl>
+ <4CA261F4.5070803@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57616 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755022Ab0JDRyc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 13:54:32 -0400
+Return-path: <linux-trace-users-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20101004174344.21577085@absol.kitzblitz>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <4CA261F4.5070803@linux.intel.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Len Brown <len.brown@intel.com>, linux-trace-users@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Jean Pihet <jean.pihet@newoldbits.com>, linux-kernel@vger.kernel.org, linux-perf-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, arjan@infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Kaiser <nikai@nikai.net>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Nicolas Kaiser <nikai@nikai.net> [101004 08:35]:
-> Remove duplicated include.
+Hi!
+
+> >> Here is what I am proposing, in reply to all your comments:
+> >>
+> >> 1) rename the events to match Thomas's proposal:
+> >>     power:power_cpu_cstate
+> >>     power:power_cpu_pstate
+> >>     power:power_cpu_sstate
+> > If that sstate thing is going to mean "suspend", then please drop it.
+> > "Suspend" is not a state, let alone a CPU state.  It is a procedure by which
+> > the (entire) system is put into a sleep state (that is not confined to CPUs).
 > 
-> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
-> ---
->  drivers/video/omap/lcd_omap3beagle.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
-> index ca75cc2..ac715f9 100644
-> --- a/drivers/video/omap/lcd_omap3beagle.c
-> +++ b/drivers/video/omap/lcd_omap3beagle.c
-> @@ -26,7 +26,6 @@
->  #include <linux/i2c/twl.h>
->  
->  #include <plat/mux.h>
-> -#include <plat/mux.h>
->  #include <asm/mach-types.h>
->  
->  #include "omapfb.h"
+> there are also non-suspend S states, like S0i1 and S0i3 (supported in 
+> the current Intel "Moorestown" platform)
 
-Can you please updated this to remove both mux.h entries?
+Where can one learn more?
+								Pavel
 
-Including mux.h should no longer be needed for omap2/3/4 SoCs
-outside arch/arm/mach-omap2 files. For omap1 machines those are still
-needed in some drivers..
 
-Regards,
-
-Tony
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
