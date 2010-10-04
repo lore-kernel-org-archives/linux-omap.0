@@ -1,137 +1,63 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv3 17/17] dmtimer: remove OCP config code from plat-omap
-Date: Mon, 4 Oct 2010 16:26:36 +0200
-Message-ID: <4CA9E41C.7000504@ti.com>
-References: <1285059404-26718-1-git-send-email-tarun.kanti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCH] OMAP3: SDRC : Add comments on Errata i520 for Global SW reset
+Date: Mon,  4 Oct 2010 20:09:36 +0530
+Message-ID: <1286203176-32602-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33882 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753899Ab0JDO0l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Oct 2010 10:26:41 -0400
-In-Reply-To: <1285059404-26718-1-git-send-email-tarun.kanti@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51823 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751670Ab0JDOl6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 10:41:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath BS <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On 9/21/2010 10:56 AM, DebBarma, Tarun Kanti wrote:
-> This patch removes the ocp config code from omap-plat
-> because they are supposed to be taken care of by the
-> hwmod framework. Specifically, following changes are
-> incorporated:
-> (1) setting of smart-idle and wakeup-enable is already
-> taken care in existing code and so they are simply removed
-> from plat-omap
-> (2) clockactivity configuration is not present in the present
-> hwmod database. Therefore this filed is initialized to '1' in
+This patch adds comments on precatution to be taken if Global SW reset is
+used as the means to trigger sysem reset.
 
-Typo.
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/prcm.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
-> respective database.
-
-Could you explain why, the default setting is not working for the timers?
-
->
-> Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> Signed-off-by: Partha Basak<p-basak2@ti.com>
-> Cc: Cousson, Benoit<b-cousson@ti.com>
-> Cc: Paul Walmsley<paul@pwsan.com>
-> Cc: Kevin Hilman<khilman@deeprootsystems.com>
-> Cc: Tony Lindgren<tony@atomide.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_2420_data.c |    1 +
->   arch/arm/mach-omap2/omap_hwmod_2430_data.c |    1 +
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    1 +
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
->   arch/arm/plat-omap/dmtimer.c               |   11 -----------
->   5 files changed, 4 insertions(+), 11 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> index fc761a5..25111bf 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-> @@ -168,6 +168,7 @@ static struct omap_hwmod_class_sysconfig omap2420_timer_sysc = {
->   			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
->   			   SYSC_HAS_AUTOIDLE),
->   	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.clockact       = 1, /* preserve fclk on idle */
-
-In theory, this field is useless unless you add a flag: 
-SYSC_HAS_CLOCKACTIVITY.
-
-So how is it working in your case?
-
-
->   	.sysc_fields    =&omap_hwmod_sysc_type1,
->   };
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> index 2ac463f..93d5c3d 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-> @@ -174,6 +174,7 @@ static struct omap_hwmod_class_sysconfig omap2430_timer_sysc = {
->   			   SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
->   			   SYSC_HAS_AUTOIDLE),
->   	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.clockact       = 1, /* preserve fclk on idle */
->   	.sysc_fields    =&omap_hwmod_sysc_type1,
->   };
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 1ce40e0..c64c95b 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -147,6 +147,7 @@ static struct omap_hwmod_class_sysconfig omap3xxx_timer_1ms_sysc = {
->   				SYSC_HAS_ENAWAKEUP | SYSC_HAS_SOFTRESET |
->   				SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE),
->   	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.clockact       = 1, /* preserve fclk on idle */
->   	.sysc_fields	=&omap_hwmod_sysc_type1,
->   };
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index 9edc518..a816d30 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -538,6 +538,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_timer_1ms_sysc = {
->   			   SYSC_HAS_EMUFREE | SYSC_HAS_AUTOIDLE |
->   			   SYSS_MISSING),
->   	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
-> +	.clockact	= 1, /* preserve fclk on idle */
->   	.sysc_fields	=&omap_hwmod_sysc_type1,
->   };
->
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index 7d57605..6211501 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -157,17 +157,6 @@ static void omap_dm_timer_reset(struct omap_dm_timer *timer)
->   	}
->   	omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
->
-> -	l = omap_dm_timer_read_reg(timer, OMAP_TIMER_OCP_CFG_REG);
-> -	l |= 0x02<<  3;  /* Set to smart-idle mode */
-> -	l |= 0x2<<  8;   /* Set clock activity to perserve f-clock on idle */
-
-It used to be 0x2 and now you put 1:
-	.clockact       = 1, /* preserve fclk on idle */
-
-I do not understand how that patch can work???
-
-Benoit
-
-> -
-> -	/*
-> -	 * Enable wake-up on OMAP2 CPUs.
-> -	 */
-> -	if (cpu_class_is_omap2())
-> -		l |= 1<<  2;
-> -	omap_dm_timer_write_reg(timer, OMAP_TIMER_OCP_CFG_REG, l);
-> -
->   	/* Match hardware reset default of posted mode */
->   	omap_dm_timer_write_reg(timer, OMAP_TIMER_IF_CTRL_REG,
->   			OMAP_TIMER_CTRL_POSTED);
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index c201374..fdc860e
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -157,6 +157,32 @@ void omap_prcm_arch_reset(char mode, const char *cmd)
+ 	else
+ 		WARN_ON(1);
+ 
++	/* As per Errata i520, In some cases, user
++	 * will not be able to access DDR memory after warm-reset.
++	 * This situation occurs while the warm-reset happens during a read
++	 * access to DDR memory. In that particular condition, DDR memory
++	 * does not respond to a corrupted read command due to the warm
++	 * reset occurence but SDRC is waiting for read completion.
++	 * SDRC is not sensitive to the warm reset, but the interconect is
++	 * reset on the fly, thus causing a misalignment between SDRC logic,
++	 * interconect logic and DDR memory state.
++	 * WORKAROUND:
++	 * Steps to perform before a Warm reset is trigged:
++	 * 1. enable self-refresh on idle request
++	 * 2. put SDRC in idle
++	 * 3. wait until SDRC goes to idle
++	 * 4. generate SW reset (Global SW reset)
++
++	 * Steps to be performed after warm reset occurs (in bootloader):
++	 * if HW warm reset is the source, apply below steps before any
++	 * accesses to SDRAM:
++	 * 1. Reset SMS and SDRC and wait till reset is complete
++	 * 2. Re-initialize SMS, SDRC and memory
++
++	 * NOTE: Above work around is required only if arch reset is implemented
++	 * using Global SW reset(GLOBAL_SW_RST). DPLL3 reset does not need
++	 * the WA since it resets SDRC as well as part of cold reset. */
++
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+ 		prm_set_mod_reg_bits(OMAP_RST_DPLL3_MASK, prcm_offs,
+ 						 OMAP2_RM_RSTCTRL);
+-- 
+1.7.0.4
 
