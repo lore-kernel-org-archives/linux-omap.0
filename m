@@ -1,56 +1,71 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 01/10] OMAP2+: Kconfig: disallow builds for boards that
- don't use the currently-selected SoC
-Date: Sun, 3 Oct 2010 23:45:28 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1010032343250.13816@utopia.booyaka.com>
-References: <20101001213119.1408.65395.stgit@twilight.localdomain> <20101001213445.1408.96821.stgit@twilight.localdomain> <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE2FA@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v3 1/2] omap: dma: Fix buffering disable bit setting for
+ omap24xx
+Date: Mon, 4 Oct 2010 11:25:46 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C865@dbde02.ent.ti.com>
+References: <1285936577-14881-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1285936577-14881-2-git-send-email-peter.ujfalusi@nokia.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C5B8@dbde02.ent.ti.com>
+ <20101004084317.725009ef.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52271 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab0JDFp3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 01:45:29 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE2FA@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51170 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752222Ab0JDFz5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 01:55:57 -0400
+In-Reply-To: <20101004084317.725009ef.jhnikula@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-On Mon, 4 Oct 2010, Varadarajan, Charulatha wrote:
 
->  
+
+> -----Original Message-----
+> From: Jarkko Nikula [mailto:jhnikula@gmail.com] 
+> Sent: Monday, October 04, 2010 11:13 AM
+> To: G, Manjunath Kondaiah
+> Cc: Peter Ujfalusi; Tony Lindgren; 
+> linux-omap@vger.kernel.org; Liam Girdwood
+> Subject: Re: [PATCH v3 1/2] omap: dma: Fix buffering disable 
+> bit setting for omap24xx
 > 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org 
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> > Sent: Saturday, October 02, 2010 3:05 AM
-> > To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> > Cc: Tony Lindgren
-> > Subject: [PATCH 01/10] OMAP2+: Kconfig: disallow builds for 
-> > boards that don't use the currently-selected SoC
-
-...
-
-> > +++ b/arch/arm/mach-omap2/board-generic.c
-> > @@ -48,10 +48,22 @@ static void __init omap_generic_init(void)
-> >  
-> >  static void __init omap_generic_map_io(void)
-> >  {
-> > -	omap2_set_globals_242x(); /* should be 242x, 243x, or 343x */
-> > -	omap242x_map_common_io();
-> > +	if (cpu_is_omap242x()) {
-> > +		omap2_set_globals_242x();
-> > +		omap242x_map_common_io();
-> > +	} else if (cpu_is_omap242x()) {
+> On Sat, 2 Oct 2010 10:12:50 +0530
+> "G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
 > 
-> Is this intended for 242x() or 243x()?
+> > > --- a/arch/arm/plat-omap/dma.c
+> > > +++ b/arch/arm/plat-omap/dma.c
+> > > @@ -1000,7 +1000,7 @@ void omap_start_dma(int lch)
+> > >  	 * This will always fail on ES1.0
+> > >  	 */
+> > >  	if (cpu_is_omap24xx())
+> > > -		l |= OMAP_DMA_CCR_EN;
+> > > +		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
+> > 
+> > This issue is applicable only for 2430ES1.0(not sure about 
+> 2420) and 
+> > it got fixed with later ES versions.
+> > cpu check should be replaced with:
+> > 
+> > if (cpu_is_omap2420() || (cpu_is_omap2430() && (omap_type() == 
+> > OMAP2430_REV_ES1_0)))
+> > 
+> Ok, thanks for your info, I'll change this.
 > 
-> > +		omap2_set_globals_243x();
-> > +		omap243x_map_common_io();
+> How about later versions of 2430?
+Fixed in later versions ES2.0 and ES2.1
 
-That's for 243x().  Thanks, updated that in the branch that's posted on 
-git.pwsan.com.
+> Should they use the workaround in Patch 2/2? 
+2/2 is applicable for all omap2plus except omap4. So far 2/2 workaround is not 
+used with TI internal trees.
 
+> We experimented that also on 2420 and it seemed to help but since the lockup was unrecovable I 
+> went thinking if 2420 has also another issue what original 
+> workaround was trying to fix and buffering disable was needed there.
+I don't have any data for 2420. Based on your observation, it is better
+to disable buffering for 2420.
 
-- Paul
+-Manjunath
