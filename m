@@ -1,34 +1,43 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-Date: Mon, 4 Oct 2010 11:28:35 -0700
-Message-ID: <20101004182834.GE8321@core.coreip.homeip.net>
-References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
- <1285076060.14206.3.camel@chotu>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402785A3478@dbde02.ent.ti.com>
- <20100921162658.GA2310@core.coreip.homeip.net>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C98C@dbde02.ent.ti.com>
+From: Nicolas Kaiser <nikai@nikai.net>
+Subject: [PATCH] video/omap: remove mux.h include
+Date: Mon, 4 Oct 2010 20:38:42 +0200
+Message-ID: <20101004203842.088b0cb2@absol.kitzblitz>
+References: <20101004174344.21577085@absol.kitzblitz>
+	<20101004175429.GW3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C98C@dbde02.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from webhosting01.bon.m2soft.com ([195.38.20.32]:57817 "EHLO
+	webhosting01.bon.m2soft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755029Ab0JDSkt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:40:49 -0400
+In-Reply-To: <20101004175429.GW3117@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Oct 04, 2010 at 01:32:29PM +0530, G, Manjunath Kondaiah wrote:
-> Dmitry,
-> As agreed, can you push this patch?
-> https://patchwork.kernel.org/patch/197442/
-> 
+Including mux.h should no longer be needed for omap2/3/4 SoCs
+outside arch/arm/mach-omap2 files.
 
-Manjunath,
+Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+---
+ drivers/video/omap/lcd_omap3beagle.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-It is queued for 2.6.37 (take a peek at 'next' branch of my tree) - I do
-not believe that the failure is critical enough for .36.
-
-Thanks.
-
+diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
+index ca75cc2..d7c6c3e 100644
+--- a/drivers/video/omap/lcd_omap3beagle.c
++++ b/drivers/video/omap/lcd_omap3beagle.c
+@@ -25,8 +25,6 @@
+ #include <linux/gpio.h>
+ #include <linux/i2c/twl.h>
+ 
+-#include <plat/mux.h>
+-#include <plat/mux.h>
+ #include <asm/mach-types.h>
+ 
+ #include "omapfb.h"
 -- 
-Dmitry
+1.7.2.2
