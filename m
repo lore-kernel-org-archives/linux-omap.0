@@ -1,7 +1,7 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 1/2] omap: add dsp platform device
-Date: Mon,  4 Oct 2010 19:09:14 +0300
-Message-ID: <1286208555-8829-2-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 2/2] staging: tidspbridge: use omap_dsp_platform_data
+Date: Mon,  4 Oct 2010 19:09:15 +0300
+Message-ID: <1286208555-8829-3-git-send-email-felipe.contreras@gmail.com>
 References: <1286208555-8829-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1286208555-8829-1-git-send-email-felipe.contreras@gmail.com>
@@ -10,232 +10,200 @@ To: linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kerne
 Cc: Greg KH <greg@kroah.com>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Otherwise tidspbridge cannot work.
-
-It looks like this was dropped in the conversion to staging. I took the
-liberty of doing some cleaning up.
-
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- arch/arm/mach-omap2/Makefile          |    4 ++
- arch/arm/mach-omap2/dsp.c             |   85 +++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/common.c           |    2 +
- arch/arm/plat-omap/devices.c          |   30 ++++++++++++
- arch/arm/plat-omap/include/plat/dsp.h |   31 ++++++++++++
- 5 files changed, 152 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/dsp.c
- create mode 100644 arch/arm/plat-omap/include/plat/dsp.h
+ drivers/staging/tidspbridge/core/tiomap3430.c      |   14 ++++++++------
+ drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |   14 ++++++++------
+ drivers/staging/tidspbridge/core/tiomap_io.c       |    4 +++-
+ .../tidspbridge/include/dspbridge/host_os.h        |   19 -------------------
+ drivers/staging/tidspbridge/rmgr/drv_interface.c   |   10 ++++++----
+ 5 files changed, 25 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 88d3a1e..58288a4 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -102,6 +102,10 @@ obj-y					+= $(iommu-m) $(iommu-y)
- i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
- obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
+index f914829..5aefc95 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430.c
+@@ -16,6 +16,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
  
-+ifneq ($(CONFIG_TIDSPBRIDGE),)
-+obj-y					+= dsp.o
-+endif
-+
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
-diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
-new file mode 100644
-index 0000000..6feeeae
---- /dev/null
-+++ b/arch/arm/mach-omap2/dsp.c
-@@ -0,0 +1,85 @@
-+/*
-+ * TI's OMAP DSP platform device registration
-+ *
-+ * Copyright (C) 2005-2006 Texas Instruments, Inc.
-+ * Copyright (C) 2009 Nokia Corporation
-+ *
-+ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/platform_device.h>
-+#include "prm.h"
-+#include "cm.h"
-+#ifdef CONFIG_BRIDGE_DVFS
-+#include <plat/omap-pm.h>
-+#endif
-+
 +#include <plat/dsp.h>
 +
-+extern phys_addr_t omap_dsp_get_mempool_base(void);
-+
-+static struct platform_device *omap_dsp_pdev;
-+
-+static struct omap_dsp_platform_data omap_dsp_pdata __initdata = {
-+#ifdef CONFIG_BRIDGE_DVFS
-+	.dsp_set_min_opp = omap_pm_dsp_set_min_opp,
-+	.dsp_get_opp = omap_pm_dsp_get_opp,
-+	.cpu_set_freq = omap_pm_cpu_set_freq,
-+	.cpu_get_freq = omap_pm_cpu_get_freq,
-+#endif
-+	.dsp_prm_read = prm_read_mod_reg,
-+	.dsp_prm_write = prm_write_mod_reg,
-+	.dsp_prm_rmw_bits = prm_rmw_mod_reg_bits,
-+	.dsp_cm_read = cm_read_mod_reg,
-+	.dsp_cm_write = cm_write_mod_reg,
-+	.dsp_cm_rmw_bits = cm_rmw_mod_reg_bits,
-+};
-+
-+static int __init omap_dsp_init(void)
-+{
-+	struct platform_device *pdev;
-+	int err = -ENOMEM;
-+	struct omap_dsp_platform_data *pdata = &omap_dsp_pdata;
-+
-+	pdata->phys_mempool_base = omap_dsp_get_mempool_base();
-+
-+	if (pdata->phys_mempool_base) {
-+		pdata->phys_mempool_size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
-+		pr_info("%s: %x bytes @ %x\n", __func__,
-+			pdata->phys_mempool_size, pdata->phys_mempool_base);
-+	}
-+
-+	pdev = platform_device_alloc("omap-dsp", -1);
-+	if (!pdev)
-+		goto err_out;
-+
-+	err = platform_device_add_data(pdev, pdata, sizeof(*pdata));
-+	if (err)
-+		goto err_out;
-+
-+	err = platform_device_add(pdev);
-+	if (err)
-+		goto err_out;
-+
-+	omap_dsp_pdev = pdev;
-+	return 0;
-+
-+err_out:
-+	platform_device_put(pdev);
-+	return err;
-+}
-+module_init(omap_dsp_init);
-+
-+static void __exit omap_dsp_exit(void)
-+{
-+	platform_device_unregister(omap_dsp_pdev);
-+}
-+module_exit(omap_dsp_exit);
-+
-+MODULE_AUTHOR("Hiroshi DOYU");
-+MODULE_DESCRIPTION("TI's OMAP DSP platform device registration");
-+MODULE_LICENSE("GPL");
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 3008e71..57205a4 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -37,6 +37,7 @@
- #include <plat/fpga.h>
- #include <plat/serial.h>
- #include <plat/vram.h>
-+#include <plat/dsp.h>
- 
- #include <plat/clock.h>
- 
-@@ -87,6 +88,7 @@ void __init omap_reserve(void)
+ #include <linux/types.h>
+ /*  ----------------------------------- Host OS */
+ #include <dspbridge/host_os.h>
+@@ -264,8 +266,8 @@ static int bridge_brd_monitor(struct bridge_dev_context *dev_ctxt)
  {
- 	omapfb_reserve_sdram_memblock();
- 	omap_vram_reserve_sdram_memblock();
-+	omap_dsp_reserve_sdram_memblock();
- }
+ 	struct bridge_dev_context *dev_context = dev_ctxt;
+ 	u32 temp;
+-	struct dspbridge_platform_data *pdata =
+-				    omap_dspbridge_dev->dev.platform_data;
++	struct omap_dsp_platform_data *pdata =
++		omap_dspbridge_dev->dev.platform_data;
  
- /*
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index d1920be..4c8f9b9 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -15,6 +15,7 @@
+ 	temp = (*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD, OMAP2_PM_PWSTST) &
+ 					OMAP_POWERSTATEST_MASK;
+@@ -374,8 +376,8 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
+ 	u32 clk_cmd;
+ 	struct io_mgr *hio_mgr;
+ 	u32 ul_load_monitor_timer;
+-	struct dspbridge_platform_data *pdata =
+-				omap_dspbridge_dev->dev.platform_data;
++	struct omap_dsp_platform_data *pdata =
++		omap_dspbridge_dev->dev.platform_data;
+ 
+ 	/* The device context contains all the mmu setup info from when the
+ 	 * last dsp base image was loaded. The first entry is always
+@@ -627,8 +629,8 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
+ 	struct pg_table_attrs *pt_attrs;
+ 	u32 dsp_pwr_state;
+ 	int clk_status;
+-	struct dspbridge_platform_data *pdata =
+-				omap_dspbridge_dev->dev.platform_data;
++	struct omap_dsp_platform_data *pdata =
++		omap_dspbridge_dev->dev.platform_data;
+ 
+ 	if (dev_context->dw_brd_state == BRD_STOPPED)
+ 		return status;
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
+index b789f8f..1bea23f 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
+@@ -16,6 +16,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
++#include <plat/dsp.h>
++
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/dbdefs.h>
+ #include <dspbridge/cfg.h>
+@@ -54,8 +56,8 @@ int handle_constraints_set(struct bridge_dev_context *dev_context,
+ {
+ #ifdef CONFIG_TIDSPBRIDGE_DVFS
+ 	u32 *constraint_val;
+-	struct dspbridge_platform_data *pdata =
+-	    omap_dspbridge_dev->dev.platform_data;
++	struct omap_dsp_platform_data *pdata =
++		omap_dspbridge_dev->dev.platform_data;
+ 
+ 	constraint_val = (u32 *) (pargs);
+ 	/* Read the target value requested by DSP */
+@@ -83,8 +85,8 @@ int handle_hibernation_from_dsp(struct bridge_dev_context *dev_context)
+ 	u32 opplevel;
+ 	struct io_mgr *hio_mgr;
+ #endif
+-	struct dspbridge_platform_data *pdata =
+-	    omap_dspbridge_dev->dev.platform_data;
++	struct omap_dsp_platform_data *pdata =
++		omap_dspbridge_dev->dev.platform_data;
+ 
+ 	pwr_state = (*pdata->dsp_prm_read)(OMAP3430_IVA2_MOD, OMAP2_PM_PWSTST) &
+ 						OMAP_POWERSTATEST_MASK;
+@@ -152,8 +154,8 @@ int sleep_dsp(struct bridge_dev_context *dev_context, u32 dw_cmd,
+ #endif /* CONFIG_TIDSPBRIDGE_NTFY_PWRERR */
+ 	u16 timeout = PWRSTST_TIMEOUT / 10;
+ 	u32 pwr_state, target_pwr_state;
+-	struct dspbridge_platform_data *pdata =
+-				omap_dspbridge_dev->dev.platform_data;
++	struct omap_dsp_platform_data *pdata =
++		omap_dspbridge_dev->dev.platform_data;
+ 
+ 	/* Check if sleep code is valid */
+ 	if ((dw_cmd != PWR_DEEPSLEEP) && (dw_cmd != PWR_EMERGENCYDEEPSLEEP))
+diff --git a/drivers/staging/tidspbridge/core/tiomap_io.c b/drivers/staging/tidspbridge/core/tiomap_io.c
+index 190c028..2a3cd45 100644
+--- a/drivers/staging/tidspbridge/core/tiomap_io.c
++++ b/drivers/staging/tidspbridge/core/tiomap_io.c
+@@ -16,6 +16,8 @@
+  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+  */
+ 
++#include <plat/dsp.h>
++
+ /*  ----------------------------------- DSP/BIOS Bridge */
+ #include <dspbridge/dbdefs.h>
+ 
+@@ -388,7 +390,7 @@ int sm_interrupt_dsp(struct bridge_dev_context *dev_context, u16 mb_val)
+ #ifdef CONFIG_TIDSPBRIDGE_DVFS
+ 	u32 opplevel = 0;
+ #endif
+-	struct dspbridge_platform_data *pdata =
++	struct omap_dsp_platform_data *pdata =
+ 		omap_dspbridge_dev->dev.platform_data;
+ 	struct cfg_hostres *resources = dev_context->resources;
+ 	int status = 0;
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/host_os.h b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
+index 6b4feb4..6549898 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/host_os.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/host_os.h
+@@ -52,25 +52,6 @@
+ /* TODO -- Remove, once BP defines them */
+ #define INT_DSP_MMU_IRQ        28
+ 
+-struct dspbridge_platform_data {
+-	void (*dsp_set_min_opp) (u8 opp_id);
+-	 u8(*dsp_get_opp) (void);
+-	void (*cpu_set_freq) (unsigned long f);
+-	unsigned long (*cpu_get_freq) (void);
+-	unsigned long mpu_speed[6];
+-
+-	/* functions to write and read PRCM registers */
+-	void (*dsp_prm_write)(u32, s16 , u16);
+-	u32 (*dsp_prm_read)(s16 , u16);
+-	u32 (*dsp_prm_rmw_bits)(u32, u32, s16, s16);
+-	void (*dsp_cm_write)(u32, s16 , u16);
+-	u32 (*dsp_cm_read)(s16 , u16);
+-	u32 (*dsp_cm_rmw_bits)(u32, u32, s16, s16);
+-
+-	u32 phys_mempool_base;
+-	u32 phys_mempool_size;
+-};
+-
+ #define PRCM_VDD1 1
+ 
+ extern struct platform_device *omap_dspbridge_dev;
+diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+index 7ee8949..b5b3a08 100644
+--- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
++++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+@@ -18,6 +18,8 @@
+ 
+ /*  ----------------------------------- Host OS */
+ 
++#include <plat/dsp.h>
++
+ #include <dspbridge/host_os.h>
+ #include <linux/types.h>
  #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+#include <linux/memblock.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -272,6 +273,35 @@ static void omap_init_wdt(void)
- static inline void omap_init_wdt(void) {}
+@@ -171,7 +173,7 @@ const struct omap_opp vdd1_rate_table_bridge[] = {
+ #endif
  #endif
  
-+#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
-+
-+static phys_addr_t omap_dsp_phys_mempool_base;
-+
-+void __init omap_dsp_reserve_sdram_memblock(void)
-+{
-+	phys_addr_t size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
-+	phys_addr_t paddr;
-+
-+	if (!size)
-+		return;
-+
-+	paddr = __memblock_alloc_base(size, SZ_1M, MEMBLOCK_REAL_LIMIT);
-+	if (!paddr) {
-+		pr_err("%s: failed to reserve %x bytes\n",
-+				__func__, size);
-+		return;
-+	}
-+
-+	omap_dsp_phys_mempool_base = paddr;
-+}
-+
-+phys_addr_t omap_dsp_get_mempool_base(void)
-+{
-+	return omap_dsp_phys_mempool_base;
-+}
-+EXPORT_SYMBOL(omap_dsp_get_mempool_base);
-+#endif
-+
- /*
-  * This gets called after board-specific INIT_MACHINE, and initializes most
-  * on-chip peripherals accessible on this board (except for few like USB):
-diff --git a/arch/arm/plat-omap/include/plat/dsp.h b/arch/arm/plat-omap/include/plat/dsp.h
-new file mode 100644
-index 0000000..9c604b3
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/dsp.h
-@@ -0,0 +1,31 @@
-+#ifndef __OMAP_DSP_H__
-+#define __OMAP_DSP_H__
-+
-+#include <linux/types.h>
-+
-+struct omap_dsp_platform_data {
-+	void (*dsp_set_min_opp) (u8 opp_id);
-+	u8 (*dsp_get_opp) (void);
-+	void (*cpu_set_freq) (unsigned long f);
-+	unsigned long (*cpu_get_freq) (void);
-+	unsigned long mpu_speed[6];
-+
-+	/* functions to write and read PRCM registers */
-+	void (*dsp_prm_write)(u32, s16 , u16);
-+	u32 (*dsp_prm_read)(s16 , u16);
-+	u32 (*dsp_prm_rmw_bits)(u32, u32, s16, s16);
-+	void (*dsp_cm_write)(u32, s16 , u16);
-+	u32 (*dsp_cm_read)(s16 , u16);
-+	u32 (*dsp_cm_rmw_bits)(u32, u32, s16, s16);
-+
-+	phys_addr_t phys_mempool_base;
-+	phys_addr_t phys_mempool_size;
-+};
-+
-+#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
-+extern void omap_dsp_reserve_sdram_memblock(void);
-+#else
-+static inline void omap_dsp_reserve_sdram_memblock(void) { }
-+#endif
-+
-+#endif
+-struct dspbridge_platform_data *omap_dspbridge_pdata;
++struct omap_dsp_platform_data *omap_dspbridge_pdata;
+ 
+ u32 vdd1_dsp_freq[6][4] = {
+ 	{0, 0, 0, 0},
+@@ -218,8 +220,8 @@ void bridge_recover_schedule(void)
+ static int dspbridge_scale_notification(struct notifier_block *op,
+ 		unsigned long val, void *ptr)
+ {
+-	struct dspbridge_platform_data *pdata =
+-					omap_dspbridge_dev->dev.platform_data;
++	struct omap_dsp_platform_data *pdata =
++		omap_dspbridge_dev->dev.platform_data;
+ 
+ 	if (CPUFREQ_POSTCHANGE == val && pdata->dsp_get_opp)
+ 		pwr_pm_post_scale(PRCM_VDD1, pdata->dsp_get_opp());
+@@ -242,7 +244,7 @@ static struct notifier_block iva_clk_notifier = {
+  */
+ static int omap3_bridge_startup(struct platform_device *pdev)
+ {
+-	struct dspbridge_platform_data *pdata = pdev->dev.platform_data;
++	struct omap_dsp_platform_data *pdata = pdev->dev.platform_data;
+ 	struct drv_data *drv_datap = NULL;
+ 	u32 phys_membase, phys_memsize;
+ 	int err;
 -- 
 1.7.3.1.2.g7fe2b
