@@ -1,50 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] video/omap: remove mux.h include
-Date: Mon, 4 Oct 2010 11:47:36 -0700
-Message-ID: <20101004184736.GA3117@atomide.com>
-References: <20101004174344.21577085@absol.kitzblitz>
- <20101004175429.GW3117@atomide.com>
- <20101004203842.088b0cb2@absol.kitzblitz>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
+Date: Tue, 5 Oct 2010 00:22:51 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD8A@dbde02.ent.ti.com>
+References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
+ <1285076060.14206.3.camel@chotu>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402785A3478@dbde02.ent.ti.com>
+ <20100921162658.GA2310@core.coreip.homeip.net>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C98C@dbde02.ent.ti.com>
+ <20101004182834.GE8321@core.coreip.homeip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55924 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755260Ab0JDSrr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:47:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20101004203842.088b0cb2@absol.kitzblitz>
+Received: from devils.ext.ti.com ([198.47.26.153]:37185 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932242Ab0JDSxE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:53:04 -0400
+In-Reply-To: <20101004182834.GE8321@core.coreip.homeip.net>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Kaiser <nikai@nikai.net>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
 
-* Nicolas Kaiser <nikai@nikai.net> [101004 11:32]:
-> Including mux.h should no longer be needed for omap2/3/4 SoCs
-> outside arch/arm/mach-omap2 files.
+
+
+
+> -----Original Message-----
+> From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com] 
+> Sent: Monday, October 04, 2010 11:59 PM
+> To: G, Manjunath Kondaiah
+> Cc: Ameya Palande; linux-omap@vger.kernel.org; 
+> linux-input@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Tony Lindgren
+> Subject: Re: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
 > 
-> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
-
-Thanks,
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  drivers/video/omap/lcd_omap3beagle.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
+> On Mon, Oct 04, 2010 at 01:32:29PM +0530, G, Manjunath Kondaiah wrote:
+> > Dmitry,
+> > As agreed, can you push this patch?
+> > https://patchwork.kernel.org/patch/197442/
+> > 
 > 
-> diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
-> index ca75cc2..d7c6c3e 100644
-> --- a/drivers/video/omap/lcd_omap3beagle.c
-> +++ b/drivers/video/omap/lcd_omap3beagle.c
-> @@ -25,8 +25,6 @@
->  #include <linux/gpio.h>
->  #include <linux/i2c/twl.h>
->  
-> -#include <plat/mux.h>
-> -#include <plat/mux.h>
->  #include <asm/mach-types.h>
->  
->  #include "omapfb.h"
-> -- 
-> 1.7.2.2
+> Manjunath,
+> 
+> It is queued for 2.6.37 (take a peek at 'next' branch of my 
+> tree) - I do not believe that the failure is critical enough for .36.
+
+Thanks for queuing this patch for 2.6.37
+
+-Manjunath
