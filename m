@@ -1,51 +1,138 @@
-From: Arun MURTHY <arun.murthy@stericsson.com>
-Subject: RE: [PATCH 1/7] pwm: Add pwm core driver
-Date: Mon, 4 Oct 2010 06:22:46 +0200
-Message-ID: <F45880696056844FA6A73F415B568C695356E67D03@EXDCVYMBSTM006.EQ1STM.local>
-References: <4CA1BC16.3020702@metafoo.de>
- <F45880696056844FA6A73F415B568C69532DC2FC60@EXDCVYMBSTM006.EQ1STM.local>
- <4CA25841.4090702@metafoo.de>
- <F45880696056844FA6A73F415B568C69532DC8B7E4@EXDCVYMBSTM006.EQ1STM.local>
- <AANLkTingb8ox5h5rN1YrxONibfrWLicoiS6yqKf_v5bJ@mail.gmail.com>
- <F45880696056844FA6A73F415B568C69532DCF32BC@EXDCVYMBSTM006.EQ1STM.local>
- <AANLkTikTo42Q5-yMEwyQH4mt=qLjaKrtJK3ydZNFyqai@mail.gmail.com>
- <F45880696056844FA6A73F415B568C69532DCF33BB@EXDCVYMBSTM006.EQ1STM.local>
- <AANLkTimPgPY9rX_MYZTv0PpRQgfWGoSeSE9WWy_ami-V@mail.gmail.com>
- <F45880696056844FA6A73F415B568C69532DCF34AE@EXDCVYMBSTM006.EQ1STM.local>
- <20101001180051.GC21157@opensource.wolfsonmicro.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCHv2 3/6] omap3: Introduce function to detect the IGEP v2
+ hardware revision.
+Date: Mon, 4 Oct 2010 10:19:15 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE345@dbde02.ent.ti.com>
+References: <1285962353-9586-1-git-send-email-eballetbo@gmail.com>
+ <1285962353-9586-4-git-send-email-eballetbo@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <20101001180051.GC21157@opensource.wolfsonmicro.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52165 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751583Ab0JDEtW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 00:49:22 -0400
+In-Reply-To: <1285962353-9586-4-git-send-email-eballetbo@gmail.com>
 Content-Language: en-US
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jassi Brar <jassisinghbrar@gmail.com>, Trilok Soni <soni.trilok@gmail.com>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, Lars-Peter Clausen <lars@metafoo.de>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "kernel@pengutronix.de" <kernel@pengutronix.de>, Bill Gatliff <bgat@billgatliff.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linus WALLEIJ <linus.walleij@stericsson.com>, Marek Vasut <marek.vasut@gmail.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, Mattias WALLIN <mattias.wallin@stericsson.com>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, Andrew
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Enric Balletbo i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> On Fri, Oct 01, 2010 at 10:46:15AM +0200, Arun MURTHY wrote:
-> > > On Fri, Oct 1, 2010 at 4:25 PM, Arun MURTHY
-> 
-> > > > I mean not the functions but the functionality.
-> > > > PWM is a simple device and most of its clients are controlling
-> > > intensity
-> > > > of backlight, leds, vibrator etc.
-> > > > I don't think these complex functionality are required.
-> > > oh dear !
-> > Here I mean why should all those function be exposed to the entire
-> kernel,
-> > as most of the pwm devices do not use them.
-> 
-> While many PWM uses are very simple that doesn't mean that we'll never
-> need to support more advanced uses.  Normally we try to design APIs so
-> that they both scale down to the simplest use cases and also up to more
-> complex ones.
-My intention is just to enable two pwm drivers and build successfully.
-This patch can be considered for this reason and taken up until Bill's
-patches are merged.
+ 
 
-Thanks and Regards,
-Arun R Murthy
--------------
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Enric 
+> Balletbo i Serra
+> Sent: Saturday, October 02, 2010 1:16 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Enric Balletbo i Serra
+> Subject: [PATCHv2 3/6] omap3: Introduce function to detect 
+> the IGEP v2 hardware revision.
+> 
+> There are currently two versions of IGEP v2 board, this patch 
+> introduces a
+> function to detect the hardware revision of IGEP board.
+> 
+>   --------------------------
+>  | Id. | Hw Rev. | GPIO 28  |
+>   --------------------------
+>  |  0  |   B/C   |   high   |
+>  |  1  |   C     |   low    |
+>   --------------------------
+> 
+> Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
+> ---
+>  arch/arm/mach-omap2/board-igep0020.c |   47 
+> ++++++++++++++++++++++++++++++++++
+>  1 files changed, 47 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-igep0020.c 
+> b/arch/arm/mach-omap2/board-igep0020.c
+> index 9f25d0d..a386425 100644
+> --- a/arch/arm/mach-omap2/board-igep0020.c
+> +++ b/arch/arm/mach-omap2/board-igep0020.c
+> @@ -45,6 +45,49 @@
+>  #define IGEP2_GPIO_WIFI_NPD 	94
+>  #define IGEP2_GPIO_WIFI_NRESET 	95
+>  
+> +/*
+> + * IGEP2 Hardware Revision Table
+> + *
+> + *  --------------------------
+> + * | Id. | Hw Rev. | HW0 (28) |
+> + *  --------------------------
+> + * |  0  |   B/C   |   high   |
+> + * |  1  |   C     |   low    |
+> + *  --------------------------
+> + */
+> +
+> +#define IGEP2_BOARD_HWREV_B	0
+> +#define IGEP2_BOARD_HWREV_C	1
+> +
+> +static u8 hwrev;
+> +
+> +static void __init igep2_get_revision(void)
+> +{
+> +	u8 ret;
+> +
+> +	omap_mux_init_gpio(IGEP2_GPIO_LED1_RED, OMAP_PIN_INPUT);
+> +
+> +	if ((gpio_request(IGEP2_GPIO_LED1_RED, "GPIO_HW0_REV") == 0) &&
+> +	    (gpio_direction_input(IGEP2_GPIO_LED1_RED) == 0)) {
+> +		ret = gpio_get_value(IGEP2_GPIO_LED1_RED);
+> +		if (hwrev == 0) {
+> +			pr_info("IGEP2: Hardware Revision C 
+> (B-NON compatible)\n");
+> +			hwrev = IGEP2_BOARD_HWREV_C;
+> +		} else if (hwrev ==  1) {
+> +			pr_info("IGEP2: Hardware Revision B/C 
+> (B compatible)\n");
+> +			hwrev = IGEP2_BOARD_HWREV_B;
+> +		} else {
+> +			pr_err("IGEP2: Unknow Hardware Revision\n");
+
+typo - Unknow 
+
+> +			hwrev = -1;
+> +		}
+> +	} else {
+> +		pr_warning("IGEP2: Could not obtain gpio 
+> GPIO_HW0_REV\n");
+> +		pr_err("IGEP2: Unknow Hardware Revision\n");
+
+Need both the prints?
+
+> +	}
+
+typo - Unknow 
+
+> +
+> +	gpio_free(IGEP2_GPIO_LED1_RED);
+> +}
+> +
+>  #if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+>  	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+>  
+> @@ -535,6 +578,10 @@ static struct omap_board_mux board_mux[] 
+> __initdata = {
+>  static void __init igep2_init(void)
+>  {
+>  	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
+> +
+> +	/* Get IGEP2 hardware revision */
+> +	igep2_get_revision();
+> +
+>  	igep2_i2c_init();
+>  	platform_add_devices(igep2_devices, ARRAY_SIZE(igep2_devices));
+>  	omap_serial_init();
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
