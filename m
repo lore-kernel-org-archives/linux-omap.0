@@ -1,46 +1,46 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: multiple linux-next OMAP3 build errors
-Date: Tue, 05 Oct 2010 09:30:22 +1100
-Message-ID: <1286231422.2463.316.camel@pasglop>
-References: <AANLkTim9v1Y2o9QebYcJkh+QLVQq9fFOFE5P+OoyUHXa@mail.gmail.com>
-	 <1286173747.2358.4.camel@tubuntu.research.nokia.com>
+From: Max Thrun <bear24rw@gmail.com>
+Subject: [PATCH] beagle xm: enable USB hub at startup
+Date: Mon, 4 Oct 2010 18:37:16 -0400
+Message-ID: <AANLkTikWiR_Z--Eec4sVkLbN-pqjch6hmK_x-V4drWu1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gate.crashing.org ([63.228.1.57]:54369 "EHLO gate.crashing.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756175Ab0JDWbQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Oct 2010 18:31:16 -0400
-In-Reply-To: <1286173747.2358.4.camel@tubuntu.research.nokia.com>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:49055 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755246Ab0JDWhR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 18:37:17 -0400
+Received: by ewy23 with SMTP id 23so2289904ewy.19
+        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 15:37:16 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, yinghai@kernel.org
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, ext Grazvydas Ignotas <notasas@gmail.com>, Ingo Molnar <mingo@elte.hu>
+To: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Mon, 2010-10-04 at 09:29 +0300, Tomi Valkeinen wrote:
-> >   CC      drivers/video/omap2/vram.o
-> > drivers/video/omap2/vram.c: In function
-> 'omap_vram_reserve_sdram_memblock':
-> > drivers/video/omap2/vram.c:568: error: implicit declaration of
-> > function 'memblock_region_is_memory'
-> 
-> Benjamin, your patch "memblock/arm: Use memblock_region_is_memory()
-> for
-> omap fb" in linux-next seems to be broken. I believe the called
-> function
-> should be memblock_is_region_memory, not memblock_region_is_memory?
+The beagleboard XM requires an active high signal to enable the USB
+hub. Previous versions required an active low signal. This patch
+checks which version of the board is being used and sets the enable
+line accordingly.
 
-I suspect either I didn't push my latest version before it got merged or
-Yinghai didn't pull the right one, since I'm pretty sure I test built
-it, but in any case, you're probably right :-)
+Singed-off-by: Max Thrun <bear24rw@gmail.com>
 
-I'm not in control of this patch series at the moment however. Ingo and
-Yinghai are. Yinghai, care to fix that up ? I'm currently travelling on
-holidays and won't be able to do much until later next week.
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
+b/arch/arm/mach-omap2/board-omap3beagle.c
+index 73689c0..5a649b7 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -297,9 +297,13 @@ static int beagle_twl_gpio_setup(struct device *dev,
+        gpio_request(gpio + 1, "EHCI_nOC");
+        gpio_direction_input(gpio + 1);
 
-Cheers,
-Ben.
+-       /* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
++       /* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, XM
+active high / others active low) */
+        gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
+-       gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
++       if (omap3_beagle_get_rev() == OMAP3BEAGLE_BOARD_XM) {
++               gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
++       } else {
++               gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
++       }
 
-
-
+        /* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+        gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
