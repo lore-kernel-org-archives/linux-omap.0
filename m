@@ -1,173 +1,116 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 4/4] perf: provide a DEPRECTAED power trace API to user space
-Date: Mon,  4 Oct 2010 17:21:01 +0200
-Message-ID: <1286205661-24448-5-git-send-email-jean.pihet@newoldbits.com>
-References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, rjw@sisk.pl, linux-omap@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, mathieu.desnoyers@efficios.com, Jean Pihet <jean.pihet@newoldbits.com>, Jean Pihet <j-pihet@ti.com>, Thomas Renninger <trenn@suse.de>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: beagle hangs in uart3 disabling clocks
+Date: Mon, 04 Oct 2010 08:25:21 -0700
+Message-ID: <87k4ly2d5q.fsf@deeprootsystems.com>
+References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:62719 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754791Ab0JDPZZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 11:25:25 -0400
+Received: by pzk34 with SMTP id 34so1359340pzk.19
+        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 08:25:25 -0700 (PDT)
+In-Reply-To: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com>
+	(Ming Lei's message of "Sun, 3 Oct 2010 17:04:11 +0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Provide a CONFIG_DEPRECATED_POWER_EVENT_TRACING  option in order
-to provide backward compatibility with the user space tracing tools.
+Ming Lei <tom.leiming@gmail.com> writes:
 
-To be removed as soon as the tools are in sync with the new API.
-Note: only the old events are mapped to.
+> I just tested pm branch of tony's linux-omap-2.6 tree, and found my
+> beagle will hang in uart3 disabling clocks, follows the log info:
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
-CC: Thomas Renninger <trenn@suse.de>
----
- include/trace/events/power.h |   98 ++++++++++++++++++++++++++++++++++++++++++
- kernel/trace/Kconfig         |    4 ++
- kernel/trace/power-traces.c  |    4 ++
- 3 files changed, 106 insertions(+), 0 deletions(-)
+It greatly helps when you also state what defconfig you're using, and
+what you've changed from the default defconfig.
 
-diff --git a/include/trace/events/power.h b/include/trace/events/power.h
-index 00bf175..dd00512 100644
---- a/include/trace/events/power.h
-+++ b/include/trace/events/power.h
-@@ -7,6 +7,103 @@
- #include <linux/ktime.h>
- #include <linux/tracepoint.h>
- 
-+
-+#ifdef CONFIG_DEPRECATED_POWER_EVENT_TRACING
-+/*
-+ * Keep the old power API for user space tools backward compatibility.
-+ * To be removed as soon as the tools are in sync with the new API.
-+ *
-+ * Note: only the old events are mapped to.
-+ *
-+ * The mapping is as follows:
-+ *  - trace_processor_idle(state != 0, cpu_id) =>
-+ *	trace_power_start(POWER_CSTATE, state, cpu_id)
-+ *  - trace_processor_idle(state == 0, cpu_id) =>
-+ *	trace_power_end(cpu_id)
-+ *  - trace_processor_frequency(frequency, cpu_id) =>
-+ *	trace_power_frequency(POWER_PSTATE, frequency, cpu_id)
-+ *
-+ */
-+
-+/* Define old API events */
-+#ifndef _TRACE_POWER_OLD_API_
-+#define _TRACE_POWER_OLD_API_
-+enum {
-+	POWER_NONE = 0,
-+	POWER_CSTATE = 1,
-+	POWER_PSTATE = 2,
-+};
-+#endif /* _TRACE_POWER_OLD_API_ */
-+
-+DECLARE_EVENT_CLASS(power,
-+
-+	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
-+
-+	TP_ARGS(type, state, cpu_id),
-+
-+	TP_STRUCT__entry(
-+		__field(	u64,		type		)
-+		__field(	u64,		state		)
-+		__field(	u64,		cpu_id		)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->type = type;
-+		__entry->state = state;
-+		__entry->cpu_id = cpu_id;
-+	),
-+
-+	TP_printk("type=%lu state=%lu cpu_id=%lu", (unsigned long)__entry->type,
-+		(unsigned long)__entry->state, (unsigned long)__entry->cpu_id)
-+);
-+
-+DEFINE_EVENT(power, power_start,
-+
-+	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
-+
-+	TP_ARGS(type, state, cpu_id)
-+);
-+
-+DEFINE_EVENT(power, power_frequency,
-+
-+	TP_PROTO(unsigned int type, unsigned int state, unsigned int cpu_id),
-+
-+	TP_ARGS(type, state, cpu_id)
-+);
-+
-+TRACE_EVENT(power_end,
-+
-+	TP_PROTO(unsigned int cpu_id),
-+
-+	TP_ARGS(cpu_id),
-+
-+	TP_STRUCT__entry(
-+		__field(	u64,		cpu_id		)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->cpu_id = cpu_id;
-+	),
-+
-+	TP_printk("cpu_id=%lu", (unsigned long)__entry->cpu_id)
-+);
-+
-+/* Map new events trace points calls to old ones */
-+#define trace_processor_idle(state, cpu_id)				\
-+	do {								\
-+		if (state != 0)						\
-+			trace_power_start(POWER_CSTATE, state, cpu_id);	\
-+		else							\
-+			trace_power_end(cpu_id);			\
-+	} while (0)
-+
-+#define trace_processor_frequency(frequency, cpu_id)			\
-+	do {								\
-+		trace_power_frequency(POWER_PSTATE, frequency, cpu_id);	\
-+	} while (0)
-+
-+#else /* CONFIG_DEPRECATED_POWER_EVENT_TRACING */
-+
- /*
-  * The processor events class is used for cpuidle (processor_idle) and
-  *  for cpufreq (processor_frequency)
-@@ -44,6 +141,7 @@ DEFINE_EVENT(processor, processor_frequency,
- 
- 	TP_ARGS(frequency, cpu_id)
- );
-+#endif /* CONFIG_DEPRECATED_POWER_EVENT_TRACING */
- 
- /*
-  * The machine_suspend event is used for system suspend (machine_suspend)
-diff --git a/kernel/trace/Kconfig b/kernel/trace/Kconfig
-index 538501c..dab2bc1 100644
---- a/kernel/trace/Kconfig
-+++ b/kernel/trace/Kconfig
-@@ -64,6 +64,10 @@ config EVENT_TRACING
- 	select CONTEXT_SWITCH_TRACER
- 	bool
- 
-+config DEPRECATED_POWER_EVENT_TRACING
-+	bool "Use the deprecated power trace API"
-+	default n
-+
- config CONTEXT_SWITCH_TRACER
- 	bool
- 
-diff --git a/kernel/trace/power-traces.c b/kernel/trace/power-traces.c
-index a5555be..3a95670 100644
---- a/kernel/trace/power-traces.c
-+++ b/kernel/trace/power-traces.c
-@@ -13,4 +13,8 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/power.h>
- 
-+#ifdef CONFIG_DEPRECATED_POWER_EVENT_TRACING
-+EXPORT_TRACEPOINT_SYMBOL_GPL(power_start);
-+#else
- EXPORT_TRACEPOINT_SYMBOL_GPL(processor_idle);
-+#endif
--- 
-1.7.1
+... more below...
+
+> Starting kernel ...
+>
+> Uncompressing Linux... done, booting the kernel.
+> Linux version 2.6.36-rc6+ (tom@tom-lei) (gcc version 4.3.3 (Sourcery
+> G++ Lite 2009q1-203) ) #320 PREEM
+> PT Sun Oct 3 16:46:04 CST 2010
+> CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c53c7f
+> CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+> Machine: OMAP3 Beagle Board
+> bootconsole [earlycon0] enabled
+> Memory policy: ECC disabled, Data cache writeback
+> OMAP3430/3530 ES2.1 (l2cache iva sgx neon isp )
+> SRAM: Mapped pa 0x40200000 to va 0xfe400000 size: 0x10000
+> On node 0 totalpages: 32768
+> free_area_init_node: node 0, pgdat c04a1a00, node_mem_map c06b8000
+>   Normal zone: 256 pages used for memmap
+>   Normal zone: 0 pages reserved
+>   Normal zone: 32512 pages, LIFO batch:7
+> Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
+> Kernel command line: console=ttyO2,115200n8 root=/dev/mmcblk0p2 rw
+> rootdelay=1 earlyprintk initcall_de
+> bug=1 loglevel=8
+> PID hash table entries: 512 (order: -1, 2048 bytes)
+> Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+> Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+> Memory: 128MB = 128MB total
+> Memory: 123068k/123068k available, 8004k reserved, 0K highmem
+> Virtual kernel memory layout:
+>     vector  : 0xffff0000 - 0xffff1000   (   4 kB)
+>     fixmap  : 0xfff00000 - 0xfffe0000   ( 896 kB)
+>     DMA     : 0xffc00000 - 0xffe00000   (   2 MB)
+>     vmalloc : 0xc8800000 - 0xf8000000   ( 760 MB)
+>     lowmem  : 0xc0000000 - 0xc8000000   ( 128 MB)
+>     modules : 0xbf000000 - 0xc0000000   (  16 MB)
+>       .init : 0xc0008000 - 0xc0034000   ( 176 kB)
+>       .text : 0xc0034000 - 0xc046c000   (4320 kB)
+>       .data : 0xc046c000 - 0xc04a2000   ( 216 kB)
+> Preemptable hierarchical RCU implementation.
+>         RCU-based detection of stalled CPUs is disabled.
+>         Verbose stalled-CPUs detection is disabled.
+> NR_IRQS:402
+> omap_hwmod: l3_main: registering
+
+You've manually done a '#define DEBUG' in omap_hwmod.c.  This does not
+work well with UART hwmods, especially when using a UART console and
+using DEBUG_LL + earlyprintk.
+
+[...]
+
+> omap_hwmod: uart2: idling
+> omap_hwmod: uart2: disabling clocks
+> omap_device: omap-hsuart: activating
+> omap_hwmod: uart2: enabling
+> omap_hwmod: uart2: enabling clocks
+> omap_device: omap-hsuart: pm_lat 0: activate: elapsed time 0 nsec
+> omap_device: omap-hsuart: deactivating
+> omap_hwmod: uart2: idling
+> omap_hwmod: uart2: disabling clocks
+> omap_device: omap-hsuart: pm_lat 0: deactivate: elapsed time 0 nsec
+> omap_device: omap-hsuart: activating
+> omap_hwmod: uart2: enabling
+> omap_hwmod: uart2: enabling clocks
+> omap_device: omap-hsuart: pm_lat 0: activate: elapsed time 0 nsec
+> omap_device: omap-hsuart: building with 1 hwmods
+> omap_device: omap-hsuart: counted 4 total resources across 1 hwmods
+> omap_device: omap-hsuart: registering
+> Registering platform device 'omap-hsuart.2'. Parent at omap
+> device: 'omap-hsuart.2': device_add
+> bus: 'platform': add device omap-hsuart.2
+> PM: Adding info for platform:omap-hsuart.2
+> omap_hwmod: uart3: idling
+> omap_hwmod: uart3: disabling clocks
+
+Remember UART3 is your serial console.  
+
+Basically, what is happening is that the hwmod is trying to print debug
+messages for all hwmod changes.  As soon as UART3 is disabled, the
+printing will fail since that is your console, so as soon as uart3
+clocks are disabled, there is a fault when the polling-mode serial
+driver (used for earlyprintk) tries to access the UART, and you hang.
+
+Kevin
+
+
 
