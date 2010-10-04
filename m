@@ -1,54 +1,40 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: beagle hangs in uart3 disabling clocks
-Date: Mon, 04 Oct 2010 11:54:29 -0700
-Message-ID: <87iq1hzt3u.fsf@deeprootsystems.com>
-References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com>
-	<4CA9C5F6.7060902@ti.com>
-	<AANLkTi=C55AbJhCWkFAM06vL2c5UM=aH3z2r8i4_55Mk@mail.gmail.com>
-	<AANLkTin++-F7dZWhqM6DG4v-95rfOpOwHSqj8xhTdS3k@mail.gmail.com>
-	<87wrpy0xp3.fsf@deeprootsystems.com>
-	<AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 08/10] OMAP: split plat-omap/common.c
+Date: Mon, 4 Oct 2010 13:15:25 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1010041314170.13816@utopia.booyaka.com>
+References: <20101001213119.1408.65395.stgit@twilight.localdomain> <20101001213532.1408.55832.stgit@twilight.localdomain> <4CA999AA.4030608@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:54379 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755333Ab0JDSyc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:54:32 -0400
-Received: by pzk34 with SMTP id 34so1416265pzk.19
-        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 11:54:32 -0700 (PDT)
-In-Reply-To: <AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com>
-	(Ming Lei's message of "Tue, 5 Oct 2010 00:17:23 +0800")
+Received: from utopia.booyaka.com ([72.9.107.138]:47496 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126Ab0JDTP0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 15:15:26 -0400
+In-Reply-To: <4CA999AA.4030608@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Govindraj <govindraj.ti@gmail.com>, Pramod <pramod.gurav@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Ming Lei <tom.leiming@gmail.com> writes:
+On Mon, 4 Oct 2010, Cousson, Benoit wrote:
 
-> 2010/10/4 Kevin Hilman <khilman@deeprootsystems.com>:
->>
->> Why? =A0What do you need from the PM branch that is not in l-o maste=
-r?
->
-> Seems master branch works fine for me, my beagle board doesn't hang
-> uart3 disabling clocks.
+> > --- /dev/null
+> > +++ b/arch/arm/plat-omap/32ksynctimer.c
+> > @@ -0,0 +1,184 @@
+> > +/*
+> > + * linux/arch/arm/plat-omap/clocksource.c
+> 
+> What name do you want to use? 32ksynctimer.c or clocksource.c?
 
-Master branch and PM branch have exactly the same functionality for
-UART hwmods.  The problem was that you manually enabled DEBUG in
-omap_hwmod.c.
+Thanks, that's a bug.
 
-> I only want to have a try of the runtime pm feature of omap3, so use
-> PM branch to do the test.
+> If this file is dedicated for the 32k sync timer, maybe we should now use the
+> new OMAP4 name: "counter_32k".
+> 
+> Noboby knows what the sync stand for, and at the end this is just a 32k
+> counter. Hence the new name :-)
 
-master branch and PM branch have exactly the same functionality for
-runtime PM
+Yep, let's use counter_32k.c.
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Paul
