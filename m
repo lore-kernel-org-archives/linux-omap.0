@@ -1,37 +1,61 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH v3 1/2] omap: dma: Fix buffering disable bit setting for omap24xx
-Date: Mon, 4 Oct 2010 10:41:47 +0300
-Message-ID: <201010041041.47991.peter.ujfalusi@nokia.com>
-References: <1285936577-14881-1-git-send-email-peter.ujfalusi@nokia.com> <201010041015.35457.peter.ujfalusi@nokia.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C95A@dbde02.ent.ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH] nand: omap2: Missing arg to gpmc_prefetch_reset()
+Date: Mon, 04 Oct 2010 10:39:05 +0300
+Message-ID: <1286177945.11684.77.camel@localhost>
+References: <1285364702-13922-1-git-send-email-loic.minier@linaro.org>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:62549 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753174Ab0JDHlt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:41:49 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C95A@dbde02.ent.ti.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38767 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753174Ab0JDHlw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:41:52 -0400
+Received: by fxm14 with SMTP id 14so1535121fxm.19
+        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 00:41:51 -0700 (PDT)
+In-Reply-To: <1285364702-13922-1-git-send-email-loic.minier@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: =?ISO-8859-1?Q?Lo=EFc?= Minier <loic.minier@linaro.org>
+Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sukumar Ghorai <s-ghorai@ti.com>
 
-On Monday 04 October 2010 10:36:16 ext G, Manjunath Kondaiah wrote:
-> > are going to have:
-> > DMA_ERRATA_i541_OMAP2, and DMA_ERRATA_i541_OMAP3 to
+On Fri, 2010-09-24 at 23:45 +0200, Lo=C3=AFc Minier wrote:
+> Fix missing cs arg to gpmc_prefetch_reset() when
+> CONFIG_MTD_NAND_OMAP_PREFETCH_DMA=3Dy which caused a build failure si=
+nce
+> 948d38e799f0ab87cf8ed9113fcdaaee61acf321:
+> drivers/mtd/nand/omap2.c: In function 'omap_nand_dma_transfer':
+> drivers/mtd/nand/omap2.c:416: error: too few arguments to function 'g=
+pmc_prefetch_reset'
 >=20
-> For OMAP2, you should use "DMA_ERRATA_IFRAME_BUFFERING" since it is
-> different type of issue.
+> Signed-off-by: Lo=C3=AFc Minier <loic.minier@linaro.org>
+> ---
+>  drivers/mtd/nand/omap2.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks!
-I'll do that.
+=46YI, a similar patch is already in Linus' tree, so I'm dropping it fr=
+om
+my tree:
 
->=20
-> -Manjunath
+commit f12f662f29d5801e598c6bb4a71e54b2de218f72
+Author: Daniel J Blueman <daniel.blueman@gmail.com>
+Date:   Wed Sep 29 21:01:55 2010 +0100
+
+    fix OMAP2 MTD build failure
+   =20
+    Fix build failure from recent interface change and merge.
+   =20
+    Tested on OMAP3430.
+   =20
+    Signed-off-by: Daniel J Blueman <daniel.blueman@gmail.com>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 
 --=20
-P=E9ter
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
