@@ -1,49 +1,49 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: tidspbridge broken?
-Date: Mon, 4 Oct 2010 12:34:51 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5304680CCA10@dlee03.ent.ti.com>
-References: <AANLkTi=hD1m0jC64KW7gHdywd=2GseX8gqNwPTHOh6s2@mail.gmail.com>
-	<27F9C60D11D683428E133F85D2BB4A5304680CC90F@dlee03.ent.ti.com>
- <AANLkTimH0+jeFx+zUh6u_uzqhL+rB5W6s3PYOatHMB6b@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] video/omap: remove duplicated include
+Date: Mon, 4 Oct 2010 10:54:29 -0700
+Message-ID: <20101004175429.GW3117@atomide.com>
+References: <20101004174344.21577085@absol.kitzblitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52033 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753512Ab0JDRe5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 13:34:57 -0400
-In-Reply-To: <AANLkTimH0+jeFx+zUh6u_uzqhL+rB5W6s3PYOatHMB6b@mail.gmail.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57616 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755022Ab0JDRyc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 13:54:32 -0400
+Content-Disposition: inline
+In-Reply-To: <20101004174344.21577085@absol.kitzblitz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gregkh@suse.de" <gregkh@suse.de>, "Menon, Nishanth" <nm@ti.com>, "ohad@wizery.com" <ohad@wizery.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: Nicolas Kaiser <nikai@nikai.net>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Felipe Contreras wrote:
-...
+* Nicolas Kaiser <nikai@nikai.net> [101004 08:35]:
+> Remove duplicated include.
 > 
-> Anyway, first, I think I tried a version similar to that one, and
-> doesn't apply on mainline any more, also, bootmem doesn't seem to be
-> working on ARM either, so I had to move to memblock, and third, I
-> don't think that platform device is correct since it depends on the
-> headers of a driver.    
-
-AFAIK, bootmem is going down (http://marc.info/?l=linux-omap&m=126955999303922&w=2), I succesfully tried LMB a while back when rebasing but for the latest RCs I haven't seen it around.
-
-...
+> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+> ---
+>  drivers/video/omap/lcd_omap3beagle.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
 > 
-> At least on my N900 the framebuffer is not working either, and I've
-> heard the same on beagleboard. 
-> 
-> Maybe something like this:
-> http://article.gmane.org/gmane.linux.kernel.mm/52757
+> diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
+> index ca75cc2..ac715f9 100644
+> --- a/drivers/video/omap/lcd_omap3beagle.c
+> +++ b/drivers/video/omap/lcd_omap3beagle.c
+> @@ -26,7 +26,6 @@
+>  #include <linux/i2c/twl.h>
+>  
+>  #include <plat/mux.h>
+> -#include <plat/mux.h>
+>  #include <asm/mach-types.h>
+>  
+>  #include "omapfb.h"
 
-Will look at it.
+Can you please updated this to remove both mux.h entries?
 
-...
+Including mux.h should no longer be needed for omap2/3/4 SoCs
+outside arch/arm/mach-omap2 files. For omap1 machines those are still
+needed in some drivers..
 
 Regards,
 
-Omar
-
+Tony
