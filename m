@@ -1,71 +1,79 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v3 1/2] omap: dma: Fix buffering disable bit setting for
- omap24xx
-Date: Mon, 4 Oct 2010 11:25:46 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C865@dbde02.ent.ti.com>
-References: <1285936577-14881-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1285936577-14881-2-git-send-email-peter.ujfalusi@nokia.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C5B8@dbde02.ent.ti.com>
- <20101004084317.725009ef.jhnikula@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 08/10] OMAP: split plat-omap/common.c
+Date: Mon, 4 Oct 2010 00:03:28 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1010032359220.13816@utopia.booyaka.com>
+References: <20101001213119.1408.65395.stgit@twilight.localdomain> <20101001213532.1408.55832.stgit@twilight.localdomain> <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE3D3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51170 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752222Ab0JDFz5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 01:55:57 -0400
-In-Reply-To: <20101004084317.725009ef.jhnikula@gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:34331 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366Ab0JDGD3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 02:03:29 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE3D3@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+On Mon, 4 Oct 2010, Varadarajan, Charulatha wrote:
 
-
-> -----Original Message-----
-> From: Jarkko Nikula [mailto:jhnikula@gmail.com] 
-> Sent: Monday, October 04, 2010 11:13 AM
-> To: G, Manjunath Kondaiah
-> Cc: Peter Ujfalusi; Tony Lindgren; 
-> linux-omap@vger.kernel.org; Liam Girdwood
-> Subject: Re: [PATCH v3 1/2] omap: dma: Fix buffering disable 
-> bit setting for omap24xx
-> 
-> On Sat, 2 Oct 2010 10:12:50 +0530
-> "G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
-> 
-> > > --- a/arch/arm/plat-omap/dma.c
-> > > +++ b/arch/arm/plat-omap/dma.c
-> > > @@ -1000,7 +1000,7 @@ void omap_start_dma(int lch)
-> > >  	 * This will always fail on ES1.0
-> > >  	 */
-> > >  	if (cpu_is_omap24xx())
-> > > -		l |= OMAP_DMA_CCR_EN;
-> > > +		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> > Sent: Saturday, October 02, 2010 3:06 AM
+> > To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> > Subject: [PATCH 08/10] OMAP: split plat-omap/common.c
 > > 
-> > This issue is applicable only for 2430ES1.0(not sure about 
-> 2420) and 
-> > it got fixed with later ES versions.
-> > cpu check should be replaced with:
-> > 
-> > if (cpu_is_omap2420() || (cpu_is_omap2430() && (omap_type() == 
-> > OMAP2430_REV_ES1_0)))
-> > 
-> Ok, thanks for your info, I'll change this.
+> > Split plat-omap/common.c into three pieces:
+
+...
+
+> > +#if defined(CONFIG_ARCH_OMAP2430)
+> > +
+> > +static struct omap_globals omap243x_globals = {
+> > +	.class	= OMAP243X_CLASS,
+> > +	.tap	= OMAP2_L4_IO_ADDRESS(0x4900a000),
+> > +	.sdrc	= OMAP243X_SDRC_BASE,
+> > +	.sms	= OMAP243X_SMS_BASE,
+> > +	.ctrl	= OMAP243X_CTRL_BASE,
+> > +	.prm	= OMAP2430_PRM_BASE,
+> > +	.cm	= OMAP2430_CM_BASE,
+> > +	.uart1_phys	= OMAP2_UART1_BASE,
+> > +	.uart2_phys	= OMAP2_UART2_BASE,
+> > +	.uart3_phys	= OMAP2_UART3_BASE,
+> > +};
+> > +
+> > +void __init omap2_set_globals_243x(void)
+> > +{
+> > +	__omap2_set_globals(&omap243x_globals);
+> > +}
+> > +#endif
+> > +
+> > +#if defined(CONFIG_ARCH_OMAP3)
 > 
-> How about later versions of 2430?
-Fixed in later versions ES2.0 and ES2.1
+> Do you really need these #ifdefs?
+> It would be better to avoid these #ifdefs and use cpu_is* checks.
+> Same comment holds good across this patch.
 
-> Should they use the workaround in Patch 2/2? 
-2/2 is applicable for all omap2plus except omap4. So far 2/2 workaround is not 
-used with TI internal trees.
+If you think you can do it better, please create a patch for the 2.6.38 
+time frame.  I personally am not interested in changing any of this code 
+(which was not added by this patch; the patch just splits the existing 
+code) for the .37 merge window.
 
-> We experimented that also on 2420 and it seemed to help but since the lockup was unrecovable I 
-> went thinking if 2420 has also another issue what original 
-> workaround was trying to fix and buffering disable was needed there.
-I don't have any data for 2420. Based on your observation, it is better
-to disable buffering for 2420.
+> > +static int __init omap_init_clocksource_32k(void)
+> > +{
+> > +	static char err[] __initdata = KERN_ERR
+> > +			"%s: can't register clocksource!\n";
+> > +
+> > +	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+> > +		struct clk *sync_32k_ick;
+> > +
+> > +		if (cpu_is_omap16xx())
+> 
+> Avoid cpu_is* checks in plat-omap.
 
--Manjunath
+OK, I'll bite.  Why?
+
+
+- Paul
