@@ -1,57 +1,45 @@
-From: Pramod <pramod.gurav@ti.com>
-Subject: Re: beagle hangs in uart3 disabling clocks
-Date: Mon, 4 Oct 2010 17:47:58 +0530
-Message-ID: <4CA9C5F6.7060902@ti.com>
-References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: NOTE: hwmod changes merged to linux-omap master for testing
+Date: Mon, 4 Oct 2010 17:50:09 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CC13@dbde02.ent.ti.com>
+References: <20101002004821.GN3117@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
+ <AANLkTim_x=AykoGMZkHTPpXkX=6k+QA04VetqY56c57G@mail.gmail.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CC09@dbde02.ent.ti.com>
+ <AANLkTikMmqe0ozTLY5qc8O3k=_vLAa1n2PB7cYsrEuR7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55122 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55294 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755429Ab0JDMRu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Oct 2010 08:17:50 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com>
+	id S1755589Ab0JDMUR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 08:20:17 -0400
+In-Reply-To: <AANLkTikMmqe0ozTLY5qc8O3k=_vLAa1n2PB7cYsrEuR7@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: Ming Lei <tom.leiming@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Sanjeev,
->> I just tested pm branch of tony's linux-omap-2.6 tree, and found my
->> beagle will hang in uart3 disabling clocks, follows the log info:
->>
->>
-> [snip]..[snip]
->
->>
->> Texas Instruments X-Loader 1.41
->> Starting OS Bootloader...
->>
->>
->> U-Boot 1.3.3 (Jul 10 2008 - 16:33:09)
->>
->> OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
->> OMAP3 Beagle Board + LPDDR/NAND
->> DRAM:  128 MB
->> NAND:
->
-> Lei,
->
-> Couldn't help noticing the version information for x-loader and
-> u-boot. Both seem to be quite old...
->
-> Could you try update both? May be, there is a dependency...
->
-I am seeing the same issue with console on UART3 on zoom3 board. The 
-bootloaders are older. Can you please share a link to latest bootloader 
-which will have zoom3 support.
 
-I am using L25_INC3.x android kernel. The board hangs as soon as it 
-boots the kernel. Enabling the logs shows us that the hang occurs when 
-UART3 clocks are being disabled in omap_hwmod.c as mentioned by Lei 
-Ming. Has anyone observed this issue on any of omap boards?
 
-> ~sanjeev
->
->>
+> -----Original Message-----
+> From: Ohad Ben-Cohen [mailto:ohad@wizery.com] 
+> Sent: Monday, October 04, 2010 5:44 PM
+> To: G, Manjunath Kondaiah
+> Cc: Tony Lindgren; linux-omap@vger.kernel.org
+> Subject: Re: NOTE: hwmod changes merged to linux-omap master 
+> for testing
+> 
+> On Mon, Oct 4, 2010 at 2:13 PM, G, Manjunath Kondaiah 
+> <manjugk@ti.com> wrote:
+> > ES2.0 or ES1.0?
+> 
+> 2.0
+
+Can you post complete boot log? so far, it failed on one blaze and
+one 3430sdp both of them are having es2.0
+
+-Manjunath
+
