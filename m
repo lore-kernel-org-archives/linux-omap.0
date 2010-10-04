@@ -1,57 +1,65 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: tidspbridge broken?
-Date: Mon, 4 Oct 2010 10:59:52 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5304680CC90F@dlee03.ent.ti.com>
-References: <AANLkTi=hD1m0jC64KW7gHdywd=2GseX8gqNwPTHOh6s2@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCHv2] OMAP3: SDRC : Add comments on Errata i520 for Global SW reset
+Date: Mon,  4 Oct 2010 21:33:38 +0530
+Message-ID: <1286208218-391-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37343 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756389Ab0JDP76 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 11:59:58 -0400
-In-Reply-To: <AANLkTi=hD1m0jC64KW7gHdywd=2GseX8gqNwPTHOh6s2@mail.gmail.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:34370 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756104Ab0JDQF6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 12:05:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "gregkh@suse.de" <gregkh@suse.de>, "Menon, Nishanth" <nm@ti.com>, "ohad@wizery.com" <ohad@wizery.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath BS <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi,
+This patch adds comments on precatution to be taken if Global Warm reset is
+used as the means to trigger sysem reset.
 
-Felipe Contreras wrote:
-> Hi,
-> 
-> I was trying the iommu patches but I noticed the tidspbridge driver
-> doesn't work at all, I found two critical issues: 
-> 
-> First, the platform device is missing, so there's no way the driver
-> can work. It seems to have been dropped from the migration to staging
-> which happened some time ago... I would have expected somebody to
-> notice a thing like this. I already have patches that fix this.   
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/prcm.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
-Yes this is missing from beginning, I seeked advice on whether to send a patch for this or not, and since it would be touching mach dependent files it would be out of the scope of staging tree, however if needed:
-
-http://dev.omapzoom.org/?p=tidspbridge/kernel-dspbridge.git;a=commit;h=4dcb41d484653d162b2bc6e1bf226c2dad0b953c
-
-This was meant to placed under dspbridge wiki, I still have to do that one.
-
-> 
-> And second, since 2.6.35, ioremap() doesn't work on RAM, so this
-> driver cannot work anymore unless 309caa9 is reverted. I am reserving
-> the memory with memblock, but it still fails the ioremap(), and
-> __va() doesn't seem to work (don't know why).   
->
-
-Yes that's true, so far the only solution I have seen is to move the allocation on memory outside kernel control, I believe framebuffer has the same problem, but I haven't contacted them to see if we can align on a common solution.
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index c201374..6494a88
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -157,6 +157,34 @@ void omap_prcm_arch_reset(char mode, const char *cmd)
+ 	else
+ 		WARN_ON(1);
  
-> Has anyone tried the driver on 2.6.36-rcX?
++	/*
++	 * As per Errata i520, In some cases, user will not be able to
++	 * access DDR memory after warm-reset.
++	 * This situation occurs while the warm-reset happens during a read
++	 * access to DDR memory. In that particular condition, DDR memory
++	 * does not respond to a corrupted read command due to the warm
++	 * reset occurence but SDRC is waiting for read completion.
++	 * SDRC is not sensitive to the warm reset, but the interconect is
++	 * reset on the fly, thus causing a misalignment between SDRC logic,
++	 * interconect logic and DDR memory state.
++	 * WORKAROUND:
++	 * Steps to perform before a Warm reset is trigged:
++	 * 1. enable self-refresh on idle request
++	 * 2. put SDRC in idle
++	 * 3. wait until SDRC goes to idle
++	 * 4. generate SW reset (Global SW reset)
++
++	 * Steps to be performed after warm reset occurs (in bootloader):
++	 * if HW warm reset is the source, apply below steps before any
++	 * accesses to SDRAM:
++	 * 1. Reset SMS and SDRC and wait till reset is complete
++	 * 2. Re-initialize SMS, SDRC and memory
++
++	 * NOTE: Above work around is required only if arch reset is implemented
++	 * using Global SW reset(GLOBAL_SW_RST). DPLL3 reset does not need
++	 * the WA since it resets SDRC as well as part of cold reset.
++	 */
++
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+ 		prm_set_mod_reg_bits(OMAP_RST_DPLL3_MASK, prcm_offs,
+ 						 OMAP2_RM_RSTCTRL);
+-- 
+1.7.0.4
 
-Yes I have, I was rebasing your mailbox hwmod patches but seems something has changed since they don't work, I was trying to write my own version.
-
-After that, I was planning the migration from bridge tasklet to a process context, and see how it works, since the spin_lock method used in the mailbox driver also causes an invalid locking condition.
-
-Regards,
-
-Omar
