@@ -1,26 +1,41 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCHv2 0/3] iovmm: fixes for iovmm module
-Date: Mon,  4 Oct 2010 16:02:14 -0500
-Message-ID: <1286226137-1233-1-git-send-email-x0095840@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCHv2 3/3] iovmm: replace __iounmap with omap_iounmap
+Date: Mon,  4 Oct 2010 16:02:17 -0500
+Message-ID: <1286226137-1233-4-git-send-email-x0095840@ti.com>
+References: <1286226137-1233-1-git-send-email-x0095840@ti.com>
+ <1286226137-1233-2-git-send-email-x0095840@ti.com>
+ <1286226137-1233-3-git-send-email-x0095840@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47332 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757307Ab0JDUtE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Oct 2010 16:49:04 -0400
+In-Reply-To: <1286226137-1233-3-git-send-email-x0095840@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Hiroshi.DOYU@nokia.com, david.cohen@nokia.com
 Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-iovmm: fixes for iovmm module
+Omap platform is omap_iounmap function.
 
-Version 2:
-* Removed "iovmm: fixes for iovmm module" that patch was already
-  sent.
-* Modified "iovmm: fix roundup for next area and end check for the
-  last area" patch, base on Davin Cohen's comments and rename it
-  to a proper name that describes what it is doing now.
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ arch/arm/plat-omap/iovmm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Fernando Guzman Lugo (3):
-  iovmm: no gap checking for fixed address
-  iovmm: add superpages support to fixed da address
-  iovmm: replace __iounmap with omap_iounmap
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 8006a19..75965a1 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -824,7 +824,7 @@ void iommu_kunmap(struct iommu *obj, u32 da)
+ 	struct sg_table *sgt;
+ 	typedef void (*func_t)(const void *);
+ 
+-	sgt = unmap_vm_area(obj, da, (func_t)__iounmap,
++	sgt = unmap_vm_area(obj, da, (func_t)omap_iounmap,
+ 			    IOVMF_LINEAR | IOVMF_MMIO);
+ 	if (!sgt)
+ 		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
+-- 
+1.6.3.3
 
- arch/arm/plat-omap/iovmm.c |   67 ++++++++++++++++++++++++++-----------------
- 1 files changed, 40 insertions(+), 27 deletions(-)
