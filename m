@@ -1,37 +1,46 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: NOTE: hwmod changes merged to linux-omap master for testing
-Date: Tue, 5 Oct 2010 00:29:50 +0200
-Message-ID: <AANLkTik9XBxRiV-r=tWoegiYtzmXKUDy9SzfBKjGz3Cz@mail.gmail.com>
-References: <20101002004821.GN3117@atomide.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
- <AANLkTim_x=AykoGMZkHTPpXkX=6k+QA04VetqY56c57G@mail.gmail.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CC09@dbde02.ent.ti.com>
- <AANLkTikMmqe0ozTLY5qc8O3k=_vLAa1n2PB7cYsrEuR7@mail.gmail.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CC13@dbde02.ent.ti.com>
- <AANLkTikTmBxjRfy-0Ks_iJk2O7+jMYoKk6WChyO21wDW@mail.gmail.com> <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CC47@dbde02.ent.ti.com>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: multiple linux-next OMAP3 build errors
+Date: Tue, 05 Oct 2010 09:30:22 +1100
+Message-ID: <1286231422.2463.316.camel@pasglop>
+References: <AANLkTim9v1Y2o9QebYcJkh+QLVQq9fFOFE5P+OoyUHXa@mail.gmail.com>
+	 <1286173747.2358.4.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:49662 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab0JDWaU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 18:30:20 -0400
-Received: by iwn5 with SMTP id 5so7458660iwn.19
-        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 15:30:19 -0700 (PDT)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CC47@dbde02.ent.ti.com>
+Received: from gate.crashing.org ([63.228.1.57]:54369 "EHLO gate.crashing.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756175Ab0JDWbQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Oct 2010 18:31:16 -0400
+In-Reply-To: <1286173747.2358.4.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, yinghai@kernel.org
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Felipe Balbi <balbi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, ext Grazvydas Ignotas <notasas@gmail.com>, Ingo Molnar <mingo@elte.hu>
 
-On Mon, Oct 4, 2010 at 2:52 PM, G, Manjunath Kondaiah <manjugk@ti.com> wrote:
-> Remove nosmp from your bootargs and try.
+On Mon, 2010-10-04 at 09:29 +0300, Tomi Valkeinen wrote:
+> >   CC      drivers/video/omap2/vram.o
+> > drivers/video/omap2/vram.c: In function
+> 'omap_vram_reserve_sdram_memblock':
+> > drivers/video/omap2/vram.c:568: error: implicit declaration of
+> > function 'memblock_region_is_memory'
+> 
+> Benjamin, your patch "memblock/arm: Use memblock_region_is_memory()
+> for
+> omap fb" in linux-next seems to be broken. I believe the called
+> function
+> should be memblock_is_region_memory, not memblock_region_is_memory?
 
-Indeed, it doesn't boot.
+I suspect either I didn't push my latest version before it got merged or
+Yinghai didn't pull the right one, since I'm pretty sure I test built
+it, but in any case, you're probably right :-)
 
-wizery.com/ohad/blaze-linux-omap-smp.txt.gz
+I'm not in control of this patch series at the moment however. Ingo and
+Yinghai are. Yinghai, care to fix that up ? I'm currently travelling on
+holidays and won't be able to do much until later next week.
 
->
-> -Manjunath
->
->
->
+Cheers,
+Ben.
+
+
+
