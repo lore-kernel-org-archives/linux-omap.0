@@ -1,56 +1,61 @@
-From: tom.leiming@gmail.com
-Subject: [PATCH] OMAP: mmc: remove ifdef in omap_mmc_platform_data defination
-Date: Tue,  5 Oct 2010 00:53:21 +0800
-Message-ID: <1286211201-31168-1-git-send-email-tom.leiming@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 4/4] OMAP3: DMA: Errata i541: sDMA FIFO draining
+ does not finish
+Date: Mon, 4 Oct 2010 09:55:16 -0700
+Message-ID: <20101004165515.GS3117@atomide.com>
+References: <1286180294-32618-1-git-send-email-peter.ujfalusi@nokia.com>
+ <1286180294-32618-5-git-send-email-peter.ujfalusi@nokia.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CA49@dbde02.ent.ti.com>
+ <201010041342.33238.peter.ujfalusi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:47374 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006Ab0JDQxj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 12:53:39 -0400
-Received: by pvg2 with SMTP id 2so1385365pvg.19
-        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 09:53:38 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53890 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753419Ab0JDQzS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 12:55:18 -0400
+Content-Disposition: inline
+In-Reply-To: <201010041342.33238.peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, Ming Lei <tom.leiming@gmail.com>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "ext G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Ming Lei <tom.leiming@gmail.com>
+* Peter Ujfalusi <peter.ujfalusi@nokia.com> [101004 03:33]:
+> On Monday 04 October 2010 12:17:41 ext G, Manjunath Kondaiah wrote:
+> > 
+> > ...
+> > 
+> > > +	/* OMAP3 Errata i541: sDMA FIFO draining does not finish */
+> > 
+> > This logic is required for multiple erratas.
+> 
+> As Tony requested, I have added a variable for flags to handle the different 
+> erratas. I even added a macro to check that the errata applies, so one can use:
+> if (IS_DMA_ERRATA(DMA_ERRATA_XXXXX))
+> 
+> > Can we have seperate
+> > function for handling this logic. More details at:
+> > https://patchwork.kernel.org/patch/126271/
+> 
+> I see. That patch is for hwmod converted dma code, right?
+> We need this fix without the hwmod to applied, and than backport it to earlier 
+> kernel releases.
+> 
+> > As I mentioned in other mail, if you are introducing this feature,
+> > it is better to convert existing erratas also to use this feature.
+> 
+> The upcoming hwmod conversion will take care of the cleanup.
+> We _need_ these two small fixes ASAP, since it is fixing serious problem in 
+> audio (and the same issue might bite other areas as well).
+> It is not the intention of this series to clean up the arc/arm/plat-omap/dma.c.
+> 
+> I have added the dma_errata variable, since Tony asked for it, but even that 
+> addition is a bigger change than what I was planning to do here.
 
-The instance of omap_mmc_platform_data is alwasy passed to
-mmc omap host driver from board, so remove ifdef in omap_mmc_platform_data
-defination to simplify handling it in mmc omap host driver.
+Yeah.. Let's just use your original patch for the fix, then queue
+adding the errata flag for the upcoming merge window.
 
-The patch fixes the compile error below:
+Regards,
 
-drivers/mmc/host/omap.c: In function 'mmc_omap_new_slot':
-drivers/mmc/host/omap.c:1320: error: 'struct omap_mmc_slot_data' has no member named 'wires'
-make[3]: *** [drivers/mmc/host/omap.o] Error 1
-make[2]: *** [drivers/mmc/host] Error 2
-make[1]: *** [drivers/mmc] Error 2
-make: *** [drivers] Error 2
-
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
----
- arch/arm/plat-omap/include/plat/mmc.h |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/mmc.h b/arch/arm/plat-omap/include/plat/mmc.h
-index 3107892..f57f36a 100644
---- a/arch/arm/plat-omap/include/plat/mmc.h
-+++ b/arch/arm/plat-omap/include/plat/mmc.h
-@@ -80,12 +80,8 @@ struct omap_mmc_platform_data {
- 		 * 4/8 wires and any additional host capabilities
- 		 * need to OR'd all capabilities (ref. linux/mmc/host.h)
- 		 */
--#if defined(CONFIG_ARCH_OMAP1) || defined(CONFIG_ARCH_OMAP2420)
- 		u8  wires;	/* Used for the MMC driver on omap1 and 2420 */
--#endif
--#ifdef CONFIG_ARCH_OMAP2PLUS
- 		u32 caps;	/* Used for the MMC driver on 2430 and later */
--#endif
- 
- 		/*
- 		 * nomux means "standard" muxing is wrong on this board, and
--- 
-1.7.3
-
+Tony
