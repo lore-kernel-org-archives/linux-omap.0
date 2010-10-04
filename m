@@ -1,88 +1,74 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: Issue : jffs2 and ecc layout
-Date: Mon, 4 Oct 2010 12:59:29 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356594397@dbde02.ent.ti.com>
-References: <2A3DCF3DA181AD40BDE86A3150B27B6B03560990E3@dbde02.ent.ti.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v3 1/2] omap: dma: Fix buffering disable bit setting for
+ omap24xx
+Date: Mon, 4 Oct 2010 13:06:16 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C95A@dbde02.ent.ti.com>
+References: <1285936577-14881-1-git-send-email-peter.ujfalusi@nokia.com>
+ <201010040915.27745.peter.ujfalusi@nokia.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C8C2@dbde02.ent.ti.com>
+ <201010041015.35457.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34245 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58367 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752570Ab0JDH3g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:29:36 -0400
-In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B03560990E3@dbde02.ent.ti.com>
+	id S1752857Ab0JDHg2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:36:28 -0400
+In-Reply-To: <201010041015.35457.peter.ujfalusi@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Liam Girdwood <lrg@slimlogic.co.uk>
 
 
+Peter, 
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Ghorai, Sukumar
-> Sent: Tuesday, September 28, 2010 6:17 PM
-> To: linux-mtd@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org
-> Subject: Issue : jffs2 and ecc layout
->=20
-> Hi,
-> I was using the following ecc layout which is not working to mount th=
-e
-> jffs2 File-system. I was in 2.6.32 kernel and working; but same layou=
-t is
-> not working with latest 2.6 kernel.
->=20
-> Observation is that - no read request issued to the driver (say omap2=
-=2Ec).
->=20
-> # mount -t jffs2 /dev/mtdblock4 /mnt/nand
-> [=A0=A0 32.505218] cannot read OOB for EB at 00000000, requested 8 by=
-tes, read
-> 0 bytes, error -22
-> mount: Mounting /dev/mtdblock4 on /mnt/nand failed: Input/output erro=
-r
->=20
-> # dmesg
-> <3>[=A0=A0 32.505218] cannot read OOB for EB at 00000000, requested 8=
- bytes,
-> read 0 bytes, error -22
->=20
-> Code:
-> =A0178 static struct nand_ecclayout hw_x16_romcode_oob_64 =3D {
-> =A0179=A0=A0=A0=A0=A0=A0=A0=A0 .eccbytes =3D 12,
-> =A0180=A0=A0=A0=A0=A0=A0=A0=A0 .eccpos =3D {
-> =A0181=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 2,=
- 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
-> =A0182=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 },
-> =A0183=A0=A0=A0=A0=A0=A0=A0=A0 .oobfree =3D {
-> =A0184=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
- =A0=A0=A0{.offset =3D 14,
-> =A0185=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0 .length =3D 50}
-> =A0186=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
-> =A0187 };
->=20
-> =A01188=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 info->nand.ecc.layout =
-=3D &hw_x16_romcode_oob_64;
-[Ghorai]=20
-Does anyone using similar layout for Jffs2? i.e. ECC store at beginning=
- of the spare area?
+> From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com] 
+> Sent: Monday, October 04, 2010 12:46 PM
+> To: G, Manjunath Kondaiah
+> Cc: Jarkko Nikula; Tony Lindgren; linux-omap@vger.kernel.org; 
+> Liam Girdwood
+> Subject: Re: [PATCH v3 1/2] omap: dma: Fix buffering disable 
+> bit setting for omap24xx
+> 
+> On Monday 04 October 2010 09:23:18 ext G, Manjunath Kondaiah wrote:
+> > No errata numbers numbers used with TI errata documents 
+> till omap2430.
+> > Errata numbers avaialable from omap3430 onwards.
+> > 
+> > > For OMAP3 the errata number is i541, but I do not know the iXYZ 
+> > > number for OMAP2 class.
+> > 
+> > Being said that no errata numbers for omap2 class, it's ok to use
+> > omap3 errata numbers for common errata(like your patch 2/2)
+> 
+> Thanks,
+> we are going to use the same errata ID for OMAP2, and OMAP3, 
+> but going to use different workaround for them:
+> OMAP2: disable buffering
+
+This issue seems to be completly different from omap3 i541.
+This is required to flush out fifo contents properly where as with i541, 
+it requires DMA controller to be put in no mstandby mode before stoping 
+DMA transfer.
+
+> OMAP3: implement the workaround as it is in the errata
+> 
+> So, as Tony suggested, I'll add the errata handling, and we
+
+If you are introducing errata handling, are you taking care of existing 
+errata in DMA driver also? If not, it is better to go ahead current
+implementation. DMA hwmod patches will introduce errata handling and these
+changes can be rebased once it is available in mainline.
 
 
->=20
-> Regards,
-> Ghorai
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> are going to have:
+> DMA_ERRATA_i541_OMAP2, and DMA_ERRATA_i541_OMAP3 to
+
+For OMAP2, you should use "DMA_ERRATA_IFRAME_BUFFERING" since it is different
+type of issue.
+
+-Manjunath 
