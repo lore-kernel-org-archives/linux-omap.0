@@ -1,128 +1,61 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-Date: Mon, 4 Oct 2010 13:32:29 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C98C@dbde02.ent.ti.com>
-References: <1285069770-4261-1-git-send-email-manjugk@ti.com>
- <1285076060.14206.3.camel@chotu>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402785A3478@dbde02.ent.ti.com>
- <20100921162658.GA2310@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20100921162658.GA2310@core.coreip.homeip.net>
-Content-Language: en-US
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: [PATCH v4 2/4] OMAP: DMA: Introduce errata handling variable, and macro
+Date: Mon,  4 Oct 2010 11:18:12 +0300
+Message-ID: <1286180294-32618-3-git-send-email-peter.ujfalusi@nokia.com>
+References: <1286180294-32618-1-git-send-email-peter.ujfalusi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:58231 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753038Ab0JDISX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 04:18:23 -0400
+In-Reply-To: <1286180294-32618-1-git-send-email-peter.ujfalusi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-Dmitry,
-As agreed, can you push this patch?
-https://patchwork.kernel.org/patch/197442/
+Use flags for errata handling.
 
--Manjunath
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+---
+ arch/arm/plat-omap/dma.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-> -----Original Message-----
-> From: Dmitry Torokhov [mailto:dmitry.torokhov@gmail.com] 
-> Sent: Tuesday, September 21, 2010 9:57 PM
-> To: G, Manjunath Kondaiah
-> Cc: Ameya Palande; linux-omap@vger.kernel.org; 
-> linux-input@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Tony Lindgren
-> Subject: Re: [PATCH v2] OMAP3: Keypad: Fix failure exit path in probe
-> 
-> Hi,
-> 
-> On Tue, Sep 21, 2010 at 07:11:01PM +0530, G, Manjunath Kondaiah wrote:
-> > 
-> > Hi,
-> > 
-> > > -----Original Message-----
-> > > From: Ameya Palande [mailto:ameya.palande@nokia.com]
-> > > Sent: Tuesday, September 21, 2010 7:04 PM
-> > > To: G, Manjunath Kondaiah
-> > > Cc: linux-omap@vger.kernel.org; 
-> linux-input@vger.kernel.org; Dmitry 
-> > > Torokhov; linux-arm-kernel@lists.infradead.org; Tony Lindgren
-> > > Subject: Re: [PATCH v2] OMAP3: Keypad: Fix failure exit path in 
-> > > probe
-> > > 
-> > > Hi Manjunath,
-> > > 
-> > > On Tue, 2010-09-21 at 13:49 +0200, ext G, Manjunath 
-> Kondaiah wrote:
-> > > > The failure exit paths seems to be wrong in probe function.
-> > > > This patch corrects exit failure paths for error handling cases.
-> > > 
-> 
-> And also adds memory leak...
-> 
-> 
-> > > https://patchwork.kernel.org/patch/160551/
-> > > Any comments on this?
-> > 
-> > Looks fine. Sorry, I didn't look at the change. This 
-> version seems to 
-> > be better.
-> > 
-> 
-> I do not understand why we need to separate memory 
-> allocations. It looks
-> like the minimal patch should be like one below.
-> 
-> Thanks.
-> 
-> -- 
-> Dmitry
-> 
-> 
-> Input: twl4030_keypad - fix error handling path
-> 
-> From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> 
-> We should not try to call free_irq() when request_irq() failed.
-> 
-> Reported-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
-> 
->  drivers/input/keyboard/twl4030_keypad.c |    7 +++----
->  1 files changed, 3 insertions(+), 4 deletions(-)
-> 
-> 
-> diff --git a/drivers/input/keyboard/twl4030_keypad.c 
-> b/drivers/input/keyboard/twl4030_keypad.c
-> index fb16b5e..09bef79 100644
-> --- a/drivers/input/keyboard/twl4030_keypad.c
-> +++ b/drivers/input/keyboard/twl4030_keypad.c
-> @@ -406,23 +406,22 @@ static int __devinit 
-> twl4030_kp_probe(struct platform_device *pdev)
->  	if (error) {
->  		dev_info(kp->dbg_dev, "request_irq failed for 
-> irq no=%d\n",
->  			kp->irq);
-> -		goto err3;
-> +		goto err2;
->  	}
->  
->  	/* Enable KP and TO interrupts now. */
->  	reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
->  	if (twl4030_kpwrite_u8(kp, reg, KEYP_IMR1)) {
->  		error = -EIO;
-> -		goto err4;
-> +		goto err3;
->  	}
->  
->  	platform_set_drvdata(pdev, kp);
->  	return 0;
->  
-> -err4:
-> +err3:
->  	/* mask all events - we don't care about the result */
->  	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
-> -err3:
->  	free_irq(kp->irq, NULL);
->  err2:
->  	input_unregister_device(input);
-> 
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 6914ccf..ae0ff64 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -146,6 +146,10 @@ static const u8 omap1_dma_irq[OMAP1_LOGICAL_DMA_CH_COUNT] = {
+ 	INT_1610_DMA_CH14, INT_1610_DMA_CH15, INT_DMA_LCD
+ };
+ 
++/* Errata handling */
++static u16 dma_errata;
++#define IS_DMA_ERRATA(id)	(dma_errata & (id))
++
+ static inline void disable_lnk(int lch);
+ static void omap_disable_channel_irq(int lch);
+ static inline void omap_enable_channel_irq(int lch);
+@@ -2042,6 +2046,10 @@ void omap_dma_global_context_restore(void)
+ 
+ /*----------------------------------------------------------------------------*/
+ 
++static void dma_errata_configure(void)
++{
++}
++
+ static int __init omap_init_dma(void)
+ {
+ 	unsigned long base;
+@@ -2064,6 +2072,8 @@ static int __init omap_init_dma(void)
+ 		return -ENODEV;
+ 	}
+ 
++	dma_errata_configure();
++
+ 	omap_dma_base = ioremap(base, SZ_4K);
+ 	BUG_ON(!omap_dma_base);
+ 
+-- 
+1.7.3
+
