@@ -1,59 +1,148 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH v4 3/4] OMAP2: DMA: Use errata flag for disabling buffering
-Date: Mon,  4 Oct 2010 11:18:13 +0300
-Message-ID: <1286180294-32618-4-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCH v4 4/4] OMAP3: DMA: Errata i541: sDMA FIFO draining does not finish
+Date: Mon,  4 Oct 2010 11:18:14 +0300
+Message-ID: <1286180294-32618-5-git-send-email-peter.ujfalusi@nokia.com>
 References: <1286180294-32618-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:58282 "EHLO
+Received: from mgw-sa02.ext.nokia.com ([147.243.1.48]:58249 "EHLO
 	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818Ab0JDIS1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 04:18:27 -0400
+	with ESMTP id S1752818Ab0JDISZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 04:18:25 -0400
 In-Reply-To: <1286180294-32618-1-git-send-email-peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, linux-arm-kernel@lists.infradead.org
 
-Convert the errata handling of buffering disable on
-OMAP2 platforms.
+Implement the suggested workaround for OMAP3 regarding to sDMA draining
+issue, when the channel is disabled on the fly.
+This errata affects the following configuration:
+sDMA transfer is source synchronized
+Buffering is enabled
+SmartStandby is selected.
+
+The issue can be easily reproduced by creating overrun situation while
+recording audio.
+Either introduce load to the CPU:
+nice -19 arecord -D hw:0 -M -B 10000 -F 5000 -f dat > /dev/null & \
+dd if=/dev/urandom of=/dev/null
+
+or suspending the arecord, and resuming it:
+arecord -D hw:0 -M -B 10000 -F 5000 -f dat > /dev/null
+CTRL+Z; fg; CTRL+Z; fg; ...
+
+In case of overrun audio stops DMA, and restarts it (without reseting
+the sDMA channel). When we hit this errata in stop case (sDMA drain did
+not complete), at the coming start the sDMA will not going to be
+operational (it is still draining).
+This leads to DMA stall condition.
+On OMAP3 we can recover with sDMA channel reset, it has been observed
+that by introducing unrelated sDMA activity might also help (reading
+from MMC for example).
+
+The same errata exists for OMAP2, where the suggestion is to disable the
+buffering to avoid this type of error.
+On OMAP3 the suggestion is to set sDMA to NoStandby before disabling
+the channel, and wait for the drain to finish, than configure sDMA to
+SmartStandby again.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+Acked-by : Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by : G, Manjunath Kondaiah <manjugk@ti.com>
 ---
- arch/arm/plat-omap/dma.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/dma.c              |   42 +++++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/dma.h |    3 ++
+ 2 files changed, 43 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index ae0ff64..c116c41 100644
+index c116c41..a102cf5 100644
 --- a/arch/arm/plat-omap/dma.c
 +++ b/arch/arm/plat-omap/dma.c
-@@ -147,6 +147,7 @@ static const u8 omap1_dma_irq[OMAP1_LOGICAL_DMA_CH_COUNT] = {
- };
+@@ -30,6 +30,7 @@
+ #include <linux/irq.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
++#include <linux/delay.h>
+ 
+ #include <asm/system.h>
+ #include <mach/hardware.h>
+@@ -148,6 +149,8 @@ static const u8 omap1_dma_irq[OMAP1_LOGICAL_DMA_CH_COUNT] = {
  
  /* Errata handling */
-+#define DMA_ERRATA_IFRAME_BUFFERING	(1 << 0)
+ #define DMA_ERRATA_IFRAME_BUFFERING	(1 << 0)
++/* OMAP3 Errata i541: sDMA FIFO draining does not finish */
++#define DMA_ERRATA_i541			(1 << 1)
  static u16 dma_errata;
  #define IS_DMA_ERRATA(id)	(dma_errata & (id))
  
-@@ -1003,8 +1004,7 @@ void omap_start_dma(int lch)
- 	 * Errata: On ES2.0 BUFFERING disable must be set.
- 	 * This will always fail on ES1.0
- 	 */
--	if (cpu_is_omap2420() ||
--	    (cpu_is_omap2430() && (omap_type() == OMAP2430_REV_ES1_0)))
-+	if (IS_DMA_ERRATA(DMA_ERRATA_IFRAME_BUFFERING))
- 		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
+@@ -1023,8 +1026,40 @@ void omap_stop_dma(int lch)
+ 		dma_write(0, CICR(lch));
  
- 	l |= OMAP_DMA_CCR_EN;
-@@ -2048,6 +2048,9 @@ void omap_dma_global_context_restore(void)
+ 	l = dma_read(CCR(lch));
+-	l &= ~OMAP_DMA_CCR_EN;
+-	dma_write(l, CCR(lch));
++	/* OMAP3 Errata i541: sDMA FIFO draining does not finish */
++	if (IS_DMA_ERRATA(DMA_ERRATA_i541) &&
++	    (l & OMAP_DMA_CCR_SEL_SRC_DST_SYNC)) {
++		int i = 0;
++		u32 sys_cf;
++
++		/* Configure No-Standby */
++		l = dma_read(OCP_SYSCONFIG);
++		sys_cf = l;
++		l &= ~DMA_SYSCONFIG_MIDLEMODE_MASK;
++		l |= DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_NO_IDLE);
++		dma_write(l , OCP_SYSCONFIG);
++
++		l = dma_read(CCR(lch));
++		l &= ~OMAP_DMA_CCR_EN;
++		dma_write(l, CCR(lch));
++
++		/* Wait for sDMA FIFO drain */
++		l = dma_read(CCR(lch));
++		while (i < 100 && (l & (OMAP_DMA_CCR_RD_ACTIVE |
++					OMAP_DMA_CCR_WR_ACTIVE))) {
++			udelay(5);
++			i++;
++			l = dma_read(CCR(lch));
++		}
++		if (i >= 100)
++			printk(KERN_ERR "DMA drain did not complete on "
++					"lch %d\n", lch);
++		/* Restore OCP_SYSCONFIG */
++		dma_write(sys_cf, OCP_SYSCONFIG);
++	} else {
++		l &= ~OMAP_DMA_CCR_EN;
++		dma_write(l, CCR(lch));
++	}
  
- static void dma_errata_configure(void)
- {
-+	if (cpu_is_omap2420() ||
-+	    (cpu_is_omap2430() && (omap_type() == OMAP2430_REV_ES1_0)))
-+		dma_errata |= DMA_ERRATA_IFRAME_BUFFERING;
+ 	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
+ 		int next_lch, cur_lch = lch;
+@@ -2051,6 +2086,9 @@ static void dma_errata_configure(void)
+ 	if (cpu_is_omap2420() ||
+ 	    (cpu_is_omap2430() && (omap_type() == OMAP2430_REV_ES1_0)))
+ 		dma_errata |= DMA_ERRATA_IFRAME_BUFFERING;
++
++	if (cpu_is_omap34xx())
++		dma_errata |= DMA_ERRATA_i541;
  }
  
  static int __init omap_init_dma(void)
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+index 776ba44..cf66f85 100644
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -335,6 +335,9 @@
+ #define OMAP2_DMA_MISALIGNED_ERR_IRQ	(1 << 11)
+ 
+ #define OMAP_DMA_CCR_EN			(1 << 7)
++#define OMAP_DMA_CCR_RD_ACTIVE		(1 << 9)
++#define OMAP_DMA_CCR_WR_ACTIVE		(1 << 10)
++#define OMAP_DMA_CCR_SEL_SRC_DST_SYNC	(1 << 24)
+ #define OMAP_DMA_CCR_BUFFERING_DISABLE	(1 << 25)
+ 
+ #define OMAP_DMA_DATA_TYPE_S8		0x00
 -- 
 1.7.3
 
