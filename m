@@ -1,108 +1,75 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
-Date: Mon, 4 Oct 2010 12:56:54 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034B6EC60C@dbde02.ent.ti.com>
-References: <1285325785-6163-1-git-send-email-vishwanath.bs@ti.com>
-	<1285325785-6163-2-git-send-email-vishwanath.bs@ti.com>
- <87lj6q9ao8.fsf@deeprootsystems.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 08/10] OMAP: split plat-omap/common.c
+Date: Mon, 4 Oct 2010 12:58:42 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE4D9@dbde02.ent.ti.com>
+References: <20101001213119.1408.65395.stgit@twilight.localdomain>
+ <20101001213532.1408.55832.stgit@twilight.localdomain>
+ <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE3C6@dbde02.ent.ti.com>
+ <20101004065624.GD2559@legolas.emea.dhcp.ti.com>
+ <20101004070040.GE2559@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50677 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753012Ab0JDH1G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:27:06 -0400
-In-Reply-To: <87lj6q9ao8.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45882 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752938Ab0JDH2u convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:28:50 -0400
+In-Reply-To: <20101004070040.GE2559@legolas.emea.dhcp.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>
-
-Kevin,
+To: "Balbi, Felipe" <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Saturday, September 25, 2010 1:28 AM
-> To: Sripathy, Vishwanath
-> Cc: linux-omap@vger.kernel.org; linaro-dev@lists.linaro.org
-> Subject: Re: [PATCH 1/2] OMAP3 PM: move omap3 sleep to ddr
+> From: Balbi, Felipe
+> Sent: Monday, October 04, 2010 12:31 PM
+> To: Balbi, Felipe
+> Cc: Shilimkar, Santosh; Paul Walmsley; linux-omap@vger.kernel.org; linux-
+> arm-kernel@lists.infradead.org
+> Subject: Re: [PATCH 08/10] OMAP: split plat-omap/common.c
 > 
-> Vishwanath BS <vishwanath.bs@ti.com> writes:
+> On Mon, Oct 04, 2010 at 01:56:24AM -0500, Balbi, Felipe wrote:
+> >On Mon, Oct 04, 2010 at 12:34:48AM -0500, Shilimkar, Santosh wrote:
+> >>Felipe,
+> >>
+> >>> -----Original Message-----
+> >>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >>> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> >>> Sent: Saturday, October 02, 2010 3:06 AM
+> >>> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> >>> Subject: [PATCH 08/10] OMAP: split plat-omap/common.c
+> >>>
+> >>> Split plat-omap/common.c into three pieces:
+> >>>
+> >>> 1. the 32KiHz sync timer and clocksource code, which now lives in
+> >>>    plat-omap/32ksynctimer.c;
+> >>>
+> >>I remember you have converted the 32k sync time code to a platform
+> driver.
+> >>That was also addressing the multi-omap build and was removing all
+> >>the compile time switches.
+> >>Do you plan to rebase it and post it again ?
+> >
+> >I still have that sitting on my gitorious tree. The patch is attached
+> >to this mail. I compile tested (only) for omap3_defconfig, it probably
+> >needs to start using pm_runtime functions at some point and probably
+> >move to drivers/clocksource instead of arch/arm/plat-omap.
+> >
+> >patch is also available at [1]
+> >
+> >[1] git://gitorious.org/usb/usb.git clksource
 > 
-> > There is no need to keep omap3 sleep code in SRAM.
-> > This code can be run very well on DDR.
+> I made a few changes to make checkpatch.pl --strict happy. Attached
 > 
-> /me remains skeptical
-> 
-> > This would help us to instrument CPUIdle latencies.
-> 
-> Indeed, but...
-> 
-> I'm afraid we will need a much more descriptive changelog here,
-> describing in detail why this will still work, and what about the
-> previous motiviations for running SRAM has changed such that this will
-> work out of SRAM.
-Running the code from SRAM for CPUIdle was more of legacy from OMAP2 and there was no technical reason why it cannot be run from DDR. Also note that, once MPU enters off mode, wake up code used to run from DDR earlier (w/o these changes) as well. I will put more details in the change log.
-> 
-> > Tested on ZOOM3.
-> 
-> Tested in what way?  This path is used for both idle and suspend, and
-> needs to be validated for retention and off mode.
-I have tested for both retention and off mode in both CPU idle and suspend path. I will update the changelog in next version. 
+Good !!
+This patch addresses splitting as well as multi-omap builds and probably
+also a better candidate in case we need to convert sync timer to hwmod
+driver.
 
-Vishwa
-> 
-> Kevin
-> 
-> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > Cc: Kevin Hillman <khilman@deeprootsystems.com>
-> > Cc: <Linaro> linaro-dev@lists.linaro.org
-> > ---
-> >  arch/arm/mach-omap2/pm34xx.c |    9 +--------
-> >  1 files changed, 1 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> > index 85ef245..ed9d12c 100644
-> > --- a/arch/arm/mach-omap2/pm34xx.c
-> > +++ b/arch/arm/mach-omap2/pm34xx.c
-> > @@ -79,8 +79,6 @@ struct power_state {
-> >
-> >  static LIST_HEAD(pwrst_list);
-> >
-> > -static void (*_omap_sram_idle)(u32 *addr, int save_state);
-> > -
-> >  static int (*_omap_save_secure_sram)(u32 *addr);
-> >
-> >  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
-> > @@ -360,9 +358,6 @@ void omap_sram_idle(void)
-> >  	int core_prev_state, per_prev_state;
-> >  	u32 sdrc_pwr = 0;
-> >
-> > -	if (!_omap_sram_idle)
-> > -		return;
-> > -
-> >  	pwrdm_clear_all_prev_pwrst(mpu_pwrdm);
-> >  	pwrdm_clear_all_prev_pwrst(neon_pwrdm);
-> >  	pwrdm_clear_all_prev_pwrst(core_pwrdm);
-> > @@ -438,7 +433,7 @@ void omap_sram_idle(void)
-> >  	 * get saved. The restore path then reads from this
-> >  	 * location and restores them back.
-> >  	 */
-> > -	_omap_sram_idle(omap3_arm_context, save_state);
-> > +	omap34xx_cpu_suspend(omap3_arm_context, save_state);
-> >  	cpu_init();
-> >
-> >  	if (is_suspending())
-> > @@ -995,8 +990,6 @@ static int __init clkdms_setup(struct clockdomain *clkdm,
-> void *unused)
-> >
-> >  void omap_push_sram_idle(void)
-> >  {
-> > -	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
-> > -					omap34xx_cpu_suspend_sz);
-> >  	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
-> >  		_omap_save_secure_sram =
-> omap_sram_push(save_secure_ram_context,
-> >  				save_secure_ram_context_sz);
+Paul, what's your take?
+
+Regards,
+Santosh
+
