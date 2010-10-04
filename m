@@ -1,63 +1,73 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH] nand: omap2: Missing arg to gpmc_prefetch_reset()
-Date: Mon, 04 Oct 2010 10:39:05 +0300
-Message-ID: <1286177945.11684.77.camel@localhost>
-References: <1285364702-13922-1-git-send-email-loic.minier@linaro.org>
-Reply-To: dedekind1@gmail.com
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: NOTE: hwmod changes merged to linux-omap master for testing
+Date: Mon, 4 Oct 2010 13:19:40 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
+References: <20101002004821.GN3117@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:38767 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753174Ab0JDHlw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:41:52 -0400
-Received: by fxm14 with SMTP id 14so1535121fxm.19
-        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 00:41:51 -0700 (PDT)
-In-Reply-To: <1285364702-13922-1-git-send-email-loic.minier@linaro.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52250 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753038Ab0JDHtq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:49:46 -0400
+In-Reply-To: <20101002004821.GN3117@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Lo=EFc?= Minier <loic.minier@linaro.org>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sukumar Ghorai <s-ghorai@ti.com>
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, 2010-09-24 at 23:45 +0200, Lo=C3=AFc Minier wrote:
-> Fix missing cs arg to gpmc_prefetch_reset() when
-> CONFIG_MTD_NAND_OMAP_PREFETCH_DMA=3Dy which caused a build failure si=
-nce
-> 948d38e799f0ab87cf8ed9113fcdaaee61acf321:
-> drivers/mtd/nand/omap2.c: In function 'omap_nand_dma_transfer':
-> drivers/mtd/nand/omap2.c:416: error: too few arguments to function 'g=
-pmc_prefetch_reset'
->=20
-> Signed-off-by: Lo=C3=AFc Minier <loic.minier@linaro.org>
-> ---
->  drivers/mtd/nand/omap2.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+Hi Tony,
+With latest merges on master branch with commit ID:
+0882b1455797b0a104978000a622c3f2412e7cf5 omap: READ CAREFULLY: Fix build after merging in hwmod support for testing
 
-=46YI, a similar patch is already in Linus' tree, so I'm dropping it fr=
-om
-my tree:
+Booting with zoom3 seems to be fine but observed issues with omap4 blaze board. 
 
-commit f12f662f29d5801e598c6bb4a71e54b2de218f72
-Author: Daniel J Blueman <daniel.blueman@gmail.com>
-Date:   Wed Sep 29 21:01:55 2010 +0100
+Looks like multiple warning dumps and finally it crashes after "Freeing init memory" with both NFS and ramdisk file systems.
 
-    fix OMAP2 MTD build failure
-   =20
-    Fix build failure from recent interface change and merge.
-   =20
-    Tested on OMAP3430.
-   =20
-    Signed-off-by: Daniel J Blueman <daniel.blueman@gmail.com>
-    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+The complete bootlogs are available at:
+NFS bootlog:
+http://pastebin.com/nrWQ5FGG
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
+Ramdisk bootlog:
+http://pastebin.com/1F75d2Ew
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Manjunath 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Saturday, October 02, 2010 6:18 AM
+> To: linux-omap@vger.kernel.org
+> Subject: NOTE: hwmod changes merged to linux-omap master for testing
+> 
+> Hi all,
+> 
+> So I've finally merged Kevin's hwmod branch into the 
+> linux-omap master so we can give it some testing to see if we 
+> can merge it to the mainline. Might take few minutes to hit 
+> the mirrors.
+> 
+> Please note that for omap2plus machines you need to change:
+> 
+> - u-boot bootargs for kernel cmdline needs to change with setenv
+> - if you use hardcoded CONFIG_CMDLINE, change it in your .config
+> - /etc/inittab in your omap root file system if using serial console
+> 
+> This is because otherwise the serial-omap would be 
+> conflicting with the 8250 driver. This should not affect 
+> omap1 machines.
+> 
+> Please give it a try and report any issues on this list! Now 
+> all the machines except ams_delta_defconfig should build.
+> That one is still missing some camera driver changes to build.
+> 
+> Regards,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
