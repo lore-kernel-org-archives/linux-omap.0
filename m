@@ -1,43 +1,50 @@
-From: Nicolas Kaiser <nikai@nikai.net>
-Subject: [PATCH] video/omap: remove mux.h include
-Date: Mon, 4 Oct 2010 20:38:42 +0200
-Message-ID: <20101004203842.088b0cb2@absol.kitzblitz>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] video/omap: remove mux.h include
+Date: Mon, 4 Oct 2010 11:47:36 -0700
+Message-ID: <20101004184736.GA3117@atomide.com>
 References: <20101004174344.21577085@absol.kitzblitz>
-	<20101004175429.GW3117@atomide.com>
+ <20101004175429.GW3117@atomide.com>
+ <20101004203842.088b0cb2@absol.kitzblitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from webhosting01.bon.m2soft.com ([195.38.20.32]:57817 "EHLO
-	webhosting01.bon.m2soft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755029Ab0JDSkt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:40:49 -0400
-In-Reply-To: <20101004175429.GW3117@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55924 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755260Ab0JDSrr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:47:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20101004203842.088b0cb2@absol.kitzblitz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Nicolas Kaiser <nikai@nikai.net>
 Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Including mux.h should no longer be needed for omap2/3/4 SoCs
-outside arch/arm/mach-omap2 files.
+* Nicolas Kaiser <nikai@nikai.net> [101004 11:32]:
+> Including mux.h should no longer be needed for omap2/3/4 SoCs
+> outside arch/arm/mach-omap2 files.
+> 
+> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
 
-Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
----
- drivers/video/omap/lcd_omap3beagle.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+Thanks,
 
-diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
-index ca75cc2..d7c6c3e 100644
---- a/drivers/video/omap/lcd_omap3beagle.c
-+++ b/drivers/video/omap/lcd_omap3beagle.c
-@@ -25,8 +25,6 @@
- #include <linux/gpio.h>
- #include <linux/i2c/twl.h>
- 
--#include <plat/mux.h>
--#include <plat/mux.h>
- #include <asm/mach-types.h>
- 
- #include "omapfb.h"
--- 
-1.7.2.2
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> ---
+>  drivers/video/omap/lcd_omap3beagle.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
+> index ca75cc2..d7c6c3e 100644
+> --- a/drivers/video/omap/lcd_omap3beagle.c
+> +++ b/drivers/video/omap/lcd_omap3beagle.c
+> @@ -25,8 +25,6 @@
+>  #include <linux/gpio.h>
+>  #include <linux/i2c/twl.h>
+>  
+> -#include <plat/mux.h>
+> -#include <plat/mux.h>
+>  #include <asm/mach-types.h>
+>  
+>  #include "omapfb.h"
+> -- 
+> 1.7.2.2
