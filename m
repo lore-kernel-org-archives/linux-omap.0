@@ -1,148 +1,138 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 2/4] iovmm: fix roundup for next area and end check for
- the last area
-Date: Sun, 3 Oct 2010 22:17:05 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F3E074E3@dlee06.ent.ti.com>
-References: <1285902536-7043-1-git-send-email-x0095840@ti.com>
- <1285902536-7043-2-git-send-email-x0095840@ti.com>
- <1285902536-7043-3-git-send-email-x0095840@ti.com>
- <20101001105711.GA11617@esdhcp036161.research.nokia.com>
- <496565EC904933469F292DDA3F1663E602F46544F9@dlee06.ent.ti.com>
- <20101001175327.GA13657@esdhcp036161.research.nokia.com>
- <496565EC904933469F292DDA3F1663E602F465461A@dlee06.ent.ti.com>,<20101002074944.GB14377@esdhcp036161.research.nokia.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH 01/10] OMAP2+: Kconfig: disallow builds for boards that
+ don't	use the currently-selected SoC
+Date: Mon, 4 Oct 2010 09:51:29 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE2FA@dbde02.ent.ti.com>
+References: <20101001213119.1408.65395.stgit@twilight.localdomain>
+ <20101001213445.1408.96821.stgit@twilight.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101002074944.GB14377@esdhcp036161.research.nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:38471 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750726Ab0JDEVl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 00:21:41 -0400
+In-Reply-To: <20101001213445.1408.96821.stgit@twilight.localdomain>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Cohen <david.cohen@nokia.com>
-Cc: "Doyu Hiroshi (Nokia-MS/Espoo)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-MS/Helsinki)" <felipe.contreras@nokia.com>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
+ 
 
-> ________________________________________
-> From: David Cohen [david.cohen@nokia.com]
-> Sent: Saturday, October 02, 2010 2:49 AM
-> To: Guzman Lugo, Fernando
-> Cc: Doyu Hiroshi (Nokia-MS/Espoo); Contreras Felipe (Nokia-MS/Helsinki);
->  Palande Ameya (Nokia-MS/Helsinki); linux-kernel@vger.kernel.org;
->  andy.shevchenko@gmail.com; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 2/4] iovmm: fix roundup for next area and end check for
->  the last area
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Saturday, October 02, 2010 3:05 AM
+> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Cc: Tony Lindgren
+> Subject: [PATCH 01/10] OMAP2+: Kconfig: disallow builds for 
+> boards that don't use the currently-selected SoC
 > 
-> On Fri, Oct 01, 2010 at 09:21:36PM +0200, ext Guzman Lugo, Fernando wrote:
-> >
-> > > On Fri, Oct 01, 2010 at 06:10:30PM +0200, ext Guzman Lugo,
-> > > Fernando wrote:
-> > > >
-> > >
-> > > [snip]
-> > >
-> > > > > >  arch/arm/plat-omap/iovmm.c |    6 +++---
-> > > > > >  1 files changed, 3 insertions(+), 3 deletions(-)
-> > > > > >
-> > > > > > diff --git a/arch/arm/plat-omap/iovmm.c
-> > > > > b/arch/arm/plat-omap/iovmm.c
-> > > > > > index 24ca9c4..fc6b109 100644
-> > > > > > --- a/arch/arm/plat-omap/iovmm.c
-> > > > > > +++ b/arch/arm/plat-omap/iovmm.c
-> > > > > > @@ -289,19 +289,19 @@ static struct iovm_struct
-> > > > > *alloc_iovm_area(struct iommu *obj, u32 da,
-> > > > > >       prev_end = 0;
-> > > > > >       list_for_each_entry(tmp, &obj->mmap, list) {
-> > > > > >
-> > > > > > -             if (prev_end >= start)
-> > > > > > +             if (prev_end > start)
-> > > > > >                       break;
-> > > > > >
-> > > > > >               if (start + bytes <= tmp->da_start)
-> > > > > >                       goto found;
-> > > > > >
-> > > > > >               if (flags & IOVMF_DA_ANON)
-> > > > > > -                     start = roundup(tmp->da_end +
-> > > 1, alignement);
-> > > > > > +                     start = roundup(tmp->da_end,
-> > > alignement);
-> > > > >
-> > > > > There's a lack of comment here, but the purpose of
-> > > > > tmp->da_end + 1 is to create a gap between iovm areas to
-> > > > > force to trigger iommu faults when some access exceeds a
-> > > valid area.
-> > > > > Without this gap, such situation may produce data
-> > > corruption which
-> > > > > is much more difficult to track.
-> > > >
-> > > > That only works when you are accessing sequencially beyond
-> > > the End of
-> > > > the vm_area. However if you are accessing a random address
-> > > Which is in
-> > > > the mmu tables you still can corrupt memory which does Not
-> > > belong to
-> > > > you. That looks not very effective then why waste Memory?
-> > >
-> > > The main intention is to detect sequential access beyond the
-> > > end of the vm area and it is effective for that purpose.
-> > > i.e., OMAP3 ISP has a hw issue which makes its H3A submodule,
-> > > responsible to produce statistics data for the captured
-> > > image, to write more data than it should. The workaround
-> > > described in the errata wasn't enough to avoid error
-> > > conditions, so a different approach was implemented. This gap
-> > > did help me to make sure the new workaround is valid and no
-> > > data corruption was occurring anymore.
-> > > Anyway, I can't see why memory is being wasted.
-> > >
-> >
-> > I was taking about vitual memory waste (maybe not so important).
-> > Is ok for me then keep the gap. Do other changes look good to
-> > You?
+> Currently, if, for example, CONFIG_ARCH_OMAP2420 is not 
+> selected, OMAP2420
+> board files can still be included in the build.  This results 
+> in link errors:
 > 
-> Do you mean in this patch?
-> All changes make sense only if you're removing the gap, except for the
-> fix below.
-
-The thing is, the dspbridge needs to map some register in order to DSP 
-can read and configure some of them. We need to map some pages
-with fix addresses and to do that I use iommu_kmap. So when some
-of that pages are contiguous I get his error:
-
-"%s: no space to fit %08x(%x) flags: %08x\n"
-
-Which is not true. The page to page perfectly fix, but the check with 1 byte
-more avoid that it could be mapped and I am getting the error.
-
-I am not agree with the gap, but I am ok when it is not fixed address as 
-below code
-
-if (flags & IOVMF_DA_ANON)
-        start = roundup(tmp->da_end + 1, alignement);
-
-But it is breaking the tidspbridge when the gap is used for fixed addresses.
-
-It should not fail when we want to map a page what is freed just because of the gap.
-Please let me know what you thing.
-
-Thanks,
-Fernando.
-
+> arch/arm/mach-omap2/built-in.o: In function `omap_generic_map_io':
+> .../arch/arm/mach-omap2/board-generic.c:51: undefined 
+> reference to `omap2_set_globals_242x'
+> arch/arm/mach-omap2/built-in.o: In function `omap_h4_init':
+> .../arch/arm/mach-omap2/board-h4.c:330: undefined reference 
+> to `omap2420_mux_init'
+> arch/arm/mach-omap2/built-in.o: In function `omap_h4_map_io':
+> .../arch/arm/mach-omap2/board-h4.c:373: undefined reference 
+> to `omap2_set_globals_242x'
+> arch/arm/mach-omap2/built-in.o: In function `omap_apollon_init':
+> .../arch/arm/mach-omap2/board-apollon.c:325: undefined 
+> reference to `omap2420_mux_init'
+> arch/arm/mach-omap2/built-in.o: In function `omap_apollon_map_io':
+> .../arch/arm/mach-omap2/board-apollon.c:353: undefined 
+> reference to `omap2_set_globals_242x'
+> make: *** [.tmp_vmlinux1] Error 1
 > 
-> [snip]
+> Fix this by making the boards depend on the Kconfig option for the
+> specific SoC that they use.
 > 
-> > > > > >
-> > > > > >               prev_end = tmp->da_end;
-> > > > > >       }
-> > > > > >
-> > > > > > -     if ((start > prev_end) && (ULONG_MAX - start >= bytes))
-> > > > > > +     if ((start >= prev_end) && (ULONG_MAX - start +
-> > > 1 >= bytes))
+> Also, while here, fix the mach-omap2/board-generic.c file to 
+> remove the
+> dependency on OMAP2420.
 > 
-> This fix is partially valid. The correct change must be only:
-> -       if ((start > prev_end) && (ULONG_MAX - start >= bytes))
-> +       if ((start > prev_end) && (ULONG_MAX - start + 1 >= bytes))
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig         |    6 +++---
+>  arch/arm/mach-omap2/board-generic.c |   16 ++++++++++++++--
+>  2 files changed, 17 insertions(+), 5 deletions(-)
 > 
-> Otherwise you wouldn't guarantee the gap for fixed da.
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 1c4b237..7f740bd 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -101,20 +101,20 @@ config MACH_OMAP2_TUSB6010
+>  
+>  config MACH_OMAP_H4
+>  	bool "OMAP 2420 H4 board"
+> -	depends on ARCH_OMAP2
+> +	depends on ARCH_OMAP2420
+>  	default y
+>  	select OMAP_PACKAGE_ZAF
+>  	select OMAP_DEBUG_DEVICES
+>  
+>  config MACH_OMAP_APOLLON
+>  	bool "OMAP 2420 Apollon board"
+> -	depends on ARCH_OMAP2
+> +	depends on ARCH_OMAP2420
+>  	default y
+>  	select OMAP_PACKAGE_ZAC
+>  
+>  config MACH_OMAP_2430SDP
+>  	bool "OMAP 2430 SDP board"
+> -	depends on ARCH_OMAP2
+> +	depends on ARCH_OMAP2430
+>  	default y
+>  	select OMAP_PACKAGE_ZAC
+>  
+> diff --git a/arch/arm/mach-omap2/board-generic.c 
+> b/arch/arm/mach-omap2/board-generic.c
+> index 3482b99..c7ec3f3 100644
+> --- a/arch/arm/mach-omap2/board-generic.c
+> +++ b/arch/arm/mach-omap2/board-generic.c
+> @@ -48,10 +48,22 @@ static void __init omap_generic_init(void)
+>  
+>  static void __init omap_generic_map_io(void)
+>  {
+> -	omap2_set_globals_242x(); /* should be 242x, 243x, or 343x */
+> -	omap242x_map_common_io();
+> +	if (cpu_is_omap242x()) {
+> +		omap2_set_globals_242x();
+> +		omap242x_map_common_io();
+> +	} else if (cpu_is_omap242x()) {
+
+Is this intended for 242x() or 243x()?
+
+> +		omap2_set_globals_243x();
+> +		omap243x_map_common_io();
+> +	} else if (cpu_is_omap34xx()) {
+> +		omap2_set_globals_3xxx();
+> +		omap34xx_map_common_io();
+> +	} else if (cpu_is_omap44xx()) {
+> +		omap2_set_globals_443x();
+> +		omap44xx_map_common_io();
+> +	}
+>  }
+>  
+> +/* XXX This machine entry name should be updated */
+>  MACHINE_START(OMAP_GENERIC, "Generic OMAP24xx")
+>  	/* Maintainer: Paul Mundt <paul.mundt@nokia.com> */
+>  	.phys_io	= 0x48000000,
 > 
-> Br,
 > 
-> David
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
