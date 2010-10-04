@@ -1,57 +1,71 @@
 From: Felipe Balbi <balbi@ti.com>
 Subject: Re: [PATCH 08/10] OMAP: split plat-omap/common.c
-Date: Mon, 4 Oct 2010 09:56:24 +0300
-Message-ID: <20101004065624.GD2559@legolas.emea.dhcp.ti.com>
+Date: Mon, 4 Oct 2010 10:00:40 +0300
+Message-ID: <20101004070040.GE2559@legolas.emea.dhcp.ti.com>
 References: <20101001213119.1408.65395.stgit@twilight.localdomain>
  <20101001213532.1408.55832.stgit@twilight.localdomain>
  <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE3C6@dbde02.ent.ti.com>
+ <20101004065624.GD2559@legolas.emea.dhcp.ti.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: multipart/mixed; boundary="EeQfGwPcQSOJBaQU"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43348 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752536Ab0JDG43 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 02:56:29 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60332 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752185Ab0JDHAp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 4 Oct 2010 03:00:45 -0400
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE3C6@dbde02.ent.ti.com>
+In-Reply-To: <20101004065624.GD2559@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Oct 04, 2010 at 12:34:48AM -0500, Shilimkar, Santosh wrote:
->Felipe,
+
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+
+On Mon, Oct 04, 2010 at 01:56:24AM -0500, Balbi, Felipe wrote:
+>On Mon, Oct 04, 2010 at 12:34:48AM -0500, Shilimkar, Santosh wrote:
+>>Felipe,
+>>
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>>> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+>>> Sent: Saturday, October 02, 2010 3:06 AM
+>>> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>>> Subject: [PATCH 08/10] OMAP: split plat-omap/common.c
+>>>
+>>> Split plat-omap/common.c into three pieces:
+>>>
+>>> 1. the 32KiHz sync timer and clocksource code, which now lives in
+>>>    plat-omap/32ksynctimer.c;
+>>>
+>>I remember you have converted the 32k sync time code to a platform driver.
+>>That was also addressing the multi-omap build and was removing all
+>>the compile time switches.
+>>Do you plan to rebase it and post it again ?
 >
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Paul Walmsley
->> Sent: Saturday, October 02, 2010 3:06 AM
->> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
->> Subject: [PATCH 08/10] OMAP: split plat-omap/common.c
->>
->> Split plat-omap/common.c into three pieces:
->>
->> 1. the 32KiHz sync timer and clocksource code, which now lives in
->>    plat-omap/32ksynctimer.c;
->>
->I remember you have converted the 32k sync time code to a platform driver.
->That was also addressing the multi-omap build and was removing all
->the compile time switches.
->Do you plan to rebase it and post it again ?
+>I still have that sitting on my gitorious tree. The patch is attached
+>to this mail. I compile tested (only) for omap3_defconfig, it probably
+>needs to start using pm_runtime functions at some point and probably
+>move to drivers/clocksource instead of arch/arm/plat-omap.
+>
+>patch is also available at [1]
+>
+>[1] git://gitorious.org/usb/usb.git clksource
 
-I still have that sitting on my gitorious tree. The patch is attached
-to this mail. I compile tested (only) for omap3_defconfig, it probably
-needs to start using pm_runtime functions at some point and probably
-move to drivers/clocksource instead of arch/arm/plat-omap.
+I made a few changes to make checkpatch.pl --strict happy. Attached
 
-patch is also available at [1]
+-- 
+balbi
 
-[1] git://gitorious.org/usb/usb.git clksource
+--EeQfGwPcQSOJBaQU
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-arm-omap1-2-3-4-convert-32k-sync-driver-to-a-platform.diff"
 
-8<------------------------------- cut here ---------------------------------
-
- From 9aad17796072a2ee88aa11c0431fa99e8e9609f0 Mon Sep 17 00:00:00 2001
+>From 42dddbbd0738b36106e8aa9851ab16851642bdd0 Mon Sep 17 00:00:00 2001
 From: Felipe Balbi <balbi@ti.com>
 Date: Tue, 23 Mar 2010 12:54:14 +0200
 Subject: [PATCH] arm: omap1/2/3/4: convert 32k-sync driver to a platform_driver
@@ -62,25 +76,25 @@ and while at that, also remove the ifdeferry around the code.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
-  arch/arm/mach-omap1/devices.c        |   24 ++++
-  arch/arm/mach-omap2/clock2420_data.c |    2 +-
-  arch/arm/mach-omap2/clock2430_data.c |    2 +-
-  arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
-  arch/arm/mach-omap2/devices.c        |   35 +++++
-  arch/arm/plat-omap/Makefile          |    4 +-
-  arch/arm/plat-omap/common.c          |  158 ---------------------
-  arch/arm/plat-omap/counter-32k.c     |  251 ++++++++++++++++++++++++++++++++++
-  8 files changed, 315 insertions(+), 163 deletions(-)
-  create mode 100644 arch/arm/plat-omap/counter-32k.c
+ arch/arm/mach-omap1/devices.c        |   24 ++++
+ arch/arm/mach-omap2/clock2420_data.c |    2 +-
+ arch/arm/mach-omap2/clock2430_data.c |    2 +-
+ arch/arm/mach-omap2/clock3xxx_data.c |    2 +-
+ arch/arm/mach-omap2/devices.c        |   35 +++++
+ arch/arm/plat-omap/Makefile          |    4 +-
+ arch/arm/plat-omap/common.c          |  158 ---------------------
+ arch/arm/plat-omap/counter-32k.c     |  253 ++++++++++++++++++++++++++++++++++
+ 8 files changed, 317 insertions(+), 163 deletions(-)
+ create mode 100644 arch/arm/plat-omap/counter-32k.c
 
 diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index aa07256..b276b4b 100644
+index aa07256..62170fd 100644
 --- a/arch/arm/mach-omap1/devices.c
 +++ b/arch/arm/mach-omap1/devices.c
 @@ -28,6 +28,29 @@
-  
-  /*-------------------------------------------------------------------------*/
-  
+ 
+ /*-------------------------------------------------------------------------*/
+ 
 +#define OMAP16XX_TIMER_32K_BASE		0xfffbc400
 +
 +static struct resource omap_32k_resources[] = {
@@ -100,68 +114,68 @@ index aa07256..b276b4b 100644
 +
 +static void omap_init_32k(void)
 +{
-+       if (cpu_is_omap16xx())
-+	       (void) platform_device_register(&omap_32k_device);
++	if (cpu_is_omap16xx())
++		(void) platform_device_register(&omap_32k_device);
 +};
 +
-  #if defined(CONFIG_RTC_DRV_OMAP) || defined(CONFIG_RTC_DRV_OMAP_MODULE)
-  
-  #define	OMAP_RTC_BASE		0xfffb4800
+ #if defined(CONFIG_RTC_DRV_OMAP) || defined(CONFIG_RTC_DRV_OMAP_MODULE)
+ 
+ #define	OMAP_RTC_BASE		0xfffb4800
 @@ -223,6 +246,7 @@ static int __init omap1_init_devices(void)
-  	 * in alphabetical order so they're easier to sort through.
-  	 */
-  
+ 	 * in alphabetical order so they're easier to sort through.
+ 	 */
+ 
 +	omap_init_32k();
-  	omap_init_mbox();
-  	omap_init_rtc();
-  	omap_init_spi100k();
+ 	omap_init_mbox();
+ 	omap_init_rtc();
+ 	omap_init_spi100k();
 diff --git a/arch/arm/mach-omap2/clock2420_data.c b/arch/arm/mach-omap2/clock2420_data.c
 index 37d65d6..781bfeb 100644
 --- a/arch/arm/mach-omap2/clock2420_data.c
 +++ b/arch/arm/mach-omap2/clock2420_data.c
 @@ -1806,7 +1806,7 @@ static struct omap_clk omap2420_clks[] = {
-  	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_242X),
-  	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_242X),
-  	CLK("omap_wdt",	"fck",		&mpu_wdt_fck,	CK_242X),
+ 	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_242X),
+ 	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_242X),
+ 	CLK("omap_wdt",	"fck",		&mpu_wdt_fck,	CK_242X),
 -	CLK(NULL,	"sync_32k_ick",	&sync_32k_ick,	CK_242X),
 +	CLK("omap-counter-32k",	"ick",	&sync_32k_ick,	CK_242X),
-  	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_242X),
-  	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_242X),
-  	CLK("omap24xxcam", "fck",	&cam_fck,	CK_242X),
+ 	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_242X),
+ 	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_242X),
+ 	CLK("omap24xxcam", "fck",	&cam_fck,	CK_242X),
 diff --git a/arch/arm/mach-omap2/clock2430_data.c b/arch/arm/mach-omap2/clock2430_data.c
 index b33118f..e997692 100644
 --- a/arch/arm/mach-omap2/clock2430_data.c
 +++ b/arch/arm/mach-omap2/clock2430_data.c
 @@ -1900,7 +1900,7 @@ static struct omap_clk omap2430_clks[] = {
-  	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_243X),
-  	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_243X),
-  	CLK("omap_wdt",	"fck",		&mpu_wdt_fck,	CK_243X),
+ 	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_243X),
+ 	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_243X),
+ 	CLK("omap_wdt",	"fck",		&mpu_wdt_fck,	CK_243X),
 -	CLK(NULL,	"sync_32k_ick",	&sync_32k_ick,	CK_243X),
 +	CLK("omap-counter-32k",	"ick",	&sync_32k_ick,	CK_243X),
-  	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_243X),
-  	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_243X),
-  	CLK(NULL,	"icr_ick",	&icr_ick,	CK_243X),
+ 	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_243X),
+ 	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_243X),
+ 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_243X),
 diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
 index dfdce2d..257a8fe 100644
 --- a/arch/arm/mach-omap2/clock3xxx_data.c
 +++ b/arch/arm/mach-omap2/clock3xxx_data.c
 @@ -3343,7 +3343,7 @@ static struct omap_clk omap3xxx_clks[] = {
-  	CLK("omap_wdt",	"ick",		&wdt2_ick,	CK_3XXX),
-  	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_3XXX),
-  	CLK(NULL,	"gpio1_ick",	&gpio1_ick,	CK_3XXX),
+ 	CLK("omap_wdt",	"ick",		&wdt2_ick,	CK_3XXX),
+ 	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpio1_ick",	&gpio1_ick,	CK_3XXX),
 -	CLK(NULL,	"omap_32ksync_ick", &omap_32ksync_ick, CK_3XXX),
 +	CLK("omap-counter-32k",	"ick", &omap_32ksync_ick, CK_3XXX),
-  	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_3XXX),
-  	CLK(NULL,	"gpt1_ick",	&gpt1_ick,	CK_3XXX),
-  	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
+ 	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_3XXX),
+ 	CLK(NULL,	"gpt1_ick",	&gpt1_ick,	CK_3XXX),
+ 	CLK(NULL,	"per_96m_fck",	&per_96m_fck,	CK_3XXX),
 diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
 index 2dbb265..8f1714e 100644
 --- a/arch/arm/mach-omap2/devices.c
 +++ b/arch/arm/mach-omap2/devices.c
 @@ -31,6 +31,40 @@
-  
-  #include "mux.h"
-  
+ 
+ #include "mux.h"
+ 
 +static struct resource omap_32k_resources[] = {
 +	{
 +		.flags		= IORESOURCE_MEM,
@@ -196,34 +210,34 @@ index 2dbb265..8f1714e 100644
 +	(void) platform_device_register(&omap_32k_device);
 +};
 +
-  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-  
-  static struct resource cam_resources[] = {
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+ 
+ static struct resource cam_resources[] = {
 @@ -847,6 +881,7 @@ static int __init omap2_init_devices(void)
-  	 * in alphabetical order so they're easier to sort through.
-  	 */
-  	omap_hsmmc_reset();
+ 	 * in alphabetical order so they're easier to sort through.
+ 	 */
+ 	omap_hsmmc_reset();
 +	omap_init_32k();
-  	omap_init_camera();
-  	omap_init_mbox();
-  	omap_init_mcspi();
+ 	omap_init_camera();
+ 	omap_init_mbox();
+ 	omap_init_mcspi();
 diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
 index 9405831..ff57f33 100644
 --- a/arch/arm/plat-omap/Makefile
 +++ b/arch/arm/plat-omap/Makefile
 @@ -4,7 +4,7 @@
-  
-  # Common support
-  obj-y := common.o sram.o clock.o devices.o dma.o mux.o gpio.o \
+ 
+ # Common support
+ obj-y := common.o sram.o clock.o devices.o dma.o mux.o gpio.o \
 -	 usb.o fb.o io.o
 +	 usb.o fb.o io.o counter-32k.o
-  obj-m :=
-  obj-n :=
-  obj-  :=
+ obj-m :=
+ obj-n :=
+ obj-  :=
 @@ -31,4 +31,4 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
-  # OMAP mailbox framework
-  obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
-  
+ # OMAP mailbox framework
+ obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+ 
 -obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
 \ No newline at end of file
 +obj-$(CONFIG_OMAP_PM_NOOP) += omap-pm-noop.o
@@ -232,9 +246,9 @@ index 3008e71..b8683b2 100644
 --- a/arch/arm/plat-omap/common.c
 +++ b/arch/arm/plat-omap/common.c
 @@ -89,164 +89,6 @@ void __init omap_reserve(void)
-  	omap_vram_reserve_sdram_memblock();
-  }
-  
+ 	omap_vram_reserve_sdram_memblock();
+ }
+ 
 -/*
 - * 32KHz clocksource ... always available, on pretty most chips except
 - * OMAP 730 and 1510.  Other timers could be used as clocksources, with
@@ -393,15 +407,15 @@ index 3008e71..b8683b2 100644
 -
 -#endif	/* !(defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP15XX)) */
 -
-  /* Global address base setup code */
-  
-  #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ /* Global address base setup code */
+ 
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
 diff --git a/arch/arm/plat-omap/counter-32k.c b/arch/arm/plat-omap/counter-32k.c
 new file mode 100644
-index 0000000..6b2d0a6
+index 0000000..f3fcb38
 --- /dev/null
 +++ b/arch/arm/plat-omap/counter-32k.c
-@@ -0,0 +1,251 @@
+@@ -0,0 +1,253 @@
 +/*
 + * counter-32k.c -- OMAP 32k Sync Timer Clocksource Driver
 + *
@@ -446,8 +460,8 @@ index 0000000..6b2d0a6
 +
 +	/*
 +	 * offset_32k holds the init time counter value. It is then subtracted
-+	 * from every counter read to achieve a counter that counts time from the
-+	 * kernel boot (needed for sched_clock()).
++	 * from every counter read to achieve a counter that counts time from
++	 * the kernel boot (needed for sched_clock()).
 +	 */
 +	u32			offset_32k __read_mostly;
 +};
@@ -456,7 +470,8 @@ index 0000000..6b2d0a6
 +
 +static struct omap_counter_32k_device	*thecs;
 +
-+static inline u32 omap_counter_32k_readl(const void __iomem *base, unsigned offset)
++static inline u32 omap_counter_32k_readl(const void __iomem *base,
++		unsigned offset)
 +{
 +	return __raw_readl(base + offset);
 +}
@@ -641,7 +656,8 @@ index 0000000..6b2d0a6
 +
 +static int __init omap_counter_32k_init(void)
 +{
-+	return platform_driver_probe(&omap_counter_32k_driver, omap_counter_32k_probe);
++	return platform_driver_probe(&omap_counter_32k_driver,
++			omap_counter_32k_probe);
 +}
 +arch_initcall(omap_counter_32k_init);
 +
@@ -656,5 +672,5 @@ index 0000000..6b2d0a6
 -- 
 1.7.3.rc0.35.g8ac8c
 
--- 
-balbi
+
+--EeQfGwPcQSOJBaQU--
