@@ -1,75 +1,62 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: NOTE: hwmod changes merged to linux-omap master for testing
-Date: Mon, 4 Oct 2010 23:56:52 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD86@dbde02.ent.ti.com>
-References: <20101002004821.GN3117@atomide.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
- <8762xi3sm1.fsf@deeprootsystems.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD4F@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 08/10] OMAP: split plat-omap/common.c
+Date: Mon, 4 Oct 2010 11:27:00 -0700
+Message-ID: <20101004182700.GZ3117@atomide.com>
+References: <20101001213119.1408.65395.stgit@twilight.localdomain>
+ <20101001213532.1408.55832.stgit@twilight.localdomain>
+ <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE3D3@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.1010032359220.13816@utopia.booyaka.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE554@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59484 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755256Ab0JDS07 convert rfc822-to-8bit (ORCPT
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57608 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755022Ab0JDS07 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 14:26:59 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD4F@dbde02.ent.ti.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE554@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
- 
-
- 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G, 
-> Manjunath Kondaiah
-> Sent: Monday, October 04, 2010 10:16 PM
-> To: Kevin Hilman
-> Cc: Tony Lindgren; linux-omap@vger.kernel.org
-> Subject: RE: NOTE: hwmod changes merged to linux-omap master 
-> for testing
+* Varadarajan, Charulatha <charu@ti.com> [101004 01:20]:
+> Paul,
 > 
->  
+> <<snip>>
 > 
-> > -----Original Message-----
-> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> > Sent: Monday, October 04, 2010 8:36 PM
-> > To: G, Manjunath Kondaiah
-> > Cc: Tony Lindgren; linux-omap@vger.kernel.org
-> > Subject: Re: NOTE: hwmod changes merged to linux-omap master for 
-> > testing
 > > 
-> > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> > > > +static int __init omap_init_clocksource_32k(void)
+> > > > +{
+> > > > +	static char err[] __initdata = KERN_ERR
+> > > > +			"%s: can't register clocksource!\n";
+> > > > +
+> > > > +	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
+> > > > +		struct clk *sync_32k_ick;
+> > > > +
+> > > > +		if (cpu_is_omap16xx())
+> > >
+> > > Avoid cpu_is* checks in plat-omap.
 > > 
-> > > Hi Tony,
-> > > With latest merges on master branch with commit ID:
-> > > 0882b1455797b0a104978000a622c3f2412e7cf5 omap: READ 
-> CAREFULLY: Fix 
-> > > build after merging in hwmod support for testing
-> > >
-> > > Booting with zoom3 seems to be fine but observed issues
-> > with omap4 blaze board. 
-> > >
-> > > Looks like multiple warning dumps and finally it crashes
-> > after "Freeing init memory" with both NFS and ramdisk file systems.
-> > >
-> > > The complete bootlogs are available at:
-> > > NFS bootlog:
-> > > http://pastebin.com/nrWQ5FGG
-> > 
-> > In the future, it helps greatly if you state what defconfig you're 
-> > using,
+> > OK, I'll bite.  Why?
 > 
-> ok. I have used omap2plus_defconfig
+> I think this is being looked for all the new code introduced
+> in plat-omap layer for the following reasons:
+> Adding cpu-is-* checks makes code unmaintainable going fwd.
+> plat-omap layer needs to handle common code for all omap platforms.
 > 
+> This was raised for GPIO driver because of which, there was a
+> requirement to clean-up the gpio driver.
+> 
+> Is this stand changed? Are cpu_is* checks allowed in plat-omap?
 
-Since this is for linux-omap master, now we have only omap2plus_defconfig
-for all omap2plus hence the reason for not mentioning defconfig.
+We should only need to do cpu_is* checks in arch/arm/mach-omap2,
+and only in few places during the init.
 
--Manjunath
+However, this patch series moves around the existing code to
+avoid having oma2plus specific code be in plat-omap.
+
+Again, further patches can be done easily on this.
+
+Tony
