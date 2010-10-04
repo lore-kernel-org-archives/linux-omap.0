@@ -1,73 +1,81 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: NOTE: hwmod changes merged to linux-omap master for testing
-Date: Mon, 4 Oct 2010 13:19:40 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
-References: <20101002004821.GN3117@atomide.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv3 3/17] dmtimer: add omap2420 hwmod database
+Date: Mon, 4 Oct 2010 09:50:17 +0200
+Message-ID: <4CA98739.9040309@ti.com>
+References: <1285059116-26366-1-git-send-email-tarun.kanti@ti.com> <4CA4FC22.9030806@ti.com> <alpine.DEB.2.00.1010011623020.22941@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52250 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753038Ab0JDHtq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:49:46 -0400
-In-Reply-To: <20101002004821.GN3117@atomide.com>
-Content-Language: en-US
+Received: from devils.ext.ti.com ([198.47.26.153]:47411 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753136Ab0JDHu0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 03:50:26 -0400
+In-Reply-To: <alpine.DEB.2.00.1010011623020.22941@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Tony,
-With latest merges on master branch with commit ID:
-0882b1455797b0a104978000a622c3f2412e7cf5 omap: READ CAREFULLY: Fix build after merging in hwmod support for testing
+Hi Paul,
 
-Booting with zoom3 seems to be fine but observed issues with omap4 blaze board. 
+On 10/2/2010 12:25 AM, Paul Walmsley wrote:
+> On Thu, 30 Sep 2010, Cousson, Benoit wrote:
+>
+>> On 9/21/2010 10:51 AM, DebBarma, Tarun Kanti wrote:
+>>
+>>>    #include "omap_hwmod_common_data.h"
+>>>
+>>>    #include "prm-regbits-24xx.h"
+>>> @@ -121,6 +123,614 @@ static struct omap_hwmod omap2420_l4_wkup_hwmod = {
+>>>           .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+>>>           .flags          = HWMOD_NO_IDLEST,
+>>>    };
+>>> +/* Timer Common */
+>>> +static char *timer_clk_src_names[] = {
+>>> +       "sys_ck",
+>>> +       "func_32k_ck",
+>>> +       "alt_ck",
+>>> +       NULL,
+>>> +};
+>>
+>> I have an issue with that, because this is a pure duplication of the clock_sel
+>> information already contained in the clock data:
+>>
+>> static const struct clksel omap24xx_gpt_clksel[] = {
+>>          { .parent =&func_32k_ck, .rates = gpt_32k_rates },
+>> 	{ .parent =&sys_ck,      .rates = gpt_sys_rates },
+>>        	{ .parent =&alt_ck,      .rates = gpt_alt_rates },
+>> 	{ .parent = NULL },
+>> };
+>>
+>> And duplicating the same information somewhere else is most of the time a bad
+>> idea.
+>
+> Yep, there's no way that info should be in the hwmod data, in the current
+> setup.  It belongs in the clkdev tables.  Example below.
+>
+>> That being said... I don't really know how to handle that properly :-)
+>>
+>> We have to find a better way to select the proper source clock in a soc
+>> independent way.
+>>
+>> Maybe Paul will have some idea?
+>
+> Here's how it's done:
+>
+>     http://marc.info/?l=linux-omap&m=128596931017785&w=2
+>
+> and
+>
+>     http://marc.info/?l=linux-omap&m=128596931417805&w=2
 
-Looks like multiple warning dumps and finally it crashes after "Freeing init memory" with both NFS and ramdisk file systems.
+The famous clock alias... I don't know why but I always forgot that 
+solution each time I have such concern:-(
+This is indeed the very clean and cool way to do that clock selection.
+We can even remove this #define to identified them and use the clock 
+string name directly.
 
-The complete bootlogs are available at:
-NFS bootlog:
-http://pastebin.com/nrWQ5FGG
+Thanks Paul,
+Benoit
 
-Ramdisk bootlog:
-http://pastebin.com/1F75d2Ew
-
--Manjunath 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Saturday, October 02, 2010 6:18 AM
-> To: linux-omap@vger.kernel.org
-> Subject: NOTE: hwmod changes merged to linux-omap master for testing
-> 
-> Hi all,
-> 
-> So I've finally merged Kevin's hwmod branch into the 
-> linux-omap master so we can give it some testing to see if we 
-> can merge it to the mainline. Might take few minutes to hit 
-> the mirrors.
-> 
-> Please note that for omap2plus machines you need to change:
-> 
-> - u-boot bootargs for kernel cmdline needs to change with setenv
-> - if you use hardcoded CONFIG_CMDLINE, change it in your .config
-> - /etc/inittab in your omap root file system if using serial console
-> 
-> This is because otherwise the serial-omap would be 
-> conflicting with the 8250 driver. This should not affect 
-> omap1 machines.
-> 
-> Please give it a try and report any issues on this list! Now 
-> all the machines except ams_delta_defconfig should build.
-> That one is still missing some camera driver changes to build.
-> 
-> Regards,
-> 
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
