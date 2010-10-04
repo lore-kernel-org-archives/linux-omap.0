@@ -1,26 +1,38 @@
-From: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
-Subject: [PATCH 0/1] omap: Ptr "isr_reg" tracked as NULL was dereferenced
-Date: Tue,  5 Oct 2010 12:42:09 +0400
-Message-ID: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, akpm@linux-foundation.org, zmc@lurian.net, a.j.buxton@gmail.com, ext-eugeny.kuznetsov@nokia.com
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] usb: omap: fix the warning return type defaults to 'int'
+Date: Tue,  5 Oct 2010 02:19:53 +0530
+Message-ID: <1286225393-22472-1-git-send-email-keshava_mgowda@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: gadiyar-l0cyMroinI0@public.gmane.org, nskamat-l0cyMroinI0@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-Here is patch which fixes bug in /arch/arm/plat-omap/gpio.c file.
-Pointer which may have NULL value in some cases (depend on kernel
-configuration and GPIO method) is dereferenced later in code.
-If pointer is NULL it mean some kernel bug.
+This patch fix the follwing warning when compiling usb code 
+for OMAP defconfigs.
+arch/arm/plat-omap/include/plat/usb.h:109: warning: return type defaults
+to 'int'
 
-Thanks,
-Best Regards,
-Evgeny
+Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/plat-omap/include/plat/usb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Evgeny Kuznetsov (1):
-  omap: Ptr "isr_reg" tracked as NULL was dereferenced
-
- arch/arm/plat-omap/gpio.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+Index: linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+===================================================================
+--- linux-2.6.orig/arch/arm/plat-omap/include/plat/usb.h
++++ linux-2.6/arch/arm/plat-omap/include/plat/usb.h
+@@ -105,7 +105,7 @@ static inline void omap1_usb_init(struct
+ #if defined(CONFIG_ARCH_OMAP_OTG) || defined(CONFIG_ARCH_OMAP_OTG_MODULE)
+ void omap2_usbfs_init(struct omap_usb_config *pdata);
+ #else
+-static inline omap2_usbfs_init(struct omap_usb_config *pdata)
++static inline void omap2_usbfs_init(struct omap_usb_config *pdata)
+ {
+ }
+ #endif
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
