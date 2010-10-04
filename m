@@ -1,76 +1,93 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Dropping omap3430 ES1.0 support in mainline
-Date: Mon, 4 Oct 2010 11:37:42 +0200
-Message-ID: <4CA9A066.4050107@ti.com>
-References: <d0443bbf588bf1e8a7efbd0014816753@mail.gmail.com> <alpine.DEB.2.00.1010011558290.22941@utopia.booyaka.com> <3700cfbb0159d56cecbda0e06a2957e3@mail.gmail.com> <alpine.DEB.2.00.1010011615560.22941@utopia.booyaka.com> <cf484f0b347742791af6d563efefaeb4@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 02/14] omap: Map only available sram memory
+Date: Mon, 4 Oct 2010 15:08:19 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE61A@dbde02.ent.ti.com>
+References: <1284716878-27667-1-git-send-email-santosh.shilimkar@ti.com>
+	<1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
+	<1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
+	<AANLkTi=PM1x7zXbSMRxBHVZ5Z2+4iwebvbiGizca_rC8@mail.gmail.com>
+	<20101001225303.GF3117@atomide.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CDFE18C@dbde02.ent.ti.com>
+ <AANLkTi=zmgSCCg71NsYMte9K-yeyb1i0VxCA4i_9Y8D-@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59993 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38952 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754333Ab0JDJhr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 4 Oct 2010 05:37:47 -0400
-In-Reply-To: <cf484f0b347742791af6d563efefaeb4@mail.gmail.com>
+	id S1754527Ab0JDJie convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 05:38:34 -0400
+In-Reply-To: <AANLkTi=zmgSCCg71NsYMte9K-yeyb1i0VxCA4i_9Y8D-@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Balbi, Felipe" <balbi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On 10/2/2010 12:28 AM, Anand Gadiyar wrote:
-> Paul Walmsley wrote:
->> On Sat, 2 Oct 2010, Anand Gadiyar wrote:
->>
->>> Okay, so we're aligned that you guys don't have an ES1 board to test,
->>> and TI doesn't have any either. :)
->>>
->>> I'd still like to know if anyone in the wild still cares about the
-> board.
->>>
->>> (I see Tony already said "No thanks", but I'd like to know anyway).
->>
->> Why would we want to remove support for a board that should work fine
-> with
->> linux-omap and isn't causing any problems with existing code?
->
-> I'm not sure it works fine, and if there are no users that care about
-> the board, then it would be nice to drop the support. If the board
-> works fine today, that's good, but has anyone tested the current
-> kernel on that board?
->
-> (we're struggling to keep linux-omap working on boards available now,
-> why support something that nobody cares about. It's not like I'm asking
-> 3430 support to be dropped)
->
-> - the ES1 chip has never been available to the outside world beyond
-> sampling quantities
-> - no new developments are likely to happen on that board
-> - nobody's likely to have one of these around and care to boot it up
-> - there are plenty of replacements like the beagles which are lower
->    cost, easier to obtain, and can beat an ES1 in speed
->
-> I'm okay having support for the board if someone's actually using it.
-> It's not such a big deal. It was just a thought - it came up because
-> Manju was looking at old errata docs, and came across something that
-> was specific to an ES1, but we realized there was no way to test it.
-
-If this is the SDMA bug we are talking about, it was unfortunately 
-already there in OMAP2420. For some reason I didn't find it in 2430 
-errata, but since it was still there in 3430 ES1, we can assume that 
-2430 also has the issue.
-
-
-That being said, ES1 devices for both OMAP3 and OMAP4 were supposed to 
-be engineering samples.
-There is no product out there with OMAP3 ES1, and same thing is 
-happening with 4430 ES1.
-
-So, it makes sense to keep supporting them during the transition, but as 
-soon as everybody is upgraded to the next production version, what the 
-point to keep maintaining these buggy devices?
-Hopefully the auto-destroy mode after 2 years seems to work fine :-)
-
-Regards,
-Benoit
-
-
+> -----Original Message-----
+> From: Grazvydas Ignotas [mailto:notasas@gmail.com]
+> Sent: Monday, October 04, 2010 2:34 PM
+> To: Shilimkar, Santosh
+> Cc: Tony Lindgren; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Russell King - ARM Linux
+> Subject: Re: [PATCH 02/14] omap: Map only available sram memory
+>=20
+> >> >
+> >> > This hangs OMAP3 pandora:
+> >> >
+> >> > [ =A0 =A00.000000] Linux version
+> >> > 2.6.36-rc6-next-20101001-00002-ge76bb53-dirty (notaz@pixelinis) =
+(gcc
+> >> > version 4.3.3 (Sourcery G++ Lite 2009q1-20
+> >> > [ =A0 =A00.000000] CPU: ARMv7 Processor [411fc082] revision 2 (A=
+RMv7),
+> >> cr=3D10c53c7f
+> >> > [ =A0 =A00.000000] CPU: VIPT nonaliasing data cache, VIPT nonali=
+asing
+> >> > instruction cache
+> >> > [ =A0 =A00.000000] Machine: Pandora Handheld Console
+> >> > [ =A0 =A00.000000] Ignoring unrecognised tag 0x54410008
+> >> > [ =A0 =A00.000000] bootconsole [earlycon0] enabled
+> >> > [ =A0 =A00.000000] Reserving 6422528 bytes SDRAM for VRAM
+> >> > [ =A0 =A00.000000] Memory policy: ECC disabled, Data cache write=
+back
+> >> > [ =A0 =A00.000000] OMAP3430/3530 ES2.1 (l2cache iva sgx neon isp=
+ )
+> >> > [ =A0 =A00.000000] SRAM: Mapped pa 0x40200000 to va 0xfe400000 s=
+ize:
+> 0x10000
+> >> > (stuck here)
+> >> >
+> >> > reverting this fixes the problem.
+> >>
+> >> Hmm, boots fine here with overo. Any idea what in this patch break=
+s
+> >> pandora?
+> >>
+> > The change in this patch is not board dependent really. Have tested=
+ this
+> > on 3430SDP. Pandora is OMAP3 based, right ?
+>=20
+> OMAP3530 ES2.1, also tried on friend's beagleboard b5 (also ES2.1) an=
+d
+> it has the same problem. Maybe it's because of older Cortex A8 used
+> there, or I'm missing some errata workaround in defconfig.
+>=20
+> BTW, hacking the size to 1M on top of your patch fixes the problem to=
+o:
+>=20
+>         base =3D omap_sram_start;
+>         base =3D ROUND_DOWN(base, PAGE_SIZE);
+>         omap_sram_io_desc[0].pfn =3D __phys_to_pfn(base);
+> -       omap_sram_io_desc[0].length =3D ROUND_DOWN(omap_sram_size,
+> PAGE_SIZE);
+> +       omap_sram_io_desc[0].length =3D 0x100000;
+This is the exact reason this patch is created :)
+So that you map only available memory instead of 1 MB
+>         iotable_init(omap_sram_io_desc, ARRAY_SIZE(omap_sram_io_desc)=
+);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
