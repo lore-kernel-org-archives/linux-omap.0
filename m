@@ -1,37 +1,49 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: tidspbridge broken?
-Date: Mon, 4 Oct 2010 18:33:33 +0300
-Message-ID: <AANLkTi=hD1m0jC64KW7gHdywd=2GseX8gqNwPTHOh6s2@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v3] SoC Camera: add driver for OMAP1 camera interface
+Date: Mon, 4 Oct 2010 17:35:44 +0200
+Message-ID: <201010041735.46371.jkrzyszt@tis.icnet.pl>
+References: <201009301335.51643.jkrzyszt@tis.icnet.pl> <201010021445.14567.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1010030439550.15920@axis700.grange>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:44368 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751273Ab0JDPde (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 11:33:34 -0400
-Received: by bwz11 with SMTP id 11so3669194bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 08:33:33 -0700 (PDT)
+Received: from d1.icnet.pl ([212.160.220.21]:44554 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756287Ab0JDPg0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 11:36:26 -0400
+In-Reply-To: <Pine.LNX.4.64.1010030439550.15920@axis700.grange>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: gregkh@suse.de, nm@ti.com, ohad@wizery.com, omar.ramirez@ti.com, x0095840@ti.com
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Discussion of the Amstrad E3 emailer hardware/software <e3-hacking@earth.li>
 
-Hi,
+Sunday 03 October 2010 04:42:53 Guennadi Liakhovetski napisa=C5=82(a):
+> On Sat, 2 Oct 2010, Janusz Krzysztofik wrote:
+> > Saturday 02 October 2010 08:07:28 Guennadi Liakhovetski napisa=C5=82=
+(a):
+> > > Same with this one - let's take it as is and address a couple of
+> > > clean-ups later.
+> >
+> > Guennadi,
+> > Thanks for taking them both.
+> >
+> > BTW, what are your intentions about the last patch from my series s=
+till
+> > left not commented, "SoC Camera: add support for g_parm / s_parm
+> > operations", http://www.spinics.net/lists/linux-media/msg22887.html=
+ ?
+>
+> Yes, taking that one too, thanks. I see it right, that I have to appl=
+y 3
+> of your patches: omap1 camera driver, ov6650 and default .[gs]_fmt fo=
+r
+> soc_camera, the rest will go via the OMAP / ARM tree, right?
 
-I was trying the iommu patches but I noticed the tidspbridge driver
-doesn't work at all, I found two critical issues:
-
-First, the platform device is missing, so there's no way the driver
-can work. It seems to have been dropped from the migration to staging
-which happened some time ago... I would have expected somebody to
-notice a thing like this. I already have patches that fix this.
-
-And second, since 2.6.35, ioremap() doesn't work on RAM, so this
-driver cannot work anymore unless 309caa9 is reverted. I am reserving
-the memory with memblock, but it still fails the ioremap(), and __va()
-doesn't seem to work (don't know why).
-
-Has anyone tried the driver on 2.6.36-rcX?
-
--- 
-Felipe Contreras
+Right.
+Janusz
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
