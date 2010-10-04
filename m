@@ -1,58 +1,112 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v4 4/4] OMAP3: DMA: Errata i541: sDMA FIFO draining does
- not finish
-Date: Mon, 4 Oct 2010 14:47:41 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CA49@dbde02.ent.ti.com>
-References: <1286180294-32618-1-git-send-email-peter.ujfalusi@nokia.com>
- <1286180294-32618-5-git-send-email-peter.ujfalusi@nokia.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: NOTE: hwmod changes merged to linux-omap master for testing
+Date: Mon, 4 Oct 2010 14:50:11 +0530
+Message-ID: <AANLkTi=Ek+m_AMx2-jOgkGOeMYjKFmTrCMjZ=2r+G67q@mail.gmail.com>
+References: <20101002004821.GN3117@atomide.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42163 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752814Ab0JDJRx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 05:17:53 -0400
-In-Reply-To: <1286180294-32618-5-git-send-email-peter.ujfalusi@nokia.com>
-Content-Language: en-US
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41465 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754153Ab0JDJUM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 05:20:12 -0400
+Received: by wyb28 with SMTP id 28so4697211wyb.19
+        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 02:20:11 -0700 (PDT)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Peter Ujfalusi
-> Sent: Monday, October 04, 2010 1:48 PM
-> To: Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; Jarkko Nikula; 
-> linux-arm-kernel@lists.infradead.org
-> Subject: [PATCH v4 4/4] OMAP3: DMA: Errata i541: sDMA FIFO 
-> draining does not finish
+On Mon, Oct 4, 2010 at 1:19 PM, G, Manjunath Kondaiah <manjugk@ti.com> =
+wrote:
+> Hi Tony,
+> With latest merges on master branch with commit ID:
+> 0882b1455797b0a104978000a622c3f2412e7cf5 omap: READ CAREFULLY: Fix bu=
+ild after merging in hwmod support for testing
 >
-...
-> +	/* OMAP3 Errata i541: sDMA FIFO draining does not finish */
+> Booting with zoom3 seems to be fine but observed issues with omap4 bl=
+aze board.
+>
+> Looks like multiple warning dumps and finally it crashes after "Freei=
+ng init memory" with both NFS and ramdisk file systems.
 
-This logic is required for multiple erratas. Can we have seperate
-function for handling this logic. More details at:
-https://patchwork.kernel.org/patch/126271/
+This issue though seems to exist much before hwmod merge, I tried
+below commit on master
 
-...
+commit 2365f1f7e5544b531ccd3e07fd06bb12bf7a62a7
+Merge: acc012f 391bcdd
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Wed Sep 29 11:19:10 2010 -0700
 
-> --- a/arch/arm/plat-omap/include/plat/dma.h
-> +++ b/arch/arm/plat-omap/include/plat/dma.h
-> @@ -335,6 +335,9 @@
->  #define OMAP2_DMA_MISALIGNED_ERR_IRQ	(1 << 11)
->  
->  #define OMAP_DMA_CCR_EN			(1 << 7)
-> +#define OMAP_DMA_CCR_RD_ACTIVE		(1 << 9)
-> +#define OMAP_DMA_CCR_WR_ACTIVE		(1 << 10)
-> +#define OMAP_DMA_CCR_SEL_SRC_DST_SYNC	(1 << 24)
->  #define OMAP_DMA_CCR_BUFFERING_DISABLE	(1 << 25)
+Issue still reproducible.
+I used 4430SDP with es2.0
 
-As I mentioned in other mail, if you are introducing this feature,
-it is better to convert existing erratas also to use this feature.
+Not sure what is happening though.
 
--Manjunath
+http://pastebin.com/LZKaAztT
+
+---
+Regards,
+Govindraj.R
+
+
+>
+> The complete bootlogs are available at:
+> NFS bootlog:
+> http://pastebin.com/nrWQ5FGG
+>
+> Ramdisk bootlog:
+> http://pastebin.com/1F75d2Ew
+>
+> -Manjunath
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+>> Sent: Saturday, October 02, 2010 6:18 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: NOTE: hwmod changes merged to linux-omap master for testing
+>>
+>> Hi all,
+>>
+>> So I've finally merged Kevin's hwmod branch into the
+>> linux-omap master so we can give it some testing to see if we
+>> can merge it to the mainline. Might take few minutes to hit
+>> the mirrors.
+>>
+>> Please note that for omap2plus machines you need to change:
+>>
+>> - u-boot bootargs for kernel cmdline needs to change with setenv
+>> - if you use hardcoded CONFIG_CMDLINE, change it in your .config
+>> - /etc/inittab in your omap root file system if using serial console
+>>
+>> This is because otherwise the serial-omap would be
+>> conflicting with the 8250 driver. This should not affect
+>> omap1 machines.
+>>
+>> Please give it a try and report any issues on this list! Now
+>> all the machines except ams_delta_defconfig should build.
+>> That one is still missing some camera driver changes to build.
+>>
+>> Regards,
+>>
+>> Tony
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>> linux-omap" in the body of a message to
+>> majordomo@vger.kernel.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
+>> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
