@@ -1,65 +1,47 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: beagle hangs in uart3 disabling clocks
-Date: Tue, 5 Oct 2010 13:36:08 +0800
-Message-ID: <AANLkTimtfm+Tq6y=Gv=-JWEZ-1CYUpsO71aE0AjkSbHQ@mail.gmail.com>
-References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com>
-	<4CA9C5F6.7060902@ti.com>
-	<AANLkTi=C55AbJhCWkFAM06vL2c5UM=aH3z2r8i4_55Mk@mail.gmail.com>
-	<AANLkTin++-F7dZWhqM6DG4v-95rfOpOwHSqj8xhTdS3k@mail.gmail.com>
-	<87wrpy0xp3.fsf@deeprootsystems.com>
-	<AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com>
-	<87iq1hzt3u.fsf@deeprootsystems.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/3 v5] AM35x: Add musb support
+Date: Tue, 5 Oct 2010 08:41:11 +0300
+Message-ID: <20101005054111.GC2643@legolas.emea.dhcp.ti.com>
+References: <1285823949-27694-1-git-send-email-ajay.gupta@ti.com>
+ <20101001060037.GC2925@legolas.emea.dhcp.ti.com>
+ <20101004172813.GV3117@atomide.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:43811 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754299Ab0JEFgK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 01:36:10 -0400
-Received: by wwj40 with SMTP id 40so5152982wwj.1
-        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 22:36:09 -0700 (PDT)
-In-Reply-To: <87iq1hzt3u.fsf@deeprootsystems.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35985 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752296Ab0JEFlR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Oct 2010 01:41:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20101004172813.GV3117@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Govindraj <govindraj.ti@gmail.com>, Pramod <pramod.gurav@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-2010/10/5 Kevin Hilman <khilman@deeprootsystems.com>:
-> Ming Lei <tom.leiming@gmail.com> writes:
->
->> 2010/10/4 Kevin Hilman <khilman@deeprootsystems.com>:
->>>
->>> Why? =A0What do you need from the PM branch that is not in l-o mast=
-er?
+On Mon, Oct 04, 2010 at 12:28:14PM -0500, Tony Lindgren wrote:
+>* Felipe Balbi <balbi@ti.com> [100930 22:52]:
+>> Hi,
 >>
->> Seems master branch works fine for me, my beagle board doesn't hang
->> uart3 disabling clocks.
+>> On Thu, Sep 30, 2010 at 12:19:07AM -0500, Gupta, Ajay Kumar wrote:
+>> >AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
+>> >It has USB phy built inside the IP itself.
+>> >
+>> >Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+>>
+>> besides the one small question below:
+>>
+>> Acked-by: Felipe Balbi <balbi@ti.com>
 >
-> Master branch and PM branch have exactly the same functionality for
-> UART hwmods. =A0The problem was that you manually enabled DEBUG in
-> omap_hwmod.c.
-
-Yes, you are correct. If DEBUG in omap_hwmod.c is enabled manually,
-and pass the parameter of 'earlyprintk loglevel=3D8' to kernel from boo=
-tloader,
-this issue can be triggered even with master branch.
-
+>Felipe, I'm assuming you're queuing up the omap USB platform data
+>patches. So not picking up these patches.
 >
->> I only want to have a try of the runtime pm feature of omap3, so use
->> PM branch to do the test.
->
-> master branch and PM branch have exactly the same functionality for
-> runtime PM
+>Also, please also note that the arch/arm/*omap*/ patches should
+>be posted with both linux-omap and linux-arm-kernel mailing lists
+>Cc'd.
 
-Thanks for letting me know it.
+I'll queue it throught Greg. Can I get your Acked-by ?
 
-thanks,
---=20
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
