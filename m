@@ -1,59 +1,51 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
-Date: Tue, 05 Oct 2010 14:44:45 -0700
-Message-ID: <878w2cnwky.fsf@deeprootsystems.com>
-References: <Pine.LNX.4.44L0.1010021004150.15874-100000@netrider.rowland.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [PATCH v3] OMAP: NAND: Fix static declaration warning
+Date: Wed,  6 Oct 2010 03:26:56 +0530
+Message-ID: <1286315819-5906-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:58559 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755238Ab0JEVos (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 17:44:48 -0400
-Received: by pxi10 with SMTP id 10so1765653pxi.19
-        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 14:44:48 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1010021004150.15874-100000@netrider.rowland.org>
-	(Alan Stern's message of "Sat, 2 Oct 2010 10:12:10 -0400 (EDT)")
+Received: from comal.ext.ti.com ([198.47.26.152]:42183 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751844Ab0JEV42 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Oct 2010 17:56:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+This patch fixes sparse warning for static declaration of variable "use_dma"
 
-> On Fri, 1 Oct 2010, Rafael J. Wysocki wrote:
->
->> > > In my opinion the _irq operations should really be one-shot, without
->> > > any looping, waking up parents etc.  I mean, if the parent is not RPM_ACTIVE,
->> > > the _irq resume should immediately fail and analogously for the _irq
->> > > suspend.  And so on.  As simple as reasonably possible.
->> > 
->> > But what if the device's own status is currently SUSPENDING or
->> > RESUMING?  Do you want to fail when that happens, instead of waiting
->> > for the concurrent operation to finish?
->> 
->> Yes.  IMO an _irq() suspend should only be allowed if the status is RPM_ACTIVE
->> and an _irq() resume should fail if the status is not RPM_SUSPENDED.  The
->> error code returned should depend on the situation, though.
->> 
->> > There's no way to prevent this
->> > on SMP systems, because a wakeup request can arrive while a
->> > software-initiated resume is in progress.
->> 
->> I know that. :-)
->
-> I suspect Kevin will not want to live with this restriction, but I'd
-> like to hear from him.  Kevin?
+drivers/mtd/nand/omap2.c:114:11: warning: symbol 'use_dma' was not declared. Should it be static?
 
-[ Apologies for the delays... I've been running around preparing OMAP PM
-  stuff for the upcoming merge window. ]
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-mtd@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Nishanth Menon <nm@ti.com>
+---
+Changes since v1:
+ - no logical changes, patch seperated from series based Tony's suggestion.
 
-I think I can live with the above restrictions (the _irq methods failing
-unless they can immediately run.)  For the rare corner cases I've
-currently run into, this will work fine as they happen because of a
-wakeup IRQ, where we know the device is RPM_SUSPENDED.
+ drivers/mtd/nand/omap2.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Kevin
-
-
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index 133d515..439e80d 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -111,11 +111,11 @@ static int use_dma = 1;
+ module_param(use_dma, bool, 0);
+ MODULE_PARM_DESC(use_dma, "enable/disable use of DMA");
+ #else
+-const int use_dma;
++static const int use_dma;
+ #endif
+ #else
+ const int use_prefetch;
+-const int use_dma;
++static const int use_dma;
+ #endif
+ 
+ struct omap_nand_info {
+-- 
+1.7.0.4
 
