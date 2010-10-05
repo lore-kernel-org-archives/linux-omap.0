@@ -1,34 +1,36 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: omap: fix the warning return type defaults to
- 'int'
-Date: Tue, 5 Oct 2010 23:06:45 +0300
-Message-ID: <20101005200645.GD4656@legolas.emea.dhcp.ti.com>
-References: <1286225393-22472-1-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 0/2] omap: dsp: make the driver actually work
+Date: Tue, 5 Oct 2010 15:09:39 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5304681D48D3@dlee03.ent.ti.com>
+References: <1286208555-8829-1-git-send-email-felipe.contreras@gmail.com>
+	<20101005190741.GC20825@kroah.com>
+	<AANLkTikOBWxXh7uVrDxfW3OnwOM58JTXU76KUUoQWBWM@mail.gmail.com>
+	<27F9C60D11D683428E133F85D2BB4A5304681D4889@dlee03.ent.ti.com>
+ <AANLkTin=k07hUq+cLAOsf0aYw5Ey23UOpbpo=+Eb49w9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1286225393-22472-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "Kamat, Nishant" <nskamat-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTin=k07hUq+cLAOsf0aYw5Ey23UOpbpo=+Eb49w9@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Greg KH <greg@kroah.com>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 04, 2010 at 03:49:53PM -0500, Munegowda, Keshava wrote:
->This patch fix the follwing warning when compiling usb code
->for OMAP defconfigs.
->arch/arm/plat-omap/include/plat/usb.h:109: warning: return type defaults
->to 'int'
+Felipe Contreras wrote:
+...
+>> 
+>> phys_to_virt instead of ioremap should work fine, still need to try
+>> it though. 
+> 
+> I tried that... Didn't work. I guess we need to flush at some points
+> (since the memory is cacheable). 
 
-$SUBJECT is mis-leading. I thought, initially, this was related to
-omap_udc.c (until I actually read the patch, of course).
+Hmmm, because my other option was to move the reserved memory outside the kernel, but that involves specifying bootargs again and using dma_alloc_coherent with their restrictions.
 
-Generaly, you'd use "arm: omap:" as a prefix.
+If you are working on a different method and need any help let me know.
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Omar
