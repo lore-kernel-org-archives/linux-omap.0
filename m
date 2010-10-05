@@ -1,40 +1,222 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/2] omap: dsp: make the driver actually work
-Date: Tue, 5 Oct 2010 22:23:52 +0300
-Message-ID: <AANLkTikOBWxXh7uVrDxfW3OnwOM58JTXU76KUUoQWBWM@mail.gmail.com>
-References: <1286208555-8829-1-git-send-email-felipe.contreras@gmail.com>
-	<20101005190741.GC20825@kroah.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCHv2 1/7] pwm: Add pwm core driver
+Date: Tue, 5 Oct 2010 12:22:25 -0700
+Message-ID: <20101005122225.6dda30ff.akpm@linux-foundation.org>
+References: <1286280002-1636-1-git-send-email-arun.murthy@stericsson.com>
+        <1286280002-1636-2-git-send-email-arun.murthy@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101005190741.GC20825@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mips-bounce@linux-mips.org>
+In-Reply-To: <1286280002-1636-2-git-send-email-arun.murthy@stericsson.com>
+Sender: linux-mips-bounce@linux-mips.org
+Errors-to: linux-mips-bounce@linux-mips.org
+To: Arun Murthy <arun.murthy@stericsson.com>
+Cc: lars@metafoo.de, kernel@pengutronix.de, philipp.zabel@gmail.com, robert.jarzmik@free.fr, marek.vasut@gmail.com, eric.y.miao@gmail.com, rpurdie@rpsys.net, sameo@linux.intel.com, kgene.kim@samsung.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, STEricsson_nomadik_linux@list.st.com, bgat@billgatliff.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 5, 2010 at 10:07 PM, Greg KH <greg@kroah.com> wrote:
-> On Mon, Oct 04, 2010 at 07:09:13PM +0300, Felipe Contreras wrote:
->> It seems the platform device was dropped from the migration of tidspbridge into
->> staging, plus the sdram meblock (previously bootmem) required for it work are
->> gone.
->>
->> Withouth these patches the driver loads, but doesn't do anything.
->>
->> A second issue with ioremap() still remains, but that can be solved by
->> reverting 309caa9.
->>
->> I think these might be worth to get into 2.6.36, if not, I have versions with
->> more changes; cleanups and so on.
+On Tue, 5 Oct 2010 17:29:56 +0530
+Arun Murthy <arun.murthy@stericsson.com> wrote:
+
+> The existing pwm based led and backlight driver makes use of the
+> pwm(include/linux/pwm.h). So all the board specific pwm drivers will
+> be exposing the same set of function name as in include/linux/pwm.h.
+> Consder a platform with multi Soc or having more than one pwm module, in
+> such a case, there exists more than one pwm driver for a platform. Each
+> of these pwm drivers export the same set of function and hence leads to
+> re-declaration build error.
+> 
+> In order to overcome this issue all the pwm drivers must register to
+> some core pwm driver with function pointers for pwm operations (i.e
+> pwm_config, pwm_enable, pwm_disable).
+> 
+> The clients of pwm device will have to call pwm_request, wherein
+> they will get the pointer to struct pwm_ops. This structure include
+> function pointers for pwm_config, pwm_enable and pwm_disable.
+> 
+
+Have we worked out who will be merging this work, if it gets merged?
+
 >
-> I've applied this to my staging-next tree, for .37, as it's not a big
-> deal for .36.
+> ...
+>
+> +struct pwm_dev_info {
+> +	struct pwm_device *pwm_dev;
+> +	struct list_head list;
+> +};
+> +static struct pwm_dev_info *di;
 
-Well, I thought it would be nice if the driver actually worked on .36,
-but anyway, I'll rebase the rest of my cleanup patches and send them.
-Hopefully I find a way to get rid of the ioremap() issue.
+We could just do
 
-Cheers.
+	static struct pwm_dev_info {
+		...
+	} *di;
 
--- 
-Felipe Contreras
+> +DECLARE_RWSEM(pwm_list_lock);
+
+This can/should be static.
+
+> +void __deprecated pwm_free(struct pwm_device *pwm)
+> +{
+> +}
+
+Why are we adding a new function and already deprecating it?
+
+Probably this was already addressed in earlier review, but I'm asking
+again, because there's no comment explaining the reasons.  Lesson
+learned, please add a comment.
+
+Oh, I see that pwm_free() already exists.  This patch adds a new copy
+and doesn't remove the old function.  Does this all actually work?
+
+It still needs a comment explaining why it's deprecated.
+
+> +int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+> +{
+> +	if (!pwm->pops)
+> +		-EFAULT;
+> +	return pwm->pops->pwm_config(pwm, duty_ns, period_ns);
+> +}
+> +EXPORT_SYMBOL(pwm_config);
+> +
+> +int pwm_enable(struct pwm_device *pwm)
+> +{
+> +	if (!pwm->pops)
+> +		-EFAULT;
+> +	return pwm->pops->pwm_enable(pwm);
+> +}
+> +EXPORT_SYMBOL(pwm_enable);
+> +
+> +void pwm_disable(struct pwm_device *pwm)
+> +{
+> +	if (!pwm->pops)
+> +		-EFAULT;
+> +	pwm->pops->pwm_disable(pwm);
+> +}
+> +EXPORT_SYMBOL(pwm_disable);
+> +
+> +int pwm_device_register(struct pwm_device *pwm_dev)
+> +{
+> +	struct pwm_dev_info *pwm;
+> +
+> +	down_write(&pwm_list_lock);
+> +	pwm = kzalloc(sizeof(struct pwm_dev_info), GFP_KERNEL);
+> +	if (!pwm) {
+> +		up_write(&pwm_list_lock);
+> +		return -ENOMEM;
+> +	}
+
+The allocation attempt can be moved outside the lock, making the code
+faster, cleaner and shorter.
+
+> +	pwm->pwm_dev = pwm_dev;
+> +	list_add_tail(&pwm->list, &di->list);
+> +	up_write(&pwm_list_lock);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(pwm_device_register);
+> +
+> +int pwm_device_unregister(struct pwm_device *pwm_dev)
+> +{
+> +	struct pwm_dev_info *tmp;
+> +	struct list_head *pos, *tmp_lst;
+> +
+> +	down_write(&pwm_list_lock);
+> +	list_for_each_safe(pos, tmp_lst, &di->list) {
+> +		tmp = list_entry(pos, struct pwm_dev_info, list);
+> +		if (tmp->pwm_dev == pwm_dev) {
+> +			list_del(pos);
+> +			kfree(tmp);
+> +			up_write(&pwm_list_lock);
+> +			return 0;
+> +		}
+> +	}
+> +	up_write(&pwm_list_lock);
+> +	return -ENOENT;
+> +}
+> +EXPORT_SYMBOL(pwm_device_unregister);
+> +
+> +struct pwm_device *pwm_request(int pwm_id, const char *name)
+> +{
+> +	struct pwm_dev_info *pwm;
+> +	struct list_head *pos;
+> +
+> +	down_read(&pwm_list_lock);
+> +	list_for_each(pos, &di->list) {
+> +		pwm = list_entry(pos, struct pwm_dev_info, list);
+> +		if ((!strcmp(pwm->pwm_dev->pops->name, name)) &&
+> +				(pwm->pwm_dev->pwm_id == pwm_id)) {
+> +			up_read(&pwm_list_lock);
+> +			return pwm->pwm_dev;
+> +		}
+> +	}
+> +	up_read(&pwm_list_lock);
+> +	return ERR_PTR(-ENOENT);
+> +}
+> +EXPORT_SYMBOL(pwm_request);
+
+We have a new kernel-wide exported-to-modules formal API.  We prefer
+that such things be fully documented, please.  kerneldoc is a suitable
+way but please avoid falling into the kerneldoc trap of filling out
+fields with obvious boilerplate and not actually telling people
+anything interesting or useful.
+
+> +static int __init pwm_init(void)
+> +{
+> +	struct pwm_dev_info *pwm;
+> +
+> +	pwm = kzalloc(sizeof(struct pwm_dev_info), GFP_KERNEL);
+> +	if (!pwm)
+> +		return -ENOMEM;
+> +	INIT_LIST_HEAD(&pwm->list);
+> +	di = pwm;
+> +	return 0;
+> +}
+
+OK, this looks wrong.
+
+AFACIT you've created a dummy pwm_dev_info as a singleton, kernel-wide
+anchor for a list of all pwm_dev_info's.  So this "anchor" pwm_dev_info
+never actually gets used for anything.
+
+The way to do this is to remove `di' altogether and instead use a
+singleton, kernel-wide list_head as the anchor for all the
+dynamically-allocated pwm_dev_info's.
+
+> +subsys_initcall(pwm_init);
+> +
+> +static void __exit pwm_exit(void)
+> +{
+> +	kfree(di);
+> +}
+> +
+> +module_exit(pwm_exit);
+> +
+> +MODULE_LICENSE("GPL v2");
+> +MODULE_AUTHOR("Arun R Murthy");
+> +MODULE_ALIAS("core:pwm");
+> +MODULE_DESCRIPTION("Core pwm driver");
+> diff --git a/include/linux/pwm.h b/include/linux/pwm.h
+> index 7c77575..6e7da1f 100644
+> --- a/include/linux/pwm.h
+> +++ b/include/linux/pwm.h
+> @@ -3,6 +3,13 @@
+>  
+>  struct pwm_device;
+>  
+> +struct pwm_ops {
+> +	int (*pwm_config)(struct pwm_device *pwm, int duty_ns, int period_ns);
+> +	int (*pwm_enable)(struct pwm_device *pwm);
+> +	int (*pwm_disable)(struct pwm_device *pwm);
+> +	char *name;
+> +};
+
+This also should be documented.
+
+>
+> ...
+>
+
+I suggest that you work on Kevin's comments before making any code
+changes though.
