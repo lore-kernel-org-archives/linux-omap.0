@@ -1,235 +1,89 @@
 From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCHv4 2/6] omap3: fix and improve the LED handling on IGEP v2 board.
-Date: Tue,  5 Oct 2010 16:15:18 +0200
-Message-ID: <1286288122-16834-3-git-send-email-eballetbo@gmail.com>
+Subject: [PATCHv4 5/6] omap3: Add i2c eeprom driver to read EDID on IGEP v2.
+Date: Tue,  5 Oct 2010 16:15:21 +0200
+Message-ID: <1286288122-16834-6-git-send-email-eballetbo@gmail.com>
 References: <1286288122-16834-1-git-send-email-eballetbo@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-wy0-f174.google.com ([74.125.82.174]:57932 "EHLO
 	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753293Ab0JEOPf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 10:15:35 -0400
+	with ESMTP id S1753450Ab0JEOPk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 10:15:40 -0400
 Received: by mail-wy0-f174.google.com with SMTP id 28so6055516wyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 07:15:34 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 07:15:39 -0700 (PDT)
 In-Reply-To: <1286288122-16834-1-git-send-email-eballetbo@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
 
-The IGEP v2 board has four leds, this patch allows control all
-of these LEDs using the LED class if CONFIG_LEDS_GPIO is selected
-or using the General Purpose Input/Output (GPIO) interface if
-CONFIG_LEDS_GPIO is not selected.
+Add i2c eeprom driver to access monitor EDID binary information
+from user space, something that is required by 'decode-edid' and
+'parse-edid'.
 
 Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
 ---
- arch/arm/mach-omap2/board-igep0020.c |  156 +++++++++++++++++++---------------
- 1 files changed, 87 insertions(+), 69 deletions(-)
+ arch/arm/mach-omap2/board-igep0020.c |   33 ++++++++++++++++++++++++---------
+ 1 files changed, 24 insertions(+), 9 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 07dbdb7..83a30ce 100644
+index ddc740a..aa7b8bd 100644
 --- a/arch/arm/mach-omap2/board-igep0020.c
 +++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -261,6 +261,77 @@ static struct omap2_hsmmc_info mmc[] = {
- 	{}      /* Terminator */
+@@ -541,7 +541,7 @@ static struct twl4030_platform_data igep2_twldata = {
+ 
  };
  
-+#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
-+#include <linux/leds.h>
-+
-+static struct gpio_led igep2_gpio_leds[] = {
-+	[0] = {
-+		.name			= "gpio-led:red:d0",
-+		.gpio			= IGEP2_GPIO_LED0_RED,
-+		.default_trigger	= "default-off"
-+	},
-+	[1] = {
-+		.name			= "gpio-led:green:d0",
-+		.gpio			= IGEP2_GPIO_LED0_GREEN,
-+		.default_trigger	= "default-off",
-+	},
-+	[2] = {
-+		.name			= "gpio-led:red:d1",
-+		.gpio			= IGEP2_GPIO_LED1_RED,
-+		.default_trigger	= "default-off",
-+	},
-+	[3] = {
-+		.name			= "gpio-led:green:d1",
-+		.default_trigger	= "heartbeat",
-+		.gpio			= -EINVAL, /* gets replaced */
+-static struct i2c_board_info __initdata igep2_i2c_boardinfo[] = {
++static struct i2c_board_info __initdata igep2_i2c1_boardinfo[] = {
+ 	{
+ 		I2C_BOARD_INFO("twl4030", 0x48),
+ 		.flags		= I2C_CLIENT_WAKE,
+@@ -550,14 +550,29 @@ static struct i2c_board_info __initdata igep2_i2c_boardinfo[] = {
+ 	},
+ };
+ 
+-static int __init igep2_i2c_init(void)
++static struct i2c_board_info __initdata igep2_i2c3_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("eeprom", 0x50),
 +	},
 +};
 +
-+static struct gpio_led_platform_data igep2_led_pdata = {
-+	.leds           = igep2_gpio_leds,
-+	.num_leds       = ARRAY_SIZE(igep2_gpio_leds),
-+};
-+
-+static struct platform_device igep2_led_device = {
-+	 .name   = "leds-gpio",
-+	 .id     = -1,
-+	 .dev    = {
-+		 .platform_data  =  &igep2_led_pdata,
-+	},
-+};
-+
-+static void __init igep2_leds_init(void)
-+{
-+	platform_device_register(&igep2_led_device);
-+}
-+
-+#else
-+static inline void igep2_leds_init(void)
-+{
-+	if ((gpio_request(IGEP2_GPIO_LED0_RED, "gpio-led:red:d0") == 0) &&
-+	    (gpio_direction_output(IGEP2_GPIO_LED0_RED, 1) == 0)) {
-+		gpio_export(IGEP2_GPIO_LED0_RED, 0);
-+		gpio_set_value(IGEP2_GPIO_LED0_RED, 0);
-+	} else
-+		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_RED\n");
-+
-+	if ((gpio_request(IGEP2_GPIO_LED0_GREEN, "gpio-led:green:d0") == 0) &&
-+	    (gpio_direction_output(IGEP2_GPIO_LED0_GREEN, 1) == 0)) {
-+		gpio_export(IGEP2_GPIO_LED0_GREEN, 0);
-+		gpio_set_value(IGEP2_GPIO_LED0_GREEN, 0);
-+	} else
-+		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_GREEN\n");
-+
-+	if ((gpio_request(IGEP2_GPIO_LED1_RED, "gpio-led:red:d1") == 0) &&
-+	    (gpio_direction_output(IGEP2_GPIO_LED1_RED, 1) == 0)) {
-+		gpio_export(IGEP2_GPIO_LED1_RED, 0);
-+		gpio_set_value(IGEP2_GPIO_LED1_RED, 0);
-+	} else
-+		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED1_RED\n");
-+
-+}
-+#endif
-+
- static int igep2_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
++static void __init igep2_i2c_init(void)
  {
-@@ -290,14 +361,26 @@ static int igep2_twl_gpio_setup(struct device *dev,
- 	    (gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0) < 0))
- 		pr_err("IGEP2: Could not obtain gpio for USBH_CPEN");
- 
-+	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
-+#if !defined(CONFIG_LEDS_GPIO) && !defined(CONFIG_LEDS_GPIO_MODULE)
-+	if ((gpio_request(gpio+TWL4030_GPIO_MAX+1, "gpio-led:green:d1") == 0)
-+	    && (gpio_direction_output(gpio + TWL4030_GPIO_MAX + 1, 1) == 0)) {
-+		gpio_export(gpio + TWL4030_GPIO_MAX + 1, 0);
-+		gpio_set_value(gpio + TWL4030_GPIO_MAX + 1, 0);
-+	} else
-+		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED1_GREEN\n");
-+#else
-+	igep2_gpio_leds[3].gpio = gpio + TWL4030_GPIO_MAX + 1;
-+#endif
+-	omap_register_i2c_bus(1, 2600, igep2_i2c_boardinfo,
+-			ARRAY_SIZE(igep2_i2c_boardinfo));
+-	/* Bus 3 is attached to the DVI port where devices like the pico DLP
+-	 * projector don't work reliably with 400kHz */
+-	omap_register_i2c_bus(3, 100, NULL, 0);
+-	return 0;
++	int ret;
 +
- 	return 0;
- };
- 
--static struct twl4030_gpio_platform_data igep2_gpio_data = {
-+static struct twl4030_gpio_platform_data igep2_twl4030_gpio_pdata = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
--	.use_leds	= false,
-+	.use_leds	= true,
- 	.setup		= igep2_twl_gpio_setup,
- };
- 
-@@ -371,47 +454,6 @@ static void __init igep2_display_init(void)
- 		pr_err("IGEP v2: Could not obtain gpio GPIO_DVI_PUP\n");
++	ret = omap_register_i2c_bus(1, 2600, igep2_i2c1_boardinfo,
++		ARRAY_SIZE(igep2_i2c1_boardinfo));
++	if (ret)
++		pr_warning("IGEP2: Could not register I2C1 bus (%d)\n", ret);
++
++	/*
++	 * Bus 3 is attached to the DVI port where devices like the pico DLP
++	 * projector don't work reliably with 400kHz
++	 */
++	ret = omap_register_i2c_bus(3, 100, igep2_i2c3_boardinfo,
++		ARRAY_SIZE(igep2_i2c3_boardinfo));
++	if (ret)
++		pr_warning("IGEP2: Could not register I2C3 bus (%d)\n", ret);
  }
  
--#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
--#include <linux/leds.h>
--
--static struct gpio_led igep2_gpio_leds[] = {
--	{
--		.name = "led0:red",
--		.gpio = IGEP2_GPIO_LED0_RED,
--	},
--	{
--		.name = "led0:green",
--		.default_trigger = "heartbeat",
--		.gpio = IGEP2_GPIO_LED0_GREEN,
--	},
--	{
--		.name = "led1:red",
--		.gpio = IGEP2_GPIO_LED1_RED,
--	},
--};
--
--static struct gpio_led_platform_data igep2_led_pdata = {
--	.leds           = igep2_gpio_leds,
--	.num_leds       = ARRAY_SIZE(igep2_gpio_leds),
--};
--
--static struct platform_device igep2_led_device = {
--	 .name   = "leds-gpio",
--	 .id     = -1,
--	 .dev    = {
--		 .platform_data  =  &igep2_led_pdata,
--	},
--};
--
--static void __init igep2_init_led(void)
--{
--	platform_device_register(&igep2_led_device);
--}
--
--#else
--static inline void igep2_init_led(void) {}
--#endif
--
- static struct platform_device *igep2_devices[] __initdata = {
- 	&igep2_dss_device,
- };
-@@ -441,7 +483,7 @@ static struct twl4030_platform_data igep2_twldata = {
- 	/* platform_data for children goes here */
- 	.usb		= &igep2_usb_data,
- 	.codec		= &igep2_codec_data,
--	.gpio		= &igep2_gpio_data,
-+	.gpio		= &igep2_twl4030_gpio_pdata,
- 	.vmmc1          = &igep2_vmmc1,
- 	.vmmc2		= &igep2_vmmc2,
- 	.vpll2		= &igep2_vpll2,
-@@ -502,34 +544,10 @@ static void __init igep2_init(void)
- 	usb_ehci_init(&ehci_pdata);
+ static struct omap_musb_board_data musb_board_data = {
+@@ -635,7 +650,7 @@ static void __init igep2_init(void)
  
- 	igep2_flash_init();
--	igep2_init_led();
-+	igep2_leds_init();
- 	igep2_display_init();
- 	igep2_init_smsc911x();
- 
--	/* GPIO userspace leds */
--#if !defined(CONFIG_LEDS_GPIO) && !defined(CONFIG_LEDS_GPIO_MODULE)
--	if ((gpio_request(IGEP2_GPIO_LED0_RED, "led0:red") == 0) &&
--	    (gpio_direction_output(IGEP2_GPIO_LED0_RED, 1) == 0)) {
--		gpio_export(IGEP2_GPIO_LED0_RED, 0);
--		gpio_set_value(IGEP2_GPIO_LED0_RED, 0);
--	} else
--		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_RED\n");
+ 	/* Get IGEP2 hardware revision */
+ 	igep2_get_revision();
 -
--	if ((gpio_request(IGEP2_GPIO_LED0_GREEN, "led0:green") == 0) &&
--	    (gpio_direction_output(IGEP2_GPIO_LED0_GREEN, 1) == 0)) {
--		gpio_export(IGEP2_GPIO_LED0_GREEN, 0);
--		gpio_set_value(IGEP2_GPIO_LED0_GREEN, 0);
--	} else
--		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_GREEN\n");
--
--	if ((gpio_request(IGEP2_GPIO_LED1_RED, "led1:red") == 0) &&
--	    (gpio_direction_output(IGEP2_GPIO_LED1_RED, 1) == 0)) {
--		gpio_export(IGEP2_GPIO_LED1_RED, 0);
--		gpio_set_value(IGEP2_GPIO_LED1_RED, 0);
--	} else
--		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED1_RED\n");
--#endif
--
- 	/* GPIO W-LAN + Bluetooth combo module */
- 	if ((gpio_request(IGEP2_GPIO_WIFI_NPD, "GPIO_WIFI_NPD") == 0) &&
- 	    (gpio_direction_output(IGEP2_GPIO_WIFI_NPD, 1) == 0)) {
++	/* Register I2C busses and drivers */
+ 	igep2_i2c_init();
+ 	platform_add_devices(igep2_devices, ARRAY_SIZE(igep2_devices));
+ 	omap_serial_init();
 -- 
 1.7.0.4
 
