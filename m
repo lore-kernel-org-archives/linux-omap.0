@@ -1,54 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/14] omap: Map only available sram memory
-Date: Mon, 4 Oct 2010 17:36:38 -0700
-Message-ID: <20101005003638.GD3117@atomide.com>
-References: <1284716878-27667-2-git-send-email-santosh.shilimkar@ti.com>
- <1284716878-27667-3-git-send-email-santosh.shilimkar@ti.com>
- <AANLkTi=PM1x7zXbSMRxBHVZ5Z2+4iwebvbiGizca_rC8@mail.gmail.com>
- <20101001225303.GF3117@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE18C@dbde02.ent.ti.com>
- <AANLkTi=zmgSCCg71NsYMte9K-yeyb1i0VxCA4i_9Y8D-@mail.gmail.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE61A@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB030CDFE85B@dbde02.ent.ti.com>
- <AANLkTi=wbRKvjTmVwE+Svx1SGS1HgAh74KcN_Y6Xwmin@mail.gmail.com>
- <20101005003438.GC3117@atomide.com>
+Subject: Re: [GIT PULL] omap2 sparse fixes
+Date: Mon, 4 Oct 2010 19:14:56 -0700
+Message-ID: <20101005021455.GE3117@atomide.com>
+References: <20100923225851.GR4211@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F859E@dbde02.ent.ti.com>
+ <20100925001914.GO4211@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F917C@dbde02.ent.ti.com>
+ <20100928152139.GB3117@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB3F94C9@dbde02.ent.ti.com>
+ <20100928183157.GH3117@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE8F9@dbde02.ent.ti.com>
+ <20100929215635.GC3117@atomide.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE911@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50556 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54360 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751233Ab0JEAgk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 20:36:40 -0400
+	with ESMTP id S1756822Ab0JECPH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 Oct 2010 22:15:07 -0400
 Content-Disposition: inline
-In-Reply-To: <20101005003438.GC3117@atomide.com>
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB7FE911@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Samuel Ortiz <sameo@linux.intel.com>, Dmitry Torokhov <dtor@mail.ru>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-* Tony Lindgren <tony@atomide.com> [101004 17:26]:
-> * Grazvydas Ignotas <notasas@gmail.com> [101004 16:35]:
-> > > Looks like for you " is_sram_locked" function is failing. There was a patch
-> > > in my series from Vikram which was fixing this API.
-> > >
-> > > Do you have this patch applied when you are trying this out ?
-> > > http://www.spinics.net/linux/lists/arm-kernel/msg98697.html
-> > 
-> > Well it looks like this only happens on linux-next (was using
-> > next-20101001 version) with this defconfig:
-> > http://notaz.gp2x.de/misc/pnd/config_next_101001_2
-> > 
-> > this has yours and Vikram's patch you mentioned in. Using
-> > omap2plus_defconfig on linux-next or this "bad" defconfig on
-> > linux-omap boots fine, strange.
+* G, Manjunath Kondaiah <manjugk@ti.com> [100929 16:38]:
 > 
-> Maybe you need to disable CONFIG_SMP still in for-next?
+> Patches are same except pulling out twl and driver patches from
+> the series.
 > 
-> At least one patch is still missing there, that's the TLB
-> broadcast patch we have in omap-testing and sitting in
-> Russell's patch system.
+> Paul's comment is addressed and changes are pushed to git branch.
+> Build tested with omap3_defconfig and boot tested with beagle board.
 
-Hmm, no CONFIG_SMP at least in the config above.. Must be
-something else then.
+Thanks, pulling this into omap-for-linus.
 
 Tony
+ 
+> The following changes since commit 899611ee7d373e5eeda08e9a8632684e1ebbbf00:
+>   Linus Torvalds (1):
+>         Linux 2.6.36-rc6
+> 
+> are available in the git repository at:
+> 
+>   git://dev.omapzoom.org/pub/scm/manju/kernel-omap3-dev.git omap_sparse_fixesv2
+> 
+> G, Manjunath Kondaiah (7):
+>       OMAP: mach-omap2: Fix incorrect assignment warnings
+>       OMAP: mach-omap2: Fix static declaration warnings
+>       OMAP2plus: Fix static function warnings
+>       OMAP: mach-omap2: Fix miscellaneous sparse warnings
+>       OMAP: plat-omap: Fix static function warnings
+>       OMAP: Convert write/read functions to raw read/write
+>       OMAP3: Keypad: Fix incorrect type initializer
+> 
+> -Manjunath
+> 
