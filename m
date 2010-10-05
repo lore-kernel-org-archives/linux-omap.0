@@ -1,89 +1,287 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH v5 0/3] OMAP2/3: DMA: FIFO drain errata fixes
-Date: Tue,  5 Oct 2010 09:45:38 +0300
-Message-ID: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: beagle hangs in uart3 disabling clocks
+Date: Tue, 5 Oct 2010 14:47:17 +0800
+Message-ID: <AANLkTikq8tEsG85zb4k8AZ-4WX76HQ--tzEya8jjoOR7@mail.gmail.com>
+References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com>
+	<4CA9C5F6.7060902@ti.com>
+	<AANLkTi=C55AbJhCWkFAM06vL2c5UM=aH3z2r8i4_55Mk@mail.gmail.com>
+	<AANLkTin++-F7dZWhqM6DG4v-95rfOpOwHSqj8xhTdS3k@mail.gmail.com>
+	<87wrpy0xp3.fsf@deeprootsystems.com>
+	<AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com>
+	<87iq1hzt3u.fsf@deeprootsystems.com>
+	<AANLkTimtfm+Tq6y=Gv=-JWEZ-1CYUpsO71aE0AjkSbHQ@mail.gmail.com>
+	<alpine.DEB.2.00.1010050013210.13816@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.ext.nokia.com ([147.243.1.48]:20674 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757584Ab0JEGp4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 02:45:56 -0400
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44202 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753721Ab0JEGrS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 02:47:18 -0400
+Received: by wyb28 with SMTP id 28so5719887wyb.19
+        for <linux-omap@vger.kernel.org>; Mon, 04 Oct 2010 23:47:17 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1010050013210.13816@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Govindraj <govindraj.ti@gmail.com>, Pramod <pramod.gurav@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+Hi Paul,
 
-This v5 series is based on the v3.
-The first two patch is the actual fix for the original problems without any
-major change in the code (only handling the corresponding erratas in the legacy
-way).
-The third patch in the series is optional, and it is implementing (in one patch)
-the errata handling via flags. This patch converts all errata cases to use the
-introduced dma_errata variable via macros.
+2010/10/5 Paul Walmsley <paul@pwsan.com>:
+> Hello Lei,
+>
+> On Tue, 5 Oct 2010, Ming Lei wrote:
+>
+>> 2010/10/5 Kevin Hilman <khilman@deeprootsystems.com>:
+>> > Ming Lei <tom.leiming@gmail.com> writes:
+>> >
+>> >> 2010/10/4 Kevin Hilman <khilman@deeprootsystems.com>:
+>> >>>
+>> >>> Why? =A0What do you need from the PM branch that is not in l-o m=
+aster?
+>> >>
+>> >> Seems master branch works fine for me, my beagle board doesn't ha=
+ng
+>> >> uart3 disabling clocks.
+>> >
+>> > Master branch and PM branch have exactly the same functionality fo=
+r
+>> > UART hwmods. =A0The problem was that you manually enabled DEBUG in
+>> > omap_hwmod.c.
+>>
+>> Yes, you are correct. If DEBUG in omap_hwmod.c is enabled manually,
+>> and pass the parameter of 'earlyprintk loglevel=3D8' to kernel from =
+bootloader,
+>> this issue can be triggered even with master branch.
+>
+> Does this experimental patch solve the problem, even if DEBUG is enab=
+led
+> in the hwmod code?
+>
+>
+> - Paul
+>
+> From d928bd31c9c4ad16a044b244ef3d2ad3ed648f6f Mon Sep 17 00:00:00 200=
+1
+> From: Paul Walmsley <paul@pwsan.com>
+> Date: Tue, 5 Oct 2010 00:11:27 -0600
+> Subject: [PATCH] RFC: omap serial: block console output while resetti=
+ng earlyconsole UART
+>
+> Currently, no attempt is made to block console output while the
+> earlyconsole UART is unavailable. =A0This can result in silent crashe=
+s
+> that are very difficult to debug due to the lack of console output.
+> This patch holds the console semaphore while resetting the active con=
+sole
+> UART, which causes all console output during that time to be buffered=
+ and
+> then transmitted after the console semaphore is released.
 
-Tony: the first two patch need to go for 2.6.36, and if it is possible it shall
-be backported to .33, .34, and .35 as well.
-The final patch in this series is optional, if you feel like you can take it
-(or drop it). AFAIK the upcoming hwmod changes to dma code will also have
-similar feature to handle the erratas.
-I'm not sure what is the schedule for the hwmod conversion of dma...
+Good works, this patch does fix the issue!
 
-Changes since v4:
-- OMAP2 Errata comment replaced with better description from
-  G, Manjunath Kondaiah <manjugk@ti.com>.
-- Fixed Jarkko Nikula's name in the first patch
-- Based on v3 series (with suggested changes applied on top)
-Changes since v3:
-- OMAP2 errata is applicaple only to OMAP2420 and ES1.0 of OMAP2430
-  noticed by G, Manjunath Kondaiah <manjugk@ti.com>
-- use flags for errata handling
- - OMAP2 buffering disable converted to use flags
- - OMAP3 i541 is using the dma_errata flag
-- Spelling fix in OMAP3 drain timeout message
-Changes since v2:
-- remove multiple assignment
-Changes since v1:
-- Errata ID added to the comment (i541)
+With the patch, even DEBUG in omap_hwmod.c is enabled manually
+and 'earlyprintk loglevel=3D8' is passed to kernel, my beagle board can=
+'t
+hang after 'uart3: disabling clocks' is printed.
 
-Intro mail from v1:
+>
+> Not-yet-signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+> =A0arch/arm/mach-omap2/serial.c | =A0100 ++++++++++++++++++++++++++++=
+++++++++++++++
+> =A01 files changed, 100 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seria=
+l.c
+> index 338e46a..577f8f9 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -28,10 +28,13 @@
+> =A0#include <linux/serial_8250.h>
+> =A0#include <linux/pm_runtime.h>
+>
+> +#include <linux/console.h>
+> +
+> =A0#ifdef CONFIG_SERIAL_OMAP
+> =A0#include <plat/omap-serial.h>
+> =A0#endif
+>
+> +#include <plat/serial.h>
+> =A0#include <plat/common.h>
+> =A0#include <plat/board.h>
+> =A0#include <plat/clock.h>
+> @@ -39,6 +42,8 @@
+> =A0#include <plat/omap_hwmod.h>
+> =A0#include <plat/omap_device.h>
+>
+> +#include <asm/memory.h>
+> +
+> =A0#include "prm.h"
+> =A0#include "pm.h"
+> =A0#include "cm.h"
+> @@ -51,6 +56,8 @@
+> =A0#define UART_ERRATA_FIFO_FULL_ABORT =A0 =A0(0x1 << 0)
+> =A0#define UART_ERRATA_i202_MDR1_ACCESS =A0 (0x1 << 1)
+>
+> +#define uart_id_to_ttys_id(u) =A0 =A0 =A0 =A0 =A0(u - 1)
+> +
+> =A0/*
+> =A0* NOTE: By default the serial timeout is disabled as it causes los=
+t characters
+> =A0* over the serial ports. This means that the UART clocks will stay=
+ on until
+> @@ -106,6 +113,83 @@ static LIST_HEAD(uart_list);
+> =A0static u8 num_uarts;
+>
+> =A0/*
+> + * early_console_uart: if earlyconsole is enabled and active, the UA=
+RT
+> + * ID (e.g., 1, 2, 3, 4) will be stored here. =A0'0' means earlycons=
+ole
+> + * is disabled or some problem occurred during earlyconsole handling=
+=2E
+> + */
+> +static int early_console_uart;
+> +
+> +#define for_each_console(con) \
+> + =A0 =A0 =A0 for (con =3D console_drivers; con !=3D NULL; con =3D co=
+n->next)
+> +
+> +/* XXX belongs in kernel/printk.c or some earlyconsole file */
+> +/* XXX The "earlycon" string is an ugly hack */
+> +int _is_early_console_enabled(void)
+> +{
+> + =A0 =A0 =A0 int ret =3D 0;
+> + =A0 =A0 =A0 struct console *c;
+> +
+> + =A0 =A0 =A0 acquire_console_sem();
+> + =A0 =A0 =A0 for_each_console(c)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!strcmp("earlycon", c->name))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D 1;
+> + =A0 =A0 =A0 release_console_sem();
+> +
+> + =A0 =A0 =A0 return ret;
+> +}
+> +
+> +/* XXX document */
+> +static int _get_early_console_uart(void)
+> +{
+> + =A0 =A0 =A0 u32 v;
+> + =A0 =A0 =A0 int u =3D -EINVAL;
+> +
+> + =A0 =A0 =A0 v =3D __raw_readl(phys_to_virt(OMAP_UART_INFO));
+> + =A0 =A0 =A0 /* XXX see the OMAP debug-macro.S for this table */
+> + =A0 =A0 =A0 switch (v) {
+> + =A0 =A0 =A0 case 0:
+> + =A0 =A0 =A0 case OMAP2UART1:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u =3D 1;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 case OMAP2UART2:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u =3D 2;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 case OMAP2UART3:
+> + =A0 =A0 =A0 case OMAP3UART3:
+> + =A0 =A0 =A0 case OMAP4UART3:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u =3D 3;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 case OMAP3UART4:
+> + =A0 =A0 =A0 case OMAP4UART4:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u =3D 4;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 case ZOOM_UART:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "omap serial: ZOOM UART in use =
+- does that go through "
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"the OMAP serial code?\n");
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> + =A0 =A0 =A0 default:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 WARN(1, "omap serial: unknown serial po=
+rt in use!\n");
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 return u;
+> +}
+> +
+> +/* XXX document */
+> +static void _store_early_console_uart_id(void)
+> +{
+> + =A0 =A0 =A0 int uart_id;
+> +
+> + =A0 =A0 =A0 if (_is_early_console_enabled()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_id =3D _get_early_console_uart();
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (uart_id > 0) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 early_console_uart =3D =
+uart_id;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_info("omap serial: e=
+arly console active on UART%d (ttyS%d)\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_id=
+, uart_id_to_ttys_id(uart_id));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> + =A0 =A0 =A0 }
+> +}
+> +
+> +/*
+> =A0* Since these idle/enable hooks are used in the idle path itself
+> =A0* which has interrupts disabled, use the non-locking versions of
+> =A0* the hwmod enable/disable functions.
+> @@ -801,6 +885,17 @@ void __init omap_serial_init_port(int port)
+> =A0 =A0 =A0 =A0oh->dev_attr =3D uart;
+>
+> =A0 =A0 =A0 =A0/*
+> + =A0 =A0 =A0 =A0* XXX How do we know whether the console is on this =
+UART or not?
+> + =A0 =A0 =A0 =A0* We should only call acquire_console_sem() if the c=
+onsole is on
+> + =A0 =A0 =A0 =A0* this UART.
+> + =A0 =A0 =A0 =A0*
+> + =A0 =A0 =A0 =A0* Of course, the console is not the only thing that =
+could be using
+> + =A0 =A0 =A0 =A0* this UART.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 if (uart->num =3D=3D uart_id_to_ttys_id(early_console_u=
+art))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 acquire_console_sem();
+> +
+> + =A0 =A0 =A0 /*
+> =A0 =A0 =A0 =A0 * Because of early UART probing, UART did not get idl=
+ed
+> =A0 =A0 =A0 =A0 * on init. =A0Now that omap_device is ready, ensure f=
+ull idle
+> =A0 =A0 =A0 =A0 * before doing omap_device_enable().
+> @@ -824,6 +919,9 @@ void __init omap_serial_init_port(int port)
+> =A0 =A0 =A0 =A0omap_uart_block_sleep(uart);
+> =A0 =A0 =A0 =A0uart->timeout =3D DEFAULT_TIMEOUT;
+>
+> + =A0 =A0 =A0 if (uart->num =3D=3D uart_id_to_ttys_id(early_console_u=
+art))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 release_console_sem();
+> +
+> =A0 =A0 =A0 =A0if ((cpu_is_omap34xx() && uart->padconf) ||
+> =A0 =A0 =A0 =A0 =A0 =A0(uart->wk_en && uart->wk_mask)) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0device_init_wakeup(&od->pdev.dev, true=
+);
+> @@ -846,6 +944,8 @@ void __init omap_serial_init(void)
+> =A0{
+> =A0 =A0 =A0 =A0struct omap_uart_state *uart;
+>
+> + =A0 =A0 =A0 _store_early_console_uart_id();
+> +
+> =A0 =A0 =A0 =A0list_for_each_entry(uart, &uart_list, node)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_serial_init_port(uart->num);
+> =A0}
+> --
+> 1.7.1
+>
 
-The following series fixes the sDMA FIFO drain issue present for OMAP2 and
-OMAP3, and covered by an errata.
-For OMAP2 the omap_start_dma had a comment about this errata, but the workaround
-configured wrong bit (CCR_EN instead of the correct BUFFERING_DISABLE bit).
-The first patch from Jarkko Nikula <jhnikula@gmail.com> fixes this.
-For OMAP3 the suggestion is to set sDMA to NoStandby before disabling
-the channel, and wait for the drain to finish, than configure sDMA to
-SmartStandby again. The second patch implements this workaround for OMAP3.
 
-The FIFO drain problem can be reproduced on both OMAP2 and OMAP3 while using
-audio (capture case):
-Either introduce load to the CPU:
-nice -19 arecord -D hw:0 -M -B 10000 -F 5000 -f dat > /dev/null & \
-dd if=/dev/urandom of=/dev/null
-
-or suspending the arecord, and resuming it:
-arecord -D hw:0 -M -B 10000 -F 5000 -f dat > /dev/null
-CTRL+Z; fg; CTRL+Z; fg; ...
-
-On OMAP2 we can not recover from this problem. The board has to be rebooted,
-while OMAP3 can be recovered by reseting the sDMA channel, or introducing
-unrelated sDMA activity (which takes sDMA out from Standby - but this is not
-working all the time).
-
----
-Jarkko Nikula (1):
-  omap: dma: Fix buffering disable bit setting for omap24xx
-
-Peter Ujfalusi (2):
-  OMAP3: DMA: Errata i541: sDMA FIFO draining does not finish
-  OMAP: DMA: Use flags for errata handling
-
- arch/arm/plat-omap/dma.c              |   88 +++++++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/dma.h |    4 ++
- 2 files changed, 82 insertions(+), 10 deletions(-)
-
+thanks,
+--=20
+Lei Ming
 --
-1.7.3.1
-
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
