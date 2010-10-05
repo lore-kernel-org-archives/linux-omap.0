@@ -1,68 +1,54 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: NOTE: hwmod changes merged to linux-omap master for testing
-Date: Tue, 05 Oct 2010 07:57:28 -0700
-Message-ID: <87eic4vg9z.fsf@deeprootsystems.com>
-References: <20101002004821.GN3117@atomide.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90C96B@dbde02.ent.ti.com>
-	<8762xi3sm1.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90CD4F@dbde02.ent.ti.com>
-	<87pqvpyco5.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DB90D031@dbde02.ent.ti.com>
+Subject: Re: [PATCH 1/1] omap: Ptr "isr_reg" tracked as NULL was dereferenced
+Date: Tue, 05 Oct 2010 08:01:12 -0700
+Message-ID: <877hhwvg3r.fsf@deeprootsystems.com>
+References: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	<131d16236d19895323fca2f058d65f1f116bacad.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	<20101005093206.GB2977@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:49160 "EHLO
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:42755 "EHLO
 	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753283Ab0JEO5b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 10:57:31 -0400
-Received: by iwn5 with SMTP id 5so8417994iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 07:57:31 -0700 (PDT)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB90D031@dbde02.ent.ti.com>
-	(Manjunath Kondaiah G.'s message of "Tue, 5 Oct 2010 12:06:17 +0530")
+	with ESMTP id S1752623Ab0JEPBS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 11:01:18 -0400
+In-Reply-To: <20101005093206.GB2977@legolas.emea.dhcp.ti.com> (Felipe Balbi's
+	message of "Tue, 5 Oct 2010 12:32:06 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: balbi@ti.com
+Cc: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "zmc@lurian.net" <zmc@lurian.net>, "a.j.buxton@gmail.com" <a.j.buxton@gmail.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+Felipe Balbi <balbi@ti.com> writes:
 
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> Sent: Tuesday, October 05, 2010 1:05 AM
->> To: G, Manjunath Kondaiah
->> Cc: Tony Lindgren; linux-omap@vger.kernel.org
->> Subject: Re: NOTE: hwmod changes merged to linux-omap master 
->> for testing
->> 
->> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> ...
+> Hi,
 >
->> > As I mentioned no changes to defconfig and it looks like 
->> cpu idle is 
->> > disabled and cpu idle wait is enabled in .config after running make 
->> > omap2plus_defconfig
->> 
->> OK, my fault.  I misread your bootlog, and now see that it's 
->> the default idle path that is triggering the fault, not CPUidle.
->> 
->> I tried on my es2.0 panda and see the same thing now, dump below.
->> The misc. PM warnings on boot are expected as OMAP4 does not have
->> functioning PM support in mainline yet.    The error that crashes is
->> somewhat different, but also likely related to PM as it 
->> appears to be triggered the upon the first attempt at idle.
->> 
->> I haven't debugged any further, but you might want to try 
->> again with enabling more verbose kernel debugging, specifically:
->> 
->> CONFIG_DEBUG_BUGVERBOSE=y
->> CONFIG_DEBUG_ERRORS=y
->> 
->> as you shoul hopefully get some more information as to what 
->> causes the initial panic.
+> On Tue, Oct 05, 2010 at 03:42:10AM -0500, Evgeny Kuznetsov wrote:
+>>+	if (!isr_reg) {
+>>+		printk(KERN_ERR "FATAL: Incorrect GPIO method %i\n",
+>>+				bank->method);
+>>+		BUG();
+>>+		}
 >
-> After enabling above debug options also, I don't see any change in the log.
-> http://pastebin.com/mf8HvQCX
+> this could be simply:
+>
+> BUG_ON(!isr_reg);
 
-Do you have 'debug' on your kernel command line?
+WARN_ON is better.
 
-Kevin
+A BUG() will panic the kernel and stop everything.  This is not an error
+condition that should prevent the entire kernel from running.
+
+>From asm-generic/bug.h:
+
+/*
+ * Don't use BUG() or BUG_ON() unless there's really no way out; one
+ * example might be detecting data structure corruption in the middle
+ * of an operation that can't be backed out of.  If the (sub)system
+ * can somehow continue operating, perhaps with reduced functionality,
+ * it's probably not BUG-worthy.
+ *
+ * If you're tempted to BUG(), think again:  is completely giving up
+ * really the *only* solution?  There are usually better options, where
+ * users don't need to reboot ASAP and can mostly shut down cleanly.
+ */
