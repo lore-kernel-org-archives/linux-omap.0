@@ -1,61 +1,47 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v5 1/3] omap: dma: Fix buffering disable bit setting for
- omap24xx
-Date: Tue, 5 Oct 2010 15:11:13 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DB9FE7F9@dbde02.ent.ti.com>
-References: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com>
- <1286261141-1039-2-git-send-email-peter.ujfalusi@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: beagle hangs in uart3 disabling clocks
+Date: Tue, 5 Oct 2010 03:47:28 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1010050346130.13816@utopia.booyaka.com>
+References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com> <4CA9C5F6.7060902@ti.com> <AANLkTi=C55AbJhCWkFAM06vL2c5UM=aH3z2r8i4_55Mk@mail.gmail.com>
+ <AANLkTin++-F7dZWhqM6DG4v-95rfOpOwHSqj8xhTdS3k@mail.gmail.com> <87wrpy0xp3.fsf@deeprootsystems.com> <AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com> <87iq1hzt3u.fsf@deeprootsystems.com> <AANLkTimtfm+Tq6y=Gv=-JWEZ-1CYUpsO71aE0AjkSbHQ@mail.gmail.com>
+ <alpine.DEB.2.00.1010050013210.13816@utopia.booyaka.com> <4CAACFFF.9040702@ti.com> <alpine.DEB.2.00.1010050117390.13816@utopia.booyaka.com> <4CAAF126.5080206@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54355 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755535Ab0JEJlj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 05:41:39 -0400
-In-Reply-To: <1286261141-1039-2-git-send-email-peter.ujfalusi@nokia.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:42896 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757966Ab0JEJr3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 05:47:29 -0400
+In-Reply-To: <4CAAF126.5080206@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Pramod <pramod.gurav@ti.com>
+Cc: Ming Lei <tom.leiming@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Govindraj <govindraj.ti@gmail.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Tue, 5 Oct 2010, Pramod wrote:
 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Peter Ujfalusi
-> Sent: Tuesday, October 05, 2010 12:16 PM
-> To: Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; Jarkko Nikula; 
-> linux-arm-kernel@lists.infradead.org; Russell King
-> Subject: [PATCH v5 1/3] omap: dma: Fix buffering disable bit 
-> setting for omap24xx
+> On Tuesday 05 October 2010 12:49 PM, Paul Walmsley wrote:
+> > On Tue, 5 Oct 2010, Pramod wrote:
+> > 
+> > > I applied this patch on my kernel which is based on android-2.6.32
+> > > enabling
+> > > dynamic printks. I still see the console hang after enabling the logs in
+> > > hwmod.
+> > > 
+> > > I am using zoom3 board. Can you please let me know which defconfig from lo
+> > > master branch can be used to test on zoom3? I would like to test this
+> > > patch
+> > > with lo master branch and zoom3.
+> > 
+> > Could you please paste your boot log messages here?
+> > 
+> > 
+> > - Paul
 > 
-> From: Jarkko Nikula <jhnikula@gmail.com>
-...
->  
->  	/*
-> -	 * Errata: On ES2.0 BUFFERING disable must be set.
-> -	 * This will always fail on ES1.0
-> +	 * Errata: Inter Frame DMA buffering issue (All OMAP2420 and
-> +	 * OMAP2430ES1.0): DMA will wrongly buffer elements if 
-> packing and
-> +	 * bursting is enabled. This might result in data gets 
-> stalled in
-> +	 * FIFO at the end of the block.
-> +	 * Workaround: DMA channels must have 
-> BUFFERING_DISABLED bit set to
-> +	 * guarantee no data will stay in the DMA FIFO in case 
-> inter frame
-> +	 * buffering occurs.
->  	 */
-> -	if (cpu_is_omap24xx())
-> -		l |= OMAP_DMA_CCR_EN;
-> +	if (cpu_is_omap2420() ||
-> +	    (cpu_is_omap2430() && (omap_type() == OMAP2430_REV_ES1_0)))
-> +		l |= OMAP_DMA_CCR_BUFFERING_DISABLE;
+> Hi paul,
+> These are the boot log messages.
 
-Acked-by: G, Manjunath Kondaiah <manjugk@ti.com>
+Is that with the patch applied or without it?  If without, please post the 
+log messages from a boot after you apply the patch.
 
--Manjunath
+- Paul
