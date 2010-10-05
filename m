@@ -1,61 +1,46 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v5] power: introduce library for device-specific OPPs
-Date: Tue, 5 Oct 2010 16:03:44 -0500
-Message-ID: <4CAB92B0.2030707@ti.com>
-References: <1285933174-24053-1-git-send-email-nm@ti.com>	<201010050036.23179.rjw@sisk.pl> <4CAB228C.7030902@ti.com>	<201010052244.11403.rjw@sisk.pl> <8739skpdo9.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 0/2] omap: dsp: make the driver actually work
+Date: Wed, 6 Oct 2010 00:05:44 +0300
+Message-ID: <AANLkTi=ENjWQRYitr_kYzmRKgve=CoBf=7Y5KHLJNLfb@mail.gmail.com>
+References: <1286208555-8829-1-git-send-email-felipe.contreras@gmail.com>
+	<20101005190741.GC20825@kroah.com>
+	<AANLkTikOBWxXh7uVrDxfW3OnwOM58JTXU76KUUoQWBWM@mail.gmail.com>
+	<27F9C60D11D683428E133F85D2BB4A5304681D4889@dlee03.ent.ti.com>
+	<AANLkTin=k07hUq+cLAOsf0aYw5Ey23UOpbpo=+Eb49w9@mail.gmail.com>
+	<27F9C60D11D683428E133F85D2BB4A5304681D48D3@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8739skpdo9.fsf@deeprootsystems.com>
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5304681D48D3@dlee03.ent.ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Paul <paulmck@linux.vnet.ibm.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Greg KH <greg@kroah.com>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Kevin Hilman had written, on 10/05/2010 03:50 PM, the following:
-> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
-> 
->> On Tuesday, October 05, 2010, Nishanth Menon wrote:
->>> Rafael J. Wysocki had written, on 10/04/2010 05:36 PM, the following:
->>>> On Friday, October 01, 2010, Nishanth Menon wrote:
-> 
-> [...]
-> 
->>>> I'm not really sure why so many mutexes are needed here.  I don't think you
->>>> need a separate mutex in every struct device_opp object.  I'd just use
->>>> dev_opp_list_lock for everything.
->>> I did consider using  dev_opp_list_lock to lock everything *but* here is 
->>> the contention:
+On Tue, Oct 5, 2010 at 11:09 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
+> Felipe Contreras wrote:
+> ...
 >>>
->>> dev_opp_list_lock locks modification for addition of domains device. 
->>> This operation happens usually during init stage.
->>>
->>> each domain device has multiple opps, new opps can be added, but the 
->>> more often usage will probably be opp_enable and disable. domain are 
->>> usually modifiable independent of each other - device_opp->lock provides 
->>> device level lock allowing for each domain device opp list to be 
->>> modified independent of each other. e.g. on thermal overage we may 
->>> choose to lower mpu domain while a coprocessor driver in parallel might 
->>> choose to disable co-processor domain in parallel.
->>>
->>> Wondering why you'd like a single lock for all domains and restrict 
->>> parallelization?
->> Because of the simplicity, mostly.  If there's only a relatively short period
->> when the lock will be contended for, that still is not too bad and it's much
->> easier to get the synchronization right with just one lock for starters.
-> 
-> FWIW, I agree with Rafael
-> 
-> These are not going be highly contended locks, and the lock durations
-> are very short, so simplifying the locking is a big win for readability.
-> 
-> Kevin
-Fair enough. we can relook if the lock becomes a contended lock in the 
-future. I do agree that simplifying the locking will benefit 
-readability. Will post a v6 with a singular lock and updated 
-documentation for the same.
+>>> phys_to_virt instead of ioremap should work fine, still need to try
+>>> it though.
+>>
+>> I tried that... Didn't work. I guess we need to flush at some points
+>> (since the memory is cacheable).
+>
+> Hmmm, because my other option was to move the reserved memory outside the kernel, but that involves specifying bootargs again and using dma_alloc_coherent with their restrictions.
+
+Huh, if there's no contiguous memory region reserved, then the driver
+is doing dma_alloc_coherent already, but that fails (apparently 5M is
+too much). Plus I've read that dma_alloc_coherent is "precious";
+shouldn't be used for that.
+
+> If you are working on a different method and need any help let me know.
+
+So, first I wanted to try reserving some region with mem=X boot param,
+but that solution is ugly. If that worked, then I wanted ti see if
+flushing each time we access that shm memory block works, but in the
+process I wanted to reorganize the whole initialization code because
+right now it's very ugly and confusing.
 
 -- 
-Regards,
-Nishanth Menon
+Felipe Contreras
