@@ -1,38 +1,92 @@
-From: Sergei Shtylyov <sshtylyov@mvista.com>
-Subject: Re: [PATCH 08/10] OMAP: split plat-omap/common.c
-Date: Tue, 05 Oct 2010 15:00:21 +0400
-Message-ID: <4CAB0545.5060309@ru.mvista.com>
-References: <20101001213119.1408.65395.stgit@twilight.localdomain>	<20101001213532.1408.55832.stgit@twilight.localdomain>	<4CA999AA.4030608@ti.com> <alpine.DEB.2.00.1010041314170.13816@utopia.booyaka.com>
+From: Pramod <pramod.gurav@ti.com>
+Subject: Re: beagle hangs in uart3 disabling clocks
+Date: Tue, 5 Oct 2010 16:39:51 +0530
+Message-ID: <4CAB077F.5020806@ti.com>
+References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com> <4CA9C5F6.7060902@ti.com> <AANLkTi=C55AbJhCWkFAM06vL2c5UM=aH3z2r8i4_55Mk@mail.gmail.com> <AANLkTin++-F7dZWhqM6DG4v-95rfOpOwHSqj8xhTdS3k@mail.gmail.com> <87wrpy0xp3.fsf@deeprootsystems.com> <AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com> <87iq1hzt3u.fsf@deeprootsystems.com> <AANLkTimtfm+Tq6y=Gv=-JWEZ-1CYUpsO71aE0AjkSbHQ@mail.gmail.com> <alpine.DEB.2.00.1010050013210.13816@utopia.booyaka.com> <4CAACFFF.9040702@ti.com> <alpine.DEB.2.00.1010050117390.13816@utopia.booyaka.com> <4CAAF126.5080206@ti.com> <alpine.DEB.2.00.1010050346130.13816@utopia.booyaka.com> <4CAAF6B4.4030708@ti.com> <alpine.DEB.2.00.1010050400210.13816@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:41205 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932828Ab0JELCH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 07:02:07 -0400
-Received: by ewy23 with SMTP id 23so2412409ewy.19
-        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 04:02:06 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1010041314170.13816@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52081 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751172Ab0JELJt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Oct 2010 07:09:49 -0400
+In-Reply-To: <alpine.DEB.2.00.1010050400210.13816@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Ming Lei <tom.leiming@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Govindraj <govindraj.ti@gmail.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello.
+On Tuesday 05 October 2010 03:33 PM, Paul Walmsley wrote:
+> On Tue, 5 Oct 2010, Pramod wrote:
+>
+>> On Tuesday 05 October 2010 03:17 PM, Paul Walmsley wrote:
+>>> On Tue, 5 Oct 2010, Pramod wrote:
+>>>
+>>>> On Tuesday 05 October 2010 12:49 PM, Paul Walmsley wrote:
+>>>>> On Tue, 5 Oct 2010, Pramod wrote:
+>>>>>
+>>>>>> I applied this patch on my kernel which is based on android-2.6.32
+>>>>>> enabling
+>>>>>> dynamic printks. I still see the console hang after enabling the logs
+>>>>>> in
+>>>>>> hwmod.
+>>>>>>
+>>>>>> I am using zoom3 board. Can you please let me know which defconfig
+>>>>>> from lo
+>>>>>> master branch can be used to test on zoom3? I would like to test this
+>>>>>> patch
+>>>>>> with lo master branch and zoom3.
+>>>>>
+>>>>> Could you please paste your boot log messages here?
+>>>>>
+>>>>>
+>>>>> - Paul
+>>>>
+>>>> Hi paul,
+>>>> These are the boot log messages.
+>>>
+>>> Is that with the patch applied or without it?  If without, please post the
+>>> log messages from a boot after you apply the patch.
+>>>
+>>> - Paul
+>>
+>> These logs are with the patch shared by you.
+>
+> Looks to me like it boots fine.  If you had hwmod debugging enabled, your
+> kernel should have crashed after
+>
+> omap-hsuart.0: ttyO0 at MMIO 0x4806a000 (irq = 72) is a OMAP UART0
+> omap-hsuart.1: ttyO1 at MMIO 0x4806c000 (irq = 73) is a OMAP UART1
+> omap-hsuart.2: ttyO2 at MMIO 0x49020000 (irq = 74) is a OMAP UART2
+>
+> ... but it didn't crash there.  I'm not seeing any hwmod debug messages
+> though, so you probably don't have DEBUG defined in omap_hwmod.c.
+>
+> So, I suspect whatever problem you're seeing is unrelated to the problem
+> that the patch was intended to solve.
+>
+>
+> - Paul
 
-On 04-10-2010 23:15, Paul Walmsley wrote:
+The hwmod debug messages will be seen when I enable them on the go with:
+echo -n 'file omap_hwmod.c +p' > /debug/dynamic_debug/control
 
->>> --- /dev/null
->>> +++ b/arch/arm/plat-omap/32ksynctimer.c
->>> @@ -0,0 +1,184 @@
->>> +/*
->>> + * linux/arch/arm/plat-omap/clocksource.c
+This will show lots of logs as below ending with UART3 clock disabling 
+and a hang.
 
->> What name do you want to use? 32ksynctimer.c or clocksource.c?
+omap_hwmod:omap_hwmod: uart1: idling
+omap_hwmod:omap_hwmod: uart1: disabling clocks
+omap_hwmod:omap_hwmod: uart2: idling
+omap_hwmod:omap_hwmod: uart2: disabling clocks
+omap_hwmod:omap_hwmod: uart1: enabling
+omap_hwmod:omap_hwmod: uart1: enabling clocks
+omap_hwmod:omap_hwmod: uart2: enabling
+omap_hwmod:omap_hwmod: uart2: enabling clocks
+omap_hwmod:omap_hwmod: uart3: idling
+omap_hwmod:omap_hwmod: uart3: disabling clock
 
-> Thanks, that's a bug.
 
-    And also note that filenames in heading comments have been long discouraged.
 
-WBR, Sergei
+-
+Pramod
