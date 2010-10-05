@@ -1,127 +1,72 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
-Date: Tue, 05 Oct 2010 13:35:18 -0700
-Message-ID: <87hbh0ped5.fsf@deeprootsystems.com>
-References: <8762xpenf8.fsf@deeprootsystems.com>
-	<20100928201844.GI3117@atomide.com>
-	<87tyl8rxwp.fsf@deeprootsystems.com>
-	<20100930021819.GD3117@atomide.com>
-	<877hi3i9cp.fsf@deeprootsystems.com>
-	<87pqvvgt8g.fsf@deeprootsystems.com>
-	<877hi3gqq7.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF2DAF74@dbde02.ent.ti.com>
-	<4CA60F88.4020303@ti.com>
-	<alpine.DEB.2.00.1010042359170.13816@utopia.booyaka.com>
-	<0680EC522D0CC943BC586913CF3768C003FF3B2E05@dbde02.ent.ti.com>
-	<874od0tvu3.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF3B2F3D@dbde02.ent.ti.com>
-	<87y6acpghs.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF3B2F4D@dbde02.ent.ti.com>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [PATCH] omap: zoom2/3: fix build caused by wl1271 support
+Date: Tue, 05 Oct 2010 23:39:47 +0300
+Message-ID: <1286311187.2793.7.camel@powerslave>
+References: <1285965206-17777-1-git-send-email-gadiyar@ti.com>
+	 <20101001231026.GH3117@atomide.com> <1286279588.15401.28.camel@chilepepper>
+	 <1286280426.15401.29.camel@chilepepper>
+	 <1286284790.15401.53.camel@chilepepper>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:41855 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005Ab0JEUfX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 16:35:23 -0400
-Received: by iwn5 with SMTP id 5so8754129iwn.19
-        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 13:35:23 -0700 (PDT)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003FF3B2F4D@dbde02.ent.ti.com>
-	(Rajendra Nayak's message of "Wed, 6 Oct 2010 01:56:50 +0530")
+Received: from smtp.nokia.com ([192.100.122.230]:23982 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761Ab0JEUkG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 16:40:06 -0400
+In-Reply-To: <1286284790.15401.53.camel@chilepepper>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
+To: ext Tony Lindgren <tony@atomide.com>, "John W. Linville" <linville@tuxdriver.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+On Tue, 2010-10-05 at 15:19 +0200, ext Luciano Coelho wrote:
+> On Tue, 2010-10-05 at 14:07 +0200, ext Luciano Coelho wrote:
+> > On Tue, 2010-10-05 at 13:53 +0200, ext Luciano Coelho wrote:
+> > > On Sat, 2010-10-02 at 01:10 +0200, ext Tony Lindgren wrote:
+> > > > * Anand Gadiyar <gadiyar@ti.com> [101001 13:25]:
+> > > > > Patch "omap: zoom: add mmc3/wl1271 device support" in the
+> > > > > wireless tree still uses .wires in struct omap2_hsmmc_info.
+> > > > > .wires has now been replaced with .caps in patch "omap: mmc:
+> > > > > extended to pass host capabilities from board file" in the
+> > > > > OMAP tree.
+> > > > > 
+> > > > > This causes linux-next as of 20101001 build to break as
+> > > > > below. Fix this.
+> > > > > 
+> > > > >   CC      arch/arm/mach-omap2/board-zoom-peripherals.o
+> > > > > arch/arm/mach-omap2/board-zoom-peripherals.c:217: error: unknown field 'wires' specified in initializer
+> > > > > make[1]: *** [arch/arm/mach-omap2/board-zoom-peripherals.o] Error 1
+> > > > > make: *** [arch/arm/mach-omap2] Error 2
+> > > > 
+> > > > Can you guys please queue this via the wireless tree along with
+> > > > the other wl1271 patches?
+> > > > 
+> > > > Acked-by: Tony Lindgren <tony@atomide.com>
+> > > 
+> > > I can apply this to the wl12xx tree.  I just need John's confirmation.  
+> > > 
+> > > The pull request I sent to John last week is still pending.  I don't
+> > > know if it is possible to substitute it for a newer one with more
+> > > patches (and still try to make it to 2.6.37).  What do you think, John?
+> > 
+> > Damn, for some reason I had a bug in John's email in my contact book.
+> > Now sending to the correct email address.
+> 
+> Applied to the wl12xx tree.  I'll send a new replacement pull to John
+> today, including this patch.  Thanks.
 
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Wednesday, October 06, 2010 1:19 AM
->> To: Nayak, Rajendra
->> Cc: Paul Walmsley; Cousson, Benoit; Tony Lindgren; linux-omap@vger.kernel.org; Varadarajan, Charulatha; Raja,
->> Govindraj
->> Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
->> 
->> "Nayak, Rajendra" <rnayak@ti.com> writes:
->> 
->> >> -----Original Message-----
->> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> >> Sent: Tuesday, October 05, 2010 10:34 PM
->> >> To: Nayak, Rajendra
->> >> Cc: Paul Walmsley; Cousson, Benoit; Tony Lindgren; linux-omap@vger.kernel.org; Varadarajan, Charulatha; Raja,
->> >> Govindraj
->> >> Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
->> >>
->> >> "Nayak, Rajendra" <rnayak@ti.com> writes:
->> >>
->> >> > <snip>..
->> >> >
->> >> >> >
->> >> >> > Below is an untested patch to provide some mechanism to deal with this --
->> >> >> > I'd appreciate everyone's comments on this, particularly the comments in
->> >> >> > the patch code on how to deal with this problem.
->> >> >>
->> >> >> Hi Paul,
->> >> >>
->> >> >> I'll test this patch to see if it solves the issue seen with i2c on n800.
->> >> >
->> >> > Hi Paul, Benoit, Kevin,
->> >> >
->> >> > So looks like the issue with i2c on n800 isn't really because of additional
->> >> > delay needed after a clock enable, but related to the omap_readl/writel's
->> >> > done on the 16bit i2c registers as I was suspecting earlier.
->> >> >
->> >> > The below patch fixes the n800 issue for me. My mailer might mess up the alignment
->> >> > hence attaching it too.
->> >> >
->> >> > From af9733f2e63a16b446635d52015e05d631f0788f Mon Sep 17 00:00:00 2001
->> >> > From: Rajendra Nayak <rnayak@ti.com>
->> >> > Date: Tue, 5 Oct 2010 16:36:30 +0530
->> >> > Subject: [PATCH] OMAP: hwmod: Handle modules with 16bit registers
->> >> >
->> >> > Some modules which have 16bit registers can cause imprecise
->> >> > aborts if a __raw_readl/writel is used to read/write 32 bits.
->> >> >
->> >> > Add an additional flag to identify modules which have such
->> >> > hard requirement, and handle it in the hwmod framework.
->> >> >
->> >> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> >>
->> >> Can you also send a corresponding patch to the i2c hwmod data.
->> > Hi Kevin,
->> >
->> > Ok, I'll repost the original patch which adds the omap2 hwmod data with
->> > these flags added for omap2420. Does that sound fine?
->> 
->> Since I've alrady done some manual merge conflicts here, you can just
->> post an additional patch and I will fold it in.
->
-> Ok, so here's the patch
-> ------
-> From 06b4bb7a0ce96776d6d9b344b4786b48fceeffe1 Mon Sep 17 00:00:00 2001
-> From: Rajendra Nayak <rnayak@ti.com>
-> Date: Wed, 6 Oct 2010 01:49:32 +0530
-> Subject: [PATCH] OMAP2: hmwod: Fix impresice aborts seen on n800/n810
->
-> I2C module on OMAP2420 has 16bit registers and causes imprecise
-> aborts if 32bits are read/wriitten into.
-> Use the HWMOD_16BIT_REG flag to notify the hmwod framework of this
-> hard requirement so that __raw_writew/readw is used to read /write
-> the mdoule registers.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+Hmmm... We got a problem here.  This patch breaks builds when we *don't*
+have "omap: mmc extended to pass host capabilities from board file".  We
+don't have that on wireless-next yet, so builds with zoom boards
+selected are broken.
 
-Thanks.
+Any ideas on how to solve this dilemma? I guess the proper way to handle
+this would be to make the changes proposed in this patch when merging
+instead of having a normal commit for it, wouldn't it?
 
-Shouldn't we do the same for 2430?  I guess the imprecise aborts aren't
-happening on 2430, but I think we should still use the 16-bit accesses
-there too.
 
-What do you think?
-
-Kevin
+-- 
+Cheers,
+Luca.
 
