@@ -1,128 +1,51 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 07/10] OMAP: McBSP: implement functional clock switching via clock framework
-Date: Tue, 5 Oct 2010 11:35:36 +0300
-Message-ID: <201010051135.36436.peter.ujfalusi@nokia.com>
-References: <20101001213119.1408.65395.stgit@twilight.localdomain> <20101001213531.1408.87922.stgit@twilight.localdomain>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+Subject: [PATCH 1/1] omap: Ptr "isr_reg" tracked as NULL was dereferenced
+Date: Tue,  5 Oct 2010 12:42:10 +0400
+Message-ID: <131d16236d19895323fca2f058d65f1f116bacad.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+References: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:52062 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755460Ab0JEIfn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 04:35:43 -0400
-In-Reply-To: <20101001213531.1408.87922.stgit@twilight.localdomain>
+Received: from smtp.nokia.com ([192.100.122.233]:54702 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757950Ab0JEIqe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 04:46:34 -0400
+In-Reply-To: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+In-Reply-To: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+References: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jarkko Nikula <jhnikula@gmail.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@deeprootsystems.com, akpm@linux-foundation.org, zmc@lurian.net, a.j.buxton@gmail.com, ext-eugeny.kuznetsov@nokia.com
 
-Hello,
+From: Evgeny Kuznetsov <ext-eugeny.kuznetsov@nokia.com>
 
-I have only one question...
+Value of "isr_reg" pointer is depend on configuration and GPIO method.
+Potentially it may have NULL value and it is dereferenced later 
+in code. If pointer is NULL there is some kernel bug.
+Log line and 'BUG' macro are added to halt code execution in this case.
 
-On Saturday 02 October 2010 00:35:32 ext Paul Walmsley wrote:
-=2E..
+Signed-off-by: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+---
+ arch/arm/plat-omap/gpio.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-> +/* McBSP CLKS source switching function */
-> +
-> +int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
-> +{
-> +	struct omap_mcbsp *mcbsp;
-> +	struct clk *fck_src;
-> +	char *fck_src_name;
-> +	int r;
-> +
-> +	if (!omap_mcbsp_check_valid_id(id)) {
-> +		pr_err("%s: Invalid id (%d)\n", __func__, id + 1);
-> +		return -EINVAL;
-> +	}
-> +	mcbsp =3D id_to_mcbsp_ptr(id);
-> +
-> +	if (fck_src_id =3D=3D MCBSP_CLKS_PAD_SRC)
-> +		fck_src_name =3D "pad_fck";
-> +	else if (fck_src_id =3D=3D MCBSP_CLKS_PRCM_SRC)
-> +		fck_src_name =3D "prcm_fck";
-> +	else
-> +		return -EINVAL;
-> +
-> +	fck_src =3D clk_get(mcbsp->dev, fck_src_name);
-> +	if (IS_ERR_OR_NULL(fck_src)) {
-> +		pr_err("omap-mcbsp: %s: could not clk_get() %s\n", "clks",
-> +		       fck_src_name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	clk_disable(mcbsp->fclk);
-> +
-> +	r =3D clk_set_parent(mcbsp->fclk, fck_src);
-> +	if (IS_ERR_VALUE(r)) {
-> +		pr_err("omap-mcbsp: %s: could not clk_set_parent() to %s\n",
-> +		       "clks", fck_src_name);
-> +		clk_put(fck_src);
-> +		return -EINVAL;
-> +	}
-> +
-> +	clk_enable(mcbsp->fclk);
-> +
-> +	clk_put(fck_src);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(omap2_mcbsp_set_clks_src);
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index c05c653..7669928 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -1318,6 +1318,13 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	if (bank->method == METHOD_GPIO_44XX)
+ 		isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
+ #endif
++
++	if (!isr_reg) {
++		printk(KERN_ERR "FATAL: Incorrect GPIO method %i\n",
++				bank->method);
++		BUG();
++		}
++
+ 	while(1) {
+ 		u32 isr_saved, level_mask = 0;
+ 		u32 enabled;
+-- 
+1.6.3.3
 
-=2E..
-
->  static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai=
-,
->  					 int clk_id, unsigned int freq,
->  					 int dir)
->  {
->  	struct omap_mcbsp_data *mcbsp_data =3D to_mcbsp(cpu_dai->private_da=
-ta);
->  	struct omap_mcbsp_reg_cfg *regs =3D &mcbsp_data->regs;
-> -	struct omap_mcbsp_platform_data *pdata =3D cpu_dai->dev->platform_d=
-ata;
->  	int err =3D 0;
->=20
->  	/* The McBSP signal muxing functions are only available on McBSP1 *=
-/
-> @@ -685,8 +630,20 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct
-> snd_soc_dai *cpu_dai, regs->srgr2	|=3D CLKSM;
->  		break;
->  	case OMAP_MCBSP_SYSCLK_CLKS_FCLK:
-> +		if (cpu_class_is_omap1()) {
-> +			err =3D -EINVAL;
-> +			break;
-> +		}
-> +		err =3D omap2_mcbsp_set_clks_src(mcbsp_data->bus_id,
-> +					       MCBSP_CLKS_PRCM_SRC);
-> +		break;
->  	case OMAP_MCBSP_SYSCLK_CLKS_EXT:
-> -		err =3D omap_mcbsp_dai_set_clks_src(mcbsp_data, clk_id);
-> +		if (cpu_class_is_omap1()) {
-> +			err =3D 0;
-> +			break;
-> +		}
-> +		err =3D omap2_mcbsp_set_clks_src(mcbsp_data->bus_id,
-> +					       MCBSP_CLKS_PAD_SRC);
->  		break;
->=20
->  	case OMAP_MCBSP_SYSCLK_CLKX_EXT:
-
-What is the fclk source by default.
-What I mean is that most of the machine drivers are not calling the=20
-snd_soc_dai_set_sysclk for the cpu_dai.
-It has been by default to prcm_fclk (core_96 or per_96).
-Is this still the case after this series?
-Do we need to go through the ASoC machine drivers, and need to select e=
-xplicitly=20
-the prcm_fclk from now on?
-
---=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
