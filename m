@@ -1,31 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv3 1/1] omap3: Add minimal OMAP3 IGEP module support.
-Date: Tue, 5 Oct 2010 11:16:10 -0700
-Message-ID: <20101005181610.GN3117@atomide.com>
-References: <1286057175-22916-1-git-send-email-eballetbo@gmail.com>
- <1286057175-22916-2-git-send-email-eballetbo@gmail.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/3 v5] AM35x: Add musb support
+Date: Tue, 5 Oct 2010 11:34:36 -0700
+Message-ID: <20101005183436.GO3117@atomide.com>
+References: <1285823949-27694-1-git-send-email-ajay.gupta@ti.com>
+ <20101001060037.GC2925@legolas.emea.dhcp.ti.com>
+ <20101004172813.GV3117@atomide.com>
+ <20101005054111.GC2643@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57172 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752932Ab0JESQM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 14:16:12 -0400
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1286057175-22916-2-git-send-email-eballetbo@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20101005054111.GC2643-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Enric Balletbo i Serra <eballetbo@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Enric Balletbo i Serra <eballetbo@gmail.com> [101002 14:58]:
-> The OMAP3 IGEP module is a low-power, high performance production-ready
-> system-on-module (SOM) based on TI's OMAP3 family. More about this
-> board at www.igep.es.
+* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [101004 22:32]:
+> On Mon, Oct 04, 2010 at 12:28:14PM -0500, Tony Lindgren wrote:
+> >* Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> [100930 22:52]:
+> >>Hi,
+> >>
+> >>On Thu, Sep 30, 2010 at 12:19:07AM -0500, Gupta, Ajay Kumar wrote:
+> >>>AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
+> >>>It has USB phy built inside the IP itself.
+> >>>
+> >>>Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> >>
+> >>besides the one small question below:
+> >>
+> >>Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> >
+> >Felipe, I'm assuming you're queuing up the omap USB platform data
+> >patches. So not picking up these patches.
+> >
+> >Also, please also note that the arch/arm/*omap*/ patches should
+> >be posted with both linux-omap and linux-arm-kernel mailing lists
+> >Cc'd.
+> 
+> I'll queue it throught Greg. Can I get your Acked-by ?
 
-Adding this to omap-for-linus. Updated it for to use MMC caps instead
-of wires and to be selected by default in Kconfig.
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
