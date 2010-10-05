@@ -1,50 +1,33 @@
-From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] usb: omap: fix the warning unused variable 'status'
-Date: Tue, 5 Oct 2010 14:55:14 +0530
-Message-ID: <8e6442005e187448bc6aa0703c1dee5d@mail.gmail.com>
-References: <1286227213-16182-1-git-send-email-keshava_mgowda@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/1] omap: Ptr "isr_reg" tracked as NULL was
+ dereferenced
+Date: Tue, 5 Oct 2010 12:32:06 +0300
+Message-ID: <20101005093206.GB2977@legolas.emea.dhcp.ti.com>
+References: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+ <131d16236d19895323fca2f058d65f1f116bacad.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1286227213-16182-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Nishant Kamat <nskamat-l0cyMroinI0@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <131d16236d19895323fca2f058d65f1f116bacad.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "zmc@lurian.net" <zmc@lurian.net>, "a.j.buxton@gmail.com" <a.j.buxton@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Keshava Munegowda wrote:
-> This patch fix the follwing warning when compiling usb code for OMAP
-defconfigs.
-> arch/arm/mach-omap2/board-omap4panda.c:277: warning: unused variable
-'status'
->
-> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Hi,
 
+On Tue, Oct 05, 2010 at 03:42:10AM -0500, Evgeny Kuznetsov wrote:
+>+	if (!isr_reg) {
+>+		printk(KERN_ERR "FATAL: Incorrect GPIO method %i\n",
+>+				bank->method);
+>+		BUG();
+>+		}
 
-Already posted by Sanjeev, and queued in for-next.
+this could be simply:
 
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=comm
-itdiff;h=ca828760f96ee8f0b6c93400599844761aa69dc0
+BUG_ON(!isr_reg);
 
-> ---
->  arch/arm/mach-omap2/board-omap4panda.c |    2 --
->  1 file changed, 2 deletions(-)
->
-> Index: linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/mach-omap2/board-omap4panda.c
-> +++ linux-2.6/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -274,8 +274,6 @@ static int __init omap4_panda_i2c_init(v
->  }
->  static void __init omap4_panda_init(void)
->  {
-> -	int status;
-> -
->  	omap4_panda_i2c_init();
->  	omap_serial_init();
->  	omap4_twl6030_hsmmc_init(mmc);
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
