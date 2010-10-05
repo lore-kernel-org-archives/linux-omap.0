@@ -1,57 +1,235 @@
 From: Enric Balletbo i Serra <eballetbo@gmail.com>
-Subject: [PATCHv4 1/6] omap3: Add external VBUS power switch and overcurrent detect on IGEP v2 board.
-Date: Tue,  5 Oct 2010 16:15:17 +0200
-Message-ID: <1286288122-16834-2-git-send-email-eballetbo@gmail.com>
+Subject: [PATCHv4 2/6] omap3: fix and improve the LED handling on IGEP v2 board.
+Date: Tue,  5 Oct 2010 16:15:18 +0200
+Message-ID: <1286288122-16834-3-git-send-email-eballetbo@gmail.com>
 References: <1286288122-16834-1-git-send-email-eballetbo@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:62571 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752311Ab0JEOPe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 10:15:34 -0400
-Received: by wwe15 with SMTP id 15so288548wwe.1
-        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 07:15:32 -0700 (PDT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:57932 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753293Ab0JEOPf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 10:15:35 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 28so6055516wyb.19
+        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 07:15:34 -0700 (PDT)
 In-Reply-To: <1286288122-16834-1-git-send-email-eballetbo@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Enric Balletbo i Serra <eballetbo@gmail.com>
 
-GPIO for various devices are missing from the board initialization.
-This patch adds support for the VBUS and over current gpios.  Without this
-patch, input/outputs from these two sources are ignored.
+The IGEP v2 board has four leds, this patch allows control all
+of these LEDs using the LED class if CONFIG_LEDS_GPIO is selected
+or using the General Purpose Input/Output (GPIO) interface if
+CONFIG_LEDS_GPIO is not selected.
 
 Signed-off-by: Enric Balletbo i Serra <eballetbo@gmail.com>
 ---
- arch/arm/mach-omap2/board-igep0020.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-igep0020.c |  156 +++++++++++++++++++---------------
+ 1 files changed, 87 insertions(+), 69 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
-index 175f043..07dbdb7 100644
+index 07dbdb7..83a30ce 100644
 --- a/arch/arm/mach-omap2/board-igep0020.c
 +++ b/arch/arm/mach-omap2/board-igep0020.c
-@@ -274,6 +274,22 @@ static int igep2_twl_gpio_setup(struct device *dev,
- 	igep2_vmmc1_supply.dev = mmc[0].dev;
- 	igep2_vmmc2_supply.dev = mmc[1].dev;
+@@ -261,6 +261,77 @@ static struct omap2_hsmmc_info mmc[] = {
+ 	{}      /* Terminator */
+ };
  
-+	/*
-+	 * REVISIT: need ehci-omap hooks for external VBUS
-+	 * power switch and overcurrent detect
-+	 */
-+	if ((gpio_request(gpio + 1, "GPIO_EHCI_NOC") < 0) ||
-+	    (gpio_direction_input(gpio + 1) < 0))
-+		pr_err("IGEP2: Could not obtain gpio for EHCI NOC");
++#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
++#include <linux/leds.h>
 +
-+	/*
-+	 * TWL4030_GPIO_MAX + 0 == ledA, GPIO_USBH_CPEN
-+	 * (out, active low)
-+	 */
-+	if ((gpio_request(gpio + TWL4030_GPIO_MAX, "GPIO_USBH_CPEN") < 0) ||
-+	    (gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0) < 0))
-+		pr_err("IGEP2: Could not obtain gpio for USBH_CPEN");
++static struct gpio_led igep2_gpio_leds[] = {
++	[0] = {
++		.name			= "gpio-led:red:d0",
++		.gpio			= IGEP2_GPIO_LED0_RED,
++		.default_trigger	= "default-off"
++	},
++	[1] = {
++		.name			= "gpio-led:green:d0",
++		.gpio			= IGEP2_GPIO_LED0_GREEN,
++		.default_trigger	= "default-off",
++	},
++	[2] = {
++		.name			= "gpio-led:red:d1",
++		.gpio			= IGEP2_GPIO_LED1_RED,
++		.default_trigger	= "default-off",
++	},
++	[3] = {
++		.name			= "gpio-led:green:d1",
++		.default_trigger	= "heartbeat",
++		.gpio			= -EINVAL, /* gets replaced */
++	},
++};
++
++static struct gpio_led_platform_data igep2_led_pdata = {
++	.leds           = igep2_gpio_leds,
++	.num_leds       = ARRAY_SIZE(igep2_gpio_leds),
++};
++
++static struct platform_device igep2_led_device = {
++	 .name   = "leds-gpio",
++	 .id     = -1,
++	 .dev    = {
++		 .platform_data  =  &igep2_led_pdata,
++	},
++};
++
++static void __init igep2_leds_init(void)
++{
++	platform_device_register(&igep2_led_device);
++}
++
++#else
++static inline void igep2_leds_init(void)
++{
++	if ((gpio_request(IGEP2_GPIO_LED0_RED, "gpio-led:red:d0") == 0) &&
++	    (gpio_direction_output(IGEP2_GPIO_LED0_RED, 1) == 0)) {
++		gpio_export(IGEP2_GPIO_LED0_RED, 0);
++		gpio_set_value(IGEP2_GPIO_LED0_RED, 0);
++	} else
++		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_RED\n");
++
++	if ((gpio_request(IGEP2_GPIO_LED0_GREEN, "gpio-led:green:d0") == 0) &&
++	    (gpio_direction_output(IGEP2_GPIO_LED0_GREEN, 1) == 0)) {
++		gpio_export(IGEP2_GPIO_LED0_GREEN, 0);
++		gpio_set_value(IGEP2_GPIO_LED0_GREEN, 0);
++	} else
++		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_GREEN\n");
++
++	if ((gpio_request(IGEP2_GPIO_LED1_RED, "gpio-led:red:d1") == 0) &&
++	    (gpio_direction_output(IGEP2_GPIO_LED1_RED, 1) == 0)) {
++		gpio_export(IGEP2_GPIO_LED1_RED, 0);
++		gpio_set_value(IGEP2_GPIO_LED1_RED, 0);
++	} else
++		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED1_RED\n");
++
++}
++#endif
++
+ static int igep2_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -290,14 +361,26 @@ static int igep2_twl_gpio_setup(struct device *dev,
+ 	    (gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0) < 0))
+ 		pr_err("IGEP2: Could not obtain gpio for USBH_CPEN");
+ 
++	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
++#if !defined(CONFIG_LEDS_GPIO) && !defined(CONFIG_LEDS_GPIO_MODULE)
++	if ((gpio_request(gpio+TWL4030_GPIO_MAX+1, "gpio-led:green:d1") == 0)
++	    && (gpio_direction_output(gpio + TWL4030_GPIO_MAX + 1, 1) == 0)) {
++		gpio_export(gpio + TWL4030_GPIO_MAX + 1, 0);
++		gpio_set_value(gpio + TWL4030_GPIO_MAX + 1, 0);
++	} else
++		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED1_GREEN\n");
++#else
++	igep2_gpio_leds[3].gpio = gpio + TWL4030_GPIO_MAX + 1;
++#endif
 +
  	return 0;
  };
  
+-static struct twl4030_gpio_platform_data igep2_gpio_data = {
++static struct twl4030_gpio_platform_data igep2_twl4030_gpio_pdata = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
+-	.use_leds	= false,
++	.use_leds	= true,
+ 	.setup		= igep2_twl_gpio_setup,
+ };
+ 
+@@ -371,47 +454,6 @@ static void __init igep2_display_init(void)
+ 		pr_err("IGEP v2: Could not obtain gpio GPIO_DVI_PUP\n");
+ }
+ 
+-#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+-#include <linux/leds.h>
+-
+-static struct gpio_led igep2_gpio_leds[] = {
+-	{
+-		.name = "led0:red",
+-		.gpio = IGEP2_GPIO_LED0_RED,
+-	},
+-	{
+-		.name = "led0:green",
+-		.default_trigger = "heartbeat",
+-		.gpio = IGEP2_GPIO_LED0_GREEN,
+-	},
+-	{
+-		.name = "led1:red",
+-		.gpio = IGEP2_GPIO_LED1_RED,
+-	},
+-};
+-
+-static struct gpio_led_platform_data igep2_led_pdata = {
+-	.leds           = igep2_gpio_leds,
+-	.num_leds       = ARRAY_SIZE(igep2_gpio_leds),
+-};
+-
+-static struct platform_device igep2_led_device = {
+-	 .name   = "leds-gpio",
+-	 .id     = -1,
+-	 .dev    = {
+-		 .platform_data  =  &igep2_led_pdata,
+-	},
+-};
+-
+-static void __init igep2_init_led(void)
+-{
+-	platform_device_register(&igep2_led_device);
+-}
+-
+-#else
+-static inline void igep2_init_led(void) {}
+-#endif
+-
+ static struct platform_device *igep2_devices[] __initdata = {
+ 	&igep2_dss_device,
+ };
+@@ -441,7 +483,7 @@ static struct twl4030_platform_data igep2_twldata = {
+ 	/* platform_data for children goes here */
+ 	.usb		= &igep2_usb_data,
+ 	.codec		= &igep2_codec_data,
+-	.gpio		= &igep2_gpio_data,
++	.gpio		= &igep2_twl4030_gpio_pdata,
+ 	.vmmc1          = &igep2_vmmc1,
+ 	.vmmc2		= &igep2_vmmc2,
+ 	.vpll2		= &igep2_vpll2,
+@@ -502,34 +544,10 @@ static void __init igep2_init(void)
+ 	usb_ehci_init(&ehci_pdata);
+ 
+ 	igep2_flash_init();
+-	igep2_init_led();
++	igep2_leds_init();
+ 	igep2_display_init();
+ 	igep2_init_smsc911x();
+ 
+-	/* GPIO userspace leds */
+-#if !defined(CONFIG_LEDS_GPIO) && !defined(CONFIG_LEDS_GPIO_MODULE)
+-	if ((gpio_request(IGEP2_GPIO_LED0_RED, "led0:red") == 0) &&
+-	    (gpio_direction_output(IGEP2_GPIO_LED0_RED, 1) == 0)) {
+-		gpio_export(IGEP2_GPIO_LED0_RED, 0);
+-		gpio_set_value(IGEP2_GPIO_LED0_RED, 0);
+-	} else
+-		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_RED\n");
+-
+-	if ((gpio_request(IGEP2_GPIO_LED0_GREEN, "led0:green") == 0) &&
+-	    (gpio_direction_output(IGEP2_GPIO_LED0_GREEN, 1) == 0)) {
+-		gpio_export(IGEP2_GPIO_LED0_GREEN, 0);
+-		gpio_set_value(IGEP2_GPIO_LED0_GREEN, 0);
+-	} else
+-		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED0_GREEN\n");
+-
+-	if ((gpio_request(IGEP2_GPIO_LED1_RED, "led1:red") == 0) &&
+-	    (gpio_direction_output(IGEP2_GPIO_LED1_RED, 1) == 0)) {
+-		gpio_export(IGEP2_GPIO_LED1_RED, 0);
+-		gpio_set_value(IGEP2_GPIO_LED1_RED, 0);
+-	} else
+-		pr_warning("IGEP v2: Could not obtain gpio GPIO_LED1_RED\n");
+-#endif
+-
+ 	/* GPIO W-LAN + Bluetooth combo module */
+ 	if ((gpio_request(IGEP2_GPIO_WIFI_NPD, "GPIO_WIFI_NPD") == 0) &&
+ 	    (gpio_direction_output(IGEP2_GPIO_WIFI_NPD, 1) == 0)) {
 -- 
 1.7.0.4
 
