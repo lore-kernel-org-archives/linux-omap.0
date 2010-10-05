@@ -1,33 +1,26 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: omap: fix the warning unused variable 'status'
-Date: Tue, 5 Oct 2010 23:05:48 +0300
-Message-ID: <20101005200548.GC4656@legolas.emea.dhcp.ti.com>
-References: <1286227213-16182-1-git-send-email-keshava_mgowda@ti.com>
-Reply-To: balbi@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/5] arm/omap: remove duplicated include
+Date: Tue, 5 Oct 2010 13:06:30 -0700
+Message-ID: <20101005200630.GS3117@atomide.com>
+References: <20101004122436.7092868f@absol.kitzblitz>
+ <20101004123937.4493b01b@absol.kitzblitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52905 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800Ab0JEUFx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Oct 2010 16:05:53 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57064 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756696Ab0JEUGf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 16:06:35 -0400
 Content-Disposition: inline
-In-Reply-To: <1286227213-16182-1-git-send-email-keshava_mgowda@ti.com>
+In-Reply-To: <20101004123937.4493b01b@absol.kitzblitz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Kamat, Nishant" <nskamat@ti.com>, "Balbi, Felipe" <balbi@ti.com>
+To: Nicolas Kaiser <nikai@nikai.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-On Mon, Oct 04, 2010 at 04:20:13PM -0500, Munegowda, Keshava wrote:
->This patch fix the follwing warning when compiling usb code
->for OMAP defconfigs.
->arch/arm/mach-omap2/board-omap4panda.c:277: warning: unused variable 'status'
+* Nicolas Kaiser <nikai@nikai.net> [101004 03:35]:
+> Remove duplicated include.
 
-$SUBJECT is definitely wrong. This is no related to USB at all.
+Thanks, adding to omap-for-linus.
 
-Patches to arch/arm/*omap* should start with something like:
-
-arm: omap: ***description here***
-
--- 
-balbi
+Tony
