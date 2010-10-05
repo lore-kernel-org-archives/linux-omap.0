@@ -1,46 +1,59 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/2] omap: dsp: make the driver actually work
-Date: Wed, 6 Oct 2010 00:05:44 +0300
-Message-ID: <AANLkTi=ENjWQRYitr_kYzmRKgve=CoBf=7Y5KHLJNLfb@mail.gmail.com>
-References: <1286208555-8829-1-git-send-email-felipe.contreras@gmail.com>
-	<20101005190741.GC20825@kroah.com>
-	<AANLkTikOBWxXh7uVrDxfW3OnwOM58JTXU76KUUoQWBWM@mail.gmail.com>
-	<27F9C60D11D683428E133F85D2BB4A5304681D4889@dlee03.ent.ti.com>
-	<AANLkTin=k07hUq+cLAOsf0aYw5Ey23UOpbpo=+Eb49w9@mail.gmail.com>
-	<27F9C60D11D683428E133F85D2BB4A5304681D48D3@dlee03.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
+Date: Tue, 05 Oct 2010 14:44:45 -0700
+Message-ID: <878w2cnwky.fsf@deeprootsystems.com>
+References: <Pine.LNX.4.44L0.1010021004150.15874-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A5304681D48D3@dlee03.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Greg KH <greg@kroah.com>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:58559 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755238Ab0JEVos (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 17:44:48 -0400
+Received: by pxi10 with SMTP id 10so1765653pxi.19
+        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 14:44:48 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.44L0.1010021004150.15874-100000@netrider.rowland.org>
+	(Alan Stern's message of "Sat, 2 Oct 2010 10:12:10 -0400 (EDT)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Tue, Oct 5, 2010 at 11:09 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
-> Felipe Contreras wrote:
-> ...
->>>
->>> phys_to_virt instead of ioremap should work fine, still need to try
->>> it though.
->>
->> I tried that... Didn't work. I guess we need to flush at some points
->> (since the memory is cacheable).
+Alan Stern <stern@rowland.harvard.edu> writes:
+
+> On Fri, 1 Oct 2010, Rafael J. Wysocki wrote:
 >
-> Hmmm, because my other option was to move the reserved memory outside the kernel, but that involves specifying bootargs again and using dma_alloc_coherent with their restrictions.
+>> > > In my opinion the _irq operations should really be one-shot, without
+>> > > any looping, waking up parents etc.  I mean, if the parent is not RPM_ACTIVE,
+>> > > the _irq resume should immediately fail and analogously for the _irq
+>> > > suspend.  And so on.  As simple as reasonably possible.
+>> > 
+>> > But what if the device's own status is currently SUSPENDING or
+>> > RESUMING?  Do you want to fail when that happens, instead of waiting
+>> > for the concurrent operation to finish?
+>> 
+>> Yes.  IMO an _irq() suspend should only be allowed if the status is RPM_ACTIVE
+>> and an _irq() resume should fail if the status is not RPM_SUSPENDED.  The
+>> error code returned should depend on the situation, though.
+>> 
+>> > There's no way to prevent this
+>> > on SMP systems, because a wakeup request can arrive while a
+>> > software-initiated resume is in progress.
+>> 
+>> I know that. :-)
+>
+> I suspect Kevin will not want to live with this restriction, but I'd
+> like to hear from him.  Kevin?
 
-Huh, if there's no contiguous memory region reserved, then the driver
-is doing dma_alloc_coherent already, but that fails (apparently 5M is
-too much). Plus I've read that dma_alloc_coherent is "precious";
-shouldn't be used for that.
+[ Apologies for the delays... I've been running around preparing OMAP PM
+  stuff for the upcoming merge window. ]
 
-> If you are working on a different method and need any help let me know.
+I think I can live with the above restrictions (the _irq methods failing
+unless they can immediately run.)  For the rare corner cases I've
+currently run into, this will work fine as they happen because of a
+wakeup IRQ, where we know the device is RPM_SUSPENDED.
 
-So, first I wanted to try reserving some region with mem=X boot param,
-but that solution is ugly. If that worked, then I wanted ti see if
-flushing each time we access that shm memory block works, but in the
-process I wanted to reorganize the whole initialization code because
-right now it's very ugly and confusing.
+Kevin
 
--- 
-Felipe Contreras
+
+
