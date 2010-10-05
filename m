@@ -1,355 +1,149 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCHv3 11/11] staging: tidspbridge - remove dmm custom module
-Date: Tue,  5 Oct 2010 15:35:44 -0500
-Message-ID: <1286310944-25035-12-git-send-email-x0095840@ti.com>
+Subject: [PATCHv3 06/11] staging: tidspbridge - remove hw directory
+Date: Tue,  5 Oct 2010 15:35:39 -0500
+Message-ID: <1286310944-25035-7-git-send-email-x0095840@ti.com>
 References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
  <1286310944-25035-2-git-send-email-x0095840@ti.com>
  <1286310944-25035-3-git-send-email-x0095840@ti.com>
  <1286310944-25035-4-git-send-email-x0095840@ti.com>
  <1286310944-25035-5-git-send-email-x0095840@ti.com>
  <1286310944-25035-6-git-send-email-x0095840@ti.com>
- <1286310944-25035-7-git-send-email-x0095840@ti.com>
- <1286310944-25035-8-git-send-email-x0095840@ti.com>
- <1286310944-25035-9-git-send-email-x0095840@ti.com>
- <1286310944-25035-10-git-send-email-x0095840@ti.com>
- <1286310944-25035-11-git-send-email-x0095840@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40281 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56684 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757348Ab0JEU3V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756826Ab0JEU3V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 5 Oct 2010 16:29:21 -0400
-In-Reply-To: <1286310944-25035-11-git-send-email-x0095840@ti.com>
+In-Reply-To: <1286310944-25035-6-git-send-email-x0095840@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: gregkh@suse.de
 Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, nm@ti.com, Hiroshi.DOYU@nokia.com, ohad@wizery.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
 
-Dmm custom module is not needed anymore.
+hw directory was only being used for custom iommu implementation
+APIs, so after the iommu module migration this directory is not
+needed anymore.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- drivers/staging/tidspbridge/Makefile               |    2 +-
- drivers/staging/tidspbridge/core/tiomap3430.c      |    1 -
- .../staging/tidspbridge/include/dspbridge/dev.h    |   24 -
- .../staging/tidspbridge/include/dspbridge/dmm.h    |   75 ---
- .../staging/tidspbridge/include/dspbridge/drv.h    |    6 -
- drivers/staging/tidspbridge/pmgr/dev.c             |   61 +---
- drivers/staging/tidspbridge/pmgr/dmm.c             |  533 --------------------
- drivers/staging/tidspbridge/rmgr/node.c            |   28 +-
- drivers/staging/tidspbridge/rmgr/proc.c            |   23 -
- 9 files changed, 6 insertions(+), 747 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/dmm.h
- delete mode 100644 drivers/staging/tidspbridge/pmgr/dmm.c
+ drivers/staging/tidspbridge/Makefile               |    3 +-
+ drivers/staging/tidspbridge/core/_tiomap.h         |    1 -
+ drivers/staging/tidspbridge/core/io_sm.c           |    4 -
+ drivers/staging/tidspbridge/core/tiomap3430.c      |    4 -
+ drivers/staging/tidspbridge/core/tiomap3430_pwr.c  |    4 -
+ drivers/staging/tidspbridge/core/tiomap_io.c       |    2 +-
+ drivers/staging/tidspbridge/hw/EasiGlobal.h        |   41 --
+ drivers/staging/tidspbridge/hw/MMUAccInt.h         |   76 ---
+ drivers/staging/tidspbridge/hw/MMURegAcM.h         |  225 --------
+ drivers/staging/tidspbridge/hw/hw_defs.h           |   58 --
+ drivers/staging/tidspbridge/hw/hw_mmu.c            |  562 --------------------
+ drivers/staging/tidspbridge/hw/hw_mmu.h            |  163 ------
+ .../tidspbridge/include/dspbridge/dspioctl.h       |    7 -
+ 13 files changed, 2 insertions(+), 1148 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/hw/EasiGlobal.h
+ delete mode 100644 drivers/staging/tidspbridge/hw/MMUAccInt.h
+ delete mode 100644 drivers/staging/tidspbridge/hw/MMURegAcM.h
+ delete mode 100644 drivers/staging/tidspbridge/hw/hw_defs.h
+ delete mode 100644 drivers/staging/tidspbridge/hw/hw_mmu.c
+ delete mode 100644 drivers/staging/tidspbridge/hw/hw_mmu.h
 
 diff --git a/drivers/staging/tidspbridge/Makefile b/drivers/staging/tidspbridge/Makefile
-index bd36651..7c122fa 100644
+index 8082d5c..e09547d 100644
 --- a/drivers/staging/tidspbridge/Makefile
 +++ b/drivers/staging/tidspbridge/Makefile
-@@ -5,7 +5,7 @@ libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
- 		core/tiomap3430_pwr.o core/tiomap_io.o core/dsp-mmu.o \
- 		core/ue_deh.o core/wdt.o core/dsp-clock.o core/sync.o
- libpmgr = pmgr/chnl.o pmgr/io.o pmgr/msg.o pmgr/cod.o pmgr/dev.o pmgr/dspapi.o \
--		pmgr/dmm.o pmgr/cmm.o pmgr/dbll.o
-+		pmgr/cmm.o pmgr/dbll.o
- librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
- 		rmgr/proc.o rmgr/pwr.o rmgr/rmm.o rmgr/strm.o rmgr/dspdrv.o \
+@@ -11,10 +11,9 @@ librmgr = rmgr/dbdcd.o rmgr/disp.o rmgr/drv.o rmgr/mgr.o rmgr/node.o \
  		rmgr/nldr.o rmgr/drv_interface.o
+ libdload = dynload/cload.o dynload/getsection.o dynload/reloc.o \
+ 		 dynload/tramp.o
+-libhw = hw/hw_mmu.o
+ 
+ bridgedriver-objs = $(libgen) $(libservices) $(libcore) $(libpmgr) $(librmgr) \
+-			$(libdload) $(libhw)
++			$(libdload)
+ 
+ #Machine dependent
+ ccflags-y += -D_TI_ -D_DB_TIOMAP -DTMS32060 \
+diff --git a/drivers/staging/tidspbridge/core/_tiomap.h b/drivers/staging/tidspbridge/core/_tiomap.h
+index 394a64a..cd7ff88 100644
+--- a/drivers/staging/tidspbridge/core/_tiomap.h
++++ b/drivers/staging/tidspbridge/core/_tiomap.h
+@@ -26,7 +26,6 @@
+ #include <plat/iommu.h>
+ #include <plat/iovmm.h>
+ #include <dspbridge/devdefs.h>
+-#include <hw_defs.h>
+ #include <dspbridge/dspioctl.h>	/* for bridge_ioctl_extproc defn */
+ #include <dspbridge/sync.h>
+ #include <dspbridge/clk.h>
+diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
+index 56856ad..194bada 100644
+--- a/drivers/staging/tidspbridge/core/io_sm.c
++++ b/drivers/staging/tidspbridge/core/io_sm.c
+@@ -39,10 +39,6 @@
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/sync.h>
+ 
+-/* Hardware Abstraction Layer */
+-#include <hw_defs.h>
+-#include <hw_mmu.h>
+-
+ /* Bridge Driver */
+ #include <dspbridge/dspdeh.h>
+ #include <dspbridge/dspio.h>
 diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index a95ff2f..f22bc12 100644
+index 822226f..8496c83 100644
 --- a/drivers/staging/tidspbridge/core/tiomap3430.c
 +++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -47,7 +47,6 @@
- /*  ----------------------------------- Platform Manager */
- #include <dspbridge/dev.h>
- #include <dspbridge/dspapi.h>
--#include <dspbridge/dmm.h>
- #include <dspbridge/wdt.h>
- 
- /*  ----------------------------------- Local */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dev.h b/drivers/staging/tidspbridge/include/dspbridge/dev.h
-index 357458f..9bdd48f 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dev.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dev.h
-@@ -27,7 +27,6 @@
- #include <dspbridge/nodedefs.h>
- #include <dspbridge/dispdefs.h>
- #include <dspbridge/dspdefs.h>
--#include <dspbridge/dmm.h>
- #include <dspbridge/host_os.h>
- 
- /*  ----------------------------------- This */
-@@ -234,29 +233,6 @@ extern int dev_get_cmm_mgr(struct dev_object *hdev_obj,
- 				  struct cmm_object **mgr);
- 
- /*
-- *  ======== dev_get_dmm_mgr ========
-- *  Purpose:
-- *      Retrieve the handle to the dynamic memory manager created for this
-- *      device.
-- *  Parameters:
-- *      hdev_obj:     Handle to device object created with
-- *                      dev_create_device().
-- *      *mgr:           Ptr to location to store handle.
-- *  Returns:
-- *      0:        Success.
-- *      -EFAULT:    Invalid hdev_obj.
-- *  Requires:
-- *      mgr != NULL.
-- *      DEV Initialized.
-- *  Ensures:
-- *      0:        *mgr contains a handle to a channel manager object,
-- *                      or NULL.
-- *      else:           *mgr is NULL.
-- */
--extern int dev_get_dmm_mgr(struct dev_object *hdev_obj,
--				  struct dmm_object **mgr);
--
--/*
-  *  ======== dev_get_cod_mgr ========
-  *  Purpose:
-  *      Retrieve the COD manager create for this device.
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dmm.h b/drivers/staging/tidspbridge/include/dspbridge/dmm.h
-deleted file mode 100644
-index 6c58335..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/dmm.h
-+++ /dev/null
-@@ -1,75 +0,0 @@
--/*
-- * dmm.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * The Dynamic Memory Mapping(DMM) module manages the DSP Virtual address
-- * space that can be directly mapped to any MPU buffer or memory region.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef DMM_
--#define DMM_
--
--#include <dspbridge/dbdefs.h>
--
--struct dmm_object;
--
--/* DMM attributes used in dmm_create() */
--struct dmm_mgrattrs {
--	u32 reserved;
--};
--
--#define DMMPOOLSIZE      0x4000000
--
--/*
-- *  ======== dmm_get_handle ========
-- *  Purpose:
-- *      Return the dynamic memory manager object for this device.
-- *      This is typically called from the client process.
-- */
--
--extern int dmm_get_handle(void *hprocessor,
--				 struct dmm_object **dmm_manager);
--
--extern int dmm_reserve_memory(struct dmm_object *dmm_mgr,
--				     u32 size, u32 *prsv_addr);
--
--extern int dmm_un_reserve_memory(struct dmm_object *dmm_mgr,
--					u32 rsv_addr);
--
--extern int dmm_map_memory(struct dmm_object *dmm_mgr, u32 addr,
--				 u32 size);
--
--extern int dmm_un_map_memory(struct dmm_object *dmm_mgr,
--				    u32 addr, u32 *psize);
--
--extern int dmm_destroy(struct dmm_object *dmm_mgr);
--
--extern int dmm_delete_tables(struct dmm_object *dmm_mgr);
--
--extern int dmm_create(struct dmm_object **dmm_manager,
--			     struct dev_object *hdev_obj,
--			     const struct dmm_mgrattrs *mgr_attrts);
--
--extern bool dmm_init(void);
--
--extern void dmm_exit(void);
--
--extern int dmm_create_tables(struct dmm_object *dmm_mgr,
--				    u32 addr, u32 size);
--
--#ifdef DSP_DMM_DEBUG
--u32 dmm_mem_map_dump(struct dmm_object *dmm_mgr);
--#endif
--
--#endif /* DMM_ */
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/drv.h b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-index 427f38b..75a2c9b 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/drv.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/drv.h
-@@ -108,12 +108,6 @@ struct dmm_map_object {
- 	struct bridge_dma_map_info dma_info;
- };
- 
--/* Used for DMM reserved memory accounting */
--struct dmm_rsv_object {
--	struct list_head link;
--	u32 dsp_reserved_addr;
--};
--
- /* New structure (member of process context) abstracts DMM resource info */
- struct dspheap_res_object {
- 	s32 heap_allocated;	/* DMM status */
-diff --git a/drivers/staging/tidspbridge/pmgr/dev.c b/drivers/staging/tidspbridge/pmgr/dev.c
-index e3c78fb..7b30267 100644
---- a/drivers/staging/tidspbridge/pmgr/dev.c
-+++ b/drivers/staging/tidspbridge/pmgr/dev.c
-@@ -34,7 +34,6 @@
- #include <dspbridge/cod.h>
+@@ -35,10 +35,6 @@
  #include <dspbridge/drv.h>
- #include <dspbridge/proc.h>
--#include <dspbridge/dmm.h>
+ #include <dspbridge/sync.h>
  
- /*  ----------------------------------- Resource Manager */
- #include <dspbridge/mgr.h>
-@@ -75,7 +74,6 @@ struct dev_object {
- 	struct msg_mgr *hmsg_mgr;	/* Message manager. */
- 	struct io_mgr *hio_mgr;	/* IO manager (CHNL, msg_ctrl) */
- 	struct cmm_object *hcmm_mgr;	/* SM memory manager. */
--	struct dmm_object *dmm_mgr;	/* Dynamic memory manager. */
- 	struct ldr_module *module_obj;	/* Bridge Module handle. */
- 	u32 word_size;		/* DSP word size: quick access. */
- 	struct drv_object *hdrv_obj;	/* Driver Object */
-@@ -250,9 +248,6 @@ int dev_create_device(struct dev_object **device_obj,
- 			/* Instantiate the DEH module */
- 			status = bridge_deh_create(&dev_obj->hdeh_mgr, dev_obj);
- 		}
--		/* Create DMM mgr . */
--		status = dmm_create(&dev_obj->dmm_mgr,
--				    (struct dev_object *)dev_obj, NULL);
- 	}
- 	/* Add the new DEV_Object to the global list: */
- 	if (!status) {
-@@ -278,8 +273,6 @@ leave:
- 			kfree(dev_obj->proc_list);
- 			if (dev_obj->cod_mgr)
- 				cod_delete(dev_obj->cod_mgr);
--			if (dev_obj->dmm_mgr)
--				dmm_destroy(dev_obj->dmm_mgr);
- 			kfree(dev_obj);
- 		}
- 
-@@ -389,11 +382,6 @@ int dev_destroy_device(struct dev_object *hdev_obj)
- 			dev_obj->hcmm_mgr = NULL;
- 		}
- 
--		if (dev_obj->dmm_mgr) {
--			dmm_destroy(dev_obj->dmm_mgr);
--			dev_obj->dmm_mgr = NULL;
--		}
+-/* ------------------------------------ Hardware Abstraction Layer */
+-#include <hw_defs.h>
+-#include <hw_mmu.h>
 -
- 		/* Call the driver's bridge_dev_destroy() function: */
- 		/* Require of DevDestroy */
- 		if (dev_obj->hbridge_context) {
-@@ -474,32 +462,6 @@ int dev_get_cmm_mgr(struct dev_object *hdev_obj,
- }
+ /*  ----------------------------------- Link Driver */
+ #include <dspbridge/dspdefs.h>
+ #include <dspbridge/dspchnl.h>
+diff --git a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
+index fb9026e..b57a9fd 100644
+--- a/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
++++ b/drivers/staging/tidspbridge/core/tiomap3430_pwr.c
+@@ -31,10 +31,6 @@
+ #include <dspbridge/dev.h>
+ #include <dspbridge/iodefs.h>
  
- /*
-- *  ======== dev_get_dmm_mgr ========
-- *  Purpose:
-- *      Retrieve the handle to the dynamic memory manager created for this
-- *      device.
-- */
--int dev_get_dmm_mgr(struct dev_object *hdev_obj,
--			   struct dmm_object **mgr)
--{
--	int status = 0;
--	struct dev_object *dev_obj = hdev_obj;
+-/* ------------------------------------ Hardware Abstraction Layer */
+-#include <hw_defs.h>
+-#include <hw_mmu.h>
 -
--	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(mgr != NULL);
--
--	if (hdev_obj) {
--		*mgr = dev_obj->dmm_mgr;
--	} else {
--		*mgr = NULL;
--		status = -EFAULT;
--	}
--
--	DBC_ENSURE(!status || (mgr != NULL && *mgr == NULL));
--	return status;
--}
--
--/*
-  *  ======== dev_get_cod_mgr ========
-  *  Purpose:
-  *      Retrieve the COD manager create for this device.
-@@ -751,10 +713,8 @@ void dev_exit(void)
+ #include <dspbridge/pwr_sh.h>
  
- 	refs--;
- 
--	if (refs == 0) {
-+	if (refs == 0)
- 		cmm_exit();
--		dmm_exit();
--	}
- 
- 	DBC_ENSURE(refs >= 0);
- }
-@@ -766,25 +726,12 @@ void dev_exit(void)
-  */
- bool dev_init(void)
- {
--	bool cmm_ret, dmm_ret, ret = true;
-+	bool ret = true;
- 
- 	DBC_REQUIRE(refs >= 0);
- 
--	if (refs == 0) {
--		cmm_ret = cmm_init();
--		dmm_ret = dmm_init();
--
--		ret = cmm_ret && dmm_ret;
--
--		if (!ret) {
--			if (cmm_ret)
--				cmm_exit();
--
--			if (dmm_ret)
--				dmm_exit();
--
--		}
--	}
-+	if (refs == 0)
-+		ret = cmm_init();
- 
- 	if (ret)
- 		refs++;
-diff --git a/drivers/staging/tidspbridge/pmgr/dmm.c b/drivers/staging/tidspbridge/pmgr/dmm.c
+ /*  ----------------------------------- Bridge Driver */
+diff --git a/drivers/staging/tidspbridge/core/tiomap_io.c b/drivers/staging/tidspbridge/core/tiomap_io.c
+index 5ba6795..b526532 100644
+--- a/drivers/staging/tidspbridge/core/tiomap_io.c
++++ b/drivers/staging/tidspbridge/core/tiomap_io.c
+@@ -143,7 +143,7 @@ int read_ext_dsp_data(struct bridge_dev_context *dev_ctxt,
+ 				    ul_shm_base_virt - ul_tlb_base_virt;
+ 				ul_shm_offset_virt +=
+ 				    PG_ALIGN_HIGH(ul_ext_end - ul_dyn_ext_base +
+-						  1, HW_PAGE_SIZE64KB);
++						  1, PAGE_SIZE * 16);
+ 				dw_ext_prog_virt_mem -= ul_shm_offset_virt;
+ 				dw_ext_prog_virt_mem +=
+ 				    (ul_ext_base - ul_dyn_ext_base);
+diff --git a/drivers/staging/tidspbridge/hw/EasiGlobal.h b/drivers/staging/tidspbridge/hw/EasiGlobal.h
 deleted file mode 100644
-index 8685233..0000000
---- a/drivers/staging/tidspbridge/pmgr/dmm.c
+index e48d7f6..0000000
+--- a/drivers/staging/tidspbridge/hw/EasiGlobal.h
 +++ /dev/null
-@@ -1,533 +0,0 @@
+@@ -1,41 +0,0 @@
 -/*
-- * dmm.c
+- * EasiGlobal.h
 - *
 - * DSP-BIOS Bridge driver support functions for TI OMAP processors.
 - *
-- * The Dynamic Memory Manager (DMM) module manages the DSP Virtual address
-- * space that can be directly mapped to any MPU buffer or memory region
-- *
-- * Notes:
-- *   Region: Generic memory entitiy having a start address and a size
-- *   Chunk:  Reserved region
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- * Copyright (C) 2007 Texas Instruments, Inc.
 - *
 - * This package is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
@@ -359,646 +153,1171 @@ index 8685233..0000000
 - * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 - * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 - */
+-
+-#ifndef _EASIGLOBAL_H
+-#define _EASIGLOBAL_H
 -#include <linux/types.h>
 -
--/*  ----------------------------------- Host OS */
--#include <dspbridge/host_os.h>
+-/*
+- * DEFINE:        READ_ONLY, WRITE_ONLY &  READ_WRITE
+- *
+- * DESCRIPTION: Defines used to describe register types for EASI-checker tests.
+- */
 -
--/*  ----------------------------------- DSP/BIOS Bridge */
--#include <dspbridge/dbdefs.h>
+-#define READ_ONLY    1
+-#define WRITE_ONLY   2
+-#define READ_WRITE   3
 -
--/*  ----------------------------------- Trace & Debug */
--#include <dspbridge/dbc.h>
+-/*
+- * MACRO:        _DEBUG_LEVEL1_EASI
+- *
+- * DESCRIPTION:  A MACRO which can be used to indicate that a particular beach
+- *               register access function was called.
+- *
+- * NOTE:         We currently dont use this functionality.
+- */
+-#define _DEBUG_LEVEL1_EASI(easi_num)     ((void)0)
 -
--/*  ----------------------------------- OS Adaptation Layer */
--#include <dspbridge/sync.h>
+-#endif /* _EASIGLOBAL_H */
+diff --git a/drivers/staging/tidspbridge/hw/MMUAccInt.h b/drivers/staging/tidspbridge/hw/MMUAccInt.h
+deleted file mode 100644
+index 1cefca3..0000000
+--- a/drivers/staging/tidspbridge/hw/MMUAccInt.h
++++ /dev/null
+@@ -1,76 +0,0 @@
+-/*
+- * MMUAccInt.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
 -
--/*  ----------------------------------- Platform Manager */
--#include <dspbridge/dev.h>
--#include <dspbridge/proc.h>
+-#ifndef _MMU_ACC_INT_H
+-#define _MMU_ACC_INT_H
 -
--/*  ----------------------------------- This */
--#include <dspbridge/dmm.h>
+-/* Mappings of level 1 EASI function numbers to function names */
 -
--/*  ----------------------------------- Defines, Data Structures, Typedefs */
--#define DMM_ADDR_VIRTUAL(a) \
--	(((struct map_page *)(a) - virtual_mapping_table) * PG_SIZE4K +\
--	dyn_mem_map_beg)
--#define DMM_ADDR_TO_INDEX(a) (((a) - dyn_mem_map_beg) / PG_SIZE4K)
+-#define EASIL1_MMUMMU_SYSCONFIG_READ_REGISTER32 (MMU_BASE_EASIL1 + 3)
+-#define EASIL1_MMUMMU_SYSCONFIG_IDLE_MODE_WRITE32  (MMU_BASE_EASIL1 + 17)
+-#define EASIL1_MMUMMU_SYSCONFIG_AUTO_IDLE_WRITE32    (MMU_BASE_EASIL1 + 39)
+-#define EASIL1_MMUMMU_IRQSTATUS_WRITE_REGISTER32   (MMU_BASE_EASIL1 + 51)
+-#define EASIL1_MMUMMU_IRQENABLE_READ_REGISTER32 (MMU_BASE_EASIL1 + 102)
+-#define EASIL1_MMUMMU_IRQENABLE_WRITE_REGISTER32 (MMU_BASE_EASIL1 + 103)
+-#define EASIL1_MMUMMU_WALKING_STTWL_RUNNING_READ32 (MMU_BASE_EASIL1 + 156)
+-#define EASIL1_MMUMMU_CNTLTWL_ENABLE_READ32 (MMU_BASE_EASIL1 + 174)
+-#define EASIL1_MMUMMU_CNTLTWL_ENABLE_WRITE32   (MMU_BASE_EASIL1 + 180)
+-#define EASIL1_MMUMMU_CNTLMMU_ENABLE_WRITE32     (MMU_BASE_EASIL1 + 190)
+-#define EASIL1_MMUMMU_FAULT_AD_READ_REGISTER32   (MMU_BASE_EASIL1 + 194)
+-#define EASIL1_MMUMMU_TTB_WRITE_REGISTER32  (MMU_BASE_EASIL1 + 198)
+-#define EASIL1_MMUMMU_LOCK_READ_REGISTER32   (MMU_BASE_EASIL1 + 203)
+-#define EASIL1_MMUMMU_LOCK_WRITE_REGISTER32  (MMU_BASE_EASIL1 + 204)
+-#define EASIL1_MMUMMU_LOCK_BASE_VALUE_READ32  (MMU_BASE_EASIL1 + 205)
+-#define EASIL1_MMUMMU_LOCK_CURRENT_VICTIM_READ32 (MMU_BASE_EASIL1 + 209)
+-#define EASIL1_MMUMMU_LOCK_CURRENT_VICTIM_WRITE32 (MMU_BASE_EASIL1 + 211)
+-#define EASIL1_MMUMMU_LOCK_CURRENT_VICTIM_SET32  (MMU_BASE_EASIL1 + 212)
+-#define EASIL1_MMUMMU_LD_TLB_READ_REGISTER32    (MMU_BASE_EASIL1 + 213)
+-#define EASIL1_MMUMMU_LD_TLB_WRITE_REGISTER32   (MMU_BASE_EASIL1 + 214)
+-#define EASIL1_MMUMMU_CAM_WRITE_REGISTER32   (MMU_BASE_EASIL1 + 226)
+-#define EASIL1_MMUMMU_RAM_WRITE_REGISTER32 (MMU_BASE_EASIL1 + 268)
+-#define EASIL1_MMUMMU_FLUSH_ENTRY_WRITE_REGISTER32  (MMU_BASE_EASIL1 + 322)
 -
--/* DMM Mgr */
--struct dmm_object {
--	/* Dmm Lock is used to serialize access mem manager for
--	 * multi-threads. */
--	spinlock_t dmm_lock;	/* Lock to access dmm mgr */
+-/* Register offset address definitions */
+-#define MMU_MMU_SYSCONFIG_OFFSET   0x10
+-#define MMU_MMU_IRQSTATUS_OFFSET  0x18
+-#define MMU_MMU_IRQENABLE_OFFSET    0x1c
+-#define MMU_MMU_WALKING_ST_OFFSET 0x40
+-#define MMU_MMU_CNTL_OFFSET   0x44
+-#define MMU_MMU_FAULT_AD_OFFSET  0x48
+-#define MMU_MMU_TTB_OFFSET  0x4c
+-#define MMU_MMU_LOCK_OFFSET   0x50
+-#define MMU_MMU_LD_TLB_OFFSET  0x54
+-#define MMU_MMU_CAM_OFFSET   0x58
+-#define MMU_MMU_RAM_OFFSET   0x5c
+-#define MMU_MMU_GFLUSH_OFFSET  0x60
+-#define MMU_MMU_FLUSH_ENTRY_OFFSET  0x64
+-/* Bitfield mask and offset declarations */
+-#define MMU_MMU_SYSCONFIG_IDLE_MODE_MASK  0x18
+-#define MMU_MMU_SYSCONFIG_IDLE_MODE_OFFSET  3
+-#define MMU_MMU_SYSCONFIG_AUTO_IDLE_MASK  0x1
+-#define MMU_MMU_SYSCONFIG_AUTO_IDLE_OFFSET   0
+-#define MMU_MMU_WALKING_ST_TWL_RUNNING_MASK 0x1
+-#define MMU_MMU_WALKING_ST_TWL_RUNNING_OFFSET  0
+-#define MMU_MMU_CNTL_TWL_ENABLE_MASK 0x4
+-#define MMU_MMU_CNTL_TWL_ENABLE_OFFSET 2
+-#define MMU_MMU_CNTL_MMU_ENABLE_MASK    0x2
+-#define MMU_MMU_CNTL_MMU_ENABLE_OFFSET   1
+-#define MMU_MMU_LOCK_BASE_VALUE_MASK 0xfc00
+-#define MMU_MMU_LOCK_BASE_VALUE_OFFSET   10
+-#define MMU_MMU_LOCK_CURRENT_VICTIM_MASK   0x3f0
+-#define MMU_MMU_LOCK_CURRENT_VICTIM_OFFSET    4
+-
+-#endif /* _MMU_ACC_INT_H */
+diff --git a/drivers/staging/tidspbridge/hw/MMURegAcM.h b/drivers/staging/tidspbridge/hw/MMURegAcM.h
+deleted file mode 100644
+index ab1a16d..0000000
+--- a/drivers/staging/tidspbridge/hw/MMURegAcM.h
++++ /dev/null
+@@ -1,225 +0,0 @@
+-/*
+- * MMURegAcM.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef _MMU_REG_ACM_H
+-#define _MMU_REG_ACM_H
+-
+-#include <linux/io.h>
+-#include <EasiGlobal.h>
+-
+-#include "MMUAccInt.h"
+-
+-#if defined(USE_LEVEL_1_MACROS)
+-
+-#define MMUMMU_SYSCONFIG_READ_REGISTER32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_SYSCONFIG_READ_REGISTER32),\
+-      __raw_readl((base_address)+MMU_MMU_SYSCONFIG_OFFSET))
+-
+-#define MMUMMU_SYSCONFIG_IDLE_MODE_WRITE32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_SYSCONFIG_OFFSET;\
+-    register u32 data = __raw_readl((base_address)+offset);\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_SYSCONFIG_IDLE_MODE_WRITE32);\
+-    data &= ~(MMU_MMU_SYSCONFIG_IDLE_MODE_MASK);\
+-    new_value <<= MMU_MMU_SYSCONFIG_IDLE_MODE_OFFSET;\
+-    new_value &= MMU_MMU_SYSCONFIG_IDLE_MODE_MASK;\
+-    new_value |= data;\
+-    __raw_writel(new_value, base_address+offset);\
+-}
+-
+-#define MMUMMU_SYSCONFIG_AUTO_IDLE_WRITE32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_SYSCONFIG_OFFSET;\
+-    register u32 data = __raw_readl((base_address)+offset);\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_SYSCONFIG_AUTO_IDLE_WRITE32);\
+-    data &= ~(MMU_MMU_SYSCONFIG_AUTO_IDLE_MASK);\
+-    new_value <<= MMU_MMU_SYSCONFIG_AUTO_IDLE_OFFSET;\
+-    new_value &= MMU_MMU_SYSCONFIG_AUTO_IDLE_MASK;\
+-    new_value |= data;\
+-    __raw_writel(new_value, base_address+offset);\
+-}
+-
+-#define MMUMMU_IRQSTATUS_READ_REGISTER32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(easil1_mmummu_irqstatus_read_register32),\
+-      __raw_readl((base_address)+MMU_MMU_IRQSTATUS_OFFSET))
+-
+-#define MMUMMU_IRQSTATUS_WRITE_REGISTER32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_IRQSTATUS_OFFSET;\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_IRQSTATUS_WRITE_REGISTER32);\
+-    __raw_writel(new_value, (base_address)+offset);\
+-}
+-
+-#define MMUMMU_IRQENABLE_READ_REGISTER32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_IRQENABLE_READ_REGISTER32),\
+-      __raw_readl((base_address)+MMU_MMU_IRQENABLE_OFFSET))
+-
+-#define MMUMMU_IRQENABLE_WRITE_REGISTER32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_IRQENABLE_OFFSET;\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_IRQENABLE_WRITE_REGISTER32);\
+-    __raw_writel(new_value, (base_address)+offset);\
+-}
+-
+-#define MMUMMU_WALKING_STTWL_RUNNING_READ32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_WALKING_STTWL_RUNNING_READ32),\
+-      (((__raw_readl(((base_address)+(MMU_MMU_WALKING_ST_OFFSET))))\
+-      & MMU_MMU_WALKING_ST_TWL_RUNNING_MASK) >>\
+-      MMU_MMU_WALKING_ST_TWL_RUNNING_OFFSET))
+-
+-#define MMUMMU_CNTLTWL_ENABLE_READ32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_CNTLTWL_ENABLE_READ32),\
+-      (((__raw_readl(((base_address)+(MMU_MMU_CNTL_OFFSET)))) &\
+-      MMU_MMU_CNTL_TWL_ENABLE_MASK) >>\
+-      MMU_MMU_CNTL_TWL_ENABLE_OFFSET))
+-
+-#define MMUMMU_CNTLTWL_ENABLE_WRITE32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_CNTL_OFFSET;\
+-    register u32 data = __raw_readl((base_address)+offset);\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_CNTLTWL_ENABLE_WRITE32);\
+-    data &= ~(MMU_MMU_CNTL_TWL_ENABLE_MASK);\
+-    new_value <<= MMU_MMU_CNTL_TWL_ENABLE_OFFSET;\
+-    new_value &= MMU_MMU_CNTL_TWL_ENABLE_MASK;\
+-    new_value |= data;\
+-    __raw_writel(new_value, base_address+offset);\
+-}
+-
+-#define MMUMMU_CNTLMMU_ENABLE_WRITE32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_CNTL_OFFSET;\
+-    register u32 data = __raw_readl((base_address)+offset);\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_CNTLMMU_ENABLE_WRITE32);\
+-    data &= ~(MMU_MMU_CNTL_MMU_ENABLE_MASK);\
+-    new_value <<= MMU_MMU_CNTL_MMU_ENABLE_OFFSET;\
+-    new_value &= MMU_MMU_CNTL_MMU_ENABLE_MASK;\
+-    new_value |= data;\
+-    __raw_writel(new_value, base_address+offset);\
+-}
+-
+-#define MMUMMU_FAULT_AD_READ_REGISTER32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_FAULT_AD_READ_REGISTER32),\
+-      __raw_readl((base_address)+MMU_MMU_FAULT_AD_OFFSET))
+-
+-#define MMUMMU_TTB_WRITE_REGISTER32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_TTB_OFFSET;\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_TTB_WRITE_REGISTER32);\
+-    __raw_writel(new_value, (base_address)+offset);\
+-}
+-
+-#define MMUMMU_LOCK_READ_REGISTER32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_LOCK_READ_REGISTER32),\
+-      __raw_readl((base_address)+MMU_MMU_LOCK_OFFSET))
+-
+-#define MMUMMU_LOCK_WRITE_REGISTER32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_LOCK_OFFSET;\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_LOCK_WRITE_REGISTER32);\
+-    __raw_writel(new_value, (base_address)+offset);\
+-}
+-
+-#define MMUMMU_LOCK_BASE_VALUE_READ32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_LOCK_BASE_VALUE_READ32),\
+-      (((__raw_readl(((base_address)+(MMU_MMU_LOCK_OFFSET)))) &\
+-      MMU_MMU_LOCK_BASE_VALUE_MASK) >>\
+-      MMU_MMU_LOCK_BASE_VALUE_OFFSET))
+-
+-#define MMUMMU_LOCK_BASE_VALUE_WRITE32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_LOCK_OFFSET;\
+-    register u32 data = __raw_readl((base_address)+offset);\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(easil1_mmummu_lock_base_value_write32);\
+-    data &= ~(MMU_MMU_LOCK_BASE_VALUE_MASK);\
+-    new_value <<= MMU_MMU_LOCK_BASE_VALUE_OFFSET;\
+-    new_value &= MMU_MMU_LOCK_BASE_VALUE_MASK;\
+-    new_value |= data;\
+-    __raw_writel(new_value, base_address+offset);\
+-}
+-
+-#define MMUMMU_LOCK_CURRENT_VICTIM_READ32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_LOCK_CURRENT_VICTIM_READ32),\
+-      (((__raw_readl(((base_address)+(MMU_MMU_LOCK_OFFSET)))) &\
+-      MMU_MMU_LOCK_CURRENT_VICTIM_MASK) >>\
+-      MMU_MMU_LOCK_CURRENT_VICTIM_OFFSET))
+-
+-#define MMUMMU_LOCK_CURRENT_VICTIM_WRITE32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_LOCK_OFFSET;\
+-    register u32 data = __raw_readl((base_address)+offset);\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_LOCK_CURRENT_VICTIM_WRITE32);\
+-    data &= ~(MMU_MMU_LOCK_CURRENT_VICTIM_MASK);\
+-    new_value <<= MMU_MMU_LOCK_CURRENT_VICTIM_OFFSET;\
+-    new_value &= MMU_MMU_LOCK_CURRENT_VICTIM_MASK;\
+-    new_value |= data;\
+-    __raw_writel(new_value, base_address+offset);\
+-}
+-
+-#define MMUMMU_LOCK_CURRENT_VICTIM_SET32(var, value)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_LOCK_CURRENT_VICTIM_SET32),\
+-      (((var) & ~(MMU_MMU_LOCK_CURRENT_VICTIM_MASK)) |\
+-      (((value) << MMU_MMU_LOCK_CURRENT_VICTIM_OFFSET) &\
+-      MMU_MMU_LOCK_CURRENT_VICTIM_MASK)))
+-
+-#define MMUMMU_LD_TLB_READ_REGISTER32(base_address)\
+-    (_DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_LD_TLB_READ_REGISTER32),\
+-      __raw_readl((base_address)+MMU_MMU_LD_TLB_OFFSET))
+-
+-#define MMUMMU_LD_TLB_WRITE_REGISTER32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_LD_TLB_OFFSET;\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_LD_TLB_WRITE_REGISTER32);\
+-    __raw_writel(new_value, (base_address)+offset);\
+-}
+-
+-#define MMUMMU_CAM_WRITE_REGISTER32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_CAM_OFFSET;\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_CAM_WRITE_REGISTER32);\
+-    __raw_writel(new_value, (base_address)+offset);\
+-}
+-
+-#define MMUMMU_RAM_WRITE_REGISTER32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_RAM_OFFSET;\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_RAM_WRITE_REGISTER32);\
+-    __raw_writel(new_value, (base_address)+offset);\
+-}
+-
+-#define MMUMMU_FLUSH_ENTRY_WRITE_REGISTER32(base_address, value)\
+-{\
+-    const u32 offset = MMU_MMU_FLUSH_ENTRY_OFFSET;\
+-    register u32 new_value = (value);\
+-    _DEBUG_LEVEL1_EASI(EASIL1_MMUMMU_FLUSH_ENTRY_WRITE_REGISTER32);\
+-    __raw_writel(new_value, (base_address)+offset);\
+-}
+-
+-#endif /* USE_LEVEL_1_MACROS */
+-
+-#endif /* _MMU_REG_ACM_H */
+diff --git a/drivers/staging/tidspbridge/hw/hw_defs.h b/drivers/staging/tidspbridge/hw/hw_defs.h
+deleted file mode 100644
+index d5266d4..0000000
+--- a/drivers/staging/tidspbridge/hw/hw_defs.h
++++ /dev/null
+@@ -1,58 +0,0 @@
+-/*
+- * hw_defs.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Global HW definitions
+- *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-#ifndef _HW_DEFS_H
+-#define _HW_DEFS_H
+-
+-/* Page size */
+-#define HW_PAGE_SIZE4KB   0x1000
+-#define HW_PAGE_SIZE64KB  0x10000
+-#define HW_PAGE_SIZE1MB   0x100000
+-#define HW_PAGE_SIZE16MB  0x1000000
+-
+-/* hw_status:  return type for HW API */
+-typedef long hw_status;
+-
+-/*  Macro used to set and clear any bit */
+-#define HW_CLEAR	0
+-#define HW_SET		1
+-
+-/* hw_endianism_t:  Enumerated Type used to specify the endianism
+- *		Do NOT change these values. They are used as bit fields. */
+-enum hw_endianism_t {
+-	HW_LITTLE_ENDIAN,
+-	HW_BIG_ENDIAN
 -};
 -
--/*  ----------------------------------- Globals */
--static u32 refs;		/* module reference count */
--struct map_page {
--	u32 region_size:15;
--	u32 mapped_size:15;
--	u32 reserved:1;
--	u32 mapped:1;
+-/* hw_element_size_t:  Enumerated Type used to specify the element size
+- *		Do NOT change these values. They are used as bit fields. */
+-enum hw_element_size_t {
+-	HW_ELEM_SIZE8BIT,
+-	HW_ELEM_SIZE16BIT,
+-	HW_ELEM_SIZE32BIT,
+-	HW_ELEM_SIZE64BIT
 -};
 -
--/*  Create the free list */
--static struct map_page *virtual_mapping_table;
--static u32 free_region;		/* The index of free region */
--static u32 free_size;
--static u32 dyn_mem_map_beg;	/* The Beginning of dynamic memory mapping */
--static u32 table_size;		/* The size of virt and phys pages tables */
+-/* hw_idle_mode_t:  Enumerated Type used to specify Idle modes */
+-enum hw_idle_mode_t {
+-	HW_FORCE_IDLE,
+-	HW_NO_IDLE,
+-	HW_SMART_IDLE
+-};
 -
--/*  ----------------------------------- Function Prototypes */
--static struct map_page *get_region(u32 addr);
--static struct map_page *get_free_region(u32 len);
--static struct map_page *get_mapped_region(u32 addrs);
--
--/*  ======== dmm_create_tables ========
-- *  Purpose:
-- *      Create table to hold the information of physical address
-- *      the buffer pages that is passed by the user, and the table
-- *      to hold the information of the virtual memory that is reserved
-- *      for DSP.
+-#endif /* _HW_DEFS_H */
+diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.c b/drivers/staging/tidspbridge/hw/hw_mmu.c
+deleted file mode 100644
+index 014f5d5..0000000
+--- a/drivers/staging/tidspbridge/hw/hw_mmu.c
++++ /dev/null
+@@ -1,562 +0,0 @@
+-/*
+- * hw_mmu.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * API definitions to setup MMU TLB and PTE
+- *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 - */
--int dmm_create_tables(struct dmm_object *dmm_mgr, u32 addr, u32 size)
--{
--	struct dmm_object *dmm_obj = (struct dmm_object *)dmm_mgr;
--	int status = 0;
 -
--	status = dmm_delete_tables(dmm_obj);
--	if (!status) {
--		dyn_mem_map_beg = addr;
--		table_size = PG_ALIGN_HIGH(size, PG_SIZE4K) / PG_SIZE4K;
--		/*  Create the free list */
--		virtual_mapping_table = __vmalloc(table_size *
--				sizeof(struct map_page), GFP_KERNEL |
--				__GFP_HIGHMEM | __GFP_ZERO, PAGE_KERNEL);
--		if (virtual_mapping_table == NULL)
--			status = -ENOMEM;
--		else {
--			/* On successful allocation,
--			 * all entries are zero ('free') */
--			free_region = 0;
--			free_size = table_size * PG_SIZE4K;
--			virtual_mapping_table[0].region_size = table_size;
--		}
+-#include <linux/io.h>
+-#include "MMURegAcM.h"
+-#include <hw_defs.h>
+-#include <hw_mmu.h>
+-#include <linux/types.h>
+-#include <linux/err.h>
+-
+-#define MMU_BASE_VAL_MASK	0xFC00
+-#define MMU_PAGE_MAX	     3
+-#define MMU_ELEMENTSIZE_MAX      3
+-#define MMU_ADDR_MASK	    0xFFFFF000
+-#define MMU_TTB_MASK	     0xFFFFC000
+-#define MMU_SECTION_ADDR_MASK    0xFFF00000
+-#define MMU_SSECTION_ADDR_MASK   0xFF000000
+-#define MMU_PAGE_TABLE_MASK      0xFFFFFC00
+-#define MMU_LARGE_PAGE_MASK      0xFFFF0000
+-#define MMU_SMALL_PAGE_MASK      0xFFFFF000
+-
+-#define MMU_LOAD_TLB	0x00000001
+-#define MMU_GFLUSH	0x60
+-
+-/*
+- * hw_mmu_page_size_t: Enumerated Type used to specify the MMU Page Size(SLSS)
+- */
+-enum hw_mmu_page_size_t {
+-	HW_MMU_SECTION,
+-	HW_MMU_LARGE_PAGE,
+-	HW_MMU_SMALL_PAGE,
+-	HW_MMU_SUPERSECTION
+-};
+-
+-/*
+- * FUNCTION	      : mmu_flush_entry
+- *
+- * INPUTS:
+- *
+- *       Identifier      : base_address
+- *       Type		: const u32
+- *       Description     : Base Address of instance of MMU module
+- *
+- * RETURNS:
+- *
+- *       Type		: hw_status
+- *       Description     : 0		 -- No errors occured
+- *			 RET_BAD_NULL_PARAM     -- A Pointer
+- *						Paramater was set to NULL
+- *
+- * PURPOSE:	      : Flush the TLB entry pointed by the
+- *			lock counter register
+- *			even if this entry is set protected
+- *
+- * METHOD:	       : Check the Input parameter and Flush a
+- *			 single entry in the TLB.
+- */
+-static hw_status mmu_flush_entry(const void __iomem *base_address);
+-
+-/*
+- * FUNCTION	      : mmu_set_cam_entry
+- *
+- * INPUTS:
+- *
+- *       Identifier      : base_address
+- *       TypE		: const u32
+- *       Description     : Base Address of instance of MMU module
+- *
+- *       Identifier      : page_sz
+- *       TypE		: const u32
+- *       Description     : It indicates the page size
+- *
+- *       Identifier      : preserved_bit
+- *       Type		: const u32
+- *       Description     : It indicates the TLB entry is preserved entry
+- *							or not
+- *
+- *       Identifier      : valid_bit
+- *       Type		: const u32
+- *       Description     : It indicates the TLB entry is valid entry or not
+- *
+- *
+- *       Identifier      : virtual_addr_tag
+- *       Type	    	: const u32
+- *       Description     : virtual Address
+- *
+- * RETURNS:
+- *
+- *       Type	    	: hw_status
+- *       Description     : 0		 -- No errors occured
+- *			 RET_BAD_NULL_PARAM     -- A Pointer Paramater
+- *						   was set to NULL
+- *			 RET_PARAM_OUT_OF_RANGE -- Input Parameter out
+- *						   of Range
+- *
+- * PURPOSE:	      	: Set MMU_CAM reg
+- *
+- * METHOD:	       	: Check the Input parameters and set the CAM entry.
+- */
+-static hw_status mmu_set_cam_entry(const void __iomem *base_address,
+-				   const u32 page_sz,
+-				   const u32 preserved_bit,
+-				   const u32 valid_bit,
+-				   const u32 virtual_addr_tag);
+-
+-/*
+- * FUNCTION	      : mmu_set_ram_entry
+- *
+- * INPUTS:
+- *
+- *       Identifier      : base_address
+- *       Type	    	: const u32
+- *       Description     : Base Address of instance of MMU module
+- *
+- *       Identifier      : physical_addr
+- *       Type	    	: const u32
+- *       Description     : Physical Address to which the corresponding
+- *			 virtual   Address shouldpoint
+- *
+- *       Identifier      : endianism
+- *       Type	    	: hw_endianism_t
+- *       Description     : endianism for the given page
+- *
+- *       Identifier      : element_size
+- *       Type	    	: hw_element_size_t
+- *       Description     : The element size ( 8,16, 32 or 64 bit)
+- *
+- *       Identifier      : mixed_size
+- *       Type	    	: hw_mmu_mixed_size_t
+- *       Description     : Element Size to follow CPU or TLB
+- *
+- * RETURNS:
+- *
+- *       Type	    	: hw_status
+- *       Description     : 0		 -- No errors occured
+- *			 RET_BAD_NULL_PARAM     -- A Pointer Paramater
+- *							was set to NULL
+- *			 RET_PARAM_OUT_OF_RANGE -- Input Parameter
+- *							out of Range
+- *
+- * PURPOSE:	      : Set MMU_CAM reg
+- *
+- * METHOD:	       : Check the Input parameters and set the RAM entry.
+- */
+-static hw_status mmu_set_ram_entry(const void __iomem *base_address,
+-				   const u32 physical_addr,
+-				   enum hw_endianism_t endianism,
+-				   enum hw_element_size_t element_size,
+-				   enum hw_mmu_mixed_size_t mixed_size);
+-
+-/* HW FUNCTIONS */
+-
+-hw_status hw_mmu_enable(const void __iomem *base_address)
+-{
+-	hw_status status = 0;
+-
+-	MMUMMU_CNTLMMU_ENABLE_WRITE32(base_address, HW_SET);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_disable(const void __iomem *base_address)
+-{
+-	hw_status status = 0;
+-
+-	MMUMMU_CNTLMMU_ENABLE_WRITE32(base_address, HW_CLEAR);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_num_locked_set(const void __iomem *base_address,
+-				u32 num_locked_entries)
+-{
+-	hw_status status = 0;
+-
+-	MMUMMU_LOCK_BASE_VALUE_WRITE32(base_address, num_locked_entries);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_victim_num_set(const void __iomem *base_address,
+-				u32 victim_entry_num)
+-{
+-	hw_status status = 0;
+-
+-	MMUMMU_LOCK_CURRENT_VICTIM_WRITE32(base_address, victim_entry_num);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_event_ack(const void __iomem *base_address, u32 irq_mask)
+-{
+-	hw_status status = 0;
+-
+-	MMUMMU_IRQSTATUS_WRITE_REGISTER32(base_address, irq_mask);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_event_disable(const void __iomem *base_address, u32 irq_mask)
+-{
+-	hw_status status = 0;
+-	u32 irq_reg;
+-
+-	irq_reg = MMUMMU_IRQENABLE_READ_REGISTER32(base_address);
+-
+-	MMUMMU_IRQENABLE_WRITE_REGISTER32(base_address, irq_reg & ~irq_mask);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_event_enable(const void __iomem *base_address, u32 irq_mask)
+-{
+-	hw_status status = 0;
+-	u32 irq_reg;
+-
+-	irq_reg = MMUMMU_IRQENABLE_READ_REGISTER32(base_address);
+-
+-	MMUMMU_IRQENABLE_WRITE_REGISTER32(base_address, irq_reg | irq_mask);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_event_status(const void __iomem *base_address, u32 *irq_mask)
+-{
+-	hw_status status = 0;
+-
+-	*irq_mask = MMUMMU_IRQSTATUS_READ_REGISTER32(base_address);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_fault_addr_read(const void __iomem *base_address, u32 *addr)
+-{
+-	hw_status status = 0;
+-
+-	/* read values from register */
+-	*addr = MMUMMU_FAULT_AD_READ_REGISTER32(base_address);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_ttb_set(const void __iomem *base_address, u32 ttb_phys_addr)
+-{
+-	hw_status status = 0;
+-	u32 load_ttb;
+-
+-	load_ttb = ttb_phys_addr & ~0x7FUL;
+-	/* write values to register */
+-	MMUMMU_TTB_WRITE_REGISTER32(base_address, load_ttb);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_twl_enable(const void __iomem *base_address)
+-{
+-	hw_status status = 0;
+-
+-	MMUMMU_CNTLTWL_ENABLE_WRITE32(base_address, HW_SET);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_twl_disable(const void __iomem *base_address)
+-{
+-	hw_status status = 0;
+-
+-	MMUMMU_CNTLTWL_ENABLE_WRITE32(base_address, HW_CLEAR);
+-
+-	return status;
+-}
+-
+-hw_status hw_mmu_tlb_flush(const void __iomem *base_address, u32 virtual_addr,
+-			   u32 page_sz)
+-{
+-	hw_status status = 0;
+-	u32 virtual_addr_tag;
+-	enum hw_mmu_page_size_t pg_size_bits;
+-
+-	switch (page_sz) {
+-	case HW_PAGE_SIZE4KB:
+-		pg_size_bits = HW_MMU_SMALL_PAGE;
+-		break;
+-
+-	case HW_PAGE_SIZE64KB:
+-		pg_size_bits = HW_MMU_LARGE_PAGE;
+-		break;
+-
+-	case HW_PAGE_SIZE1MB:
+-		pg_size_bits = HW_MMU_SECTION;
+-		break;
+-
+-	case HW_PAGE_SIZE16MB:
+-		pg_size_bits = HW_MMU_SUPERSECTION;
+-		break;
+-
+-	default:
+-		return -EINVAL;
 -	}
 -
--	if (status)
--		pr_err("%s: failure, status 0x%x\n", __func__, status);
+-	/* Generate the 20-bit tag from virtual address */
+-	virtual_addr_tag = ((virtual_addr & MMU_ADDR_MASK) >> 12);
+-
+-	mmu_set_cam_entry(base_address, pg_size_bits, 0, 0, virtual_addr_tag);
+-
+-	mmu_flush_entry(base_address);
 -
 -	return status;
 -}
 -
--/*
-- *  ======== dmm_create ========
-- *  Purpose:
-- *      Create a dynamic memory manager object.
-- */
--int dmm_create(struct dmm_object **dmm_manager,
--		      struct dev_object *hdev_obj,
--		      const struct dmm_mgrattrs *mgr_attrts)
+-hw_status hw_mmu_tlb_add(const void __iomem *base_address,
+-			 u32 physical_addr,
+-			 u32 virtual_addr,
+-			 u32 page_sz,
+-			 u32 entry_num,
+-			 struct hw_mmu_map_attrs_t *map_attrs,
+-			 s8 preserved_bit, s8 valid_bit)
 -{
--	struct dmm_object *dmm_obj = NULL;
--	int status = 0;
--	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(dmm_manager != NULL);
+-	hw_status status = 0;
+-	u32 lock_reg;
+-	u32 virtual_addr_tag;
+-	enum hw_mmu_page_size_t mmu_pg_size;
 -
--	*dmm_manager = NULL;
--	/* create, zero, and tag a cmm mgr object */
--	dmm_obj = kzalloc(sizeof(struct dmm_object), GFP_KERNEL);
--	if (dmm_obj != NULL) {
--		spin_lock_init(&dmm_obj->dmm_lock);
--		*dmm_manager = dmm_obj;
--	} else {
--		status = -ENOMEM;
+-	/*Check the input Parameters */
+-	switch (page_sz) {
+-	case HW_PAGE_SIZE4KB:
+-		mmu_pg_size = HW_MMU_SMALL_PAGE;
+-		break;
+-
+-	case HW_PAGE_SIZE64KB:
+-		mmu_pg_size = HW_MMU_LARGE_PAGE;
+-		break;
+-
+-	case HW_PAGE_SIZE1MB:
+-		mmu_pg_size = HW_MMU_SECTION;
+-		break;
+-
+-	case HW_PAGE_SIZE16MB:
+-		mmu_pg_size = HW_MMU_SUPERSECTION;
+-		break;
+-
+-	default:
+-		return -EINVAL;
 -	}
 -
--	return status;
--}
+-	lock_reg = MMUMMU_LOCK_READ_REGISTER32(base_address);
 -
--/*
-- *  ======== dmm_destroy ========
-- *  Purpose:
-- *      Release the communication memory manager resources.
-- */
--int dmm_destroy(struct dmm_object *dmm_mgr)
--{
--	struct dmm_object *dmm_obj = (struct dmm_object *)dmm_mgr;
--	int status = 0;
+-	/* Generate the 20-bit tag from virtual address */
+-	virtual_addr_tag = ((virtual_addr & MMU_ADDR_MASK) >> 12);
 -
--	DBC_REQUIRE(refs > 0);
--	if (dmm_mgr) {
--		status = dmm_delete_tables(dmm_obj);
--		if (!status)
--			kfree(dmm_obj);
--	} else
--		status = -EFAULT;
+-	/* Write the fields in the CAM Entry Register */
+-	mmu_set_cam_entry(base_address, mmu_pg_size, preserved_bit, valid_bit,
+-			  virtual_addr_tag);
 -
--	return status;
--}
+-	/* Write the different fields of the RAM Entry Register */
+-	/* endianism of the page,Element Size of the page (8, 16, 32, 64 bit) */
+-	mmu_set_ram_entry(base_address, physical_addr, map_attrs->endianism,
+-			  map_attrs->element_size, map_attrs->mixed_size);
 -
--/*
-- *  ======== dmm_delete_tables ========
-- *  Purpose:
-- *      Delete DMM Tables.
-- */
--int dmm_delete_tables(struct dmm_object *dmm_mgr)
--{
--	int status = 0;
+-	/* Update the MMU Lock Register */
+-	/* currentVictim between lockedBaseValue and (MMU_Entries_Number - 1) */
+-	MMUMMU_LOCK_CURRENT_VICTIM_WRITE32(base_address, entry_num);
 -
--	DBC_REQUIRE(refs > 0);
--	/* Delete all DMM tables */
--	if (dmm_mgr)
--		vfree(virtual_mapping_table);
--	else
--		status = -EFAULT;
--	return status;
--}
+-	/* Enable loading of an entry in TLB by writing 1
+-	   into LD_TLB_REG register */
+-	MMUMMU_LD_TLB_WRITE_REGISTER32(base_address, MMU_LOAD_TLB);
 -
--/*
-- *  ======== dmm_exit ========
-- *  Purpose:
-- *      Discontinue usage of module; free resources when reference count
-- *      reaches 0.
-- */
--void dmm_exit(void)
--{
--	DBC_REQUIRE(refs > 0);
--
--	refs--;
--}
--
--/*
-- *  ======== dmm_get_handle ========
-- *  Purpose:
-- *      Return the dynamic memory manager object for this device.
-- *      This is typically called from the client process.
-- */
--int dmm_get_handle(void *hprocessor, struct dmm_object **dmm_manager)
--{
--	int status = 0;
--	struct dev_object *hdev_obj;
--
--	DBC_REQUIRE(refs > 0);
--	DBC_REQUIRE(dmm_manager != NULL);
--	if (hprocessor != NULL)
--		status = proc_get_dev_object(hprocessor, &hdev_obj);
--	else
--		hdev_obj = dev_get_first();	/* default */
--
--	if (!status)
--		status = dev_get_dmm_mgr(hdev_obj, dmm_manager);
+-	MMUMMU_LOCK_WRITE_REGISTER32(base_address, lock_reg);
 -
 -	return status;
 -}
 -
--/*
-- *  ======== dmm_init ========
-- *  Purpose:
-- *      Initializes private state of DMM module.
-- */
--bool dmm_init(void)
+-hw_status hw_mmu_pte_set(const u32 pg_tbl_va,
+-			 u32 physical_addr,
+-			 u32 virtual_addr,
+-			 u32 page_sz, struct hw_mmu_map_attrs_t *map_attrs)
 -{
--	bool ret = true;
+-	hw_status status = 0;
+-	u32 pte_addr, pte_val;
+-	s32 num_entries = 1;
 -
--	DBC_REQUIRE(refs >= 0);
+-	switch (page_sz) {
+-	case HW_PAGE_SIZE4KB:
+-		pte_addr = hw_mmu_pte_addr_l2(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_SMALL_PAGE_MASK);
+-		pte_val =
+-		    ((physical_addr & MMU_SMALL_PAGE_MASK) |
+-		     (map_attrs->endianism << 9) | (map_attrs->
+-						    element_size << 4) |
+-		     (map_attrs->mixed_size << 11) | 2);
+-		break;
 -
--	if (ret)
--		refs++;
+-	case HW_PAGE_SIZE64KB:
+-		num_entries = 16;
+-		pte_addr = hw_mmu_pte_addr_l2(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_LARGE_PAGE_MASK);
+-		pte_val =
+-		    ((physical_addr & MMU_LARGE_PAGE_MASK) |
+-		     (map_attrs->endianism << 9) | (map_attrs->
+-						    element_size << 4) |
+-		     (map_attrs->mixed_size << 11) | 1);
+-		break;
 -
--	DBC_ENSURE((ret && (refs > 0)) || (!ret && (refs >= 0)));
+-	case HW_PAGE_SIZE1MB:
+-		pte_addr = hw_mmu_pte_addr_l1(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_SECTION_ADDR_MASK);
+-		pte_val =
+-		    ((((physical_addr & MMU_SECTION_ADDR_MASK) |
+-		       (map_attrs->endianism << 15) | (map_attrs->
+-						       element_size << 10) |
+-		       (map_attrs->mixed_size << 17)) & ~0x40000) | 0x2);
+-		break;
 -
--	virtual_mapping_table = NULL;
--	table_size = 0;
+-	case HW_PAGE_SIZE16MB:
+-		num_entries = 16;
+-		pte_addr = hw_mmu_pte_addr_l1(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_SSECTION_ADDR_MASK);
+-		pte_val =
+-		    (((physical_addr & MMU_SSECTION_ADDR_MASK) |
+-		      (map_attrs->endianism << 15) | (map_attrs->
+-						      element_size << 10) |
+-		      (map_attrs->mixed_size << 17)
+-		     ) | 0x40000 | 0x2);
+-		break;
 -
--	return ret;
--}
+-	case HW_MMU_COARSE_PAGE_SIZE:
+-		pte_addr = hw_mmu_pte_addr_l1(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_SECTION_ADDR_MASK);
+-		pte_val = (physical_addr & MMU_PAGE_TABLE_MASK) | 1;
+-		break;
 -
--/*
-- *  ======== dmm_map_memory ========
-- *  Purpose:
-- *      Add a mapping block to the reserved chunk. DMM assumes that this block
-- *  will be mapped in the DSP/IVA's address space. DMM returns an error if a
-- *  mapping overlaps another one. This function stores the info that will be
-- *  required later while unmapping the block.
-- */
--int dmm_map_memory(struct dmm_object *dmm_mgr, u32 addr, u32 size)
--{
--	struct dmm_object *dmm_obj = (struct dmm_object *)dmm_mgr;
--	struct map_page *chunk;
--	int status = 0;
--
--	spin_lock(&dmm_obj->dmm_lock);
--	/* Find the Reserved memory chunk containing the DSP block to
--	 * be mapped */
--	chunk = (struct map_page *)get_region(addr);
--	if (chunk != NULL) {
--		/* Mark the region 'mapped', leave the 'reserved' info as-is */
--		chunk->mapped = true;
--		chunk->mapped_size = (size / PG_SIZE4K);
--	} else
--		status = -ENOENT;
--	spin_unlock(&dmm_obj->dmm_lock);
--
--	dev_dbg(bridge, "%s dmm_mgr %p, addr %x, size %x\n\tstatus %x, "
--		"chunk %p", __func__, dmm_mgr, addr, size, status, chunk);
--
--	return status;
--}
--
--/*
-- *  ======== dmm_reserve_memory ========
-- *  Purpose:
-- *      Reserve a chunk of virtually contiguous DSP/IVA address space.
-- */
--int dmm_reserve_memory(struct dmm_object *dmm_mgr, u32 size,
--			      u32 *prsv_addr)
--{
--	int status = 0;
--	struct dmm_object *dmm_obj = (struct dmm_object *)dmm_mgr;
--	struct map_page *node;
--	u32 rsv_addr = 0;
--	u32 rsv_size = 0;
--
--	spin_lock(&dmm_obj->dmm_lock);
--
--	/* Try to get a DSP chunk from the free list */
--	node = get_free_region(size);
--	if (node != NULL) {
--		/*  DSP chunk of given size is available. */
--		rsv_addr = DMM_ADDR_VIRTUAL(node);
--		/* Calculate the number entries to use */
--		rsv_size = size / PG_SIZE4K;
--		if (rsv_size < node->region_size) {
--			/* Mark remainder of free region */
--			node[rsv_size].mapped = false;
--			node[rsv_size].reserved = false;
--			node[rsv_size].region_size =
--			    node->region_size - rsv_size;
--			node[rsv_size].mapped_size = 0;
--		}
--		/*  get_region will return first fit chunk. But we only use what
--		   is requested. */
--		node->mapped = false;
--		node->reserved = true;
--		node->region_size = rsv_size;
--		node->mapped_size = 0;
--		/* Return the chunk's starting address */
--		*prsv_addr = rsv_addr;
--	} else
--		/*dSP chunk of given size is not available */
--		status = -ENOMEM;
--
--	spin_unlock(&dmm_obj->dmm_lock);
--
--	dev_dbg(bridge, "%s dmm_mgr %p, size %x, prsv_addr %p\n\tstatus %x, "
--		"rsv_addr %x, rsv_size %x\n", __func__, dmm_mgr, size,
--		prsv_addr, status, rsv_addr, rsv_size);
--
--	return status;
--}
--
--/*
-- *  ======== dmm_un_map_memory ========
-- *  Purpose:
-- *      Remove the mapped block from the reserved chunk.
-- */
--int dmm_un_map_memory(struct dmm_object *dmm_mgr, u32 addr, u32 *psize)
--{
--	struct dmm_object *dmm_obj = (struct dmm_object *)dmm_mgr;
--	struct map_page *chunk;
--	int status = 0;
--
--	spin_lock(&dmm_obj->dmm_lock);
--	chunk = get_mapped_region(addr);
--	if (chunk == NULL)
--		status = -ENOENT;
--
--	if (!status) {
--		/* Unmap the region */
--		*psize = chunk->mapped_size * PG_SIZE4K;
--		chunk->mapped = false;
--		chunk->mapped_size = 0;
--	}
--	spin_unlock(&dmm_obj->dmm_lock);
--
--	dev_dbg(bridge, "%s: dmm_mgr %p, addr %x, psize %p\n\tstatus %x, "
--		"chunk %p\n", __func__, dmm_mgr, addr, psize, status, chunk);
--
--	return status;
--}
--
--/*
-- *  ======== dmm_un_reserve_memory ========
-- *  Purpose:
-- *      Free a chunk of reserved DSP/IVA address space.
-- */
--int dmm_un_reserve_memory(struct dmm_object *dmm_mgr, u32 rsv_addr)
--{
--	struct dmm_object *dmm_obj = (struct dmm_object *)dmm_mgr;
--	struct map_page *chunk;
--	u32 i;
--	int status = 0;
--	u32 chunk_size;
--
--	spin_lock(&dmm_obj->dmm_lock);
--
--	/* Find the chunk containing the reserved address */
--	chunk = get_mapped_region(rsv_addr);
--	if (chunk == NULL)
--		status = -ENOENT;
--
--	if (!status) {
--		/* Free all the mapped pages for this reserved region */
--		i = 0;
--		while (i < chunk->region_size) {
--			if (chunk[i].mapped) {
--				/* Remove mapping from the page tables. */
--				chunk_size = chunk[i].mapped_size;
--				/* Clear the mapping flags */
--				chunk[i].mapped = false;
--				chunk[i].mapped_size = 0;
--				i += chunk_size;
--			} else
--				i++;
--		}
--		/* Clear the flags (mark the region 'free') */
--		chunk->reserved = false;
--		/* NOTE: We do NOT coalesce free regions here.
--		 * Free regions are coalesced in get_region(), as it traverses
--		 *the whole mapping table
--		 */
--	}
--	spin_unlock(&dmm_obj->dmm_lock);
--
--	dev_dbg(bridge, "%s: dmm_mgr %p, rsv_addr %x\n\tstatus %x chunk %p",
--		__func__, dmm_mgr, rsv_addr, status, chunk);
--
--	return status;
--}
--
--/*
-- *  ======== get_region ========
-- *  Purpose:
-- *      Returns a region containing the specified memory region
-- */
--static struct map_page *get_region(u32 addr)
--{
--	struct map_page *curr_region = NULL;
--	u32 i = 0;
--
--	if (virtual_mapping_table != NULL) {
--		/* find page mapped by this address */
--		i = DMM_ADDR_TO_INDEX(addr);
--		if (i < table_size)
--			curr_region = virtual_mapping_table + i;
+-	default:
+-		return -EINVAL;
 -	}
 -
--	dev_dbg(bridge, "%s: curr_region %p, free_region %d, free_size %d\n",
--		__func__, curr_region, free_region, free_size);
--	return curr_region;
+-	while (--num_entries >= 0)
+-		((u32 *) pte_addr)[num_entries] = pte_val;
+-
+-	return status;
 -}
 -
+-hw_status hw_mmu_pte_clear(const u32 pg_tbl_va, u32 virtual_addr, u32 page_size)
+-{
+-	hw_status status = 0;
+-	u32 pte_addr;
+-	s32 num_entries = 1;
+-
+-	switch (page_size) {
+-	case HW_PAGE_SIZE4KB:
+-		pte_addr = hw_mmu_pte_addr_l2(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_SMALL_PAGE_MASK);
+-		break;
+-
+-	case HW_PAGE_SIZE64KB:
+-		num_entries = 16;
+-		pte_addr = hw_mmu_pte_addr_l2(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_LARGE_PAGE_MASK);
+-		break;
+-
+-	case HW_PAGE_SIZE1MB:
+-	case HW_MMU_COARSE_PAGE_SIZE:
+-		pte_addr = hw_mmu_pte_addr_l1(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_SECTION_ADDR_MASK);
+-		break;
+-
+-	case HW_PAGE_SIZE16MB:
+-		num_entries = 16;
+-		pte_addr = hw_mmu_pte_addr_l1(pg_tbl_va,
+-					      virtual_addr &
+-					      MMU_SSECTION_ADDR_MASK);
+-		break;
+-
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	while (--num_entries >= 0)
+-		((u32 *) pte_addr)[num_entries] = 0;
+-
+-	return status;
+-}
+-
+-/* mmu_flush_entry */
+-static hw_status mmu_flush_entry(const void __iomem *base_address)
+-{
+-	hw_status status = 0;
+-	u32 flush_entry_data = 0x1;
+-
+-	/* write values to register */
+-	MMUMMU_FLUSH_ENTRY_WRITE_REGISTER32(base_address, flush_entry_data);
+-
+-	return status;
+-}
+-
+-/* mmu_set_cam_entry */
+-static hw_status mmu_set_cam_entry(const void __iomem *base_address,
+-				   const u32 page_sz,
+-				   const u32 preserved_bit,
+-				   const u32 valid_bit,
+-				   const u32 virtual_addr_tag)
+-{
+-	hw_status status = 0;
+-	u32 mmu_cam_reg;
+-
+-	mmu_cam_reg = (virtual_addr_tag << 12);
+-	mmu_cam_reg = (mmu_cam_reg) | (page_sz) | (valid_bit << 2) |
+-	    (preserved_bit << 3);
+-
+-	/* write values to register */
+-	MMUMMU_CAM_WRITE_REGISTER32(base_address, mmu_cam_reg);
+-
+-	return status;
+-}
+-
+-/* mmu_set_ram_entry */
+-static hw_status mmu_set_ram_entry(const void __iomem *base_address,
+-				   const u32 physical_addr,
+-				   enum hw_endianism_t endianism,
+-				   enum hw_element_size_t element_size,
+-				   enum hw_mmu_mixed_size_t mixed_size)
+-{
+-	hw_status status = 0;
+-	u32 mmu_ram_reg;
+-
+-	mmu_ram_reg = (physical_addr & MMU_ADDR_MASK);
+-	mmu_ram_reg = (mmu_ram_reg) | ((endianism << 9) | (element_size << 7) |
+-				       (mixed_size << 6));
+-
+-	/* write values to register */
+-	MMUMMU_RAM_WRITE_REGISTER32(base_address, mmu_ram_reg);
+-
+-	return status;
+-
+-}
+-
+-void hw_mmu_tlb_flush_all(const void __iomem *base)
+-{
+-	__raw_writeb(1, base + MMU_GFLUSH);
+-}
+diff --git a/drivers/staging/tidspbridge/hw/hw_mmu.h b/drivers/staging/tidspbridge/hw/hw_mmu.h
+deleted file mode 100644
+index 1458a2c..0000000
+--- a/drivers/staging/tidspbridge/hw/hw_mmu.h
++++ /dev/null
+@@ -1,163 +0,0 @@
 -/*
-- *  ======== get_free_region ========
-- *  Purpose:
-- *  Returns the requested free region
+- * hw_mmu.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * MMU types and API declarations
+- *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 - */
--static struct map_page *get_free_region(u32 len)
--{
--	struct map_page *curr_region = NULL;
--	u32 i = 0;
--	u32 region_size = 0;
--	u32 next_i = 0;
 -
--	if (virtual_mapping_table == NULL)
--		return curr_region;
--	if (len > free_size) {
--		/* Find the largest free region
--		 * (coalesce during the traversal) */
--		while (i < table_size) {
--			region_size = virtual_mapping_table[i].region_size;
--			next_i = i + region_size;
--			if (virtual_mapping_table[i].reserved == false) {
--				/* Coalesce, if possible */
--				if (next_i < table_size &&
--				    virtual_mapping_table[next_i].reserved
--				    == false) {
--					virtual_mapping_table[i].region_size +=
--					    virtual_mapping_table
--					    [next_i].region_size;
--					continue;
--				}
--				region_size *= PG_SIZE4K;
--				if (region_size > free_size) {
--					free_region = i;
--					free_size = region_size;
--				}
--			}
--			i = next_i;
--		}
--	}
--	if (len <= free_size) {
--		curr_region = virtual_mapping_table + free_region;
--		free_region += (len / PG_SIZE4K);
--		free_size -= len;
--	}
--	return curr_region;
+-#ifndef _HW_MMU_H
+-#define _HW_MMU_H
+-
+-#include <linux/types.h>
+-
+-/* Bitmasks for interrupt sources */
+-#define HW_MMU_TRANSLATION_FAULT   0x2
+-#define HW_MMU_ALL_INTERRUPTS      0x1F
+-
+-#define HW_MMU_COARSE_PAGE_SIZE 0x400
+-
+-/* hw_mmu_mixed_size_t:  Enumerated Type used to specify whether to follow
+-			CPU/TLB Element size */
+-enum hw_mmu_mixed_size_t {
+-	HW_MMU_TLBES,
+-	HW_MMU_CPUES
+-};
+-
+-/* hw_mmu_map_attrs_t:  Struct containing MMU mapping attributes */
+-struct hw_mmu_map_attrs_t {
+-	enum hw_endianism_t endianism;
+-	enum hw_element_size_t element_size;
+-	enum hw_mmu_mixed_size_t mixed_size;
+-	bool donotlockmpupage;
+-};
+-
+-extern hw_status hw_mmu_enable(const void __iomem *base_address);
+-
+-extern hw_status hw_mmu_disable(const void __iomem *base_address);
+-
+-extern hw_status hw_mmu_num_locked_set(const void __iomem *base_address,
+-				       u32 num_locked_entries);
+-
+-extern hw_status hw_mmu_victim_num_set(const void __iomem *base_address,
+-				       u32 victim_entry_num);
+-
+-/* For MMU faults */
+-extern hw_status hw_mmu_event_ack(const void __iomem *base_address,
+-				  u32 irq_mask);
+-
+-extern hw_status hw_mmu_event_disable(const void __iomem *base_address,
+-				      u32 irq_mask);
+-
+-extern hw_status hw_mmu_event_enable(const void __iomem *base_address,
+-				     u32 irq_mask);
+-
+-extern hw_status hw_mmu_event_status(const void __iomem *base_address,
+-				     u32 *irq_mask);
+-
+-extern hw_status hw_mmu_fault_addr_read(const void __iomem *base_address,
+-					u32 *addr);
+-
+-/* Set the TT base address */
+-extern hw_status hw_mmu_ttb_set(const void __iomem *base_address,
+-				u32 ttb_phys_addr);
+-
+-extern hw_status hw_mmu_twl_enable(const void __iomem *base_address);
+-
+-extern hw_status hw_mmu_twl_disable(const void __iomem *base_address);
+-
+-extern hw_status hw_mmu_tlb_flush(const void __iomem *base_address,
+-				  u32 virtual_addr, u32 page_sz);
+-
+-extern hw_status hw_mmu_tlb_add(const void __iomem *base_address,
+-				u32 physical_addr,
+-				u32 virtual_addr,
+-				u32 page_sz,
+-				u32 entry_num,
+-				struct hw_mmu_map_attrs_t *map_attrs,
+-				s8 preserved_bit, s8 valid_bit);
+-
+-/* For PTEs */
+-extern hw_status hw_mmu_pte_set(const u32 pg_tbl_va,
+-				u32 physical_addr,
+-				u32 virtual_addr,
+-				u32 page_sz,
+-				struct hw_mmu_map_attrs_t *map_attrs);
+-
+-extern hw_status hw_mmu_pte_clear(const u32 pg_tbl_va,
+-				  u32 virtual_addr, u32 page_size);
+-
+-void hw_mmu_tlb_flush_all(const void __iomem *base);
+-
+-static inline u32 hw_mmu_pte_addr_l1(u32 l1_base, u32 va)
+-{
+-	u32 pte_addr;
+-	u32 va31_to20;
+-
+-	va31_to20 = va >> (20 - 2);	/* Left-shift by 2 here itself */
+-	va31_to20 &= 0xFFFFFFFCUL;
+-	pte_addr = l1_base + va31_to20;
+-
+-	return pte_addr;
 -}
 -
--/*
-- *  ======== get_mapped_region ========
-- *  Purpose:
-- *  Returns the requestedmapped region
-- */
--static struct map_page *get_mapped_region(u32 addrs)
+-static inline u32 hw_mmu_pte_addr_l2(u32 l2_base, u32 va)
 -{
--	u32 i = 0;
--	struct map_page *curr_region = NULL;
+-	u32 pte_addr;
 -
--	if (virtual_mapping_table == NULL)
--		return curr_region;
+-	pte_addr = (l2_base & 0xFFFFFC00) | ((va >> 10) & 0x3FC);
 -
--	i = DMM_ADDR_TO_INDEX(addrs);
--	if (i < table_size && (virtual_mapping_table[i].mapped ||
--			       virtual_mapping_table[i].reserved))
--		curr_region = virtual_mapping_table + i;
--	return curr_region;
+-	return pte_addr;
 -}
 -
--#ifdef DSP_DMM_DEBUG
--u32 dmm_mem_map_dump(struct dmm_object *dmm_mgr)
+-static inline u32 hw_mmu_pte_coarse_l1(u32 pte_val)
 -{
--	struct map_page *curr_node = NULL;
--	u32 i;
--	u32 freemem = 0;
--	u32 bigsize = 0;
+-	u32 pte_coarse;
 -
--	spin_lock(&dmm_mgr->dmm_lock);
+-	pte_coarse = pte_val & 0xFFFFFC00;
 -
--	if (virtual_mapping_table != NULL) {
--		for (i = 0; i < table_size; i +=
--		     virtual_mapping_table[i].region_size) {
--			curr_node = virtual_mapping_table + i;
--			if (curr_node->reserved) {
--				/*printk("RESERVED size = 0x%x, "
--				   "Map size = 0x%x\n",
--				   (curr_node->region_size * PG_SIZE4K),
--				   (curr_node->mapped == false) ? 0 :
--				   (curr_node->mapped_size * PG_SIZE4K));
--				 */
--			} else {
--/*				printk("UNRESERVED size = 0x%x\n",
--					(curr_node->region_size * PG_SIZE4K));
-- */
--				freemem += (curr_node->region_size * PG_SIZE4K);
--				if (curr_node->region_size > bigsize)
--					bigsize = curr_node->region_size;
--			}
--		}
+-	return pte_coarse;
+-}
+-
+-static inline u32 hw_mmu_pte_size_l1(u32 pte_val)
+-{
+-	u32 pte_size = 0;
+-
+-	if ((pte_val & 0x3) == 0x1) {
+-		/* Points to L2 PT */
+-		pte_size = HW_MMU_COARSE_PAGE_SIZE;
 -	}
--	spin_unlock(&dmm_mgr->dmm_lock);
--	printk(KERN_INFO "Total DSP VA FREE memory = %d Mbytes\n",
--	       freemem / (1024 * 1024));
--	printk(KERN_INFO "Total DSP VA USED memory= %d Mbytes \n",
--	       (((table_size * PG_SIZE4K) - freemem)) / (1024 * 1024));
--	printk(KERN_INFO "DSP VA - Biggest FREE block = %d Mbytes \n\n",
--	       (bigsize * PG_SIZE4K / (1024 * 1024)));
 -
--	return 0;
+-	if ((pte_val & 0x3) == 0x2) {
+-		if (pte_val & (1 << 18))
+-			pte_size = HW_PAGE_SIZE16MB;
+-		else
+-			pte_size = HW_PAGE_SIZE1MB;
+-	}
+-
+-	return pte_size;
 -}
--#endif
-diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
-index ccb1811..a660247 100644
---- a/drivers/staging/tidspbridge/rmgr/node.c
-+++ b/drivers/staging/tidspbridge/rmgr/node.c
-@@ -56,7 +56,6 @@
- /*  ----------------------------------- This */
- #include <dspbridge/nodepriv.h>
- #include <dspbridge/node.h>
--#include <dspbridge/dmm.h>
+-
+-static inline u32 hw_mmu_pte_size_l2(u32 pte_val)
+-{
+-	u32 pte_size = 0;
+-
+-	if (pte_val & 0x2)
+-		pte_size = HW_PAGE_SIZE4KB;
+-	else if (pte_val & 0x1)
+-		pte_size = HW_PAGE_SIZE64KB;
+-
+-	return pte_size;
+-}
+-
+-#endif /* _HW_MMU_H */
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/dspioctl.h b/drivers/staging/tidspbridge/include/dspbridge/dspioctl.h
+index 41e0594..bad1801 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/dspioctl.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/dspioctl.h
+@@ -19,10 +19,6 @@
+ #ifndef DSPIOCTL_
+ #define DSPIOCTL_
  
- /* Static/Dynamic Loader includes */
- #include <dspbridge/dbll.h>
-@@ -317,10 +316,6 @@ int node_allocate(struct proc_object *hprocessor,
- 	u32 mapped_addr = 0;
- 	u32 map_attrs = 0x0;
- 	struct dsp_processorstate proc_state;
--#ifdef DSP_DMM_DEBUG
--	struct dmm_object *dmm_mgr;
--	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
--#endif
- 
- 	void *node_res;
- 
-@@ -430,16 +425,6 @@ int node_allocate(struct proc_object *hprocessor,
- 	if (status)
- 		goto func_cont;
- 
--#ifdef DSP_DMM_DEBUG
--	status = dmm_get_handle(p_proc_object, &dmm_mgr);
--	if (!dmm_mgr) {
--		status = DSP_EHANDLE;
--		goto func_cont;
--	}
+-/* ------------------------------------ Hardware Abstraction Layer */
+-#include <hw_defs.h>
+-#include <hw_mmu.h>
 -
--	dmm_mem_map_dump(dmm_mgr);
--#endif
--
- 	map_attrs |= DSP_MAPLITTLEENDIAN;
- 	map_attrs |= DSP_MAPELEMSIZE32;
- 	map_attrs |= DSP_MAPVIRTUALADDR;
-@@ -2499,11 +2484,7 @@ static void delete_node(struct node_object *hnode,
- 	struct stream_chnl stream;
- 	struct node_msgargs node_msg_args;
- 	struct node_taskargs task_arg_obj;
--#ifdef DSP_DMM_DEBUG
--	struct dmm_object *dmm_mgr;
--	struct proc_object *p_proc_object =
--	    (struct proc_object *)hnode->hprocessor;
--#endif
-+
- 	int status;
- 	if (!hnode)
- 		goto func_end;
-@@ -2564,13 +2545,6 @@ static void delete_node(struct node_object *hnode,
- 			status = proc_un_map(hnode->hprocessor, (void *)
- 					     task_arg_obj.udsp_heap_addr,
- 					     pr_ctxt);
--#ifdef DSP_DMM_DEBUG
--			status = dmm_get_handle(p_proc_object, &dmm_mgr);
--			if (dmm_mgr)
--				dmm_mem_map_dump(dmm_mgr);
--			else
--				status = DSP_EHANDLE;
--#endif
- 		}
- 	}
- 	if (node_type != NODE_MESSAGE) {
-diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
-index 429f354..7a15a02 100644
---- a/drivers/staging/tidspbridge/rmgr/proc.c
-+++ b/drivers/staging/tidspbridge/rmgr/proc.c
-@@ -39,7 +39,6 @@
- #include <dspbridge/cod.h>
- #include <dspbridge/dev.h>
- #include <dspbridge/procpriv.h>
--#include <dspbridge/dmm.h>
+ /*
+  * Any IOCTLS at or above this value are reserved for standard Bridge driver
+  * interfaces.
+@@ -65,9 +61,6 @@ struct bridge_ioctl_extproc {
+ 	/* GPP virtual address. __va does not work for ioremapped addresses */
+ 	u32 ul_gpp_va;
+ 	u32 ul_size;		/* Size of the mapped memory in bytes */
+-	enum hw_endianism_t endianism;
+-	enum hw_mmu_mixed_size_t mixed_mode;
+-	enum hw_element_size_t elem_size;
+ };
  
- /*  ----------------------------------- Resource Manager */
- #include <dspbridge/mgr.h>
-@@ -1078,7 +1077,6 @@ int proc_load(void *hprocessor, const s32 argc_index,
- 	s32 cnew_envp;		/* "  " in new_envp[] */
- 	s32 nproc_id = 0;	/* Anticipate MP version. */
- 	struct dcd_manager *hdcd_handle;
--	struct dmm_object *dmm_mgr;
- 	u32 dw_ext_end;
- 	u32 proc_id;
- 	int brd_state;
-@@ -1269,25 +1267,6 @@ int proc_load(void *hprocessor, const s32 argc_index,
- 			if (!status)
- 				status = cod_get_sym_value(cod_mgr, EXTEND,
- 							   &dw_ext_end);
--
--			/* Reset DMM structs and add an initial free chunk */
--			if (!status) {
--				status =
--				    dev_get_dmm_mgr(p_proc_object->hdev_obj,
--						    &dmm_mgr);
--				if (dmm_mgr) {
--					/* Set dw_ext_end to DMM START u8
--					 * address */
--					dw_ext_end =
--					    (dw_ext_end + 1) * DSPWORDSIZE;
--					/* DMM memory is from EXT_END */
--					status = dmm_create_tables(dmm_mgr,
--								   dw_ext_end,
--								   DMMPOOLSIZE);
--				} else {
--					status = -EFAULT;
--				}
--			}
- 		}
- 	}
- 	/* Restore the original argv[0] */
-@@ -1390,7 +1369,6 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
- 		map_obj->dsp_addr = (va_align |
- 					((u32)pmpu_addr & (PG_SIZE4K - 1)));
- 		*pp_map_addr = (void *)map_obj->dsp_addr;
--		pr_err("%s: mapped address %x\n", __func__, *pp_map_addr);
- 	} else {
- 		remove_mapping_information(pr_ctxt, va_align);
- 	}
-@@ -1633,7 +1611,6 @@ int proc_un_map(void *hprocessor, void *map_addr,
- 	int status = 0;
- 	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
- 	u32 va_align;
--	u32 size_align;
- 
- 	va_align = PG_ALIGN_LOW((u32) map_addr, PG_SIZE4K);
- 	if (!p_proc_object) {
+ #endif /* DSPIOCTL_ */
 -- 
 1.6.3.3
 
