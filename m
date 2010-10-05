@@ -1,41 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] OMAP: McBSP: Fix CLKR and FSR signal muxing
-Date: Tue, 5 Oct 2010 10:41:45 -0700
-Message-ID: <20101005174145.GK3117@atomide.com>
-References: <1286281775-27692-1-git-send-email-jhnikula@gmail.com>
- <alpine.DEB.2.00.1010050911230.13816@utopia.booyaka.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCHv2 01/11] staging: tidspbridge: replace iommu custom for
+ opensource implementation
+Date: Tue, 5 Oct 2010 12:47:35 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F471BFF4@dlee06.ent.ti.com>
+References: <1285899178-14413-1-git-send-email-x0095840@ti.com>
+ <1285899178-14413-2-git-send-email-x0095840@ti.com>
+ <20101005155541.GA24456@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52404 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606Ab0JERls (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 13:41:48 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1010050911230.13816@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47141 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753709Ab0JERrn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 13:47:43 -0400
+In-Reply-To: <20101005155541.GA24456@kroah.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: "gregkh@suse.de" <gregkh@suse.de>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [101005 08:03]:
-> On Tue, 5 Oct 2010, Jarkko Nikula wrote:
+
+Hi, 
+
+> -----Original Message-----
+> From: Greg KH [mailto:greg@kroah.com] 
+> Sent: Tuesday, October 05, 2010 10:56 AM
+> To: Guzman Lugo, Fernando
+> Cc: gregkh@suse.de; felipe.contreras@nokia.com; 
+> ameya.palande@nokia.com; Menon, Nishanth; 
+> Hiroshi.DOYU@nokia.com; ohad@wizery.com; 
+> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
+> linux-omap@vger.kernel.org
+> Subject: Re: [PATCHv2 01/11] staging: tidspbridge: replace 
+> iommu custom for opensource implementation
 > 
-> > Fix bit clear. Now it clears all other bits than mask bit where it should
-> > clear only it.
+> On Thu, Sep 30, 2010 at 09:12:48PM -0500, Fernando Guzman Lugo wrote:
+> > Now the tidspbridge uses the API's from iovmm module.
 > > 
-> > Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 > 
-> Doh.  Thanks Jarkko.
-> 
-> Obviously this is an important patch and should go in ASAP.
-> 
-> Acked-by: Paul Walmsley <paul@pwsan.com>
+> This patch applied, but number 2 and others didn't.  Care to 
+> respin those against the new linux-next tree and resend?
 
-Jarkko, please repost this one more time with linux-arm-kernel list
-Cc'd so I don't need to repost it before applying.
+I will rebase and send then as soon as possible.
 
 Regards,
+Fernando.
 
-Tony
+> 
+> thanks,
+> 
+> greg k-h
+> 
