@@ -1,55 +1,50 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH] omap: zoom2/3: fix build caused by wl1271 support
-Date: Tue, 05 Oct 2010 15:07:06 +0300
-Message-ID: <1286280426.15401.29.camel@chilepepper>
-References: <1285965206-17777-1-git-send-email-gadiyar@ti.com>
-	 <20101001231026.GH3117@atomide.com> <1286279588.15401.28.camel@chilepepper>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH 1/3] OMAP: McBSP: Fix CLKR and FSR signal muxing
+Date: Tue,  5 Oct 2010 15:29:33 +0300
+Message-ID: <1286281775-27692-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:23678 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653Ab0JEMHT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 08:07:19 -0400
-In-Reply-To: <1286279588.15401.28.camel@chilepepper>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:46523 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753055Ab0JEM3I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 08:29:08 -0400
+Received: by ewy23 with SMTP id 23so2438284ewy.19
+        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 05:29:06 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>, "John W. Linville" <linville@tuxdriver.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue, 2010-10-05 at 13:53 +0200, ext Luciano Coelho wrote:
-> On Sat, 2010-10-02 at 01:10 +0200, ext Tony Lindgren wrote:
-> > * Anand Gadiyar <gadiyar@ti.com> [101001 13:25]:
-> > > Patch "omap: zoom: add mmc3/wl1271 device support" in the
-> > > wireless tree still uses .wires in struct omap2_hsmmc_info.
-> > > .wires has now been replaced with .caps in patch "omap: mmc:
-> > > extended to pass host capabilities from board file" in the
-> > > OMAP tree.
-> > > 
-> > > This causes linux-next as of 20101001 build to break as
-> > > below. Fix this.
-> > > 
-> > >   CC      arch/arm/mach-omap2/board-zoom-peripherals.o
-> > > arch/arm/mach-omap2/board-zoom-peripherals.c:217: error: unknown field 'wires' specified in initializer
-> > > make[1]: *** [arch/arm/mach-omap2/board-zoom-peripherals.o] Error 1
-> > > make: *** [arch/arm/mach-omap2] Error 2
-> > 
-> > Can you guys please queue this via the wireless tree along with
-> > the other wl1271 patches?
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> I can apply this to the wl12xx tree.  I just need John's confirmation.  
-> 
-> The pull request I sent to John last week is still pending.  I don't
-> know if it is possible to substitute it for a newer one with more
-> patches (and still try to make it to 2.6.37).  What do you think, John?
+Fix bit clear. Now it clears all other bits than mask bit where it should
+clear only it.
 
-Damn, for some reason I had a bug in John's email in my contact book.
-Now sending to the correct email address.
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/mcbsp.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index eba9fa1..f6b772e 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -34,7 +34,7 @@ void omap2_mcbsp1_mux_clkr_src(u8 mux)
+ 
+ 	v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+ 	if (mux == CLKR_SRC_CLKR)
+-		v &= OMAP2_MCBSP1_CLKR_MASK;
++		v &= ~OMAP2_MCBSP1_CLKR_MASK;
+ 	else if (mux == CLKR_SRC_CLKX)
+ 		v |= OMAP2_MCBSP1_CLKR_MASK;
+ 	omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
+@@ -47,7 +47,7 @@ void omap2_mcbsp1_mux_fsr_src(u8 mux)
+ 
+ 	v = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
+ 	if (mux == FSR_SRC_FSR)
+-		v &= OMAP2_MCBSP1_FSR_MASK;
++		v &= ~OMAP2_MCBSP1_FSR_MASK;
+ 	else if (mux == FSR_SRC_FSX)
+ 		v |= OMAP2_MCBSP1_FSR_MASK;
+ 	omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
 -- 
-Cheers,
-Luca.
+1.7.1
 
