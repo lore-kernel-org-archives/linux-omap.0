@@ -1,61 +1,65 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH] omap: zoom2/3: fix build caused by wl1271 support
-Date: Tue, 05 Oct 2010 16:19:50 +0300
-Message-ID: <1286284790.15401.53.camel@chilepepper>
-References: <1285965206-17777-1-git-send-email-gadiyar@ti.com>
-	 <20101001231026.GH3117@atomide.com> <1286279588.15401.28.camel@chilepepper>
-	 <1286280426.15401.29.camel@chilepepper>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520 for Global SW reset
+Date: Tue,  5 Oct 2010 19:35:34 +0530
+Message-ID: <1286287534-9160-1-git-send-email-vishwanath.bs@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34080 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978Ab0JENUd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 09:20:33 -0400
-In-Reply-To: <1286280426.15401.29.camel@chilepepper>
+Received: from devils.ext.ti.com ([198.47.26.153]:41070 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753407Ab0JEOHz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 10:07:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>, Anand Gadiyar <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>
+To: linux-omap@vger.kernel.org
+Cc: Vishwanath BS <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tue, 2010-10-05 at 14:07 +0200, ext Luciano Coelho wrote:
-> On Tue, 2010-10-05 at 13:53 +0200, ext Luciano Coelho wrote:
-> > On Sat, 2010-10-02 at 01:10 +0200, ext Tony Lindgren wrote:
-> > > * Anand Gadiyar <gadiyar@ti.com> [101001 13:25]:
-> > > > Patch "omap: zoom: add mmc3/wl1271 device support" in the
-> > > > wireless tree still uses .wires in struct omap2_hsmmc_info.
-> > > > .wires has now been replaced with .caps in patch "omap: mmc:
-> > > > extended to pass host capabilities from board file" in the
-> > > > OMAP tree.
-> > > > 
-> > > > This causes linux-next as of 20101001 build to break as
-> > > > below. Fix this.
-> > > > 
-> > > >   CC      arch/arm/mach-omap2/board-zoom-peripherals.o
-> > > > arch/arm/mach-omap2/board-zoom-peripherals.c:217: error: unknown field 'wires' specified in initializer
-> > > > make[1]: *** [arch/arm/mach-omap2/board-zoom-peripherals.o] Error 1
-> > > > make: *** [arch/arm/mach-omap2] Error 2
-> > > 
-> > > Can you guys please queue this via the wireless tree along with
-> > > the other wl1271 patches?
-> > > 
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > I can apply this to the wl12xx tree.  I just need John's confirmation.  
-> > 
-> > The pull request I sent to John last week is still pending.  I don't
-> > know if it is possible to substitute it for a newer one with more
-> > patches (and still try to make it to 2.6.37).  What do you think, John?
-> 
-> Damn, for some reason I had a bug in John's email in my contact book.
-> Now sending to the correct email address.
+This patch adds comments on precatution to be taken if Global Warm reset is
+used as the means to trigger sysem reset.
 
-Applied to the wl12xx tree.  I'll send a new replacement pull to John
-today, including this patch.  Thanks.
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/prcm.c |   28 ++++++++++++++++++++++++++++
+ 1 files changed, 28 insertions(+), 0 deletions(-)
 
-
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index c201374..e37639c
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -157,6 +157,34 @@ void omap_prcm_arch_reset(char mode, const char *cmd)
+ 	else
+ 		WARN_ON(1);
+ 
++	/*
++	 * As per Errata i520, In some cases, user will not be able to
++	 * access DDR memory after warm-reset.
++	 * This situation occurs while the warm-reset happens during a read
++	 * access to DDR memory. In that particular condition, DDR memory
++	 * does not respond to a corrupted read command due to the warm
++	 * reset occurence but SDRC is waiting for read completion.
++	 * SDRC is not sensitive to the warm reset, but the interconect is
++	 * reset on the fly, thus causing a misalignment between SDRC logic,
++	 * interconect logic and DDR memory state.
++	 * WORKAROUND:
++	 * Steps to perform before a Warm reset is trigged:
++	 * 1. enable self-refresh on idle request
++	 * 2. put SDRC in idle
++	 * 3. wait until SDRC goes to idle
++	 * 4. generate SW reset (Global SW reset)
++	 *
++	 * Steps to be performed after warm reset occurs (in bootloader):
++	 * if HW warm reset is the source, apply below steps before any
++	 * accesses to SDRAM:
++	 * 1. Reset SMS and SDRC and wait till reset is complete
++	 * 2. Re-initialize SMS, SDRC and memory
++	 *
++	 * NOTE: Above work around is required only if arch reset is implemented
++	 * using Global SW reset(GLOBAL_SW_RST). DPLL3 reset does not need
++	 * the WA since it resets SDRC as well as part of cold reset.
++	 */
++
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+ 		prm_set_mod_reg_bits(OMAP_RST_DPLL3_MASK, prcm_offs,
+ 						 OMAP2_RM_RSTCTRL);
 -- 
-Cheers,
-Luca.
+1.7.0.4
 
