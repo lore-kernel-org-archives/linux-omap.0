@@ -1,13 +1,13 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC v3][PATCH 3/4] OMAP: DSS2: Interface driver changes for Secondary LCD Channel
-Date: Tue,  5 Oct 2010 17:25:23 +0530
-Message-ID: <1286279724-11692-4-git-send-email-archit@ti.com>
+Subject: [RFC v3][PATCH 4/4] OMAP: DSS2: Add new Overlay Manager
+Date: Tue,  5 Oct 2010 17:25:24 +0530
+Message-ID: <1286279724-11692-5-git-send-email-archit@ti.com>
 References: <1286279724-11692-1-git-send-email-archit@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56021 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751960Ab0JELzG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 Oct 2010 07:55:06 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:55409 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753047Ab0JELzO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 07:55:14 -0400
 In-Reply-To: <1286279724-11692-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,363 +16,303 @@ Cc: linux-omap@vger.kernel.org, Sumit Semwal <sumit.semwal@ti.com>, Mukund Mitta
 
 From: Sumit Semwal <sumit.semwal@ti.com>
 
-Make necessary changes in the interface drivers for the dispc
-functions which have the new enum channel added to them
+Add new Overlay Manager in manager.c, make changes needed
+for secondary lcd channel
 
 Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 Signed-off-by: Mukund Mittal <mmittal@ti.com>
 Signed-off-by: Archit Taneja <archit@ti.com>
 Signed-off-by: Samreen <samreen@ti.com>
 ---
- drivers/video/omap2/dss/core.c |    2 +-
- drivers/video/omap2/dss/dpi.c  |   38 +++++++++++++++++++++-----------------
- drivers/video/omap2/dss/dsi.c  |   24 +++++++++++++-----------
- drivers/video/omap2/dss/dss.h  |    8 +++++---
- drivers/video/omap2/dss/rfbi.c |   21 ++++++++++++---------
- drivers/video/omap2/dss/sdi.c  |   22 ++++++++++++----------
- 6 files changed, 64 insertions(+), 51 deletions(-)
+ drivers/video/omap2/dss/dispc.c   |   20 +++++-----
+ drivers/video/omap2/dss/dss.h     |    2 +-
+ drivers/video/omap2/dss/manager.c |   73 +++++++++++++++++++++++--------------
+ drivers/video/omap2/dss/overlay.c |   14 ++++++-
+ 4 files changed, 69 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 8e89f60..8755cd6 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -412,7 +412,7 @@ static void dss_debug_dump_clocks(struct seq_file *s)
- 	dss_dump_clocks(s);
- 	dispc_dump_clocks(s);
- #ifdef CONFIG_OMAP2_DSS_DSI
--	dsi_dump_clocks(s);
-+	dsi_dump_clocks(OMAP_DSS_CHANNEL_LCD, s);
- #endif
- }
- 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-index 960e977..592c0c0 100644
---- a/drivers/video/omap2/dss/dpi.c
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -40,8 +40,9 @@ static struct {
- } dpi;
- 
- #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
--static int dpi_set_dsi_clk(bool is_tft, unsigned long pck_req,
--		unsigned long *fck, int *lck_div, int *pck_div)
-+static int dpi_set_dsi_clk(enum omap_channel channel, bool is_tft,
-+		unsigned long pck_req, unsigned long *fck, int *lck_div,
-+		int *pck_div)
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index 149ea5f..f70b2e2 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -1593,7 +1593,7 @@ static int _dispc_setup_plane(enum omap_plane plane,
+ 		bool ilace,
+ 		enum omap_dss_rotation_type rotation_type,
+ 		u8 rotation, int mirror,
+-		u8 global_alpha)
++		u8 global_alpha, enum omap_channel channel)
  {
- 	struct dsi_clock_info dsi_cinfo;
- 	struct dispc_clock_info dispc_cinfo;
-@@ -58,7 +59,7 @@ static int dpi_set_dsi_clk(bool is_tft, unsigned long pck_req,
+ 	const int maxdownscale = cpu_is_omap34xx() ? 4 : 2;
+ 	bool five_taps = 0;
+@@ -1692,8 +1692,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
+ 		five_taps = height > out_height * 2;
  
- 	dss_select_dispc_clk_source(DSS_SRC_DSI1_PLL_FCLK);
+ 		if (!five_taps) {
+-			fclk = calc_fclk(OMAP_DSS_CHANNEL_LCD, width, height,
+-					out_width, out_height);
++			fclk = calc_fclk(channel, width, height, out_width,
++					out_height);
  
--	r = dispc_set_clock_div(&dispc_cinfo);
-+	r = dispc_set_clock_div(channel, &dispc_cinfo);
- 	if (r)
- 		return r;
+ 			/* Try 5-tap filter if 3-tap fclk is too high */
+ 			if (cpu_is_omap34xx() && height > out_height &&
+@@ -1707,9 +1707,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
+ 		}
  
-@@ -69,8 +70,9 @@ static int dpi_set_dsi_clk(bool is_tft, unsigned long pck_req,
- 	return 0;
- }
- #else
--static int dpi_set_dispc_clk(bool is_tft, unsigned long pck_req,
--		unsigned long *fck, int *lck_div, int *pck_div)
-+static int dpi_set_dispc_clk(enum omap_channel channel, bool is_tft,
-+		unsigned long pck_req, unsigned long *fck, int *lck_div,
-+		int *pck_div)
+ 		if (five_taps)
+-			fclk = calc_fclk_five_taps(OMAP_DSS_CHANNEL_LCD,
+-					width, height, out_width, out_height,
+-					color_mode);
++			fclk = calc_fclk_five_taps(channel, width, height,
++					out_width, out_height, color_mode);
+ 
+ 		DSSDBG("required fclk rate = %lu Hz\n", fclk);
+ 		DSSDBG("current fclk rate = %lu Hz\n", dispc_fclk_rate());
+@@ -3338,17 +3337,18 @@ int dispc_setup_plane(enum omap_plane plane,
+ 		       enum omap_color_mode color_mode,
+ 		       bool ilace,
+ 		       enum omap_dss_rotation_type rotation_type,
+-		       u8 rotation, bool mirror, u8 global_alpha)
++		       u8 rotation, bool mirror, u8 global_alpha,
++		       enum omap_channel channel)
  {
- 	struct dss_clock_info dss_cinfo;
- 	struct dispc_clock_info dispc_cinfo;
-@@ -84,7 +86,7 @@ static int dpi_set_dispc_clk(bool is_tft, unsigned long pck_req,
- 	if (r)
- 		return r;
+ 	int r = 0;
  
--	r = dispc_set_clock_div(&dispc_cinfo);
-+	r = dispc_set_clock_div(channel, &dispc_cinfo);
- 	if (r)
- 		return r;
+ 	DSSDBG("dispc_setup_plane %d, pa %x, sw %d, %d,%d, %dx%d -> "
+-	       "%dx%d, ilace %d, cmode %x, rot %d, mir %d\n",
++	       "%dx%d, ilace %d, cmode %x, rot %d, mir %d, chan %d\n",
+ 	       plane, paddr, screen_width, pos_x, pos_y,
+ 	       width, height,
+ 	       out_width, out_height,
+ 	       ilace, color_mode,
+-	       rotation, mirror);
++	       rotation, mirror, channel);
  
-@@ -107,17 +109,17 @@ static int dpi_set_mode(struct omap_dss_device *dssdev)
+ 	enable_clocks(1);
  
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
- 
--	dispc_set_pol_freq(dssdev->panel.config, dssdev->panel.acbi,
--			dssdev->panel.acb);
-+	dispc_set_pol_freq(dssdev->channel, dssdev->panel.config,
-+		dssdev->panel.acbi, dssdev->panel.acb);
- 
- 	is_tft = (dssdev->panel.config & OMAP_DSS_LCD_TFT) != 0;
- 
- #ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
--	r = dpi_set_dsi_clk(is_tft, t->pixel_clock * 1000,
--			&fck, &lck_div, &pck_div);
-+	r = dpi_set_dsi_clk(dssdev->channel, is_tft,
-+			t->pixel_clock * 1000, &fck, &lck_div, &pck_div);
- #else
--	r = dpi_set_dispc_clk(is_tft, t->pixel_clock * 1000,
--			&fck, &lck_div, &pck_div);
-+	r = dpi_set_dispc_clk(dssdev->channel, is_tft,
-+			t->pixel_clock * 1000, &fck, &lck_div, &pck_div);
- #endif
- 	if (r)
- 		goto err0;
-@@ -132,7 +134,7 @@ static int dpi_set_mode(struct omap_dss_device *dssdev)
- 		t->pixel_clock = pck;
- 	}
- 
--	dispc_set_lcd_timings(t);
-+	dispc_set_lcd_timings(dssdev->channel, t);
- 
- err0:
- 	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-@@ -145,10 +147,12 @@ static int dpi_basic_init(struct omap_dss_device *dssdev)
- 
- 	is_tft = (dssdev->panel.config & OMAP_DSS_LCD_TFT) != 0;
- 
--	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_BYPASS);
--	dispc_set_lcd_display_type(is_tft ? OMAP_DSS_LCD_DISPLAY_TFT :
--			OMAP_DSS_LCD_DISPLAY_STN);
--	dispc_set_tft_data_lines(dssdev->phy.dpi.data_lines);
-+	dispc_set_parallel_interface_mode(dssdev->channel,
-+						OMAP_DSS_PARALLELMODE_BYPASS);
-+	dispc_set_lcd_display_type(dssdev->channel,
-+		is_tft ? OMAP_DSS_LCD_DISPLAY_TFT : OMAP_DSS_LCD_DISPLAY_STN);
-+	dispc_set_tft_data_lines(dssdev->channel,
-+				dssdev->phy.dpi.data_lines);
- 
- 	return 0;
- }
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index b3fa3a7..87b7f90 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -812,7 +812,7 @@ static int dsi_calc_clock_rates(struct dsi_clock_info *cinfo)
- 		 * with DSS2_FCK source also */
- 		cinfo->highfreq = 0;
- 	} else {
--		cinfo->clkin = dispc_pclk_rate();
-+		cinfo->clkin = dispc_pclk_rate(OMAP_DSS_CHANNEL_LCD);
- 
- 		if (cinfo->clkin < 32000000)
- 			cinfo->highfreq = 0;
-@@ -1157,7 +1157,7 @@ void dsi_pll_uninit(void)
- 	DSSDBG("PLL uninit done\n");
- }
- 
--void dsi_dump_clocks(struct seq_file *s)
-+void dsi_dump_clocks(enum omap_channel channel, struct seq_file *s)
- {
- 	int clksel;
- 	struct dsi_clock_info *cinfo = &dsi.current_cinfo;
-@@ -1206,8 +1206,8 @@ void dsi_dump_clocks(struct seq_file *s)
- 
- 	seq_printf(s,	"VP_CLK\t\t%lu\n"
- 			"VP_PCLK\t\t%lu\n",
--			dispc_lclk_rate(),
--			dispc_pclk_rate());
-+			dispc_lclk_rate(channel),
-+			dispc_pclk_rate(channel));
+@@ -3360,7 +3360,7 @@ int dispc_setup_plane(enum omap_plane plane,
+ 			   color_mode, ilace,
+ 			   rotation_type,
+ 			   rotation, mirror,
+-			   global_alpha);
++			   global_alpha, channel);
  
  	enable_clocks(0);
- }
-@@ -2888,7 +2888,7 @@ int omap_dsi_prepare_update(struct omap_dss_device *dssdev,
- 	if (dssdev->manager->caps & OMAP_DSS_OVL_MGR_CAP_DISPC) {
- 		dss_setup_partial_planes(dssdev, x, y, w, h,
- 				enlarge_update_area);
--		dispc_set_lcd_size(*w, *h);
-+		dispc_set_lcd_size(dssdev->channel, *w, *h);
- 	}
  
- 	return 0;
-@@ -2947,12 +2947,14 @@ static int dsi_display_init_dispc(struct omap_dss_device *dssdev)
- 		return r;
- 	}
- 
--	dispc_set_lcd_display_type(OMAP_DSS_LCD_DISPLAY_TFT);
-+	dispc_set_lcd_display_type(dssdev->channel,
-+					OMAP_DSS_LCD_DISPLAY_TFT);
- 
--	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_DSI);
--	dispc_enable_fifohandcheck(1);
-+	dispc_set_parallel_interface_mode(dssdev->channel,
-+					OMAP_DSS_PARALLELMODE_DSI);
-+	dispc_enable_fifohandcheck(dssdev->channel, 1);
- 
--	dispc_set_tft_data_lines(dssdev->ctrl.pixel_size);
-+	dispc_set_tft_data_lines(dssdev->channel, dssdev->ctrl.pixel_size);
- 
- 	{
- 		struct omap_video_timings timings = {
-@@ -2964,7 +2966,7 @@ static int dsi_display_init_dispc(struct omap_dss_device *dssdev)
- 			.vbp		= 0,
- 		};
- 
--		dispc_set_lcd_timings(&timings);
-+		dispc_set_lcd_timings(dssdev->channel, &timings);
- 	}
- 
- 	return 0;
-@@ -3019,7 +3021,7 @@ static int dsi_configure_dispc_clocks(struct omap_dss_device *dssdev)
- 		return r;
- 	}
- 
--	r = dispc_set_clock_div(&dispc_cinfo);
-+	r = dispc_set_clock_div(dssdev->channel, &dispc_cinfo);
- 	if (r) {
- 		DSSERR("Failed to set dispc clocks\n");
- 		return r;
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 62b3ead..2efbb4f 100644
+index 2efbb4f..a954a55 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -262,7 +262,8 @@ static inline void sdi_exit(void)
- int dsi_init(struct platform_device *pdev);
- void dsi_exit(void);
+@@ -360,7 +360,7 @@ int dispc_setup_plane(enum omap_plane plane,
+ 		      bool ilace,
+ 		      enum omap_dss_rotation_type rotation_type,
+ 		      u8 rotation, bool mirror,
+-		      u8 global_alpha);
++		      u8 global_alpha, enum omap_channel channel);
  
--void dsi_dump_clocks(struct seq_file *s);
-+void dsi_dump_clocks(enum omap_channel channel,
-+		struct seq_file *s);
- void dsi_dump_irqs(struct seq_file *s);
- void dsi_dump_regs(struct seq_file *s);
+ bool dispc_go_busy(enum omap_channel channel);
+ void dispc_go(enum omap_channel channel);
+diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+index 545e9b9..fe197a5 100644
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -512,11 +512,14 @@ static int dss_mgr_wait_for_vsync(struct omap_overlay_manager *mgr)
+ 	unsigned long timeout = msecs_to_jiffies(500);
+ 	u32 irq;
  
-@@ -431,8 +432,9 @@ void rfbi_dump_regs(struct seq_file *s);
- 
- int rfbi_configure(int rfbi_module, int bpp, int lines);
- void rfbi_enable_rfbi(bool enable);
--void rfbi_transfer_area(u16 width, u16 height,
--			     void (callback)(void *data), void *data);
-+void rfbi_transfer_area(struct omap_dss_device *dssdev,
-+		u16 width, u16 height,
-+		void (callback)(void *data), void *data);
- void rfbi_set_timings(int rfbi_module, struct rfbi_timings *t);
- unsigned long rfbi_get_max_tx_rate(void);
- int rfbi_init_display(struct omap_dss_device *display);
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index bbe6246..f7e9b95 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -301,8 +301,8 @@ void omap_rfbi_write_pixels(const void __iomem *buf, int scr_width,
- }
- EXPORT_SYMBOL(omap_rfbi_write_pixels);
- 
--void rfbi_transfer_area(u16 width, u16 height,
--			     void (callback)(void *data), void *data)
-+void rfbi_transfer_area(struct omap_dss_device *dssdev, u16 width,
-+			u16 height, void (*callback)(void *data), void *data)
- {
- 	u32 l;
- 
-@@ -311,9 +311,9 @@ void rfbi_transfer_area(u16 width, u16 height,
- 
- 	DSSDBG("rfbi_transfer_area %dx%d\n", width, height);
- 
--	dispc_set_lcd_size(width, height);
-+	dispc_set_lcd_size(dssdev->channel, width, height);
- 
--	dispc_enable_channel(OMAP_DSS_CHANNEL_LCD, true);
-+	dispc_enable_channel(dssdev->channel, true);
- 
- 	rfbi.framedone_callback = callback;
- 	rfbi.framedone_callback_data = data;
-@@ -887,7 +887,7 @@ int omap_rfbi_prepare_update(struct omap_dss_device *dssdev,
- 
- 	if (dssdev->manager->caps & OMAP_DSS_OVL_MGR_CAP_DISPC) {
- 		dss_setup_partial_planes(dssdev, x, y, w, h, true);
--		dispc_set_lcd_size(*w, *h);
-+		dispc_set_lcd_size(dssdev->channel, *w, *h);
- 	}
- 
- 	return 0;
-@@ -899,7 +899,7 @@ int omap_rfbi_update(struct omap_dss_device *dssdev,
- 		void (*callback)(void *), void *data)
- {
- 	if (dssdev->manager->caps & OMAP_DSS_OVL_MGR_CAP_DISPC) {
--		rfbi_transfer_area(w, h, callback, data);
-+		rfbi_transfer_area(dssdev, w, h, callback, data);
- 	} else {
- 		struct omap_overlay *ovl;
- 		void __iomem *addr;
-@@ -1018,11 +1018,14 @@ int omapdss_rfbi_display_enable(struct omap_dss_device *dssdev)
- 		goto err1;
- 	}
- 
--	dispc_set_lcd_display_type(OMAP_DSS_LCD_DISPLAY_TFT);
-+	dispc_set_lcd_display_type(dssdev->channel,
-+					OMAP_DSS_LCD_DISPLAY_TFT);
- 
--	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_RFBI);
-+	dispc_set_parallel_interface_mode(dssdev->channel,
-+					OMAP_DSS_PARALLELMODE_RFBI);
- 
--	dispc_set_tft_data_lines(dssdev->ctrl.pixel_size);
-+	dispc_set_tft_data_lines(dssdev->channel,
-+					dssdev->ctrl.pixel_size);
- 
- 	rfbi_configure(dssdev->phy.rfbi.channel,
- 			       dssdev->ctrl.pixel_size,
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
-index ee07a3c..2f8924b 100644
---- a/drivers/video/omap2/dss/sdi.c
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -35,12 +35,14 @@ static struct {
- 	struct regulator *vdds_sdi_reg;
- } sdi;
- 
--static void sdi_basic_init(void)
-+static void sdi_basic_init(struct omap_dss_device *dssdev)
- {
--	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_BYPASS);
-+	dispc_set_parallel_interface_mode(dssdev->channel,
-+					OMAP_DSS_PARALLELMODE_BYPASS);
- 
--	dispc_set_lcd_display_type(OMAP_DSS_LCD_DISPLAY_TFT);
--	dispc_set_tft_data_lines(24);
-+	dispc_set_lcd_display_type(dssdev->channel,
-+					OMAP_DSS_LCD_DISPLAY_TFT);
-+	dispc_set_tft_data_lines(dssdev->channel, 24);
- 	dispc_lcd_enable_signal_polarity(1);
+-	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC)
++	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC) {
+ 		irq = DISPC_IRQ_EVSYNC_ODD;
+-	else
+-		irq = DISPC_IRQ_VSYNC;
+-
++	} else {
++		if (mgr->device->channel == OMAP_DSS_CHANNEL_LCD)
++			irq = DISPC_IRQ_VSYNC;
++		else
++			irq = DISPC_IRQ_VSYNC2;
++	}
+ 	return omap_dispc_wait_for_irq_interruptible_timeout(irq, timeout);
  }
  
-@@ -68,20 +70,20 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
- 	if (!sdi.skip_init)
- 		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+@@ -524,7 +527,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
+ {
+ 	unsigned long timeout = msecs_to_jiffies(500);
+ 	struct manager_cache_data *mc;
+-	enum omap_channel channel;
+ 	u32 irq;
+ 	int r;
+ 	int i;
+@@ -535,7 +537,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
  
--	sdi_basic_init();
-+	sdi_basic_init(dssdev);
- 
- 	/* 15.5.9.1.2 */
- 	dssdev->panel.config |= OMAP_DSS_LCD_RF | OMAP_DSS_LCD_ONOFF;
- 
--	dispc_set_pol_freq(dssdev->panel.config, dssdev->panel.acbi,
--			dssdev->panel.acb);
-+	dispc_set_pol_freq(dssdev->channel, dssdev->panel.config,
-+				dssdev->panel.acbi, dssdev->panel.acb);
- 
- 	if (!sdi.skip_init) {
- 		r = dss_calc_clock_div(1, t->pixel_clock * 1000,
- 				&dss_cinfo, &dispc_cinfo);
+ 	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
+ 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
+-		channel = OMAP_DSS_CHANNEL_DIGIT;
  	} else {
- 		r = dss_get_clock_div(&dss_cinfo);
--		r = dispc_get_clock_div(&dispc_cinfo);
-+		r = dispc_get_clock_div(dssdev->channel, &dispc_cinfo);
+ 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
+ 			enum omap_dss_update_mode mode;
+@@ -543,11 +544,14 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
+ 			if (mode != OMAP_DSS_UPDATE_AUTO)
+ 				return 0;
+ 
+-			irq = DISPC_IRQ_FRAMEDONE;
++			irq = (dssdev->channel == OMAP_DSS_CHANNEL_LCD) ?
++				DISPC_IRQ_FRAMEDONE
++				: DISPC_IRQ_FRAMEDONE2;
+ 		} else {
+-			irq = DISPC_IRQ_VSYNC;
++			irq = (dssdev->channel == OMAP_DSS_CHANNEL_LCD) ?
++				DISPC_IRQ_VSYNC
++				: DISPC_IRQ_VSYNC2;
+ 		}
+-		channel = OMAP_DSS_CHANNEL_LCD;
  	}
  
- 	if (r)
-@@ -102,13 +104,13 @@ int omapdss_sdi_display_enable(struct omap_dss_device *dssdev)
+ 	mc = &dss_cache.manager_cache[mgr->id];
+@@ -594,7 +598,6 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
+ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
+ {
+ 	unsigned long timeout = msecs_to_jiffies(500);
+-	enum omap_channel channel;
+ 	struct overlay_cache_data *oc;
+ 	struct omap_dss_device *dssdev;
+ 	u32 irq;
+@@ -611,7 +614,6 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
+ 
+ 	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC) {
+ 		irq = DISPC_IRQ_EVSYNC_ODD | DISPC_IRQ_EVSYNC_EVEN;
+-		channel = OMAP_DSS_CHANNEL_DIGIT;
+ 	} else {
+ 		if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
+ 			enum omap_dss_update_mode mode;
+@@ -619,11 +621,14 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
+ 			if (mode != OMAP_DSS_UPDATE_AUTO)
+ 				return 0;
+ 
+-			irq = DISPC_IRQ_FRAMEDONE;
++			irq = (dssdev->channel == OMAP_DSS_CHANNEL_LCD) ?
++				DISPC_IRQ_FRAMEDONE
++				: DISPC_IRQ_FRAMEDONE2;
+ 		} else {
+-			irq = DISPC_IRQ_VSYNC;
++			irq = (dssdev->channel == OMAP_DSS_CHANNEL_LCD) ?
++				DISPC_IRQ_VSYNC
++				: DISPC_IRQ_VSYNC2;
+ 		}
+-		channel = OMAP_DSS_CHANNEL_LCD;
  	}
  
+ 	oc = &dss_cache.overlay_cache[ovl->id];
+@@ -842,7 +847,8 @@ static int configure_overlay(enum omap_plane plane)
+ 			c->rotation_type,
+ 			c->rotation,
+ 			c->mirror,
+-			c->global_alpha);
++			c->global_alpha,
++			c->channel);
  
--	dispc_set_lcd_timings(t);
-+	dispc_set_lcd_timings(dssdev->channel, t);
+ 	if (r) {
+ 		/* this shouldn't happen */
+@@ -894,10 +900,10 @@ static int configure_dispc(void)
+ 	r = 0;
+ 	busy = false;
  
- 	r = dss_set_clock_div(&dss_cinfo);
- 	if (r)
- 		goto err2;
+-	mgr_busy[0] = dispc_go_busy(0);
+-	mgr_busy[1] = dispc_go_busy(1);
+-	mgr_go[0] = false;
+-	mgr_go[1] = false;
++	for (i = 0; i < num_mgrs; i++) {
++		mgr_busy[i] = dispc_go_busy(i);
++		mgr_go[i] = false;
++	}
  
--	r = dispc_set_clock_div(&dispc_cinfo);
-+	r = dispc_set_clock_div(dssdev->channel, &dispc_cinfo);
- 	if (r)
- 		goto err2;
+ 	/* Commit overlay settings */
+ 	for (i = 0; i < num_ovls; ++i) {
+@@ -1156,9 +1162,10 @@ static void dss_apply_irq_handler(void *data, u32 mask)
+ 	const int num_mgrs = dss_feat_get_num_mgrs();
+ 	int i, r;
+ 	bool mgr_busy[MAX_DSS_MANAGERS];
++	u32 irq_mask;
  
+-	mgr_busy[0] = dispc_go_busy(0);
+-	mgr_busy[1] = dispc_go_busy(1);
++	for (i = 0; i < num_mgrs; i++)
++		mgr_busy[i] = dispc_go_busy(i);
+ 
+ 	spin_lock(&dss_cache.lock);
+ 
+@@ -1189,9 +1196,12 @@ static void dss_apply_irq_handler(void *data, u32 mask)
+ 			goto end;
+ 	}
+ 
+-	omap_dispc_unregister_isr(dss_apply_irq_handler, NULL,
+-			DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
+-			DISPC_IRQ_EVSYNC_EVEN);
++	irq_mask = DISPC_IRQ_VSYNC | DISPC_IRQ_EVSYNC_ODD |
++			DISPC_IRQ_EVSYNC_EVEN;
++	if (dss_has_feature(FEAT_MGR_LCD2))
++		irq_mask |= DISPC_IRQ_VSYNC2;
++
++	omap_dispc_unregister_isr(dss_apply_irq_handler, NULL, irq_mask);
+ 	dss_cache.irq_enabled = false;
+ 
+ end:
+@@ -1383,9 +1393,14 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
+ 	r = 0;
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
+ 	if (!dss_cache.irq_enabled) {
+-		r = omap_dispc_register_isr(dss_apply_irq_handler, NULL,
+-				DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
+-				DISPC_IRQ_EVSYNC_EVEN);
++		u32 mask;
++
++		mask = DISPC_IRQ_VSYNC	| DISPC_IRQ_EVSYNC_ODD |
++			DISPC_IRQ_EVSYNC_EVEN;
++		if (dss_has_feature(FEAT_MGR_LCD2))
++			mask |= DISPC_IRQ_VSYNC2;
++
++		r = omap_dispc_register_isr(dss_apply_irq_handler, NULL, mask);
+ 		dss_cache.irq_enabled = true;
+ 	}
+ 	configure_dispc();
+@@ -1477,6 +1492,10 @@ int dss_init_overlay_managers(struct platform_device *pdev)
+ 			mgr->name = "tv";
+ 			mgr->id = OMAP_DSS_CHANNEL_DIGIT;
+ 			break;
++		case 2:
++			mgr->name = "lcd2";
++			mgr->id = OMAP_DSS_CHANNEL_LCD2;
++			break;
+ 		}
+ 
+ 		mgr->set_device = &omap_dss_set_device;
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index 75642c2..40ef290 100644
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -623,12 +623,22 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
+ 	int i;
+ 	struct omap_overlay_manager *lcd_mgr;
+ 	struct omap_overlay_manager *tv_mgr;
++	struct omap_overlay_manager *lcd2_mgr = NULL;
+ 	struct omap_overlay_manager *mgr = NULL;
+ 
+ 	lcd_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_LCD);
+ 	tv_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_TV);
+-
+-	if (dssdev->type != OMAP_DISPLAY_TYPE_VENC) {
++	if (cpu_is_omap44xx())
++		lcd2_mgr = omap_dss_get_overlay_manager(OMAP_DSS_OVL_MGR_LCD2);
++
++	if (dssdev->channel == OMAP_DSS_CHANNEL_LCD2) {
++		if (!lcd2_mgr->device || force) {
++			if (lcd2_mgr->device)
++				lcd2_mgr->unset_device(lcd2_mgr);
++			lcd2_mgr->set_device(lcd2_mgr, dssdev);
++			mgr = lcd2_mgr;
++		}
++	} else if (dssdev->type != OMAP_DISPLAY_TYPE_VENC) {
+ 		if (!lcd_mgr->device || force) {
+ 			if (lcd_mgr->device)
+ 				lcd_mgr->unset_device(lcd_mgr);
 -- 
 1.7.0.4
 
