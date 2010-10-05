@@ -1,549 +1,390 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCHv3 04/11] staging: tidspbridge - remove custom mmu code from tiomap3430.c
-Date: Tue,  5 Oct 2010 15:35:37 -0500
-Message-ID: <1286310944-25035-5-git-send-email-x0095840@ti.com>
+Subject: [PATCHv3 10/11] staging: tidspbridge - deprecate reserve/unreserve_memory funtions
+Date: Tue,  5 Oct 2010 15:35:43 -0500
+Message-ID: <1286310944-25035-11-git-send-email-x0095840@ti.com>
 References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
  <1286310944-25035-2-git-send-email-x0095840@ti.com>
  <1286310944-25035-3-git-send-email-x0095840@ti.com>
  <1286310944-25035-4-git-send-email-x0095840@ti.com>
+ <1286310944-25035-5-git-send-email-x0095840@ti.com>
+ <1286310944-25035-6-git-send-email-x0095840@ti.com>
+ <1286310944-25035-7-git-send-email-x0095840@ti.com>
+ <1286310944-25035-8-git-send-email-x0095840@ti.com>
+ <1286310944-25035-9-git-send-email-x0095840@ti.com>
+ <1286310944-25035-10-git-send-email-x0095840@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1286310944-25035-4-git-send-email-x0095840@ti.com>
+In-Reply-To: <1286310944-25035-10-git-send-email-x0095840@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@suse.de
 Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, nm@ti.com, Hiroshi.DOYU@nokia.com, ohad@wizery.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This patch removes all the custom mmu code remaining in
-tiomap3430.c which is not needed anymore.
+Now what iommu memory usage is kept track by iommu module
+the functions reserve/unreserve_memory are not needed anymore.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- drivers/staging/tidspbridge/core/_tiomap.h    |    2 -
- drivers/staging/tidspbridge/core/tiomap3430.c |  425 -------------------------
- 2 files changed, 0 insertions(+), 427 deletions(-)
+ .../staging/tidspbridge/include/dspbridge/proc.h   |   46 --------
+ drivers/staging/tidspbridge/pmgr/dspapi.c          |   34 +-----
+ drivers/staging/tidspbridge/rmgr/node.c            |   20 +----
+ drivers/staging/tidspbridge/rmgr/proc.c            |  114 ++------------------
+ 4 files changed, 17 insertions(+), 197 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/core/_tiomap.h b/drivers/staging/tidspbridge/core/_tiomap.h
-index 8777492..394a64a 100644
---- a/drivers/staging/tidspbridge/core/_tiomap.h
-+++ b/drivers/staging/tidspbridge/core/_tiomap.h
-@@ -330,7 +330,6 @@ struct bridge_dev_context {
- 	 */
- 	u32 dw_dsp_ext_base_addr;	/* See the comment above */
- 	u32 dw_api_reg_base;	/* API mem map'd registers */
--	void __iomem *dw_dsp_mmu_base;	/* DSP MMU Mapped registers */
- 	u32 dw_api_clk_base;	/* CLK Registers */
- 	u32 dw_dsp_clk_m2_base;	/* DSP Clock Module m2 */
- 	u32 dw_public_rhea;	/* Pub Rhea */
-@@ -356,7 +355,6 @@ struct bridge_dev_context {
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/proc.h b/drivers/staging/tidspbridge/include/dspbridge/proc.h
+index 5e09fd1..2d12aab 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/proc.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/proc.h
+@@ -551,29 +551,6 @@ extern int proc_map(void *hprocessor,
+ 			   struct process_context *pr_ctxt);
  
- 	/* TC Settings */
- 	bool tc_word_swap_on;	/* Traffic Controller Word Swap */
--	struct pg_table_attrs *pt_attrs;
- 	u32 dsp_per_clks;
- };
- 
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index 0e5b805..e5f67be 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -104,56 +104,8 @@ static int bridge_dev_create(struct bridge_dev_context
- static int bridge_dev_ctrl(struct bridge_dev_context *dev_context,
- 				  u32 dw_cmd, void *pargs);
- static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt);
--static int pte_update(struct bridge_dev_context *dev_ctxt, u32 pa,
--			     u32 va, u32 size,
--			     struct hw_mmu_map_attrs_t *map_attrs);
--static int pte_set(struct pg_table_attrs *pt, u32 pa, u32 va,
--			  u32 size, struct hw_mmu_map_attrs_t *attrs);
--static int mem_map_vmalloc(struct bridge_dev_context *dev_context,
--				  u32 ul_mpu_addr, u32 virt_addr,
--				  u32 ul_num_bytes,
--				  struct hw_mmu_map_attrs_t *hw_attrs);
--
- bool wait_for_start(struct bridge_dev_context *dev_context, u32 dw_sync_addr);
- 
--/*  ----------------------------------- Globals */
--
--/* Attributes of L2 page tables for DSP MMU */
--struct page_info {
--	u32 num_entries;	/* Number of valid PTEs in the L2 PT */
--};
--
--/* Attributes used to manage the DSP MMU page tables */
--struct pg_table_attrs {
--	spinlock_t pg_lock;	/* Critical section object handle */
--
--	u32 l1_base_pa;		/* Physical address of the L1 PT */
--	u32 l1_base_va;		/* Virtual  address of the L1 PT */
--	u32 l1_size;		/* Size of the L1 PT */
--	u32 l1_tbl_alloc_pa;
--	/* Physical address of Allocated mem for L1 table. May not be aligned */
--	u32 l1_tbl_alloc_va;
--	/* Virtual address of Allocated mem for L1 table. May not be aligned */
--	u32 l1_tbl_alloc_sz;
--	/* Size of consistent memory allocated for L1 table.
--	 * May not be aligned */
--
--	u32 l2_base_pa;		/* Physical address of the L2 PT */
--	u32 l2_base_va;		/* Virtual  address of the L2 PT */
--	u32 l2_size;		/* Size of the L2 PT */
--	u32 l2_tbl_alloc_pa;
--	/* Physical address of Allocated mem for L2 table. May not be aligned */
--	u32 l2_tbl_alloc_va;
--	/* Virtual address of Allocated mem for L2 table. May not be aligned */
--	u32 l2_tbl_alloc_sz;
--	/* Size of consistent memory allocated for L2 table.
--	 * May not be aligned */
--
--	u32 l2_num_pages;	/* Number of allocated L2 PT */
--	/* Array [l2_num_pages] of L2 PT info structs */
--	struct page_info *pg_info;
--};
--
  /*
-  *  This Bridge driver's function interface table.
+- *  ======== proc_reserve_memory ========
+- *  Purpose:
+- *      Reserve a virtually contiguous region of DSP address space.
+- *  Parameters:
+- *      hprocessor      :   The processor handle.
+- *      ul_size	  :   Size of the address space to reserve.
+- *      pp_rsv_addr       :   Ptr to DSP side reserved u8 address.
+- *  Returns:
+- *      0	 :   Success.
+- *      -EFAULT     :   Invalid processor handle.
+- *      -EPERM       :   General failure.
+- *      -ENOMEM     :   Cannot reserve chunk of this size.
+- *  Requires:
+- *      pp_rsv_addr is not NULL
+- *      PROC Initialized.
+- *  Ensures:
+- *  Details:
+- */
+-extern int proc_reserve_memory(void *hprocessor,
+-				      u32 ul_size, void **pp_rsv_addr,
+-				      struct process_context *pr_ctxt);
+-
+-/*
+  *  ======== proc_un_map ========
+  *  Purpose:
+  *      Removes a MPU buffer mapping from the DSP address space.
+@@ -595,27 +572,4 @@ extern int proc_reserve_memory(void *hprocessor,
+ extern int proc_un_map(void *hprocessor, void *map_addr,
+ 			      struct process_context *pr_ctxt);
+ 
+-/*
+- *  ======== proc_un_reserve_memory ========
+- *  Purpose:
+- *      Frees a previously reserved region of DSP address space.
+- *  Parameters:
+- *      hprocessor      :   The processor handle.
+- *      prsv_addr	:   Ptr to DSP side reservedBYTE address.
+- *  Returns:
+- *      0	 :   Success.
+- *      -EFAULT     :   Invalid processor handle.
+- *      -EPERM       :   General failure.
+- *      -ENOENT   :   Cannot find a reserved region starting with this
+- *		      :   address.
+- *  Requires:
+- *      prsv_addr is not NULL
+- *      PROC Initialized.
+- *  Ensures:
+- *  Details:
+- */
+-extern int proc_un_reserve_memory(void *hprocessor,
+-					 void *prsv_addr,
+-					 struct process_context *pr_ctxt);
+-
+ #endif /* PROC_ */
+diff --git a/drivers/staging/tidspbridge/pmgr/dspapi.c b/drivers/staging/tidspbridge/pmgr/dspapi.c
+index faf8304..0187c47 100644
+--- a/drivers/staging/tidspbridge/pmgr/dspapi.c
++++ b/drivers/staging/tidspbridge/pmgr/dspapi.c
+@@ -989,27 +989,10 @@ u32 procwrap_register_notify(union trapped_args *args, void *pr_ctxt)
+ /*
+  * ======== procwrap_reserve_memory ========
   */
-@@ -202,27 +154,6 @@ static struct bridge_drv_interface drv_interface_fxns = {
- 	bridge_msg_set_queue_id,
- };
- 
--static inline void flush_all(struct bridge_dev_context *dev_context)
--{
--	if (dev_context->dw_brd_state == BRD_DSP_HIBERNATION ||
--	    dev_context->dw_brd_state == BRD_HIBERNATION)
--		wake_dsp(dev_context, NULL);
--
--	hw_mmu_tlb_flush_all(dev_context->dw_dsp_mmu_base);
--}
--
--static void bad_page_dump(u32 pa, struct page *pg)
--{
--	pr_emerg("DSPBRIDGE: MAP function: COUNT 0 FOR PA 0x%x\n", pa);
--	pr_emerg("Bad page state in process '%s'\n"
--		 "page:%p flags:0x%0*lx mapping:%p mapcount:%d count:%d\n"
--		 "Backtrace:\n",
--		 current->comm, pg, (int)(2 * sizeof(unsigned long)),
--		 (unsigned long)pg->flags, pg->mapping,
--		 page_mapcount(pg), page_count(pg));
--	dump_stack();
--}
--
- /*
-  *  ======== bridge_drv_entry ========
-  *  purpose:
-@@ -628,7 +559,6 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
+-u32 procwrap_reserve_memory(union trapped_args *args, void *pr_ctxt)
++u32 __deprecated procwrap_reserve_memory(union trapped_args *args,
++							void *pr_ctxt)
  {
- 	int status = 0;
- 	struct bridge_dev_context *dev_context = dev_ctxt;
--	struct pg_table_attrs *pt_attrs;
- 	u32 dsp_pwr_state;
- 	int i;
- 	struct bridge_ioctl_extproc *tlb = dev_context->atlb_entry;
-@@ -667,14 +597,6 @@ static int bridge_brd_stop(struct bridge_dev_context *dev_ctxt)
- 
- 	dsp_wdt_enable(false);
- 
--	/* This is a good place to clear the MMU page tables as well */
--	if (dev_context->pt_attrs) {
--		pt_attrs = dev_context->pt_attrs;
--		memset((u8 *) pt_attrs->l1_base_va, 0x00, pt_attrs->l1_size);
--		memset((u8 *) pt_attrs->l2_base_va, 0x00, pt_attrs->l2_size);
--		memset((u8 *) pt_attrs->pg_info, 0x00,
--		       (pt_attrs->l2_num_pages * sizeof(struct page_info)));
--	}
- 	/* Reset DSP */
- 	(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST1_IVA2_MASK,
- 		OMAP3430_RST1_IVA2_MASK, OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
-@@ -765,10 +687,6 @@ static int bridge_dev_create(struct bridge_dev_context
- 	struct bridge_dev_context *dev_context = NULL;
- 	s32 entry_ndx;
- 	struct cfg_hostres *resources = config_param;
--	struct pg_table_attrs *pt_attrs;
--	u32 pg_tbl_pa;
--	u32 pg_tbl_va;
--	u32 align_size;
- 	struct drv_data *drv_datap = dev_get_drvdata(bridge);
- 
- 	/* Allocate and initialize a data structure to contain the bridge driver
-@@ -799,97 +717,8 @@ static int bridge_dev_create(struct bridge_dev_context
- 	if (!dev_context->dw_dsp_base_addr)
- 		status = -EPERM;
- 
--	pt_attrs = kzalloc(sizeof(struct pg_table_attrs), GFP_KERNEL);
--	if (pt_attrs != NULL) {
--		/* Assuming that we use only DSP's memory map
--		 * until 0x4000:0000 , we would need only 1024
--		 * L1 enties i.e L1 size = 4K */
--		pt_attrs->l1_size = 0x1000;
--		align_size = pt_attrs->l1_size;
--		/* Align sizes are expected to be power of 2 */
--		/* we like to get aligned on L1 table size */
--		pg_tbl_va = (u32) mem_alloc_phys_mem(pt_attrs->l1_size,
--						     align_size, &pg_tbl_pa);
+-	int status;
+-	void *prsv_addr;
+-	void *hprocessor = ((struct process_context *)pr_ctxt)->hprocessor;
 -
--		/* Check if the PA is aligned for us */
--		if ((pg_tbl_pa) & (align_size - 1)) {
--			/* PA not aligned to page table size ,
--			 * try with more allocation and align */
--			mem_free_phys_mem((void *)pg_tbl_va, pg_tbl_pa,
--					  pt_attrs->l1_size);
--			/* we like to get aligned on L1 table size */
--			pg_tbl_va =
--			    (u32) mem_alloc_phys_mem((pt_attrs->l1_size) * 2,
--						     align_size, &pg_tbl_pa);
--			/* We should be able to get aligned table now */
--			pt_attrs->l1_tbl_alloc_pa = pg_tbl_pa;
--			pt_attrs->l1_tbl_alloc_va = pg_tbl_va;
--			pt_attrs->l1_tbl_alloc_sz = pt_attrs->l1_size * 2;
--			/* Align the PA to the next 'align'  boundary */
--			pt_attrs->l1_base_pa =
--			    ((pg_tbl_pa) +
--			     (align_size - 1)) & (~(align_size - 1));
--			pt_attrs->l1_base_va =
--			    pg_tbl_va + (pt_attrs->l1_base_pa - pg_tbl_pa);
--		} else {
--			/* We got aligned PA, cool */
--			pt_attrs->l1_tbl_alloc_pa = pg_tbl_pa;
--			pt_attrs->l1_tbl_alloc_va = pg_tbl_va;
--			pt_attrs->l1_tbl_alloc_sz = pt_attrs->l1_size;
--			pt_attrs->l1_base_pa = pg_tbl_pa;
--			pt_attrs->l1_base_va = pg_tbl_va;
--		}
--		if (pt_attrs->l1_base_va)
--			memset((u8 *) pt_attrs->l1_base_va, 0x00,
--			       pt_attrs->l1_size);
+-	if ((args->args_proc_rsvmem.ul_size <= 0) ||
+-	    (args->args_proc_rsvmem.ul_size & (PG_SIZE4K - 1)) != 0)
+-		return -EINVAL;
 -
--		/* number of L2 page tables = DMM pool used + SHMMEM +EXTMEM +
--		 * L4 pages */
--		pt_attrs->l2_num_pages = ((DMMPOOLSIZE >> 20) + 6);
--		pt_attrs->l2_size = HW_MMU_COARSE_PAGE_SIZE *
--		    pt_attrs->l2_num_pages;
--		align_size = 4;	/* Make it u32 aligned */
--		/* we like to get aligned on L1 table size */
--		pg_tbl_va = (u32) mem_alloc_phys_mem(pt_attrs->l2_size,
--						     align_size, &pg_tbl_pa);
--		pt_attrs->l2_tbl_alloc_pa = pg_tbl_pa;
--		pt_attrs->l2_tbl_alloc_va = pg_tbl_va;
--		pt_attrs->l2_tbl_alloc_sz = pt_attrs->l2_size;
--		pt_attrs->l2_base_pa = pg_tbl_pa;
--		pt_attrs->l2_base_va = pg_tbl_va;
--
--		if (pt_attrs->l2_base_va)
--			memset((u8 *) pt_attrs->l2_base_va, 0x00,
--			       pt_attrs->l2_size);
--
--		pt_attrs->pg_info = kzalloc(pt_attrs->l2_num_pages *
--					sizeof(struct page_info), GFP_KERNEL);
--		dev_dbg(bridge,
--			"L1 pa %x, va %x, size %x\n L2 pa %x, va "
--			"%x, size %x\n", pt_attrs->l1_base_pa,
--			pt_attrs->l1_base_va, pt_attrs->l1_size,
--			pt_attrs->l2_base_pa, pt_attrs->l2_base_va,
--			pt_attrs->l2_size);
--		dev_dbg(bridge, "pt_attrs %p L2 NumPages %x pg_info %p\n",
--			pt_attrs, pt_attrs->l2_num_pages, pt_attrs->pg_info);
--	}
--	if ((pt_attrs != NULL) && (pt_attrs->l1_base_va != 0) &&
--	    (pt_attrs->l2_base_va != 0) && (pt_attrs->pg_info != NULL))
--		dev_context->pt_attrs = pt_attrs;
--	else
--		status = -ENOMEM;
--
- 	if (!status) {
--		spin_lock_init(&pt_attrs->pg_lock);
- 		dev_context->tc_word_swap_on = drv_datap->tc_wordswapon;
--
--		/* Set the Clock Divisor for the DSP module */
--		udelay(5);
--		/* MMU address is obtained from the host
--		 * resources struct */
--		dev_context->dw_dsp_mmu_base = resources->dw_dmmu_base;
--	}
+-	status = proc_reserve_memory(hprocessor,
+-				     args->args_proc_rsvmem.ul_size, &prsv_addr,
+-				     pr_ctxt);
 -	if (!status) {
- 		dev_context->hdev_obj = hdev_obj;
- 		/* Store current board state. */
- 		dev_context->dw_brd_state = BRD_UNKNOWN;
-@@ -899,23 +728,6 @@ static int bridge_dev_create(struct bridge_dev_context
- 		/* Return ptr to our device state to the DSP API for storage */
- 		*dev_cntxt = dev_context;
- 	} else {
--		if (pt_attrs != NULL) {
--			kfree(pt_attrs->pg_info);
--
--			if (pt_attrs->l2_tbl_alloc_va) {
--				mem_free_phys_mem((void *)
--						  pt_attrs->l2_tbl_alloc_va,
--						  pt_attrs->l2_tbl_alloc_pa,
--						  pt_attrs->l2_tbl_alloc_sz);
--			}
--			if (pt_attrs->l1_tbl_alloc_va) {
--				mem_free_phys_mem((void *)
--						  pt_attrs->l1_tbl_alloc_va,
--						  pt_attrs->l1_tbl_alloc_pa,
--						  pt_attrs->l1_tbl_alloc_sz);
--			}
+-		if (put_user(prsv_addr, args->args_proc_rsvmem.pp_rsv_addr)) {
+-			status = -EINVAL;
+-			proc_un_reserve_memory(args->args_proc_rsvmem.
+-					       hprocessor, prsv_addr, pr_ctxt);
 -		}
--		kfree(pt_attrs);
- 		kfree(dev_context);
- 	}
- func_end:
-@@ -983,7 +795,6 @@ static int bridge_dev_ctrl(struct bridge_dev_context *dev_context,
-  */
- static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt)
- {
--	struct pg_table_attrs *pt_attrs;
- 	int status = 0;
- 	struct bridge_dev_context *dev_context = (struct bridge_dev_context *)
- 	    dev_ctxt;
-@@ -997,23 +808,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt)
- 
- 	/* first put the device to stop state */
- 	bridge_brd_stop(dev_context);
--	if (dev_context->pt_attrs) {
--		pt_attrs = dev_context->pt_attrs;
--		kfree(pt_attrs->pg_info);
--
--		if (pt_attrs->l2_tbl_alloc_va) {
--			mem_free_phys_mem((void *)pt_attrs->l2_tbl_alloc_va,
--					  pt_attrs->l2_tbl_alloc_pa,
--					  pt_attrs->l2_tbl_alloc_sz);
--		}
--		if (pt_attrs->l1_tbl_alloc_va) {
--			mem_free_phys_mem((void *)pt_attrs->l1_tbl_alloc_va,
--					  pt_attrs->l1_tbl_alloc_pa,
--					  pt_attrs->l1_tbl_alloc_sz);
--		}
--		kfree(pt_attrs);
--
 -	}
- 
- 	if (dev_context->resources) {
- 		host_res = dev_context->resources;
-@@ -1310,225 +1104,6 @@ int user_to_dsp_unmap(struct iommu *mmu, u32 da)
+-	return status;
++	return 0;
  }
  
  /*
-- *  ======== pte_update ========
-- *      This function calculates the optimum page-aligned addresses and sizes
-- *      Caller must pass page-aligned values
-- */
--static int pte_update(struct bridge_dev_context *dev_ctxt, u32 pa,
--			     u32 va, u32 size,
--			     struct hw_mmu_map_attrs_t *map_attrs)
--{
--	u32 i;
--	u32 all_bits;
--	u32 pa_curr = pa;
--	u32 va_curr = va;
--	u32 num_bytes = size;
--	struct bridge_dev_context *dev_context = dev_ctxt;
--	int status = 0;
--	u32 page_size[] = { HW_PAGE_SIZE16MB, HW_PAGE_SIZE1MB,
--		HW_PAGE_SIZE64KB, HW_PAGE_SIZE4KB
--	};
--
--	while (num_bytes && !status) {
--		/* To find the max. page size with which both PA & VA are
--		 * aligned */
--		all_bits = pa_curr | va_curr;
--
--		for (i = 0; i < 4; i++) {
--			if ((num_bytes >= page_size[i]) && ((all_bits &
--							     (page_size[i] -
--							      1)) == 0)) {
--				status =
--				    pte_set(dev_context->pt_attrs, pa_curr,
--					    va_curr, page_size[i], map_attrs);
--				pa_curr += page_size[i];
--				va_curr += page_size[i];
--				num_bytes -= page_size[i];
--				/* Don't try smaller sizes. Hopefully we have
--				 * reached an address aligned to a bigger page
--				 * size */
--				break;
--			}
--		}
--	}
--
--	return status;
--}
--
--/*
-- *  ======== pte_set ========
-- *      This function calculates PTE address (MPU virtual) to be updated
-- *      It also manages the L2 page tables
-- */
--static int pte_set(struct pg_table_attrs *pt, u32 pa, u32 va,
--			  u32 size, struct hw_mmu_map_attrs_t *attrs)
--{
--	u32 i;
--	u32 pte_val;
--	u32 pte_addr_l1;
--	u32 pte_size;
--	/* Base address of the PT that will be updated */
--	u32 pg_tbl_va;
--	u32 l1_base_va;
--	/* Compiler warns that the next three variables might be used
--	 * uninitialized in this function. Doesn't seem so. Working around,
--	 * anyways. */
--	u32 l2_base_va = 0;
--	u32 l2_base_pa = 0;
--	u32 l2_page_num = 0;
--	int status = 0;
--
--	l1_base_va = pt->l1_base_va;
--	pg_tbl_va = l1_base_va;
--	if ((size == HW_PAGE_SIZE64KB) || (size == HW_PAGE_SIZE4KB)) {
--		/* Find whether the L1 PTE points to a valid L2 PT */
--		pte_addr_l1 = hw_mmu_pte_addr_l1(l1_base_va, va);
--		if (pte_addr_l1 <= (pt->l1_base_va + pt->l1_size)) {
--			pte_val = *(u32 *) pte_addr_l1;
--			pte_size = hw_mmu_pte_size_l1(pte_val);
--		} else {
--			return -EPERM;
--		}
--		spin_lock(&pt->pg_lock);
--		if (pte_size == HW_MMU_COARSE_PAGE_SIZE) {
--			/* Get the L2 PA from the L1 PTE, and find
--			 * corresponding L2 VA */
--			l2_base_pa = hw_mmu_pte_coarse_l1(pte_val);
--			l2_base_va =
--			    l2_base_pa - pt->l2_base_pa + pt->l2_base_va;
--			l2_page_num =
--			    (l2_base_pa -
--			     pt->l2_base_pa) / HW_MMU_COARSE_PAGE_SIZE;
--		} else if (pte_size == 0) {
--			/* L1 PTE is invalid. Allocate a L2 PT and
--			 * point the L1 PTE to it */
--			/* Find a free L2 PT. */
--			for (i = 0; (i < pt->l2_num_pages) &&
--			     (pt->pg_info[i].num_entries != 0); i++)
--				;;
--			if (i < pt->l2_num_pages) {
--				l2_page_num = i;
--				l2_base_pa = pt->l2_base_pa + (l2_page_num *
--						HW_MMU_COARSE_PAGE_SIZE);
--				l2_base_va = pt->l2_base_va + (l2_page_num *
--						HW_MMU_COARSE_PAGE_SIZE);
--				/* Endianness attributes are ignored for
--				 * HW_MMU_COARSE_PAGE_SIZE */
--				status =
--				    hw_mmu_pte_set(l1_base_va, l2_base_pa, va,
--						   HW_MMU_COARSE_PAGE_SIZE,
--						   attrs);
--			} else {
--				status = -ENOMEM;
--			}
--		} else {
--			/* Found valid L1 PTE of another size.
--			 * Should not overwrite it. */
--			status = -EPERM;
--		}
--		if (!status) {
--			pg_tbl_va = l2_base_va;
--			if (size == HW_PAGE_SIZE64KB)
--				pt->pg_info[l2_page_num].num_entries += 16;
--			else
--				pt->pg_info[l2_page_num].num_entries++;
--			dev_dbg(bridge, "PTE: L2 BaseVa %x, BasePa %x, PageNum "
--				"%x, num_entries %x\n", l2_base_va,
--				l2_base_pa, l2_page_num,
--				pt->pg_info[l2_page_num].num_entries);
--		}
--		spin_unlock(&pt->pg_lock);
--	}
--	if (!status) {
--		dev_dbg(bridge, "PTE: pg_tbl_va %x, pa %x, va %x, size %x\n",
--			pg_tbl_va, pa, va, size);
--		dev_dbg(bridge, "PTE: endianism %x, element_size %x, "
--			"mixed_size %x\n", attrs->endianism,
--			attrs->element_size, attrs->mixed_size);
--		status = hw_mmu_pte_set(pg_tbl_va, pa, va, size, attrs);
--	}
--
--	return status;
--}
--
--/* Memory map kernel VA -- memory allocated with vmalloc */
--static int mem_map_vmalloc(struct bridge_dev_context *dev_context,
--				  u32 ul_mpu_addr, u32 virt_addr,
--				  u32 ul_num_bytes,
--				  struct hw_mmu_map_attrs_t *hw_attrs)
--{
--	int status = 0;
--	struct page *page[1];
--	u32 i;
--	u32 pa_curr;
--	u32 pa_next;
--	u32 va_curr;
--	u32 size_curr;
--	u32 num_pages;
--	u32 pa;
--	u32 num_of4k_pages;
--	u32 temp = 0;
--
--	/*
--	 * Do Kernel va to pa translation.
--	 * Combine physically contiguous regions to reduce TLBs.
--	 * Pass the translated pa to pte_update.
--	 */
--	num_pages = ul_num_bytes / PAGE_SIZE;	/* PAGE_SIZE = OS page size */
--	i = 0;
--	va_curr = ul_mpu_addr;
--	page[0] = vmalloc_to_page((void *)va_curr);
--	pa_next = page_to_phys(page[0]);
--	while (!status && (i < num_pages)) {
--		/*
--		 * Reuse pa_next from the previous iteraion to avoid
--		 * an extra va2pa call
--		 */
--		pa_curr = pa_next;
--		size_curr = PAGE_SIZE;
--		/*
--		 * If the next page is physically contiguous,
--		 * map it with the current one by increasing
--		 * the size of the region to be mapped
--		 */
--		while (++i < num_pages) {
--			page[0] =
--			    vmalloc_to_page((void *)(va_curr + size_curr));
--			pa_next = page_to_phys(page[0]);
--
--			if (pa_next == (pa_curr + size_curr))
--				size_curr += PAGE_SIZE;
--			else
--				break;
--
--		}
--		if (pa_next == 0) {
--			status = -ENOMEM;
--			break;
--		}
--		pa = pa_curr;
--		num_of4k_pages = size_curr / HW_PAGE_SIZE4KB;
--		while (temp++ < num_of4k_pages) {
--			get_page(PHYS_TO_PAGE(pa));
--			pa += HW_PAGE_SIZE4KB;
--		}
--		status = pte_update(dev_context, pa_curr, virt_addr +
--				    (va_curr - ul_mpu_addr), size_curr,
--				    hw_attrs);
--		va_curr += size_curr;
--	}
--	/*
--	 * In any case, flush the TLB
--	 * This is called from here instead from pte_update to avoid unnecessary
--	 * repetition while mapping non-contiguous physical regions of a virtual
--	 * region
--	 */
--	flush_all(dev_context);
--	dev_dbg(bridge, "%s status %x\n", __func__, status);
--	return status;
--}
--
--/*
-  *  ======== wait_for_start ========
-  *      Wait for the singal from DSP that it has started, or time out.
+@@ -1038,15 +1021,10 @@ u32 procwrap_un_map(union trapped_args *args, void *pr_ctxt)
+ /*
+  * ======== procwrap_un_reserve_memory ========
   */
+-u32 procwrap_un_reserve_memory(union trapped_args *args, void *pr_ctxt)
++u32 __deprecated procwrap_un_reserve_memory(union trapped_args *args,
++							void *pr_ctxt)
+ {
+-	int status;
+-	void *hprocessor = ((struct process_context *)pr_ctxt)->hprocessor;
+-
+-	status = proc_un_reserve_memory(hprocessor,
+-					args->args_proc_unrsvmem.prsv_addr,
+-					pr_ctxt);
+-	return status;
++	return 0;
+ }
+ 
+ /*
+diff --git a/drivers/staging/tidspbridge/rmgr/node.c b/drivers/staging/tidspbridge/rmgr/node.c
+index 1562f3c..ccb1811 100644
+--- a/drivers/staging/tidspbridge/rmgr/node.c
++++ b/drivers/staging/tidspbridge/rmgr/node.c
+@@ -430,17 +430,6 @@ int node_allocate(struct proc_object *hprocessor,
+ 	if (status)
+ 		goto func_cont;
+ 
+-	status = proc_reserve_memory(hprocessor,
+-				     pnode->create_args.asa.task_arg_obj.
+-				     heap_size + PAGE_SIZE,
+-				     (void **)&(pnode->create_args.asa.
+-					task_arg_obj.udsp_heap_res_addr),
+-				     pr_ctxt);
+-	if (status) {
+-		pr_err("%s: Failed to reserve memory for heap: 0x%x\n",
+-		       __func__, status);
+-		goto func_cont;
+-	}
+ #ifdef DSP_DMM_DEBUG
+ 	status = dmm_get_handle(p_proc_object, &dmm_mgr);
+ 	if (!dmm_mgr) {
+@@ -456,8 +445,7 @@ int node_allocate(struct proc_object *hprocessor,
+ 	map_attrs |= DSP_MAPVIRTUALADDR;
+ 	status = proc_map(hprocessor, (void *)attr_in->pgpp_virt_addr,
+ 			  pnode->create_args.asa.task_arg_obj.heap_size,
+-			  (void *)pnode->create_args.asa.task_arg_obj.
+-			  udsp_heap_res_addr, (void **)&mapped_addr, map_attrs,
++			  NULL, (void **)&mapped_addr, map_attrs,
+ 			  pr_ctxt);
+ 	if (status)
+ 		pr_err("%s: Failed to map memory for Heap: 0x%x\n",
+@@ -2576,12 +2564,6 @@ static void delete_node(struct node_object *hnode,
+ 			status = proc_un_map(hnode->hprocessor, (void *)
+ 					     task_arg_obj.udsp_heap_addr,
+ 					     pr_ctxt);
+-
+-			status = proc_un_reserve_memory(hnode->hprocessor,
+-							(void *)
+-							task_arg_obj.
+-							udsp_heap_res_addr,
+-							pr_ctxt);
+ #ifdef DSP_DMM_DEBUG
+ 			status = dmm_get_handle(p_proc_object, &dmm_mgr);
+ 			if (dmm_mgr)
+diff --git a/drivers/staging/tidspbridge/rmgr/proc.c b/drivers/staging/tidspbridge/rmgr/proc.c
+index e5fec57..429f354 100644
+--- a/drivers/staging/tidspbridge/rmgr/proc.c
++++ b/drivers/staging/tidspbridge/rmgr/proc.c
+@@ -152,34 +152,21 @@ static struct dmm_map_object *add_mapping_info(struct process_context *pr_ctxt,
+ 	return map_obj;
+ }
+ 
+-static int match_exact_map_obj(struct dmm_map_object *map_obj,
+-					u32 dsp_addr, u32 size)
+-{
+-	if (map_obj->dsp_addr == dsp_addr && map_obj->size != size)
+-		pr_err("%s: addr match (0x%x), size don't (0x%x != 0x%x)\n",
+-				__func__, dsp_addr, map_obj->size, size);
+-
+-	return map_obj->dsp_addr == dsp_addr &&
+-		map_obj->size == size;
+-}
+-
+ static void remove_mapping_information(struct process_context *pr_ctxt,
+-						u32 dsp_addr, u32 size)
++						u32 dsp_addr)
+ {
+ 	struct dmm_map_object *map_obj;
+ 
+-	pr_debug("%s: looking for virt 0x%x size 0x%x\n", __func__,
+-							dsp_addr, size);
++	pr_debug("%s: looking for virt 0x%x\n", __func__, dsp_addr);
+ 
+ 	spin_lock(&pr_ctxt->dmm_map_lock);
+ 	list_for_each_entry(map_obj, &pr_ctxt->dmm_map_list, link) {
+-		pr_debug("%s: candidate: mpu_addr 0x%x virt 0x%x size 0x%x\n",
++		pr_debug("%s: candidate: mpu_addr 0x%x virt 0x%x\n",
+ 							__func__,
+ 							map_obj->mpu_addr,
+-							map_obj->dsp_addr,
+-							map_obj->size);
++							map_obj->dsp_addr);
+ 
+-		if (match_exact_map_obj(map_obj, dsp_addr, size)) {
++		if (map_obj->dsp_addr == dsp_addr) {
+ 			pr_debug("%s: match, deleting map info\n", __func__);
+ 			list_del(&map_obj->link);
+ 			kfree(map_obj->dma_info.sg);
+@@ -1353,7 +1340,6 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ {
+ 	u32 va_align;
+ 	u32 pa_align;
+-	struct dmm_object *dmm_mgr;
+ 	u32 size_align;
+ 	int status = 0;
+ 	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+@@ -1382,11 +1368,6 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 	}
+ 	/* Critical section */
+ 	mutex_lock(&proc_lock);
+-	dmm_get_handle(p_proc_object, &dmm_mgr);
+-	if (dmm_mgr)
+-		status = dmm_map_memory(dmm_mgr, va_align, size_align);
+-	else
+-		status = -EFAULT;
+ 
+ 	/* Add mapping to the page tables. */
+ 	if (!status) {
+@@ -1409,9 +1390,9 @@ int proc_map(void *hprocessor, void *pmpu_addr, u32 ul_size,
+ 		map_obj->dsp_addr = (va_align |
+ 					((u32)pmpu_addr & (PG_SIZE4K - 1)));
+ 		*pp_map_addr = (void *)map_obj->dsp_addr;
++		pr_err("%s: mapped address %x\n", __func__, *pp_map_addr);
+ 	} else {
+-		remove_mapping_information(pr_ctxt, va_align, size_align);
+-		dmm_un_map_memory(dmm_mgr, va_align, &size_align);
++		remove_mapping_information(pr_ctxt, va_align);
+ 	}
+ 	mutex_unlock(&proc_lock);
+ 
+@@ -1504,38 +1485,6 @@ func_end:
+ }
+ 
+ /*
+- *  ======== proc_reserve_memory ========
+- *  Purpose:
+- *      Reserve a virtually contiguous region of DSP address space.
+- */
+-int proc_reserve_memory(void *hprocessor, u32 ul_size,
+-			       void **pp_rsv_addr,
+-			       struct process_context *pr_ctxt)
+-{
+-	struct dmm_object *dmm_mgr;
+-	int status = 0;
+-	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+-
+-	if (!p_proc_object) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
+-
+-	status = dmm_get_handle(p_proc_object, &dmm_mgr);
+-	if (!dmm_mgr) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
+-
+-	status = dmm_reserve_memory(dmm_mgr, ul_size, (u32 *) pp_rsv_addr);
+-func_end:
+-	dev_dbg(bridge, "%s: hprocessor: 0x%p ul_size: 0x%x pp_rsv_addr: 0x%p "
+-		"status 0x%x\n", __func__, hprocessor,
+-		ul_size, pp_rsv_addr, status);
+-	return status;
+-}
+-
+-/*
+  *  ======== proc_start ========
+  *  Purpose:
+  *      Start a processor running.
+@@ -1683,7 +1632,6 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ {
+ 	int status = 0;
+ 	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+-	struct dmm_object *dmm_mgr;
+ 	u32 va_align;
+ 	u32 size_align;
+ 
+@@ -1693,23 +1641,11 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ 		goto func_end;
+ 	}
+ 
+-	status = dmm_get_handle(hprocessor, &dmm_mgr);
+-	if (!dmm_mgr) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
+-
+ 	/* Critical section */
+ 	mutex_lock(&proc_lock);
+-	/*
+-	 * Update DMM structures. Get the size to unmap.
+-	 * This function returns error if the VA is not mapped
+-	 */
+-	status = dmm_un_map_memory(dmm_mgr, (u32) va_align, &size_align);
+ 	/* Remove mapping from the page tables. */
+-	if (!status)
+-		status = user_to_dsp_unmap(
+-			p_proc_object->hbridge_context->dsp_mmu, va_align);
++	status = user_to_dsp_unmap(p_proc_object->hbridge_context->dsp_mmu,
++								va_align);
+ 
+ 	mutex_unlock(&proc_lock);
+ 	if (status)
+@@ -1720,7 +1656,7 @@ int proc_un_map(void *hprocessor, void *map_addr,
+ 	 * from dmm_map_list, so that mapped memory resource tracking
+ 	 * remains uptodate
+ 	 */
+-	remove_mapping_information(pr_ctxt, (u32) map_addr, size_align);
++	remove_mapping_information(pr_ctxt, (u32) map_addr);
+ 
+ func_end:
+ 	dev_dbg(bridge, "%s: hprocessor: 0x%p map_addr: 0x%p status: 0x%x\n",
+@@ -1729,36 +1665,6 @@ func_end:
+ }
+ 
+ /*
+- *  ======== proc_un_reserve_memory ========
+- *  Purpose:
+- *      Frees a previously reserved region of DSP address space.
+- */
+-int proc_un_reserve_memory(void *hprocessor, void *prsv_addr,
+-				  struct process_context *pr_ctxt)
+-{
+-	struct dmm_object *dmm_mgr;
+-	int status = 0;
+-	struct proc_object *p_proc_object = (struct proc_object *)hprocessor;
+-
+-	if (!p_proc_object) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
+-
+-	status = dmm_get_handle(p_proc_object, &dmm_mgr);
+-	if (!dmm_mgr) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
+-
+-	status = dmm_un_reserve_memory(dmm_mgr, (u32) prsv_addr);
+-func_end:
+-	dev_dbg(bridge, "%s: hprocessor: 0x%p prsv_addr: 0x%p status: 0x%x\n",
+-		__func__, hprocessor, prsv_addr, status);
+-	return status;
+-}
+-
+-/*
+  *  ======== = proc_monitor ======== ==
+  *  Purpose:
+  *      Place the Processor in Monitor State. This is an internal
 -- 
 1.6.3.3
