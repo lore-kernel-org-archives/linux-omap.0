@@ -1,32 +1,70 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] video/omap: remove mux.h include
-Date: Tue, 05 Oct 2010 13:02:22 +0300
-Message-ID: <1286272942.2358.29.camel@tubuntu.research.nokia.com>
-References: <20101004174344.21577085@absol.kitzblitz>
-	 <20101004175429.GW3117@atomide.com>
-	 <20101004203842.088b0cb2@absol.kitzblitz>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: beagle hangs in uart3 disabling clocks
+Date: Tue, 5 Oct 2010 04:03:21 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1010050400210.13816@utopia.booyaka.com>
+References: <AANLkTi=9T=5swvF2UcrfDAL8cpHOcfpOU3Fi1O50Z6Tm@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB593023412B5A0@dbde02.ent.ti.com> <4CA9C5F6.7060902@ti.com> <AANLkTi=C55AbJhCWkFAM06vL2c5UM=aH3z2r8i4_55Mk@mail.gmail.com>
+ <AANLkTin++-F7dZWhqM6DG4v-95rfOpOwHSqj8xhTdS3k@mail.gmail.com> <87wrpy0xp3.fsf@deeprootsystems.com> <AANLkTi=k+aZ2t2ZgXMcwuoBVPEjzyiGov1ZmSxe+Pe4-@mail.gmail.com> <87iq1hzt3u.fsf@deeprootsystems.com> <AANLkTimtfm+Tq6y=Gv=-JWEZ-1CYUpsO71aE0AjkSbHQ@mail.gmail.com>
+ <alpine.DEB.2.00.1010050013210.13816@utopia.booyaka.com> <4CAACFFF.9040702@ti.com> <alpine.DEB.2.00.1010050117390.13816@utopia.booyaka.com> <4CAAF126.5080206@ti.com> <alpine.DEB.2.00.1010050346130.13816@utopia.booyaka.com> <4CAAF6B4.4030708@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53617 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755445Ab0JEKCj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 06:02:39 -0400
-In-Reply-To: <20101004203842.088b0cb2@absol.kitzblitz>
+Received: from utopia.booyaka.com ([72.9.107.138]:48170 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755445Ab0JEKDW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 06:03:22 -0400
+In-Reply-To: <4CAAF6B4.4030708@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nicolas Kaiser <nikai@nikai.net>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Pramod <pramod.gurav@ti.com>
+Cc: Ming Lei <tom.leiming@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Govindraj <govindraj.ti@gmail.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2010-10-04 at 20:38 +0200, ext Nicolas Kaiser wrote:
-> Including mux.h should no longer be needed for omap2/3/4 SoCs
-> outside arch/arm/mach-omap2 files.
+On Tue, 5 Oct 2010, Pramod wrote:
+
+> On Tuesday 05 October 2010 03:17 PM, Paul Walmsley wrote:
+> > On Tue, 5 Oct 2010, Pramod wrote:
+> > 
+> > > On Tuesday 05 October 2010 12:49 PM, Paul Walmsley wrote:
+> > > > On Tue, 5 Oct 2010, Pramod wrote:
+> > > > 
+> > > > > I applied this patch on my kernel which is based on android-2.6.32
+> > > > > enabling
+> > > > > dynamic printks. I still see the console hang after enabling the logs
+> > > > > in
+> > > > > hwmod.
+> > > > > 
+> > > > > I am using zoom3 board. Can you please let me know which defconfig
+> > > > > from lo
+> > > > > master branch can be used to test on zoom3? I would like to test this
+> > > > > patch
+> > > > > with lo master branch and zoom3.
+> > > > 
+> > > > Could you please paste your boot log messages here?
+> > > > 
+> > > > 
+> > > > - Paul
+> > > 
+> > > Hi paul,
+> > > These are the boot log messages.
+> > 
+> > Is that with the patch applied or without it?  If without, please post the
+> > log messages from a boot after you apply the patch.
+> > 
+> > - Paul
 > 
-> Signed-off-by: Nicolas Kaiser <nikai@nikai.net>
+> These logs are with the patch shared by you.
 
-Thanks, applied to my tree.
+Looks to me like it boots fine.  If you had hwmod debugging enabled, your 
+kernel should have crashed after
 
- Tomi
+omap-hsuart.0: ttyO0 at MMIO 0x4806a000 (irq = 72) is a OMAP UART0
+omap-hsuart.1: ttyO1 at MMIO 0x4806c000 (irq = 73) is a OMAP UART1
+omap-hsuart.2: ttyO2 at MMIO 0x49020000 (irq = 74) is a OMAP UART2
+
+... but it didn't crash there.  I'm not seeing any hwmod debug messages 
+though, so you probably don't have DEBUG defined in omap_hwmod.c.
+
+So, I suspect whatever problem you're seeing is unrelated to the problem 
+that the patch was intended to solve.
 
 
+- Paul
