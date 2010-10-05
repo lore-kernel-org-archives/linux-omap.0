@@ -1,26 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/5] arm/omap: remove duplicated include
-Date: Tue, 5 Oct 2010 13:06:30 -0700
-Message-ID: <20101005200630.GS3117@atomide.com>
-References: <20101004122436.7092868f@absol.kitzblitz>
- <20101004123937.4493b01b@absol.kitzblitz>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] usb: omap: fix the warning return type defaults to
+ 'int'
+Date: Tue, 5 Oct 2010 23:06:45 +0300
+Message-ID: <20101005200645.GD4656@legolas.emea.dhcp.ti.com>
+References: <1286225393-22472-1-git-send-email-keshava_mgowda@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57064 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756696Ab0JEUGf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 16:06:35 -0400
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20101004123937.4493b01b@absol.kitzblitz>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1286225393-22472-1-git-send-email-keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "Kamat, Nishant" <nskamat-l0cyMroinI0@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Kaiser <nikai@nikai.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-* Nicolas Kaiser <nikai@nikai.net> [101004 03:35]:
-> Remove duplicated include.
+On Mon, Oct 04, 2010 at 03:49:53PM -0500, Munegowda, Keshava wrote:
+>This patch fix the follwing warning when compiling usb code
+>for OMAP defconfigs.
+>arch/arm/plat-omap/include/plat/usb.h:109: warning: return type defaults
+>to 'int'
 
-Thanks, adding to omap-for-linus.
+$SUBJECT is mis-leading. I thought, initially, this was related to
+omap_udc.c (until I actually read the patch, of course).
 
-Tony
+Generaly, you'd use "arm: omap:" as a prefix.
+
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
