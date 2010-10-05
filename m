@@ -1,65 +1,35 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCHv3] OMAP3: SDRC : Add comments on Errata i520 for Global SW reset
-Date: Tue,  5 Oct 2010 19:35:34 +0530
-Message-ID: <1286287534-9160-1-git-send-email-vishwanath.bs@ti.com>
+From: Enric Balletbo i Serra <eballetbo@gmail.com>
+Subject: [PATCHv4 0/6] omap3: Various fixes and improvements for IGEP v2 board.
+Date: Tue,  5 Oct 2010 16:15:16 +0200
+Message-ID: <1286288122-16834-1-git-send-email-eballetbo@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41070 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407Ab0JEOHz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 10:07:55 -0400
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:57932 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752311Ab0JEOPc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 10:15:32 -0400
+Received: by wyb28 with SMTP id 28so6055516wyb.19
+        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 07:15:30 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vishwanath BS <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This patch adds comments on precatution to be taken if Global Warm reset is
-used as the means to trigger sysem reset.
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/prcm.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+Hello,
 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index c201374..e37639c
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -157,6 +157,34 @@ void omap_prcm_arch_reset(char mode, const char *cmd)
- 	else
- 		WARN_ON(1);
- 
-+	/*
-+	 * As per Errata i520, In some cases, user will not be able to
-+	 * access DDR memory after warm-reset.
-+	 * This situation occurs while the warm-reset happens during a read
-+	 * access to DDR memory. In that particular condition, DDR memory
-+	 * does not respond to a corrupted read command due to the warm
-+	 * reset occurence but SDRC is waiting for read completion.
-+	 * SDRC is not sensitive to the warm reset, but the interconect is
-+	 * reset on the fly, thus causing a misalignment between SDRC logic,
-+	 * interconect logic and DDR memory state.
-+	 * WORKAROUND:
-+	 * Steps to perform before a Warm reset is trigged:
-+	 * 1. enable self-refresh on idle request
-+	 * 2. put SDRC in idle
-+	 * 3. wait until SDRC goes to idle
-+	 * 4. generate SW reset (Global SW reset)
-+	 *
-+	 * Steps to be performed after warm reset occurs (in bootloader):
-+	 * if HW warm reset is the source, apply below steps before any
-+	 * accesses to SDRAM:
-+	 * 1. Reset SMS and SDRC and wait till reset is complete
-+	 * 2. Re-initialize SMS, SDRC and memory
-+	 *
-+	 * NOTE: Above work around is required only if arch reset is implemented
-+	 * using Global SW reset(GLOBAL_SW_RST). DPLL3 reset does not need
-+	 * the WA since it resets SDRC as well as part of cold reset.
-+	 */
-+
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx())
- 		prm_set_mod_reg_bits(OMAP_RST_DPLL3_MASK, prcm_offs,
- 						 OMAP2_RM_RSTCTRL);
--- 
-1.7.0.4
+This is the version 4 of patch series to fix and improve the IGEP v2 board support.
 
+Thanks for all your comments.
+
+CHANGES
+ - since v3:
+   - [3/6] fix igep2_get_revision function
+   - [3/6] fix typo - Unknow
+   - [5/6] check for return value omap_register_i2c_bus 
+ - since v2:
+   - [1/6] check the result value of gpio_request and gpio_direction_*
+   - [2/6] align the igep2_gpio_leds with tabs.
+   - cc linux-arm-kernel
+
+Kind regards,
+
+ Enric
