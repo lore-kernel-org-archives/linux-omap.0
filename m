@@ -1,186 +1,179 @@
 From: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: [PATCH 6/7] [RFC] OMAP: hwmod: SYSCONFIG register modification for MCBSP
-Date: Tue,  5 Oct 2010 22:07:41 +0530
-Message-ID: <1286296662-7639-6-git-send-email-kishon@ti.com>
+Subject: [PATCH 7/7] [RFC] OMAP: pm_runtime support for MCBSP
+Date: Tue,  5 Oct 2010 22:07:42 +0530
+Message-ID: <1286296662-7639-7-git-send-email-kishon@ti.com>
 References: <1286296662-7639-1-git-send-email-kishon@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33593 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:33605 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753493Ab0JEQkE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 12:40:04 -0400
+	with ESMTP id S1753750Ab0JEQkH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 12:40:07 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o95Ge0aQ030602
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o95Ge4wi030674
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 5 Oct 2010 11:40:03 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 5 Oct 2010 11:40:06 -0500
 In-Reply-To: <1286296662-7639-1-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: nskamat@ti.com, Kishon Vijay Abraham I <kishon@ti.com>, Charulatha V <charu@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>, Partha Basak <p-basak2@ti.com>
 
-MCBSP 2 and 3 in OMAP3 has sidetone feature which requires
-autoidle to be disabled before starting the sidetone. Also SYSCONFIG
-register has to be set with smart idle or no idle depending on the
-dma op mode (threshold or element sync). For doing these operations
-dynamically at runtime, hwmod API'S are used to modify SYSCONFIG register
-directly.
-
 Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 Signed-off-by: Charulatha V <charu@ti.com>
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 Cc: Partha Basak <p-basak2@ti.com>
 ---
- arch/arm/plat-omap/mcbsp.c |   69 ++++++++++++++++++++++++++------------------
- 1 files changed, 41 insertions(+), 28 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c             |    7 ++++---
+ arch/arm/plat-omap/include/plat/mcbsp.h |    1 -
+ arch/arm/plat-omap/mcbsp.c              |   27 +++++++--------------------
+ 3 files changed, 11 insertions(+), 24 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 25c6703..e9082ff 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -7,7 +7,7 @@
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+- *
++*
+  * Multichannel mode not supported.
+  */
+ #include <linux/module.h>
+@@ -24,6 +24,7 @@
+ #include <plat/mcbsp.h>
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
++#include <linux/pm_runtime.h>
+ 
+ #include "control.h"
+ 
+@@ -87,7 +88,7 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
+ 		return -EINVAL;
+ 	}
+ 
+-	clk_disable(mcbsp->fclk);
++	pm_runtime_put_sync(mcbsp->dev);
+ 
+ 	r = clk_set_parent(mcbsp->fclk, fck_src);
+ 	if (IS_ERR_VALUE(r)) {
+@@ -97,7 +98,7 @@ int omap2_mcbsp_set_clks_src(u8 id, u8 fck_src_id)
+ 		return -EINVAL;
+ 	}
+ 
+-	clk_enable(mcbsp->fclk);
++	pm_runtime_get_sync(mcbsp->dev);
+ 
+ 	clk_put(fck_src);
+ 
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index 1ff283c..b989d0c 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -462,7 +462,6 @@ struct omap_mcbsp {
+ 	/* Protect the field .free, while checking if the mcbsp is in use */
+ 	spinlock_t lock;
+ 	struct omap_mcbsp_platform_data *pdata;
+-	struct clk *iclk;
+ 	struct clk *fclk;
+ 	struct omap_mcbsp_st_data *st_data;
+ 	int dma_op_mode;
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index c7c6a83..6b705e1 100644
+index 6b705e1..2a1dce1 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -228,10 +228,21 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
- EXPORT_SYMBOL(omap_mcbsp_config);
+@@ -29,6 +29,7 @@
+ #include <plat/mcbsp.h>
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
++#include <linux/pm_runtime.h>
  
- #ifdef CONFIG_ARCH_OMAP3
-+static struct omap_hwmod **find_hwmods_by_dev(struct device *dev)
-+{
-+	struct platform_device *pdev;
-+	struct omap_device *od;
-+	pdev = container_of(dev, struct platform_device, dev);
-+	od = container_of(pdev, struct omap_device, pdev);
-+	return od->hwmods;
-+}
-+
- static void omap_st_on(struct omap_mcbsp *mcbsp)
- {
- 	unsigned int w;
-+	struct omap_hwmod **oh;
+ #include "../mach-omap2/cm-regbits-34xx.h"
  
-+	oh = find_hwmods_by_dev(mcbsp->dev);
- 	/*
- 	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
- 	 * are enabled or sidetones start sounding ugly.
-@@ -244,8 +255,7 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
- 	w = MCBSP_READ(mcbsp, SSELCR);
- 	MCBSP_WRITE(mcbsp, SSELCR, w | SIDETONEEN);
+@@ -777,8 +778,7 @@ int omap_mcbsp_request(unsigned int id)
+ 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
+ 		mcbsp->pdata->ops->request(id);
  
--	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
--	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w & ~(ST_AUTOIDLE));
-+	omap_hwmod_set_module_autoidle(oh[1], 0);
+-	clk_enable(mcbsp->iclk);
+-	clk_enable(mcbsp->fclk);
++	pm_runtime_get_sync(mcbsp->dev);
  
- 	/* Enable Sidetone from Sidetone Core */
- 	w = MCBSP_ST_READ(mcbsp, SSELCR);
-@@ -255,12 +265,14 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
- static void omap_st_off(struct omap_mcbsp *mcbsp)
- {
- 	unsigned int w;
-+	struct omap_hwmod **oh;
-+
-+	oh = find_hwmods_by_dev(mcbsp->dev);
+ 	/* Do procedure specific to omap34xx arch, if applicable */
+ 	omap34xx_mcbsp_request(mcbsp);
+@@ -826,8 +826,7 @@ err_clk_disable:
+ 	/* Do procedure specific to omap34xx arch, if applicable */
+ 	omap34xx_mcbsp_free(mcbsp);
  
- 	w = MCBSP_ST_READ(mcbsp, SSELCR);
- 	MCBSP_ST_WRITE(mcbsp, SSELCR, w & ~(ST_SIDETONEEN));
+-	clk_disable(mcbsp->fclk);
+-	clk_disable(mcbsp->iclk);
++	pm_runtime_put_sync(mcbsp->dev);
  
--	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
--	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w | ST_AUTOIDLE);
-+	omap_hwmod_set_module_autoidle(oh[1], 1);
+ 	spin_lock(&mcbsp->lock);
+ 	mcbsp->free = 1;
+@@ -857,8 +856,7 @@ void omap_mcbsp_free(unsigned int id)
+ 	/* Do procedure specific to omap34xx arch, if applicable */
+ 	omap34xx_mcbsp_free(mcbsp);
  
- 	w = MCBSP_READ(mcbsp, SSELCR);
- 	MCBSP_WRITE(mcbsp, SSELCR, w & ~(SIDETONEEN));
-@@ -273,9 +285,11 @@ static void omap_st_off(struct omap_mcbsp *mcbsp)
- static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
- {
- 	u16 val, i;
-+	struct omap_hwmod **oh;
+-	clk_disable(mcbsp->fclk);
+-	clk_disable(mcbsp->iclk);
++	pm_runtime_put_sync(mcbsp->dev);
  
--	val = MCBSP_ST_READ(mcbsp, SYSCONFIG);
--	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, val & ~(ST_AUTOIDLE));
-+	oh = find_hwmods_by_dev(mcbsp->dev);
-+
-+	omap_hwmod_set_module_autoidle(oh[1], 0);
+ 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
+ 		/* Free IRQs */
+@@ -1737,24 +1735,18 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
+ 	}
+ 	mcbsp->dma_tx_sync = res->start;
  
- 	val = MCBSP_ST_READ(mcbsp, SSELCR);
- 
-@@ -303,9 +317,11 @@ static void omap_st_chgain(struct omap_mcbsp *mcbsp)
- {
- 	u16 w;
- 	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
-+	struct omap_hwmod **oh;
-+
-+	oh = find_hwmods_by_dev(mcbsp->dev);
- 
--	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
--	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w & ~(ST_AUTOIDLE));
-+	omap_hwmod_set_module_autoidle(oh[1], 0);
- 
- 	w = MCBSP_ST_READ(mcbsp, SSELCR);
- 
-@@ -648,49 +664,46 @@ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
- 
- static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- {
-+	struct omap_hwmod **oh;
-+
-+	oh = find_hwmods_by_dev(mcbsp->dev);
- 	/*
- 	 * Enable wakup behavior, smart idle and all wakeups
- 	 * REVISIT: some wakeups may be unnecessary
- 	 */
- 	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		u16 syscon;
+-	mcbsp->iclk = clk_get(&pdev->dev, "ick");
+-	if (IS_ERR(mcbsp->iclk)) {
+-		ret = PTR_ERR(mcbsp->iclk);
+-		dev_err(&pdev->dev, "unable to get ick: %d\n", ret);
+-		goto err_res;
+-	}
 -
--		syscon = MCBSP_READ(mcbsp, SYSCON);
--		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
+ 	mcbsp->fclk = clk_get(&pdev->dev, "fck");
+ 	if (IS_ERR(mcbsp->fclk)) {
+ 		ret = PTR_ERR(mcbsp->fclk);
+ 		dev_err(&pdev->dev, "unable to get fck: %d\n", ret);
+-		goto err_fclk;
++		goto err_res;
+ 	}
  
- 		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
--			syscon |= (ENAWAKEUP | SIDLEMODE(0x02) |
--					CLOCKACTIVITY(0x02));
--			MCBSP_WRITE(mcbsp, WAKEUPEN, XRDYEN | RRDYEN);
-+			omap_hwmod_enable_wakeup(oh[0]);
-+			omap_hwmod_set_slave_idlemode(oh[0],
-+						HWMOD_IDLEMODE_SMART);
- 		} else {
--			syscon |= SIDLEMODE(0x01);
-+			omap_hwmod_disable_wakeup(oh[0]);
-+			omap_hwmod_set_slave_idlemode(oh[0],
-+						HWMOD_IDLEMODE_NO);
+ 	mcbsp->pdata = pdata;
+ 	mcbsp->dev = &pdev->dev;
+ 	mcbsp_ptr[id] = mcbsp;
+ 	platform_set_drvdata(pdev, mcbsp);
++	pm_runtime_enable(mcbsp->dev);
+ 
+ 	omap_additional_add(mcbsp->dev);
+ 	if (pdata->dma_op_mode != -EINVAL) {
+@@ -1800,8 +1792,6 @@ err_io_st:
+ 	kfree(mcbsp->st_data);
+ err_st_data:
+ 	clk_put(mcbsp->fclk);
+-err_fclk:
+-	clk_put(mcbsp->iclk);
+ err_res:
+ 	iounmap(mcbsp->io_base);
+ err_ioremap:
+@@ -1830,15 +1820,12 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
+ 			kfree(mcbsp->st_data);
  		}
--
--		MCBSP_WRITE(mcbsp, SYSCON, syscon);
- 	}
- }
  
- static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
- {
-+	struct omap_hwmod **oh;
-+
-+	oh = find_hwmods_by_dev(mcbsp->dev);
- 	/*
- 	 * Disable wakup behavior, smart idle and all wakeups
- 	 */
- 	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		u16 syscon;
--
--		syscon = MCBSP_READ(mcbsp, SYSCON);
--		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
- 		/*
- 		 * HW bug workaround - If no_idle mode is taken, we need to
- 		 * go to smart_idle before going to always_idle, or the
- 		 * device will not hit retention anymore.
- 		 */
--		syscon |= SIDLEMODE(0x02);
--		MCBSP_WRITE(mcbsp, SYSCON, syscon);
--
--		syscon &= ~(SIDLEMODE(0x03));
--		MCBSP_WRITE(mcbsp, SYSCON, syscon);
--
-+		omap_hwmod_disable_wakeup(oh[0]);
-+		omap_hwmod_set_slave_idlemode(oh[0],
-+					HWMOD_IDLEMODE_SMART);
-+		omap_hwmod_set_slave_idlemode(oh[0],
-+					HWMOD_IDLEMODE_FORCE);
- 		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+-		clk_disable(mcbsp->fclk);
+-		clk_disable(mcbsp->iclk);
+ 		clk_put(mcbsp->fclk);
+-		clk_put(mcbsp->iclk);
++		pm_runtime_put_sync(mcbsp->dev);
+ 
+ 		iounmap(mcbsp->io_base);
+ 
+ 		mcbsp->fclk = NULL;
+-		mcbsp->iclk = NULL;
+ 		mcbsp->free = 0;
+ 		mcbsp->dev = NULL;
  	}
- }
 -- 
 1.7.0.4
 
