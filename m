@@ -1,149 +1,267 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
-Date: Tue, 05 Oct 2010 13:44:03 -0700
-Message-ID: <87aamspdyk.fsf@deeprootsystems.com>
-References: <8762xpenf8.fsf@deeprootsystems.com>
-	<20100928201844.GI3117@atomide.com>
-	<87tyl8rxwp.fsf@deeprootsystems.com>
-	<20100930021819.GD3117@atomide.com>
-	<877hi3i9cp.fsf@deeprootsystems.com>
-	<87pqvvgt8g.fsf@deeprootsystems.com>
-	<877hi3gqq7.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF2DAF74@dbde02.ent.ti.com>
-	<4CA60F88.4020303@ti.com>
-	<alpine.DEB.2.00.1010042359170.13816@utopia.booyaka.com>
-	<0680EC522D0CC943BC586913CF3768C003FF3B2E05@dbde02.ent.ti.com>
-	<874od0tvu3.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF3B2F3D@dbde02.ent.ti.com>
-	<87y6acpghs.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF3B2F4D@dbde02.ent.ti.com>
-	<87hbh0ped5.fsf@deeprootsystems.com>
-	<0680EC522D0CC943BC586913CF3768C003FF3B2F52@dbde02.ent.ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v5] power: introduce library for device-specific OPPs
+Date: Tue, 5 Oct 2010 22:44:11 +0200
+Message-ID: <201010052244.11403.rjw@sisk.pl>
+References: <1285933174-24053-1-git-send-email-nm@ti.com> <201010050036.23179.rjw@sisk.pl> <4CAB228C.7030902@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:55850 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755222Ab0JEUoG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 16:44:06 -0400
-Received: by pzk34 with SMTP id 34so1760611pzk.19
-        for <linux-omap@vger.kernel.org>; Tue, 05 Oct 2010 13:44:06 -0700 (PDT)
-In-Reply-To: <0680EC522D0CC943BC586913CF3768C003FF3B2F52@dbde02.ent.ti.com>
-	(Rajendra Nayak's message of "Wed, 6 Oct 2010 02:11:11 +0530")
+Received: from ogre.sisk.pl ([217.79.144.158]:48140 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754258Ab0JEUpF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Oct 2010 16:45:05 -0400
+In-Reply-To: <4CAB228C.7030902@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Varadarajan, Charulatha" <charu@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Paul <paulmck@linux.vnet.ibm.com>, Kevin H <khilman@deeprootsystems.com>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+On Tuesday, October 05, 2010, Nishanth Menon wrote:
+> Rafael J. Wysocki had written, on 10/04/2010 05:36 PM, the following:
+> > On Friday, October 01, 2010, Nishanth Menon wrote:
+> >> SoCs have a standard set of tuples consisting of frequency and
+> >> voltage pairs that the device will support per voltage domain. These
+> >> are called Operating Performance Points or OPPs. The actual
+> >> definitions of OPP varies over silicon versions. For a specific domain,
+> >> we can have a set of {frequency, voltage} pairs. As the kernel boots
+> >> and more information is available, a default set of these are activated
+> >> based on the precise nature of device. Further on operation, based on
+> >> conditions prevailing in the system (such as temperature), some OPP
+> >> availability may be temporarily controlled by the SoC frameworks.
+> >>
+> >> To implement an OPP, some sort of power management support is necessary
+> >> hence this library depends on CONFIG_PM.
+> > 
+> > Well, I still have some comments.
+> Thanks for the same. Few views below.
+> 
+> > 
+> > ...
+> >> +/**
+> >> + * opp_add()  - Add an OPP table from a table definitions
+> >> + * @dev:	device for which we do this operation
+> >> + * @freq:	Frequency in Hz for this OPP
+> >> + * @u_volt:	Voltage in uVolts for this OPP
+> >> + *
+> >> + * This function adds an opp definition to the opp list and returns status.
+> >> + * The opp is made available by default and it can be controlled using
+> >> + * opp_enable/disable functions.
+> >> + *
+> >> + * Locking: The internal device_opp and opp structures are RCU protected.
+> >> + * Hence this function internally uses RCU and mutex locks to keep the
+> >> + * integrity of the internal data structures. Callers should ensure that
+> >> + * this function is *NOT* called under RCU protection or in contexts where
+> >> + * mutex cannot be locked.
+> > 
+> > I'm not really sure why so many mutexes are needed here.  I don't think you
+> > need a separate mutex in every struct device_opp object.  I'd just use
+> > dev_opp_list_lock for everything.
+> 
+> I did consider using  dev_opp_list_lock to lock everything *but* here is 
+> the contention:
+> 
+> dev_opp_list_lock locks modification for addition of domains device. 
+> This operation happens usually during init stage.
+> 
+> each domain device has multiple opps, new opps can be added, but the 
+> more often usage will probably be opp_enable and disable. domain are 
+> usually modifiable independent of each other - device_opp->lock provides 
+> device level lock allowing for each domain device opp list to be 
+> modified independent of each other. e.g. on thermal overage we may 
+> choose to lower mpu domain while a coprocessor driver in parallel might 
+> choose to disable co-processor domain in parallel.
+> 
+> Wondering why you'd like a single lock for all domains and restrict 
+> parallelization?
 
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Wednesday, October 06, 2010 2:05 AM
->> To: Nayak, Rajendra
->> Cc: Paul Walmsley; Cousson, Benoit; Tony Lindgren; linux-omap@vger.kernel.org; Varadarajan, Charulatha; Raja,
->> Govindraj
->> Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
->> 
->> "Nayak, Rajendra" <rnayak@ti.com> writes:
->> 
->> >> -----Original Message-----
->> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> >> Sent: Wednesday, October 06, 2010 1:19 AM
->> >> To: Nayak, Rajendra
->> >> Cc: Paul Walmsley; Cousson, Benoit; Tony Lindgren; linux-omap@vger.kernel.org; Varadarajan, Charulatha; Raja,
->> >> Govindraj
->> >> Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
->> >>
->> >> "Nayak, Rajendra" <rnayak@ti.com> writes:
->> >>
->> >> >> -----Original Message-----
->> >> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> >> >> Sent: Tuesday, October 05, 2010 10:34 PM
->> >> >> To: Nayak, Rajendra
->> >> >> Cc: Paul Walmsley; Cousson, Benoit; Tony Lindgren; linux-omap@vger.kernel.org; Varadarajan, Charulatha;
->> Raja,
->> >> >> Govindraj
->> >> >> Subject: Re: [GIT PULL] for testing: OMAP hwmod driver conversions: watchdog, UART, i2c
->> >> >>
->> >> >> "Nayak, Rajendra" <rnayak@ti.com> writes:
->> >> >>
->> >> >> > <snip>..
->> >> >> >
->> >> >> >> >
->> >> >> >> > Below is an untested patch to provide some mechanism to deal with this --
->> >> >> >> > I'd appreciate everyone's comments on this, particularly the comments in
->> >> >> >> > the patch code on how to deal with this problem.
->> >> >> >>
->> >> >> >> Hi Paul,
->> >> >> >>
->> >> >> >> I'll test this patch to see if it solves the issue seen with i2c on n800.
->> >> >> >
->> >> >> > Hi Paul, Benoit, Kevin,
->> >> >> >
->> >> >> > So looks like the issue with i2c on n800 isn't really because of additional
->> >> >> > delay needed after a clock enable, but related to the omap_readl/writel's
->> >> >> > done on the 16bit i2c registers as I was suspecting earlier.
->> >> >> >
->> >> >> > The below patch fixes the n800 issue for me. My mailer might mess up the alignment
->> >> >> > hence attaching it too.
->> >> >> >
->> >> >> > From af9733f2e63a16b446635d52015e05d631f0788f Mon Sep 17 00:00:00 2001
->> >> >> > From: Rajendra Nayak <rnayak@ti.com>
->> >> >> > Date: Tue, 5 Oct 2010 16:36:30 +0530
->> >> >> > Subject: [PATCH] OMAP: hwmod: Handle modules with 16bit registers
->> >> >> >
->> >> >> > Some modules which have 16bit registers can cause imprecise
->> >> >> > aborts if a __raw_readl/writel is used to read/write 32 bits.
->> >> >> >
->> >> >> > Add an additional flag to identify modules which have such
->> >> >> > hard requirement, and handle it in the hwmod framework.
->> >> >> >
->> >> >> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> >> >>
->> >> >> Can you also send a corresponding patch to the i2c hwmod data.
->> >> > Hi Kevin,
->> >> >
->> >> > Ok, I'll repost the original patch which adds the omap2 hwmod data with
->> >> > these flags added for omap2420. Does that sound fine?
->> >>
->> >> Since I've alrady done some manual merge conflicts here, you can just
->> >> post an additional patch and I will fold it in.
->> >
->> > Ok, so here's the patch
->> > ------
->> > From 06b4bb7a0ce96776d6d9b344b4786b48fceeffe1 Mon Sep 17 00:00:00 2001
->> > From: Rajendra Nayak <rnayak@ti.com>
->> > Date: Wed, 6 Oct 2010 01:49:32 +0530
->> > Subject: [PATCH] OMAP2: hmwod: Fix impresice aborts seen on n800/n810
->> >
->> > I2C module on OMAP2420 has 16bit registers and causes imprecise
->> > aborts if 32bits are read/wriitten into.
->> > Use the HWMOD_16BIT_REG flag to notify the hmwod framework of this
->> > hard requirement so that __raw_writew/readw is used to read /write
->> > the mdoule registers.
->> >
->> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> > ---
->> >  arch/arm/mach-omap2/omap_hwmod_2420_data.c |    2 ++
->> >  1 files changed, 2 insertions(+), 0 deletions(-)
->> 
->> Thanks.
->> 
->> Shouldn't we do the same for 2430?  I guess the imprecise aborts aren't
->> happening on 2430, but I think we should still use the 16-bit accesses
->> there too.
->> 
->> What do you think?
->
-> Yeah, actually i2c modules on all OMAPs including OMAP4 have had 16 bit registers.
-> But somehow only 2420 seemed to cause issues.
+Because of the simplicity, mostly.  If there's only a relatively short period
+when the lock will be contended for, that still is not too bad and it's much
+easier to get the synchronization right with just one lock for starters.
 
-OK, then let's keep this as a targetted fix for this merge window, and
-we can discuss whether this needs to be done for all OMAPs later.
+> >> + */
+> >> +int opp_add(struct device *dev, unsigned long freq, unsigned long u_volt)
+> >> +{
+> >> +	struct device_opp *dev_opp = NULL;
+> >> +	struct opp *opp, *new_opp;
+> >> +	struct list_head *head;
+> >> +
+> >> +	/* allocate new OPP node */
+> >> +	new_opp = kzalloc(sizeof(struct opp), GFP_KERNEL);
+> >> +	if (!new_opp) {
+> >> +		pr_warning("Unable to allocate new opp node\n");
+> >> +		return -ENOMEM;
+> >> +	}
+> >> +
+> >> +	/* Check for existing list for 'dev' */
+> >> +	rcu_read_lock();
+> > 
+> > If you acquire dev_opp_list_lock here, you won't need the rcu_read_lock(),
+> > because every other updater will block on dev_opp_list_lock until you're done.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
 
-I'll use you current patch,
+I don't think it's a big issue at this point.
+
+> >> +	dev_opp = find_device_opp(dev);
+> >> +	rcu_read_unlock();
+> >> +	if (!dev_opp) {
+> > 
+> > Now you can drop dev_opp_list_lock temporarily, because the allocation doesn't
+> > need synchronization.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
+
+Well, see above.
+
+> >> +		/* Allocate a new device OPP table */
+> >> +		dev_opp = kzalloc(sizeof(struct device_opp), GFP_KERNEL);
+> >> +		if (!dev_opp) {
+> >> +			kfree(new_opp);
+> >> +			pr_warning("Unable to allocate device structure\n");
+> >> +			return -ENOMEM;
+> >> +		}
+> >> +
+> >> +		dev_opp->dev = dev;
+> >> +		INIT_LIST_HEAD(&dev_opp->opp_list);
+> >> +		mutex_init(&dev_opp->lock);
+> >> +
+> > 
+> > Reacquire dev_opp_list_lock at this point and hold it to the end of the routine.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
+
+See above.
+
+> >> +		/* Secure the device list modification */
+> >> +		mutex_lock(&dev_opp_list_lock);
+> > 
+> > This won't be necessary any more.
+> > 
+> >> +		list_add_rcu(&dev_opp->node, &dev_opp_list);
+> > 
+> > Of course, this is still needed.
+> > 
+> >> +		mutex_unlock(&dev_opp_list_lock);
+> > 
+> > Not necessary.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
+
+See above.
+
+> >> +	}
+> >> +
+> >> +	/* populate the opp table */
+> >> +	new_opp->dev_opp = dev_opp;
+> >> +	new_opp->rate = freq;
+> >> +	new_opp->u_volt = u_volt;
+> >> +	new_opp->available = true;
+> >> +
+> >> +	/* make the dev_opp modification safe */
+> >> +	mutex_lock(&dev_opp->lock);
+> > 
+> > That's not necessary.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
+
+See above.
+
+> >> +
+> >> +	rcu_read_lock();
+> > 
+> > Ditto.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
+
+See above.
+
+> >> +	/* Insert new OPP in order of increasing frequency */
+> >> +	head = &dev_opp->opp_list;
+> >> +	list_for_each_entry_rcu(opp, &dev_opp->opp_list, node) {
+> >> +		if (new_opp->rate < opp->rate)
+> >> +			break;
+> >> +		else
+> >> +			head = &opp->node;
+> >> +	}
+> >> +	rcu_read_unlock();
+> > 
+> > Ditto.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
+
+See above.
+
+> >> +	list_add_rcu(&new_opp->node, head);
+> >> +	mutex_unlock(&dev_opp->lock);
+> > 
+> > Now release dev_opp_list_lock instead.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
+
+See above.
+
+> > And remember to call synchronize_rcu() when you're done.
+> 
+> we dont need synchronize_rcu() for list_add_rcu as Paul pointed out in 
+> [1]. quote:
+> "
+>  > +		mutex_lock(&dev_opp_list_lock);
+>  > +		list_add_rcu(&dev_opp->node, &dev_opp_list);
+>  > +		mutex_unlock(&dev_opp_list_lock);
+>  > +		synchronize_rcu();
+> 
+> You do not need to wait for an RCU grace period when adding objects, 
+> only between removing them and freeing them.
+> "
+
+OK
+
+> 
+> in our usage, this points to list_replace_rcu
+> 
+> > 
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +/**
+> >> + * opp_set_availability() - helper to set the availability of an opp
+> >> + * @dev:		device for which we do this operation
+> >> + * @freq:		OPP frequency to modify availability
+> >> + * @availability_req:	availability status requested for this opp
+> >> + *
+> >> + * Set the availability of an OPP with an RCU operation, opp_{enable,disable}
+> >> + * share a common logic which is isolated here.
+> >> + *
+> >> + * Returns -EINVAL for bad pointers, -ENOMEM if no memory available for the
+> >> + * copy operation, returns 0 if no modifcation was done OR modification was
+> >> + * successful.
+> >> + *
+> >> + * Locking: The internal device_opp and opp structures are RCU protected.
+> >> + * Hence this function internally uses RCU and mutex locks to keep the
+> >> + * integrity of the internal data structures. Callers should ensure that
+> >> + * this function is *NOT* called under RCU protection or in contexts where
+> >> + * mutex locking or synchronize_rcu() blocking calls cannot be used.
+> >> + */
+> >> +static int opp_set_availability(struct device *dev, unsigned long freq,
+> >> +		bool availability_req)
+> >> +{
+> >> +	struct device_opp *tmp_dev_opp, *dev_opp = NULL;
+> >> +	struct opp *new_opp, *tmp_opp, *opp = ERR_PTR(-ENODEV);
+> >> +	int r = 0;
+> >> +
+> >> +	/* keep the node allocated */
+> >> +	new_opp = kmalloc(sizeof(struct opp), GFP_KERNEL);
+> >> +	if (!new_opp) {
+> >> +		pr_warning("Unable to allocate opp\n");
+> >> +		return -ENOMEM;
+> >> +	}
+> >> +
+> >> +	rcu_read_lock();
+> > 
+> > Acquire dev_opp_list_lock instead.
+> [contention on using a single lock dev_opp_list_lock as discussed above]
+
+Well, I'm tired of this.
+
+To summarize, I don't think the synchronization will work correctly in the
+version of the patch you've submitted and I suggested you how it can be fixed.
+
+As I said, I don't think the lock contention is a big issue at this point.
 
 Thanks,
-
-Kevin
+Rafael
+ 
