@@ -1,34 +1,30 @@
 From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
-Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
-Date: Wed, 6 Oct 2010 14:01:48 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930234204D03@dbde02.ent.ti.com>
-References: <20100924014938.10325.35279.stgit@baageli.muru.com>
-	<20100924015056.10325.95854.stgit@baageli.muru.com>
-	<AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
-	<AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
-	<AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E5F6A365B@dlee03.ent.ti.com>
-	<AANLkTimD_MRbuTnBMPzAKPTmrDwjLkLVmr9bTSNROb5L@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930234006B4C@dbde02.ent.ti.com>
- <AANLkTinZqx2nFuoYoCYpD4+PG7_J=ACLBxAwOvpVm4c9@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB593023412B2C1@dbde02.ent.ti.com>
- <496565EC904933469F292DDA3F1663E602F471C1BF@dlee06.ent.ti.com>
+Subject: FW: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Wed, 6 Oct 2010 14:11:31 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930234204D19@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59593 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60333 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932184Ab0JFIcC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 04:32:02 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602F471C1BF@dlee06.ent.ti.com>
+	id S1752873Ab0JFIlp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 04:41:45 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
 Cc: Felipe Contreras <felipe.contreras@gmail.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+
+ Correction in name
+
+-----Original Message-----
+From: Marathe, Yogesh 
+Sent: Wednesday, October 06, 2010 2:02 PM
+To: Guzman Lugo, Fernando
+Cc: Felipe Contreras; Kanigeri, Hari; Premi, Sanjeev; Tony Lindgren; linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
 
 
 
@@ -108,11 +104,10 @@ Cc: Felipe Contreras <felipe.contreras@gmail.com>, "Kanigeri, Hari" <h-kanigeri2
 > 
 > Can I know the status of this patch?
 
-I have been discussing this with Fernando. In his opinion we should have 
+I have been discussing this with Felipe. In his opinion we should have 
 a Kconfig option and iommu user should explicitly set it to 'y' if they wish
 to use it. I'm saying removal of this 'if defined' solves the problem which
 is what you also want.
-
 > 
 > This patch is needed now that tidspbridge has migrated to use
 > Iommu moudle.
