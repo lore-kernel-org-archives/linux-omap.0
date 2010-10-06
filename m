@@ -1,59 +1,61 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH] omap: zoom2/3: fix build caused by wl1271 support
-Date: Wed, 06 Oct 2010 18:55:18 +0300
-Message-ID: <1286380518.6731.10.camel@powerslave>
-References: <1285965206-17777-1-git-send-email-gadiyar@ti.com>
-	 <20101001231026.GH3117@atomide.com> <1286279588.15401.28.camel@chilepepper>
-	 <1286280426.15401.29.camel@chilepepper>
-	 <1286284790.15401.53.camel@chilepepper>
-	 <1286311187.2793.7.camel@powerslave> <20101006135221.GE2472@tuxdriver.com>
-	 <AANLkTinHA+JS1MObanawFF8ktW6OEMGr7CnJhakUetPz@mail.gmail.com>
-	 <1286378869.6731.7.camel@powerslave>  <20101006153025.GG2472@tuxdriver.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt
+ handlers
+Date: Wed, 6 Oct 2010 11:58:35 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1010061156460.2047-100000@iolanthe.rowland.org>
+References: <878w2cnwky.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:41446 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932465Ab0JFPzp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 11:55:45 -0400
-In-Reply-To: <20101006153025.GG2472@tuxdriver.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:34134 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758946Ab0JFP6f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 11:58:35 -0400
+In-Reply-To: <878w2cnwky.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext John W. Linville" <linville@tuxdriver.com>
-Cc: "ext Gadiyar, Anand" <gadiyar@ti.com>, ext Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Wed, 2010-10-06 at 17:30 +0200, ext John W. Linville wrote:
-> On Wed, Oct 06, 2010 at 06:27:49PM +0300, Luciano Coelho wrote:
-> > On Wed, 2010-10-06 at 16:01 +0200, ext Gadiyar, Anand wrote:
-> > > >> Hmmm... We got a problem here.  This patch breaks builds when we *don't*
-> > > >> have "omap: mmc extended to pass host capabilities from board file".  We
-> > > >> don't have that on wireless-next yet, so builds with zoom boards
-> > > >> selected are broken.
-> > > >>
-> > > >> Any ideas on how to solve this dilemma? I guess the proper way to handle
-> > > >> this would be to make the changes proposed in this patch when merging
-> > > >> instead of having a normal commit for it, wouldn't it?
-> > > >
-> > > > Just cherry-pick that change into the branch of your tree that I do
-> > > > _not_ pull from.  I presume that it is already available in linux-next?
-> > > >
-> > > 
-> > > Yup - both patches are in linux-next; that's where we noticed the build break.
-> > 
-> > Ok, I hope the patch applies cleanly in our trees.
-> > 
-> > John, don't you want to do the cherry-pick on your wireless-testing
-> > then? If you do it, I can "inherit" that, because I pull from it into my
-> > "testing" branch (wl12xx/master).  At the moment, w-t is broken too.
+On Tue, 5 Oct 2010, Kevin Hilman wrote:
+
+> Alan Stern <stern@rowland.harvard.edu> writes:
 > 
-> OK, that's fine -- do you have the commit ID and the tree that has it?
+> > On Fri, 1 Oct 2010, Rafael J. Wysocki wrote:
+> >
+> >> > > In my opinion the _irq operations should really be one-shot, without
+> >> > > any looping, waking up parents etc.  I mean, if the parent is not RPM_ACTIVE,
+> >> > > the _irq resume should immediately fail and analogously for the _irq
+> >> > > suspend.  And so on.  As simple as reasonably possible.
+> >> > 
+> >> > But what if the device's own status is currently SUSPENDING or
+> >> > RESUMING?  Do you want to fail when that happens, instead of waiting
+> >> > for the concurrent operation to finish?
+> >> 
+> >> Yes.  IMO an _irq() suspend should only be allowed if the status is RPM_ACTIVE
+> >> and an _irq() resume should fail if the status is not RPM_SUSPENDED.  The
+> >> error code returned should depend on the situation, though.
+> >> 
+> >> > There's no way to prevent this
+> >> > on SMP systems, because a wakeup request can arrive while a
+> >> > software-initiated resume is in progress.
+> >> 
+> >> I know that. :-)
+> >
+> > I suspect Kevin will not want to live with this restriction, but I'd
+> > like to hear from him.  Kevin?
+> 
+> [ Apologies for the delays... I've been running around preparing OMAP PM
+>   stuff for the upcoming merge window. ]
+> 
+> I think I can live with the above restrictions (the _irq methods failing
+> unless they can immediately run.)  For the rare corner cases I've
+> currently run into, this will work fine as they happen because of a
+> wakeup IRQ, where we know the device is RPM_SUSPENDED.
 
-Stephen's linux-net, commit 3a63833ec3002816a759a49ebda4e229c089114e.
+Then what will the driver do if it gets a wakeup IRQ but it can't
+resume the device because some other thread is in the middle of a
+suspend or resume?
 
-http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commit;h=3a63833ec3002816a759a49ebda4e229c089114e
-
--- 
-Cheers,
-Luca.
+Alan Stern
 
