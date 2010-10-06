@@ -1,46 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Check for is_smp for tlb_ops and cache_ops
- boardcast
-Date: Wed, 6 Oct 2010 07:44:14 -0700
-Message-ID: <20101006144414.GA2913@atomide.com>
-References: <20100817104414.19061.38999.stgit@baageli.muru.com>
- <20100906104413.GD20903@n2100.arm.linux.org.uk>
- <20100906180346.GC20849@atomide.com>
- <20100908030951.GH22507@atomide.com>
- <20100908031214.GI22507@atomide.com>
- <20101005221952.GV3117@atomide.com>
- <20101005223310.GA14065@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 00/10] OMAP: SCM/McBSP/clock: branch integration
+ patches for 2.6.37
+Date: Wed, 6 Oct 2010 07:48:07 -0700
+Message-ID: <20101006144807.GB2913@atomide.com>
+References: <20101001213119.1408.65395.stgit@twilight.localdomain>
+ <20101005155242.20900538.jhnikula@gmail.com>
+ <20101005184017.GP3117@atomide.com>
+ <201010060842.21260.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63360 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53337 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932228Ab0JFOoh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 10:44:37 -0400
+	with ESMTP id S932490Ab0JFOsP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 10:48:15 -0400
 Content-Disposition: inline
-In-Reply-To: <20101005223310.GA14065@n2100.arm.linux.org.uk>
+In-Reply-To: <201010060842.21260.peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, bryan.wu@canonical.com
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [101005 15:24]:
-> On Tue, Oct 05, 2010 at 03:19:52PM -0700, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [100907 20:04]:
-> > > This should not be needed when running on UP systems.
-> > > 
-> > > Additionally we will also get an undefined instruction on ARM cores
-> > > without the extended CPUID registers with CONFIG_SMP_ON_UP.
-> > > 
-> > > Also, we can now remove the is_smp() test from mmu.c.
-> > 
-> > Just FYI, I've updated this one more time with to use cpus_empty
-> > instead of !smp_on_up() here as well.
+* Peter Ujfalusi <peter.ujfalusi@nokia.com> [101005 22:33]:
+> On Tuesday 05 October 2010 21:40:17 ext Tony Lindgren wrote:
 > 
-> What's the rationale?
+> ...
+> 
+> > > For patches 6-7 you could have my ack.
+> > > Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+> > > 
+> > > As they are touching also sound/soc/omap/omap-mcbsp.c, an ack from Mark
+> > > and Liam are needed. Links to patches 6 and 7 below and my fixes on top
+> > > of them [1].
+> > > 
+> > > http://marc.info/?l=linux-omap&m=128596931117788&w=2
+> > > http://marc.info/?l=linux-omap&m=128596931417805&w=2
+> > 
+> > Sorry, I've already merged them as they fixed code that did not compile.
+> > 
+> > Let me know if you guys want me to rebuild those parts of omap-for-linus
+> > to add the acks.
+> 
+> If you decide to rebuild, than you can add my (for patch 6-7):
+> Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com> 
 
-With CPU hotplug if the other SMP cores are unplugged for PM or
-other reasons, no need to do the broadcast.
+OK, let's do that then we should still have some time left before the
+merge window.
+
+Mark & Liam, care to ack as well?
 
 Regards,
 
