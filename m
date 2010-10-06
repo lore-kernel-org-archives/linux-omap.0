@@ -1,310 +1,365 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 5/6] save and restore etm state across core OFF modes
-Date: Wed, 6 Oct 2010 11:35:09 +0300
-Message-ID: <20101006083509.GA30019@besouro.research.nokia.com>
-References: <1272735501-2963-1-git-send-email-virtuoso@slind.org>
- <1272735501-2963-6-git-send-email-virtuoso@slind.org>
-Reply-To: eduardo.valentin@nokia.com
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 3/7] [RFC] OMAP: MCBSP: hwmod database for 4xxx devices
+Date: Wed, 6 Oct 2010 11:20:59 +0200
+Message-ID: <4CAC3F7B.30700@ti.com>
+References: <1286296662-7639-1-git-send-email-kishon@ti.com> <1286296662-7639-3-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:40755 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752873Ab0JFIoL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 04:44:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1272735501-2963-6-git-send-email-virtuoso@slind.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:53661 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932367Ab0JFJVD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Oct 2010 05:21:03 -0400
+In-Reply-To: <1286296662-7639-3-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext virtuoso@slind.org" <virtuoso@slind.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "r-woodruff2@ti.com" <r-woodruff2@ti.com>
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-Hello Alexander,
+Hi Kishon,
 
-Few points as follows,
+On 10/5/2010 6:37 PM, ABRAHAM, KISHON VIJAY wrote:
+> From: Benoit Cousson<b-cousson@ti.com>
+>
+> MCBSP hwmod data values are auto-generated. The order of omap44xx_mcbsp3_slaves
+> contents are changed since the driver uses the base address of
+> omap44xx_l4_abe__mcbsp3_dma.
 
-On Sat, May 01, 2010 at 07:38:20PM +0200, ext virtuoso@slind.org wrote:
-> From: Alexander Shishkin <virtuoso@slind.org>
-> 
-> This prevents ETM stalls whenever core enters OFF mode. Original patch
-> author is Richard Woodruff <r-woodruff2@ti.com>.
-> 
-> This version of the patch makes use of the ETM OS save/restore mechanism,
-> which takes about 55 words in omap3_arm_context[] instead of 128. Also,
-> saving ETM context can be switched on/off at runtime.
-> 
-> Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
-> CC: Richard Woodruff <r-woodruff2@ti.com>
+You should not do that... in theory.
+In your case I do understand why, but we should find a better way to 
+handle that. Ideally you should not rely on the order to get the proper 
+resource. For some reason the memory areas are not named today, but this 
+can be fixed if needed.
+
+The other concern or question is don't we have to use direct access 
+whenever possible? The second mapping is only needed for the SDMA 
+access, not for the registers accesses.
+
+So in your case, you will have to use two base address, for previous 
+OMAPs, both will be the same, but in the case of OMAP4, you will use the 
+direct one for all the register settings and the DMA one for DMA access.
+
+Benoit
+
+>
+> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+> Signed-off-by: Charulatha V<charu@ti.com>
+> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+> Cc: Partha Basak<p-basak2@ti.com>
 > ---
->  arch/arm/mach-omap2/Kconfig               |    9 ++
->  arch/arm/mach-omap2/control.c             |    2 +-
->  arch/arm/mach-omap2/sleep34xx.S           |  135 +++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/control.h |    2 +-
->  4 files changed, 146 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 2455dcc..5460bfe 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -150,6 +150,15 @@ config MACH_OMAP_4430SDP
->  	bool "OMAP 4430 SDP board"
->  	depends on ARCH_OMAP4
->  
-> +config ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> +	bool "Enable hardware emulation context save and restore"
-> +	depends on ARCH_OMAP3
-> +	default y
-> +	help
-> +	  This option enables JTAG & ETM debugging across power states.
-> +	  With out this option emulation features are reset across OFF
-> +	  mode state changes.
+>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  293 ++++++++++++++++++++++++++++
+>   1 files changed, 293 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 7274db4..1467840 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -811,6 +811,294 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
+>   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+>   };
+>
+> +/*
+> + * 'mcbsp' class
+> + * multi channel buffered serial port controller
+> + */
 > +
->  config OMAP3_EMU
->  	bool "OMAP3 debugging peripherals"
->  	depends on ARCH_OMAP3
-> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> index 43f8a33..70b1674 100644
-> --- a/arch/arm/mach-omap2/control.c
-> +++ b/arch/arm/mach-omap2/control.c
-> @@ -93,7 +93,7 @@ void *omap3_secure_ram_storage;
->   * The address is stored in scratchpad, so that it can be used
->   * during the restore path.
->   */
-> -u32 omap3_arm_context[128];
-> +u32 omap3_arm_context[256];
->  
->  struct omap3_control_regs {
->  	u32 sysconfig;
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> index d522cd7..cd6a1d4 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -28,6 +28,7 @@
->  #include <asm/assembler.h>
->  #include <mach/io.h>
->  #include <plat/control.h>
-> +#include <asm/hardware/coresight.h>
->  
->  #include "cm.h"
->  #include "prm.h"
-> @@ -226,6 +227,18 @@ loop:
->  	nop
->  	bl wait_sdrc_ok
->  
-> +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> +	/*
-> +	 * Restore Coresight debug registers
-> +	 */
-> +	ldr	r6, debug_vbase		/* base Vaddr of CortexA8-Debug */
-> +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-> +	bl	unlock_debug		/* remove global lock if set */
-> +	ldr	r6, etm_vbase		/* base Vaddr of ETM */
-> +	bl	unlock_debug		/* remove global lock if set */
-> +	str	r6, [r6, #ETMMR_OSLAR]	/* clear OSLAR lock using non-key */
-> +#endif
+> +static struct omap_hwmod_class_sysconfig omap44xx_mcbsp_sysc = {
+> +	.sysc_offs	= 0x008c,
+> +	.sysc_flags	= (SYSC_HAS_CLOCKACTIVITY | SYSC_HAS_ENAWAKEUP |
+> +			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
+> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART),
+> +	.sysc_fields	=&omap_hwmod_sysc_type1,
+> +};
 > +
->  	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
->  restore_es3:
->  	/*b restore_es3*/		@ Enable to debug restore code
-> @@ -385,6 +398,44 @@ logic_l1_restore:
->  	/*normal memory remap register */
->  	MCR p15, 0, r5, c10, c2, 1
->  
-> +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> +	/*
-> +	 * Restore Coresight debug registers
-> +	 */
-> +	ldr	r6, debug_pbase		/* base paddr of CortexA8-Debug */
-> +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-> +	bl	unlock_debug		/* remove global lock if set */
-> +	str	r4, [r6, #ETMMR_OSLAR]	/* reset-pointer (already locked) */
-> +	ldr	r4, [r6, #ETMMR_OSSRR]	/* dummy read */
-> +	ldr	r4, [r3], #4		/* load save size */
-> +	cmp	r4, #0			/* check for zero */
-> +debug_restore:
-> +	ittt	ne			/* t2/compat if-then block */
-> +	ldrne	r5, [r3], #4		/* get saved value */
-> +	strne	r5, [r6,#ETMMR_OSSRR]	/* restore saved value */
-> +	subnes	r4, r4, #1		/* decrement loop */
-> +	bne	debug_restore		/* loop till done */
-> +	str	r5, [r6, #ETMMR_OSSRR]	/* clear lock */
-
-Maybe you mean ETMMR_OSLAR?
-
-> +	/*
-> +	 * Restore CoreSight ETM registers
-> +	 */
-> +	ldr	r6, etm_pbase		/* base paddr of ETM */
-> +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-> +	bl	unlock_debug		/* remove global lock if set */
-> +	str	r4, [r6, #ETMMR_OSLAR]	/* reset-pointer (already locked) */
-> +	ldr	r4, [r6, #ETMMR_OSSRR]	/* dummy read */
-> +	ldr	r4, [r3], #4		/* load save size */
-> +	cmp	r4, #0			/* check for zero */
-> +	beq	etm_skip
-> +etm_restore:
-> +	ldrne	r5, [r3], #4		/* get saved value */
-> +	strne	r5, [r6, #ETMMR_OSSRR]	/* restore saved value */
-> +	subnes	r4, r4, #1		/* decrement loop */
-> +	bne	etm_restore		/* loop till done */
-> +etm_skip:
-> +	str	r6, [r6, #ETMMR_OSLAR]	/* remove OS lock */
-> +#endif
+> +static struct omap_hwmod_class omap44xx_mcbsp_hwmod_class = {
+> +	.name = "mcbsp",
+> +	.sysc =&omap44xx_mcbsp_sysc,
+> +};
 > +
->  	/* Restore cpsr */
->  	ldmia	r3!,{r4}	/*load CPSR from SDRAM*/
->  	msr	cpsr, r4	/*store cpsr */
-> @@ -506,6 +557,48 @@ l1_logic_lost:
->  	mrc	p15, 0, r5, c10, c2, 1
->  	stmia	r8!,{r4-r5}
->  
-> +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> +	/*
-> +	 * Save Coresight debug registers
-> +	 */
-> +	ldr	r4, do_etm_save
-> +	cmp	r4, #0
-> +	streq	r4, [r8], #4		/* 0 for coresight saved size */
-> +	streq	r4, [r8], #4		/* 0 for ETM saved size */
-
-Maybe you meant 
-+	streq	r4, [r8], #8		/* 0 for ETM saved size */
-??
-
-I mean, from your comments looks like you want two flags, one fro coresight
-another to ETM. So, probably 2 positions are required, but you forgot to spin
-the pointer here. I that was not what you mean, you probably want to remove
-one of those 2 duplicated streq instructions?
-
-> +	beq	etm_skip_save
-> +	ldr	r6, debug_vbase		/* base vaddr of CortexA8-Debug */
-> +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-> +	bl	unlock_debug		/* force global unlock */
-> +	str	r4, [r6, #ETMMR_OSLAR]	/* lock debug access */
-> +	ldr	r4, [r6, #ETMMR_OSSRR]	/* OSSRR returns size on first read */
-> +	str	r4, [r8], #4		/* push item to save area */
-> +	cmp	r4, #0			/* zero check */
-> +debug_save:
-> +	ittt	ne			/* thumb 2 compat if-then block */
-> +	ldrne	r5, [r6, #ETMMR_OSSRR]	/* get reg value */
-> +	strne	r5, [r8], #4		/* push item to save area */
-> +	subnes	r4, r4, #1		/* decrement size */
-> +	bne	debug_save		/* loop till done */
-> +	str	r6, [r6, #ETMMR_OSLAR]	/* unlock debug access */
-> +	/*
-> +	 * Save etm registers
-> +	 */
-> +	ldr	r6, etm_vbase		/* base vaddr of ETM */
-> +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
-> +	bl	unlock_debug		/* force global unlock */
-> +	str	r4, [r6, #ETMMR_OSLAR]	/* lock OS access to trace regs */
-> +	ldr	r4, [r6, #ETMMR_OSSRR]	/* OSSRR returns size on first read */
-> +	str	r4, [r8], #4		/* push size to save area */
-> +	cmp	r4, #0			/* zero check */
-> +etm_save:
-> +	ldrne	r5, [r6, #ETMMR_OSSRR]	/* get reg value */
-> +	strne	r5, [r8], #4		/* push item to save area */
-> +	subnes	r4, r4, #1		/* decrement size */
-> +	bne	etm_save		/* loop till done */
-> +	str	r6, [r6, #ETMMR_OSLAR]	/* unlock debug access */
-> +etm_skip_save:
-> +#endif
+> +/* mcbsp1 */
+> +static struct omap_hwmod omap44xx_mcbsp1_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_mcbsp1_irqs[] = {
+> +	{ .name = "tx", .irq = 17 + OMAP44XX_IRQ_GIC_START },
+> +	{ .name = "rx", .irq = 0 },
+> +};
 > +
->  	/* Store current cpsr*/
->  	mrs	r2, cpsr
->  	stmia	r8!, {r2}
-> @@ -520,6 +613,7 @@ clean_caches:
->  	cmp	r9, #1 /* Check whether L2 inval is required or not*/
->  	bne	skip_l2_inval
->  clean_l2:
-> +#ifndef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
->  	/* read clidr */
->  	mrc     p15, 1, r0, c0, c0, 1
->  	/* extract loc from clidr */
-> @@ -586,6 +680,12 @@ finished:
->  	/* select current cache level in cssr */
->  	mcr     p15, 2, r10, c0, c0, 0
->  	isb
-> +#else
-> +	ldr	r1, kernel_flush	/* get 32 bit addr of flush */
-> +	mov	lr, pc			/* prepare for return */
-> +	bx	r1			/* do it */
-> +#endif
+> +static struct omap_hwmod_dma_info omap44xx_mcbsp1_sdma_reqs[] = {
+> +	{ .name = "tx", .dma_req = 32 + OMAP44XX_DMA_REQ_START },
+> +	{ .name = "rx", .dma_req = 33 + OMAP44XX_DMA_REQ_START },
+> +};
 > +
->  skip_l2_inval:
->  	/* Data memory barrier and Data sync barrier */
->  	mov     r1, #0
-> @@ -632,6 +732,36 @@ wait_dll_lock:
->          bne     wait_dll_lock
->          bx      lr
->  
-> +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> +	/*
-> +	 * unlock debug:
-> +	 *  Input:
-> +	 *      r6 has base address of emulation
-> +	 *      r4 has unlock key
-> +	 *  Output
-> +	 *      r5 has PDS value (1=accessable)
-> +	 */
-> +unlock_debug:
-> +	ldr	r5, [r6, #CSMR_LOCKSTATUS]	/* get LSR */
-> +	cmp	r5, #0x3			/* need unlocking? */
-> +	streq	r4, [r6, #CSMR_LOCKACCESS]	/* unlock if so */
-> +	ldr	r5, [r6, #ETMMR_PDSR]		/* clear power status */
-> +	bx	lr				/* back to caller */
+> +static struct omap_hwmod_addr_space omap44xx_mcbsp1_addrs[] = {
+> +	{
+> +		.pa_start	= 0x40122000,
+> +		.pa_end		= 0x401220ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
 > +
-> +debug_vbase:
-> +	.word OMAP34XX_DBG_VIRT
-> +debug_pbase:
-> +	.word OMAP34XX_DBG_PHYS
-> +etm_vbase:
-> +	.word OMAP34XX_ETM_VIRT
-> +etm_pbase:
-> +	.word OMAP34XX_ETM_PHYS
-> +debug_xlar_key:
-> +	.word UNLOCK_MAGIC
-> +#endif
+> +/* l4_abe ->  mcbsp1 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp1 = {
+> +	.master		=&omap44xx_l4_abe_hwmod,
+> +	.slave		=&omap44xx_mcbsp1_hwmod,
+> +	.clk		= "ocp_abe_iclk",
+> +	.addr		= omap44xx_mcbsp1_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_addrs),
+> +	.user		= OCP_USER_MPU,
+> +};
 > +
-> +kernel_flush:
-> +	.word v7_flush_dcache_all
->  cm_idlest1_core:
->  	.word	CM_IDLEST1_CORE_V
->  sdrc_dlla_status:
-> @@ -668,5 +798,10 @@ cache_pred_disable_mask:
->  	.word	0xFFFFE7FB
->  control_stat:
->  	.word	CONTROL_STAT
-> +/* this word needs to be at the end */
-> +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
-> +do_etm_save:
-> +	.word   0
+> +static struct omap_hwmod_addr_space omap44xx_mcbsp1_dma_addrs[] = {
+> +	{
+> +		.pa_start	= 0x49022000,
+> +		.pa_end		= 0x490220ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_abe ->  mcbsp1 (dma) */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp1_dma = {
+> +	.master		=&omap44xx_l4_abe_hwmod,
+> +	.slave		=&omap44xx_mcbsp1_hwmod,
+> +	.clk		= "ocp_abe_iclk",
+> +	.addr		= omap44xx_mcbsp1_dma_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_dma_addrs),
+> +	.user		= OCP_USER_SDMA,
+> +};
+> +
+> +/* mcbsp1 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_mcbsp1_slaves[] = {
+> +	&omap44xx_l4_abe__mcbsp1_dma,
+> +	&omap44xx_l4_abe__mcbsp1,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_mcbsp1_hwmod = {
+> +	.name		= "mcbsp1",
+> +	.class		=&omap44xx_mcbsp_hwmod_class,
+> +	.mpu_irqs	= omap44xx_mcbsp1_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_irqs),
+> +	.sdma_reqs	= omap44xx_mcbsp1_sdma_reqs,
+> +	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_sdma_reqs),
+> +	.main_clk	= "mcbsp1_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM1_ABE_MCBSP1_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_mcbsp1_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcbsp1_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+> +/* mcbsp2 */
+> +static struct omap_hwmod omap44xx_mcbsp2_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_mcbsp2_irqs[] = {
+> +	{ .name = "tx", .irq = 22 + OMAP44XX_IRQ_GIC_START },
+> +	{ .name = "rx", .irq = 0 },
+> +};
+> +
+> +static struct omap_hwmod_dma_info omap44xx_mcbsp2_sdma_reqs[] = {
+> +	{ .name = "tx", .dma_req = 16 + OMAP44XX_DMA_REQ_START },
+> +	{ .name = "rx", .dma_req = 17 + OMAP44XX_DMA_REQ_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_mcbsp2_addrs[] = {
+> +	{
+> +		.pa_start	= 0x40124000,
+> +		.pa_end		= 0x401240ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_abe ->  mcbsp2 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp2 = {
+> +	.master		=&omap44xx_l4_abe_hwmod,
+> +	.slave		=&omap44xx_mcbsp2_hwmod,
+> +	.clk		= "ocp_abe_iclk",
+> +	.addr		= omap44xx_mcbsp2_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_addrs),
+> +	.user		= OCP_USER_MPU,
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_mcbsp2_dma_addrs[] = {
+> +	{
+> +		.pa_start	= 0x49024000,
+> +		.pa_end		= 0x490240ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_abe ->  mcbsp2 (dma) */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp2_dma = {
+> +	.master		=&omap44xx_l4_abe_hwmod,
+> +	.slave		=&omap44xx_mcbsp2_hwmod,
+> +	.clk		= "ocp_abe_iclk",
+> +	.addr		= omap44xx_mcbsp2_dma_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_dma_addrs),
+> +	.user		= OCP_USER_SDMA,
+> +};
+> +
+> +/* mcbsp2 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_mcbsp2_slaves[] = {
+> +	&omap44xx_l4_abe__mcbsp2_dma,
+> +	&omap44xx_l4_abe__mcbsp2,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_mcbsp2_hwmod = {
+> +	.name		= "mcbsp2",
+> +	.class		=&omap44xx_mcbsp_hwmod_class,
+> +	.mpu_irqs	= omap44xx_mcbsp2_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_irqs),
+> +	.sdma_reqs	= omap44xx_mcbsp2_sdma_reqs,
+> +	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_sdma_reqs),
+> +	.main_clk	= "mcbsp2_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM1_ABE_MCBSP2_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_mcbsp2_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcbsp2_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+> +/* mcbsp3 */
+> +static struct omap_hwmod omap44xx_mcbsp3_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_mcbsp3_irqs[] = {
+> +	{ .name = "tx", .irq = 23 + OMAP44XX_IRQ_GIC_START },
+> +	{ .name = "rx", .irq = 0 },
+> +};
+> +
+> +static struct omap_hwmod_dma_info omap44xx_mcbsp3_sdma_reqs[] = {
+> +	{ .name = "tx", .dma_req = 18 + OMAP44XX_DMA_REQ_START },
+> +	{ .name = "rx", .dma_req = 19 + OMAP44XX_DMA_REQ_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_mcbsp3_addrs[] = {
+> +	{
+> +		.pa_start	= 0x40126000,
+> +		.pa_end		= 0x401260ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_abe ->  mcbsp3 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp3 = {
+> +	.master		=&omap44xx_l4_abe_hwmod,
+> +	.slave		=&omap44xx_mcbsp3_hwmod,
+> +	.clk		= "ocp_abe_iclk",
+> +	.addr		= omap44xx_mcbsp3_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_addrs),
+> +	.user		= OCP_USER_MPU,
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_mcbsp3_dma_addrs[] = {
+> +	{
+> +		.pa_start	= 0x49026000,
+> +		.pa_end		= 0x490260ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_abe ->  mcbsp3 (dma) */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_abe__mcbsp3_dma = {
+> +	.master		=&omap44xx_l4_abe_hwmod,
+> +	.slave		=&omap44xx_mcbsp3_hwmod,
+> +	.clk		= "ocp_abe_iclk",
+> +	.addr		= omap44xx_mcbsp3_dma_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_dma_addrs),
+> +	.user		= OCP_USER_SDMA,
+> +};
+> +
+> +/* mcbsp3 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_mcbsp3_slaves[] = {
+> +	&omap44xx_l4_abe__mcbsp3_dma,
+> +	&omap44xx_l4_abe__mcbsp3,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_mcbsp3_hwmod = {
+> +	.name		= "mcbsp3",
+> +	.class		=&omap44xx_mcbsp_hwmod_class,
+> +	.mpu_irqs	= omap44xx_mcbsp3_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_irqs),
+> +	.sdma_reqs	= omap44xx_mcbsp3_sdma_reqs,
+> +	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_sdma_reqs),
+> +	.main_clk	= "mcbsp3_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM1_ABE_MCBSP3_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_mcbsp3_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcbsp3_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+> +/* mcbsp4 */
+> +static struct omap_hwmod omap44xx_mcbsp4_hwmod;
+> +static struct omap_hwmod_irq_info omap44xx_mcbsp4_irqs[] = {
+> +	{ .name = "tx", .irq = 16 + OMAP44XX_IRQ_GIC_START },
+> +	{ .name = "rx", .irq = 0 },
+> +};
+> +
+> +static struct omap_hwmod_dma_info omap44xx_mcbsp4_sdma_reqs[] = {
+> +	{ .name = "tx", .dma_req = 30 + OMAP44XX_DMA_REQ_START },
+> +	{ .name = "rx", .dma_req = 31 + OMAP44XX_DMA_REQ_START },
+> +};
+> +
+> +static struct omap_hwmod_addr_space omap44xx_mcbsp4_addrs[] = {
+> +	{
+> +		.pa_start	= 0x48096000,
+> +		.pa_end		= 0x480960ff,
+> +		.flags		= ADDR_TYPE_RT
+> +	},
+> +};
+> +
+> +/* l4_per ->  mcbsp4 */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_per__mcbsp4 = {
+> +	.master		=&omap44xx_l4_per_hwmod,
+> +	.slave		=&omap44xx_mcbsp4_hwmod,
+> +	.clk		= "l4_div_ck",
+> +	.addr		= omap44xx_mcbsp4_addrs,
+> +	.addr_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_addrs),
+> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+> +};
+> +
+> +/* mcbsp4 slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_mcbsp4_slaves[] = {
+> +	&omap44xx_l4_per__mcbsp4,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_mcbsp4_hwmod = {
+> +	.name		= "mcbsp4",
+> +	.class		=&omap44xx_mcbsp_hwmod_class,
+> +	.mpu_irqs	= omap44xx_mcbsp4_irqs,
+> +	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_irqs),
+> +	.sdma_reqs	= omap44xx_mcbsp4_sdma_reqs,
+> +	.sdma_reqs_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_sdma_reqs),
+> +	.main_clk	= "mcbsp4_fck",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_reg = OMAP4430_CM_L4PER_MCBSP4_CLKCTRL,
+> +		},
+> +	},
+> +	.slaves		= omap44xx_mcbsp4_slaves,
+> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_mcbsp4_slaves),
+> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+> +};
+> +
+> +
+>   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>   	/* dmm class */
+>   	&omap44xx_dmm_hwmod,
+> @@ -840,6 +1128,11 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>   	&omap44xx_uart2_hwmod,
+>   	&omap44xx_uart3_hwmod,
+>   	&omap44xx_uart4_hwmod,
+> +	/* mcbsp class */
+> +	&omap44xx_mcbsp1_hwmod,
+> +	&omap44xx_mcbsp2_hwmod,
+> +	&omap44xx_mcbsp3_hwmod,
+> +	&omap44xx_mcbsp4_hwmod,
+>   	NULL,
+>   };
+>
 
-I think you have to be careful here. This might not survive across core off.
-
-> +#endif
->  ENTRY(omap34xx_cpu_suspend_sz)
->  	.word	. - omap34xx_cpu_suspend
-> diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-> index a56deee..3d48e80 100644
-> --- a/arch/arm/plat-omap/include/plat/control.h
-> +++ b/arch/arm/plat-omap/include/plat/control.h
-> @@ -342,7 +342,7 @@ extern void omap3_save_scratchpad_contents(void);
->  extern void omap3_clear_scratchpad_contents(void);
->  extern u32 *get_restore_pointer(void);
->  extern u32 *get_es3_restore_pointer(void);
-> -extern u32 omap3_arm_context[128];
-> +extern u32 omap3_arm_context[256];
->  extern void omap3_control_save_context(void);
->  extern void omap3_control_restore_context(void);
->  
-> -- 
-> 1.7.1.1.g15764
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Eduardo Valentin
