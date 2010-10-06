@@ -1,47 +1,31 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 00/10] OMAP: SCM/McBSP/clock: branch integration patches for 2.6.37
-Date: Wed, 6 Oct 2010 08:42:20 +0300
-Message-ID: <201010060842.21260.peter.ujfalusi@nokia.com>
-References: <20101001213119.1408.65395.stgit@twilight.localdomain> <20101005155242.20900538.jhnikula@gmail.com> <20101005184017.GP3117@atomide.com>
+Subject: Re: [PATCH 1/3] OMAP: McBSP: Fix CLKR and FSR signal muxing
+Date: Wed, 6 Oct 2010 08:43:13 +0300
+Message-ID: <201010060843.13631.peter.ujfalusi@nokia.com>
+References: <1286281775-27692-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.ext.nokia.com ([147.243.1.48]:49722 "EHLO
+Received: from mgw-sa02.ext.nokia.com ([147.243.1.48]:50251 "EHLO
 	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755234Ab0JFFmf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 01:42:35 -0400
-In-Reply-To: <20101005184017.GP3117@atomide.com>
+	with ESMTP id S1752329Ab0JFFnQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 01:43:16 -0400
+In-Reply-To: <1286281775-27692-1-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@slimlogic.co.uk>
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-On Tuesday 05 October 2010 21:40:17 ext Tony Lindgren wrote:
-
-=2E..
-
-> > For patches 6-7 you could have my ack.
-> > Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-> >=20
-> > As they are touching also sound/soc/omap/omap-mcbsp.c, an ack from =
-Mark
-> > and Liam are needed. Links to patches 6 and 7 below and my fixes on=
- top
-> > of them [1].
-> >=20
-> > http://marc.info/?l=3Dlinux-omap&m=3D128596931117788&w=3D2
-> > http://marc.info/?l=3Dlinux-omap&m=3D128596931417805&w=3D2
+On Tuesday 05 October 2010 15:29:33 ext Jarkko Nikula wrote:
+> Fix bit clear. Now it clears all other bits than mask bit where it sh=
+ould
+> clear only it.
 >=20
-> Sorry, I've already merged them as they fixed code that did not compi=
-le.
->=20
-> Let me know if you guys want me to rebuild those parts of omap-for-li=
-nus
-> to add the acks.
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
 
-If you decide to rebuild, than you can add my (for patch 6-7):
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>=20
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
 --=20
 P=E9ter
