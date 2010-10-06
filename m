@@ -1,76 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] omap4: pandaboard: Adding card detect support for
- MMC1
-Date: Wed, 6 Oct 2010 14:59:38 -0700
-Message-ID: <20101006215938.GB4859@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/4] omap4: pandaboard: machine cleanups
+Date: Wed, 06 Oct 2010 15:12:56 -0700
+Message-ID: <87eic3gec7.fsf@deeprootsystems.com>
 References: <1286399673-912-1-git-send-email-x0132446@ti.com>
- <1286399673-912-4-git-send-email-x0132446@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59442 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756916Ab0JFV7q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 17:59:46 -0400
-Content-Disposition: inline
-In-Reply-To: <1286399673-912-4-git-send-email-x0132446@ti.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:45061 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759244Ab0JFWM6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 18:12:58 -0400
+Received: by pwj5 with SMTP id 5so12025pwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 06 Oct 2010 15:12:58 -0700 (PDT)
+In-Reply-To: <1286399673-912-1-git-send-email-x0132446@ti.com> (David Anders's
+	message of "Wed, 6 Oct 2010 16:14:29 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Anders <x0132446@ti.com>, kishore kadiyala <kishore.kadiyala@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Anand Gadiyar <gadiyar@ti.com>
+To: David Anders <x0132446@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* David Anders <x0132446@ti.com> [101006 14:06]:
-> Adding card detect callback function and card detect configuration
-> function for MMC1 Controller.
+David Anders <x0132446@ti.com> writes:
 
-This one would be best merged into this patch from Kishore:
+> PandaBoard machine file related cleanups.
+>
+> David Anders (4):
+>   omap4: pandaboard: remove unused hsmmc definition
+>   omap4: pandaboard: Fix the init if CONFIG_MMC_OMAP_HS is not set
+>   omap4: pandaboard: Adding card detect support for MMC1
+>   omap4: pandaboard: enable the ehci port on pandaboard
 
-https://patchwork.kernel.org/patch/189952/
+Hi David,
 
-Kishore, care to update your patch with this one and then send
-the updated version to Samuel? I think there may have been some
-other pending comments too.
+Thanks for updating.
 
-The other three look OK to me to queue.
+Note that the LAKML mailing-list address has changed.  Correct address
+is
 
-Regards,
+   linux-arm-kernel@lists.infradead.org
 
-Tony
+Please fixup patch 4 to apply against current l-o master, and drop patch
+3 for now so that Kishore can fold it into his, then re-post including
+LAKML.
 
-> 
-> Signed-off-by: David Anders <x0132446@ti.com>
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> ---
-> 
-> patch depends on https://patchwork.kernel.org/patch/189952/
-> 
->  arch/arm/mach-omap2/board-omap4panda.c |    7 ++++++-
->  1 files changed, 6 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index 697c0bd..94e819c 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -77,9 +77,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
->  	struct omap_mmc_platform_data *pdata = dev->platform_data;
->  
->  	/* Setting MMC1 Card detect Irq */
-> -	if (pdev->id == 0)
-> +	if (pdev->id == 0) {
-> +		ret = twl6030_mmc_card_detect_config();
-> +		if (ret)
-> +			pr_err("Failed configuring MMC1 card detect\n");
->  		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
->  						MMCDETECT_INTR_OFFSET;
-> +		pdata->slots[0].card_detect = twl6030_mmc_card_detect;
-> +	}
->  	return ret;
->  }
->  
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+FWIW, I tested patches 1, 2 and 4 (after manual fixup) on my es2.0 panda
+and MMC is working, so feel free to add 
+
+Tested-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+to patches 1, 2 and 4.  At least MMC boot will work, and we'll have to
+wait for Kishore to get the card detect merged.
+
+Kevin
