@@ -1,32 +1,49 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: linux-next: manual merge of the staging-next tree with the
-	omap tree
-Date: Tue, 5 Oct 2010 20:36:05 -0700
-Message-ID: <20101006033605.GB5719@kroah.com>
-References: <20101006142110.e757f27c.sfr@canb.auug.org.au>
+From: Arun MURTHY <arun.murthy@stericsson.com>
+Subject: RE: [PATCHv2 0/7] PWM core driver for pwm based led and backlight
+ driver
+Date: Wed, 6 Oct 2010 05:46:02 +0200
+Message-ID: <F45880696056844FA6A73F415B568C6953571D4EFD@EXDCVYMBSTM006.EQ1STM.local>
+References: <1286280002-1636-1-git-send-email-arun.murthy@stericsson.com>
+ <87wrpwu1cw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20101006142110.e757f27c.sfr@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:50321 "EHLO
+	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756872Ab0JFDr3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 5 Oct 2010 23:47:29 -0400
+In-Reply-To: <87wrpwu1cw.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "lars@metafoo.de" <lars@metafoo.de>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "kernel@pengutronix.de" <kernel@pengutronix.de>, "philipp.zabel@gmail.com" <philipp.zabel@gmail.com>, "robert.jarzmik@free.fr" <robert.jarzmik@free.fr>, "marek.vasut@gmail.com" <marek.vasut@gmail.com>, "eric.y.miao@gmail.com" <eric.y.miao@gmail.com>, "rpurdie@rpsys.net" <rpurdie@rpsys.net>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "kgene.kim@samsung.com" <kgene.kim@samsung.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>, "bgat@billgatliff.com" <bgat@billgatliff.com>
 
-On Wed, Oct 06, 2010 at 02:21:10PM +1100, Stephen Rothwell wrote:
-> Hi Greg,
+> Arun Murthy <arun.murthy@stericsson.com> writes:
 > 
-> Today's linux-next merge of the staging-next tree got a conflict in
-> arch/arm/plat-omap/devices.c between commit
-> f2ce62312650211f6cf665cd6dc519c334c4071e ("OMAP: WDT: Split OMAP1 and
-> OMAP2PLUS device registration") from the omap tree and commit
-> 90173882ed15a8034d6d162da5f343a2c7d87587 ("omap: add dsp platform
-> device") from the staging-next tree.
+> > PWM core driver for pwm based led and backlight driver.
+> > The intention of the pwm core driver is not to break the build if two
+> or more
+> > pwm drivers are enabled.
+> > Align the existing pwm drivers to make use of the pwm core driver
 > 
-> Just overlapping removal/additions (I think).  I fixed it up (see below)
-> and can carry the changes as necessary.
+> Hi Arun,
+> 
+> Because you have Bill Gatliff on Cc, I'm guessing you've already looked
+> at his RFC for a generic PWM framework?
+> 
+> There's recently been a proposal on DaVinci that is similar to yours
+> that enables multiple PWM drivers, but it would be nice to have a
+> common
+> framework for this, and what Bill has proposed seems to be a good
+> solution.
+> 
+Thanks for the information. This patch set of implementing pwm core driver
+is aligned with the one in Davinci. Davinci pwm devices can make use of this
+core driver framework.
 
-Your fixup looks correct to me, thanks for carrying it.
-
-greg k-h
+Thanks and Regards,
+Arun R Murthy
+-------------
