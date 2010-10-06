@@ -1,106 +1,50 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
-Date: Wed, 6 Oct 2010 08:22:07 -0700
-Message-ID: <AANLkTikvduxP+gQOs4HvZz2Yw6KCrqHAyim0Ads0Bvj_@mail.gmail.com>
-References: <cover.1266847842.git.david.vrabel@csr.com>
-	<20100827192248.GJ20407@void.printf.net>
-	<4C7CC480.2040903@csr.com>
-	<4C7F3E0F.2080402@compulab.co.il>
-	<AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com>
-	<C903F2608D694655921F553D0D3557E3@am.dhcp.ti.com>
-	<AANLkTikskMMFWS+qxD+J=o6OiOa+d5H02DiT1iZ95vkz@mail.gmail.com>
-	<CD6B4CE9F7FA427BBD19242F669AD014@am.dhcp.ti.com>
-	<AANLkTin-r5Svg1+YrdYq95WA6=sh7+X0Bwogk=h0V6pP@mail.gmail.com>
-	<4CAC146D.3040001@compulab.co.il>
-	<AANLkTi=kmLuUyD-9k-Xa5vfgvjx2nNUGfyADhoY0HC1i@mail.gmail.com>
-	<4CAC7D65.8010705@compulab.co.il>
+From: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] omap: zoom2/3: fix build caused by wl1271 support
+Date: Wed, 06 Oct 2010 18:27:49 +0300
+Message-ID: <1286378869.6731.7.camel@powerslave>
+References: <1285965206-17777-1-git-send-email-gadiyar@ti.com>
+	 <20101001231026.GH3117@atomide.com> <1286279588.15401.28.camel@chilepepper>
+	 <1286280426.15401.29.camel@chilepepper>
+	 <1286284790.15401.53.camel@chilepepper>
+	 <1286311187.2793.7.camel@powerslave> <20101006135221.GE2472@tuxdriver.com>
+	 <AANLkTinHA+JS1MObanawFF8ktW6OEMGr7CnJhakUetPz@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4CAC7D65.8010705@compulab.co.il>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Madhusudhan <madhu.cr@ti.com>, David Vrabel <david.vrabel@csr.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTinHA+JS1MObanawFF8ktW6OEMGr7CnJhakUetPz-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Cc: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, ext Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 6, 2010 at 6:45 AM, Mike Rapoport <mike@compulab.co.il> wro=
-te:
-> Hi Steve,
-> Steve Sakoman wrote:
->>
->> On Tue, Oct 5, 2010 at 11:17 PM, Mike Rapoport <mike@compulab.co.il>
->> wrote:
->>
->>> I've tried to update the patches on top of 2.6.36-rc3 and I've got =
-stuck.
->>> The changes Adrian has made to the interrupt synchronization =A0aff=
-ect the
->>> way
->>> the
->>> SDIO irq should be implemented and I haven't found a way to resolve=
- it
->>> :-(
->>
->> I tried my hand at making the patch apply on 2.6.35:
->>
->>
->> http://www.sakoman.com/cgi-bin/gitweb.cgi?p=3Dlinux-omap-2.6.git;a=3D=
-commitdiff;h=3D51b802d73191c306618cddefbd63379c839589f5
->
-> This one fails to build:
->
-> =A0CC =A0 =A0 =A0drivers/mmc/host/omap_hsmmc.o
-> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_start_command'=
-:
-> drivers/mmc/host/omap_hsmmc.c:791: warning: unused variable 'int_en_m=
-ask'
-> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_do_irq':
-> drivers/mmc/host/omap_hsmmc.c:1023: error: label 'out' used but not d=
-efined
-> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_irq':
-> drivers/mmc/host/omap_hsmmc.c:1101: warning: label 'out' defined but =
-not
-> used
-> drivers/mmc/host/omap_hsmmc.c: In function 'omap_hsmmc_suspend':
-> drivers/mmc/host/omap_hsmmc.c:2346: warning: unused variable 'state'
-> make[4]: *** [drivers/mmc/host/omap_hsmmc.o] Error 1
->
-> Moving the 'out' label where I believe it should live I get:
-> libertas_sdio: Libertas SDIO driver
-> libertas_sdio: Copyright Pierre Ossman
-> libertas: command 0x0003 timed out
-> libertas: Timeout submitting command 0x0003
-> libertas: PREP_CMD: command 0x0003 failed: -110
-> libertas_sdio: probe of mmc1:0001:1 failed with error -110
->
->>
->> It seems to work, but I'm pretty sure I must have messed something u=
-p
->> because I get error messages every once in a while:
->>
->> libertas: tx watch dog timeout
->>
->> I don't recall seeing these with the original version of the patch :=
--(
->>
->> Suggestions as to where I went wrong are welcome!
->
-> I've "applied" the patch almost the same way you did and I was not ab=
-le to
-> get any further than the point above (command 0x0003 timed out). As f=
-ar as I
-> understand, what we have now is that omap_hsmmc_request_done() calls
-> omap_hsmmc_disable_irq() and the interrupts that come from the 8686
-> _between_ requests are simply missed. Whatever I've tried to keep the=
- SDIO
-> interrupts on didn't help... :(
+On Wed, 2010-10-06 at 16:01 +0200, ext Gadiyar, Anand wrote:
+> >> Hmmm... We got a problem here.  This patch breaks builds when we *don't*
+> >> have "omap: mmc extended to pass host capabilities from board file".  We
+> >> don't have that on wireless-next yet, so builds with zoom boards
+> >> selected are broken.
+> >>
+> >> Any ideas on how to solve this dilemma? I guess the proper way to handle
+> >> this would be to make the changes proposed in this patch when merging
+> >> instead of having a normal commit for it, wouldn't it?
+> >
+> > Just cherry-pick that change into the branch of your tree that I do
+> > _not_ pull from.  I presume that it is already available in linux-next?
+> >
+> 
+> Yup - both patches are in linux-next; that's where we noticed the build break.
 
-You are correct!  The version of the patch in the repo indeed has
-'out' in the wrong place and generates a compile error.
+Ok, I hope the patch applies cleanly in our trees.
 
-Could you post the patch you are using and I will try to reproduce
-what you are seeing on my hardware?  Best we all work from exactly the
-same patch!
+John, don't you want to do the cherry-pick on your wireless-testing
+then? If you do it, I can "inherit" that, because I pull from it into my
+"testing" branch (wl12xx/master).  At the moment, w-t is broken too.
 
-Steve
+-- 
+Cheers,
+Luca.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
