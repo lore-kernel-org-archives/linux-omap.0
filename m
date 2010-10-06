@@ -1,56 +1,50 @@
-From: "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
-Subject: Re: [PATCH] omap: zoom2/3: fix build caused by wl1271 support
-Date: Wed, 6 Oct 2010 11:30:25 -0400
-Message-ID: <20101006153025.GG2472@tuxdriver.com>
-References: <1285965206-17777-1-git-send-email-gadiyar@ti.com>
- <20101001231026.GH3117@atomide.com>
- <1286279588.15401.28.camel@chilepepper>
- <1286280426.15401.29.camel@chilepepper>
- <1286284790.15401.53.camel@chilepepper>
- <1286311187.2793.7.camel@powerslave>
- <20101006135221.GE2472@tuxdriver.com>
- <AANLkTinHA+JS1MObanawFF8ktW6OEMGr7CnJhakUetPz@mail.gmail.com>
- <1286378869.6731.7.camel@powerslave>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1286378869.6731.7.camel@powerslave>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Luciano Coelho <luciano.coelho-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "ext Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, ext Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP2: PM: check UART status before trying to idle
+Date: Wed,  6 Oct 2010 08:52:18 -0700
+Message-ID: <1286380338-4072-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:54758 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757083Ab0JFPwY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 11:52:24 -0400
+Received: by iwn5 with SMTP id 5so9898786iwn.19
+        for <linux-omap@vger.kernel.org>; Wed, 06 Oct 2010 08:52:23 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Wed, Oct 06, 2010 at 06:27:49PM +0300, Luciano Coelho wrote:
-> On Wed, 2010-10-06 at 16:01 +0200, ext Gadiyar, Anand wrote:
-> > >> Hmmm... We got a problem here.  This patch breaks builds when we *don't*
-> > >> have "omap: mmc extended to pass host capabilities from board file".  We
-> > >> don't have that on wireless-next yet, so builds with zoom boards
-> > >> selected are broken.
-> > >>
-> > >> Any ideas on how to solve this dilemma? I guess the proper way to handle
-> > >> this would be to make the changes proposed in this patch when merging
-> > >> instead of having a normal commit for it, wouldn't it?
-> > >
-> > > Just cherry-pick that change into the branch of your tree that I do
-> > > _not_ pull from.  I presume that it is already available in linux-next?
-> > >
-> > 
-> > Yup - both patches are in linux-next; that's where we noticed the build break.
-> 
-> Ok, I hope the patch applies cleanly in our trees.
-> 
-> John, don't you want to do the cherry-pick on your wireless-testing
-> then? If you do it, I can "inherit" that, because I pull from it into my
-> "testing" branch (wl12xx/master).  At the moment, w-t is broken too.
+As is done on OMAP3, check omap_uart_can_sleep() as one of the
+pre-conditions for entering the idle loop.  Without this check,
+entering idle introduces large latencies on active UARTs, and is
+especially noticable on serial console.
 
-OK, that's fine -- do you have the commit ID and the tree that has it?
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Tony, this fixes the UART lag when using the serial console on n8x0.
+With this, the UARTs will not idle until their sleep timeouts are
+activated, and they're disabled by default.
 
-John
+There's an additional bug I'm still looking into as to why UART3
+does not trigger wakeup from idle on 2420, but that is only triggered
+after enabling UART timeouts.
+
+ arch/arm/mach-omap2/pm24xx.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index c1bceec..a40457d 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -245,6 +245,8 @@ static int omap2_can_sleep(void)
+ {
+ 	if (omap2_fclks_active())
+ 		return 0;
++	if (!omap_uart_can_sleep())
++		return 0;
+ 	if (osc_ck->usecount > 1)
+ 		return 0;
+ 	if (omap_dma_running())
 -- 
-John W. Linville		Someday the world will need a hero, and you
-linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org			might be all we have.  Be ready.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.7.2.1
+
