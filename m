@@ -1,127 +1,158 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 1/7] [RFC] OMAP: MCBSP: hwmod database for
-	2xxx devices
-Date: Wed, 6 Oct 2010 10:17:13 +0300
-Message-ID: <201010061017.13908.peter.ujfalusi@nokia.com>
-References: <1286296662-7639-1-git-send-email-kishon@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030CF13384@dbde02.ent.ti.com>
+From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
+Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Wed, 6 Oct 2010 14:01:48 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930234204D03@dbde02.ent.ti.com>
+References: <20100924014938.10325.35279.stgit@baageli.muru.com>
+	<20100924015056.10325.95854.stgit@baageli.muru.com>
+	<AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
+	<AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
+	<AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E5F6A365B@dlee03.ent.ti.com>
+	<AANLkTimD_MRbuTnBMPzAKPTmrDwjLkLVmr9bTSNROb5L@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930234006B4C@dbde02.ent.ti.com>
+ <AANLkTinZqx2nFuoYoCYpD4+PG7_J=ACLBxAwOvpVm4c9@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB593023412B2C1@dbde02.ent.ti.com>
+ <496565EC904933469F292DDA3F1663E602F471C1BF@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CF13384@dbde02.ent.ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "ext Varadarajan, Charulatha" <charu@ti.com>
-Cc: "Girdwood, Liam" <x0135381@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Kamat, Nishant" <nskamat@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "ABRAHAM,
-	KISHON VIJAY" <kishon@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59593 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932184Ab0JFIcC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 04:32:02 -0400
+In-Reply-To: <496565EC904933469F292DDA3F1663E602F471C1BF@dlee06.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
 
-On Wednesday 06 October 2010 10:01:28 ext Varadarajan, Charulatha wrote:
-> This patch series is targeted to implement mcbsp driver in
-> hwmod way and to make use of pm_runtime APIs.
-> =
 
-> This patch series is tested on OMAP3 & 4 and yet to be tested
-> on OMAP2.
-> =
+> -----Original Message-----
+> From: Guzman Lugo, Fernando
+> Sent: Wednesday, October 06, 2010 5:44 AM
+> To: Marathe, Yogesh; Felipe Contreras
+> Cc: Kanigeri, Hari; Premi, Sanjeev; Tony Lindgren; linux-arm-
+> kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 05/11] omap3: Remove non-existent config
+> option
+> 
+> 
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Marathe,
+> Yogesh
+> > Sent: Friday, October 01, 2010 6:29 AM
+> > To: Felipe Contreras
+> > Cc: Kanigeri, Hari; Premi, Sanjeev; Tony Lindgren;
+> > linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> > Subject: RE: [PATCH 05/11] omap3: Remove non-existent config
+> option
+> >
+> > > -----Original Message-----
+> > > From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> > > Sent: Thursday, September 30, 2010 12:42 AM
+> > > To: Marathe, Yogesh
+> > > Cc: Kanigeri, Hari; Premi, Sanjeev; Tony Lindgren; linux-arm-
+> > > kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> > > Subject: Re: [PATCH 05/11] omap3: Remove non-existent config
+> option
+> > >
+> > > On Wed, Sep 29, 2010 at 4:28 PM, Marathe, Yogesh
+> > > <yogesh_marathe@ti.com> wrote:
+> > > > dsplink and syslink (two drivers who use iommu) should not
+> enable
+> > > > CONFIG_MPU_BRIDGE_IOMMU as dspbridge and dsplink
+> /syslink can not
+> > > > co-exist as they are using same resources. Not applying
+> > > patch
+> > > > breaks dsplink/sylink any one which is being used. Defining this
+> > > config
+> > > > makes them co-exist.
+> > >
+> > > No, for dsp-link you would have:
+> > > CONFIG_TIDSPBRIDGE=n
+> > > CONFIG_OMAP_IOMMU_IVA2=y
+> > >
+> > > It would be exactly the same as applying your patch.
+> > >
+> > > And tidspbridge is not using iommu right now.
+> >
+> > I noticed that you have added OMAP_IOMMU_IVA2 to Kconfig. In
+> > this case I need CONFIG_OMAP_IOMMU_IVA2=y by default on
+> > master so that iommu is open to use for all other drivers by default.
+> >
+> > > And AFAIK syslink is not for omap3, so omap3_devices is not
+> > relevant.
+> > >
+> > > > I'm ok with changing name to CONFIG_OMAP_IOMMU_IVA2
+> but
+> > > ideally
+> > > > then that will also break the dspbridge.
+> > >
+> > > No, grep for MPU_BRIDGE_IOMMU on the current tidspbridge in
+> > mainline;
+> > > it's not defined anywhere, so CONFIG_OMAP_IOMMU_IVA2, or
+> > > CONFIG_FOOBAR, it doesn't matter for tidspbridge right now. And
+> > > MPU_BRIDGE_IOMMU doesn't depend on tidspbridge on any way.
+> >
+> > Please explain, how removing CONFIG_MPU_BRIDGE_IOMMU Or
+> any
+> > other the config name in place, breaks tidspbridge?
+> > My patch is removing the 'if defined'.
+> 
+> Can I know the status of this patch?
 
-> There are few clarifications required so that the next patch series
-> can be implemented after aligning.
-> =
+I have been discussing this with Fernando. In his opinion we should have 
+a Kconfig option and iommu user should explicitly set it to 'y' if they wish
+to use it. I'm saying removal of this 'if defined' solves the problem which
+is what you also want.
 
-> 1. Audio layer is making use of mcbsp and it's dma base addresses and
-> is closely coupled with omap-mcbsp.
-> This can be handled either by
-> a. providing an API with which Audio layer can get these addresses.
-> (or)
-> b. move the plat-omap/mcbsp.c and mach-omap2/mcbsp.c to sound/soc/omap/
-> [1]
-> =
+> 
+> This patch is needed now that tidspbridge has migrated to use
+> Iommu moudle.
+> 
+> Will this patch be merged?
 
-> Option (a) would only be a workaround to handle the situation. As
-> audio is the only user for mcbsp, option (b) is better. If option(b)
-> is agreed upon, the same can be addressed on top of the mcbsp hwmod
-> series.
+I'm also waiting on this patch to get accepted.
 
-it is true that at the moment only audio is using the McBSP ports, but McBS=
-P is =
+> 
+> Regards,
+> Fernando.
+> 
+> >
+> > >
+> > > > One more way would be to soure revert the patch and apply on
+> > > dspbridge branch if it breaks the builds on that branch rather than
+> > > > breaking others in master.
+> > >
+> > > There is no tidspbrige branch; it's in mainline:
+> > > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
+> > > 2.6.git;a=tree;f=drivers/staging/tidspbridge
+> > >
+> > > But that doesn't matter, even if it was in a branch, iommu
+> > should not
+> > > break either tidspbridge, or dsp-link, and driver branches
+> > should not
+> > > modify anything outside their domain (ideally).
+> > >
+> > > All you need to do is 'select OMAP_IOMMU_IVA2', although
+> > the attached
+> > > patch would be needed.
+> > >
+> > > --
+> > > Felipe Contreras
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe
+> > linux-omap" in the body of a message to
+> > majordomo@vger.kernel.org More majordomo info at
+> > http://vger.kernel.org/majordomo-info.html
+> >
 
-really flexible, it can run for example in SPI mode, and it can be configur=
-ed to =
-
-use other serial protocols.
-I would go with option c.
-Since ASoC is moving to multi-component (the conversion is already in linux-
-next), this means that the sound/soc/omap/omap-mcbsp, omap-pcm drivers are =
-
-platform drivers.
-So if the plat-omap/mcbsp would register the platform device for McBSP clie=
-nts =
-
-(we have only ASoC client at the moment), and use platform data to pass the =
-
-needed information to the McBSP client driver, than we do not need new API.
-We still need to modify the ASoC drivers to make use of this platform data,=
- but =
-
-at least we are going to keep the door open for others to use the McBSP por=
-ts =
-
-for other than audio.
-
-> 2. Sidetone feature is available only in OMAP3 (McBSP2&3) which has
-> different base address and sys configs compared to it's mcbsp port.
-> Hence the mcbsp is considered as a single device with two hwmods
-> for McBSP2&3 devices in OMAP3.
-
-Sounds fair enough.
- =
-
-> 3. Autoidle needs to be disabled for sidetone before enabling the sidetone
-> feature. There was a design proposed by Kishon [2] to add an API in hwmod
-> to modify the autoidle bit but was not agreed upon. How do we handle this
-> situation where the device has to disable or enable the autoidle bit at
-> runtime?
-
-Yeah, this is really annoying problem. The McBSP ST should block autoidle f=
-rom =
-
-McBSP side, but it does not.
-If you can not get through the proposed API, we should consider to switch t=
-he =
-
-corresponding McBSP port to NoIdle, when the ST is in use (and restore the =
-idle =
-
-mode, when the ST has been disabled).
-When McBSP is in NoIdle the interface clock is not going to be gated, so ST =
-
-block will be running without a problem (ST needs the iface clock for opera=
-tion)
-
-What do you think?
-> =
-
-> [1] https://patchwork.kernel.org/patch/225582/
-> [2] https://patchwork.kernel.org/patch/134371/
-> =
-
-> We would resend the same patch series by including alsa mailing list
-> (alsa-devel@alsa-project.org)
-> =
-
-> <<snip>>
-
--- =
-
-P=E9ter
+Regards,
+Yogesh.
