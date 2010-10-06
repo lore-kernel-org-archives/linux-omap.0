@@ -1,119 +1,76 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 4/4] omap4: pandaboard: enable the ehci port on pandaboard
-Date: Wed, 06 Oct 2010 14:58:06 -0700
-Message-ID: <87vd5fgf0x.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] omap4: pandaboard: Adding card detect support for
+ MMC1
+Date: Wed, 6 Oct 2010 14:59:38 -0700
+Message-ID: <20101006215938.GB4859@atomide.com>
 References: <1286399673-912-1-git-send-email-x0132446@ti.com>
-	<1286399673-912-5-git-send-email-x0132446@ti.com>
+ <1286399673-912-4-git-send-email-x0132446@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:52524 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756030Ab0JFV6J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 17:58:09 -0400
-Received: by iwn5 with SMTP id 5so57742iwn.19
-        for <linux-omap@vger.kernel.org>; Wed, 06 Oct 2010 14:58:09 -0700 (PDT)
-In-Reply-To: <1286399673-912-5-git-send-email-x0132446@ti.com> (David Anders's
-	message of "Wed, 6 Oct 2010 16:14:33 -0500")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59442 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756916Ab0JFV7q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 17:59:46 -0400
+Content-Disposition: inline
+In-Reply-To: <1286399673-912-4-git-send-email-x0132446@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Anders <x0132446@ti.com>
+To: David Anders <x0132446@ti.com>, kishore kadiyala <kishore.kadiyala@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Anand Gadiyar <gadiyar@ti.com>
 
-David Anders <x0132446@ti.com> writes:
+* David Anders <x0132446@ti.com> [101006 14:06]:
+> Adding card detect callback function and card detect configuration
+> function for MMC1 Controller.
 
-> The OMAP4 PandaBoard has EHCI port1 hooked up to an external
-> SMSC3320 transciever. GPIO 1 is used to power on the transceiver
-> and GPIO 62 for reset on the transceiver.
->
+This one would be best merged into this patch from Kishore:
+
+https://patchwork.kernel.org/patch/189952/
+
+Kishore, care to update your patch with this one and then send
+the updated version to Samuel? I think there may have been some
+other pending comments too.
+
+The other three look OK to me to queue.
+
+Regards,
+
+Tony
+
+> 
 > Signed-off-by: David Anders <x0132446@ti.com>
 > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-
-This one fails to apply to current l-o master.
-
-Kevin
-
-
 > ---
->  arch/arm/mach-omap2/board-omap4panda.c |   54 ++++++++++++++++++++++++++++++++
->  1 files changed, 54 insertions(+), 0 deletions(-)
->
+> 
+> patch depends on https://patchwork.kernel.org/patch/189952/
+> 
+>  arch/arm/mach-omap2/board-omap4panda.c |    7 ++++++-
+>  1 files changed, 6 insertions(+), 1 deletions(-)
+> 
 > diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index 94e819c..6163a59 100644
+> index 697c0bd..94e819c 100644
 > --- a/arch/arm/mach-omap2/board-omap4panda.c
 > +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -39,6 +39,8 @@
->  #include <plat/mmc.h>
->  #include "hsmmc.h"
+> @@ -77,9 +77,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+>  	struct omap_mmc_platform_data *pdata = dev->platform_data;
 >  
-> +#define GPIO_HUB_POWER		1
-> +#define GPIO_HUB_NRESET		62
->  
->  static void __init omap4_panda_init_irq(void)
->  {
-> @@ -280,6 +282,57 @@ static int __init omap4_panda_i2c_init(void)
->  	omap_register_i2c_bus(4, 400, NULL, 0);
->  	return 0;
+>  	/* Setting MMC1 Card detect Irq */
+> -	if (pdev->id == 0)
+> +	if (pdev->id == 0) {
+> +		ret = twl6030_mmc_card_detect_config();
+> +		if (ret)
+> +			pr_err("Failed configuring MMC1 card detect\n");
+>  		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
+>  						MMCDETECT_INTR_OFFSET;
+> +		pdata->slots[0].card_detect = twl6030_mmc_card_detect;
+> +	}
+>  	return ret;
 >  }
-> +
-> +static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-> +	.phy_reset  = false,
-> +	.reset_gpio_port[0]  = -EINVAL,
-> +	.reset_gpio_port[1]  = -EINVAL,
-> +	.reset_gpio_port[2]  = -EINVAL
-> +};
-> +
-> +static void __init omap4_ehci_init(void)
-> +{
-> +	int ret;
-> +
-> +
-> +	/* disable the power to the usb hub prior to init */
-> +	ret = gpio_request(GPIO_HUB_POWER, "hub_power");
-> +	if (ret) {
-> +		pr_err("Cannot request GPIO %d\n", GPIO_HUB_POWER);
-> +		goto error1;
-> +	}
-> +	gpio_export(GPIO_HUB_POWER, 0);
-> +	gpio_direction_output(GPIO_HUB_POWER, 0);
-> +	gpio_set_value(GPIO_HUB_POWER, 0);
-> +
-> +	/* reset phy+hub */
-> +	ret = gpio_request(GPIO_HUB_NRESET, "hub_nreset");
-> +	if (ret) {
-> +		pr_err("Cannot request GPIO %d\n", GPIO_HUB_NRESET);
-> +		goto error2;
-> +	}
-> +	gpio_export(GPIO_HUB_NRESET, 0);
-> +	gpio_direction_output(GPIO_HUB_NRESET, 0);
-> +	gpio_set_value(GPIO_HUB_NRESET, 0);
-> +	gpio_set_value(GPIO_HUB_NRESET, 1);
-> +
-> +	usb_ehci_init(&ehci_pdata);
-> +
-> +	/* enable power to hub */
-> +	gpio_set_value(GPIO_HUB_POWER, 1);
-> +	return;
-> +
-> +error2:
-> +	gpio_free(GPIO_HUB_POWER);
-> +error1:
-> +	pr_err("Unable to initialize EHCI power/reset\n");
-> +	return;
-> +
-> +}
-> +
->  static void __init omap4_panda_init(void)
->  {
->  	omap4_panda_i2c_init();
-> @@ -287,6 +340,7 @@ static void __init omap4_panda_init(void)
->  	omap4_twl6030_hsmmc_init(mmc);
->  	/* OMAP4 Panda uses internal transceiver so register nop transceiver */
->  	usb_nop_xceiv_register();
-> +	omap4_ehci_init();
->  	/* FIXME: allow multi-omap to boot until musb is updated for omap4 */
->  	if (!cpu_is_omap44xx())
->  		usb_musb_init(&musb_board_data);
+>  
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
