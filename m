@@ -1,32 +1,43 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCHv2 0/3] OMAP: McBSP: Fixes and cleanups after SCM conversion
-Date: Wed, 6 Oct 2010 08:58:06 +0300
-Message-ID: <201010060858.06447.peter.ujfalusi@nokia.com>
-References: <1286344242-430-1-git-send-email-jhnikula@gmail.com>
+Subject: Re: [PATCH 4/7] [RFC] OMAP: hwmod implementation for MCBSP
+Date: Wed, 6 Oct 2010 09:01:59 +0300
+Message-ID: <201010060901.59829.peter.ujfalusi@nokia.com>
+References: <1286296662-7639-1-git-send-email-kishon@ti.com> <1286296662-7639-4-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:31286 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755367Ab0JFF6S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Oct 2010 01:58:18 -0400
-In-Reply-To: <1286344242-430-1-git-send-email-jhnikula@gmail.com>
+Received: from mgw-sa02.ext.nokia.com ([147.243.1.48]:45398 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756867Ab0JFGCE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 02:02:04 -0400
+In-Reply-To: <1286296662-7639-4-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: ext Kishon Vijay Abraham I <kishon@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "nskamat@ti.com" <nskamat@ti.com>, Charulatha V <charu@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>, Partha Basak <p-basak2@ti.com>
 
-On Wednesday 06 October 2010 08:50:39 ext Jarkko Nikula wrote:
-> This set does a few fixes and cleanups to the Paul Walmsley's OMAP System
-> Control Module function exports removal set:
-> 
-> http://marc.info/?l=linux-arm-kernel&m=128597757826159&w=2
-> 
-> v2:
-> - Paul's ack added
-> - lakml cc'ed
+On Tuesday 05 October 2010 19:37:39 ext Kishon Vijay Abraham I wrote:
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Signed-off-by: Charulatha V <charu@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> Cc: Partha Basak <p-basak2@ti.com>
+> ---
+>  arch/arm/mach-omap2/mcbsp.c             |  251
+> +++++++++---------------------- arch/arm/plat-omap/include/plat/mcbsp=
+=2Eh |=20
+>   6 +-
+>  arch/arm/plat-omap/mcbsp.c              |  189 +++++++++++----------=
+---
+>  3 files changed, 159 insertions(+), 287 deletions(-)
 
-For all:
-Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+So the plan is to kill OMAP1 support in McBSP (audio)?=20
+We do have OMAP1 users, so IMHO dropping OMAP1 is not acceptable.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
