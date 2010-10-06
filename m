@@ -1,127 +1,109 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
-Date: Tue, 5 Oct 2010 19:14:22 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F471C1BF@dlee06.ent.ti.com>
-References: <20100924014938.10325.35279.stgit@baageli.muru.com>
-	<20100924015056.10325.95854.stgit@baageli.muru.com>
-	<AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
-	<AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
-	<AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E5F6A365B@dlee03.ent.ti.com>
-	<AANLkTimD_MRbuTnBMPzAKPTmrDwjLkLVmr9bTSNROb5L@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB5930234006B4C@dbde02.ent.ti.com>
- <AANLkTinZqx2nFuoYoCYpD4+PG7_J=ACLBxAwOvpVm4c9@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB593023412B2C1@dbde02.ent.ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the staging-next tree with the omap
+ tree
+Date: Wed, 6 Oct 2010 14:21:10 +1100
+Message-ID: <20101006142110.e757f27c.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39631 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756230Ab0JFAOh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 Oct 2010 20:14:37 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593023412B2C1@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Charulatha V <charu@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Marathe, Yogesh" <yogesh_marathe@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+Hi Greg,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Marathe, Yogesh
-> Sent: Friday, October 01, 2010 6:29 AM
-> To: Felipe Contreras
-> Cc: Kanigeri, Hari; Premi, Sanjeev; Tony Lindgren; 
-> linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
-> 
-> > -----Original Message-----
-> > From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> > Sent: Thursday, September 30, 2010 12:42 AM
-> > To: Marathe, Yogesh
-> > Cc: Kanigeri, Hari; Premi, Sanjeev; Tony Lindgren; linux-arm- 
-> > kernel@lists.infradead.org; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 05/11] omap3: Remove non-existent config option
-> > 
-> > On Wed, Sep 29, 2010 at 4:28 PM, Marathe, Yogesh 
-> > <yogesh_marathe@ti.com> wrote:
-> > > dsplink and syslink (two drivers who use iommu) should not enable 
-> > > CONFIG_MPU_BRIDGE_IOMMU as dspbridge and dsplink /syslink can not 
-> > > co-exist as they are using same resources. Not applying
-> > patch
-> > > breaks dsplink/sylink any one which is being used. Defining this
-> > config
-> > > makes them co-exist.
-> > 
-> > No, for dsp-link you would have:
-> > CONFIG_TIDSPBRIDGE=n
-> > CONFIG_OMAP_IOMMU_IVA2=y
-> > 
-> > It would be exactly the same as applying your patch.
-> > 
-> > And tidspbridge is not using iommu right now.
-> 
-> I noticed that you have added OMAP_IOMMU_IVA2 to Kconfig. In 
-> this case I need CONFIG_OMAP_IOMMU_IVA2=y by default on 
-> master so that iommu is open to use for all other drivers by default.
-> 
-> > And AFAIK syslink is not for omap3, so omap3_devices is not 
-> relevant.
-> > 
-> > > I'm ok with changing name to CONFIG_OMAP_IOMMU_IVA2 but
-> > ideally
-> > > then that will also break the dspbridge.
-> > 
-> > No, grep for MPU_BRIDGE_IOMMU on the current tidspbridge in 
-> mainline; 
-> > it's not defined anywhere, so CONFIG_OMAP_IOMMU_IVA2, or 
-> > CONFIG_FOOBAR, it doesn't matter for tidspbridge right now. And 
-> > MPU_BRIDGE_IOMMU doesn't depend on tidspbridge on any way.
-> 
-> Please explain, how removing CONFIG_MPU_BRIDGE_IOMMU Or any 
-> other the config name in place, breaks tidspbridge? 
-> My patch is removing the 'if defined'.
+Today's linux-next merge of the staging-next tree got a conflict in
+arch/arm/plat-omap/devices.c between commit
+f2ce62312650211f6cf665cd6dc519c334c4071e ("OMAP: WDT: Split OMAP1 and
+OMAP2PLUS device registration") from the omap tree and commit
+90173882ed15a8034d6d162da5f343a2c7d87587 ("omap: add dsp platform
+device") from the staging-next tree.
 
-Can I know the status of this patch?
+Just overlapping removal/additions (I think).  I fixed it up (see below)
+and can carry the changes as necessary.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-This patch is needed now that tidspbridge has migrated to use
-Iommu moudle.
-
-Will this patch be merged?
-
-Regards,
-Fernando.
-
-> 
-> > 
-> > > One more way would be to soure revert the patch and apply on
-> > dspbridge branch if it breaks the builds on that branch rather than
-> > > breaking others in master.
-> > 
-> > There is no tidspbrige branch; it's in mainline:
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
-> > 2.6.git;a=tree;f=drivers/staging/tidspbridge
-> > 
-> > But that doesn't matter, even if it was in a branch, iommu 
-> should not 
-> > break either tidspbridge, or dsp-link, and driver branches 
-> should not 
-> > modify anything outside their domain (ideally).
-> > 
-> > All you need to do is 'select OMAP_IOMMU_IVA2', although 
-> the attached 
-> > patch would be needed.
-> > 
-> > --
-> > Felipe Contreras
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
+diff --cc arch/arm/plat-omap/devices.c
+index 1e2383e,4c8f9b9..0000000
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@@ -231,6 -233,75 +232,35 @@@ static void omap_init_uwire(void
+  static inline void omap_init_uwire(void) {}
+  #endif
+  
+ -/*-------------------------------------------------------------------------*/
+ -
+ -#if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
+ -
+ -static struct resource wdt_resources[] = {
+ -	{
+ -		.flags		= IORESOURCE_MEM,
+ -	},
+ -};
+ -
+ -static struct platform_device omap_wdt_device = {
+ -	.name	   = "omap_wdt",
+ -	.id	     = -1,
+ -	.num_resources	= ARRAY_SIZE(wdt_resources),
+ -	.resource	= wdt_resources,
+ -};
+ -
+ -static void omap_init_wdt(void)
+ -{
+ -	if (cpu_is_omap16xx())
+ -		wdt_resources[0].start = 0xfffeb000;
+ -	else if (cpu_is_omap2420())
+ -		wdt_resources[0].start = 0x48022000; /* WDT2 */
+ -	else if (cpu_is_omap2430())
+ -		wdt_resources[0].start = 0x49016000; /* WDT2 */
+ -	else if (cpu_is_omap343x())
+ -		wdt_resources[0].start = 0x48314000; /* WDT2 */
+ -	else if (cpu_is_omap44xx())
+ -		wdt_resources[0].start = 0x4a314000;
+ -	else
+ -		return;
+ -
+ -	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
+ -
+ -	(void) platform_device_register(&omap_wdt_device);
+ -}
+ -#else
+ -static inline void omap_init_wdt(void) {}
+ -#endif
+ -
++ #if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
++ 
++ static phys_addr_t omap_dsp_phys_mempool_base;
++ 
++ void __init omap_dsp_reserve_sdram_memblock(void)
++ {
++ 	phys_addr_t size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
++ 	phys_addr_t paddr;
++ 
++ 	if (!size)
++ 		return;
++ 
++ 	paddr = __memblock_alloc_base(size, SZ_1M, MEMBLOCK_REAL_LIMIT);
++ 	if (!paddr) {
++ 		pr_err("%s: failed to reserve %x bytes\n",
++ 				__func__, size);
++ 		return;
++ 	}
++ 
++ 	omap_dsp_phys_mempool_base = paddr;
++ }
++ 
++ phys_addr_t omap_dsp_get_mempool_base(void)
++ {
++ 	return omap_dsp_phys_mempool_base;
++ }
++ EXPORT_SYMBOL(omap_dsp_get_mempool_base);
++ #endif
++ 
+  /*
+   * This gets called after board-specific INIT_MACHINE, and initializes most
+   * on-chip peripherals accessible on this board (except for few like USB):
