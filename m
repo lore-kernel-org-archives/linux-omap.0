@@ -1,12 +1,12 @@
 From: David Anders <x0132446@ti.com>
-Subject: [PATCH 2/4] omap4: pandaboard: Fix the init if CONFIG_MMC_OMAP_HS is not set
-Date: Wed,  6 Oct 2010 16:12:48 -0500
-Message-ID: <1286399570-853-3-git-send-email-x0132446@ti.com>
+Subject: [PATCH 3/4] omap4: pandaboard: Adding card detect support for MMC1
+Date: Wed,  6 Oct 2010 16:12:49 -0500
+Message-ID: <1286399570-853-4-git-send-email-x0132446@ti.com>
 References: <1286399570-853-1-git-send-email-x0132446@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58855 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58856 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932838Ab0JFVNI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S933101Ab0JFVNI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 6 Oct 2010 17:13:08 -0400
 In-Reply-To: <1286399570-853-1-git-send-email-x0132446@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,34 +14,38 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.arm.linux.org.uk, jayabharath@ti.com
 Cc: David Anders <x0132446@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-Avoid possible crash if CONFIG_MMC_OMAP_HS is not set.
+Adding card detect callback function and card detect configuration
+function for MMC1 Controller.
 
 Signed-off-by: David Anders <x0132446@ti.com>
 Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+
+patch depends on https://patchwork.kernel.org/patch/189952/
+
+ arch/arm/mach-omap2/board-omap4panda.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 093d13b..697c0bd 100644
+index 697c0bd..94e819c 100644
 --- a/arch/arm/mach-omap2/board-omap4panda.c
 +++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -85,7 +85,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+@@ -77,9 +77,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
+ 	struct omap_mmc_platform_data *pdata = dev->platform_data;
  
- static __init void omap4_twl6030_hsmmc_set_late_init(struct device *dev)
- {
--	struct omap_mmc_platform_data *pdata = dev->platform_data;
-+	struct omap_mmc_platform_data *pdata;
-+
-+	/* dev can be null if CONFIG_MMC_OMAP_HS is not set */
-+	if (!dev) {
-+		pr_err("Failed omap4_twl6030_hsmmc_set_late_init\n");
-+		return;
+ 	/* Setting MMC1 Card detect Irq */
+-	if (pdev->id == 0)
++	if (pdev->id == 0) {
++		ret = twl6030_mmc_card_detect_config();
++		if (ret)
++			pr_err("Failed configuring MMC1 card detect\n");
+ 		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
+ 						MMCDETECT_INTR_OFFSET;
++		pdata->slots[0].card_detect = twl6030_mmc_card_detect;
 +	}
-+	pdata = dev->platform_data;
- 
- 	pdata->init =	omap4_twl6030_hsmmc_late_init;
+ 	return ret;
  }
+ 
 -- 
 1.7.0.4
 
