@@ -1,57 +1,32 @@
-From: Bill Gatliff <bgat@billgatliff.com>
-Subject: Re: [PATCHv3 0/7] PWM core driver for pwm based led and backlight driver
-Date: Wed, 6 Oct 2010 11:20:15 -0500
-Message-ID: <AANLkTi=5yrcBPqbtDYRsnXTvhmBaYFemNu04P5ZnzJVM@mail.gmail.com>
-References: <1286380758-14063-1-git-send-email-arun.murthy@stericsson.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 00/10] OMAP: SCM/McBSP/clock: branch integration
+ patches for 2.6.37
+Date: Wed, 6 Oct 2010 09:33:15 -0700
+Message-ID: <20101006163314.GF2803@opensource.wolfsonmicro.com>
+References: <20101001213119.1408.65395.stgit@twilight.localdomain>
+ <20101005155242.20900538.jhnikula@gmail.com>
+ <20101005184017.GP3117@atomide.com>
+ <201010060842.21260.peter.ujfalusi@nokia.com>
+ <20101006144807.GB2913@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:47202 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415Ab0JFQUU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 12:20:20 -0400
-In-Reply-To: <1286380758-14063-1-git-send-email-arun.murthy@stericsson.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:51588 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753167Ab0JFQdD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 12:33:03 -0400
+Content-Disposition: inline
+In-Reply-To: <20101006144807.GB2913@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arun Murthy <arun.murthy@stericsson.com>
-Cc: lars@metafoo.de, akpm@linux-foundation.org, kernel@pengutronix.de, philipp.zabel@gmail.com, robert.jarzmik@free.fr, marek.vasut@gmail.com, eric.y.miao@gmail.com, rpurdie@rpsys.net, sameo@linux.intel.com, kgene.kim@samsung.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, STEricsson_nomadik_linux@list.st.com, khilman@deeprootsystems.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Liam Girdwood <lrg@slimlogic.co.uk>
 
-Arun:
+On Wed, Oct 06, 2010 at 07:48:07AM -0700, Tony Lindgren wrote:
 
-On Wed, Oct 6, 2010 at 10:59 AM, Arun Murthy <arun.murthy@stericsson.com> wrote:
-> PWM core driver for pwm based led and backlight driver.
+> OK, let's do that then we should still have some time left before the
+> merge window.
 
-With all due respect, it looks like you have reinvented portions of my
-RFC for a comprehensive PWM API that has been floating around on
-linux-embedded for over a year--- with an update coming in the last
-two weeks or so.  Why?
+> Mark & Liam, care to ack as well?
 
-To make matters worse, when I posted my original code I was told to
-move the whole discussion to linux-embedded, because as a
-cross-platform API proposal that's where it belongs.  I encourage you
-do likewise.
-
-I have a terse email style, so I just want to be clear that I'm not
-mad or anything.  Honest!  I'm just disappointed that you've invested
-so much hard work in traveling down the same path I came over a year
-ago.  Bummer for everyone.
-
-Can we not combine our efforts?  I haven't reviewed all of your
-patches yet, but you are clearly ahead of me in specific ARM platform
-support.  On the other hand, I think my code is more refined in many
-other areas.  I also have Blackfin, PowerPC, and Cirrus (ARM) support,
-though some of the code is from contributors who are holding it until
-I proffer my final code.
-
-
-What do you think?  Just let me know privately by email, or over on
-linux-embedded.
-
-
-Thanks!
-
-
-b.g.
--- 
-Bill Gatliff
-bgat@billgatliff.com
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
