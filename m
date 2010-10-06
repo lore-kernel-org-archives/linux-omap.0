@@ -1,7 +1,7 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v1 12/16] OMAP3: hwmod DSS: DISPC Move init,exit to driver
-Date: Wed,  6 Oct 2010 16:44:55 +0530
-Message-ID: <1286363699-9614-13-git-send-email-svadivu@ti.com>
+Subject: [PATCH v1 11/16] OMAP3: hwmod DSS: RFBI Move init,exit to driver
+Date: Wed,  6 Oct 2010 16:44:54 +0530
+Message-ID: <1286363699-9614-12-git-send-email-svadivu@ti.com>
 References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
  <1286363699-9614-2-git-send-email-svadivu@ti.com>
  <1286363699-9614-3-git-send-email-svadivu@ti.com>
@@ -13,13 +13,12 @@ References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
  <1286363699-9614-9-git-send-email-svadivu@ti.com>
  <1286363699-9614-10-git-send-email-svadivu@ti.com>
  <1286363699-9614-11-git-send-email-svadivu@ti.com>
- <1286363699-9614-12-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32921 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758890Ab0JFLPX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Oct 2010 07:15:23 -0400
-In-Reply-To: <1286363699-9614-12-git-send-email-svadivu@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43967 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758886Ab0JFLPW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 07:15:22 -0400
+In-Reply-To: <1286363699-9614-11-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com, tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
@@ -32,77 +31,77 @@ pdev member has to be maintained by its own drivers.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/dss/core.c  |    9 ---------
- drivers/video/omap2/dss/dispc.c |   14 +++++++++++++-
+ drivers/video/omap2/dss/core.c |    9 ---------
+ drivers/video/omap2/dss/rfbi.c |   14 +++++++++++++-
  2 files changed, 13 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index cc7a5f1..9652ed7 100644
+index 54fe333..cc7a5f1 100644
 --- a/drivers/video/omap2/dss/core.c
 +++ b/drivers/video/omap2/dss/core.c
-@@ -199,12 +199,6 @@ static int omap_dss_probe(struct platform_device *pdev)
- 		goto err_dpi;
- 	}
+@@ -193,12 +193,6 @@ static int omap_dss_probe(struct platform_device *pdev)
  
--	r = dispc_init();
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
+ 
+-	r = rfbi_init();
 -	if (r) {
--		DSSERR("Failed to initialize dispc\n");
--		goto err_dispc;
+-		DSSERR("Failed to initialize rfbi\n");
+-		goto err_rfbi;
 -	}
 -
- 	r = venc_init(pdev);
+ 	r = dpi_init(pdev);
  	if (r) {
- 		DSSERR("Failed to initialize venc\n");
-@@ -262,8 +256,6 @@ err_dsi:
- err_sdi:
- 	venc_exit();
- err_venc:
--	dispc_exit();
--err_dispc:
+ 		DSSERR("Failed to initialize dpi\n");
+@@ -272,8 +266,6 @@ err_venc:
+ err_dispc:
  	dpi_exit();
  err_dpi:
+-	rfbi_exit();
+-err_rfbi:
  
-@@ -278,7 +270,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- 	dss_uninitialize_debugfs();
- 
+ 	return r;
+ }
+@@ -288,7 +280,6 @@ static int omap_dss_remove(struct platform_device *pdev)
  	venc_exit();
--	dispc_exit();
+ 	dispc_exit();
  	dpi_exit();
+-	rfbi_exit();
  	if (cpu_is_omap34xx()) {
  		dsi_exit();
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index e48c6fa..e35cc87 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -156,6 +156,7 @@ struct dispc_irq_stats {
- };
+ 		sdi_exit();
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 23598ea..9bee39d 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -100,6 +100,7 @@ static int rfbi_convert_timings(struct rfbi_timings *t);
+ static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div);
  
  static struct {
 +	struct platform_device *pdev;
- 	void __iomem    *base;
+ 	void __iomem	*base;
  
- 	u32	fifo_size[3];
-@@ -189,11 +190,22 @@ static inline u32 dispc_read_reg(const struct dispc_reg idx)
- /* DISPC HW IP initialisation */
- static int omap_dispchw_probe(struct platform_device *pdev)
+ 	unsigned long	l4_khz;
+@@ -142,11 +143,22 @@ static inline u32 rfbi_read_reg(const struct rfbi_reg idx)
+ /* RFBI HW IP initialisation */
+ static int omap_rfbihw_probe(struct platform_device *pdev)
  {
 -	return 0;
 +	int r;
-+	dispc.pdev = pdev;
++	rfbi.pdev = pdev;
 +
-+	r = dispc_init();
++	r = rfbi_init();
 +	if (r) {
-+		DSSERR("Failed to initialize dispc\n");
-+		goto err_dispc;
++		DSSERR("Failed to initialize rfbi\n");
++		goto err_rfbi;
 +	}
 +
-+err_dispc:
++err_rfbi:
 +	return r;
  }
  
- static int omap_dispchw_remove(struct platform_device *pdev)
+ static int omap_rfbihw_remove(struct platform_device *pdev)
  {
-+	dispc_exit();
++	rfbi_exit();
  	return 0;
  }
  
