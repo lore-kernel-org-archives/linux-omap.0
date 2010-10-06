@@ -1,108 +1,89 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
-Date: Wed, 06 Oct 2010 08:17:17 +0200
-Message-ID: <4CAC146D.3040001@compulab.co.il>
-References: <cover.1266847842.git.david.vrabel@csr.com>	<20100827192248.GJ20407@void.printf.net>	<4C7CC480.2040903@csr.com>	<4C7F3E0F.2080402@compulab.co.il>	<AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com>	<C903F2608D694655921F553D0D3557E3@am.dhcp.ti.com>	<AANLkTikskMMFWS+qxD+J=o6OiOa+d5H02DiT1iZ95vkz@mail.gmail.com>	<CD6B4CE9F7FA427BBD19242F669AD014@am.dhcp.ti.com> <AANLkTin-r5Svg1+YrdYq95WA6=sh7+X0Bwogk=h0V6pP@mail.gmail.com>
+From: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+Subject: Re: [PATCH 1/1] omap: Ptr "isr_reg" tracked as NULL was
+ dereferenced
+Date: Wed, 06 Oct 2010 10:33:22 +0400
+Message-ID: <1286346802.24366.89.camel@ekuznets-lx-nokia>
+References: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	 <131d16236d19895323fca2f058d65f1f116bacad.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	 <20101005093206.GB2977@legolas.emea.dhcp.ti.com>
+	 <877hhwvg3r.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <AANLkTin-r5Svg1+YrdYq95WA6=sh7+X0Bwogk=h0V6pP@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Madhusudhan <madhu.cr@ti.com>, David Vrabel <david.vrabel@csr.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, Mike Rapoport <mike@compulab.co.il>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:25194 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754046Ab0JFGhv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 02:37:51 -0400
+In-Reply-To: <877hhwvg3r.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: balbi@ti.com, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "zmc@lurian.net" <zmc@lurian.net>, "a.j.buxton@gmail.com" <a.j.buxton@gmail.com>
 
-Steve Sakoman wrote:
-> On Mon, Oct 4, 2010 at 10:33 AM, Madhusudhan <madhu.cr@ti.com> wrote:
->>
->>> -----Original Message-----
->>> From: Steve Sakoman [mailto:sakoman@gmail.com]
->>> Sent: Monday, October 04, 2010 11:57 AM
->>> To: Madhusudhan
->>> Cc: Mike Rapoport; David Vrabel; Chris Ball; linux-mmc@vger.kernel.org;
->>> linux-omap@vger.kernel.org
->>> Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
->>>
->>> On Mon, Oct 4, 2010 at 9:45 AM, Madhusudhan <madhu.cr@ti.com> wrote:
->>>>
->>>>> -----Original Message-----
->>>>> From: Steve Sakoman [mailto:sakoman@gmail.com]
->>>>> Sent: Monday, October 04, 2010 11:32 AM
->>>>> To: Mike Rapoport
->>>>> Cc: David Vrabel; Chris Ball; linux-mmc@vger.kernel.org; linux-
->>>>> omap@vger.kernel.org; madhu.cr@ti.com
->>>>> Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
->>>>>
->>>>> On Wed, Sep 1, 2010 at 11:02 PM, Mike Rapoport <mike@compulab.co.il>
->>>>> wrote:
->>>>>> David Vrabel wrote:
->>>>>>> On 27/08/2010 20:22, Chris Ball wrote:
->>>>>>>> Hi David,
->>>>>>>>
->>>>>>>> On Mon, Feb 22, 2010 at 02:24:17PM +0000, David Vrabel wrote:
->>>>>>>>> These patches add support for SDIO cards to the omap_hsmmc driver.
->>>>>>>>> Power management changes to prevent SDIO cards from being turned
->>> off
->>>>>>>>> and losing all state, and card interrupts.
->>>>>>>>>
->>>>>>>>> I've been unable to test these exact patches as I only have an
->>> N900
->>>>> for
->>>>>>>>> testing and the N900 support in mainline is incomplete.
->>>>>>>>>
->>>>>>>>> Changes since v1:
->>>>>>>>> - (hopefully) get all cards working again by removing a second
->>> call
->>>>> to
->>>>>>>>>  read MMCi_STAT in the interrupt handler.
->>>>>>>>> - flush posted writes after enabling/disabling SDIO interrupts.
->>>>>>>>> - tweak the FIXME commit on disabling FCLK to better match what
->>>>> really
->>>>>>>>>  going on (at least I think so anyway).
->>>>>>>>>
->>>>>>>>> David Vrabel (2):
->>>>>>>>>  mmc: omap_hsmmc: don't turn SDIO cards off when idle
->>>>>>>>>  mmc: omap_hsmmc: enable SDIO card interrupts
->>>>>>>> Looks like this patchset wasn't merged.  Mike Rapoport replied with
->>> a
->>>>> fix
->>>>>>>> for libertas.  Would you like to resubmit it?
->>>>>>> I thought Madhu had picked this up and was going to submit it.
->>>>>>>
->>>>>>> Regardless of whether that is the case, I think it needs to be
->>>>> submitted
->>>>>>> by someone who can run mainline kernels (I can't) and ideally
->>> someone
->>>>>>> who can test it with SDIO cards.
->>>>>> I'll try to update the patches in the next few days.
->>>>> Any update on the status of these patches?  I'm happy to help test!
->>>>>
->>>> Steve,
->>>>
->>>> I have not been able to test SDIO card interrupts. If you could help
->>> test
->>>> that it's great.
->>> Where can I grab the most recent patches?  The original set don't apply
->>> cleanly.
->>>
->> Yes. They may not apply. I can rebase them and send it to you for testing.
->> Are you using the two patches posted by David Vrabel?
+On Tue, 2010-10-05 at 08:01 -0700, ext Kevin Hilman wrote:
+> Felipe Balbi <balbi@ti.com> writes:
 > 
-> Yes, I've been using the original patches on 2.6.33 and 2.6.34.  The
-> SDIO interrupt patch doesn't apply on 2.6.35 or 36.
+> > Hi,
+> >
+> > On Tue, Oct 05, 2010 at 03:42:10AM -0500, Evgeny Kuznetsov wrote:
+> >>+	if (!isr_reg) {
+> >>+		printk(KERN_ERR "FATAL: Incorrect GPIO method %i\n",
+> >>+				bank->method);
+> >>+		BUG();
+> >>+		}
+> >
+> > this could be simply:
+> >
+> > BUG_ON(!isr_reg);
 > 
-> If you send a revised patch for either I would be happy to test as
-> soon as I get it.
+> WARN_ON is better.
+> 
+> A BUG() will panic the kernel and stop everything.  This is not an error
+> condition that should prevent the entire kernel from running.
 
-I've tried to update the patches on top of 2.6.36-rc3 and I've got stuck.
-The changes Adrian has made to the interrupt synchronization  affect the way the
-SDIO irq should be implemented and I haven't found a way to resolve it :-(
+'isr_reg' is dereferenced later in code:
+	...
+	isr_saved = isr = __raw_readl(isr_reg) & enabled;
+	...
+So this will stop kernel anyway.
+I just hoped to help in understanding of issue by log line. WARN_ON
+could be used for this.
 
-> Steve
+As a variant compilation error could be added, to prevent situation when
+kernel is incorrectly configured.
+E.g.:
+#if !defined(CONFIG_ARCH_OMAP1) &&		
+	!defined(CONFIG_ARCH_OMAP15XX) &&	
+	!defined(CONFIG_ARCH_OMAP16XX) &&	
+	!defined(CONFIG_ARCH_OMAP730) &&	
+	!defined(CONFIG_ARCH_OMAP850) &&	
+	!defined(CONFIG_ARCH_OMAP2) &&	
+	!defined(CONFIG_ARCH_OMAP3) &&	
+	!defined(CONFIG_ARCH_OMAP4)
+
+#error "Incorrect arch configuration"
+#endif
+
+But there are still cases when 'isr_reg' could have NULL value (if
+'bank->method' is not equal to configured one).
+
+Regards,
+Evgeny
+> 
+> From asm-generic/bug.h:
+> 
+> /*
+>  * Don't use BUG() or BUG_ON() unless there's really no way out; one
+>  * example might be detecting data structure corruption in the middle
+>  * of an operation that can't be backed out of.  If the (sub)system
+>  * can somehow continue operating, perhaps with reduced functionality,
+>  * it's probably not BUG-worthy.
+>  *
+>  * If you're tempted to BUG(), think again:  is completely giving up
+>  * really the *only* solution?  There are usually better options, where
+>  * users don't need to reboot ASAP and can mostly shut down cleanly.
+>  */
 
 
--- 
-Sincerely yours,
-Mike.
 
