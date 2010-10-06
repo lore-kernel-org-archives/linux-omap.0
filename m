@@ -1,314 +1,867 @@
 From: Arun Murthy <arun.murthy@stericsson.com>
-Subject: [PATCHv3 1/7] pwm: Add pwm core driver
-Date: Wed, 6 Oct 2010 21:29:12 +0530
-Message-ID: <1286380758-14063-2-git-send-email-arun.murthy__42291.8340693743$1286380936$gmane$org@stericsson.com>
+Subject: [PATCHv3 6/7] pwm: move existing pwm driver to drivers/pwm
+Date: Wed, 6 Oct 2010 21:29:17 +0530
+Message-ID: <1286380758-14063-7-git-send-email-arun.murthy@stericsson.com>
 References: <1286380758-14063-1-git-send-email-arun.murthy@stericsson.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog113.obsmtp.com ([207.126.144.135]:33822 "EHLO
-	eu1sys200aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759222Ab0JFQAQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 12:00:16 -0400
+Received: from eu1sys200aog101.obsmtp.com ([207.126.144.111]:44940 "EHLO
+	eu1sys200aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932823Ab0JFQBC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 12:01:02 -0400
 In-Reply-To: <1286380758-14063-1-git-send-email-arun.murthy@stericsson.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: lars@metafoo.de, akpm@linux-foundation.org, kernel@pengutronix.de, philipp.zabel@gmail.com, robert.jarzmik@free.fr, marek.vasut@gmail.com, eric.y.miao@gmail.com, rpurdi
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, STEricsson_nomadik_linux@list.st.com, arun.murthy@stericsson.com, bgat@billgatliff.com, khilman@deeprootsystems.com
 
-The existing pwm based led and backlight driver makes use of the
-pwm(include/linux/pwm.h). So all the board specific pwm drivers will
-be exposing the same set of function name as in include/linux/pwm.h.
-Consder a platform with multi Soc or having more than one pwm module, in
-such a case, there exists more than one pwm driver for a platform. Each
-of these pwm drivers export the same set of function and hence leads to
-re-declaration build error.
-
-In order to overcome this issue all the pwm drivers must register to
-some core pwm driver with function pointers for pwm operations (i.e
-pwm_config, pwm_enable, pwm_disable).
-
-The clients of pwm device will have to call pwm_request, wherein
-they will get the pointer to struct pwm_ops. This structure include
-function pointers for pwm_config, pwm_enable and pwm_disable.
+As of now only ab8500 and twl6030 are moved.
 
 Signed-off-by: Arun Murthy <arun.murthy@stericsson.com>
 Acked-by: Linus Walleij <linus.walleij@stericsson.com>
 ---
- drivers/Kconfig        |    2 +
- drivers/Makefile       |    1 +
- drivers/pwm/Kconfig    |   18 +++++
- drivers/pwm/Makefile   |    1 +
- drivers/pwm/pwm-core.c |  171 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pwm.h    |   12 +++-
- 6 files changed, 204 insertions(+), 1 deletions(-)
- create mode 100644 drivers/pwm/Kconfig
- create mode 100644 drivers/pwm/Makefile
- create mode 100644 drivers/pwm/pwm-core.c
+ drivers/mfd/Kconfig       |    9 --
+ drivers/mfd/Makefile      |    1 -
+ drivers/mfd/twl6030-pwm.c |  195 ---------------------------------------------
+ drivers/misc/Kconfig      |    9 --
+ drivers/misc/Makefile     |    1 -
+ drivers/misc/ab8500-pwm.c |  157 ------------------------------------
+ drivers/pwm/Kconfig       |   18 ++++
+ drivers/pwm/Makefile      |    3 +
+ drivers/pwm/pwm-ab8500.c  |  157 ++++++++++++++++++++++++++++++++++++
+ drivers/pwm/pwm-twl6030.c |  195 +++++++++++++++++++++++++++++++++++++++++++++
+ 10 files changed, 373 insertions(+), 372 deletions(-)
+ delete mode 100644 drivers/mfd/twl6030-pwm.c
+ delete mode 100644 drivers/misc/ab8500-pwm.c
+ create mode 100644 drivers/pwm/pwm-ab8500.c
+ create mode 100644 drivers/pwm/pwm-twl6030.c
 
-diff --git a/drivers/Kconfig b/drivers/Kconfig
-index a2b902f..e042f27 100644
---- a/drivers/Kconfig
-+++ b/drivers/Kconfig
-@@ -111,4 +111,6 @@ source "drivers/xen/Kconfig"
- source "drivers/staging/Kconfig"
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 82d013f..ed4359a 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -186,15 +186,6 @@ config TWL4030_CODEC
+ 	select MFD_CORE
+ 	default n
  
- source "drivers/platform/Kconfig"
-+
-+source "drivers/pwm/Kconfig"
- endmenu
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 443c4eb..1aec04e 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -116,3 +116,4 @@ obj-$(CONFIG_STAGING)		+= staging/
- obj-y				+= platform/
- obj-y				+= ieee802154/
- obj-y				+= vbus/
-+obj-$(CONFIG_PWM_DEVICES)	+= pwm/
+-config TWL6030_PWM
+-	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
+-	depends on TWL4030_CORE
+-	select HAVE_PWM
+-	default n
+-	help
+-	  Say yes here if you want support for TWL6030 PWM.
+-	  This is used to control charging LED brightness.
+-
+ config MFD_STMPE
+ 	bool "Support STMicroelectronics STMPE"
+ 	depends on I2C=y && GENERIC_HARDIRQS
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 9aa8a2d..a66f2a7 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -37,7 +37,6 @@ obj-$(CONFIG_MENELAUS)		+= menelaus.o
+ obj-$(CONFIG_TWL4030_CORE)	+= twl-core.o twl4030-irq.o twl6030-irq.o
+ obj-$(CONFIG_TWL4030_POWER)    += twl4030-power.o
+ obj-$(CONFIG_TWL4030_CODEC)	+= twl4030-codec.o
+-obj-$(CONFIG_TWL6030_PWM)	+= twl6030-pwm.o
+ 
+ obj-$(CONFIG_MFD_MC13783)	+= mc13783-core.o
+ 
+diff --git a/drivers/mfd/twl6030-pwm.c b/drivers/mfd/twl6030-pwm.c
+deleted file mode 100644
+index 7091df9..0000000
+--- a/drivers/mfd/twl6030-pwm.c
++++ /dev/null
+@@ -1,195 +0,0 @@
+-/*
+- * twl6030_pwm.c
+- * Driver for PHOENIX (TWL6030) Pulse Width Modulator
+- *
+- * Copyright (C) 2010 Texas Instruments
+- * Author: Hemanth V <hemanthv@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License version 2 as published by
+- * the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- *
+- * You should have received a copy of the GNU General Public License along with
+- * this program.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/platform_device.h>
+-#include <linux/slab.h>
+-#include <linux/pwm.h>
+-#include <linux/err.h>
+-#include <linux/i2c/twl.h>
+-
+-#define LED_PWM_CTRL1	0xF4
+-#define LED_PWM_CTRL2	0xF5
+-
+-/* Max value for CTRL1 register */
+-#define PWM_CTRL1_MAX	255
+-
+-/* Pull down disable */
+-#define PWM_CTRL2_DIS_PD	(1 << 6)
+-
+-/* Current control 2.5 milli Amps */
+-#define PWM_CTRL2_CURR_02	(2 << 4)
+-
+-/* LED supply source */
+-#define PWM_CTRL2_SRC_VAC	(1 << 2)
+-
+-/* LED modes */
+-#define PWM_CTRL2_MODE_HW	(0 << 0)
+-#define PWM_CTRL2_MODE_SW	(1 << 0)
+-#define PWM_CTRL2_MODE_DIS	(2 << 0)
+-
+-#define PWM_CTRL2_MODE_MASK	0x3
+-
+-int twl6030_pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+-{
+-	u8 duty_cycle;
+-	int ret = 0;
+-
+-	if (pwm == NULL || period_ns == 0 || duty_ns > period_ns)
+-		return -EINVAL;
+-
+-	duty_cycle = (duty_ns * PWM_CTRL1_MAX) / period_ns;
+-
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, duty_cycle, LED_PWM_CTRL1);
+-
+-	if (ret < 0) {
+-		pr_err("%s: Failed to configure PWM, Error %d\n",
+-			pwm->label, ret);
+-		return ret;
+-	}
+-	return 0;
+-}
+-
+-int twl6030_pwm_enable(struct pwm_device *pwm)
+-{
+-	u8 val;
+-	int ret = 0;
+-
+-	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		pr_err("%s: Failed to enable PWM, Error %d\n", pwm->label, ret);
+-		return ret;
+-	}
+-
+-	/* Change mode to software control */
+-	val &= ~PWM_CTRL2_MODE_MASK;
+-	val |= PWM_CTRL2_MODE_SW;
+-
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		pr_err("%s: Failed to enable PWM, Error %d\n", pwm->label, ret);
+-		return ret;
+-	}
+-
+-	twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
+-	return 0;
+-}
+-
+-int twl6030_pwm_disable(struct pwm_device *pwm)
+-{
+-	u8 val;
+-	int ret = 0;
+-
+-	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		pr_err("%s: Failed to disable PWM, Error %d\n",
+-			pwm->label, ret);
+-		return ret;
+-	}
+-
+-	val &= ~PWM_CTRL2_MODE_MASK;
+-	val |= PWM_CTRL2_MODE_HW;
+-
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		pr_err("%s: Failed to disable PWM, Error %d\n",
+-			pwm->label, ret);
+-	}
+-	return ret;
+-}
+-
+-static int __devinit twl6030_pwm_probe(struct platform_device *pdev)
+-{
+-	struct pwm_device *pwm;
+-	struct pwm_ops *pops;
+-	int ret;
+-	u8 val;
+-
+-	pwm = kzalloc(sizeof(struct pwm_device), GFP_KERNEL);
+-	if (pwm == NULL) {
+-		dev_err(&pdev->dev, "failed to allocate memory\n");
+-		return -ENOMEM;
+-	}
+-	pops = kzalloc(sizeof(struct pwm_ops), GFP_KERNEL);
+-	if (pops == NULL) {
+-		dev_err(&pdev->dev, "failed to allocate memory\n");
+-		kfree(pwm);
+-		return -ENOMEM;
+-	}
+-
+-	pops->pwm_config = twl6030_pwm_config;
+-	pops->pwm_enable = twl6030_pwm_enable;
+-	pops->pwm_disable = twl6030_pwm_disable;
+-	pwm->name = &pdev->name;
+-	pwm->pwm_id = pdev->id;
+-	pwm->pops = pops;
+-	ret = pwm_device_register(pwm);
+-	if (ret < 0) {
+-		dev_err(&pdev->dev, "failed to register pwm device\n");
+-		kfree(pwm);
+-		kfree(pops);
+-		return ret;
+-	}
+-	platform_set_drvdata(pdev, pwm);
+-	/* Configure PWM */
+-	val = PWM_CTRL2_DIS_PD | PWM_CTRL2_CURR_02 | PWM_CTRL2_SRC_VAC |
+-							PWM_CTRL2_MODE_HW;
+-
+-	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
+-	if (ret < 0) {
+-		dev_err(&pdev->dev, "Failed to configure PWM, Error %d\n", ret);
+-		return ret;
+-	}
+-	dev_dbg(&pdev->dev, "pwm probe successful\n");
+-	return ret;
+-}
+-
+-static int __devexit twl6030_pwm_remove(struct platform_device *pdev)
+-{
+-	struct pwm_device *pwm = platform_get_drvdata(pdev);
+-
+-	pwm_device_unregister(pwm);
+-	kfree(pwm->pops);
+-	kfree(pwm);
+-	dev_dbg(&pdev->dev, "pwm driver removed\n");
+-	return 0;
+-}
+-
+-static struct platform_driver twl6030_pwm_driver = {
+-	.driver = {
+-		.name = "twl6030_pwm",
+-		.owner = THIS_MODULE,
+-	},
+-	.probe = twl6030_pwm_probe,
+-	.remove = __devexit_p(twl6030_pwm_remove),
+-};
+-
+-static int __init twl6030_pwm_init(void)
+-{
+-	return platform_driver_register(&twl6030_pwm_driver);
+-}
+-
+-static void __exit twl6030_pwm_deinit(void)
+-{
+-	platform_driver_unregister(&twl6030_pwm_driver);
+-}
+-
+-subsys_initcall(twl6030_pwm_init);
+-module_exit(twl6030_pwm_deinit);
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index fcf2e7f..9df5b75 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -62,15 +62,6 @@ config ATMEL_PWM
+ 	  purposes including software controlled power-efficient backlights
+ 	  on LCD displays, motor control, and waveform generation.
+ 
+-config AB8500_PWM
+-	bool "AB8500 PWM support"
+-	depends on AB8500_CORE
+-	select HAVE_PWM
+-	help
+-	  This driver exports functions to enable/disble/config/free Pulse
+-	  Width Modulation in the Ananlog Baseband Chip AB8500.
+-	  It is used by led and backlight driver to control the intensity.
+-
+ config ATMEL_TCLIB
+ 	bool "Atmel AT32/AT91 Timer/Counter Library"
+ 	depends on (AVR32 || ARCH_AT91)
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 33bc441..255a80d 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -35,4 +35,3 @@ obj-y				+= eeprom/
+ obj-y				+= cb710/
+ obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
+ obj-$(CONFIG_ARM_CHARLCD)	+= arm-charlcd.o
+-obj-$(CONFIG_AB8500_PWM)	+= ab8500-pwm.o
+diff --git a/drivers/misc/ab8500-pwm.c b/drivers/misc/ab8500-pwm.c
+deleted file mode 100644
+index 25f9310..0000000
+--- a/drivers/misc/ab8500-pwm.c
++++ /dev/null
+@@ -1,157 +0,0 @@
+-/*
+- * Copyright (C) ST-Ericsson SA 2010
+- *
+- * Author: Arun R Murthy <arun.murthy@stericsson.com>
+- * License terms: GNU General Public License (GPL) version 2
+- */
+-#include <linux/err.h>
+-#include <linux/platform_device.h>
+-#include <linux/slab.h>
+-#include <linux/pwm.h>
+-#include <linux/mfd/ab8500.h>
+-#include <linux/mfd/abx500.h>
+-
+-/*
+- * PWM Out generators
+- * Bank: 0x10
+- */
+-#define AB8500_PWM_OUT_CTRL1_REG	0x60
+-#define AB8500_PWM_OUT_CTRL2_REG	0x61
+-#define AB8500_PWM_OUT_CTRL7_REG	0x66
+-
+-/* backlight driver constants */
+-#define ENABLE_PWM			1
+-#define DISABLE_PWM			0
+-
+-static struct device *parent;
+-
+-int ab8500_pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
+-{
+-	int ret = 0;
+-	unsigned int higher_val, lower_val;
+-	u8 reg;
+-
+-	/*
+-	 * get the first 8 bits that are be written to
+-	 * AB8500_PWM_OUT_CTRL1_REG[0:7]
+-	 */
+-	lower_val = duty_ns & 0x00FF;
+-	/*
+-	 * get bits [9:10] that are to be written to
+-	 * AB8500_PWM_OUT_CTRL2_REG[0:1]
+-	 */
+-	higher_val = ((duty_ns & 0x0300) >> 8);
+-
+-	reg = AB8500_PWM_OUT_CTRL1_REG + ((pwm->pwm_id - 1) * 2);
+-
+-	ret = abx500_set_register_interruptible(parent, AB8500_MISC,
+-			reg, (u8)lower_val);
+-	if (ret < 0)
+-		return ret;
+-	ret = abx500_set_register_interruptible(parent, AB8500_MISC,
+-			(reg + 1), (u8)higher_val);
+-
+-	return ret;
+-}
+-
+-int ab8500_pwm_enable(struct pwm_device *pwm)
+-{
+-	int ret;
+-
+-	ret = abx500_mask_and_set_register_interruptible(parent,
+-				AB8500_MISC, AB8500_PWM_OUT_CTRL7_REG,
+-				1 << (pwm->pwm_id-1), 1 << (pwm->pwm_id-1));
+-	if (ret < 0)
+-		dev_err(pwm->dev, "%s: Failed to enable PWM, Error %d\n",
+-							pwm->name, ret);
+-	return ret;
+-}
+-
+-int ab8500_pwm_disable(struct pwm_device *pwm)
+-{
+-	int ret;
+-
+-	ret = abx500_mask_and_set_register_interruptible(parent,
+-				AB8500_MISC, AB8500_PWM_OUT_CTRL7_REG,
+-				1 << (pwm->pwm_id-1), DISABLE_PWM);
+-	if (ret < 0)
+-		dev_err(pwm->dev, "%s: Failed to disable PWM, Error %d\n",
+-							pwm->name, ret);
+-	return ret;
+-}
+-
+-static int __devinit ab8500_pwm_probe(struct platform_device *pdev)
+-{
+-	int ret = 0;
+-	struct pwm_ops *pops;
+-	struct pwm_device *pwm_dev;
+-	/*
+-	 * Nothing to be done in probe, this is required to get the
+-	 * device which is required for ab8500 read and write
+-	 */
+-	pops = kzalloc(sizeof(struct pwm_ops), GFP_KERNEL);
+-	if (pops == NULL) {
+-		dev_err(&pdev->dev, "failed to allocate memory\n");
+-		return -ENOMEM;
+-	}
+-	pwm_dev = kzalloc(sizeof(struct pwm_device), GFP_KERNEL);
+-	if (pwm_dev == NULL) {
+-		dev_err(&pdev->dev, "failed to allocate memory\n");
+-		kfree(pops);
+-		return -ENOMEM;
+-	}
+-	parent = &pdev->dev;
+-	pops->pwm_config = ab8500_pwm_config;
+-	pops->pwm_enable = ab8500_pwm_enable;
+-	pops->pwm_disable = ab8500_pwm_disable;
+-	pwm_dev->name = "ab8500";
+-	pwm_dev->pwm_id = pdev->id;
+-	pwm_dev->pops = pops;
+-	ret = pwm_device_register(parent, pwm_dev);
+-	if (ret < 0) {
+-		dev_err(&pdev->dev, "failed to register pwm device\n");
+-		kfree(pwm_dev);
+-		kfree(pops);
+-		return ret;
+-	}
+-	platform_set_drvdata(pdev, pwm_dev);
+-	dev_dbg(&pdev->dev, "pwm probe successful\n");
+-	return ret;
+-}
+-
+-static int __devexit ab8500_pwm_remove(struct platform_device *pdev)
+-{
+-	struct pwm_device *pwm_dev = platform_get_drvdata(pdev);
+-
+-	pwm_device_unregister(pwm_dev);
+-	dev_dbg(&pdev->dev, "pwm driver removed\n");
+-	kfree(pwm_dev->pops);
+-	kfree(pwm_dev);
+-	return 0;
+-}
+-
+-static struct platform_driver ab8500_pwm_driver = {
+-	.driver = {
+-		.name = "ab8500-pwm",
+-		.owner = THIS_MODULE,
+-	},
+-	.probe = ab8500_pwm_probe,
+-	.remove = __devexit_p(ab8500_pwm_remove),
+-};
+-
+-static int __init ab8500_pwm_init(void)
+-{
+-	return platform_driver_register(&ab8500_pwm_driver);
+-}
+-
+-static void __exit ab8500_pwm_exit(void)
+-{
+-	platform_driver_unregister(&ab8500_pwm_driver);
+-}
+-
+-subsys_initcall(ab8500_pwm_init);
+-module_exit(ab8500_pwm_exit);
+-MODULE_AUTHOR("Arun MURTHY <arun.murthy@stericsson.com>");
+-MODULE_DESCRIPTION("AB8500 Pulse Width Modulation Driver");
+-MODULE_ALIAS("AB8500 PWM driver");
+-MODULE_LICENSE("GPL v2");
 diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-new file mode 100644
-index 0000000..03a9813
---- /dev/null
+index 5483b7f..e4ef199 100644
+--- a/drivers/pwm/Kconfig
 +++ b/drivers/pwm/Kconfig
-@@ -0,0 +1,18 @@
-+#
-+# PWM devices
-+#
+@@ -16,4 +16,22 @@ menuconfig PWM_DEVICES
+ 
+ if PWM_DEVICES
+ 
++config AB8500_PWM
++	bool "AB8500 PWM support"
++	depends on AB8500_CORE
++	select HAVE_PWM
++	help
++	  This driver exports functions to enable/disble/config/free Pulse
++	  Width Modulation in the Analog Baseband Chip AB8500.
++	  It is used by led and backlight driver to control the intensity.
 +
-+menuconfig PWM_DEVICES
-+	bool "PWM devices"
-+	default y
-+	---help---
-+	  Say Y to enable pwm core driver and see options for various pwm
-+	  drivers. This option enables pwm drivers to register with the
-+	  pwm core driver and thereby provide a single interface to the
-+	  clients using PWM.
++config TWL6030_PWM
++	tristate "TWL6030 PWM (Pulse Width Modulator) Support"
++	depends on TWL4030_CORE
++	select HAVE_PWM
++	default n
++	help
++	  Say yes here if you want support for TWL6030 PWM.
++	  This is used to control charging LED brightness.
 +
-+	  If you say N, all options in this submenu will be skipped and disabled.
-+
-+if PWM_DEVICES
-+
-+endif # PWM_DEVICES
+ endif # PWM_DEVICES
 diff --git a/drivers/pwm/Makefile b/drivers/pwm/Makefile
-new file mode 100644
-index 0000000..552f969
---- /dev/null
+index 552f969..f35afb4 100644
+--- a/drivers/pwm/Makefile
 +++ b/drivers/pwm/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_PWM_DEVICES)	+= pwm-core.o
-diff --git a/drivers/pwm/pwm-core.c b/drivers/pwm/pwm-core.c
+@@ -1 +1,4 @@
+ obj-$(CONFIG_PWM_DEVICES)	+= pwm-core.o
++
++obj-$(CONFIG_AB8500_PWM)	+= pwm-ab8500.o
++obj-$(CONFIG_TWL6030_PWM)	+= pwm-twl6030.o
+diff --git a/drivers/pwm/pwm-ab8500.c b/drivers/pwm/pwm-ab8500.c
 new file mode 100644
-index 0000000..c323969
+index 0000000..25f9310
 --- /dev/null
-+++ b/drivers/pwm/pwm-core.c
-@@ -0,0 +1,171 @@
++++ b/drivers/pwm/pwm-ab8500.c
+@@ -0,0 +1,157 @@
 +/*
 + * Copyright (C) ST-Ericsson SA 2010
 + *
-+ * License Terms: GNU General Public License v2
 + * Author: Arun R Murthy <arun.murthy@stericsson.com>
++ * License terms: GNU General Public License (GPL) version 2
 + */
-+#include <linux/init.h>
-+#include <linux/device.h>
-+#include <linux/slab.h>
-+#include <linux/rwsem.h>
 +#include <linux/err.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
 +#include <linux/pwm.h>
-+
-+struct pwm_device {
-+	struct pwm_ops *pops;
-+	struct device *dev;
-+	int pwm_id;
-+	const char *name;
-+};
-+
-+static struct class *pwm_class;
++#include <linux/mfd/ab8500.h>
++#include <linux/mfd/abx500.h>
 +
 +/*
-+ * TODO: This function is referenced in pwm based led and backlight driver.
-+ * This function is no more required with the implementation of pwm core
-+ * driver. This is retained as deprecated to make sure that the mips
-+ * jz4740 pwm driver works fine as that is not aligned with this pwm core
-+ * driver. On aligning the same this has to be removed.
++ * PWM Out generators
++ * Bank: 0x10
 + */
-+void __deprecated pwm_free(struct pwm_device *pwm)
++#define AB8500_PWM_OUT_CTRL1_REG	0x60
++#define AB8500_PWM_OUT_CTRL2_REG	0x61
++#define AB8500_PWM_OUT_CTRL7_REG	0x66
++
++/* backlight driver constants */
++#define ENABLE_PWM			1
++#define DISABLE_PWM			0
++
++static struct device *parent;
++
++int ab8500_pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
 +{
++	int ret = 0;
++	unsigned int higher_val, lower_val;
++	u8 reg;
++
++	/*
++	 * get the first 8 bits that are be written to
++	 * AB8500_PWM_OUT_CTRL1_REG[0:7]
++	 */
++	lower_val = duty_ns & 0x00FF;
++	/*
++	 * get bits [9:10] that are to be written to
++	 * AB8500_PWM_OUT_CTRL2_REG[0:1]
++	 */
++	higher_val = ((duty_ns & 0x0300) >> 8);
++
++	reg = AB8500_PWM_OUT_CTRL1_REG + ((pwm->pwm_id - 1) * 2);
++
++	ret = abx500_set_register_interruptible(parent, AB8500_MISC,
++			reg, (u8)lower_val);
++	if (ret < 0)
++		return ret;
++	ret = abx500_set_register_interruptible(parent, AB8500_MISC,
++			(reg + 1), (u8)higher_val);
++
++	return ret;
 +}
 +
-+/**
-+ * pwm_config() - configure the pwm device
-+ * @pwm:	pointer to the struct pwm_device
-+ * @period_ns:	period in nano seconds
-+ *
-+ * This function verifies for the presence of the pops structure and if so
-+ * calls the pwm device specific config fucntion.
-+ */
-+int pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
++int ab8500_pwm_enable(struct pwm_device *pwm)
 +{
-+	if (!pwm->pops)
-+		return -EFAULT;
-+	return pwm->pops->pwm_config(pwm, duty_ns, period_ns);
-+}
-+EXPORT_SYMBOL(pwm_config);
++	int ret;
 +
-+/**
-+ * pwm_enable() - enable pwm device
-+ * @pwm:	pointer to the struct pwm_device
-+ *
-+ * This function verifies for the presence of the pops structure and if so
-+ * calls the pwm device specific enable function.
-+ */
-+int pwm_enable(struct pwm_device *pwm)
-+{
-+	if (!pwm->pops)
-+		return -EFAULT;
-+	return pwm->pops->pwm_enable(pwm);
-+}
-+EXPORT_SYMBOL(pwm_enable);
-+
-+/**
-+ * pwm_disable() - disable pwm device
-+ * @pwm:	pointer to the struct pwm_device
-+ *
-+ * This function verifies for the presence of the pops structure and if so
-+ * calls the pwm device specific disable function.
-+ */
-+void pwm_disable(struct pwm_device *pwm)
-+{
-+	if (!pwm->pops)
-+		return -EFAULT;
-+	pwm->pops->pwm_disable(pwm);
-+}
-+EXPORT_SYMBOL(pwm_disable);
-+
-+static int pwm_match_device_by_pwm_id(struct device *dev, void *data)
-+{
-+	int *pwm_id = data;
-+	struct pwm_device *pwm = dev_get_drvdata(dev);
-+	const char *name = pwm->name;
-+
-+	return (strcmp(name, pwm->name) == 0 && pwm->pwm_id == *pwm_id);
++	ret = abx500_mask_and_set_register_interruptible(parent,
++				AB8500_MISC, AB8500_PWM_OUT_CTRL7_REG,
++				1 << (pwm->pwm_id-1), 1 << (pwm->pwm_id-1));
++	if (ret < 0)
++		dev_err(pwm->dev, "%s: Failed to enable PWM, Error %d\n",
++							pwm->name, ret);
++	return ret;
 +}
 +
-+static int pwm_match_device_by_name(struct device *dev, void *data)
++int ab8500_pwm_disable(struct pwm_device *pwm)
 +{
-+	const char *name = data;
-+	struct pwm_device *pwm = dev_get_drvdata(dev);
++	int ret;
 +
-+	return strcmp(pwm->name, name) == 0;
++	ret = abx500_mask_and_set_register_interruptible(parent,
++				AB8500_MISC, AB8500_PWM_OUT_CTRL7_REG,
++				1 << (pwm->pwm_id-1), DISABLE_PWM);
++	if (ret < 0)
++		dev_err(pwm->dev, "%s: Failed to disable PWM, Error %d\n",
++							pwm->name, ret);
++	return ret;
 +}
 +
-+/**
-+ * pwm_request() - request for a pwm device
-+ * @pwm_id:	pwm device id
-+ * @name:	pwm device name
-+ *
-+ * This function searches for the pwm device with the specified name in the
-+ * list of pre registered pwm devices and return the pointer to the struct
-+ * pwm_device. Clients using pwm device will first have to call this function
-+ * to get the pointer to the pwm_device. This pointer to struct pwm_device
-+ * will be further be used in all operation(pwm_enable/disable/config).
-+ */
-+struct pwm_device *pwm_request(int pwm_id, const char *name)
++static int __devinit ab8500_pwm_probe(struct platform_device *pdev)
 +{
-+	struct device *dev = class_find_device(pwm_class, NULL, name,
-+			pwm_match_device_by_name);
-+	dev = class_find_device(pwm_class, dev, pwm_id,
-+			pwm_match_device_by_pwm_id);
-+
-+	return dev ? dev_get_drvdata(dev) : NULL;
++	int ret = 0;
++	struct pwm_ops *pops;
++	struct pwm_device *pwm_dev;
++	/*
++	 * Nothing to be done in probe, this is required to get the
++	 * device which is required for ab8500 read and write
++	 */
++	pops = kzalloc(sizeof(struct pwm_ops), GFP_KERNEL);
++	if (pops == NULL) {
++		dev_err(&pdev->dev, "failed to allocate memory\n");
++		return -ENOMEM;
++	}
++	pwm_dev = kzalloc(sizeof(struct pwm_device), GFP_KERNEL);
++	if (pwm_dev == NULL) {
++		dev_err(&pdev->dev, "failed to allocate memory\n");
++		kfree(pops);
++		return -ENOMEM;
++	}
++	parent = &pdev->dev;
++	pops->pwm_config = ab8500_pwm_config;
++	pops->pwm_enable = ab8500_pwm_enable;
++	pops->pwm_disable = ab8500_pwm_disable;
++	pwm_dev->name = "ab8500";
++	pwm_dev->pwm_id = pdev->id;
++	pwm_dev->pops = pops;
++	ret = pwm_device_register(parent, pwm_dev);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "failed to register pwm device\n");
++		kfree(pwm_dev);
++		kfree(pops);
++		return ret;
++	}
++	platform_set_drvdata(pdev, pwm_dev);
++	dev_dbg(&pdev->dev, "pwm probe successful\n");
++	return ret;
 +}
-+EXPORT_SYMBOL(pwm_request);
 +
-+/**
-+ * pwm_device_register() - registers pwm driver with the pwm core driver
-+ * @parent:	pointer to the parent's device struct
-+ * @pwm:	pointer to the struct pwm_device
-+ *
-+ * This function registers the pwm device with the pwm core driver, thereby
-+ * proposing a single interface exposure to the clients using the pwm device.
-+ */
-+int pwm_device_register(struct device *parent, struct pwm_device *pwm)
++static int __devexit ab8500_pwm_remove(struct platform_device *pdev)
 +{
-+	pwm->dev = device_create(pwm_class, parent, 0, pwm, "%s", pwm->name);
-+	if (IS_ERR(pwm->dev))
-+		return PTR_ERR(pwm->dev);
++	struct pwm_device *pwm_dev = platform_get_drvdata(pdev);
 +
++	pwm_device_unregister(pwm_dev);
++	dev_dbg(&pdev->dev, "pwm driver removed\n");
++	kfree(pwm_dev->pops);
++	kfree(pwm_dev);
 +	return 0;
 +}
-+EXPORT_SYMBOL(pwm_device_register);
 +
-+/**
-+ * pwm_device_unregister() - unregisters the pre registered pwm device
-+ * @pwm:	pointer to the struct pwm_device
-+ * 
-+ * This function unregisters the pwm device from the pwm core driver. Clients
-+ * can no more use this pwm device.
-+ */
-+int pwm_device_unregister(struct pwm_device *pwm)
-+{
-+	device_unregister(pwm->dev);
-+	return 0;
-+}
-+EXPORT_SYMBOL(pwm_device_unregister);
-+
-+static int __init pwm_init(void)
-+{
-+	pwm_class = class_create(THIS_MODULE, "pwm_core");
-+	if (IS_ERR(pwm_class))
-+		return PTR_ERR(pwm_class);
-+
-+	return 0;
-+}
-+subsys_initcall(pwm_init);
-+
-+static void __exit pwm_exit(void)
-+{
-+	class_destroy(pwm_class);
-+}
-+
-+module_exit(pwm_exit);
-+
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Arun R Murthy");
-+MODULE_ALIAS("core:pwm");
-+MODULE_DESCRIPTION("Core pwm driver");
-diff --git a/include/linux/pwm.h b/include/linux/pwm.h
-index 7c77575..c41e0da 100644
---- a/include/linux/pwm.h
-+++ b/include/linux/pwm.h
-@@ -3,6 +3,13 @@
- 
- struct pwm_device;
- 
-+struct pwm_ops {
-+	int (*pwm_config)(struct pwm_device *pwm, int duty_ns, int period_ns);
-+	int (*pwm_enable)(struct pwm_device *pwm);
-+	int (*pwm_disable)(struct pwm_device *pwm);
-+	char *name;
++static struct platform_driver ab8500_pwm_driver = {
++	.driver = {
++		.name = "ab8500-pwm",
++		.owner = THIS_MODULE,
++	},
++	.probe = ab8500_pwm_probe,
++	.remove = __devexit_p(ab8500_pwm_remove),
 +};
 +
- /*
-  * pwm_request - request a PWM device
-  */
-@@ -11,7 +18,7 @@ struct pwm_device *pwm_request(int pwm_id, const char *label);
- /*
-  * pwm_free - free a PWM device
-  */
--void pwm_free(struct pwm_device *pwm);
-+void __deprecated pwm_free(struct pwm_device *pwm);
- 
- /*
-  * pwm_config - change a PWM device configuration
-@@ -28,4 +35,7 @@ int pwm_enable(struct pwm_device *pwm);
-  */
- void pwm_disable(struct pwm_device *pwm);
- 
-+int pwm_device_register(struct device *parent, struct pwm_device *pwm);
-+int pwm_device_unregister(struct pwm_device *pwm);
++static int __init ab8500_pwm_init(void)
++{
++	return platform_driver_register(&ab8500_pwm_driver);
++}
 +
- #endif /* __LINUX_PWM_H */
++static void __exit ab8500_pwm_exit(void)
++{
++	platform_driver_unregister(&ab8500_pwm_driver);
++}
++
++subsys_initcall(ab8500_pwm_init);
++module_exit(ab8500_pwm_exit);
++MODULE_AUTHOR("Arun MURTHY <arun.murthy@stericsson.com>");
++MODULE_DESCRIPTION("AB8500 Pulse Width Modulation Driver");
++MODULE_ALIAS("AB8500 PWM driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/pwm/pwm-twl6030.c b/drivers/pwm/pwm-twl6030.c
+new file mode 100644
+index 0000000..7091df9
+--- /dev/null
++++ b/drivers/pwm/pwm-twl6030.c
+@@ -0,0 +1,195 @@
++/*
++ * twl6030_pwm.c
++ * Driver for PHOENIX (TWL6030) Pulse Width Modulator
++ *
++ * Copyright (C) 2010 Texas Instruments
++ * Author: Hemanth V <hemanthv@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/pwm.h>
++#include <linux/err.h>
++#include <linux/i2c/twl.h>
++
++#define LED_PWM_CTRL1	0xF4
++#define LED_PWM_CTRL2	0xF5
++
++/* Max value for CTRL1 register */
++#define PWM_CTRL1_MAX	255
++
++/* Pull down disable */
++#define PWM_CTRL2_DIS_PD	(1 << 6)
++
++/* Current control 2.5 milli Amps */
++#define PWM_CTRL2_CURR_02	(2 << 4)
++
++/* LED supply source */
++#define PWM_CTRL2_SRC_VAC	(1 << 2)
++
++/* LED modes */
++#define PWM_CTRL2_MODE_HW	(0 << 0)
++#define PWM_CTRL2_MODE_SW	(1 << 0)
++#define PWM_CTRL2_MODE_DIS	(2 << 0)
++
++#define PWM_CTRL2_MODE_MASK	0x3
++
++int twl6030_pwm_config(struct pwm_device *pwm, int duty_ns, int period_ns)
++{
++	u8 duty_cycle;
++	int ret = 0;
++
++	if (pwm == NULL || period_ns == 0 || duty_ns > period_ns)
++		return -EINVAL;
++
++	duty_cycle = (duty_ns * PWM_CTRL1_MAX) / period_ns;
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, duty_cycle, LED_PWM_CTRL1);
++
++	if (ret < 0) {
++		pr_err("%s: Failed to configure PWM, Error %d\n",
++			pwm->label, ret);
++		return ret;
++	}
++	return 0;
++}
++
++int twl6030_pwm_enable(struct pwm_device *pwm)
++{
++	u8 val;
++	int ret = 0;
++
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
++	if (ret < 0) {
++		pr_err("%s: Failed to enable PWM, Error %d\n", pwm->label, ret);
++		return ret;
++	}
++
++	/* Change mode to software control */
++	val &= ~PWM_CTRL2_MODE_MASK;
++	val |= PWM_CTRL2_MODE_SW;
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
++	if (ret < 0) {
++		pr_err("%s: Failed to enable PWM, Error %d\n", pwm->label, ret);
++		return ret;
++	}
++
++	twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
++	return 0;
++}
++
++int twl6030_pwm_disable(struct pwm_device *pwm)
++{
++	u8 val;
++	int ret = 0;
++
++	ret = twl_i2c_read_u8(TWL6030_MODULE_ID1, &val, LED_PWM_CTRL2);
++	if (ret < 0) {
++		pr_err("%s: Failed to disable PWM, Error %d\n",
++			pwm->label, ret);
++		return ret;
++	}
++
++	val &= ~PWM_CTRL2_MODE_MASK;
++	val |= PWM_CTRL2_MODE_HW;
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
++	if (ret < 0) {
++		pr_err("%s: Failed to disable PWM, Error %d\n",
++			pwm->label, ret);
++	}
++	return ret;
++}
++
++static int __devinit twl6030_pwm_probe(struct platform_device *pdev)
++{
++	struct pwm_device *pwm;
++	struct pwm_ops *pops;
++	int ret;
++	u8 val;
++
++	pwm = kzalloc(sizeof(struct pwm_device), GFP_KERNEL);
++	if (pwm == NULL) {
++		dev_err(&pdev->dev, "failed to allocate memory\n");
++		return -ENOMEM;
++	}
++	pops = kzalloc(sizeof(struct pwm_ops), GFP_KERNEL);
++	if (pops == NULL) {
++		dev_err(&pdev->dev, "failed to allocate memory\n");
++		kfree(pwm);
++		return -ENOMEM;
++	}
++
++	pops->pwm_config = twl6030_pwm_config;
++	pops->pwm_enable = twl6030_pwm_enable;
++	pops->pwm_disable = twl6030_pwm_disable;
++	pwm->name = &pdev->name;
++	pwm->pwm_id = pdev->id;
++	pwm->pops = pops;
++	ret = pwm_device_register(pwm);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "failed to register pwm device\n");
++		kfree(pwm);
++		kfree(pops);
++		return ret;
++	}
++	platform_set_drvdata(pdev, pwm);
++	/* Configure PWM */
++	val = PWM_CTRL2_DIS_PD | PWM_CTRL2_CURR_02 | PWM_CTRL2_SRC_VAC |
++							PWM_CTRL2_MODE_HW;
++
++	ret = twl_i2c_write_u8(TWL6030_MODULE_ID1, val, LED_PWM_CTRL2);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to configure PWM, Error %d\n", ret);
++		return ret;
++	}
++	dev_dbg(&pdev->dev, "pwm probe successful\n");
++	return ret;
++}
++
++static int __devexit twl6030_pwm_remove(struct platform_device *pdev)
++{
++	struct pwm_device *pwm = platform_get_drvdata(pdev);
++
++	pwm_device_unregister(pwm);
++	kfree(pwm->pops);
++	kfree(pwm);
++	dev_dbg(&pdev->dev, "pwm driver removed\n");
++	return 0;
++}
++
++static struct platform_driver twl6030_pwm_driver = {
++	.driver = {
++		.name = "twl6030_pwm",
++		.owner = THIS_MODULE,
++	},
++	.probe = twl6030_pwm_probe,
++	.remove = __devexit_p(twl6030_pwm_remove),
++};
++
++static int __init twl6030_pwm_init(void)
++{
++	return platform_driver_register(&twl6030_pwm_driver);
++}
++
++static void __exit twl6030_pwm_deinit(void)
++{
++	platform_driver_unregister(&twl6030_pwm_driver);
++}
++
++subsys_initcall(twl6030_pwm_init);
++module_exit(twl6030_pwm_deinit);
 -- 
 1.7.2.dirty
 
