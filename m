@@ -1,62 +1,97 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/10] OMAP: SCM/McBSP/clock: branch integration patches
- for 2.6.37
-Date: Wed, 6 Oct 2010 12:57:57 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1010061255260.13816@utopia.booyaka.com>
-References: <20101001213119.1408.65395.stgit@twilight.localdomain>  <20101005155242.20900538.jhnikula@gmail.com>  <20101005184017.GP3117@atomide.com>  <201010060842.21260.peter.ujfalusi@nokia.com>  <20101006144807.GB2913@atomide.com>
- <1286377687.5662.24.camel@odin>
+Subject: [GIT PULL v2] OMAP: SCM/McBSP/clock: branch integration patches for
+ 2.6.37
+Date: Wed, 6 Oct 2010 13:02:17 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1010061259490.13816@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34997 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37838 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759806Ab0JFS57 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 14:57:59 -0400
-In-Reply-To: <1286377687.5662.24.camel@odin>
+	with ESMTP id S1753859Ab0JFTCT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 15:02:19 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Liam Girdwood <lrg@slimlogic.co.uk>, linux-arm-kernel@lists.infradead.org
 
-Hi, 
-On Wed, 6 Oct 2010, Liam Girdwood wrote:
+Hello Tony,
 
-> On Wed, 2010-10-06 at 07:48 -0700, Tony Lindgren wrote:
-> > * Peter Ujfalusi <peter.ujfalusi@nokia.com> [101005 22:33]:
-> > > On Tuesday 05 October 2010 21:40:17 ext Tony Lindgren wrote:
-> > > 
-> > > ...
-> > > 
-> > > > > For patches 6-7 you could have my ack.
-> > > > > Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-> > > > > 
-> > > > > As they are touching also sound/soc/omap/omap-mcbsp.c, an ack from Mark
-> > > > > and Liam are needed. Links to patches 6 and 7 below and my fixes on top
-> > > > > of them [1].
-> > > > > 
-> > > > > http://marc.info/?l=linux-omap&m=128596931117788&w=2
-> > > > > http://marc.info/?l=linux-omap&m=128596931417805&w=2
-> > > > 
-> > > > Sorry, I've already merged them as they fixed code that did not compile.
-> > > > 
-> > > > Let me know if you guys want me to rebuild those parts of omap-for-linus
-> > > > to add the acks.
-> > > 
-> > > If you decide to rebuild, than you can add my (for patch 6-7):
-> > > Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com> 
-> > 
-> > OK, let's do that then we should still have some time left before the
-> > merge window.
-> > 
-> > Mark & Liam, care to ack as well?
-> > 
-> 
-> Acked-by: Liam Girdwood <lrg@slimlogic.co.uk>
+Here is an updated pull request for the ten original patches sent earlier, 
+with recent Acked-by:'s added, and also with Jarkko's three fix patches:
 
-Okay, acks from Liam, Mark, Peter, and Jarkko have been added to patches 6 
-and 7.  Also, acks from Peter have been added to Jarkko's three patches.  
-Jarkko's three patches have been added on to the original ten.  Will send 
-out an updated pull request shortly.
+The following changes since commit dbd3ad5354dbbe3f4ea7c0675d91475c25280f69:
+
+  omap: hwmod: Handle modules with 16bit registers (2010-10-06 10:18:04 -0700)
+
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 control_mcbsp_fix_2.6.37
+
+Jarkko Nikula (3):
+      OMAP: McBSP: Fix CLKR and FSR signal muxing
+      OMAP: McBSP: Swap CLKS source definition
+      OMAP: McBSP: Remove null omap44xx ops comment
+
+Paul Walmsley (10):
+      OMAP2+: Kconfig: disallow builds for boards that don't use the currently-selected SoC
+      OMAP2420: CTRL: fix OMAP242X_CTRL_REGADDR macro
+      OMAP2420: clock: add MCBSP_CLKS node and clkdev aliases
+      OMAP2430: clock: add MCBSP_CLKS node and clkdev aliases
+      OMAP3xxx: clock: add clkdev aliases for McBSP fclk source switching
+      OMAP: McBSP: implement McBSP CLKR and FSR signal muxing via mach-omap2/mcbsp.c
+      OMAP: McBSP: implement functional clock switching via clock framework
+      OMAP: split plat-omap/common.c
+      OMAP: control: move plat-omap/control.h to mach-omap2/control.h
+      OMAP2+: clock: reduce the amount of standard debugging while disabling unused clocks
+
+ arch/arm/mach-omap2/Kconfig                        |    6 +-
+ arch/arm/mach-omap2/Makefile                       |    3 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
+ arch/arm/mach-omap2/board-4430sdp.c                |    2 +-
+ arch/arm/mach-omap2/board-am3517evm.c              |    2 +-
+ arch/arm/mach-omap2/board-apollon.c                |    2 +-
+ arch/arm/mach-omap2/board-cm-t3517.c               |    2 +-
+ arch/arm/mach-omap2/board-generic.c                |   16 +-
+ arch/arm/mach-omap2/board-h4.c                     |    2 +-
+ arch/arm/mach-omap2/board-ldp.c                    |    2 +-
+ arch/arm/mach-omap2/board-omap3logic.c             |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c             |    4 +-
+ arch/arm/mach-omap2/clock.c                        |    2 +-
+ arch/arm/mach-omap2/clock2420_data.c               |   40 +++-
+ arch/arm/mach-omap2/clock2430_data.c               |   64 +++++-
+ arch/arm/mach-omap2/clock3xxx_data.c               |   12 +-
+ arch/arm/mach-omap2/clock44xx_data.c               |    2 +-
+ arch/arm/mach-omap2/common.c                       |  135 ++++++++++
+ arch/arm/mach-omap2/control.c                      |    3 +-
+ .../include/plat => mach-omap2}/control.h          |   18 +-
+ arch/arm/mach-omap2/cpuidle34xx.c                  |    2 +-
+ arch/arm/mach-omap2/devices.c                      |    3 +-
+ arch/arm/mach-omap2/hsmmc.c                        |    2 +-
+ arch/arm/mach-omap2/id.c                           |    3 +-
+ arch/arm/mach-omap2/mcbsp.c                        |   80 ++++++
+ arch/arm/mach-omap2/mux.c                          |    8 +-
+ arch/arm/mach-omap2/pm24xx.c                       |    2 +-
+ arch/arm/mach-omap2/pm34xx.c                       |    2 +-
+ arch/arm/mach-omap2/prcm.c                         |    2 +-
+ arch/arm/mach-omap2/serial.c                       |    2 +-
+ arch/arm/mach-omap2/sleep34xx.S                    |    2 +-
+ arch/arm/mach-omap2/usb-fs.c                       |    6 +-
+ arch/arm/plat-omap/Makefile                        |    2 +-
+ arch/arm/plat-omap/clock.c                         |    5 +-
+ arch/arm/plat-omap/common.c                        |  275 --------------------
+ arch/arm/plat-omap/counter_32k.c                   |  183 +++++++++++++
+ arch/arm/plat-omap/devices.c                       |    1 -
+ arch/arm/plat-omap/include/plat/mcbsp.h            |   22 ++
+ arch/arm/plat-omap/include/plat/omap-serial.h      |    1 -
+ arch/arm/plat-omap/include/plat/omap24xx.h         |    2 +-
+ arch/arm/plat-omap/mcbsp.c                         |    3 -
+ arch/arm/plat-omap/sram.c                          |    3 -
+ drivers/usb/gadget/omap_udc.c                      |   18 +-
+ sound/soc/omap/omap-mcbsp.c                        |  119 ++-------
+ 44 files changed, 625 insertions(+), 444 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/common.c
+ rename arch/arm/{plat-omap/include/plat => mach-omap2}/control.h (97%)
+ create mode 100644 arch/arm/plat-omap/counter_32k.c
 
 
 - Paul
