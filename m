@@ -1,952 +1,324 @@
-From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v1 09/16] OMAP3: hwmod DSS: Move clocks from core driver to dss driver
-Date: Wed,  6 Oct 2010 16:44:52 +0530
-Message-ID: <1286363699-9614-10-git-send-email-svadivu@ti.com>
-References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
- <1286363699-9614-2-git-send-email-svadivu@ti.com>
- <1286363699-9614-3-git-send-email-svadivu@ti.com>
- <1286363699-9614-4-git-send-email-svadivu@ti.com>
- <1286363699-9614-5-git-send-email-svadivu@ti.com>
- <1286363699-9614-6-git-send-email-svadivu@ti.com>
- <1286363699-9614-7-git-send-email-svadivu@ti.com>
- <1286363699-9614-8-git-send-email-svadivu@ti.com>
- <1286363699-9614-9-git-send-email-svadivu@ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 5/6] save and restore etm state across core OFF modes
+Date: Wed, 6 Oct 2010 14:22:49 +0300
+Message-ID: <20101006112248.GB30019@besouro.research.nokia.com>
+References: <1272735501-2963-1-git-send-email-virtuoso@slind.org>
+ <1272735501-2963-6-git-send-email-virtuoso@slind.org>
+ <20101006083509.GA30019@besouro.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32918 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:38530 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758887Ab0JFLPW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Oct 2010 07:15:22 -0400
-In-Reply-To: <1286363699-9614-9-git-send-email-svadivu@ti.com>
+	id S1757520Ab0JFLcF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Oct 2010 07:32:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20101006083509.GA30019@besouro.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
+To: ext Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: "ext virtuoso@slind.org" <virtuoso@slind.org>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "r-woodruff2@ti.com" <r-woodruff2@ti.com>, ext-madhusudhan.1.gowda@nokia.com
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
+Hey,
 
-cks are moved to dss platform driver.  clk_get/put
-APIs use dss device instead of core platform device.
-It leaves the core driver "omapdisplay" to take care of
-panel registration with the custom bus.  dss driver would
-take care of the clocks needed by DISPC,RFBI,DSI,VENC.
+I think Gowda had also some thoughts about this patch. Cc'ing him.
 
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
----
- drivers/video/omap2/dss/core.c |  372 +--------------------------------------
- drivers/video/omap2/dss/dss.c  |  382 +++++++++++++++++++++++++++++++++++++++-
- drivers/video/omap2/dss/dss.h  |   14 +-
- 3 files changed, 392 insertions(+), 376 deletions(-)
+BR,
+On Wed, Oct 06, 2010 at 10:35:09AM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
+> Hello Alexander,
+> 
+> Few points as follows,
+> 
+> On Sat, May 01, 2010 at 07:38:20PM +0200, ext virtuoso@slind.org wrote:
+> > From: Alexander Shishkin <virtuoso@slind.org>
+> > 
+> > This prevents ETM stalls whenever core enters OFF mode. Original patch
+> > author is Richard Woodruff <r-woodruff2@ti.com>.
+> > 
+> > This version of the patch makes use of the ETM OS save/restore mechanism,
+> > which takes about 55 words in omap3_arm_context[] instead of 128. Also,
+> > saving ETM context can be switched on/off at runtime.
+> > 
+> > Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+> > CC: Richard Woodruff <r-woodruff2@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/Kconfig               |    9 ++
+> >  arch/arm/mach-omap2/control.c             |    2 +-
+> >  arch/arm/mach-omap2/sleep34xx.S           |  135 +++++++++++++++++++++++++++++
+> >  arch/arm/plat-omap/include/plat/control.h |    2 +-
+> >  4 files changed, 146 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> > index 2455dcc..5460bfe 100644
+> > --- a/arch/arm/mach-omap2/Kconfig
+> > +++ b/arch/arm/mach-omap2/Kconfig
+> > @@ -150,6 +150,15 @@ config MACH_OMAP_4430SDP
+> >  	bool "OMAP 4430 SDP board"
+> >  	depends on ARCH_OMAP4
+> >  
+> > +config ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> > +	bool "Enable hardware emulation context save and restore"
+> > +	depends on ARCH_OMAP3
+> > +	default y
+> > +	help
+> > +	  This option enables JTAG & ETM debugging across power states.
+> > +	  With out this option emulation features are reset across OFF
+> > +	  mode state changes.
+> > +
+> >  config OMAP3_EMU
+> >  	bool "OMAP3 debugging peripherals"
+> >  	depends on ARCH_OMAP3
+> > diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> > index 43f8a33..70b1674 100644
+> > --- a/arch/arm/mach-omap2/control.c
+> > +++ b/arch/arm/mach-omap2/control.c
+> > @@ -93,7 +93,7 @@ void *omap3_secure_ram_storage;
+> >   * The address is stored in scratchpad, so that it can be used
+> >   * during the restore path.
+> >   */
+> > -u32 omap3_arm_context[128];
+> > +u32 omap3_arm_context[256];
+> >  
+> >  struct omap3_control_regs {
+> >  	u32 sysconfig;
+> > diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> > index d522cd7..cd6a1d4 100644
+> > --- a/arch/arm/mach-omap2/sleep34xx.S
+> > +++ b/arch/arm/mach-omap2/sleep34xx.S
+> > @@ -28,6 +28,7 @@
+> >  #include <asm/assembler.h>
+> >  #include <mach/io.h>
+> >  #include <plat/control.h>
+> > +#include <asm/hardware/coresight.h>
+> >  
+> >  #include "cm.h"
+> >  #include "prm.h"
+> > @@ -226,6 +227,18 @@ loop:
+> >  	nop
+> >  	bl wait_sdrc_ok
+> >  
+> > +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> > +	/*
+> > +	 * Restore Coresight debug registers
+> > +	 */
+> > +	ldr	r6, debug_vbase		/* base Vaddr of CortexA8-Debug */
+> > +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
+> > +	bl	unlock_debug		/* remove global lock if set */
+> > +	ldr	r6, etm_vbase		/* base Vaddr of ETM */
+> > +	bl	unlock_debug		/* remove global lock if set */
+> > +	str	r6, [r6, #ETMMR_OSLAR]	/* clear OSLAR lock using non-key */
+> > +#endif
+> > +
+> >  	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
+> >  restore_es3:
+> >  	/*b restore_es3*/		@ Enable to debug restore code
+> > @@ -385,6 +398,44 @@ logic_l1_restore:
+> >  	/*normal memory remap register */
+> >  	MCR p15, 0, r5, c10, c2, 1
+> >  
+> > +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> > +	/*
+> > +	 * Restore Coresight debug registers
+> > +	 */
+> > +	ldr	r6, debug_pbase		/* base paddr of CortexA8-Debug */
+> > +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
+> > +	bl	unlock_debug		/* remove global lock if set */
+> > +	str	r4, [r6, #ETMMR_OSLAR]	/* reset-pointer (already locked) */
+> > +	ldr	r4, [r6, #ETMMR_OSSRR]	/* dummy read */
+> > +	ldr	r4, [r3], #4		/* load save size */
+> > +	cmp	r4, #0			/* check for zero */
+> > +debug_restore:
+> > +	ittt	ne			/* t2/compat if-then block */
+> > +	ldrne	r5, [r3], #4		/* get saved value */
+> > +	strne	r5, [r6,#ETMMR_OSSRR]	/* restore saved value */
+> > +	subnes	r4, r4, #1		/* decrement loop */
+> > +	bne	debug_restore		/* loop till done */
+> > +	str	r5, [r6, #ETMMR_OSSRR]	/* clear lock */
+> 
+> Maybe you mean ETMMR_OSLAR?
+> 
+> > +	/*
+> > +	 * Restore CoreSight ETM registers
+> > +	 */
+> > +	ldr	r6, etm_pbase		/* base paddr of ETM */
+> > +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
+> > +	bl	unlock_debug		/* remove global lock if set */
+> > +	str	r4, [r6, #ETMMR_OSLAR]	/* reset-pointer (already locked) */
+> > +	ldr	r4, [r6, #ETMMR_OSSRR]	/* dummy read */
+> > +	ldr	r4, [r3], #4		/* load save size */
+> > +	cmp	r4, #0			/* check for zero */
+> > +	beq	etm_skip
+> > +etm_restore:
+> > +	ldrne	r5, [r3], #4		/* get saved value */
+> > +	strne	r5, [r6, #ETMMR_OSSRR]	/* restore saved value */
+> > +	subnes	r4, r4, #1		/* decrement loop */
+> > +	bne	etm_restore		/* loop till done */
+> > +etm_skip:
+> > +	str	r6, [r6, #ETMMR_OSLAR]	/* remove OS lock */
+> > +#endif
+> > +
+> >  	/* Restore cpsr */
+> >  	ldmia	r3!,{r4}	/*load CPSR from SDRAM*/
+> >  	msr	cpsr, r4	/*store cpsr */
+> > @@ -506,6 +557,48 @@ l1_logic_lost:
+> >  	mrc	p15, 0, r5, c10, c2, 1
+> >  	stmia	r8!,{r4-r5}
+> >  
+> > +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> > +	/*
+> > +	 * Save Coresight debug registers
+> > +	 */
+> > +	ldr	r4, do_etm_save
+> > +	cmp	r4, #0
+> > +	streq	r4, [r8], #4		/* 0 for coresight saved size */
+> > +	streq	r4, [r8], #4		/* 0 for ETM saved size */
+> 
+> Maybe you meant 
+> +	streq	r4, [r8], #8		/* 0 for ETM saved size */
+> ??
+> 
+> I mean, from your comments looks like you want two flags, one fro coresight
+> another to ETM. So, probably 2 positions are required, but you forgot to spin
+> the pointer here. I that was not what you mean, you probably want to remove
+> one of those 2 duplicated streq instructions?
+> 
+> > +	beq	etm_skip_save
+> > +	ldr	r6, debug_vbase		/* base vaddr of CortexA8-Debug */
+> > +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
+> > +	bl	unlock_debug		/* force global unlock */
+> > +	str	r4, [r6, #ETMMR_OSLAR]	/* lock debug access */
+> > +	ldr	r4, [r6, #ETMMR_OSSRR]	/* OSSRR returns size on first read */
+> > +	str	r4, [r8], #4		/* push item to save area */
+> > +	cmp	r4, #0			/* zero check */
+> > +debug_save:
+> > +	ittt	ne			/* thumb 2 compat if-then block */
+> > +	ldrne	r5, [r6, #ETMMR_OSSRR]	/* get reg value */
+> > +	strne	r5, [r8], #4		/* push item to save area */
+> > +	subnes	r4, r4, #1		/* decrement size */
+> > +	bne	debug_save		/* loop till done */
+> > +	str	r6, [r6, #ETMMR_OSLAR]	/* unlock debug access */
+> > +	/*
+> > +	 * Save etm registers
+> > +	 */
+> > +	ldr	r6, etm_vbase		/* base vaddr of ETM */
+> > +	ldr	r4, debug_xlar_key	/* get lock key for OSLAR */
+> > +	bl	unlock_debug		/* force global unlock */
+> > +	str	r4, [r6, #ETMMR_OSLAR]	/* lock OS access to trace regs */
+> > +	ldr	r4, [r6, #ETMMR_OSSRR]	/* OSSRR returns size on first read */
+> > +	str	r4, [r8], #4		/* push size to save area */
+> > +	cmp	r4, #0			/* zero check */
+> > +etm_save:
+> > +	ldrne	r5, [r6, #ETMMR_OSSRR]	/* get reg value */
+> > +	strne	r5, [r8], #4		/* push item to save area */
+> > +	subnes	r4, r4, #1		/* decrement size */
+> > +	bne	etm_save		/* loop till done */
+> > +	str	r6, [r6, #ETMMR_OSLAR]	/* unlock debug access */
+> > +etm_skip_save:
+> > +#endif
+> > +
+> >  	/* Store current cpsr*/
+> >  	mrs	r2, cpsr
+> >  	stmia	r8!, {r2}
+> > @@ -520,6 +613,7 @@ clean_caches:
+> >  	cmp	r9, #1 /* Check whether L2 inval is required or not*/
+> >  	bne	skip_l2_inval
+> >  clean_l2:
+> > +#ifndef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> >  	/* read clidr */
+> >  	mrc     p15, 1, r0, c0, c0, 1
+> >  	/* extract loc from clidr */
+> > @@ -586,6 +680,12 @@ finished:
+> >  	/* select current cache level in cssr */
+> >  	mcr     p15, 2, r10, c0, c0, 0
+> >  	isb
+> > +#else
+> > +	ldr	r1, kernel_flush	/* get 32 bit addr of flush */
+> > +	mov	lr, pc			/* prepare for return */
+> > +	bx	r1			/* do it */
+> > +#endif
+> > +
+> >  skip_l2_inval:
+> >  	/* Data memory barrier and Data sync barrier */
+> >  	mov     r1, #0
+> > @@ -632,6 +732,36 @@ wait_dll_lock:
+> >          bne     wait_dll_lock
+> >          bx      lr
+> >  
+> > +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> > +	/*
+> > +	 * unlock debug:
+> > +	 *  Input:
+> > +	 *      r6 has base address of emulation
+> > +	 *      r4 has unlock key
+> > +	 *  Output
+> > +	 *      r5 has PDS value (1=accessable)
+> > +	 */
+> > +unlock_debug:
+> > +	ldr	r5, [r6, #CSMR_LOCKSTATUS]	/* get LSR */
+> > +	cmp	r5, #0x3			/* need unlocking? */
+> > +	streq	r4, [r6, #CSMR_LOCKACCESS]	/* unlock if so */
+> > +	ldr	r5, [r6, #ETMMR_PDSR]		/* clear power status */
+> > +	bx	lr				/* back to caller */
+> > +
+> > +debug_vbase:
+> > +	.word OMAP34XX_DBG_VIRT
+> > +debug_pbase:
+> > +	.word OMAP34XX_DBG_PHYS
+> > +etm_vbase:
+> > +	.word OMAP34XX_ETM_VIRT
+> > +etm_pbase:
+> > +	.word OMAP34XX_ETM_PHYS
+> > +debug_xlar_key:
+> > +	.word UNLOCK_MAGIC
+> > +#endif
+> > +
+> > +kernel_flush:
+> > +	.word v7_flush_dcache_all
+> >  cm_idlest1_core:
+> >  	.word	CM_IDLEST1_CORE_V
+> >  sdrc_dlla_status:
+> > @@ -668,5 +798,10 @@ cache_pred_disable_mask:
+> >  	.word	0xFFFFE7FB
+> >  control_stat:
+> >  	.word	CONTROL_STAT
+> > +/* this word needs to be at the end */
+> > +#ifdef CONFIG_ENABLE_OFF_MODE_JTAG_ETM_DEBUG
+> > +do_etm_save:
+> > +	.word   0
+> 
+> I think you have to be careful here. This might not survive across core off.
+> 
+> > +#endif
+> >  ENTRY(omap34xx_cpu_suspend_sz)
+> >  	.word	. - omap34xx_cpu_suspend
+> > diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+> > index a56deee..3d48e80 100644
+> > --- a/arch/arm/plat-omap/include/plat/control.h
+> > +++ b/arch/arm/plat-omap/include/plat/control.h
+> > @@ -342,7 +342,7 @@ extern void omap3_save_scratchpad_contents(void);
+> >  extern void omap3_clear_scratchpad_contents(void);
+> >  extern u32 *get_restore_pointer(void);
+> >  extern u32 *get_es3_restore_pointer(void);
+> > -extern u32 omap3_arm_context[128];
+> > +extern u32 omap3_arm_context[256];
+> >  extern void omap3_control_save_context(void);
+> >  extern void omap3_control_restore_context(void);
+> >  
+> > -- 
+> > 1.7.1.1.g15764
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> Eduardo Valentin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 7810a40..ce5240f 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -34,30 +34,18 @@
- #include <linux/regulator/consumer.h>
- 
- #include <plat/display.h>
--#include <plat/clock.h>
-+
- 
- #include "dss.h"
- 
- static struct {
- 	struct platform_device *pdev;
--	int		ctx_id;
--
--	struct clk      *dss_ick;
--	struct clk	*dss1_fck;
--	struct clk	*dss2_fck;
--	struct clk      *dss_54m_fck;
--	struct clk	*dss_96m_fck;
--	unsigned	num_clks_enabled;
- 
- 	struct regulator *vdds_dsi_reg;
- 	struct regulator *vdds_sdi_reg;
- 	struct regulator *vdda_dac_reg;
- } core;
- 
--static void dss_clk_enable_all_no_ctx(void);
--static void dss_clk_disable_all_no_ctx(void);
--static void dss_clk_enable_no_ctx(enum dss_clock clks);
--static void dss_clk_disable_no_ctx(enum dss_clock clks);
- 
- static char *def_disp_name;
- module_param_named(def_disp, def_disp_name, charp, 0);
-@@ -68,297 +56,6 @@ unsigned int dss_debug;
- module_param_named(debug, dss_debug, bool, 0644);
- #endif
- 
--/* CONTEXT */
--static int dss_get_ctx_id(void)
--{
--	struct omap_dss_board_info *pdata = core.pdev->dev.platform_data;
--	int r;
--
--	if (!pdata->get_last_off_on_transaction_id)
--		return 0;
--	r = pdata->get_last_off_on_transaction_id(&core.pdev->dev);
--	if (r < 0) {
--		dev_err(&core.pdev->dev, "getting transaction ID failed, "
--				"will force context restore\n");
--		r = -1;
--	}
--	return r;
--}
--
--int dss_need_ctx_restore(void)
--{
--	int id = dss_get_ctx_id();
--
--	if (id < 0 || id != core.ctx_id) {
--		DSSDBG("ctx id %d -> id %d\n",
--				core.ctx_id, id);
--		core.ctx_id = id;
--		return 1;
--	} else {
--		return 0;
--	}
--}
--
--static void save_all_ctx(void)
--{
--	DSSDBG("save context\n");
--
--	dss_clk_enable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
--
--	dss_save_context();
--	dispc_save_context();
--#ifdef CONFIG_OMAP2_DSS_DSI
--	dsi_save_context();
--#endif
--
--	dss_clk_disable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
--}
--
--static void restore_all_ctx(void)
--{
--	DSSDBG("restore context\n");
--
--	dss_clk_enable_all_no_ctx();
--
--	dss_restore_context();
--	dispc_restore_context();
--#ifdef CONFIG_OMAP2_DSS_DSI
--	dsi_restore_context();
--#endif
--
--	dss_clk_disable_all_no_ctx();
--}
--
--#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
--/* CLOCKS */
--static void core_dump_clocks(struct seq_file *s)
--{
--	int i;
--	struct clk *clocks[5] = {
--		core.dss_ick,
--		core.dss1_fck,
--		core.dss2_fck,
--		core.dss_54m_fck,
--		core.dss_96m_fck
--	};
--
--	seq_printf(s, "- CORE -\n");
--
--	seq_printf(s, "internal clk count\t\t%u\n", core.num_clks_enabled);
--
--	for (i = 0; i < 5; i++) {
--		if (!clocks[i])
--			continue;
--		seq_printf(s, "%-15s\t%lu\t%d\n",
--				clocks[i]->name,
--				clk_get_rate(clocks[i]),
--				clocks[i]->usecount);
--	}
--}
--#endif /* defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) */
--
--static int dss_get_clock(struct clk **clock, const char *clk_name)
--{
--	struct clk *clk;
--
--	clk = clk_get(&core.pdev->dev, clk_name);
--
--	if (IS_ERR(clk)) {
--		DSSERR("can't get clock %s", clk_name);
--		return PTR_ERR(clk);
--	}
--
--	*clock = clk;
--
--	DSSDBG("clk %s, rate %ld\n", clk_name, clk_get_rate(clk));
--
--	return 0;
--}
--
--static int dss_get_clocks(void)
--{
--	int r;
--
--	core.dss_ick = NULL;
--	core.dss1_fck = NULL;
--	core.dss2_fck = NULL;
--	core.dss_54m_fck = NULL;
--	core.dss_96m_fck = NULL;
--
--	r = dss_get_clock(&core.dss_ick, "ick");
--	if (r)
--		goto err;
--
--	r = dss_get_clock(&core.dss1_fck, "dss1_fck");
--	if (r)
--		goto err;
--
--	r = dss_get_clock(&core.dss2_fck, "dss2_fck");
--	if (r)
--		goto err;
--
--	r = dss_get_clock(&core.dss_54m_fck, "tv_fck");
--	if (r)
--		goto err;
--
--	r = dss_get_clock(&core.dss_96m_fck, "video_fck");
--	if (r)
--		goto err;
--
--	return 0;
--
--err:
--	if (core.dss_ick)
--		clk_put(core.dss_ick);
--	if (core.dss1_fck)
--		clk_put(core.dss1_fck);
--	if (core.dss2_fck)
--		clk_put(core.dss2_fck);
--	if (core.dss_54m_fck)
--		clk_put(core.dss_54m_fck);
--	if (core.dss_96m_fck)
--		clk_put(core.dss_96m_fck);
--
--	return r;
--}
--
--static void dss_put_clocks(void)
--{
--	if (core.dss_96m_fck)
--		clk_put(core.dss_96m_fck);
--	clk_put(core.dss_54m_fck);
--	clk_put(core.dss1_fck);
--	clk_put(core.dss2_fck);
--	clk_put(core.dss_ick);
--}
--
--unsigned long dss_clk_get_rate(enum dss_clock clk)
--{
--	switch (clk) {
--	case DSS_CLK_ICK:
--		return clk_get_rate(core.dss_ick);
--	case DSS_CLK_FCK1:
--		return clk_get_rate(core.dss1_fck);
--	case DSS_CLK_FCK2:
--		return clk_get_rate(core.dss2_fck);
--	case DSS_CLK_54M:
--		return clk_get_rate(core.dss_54m_fck);
--	case DSS_CLK_96M:
--		return clk_get_rate(core.dss_96m_fck);
--	}
--
--	BUG();
--	return 0;
--}
--
--static unsigned count_clk_bits(enum dss_clock clks)
--{
--	unsigned num_clks = 0;
--
--	if (clks & DSS_CLK_ICK)
--		++num_clks;
--	if (clks & DSS_CLK_FCK1)
--		++num_clks;
--	if (clks & DSS_CLK_FCK2)
--		++num_clks;
--	if (clks & DSS_CLK_54M)
--		++num_clks;
--	if (clks & DSS_CLK_96M)
--		++num_clks;
--
--	return num_clks;
--}
--
--static void dss_clk_enable_no_ctx(enum dss_clock clks)
--{
--	unsigned num_clks = count_clk_bits(clks);
--
--	if (clks & DSS_CLK_ICK)
--		clk_enable(core.dss_ick);
--	if (clks & DSS_CLK_FCK1)
--		clk_enable(core.dss1_fck);
--	if (clks & DSS_CLK_FCK2)
--		clk_enable(core.dss2_fck);
--	if (clks & DSS_CLK_54M)
--		clk_enable(core.dss_54m_fck);
--	if (clks & DSS_CLK_96M)
--		clk_enable(core.dss_96m_fck);
--
--	core.num_clks_enabled += num_clks;
--}
--
--void dss_clk_enable(enum dss_clock clks)
--{
--	bool check_ctx = core.num_clks_enabled == 0;
--
--	dss_clk_enable_no_ctx(clks);
--
--	if (check_ctx && cpu_is_omap34xx() && dss_need_ctx_restore())
--		restore_all_ctx();
--}
--
--static void dss_clk_disable_no_ctx(enum dss_clock clks)
--{
--	unsigned num_clks = count_clk_bits(clks);
--
--	if (clks & DSS_CLK_ICK)
--		clk_disable(core.dss_ick);
--	if (clks & DSS_CLK_FCK1)
--		clk_disable(core.dss1_fck);
--	if (clks & DSS_CLK_FCK2)
--		clk_disable(core.dss2_fck);
--	if (clks & DSS_CLK_54M)
--		clk_disable(core.dss_54m_fck);
--	if (clks & DSS_CLK_96M)
--		clk_disable(core.dss_96m_fck);
--
--	core.num_clks_enabled -= num_clks;
--}
--
--void dss_clk_disable(enum dss_clock clks)
--{
--	if (cpu_is_omap34xx()) {
--		unsigned num_clks = count_clk_bits(clks);
--
--		BUG_ON(core.num_clks_enabled < num_clks);
--
--		if (core.num_clks_enabled == num_clks)
--			save_all_ctx();
--	}
--
--	dss_clk_disable_no_ctx(clks);
--}
--
--static void dss_clk_enable_all_no_ctx(void)
--{
--	enum dss_clock clks;
--
--	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
--	if (cpu_is_omap34xx())
--		clks |= DSS_CLK_96M;
--	dss_clk_enable_no_ctx(clks);
--}
--
--static void dss_clk_disable_all_no_ctx(void)
--{
--	enum dss_clock clks;
--
--	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
--	if (cpu_is_omap34xx())
--		clks |= DSS_CLK_96M;
--	dss_clk_disable_no_ctx(clks);
--}
--
--static void dss_clk_disable_all(void)
--{
--	enum dss_clock clks;
--
--	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
--	if (cpu_is_omap34xx())
--		clks |= DSS_CLK_96M;
--	dss_clk_disable(clks);
--}
--
- /* REGULATORS */
- 
- struct regulator *dss_get_vdds_dsi(void)
-@@ -403,18 +100,7 @@ struct regulator *dss_get_vdda_dac(void)
- 	return reg;
- }
- 
--/* DEBUGFS */
- #if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
--static void dss_debug_dump_clocks(struct seq_file *s)
--{
--	core_dump_clocks(s);
--	dss_dump_clocks(s);
--	dispc_dump_clocks(s);
--#ifdef CONFIG_OMAP2_DSS_DSI
--	dsi_dump_clocks(s);
--#endif
--}
--
- static int dss_debug_show(struct seq_file *s, void *unused)
- {
- 	void (*func)(struct seq_file *) = s->private;
-@@ -505,14 +191,7 @@ static int omap_dss_probe(struct platform_device *pdev)
- 	dss_init_overlay_managers(pdev);
- 	dss_init_overlays(pdev);
- 
--	r = dss_get_clocks();
--	if (r)
--		goto err_clocks;
--
--	dss_clk_enable_all_no_ctx();
--
--	core.ctx_id = dss_get_ctx_id();
--	DSSDBG("initial ctx id %u\n", core.ctx_id);
-+	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
- 
- #ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
- 	/* DISPC_CONTROL */
-@@ -586,7 +265,7 @@ static int omap_dss_probe(struct platform_device *pdev)
- 			pdata->default_device = dssdev;
- 	}
- 
--	dss_clk_disable_all();
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
- 
- 	return 0;
- 
-@@ -609,9 +288,6 @@ err_dpi:
- err_rfbi:
- 	dss_exit();
- err_dss:
--	dss_clk_disable_all_no_ctx();
--	dss_put_clocks();
--err_clocks:
- 
- 	return r;
- }
-@@ -620,7 +296,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- {
- 	struct omap_dss_board_info *pdata = pdev->dev.platform_data;
- 	int i;
--	int c;
- 
- 	dss_uninitialize_debugfs();
- 
-@@ -635,47 +310,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- 
- 	dss_exit();
- 
--	/* these should be removed at some point */
--	c = core.dss_ick->usecount;
--	if (c > 0) {
--		DSSERR("warning: dss_ick usecount %d, disabling\n", c);
--		while (c-- > 0)
--			clk_disable(core.dss_ick);
--	}
--
--	c = core.dss1_fck->usecount;
--	if (c > 0) {
--		DSSERR("warning: dss1_fck usecount %d, disabling\n", c);
--		while (c-- > 0)
--			clk_disable(core.dss1_fck);
--	}
--
--	c = core.dss2_fck->usecount;
--	if (c > 0) {
--		DSSERR("warning: dss2_fck usecount %d, disabling\n", c);
--		while (c-- > 0)
--			clk_disable(core.dss2_fck);
--	}
--
--	c = core.dss_54m_fck->usecount;
--	if (c > 0) {
--		DSSERR("warning: dss_54m_fck usecount %d, disabling\n", c);
--		while (c-- > 0)
--			clk_disable(core.dss_54m_fck);
--	}
--
--	if (core.dss_96m_fck) {
--		c = core.dss_96m_fck->usecount;
--		if (c > 0) {
--			DSSERR("warning: dss_96m_fck usecount %d, disabling\n",
--					c);
--			while (c-- > 0)
--				clk_disable(core.dss_96m_fck);
--		}
--	}
--
--	dss_put_clocks();
--
- 	dss_uninit_overlays(pdev);
- 	dss_uninit_overlay_managers(pdev);
- 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 66ef804..fba8bcd 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -31,6 +31,7 @@
- #include <linux/clk.h>
- 
- #include <plat/display.h>
-+#include <plat/clock.h>
- #include "dss.h"
- 
- #define DSS_BASE			0x48050000
-@@ -59,10 +60,19 @@ struct dss_reg {
- 	dss_write_reg(idx, FLD_MOD(dss_read_reg(idx), val, start, end))
- 
- static struct {
-+	struct platform_device *pdev;
- 	void __iomem    *base;
-+	int		ctx_id;
- 
- 	struct clk	*dpll4_m4_ck;
- 
-+	struct clk      *dss_ick;
-+	struct clk	*dss1_fck;
-+	struct clk	*dss2_fck;
-+	struct clk      *dss_54m_fck;
-+	struct clk	*dss_96m_fck;
-+	unsigned	num_clks_enabled;
-+
- 	unsigned long	cache_req_pck;
- 	unsigned long	cache_prate;
- 	struct dss_clock_info cache_dss_cinfo;
-@@ -74,6 +84,11 @@ static struct {
- 	u32		ctx[DSS_SZ_REGS / sizeof(u32)];
- } dss;
- 
-+static void dss_clk_enable_all_no_ctx(void);
-+static void dss_clk_disable_all_no_ctx(void);
-+static void dss_clk_enable_no_ctx(enum dss_clock clks);
-+static void dss_clk_disable_no_ctx(enum dss_clock clks);
-+
- static int _omap_dss_wait_reset(void);
- 
- static inline void dss_write_reg(const struct dss_reg idx, u32 val)
-@@ -86,14 +101,377 @@ static inline u32 dss_read_reg(const struct dss_reg idx)
- 	return __raw_readl(dss.base + idx.idx);
- }
- 
-+/* CONTEXT */
-+static int dss_get_ctx_id(void)
-+{
-+	struct omap_display_platform_data *pdata = dss.pdev->dev.platform_data;
-+	int r;
-+
-+	if (!pdata->board_data->get_last_off_on_transaction_id)
-+		return 0;
-+	r = pdata->board_data->get_last_off_on_transaction_id(&dss.pdev->dev);
-+	if (r < 0) {
-+		dev_err(&dss.pdev->dev, "getting transaction ID failed, "
-+				"will force context restore\n");
-+		r = -1;
-+	}
-+	return r;
-+}
-+
-+int dss_need_ctx_restore(void)
-+{
-+	int id = dss_get_ctx_id();
-+
-+	if (id < 0 || id != dss.ctx_id) {
-+		DSSDBG("ctx id %d -> id %d\n",
-+				dss.ctx_id, id);
-+		dss.ctx_id = id;
-+		return 1;
-+	} else {
-+		return 0;
-+	}
-+}
-+
-+static void save_all_ctx(void)
-+{
-+	DSSDBG("save context\n");
-+
-+	dss_clk_enable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	dss_save_context();
-+	dispc_save_context();
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+	dsi_save_context();
-+#endif
-+
-+	dss_clk_disable_no_ctx(DSS_CLK_ICK | DSS_CLK_FCK1);
-+}
-+
-+static void restore_all_ctx(void)
-+{
-+	DSSDBG("restore context\n");
-+
-+	dss_clk_enable_all_no_ctx();
-+
-+	dss_restore_context();
-+	dispc_restore_context();
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+	dsi_restore_context();
-+#endif
-+
-+	dss_clk_disable_all_no_ctx();
-+}
-+
-+static int dss_get_clock(struct clk **clock, const char *clk_name)
-+{
-+	struct clk *clk;
-+
-+	clk = clk_get(&dss.pdev->dev, clk_name);
-+
-+	if (IS_ERR(clk)) {
-+		DSSERR("can't get clock %s", clk_name);
-+		return PTR_ERR(clk);
-+	}
-+
-+	*clock = clk;
-+
-+	DSSDBG("clk %s, rate %ld\n", clk_name, clk_get_rate(clk));
-+
-+	return 0;
-+}
-+
-+static int dss_get_clocks(void)
-+{
-+	int r;
-+
-+	dss.dss_ick = NULL;
-+	dss.dss1_fck = NULL;
-+	dss.dss2_fck = NULL;
-+	dss.dss_54m_fck = NULL;
-+	dss.dss_96m_fck = NULL;
-+
-+	r = dss_get_clock(&dss.dss_ick, "ick");
-+	if (r)
-+		goto err;
-+
-+	r = dss_get_clock(&dss.dss1_fck, "dss1_fck");
-+	if (r)
-+		goto err;
-+
-+	r = dss_get_clock(&dss.dss2_fck, "dss2_fck");
-+	if (r)
-+		goto err;
-+
-+	r = dss_get_clock(&dss.dss_54m_fck, "tv_fck");
-+	if (r)
-+		goto err;
-+
-+	r = dss_get_clock(&dss.dss_96m_fck, "video_fck");
-+	if (r)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	if (dss.dss_ick)
-+		clk_put(dss.dss_ick);
-+	if (dss.dss1_fck)
-+		clk_put(dss.dss1_fck);
-+	if (dss.dss2_fck)
-+		clk_put(dss.dss2_fck);
-+	if (dss.dss_54m_fck)
-+		clk_put(dss.dss_54m_fck);
-+	if (dss.dss_96m_fck)
-+		clk_put(dss.dss_96m_fck);
-+
-+	return r;
-+}
-+
-+static void dss_put_clocks(void)
-+{
-+	if (dss.dss_96m_fck)
-+		clk_put(dss.dss_96m_fck);
-+	clk_put(dss.dss_54m_fck);
-+	clk_put(dss.dss1_fck);
-+	clk_put(dss.dss2_fck);
-+	clk_put(dss.dss_ick);
-+}
-+
-+unsigned long dss_clk_get_rate(enum dss_clock clk)
-+{
-+	switch (clk) {
-+	case DSS_CLK_ICK:
-+		return clk_get_rate(dss.dss_ick);
-+	case DSS_CLK_FCK1:
-+		return clk_get_rate(dss.dss1_fck);
-+	case DSS_CLK_FCK2:
-+		return clk_get_rate(dss.dss2_fck);
-+	case DSS_CLK_54M:
-+		return clk_get_rate(dss.dss_54m_fck);
-+	case DSS_CLK_96M:
-+		return clk_get_rate(dss.dss_96m_fck);
-+	}
-+
-+	BUG();
-+	return 0;
-+}
-+
-+static unsigned count_clk_bits(enum dss_clock clks)
-+{
-+	unsigned num_clks = 0;
-+
-+	if (clks & DSS_CLK_ICK)
-+		++num_clks;
-+	if (clks & DSS_CLK_FCK1)
-+		++num_clks;
-+	if (clks & DSS_CLK_FCK2)
-+		++num_clks;
-+	if (clks & DSS_CLK_54M)
-+		++num_clks;
-+	if (clks & DSS_CLK_96M)
-+		++num_clks;
-+
-+	return num_clks;
-+}
-+
-+static void dss_clk_enable_no_ctx(enum dss_clock clks)
-+{
-+	unsigned num_clks = count_clk_bits(clks);
-+
-+	if (clks & DSS_CLK_ICK)
-+		clk_enable(dss.dss_ick);
-+	if (clks & DSS_CLK_FCK1)
-+		clk_enable(dss.dss1_fck);
-+	if (clks & DSS_CLK_FCK2)
-+		clk_enable(dss.dss2_fck);
-+	if (clks & DSS_CLK_54M)
-+		clk_enable(dss.dss_54m_fck);
-+	if (clks & DSS_CLK_96M)
-+		clk_enable(dss.dss_96m_fck);
-+
-+	dss.num_clks_enabled += num_clks;
-+}
-+
-+void dss_clk_enable(enum dss_clock clks)
-+{
-+	bool check_ctx = dss.num_clks_enabled == 0;
-+
-+	dss_clk_enable_no_ctx(clks);
-+
-+	if (check_ctx && cpu_is_omap34xx() && dss_need_ctx_restore())
-+		restore_all_ctx();
-+}
-+
-+static void dss_clk_disable_no_ctx(enum dss_clock clks)
-+{
-+	unsigned num_clks = count_clk_bits(clks);
-+
-+	if (clks & DSS_CLK_ICK)
-+		clk_disable(dss.dss_ick);
-+	if (clks & DSS_CLK_FCK1)
-+		clk_disable(dss.dss1_fck);
-+	if (clks & DSS_CLK_FCK2)
-+		clk_disable(dss.dss2_fck);
-+	if (clks & DSS_CLK_54M)
-+		clk_disable(dss.dss_54m_fck);
-+	if (clks & DSS_CLK_96M)
-+		clk_disable(dss.dss_96m_fck);
-+
-+	dss.num_clks_enabled -= num_clks;
-+}
-+
-+void dss_clk_disable(enum dss_clock clks)
-+{
-+	if (cpu_is_omap34xx()) {
-+		unsigned num_clks = count_clk_bits(clks);
-+
-+		BUG_ON(dss.num_clks_enabled < num_clks);
-+
-+		if (dss.num_clks_enabled == num_clks)
-+			save_all_ctx();
-+	}
-+
-+	dss_clk_disable_no_ctx(clks);
-+}
-+
-+static void dss_clk_enable_all_no_ctx(void)
-+{
-+	enum dss_clock clks;
-+
-+	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
-+	if (cpu_is_omap34xx())
-+		clks |= DSS_CLK_96M;
-+	dss_clk_enable_no_ctx(clks);
-+}
-+
-+static void dss_clk_disable_all_no_ctx(void)
-+{
-+	enum dss_clock clks;
-+
-+	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
-+	if (cpu_is_omap34xx())
-+		clks |= DSS_CLK_96M;
-+	dss_clk_disable_no_ctx(clks);
-+}
-+
-+static void dss_clk_disable_all(void)
-+{
-+	enum dss_clock clks;
-+
-+	clks = DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_FCK2 | DSS_CLK_54M;
-+	if (cpu_is_omap34xx())
-+		clks |= DSS_CLK_96M;
-+	dss_clk_disable(clks);
-+}
-+
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+/* CLOCKS */
-+static void core_dump_clocks(struct seq_file *s)
-+{
-+	int i;
-+	struct clk *clocks[5] = {
-+		dss.dss_ick,
-+		dss.dss1_fck,
-+		dss.dss2_fck,
-+		dss.dss_54m_fck,
-+		dss.dss_96m_fck
-+	};
-+
-+	seq_printf(s, "- CORE -\n");
-+
-+	seq_printf(s, "internal clk count\t\t%u\n", dss.num_clks_enabled);
-+
-+	for (i = 0; i < 5; i++) {
-+		if (!clocks[i])
-+			continue;
-+		seq_printf(s, "%-15s\t%lu\t%d\n",
-+				clocks[i]->name,
-+				clk_get_rate(clocks[i]),
-+				clocks[i]->usecount);
-+	}
-+}
-+#endif /* defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT) */
-+
-+/* DEBUGFS */
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+void dss_debug_dump_clocks(struct seq_file *s)
-+{
-+	core_dump_clocks(s);
-+	dss_dump_clocks(s);
-+	dispc_dump_clocks(s);
-+#ifdef CONFIG_OMAP2_DSS_DSI
-+	dsi_dump_clocks(s);
-+#endif
-+}
-+#endif
-+
-+
- /* DSS HW IP initialisation */
- static int omap_dsshw_probe(struct platform_device *pdev)
- {
--	return 0;
-+	int r;
-+
-+	dss.pdev = pdev;
-+
-+	r = dss_get_clocks();
-+	if (r)
-+		goto err_clocks;
-+
-+	dss_clk_enable_all_no_ctx();
-+
-+	dss.ctx_id = dss_get_ctx_id();
-+	DSSDBG("initial ctx id %u\n", dss.ctx_id);
-+
-+	dss_clk_disable_all_no_ctx();
-+err_clocks:
-+
-+	return r;
- }
- 
- static int omap_dsshw_remove(struct platform_device *pdev)
- {
-+	int c;
-+
-+	/* these should be removed at some point */
-+	c = dss.dss_ick->usecount;
-+	if (c > 0) {
-+		DSSERR("warning: dss_ick usecount %d, disabling\n", c);
-+		while (c-- > 0)
-+			clk_disable(dss.dss_ick);
-+	}
-+
-+	c = dss.dss1_fck->usecount;
-+	if (c > 0) {
-+		DSSERR("warning: dss1_fck usecount %d, disabling\n", c);
-+		while (c-- > 0)
-+			clk_disable(dss.dss1_fck);
-+	}
-+
-+	c = dss.dss2_fck->usecount;
-+	if (c > 0) {
-+		DSSERR("warning: dss2_fck usecount %d, disabling\n", c);
-+		while (c-- > 0)
-+			clk_disable(dss.dss2_fck);
-+	}
-+
-+	c = dss.dss_54m_fck->usecount;
-+	if (c > 0) {
-+		DSSERR("warning: dss_54m_fck usecount %d, disabling\n", c);
-+		while (c-- > 0)
-+			clk_disable(dss.dss_54m_fck);
-+	}
-+
-+	if (dss.dss_96m_fck) {
-+		c = dss.dss_96m_fck->usecount;
-+		if (c > 0) {
-+			DSSERR("warning: dss_96m_fck usecount %d, disabling\n",
-+					c);
-+			while (c-- > 0)
-+				clk_disable(dss.dss_96m_fck);
-+		}
-+	}
-+
-+	dss_put_clocks();
- 	return 0;
- }
- 
-@@ -104,7 +482,7 @@ static struct platform_driver omap_dsshw_driver = {
- 	.suspend	= NULL,
- 	.resume		= NULL,
- 	.driver         = {
--		.name   = "dss",
-+		.name   = "dss_dss",
- 		.owner  = THIS_MODULE,
- 	},
- };
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 5c7940d..0029aff 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -169,11 +169,6 @@ struct seq_file;
- struct platform_device;
- 
- /* core */
--void dss_clk_enable(enum dss_clock clks);
--void dss_clk_disable(enum dss_clock clks);
--unsigned long dss_clk_get_rate(enum dss_clock clk);
--int dss_need_ctx_restore(void);
--void dss_dump_clocks(struct seq_file *s);
- struct bus_type *dss_get_bus(void);
- struct regulator *dss_get_vdds_dsi(void);
- struct regulator *dss_get_vdds_sdi(void);
-@@ -219,8 +214,17 @@ void dss_exit(void);
- 
- void dss_save_context(void);
- void dss_restore_context(void);
-+void dss_clk_enable(enum dss_clock clks);
-+void dss_clk_disable(enum dss_clock clks);
-+unsigned long dss_clk_get_rate(enum dss_clock clk);
-+int dss_need_ctx_restore(void);
-+void dss_dump_clocks(struct seq_file *s);
-+
- 
- void dss_dump_regs(struct seq_file *s);
-+#if defined(CONFIG_DEBUG_FS) && defined(CONFIG_OMAP2_DSS_DEBUG_SUPPORT)
-+void dss_debug_dump_clocks(struct seq_file *s);
-+#endif
- 
- void dss_sdi_init(u8 datapairs);
- int dss_sdi_enable(void);
 -- 
-1.6.3.3
-
+Eduardo Valentin
