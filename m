@@ -1,23 +1,12 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v1 10/16] OMAP3: hwmod DSS: DSS Move init,exit to driver
-Date: Wed,  6 Oct 2010 16:44:53 +0530
-Message-ID: <1286363699-9614-11-git-send-email-svadivu@ti.com>
-References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
- <1286363699-9614-2-git-send-email-svadivu@ti.com>
- <1286363699-9614-3-git-send-email-svadivu@ti.com>
- <1286363699-9614-4-git-send-email-svadivu@ti.com>
- <1286363699-9614-5-git-send-email-svadivu@ti.com>
- <1286363699-9614-6-git-send-email-svadivu@ti.com>
- <1286363699-9614-7-git-send-email-svadivu@ti.com>
- <1286363699-9614-8-git-send-email-svadivu@ti.com>
- <1286363699-9614-9-git-send-email-svadivu@ti.com>
- <1286363699-9614-10-git-send-email-svadivu@ti.com>
+Subject: [PATCH v1 00/16] OMAP3: hwmod DSS Adaptation
+Date: Wed,  6 Oct 2010 16:44:43 +0530
+Message-ID: <1286363699-9614-1-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32917 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60261 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758885Ab0JFLPW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 6 Oct 2010 07:15:22 -0400
-In-Reply-To: <1286363699-9614-10-git-send-email-svadivu@ti.com>
+	id S1758875Ab0JFLPP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Oct 2010 07:15:15 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com, tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
@@ -25,97 +14,158 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Move init exit methods to its driver probe remove.
-pdev member has to be maintained by its own drivers.
+Patch Base:
+===========
+url = git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+branch "pm-core"
+Commit id: 1dce15672f62296d059c44e70684600a2c80d3d0 
+Description:  Merge branch 'pm-suspend' into pm-reset
+----------------------------------------------------------------------------
 
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
----
- drivers/video/omap2/dss/core.c |   16 ----------------
- drivers/video/omap2/dss/dss.c  |   16 ++++++++++++++++
- 2 files changed, 16 insertions(+), 16 deletions(-)
+v1 of the DSS HWMOD patch series focus on fixing the review comments and incorporating
+TODO listed in the RFC patch of HWMOD adaptation to the current DSS
+driver.
 
-diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index ce5240f..54fe333 100644
---- a/drivers/video/omap2/dss/core.c
-+++ b/drivers/video/omap2/dss/core.c
-@@ -193,18 +193,6 @@ static int omap_dss_probe(struct platform_device *pdev)
- 
- 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
- 
--#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
--	/* DISPC_CONTROL */
--	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
--		skip_init = 1;
--#endif
--
--	r = dss_init(skip_init);
--	if (r) {
--		DSSERR("Failed to initialize DSS\n");
--		goto err_dss;
--	}
--
- 	r = rfbi_init();
- 	if (r) {
- 		DSSERR("Failed to initialize rfbi\n");
-@@ -286,8 +274,6 @@ err_dispc:
- err_dpi:
- 	rfbi_exit();
- err_rfbi:
--	dss_exit();
--err_dss:
- 
- 	return r;
- }
-@@ -308,8 +294,6 @@ static int omap_dss_remove(struct platform_device *pdev)
- 		sdi_exit();
- 	}
- 
--	dss_exit();
--
- 	dss_uninit_overlays(pdev);
- 	dss_uninit_overlay_managers(pdev);
- 
-diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index fba8bcd..b93b118 100644
---- a/drivers/video/omap2/dss/dss.c
-+++ b/drivers/video/omap2/dss/dss.c
-@@ -410,6 +410,7 @@ void dss_debug_dump_clocks(struct seq_file *s)
- static int omap_dsshw_probe(struct platform_device *pdev)
- {
- 	int r;
-+	int skip_init = 0;
- 
- 	dss.pdev = pdev;
- 
-@@ -422,6 +423,19 @@ static int omap_dsshw_probe(struct platform_device *pdev)
- 	dss.ctx_id = dss_get_ctx_id();
- 	DSSDBG("initial ctx id %u\n", dss.ctx_id);
- 
-+#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
-+	/* DISPC_CONTROL */
-+	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
-+		skip_init = 1;
-+#endif
-+
-+	r = dss_init(skip_init);
-+	if (r) {
-+		DSSERR("Failed to initialize DSS\n");
-+		goto err_dss;
-+	}
-+
-+err_dss:
- 	dss_clk_disable_all_no_ctx();
- err_clocks:
- 
-@@ -432,6 +446,8 @@ static int omap_dsshw_remove(struct platform_device *pdev)
- {
- 	int c;
- 
-+	dss_exit();
-+
- 	/* these should be removed at some point */
- 	c = dss.dss_ick->usecount;
- 	if (c > 0) {
--- 
-1.6.3.3
+This patch series decouples the "Clocks for DSS in HWMOD adaptation" changes from
+this series.  Another series would be posted which could be discussed w.r.t clocks
+in DSS across omap2,3,4.
+
+v1 patch series got delayed as we could not get a conclusion on the clock adaptation
+across OMAP2,3,4, along with HWMOD hence decided to take up as a discussion in 
+seperate series.
+
+Summary of the HWMOD DSS design:
+================================
+DSS, DISPC, DSI, RFBI, VENC are made as platform drivers each 
+corresponding to the HWMOD class in the HWMOD database. 
+
+No Hardcoding of silicon data:
+HWMOD database abstracts the SOC data like base addr, irq numbers and are
+implemented in this patch series.
+
+Continue to have custom bus for display panels:
+"omapdss" driver continues to be a platform driver that registers the custom
+bus.  It also continues to register the display panels(omap_dss_device) on the
+board to the panel drivers (omap_dss_driver)
+For Eg:  primary lcd device would be registered with lcd panel driver.
+lcd panel driver if it is on a parallel interface would use library functions 
+exported from dpi.o.  if it is on a dsi interface would use library functions
+exported from dsi platform driver(dsi.o).
+
+Clocks:
+Handling of clocks in DSS only is one of the design approach, that does not
+change the existing implementation.  If each of the DSS HW IPs had to handle
+their own clocks, then corresponding clock changes are requested in the HWMOD
+database as well which is not the present scenario.  As stated, this would be
+handled in another series seperately.
+For Eg: VENC would need 54MCLK which is termed as dss_opt clocks as of now apart
+for the dss main clocks.  Currently VENC driver needs to be aware of this and has to
+use clk_get/put, clk_enable/disable, since VENC HWMOD is not aware of 54MCLK.
+
+
+Current dss driver:
+-------------------
+1.  Omapdss platform driver
+        - initialises necessary Ips dss, dispc.
+        - also initialises Ips like sdi, dsi, venc, rfbi
+        - creates a custom bus and registers the display devices/drivers
+        connected on the board to the custom bus.
+
+2.  Suspend/resume of omapdss
+        - in turn sends suspend/resume calls for each of the display devices
+        registered to it.
+
+Modified change:
+---------------
+Platform driver for each DSS HW IP in addition to the software "omapdss"
+driver.
+
+Omapdss platform driver
+        - initialises necessary software libraries like dpi, sdi.
+        - continues to have a custom bus and registers the display devices 
+        and drivers connected on the board to the custom bus.
+        - continues to handle suspend/resume of the display devices registered
+        to the custom bus.
+
+DSS platform driver
+        - initialises DSS IP alone
+	- Handles the clocks related to the DSS and other DSSHW IPs like RFBI,
+	DSI, VENC, DISPC.  Previously this was a part of "omapdss" driver in core.c
+	- Continues to handle the DSS IRQs.
+	- No suspend/resume hooks.
+
+DISPC platform driver
+        - initialises DSS IP alone
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide DISPC library functions.
+
+DSI platform driver
+        - initialises DSI IP alone
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide DISPC library functions.
+
+RFBI, VENC platform drivers
+        - initialises DSI,VENC IPs
+	- Gets the required clock from DSS platform driver.
+	- No suspend/resume hooks.
+	- Continues to provide DISPC library functions.
+
+The patches are tested on OMAP3430 and 3630.
+
+Changes since RFC:
+------------------
+1) All the platform driver registration except DSS, were within the file core.c.
+Registeration of these driver got seperated to its own file.
+2) Usage of regulators by different drivers are implemented.
+For Eg: Regulator used by VENC is moved to venc driver.  But vdda_dac would be 
+needed by DPI and DSI as well.
+4) OMAP2420 and OMAP2430 HWMOD database are generated in this v1.
+5) Module support for omapdss driver can continue as the DSS HW IP specific platform
+drivers are decoupled from omapdss driver.
+6) Following review comments incorporated:
+	Changed the HWMOD device name from "dss" to "dss_dss"
+	Changed name of core driver from "omapdss" to "omapdisplay" as it deals with panels.
+	Fixed comments on return values from platform_get_resource/irq functions.
+
+TODO:
+1.) SYSCONFIG of each of the dss HW IP has to be removed from the driver.
+HWMOD framework is supposed to take care of it.  This change would be done in 
+the next version of the patch series.
+2.) Dynamically register for OMAP2,3,4 specific DSS HW IPs in devices.c
+
+Senthilvadivu Guruswamy (16):
+  OMAP2420: hwmod data: add DSS DISPC RFBI VENC
+  OMAP2430: hwmod data: add DSS DISPC RFBI VENC
+  OMAP3: hwmod data: add DSS DISPC RFBI DSI VENC
+  OMAP3: hwmod data: change dss_hwmod to dss_dss_hwmod
+  OMAP3 DSS Driver register moved to mach_omap2
+  OMAP3: hwmod DSS: Build omap_device for each DSS HWIP
+  OMAP3: hwmod DSS: Create platform_driver for each DSS HW IP
+  OMAP3: clock data: change dss driver name
+  OMAP3: hwmod DSS: Move clocks from core driver to dss driver
+  OMAP3: hwmod DSS: DSS Move init,exit to driver
+  OMAP3: hwmod DSS: RFBI Move init,exit to driver
+  OMAP3: hwmod DSS: DISPC Move init,exit to driver
+  OMAP3: hwmod DSS: VENC Move init,exit to driver
+  OMAP3: hwmod DSS: DSI Move init, exit to driver
+  OMAP3: hwmod DSS: Use platform device to get baseaddr
+  OMAP3: hwmod DSS: Get DSS IRQ from platform device
+
+ arch/arm/mach-omap2/board-3430sdp.c        |   26 +--
+ arch/arm/mach-omap2/clock3xxx_data.c       |   14 +-
+ arch/arm/mach-omap2/devices.c              |   78 +++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |  278 +++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |  278 +++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  333 +++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/display.h  |   14 +
+ drivers/video/omap2/dss/core.c             |  447 +---------------------------
+ drivers/video/omap2/dss/dispc.c            |   50 +++-
+ drivers/video/omap2/dss/dsi.c              |   66 ++++-
+ drivers/video/omap2/dss/dss.c              |  448 +++++++++++++++++++++++++++-
+ drivers/video/omap2/dss/dss.h              |   14 +-
+ drivers/video/omap2/dss/rfbi.c             |   51 +++-
+ drivers/video/omap2/dss/venc.c             |   67 ++++-
+ 14 files changed, 1668 insertions(+), 496 deletions(-)
 
