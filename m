@@ -1,7 +1,7 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v1 07/16] OMAP3: hwmod DSS: Create platform_driver for each DSS HW IP
-Date: Wed,  6 Oct 2010 16:44:50 +0530
-Message-ID: <1286363699-9614-8-git-send-email-svadivu@ti.com>
+Subject: [PATCH v1 10/16] OMAP3: hwmod DSS: DSS Move init,exit to driver
+Date: Wed,  6 Oct 2010 16:44:53 +0530
+Message-ID: <1286363699-9614-11-git-send-email-svadivu@ti.com>
 References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
  <1286363699-9614-2-git-send-email-svadivu@ti.com>
  <1286363699-9614-3-git-send-email-svadivu@ti.com>
@@ -9,12 +9,15 @@ References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
  <1286363699-9614-5-git-send-email-svadivu@ti.com>
  <1286363699-9614-6-git-send-email-svadivu@ti.com>
  <1286363699-9614-7-git-send-email-svadivu@ti.com>
+ <1286363699-9614-8-git-send-email-svadivu@ti.com>
+ <1286363699-9614-9-git-send-email-svadivu@ti.com>
+ <1286363699-9614-10-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40972 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32917 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758876Ab0JFLPW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1758885Ab0JFLPW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 6 Oct 2010 07:15:22 -0400
-In-Reply-To: <1286363699-9614-7-git-send-email-svadivu@ti.com>
+In-Reply-To: <1286363699-9614-10-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com, tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
@@ -22,249 +25,97 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Platform driver of dsshw has to be registered before of dispc,
-rfbi, dsi1, venc and omapdisplay driver should be after all
-the hw IPs. Sequence it with arch_initcall and device_initcall_sync.
+Move init exit methods to its driver probe remove.
+pdev member has to be maintained by its own drivers.
+
+Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/dss/core.c  |    2 +-
- drivers/video/omap2/dss/dispc.c |   28 ++++++++++++++++++++++++++++
- drivers/video/omap2/dss/dsi.c   |   28 ++++++++++++++++++++++++++++
- drivers/video/omap2/dss/dss.c   |   30 ++++++++++++++++++++++++++++++
- drivers/video/omap2/dss/rfbi.c  |   29 +++++++++++++++++++++++++++++
- drivers/video/omap2/dss/venc.c  |   28 ++++++++++++++++++++++++++++
- 6 files changed, 144 insertions(+), 1 deletions(-)
+ drivers/video/omap2/dss/core.c |   16 ----------------
+ drivers/video/omap2/dss/dss.c  |   16 ++++++++++++++++
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/core.c b/drivers/video/omap2/dss/core.c
-index 0f267e6..7810a40 100644
+index ce5240f..54fe333 100644
 --- a/drivers/video/omap2/dss/core.c
 +++ b/drivers/video/omap2/dss/core.c
-@@ -986,7 +986,7 @@ static int __init omap_dss_init2(void)
- }
+@@ -193,18 +193,6 @@ static int omap_dss_probe(struct platform_device *pdev)
  
- core_initcall(omap_dss_init);
--device_initcall(omap_dss_init2);
-+device_initcall_sync(omap_dss_init2);
- #endif
+ 	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M);
  
- MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@nokia.com>");
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 5ecdc00..e48c6fa 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -186,6 +186,26 @@ static inline u32 dispc_read_reg(const struct dispc_reg idx)
- 	return __raw_readl(dispc.base + idx.idx);
- }
- 
-+/* DISPC HW IP initialisation */
-+static int omap_dispchw_probe(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int omap_dispchw_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static struct platform_driver omap_dispchw_driver = {
-+	.probe          = omap_dispchw_probe,
-+	.remove         = omap_dispchw_remove,
-+	.driver         = {
-+		.name   = "dss_dispc",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
- #define SR(reg) \
- 	dispc.ctx[(DISPC_##reg).idx / sizeof(u32)] = dispc_read_reg(DISPC_##reg)
- #define RR(reg) \
-@@ -3187,3 +3207,11 @@ int dispc_setup_plane(enum omap_plane plane,
+-#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
+-	/* DISPC_CONTROL */
+-	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
+-		skip_init = 1;
+-#endif
+-
+-	r = dss_init(skip_init);
+-	if (r) {
+-		DSSERR("Failed to initialize DSS\n");
+-		goto err_dss;
+-	}
+-
+ 	r = rfbi_init();
+ 	if (r) {
+ 		DSSERR("Failed to initialize rfbi\n");
+@@ -286,8 +274,6 @@ err_dispc:
+ err_dpi:
+ 	rfbi_exit();
+ err_rfbi:
+-	dss_exit();
+-err_dss:
  
  	return r;
  }
-+
-+static int __init omap_dispc_init(void)
-+{
-+	return platform_driver_register(&omap_dispchw_driver);
-+}
-+
-+device_initcall(omap_dispc_init);
-+
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index b3fa3a7..fd49663 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -292,6 +292,26 @@ static inline u32 dsi_read_reg(const struct dsi_reg idx)
- 	return __raw_readl(dsi.base + idx.idx);
- }
+@@ -308,8 +294,6 @@ static int omap_dss_remove(struct platform_device *pdev)
+ 		sdi_exit();
+ 	}
  
-+/* DSI1 HW IP initialisation */
-+static int omap_dsi1hw_probe(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int omap_dsi1hw_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static struct platform_driver omap_dsi1hw_driver = {
-+	.probe          = omap_dsi1hw_probe,
-+	.remove         = omap_dsi1hw_remove,
-+	.driver         = {
-+		.name   = "dss_dsi1",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
+-	dss_exit();
+-
+ 	dss_uninit_overlays(pdev);
+ 	dss_uninit_overlay_managers(pdev);
  
- void dsi_save_context(void)
- {
-@@ -3305,3 +3325,11 @@ void dsi_exit(void)
- 	DSSDBG("omap_dsi_exit\n");
- }
- 
-+static int __init omap_dsi1_init(void)
-+{
-+	return platform_driver_register(&omap_dsi1hw_driver);
-+}
-+
-+device_initcall(omap_dsi1_init);
-+
-+
 diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
-index 77c3621..66ef804 100644
+index fba8bcd..b93b118 100644
 --- a/drivers/video/omap2/dss/dss.c
 +++ b/drivers/video/omap2/dss/dss.c
-@@ -86,6 +86,29 @@ static inline u32 dss_read_reg(const struct dss_reg idx)
- 	return __raw_readl(dss.base + idx.idx);
- }
- 
-+/* DSS HW IP initialisation */
-+static int omap_dsshw_probe(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int omap_dsshw_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static struct platform_driver omap_dsshw_driver = {
-+	.probe          = omap_dsshw_probe,
-+	.remove         = omap_dsshw_remove,
-+	.shutdown	= NULL,
-+	.suspend	= NULL,
-+	.resume		= NULL,
-+	.driver         = {
-+		.name   = "dss",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
- #define SR(reg) \
- 	dss.ctx[(DSS_##reg).idx / sizeof(u32)] = dss_read_reg(DSS_##reg)
- #define RR(reg) \
-@@ -639,3 +662,10 @@ void dss_exit(void)
- 	iounmap(dss.base);
- }
- 
-+static int __init omap_dss_init1(void)
-+{
-+	return platform_driver_register(&omap_dsshw_driver);
-+}
-+
-+arch_initcall(omap_dss_init1);
-+
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
-index bbe6246..23598ea 100644
---- a/drivers/video/omap2/dss/rfbi.c
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -139,6 +139,27 @@ static inline u32 rfbi_read_reg(const struct rfbi_reg idx)
- 	return __raw_readl(rfbi.base + idx.idx);
- }
- 
-+/* RFBI HW IP initialisation */
-+static int omap_rfbihw_probe(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int omap_rfbihw_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static struct platform_driver omap_rfbihw_driver = {
-+	.probe          = omap_rfbihw_probe,
-+	.remove         = omap_rfbihw_remove,
-+	.driver         = {
-+		.name   = "dss_rfbi",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+
- static void rfbi_enable_clocks(bool enable)
+@@ -410,6 +410,7 @@ void dss_debug_dump_clocks(struct seq_file *s)
+ static int omap_dsshw_probe(struct platform_device *pdev)
  {
- 	if (enable)
-@@ -1054,3 +1075,11 @@ int rfbi_init_display(struct omap_dss_device *dssdev)
- 	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
- 	return 0;
- }
-+
-+static int __init omap_rfbi_init(void)
-+{
-+	return platform_driver_register(&omap_rfbihw_driver);
-+}
-+
-+device_initcall(omap_rfbi_init);
-+
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index eff3505..ec17b28 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -87,6 +87,26 @@
- #define VENC_OUTPUT_TEST			0xC8
- #define VENC_DAC_B__DAC_C			0xC8
+ 	int r;
++	int skip_init = 0;
  
-+/* VENC HW IP initialisation */
-+static int omap_venchw_probe(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int omap_venchw_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static struct platform_driver omap_venchw_driver = {
-+	.probe          = omap_venchw_probe,
-+	.remove         = omap_venchw_remove,
-+	.driver         = {
-+		.name   = "dss_venc",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
- struct venc_config {
- 	u32 f_control;
- 	u32 vidout_ctrl;
-@@ -740,3 +760,11 @@ void venc_dump_regs(struct seq_file *s)
+ 	dss.pdev = pdev;
  
- #undef DUMPREG
- }
+@@ -422,6 +423,19 @@ static int omap_dsshw_probe(struct platform_device *pdev)
+ 	dss.ctx_id = dss_get_ctx_id();
+ 	DSSDBG("initial ctx id %u\n", dss.ctx_id);
+ 
++#ifdef CONFIG_FB_OMAP_BOOTLOADER_INIT
++	/* DISPC_CONTROL */
++	if (omap_readl(0x48050440) & 1)	/* LCD enabled? */
++		skip_init = 1;
++#endif
 +
-+static int __init omap_venc_init(void)
-+{
-+	return platform_driver_register(&omap_venchw_driver);
-+}
++	r = dss_init(skip_init);
++	if (r) {
++		DSSERR("Failed to initialize DSS\n");
++		goto err_dss;
++	}
 +
-+device_initcall(omap_venc_init);
++err_dss:
+ 	dss_clk_disable_all_no_ctx();
+ err_clocks:
+ 
+@@ -432,6 +446,8 @@ static int omap_dsshw_remove(struct platform_device *pdev)
+ {
+ 	int c;
+ 
++	dss_exit();
 +
+ 	/* these should be removed at some point */
+ 	c = dss.dss_ick->usecount;
+ 	if (c > 0) {
 -- 
 1.6.3.3
 
