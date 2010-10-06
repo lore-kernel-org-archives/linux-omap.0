@@ -1,63 +1,65 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
-Date: Wed, 6 Oct 2010 14:21:25 -0500
-Message-ID: <0EC8219DBABE4090A83D697ED46D260E@am.dhcp.ti.com>
-References: <cover.1266847842.git.david.vrabel@csr.com>    <20100827192248.GJ20407@void.printf.net> <4C7CC480.2040903@csr.com>    <4C7F3E0F.2080402@compulab.co.il>    <AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com>    <C903F2608D694655921F553D0D3557E3@am.dhcp.ti.com>    <AANLkTikskMMFWS+qxD+J=o6OiOa+d5H02DiT1iZ95vkz@mail.gmail.com>    <CD6B4CE9F7FA427BBD19242F669AD014@am.dhcp.ti.com>    <AANLkTin-r5Svg1+YrdYq95WA6=sh7+X0Bwogk=h0V6pP@mail.gmail.com>    <4CAC146D.3040001@compulab.co.il>    <AANLkTi=kmLuUyD-9k-Xa5vfgvjx2nNUGfyADhoY0HC1i@mail.gmail.com>    <4CAC7D65.8010705@compulab.co.il>    <AANLkTikvduxP+gQOs4HvZz2Yw6KCrqHAyim0Ads0Bvj_@mail.gmail.com> <56009.192.168.10.88.1286389699.squirrel@dbdmail.itg.ti.com> <4CACC7A8.6010209@csr.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
+Date: Wed, 6 Oct 2010 21:33:10 +0200
+Message-ID: <201010062133.10387.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1010061156460.2047-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4CACC7A8.6010209@csr.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: 'David Vrabel' <david.vrabel@csr.com>
-Cc: 'Steve Sakoman' <sakoman@gmail.com>, 'Mike Rapoport' <mike@compulab.co.il>, 'Chris Ball' <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, 'Adrian Hunter' <adrian.hunter@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:51152 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757530Ab0JFTdw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 6 Oct 2010 15:33:52 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1010061156460.2047-100000@iolanthe.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
+On Wednesday, October 06, 2010, Alan Stern wrote:
+> On Tue, 5 Oct 2010, Kevin Hilman wrote:
+> 
+> > Alan Stern <stern@rowland.harvard.edu> writes:
+> > 
+> > > On Fri, 1 Oct 2010, Rafael J. Wysocki wrote:
+> > >
+> > >> > > In my opinion the _irq operations should really be one-shot, without
+> > >> > > any looping, waking up parents etc.  I mean, if the parent is not RPM_ACTIVE,
+> > >> > > the _irq resume should immediately fail and analogously for the _irq
+> > >> > > suspend.  And so on.  As simple as reasonably possible.
+> > >> > 
+> > >> > But what if the device's own status is currently SUSPENDING or
+> > >> > RESUMING?  Do you want to fail when that happens, instead of waiting
+> > >> > for the concurrent operation to finish?
+> > >> 
+> > >> Yes.  IMO an _irq() suspend should only be allowed if the status is RPM_ACTIVE
+> > >> and an _irq() resume should fail if the status is not RPM_SUSPENDED.  The
+> > >> error code returned should depend on the situation, though.
+> > >> 
+> > >> > There's no way to prevent this
+> > >> > on SMP systems, because a wakeup request can arrive while a
+> > >> > software-initiated resume is in progress.
+> > >> 
+> > >> I know that. :-)
+> > >
+> > > I suspect Kevin will not want to live with this restriction, but I'd
+> > > like to hear from him.  Kevin?
+> > 
+> > [ Apologies for the delays... I've been running around preparing OMAP PM
+> >   stuff for the upcoming merge window. ]
+> > 
+> > I think I can live with the above restrictions (the _irq methods failing
+> > unless they can immediately run.)  For the rare corner cases I've
+> > currently run into, this will work fine as they happen because of a
+> > wakeup IRQ, where we know the device is RPM_SUSPENDED.
+> 
+> Then what will the driver do if it gets a wakeup IRQ but it can't
+> resume the device because some other thread is in the middle of a
+> suspend or resume?
 
+Queue up a resume request and return.
 
-> -----Original Message-----
-> From: David Vrabel [mailto:david.vrabel@csr.com]
-> Sent: Wednesday, October 06, 2010 2:02 PM
-> To: Madhusudhan Chikkature
-> Cc: Steve Sakoman; Mike Rapoport; Chris Ball; linux-mmc@vger.kernel.org;
-> linux-omap@vger.kernel.org; Adrian Hunter
-> Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
-> 
-> Madhusudhan Chikkature wrote:
-> >
-> > This version should apply fine on the latest kernel. I did a sanity test
-> of
-> > MMC/SD cards on OMAP4 SDP.
-> 
-> This /looks/ okay to me, but I can't test it.
-> 
-> > From 08b77fd388f19f5df3758a2c59dcdec280f373c8 Mon Sep 17 00:00:00 2001
-> > From: David Vrabel <david.vrabel@csr.com>
-> > Date: Wed, 6 Oct 2010 12:39:18 -0500
-> > Subject: [PATCH 1/2] mmc: omap_hsmmc: enable SDIO card interrupts
-> >
-> [...]
-> >
-> > The writes to STAT and ISE when starting a command are unnecessary and
-> > have been removed.
-> 
-> Remove this last paragraph from the description as it isn't applicable
-> any more.
-> 
-Sure.
-
-Regards,
-Madhu
-
-> David
-> --
-> David Vrabel, Senior Software Engineer, Drivers
-> CSR, Churchill House, Cambridge Business Park,  Tel: +44 (0)1223 692562
-> Cowley Road, Cambridge, CB4 0WZ                 http://www.csr.com/
-> 
-> 
-> Member of the CSR plc group of companies. CSR plc registered in England
-> and Wales, registered number 4187346, registered office Churchill House,
-> Cambridge Business Park, Cowley Road, Cambridge, CB4 0WZ, United Kingdom
-
+Thanks,
+Rafael
