@@ -1,73 +1,58 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
-Date: Thu, 7 Oct 2010 06:56:52 -0700
-Message-ID: <AANLkTimvHnLAchE-Ed1Zve-PU6S98Euj=bFaAtkDWWji@mail.gmail.com>
-References: <cover.1266847842.git.david.vrabel@csr.com>
-	<20100827192248.GJ20407@void.printf.net>
-	<4C7CC480.2040903@csr.com>
-	<4C7F3E0F.2080402@compulab.co.il>
-	<AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com>
-	<C903F2608D694655921F553D0D3557E3@am.dhcp.ti.com>
-	<AANLkTikskMMFWS+qxD+J=o6OiOa+d5H02DiT1iZ95vkz@mail.gmail.com>
-	<CD6B4CE9F7FA427BBD19242F669AD014@am.dhcp.ti.com>
-	<AANLkTin-r5Svg1+YrdYq95WA6=sh7+X0Bwogk=h0V6pP@mail.gmail.com>
-	<4CAC146D.3040001@compulab.co.il>
-	<AANLkTi=kmLuUyD-9k-Xa5vfgvjx2nNUGfyADhoY0HC1i@mail.gmail.com>
-	<4CAC7D65.8010705@compulab.co.il>
-	<AANLkTikvduxP+gQOs4HvZz2Yw6KCrqHAyim0Ads0Bvj_@mail.gmail.com>
-	<56009.192.168.10.88.1286389699.squirrel@dbdmail.itg.ti.com>
-	<4CAD739B.4090909@compulab.co.il>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
+Date: Thu, 7 Oct 2010 16:01:02 +0200
+Message-ID: <201010071601.04597.laurent.pinchart@ideasonboard.com>
+References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com> <201010070940.14208.laurent.pinchart@ideasonboard.com> <20101007083242.GB14554@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4CAD739B.4090909@compulab.co.il>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>, David Vrabel <david.vrabel@csr.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:59656 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754584Ab0JGOAx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 10:00:53 -0400
+In-Reply-To: <20101007083242.GB14554@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ernesto Ramos <ernesto@ti.com>, linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
 
-On Thu, Oct 7, 2010 at 12:15 AM, Mike Rapoport <mike@compulab.co.il> wr=
-ote:
-> Hi Madhu,
->
-> Madhusudhan Chikkature wrote:
->>
->> <snip>
->>
->>> You are correct! =A0The version of the patch in the repo indeed has
->>> 'out' in the wrong place and generates a compile error.
->>>
->>> Could you post the patch you are using and I will try to reproduce
->>> what you are seeing on my hardware? =A0Best we all work from exactl=
-y the
->>> same patch!
->>>
->>> Steve
->>>
->>
->> Yes. I think that check breaking the compilation is not needed. How =
-about
->> the
->> below version? It just removes that check.
->>
->> This version should apply fine on the latest kernel. I did a sanity =
-test
->> of
->> MMC/SD cards on OMAP4 SDP.
->>
->> Steve or Mike can check if SDIO interrupts are working.
->
-> With you patch I get the same:
->
-> libertas_sdio: Libertas SDIO driver
-> libertas_sdio: Copyright Pierre Ossman
-> libertas: command 0x0003 timed out
-> libertas: Timeout submitting command 0x0003
-> libertas: PREP_CMD: command 0x0003 failed: -110
-> libertas_sdio: probe of mmc1:0001:1 failed with error -110
+Hi Russell
 
-I can confirm exactly the same behavior on my hardware with this
-version of the patch.
+On Thursday 07 October 2010 10:32:42 Russell King - ARM Linux wrote:
+> On Thu, Oct 07, 2010 at 09:40:12AM +0200, Laurent Pinchart wrote:
+> > Hi Omar,
+> > 
+> > On Thursday 07 October 2010 07:45:36 Omar Ramirez Luna wrote:
+> > > tidspbridge driver uses a block of memory denominated SHared Memory
+> > > to store info & communicate with DSP, this SHM needs to be physically
+> > > contiguous and non-cacheable,
+> > 
+> > There are non-cacheable mappings, but there's no such thing as
+> > non-cacheable memory. Does the MPU mapping for that SHM block really
+> > needs to be non- cacheable, your could you instead flush the cache after
+> > writing to it (performance issues might be involved, I don't know the
+> > details about that SHM usage) ?
+> 
+> ARMv6 and above don't like having multiple mappings with different
+> memory type/shareability/cache attributes.  It's architecturally
+> forbidden.
+> 
+> So if you want non-cacheable memory and you want to be architecturally
+> compliant, you have to exclude it from the kernel's direct-mapped
+> memory mapping.
 
-Steve
+That's why Omar's patch uses 'mem=' to exclude system memory from the kernel 
+mappings. That's not ideal though, as that memory will be wasted forever, 
+hence my comments regarding whether a non-cacheable mapping was really 
+required.
+
+Do we have an infrastructure, or even an embryo thereof, to remove pages from 
+the kernel's direct-mapped memory mapping at runtime ? The use of super pages 
+probably complicates the matter.
+
+-- 
+Regards,
+
+Laurent Pinchart
