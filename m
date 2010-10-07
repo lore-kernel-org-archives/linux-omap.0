@@ -1,26 +1,27 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
 Subject: Re: linux-omap/master is not booting up on OMAP3EVM
-Date: Thu, 7 Oct 2010 18:15:03 +0530
-Message-ID: <AANLkTikJ35RScRZs51VS2jsGbH3WUQF4UT6LkkNu+CQW@mail.gmail.com>
+Date: Thu, 7 Oct 2010 14:47:03 +0200
+Message-ID: <AANLkTi=xKZH8vDUuM90461xnQ2_FRi_33U2tN_JNT+vq@mail.gmail.com>
 References: <19F8576C6E063C45BE387C64729E739404AA21D110@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:38637 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753283Ab0JGMq0 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Oct 2010 08:46:26 -0400
-Received: by mail-ww0-f45.google.com with SMTP id 36so630708wwa.14
-        for <linux-omap@vger.kernel.org>; Thu, 07 Oct 2010 05:45:23 -0700 (PDT)
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:33750 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755296Ab0JGMrE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 08:47:04 -0400
+Received: by qwf7 with SMTP id 7so12416qwf.19
+        for <linux-omap@vger.kernel.org>; Thu, 07 Oct 2010 05:47:03 -0700 (PDT)
 In-Reply-To: <19F8576C6E063C45BE387C64729E739404AA21D110@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 7, 2010 at 6:03 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wro=
+Hi,
+
+On Thu, Oct 7, 2010 at 2:33 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wro=
 te:
 > Hi,
 >
@@ -30,15 +31,6 @@ I am using omap2plus_defcofnig without any changes.
 > I tried enableing early_printk option then found that it is hanging i=
 mmediately after serial initialization, below is the log for reference =
 -
-
-
-You have CONFIG_SERIAL_OMAP enabled. But you're still using ttyS0 in
-your bootargs.
-
-You'll need to change this to ttyO0.
-
-- Anand
-
 >
 >
 > ----------------------LOG-----------------------------
@@ -203,6 +195,14 @@ ecision)
 abled
 > [ =A0 =A00.960083] omap-hsuart.0: ttyO0 at MMIO 0x4806a000 (irq =3D 7=
 2) is a OMAP UART0
+
+You need to use ttyO0 for the console, since the new omap-hsuart is
+now used instead of the 8250 driver.
+
+I hope this helps!
+
+Jean
+
 > ; =A0=AE=B6=B6V=3D=AF=B0=A1=B3
 > =A0 =A0 =A0 =A0 =A0 =A02s14?=A04=AD=A5/0400=A8=C91=3D=B7=A0?=A0=B5!
 > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
