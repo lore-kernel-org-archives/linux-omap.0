@@ -1,90 +1,53 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
-Date: Wed, 06 Oct 2010 16:51:47 -0700
-Message-ID: <87hbgyg9rg.fsf@deeprootsystems.com>
-References: <Pine.LNX.4.44L0.1010061609060.2047-100000@iolanthe.rowland.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: Fix HWCAP_TLS flag for ARM11MPCore/Cortex-A9
+Date: Wed, 6 Oct 2010 17:00:23 -0700
+Message-ID: <20101007000022.GD4859@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:56692 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752533Ab0JFXvv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 19:51:51 -0400
-Received: by pvg2 with SMTP id 2so21246pvg.19
-        for <linux-omap@vger.kernel.org>; Wed, 06 Oct 2010 16:51:50 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1010061609060.2047-100000@iolanthe.rowland.org>
-	(Alan Stern's message of "Wed, 6 Oct 2010 16:28:19 -0400 (EDT)")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55751 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752533Ab0JGAAf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 20:00:35 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Daniel Walker <dwalker@codeaurora.org>, linux-omap@vger.kernel.org
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+Commit 14eff1812679c76564b775aa95cdd378965f6cfb added proper
+detection for ARM11MPCore/Cortex-A9 instead of detecting them
+as ARMv7. However, it was missing the HWCAP_TLS flags.
 
-> On Wed, 6 Oct 2010, Kevin Hilman wrote:
->
->> >> I think I can live with the above restrictions (the _irq methods failing
->> >> unless they can immediately run.)  For the rare corner cases I've
->> >> currently run into, this will work fine as they happen because of a
->> >> wakeup IRQ, where we know the device is RPM_SUSPENDED.
->> >
->> > Then what will the driver do if it gets a wakeup IRQ but it can't
->> > resume the device because some other thread is in the middle of a
->> > suspend or resume?
->> 
->> In those cases, I guess it will have to return IRQ_NONE, and print some
->> sort of error.
->
-> Without handling the IRQ?  I guess if the transient state (SUSPENDING
-> or RESUMING) ends quickly enough then the kernel won't permanently
-> disable the IRQ line (although getting hundreds of repeated error
-> messages in the system log might prove daunting).  Would you want to 
-> rely on that?
+HWCAP_TLS is needed if support for earlier ARMv6 is compiled
+into the same kernel. Without HWCAP_TLS flags the userspace
+won't work unless nosmp is specified:
 
-Probably not, I think the delayed approach is better.
+Kernel panic - not syncing: Attempted to kill init!
+CPU0: stopping
+<c005d5e4>] (unwind_backtrace+0x0/0xec) from [<c004c2f8>] (do_IPI+0xfc/0x184)
+<c004c2f8>] (do_IPI+0xfc/0x184) from [<c03f25bc>] (__irq_svc+0x9c/0x160)
+Exception stack(0xc0565f80 to 0xc0565fc8)
+5f80: 00000001 c05772a0 00000000 00003a61 c0564000 c05cf500 c003603c c0578600
+5fa0: 80033ef0 410fc091 0000001f 00000000 00000000 c0565fc8 c00b91f8 c0057cb4
+5fc0: 20000013 ffffffff
+[<c03f25bc>] (__irq_svc+0x9c/0x160) from [<c0057cb4>] (default_idle+0x30/0x38)
+[<c0057cb4>] (default_idle+0x30/0x38) from [<c005829c>] (cpu_idle+0x9c/0xf8)
+[<c005829c>] (cpu_idle+0x9c/0xf8) from [<c0008d48>] (start_kernel+0x2a4/0x300)
+[<c0008d48>] (start_kernel+0x2a4/0x300) from [<80008084>] (0x80008084)
 
->>  Alternatively, it could fall back to the high-latency
->> case of masking the IRQ and doing an asynchronous call then call the ISR
->> in the runtime_resume callback.
->
-> Yes, this probably would be acceptable since it wouldn't happen very 
-> often.  Still, having two different pathways (one of which is very low 
-> probability) usually isn't a good idea.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
->> For the corner cases that I've run into, other transitions will not be
->> in progress because system has just woken up (so no threads are in the
->> middle of suspends or resumes) and the IRQ fires as soon as pm_idle
->> enables interrupts, and before there's a chance to schedule anything
->> else.
->
-> Ah, but once you integrate the runtime PM framework into your driver, 
-> you run the risk of resumes occurring for reasons that aren't under 
-> your control.  For example, the user can force a runtime-suspended 
-> device to resume by writing "on" to the device's power/control sysfs 
-> attribute.  What would happen if a wakeup IRQ arrived just as the 
-> resume was starting?
-
-I guess the "mask-IRQ, pm_runtime_get(), return" approach would work
-here too.  But I agree with you about the drivers having to handle both
-of these cases is not the greatest.
-
-> (Actually, this particular failure mode shouldn't concern you very much
-> since it applies only to SMP systems.  But it's important to think of
-> the future -- I can imagine SMP OMAPs coming out before too long.)
-
-It already concerns me since I'm working on SMP OMAPs too.  The OMAP4 is
-a dual ARM Cortex A9[1].
-
-> On the whole, I don't see any striking reason for the PM core not to
-> busy-wait during a concurrent state change.  Refusing to wake up a
-> suspended parent ... okay, maybe that's a little more defensible.
-> Especially since in many or most cases the parent (if there is one)
-> will probably be runtime-PM-disabled anyway.
-
-Not sure I follow where you're going with this last paragraph.  Of
-course, calls from ISR context cannot busy wait.
-
-Kevin
-
-
-[1] http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12842&contentId=53247
+diff --git a/arch/arm/mm/proc-v7.S b/arch/arm/mm/proc-v7.S
+index df422fe..8370960 100644
+--- a/arch/arm/mm/proc-v7.S
++++ b/arch/arm/mm/proc-v7.S
+@@ -372,7 +372,7 @@ __v7_ca9mp_proc_info:
+ 	b	__v7_ca9mp_setup
+ 	.long	cpu_arch_name
+ 	.long	cpu_elf_name
+-	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP
++	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_TLS
+ 	.long	cpu_v7_name
+ 	.long	v7_processor_functions
+ 	.long	v7wbi_tlb_fns
