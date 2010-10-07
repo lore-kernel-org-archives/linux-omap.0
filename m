@@ -1,39 +1,47 @@
-From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH] OMAP3: DSS2: DSI: Remove extra iounmap in error path
-Date: Thu,  7 Oct 2010 16:58:04 +0530
-Message-ID: <1286450884-3597-1-git-send-email-svadivu@ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH v2 09/10] OMAP2/3: Convert write/read functions to raw
+ read/write
+Date: Thu, 7 Oct 2010 07:17:08 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C014F74831E@dlee02.ent.ti.com>
+References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
+ <1285063280-4057-10-git-send-email-manjugk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34282 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760320Ab0JGL2O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 07:28:14 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:56999 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755306Ab0JGMRh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 08:17:37 -0400
+In-Reply-To: <1285063280-4057-10-git-send-email-manjugk@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com, linux-omap@vger.kernel.org
-Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 
-From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-iounmap is already done in label err2: so extra iounmap in
-the error handling path could be removed.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
+> Sent: Tuesday, September 21, 2010 5:01 AM
+> To: linux-omap@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org; linux-mtd@lists.infradead.org
+> Subject: [PATCH v2 09/10] OMAP2/3: Convert write/read functions to raw
+> read/write
+> 
+> Following sparse warnings exists due to use of writel/w and readl/w
+> functions.
+> 
+> This patch fixes the sparse warnings by converting readl/w functions usage
+> into
+> __raw_readl/__raw_readw functions.
 
-Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
----
- drivers/video/omap2/dss/dsi.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Apologies on bringing up an old topic here -> Is'nt it better to fix readl/w or writel/w than replacing it with __raw_readl/w etc?
 
-diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index b3fa3a7..aa4f7a5 100644
---- a/drivers/video/omap2/dss/dsi.c
-+++ b/drivers/video/omap2/dss/dsi.c
-@@ -3274,7 +3274,6 @@ int dsi_init(struct platform_device *pdev)
- 
- 	dsi.vdds_dsi_reg = dss_get_vdds_dsi();
- 	if (IS_ERR(dsi.vdds_dsi_reg)) {
--		iounmap(dsi.base);
- 		DSSERR("can't get VDDS_DSI regulator\n");
- 		r = PTR_ERR(dsi.vdds_dsi_reg);
- 		goto err2;
--- 
-1.6.3.3
 
+
+Regards,
+Nishanth Menon
+
+[...]
