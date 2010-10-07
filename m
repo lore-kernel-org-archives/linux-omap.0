@@ -1,69 +1,40 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH] power: introduce library for device-specific OPPs
-Date: Thu, 7 Oct 2010 17:15:15 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C014F748B1A@dlee02.ent.ti.com>
-References: <1286357180-21565-1-git-send-email-nm@ti.com>
-	<201010072354.57011.rjw@sisk.pl>
-	<7A436F7769CA33409C6B44B358BFFF0C014F748B07@dlee02.ent.ti.com>
-	<87fwwh7isu.fsf@deeprootsystems.com>
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: g_ether broken on musb
+Date: Fri, 8 Oct 2010 01:37:18 +0300
+Message-ID: <AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
+References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
+	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87fwwh7isu.fsf@deeprootsystems.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: l-o <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, linux-pm <linux-pm@lists.linux-foundation.org>, Paul <paulmck@linux.vnet.ibm.com>, l-a <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, October 07, 2010 5:14 PM
-> To: Menon, Nishanth
-> Cc: Rafael J. Wysocki; linux-pm; lkml; l-o; l-a; Paul
-> Subject: Re: [PATCH] power: introduce library for device-specific OPPs
-> 
-[...]
-> >> > +static int opp_set_availability(struct device *dev, unsigned long
-> freq,
-> >> > +		bool availability_req)
-> >> > +{
-> >> > +	struct device_opp *tmp_dev_opp, *dev_opp = NULL;
-> >> > +	struct opp *new_opp, *tmp_opp, *opp = ERR_PTR(-ENODEV);
-> >> > +	int r = 0;
-> >> > +
-> >> > +	/* keep the node allocated */
-> >> > +	new_opp = kmalloc(sizeof(struct opp), GFP_KERNEL);
-> >> > +	if (!new_opp) {
-> >> > +		pr_warning("Unable to allocate opp\n");
-> >>
-> >> Please add an identification string to the messages, something like
-> >> "OPP: Unable to allocat object\n" (and similarly in the other messages).
-> >> That would help to find the source of a message in case there's any
-> >> problem.
-> >
-> > pr_fmt has been reformatted for this. The actual message which will
-> appear
-> > is as follows:
-> > opp_set_availability: Unable to allocate opp
-> >
-> > is'nt that good enough considering that all functions are opp_ prefixed?
-> > I can modify pr_fmt to add "OPP:" but I kinda think it is redundant. But
-> I
-> > have no strong opinions on that and look forward to your recommendations.
-> 
-> Even more informative would be to use dev_warn() and include the func.
-> That way we'll even know which device has the problem.
-Ack. Thanks. Yeah, this is better.. will do the change.
+>> Looks like the transfers get mixed somehow? Curiously after repluggi=
+ng
+>> the cable several times it starts working properly, however the
+>> problem comes back reliably after each reboot.
+>
+> Please apply the patch below against -next tree to see if
+> your issue can be fixed:
+>
+> =A0 =A0 =A0 http://marc.info/?l=3Dlinux-usb&m=3D128576494214316&w=3D2
+>
 
-Regards,
-Nishanth Menon
+Doesn't seem to help:
+# ping pnd
+PING pnd (10.0.1.2) 56(84) bytes of data.
+64 bytes from pnd (10.0.1.2): icmp_seq=3D3 ttl=3D64 time=3D3000 ms
+64 bytes from pnd (10.0.1.2): icmp_seq=3D2 ttl=3D64 time=3D5000 ms
+64 bytes from pnd (10.0.1.2): icmp_seq=3D1 ttl=3D64 time=3D7007 ms
+64 bytes from pnd (10.0.1.2): icmp_seq=3D9 ttl=3D64 time=3D0.135 ms
+64 bytes from pnd (10.0.1.2): icmp_seq=3D11 ttl=3D64 time=3D2000 ms
+64 bytes from pnd (10.0.1.2): icmp_seq=3D10 ttl=3D64 time=3D4000 ms
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
