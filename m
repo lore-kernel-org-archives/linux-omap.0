@@ -1,37 +1,51 @@
-From: Daniel Walker <dwalker@codeaurora.org>
-Subject: Re: [PATCH] ARM: Fix HWCAP_TLS flag for ARM11MPCore/Cortex-A9
-Date: Wed, 06 Oct 2010 18:00:04 -0700
-Message-ID: <1286413204.22265.149.camel@m0nster>
-References: <20101007000022.GD4859@atomide.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [PATCH 0/2] omap: dsp: make the driver actually work
+Date: Wed, 6 Oct 2010 20:32:48 -0500
+Message-ID: <4CAD2340.9040305@ti.com>
+References: <1286208555-8829-1-git-send-email-felipe.contreras@gmail.com>	<20101005190741.GC20825@kroah.com>	<AANLkTikOBWxXh7uVrDxfW3OnwOM58JTXU76KUUoQWBWM@mail.gmail.com>	<27F9C60D11D683428E133F85D2BB4A5304681D4889@dlee03.ent.ti.com>	<AANLkTin=k07hUq+cLAOsf0aYw5Ey23UOpbpo=+Eb49w9@mail.gmail.com>	<27F9C60D11D683428E133F85D2BB4A5304681D48D3@dlee03.ent.ti.com> <AANLkTi=ENjWQRYitr_kYzmRKgve=CoBf=7Y5KHLJNLfb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:56860 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752830Ab0JGBAE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 Oct 2010 21:00:04 -0400
-In-Reply-To: <20101007000022.GD4859@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=ENjWQRYitr_kYzmRKgve=CoBf=7Y5KHLJNLfb@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Greg KH <greg@kroah.com>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>, Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, linux-omap@vger.kernel.org
 
-On Wed, 2010-10-06 at 17:00 -0700, Tony Lindgren wrote:
+On 10/5/2010 4:05 PM, Felipe Contreras wrote:
+> On Tue, Oct 5, 2010 at 11:09 PM, Ramirez Luna,
+> Omar<omar.ramirez@ti.com>  wrote:
+>> Felipe Contreras wrote:
+...
+>>
+>> Hmmm, because my other option was to move the reserved memory
+>> outside the kernel, but that involves specifying bootargs again and
+>> using dma_alloc_coherent with their restrictions.
+>
+> Huh, if there's no contiguous memory region reserved, then the
+> driver is doing dma_alloc_coherent already, but that fails
+> (apparently 5M is too much). Plus I've read that dma_alloc_coherent
+> is "precious"; shouldn't be used for that.
 
-> -	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP
-> +	.long	HWCAP_SWP|HWCAP_HALF|HWCAP_THUMB|HWCAP_FAST_MULT|HWCAP_EDSP|HWCAP_TLS
+Initially bridge was using the memory on the upper part of the RAM, 
+specifying in bootargs mem=MAX-6MB, so reintroducing the parameter works 
+fine; dma_alloc_coherent was also used when bridge was compiled as 
+built-in the kernel but now it is not working either.
 
+>
+> So, first I wanted to try reserving some region with mem=X boot
+> param, but that solution is ugly. If that worked, then I wanted ti
+> see if flushing each time we access that shm memory block works, but
+> in the process I wanted to reorganize the whole initialization code
+> because right now it's very ugly and confusing.
+>
 
-Thanks for catching this.. I have no idea how this happened, I must have
-somehow been using a pre July 5th kernel when I made the patch.. Maybe a
-forgotten bisect or something.
+Yes, I can help with that, I'm sending a patch to reintroduce the 
+parameter for phys_mempool_base, however we need to remove or disable 
+the memblock functions related with dspbridge. I was thinking of a 
+menuconfig parameter to specify mempool base for built-in compilation.
 
-Daniel
+Regards,
 
--- 
-Sent by an consultant of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora
-Forum.
-
-
+Omar
