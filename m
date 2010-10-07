@@ -1,130 +1,68 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [RFC] tidspbridge: use a parameter to allocate shared memory
-Date: Thu,  7 Oct 2010 00:45:36 -0500
-Message-ID: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com>
+From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
+Subject: RE: [PATCH v1 12/16] OMAP3: hwmod DSS: DISPC Move init,exit to
+ driver
+Date: Thu, 7 Oct 2010 11:46:41 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034B94AD49@dbde02.ent.ti.com>
+References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
+ <1286363699-9614-2-git-send-email-svadivu@ti.com>
+ <1286363699-9614-3-git-send-email-svadivu@ti.com>
+ <1286363699-9614-4-git-send-email-svadivu@ti.com>
+ <1286363699-9614-5-git-send-email-svadivu@ti.com>
+ <1286363699-9614-6-git-send-email-svadivu@ti.com>
+ <1286363699-9614-7-git-send-email-svadivu@ti.com>
+ <1286363699-9614-8-git-send-email-svadivu@ti.com>
+ <1286363699-9614-9-git-send-email-svadivu@ti.com>
+ <1286363699-9614-10-git-send-email-svadivu@ti.com>
+ <1286363699-9614-11-git-send-email-svadivu@ti.com>
+ <1286363699-9614-12-git-send-email-svadivu@ti.com>
+ <1286363699-9614-13-git-send-email-svadivu@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB5930234205060@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57685 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752759Ab0JGFz1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Oct 2010 01:55:27 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:44525 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751621Ab0JGGRQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 02:17:16 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930234205060@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Greg Kroah-Hartman <gregkh@suse.de>, Ohad Ben-Cohen <ohad@wizery.com>, Ameya Palande <ameya.palande@nokia.com>, Ernesto Ramos <ernesto@ti.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-tidspbridge driver uses a block of memory denominated SHared Memory
-to store info & communicate with DSP, this SHM needs to be physically
-contiguous and non-cacheable, to achieve the latter the driver ioremaps
-the memory reserved to be SHM, this will trigger a warning if the
-memory is under kernel control (because it creates another set of
-mapping attributes, for the same memory area).
 
-For now this can be avoided if a portion of memory (6MB) is left out
-of kernel control (using bootarg attribute mem=) where tidspbridge
-driver can make use of the memory and ioremap it without above
-restriction.
 
-Parameter has precedence over memblock allocator for shared memory.
-
-i.e.: on a system with 256MB
-
-set 'bootargs mem=250M ...'
-
-cat /proc/iomem
-...
-80000000-8f9fffff : System RAM
-
-So driver needs to be installed with:
-
-insmod bridgedriver.ko phys_mempool_base=0x8FA00000
-
-Same rationale applies for the menuconfig option.
-
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
-
-Code to allocate dspbridge memblock needs to be disabled since
-it will be wasting 6MB.
-
- arch/arm/mach-omap2/dsp.c                        |    2 +-
- drivers/staging/tidspbridge/Kconfig              |   10 ++++++++++
- drivers/staging/tidspbridge/rmgr/drv_interface.c |   15 ++++++++++++++-
- 3 files changed, 25 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/dsp.c b/arch/arm/mach-omap2/dsp.c
-index 6feeeae..0a4ba2f 100644
---- a/arch/arm/mach-omap2/dsp.c
-+++ b/arch/arm/mach-omap2/dsp.c
-@@ -45,7 +45,7 @@ static int __init omap_dsp_init(void)
- 	int err = -ENOMEM;
- 	struct omap_dsp_platform_data *pdata = &omap_dsp_pdata;
- 
--	pdata->phys_mempool_base = omap_dsp_get_mempool_base();
-+	pdata->phys_mempool_base = CONFIG_TIDSPBRIDGE_MEMPOOL_BASE;
- 
- 	if (pdata->phys_mempool_base) {
- 		pdata->phys_mempool_size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
-diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
-index 93de4f2..1214cbc 100644
---- a/drivers/staging/tidspbridge/Kconfig
-+++ b/drivers/staging/tidspbridge/Kconfig
-@@ -23,6 +23,16 @@ config TIDSPBRIDGE_DVFS
- 	  performance and power consumption to the current processing
- 	  requirements.
- 
-+config TIDSPBRIDGE_MEMPOOL_BASE
-+	hex "Physical memory pool base (Addr)"
-+	depends on TIDSPBRIDGE
-+	default 0
-+	help
-+	  Use this address as the start of the shared memory block, it is assumed
-+	  that this address is outside kernel control and configured by tweaking
-+	  mem= in  bootargs. BASE + SIZE should fit in the system RAM address
-+	  space.
-+
- config TIDSPBRIDGE_MEMPOOL_SIZE
- 	hex "Physical memory pool size (Byte)"
- 	depends on TIDSPBRIDGE
-diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-index 1981e46..4533605 100644
---- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-@@ -86,6 +86,7 @@ static s32 driver_major;
- static char *base_img;
- char *iva_img;
- static s32 shm_size = 0x500000;	/* 5 MB */
-+static unsigned int phys_mempool_base;
- static int tc_wordswapon;	/* Default value is always false */
- #ifdef CONFIG_TIDSPBRIDGE_RECOVERY
- #define REC_TIMEOUT 5000	/*recovery timeout in msecs */
-@@ -132,6 +133,9 @@ MODULE_PARM_DESC(shm_size, "shm size, default = 4 MB, minimum = 64 KB");
- module_param(tc_wordswapon, int, 0);
- MODULE_PARM_DESC(tc_wordswapon, "TC Word Swap Option. default = 0");
- 
-+module_param(phys_mempool_base, uint, 0);
-+MODULE_PARM_DESC(phys_mempool_base, "Physical Address base for SHM");
-+
- MODULE_AUTHOR("Texas Instruments");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(DSPBRIDGE_VERSION);
-@@ -298,7 +302,16 @@ static int omap3_bridge_startup(struct platform_device *pdev)
- 	}
- 	dev_dbg(bridge, "%s: requested shm_size = 0x%x\n", __func__, shm_size);
- 
--	phys_membase = pdata->phys_mempool_base;
-+	if (phys_mempool_base) {
-+		/* Out of kernel SHM */
-+		phys_membase = phys_mempool_base;
-+	} else if (pdata->phys_mempool_base) {
-+		/* Memblock allocator for SHM */
-+		phys_membase = pdata->phys_mempool_base;
-+	} else {
-+		pr_err("%s: couldn't get SHM physical address\n", __func__);
-+		goto err3;
-+	}
- 	phys_memsize = pdata->phys_mempool_size;
- 	if (phys_membase > 0 && phys_memsize > 0)
- 		mem_ext_phys_pool_init(phys_membase, phys_memsize);
--- 
-1.7.1
-
+> -----Original Message-----
+> From: Premi, Sanjeev
+> Sent: Wednesday, October 06, 2010 7:49 PM
+> To: Guruswamy, Senthilvadivu; khilman@deeprootsystems.com;
+> tomi.valkeinen@nokia.com; paul@pwsan.com; Hiremath, Vaibhav; linux-
+> omap@vger.kernel.org
+> Subject: RE: [PATCH v1 12/16] OMAP3: hwmod DSS: DISPC Move init,exit to
+> driver
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> > Guruswamy, Senthilvadivu
+> > Sent: Wednesday, October 06, 2010 4:45 PM
+> > To: khilman@deeprootsystems.com; tomi.valkeinen@nokia.com;
+> > paul@pwsan.com; Hiremath, Vaibhav; linux-omap@vger.kernel.org
+> > Cc: Guruswamy, Senthilvadivu
+> > Subject: [PATCH v1 12/16] OMAP3: hwmod DSS: DISPC Move
+> > init,exit to driver
+> >
+> > From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> >
+> > Move init exit methods to its driver probe,remove.
+> > pdev member has to be maintained by its own drivers.
+> 
+> [sp] How is this change related to hwmod mentioned in the
+>      subject line?
+[Senthil] As part of the hwmod design, dispc is made as platform driver.
+Hence the dispc_init and dispc_exit has to be moved from core "omapdisplay" 
+Driver to "dss_dispc" platform driver.  Pdev is the platform device structure maintained in dss_dispc driver containing silicon specific info like baseaddr, irqs of DISPC HW.
+> ~sanjeev
+> 
+> [snip]...[snip]
