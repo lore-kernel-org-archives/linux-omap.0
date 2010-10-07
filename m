@@ -1,43 +1,44 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH v4 1/2] OMAP: DSS2: Introduce dss_features files
-Date: Thu, 07 Oct 2010 10:42:11 +0300
-Message-ID: <1286437331.28499.1020.camel@tubuntu.research.nokia.com>
-References: <1284559794-4771-1-git-send-email-archit@ti.com>
-	 <1284559794-4771-2-git-send-email-archit@ti.com>
-	 <1286435365.28499.1012.camel@tubuntu.research.nokia.com>
-	 <FCCFB4CDC6E5564B9182F639FC356087034B94ADFB@dbde02.ent.ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: g_ether broken on musb
+Date: Thu, 7 Oct 2010 10:43:00 +0300
+Message-ID: <20101007074300.GF686@legolas.emea.dhcp.ti.com>
+References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw-sa02.ext.nokia.com ([147.243.1.48]:38261 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751173Ab0JGHmR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 03:42:17 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087034B94ADFB@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "ext Taneja, Archit" <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 2010-10-07 at 09:37 +0200, ext Taneja, Archit wrote:
-> Hi,
+On Wed, Oct 06, 2010 at 06:33:23PM -0500, Grazvydas Ignotas wrote:
+>Hi,
+>
+>pulled today's linux-next and g_ether is acting strange on my pandora board:
+># ping pnd
+>PING pnd (10.0.1.2) 56(84) bytes of data.
+>64 bytes from pnd (10.0.1.2): icmp_seq=2 ttl=64 time=2018 ms
+>64 bytes from pnd (10.0.1.2): icmp_seq=1 ttl=64 time=5036 ms
+>64 bytes from pnd (10.0.1.2): icmp_seq=8 ttl=64 time=1019 ms
+>64 bytes from pnd (10.0.1.2): icmp_seq=6 ttl=64 time=4030 ms
+>64 bytes from pnd (10.0.1.2): icmp_seq=10 ttl=64 time=4025 ms
+>64 bytes from pnd (10.0.1.2): icmp_seq=16 ttl=64 time=18.2 ms
+>64 bytes from pnd (10.0.1.2): icmp_seq=15 ttl=64 time=2019 ms
+>64 bytes from pnd (10.0.1.2): icmp_seq=14 ttl=64 time=4022 ms
+>
+>Looks like the transfers get mixed somehow? Curiously after replugging
+>the cable several times it starts working properly, however the
+>problem comes back reliably after each reboot.
 
-> > I only now noticed that you had changed the feature list to a bit array.
-> > It was an array of ints previously. Are you sure 32 features is enough?
-> > It sounds a bit small to me.
-> > 
-> >  Tomi
-> 
-> I was reworking our omap4 tree with the dss_features patch and was able to reach to 11
-> features. 32 may be probably enough till omap4, but yeah you are right, we will cross
-> 32 at some point in time. I didn't like the array way before, any idea how we can extend
-> the bit array method for more than 32 features?
+hmm, good catch. We need to debug that and send a patch after -rc0. Greg
+already queued all patches, so it's difficult to change anything now.
 
-Do you mean 32 will probably be enough for omap2,3 and 4? If so, I think
-we can go forward with this. It is a dss_features.c internal detail, and
-can be changed easily in the future to accomodate more features.
-
- Tomi
-
-
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
