@@ -1,15 +1,15 @@
 From: hvaibhav@ti.com
 Subject: [PATCH] omap3evm:DSS: Replace TWL gpio API to gpio*_cansleep
-Date: Thu,  7 Oct 2010 21:49:25 +0530
-Message-ID: <1286468365-23173-2-git-send-email-hvaibhav@ti.com>
+Date: Thu,  7 Oct 2010 21:49:24 +0530
+Message-ID: <1286468365-23173-1-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50594 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:50593 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751070Ab0JGQTa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751071Ab0JGQTa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 7 Oct 2010 12:19:30 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o97GJRaX021835
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o97GJRrJ021834
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Thu, 7 Oct 2010 11:19:29 -0500
 In-Reply-To: <hvaibhav@ti.com>
