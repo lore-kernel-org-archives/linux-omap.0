@@ -1,49 +1,82 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
-Date: Thu, 7 Oct 2010 12:13:10 -0500
-Message-ID: <4CADFFA6.50202@ti.com>
-References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com> <201010070940.14208.laurent.pinchart@ideasonboard.com> <20101007083242.GB14554@n2100.arm.linux.org.uk> <201010071601.04597.laurent.pinchart@ideasonboard.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: Issue : jffs2 and ecc layout
+Date: Thu, 7 Oct 2010 23:01:36 +0530
+Message-ID: <AANLkTi=y1JwSBrELd=KyUsmhitSCF2eWW9iYFg3a_-J4@mail.gmail.com>
+References: <2A3DCF3DA181AD40BDE86A3150B27B6B03560990E3@dbde02.ent.ti.com> <2A3DCF3DA181AD40BDE86A3150B27B6B0356594397@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58297 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818Ab0JGRNi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Oct 2010 13:13:38 -0400
-In-Reply-To: <201010071601.04597.laurent.pinchart@ideasonboard.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:49111 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab0JGRb6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 13:31:58 -0400
+Received: by qyk29 with SMTP id 29so332050qyk.19
+        for <linux-omap@vger.kernel.org>; Thu, 07 Oct 2010 10:31:58 -0700 (PDT)
+In-Reply-To: <2A3DCF3DA181AD40BDE86A3150B27B6B0356594397@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>
+To: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 10/7/2010 9:01 AM, Laurent Pinchart wrote:
-> On Thursday 07 October 2010 10:32:42 Russell King - ARM Linux wrote:
->>
->> ARMv6 and above don't like having multiple mappings with different
->> memory type/shareability/cache attributes.  It's architecturally
->> forbidden.
->>
->> So if you want non-cacheable memory and you want to be architecturally
->> compliant, you have to exclude it from the kernel's direct-mapped
->> memory mapping.
+On Mon, Oct 4, 2010 at 12:59 PM, Ghorai, Sukumar <s-ghorai@ti.com> wrot=
+e:
 >
-> That's why Omar's patch uses 'mem=' to exclude system memory from the kernel
-> mappings. That's not ideal though, as that memory will be wasted forever,
-> hence my comments regarding whether a non-cacheable mapping was really
-> required.
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Ghorai, Sukumar
+>> Sent: Tuesday, September 28, 2010 6:17 PM
+>> To: linux-mtd@lists.infradead.org
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Issue : jffs2 and ecc layout
+>>
+>> Hi,
+>> I was using the following ecc layout which is not working to mount t=
+he
+>> jffs2 File-system. I was in 2.6.32 kernel and working; but same layo=
+ut is
+>> not working with latest 2.6 kernel.
+>>
+>> Observation is that - no read request issued to the driver (say omap=
+2.c).
+>>
+>> # mount -t jffs2 /dev/mtdblock4 /mnt/nand
+>> [=A0=A0 32.505218] cannot read OOB for EB at 00000000, requested 8 b=
+ytes, read
+>> 0 bytes, error -22
+>> mount: Mounting /dev/mtdblock4 on /mnt/nand failed: Input/output err=
+or
+>>
+>> # dmesg
+>> <3>[=A0=A0 32.505218] cannot read OOB for EB at 00000000, requested =
+8 bytes,
+>> read 0 bytes, error -22
+>>
+I do not think above issue has anything to do with the ECC layout.
+But as I earlier pointed (in [1]), this change [2] has messed up
+function 'omap_hwcontrol'.
+All read/write functions read/write data from/to address
+info->nand.IO_ADDR_(R/W), which is not set by new function
+'gpmc_nand_write' (which still take care of writing address/cmd to
+write registers). But since above pointer is not set (hence points to
+address '0'), driver tries to read data from wrong location.
 
-it is not ideal to waste that memory, but strictly speaking old bootmem 
-does the same, as no one will be touching that memory. i.e. you compile 
-bridge as a module but you never insmod it, the reserved bootmem space 
-is there for bridge anyway; same for bootargs tweaking, if you need 
-dspbridge and are going to use it then you set aside some memory for it.
+In fact, I would even suggest to try dumping nand command registers(or
+use T32) and verify if commands issued were written correctly to
+appropriate registers.
 
-What might be a pain for end-user, is to have drivers that need to do 
-tweaking to bootargs to work; but right now that is a requirement, until 
-a better solution is found/created.
 
+
+[1]: http://marc.info/?l=3Dlinux-omap&m=3D128302624528822&w=3D2
+[2] commit: http://git.infradead.org/mtd-2.6.git/commitdiff/2c01946c6b9=
+ebaa5a89710bc42ca224a7f52f227
+
+--=20
 Regards,
-
-Omar
-
+Vimal Singh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
