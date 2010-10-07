@@ -1,109 +1,37 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH v1 05/16] OMAP3 DSS Driver register moved to mach_omap2
-Date: Thu, 7 Oct 2010 21:06:18 +0200
-Message-ID: <20101007210618.2bb542be@surf>
-References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
-	<1286363699-9614-2-git-send-email-svadivu@ti.com>
-	<1286363699-9614-3-git-send-email-svadivu@ti.com>
-	<1286363699-9614-4-git-send-email-svadivu@ti.com>
-	<1286363699-9614-5-git-send-email-svadivu@ti.com>
-	<1286363699-9614-6-git-send-email-svadivu@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
+Date: Thu, 7 Oct 2010 20:07:00 +0100
+Message-ID: <20101007190700.GB26435@n2100.arm.linux.org.uk>
+References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com> <201010070940.14208.laurent.pinchart@ideasonboard.com> <20101007083242.GB14554@n2100.arm.linux.org.uk> <201010071601.04597.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:50524 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751882Ab0JGTGg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 15:06:36 -0400
-In-Reply-To: <1286363699-9614-6-git-send-email-svadivu@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36750 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752464Ab0JGTHk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 15:07:40 -0400
+Content-Disposition: inline
+In-Reply-To: <201010071601.04597.laurent.pinchart@ideasonboard.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Guruswamy Senthilvadivu <svadivu@ti.com>
-Cc: khilman@deeprootsystems.com, tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ernesto Ramos <ernesto@ti.com>, linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
 
-Hello,
+On Thu, Oct 07, 2010 at 04:01:02PM +0200, Laurent Pinchart wrote:
+> Do we have an infrastructure, or even an embryo thereof, to remove pages from 
+> the kernel's direct-mapped memory mapping at runtime ? The use of super pages 
+> probably complicates the matter.
 
-The patch title is a bit misleading, maybe it should rather be
-something like "Move OMAP3 DSS driver registration to
-mach-omap2/devices.c"/
+No, and yes, using section mappings/supersection mappings further
+complicates the issue because these are duplicated across all
+processes in the system.
 
-On Wed,  6 Oct 2010 16:44:48 +0530
-Guruswamy Senthilvadivu <svadivu@ti.com> wrote:
+Even if you did walk all processes in the system, if your system is SMP
+without h/w TLB broadcasting, you'd need to IPI the other CPUs and wait
+for the IPI to complete - which you can not do if you're trying to
+allocate non-cacheable memory from IRQ context.
 
->  /*---------------------------------------------------------------------------*/
-> +#ifdef CONFIG_OMAP2_DSS
-> +
-> +static struct platform_device omap_display_device = {
-> +	.name          = "omapdisplay",
-> +	.id            = -1,
-> +	.dev            = {
-> +		.platform_data = NULL,
-> +	},
-
-This .dev = {} part is useless. The compiler will automatically
-initialize unset fields to zero.
-
-> +};
-> +
-> +void __init omap_display_init(struct omap_dss_board_info
-> +					*board_data)
-
-*board_data should probably be on the same line as the argument type.
-
-> +{
-> +
-
-The general kernel coding style seems to be that there shouldn't be
-such empty newlines at the beginning of functions.
-
-> +	omap_display_device.dev.platform_data = board_data;
-> +
-> +	if (platform_device_register(&omap_display_device) < 0)
-> +		printk(KERN_ERR "Unable to register OMAP-Display device\n");
-> +
-> +
-
-Unneeded newlines.
-
-> +	return ;
-
-This return is not needed, we are at the end of a void function.
-
-> @@ -712,7 +712,7 @@ static struct platform_driver omap_dss_driver = {
->  	.suspend	= omap_dss_suspend,
->  	.resume		= omap_dss_resume,
->  	.driver         = {
-> -		.name   = "omapdss",
-> +		.name   = "omapdisplay",
->  		.owner  = THIS_MODULE,
->  	},
->  };
-
-There are other boards instantiating a platform_device with the omapdss
-name, so I think this change is going to break those boards. In my
-not-so-old linux-omap tree :
-
-$ grep "\.name.*omapdss" *
-board-3430sdp.c:	.name		= "omapdss",
-board-am3517evm.c:	.name		= "omapdss",
-board-cm-t35.c:	.name		= "omapdss",
-board-devkit8000.c:	.name		= "omapdss",
-board-igep0020.c:	.name	= "omapdss",
-board-omap3beagle.c:	.name          = "omapdss",
-board-omap3evm.c:	.name		= "omapdss",
-board-omap3pandora.c:	.name		= "omapdss",
-board-omap3stalker.c:	.name	= "omapdss",
-board-rx51-video.c:	.name	= "omapdss",
-
-Shouldn't these board files also be updated to use the new
-omap_display_init() function ?
-
-Regards,
-
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+We _could_ reduce TASK_SIZE to be slightly below 2GB, which then means
+we can split the page tables in hardware, but I don't think its safe to
+assume that the kernel will always use the init_mm page table to lookup
+the >2GB page table entries.
