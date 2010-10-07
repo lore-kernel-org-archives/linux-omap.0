@@ -1,14 +1,16 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v5 1/3] OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
-Date: Thu,  7 Oct 2010 16:45:53 +0530
-Message-ID: <1286450155-1460-2-git-send-email-svadivu@ti.com>
+Subject: [PATCH v5 3/3] OMAP: DSS2: OMAPFB: Allow usage of def_vrfb only for omap2,3
+Date: Thu,  7 Oct 2010 16:45:55 +0530
+Message-ID: <1286450155-1460-4-git-send-email-svadivu@ti.com>
 References: <1286450155-1460-1-git-send-email-svadivu@ti.com>
+ <1286450155-1460-2-git-send-email-svadivu@ti.com>
+ <1286450155-1460-3-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53227 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47332 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754882Ab0JGLQF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1760291Ab0JGLQF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 7 Oct 2010 07:16:05 -0400
-In-Reply-To: <1286450155-1460-1-git-send-email-svadivu@ti.com>
+In-Reply-To: <1286450155-1460-3-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
@@ -16,45 +18,35 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-FB_OMAP2 can work without VRFB, but currently does not build. Fix this.
+For Non-VRFB devices/platforms (omap2, omap3 family) force it to the
+DMA based rotation.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- arch/arm/plat-omap/include/plat/vrfb.h |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/vrfb.h b/arch/arm/plat-omap/include/plat/vrfb.h
-index d8a03ce..3792bde 100644
---- a/arch/arm/plat-omap/include/plat/vrfb.h
-+++ b/arch/arm/plat-omap/include/plat/vrfb.h
-@@ -35,6 +35,7 @@ struct vrfb {
- 	bool yuv_mode;
- };
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index bddfca6..fcd9038 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -2198,6 +2198,16 @@ static int omapfb_probe(struct platform_device *pdev)
+ 		goto err0;
+ 	}
  
-+#ifdef CONFIG_OMAP2_VRFB
- extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
- extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
- extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
-@@ -47,4 +48,19 @@ extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
- extern int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot);
- extern void omap_vrfb_restore_context(void);
++	/* TODO : Replace cpu check with omap_has_vrfb once HAS_FEATURE
++	*	 available for OMAP2 and OMAP3
++	*/
++	if (def_vrfb && (!cpu_is_omap24xx()) && (!cpu_is_omap34xx())) {
++		def_vrfb = 0;
++		dev_warn(&pdev->dev, "VRFB is not in this device,"
++				"using DMA for rotation\n");
++	}
++
++
+ 	mutex_init(&fbdev->mtx);
  
-+#else
-+static inline int omap_vrfb_request_ctx(struct vrfb *vrfb) { return 0; }
-+static inline void omap_vrfb_release_ctx(struct vrfb *vrfb) {}
-+static inline void omap_vrfb_adjust_size(u16 *width, u16 *height,
-+		u8 bytespp) {}
-+static inline u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
-+		{ return 0; }
-+static inline u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
-+		{ return 0; }
-+static inline void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
-+		u16 width, u16 height, unsigned bytespp, bool yuv_mode) {}
-+static inline int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
-+		{ return 0; }
-+static inline void omap_vrfb_restore_context(void) {}
-+#endif
- #endif /* __VRFB_H */
+ 	fbdev->dev = &pdev->dev;
 -- 
 1.6.3.3
 
