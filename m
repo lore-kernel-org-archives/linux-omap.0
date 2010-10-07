@@ -1,47 +1,87 @@
-From: David Anders <x0132446@ti.com>
-Subject: [PATCH 2/3] omap4: pandaboard: Fix the init if CONFIG_MMC_OMAP_HS is not set
-Date: Thu,  7 Oct 2010 14:36:29 -0500
-Message-ID: <1286480190-20632-3-git-send-email-x0132446@ti.com>
-References: <1286480190-20632-1-git-send-email-x0132446@ti.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: [PATCH v1 11/16] OMAP3: hwmod DSS: RFBI Move init,exit to
+ driver
+Date: Thu, 7 Oct 2010 21:47:22 +0200
+Message-ID: <20101007214722.16799b9a@surf>
+References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
+	<1286363699-9614-2-git-send-email-svadivu@ti.com>
+	<1286363699-9614-3-git-send-email-svadivu@ti.com>
+	<1286363699-9614-4-git-send-email-svadivu@ti.com>
+	<1286363699-9614-5-git-send-email-svadivu@ti.com>
+	<1286363699-9614-6-git-send-email-svadivu@ti.com>
+	<1286363699-9614-7-git-send-email-svadivu@ti.com>
+	<1286363699-9614-8-git-send-email-svadivu@ti.com>
+	<1286363699-9614-9-git-send-email-svadivu@ti.com>
+	<1286363699-9614-10-git-send-email-svadivu@ti.com>
+	<1286363699-9614-11-git-send-email-svadivu@ti.com>
+	<1286363699-9614-12-git-send-email-svadivu@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38005 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754736Ab0JGTgk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Oct 2010 15:36:40 -0400
-In-Reply-To: <1286480190-20632-1-git-send-email-x0132446@ti.com>
+Received: from mail.free-electrons.com ([88.190.12.23]:53598 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab0JGTrc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 15:47:32 -0400
+In-Reply-To: <1286363699-9614-12-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jayabharath@ti.com, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, gadiyar@ti.com
-Cc: David Anders <x0132446@ti.com>
+To: Guruswamy Senthilvadivu <svadivu@ti.com>
+Cc: khilman@deeprootsystems.com, tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
 
-Avoid possible crash if CONFIG_MMC_OMAP_HS is not set.
+Hello Senthil,
 
-Signed-off-by: David Anders <x0132446@ti.com>
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
- arch/arm/mach-omap2/board-omap4panda.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+On Wed,  6 Oct 2010 16:44:54 +0530
+Guruswamy Senthilvadivu <svadivu@ti.com> wrote:
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index dc16884..9327ad4 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -116,7 +116,14 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
- 
- static __init void omap4_twl6030_hsmmc_set_late_init(struct device *dev)
- {
--	struct omap_mmc_platform_data *pdata = dev->platform_data;
-+	struct omap_mmc_platform_data *pdata;
-+
-+	/* dev can be null if CONFIG_MMC_OMAP_HS is not set */
-+	if (!dev) {
-+		pr_err("Failed omap4_twl6030_hsmmc_set_late_init\n");
-+		return;
-+	}
-+	pdata = dev->platform_data;
- 
- 	pdata->init =	omap4_twl6030_hsmmc_late_init;
- }
+> diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+> index 23598ea..9bee39d 100644
+> --- a/drivers/video/omap2/dss/rfbi.c
+> +++ b/drivers/video/omap2/dss/rfbi.c
+> @@ -100,6 +100,7 @@ static int rfbi_convert_timings(struct rfbi_timings *t);
+>  static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div);
+>  
+>  static struct {
+> +	struct platform_device *pdev;
+>  	void __iomem	*base;
+>  
+>  	unsigned long	l4_khz;
+> @@ -142,11 +143,22 @@ static inline u32 rfbi_read_reg(const struct rfbi_reg idx)
+>  /* RFBI HW IP initialisation */
+>  static int omap_rfbihw_probe(struct platform_device *pdev)
+>  {
+> -	return 0;
+> +	int r;
+> +	rfbi.pdev = pdev;
+> +
+> +	r = rfbi_init();
+> +	if (r) {
+> +		DSSERR("Failed to initialize rfbi\n");
+> +		goto err_rfbi;
+> +	}
+> +
+> +err_rfbi:
+> +	return r;
+>  }
+>  
+>  static int omap_rfbihw_remove(struct platform_device *pdev)
+>  {
+> +	rfbi_exit();
+>  	return 0;
+>  }
+>  
+
+Instead of having probe() and remove() functions that call the existing
+init() and exit(), why not making your driver look like most Linux
+drivers here, and directly do the initialization in probe() and the
+cleanup in remove() ?
+
+Concerning the added pdev field to the rfbi structure, do you really it
+at this point ?
+
+Thomas
 -- 
-1.7.0.4
-
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
