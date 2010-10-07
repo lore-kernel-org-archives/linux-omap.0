@@ -1,117 +1,53 @@
-From: Jason Wessel <jason.wessel@windriver.com>
-Subject: Re: kgdb errors with serial console
-Date: Thu, 07 Oct 2010 17:37:42 -0500
-Message-ID: <4CAE4BB6.7080509@windriver.com>
-References: <BDD07355-7199-4A2E-8426-F6D43EA5D313@mac.com>
+From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
+Subject: Re: g_ether broken on musb
+Date: Fri, 8 Oct 2010 04:12:08 +0530
+Message-ID: <AANLkTimN+Uw5JBukWaiEDJpCZNhdzb-Zd=eNZfdpFMqF@mail.gmail.com>
+References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
+ <AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com> <AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BDD07355-7199-4A2E-8426-F6D43EA5D313@mac.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/07/2010 04:47 PM, Elvis Dowson wrote:
-> Hi,
->         I'm getting the following errors when attempting to use kgdb with the serial console. Any idea how I can resolve this issue? 
+On Fri, Oct 8, 2010 at 4:07 AM, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> w=
+rote:
+>>> Looks like the transfers get mixed somehow? Curiously after replugg=
+ing
+>>> the cable several times it starts working properly, however the
+>>> problem comes back reliably after each reboot.
+>>
+>> Please apply the patch below against -next tree to see if
+>> your issue can be fixed:
+>>
+>> =A0 =A0 =A0 http://marc.info/?l=3Dlinux-usb&m=3D128576494214316&w=3D=
+2
+>>
 >
-> The correct serial parameters when I use kermit with the target board is 
->
-> set flow-control off
-> set carrier-watch none
-> set speed 115200
->
-> and it connects correctly.
->
-> I'm not sure if the gdb configuration commands for the serial port are sufficient, and if there is a parameter that I am missing here. The host is connected to the target using an FTDI USB to serial converter, so it appears as /dev/ttyUSB0 on the host and as ttyS2 on the target.
->
-> # su
-> # cd /tool/patches/android-rowboat-froyo-2.2-patchwork/kernel
-> # arm-angstrom-linux-gnueabi-gdb
-> (gdb) file vmlinux
-> Reading symbols from /tool/patches/android-rowboat-froyo-2.2-patchwork/kernel/vmlinux...done.
->
-> (gdb) set remotebaud 115200
-> (gdb) set remoteflow 0
-> (gdb) set debug remote 1
-> (gdb) set debug serial 1
->   
-You don't want to use this one, it just tends to pollute the logs, "set
-debug remote 1" should be enough.
+> Doesn't seem to help:
+> # ping pnd
+> PING pnd (10.0.1.2) 56(84) bytes of data.
+> 64 bytes from pnd (10.0.1.2): icmp_seq=3D3 ttl=3D64 time=3D3000 ms
+> 64 bytes from pnd (10.0.1.2): icmp_seq=3D2 ttl=3D64 time=3D5000 ms
+> 64 bytes from pnd (10.0.1.2): icmp_seq=3D1 ttl=3D64 time=3D7007 ms
+> 64 bytes from pnd (10.0.1.2): icmp_seq=3D9 ttl=3D64 time=3D0.135 ms
+> 64 bytes from pnd (10.0.1.2): icmp_seq=3D11 ttl=3D64 time=3D2000 ms
+> 64 bytes from pnd (10.0.1.2): icmp_seq=3D10 ttl=3D64 time=3D4000 ms
 
-> (gdb) target remote /dev/ttyUSB0
->
->   
+Can you turn on CONFIG_USB_MUSB_DEBUG, and pass
+musb_hdrc.debug=3D5 in the bootargs?
 
+This should give sufficiently detailed debug messages in the
+kernel logs (warning - it slows things down a lot, and could
+make the original issue disappear). Maybe these logs
+will help identify the problem.
 
-Looks to me like you did not activate the kernel debugger before using
-gdb to enter, because the gdb you are using is not going to send the
-"sysrq g" sequence.
-
-
-What you would want to do here is to "echo g > /proc/sysrq-trigger" with
-your terminal program, disconnect and then try connecting the debugger
-to the kernel.   Another option is to use the agent-proxy so you can
-have a console connection and a debugger connection.
-
-It would probably also be good to test if the debugger is working at all
-on your serial port.
-
-Configure the debugger with:
-# echo ttyS2 > /sys/module/kgdboc/parameters/kgdboc
-kgdb: Registered I/O driver kgdboc.
-# echo g > /proc/sysrq-trigger
-SysRq : DEBUG
-
-And now to exit debugger you must blindly and perfectly type
-$D#44+
-
-Nothing will be echoed because at this stage the kernel serial polling
-driver would just be collecting characters.
-
-After typing that the kernel should return back to the running state and
-print something like:
-+$OK#9a#
-
-
-Jason.
-
-
-
-
-
-> Remote debugging using /dev/ttyUSB0
-> Sending packet: $qSupported#37...[
-> r +]Ack
-> [$][q][S][u][p][p][o][r][t][e][d][#][3][7]Packet received: qSupported
-> Packet qSupported (supported-packets) is supported
-> warning: unrecognized item "qSupported" in "qSupported" response
-> Sending packet: $Hg0#df...[+]Ack
-> [$][H][g][0][#][d][f]Packet received: Hg0
-> Sending packet: $?#3f...[+]Ack
-> [$][?][#][3][f]Packet received: ?
-> Sending packet: $Hc-1#09...[+]Ack
-> [$][H][c][-][1][#][0][9]Packet received: Hc-1
-> Sending packet: $qC#b4...[+]Ack
-> [$][q][C][#][b][4]Packet received: qC
-> Sending packet: $qAttached#8f...[+]Ack
-> [$][q][A][t][t][a][c][h][e][d][#][8][f]Packet received: qAttached
-> Packet qAttached (query-attached) is supported
-> Sending packet: $qOffsets#4b...[+]Ack
-> [$][q][O][f][f][s][\r][\r][\n][e][t][s][#][4][b]Bad checksum, sentsum=0x4b, csum=0x6f, buf=qOffs\r\r\nets
-> [-][<Timeout: 2 seconds>]Timed out.
-> [-][<Timeout: 2 seconds>]Timed out.
-> Ignoring packet error, continuing...
-> Malformed response to offset query, qOffs
-> ets
-> (gdb) 
->
->
-> Best regards,
->
-> Elvis Dowson
->
->
->   
+- Anand
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
