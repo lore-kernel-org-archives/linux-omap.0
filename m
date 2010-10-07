@@ -1,41 +1,54 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH v3 5/5] OMAP: I2C: Convert i2c driver to use PM runtime api's
-Date: Thu, 07 Oct 2010 10:37:03 -0700
-Message-ID: <87vd5d9a68.fsf@deeprootsystems.com>
-References: <1285078036-12789-1-git-send-email-rnayak@ti.com>
-	<1285078036-12789-2-git-send-email-rnayak@ti.com>
-	<1285078036-12789-3-git-send-email-rnayak@ti.com>
-	<1285078036-12789-4-git-send-email-rnayak@ti.com>
-	<1285078036-12789-5-git-send-email-rnayak@ti.com>
-	<1285078036-12789-6-git-send-email-rnayak@ti.com>
-	<20100927223645.GJ21564@trinity.fluff.org>
-	<0680EC522D0CC943BC586913CF3768C003FF05981F@dbde02.ent.ti.com>
-	<0680EC522D0CC943BC586913CF3768C003FF05988F@dbde02.ent.ti.com>
-	<20100928233334.GS21564@trinity.fluff.org>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH v2 09/10] OMAP2/3: Convert write/read functions to raw
+	read/write
+Date: Thu, 7 Oct 2010 23:09:49 +0530
+Message-ID: <AANLkTikUpZ9FxPUoQE64hJcT31GiAC7868MPCr=Bm_0o@mail.gmail.com>
+References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
+	<1285063280-4057-10-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100928233334.GS21564-SMNkleLxa3Z6Wcw2j4pizdi2O/JbrIOy@public.gmane.org> (Ben Dooks's message
-	of "Wed, 29 Sep 2010 00:33:34 +0100")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, "linux-i2c@vger.kernel.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux@fluff.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "khali@linux-fr.org" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "linux-omap@vger.kernel.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1285063280-4057-10-git-send-email-manjugk@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org> writes:
-
+On Tue, Sep 21, 2010 at 3:31 PM, G, Manjunath Kondaiah <manjugk@ti.com> wro=
+te:
+> Following sparse warnings exists due to use of writel/w and readl/w funct=
+ions.
+>
+> This patch fixes the sparse warnings by converting readl/w functions usag=
+e into
+> __raw_readl/__raw_readw functions.
+>
 [...]
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -481,7 +481,7 @@ static int omap_verify_buf(struct mtd_info *mtd, cons=
+t u_char * buf, int len)
+>
+> =A0 =A0 =A0 =A0len >>=3D 1;
+> =A0 =A0 =A0 =A0while (len--) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (*p++ !=3D cpu_to_le16(readw(info->nand.=
+IO_ADDR_R)))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (*p++ !=3D cpu_to_le16(__raw_readw(info-=
+>nand.IO_ADDR_R)))
 
-> As such, I should really go and read up all about this new runtime-pm
-> and hwmod stuff before further commentign on the changes.
+There was an old comment to remove use of 'cpu_to_le16' from driver, I
+just missed it. Can you rather use 'ioread16_rep' for reading data.
 
-ping
+-- =
 
->From the drivers perspective, you don't neet to know anything about
-omap_hwmod.  You can think of this change as simply using the runtime PM
-API instead of the clock API for enabling and idling the device.
-
-With your ack (on this patch only) we'd like to merge this along with
-the rest of the series for 2.6.37.
-
-Kevin
+Regards,
+Vimal Singh
