@@ -1,82 +1,75 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: linux-omap/master is not booting up on OMAP3EVM
-Date: Thu, 7 Oct 2010 18:22:18 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404AA21D126@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E739404AA21D110@dbde02.ent.ti.com>
- <AANLkTi=xKZH8vDUuM90461xnQ2_FRi_33U2tN_JNT+vq@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v5 3/3] OMAP: DSS2: OMAPFB: Allow usage of def_vrfb
+ only for omap2,3
+Date: Thu, 07 Oct 2010 16:00:23 +0300
+Message-ID: <1286456423.28499.1057.camel@tubuntu.research.nokia.com>
+References: <1286450155-1460-1-git-send-email-svadivu@ti.com>
+	 <1286450155-1460-2-git-send-email-svadivu@ti.com>
+	 <1286450155-1460-3-git-send-email-svadivu@ti.com>
+	 <1286450155-1460-4-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53735 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760506Ab0JGMwZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 08:52:25 -0400
-In-Reply-To: <AANLkTi=xKZH8vDUuM90461xnQ2_FRi_33U2tN_JNT+vq@mail.gmail.com>
-Content-Language: en-US
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:21023 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760523Ab0JGNA2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 09:00:28 -0400
+In-Reply-To: <1286450155-1460-4-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
+Cc: "hvaibhav@ti.com" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+On Thu, 2010-10-07 at 13:15 +0200, ext Guruswamy Senthilvadivu wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> 
+> For Non-VRFB devices/platforms (omap2, omap3 family) force it to the
+> DMA based rotation.
+
+This sounds a bit confusing, as if omap2 and omap3 are Non-VRFB devices.
+
+And I'm not sure it's exactly correct to say "forcing to DMA rotation".
+We're just disallowing the use of VRFB, not forcing to use DMA rotation.
+Of course DMA rotation is currently the only other option, but still.
+
+I'd put it:
+
+VRFB is supported on OMAP2 and OMAP3 platforms. If VRFB rotation is not
+supported by the hardware and the user requests VRFB rotation, print a
+warning and ignore the request from the user.
+
+> Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+> ---
+>  drivers/video/omap2/omapfb/omapfb-main.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+> index bddfca6..fcd9038 100644
+> --- a/drivers/video/omap2/omapfb/omapfb-main.c
+> +++ b/drivers/video/omap2/omapfb/omapfb-main.c
+> @@ -2198,6 +2198,16 @@ static int omapfb_probe(struct platform_device *pdev)
+>  		goto err0;
+>  	}
+>  
+> +	/* TODO : Replace cpu check with omap_has_vrfb once HAS_FEATURE
+> +	*	 available for OMAP2 and OMAP3
+> +	*/
+> +	if (def_vrfb && (!cpu_is_omap24xx()) && (!cpu_is_omap34xx())) {
+
+The parenthesis are extra around !cpu_is_xxxx calls.
+
+> +		def_vrfb = 0;
+> +		dev_warn(&pdev->dev, "VRFB is not in this device,"
+> +				"using DMA for rotation\n");
+
+How about: "VRFB is not supported by the hardware, ignoring vrfb=y
+module parameter".
+
+Otherwise I think the patch set is ok. If you're fine with these
+changes, I can make them while applying these to my tree. Or send a new
+patch set, both are fine for me.
+
+ Tomi
 
 
-> -----Original Message-----
-> From: Jean Pihet [mailto:jean.pihet@newoldbits.com]
-> Sent: Thursday, October 07, 2010 6:17 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: linux-omap/master is not booting up on OMAP3EVM
->=20
-> Hi,
->=20
-> On Thu, Oct 7, 2010 at 2:33 PM, Hiremath, Vaibhav <hvaibhav@ti.com> w=
-rote:
-> > Hi,
-> >
-> > Latest linux-omap/master branch is not booting up on OMAP3EVM board=
-, I
-> am using omap2plus_defcofnig without any changes.
-<snip>
-> > [ =A0 =A00.960083] omap-hsuart.0: ttyO0 at MMIO 0x4806a000 (irq =3D=
- 72) is a
-> OMAP UART0
->=20
-> You need to use ttyO0 for the console, since the new omap-hsuart is
-> now used instead of the 8250 driver.
->=20
-> I hope this helps!
->=20
-[Hiremath, Vaibhav] Thanks, certainly this is the issue.=20
-
-Thanks,
-Vaibhav
-
-> Jean
->=20
-> > ; =A0=AE=B6=B6V=3D=AF=B0=A1=B3
-> > =A0 =A0 =A0 =A0 =A0 =A02s14?=A04=AD=A5/0400=A8=C91=3D=B7=A0?=A0=B5!
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 2
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0-=D5; =A0=AE7=A34=3D=AF=B0=A1=B3
-> >
-> > <Serial console goes for toss and dumps garbage here after>
-> >
-> >
-> > Does anybody has seen such issues; any suggestion/help is helpful?
-> >
-> > Thanks,
-> > Vaibhav
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-> >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
