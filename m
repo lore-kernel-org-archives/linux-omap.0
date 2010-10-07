@@ -1,45 +1,99 @@
-From: Mark Grosen <mgrosen@ti.com>
-Subject: Re: Code Composer Studio for TI OMAP 35xx
-Date: Thu, 07 Oct 2010 11:20:10 -0700
-Message-ID: <4CAE0F5A.4030904@ti.com>
-References: <C88249BF-577A-47DE-BFF2-CE9223DD36D6@mac.com> <33A4245E-B2C3-47F3-8276-3E9F155FE1C5@mac.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
+Date: Thu, 7 Oct 2010 21:22:20 +0300
+Message-ID: <AANLkTim8H0ibSucP3Nq=q19t0QY0pvijim1kOZSbygY1@mail.gmail.com>
+References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com>
+	<201010070940.14208.laurent.pinchart@ideasonboard.com>
+	<4CADFCEB.4030008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41208 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754465Ab0JGSUN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 14:20:13 -0400
-In-Reply-To: <33A4245E-B2C3-47F3-8276-3E9F155FE1C5@mac.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:53748 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840Ab0JGSWV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 14:22:21 -0400
+Received: by bwz11 with SMTP id 11so110984bwz.19
+        for <linux-omap@vger.kernel.org>; Thu, 07 Oct 2010 11:22:20 -0700 (PDT)
+In-Reply-To: <4CADFCEB.4030008@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, Russell King <linux@arm.linux.org.uk>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>
 
-On 10/7/2010 8:22 AM, Elvis Dowson wrote:
-> On Oct 7, 2010, at 7:19 PM, Elvis Dowson wrote:
+On Thu, Oct 7, 2010 at 8:01 PM, Omar Ramirez Luna <omar.ramirez@ti.com>=
+ wrote:
+> On 10/7/2010 2:40 AM, Laurent Pinchart wrote:
+>> On Thursday 07 October 2010 07:45:36 Omar Ramirez Luna wrote:
+>>>
+>>> tidspbridge driver uses a block of memory denominated SHared Memory
+>>> to store info& =C2=A0communicate with DSP, this SHM needs to be phy=
+sically
+>>> contiguous and non-cacheable,
+>>
+>> There are non-cacheable mappings, but there's no such thing as
+>> non-cacheable
+>> memory. Does the MPU mapping for that SHM block really needs to be n=
+on-
+>> cacheable,
 >
->> Hi,
->>         Is there a version of CCS that will run on linux and work for the TI OMAP 35xx?  I primarily want to do target based debugging of the linux-omap kernel, using an Eclipse or similar IDE type front end with kgdb.
+> yes
 >
-> BTW, I downloaded CCS4, but it only runs on windows.
+>> your could you instead flush the cache after writing to it
+>> (performance issues might be involved, I don't know the details abou=
+t that
+>> SHM
+>> usage) ?
 >
-> http://focus.ti.com/docs/toolsw/folders/print/ccstudio.html
+> You can do that too, but it will involve more changes to dsp side, an=
+d yes
+> performance might be an issue too.
+
+I think it's worth experimenting, otherwise it will be difficult for
+people to compile and use the driver.
+
+> The so called "shared memory" is used between arm tidspbridge and the=
+ DSP,
+> they exchange communication structures/streams/messages/parameters ne=
+eded on
+> both sides for its correct functionality (this is an eagle-eye view o=
+f the
+> SHM, for more info if interested check page 32 of the overview pdf[1]=
+).
 >
-> I don't want to use windows for linux kernel debugging :-) I came across a wiki that was under construction that hinted at a CCS5 that runs on Linux.
->
-> Is it possible to try that out?
+> tidspbridge could have the changes made for flushing the SHM every ti=
+me it
+> writes into it, a flag could be used to prevent both of them (ARM & D=
+SP)
+> flushing at the same time if needed, but I don't know how feasible wo=
+uld be
+> making those changes in the dsp code.
 
-You can get the Linux version of CCS here:
-http://processors.wiki.ti.com/index.php/Category:Code_Composer_Studio_v5
+The synchronization should be already be in place, otherwise you would
+be overriding data regardless of the cacheability of that data.
 
-A wiki article on using JTAG to debug Linux kernel is here:
-http://processors.wiki.ti.com/index.php/Linux_Debug_in_CCSv5
+Note that the "shared memory" described in the document you share has
+nothing to do with the SHM pool. AFAIK that memory is used for other
+things, like MMU PTEs, and storing the base image and socket-nodes,
+thus it needs to be contiguous.
 
-Note that you really do not need the TI CCS version of Eclipse to use 
-kgdb - you could just grab the generic version from eclipse.org
+Right now allocating contiguous memory can only be done with memblock
+(bootmem), but in the future it could be done with CMA/VCMM. But the
+cacheability is a separate issue.
 
-Mark
+I don't see any problem flushing the SHM area when needed, which
+probably has performance implications when mmaping/unmapping buffers,
+at which point you need to flush bigger memory areas anyway, so that's
+not an issue.
 
+Anyway, we will not know for sure until we try... Right?
 
+Cheers.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
