@@ -1,69 +1,61 @@
-From: hvaibhav@ti.com
-Subject: [PATCH] omap3evm: Add vio regulator supply required for ads7846 driver
-Date: Thu,  7 Oct 2010 21:50:36 +0530
-Message-ID: <1286468436-23745-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
+Date: Thu, 07 Oct 2010 09:52:18 -0700
+Message-ID: <87aamqaqt9.fsf@deeprootsystems.com>
+References: <Pine.LNX.4.44L0.1010071048100.1753-100000@iolanthe.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59454 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190Ab0JGQUk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 12:20:40 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o97GKa8j011026
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 7 Oct 2010 11:20:39 -0500
-In-Reply-To: <hvaibhav@ti.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:36847 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751075Ab0JGQwW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 12:52:22 -0400
+Received: by pxi10 with SMTP id 10so19593pxi.19
+        for <linux-omap@vger.kernel.org>; Thu, 07 Oct 2010 09:52:22 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.44L0.1010071048100.1753-100000@iolanthe.rowland.org>
+	(Alan Stern's message of "Thu, 7 Oct 2010 11:26:55 -0400 (EDT)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Alan Stern <stern@rowland.harvard.edu> writes:
 
+> On Wed, 6 Oct 2010, Rafael J. Wysocki wrote:
+>
+>> Defer the resume.  That's the only thing you can do in any case, whether you're
+>> going to busy loop or just use a workqueue.
+>
+> They are not the same.  With a busy-wait you handle the device as soon
+> as possible, before the interrupt routine returns.  With a workqueue
+> you have to mask the entire IRQ line, possibly losing interrupt
+> requests from other devices, until the workqueue routine can run.
+>
+>> > On the whole, I don't see any striking reason for the PM core not to 
+>> > busy-wait during a concurrent state change.
+>> 
+>> I do.  That shouldn't happen in a fast path and we're talking about one,
+>> aren't we?  Besides, I don't like busy waiting as a rule.
+>
+> On Wed, 6 Oct 2010, Kevin Hilman wrote:
+>
+>> Not sure I follow where you're going with this last paragraph.  Of
+>> course, calls from ISR context cannot busy wait.
+>
+> What do you guys think spin_lock() does?  It busy-waits until the lock 
+> is free!  If you don't like busy-waiting then you don't like spinlocks, 
+> and if you believe ISR's can't busy-wait then you believe they can't 
+> acquire spinlocks.  :-)
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+My confusion is not about the use of spinlocks, it's a question of what
+is being busy-waited for, and the thread that is being waited for is
+going to complete when interrupts are disabled.
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 633c89e..34db4e4 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -532,6 +532,25 @@ static struct regulator_init_data omap3_evm_vpll2 = {
- 	.consumer_supplies	= &omap3_evm_vpll2_supply,
- };
- 
-+/* ads7846 on SPI */
-+static struct regulator_consumer_supply omap3evm_vio_supply =
-+	REGULATOR_SUPPLY("vcc", "spi1.0");
-+
-+/* VIO for ads7846 */
-+static struct regulator_init_data omap3evm_vio = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 1800000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &omap3evm_vio_supply,
-+};
-+
- static struct twl4030_platform_data omap3evm_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
-@@ -544,6 +563,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
- 	.codec		= &omap3evm_codec_data,
- 	.vdac		= &omap3_evm_vdac,
- 	.vpll2		= &omap3_evm_vpll2,
-+	.vio		= &omap3evm_vio,
- };
- 
- static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
--- 
-1.6.2.4
+Sorry to be dense, but can you (re)summarize what you're proposing as I
+think I'm getting mixed up with all the various options we've been
+tossing around.
 
+If it can work, I'm certainly in favor of a busy-wait approach as it 
+really ensures that sync requests are handled quickly.
+
+Kevin
