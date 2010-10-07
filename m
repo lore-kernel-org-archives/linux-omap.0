@@ -1,37 +1,26 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
-Date: Thu, 7 Oct 2010 20:07:00 +0100
-Message-ID: <20101007190700.GB26435@n2100.arm.linux.org.uk>
-References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com> <201010070940.14208.laurent.pinchart@ideasonboard.com> <20101007083242.GB14554@n2100.arm.linux.org.uk> <201010071601.04597.laurent.pinchart@ideasonboard.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH] iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF
+Date: Thu, 07 Oct 2010 22:14:01 +0300 (EEST)
+Message-ID: <20101007.221401.226802875.Hiroshi.DOYU@nokia.com>
+References: <1286477021-23169-1-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36750 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752464Ab0JGTHk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 15:07:40 -0400
-Content-Disposition: inline
-In-Reply-To: <201010071601.04597.laurent.pinchart@ideasonboard.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1286477021-23169-1-git-send-email-x0095840@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: x0095840@ti.com
+Cc: felipe.contreras@nokia.com, ameya.palande@nokia.com, david.cohen@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-arm-kernel@lists.infradead.org, Omar Ramirez Luna <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, Ivan Gomez Castellanos <ivan.gomez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ernesto Ramos <ernesto@ti.com>, linux-omap@vger.kernel.org, Ameya Palande <ameya.palande@nokia.com>
 
-On Thu, Oct 07, 2010 at 04:01:02PM +0200, Laurent Pinchart wrote:
-> Do we have an infrastructure, or even an embryo thereof, to remove pages from 
-> the kernel's direct-mapped memory mapping at runtime ? The use of super pages 
-> probably complicates the matter.
+From: ext Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCH] iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF
+Date: Thu, 7 Oct 2010 20:43:41 +0200
 
-No, and yes, using section mappings/supersection mappings further
-complicates the issue because these are duplicated across all
-processes in the system.
+> IV2 MMU capable addresses start from 0x11000000
 
-Even if you did walk all processes in the system, if your system is SMP
-without h/w TLB broadcasting, you'd need to IPI the other CPUs and wait
-for the IPI to complete - which you can not do if you're trying to
-allocate non-cacheable memory from IRQ context.
+Wouldn't it be better to add an general API to configure the valid
+'da' range in advance?
 
-We _could_ reduce TASK_SIZE to be slightly below 2GB, which then means
-we can split the page tables in hardware, but I don't think its safe to
-assume that the kernel will always use the init_mm page table to lookup
-the >2GB page table entries.
+I don't think that it's a good idea to introduce the iommu
+instance("iva2:iommu") specific code here.
