@@ -1,69 +1,60 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Re: [PATCH RFC 2/2] usb: ehci-omap: add suspend/resume support
-Date: Fri, 8 Oct 2010 01:34:28 +0530
-Message-ID: <AANLkTikCdVASKnYN_vYa8+FCfsNdTgPPH0dLKbOS9Lh8@mail.gmail.com>
-References: <1273762822-23073-2-git-send-email-gadiyar@ti.com>
- <Pine.LNX.4.44L0.1005131305320.1731-100000@iolanthe.rowland.org>
- <5A47E75E594F054BAF48C5E4FC4B92AB0322D7D8AA@dbde02.ent.ti.com> <AANLkTi=EoEUDsSVjo7somYESe6k8ziB+FGKrnMAZ2OAC@mail.gmail.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH] iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF
+Date: Thu, 7 Oct 2010 15:23:07 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F471C8EC@dlee06.ent.ti.com>
+References: <1286477021-23169-1-git-send-email-x0095840@ti.com>
+ <20101007.221401.226802875.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58386 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751418Ab0JGUEw convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Oct 2010 16:04:52 -0400
-In-Reply-To: <AANLkTi=EoEUDsSVjo7somYESe6k8ziB+FGKrnMAZ2OAC@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101007.221401.226802875.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "david.cohen@nokia.com" <david.cohen@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Laine Walker-Avina <lwalkera@ieee.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
 
-On Fri, Oct 8, 2010 at 1:17 AM, Laine Walker-Avina <lwalkera@ieee.org> =
-wrote:
-> On Fri, May 14, 2010 at 7:01 AM, Gadiyar, Anand <gadiyar@ti.com> wrot=
-e:
->> Alan Stern wrote:
->>> On Thu, 13 May 2010, Anand Gadiyar wrote:
->>>
->>> > Add support for suspend and resume to the ehci-omap driver.
->>> > Added routines for platform_driver suspend/resume and
->>> > wrappers around ehci_bus_suspend/resume.
->>>
 
-=2E..
+Hi Hiroshi, 
 
->>> You could use the runtime-PM interface instead of explicitly suspen=
-ding
->>> and resuming the controller. =A0It is now standard.
->>>
->>
->> Will work on this. I'll be out for a while, so it could be some time
->> before I repost.
->>
->> Thanks,
->> Anand
->
-> Any more developments on this?
->
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com] 
+> Sent: Thursday, October 07, 2010 2:14 PM
+> To: Guzman Lugo, Fernando
+> Cc: felipe.contreras@nokia.com; ameya.palande@nokia.com; 
+> david.cohen@nokia.com; linux-kernel@vger.kernel.org; 
+> andy.shevchenko@gmail.com; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] iovmm: IVA2 MMU range is from 0x11000000 
+> to 0xFFFFFFFF
+> 
+> From: ext Fernando Guzman Lugo <x0095840@ti.com>
+> Subject: [PATCH] iovmm: IVA2 MMU range is from 0x11000000 to 
+> 0xFFFFFFFF
+> Date: Thu, 7 Oct 2010 20:43:41 +0200
+> 
+> > IV2 MMU capable addresses start from 0x11000000
+> 
+> Wouldn't it be better to add an general API to configure the 
+> valid 'da' range in advance?
 
-Yup. We've rewritten this driver to factor out the common
-TLL and UHH programming, so that it plays nicely
-when EHCI and OHCI are both loaded. This was needed
-to be able to use the omap_device layer to use runtime PM
+Yes I was thinking in passing start and end range in iommu_get
+(because don't need to change rage, it is needed only one time)
+And create new elements in iommu struct for start and end address
+ or maybe defining the range statically when the structures are
+Fillup for omapxxx. But I tought I was break other users of iommu
+Like omap4 and isp and it would be easier to accept an small patch.
 
-We didn't want to do the work twice, that's why we
-abandoned this initial patch to do it cleanly once.
-The current version is being tested now and should
-be posted in a while.
+But I am agree with you it would be better to make it configurable.
+As tidspbridge iommu migratio seems to be target to 37 I can 
+Make a new patch and resend.
 
-It's available on internal trees on dev.omapzoom.org,
-if you want to take a look. I can send a link if you like.
+Please let me know if you have some suggestions.
 
-- Anand
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Fernando.
+
+> 
+> I don't think that it's a good idea to introduce the iommu
+> instance("iva2:iommu") specific code here.
+> 
