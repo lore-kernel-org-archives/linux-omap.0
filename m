@@ -1,53 +1,173 @@
-From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: Re: g_ether broken on musb
-Date: Fri, 8 Oct 2010 04:12:08 +0530
-Message-ID: <AANLkTimN+Uw5JBukWaiEDJpCZNhdzb-Zd=eNZfdpFMqF@mail.gmail.com>
-References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
- <AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com> <AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
+Date: Thu, 07 Oct 2010 16:15:25 -0700
+Message-ID: <8762xd4msy.fsf@deeprootsystems.com>
+References: <Pine.LNX.4.44L0.1010071318570.1753-100000@iolanthe.rowland.org>
+	<201010072311.31071.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:57522 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754602Ab0JGXP2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 19:15:28 -0400
+Received: by pwj5 with SMTP id 5so105584pwj.19
+        for <linux-omap@vger.kernel.org>; Thu, 07 Oct 2010 16:15:28 -0700 (PDT)
+In-Reply-To: <201010072311.31071.rjw@sisk.pl> (Rafael J. Wysocki's message of
+	"Thu, 7 Oct 2010 23:11:30 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Alan Stern <stern@rowland.harvard.edu>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, Oct 8, 2010 at 4:07 AM, Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> w=
-rote:
->>> Looks like the transfers get mixed somehow? Curiously after replugg=
-ing
->>> the cable several times it starts working properly, however the
->>> problem comes back reliably after each reboot.
->>
->> Please apply the patch below against -next tree to see if
->> your issue can be fixed:
->>
->> =A0 =A0 =A0 http://marc.info/?l=3Dlinux-usb&m=3D128576494214316&w=3D=
-2
->>
+"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+
+> On Thursday, October 07, 2010, Alan Stern wrote:
+>> On Thu, 7 Oct 2010, Kevin Hilman wrote:
+>> 
+>> > My confusion is not about the use of spinlocks, it's a question of what
+>> > is being busy-waited for, and the thread that is being waited for is
+>> > going to complete when interrupts are disabled.
+>> > 
+>> > Sorry to be dense, but can you (re)summarize what you're proposing as I
+>> > think I'm getting mixed up with all the various options we've been
+>> > tossing around.
+>> > 
+>> > If it can work, I'm certainly in favor of a busy-wait approach as it 
+>> > really ensures that sync requests are handled quickly.
+>> 
+>> Okay, here's the story in a nutshell.  Allowing a subsystem's or
+>> driver's runtime-PM callbacks to run with interrupts disabled faces two
+>> obstacles:
+>> 
+>>    (1): We don't want two different CPUs to run callbacks for the
+>> 	same device at the same time.  So if a callback is already
+>> 	running on one CPU (i.e., if the device's runtime status is
+>> 	either SUSPENDING or RESUMING) then another CPU can't be
+>> 	allowed to invoke a callback.
+>> 
+>> 	Thus, you can't do a synchronous pm_runtime_resume_irq()
+>> 	if the device is in the middle of a suspend or resume
+>> 	operation.  We're left with two choices: Fail the synchronous
+>> 	call and force the driver to defer matters to a workqueue
+>> 	(possibly masking an IRQ line in the meantime), or busy-wait
+>> 	until the concurrent operation finishes.
+>> 
+>> 	If the PM core simply avoids releasing dev->power.lock before
+>> 	invoking the runtime_suspend or runtime_resume callback, the
+>> 	end result is almost the same as with busy-waiting.
 >
-> Doesn't seem to help:
-> # ping pnd
-> PING pnd (10.0.1.2) 56(84) bytes of data.
-> 64 bytes from pnd (10.0.1.2): icmp_seq=3D3 ttl=3D64 time=3D3000 ms
-> 64 bytes from pnd (10.0.1.2): icmp_seq=3D2 ttl=3D64 time=3D5000 ms
-> 64 bytes from pnd (10.0.1.2): icmp_seq=3D1 ttl=3D64 time=3D7007 ms
-> 64 bytes from pnd (10.0.1.2): icmp_seq=3D9 ttl=3D64 time=3D0.135 ms
-> 64 bytes from pnd (10.0.1.2): icmp_seq=3D11 ttl=3D64 time=3D2000 ms
-> 64 bytes from pnd (10.0.1.2): icmp_seq=3D10 ttl=3D64 time=3D4000 ms
+> This is slightly more complicated, because suspend is a bit different from
+> resume.  I think it's generally acceptable to refuse to do a "fast path" suspend
+> if the device state is not RPM_ACTIVE at the moment, but refusing to do
+> a "fast path" resume may be more problematic (more on that later).
+>
+>>    (2): In general we can't resume a device if its parent is suspended.
+>> 	If the parent's runtime_resume routine needs to run with
+>> 	interrupts enabled then there's no way to resume the device
+>> 	while keeping interrupts disabled.
+>> 
+>> 	Possible solutions involve, again, deferring matters to a
+>> 	workqueue, or else simply not allowing the situation to arise
+>> 	in the first place (forbid a device to have interrupt-disabled 
+>> 	callbacks unless its parent does too or the parent doesn't use 
+>> 	runtime PM at all).
+>> 
+>> In general I'm against the solutions that require a workqueue.
+>
+> OK
+>
+>> Raphael appears to favor workqueues for (1) and be against them for (2).
+>
+> The particular case we need to handle (I think) is that some devices need to be
+> resumed "atomically" as a part of bringing a CPU package out of a C-like-state
+> (Kevin, is that correct?).  
 
-Can you turn on CONFIG_USB_MUSB_DEBUG, and pass
-musb_hdrc.debug=3D5 in the bootargs?
+Correct, but there is more than one problematic case.
 
-This should give sufficiently detailed debug messages in the
-kernel logs (warning - it slows things down a lot, and could
-make the original issue disappear). Maybe these logs
-will help identify the problem.
+Another problem is in devices that are not atomic with C-states, but
+receive wakeup IRQs while they're suspended and thus need to
+pm_runtime_get() from their ISRs, without having an essentially
+unbounded interrupt latency before the ISR can be handled.
 
-- Anand
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Consider the following sequence for a given device
+
+- device: ->runtime_suspend() /* registers not accessible */
+- pm_idle
+- IRQs disabled
+- idle
+- wakeup event
+- idle loop finishes
+- IRQs enabled
+- device: ->runtime_resume()
+
+Now, consider the 'wakeup event' is an IRQ for that device.  That means
+as soon as IRQs are (re)enabled (and before some other activity has
+triggered a ->runtime_resume), the device's ISR is called.  Since it is
+RPM_SUSPENDED, it's registers are not accessible so it needs to do a
+pm_runtime_get().
+
+The case that raised this initially was a GPIO IRQ demux, where the
+initial ISR is just a chained handler whichfigures out which GPIO
+fired and then call genirq for that IRQ.
+
+All that being said, while I've currently described these as two
+different problems, the second one could be solved by converting it to
+the first one.  IOW, make GPIO be one of those devices that are
+suspended/resumed atomically with the CPU so that it is guaranteed to be
+awake when IRQs are re-enabled.
+
+While that would work, I've been trying to move in the opposite
+direction by trying to dis-connect them from CPU idle.
+
+> In that case not only we can't defer the resume (by
+> using a workqueue), but also we have to finish the resume within strict time
+> constraints (the time to leave the given C-like-state is one of the parameters
+> used by cpuidle governors to decide which state to choose).
+>
+> On the other hand, busy waiting (by looping) in the case the state is
+> RPM_RESUMING is as though the callbacks were executed under a spinlock and we
+> happened to wait on it.  I'd prefer to avoid that.  Moreover, if the state is
+> RPM_SUSPENDING at the time a "fast path" resume is started, we are almost
+> guaranteed to violate the time constraints (by busy waiting for the suspend to
+> complete and carrying out the resume).
+>
+> So, here's an idea:
+>
+> First, let's introduce two flags in struct dev_pm_info, irq_safe and
+> fast_resume.  The former has to be set so that the things above work.
+>
+> Second, let's add a new flag to pass to __pm_runtime_{suspend|resume}(),
+> RPM_FAST_RESUME such that if it is passed to __pm_runtime_suspend(), it
+> causes fast_resume to be set for the given device (if the status is already
+> RPM_SUSPENDED, it just sets the flag, otherwise it suspends the device
+> normally and then sets the flag).  Now, if fast_resume is set,
+> __pm_runtime_resume() has to be passed RPM_FAST_RESUME, or it will
+> fail (it also will fail if passed RPM_FAST_RESUME and fast_resume isn't
+> set).  In that case the status has to be RPM_SUSPENDED or RPM_RESUMING
+> (otherwise fast_resume won't be set) and if it is RPM_RESUMING, this means
+> that the other resume has been called with RPM_FAST_RESUME too (it would
+> fail otherwise), so it's fine to busy loop until the status is RPM_SUSPENDED
+> (it's the caller's problem to avoid that).  RPM_FAST_RESUME causes
+> __pm_runtime_resume() to avod turning interrupts on.
+>
+> If necessary, there may be a flag for __pm_runtime_suspend() that will
+> carry out "atomic" suspend, but I'm not sure if that's necessary.  Kevin?
+
+I think we'll need both "atomic" suspend & resume.  
+
+One of the devices I'm currently managing in this atomic fashion (inside
+pm_idle) is the UARTs (of course, I'm not currently using runtime PM for
+this, I'm calling platform-specific hooks directly since IRQs are
+disabled.)  For the UARTs I'm using both atomic suspend and resume,
+primarily for debug so I am sure UARTs are awake to see any panics
+during the last parts of the suspend/idle process and the early parts of
+the resume path.   This UART case is a bit of a hack until the driver is
+converted to runtime PM, but illustrates some debug related reasons we
+might also need atomic suspend and resume.
+
+We also have some workarounds for hardware errata that require
+putting certain devices in a specific state just before (and after)
+idle.  The drivers for these devices will need both suspend and resume.
+
+Kevin
