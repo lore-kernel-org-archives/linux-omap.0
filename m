@@ -1,61 +1,112 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
-Date: Thu, 7 Oct 2010 14:16:49 -0500
-Message-ID: <4CAE1CA1.4050006@ti.com>
-References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com>	<201010070940.14208.laurent.pinchart@ideasonboard.com>	<4CADFCEB.4030008@ti.com> <AANLkTim8H0ibSucP3Nq=q19t0QY0pvijim1kOZSbygY1@mail.gmail.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: [PATCH v1 06/16] OMAP3: hwmod DSS: Build omap_device for each
+ DSS HWIP
+Date: Thu, 7 Oct 2010 21:30:04 +0200
+Message-ID: <20101007213004.178ef60b@surf>
+References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
+	<1286363699-9614-2-git-send-email-svadivu@ti.com>
+	<1286363699-9614-3-git-send-email-svadivu@ti.com>
+	<1286363699-9614-4-git-send-email-svadivu@ti.com>
+	<1286363699-9614-5-git-send-email-svadivu@ti.com>
+	<1286363699-9614-6-git-send-email-svadivu@ti.com>
+	<1286363699-9614-7-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58293 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751460Ab0JGTRI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Oct 2010 15:17:08 -0400
-In-Reply-To: <AANLkTim8H0ibSucP3Nq=q19t0QY0pvijim1kOZSbygY1@mail.gmail.com>
+Received: from mail.free-electrons.com ([88.190.12.23]:57578 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752434Ab0JGTaR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 15:30:17 -0400
+In-Reply-To: <1286363699-9614-7-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, Russell King <linux@arm.linux.org.uk>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>
+To: Guruswamy Senthilvadivu <svadivu@ti.com>
+Cc: khilman@deeprootsystems.com, tomi.valkeinen@nokia.com, paul@pwsan.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
 
-On 10/7/2010 1:22 PM, Felipe Contreras wrote:
-...
->
-> Note that the "shared memory" described in the document you share has
-> nothing to do with the SHM pool. AFAIK that memory is used for other
-> things, like MMU PTEs, and storing the base image and socket-nodes,
-> thus it needs to be contiguous.
+Hello Senthil,
 
-hmmm, no. it is the same memory. i.e.: we propagate the current opp 
-through the shared memory so the dsp can read it if it went to sleep, 
-with the proper offset you can read that variable starting from the 
-mempool base address.
+On Wed,  6 Oct 2010 16:44:49 +0530
+Guruswamy Senthilvadivu <svadivu@ti.com> wrote:
 
-"storing the base image and socket-nodes" symbols is also donde in the 
-shared memory but this is done in different sections of the SHM.
+>  void __init omap_display_init(struct omap_dss_board_info
+>  					*board_data)
+>  {
+> +	struct omap_hwmod *oh;
+> +	struct omap_device *od;
+> +	int l, i;
+> +	struct omap_display_platform_data pdata;
+> +	char *oh_name[] = {
+> +			"dss_dss",
+> +			"dss_dispc",
+> +			"dss_dsi1",
+> +			"dss_rfbi",
+> +			"dss_venc"
+> +			};
 
->
-> Right now allocating contiguous memory can only be done with memblock
-> (bootmem), but in the future it could be done with CMA/VCMM. But the
-> cacheability is a separate issue.
+I think it's more common to write it this way:
 
-yes
 
->
-> I don't see any problem flushing the SHM area when needed, which
-> probably has performance implications when mmaping/unmapping buffers,
-> at which point you need to flush bigger memory areas anyway, so that's
-> not an issue.
+        char *oh_name[] = { "dss_dss", "dss_dispc", "dss_dsi1",
+                            "dss_rfbi", "dss_venc" };
 
-well, you would have to flush when loading the base image, or allocating 
-a socket node, but also minor flushes for opp propagation, SHM messages 
-to DSP, chnl params, those are the ones I can quickly think of.
+but I understand that this is just a matter of taste.
 
->
-> Anyway, we will not know for sure until we try... Right?
+> +
+> +	for (i = 0; i < ARRAY_SIZE(oh_name); i++) {
+> +		l = snprintf(oh_name[i], MAX_OMAP_DSS_HWMOD_NAME_LEN,
+> +				 oh_name[i]);
+> +		WARN(l >= MAX_OMAP_DSS_HWMOD_NAME_LEN,
+> +			"String buffer overflow in DSS device setup\n");
 
-yes we can try, at least we now for sure arm side can be done.
+Using snprintf() just to get the length of a string is a bit overkill.
+strlen() is part of the kernel API :-)
 
-Regards,
+However, about the name, see below.
 
-omar
+> +
+> +		oh = omap_hwmod_lookup(oh_name[i]);
+> +		if (!oh) {
+> +			pr_err("Could not look up %s\n", oh_name[i]);
+> +			return ;
 
+No space needed between return and the semi-colon.
+
+> +		}
+> +		strncpy(pdata.name, oh_name[i], sizeof(oh_name[i]));
+
+Why do you need this name into the platform_data ? omap_device_build()
+will already fill the omap_device->platform_device->name field with
+exactly oh_name[i]. So your drivers can just do platform_device->name
+to get the name if they need it.
+
+> +		pdata.board_data		=       board_data;
+> +		pdata.board_data->get_last_off_on_transaction_id = NULL;
+> +		pdata.device_enable    =       omap_device_enable;
+> +		pdata.device_idle      =       omap_device_idle;
+> +		pdata.device_shutdown  =       omap_device_shutdown;
+
+pdata is defined outside of the loop, so you're passing the same pdata
+address to each omap_device_build() call. Therefore, there's no need to
+initialize pdata at each iteration of the loop.
+
+> +struct omap_display_platform_data {
+> +	char name[MAX_OMAP_DSS_HWMOD_NAME_LEN];
+> +	struct omap_dss_board_info *board_data;
+> +	int (*device_enable)(struct platform_device *pdev);
+> +	int (*device_shutdown)(struct platform_device *pdev);
+> +	int (*device_idle)(struct platform_device *pdev);
+> +};
+
+I'm probably missing something, but I don't see those new
+device_enable, device_shutdown, device_idle fields being used in the
+following patches in your series. Did I look at the wrong place ?
+
+Thanks!
+
+Thomas
+-- 
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
