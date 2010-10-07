@@ -1,30 +1,60 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v4 0/3] OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
-Date: Thu,  7 Oct 2010 14:38:52 +0530
-Message-ID: <1286442535-28308-1-git-send-email-svadivu@ti.com>
+Subject: [PATCH v4 1/3] OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
+Date: Thu,  7 Oct 2010 14:38:53 +0530
+Message-ID: <1286442535-28308-2-git-send-email-svadivu@ti.com>
+References: <1286442535-28308-1-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49612 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753622Ab0JGJJF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 Oct 2010 05:09:05 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:54374 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753672Ab0JGJJG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 Oct 2010 05:09:06 -0400
+In-Reply-To: <1286442535-28308-1-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, hvaibhav@ti.com, linux-omap@vger.kernel.org
 Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-From: Senthilvadivu Guruswamy  <svadivu@ti.com>
+From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-Please ignore the previous v3 and consider v4.
+FB_OMAP2 can work without VRFB, but currently does not build. Fix this.
 
-The changelog till v4 are:
-	- Address Multi-omap build issue
-	- Added a check to warn the wrong usage of vrfb 
-	in non-vrfb omap devices.
-	- The patch subject is as per the naming conventions
-	- patch 2/3 now has the changes in omap2/omapfb/Kconfig
-	instead of omap2/Kconfig.  The functional effect remains
-	the same, and the place of implementation is more appropriate.
-	
+Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
+---
+ arch/arm/plat-omap/include/plat/vrfb.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+), 0 deletions(-)
 
-Thanks,
-Senthil
+diff --git a/arch/arm/plat-omap/include/plat/vrfb.h b/arch/arm/plat-omap/include/plat/vrfb.h
+index d8a03ce..3792bde 100644
+--- a/arch/arm/plat-omap/include/plat/vrfb.h
++++ b/arch/arm/plat-omap/include/plat/vrfb.h
+@@ -35,6 +35,7 @@ struct vrfb {
+ 	bool yuv_mode;
+ };
+ 
++#ifdef CONFIG_OMAP2_VRFB
+ extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
+ extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
+ extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
+@@ -47,4 +48,19 @@ extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
+ extern int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot);
+ extern void omap_vrfb_restore_context(void);
+ 
++#else
++static inline int omap_vrfb_request_ctx(struct vrfb *vrfb) { return 0; }
++static inline void omap_vrfb_release_ctx(struct vrfb *vrfb) {}
++static inline void omap_vrfb_adjust_size(u16 *width, u16 *height,
++		u8 bytespp) {}
++static inline u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
++		{ return 0; }
++static inline u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
++		{ return 0; }
++static inline void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
++		u16 width, u16 height, unsigned bytespp, bool yuv_mode) {}
++static inline int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
++		{ return 0; }
++static inline void omap_vrfb_restore_context(void) {}
++#endif
+ #endif /* __VRFB_H */
+-- 
+1.5.4.7
+
