@@ -1,64 +1,95 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
-Date: Fri, 08 Oct 2010 13:06:30 -0700
-Message-ID: <87y6a8v48p.fsf@deeprootsystems.com>
-References: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
+Subject: Re: [PATCH v2 01/10] OMAP: mach-omap2: Fix incorrect assignment warnings
+Date: Fri, 08 Oct 2010 13:12:58 -0700
+Message-ID: <878w28v3xx.fsf@deeprootsystems.com>
+References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
+	<1285063280-4057-2-git-send-email-manjugk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:60973 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754743Ab0JHUGd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 16:06:33 -0400
-Received: by pvg2 with SMTP id 2so406476pvg.19
-        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 13:06:33 -0700 (PDT)
-In-Reply-To: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
-	(Jean Pihet's message of "Fri, 8 Oct 2010 18:49:13 +0200")
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:48388 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754926Ab0JHUNB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 16:13:01 -0400
+Received: by pzk34 with SMTP id 34so407364pzk.19
+        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 13:13:01 -0700 (PDT)
+In-Reply-To: <1285063280-4057-2-git-send-email-manjugk@ti.com> (Manjunath
+	Kondaiah G.'s message of "Tue, 21 Sep 2010 15:31:11 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 
-> This patch reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
-> breaks the OFF mode on the OMAP3 platforms.
-> The details are here below.
->
-> The intent behind the original patch was to fix some compiler
-> warnings, which I do not have on my side. Is the problem dependent on
-> the setup and config used?
+> This patch fixes below sparse warnings for incorrect assignments.
 
-> From ec85bc90978cf0f257e73eaad593ffb774595863 Mon Sep 17 00:00:00 2001
-> From: Jean Pihet <jean.pihet@newoldbits.com>
-> Date: Fri, 8 Oct 2010 18:36:48 +0200
-> Subject: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
->
-> This reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
-> breaks the OFF mode on the OMAP3 platforms.
->
-> The use of a void* pointer for scratchpad_address confuses the
-> compiler which generates wrong offset for the access to the L4
-> address space. In that case an alignement fault is generated
-> during the wake-up from OFF mode.
->
-> The code that causes problem is:
-> __raw_readl(scratchpad_address + OMAP343X_TABLE_ADDRESS_OFFSET);
+As pointed out by Jean, this patch fixed some sparse warnings, but also
+broke some things, specifically off mode.
 
-Thanks Jean for tracking down why off-mode was broken on the master
-branch.  
+In the future, *please* be sure to test the code paths that are being
+changed.  This patch changed some code that is only exercised during
+off-mode, but was clearly not tested with off mode enabled.
 
-I completely agree this patch should be reverted.  However, the
-description here could be a litle more descriptive.
+As background for why this broke functionality, keep this in mind:
 
-Specifically, the compiler is not confused and generating the wrong
-offset.  The compiler is doing what it was told told.
+ 	void *a = NULL;
+	u32 *b = NULL;
 
-The problem is that the original patch rather blindly replaced a u32
-pointer with a void pointer to fix a sparse warning.  However, the code
-using that pointer was doing pointer math which has different results
-for a void pointer than for a u32 pointer.   
+a + 1 = 1
+b + 1 = 4
 
-I'll reply in more detail to the original patch.
+IOW, you cannot simply replace a 'u32 *' by a 'void *' without checking
+and fixing any pointer arithmetic.
+
+[...]
+
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index a8d20ee..7405936 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -190,7 +190,7 @@ void omap_ctrl_writel(u32 val, u16 offset)
+>  void omap3_clear_scratchpad_contents(void)
+>  {
+>  	u32 max_offset = OMAP343X_SCRATCHPAD_ROM_OFFSET;
+> -	u32 *v_addr;
+> +	void __iomem *v_addr;
+>  	u32 offset = 0;
+>  	v_addr = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD_ROM);
+>  	if (prm_read_mod_reg(OMAP3430_GR_MOD, OMAP3_PRM_RSTST_OFFSET) &
+
+Interestingly, this one not only fixed the sparse warning but also fixed
+a bug. :) Before this change, only every 4th entry of the scratchpad was
+zeroed.
+
+> @@ -206,7 +206,7 @@ void omap3_clear_scratchpad_contents(void)
+>  /* Populate the scratchpad structure with restore structure */
+>  void omap3_save_scratchpad_contents(void)
+>  {
+> -	void * __iomem scratchpad_address;
+> +	void  __iomem *scratchpad_address;
+>  	u32 arm_context_addr;
+>  	struct omap3_scratchpad scratchpad_contents;
+>  	struct omap3_scratchpad_prcm_block prcm_block_contents;
+
+This one is fine.
+
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 7b03426..4af19a6 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -316,7 +316,7 @@ static void restore_control_register(u32 val)
+>  /* Function to restore the table entry that was modified for enabling MMU */
+>  static void restore_table_entry(void)
+>  {
+> -	u32 *scratchpad_address;
+> +	void __iomem *scratchpad_address;
+>  	u32 previous_value, control_reg_value;
+>  	u32 *address;
+
+This one changes the result of any 'scratchpad_address + foo'.  
+
+So, if this is changed from u32 to void, all the offsets used when
+adding to the base need to be changed as well.
 
 Kevin
