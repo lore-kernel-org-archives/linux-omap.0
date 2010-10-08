@@ -1,69 +1,107 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Fri, 08 Oct 2010 14:11:13 -0400
-Message-ID: <1286561473.23994.84.camel@gandalf.stny.rr.com>
-References: <201010062334.46971.trenn@suse.de>
-	 <20101007150825.GB12581@Krystal>
-	 <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
-	 <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org>
-	 <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com>
-	 <20101008134156.GA28724@Krystal> <4CAF4554.7070303@linux.intel.com>
-	 <1286558495.6661.822.camel@gandalf.stny.rr.com>
-	 <20101008174914.GD17865@redhat.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
+Date: Fri, 8 Oct 2010 21:53:35 +0200
+Message-ID: <201010082153.35192.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1010081200200.27105-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <20101008174914.GD17865@redhat.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: "Frank Ch. Eigler" <fche@redhat.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:57577 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751741Ab0JHTyb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Oct 2010 15:54:31 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1010081200200.27105-100000@netrider.rowland.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Fri, 2010-10-08 at 13:49 -0400, Frank Ch. Eigler wrote:
-> Hi -
+On Friday, October 08, 2010, Alan Stern wrote:
+> On Thu, 7 Oct 2010, Rafael J. Wysocki wrote:
 > 
-> On Fri, Oct 08, 2010 at 01:21:35PM -0400, Steven Rostedt wrote:
-> > [...]
-> > Perhaps we should have "make install" of a kernel also install this
-> > library?
-> > [...]
-> > The app only needs to worry about loading the generic library. The
-> > generic library can test for compatible libraries for the kernel.
-> > [...]
+> > > 	If the PM core simply avoids releasing dev->power.lock before
+> > > 	invoking the runtime_suspend or runtime_resume callback, the
+> > > 	end result is almost the same as with busy-waiting.
+> > 
+> > This is slightly more complicated, because suspend is a bit different from
+> > resume.  I think it's generally acceptable to refuse to do a "fast path" suspend
+> > if the device state is not RPM_ACTIVE at the moment, but refusing to do
+> > a "fast path" resume may be more problematic (more on that later).
 > 
-> If this library were to be distributed with the kernel, what would
-> make the generic side of the interface any less permanent than a
-> kernel ABI?  That is, if there is a libkernel-internals.so built from
-> kernel sources, wouldn't its ABI become necessarily as fixed as any
-> old syscall or procfs file?
-
-One thing, the backwards compatibility would reside in user space. The
-big advantage to that than for this to be in kernel space is that it is
-only there when used. When we have backward compatibility in the kernel,
-it's there in memory for everyone, whether you want it or not.
-
+> That's what I thought too, but Kevin has suggested this might not be 
+> so.
 > 
-> One can have some backward compatibility with symbol versioning et
-> al., but would that be sufficiently powerful to avoid handcuffing
-> kernel developers' inclinations to make random future changes?
+> > The particular case we need to handle (I think) is that some devices need to be
+> > resumed "atomically" as a part of bringing a CPU package out of a C-like-state
+> > (Kevin, is that correct?).  In that case not only we can't defer the resume (by
+> > using a workqueue), but also we have to finish the resume within strict time
+> > constraints (the time to leave the given C-like-state is one of the parameters
+> > used by cpuidle governors to decide which state to choose).
 > 
+> To what extent can this really happen?  If the CPU was previously in a 
+> C-like state then it couldn't be in the middle of changing the device's 
+> power state.  Maybe a different CPU was suspending or resuming the 
+> device, but if that's so then why would this CPU need to resume it as 
+> part of bringing the package out of the C-like state?
 
-Sure, also note, that this is a two lib design. We still have
-a /usr/lib/libkernel.so that the apps will interface with. This will
-need to load in the other kernel versions. When we change interfaces, we
-can make the /usr/lib/libkernel.so.1 .2 etc.
+That's the case when user space writes to /sys/devices/.../power/control on
+another CPU.
 
-Also doing this dynamically from a library, we can check if the kernel
-versions work. It can test if the used function is compatible or not,
-use an older version, or just tell the user "sorry, please update your
-libkernel.so for this kernel." Doing this in userspace will allow a lot
-more flexibility. We just need to think hard how these transactions will
-work, and make it flexible for future enhancements.
+> > On the other hand, busy waiting (by looping) in the case the state is
+> > RPM_RESUMING is as though the callbacks were executed under a spinlock and we
+> > happened to wait on it.  I'd prefer to avoid that.  Moreover, if the state is
+> > RPM_SUSPENDING at the time a "fast path" resume is started, we are almost
+> > guaranteed to violate the time constraints (by busy waiting for the suspend to
+> > complete and carrying out the resume).
+> 
+> I'm not convinced that the time constraints are all that hard.  At 
+> least, I can't think of a situation where we do face a hard time limit 
+> and also the device might be in the middle of a transition when we need 
+> to resume it.
 
-But the kernel is free to do whatever it wants. The libraries will need
-to worry about keeping the applications happy ;-)
+Now that I think of it, you seem to be right.
 
--- Steve
+> > So, here's an idea:
+> > 
+> > First, let's introduce two flags in struct dev_pm_info, irq_safe and
+> > fast_resume.  The former has to be set so that the things above work.
+> > 
+> > Second, let's add a new flag to pass to __pm_runtime_{suspend|resume}(),
+> > RPM_FAST_RESUME such that if it is passed to __pm_runtime_suspend(), it
+> > causes fast_resume to be set for the given device (if the status is already
+> > RPM_SUSPENDED, it just sets the flag, otherwise it suspends the device
+> > normally and then sets the flag).  Now, if fast_resume is set,
+> > __pm_runtime_resume() has to be passed RPM_FAST_RESUME, or it will
+> > fail (it also will fail if passed RPM_FAST_RESUME and fast_resume isn't
+> > set).  In that case the status has to be RPM_SUSPENDED or RPM_RESUMING
+> > (otherwise fast_resume won't be set)
+> 
+> Why not?  Does fast_resume ever get cleared?
 
+Yes, when the "fast resume" has completed.
 
+> >  and if it is RPM_RESUMING, this means
+> > that the other resume has been called with RPM_FAST_RESUME too (it would
+> > fail otherwise), so it's fine to busy loop until the status is RPM_SUSPENDED
+> > (it's the caller's problem to avoid that).  RPM_FAST_RESUME causes
+> > __pm_runtime_resume() to avod turning interrupts on.
+> > 
+> > If necessary, there may be a flag for __pm_runtime_suspend() that will
+> > carry out "atomic" suspend, but I'm not sure if that's necessary.  Kevin?
+> 
+> This seems much more complicated than we need.  Why not require for any
+> particular device that all resumes and suspends are either always fast
+> or always normal (i.e., always done with interrupts disabled or always
+> done with interrupts enabled)?  That's what the original patch does.
+>
+> Sure, maybe some devices don't need to have fast suspend all the time.  
+> But we don't lose anything by requiring them to always use it in order
+> to gain the benefit of fast resume.
+
+I think we should avoid turning interrupts off for the whole suspend/resume
+time if not strictly necessary.
+
+Thanks,
+Rafael
