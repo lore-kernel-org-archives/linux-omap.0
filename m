@@ -1,47 +1,55 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt
- handlers
-Date: Fri, 8 Oct 2010 12:22:38 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1010081220150.27105-100000@netrider.rowland.org>
-References: <87y6a9zhf7.fsf@deeprootsystems.com>
+From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Fri, 08 Oct 2010 09:22:44 -0700
+Message-ID: <4CAF4554.7070303@linux.intel.com>
+References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com> <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal> <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com> <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org> <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com> <20101008134156.GA28724@Krystal>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:35983 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753378Ab0JHQWi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 12:22:38 -0400
-In-Reply-To: <87y6a9zhf7.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <20101008134156.GA28724@Krystal>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
 
-On Thu, 7 Oct 2010, Kevin Hilman wrote:
+  On 10/8/2010 6:41 AM, Mathieu Desnoyers wrote:
+> * Arjan van de Ven (arjan@linux.intel.com) wrote:
+>>   On 10/8/2010 1:38 AM, Ingo Molnar wrote:
+>>> The fundamental thing about tracing/instrumentation is that there are no
+>>> deep ABI needs: it's all about analyzing development kernels (and a few
+>>> select versions that get the enterprise treatment) but otherwise the
+>>> half-life of this kind of information is very short.
+>>>
+>>> So we dont want to tie ourselves down with excessive ABIs.
+>>>
+>> ok I'll start working on a second mechanism then to export information
+>> that applications need ;-(
+>> it'll look a lot like tracing I suppose ;-(
+> What's wrong with doing the compatibility layer in a LGPL library shipped with
+> the kernel tree under tools/ ?
 
-> > Do you need "normal" resume to work after "atomic" suspend, or is it
-> > sufficient that "atomic" suspend will require "atomic" resume?
-> 
-> hmm... while I'm definitely needing an "atomic" resume after a "normal"
-> suspend, for now I can't think of a case where a "normal" resume would
-> be needed after an "atomic" suspend.  All the cases where I'm currently
-> using an atomic suspend also have a corresponding atomic resume.
-> 
-> As I write this, it wouldn't surprise me down the road to find some HW
-> errata that requires the device in a specific state only before idle,
-> but not caring about the state after idle.  That would be a case where
-> an atomic suspend would be needed, but the resume would be "normal"
-> sometime later when the device is next needed.
+because that is not workable... at least nobody has shown to be able to 
+make this work.
+libraries (after compilation) live in /lib or /usr/lib (or lib64 I 
+suppose).....
+what mechanism ensures that a user who compiles his kernel gets a 
+library compatible with that kernel in /usr/lib?
+and can said library deal with older kernels too? And distro kernels?
 
-Put it this way: Are you okay with just the following two 
-possibilities?
+> Why does everything *have* to be done in
+> kernel-space
+it doesn't. but the alternative must be workable.
+>   Why are you so focused on making your application interact
+> directly with kernel ABIs ?
+>
+> I'm being direct because there are trivial solutions to your problem that you
+> are rejecting without due consideration. (and also I just had one coffee too
+> many) ;-)
 
-	(1) Both suspends and resumes always have interrupts enabled.
-
-	(2) Both suspends and resumes always have interrupts disabled.
-
-In other words, is it okay to rule out the ability of mixing "atomic" 
-and "normal" runtime PM operations?
-
-Alan Stern
+since you seem to think that dealing with such a library is trivial... 
+how about you do it for one function even, to
+show that the deployment/use-in-an-app is workable.
+I'd be more than happy to use it if it's workable and the API is at 
+least halfway sane.
 
