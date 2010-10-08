@@ -1,37 +1,67 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
-Date: Fri, 8 Oct 2010 11:20:24 +0300
-Message-ID: <AANLkTikHMewD94ZBb9P4AF9oM2ZfnpA-yjO67Dx2Lg9r@mail.gmail.com>
-References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com>
-	<201010070940.14208.laurent.pinchart@ideasonboard.com>
-	<4CADFCEB.4030008@ti.com>
-	<AANLkTim8H0ibSucP3Nq=q19t0QY0pvijim1kOZSbygY1@mail.gmail.com>
-	<4CAE1CA1.4050006@ti.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Fri, 8 Oct 2010 10:38:19 +0200
+Message-ID: <20101008083819.GA22385@elte.hu>
+References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
+ <201010062334.46971.trenn@suse.de>
+ <20101007150825.GB12581@Krystal>
+ <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
+ <20101007155816.GA5351@nowhere>
+ <4CAED2F0.9080801@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:51043 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660Ab0JHIU0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 04:20:26 -0400
-Received: by fxm14 with SMTP id 14so274180fxm.19
-        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 01:20:25 -0700 (PDT)
-In-Reply-To: <4CAE1CA1.4050006@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4CAED2F0.9080801@kernel.org>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, arjan@linux.intel.com, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, Russell King <linux@arm.linux.org.uk>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>
 
-On Thu, Oct 7, 2010 at 10:16 PM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
-> On 10/7/2010 1:22 PM, Felipe Contreras wrote:
->> Anyway, we will not know for sure until we try... Right?
->
-> yes we can try, at least we now for sure arm side can be done.
 
-The only thing that changes is the cacheability of the ARM side
-memory, so of course only the ARM side matters. The DSP side will
-continue to do what it's doing and would not notice any difference if
-the memory is flushed, or is non-cacheable.
+* Tejun Heo <tj@kernel.org> wrote:
 
--- 
-Felipe Contreras
+> Hello,
+> 
+> On 10/07/2010 05:58 PM, Frederic Weisbecker wrote:
+> > I really feel uncomfortable with this tracepoint/ABI problem....
+> > Mathieu suggested we start a user library that could handle these
+> > changes when they are really necessary.
+> > 
+> > Thoughts?
+> > 
+> > (Adding Tejun in Cc).
+> 
+> Given that tracepoints are supposed to make internal operation 
+> visible.  I don't think it's a good idea to make it part of fixed ABI.
+
+Yep, exactly.
+
+OTOH since it exports information we can do disciplined versioning and 
+extensions only - i.e. leave the old power events around, add the new 
+ones with new distinct names, and phase out the old ones in a kernel 
+cycle or two. It's not hard to do.
+
+That way apps can support old kernels too (if they want to), but new 
+events as well - and all in a controlled, non-disruptive manner.
+
+More importantly, the kernel wont have cruft and will have no ABI 
+restrictions - the only 'restriction' is to treat information in an 
+append-only manner (i.e. change the event name if you change it 
+materially) - and that's not a big deal here.
+
+The fundamental thing about tracing/instrumentation is that there are no 
+deep ABI needs: it's all about analyzing development kernels (and a few 
+select versions that get the enterprise treatment) but otherwise the 
+half-life of this kind of information is very short.
+
+So we dont want to tie ourselves down with excessive ABIs.
+
+> Maybe some core part can be put in stone but I think things like 
+> internal workqueue implementation should be changeable without 
+> worrying about ABI issues.
+
+That's most definitely so! There is and will be zero back-coupling from 
+workqueue tracepoints to workqueue internals. Dont worry about this.
+
+	Ingo
