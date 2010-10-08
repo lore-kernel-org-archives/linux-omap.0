@@ -1,95 +1,59 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 01/10] OMAP: mach-omap2: Fix incorrect assignment warnings
-Date: Fri, 08 Oct 2010 13:12:58 -0700
-Message-ID: <878w28v3xx.fsf@deeprootsystems.com>
-References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
-	<1285063280-4057-2-git-send-email-manjugk@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: g_ether broken on musb
+Date: Fri, 8 Oct 2010 23:25:26 +0300
+Message-ID: <AANLkTikRe-U4sXPW6U7obCQen-wT=f6JC9wsH5hG04G6@mail.gmail.com>
+References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
+	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
+	<AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
+	<AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m@mail.gmail.com>
+	<AANLkTimfCnCL6NzJEThNDSeNx_Axxdyct88-hyDFQvjJ@mail.gmail.com>
+	<AANLkTik5X=ypNxu4QgiLUFia0b42T=r-Di1MsZCrCsCx@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:48388 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754926Ab0JHUNB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 16:13:01 -0400
-Received: by pzk34 with SMTP id 34so407364pzk.19
-        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 13:13:01 -0700 (PDT)
-In-Reply-To: <1285063280-4057-2-git-send-email-manjugk@ti.com> (Manjunath
-	Kondaiah G.'s message of "Tue, 21 Sep 2010 15:31:11 +0530")
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:39587 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757026Ab0JHUZa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 16:25:30 -0400
+In-Reply-To: <AANLkTik5X=ypNxu4QgiLUFia0b42T=r-Di1MsZCrCsCx@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> Also, you may take Gadiyar's suggestion to post your musb debug info.
 
-> This patch fixes below sparse warnings for incorrect assignments.
+Thanks for ideas, I've found why it happens for me. It's because my
+network setup script looks like this:
+ifconfig usb0 10.0.1.2 down
+ifconfig usb0 10.0.1.2 up
 
-As pointed out by Jean, this patch fixed some sparse warnings, but also
-broke some things, specifically off mode.
+So to reproduce, just load up g_ether, and run:
+# ifconfig usb0 10.0.1.2 down
+(must be with IP, it somehow affects things)
 
-In the future, *please* be sure to test the code paths that are being
-changed.  This patch changed some code that is only exercised during
-off-mode, but was clearly not tested with off mode enabled.
+Then I get:
+[   21.253662] musb_gadget_queue 1211: <== to ep1out request=c193ed00
+[   21.260192] musb_ep_restart 1179: <== RX/OUT request c193ed00 len
+1536 on hw_ep1
+[   21.267974] musb_gadget_queue 1211: <== to ep1out request=c193ed40
+...
+[   21.319854] musb_gadget_queue 1211: <== to ep1out request=c193ef40
+[   21.326751] musb_gadget_disable 1129: ep1in
+[   21.331115] musb_g_giveback 186: ep1out request c193ed00, 0/1536 fault -108
+[   21.338409] musb_g_giveback 186: ep1out request c193ed40, 0/1536 fault -108
+[   21.345672] musb_g_giveback 18ut request c193ed80, 0/1536 fault -108
+[   21.352966] musb_g_giveback 186: ep1out request c193edc0, 0/1536 fault -108
+[   21.360229] musb_g_giveback 186: ep1out request c193ee00, 0/1536 fault -108
+[   21.367523] musb_g_giveback 186: ep1out request c193ee40, 0/1536 fault -108
+[   21.374786] musb_g_giveback 186: ep1out request c193ee80, 0/1536 fault -108
+[   21.382049] musb_g_giveback 186: ep1out request c193eec0, 0/1536 fault -108
+[   21.389343] musb_g_giveback 186: ep1out request c193ef00, 0/1536 fault -108
+[   21.396606] musb_g_giveback 186: ep1out request c193ef40, 0/1536 fault -108
+[   21.403869] musb_gadget_disable 1129: ep1out
+[   21.408355] musb_hdrc periph: enabled ep1in for bulk IN, dma, maxpacket 512
+[   21.415618] musb_hdrc periph: enabled ep1out for bulk OUT, dma, maxpacket 512
+(my serial is dropping some output, it's due to my hardware)
 
-As background for why this broke functionality, keep this in mind:
-
- 	void *a = NULL;
-	u32 *b = NULL;
-
-a + 1 = 1
-b + 1 = 4
-
-IOW, you cannot simply replace a 'u32 *' by a 'void *' without checking
-and fixing any pointer arithmetic.
-
-[...]
-
-> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> index a8d20ee..7405936 100644
-> --- a/arch/arm/mach-omap2/control.c
-> +++ b/arch/arm/mach-omap2/control.c
-> @@ -190,7 +190,7 @@ void omap_ctrl_writel(u32 val, u16 offset)
->  void omap3_clear_scratchpad_contents(void)
->  {
->  	u32 max_offset = OMAP343X_SCRATCHPAD_ROM_OFFSET;
-> -	u32 *v_addr;
-> +	void __iomem *v_addr;
->  	u32 offset = 0;
->  	v_addr = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD_ROM);
->  	if (prm_read_mod_reg(OMAP3430_GR_MOD, OMAP3_PRM_RSTST_OFFSET) &
-
-Interestingly, this one not only fixed the sparse warning but also fixed
-a bug. :) Before this change, only every 4th entry of the scratchpad was
-zeroed.
-
-> @@ -206,7 +206,7 @@ void omap3_clear_scratchpad_contents(void)
->  /* Populate the scratchpad structure with restore structure */
->  void omap3_save_scratchpad_contents(void)
->  {
-> -	void * __iomem scratchpad_address;
-> +	void  __iomem *scratchpad_address;
->  	u32 arm_context_addr;
->  	struct omap3_scratchpad scratchpad_contents;
->  	struct omap3_scratchpad_prcm_block prcm_block_contents;
-
-This one is fine.
-
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 7b03426..4af19a6 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -316,7 +316,7 @@ static void restore_control_register(u32 val)
->  /* Function to restore the table entry that was modified for enabling MMU */
->  static void restore_table_entry(void)
->  {
-> -	u32 *scratchpad_address;
-> +	void __iomem *scratchpad_address;
->  	u32 previous_value, control_reg_value;
->  	u32 *address;
-
-This one changes the result of any 'scratchpad_address + foo'.  
-
-So, if this is changed from u32 to void, all the offsets used when
-adding to the base need to be changed as well.
-
-Kevin
+At this point musb begins acting up, but seems to recover after some
+cable replugs.
