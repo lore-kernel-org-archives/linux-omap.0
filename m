@@ -1,50 +1,100 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH v1 07/16] OMAP3: hwmod DSS: Create platform_driver for
- each DSS HW IP
-Date: Fri, 8 Oct 2010 09:43:09 +0200
-Message-ID: <20101008094309.4711ee68@surf>
-References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
-	<1286363699-9614-2-git-send-email-svadivu@ti.com>
-	<1286363699-9614-3-git-send-email-svadivu@ti.com>
-	<1286363699-9614-4-git-send-email-svadivu@ti.com>
-	<1286363699-9614-5-git-send-email-svadivu@ti.com>
-	<1286363699-9614-6-git-send-email-svadivu@ti.com>
-	<1286363699-9614-7-git-send-email-svadivu@ti.com>
-	<1286363699-9614-8-git-send-email-svadivu@ti.com>
-	<20101007214957.79ca0a9b@surf>
-	<FCCFB4CDC6E5564B9182F639FC356087034B94B361@dbde02.ent.ti.com>
+From: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+Subject: Re: [PATCH 1/1] omap: Ptr "isr_reg" tracked as NULL was
+ dereferenced
+Date: Fri, 08 Oct 2010 11:49:19 +0400
+Message-ID: <1286524159.24366.126.camel@ekuznets-lx-nokia>
+References: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	 <131d16236d19895323fca2f058d65f1f116bacad.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	 <20101005093206.GB2977@legolas.emea.dhcp.ti.com>
+	 <877hhwvg3r.fsf@deeprootsystems.com>
+	 <1286346802.24366.89.camel@ekuznets-lx-nokia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:50560 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754293Ab0JHHnR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 03:43:17 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087034B94B361@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:16722 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753920Ab0JHHyD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 03:54:03 -0400
+In-Reply-To: <1286346802.24366.89.camel@ekuznets-lx-nokia>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "paul@pwsan.com" <paul@pwsan.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>, balbi@ti.com
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "zmc@lurian.net" <zmc@lurian.net>, a.j.buxton@gmail.com
 
-Hello,
+On Wed, 2010-10-06 at 10:33 +0400, Evgeny Kuznetsov wrote:
+> On Tue, 2010-10-05 at 08:01 -0700, ext Kevin Hilman wrote:
+> > Felipe Balbi <balbi@ti.com> writes:
+> > 
+> > > Hi,
+> > >
+> > > On Tue, Oct 05, 2010 at 03:42:10AM -0500, Evgeny Kuznetsov wrote:
+> > >>+	if (!isr_reg) {
+> > >>+		printk(KERN_ERR "FATAL: Incorrect GPIO method %i\n",
+> > >>+				bank->method);
+> > >>+		BUG();
+> > >>+		}
+> > >
+> > > this could be simply:
+> > >
+> > > BUG_ON(!isr_reg);
+> > 
+> > WARN_ON is better.
+> > 
+> > A BUG() will panic the kernel and stop everything.  This is not an error
+> > condition that should prevent the entire kernel from running.
+> 
 
-On Fri, 8 Oct 2010 12:41:35 +0530
-"Guruswamy, Senthilvadivu" <svadivu@ti.com> wrote:
 
-> [Senthil] I put it above as part of all the static methods and
-> structures. Will look at the other omap drivers before I change.
 
-Yes, but the platform_driver structure, ->probe() and ->remove()
-methods are not usually at a random place with all the other static
-methods and structure definitions. They are located *just* above the
-module init/cleanup routines.
+> 'isr_reg' is dereferenced later in code:
+> 	...
+> 	isr_saved = isr = __raw_readl(isr_reg) & enabled;
+> 	...
+> So this will stop kernel anyway.
+> I just hoped to help in understanding of issue by log line. WARN_ON
+> could be used for this.
+> 
+> As a variant compilation error could be added, to prevent situation when
+> kernel is incorrectly configured.
+> E.g.:
+> #if !defined(CONFIG_ARCH_OMAP1) &&		
+> 	!defined(CONFIG_ARCH_OMAP15XX) &&	
+> 	!defined(CONFIG_ARCH_OMAP16XX) &&	
+> 	!defined(CONFIG_ARCH_OMAP730) &&	
+> 	!defined(CONFIG_ARCH_OMAP850) &&	
+> 	!defined(CONFIG_ARCH_OMAP2) &&	
+> 	!defined(CONFIG_ARCH_OMAP3) &&	
+> 	!defined(CONFIG_ARCH_OMAP4)
+> 
+> #error "Incorrect arch configuration"
+> #endif
+> 
+> But there are still cases when 'isr_reg' could have NULL value (if
+> 'bank->method' is not equal to configured one).
+> 
+> Regards,
+> Evgeny
 
-Regards,
+If 'isr_reg' is NULL then interrupt could not be handled. We may unmask
+the GPIO bank interrupt to continue handle GPIO interrupts for other
+lines. And exit handler to prevent kernel oops since 'isr_reg' is
+dereferenced later in code(see my message above).
 
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+if (WARN_ON(!isr_reg)) {
+	desc->chip->unmask(irq);
+	return;
+	}
+
+One thing I warn about that we could not clear edge sensitive
+interrupts:
+	_enable_gpio_irqbank(bank, isr_saved & ~level_mask, 0);
+	_clear_gpio_irqbank(bank, isr_saved & ~level_mask);
+	_enable_gpio_irqbank(bank, isr_saved & ~level_mask, 1);
+
+
+What do you think?
+
+Evgeny.
+
+
