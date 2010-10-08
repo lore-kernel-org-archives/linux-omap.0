@@ -1,55 +1,90 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Fri, 08 Oct 2010 09:22:44 -0700
-Message-ID: <4CAF4554.7070303@linux.intel.com>
-References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com> <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal> <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com> <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org> <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com> <20101008134156.GA28724@Krystal>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
+Date: Fri, 8 Oct 2010 18:49:13 +0200
+Message-ID: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <20101008134156.GA28724@Krystal>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:35841 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754938Ab0JHQtP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 12:49:15 -0400
+Received: by qyk10 with SMTP id 10so1518441qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 09:49:14 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-  On 10/8/2010 6:41 AM, Mathieu Desnoyers wrote:
-> * Arjan van de Ven (arjan@linux.intel.com) wrote:
->>   On 10/8/2010 1:38 AM, Ingo Molnar wrote:
->>> The fundamental thing about tracing/instrumentation is that there are no
->>> deep ABI needs: it's all about analyzing development kernels (and a few
->>> select versions that get the enterprise treatment) but otherwise the
->>> half-life of this kind of information is very short.
->>>
->>> So we dont want to tie ourselves down with excessive ABIs.
->>>
->> ok I'll start working on a second mechanism then to export information
->> that applications need ;-(
->> it'll look a lot like tracing I suppose ;-(
-> What's wrong with doing the compatibility layer in a LGPL library shipped with
-> the kernel tree under tools/ ?
+Hi,
 
-because that is not workable... at least nobody has shown to be able to 
-make this work.
-libraries (after compilation) live in /lib or /usr/lib (or lib64 I 
-suppose).....
-what mechanism ensures that a user who compiles his kernel gets a 
-library compatible with that kernel in /usr/lib?
-and can said library deal with older kernels too? And distro kernels?
+This patch reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
+breaks the OFF mode on the OMAP3 platforms.
+The details are here below.
 
-> Why does everything *have* to be done in
-> kernel-space
-it doesn't. but the alternative must be workable.
->   Why are you so focused on making your application interact
-> directly with kernel ABIs ?
->
-> I'm being direct because there are trivial solutions to your problem that you
-> are rejecting without due consideration. (and also I just had one coffee too
-> many) ;-)
+The intent behind the original patch was to fix some compiler
+warnings, which I do not have on my side. Is the problem dependent on
+the setup and config used?
 
-since you seem to think that dealing with such a library is trivial... 
-how about you do it for one function even, to
-show that the deployment/use-in-an-app is workable.
-I'd be more than happy to use it if it's workable and the API is at 
-least halfway sane.
+Jean
 
+---
+>From ec85bc90978cf0f257e73eaad593ffb774595863 Mon Sep 17 00:00:00 2001
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Date: Fri, 8 Oct 2010 18:36:48 +0200
+Subject: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
+
+This reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
+breaks the OFF mode on the OMAP3 platforms.
+
+The use of a void* pointer for scratchpad_address confuses the
+compiler which generates wrong offset for the access to the L4
+address space. In that case an alignement fault is generated
+during the wake-up from OFF mode.
+
+The code that causes problem is:
+__raw_readl(scratchpad_address + OMAP343X_TABLE_ADDRESS_OFFSET);
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/control.c |    4 ++--
+ arch/arm/mach-omap2/pm34xx.c  |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 1fa3294..049bfb1 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -217,7 +217,7 @@ void omap4_ctrl_pad_writel(u32 val, u16 offset)
+ void omap3_clear_scratchpad_contents(void)
+ {
+ 	u32 max_offset = OMAP343X_SCRATCHPAD_ROM_OFFSET;
+-	void __iomem *v_addr;
++	u32 *v_addr;
+ 	u32 offset = 0;
+ 	v_addr = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD_ROM);
+ 	if (prm_read_mod_reg(OMAP3430_GR_MOD, OMAP3_PRM_RSTST_OFFSET) &
+@@ -233,7 +233,7 @@ void omap3_clear_scratchpad_contents(void)
+ /* Populate the scratchpad structure with restore structure */
+ void omap3_save_scratchpad_contents(void)
+ {
+-	void  __iomem *scratchpad_address;
++	void * __iomem scratchpad_address;
+ 	u32 arm_context_addr;
+ 	struct omap3_scratchpad scratchpad_contents;
+ 	struct omap3_scratchpad_prcm_block prcm_block_contents;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 8c8f1ac..af752ae 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -310,7 +310,7 @@ static void restore_control_register(u32 val)
+ /* Function to restore the table entry that was modified for enabling MMU */
+ static void restore_table_entry(void)
+ {
+-	void __iomem *scratchpad_address;
++	u32 *scratchpad_address;
+ 	u32 previous_value, control_reg_value;
+ 	u32 *address;
+
+-- 
+1.7.1
