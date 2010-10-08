@@ -1,51 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4] ARM: Fix sparse warnings due to variables conflicts.
-Date: Fri, 8 Oct 2010 10:36:15 -0700
-Message-ID: <20101008173615.GJ7558@atomide.com>
-References: <1286517186-29934-1-git-send-email-sourav.poddar@ti.com>
-	<4CAF014D.7000909@ti.com>
+From: "Frank Ch. Eigler" <fche@redhat.com>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Fri, 8 Oct 2010 13:49:14 -0400
+Message-ID: <20101008174914.GD17865@redhat.com>
+References: <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal> <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com> <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org> <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com> <20101008134156.GA28724@Krystal> <4CAF4554.7070303@linux.intel.com> <1286558495.6661.822.camel@gandalf.stny.rr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4CAF014D.7000909@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nishanth Menon <nm@ti.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Shilimkar,
-	Santosh" <santosh.shilimkar@ti.com>, "Poddar,
-	Sourav" <sourav.poddar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan,
-	Charulatha" <charu@ti.com>
+In-Reply-To: <1286558495.6661.822.camel@gandalf.stny.rr.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Nishanth Menon <nm@ti.com> [101008 04:24]:
-> Poddar, Sourav had written, on 10/08/2010 12:53 AM, the following:
-> >Fix the sparse warnings generated due to conflicts in variables used in readl/writel.
-> >
-> >
-> >drivers/net/smc91x.c:312:8: warning: symbol '__v' shadows an earlier one
-> >drivers/net/smc91x.c:312:8: originally declared here
-> >
-> >With this change, about 200 sparse warnings are fixed.
-> The commit message could be a little more detailed.
-> see http://marc.info/?l=linux-omap&m=128648102511076&w=2
-> 
-> also should $subject say ARM: io: fix namespace conflict
-> to better reflect the fix? sparse warnings are just an indication IMHO
+Hi -
 
-BTW, also dropping the "OMAP: Convert write/read functions to raw read/write".
+On Fri, Oct 08, 2010 at 01:21:35PM -0400, Steven Rostedt wrote:
+> [...]
+> Perhaps we should have "make install" of a kernel also install this
+> library?
+> [...]
+> The app only needs to worry about loading the generic library. The
+> generic library can test for compatible libraries for the kernel.
+> [...]
 
-That patch does not compute, and also ends up leaving files with
-__raw_readw followed by writew..
+If this library were to be distributed with the kernel, what would
+make the generic side of the interface any less permanent than a
+kernel ABI?  That is, if there is a libkernel-internals.so built from
+kernel sources, wouldn't its ABI become necessarily as fixed as any
+old syscall or procfs file?
 
-Regards,
+One can have some backward compatibility with symbol versioning et
+al., but would that be sufficiently powerful to avoid handcuffing
+kernel developers' inclinations to make random future changes?
 
-Tony
+- FChE
