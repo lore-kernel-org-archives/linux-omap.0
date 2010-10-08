@@ -1,68 +1,39 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
-Date: Fri, 08 Oct 2010 15:47:38 -0700
-Message-ID: <87eic0ti7p.fsf@deeprootsystems.com>
-References: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
-	<87y6a8v48p.fsf@deeprootsystems.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v4] ARM: Fix sparse warnings due to variables conflicts.
+Date: Sat, 9 Oct 2010 00:22:37 +0100
+Message-ID: <20101008232237.GC10975@n2100.arm.linux.org.uk>
+References: <1286517186-29934-1-git-send-email-sourav.poddar@ti.com> <4CAF014D.7000909@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:35673 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752635Ab0JHWrl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 18:47:41 -0400
-Received: by pxi15 with SMTP id 15so328724pxi.19
-        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 15:47:41 -0700 (PDT)
-In-Reply-To: <87y6a8v48p.fsf@deeprootsystems.com> (Kevin Hilman's message of
-	"Fri, 08 Oct 2010 13:06:30 -0700")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54680 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863Ab0JHXW4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 19:22:56 -0400
+Content-Disposition: inline
+In-Reply-To: <4CAF014D.7000909@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: "Poddar, Sourav" <sourav.poddar@ti.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Varadarajan, Charulatha" <charu@ti.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
-
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
->
->> This patch reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
->> breaks the OFF mode on the OMAP3 platforms.
->> The details are here below.
+On Fri, Oct 08, 2010 at 06:32:29AM -0500, Nishanth Menon wrote:
+> Poddar, Sourav had written, on 10/08/2010 12:53 AM, the following:
+>> Fix the sparse warnings generated due to conflicts in variables used in readl/writel.
 >>
->> The intent behind the original patch was to fix some compiler
->> warnings, which I do not have on my side. Is the problem dependent on
->> the setup and config used?
->
->> From ec85bc90978cf0f257e73eaad593ffb774595863 Mon Sep 17 00:00:00 2001
->> From: Jean Pihet <jean.pihet@newoldbits.com>
->> Date: Fri, 8 Oct 2010 18:36:48 +0200
->> Subject: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
 >>
->> This reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
->> breaks the OFF mode on the OMAP3 platforms.
+>> drivers/net/smc91x.c:312:8: warning: symbol '__v' shadows an earlier one
+>> drivers/net/smc91x.c:312:8: originally declared here
 >>
->> The use of a void* pointer for scratchpad_address confuses the
->> compiler which generates wrong offset for the access to the L4
->> address space. In that case an alignement fault is generated
->> during the wake-up from OFF mode.
->>
->> The code that causes problem is:
->> __raw_readl(scratchpad_address + OMAP343X_TABLE_ADDRESS_OFFSET);
+>> With this change, about 200 sparse warnings are fixed.
+> The commit message could be a little more detailed.
+> see http://marc.info/?l=linux-omap&m=128648102511076&w=2
 >
-> Thanks Jean for tracking down why off-mode was broken on the master
-> branch.  
->
-> I completely agree this patch should be reverted.  However, the
-> description here could be a litle more descriptive.
+> also should $subject say ARM: io: fix namespace conflict
+> to better reflect the fix? sparse warnings are just an indication IMHO
 
-I changed my mind...
+afaics, this patch will cause checkpatch to issue warnings due to lines
+over 80 characters.
 
-Since only one part of the original patch introduced a bug, I decided to
-just fix that bug and keep the fixes for the sparse warnings.  I just
-posted a patch[1] for the fix.   Please test.
-
-Thanks,
-
-Kevin
-
-[1] https://patchwork.kernel.org/patch/242661/
-
+I can't check that because I don't have the original patch via the
+linux-arm-kernel mailing list.
