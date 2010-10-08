@@ -1,100 +1,40 @@
-From: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
-Subject: Re: [PATCH 1/1] omap: Ptr "isr_reg" tracked as NULL was
- dereferenced
-Date: Fri, 08 Oct 2010 11:49:19 +0400
-Message-ID: <1286524159.24366.126.camel@ekuznets-lx-nokia>
-References: <cover.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
-	 <131d16236d19895323fca2f058d65f1f116bacad.1286261378.git.EXT-Eugeny.Kuznetsov@nokia.com>
-	 <20101005093206.GB2977@legolas.emea.dhcp.ti.com>
-	 <877hhwvg3r.fsf@deeprootsystems.com>
-	 <1286346802.24366.89.camel@ekuznets-lx-nokia>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Fri, 08 Oct 2010 10:14:40 +0200
+Message-ID: <4CAED2F0.9080801@kernel.org>
+References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com> <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal> <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com> <20101007155816.GA5351@nowhere>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:16722 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753920Ab0JHHyD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 03:54:03 -0400
-In-Reply-To: <1286346802.24366.89.camel@ekuznets-lx-nokia>
+Received: from hera.kernel.org ([140.211.167.34]:45141 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755774Ab0JHIQM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Oct 2010 04:16:12 -0400
+In-Reply-To: <20101007155816.GA5351@nowhere>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>, balbi@ti.com
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "zmc@lurian.net" <zmc@lurian.net>, a.j.buxton@gmail.com
+To: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Pierre Tardy <tardyp@gmail.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, mingo@elte.hu, arjan@linux.intel.com, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 
-On Wed, 2010-10-06 at 10:33 +0400, Evgeny Kuznetsov wrote:
-> On Tue, 2010-10-05 at 08:01 -0700, ext Kevin Hilman wrote:
-> > Felipe Balbi <balbi@ti.com> writes:
-> > 
-> > > Hi,
-> > >
-> > > On Tue, Oct 05, 2010 at 03:42:10AM -0500, Evgeny Kuznetsov wrote:
-> > >>+	if (!isr_reg) {
-> > >>+		printk(KERN_ERR "FATAL: Incorrect GPIO method %i\n",
-> > >>+				bank->method);
-> > >>+		BUG();
-> > >>+		}
-> > >
-> > > this could be simply:
-> > >
-> > > BUG_ON(!isr_reg);
-> > 
-> > WARN_ON is better.
-> > 
-> > A BUG() will panic the kernel and stop everything.  This is not an error
-> > condition that should prevent the entire kernel from running.
+Hello,
+
+On 10/07/2010 05:58 PM, Frederic Weisbecker wrote:
+> I really feel uncomfortable with this tracepoint/ABI problem....
+> Mathieu suggested we start a user library that could handle these
+> changes when they are really necessary.
 > 
-
-
-
-> 'isr_reg' is dereferenced later in code:
-> 	...
-> 	isr_saved = isr = __raw_readl(isr_reg) & enabled;
-> 	...
-> So this will stop kernel anyway.
-> I just hoped to help in understanding of issue by log line. WARN_ON
-> could be used for this.
+> Thoughts?
 > 
-> As a variant compilation error could be added, to prevent situation when
-> kernel is incorrectly configured.
-> E.g.:
-> #if !defined(CONFIG_ARCH_OMAP1) &&		
-> 	!defined(CONFIG_ARCH_OMAP15XX) &&	
-> 	!defined(CONFIG_ARCH_OMAP16XX) &&	
-> 	!defined(CONFIG_ARCH_OMAP730) &&	
-> 	!defined(CONFIG_ARCH_OMAP850) &&	
-> 	!defined(CONFIG_ARCH_OMAP2) &&	
-> 	!defined(CONFIG_ARCH_OMAP3) &&	
-> 	!defined(CONFIG_ARCH_OMAP4)
-> 
-> #error "Incorrect arch configuration"
-> #endif
-> 
-> But there are still cases when 'isr_reg' could have NULL value (if
-> 'bank->method' is not equal to configured one).
-> 
-> Regards,
-> Evgeny
+> (Adding Tejun in Cc).
 
-If 'isr_reg' is NULL then interrupt could not be handled. We may unmask
-the GPIO bank interrupt to continue handle GPIO interrupts for other
-lines. And exit handler to prevent kernel oops since 'isr_reg' is
-dereferenced later in code(see my message above).
+Given that tracepoints are supposed to make internal operation
+visible.  I don't think it's a good idea to make it part of fixed ABI.
+Maybe some core part can be put in stone but I think things like
+internal workqueue implementation should be changeable without
+worrying about ABI issues.
 
-if (WARN_ON(!isr_reg)) {
-	desc->chip->unmask(irq);
-	return;
-	}
+Thanks.
 
-One thing I warn about that we could not clear edge sensitive
-interrupts:
-	_enable_gpio_irqbank(bank, isr_saved & ~level_mask, 0);
-	_clear_gpio_irqbank(bank, isr_saved & ~level_mask);
-	_enable_gpio_irqbank(bank, isr_saved & ~level_mask, 1);
-
-
-What do you think?
-
-Evgeny.
-
-
+-- 
+tejun
