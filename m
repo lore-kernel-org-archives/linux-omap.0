@@ -1,37 +1,37 @@
-From: "Frank Ch. Eigler" <fche@redhat.com>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Fri, 8 Oct 2010 13:49:14 -0400
-Message-ID: <20101008174914.GD17865@redhat.com>
-References: <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal> <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com> <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org> <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com> <20101008134156.GA28724@Krystal> <4CAF4554.7070303@linux.intel.com> <1286558495.6661.822.camel@gandalf.stny.rr.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment
+ warnings"
+Date: Fri, 8 Oct 2010 11:53:18 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1010081152160.6632@utopia.booyaka.com>
+References: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1286558495.6661.822.camel@gandalf.stny.rr.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:44422 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932552Ab0JHRxU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 13:53:20 -0400
+In-Reply-To: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi -
+On Fri, 8 Oct 2010, Jean Pihet wrote:
 
-On Fri, Oct 08, 2010 at 01:21:35PM -0400, Steven Rostedt wrote:
-> [...]
-> Perhaps we should have "make install" of a kernel also install this
-> library?
-> [...]
-> The app only needs to worry about loading the generic library. The
-> generic library can test for compatible libraries for the kernel.
-> [...]
+> The intent behind the original patch was to fix some compiler
+> warnings, which I do not have on my side. Is the problem dependent on
+> the setup and config used?
 
-If this library were to be distributed with the kernel, what would
-make the generic side of the interface any less permanent than a
-kernel ABI?  That is, if there is a libkernel-internals.so built from
-kernel sources, wouldn't its ABI become necessarily as fixed as any
-old syscall or procfs file?
+It's probably a warning from sparse --
 
-One can have some backward compatibility with symbol versioning et
-al., but would that be sufficiently powerful to avoid handcuffing
-kernel developers' inclinations to make random future changes?
+https://sparse.wiki.kernel.org/index.php/Main_Page
 
-- FChE
+Maybe it will show up if you
+
+make C=2
+
+?
+
+
+- Paul
