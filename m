@@ -1,237 +1,229 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/7] [RFC] OMAP: MCBSP: hwmod database for 2xxx devices
-Date: Fri, 8 Oct 2010 09:22:10 +0200
-Message-ID: <4CAEC6A2.7000809@ti.com>
-References: <1286296662-7639-1-git-send-email-kishon@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB030CF13384@dbde02.ent.ti.com> <201010061017.13908.peter.ujfalusi@nokia.com> <EAF47CD23C76F840A9E7FCE10091EFAB030CF14091@dbde02.ent.ti.com>
+Subject: Re: [PATCH 6/7] [RFC] OMAP: hwmod: SYSCONFIG register modification
+ for MCBSP
+Date: Fri, 8 Oct 2010 09:42:40 +0200
+Message-ID: <4CAECB70.4030705@ti.com>
+References: <1286296662-7639-1-git-send-email-kishon@ti.com> <1286296662-7639-6-git-send-email-kishon@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56710 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53723 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753111Ab0JHHW0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Oct 2010 03:22:26 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CF14091@dbde02.ent.ti.com>
+	id S1753763Ab0JHHmo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Oct 2010 03:42:44 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o987ghOa015260
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 8 Oct 2010 02:42:43 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id o987ghiJ009904
+	for <linux-omap@vger.kernel.org>; Fri, 8 Oct 2010 02:42:43 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o987ghcK025233
+	for <linux-omap@vger.kernel.org>; Fri, 8 Oct 2010 02:42:43 -0500 (CDT)
+In-Reply-To: <1286296662-7639-6-git-send-email-kishon@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Kamat, Nishant" <nskamat@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Girdwood, Liam" <x0135381@ti.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+To: "ABRAHAM, KISHON VIJAY" <kishon@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "Basak, Partha" <p-basak2@ti.com>
 
-Hi Charu,
+Hi Kishon,
 
-On 10/8/2010 8:20 AM, Varadarajan, Charulatha wrote:
->
->
->> From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com]
->> Sent: Wednesday, October 06, 2010 12:47 PM
->> To: Varadarajan, Charulatha
->> Cc: linux-omap@vger.kernel.org; alsa-devel@alsa-project.org; Kamat,
->> Nishant; Datta, Shubhrajyoti; Basak, Partha; Girdwood, Liam;
->> jhnikula@gmail.com; broonie@opensource.wolfsonmicro.com; ABRAHAM, KI=
-SHON
->> VIJAY
->> Subject: Re: [PATCH 1/7] [RFC] OMAP: MCBSP: hwmod database for 2xxx
->> devices
->>
->> Hello,
->
-> Thanks for the quick response.
->
->>
->> On Wednesday 06 October 2010 10:01:28 ext Varadarajan, Charulatha wr=
-ote:
->>> This patch series is targeted to implement mcbsp driver in
->>> hwmod way and to make use of pm_runtime APIs.
->>>
->>> This patch series is tested on OMAP3&  4 and yet to be tested
->>> on OMAP2.
->>>
->>> There are few clarifications required so that the next patch series
->>> can be implemented after aligning.
->>>
->>> 1. Audio layer is making use of mcbsp and it's dma base addresses a=
-nd
->>> is closely coupled with omap-mcbsp.
->>> This can be handled either by
->>> a. providing an API with which Audio layer can get these addresses.
->>> (or)
->>> b. move the plat-omap/mcbsp.c and mach-omap2/mcbsp.c to sound/soc/o=
-map/
->>> [1]
->>>
->>> Option (a) would only be a workaround to handle the situation. As
->>> audio is the only user for mcbsp, option (b) is better. If option(b=
-)
->>> is agreed upon, the same can be addressed on top of the mcbsp hwmod
->>> series.
->>
->> it is true that at the moment only audio is using the McBSP ports, b=
-ut
->> McBSP is
->> really flexible, it can run for example in SPI mode, and it can be
->> configured to
->> use other serial protocols.
->
-> Yes.
->
->> I would go with option c.
->> Since ASoC is moving to multi-component (the conversion is already i=
-n
->> linux-
->> next), this means that the sound/soc/omap/omap-mcbsp, omap-pcm drive=
-rs are
->> platform drivers.
->> So if the plat-omap/mcbsp would register the platform device for McB=
-SP
->> clients
->> (we have only ASoC client at the moment), and use platform data to p=
-ass
->> the
->> needed information to the McBSP client driver, than we do not need n=
-ew API.
->
-> Sorry I am confused.
->
-> With hwmod implementation, there is a device register code for mcbsp
-> devices in mach-omap2/mcbsp.c and a probe in plat-omap/mcbsp.c. The b=
-ase
-> address, dma info are not part of pdata and are available to the driv=
-er
-> only after probe. I do not understand how the multi-component design =
-in
-> ASOC can avoid the new API.
->
-> Also with this multi-component approach in ASOC, two device
-> registrations happens for a single mcbsp device with two different
-> rames ("omap-mcbsp-dai.id"&  "omap-mcbsp.id"). Please explain if this
-> what is expected?
->
->> We still need to modify the ASoC drivers to make use of this platfor=
-m data,
->> but
->> at least we are going to keep the door open for others to use the Mc=
-BSP
->> ports
->> for other than audio.
->
-> Agreed. But the current omap-mcbsp driver cannot work standalone for
-> OMAP3/4 due to the issues stated below:
-> 1. omap_mcbsp_pollwrite and omap_mcbsp_pollread functions access McBS=
-P
-> registers as 16-bit. But in OMAP3/4, McBSP registers (DRR_REG and DXR=
-_REG)
-> are limited to 32-bit data accesses and hence poll mode would not wor=
-k [x].
-> 2. DMA transfers would also not work as it requires a patch similar t=
-o [y].
->
-> Patches [x]&  [y] were rejected as there are no users other than asoc=
-=2E
-> If it is not agreed to move omap-mcbsp driver to asoc layer, we need =
-to
-> get the omap-mcbsp driver working as a standalone driver. Otherwise i=
-t
-> is of no use keeping the mcbsp driver in plat-omap.
->
-> Once [x]&  [y] patches are upstreamed, audio layer needs to be modifi=
-ed
-> to make use of omap-mcbsp APIs rather than Audio layer calling dma
-> APIs directly to transfer data.
->
-> Coming back to the original question. Either we need to fix the broke=
-n
-> legacy mcbsp driver or move the omap-mcbsp driver completely to asoc
-> layer. What do you say?
->
-> [x] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg19531.h=
-tml
-> [y] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg04085.h=
-tml
->>
->>> 2. Sidetone feature is available only in OMAP3 (McBSP2&3) which has
->>> different base address and sys configs compared to it's mcbsp port.
->>> Hence the mcbsp is considered as a single device with two hwmods
->>> for McBSP2&3 devices in OMAP3.
->>
->> Sounds fair enough.
->
-> Thanks.
->
->>
->>> 3. Autoidle needs to be disabled for sidetone before enabling the
->> sidetone
->>> feature. There was a design proposed by Kishon [2] to add an API in
->> hwmod
->>> to modify the autoidle bit but was not agreed upon. How do we handl=
-e
->> this
->>> situation where the device has to disable or enable the autoidle bi=
-t at
->>> runtime?
->>
->> Yeah, this is really annoying problem. The McBSP ST should block aut=
-oidle
->> from
->> McBSP side, but it does not.
->> If you can not get through the proposed API, we should consider to s=
-witch
->> the
->> corresponding McBSP port to NoIdle, when the ST is in use (and resto=
-re the
->> idle
->> mode, when the ST has been disabled).
->> When McBSP is in NoIdle the interface clock is not going to be gated=
-, so
->> ST
->> block will be running without a problem (ST needs the iface clock fo=
-r
->> operation)
->>
->> What do you think?
->
-> I think it might not be possible to handle this, as the clocks are th=
-e same for ST and mcbsp port. pm_runtime APIs are not called during ST =
-enable/disable as clocks are already enabled while enabling mcbsp port.=
- Hence the idle bit change cannot happen even if the oh->flags are modi=
-fied runtime during ST enable/disable.
+On 10/5/2010 6:37 PM, ABRAHAM, KISHON VIJAY wrote:
+> MCBSP 2 and 3 in OMAP3 has sidetone feature which requires
+> autoidle to be disabled before starting the sidetone. Also SYSCONFIG
+> register has to be set with smart idle or no idle depending on the
+> dma op mode (threshold or element sync). For doing these operations
+> dynamically at runtime, hwmod API'S are used to modify SYSCONFIG register
+> directly.
 
-This is mainly because of the 2 hwmods for 1 device implementation,=20
-which make perfect sense in theory, but because of that bug, becomes=20
-tricky to handle it in the fmwk.
+OK, it looks like we don't have the choice... But for the 
+implementation, please discussed with Manju on that, He is doing the 
+similar thing for the smartstandby issue on SDMA.
 
-=46YI, SDMA and MUSB are as well requiring some sysconfig change during=
-=20
-runtime. So a couple of API will have to be implemented.
-I guess we don't have the choice. Now, it is just a matter of having th=
-e=20
-right implementation.
-I'll comment on that patch directly.
+>
+> Signed-off-by: Kishon Vijay Abraham I<kishon@ti.com>
+> Signed-off-by: Charulatha V<charu@ti.com>
+> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+> Cc: Partha Basak<p-basak2@ti.com>
+> ---
+>   arch/arm/plat-omap/mcbsp.c |   69 ++++++++++++++++++++++++++------------------
+>   1 files changed, 41 insertions(+), 28 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> index c7c6a83..6b705e1 100644
+> --- a/arch/arm/plat-omap/mcbsp.c
+> +++ b/arch/arm/plat-omap/mcbsp.c
+> @@ -228,10 +228,21 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
+>   EXPORT_SYMBOL(omap_mcbsp_config);
+>
+>   #ifdef CONFIG_ARCH_OMAP3
+> +static struct omap_hwmod **find_hwmods_by_dev(struct device *dev)
+> +{
+> +	struct platform_device *pdev;
+> +	struct omap_device *od;
+> +	pdev = container_of(dev, struct platform_device, dev);
+> +	od = container_of(pdev, struct omap_device, pdev);
+> +	return od->hwmods;
 
+Rule #1, don't touch oh in your code. The device should be the only 
+interface.
+If such API is needed, it should be in omap_device. But in your case, I 
+don't thing it is needed.
+
+> +}
+> +
+>   static void omap_st_on(struct omap_mcbsp *mcbsp)
+>   {
+>   	unsigned int w;
+> +	struct omap_hwmod **oh;
+>
+> +	oh = find_hwmods_by_dev(mcbsp->dev);
+>   	/*
+>   	 * Sidetone uses McBSP ICLK - which must not idle when sidetones
+>   	 * are enabled or sidetones start sounding ugly.
+> @@ -244,8 +255,7 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
+>   	w = MCBSP_READ(mcbsp, SSELCR);
+>   	MCBSP_WRITE(mcbsp, SSELCR, w | SIDETONEEN);
+>
+> -	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
+> -	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w&  ~(ST_AUTOIDLE));
+> +	omap_hwmod_set_module_autoidle(oh[1], 0);
+
+Don't use internal hwmod API. You have to create a similar omap_device API.
+You don't have to select only one hwmod in this case, just change the 
+sysconfig setting for all hwmod that belong to the omap_device, and it 
+will be fine. It will avoid you to access one hwmod in particular.
+This is the implementation that Manju is doing.
+
+>
+>   	/* Enable Sidetone from Sidetone Core */
+>   	w = MCBSP_ST_READ(mcbsp, SSELCR);
+> @@ -255,12 +265,14 @@ static void omap_st_on(struct omap_mcbsp *mcbsp)
+>   static void omap_st_off(struct omap_mcbsp *mcbsp)
+>   {
+>   	unsigned int w;
+> +	struct omap_hwmod **oh;
+> +
+> +	oh = find_hwmods_by_dev(mcbsp->dev);
+>
+>   	w = MCBSP_ST_READ(mcbsp, SSELCR);
+>   	MCBSP_ST_WRITE(mcbsp, SSELCR, w&  ~(ST_SIDETONEEN));
+>
+> -	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
+> -	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w | ST_AUTOIDLE);
+> +	omap_hwmod_set_module_autoidle(oh[1], 1);
+>
+>   	w = MCBSP_READ(mcbsp, SSELCR);
+>   	MCBSP_WRITE(mcbsp, SSELCR, w&  ~(SIDETONEEN));
+> @@ -273,9 +285,11 @@ static void omap_st_off(struct omap_mcbsp *mcbsp)
+>   static void omap_st_fir_write(struct omap_mcbsp *mcbsp, s16 *fir)
+>   {
+>   	u16 val, i;
+> +	struct omap_hwmod **oh;
+>
+> -	val = MCBSP_ST_READ(mcbsp, SYSCONFIG);
+> -	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, val&  ~(ST_AUTOIDLE));
+> +	oh = find_hwmods_by_dev(mcbsp->dev);
+> +
+> +	omap_hwmod_set_module_autoidle(oh[1], 0);
+>
+>   	val = MCBSP_ST_READ(mcbsp, SSELCR);
+>
+> @@ -303,9 +317,11 @@ static void omap_st_chgain(struct omap_mcbsp *mcbsp)
+>   {
+>   	u16 w;
+>   	struct omap_mcbsp_st_data *st_data = mcbsp->st_data;
+> +	struct omap_hwmod **oh;
+> +
+> +	oh = find_hwmods_by_dev(mcbsp->dev);
+>
+> -	w = MCBSP_ST_READ(mcbsp, SYSCONFIG);
+> -	MCBSP_ST_WRITE(mcbsp, SYSCONFIG, w&  ~(ST_AUTOIDLE));
+> +	omap_hwmod_set_module_autoidle(oh[1], 0);
+>
+>   	w = MCBSP_ST_READ(mcbsp, SSELCR);
+>
+> @@ -648,49 +664,46 @@ EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
+>
+>   static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+>   {
+> +	struct omap_hwmod **oh;
+> +
+> +	oh = find_hwmods_by_dev(mcbsp->dev);
+>   	/*
+>   	 * Enable wakup behavior, smart idle and all wakeups
+>   	 * REVISIT: some wakeups may be unnecessary
+>   	 */
+>   	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+> -		u16 syscon;
+> -
+> -		syscon = MCBSP_READ(mcbsp, SYSCON);
+> -		syscon&= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
+>
+>   		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
+> -			syscon |= (ENAWAKEUP | SIDLEMODE(0x02) |
+> -					CLOCKACTIVITY(0x02));
+> -			MCBSP_WRITE(mcbsp, WAKEUPEN, XRDYEN | RRDYEN);
+> +			omap_hwmod_enable_wakeup(oh[0]);
+
+Thanks to the patch done by Rajendra, the wakeup should enable based on 
+smartidle config.
+
+> +			omap_hwmod_set_slave_idlemode(oh[0],
+> +						HWMOD_IDLEMODE_SMART);
+>   		} else {
+> -			syscon |= SIDLEMODE(0x01);
+> +			omap_hwmod_disable_wakeup(oh[0]);
+> +			omap_hwmod_set_slave_idlemode(oh[0],
+> +						HWMOD_IDLEMODE_NO);
+>   		}
+> -
+> -		MCBSP_WRITE(mcbsp, SYSCON, syscon);
+>   	}
+>   }
+>
+>   static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
+>   {
+> +	struct omap_hwmod **oh;
+> +
+> +	oh = find_hwmods_by_dev(mcbsp->dev);
+>   	/*
+>   	 * Disable wakup behavior, smart idle and all wakeups
+>   	 */
+>   	if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+
+Please try to avoid this cpu_is_xxx checks. You should identified the IP 
+version if possible or add some SW rev, features or errata in hwmod and 
+retrieve them during omap_device_build.
+
+> -		u16 syscon;
+> -
+> -		syscon = MCBSP_READ(mcbsp, SYSCON);
+> -		syscon&= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
+>   		/*
+>   		 * HW bug workaround - If no_idle mode is taken, we need to
+>   		 * go to smart_idle before going to always_idle, or the
+>   		 * device will not hit retention anymore.
+>   		 */
+
+What is that other bug? The changelog does not mention it?
+
+> -		syscon |= SIDLEMODE(0x02);
+> -		MCBSP_WRITE(mcbsp, SYSCON, syscon);
+> -
+> -		syscon&= ~(SIDLEMODE(0x03));
+> -		MCBSP_WRITE(mcbsp, SYSCON, syscon);
+> -
+> +		omap_hwmod_disable_wakeup(oh[0]);
+> +		omap_hwmod_set_slave_idlemode(oh[0],
+> +					HWMOD_IDLEMODE_SMART);
+> +		omap_hwmod_set_slave_idlemode(oh[0],
+> +					HWMOD_IDLEMODE_FORCE);
+>   		MCBSP_WRITE(mcbsp, WAKEUPEN, 0);
+>   	}
+>   }
+
+Regards,
 Benoit
-
-
->
->>>
->>> [1] https://patchwork.kernel.org/patch/225582/
->>> [2] https://patchwork.kernel.org/patch/134371/
->>>
->>> We would resend the same patch series by including alsa mailing lis=
-t
->>> (alsa-devel@alsa-project.org)
->>>
->>> <<snip>>
->>
->> --
->> P=E9ter
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
