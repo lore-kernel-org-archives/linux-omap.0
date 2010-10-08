@@ -1,23 +1,31 @@
 From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH v1 05/16] OMAP3 DSS Driver register moved to mach_omap2
-Date: Fri, 8 Oct 2010 12:24:21 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034B94B33E@dbde02.ent.ti.com>
+Subject: RE: [PATCH v1 13/16] OMAP3: hwmod DSS: VENC Move init,exit to driver
+Date: Fri, 8 Oct 2010 12:39:41 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034B94B35F@dbde02.ent.ti.com>
 References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
 	<1286363699-9614-2-git-send-email-svadivu@ti.com>
 	<1286363699-9614-3-git-send-email-svadivu@ti.com>
 	<1286363699-9614-4-git-send-email-svadivu@ti.com>
 	<1286363699-9614-5-git-send-email-svadivu@ti.com>
 	<1286363699-9614-6-git-send-email-svadivu@ti.com>
- <20101007210618.2bb542be@surf>
+	<1286363699-9614-7-git-send-email-svadivu@ti.com>
+	<1286363699-9614-8-git-send-email-svadivu@ti.com>
+	<1286363699-9614-9-git-send-email-svadivu@ti.com>
+	<1286363699-9614-10-git-send-email-svadivu@ti.com>
+	<1286363699-9614-11-git-send-email-svadivu@ti.com>
+	<1286363699-9614-12-git-send-email-svadivu@ti.com>
+	<1286363699-9614-13-git-send-email-svadivu@ti.com>
+	<1286363699-9614-14-git-send-email-svadivu@ti.com>
+ <20101007215733.5ab1c091@surf>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32916 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752337Ab0JHGyf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 02:54:35 -0400
-In-Reply-To: <20101007210618.2bb542be@surf>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44629 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752360Ab0JHHJz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 03:09:55 -0400
+In-Reply-To: <20101007215733.5ab1c091@surf>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -28,98 +36,116 @@ Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tomi.valkeinen
 
 > -----Original Message-----
 > From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
-> Sent: Friday, October 08, 2010 12:36 AM
+> Sent: Friday, October 08, 2010 1:28 AM
 > To: Guruswamy, Senthilvadivu
 > Cc: khilman@deeprootsystems.com; tomi.valkeinen@nokia.com; paul@pwsan.com;
 > Hiremath, Vaibhav; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v1 05/16] OMAP3 DSS Driver register moved to
-> mach_omap2
+> Subject: Re: [PATCH v1 13/16] OMAP3: hwmod DSS: VENC Move init,exit to
+> driver
 > 
-> Hello,
+> Hello Senthil,
 > 
-> The patch title is a bit misleading, maybe it should rather be
-> something like "Move OMAP3 DSS driver registration to
-> mach-omap2/devices.c"/
-> 
-> On Wed,  6 Oct 2010 16:44:48 +0530
+> On Wed,  6 Oct 2010 16:44:56 +0530
 > Guruswamy Senthilvadivu <svadivu@ti.com> wrote:
 > 
-> >  /*---------------------------------------------------------------------
-> ------*/
-> > +#ifdef CONFIG_OMAP2_DSS
-> > +
-> > +static struct platform_device omap_display_device = {
-> > +	.name          = "omapdisplay",
-> > +	.id            = -1,
-> > +	.dev            = {
-> > +		.platform_data = NULL,
-> > +	},
+> > diff --git a/drivers/video/omap2/dss/venc.c
+> b/drivers/video/omap2/dss/venc.c
+> > index ec17b28..3a121cb 100644
+> > --- a/drivers/video/omap2/dss/venc.c
+> > +++ b/drivers/video/omap2/dss/venc.c
+> > @@ -87,26 +87,6 @@
+> >  #define VENC_OUTPUT_TEST			0xC8
+> >  #define VENC_DAC_B__DAC_C			0xC8
+> >
+> > -/* VENC HW IP initialisation */
+> > -static int omap_venchw_probe(struct platform_device *pdev)
+> > -{
+> > -	return 0;
+> > -}
+> > -
+> > -static int omap_venchw_remove(struct platform_device *pdev)
+> > -{
+> > -	return 0;
+> > -}
+> > -
+> > -static struct platform_driver omap_venchw_driver = {
+> > -	.probe          = omap_venchw_probe,
+> > -	.remove         = omap_venchw_remove,
+> > -	.driver         = {
+> > -		.name   = "dss_venc",
+> > -		.owner  = THIS_MODULE,
+> > -	},
+> > -};
 > 
-> This .dev = {} part is useless. The compiler will automatically
-> initialize unset fields to zero.
+> Would be better in patch 7/16 to put this stuff at the correct place
+> (bottom of the file) so it does not need to be moved here.
 > 
-[Senthil]  Thanks.  When I do code movement I don't change it.
-I can submit additional patches to improvise the code.
-
-> > +};
-> > +
-> > +void __init omap_display_init(struct omap_dss_board_info
-> > +					*board_data)
-> 
-> *board_data should probably be on the same line as the argument type.
-> 
-[Senthil] Taken.
+[Senthil]  Taken.  Will do the movement in the first patch itself.
+> > +/* VENC HW IP initialisation */
+> > +static int omap_venchw_probe(struct platform_device *pdev)
 > > +{
+> > +	int r;
+> > +	venc.pdev = pdev;
 > > +
-> 
-> The general kernel coding style seems to be that there shouldn't be
-> such empty newlines at the beginning of functions.
-> 
-> > +	omap_display_device.dev.platform_data = board_data;
+> > +	r = venc_init(pdev);
+> > +	if (r) {
+> > +		DSSERR("Failed to initialize venc\n");
+> > +		goto err_venc;
+> > +	}
 > > +
-> > +	if (platform_device_register(&omap_display_device) < 0)
-> > +		printk(KERN_ERR "Unable to register OMAP-Display device\n");
+> > +err_venc:
+> > +	return r;
+> > +}
 > > +
+> > +static int omap_venchw_remove(struct platform_device *pdev)
+> > +{
+> > +	venc_exit();
+> > +	return 0;
+> > +}
+> 
+> Same comment as before: include the code of venc_init() and venc_exit()
+> directly in the ->probe() and ->remove() hooks respectively.
+> 
+> > +struct regulator *dss_get_vdda_dac(void)
+> > +{
+> > +	struct regulator *reg;
 > > +
+> > +	if (venc.vdda_dac_reg != NULL)
+> > +		return venc.vdda_dac_reg;
+> > +
+> > +	reg = regulator_get(&venc.pdev->dev, "vdda_dac");
+> > +	if (!IS_ERR(reg))
+> > +		venc.vdda_dac_reg = reg;
+> >
+> > +	return reg;
+> > +}
 > 
-> Unneeded newlines.
+> As far as I can see, this function is now only used in venc_init(),
+> which is in the same file, so the function should be static, and the
+> prototype removed from drivers/video/omap2/dss/core.h.
 > 
-[Senthil] Taken.
-> > +	return ;
+> I'm also a bit skeptical about what this function does. It is called
+> this way in venc_init():
 > 
-> This return is not needed, we are at the end of a void function.
+>   venc.vdda_dac_reg = dss_get_vdda_dac();
 > 
-> > @@ -712,7 +712,7 @@ static struct platform_driver omap_dss_driver = {
-> >  	.suspend	= omap_dss_suspend,
-> >  	.resume		= omap_dss_resume,
-> >  	.driver         = {
-> > -		.name   = "omapdss",
-> > +		.name   = "omapdisplay",
-> >  		.owner  = THIS_MODULE,
-> >  	},
-> >  };
+> so it is dss_get_vdda_dac() responsability to set venc.vdda_dac_reg, or
+> is it the caller responsability ?
 > 
-> There are other boards instantiating a platform_device with the omapdss
-> name, so I think this change is going to break those boards. In my
-> not-so-old linux-omap tree :
+> Moreover, the logic in dss_get_vdda_dac() that tests whether
+> venc.vdda_dac_reg is already initialized seems to indicate that this
+> function could be called several times. However, I only see it called
+> from venc_init(), which as far as I understand is called only once.
 > 
-> $ grep "\.name.*omapdss" *
-> board-3430sdp.c:	.name		= "omapdss",
-> board-am3517evm.c:	.name		= "omapdss",
-> board-cm-t35.c:	.name		= "omapdss",
-> board-devkit8000.c:	.name		= "omapdss",
-> board-igep0020.c:	.name	= "omapdss",
-> board-omap3beagle.c:	.name          = "omapdss",
-> board-omap3evm.c:	.name		= "omapdss",
-> board-omap3pandora.c:	.name		= "omapdss",
-> board-omap3stalker.c:	.name	= "omapdss",
-> board-rx51-video.c:	.name	= "omapdss",
+[Senthil] when code was in core.c there were chances of it getting called more than once.  Now it is called only once as you see, so it could be made static.
+> Isn't it possible to simplify this by removing the dss_get_vdda_dac()
+> function and just doing:
 > 
-> Shouldn't these board files also be updated to use the new
-> omap_display_init() function ?
+>   venc.vdda_dac_reg = regulator_get(&venc.pdev->dev, "vdda_dac");
 > 
-[Senthil] Yes, Taken. I would request for testing these additional changes.
-> Regards,
+> in the venc_init() function (which should become the ->probe() method).
+> 
+> Thanks!
 > 
 > Thomas
 > --
