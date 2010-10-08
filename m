@@ -1,90 +1,89 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
-Date: Fri, 8 Oct 2010 18:49:13 +0200
-Message-ID: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
+Date: Fri, 8 Oct 2010 12:20:21 -0500
+Message-ID: <4CAF52D5.9040007@ti.com>
+References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com>	<201010070940.14208.laurent.pinchart@ideasonboard.com>	<4CADFCEB.4030008@ti.com>	<AANLkTim8H0ibSucP3Nq=q19t0QY0pvijim1kOZSbygY1@mail.gmail.com>	<4CAE1CA1.4050006@ti.com> <AANLkTikRWdw8NQinHmco6dp+XtEr5mr_7H8OBU6+FcB0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:35841 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754938Ab0JHQtP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 12:49:15 -0400
-Received: by qyk10 with SMTP id 10so1518441qyk.19
-        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 09:49:14 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58401 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757884Ab0JHRUt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Oct 2010 13:20:49 -0400
+In-Reply-To: <AANLkTikRWdw8NQinHmco6dp+XtEr5mr_7H8OBU6+FcB0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, Russell King <linux@arm.linux.org.uk>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On 10/8/2010 3:18 AM, Felipe Contreras wrote:
+> On Thu, Oct 7, 2010 at 10:16 PM, Omar Ramirez Luna<omar.ramirez@ti.com>  wrote:
+>> On 10/7/2010 1:22 PM, Felipe Contreras wrote:
+>> ...
+>>>
+>>> Note that the "shared memory" described in the document you share has
+>>> nothing to do with the SHM pool. AFAIK that memory is used for other
+>>> things, like MMU PTEs, and storing the base image and socket-nodes,
+>>> thus it needs to be contiguous.
+>>
+>> hmmm, no. it is the same memory. i.e.: we propagate the current opp through
+>> the shared memory so the dsp can read it if it went to sleep, with the
+>> proper offset you can read that variable starting from the mempool base
+>> address.
+>
+> The document mentions "shared memory" for buffer passing, normal
+> memory is used for that, scattered, even user-space memory, not the
+> SHM contiguous area.
 
-This patch reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
-breaks the OFF mode on the OMAP3 platforms.
-The details are here below.
+"streaming" (meaning dsp stream) buffers are passed through the SHM 
+(check page 9). The regular "big" buffers are passed through old DMM 
+(page 14) which is exactly as you describe it; but that SHM portion is 
+referring to stream buffers.
 
-The intent behind the original patch was to fix some compiler
-warnings, which I do not have on my side. Is the problem dependent on
-the setup and config used?
+>
+>>> I don't see any problem flushing the SHM area when needed, which
+>>> probably has performance implications when mmaping/unmapping buffers,
+>>> at which point you need to flush bigger memory areas anyway, so that's
+>>> not an issue.
+>>
+>> well, you would have to flush when loading the base image, or allocating a
+>> socket node, but also minor flushes for opp propagation, SHM messages to
+>> DSP, chnl params, those are the ones I can quickly think of.
+>
+> All those happen when you send buffers to the DSP, and when you do
+> that you need to flush the buffer memory area, which is a much heavier
+> operation. Except maybe the opp propagation, but that would require at
+> most one page to be flushed, not a big deal I think, besides, it would
+> be better if that specific area is handled differently than the rest
+> of the SHM, so that we can allocate it with dma_alloc_coherent().
 
-Jean
+Yes, on top of the regular buffer flush, you need to flush the specific 
+parts of the shared memory that the dsp is going to read, meaning: you 
+send a buffer to the dsp, then send the MBX interrupt, to let it know 
+there is a SHM message, DSP is going to read that SHM message from the 
+SHM memory.
 
----
->From ec85bc90978cf0f257e73eaad593ffb774595863 Mon Sep 17 00:00:00 2001
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Date: Fri, 8 Oct 2010 18:36:48 +0200
-Subject: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
+You also need to invalidate if the dsp is going to write, so the next 
+time you read there is no mismatch in the data, meaning: DSP sends a SHM 
+message to slot 1, but you already read slot 1 from a previous 
+transaction so contents might be still in cache, so you need to 
+invalidate that memory and read again the new SHM message.
 
-This reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
-breaks the OFF mode on the OMAP3 platforms.
+Now to know when to read/write you need to have 2 flags per operation, 
+one to know if you have new messages and other to know if you are 
+reading/writing any message (all in SHM), which are there right now for 
+this specific case; but if flushing the SHM, now you will need flags for 
+knowing if the first two have been already flushed... and then 2 for 
+these two... and so on. So in the end a better locking mechanism would 
+be needed for both ARM and DSP which is not based on memory which may or 
+may not have the latest contents (going the cacheable route).
 
-The use of a void* pointer for scratchpad_address confuses the
-compiler which generates wrong offset for the access to the L4
-address space. In that case an alignement fault is generated
-during the wake-up from OFF mode.
+As I have been saying, we can try this changes in the ARM tidspbridge 
+because we _freely_ see what is going on, but in the DSP we can't.
 
-The code that causes problem is:
-__raw_readl(scratchpad_address + OMAP343X_TABLE_ADDRESS_OFFSET);
+Regards,
 
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/control.c |    4 ++--
- arch/arm/mach-omap2/pm34xx.c  |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+Omar
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 1fa3294..049bfb1 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -217,7 +217,7 @@ void omap4_ctrl_pad_writel(u32 val, u16 offset)
- void omap3_clear_scratchpad_contents(void)
- {
- 	u32 max_offset = OMAP343X_SCRATCHPAD_ROM_OFFSET;
--	void __iomem *v_addr;
-+	u32 *v_addr;
- 	u32 offset = 0;
- 	v_addr = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD_ROM);
- 	if (prm_read_mod_reg(OMAP3430_GR_MOD, OMAP3_PRM_RSTST_OFFSET) &
-@@ -233,7 +233,7 @@ void omap3_clear_scratchpad_contents(void)
- /* Populate the scratchpad structure with restore structure */
- void omap3_save_scratchpad_contents(void)
- {
--	void  __iomem *scratchpad_address;
-+	void * __iomem scratchpad_address;
- 	u32 arm_context_addr;
- 	struct omap3_scratchpad scratchpad_contents;
- 	struct omap3_scratchpad_prcm_block prcm_block_contents;
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 8c8f1ac..af752ae 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -310,7 +310,7 @@ static void restore_control_register(u32 val)
- /* Function to restore the table entry that was modified for enabling MMU */
- static void restore_table_entry(void)
- {
--	void __iomem *scratchpad_address;
-+	u32 *scratchpad_address;
- 	u32 previous_value, control_reg_value;
- 	u32 *address;
 
--- 
-1.7.1
