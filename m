@@ -1,39 +1,89 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [RFC] tidspbridge: use a parameter to allocate shared memory
-Date: Fri, 8 Oct 2010 12:31:14 -0500
-Message-ID: <4CAF5562.9060107@ti.com>
-References: <1286430336-20204-1-git-send-email-omar.ramirez@ti.com>	<201010070940.14208.laurent.pinchart@ideasonboard.com>	<4CADFCEB.4030008@ti.com>	<AANLkTim8H0ibSucP3Nq=q19t0QY0pvijim1kOZSbygY1@mail.gmail.com>	<4CAE1CA1.4050006@ti.com> <AANLkTikHMewD94ZBb9P4AF9oM2ZfnpA-yjO67Dx2Lg9r@mail.gmail.com>
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Fri, 8 Oct 2010 13:32:17 -0400
+Message-ID: <20101008173217.GA16475@Krystal>
+References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com> <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal> <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com> <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org> <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com> <20101008134156.GA28724@Krystal> <4CAF4554.7070303@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51367 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758939Ab0JHRba (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 13:31:30 -0400
-In-Reply-To: <AANLkTikHMewD94ZBb9P4AF9oM2ZfnpA-yjO67Dx2Lg9r@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4CAF4554.7070303@linux.intel.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Greg Kroah-Hartman <gregkh@suse.de>, Russell King <linux@arm.linux.org.uk>, "Gomez Castellanos, Ivan" <ivan.gomez@ti.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 10/8/2010 3:20 AM, Felipe Contreras wrote:
-> On Thu, Oct 7, 2010 at 10:16 PM, Omar Ramirez Luna<omar.ramirez@ti.com>  wrote:
->> On 10/7/2010 1:22 PM, Felipe Contreras wrote:
->>> Anyway, we will not know for sure until we try... Right?
+* Arjan van de Ven (arjan@linux.intel.com) wrote:
+>  On 10/8/2010 6:41 AM, Mathieu Desnoyers wrote:
+>> * Arjan van de Ven (arjan@linux.intel.com) wrote:
+>>>   On 10/8/2010 1:38 AM, Ingo Molnar wrote:
+>>>> The fundamental thing about tracing/instrumentation is that there are no
+>>>> deep ABI needs: it's all about analyzing development kernels (and a few
+>>>> select versions that get the enterprise treatment) but otherwise the
+>>>> half-life of this kind of information is very short.
+>>>>
+>>>> So we dont want to tie ourselves down with excessive ABIs.
+>>>>
+>>> ok I'll start working on a second mechanism then to export information
+>>> that applications need ;-(
+>>> it'll look a lot like tracing I suppose ;-(
+>> What's wrong with doing the compatibility layer in a LGPL library shipped with
+>> the kernel tree under tools/ ?
+>
+> because that is not workable... at least nobody has shown to be able to  
+> make this work.
+> libraries (after compilation) live in /lib or /usr/lib (or lib64 I  
+> suppose).....
+> what mechanism ensures that a user who compiles his kernel gets a  
+> library compatible with that kernel in /usr/lib?
+
+I don't think the perf tools/ do it right at the moment, but here is my
+proposal:
+
+Currently, we need to do make install from the tools/ directory. Since kernel
+developers are lazy, I would propose a CONFIG_INSTALL_TOOLS default N config
+option that would let make install from the root of the kernel tree install the
+tools too. (looking at my inbox..) As Steven just beat me to it, see his lib
+versioning proposal. ;)
+
+The library would present an API to the application that would let apps consume
+specific events of interest. Translation of fixed event names/fields into the
+current kernel version tracepoint names/fields would be performed by the lib,
+and the library would also deal with reading the perf events through the perf
+ABI and would act as a middle-man to make sure they are always perceived by the
+application in the same way.
+
+> and can said library deal with older kernels too? And distro kernels?
+
+Steven's proposal should work.
+
+>
+>> Why does everything *have* to be done in
+>> kernel-space
+> it doesn't. but the alternative must be workable.
+>>   Why are you so focused on making your application interact
+>> directly with kernel ABIs ?
 >>
->> yes we can try, at least we now for sure arm side can be done.
+>> I'm being direct because there are trivial solutions to your problem that you
+>> are rejecting without due consideration. (and also I just had one coffee too
+>> many) ;-)
 >
-> The only thing that changes is the cacheability of the ARM side
-> memory, so of course only the ARM side matters. The DSP side will
-> continue to do what it's doing and would not notice any difference if
-> the memory is flushed, or is non-cacheable.
->
+> since you seem to think that dealing with such a library is trivial...  
+> how about you do it for one function even, to
+> show that the deployment/use-in-an-app is workable.
+> I'd be more than happy to use it if it's workable and the API is at  
+> least halfway sane.
 
-Please find my reply for the previous mail:
+I currently have a lot on my plate with trace format and ring buffer, but if
+anyone is interested in trying to implement this, I can look at it and provide
+feedback/hints.
 
-http://marc.info/?l=linux-omap&m=128655845213913&w=2
+Thanks,
 
-Regards,
+Mathieu
 
-Omar
+-- 
+Mathieu Desnoyers
+Operating System Efficiency R&D Consultant
+EfficiOS Inc.
+http://www.efficios.com
