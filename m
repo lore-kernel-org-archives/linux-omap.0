@@ -1,8 +1,7 @@
 From: "Guruswamy, Senthilvadivu" <svadivu@ti.com>
-Subject: RE: [PATCH v1 07/16] OMAP3: hwmod DSS: Create platform_driver for
- each DSS HW IP
-Date: Fri, 8 Oct 2010 12:41:35 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034B94B361@dbde02.ent.ti.com>
+Subject: RE: [PATCH v1 11/16] OMAP3: hwmod DSS: RFBI Move init,exit to driver
+Date: Fri, 8 Oct 2010 12:43:38 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034B94B363@dbde02.ent.ti.com>
 References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
 	<1286363699-9614-2-git-send-email-svadivu@ti.com>
 	<1286363699-9614-3-git-send-email-svadivu@ti.com>
@@ -11,16 +10,20 @@ References: <1286363699-9614-1-git-send-email-svadivu@ti.com>
 	<1286363699-9614-6-git-send-email-svadivu@ti.com>
 	<1286363699-9614-7-git-send-email-svadivu@ti.com>
 	<1286363699-9614-8-git-send-email-svadivu@ti.com>
- <20101007214957.79ca0a9b@surf>
+	<1286363699-9614-9-git-send-email-svadivu@ti.com>
+	<1286363699-9614-10-git-send-email-svadivu@ti.com>
+	<1286363699-9614-11-git-send-email-svadivu@ti.com>
+	<1286363699-9614-12-git-send-email-svadivu@ti.com>
+ <20101007214722.16799b9a@surf>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33945 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277Ab0JHHLt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 03:11:49 -0400
-In-Reply-To: <20101007214957.79ca0a9b@surf>
+Received: from bear.ext.ti.com ([192.94.94.41]:56221 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751350Ab0JHHNv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 03:13:51 -0400
+In-Reply-To: <20101007214722.16799b9a@surf>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -31,55 +34,67 @@ Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "tomi.valkeinen
 
 > -----Original Message-----
 > From: Thomas Petazzoni [mailto:thomas.petazzoni@free-electrons.com]
-> Sent: Friday, October 08, 2010 1:20 AM
+> Sent: Friday, October 08, 2010 1:17 AM
 > To: Guruswamy, Senthilvadivu
 > Cc: khilman@deeprootsystems.com; tomi.valkeinen@nokia.com; paul@pwsan.com;
 > Hiremath, Vaibhav; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH v1 07/16] OMAP3: hwmod DSS: Create platform_driver for
-> each DSS HW IP
+> Subject: Re: [PATCH v1 11/16] OMAP3: hwmod DSS: RFBI Move init,exit to
+> driver
 > 
 > Hello Senthil,
 > 
-> I forgot one comment: in most Linux drivers, it is customary to put the
-> platform_driver definition just above the driver initialization
-> function, both of them at the end of the file. Of course, it's nothing
-> mandatory, but most of the drivers are organized this way, making it
-> easy for developers to find their way in all drivers.
+> On Wed,  6 Oct 2010 16:44:54 +0530
+> Guruswamy Senthilvadivu <svadivu@ti.com> wrote:
 > 
-> So, in other words, this:
-> 
-[Senthil] I put it above as part of all the static methods and structures.
-Will look at the other omap drivers before I change.
-> > +/* DISPC HW IP initialisation */
-> > +static int omap_dispchw_probe(struct platform_device *pdev)
-> > +{
-> > +	return 0;
-> > +}
+> > diff --git a/drivers/video/omap2/dss/rfbi.c
+> b/drivers/video/omap2/dss/rfbi.c
+> > index 23598ea..9bee39d 100644
+> > --- a/drivers/video/omap2/dss/rfbi.c
+> > +++ b/drivers/video/omap2/dss/rfbi.c
+> > @@ -100,6 +100,7 @@ static int rfbi_convert_timings(struct rfbi_timings
+> *t);
+> >  static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div);
+> >
+> >  static struct {
+> > +	struct platform_device *pdev;
+> >  	void __iomem	*base;
+> >
+> >  	unsigned long	l4_khz;
+> > @@ -142,11 +143,22 @@ static inline u32 rfbi_read_reg(const struct
+> rfbi_reg idx)
+> >  /* RFBI HW IP initialisation */
+> >  static int omap_rfbihw_probe(struct platform_device *pdev)
+> >  {
+> > -	return 0;
+> > +	int r;
+> > +	rfbi.pdev = pdev;
 > > +
-> > +static int omap_dispchw_remove(struct platform_device *pdev)
-> > +{
-> > +	return 0;
-> > +}
+> > +	r = rfbi_init();
+> > +	if (r) {
+> > +		DSSERR("Failed to initialize rfbi\n");
+> > +		goto err_rfbi;
+> > +	}
 > > +
-> > +static struct platform_driver omap_dispchw_driver = {
-> > +	.probe          = omap_dispchw_probe,
-> > +	.remove         = omap_dispchw_remove,
-> > +	.driver         = {
-> > +		.name   = "dss_dispc",
-> > +		.owner  = THIS_MODULE,
-> > +	},
-> > +};
+> > +err_rfbi:
+> > +	return r;
+> >  }
+> >
+> >  static int omap_rfbihw_remove(struct platform_device *pdev)
+> >  {
+> > +	rfbi_exit();
+> >  	return 0;
+> >  }
+> >
 > 
-> Should be just above this:
+> Instead of having probe() and remove() functions that call the existing
+> init() and exit(), why not making your driver look like most Linux
+> drivers here, and directly do the initialization in probe() and the
+> cleanup in remove() ?
 > 
-> > +static int __init omap_dispc_init(void)
-> > +{
-> > +	return platform_driver_register(&omap_dispchw_driver);
-> > +}
-> > +
-> > +device_initcall(omap_dispc_init);
-> 
-> Regards,
+[Senthil] When I do existing code movement I don't change it one single patch just to make the review concentrate on the place of movement.  
+I could submit additional patches to remove the extra function calls wherever required.
+> Concerning the added pdev field to the rfbi structure, do you really it
+> at this point ?
 > 
 > Thomas
 > --
