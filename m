@@ -1,15 +1,14 @@
 From: Guruswamy Senthilvadivu <svadivu@ti.com>
-Subject: [PATCH v6 2/3] OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
-Date: Fri,  8 Oct 2010 12:14:32 +0530
-Message-ID: <1286520273-4892-3-git-send-email-svadivu@ti.com>
+Subject: [PATCH v6 1/3] OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
+Date: Fri,  8 Oct 2010 12:14:31 +0530
+Message-ID: <1286520273-4892-2-git-send-email-svadivu@ti.com>
 References: <1286520273-4892-1-git-send-email-svadivu@ti.com>
- <1286520273-4892-2-git-send-email-svadivu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50229 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43123 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552Ab0JHGoo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Oct 2010 02:44:44 -0400
-In-Reply-To: <1286520273-4892-2-git-send-email-svadivu@ti.com>
+	id S1752552Ab0JHGom (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Oct 2010 02:44:42 -0400
+In-Reply-To: <1286520273-4892-1-git-send-email-svadivu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@nokia.com, hvaibhav@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
@@ -17,26 +16,45 @@ Cc: Senthilvadivu Guruswamy <svadivu@ti.com>
 
 From: Senthilvadivu Guruswamy <svadivu@ti.com>
 
-config VRFB should depend on ARCH_OMAP2 or ARCH_OMAP3.
+FB_OMAP2 can work without VRFB, but currently does not build. Fix this.
 
 Signed-off-by: Senthilvadivu Guruswamy <svadivu@ti.com>
 ---
- drivers/video/omap2/omapfb/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/include/plat/vrfb.h |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
-index 43496d6..65149b2 100644
---- a/drivers/video/omap2/omapfb/Kconfig
-+++ b/drivers/video/omap2/omapfb/Kconfig
-@@ -3,7 +3,7 @@ menuconfig FB_OMAP2
-         depends on FB && OMAP2_DSS
+diff --git a/arch/arm/plat-omap/include/plat/vrfb.h b/arch/arm/plat-omap/include/plat/vrfb.h
+index d8a03ce..3792bde 100644
+--- a/arch/arm/plat-omap/include/plat/vrfb.h
++++ b/arch/arm/plat-omap/include/plat/vrfb.h
+@@ -35,6 +35,7 @@ struct vrfb {
+ 	bool yuv_mode;
+ };
  
- 	select OMAP2_VRAM
--	select OMAP2_VRFB
-+	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
-         select FB_CFB_FILLRECT
-         select FB_CFB_COPYAREA
-         select FB_CFB_IMAGEBLIT
++#ifdef CONFIG_OMAP2_VRFB
+ extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
+ extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
+ extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
+@@ -47,4 +48,19 @@ extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
+ extern int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot);
+ extern void omap_vrfb_restore_context(void);
+ 
++#else
++static inline int omap_vrfb_request_ctx(struct vrfb *vrfb) { return 0; }
++static inline void omap_vrfb_release_ctx(struct vrfb *vrfb) {}
++static inline void omap_vrfb_adjust_size(u16 *width, u16 *height,
++		u8 bytespp) {}
++static inline u32 omap_vrfb_min_phys_size(u16 width, u16 height, u8 bytespp)
++		{ return 0; }
++static inline u16 omap_vrfb_max_height(u32 phys_size, u16 width, u8 bytespp)
++		{ return 0; }
++static inline void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
++		u16 width, u16 height, unsigned bytespp, bool yuv_mode) {}
++static inline int omap_vrfb_map_angle(struct vrfb *vrfb, u16 height, u8 rot)
++		{ return 0; }
++static inline void omap_vrfb_restore_context(void) {}
++#endif
+ #endif /* __VRFB_H */
 -- 
 1.6.3.3
 
