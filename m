@@ -1,36 +1,40 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: g_ether broken on musb
-Date: Fri, 8 Oct 2010 12:17:36 +0300
-Message-ID: <AANLkTimfCnCL6NzJEThNDSeNx_Axxdyct88-hyDFQvjJ@mail.gmail.com>
-References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
-	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
-	<AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
-	<AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH v6 0/3] OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build
+ without VRFB
+Date: Fri, 08 Oct 2010 12:52:23 +0300
+Message-ID: <1286531543.28499.1072.camel@tubuntu.research.nokia.com>
+References: <1286520273-4892-1-git-send-email-svadivu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:40409 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756776Ab0JHJw2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 Oct 2010 05:52:28 -0400
+In-Reply-To: <1286520273-4892-1-git-send-email-svadivu@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Guruswamy Senthilvadivu <svadivu@ti.com>
+Cc: "hvaibhav@ti.com" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-> I have tried patch-v2.6.36-rc6-next-20101006 on my beagle B5, seems
-> no such problem.
+On Fri, 2010-10-08 at 08:44 +0200, ext Guruswamy Senthilvadivu wrote:
+> From: Senthilvadivu Guruswamy <svadivu@ti.com>
+> 
+> The changelog till v6 are:
+> 	- Address Multi-omap build issue
+> 	- Added a check to warn the wrong usage of vrfb 
+> 	in non-vrfb omap devices.
+> 	- The patch subject is as per the naming conventions
+> 	- patch 2/3 now has the changes in omap2/omapfb/Kconfig
+> 	instead of omap2/Kconfig.  The functional effect remains
+> 	the same, and the place of implementation is more appropriate.
+> 	- Provide details of non-vrfb devices in commit description in patch 3/3
+> 	- Removed extra paranthesis in cpu checks
+> 
 
-Did you try booting with the cable attached? The problem only shows up
-if I boot the board with cable attached, no such problem after replug.
-I also have g_ether compiled into kernel, maybe that makes a
-difference. Could also be bootloader messing things up..
+Thanks, looks fine to me. Applied to DSS2 tree.
 
-> Are your musb working at fullspeed? =A0I know musb at fullspeed has b=
-ee
-> broken for some time.
+ Tomi
 
-I think it's hi-speed, PC lists the gadget attached to EHCI root hub
-(not sure how to confirm).
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
