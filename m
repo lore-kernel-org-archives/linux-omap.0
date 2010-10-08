@@ -1,56 +1,59 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM: add synchronous runtime interface for interrupt handlers
-Date: Fri, 08 Oct 2010 14:04:05 -0700
-Message-ID: <87sk0gtn0a.fsf@deeprootsystems.com>
-References: <Pine.LNX.4.44L0.1010081220150.27105-100000@netrider.rowland.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v5 0/3] OMAP2/3: DMA: FIFO drain errata fixes
+Date: Fri, 8 Oct 2010 15:17:46 -0700
+Message-ID: <20101008221746.GS7558@atomide.com>
+References: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com>
+ <20101005181525.GL3117@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:55046 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759660Ab0JHVEK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 17:04:10 -0400
-Received: by pzk34 with SMTP id 34so419168pzk.19
-        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 14:04:10 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.44L0.1010081220150.27105-100000@netrider.rowland.org>
-	(Alan Stern's message of "Fri, 8 Oct 2010 12:22:38 -0400 (EDT)")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64919 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754462Ab0JHWR6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 Oct 2010 18:17:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20101005181525.GL3117@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, Linux-pm mailing list <linux-pm@lists.linux-foundation.org>, Partha Basak <p-basak2@ti.com>, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
-Alan Stern <stern@rowland.harvard.edu> writes:
+* Tony Lindgren <tony@atomide.com> [101005 11:07]:
+> * Peter Ujfalusi <peter.ujfalusi@nokia.com> [101004 23:37]:
+> > Hello,
+> > 
+> > This v5 series is based on the v3.
+> > The first two patch is the actual fix for the original problems without any
+> > major change in the code (only handling the corresponding erratas in the legacy
+> > way).
+> > The third patch in the series is optional, and it is implementing (in one patch)
+> > the errata handling via flags. This patch converts all errata cases to use the
+> > introduced dma_errata variable via macros.
+> > 
+> > Tony: the first two patch need to go for 2.6.36, and if it is possible it shall
+> > be backported to .33, .34, and .35 as well.
+> 
+> OK, I'll the first two into omap-fixes.
 
-> On Thu, 7 Oct 2010, Kevin Hilman wrote:
->
->> > Do you need "normal" resume to work after "atomic" suspend, or is it
->> > sufficient that "atomic" suspend will require "atomic" resume?
->> 
->> hmm... while I'm definitely needing an "atomic" resume after a "normal"
->> suspend, for now I can't think of a case where a "normal" resume would
->> be needed after an "atomic" suspend.  All the cases where I'm currently
->> using an atomic suspend also have a corresponding atomic resume.
->> 
->> As I write this, it wouldn't surprise me down the road to find some HW
->> errata that requires the device in a specific state only before idle,
->> but not caring about the state after idle.  That would be a case where
->> an atomic suspend would be needed, but the resume would be "normal"
->> sometime later when the device is next needed.
->
-> Put it this way: Are you okay with just the following two 
-> possibilities?
->
-> 	(1) Both suspends and resumes always have interrupts enabled.
->
-> 	(2) Both suspends and resumes always have interrupts disabled.
->
-> In other words, is it okay to rule out the ability of mixing "atomic" 
-> and "normal" runtime PM operations?
+Guys, as we're so late into getting 2.6.36 tagged, I'm thinking about just
+queueing these for 2.6.37 for the following reasons:
 
-Yes, I think that's a reasonable limitation.
+- The 24xx patch is a fix for commit c12abc0 that's was merged over a
+  year ago. We've lived with it for over a year now. What difference does
+  extra few more months make if we have it in 2.6.37 instead of 2.6.36?
 
-If a driver/subsystem needs to handle an occasional "atomic" runtime PM
-operation, it's callbacks will have to be atomic as well, so I don't see
-any reason it can't be made to use only atomic operations.
+- The second 34xx fix seems to happen only when disabling DMA on the fly.
+  Again, we've had support for 34xx in the mainline kernel for a few
+  years, and we're not seeing unrecoverable issues with MMC or USB or
+  any other code calling omap_dma_stop().
 
-Kevin
+Sure these fix major issues with the DMA, but are these really critical
+for 2.6.36?
+
+So if you really want me to argue for merging these into 2.6.36, please let
+me know some oops causing cases or data corruption that happens without
+these patches.
+
+Cheers,
+
+Tony
