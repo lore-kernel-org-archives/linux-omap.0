@@ -1,358 +1,100 @@
-From: Ionut Nicu <ionut.nicu@gmail.com>
-Subject: [PATCH] tidspbridge: remove gs memory allocator
-Date: Sat,  9 Oct 2010 14:43:47 +0300
-Message-ID: <1286624627-30673-1-git-send-email-ionut.nicu@mindbit.ro>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCHv3 3/17] dmtimer: add omap2420 hwmod database
+Date: Sat, 9 Oct 2010 20:28:48 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E840680@dbde02.ent.ti.com>
+References: <1285059116-26366-1-git-send-email-tarun.kanti@ti.com>
+ <4CA4FC22.9030806@ti.com>
+ <alpine.DEB.2.00.1010011623020.22941@utopia.booyaka.com>
+ <4CA98739.9040309@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:57933 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755572Ab0JILoA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Oct 2010 07:44:00 -0400
-Received: by ewy20 with SMTP id 20so25268ewy.19
-        for <linux-omap@vger.kernel.org>; Sat, 09 Oct 2010 04:43:59 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37526 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753022Ab0JIO7A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Oct 2010 10:59:00 -0400
+In-Reply-To: <4CA98739.9040309@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Ionut Nicu <ionut.nicu@mindbit.ro>
+To: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-Remove un-necessary wrappers for linux kernel memory
-allocation primitives.
+Benoit, Paul,
 
-Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
----
- drivers/staging/tidspbridge/Makefile               |    2 +-
- drivers/staging/tidspbridge/gen/gb.c               |   11 +--
- drivers/staging/tidspbridge/gen/gh.c               |   38 ++-------
- drivers/staging/tidspbridge/gen/gs.c               |   88 --------------------
- drivers/staging/tidspbridge/include/dspbridge/gs.h |   59 -------------
- 5 files changed, 15 insertions(+), 183 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/gen/gs.c
- delete mode 100644 drivers/staging/tidspbridge/include/dspbridge/gs.h
+> -----Original Message-----
+> From: Cousson, Benoit
+> Sent: Monday, October 04, 2010 1:20 PM
+> To: Paul Walmsley
+> Cc: DebBarma, Tarun Kanti; linux-omap@vger.kernel.org; Gopinath, Thara;
+> Basak, Partha; Kevin Hilman; Tony Lindgren
+> Subject: Re: [PATCHv3 3/17] dmtimer: add omap2420 hwmod database
+> 
+> Hi Paul,
+> 
+> On 10/2/2010 12:25 AM, Paul Walmsley wrote:
+> > On Thu, 30 Sep 2010, Cousson, Benoit wrote:
+> >
+> >> On 9/21/2010 10:51 AM, DebBarma, Tarun Kanti wrote:
+> >>
+> >>>    #include "omap_hwmod_common_data.h"
+> >>>
+> >>>    #include "prm-regbits-24xx.h"
+> >>> @@ -121,6 +123,614 @@ static struct omap_hwmod omap2420_l4_wkup_hwmod
+> = {
+> >>>           .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+> >>>           .flags          = HWMOD_NO_IDLEST,
+> >>>    };
+> >>> +/* Timer Common */
+> >>> +static char *timer_clk_src_names[] = {
+> >>> +       "sys_ck",
+> >>> +       "func_32k_ck",
+> >>> +       "alt_ck",
+> >>> +       NULL,
+> >>> +};
+> >>
+> >> I have an issue with that, because this is a pure duplication of the
+> clock_sel
+> >> information already contained in the clock data:
+> >>
+> >> static const struct clksel omap24xx_gpt_clksel[] = {
+> >>          { .parent =&func_32k_ck, .rates = gpt_32k_rates },
+> >> 	{ .parent =&sys_ck,      .rates = gpt_sys_rates },
+> >>        	{ .parent =&alt_ck,      .rates = gpt_alt_rates },
+> >> 	{ .parent = NULL },
+> >> };
+> >>
+> >> And duplicating the same information somewhere else is most of the time
+> a bad
+> >> idea.
+> >
+> > Yep, there's no way that info should be in the hwmod data, in the
+> current
+> > setup.  It belongs in the clkdev tables.  Example below.
+> >
+> >> That being said... I don't really know how to handle that properly :-)
+> >>
+> >> We have to find a better way to select the proper source clock in a soc
+> >> independent way.
+> >>
+> >> Maybe Paul will have some idea?
+> >
+> > Here's how it's done:
+> >
+> >     http://marc.info/?l=linux-omap&m=128596931017785&w=2
+> >
+> > and
+> >
+> >     http://marc.info/?l=linux-omap&m=128596931417805&w=2
+> 
+> The famous clock alias... I don't know why but I always forgot that
+> solution each time I have such concern:-(
+> This is indeed the very clean and cool way to do that clock selection.
+> We can even remove this #define to identified them and use the clock
+> string name directly.
+> 
 
-diff --git a/drivers/staging/tidspbridge/Makefile b/drivers/staging/tidspbridge/Makefile
-index 7c122fa..28c5aa8 100644
---- a/drivers/staging/tidspbridge/Makefile
-+++ b/drivers/staging/tidspbridge/Makefile
-@@ -1,6 +1,6 @@
- obj-$(CONFIG_TIDSPBRIDGE)	+= bridgedriver.o
- 
--libgen = gen/gb.o gen/gs.o gen/gh.o gen/uuidutil.o
-+libgen = gen/gb.o gen/gh.o gen/uuidutil.o
- libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
- 		core/tiomap3430_pwr.o core/tiomap_io.o core/dsp-mmu.o \
- 		core/ue_deh.o core/wdt.o core/dsp-clock.o core/sync.o
-diff --git a/drivers/staging/tidspbridge/gen/gb.c b/drivers/staging/tidspbridge/gen/gb.c
-index 9f59023..3c0e04c 100644
---- a/drivers/staging/tidspbridge/gen/gb.c
-+++ b/drivers/staging/tidspbridge/gen/gb.c
-@@ -19,7 +19,6 @@
- /*  ----------------------------------- DSP/BIOS Bridge */
- #include <linux/types.h>
- /*  ----------------------------------- This */
--#include <dspbridge/gs.h>
- #include <dspbridge/gb.h>
- 
- struct gb_t_map {
-@@ -52,17 +51,17 @@ struct gb_t_map *gb_create(u32 len)
- {
- 	struct gb_t_map *map;
- 	u32 i;
--	map = (struct gb_t_map *)gs_alloc(sizeof(struct gb_t_map));
-+	map = kzalloc(sizeof(struct gb_t_map), GFP_KERNEL);
- 	if (map != NULL) {
- 		map->len = len;
- 		map->wcnt = len / BITS_PER_LONG + 1;
--		map->words = (u32 *) gs_alloc(map->wcnt * sizeof(u32));
-+		map->words = kzalloc(map->wcnt * sizeof(u32), GFP_KERNEL);
- 		if (map->words != NULL) {
- 			for (i = 0; i < map->wcnt; i++)
- 				map->words[i] = 0L;
- 
- 		} else {
--			gs_frees(map, sizeof(struct gb_t_map));
-+			kfree(map);
- 			map = NULL;
- 		}
- 	}
-@@ -78,8 +77,8 @@ struct gb_t_map *gb_create(u32 len)
- 
- void gb_delete(struct gb_t_map *map)
- {
--	gs_frees(map->words, map->wcnt * sizeof(u32));
--	gs_frees(map, sizeof(struct gb_t_map));
-+	kfree(map->words);
-+	kfree(map);
- }
- 
- /*
-diff --git a/drivers/staging/tidspbridge/gen/gh.c b/drivers/staging/tidspbridge/gen/gh.c
-index f72d943..cd72503 100644
---- a/drivers/staging/tidspbridge/gen/gh.c
-+++ b/drivers/staging/tidspbridge/gen/gh.c
-@@ -17,9 +17,6 @@
- #include <linux/types.h>
- 
- #include <dspbridge/host_os.h>
--
--#include <dspbridge/gs.h>
--
- #include <dspbridge/gh.h>
- 
- struct element {
-@@ -37,8 +34,6 @@ struct gh_t_hash_tab {
- };
- 
- static void noop(void *p);
--static s32 cur_init;
--static void myfree(void *ptr, s32 size);
- 
- /*
-  *  ======== gh_create ========
-@@ -51,8 +46,7 @@ struct gh_t_hash_tab *gh_create(u16 max_bucket, u16 val_size,
- {
- 	struct gh_t_hash_tab *hash_tab;
- 	u16 i;
--	hash_tab =
--	    (struct gh_t_hash_tab *)gs_alloc(sizeof(struct gh_t_hash_tab));
-+	hash_tab = kzalloc(sizeof(struct gh_t_hash_tab), GFP_KERNEL);
- 	if (hash_tab == NULL)
- 		return NULL;
- 	hash_tab->max_bucket = max_bucket;
-@@ -62,7 +56,7 @@ struct gh_t_hash_tab *gh_create(u16 max_bucket, u16 val_size,
- 	hash_tab->delete = delete == NULL ? noop : delete;
- 
- 	hash_tab->buckets = (struct element **)
--	    gs_alloc(sizeof(struct element *) * max_bucket);
-+	    kzalloc(sizeof(struct element *) * max_bucket, GFP_KERNEL);
- 	if (hash_tab->buckets == NULL) {
- 		gh_delete(hash_tab);
- 		return NULL;
-@@ -89,17 +83,14 @@ void gh_delete(struct gh_t_hash_tab *hash_tab)
- 				     elem = next) {
- 					next = elem->next;
- 					(*hash_tab->delete) (elem->data);
--					myfree(elem,
--					       sizeof(struct element) - 1 +
--					       hash_tab->val_size);
-+					kfree(elem);
- 				}
- 			}
- 
--			myfree(hash_tab->buckets, sizeof(struct element *)
--			       * hash_tab->max_bucket);
-+			kfree(hash_tab->buckets);
- 		}
- 
--		myfree(hash_tab, sizeof(struct gh_t_hash_tab));
-+		kfree(hash_tab);
- 	}
- }
- 
-@@ -109,9 +100,7 @@ void gh_delete(struct gh_t_hash_tab *hash_tab)
- 
- void gh_exit(void)
- {
--	if (cur_init-- == 1)
--		gs_exit();
--
-+	/* Do nothing */
- }
- 
- /*
-@@ -138,8 +127,7 @@ void *gh_find(struct gh_t_hash_tab *hash_tab, void *key)
- 
- void gh_init(void)
- {
--	if (cur_init++ == 0)
--		gs_init();
-+	/* Do nothing */
- }
- 
- /*
-@@ -152,8 +140,8 @@ void *gh_insert(struct gh_t_hash_tab *hash_tab, void *key, void *value)
- 	u16 i;
- 	char *src, *dst;
- 
--	elem = (struct element *)gs_alloc(sizeof(struct element) - 1 +
--					  hash_tab->val_size);
-+	elem = kzalloc(sizeof(struct element) - 1 + hash_tab->val_size,
-+			GFP_KERNEL);
- 	if (elem != NULL) {
- 
- 		dst = (char *)elem->data;
-@@ -180,14 +168,6 @@ static void noop(void *p)
- 	p = p;			/* stifle compiler warning */
- }
- 
--/*
-- *  ======== myfree ========
-- */
--static void myfree(void *ptr, s32 size)
--{
--	gs_free(ptr);
--}
--
- #ifdef CONFIG_TIDSPBRIDGE_BACKTRACE
- /**
-  * gh_iterate() - This function goes through all the elements in the hash table
-diff --git a/drivers/staging/tidspbridge/gen/gs.c b/drivers/staging/tidspbridge/gen/gs.c
-deleted file mode 100644
-index 8335bf5..0000000
---- a/drivers/staging/tidspbridge/gen/gs.c
-+++ /dev/null
-@@ -1,88 +0,0 @@
--/*
-- * gs.c
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * General storage memory allocator services.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#include <linux/types.h>
--/*  ----------------------------------- DSP/BIOS Bridge */
--#include <dspbridge/dbdefs.h>
--
--/*  ----------------------------------- This */
--#include <dspbridge/gs.h>
--
--#include <linux/slab.h>
--
--/*  ----------------------------------- Globals */
--static u32 cumsize;
--
--/*
-- *  ======== gs_alloc ========
-- *  purpose:
-- *      Allocates memory of the specified size.
-- */
--void *gs_alloc(u32 size)
--{
--	void *p;
--
--	p = kzalloc(size, GFP_KERNEL);
--	if (p == NULL)
--		return NULL;
--	cumsize += size;
--	return p;
--}
--
--/*
-- *  ======== gs_exit ========
-- *  purpose:
-- *      Discontinue the usage of the GS module.
-- */
--void gs_exit(void)
--{
--	/* Do nothing */
--}
--
--/*
-- *  ======== gs_free ========
-- *  purpose:
-- *      Frees the memory.
-- */
--void gs_free(void *ptr)
--{
--	kfree(ptr);
--	/* ack! no size info */
--	/* cumsize -= size; */
--}
--
--/*
-- *  ======== gs_frees ========
-- *  purpose:
-- *      Frees the memory.
-- */
--void gs_frees(void *ptr, u32 size)
--{
--	kfree(ptr);
--	cumsize -= size;
--}
--
--/*
-- *  ======== gs_init ========
-- *  purpose:
-- *      Initializes the GS module.
-- */
--void gs_init(void)
--{
--	/* Do nothing */
--}
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/gs.h b/drivers/staging/tidspbridge/include/dspbridge/gs.h
-deleted file mode 100644
-index f32d8d9..0000000
---- a/drivers/staging/tidspbridge/include/dspbridge/gs.h
-+++ /dev/null
-@@ -1,59 +0,0 @@
--/*
-- * gs.h
-- *
-- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
-- *
-- * Memory allocation/release wrappers.  This module allows clients to
-- * avoid OS spacific issues related to memory allocation.  It also provides
-- * simple diagnostic capabilities to assist in the detection of memory
-- * leaks.
-- *
-- * Copyright (C) 2005-2006 Texas Instruments, Inc.
-- *
-- * This package is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-- */
--
--#ifndef GS_
--#define GS_
--
--/*
-- *  ======== gs_alloc ========
-- *  Alloc size bytes of space.  Returns pointer to space
-- *  allocated, otherwise NULL.
-- */
--extern void *gs_alloc(u32 size);
--
--/*
-- *  ======== gs_exit ========
-- *  Module exit.  Do not change to "#define gs_init()"; in
-- *  some environments this operation must actually do some work!
-- */
--extern void gs_exit(void);
--
--/*
-- *  ======== gs_free ========
-- *  Free space allocated by gs_alloc() or GS_calloc().
-- */
--extern void gs_free(void *ptr);
--
--/*
-- *  ======== gs_frees ========
-- *  Free space allocated by gs_alloc() or GS_calloc() and assert that
-- *  the size of the allocation is size bytes.
-- */
--extern void gs_frees(void *ptr, u32 size);
--
--/*
-- *  ======== gs_init ========
-- *  Module initialization.  Do not change to "#define gs_init()"; in
-- *  some environments this operation must actually do some work!
-- */
--extern void gs_init(void);
--
--#endif /*GS_ */
--- 
-1.7.2.3
+I will incorporate the suggestions. Thanks!!
 
+-tarun
