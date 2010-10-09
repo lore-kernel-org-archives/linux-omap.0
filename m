@@ -1,115 +1,68 @@
-From: Tim Nordell <tim.nordell@logicpd.com>
-Subject: Re: [PATCH v4 0/4] LogicPD minimal board support for LV_SOM and Torpedo
-Date: Fri, 08 Oct 2010 19:28:55 -0500
-Message-ID: <4CAFB747.5020606@logicpd.com>
-References: <1285603550-6382-1-git-send-email-tim.nordell@logicpd.com> <20100928171908.GE3117@atomide.com> <201010090155.25932.linz@li-pro.net>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Sat, 9 Oct 2010 08:28:36 +0200
+Message-ID: <20101009062836.GB5517@elte.hu>
+References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
+ <201010062334.46971.trenn@suse.de>
+ <20101007150825.GB12581@Krystal>
+ <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
+ <20101007155816.GA5351@nowhere>
+ <4CAED2F0.9080801@kernel.org>
+ <20101008083819.GA22385@elte.hu>
+ <4CAF19E7.3070103@linux.intel.com>
+ <20101008134156.GA28724@Krystal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:54850 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759932Ab0JIA3I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 Oct 2010 20:29:08 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1P4NJ9-00050Z-9K
-	for linux-omap@vger.kernel.org; Sat, 09 Oct 2010 02:29:03 +0200
-Received: from 66-162-60-14.static.twtelecom.net ([66.162.60.14])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sat, 09 Oct 2010 02:29:03 +0200
-Received: from tim.nordell by 66-162-60-14.static.twtelecom.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Sat, 09 Oct 2010 02:29:03 +0200
-In-Reply-To: <201010090155.25932.linz@li-pro.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20101008134156.GA28724@Krystal>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
-Hi Stephan,
 
-I do indeed work for LogicPD.  I was asked to take over the patch
-submission process from Jacob Tanenbaum from early August (I don't know
-if you saw those patches), and hence I was the last one to submit
-patches off to the community.
+* Mathieu Desnoyers <mathieu.desnoyers@efficios.com> wrote:
 
-I'll answer your other question off the newsgroups for now as I don't
-want to post too many off-topic postings to the general newsgroup.
-
-- Tim
-
-On 10/08/10 18:55, Stephan Linz wrote:
-> Hi Tony,
-> Hi Tim,
+> * Arjan van de Ven (arjan@linux.intel.com) wrote:
+> >  On 10/8/2010 1:38 AM, Ingo Molnar wrote:
+> >>
+> >> The fundamental thing about tracing/instrumentation is that there 
+> >> are no deep ABI needs: it's all about analyzing development kernels 
+> >> (and a few select versions that get the enterprise treatment) but 
+> >> otherwise the half-life of this kind of information is very short.
+> >>
+> >> So we dont want to tie ourselves down with excessive ABIs.
+> >
+> > ok I'll start working on a second mechanism then to export 
+> > information that applications need ;-( it'll look a lot like tracing 
+> > I suppose ;-(
 > 
-> nice to see my patches here on the Linux mailinglists. I have not been working 
-> on it for a long time. Tim, how we can work together? Are you working for 
-> LogicPD?
-> 
-> 
-> Bye,
-> Stephan
-> 
-> Am Dienstag, 28. September 2010, um 19:19:09 schrieb Tony Lindgren:
->> * Tim Nordell <tim.nordell@logicpd.com> [100927 08:57]:
->>> This was tested (and based) against 2.6.36-rc5
->>>
->>> Difference from patch v3 1/4:
->>>  - Merged DEBUG_LL support patch (patch v3 5/5) into first patch
->>>  - Added "select OMAP_PACKAGE_CBB" into Kconfig for both boards
->>>
->>> Tim Nordell (4):
->>>   Adding LogicPD OMAP3 board support
->>>   ARM: OMAP3LOGIC: Adding SDMMC support
->>>   ARM: OMAP3: Add generic smsc911x support when connected to GPMC
->>>   ARM: OMAP3LOGIC: Added SMSC Ethernet board support
->>>
->>>  arch/arm/mach-omap2/Kconfig                     |   20 ++
->>>  arch/arm/mach-omap2/Makefile                    |    7 +
->>>  arch/arm/mach-omap2/board-omap3logic.c          |  244
->>> +++++++++++++++++++++++ arch/arm/mach-omap2/gpmc-smsc911x.c             |
->>>  113 +++++++++++ arch/arm/plat-omap/include/plat/gpmc-smsc911x.h |   35
->>> ++++
->>>  arch/arm/plat-omap/include/plat/uncompress.h    |    2 +
->>>  6 files changed, 421 insertions(+), 0 deletions(-)
->>>  create mode 100644 arch/arm/mach-omap2/board-omap3logic.c
->>>  create mode 100644 arch/arm/mach-omap2/gpmc-smsc911x.c
->>>  create mode 100644 arch/arm/plat-omap/include/plat/gpmc-smsc911x.h
->>
->> Thanks, queuing all of them for the upcoming merge window.
->> I've updated the MMC related patch with the following to
->> keep it compiling with the MMC related platform init changes.
->>
->> Regards,
->>
->> Tony
->>
->> --- a/arch/arm/mach-omap2/board-omap3logic.c
->> +++ b/arch/arm/mach-omap2/board-omap3logic.c
->> @@ -26,6 +26,7 @@
->>  #include <linux/regulator/machine.h>
->>
->>  #include <linux/i2c/twl.h>
->> +#include <linux/mmc/host.h>
->>
->>  #include <mach/hardware.h>
->>  #include <asm/mach-types.h>
->> @@ -112,7 +113,7 @@ static struct omap2_hsmmc_info __initdata
->> board_mmc_info[] = { {
->>  		.name		= "external",
->>  		.mmc		= 1,
->> -		.wires		= 4,
->> +		.caps		= MMC_CAP_4_BIT_DATA,
->>  		.gpio_cd	= -EINVAL,
->>  		.gpio_wp	= -EINVAL,
->>  	},
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> What's wrong with doing the compatibility layer in a LGPL library 
+> shipped with the kernel tree under tools/ ? Why does everything *have* 
+> to be done in kernel-space ? Why are you so focused on making your 
+> application interact directly with kernel ABIs ?
 
+The thing is, Arjan is 100% right that a library for this is not a 
+'solution', it's an unnecessary complication.
 
+What i suggested in my mail was to _keep existing events_. I.e. do not 
+break powertop. We are 100% happy that we _have_ such apps, and we 
+should do reasonable things to not break them.
+
+If we need to change events, we can add a new event. The old events will 
+lose their relevance without us having to do much - and without us 
+having to break powertop, pytimechart, etc. We can even have periods of 
+overlap when both events are available - to give instrumentation apps 
+time to learn the new events.
+
+I.e. it's not an ABI in the classic sense - we do not (because we 
+cannot) guarantee the infinite availability of these events. But we can 
+guarantee that the fields do not change in some stupid, avoidable way.
+
+Changing an existing event in some non-append way is just sloppy and we 
+can do better.
+
+Arjan, Pierre, does that sound OK to you?
+
+	Ingo
