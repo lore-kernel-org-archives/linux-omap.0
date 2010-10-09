@@ -1,68 +1,89 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Sat, 9 Oct 2010 08:28:36 +0200
-Message-ID: <20101009062836.GB5517@elte.hu>
-References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
- <201010062334.46971.trenn@suse.de>
- <20101007150825.GB12581@Krystal>
- <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
- <20101007155816.GA5351@nowhere>
- <4CAED2F0.9080801@kernel.org>
- <20101008083819.GA22385@elte.hu>
- <4CAF19E7.3070103@linux.intel.com>
- <20101008134156.GA28724@Krystal>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
+Date: Sat, 9 Oct 2010 08:55:09 +0200
+Message-ID: <AANLkTimLMZtqkk64xUWDuyPpadtZVb2_+YXF+WNSQW=i@mail.gmail.com>
+References: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
+	<87y6a8v48p.fsf@deeprootsystems.com>
+	<87eic0ti7p.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20101008134156.GA28724@Krystal>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:50540 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752677Ab0JIGzK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Oct 2010 02:55:10 -0400
+Received: by qyk10 with SMTP id 10so2166560qyk.19
+        for <linux-omap@vger.kernel.org>; Fri, 08 Oct 2010 23:55:09 -0700 (PDT)
+In-Reply-To: <87eic0ti7p.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
+Kevin,
 
-* Mathieu Desnoyers <mathieu.desnoyers@efficios.com> wrote:
+On Sat, Oct 9, 2010 at 12:47 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>
+>> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>>
+>>> This patch reverts commit 914bab936fe0388a529079679e2f137aa4ff548d,=
+ which
+>>> breaks the OFF mode on the OMAP3 platforms.
+>>> The details are here below.
+>>>
+>>> The intent behind the original patch was to fix some compiler
+>>> warnings, which I do not have on my side. Is the problem dependent =
+on
+>>> the setup and config used?
+>>
+>>> From ec85bc90978cf0f257e73eaad593ffb774595863 Mon Sep 17 00:00:00 2=
+001
+>>> From: Jean Pihet <jean.pihet@newoldbits.com>
+>>> Date: Fri, 8 Oct 2010 18:36:48 +0200
+>>> Subject: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment=
+ warnings"
+>>>
+>>> This reverts commit 914bab936fe0388a529079679e2f137aa4ff548d, which
+>>> breaks the OFF mode on the OMAP3 platforms.
+>>>
+>>> The use of a void* pointer for scratchpad_address confuses the
+>>> compiler which generates wrong offset for the access to the L4
+>>> address space. In that case an alignement fault is generated
+>>> during the wake-up from OFF mode.
+>>>
+>>> The code that causes problem is:
+>>> __raw_readl(scratchpad_address + OMAP343X_TABLE_ADDRESS_OFFSET);
+>>
+>> Thanks Jean for tracking down why off-mode was broken on the master
+>> branch.
+>>
+>> I completely agree this patch should be reverted. =A0However, the
+>> description here could be a litle more descriptive.
+>
+> I changed my mind...
+>
+> Since only one part of the original patch introduced a bug, I decided=
+ to
+> just fix that bug and keep the fixes for the sparse warnings. =A0I ju=
+st
+> posted a patch[1] for the fix. =A0 Please test.
+>
+> Thanks,
 
-> * Arjan van de Ven (arjan@linux.intel.com) wrote:
-> >  On 10/8/2010 1:38 AM, Ingo Molnar wrote:
-> >>
-> >> The fundamental thing about tracing/instrumentation is that there 
-> >> are no deep ABI needs: it's all about analyzing development kernels 
-> >> (and a few select versions that get the enterprise treatment) but 
-> >> otherwise the half-life of this kind of information is very short.
-> >>
-> >> So we dont want to tie ourselves down with excessive ABIs.
-> >
-> > ok I'll start working on a second mechanism then to export 
-> > information that applications need ;-( it'll look a lot like tracing 
-> > I suppose ;-(
-> 
-> What's wrong with doing the compatibility layer in a LGPL library 
-> shipped with the kernel tree under tools/ ? Why does everything *have* 
-> to be done in kernel-space ? Why are you so focused on making your 
-> application interact directly with kernel ABIs ?
+Thanks for the follow-up on the patch. I will test asap.
+>
+> Kevin
+>
+> [1] https://patchwork.kernel.org/patch/242661/
+>
+Jean
 
-The thing is, Arjan is 100% right that a library for this is not a 
-'solution', it's an unnecessary complication.
-
-What i suggested in my mail was to _keep existing events_. I.e. do not 
-break powertop. We are 100% happy that we _have_ such apps, and we 
-should do reasonable things to not break them.
-
-If we need to change events, we can add a new event. The old events will 
-lose their relevance without us having to do much - and without us 
-having to break powertop, pytimechart, etc. We can even have periods of 
-overlap when both events are available - to give instrumentation apps 
-time to learn the new events.
-
-I.e. it's not an ABI in the classic sense - we do not (because we 
-cannot) guarantee the infinite availability of these events. But we can 
-guarantee that the fields do not change in some stupid, avoidable way.
-
-Changing an existing event in some non-append way is just sloppy and we 
-can do better.
-
-Arjan, Pierre, does that sound OK to you?
-
-	Ingo
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
