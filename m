@@ -1,220 +1,159 @@
 From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: RE: [PATCHv3 2/17] dmtimer: infrastructure to support hwmod
-Date: Sat, 9 Oct 2010 20:56:36 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E840687@dbde02.ent.ti.com>
-References: <1285059089-26341-1-git-send-email-tarun.kanti@ti.com>
- <4CA4F29F.7010908@ti.com>
+Subject: RE: [PATCHv3 0/17] OMAP dmtimer hwmod
+Date: Sat, 9 Oct 2010 20:59:01 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E840688@dbde02.ent.ti.com>
+References: <1285059029-26291-1-git-send-email-tarun.kanti@ti.com>
+ <4CA4E868.3030309@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53903 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752894Ab0JIP0o convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Oct 2010 11:26:44 -0400
-In-Reply-To: <4CA4F29F.7010908@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60453 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752894Ab0JIP3H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Oct 2010 11:29:07 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o99FT4Db023531
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Sat, 9 Oct 2010 10:29:06 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o99FT3n2003413
+	for <linux-omap@vger.kernel.org>; Sat, 9 Oct 2010 20:59:03 +0530 (IST)
+In-Reply-To: <4CA4E868.3030309@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, "Gopinath, Thara" <thara@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Benoit,
 
 > -----Original Message-----
 > From: Cousson, Benoit
-> Sent: Friday, October 01, 2010 1:57 AM
+> Sent: Friday, October 01, 2010 1:14 AM
 > To: DebBarma, Tarun Kanti
-> Cc: linux-omap@vger.kernel.org; Basak, Partha; Gopinath, Thara; Paul
-> Walmsley; Kevin Hilman; Tony Lindgren
-> Subject: Re: [PATCHv3 2/17] dmtimer: infrastructure to support hwmod
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCHv3 0/17] OMAP dmtimer hwmod
 > 
-> On 9/21/2010 10:51 AM, DebBarma, Tarun Kanti wrote:
-> > This patch introduces data structures and new fields on
-> > existing data structures to support dmtimer conversion
-> > to platform driver and support hwmod database for the diferent
-> > OMAP platforms.
+> Hi Tarun,
+> 
+> On 9/21/2010 10:50 AM, Tarun Kanti DebBarma wrote:
+> > This patch series implements dmtimer hwmod.
+> 
+> Maybe the description should be a little bit more detailed:
+> Something like "Adapt dmtimer code to platform_driver using omap_device
+> / omap_hwmod abstraction"
+> 
+Sure, I will change as it definitely sounds more appropriate.
+
+> 
 > >
-> > Signed-off-by: Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> > Signed-off-by: Partha Basak<p-basak2@ti.com>
-> > Signed-off-by: Thara Gopinath<thara@ti.com>
-> > Cc: Cousson, Benoit<b-cousson@ti.com>
-> > Cc: Paul Walmsley<paul@pwsan.com>
-> > Cc: Kevin Hilman<khilman@deeprootsystems.com>
-> > Cc: Tony Lindgren<tony@atomide.com>
-> > ---
-> >   arch/arm/mach-omap2/dmtimer.h             |   25 +++++++++++++++++
-> >   arch/arm/plat-omap/dmtimer.c              |    9 ++++++
-> >   arch/arm/plat-omap/include/plat/dmtimer.h |   42
-> +++++++++++++++++++++++++++++
-> >   3 files changed, 76 insertions(+), 0 deletions(-)
+> > Version 3
+> > *********
+> > (1) multi-line comment error correction
+> >
+> > (2) provision to allow any of the available dmtimers as early timers
+> > instead of restricting them to millisecond timers only.
+> >
+> > (3) in 'struct omap_dmtimer{}' is_initialized flag is redundant and
+> > so must be removed. if the element is found in the list it is already
+> > initialized.
+> >
+> > (4) remove 'found' flag in omap_dm_timer_request() and
+> > omap_dm_timer_request_specific() functions.
+> > this is not needed with alternate implementation.
+> >
+> > (5) use .init_name to initialize device names so that it can be
+> identified
+> > during early boot as well. This is to avoid duplicate functions for
+> clock
+> > manipulations during early boot and later.
+> >
+> > (6) remove redundant functions from mach-omap2 which are created just to
+> > call pm functions like: pm_runtime_get_sync(),pm_runtime_put_sync(),..
+> > and instead call them directly from plat-omap function api's.
+> >
+> > (7) timer clock source names made part of hwmod database. source_clock[]
+> > of type 'struct clk' is made part of platform data.
+> >
+> > (8) clockactivity field initialized in hwmod database to preserve fclk
+> > during idle. code which manipulate OCP config removed since they are
+> > already taken care by hwmod framework.
+> >
+> > (9) omap2_dm_timer_set_src() is optimized. Clock enable/disbale routines
+> > moved to plat-omap layer and simplfied to the level so as not to
+> sacrifice
+> > intended functionality.
+> >
+> > NOTE: During early boot clock management was requested to be placed upon
+> > client drivers responsibility. this has not been done keeping in mind
+> > that it would entail (i) multiple modifications of client drivers (ii)
+> it
+> > would violate the purpose of having a framework (open to debate).
+> >
+> > (10) dmtimer register maps moved to hwmod database
+> >
+> > Baseline
+> > ********
+> > origin/pm-core
+> >
+> > Test info
+> > *********
+> > OMAP4430SDP
+> > OMAP3630SDP
+> > OMAP3430SDP
+> > OMAP2430SDP
+> > OMAP1710SDP(Bootup)
+> >
+> >
+> > Tarun Kanti DebBarma (17):
+> >    OMAP2/3/4:dmtimer:add device names to flck nodes
+> >    dmtimer: infrastructure to support hwmod
+> >    dmtimer: add omap2420 hwmod database
+> >    dmtimer: add omap2430 hwmod database
+> >    dmtimer: add omap3xxx hwmod database
+> >    dmtimer: add omap44xx hwmod database
+> >    dmtimer: use list instead of static array
+> >    dmtimer: register mappings moved to hwmod database
+> >    OMAP: dmtimer platform driver
+> >    OMAP1: dmtimer conversion to platform devices
+> >    dmtimer: early boot infrastructure
+> >    OMAP2/3/4: dmtimers: convert to platform devices
+> >    dmtimer: switch-over to platform device driver with hwmod
+> >    dmtimer pm_runtime support
+> >    dmtimer: OMAP4 specific change in plat-omap
+> >    dmtimer: clean redundant code
+> >    dmtimer: remove OCP config code from plat-omap
+> >
+> >   arch/arm/mach-omap1/Makefile               |    2 +-
+> >   arch/arm/mach-omap1/dmtimer.c              |  174 ++++++
+> >   arch/arm/mach-omap2/Makefile               |    2 +-
+> >   arch/arm/mach-omap2/clock2420_data.c       |   24 +-
+> >   arch/arm/mach-omap2/clock2430_data.c       |   24 +-
+> >   arch/arm/mach-omap2/clock3xxx_data.c       |   24 +-
+> >   arch/arm/mach-omap2/clock44xx_data.c       |   22 +-
+> >   arch/arm/mach-omap2/dmtimer.c              |  288 ++++++++++
+> >   arch/arm/mach-omap2/dmtimer.h              |   25 +
+> >   arch/arm/mach-omap2/io.c                   |    2 +
+> >   arch/arm/mach-omap2/omap_hwmod_2420_data.c |  739
+> +++++++++++++++++++++++++
+> >   arch/arm/mach-omap2/omap_hwmod_2430_data.c |  737
+> +++++++++++++++++++++++++
+> >   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  815
+> ++++++++++++++++++++++++++++
+> >   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  796
+> +++++++++++++++++++++++++++
+> >   arch/arm/mach-omap2/timer-gp.c             |    1 -
+> >   arch/arm/plat-omap/dmtimer.c               |  679 +++++++++++---------
+> ---
+> >   arch/arm/plat-omap/include/plat/dmtimer.h  |   80 +++
+> >   17 files changed, 4030 insertions(+), 404 deletions(-)
+> >   create mode 100644 arch/arm/mach-omap1/dmtimer.c
+> >   create mode 100644 arch/arm/mach-omap2/dmtimer.c
 > >   create mode 100644 arch/arm/mach-omap2/dmtimer.h
 > >
-> > diff --git a/arch/arm/mach-omap2/dmtimer.h b/arch/arm/mach-
-> omap2/dmtimer.h
-> > new file mode 100644
-> > index 0000000..3355725
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/dmtimer.h
-> > @@ -0,0 +1,25 @@
-> > +/**
-> > + * linux/arch/arm/mach-omap2/dmtimer.h
-> > + *
-> > + * Copyright (C) 2010 Texas Instruments, Inc.
-> > + * Thara Gopinath<thara@ti.com>
-> > + * Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> > + *
-> > + * OMAP2 Dual-Mode Timers
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#ifndef __ASM_ARCH_DMTIMER_H
-> > +#define __ASM_ARCH_DMTIMER_H
-> > +
-> > +/*
-> > + * dmtimer is required during early part of boot sequence even before
-> > + * device model and pm_runtime if fully up and running. this function
-> > + * provides hook to omap2_init_common_hw() which is triggered from
-> > + * start_kernel()->init_irq() of kernel initalization sequence.
-> 
-> typo
-Ok, I will take care.
-
-> 
-> > + */
-> > +void __init omap2_dm_timer_early_init(void);
-> > +
-> > +#endif
-> > diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> > index 44bafda..a7b1679 100644
-> > --- a/arch/arm/plat-omap/dmtimer.c
-> > +++ b/arch/arm/plat-omap/dmtimer.c
-> > @@ -10,6 +10,12 @@
-> >    * Copyright (C) 2009 Texas Instruments
-> >    * Added OMAP4 support - Santosh Shilimkar<santosh.shilimkar@ti.com>
-> >    *
-> > + * Copyright (C) 2010 Texas Instruments, Inc.
-> > + * Thara Gopinath<thara@ti.com>
-> > + * Tarun Kanti DebBarma<tarun.kanti@ti.com>
-> > + * - hwmod support
-> > + * - omap4 support
-> 
-> You should try to have a much more uniform history with the previous one
-> from Santosh.
-> The funny thing is that Santosh added the omap4 support in 2009 and you
-> did the same in 2010:-)
-I will elaborate and I agree the present description is too simple which confuses more than anything.
-
-> 
-> 
-> > + *
-> >    * This program is free software; you can redistribute it and/or
-> modify it
-> >    * under the terms of the GNU General Public License as published by
-> the
-> >    * Free Software Foundation; either version 2 of the License, or (at
-> your
-> > @@ -151,6 +157,8 @@
-> >   		(_OMAP_TIMER_TICK_INT_MASK_COUNT_OFFSET | (WP_TOWR<<  WPSHIFT))
-> >
-> >   struct omap_dm_timer {
-> > +	int id;
-> > +	unsigned long fclk_rate;
-> >   	unsigned long phys_base;
-> >   	int irq;
-> >   #ifdef CONFIG_ARCH_OMAP2PLUS
-> > @@ -160,6 +168,7 @@ struct omap_dm_timer {
-> >   	unsigned reserved:1;
-> >   	unsigned enabled:1;
-> >   	unsigned posted:1;
-> > +	struct platform_device *pdev;
-> >   };
-> >
-> >   static int dm_timer_count;
-> > diff --git a/arch/arm/plat-omap/include/plat/dmtimer.h b/arch/arm/plat-
-> omap/include/plat/dmtimer.h
-> > index 20f1054..3ec17c5 100644
-> > --- a/arch/arm/plat-omap/include/plat/dmtimer.h
-> > +++ b/arch/arm/plat-omap/include/plat/dmtimer.h
-> > @@ -29,6 +29,8 @@
-> >   #ifndef __ASM_ARCH_DMTIMER_H
-> >   #define __ASM_ARCH_DMTIMER_H
-> >
-> > +#include<linux/platform_device.h>
-> > +
-> >   /* clock sources */
-> >   #define OMAP_TIMER_SRC_SYS_CLK			0x00
-> >   #define OMAP_TIMER_SRC_32_KHZ			0x01
-> > @@ -44,9 +46,49 @@
-> >   #define OMAP_TIMER_TRIGGER_OVERFLOW		0x01
-> >   #define OMAP_TIMER_TRIGGER_OVERFLOW_AND_COMPARE	0x02
-> >
-> > +/* timer ip constants */
-> > +#define OMAP_TIMER_IP_VERSION_1			0x1 /* OMAP1/2/3 timers */
-> 
-> OMAP4 1ms timers are still v1, only the regular ones are in v2.
-> 
-> > +#define OMAP_TIMER_IP_VERSION_2			0x2 /* OMAP4 timers */
-> > +
-> > +/*
-> > + * number of clock sources supported in the current platform.
-> > + * for the time being keeping it to 6 just to accomodate future.
-> typo
-> > + * expansion. currently, only upto a maximum of 3 clock sources
-> typo
-> > + * supported on OMAP4.
-> > + */
-> > +#define NR_CLK_SOURCES			3
-> 
-> Is that 6 or 3?
-Initially I kept 6. Later I changed to 3 while forgetting to change the comment.
-
-> 
-> > +
-> > +
-> > +/**
-> > + * omap_timer_dev_attr - timer device attribute
-> > + *
-> > + * current implementation contains array of clock source names
-> supported
-> > + * by different timers. for example, in the case of OMAP4, timer[5-8]
-> > + * supports different set of input clock sources as compared to the
-> rest.
-> > + * these array of clock names are used during timer initialization to
-> > + * parse through timer list and obtain their corresponding struct clk*.
-> > + * this is subsequently used for changing the timer input clock sources
-> > + * by client drivers.
-> > + */
-> > +struct omap_timer_dev_attr {
-> > +	char **clk_names;
-> > +	u32 *reg_map;
-> 
-> I'll comment that in the hwmod data patches, but neither the reg_map nor
-> the clk_name should be there.
-> 
-Ok.
--tarun
-
-> 
-> > +};
-> > +
-> >   struct omap_dm_timer;
-> >   struct clk;
-> >
-> > +struct dmtimer_platform_data {
-> > +	int (*set_timer_src)
-> > +		(struct platform_device *pdev, int source);
-> > +#ifdef CONFIG_ARCH_OMAP2PLUS
-> > +	struct clk *source_clocks[NR_CLK_SOURCES];
-> > +#endif
-> > +	u32 *reg_map;
-> > +	int timer_ip_type;
-> > +	bool is_early_init;
-> > +};
-> > +
-> >   int omap_dm_timer_init(void);
-> >
-> >   struct omap_dm_timer *omap_dm_timer_request(void);
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
