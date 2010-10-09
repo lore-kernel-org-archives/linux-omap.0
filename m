@@ -1,48 +1,91 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Sat, 09 Oct 2010 17:34:58 -0400
-Message-ID: <1286660098.23994.3413.camel@gandalf.stny.rr.com>
-References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
-	 <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal>
-	 <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
-	 <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org>
-	 <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com>
-	 <20101008134156.GA28724@Krystal> <20101009062836.GB5517@elte.hu>
-	 <4CB095FA.8060803@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7] power: introduce library for device-specific OPPs
+Date: Sun, 10 Oct 2010 00:59:20 +0200
+Message-ID: <201010100059.20964.rjw@sisk.pl>
+References: <[PATCH] power: introduce library for device-specific OPPs> <1286506969-20651-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <4CB095FA.8060803@linux.intel.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:59660 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756661Ab0JIXAo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 9 Oct 2010 19:00:44 -0400
+In-Reply-To: <1286506969-20651-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Paul <paulmck@linux.vnet.ibm.com>
 
-On Sat, 2010-10-09 at 09:19 -0700, Arjan van de Ven wrote:
-
-> > I.e. it's not an ABI in the classic sense - we do not (because we
-> > cannot) guarantee the infinite availability of these events. But we can
-> > guarantee that the fields do not change in some stupid, avoidable way.
+On Friday, October 08, 2010, Nishanth Menon wrote:
+> SoCs have a standard set of tuples consisting of frequency and
+> voltage pairs that the device will support per voltage domain. These
+> are called Operating Performance Points or OPPs. The actual
+> definitions of OPP varies over silicon versions. For a specific domain,
+> we can have a set of {frequency, voltage} pairs. As the kernel boots
+> and more information is available, a default set of these are activated
+> based on the precise nature of device. Further on operation, based on
+> conditions prevailing in the system (such as temperature), some OPP
+> availability may be temporarily controlled by the SoC frameworks.
 > 
-> also I have to say that some events are more likely to change than others
+> To implement an OPP, some sort of power management support is necessary
+> hence this library depends on CONFIG_PM.
 > 
-> "function foo in the kernel called" is more likely to change than "the 
-> processor went to THIS frequency".
-> The concept of CPU frequencies has been with us fora long time and is 
-> going to be there for a long time as well ......
+> Contributions include:
+> Sanjeev Premi for the initial concept:
+> 	http://patchwork.kernel.org/patch/50998/
+> Kevin Hilman for converting original design to device-based
+> Kevin Hilman and Paul Walmsey for cleaning up many of the function
+> abstractions, improvements and data structure handling
+> Romit Dasgupta for using enums instead of opp pointers
+> Thara Gopinath, Eduardo Valentin and Vishwanath BS for fixes and
+> cleanups.
+> Linus Walleij for recommending this layer be made generic for usage
+> in other architectures beyond OMAP and ARM.
+> Mark Brown, Andrew Morton, Rafael J Wysocki, Paul E McKenney for valuable
+> improvements.
+> 
+> Discussions and comments from:
+> http://marc.info/?l=linux-omap&m=126033945313269&w=2
+> http://marc.info/?l=linux-omap&m=125482970102327&w=2
+> http://marc.info/?t=125809247500002&r=1&w=2
+> http://marc.info/?l=linux-omap&m=126025973426007&w=2
+> http://marc.info/?t=128152609200064&r=1&w=2
+> http://marc.info/?t=128468723000002&r=1&w=2
+> incorporated.
+> 
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+> Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
+> Cc: Roberto Granados Dorado <x0095451@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+> Cc: Tero Kristo <Tero.Kristo@nokia.com>
+> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Sanjeev Premi <premi@ti.com>
+> Cc: Thara Gopinath <thara@ti.com>
+> Cc: Vishwanath BS <vishwanath.bs@ti.com>
+> Cc: Linus Walleij <linus.walleij@stericsson.com>
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> 
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-Perhaps for basic concepts, we need a standard trace-event. Are people
-willing to have a TRACE_EVENT_ABI() (it's trivial to write), and we can
-mark those events with that macro that we know tools depend on.
+OK
 
-These events can be exposed in a /sys/kernel/events/... directory, to
-let tools know what what events they can rely on.
+Your error messages are a bit inconsistent (e.g. some of them print the
+error code while others don't), but I guess I can fix that up.
 
-We've talked about doing this before, I've just been waiting to hear a
-consensus on if we should. I know Peter Zijlstra was against the idea,
-and too bad he's off gallivanting to share his input now.
+Still, to apply the patch I need a copyright notice for the doc too.
 
--- Steve
- 
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
+Kevin, your sign-off here means you endorse the patch as the maintainer.
+Is that correct?
+
+Thanks,
+Rafael
