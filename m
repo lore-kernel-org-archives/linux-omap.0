@@ -1,43 +1,41 @@
-From: Ionut Nicu <ionut.nicu@mindbit.ro>
-Subject: tidspbridge compilation broken
-Date: Sat, 09 Oct 2010 13:49:57 +0300
-Message-ID: <1286621397.10205.25.camel@atlantis.mindbit.ro>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Ionut Nicu <ionut.nicu@gmail.com>
+Subject: [PATCH] tidspbridge: select OMAP_IOMMU dependency
+Date: Sat,  9 Oct 2010 14:42:10 +0300
+Message-ID: <1286624530-30581-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.mindbit.ro ([80.86.127.26]:44203 "EHLO ns.mindbit.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755580Ab0JIL22 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 9 Oct 2010 07:28:28 -0400
-Received: from [10.0.1.162] (196-98-odb-svnet.titannet.ro [77.81.196.98])
-	(authenticated bits=0)
-	by ns.mindbit.ro (8.13.8/8.13.8) with ESMTP id o99AnvNn008285
-	for <linux-omap@vger.kernel.org>; Sat, 9 Oct 2010 13:49:58 +0300
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:52214 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754713Ab0JILmW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 Oct 2010 07:42:22 -0400
+Received: by ewy20 with SMTP id 20so24998ewy.19
+        for <linux-omap@vger.kernel.org>; Sat, 09 Oct 2010 04:42:21 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Hi,
+Since the iommu migration patches tidspbridge depends
+on the OMAP specific IOMMU implementation. We need to
+add this dependency, otherwise we'll have link time
+errors.
 
-I'm trying to compile the tidspbridge driver from the dspbridge branch
-of the linux-omap git tree and I stumbled upon a few compilation
-problems:
+Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+---
+ drivers/staging/tidspbridge/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-1. First is related to the missing header plat/dsp.h added by the
-following patch which was not applied to this branch:
-
-http://marc.info/?l=linux-omap&m=128620861805925&w=2
-
-2. The second one is related to the missing header plat/control.h which
-was moved by a recent commit (81bb9b6) from plat to mach-omap2. The
-dspbridge driver requires a few defines from that header but as far as I
-understand, that header file is no longer supposed to be accessible by
-drivers. Any suggestion on how to fix that in dspbridge?
-
-3. There's a link error triggered by the new iommu dependency. It's
-fairly trivial to fix. I will submit a patch for this.
-
-Thanks,
-Ionut.
+diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
+index 93de4f2..ff64d46 100644
+--- a/drivers/staging/tidspbridge/Kconfig
++++ b/drivers/staging/tidspbridge/Kconfig
+@@ -6,6 +6,7 @@ menuconfig TIDSPBRIDGE
+ 	tristate "DSP Bridge driver"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_MBOX_FWK
++	select OMAP_IOMMU
+ 	help
+ 	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
+ 	  one or more attached DSPs.  The GPP is considered the master or
+-- 
+1.7.2.3
 
