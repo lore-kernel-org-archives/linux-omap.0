@@ -1,61 +1,45 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/3] omap: dsp: fix ioremap() usage
-Date: Sun, 10 Oct 2010 23:39:33 +0300
-Message-ID: <AANLkTim8HHT3BQSVSZx_2yBo6SZFj+XR-XYrjNZg+ntW@mail.gmail.com>
-References: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com>
-	<1286732440-28644-3-git-send-email-felipe.contreras@gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59302342AE533@dbde02.ent.ti.com>
+From: Rabin Vincent <rabin@rab.in>
+Subject: Re: [PATCH 2/2] ftrace - add ftrace function_graph support on ARM
+Date: Mon, 11 Oct 2010 03:36:03 +0530
+Message-ID: <20101010220603.GA2723@debian>
+References: <4B91A39F.8050502@am.sony.com>
+ <20100306201849.GD13262@n2100.arm.linux.org.uk>
+ <AANLkTi=apGYBSSr4RK+ZZievacJRcOxrwW_o_hz85P0h@mail.gmail.com>
+ <20101009193757.GB28183@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:47489 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751539Ab0JJUjf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 16:39:35 -0400
-Received: by bwz15 with SMTP id 15so1324822bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 10 Oct 2010 13:39:34 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302342AE533@dbde02.ent.ti.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:33137 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751886Ab0JJWGN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 18:06:13 -0400
+Received: by pwj4 with SMTP id 4so729705pwj.19
+        for <linux-omap@vger.kernel.org>; Sun, 10 Oct 2010 15:06:11 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20101009193757.GB28183@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tim Bird <tim.bird@am.sony.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+On Sat, Oct 09, 2010 at 08:37:57PM +0100, Russell King - ARM Linux wrote:
+> On Sat, Oct 09, 2010 at 11:20:50PM +0530, Rabin Vincent wrote:
+> > It's used just for the C entry functions for interrupts: asm_do_IRQ()
+> > and the IPI and local timer functions.
+> > 
+> > AFAICS __exception seems to be used only for is_exception_text().  If
+> > that's the case, would it be OK to just place those functions in
+> > __irq_entry if ftrace is built and have is_exception_text() check that
+> > section too?
+> 
+> No.  is_exception_text() is used to detect those functions which have
+> a specific stack layout - which is that there's a pt_regs struct on the
+> stack.  Grouping other functions into that violates the expectation.
 
-Please remove the chunks you are not replying to.
-
-On Sun, Oct 10, 2010 at 11:17 PM, Premi, Sanjeev <premi@ti.com> wrote:
->> -void __init omap_reserve(void)
->> +#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODUL=
-E)
->
-> [sp] I do understand that dspbridge is the only driver accessing dsp =
-in
-> =C2=A0 =C2=A0 the linux-omap; but there are other known drivers - whi=
-ch would need
-> =C2=A0 =C2=A0 this feature.
-
-Are you talking about linux-omap the tree? If so, no, the tidspbridge
-is part of staging, not linux-omap.
-
-If you are trying to say there are other DSP drivers intended for
-OMAP, then I guess you are referring to dsp-link, which uses it's own
-tricks for contiguous memory allocation (CMEM).
-
-So, who and how would benefit from this?
-
-> =C2=A0 =C2=A0 Can we use a more generic config option viz. CONFIG_RES=
-ERVE_DSPMEM
-> =C2=A0 =C2=A0 (or something similar) so that code is easily (re)usabl=
-e.
-
-How about CONFIG_OMAP_DSP, and CONFIG_OMAP_DSP_RESERVE_SIZE?
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm not sure I follow.  These functions (asm_do_IRQ(), do_IPI(), and
+do_local_timer()) will be the only ones in __irq_entry. iow, __irq_entry
+will contain nothing else except these functions.  So we woudn't be
+grouping other functions; it's just that some of the __exception
+functions would be moved to the new section so that __exception and
+__irq_entry combined will contain the functions with the specific stack
+layout (and only those functions).
