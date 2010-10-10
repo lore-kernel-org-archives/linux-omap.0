@@ -1,51 +1,76 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
-Date: Sun, 10 Oct 2010 08:50:33 +0200
-Message-ID: <4CB16239.1050203@compulab.co.il>
-References: <cover.1266847842.git.david.vrabel@csr.com><20100827192248.GJ20407@void.printf.net><4C7CC480.2040903@csr.com><4C7F3E0F.2080402@compulab.co.il><AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com><C903F2608D694655921F553D0D3557E3@am.dhcp.ti.com><AANLkTikskMMFWS+qxD+J=o6OiOa+d5H02DiT1iZ95vkz@mail.gmail.com><CD6B4CE9F7FA427BBD19242F669AD014@am.dhcp.ti.com><AANLkTin-r5Svg1+YrdYq95WA6=sh7+X0Bwogk=h0V6pP@mail.gmail.com><4CAC146D.3040001@compulab.co.il><AANLkTi=kmLuUyD-9k-Xa5vfgvjx2nNUGfyADhoY0HC1i@mail.gmail.com><4CAC7D65.8010705@compulab.co.il><AANLkTikvduxP+gQOs4HvZz2Yw6KCrqHAyim0Ads0Bvj_@mail.gmail.com><56009.192.168.10.88.1286389699.squirrel@dbdmail.itg.ti.com><4CAD739B.4090909@compulab.co.il> <AANLkTimvHnLAchE-Ed1Zve-PU6S98Euj=bFaAtkDWWji@mail.gmail.com> <B02FD62E0C9F4E
- 70856C21355A0BAB59@am.dhcp.ti.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Sun, 10 Oct 2010 14:19:28 +0200
+Message-ID: <20101010121928.GA2688@elte.hu>
+References: <201010062334.46971.trenn@suse.de>
+ <20101007150825.GB12581@Krystal>
+ <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
+ <20101007155816.GA5351@nowhere>
+ <4CAED2F0.9080801@kernel.org>
+ <20101008083819.GA22385@elte.hu>
+ <4CAF19E7.3070103@linux.intel.com>
+ <20101008134156.GA28724@Krystal>
+ <20101009062836.GB5517@elte.hu>
+ <4CB095FA.8060803@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <B02FD62E0C9F4E70856C21355A0BAB59@am.dhcp.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Steve Sakoman' <sakoman@gmail.com>, 'David Vrabel' <david.vrabel@csr.com>, 'Chris Ball' <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, 'Adrian Hunter' <adrian.hunter@nokia.com>, Mike Rapoport <mike@compulab.co.il>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4CB095FA.8060803@linux.intel.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Madhu,
 
-Madhusudhan wrote:
-> 
->> -----Original Message-----
->> From: Steve Sakoman [mailto:sakoman@gmail.com]
->> Sent: Thursday, October 07, 2010 8:57 AM
->> To: Mike Rapoport
->> Cc: Madhusudhan Chikkature; David Vrabel; Chris Ball; linux-
->> mmc@vger.kernel.org; linux-omap@vger.kernel.org; Adrian Hunter
->> Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
->>
->> I can confirm exactly the same behavior on my hardware with this
->> version of the patch.
-> 
-> Steve,
-> 
-> Okay. Did the version you had in your tree worked? I just want to check if I
-> messed up something in my patch.
+* Arjan van de Ven <arjan@linux.intel.com> wrote:
 
-The patch works if applied before commit 
-b417577d3b9bbb06a4ddc9aa955af9bd503f7242 (omap_hsmmc: improve interrupt 
-synchronisation). Apparently, changes in interrupt handling require major rework 
-  of the SDIO interrupt handling...
-
-> Regards,
-> Madhu
+>  On 10/8/2010 11:28 PM, Ingo Molnar wrote:
+> >* Mathieu Desnoyers<mathieu.desnoyers@efficios.com>  wrote:
+> >
+> >>* Arjan van de Ven (arjan@linux.intel.com) wrote:
+> >>>  On 10/8/2010 1:38 AM, Ingo Molnar wrote:
+> >>>>The fundamental thing about tracing/instrumentation is that there
+> >>>>are no deep ABI needs: it's all about analyzing development kernels
+> >>>>(and a few select versions that get the enterprise treatment) but
+> >>>>otherwise the half-life of this kind of information is very short.
+> >>>>
+> >>>>So we dont want to tie ourselves down with excessive ABIs.
+> >>>ok I'll start working on a second mechanism then to export
+> >>>information that applications need ;-( it'll look a lot like tracing
+> >>>I suppose ;-(
+> >>What's wrong with doing the compatibility layer in a LGPL library
+> >>shipped with the kernel tree under tools/ ? Why does everything *have*
+> >>to be done in kernel-space ? Why are you so focused on making your
+> >>application interact directly with kernel ABIs ?
+> >The thing is, Arjan is 100% right that a library for this is not a
+> >'solution', it's an unnecessary complication.
+> >
+> >What i suggested in my mail was to _keep existing events_. I.e. do not
+> >break powertop. We are 100% happy that we _have_ such apps, and we
+> >should do reasonable things to not break them.
+> >
+> >If we need to change events, we can add a new event. The old events will
+> >lose their relevance without us having to do much - and without us
+> >having to break powertop, pytimechart, etc. We can even have periods of
+> >overlap when both events are available - to give instrumentation apps
+> >time to learn the new events.
+> >
+> >I.e. it's not an ABI in the classic sense - we do not (because we
+> >cannot) guarantee the infinite availability of these events. But we can
+> >guarantee that the fields do not change in some stupid, avoidable way.
 > 
->> Steve
+> also I have to say that some events are more likely to change than others
 > 
+> "function foo in the kernel called" is more likely to change than "the 
+> processor went to THIS frequency". The concept of CPU frequencies has 
+> been with us fora long time and is going to be there for a long time 
+> as well ......
 
+Most definitely. It's no accident that it took such a long time for this 
+issue to be raised in the first place. It's a rare occurance - and then 
+we can deal with it intelligently, without breaking stuff unnecessarily.
 
--- 
-Sincerely yours,
-Mike.
+Thanks,
+
+	Ingo
