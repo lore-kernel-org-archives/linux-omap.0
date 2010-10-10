@@ -1,41 +1,45 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 3/3] staging: tidspbridge: remove memory consistency from TODO list
-Date: Sun, 10 Oct 2010 20:40:40 +0300
-Message-ID: <1286732440-28644-4-git-send-email-felipe.contreras@gmail.com>
-References: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:63650 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755444Ab0JJRlC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 13:41:02 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 15so1272773bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 10 Oct 2010 10:41:01 -0700 (PDT)
-In-Reply-To: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: g_ether broken on musb
+Date: Sun, 10 Oct 2010 21:30:44 +0300
+Message-ID: <AANLkTik_MNGaMRBBpX3_sPTwF9+en=qX=O52DrfLTGuW@mail.gmail.com>
+References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
+	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
+	<AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
+	<AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m@mail.gmail.com>
+	<AANLkTimfCnCL6NzJEThNDSeNx_Axxdyct88-hyDFQvjJ@mail.gmail.com>
+	<AANLkTik5X=ypNxu4QgiLUFia0b42T=r-Di1MsZCrCsCx@mail.gmail.com>
+	<AANLkTikRe-U4sXPW6U7obCQen-wT=f6JC9wsH5hG04G6@mail.gmail.com>
+	<AANLkTin7PBPvHOpRJPh1_nABxhvTYNDJtVEGXUWN0mtF@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTin7PBPvHOpRJPh1_nABxhvTYNDJtVEGXUWN0mtF-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>, Arnd Bergmann <arnd@arndb.de>
 
-The mempool area is not handled by the kernel any more.
+hello,
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/staging/tidspbridge/TODO |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+> Reproduce the test with your setup script, no your 'ping' issue
+> happened on my beagle B5.
 
-diff --git a/drivers/staging/tidspbridge/TODO b/drivers/staging/tidspbridge/TODO
-index 187363f..54f4a29 100644
---- a/drivers/staging/tidspbridge/TODO
-+++ b/drivers/staging/tidspbridge/TODO
-@@ -13,7 +13,6 @@
- * Audit and clean up header files folder
- * Use kernel coding style
- * checkpatch.pl fixes
--* allocate ext_mem_pool from consistent memory instead of using ioremap
- 
- Please send any patches to Greg Kroah-Hartman <greg@kroah.com>
- and Omar Ramirez Luna <omar.ramirez@ti.com>.
--- 
-1.7.3.1.2.g7fe2b
+ok I've updated to next-20101008 (from next-20101006) and the network
+no longer works at all on fresh boot, it starts working only after
+replugging the cable. I think it's because patch "usb: musb: gadget:
+Unmapping the dma buffer when switching to PIO mode" was dropped,
+which effectively disables DMA due to a bug in it, so it's probably
+DMA problems on my board. Here is my log:
 
+http://notaz.gp2x.de/misc/pnd/linux_next_20101008_musb
+
+There is some lock backtrace in the log, but I don't think it's
+related, as with "Unmapping the dma buffer when switching to PIO mode"
+patch network works, but I guess I lose DMA.
+I'm using omap2plus_defconfig with OMAP2 and OMAP4 disabled (otherwise
+did not boot for some reason), and musb, g_ether and earlyprintk
+enabled.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
