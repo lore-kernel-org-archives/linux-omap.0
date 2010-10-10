@@ -1,45 +1,70 @@
-From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: g_ether broken on musb
-Date: Sun, 10 Oct 2010 21:30:44 +0300
-Message-ID: <AANLkTik_MNGaMRBBpX3_sPTwF9+en=qX=O52DrfLTGuW@mail.gmail.com>
-References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
-	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
-	<AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
-	<AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m@mail.gmail.com>
-	<AANLkTimfCnCL6NzJEThNDSeNx_Axxdyct88-hyDFQvjJ@mail.gmail.com>
-	<AANLkTik5X=ypNxu4QgiLUFia0b42T=r-Di1MsZCrCsCx@mail.gmail.com>
-	<AANLkTikRe-U4sXPW6U7obCQen-wT=f6JC9wsH5hG04G6@mail.gmail.com>
-	<AANLkTin7PBPvHOpRJPh1_nABxhvTYNDJtVEGXUWN0mtF@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/3] arm: mm: allow boards to fiddle with meminfo
+Date: Sun, 10 Oct 2010 20:03:08 +0100
+Message-ID: <20101010190308.GA15906@n2100.arm.linux.org.uk>
+References: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com> <1286732440-28644-2-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTin7PBPvHOpRJPh1_nABxhvTYNDJtVEGXUWN0mtF-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49900 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751709Ab0JJTDZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 15:03:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1286732440-28644-2-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-hello,
+On Sun, Oct 10, 2010 at 08:40:38PM +0300, Felipe Contreras wrote:
+> So that they can reserve some memory.
+> 
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> ---
+>  arch/arm/include/asm/mach/arch.h |    2 +-
+>  arch/arm/mm/init.c               |    7 ++++---
+>  2 files changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/mach/arch.h b/arch/arm/include/asm/mach/arch.h
+> index 8a0dd18..408e4d5 100644
+> --- a/arch/arm/include/asm/mach/arch.h
+> +++ b/arch/arm/include/asm/mach/arch.h
+> @@ -38,7 +38,7 @@ struct machine_desc {
+>  	void			(*fixup)(struct machine_desc *,
+>  					 struct tag *, char **,
+>  					 struct meminfo *);
+> -	void			(*reserve)(void);/* reserve mem blocks	*/
+> +	void			(*reserve)(struct meminfo *);/* reserve mem blocks	*/
+>  	void			(*map_io)(void);/* IO mapping function	*/
+>  	void			(*init_irq)(void);
+>  	struct sys_timer	*timer;		/* system tick timer	*/
+> diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
+> index 7185b00..4b5c117 100644
+> --- a/arch/arm/mm/init.c
+> +++ b/arch/arm/mm/init.c
+> @@ -272,8 +272,6 @@ void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
+>  	int i;
+>  
+>  	memblock_init();
+> -	for (i = 0; i < mi->nr_banks; i++)
+> -		memblock_add(mi->bank[i].start, mi->bank[i].size);
+>  
+>  	/* Register the kernel text, kernel data and initrd with memblock. */
+>  #ifdef CONFIG_XIP_KERNEL
+> @@ -295,7 +293,10 @@ void __init arm_memblock_init(struct meminfo *mi, struct machine_desc *mdesc)
+>  
+>  	/* reserve any platform specific memblock areas */
+>  	if (mdesc->reserve)
+> -		mdesc->reserve();
+> +		mdesc->reserve(mi);
+> +
+> +	for (i = 0; i < mi->nr_banks; i++)
+> +		memblock_add(mi->bank[i].start, mi->bank[i].size);
 
-> Reproduce the test with your setup script, no your 'ping' issue
-> happened on my beagle B5.
+It is not a good idea to change the ordering here, as we'll now be
+adding the memory blocks _after_ we've started to make reservations
+into memblock.
 
-ok I've updated to next-20101008 (from next-20101006) and the network
-no longer works at all on fresh boot, it starts working only after
-replugging the cable. I think it's because patch "usb: musb: gadget:
-Unmapping the dma buffer when switching to PIO mode" was dropped,
-which effectively disables DMA due to a bug in it, so it's probably
-DMA problems on my board. Here is my log:
-
-http://notaz.gp2x.de/misc/pnd/linux_next_20101008_musb
-
-There is some lock backtrace in the log, but I don't think it's
-related, as with "Unmapping the dma buffer when switching to PIO mode"
-patch network works, but I guess I lose DMA.
-I'm using omap2plus_defconfig with OMAP2 and OMAP4 disabled (otherwise
-did not boot for some reason), and musb, g_ether and earlyprintk
-enabled.
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+At least the omapfb code wants there to be memory present in memblock
+when ->reserve is called.
