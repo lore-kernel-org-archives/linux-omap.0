@@ -1,48 +1,51 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Sun, 10 Oct 2010 08:41:21 +0200
-Message-ID: <1286692881.1998.10.camel@laptop>
-References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
-	 <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal>
-	 <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
-	 <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org>
-	 <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com>
-	 <20101008134156.GA28724@Krystal> <20101009062836.GB5517@elte.hu>
-	 <AANLkTik6nO4i6xTuVYA9kBGFNpxYb70qimNcHPQKqTJ8@mail.gmail.com>
-	 <AANLkTimT5Or7gLDMnmLqSzmUoPux0pXrPxUZQpFon+6_@mail.gmail.com>
-	 <1286658935.23994.3366.camel@gandalf.stny.rr.com>
-	 <AANLkTik8BocxyidcdmWMh2FV2LoEo_HGYGwaawasRH-O@mail.gmail.com>
-	 <1286674768.23994.3915.camel@gandalf.stny.rr.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+Date: Sun, 10 Oct 2010 08:50:33 +0200
+Message-ID: <4CB16239.1050203@compulab.co.il>
+References: <cover.1266847842.git.david.vrabel@csr.com><20100827192248.GJ20407@void.printf.net><4C7CC480.2040903@csr.com><4C7F3E0F.2080402@compulab.co.il><AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com><C903F2608D694655921F553D0D3557E3@am.dhcp.ti.com><AANLkTikskMMFWS+qxD+J=o6OiOa+d5H02DiT1iZ95vkz@mail.gmail.com><CD6B4CE9F7FA427BBD19242F669AD014@am.dhcp.ti.com><AANLkTin-r5Svg1+YrdYq95WA6=sh7+X0Bwogk=h0V6pP@mail.gmail.com><4CAC146D.3040001@compulab.co.il><AANLkTi=kmLuUyD-9k-Xa5vfgvjx2nNUGfyADhoY0HC1i@mail.gmail.com><4CAC7D65.8010705@compulab.co.il><AANLkTikvduxP+gQOs4HvZz2Yw6KCrqHAyim0Ads0Bvj_@mail.gmail.com><56009.192.168.10.88.1286389699.squirrel@dbdmail.itg.ti.com><4CAD739B.4090909@compulab.co.il> <AANLkTimvHnLAchE-Ed1Zve-PU6S98Euj=bFaAtkDWWji@mail.gmail.com> <B02FD62E0C9F4E
+ 70856C21355A0BAB59@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <1286674768.23994.3915.camel@gandalf.stny.rr.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Pierre Tardy <tardyp@gmail.com>, Ingo Molnar <mingo@elte.hu>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <B02FD62E0C9F4E70856C21355A0BAB59@am.dhcp.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Steve Sakoman' <sakoman@gmail.com>, 'David Vrabel' <david.vrabel@csr.com>, 'Chris Ball' <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, 'Adrian Hunter' <adrian.hunter@nokia.com>, Mike Rapoport <mike@compulab.co.il>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 2010-10-09 at 21:39 -0400, Steven Rostedt wrote:
-> I've been hesitant in the pass from doing the TRACE_EVENT_ABI()
-> before, because Peter Zijlstra (who is currently MIA) has been strongly
-> against it. 
+Hi Madhu,
 
-I see no point in the TRACE_EVENT_ABI() because if I need to change such
-a tracepoint to reflect changes in the kernel then I will freely do so.
+Madhusudhan wrote:
+> 
+>> -----Original Message-----
+>> From: Steve Sakoman [mailto:sakoman@gmail.com]
+>> Sent: Thursday, October 07, 2010 8:57 AM
+>> To: Mike Rapoport
+>> Cc: Madhusudhan Chikkature; David Vrabel; Chris Ball; linux-
+>> mmc@vger.kernel.org; linux-omap@vger.kernel.org; Adrian Hunter
+>> Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+>>
+>> I can confirm exactly the same behavior on my hardware with this
+>> version of the patch.
+> 
+> Steve,
+> 
+> Okay. Did the version you had in your tree worked? I just want to check if I
+> messed up something in my patch.
 
-Even seemingly stable points like sched_switch(), which we all agree
-will stay around forever (gotta have context switches on a multi-tasking
-OS) will not stay stable when we add/change scheduling policies.
+The patch works if applied before commit 
+b417577d3b9bbb06a4ddc9aa955af9bd503f7242 (omap_hsmmc: improve interrupt 
+synchronisation). Apparently, changes in interrupt handling require major rework 
+  of the SDIO interrupt handling...
 
-Sure, the prev and next task thing will stay the same, but the meaning
-and interpretation of things like the prio field will not, esp when we
-go add something like a deadline scheduler that isn't priority based.
+> Regards,
+> Madhu
+> 
+>> Steve
+> 
 
-So one possibility is to simply remove all that information from the
-tracepoints, remove the prio and state fields, but how useful is that?
 
-I guess what I'm saying is that even if we were to provide _ABI I see us
-getting into this very same argument over and over again, making me want
-to remove all this trace event muck right now before it gets worse.
-
+-- 
+Sincerely yours,
+Mike.
