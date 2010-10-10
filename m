@@ -1,76 +1,61 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 2/3] omap: dsp: fix ioremap() usage
-Date: Mon, 11 Oct 2010 01:47:56 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302342AE533@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/3] omap: dsp: fix ioremap() usage
+Date: Sun, 10 Oct 2010 23:39:33 +0300
+Message-ID: <AANLkTim8HHT3BQSVSZx_2yBo6SZFj+XR-XYrjNZg+ntW@mail.gmail.com>
 References: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com>
- <1286732440-28644-3-git-send-email-felipe.contreras@gmail.com>
+	<1286732440-28644-3-git-send-email-felipe.contreras@gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59302342AE533@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50236 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751541Ab0JJUSR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 16:18:17 -0400
-In-Reply-To: <1286732440-28644-3-git-send-email-felipe.contreras@gmail.com>
-Content-Language: en-US
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:47489 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751539Ab0JJUjf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 16:39:35 -0400
+Received: by bwz15 with SMTP id 15so1324822bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 10 Oct 2010 13:39:34 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59302342AE533@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe 
-> Contreras
-> Sent: Sunday, October 10, 2010 11:11 PM
-> To: linux-arm; linux-omap; Greg KH
-> Cc: Ramirez Luna, Omar; Russell King; Felipe Contreras
-> Subject: [PATCH 2/3] omap: dsp: fix ioremap() usage
-> 
-> On commit 309caa9 doing ioremap() became forbidden due tue 
-> architectural
-> limitations. Only a single mapping is allowed now, so the mempool must
-> not be part of the memory managed by the kernel.
-> 
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
->  arch/arm/plat-omap/common.c              |   43 
-> +++++++++++++++++++++++++++--
->  arch/arm/plat-omap/devices.c             |   30 ---------------------
->  arch/arm/plat-omap/include/plat/common.h |    3 +-
->  arch/arm/plat-omap/include/plat/dsp.h    |    6 ----
->  4 files changed, 42 insertions(+), 40 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index 57205a4..3fee3ca 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -37,7 +37,6 @@
->  #include <plat/fpga.h>
->  #include <plat/serial.h>
->  #include <plat/vram.h>
-> -#include <plat/dsp.h>
->  
->  #include <plat/clock.h>
->  
-> @@ -84,11 +83,49 @@ const void *omap_get_var_config(u16 tag, 
-> size_t *len)
->  }
->  EXPORT_SYMBOL(omap_get_var_config);
->  
-> -void __init omap_reserve(void)
-> +#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
+Hi,
 
-[sp] I do understand that dspbridge is the only driver accessing dsp in
-     the linux-omap; but there are other known drivers - which would need
-     this feature.
+Please remove the chunks you are not replying to.
 
-     Can we use a more generic config option viz. CONFIG_RESERVE_DSPMEM
-     (or something similar) so that code is easily (re)usable.
+On Sun, Oct 10, 2010 at 11:17 PM, Premi, Sanjeev <premi@ti.com> wrote:
+>> -void __init omap_reserve(void)
+>> +#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODUL=
+E)
+>
+> [sp] I do understand that dspbridge is the only driver accessing dsp =
+in
+> =C2=A0 =C2=A0 the linux-omap; but there are other known drivers - whi=
+ch would need
+> =C2=A0 =C2=A0 this feature.
 
-~sanjeev
+Are you talking about linux-omap the tree? If so, no, the tidspbridge
+is part of staging, not linux-omap.
 
-[snip]...[snip]
-> +
-> 
+If you are trying to say there are other DSP drivers intended for
+OMAP, then I guess you are referring to dsp-link, which uses it's own
+tricks for contiguous memory allocation (CMEM).
+
+So, who and how would benefit from this?
+
+> =C2=A0 =C2=A0 Can we use a more generic config option viz. CONFIG_RES=
+ERVE_DSPMEM
+> =C2=A0 =C2=A0 (or something similar) so that code is easily (re)usabl=
+e.
+
+How about CONFIG_OMAP_DSP, and CONFIG_OMAP_DSP_RESERVE_SIZE?
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
