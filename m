@@ -1,38 +1,178 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 0/3] staging: tidspbridge: fix ioremap() usage
-Date: Sun, 10 Oct 2010 20:40:37 +0300
-Message-ID: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 2/3] omap: dsp: fix ioremap() usage
+Date: Sun, 10 Oct 2010 20:40:39 +0300
+Message-ID: <1286732440-28644-3-git-send-email-felipe.contreras@gmail.com>
+References: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:63650 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129Ab0JJRky (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 13:40:54 -0400
-Received: by bwz15 with SMTP id 15so1272773bwz.19
-        for <linux-omap@vger.kernel.org>; Sun, 10 Oct 2010 10:40:53 -0700 (PDT)
+	with ESMTP id S1755068Ab0JJRk7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 13:40:59 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 15so1272773bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 10 Oct 2010 10:40:58 -0700 (PDT)
+In-Reply-To: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>
 Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Now we truly reserve the memory so that the kernel doesn't map it.
+On commit 309caa9 doing ioremap() became forbidden due tue architectural
+limitations. Only a single mapping is allowed now, so the mempool must
+not be part of the memory managed by the kernel.
 
-Unfortunately, the ARM architecture code doesn't provide a good way to do this,
-so I had to modify it a bit.
-
-Felipe Contreras (3):
-  arm: mm: allow boards to fiddle with meminfo
-  omap: dsp: fix ioremap() usage
-  staging: tidspbridge: remove memory consistency from TODO list
-
- arch/arm/include/asm/mach/arch.h         |    2 +-
- arch/arm/mm/init.c                       |    7 +++--
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
  arch/arm/plat-omap/common.c              |   43 +++++++++++++++++++++++++++--
  arch/arm/plat-omap/devices.c             |   30 ---------------------
  arch/arm/plat-omap/include/plat/common.h |    3 +-
  arch/arm/plat-omap/include/plat/dsp.h    |    6 ----
- drivers/staging/tidspbridge/TODO         |    1 -
- 7 files changed, 47 insertions(+), 45 deletions(-)
+ 4 files changed, 42 insertions(+), 40 deletions(-)
 
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 57205a4..3fee3ca 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -37,7 +37,6 @@
+ #include <plat/fpga.h>
+ #include <plat/serial.h>
+ #include <plat/vram.h>
+-#include <plat/dsp.h>
+ 
+ #include <plat/clock.h>
+ 
+@@ -84,11 +83,49 @@ const void *omap_get_var_config(u16 tag, size_t *len)
+ }
+ EXPORT_SYMBOL(omap_get_var_config);
+ 
+-void __init omap_reserve(void)
++#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
++
++static phys_addr_t omap_dsp_mempool_base;
++
++static void __init omap_dsp_reserve_mem(struct meminfo *mi)
++{
++	phys_addr_t size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
++	phys_addr_t addr = ~0;
++	int i;
++
++	if (!size)
++		return;
++
++	for (i = mi->nr_banks - 1; i >= 0; i--)
++		if (mi->bank[i].size >= size) {
++			mi->bank[i].size -= size;
++			addr = mi->bank[i].start + mi->bank[i].size;
++			break;
++		}
++
++	if (addr == ~0) {
++		pr_err("%s: failed to reserve 0x%x bytes\n",
++				__func__, size);
++		return;
++	}
++
++	omap_dsp_mempool_base = addr;
++}
++
++phys_addr_t omap_dsp_get_mempool_base(void)
++{
++	return omap_dsp_mempool_base;
++}
++EXPORT_SYMBOL(omap_dsp_get_mempool_base);
++#else
++static inline void omap_dsp_reserve_mem(struct meminfo *mi) { }
++#endif
++
++void __init omap_reserve(struct meminfo *mi)
+ {
+ 	omapfb_reserve_sdram_memblock();
+ 	omap_vram_reserve_sdram_memblock();
+-	omap_dsp_reserve_sdram_memblock();
++	omap_dsp_reserve_mem(mi);
+ }
+ 
+ /*
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 4c8f9b9..d1920be 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -15,7 +15,6 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
+-#include <linux/memblock.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -273,35 +272,6 @@ static void omap_init_wdt(void)
+ static inline void omap_init_wdt(void) {}
+ #endif
+ 
+-#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
+-
+-static phys_addr_t omap_dsp_phys_mempool_base;
+-
+-void __init omap_dsp_reserve_sdram_memblock(void)
+-{
+-	phys_addr_t size = CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE;
+-	phys_addr_t paddr;
+-
+-	if (!size)
+-		return;
+-
+-	paddr = __memblock_alloc_base(size, SZ_1M, MEMBLOCK_REAL_LIMIT);
+-	if (!paddr) {
+-		pr_err("%s: failed to reserve %x bytes\n",
+-				__func__, size);
+-		return;
+-	}
+-
+-	omap_dsp_phys_mempool_base = paddr;
+-}
+-
+-phys_addr_t omap_dsp_get_mempool_base(void)
+-{
+-	return omap_dsp_phys_mempool_base;
+-}
+-EXPORT_SYMBOL(omap_dsp_get_mempool_base);
+-#endif
+-
+ /*
+  * This gets called after board-specific INIT_MACHINE, and initializes most
+  * on-chip peripherals accessible on this board (except for few like USB):
+diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
+index 9776b41..3675492 100644
+--- a/arch/arm/plat-omap/include/plat/common.h
++++ b/arch/arm/plat-omap/include/plat/common.h
+@@ -30,11 +30,12 @@
+ #include <plat/i2c.h>
+ 
+ struct sys_timer;
++struct meminfo;
+ 
+ extern void omap_map_common_io(void);
+ extern struct sys_timer omap_timer;
+ 
+-extern void omap_reserve(void);
++extern void omap_reserve(struct meminfo *mi);
+ 
+ /*
+  * IO bases for various OMAP processors
+diff --git a/arch/arm/plat-omap/include/plat/dsp.h b/arch/arm/plat-omap/include/plat/dsp.h
+index 9c604b3..4e53687 100644
+--- a/arch/arm/plat-omap/include/plat/dsp.h
++++ b/arch/arm/plat-omap/include/plat/dsp.h
+@@ -22,10 +22,4 @@ struct omap_dsp_platform_data {
+ 	phys_addr_t phys_mempool_size;
+ };
+ 
+-#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODULE)
+-extern void omap_dsp_reserve_sdram_memblock(void);
+-#else
+-static inline void omap_dsp_reserve_sdram_memblock(void) { }
+-#endif
+-
+ #endif
 -- 
 1.7.3.1.2.g7fe2b
 
