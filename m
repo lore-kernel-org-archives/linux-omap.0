@@ -1,95 +1,166 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Sun, 10 Oct 2010 11:11:38 -0400
-Message-ID: <1286723498.19688.15.camel@gandalf.stny.rr.com>
-References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
-	 <201010062334.46971.trenn@suse.de> <20101007150825.GB12581@Krystal>
-	 <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
-	 <20101007155816.GA5351@nowhere> <4CAED2F0.9080801@kernel.org>
-	 <20101008083819.GA22385@elte.hu> <4CAF19E7.3070103@linux.intel.com>
-	 <20101008134156.GA28724@Krystal> <20101009062836.GB5517@elte.hu>
-	 <AANLkTik6nO4i6xTuVYA9kBGFNpxYb70qimNcHPQKqTJ8@mail.gmail.com>
-	 <AANLkTimT5Or7gLDMnmLqSzmUoPux0pXrPxUZQpFon+6_@mail.gmail.com>
-	 <1286658935.23994.3366.camel@gandalf.stny.rr.com>
-	 <AANLkTik8BocxyidcdmWMh2FV2LoEo_HGYGwaawasRH-O@mail.gmail.com>
-	 <1286674768.23994.3915.camel@gandalf.stny.rr.com>
-	 <1286692881.1998.10.camel@laptop>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCHv2 2/3] iovmm: add superpages support to fixed da address
+Date: Sun, 10 Oct 2010 18:22:11 +0300
+Message-ID: <AANLkTimF5HqA0pbp7NXOXxOcuMMJWp9yuJPsw8-iPKjh@mail.gmail.com>
+References: <1286226137-1233-1-git-send-email-x0095840@ti.com>
+	<1286226137-1233-2-git-send-email-x0095840@ti.com>
+	<1286226137-1233-3-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <1286692881.1998.10.camel@laptop>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Pierre Tardy <tardyp@gmail.com>, Ingo Molnar <mingo@elte.hu>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1286226137-1233-3-git-send-email-x0095840@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fernando Guzman Lugo <x0095840@ti.com>
+Cc: Hiroshi.DOYU@nokia.com, david.cohen@nokia.com, felipe.contreras@nokia.com, ameya.palande@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, 2010-10-10 at 08:41 +0200, Peter Zijlstra wrote:
-> On Sat, 2010-10-09 at 21:39 -0400, Steven Rostedt wrote:
-> > I've been hesitant in the pass from doing the TRACE_EVENT_ABI()
-> > before, because Peter Zijlstra (who is currently MIA) has been strongly
-> > against it. 
-> 
-> I see no point in the TRACE_EVENT_ABI() because if I need to change such
-> a tracepoint to reflect changes in the kernel then I will freely do so.
-> 
-> Even seemingly stable points like sched_switch(), which we all agree
-> will stay around forever (gotta have context switches on a multi-tasking
-> OS) will not stay stable when we add/change scheduling policies.
-> 
-> Sure, the prev and next task thing will stay the same, but the meaning
-> and interpretation of things like the prio field will not, esp when we
-> go add something like a deadline scheduler that isn't priority based.
-> 
-> So one possibility is to simply remove all that information from the
-> tracepoints, remove the prio and state fields, but how useful is that?
-> 
-> I guess what I'm saying is that even if we were to provide _ABI I see us
-> getting into this very same argument over and over again, making me want
-> to remove all this trace event muck right now before it gets worse.
+On Tue, Oct 5, 2010 at 12:02 AM, Fernando Guzman Lugo <x0095840@ti.com>=
+ wrote:
+> This patch adds superpages support to fixed ad address
+> inside iommu_kmap function.
+>
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> ---
+> =C2=A0arch/arm/plat-omap/iovmm.c | =C2=A0 61 ++++++++++++++++++++++++=
+++-----------------
+> =C2=A01 files changed, 37 insertions(+), 24 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 34f0012..8006a19 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -87,27 +87,37 @@ static size_t sgtable_len(const struct sg_table *=
+sgt)
+> =C2=A0}
+> =C2=A0#define sgtable_ok(x) =C2=A0(!!sgtable_len(x))
+>
+> +
+> +static unsigned max_alignment(u32 addr)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 int i;
+> + =C2=A0 =C2=A0 =C2=A0 unsigned pagesize[] =3D { SZ_16M, SZ_1M, SZ_64=
+K, SZ_4K, };
+> + =C2=A0 =C2=A0 =C2=A0 for (i =3D 0; i < ARRAY_SIZE(pagesize) && addr=
+ & (pagesize[i] - 1); i++)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ;
+> + =C2=A0 =C2=A0 =C2=A0 return (i < ARRAY_SIZE(pagesize)) ? pagesize[i=
+] : 0;
+> +}
+> +
+> +
 
-Then how's this as a compromise. We do not add a TRACE_EVENT_ABI(), but
-instead manually add the ABI interface to existing tracepoints. Let's
-use the sched example you shown above.
+I don't think those extra spaces make sense.
 
-We can connect to the sched_switch() tracepoint manually in something
-perhaps called kernel/abi_trace.c or trace_abi.c (whatever).
+> =C2=A0/*
+> =C2=A0* calculate the optimal number sg elements from total bytes bas=
+ed on
+> =C2=A0* iommu superpages
+> =C2=A0*/
+> -static unsigned int sgtable_nents(size_t bytes)
+> +static unsigned int sgtable_nents(size_t bytes, u32 da, u32 pa)
+> =C2=A0{
+> - =C2=A0 =C2=A0 =C2=A0 int i;
+> - =C2=A0 =C2=A0 =C2=A0 unsigned int nr_entries;
+> - =C2=A0 =C2=A0 =C2=A0 const unsigned long pagesize[] =3D { SZ_16M, S=
+Z_1M, SZ_64K, SZ_4K, };
+> + =C2=A0 =C2=A0 =C2=A0 unsigned int nr_entries =3D 0, ent_sz;
 
-Here we create the directories manually there:
+How about s/unsigned int/unsigned/?
 
-	/sys/kernel/event/sched/sched_switch/
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!IS_ALIGNED(bytes, PAGE_SIZE)) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0pr_err("%s: wr=
+ong size %08x\n", __func__, bytes);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return 0;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> - =C2=A0 =C2=A0 =C2=A0 nr_entries =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 for (i =3D 0; i < ARRAY_SIZE(pagesize); i++) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (bytes >=3D pag=
+esize[i]) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 nr_entries +=3D (bytes / pagesize[i]);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 bytes %=3D pagesize[i];
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 while (bytes) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ent_sz =3D max_ali=
+gnment(da | pa);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ent_sz =3D min(ent=
+_sz, (unsigned)iopgsz_max(bytes));
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 nr_entries++;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 da +=3D ent_sz;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pa +=3D ent_sz;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bytes -=3D ent_sz;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0BUG_ON(bytes);
+>
+> @@ -115,7 +125,8 @@ static unsigned int sgtable_nents(size_t bytes)
+> =C2=A0}
+>
+> =C2=A0/* allocate and initialize sg_table header(a kind of 'superbloc=
+k') */
+> -static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags)
+> +static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 u32 da, u32 pa)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned int nr_entries;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0int err;
+> @@ -127,9 +138,8 @@ static struct sg_table *sgtable_alloc(const size_=
+t bytes, u32 flags)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!IS_ALIGNED(bytes, PAGE_SIZE))
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return ERR_PTR=
+(-EINVAL);
+>
+> - =C2=A0 =C2=A0 =C2=A0 /* FIXME: IOVMF_DA_FIXED should support 'super=
+pages' */
+> - =C2=A0 =C2=A0 =C2=A0 if ((flags & IOVMF_LINEAR) && (flags & IOVMF_D=
+A_ANON)) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 nr_entries =3D sgt=
+able_nents(bytes);
+> + =C2=A0 =C2=A0 =C2=A0 if (flags & IOVMF_LINEAR) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 nr_entries =3D sgt=
+able_nents(bytes, da, pa);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!nr_entrie=
+s)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0return ERR_PTR(-EINVAL);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else
+> @@ -409,7 +419,8 @@ static inline void sgtable_drain_vmalloc(struct s=
+g_table *sgt)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0BUG_ON(!sgt);
+> =C2=A0}
+>
+> -static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_=
+t len)
+> +static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, u32 d=
+a,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 size_t len)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned int i;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct scatterlist *sg;
+> @@ -420,7 +431,8 @@ static void sgtable_fill_kmalloc(struct sg_table =
+*sgt, u32 pa, size_t len)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0size_t bytes;
+>
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bytes =3D iopgsz_m=
+ax(len);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bytes =3D max_alig=
+nment(da | pa);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bytes =3D min(byte=
+s, (size_t)iopgsz_max(len));
 
-But this sched_switch will only include the prev and next pids, comms,
-and perhaps even run state. But not the prio (since we see that
-changing).
+Why the size_t casting?
 
-It would then need the code to enable the trace point with:
+Otherwise:
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 
-	register_trace_sched_switch(sched_switch_abi_probe, NULL);
-
-Where we have
-
-	static void
-	sched_switch_abi_probe(void *ignore,
-				struct task_switch *prev,
-				struct task_struct *next)
-	{
-		/* code to grab just the ABI stuff */
-	}
-
-And this code can then record to what ever hooked to it.
-
-Making this a manual effort will make it easier to control what becomes
-an ABI. We can have long discussions and flames over what goes here. But
-that's good since debates before an ABI is created is much better than
-debates after one is created.
-
-I'm afraid that a easy macro called TRACE_EVENT_ABI() would have the
-same issue. ABIs may be created too quickly before they are thought
-through.
-
-Thoughts?
-
--- Steve
-
-
+--=20
+=46elipe Contreras
