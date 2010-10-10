@@ -1,76 +1,49 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Sun, 10 Oct 2010 14:19:28 +0200
-Message-ID: <20101010121928.GA2688@elte.hu>
-References: <201010062334.46971.trenn@suse.de>
- <20101007150825.GB12581@Krystal>
- <AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
- <20101007155816.GA5351@nowhere>
- <4CAED2F0.9080801@kernel.org>
- <20101008083819.GA22385@elte.hu>
- <4CAF19E7.3070103@linux.intel.com>
- <20101008134156.GA28724@Krystal>
- <20101009062836.GB5517@elte.hu>
- <4CB095FA.8060803@linux.intel.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Sun, 10 Oct 2010 17:07:44 +0300
+Message-ID: <AANLkTim=1dXg8O_q-RLZEjrVvN+Bb2DV1N1jwNjVBw3a@mail.gmail.com>
+References: <20100924014938.10325.35279.stgit@baageli.muru.com>
+	<20100924015056.10325.95854.stgit@baageli.muru.com>
+	<AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
+	<AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
+	<AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E5F6A365B@dlee03.ent.ti.com>
+	<AANLkTimD_MRbuTnBMPzAKPTmrDwjLkLVmr9bTSNROb5L@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930234006B4C@dbde02.ent.ti.com>
+	<AANLkTinZqx2nFuoYoCYpD4+PG7_J=ACLBxAwOvpVm4c9@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593023412B2C1@dbde02.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602F471C1BF@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4CB095FA.8060803@linux.intel.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Thomas Renninger <trenn@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:36828 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599Ab0JJOHq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 10:07:46 -0400
+Received: by bwz15 with SMTP id 15so1200249bwz.19
+        for <linux-omap@vger.kernel.org>; Sun, 10 Oct 2010 07:07:45 -0700 (PDT)
+In-Reply-To: <496565EC904933469F292DDA3F1663E602F471C1BF@dlee06.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: "Marathe, Yogesh" <yogesh_marathe@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Wed, Oct 6, 2010 at 3:14 AM, Guzman Lugo, Fernando
+<fernando.lugo@ti.com> wrote:
+> Can I know the status of this patch?
+>
+> This patch is needed now that tidspbridge has migrated to use
+> Iommu moudle.
+>
+> Will this patch be merged?
 
-* Arjan van de Ven <arjan@linux.intel.com> wrote:
+This patch hasn't even been sent yet. I expected somebody else to try
+it and do so.
 
->  On 10/8/2010 11:28 PM, Ingo Molnar wrote:
-> >* Mathieu Desnoyers<mathieu.desnoyers@efficios.com>  wrote:
-> >
-> >>* Arjan van de Ven (arjan@linux.intel.com) wrote:
-> >>>  On 10/8/2010 1:38 AM, Ingo Molnar wrote:
-> >>>>The fundamental thing about tracing/instrumentation is that there
-> >>>>are no deep ABI needs: it's all about analyzing development kernels
-> >>>>(and a few select versions that get the enterprise treatment) but
-> >>>>otherwise the half-life of this kind of information is very short.
-> >>>>
-> >>>>So we dont want to tie ourselves down with excessive ABIs.
-> >>>ok I'll start working on a second mechanism then to export
-> >>>information that applications need ;-( it'll look a lot like tracing
-> >>>I suppose ;-(
-> >>What's wrong with doing the compatibility layer in a LGPL library
-> >>shipped with the kernel tree under tools/ ? Why does everything *have*
-> >>to be done in kernel-space ? Why are you so focused on making your
-> >>application interact directly with kernel ABIs ?
-> >The thing is, Arjan is 100% right that a library for this is not a
-> >'solution', it's an unnecessary complication.
-> >
-> >What i suggested in my mail was to _keep existing events_. I.e. do not
-> >break powertop. We are 100% happy that we _have_ such apps, and we
-> >should do reasonable things to not break them.
-> >
-> >If we need to change events, we can add a new event. The old events will
-> >lose their relevance without us having to do much - and without us
-> >having to break powertop, pytimechart, etc. We can even have periods of
-> >overlap when both events are available - to give instrumentation apps
-> >time to learn the new events.
-> >
-> >I.e. it's not an ABI in the classic sense - we do not (because we
-> >cannot) guarantee the infinite availability of these events. But we can
-> >guarantee that the fields do not change in some stupid, avoidable way.
-> 
-> also I have to say that some events are more likely to change than others
-> 
-> "function foo in the kernel called" is more likely to change than "the 
-> processor went to THIS frequency". The concept of CPU frequencies has 
-> been with us fora long time and is going to be there for a long time 
-> as well ......
+Anyway, I'm now trying iommu myself and will send this patch when I
+get the dsp working.
 
-Most definitely. It's no accident that it took such a long time for this 
-issue to be raised in the first place. It's a rare occurance - and then 
-we can deal with it intelligently, without breaking stuff unnecessarily.
-
-Thanks,
-
-	Ingo
+-- 
+Felipe Contreras
