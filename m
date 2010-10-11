@@ -1,61 +1,42 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 1/2] omap: iommu: make iva2 iommu selectable
-Date: Mon, 11 Oct 2010 12:53:49 +0300
-Message-ID: <1286790830-13505-2-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH 2/2] staging: tidspbridge: enable iva2 iommu
+Date: Mon, 11 Oct 2010 12:53:50 +0300
+Message-ID: <1286790830-13505-3-git-send-email-felipe.contreras@gmail.com>
 References: <1286790830-13505-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:42832 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751706Ab0JKJyF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 05:54:05 -0400
+	with ESMTP id S1751706Ab0JKJyI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 05:54:08 -0400
 Received: by mail-bw0-f46.google.com with SMTP id 15so1557587bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 02:54:05 -0700 (PDT)
+        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 02:54:07 -0700 (PDT)
 In-Reply-To: <1286790830-13505-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Greg KH <greg@kroah.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Yogesh Marathe <yogesh_marathe@ti.com>
+Cc: Greg KH <greg@kroah.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Yogesh Marathe <yogesh_marathe@ti.com>
 
-From: Felipe Contreras <felipe.contreras@nokia.com>
-
-It seems dsp-link will do this, and tidspbridge too at some point, but
-right now it's not possible to select CONFIG_MPU_BRIDGE_IOMMU.
+Needed now that the migration to iommu is done.
 
 Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
 Cc: Yogesh Marathe <yogesh_marathe@ti.com>
-Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- arch/arm/mach-omap2/omap-iommu.c |    2 +-
- arch/arm/plat-omap/Kconfig       |    3 +++
- 2 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/staging/tidspbridge/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index f5a1aad..adc0904 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -35,7 +35,7 @@ static struct iommu_device omap3_devices[] = {
- 			.clk_name = "cam_ick",
- 		},
- 	},
--#if defined(CONFIG_MPU_BRIDGE_IOMMU)
-+#if defined(CONFIG_OMAP_IOMMU_IVA2)
- 	{
- 		.base = 0x5d000000,
- 		.irq = 28,
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index e39a417..e0b41b6 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -109,6 +109,9 @@ config OMAP_IOMMU_DEBUG
- 
-          Say N unless you know you need this.
- 
-+config OMAP_IOMMU_IVA2
-+	bool
-+
- choice
- 	prompt "System timer"
- 	default OMAP_32K_TIMER if !ARCH_OMAP15XX
+diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
+index ff64d46..05716ad 100644
+--- a/drivers/staging/tidspbridge/Kconfig
++++ b/drivers/staging/tidspbridge/Kconfig
+@@ -7,6 +7,7 @@ menuconfig TIDSPBRIDGE
+ 	depends on ARCH_OMAP3
+ 	select OMAP_MBOX_FWK
+ 	select OMAP_IOMMU
++	select OMAP_IOMMU_IVA2
+ 	help
+ 	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
+ 	  one or more attached DSPs.  The GPP is considered the master or
 -- 
 1.7.3.1.2.g7fe2b
 
