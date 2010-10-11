@@ -1,66 +1,34 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: tidspbridge compilation broken
-Date: Mon, 11 Oct 2010 09:52:37 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F47B2BA0@dlee06.ent.ti.com>
-References: <1286621397.10205.25.camel@atlantis.mindbit.ro>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v7] power: introduce library for device-specific OPPs
+Date: Mon, 11 Oct 2010 10:00:05 -0500
+Message-ID: <4CB32675.1090205@ti.com>
+References: <[PATCH] power: introduce library for device-specific OPPs> <1286506969-20651-1-git-send-email-nm@ti.com> <201010100059.20964.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35308 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754165Ab0JKOwl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 10:52:41 -0400
-In-Reply-To: <1286621397.10205.25.camel@atlantis.mindbit.ro>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-2"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201010100059.20964.rjw@sisk.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Paul <paulmck@linux.vnet.ibm.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ionut Nicu <ionut.nicu@mindbit.ro>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+Rafael J. Wysocki had written, on 10/09/2010 05:59 PM, the following:
+[...]
+>>
+>> Signed-off-by: Nishanth Menon <nm@ti.com>
+> 
+> OK
+> 
+> Your error messages are a bit inconsistent (e.g. some of them print the
+> error code while others don't), but I guess I can fix that up.
+Thanks a bunch.
+> 
+> Still, to apply the patch I need a copyright notice for the doc too.
+oops..
+(C) 2009-2010 Nishanth Menon <nm@ti.com>, Texas Instruments Incorporated
+Does this help? or would you like me to post a v8 as well?
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ionut Nicu
-> Sent: Saturday, October 09, 2010 5:50 AM
-> To: linux-omap@vger.kernel.org
-> Subject: tidspbridge compilation broken
-> 
-> Hi,
-> 
-> I'm trying to compile the tidspbridge driver from the 
-> dspbridge branch of the linux-omap git tree and I stumbled 
-> upon a few compilation
-> problems:
-> 
-> 1. First is related to the missing header plat/dsp.h added by 
-> the following patch which was not applied to this branch:
-> 
-> http://marc.info/?l=linux-omap&m=128620861805925&w=2
-> 
-> 2. The second one is related to the missing header 
-> plat/control.h which was moved by a recent commit (81bb9b6) 
-> from plat to mach-omap2. The dspbridge driver requires a few 
-> defines from that header but as far as I understand, that 
-> header file is no longer supposed to be accessible by 
-> drivers. Any suggestion on how to fix that in dspbridge?
-
-This will be fixed soon, we are looking for the best solution.
-
+-- 
 Regards,
-Fernando Guzman.
-
-> 
-> 3. There's a link error triggered by the new iommu 
-> dependency. It's fairly trivial to fix. I will submit a patch 
-> for this.
-> 
-> Thanks,
-> Ionut.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
+Nishanth Menon
