@@ -1,52 +1,83 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
-Date: Mon, 11 Oct 2010 10:31:26 +0200
-Message-ID: <AANLkTi=DDQJZn5gC3BevufVfELvUsz1_dg_ijz=M0HYU@mail.gmail.com>
-References: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
-	<87y6a8v48p.fsf@deeprootsystems.com>
-	<87eic0ti7p.fsf@deeprootsystems.com>
-	<AANLkTimLMZtqkk64xUWDuyPpadtZVb2_+YXF+WNSQW=i@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:60189 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab0JKIb1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 04:31:27 -0400
-Received: by qyk10 with SMTP id 10so3942312qyk.19
-        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 01:31:27 -0700 (PDT)
-In-Reply-To: <AANLkTimLMZtqkk64xUWDuyPpadtZVb2_+YXF+WNSQW=i@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: [RFC PATCHv3 0/7] HSI framework and drivers
+Date: Mon, 11 Oct 2010 12:06:21 +0300
+Message-ID: <1286787988-29013-1-git-send-email-carlos.chinea@nokia.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
-On Sat, Oct 9, 2010 at 8:55 AM, Jean Pihet <jean.pihet@newoldbits.com> =
-wrote:
-> Kevin,
->
-> On Sat, Oct 9, 2010 at 12:47 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> Kevin Hilman <khilman@deeprootsystems.com> writes:
-=2E..
->>
->> Since only one part of the original patch introduced a bug, I decide=
-d to
->> just fix that bug and keep the fixes for the sparse warnings. =A0I j=
-ust
->> posted a patch[1] for the fix. =A0 Please test.
->>
->> Thanks,
->
-> Thanks for the follow-up on the patch. I will test asap.
-Tested OK on OMAP3EVM with RET & OFF mode in idle path.
+Hi !
 
-Tested-by: Jean Pihet <jean.pihet@newoldbits.com>
+Here you have the third round of the HSI framework patches.
 
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patch series introduces the HSI framework, an SSI driver
+for OMAP and a generic character device for HSI/SSI devices.
+
+SSI, which is a legacy version of HSI, is used to connect the application
+engine with the cellular modem on the Nokia N900.
+
+In this round we have fixed:
+- Locking issues in the HSI framework.
+- Fixes on removal of controller's modules.
+- Error path handling in the omap_ssi driver.
+- Increase the robustness of hsi_char.
+- Typos and cosmetics.
+- Some unused parameters warnings. 
+
+I would very glad to continue getting feedback about this proposal.
+
+This patch series is based on 2.6.36-rc6.
+
+Version 2 of the patch set: http://lkml.org/lkml/2010/5/7/233
+
+Br,
+Carlos Chinea
+
+Andras Domokos (3):
+  HSI CHAR: Add HSI char device driver
+  HSI CHAR: Add HSI char device kernel configuration
+  HSI CHAR: Update ioctl-number.txt
+
+Carlos Chinea (4):
+  HSI: Introducing HSI framework
+  OMAP SSI: Introducing OMAP SSI driver
+  OMAP SSI: Add OMAP SSI to the kernel configuration
+  HSI: Add HSI API documentation
+
+ Documentation/DocBook/device-drivers.tmpl |   17 +
+ Documentation/ioctl/ioctl-number.txt      |    1 +
+ arch/arm/mach-omap2/Makefile              |    3 +
+ arch/arm/mach-omap2/ssi.c                 |  139 +++
+ arch/arm/plat-omap/include/plat/ssi.h     |  204 ++++
+ drivers/Kconfig                           |    2 +
+ drivers/Makefile                          |    1 +
+ drivers/hsi/Kconfig                       |   16 +
+ drivers/hsi/Makefile                      |    5 +
+ drivers/hsi/clients/Kconfig               |   13 +
+ drivers/hsi/clients/Makefile              |    5 +
+ drivers/hsi/clients/hsi_char.c            | 1090 +++++++++++++++++
+ drivers/hsi/controllers/Kconfig           |   21 +
+ drivers/hsi/controllers/Makefile          |    5 +
+ drivers/hsi/controllers/omap_ssi.c        | 1836 +++++++++++++++++++++++++++++
+ drivers/hsi/hsi.c                         |  516 ++++++++
+ include/linux/Kbuild                      |    1 +
+ include/linux/hsi/Kbuild                  |    1 +
+ include/linux/hsi/hsi.h                   |  376 ++++++
+ include/linux/hsi/hsi_char.h              |   66 +
+ 20 files changed, 4318 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/ssi.c
+ create mode 100644 arch/arm/plat-omap/include/plat/ssi.h
+ create mode 100644 drivers/hsi/Kconfig
+ create mode 100644 drivers/hsi/Makefile
+ create mode 100644 drivers/hsi/clients/Kconfig
+ create mode 100644 drivers/hsi/clients/Makefile
+ create mode 100644 drivers/hsi/clients/hsi_char.c
+ create mode 100644 drivers/hsi/controllers/Kconfig
+ create mode 100644 drivers/hsi/controllers/Makefile
+ create mode 100644 drivers/hsi/controllers/omap_ssi.c
+ create mode 100644 drivers/hsi/hsi.c
+ create mode 100644 include/linux/hsi/Kbuild
+ create mode 100644 include/linux/hsi/hsi.h
+ create mode 100644 include/linux/hsi/hsi_char.h
