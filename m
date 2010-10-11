@@ -1,42 +1,78 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 2/2] staging: tidspbridge: enable iva2 iommu
-Date: Mon, 11 Oct 2010 12:53:50 +0300
-Message-ID: <1286790830-13505-3-git-send-email-felipe.contreras@gmail.com>
-References: <1286790830-13505-1-git-send-email-felipe.contreras@gmail.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: g_ether broken on musb
+Date: Mon, 11 Oct 2010 18:08:06 +0800
+Message-ID: <AANLkTikcMaQZViXOBWM3roiyOZcpUzjAqV49k=4pMA+9@mail.gmail.com>
+References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
+	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
+	<AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
+	<AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m@mail.gmail.com>
+	<AANLkTimfCnCL6NzJEThNDSeNx_Axxdyct88-hyDFQvjJ@mail.gmail.com>
+	<AANLkTik5X=ypNxu4QgiLUFia0b42T=r-Di1MsZCrCsCx@mail.gmail.com>
+	<AANLkTikRe-U4sXPW6U7obCQen-wT=f6JC9wsH5hG04G6@mail.gmail.com>
+	<AANLkTin7PBPvHOpRJPh1_nABxhvTYNDJtVEGXUWN0mtF@mail.gmail.com>
+	<AANLkTik_MNGaMRBBpX3_sPTwF9+en=qX=O52DrfLTGuW@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:42832 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751706Ab0JKJyI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 05:54:08 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 15so1557587bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 02:54:07 -0700 (PDT)
-In-Reply-To: <1286790830-13505-1-git-send-email-felipe.contreras@gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:41461 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752915Ab0JKKII (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 06:08:08 -0400
+In-Reply-To: <AANLkTik_MNGaMRBBpX3_sPTwF9+en=qX=O52DrfLTGuW@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Greg KH <greg@kroah.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Yogesh Marathe <yogesh_marathe@ti.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Anand Gadiyar <gadiyar@ti.com>
 
-Needed now that the migration to iommu is done.
+Hi,
 
-Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Cc: Yogesh Marathe <yogesh_marathe@ti.com>
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/staging/tidspbridge/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+2010/10/11 Grazvydas Ignotas <notasas@gmail.com>:
+> hello,
+>
+>> Reproduce the test with your setup script, no your 'ping' issue
+>> happened on my beagle B5.
+>
+> ok I've updated to next-20101008 (from next-20101006) and the network
+> no longer works at all on fresh boot, it starts working only after
+> replugging the cable. I think it's because patch "usb: musb: gadget:
+> Unmapping the dma buffer when switching to PIO mode" was dropped,
 
-diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
-index ff64d46..05716ad 100644
---- a/drivers/staging/tidspbridge/Kconfig
-+++ b/drivers/staging/tidspbridge/Kconfig
-@@ -7,6 +7,7 @@ menuconfig TIDSPBRIDGE
- 	depends on ARCH_OMAP3
- 	select OMAP_MBOX_FWK
- 	select OMAP_IOMMU
-+	select OMAP_IOMMU_IVA2
- 	help
- 	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
- 	  one or more attached DSPs.  The GPP is considered the master or
+If the patch is not dropped, DMA will not be used to unload fifo for out ep,
+otherwise DMA will be used for out ep.
+
+> which effectively disables DMA due to a bug in it, so it's probably
+> DMA problems on my board. Here is my log:
+
+Yes, your issue may be related with ep1out Rx DMA, but I am not sure
+since the very important message between timestamp 39.256011 and
+85.210693 is not provided by you, why not post all messages?
+
+So we can't know if there are any rx interrupts after requests are queued
+into ep1out queue, then don't know anything about the dma handling after
+rx interrupt comes.
+
+If possible, please provide all the debug message instead of just selecting
+part of them.
+
+Except for above, no other abnormal things wrt. musb are found from
+your log.
+
+>
+> http://notaz.gp2x.de/misc/pnd/linux_next_20101008_musb
+>
+> There is some lock backtrace in the log, but I don't think it's
+
+It is lockdep warning, which touches me too, nothing to do
+with your issue.
+
+> related, as with "Unmapping the dma buffer when switching to PIO mode"
+> patch network works, but I guess I lose DMA.
+> I'm using omap2plus_defconfig with OMAP2 and OMAP4 disabled (otherwise
+> did not boot for some reason), and musb, g_ether and earlyprintk
+> enabled.
+>
+
+
+thanks,
 -- 
-1.7.3.1.2.g7fe2b
-
+Lei Ming
