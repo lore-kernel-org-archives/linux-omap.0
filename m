@@ -1,48 +1,41 @@
 From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [RFC PATCHv3 6/7] HSI: Add HSI API documentation
-Date: Mon, 11 Oct 2010 12:06:27 +0300
-Message-ID: <1286787988-29013-7-git-send-email-carlos.chinea@nokia.com>
+Subject: [RFC PATCHv3 7/7] HSI CHAR: Update ioctl-number.txt
+Date: Mon, 11 Oct 2010 12:06:28 +0300
+Message-ID: <1286787988-29013-8-git-send-email-carlos.chinea@nokia.com>
 References: <1286787988-29013-1-git-send-email-carlos.chinea@nokia.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mgw-sa02.ext.nokia.com ([147.243.1.48]:41329 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753996Ab0JKJFp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 05:05:45 -0400
 In-Reply-To: <1286787988-29013-1-git-send-email-carlos.chinea@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Andras Domokos <andras.domokos@nokia.com>
 
-Add an entry for HSI in the device-drivers section of
-the kernel documentation.
+From: Andras Domokos <andras.domokos@nokia.com>
 
+Added ioctl range for HSI char devices to the documentation
+
+Signed-off-by: Andras Domokos <andras.domokos@nokia.com>
 Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
 ---
- Documentation/DocBook/device-drivers.tmpl |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ Documentation/ioctl/ioctl-number.txt |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index feca075..28ab783 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -428,4 +428,21 @@ X!Idrivers/video/console/fonts.c
- !Edrivers/i2c/i2c-core.c
-   </chapter>
- 
-+  <chapter id="hsi">
-+     <title>High Speed Synchronous Serial Interface (HSI)</title>
-+
-+     <para>
-+	High Speed Synchronous Serial Interface (HSI) is a
-+	serial interface mainly used for connecting application
-+	engines (APE) with cellular modem engines (CMT) in cellular
-+	handsets.
-+
-+	HSI provides multiplexing for up to 16 logical channels,
-+	low-latency and full duplex communication.
-+     </para>
-+
-+!Iinclude/linux/hsi/hsi.h
-+!Edrivers/hsi/hsi.c
-+  </chapter>
-+
- </book>
+diff --git a/Documentation/ioctl/ioctl-number.txt b/Documentation/ioctl/ioctl-number.txt
+index 33223ff..d2dc737 100644
+--- a/Documentation/ioctl/ioctl-number.txt
++++ b/Documentation/ioctl/ioctl-number.txt
+@@ -225,6 +225,7 @@ Code  Seq#(hex)	Include File		Comments
+ 'j'	00-3F	linux/joystick.h
+ 'k'	00-0F	linux/spi/spidev.h	conflict!
+ 'k'	00-05	video/kyro.h		conflict!
++'k'	10-17	linux/hsi/hsi_char.h	HSI character device
+ 'l'	00-3F	linux/tcfs_fs.h		transparent cryptographic file system
+ 					<http://web.archive.org/web/*/http://mikonos.dia.unisa.it/tcfs>
+ 'l'	40-7F	linux/udf_fs_i.h	in development:
 -- 
 1.5.6.5
+
