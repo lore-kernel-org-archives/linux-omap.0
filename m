@@ -1,205 +1,42 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCHv2 2/3] iovmm: add superpages support to fixed da address
-Date: Mon, 11 Oct 2010 10:33:42 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F47B2BF1@dlee06.ent.ti.com>
-References: <1286226137-1233-1-git-send-email-x0095840@ti.com>
-	<1286226137-1233-2-git-send-email-x0095840@ti.com>
-	<1286226137-1233-3-git-send-email-x0095840@ti.com>
- <AANLkTimF5HqA0pbp7NXOXxOcuMMJWp9yuJPsw8-iPKjh@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv3 3/17] dmtimer: add omap2420 hwmod database
+Date: Mon, 11 Oct 2010 17:34:49 +0200
+Message-ID: <4CB32E99.3000201@ti.com>
+References: <1285059116-26366-1-git-send-email-tarun.kanti@ti.com> <4CA4FC22.9030806@ti.com> <alpine.DEB.2.00.1010011623020.22941@utopia.booyaka.com> <4CA98739.9040309@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB035E840680@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB035E970C49@dbde02.ent.ti.com> <alpine.DEB.2.00.1010110811400.16871@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimF5HqA0pbp7NXOXxOcuMMJWp9yuJPsw8-iPKjh@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "david.cohen@nokia.com" <david.cohen@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44075 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755074Ab0JKPex (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Oct 2010 11:34:53 -0400
+In-Reply-To: <alpine.DEB.2.00.1010110811400.16871@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>
 
-=20
+Hi Tarun,
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]=20
-> Sent: Sunday, October 10, 2010 10:22 AM
-> To: Guzman Lugo, Fernando
-> Cc: Hiroshi.DOYU@nokia.com; david.cohen@nokia.com;=20
-> felipe.contreras@nokia.com; ameya.palande@nokia.com;=20
-> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com;=20
-> linux-omap@vger.kernel.org
-> Subject: Re: [PATCHv2 2/3] iovmm: add superpages support to=20
-> fixed da address
->=20
-> On Tue, Oct 5, 2010 at 12:02 AM, Fernando Guzman Lugo=20
-> <x0095840@ti.com> wrote:
-> > This patch adds superpages support to fixed ad address inside=20
-> > iommu_kmap function.
-> >
-> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> > ---
-> > =A0arch/arm/plat-omap/iovmm.c | =A0 61=20
-> > ++++++++++++++++++++++++++-----------------
-> > =A01 files changed, 37 insertions(+), 24 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/iovmm.c=20
-> b/arch/arm/plat-omap/iovmm.c=20
-> > index 34f0012..8006a19 100644
-> > --- a/arch/arm/plat-omap/iovmm.c
-> > +++ b/arch/arm/plat-omap/iovmm.c
-> > @@ -87,27 +87,37 @@ static size_t sgtable_len(const struct sg_table=
-=20
-> > *sgt)
-> > =A0}
-> > =A0#define sgtable_ok(x) =A0(!!sgtable_len(x))
-> >
-> > +
-> > +static unsigned max_alignment(u32 addr) {
-> > + =A0 =A0 =A0 int i;
-> > + =A0 =A0 =A0 unsigned pagesize[] =3D { SZ_16M, SZ_1M, SZ_64K, SZ_4=
-K, };
-> > + =A0 =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(pagesize) && addr &=20
-> (pagesize[i] -=20
-> > +1); i++)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ;
-> > + =A0 =A0 =A0 return (i < ARRAY_SIZE(pagesize)) ? pagesize[i] : 0; =
-}
-> > +
-> > +
->=20
-> I don't think those extra spaces make sense.
+On 10/11/2010 4:19 PM, Paul Walmsley wrote:
+> On Mon, 11 Oct 2010, DebBarma, Tarun Kanti wrote:
+>
+>> In the present implementation there is inconsistency in the clock source
+>> names for the different platforms, viz. OMAP2, OMAP3 and OMAP4 as shown
+>> below. Therefore, I will have to modify the names so that they all have
+>> common name across the platforms for the same type of clock. In this
+>> regard I am proposing to modify the clock source names similar to OMAP4.
+>> Of course we also have to look around to see if there are other modules
+>> who are using the clock and make the necessary changes.
+>
+> Please look again at the links that I sent you.  All you need to change
+> are the clkdev alias names for those clocks for that particular platform
+> device name, "timer" or whatever it will be called.  That won't affect any
+> other modules, since they will have different platform device names.  The
+> struct clk.name fields will stay the same.
 
-Ok, it will be fixed.
+Otherwise using the clock source names similar to OMAP4 is the right 
+thing to do.
 
->=20
-> > =A0/*
-> > =A0* calculate the optimal number sg elements from total=20
-> bytes based on
-> > =A0* iommu superpages
-> > =A0*/
-> > -static unsigned int sgtable_nents(size_t bytes)
-> > +static unsigned int sgtable_nents(size_t bytes, u32 da, u32 pa)
-> > =A0{
-> > - =A0 =A0 =A0 int i;
-> > - =A0 =A0 =A0 unsigned int nr_entries;
-> > - =A0 =A0 =A0 const unsigned long pagesize[] =3D { SZ_16M, SZ_1M, S=
-Z_64K,=20
-> > SZ_4K, };
-> > + =A0 =A0 =A0 unsigned int nr_entries =3D 0, ent_sz;
->=20
-> How about s/unsigned int/unsigned/?
-
-It is exactly the same, but not problem for me.
-
->=20
-> >
-> > =A0 =A0 =A0 =A0if (!IS_ALIGNED(bytes, PAGE_SIZE)) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: wrong size %08x\n", __fu=
-nc__, bytes);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
-> > =A0 =A0 =A0 =A0}
-> >
-> > - =A0 =A0 =A0 nr_entries =3D 0;
-> > - =A0 =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(pagesize); i++) {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (bytes >=3D pagesize[i]) {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_entries +=3D (byte=
-s / pagesize[i]);
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes %=3D pagesize[i=
-];
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> > + =A0 =A0 =A0 while (bytes) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ent_sz =3D max_alignment(da | pa);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ent_sz =3D min(ent_sz, (unsigned)iopg=
-sz_max(bytes));
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_entries++;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 da +=3D ent_sz;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pa +=3D ent_sz;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes -=3D ent_sz;
-> > =A0 =A0 =A0 =A0}
-> > =A0 =A0 =A0 =A0BUG_ON(bytes);
-> >
-> > @@ -115,7 +125,8 @@ static unsigned int sgtable_nents(size_t bytes)
-> > =A0}
-> >
-> > =A0/* allocate and initialize sg_table header(a kind of=20
-> 'superblock') */=20
-> > -static struct sg_table *sgtable_alloc(const size_t bytes,=20
-> u32 flags)
-> > +static struct sg_table *sgtable_alloc(const size_t bytes,=20
-> u32 flags,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 da, u32=20
-> > +pa)
-> > =A0{
-> > =A0 =A0 =A0 =A0unsigned int nr_entries;
-> > =A0 =A0 =A0 =A0int err;
-> > @@ -127,9 +138,8 @@ static struct sg_table=20
-> *sgtable_alloc(const size_t=20
-> > bytes, u32 flags)
-> > =A0 =A0 =A0 =A0if (!IS_ALIGNED(bytes, PAGE_SIZE))
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-EINVAL);
-> >
-> > - =A0 =A0 =A0 /* FIXME: IOVMF_DA_FIXED should support 'superpages' =
-*/
-> > - =A0 =A0 =A0 if ((flags & IOVMF_LINEAR) && (flags & IOVMF_DA_ANON)=
-) {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_entries =3D sgtable_nents(bytes);
-> > + =A0 =A0 =A0 if (flags & IOVMF_LINEAR) {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_entries =3D sgtable_nents(bytes, d=
-a, pa);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!nr_entries)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-EINV=
-AL);
-> > =A0 =A0 =A0 =A0} else
-> > @@ -409,7 +419,8 @@ static inline void sgtable_drain_vmalloc(struct=
-=20
-> > sg_table *sgt)
-> > =A0 =A0 =A0 =A0BUG_ON(!sgt);
-> > =A0}
-> >
-> > -static void sgtable_fill_kmalloc(struct sg_table *sgt, u32=20
-> pa, size_t=20
-> > len)
-> > +static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, u32=
-=20
-> > +da,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
-> =A0 =A0 size_t=20
-> > +len)
-> > =A0{
-> > =A0 =A0 =A0 =A0unsigned int i;
-> > =A0 =A0 =A0 =A0struct scatterlist *sg;
-> > @@ -420,7 +431,8 @@ static void sgtable_fill_kmalloc(struct=20
-> sg_table=20
-> > *sgt, u32 pa, size_t len)
-> > =A0 =A0 =A0 =A0for_each_sg(sgt->sgl, sg, sgt->nents, i) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0size_t bytes;
-> >
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes =3D iopgsz_max(len);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes =3D max_alignment(da | pa);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes =3D min(bytes, (size_t)iopgsz_m=
-ax(len));
->=20
-> Why the size_t casting?
-
-To void this warning:
-arch/arm/plat-omap/iovmm.c:440: warning: comparison of distinct pointer=
- types lacks a cast
-
-I will update with minor changes and resend.
-
-Thanks and regards,
-=46ernando.
-
->=20
-> Otherwise:
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
->=20
-> --
-> Felipe Contreras
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-kernel"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Please read the FAQ at  http://www.tux.org/lkml/
+Benoit
