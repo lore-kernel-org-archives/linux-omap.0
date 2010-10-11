@@ -1,54 +1,72 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH v3] OMAP2/3: NAND: Convert write/read functions to raw
- read/write
-Date: Mon, 11 Oct 2010 21:59:20 +0300
-Message-ID: <1286823560.1742.2.camel@brekeke>
-References: <1286315819-5906-1-git-send-email-manjugk@ti.com>
-	 <1286315819-5906-3-git-send-email-manjugk@ti.com>
-Reply-To: dedekind1@gmail.com
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/3] omap: dsp: fix ioremap() usage
+Date: Mon, 11 Oct 2010 22:05:38 +0300
+Message-ID: <AANLkTinMhMJhTYoG7TRPUtb8DkTc8hCyH+GWEfKFD80d@mail.gmail.com>
+References: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com>
+	<1286732440-28644-3-git-send-email-felipe.contreras@gmail.com>
+	<496565EC904933469F292DDA3F1663E602F47B2BCD@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57934 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45405 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753455Ab0JKS7Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 14:59:25 -0400
-Received: by bwz15 with SMTP id 15so1897449bwz.19
-        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 11:59:24 -0700 (PDT)
-In-Reply-To: <1286315819-5906-3-git-send-email-manjugk@ti.com>
+	with ESMTP id S1755888Ab0JKTFk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 15:05:40 -0400
+Received: by bwz15 with SMTP id 15so1901759bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 12:05:39 -0700 (PDT)
+In-Reply-To: <496565EC904933469F292DDA3F1663E602F47B2BCD@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mtd@lists.infradead.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>
 
-On Wed, 2010-10-06 at 03:26 +0530, G, Manjunath Kondaiah wrote:
-> Following sparse warnings exists due to use of writel/w and readl/w f=
-unctions.
->=20
-> This patch fixes the sparse warnings by converting readl/w functions =
-usage into
-> __raw_readl/__raw_readw functions.
->=20
-> drivers/mtd/nand/omap2.c:484:15: warning: symbol '__v' shadows an ear=
-lier one
-> drivers/mtd/nand/omap2.c:484:15: originally declared here
->=20
-> drivers/mtd/onenand/omap2.c:86:9: warning: symbol '__v' shadows an ea=
-rlier one
-> drivers/mtd/onenand/omap2.c:86:9: originally declared here
->=20
-> Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-mtd@lists.infradead.org
+On Mon, Oct 11, 2010 at 6:15 PM, Guzman Lugo, Fernando
+<fernando.lugo@ti.com> wrote:
+>> +#if defined(CONFIG_TIDSPBRIDGE) || defined(CONFIG_TIDSPBRIDGE_MODUL=
+E)
+>> +
+>> +static phys_addr_t omap_dsp_mempool_base;
+>> +
+>> +static void __init omap_dsp_reserve_mem(struct meminfo *mi) {
+>> + =C2=A0 =C2=A0 phys_addr_t size =3D CONFIG_TIDSPBRIDGE_MEMPOOL_SIZE=
+;
+>> + =C2=A0 =C2=A0 phys_addr_t addr =3D ~0;
+>> + =C2=A0 =C2=A0 int i;
+>> +
+>> + =C2=A0 =C2=A0 if (!size)
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
+>> +
+>> + =C2=A0 =C2=A0 for (i =3D mi->nr_banks - 1; i >=3D 0; i--)
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (mi->bank[i].size >=3D=
+ size) {
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 mi->bank[i].size -=3D size;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 addr =3D mi->bank[i].start + mi->bank[i].size;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 break;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+>
+> Missing {} in "for" lopp. Even tough you are checking for success ins=
+ide
+> For loop why check again outside? And also not need to define addr.
+> What do you think about this:
 
-I've pushed this patch to my l2-mtd-2.6.git.
+It comes directly from Russell's code:
+http://article.gmane.org/gmane.linux.kernel/1046606
+
+But I do prefer to add the braces. Your proposed patch is ok, although
+I prefer to have the important code at the end of the function, and
+the error check before that.
+
+Anyway, Russell has come with a different approach, so I have to try
+that instead.
+
+Cheers.
 
 --=20
-Best Regards,
-Artem Bityutskiy (=D0=91=D0=B8=D1=82=D1=8E=D1=86=D0=BA=D0=B8=D0=B9 =D0=90=
-=D1=80=D1=82=D1=91=D0=BC)
-
+=46elipe Contreras
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
