@@ -1,54 +1,55 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/3] OMAP: control: add functions for DSP boot address/mode
- control
-Date: Mon, 11 Oct 2010 16:16:23 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1010111604430.16871@utopia.booyaka.com>
-References: <20101011203659.24425.2381.stgit@twilight.localdomain> <20101011203710.24425.94685.stgit@twilight.localdomain> <AANLkTimnQJxS_6PrgECeQFwEkNU=4-f5=bStWS-AtDcs@mail.gmail.com> <alpine.DEB.2.00.1010111449240.16871@utopia.booyaka.com>
- <20101011211616.GE25462@atomide.com> <alpine.DEB.2.00.1010111519410.16871@utopia.booyaka.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH] PM: add synchronous runtime interface for interrupt handlers
+Date: Tue, 12 Oct 2010 00:30:36 +0200
+Message-ID: <201010120030.36393.rjw@sisk.pl>
+References: <Pine.LNX.4.44L0.1010111254430.2339-100000@netrider.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35150 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756741Ab0JKWQY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 18:16:24 -0400
-In-Reply-To: <alpine.DEB.2.00.1010111519410.16871@utopia.booyaka.com>
+Received: from ogre.sisk.pl ([217.79.144.158]:36385 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756737Ab0JKWbd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Oct 2010 18:31:33 -0400
+In-Reply-To: <Pine.LNX.4.44L0.1010111254430.2339-100000@netrider.rowland.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, fernando.lugo@ti.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-A few other items:
-
-On Mon, 11 Oct 2010, Paul Walmsley wrote:
-
-> A few other things should be done also.
+On Monday, October 11, 2010, Alan Stern wrote:
+> On Sat, 9 Oct 2010, Rafael J. Wysocki wrote:
 > 
-> 1. Most of the code in drivers/staging/tidspbridge/code/tiomap3430.c in 
-> the bridge_brd_monitor(), bridge_brd_start(), and bridge_brd_stop() should 
-> be moved into a file in arch/arm/mach-omap2.  The DSPBridge driver should 
-> call those functions (to reset the DSP, start it, etc.) through 
-> platform_data function pointers.  Once that happens, patch 3 of the 
-> control module-related series would not be needed, since that code would 
-> be in arch/arm/mach-omap2 anyway.
-
-This also includes some of the code from core/tiomap3430_pwr.c, such as 
-handle_hibernation_from_dsp() and dsp_clk_wakeup_event_ctrl().  
-Basically, all of the other code that directly reads or writes registers 
-outside the IVA2 directly needs to be moved into arch/arm/mach-omap2.
-
-> 2. The direct CM/PRM/RM register access should be removed from that 
-> arch/arm/mach-omap2 code.  That should be handled directly by the 
-> clock/hwmod/whatever code.
+> > I wonder if we can do the "fast suspend" and "fast resume" under the
+> > power.lock spinlock.  That would allow us to avoid some complications
+> > related to RPM_RESUMING and RPM_SUSPENDING.  Namely,
+> > if the device is flagged as "power.irq_safe", it will always suspend and
+> > resume "atomically" under its power.lock spinlock.  Then, the status will
+> > always be either RPM_ACTIVE or RPM_SUSPENDED (or RPM_ERROR,
+> > which is uninteresting).
 > 
-> 3. DSPBridge should be converted to use PM runtime, and the 
-> arch/arm/mach-omap2 portion should use omap_device, omap_hwmod, etc.
+> We could do this.  It has some disadvantages but they aren't terrible.
+> 
+> >  Also, if "fast suspend" doesn't change the device
+> > parent's power.child_count, we won't need to worry about parents any more.
+> 
+> I don't know about that.  If the parent's child_count doesn't change 
+> then the parent can never suspend.  Of course, if there is no parent or 
+> the parent is disabled for runtime PM then this doesn't matter.
 
-4. If the DSP uses a peripheral, such as a GPTIMER or a McBSP, DSPBridge 
-needs to reserve that device with the rest of Linux so some other Linux 
-code isn't using it or doesn't try to use it, causing conflicts with 
-DSPBridge.  I guess the list that we need to worry about is in _tiomap.h 
-as l4_peripheral_table[].
+I think the recursive resuming of the parents is inherently nonatomic and
+it shouldn't be done in the "fast suspend/resume" case.  So, I think it might
+make sense to prevent the parent from ever suspending if children are supposed
+to use the "fast" ops.
 
+> > I'm still not sure what to do with _idle() in that case.
+> 
+> Clearly we should not hold the spinlock while running the runtime_idle
+> callback.  That would make it impossible for the callback to ask for a
+> suspend.
 
-- Paul
+That's correct.
+
+Thanks,
+Rafael
