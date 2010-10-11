@@ -1,52 +1,52 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/2] ftrace - add ftrace function_graph support on ARM
-Date: Mon, 11 Oct 2010 09:25:35 +0100
-Message-ID: <20101011082535.GA26355@n2100.arm.linux.org.uk>
-References: <4B91A39F.8050502@am.sony.com> <20100306201849.GD13262@n2100.arm.linux.org.uk> <AANLkTi=apGYBSSr4RK+ZZievacJRcOxrwW_o_hz85P0h@mail.gmail.com> <20101009193757.GB28183@n2100.arm.linux.org.uk> <20101010220603.GA2723@debian>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] Revert "OMAP: mach-omap2: Fix incorrect assignment warnings"
+Date: Mon, 11 Oct 2010 10:31:26 +0200
+Message-ID: <AANLkTi=DDQJZn5gC3BevufVfELvUsz1_dg_ijz=M0HYU@mail.gmail.com>
+References: <AANLkTimCXyTh30iGVd2j8JUcfT2a0+xrT8AqjX=qQ0k+@mail.gmail.com>
+	<87y6a8v48p.fsf@deeprootsystems.com>
+	<87eic0ti7p.fsf@deeprootsystems.com>
+	<AANLkTimLMZtqkk64xUWDuyPpadtZVb2_+YXF+WNSQW=i@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52589 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753237Ab0JKI0m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 04:26:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20101010220603.GA2723@debian>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:60189 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751148Ab0JKIb1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 04:31:27 -0400
+Received: by qyk10 with SMTP id 10so3942312qyk.19
+        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 01:31:27 -0700 (PDT)
+In-Reply-To: <AANLkTimLMZtqkk64xUWDuyPpadtZVb2_+YXF+WNSQW=i@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rabin Vincent <rabin@rab.in>
-Cc: Tim Bird <tim.bird@am.sony.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, "G, Manjunath Kondaiah" <manjugk@ti.com>
 
-On Mon, Oct 11, 2010 at 03:36:03AM +0530, Rabin Vincent wrote:
-> On Sat, Oct 09, 2010 at 08:37:57PM +0100, Russell King - ARM Linux wrote:
-> > On Sat, Oct 09, 2010 at 11:20:50PM +0530, Rabin Vincent wrote:
-> > > It's used just for the C entry functions for interrupts: asm_do_IRQ()
-> > > and the IPI and local timer functions.
-> > > 
-> > > AFAICS __exception seems to be used only for is_exception_text().  If
-> > > that's the case, would it be OK to just place those functions in
-> > > __irq_entry if ftrace is built and have is_exception_text() check that
-> > > section too?
-> > 
-> > No.  is_exception_text() is used to detect those functions which have
-> > a specific stack layout - which is that there's a pt_regs struct on the
-> > stack.  Grouping other functions into that violates the expectation.
-> 
-> I'm not sure I follow.  These functions (asm_do_IRQ(), do_IPI(), and
-> do_local_timer()) will be the only ones in __irq_entry. iow, __irq_entry
-> will contain nothing else except these functions.  So we woudn't be
-> grouping other functions; it's just that some of the __exception
-> functions would be moved to the new section so that __exception and
-> __irq_entry combined will contain the functions with the specific stack
-> layout (and only those functions).
+On Sat, Oct 9, 2010 at 8:55 AM, Jean Pihet <jean.pihet@newoldbits.com> =
+wrote:
+> Kevin,
+>
+> On Sat, Oct 9, 2010 at 12:47 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> Kevin Hilman <khilman@deeprootsystems.com> writes:
+=2E..
+>>
+>> Since only one part of the original patch introduced a bug, I decide=
+d to
+>> just fix that bug and keep the fixes for the sparse warnings. =A0I j=
+ust
+>> posted a patch[1] for the fix. =A0 Please test.
+>>
+>> Thanks,
+>
+> Thanks for the follow-up on the patch. I will test asap.
+Tested OK on OMAP3EVM with RET & OFF mode in idle path.
 
-And now to go back to the original question I asked: What is __irq_entry
-used for?
+Tested-by: Jean Pihet <jean.pihet@newoldbits.com>
 
-If it's to identify those functions which can't be traced through because
-of the stack layout, that's true of all __exception marked functions -
-so we might as well make the linker symbols for irqentry alias the
-exception text symbols.
-
-I see nothing special of just the three functions you mention that warrant
-them being handled separately by ftrace.
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
