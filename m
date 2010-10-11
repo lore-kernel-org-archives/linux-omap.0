@@ -1,95 +1,94 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v7] power: introduce library for device-specific OPPs
-Date: Mon, 11 Oct 2010 07:43:45 -0700
-Message-ID: <878w24u6vy.fsf@deeprootsystems.com>
-References: <1286506969-20651-1-git-send-email-nm@ti.com>
-	<201010100059.20964.rjw@sisk.pl>
+Subject: Re: [PATCH] omap: serial: Fix the boot-up crash/reboot without CONFIG_PM
+Date: Mon, 11 Oct 2010 07:46:18 -0700
+Message-ID: <8739scu6rp.fsf@deeprootsystems.com>
+References: <1286795118-11490-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:56161 "EHLO
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:44401 "EHLO
 	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788Ab0JKOnv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 10:43:51 -0400
-In-Reply-To: <201010100059.20964.rjw@sisk.pl> (Rafael J. Wysocki's message of
-	"Sun, 10 Oct 2010 00:59:20 +0200")
+	with ESMTP id S1754801Ab0JKOqY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 10:46:24 -0400
+Received: by pwj4 with SMTP id 4so899120pwj.19
+        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 07:46:24 -0700 (PDT)
+In-Reply-To: <1286795118-11490-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Mon, 11 Oct 2010 16:35:18 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Nishanth Menon <nm@ti.com>, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Paul <paulmck@linux.vnet.ibm.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, Charulatha V <charu@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-"Rafael J. Wysocki" <rjw@sisk.pl> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> On Friday, October 08, 2010, Nishanth Menon wrote:
->> SoCs have a standard set of tuples consisting of frequency and
->> voltage pairs that the device will support per voltage domain. These
->> are called Operating Performance Points or OPPs. The actual
->> definitions of OPP varies over silicon versions. For a specific domain,
->> we can have a set of {frequency, voltage} pairs. As the kernel boots
->> and more information is available, a default set of these are activated
->> based on the precise nature of device. Further on operation, based on
->> conditions prevailing in the system (such as temperature), some OPP
->> availability may be temporarily controlled by the SoC frameworks.
->> 
->> To implement an OPP, some sort of power management support is necessary
->> hence this library depends on CONFIG_PM.
->> 
->> Contributions include:
->> Sanjeev Premi for the initial concept:
->> 	http://patchwork.kernel.org/patch/50998/
->> Kevin Hilman for converting original design to device-based
->> Kevin Hilman and Paul Walmsey for cleaning up many of the function
->> abstractions, improvements and data structure handling
->> Romit Dasgupta for using enums instead of opp pointers
->> Thara Gopinath, Eduardo Valentin and Vishwanath BS for fixes and
->> cleanups.
->> Linus Walleij for recommending this layer be made generic for usage
->> in other architectures beyond OMAP and ARM.
->> Mark Brown, Andrew Morton, Rafael J Wysocki, Paul E McKenney for valuable
->> improvements.
->> 
->> Discussions and comments from:
->> http://marc.info/?l=linux-omap&m=126033945313269&w=2
->> http://marc.info/?l=linux-omap&m=125482970102327&w=2
->> http://marc.info/?t=125809247500002&r=1&w=2
->> http://marc.info/?l=linux-omap&m=126025973426007&w=2
->> http://marc.info/?t=128152609200064&r=1&w=2
->> http://marc.info/?t=128468723000002&r=1&w=2
->> incorporated.
->> 
->> Cc: Benoit Cousson <b-cousson@ti.com>
->> Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
->> Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
->> Cc: Roberto Granados Dorado <x0095451@ti.com>
->> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
->> Cc: Tero Kristo <Tero.Kristo@nokia.com>
->> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
->> Cc: Paul Walmsley <paul@pwsan.com>
->> Cc: Sanjeev Premi <premi@ti.com>
->> Cc: Thara Gopinath <thara@ti.com>
->> Cc: Vishwanath BS <vishwanath.bs@ti.com>
->> Cc: Linus Walleij <linus.walleij@stericsson.com>
->> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: Rafael J. Wysocki <rjw@sisk.pl>
->> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
->> 
->> Signed-off-by: Nishanth Menon <nm@ti.com>
+> The omap2plus_defconfig doesn't boot up when built with CONFIG_PM
+> disabled on the latest linux-omap master. Below are the observations
+> 1. OMAP3 reboots in the middle of boot
+> --------------------------------------------------
+> [    0.000000] Calibrating delay loop... 494.72 BogoMIPS (lpj=1933312)
+> [    0.000000] pid_max: default: 32768 minimum: 301
+> [    0.000000] Security Framework initialized
+> [    0.000000] Mount-cache hash table entries: 512
+> [    0.000000] CPU: Testing write buffer coherency: ok
+> [    0.000000] Brought up 1 CPUs
+> [    0.000000] SMP: Total of 1 processors activated (494.72 BogoMIPS).
+> [    0.000000] regulator: core version 0.5
+> [    0.000000] NET: Registered protocol family 16
 >
-> OK
+> U-Boot 1.1.4 (Feb 11 2009 - 16:10:23)
 >
-> Your error messages are a bit inconsistent (e.g. some of them print the
-> error code while others don't), but I guess I can fix that up.
+> OMAP3430-GP rev 2, CPU-OPP2 L3-165MHz
+> TI 3430SDP 1.0 Version + mDDR (Boot NOR)
+> DRAM:  128 MB
+> Flash: 128 MB
+> NAND:128 MiB
+> --------------------------------------------------
 >
-> Still, to apply the patch I need a copyright notice for the doc too.
+> 2. OMAP4 does a kernel PANIC
+> -------------------------------------
+> [    0.000000] Calibrating delay loop... 1195.29 BogoMIPS (lpj=4669440)
+> [    0.000000] pid_max: default: 32768 minimum: 301
+> [    0.000000] Security Framework initialized
+> [    0.000000] Mount-cache hash table entries: 512
+> [    0.000000] CPU: Testing write buffer coherency: ok
+> [    0.000000] L310 cache controller enabled
+> [    0.000000] l2x0: 16 ways, CACHE_ID 0x410000c2, AUX_CTRL 0x0e050000
+> [    0.000000] CPU1: Booted secondary processor
+> [    0.000000] Brought up 2 CPUs
+> [    0.000000] SMP: Total of 2 processors activated (2395.78 BogoMIPS).
+> [    0.000000] regulator: core version 0.5
+> [    0.000000] NET: Registered protocol family 16
+> [    0.000000] mux: Could not set signal i2c2_scl.i2c2_scl
+> [    0.000000] mux: Could not set signal i2c2_sda.i2c2_sda
+> [    0.000000] mux: Could not set signal i2c3_scl.i2c3_scl
+> [    0.000000] mux: Could not set signal i2c3_sda.i2c3_sda
+> [    0.000000] mux: Could not set signal i2c4_scl.i2c4_scl
+> [    0.000000] mux: Could not set signal i2c4_sda.i2c4_sda
+> -------------------------------------
 >
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> This is happening because 'omap_serial_init()' is hanging in the boot.
+> On OMAP3 the watchdog is generating reboot because devices_init doesn't
+> happens where as on OMAP4 it just hangs without reboot.
+> The uart clock is not getting enabled after omap_device_idle as part
+> of omap_serial_init.
+> The omap_device_idle(will disable the clock) then omap_uart_block_sleep()
+> should enable clock back disabled during the boot up phase.
+> But omap_uart_block_sleep() stuffed version is binded only under
+> CONFIG_PM and other version is just empty. Hence it is not enabling
+> clock back as expected
 >
-> Kevin, your sign-off here means you endorse the patch as the maintainer.
-> Is that correct?
+> This patch adds uart clock enable code to omap_uart_block_sleep() function
+> built with CONFIG_PM disabled.
+> Thanks to Charulatha and Govindraj for their help on this debug.
+>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Charulatha V <charu@ti.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 
-Correct.
+
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+This is a regression fix, so we should queue this for 2.6.37.
 
 Thanks,
 
