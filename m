@@ -1,72 +1,75 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/2] omap: iommu: make iva2 iommu selectable
-Date: Mon, 11 Oct 2010 15:28:22 +0300 (EEST)
-Message-ID: <20101011.152822.226794892.Hiroshi.DOYU@nokia.com>
-References: <1286790830-13505-1-git-send-email-felipe.contreras@gmail.com>
-	<1286790830-13505-2-git-send-email-felipe.contreras@gmail.com>
+From: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: g_ether broken on musb
+Date: Mon, 11 Oct 2010 15:45:37 +0300
+Message-ID: <AANLkTin21EYbvm68smSL9132rGh5GAYCQmTaCkJE2yGr@mail.gmail.com>
+References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
+	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
+	<AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
+	<AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m@mail.gmail.com>
+	<AANLkTimfCnCL6NzJEThNDSeNx_Axxdyct88-hyDFQvjJ@mail.gmail.com>
+	<AANLkTik5X=ypNxu4QgiLUFia0b42T=r-Di1MsZCrCsCx@mail.gmail.com>
+	<AANLkTikRe-U4sXPW6U7obCQen-wT=f6JC9wsH5hG04G6@mail.gmail.com>
+	<AANLkTin7PBPvHOpRJPh1_nABxhvTYNDJtVEGXUWN0mtF@mail.gmail.com>
+	<AANLkTik_MNGaMRBBpX3_sPTwF9+en=qX=O52DrfLTGuW@mail.gmail.com>
+	<AANLkTikcMaQZViXOBWM3roiyOZcpUzjAqV49k=4pMA+9@mail.gmail.com>
+	<AANLkTinonnO05D9Y5oGrpMZLT6rYT_5sUp9_RSONDLfr@mail.gmail.com>
+	<AANLkTikMbMFWp4GqZqF1csU1GOfGypcCteFZx_KPJxqx@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:62107 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754366Ab0JKM3T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Oct 2010 08:29:19 -0400
-In-Reply-To: <1286790830-13505-2-git-send-email-felipe.contreras@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTikMbMFWp4GqZqF1csU1GOfGypcCteFZx_KPJxqx-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, greg@kroah.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, yogesh_marathe@ti.com, linux-arm-kernel@lists.infradead.org
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 1/2] omap: iommu: make iva2 iommu selectable
-Date: Mon, 11 Oct 2010 11:53:49 +0200
+On Mon, Oct 11, 2010 at 1:53 PM, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote=
+:
+> 2010/10/11 Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>>>> which effectively disables DMA due to a bug in it, so it's probabl=
+y
+>>>> DMA problems on my board. Here is my log:
+>>>
+>>> Yes, your issue may be related with ep1out Rx DMA, but I am not sur=
+e
+>>> since the very important message between timestamp 39.256011 and
+>>> 85.210693 is not provided by you, why not post all messages?
+>>
+>> I did not remove any messages (only added annotation), there was
+>> simply no output. I suppose something wrong happens after
+>
+> If so, no any rx interrupt for ep1out comes after request is queued s=
+ince
+> musb_g_rx is not called from your log.
+>
+> There is two possibilities:
+>
+> =A0 =A0 =A0 =A0 - usb host does not send any packets to ep1out
+>
+> =A0 =A0 =A0 =A0 - packets has been sent from usb host to musb gadget,=
+ but omap3
+> =A0 =A0 =A0 =A0 =A0is not notified by musb rx interrupt, or there is =
+no musb rx
+> interrupt.
+>
+> You can trace usb traffic in usb host to see if there are packets sen=
+t
+> to ep1out, usbmon can do it for you, please see Documentation/usb/usb=
+mon.txt
+> for reference. =A0If no packets are traced for ep1out, your problem i=
+s nothing
+> to do with musb, and may should be related with usb host driver(usbne=
+t?).
 
-> From: Felipe Contreras <felipe.contreras@nokia.com>
-> 
-> It seems dsp-link will do this, and tidspbridge too at some point, but
-> right now it's not possible to select CONFIG_MPU_BRIDGE_IOMMU.
+ok here are usbmon logs, taken using same scenario:
+http://notaz.gp2x.de/misc/pnd/linux_next_20101008_usbmon
 
-Why does it have to be selectable?
+and here is usbmon log when musb runs in PIO mode and ping works:
+http://notaz.gp2x.de/misc/pnd/linux_next_20101008_usbmon_nodma
 
-Please Cc: linux-arm-kernel@lists.infradead.org too.
-
-> 
-> Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
-> Cc: Yogesh Marathe <yogesh_marathe@ti.com>
-> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
-> ---
->  arch/arm/mach-omap2/omap-iommu.c |    2 +-
->  arch/arm/plat-omap/Kconfig       |    3 +++
->  2 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-> index f5a1aad..adc0904 100644
-> --- a/arch/arm/mach-omap2/omap-iommu.c
-> +++ b/arch/arm/mach-omap2/omap-iommu.c
-> @@ -35,7 +35,7 @@ static struct iommu_device omap3_devices[] = {
->  			.clk_name = "cam_ick",
->  		},
->  	},
-> -#if defined(CONFIG_MPU_BRIDGE_IOMMU)
-> +#if defined(CONFIG_OMAP_IOMMU_IVA2)
->  	{
->  		.base = 0x5d000000,
->  		.irq = 28,
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index e39a417..e0b41b6 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -109,6 +109,9 @@ config OMAP_IOMMU_DEBUG
->  
->           Say N unless you know you need this.
->  
-> +config OMAP_IOMMU_IVA2
-> +	bool
-> +
->  choice
->  	prompt "System timer"
->  	default OMAP_32K_TIMER if !ARCH_OMAP15XX
-> -- 
-> 1.7.3.1.2.g7fe2b
-> 
+So maybe it's ep2in issue after all?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
