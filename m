@@ -1,42 +1,181 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: Re: [PATCH 1/3] OMAP: control: add functions for DSP boot address/mode
- control
-Date: Mon, 11 Oct 2010 17:32:50 -0500
-Message-ID: <4CB39092.4070303@ti.com>
-References: <20101011203659.24425.2381.stgit@twilight.localdomain> <20101011203710.24425.94685.stgit@twilight.localdomain> <AANLkTimnQJxS_6PrgECeQFwEkNU=4-f5=bStWS-AtDcs@mail.gmail.com> <alpine.DEB.2.00.1010111449240.16871@utopia.booyaka.com> <20101011211616.GE25462@atomide.com> <alpine.DEB.2.00.1010111519410.16871@utopia.booyaka.com> <alpine.DEB.2.00.1010111604430.16871@utopia.booyaka.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv3 8/17] dmtimer: register mappings moved to hwmod database
+Date: Tue, 12 Oct 2010 01:11:33 +0200
+Message-ID: <4CB399A5.2060702@ti.com>
+References: <1285059226-26491-1-git-send-email-tarun.kanti@ti.com>	<E0D41E29EB0DAC4E9F3FF173962E9E94027863D705@dbde02.ent.ti.com> <87mxr98nkg.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301F6FE83CE@dbde02.ent.ti.com> <4C9B8401.3070704@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB035E840689@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42657 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756672Ab0JKWc4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Oct 2010 18:32:56 -0400
-In-Reply-To: <alpine.DEB.2.00.1010111604430.16871@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51339 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628Ab0JKXLf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 19:11:35 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035E840689@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "Basak, Partha" <p-basak2@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-On 10/11/2010 5:16 PM, Paul Walmsley wrote:
+Hi Tarun,
+
+On 10/9/2010 5:40 PM, DebBarma, Tarun Kanti wrote:
+> Benoit,
 >
-> 4. If the DSP uses a peripheral, such as a GPTIMER or a McBSP, DSPBridge
-> needs to reserve that device with the rest of Linux so some other Linux
-> code isn't using it or doesn't try to use it, causing conflicts with
-> DSPBridge.  I guess the list that we need to worry about is in _tiomap.h
-> as l4_peripheral_table[].
+>> From: Cousson, Benoit
+>> Sent: Thursday, September 23, 2010 10:15 PM
+>> To: Basak, Partha
+>> Cc: Kevin Hilman; G, Manjunath Kondaiah; DebBarma, Tarun Kanti; linux-
+>> omap@vger.kernel.org; Shilimkar, Santosh; Paul Walmsley; Tony Lindgren
+>> Subject: Re: [PATCHv3 8/17] dmtimer: register mappings moved to hwmod
+>> database
+>>
+>> On 9/23/2010 11:34 AM, Basak, Partha wrote:
+>>>
+>>>
+>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>> Sent: Thursday, September 23, 2010 3:10 AM
+>>>>
+>>>> "G, Manjunath Kondaiah"<manjugk@ti.com>   writes:
+>>>>
+>>>>> Hi Tarun,
+>>>>>
+>>>>>> From: linux-omap-owner@vger.kernel.org
+>>>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>>>>>> DebBarma, Tarun Kanti
+>>>>>>
+>>
+>> <...>
+>>
+>>>>>> +static u32 omap_timer_reg_map_v1[] = {
+>>>>>> +  [OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_STAT_REG]           = (0x18 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_INT_EN_REG]         = (0x1c | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_WAKEUP_EN_REG]      = (0x20 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_CTRL_REG]           = (0x24 | (WP_TCLR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_COUNTER_REG]        = (0x28 | (WP_TCRR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_LOAD_REG]           = (0x2c | (WP_TLDR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_TRIGGER_REG]        = (0x30 | (WP_TTGR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_WRITE_PEND_REG]     = (0x34 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_MATCH_REG]          = (0x38 | (WP_TMAR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_CAPTURE_REG]        = (0x3c | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_IF_CTRL_REG]        = (0x40 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_CAPTURE2_REG]       = (0x44 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_TICK_POS_REG]       = (0x48 | (WP_TPIR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_TICK_NEG_REG]       = (0x4c | (WP_TNIR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_TICK_COUNT_REG]     = (0x50 | (WP_TCVR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_TICK_INT_MASK_SET_REG]      = (0x54 |
+>>>>>> (WP_TOCR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_TICK_INT_MASK_COUNT_REG]    = (0x58 |
+>>>>>> (WP_TOWR<<   WPSHIFT)),
+>>>>>> +};
+>>>>>> +
+>>>>>> +/* OMAP4 timers register map */
+>>>>>> +static u32 omap_timer_reg_map_v2[] = {
+>>>>>> +  [OMAP_TIMER_ID_REG]             = (0x00 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_OCP_CFG_REG]        = (0x10 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_SYS_STAT_REG]       = (0x14 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_STAT_REG]           = (0x28 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_INT_EN_REG]         = (0x2c | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_WAKEUP_EN_REG]      = (0x34 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_CTRL_REG]           = (0x38 | (WP_TCLR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_COUNTER_REG]        = (0x3c | (WP_TCRR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_LOAD_REG]           = (0x40 | (WP_TLDR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_TRIGGER_REG]        = (0x44 | (WP_TTGR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_WRITE_PEND_REG]     = (0x48 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_MATCH_REG]          = (0x4c | (WP_TMAR<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_CAPTURE_REG]        = (0x50 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_IF_CTRL_REG]        = (0x54 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_CAPTURE2_REG]       = (0x58 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +  [OMAP_TIMER_INT_CLR_REG]        = (0x30 | (WP_NONE<<   WPSHIFT)),
+>>>>>> +};
+>>>>>> +
+>>>>>
+>>>>> Why not these defines in mach-omap2/dmtimer.c? since
+>>>> register offsets are
+>>>>> same for omap2plus except omap4 which has additional
+>>>> register offsets. Same
+>>>>> register offsets are getting repeated in all the omap2plus
+>>>> hwmod database.
+>>>>
+>>>> I agree with Manjunath.
+>>>
+>>> Manju, the number of tables needed to manage the information are same
+>> really.
+>>> Its only where they are located changes from the mach layer to the hwmod
+>>> database. So, thats not the point. dev_attrs are pointing to the reg-map
+>>> tables, they are not duplicating them.
+>>>
+>>>
+>>> The offset differences are stemming from the IP differences.
+>>> To my understanding, only IP-integration specific idiosyncrasies into a
+>> given
+>>> SOC qualifiy as dev_attrs.
+>>> IP specific details like reg-map information should be maintained within
+>> the driver.
+>>> So, this approach will break this paradigm&   also not follow existing
+>> implementation
+>>> of drivers which support this. A given driver may support a set of IPs
+>> but still
+>>> may cater to even non-OMAP platforms not supporting hwmod.
+>>>
+>>> However, if we see the general usage of dev_attrs, there is no clear
+>> line of demarcation
+>>> really what should make it and what should not, as is used to plug this
+>> sort of
+>>> small gotchas and reduce CPU checks in the code.
+>>
+>> You do not really need that to reduce the CPU check in the code.
+>> In that case, only the IP version should be stored in the dev_attr.
+>> Based on that IP version, you know exactly what register map you have to
+>> handle. For the moment you just have 2 layouts to handle + the extra
+>> register for the 1ms timers.
+>>
+>> Also, I'm not sure that you have to handle each register separately
+>> considering that you have one offset to handle for the functional
+>> register.
+>> The change in sysconfig and interrupt register are all standard mapping
+>> that stick to TI highlander standard.
+>> Meaning, as soon as an IP is a v2 (highlander version) all these
+>> registers will be at the same place... at least in theory :-)
+>>
+>> Here are the deltas between the legacy and the new one:
+>>
+>> [OMAP_TIMER_ID_REG]             0x00,
+>> [OMAP_TIMER_OCP_CFG_REG]        0x10, same
+>> [OMAP_TIMER_SYS_STAT_REG]       0x14, (not used anymore)
+>>
+>> You should not care about these ones, because hwmod will handle them.
+>>
+>> [OMAP_TIMER_STAT_REG]           0x28, +10
+>> [OMAP_TIMER_INT_EN_REG]         0x2c, +10
+>> [OMAP_TIMER_INT_CLR_REG]        0x30, (new)
+>>
+>> These ones are standard registers
+>>
+>> [OMAP_TIMER_WAKEUP_EN_REG]      0x34, +14
+>> [OMAP_TIMER_CTRL_REG]           0x38, +14
+>> [OMAP_TIMER_COUNTER_REG]        0x3c, +14
+>> [OMAP_TIMER_LOAD_REG]           0x40, +14
+>> [OMAP_TIMER_TRIGGER_REG]        0x44, +14
+>> [OMAP_TIMER_WRITE_PEND_REG]     0x48, +14
+>> [OMAP_TIMER_MATCH_REG]          0x4c, +14
+>> [OMAP_TIMER_CAPTURE_REG]        0x50, +14
+>> [OMAP_TIMER_IF_CTRL_REG]        0x54, +14
+>> [OMAP_TIMER_CAPTURE2_REG]       0x58, +14
+>>
+>> You can probably handle that with only 2 offsets instead of having one
+>> address per registers.
+>>
+> To keep aligned with other driver implementations, I would like to follow this:
+>
+> 1) move the table in mach-omap1/2 since
+> 2) remove entries which are handled by hwmod.
+> However, I am not sure if there is any issue in keeping them in the table.
 
-this is done by using dmtimer fwk, mcbsp are also requested using mcbsp 
-code (however I think functions to enable/disable mcbsp clocks should be 
-added to mcbsp fwk)... There is no code (that I'm aware of) to control 
-wdt3 nor ssi so this is still there. I still have to review the code to 
-find any place were the registers are written directly though.
+I don't think you need a table for that. All the functional registers 
+are using a constant offset. IRQ is then the only exception.
 
-The other peripherals, at the moment, doesn't have a direct interaction 
-with bridge, although they might be interconnected to iva. I guess we 
-can remove some of the mapped peripherals (like dsi, gpio, uart) and add 
-them back on request and by implementing the code to request them on arm 
-side.
-
-- omar
-
+Benoit
