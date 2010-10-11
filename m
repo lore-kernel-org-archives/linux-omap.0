@@ -1,54 +1,53 @@
-From: Tim Nordell <tim.nordell@logicpd.com>
-Subject: Re: [PATCH v4 0/4] LogicPD minimal board support for LV_SOM and Torpedo
-Date: Mon, 11 Oct 2010 12:45:57 -0500
-Message-ID: <4CB34D55.6060007@logicpd.com>
-References: <1285603550-6382-1-git-send-email-tim.nordell@logicpd.com> <20100928171908.GE3117@atomide.com> <201010090155.25932.linz@li-pro.net> <4CAFB747.5020606@logicpd.com> <20101011173023.GB25462@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: serial: Fix the boot-up crash/reboot without
+ CONFIG_PM
+Date: Mon, 11 Oct 2010 10:55:28 -0700
+Message-ID: <20101011175528.GC25462@atomide.com>
+References: <1286795118-11490-1-git-send-email-santosh.shilimkar@ti.com>
+ <8739scu6rp.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 174-46-170-154.static.twtelecom.net ([174.46.170.154]:40466
-	"EHLO edprlnx06.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755683Ab0JKRpw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Oct 2010 13:45:52 -0400
-In-Reply-To: <20101011173023.GB25462@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52625 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754888Ab0JKRzd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 13:55:33 -0400
+Content-Disposition: inline
+In-Reply-To: <8739scu6rp.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Stephan Linz <linz@li-pro.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, Charulatha V <charu@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
- On 10/11/10 12:30, Tony Lindgren wrote:
-> * Tim Nordell <tim.nordell@logicpd.com> [101008 17:20]:
->> Hi Stephan,
->>
->> I do indeed work for LogicPD.  I was asked to take over the patch
->> submission process from Jacob Tanenbaum from early August (I don't know
->> if you saw those patches), and hence I was the last one to submit
->> patches off to the community.
->>
->> On 10/08/10 18:55, Stephan Linz wrote:
->>> nice to see my patches here on the Linux mailinglists. I have not been working 
->>> on it for a long time.
-> Uhh, so whose patches are these originally?
->
-> We have them now queued with Tim Nordell as the author. Please let me know
-> ASAP if you want me to change that.
->
-> Regards,
->
-> Tony
+* Kevin Hilman <khilman@deeprootsystems.com> [101011 07:37]:
+> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> >
+> > This is happening because 'omap_serial_init()' is hanging in the boot.
+> > On OMAP3 the watchdog is generating reboot because devices_init doesn't
+> > happens where as on OMAP4 it just hangs without reboot.
+> > The uart clock is not getting enabled after omap_device_idle as part
+> > of omap_serial_init.
+> > The omap_device_idle(will disable the clock) then omap_uart_block_sleep()
+> > should enable clock back disabled during the boot up phase.
+> > But omap_uart_block_sleep() stuffed version is binded only under
+> > CONFIG_PM and other version is just empty. Hence it is not enabling
+> > clock back as expected
+> >
+> > This patch adds uart clock enable code to omap_uart_block_sleep() function
+> > built with CONFIG_PM disabled.
+> > Thanks to Charulatha and Govindraj for their help on this debug.
+> >
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Signed-off-by: Charulatha V <charu@ti.com>
+> > Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> 
+> 
+> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> This is a regression fix, so we should queue this for 2.6.37.
 
-The history for those patches, for me, originated with Jacob Tanenbaum's
-patchset.  I was taking over for him as he was going back to school.  I
-did some misc. changes for further submission, but I was not the
-original author.  I don't know Stephan's involvement - however, in the
-source files he's attributed credit in the header, as well as one of my
-coworkers so presumably there was some involvement on both ends.  I
-recognize some of the code as coming from our kernel release, so likely
-it was a hybrid originally between Stephan, Peter, and Jacob.
+Thanks, adding to omap-for-linus.
 
-That's about the extent that I know.
+Regards,
 
-- Tim
-
+Tony
