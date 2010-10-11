@@ -1,67 +1,75 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v2 01/10] OMAP: mach-omap2: Fix incorrect assignment
- warnings
-Date: Mon, 11 Oct 2010 09:21:13 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBABBC38@dbde02.ent.ti.com>
-References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
-	<1285063280-4057-2-git-send-email-manjugk@ti.com>
- <878w28v3xx.fsf@deeprootsystems.com>
+From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
+Subject: RE: [PATCH 05/11] omap3: Remove non-existent config option
+Date: Mon, 11 Oct 2010 10:40:29 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59302342AE66C@dbde02.ent.ti.com>
+References: <20100924014938.10325.35279.stgit@baageli.muru.com>
+	<20100924015056.10325.95854.stgit@baageli.muru.com>
+	<AANLkTik+Qgn5dYd+p_PvEUQFhcwQ2NVxW-fhEdurO6s+@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301F70753CB@dbde02.ent.ti.com>
+	<AANLkTinF=iV8p=jmg-YntCpX_BHmavLD3gu2LhhBFRq6@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930233C361B4@dbde02.ent.ti.com>
+	<AANLkTim9Y3i7M9Jjo6RZs7zMNVZUkFm1P7P=h0y2J=Nj@mail.gmail.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E5F6A365B@dlee03.ent.ti.com>
+	<AANLkTimD_MRbuTnBMPzAKPTmrDwjLkLVmr9bTSNROb5L@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB5930234006B4C@dbde02.ent.ti.com>
+	<AANLkTinZqx2nFuoYoCYpD4+PG7_J=ACLBxAwOvpVm4c9@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593023412B2C1@dbde02.ent.ti.com>
+	<496565EC904933469F292DDA3F1663E602F471C1BF@dlee06.ent.ti.com>
+ <AANLkTim=1dXg8O_q-RLZEjrVvN+Bb2DV1N1jwNjVBw3a@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48257 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753121Ab0JKDvW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 23:51:22 -0400
-In-Reply-To: <878w28v3xx.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33039 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751773Ab0JKFKu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 01:10:50 -0400
+In-Reply-To: <AANLkTim=1dXg8O_q-RLZEjrVvN+Bb2DV1N1jwNjVBw3a@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Saturday, October 09, 2010 1:43 AM
-> To: G, Manjunath Kondaiah
-> Cc: linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Tony Lindgren; Menon, Nishanth
-> Subject: Re: [PATCH v2 01/10] OMAP: mach-omap2: Fix incorrect 
-> assignment warnings
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Sunday, October 10, 2010 7:38 PM
+> To: Guzman Lugo, Fernando
+> Cc: Marathe, Yogesh; Kanigeri, Hari; Premi, Sanjeev; Tony Lindgren;
+> linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 05/11] omap3: Remove non-existent config
+> option
 > 
-> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> On Wed, Oct 6, 2010 at 3:14 AM, Guzman Lugo, Fernando
+> <fernando.lugo@ti.com> wrote:
+> > Can I know the status of this patch?
+> >
+> > This patch is needed now that tidspbridge has migrated to use
+> > Iommu moudle.
+> >
+> > Will this patch be merged?
 > 
-> > This patch fixes below sparse warnings for incorrect assignments.
-> 
-> As pointed out by Jean, this patch fixed some sparse 
-> warnings, but also broke some things, specifically off mode.
-> 
-> In the future, *please* be sure to test the code paths that 
-> are being changed.  This patch changed some code that is only 
-> exercised during off-mode, but was clearly not tested with 
-> off mode enabled.
-> 
-> As background for why this broke functionality, keep this in mind:
-> 
->  	void *a = NULL;
-> 	u32 *b = NULL;
-> 
-> a + 1 = 1
-> b + 1 = 4
-> 
-> IOW, you cannot simply replace a 'u32 *' by a 'void *' 
-> without checking and fixing any pointer arithmetic.
+> This patch hasn't even been sent yet. I expected somebody else to try
+> it and do so.
 
-I apologize for breaking off mode support. Since sparse fixes is big patch
-series, I was able to test only boot and same was mentioned along with
-the test report in the series. Also, multiple versions of patches posted
-for review, I was expecting comments on this type of regressions.
+Felipe,
 
-I will take care of testing code coverage paths for future patches.
+I think Fernando is talking about the patch that I had sent at the
+beginning. I had replied Fernando saying it is under discussion as
+you were looking at other iommu patches.
 
-Thanks to Jean and Kevin for identifying and fixing this regression.
+If we have agreed upon having CONFIG_OMAP_IOMMU_IVA2 available 
+"by default" I have no problem to try your patch else the original patch 
+that I had sent should be reconsidered.
 
--Manjunath
+Regards,
+Yogesh.
+ 
+> Anyway, I'm now trying iommu myself and will send this patch when I
+> get the dsp working.
+> 
+> --
+> Felipe Contreras
+
+
