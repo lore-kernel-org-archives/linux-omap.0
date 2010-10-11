@@ -1,57 +1,72 @@
-From: John Garland <johnnyg@cse.unsw.edu.au>
-Subject: Re: Hang on boot
-Date: Mon, 11 Oct 2010 22:35:19 +1100
-Message-ID: <AANLkTimzCZrd4XH5fW7rWvio84nY3wWO23nQockU_5Mf@mail.gmail.com>
-References: <AANLkTiknOwhUJny9WcYxROic+SP1eOcUmqbG7Kh9pPDY@mail.gmail.com> <1286780104.10205.32.camel@atlantis.mindbit.ro>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/2] omap: iommu: make iva2 iommu selectable
+Date: Mon, 11 Oct 2010 15:28:22 +0300 (EEST)
+Message-ID: <20101011.152822.226794892.Hiroshi.DOYU@nokia.com>
+References: <1286790830-13505-1-git-send-email-felipe.contreras@gmail.com>
+	<1286790830-13505-2-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from note.orchestra.cse.unsw.EDU.AU ([129.94.242.24]:45899 "EHLO
-	note.orchestra.cse.unsw.EDU.AU" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750852Ab0JKLfr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Oct 2010 07:35:47 -0400
-Received: From
-	mail-wy0-f174.google.com ([74.125.82.174]) (auth-user johnnyg) (cse-authentic-sender johnnyg)
-	(for <linux-omap@vger.kernel.org>) By note With Smtp ;
-	Mon, 11 Oct 2010 22:35:44 +1100
-Received: by wye20 with SMTP id 20so356804wye.19
-        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 04:35:40 -0700 (PDT)
-In-Reply-To: <1286780104.10205.32.camel@atlantis.mindbit.ro>
+Received: from smtp.nokia.com ([147.243.1.47]:62107 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754366Ab0JKM3T (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Oct 2010 08:29:19 -0400
+In-Reply-To: <1286790830-13505-2-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ionut Nicu <ionut.nicu@mindbit.ro>
-Cc: linux-omap@vger.kernel.org
+To: felipe.contreras@gmail.com
+Cc: linux-omap@vger.kernel.org, greg@kroah.com, felipe.contreras@nokia.com, fernando.lugo@ti.com, yogesh_marathe@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 11 October 2010 17:55, Ionut Nicu <ionut.nicu@mindbit.ro> wrote:
-> Hi,
->
-> On Mon, 2010-10-11 at 14:09 +1100, John Garland wrote:
->> Hi,
->>
->> Both the dspbridge and master branch of linux-omap seem to hang when
->> trying to boot (i.e. no output) on a beagleboard C2.
->> This is with the new omap2plus_defconfig (as opposed to the old
->> omap3_defconfig).
->>
->> Is anybody else experiencing this or does anyone have any idea what
->> could be causing this?
->>
->
-> Make sure you update your u-boot environment so that you have
-> console=ttyO2,115200 in your kernel command line (btw, it's ttyO2, not
-> tty02). It's been recently changed in the linux-omap tree (commit
-> d6e284d).
->
-> You'll probably also need to update your /etc/inittab.
->
-> Cheers,
-> Ionut.
->
->
->
+From: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH 1/2] omap: iommu: make iva2 iommu selectable
+Date: Mon, 11 Oct 2010 11:53:49 +0200
 
-You're a champ, that was the problem.
+> From: Felipe Contreras <felipe.contreras@nokia.com>
+> 
+> It seems dsp-link will do this, and tidspbridge too at some point, but
+> right now it's not possible to select CONFIG_MPU_BRIDGE_IOMMU.
 
-Cheers,
-John.
+Why does it have to be selectable?
+
+Please Cc: linux-arm-kernel@lists.infradead.org too.
+
+> 
+> Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
+> Cc: Yogesh Marathe <yogesh_marathe@ti.com>
+> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+> ---
+>  arch/arm/mach-omap2/omap-iommu.c |    2 +-
+>  arch/arm/plat-omap/Kconfig       |    3 +++
+>  2 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+> index f5a1aad..adc0904 100644
+> --- a/arch/arm/mach-omap2/omap-iommu.c
+> +++ b/arch/arm/mach-omap2/omap-iommu.c
+> @@ -35,7 +35,7 @@ static struct iommu_device omap3_devices[] = {
+>  			.clk_name = "cam_ick",
+>  		},
+>  	},
+> -#if defined(CONFIG_MPU_BRIDGE_IOMMU)
+> +#if defined(CONFIG_OMAP_IOMMU_IVA2)
+>  	{
+>  		.base = 0x5d000000,
+>  		.irq = 28,
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index e39a417..e0b41b6 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -109,6 +109,9 @@ config OMAP_IOMMU_DEBUG
+>  
+>           Say N unless you know you need this.
+>  
+> +config OMAP_IOMMU_IVA2
+> +	bool
+> +
+>  choice
+>  	prompt "System timer"
+>  	default OMAP_32K_TIMER if !ARCH_OMAP15XX
+> -- 
+> 1.7.3.1.2.g7fe2b
+> 
