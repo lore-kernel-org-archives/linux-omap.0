@@ -1,50 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/3] OMAP: control: add functions for DSP boot address/mode
- control
-Date: Mon, 11 Oct 2010 15:35:25 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1010111519410.16871@utopia.booyaka.com>
-References: <20101011203659.24425.2381.stgit@twilight.localdomain> <20101011203710.24425.94685.stgit@twilight.localdomain> <AANLkTimnQJxS_6PrgECeQFwEkNU=4-f5=bStWS-AtDcs@mail.gmail.com> <alpine.DEB.2.00.1010111449240.16871@utopia.booyaka.com>
- <20101011211616.GE25462@atomide.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7] power: introduce library for device-specific OPPs
+Date: Tue, 12 Oct 2010 00:08:16 +0200
+Message-ID: <201010120008.16388.rjw@sisk.pl>
+References: <[PATCH] power: introduce library for device-specific OPPs> <201010100059.20964.rjw@sisk.pl> <4CB32675.1090205@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39758 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756423Ab0JKVf0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 17:35:26 -0400
-In-Reply-To: <20101011211616.GE25462@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4CB32675.1090205@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Paul <paulmck@linux.vnet.ibm.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, fernando.lugo@ti.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org
 
-On Mon, 11 Oct 2010, Tony Lindgren wrote:
+On Monday, October 11, 2010, Nishanth Menon wrote:
+> Rafael J. Wysocki had written, on 10/09/2010 05:59 PM, the following:
+> [...]
+> >>
+> >> Signed-off-by: Nishanth Menon <nm@ti.com>
+> > 
+> > OK
+> > 
+> > Your error messages are a bit inconsistent (e.g. some of them print the
+> > error code while others don't), but I guess I can fix that up.
+> Thanks a bunch.
+> > 
+> > Still, to apply the patch I need a copyright notice for the doc too.
+> oops..
+> (C) 2009-2010 Nishanth Menon <nm@ti.com>, Texas Instruments Incorporated
+> Does this help?
 
-> Would be nice to get the dspbridge into working shape. Sounds we still
-> need the following:
-> 
-> - memblock fixes
-> - this series to fix the control module related issues
-> - platform data for the boards
-> 
-> Is that all, or are we also missing something else?
+Yes, it does.
 
-A few other things should be done also.
+> or would you like me to post a v8 as well?
 
-1. Most of the code in drivers/staging/tidspbridge/code/tiomap3430.c in 
-the bridge_brd_monitor(), bridge_brd_start(), and bridge_brd_stop() should 
-be moved into a file in arch/arm/mach-omap2.  The DSPBridge driver should 
-call those functions (to reset the DSP, start it, etc.) through 
-platform_data function pointers.  Once that happens, patch 3 of the 
-control module-related series would not be needed, since that code would 
-be in arch/arm/mach-omap2 anyway.
+That shouldn't be necessary.
 
-2. The direct CM/PRM/RM register access should be removed from that 
-arch/arm/mach-omap2 code.  That should be handled directly by the 
-clock/hwmod/whatever code.
-
-3. DSPBridge should be converted to use PM runtime, and the 
-arch/arm/mach-omap2 portion should use omap_device, omap_hwmod, etc.
-
-
-- Paul
+Thanks,
+Rafael
