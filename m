@@ -1,82 +1,152 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 3/3] staging: tidspbridge: remove memory consistency from TODO list
-Date: Mon, 11 Oct 2010 16:02:18 +0200
-Message-ID: <201010111602.18950.arnd@arndb.de>
-References: <1286732440-28644-1-git-send-email-felipe.contreras@gmail.com> <201010111240.25759.arnd@arndb.de> <AANLkTikq80dM_93k2byPXDexzz3J+g3Wiva3ieBbXmmf@mail.gmail.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: RE: [PATCHv3 3/17] dmtimer: add omap2420 hwmod database
+Date: Mon, 11 Oct 2010 19:38:29 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035E970C49@dbde02.ent.ti.com>
+References: <1285059116-26366-1-git-send-email-tarun.kanti@ti.com>
+ <4CA4FC22.9030806@ti.com>
+ <alpine.DEB.2.00.1010011623020.22941@utopia.booyaka.com>
+ <4CA98739.9040309@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB035E840680@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:53257 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769Ab0JKOBp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 10:01:45 -0400
-In-Reply-To: <AANLkTikq80dM_93k2byPXDexzz3J+g3Wiva3ieBbXmmf@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:57028 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754431Ab0JKOIg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 10:08:36 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035E840680@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>
+To: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gopinath, Thara" <thara@ti.com>, "Basak, Partha" <p-basak2@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Monday 11 October 2010, Felipe Contreras wrote:
-> On Mon, Oct 11, 2010 at 1:40 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Sunday 10 October 2010, Felipe Contreras wrote:
-> >> The mempool area is not handled by the kernel any more.
+Benoit, Paul, Kevin,
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of DebBarma, Tarun Kanti
+> Sent: Saturday, October 09, 2010 8:29 PM
+> To: Cousson, Benoit; Paul Walmsley
+> Cc: linux-omap@vger.kernel.org; Gopinath, Thara; Basak, Partha; Kevin
+> Hilman; Tony Lindgren
+> Subject: RE: [PATCHv3 3/17] dmtimer: add omap2420 hwmod database
+> 
+> Benoit, Paul,
+> 
+> > -----Original Message-----
+> > From: Cousson, Benoit
+> > Sent: Monday, October 04, 2010 1:20 PM
+> > To: Paul Walmsley
+> > Cc: DebBarma, Tarun Kanti; linux-omap@vger.kernel.org; Gopinath, Thara;
+> > Basak, Partha; Kevin Hilman; Tony Lindgren
+> > Subject: Re: [PATCHv3 3/17] dmtimer: add omap2420 hwmod database
 > >
-> > But tidspbridge still uses ioremap to set up the mapping for RAM,
-> > even though it now is outside of the kernel linar mapping.
+> > Hi Paul,
+> >
+> > On 10/2/2010 12:25 AM, Paul Walmsley wrote:
+> > > On Thu, 30 Sep 2010, Cousson, Benoit wrote:
+> > >
+> > >> On 9/21/2010 10:51 AM, DebBarma, Tarun Kanti wrote:
+> > >>
+> > >>>    #include "omap_hwmod_common_data.h"
+> > >>>
+> > >>>    #include "prm-regbits-24xx.h"
+> > >>> @@ -121,6 +123,614 @@ static struct omap_hwmod
+> omap2420_l4_wkup_hwmod
+> > = {
+> > >>>           .omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
+> > >>>           .flags          = HWMOD_NO_IDLEST,
+> > >>>    };
+> > >>> +/* Timer Common */
+> > >>> +static char *timer_clk_src_names[] = {
+> > >>> +       "sys_ck",
+> > >>> +       "func_32k_ck",
+> > >>> +       "alt_ck",
+> > >>> +       NULL,
+> > >>> +};
+> > >>
+> > >> I have an issue with that, because this is a pure duplication of the
+> > clock_sel
+> > >> information already contained in the clock data:
+> > >>
+> > >> static const struct clksel omap24xx_gpt_clksel[] = {
+> > >>          { .parent =&func_32k_ck, .rates = gpt_32k_rates },
+> > >> 	{ .parent =&sys_ck,      .rates = gpt_sys_rates },
+> > >>        	{ .parent =&alt_ck,      .rates = gpt_alt_rates },
+> > >> 	{ .parent = NULL },
+> > >> };
+> > >>
+> > >> And duplicating the same information somewhere else is most of the
+> time
+> > a bad
+> > >> idea.
+> > >
+> > > Yep, there's no way that info should be in the hwmod data, in the
+> > current
+> > > setup.  It belongs in the clkdev tables.  Example below.
+> > >
+> > >> That being said... I don't really know how to handle that properly :-
+> )
+> > >>
+> > >> We have to find a better way to select the proper source clock in a
+> soc
+> > >> independent way.
+> > >>
+> > >> Maybe Paul will have some idea?
+> > >
+> > > Here's how it's done:
+> > >
+> > >     http://marc.info/?l=linux-omap&m=128596931017785&w=2
+> > >
+> > > and
+> > >
+> > >     http://marc.info/?l=linux-omap&m=128596931417805&w=2
+> >
+> > The famous clock alias... I don't know why but I always forgot that
+> > solution each time I have such concern:-(
+> > This is indeed the very clean and cool way to do that clock selection.
+> > We can even remove this #define to identified them and use the clock
+> > string name directly.
+> >
 > 
-> Which is what ioremap() complained about, and how Russell King
-> suggested to solve the issue.
+> I will incorporate the suggestions. Thanks!!
+In the present implementation there is inconsistency in the clock source names for the different platforms, viz. OMAP2, OMAP3 and OMAP4 as shown below. Therefore, I will have to modify the names so that they all have common name across the platforms for the same type of clock. In this regard I am proposing to modify the clock source names similar to OMAP4. Of course we also have to look around to see if there are other modules who are using the clock and make the necessary changes.
 
-You are right that this is what Russell asked about, having a single
-mapping for memory means that you avoid the problems that the warning
-was put there for and you no longer risk memory corruption. That
-is good and the changes you did are the important ones.
+I would like to hear from you and get your inputs! Thanks.
+-tarun
 
-What I'm arguing is that you still don't use the interface in the
-way it's designed and things might break again in the future.
-For instance, I've seen platforms where readl/writel is not a pointer
-dereference but a hypercall or goes through an indirect index/data
-register pair. I hope we don't ever get something like this on ARM,
-but it would still be good to write the code in a more robust way
-that doesn't mix __iomem tokens with kernel pointers.
+OMAP2430
+static char *timer_clk_src_names[] = {
+        "sys_ck",
+        "func_32k_ck",
+        "alt_ck",
+        NULL
+};
+OMAP3xxx
+static char *timer_clk_src_names[] = {
+        "sys_ck",
+        "omap_32k_fck",
+        NULL,
+};
 
-> > You should really only use ioremap on MMIO registers, nothing
-> > else. These registers are marked as __iomem pointers and can only
-> > be passed into functions that talk to the hardware like iowrite32
-> > or writel, but not used like memory.
-> 
-> From what I can see parts of this memory are also used for readl/writel.
+OMAP4
+static char *timer_clk_src_names[] = {
+        "sys_clkin_ck",
+        "sys_32k_ck",
+        NULL,
+};
 
-In that case, it's worse than I thought ;-)
+static char *timer_clk_src_names_abe[] = {
+        "syc_clk_div_ck",
+        "sys_32k_ck",
+        NULL,
+};
 
-If you use readl(), it needs to be an __iomem pointer, if you use it
-by direct dereferences, it must not be __iomem.
 
-Obviously, you need to use ioremap to target the device registers,
-but I don't see how it could make sense for a communication area
-in memory.
-
-> > Please have a look at "sparse", which will warn about address space
-> > violations among other things. The tidspbridge driver is full of them,
-> > and you should fix the code that sparse warns about, which will
-> > also show you all the places where ioremap is used incorrectly.
-> 
-> In one of my branches I moved ioremap() to arch/arm/mach-omap2/dsp.c
-> and if I use sparse there, it gives no warning.
-
-I don't see how moving the code around would get rid of an address
-space warning, unless you play dirty tricks like using __force
-casts or passing pointers around as integers.
-
-> I would prefer to map the memory some other way and make it
-> non-cacheable, but I don't know any other way. Then, if readl/writel
-> are still needed, only ioremap() that area. And finally, and
-> hopefully, do cache flushes instead of requiring consistent memory.
-
-Yes, that sounds reasonable. Can you use a chunk of regular kernel
-memory with dma_map_single/dma_sync_single_for_{cpu,device} for this,
-like normal drivers do?
-
-	Arnd
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
