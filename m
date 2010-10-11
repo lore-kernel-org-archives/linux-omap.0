@@ -1,34 +1,70 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv3 17/17] dmtimer: remove OCP config code from plat-omap
-Date: Mon, 11 Oct 2010 17:00:47 +0200
-Message-ID: <4CB3269F.8060708@ti.com>
-References: <1285059404-26718-1-git-send-email-tarun.kanti@ti.com> <4CA9E41C.7000504@ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB035E970AC8@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB035E970AD7@dbde02.ent.ti.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCHv3 00/11] staging tidspbridge: iommu migration
+Date: Mon, 11 Oct 2010 10:03:07 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F47B2BB1@dlee06.ent.ti.com>
+References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
+ <AANLkTimoTmhAw11jJihiuyByzKZ9KTFHvx6iw8oeLCGg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36829 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754749Ab0JKPAw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 Oct 2010 11:00:52 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035E970AD7@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimoTmhAw11jJihiuyByzKZ9KTFHvx6iw8oeLCGg@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "gregkh@suse.de" <gregkh@suse.de>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Basak, Partha" <p-basak2@ti.com>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-On 10/11/2010 11:41 AM, DebBarma, Tarun Kanti wrote:
+ 
 
-<...>
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
+> Sent: Sunday, October 10, 2010 12:33 PM
+> To: Guzman Lugo, Fernando
+> Cc: gregkh@suse.de; felipe.contreras@nokia.com; 
+> ameya.palande@nokia.com; Menon, Nishanth; 
+> Hiroshi.DOYU@nokia.com; ohad@wizery.com; 
+> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
+> linux-omap@vger.kernel.org
+> Subject: Re: [PATCHv3 00/11] staging tidspbridge: iommu migration
+> 
+> On Tue, Oct 5, 2010 at 11:35 PM, Fernando Guzman Lugo 
+> <x0095840@ti.com> wrote:
+> > This set of patches remove the dspbridge custom mmu 
+> implementation and 
+> > use iommu module instead.
+> 
+> I have tried this, it works for simple tests, but not real use-cases.
+> I applied all your iommu patches. How did you test this?
 
->> In summary, I will make following updates:
->> .clockact = 0x2
->> SYSC_HAS_CLOCKACTIVITY flag should be included.
-> After going through the code I realized that this flag is already there.
-> I am not sure where you observed this flag missing?
+Have you applied:
 
-You're right, it was missing from the patch, but in fact already there 
-in the code.
-Sorry on that one.
+- "scatterlist: define SG chain for arm architecture"
+- "iovmm: replace __iounmap with omap_iounmap"
+- "iovmm: add superpages support to fixed da address"
+- "iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF"
+- "iovmm: no gap checking for fixed address"
 
-Benoit
+Also make sure your baseline have this patch:
+
+- "omap:iommu-load cam register before flushing the entry"
+
+
+What kind of error are you getting?
+
+I don't have a complete framework to test MM testcases at this moment
+I did not stress test but a bridge level, and they were good, just some
+Mailbox issues beucase of the lack of some patches. So I was waiting
+All missing patches are merge in order to do more stressing testing because
+I think there is some race conditions in iommu module that need to be fixed.
+
+You can email me the case and erros you are facing privately and I will
+Check them, maybe it is because of missing patches.
+
+Regards,
+Fernando.
+
+> 
+> --
+> Felipe Contreras
+> 
