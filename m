@@ -1,41 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: PM: fix scratchpad memory accesses for off-mode
-Date: Mon, 11 Oct 2010 10:03:30 -0700
-Message-ID: <20101011170330.GA25462@atomide.com>
-References: <1286577825-22029-1-git-send-email-khilman@deeprootsystems.com>
+From: Rabin Vincent <rabin@rab.in>
+Subject: Re: [PATCH 2/2] ftrace - add ftrace function_graph support on ARM
+Date: Mon, 11 Oct 2010 22:45:55 +0530
+Message-ID: <AANLkTi=33EUPFLzTr3zRHL1+CEm7JpqU18cFzzmpbAsG@mail.gmail.com>
+References: <4B91A39F.8050502@am.sony.com>
+	<20100306201849.GD13262@n2100.arm.linux.org.uk>
+	<AANLkTi=apGYBSSr4RK+ZZievacJRcOxrwW_o_hz85P0h@mail.gmail.com>
+	<20101009193757.GB28183@n2100.arm.linux.org.uk>
+	<20101010220603.GA2723@debian>
+	<20101011082535.GA26355@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49280 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755483Ab0JKRDe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 13:03:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1286577825-22029-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:45578 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755390Ab0JKRP5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 13:15:57 -0400
+Received: by wye20 with SMTP id 20so636172wye.19
+        for <linux-omap@vger.kernel.org>; Mon, 11 Oct 2010 10:15:56 -0700 (PDT)
+In-Reply-To: <20101011082535.GA26355@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, jean.pihet@newoldbits.com, "G, Manjunath Kondaiah" <manjugk@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tim Bird <tim.bird@am.sony.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [101008 15:35]:
-> Commit 914bab936fe0388a529079679e2f137aa4ff548d (OMAP: mach-omap2: Fix
-> incorrect assignment warnings) changed a pointer from 'u32 *' to
-> 'void *' without also fixing up the pointer arithmetic.
-> 
-> Fix the scratchpad offsets so they are byte offsets instead of
-> word offsets and thus work correctly with a void pointer base.
-> 
-> Special thanks to Jean Pihet for taking the time track down this
-> problem and propose an initial solution.
-> 
-> Tested with off-idle and off-suspend on 36xx/Zoom3 and 34xx/omap3evm.
-> 
-> Cc: G, Manjunath Kondaiah <manjugk@ti.com>
-> Reported-by: Jean Pihet <jean.pihet@newoldbits.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> Tony, we need this queued for 2.6.37 as this is a regression fix.
+On Mon, Oct 11, 2010 at 1:55 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> And now to go back to the original question I asked: What is __irq_entry
+> used for?
 
-Thanks, adding to omap-for-linus.
+It's used to identify when we're inside the interrupt handling path.
+Depending upon the tracing options ("funcgraph-irqs"), this can be
+excluded from the trace output.
 
-Tony
+> If it's to identify those functions which can't be traced through because
+> of the stack layout, that's true of all __exception marked functions -
+> so we might as well make the linker symbols for irqentry alias the
+> exception text symbols.
+>
+> I see nothing special of just the three functions you mention that warrant
+> them being handled separately by ftrace.
+
+See above.  The funcgraph-irqs option is supposed to only affect the
+interrupt handling path, not all exception handling.
