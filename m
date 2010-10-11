@@ -1,63 +1,67 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH v4] ARM: Fix sparse warnings due to variables conflicts.
-Date: Mon, 11 Oct 2010 09:14:26 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBABBC2D@dbde02.ent.ti.com>
-References: <1286517186-29934-1-git-send-email-sourav.poddar@ti.com>
- <4CAF014D.7000909@ti.com> <20101008173615.GJ7558@atomide.com>
+Subject: RE: [PATCH v2 01/10] OMAP: mach-omap2: Fix incorrect assignment
+ warnings
+Date: Mon, 11 Oct 2010 09:21:13 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBABBC38@dbde02.ent.ti.com>
+References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
+	<1285063280-4057-2-git-send-email-manjugk@ti.com>
+ <878w28v3xx.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42202 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48257 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753092Ab0JKDoi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 23:44:38 -0400
-In-Reply-To: <20101008173615.GJ7558@atomide.com>
+	id S1753121Ab0JKDvW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 Oct 2010 23:51:22 -0400
+In-Reply-To: <878w28v3xx.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: "Poddar, Sourav" <sourav.poddar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Varadarajan, Charulatha" <charu@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>
 
-Tony,
+ 
 
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Friday, October 08, 2010 11:06 PM
-> To: Menon, Nishanth
-> Cc: Poddar, Sourav; linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Shilimkar, Santosh; G, 
-> Manjunath Kondaiah; Varadarajan, Charulatha
-> Subject: Re: [PATCH v4] ARM: Fix sparse warnings due to 
-> variables conflicts.
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Saturday, October 09, 2010 1:43 AM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Tony Lindgren; Menon, Nishanth
+> Subject: Re: [PATCH v2 01/10] OMAP: mach-omap2: Fix incorrect 
+> assignment warnings
 > 
-> * Nishanth Menon <nm@ti.com> [101008 04:24]:
-> > Poddar, Sourav had written, on 10/08/2010 12:53 AM, the following:
-> > >Fix the sparse warnings generated due to conflicts in 
-> variables used in readl/writel.
-> > >
-> > >
-> > >drivers/net/smc91x.c:312:8: warning: symbol '__v' shadows 
-> an earlier 
-> > >one
-> > >drivers/net/smc91x.c:312:8: originally declared here
-> > >
-> > >With this change, about 200 sparse warnings are fixed.
-> > The commit message could be a little more detailed.
-> > see http://marc.info/?l=linux-omap&m=128648102511076&w=2
-> > 
-> > also should $subject say ARM: io: fix namespace conflict to better 
-> > reflect the fix? sparse warnings are just an indication IMHO
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
 > 
-> BTW, also dropping the "OMAP: Convert write/read functions to 
-> raw read/write".
+> > This patch fixes below sparse warnings for incorrect assignments.
 > 
-> That patch does not compute, and also ends up leaving files 
-> with __raw_readw followed by writew..
+> As pointed out by Jean, this patch fixed some sparse 
+> warnings, but also broke some things, specifically off mode.
 > 
+> In the future, *please* be sure to test the code paths that 
+> are being changed.  This patch changed some code that is only 
+> exercised during off-mode, but was clearly not tested with 
+> off mode enabled.
+> 
+> As background for why this broke functionality, keep this in mind:
+> 
+>  	void *a = NULL;
+> 	u32 *b = NULL;
+> 
+> a + 1 = 1
+> b + 1 = 4
+> 
+> IOW, you cannot simply replace a 'u32 *' by a 'void *' 
+> without checking and fixing any pointer arithmetic.
 
-Why to revert patch "OMAP: Convert write/read functions to raw read/write" 
-since we need to replace other __raw_read/__raw_writel functions if above 
-patch gets accepted.
+I apologize for breaking off mode support. Since sparse fixes is big patch
+series, I was able to test only boot and same was mentioned along with
+the test report in the series. Also, multiple versions of patches posted
+for review, I was expecting comments on this type of regressions.
+
+I will take care of testing code coverage paths for future patches.
+
+Thanks to Jean and Kevin for identifying and fixing this regression.
 
 -Manjunath
