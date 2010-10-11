@@ -1,63 +1,50 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [PATCH] regulator: fix build when CONFIG_REGULATOR_DUMMY=n
-Date: Mon, 11 Oct 2010 22:22:35 +0100
-Message-ID: <1286832155.3283.21.camel@odin>
-References: <1286814955-23415-1-git-send-email-gadiyar@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/3] OMAP: control: add functions for DSP boot address/mode
+ control
+Date: Mon, 11 Oct 2010 15:35:25 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1010111519410.16871@utopia.booyaka.com>
+References: <20101011203659.24425.2381.stgit@twilight.localdomain> <20101011203710.24425.94685.stgit@twilight.localdomain> <AANLkTimnQJxS_6PrgECeQFwEkNU=4-f5=bStWS-AtDcs@mail.gmail.com> <alpine.DEB.2.00.1010111449240.16871@utopia.booyaka.com>
+ <20101011211616.GE25462@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1286814955-23415-1-git-send-email-gadiyar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Randy Dunlap <randy.dunlap@oracle.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:39758 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756423Ab0JKVf0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 Oct 2010 17:35:26 -0400
+In-Reply-To: <20101011211616.GE25462@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, fernando.lugo@ti.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org
 
-On Mon, 2010-10-11 at 22:05 +0530, Anand Gadiyar wrote:
-> Commit f03f91826 (regulator: Add option for machine drivers
-> to enable the dummy regulator) in the regulators tree
-> seems to have introduced the following build break when
-> CONFIG_REGULATOR_DUMMY is disabled. Fix this.
-> 
->   CC      drivers/regulator/dummy.o
-> drivers/regulator/dummy.c:41: error: redefinition of 'regulator_dummy_init'
-> drivers/regulator/dummy.h:28: note: previous definition of 'regulator_dummy_init' was here
-> make[2]: *** [drivers/regulator/dummy.o] Error 1
-> make[1]: *** [drivers/regulator] Error 2
-> make: *** [drivers] Error 2
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Liam Girdwood <lrg@slimlogic.co.uk>
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> ---
-> The commit referenced above is in linux next as of 20101011
-> and breaks builds of the omap2plus_defconfig at least.
-> 
->  drivers/regulator/dummy.h |    4 ----
->  1 file changed, 4 deletions(-)
-> 
-> Index: mainline/drivers/regulator/dummy.h
-> ===================================================================
-> --- mainline.orig/drivers/regulator/dummy.h
-> +++ mainline/drivers/regulator/dummy.h
-> @@ -22,10 +22,6 @@ struct regulator_dev;
->  
->  extern struct regulator_dev *dummy_regulator_rdev;
->  
-> -#ifdef CONFIG_REGULATOR_DUMMY
->  void __init regulator_dummy_init(void);
-> -#else
-> -static inline void regulator_dummy_init(void) { }
-> -#endif
->  
->  #endif
+On Mon, 11 Oct 2010, Tony Lindgren wrote:
 
-Applied.
+> Would be nice to get the dspbridge into working shape. Sounds we still
+> need the following:
+> 
+> - memblock fixes
+> - this series to fix the control module related issues
+> - platform data for the boards
+> 
+> Is that all, or are we also missing something else?
 
-Thanks
+A few other things should be done also.
 
-Liam
--- 
-Freelance Developer, SlimLogic Ltd
-ASoC and Voltage Regulator Maintainer.
-http://www.slimlogic.co.uk
+1. Most of the code in drivers/staging/tidspbridge/code/tiomap3430.c in 
+the bridge_brd_monitor(), bridge_brd_start(), and bridge_brd_stop() should 
+be moved into a file in arch/arm/mach-omap2.  The DSPBridge driver should 
+call those functions (to reset the DSP, start it, etc.) through 
+platform_data function pointers.  Once that happens, patch 3 of the 
+control module-related series would not be needed, since that code would 
+be in arch/arm/mach-omap2 anyway.
+
+2. The direct CM/PRM/RM register access should be removed from that 
+arch/arm/mach-omap2 code.  That should be handled directly by the 
+clock/hwmod/whatever code.
+
+3. DSPBridge should be converted to use PM runtime, and the 
+arch/arm/mach-omap2 portion should use omap_device, omap_hwmod, etc.
+
+
+- Paul
