@@ -1,83 +1,102 @@
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: g_ether broken on musb
-Date: Mon, 11 Oct 2010 18:53:01 +0800
-Message-ID: <AANLkTikMbMFWp4GqZqF1csU1GOfGypcCteFZx_KPJxqx@mail.gmail.com>
-References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
-	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
-	<AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
-	<AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m@mail.gmail.com>
-	<AANLkTimfCnCL6NzJEThNDSeNx_Axxdyct88-hyDFQvjJ@mail.gmail.com>
-	<AANLkTik5X=ypNxu4QgiLUFia0b42T=r-Di1MsZCrCsCx@mail.gmail.com>
-	<AANLkTikRe-U4sXPW6U7obCQen-wT=f6JC9wsH5hG04G6@mail.gmail.com>
-	<AANLkTin7PBPvHOpRJPh1_nABxhvTYNDJtVEGXUWN0mtF@mail.gmail.com>
-	<AANLkTik_MNGaMRBBpX3_sPTwF9+en=qX=O52DrfLTGuW@mail.gmail.com>
-	<AANLkTikcMaQZViXOBWM3roiyOZcpUzjAqV49k=4pMA+9@mail.gmail.com>
-	<AANLkTinonnO05D9Y5oGrpMZLT6rYT_5sUp9_RSONDLfr@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinonnO05D9Y5oGrpMZLT6rYT_5sUp9_RSONDLfr-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] omap: serial: Fix the boot-up crash/reboot without CONFIG_PM
+Date: Mon, 11 Oct 2010 16:35:18 +0530
+Message-ID: <1286795118-11490-1-git-send-email-santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58611 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750862Ab0JKLF1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 11 Oct 2010 07:05:27 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@deeprootsystems.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Charulatha V <charu@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-2010/10/11 Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->>> which effectively disables DMA due to a bug in it, so it's probably
->>> DMA problems on my board. Here is my log:
->>
->> Yes, your issue may be related with ep1out Rx DMA, but I am not sure
->> since the very important message between timestamp 39.256011 and
->> 85.210693 is not provided by you, why not post all messages?
->
-> I did not remove any messages (only added annotation), there was
-> simply no output. I suppose something wrong happens after
+The omap2plus_defconfig doesn't boot up when built with CONFIG_PM
+disabled on the latest linux-omap master. Below are the observations
+1. OMAP3 reboots in the middle of boot
+--------------------------------------------------
+[    0.000000] Calibrating delay loop... 494.72 BogoMIPS (lpj=1933312)
+[    0.000000] pid_max: default: 32768 minimum: 301
+[    0.000000] Security Framework initialized
+[    0.000000] Mount-cache hash table entries: 512
+[    0.000000] CPU: Testing write buffer coherency: ok
+[    0.000000] Brought up 1 CPUs
+[    0.000000] SMP: Total of 1 processors activated (494.72 BogoMIPS).
+[    0.000000] regulator: core version 0.5
+[    0.000000] NET: Registered protocol family 16
 
-If so, no any rx interrupt for ep1out comes after request is queued sin=
-ce
-musb_g_rx is not called from your log.
+U-Boot 1.1.4 (Feb 11 2009 - 16:10:23)
 
-There is two possibilities:
+OMAP3430-GP rev 2, CPU-OPP2 L3-165MHz
+TI 3430SDP 1.0 Version + mDDR (Boot NOR)
+DRAM:  128 MB
+Flash: 128 MB
+NAND:128 MiB
+--------------------------------------------------
 
-         - usb host does not send any packets to ep1out
+2. OMAP4 does a kernel PANIC
+-------------------------------------
+[    0.000000] Calibrating delay loop... 1195.29 BogoMIPS (lpj=4669440)
+[    0.000000] pid_max: default: 32768 minimum: 301
+[    0.000000] Security Framework initialized
+[    0.000000] Mount-cache hash table entries: 512
+[    0.000000] CPU: Testing write buffer coherency: ok
+[    0.000000] L310 cache controller enabled
+[    0.000000] l2x0: 16 ways, CACHE_ID 0x410000c2, AUX_CTRL 0x0e050000
+[    0.000000] CPU1: Booted secondary processor
+[    0.000000] Brought up 2 CPUs
+[    0.000000] SMP: Total of 2 processors activated (2395.78 BogoMIPS).
+[    0.000000] regulator: core version 0.5
+[    0.000000] NET: Registered protocol family 16
+[    0.000000] mux: Could not set signal i2c2_scl.i2c2_scl
+[    0.000000] mux: Could not set signal i2c2_sda.i2c2_sda
+[    0.000000] mux: Could not set signal i2c3_scl.i2c3_scl
+[    0.000000] mux: Could not set signal i2c3_sda.i2c3_sda
+[    0.000000] mux: Could not set signal i2c4_scl.i2c4_scl
+[    0.000000] mux: Could not set signal i2c4_sda.i2c4_sda
+-------------------------------------
 
-         - packets has been sent from usb host to musb gadget, but omap=
-3
-          is not notified by musb rx interrupt, or there is no musb rx
-interrupt.
+This is happening because 'omap_serial_init()' is hanging in the boot.
+On OMAP3 the watchdog is generating reboot because devices_init doesn't
+happens where as on OMAP4 it just hangs without reboot.
+The uart clock is not getting enabled after omap_device_idle as part
+of omap_serial_init.
+The omap_device_idle(will disable the clock) then omap_uart_block_sleep()
+should enable clock back disabled during the boot up phase.
+But omap_uart_block_sleep() stuffed version is binded only under
+CONFIG_PM and other version is just empty. Hence it is not enabling
+clock back as expected
 
-You can trace usb traffic in usb host to see if there are packets sent
-to ep1out, usbmon can do it for you, please see Documentation/usb/usbmo=
-n.txt
-for reference.  If no packets are traced for ep1out, your problem is no=
-thing
-to do with musb, and may should be related with usb host driver(usbnet?=
-).
+This patch adds uart clock enable code to omap_uart_block_sleep() function
+built with CONFIG_PM disabled.
+Thanks to Charulatha and Govindraj for their help on this debug.
 
-> [ =A0 29.816711] txstate 286: ep2in old packet still ready , txcsr 20=
-03
->
-> There should be an interrupt?
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+Boot tested on OMAP3430 and OMAP4430 SDP
+ arch/arm/mach-omap2/serial.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-No, the irq is for ep2in, but the problem is in ep1out now. And the onl=
-y means
-old packet has not been sent out from ep2in.
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 338e46a..ba8a5cc 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -608,7 +608,11 @@ static DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show,
+ #define DEV_CREATE_FILE(dev, attr) WARN_ON(device_create_file(dev, attr))
+ #else
+ static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
+-static void omap_uart_block_sleep(struct omap_uart_state *uart) {}
++static void omap_uart_block_sleep(struct omap_uart_state *uart)
++{
++	/* Needed to enable UART clocks when built without CONFIG_PM */
++	omap_uart_enable_clocks(uart);
++}
+ #define DEV_CREATE_FILE(dev, attr)
+ #endif /* CONFIG_PM */
+ 
+-- 
+1.6.0.4
 
->
->> If possible, please provide all the debug message instead of just se=
-lecting
->> part of them.
->
-> The log I posted is full, I do not get any more output.
->
-
-If you are sure, it is OK.
-
-thanks,
---=20
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
