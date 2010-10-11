@@ -1,90 +1,205 @@
-From: Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: g_ether broken on musb
-Date: Mon, 11 Oct 2010 23:09:23 +0800
-Message-ID: <AANLkTi=CZamgsj++w4_v=EEdkL1NAQRxZyJ2aWBVyK3m@mail.gmail.com>
-References: <AANLkTinVTKaJ9XcL7rbnBMmw0dLEJqQKZEQ=ypk3tikV@mail.gmail.com>
-	<AANLkTin0_RR+m5-BArOhWAGhJY4Mvd3mE53nzEK-9YRk@mail.gmail.com>
-	<AANLkTi=gw7EzLdhBPrLkraRtuRiE5e9oUC5LOxGHfReU@mail.gmail.com>
-	<AANLkTintN9anKx1JVGVjusyEX9Q9cr-Bo_oiNdkvwa_m@mail.gmail.com>
-	<AANLkTimfCnCL6NzJEThNDSeNx_Axxdyct88-hyDFQvjJ@mail.gmail.com>
-	<AANLkTik5X=ypNxu4QgiLUFia0b42T=r-Di1MsZCrCsCx@mail.gmail.com>
-	<AANLkTikRe-U4sXPW6U7obCQen-wT=f6JC9wsH5hG04G6@mail.gmail.com>
-	<AANLkTin7PBPvHOpRJPh1_nABxhvTYNDJtVEGXUWN0mtF@mail.gmail.com>
-	<AANLkTik_MNGaMRBBpX3_sPTwF9+en=qX=O52DrfLTGuW@mail.gmail.com>
-	<AANLkTikcMaQZViXOBWM3roiyOZcpUzjAqV49k=4pMA+9@mail.gmail.com>
-	<AANLkTinonnO05D9Y5oGrpMZLT6rYT_5sUp9_RSONDLfr@mail.gmail.com>
-	<AANLkTikMbMFWp4GqZqF1csU1GOfGypcCteFZx_KPJxqx@mail.gmail.com>
-	<AANLkTin21EYbvm68smSL9132rGh5GAYCQmTaCkJE2yGr@mail.gmail.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCHv2 2/3] iovmm: add superpages support to fixed da address
+Date: Mon, 11 Oct 2010 10:33:42 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F47B2BF1@dlee06.ent.ti.com>
+References: <1286226137-1233-1-git-send-email-x0095840@ti.com>
+	<1286226137-1233-2-git-send-email-x0095840@ti.com>
+	<1286226137-1233-3-git-send-email-x0095840@ti.com>
+ <AANLkTimF5HqA0pbp7NXOXxOcuMMJWp9yuJPsw8-iPKjh@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTin21EYbvm68smSL9132rGh5GAYCQmTaCkJE2yGr-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimF5HqA0pbp7NXOXxOcuMMJWp9yuJPsw8-iPKjh@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "david.cohen@nokia.com" <david.cohen@nokia.com>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-2010/10/11 Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> On Mon, Oct 11, 2010 at 1:53 PM, Ming Lei <tom.leiming-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wro=
-te:
->> 2010/10/11 Grazvydas Ignotas <notasas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->>>>> which effectively disables DMA due to a bug in it, so it's probab=
-ly
->>>>> DMA problems on my board. Here is my log:
->>>>
->>>> Yes, your issue may be related with ep1out Rx DMA, but I am not su=
-re
->>>> since the very important message between timestamp 39.256011 and
->>>> 85.210693 is not provided by you, why not post all messages?
->>>
->>> I did not remove any messages (only added annotation), there was
->>> simply no output. I suppose something wrong happens after
->>
->> If so, no any rx interrupt for ep1out comes after request is queued =
-since
->> musb_g_rx is not called from your log.
->>
->> There is two possibilities:
->>
->> =A0 =A0 =A0 =A0 - usb host does not send any packets to ep1out
->>
->> =A0 =A0 =A0 =A0 - packets has been sent from usb host to musb gadget=
-, but omap3
->> =A0 =A0 =A0 =A0 =A0is not notified by musb rx interrupt, or there is=
- no musb rx
->> interrupt.
->>
->> You can trace usb traffic in usb host to see if there are packets se=
-nt
->> to ep1out, usbmon can do it for you, please see Documentation/usb/us=
-bmon.txt
->> for reference. =A0If no packets are traced for ep1out, your problem =
-is nothing
->> to do with musb, and may should be related with usb host driver(usbn=
-et?).
->
-> ok here are usbmon logs, taken using same scenario:
-> http://notaz.gp2x.de/misc/pnd/linux_next_20101008_usbmon
->
-> and here is usbmon log when musb runs in PIO mode and ping works:
-> http://notaz.gp2x.de/misc/pnd/linux_next_20101008_usbmon_nodma
->
-> So maybe it's ep2in issue after all?
->
+=20
 
-Yes, it is really with ep2in, and musb ep2in always return more data to
-host so cause overflow in host.
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]=20
+> Sent: Sunday, October 10, 2010 10:22 AM
+> To: Guzman Lugo, Fernando
+> Cc: Hiroshi.DOYU@nokia.com; david.cohen@nokia.com;=20
+> felipe.contreras@nokia.com; ameya.palande@nokia.com;=20
+> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com;=20
+> linux-omap@vger.kernel.org
+> Subject: Re: [PATCHv2 2/3] iovmm: add superpages support to=20
+> fixed da address
+>=20
+> On Tue, Oct 5, 2010 at 12:02 AM, Fernando Guzman Lugo=20
+> <x0095840@ti.com> wrote:
+> > This patch adds superpages support to fixed ad address inside=20
+> > iommu_kmap function.
+> >
+> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> > ---
+> > =A0arch/arm/plat-omap/iovmm.c | =A0 61=20
+> > ++++++++++++++++++++++++++-----------------
+> > =A01 files changed, 37 insertions(+), 24 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/iovmm.c=20
+> b/arch/arm/plat-omap/iovmm.c=20
+> > index 34f0012..8006a19 100644
+> > --- a/arch/arm/plat-omap/iovmm.c
+> > +++ b/arch/arm/plat-omap/iovmm.c
+> > @@ -87,27 +87,37 @@ static size_t sgtable_len(const struct sg_table=
+=20
+> > *sgt)
+> > =A0}
+> > =A0#define sgtable_ok(x) =A0(!!sgtable_len(x))
+> >
+> > +
+> > +static unsigned max_alignment(u32 addr) {
+> > + =A0 =A0 =A0 int i;
+> > + =A0 =A0 =A0 unsigned pagesize[] =3D { SZ_16M, SZ_1M, SZ_64K, SZ_4=
+K, };
+> > + =A0 =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(pagesize) && addr &=20
+> (pagesize[i] -=20
+> > +1); i++)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ;
+> > + =A0 =A0 =A0 return (i < ARRAY_SIZE(pagesize)) ? pagesize[i] : 0; =
+}
+> > +
+> > +
+>=20
+> I don't think those extra spaces make sense.
 
-I see what triggered your issue, please try the patch in the link below=
-:
+Ok, it will be fixed.
 
-       http://marc.info/?l=3Dlinux-usb&m=3D128576496614332&w=3D2
+>=20
+> > =A0/*
+> > =A0* calculate the optimal number sg elements from total=20
+> bytes based on
+> > =A0* iommu superpages
+> > =A0*/
+> > -static unsigned int sgtable_nents(size_t bytes)
+> > +static unsigned int sgtable_nents(size_t bytes, u32 da, u32 pa)
+> > =A0{
+> > - =A0 =A0 =A0 int i;
+> > - =A0 =A0 =A0 unsigned int nr_entries;
+> > - =A0 =A0 =A0 const unsigned long pagesize[] =3D { SZ_16M, SZ_1M, S=
+Z_64K,=20
+> > SZ_4K, };
+> > + =A0 =A0 =A0 unsigned int nr_entries =3D 0, ent_sz;
+>=20
+> How about s/unsigned int/unsigned/?
 
+It is exactly the same, but not problem for me.
 
---=20
-Lei Ming
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>=20
+> >
+> > =A0 =A0 =A0 =A0if (!IS_ALIGNED(bytes, PAGE_SIZE)) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: wrong size %08x\n", __fu=
+nc__, bytes);
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
+> > =A0 =A0 =A0 =A0}
+> >
+> > - =A0 =A0 =A0 nr_entries =3D 0;
+> > - =A0 =A0 =A0 for (i =3D 0; i < ARRAY_SIZE(pagesize); i++) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (bytes >=3D pagesize[i]) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_entries +=3D (byte=
+s / pagesize[i]);
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes %=3D pagesize[i=
+];
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> > + =A0 =A0 =A0 while (bytes) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ent_sz =3D max_alignment(da | pa);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ent_sz =3D min(ent_sz, (unsigned)iopg=
+sz_max(bytes));
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_entries++;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 da +=3D ent_sz;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pa +=3D ent_sz;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes -=3D ent_sz;
+> > =A0 =A0 =A0 =A0}
+> > =A0 =A0 =A0 =A0BUG_ON(bytes);
+> >
+> > @@ -115,7 +125,8 @@ static unsigned int sgtable_nents(size_t bytes)
+> > =A0}
+> >
+> > =A0/* allocate and initialize sg_table header(a kind of=20
+> 'superblock') */=20
+> > -static struct sg_table *sgtable_alloc(const size_t bytes,=20
+> u32 flags)
+> > +static struct sg_table *sgtable_alloc(const size_t bytes,=20
+> u32 flags,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 da, u32=20
+> > +pa)
+> > =A0{
+> > =A0 =A0 =A0 =A0unsigned int nr_entries;
+> > =A0 =A0 =A0 =A0int err;
+> > @@ -127,9 +138,8 @@ static struct sg_table=20
+> *sgtable_alloc(const size_t=20
+> > bytes, u32 flags)
+> > =A0 =A0 =A0 =A0if (!IS_ALIGNED(bytes, PAGE_SIZE))
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-EINVAL);
+> >
+> > - =A0 =A0 =A0 /* FIXME: IOVMF_DA_FIXED should support 'superpages' =
+*/
+> > - =A0 =A0 =A0 if ((flags & IOVMF_LINEAR) && (flags & IOVMF_DA_ANON)=
+) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_entries =3D sgtable_nents(bytes);
+> > + =A0 =A0 =A0 if (flags & IOVMF_LINEAR) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 nr_entries =3D sgtable_nents(bytes, d=
+a, pa);
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!nr_entries)
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return ERR_PTR(-EINV=
+AL);
+> > =A0 =A0 =A0 =A0} else
+> > @@ -409,7 +419,8 @@ static inline void sgtable_drain_vmalloc(struct=
+=20
+> > sg_table *sgt)
+> > =A0 =A0 =A0 =A0BUG_ON(!sgt);
+> > =A0}
+> >
+> > -static void sgtable_fill_kmalloc(struct sg_table *sgt, u32=20
+> pa, size_t=20
+> > len)
+> > +static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, u32=
+=20
+> > +da,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=20
+> =A0 =A0 size_t=20
+> > +len)
+> > =A0{
+> > =A0 =A0 =A0 =A0unsigned int i;
+> > =A0 =A0 =A0 =A0struct scatterlist *sg;
+> > @@ -420,7 +431,8 @@ static void sgtable_fill_kmalloc(struct=20
+> sg_table=20
+> > *sgt, u32 pa, size_t len)
+> > =A0 =A0 =A0 =A0for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0size_t bytes;
+> >
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes =3D iopgsz_max(len);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes =3D max_alignment(da | pa);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bytes =3D min(bytes, (size_t)iopgsz_m=
+ax(len));
+>=20
+> Why the size_t casting?
+
+To void this warning:
+arch/arm/plat-omap/iovmm.c:440: warning: comparison of distinct pointer=
+ types lacks a cast
+
+I will update with minor changes and resend.
+
+Thanks and regards,
+=46ernando.
+
+>=20
+> Otherwise:
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+>=20
+> --
+> Felipe Contreras
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-kernel"=
+ in
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
