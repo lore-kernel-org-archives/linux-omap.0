@@ -1,48 +1,84 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ASoC: OMAP4: MCPDM: Remove unnecessary
- include of plat/control.h
-Date: Tue, 12 Oct 2010 13:27:10 -0700
-Message-ID: <20101012202710.GX25462@atomide.com>
-References: <1286890078-32610-1-git-send-email-gadiyar@ti.com>
-	<20101012132948.GF30933@rakim.wolfsonmicro.main>
-	<20101012165142.6e9c6f94.jhnikula@gmail.com>
+Subject: Re: [PATCH v4 0/4] LogicPD minimal board support for LV_SOM and
+	Torpedo
+Date: Tue, 12 Oct 2010 14:01:50 -0700
+Message-ID: <20101012210150.GA25462@atomide.com>
+References: <1285603550-6382-1-git-send-email-tim.nordell@logicpd.com>
+	<4CB34D55.6060007@logicpd.com>
+	<AANLkTikK6QAwj_T67NQAhVDT2T+D3tbBbOt9vDyme6N=@mail.gmail.com>
+	<201010122120.26977.linz@li-pro.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20101012165142.6e9c6f94.jhnikula@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Paul Walmsley <paul@pwsan.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Anand Gadiyar <gadiyar@ti.com>
+In-Reply-To: <201010122120.26977.linz@li-pro.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Stephan Linz <linz@li-pro.net>
+Cc: Tim Nordell <tim.nordell@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Ashwin Bihari <abihari@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Jarkko Nikula <jhnikula@gmail.com> [101012 06:42]:
-> On Tue, 12 Oct 2010 14:29:48 +0100
-> Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
-> 
-> > On Tue, Oct 12, 2010 at 06:57:58PM +0530, Anand Gadiyar wrote:
-> > > Commit 346a5c890 (OMAP: control: move plat-omap/control.h
-> > > to mach-omap2/control.h) in the linux-omap tree removed
-> > > plat/control.h and most of its callers. This one slipped
-> > > through - breaking the build as below when
-> > > CONFIG_SND_OMAP_SOC_MCPDM is defined. Fix this.
-> > 
-> > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> 
-> Tony, Liam: This must come via linux-omap together with other Paul's
-> patches. Does not conflict with ASoC multi-component change.
-> 
-> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-
-Thanks, adding into omap-for-linus.
-
-Tony
+KiBTdGVwaGFuIExpbnogPGxpbnpAbGktcHJvLm5ldD4gWzEwMTAxMiAxMjoxMV06Cj4gQW0gTW9u
+dGFnLCAxMS4gT2t0b2JlciAyMDEwLCB1bSAyMDo0MDo1MSBzY2hyaWViIEFzaHdpbiBCaWhhcmk6
+Cj4gPiBPbiBNb24sIE9jdCAxMSwgMjAxMCBhdCAxOjQ1IFBNLCBUaW0gTm9yZGVsbCA8dGltLm5v
+cmRlbGxAbG9naWNwZC5jb20+IAo+IHdyb3RlOgo+ID4gPiAgT24gMTAvMTEvMTAgMTI6MzAsIFRv
+bnkgTGluZGdyZW4gd3JvdGU6Cj4gPiA+PiBVaGgsIHNvIHdob3NlIHBhdGNoZXMgYXJlIHRoZXNl
+IG9yaWdpbmFsbHk/Cj4gPiA+Pgo+ID4gPj4gV2UgaGF2ZSB0aGVtIG5vdyBxdWV1ZWQgd2l0aCBU
+aW0gTm9yZGVsbCBhcyB0aGUgYXV0aG9yLiBQbGVhc2UgbGV0IG1lCj4gPiA+PiBrbm93IEFTQVAg
+aWYgeW91IHdhbnQgbWUgdG8gY2hhbmdlIHRoYXQuCj4gCj4gSGkgVG9ueSwKPiAKPiBObywgSSBk
+b24ndCB3YW50IHRvIGNoYW5nZSBhbnl0aGluZy4gT25seSB0aGUgTG9naWNQRCBlbXBsb3llZXMg
+c2hvdWxkIGJlIAo+IG5hbWVkIGluc2lkZSB0aGUgcGF0aGVzIGFzIGZhciBhcyB0aGUgcGF0Y2hl
+cyBhcmUgbm90IGEgZGlyZWN0IHB1bGwgZnJvbSBteSAKPiBvd24gZGV2ZWwgdHJlZSBvbiBHaXRv
+cmlvdXMuIEFzaHdpbiBoYXMgZG9uZSBhIGdvb2QgZXhwbGFuYXRpb24gb2YgdGhlIAo+IHNpdHVh
+dGlvbi4KCk9LLCB0aGFua3MgZXZlcnlib2R5LCBrZWVwaW5nIHRoZSBjb21taXRzIGFzIHRoZXkg
+YXJlLgoKUmVnYXJkcywKClRvbnkKCj4gCj4gCj4gLSBTdGVwaGFuCj4gCj4gCj4gPiA+Pgo+ID4g
+Pj4gUmVnYXJkcywKPiA+ID4+Cj4gPiA+PiBUb255Cj4gPiA+Cj4gPiA+IFRoZSBoaXN0b3J5IGZv
+ciB0aG9zZSBwYXRjaGVzLCBmb3IgbWUsIG9yaWdpbmF0ZWQgd2l0aCBKYWNvYiBUYW5lbmJhdW0n
+cwo+ID4gPiBwYXRjaHNldC4gIEkgd2FzIHRha2luZyBvdmVyIGZvciBoaW0gYXMgaGUgd2FzIGdv
+aW5nIGJhY2sgdG8gc2Nob29sLiAgSQo+ID4gPiBkaWQgc29tZSBtaXNjLiBjaGFuZ2VzIGZvciBm
+dXJ0aGVyIHN1Ym1pc3Npb24sIGJ1dCBJIHdhcyBub3QgdGhlCj4gPiA+IG9yaWdpbmFsIGF1dGhv
+ci4gIEkgZG9uJ3Qga25vdyBTdGVwaGFuJ3MgaW52b2x2ZW1lbnQgLSBob3dldmVyLCBpbiB0aGUK
+PiA+ID4gc291cmNlIGZpbGVzIGhlJ3MgYXR0cmlidXRlZCBjcmVkaXQgaW4gdGhlIGhlYWRlciwg
+YXMgd2VsbCBhcyBvbmUgb2YgbXkKPiA+ID4gY293b3JrZXJzIHNvIHByZXN1bWFibHkgdGhlcmUg
+d2FzIHNvbWUgaW52b2x2ZW1lbnQgb24gYm90aCBlbmRzLiAgSQo+ID4gPiByZWNvZ25pemUgc29t
+ZSBvZiB0aGUgY29kZSBhcyBjb21pbmcgZnJvbSBvdXIga2VybmVsIHJlbGVhc2UsIHNvIGxpa2Vs
+eQo+ID4gPiBpdCB3YXMgYSBoeWJyaWQgb3JpZ2luYWxseSBiZXR3ZWVuIFN0ZXBoYW4sIFBldGVy
+LCBhbmQgSmFjb2IuCj4gPiA+Cj4gPiA+IFRoYXQncyBhYm91dCB0aGUgZXh0ZW50IHRoYXQgSSBr
+bm93Lgo+ID4gPgo+ID4gPiAtIFRpbQo+ID4KPiA+IFRvbnksCj4gPgo+ID4gTG9naWNQRCBlbmdp
+bmVlcnMgZGlkIHRoZSBpbml0aWFsIHBvcnRpbmcgYW5kIHRoZW4gU3RlcGhhbiBMaW56Cj4gPiBy
+ZS1zdGFydGVkIHRoZSB3b3JrIG9uIHRoZSwgdGhlbiByZWNlbnQsIDIuNi4zMiBLZXJuZWwgdXNp
+bmcgb3VyIEJTUAo+ID4gYXMgYSBzdGFydGluZyBwb2ludC4gSGUgd2FzIGtpbmQgZW5vdWdoIHRv
+IHNlbmQgdGhvc2UgTG9naWNQRCBhbmQgd2UKPiA+IGJlZ2FuIHB1dHRpbmcgaXQgdG9nZXRoZXIg
+YWdhaW5zdCB0aGUgbGF0ZXN0IExpbnV4IEtlcm5lbCBmb3IKPiA+IGluY2x1c2lvbiBhbmQgdGhh
+dCB3YXMgZG9uZSBieSBKYWNvYiBvdmVyIHRoZSBzdW1tZXIgYW5kIGZpbmlzaGVkIG9mZgo+ID4g
+YnkgVGltLgo+ID4KPiA+IFN0ZXBoYW4gTGlueiBpcyBjcmVkaXRlZCBpbiB0aGUgcGF0Y2ggYW5k
+IFBldGVyIEJhcmFkYSAoYW5vdGhlcgo+ID4gTG9naWNQRCBlbXBsb3llZSkgaXMgbGlzdGVkIGFz
+IHRoZSBtYWludGFpbmVyIHRob3VnaCBoaXMgcGFydCAoYWxvbmcKPiA+IHdpdGggbWUpIGluIGdl
+dHRpbmcgdGhlc2Ugc3BlY2lmaWMgcGF0Y2hlcyBvdXQgaGF2ZSBiZWVuIG1vcmUgYmVoaW5kCj4g
+PiB0aGUgc2NlbmVzLiBTbyBoYXZpbmcgdGhlIG5hbWVzIGxpc3RlZCBhcyB0aGV5IGFyZSBub3cg
+aXMgT0suCj4gPgo+ID4gSW4gdGhlIHVwY29taW5nIG1vbnRocyB3ZSB3aWxsIGJlIHB1c2hpbmcg
+b3V0IGFkZGl0aW9uYWwgc3VwcG9ydCBmb3IKPiA+IHRoZSBMb2dpY1BEJ3MgYm9hcmRzIGFuZCBp
+dCB3aWxsIG1vc3QgbGlrZWx5IGNvbWUgdXAgYSB2YXJpZXR5IG9mCj4gPiBMb2dpY1BEIGVuZ2lu
+ZWVycyBkZXBlbmRpbmcgb24gb3VyIHdvcmtsb2FkLi4KPiA+Cj4gPiBUaGFua3MKPiA+IC0tIEFz
+aHdpbgo+IAo+IAo+IC0tIAo+IFZpZWxlIEdyw7zDn2UsCj4gU3RlcGhhbiBMaW56Cj4gX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCj4gT3BlbkRDQzogaHR0cDovL3d3dy5saS1wcm8ubmV0L29wZW5kY2Mu
+cGh0bWwKPiBQQy9NOiBodHRwOi8vd3d3LmxpLXByby5uZXQvcGNtLnBodG1sCj4gQ0RLNEFWUjog
+aHR0cDovL2NkazRhdnIuc291cmNlZm9yZ2UubmV0Lwo+IENESzROSU9TOiBodHRwOi8vY2RrNG5p
+b3Muc291cmNlZm9yZ2UubmV0Lwo+IENESzRNU1A6IGh0dHA6Ly9jZGs0bXNwLnNvdXJjZWZvcmdl
+Lm5ldC8KPiBDUE00TDogaHR0cDovL2Rvd25sb2FkLm9wZW5zdXNlLm9yZy9yZXBvc2l0b3JpZXMv
+aG9tZTovcmV4dXQ6L0NQTTRMCj4gLS0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDog
+c2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtb21hcCIgaW4KPiB0aGUgYm9keSBvZiBh
+IG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGlu
+Zm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5l
+bCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6
+Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
