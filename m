@@ -1,44 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] serial: omap-serial: fix signess error
-Date: Tue, 12 Oct 2010 13:21:05 -0700
-Message-ID: <20101012202105.GW25462@atomide.com>
-References: <1286731715-17908-1-git-send-email-segooon@gmail.com>
- <8739sb1cif.fsf@deeprootsystems.com>
+Subject: Re: [PATCH] ASoC: OMAP4: MCPDM: Remove unnecessary
+ include of plat/control.h
+Date: Tue, 12 Oct 2010 13:27:10 -0700
+Message-ID: <20101012202710.GX25462@atomide.com>
+References: <1286890078-32610-1-git-send-email-gadiyar@ti.com>
+	<20101012132948.GF30933@rakim.wolfsonmicro.main>
+	<20101012165142.6e9c6f94.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60147 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754077Ab0JLUVK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Oct 2010 16:21:10 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <8739sb1cif.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20101012165142.6e9c6f94.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Paul Walmsley <paul@pwsan.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@slimlogic.co.uk>, Anand Gadiyar <gadiyar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Vasiliy Kulikov <segooon@gmail.com>, kernel-janitors@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Alan Cox <alan@linux.intel.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [101012 11:30]:
-> [adding linux-omap list]
+* Jarkko Nikula <jhnikula@gmail.com> [101012 06:42]:
+> On Tue, 12 Oct 2010 14:29:48 +0100
+> Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
 > 
-> Vasiliy Kulikov <segooon@gmail.com> writes:
+> > On Tue, Oct 12, 2010 at 06:57:58PM +0530, Anand Gadiyar wrote:
+> > > Commit 346a5c890 (OMAP: control: move plat-omap/control.h
+> > > to mach-omap2/control.h) in the linux-omap tree removed
+> > > plat/control.h and most of its callers. This one slipped
+> > > through - breaking the build as below when
+> > > CONFIG_SND_OMAP_SOC_MCPDM is defined. Fix this.
+> > 
+> > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 > 
-> > "ret" is unsigned, so check for (ret < 0) made no sense.
-> > Made it signed.
-> >
-> > Signed-off-by: Vasiliy Kulikov <segooon@gmail.com>
-> > ---
-> >  I cannot compile this driver, so it is not tested.
+> Tony, Liam: This must come via linux-omap together with other Paul's
+> patches. Does not conflict with ASoC multi-component change.
 > 
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> 
-> Since the original driver is being queued via the omap tree, we can
-> queue this one as well.
-> 
-> Tony, can you add this one to the 2.6.37 queue?
+> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
 
 Thanks, adding into omap-for-linus.
-
-Regards,
 
 Tony
