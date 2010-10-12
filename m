@@ -1,54 +1,194 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ASoC: OMAP4: MCPDM: Remove unnecessary include of
- plat/control.h
-Date: Tue, 12 Oct 2010 09:06:30 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1010120905570.16871@utopia.booyaka.com>
-References: <1286890078-32610-1-git-send-email-gadiyar@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] omap2plus: wdt: Fix boot warn when CONFIG_PM_RUNTIME=n
+Date: Tue, 12 Oct 2010 11:27:20 -0700
+Message-ID: <87mxqj1d2v.fsf@deeprootsystems.com>
+References: <1286798556-22749-1-git-send-email-charu@ti.com>
+	<4CB40B07.8080301@ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CFC553C@dbde02.ent.ti.com>
+	<4CB45E0E.6080104@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49365 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500Ab0JLPGb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Oct 2010 11:06:31 -0400
-In-Reply-To: <1286890078-32610-1-git-send-email-gadiyar@ti.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46453 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754267Ab0JLS1Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 Oct 2010 14:27:24 -0400
+Received: by iwn7 with SMTP id 7so1056187iwn.19
+        for <linux-omap@vger.kernel.org>; Tue, 12 Oct 2010 11:27:23 -0700 (PDT)
+In-Reply-To: <4CB45E0E.6080104@ti.com> (Benoit Cousson's message of "Tue, 12
+	Oct 2010 15:09:34 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Misael Lopez Cruz <misael.lopez@ti.com>, Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 12 Oct 2010, Anand Gadiyar wrote:
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-> Commit 346a5c890 (OMAP: control: move plat-omap/control.h
-> to mach-omap2/control.h) in the linux-omap tree removed
-> plat/control.h and most of its callers. This one slipped
-> through - breaking the build as below when
-> CONFIG_SND_OMAP_SOC_MCPDM is defined. Fix this.
-> 
->   CC      sound/soc/omap/omap-mcpdm.o
-> sound/soc/omap/omap-mcpdm.c:35: fatal error: plat/control.h: No such file or directory
-> compilation terminated.
-> make[3]: *** [sound/soc/omap/omap-mcpdm.o] Error 1
-> make[2]: *** [sound/soc/omap] Error 2
-> make[1]: *** [sound/soc] Error 2
-> make: *** [sound] Error 2
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Misael Lopez Cruz <misael.lopez@ti.com>
-> Cc: Liam Girdwood <lrg@slimlogic.co.uk>
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
-> This break is reproducible on linux-next as of 20101011;
-> I think it also exists in mainline, but I did not check.
-> 
-> Probably worth taking this through the ALSA tree with Tony
-> or Paul's ack. 
+> Adding more folks to the discussion.
+>
+> On 10/12/2010 9:30 AM, Varadarajan, Charulatha wrote:
+>>
+>>> From: Cousson, Benoit
+>>> Sent: Tuesday, October 12, 2010 12:45 PM
+>>> To: Varadarajan, Charulatha
+>>>
+>>> Hi Charu,
+>>>
+>>> On 10/11/2010 2:02 PM, Varadarajan, Charulatha wrote:
+>>>> Fix the below warning during boot
+>>>>
+>>>> [    0.000000] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185
+>>> _omap_hwmod_enable+0x34/0x150()
+>>>> [    0.000000] omap_hwmod: wd_timer2: enabled state can only be entered
+>>> from initialized, idle, or disabled state
+>>>> [    0.000000] Modules linked in:
+>>>> [    0.000000] [<c0050460>] (unwind_backtrace+0x0/0xe4) from
+>>> [<c0083954>] (warn_slowpath_common+0x4c/0x64)
+>>>> [    0.000000] [<c0083954>] (warn_slowpath_common+0x4c/0x64) from
+>>> [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c)
+>>>> [    0.000000] [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c) from
+>>> [<c0059be4>] (_omap_hwmod_enable+0x34/0x150)
+>>>> [    0.000000] [<c0059be4>] (_omap_hwmod_enable+0x34/0x150) from
+>>> [<c0059d28>] (omap_hwmod_enable+0x28/0x3c)
+>>>> [    0.000000] [<c0059d28>] (omap_hwmod_enable+0x28/0x3c) from
+>>> [<c005580c>] (omap2_disable_wdt+0x48/0xdc)
+>>>> [    0.000000] [<c005580c>] (omap2_disable_wdt+0x48/0xdc) from
+>>> [<c0058898>] (omap_hwmod_for_each_by_class+0x60/0xa4)
+>>>> [    0.000000] [<c0058898>] (omap_hwmod_for_each_by_class+0x60/0xa4)
+>>> from [<c000f6d0>] (omap2_init_devices+0x44/0x330)
+>>>> [    0.000000] [<c000f6d0>] (omap2_init_devices+0x44/0x330) from
+>>> [<c0049578>] (do_one_initcall+0xcc/0x1a4)
+>>>> [    0.000000] [<c0049578>] (do_one_initcall+0xcc/0x1a4) from
+>>> [<c0008780>] (kernel_init+0x148/0x210)
+>>>> [    0.000000] [<c0008780>] (kernel_init+0x148/0x210) from [<c004acb8>]
+>>> (kernel_thread_exit+0x0/0x8)
+>>>> [    0.000000] ---[ end trace 1b75b31a2719ed1f ]---
+>>>> [    0.000000] wd_timer2: Could not enable clocks for omap2_disable_wdt
+>>>>
+>>>> When CONFIG_PM_RUNTIME is not defined, watchdog timer clocks are not
+>>>> disabled after a watchdog reset. Hence in omap2_disable_wdt(), it is
+>>>> not required to enable clocks before accessing the watchdog timer
+>>>> registers if CONFIG_PM_RUNTIME is not defined.
+>>>
+>>> I'm not a big fan of adding some dependencies with CONFIG_PM_RUNTIME
+>>> inside this code.
+>>>
+>>> The real root cause is not CONFIG_PM_RUNTIME, but mostly the
+>>> skip_setup_idle variable added in arch/arm/mach-omap2/io.c by Paul.
+>>
+>> Yes.
+>>
+>>>
+>>> So I'd rather use that parameter as an input for the omap2_disable_wdt.
+>>
+>> I also thought about this, but we need to
+>>
+>> 1. call omap2_disable_wdt() in omap2_init_common_hw() rather than
+>> omap2_init_devices(). That would involve movement of
+>> omap2_disable_wdt() from devices.c to io.c.
+>> (or)
+>> 2. make skip_setup_idle global
+>> (or)
+>> 3. make omap2_disable_wdt() global and call it from
+>> omap2_init_common_hw() and pass skip_setup_idle as parameter.
+>>
+>> I felt that the usage of CONFIG_PM_RUNTIME is better than the above.
+>> But still we may consider any of the above options or any other
+>> option. Please suggest.
+>
+> It is maybe easier, but I don't think it is better...
+>
+> As I said, CONFIG_PM_RUNTIME is not the root cause of your issue, just
+> an indirect cause. OK, maybe strictly speaking, it is the root cause,
+> since it started for that... but that not the cause that we should
+> consider in your case.
+>
+> If we decide to remove that CONFIG_PM_RUNTIME dependency in the io /
+> hwmod code, nobody will be able to find the relation with your code in
+> WDT.
+>
+> That's why you should not do that, for my point of view.
+>
+> Paul, Kevin,
+> Any thoughts on that point?
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+I agree that this is not strictly a dependency on PM_RUNTIME.
 
-thanks Anand,
+What's really needed is a way for low-level hwmod users like this to be
+able to check whether the hwmod is already enabled.  Something like this
+(completely untested):
 
+bool omap_hwmod_is_enabled(struct omap_hwmod *oh)
+{
+	return (oh->_state == _HWMOD_STATE_ENABLED);
+}
 
-- Paul
+Alternatively, maybe calling omap_hwmod_enable() when the state is
+already enabled should not be so verbose, and it should just return
+success, but that option needs a little more thought...
+
+Kevin
+
+>>
+>>>
+>>> Regards,
+>>> Benoit
+>>>
+>>>
+>>>
+>>>>
+>>>> Tested on OMAP3430 SDP and OMAP4430 SDP.
+>>>>
+>>>> Signed-off-by: Charulatha V<charu@ti.com>
+>>>> ---
+>>>>    arch/arm/mach-omap2/devices.c |    6 +++++-
+>>>>    1 files changed, 5 insertions(+), 1 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
+>>> omap2/devices.c
+>>>> index eaf3799..b592952 100644
+>>>> --- a/arch/arm/mach-omap2/devices.c
+>>>> +++ b/arch/arm/mach-omap2/devices.c
+>>>> @@ -926,7 +926,7 @@ static inline void omap_init_vout(void) {}
+>>>>    static int omap2_disable_wdt(struct omap_hwmod *oh, void *unused)
+>>>>    {
+>>>>    	void __iomem *base;
+>>>> -	int ret;
+>>>> +	int ret = 0;
+>>>>
+>>>>    	if (!oh) {
+>>>>    		pr_err("%s: Could not look up wdtimer_hwmod\n", __func__);
+>>>> @@ -940,6 +940,7 @@ static int omap2_disable_wdt(struct omap_hwmod *oh,
+>>> void *unused)
+>>>>    		return -EINVAL;
+>>>>    	}
+>>>>
+>>>> +#ifdef CONFIG_PM_RUNTIME
+>>>>    	/* Enable the clocks before accessing the WDT registers */
+>>>>    	ret = omap_hwmod_enable(oh);
+>>>>    	if (ret) {
+>>>> @@ -947,6 +948,7 @@ static int omap2_disable_wdt(struct omap_hwmod *oh,
+>>> void *unused)
+>>>>    				oh->name, __func__);
+>>>>    		return ret;
+>>>>    	}
+>>>> +#endif
+>>>>
+>>>>    	/* sequence required to disable watchdog */
+>>>>    	__raw_writel(0xAAAA, base + OMAP_WDT_SPR);
+>>>> @@ -957,10 +959,12 @@ static int omap2_disable_wdt(struct omap_hwmod *oh,
+>>> void *unused)
+>>>>    	while (__raw_readl(base + OMAP_WDT_WPS)&   0x10)
+>>>>    		cpu_relax();
+>>>>
+>>>> +#ifdef CONFIG_PM_RUNTIME
+>>>>    	ret = omap_hwmod_idle(oh);
+>>>>    	if (ret)
+>>>>    		pr_err("%s: Could not disable clocks for %s\n",
+>>>>    				oh->name, __func__);
+>>>> +#endif
+>>>>
+>>>>    	return ret;
+>>>>    }
+>>
+
