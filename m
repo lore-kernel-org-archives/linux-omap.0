@@ -1,125 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCHv3 2/7] OMAP SSI: Introducing OMAP SSI driver
-Date: Tue, 12 Oct 2010 13:49:27 -0700
-Message-ID: <20101012204927.GY25462@atomide.com>
-References: <1286787988-29013-1-git-send-email-carlos.chinea@nokia.com>
- <1286787988-29013-3-git-send-email-carlos.chinea@nokia.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH v7] power: introduce library for device-specific OPPs
+Date: Wed, 13 Oct 2010 01:25:14 +0200
+Message-ID: <201010130125.14604.rjw@sisk.pl>
+References: <[PATCH] power: introduce library for device-specific OPPs> <4CB32675.1090205@ti.com> <201010120008.16388.rjw@sisk.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1286787988-29013-3-git-send-email-carlos.chinea@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:39573 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752197Ab0JLX0e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 Oct 2010 19:26:34 -0400
+In-Reply-To: <201010120008.16388.rjw@sisk.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-pm <linux-pm@lists.linux-foundation.org>, lkml <linux-kernel@vger.kernel.org>, l-o <linux-omap@vger.kernel.org>, l-a <linux-arm-kernel@lists.infradead.org>, Paul <paulmck@linux.vnet.ibm.com>
 
-* Carlos Chinea <carlos.chinea@nokia.com> [101011 01:58]:
-> Introduces the OMAP SSI driver in the kernel.
+On Tuesday, October 12, 2010, Rafael J. Wysocki wrote:
+> On Monday, October 11, 2010, Nishanth Menon wrote:
+> > Rafael J. Wysocki had written, on 10/09/2010 05:59 PM, the following:
+> > [...]
+> > >>
+> > >> Signed-off-by: Nishanth Menon <nm@ti.com>
+> > > 
+> > > OK
+> > > 
+> > > Your error messages are a bit inconsistent (e.g. some of them print the
+> > > error code while others don't), but I guess I can fix that up.
+> > Thanks a bunch.
+> > > 
+> > > Still, to apply the patch I need a copyright notice for the doc too.
+> > oops..
+> > (C) 2009-2010 Nishanth Menon <nm@ti.com>, Texas Instruments Incorporated
+> > Does this help?
 > 
-> The Synchronous Serial Interface (SSI) is a legacy version
-> of HSI. As in the case of HSI, it is mainly used to connect
-> Application engines (APE) with cellular modem engines (CMT)
-> in cellular handsets.
+> Yes, it does.
 > 
-> It provides a multichannel, full-duplex, multi-core communication
-> with no reference clock. The OMAP SSI block is capable of reaching
-> speeds of 110 Mbit/s.
+> > or would you like me to post a v8 as well?
 > 
-> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> That shouldn't be necessary.
 
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/ssi.c
+The patch has been applied to suspend-2.6/linux-next at:
 
-> +static struct resource ssi_resources[] = {
-> +	/* SSI controller */
-> +	[0] = {
-> +		.start	= 0x48058000,
-> +		.end	= 0x48058fff,
-> +		.name	= "omap_ssi_sys",
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	/* GDD */
-> +	[1] = {
-> +		.start	= 0x48059000,
-> +		.end	= 0x48059fff,
-> +		.name	= "omap_ssi_gdd",
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	[2] = {
-> +		.start	= 71,
-> +		.end	= 71,
-> +		.name	= "ssi_gdd",
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	/* SSI port 1 */
-> +	[3] = {
-> +		.start	= 0x4805a000,
-> +		.end	= 0x4805a7ff,
-> +		.name	= "omap_ssi_sst1",
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	[4] = {
-> +		.start	= 0x4805a800,
-> +		.end	= 0x4805afff,
-> +		.name	= "omap_ssi_ssr1",
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	[5] = {
-> +		.start	= 67,
-> +		.end	= 67,
-> +		.name	= "ssi_p1_mpu_irq0",
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	[6] = {
-> +		.start	= 69,
-> +		.end	= 69,
-> +		.name	= "ssi_p1_mpu_irq1",
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	[7] = {
-> +		.start	= 0,
-> +		.end	= 0,
-> +		.name	= "ssi_p1_cawake",
-> +		.flags	= IORESOURCE_IRQ | IORESOURCE_UNSET,
-> +	},
-> +};
+http://git.kernel.org/?p=linux/kernel/git/rafael/suspend-2.6.git;a=commit;h=56149b574181d98aedf97f1f2d91d05ab261db41
 
-Are these resources the same for omap2, 3 & 4?
+with minor changes around the error messages.  Please double check if everything
+is correct.
 
-> +static void ssi_pdev_release(struct device *dev)
-> +{
-> +}
-
-Not needed.
-
-> +static struct platform_device ssi_pdev = {
-> +	.name		= "omap_ssi",
-> +	.id		= 0,
-> +	.num_resources	= ARRAY_SIZE(ssi_resources),
-> +	.resource	= ssi_resources,
-> +	.dev		= {
-> +				.release	= ssi_pdev_release,
-> +				.platform_data	= &ssi_pdata,
-> +	},
-> +};
-
-Dummy release not needed here either.
-
-> +static int __init ssi_init(void)
-> +{
-> +	return platform_device_register(&ssi_pdev);
-> +}
-> +subsys_initcall(ssi_init);
-
-This will probably cause trouble on omap2 and 4?
-
-To me it seems that you should at least return early on the unsupported
-platforms.
-
-You might want to consider updating this for omap hwmod as it will
-automate the platform_device and PM related issues to some extent.
-
-Regards,
-
-Tony
+Thanks,
+Rafael
