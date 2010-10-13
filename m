@@ -1,7 +1,7 @@
 From: csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org
-Subject: [RFC: WL1271 DC supprot on OMAP3EVM 2/5] ARM: Supported for Standard SDIO driver on OMAP3EVM for WL1271 DC
-Date: Wed, 13 Oct 2010 16:27:16 +0530
-Message-ID: <1286967439-705-3-git-send-email-csanjay@mistralsolutions.com>
+Subject: [RFC: WL1271 DC supprot on OMAP3EVM 3/5] ARM: Supported for BT enable on OMAP3EVM for WL1271 DC
+Date: Wed, 13 Oct 2010 16:27:17 +0530
+Message-ID: <1286967439-705-4-git-send-email-csanjay@mistralsolutions.com>
 References: <1286967439-705-1-git-send-email-csanjay@mistralsolutions.com>
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1286967439-705-1-git-send-email-csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
@@ -12,92 +12,173 @@ List-Id: linux-omap@vger.kernel.org
 
 From: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 
-* Apply MMC2 support patch before apply this patch
-* Modified the "Kconfig" and "board-omap3evm.c" files to support
-  standard SDIO driver for WL1271 DC
+* Midified "tty_io.c" and "Kconfig" files to suuport BT enable for WL1271
 
 Signed-off-by: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   13 ++++++++++++-
- drivers/mmc/core/sdio_ops.c          |    7 ++++++-
- drivers/net/wireless/Kconfig         |   11 +++++++++++
- 3 files changed, 29 insertions(+), 2 deletions(-)
+ drivers/bluetooth/Kconfig |    7 +++
+ drivers/char/tty_io.c     |  110 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 117 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 6b45b6e..06fab2e 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -79,6 +79,10 @@
- #define OMAP3EVM_ETHR_ID_REV	0x50
- #define OMAP3EVM_ETHR_GPIO_IRQ	176
- #define OMAP3EVM_SMSC911X_CS	5
-+#ifdef CONFIG_WL1271_WLAN
-+#define OMAP3EVM_WLAN_EN	150
-+#define OMAP3EVM_WLAN_IRQ	149
-+#endif
+diff --git a/drivers/bluetooth/Kconfig b/drivers/bluetooth/Kconfig
+index 652367a..2ed159c 100644
+--- a/drivers/bluetooth/Kconfig
++++ b/drivers/bluetooth/Kconfig
+@@ -195,5 +195,12 @@ config BT_MRVL_SDIO
+ 	  Say Y here to compile support for Marvell BT-over-SDIO driver
+ 	  into the kernel or say M to compile it as module.
  
- extern struct regulator_consumer_supply twl4030_vmmc1_supply;
- extern struct regulator_consumer_supply twl4030_vsim_supply;
-@@ -749,7 +753,14 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
- 	twl4030_vmmc1_supply.dev = mmc[0].dev;
- 	twl4030_vsim_supply.dev = mmc[0].dev;
- 	twl4030_vmmc2_supply.dev = mmc[1].dev;
--
-+#ifdef CONFIG_WL1271_WLAN
-+	omap_mux_init_gpio(OMAP3EVM_WLAN_EN, OMAP_PIN_OUTPUT);
-+	if (gpio_request(OMAP3EVM_WLAN_EN, "WLAN_ENABLE"))
-+		printk(KERN_ERR "Fail to get WLAN Enable GPIO\n");
-+	gpio_direction_output(OMAP3EVM_WLAN_EN, 1);
-+	mdelay(100);
-+	omap_mux_init_gpio(OMAP3EVM_WLAN_IRQ, OMAP_PIN_INPUT);
-+#endif
- 	/*
- 	 * Most GPIOs are for USB OTG.  Some are mostly sent to
- 	 * the P2 connector; notably LEDA for the LCD backlight.
-diff --git a/drivers/mmc/core/sdio_ops.c b/drivers/mmc/core/sdio_ops.c
-index 4eb7825..4213ee0 100644
---- a/drivers/mmc/core/sdio_ops.c
-+++ b/drivers/mmc/core/sdio_ops.c
-@@ -114,6 +114,9 @@ int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
- 
- 	return 0;
- }
-+#ifdef CONFIG_WL1271_WLAN
-+EXPORT_SYMBOL(mmc_io_rw_direct);
-+#endif
- 
- int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
- 	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz)
-@@ -181,4 +184,6 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
- 
- 	return 0;
- }
--
-+#ifdef CONFIG_WL1271_WLAN
-+EXPORT_SYMBOL(mmc_io_rw_extended);
-+#endif
-diff --git a/drivers/net/wireless/Kconfig b/drivers/net/wireless/Kconfig
-index 56dd665..dc319b7 100644
---- a/drivers/net/wireless/Kconfig
-+++ b/drivers/net/wireless/Kconfig
-@@ -31,6 +31,17 @@ config PCMCIA_RAYCS
- 	  To compile this driver as a module, choose M here: the module will be
- 	  called ray_cs.  If unsure, say N.
- 
-+config WL1271_WLAN
-+	tristate "WL1271 TI's SDIO based wireless card"
-+	select WIRELESS_EXT
-+	select CRYPTO
-+	select WEXT_SPY
-+	select WEXT_PRIV
-+	---help---
-+	This driver support both the standard Linux Wireless Extensions
-+	and TI's proprietary API, so both the Linux Wireless Tools and this
-+	module support 2.4 GHz 802.11 b/g/n standrd.
++config BT_WL1271
++	bool "WL1271 Bluetooth driver support"
++	depends on BT_HCIUART
++	help
++	The core driver to support WL1271 Bluetooth devices.
++	Say Y here to compile WL1271 Bluetooth driver into the kernel.
 +
- config LIBERTAS_THINFIRM
- 	tristate "Marvell 8xxx Libertas WLAN driver support with thin firmware"
- 	depends on MAC80211
+ endmenu
+ 
+diff --git a/drivers/char/tty_io.c b/drivers/char/tty_io.c
+index f15df40..a3ae352 100644
+--- a/drivers/char/tty_io.c
++++ b/drivers/char/tty_io.c
+@@ -107,6 +107,17 @@
+ #include <linux/kmod.h>
+ #include <linux/nsproxy.h>
+ 
++#ifdef CONFIG_BT_WL1271
++/*
++ *	WL1271: To control T2 gpios on OMAP3 EVM
++ */
++#include "linux/i2c/twl.h"
++
++/*
++ *	WL1271: To set BT_EN of TI's WL1271 Bluetooth chip
++ */
++#define TIOSETWL1271POWER 0x6000
++#endif
+ #undef TTY_DEBUG_HANGUP
+ 
+ #define TTY_PARANOIA_CHECK 1
+@@ -154,6 +165,95 @@ static void release_tty(struct tty_struct *tty, int idx);
+ static void __proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
+ static void proc_set_tty(struct task_struct *tsk, struct tty_struct *tty);
+ 
++#ifdef CONFIG_BT_WL1271
++/*
++ *	WL1271: Power enable sequence
++ */
++static int bt_init_power(void)
++{
++	int ret = 0;
++	u8 reg_value = 0;
++
++	/* Wl1271 Daughter card BT_EN is connected to T2-GPIO.13 */
++	/* Enable GPIO */
++	ret = twl_i2c_read_u8(TWL4030_MODULE_GPIO,
++				&reg_value, REG_GPIO_CTRL);
++	if (ret != 0)
++		goto err;
++	/* T2-GPIO.13 -> output */
++	ret = twl_i2c_read_u8(TWL4030_MODULE_GPIO,
++				&reg_value, REG_GPIODATADIR2);
++	if (ret != 0)
++		goto err;
++	reg_value |= 0x20;
++	ret = twl_i2c_write_u8(TWL4030_MODULE_GPIO,
++				reg_value, REG_GPIODATADIR2);
++	if (ret != 0)
++		goto err;
++	/* T2-GPIO.13 -> LOW */
++	ret = twl_i2c_read_u8(TWL4030_MODULE_GPIO,
++				&reg_value, REG_GPIODATAOUT2);
++	if (ret != 0)
++		goto err;
++	reg_value &= ~(0x20);
++	ret = twl_i2c_write_u8(TWL4030_MODULE_GPIO,
++				reg_value, REG_GPIODATAOUT2);
++	if (ret != 0)
++		goto err;
++
++	mdelay(50);
++	/* T2-GPIO.13 -> HIGH */
++	reg_value |= (0x20);
++	ret = twl_i2c_write_u8(TWL4030_MODULE_GPIO,
++				reg_value, REG_GPIODATAOUT2);
++	if (ret != 0)
++		goto err;
++
++	mdelay(50);
++	/* T2-GPIO.13 -> LOW */
++	reg_value &= ~(0x20);
++	ret = twl_i2c_write_u8(TWL4030_MODULE_GPIO,
++				reg_value, REG_GPIODATAOUT2);
++	if (ret != 0)
++		goto err;
++	printk(KERN_INFO "WL1271: BT_EN GPIO initialized\n");
++err:
++	return ret;
++} /* End of init_bt_power() */
++
++/*
++ *	WL1271: Set Bluetooth Enable
++ */
++static int tty_setbt_power(int __user *p)
++{
++	int power;
++	int err = 0;
++	u8 reg_value = 0;
++
++	if (get_user(power, p))
++		return -EFAULT;
++
++	printk(KERN_INFO "Set BT_EN of WL1271\n");
++	/* Power settings argument should either be 1 or 0 */
++	power = power ? 1 : 0;
++
++	if (power)
++		reg_value |= (0x20);
++	else
++		reg_value &= ~(0x20);
++
++	err = twl_i2c_write_u8(TWL4030_MODULE_GPIO,
++				reg_value, REG_GPIODATAOUT2);
++	if (err != 0) {
++		printk(KERN_DEBUG "WL1271: Set BT_EN failed %d %d\n",
++							err, power);
++	return err;
++	}
++	printk(KERN_INFO "WL1271: Powering %s\n", power ? "on" : "off");
++	return 0;
++} /* End of set_bt_power() */
++#endif
++
+ /**
+  *	alloc_tty_struct	-	allocate a tty object
+  *
+@@ -2571,6 +2671,11 @@ long tty_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case TIOCMBIC:
+ 	case TIOCMBIS:
+ 		return tty_tiocmset(tty, file, cmd, p);
++#ifdef CONFIG_BT_WL1271
++	/* Control BT_EN pin of Bluetooth-WL1271 */
++	case TIOSETWL1271POWER:
++		return tty_setbt_power(p);
++#endif
+ 	case TCFLSH:
+ 		switch (arg) {
+ 		case TCIFLUSH:
+@@ -3142,6 +3247,11 @@ static int __init tty_init(void)
+ #ifdef CONFIG_VT
+ 	vty_init(&console_fops);
+ #endif
++
++#ifdef CONFIG_BT_WL1271
++	/* Initialize Bluetooth- WL1271chip connected to UART */
++	bt_init_power();
++#endif
+ 	return 0;
+ }
+ module_init(tty_init);
 -- 
 1.6.3.3
 
