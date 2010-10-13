@@ -1,37 +1,49 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: linux-next: omap2plus_defconfig does not build
-Date: Wed, 13 Oct 2010 18:53:08 +0530
-Message-ID: <a36d6a1047d959af6ea65cd7edacf6a8@mail.gmail.com>
+From: GERBER Patrick <Patrick.Gerber@heig-vd.ch>
+Subject: [Patch] ADS7846: Changing chip detection channel due to improper
+ detection
+Date: Wed, 13 Oct 2010 16:47:06 +0200
+Message-ID: <8959501C0BAF9F40956CEBAD13FB297F17F38C759B@EINTMBX.einet.ad.eivd.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:60695 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751193Ab0JMNXQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Oct 2010 09:23:16 -0400
-Received: by mail-ww0-f46.google.com with SMTP id 17so833782wwb.3
-        for <linux-omap@vger.kernel.org>; Wed, 13 Oct 2010 06:23:09 -0700 (PDT)
+Received: from mailcl2.heig-vd.ch ([193.134.216.183]:40051 "EHLO heig-vd.ch"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751199Ab0JMOrL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 10:47:11 -0400
+Content-Language: fr-CH
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "imre.deak@nokia.com" <imre.deak@nokia.com>
 
-Building omap2plus_defconfig (which enables support for
-OMAP2420/2430/OMAP3
-and OMAP4 in one image), I get the following build error.
+Hello,
 
-  CC      arch/arm/kernel/swp_emulate.o
-/tmp/ccg979qz.s: Assembler messages:
-/tmp/ccg979qz.s:343: Error: selected processor does not support ARM mode
-`ldrexb r6,[r5]'
-/tmp/ccg979qz.s:344: Error: selected processor does not support ARM mode
-`strexb r1,r3,[r5]'
-make[1]: *** [arch/arm/kernel/swp_emulate.o] Error 1
-make: *** [arch/arm/kernel] Error 2
+I am using the TSC2046 (newer ADS7846 silicon) on a custom design where the AUX input is not used and so pulled to GND.
+The ADS7846  driver is using the value of the AUX input to detect if a chip is connected or not. If the AUX value is 0x000 or 0xFFF the driver think that there is no chip.
+In my case due to the fact that the AUX input is  pulled to GND the 0x000 value is normal.
 
-I'm using CodeSourcery's 2010q1-202 toolchain based on gcc 4.4.1.
+Therefore I suggest to use the temp1 channel instead of the AUX channel. The temperature will probably never be 0x000.
 
-I haven't been following the lists closely the last few days, so I'm not
-sure if this is a known issue. Just reporting it for now.
+Patrick
 
-- Anand
+
+Signed-off-by: Patrick Gerber <patrick.gerber@heig-vd.ch>
+---
+ drivers/input/touchscreen/ads7846.c |   2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/input/touchscreen/ads7846.c b/drivers/input/touchscreen/ads7846.c
+index 930e780..20a5f4e 100644
+--- a/drivers/input/touchscreen/ads7846.c
++++ b/drivers/input/touchscreen/ads7846.c
+@@ -1178,7 +1178,7 @@ static int __devinit ads7846_probe(struct spi_device *spi)
+         * the touchscreen, in case it's not connected.
+         */
+        err = ads7846_read12_ser(&spi->dev,
+-                         READ_12BIT_SER(vaux) | ADS_PD10_ALL_ON);
++                         READ_12BIT_SER(temp1) | ADS_PD10_ALL_ON);
+ 
+        /* if sample is all 0's or all 1's then there is no device on spi */
+        if ( (err == 0x000) || (err == 0xfff)) {
