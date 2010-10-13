@@ -1,336 +1,240 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [WL1271 DC supprot on OMAP3EVM 4/5] ARM: Added ALSA audio
- support for WL1271 DC over the PCM interface (OMAP37XX)
-Date: Wed, 13 Oct 2010 17:29:30 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930234405C39@dbde02.ent.ti.com>
+From: Govindraj <govindraj.ti-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [WL1271 DC supprot on OMAP3EVM 3/5] ARM: Supported for BT enable
+ on OMAP3EVM for WL1271 DC
+Date: Wed, 13 Oct 2010 17:31:58 +0530
+Message-ID: <AANLkTimbxR=WkL1SJ+0uOm4cvZVoXtu37XWrTTwR-QNN@mail.gmail.com>
 References: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
- <1286967077-20071-5-git-send-email-csanjay@mistralsolutions.com>
+	<1286967077-20071-4-git-send-email-csanjay@mistralsolutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34679 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752753Ab0JML7g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 07:59:36 -0400
-In-Reply-To: <1286967077-20071-5-git-send-email-csanjay@mistralsolutions.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1286967077-20071-4-git-send-email-csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "csanjay@mistralsolutions.com" <csanjay@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> csanjay@mistralsolutions.com
-> Sent: Wednesday, October 13, 2010 4:21 PM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-wireless@vger.kernel.org; Sanjay Kumar Champati
-> Subject: [WL1271 DC supprot on OMAP3EVM 4/5] ARM: Added ALSA 
-> audio support for WL1271 DC over the PCM interface (OMAP37XX)
-[sp] There is no OMAP37xx. It is AM37xx.
-
-> 
-> From: Sanjay Kumar Champati <csanjay@mistralsolutions.com>
-> 
-> * Add "wl1271bt.c" & "wl1271bt.h" in the PS kernel to support 
-> PCM interface for OMAP37XX
-> * Modified "Makefile" file to compile "wl1271bt.c" & 
-> "wl1271bt.h" files
-> * Modified "omap3evm.c" file to support Audio codec for WL1271 DC
-> 
-> Signed-off-by: Sanjay Kumar Champati <csanjay@mistralsolutions.com>
+On Wed, Oct 13, 2010 at 4:21 PM,  <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org> wrote:
+> From: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+>
+> * Midified "tty_io.c" and "Kconfig" files to suuport BT enable for WL=
+1271
+>
+> Signed-off-by: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 > ---
->  sound/soc/omap/Kconfig    |    6 +++
->  sound/soc/omap/Makefile   |    2 +
->  sound/soc/omap/omap3evm.c |   81 
-> +++++++++++++++++++++++++++++++++++++++++++-
->  sound/soc/omap/wl1271bt.c |   59 ++++++++++++++++++++++++++++++++
->  sound/soc/omap/wl1271bt.h |   16 +++++++++
->  5 files changed, 162 insertions(+), 2 deletions(-)
->  create mode 100644 sound/soc/omap/wl1271bt.c
->  create mode 100644 sound/soc/omap/wl1271bt.h
-> 
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index 61952aa..68054c2 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -116,3 +116,9 @@ config SND_OMAP_SOC_IGEP0020
->  	select SND_SOC_TWL4030
->  	help
->  	  Say Y if you want to add support for Soc audio on 
-> IGEP v2 board.
+> =A0drivers/bluetooth/Kconfig | =A0 =A07 +++
+> =A0drivers/char/tty_io.c =A0 =A0 | =A0110 +++++++++++++++++++++++++++=
+++++++++++++++++++
+> =A02 files changed, 117 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/bluetooth/Kconfig b/drivers/bluetooth/Kconfig
+> index 652367a..2ed159c 100644
+> --- a/drivers/bluetooth/Kconfig
+> +++ b/drivers/bluetooth/Kconfig
+> @@ -195,5 +195,12 @@ config BT_MRVL_SDIO
+> =A0 =A0 =A0 =A0 =A0Say Y here to compile support for Marvell BT-over-=
+SDIO driver
+> =A0 =A0 =A0 =A0 =A0into the kernel or say M to compile it as module.
+>
+> +config BT_WL1271
+> + =A0 =A0 =A0 bool "WL1271 Bluetooth driver support"
+> + =A0 =A0 =A0 depends on BT_HCIUART
+> + =A0 =A0 =A0 help
+> + =A0 =A0 =A0 The core driver to support WL1271 Bluetooth devices.
+> + =A0 =A0 =A0 Say Y here to compile WL1271 Bluetooth driver into the =
+kernel.
 > +
-> +config SND_OMAP_SOC_WL1271BT
-> +	tristate "WL1271 Bluetooth Codec support"
-> +	default n
-> +	help
-> +	Say Y if you want to add support for WL1271 on OMAP3EVM board.
-> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-> index 19283e5..684b8f2 100644
-> --- a/sound/soc/omap/Makefile
-> +++ b/sound/soc/omap/Makefile
-> @@ -18,6 +18,7 @@ snd-soc-omap3pandora-objs := omap3pandora.o
->  snd-soc-omap3beagle-objs := omap3beagle.o
->  snd-soc-zoom2-objs := zoom2.o
->  snd-soc-igep0020-objs := igep0020.o
-> +snd-soc-wl1271bt-objs := wl1271bt.o
->  
->  obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
->  obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
-> @@ -31,3 +32,4 @@ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += 
-> snd-soc-omap3pandora.o
->  obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
->  obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
->  obj-$(CONFIG_SND_OMAP_SOC_IGEP0020) += snd-soc-igep0020.o
-> +obj-$(CONFIG_SND_OMAP_SOC_WL1271BT) += snd-soc-wl1271bt.o
-> diff --git a/sound/soc/omap/omap3evm.c b/sound/soc/omap/omap3evm.c
-> index dfcb344..6731ad3 100644
-> --- a/sound/soc/omap/omap3evm.c
-> +++ b/sound/soc/omap/omap3evm.c
-> @@ -32,6 +32,10 @@
->  #include "omap-mcbsp.h"
->  #include "omap-pcm.h"
->  #include "../codecs/twl4030.h"
-> +#if defined(CONFIG_SND_OMAP_SOC_WL1271BT)
-> +#include <plat/control.h>
-> +#include "wl1271bt.h"
+> =A0endmenu
+>
+> diff --git a/drivers/char/tty_io.c b/drivers/char/tty_io.c
+> index f15df40..a3ae352 100644
+> --- a/drivers/char/tty_io.c
+> +++ b/drivers/char/tty_io.c
+> @@ -107,6 +107,17 @@
+> =A0#include <linux/kmod.h>
+> =A0#include <linux/nsproxy.h>
+>
+> +#ifdef CONFIG_BT_WL1271
+> +/*
+> + * =A0 =A0 WL1271: To control T2 gpios on OMAP3 EVM
+> + */
+> +#include "linux/i2c/twl.h"
+> +
+> +/*
+> + * =A0 =A0 WL1271: To set BT_EN of TI's WL1271 Bluetooth chip
+> + */
+> +#define TIOSETWL1271POWER 0x6000
 > +#endif
->  
->  static int omap3evm_hw_params(struct snd_pcm_substream *substream,
->  	struct snd_pcm_hw_params *params)
-> @@ -72,11 +76,58 @@ static int omap3evm_hw_params(struct 
-> snd_pcm_substream *substream,
->  	return 0;
->  }
->  
-> +#if defined(CONFIG_SND_OMAP_SOC_WL1271BT)
-> +static int omap3evm_wl1271bt_pcm_hw_params(struct 
-> snd_pcm_substream *substream,
-> +					struct 
-> snd_pcm_hw_params *params)
+> =A0#undef TTY_DEBUG_HANGUP
+>
+> =A0#define TTY_PARANOIA_CHECK 1
+> @@ -154,6 +165,95 @@ static void release_tty(struct tty_struct *tty, =
+int idx);
+> =A0static void __proc_set_tty(struct task_struct *tsk, struct tty_str=
+uct *tty);
+> =A0static void proc_set_tty(struct task_struct *tsk, struct tty_struc=
+t *tty);
+>
+> +#ifdef CONFIG_BT_WL1271
+> +/*
+> + * =A0 =A0 WL1271: Power enable sequence
+> + */
+> +static int bt_init_power(void)
 > +{
-> +	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-> +	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-> +	int ret;
+> + =A0 =A0 =A0 int ret =3D 0;
+> + =A0 =A0 =A0 u8 reg_value =3D 0;
 > +
-> +	/* Set cpu DAI configuration for WL1271 Bluetooth codec */
-> +	ret = snd_soc_dai_set_fmt(cpu_dai,
-> +				SND_SOC_DAIFMT_DSP_B |
-> +				SND_SOC_DAIFMT_NB_NF |
-> +				SND_SOC_DAIFMT_CBM_CFM);
-> +	if (ret < 0) {
-> +		printk(KERN_ERR "Can't set cpu DAI configuration for " \
-> +						"WL1271 
-> Bluetooth codec \n");
-> +		return ret;
-> +	}
+> + =A0 =A0 =A0 /* Wl1271 Daughter card BT_EN is connected to T2-GPIO.1=
+3 */
+> + =A0 =A0 =A0 /* Enable GPIO */
+> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL4030_MODULE_GPIO,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &reg_va=
+lue, REG_GPIO_CTRL);
+> + =A0 =A0 =A0 if (ret !=3D 0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 /* T2-GPIO.13 -> output */
+> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL4030_MODULE_GPIO,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &reg_va=
+lue, REG_GPIODATADIR2);
+> + =A0 =A0 =A0 if (ret !=3D 0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 reg_value |=3D 0x20;
+> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL4030_MODULE_GPIO,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg_val=
+ue, REG_GPIODATADIR2);
+> + =A0 =A0 =A0 if (ret !=3D 0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 /* T2-GPIO.13 -> LOW */
+> + =A0 =A0 =A0 ret =3D twl_i2c_read_u8(TWL4030_MODULE_GPIO,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &reg_va=
+lue, REG_GPIODATAOUT2);
+> + =A0 =A0 =A0 if (ret !=3D 0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 reg_value &=3D ~(0x20);
+> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL4030_MODULE_GPIO,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg_val=
+ue, REG_GPIODATAOUT2);
+> + =A0 =A0 =A0 if (ret !=3D 0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
 > +
-> +	return 0;
-> +}
+> + =A0 =A0 =A0 mdelay(50);
+> + =A0 =A0 =A0 /* T2-GPIO.13 -> HIGH */
+> + =A0 =A0 =A0 reg_value |=3D (0x20);
+> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL4030_MODULE_GPIO,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg_val=
+ue, REG_GPIODATAOUT2);
+> + =A0 =A0 =A0 if (ret !=3D 0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
 > +
-> +static struct snd_soc_ops omap3evm_wl1271bt_pcm_ops = {
-> +       .hw_params = omap3evm_wl1271bt_pcm_hw_params,
-> +};
-> +#endif
-> +
->  static struct snd_soc_ops omap3evm_ops = {
-> +
->  	.hw_params = omap3evm_hw_params,
->  };
->  
->  /* Digital audio interface glue - connects codec <--> CPU */
-> +#if defined(CONFIG_SND_OMAP_SOC_WL1271BT)
-> +static struct snd_soc_dai_link omap3evm_dai[] = {
-> +	{
-> +		.name = "TWL4030",
-> +		.stream_name = "TWL4030",
-> +		.cpu_dai = &omap_mcbsp_dai[0],
-> +		.codec_dai = &twl4030_dai[TWL4030_DAI_HIFI],
-> +		.ops = &omap3evm_ops,
-> +	},
-> +	/* Connects WL1271 Bluetooth codec <--> CPU */
-> +	{
-> +		.name = "WL1271BTPCM",
-> +		.stream_name = "WL1271 BT PCM",
-> +		.cpu_dai = &omap_mcbsp_dai[1],
-> +		.codec_dai = &wl1271bt_dai,
-> +		.ops = &omap3evm_wl1271bt_pcm_ops,
-> +	},
-> +};
-> +#else
->  static struct snd_soc_dai_link omap3evm_dai = {
->  	.name 		= "TWL4030",
->  	.stream_name 	= "TWL4030",
-> @@ -84,13 +135,18 @@ static struct snd_soc_dai_link omap3evm_dai = {
->  	.codec_dai 	= &twl4030_dai[TWL4030_DAI_HIFI],
->  	.ops 		= &omap3evm_ops,
->  };
-> -
-> +#endif
->  /* Audio machine driver */
->  static struct snd_soc_card snd_soc_omap3evm = {
->  	.name = "omap3evm",
->  	.platform = &omap_soc_platform,
-> +#if defined(CONFIG_SND_OMAP_SOC_WL1271BT)
-> +	.dai_link = &omap3evm_dai[0],
-> +	.num_links = ARRAY_SIZE(omap3evm_dai),
-> +#else
->  	.dai_link = &omap3evm_dai,
->  	.num_links = 1,
-> +#endif
->  };
->  
->  /* twl4030 setup */
-> @@ -111,7 +167,10 @@ static struct platform_device 
-> *omap3evm_snd_device;
->  static int __init omap3evm_soc_init(void)
->  {
->  	int ret;
-> -
-> +#if defined(CONFIG_SND_OMAP_SOC_WL1271BT)
-> +	u16 reg;
-> +	u32 val;
-> +#endif
->  	if (!machine_is_omap3evm()) {
->  		pr_err("Not OMAP3 EVM!\n");
->  		return -ENODEV;
-> @@ -124,9 +183,27 @@ static int __init omap3evm_soc_init(void)
->  		return -ENOMEM;
->  	}
->  
-> +#if defined(CONFIG_SND_OMAP_SOC_WL1271BT)
-> +/*
-> + * Set DEVCONF0 register to connect
-> + * MCBSP1_CLKR -> MCBSP1_CLKX & MCBSP1_FSR -> MCBSP1_FSX
-> + */
-> +	reg = OMAP2_CONTROL_DEVCONF0;
-> +	val = omap_ctrl_readl(reg);
-> +	val = val | 0x18;
-> +	omap_ctrl_writel(val, reg);
-> +#endif
-
-[sp] I am not conversant with McBSP configuration, but isn't there
-     a better way than directly manipulating on DEVCONF0?
-
-     How is it done for other devices using McBSP? e.g. default
-     audio on omap3evm.
-
-> +
->  	platform_set_drvdata(omap3evm_snd_device, 
-> &omap3evm_snd_devdata);
->  	omap3evm_snd_devdata.dev = &omap3evm_snd_device->dev;
-> +#if defined(CONFIG_SND_OMAP_SOC_WL1271BT)
-> +	/* McBSP2 */
-> +	*(unsigned int *)omap3evm_dai[0].cpu_dai->private_data = 1;
-> +	/* McBSP1 */
-> +	*(unsigned int *)omap3evm_dai[1].cpu_dai->private_data = 0;
-> +#else
->  	*(unsigned int *)omap3evm_dai.cpu_dai->private_data = 1;
-> +#endif
->  
->  	ret = platform_device_add(omap3evm_snd_device);
->  	if (ret)
-> diff --git a/sound/soc/omap/wl1271bt.c b/sound/soc/omap/wl1271bt.c
-> new file mode 100644
-> index 0000000..b41895b
-> --- /dev/null
-> +++ b/sound/soc/omap/wl1271bt.c
-> @@ -0,0 +1,59 @@
-> +/*
-> + * wl1271bt.c  --  ALSA SoC WL1271 Bluetooth codec driver 
-> for omap3evm board
-> + *
-> + * Author: Sinoj M. Issac, <sinoj at mistralsolutions.com>
-> + *
-> + * Based on sound/soc/codecs/twl4030.c by Steve Sakoman
-> + *
-> + * This file provides stub codec that can be used on OMAP3530 evm to
-> + * send/receive voice samples to/from WL1271 Bluetooth chip 
-> over PCM interface.
-> + * The Bluetoothchip codec interface is configured by HCI 
-> commands. ALSA is
-> + * configured and aligned to the codec interface.
-> + *
-> + * This program is free software; you can redistribute it 
-> and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/moduleparam.h>
-> +#include <sound/soc.h>
-> +#include <sound/pcm.h>
+> + =A0 =A0 =A0 mdelay(50);
+> + =A0 =A0 =A0 /* T2-GPIO.13 -> LOW */
+> + =A0 =A0 =A0 reg_value &=3D ~(0x20);
+> + =A0 =A0 =A0 ret =3D twl_i2c_write_u8(TWL4030_MODULE_GPIO,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg_val=
+ue, REG_GPIODATAOUT2);
+> + =A0 =A0 =A0 if (ret !=3D 0)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 printk(KERN_INFO "WL1271: BT_EN GPIO initialized\n");
+> +err:
+> + =A0 =A0 =A0 return ret;
+> +} /* End of init_bt_power() */
 > +
 > +/*
-> + * Since WL1271 PCM interface is intended for Voice,
-> + * Support sampling rate 8K only
+> + * =A0 =A0 WL1271: Set Bluetooth Enable
 > + */
-> +#define WL1271BT_RATES		SNDRV_PCM_RATE_8000
-> +#define WL1271BT_FORMATS	SNDRV_PCM_FMTBIT_S16_LE
-> +
-> +struct snd_soc_dai wl1271bt_dai = {
-> +	.name = "wl1271bt",
-> +	.playback = {
-> +		.stream_name = "Playback",
-> +		.channels_min = 1,
-> +		.channels_max = 2,
-> +		.rates = WL1271BT_RATES,
-> +		.formats = WL1271BT_FORMATS,},
-> +	.capture = {
-> +		.stream_name = "Capture",
-> +		.channels_min = 1,
-> +		.channels_max = 2,
-> +		.rates = WL1271BT_RATES,
-> +		.formats = WL1271BT_FORMATS,},
-> +};
-> +
-> +static int __init wl1271bt_modinit(void)
+> +static int tty_setbt_power(int __user *p)
 > +{
-> +	/* Register number of DAIs (wl1271bt_dai) with the ASoC core */
-> +	return snd_soc_register_dais(&wl1271bt_dai, 1);
-> +}
+> + =A0 =A0 =A0 int power;
+> + =A0 =A0 =A0 int err =3D 0;
+> + =A0 =A0 =A0 u8 reg_value =3D 0;
 > +
-> +static void __exit wl1271bt_modexit(void)
-> +{
-> +	/* Unregister number of DAIs (wl1271bt_dai) from the 
-> ASoC core */
-> +	snd_soc_unregister_dais(&wl1271bt_dai, 1);
-> +}
+> + =A0 =A0 =A0 if (get_user(power, p))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EFAULT;
 > +
-> +module_init(wl1271bt_modinit);
-> +module_exit(wl1271bt_modexit);
-> diff --git a/sound/soc/omap/wl1271bt.h b/sound/soc/omap/wl1271bt.h
-> new file mode 100644
-> index 0000000..769f9a9
-> --- /dev/null
-> +++ b/sound/soc/omap/wl1271bt.h
-> @@ -0,0 +1,16 @@
-> +/*
-> + * wl1271bt.h  --  ALSA SoC WL1271 Bluetooth codec driver header
-> + *
-> + * Author: Sinoj M. Issac, <sinoj at mistralsolutions.com>
-> + *
-> + * This program is free software; you can redistribute it 
-> and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
+> + =A0 =A0 =A0 printk(KERN_INFO "Set BT_EN of WL1271\n");
+> + =A0 =A0 =A0 /* Power settings argument should either be 1 or 0 */
+> + =A0 =A0 =A0 power =3D power ? 1 : 0;
 > +
-> +#ifndef WL1271BT_H
-> +#define WL1271BT_H
+> + =A0 =A0 =A0 if (power)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg_value |=3D (0x20);
+> + =A0 =A0 =A0 else
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg_value &=3D ~(0x20);
 > +
-> +extern struct snd_soc_dai wl1271bt_dai;
+> + =A0 =A0 =A0 err =3D twl_i2c_write_u8(TWL4030_MODULE_GPIO,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg_val=
+ue, REG_GPIODATAOUT2);
+> + =A0 =A0 =A0 if (err !=3D 0) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_DEBUG "WL1271: Set BT_EN fa=
+iled %d %d\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 err, power);
+> + =A0 =A0 =A0 return err;
+> + =A0 =A0 =A0 }
+> + =A0 =A0 =A0 printk(KERN_INFO "WL1271: Powering %s\n", power ? "on" =
+: "off");
+> + =A0 =A0 =A0 return 0;
+> +} /* End of set_bt_power() */
+> +#endif
 > +
-> +#endif /* WL1271BT_H */
-> -- 
-> 1.6.3.3
-> 
+> =A0/**
+> =A0* =A0 =A0 alloc_tty_struct =A0 =A0 =A0 =A0- =A0 =A0 =A0 allocate a=
+ tty object
+> =A0*
+> @@ -2571,6 +2671,11 @@ long tty_ioctl(struct file *file, unsigned int=
+ cmd, unsigned long arg)
+> =A0 =A0 =A0 =A0case TIOCMBIC:
+> =A0 =A0 =A0 =A0case TIOCMBIS:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return tty_tiocmset(tty, file, cmd, p)=
+;
+> +#ifdef CONFIG_BT_WL1271
+> + =A0 =A0 =A0 /* Control BT_EN pin of Bluetooth-WL1271 */
+> + =A0 =A0 =A0 case TIOSETWL1271POWER:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return tty_setbt_power(p);
+> +#endif
+> =A0 =A0 =A0 =A0case TCFLSH:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0switch (arg) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0case TCIFLUSH:
+> @@ -3142,6 +3247,11 @@ static int __init tty_init(void)
+> =A0#ifdef CONFIG_VT
+> =A0 =A0 =A0 =A0vty_init(&console_fops);
+> =A0#endif
+> +
+> +#ifdef CONFIG_BT_WL1271
+> + =A0 =A0 =A0 /* Initialize Bluetooth- WL1271chip connected to UART *=
+/
+> + =A0 =A0 =A0 bt_init_power();
+> +#endif
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+> =A0module_init(tty_init);
 > --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> 1.6.3.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+Cannot pollute tty_io.c with omap-evm platform specific things
+
+tty_io.c is a file part of generic tty-layer stack we cannot have
+any platform specific things there.
+
+bt_init_power
+tty_setbt_power
+
+All are one time configuration don't see why it needs
+to be done with ioctl interface.
+Can be done in board file itself.
+
+---
+Regards,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireles=
+s" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
