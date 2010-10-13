@@ -1,97 +1,152 @@
-From: csanjay@mistralsolutions.com
-Subject: [RFC: WL1271 DC supprot on OMAP3EVM 5/5] Supported BT and WLAN configuration for WL1271 over the OMAP37XX
-Date: Wed, 13 Oct 2010 16:27:19 +0530
-Message-ID: <1286967439-705-6-git-send-email-csanjay@mistralsolutions.com>
-References: <1286967439-705-1-git-send-email-csanjay@mistralsolutions.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:44229 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753515Ab0JMLJ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 07:09:28 -0400
-In-Reply-To: <1286967439-705-1-git-send-email-csanjay@mistralsolutions.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>
+Subject: RE: [WL1271 DC supprot on OMAP3EVM 2/5] ARM: Supported for Standard
+ SDIO driver on OMAP3EVM for WL1271 DC
+Date: Wed, 13 Oct 2010 16:47:35 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930234405BCA@dbde02.ent.ti.com>
+References: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
+ <1286967077-20071-3-git-send-email-csanjay@mistralsolutions.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1286967077-20071-3-git-send-email-csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org" <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-wireless@vger.kernel.org, Sanjay Kumar Champati <csanjay@mistralsolutions.com>
 
-From: Sanjay Kumar Champati <csanjay@mistralsolutions.com>
+> -----Original Message-----
+> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org 
+> [mailto:linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of 
+> csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org
+> Sent: Wednesday, October 13, 2010 4:21 PM
+> To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Sanjay Kumar Champati
+> Subject: [WL1271 DC supprot on OMAP3EVM 2/5] ARM: Supported 
+> for Standard SDIO driver on OMAP3EVM for WL1271 DC
+> 
+> From: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+> 
+> * Apply MMC2 support patch before apply this patch
 
-* Modified the "omap3_evm_defconfig" file to support WLAN and BT configuration for WL1271
+[sp] Can you be more explicit about this change? It isn't useful
+     here?
 
-Signed-off-by: Sanjay Kumar Champati <csanjay@mistralsolutions.com>
----
- arch/arm/configs/omap3_evm_defconfig |   27 ++++++++++++++++++++++++---
- 1 files changed, 24 insertions(+), 3 deletions(-)
+> * Modified the "Kconfig" and "board-omap3evm.c" files to support
+>   standard SDIO driver for WL1271 DC
+> 
+> Signed-off-by: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/board-omap3evm.c |   13 ++++++++++++-
+>  drivers/mmc/core/sdio_ops.c          |    7 ++++++-
+>  drivers/net/wireless/Kconfig         |   11 +++++++++++
+>  3 files changed, 29 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c 
+> b/arch/arm/mach-omap2/board-omap3evm.c
+> index 6b45b6e..06fab2e 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -79,6 +79,10 @@
+>  #define OMAP3EVM_ETHR_ID_REV	0x50
+>  #define OMAP3EVM_ETHR_GPIO_IRQ	176
+>  #define OMAP3EVM_SMSC911X_CS	5
+> +#ifdef CONFIG_WL1271_WLAN
+> +#define OMAP3EVM_WLAN_EN	150
+> +#define OMAP3EVM_WLAN_IRQ	149
+> +#endif
+>  
+>  extern struct regulator_consumer_supply twl4030_vmmc1_supply;
+>  extern struct regulator_consumer_supply twl4030_vsim_supply;
+> @@ -749,7 +753,14 @@ static int 
+> omap3evm_twl_gpio_setup(struct device *dev,
+>  	twl4030_vmmc1_supply.dev = mmc[0].dev;
+>  	twl4030_vsim_supply.dev = mmc[0].dev;
+>  	twl4030_vmmc2_supply.dev = mmc[1].dev;
+> -
+> +#ifdef CONFIG_WL1271_WLAN
+> +	omap_mux_init_gpio(OMAP3EVM_WLAN_EN, OMAP_PIN_OUTPUT);
+> +	if (gpio_request(OMAP3EVM_WLAN_EN, "WLAN_ENABLE"))
+> +		printk(KERN_ERR "Fail to get WLAN Enable GPIO\n");
+> +	gpio_direction_output(OMAP3EVM_WLAN_EN, 1);
+> +	mdelay(100);
 
-diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-index a18b22e..676cd99 100644
---- a/arch/arm/configs/omap3_evm_defconfig
-+++ b/arch/arm/configs/omap3_evm_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
- # Linux kernel version: 2.6.32
--# Tue Jan  5 13:03:54 2010
-+# Sun Oct 10 05:00:18 2010
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -492,10 +492,29 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_HAMRADIO is not set
- # CONFIG_CAN is not set
- # CONFIG_IRDA is not set
--# CONFIG_BT is not set
-+CONFIG_BT=y
-+CONFIG_BT_L2CAP=y
-+CONFIG_BT_SCO=y
-+CONFIG_BT_RFCOMM=y
-+CONFIG_BT_RFCOMM_TTY=y
-+
-+#
-+# Bluetooth device drivers
-+#
-+CONFIG_BT_HCIUART=y
-+CONFIG_BT_HCIUART_H4=y
-+CONFIG_BT_HCIUART_BCSP=y
-+CONFIG_BT_HCIUART_LL=y
-+CONFIG_BT_WL1271=y
- # CONFIG_AF_RXRPC is not set
- CONFIG_WIRELESS=y
-+CONFIG_WIRELESS_EXT=y
-+CONFIG_WEXT_CORE=y
-+CONFIG_WEXT_PROC=y
-+CONFIG_WEXT_SPY=y
-+CONFIG_WEXT_PRIV=y
- # CONFIG_CFG80211 is not set
-+CONFIG_WIRELESS_EXT_SYSFS=y
- # CONFIG_LIB80211 is not set
- 
- #
-@@ -740,6 +759,7 @@ CONFIG_SMSC911X=y
- # CONFIG_NETDEV_1000 is not set
- # CONFIG_NETDEV_10000 is not set
- CONFIG_WLAN=y
-+CONFIG_WL1271_WLAN=y
- # CONFIG_USB_ZD1201 is not set
- # CONFIG_HOSTAP is not set
- 
-@@ -1302,6 +1322,7 @@ CONFIG_SND_SOC=y
- CONFIG_SND_OMAP_SOC=y
- CONFIG_SND_OMAP_SOC_MCBSP=y
- CONFIG_SND_OMAP_SOC_OMAP3EVM=y
-+CONFIG_SND_OMAP_SOC_WL1271BT=y
- CONFIG_SND_SOC_I2C_AND_SPI=y
- # CONFIG_SND_SOC_ALL_CODECS is not set
- CONFIG_SND_SOC_TWL4030=y
-@@ -2004,7 +2025,7 @@ CONFIG_CRYPTO_HW=y
- CONFIG_BITREVERSE=y
- CONFIG_GENERIC_FIND_LAST_BIT=y
- CONFIG_CRC_CCITT=y
--# CONFIG_CRC16 is not set
-+CONFIG_CRC16=y
- # CONFIG_CRC_T10DIF is not set
- # CONFIG_CRC_ITU_T is not set
- CONFIG_CRC32=y
--- 
-1.6.3.3
+[sp] Why is this delay required?
 
+> +	omap_mux_init_gpio(OMAP3EVM_WLAN_IRQ, OMAP_PIN_INPUT);
+> +#endif
+>  	/*
+>  	 * Most GPIOs are for USB OTG.  Some are mostly sent to
+>  	 * the P2 connector; notably LEDA for the LCD backlight.
+> diff --git a/drivers/mmc/core/sdio_ops.c b/drivers/mmc/core/sdio_ops.c
+> index 4eb7825..4213ee0 100644
+> --- a/drivers/mmc/core/sdio_ops.c
+> +++ b/drivers/mmc/core/sdio_ops.c
+> @@ -114,6 +114,9 @@ int mmc_io_rw_direct(struct mmc_card 
+> *card, int write, unsigned fn,
+>  
+>  	return 0;
+>  }
+> +#ifdef CONFIG_WL1271_WLAN
+> +EXPORT_SYMBOL(mmc_io_rw_direct);
+> +#endif
+
+[sp] Why is the export required?
+
+>  
+>  int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
+>  	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, 
+> unsigned blksz)
+> @@ -181,4 +184,6 @@ int mmc_io_rw_extended(struct mmc_card 
+> *card, int write, unsigned fn,
+>  
+>  	return 0;
+>  }
+> -
+> +#ifdef CONFIG_WL1271_WLAN
+> +EXPORT_SYMBOL(mmc_io_rw_extended);
+> +#endif
+
+[sp] Why is the export required?
+
+> diff --git a/drivers/net/wireless/Kconfig 
+> b/drivers/net/wireless/Kconfig
+> index 56dd665..dc319b7 100644
+> --- a/drivers/net/wireless/Kconfig
+> +++ b/drivers/net/wireless/Kconfig
+> @@ -31,6 +31,17 @@ config PCMCIA_RAYCS
+>  	  To compile this driver as a module, choose M here: 
+> the module will be
+>  	  called ray_cs.  If unsure, say N.
+>  
+> +config WL1271_WLAN
+> +	tristate "WL1271 TI's SDIO based wireless card"
+> +	select WIRELESS_EXT
+> +	select CRYPTO
+> +	select WEXT_SPY
+> +	select WEXT_PRIV
+> +	---help---
+> +	This driver support both the standard Linux Wireless Extensions
+> +	and TI's proprietary API, so both the Linux Wireless 
+> Tools and this
+> +	module support 2.4 GHz 802.11 b/g/n standrd.
+[sp] Can you do a spellcheck?              ^^^^^^
+
+> +
+>  config LIBERTAS_THINFIRM
+>  	tristate "Marvell 8xxx Libertas WLAN driver support 
+> with thin firmware"
+>  	depends on MAC80211
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
