@@ -1,77 +1,37 @@
-From: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>
-Subject: RE: [WL1271 DC support on OMAP3EVM 2/5] ARM: Supported for Standard
- SDIO driver on OMAP3EVM for WL1271 DC
-Date: Wed, 13 Oct 2010 18:31:18 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930234405CB8@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB5930234405BCA@dbde02.ent.ti.com>
- <2615178032399077084343141213216@psmtp.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: linux-next: omap2plus_defconfig does not build
+Date: Wed, 13 Oct 2010 18:53:08 +0530
+Message-ID: <a36d6a1047d959af6ea65cd7edacf6a8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2615178032399077084343141213216-w9+Jh5EvMMwAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:60695 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751193Ab0JMNXQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 13 Oct 2010 09:23:16 -0400
+Received: by mail-ww0-f46.google.com with SMTP id 17so833782wwb.3
+        for <linux-omap@vger.kernel.org>; Wed, 13 Oct 2010 06:23:09 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Sanjay Kumar Champati [mailto:csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org] 
-> Sent: Wednesday, October 13, 2010 5:50 PM
-> To: Premi, Sanjeev; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: [WL1271 DC support on OMAP3EVM 2/5] ARM: 
-> Supported for Standard SDIO driver on OMAP3EVM for WL1271 DC
-> 
-[snip]...[snip]
+Building omap2plus_defconfig (which enables support for
+OMAP2420/2430/OMAP3
+and OMAP4 in one image), I get the following build error.
 
-> > > diff --git a/drivers/mmc/core/sdio_ops.c 
-> b/drivers/mmc/core/sdio_ops.c
-> > > index 4eb7825..4213ee0 100644
-> > > --- a/drivers/mmc/core/sdio_ops.c
-> > > +++ b/drivers/mmc/core/sdio_ops.c
-> > > @@ -114,6 +114,9 @@ int mmc_io_rw_direct(struct mmc_card
-> > > *card, int write, unsigned fn,
-> > >
-> > >  	return 0;
-> > >  }
-> > > +#ifdef CONFIG_WL1271_WLAN
-> > > +EXPORT_SYMBOL(mmc_io_rw_direct);
-> > > +#endif
-> > 
-> > [sp] Why is the export required?
-> For the standard SDIO support WL1271 driver is using 
-> "mmc_io_rw_direct".
-> > 
-> > >
-> > >  int mmc_io_rw_extended(struct mmc_card *card, int write, 
-> unsigned fn,
-> > >  	unsigned addr, int incr_addr, u8 *buf, unsigned blocks,
-> > > unsigned blksz)
-> > > @@ -181,4 +184,6 @@ int mmc_io_rw_extended(struct mmc_card
-> > > *card, int write, unsigned fn,
-> > >
-> > >  	return 0;
-> > >  }
-> > > -
-> > > +#ifdef CONFIG_WL1271_WLAN
-> > > +EXPORT_SYMBOL(mmc_io_rw_extended);
-> > > +#endif
-> > 
-> > [sp] Why is the export required?
-> For the standard SDIO support WL1271 driver is using 
-> "mmc_io_rw_extended".
-> > 
+  CC      arch/arm/kernel/swp_emulate.o
+/tmp/ccg979qz.s: Assembler messages:
+/tmp/ccg979qz.s:343: Error: selected processor does not support ARM mode
+`ldrexb r6,[r5]'
+/tmp/ccg979qz.s:344: Error: selected processor does not support ARM mode
+`strexb r1,r3,[r5]'
+make[1]: *** [arch/arm/kernel/swp_emulate.o] Error 1
+make: *** [arch/arm/kernel] Error 2
 
-[sp] part of my question is: Why do you need to modify the
-     generic sdio implementation to export these functions?
+I'm using CodeSourcery's 2010q1-202 toolchain based on gcc 4.4.1.
 
-     You cannot make "custom" modifications here. See similar
-     comment in other patch as well.
+I haven't been following the lists closely the last few days, so I'm not
+sure if this is a known issue. Just reporting it for now.
 
-[snip]...[snip]
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Anand
