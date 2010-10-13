@@ -1,109 +1,42 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCHv2 1/1] omap: Ptr "isr_reg" tracked as NULL was
- dereferenced
-Date: Wed, 13 Oct 2010 16:25:08 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D099AFD@dbde02.ent.ti.com>
-References: <cover.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
- <7bb69801f49283c3bde78aa008c15308ac8a5fbf.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42432 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750937Ab0JMK4J convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 06:56:09 -0400
-In-Reply-To: <7bb69801f49283c3bde78aa008c15308ac8a5fbf.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org
+Subject: [WL1271 DC supprot on OMAP3EVM 0/5]
+Date: Wed, 13 Oct 2010 16:21:12 +0530
+Message-ID: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tero.kristo@nokia.com" <tero.kristo@nokia.com>
+
+From: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 
 
+Sanjay Kumar Champati (5):
+  ARM: Supported MMC 2 features for OMAP3EVM
+  ARM: Supported for Standard SDIO driver on OMAP3EVM for WL1271 DC
+  ARM: Supported for BT enable on OMAP3EVM for WL1271 DC
+  ARM: Added ALSA audio support for WL1271 DC over the PCM interface
+    (OMAP37XX)
+  Supported BT and WLAN configuration for WL1271 over the OMAP37XX
 
-> -----Original Message-----
-> From: Evgeny Kuznetsov [mailto:EXT-Eugeny.Kuznetsov@nokia.com]
-> Sent: Wednesday, October 13, 2010 3:35 PM
-> To: tony@atomide.com
-> Cc: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; Balbi, Felipe; linux@arm.linux.org.uk;
-> khilman@deeprootsystems.com; akpm@linux-foundation.org; Varadarajan,
-> Charulatha; tero.kristo@nokia.com; ext-eugeny.kuznetsov@nokia.com
-> Subject: [PATCHv2 1/1] omap: Ptr "isr_reg" tracked as NULL was
-> dereferenced
-> 
-> From: Evgeny Kuznetsov <ext-eugeny.kuznetsov@nokia.com>
-> 
-> Value of "isr_reg" pointer is depend on configuration and GPIO method.
-> Potentially it may have NULL value and it is dereferenced later
-> in code. If pointer is NULL there is some kernel issue.
+ arch/arm/configs/omap3_evm_defconfig |   27 +++++++-
+ arch/arm/mach-omap2/board-omap3evm.c |   28 ++++++++-
+ arch/arm/mach-omap2/mmc-twl4030.c    |    1 +
+ arch/arm/mach-omap2/mmc-twl4030.h    |    2 +
+ drivers/bluetooth/Kconfig            |    7 ++
+ drivers/char/tty_io.c                |  110 ++++++++++++++++++++++++++++++++++
+ drivers/mmc/core/sdio_ops.c          |    7 ++-
+ drivers/net/wireless/Kconfig         |   11 ++++
+ sound/soc/omap/Kconfig               |    6 ++
+ sound/soc/omap/Makefile              |    2 +
+ sound/soc/omap/omap3evm.c            |   81 ++++++++++++++++++++++++-
+ sound/soc/omap/wl1271bt.c            |   59 ++++++++++++++++++
+ sound/soc/omap/wl1271bt.h            |   16 +++++
+ 13 files changed, 350 insertions(+), 7 deletions(-)
+ create mode 100644 sound/soc/omap/wl1271bt.c
+ create mode 100644 sound/soc/omap/wl1271bt.h
 
-Can you elaborate?
-
-> Warning and exit from function are added in this case.
-> Also compilation check is added for correct architecture
-> configuration.
-> 
-> Signed-off-by: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
-> ---
->  arch/arm/plat-omap/gpio.c |   18 ++++++++++++++++++
->  1 files changed, 18 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index c05c653..d04913c 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -1318,6 +1318,23 @@ static void gpio_irq_handler(unsigned int irq,
-> struct irq_desc *desc)
->  	if (bank->method == METHOD_GPIO_44XX)
->  		isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
->  #endif
-> +
-> +#if !defined(CONFIG_ARCH_OMAP1) &&		\
-> +		!defined(CONFIG_ARCH_OMAP15XX) &&	\
-> +		!defined(CONFIG_ARCH_OMAP16XX) &&	\
-> +		!defined(CONFIG_ARCH_OMAP730) &&	\
-> +		!defined(CONFIG_ARCH_OMAP850) &&	\
-> +		!defined(CONFIG_ARCH_OMAP2) &&	\
-> +		!defined(CONFIG_ARCH_OMAP3) &&	\
-> +		!defined(CONFIG_ARCH_OMAP4)
-> +
-> +#error "Incorrect arch configuration"
-
-This is not required. If the architecture is not one of the above
-mentioned, gpio_irq_handler() will not be used/called at all.
-
-Also all the possible gpio methods for a given OMAP architecture are
-already considered with "#ifdef"s and (bank->method) checks in
-gpio_irq_handler().
-
-> +
-> +#endif
-> +
-> +	if (WARN_ON(!isr_reg))
-> +		goto exit;
-
-For the above mentioned reason, this isr_reg would be non-NULL. Have
-you observed this error anytime?
-
-Also, the omap-gpio code has similar code spread all over and has to be
-anyway cleaned-up. Is there any reason why gpio_irq_handler() alone is
-addressed in this patch?
-
-> +
->  	while(1) {
->  		u32 isr_saved, level_mask = 0;
->  		u32 enabled;
-> @@ -1377,6 +1394,7 @@ static void gpio_irq_handler(unsigned int irq,
-> struct irq_desc *desc)
->  	configured, we must unmask the bank interrupt only after
->  	handler(s) are executed in order to avoid spurious bank
->  	interrupt */
-> +exit:
->  	if (!unmasked)
->  		desc->chip->unmask(irq);
-> 
-> --
-> 1.6.3.3
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
