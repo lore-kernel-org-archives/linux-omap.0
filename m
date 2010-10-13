@@ -1,47 +1,132 @@
-From: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>
-Subject: RE: [WL1271 DC supprot on OMAP3EVM 5/5] Supported BT and WLAN
- configuration for WL1271 over the OMAP37XX
-Date: Wed, 13 Oct 2010 17:36:04 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930234405C42@dbde02.ent.ti.com>
-References: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
- <1286967077-20071-6-git-send-email-csanjay@mistralsolutions.com>
+From: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+Subject: RE: [PATCHv2 1/1] omap: Ptr "isr_reg" tracked as NULL was
+ dereferenced
+Date: Wed, 13 Oct 2010 16:09:18 +0400
+Message-ID: <1286971758.12782.35.camel@ekuznets-lx-nokia>
+References: <cover.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	 <7bb69801f49283c3bde78aa008c15308ac8a5fbf.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB030D099AFD@dbde02.ent.ti.com>
+	 <1286970199.12782.28.camel@ekuznets-lx-nokia>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB030D099B87@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1286967077-20071-6-git-send-email-csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org" <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:31017 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751988Ab0JMMNf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 08:13:35 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030D099B87@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Varadarajan, Charulatha" <charu@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tero.kristo@nokia.com" <tero.kristo@nokia.com>
 
- 
+On Wed, 2010-10-13 at 17:20 +0530, ext Varadarajan, Charulatha wrote:
+> 
+> <<snip>>
+> 
+> > > >
+> > > > From: Evgeny Kuznetsov <ext-eugeny.kuznetsov@nokia.com>
+> > > >
+> > > > Value of "isr_reg" pointer is depend on configuration and GPIO method.
+> > > > Potentially it may have NULL value and it is dereferenced later
+> > > > in code. If pointer is NULL there is some kernel issue.
+> > >
+> > > Can you elaborate?
+> > "isr_reg" should not be NULL. But if it is NULL then there is kernel
+> > bug. And WARN_ON() used to show it.
+> > I did not see this bug, this is potentially may happen.
+> > >
+> > > > Warning and exit from function are added in this case.
+> > > > Also compilation check is added for correct architecture
+> > > > configuration.
+> > > >
+> > > > Signed-off-by: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+> > > > ---
+> > > >  arch/arm/plat-omap/gpio.c |   18 ++++++++++++++++++
+> > > >  1 files changed, 18 insertions(+), 0 deletions(-)
+> > > >
+> > > > diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> > > > index c05c653..d04913c 100644
+> > > > --- a/arch/arm/plat-omap/gpio.c
+> > > > +++ b/arch/arm/plat-omap/gpio.c
+> > > > @@ -1318,6 +1318,23 @@ static void gpio_irq_handler(unsigned int irq,
+> > > > struct irq_desc *desc)
+> > > >  	if (bank->method == METHOD_GPIO_44XX)
+> > > >  		isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
+> > > >  #endif
+> > > > +
+> > > > +#if !defined(CONFIG_ARCH_OMAP1) &&		\
+> > > > +		!defined(CONFIG_ARCH_OMAP15XX) &&	\
+> > > > +		!defined(CONFIG_ARCH_OMAP16XX) &&	\
+> > > > +		!defined(CONFIG_ARCH_OMAP730) &&	\
+> > > > +		!defined(CONFIG_ARCH_OMAP850) &&	\
+> > > > +		!defined(CONFIG_ARCH_OMAP2) &&	\
+> > > > +		!defined(CONFIG_ARCH_OMAP3) &&	\
+> > > > +		!defined(CONFIG_ARCH_OMAP4)
+> > > > +
+> > > > +#error "Incorrect arch configuration"
+> > >
+> > > This is not required. If the architecture is not one of the above
+> > > mentioned, gpio_irq_handler() will not be used/called at all.
+> > This could be removed.
+> > 
+> > > Also all the possible gpio methods for a given OMAP architecture are
+> > > already considered with "#ifdef"s and (bank->method) checks in
+> > > gpio_irq_handler().
+> > It is not cover all cased, e.g. for OMAP4 arch:
+> > ....
+> > 	#if defined(CONFIG_ARCH_OMAP4)
+> > 		if (bank->method == METHOD_GPIO_44XX)
+> > 			isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
+> > 	#endif
+> > .....
+> > 
+> > If (bank->method != METHOD_GPIO_44XX) then isr_reg will be NULL.
+> > This should not happen, but potentially may have place.
+> 
+> When would it fail? If it is CONFIG_ARCH_OMAP4, the gpio method can
+> only be METHOD_GPIO_44XX. Else if it is for some other OMAP architecture,
+> the gpio_method is similarly taken care. So this cannot happen.
+This is similar check as e.g. in _enable_gpio_irqbank() there default
+case for bank->methos switch is WARN_ON(1).
+Just to warn in case.
+> 
+> > 
+> > >
+> > > > +
+> > > > +#endif
+> > > > +
+> > > > +	if (WARN_ON(!isr_reg))
+> > > > +		goto exit;
+> > >
+> > > For the above mentioned reason, this isr_reg would be non-NULL. Have
+> > > you observed this error anytime?
+> > I did not see this bug, this is potentially may happen.
+> > >
+> > > Also, the omap-gpio code has similar code spread all over and has to be
+> > > anyway cleaned-up. Is there any reason why gpio_irq_handler() alone is
+> > > addressed in this patch?
+> > Here "isr_reg" is used later in code and may cause oops if it is NULL.
+> > >
+> > > > +
+> > > >  	while(1) {
+> > > >  		u32 isr_saved, level_mask = 0;
+> > > >  		u32 enabled;
+> > > > @@ -1377,6 +1394,7 @@ static void gpio_irq_handler(unsigned int irq,
+> > > > struct irq_desc *desc)
+> > > >  	configured, we must unmask the bank interrupt only after
+> > > >  	handler(s) are executed in order to avoid spurious bank
+> > > >  	interrupt */
+> > > > +exit:
+> > > >  	if (!unmasked)
+> > > >  		desc->chip->unmask(irq);
+> > > >
+> > > > --
+> > > > 1.6.3.3
+> > >
+> > 
+> 
 
-> -----Original Message-----
-> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org 
-> [mailto:linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of 
-> csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org
-> Sent: Wednesday, October 13, 2010 4:21 PM
-> To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Sanjay Kumar Champati
-> Subject: [WL1271 DC supprot on OMAP3EVM 5/5] Supported BT and 
-> WLAN configuration for WL1271 over the OMAP37XX
-> 
-> From: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-> 
-> * Modified the "omap3_evm_defconfig" file to support WLAN and 
-> BT configuration for WL1271
-> 
-> Signed-off-by: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
-> ---
->  arch/arm/configs/omap3_evm_defconfig |   27 
-> ++++++++++++++++++++++++---
-[sp] There is no such file in the tree. It seems you haven't rebased
-     your tree for long.
 
-[snip]...[snip]
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
