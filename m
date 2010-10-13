@@ -1,13 +1,13 @@
 From: csanjay@mistralsolutions.com
-Subject: [WL1271 DC supprot on OMAP3EVM 1/5] ARM: Supported MMC 2 features for OMAP3EVM
-Date: Wed, 13 Oct 2010 16:21:13 +0530
-Message-ID: <1286967077-20071-2-git-send-email-csanjay@mistralsolutions.com>
+Subject: [WL1271 DC supprot on OMAP3EVM 2/5] ARM: Supported for Standard SDIO driver on OMAP3EVM for WL1271 DC
+Date: Wed, 13 Oct 2010 16:21:14 +0530
+Message-ID: <1286967077-20071-3-git-send-email-csanjay@mistralsolutions.com>
 References: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:49239 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752745Ab0JMLDA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 07:03:00 -0400
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:39358 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753104Ab0JMLDG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 07:03:06 -0400
 In-Reply-To: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,85 +16,92 @@ Cc: linux-wireless@vger.kernel.org, Sanjay Kumar Champati <csanjay@mistralsoluti
 
 From: Sanjay Kumar Champati <csanjay@mistralsolutions.com>
 
-* Modified "board-omap3evm.c" file for MMC2 support
-* Modified "mmc-twl4030.c" and "mmc-twl4030.h" file for MMC2 power support
+* Apply MMC2 support patch before apply this patch
+* Modified the "Kconfig" and "board-omap3evm.c" files to support
+  standard SDIO driver for WL1271 DC
 
 Signed-off-by: Sanjay Kumar Champati <csanjay@mistralsolutions.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   15 +++++++++++++++
- arch/arm/mach-omap2/mmc-twl4030.c    |    1 +
- arch/arm/mach-omap2/mmc-twl4030.h    |    2 ++
- 3 files changed, 18 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap3evm.c |   13 ++++++++++++-
+ drivers/mmc/core/sdio_ops.c          |    7 ++++++-
+ drivers/net/wireless/Kconfig         |   11 +++++++++++
+ 3 files changed, 29 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index d2c8dcf..6b45b6e 100644
+index 6b45b6e..06fab2e 100644
 --- a/arch/arm/mach-omap2/board-omap3evm.c
 +++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -611,6 +611,13 @@ static struct twl4030_hsmmc_info mmc[] = {
- 		.gpio_cd	= -EINVAL,
- 		.gpio_wp	= 63,
- 	},
-+	{
-+		.mmc            = 2,
-+		.wires          = 4,
-+		.gpio_cd        = -EINVAL,
-+		.gpio_wp        = -EINVAL,
-+		.ocr_mask	= 0x00000080,
-+	},
- 	{}	/* Terminator */
- };
+@@ -79,6 +79,10 @@
+ #define OMAP3EVM_ETHR_ID_REV	0x50
+ #define OMAP3EVM_ETHR_GPIO_IRQ	176
+ #define OMAP3EVM_SMSC911X_CS	5
++#ifdef CONFIG_WL1271_WLAN
++#define OMAP3EVM_WLAN_EN	150
++#define OMAP3EVM_WLAN_IRQ	149
++#endif
  
-@@ -741,6 +748,7 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
- 	/* link regulators to MMC adapters */
+ extern struct regulator_consumer_supply twl4030_vmmc1_supply;
+ extern struct regulator_consumer_supply twl4030_vsim_supply;
+@@ -749,7 +753,14 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
  	twl4030_vmmc1_supply.dev = mmc[0].dev;
  	twl4030_vsim_supply.dev = mmc[0].dev;
-+	twl4030_vmmc2_supply.dev = mmc[1].dev;
- 
+ 	twl4030_vmmc2_supply.dev = mmc[1].dev;
+-
++#ifdef CONFIG_WL1271_WLAN
++	omap_mux_init_gpio(OMAP3EVM_WLAN_EN, OMAP_PIN_OUTPUT);
++	if (gpio_request(OMAP3EVM_WLAN_EN, "WLAN_ENABLE"))
++		printk(KERN_ERR "Fail to get WLAN Enable GPIO\n");
++	gpio_direction_output(OMAP3EVM_WLAN_EN, 1);
++	mdelay(100);
++	omap_mux_init_gpio(OMAP3EVM_WLAN_IRQ, OMAP_PIN_INPUT);
++#endif
  	/*
  	 * Most GPIOs are for USB OTG.  Some are mostly sent to
-@@ -949,6 +957,7 @@ static int __init omap3_evm_i2c_init(void)
- 	 */
- 	omap3evm_twldata.vmmc1 = &vmmc1_data;
- 	omap3evm_twldata.vsim = &vsim_data;
-+	omap3evm_twldata.vmmc2 = &vmmc2_data;
+ 	 * the P2 connector; notably LEDA for the LCD backlight.
+diff --git a/drivers/mmc/core/sdio_ops.c b/drivers/mmc/core/sdio_ops.c
+index 4eb7825..4213ee0 100644
+--- a/drivers/mmc/core/sdio_ops.c
++++ b/drivers/mmc/core/sdio_ops.c
+@@ -114,6 +114,9 @@ int mmc_io_rw_direct(struct mmc_card *card, int write, unsigned fn,
  
- 	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
- 			ARRAY_SIZE(omap3evm_i2c_boardinfo));
-@@ -1067,6 +1076,12 @@ static struct omap_board_mux omap35x_board_mux[] __initdata = {
- 				OMAP_PIN_OFF_INPUT_PULLUP | OMAP_PIN_OFF_OUTPUT_LOW |
- 				OMAP_PIN_OFF_WAKEUPENABLE),
- #endif
-+	OMAP3_MUX(SDMMC2_CLK, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+	OMAP3_MUX(SDMMC2_CMD, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+	OMAP3_MUX(SDMMC2_DAT0, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+	OMAP3_MUX(SDMMC2_DAT1, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+	OMAP3_MUX(SDMMC2_DAT2, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
-+	OMAP3_MUX(SDMMC2_DAT3, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLUP),
- 
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
-diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-index 0c3c72d..c56f8c7 100644
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -124,6 +124,7 @@ static int twl_mmc_late_init(struct device *dev)
- 			}
- 			hsmmc[i].vcc = reg;
- 			mmc->slots[0].ocr_mask = mmc_regulator_get_ocrmask(reg);
-+			mmc->slots[1].ocr_mask = mmc_regulator_get_ocrmask(reg);
- 
- 			/* allow an aux regulator */
- 			reg = regulator_get(dev, "vmmc_aux");
-diff --git a/arch/arm/mach-omap2/mmc-twl4030.h b/arch/arm/mach-omap2/mmc-twl4030.h
-index a47e685..88bcf46 100644
---- a/arch/arm/mach-omap2/mmc-twl4030.h
-+++ b/arch/arm/mach-omap2/mmc-twl4030.h
-@@ -34,3 +34,5 @@ static inline void twl4030_mmc_init(struct twl4030_hsmmc_info *info)
+ 	return 0;
  }
++#ifdef CONFIG_WL1271_WLAN
++EXPORT_SYMBOL(mmc_io_rw_direct);
++#endif
  
- #endif
-+extern struct regulator_consumer_supply twl4030_vmmc2_supply;
-+extern struct regulator_init_data vmmc2_data;
+ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
+ 	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, unsigned blksz)
+@@ -181,4 +184,6 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
+ 
+ 	return 0;
+ }
+-
++#ifdef CONFIG_WL1271_WLAN
++EXPORT_SYMBOL(mmc_io_rw_extended);
++#endif
+diff --git a/drivers/net/wireless/Kconfig b/drivers/net/wireless/Kconfig
+index 56dd665..dc319b7 100644
+--- a/drivers/net/wireless/Kconfig
++++ b/drivers/net/wireless/Kconfig
+@@ -31,6 +31,17 @@ config PCMCIA_RAYCS
+ 	  To compile this driver as a module, choose M here: the module will be
+ 	  called ray_cs.  If unsure, say N.
+ 
++config WL1271_WLAN
++	tristate "WL1271 TI's SDIO based wireless card"
++	select WIRELESS_EXT
++	select CRYPTO
++	select WEXT_SPY
++	select WEXT_PRIV
++	---help---
++	This driver support both the standard Linux Wireless Extensions
++	and TI's proprietary API, so both the Linux Wireless Tools and this
++	module support 2.4 GHz 802.11 b/g/n standrd.
++
+ config LIBERTAS_THINFIRM
+ 	tristate "Marvell 8xxx Libertas WLAN driver support with thin firmware"
+ 	depends on MAC80211
 -- 
 1.6.3.3
 
