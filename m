@@ -1,92 +1,56 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [RFC 0/8] Split powerdomain framework into plat
- specfic/independent
-Date: Wed, 13 Oct 2010 20:40:49 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C003FF4D6918@dbde02.ent.ti.com>
-References: <1285245291-26442-1-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.1010130858560.16871@utopia.booyaka.com>
+From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: RE: [PATCHv2 2/3] iovmm: add superpages support to fixed da address
+Date: Wed, 13 Oct 2010 19:43:50 +0300
+Message-ID: <1286988203-notmuch-felipe.contreras@nokia.com>
+References: <1286226137-1233-1-git-send-email-x0095840@ti.com> <1286226137-1233-2-git-send-email-x0095840@ti.com> <1286226137-1233-3-git-send-email-x0095840@ti.com> <AANLkTimF5HqA0pbp7NXOXxOcuMMJWp9yuJPsw8-iPKjh@mail.gmail.com> <496565EC904933469F292DDA3F1663E602F47B2BF1@dlee06.ent.ti.com> <AANLkTinVzO_B0L09bOG0aWTsQjaXgLeggB+YUgEhL2Sa@mail.gmail.com> <496565EC904933469F292DDA3F1663E602F47B2FDA@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60781 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753757Ab0JMPKz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 11:10:55 -0400
-In-Reply-To: <alpine.DEB.2.00.1010130858560.16871@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <496565EC904933469F292DDA3F1663E602F47B2FDA@dlee06.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: fernando.lugo@ti.com, felipe.contreras@gmail.com
+Cc: hiroshi.doyu@nokia.com, david.cohen@nokia.com, ameya.palande@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
+fernando.lugo@ti.com wrote:
+> > On Mon, Oct 11, 2010 at 6:33 PM, Guzman Lugo, Fernando=20
+> > <fernando.lugo@ti.com> wrote:
+> > >> > @@ -420,7 +431,8 @@ static void sgtable_fill_kmalloc(struct
+> > >> sg_table
+> > >> > *sgt, u32 pa, size_t len)
+> > >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0for_each_sg(sgt->sgl, sg, sgt->nent=
+s, i) {
+> > >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0size_t =
+bytes;
+> > >> >
+> > >> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bytes =3D i=
+opgsz_max(len);
+> > >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bytes =3D m=
+ax_alignment(da | pa);
+> > >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bytes =3D m=
+in(bytes, (size_t)iopgsz_max(len));
+> > >>
+> > >> Why the size_t casting?
+> > >
+> > > To void this warning:
+> > > arch/arm/plat-omap/iovmm.c:440: warning: comparison of distinct=20
+> > > pointer types lacks a cast
+> >=20
+> > But how is that possible? iopgsz_max is returning constants,=20
+> > like SZ_1M, so they should not need casts, if anything, the=20
+> > cast should be done in iopgsz_max itself.
+>=20
+> The min macro make a "typeof" of the parameter, so the typeof of a=20
+> Constants should be int I think and that's the reason of the warning.
+>=20
+> I can use min_t instead to avoid the warning, something like this:
+>=20
+> 			bytes =3D min_t(size_t, bytes, iopgsz_max(len));
+>=20
+> What do you think?
 
+Right, I forgot about that one... much better.
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Wednesday, October 13, 2010 8:36 PM
-> To: Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; Cousson, Benoit
-> Subject: Re: [RFC 0/8] Split powerdomain framework into plat specfic/independent
-> 
-> Hi Rajendra,
-> 
-> On Thu, 23 Sep 2010, Rajendra Nayak wrote:
-> 
-> > OMAP4 powerdomains have some inherent differences as compared
-> > to OMAP2/3 powerdomains, starting with register offsets being different
-> > to clubbing of multiple controls into one register and in some cases
-> > splitting of control into multiple registers.
-> > There are also new features like lowpowerstatechange bits and features
-> > like HW SAR which are no longer present in the older form.
-> >
-> > Supporting all these in the existing powerdomain framework would mean adding
-> > a lot of cpu_is_* checks which makes code unmaintainable going fwd.
-> >
-> > Hence this RFC series is an attempt to split the existing powerdomain framework
-> > into platform independent part (which does error checking, usecounting et al)
-> > which can be reused across OMAP's and hook up platform specific functions to
-> > do low level programming which varies across OMAP's.
-> >
-> > The series has a dependency on the following patch series
-> > http://marc.info/?l=linux-omap&m=128146137929118&w=2
-> > http://marc.info/?l=linux-omap&m=128464495603506&w=2
-> >
-> > This series along with all the dependent series patches can be
-> > found here
-> > git://gitorious.org/omap-pm/linux.git powerdomain-split
-> 
-> I'm happy with the basic approach here, to split the powerdomain code via
-> function pointers.  There were some minor comments on those patches;
-> you've probably seen them already.  Similar issues exist in some of the
-> other powerdomain split patches (e.g., many functions should be static,
-> etc.)  Also please make sure the changes don't add any sparse warnings; I
-> noticed some when doing a test build:
-> 
-> arch/arm/mach-omap2/powerdomains.c:52:5: warning: symbol
-> '_get_mem_bank_onstate_mask' was not declared. Should it be static?
-> arch/arm/mach-omap2/powerdomains.c:72:5: warning: symbol
-> '_get_mem_bank_retst_mask' was not declared. Should it be static?
-> arch/arm/mach-omap2/powerdomains.c:92:5: warning: symbol
-> '_get_mem_bank_stst_mask' was not declared. Should it be static?
-
-Hi Paul,
-
-Thanks for the review. I'll fix all the issues you reported in the various patches before
-I repost again. Will also fix all the sparse warnings too.
-
-> 
-> ...
-> 
-> Aside from those minor issues, the other major issue to clear up is the
-> PRM/CM API for OMAP4 that is referenced in your mail, which of course will
-> impact these patches too.  Will take a close look at those -
-
-Ok, thanks, I was about to check with you if you had a look at those as well.
-Thanks, will wait for your feedback.
-
-Regards,
-Rajendra
-> 
-> 
-> - Paul
+--=20
+=46elipe Contreras
