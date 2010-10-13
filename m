@@ -1,155 +1,111 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: [RFC PATCHv3 2/7] OMAP SSI: Introducing OMAP SSI driver
-Date: Wed, 13 Oct 2010 11:09:53 +0300
-Message-ID: <1286957393.6570.819.camel@localhost>
-References: <1286787988-29013-1-git-send-email-carlos.chinea@nokia.com>
-	 <1286787988-29013-3-git-send-email-carlos.chinea@nokia.com>
-	 <20101012204927.GY25462@atomide.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 1/7] [RFC] OMAP: MCBSP: hwmod database for
+	2xxx devices
+Date: Wed, 13 Oct 2010 11:31:49 +0300
+Message-ID: <201010131131.49967.peter.ujfalusi@nokia.com>
+References: <1286296662-7639-1-git-send-email-kishon@ti.com>
+	<201010061017.13908.peter.ujfalusi@nokia.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CF14091@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:55940 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752886Ab0JMIJW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 04:09:22 -0400
-In-Reply-To: <20101012204927.GY25462@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030CF14091@dbde02.ent.ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "ext Varadarajan, Charulatha" <charu@ti.com>
+Cc: "Girdwood, Liam" <x0135381@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Kamat, Nishant" <nskamat@ti.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "ABRAHAM,
+	KISHON VIJAY" <kishon@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
-On Tue, 2010-10-12 at 22:49 +0200, ext Tony Lindgren wrote:
-> * Carlos Chinea <carlos.chinea@nokia.com> [101011 01:58]:
-> > Introduces the OMAP SSI driver in the kernel.
-> > 
-> > The Synchronous Serial Interface (SSI) is a legacy version
-> > of HSI. As in the case of HSI, it is mainly used to connect
-> > Application engines (APE) with cellular modem engines (CMT)
-> > in cellular handsets.
-> > 
-> > It provides a multichannel, full-duplex, multi-core communication
-> > with no reference clock. The OMAP SSI block is capable of reaching
-> > speeds of 110 Mbit/s.
-> > 
-> > Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
-> 
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/ssi.c
-> 
-> > +static struct resource ssi_resources[] = {
-> > +	/* SSI controller */
-> > +	[0] = {
-> > +		.start	= 0x48058000,
-> > +		.end	= 0x48058fff,
-> > +		.name	= "omap_ssi_sys",
-> > +		.flags	= IORESOURCE_MEM,
-> > +	},
-> > +	/* GDD */
-> > +	[1] = {
-> > +		.start	= 0x48059000,
-> > +		.end	= 0x48059fff,
-> > +		.name	= "omap_ssi_gdd",
-> > +		.flags	= IORESOURCE_MEM,
-> > +	},
-> > +	[2] = {
-> > +		.start	= 71,
-> > +		.end	= 71,
-> > +		.name	= "ssi_gdd",
-> > +		.flags	= IORESOURCE_IRQ,
-> > +	},
-> > +	/* SSI port 1 */
-> > +	[3] = {
-> > +		.start	= 0x4805a000,
-> > +		.end	= 0x4805a7ff,
-> > +		.name	= "omap_ssi_sst1",
-> > +		.flags	= IORESOURCE_MEM,
-> > +	},
-> > +	[4] = {
-> > +		.start	= 0x4805a800,
-> > +		.end	= 0x4805afff,
-> > +		.name	= "omap_ssi_ssr1",
-> > +		.flags	= IORESOURCE_MEM,
-> > +	},
-> > +	[5] = {
-> > +		.start	= 67,
-> > +		.end	= 67,
-> > +		.name	= "ssi_p1_mpu_irq0",
-> > +		.flags	= IORESOURCE_IRQ,
-> > +	},
-> > +	[6] = {
-> > +		.start	= 69,
-> > +		.end	= 69,
-> > +		.name	= "ssi_p1_mpu_irq1",
-> > +		.flags	= IORESOURCE_IRQ,
-> > +	},
-> > +	[7] = {
-> > +		.start	= 0,
-> > +		.end	= 0,
-> > +		.name	= "ssi_p1_cawake",
-> > +		.flags	= IORESOURCE_IRQ | IORESOURCE_UNSET,
-> > +	},
-> > +};
-> 
-> Are these resources the same for omap2, 3 & 4?
+On Friday 08 October 2010 09:20:19 ext Varadarajan, Charulatha wrote:
+> Sorry I am confused.
+> =
 
-Yes in the case of omap2 and omap3.
-For omap4, It is my understanding that SSI will be replaced by HSI.
+> With hwmod implementation, there is a device register code for mcbsp
+> devices in mach-omap2/mcbsp.c and a probe in plat-omap/mcbsp.c. The base
+> address, dma info are not part of pdata and are available to the driver
+> only after probe. I do not understand how the multi-component design in
+> ASOC can avoid the new API.
+> =
 
-Anyway, good that you has brought this up as it has forced me to crosscheck the values and I have just realized that IRQ number for ssi_p1_mpu_irq1 (which is not currently used by the driver) is wrong. It should be 68.
+> Also with this multi-component approach in ASOC, two device
+> registrations happens for a single mcbsp device with two different
+> rames ("omap-mcbsp-dai.id" & "omap-mcbsp.id"). Please explain if this
+> what is expected?
 
-> 
-> > +static void ssi_pdev_release(struct device *dev)
-> > +{
-> > +}
-> 
-> Not needed.
-> 
-> > +static struct platform_device ssi_pdev = {
-> > +	.name		= "omap_ssi",
-> > +	.id		= 0,
-> > +	.num_resources	= ARRAY_SIZE(ssi_resources),
-> > +	.resource	= ssi_resources,
-> > +	.dev		= {
-> > +				.release	= ssi_pdev_release,
-> > +				.platform_data	= &ssi_pdata,
-> > +	},
-> > +};
-> 
-> Dummy release not needed here either.
-> 
+I have given myself some time to think this over...
+I think the best way forward is to provide an API from plat-omap/mcbsp.c fo=
+r =
 
-Ok. I'll change that.
+client drivers (like ASoC audio) to ask for the needed configuration (the t=
+hings =
 
-> > +static int __init ssi_init(void)
-> > +{
-> > +	return platform_device_register(&ssi_pdev);
-> > +}
-> > +subsys_initcall(ssi_init);
-> 
-> This will probably cause trouble on omap2 and 4?
-> 
-> To me it seems that you should at least return early on the unsupported
-> platforms.
-> 
+that is 'hard wired' in soc/omap/omap-mcbsp.c at the monent).
+Something like omap-mcbsp-get-config(id, &config);
 
-I will add dependencies to ARCH_OMAP2 and ARCH_OMAP3 for OMAP_SSI , so
-it will not be added to omap4.
+In this way we can keep the door open for other uses of McBSP if ever neede=
+d.
 
-> You might want to consider updating this for omap hwmod as it will
-> automate the platform_device and PM related issues to some extent.
-> 
+> > We still need to modify the ASoC drivers to make use of this platform
+> > data, but
+> > at least we are going to keep the door open for others to use the McBSP
+> > ports
+> > for other than audio.
+> =
 
-Ok, I will have a look at this.
+> Agreed. But the current omap-mcbsp driver cannot work standalone for
+> OMAP3/4 due to the issues stated below:
+> 1. omap_mcbsp_pollwrite and omap_mcbsp_pollread functions access McBSP
+> registers as 16-bit. But in OMAP3/4, McBSP registers (DRR_REG and DXR_REG)
+> are limited to 32-bit data accesses and hence poll mode would not work [x=
+].
 
-> Regards,
-> 
-> Tony
+Yes, this need to be fixed, but it can be done later, it does not need to b=
+e =
 
-Thanks for the review :)
-Carlos
--- 
-Carlos Chinea <carlos.chinea@nokia.com>
+part of the hwmod series.
 
+> 2. DMA transfers would also not work as it requires a patch similar to [y=
+].
+
+Well, this patch was sent in 2008. nowdays we moved the OMAP audio support =
+to =
+
+ASoC, and there are no 'legacy' ALSA arm/omap drivers anymore.
+In ASoC the cpu_dai and the platform drivers are separate things.
+This allows us to use the same platform driver (omap-pcm) for McBSp, McPDM =
+(and =
+
+in theory we could have OMAP2 EAC) cpu_dai drivers without duplicating code.
+As a note: most of the features this patch was trying to implement is alrea=
+dy =
+
+done for the ASoC implementation, but if there is need for new features, it=
+ has =
+
+to be done using the ASoC framework.
+
+> Coming back to the original question. Either we need to fix the broken
+> legacy mcbsp driver or move the omap-mcbsp driver completely to asoc
+> layer. What do you say?
+
+I would keep the partitioning same as it is now.
+If there is a reason we can add bus driver functionality to McBSP, but at t=
+he =
+
+moment there is no need for that.
+ =
+
+-- =
+
+P=E9ter
