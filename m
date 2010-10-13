@@ -1,97 +1,42 @@
-From: csanjay@mistralsolutions.com
-Subject: [WL1271 DC supprot on OMAP3EVM 5/5] Supported BT and WLAN configuration for WL1271 over the OMAP37XX
-Date: Wed, 13 Oct 2010 16:21:17 +0530
-Message-ID: <1286967077-20071-6-git-send-email-csanjay@mistralsolutions.com>
-References: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:53672 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753104Ab0JMLDY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 07:03:24 -0400
-In-Reply-To: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org
+Subject: [RFC: WL1271 DC supprot on OMAP3EVM 0/5]
+Date: Wed, 13 Oct 2010 16:27:14 +0530
+Message-ID: <1286967439-705-1-git-send-email-csanjay@mistralsolutions.com>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-wireless@vger.kernel.org, Sanjay Kumar Champati <csanjay@mistralsolutions.com>
 
-From: Sanjay Kumar Champati <csanjay@mistralsolutions.com>
+From: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 
-* Modified the "omap3_evm_defconfig" file to support WLAN and BT configuration for WL1271
 
-Signed-off-by: Sanjay Kumar Champati <csanjay@mistralsolutions.com>
----
- arch/arm/configs/omap3_evm_defconfig |   27 ++++++++++++++++++++++++---
- 1 files changed, 24 insertions(+), 3 deletions(-)
+Sanjay Kumar Champati (5):
+  ARM: Supported MMC 2 features for OMAP3EVM
+  ARM: Supported for Standard SDIO driver on OMAP3EVM for WL1271 DC
+  ARM: Supported for BT enable on OMAP3EVM for WL1271 DC
+  ARM: Added ALSA audio support for WL1271 DC over the PCM interface
+    (OMAP37XX)
+  Supported BT and WLAN configuration for WL1271 over the OMAP37XX
 
-diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-index a18b22e..676cd99 100644
---- a/arch/arm/configs/omap3_evm_defconfig
-+++ b/arch/arm/configs/omap3_evm_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
- # Linux kernel version: 2.6.32
--# Tue Jan  5 13:03:54 2010
-+# Sun Oct 10 05:00:18 2010
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -492,10 +492,29 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_HAMRADIO is not set
- # CONFIG_CAN is not set
- # CONFIG_IRDA is not set
--# CONFIG_BT is not set
-+CONFIG_BT=y
-+CONFIG_BT_L2CAP=y
-+CONFIG_BT_SCO=y
-+CONFIG_BT_RFCOMM=y
-+CONFIG_BT_RFCOMM_TTY=y
-+
-+#
-+# Bluetooth device drivers
-+#
-+CONFIG_BT_HCIUART=y
-+CONFIG_BT_HCIUART_H4=y
-+CONFIG_BT_HCIUART_BCSP=y
-+CONFIG_BT_HCIUART_LL=y
-+CONFIG_BT_WL1271=y
- # CONFIG_AF_RXRPC is not set
- CONFIG_WIRELESS=y
-+CONFIG_WIRELESS_EXT=y
-+CONFIG_WEXT_CORE=y
-+CONFIG_WEXT_PROC=y
-+CONFIG_WEXT_SPY=y
-+CONFIG_WEXT_PRIV=y
- # CONFIG_CFG80211 is not set
-+CONFIG_WIRELESS_EXT_SYSFS=y
- # CONFIG_LIB80211 is not set
- 
- #
-@@ -740,6 +759,7 @@ CONFIG_SMSC911X=y
- # CONFIG_NETDEV_1000 is not set
- # CONFIG_NETDEV_10000 is not set
- CONFIG_WLAN=y
-+CONFIG_WL1271_WLAN=y
- # CONFIG_USB_ZD1201 is not set
- # CONFIG_HOSTAP is not set
- 
-@@ -1302,6 +1322,7 @@ CONFIG_SND_SOC=y
- CONFIG_SND_OMAP_SOC=y
- CONFIG_SND_OMAP_SOC_MCBSP=y
- CONFIG_SND_OMAP_SOC_OMAP3EVM=y
-+CONFIG_SND_OMAP_SOC_WL1271BT=y
- CONFIG_SND_SOC_I2C_AND_SPI=y
- # CONFIG_SND_SOC_ALL_CODECS is not set
- CONFIG_SND_SOC_TWL4030=y
-@@ -2004,7 +2025,7 @@ CONFIG_CRYPTO_HW=y
- CONFIG_BITREVERSE=y
- CONFIG_GENERIC_FIND_LAST_BIT=y
- CONFIG_CRC_CCITT=y
--# CONFIG_CRC16 is not set
-+CONFIG_CRC16=y
- # CONFIG_CRC_T10DIF is not set
- # CONFIG_CRC_ITU_T is not set
- CONFIG_CRC32=y
--- 
-1.6.3.3
+ arch/arm/configs/omap3_evm_defconfig |   27 +++++++-
+ arch/arm/mach-omap2/board-omap3evm.c |   28 ++++++++-
+ arch/arm/mach-omap2/mmc-twl4030.c    |    1 +
+ arch/arm/mach-omap2/mmc-twl4030.h    |    2 +
+ drivers/bluetooth/Kconfig            |    7 ++
+ drivers/char/tty_io.c                |  110 ++++++++++++++++++++++++++++++++++
+ drivers/mmc/core/sdio_ops.c          |    7 ++-
+ drivers/net/wireless/Kconfig         |   11 ++++
+ sound/soc/omap/Kconfig               |    6 ++
+ sound/soc/omap/Makefile              |    2 +
+ sound/soc/omap/omap3evm.c            |   81 ++++++++++++++++++++++++-
+ sound/soc/omap/wl1271bt.c            |   59 ++++++++++++++++++
+ sound/soc/omap/wl1271bt.h            |   16 +++++
+ 13 files changed, 350 insertions(+), 7 deletions(-)
+ create mode 100644 sound/soc/omap/wl1271bt.c
+ create mode 100644 sound/soc/omap/wl1271bt.h
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
