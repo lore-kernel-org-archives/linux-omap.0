@@ -1,38 +1,36 @@
-From: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>
-Subject: RE: [WL1271 DC supprot on OMAP3EVM 2/5] ARM: Supported for Standard
- SDIO driver on OMAP3EVM for WL1271 DC
-Date: Wed, 13 Oct 2010 16:47:35 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930234405BCA@dbde02.ent.ti.com>
-References: <1286967077-20071-1-git-send-email-csanjay@mistralsolutions.com>
- <1286967077-20071-3-git-send-email-csanjay@mistralsolutions.com>
+From: "Varadarajan, Charulatha" <charu-l0cyMroinI0@public.gmane.org>
+Subject: RE: [RFC: WL1271 DC supprot on OMAP3EVM 2/5] ARM: Supported for
+ Standard SDIO driver on OMAP3EVM for WL1271 DC
+Date: Wed, 13 Oct 2010 16:47:57 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D099B3D@dbde02.ent.ti.com>
+References: <1286967439-705-1-git-send-email-csanjay@mistralsolutions.com>
+ <1286967439-705-3-git-send-email-csanjay@mistralsolutions.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1286967077-20071-3-git-send-email-csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1286967439-705-3-git-send-email-csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org" <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+ 
+
 > -----Original Message-----
 > From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org 
 > [mailto:linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of 
 > csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org
-> Sent: Wednesday, October 13, 2010 4:21 PM
+> Sent: Wednesday, October 13, 2010 4:27 PM
 > To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Sanjay Kumar Champati
-> Subject: [WL1271 DC supprot on OMAP3EVM 2/5] ARM: Supported 
-> for Standard SDIO driver on OMAP3EVM for WL1271 DC
+> Subject: [RFC: WL1271 DC supprot on OMAP3EVM 2/5] ARM: 
+> Supported for Standard SDIO driver on OMAP3EVM for WL1271 DC
 > 
 > From: Sanjay Kumar Champati <csanjay-EvXpCiN+lbve9wHmmfpqLFaTQe2KTcn/@public.gmane.org>
 > 
 > * Apply MMC2 support patch before apply this patch
-
-[sp] Can you be more explicit about this change? It isn't useful
-     here?
-
 > * Modified the "Kconfig" and "board-omap3evm.c" files to support
 >   standard SDIO driver for WL1271 DC
 > 
@@ -67,14 +65,20 @@ List-Id: linux-omap@vger.kernel.org
 > -
 > +#ifdef CONFIG_WL1271_WLAN
 > +	omap_mux_init_gpio(OMAP3EVM_WLAN_EN, OMAP_PIN_OUTPUT);
+
+Check for return value
+
 > +	if (gpio_request(OMAP3EVM_WLAN_EN, "WLAN_ENABLE"))
 > +		printk(KERN_ERR "Fail to get WLAN Enable GPIO\n");
 > +	gpio_direction_output(OMAP3EVM_WLAN_EN, 1);
 > +	mdelay(100);
 
-[sp] Why is this delay required?
+You may add a comment to mention why this needs to be 100.
 
 > +	omap_mux_init_gpio(OMAP3EVM_WLAN_IRQ, OMAP_PIN_INPUT);
+
+Check for return value
+
 > +#endif
 >  	/*
 >  	 * Most GPIOs are for USB OTG.  Some are mostly sent to
@@ -91,9 +95,6 @@ List-Id: linux-omap@vger.kernel.org
 > +#ifdef CONFIG_WL1271_WLAN
 > +EXPORT_SYMBOL(mmc_io_rw_direct);
 > +#endif
-
-[sp] Why is the export required?
-
 >  
 >  int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
 >  	unsigned addr, int incr_addr, u8 *buf, unsigned blocks, 
@@ -107,9 +108,6 @@ List-Id: linux-omap@vger.kernel.org
 > +#ifdef CONFIG_WL1271_WLAN
 > +EXPORT_SYMBOL(mmc_io_rw_extended);
 > +#endif
-
-[sp] Why is the export required?
-
 > diff --git a/drivers/net/wireless/Kconfig 
 > b/drivers/net/wireless/Kconfig
 > index 56dd665..dc319b7 100644
@@ -131,8 +129,6 @@ List-Id: linux-omap@vger.kernel.org
 > +	and TI's proprietary API, so both the Linux Wireless 
 > Tools and this
 > +	module support 2.4 GHz 802.11 b/g/n standrd.
-[sp] Can you do a spellcheck?              ^^^^^^
-
 > +
 >  config LIBERTAS_THINFIRM
 >  	tristate "Marvell 8xxx Libertas WLAN driver support 
@@ -140,13 +136,7 @@ List-Id: linux-omap@vger.kernel.org
 >  	depends on MAC80211
 > -- 
 > 1.6.3.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
+--
 To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
