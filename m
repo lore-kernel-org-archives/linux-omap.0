@@ -1,127 +1,74 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCHv2 1/1] omap: Ptr "isr_reg" tracked as NULL was
- dereferenced
-Date: Wed, 13 Oct 2010 17:20:49 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D099B87@dbde02.ent.ti.com>
-References: <cover.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
-	 <7bb69801f49283c3bde78aa008c15308ac8a5fbf.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
-	 <EAF47CD23C76F840A9E7FCE10091EFAB030D099AFD@dbde02.ent.ti.com>
- <1286970199.12782.28.camel@ekuznets-lx-nokia>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [RFC: WL1271 DC supprot on OMAP3EVM 0/5]
+Date: Wed, 13 Oct 2010 13:54:30 +0200
+Message-ID: <AANLkTinusH4eA1DsUekuA17GRkyy9TK14JJQcZfz4wqk@mail.gmail.com>
+References: <1286967439-705-1-git-send-email-csanjay@mistralsolutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48823 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750754Ab0JMLvp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 07:51:45 -0400
-In-Reply-To: <1286970199.12782.28.camel@ekuznets-lx-nokia>
-Content-Language: en-US
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:36099 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752286Ab0JMLyv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 07:54:51 -0400
+In-Reply-To: <1286967439-705-1-git-send-email-csanjay@mistralsolutions.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tero.kristo@nokia.com" <tero.kristo@nokia.com>
+To: csanjay@mistralsolutions.com
+Cc: linux-omap@vger.kernel.org, linux-wireless@vger.kernel.org
+
+Hi Sanjay,
+
+On Wed, Oct 13, 2010 at 12:57 PM,  <csanjay@mistralsolutions.com> wrote=
+:
+> Sanjay Kumar Champati (5):
+> =A0ARM: Supported MMC 2 features for OMAP3EVM
+> =A0ARM: Supported for Standard SDIO driver on OMAP3EVM for WL1271 DC
+> =A0ARM: Supported for BT enable on OMAP3EVM for WL1271 DC
+> =A0ARM: Added ALSA audio support for WL1271 DC over the PCM interface
+> =A0 =A0(OMAP37XX)
+> =A0Supported BT and WLAN configuration for WL1271 over the OMAP37XX
+
+There are many things to say here but maybe the most important one is
+that it seems you are trying to push changes that are only relevant
+for an out-of-tree driver, and such changes will never be accepted.
+
+Why don't you try out the mainline wl1271 driver on your board and
+come back with the necessary changes for that ?
+
+Thanks,
+Ohad.
 
 
-
-<<snip>>
-
-> > >
-> > > From: Evgeny Kuznetsov <ext-eugeny.kuznetsov@nokia.com>
-> > >
-> > > Value of "isr_reg" pointer is depend on configuration and GPIO method.
-> > > Potentially it may have NULL value and it is dereferenced later
-> > > in code. If pointer is NULL there is some kernel issue.
-> >
-> > Can you elaborate?
-> "isr_reg" should not be NULL. But if it is NULL then there is kernel
-> bug. And WARN_ON() used to show it.
-> I did not see this bug, this is potentially may happen.
-> >
-> > > Warning and exit from function are added in this case.
-> > > Also compilation check is added for correct architecture
-> > > configuration.
-> > >
-> > > Signed-off-by: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
-> > > ---
-> > >  arch/arm/plat-omap/gpio.c |   18 ++++++++++++++++++
-> > >  1 files changed, 18 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> > > index c05c653..d04913c 100644
-> > > --- a/arch/arm/plat-omap/gpio.c
-> > > +++ b/arch/arm/plat-omap/gpio.c
-> > > @@ -1318,6 +1318,23 @@ static void gpio_irq_handler(unsigned int irq,
-> > > struct irq_desc *desc)
-> > >  	if (bank->method == METHOD_GPIO_44XX)
-> > >  		isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
-> > >  #endif
-> > > +
-> > > +#if !defined(CONFIG_ARCH_OMAP1) &&		\
-> > > +		!defined(CONFIG_ARCH_OMAP15XX) &&	\
-> > > +		!defined(CONFIG_ARCH_OMAP16XX) &&	\
-> > > +		!defined(CONFIG_ARCH_OMAP730) &&	\
-> > > +		!defined(CONFIG_ARCH_OMAP850) &&	\
-> > > +		!defined(CONFIG_ARCH_OMAP2) &&	\
-> > > +		!defined(CONFIG_ARCH_OMAP3) &&	\
-> > > +		!defined(CONFIG_ARCH_OMAP4)
-> > > +
-> > > +#error "Incorrect arch configuration"
-> >
-> > This is not required. If the architecture is not one of the above
-> > mentioned, gpio_irq_handler() will not be used/called at all.
-> This could be removed.
-> 
-> > Also all the possible gpio methods for a given OMAP architecture are
-> > already considered with "#ifdef"s and (bank->method) checks in
-> > gpio_irq_handler().
-> It is not cover all cased, e.g. for OMAP4 arch:
-> ....
-> 	#if defined(CONFIG_ARCH_OMAP4)
-> 		if (bank->method == METHOD_GPIO_44XX)
-> 			isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
-> 	#endif
-> .....
-> 
-> If (bank->method != METHOD_GPIO_44XX) then isr_reg will be NULL.
-> This should not happen, but potentially may have place.
-
-When would it fail? If it is CONFIG_ARCH_OMAP4, the gpio method can
-only be METHOD_GPIO_44XX. Else if it is for some other OMAP architecture,
-the gpio_method is similarly taken care. So this cannot happen.
-
-> 
-> >
-> > > +
-> > > +#endif
-> > > +
-> > > +	if (WARN_ON(!isr_reg))
-> > > +		goto exit;
-> >
-> > For the above mentioned reason, this isr_reg would be non-NULL. Have
-> > you observed this error anytime?
-> I did not see this bug, this is potentially may happen.
-> >
-> > Also, the omap-gpio code has similar code spread all over and has to be
-> > anyway cleaned-up. Is there any reason why gpio_irq_handler() alone is
-> > addressed in this patch?
-> Here "isr_reg" is used later in code and may cause oops if it is NULL.
-> >
-> > > +
-> > >  	while(1) {
-> > >  		u32 isr_saved, level_mask = 0;
-> > >  		u32 enabled;
-> > > @@ -1377,6 +1394,7 @@ static void gpio_irq_handler(unsigned int irq,
-> > > struct irq_desc *desc)
-> > >  	configured, we must unmask the bank interrupt only after
-> > >  	handler(s) are executed in order to avoid spurious bank
-> > >  	interrupt */
-> > > +exit:
-> > >  	if (!unmasked)
-> > >  		desc->chip->unmask(irq);
-> > >
-> > > --
-> > > 1.6.3.3
-> >
-> 
-
+>
+> =A0arch/arm/configs/omap3_evm_defconfig | =A0 27 +++++++-
+> =A0arch/arm/mach-omap2/board-omap3evm.c | =A0 28 ++++++++-
+> =A0arch/arm/mach-omap2/mmc-twl4030.c =A0 =A0| =A0 =A01 +
+> =A0arch/arm/mach-omap2/mmc-twl4030.h =A0 =A0| =A0 =A02 +
+> =A0drivers/bluetooth/Kconfig =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A07 ++
+> =A0drivers/char/tty_io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0110 ++++=
+++++++++++++++++++++++++++++++
+> =A0drivers/mmc/core/sdio_ops.c =A0 =A0 =A0 =A0 =A0| =A0 =A07 ++-
+> =A0drivers/net/wireless/Kconfig =A0 =A0 =A0 =A0 | =A0 11 ++++
+> =A0sound/soc/omap/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A06 ++
+> =A0sound/soc/omap/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +
+> =A0sound/soc/omap/omap3evm.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 81 ++++++++=
+++++++++++++++++-
+> =A0sound/soc/omap/wl1271bt.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 59 ++++++++=
+++++++++++
+> =A0sound/soc/omap/wl1271bt.h =A0 =A0 =A0 =A0 =A0 =A0| =A0 16 +++++
+> =A013 files changed, 350 insertions(+), 7 deletions(-)
+> =A0create mode 100644 sound/soc/omap/wl1271bt.c
+> =A0create mode 100644 sound/soc/omap/wl1271bt.h
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
