@@ -1,29 +1,31 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] arm: perf: Fix build break due to a typo
-Date: Thu, 14 Oct 2010 18:23:12 +0200
-Message-ID: <20101014162312.GA24972@elte.hu>
-References: <1287066841-28569-1-git-send-email-gadiyar@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/7] omap:mailbox-enhancments and fixes
+Date: Thu, 14 Oct 2010 11:08:53 -0700
+Message-ID: <20101014180852.GH18869@atomide.com>
+References: <1287020003-19667-1-git-send-email-h-kanigeri2@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49741 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754943Ab0JNSI7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Oct 2010 14:08:59 -0400
 Content-Disposition: inline
-In-Reply-To: <1287066841-28569-1-git-send-email-gadiyar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, paulus <paulus@samba.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+In-Reply-To: <1287020003-19667-1-git-send-email-h-kanigeri2@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hari Kanigeri <h-kanigeri2@ti.com>
+Cc: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Ohad Ben-Cohen <ohad@wizery.com>
 
+* Hari Kanigeri <h-kanigeri2@ti.com> [101013 18:24]:
+> This patch set includes following mailbox enhancments and fixes.
 
-* Anand Gadiyar <gadiyar@ti.com> wrote:
+Please repost one more time with linux-arm-kernel list Cc'd so
+Hiroshi does not need to repost these.
 
-> armpmu is a pointer to a structure - We need to use the structure 
-> pointer operator to access num_events, and not the structure member 
-> operator.
-> 
-> This fixes the following build break when building for OMAP4.
+For any arch/arm/*omap*/ patches we need to have them also
+reviewed on the linux-arm-kernel list.
 
-Yeah - i already fixed it earlier today and pushed it out.
+Regards,
 
-Thanks,
-
-	Ingo
+Tony
