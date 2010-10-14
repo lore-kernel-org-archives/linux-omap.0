@@ -1,46 +1,40 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH 1/4] iovmm: no gap checking for fixed address
-Date: Wed, 13 Oct 2010 21:27:34 -0500
-Message-ID: <1287023257-30951-2-git-send-email-x0095840@ti.com>
-References: <1287023257-30951-1-git-send-email-x0095840@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1287023257-30951-1-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCHv3 0/4] iovmm: fixes for iovmm module
+Date: Wed, 13 Oct 2010 21:27:33 -0500
+Message-ID: <1287023257-30951-1-git-send-email-x0095840@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53227 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753827Ab0JNCOW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 22:14:22 -0400
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Hiroshi.DOYU@nokia.com
 Cc: felipe.contreras@nokia.com, tony@atomide.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-If some fixed da address is wanted to be mapped and the page
-is freed but it is used as gap, the mapping will fail.
-This patch is fixing that and olny keeps the gap for
-not fixed address.
+Version 3:
+* change patch 2 base on Felipe Contreras' comments,
+  now it uses min_t and I deleted some blank lines.
+* patch "create new api to set valid da range" is base on
+  "iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF"
+  patch and on Hiroshi's comments and now it is added to
+  this set.
 
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
----
- arch/arm/plat-omap/iovmm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Version 2:
+* Removed "iovmm: fixes for iovmm module" that patch was already
+  sent.
+* Modified "iovmm: fix roundup for next area and end check for the
+  last area" patch, base on Davin Cohen's comments and rename it
+  to a proper name that describes what it is doing now.
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 24ca9c4..34f0012 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -289,7 +289,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 	prev_end = 0;
- 	list_for_each_entry(tmp, &obj->mmap, list) {
- 
--		if (prev_end >= start)
-+		if (prev_end > start)
- 			break;
- 
- 		if (start + bytes <= tmp->da_start)
-@@ -301,7 +301,7 @@ static struct iovm_struct *alloc_iovm_area(struct iommu *obj, u32 da,
- 		prev_end = tmp->da_end;
- 	}
- 
--	if ((start > prev_end) && (ULONG_MAX - start >= bytes))
-+	if ((start >= prev_end) && (ULONG_MAX - start + 1 >= bytes))
- 		goto found;
- 
- 	dev_dbg(obj->dev, "%s: no space to fit %08x(%x) flags: %08x\n",
--- 
-1.6.3.3
+Fernando Guzman Lugo (4):
+  iovmm: no gap checking for fixed address
+  iovmm: add superpages support to fixed da address
+  iovmm: replace __iounmap with omap_iounmap
+  iommu: create new api to set valid da range
+
+ arch/arm/plat-omap/include/plat/iommu.h |    3 +
+ arch/arm/plat-omap/iommu.c              |   29 ++++++++++++
+ arch/arm/plat-omap/iovmm.c              |   74 +++++++++++++++++--------------
+ 3 files changed, 73 insertions(+), 33 deletions(-)
+
