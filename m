@@ -1,86 +1,29 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
-Date: Thu, 14 Oct 2010 11:11:50 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F47B37F4@dlee06.ent.ti.com>
-References: <1287023257-30951-4-git-send-email-x0095840@ti.com>
-	<20101014.094525.71092814.Hiroshi.DOYU@nokia.com>
-	<496565EC904933469F292DDA3F1663E602F3E074FB@dlee06.ent.ti.com>
- <20101014.124710.71089824.Hiroshi.DOYU@nokia.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] arm: perf: Fix build break due to a typo
+Date: Thu, 14 Oct 2010 18:23:12 +0200
+Message-ID: <20101014162312.GA24972@elte.hu>
+References: <1287066841-28569-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20101014.124710.71089824.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1287066841-28569-1-git-send-email-gadiyar@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Peter Zijlstra <a.p.zijlstra@chello.nl>, paulus <paulus@samba.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
- 
 
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com] 
-> Sent: Thursday, October 14, 2010 4:47 AM
-> To: Guzman Lugo, Fernando
-> Cc: felipe.contreras@nokia.com; tony@atomide.com; 
-> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
-> linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
-> 
-> From: "ext Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-> Subject: RE: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
-> Date: Thu, 14 Oct 2010 10:18:30 +0200
-> 
-> > 
-> >> ________________________________________
-> >> From: Hiroshi DOYU [Hiroshi.DOYU@nokia.com]
-> >> Sent: Thursday, October 14, 2010 1:45 AM
-> >> To: Guzman Lugo, Fernando
-> >> Cc: felipe.contreras@nokia.com; tony@atomide.com;  
-> >> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
-> >> linux-omap@vger.kernel.org
-> >> Subject: Re: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
-> >> 
-> >> Hi Fernando,
-> >> 
-> >> From: ext Fernando Guzman Lugo <x0095840@ti.com>
-> >> Subject: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
-> >> Date: Thu, 14 Oct 2010 04:27:36 +0200
-> >> 
-> >> > Omap platform is omap_iounmap function.
-> >> >
-> >> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> >> > ---
-> >> >  arch/arm/plat-omap/iovmm.c |    2 +-
-> >> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >> >
-> >> > diff --git a/arch/arm/plat-omap/iovmm.c 
-> >> > b/arch/arm/plat-omap/iovmm.c index 93a34d9..5489ca9 100644
-> >> > --- a/arch/arm/plat-omap/iovmm.c
-> >> > +++ b/arch/arm/plat-omap/iovmm.c
-> >> > @@ -821,7 +821,7 @@ void iommu_kunmap(struct iommu *obj, u32 da)
-> >> >       struct sg_table *sgt;
-> >> >       typedef void (*func_t)(const void *);
-> >> >
-> >> > -     sgt = unmap_vm_area(obj, da, (func_t)__iounmap,
-> >> 
-> >> +       sgt = unmap_vm_area(obj, da, (func_t)iounmap,
-> >> 
-> >> Woundn't the above be enough?
-> >> 
-> >> Eventually this "iounmap()" calls "__arch_iounmap()" -> 
-> >> "omap_iounmap()". I don't see any special reason to call 
-> >> "omap_iounmap()" here for now.
-> > 
-> > iounmap and __arch_iounmap are macros they cannot not be 
-> used there. 
-> > If so, it gives a "undeclared" compile error.
-> 
-> Ok. I'll add this explanation as a note on this commit.
-> 
+* Anand Gadiyar <gadiyar@ti.com> wrote:
 
-Sure, Thanks.
+> armpmu is a pointer to a structure - We need to use the structure 
+> pointer operator to access num_events, and not the structure member 
+> operator.
+> 
+> This fixes the following build break when building for OMAP4.
 
-Regards,
-Fernando.
+Yeah - i already fixed it earlier today and pushed it out.
+
+Thanks,
+
+	Ingo
