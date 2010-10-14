@@ -1,77 +1,27 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
-Date: Thu, 14 Oct 2010 03:18:30 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F3E074FB@dlee06.ent.ti.com>
-References: <1287023257-30951-2-git-send-email-x0095840@ti.com>
-	<1287023257-30951-3-git-send-email-x0095840@ti.com>
-	<1287023257-30951-4-git-send-email-x0095840@ti.com>,<20101014.094525.71092814.Hiroshi.DOYU@nokia.com>
+From: "Maksim A. Boyko" <maksim.a.boyko@gmail.com>
+Subject: External SD card on nokia n810.
+Date: Thu, 14 Oct 2010 13:24:03 +0400
+Message-ID: <AANLkTinOWCOAjrYu5SOcjkh+okAXtBGwh4Vm2xVThuzJ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35343 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754722Ab0JNISj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Oct 2010 04:18:39 -0400
-In-Reply-To: <20101014.094525.71092814.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:56908 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755291Ab0JNJYE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Oct 2010 05:24:04 -0400
+Received: by iwn41 with SMTP id 41so581451iwn.19
+        for <linux-omap@vger.kernel.org>; Thu, 14 Oct 2010 02:24:03 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
+Hi,
 
-> ________________________________________
-> From: Hiroshi DOYU [Hiroshi.DOYU@nokia.com]
-> Sent: Thursday, October 14, 2010 1:45 AM
-> To: Guzman Lugo, Fernando
-> Cc: felipe.contreras@nokia.com; tony@atomide.com;
->  linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
-> 
-> Hi Fernando,
-> 
-> From: ext Fernando Guzman Lugo <x0095840@ti.com>
-> Subject: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
-> Date: Thu, 14 Oct 2010 04:27:36 +0200
-> 
-> > Omap platform is omap_iounmap function.
-> >
-> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> > ---
-> >  arch/arm/plat-omap/iovmm.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> > index 93a34d9..5489ca9 100644
-> > --- a/arch/arm/plat-omap/iovmm.c
-> > +++ b/arch/arm/plat-omap/iovmm.c
-> > @@ -821,7 +821,7 @@ void iommu_kunmap(struct iommu *obj, u32 da)
-> >       struct sg_table *sgt;
-> >       typedef void (*func_t)(const void *);
-> >
-> > -     sgt = unmap_vm_area(obj, da, (func_t)__iounmap,
-> 
-> +       sgt = unmap_vm_area(obj, da, (func_t)iounmap,
-> 
-> Woundn't the above be enough?
-> 
-> Eventually this "iounmap()" calls "__arch_iounmap()" ->
-> "omap_iounmap()". I don't see any special reason to call
-> "omap_iounmap()" here for now.
+I try to boot n810 using root on external SD card with few recent
+linux-omap kernels. For example, with commit 151c7a7f it is ok, but
+with recent kernels it does not. Can I use recent kernel with root on
+external SD?
 
-iounmap and __arch_iounmap are macros they cannot not
-be used there. If so, it gives a "undeclared" compile error.
-
-Regards,
-Fernando.
-
-> 
-> 
-> > +     sgt = unmap_vm_area(obj, da, (func_t)omap_iounmap,
-> >                           IOVMF_LINEAR | IOVMF_MMIO);
-> >       if (!sgt)
-> >               dev_dbg(obj->dev, "%s: No sgt\n", __func__);
-> > --
-> > 1.6.3.3
-> >
+Thanks.
+-- 
+Best regards, Maksim A. Boyko
