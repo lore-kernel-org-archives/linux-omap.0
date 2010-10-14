@@ -1,61 +1,94 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP: hmwod: Update the sysc_cache in case module context is lost
-Date: Thu, 14 Oct 2010 15:13:40 -0700
-Message-ID: <877hhkv2wb.fsf@deeprootsystems.com>
-References: <1287080555-25399-1-git-send-email-rnayak@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Difference between twl4030_hsmmc_info and omap_mmc_platform_data
+Date: Thu, 14 Oct 2010 17:56:33 -0500
+Message-ID: <4CB78AA1.40909@ti.com>
+References: <DB759C09-975B-4088-B334-79F9010573F8@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:64303 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756162Ab0JNWNo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Oct 2010 18:13:44 -0400
-Received: by ywi6 with SMTP id 6so71909ywi.19
-        for <linux-omap@vger.kernel.org>; Thu, 14 Oct 2010 15:13:44 -0700 (PDT)
-In-Reply-To: <1287080555-25399-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Thu, 14 Oct 2010 23:52:35 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:51894 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752061Ab0JNW4f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Oct 2010 18:56:35 -0400
+In-Reply-To: <DB759C09-975B-4088-B334-79F9010573F8@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Elvis Dowson had written, on 10/14/2010 04:48 PM, the following:
+> Hi,
+>  I'm trying to bring up a TI WL1271 wlan module connected to MMC2 controller of a TI OMAP 3530 processor. 
+> 
+> I am unclear about the difference between the use of twl4030_hsmmc_info and omap_mmc_platform_data, to set the attributes and constraints for the MMC1 (connected to microSD card) and MMC2 (connected to WLAN module). 
+could you please fix your mailer btw for line wraps?
 
-> Do not skip the sysc programming in the hmwod framework based
-> on the cached value alone, since at times the module might have lost
-> context (due to the Powerdomain in which the module belongs
-> transitions to either Open Switch RET or OFF).
+> 
+> The beagleboard uses twl4030_mmc_init, which has a wrapper for omap_mmc_platform_data defined in mmc-twl4030.h. 
+> 
+> The board-sholes-hsmmc.c doesn't use twl4030, but directly uses the omap_mmc_platform_data structure. 
+> 
+> Example: 
+> 
+> board-omap3beagle.c uses twl4030_mmc_init, which internally uses the following structure to define mmc properties. 
+> 
+> static struct twl4030_hsmmc_info mmc[] = {
+> 	{
+> 		.mmc            = 1,
+> 		.wires          = 8,
+> 		.gpio_wp        = -ENOSYS,
+> 		.gpio_cd        = -ENOSYS,
+> 		.name           = "MMC1 controller slot"
+> 	},
+> 	{
+> 		.mmc            = 2,
+> 		.wires          = 4,
+> 		.gpio_cd        = -EINVAL,
+> 		.gpio_wp        = -EINVAL,
+> //		.transceiver    = true,
+> 		.name           = "MMC2 controller slot",
+> 		.ocr_mask       = 0x00000080,
+> 	},
+> 	{}	/* Terminator */
+> };
+> 
+> For board-sholes-hsmmc.c, it uses a omap_mmc_platform_data
+> 
+> static struct omap_mmc_platform_data mmc1_data = {
+> 	.nr_slots			= 1,
+> 	.init				= hsmmc_late_init,
+> 	.cleanup			= hsmmc_cleanup,
+> #ifdef CONFIG_PM
+> 	.suspend			= hsmmc_suspend,
+> 	.resume				= hsmmc_resume,
+> #endif
+> 	.dma_mask			= 0xffffffff,
+> 	.slots[0] = {
+> 		.wires			= 8,
+> 		.set_power		= hsmmc_set_power,
+> 		.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34 |
+> 						MMC_VDD_165_195,
+> 		.name			= "first slot",
+> 		/* we get car_detect_irq later */
+> 		.card_detect_irq	= 0,
+> 		.card_detect            = hsmmc_card_detect,
+> 	},
+> };
 
-Shouldn't the driver for each IP be responsible for restoring it's
-register contents after context loss, including it's SYSC?
+Dont have a board-sholes-hsmm.c in l-o[1]... :( so not sure which kernel 
+you are talking about here.
+mainline does it this way:
+board files report using omap2_hsmmc_info[2] to hsmmc.c using 
+omap2_hsmmc_init[3] - hsmmc.c converts them to required datastructures 
+that omap_hsmmc.c uses..
 
-Seems to me that if SYSC is lost, it means the driver's save/restore 
-is buggy.
-
-Kevin
-
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index cb911d7..e57fe21 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -115,7 +115,10 @@ static void _write_sysconfig(u32 v, struct omap_hwmod *oh)
->  
->  	/* XXX ensure module interface clock is up */
->  
-> -	if (oh->_sysc_cache != v) {
-> +	if ((oh->_sysc_cache != v) ||
-> +		/* Did the module go to off and loose context? */
-> +		(oh->_sysc_cache !=
-> +			 omap_hwmod_readl(oh, oh->class->sysc->sysc_offs))) {
->  		oh->_sysc_cache = v;
->  		omap_hwmod_writel(v, oh, oh->class->sysc->sysc_offs);
->  	}
+[1] 
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=tree;f=arch/arm/mach-omap2;h=abedb1903a0d81f33d7614480da0f7a0c78f8f2f;hb=HEAD
+[2] 
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/hsmmc.h;h=281e97287adf988493efd1ca94b19ab8588b7aaf;hb=HEAD#l11
+[3] 
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/board-omap3beagle.c;h=73689c082b26d0ef38233c0adefc1d0b9d14e8d0;hb=HEAD#l287
+-- 
+Regards,
+Nishanth Menon
