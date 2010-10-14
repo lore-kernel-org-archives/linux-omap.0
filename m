@@ -1,93 +1,53 @@
-From: Jason Wang <jason77.wang@gmail.com>
-Subject: Re: [PATCH 4/4] Input: ads7846 - modificatons of _stop()/_disable()
- conditions
-Date: Thu, 14 Oct 2010 10:14:15 +0800
-Message-ID: <4CB66777.5060309@gmail.com>
-References: <1284634286-8871-1-git-send-email-jason77.wang@gmail.com>	<1284634286-8871-4-git-send-email-jason77.wang@gmail.com>	<1284634286-8871-5-git-send-email-jason77.wang@gmail.com>	<201009162339.06395.dmitry.torokhov@gmail.com>	<4C9332CE.6040905@gmail.com>	<20100917160709.GC14186@core.coreip.homeip.net>	<4C9718E9.5040104@gmail.com>	<4CB4314C.7050308@gmail.com>	<20101012160055.GA6355@core.coreip.homeip.net>	<4CB523B7.8010209@gmail.com> <AANLkTi=0b-q3LK3-4mgdpSP7pScVSF1ZWzD45bLoAmJO@mail.gmail.com>
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH] iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF
+Date: Wed, 13 Oct 2010 21:10:20 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F47B36A1@dlee06.ent.ti.com>
+References: <1286477021-23169-1-git-send-email-x0095840@ti.com>
+ <20101007.221401.226802875.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <AANLkTi=0b-q3LK3-4mgdpSP7pScVSF1ZWzD45bLoAmJO@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Jason Wang <jason77.wang@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, vapier@gentoo.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, roman.tereshonkov@nokia.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:41670 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753827Ab0JNCK1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 Oct 2010 22:10:27 -0400
+In-Reply-To: <20101007.221401.226802875.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "david.cohen@nokia.com" <david.cohen@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Grazvydas Ignotas wrote:
-> On Wed, Oct 13, 2010 at 6:12 AM, Jason Wang <jason77.wang@gmail.com> wrote:
->   
->> Hi Dmitry,
->>
->> I have validated the new patch based off the 2.6.36-rc7 on
->> the ti_omap3530evm, it works fine.
->>     
->
-> Working here on pandora too, applied on top of linux-next (did not
-> test suspend though).
->
-> Not caused by this patch, but the old problem where lower measurement
-> bits get lost is back - when I draw diagonal line it looks like
-> stairs. I think it's caused by OMAP SPI driver, CCing linux-omap.
->
->   
-Yes, it is OMAP spi driver issues, I have met the same problem before, 
-please refer to:
-http://www.spinics.net/lists/arm-kernel/msg91538.html
+ 
 
-you can apply this patch and test again.
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com] 
+> Sent: Thursday, October 07, 2010 2:14 PM
+> To: Guzman Lugo, Fernando
+> Cc: felipe.contreras@nokia.com; ameya.palande@nokia.com; 
+> david.cohen@nokia.com; linux-kernel@vger.kernel.org; 
+> andy.shevchenko@gmail.com; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] iovmm: IVA2 MMU range is from 0x11000000 
+> to 0xFFFFFFFF
+> 
+> From: ext Fernando Guzman Lugo <x0095840@ti.com>
+> Subject: [PATCH] iovmm: IVA2 MMU range is from 0x11000000 to 
+> 0xFFFFFFFF
+> Date: Thu, 7 Oct 2010 20:43:41 +0200
+> 
+> > IV2 MMU capable addresses start from 0x11000000
+> 
+> Wouldn't it be better to add an general API to configure the 
+> valid 'da' range in advance?
+> 
+> I don't think that it's a good idea to introduce the iommu
+> instance("iva2:iommu") specific code here.
 
+Please discard this patch. I will send a one base on comments
+Along with the other iommu fixes serie.
 
+Regards,
+Fernando.
 
- From 393f445ab899abaf5d60a55a54f242c430507047 Mon Sep 17 00:00:00 2001
-From: Jason Wang <jason77.wang@gmail.com>
-Date: Thu, 14 Oct 2010 10:08:07 +0800
-Subject: [PATCH] spi/omap2_mcspi: disable channel after TX_ONLY transfer 
-in PIO mode
-
-In TX_ONLY transfer, the SPI controller can also receive data
-simultaneously and saves them in rx register. After the TX_ONLY
-transfer, the rx register will hold random data received during
-last tx transaction.
-
-If the next transfer is RX_ONLY, this random data has
-the possibility to affect this transfer like this:
-
-  If the spi controller is changed from TX_ONLY to RX_ONLY mode,
-  The random data makes the rx register full imediately and
-  triggers a dummy write (in SPI RX_ONLY transfer, we need a dummy
-  write to trigger the first transaction).
-
-  So the first data received in RX_ONLY transfer will be that
-  random data instead of something meaningfug.
-
-We can avoid this by a Disable/reenable toggle of the spi channel
-after the TX_ONLY transfer, since it purges the rx register.
-
-Signed-off-by: Jason Wang <jason77.wang@gmail.com>
----
- drivers/spi/omap2_mcspi.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index b3a94ca..43fab41 100644
---- a/drivers/spi/omap2_mcspi.c
-+++ b/drivers/spi/omap2_mcspi.c
-@@ -644,6 +644,12 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct 
-spi_transfer *xfer)
-                } else if (mcspi_wait_for_reg_bit(chstat_reg,
-                                OMAP2_MCSPI_CHSTAT_EOT) < 0)
-                        dev_err(&spi->dev, "EOT timed out\n");
-+
-+               /* disable chan to purge rx datas received in TX_ONLY 
-transfer,
-+                * otherwise these rx datas will affect the direct following
-+                * RX_ONLY transfer.
-+                */
-+               omap2_mcspi_set_enable(spi, 0);
-        }
- out:
-        omap2_mcspi_set_enable(spi, 1);
--- 
-1.5.6.5
-
+> 
