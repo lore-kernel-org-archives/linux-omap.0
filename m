@@ -1,87 +1,42 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 5/7] omap:mailbox-resolve multiple receiver problem
-Date: Wed, 13 Oct 2010 20:33:21 -0500
-Message-ID: <1287020003-19667-6-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH 2/7] omap:mailbox: fix rx interrupt disable in omap4
+Date: Wed, 13 Oct 2010 20:33:18 -0500
+Message-ID: <1287020003-19667-3-git-send-email-h-kanigeri2@ti.com>
 References: <1287020003-19667-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39476 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46067 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754035Ab0JNBdv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753827Ab0JNBdv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 13 Oct 2010 21:33:51 -0400
 In-Reply-To: <1287020003-19667-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Ramesh Gupta <grgupta@ti.com>, "Subramaniam C.A" <subramaniam.ca@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-OMAP4 shares one interrupt line for all the mailbox instances.
-The ISR is handling only the mailbox instance that was registered last.
-So if both mailbox instances are running at the same time, the first mailbox
-that registered wouldn't get the mailbox message. The same issue is present
-in Transmit Interrupt case too. Only the last registered mailbox is handled.
-
-The fix is to iterate through the list of mailboxes that were registered
-checking for the mailbox TX and RX interrupt source.
+disabling rx interrupt on omap4 is different than its pre-decessors.
+The bit in OMAP4_MAILBOX_IRQENABLE_CLR should be set to disable the
+interrupts instead of clearing the bit.
 
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Ramesh Gupta <grgupta@ti.com>
-Signed-off-by: Subramaniam C.A <subramaniam.ca@ti.com>
 ---
- arch/arm/plat-omap/mailbox.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/mailbox.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index a4170c7..1727548 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -174,6 +174,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 	struct omap_mbox_queue *mq = mbox->rxq;
- 	mbox_msg_t msg;
- 	int len;
-+	bool msg_rx = false;
- 
- 	while (!mbox_fifo_empty(mbox)) {
- 		if (unlikely(kfifo_avail(&mq->fifo) < sizeof(msg))) {
-@@ -181,7 +182,7 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 			mq->full = true;
- 			goto nomem;
- 		}
--
-+		msg_rx = true;
- 		msg = mbox_fifo_read(mbox);
- 
- 		len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
-@@ -192,21 +193,25 @@ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
- 	}
- 
- 	/* no more messages in the fifo. clear IRQ source. */
--	ack_mbox_irq(mbox, IRQ_RX);
-+	if (msg_rx)
-+		ack_mbox_irq(mbox, IRQ_RX);
- nomem:
--	queue_work(mboxd, &mbox->rxq->work);
-+	if (msg_rx)
-+		queue_work(mboxd, &mbox->rxq->work);
- }
- 
- static irqreturn_t mbox_interrupt(int irq, void *p)
- {
- 	struct omap_mbox *mbox = p;
- 
--	if (is_mbox_irq(mbox, IRQ_TX))
--		__mbox_tx_interrupt(mbox);
--
--	if (is_mbox_irq(mbox, IRQ_RX))
--		__mbox_rx_interrupt(mbox);
-+	for (i = 0; mboxes[i]; i++)  {
-+		struct omap_mbox *mbox = mboxes[i];
-+		if (is_mbox_irq(mbox, IRQ_TX))
-+			__mbox_tx_interrupt(mbox);
- 
-+		if (is_mbox_irq(mbox, IRQ_RX))
-+			__mbox_rx_interrupt(mbox);
-+	}
- 	return IRQ_HANDLED;
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 42dbfa4..82b5ced 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -195,7 +195,10 @@ static void omap2_mbox_disable_irq(struct omap_mbox *mbox,
+ 	struct omap_mbox2_priv *p = (struct omap_mbox2_priv *)mbox->priv;
+ 	u32 l, bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
+ 	l = mbox_read_reg(p->irqdisable);
+-	l &= ~bit;
++	if (cpu_is_omap44xx())
++		l |= bit;
++	else
++		l &= ~bit;
+ 	mbox_write_reg(l, p->irqdisable);
  }
  
 -- 
