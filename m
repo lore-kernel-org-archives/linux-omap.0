@@ -1,104 +1,65 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCHv3 00/11] staging tidspbridge: iommu migration
-Date: Thu, 14 Oct 2010 15:27:13 +0300
-Message-ID: <AANLkTik3hhWy+tRxThtrbwNXTssV7nf9+_LGn5Ct3iet@mail.gmail.com>
-References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
-	<AANLkTimoTmhAw11jJihiuyByzKZ9KTFHvx6iw8oeLCGg@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F47B2BB1@dlee06.ent.ti.com>
-	<AANLkTim6XRgnefA0vmRNeW=TONhxz68WYAjuA96LqWOj@mail.gmail.com>
-	<496565EC904933469F292DDA3F1663E602F47B3002@dlee06.ent.ti.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH] arm: perf: Fix build break due to a typo
+Date: Thu, 14 Oct 2010 20:04:01 +0530
+Message-ID: <1287066841-28569-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <496565EC904933469F292DDA3F1663E602F47B3002@dlee06.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Cc: "gregkh@suse.de" <gregkh@suse.de>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: Russell King <linux@arm.linux.org.uk>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tony Lindgren <tony@atomide.com>, paulus <paulus@samba.org>, Ingo Molnar <mingo@elte.hu>, Anand Gadiyar <gadiyar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 12, 2010 at 5:39 PM, Guzman Lugo, Fernando
-<fernando.lugo@ti.com> wrote:
->> On Mon, Oct 11, 2010 at 6:03 PM, Guzman Lugo, Fernando
->> <fernando.lugo@ti.com> wrote:
->> >> On Tue, Oct 5, 2010 at 11:35 PM, Fernando Guzman Lugo
->> >> <x0095840@ti.com> wrote:
->> >> > This set of patches remove the dspbridge custom mmu
->> >> implementation and
->> >> > use iommu module instead.
->> >>
->> >> I have tried this, it works for simple tests, but not real
->> use-cases.
->> >> I applied all your iommu patches. How did you test this?
->> >
->> > Have you applied:
->> >
->> > - "scatterlist: define SG chain for arm architecture"
->> > - "iovmm: replace __iounmap with omap_iounmap"
->> > - "iovmm: add superpages support to fixed da address"
->> > - "iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF"
->> > - "iovmm: no gap checking for fixed address"
->>
->> Yes.
->>
->> > Also make sure your baseline have this patch:
->> >
->> > - "omap:iommu-load cam register before flushing the entry"
->>
->> Huh? That's not even in v2.6.36-rc7, in which baseline is
->> this supposed to be in? Anyway, I'll try adding that.
->
-> That's is in latest Hiroshi's tree and it is really needed, Otherwise
-> You will have wrong traslations which can cause unexpected behavior.
+armpmu is a pointer to a structure - We need to use the
+structure pointer operator to access num_events, and not
+the structure member operator.
 
-Now I applied that, still fails.
+This fixes the following build break when building for OMAP4.
 
->> > What kind of error are you getting?
->>
->> Node allocation failing IIRC.
->
-> Is it falling to map the Heap??
-> I mean you see this trace?
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (status)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0pr_err("%s: Fa=
-iled to map memory for Heap: 0x%x\n",
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 __func__, status);
->
-> Otherwise, I don't see how that fail is related with iommu changes.
+  CC      arch/arm/kernel/perf_event.o
+arch/arm/kernel/perf_event.c: In function 'armpmu_event_init':
+arch/arm/kernel/perf_event.c:543: error: request for member 'num_events' in something not a structure or union
+make[1]: *** [arch/arm/kernel/perf_event.o] Error 1
+make: *** [arch/arm/kernel] Error 2
 
-Nope.
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: paulus <paulus@samba.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+---
+This break is reproducible on linux-next as of 20101014.
 
->> > I don't have a complete framework to test MM testcases at
->> this moment
->>
->> See:
->> http://felipec.wordpress.com/2010/10/08/my-arm-development-notes/
->>
->> I even prepared a tarball so you just need to extract it on
->> your device. It's not difficult to test this with GStreamer,
->> and I don't see how you can be confident that they indeed
->> work without testing some real use-cases. Anyway, I'll try
->> that missing patch.
->
-> Most of time real use-cases are not so stressing like testcases
-> We can make to test under real stress in order to find out corner cas=
-es.
-> However when I test it was pretty stable and just few erros because s=
-taging
-> Does not have latest mailbox patches. Also I test in a .35 version of=
- staging.
-> So now I am using a branch with all new patches and I will recheck an=
-d test
-> Again any possible issue. Also I will look at your gstreamer fail too=
-=2E
+This was introduced in commit 15ac9a395a75 in linux-next
+<http://git.kernel.org/?p=linux/kernel/git/sfr/linux-next.git;a=commitdiff;h=15ac9a395a753cb28c674e7ea80386ffdff21785>
 
-Well, in my experience it's the other way around, the stress
-test-cases don't catch the errors that happen on real use-case
-scenarios, no matter how extensive they are. This is a good example.
+Strangely, I did not catch it with a standard omap2plus_defconfig
+build, but it showed up when I build a custom OMAP4-only config.
+I've saved the defconfig for later analysis.
 
-Cheers.
+ arch/arm/kernel/perf_event.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---=20
-=46elipe Contreras
+Index: mainline/arch/arm/kernel/perf_event.c
+===================================================================
+--- mainline.orig/arch/arm/kernel/perf_event.c
++++ mainline/arch/arm/kernel/perf_event.c
+@@ -540,7 +540,7 @@ static int armpmu_event_init(struct perf
+ 	event->destroy = hw_perf_event_destroy;
+ 
+ 	if (!atomic_inc_not_zero(&active_events)) {
+-		if (atomic_read(&active_events) > armpmu.num_events) {
++		if (atomic_read(&active_events) > armpmu->num_events) {
+ 			atomic_dec(&active_events);
+ 			return -ENOSPC;
+ 		}
