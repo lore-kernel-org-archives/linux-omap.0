@@ -1,237 +1,104 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH] omap2plus: wdt: Fix boot warn when CONFIG_PM_RUNTIME=n
-Date: Thu, 14 Oct 2010 19:43:30 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D09A22D@dbde02.ent.ti.com>
-References: <1286798556-22749-1-git-send-email-charu@ti.com>
-	<4CB40B07.8080301@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030CFC553C@dbde02.ent.ti.com>
-	<4CB45E0E.6080104@ti.com> <87mxqj1d2v.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCHv3 00/11] staging tidspbridge: iommu migration
+Date: Thu, 14 Oct 2010 15:27:13 +0300
+Message-ID: <AANLkTik3hhWy+tRxThtrbwNXTssV7nf9+_LGn5Ct3iet@mail.gmail.com>
+References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
+	<AANLkTimoTmhAw11jJihiuyByzKZ9KTFHvx6iw8oeLCGg@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F47B2BB1@dlee06.ent.ti.com>
+	<AANLkTim6XRgnefA0vmRNeW=TONhxz68WYAjuA96LqWOj@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F47B3002@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58474 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753422Ab0JNONi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Oct 2010 10:13:38 -0400
-In-Reply-To: <87mxqj1d2v.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <496565EC904933469F292DDA3F1663E602F47B3002@dlee06.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Cc: "gregkh@suse.de" <gregkh@suse.de>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Paul, Benoit, 
+On Tue, Oct 12, 2010 at 5:39 PM, Guzman Lugo, Fernando
+<fernando.lugo@ti.com> wrote:
+>> On Mon, Oct 11, 2010 at 6:03 PM, Guzman Lugo, Fernando
+>> <fernando.lugo@ti.com> wrote:
+>> >> On Tue, Oct 5, 2010 at 11:35 PM, Fernando Guzman Lugo
+>> >> <x0095840@ti.com> wrote:
+>> >> > This set of patches remove the dspbridge custom mmu
+>> >> implementation and
+>> >> > use iommu module instead.
+>> >>
+>> >> I have tried this, it works for simple tests, but not real
+>> use-cases.
+>> >> I applied all your iommu patches. How did you test this?
+>> >
+>> > Have you applied:
+>> >
+>> > - "scatterlist: define SG chain for arm architecture"
+>> > - "iovmm: replace __iounmap with omap_iounmap"
+>> > - "iovmm: add superpages support to fixed da address"
+>> > - "iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF"
+>> > - "iovmm: no gap checking for fixed address"
+>>
+>> Yes.
+>>
+>> > Also make sure your baseline have this patch:
+>> >
+>> > - "omap:iommu-load cam register before flushing the entry"
+>>
+>> Huh? That's not even in v2.6.36-rc7, in which baseline is
+>> this supposed to be in? Anyway, I'll try adding that.
+>
+> That's is in latest Hiroshi's tree and it is really needed, Otherwise
+> You will have wrong traslations which can cause unexpected behavior.
 
-Please provide your input on this.
+Now I applied that, still fails.
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Tuesday, October 12, 2010 11:57 PM
-> To: Cousson, Benoit
-> Cc: Varadarajan, Charulatha; Paul Walmsley; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] omap2plus: wdt: Fix boot warn when 
-> CONFIG_PM_RUNTIME=n
-> 
-> "Cousson, Benoit" <b-cousson@ti.com> writes:
-> 
-> > Adding more folks to the discussion.
-> >
-> > On 10/12/2010 9:30 AM, Varadarajan, Charulatha wrote:
-> >>
-> >>> From: Cousson, Benoit
-> >>> Sent: Tuesday, October 12, 2010 12:45 PM
-> >>> To: Varadarajan, Charulatha
-> >>>
-> >>> Hi Charu,
-> >>>
-> >>> On 10/11/2010 2:02 PM, Varadarajan, Charulatha wrote:
-> >>>> Fix the below warning during boot
-> >>>>
-> >>>> [    0.000000] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185
-> >>> _omap_hwmod_enable+0x34/0x150()
-> >>>> [    0.000000] omap_hwmod: wd_timer2: enabled state can 
-> only be entered
-> >>> from initialized, idle, or disabled state
-> >>>> [    0.000000] Modules linked in:
-> >>>> [    0.000000] [<c0050460>] (unwind_backtrace+0x0/0xe4) from
-> >>> [<c0083954>] (warn_slowpath_common+0x4c/0x64)
-> >>>> [    0.000000] [<c0083954>] (warn_slowpath_common+0x4c/0x64) from
-> >>> [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c)
-> >>>> [    0.000000] [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c) from
-> >>> [<c0059be4>] (_omap_hwmod_enable+0x34/0x150)
-> >>>> [    0.000000] [<c0059be4>] (_omap_hwmod_enable+0x34/0x150) from
-> >>> [<c0059d28>] (omap_hwmod_enable+0x28/0x3c)
-> >>>> [    0.000000] [<c0059d28>] (omap_hwmod_enable+0x28/0x3c) from
-> >>> [<c005580c>] (omap2_disable_wdt+0x48/0xdc)
-> >>>> [    0.000000] [<c005580c>] (omap2_disable_wdt+0x48/0xdc) from
-> >>> [<c0058898>] (omap_hwmod_for_each_by_class+0x60/0xa4)
-> >>>> [    0.000000] [<c0058898>] 
-> (omap_hwmod_for_each_by_class+0x60/0xa4)
-> >>> from [<c000f6d0>] (omap2_init_devices+0x44/0x330)
-> >>>> [    0.000000] [<c000f6d0>] (omap2_init_devices+0x44/0x330) from
-> >>> [<c0049578>] (do_one_initcall+0xcc/0x1a4)
-> >>>> [    0.000000] [<c0049578>] (do_one_initcall+0xcc/0x1a4) from
-> >>> [<c0008780>] (kernel_init+0x148/0x210)
-> >>>> [    0.000000] [<c0008780>] (kernel_init+0x148/0x210) 
-> from [<c004acb8>]
-> >>> (kernel_thread_exit+0x0/0x8)
-> >>>> [    0.000000] ---[ end trace 1b75b31a2719ed1f ]---
-> >>>> [    0.000000] wd_timer2: Could not enable clocks for 
-> omap2_disable_wdt
-> >>>>
-> >>>> When CONFIG_PM_RUNTIME is not defined, watchdog timer 
-> clocks are not
-> >>>> disabled after a watchdog reset. Hence in 
-> omap2_disable_wdt(), it is
-> >>>> not required to enable clocks before accessing the watchdog timer
-> >>>> registers if CONFIG_PM_RUNTIME is not defined.
-> >>>
-> >>> I'm not a big fan of adding some dependencies with 
-> CONFIG_PM_RUNTIME
-> >>> inside this code.
-> >>>
-> >>> The real root cause is not CONFIG_PM_RUNTIME, but mostly the
-> >>> skip_setup_idle variable added in 
-> arch/arm/mach-omap2/io.c by Paul.
-> >>
-> >> Yes.
-> >>
-> >>>
-> >>> So I'd rather use that parameter as an input for the 
-> omap2_disable_wdt.
-> >>
-> >> I also thought about this, but we need to
-> >>
-> >> 1. call omap2_disable_wdt() in omap2_init_common_hw() rather than
-> >> omap2_init_devices(). That would involve movement of
-> >> omap2_disable_wdt() from devices.c to io.c.
-> >> (or)
-> >> 2. make skip_setup_idle global
-> >> (or)
-> >> 3. make omap2_disable_wdt() global and call it from
-> >> omap2_init_common_hw() and pass skip_setup_idle as parameter.
-> >>
-> >> I felt that the usage of CONFIG_PM_RUNTIME is better than 
-> the above.
-> >> But still we may consider any of the above options or any other
-> >> option. Please suggest.
-> >
-> > It is maybe easier, but I don't think it is better...
-> >
-> > As I said, CONFIG_PM_RUNTIME is not the root cause of your 
-> issue, just
-> > an indirect cause. OK, maybe strictly speaking, it is the 
-> root cause,
-> > since it started for that... but that not the cause that we should
-> > consider in your case.
-> >
-> > If we decide to remove that CONFIG_PM_RUNTIME dependency in the io /
-> > hwmod code, nobody will be able to find the relation with 
-> your code in
-> > WDT.
-> >
-> > That's why you should not do that, for my point of view.
-> >
-> > Paul, Kevin,
-> > Any thoughts on that point?
-> 
-> I agree that this is not strictly a dependency on PM_RUNTIME.
-> 
-> What's really needed is a way for low-level hwmod users like 
-> this to be
-> able to check whether the hwmod is already enabled.  
-> Something like this
-> (completely untested):
-> 
-> bool omap_hwmod_is_enabled(struct omap_hwmod *oh)
-> {
-> 	return (oh->_state == _HWMOD_STATE_ENABLED);
-> }
+>> > What kind of error are you getting?
+>>
+>> Node allocation failing IIRC.
+>
+> Is it falling to map the Heap??
+> I mean you see this trace?
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (status)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0pr_err("%s: Fa=
+iled to map memory for Heap: 0x%x\n",
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 __func__, status);
+>
+> Otherwise, I don't see how that fail is related with iommu changes.
 
-Kevin,
+Nope.
 
-Thanks. This is similar to what we were discussing internally and
-I would prefer this. But is it a good idea to allow drivers to
-know the state of oh and then enable/idle the device?
+>> > I don't have a complete framework to test MM testcases at
+>> this moment
+>>
+>> See:
+>> http://felipec.wordpress.com/2010/10/08/my-arm-development-notes/
+>>
+>> I even prepared a tarball so you just need to extract it on
+>> your device. It's not difficult to test this with GStreamer,
+>> and I don't see how you can be confident that they indeed
+>> work without testing some real use-cases. Anyway, I'll try
+>> that missing patch.
+>
+> Most of time real use-cases are not so stressing like testcases
+> We can make to test under real stress in order to find out corner cas=
+es.
+> However when I test it was pretty stable and just few erros because s=
+taging
+> Does not have latest mailbox patches. Also I test in a .35 version of=
+ staging.
+> So now I am using a branch with all new patches and I will recheck an=
+d test
+> Again any possible issue. Also I will look at your gstreamer fail too=
+=2E
 
-Or should it be used only in exceptional situations like the scenario
-addressed in this patch?
+Well, in my experience it's the other way around, the stress
+test-cases don't catch the errors that happen on real use-case
+scenarios, no matter how extensive they are. This is a good example.
 
-> 
-> Alternatively, maybe calling omap_hwmod_enable() when the state is
-> already enabled should not be so verbose, and it should just return
-> success, but that option needs a little more thought...
-> 
-> Kevin
-> 
-> >>
-> >>>
-> >>> Regards,
-> >>> Benoit
-> >>>
-> >>>
-> >>>
-> >>>>
-> >>>> Tested on OMAP3430 SDP and OMAP4430 SDP.
-> >>>>
-> >>>> Signed-off-by: Charulatha V<charu@ti.com>
-> >>>> ---
-> >>>>    arch/arm/mach-omap2/devices.c |    6 +++++-
-> >>>>    1 files changed, 5 insertions(+), 1 deletions(-)
-> >>>>
-> >>>> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
-> >>> omap2/devices.c
-> >>>> index eaf3799..b592952 100644
-> >>>> --- a/arch/arm/mach-omap2/devices.c
-> >>>> +++ b/arch/arm/mach-omap2/devices.c
-> >>>> @@ -926,7 +926,7 @@ static inline void omap_init_vout(void) {}
-> >>>>    static int omap2_disable_wdt(struct omap_hwmod *oh, 
-> void *unused)
-> >>>>    {
-> >>>>    	void __iomem *base;
-> >>>> -	int ret;
-> >>>> +	int ret = 0;
-> >>>>
-> >>>>    	if (!oh) {
-> >>>>    		pr_err("%s: Could not look up 
-> wdtimer_hwmod\n", __func__);
-> >>>> @@ -940,6 +940,7 @@ static int omap2_disable_wdt(struct 
-> omap_hwmod *oh,
-> >>> void *unused)
-> >>>>    		return -EINVAL;
-> >>>>    	}
-> >>>>
-> >>>> +#ifdef CONFIG_PM_RUNTIME
-> >>>>    	/* Enable the clocks before accessing the WDT 
-> registers */
-> >>>>    	ret = omap_hwmod_enable(oh);
-> >>>>    	if (ret) {
-> >>>> @@ -947,6 +948,7 @@ static int omap2_disable_wdt(struct 
-> omap_hwmod *oh,
-> >>> void *unused)
-> >>>>    				oh->name, __func__);
-> >>>>    		return ret;
-> >>>>    	}
-> >>>> +#endif
-> >>>>
-> >>>>    	/* sequence required to disable watchdog */
-> >>>>    	__raw_writel(0xAAAA, base + OMAP_WDT_SPR);
-> >>>> @@ -957,10 +959,12 @@ static int 
-> omap2_disable_wdt(struct omap_hwmod *oh,
-> >>> void *unused)
-> >>>>    	while (__raw_readl(base + OMAP_WDT_WPS)&   0x10)
-> >>>>    		cpu_relax();
-> >>>>
-> >>>> +#ifdef CONFIG_PM_RUNTIME
-> >>>>    	ret = omap_hwmod_idle(oh);
-> >>>>    	if (ret)
-> >>>>    		pr_err("%s: Could not disable clocks for %s\n",
-> >>>>    				oh->name, __func__);
-> >>>> +#endif
-> >>>>
-> >>>>    	return ret;
-> >>>>    }
-> >>
-> 
-> 
+Cheers.
+
+--=20
+=46elipe Contreras
