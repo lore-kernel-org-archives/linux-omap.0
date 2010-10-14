@@ -1,122 +1,78 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 4/4] Input: ads7846 - modificatons of _stop()/_disable() conditions
-Date: Fri, 15 Oct 2010 00:40:35 +0300
-Message-ID: <AANLkTimRqaFkNkRzubY4-Gx=y0yJ_C1VFycL0+uEa_Wm@mail.gmail.com>
-References: <1284634286-8871-1-git-send-email-jason77.wang@gmail.com>
-	<1284634286-8871-4-git-send-email-jason77.wang@gmail.com>
-	<1284634286-8871-5-git-send-email-jason77.wang@gmail.com>
-	<201009162339.06395.dmitry.torokhov@gmail.com>
-	<4C9332CE.6040905@gmail.com>
-	<20100917160709.GC14186@core.coreip.homeip.net>
-	<4C9718E9.5040104@gmail.com>
-	<4CB4314C.7050308@gmail.com>
-	<20101012160055.GA6355@core.coreip.homeip.net>
-	<4CB523B7.8010209@gmail.com>
-	<AANLkTi=0b-q3LK3-4mgdpSP7pScVSF1ZWzD45bLoAmJO@mail.gmail.com>
-	<4CB66777.5060309@gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3 02/11] OMAP3: PM: Adding voltage driver support for
+ OMAP3
+Date: Thu, 14 Oct 2010 11:05:05 -0700
+Message-ID: <1287079505.14514.55.camel@localhost>
+References: <1285166719-19352-1-git-send-email-thara@ti.com>
+	 <1285166719-19352-3-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <4CB66777.5060309@gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Jason Wang <jason77.wang@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, vapier@gentoo.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, roman.tereshonkov@nokia.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:39218 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755737Ab0JNV5E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Oct 2010 17:57:04 -0400
+Received: by vws2 with SMTP id 2so76279vws.19
+        for <linux-omap@vger.kernel.org>; Thu, 14 Oct 2010 14:57:03 -0700 (PDT)
+In-Reply-To: <1285166719-19352-3-git-send-email-thara@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-On Thu, Oct 14, 2010 at 5:14 AM, Jason Wang <jason77.wang@gmail.com> wr=
-ote:
-> Grazvydas Ignotas wrote:
->> Working here on pandora too, applied on top of linux-next (did not
->> test suspend though).
->>
->> Not caused by this patch, but the old problem where lower measuremen=
-t
->> bits get lost is back - when I draw diagonal line it looks like
->> stairs. I think it's caused by OMAP SPI driver, CCing linux-omap.
->>
->>
->
-> Yes, it is OMAP spi driver issues, I have met the same problem before=
-,
-> please refer to:
-> http://www.spinics.net/lists/arm-kernel/msg91538.html
->
-> you can apply this patch and test again.
+On Wed, 2010-09-22 at 20:15 +0530, Thara Gopinath wrote:
+> This patch adds voltage driver support for OMAP3. The driver
+> allows  configuring the voltage controller and voltage
+> processors during init and exports APIs to enable/disable
+> voltage processors, scale voltage and reset voltage.
+> The driver also maintains the global voltage table on a per
+> VDD basis which contains the various voltages supported by the
+> VDD along with per voltage dependent data like smartreflex
+> n-target value, errminlimit and voltage processor errorgain.
+> The driver allows scaling of VDD voltages either through
+> "vc bypass method" or through "vp forceupdate method" the
+> choice being configurable through the board file.
+> 
+> This patch contains code originally in linux omap pm branch
+> smartreflex driver.  Major contributors to this driver are
+> Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
+> Nishant Menon, Kevin Hilman.
+> 
+> Signed-off-by: Thara Gopinath <thara@ti.com>
 
-It solves my issue, thanks
-Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+[...]
 
-BTW I have done similar patch almost 2 years ago for exactly the same p=
-roblem:
-http://marc.info/?l=3Dlinux-omap&m=3D122565580616920&w=3D2
-but then problem went away after random kernel update (from what I
-remember), and my patch was no longer needed.
-
-
-> From 393f445ab899abaf5d60a55a54f242c430507047 Mon Sep 17 00:00:00 200=
-1
-> From: Jason Wang <jason77.wang@gmail.com>
-> Date: Thu, 14 Oct 2010 10:08:07 +0800
-> Subject: [PATCH] spi/omap2_mcspi: disable channel after TX_ONLY trans=
-fer in
-> PIO mode
->
-> In TX_ONLY transfer, the SPI controller can also receive data
-> simultaneously and saves them in rx register. After the TX_ONLY
-> transfer, the rx register will hold random data received during
-> last tx transaction.
->
-> If the next transfer is RX_ONLY, this random data has
-> the possibility to affect this transfer like this:
->
-> =A0If the spi controller is changed from TX_ONLY to RX_ONLY mode,
-> =A0The random data makes the rx register full imediately and
-> =A0triggers a dummy write (in SPI RX_ONLY transfer, we need a dummy
-> =A0write to trigger the first transaction).
->
-> =A0So the first data received in RX_ONLY transfer will be that
-> =A0random data instead of something meaningfug.
->
-> We can avoid this by a Disable/reenable toggle of the spi channel
-> after the TX_ONLY transfer, since it purges the rx register.
->
-> Signed-off-by: Jason Wang <jason77.wang@gmail.com>
-> ---
-> drivers/spi/omap2_mcspi.c | =A0 =A06 ++++++
-> 1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> index b3a94ca..43fab41 100644
-> --- a/drivers/spi/omap2_mcspi.c
-> +++ b/drivers/spi/omap2_mcspi.c
-> @@ -644,6 +644,12 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, str=
-uct
-> spi_transfer *xfer)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else if (mcspi_wait_for_reg_bit(chstat_=
-reg,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP2_MCS=
-PI_CHSTAT_EOT) < 0)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&spi->dev, "EOT t=
-imed out\n");
+> +/*
+> + * Omap3630 specific VP register values. Maybe these need to come from
+> + * board file or PMIC data structure
+> + */
+> +#define OMAP3630_VP1_VLIMITTO_VDDMIN		0x18
+> +#define OMAP3630_VP1_VLIMITTO_VDDMAX		0x3C
+> +#define OMAP3630_VP2_VLIMITTO_VDDMIN		0x18
+> +#define OMAP3630_VP2_VLIMITTO_VDDMAX		0x30
 > +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* disable chan to purge rx datas recei=
-ved in TX_ONLY
-> transfer,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* otherwise these rx datas will affe=
-ct the direct following
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* RX_ONLY transfer.
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap2_mcspi_set_enable(spi, 0);
-> =A0 =A0 =A0 }
-> out:
-> =A0 =A0 =A0 omap2_mcspi_set_enable(spi, 1);
-> --
-> 1.5.6.5
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +/* TODO OMAP4 VP register values if the same file is used for OMAP4*/
+> +
+> +/**
+> + * voltagedomain - omap voltage domain global structure
+> + * @name       : Name of the voltage domain which can be used as a unique
+> + *               identifier.
+> + */
+> +struct voltagedomain {
+> +	char *name;
+> +};
+
+Minor: to keep the voltagedomain stuff somewhat separate from the rest
+of the voltage layer API, I suggest putting the voltage domain APIs
+here:
+
+struct voltagedomain *omap_voltage_domain_get(char *name);
+
+However, I think this function shoul be called _lookup instead of _get
+to continue the naming conventions of the powerdomain and clockdomain
+code.
+
+Kevin
+
+
