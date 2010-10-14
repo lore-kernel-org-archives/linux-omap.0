@@ -1,55 +1,93 @@
-From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 3/7] omap:mailbox-fix checkpatch warnings
-Date: Wed, 13 Oct 2010 20:33:19 -0500
-Message-ID: <1287020003-19667-4-git-send-email-h-kanigeri2@ti.com>
-References: <1287020003-19667-1-git-send-email-h-kanigeri2@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46062 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754005Ab0JNBdu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 Oct 2010 21:33:50 -0400
-In-Reply-To: <1287020003-19667-1-git-send-email-h-kanigeri2@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Jason Wang <jason77.wang@gmail.com>
+Subject: Re: [PATCH 4/4] Input: ads7846 - modificatons of _stop()/_disable()
+ conditions
+Date: Thu, 14 Oct 2010 10:14:15 +0800
+Message-ID: <4CB66777.5060309@gmail.com>
+References: <1284634286-8871-1-git-send-email-jason77.wang@gmail.com>	<1284634286-8871-4-git-send-email-jason77.wang@gmail.com>	<1284634286-8871-5-git-send-email-jason77.wang@gmail.com>	<201009162339.06395.dmitry.torokhov@gmail.com>	<4C9332CE.6040905@gmail.com>	<20100917160709.GC14186@core.coreip.homeip.net>	<4C9718E9.5040104@gmail.com>	<4CB4314C.7050308@gmail.com>	<20101012160055.GA6355@core.coreip.homeip.net>	<4CB523B7.8010209@gmail.com> <AANLkTi=0b-q3LK3-4mgdpSP7pScVSF1ZWzD45bLoAmJO@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <AANLkTi=0b-q3LK3-4mgdpSP7pScVSF1ZWzD45bLoAmJO@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Jason Wang <jason77.wang@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, vapier@gentoo.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, roman.tereshonkov@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Fix the checkpatch warnings observed in mailbox module
+Grazvydas Ignotas wrote:
+> On Wed, Oct 13, 2010 at 6:12 AM, Jason Wang <jason77.wang@gmail.com> wrote:
+>   
+>> Hi Dmitry,
+>>
+>> I have validated the new patch based off the 2.6.36-rc7 on
+>> the ti_omap3530evm, it works fine.
+>>     
+>
+> Working here on pandora too, applied on top of linux-next (did not
+> test suspend though).
+>
+> Not caused by this patch, but the old problem where lower measurement
+> bits get lost is back - when I draw diagonal line it looks like
+> stairs. I think it's caused by OMAP SPI driver, CCing linux-omap.
+>
+>   
+Yes, it is OMAP spi driver issues, I have met the same problem before, 
+please refer to:
+http://www.spinics.net/lists/arm-kernel/msg91538.html
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+you can apply this patch and test again.
+
+
+
+ From 393f445ab899abaf5d60a55a54f242c430507047 Mon Sep 17 00:00:00 2001
+From: Jason Wang <jason77.wang@gmail.com>
+Date: Thu, 14 Oct 2010 10:08:07 +0800
+Subject: [PATCH] spi/omap2_mcspi: disable channel after TX_ONLY transfer 
+in PIO mode
+
+In TX_ONLY transfer, the SPI controller can also receive data
+simultaneously and saves them in rx register. After the TX_ONLY
+transfer, the rx register will hold random data received during
+last tx transaction.
+
+If the next transfer is RX_ONLY, this random data has
+the possibility to affect this transfer like this:
+
+  If the spi controller is changed from TX_ONLY to RX_ONLY mode,
+  The random data makes the rx register full imediately and
+  triggers a dummy write (in SPI RX_ONLY transfer, we need a dummy
+  write to trigger the first transaction).
+
+  So the first data received in RX_ONLY transfer will be that
+  random data instead of something meaningfug.
+
+We can avoid this by a Disable/reenable toggle of the spi channel
+after the TX_ONLY transfer, since it purges the rx register.
+
+Signed-off-by: Jason Wang <jason77.wang@gmail.com>
 ---
- arch/arm/plat-omap/mailbox.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/spi/omap2_mcspi.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index 9ce3570..ed960c1 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -279,11 +279,11 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 
- 	return 0;
- 
-- fail_alloc_rxq:
-+fail_alloc_rxq:
- 	mbox_queue_free(mbox->txq);
-- fail_alloc_txq:
-+fail_alloc_txq:
- 	free_irq(mbox->irq, mbox);
-- fail_request_irq:
-+fail_request_irq:
- 	if (mbox->ops->shutdown)
- 		mbox->ops->shutdown(mbox);
- 
-@@ -394,7 +394,8 @@ static int __init omap_mbox_init(void)
- 
- 	/* kfifo size sanity check: alignment and minimal size */
- 	mbox_kfifo_size = ALIGN(mbox_kfifo_size, sizeof(mbox_msg_t));
--	mbox_kfifo_size = max_t(unsigned int, mbox_kfifo_size, sizeof(mbox_msg_t));
-+	mbox_kfifo_size = max_t(unsigned int, mbox_kfifo_size,
-+						sizeof(mbox_msg_t));
- 
- 	return 0;
- }
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index b3a94ca..43fab41 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -644,6 +644,12 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct 
+spi_transfer *xfer)
+                } else if (mcspi_wait_for_reg_bit(chstat_reg,
+                                OMAP2_MCSPI_CHSTAT_EOT) < 0)
+                        dev_err(&spi->dev, "EOT timed out\n");
++
++               /* disable chan to purge rx datas received in TX_ONLY 
+transfer,
++                * otherwise these rx datas will affect the direct following
++                * RX_ONLY transfer.
++                */
++               omap2_mcspi_set_enable(spi, 0);
+        }
+ out:
+        omap2_mcspi_set_enable(spi, 1);
 -- 
-1.7.0
+1.5.6.5
 
