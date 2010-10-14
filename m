@@ -1,94 +1,186 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: Difference between twl4030_hsmmc_info and omap_mmc_platform_data
-Date: Thu, 14 Oct 2010 17:56:33 -0500
-Message-ID: <4CB78AA1.40909@ti.com>
-References: <DB759C09-975B-4088-B334-79F9010573F8@mac.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v3 06/11] OMAP3: PM: Adding smartreflex class3 driver
+Date: Thu, 14 Oct 2010 16:09:03 -0700
+Message-ID: <87iq14qsmo.fsf@deeprootsystems.com>
+References: <1285166719-19352-1-git-send-email-thara@ti.com>
+	<1285166719-19352-7-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51894 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752061Ab0JNW4f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Oct 2010 18:56:35 -0400
-In-Reply-To: <DB759C09-975B-4088-B334-79F9010573F8@mac.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:41380 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751467Ab0JNXJG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Oct 2010 19:09:06 -0400
+Received: by pxi16 with SMTP id 16so15726pxi.19
+        for <linux-omap@vger.kernel.org>; Thu, 14 Oct 2010 16:09:05 -0700 (PDT)
+In-Reply-To: <1285166719-19352-7-git-send-email-thara@ti.com> (Thara
+	Gopinath's message of "Wed, 22 Sep 2010 20:15:14 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Thara Gopinath <thara@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com
 
-Elvis Dowson had written, on 10/14/2010 04:48 PM, the following:
-> Hi,
->  I'm trying to bring up a TI WL1271 wlan module connected to MMC2 controller of a TI OMAP 3530 processor. 
-> 
-> I am unclear about the difference between the use of twl4030_hsmmc_info and omap_mmc_platform_data, to set the attributes and constraints for the MMC1 (connected to microSD card) and MMC2 (connected to WLAN module). 
-could you please fix your mailer btw for line wraps?
+Thara Gopinath <thara@ti.com> writes:
 
-> 
-> The beagleboard uses twl4030_mmc_init, which has a wrapper for omap_mmc_platform_data defined in mmc-twl4030.h. 
-> 
-> The board-sholes-hsmmc.c doesn't use twl4030, but directly uses the omap_mmc_platform_data structure. 
-> 
-> Example: 
-> 
-> board-omap3beagle.c uses twl4030_mmc_init, which internally uses the following structure to define mmc properties. 
-> 
-> static struct twl4030_hsmmc_info mmc[] = {
-> 	{
-> 		.mmc            = 1,
-> 		.wires          = 8,
-> 		.gpio_wp        = -ENOSYS,
-> 		.gpio_cd        = -ENOSYS,
-> 		.name           = "MMC1 controller slot"
-> 	},
-> 	{
-> 		.mmc            = 2,
-> 		.wires          = 4,
-> 		.gpio_cd        = -EINVAL,
-> 		.gpio_wp        = -EINVAL,
-> //		.transceiver    = true,
-> 		.name           = "MMC2 controller slot",
-> 		.ocr_mask       = 0x00000080,
-> 	},
-> 	{}	/* Terminator */
-> };
-> 
-> For board-sholes-hsmmc.c, it uses a omap_mmc_platform_data
-> 
-> static struct omap_mmc_platform_data mmc1_data = {
-> 	.nr_slots			= 1,
-> 	.init				= hsmmc_late_init,
-> 	.cleanup			= hsmmc_cleanup,
-> #ifdef CONFIG_PM
-> 	.suspend			= hsmmc_suspend,
-> 	.resume				= hsmmc_resume,
-> #endif
-> 	.dma_mask			= 0xffffffff,
-> 	.slots[0] = {
-> 		.wires			= 8,
-> 		.set_power		= hsmmc_set_power,
-> 		.ocr_mask		= MMC_VDD_32_33 | MMC_VDD_33_34 |
-> 						MMC_VDD_165_195,
-> 		.name			= "first slot",
-> 		/* we get car_detect_irq later */
-> 		.card_detect_irq	= 0,
-> 		.card_detect            = hsmmc_card_detect,
-> 	},
-> };
+> Smartreflex Class3 implementation continuously monitors
+> silicon performance  and instructs the Voltage Processors
+> to increase or decrease the voltage.
+> This patch adds smartreflex class 3 driver. This driver hooks
+> up with the generic smartreflex driver smartreflex.c to abstract
+> out class specific implementations out of the generic driver.
+>
+> Signed-off-by: Thara Gopinath <thara@ti.com>
 
-Dont have a board-sholes-hsmm.c in l-o[1]... :( so not sure which kernel 
-you are talking about here.
-mainline does it this way:
-board files report using omap2_hsmmc_info[2] to hsmmc.c using 
-omap2_hsmmc_init[3] - hsmmc.c converts them to required datastructures 
-that omap_hsmmc.c uses..
+Some minor comments below...
 
-[1] 
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=tree;f=arch/arm/mach-omap2;h=abedb1903a0d81f33d7614480da0f7a0c78f8f2f;hb=HEAD
-[2] 
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/hsmmc.h;h=281e97287adf988493efd1ca94b19ab8588b7aaf;hb=HEAD#l11
-[3] 
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/board-omap3beagle.c;h=73689c082b26d0ef38233c0adefc1d0b9d14e8d0;hb=HEAD#l287
--- 
-Regards,
-Nishanth Menon
+> ---
+>  arch/arm/mach-omap2/Makefile             |    1 +
+>  arch/arm/mach-omap2/smartreflex-class3.c |   61 ++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/smartreflex-class3.h |   23 +++++++++++
+>  arch/arm/plat-omap/Kconfig               |    9 ++++
+>  4 files changed, 94 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
+>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index abc377a..4f6139c 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -57,6 +57,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o voltage.o \
+>  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
+>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+>  obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+> +obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+>  
+>  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+>  AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+> new file mode 100644
+> index 0000000..f1ade08
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
+> @@ -0,0 +1,61 @@
+> +/*
+> + * Smart reflex Class 3 specific implementations
+> + *
+> + * Author: Thara Gopinath       <thara@ti.com>
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <plat/smartreflex.h>
+> +
+> +#include "smartreflex-class3.h"
+> +
+> +static int sr_class3_enable(struct voltagedomain *voltdm)
+> +{
+> +	unsigned long volt = 0;
+
+minor: '= 0' assignment not needed as it's immediately assigned in the
+next line.
+
+> +	volt = omap_voltage_get_nom_volt(voltdm);
+> +	if (!volt) {
+> +		pr_warning("%s: Curr voltage unknown. Cannot enable sr_%s\n",
+> +				__func__, voltdm->name);
+> +		return -ENODATA;
+> +	}
+> +
+> +	omap_vp_enable(voltdm);
+> +	return sr_enable(voltdm, volt);
+> +}
+> +
+> +static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
+> +{
+> +	omap_vp_disable(voltdm);
+> +	sr_disable(voltdm);
+> +	if (is_volt_reset)
+> +		omap_voltage_reset(voltdm);
+> +
+> +	return 0;
+> +}
+> +
+> +static int sr_class3_configure(struct voltagedomain *voltdm)
+> +{
+> +	return sr_configure_errgen(voltdm);
+> +}
+> +
+> +/* SR class3 structure */
+> +static struct omap_smartreflex_class_data class3_data = {
+> +	.enable = sr_class3_enable,
+> +	.disable = sr_class3_disable,
+> +	.configure = sr_class3_configure,
+> +	.class_type = SR_CLASS3,
+> +};
+> +
+> +/* Smartreflex CLASS3 init API to be called from board file */
+
+s/CLASS3/Class 3/
+
+> +int __init sr_class3_init(void)
+> +{
+> +	pr_info("SmartReflex CLASS3 initialized\n");
+
+ditto
+
+> +	return sr_register_class(&class3_data);
+> +}
+> diff --git a/arch/arm/mach-omap2/smartreflex-class3.h b/arch/arm/mach-omap2/smartreflex-class3.h
+> new file mode 100644
+> index 0000000..4d86037
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/smartreflex-class3.h
+> @@ -0,0 +1,23 @@
+> +/*
+> + * Smartreflex Class 3 Routines
+> + *
+> + * Author: Thara Gopinath      <thara@ti.com>
+> + *
+> + * Copyright (C) 2010 Texas Instruments, Inc.
+> + * Thara Gopinath <thara@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
+> +#define __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
+> +
+> +#ifdef CONFIG_OMAP_SMARTREFLEX_CLASS3
+> +int sr_class3_init(void);
+> +#else
+> +static int sr_class3_init(void) { return 0; }
+> +#endif
+> +
+> +#endif
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index 8056349..af7acc9 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -67,6 +67,15 @@ config OMAP_SMARTREFLEX_TESTING
+>  
+>  	  WARNING: Enabling this option may cause your device to hang!
+>  
+> +config OMAP_SMARTREFLEX_CLASS3
+> +	bool "Class 3 mode of Smartreflex Implementation"
+> +	depends on OMAP_SMARTREFLEX && TWL4030_CORE
+> +	help
+> +	  Say Y to enable Class 3 implementation of Smartreflex
+> +
+> +	  Class 3 implementation of Smartreflex employs continuous hardware
+> +	  voltage caliberation.
+
+calibration
+
+> +
+>  config OMAP_RESET_CLOCKS
+>  	bool "Reset unused clocks during boot"
+>  	depends on ARCH_OMAP
+
+Kevin
