@@ -1,138 +1,60 @@
-From: John Garland <johnnyg@cse.unsw.edu.au>
-Subject: DSP fails to Initialise due to memory map
-Date: Thu, 14 Oct 2010 15:49:54 +1100
-Message-ID: <AANLkTikFVXop9vM-RbVievoSpmWPCTKNgxx9hh836XHJ@mail.gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
+Date: Thu, 14 Oct 2010 09:45:25 +0300 (EEST)
+Message-ID: <20101014.094525.71092814.Hiroshi.DOYU@nokia.com>
+References: <1287023257-30951-2-git-send-email-x0095840@ti.com>
+	<1287023257-30951-3-git-send-email-x0095840@ti.com>
+	<1287023257-30951-4-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001636416ae31c218f04928c7277
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from note.orchestra.cse.unsw.EDU.AU ([129.94.242.24]:47511 "EHLO
-	note.orchestra.cse.unsw.EDU.AU" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752399Ab0JNEuW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Oct 2010 00:50:22 -0400
-Received: From
-	mail-wy0-f174.google.com ([74.125.82.174]) (auth-user johnnyg) (cse-authentic-sender johnnyg)
-	(for <linux-omap@vger.kernel.org>) By note With Smtp ;
-	Thu, 14 Oct 2010 15:50:19 +1100
-Received: by wyb28 with SMTP id 28so1756665wyb.19
-        for <linux-omap@vger.kernel.org>; Wed, 13 Oct 2010 21:50:14 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.233]:48352 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754048Ab0JNGqZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 Oct 2010 02:46:25 -0400
+In-Reply-To: <1287023257-30951-4-git-send-email-x0095840@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: x0095840@ti.com
+Cc: felipe.contreras@nokia.com, tony@atomide.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org
 
---001636416ae31c218f04928c7277
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Fernando,
 
-Hi,
+From: ext Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCH 3/4] iovmm: replace __iounmap with omap_iounmap
+Date: Thu, 14 Oct 2010 04:27:36 +0200
 
-using both dspbridge (5b4ec5f459a64b70a01d00a2dae9d79dc2a93c0c) and pm
-(e0bcaca00bb6cc2d79c8c3b765f969e00a3d313b) branches,
-I get a memory map failure when trying to load the dspbridge module
-(I've attached the traceback).
+> Omap platform is omap_iounmap function.
+> 
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> ---
+>  arch/arm/plat-omap/iovmm.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 93a34d9..5489ca9 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -821,7 +821,7 @@ void iommu_kunmap(struct iommu *obj, u32 da)
+>  	struct sg_table *sgt;
+>  	typedef void (*func_t)(const void *);
+>  
+> -	sgt = unmap_vm_area(obj, da, (func_t)__iounmap,
 
-Has anyone else experienced this?
-Is there a series of patches I need to apply?
++	sgt = unmap_vm_area(obj, da, (func_t)iounmap,
 
-Cheers,
-John.
+Woundn't the above be enough?
 
---001636416ae31c218f04928c7277
-Content-Type: application/octet-stream; name="dsp_init_fail.log"
-Content-Disposition: attachment; filename="dsp_init_fail.log"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gf9590l20
+Eventually this "iounmap()" calls "__arch_iounmap()" ->
+"omap_iounmap()". I don't see any special reason to call
+"omap_iounmap()" here for now.
 
-YnVzdGVyQGJlYWdsZTE6fiQgc3VkbyBtb2Rwcm9iZSBicmlkZ2Vkcml2ZXIgYmFzZV9pbWc9L2xp
-Yi9kc3AvYmFzZWltYWdlLmRvZlsgIDEyMC42OTExOTJdIGJyaWRnZWRyaXZlcjogbW9kdWxlIGlz
-IGZyb20gdGhlIHN0YWdpbmcgZGlyZWN0b3J5LCB0aGUgcXVhbGl0eSBpcyB1bmtub3duLCB5b3Ug
-aGF2ZSBiZWVuIHdhcm5lZC4KWyAgMTIwLjc1MzMyNl0gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBd
-LS0tLS0tLS0tLS0tClsgIDEyMC43NTgyMDldIFdBUk5JTkc6IGF0IGFyY2gvYXJtL21tL2lvcmVt
-YXAuYzoyMDcgX19hcm1faW9yZW1hcF9wZm5fY2FsbGVyKzB4NDgvMHhmYygpClsgIDEyMC43NjY2
-NjJdIE1vZHVsZXMgbGlua2VkIGluOiBicmlkZ2Vkcml2ZXIoQyspIGlvdm1tIGlvbW11MiBtYWls
-Ym94X21hY2ggbWFpbGJveCBzbmRfc29jX3R3bDQwMzAgc25kX3NvY19jb3JlIHNuZF9wY21fb3Nz
-IHNuZF9taXhlcl9vc3Mgc25kX3BjbSBzbmRfdGltZXIgc25kIHNvdW5kY29yZSBzbmRfcGFnZV9h
-bGxvYyBpb21tdQpbICAxMjAuNzg0Njk4XSBbPGMwMDUzNGVjPl0gKHVud2luZF9iYWNrdHJhY2Ur
-MHgwLzB4ZjApIGZyb20gWzxjMDA4YTFlOD5dICh3YXJuX3Nsb3dwYXRoX2NvbW1vbisweDRjLzB4
-NjQpClsgIDEyMC43OTQ2NzddIFs8YzAwOGExZTg+XSAod2Fybl9zbG93cGF0aF9jb21tb24rMHg0
-Yy8weDY0KSBmcm9tIFs8YzAwOGEyMTg+XSAod2Fybl9zbG93cGF0aF9udWxsKzB4MTgvMHgxYykK
-WyAgMTIwLjgwNDg0MF0gWzxjMDA4YTIxOD5dICh3YXJuX3Nsb3dwYXRoX251bGwrMHgxOC8weDFj
-KSBmcm9tIFs8YzAwNTRiYTg+XSAoX19hcm1faW9yZW1hcF9wZm5fY2FsbGVyKzB4NDgvMHhmYykK
-WyAgMTIwLjgxNTM5OV0gWzxjMDA1NGJhOD5dIChfX2FybV9pb3JlbWFwX3Bmbl9jYWxsZXIrMHg0
-OC8weGZjKSBmcm9tIFs8YzAwNTRjYzA+XSAoX19hcm1faW9yZW1hcF9jYWxsZXIrMHg1NC8weDU4
-KQpbICAxMjAuODI2MzU0XSBbPGMwMDU0Y2MwPl0gKF9fYXJtX2lvcmVtYXBfY2FsbGVyKzB4NTQv
-MHg1OCkgZnJvbSBbPGJmMGQwNWMwPl0gKG1lbV9leHRfcGh5c19wb29sX2luaXQrMHgxNC8weDVj
-IFticmlkZ2Vkcml2ZXJdKQpbICAxMjAuODM4NjIzXSBbPGJmMGQwNWMwPl0gKG1lbV9leHRfcGh5
-c19wb29sX2luaXQrMHgxNC8weDVjIFticmlkZ2Vkcml2ZXJdKSBmcm9tIFs8YmYwZGQxMjQ+XSAo
-b21hcDM0X3h4X2JyaWRnZV9wcm9iZSsweDFjYy8weDM1NCBbYnJpZGdlZHJpdmVyXSkKWyAgMTIw
-Ljg1MjM4Nl0gWzxiZjBkZDEyND5dIChvbWFwMzRfeHhfYnJpZGdlX3Byb2JlKzB4MWNjLzB4MzU0
-IFticmlkZ2Vkcml2ZXJdKSBmcm9tIFs8YzAyOGM5MzQ+XSAocGxhdGZvcm1fZHJ2X3Byb2JlKzB4
-MTgvMHgxYykKWyAgMTIwLjg2NDMxOF0gWzxjMDI4YzkzND5dIChwbGF0Zm9ybV9kcnZfcHJvYmUr
-MHgxOC8weDFjKSBmcm9tIFs8YzAyOGI5MzQ+XSAoZHJpdmVyX3Byb2JlX2RldmljZSsweGM4LzB4
-MTg0KQpbICAxMjAuODc0NDgxXSBbPGMwMjhiOTM0Pl0gKGRyaXZlcl9wcm9iZV9kZXZpY2UrMHhj
-OC8weDE4NCkgZnJvbSBbPGMwMjhiYTU4Pl0gKF9fZHJpdmVyX2F0dGFjaCsweDY4LzB4OGMpClsg
-IDEyMC44ODQzOTldIFs8YzAyOGJhNTg+XSAoX19kcml2ZXJfYXR0YWNoKzB4NjgvMHg4YykgZnJv
-bSBbPGMwMjhiMGU0Pl0gKGJ1c19mb3JfZWFjaF9kZXYrMHg0OC8weDg0KQpbICAxMjAuODkzOTUx
-XSBbPGMwMjhiMGU0Pl0gKGJ1c19mb3JfZWFjaF9kZXYrMHg0OC8weDg0KSBmcm9tIFs8YzAyOGFh
-MDg+XSAoYnVzX2FkZF9kcml2ZXIrMHgxMDAvMHgyODgpClsgIDEyMC45MDM1NjRdIFs8YzAyOGFh
-MDg+XSAoYnVzX2FkZF9kcml2ZXIrMHgxMDAvMHgyODgpIGZyb20gWzxjMDI4YmQ0Yz5dIChkcml2
-ZXJfcmVnaXN0ZXIrMHhhOC8weDEzNCkKWyAgMTIwLjkxMzIwOF0gWzxjMDI4YmQ0Yz5dIChkcml2
-ZXJfcmVnaXN0ZXIrMHhhOC8weDEzNCkgZnJvbSBbPGMwMDRjNTcwPl0gKGRvX29uZV9pbml0Y2Fs
-bCsweGJjLzB4MTk0KQpbICAxMjAuOTIyODUxXSBbPGMwMDRjNTcwPl0gKGRvX29uZV9pbml0Y2Fs
-bCsweGJjLzB4MTk0KSBmcm9tIFs8YzAwYzYxYjg+XSAoc3lzX2luaXRfbW9kdWxlKzB4OTAvMHgx
-YWMpClsgIDEyMC45MzI0OTVdIFs8YzAwYzYxYjg+XSAoc3lzX2luaXRfbW9kdWxlKzB4OTAvMHgx
-YWMpIGZyb20gWzxjMDA0Y2FjMD5dIChyZXRfZmFzdF9zeXNjYWxsKzB4MC8weDNjKQpbICAxMjAu
-OTQyMDE2XSAtLS1bIGVuZCB0cmFjZSA2YzViODQ4ZjAyN2QwZjcwIF0tLS0KWyAgMTIwLjk0Njg2
-OF0gbWVtX2V4dF9waHlzX3Bvb2xfaW5pdDogZXh0ZXJuYWwgcGh5c2ljYWwgbWVtb3J5IG1hcCBm
-YWlsZWQKWyAgMTIwLjk1Mzk3OV0gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0tLS0tLS0t
-ClsgIDEyMC45NTg4OTJdIFdBUk5JTkc6IGF0IG1tL3BhZ2VfYWxsb2MuYzoxOTg0IF9fYWxsb2Nf
-cGFnZXNfbm9kZW1hc2srMHgxN2MvMHg1ZDgoKQpbICAxMjAuOTY2Nzk2XSBNb2R1bGVzIGxpbmtl
-ZCBpbjogYnJpZGdlZHJpdmVyKEMrKSBpb3ZtbSBpb21tdTIgbWFpbGJveF9tYWNoIG1haWxib3gg
-c25kX3NvY190d2w0MDMwIHNuZF9zb2NfY29yZSBzbmRfcGNtX29zcyBzbmRfbWl4ZXJfb3NzIHNu
-ZF9wY20gc25kX3RpbWVyIHNuZCBzb3VuZGNvcmUgc25kX3BhZ2VfYWxsb2MgaW9tbXUKWyAgMTIw
-Ljk4NDc0MV0gWzxjMDA1MzRlYz5dICh1bndpbmRfYmFja3RyYWNlKzB4MC8weGYwKSBmcm9tIFs8
-YzAwOGExZTg+XSAod2Fybl9zbG93cGF0aF9jb21tb24rMHg0Yy8weDY0KQpbICAxMjAuOTk0NjU5
-XSBbPGMwMDhhMWU4Pl0gKHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4NGMvMHg2NCkgZnJvbSBbPGMw
-MDhhMjE4Pl0gKHdhcm5fc2xvd3BhdGhfbnVsbCsweDE4LzB4MWMpClsgIDEyMS4wMDQ4MjFdIFs8
-YzAwOGEyMTg+XSAod2Fybl9zbG93cGF0aF9udWxsKzB4MTgvMHgxYykgZnJvbSBbPGMwMGYyOWQw
-Pl0gKF9fYWxsb2NfcGFnZXNfbm9kZW1hc2srMHgxN2MvMHg1ZDgpClsgIDEyMS4wMTUzODBdIFs8
-YzAwZjI5ZDA+XSAoX19hbGxvY19wYWdlc19ub2RlbWFzaysweDE3Yy8weDVkOCkgZnJvbSBbPGMw
-MDUzZTQ0Pl0gKF9fZG1hX2FsbG9jKzB4YjgvMHgyZDgpClsgIDEyMS4wMjUzOTBdIFs8YzAwNTNl
-NDQ+XSAoX19kbWFfYWxsb2MrMHhiOC8weDJkOCkgZnJvbSBbPGMwMDU0MGRjPl0gKGRtYV9hbGxv
-Y19jb2hlcmVudCsweDU0LzB4NjApClsgIDEyMS4wMzQ5NzNdIFs8YzAwNTQwZGM+XSAoZG1hX2Fs
-bG9jX2NvaGVyZW50KzB4NTQvMHg2MCkgZnJvbSBbPGJmMGQwNTYwPl0gKG1lbV9hbGxvY19waHlz
-X21lbSsweDk0LzB4YjQgW2JyaWRnZWRyaXZlcl0pClsgIDEyMS4wNDY1NjldIFs8YmYwZDA1NjA+
-XSAobWVtX2FsbG9jX3BoeXNfbWVtKzB4OTQvMHhiNCBbYnJpZGdlZHJpdmVyXSkgZnJvbSBbPGJm
-MGQwOTkwPl0gKGRydl9yZXF1ZXN0X2JyaWRnZV9yZXNfZHNwKzB4MTc0LzB4MjA0IFticmlkZ2Vk
-cml2ZXJdKQpbICAxMjEuMDYwNDI0XSBbPGJmMGQwOTkwPl0gKGRydl9yZXF1ZXN0X2JyaWRnZV9y
-ZXNfZHNwKzB4MTc0LzB4MjA0IFticmlkZ2Vkcml2ZXJdKSBmcm9tIFs8YmYwYzg5N2M+XSAoZGV2
-X2NyZWF0ZV9kZXZpY2UrMHgzNC8weDZiMCBbYnJpZGdlZHJpdmVyXSkKWyAgMTIxLjA3NDI3OV0g
-WzxiZjBjODk3Yz5dIChkZXZfY3JlYXRlX2RldmljZSsweDM0LzB4NmIwIFticmlkZ2Vkcml2ZXJd
-KSBmcm9tIFs8YmYwYzkwNDg+XSAoZGV2X3N0YXJ0X2RldmljZSsweDUwLzB4ZTQgW2JyaWRnZWRy
-aXZlcl0pClsgIDEyMS4wODcwMzZdIFs8YmYwYzkwNDg+XSAoZGV2X3N0YXJ0X2RldmljZSsweDUw
-LzB4ZTQgW2JyaWRnZWRyaXZlcl0pIGZyb20gWzxiZjBkNzZlYz5dIChkc3BfaW5pdCsweDc4LzB4
-ZTQgW2JyaWRnZWRyaXZlcl0pClsgIDEyMS4wOTg5MzddIFs8YmYwZDc2ZWM+XSAoZHNwX2luaXQr
-MHg3OC8weGU0IFticmlkZ2Vkcml2ZXJdKSBmcm9tIFs8YmYwZGQxMmM+XSAob21hcDM0X3h4X2Jy
-aWRnZV9wcm9iZSsweDFkNC8weDM1NCBbYnJpZGdlZHJpdmVyXSkKWyAgMTIxLjExMTQxOV0gWzxi
-ZjBkZDEyYz5dIChvbWFwMzRfeHhfYnJpZGdlX3Byb2JlKzB4MWQ0LzB4MzU0IFticmlkZ2Vkcml2
-ZXJdKSBmcm9tIFs8YzAyOGM5MzQ+XSAocGxhdGZvcm1fZHJ2X3Byb2JlKzB4MTgvMHgxYykKWyAg
-MTIxLjEyMzMyMV0gWzxjMDI4YzkzND5dIChwbGF0Zm9ybV9kcnZfcHJvYmUrMHgxOC8weDFjKSBm
-cm9tIFs8YzAyOGI5MzQ+XSAoZHJpdmVyX3Byb2JlX2RldmljZSsweGM4LzB4MTg0KQpbICAxMjEu
-MTMzNDgzXSBbPGMwMjhiOTM0Pl0gKGRyaXZlcl9wcm9iZV9kZXZpY2UrMHhjOC8weDE4NCkgZnJv
-bSBbPGMwMjhiYTU4Pl0gKF9fZHJpdmVyX2F0dGFjaCsweDY4LzB4OGMpClsgIDEyMS4xNDM0MDJd
-IFs8YzAyOGJhNTg+XSAoX19kcml2ZXJfYXR0YWNoKzB4NjgvMHg4YykgZnJvbSBbPGMwMjhiMGU0
-Pl0gKGJ1c19mb3JfZWFjaF9kZXYrMHg0OC8weDg0KQpbICAxMjEuMTUyOTU0XSBbPGMwMjhiMGU0
-Pl0gKGJ1c19mb3JfZWFjaF9kZXYrMHg0OC8weDg0KSBmcm9tIFs8YzAyOGFhMDg+XSAoYnVzX2Fk
-ZF9kcml2ZXIrMHgxMDAvMHgyODgpClsgIDEyMS4xNjI1NjddIFs8YzAyOGFhMDg+XSAoYnVzX2Fk
-ZF9kcml2ZXIrMHgxMDAvMHgyODgpIGZyb20gWzxjMDI4YmQ0Yz5dIChkcml2ZXJfcmVnaXN0ZXIr
-MHhhOC8weDEzNCkKWyAgMTIxLjE3MjIxMF0gWzxjMDI4YmQ0Yz5dIChkcml2ZXJfcmVnaXN0ZXIr
-MHhhOC8weDEzNCkgZnJvbSBbPGMwMDRjNTcwPl0gKGRvX29uZV9pbml0Y2FsbCsweGJjLzB4MTk0
-KQpbICAxMjEuMTgxODU0XSBbPGMwMDRjNTcwPl0gKGRvX29uZV9pbml0Y2FsbCsweGJjLzB4MTk0
-KSBmcm9tIFs8YzAwYzYxYjg+XSAoc3lzX2luaXRfbW9kdWxlKzB4OTAvMHgxYWMpClsgIDEyMS4x
-OTE0OTddIFs8YzAwYzYxYjg+XSAoc3lzX2luaXRfbW9kdWxlKzB4OTAvMHgxYWMpIGZyb20gWzxj
-MDA0Y2FjMD5dIChyZXRfZmFzdF9zeXNjYWxsKzB4MC8weDNjKQpbICAxMjEuMjAxMDE5XSAtLS1b
-IGVuZCB0cmFjZSA2YzViODQ4ZjAyN2QwZjcxIF0tLS0KWyAgMTIxLjIwNTkwMl0gc2htIHJlc2Vy
-dmF0aW9uIEZhaWxlZApbICAxMjEuMjA5NDcyXSBkZXZfcmVtb3ZlX2RldmljZTogRmFpbGVkLCBz
-dGF0dXMgMHhmZmZmZmZmMgpbICAxMjEuMjE1MDg3XSBEU1AgQnJpZGdlIGRyaXZlciBpbml0aWFs
-aXphdGlvbiBmYWlsZWQKWyAgMTIxLjIyMDI3NV0gb21hcC1kc3A6IHByb2JlIG9mIG9tYXAtZHNw
-IGZhaWxlZCB3aXRoIGVycm9yIC0xMgo=
---001636416ae31c218f04928c7277--
+
+> +	sgt = unmap_vm_area(obj, da, (func_t)omap_iounmap,
+>  			    IOVMF_LINEAR | IOVMF_MMIO);
+>  	if (!sgt)
+>  		dev_dbg(obj->dev, "%s: No sgt\n", __func__);
+> -- 
+> 1.6.3.3
+> 
