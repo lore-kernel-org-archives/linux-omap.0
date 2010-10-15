@@ -1,34 +1,58 @@
-From: srinath@mistralsolutions.com
-Subject: [Added craneboard support 0/1]
-Date: Fri, 15 Oct 2010 15:57:11 +0530
-Message-ID: <1287138432-23880-1-git-send-email-srinath@mistralsolutions.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH 2/2] omap: rx51: mark reserved memory earlier
+Date: Fri, 15 Oct 2010 15:46:24 +0300
+Message-ID: <1287146784-5517-2-git-send-email-felipe.contreras@gmail.com>
+References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:64376 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751608Ab0JOKqq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Oct 2010 06:46:46 -0400
-Received: by iwn35 with SMTP id 35so777221iwn.19
-        for <linux-omap@vger.kernel.org>; Fri, 15 Oct 2010 03:46:45 -0700 (PDT)
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43723 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754301Ab0JOMqx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Oct 2010 08:46:53 -0400
+Received: by bwz15 with SMTP id 15so880148bwz.19
+        for <linux-omap@vger.kernel.org>; Fri, 15 Oct 2010 05:46:44 -0700 (PDT)
+In-Reply-To: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, jdk@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
+To: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, mike@compulab.co.il, Russell King <linux@arm.linux.org.uk>, Felipe Contreras <felipe.contreras@gmail.com>
 
-From: Srinath <srinath@mistralsolutions.com>
+So that omap_vram_set_sdram_vram() is called before
+omap_vram_reserve_sdram_memblock().
 
-This series adds support for the AM3517/05 based craneboard. We are a team of
-engineers working at Mistral Solutions and will be sending patches to support 
-this board. Request you to review and accept these patches.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ arch/arm/mach-omap2/board-rx51.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-Added board file for AM3517/05 craneboard
-
-Srinath (1):
-  Added-craneboard-basic-support
-
- arch/arm/configs/omap2plus_defconfig    |    1 +
- arch/arm/mach-omap2/Kconfig             |    6 +++
- arch/arm/mach-omap2/Makefile            |    2 +
- arch/arm/mach-omap2/board-am3517crane.c |   68 +++++++++++++++++++++++++++++++
- 4 files changed, 77 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index a58e8cb..861079b 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -144,17 +144,22 @@ static void __init rx51_init(void)
+ static void __init rx51_map_io(void)
+ {
+ 	omap2_set_globals_3xxx();
+-	rx51_video_mem_init();
+ 	omap34xx_map_common_io();
+ }
+ 
++static void __init rx51_reserve(void)
++{
++	rx51_video_mem_init();
++	omap_reserve();
++}
++
+ MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
+ 	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
+ 	.phys_io	= 0x48000000,
+ 	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= rx51_map_io,
+-	.reserve	= omap_reserve,
++	.reserve	= rx51_reserve,
+ 	.init_irq	= rx51_init_irq,
+ 	.init_machine	= rx51_init,
+ 	.timer		= &omap_timer,
+-- 
+1.7.3.1.2.g7fe2b
 
