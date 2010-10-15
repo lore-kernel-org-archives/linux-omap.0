@@ -1,12 +1,12 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 7/7] omap:clocks44x-add dummy clock for mailbox
-Date: Thu, 14 Oct 2010 21:13:28 -0500
-Message-ID: <1287108808-32119-8-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH 3/7] omap:mailbox-fix checkpatch warnings
+Date: Thu, 14 Oct 2010 21:13:24 -0500
+Message-ID: <1287108808-32119-4-git-send-email-h-kanigeri2@ti.com>
 References: <1287108808-32119-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36948 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47963 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753276Ab0JOCNV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755636Ab0JOCNV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 14 Oct 2010 22:13:21 -0400
 In-Reply-To: <1287108808-32119-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,27 +14,42 @@ List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-In omap4, there is no explicit configuration register to enable mailbox clocks.
-Defining dummy clock for mailbox clock module to keep the mailbox driver
-backward compatible with previous omaps.
+Fix the checkpatch warnings observed in mailbox module
 
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- arch/arm/mach-omap2/clock44xx_data.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/mailbox.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
-index e10db7a..421ae7f 100644
---- a/arch/arm/mach-omap2/clock44xx_data.c
-+++ b/arch/arm/mach-omap2/clock44xx_data.c
-@@ -2687,6 +2687,7 @@ static struct omap_clk omap44xx_clks[] = {
- 	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
- 	CLK(NULL,	"uart4_ick",			&dummy_ck,	CK_443X),
- 	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
-+	CLK(NULL,	"mailboxes_ick",		&dummy_ck,	CK_443X),
- };
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 9ce3570..ed960c1 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -279,11 +279,11 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
  
- int __init omap4xxx_clk_init(void)
+ 	return 0;
+ 
+- fail_alloc_rxq:
++fail_alloc_rxq:
+ 	mbox_queue_free(mbox->txq);
+- fail_alloc_txq:
++fail_alloc_txq:
+ 	free_irq(mbox->irq, mbox);
+- fail_request_irq:
++fail_request_irq:
+ 	if (mbox->ops->shutdown)
+ 		mbox->ops->shutdown(mbox);
+ 
+@@ -394,7 +394,8 @@ static int __init omap_mbox_init(void)
+ 
+ 	/* kfifo size sanity check: alignment and minimal size */
+ 	mbox_kfifo_size = ALIGN(mbox_kfifo_size, sizeof(mbox_msg_t));
+-	mbox_kfifo_size = max_t(unsigned int, mbox_kfifo_size, sizeof(mbox_msg_t));
++	mbox_kfifo_size = max_t(unsigned int, mbox_kfifo_size,
++						sizeof(mbox_msg_t));
+ 
+ 	return 0;
+ }
 -- 
 1.7.0
 
