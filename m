@@ -1,143 +1,64 @@
 From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
 Subject: RE: [PATCHv3 00/11] staging tidspbridge: iommu migration
-Date: Fri, 15 Oct 2010 11:21:06 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F48817EF@dlee06.ent.ti.com>
+Date: Fri, 15 Oct 2010 11:53:17 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F4881816@dlee06.ent.ti.com>
 References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
 	<AANLkTimoTmhAw11jJihiuyByzKZ9KTFHvx6iw8oeLCGg@mail.gmail.com>
 	<496565EC904933469F292DDA3F1663E602F47B2BB1@dlee06.ent.ti.com>
 	<AANLkTim6XRgnefA0vmRNeW=TONhxz68WYAjuA96LqWOj@mail.gmail.com>
 	<496565EC904933469F292DDA3F1663E602F47B3002@dlee06.ent.ti.com>
- <AANLkTik3hhWy+tRxThtrbwNXTssV7nf9+_LGn5Ct3iet@mail.gmail.com>
+	<AANLkTik3hhWy+tRxThtrbwNXTssV7nf9+_LGn5Ct3iet@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F48817EF@dlee06.ent.ti.com>
+ <AANLkTi=juk+824k1R8mJrDostKhRz+nRNqj9E-rNYWrv@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34858 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56996 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754545Ab0JOQVM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Oct 2010 12:21:12 -0400
-In-Reply-To: <AANLkTik3hhWy+tRxThtrbwNXTssV7nf9+_LGn5Ct3iet@mail.gmail.com>
+	id S1755111Ab0JOQx2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Oct 2010 12:53:28 -0400
+In-Reply-To: <AANLkTi=juk+824k1R8mJrDostKhRz+nRNqj9E-rNYWrv@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
 Cc: "gregkh@suse.de" <gregkh@suse.de>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-=20
+ 
 
 > -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]=20
-> Sent: Thursday, October 14, 2010 7:27 AM
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
+> Sent: Friday, October 15, 2010 11:28 AM
 > To: Guzman Lugo, Fernando
-> Cc: gregkh@suse.de; felipe.contreras@nokia.com;=20
-> ameya.palande@nokia.com; Menon, Nishanth;=20
-> Hiroshi.DOYU@nokia.com; ohad@wizery.com;=20
-> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com;=20
+> Cc: gregkh@suse.de; felipe.contreras@nokia.com; 
+> ameya.palande@nokia.com; Menon, Nishanth; 
+> Hiroshi.DOYU@nokia.com; ohad@wizery.com; 
+> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
 > linux-omap@vger.kernel.org
 > Subject: Re: [PATCHv3 00/11] staging tidspbridge: iommu migration
->=20
-> On Tue, Oct 12, 2010 at 5:39 PM, Guzman Lugo, Fernando=20
+> 
+> On Fri, Oct 15, 2010 at 7:21 PM, Guzman Lugo, Fernando 
 > <fernando.lugo@ti.com> wrote:
-> >> On Mon, Oct 11, 2010 at 6:03 PM, Guzman Lugo, Fernando=20
-> >> <fernando.lugo@ti.com> wrote:
-> >> >> On Tue, Oct 5, 2010 at 11:35 PM, Fernando Guzman Lugo=20
-> >> >> <x0095840@ti.com> wrote:
-> >> >> > This set of patches remove the dspbridge custom mmu
-> >> >> implementation and
-> >> >> > use iommu module instead.
-> >> >>
-> >> >> I have tried this, it works for simple tests, but not real
-> >> use-cases.
-> >> >> I applied all your iommu patches. How did you test this?
-> >> >
-> >> > Have you applied:
-> >> >
-> >> > - "scatterlist: define SG chain for arm architecture"
-> >> > - "iovmm: replace __iounmap with omap_iounmap"
-> >> > - "iovmm: add superpages support to fixed da address"
-> >> > - "iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF"
-> >> > - "iovmm: no gap checking for fixed address"
-> >>
-> >> Yes.
-> >>
-> >> > Also make sure your baseline have this patch:
-> >> >
-> >> > - "omap:iommu-load cam register before flushing the entry"
-> >>
-> >> Huh? That's not even in v2.6.36-rc7, in which baseline is this=20
-> >> supposed to be in? Anyway, I'll try adding that.
+> >> Well, in my experience it's the other way around, the stress 
+> >> test-cases don't catch the errors that happen on real use-case 
+> >> scenarios, no matter how extensive they are. This is a 
+> good example.
 > >
-> > That's is in latest Hiroshi's tree and it is really needed,=20
-> Otherwise=20
-> > You will have wrong traslations which can cause unexpected behavior=
-=2E
->=20
-> Now I applied that, still fails.
->=20
-> >> > What kind of error are you getting?
-> >>
-> >> Node allocation failing IIRC.
-> >
-> > Is it falling to map the Heap??
-> > I mean you see this trace?
-> >
-> > =A0 =A0 =A0 =A0if (status)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: Failed to map memory for=
- Heap: 0x%x\n",
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, status);
-> >
-> > Otherwise, I don't see how that fail is related with iommu changes.
->=20
-> Nope.
->=20
-> >> > I don't have a complete framework to test MM testcases at
-> >> this moment
-> >>
-> >> See:
-> >> http://felipec.wordpress.com/2010/10/08/my-arm-development-notes/
-> >>
-> >> I even prepared a tarball so you just need to extract it on your=20
-> >> device. It's not difficult to test this with GStreamer,=20
-> and I don't=20
-> >> see how you can be confident that they indeed work without testing=
-=20
-> >> some real use-cases. Anyway, I'll try that missing patch.
-> >
-> > Most of time real use-cases are not so stressing like=20
-> testcases We can=20
-> > make to test under real stress in order to find out corner cases.
-> > However when I test it was pretty stable and just few erros because=
-=20
-> > staging Does not have latest mailbox patches. Also I test=20
-> in a .35 version of staging.
-> > So now I am using a branch with all new patches and I will=20
-> recheck and=20
-> > test Again any possible issue. Also I will look at your=20
-> gstreamer fail too.
->=20
-> Well, in my experience it's the other way around, the stress=20
-> test-cases don't catch the errors that happen on real=20
-> use-case scenarios, no matter how extensive they are. This is=20
-> a good example.
+> > I am facing some unstability with the latest bridge merge. 
+> I am looing 
+> > into That once it is stable I wil check you testcase too to confirm 
+> > everything is Working fine.
+> 
+> If you want I can provide my working branch on top of .36-rc8 
+> with next-staging merged. If I revert your patches, it works fine.
 
-I am facing some unstability with the latest bridge merge. I am looing =
-into
-That once it is stable I wil check you testcase too to confirm everythi=
-ng is=20
-Working fine.
+That could be interested. Can you send me the link?
 
+Regards,
+Fernando.
 
-Thanks,
-=46ernando.
-
-
->=20
-> Cheers.
->=20
+> 
 > --
 > Felipe Contreras
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
