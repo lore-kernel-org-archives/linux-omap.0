@@ -1,60 +1,40 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 4/7] omap:mailbox-send message in process context
-Date: Thu, 14 Oct 2010 20:13:19 -0500
-Message-ID: <1287105202-31861-5-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH 7/7] omap:clocks44x-add dummy clock for mailbox
+Date: Thu, 14 Oct 2010 20:13:22 -0500
+Message-ID: <1287105202-31861-8-git-send-email-h-kanigeri2@ti.com>
 References: <1287105202-31861-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55268 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55271 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755735Ab0JOBNh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 Oct 2010 21:13:37 -0400
+	id S1755731Ab0JOBNj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 14 Oct 2010 21:13:39 -0400
 In-Reply-To: <1287105202-31861-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Linux ARM <linux-arm-kernel@lists.arm.linux.org.uk>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-Schedule the Tasklet to send only when mailbox fifo is full, else
-send the message in the Process context. This would avoid
-needless scheduling of Tasklet for every message transfer
+In omap4, there is no explicit configuration register to enable mailbox clocks.
+Defining dummy clock for mailbox clock module to keep the mailbox driver
+backward compatible with previous omaps.
 
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- arch/arm/plat-omap/mailbox.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clock44xx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index ed960c1..a4170c7 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -92,20 +92,25 @@ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
- 	struct omap_mbox_queue *mq = mbox->txq;
- 	int ret = 0, len;
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index e10db7a..421ae7f 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -2687,6 +2687,7 @@ static struct omap_clk omap44xx_clks[] = {
+ 	CLK(NULL,	"uart3_ick",			&dummy_ck,	CK_443X),
+ 	CLK(NULL,	"uart4_ick",			&dummy_ck,	CK_443X),
+ 	CLK("omap_wdt",	"ick",				&dummy_ck,	CK_443X),
++	CLK(NULL,	"mailboxes_ick",		&dummy_ck,	CK_443X),
+ };
  
--	spin_lock(&mq->lock);
-+	spin_lock_bh(&mq->lock);
- 
- 	if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
- 		ret = -ENOMEM;
- 		goto out;
- 	}
- 
-+	if (!__mbox_poll_for_space(mbox)) {
-+		mbox_fifo_write(mbox, msg);
-+		goto out;
-+	}
-+
- 	len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
- 	WARN_ON(len != sizeof(msg));
- 
- 	tasklet_schedule(&mbox->txq->tasklet);
- 
- out:
--	spin_unlock(&mq->lock);
-+	spin_unlock_bh(&mq->lock);
- 	return ret;
- }
- EXPORT_SYMBOL(omap_mbox_msg_send);
+ int __init omap4xxx_clk_init(void)
 -- 
 1.7.0
 
