@@ -1,56 +1,60 @@
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Subject: [PATCH 0/7] omap:mailbox-enhancements and fixes
-Date: Thu, 14 Oct 2010 21:13:21 -0500
-Message-ID: <1287108808-32119-1-git-send-email-h-kanigeri2@ti.com>
+Subject: [PATCH 4/7] omap:mailbox-send message in process context
+Date: Thu, 14 Oct 2010 21:13:25 -0500
+Message-ID: <1287108808-32119-5-git-send-email-h-kanigeri2@ti.com>
+References: <1287108808-32119-1-git-send-email-h-kanigeri2@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36951 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:36953 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755644Ab0JOCNW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755839Ab0JOCNW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Thu, 14 Oct 2010 22:13:22 -0400
+In-Reply-To: <1287108808-32119-1-git-send-email-h-kanigeri2@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>
 Cc: Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Hari Kanigeri <h-kanigeri2@ti.com>
 
-My apologies for spamming linux omap.
-Resending again with the patch set copying correct linux arm mailing list.
-please ignore the previous patchsets.
-[http://www.spinics.net/lists/linux-omap/msg38782.html]
-[http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37214.html]
+Schedule the Tasklet to send only when mailbox fifo is full, else
+send the message in the Process context. This would avoid
+needless scheduling of Tasklet for every message transfer
 
-This patch set includes following mailbox enhancements and fixes.
-        
-- Fix in RX interrupt disable mechanism for OMAP4
-- Fix checkpatch warnings
-- Resolve multiple receiver problem in OMAP4 where there is
-  only one interrupt line shared between Ducati and Tesla.
-- Protect the Mailbox's internal callback function pointer from being
-  set directly by Users. Added option for multiple listeners on a
-  mailbox instance.
-- Send Mailbox message in Process context to avoid the latency
-  involved in scheduling Tasklet for every Mailbox message. Schedule
-  Tasklet only when the mailbox fifo is full
-- There is no explicit mailbox configuration register to enable mailbox
-  clocks. Define a dummy clock for mailbox to avoid addign cpu check for
-  omap4 in mailbox driver.
-- The patch from Fernando was sent to LO, but looks like it
-  didn't get merged, resending the patch after revising and rebasing.
-  https://patchwork.kernel.org/patch/105650/
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+---
+ arch/arm/plat-omap/mailbox.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-Fernando Guzman Lugo (1):
-  mailbox: change full flag per mailbox queue instead of global
-
-Hari Kanigeri (6):
-  omap:mailbox: fix rx interrupt disable in omap4
-  omap:mailbox-fix checkpatch warnings
-  omap:mailbox-send message in process context
-  omap:mailbox-resolve multiple receiver problem
-  omap:mailbox-add notification support for multiple readers
-  omap:clocks44x-add dummy clock for mailbox
-
- arch/arm/mach-omap2/clock44xx_data.c      |    1 +
- arch/arm/mach-omap2/mailbox.c             |    5 +-
- arch/arm/plat-omap/include/plat/mailbox.h |   10 ++-
- arch/arm/plat-omap/mailbox.c              |  148 +++++++++++++++++------------
- 4 files changed, 98 insertions(+), 66 deletions(-)
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index ed960c1..a4170c7 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -92,20 +92,25 @@ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+ 	struct omap_mbox_queue *mq = mbox->txq;
+ 	int ret = 0, len;
+ 
+-	spin_lock(&mq->lock);
++	spin_lock_bh(&mq->lock);
+ 
+ 	if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
+ 		ret = -ENOMEM;
+ 		goto out;
+ 	}
+ 
++	if (!__mbox_poll_for_space(mbox)) {
++		mbox_fifo_write(mbox, msg);
++		goto out;
++	}
++
+ 	len = kfifo_in(&mq->fifo, (unsigned char *)&msg, sizeof(msg));
+ 	WARN_ON(len != sizeof(msg));
+ 
+ 	tasklet_schedule(&mbox->txq->tasklet);
+ 
+ out:
+-	spin_unlock(&mq->lock);
++	spin_unlock_bh(&mq->lock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(omap_mbox_msg_send);
+-- 
+1.7.0
 
