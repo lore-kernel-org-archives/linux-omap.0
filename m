@@ -1,83 +1,153 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] OMAP: hmwod: Update the sysc_cache in case module
- context is lost
-Date: Fri, 15 Oct 2010 11:18:54 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D09A2FE@dbde02.ent.ti.com>
-References: <1287080555-25399-1-git-send-email-rnayak@ti.com>
- <877hhkv2wb.fsf@deeprootsystems.com>
+From: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+Subject: RE: [PATCHv2 1/1] omap: Ptr "isr_reg" tracked as NULL was
+ dereferenced
+Date: Fri, 15 Oct 2010 10:16:18 +0400
+Message-ID: <1287123378.12782.49.camel@ekuznets-lx-nokia>
+References: <cover.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	 <7bb69801f49283c3bde78aa008c15308ac8a5fbf.1286961160.git.EXT-Eugeny.Kuznetsov@nokia.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB030D099AFD@dbde02.ent.ti.com>
+	 <1286970199.12782.28.camel@ekuznets-lx-nokia>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB030D099B87@dbde02.ent.ti.com>
+	 <1286971758.12782.35.camel@ekuznets-lx-nokia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37700 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754577Ab0JOFtD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Oct 2010 01:49:03 -0400
-In-Reply-To: <877hhkv2wb.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:38843 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753232Ab0JOGUp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Oct 2010 02:20:45 -0400
+In-Reply-To: <1286971758.12782.35.camel@ekuznets-lx-nokia>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "tony@atomide.com" <tony@atomide.com>, "ext Varadarajan, Charulatha" <charu@ti.com>
+Cc: linux-omap@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Balbi, Felipe" <balbi@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "tero.kristo@nokia.com" <tero.kristo@nokia.com>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Friday, October 15, 2010 3:44 AM
-> To: Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org; Paul Walmsley; Cousson, Benoit; Shilimkar,
-> Santosh
-> Subject: Re: [PATCH] OMAP: hmwod: Update the sysc_cache in case module
-> context is lost
-> 
-> Rajendra Nayak <rnayak@ti.com> writes:
-> 
-> > Do not skip the sysc programming in the hmwod framework based
-> > on the cached value alone, since at times the module might have lost
-> > context (due to the Powerdomain in which the module belongs
-> > transitions to either Open Switch RET or OFF).
-> 
-> Shouldn't the driver for each IP be responsible for restoring it's
-> register contents after context loss, including it's SYSC?
-> 
-> Seems to me that if SYSC is lost, it means the driver's save/restore
-> is buggy.
-> 
-I am glad you asked this question. I had a same argument with Benoit
-that driver anyway does context save restore for other registers and
-it can do SYSC as well.
+On Wed, 2010-10-13 at 16:09 +0400, Evgeny Kuznetsov wrote:
+> On Wed, 2010-10-13 at 17:20 +0530, ext Varadarajan, Charulatha wrote:
+> > 
+> > <<snip>>
+> > 
+> > > > >
+> > > > > From: Evgeny Kuznetsov <ext-eugeny.kuznetsov@nokia.com>
+> > > > >
+> > > > > Value of "isr_reg" pointer is depend on configuration and GPIO method.
+> > > > > Potentially it may have NULL value and it is dereferenced later
+> > > > > in code. If pointer is NULL there is some kernel issue.
+> > > >
+> > > > Can you elaborate?
+> > > "isr_reg" should not be NULL. But if it is NULL then there is kernel
+> > > bug. And WARN_ON() used to show it.
+> > > I did not see this bug, this is potentially may happen.
+> > > >
+> > > > > Warning and exit from function are added in this case.
+> > > > > Also compilation check is added for correct architecture
+> > > > > configuration.
+> > > > >
+> > > > > Signed-off-by: Evgeny Kuznetsov <EXT-Eugeny.Kuznetsov@nokia.com>
+> > > > > ---
+> > > > >  arch/arm/plat-omap/gpio.c |   18 ++++++++++++++++++
+> > > > >  1 files changed, 18 insertions(+), 0 deletions(-)
+> > > > >
+> > > > > diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> > > > > index c05c653..d04913c 100644
+> > > > > --- a/arch/arm/plat-omap/gpio.c
+> > > > > +++ b/arch/arm/plat-omap/gpio.c
+> > > > > @@ -1318,6 +1318,23 @@ static void gpio_irq_handler(unsigned int irq,
+> > > > > struct irq_desc *desc)
+> > > > >  	if (bank->method == METHOD_GPIO_44XX)
+> > > > >  		isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
+> > > > >  #endif
+> > > > > +
+> > > > > +#if !defined(CONFIG_ARCH_OMAP1) &&		\
+> > > > > +		!defined(CONFIG_ARCH_OMAP15XX) &&	\
+> > > > > +		!defined(CONFIG_ARCH_OMAP16XX) &&	\
+> > > > > +		!defined(CONFIG_ARCH_OMAP730) &&	\
+> > > > > +		!defined(CONFIG_ARCH_OMAP850) &&	\
+> > > > > +		!defined(CONFIG_ARCH_OMAP2) &&	\
+> > > > > +		!defined(CONFIG_ARCH_OMAP3) &&	\
+> > > > > +		!defined(CONFIG_ARCH_OMAP4)
+> > > > > +
+> > > > > +#error "Incorrect arch configuration"
+> > > >
+> > > > This is not required. If the architecture is not one of the above
+> > > > mentioned, gpio_irq_handler() will not be used/called at all.
+> > > This could be removed.
+> > > 
+> > > > Also all the possible gpio methods for a given OMAP architecture are
+> > > > already considered with "#ifdef"s and (bank->method) checks in
+> > > > gpio_irq_handler().
+> > > It is not cover all cased, e.g. for OMAP4 arch:
+> > > ....
+> > > 	#if defined(CONFIG_ARCH_OMAP4)
+> > > 		if (bank->method == METHOD_GPIO_44XX)
+> > > 			isr_reg = bank->base + OMAP4_GPIO_IRQSTATUS0;
+> > > 	#endif
+> > > .....
+> > > 
+> > > If (bank->method != METHOD_GPIO_44XX) then isr_reg will be NULL.
+> > > This should not happen, but potentially may have place.
+> > 
+> > When would it fail? If it is CONFIG_ARCH_OMAP4, the gpio method can
+> > only be METHOD_GPIO_44XX. Else if it is for some other OMAP architecture,
+> > the gpio_method is similarly taken care. So this cannot happen.
+> This is similar check as e.g. in _enable_gpio_irqbank() there default
+> case for bank->methos switch is WARN_ON(1).
+> Just to warn in case.
+Hi Tony,
 
-But Benoit's point was that "sysconfig is a part of the PRCM located
-in the IP, but this is purely TI implementation specific. The same
-IP in another platform will not have this sysconfig entry. That's why
-its important to hide them from the driver "
+It is not a bug fix, it is just check to prevent potential issues. Used
+to warn in case of bug and prevent kernel oops. Check added only here
+(not all gpio code cleanup) since here it could cause kernel opps.
 
-This make sense too.
+Would you apply patch if I will leave only if condition section in
+patch?
 
+	if (WARN_ON(!isr_reg))
+		goto exit;
+
+If yes, I'll resend v3 patch.
+
+Thanks,
+Regards,
+Evgeny
+
+> > 
+> > > 
+> > > >
+> > > > > +
+> > > > > +#endif
+> > > > > +
+> > > > > +	if (WARN_ON(!isr_reg))
+> > > > > +		goto exit;
+> > > >
+> > > > For the above mentioned reason, this isr_reg would be non-NULL. Have
+> > > > you observed this error anytime?
+> > > I did not see this bug, this is potentially may happen.
+> > > >
+> > > > Also, the omap-gpio code has similar code spread all over and has to be
+> > > > anyway cleaned-up. Is there any reason why gpio_irq_handler() alone is
+> > > > addressed in this patch?
+> > > Here "isr_reg" is used later in code and may cause oops if it is NULL.
+> > > >
+> > > > > +
+> > > > >  	while(1) {
+> > > > >  		u32 isr_saved, level_mask = 0;
+> > > > >  		u32 enabled;
+> > > > > @@ -1377,6 +1394,7 @@ static void gpio_irq_handler(unsigned int irq,
+> > > > > struct irq_desc *desc)
+> > > > >  	configured, we must unmask the bank interrupt only after
+> > > > >  	handler(s) are executed in order to avoid spurious bank
+> > > > >  	interrupt */
+> > > > > +exit:
+> > > > >  	if (!unmasked)
+> > > > >  		desc->chip->unmask(irq);
+> > > > >
+> > > > > --
+> > > > > 1.6.3.3
+> > > >
+> > > 
+> > 
 > 
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> > Cc: Paul Walmsley <paul@pwsan.com>
-> > Cc: Benoit Cousson <b-cousson@ti.com>
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_hwmod.c |    5 ++++-
-> >  1 files changed, 4 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-
-> omap2/omap_hwmod.c
-> > index cb911d7..e57fe21 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> > @@ -115,7 +115,10 @@ static void _write_sysconfig(u32 v, struct
-> omap_hwmod *oh)
-> >
-> >  	/* XXX ensure module interface clock is up */
-> >
-> > -	if (oh->_sysc_cache != v) {
-> > +	if ((oh->_sysc_cache != v) ||
-> > +		/* Did the module go to off and loose context? */
-> > +		(oh->_sysc_cache !=
-> > +			 omap_hwmod_readl(oh, oh->class->sysc->sysc_offs))) {
-> >  		oh->_sysc_cache = v;
-> >  		omap_hwmod_writel(v, oh, oh->class->sysc->sysc_offs);
-> >  	}
+
+
