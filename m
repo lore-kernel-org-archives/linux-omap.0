@@ -1,85 +1,99 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] omap4: pandaboard: fix up mmc card detect logic
-Date: Fri, 15 Oct 2010 08:37:24 -0500
-Message-ID: <4CB85914.2060700@ti.com>
-References: <1287149087-16656-1-git-send-email-nm@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v3 02/11] OMAP3: PM: Adding voltage driver support for
+ OMAP3
+Date: Fri, 15 Oct 2010 15:47:32 +0200
+Message-ID: <4CB85B74.7020907@ti.com>
+References: <1285166719-19352-1-git-send-email-thara@ti.com> <1285166719-19352-3-git-send-email-thara@ti.com> <87bp7gm3dq.fsf@deeprootsystems.com> <alpine.DEB.2.00.1009301121440.5439@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39611 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49887 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754384Ab0JONhe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 15 Oct 2010 09:37:34 -0400
-In-Reply-To: <1287149087-16656-1-git-send-email-nm@ti.com>
+	id S1755947Ab0JONrg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 Oct 2010 09:47:36 -0400
+In-Reply-To: <alpine.DEB.2.00.1009301121440.5439@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: l-o <linux-omap@vger.kernel.org>
-Cc: "Anders, David" <x0132446@ti.com>, Tony Lindgren <tony@atomide.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Gopinath, Thara" <thara@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-Menon, Nishanth had written, on 10/15/2010 08:24 AM, the following:
-> For MMC1 Controller, card detect interrupt source is
-> twl6030 which is non-gpio. The card detect call back function provides
-> card present/absent status by reading MMC Control register present
-> on twl6030. This functionality was introduced in mfd tree on
-> track to kernel.org
-> 
-> Sync pandaboard to the same and make mmc work.
-> 
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
-> Cc: Adrian Hunter <adrian.hunter@nokia.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> 
-> Acked-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
-> 
-> Depends on 
-> http://git.kernel.org/?p=linux/kernel/git/sameo/mfd-2.6.git;a=commitdiff;h=1bf5197061a4aec99e9fd4f92d4a543310f83585;hp=0c9b33e5a23e2053165c9e30ffff3b3a3cf1b2b8
-> This patch probably should be squashed to that.
+Hi Paul,
 
-Note to Tony/Sameo:
-I generated this patch for linux-omap after cherry picking the above 
-patch. reason being:
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=shortlog;h=refs/heads/omap-for-linus
-has fixes we need for Pandaboard
+On 9/30/2010 7:39 PM, Paul Walmsley wrote:
+> Hi Beno=EEt, Thara,
+>
+> On Wed, 29 Sep 2010, Kevin Hilman wrote:
+>
+>> Also, I'm still seeing this on boot:
+>>
+>>        omap_hwmod: sr1_fck: missing clockdomain for sr1_fck.
+>>        omap_hwmod: sr2_fck: missing clockdomain for sr2_fck.
+>>
+>> We need a final solution for this problem as a prerequisite for this
+>> series as well.
+>
+> I guess we need to figure out the appropriate clockdomains for sr1_fc=
+k and
+> sr2_fck.
+>
+> Probably the strictly correct thing to do, vis-a-vis the hardware, is=
+ to
+> place them into their own SmartReflex clockdomain/powerdomain.  But t=
+he
+> PRCM doesn't export separate control registers for those, and as I
+> understand it, that clockdomain/powerdomain follows the CORE
+> clockdomains/powerdomain.
 
-I am at a loss however which tree this patch might be carried on..
+More or less. In theory the smartreflex power domain goes to OFF only=20
+when the device goes to OFF. In device RET the SR power domain is still=
+=20
+active. That's why the FCLK is marked as always ON.
 
-> 
->  arch/arm/mach-omap2/board-omap4panda.c |   15 ++++++++++++---
->  1 files changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index a9d8a19..47cc8d2 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -160,10 +160,19 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
->  				struct platform_device, dev);
->  	struct omap_mmc_platform_data *pdata = dev->platform_data;
->  
-> +	if (!pdata) {
-> +		dev_err(dev, "%s: NULL platform data\n", __func__);
-> +		return -EINVAL;
-> +	}
->  	/* Setting MMC1 Card detect Irq */
-> -	if (pdev->id == 0)
-> -		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
-> -						MMCDETECT_INTR_OFFSET;
-> +	if (pdev->id == 0) {
-> +		ret = twl6030_mmc_card_detect_config();
-> +		 if (ret)
-> +			dev_err(dev, "%s: Error card detect config(%d)\n",
-> +				__func__, ret);
-> +		 else
-> +			pdata->slots[0].card_detect = twl6030_mmc_card_detect;
-> +	}
->  	return ret;
->  }
->  
+> Another option would be to place them into the WKUP clockdomain.  The
+> source of these functional clocks in SR_ALWON_FCLK which in turn is
+> generated by the PRM from SYS_CLK.  But that won't increment the CORE
+> clockdomains' use-counter when the SR functional clocks are running, =
+which
+> seems desirable if the SmartReflex clockdomain/powerdomain really doe=
+s
+> follow CORE.
+>
+> So it seems to me that the best thing to do might be to place these c=
+locks
+> into the CORE_L4 clockdomain.  But perhaps you might have a different
+> view?
+
+That's should be the proper place, but after several discussion with=20
+Vincent then Leo, it appears that the gating of the CORE_L4 interface=20
+clock is triggered by a transition of the WKUP clock domain to idle...
+Yeah, that's a mess... that IP does not follow any PRCM standard :-)
+
+Originally I thought the SR_EN bits were located in the wkup register=20
+because Vincent was too lazy to create a new register for these 2 bits =
+:-).
+But in fact because of that hidden dependency with the wkup, it is=20
+almost normal to put these bits there.
+
+Bottom-line is that we should tie them to the "wkup_clkdm".
+
+Another important point we already discussed a little bit, but that wil=
+l=20
+require more thoughts, is that the clock domain definition is first:=20
+quite fuzzy and then does not belong do the clock itself, but to the=20
+modules that are sharing the same interface clock.
+It means that some clocks will not belong to any clock domains, and thi=
+s=20
+is fine.
+On OMAP4, that definition is clearly tied to the modules, and thus=20
+should be an hwmod attribute more than a clock node attribute.
 
 
--- 
 Regards,
-Nishanth Menon
+Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
