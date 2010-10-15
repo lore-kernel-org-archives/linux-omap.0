@@ -1,87 +1,85 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Camera/ISP questions
-Date: Fri, 15 Oct 2010 16:56:30 -0600
-Message-ID: <4CB8DC1E.6050002@mlbassoc.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: DSS2 broken with 36-rc1
+Date: Fri, 15 Oct 2010 15:44:11 +0300
+Message-ID: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
+References: <1281962906.1888.25.camel@chotu>
+	<4C72192A.9050801@compulab.co.il>
+	<1282547709.2202.1.camel@tubuntu.research.nokia.com>
+	<4C722115.50401@compulab.co.il>
+	<1282548930.2202.16.camel@tubuntu.research.nokia.com>
+	<4C7236A2.7080701@compulab.co.il>
+	<1282723768.9299.90.camel@tubuntu.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:60090 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751705Ab0JOW4c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Oct 2010 18:56:32 -0400
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:44889 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751044Ab0JPARk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 Oct 2010 20:17:40 -0400
+Received: by bwz15 with SMTP id 15so1298116bwz.19
+        for <linux-omap@vger.kernel.org>; Fri, 15 Oct 2010 17:17:36 -0700 (PDT)
+In-Reply-To: <1282723768.9299.90.camel@tubuntu.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Discussion of the angstrom distribution development <angstrom-distro-devel@linuxtogo.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Mike Rapoport <mike@compulab.co.il>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-Sorry for cross-posting, but I'm not sure where best to get help :-(
+On Wed, Aug 25, 2010 at 11:09 AM, Tomi Valkeinen
+<tomi.valkeinen@nokia.com> wrote:
+> On Mon, 2010-08-23 at 10:51 +0200, ext Mike Rapoport wrote:
+>> Tomi Valkeinen wrote:
+>> > On Mon, 2010-08-23 at 09:19 +0200, ext Mike Rapoport wrote:
+>> >> Tomi Valkeinen wrote:
+>> >>> I tested 36-rc1 briefly with OMAP 3430SDP board. I wonder why th=
+at
+>> >>> works, but not N900...
+>> >> May it be that 3430SDP uses SRAM for the framebuffer? Or reserves=
+ framebuffer
+>> >> memory from the RAM that is not managed by the kernel, e.g with s=
+omething like
+>> >> mem=3D<RAM size - fb size> vram=3D<fb size>,0x8...... ?
+>> >
+>> > No, SRAM cannot be used on OMAP3s, as SRAM is too small to hold a
+>> > framebuffer. And no, I don't think it's reserving it from RAM not
+>> > managed by the kernel.
+>>
+>> The N900 only sets omap_vram_sdram_{start,size} in rx51_video_mem_in=
+it.
+>> I think that it should also call omap_vram_reserve_sdram_memblock():
+>>
+>> diff --git a/arch/arm/mach-omap2/board-rx51-video.c b/arch/arm/mach-=
+omap2/board-rx51-video.c
+>> index 5a1005b..fdfe844 100644
+>> --- a/arch/arm/mach-omap2/board-rx51-video.c
+>> +++ b/arch/arm/mach-omap2/board-rx51-video.c
+>> @@ -101,6 +101,7 @@ void __init rx51_video_mem_init(void)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 */
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0omap_vram_set_sdram_vram(PAGE_ALIG=
+N(864 * 480 * 4) +
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A02 * PAGE_ALIGN(1280 * 720 * 4 * 2), 0);
+>> + =C2=A0 =C2=A0 =C2=A0 omap_vram_reserve_sdram_memblock();
+>> =C2=A0 }
+>
+> But omap_vram_reserve_sdram_memblock() is called automatically from
+> arch/arm/plat-omap/common.c. rx51_video_mem_init() should have been
+> called before that happens. Has the call order changed, so that
+> omap_vram_reserve_sdram_memblock() is called first, and
+> rx51_video_mem_init() only after that?
 
-I'm working on an OMAP/3530 board (similar to the BeagleBoard,
-but of local design).  I'm using the 2.6.32+ kernel from Angstrom
-which has the DVSDK support, including ISP camera support using
-V4L2.  My camera is NTSC or PAL composite input through a TVP5150m1
-decoder into the ISP, using 8 bit BT-656 data.  This mostly works,
-but I'm suffering some strange problems.  My queries to the TI forums
-have not yielded any [useful] feedback, so I'm hoping someone on these
-lists can help.
+That is indeed the case, ->reserve() is now called way earlier in the
+boot process, before early param, and before ->map_io(), which is a
+good thing, because now ->reserve() can take away the memory from the
+kernel.
 
-I'm wondering if the BT-656 data from the TVP5150m1 device is compatible
-with the ISP, based on the comments in TRM 12.1.1 which implies that
-interlaced data is not supported via BT-656 and I'm pretty sure the
-data from the TVP _is_ interlaced since it came from an interlaced
-TV/video camera.  Of course, I could be reading this incorrectly...
+I'm sending the patches that fix this for me, you would also need:
+http://article.gmane.org/gmane.linux.kernel/1047146
 
-My problem is the raw data from the ISP (UYVY422, grabbed using
-gstreamer v4l2src (*)) does not seem to be quite right.  If I just
-look at it, e.g.
-   gst-launch v4l2src ! 'video/x-raw-yuv,width=720,height=576,format=(fourcc)UYVY' ! \
-              ffmpegcolorspace ! 'video/x-raw-yuv,format=(fourcc)YV12' ! xvimagesink
-the images will "tear" and streak if there is any motion.  Sometimes,
-there are ghosts (faded after-images) left behind that last for many
-seconds.  Eventually, they will clear up, especially if the image
-becomes more static.  If I try to do much more processing of these images,
-e.g. encode them into some compressed format like H264, the results
-are horrible.
-
-(*) I also wrote a very simple program to grab the data from the camera
-instead of using gstreamer v4l2src.  This produces the same poorly constructed
-UYVY stream, so I don't think the problem is in the v4l2src component (but
-it _could_ be in the v4l2 kernel code, but it doesn't really do anything
-with the camera data except for managing the DMA+buffers)
-
-I created a known data source (not from the camera interface), using
-ffmpeg to produce a UYVY422 data file from an MP4 that I know looks good.
-I used this to test the back-end of the pipeline.  It does not suffer these
-problems, even when the image has lots of motion.
-
-What leads me to think this is all about the camera/ISP path
-is that if I introduce a scaling component, I get even stranger
-results.  For example, this pipeline
-   gst-launch v4l2src always-copy=FALSE ! video/x-raw-yuv,width=720,height=576 ! \
-              TIVidResize name=qos-scaler contiguousInputFrame=TRUE ! \
-              'video/x-raw-yuv,format=(fourcc)UYVY,width=320,height=240' !
-              ffmpegcolorspace ! 'video/x-raw-yuv,format=(fourcc)YV12' ! xvimagesink
-often has a Venetian-blind look - alternating good data with dark grey
-bars (that seem to have the desired data underneath).  The image tearing
-and ghosting is much exaggerated.
-
-Running that same pipeline with the known good UYVY data file does
-not exhibit these behaviours.
-
-Does anyone have any ideas what might be causing these problems?
-Ever seen such before?
-Any ideas what I can look at or, if necessary, a better place to ask?
-I'm pretty sure I'm up against hardware problems (could be the design,
-could be the driver or configuration).
-
-If anyone has ideas or can help and need to see any of these data, I'll
-gladly provide them.
-
-Thanks for any help/ideas
-
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
