@@ -1,46 +1,47 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Issue observed with pm_runtime_put_sync
-Date: Mon, 18 Oct 2010 13:49:46 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC6139A@dbde02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2] OMAP3: DSS: Kconfig changes to enable display options
+ on OMAP3
+Date: Mon, 18 Oct 2010 12:37:39 +0300
+Message-ID: <AANLkTimrSj0_ussokxOnwqF=kWQoRt=cefyxDbBYXs0E@mail.gmail.com>
+References: <1287381341-4450-1-git-send-email-samreen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35096 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753207Ab0JRITu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 04:19:50 -0400
-Content-Language: en-US
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62382 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293Ab0JRJhm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 05:37:42 -0400
+Received: by bwz15 with SMTP id 15so469344bwz.19
+        for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2010 02:37:40 -0700 (PDT)
+In-Reply-To: <1287381341-4450-1-git-send-email-samreen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
+To: Samreen <samreen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
- 
-Hi Kevin,
-While using pm runtime API's with DMA, it was observed that, during omap_free_dma, 
-pm_runtime_put_sync is called which results in warning dump. 
-It looks like, when cpu idle patch is under processing, DMA interrupt gets fired 
-which inturn call omap_free_dma which results multiple spin_locks.
- 
-The DMA driver uses *_get_sync during omap_request_dma and *_put_sync during 
-omap_free_dma.
+On Mon, Oct 18, 2010 at 8:55 AM, Samreen <samreen@ti.com> wrote:
+> The defconfig options for display are taken in the respective Kconfig
+> to enable display by default on OMAP3 platforms
 
-Environment:
-Kernel:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-Branch: master
-Commit: 99cf630 Linux-omap rebuilt: Fixed omap4 kernel panic without nosmp, updated to -rc7
-+ 
-DMA hwmod patches
-defconfig: omap2plus_defconfig
-board: OMAP3630 Zoom3
- 
-Is this a known issue or issue with pm runtime API usage in DMA driver?
- 
-log:
-http://pastebin.com/93KPk2ng
- 
-Regards,
-Manjunath 
 
+> =C2=A0config FB_OMAP2_NUM_FBS
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0int "Number of framebuffers"
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0range 1 10
+> - =C2=A0 =C2=A0 =C2=A0 default 3
+> + =C2=A0 =C2=A0 =C2=A0 default 1 =C2=A0if ARCH_OMAP2 || ARCH_OMAP3
+> + =C2=A0 =C2=A0 =C2=A0 default 3 =C2=A0if ARCH_OMAP4
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0depends on FB_OMAP2
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0help
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0Select the number of framebuffers c=
+reated. OMAP2/3 has 3 overlays
+
+I think this should be 3 also for OMAP3.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
