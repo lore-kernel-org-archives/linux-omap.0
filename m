@@ -1,86 +1,116 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCHv3 01/11] staging: tidspbridge: replace iommu custom for
- opensource implementation
-Date: Mon, 18 Oct 2010 01:36:32 +0300
-Message-ID: <AANLkTin+n8KsHz2jTtkbk2MnuiANrxpskThYU9FVu3CE@mail.gmail.com>
-References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
-	<1286310944-25035-2-git-send-email-x0095840@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Samreen <samreen@ti.com>
+Subject: [PATCH v2] OMAP3: DSS: Kconfig changes to enable display options on OMAP3
+Date: Mon, 18 Oct 2010 11:25:41 +0530
+Message-ID: <1287381341-4450-1-git-send-email-samreen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:34660 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980Ab0JQWge (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 17 Oct 2010 18:36:34 -0400
-In-Reply-To: <1286310944-25035-2-git-send-email-x0095840@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53868 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751299Ab0JRGAW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Oct 2010 02:00:22 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9I60MMJ029959
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2010 01:00:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Fernando Guzman Lugo <x0095840@ti.com>
-Cc: gregkh@suse.de, felipe.contreras@nokia.com, ameya.palande@nokia.com, nm@ti.com, Hiroshi.DOYU@nokia.com, ohad@wizery.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Samreen <samreen@ti.com>
 
-On Tue, Oct 5, 2010 at 11:35 PM, Fernando Guzman Lugo <x0095840@ti.com> wrote:
-> Now the tidspbridge uses the API's from
-> iovmm module.
->
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+The defconfig options for display are taken in the respective Kconfig
+to enable display by default on OMAP3 platforms
 
-NAK. This patch doesn't work... I guess it's supposed to.
+Signed-off-by: Samreen <samreen@ti.com>
+---
+ Version2:
+        Enables by default NEC panel used in zoom2/3/3630sdp, instead of 
+ Sharp LQ043T1DG01 panel enabled in previous version of this patch
+ 
+ drivers/video/omap2/displays/Kconfig |    3 +++
+ drivers/video/omap2/dss/Kconfig      |    6 ++++--
+ drivers/video/omap2/omapfb/Kconfig   |    4 +++-
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-So far I've found these errors, but it still doesn't work, maybe we
-should start thinking of reverting the whole iommu stuff:
-
-diff --git a/drivers/staging/tidspbridge/core/io_sm.c
-b/drivers/staging/tidspbridge/core/io_sm.c
-index 842b8db..16cf246 100644
---- a/drivers/staging/tidspbridge/core/io_sm.c
-+++ b/drivers/staging/tidspbridge/core/io_sm.c
-@@ -541,6 +541,14 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
- 					ae_proc[ndx].ul_dsp_va *
- 					hio_mgr->word_size, page_size[i]);
- 				ndx++;
-+			} else {
-+				u32 tmp_curr;
-+				tmp_curr = iommu_kmap(mmu, va_curr, pa_curr, page_size[i],
-+						IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_32);
-+				if (IS_ERR_VALUE(tmp_curr)) {
-+					status = (int)tmp_curr;
-+					goto func_end;
-+				}
- 			}
- 			pa_curr += page_size[i];
- 			va_curr += page_size[i];
-@@ -593,6 +601,15 @@ int bridge_io_on_loaded(struct io_mgr *hio_mgr)
- 					"DSP_VA 0x%x\n", ae_proc[ndx].ul_gpp_pa,
- 					ae_proc[ndx].ul_dsp_va);
- 				ndx++;
-+			} else {
-+				u32 tmp_curr;
-+				tmp_curr = iommu_kmap(mmu,
-+						hio_mgr->ext_proc_info.ty_tlb[i].ul_dsp_virt,
-+						hio_mgr->ext_proc_info.ty_tlb[i].ul_gpp_phys,
-+						0x100000,
-+						IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_32);
-+				if (IS_ERR_VALUE(tmp_curr))
-+					status = (int)tmp_curr;
- 			}
- 		}
- 		if (status)
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c
-b/drivers/staging/tidspbridge/core/tiomap3430.c
-index c2f5105..92774fc 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -1195,7 +1195,7 @@ static int get_io_pages(struct mm_struct *mm,
-u32 uva, unsigned pages,
- 	struct page *pg;
-
- 	for (i = 0; i < pages; i++) {
--		pa = user_va2_pa(mm, uva);
-+		pa = user_va2_pa(mm, uva + i * PAGE_SIZE);
-
- 		if (!pfn_valid(__phys_to_pfn(pa)))
- 			break;
-
-
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index f8152cf..d818e44 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -3,6 +3,7 @@ menu "OMAP2/3 Display Device Drivers"
+ 
+ config PANEL_GENERIC
+         tristate "Generic Panel"
++	default y
+         help
+ 	  Generic panel driver.
+ 	  Used for DVI output for Beagle and OMAP3 SDP.
+@@ -10,6 +11,7 @@ config PANEL_GENERIC
+ config PANEL_SHARP_LS037V7DW01
+         tristate "Sharp LS037V7DW01 LCD Panel"
+         depends on OMAP2_DSS
++	default y
+         select BACKLIGHT_CLASS_DEVICE
+         help
+           LCD Panel used in TI's SDP3430 and EVM boards
+@@ -23,6 +25,7 @@ config PANEL_SHARP_LQ043T1DG01
+ config PANEL_NEC_NL8048HL11_01B
+ 	tristate "NEC NL8048HL11-01B Panel"
+ 	depends on OMAP2_DSS
++	default y
+ 	help
+ 		This NEC NL8048HL11-01B panel is TFT LCD
+ 		used in the Zoom2/3/3630 sdp boards.
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index 43b6440..f3244a2 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -1,6 +1,7 @@
+ menuconfig OMAP2_DSS
+         tristate "OMAP2/3 Display Subsystem support (EXPERIMENTAL)"
+         depends on ARCH_OMAP2 || ARCH_OMAP3
++	default y
+         help
+           OMAP2/3 Display Subsystem support.
+ 
+@@ -9,7 +10,7 @@ if OMAP2_DSS
+ config OMAP2_VRAM_SIZE
+ 	int "VRAM size (MB)"
+ 	range 0 32
+-	default 0
++	default 4
+ 	help
+ 	  The amount of SDRAM to reserve at boot time for video RAM use.
+ 	  This VRAM will be used by omapfb and other drivers that need
+@@ -102,7 +103,8 @@ config OMAP2_DSS_FAKE_VSYNC
+ config OMAP2_DSS_MIN_FCK_PER_PCK
+ 	int "Minimum FCK/PCK ratio (for scaling)"
+ 	range 0 32
+-	default 0
++	default 4  if ARCH_OMAP2 || ARCH_OMAP3
++	default 0  if ARCH_OMAP4
+ 	help
+ 	  This can be used to adjust the minimum FCK/PCK ratio.
+ 
+diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
+index 65149b2..41aec6f 100644
+--- a/drivers/video/omap2/omapfb/Kconfig
++++ b/drivers/video/omap2/omapfb/Kconfig
+@@ -1,6 +1,7 @@
+ menuconfig FB_OMAP2
+         tristate "OMAP2/3 frame buffer support (EXPERIMENTAL)"
+         depends on FB && OMAP2_DSS
++	default y
+ 
+ 	select OMAP2_VRAM
+ 	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+@@ -21,7 +22,8 @@ config FB_OMAP2_DEBUG_SUPPORT
+ config FB_OMAP2_NUM_FBS
+ 	int "Number of framebuffers"
+ 	range 1 10
+-	default 3
++	default 1  if ARCH_OMAP2 || ARCH_OMAP3
++	default 3  if ARCH_OMAP4
+ 	depends on FB_OMAP2
+ 	help
+ 	  Select the number of framebuffers created. OMAP2/3 has 3 overlays
 -- 
-Felipe Contreras
+1.5.6.3
+
