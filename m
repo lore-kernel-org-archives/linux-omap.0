@@ -1,41 +1,26 @@
-From: Peter Zijlstra <peterz@infradead.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
 Subject: Re: [PATCH 0/3] Add OMAP hardware spinlock misc driver
-Date: Mon, 18 Oct 2010 16:33:03 +0200
-Message-ID: <1287412383.29097.1603.camel@twins>
+Date: Mon, 18 Oct 2010 16:39:22 +0200
+Message-ID: <AANLkTi=jnPBNSMWx-fHMUoDT7W1_f-mYLQUZpi=FvaCK@mail.gmail.com>
 References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
-	<1287406015.29097.1579.camel@twins>
-	<20101018133502.GA12449@n2100.arm.linux.org.uk>
-	<1287409417.29097.1598.camel@twins>
-	<AANLkTimYK_JVafj5XdN+d9O8h_qon17Jkw7LRpJVZvuO@mail.gmail.com>
+ <1287406015.29097.1579.camel@twins> <20101018133502.GA12449@n2100.arm.linux.org.uk>
+ <1287409417.29097.1598.camel@twins> <AANLkTimYK_JVafj5XdN+d9O8h_qon17Jkw7LRpJVZvuO@mail.gmail.com>
+ <1287412383.29097.1603.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <AANLkTimYK_JVafj5XdN+d9O8h_qon17Jkw7LRpJVZvuO@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, Suman Anna <s-anna@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:64467 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755932Ab0JROju (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 10:39:50 -0400
+In-Reply-To: <1287412383.29097.1603.camel@twins>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, 2010-10-18 at 16:28 +0200, Ohad Ben-Cohen wrote:
-> On Mon, Oct 18, 2010 at 3:43 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> > Right, so the problem is that there simply is no way to do atomic memory
-> > access from these auxiliary processing units wrt the main CPU?
-> 
-> Yes. There are a few relevant system-wide limitations, one of them is
-> that simply the system interconnect does not support those fancy
-> atomic operations.
+On Mon, Oct 18, 2010 at 4:33 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> Without coherency everybody needs to be damn sure to flush the relevant
+> bits before unlocking and such.
 
-Does it support full memory coherency though? Otherwise I can see memory
-based message passing becoming rather interesting.
-
-Without coherency everybody needs to be damn sure to flush the relevant
-bits before unlocking and such.
+Yes, either that, or use non-cacheable memory.
