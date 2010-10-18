@@ -1,47 +1,97 @@
-From: Ionut Nicu <ionut.nicu@mindbit.ro>
-Subject: Re: [PATCHv3 01/11] staging: tidspbridge: replace iommu custom for
- opensource implementation
-Date: Mon, 18 Oct 2010 15:06:29 +0300
-Message-ID: <1287403590.2916.24.camel@atlantis.mindbit.ro>
-References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
-	 <1286310944-25035-2-git-send-email-x0095840@ti.com>
-	 <AANLkTin+n8KsHz2jTtkbk2MnuiANrxpskThYU9FVu3CE@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Mon, 18 Oct 2010 14:15:13 +0200
+Message-ID: <AANLkTimpNgBpm3onz1MNCMgo4GfJ=g18oiV2qvJB7QPC@mail.gmail.com>
+References: <1286205661-24448-1-git-send-email-jean.pihet@newoldbits.com>
+	<201010062334.46971.trenn@suse.de>
+	<20101007150825.GB12581@Krystal>
+	<AANLkTikT4xsh7iCQDX8ksewJwC-BeFov=Ab7iYo+hDmO@mail.gmail.com>
+	<20101007155816.GA5351@nowhere>
+	<4CAED2F0.9080801@kernel.org>
+	<20101008083819.GA22385@elte.hu>
+	<4CAF19E7.3070103@linux.intel.com>
+	<20101008134156.GA28724@Krystal>
+	<20101009062836.GB5517@elte.hu>
+	<AANLkTik6nO4i6xTuVYA9kBGFNpxYb70qimNcHPQKqTJ8@mail.gmail.com>
+	<AANLkTimT5Or7gLDMnmLqSzmUoPux0pXrPxUZQpFon+6_@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.mindbit.ro ([80.86.127.26]:60721 "EHLO ns.mindbit.ro"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752953Ab0JRMHE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Oct 2010 08:07:04 -0400
-In-Reply-To: <AANLkTin+n8KsHz2jTtkbk2MnuiANrxpskThYU9FVu3CE@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimT5Or7gLDMnmLqSzmUoPux0pXrPxUZQpFon+6_@mail.gmail.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Pierre Tardy <tardyp@gmail.com>, Ingo Molnar <mingo@elte.hu>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Thomas Renninger <trenn@suse.de>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-perf-users@vger.kernel.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Fernando Guzman Lugo <x0095840@ti.com>, gregkh@suse.de, felipe.contreras@nokia.com, ameya.palande@nokia.com, nm@ti.com, Hiroshi.DOYU@nokia.com, ohad@wizery.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org
 
-Hi,
+On Sat, Oct 9, 2010 at 8:36 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Sat, Oct 9, 2010 at 1:14 AM, Pierre Tardy <tardyp@gmail.com> wrote:
+>> On Sat, Oct 9, 2010 at 8:28 AM, Ingo Molnar <mingo@elte.hu> wrote:
+>>>
+>>
+>>> The thing is, Arjan is 100% right that a library for this is not a
+>>> 'solution', it's an unnecessary complication.
+>> Yes. sounds like overengineering.
+>
+> I also want to remind people that backwards compatibility should
+> always absolutely be the #1 priority. Using libraries to "hide"
+> differences is a totally moronic thing to do, because if you can do a
+> compatibility library with good interfaces, then damn it, the kernel
+> interface should already _be_ that good interface.
+Agree on that. The idea is to have the kernel interfaces cleaned up
+and so have better user space apps in the end.
 
-On Mon, 2010-10-18 at 01:36 +0300, Felipe Contreras wrote: 
-> On Tue, Oct 5, 2010 at 11:35 PM, Fernando Guzman Lugo <x0095840@ti.com> wrote:
-> > Now the tidspbridge uses the API's from
-> > iovmm module.
-> >
-> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> 
-> NAK. This patch doesn't work... I guess it's supposed to.
-> 
-> So far I've found these errors, but it still doesn't work, maybe we
-> should start thinking of reverting the whole iommu stuff:
-> 
+> And no, even if you interact purely with open source programs, the
+> backwards compatibility requirement doesn't go away. It's a damn pain
+> in the ass to have to recompile, and it means that you have a much
+> harder time mixing and matching, and just updating the kernel on top
+> of a standard distribution.
+>
+> So changing kernel interfaces that get exported to user space is
+> always a disaster. Anybody who _designs_ for that kind of disaster
+> shouldn't be participating in kernel development, because they've
+> shown themselves to be unable to understand the pain and suffering.
+>
+> Yes, we do it. Sometimes we change interfaces because not changing
+> them is too damn painful. But it should absolutely not be the design
+> model.
 
-I also tested it with the userspace-dspbridge tools and it doesn't work
-for me either.
+So what is the best way to have the power tracing events elegantly cleaned up?
+The proposed patch 4/4 [1] introduces a new Kconfig option
+CONFIG_DEPRECATED_POWER_EVENT_TRACING which allows to select to map
+the trace points to the old _OR_ to the new events API, only for the
+already existing events. This gives some time for the adaptation of
+the user space apps.
 
-Maybe it's better to revert this patch series for now and re-submit it
-when all necessary patches get merged and it actually works on top of
-the staging-next tree?
+I understand this could require a kernel re-compilation in order to
+use the old events API but I really want to avoid to duplicate the
+trace points in the code to instrument, e.g.:
 
-Regards,
-Ionut.
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index 199dcb9..013c274 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -354,5 +354,7 @@ void cpufreq_notify_transition(struct
+cpufreq_freqs *freqs, unsigned int state)
+ 		adjust_jiffies(CPUFREQ_POSTCHANGE, freqs);
+ 		dprintk("FREQ: %lu - CPU: %lu", (unsigned long)freqs->new,
+ 			(unsigned long)freqs->cpu);
+		trace_power_frequency(POWER_PSTATE, freqs->new, freqs->cpu);
++		trace_power_switch_state(POWER_PSTATE, freqs->new, freqs->cpu,
++					 smp_processor_id());
 
+The proposed patch only changes the power tracing events API
+definition files, not the code to instrument.
+
+I am OK to re-spin the patches, only if a compromise is agreed on.
+As said before the kernel Documentation and pytimechart user space
+tools patches will be provided as well.
+
+>
+>                            Linus
+>
+
+Thanks,
+Jean
+
+[1] http://marc.info/?l=linux-omap&m=128620575900689&w=2
