@@ -1,57 +1,58 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC 0/5] OMAP4: mux: Add the OMAP4430 ES1 support
-Date: Tue, 19 Oct 2010 01:12:37 +0200
-Message-ID: <4CBCD465.4070306@ti.com>
-References: <1285319748-28976-1-git-send-email-b-cousson@ti.com> <7A436F7769CA33409C6B44B358BFFF0C014FAB2762@dlee02.ent.ti.com> <4CBCB35E.9080502@ti.com> <20101018230013.GI13341@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/4] Input: ads7846 - modificatons of
+ _stop()/_disable() conditions
+Date: Mon, 18 Oct 2010 16:19:16 -0700
+Message-ID: <20101018231916.GL13341@atomide.com>
+References: <4C9332CE.6040905@gmail.com>
+ <20100917160709.GC14186@core.coreip.homeip.net>
+ <4C9718E9.5040104@gmail.com>
+ <4CB4314C.7050308@gmail.com>
+ <20101012160055.GA6355@core.coreip.homeip.net>
+ <4CB523B7.8010209@gmail.com>
+ <AANLkTi=0b-q3LK3-4mgdpSP7pScVSF1ZWzD45bLoAmJO@mail.gmail.com>
+ <4CB66777.5060309@gmail.com>
+ <AANLkTimRqaFkNkRzubY4-Gx=y0yJ_C1VFycL0+uEa_Wm@mail.gmail.com>
+ <4CB7BCA0.1080604@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37092 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757886Ab0JRXMk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Oct 2010 19:12:40 -0400
-In-Reply-To: <20101018230013.GI13341@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4CB7BCA0.1080604@gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Jason Wang <jason77.wang@gmail.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, vapier@gentoo.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, roman.tereshonkov@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tony,
+* Jason Wang <jason77.wang@gmail.com> [101014 19:17]:
+> Grazvydas Ignotas wrote:
+> >On Thu, Oct 14, 2010 at 5:14 AM, Jason Wang <jason77.wang@gmail.com> wrote:
+> >>Grazvydas Ignotas wrote:
+> >>>Working here on pandora too, applied on top of linux-next (did not
+> >>>test suspend though).
+> >>>
+> >>>Not caused by this patch, but the old problem where lower measurement
+> >>>bits get lost is back - when I draw diagonal line it looks like
+> >>>stairs. I think it's caused by OMAP SPI driver, CCing linux-omap.
+> >>>
+> >>>
+> >>Yes, it is OMAP spi driver issues, I have met the same problem before,
+> >>please refer to:
+> >>http://www.spinics.net/lists/arm-kernel/msg91538.html
+> >>
+> >>you can apply this patch and test again.
+> >
+> >It solves my issue, thanks
+> >Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+> >
+> >BTW I have done similar patch almost 2 years ago for exactly the same problem:
+> >http://marc.info/?l=linux-omap&m=122565580616920&w=2
+> >but then problem went away after random kernel update (from what I
+> >remember), and my patch was no longer needed.
+> >
+> Really similar problem and similar solution, :-)
 
-On 10/19/2010 1:00 AM, Tony Lindgren wrote:
-> * Cousson, Benoit<b-cousson@ti.com>  [101018 13:42]:
->> Hi Nishanth,
->>
->> On 10/18/2010 8:09 PM, Menon, Nishanth wrote:
->>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>>> owner@vger.kernel.org] On Behalf Of Benoit Cousson
->>>>
->>> Ping? Is there a possibility for a v2 non-rfc ES2 support?
->>
->> And what about a RFC v2? With ES2 support of course :-)
->>
->> The changes I have done are breaking RX51 support due to the usage
->> of low-level API from the mux code.
->>
->> For the moment I just disabled that code from the RX51, so there is
->> no way I send that except in a RFC form :-(
->
-> I have some ideas on doing the board specific runtime remuxing.
-> That should also solve the rx51 emmc remuxing.
+Let's get this fix into the mainline tree then. Jason, care to
+refresh (it's wrapped at least) and then repost with the acks so
+Grant can queue it up for the upcoming merge window?
 
-That's cool, I had some poor ideas as well, but I was not sure you will 
-like them :-)
-
-> Let's plan on merging your patches first after the merge window,
-> then I'll do my patches on top of yours to avoid rebasing.
-
-Great, I'll send that when I will have the time to test that on an ES2.0 
-at least...
-
-Just FYI, the wip code is there:
-git://gitorious.org/omap-pm/linux.git ctrl-wip/mux-omap4-v2
-
-Thanks,
-Benoit
-
+Acked-by: Tony Lindgren <tony@atomide.com>
