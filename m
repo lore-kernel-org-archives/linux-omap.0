@@ -1,116 +1,124 @@
-From: Samreen <samreen@ti.com>
-Subject: [PATCH v2] OMAP3: DSS: Kconfig changes to enable display options on OMAP3
-Date: Mon, 18 Oct 2010 11:25:41 +0530
-Message-ID: <1287381341-4450-1-git-send-email-samreen@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53868 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751299Ab0JRGAW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Oct 2010 02:00:22 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9I60MMJ029959
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2010 01:00:22 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH 0/3] Add OMAP hardware spinlock misc driver
+Date: Mon, 18 Oct 2010 09:44:32 +0200
+Message-ID: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Samreen <samreen@ti.com>
 
-The defconfig options for display are taken in the respective Kconfig
-to enable display by default on OMAP3 platforms
+OMAP4 introduces a Spinlock hardware module, which provides hardware
+assistance for synchronization and mutual exclusion between heterogeneous
+processors and those not operating under a single, shared operating system
+(e.g. OMAP4 has dual Cortex-A9, dual Cortex-M3 and a C64x+ DSP).
 
-Signed-off-by: Samreen <samreen@ti.com>
----
- Version2:
-        Enables by default NEC panel used in zoom2/3/3630sdp, instead of 
- Sharp LQ043T1DG01 panel enabled in previous version of this patch
- 
- drivers/video/omap2/displays/Kconfig |    3 +++
- drivers/video/omap2/dss/Kconfig      |    6 ++++--
- drivers/video/omap2/omapfb/Kconfig   |    4 +++-
- 3 files changed, 10 insertions(+), 3 deletions(-)
+The intention of this hardware module is to allow remote processors,
+that have no alternative mechanism to accomplish synchronization and mutual
+exclusion operations, to share resources (such as memory and/or any other
+hardware resource).
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index f8152cf..d818e44 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -3,6 +3,7 @@ menu "OMAP2/3 Display Device Drivers"
- 
- config PANEL_GENERIC
-         tristate "Generic Panel"
-+	default y
-         help
- 	  Generic panel driver.
- 	  Used for DVI output for Beagle and OMAP3 SDP.
-@@ -10,6 +11,7 @@ config PANEL_GENERIC
- config PANEL_SHARP_LS037V7DW01
-         tristate "Sharp LS037V7DW01 LCD Panel"
-         depends on OMAP2_DSS
-+	default y
-         select BACKLIGHT_CLASS_DEVICE
-         help
-           LCD Panel used in TI's SDP3430 and EVM boards
-@@ -23,6 +25,7 @@ config PANEL_SHARP_LQ043T1DG01
- config PANEL_NEC_NL8048HL11_01B
- 	tristate "NEC NL8048HL11-01B Panel"
- 	depends on OMAP2_DSS
-+	default y
- 	help
- 		This NEC NL8048HL11-01B panel is TFT LCD
- 		used in the Zoom2/3/3630 sdp boards.
-diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-index 43b6440..f3244a2 100644
---- a/drivers/video/omap2/dss/Kconfig
-+++ b/drivers/video/omap2/dss/Kconfig
-@@ -1,6 +1,7 @@
- menuconfig OMAP2_DSS
-         tristate "OMAP2/3 Display Subsystem support (EXPERIMENTAL)"
-         depends on ARCH_OMAP2 || ARCH_OMAP3
-+	default y
-         help
-           OMAP2/3 Display Subsystem support.
- 
-@@ -9,7 +10,7 @@ if OMAP2_DSS
- config OMAP2_VRAM_SIZE
- 	int "VRAM size (MB)"
- 	range 0 32
--	default 0
-+	default 4
- 	help
- 	  The amount of SDRAM to reserve at boot time for video RAM use.
- 	  This VRAM will be used by omapfb and other drivers that need
-@@ -102,7 +103,8 @@ config OMAP2_DSS_FAKE_VSYNC
- config OMAP2_DSS_MIN_FCK_PER_PCK
- 	int "Minimum FCK/PCK ratio (for scaling)"
- 	range 0 32
--	default 0
-+	default 4  if ARCH_OMAP2 || ARCH_OMAP3
-+	default 0  if ARCH_OMAP4
- 	help
- 	  This can be used to adjust the minimum FCK/PCK ratio.
- 
-diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
-index 65149b2..41aec6f 100644
---- a/drivers/video/omap2/omapfb/Kconfig
-+++ b/drivers/video/omap2/omapfb/Kconfig
-@@ -1,6 +1,7 @@
- menuconfig FB_OMAP2
-         tristate "OMAP2/3 frame buffer support (EXPERIMENTAL)"
-         depends on FB && OMAP2_DSS
-+	default y
- 
- 	select OMAP2_VRAM
- 	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
-@@ -21,7 +22,8 @@ config FB_OMAP2_DEBUG_SUPPORT
- config FB_OMAP2_NUM_FBS
- 	int "Number of framebuffers"
- 	range 1 10
--	default 3
-+	default 1  if ARCH_OMAP2 || ARCH_OMAP3
-+	default 3  if ARCH_OMAP4
- 	depends on FB_OMAP2
- 	help
- 	  Select the number of framebuffers created. OMAP2/3 has 3 overlays
--- 
-1.5.6.3
+This patchset adds a new misc driver for this OMAP hwspinlock module.
 
+Currently there are two users for this driver:
+
+1. Inter-Processor Communications: on OMAP4, cpu-intensive multimedia
+tasks are offloaded by the host to the remote M3 and/or C64x+ slave
+processors.
+
+To achieve fast message-based communications, a minimal kernel support
+is needed to deliver messages arriving from a remote processor to the
+appropriate user process.
+
+This communication is based on simple data structures that are shared between
+the remote processors, and access to it is synchronized using the hwspinlock
+module (to allow the remote processor to directly place new messages in this
+shared data structure).
+
+This OMAP IPC system, called Syslink, is being actively developed by TI and
+will be gradually submitted upstream.
+
+2. OMAP I2C driver: On some OMAP4 boards, the I2C bus is shared between
+the A9 and the M3, and the hwspinlock is used to synchronize access to it.
+
+
+Patches are against linux-omap-2.6 master, which is 2.6.36-rc8 plus
+2.6.37 omap material (needed for the omap specific patches in this set).
+
+Tested on OMAP4 blaze.
+
+Contributions
+=============
+
+Previous versions of this driver circulated in linux-omap several times,
+and received substantial attention and contribution from many developers
+(see [1][2][3][4][5][6]):
+
+Simon Que did the initial implementation and pushed several iterations
+Benoit Cousson provided extensive review, help, improvements and hwmod support
+Hari Kanigeri helped out when Simon was away
+Sanjeev Premi, Santosh Shilimkar and Nishanth Menon did lots of review
+
+I'd like to thank Benoit Cousson, Steve Krueger, Hari Kanigeri,
+Nourredine Hamoudi and Richard Woodruff for useful discussions about
+the OMAP Spinlock requirements and use-cases.
+
+Relevant linux-omap threads:
+
+[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/38755
+[2] http://thread.gmane.org/gmane.linux.ports.arm.omap/38917
+[3] http://thread.gmane.org/gmane.linux.ports.arm.omap/39187
+[4] http://thread.gmane.org/gmane.linux.ports.arm.omap/39365
+[5] http://thread.gmane.org/gmane.linux.ports.arm.omap/39815
+[6] http://thread.gmane.org/gmane.linux.ports.arm.omap/40901
+
+Changes since the last linux-omap iteration:
+
+1. Disable interrupts and preemption when the lock is taken.
+   This is required in order to minimize the period of time in which
+   the other core might be spinning on this lock, trying to take it.
+   Otherwise the other core will be polling the omap interconnect for
+   too long, which would prevent other transactions from being executed.
+   spin_trylock_irqsave is used to achieve this, with a dedicated spinlock
+   (per hwspinlock). This also makes the hwspinlock primitive SMP-safe (but
+   you shouldn't use this primitive to achieve synchronizations between
+   different contexts on the same local processor, of course).
+
+2. Add memory barriers
+   The hwspinlock is used to achieve mutual exclusion when accessing some
+   shared memory data. To guarantee that the memory operations, performed
+   inside the critical section, are not reordered by the processor outside
+   that critical section, we must use explicit memory barriers.
+
+3. Provide three different locking API: trylock, lock_timeout, and lock,
+   and implement them on top of each other (in that order). For the timeout
+   API, use a jiffies-based parameter, instead of number of attempts.
+
+4. Relax the OMAP interconnect between two subsequent lock() attempts,
+   as recommended by the hw spec.
+
+5. Move driver to drivers/misc, do some general cleanups and documentation
+
+6. Use runtime PM get/put API to couple the number of locks that have being
+   requested with the runtime PM's usage_count of the underlying device
+
+Benoit Cousson (1):
+  OMAP4: hwmod data: Add hwspinlock
+
+Simon Que (2):
+  drivers: misc: add omap_hwspinlock driver
+  omap: add hwspinlock device
+
+ Documentation/misc-devices/omap_hwspinlock.txt |  199 +++++++++
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/hwspinlock.c               |   67 +++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c     |   63 +++
+ drivers/misc/Kconfig                           |   10 +
+ drivers/misc/Makefile                          |    1 +
+ drivers/misc/omap_hwspinlock.c                 |  555 ++++++++++++++++++++++++
+ include/linux/omap_hwspinlock.h                |  108 +++++
+ 8 files changed, 1004 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/misc-devices/omap_hwspinlock.txt
+ create mode 100644 arch/arm/mach-omap2/hwspinlock.c
+ create mode 100644 drivers/misc/omap_hwspinlock.c
+ create mode 100644 include/linux/omap_hwspinlock.h
