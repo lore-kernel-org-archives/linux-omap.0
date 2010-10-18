@@ -1,57 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: complete removal of
- machine_desc.io_pg_offst and .phys_io
-Date: Mon, 18 Oct 2010 14:45:22 -0700
-Message-ID: <20101018214522.GE13341@atomide.com>
-References: <1287406656-24133-1-git-send-email-gadiyar@ti.com>
- <20101018141230.GD12449@n2100.arm.linux.org.uk>
- <20101018142158.GG12449@n2100.arm.linux.org.uk>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH] mfd: twl4030: add twl4030_bci platform_data back
+Date: Tue, 19 Oct 2010 00:42:04 +0200
+Message-ID: <20101018224203.GD2570@sortiz-mobl>
+References: <1285928270-9302-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61385 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756075Ab0JRVpf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 17:45:35 -0400
+Received: from mga11.intel.com ([192.55.52.93]:4709 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933506Ab0JRWmH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Oct 2010 18:42:07 -0400
 Content-Disposition: inline
-In-Reply-To: <20101018142158.GG12449@n2100.arm.linux.org.uk>
+In-Reply-To: <1285928270-9302-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Anand Gadiyar <gadiyar@ti.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [101018 07:13]:
-> On Mon, Oct 18, 2010 at 03:12:30PM +0100, Russell King - ARM Linux wrote:
-> > On Mon, Oct 18, 2010 at 06:27:36PM +0530, Anand Gadiyar wrote:
-> > > Commit 861bd81ee6 in linux-next as of 20101018 (arm: remove
-> > > machine_desc.io_pg_offst and .phys_io) missed out on updating
-> > > a few boards. This causes the build of omap2plus_defconfig
-> > > to fail. Fix this.
-> > 
-> > Not quite true.  The patch merged into my tree eliminates io_pg_offst and
-> > phys_io for everything that is in my tree.
-> > 
-> > For new board support code which isn't in my tree, there is a problem -
-> > patches to it can't be applied to my tree.
-> > 
-> > However, applying these patches to the trees which have the new code in
-> > won't have the other changes related to the removal of io_pg_offst, and
-> > so the support code will subtly break until it's all merged together.
-> > 
-> > There's two solutions to this.  One is to wait merging new board code
-> > until after this merge window.  The other is to ensure that new board
-> > code is in _my_ tree before the io_pg_offst changes were submitted...
+Hi Grazvydas,
+
+On Fri, Oct 01, 2010 at 01:17:50PM +0300, Grazvydas Ignotas wrote:
+> Now that we have twl4030 charger driver, add back it's platform_data
+> (which was removed by f7ea2dc59ed46dcd0f1cfaccda02211f4507207b
+> as unused).
+Patch applied, many thanks.
+
+Cheers,
+Samuel.
+
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> ---
+> Well the driver is still in battery.git and linux-next, but I'm
+> pretty sure it will reach Linus.
 > 
-> I'm going to drop the io_pg_offst patches for a couple of days.  If
-> this new board support can be sorted out to come into my tree in the
-> next 24 hours, then I'm sure we can get this fixed properly.
+>  drivers/mfd/twl-core.c |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
 > 
-> I don't think I can afford to hold the io_pg_offst patches for more
-> than 48 hours though, so Wednesday evening they'll be merged whatever.
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index b0f2c00..2f5258f 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -115,6 +115,12 @@
+>  #define twl_has_codec()	false
+>  #endif
+>  
+> +#if defined(CONFIG_CHARGER_TWL4030) || defined(CONFIG_CHARGER_TWL4030_MODULE)
+> +#define twl_has_bci()	true
+> +#else
+> +#define twl_has_bci()	false
+> +#endif
+> +
+>  /* Triton Core internal information (BEGIN) */
+>  
+>  /* Last - for index max*/
+> @@ -826,6 +832,17 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
+>  			return PTR_ERR(child);
+>  	}
+>  
+> +	if (twl_has_bci() && pdata->bci &&
+> +			!(features & (TPS_SUBSET | TWL5031))) {
+> +		child = add_child(3, "twl4030_bci",
+> +				pdata->bci, sizeof(*pdata->bci), false,
+> +				/* irq0 = CHG_PRES, irq1 = BCI */
+> +				pdata->irq_base + BCI_PRES_INTR_OFFSET,
+> +				pdata->irq_base + BCI_INTR_OFFSET);
+> +		if (IS_ERR(child))
+> +			return PTR_ERR(child);
+> +	}
+> +
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.6.3.3
+> 
 
-Go ahead, I'll patch up accordingly in the omap tree so it will all
-merge nicely in for-next and for the merge window.
-
-Regards,
-
-Tony
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
