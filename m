@@ -1,53 +1,66 @@
-From: Bernard Blackham <bernard@largestprime.net>
-Subject: [PATCH] smsc95xx: generate random MAC address once, not every ifup
-Date: Tue, 19 Oct 2010 10:16:39 +1100
-Message-ID: <20101018231639.GA15955@mersenne.largestprime.net>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH] mfd: fix TWL4030 COR bit polarity for BCI SIH block
+Date: Tue, 19 Oct 2010 01:37:49 +0200
+Message-ID: <20101018233748.GB16761@sortiz-mobl>
+References: <1285680139-19092-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:63413 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753931Ab0JRXiH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 18 Oct 2010 19:38:07 -0400
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-To: Steve Glendinning <steve.glendinning@smsc.com>, netdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+In-Reply-To: <1285680139-19092-1-git-send-email-notasas@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>
 
-The smsc95xx driver currently generates a new random MAC address
-every time the interface is brought up. This makes it impossible to
-override using the standard `ifconfig hw ether` approach.
+Hi Grazvydas,
 
-Past patches tried to make the MAC address a module parameter or
-base it off the die ID, but it seems to me much simpler (and
-hopefully less controversial) to stick with the current random
-generation scheme, but allow the user to change the address.
+On Tue, Sep 28, 2010 at 04:22:19PM +0300, Grazvydas Ignotas wrote:
+> The chip TRM documentation contradicts itself about this bit, page 174
+> of swcu050e says bit should be 0 for clear-on-read behavior, while
+> page 487 says it should be 1. Testing shows it should be 1, so set
+> the .set_cor flag accordingly. This is needed for upcoming BCI
+> charging driver to function.
+Patch applied, thanks.
 
-This patch does exactly that - it moves the random address
-generation from smsc95xx_reset() into smsc95xx_bind(), so that it is
-done once on module load, not on every ifup. The user can then
-override this using the standard mechanisms.
+Cheers,
+Samuel.
 
-Applies against 2.6.35 and linux-2.6 head.
 
-Signed-off-by: Bernard Blackham <b-omap@largestprime.net>
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> ---
+>  drivers/mfd/twl4030-irq.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+> index 097f24d..5b5a559 100644
+> --- a/drivers/mfd/twl4030-irq.c
+> +++ b/drivers/mfd/twl4030-irq.c
+> @@ -144,6 +144,7 @@ static const struct sih sih_modules_twl4030[6] = {
+>  		.name		= "bci",
+>  		.module		= TWL4030_MODULE_INTERRUPTS,
+>  		.control_offset	= TWL4030_INTERRUPTS_BCISIHCTRL,
+> +		.set_cor	= true,
+>  		.bits		= 12,
+>  		.bytes_ixr	= 2,
+>  		.edr_offset	= TWL4030_INTERRUPTS_BCIEDR1,
+> @@ -408,7 +409,7 @@ static int twl4030_init_sih_modules(unsigned line)
+>  		 * set Clear-On-Read (COR) bit.
+>  		 *
+>  		 * NOTE that sometimes COR polarity is documented as being
+> -		 * inverted:  for MADC and BCI, COR=1 means "clear on write".
+> +		 * inverted:  for MADC, COR=1 means "clear on write".
+>  		 * And for PWR_INT it's not documented...
+>  		 */
+>  		if (sih->set_cor) {
+> -- 
+> 1.6.3.3
+> 
 
----
-
---- a/drivers/net/usb/smsc95xx.c	2010-10-19 00:15:35.915612223 +1100
-+++ b/drivers/net/usb/smsc95xx.c	2010-10-19 00:15:55.408550929 +1100
-@@ -805,8 +805,6 @@ static int smsc95xx_reset(struct usbnet
- 		return ret;
- 	}
- 
--	smsc95xx_init_mac_address(dev);
--
- 	ret = smsc95xx_set_mac_address(dev);
- 	if (ret < 0)
- 		return ret;
-@@ -1047,6 +1045,8 @@ static int smsc95xx_bind(struct usbnet *
- 	pdata->use_tx_csum = DEFAULT_TX_CSUM_ENABLE;
- 	pdata->use_rx_csum = DEFAULT_RX_CSUM_ENABLE;
- 
-+	smsc95xx_init_mac_address(dev);
-+
- 	/* Init all registers */
- 	ret = smsc95xx_reset(dev);
- 
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
