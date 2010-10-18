@@ -1,47 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 0/5] OMAP4: mux: Add the OMAP4430 ES1 support
-Date: Mon, 18 Oct 2010 16:00:13 -0700
-Message-ID: <20101018230013.GI13341@atomide.com>
-References: <1285319748-28976-1-git-send-email-b-cousson@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C014FAB2762@dlee02.ent.ti.com>
- <4CBCB35E.9080502@ti.com>
+Subject: Re: [PATCHv3 00/11] staging tidspbridge: iommu migration
+Date: Mon, 18 Oct 2010 16:06:55 -0700
+Message-ID: <20101018230655.GJ13341@atomide.com>
+References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
+ <AANLkTimoTmhAw11jJihiuyByzKZ9KTFHvx6iw8oeLCGg@mail.gmail.com>
+ <496565EC904933469F292DDA3F1663E602F47B2BB1@dlee06.ent.ti.com>
+ <AANLkTim6XRgnefA0vmRNeW=TONhxz68WYAjuA96LqWOj@mail.gmail.com>
+ <496565EC904933469F292DDA3F1663E602F47B3002@dlee06.ent.ti.com>
+ <AANLkTik3hhWy+tRxThtrbwNXTssV7nf9+_LGn5Ct3iet@mail.gmail.com>
+ <496565EC904933469F292DDA3F1663E602F48817EF@dlee06.ent.ti.com>
+ <AANLkTi=juk+824k1R8mJrDostKhRz+nRNqj9E-rNYWrv@mail.gmail.com>
+ <496565EC904933469F292DDA3F1663E602F4881816@dlee06.ent.ti.com>
+ <AANLkTikfn9w-FMKXOVXibwHVy4vt72GdveDLVv0z3GmT@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51705 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754207Ab0JRXAQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 19:00:16 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4CBCB35E.9080502@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <AANLkTikfn9w-FMKXOVXibwHVy4vt72GdveDLVv0z3GmT@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "gregkh@suse.de" <gregkh@suse.de>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Cousson, Benoit <b-cousson@ti.com> [101018 13:42]:
-> Hi Nishanth,
+* Felipe Contreras <felipe.contreras@gmail.com> [101015 13:09]:
+> On Fri, Oct 15, 2010 at 7:53 PM, Guzman Lugo, Fernando
+> <fernando.lugo@ti.com> wrote:
+> >> If you want I can provide my working branch on top of .36-rc8
+> >> with next-staging merged. If I revert your patches, it works fine.
+> >
+> > That could be interested. Can you send me the link?
 > 
-> On 10/18/2010 8:09 PM, Menon, Nishanth wrote:
-> >>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >>owner@vger.kernel.org] On Behalf Of Benoit Cousson
-> >>
-> >Ping? Is there a possibility for a v2 non-rfc ES2 support?
+> There you go:
+> git://gitorious.org/~felipec/linux-omap/felipec.git (fc-dsp-work)
 > 
-> And what about a RFC v2? With ES2 support of course :-)
-> 
-> The changes I have done are breaking RX51 support due to the usage
-> of low-level API from the mux code.
-> 
-> For the moment I just disabled that code from the RX51, so there is
-> no way I send that except in a RFC form :-(
+> HEAD works, HEAD^ doesn't.
 
-I have some ideas on doing the board specific runtime remuxing.
-That should also solve the rx51 emmc remuxing.
+Great, can you please also let us know what if anything should
+be still queued for the merge window that's about to open?
 
-Let's plan on merging your patches first after the merge window,
-then I'll do my patches on top of yours to avoid rebasing.
-
-Regards,
+I've lost track of the dspbridge mutations by now..
 
 Tony
