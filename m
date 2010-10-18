@@ -1,57 +1,65 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 0/3] Add OMAP hardware spinlock misc driver
-Date: Mon, 18 Oct 2010 15:43:37 +0200
-Message-ID: <1287409417.29097.1598.camel@twins>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
-	 <1287406015.29097.1579.camel@twins>
-	 <20101018133502.GA12449@n2100.arm.linux.org.uk>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 1/2] video: omap: vram: remove from normal memory
+Date: Mon, 18 Oct 2010 17:03:38 +0300
+Message-ID: <1287410618.6781.110.camel@tubuntu>
+References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
+	 <1287146784-5517-1-git-send-email-felipe.contreras@gmail.com>
+	 <1287407452.6781.64.camel@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:55332 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755092Ab0JRNoE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 09:44:04 -0400
-In-Reply-To: <20101018133502.GA12449@n2100.arm.linux.org.uk>
+Received: from mgw-sa02.ext.nokia.com ([147.243.1.48]:22944 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755903Ab0JROEI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 10:04:08 -0400
+In-Reply-To: <1287407452.6781.64.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: ext Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, Russell King <linux@arm.linux.org.uk>, "mike@compulab.co.il" <mike@compulab.co.il>
 
-On Mon, 2010-10-18 at 14:35 +0100, Russell King - ARM Linux wrote:
-> On Mon, Oct 18, 2010 at 02:46:55PM +0200, Peter Zijlstra wrote:
-> > On Mon, 2010-10-18 at 09:44 +0200, Ohad Ben-Cohen wrote:
-> > > OMAP4 introduces a Spinlock hardware module, which provides hardware
-> > > assistance for synchronization and mutual exclusion between heterogeneous
-> > > processors and those not operating under a single, shared operating system
-> > > (e.g. OMAP4 has dual Cortex-A9, dual Cortex-M3 and a C64x+ DSP). 
-> > 
-> > I just have to ask... was it really easier to build silicon than to
-> > agree on a spinlock ABI?
+On Mon, 2010-10-18 at 16:10 +0300, Tomi Valkeinen wrote:
+> Hi,
 > 
-> I'm not really sure what point you're trying to make, but if you're
-> suggesting that Linux's spinlock should be exposed to these other
-> processors, you're completely off your rocker.
+> On Fri, 2010-10-15 at 14:46 +0200, ext Felipe Contreras wrote:
+> > So that we can ioremap happily.
+> > 
+> > Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> > ---
+> >  drivers/video/omap2/vram.c |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
+> > index f6fdc20..1a99777 100644
+> > --- a/drivers/video/omap2/vram.c
+> > +++ b/drivers/video/omap2/vram.c
+> > @@ -575,6 +575,8 @@ void __init omap_vram_reserve_sdram_memblock(void)
+> >  		}
+> >  	} else {
+> >  		paddr = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
+> > +		memblock_free(paddr, size);
+> > +		memblock_remove(paddr, size);
+> >  	}
+> >  
+> >  	omap_vram_add_region(paddr, size);
+> 
+> I tested this on OMAP3 SDP board, on top of my DSS2 tree. I can boot up
+> fine, but my test program crashes the kernel (dump below).
+> 
+> This crash doesn't happen if I have the "HACK: OMAP: DSS2: OMAPFB: use
+> phys_to_virt for RAM mappings" patch in (I removed that during testing
+> this patch).
+> 
+> I don't know yet what is crashing the kernel, but I'd guess it's the
+> fact that my test program reallocates the framebuffer memory with
+> OMAPFB_SETUP_MEM ioctl.
 
-Of course not, that would indeed be utterly silly, nor would it serve
-any purpose, the Linux kernel spinlocks are internal spinlocks and need
-not interact with anything out side of it.
+Ah, sorry, I was missing the patch from Russel which you mentioned in
+another mail (http://article.gmane.org/gmane.linux.kernel/1047146). With
+that patch included things seem to work.
 
-But for the purpose of communicating with a heterogeneous CPU/DSP it
-would make perfect sense to specify a spinlock ABI. Creating specific
-hardware just to serialise between these components seems like overkill.
+ Tomi
 
-> In any case, Linux's spinlock API (or more accurately, the ARM exclusive
-> access instructions) relies upon hardware coherency support (a piece of
-> hardware called an exclusive monitor) which isn't present on the M3 nor
-> DSP processors.  So there's no way to ensure that updates from the M3
-> and DSP are atomic wrt the A9 updates.
 
-Right, so the problem is that there simply is no way to do atomic memory
-access from these auxiliary processing units wrt the main CPU? Seeing as
-they operate on the same memory space, wouldn't it make sense to have
-them cache-coherent and thus provide atomicy guarantees through that?
-
-But that's water under the bridge, and your last paragraph does indeed
-answer my question.
