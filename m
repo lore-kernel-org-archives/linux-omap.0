@@ -1,117 +1,57 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Issue observed with pm_runtime_put_sync
-Date: Mon, 18 Oct 2010 14:42:19 -0700
-Message-ID: <87ocar89fo.fsf@deeprootsystems.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61359@dbde02.ent.ti.com>
-	<87k4lfecwi.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61717@dbde02.ent.ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030D1704FA@dbde02.ent.ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61769@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: omap: complete removal of
+ machine_desc.io_pg_offst and .phys_io
+Date: Mon, 18 Oct 2010 14:45:22 -0700
+Message-ID: <20101018214522.GE13341@atomide.com>
+References: <1287406656-24133-1-git-send-email-gadiyar@ti.com>
+ <20101018141230.GD12449@n2100.arm.linux.org.uk>
+ <20101018142158.GG12449@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:34538 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806Ab0JRVmX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 17:42:23 -0400
-Received: by gwj19 with SMTP id 19so67924gwj.19
-        for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2010 14:42:23 -0700 (PDT)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61769@dbde02.ent.ti.com>
-	(Manjunath Kondaiah G.'s message of "Tue, 19 Oct 2010 00:14:39 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61385 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756075Ab0JRVpf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 17:45:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20101018142158.GG12449@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Anand Gadiyar <gadiyar@ti.com>, Nicolas Pitre <nicolas.pitre@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [101018 07:13]:
+> On Mon, Oct 18, 2010 at 03:12:30PM +0100, Russell King - ARM Linux wrote:
+> > On Mon, Oct 18, 2010 at 06:27:36PM +0530, Anand Gadiyar wrote:
+> > > Commit 861bd81ee6 in linux-next as of 20101018 (arm: remove
+> > > machine_desc.io_pg_offst and .phys_io) missed out on updating
+> > > a few boards. This causes the build of omap2plus_defconfig
+> > > to fail. Fix this.
+> > 
+> > Not quite true.  The patch merged into my tree eliminates io_pg_offst and
+> > phys_io for everything that is in my tree.
+> > 
+> > For new board support code which isn't in my tree, there is a problem -
+> > patches to it can't be applied to my tree.
+> > 
+> > However, applying these patches to the trees which have the new code in
+> > won't have the other changes related to the removal of io_pg_offst, and
+> > so the support code will subtly break until it's all merged together.
+> > 
+> > There's two solutions to this.  One is to wait merging new board code
+> > until after this merge window.  The other is to ensure that new board
+> > code is in _my_ tree before the io_pg_offst changes were submitted...
+> 
+> I'm going to drop the io_pg_offst patches for a couple of days.  If
+> this new board support can be sorted out to come into my tree in the
+> next 24 hours, then I'm sure we can get this fixed properly.
+> 
+> I don't think I can afford to hold the io_pg_offst patches for more
+> than 48 hours though, so Wednesday evening they'll be merged whatever.
 
->> -----Original Message-----
->> From: Shilimkar, Santosh 
->> Sent: Monday, October 18, 2010 9:42 PM
->> To: G, Manjunath Kondaiah; Kevin Hilman
->> Cc: linux-omap@vger.kernel.org
->> Subject: RE: Issue observed with pm_runtime_put_sync
->> 
->> Manju,
->> > -----Original Message-----
->> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> > owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
->> > Sent: Monday, October 18, 2010 9:31 PM
->> > To: Kevin Hilman
->> > Cc: linux-omap@vger.kernel.org
->> > Subject: RE: Issue observed with pm_runtime_put_sync
->> > 
->> > 
->> > Kevin,
->> > 
->> > > -----Original Message-----
->> > > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> > > Sent: Monday, October 18, 2010 9:01 PM
->> > > To: G, Manjunath Kondaiah
->> > > Cc: linux-omap@vger.kernel.org
->> > > Subject: Re: Issue observed with pm_runtime_put_sync
->> > >
->> > > Manjunath,
->> > >
->> > > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
->> > > >
->> > 
->> > [...]
->> > 
->> > > > Is this a known issue or issue with pm runtime API usage in
->> > > DMA driver?
->> > >
->> > > It's an issue in the runtime PM usage in DMA driver.
->> > >
->> > > Specifically, the _sync versions of the API cannot be used
->> > > from interrupt context because they can sleep.
->> > >
->> > > Are the _sync versions really needed at that point?  Without
->> > > having the code, I cannot tell, but I susupect that the async
->> > > versions could be used there instead.
->> > >
->> > > If not, then the code will need to be reworked so the ISR is
->> > > not doing the actual work, but instead is scheduling work to
->> > > be done later in process context.
->> > 
->> > It looks to me this issue is related to DMA client driver since
->> > DMA driver only invokes call back function registered 
->> during dma channel
->> > setup. The control will be passed to DMA client driver. Now it is
->> > responsibility of DMA client driver to invoke free_dma(free_dma will
->> > invoke put_sync) from non interrupt context.
->> > 
->> > Most of the times, callback will indicate end of data transfer, the
->> > client driver will release all DMA resources from interrupt context
->> > itself.
->> > 
->> Why are you doing put_sync/get_sync per channel alloc/free. DMA has 
->> a single clock and not each for per channel. The driver should release
->> DMA clocks when all channels are free and acquire it on the 
->> first channel
->> request.
->> 
->> We did discuss this sometime back on the LO, right ?
->
-> In this case, we might have to check all the 32 channels status(free or
-> used) for every free_dma call.
->  
-> I was thinking to use dev->power.usage_count field for each get_sysnc and put_sync.
->
-> We can have additional logic in free_dma if get_sync/put_sync is overhead.
+Go ahead, I'll patch up accordingly in the omap tree so it will all
+merge nicely in for-next and for the merge window.
 
-Either you do the use counting in the DMA layer, or you just let the
-runtime PM layer do the use counting.  Either way, only when usecount
-transitions to/from zero will the actual omap_device API be invoked,
-so I prefer to just let runtime PM do the usecounting.
+Regards,
 
-In fact, the runtime PM API also provides useful statistics as well as
-sysfs controls for either preventing a device from going idle, or
-bringing it out of idle.
-
-If you continue to use the runtime PM API, you will have these
-statistics and controls per-channel, which is probably rather useful.
-In fact, recent versions of powertop will even report stats from runtime
-PM, so beinga able to see per-channel DMA stats could be quite useful.
-
-Kevin
+Tony
