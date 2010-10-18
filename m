@@ -1,114 +1,46 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 3/3] omap: add hwspinlock device
-Date: Mon, 18 Oct 2010 09:44:35 +0200
-Message-ID: <1287387875-14168-4-git-send-email-ohad@wizery.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1287387875-14168-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 9/9] arch: arm: fixed typos
+Date: Mon, 18 Oct 2010 10:06:44 +0200
+Message-ID: <20101018080644.GD12363@pengutronix.de>
+References: <1287219606-20759-1-git-send-email-andrea.gelmini@gelma.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:36318 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751935Ab0JRIHV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 04:07:21 -0400
+Content-Disposition: inline
+In-Reply-To: <1287219606-20759-1-git-send-email-andrea.gelmini@gelma.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Andrea Gelmini <andrea.gelmini@gelma.net>
+Cc: Nishanth Menon <nm@ti.com>, Leo Chen <leochen@broadcom.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Grazvydas Ignotas <notasas@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Rajendra Nayak <rnayak@ti.com>, Maciej Sosnowski <maciej.sosnowski@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@slimlogic.co.uk>, Paul Walmsley <paul@pwsan.com>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Scott Branden <sbranden@broadcom.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tero Kristo <tero.kristo@nokia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tejun Heo <tj@kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Andrew
 
-From: Simon Que <sque@ti.com>
+Hello,
 
-Build and register an hwspinlock platform device.
+[Adding trivial@kernel.org to Cc:]
 
-Although only OMAP4 supports the hardware spinlock module (for now),
-it is still safe to run this initcall on all omaps, because hwmod lookup
-will simply fail on hwspinlock-less platforms.
+On Sat, Oct 16, 2010 at 11:00:05AM +0200, Andrea Gelmini wrote:
+> Intialize, configuation, wakup, Managment, addres
+I already fixed some of these in
 
-Signed-off-by: Simon Que <sque@ti.com>
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
----
- arch/arm/mach-omap2/Makefile     |    1 +
- arch/arm/mach-omap2/hwspinlock.c |   67 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/hwspinlock.c
+	http://thread.gmane.org/gmane.linux.kernel/1030436/
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 7352412..e55d1c5 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -190,3 +190,4 @@ obj-y					+= $(smc91x-m) $(smc91x-y)
- 
- smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
- obj-y					+= $(smsc911x-m) $(smsc911x-y)
-+obj-$(CONFIG_ARCH_OMAP4)		+= hwspinlock.o
-diff --git a/arch/arm/mach-omap2/hwspinlock.c b/arch/arm/mach-omap2/hwspinlock.c
-new file mode 100644
-index 0000000..641a6d4
---- /dev/null
-+++ b/arch/arm/mach-omap2/hwspinlock.c
-@@ -0,0 +1,67 @@
-+/*
-+ * OMAP hardware spinlock device initialization
-+ *
-+ * Copyright (C) 2010 Texas Instruments. All rights reserved.
-+ *
-+ * Contact: Simon Que <sque@ti.com>
-+ *          Hari Kanigeri <h-kanigeri2@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+
-+#include <plat/omap_hwmod.h>
-+#include <plat/omap_device.h>
-+
-+struct omap_device_pm_latency omap_spinlock_latency[] = {
-+	{
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func   = omap_device_enable_hwmods,
-+		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	}
-+};
-+
-+int __init hwspinlocks_init(void)
-+{
-+	int retval = 0;
-+	struct omap_hwmod *oh;
-+	struct omap_device *od;
-+	const char *oh_name = "spinlock";
-+	const char *dev_name = "omap_hwspinlock";
-+
-+	/*
-+	 * Hwmod lookup will fail in case our platform doesn't support the
-+	 * hardware spinlock module, so it is safe to run this initcall
-+	 * on all omaps
-+	 */
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (oh == NULL)
-+		return -EINVAL;
-+
-+	od = omap_device_build(dev_name, 0, oh, NULL, 0,
-+				omap_spinlock_latency,
-+				ARRAY_SIZE(omap_spinlock_latency), false);
-+	if (IS_ERR(od)) {
-+		pr_err("Can't build omap_device for %s:%s\n", dev_name,
-+								oh_name);
-+		retval = PTR_ERR(od);
-+	}
-+
-+	return retval;
-+}
-+postcore_initcall(hwspinlocks_init);
--- 
-1.7.0.4
+Don't know why they didn't appear in the trivial tree yet.
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
