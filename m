@@ -1,62 +1,41 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Issue observed with pm_runtime_put_sync
-Date: Mon, 18 Oct 2010 08:30:53 -0700
-Message-ID: <87k4lfecwi.fsf@deeprootsystems.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61359@dbde02.ent.ti.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 0/3] Add OMAP hardware spinlock misc driver
+Date: Mon, 18 Oct 2010 17:32:09 +0200
+Message-ID: <1287415929.29097.1616.camel@twins>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+	 <1287406015.29097.1579.camel@twins>
+	 <20101018133502.GA12449@n2100.arm.linux.org.uk>
+	 <1287409417.29097.1598.camel@twins>
+	 <tnxeibnh67q.fsf@e102109-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:53334 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753388Ab0JRPa4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 11:30:56 -0400
-Received: by pxi16 with SMTP id 16so158976pxi.19
-        for <linux-omap@vger.kernel.org>; Mon, 18 Oct 2010 08:30:55 -0700 (PDT)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61359@dbde02.ent.ti.com>
-	(Manjunath Kondaiah G.'s message of "Mon, 18 Oct 2010 13:30:30 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <tnxeibnh67q.fsf@e102109-lin.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Manjunath,
+On Mon, 2010-10-18 at 16:27 +0100, Catalin Marinas wrote:
+> Peter Zijlstra <peterz@infradead.org> wrote:
+> > On Mon, 2010-10-18 at 14:35 +0100, Russell King - ARM Linux wrote:
+> >> In any case, Linux's spinlock API (or more accurately, the ARM exclusive
+> >> access instructions) relies upon hardware coherency support (a piece of
+> >> hardware called an exclusive monitor) which isn't present on the M3 nor
+> >> DSP processors.  So there's no way to ensure that updates from the M3
+> >> and DSP are atomic wrt the A9 updates.
+> >
+> > Right, so the problem is that there simply is no way to do atomic memory
+> > access from these auxiliary processing units wrt the main CPU? Seeing as
+> > they operate on the same memory space, wouldn't it make sense to have
+> > them cache-coherent and thus provide atomicy guarantees through that?
+> 
+> With cache coherency you may get atomicity of writes or reads but
+> usually not atomic modifications.
 
-"G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+Sure, but you can 'easily' extend your coherency protocols with support
+for things like ll/sc (or larger transactions).
 
-> While using pm runtime API's with DMA, it was observed that, during
-> omap_free_dma, pm_runtime_put_sync is called which results in warning
-> dump.  It looks like, when cpu idle patch is under processing, DMA
-> interrupt gets fired which inturn call omap_free_dma which results
-> multiple spin_locks.
->  
-> The DMA driver uses *_get_sync during omap_request_dma and *_put_sync during
-> omap_free_dma.
->  
-> Environment:
-> Kernel:
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-> Branch: master
-> Commit: 99cf630 Linux-omap rebuilt: Fixed omap4 kernel panic without nosmp,
-> updated to -rc7
-> +
-> DMA hwmod patches
->  
-> defconfig: omap2plus_defconfig
-> board: OMAP3630 Zoom3
->  
-> Is this a known issue or issue with pm runtime API usage in DMA driver?
-
-It's an issue in the runtime PM usage in DMA driver.
-
-Specifically, the _sync versions of the API cannot be used from
-interrupt context because they can sleep.
-
-Are the _sync versions really needed at that point?  Without having the
-code, I cannot tell, but I susupect that the async versions could be
-used there instead.
-
-If not, then the code will need to be reworked so the ISR is not doing
-the actual work, but instead is scheduling work to be done later in
-process context.
-
-Kevin
+Have ll bring the cacheline into exclusive state and tag it, then
+anything that demotes the cacheline will clear the tag and make sc fail.
