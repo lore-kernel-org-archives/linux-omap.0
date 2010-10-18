@@ -1,95 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH 2/2] OMAP4: PRCM: Fix usage of prm/cm accessor
- api's for OMAP4
-Date: Mon, 18 Oct 2010 15:52:58 -0700
-Message-ID: <20101018225258.GG13341@atomide.com>
-References: <1281452576-5705-1-git-send-email-rnayak@ti.com>
- <1281452576-5705-2-git-send-email-rnayak@ti.com>
- <1281452576-5705-3-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.1010141239170.21196@utopia.booyaka.com>
- <4CB87C39.5010100@ti.com>
+Subject: Re: [PATCH 1/2] video: omap: vram: remove from normal memory
+Date: Mon, 18 Oct 2010 15:55:34 -0700
+Message-ID: <20101018225534.GH13341@atomide.com>
+References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
+ <1287146784-5517-1-git-send-email-felipe.contreras@gmail.com>
+ <1287407452.6781.64.camel@tubuntu>
+ <1287410618.6781.110.camel@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51171 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53520 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756645Ab0JRWxE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 18:53:04 -0400
+	with ESMTP id S1756633Ab0JRWzq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 18:55:46 -0400
 Content-Disposition: inline
-In-Reply-To: <4CB87C39.5010100@ti.com>
+In-Reply-To: <1287410618.6781.110.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: ext Felipe Contreras <felipe.contreras@gmail.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, Russell King <linux@arm.linux.org.uk>, "mike@compulab.co.il" <mike@compulab.co.il>
 
-* Cousson, Benoit <b-cousson@ti.com> [101015 08:58]:
-> Hi Paul,
+* Tomi Valkeinen <tomi.valkeinen@nokia.com> [101018 06:55]:
+> On Mon, 2010-10-18 at 16:10 +0300, Tomi Valkeinen wrote:
+> > Hi,
+> > 
+> > On Fri, 2010-10-15 at 14:46 +0200, ext Felipe Contreras wrote:
+> > > So that we can ioremap happily.
+> > > 
+> > > Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> > > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> > > ---
+> > >  drivers/video/omap2/vram.c |    2 ++
+> > >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
+> > > index f6fdc20..1a99777 100644
+> > > --- a/drivers/video/omap2/vram.c
+> > > +++ b/drivers/video/omap2/vram.c
+> > > @@ -575,6 +575,8 @@ void __init omap_vram_reserve_sdram_memblock(void)
+> > >  		}
+> > >  	} else {
+> > >  		paddr = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
+> > > +		memblock_free(paddr, size);
+> > > +		memblock_remove(paddr, size);
+> > >  	}
+> > >  
+> > >  	omap_vram_add_region(paddr, size);
+> > 
+> > I tested this on OMAP3 SDP board, on top of my DSS2 tree. I can boot up
+> > fine, but my test program crashes the kernel (dump below).
+> > 
+> > This crash doesn't happen if I have the "HACK: OMAP: DSS2: OMAPFB: use
+> > phys_to_virt for RAM mappings" patch in (I removed that during testing
+> > this patch).
+> > 
+> > I don't know yet what is crashing the kernel, but I'd guess it's the
+> > fact that my test program reallocates the framebuffer memory with
+> > OMAPFB_SETUP_MEM ioctl.
 > 
-> On 10/14/2010 8:44 PM, Paul Walmsley wrote:
-> >Hello Rajendra,
-> >
-> >On Tue, 10 Aug 2010, Rajendra Nayak wrote:
-> >
-> >>OMAP's have always had PRCM split into PRM for power and reset
-> >>management and CM for clock management.
-> >>In OMAP4 the split (physically) is not very straight forward and
-> >>there are instances of clock management control registers in PRM
-> >>and vice versa.
-> >>However it still makes sense, even on OMAP4 to logically split
-> >>PRCM into PRM and CM for better understanding and to avoid adding
-> >>additonal complexity in higher level frameworks which rely on the
-> >>accessor api;s to do the low level register accesses.
-> >>
-> >>Hence this patch makes sure that any clock management code can
-> >>use the cm_read/write* accessor apis (without knowing the physical split)
-> >>and power and reset management code can use prm_read/write*
-> >>accessor api;s.
-> >>
-> >>To do this the submodule offsets within PRM/CM1 and CM2 have additonal
-> >>info embedded in them specifying what base address to use while
-> >>trying to access registers in the given submodule.
-> >>
-> >>The 16 bit signed submodule offset is defined for OMAP4 as
-> >><Bit 15>	|<Bit 14:13>  		|<Bit 12:0>
-> >><Sign bit>	|<base identifier>	|<submodule offset from base>
-> >
-> >The concern that I have with embedding multiple parameters into a single
-> >parameter is that it seems like a hack.  Why not add an extra parameter
-> >for the base identifier, rather than packing it into an existing
-> >parameter?
-> 
-> The primary constraint that lead us to that proposal was to minimize
-> the impact on the existing code and API for previous OMAPs.
-> That was clearly the goal #1.
-> The other one was the relative simplicity of the implementation.
-> 
-> The user of these OMAP4430_XXXX_MOD macros does not have to care if
-> this is a real offset or just an id.
-> 
-> >I am not necessarily opposed to your patch as it exists.  But I would like
-> >to hear your opinions first on separating out the base identifier
-> >parameter as a separate function parameter, and then adding an extra field
-> >for it into any data structure that would need it.  Could you write
-> >briefly if you see any significant advantages/disadvantages to that
-> >approach?
-> 
-> The disadvantage is the relative complexity for the caller of this
-> API, that will have to know what partition should be used.
-> It is fine if the caller is the powerdomain or clockdomain fmwk, but
-> what about all the other callers we have here and there?
-> When we looked at that in Bangalore, we realized that a bunch of
-> code is using these prm/cm APIs. Maybe some cleanup can be done,
-> like in the save / restore part, but we still have some user of
-> that.
-> 
-> For the moment, I do not really see any advantage of such approach.
-> The partitioning is changing on every OMAPs, so we do have to
-> abstract that. If it is not done at that level, we will have to
-> define another API on top of that to do exactly the same job.
+> Ah, sorry, I was missing the patch from Russel which you mentioned in
+> another mail (http://article.gmane.org/gmane.linux.kernel/1047146). With
+> that patch included things seem to work.
 
-I think we should be able to deal with the partitions properly
-by ioremapping them separately as needed. Might as well do it now.
+Tomi, I assume you're queuing these? If so, for both:
 
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
