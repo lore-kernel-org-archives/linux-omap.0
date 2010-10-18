@@ -1,47 +1,27 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] arm: omap: complete removal of
-	machine_desc.io_pg_offst and .phys_io
-Date: Mon, 18 Oct 2010 15:21:58 +0100
-Message-ID: <20101018142158.GG12449@n2100.arm.linux.org.uk>
-References: <1287406656-24133-1-git-send-email-gadiyar@ti.com> <20101018141230.GD12449@n2100.arm.linux.org.uk>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 0/3] Add OMAP hardware spinlock misc driver
+Date: Mon, 18 Oct 2010 16:28:06 +0200
+Message-ID: <AANLkTimYK_JVafj5XdN+d9O8h_qon17Jkw7LRpJVZvuO@mail.gmail.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+ <1287406015.29097.1579.camel@twins> <20101018133502.GA12449@n2100.arm.linux.org.uk>
+ <1287409417.29097.1598.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37076 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755979Ab0JROWL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 10:22:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20101018141230.GD12449@n2100.arm.linux.org.uk>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:51972 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755770Ab0JRO3C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 10:29:02 -0400
+In-Reply-To: <1287409417.29097.1598.camel@twins>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Oct 18, 2010 at 03:12:30PM +0100, Russell King - ARM Linux wrote:
-> On Mon, Oct 18, 2010 at 06:27:36PM +0530, Anand Gadiyar wrote:
-> > Commit 861bd81ee6 in linux-next as of 20101018 (arm: remove
-> > machine_desc.io_pg_offst and .phys_io) missed out on updating
-> > a few boards. This causes the build of omap2plus_defconfig
-> > to fail. Fix this.
-> 
-> Not quite true.  The patch merged into my tree eliminates io_pg_offst and
-> phys_io for everything that is in my tree.
-> 
-> For new board support code which isn't in my tree, there is a problem -
-> patches to it can't be applied to my tree.
-> 
-> However, applying these patches to the trees which have the new code in
-> won't have the other changes related to the removal of io_pg_offst, and
-> so the support code will subtly break until it's all merged together.
-> 
-> There's two solutions to this.  One is to wait merging new board code
-> until after this merge window.  The other is to ensure that new board
-> code is in _my_ tree before the io_pg_offst changes were submitted...
+On Mon, Oct 18, 2010 at 3:43 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> Right, so the problem is that there simply is no way to do atomic memory
+> access from these auxiliary processing units wrt the main CPU?
 
-I'm going to drop the io_pg_offst patches for a couple of days.  If
-this new board support can be sorted out to come into my tree in the
-next 24 hours, then I'm sure we can get this fixed properly.
-
-I don't think I can afford to hold the io_pg_offst patches for more
-than 48 hours though, so Wednesday evening they'll be merged whatever.
+Yes. There are a few relevant system-wide limitations, one of them is
+that simply the system interconnect does not support those fancy
+atomic operations.
