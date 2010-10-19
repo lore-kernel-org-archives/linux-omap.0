@@ -1,72 +1,53 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [RFC v3][PATCH 0/4] OMAP: DSS2: Overlay Manager LCD2 support
- in DISPC
-Date: Tue, 19 Oct 2010 16:09:50 +0300
-Message-ID: <1287493790.2216.26.camel@tubuntu>
-References: <1286279724-11692-1-git-send-email-archit@ti.com>
+From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Tue, 19 Oct 2010 06:27:57 -0700
+Message-ID: <4CBD9CDD.1010300@linux.intel.com>
+References: <201010062334.46971.trenn@suse.de> <4CB095FA.8060803@linux.intel.com> <20101010121928.GA2688@elte.hu> <201010191331.03080.trenn@suse.de> <20101019114501.GA25371@elte.hu> <1287488841.1994.5.camel@twins> <20101019115200.GC25371@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:62788 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758554Ab0JSNKB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 09:10:01 -0400
-In-Reply-To: <1286279724-11692-1-git-send-email-archit@ti.com>
+Received: from mga14.intel.com ([143.182.124.37]:8261 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758570Ab0JSN2A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Oct 2010 09:28:00 -0400
+In-Reply-To: <20101019115200.GC25371@elte.hu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Archit Taneja <archit@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Renninger <trenn@suse.de>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org
 
-Hi,
+  On 10/19/2010 4:52 AM, Ingo Molnar wrote:
+> * Peter Zijlstra<peterz@infradead.org>  wrote:
+>
+>> On Tue, 2010-10-19 at 13:45 +0200, Ingo Molnar wrote:
+>>> * Thomas Renninger<trenn@suse.de>  wrote:
+>>>
+>>>>> Most definitely. It's no accident that it took such a long time for this issue
+>>>>> to be raised in the first place. It's a rare occurance -
+>>>> Do you agree that this occurance happened now and these events should get cleaned
+>>>> up before ARM and other archs make use of the broken interface?
+>>>>
+>>>> If not, discussing this further, is a big waste of time... and Jean would have to
+>>>> try to adapt his ARM code on the broken ABI...
+>>> The discussion seems to have died down somewhat. Please re-send to lkml the latest
+>>> patches you have to remind everyone of the latest state of things - the merge window
+>>> is getting near.
+>>>
+>>> My only compatibility/ABI point is basically that it shouldnt break _existing_
+>>> tracepoints (and users thereof). If your latest bits meet that then it ought to be a
+>>> good first step. You are free to (and encouraged to) introduce more complete sets of
+>>> events.
+>> Can we deprecate and eventually remove the old ones, or will we be forever obliged
+>> to carry the old ones too?
+> We most definitely want to deprecate and remove the old ones - but we want to give
+> instrumentation software some migration time for that.
+>
+> Jean, Arjan, what would be a feasible and practical deprecation period for that? One
+> kernel cycle?
 
-On Tue, 2010-10-05 at 13:55 +0200, ext Archit Taneja wrote:
-> This patch series which incorporates changes in DSS2 to enable
-> omap_dss_device instances to use the new Overlay Manager LCD2 in
-> DISPC.
-> 
-> On OMAP4, we have a new DISPC channel for Overlay Manager LCD2. This
-> channel's video port is a source port for RFBI, DSI2 and DPI. The
-> Primary channel's video port is connected to RFBI and DSI1.
-> 
-> There is a set of regsiters for LCD2 channel similar to the existing
-> LCD channel, like DISPC_CONTROL2, DISPC_DIVISOR2, DISPC_CONFIG2 and so
-> on.
-> 
-> In order to decide which LCD Overlay Manager to configure(LCD/LCD2),
-> there is a need for the omap_dss_device instances to tell the interface
-> drivers(DSI, DPI, RFBI etc) which LCD channel they want to connect to, so
-> that the corresponding registers get configured. Therefore, a new
-> enum omap_channel member is introduced to omap_dss_device.
-> 
-> This design was made keeping in mind the possible addition of more
-> Overlay Managers in future OMAPs, this code is also backward compatible
-> with OMAP3 as omap_dss_device instances in OMAP3 will stick only with
-> OMAP_DSS_CHANNEL_LCD.
-> 
-> This will apply over the set of dss_feature framework patches:
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34768.html
+more like a year
 
-The patchset makes dispc API changes in patch 2, but doesn't change any
-of the code that uses that API. This means that the kernel doesn't
-compile after applying patch 2.
-
-The kernel has to be compilable and working after each patch, so that is
-not acceptable.
-
-Fixing that in easy way would mean squashing the later patches together
-with patch 2, but that would result in a huge patch, and patch 2 is
-already very big. Thus I'd suggest doing the changes in smaller bits.
-
-You could first add the register definitions, and make the changes in
-dispc.c to keep everything working. After that you could change the
-dispc functions, one by one or in small groups (depending on the amount
-of changes), and add the channel argument and adjusting the code using
-those functions in the same time.
-
-This would solve the problem of keeping the kernel working, and would
-make the patches much more readable.
-
- Tomi
-
+for some time software needs to support both, especially if popular 
+distros stick to an older kernel like *cough* RHEL6
 
