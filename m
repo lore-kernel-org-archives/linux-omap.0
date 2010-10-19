@@ -1,61 +1,37 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Tue, 19 Oct 2010 10:06:33 -0700
-Message-ID: <87iq0yxgbq.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2 2/3] usb: trivial Kconfig cleanups
+Date: Tue, 19 Oct 2010 20:15:19 +0300
+Message-ID: <AANLkTi=CzBriAFW2gzG68b=6wENysJZEkaO9jFrXQdnq@mail.gmail.com>
 References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
-	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
-	<20101019155219.GI4589@kroah.com> <4CBDC361.70507@ti.com>
+	<1287482608-11320-3-git-send-email-felipe.contreras@gmail.com>
+	<20101019155109.GH4589@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4CBDC361.70507@ti.com> (Anand Gadiyar's message of "Tue, 19 Oct
-	2010 21:42:17 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:58189 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753837Ab0JSRPV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 13:15:21 -0400
+In-Reply-To: <20101019155109.GH4589@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Anand Gadiyar <gadiyar@ti.com> writes:
-
-> On 10/19/2010 9:22 PM, Greg KH wrote:
->> On Tue, Oct 19, 2010 at 01:03:28PM +0300, Felipe Contreras wrote:
->>> Add missing dependencies, and remove redundant ones, and select sensible
->>> defaults.
->>>
->>> Signed-off-by: Felipe Contreras<felipe.contreras@gmail.com>
->>> ---
->>>   drivers/mfd/Kconfig        |    3 ++-
->>>   drivers/regulator/Kconfig  |    1 +
->>>   drivers/usb/gadget/Kconfig |    3 +--
->>>   drivers/usb/musb/Kconfig   |    6 ++----
->>>   drivers/usb/otg/Kconfig    |    2 ++
->>>   5 files changed, 8 insertions(+), 7 deletions(-)
->>>
->>> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
->>> index db51ea1..0bbaf01 100644
->>> --- a/drivers/mfd/Kconfig
->>> +++ b/drivers/mfd/Kconfig
->>> @@ -156,6 +156,7 @@ config MENELAUS
->>>   config TWL4030_CORE
->>>   	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
->>>   	depends on I2C=y&&  GENERIC_HARDIRQS
->>> +	default y if ARCH_OMAP3 || ARCH_OMAP4
+On Tue, Oct 19, 2010 at 6:51 PM, Greg KH <greg@kroah.com> wrote:
+> On Tue, Oct 19, 2010 at 01:03:27PM +0300, Felipe Contreras wrote:
+>> Note: USB_GADGET_MUSB_HDRC is already defined in usb/gadget.
 >>
->> Sorry, but unless the driver is somehow required to keep the board from
->> going up in a puff of smoke, a default should NEVER be y.
->>
->> Because of that, I can't take this patch.
->>
+>> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 >
-> This is the driver for the Power-management IC on the board. Without
-> this IC being correctly configured, I'm guessing a lot of things will
-> fail. Not so sure if anything will go up in smoke (sounds unlikely),
-> or if the kernel will fail to boot - I'll check quickly - but for this
-> one specific instance, I think it's reasonable to accept a default y.
->
-> Kevin/Tony can probably confirm.
+> Please describe _what_ trivial cleanups you did, and why you did them.
+> Care to resend?
 
-I don't thing the 'default y' should be done at this level.  Instead,
-the boards/SoCs that have the hard requirement should do the 'select'
+How about:
+Shuffle the code a bit so the description is at the top, remove
+duplicated configs (USB_GADGET_MUSB_HDRC),  'default n' is redundant,
+and USB_GADGET_SELECTED should go after USB_GADGET (on the appropriate
+config).
 
-Kevin
+-- 
+Felipe Contreras
