@@ -1,159 +1,61 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 3/3] omap: add hwspinlock device
-Date: Tue, 19 Oct 2010 11:05:52 -0600
-Message-ID: <AANLkTikUJpMSzNecZyUPxEjY4p_aE-vf-VDUzkDksD3X@mail.gmail.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com> <87r5fmxghm.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
+Date: Tue, 19 Oct 2010 10:06:33 -0700
+Message-ID: <87iq0yxgbq.fsf@deeprootsystems.com>
+References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
+	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
+	<20101019155219.GI4589@kroah.com> <4CBDC361.70507@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87r5fmxghm.fsf@deeprootsystems.com>
+In-Reply-To: <4CBDC361.70507@ti.com> (Anand Gadiyar's message of "Tue, 19 Oct
+	2010 21:42:17 +0530")
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: Greg KH <greg@kroah.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 19, 2010 at 11:03 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Ohad Ben-Cohen <ohad@wizery.com> writes:
->
->> From: Simon Que <sque@ti.com>
->>
->> Build and register an hwspinlock platform device.
->>
->> Although only OMAP4 supports the hardware spinlock module (for now),
->> it is still safe to run this initcall on all omaps, because hwmod lo=
-okup
->> will simply fail on hwspinlock-less platforms.
->>
->> Signed-off-by: Simon Que <sque@ti.com>
->> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
->> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
->> Cc: Benoit Cousson <b-cousson@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/Makefile =A0 =A0 | =A0 =A01 +
->> =A0arch/arm/mach-omap2/hwspinlock.c | =A0 67 +++++++++++++++++++++++=
-+++++++++++++++
->> =A02 files changed, 68 insertions(+), 0 deletions(-)
->> =A0create mode 100644 arch/arm/mach-omap2/hwspinlock.c
->>
->> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Make=
-file
->> index 7352412..e55d1c5 100644
->> --- a/arch/arm/mach-omap2/Makefile
->> +++ b/arch/arm/mach-omap2/Makefile
->> @@ -190,3 +190,4 @@ obj-y =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 +=3D $(smc91x-m) $(smc91x-y)
->>
->> =A0smsc911x-$(CONFIG_SMSC911X) =A0 =A0 =A0 =A0 =A0:=3D gpmc-smsc911x=
-=2Eo
->> =A0obj-y =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0+=3D $(smsc911x-m) $(smsc911x-y)
->> +obj-$(CONFIG_ARCH_OMAP4) =A0 =A0 =A0 =A0 =A0 =A0 +=3D hwspinlock.o
->> diff --git a/arch/arm/mach-omap2/hwspinlock.c b/arch/arm/mach-omap2/=
-hwspinlock.c
->> new file mode 100644
->> index 0000000..641a6d4
->> --- /dev/null
->> +++ b/arch/arm/mach-omap2/hwspinlock.c
->> @@ -0,0 +1,67 @@
->> +/*
->> + * OMAP hardware spinlock device initialization
->> + *
->> + * Copyright (C) 2010 Texas Instruments. All rights reserved.
->> + *
->> + * Contact: Simon Que <sque@ti.com>
->> + * =A0 =A0 =A0 =A0 =A0Hari Kanigeri <h-kanigeri2@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License
->> + * version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful, =
-but
->> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the =
-GNU
->> + * General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public Licens=
-e
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->> + * 02110-1301 USA
->> + */
->> +
->> +#include <linux/kernel.h>
->> +#include <linux/init.h>
->> +#include <linux/err.h>
->> +
->> +#include <plat/omap_hwmod.h>
->> +#include <plat/omap_device.h>
->> +
->> +struct omap_device_pm_latency omap_spinlock_latency[] =3D {
->> + =A0 =A0 {
->> + =A0 =A0 =A0 =A0 =A0 =A0 .deactivate_func =3D omap_device_idle_hwmo=
-ds,
->> + =A0 =A0 =A0 =A0 =A0 =A0 .activate_func =A0 =3D omap_device_enable_=
-hwmods,
->> + =A0 =A0 =A0 =A0 =A0 =A0 .flags =3D OMAP_DEVICE_LATENCY_AUTO_ADJUST=
-,
->> + =A0 =A0 }
->> +};
->> +
->> +int __init hwspinlocks_init(void)
->> +{
->> + =A0 =A0 int retval =3D 0;
->> + =A0 =A0 struct omap_hwmod *oh;
->> + =A0 =A0 struct omap_device *od;
->> + =A0 =A0 const char *oh_name =3D "spinlock";
->> + =A0 =A0 const char *dev_name =3D "omap_hwspinlock";
->> +
->> + =A0 =A0 /*
->> + =A0 =A0 =A0* Hwmod lookup will fail in case our platform doesn't s=
-upport the
->> + =A0 =A0 =A0* hardware spinlock module, so it is safe to run this i=
-nitcall
->> + =A0 =A0 =A0* on all omaps
->> + =A0 =A0 =A0*/
->> + =A0 =A0 oh =3D omap_hwmod_lookup(oh_name);
->> + =A0 =A0 if (oh =3D=3D NULL)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> +
->> + =A0 =A0 od =3D omap_device_build(dev_name, 0, oh, NULL, 0,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_spinl=
-ock_latency,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_SIZE=
-(omap_spinlock_latency), false);
->> + =A0 =A0 if (IS_ERR(od)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Can't build omap_device for %s:%s\=
-n", dev_name,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh_name);
->> + =A0 =A0 =A0 =A0 =A0 =A0 retval =3D PTR_ERR(od);
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return retval;
->> +}
->> +postcore_initcall(hwspinlocks_init);
->
-> Any reason this needs to be a postcore_initcall? =A0Are there users o=
-f
-> hwspinlocks this early in boot? =A0Probaly subsys or even device_init=
-call
-> is more appropriate here.
->
-> I would've suspected that any users of hwspinlocks will be dependent =
-on
-> drivers for the other cores (e.g. syslink) which would likely be
-> initialized much later.
+Anand Gadiyar <gadiyar@ti.com> writes:
 
-On that note, is there any reason why this file cannot be selected as a=
- module?
+> On 10/19/2010 9:22 PM, Greg KH wrote:
+>> On Tue, Oct 19, 2010 at 01:03:28PM +0300, Felipe Contreras wrote:
+>>> Add missing dependencies, and remove redundant ones, and select sensible
+>>> defaults.
+>>>
+>>> Signed-off-by: Felipe Contreras<felipe.contreras@gmail.com>
+>>> ---
+>>>   drivers/mfd/Kconfig        |    3 ++-
+>>>   drivers/regulator/Kconfig  |    1 +
+>>>   drivers/usb/gadget/Kconfig |    3 +--
+>>>   drivers/usb/musb/Kconfig   |    6 ++----
+>>>   drivers/usb/otg/Kconfig    |    2 ++
+>>>   5 files changed, 8 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+>>> index db51ea1..0bbaf01 100644
+>>> --- a/drivers/mfd/Kconfig
+>>> +++ b/drivers/mfd/Kconfig
+>>> @@ -156,6 +156,7 @@ config MENELAUS
+>>>   config TWL4030_CORE
+>>>   	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
+>>>   	depends on I2C=y&&  GENERIC_HARDIRQS
+>>> +	default y if ARCH_OMAP3 || ARCH_OMAP4
+>>
+>> Sorry, but unless the driver is somehow required to keep the board from
+>> going up in a puff of smoke, a default should NEVER be y.
+>>
+>> Because of that, I can't take this patch.
+>>
+>
+> This is the driver for the Power-management IC on the board. Without
+> this IC being correctly configured, I'm guessing a lot of things will
+> fail. Not so sure if anything will go up in smoke (sounds unlikely),
+> or if the kernel will fail to boot - I'll check quickly - but for this
+> one specific instance, I think it's reasonable to accept a default y.
+>
+> Kevin/Tony can probably confirm.
 
-g.
+I don't thing the 'default y' should be done at this level.  Instead,
+the boards/SoCs that have the hard requirement should do the 'select'
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+Kevin
