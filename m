@@ -1,40 +1,53 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] omap: dsp: fix for ioremap()
-Date: Tue, 19 Oct 2010 10:39:19 +0300
-Message-ID: <20101019073919.GC12470@legolas.emea.dhcp.ti.com>
-References: <1287473844-6228-1-git-send-email-felipe.contreras@gmail.com>
- <20101019073834.GB12470@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCHv3 00/11] staging tidspbridge: iommu migration
+Date: Tue, 19 Oct 2010 10:41:57 +0300
+Message-ID: <AANLkTimfHtgXvJ05wOwq6oGuHDA76rpf5SANf718f8re@mail.gmail.com>
+References: <1286310944-25035-1-git-send-email-x0095840@ti.com>
+	<AANLkTimoTmhAw11jJihiuyByzKZ9KTFHvx6iw8oeLCGg@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F47B2BB1@dlee06.ent.ti.com>
+	<AANLkTim6XRgnefA0vmRNeW=TONhxz68WYAjuA96LqWOj@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F47B3002@dlee06.ent.ti.com>
+	<AANLkTik3hhWy+tRxThtrbwNXTssV7nf9+_LGn5Ct3iet@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F48817EF@dlee06.ent.ti.com>
+	<AANLkTi=juk+824k1R8mJrDostKhRz+nRNqj9E-rNYWrv@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E602F4881816@dlee06.ent.ti.com>
+	<AANLkTikfn9w-FMKXOVXibwHVy4vt72GdveDLVv0z3GmT@mail.gmail.com>
+	<20101018230655.GJ13341@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37879 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755871Ab0JSHjj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Oct 2010 03:39:39 -0400
-Content-Disposition: inline
-In-Reply-To: <20101019073834.GB12470@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101018230655.GJ13341@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "gregkh@suse.de" <gregkh@suse.de>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ohad@wizery.com" <ohad@wizery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi, Felipe" <balbi@ti.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Greg KH <greg@kroah.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-On Tue, Oct 19, 2010 at 02:38:34AM -0500, Balbi, Felipe wrote:
->On Tue, Oct 19, 2010 at 02:37:23AM -0500, Felipe Contreras wrote:
->>Since ioremap() on RAM will be soon disallowed, this is required.
+On Tue, Oct 19, 2010 at 2:06 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Felipe Contreras <felipe.contreras@gmail.com> [101015 13:09]:
+>> On Fri, Oct 15, 2010 at 7:53 PM, Guzman Lugo, Fernando
+>> <fernando.lugo@ti.com> wrote:
+>> >> If you want I can provide my working branch on top of .36-rc8
+>> >> with next-staging merged. If I revert your patches, it works fine.
+>> >
+>> > That could be interested. Can you send me the link?
 >>
->>This also requires a patch like:
->>http://article.gmane.org/gmane.linux.kernel/1047146
+>> There you go:
+>> git://gitorious.org/~felipec/linux-omap/felipec.git (fc-dsp-work)
 >>
->>Felipe Contreras (1):
->>  omap: dsp: remove shm from normal memory
->>
->> arch/arm/plat-omap/devices.c |    4 +++-
->> 1 files changed, 3 insertions(+), 1 deletions(-)
+>> HEAD works, HEAD^ doesn't.
 >
->-ENOPATCH ??
+> Great, can you please also let us know what if anything should
+> be still queued for the merge window that's about to open?
+>
+> I've lost track of the dspbridge mutations by now..
 
-ok, now I got the patch. Just $SUBJECT is a bit misleading, sorry
+We would need these:
+http://article.gmane.org/gmane.linux.kernel/1044209
+http://article.gmane.org/gmane.linux.ports.arm.omap/45076 (just sent)
+
+The first one is in staging-next, you have ack'ed it, but Paul nak'ed
+it. We would need it on mainline if dsp has any chances of working
+there.
 
 -- 
-balbi
+Felipe Contreras
