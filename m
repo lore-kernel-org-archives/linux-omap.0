@@ -1,68 +1,138 @@
-From: Jason Wang <jason77.wang@gmail.com>
-Subject: Re: [PATCH 4/4] Input: ads7846 - modificatons of _stop()/_disable()
- conditions
-Date: Tue, 19 Oct 2010 09:25:33 +0800
-Message-ID: <4CBCF38D.3040703@gmail.com>
-References: <4C9332CE.6040905@gmail.com> <20100917160709.GC14186@core.coreip.homeip.net> <4C9718E9.5040104@gmail.com> <4CB4314C.7050308@gmail.com> <20101012160055.GA6355@core.coreip.homeip.net> <4CB523B7.8010209@gmail.com> <AANLkTi=0b-q3LK3-4mgdpSP7pScVSF1ZWzD45bLoAmJO@mail.gmail.com> <4CB66777.5060309@gmail.com> <AANLkTimRqaFkNkRzubY4-Gx=y0yJ_C1VFycL0+uEa_Wm@mail.gmail.com> <4CB7BCA0.1080604@gmail.com> <20101018231916.GL13341@atomide.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: Issue observed with pm_runtime_put_sync
+Date: Tue, 19 Oct 2010 10:45:47 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC618E2@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61359@dbde02.ent.ti.com>
+	<87k4lfecwi.fsf@deeprootsystems.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61717@dbde02.ent.ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030D1704FA@dbde02.ent.ti.com>
+	<E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61769@dbde02.ent.ti.com>
+ <87ocar89fo.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:33224 "EHLO
-	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754759Ab0JSBVY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 21:21:24 -0400
-In-Reply-To: <20101018231916.GL13341@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54615 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750744Ab0JSFPy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 01:15:54 -0400
+In-Reply-To: <87ocar89fo.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jason Wang <jason77.wang@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, vapier@gentoo.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, roman.tereshonkov@nokia.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony Lindgren wrote:
-> * Jason Wang <jason77.wang@gmail.com> [101014 19:17]:
->   
->> Grazvydas Ignotas wrote:
->>     
->>> On Thu, Oct 14, 2010 at 5:14 AM, Jason Wang <jason77.wang@gmail.com> wrote:
->>>       
->>>> Grazvydas Ignotas wrote:
->>>>         
->>>>> Working here on pandora too, applied on top of linux-next (did not
->>>>> test suspend though).
->>>>>
->>>>> Not caused by this patch, but the old problem where lower measurement
->>>>> bits get lost is back - when I draw diagonal line it looks like
->>>>> stairs. I think it's caused by OMAP SPI driver, CCing linux-omap.
->>>>>
->>>>>
->>>>>           
->>>> Yes, it is OMAP spi driver issues, I have met the same problem before,
->>>> please refer to:
->>>> http://www.spinics.net/lists/arm-kernel/msg91538.html
->>>>
->>>> you can apply this patch and test again.
->>>>         
->>> It solves my issue, thanks
->>> Tested-by: Grazvydas Ignotas <notasas@gmail.com>
->>>
->>> BTW I have done similar patch almost 2 years ago for exactly the same problem:
->>> http://marc.info/?l=linux-omap&m=122565580616920&w=2
->>> but then problem went away after random kernel update (from what I
->>> remember), and my patch was no longer needed.
->>>
->>>       
->> Really similar problem and similar solution, :-)
->>     
->
-> Let's get this fix into the mainline tree then. Jason, care to
-> refresh (it's wrapped at least) and then repost with the acks so
-> Grant can queue it up for the upcoming merge window?
->
-> Acked-by: Tony Lindgren <tony@atomide.com>
->
->   
-OK, i will refresh it and re-post it to linux-spi and Grant.
+ 
 
-Thanks,
-Jason.
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Tuesday, October 19, 2010 3:12 AM
+> To: G, Manjunath Kondaiah
+> Cc: Shilimkar, Santosh; linux-omap@vger.kernel.org
+> Subject: Re: Issue observed with pm_runtime_put_sync
+> 
+> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> 
+> >> -----Original Message-----
+> >> From: Shilimkar, Santosh 
+> >> Sent: Monday, October 18, 2010 9:42 PM
+> >> To: G, Manjunath Kondaiah; Kevin Hilman
+> >> Cc: linux-omap@vger.kernel.org
+> >> Subject: RE: Issue observed with pm_runtime_put_sync
+> >> 
+> >> Manju,
+> >> > -----Original Message-----
+> >> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >> > owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
+> >> > Sent: Monday, October 18, 2010 9:31 PM
+> >> > To: Kevin Hilman
+> >> > Cc: linux-omap@vger.kernel.org
+> >> > Subject: RE: Issue observed with pm_runtime_put_sync
+> >> > 
+> >> > 
+> >> > Kevin,
+> >> > 
+> >> > > -----Original Message-----
+> >> > > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> >> > > Sent: Monday, October 18, 2010 9:01 PM
+> >> > > To: G, Manjunath Kondaiah
+> >> > > Cc: linux-omap@vger.kernel.org
+> >> > > Subject: Re: Issue observed with pm_runtime_put_sync
+> >> > >
+> >> > > Manjunath,
+> >> > >
+> >> > > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
+> >> > > >
+> >> > 
+> >> > [...]
+> >> > 
+> >> > > > Is this a known issue or issue with pm runtime API usage in
+> >> > > DMA driver?
+> >> > >
+> >> > > It's an issue in the runtime PM usage in DMA driver.
+> >> > >
+> >> > > Specifically, the _sync versions of the API cannot be used
+> >> > > from interrupt context because they can sleep.
+> >> > >
+> >> > > Are the _sync versions really needed at that point?  Without
+> >> > > having the code, I cannot tell, but I susupect that the async
+> >> > > versions could be used there instead.
+> >> > >
+> >> > > If not, then the code will need to be reworked so the ISR is
+> >> > > not doing the actual work, but instead is scheduling work to
+> >> > > be done later in process context.
+> >> > 
+> >> > It looks to me this issue is related to DMA client driver since
+> >> > DMA driver only invokes call back function registered 
+> >> during dma channel
+> >> > setup. The control will be passed to DMA client driver. Now it is
+> >> > responsibility of DMA client driver to invoke 
+> free_dma(free_dma will
+> >> > invoke put_sync) from non interrupt context.
+> >> > 
+> >> > Most of the times, callback will indicate end of data 
+> transfer, the
+> >> > client driver will release all DMA resources from 
+> interrupt context
+> >> > itself.
+> >> > 
+> >> Why are you doing put_sync/get_sync per channel 
+> alloc/free. DMA has 
+> >> a single clock and not each for per channel. The driver 
+> should release
+> >> DMA clocks when all channels are free and acquire it on the 
+> >> first channel
+> >> request.
+> >> 
+> >> We did discuss this sometime back on the LO, right ?
+> >
+> > In this case, we might have to check all the 32 channels 
+> status(free or
+> > used) for every free_dma call.
+> >  
+> > I was thinking to use dev->power.usage_count field for each 
+> get_sysnc and put_sync.
+> >
+> > We can have additional logic in free_dma if 
+> get_sync/put_sync is overhead.
+> 
+> Either you do the use counting in the DMA layer, or you just let the
+> runtime PM layer do the use counting.  Either way, only when usecount
+> transitions to/from zero will the actual omap_device API be invoked,
+> so I prefer to just let runtime PM do the usecounting.
+> 
+> In fact, the runtime PM API also provides useful statistics as well as
+> sysfs controls for either preventing a device from going idle, or
+> bringing it out of idle.
+> 
+> If you continue to use the runtime PM API, you will have these
+> statistics and controls per-channel, which is probably rather useful.
+> In fact, recent versions of powertop will even report stats 
+> from runtime
+> PM, so beinga able to see per-channel DMA stats could be quite useful.
 
+Thanks for this info. I will use pm layer use count along with 
+pm_runtime_get and pm_runtime_put.
+
+-Manjunath
