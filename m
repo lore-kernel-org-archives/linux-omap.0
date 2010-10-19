@@ -1,138 +1,153 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: Issue observed with pm_runtime_put_sync
-Date: Tue, 19 Oct 2010 10:45:47 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC618E2@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61359@dbde02.ent.ti.com>
-	<87k4lfecwi.fsf@deeprootsystems.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61717@dbde02.ent.ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030D1704FA@dbde02.ent.ti.com>
-	<E0D41E29EB0DAC4E9F3FF173962E9E9402DBC61769@dbde02.ent.ti.com>
- <87ocar89fo.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54615 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750744Ab0JSFPy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 01:15:54 -0400
-In-Reply-To: <87ocar89fo.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 1/3] AM35x: Add musb support
+Date: Tue, 19 Oct 2010 10:08:11 +0300
+Message-ID: <1287472093-20454-2-git-send-email-balbi@ti.com>
+References: <1287472093-20454-1-git-send-email-balbi@ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1287472093-20454-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+
+AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
+It has USB phy built inside the IP itself.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/mach-omap2/board-am3517evm.c |   31 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/usb-musb.c        |    4 ++++
+ arch/arm/plat-omap/include/plat/usb.h |   21 +++++++++++++++++++++
+ 3 files changed, 56 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 4d0f585..6d352a2 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -35,6 +35,7 @@
+ #include <plat/control.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
++#include <plat/control.h>
  
+ #include "mux.h"
+ 
+@@ -375,6 +376,31 @@ static void __init am3517_evm_init_irq(void)
+ 	omap_gpio_init();
+ }
+ 
++static struct omap_musb_board_data musb_board_data = {
++	.interface_type         = MUSB_INTERFACE_ULPI,
++	.mode                   = MUSB_OTG,
++	.power                  = 500,
++};
++
++static __init void am3517_evm_musb_init(void)
++{
++	u32 devconf2;
++
++	/*
++	 * Set up USB clock/mode in the DEVCONF2 register.
++	 */
++	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
++
++	/* USB2.0 PHY reference clock is 13 MHz */
++	devconf2 &= ~(CONF2_REFFREQ | CONF2_OTGMODE | CONF2_PHY_GPIOMODE);
++	devconf2 |=  CONF2_REFFREQ_13MHZ | CONF2_SESENDEN | CONF2_VBDTCTEN
++			| CONF2_DATPOL;
++
++	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
++
++	usb_musb_init(&musb_board_data);
++}
++
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+ #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
+@@ -393,6 +419,8 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* USB OTG DRVVBUS offset = 0x212 */
++	OMAP3_MUX(SAD2D_MCAD23, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+@@ -459,6 +487,9 @@ static void __init am3517_evm_init(void)
+ 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
+ 	/*Ethernet*/
+ 	am3517_evm_ethernet_init(&am3517_evm_emac_pdata);
++
++	/* MUSB */
++	am3517_evm_musb_init();
+ }
+ 
+ MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 33a5cde..7260558 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -28,6 +28,7 @@
+ 
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
++#include <mach/am35xx.h>
+ #include <plat/usb.h>
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+@@ -89,6 +90,9 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+ 	if (cpu_is_omap243x()) {
+ 		musb_resources[0].start = OMAP243X_HS_BASE;
++	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
++		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
++		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+ 	} else if (cpu_is_omap34xx()) {
+ 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+ 	} else if (cpu_is_omap44xx()) {
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index 2a9427c..9feddac 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -218,6 +218,27 @@ static inline omap2_usbfs_init(struct omap_usb_config *pdata)
+ #	define	USBT2TLL5PI		(1 << 17)
+ #	define	USB0PUENACTLOI		(1 << 16)
+ #	define	USBSTANDBYCTRL		(1 << 15)
++/* AM35x */
++/* USB 2.0 PHY Control */
++#define CONF2_PHY_GPIOMODE	(1 << 23)
++#define CONF2_OTGMODE		(3 << 14)
++#define CONF2_NO_OVERRIDE	(0 << 14)
++#define CONF2_FORCE_HOST	(1 << 14)
++#define CONF2_FORCE_DEVICE	(2 << 14)
++#define CONF2_FORCE_HOST_VBUS_LOW (3 << 14)
++#define CONF2_SESENDEN		(1 << 13)
++#define CONF2_VBDTCTEN		(1 << 12)
++#define CONF2_REFFREQ_24MHZ	(2 << 8)
++#define CONF2_REFFREQ_26MHZ	(7 << 8)
++#define CONF2_REFFREQ_13MHZ	(6 << 8)
++#define CONF2_REFFREQ		(0xf << 8)
++#define CONF2_PHYCLKGD		(1 << 7)
++#define CONF2_VBUSSENSE		(1 << 6)
++#define CONF2_PHY_PLLON		(1 << 5)
++#define CONF2_RESET		(1 << 4)
++#define CONF2_PHYPWRDN		(1 << 3)
++#define CONF2_OTGPWRDN		(1 << 2)
++#define CONF2_DATPOL		(1 << 1)
+ 
+ #if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_USB)
+ u32 omap1_usb0_init(unsigned nwires, unsigned is_device);
+-- 
+1.7.3.rc0.35.g8ac8c
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Tuesday, October 19, 2010 3:12 AM
-> To: G, Manjunath Kondaiah
-> Cc: Shilimkar, Santosh; linux-omap@vger.kernel.org
-> Subject: Re: Issue observed with pm_runtime_put_sync
-> 
-> "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> 
-> >> -----Original Message-----
-> >> From: Shilimkar, Santosh 
-> >> Sent: Monday, October 18, 2010 9:42 PM
-> >> To: G, Manjunath Kondaiah; Kevin Hilman
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: RE: Issue observed with pm_runtime_put_sync
-> >> 
-> >> Manju,
-> >> > -----Original Message-----
-> >> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> > owner@vger.kernel.org] On Behalf Of G, Manjunath Kondaiah
-> >> > Sent: Monday, October 18, 2010 9:31 PM
-> >> > To: Kevin Hilman
-> >> > Cc: linux-omap@vger.kernel.org
-> >> > Subject: RE: Issue observed with pm_runtime_put_sync
-> >> > 
-> >> > 
-> >> > Kevin,
-> >> > 
-> >> > > -----Original Message-----
-> >> > > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> >> > > Sent: Monday, October 18, 2010 9:01 PM
-> >> > > To: G, Manjunath Kondaiah
-> >> > > Cc: linux-omap@vger.kernel.org
-> >> > > Subject: Re: Issue observed with pm_runtime_put_sync
-> >> > >
-> >> > > Manjunath,
-> >> > >
-> >> > > "G, Manjunath Kondaiah" <manjugk@ti.com> writes:
-> >> > > >
-> >> > 
-> >> > [...]
-> >> > 
-> >> > > > Is this a known issue or issue with pm runtime API usage in
-> >> > > DMA driver?
-> >> > >
-> >> > > It's an issue in the runtime PM usage in DMA driver.
-> >> > >
-> >> > > Specifically, the _sync versions of the API cannot be used
-> >> > > from interrupt context because they can sleep.
-> >> > >
-> >> > > Are the _sync versions really needed at that point?  Without
-> >> > > having the code, I cannot tell, but I susupect that the async
-> >> > > versions could be used there instead.
-> >> > >
-> >> > > If not, then the code will need to be reworked so the ISR is
-> >> > > not doing the actual work, but instead is scheduling work to
-> >> > > be done later in process context.
-> >> > 
-> >> > It looks to me this issue is related to DMA client driver since
-> >> > DMA driver only invokes call back function registered 
-> >> during dma channel
-> >> > setup. The control will be passed to DMA client driver. Now it is
-> >> > responsibility of DMA client driver to invoke 
-> free_dma(free_dma will
-> >> > invoke put_sync) from non interrupt context.
-> >> > 
-> >> > Most of the times, callback will indicate end of data 
-> transfer, the
-> >> > client driver will release all DMA resources from 
-> interrupt context
-> >> > itself.
-> >> > 
-> >> Why are you doing put_sync/get_sync per channel 
-> alloc/free. DMA has 
-> >> a single clock and not each for per channel. The driver 
-> should release
-> >> DMA clocks when all channels are free and acquire it on the 
-> >> first channel
-> >> request.
-> >> 
-> >> We did discuss this sometime back on the LO, right ?
-> >
-> > In this case, we might have to check all the 32 channels 
-> status(free or
-> > used) for every free_dma call.
-> >  
-> > I was thinking to use dev->power.usage_count field for each 
-> get_sysnc and put_sync.
-> >
-> > We can have additional logic in free_dma if 
-> get_sync/put_sync is overhead.
-> 
-> Either you do the use counting in the DMA layer, or you just let the
-> runtime PM layer do the use counting.  Either way, only when usecount
-> transitions to/from zero will the actual omap_device API be invoked,
-> so I prefer to just let runtime PM do the usecounting.
-> 
-> In fact, the runtime PM API also provides useful statistics as well as
-> sysfs controls for either preventing a device from going idle, or
-> bringing it out of idle.
-> 
-> If you continue to use the runtime PM API, you will have these
-> statistics and controls per-channel, which is probably rather useful.
-> In fact, recent versions of powertop will even report stats 
-> from runtime
-> PM, so beinga able to see per-channel DMA stats could be quite useful.
-
-Thanks for this info. I will use pm layer use count along with 
-pm_runtime_get and pm_runtime_put.
-
--Manjunath
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
