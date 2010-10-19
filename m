@@ -1,94 +1,56 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Tue, 19 Oct 2010 23:52:30 +0300
-Message-ID: <AANLkTinYM5aavk9_jcTTymff=OY+Yyv8T6C+dmMih0p_@mail.gmail.com>
-References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
-	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
-	<20101019103234.GI31170@legolas.emea.dhcp.ti.com>
-	<AANLkTinXzMQXoyyu+anSCvSuE9w3FWAP5HswDS0kfpzE@mail.gmail.com>
-	<20101019111613.GJ31170@legolas.emea.dhcp.ti.com>
-	<AANLkTikkMphKa2DGGtWxy-3LpFX0kn92UEYPj==Euzok@mail.gmail.com>
-	<20101019115236.GL31170@legolas.emea.dhcp.ti.com>
-	<AANLkTim3NsgjC3Nh8VCCrx4cV1Y+kn38=30=en0KCft6@mail.gmail.com>
-	<6ea089ac75d4d15d88698468eacb7fe3@secure211.sgcpanel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
+Date: Tue, 19 Oct 2010 22:58:27 +0200
+Message-ID: <201010192258.27988.arnd@arndb.de>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com> <AANLkTimDdPUjo+65vBL0PTQ3b=5NpeVT28XrdkYqx3Ex@mail.gmail.com> <AANLkTinNfERyi_bTWc7LOKR1uRLC3E612ubFKBLxWB1E@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:52189 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757590Ab0JSUwc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 16:52:32 -0400
-In-Reply-To: <6ea089ac75d4d15d88698468eacb7fe3@secure211.sgcpanel.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:64118 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757629Ab0JSU6b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 16:58:31 -0400
+In-Reply-To: <AANLkTinNfERyi_bTWc7LOKR1uRLC3E612ubFKBLxWB1E@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Simon Que <sque@ti.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-On Tue, Oct 19, 2010 at 6:05 PM, Felipe Balbi <me@felipebalbi.com> wrote:
-> On Tue, 19 Oct 2010 17:32:07 +0300, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> There are two parts, one part is to fix the Kconfigs, and another was
->> to come up with a way to replace the horrible defconfigs. Part two is
->> mostly fixed thanks to 'make savedefconfig', since the defconfigs are
->> not so horrible any more, but part one is a continued effort.
->>
->> For part two Linus had the idea to use Kconfigs instead of defconfigs,
->> but they would mostly look very similar to the current ones generated
->> by 'make savedefconfig'.
->>
->> I don't know what makes you think Linus didn't want part one to be
->> done. He wanted the Kconfig.rx51 to be human readable, and you are
->> proposing that TWL4030_USB should be manually added there... I don't
->> think TWL4030_USB says anything to human beings.
->
-> I don't read anywhere Linus saying we should clutter drivers/*/Kconfig
-> with defaults. I think you're inverting things, it's much better
-> to select TWL4030_USB when you enable MACH_OMAP_RX51 then default y
-> if MACH_OMAP_RX51.
+On Tuesday 19 October 2010 22:43:34 Ohad Ben-Cohen wrote:
+> > Disabling irqs might be a concern as a source of RT latency.  It
+> > might be better to make the caller responsible for managing local spin
+> > locks and irq disable/enable.
+> 
+> This a coming from an hardware requirement, rather than a choice the
+> user should take.
+> 
+> If a hwspinlock is taken over a long period of time, its other user
+> (with which we try to achieve synchronization) might be polling the
+> OMAP interconnect for too long (trying to take the hwspinlock) and
+> thus preventing it to be used for other transactions.
 
-So say, if you have 100 board defconfigs with OMAP3 chips and TWL4030,
-each and every one of them should select both USB_MUSB_HDRC and
-TWL4030_USB?
+This sounds exactly like any other spinlock.
 
-And you are saying if somebody is doing 'make menuconfig', that person
-should somehow know that _obviously_ he needs TWL4030_USB in order to
-use USB_MUSB_HDRC, or USB_G_NOKIA?
+> To prevent such lengthy polling on the interconnect, the hwspinlock
+> should only be used for very short period of times, with preemption
+> and interrupts disabled.
 
-That's precisely the opposite to:
----
-It's often tedious for other cases too ("I just want to enable a
-particular driver, what do I need to do so?")
----
----
-In other words, you _can_ encode the information that is in the
-xyz_defconfig files by doing it in Kconfig.xyz files instead. But you do
-it in a human-readable manner. And the hierarchical thing is absolutely
-required for that - otherwise you'd end up with just another form of the
-current xyz_defconfig.
----
+Interrupts disabled in general might go a bit too far -- they are also
+short and infrequent events unless you have seriously broken drivers.
 
->> Yes, but how do you get rid of the defconfig while also having a
->> working USB_G_NOKIA? Somehow a transceiver should be automatically
->> selected.
->
-> and you do that selection when the board is enabled otherwise the
-> drivers Kconfig will be cluttered with default Y if blabla.
+When running with CONFIG_PREEMPT, I would guess you actually want to
+turn the omap_hwspinlock into a sleeping operation, though that would
+require much extra work to implement. Disabling preemption while the
+hwspinlock is held is of course a correct implementation technically,
+but it might not be what someone enabling CONFIG_PREEMPT expects.
 
-If you can imagine a hierarchy like:
+> That's why we don't give users the choice whether to disable
+> interrupts or not - it's simply not a decision they should take.
 
- drivers/usb/otg/Kconfig
- arch/arm/mach-omap2/Kconfig
- ^ arch/arm/mach-omap2/boards/Kconfig.n900
+What about those cases where you already know that interrupts are
+disabled, e.g. while holding a regular spin_lock_irq or inside
+of an interrupt handler?
 
-You would want TWL4030_USB to be up in the hierarchy, so that you
-don't have to add one extra line to each and every board file.
-
-But in fact, you don't want TWL4030_USB on the Kconfig because not
-everyone might want/need USB support. That should be selected by the
-user, and asking the user to somehow know that he needs both
-TWL4030_USB and USB_MUSB_HDRC is way too much to ask in my opinion.
-
-The idea would be to keep Kconfig.n900 so minimal that it's not needed at all.
-
--- 
-Felipe Contreras
+	Arnd
