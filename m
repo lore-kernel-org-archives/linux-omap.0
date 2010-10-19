@@ -1,64 +1,74 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Tue, 19 Oct 2010 13:52:00 +0200
-Message-ID: <20101019115200.GC25371@elte.hu>
-References: <201010062334.46971.trenn@suse.de>
-	<4CB095FA.8060803@linux.intel.com> <20101010121928.GA2688@elte.hu>
-	<201010191331.03080.trenn@suse.de> <20101019114501.GA25371@elte.hu>
-	<1287488841.1994.5.camel@twins>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 1/2] video: omap: vram: remove from normal memory
+Date: Tue, 19 Oct 2010 15:03:05 +0300
+Message-ID: <1287489785.2216.10.camel@tubuntu>
+References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
+	 <1287146784-5517-1-git-send-email-felipe.contreras@gmail.com>
+	 <1287407452.6781.64.camel@tubuntu> <1287410618.6781.110.camel@tubuntu>
+	 <20101018225534.GH13341@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <1287488841.1994.5.camel@twins>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Linus Torvalds <torvalds@linux-foundation.org>, Jean Pihet <jean.pihet@newoldbits.com>, Steven Rostedt <rostedt@goodmis.org>, linux-kernel@vger.kernel.org, linux-trace-users@vger.kernel.org, Frank Eigler <fche@redhat.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:25260 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758352Ab0JSMDe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Oct 2010 08:03:34 -0400
+In-Reply-To: <20101018225534.GH13341@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: ext Felipe Contreras <felipe.contreras@gmail.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, Russell King <linux@arm.linux.org.uk>, "mike@compulab.co.il" <mike@compulab.co.il>
 
-
-* Peter Zijlstra <peterz@infradead.org> wrote:
-
-> On Tue, 2010-10-19 at 13:45 +0200, Ingo Molnar wrote:
+On Tue, 2010-10-19 at 00:55 +0200, ext Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [101018 06:55]:
+> > On Mon, 2010-10-18 at 16:10 +0300, Tomi Valkeinen wrote:
+> > > Hi,
+> > > 
+> > > On Fri, 2010-10-15 at 14:46 +0200, ext Felipe Contreras wrote:
+> > > > So that we can ioremap happily.
+> > > > 
+> > > > Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> > > > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> > > > ---
+> > > >  drivers/video/omap2/vram.c |    2 ++
+> > > >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
+> > > > index f6fdc20..1a99777 100644
+> > > > --- a/drivers/video/omap2/vram.c
+> > > > +++ b/drivers/video/omap2/vram.c
+> > > > @@ -575,6 +575,8 @@ void __init omap_vram_reserve_sdram_memblock(void)
+> > > >  		}
+> > > >  	} else {
+> > > >  		paddr = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
+> > > > +		memblock_free(paddr, size);
+> > > > +		memblock_remove(paddr, size);
+> > > >  	}
+> > > >  
+> > > >  	omap_vram_add_region(paddr, size);
+> > > 
+> > > I tested this on OMAP3 SDP board, on top of my DSS2 tree. I can boot up
+> > > fine, but my test program crashes the kernel (dump below).
+> > > 
+> > > This crash doesn't happen if I have the "HACK: OMAP: DSS2: OMAPFB: use
+> > > phys_to_virt for RAM mappings" patch in (I removed that during testing
+> > > this patch).
+> > > 
+> > > I don't know yet what is crashing the kernel, but I'd guess it's the
+> > > fact that my test program reallocates the framebuffer memory with
+> > > OMAPFB_SETUP_MEM ioctl.
 > > 
-> > * Thomas Renninger <trenn@suse.de> wrote:
-> > 
-> > > > Most definitely. It's no accident that it took such a long time for this issue 
-> > > > to be raised in the first place. It's a rare occurance -
-> > >
-> > > Do you agree that this occurance happened now and these events should get cleaned 
-> > > up before ARM and other archs make use of the broken interface?
-> > >
-> > > If not, discussing this further, is a big waste of time... and Jean would have to 
-> > > try to adapt his ARM code on the broken ABI...
-> > 
-> > The discussion seems to have died down somewhat. Please re-send to lkml the latest 
-> > patches you have to remind everyone of the latest state of things - the merge window 
-> > is getting near.
-> > 
-> > My only compatibility/ABI point is basically that it shouldnt break _existing_ 
-> > tracepoints (and users thereof). If your latest bits meet that then it ought to be a 
-> > good first step. You are free to (and encouraged to) introduce more complete sets of 
-> > events.
+> > Ah, sorry, I was missing the patch from Russel which you mentioned in
+> > another mail (http://article.gmane.org/gmane.linux.kernel/1047146). With
+> > that patch included things seem to work.
 > 
-> Can we deprecate and eventually remove the old ones, or will we be forever obliged 
-> to carry the old ones too?
+> Tomi, I assume you're queuing these? If so, for both:
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-We most definitely want to deprecate and remove the old ones - but we want to give 
-instrumentation software some migration time for that.
+Yes, I can queue them (when the required memblock stuff is in).
 
-Jean, Arjan, what would be a feasible and practical deprecation period for that? One 
-kernel cycle?
+ Tomi
 
-Thanks,
 
-	Ingo
