@@ -1,56 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
-Date: Tue, 19 Oct 2010 22:58:27 +0200
-Message-ID: <201010192258.27988.arnd@arndb.de>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com> <AANLkTimDdPUjo+65vBL0PTQ3b=5NpeVT28XrdkYqx3Ex@mail.gmail.com> <AANLkTinNfERyi_bTWc7LOKR1uRLC3E612ubFKBLxWB1E@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 3/3] omap: add hwspinlock device
+Date: Tue, 19 Oct 2010 23:02:37 +0200
+Message-ID: <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+ <1287387875-14168-4-git-send-email-ohad@wizery.com> <87r5fmxghm.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:64118 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757629Ab0JSU6b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 16:58:31 -0400
-In-Reply-To: <AANLkTinNfERyi_bTWc7LOKR1uRLC3E612ubFKBLxWB1E@mail.gmail.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46408 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757691Ab0JSVC5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 17:02:57 -0400
+In-Reply-To: <87r5fmxghm.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Simon Que <sque@ti.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
 
-On Tuesday 19 October 2010 22:43:34 Ohad Ben-Cohen wrote:
-> > Disabling irqs might be a concern as a source of RT latency.  It
-> > might be better to make the caller responsible for managing local spin
-> > locks and irq disable/enable.
-> 
-> This a coming from an hardware requirement, rather than a choice the
-> user should take.
-> 
-> If a hwspinlock is taken over a long period of time, its other user
-> (with which we try to achieve synchronization) might be polling the
-> OMAP interconnect for too long (trying to take the hwspinlock) and
-> thus preventing it to be used for other transactions.
+On Tue, Oct 19, 2010 at 7:03 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+>> +postcore_initcall(hwspinlocks_init);
+>
+> Any reason this needs to be a postcore_initcall? =A0Are there users o=
+f
+> hwspinlocks this early in boot?
 
-This sounds exactly like any other spinlock.
+i2c-omap, which is subsys_initcall (the I2C bus is shared between the
+A9 and the M3 on some OMAP4 boards).
 
-> To prevent such lengthy polling on the interconnect, the hwspinlock
-> should only be used for very short period of times, with preemption
-> and interrupts disabled.
+And to allow early board code to reserve specific hwspinlock numbers
+for predefined use-cases, we probably want to be before arch_initcall.
 
-Interrupts disabled in general might go a bit too far -- they are also
-short and infrequent events unless you have seriously broken drivers.
-
-When running with CONFIG_PREEMPT, I would guess you actually want to
-turn the omap_hwspinlock into a sleeping operation, though that would
-require much extra work to implement. Disabling preemption while the
-hwspinlock is held is of course a correct implementation technically,
-but it might not be what someone enabling CONFIG_PREEMPT expects.
-
-> That's why we don't give users the choice whether to disable
-> interrupts or not - it's simply not a decision they should take.
-
-What about those cases where you already know that interrupts are
-disabled, e.g. while holding a regular spin_lock_irq or inside
-of an interrupt handler?
-
-	Arnd
+> The I2C  =A0Probaly subsys or even device_initcall
+> is more appropriate here.
+>
+> I would've suspected that any users of hwspinlocks will be dependent =
+on
+> drivers for the other cores (e.g. syslink) which would likely be
+> initialized much later.
+>
+> Kevin
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
