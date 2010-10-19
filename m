@@ -1,153 +1,92 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/3] AM35x: Add musb support
-Date: Tue, 19 Oct 2010 10:08:11 +0300
-Message-ID: <1287472093-20454-2-git-send-email-balbi@ti.com>
-References: <1287472093-20454-1-git-send-email-balbi@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1287472093-20454-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/2] video: omap: vram: remove from normal memory
+Date: Tue, 19 Oct 2010 10:27:12 +0300
+Message-ID: <AANLkTi=1tPHVY6jkg6Ne5MY=2CPWJj9qii+PSRZjj950@mail.gmail.com>
+References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
+	<1287146784-5517-1-git-send-email-felipe.contreras@gmail.com>
+	<1287407452.6781.64.camel@tubuntu>
+	<1287410618.6781.110.camel@tubuntu>
+	<20101018225534.GH13341@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:53248 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752133Ab0JSH1P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 03:27:15 -0400
+Received: by fxm4 with SMTP id 4so1355598fxm.19
+        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2010 00:27:14 -0700 (PDT)
+In-Reply-To: <20101018225534.GH13341@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, Russell King <linux@arm.linux.org.uk>, "mike@compulab.co.il" <mike@compulab.co.il>
 
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+On Tue, Oct 19, 2010 at 1:55 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [101018 06:55]:
+>> On Mon, 2010-10-18 at 16:10 +0300, Tomi Valkeinen wrote:
+>> > Hi,
+>> >
+>> > On Fri, 2010-10-15 at 14:46 +0200, ext Felipe Contreras wrote:
+>> > > So that we can ioremap happily.
+>> > >
+>> > > Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+>> > > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+>> > > ---
+>> > > =C2=A0drivers/video/omap2/vram.c | =C2=A0 =C2=A02 ++
+>> > > =C2=A01 files changed, 2 insertions(+), 0 deletions(-)
+>> > >
+>> > > diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vr=
+am.c
+>> > > index f6fdc20..1a99777 100644
+>> > > --- a/drivers/video/omap2/vram.c
+>> > > +++ b/drivers/video/omap2/vram.c
+>> > > @@ -575,6 +575,8 @@ void __init omap_vram_reserve_sdram_memblock=
+(void)
+>> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+>> > > =C2=A0 } else {
+>> > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 paddr =3D memblock_alloc_base=
+(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
+>> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 memblock_free(paddr, size);
+>> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 memblock_remove(paddr, size);
+>> > > =C2=A0 }
+>> > >
+>> > > =C2=A0 omap_vram_add_region(paddr, size);
+>> >
+>> > I tested this on OMAP3 SDP board, on top of my DSS2 tree. I can bo=
+ot up
+>> > fine, but my test program crashes the kernel (dump below).
+>> >
+>> > This crash doesn't happen if I have the "HACK: OMAP: DSS2: OMAPFB:=
+ use
+>> > phys_to_virt for RAM mappings" patch in (I removed that during tes=
+ting
+>> > this patch).
+>> >
+>> > I don't know yet what is crashing the kernel, but I'd guess it's t=
+he
+>> > fact that my test program reallocates the framebuffer memory with
+>> > OMAPFB_SETUP_MEM ioctl.
+>>
+>> Ah, sorry, I was missing the patch from Russel which you mentioned i=
+n
+>> another mail (http://article.gmane.org/gmane.linux.kernel/1047146). =
+With
+>> that patch included things seem to work.
+>
+> Tomi, I assume you're queuing these? If so, for both:
+>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
-It has USB phy built inside the IP itself.
+Note that this depends on a patch by Russell that is not clear if it
+will be merged on .37.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/board-am3517evm.c |   31 +++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/usb-musb.c        |    4 ++++
- arch/arm/plat-omap/include/plat/usb.h |   21 +++++++++++++++++++++
- 3 files changed, 56 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 4d0f585..6d352a2 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -35,6 +35,7 @@
- #include <plat/control.h>
- #include <plat/usb.h>
- #include <plat/display.h>
-+#include <plat/control.h>
- 
- #include "mux.h"
- 
-@@ -375,6 +376,31 @@ static void __init am3517_evm_init_irq(void)
- 	omap_gpio_init();
- }
- 
-+static struct omap_musb_board_data musb_board_data = {
-+	.interface_type         = MUSB_INTERFACE_ULPI,
-+	.mode                   = MUSB_OTG,
-+	.power                  = 500,
-+};
-+
-+static __init void am3517_evm_musb_init(void)
-+{
-+	u32 devconf2;
-+
-+	/*
-+	 * Set up USB clock/mode in the DEVCONF2 register.
-+	 */
-+	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
-+
-+	/* USB2.0 PHY reference clock is 13 MHz */
-+	devconf2 &= ~(CONF2_REFFREQ | CONF2_OTGMODE | CONF2_PHY_GPIOMODE);
-+	devconf2 |=  CONF2_REFFREQ_13MHZ | CONF2_SESENDEN | CONF2_VBDTCTEN
-+			| CONF2_DATPOL;
-+
-+	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
-+
-+	usb_musb_init(&musb_board_data);
-+}
-+
- static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
- #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
-@@ -393,6 +419,8 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 
- #ifdef CONFIG_OMAP_MUX
- static struct omap_board_mux board_mux[] __initdata = {
-+	/* USB OTG DRVVBUS offset = 0x212 */
-+	OMAP3_MUX(SAD2D_MCAD23, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
- 	{ .reg_offset = OMAP_MUX_TERMINATOR },
- };
- #else
-@@ -459,6 +487,9 @@ static void __init am3517_evm_init(void)
- 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
- 	/*Ethernet*/
- 	am3517_evm_ethernet_init(&am3517_evm_emac_pdata);
-+
-+	/* MUSB */
-+	am3517_evm_musb_init();
- }
- 
- MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 33a5cde..7260558 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -28,6 +28,7 @@
- 
- #include <mach/hardware.h>
- #include <mach/irqs.h>
-+#include <mach/am35xx.h>
- #include <plat/usb.h>
- 
- #ifdef CONFIG_USB_MUSB_SOC
-@@ -89,6 +90,9 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
- {
- 	if (cpu_is_omap243x()) {
- 		musb_resources[0].start = OMAP243X_HS_BASE;
-+	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
-+		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
-+		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
- 	} else if (cpu_is_omap34xx()) {
- 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
- 	} else if (cpu_is_omap44xx()) {
-diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
-index 2a9427c..9feddac 100644
---- a/arch/arm/plat-omap/include/plat/usb.h
-+++ b/arch/arm/plat-omap/include/plat/usb.h
-@@ -218,6 +218,27 @@ static inline omap2_usbfs_init(struct omap_usb_config *pdata)
- #	define	USBT2TLL5PI		(1 << 17)
- #	define	USB0PUENACTLOI		(1 << 16)
- #	define	USBSTANDBYCTRL		(1 << 15)
-+/* AM35x */
-+/* USB 2.0 PHY Control */
-+#define CONF2_PHY_GPIOMODE	(1 << 23)
-+#define CONF2_OTGMODE		(3 << 14)
-+#define CONF2_NO_OVERRIDE	(0 << 14)
-+#define CONF2_FORCE_HOST	(1 << 14)
-+#define CONF2_FORCE_DEVICE	(2 << 14)
-+#define CONF2_FORCE_HOST_VBUS_LOW (3 << 14)
-+#define CONF2_SESENDEN		(1 << 13)
-+#define CONF2_VBDTCTEN		(1 << 12)
-+#define CONF2_REFFREQ_24MHZ	(2 << 8)
-+#define CONF2_REFFREQ_26MHZ	(7 << 8)
-+#define CONF2_REFFREQ_13MHZ	(6 << 8)
-+#define CONF2_REFFREQ		(0xf << 8)
-+#define CONF2_PHYCLKGD		(1 << 7)
-+#define CONF2_VBUSSENSE		(1 << 6)
-+#define CONF2_PHY_PLLON		(1 << 5)
-+#define CONF2_RESET		(1 << 4)
-+#define CONF2_PHYPWRDN		(1 << 3)
-+#define CONF2_OTGPWRDN		(1 << 2)
-+#define CONF2_DATPOL		(1 << 1)
- 
- #if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_USB)
- u32 omap1_usb0_init(unsigned nwires, unsigned is_device);
--- 
-1.7.3.rc0.35.g8ac8c
-
+--=20
+=46elipe Contreras
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
