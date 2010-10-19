@@ -1,45 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next: omap2plus_defconfig does not build
-Date: Tue, 19 Oct 2010 10:15:16 -0700
-Message-ID: <20101019171515.GB3038@atomide.com>
-References: <a36d6a1047d959af6ea65cd7edacf6a8@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
+Date: Tue, 19 Oct 2010 10:16:51 -0700
+Message-ID: <8739s2xfuk.fsf@deeprootsystems.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+	<1287387875-14168-2-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51009 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756095Ab0JSRPX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 13:15:23 -0400
-Content-Disposition: inline
-In-Reply-To: <a36d6a1047d959af6ea65cd7edacf6a8@mail.gmail.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:48733 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753467Ab0JSRQz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 13:16:55 -0400
+In-Reply-To: <1287387875-14168-2-git-send-email-ohad@wizery.com> (Ohad
+	Ben-Cohen's message of "Mon, 18 Oct 2010 09:44:33 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Leif Lindholm <leif.lindholm@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-* Anand Gadiyar <gadiyar@ti.com> [101013 06:14]:
-> Building omap2plus_defconfig (which enables support for
-> OMAP2420/2430/OMAP3
-> and OMAP4 in one image), I get the following build error.
-> 
->   CC      arch/arm/kernel/swp_emulate.o
-> /tmp/ccg979qz.s: Assembler messages:
-> /tmp/ccg979qz.s:343: Error: selected processor does not support ARM mode
-> `ldrexb r6,[r5]'
-> /tmp/ccg979qz.s:344: Error: selected processor does not support ARM mode
-> `strexb r1,r3,[r5]'
-> make[1]: *** [arch/arm/kernel/swp_emulate.o] Error 1
-> make: *** [arch/arm/kernel] Error 2
-> 
-> I'm using CodeSourcery's 2010q1-202 toolchain based on gcc 4.4.1.
-> 
-> I haven't been following the lists closely the last few days, so I'm not
-> sure if this is a known issue. Just reporting it for now.
+Ohad Ben-Cohen <ohad@wizery.com> writes:
 
-This seems to be related to "ARM: Add SWP/SWPB emulation for ARMv7 processors (v5)"
-where SWP_EMULATE is selected by default. For the omap2plus_defconfig in for-next
-we now have CPU_V6 and CPU_V7 set with SMP and SMP_ON_UP.
+> From: Simon Que <sque@ti.com>
+>
+> Add driver for OMAP's Hardware Spinlock module.
+>
+> The OMAP Hardware Spinlock module, initially introduced in OMAP4,
+> provides hardware assistance for synchronization between the
+> multiple processors in the device (Cortex-A9, Cortex-M3 and
+> C64x+ DSP).
 
-Regards,
+[...]
 
-Tony
+> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+> index b743312..ce4b7a6 100644
+> --- a/drivers/misc/Kconfig
+> +++ b/drivers/misc/Kconfig
+> @@ -390,6 +390,16 @@ config BMP085
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called bmp085.
+>  
+> +config OMAP_HWSPINLOCK
+> +	bool "OMAP Hardware Spinlock module"
+
+Should be tristate so it can also be built as a module by default.
+
+e.g., when building multi-OMAP kernels, no reason or this to be
+built-in.  It can then be loaded as a module on OMAP4 only.
+
+Kevin
