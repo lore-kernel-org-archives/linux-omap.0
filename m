@@ -1,57 +1,44 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 2/3] usb: trivial Kconfig cleanups
-Date: Tue, 19 Oct 2010 21:15:21 +0300
-Message-ID: <AANLkTinRCaXO1nO3sZdbiAHont+vgd4eZE9EN-snjZYg@mail.gmail.com>
-References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
-	<1287482608-11320-3-git-send-email-felipe.contreras@gmail.com>
-	<20101019155109.GH4589@kroah.com>
-	<AANLkTi=CzBriAFW2gzG68b=6wENysJZEkaO9jFrXQdnq@mail.gmail.com>
-	<20101019175036.GB4618@kroah.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-next - multi-omap image fails to boot on omap3/4
+Date: Tue, 19 Oct 2010 11:21:50 -0700
+Message-ID: <20101019182149.GC3038@atomide.com>
+References: <4CBDAFFF.2030409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:37505 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751531Ab0JSSPX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 14:15:23 -0400
-In-Reply-To: <20101019175036.GB4618@kroah.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58756 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751796Ab0JSSVx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 14:21:53 -0400
+Content-Disposition: inline
+In-Reply-To: <4CBDAFFF.2030409@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Oct 19, 2010 at 8:50 PM, Greg KH <greg@kroah.com> wrote:
-> On Tue, Oct 19, 2010 at 08:15:19PM +0300, Felipe Contreras wrote:
->> On Tue, Oct 19, 2010 at 6:51 PM, Greg KH <greg@kroah.com> wrote:
->> > On Tue, Oct 19, 2010 at 01:03:27PM +0300, Felipe Contreras wrote:
->> >> Note: USB_GADGET_MUSB_HDRC is already defined in usb/gadget.
->> >>
->> >> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
->> >
->> > Please describe _what_ trivial cleanups you did, and why you did t=
-hem.
->> > Care to resend?
->>
->> How about:
->> Shuffle the code a bit so the description is at the top, remove
->> duplicated configs (USB_GADGET_MUSB_HDRC), =C2=A0'default n' is redu=
-ndant,
->> and USB_GADGET_SELECTED should go after USB_GADGET (on the appropria=
-te
->> config).
->
-> Sounds good, but you need to resend it with this information in it, n=
-ot
-> much I can do with it in an independant email.
+* Anand Gadiyar <gadiyar@ti.com> [101019 07:41]:
+> Hi all,
+> 
+> linux-next, as of 20101019, built with the omap2plus_defconfig fails
+> to boot on omap3 and omap4. (I've disabled CONFIG_ARCH_OMAP2 or
+> CONFIG_SWP_EMULATE to get the image to build). Building with only
+> ARCH_OMAP3 allows the resultant image to boot up on OMAP3. Likewise,
+> an image built with only ARCH_OMAP4 boots up on OMAP4 boards.
+> 
+> earlyprintk does not provide any additional prints after
+> "Uncompressing Linux... done, booting the kernel."
+> 
+> Any ideas where to look?
 
-I know that, I just wanted to see if it was ok before resending so I
-don't resend another time.
+Hmm I did a quick test merge of linux-omap master and rmk/devel
+branches and that boots just fine.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So it's probably something that already got fixed in rmk/devel
+but is not yet in next, or something that came from elsewhere,
+or something that we have in omap-testing branch that's not in
+for-next for some reason.
+
+Regards,
+
+Tony
