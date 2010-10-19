@@ -1,70 +1,46 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Tue, 19 Oct 2010 14:36:32 +0300
-Message-ID: <AANLkTikkMphKa2DGGtWxy-3LpFX0kn92UEYPj==Euzok@mail.gmail.com>
-References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
-	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
-	<20101019103234.GI31170@legolas.emea.dhcp.ti.com>
-	<AANLkTinXzMQXoyyu+anSCvSuE9w3FWAP5HswDS0kfpzE@mail.gmail.com>
-	<20101019111613.GJ31170@legolas.emea.dhcp.ti.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Tue, 19 Oct 2010 13:45:01 +0200
+Message-ID: <20101019114501.GA25371@elte.hu>
+References: <201010062334.46971.trenn@suse.de>
+ <4CB095FA.8060803@linux.intel.com>
+ <20101010121928.GA2688@elte.hu>
+ <201010191331.03080.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:64704 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758502Ab0JSLgi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 07:36:38 -0400
-In-Reply-To: <20101019111613.GJ31170@legolas.emea.dhcp.ti.com>
+Received: from mx3.mail.elte.hu ([157.181.1.138]:39226 "EHLO mx3.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758484Ab0JSLqM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Oct 2010 07:46:12 -0400
+Content-Disposition: inline
+In-Reply-To: <201010191331.03080.trenn@suse.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Arjan van de Ven <arjan@linux.intel.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org
 
-On Tue, Oct 19, 2010 at 2:16 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Tue, Oct 19, 2010 at 05:59:58AM -0500, Felipe Contreras wrote:
->>
->> The USB_MUSB_HDRC dependency on NOP_USB_XCEIV || TWL4030_USB is
->> already there, I'm just making it explicit. The rest are not
->> dependencies, just sensible defaults, and they are already in
->> drivers/usb/musb/Kconfig, I'm just moving them.
+
+* Thomas Renninger <trenn@suse.de> wrote:
+
+> > Most definitely. It's no accident that it took such a long time for this issue 
+> > to be raised in the first place. It's a rare occurance -
 >
-> might be true, but what will happen is that other developers will just
-> "follow what's in the tree" so they'll keep on adding more and more
-> "sesible defaults" to this line.
-
-That is actually the intention.
-
-> Linus had some really good comments about Kconfig usage some time ago
-> and I'm sure he wouldn't like us adding "sensible defaults" all over the
-> place.
-
-It's the other way around. He wanted to get rid of defconfigs
-completely by moving the complexity to Kconfigs:
-http://article.gmane.org/gmane.linux.kernel/994720
-http://article.gmane.org/gmane.linux.kernel/994706
-http://article.gmane.org/gmane.linux.kernel/994718
-
-You seem to be pushing for the exact opposite; keep the complexity on
-the defconfigs and the burden on the user creating configs.
-
->> If you have a better approach to avoid manually selecting TWL4030_USB
->> on defconfigs, and making sure USB_MUSB_HDRC works, please share it.
+> Do you agree that this occurance happened now and these events should get cleaned 
+> up before ARM and other archs make use of the broken interface?
 >
-> that's the thing. Currently, I don't think it should be automatic as we
-> can only have one transceiver structure. Look into
-> drivers/usb/otg/otg.c, it's just a static global pointer on that file,
-> which prevents us from having a working solution if you enable more than
-> one transceiver.
->
-> Ideally there would be a class or something similar to allow us to
-> register N transceiver and use the correct one in runtime, that would
-> make distro-makers' life easier. It'll probably help Linaro also at some
-> point, but as of today, enabling more than one transceiver will never
-> work.
+> If not, discussing this further, is a big waste of time... and Jean would have to 
+> try to adapt his ARM code on the broken ABI...
 
-Ok. But for now 'default y if ARCH_OMAP3' for TWL4030_USB doesn't
-hurt, nor increases the total size of Kconfigs, and solves a real
-problem.
+The discussion seems to have died down somewhat. Please re-send to lkml the latest 
+patches you have to remind everyone of the latest state of things - the merge window 
+is getting near.
 
--- 
-Felipe Contreras
+My only compatibility/ABI point is basically that it shouldnt break _existing_ 
+tracepoints (and users thereof). If your latest bits meet that then it ought to be a 
+good first step. You are free to (and encouraged to) introduce more complete sets of 
+events.
+
+Thanks,
+
+	Ingo
