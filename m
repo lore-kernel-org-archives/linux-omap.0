@@ -1,68 +1,105 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: PATCH [0/4] perf: clean-up of power events API
-Date: Tue, 19 Oct 2010 06:52:54 -0700
-Message-ID: <4CBDA2B6.9000405@linux.intel.com>
-References: <201010062334.46971.trenn@suse.de> <4CB095FA.8060803@linux.intel.com> <20101010121928.GA2688@elte.hu> <201010191331.03080.trenn@suse.de> <20101019114501.GA25371@elte.hu> <1287488841.1994.5.camel@twins> <20101019115200.GC25371@elte.hu> <4CBD9CDD.1010300@linux.intel.com> <20101019135053.GA665@elte.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <20101019135053.GA665@elte.hu>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Renninger <trenn@suse.de>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org
+From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Subject: [PATCH] spi/omap2_mcspi: Verify TX reg is empty after TX only xfer with DMA
+Date: Tue, 19 Oct 2010 17:07:31 +0300
+Message-ID: <1287497251-25058-1-git-send-email-ilkka.koskinen@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:33555 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985Ab0JSOE0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 10:04:26 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: dbrownell@users.sourceforge.net, grant.likely@secretlab.ca
+Cc: tony@atomide.com, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 
-  On 10/19/2010 6:50 AM, Ingo Molnar wrote:
-> * Arjan van de Ven<arjan@linux.intel.com>  wrote:
->
->>   On 10/19/2010 4:52 AM, Ingo Molnar wrote:
->>> * Peter Zijlstra<peterz@infradead.org>   wrote:
->>>
->>>> On Tue, 2010-10-19 at 13:45 +0200, Ingo Molnar wrote:
->>>>> * Thomas Renninger<trenn@suse.de>   wrote:
->>>>>
->>>>>>> Most definitely. It's no accident that it took such a long time for this issue
->>>>>>> to be raised in the first place. It's a rare occurance -
->>>>>> Do you agree that this occurance happened now and these events should get cleaned
->>>>>> up before ARM and other archs make use of the broken interface?
->>>>>>
->>>>>> If not, discussing this further, is a big waste of time... and Jean would have to
->>>>>> try to adapt his ARM code on the broken ABI...
->>>>> The discussion seems to have died down somewhat. Please re-send to lkml the latest
->>>>> patches you have to remind everyone of the latest state of things - the merge window
->>>>> is getting near.
->>>>>
->>>>> My only compatibility/ABI point is basically that it shouldnt break _existing_
->>>>> tracepoints (and users thereof). If your latest bits meet that then it ought to be a
->>>>> good first step. You are free to (and encouraged to) introduce more complete sets of
->>>>> events.
->>>> Can we deprecate and eventually remove the old ones, or will we be forever obliged
->>>> to carry the old ones too?
->>> We most definitely want to deprecate and remove the old ones - but we want to give
->>> instrumentation software some migration time for that.
->>>
->>> Jean, Arjan, what would be a feasible and practical deprecation period for that? One
->>> kernel cycle?
->> more like a year
->>
->> for some time software needs to support both, especially if popular distros stick
->> to an older kernel like *cough* RHEL6
-> Sure, you can support both. But as long as support for the _new_ events is included
-> in PowerTop there's no need to keep the duality upstream. Running ancient PowerTop
-> on fresh kernels is not common.
->
-> An old RHEL kernel will still keep on working as you can keep support for old events
-> in PowerTop as long as you wish to.
->
-> The new kernel also wont 'overwrite' old events with new definitions in the future,
-> so PowerTop will keep working for as long as you want to support older kernels.
->
-> Does that sound good?
+In case of TX only with DMA, the driver assumes that the data
+has been transferred once DMA callback in invoked. However,
+SPI's shift register may still contain data. Thus, the driver
+is supposed to verify that the register is empty and the end of
+the SPI transfer has been reached.
 
-this does not scale much long term, eg this only works if this is only 
-done once, and these points are stable afterwards.
-otherwise we get 25 of those different  "workarounds for kernel ABI 
-breakage" into all different projects, and it becomes
-untestable for all the poor software writers...
+Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Tested-by: Tuomas Katila <ext-tuomas.2.katila@nokia.com>
+---
+ drivers/spi/omap2_mcspi.c |   39 ++++++++++++++++++++++++++-------------
+ 1 files changed, 26 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index b3a94ca..a2e053c 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -296,6 +296,19 @@ static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
+ 	return 0;
+ }
+ 
++static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
++{
++	unsigned long timeout;
++
++	timeout = jiffies + msecs_to_jiffies(1000);
++	while (!(__raw_readl(reg) & bit)) {
++		if (time_after(jiffies, timeout))
++			return -1;
++		cpu_relax();
++	}
++	return 0;
++}
++
+ static unsigned
+ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+ {
+@@ -309,11 +322,14 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+ 	u32			l;
+ 	u8			* rx;
+ 	const u8		* tx;
++	void __iomem		*chstat_reg;
+ 
+ 	mcspi = spi_master_get_devdata(spi->master);
+ 	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
+ 	l = mcspi_cached_chconf0(spi);
+ 
++	chstat_reg = cs->base + OMAP2_MCSPI_CHSTAT0;
++
+ 	count = xfer->len;
+ 	c = count;
+ 	word_len = cs->word_len;
+@@ -382,6 +398,16 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+ 	if (tx != NULL) {
+ 		wait_for_completion(&mcspi_dma->dma_tx_completion);
+ 		dma_unmap_single(NULL, xfer->tx_dma, count, DMA_TO_DEVICE);
++
++		/* for TX_ONLY mode, be sure all words have shifted out */
++		if (rx == NULL) {
++			if (mcspi_wait_for_reg_bit(chstat_reg,
++						OMAP2_MCSPI_CHSTAT_TXS) < 0)
++				dev_err(&spi->dev, "TXS timed out\n");
++			else if (mcspi_wait_for_reg_bit(chstat_reg,
++						OMAP2_MCSPI_CHSTAT_EOT) < 0)
++				dev_err(&spi->dev, "EOT timed out\n");
++		}
+ 	}
+ 
+ 	if (rx != NULL) {
+@@ -435,19 +461,6 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+ 	return count;
+ }
+ 
+-static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
+-{
+-	unsigned long timeout;
+-
+-	timeout = jiffies + msecs_to_jiffies(1000);
+-	while (!(__raw_readl(reg) & bit)) {
+-		if (time_after(jiffies, timeout))
+-			return -1;
+-		cpu_relax();
+-	}
+-	return 0;
+-}
+-
+ static unsigned
+ omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
+ {
+-- 
+1.6.0.4
 
