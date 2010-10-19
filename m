@@ -1,65 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC v2 0/7] OMAP4: mux: Add the OMAP4430 ES1 & ES2 support
-Date: Tue, 19 Oct 2010 16:06:42 -0700
-Message-ID: <20101019230642.GF3038@atomide.com>
-References: <1287526956-21853-1-git-send-email-b-cousson@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 3/3] omap: add hwspinlock device
+Date: Tue, 19 Oct 2010 17:12:43 -0600
+Message-ID: <AANLkTimTDCbLP+EeUeo35re0FrMvqV3ozU+v7DZXr_p3@mail.gmail.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+ <1287387875-14168-4-git-send-email-ohad@wizery.com> <87r5fmxghm.fsf@deeprootsystems.com>
+ <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63587 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757590Ab0JSXGo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 19:06:44 -0400
-Content-Disposition: inline
-In-Reply-To: <1287526956-21853-1-git-send-email-b-cousson@ti.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:50416 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755559Ab0JSXNE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 19:13:04 -0400
+In-Reply-To: <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
 
-* Benoit Cousson <b-cousson@ti.com> [101019 15:14]:
-> Hi Tony,
-> 
-> Upon Nishanth request, here is the updated version...
-> 
-> It takes into account your proposal to store partition
-> information in a partition structure instead of inside every pad entries.
-> The mechanism relies on the uniqueness of the pad name in each partition to
-> find the correct partition during iteration.
+On Tue, Oct 19, 2010 at 3:02 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
+:
+> On Tue, Oct 19, 2010 at 7:03 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>>> +postcore_initcall(hwspinlocks_init);
+>>
+>> Any reason this needs to be a postcore_initcall? =A0Are there users =
+of
+>> hwspinlocks this early in boot?
+>
+> i2c-omap, which is subsys_initcall (the I2C bus is shared between the
+> A9 and the M3 on some OMAP4 boards).
+>
+> And to allow early board code to reserve specific hwspinlock numbers
+> for predefined use-cases, we probably want to be before arch_initcall=
+=2E
 
-OK, using the offset defines won't be unique necessarily..
- 
-> Removed as well some cpu_is_xxx calls from the core code by adding a couple of
-> flags during partition init.
+Man. this is getting ugly.  I think we need to discuss how to solve
+this at the Plumbers micro-conference. It kind of fits in with the
+whole embedded (ab)use of the device model topic anyway. Actually,
+this particular case isn't bad, but the moving of i2c and spi busses
+to an earlier initcall is just band-aiding the real problem of driver
+probe order dependencies.
 
-That's great.
- 
-> Please note that due to low level access to mux api from the RX51 board code,
-> I have to disable the mux change to build properly with omap2plus_defconfig.
-> Look like you do have some idea to fix that :-)
-> I was thinking of:
-> - brute force approach that consist of keeping all the data after init, and
-> thus allowing removing the __init in the omap_mux_init_signal API
-> - or adding some flag in the pad entry to keep them after init .
-
-Well I was thinking we just register a board specific dynamic mux table
-and then call that when hitting retention or off and restore after that.
-Still need to think about that a bit more, I don't know if we want
-the automatic muxing of gpio pins still in addition to that.
-
-> Boot tested on SDP4430 with ES1.0 & ES2.0 with omap2plus_defconfig. Still require
-> some real driver to use that mux API in order to validate it.
-
-You can test by echoing wrong values after booting via /sys to
-mess up the MMC data lines and then type sync :)
-
-> The series is on top of lo/master (2.6.36-rc8) and is available here:
-> git://gitorious.org/omap-pm/linux.git ctrl-wip/mux-omap4-v2
-
-For pulling anything in, the git branches need to be based on something
-that's immutable. So preferrably v2.6.35 or some recent -rc tag
-in this case. Or rebase it on v2.6.36 after that's been released.
-
-Regards,
-
-Tony
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
