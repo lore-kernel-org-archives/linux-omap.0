@@ -1,95 +1,66 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Tue, 19 Oct 2010 16:44:14 -0700
-Message-ID: <20101019234414.GB30991@atomide.com>
-References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
- <1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
- <20101019103234.GI31170@legolas.emea.dhcp.ti.com>
- <AANLkTinXzMQXoyyu+anSCvSuE9w3FWAP5HswDS0kfpzE@mail.gmail.com>
- <20101019111613.GJ31170@legolas.emea.dhcp.ti.com>
- <AANLkTikkMphKa2DGGtWxy-3LpFX0kn92UEYPj==Euzok@mail.gmail.com>
- <20101019115236.GL31170@legolas.emea.dhcp.ti.com>
- <AANLkTim3NsgjC3Nh8VCCrx4cV1Y+kn38=30=en0KCft6@mail.gmail.com>
- <6ea089ac75d4d15d88698468eacb7fe3@secure211.sgcpanel.com>
- <AANLkTinYM5aavk9_jcTTymff=OY+Yyv8T6C+dmMih0p_@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: linux-next - multi-omap image fails to boot on omap3/4
+Date: Wed, 20 Oct 2010 05:16:46 +0530
+Message-ID: <AANLkTikrVJ3bw3aKE6V7uH9DmheVDihedNOP+wypYunC@mail.gmail.com>
+References: <4CBDAFFF.2030409@ti.com> <20101019182149.GC3038@atomide.com>
+ <AANLkTikYGwH-kQV3b+gqDYOKVvuiXOU=kBDVLy3ryNjR@mail.gmail.com>
+ <20101019225726.GE3038@atomide.com> <20101019233204.GA30991@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTinYM5aavk9_jcTTymff=OY+Yyv8T6C+dmMih0p_-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:42271 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753368Ab0JSXrI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Oct 2010 19:47:08 -0400
+Received: by mail-ww0-f54.google.com with SMTP id 39so2021271wwb.11
+        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2010 16:47:06 -0700 (PDT)
+In-Reply-To: <20101019233204.GA30991@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-* Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [101019 13:43]:
-> On Tue, Oct 19, 2010 at 6:05 PM, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org> wrote:
-> > On Tue, 19 Oct 2010 17:32:07 +0300, Felipe Contreras
-> > <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> >> There are two parts, one part is to fix the Kconfigs, and another was
-> >> to come up with a way to replace the horrible defconfigs. Part two is
-> >> mostly fixed thanks to 'make savedefconfig', since the defconfigs are
-> >> not so horrible any more, but part one is a continued effort.
-> >>
-> >> For part two Linus had the idea to use Kconfigs instead of defconfigs,
-> >> but they would mostly look very similar to the current ones generated
-> >> by 'make savedefconfig'.
-> >>
-> >> I don't know what makes you think Linus didn't want part one to be
-> >> done. He wanted the Kconfig.rx51 to be human readable, and you are
-> >> proposing that TWL4030_USB should be manually added there... I don't
-> >> think TWL4030_USB says anything to human beings.
-> >
-> > I don't read anywhere Linus saying we should clutter drivers/*/Kconfig
-> > with defaults. I think you're inverting things, it's much better
-> > to select TWL4030_USB when you enable MACH_OMAP_RX51 then default y
-> > if MACH_OMAP_RX51.
-> 
-> So say, if you have 100 board defconfigs with OMAP3 chips and TWL4030,
-> each and every one of them should select both USB_MUSB_HDRC and
-> TWL4030_USB?
-> 
-> And you are saying if somebody is doing 'make menuconfig', that person
-> should somehow know that _obviously_ he needs TWL4030_USB in order to
-> use USB_MUSB_HDRC, or USB_G_NOKIA?
+On Wed, Oct 20, 2010 at 5:02 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [101019 15:48]:
+>> * Gadiyar, Anand <gadiyar@ti.com> [101019 11:26]:
+>> > On Tue, Oct 19, 2010 at 11:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > > * Anand Gadiyar <gadiyar@ti.com> [101019 07:41]:
+>> > >> Hi all,
+>> > >>
+>> > >> linux-next, as of 20101019, built with the omap2plus_defconfig fails
+>> > >> to boot on omap3 and omap4. (I've disabled CONFIG_ARCH_OMAP2 or
+>> > >> CONFIG_SWP_EMULATE to get the image to build). Building with only
+>> > >> ARCH_OMAP3 allows the resultant image to boot up on OMAP3. Likewise,
+>> > >> an image built with only ARCH_OMAP4 boots up on OMAP4 boards.
+>> > >>
+>> > >> earlyprintk does not provide any additional prints after
+>> > >> "Uncompressing Linux... done, booting the kernel."
+>> > >>
+>> > >> Any ideas where to look?
+>> > >
+>> > > Hmm I did a quick test merge of linux-omap master and rmk/devel
+>> > > branches and that boots just fine.
+>> > >
+>> > > So it's probably something that already got fixed in rmk/devel
+>> > > but is not yet in next, or something that came from elsewhere,
+>> > > or something that we have in omap-testing branch that's not in
+>> > > for-next for some reason.
+>> >
+>> > I tried bisecting linux-next between v2.6.36-rc8 and HEAD, but
+>> > there's a commit in between that breaks the build. I'll take another
+>> > stab at this in a while.
+>>
+>> Looks like current next at 80f8f1f8b33750d954beb386c0c8142d0c01c25c
+>> boots again except on 2430sdp it produces a NULL pointer at ubi_io_write.
+>
+> Oops, sorry it's still broken, wrong tree.
+>
 
-Hey we're already dealing with stuff like this :)
+I've started bisecting again - I needed to pick commit 5bac0926121e
+(driver core: platform_bus: allow runtime override of dev_pm_ops) to
+solve the build break.
 
-See ARCH_OMAP2PLUS_TYPICAL in arch/arm/mach-omap2/Kconfig:
+Will report back if I find something.
 
-config ARCH_OMAP2PLUS_TYPICAL
-        bool "Typical OMAP configuration"
-        default y
-        select AEABI
-        select REGULATOR
-        select PM
-        select PM_RUNTIME
-        select VFP
-        select NEON if ARCH_OMAP3 || ARCH_OMAP4
-        select SERIAL_OMAP
-        select SERIAL_OMAP_CONSOLE
-        select I2C
-        select I2C_OMAP
-        select MFD
-        select MENELAUS if ARCH_OMAP2
-        select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
-        select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
-        help
-          Compile a kernel suitable for booting most boards
-
-This actually produces a booting omap2+ kernel with no .config
-at all. I've tested it with:
-
-$ echo CONFIG_ARCH_OMAP=y > .config
-$ yes "" | ARCH=arm make oldconfig
-
-So if you have something that's needed on almost every omap,
-you can select it there.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Anand
