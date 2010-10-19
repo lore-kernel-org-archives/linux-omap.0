@@ -1,46 +1,52 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH 9/9] arch: arm: fixed typos
-Date: Tue, 19 Oct 2010 22:25:09 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.1010192224000.6879@pobox.suse.cz>
-References: <1287219606-20759-1-git-send-email-andrea.gelmini@gelma.net> <20101018080644.GD12363@pengutronix.de>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
+Date: Tue, 19 Oct 2010 22:43:34 +0200
+Message-ID: <AANLkTinNfERyi_bTWc7LOKR1uRLC3E612ubFKBLxWB1E@mail.gmail.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+ <1287387875-14168-2-git-send-email-ohad@wizery.com> <AANLkTimDdPUjo+65vBL0PTQ3b=5NpeVT28XrdkYqx3Ex@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:48233 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752574Ab0JSUZR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Oct 2010 16:25:17 -0400
-In-Reply-To: <20101018080644.GD12363@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimDdPUjo+65vBL0PTQ3b=5NpeVT28XrdkYqx3Ex@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Andrea Gelmini <andrea.gelmini@gelma.net>, Nishanth Menon <nm@ti.com>, Leo Chen <leochen@broadcom.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Grazvydas Ignotas <notasas@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Rajendra Nayak <rnayak@ti.com>, Maciej Sosnowski <maciej.sosnowski@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@slimlogic.co.uk>, Paul Walmsley <paul@pwsan.com>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Scott Branden <sbranden@broadcom.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tero Kristo <tero.kristo@nokia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tejun Heo <tj@kernel.org>, Jar
 
-On Mon, 18 Oct 2010, Uwe Kleine-K=F6nig wrote:
+On Tue, Oct 19, 2010 at 7:01 PM, Grant Likely <grant.likely@secretlab.c=
+a> wrote:
+>> + =A0struct omap_hwspinlock *omap_hwspinlock_request(void);
+=2E..
+> ERR_PTR() is only appropriate when the caller actually cares about th=
+e
+> failure code and has different behaviour depending on the result.
 
-> On Sat, Oct 16, 2010 at 11:00:05AM +0200, Andrea Gelmini wrote:
-> > Intialize, configuation, wakup, Managment, addres
-> I already fixed some of these in
->=20
-> 	http://thread.gmane.org/gmane.linux.kernel/1030436/
->=20
-> Don't know why they didn't appear in the trivial tree yet.
+Agree; the hwspinlock users can surely live without an explicit error
+code from the _request APIs, and some extra robustness can only do
+good.
 
-Ah, now I see your patchset you sent me way back. It somehow slipped=20
-through cracks, sorry.
+I'll remove it.
 
-Could you please refresh it (and probably incorporate Andrea's changes =
-as=20
-well) and resend it to me?
+> Disabling irqs *might* be a concern as a source of RT latency. =A0It
+> might be better to make the caller responsible for managing local spi=
+n
+> locks and irq disable/enable.
+
+This a coming from an hardware requirement, rather than a choice the
+user should take.
+
+If a hwspinlock is taken over a long period of time, its other user
+(with which we try to achieve synchronization) might be polling the
+OMAP interconnect for too long (trying to take the hwspinlock) and
+thus preventing it to be used for other transactions.
+
+To prevent such lengthy polling on the interconnect, the hwspinlock
+should only be used for very short period of times, with preemption
+and interrupts disabled.
+
+That's why we don't give users the choice whether to disable
+interrupts or not - it's simply not a decision they should take.
 
 Thanks,
-
---=20
-Jiri Kosina
-SUSE Labs, Novell Inc.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ohad.
