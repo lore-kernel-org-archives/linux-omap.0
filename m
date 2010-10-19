@@ -1,42 +1,34 @@
-From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Tue, 19 Oct 2010 17:33:50 +0300
-Message-ID: <AANLkTinRRyrXzqEu=u+CCYkmSNGm03SSo1tVG=5_wdpo@mail.gmail.com>
-References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
-	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
-	<4CBD9FD5.506@nokia.com>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: linux-next - multi-omap image fails to boot on omap3/4
+Date: Tue, 19 Oct 2010 20:19:35 +0530
+Message-ID: <4CBDAFFF.2030409@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CBD9FD5.506-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:33473 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752644Ab0JSOtv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Oct 2010 10:49:51 -0400
+Received: by mail-pw0-f46.google.com with SMTP id 4so595255pwj.5
+        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2010 07:49:40 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Roger,
+Hi all,
 
-On Tue, Oct 19, 2010 at 4:40 PM, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org=
-> wrote:
->> @@ -843,6 +841,7 @@ config USB_CDC_COMPOSITE
->> =C2=A0config USB_G_NOKIA
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0tristate "Nokia composite gadget"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0depends on PHONET
->> + =C2=A0 =C2=A0 =C2=A0 depends on USB_GADGET_MUSB_HDRC
->
-> This is wrong. Is there a build problem or run-time problem without t=
-his?
+linux-next, as of 20101019, built with the omap2plus_defconfig fails to 
+boot on omap3 and omap4. (I've disabled CONFIG_ARCH_OMAP2 or 
+CONFIG_SWP_EMULATE to get the image to build). Building with only 
+ARCH_OMAP3 allows the resultant image to boot up on OMAP3. Likewise,
+an image built with only ARCH_OMAP4 boots up on OMAP4 boards.
 
-Try:
-CONFIG_USB_G_NOKIA=3Dy
-CONFIG_USB_GADGET_MUSB_HDRC=3Dn
+earlyprintk does not provide any additional prints after
+"Uncompressing Linux... done, booting the kernel."
 
-At least g_nokia doesn't seem to work correctly on my N900.
+Any ideas where to look?
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+- Anand
