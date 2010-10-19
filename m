@@ -1,74 +1,60 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v2] omap4: pandaboard: fix up mmc card detect logic
-Date: Tue, 19 Oct 2010 09:50:25 -0500
-Message-ID: <1287499825-24988-1-git-send-email-nm@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34313 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751791Ab0JSOum (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Oct 2010 10:50:42 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Tue, 19 Oct 2010 16:51:09 +0200
+Message-ID: <20101019145109.GA4857@elte.hu>
+References: <201010062334.46971.trenn@suse.de>
+ <4CB095FA.8060803@linux.intel.com>
+ <20101010121928.GA2688@elte.hu>
+ <201010191331.03080.trenn@suse.de>
+ <20101019114501.GA25371@elte.hu>
+ <1287488841.1994.5.camel@twins>
+ <20101019115200.GC25371@elte.hu>
+ <4CBD9CDD.1010300@linux.intel.com>
+ <20101019135053.GA665@elte.hu>
+ <4CBDA2B6.9000405@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4CBDA2B6.9000405@linux.intel.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Renninger <trenn@suse.de>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: l-o <linux-omap@vger.kernel.org>
-Cc: l-a <linux-arm-kernel@lists.infradead.org>, "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <tony@atomide.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, Adrian Hunter <adrian.hunter@nokia.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-From: Menon, Nishanth <nm@ti.com>
 
-For MMC1 Controller, card detect interrupt source is
-twl6030 which is non-gpio. The card detect call back function provides
-card present/absent status by reading MMC Control register present
-on twl6030. This functionality was introduced in mfd tree on
-track to kernel.org
+* Arjan van de Ven <arjan@linux.intel.com> wrote:
 
-Sync pandaboard to the same and make mmc work.
+> >> for some time software needs to support both, especially if popular distros 
+> >> stick to an older kernel like *cough* RHEL6
+> >
+> > Sure, you can support both. But as long as support for the _new_ events is 
+> > included in PowerTop there's no need to keep the duality upstream. Running 
+> > ancient PowerTop on fresh kernels is not common.
+> >
+> > An old RHEL kernel will still keep on working as you can keep support for old 
+> > events in PowerTop as long as you wish to.
+> >
+> > The new kernel also wont 'overwrite' old events with new definitions in the 
+> > future, so PowerTop will keep working for as long as you want to support older 
+> > kernels.
+> >
+> > Does that sound good?
+> 
+> this does not scale much long term, eg this only works if this is only done once, 
+> and these points are stable afterwards. otherwise we get 25 of those different 
+> "workarounds for kernel ABI breakage" into all different projects, and it becomes 
+> untestable for all the poor software writers...
 
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+I have no intention for this to become common. For the 2+ years tracepoints have 
+been upstream this is the first time it has come up. It's a rare occurance, and as 
+long as we keep it rare and as long as we have a smooth transition process in place 
+it should be good. If it becomes common we are doing something wrong ...
 
-Acked-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Tested-by: Jarkko Nikula <jhnikula@gmail.com>
-Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
-v2: reposting to l-a, l-o
-Depends on 
-http://git.kernel.org/?p=linux/kernel/git/sameo/mfd-2.6.git;a=commitdiff;h=1bf5197061a4aec99e9fd4f92d4a543310f83585;hp=0c9b33e5a23e2053165c9e30ffff3b3a3cf1b2b8
-Discussion:
-http://marc.info/?t=128714921300007&r=1&w=2
+Alternatively you might want to review the new power events and suggest ways to add 
+that extra information to existing events that suits your purposes as well. You 
+added the old power tracepoints so you sure must have an opinion about it all?
 
- arch/arm/mach-omap2/board-omap4panda.c |   15 ++++++++++++---
- 1 files changed, 12 insertions(+), 3 deletions(-)
+Thanks,
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 702f2a6..1ecd0a6 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -160,10 +160,19 @@ static int omap4_twl6030_hsmmc_late_init(struct device *dev)
- 				struct platform_device, dev);
- 	struct omap_mmc_platform_data *pdata = dev->platform_data;
- 
-+	if (!pdata) {
-+		dev_err(dev, "%s: NULL platform data\n", __func__);
-+		return -EINVAL;
-+	}
- 	/* Setting MMC1 Card detect Irq */
--	if (pdev->id == 0)
--		pdata->slots[0].card_detect_irq = TWL6030_IRQ_BASE +
--						MMCDETECT_INTR_OFFSET;
-+	if (pdev->id == 0) {
-+		ret = twl6030_mmc_card_detect_config();
-+		 if (ret)
-+			dev_err(dev, "%s: Error card detect config(%d)\n",
-+				__func__, ret);
-+		 else
-+			pdata->slots[0].card_detect = twl6030_mmc_card_detect;
-+	}
- 	return ret;
- }
- 
--- 
-1.6.3.3
-
+	Ingo
