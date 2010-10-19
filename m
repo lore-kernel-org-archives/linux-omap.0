@@ -1,49 +1,46 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 3/3] omap: add hwspinlock device
-Date: Tue, 19 Oct 2010 23:02:37 +0200
-Message-ID: <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com> <87r5fmxghm.fsf@deeprootsystems.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
+Date: Tue, 19 Oct 2010 23:08:01 +0200
+Message-ID: <201010192308.02018.arnd@arndb.de>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com> <201010191921.21007.arnd@arndb.de> <AANLkTinXR7OcfTpA6cWhRGzceekD6KQgnxOLeBKXP3WB@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:46408 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757691Ab0JSVC5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 17:02:57 -0400
-In-Reply-To: <87r5fmxghm.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <AANLkTinXR7OcfTpA6cWhRGzceekD6KQgnxOLeBKXP3WB@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
 
-On Tue, Oct 19, 2010 at 7:03 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
->> +postcore_initcall(hwspinlocks_init);
->
-> Any reason this needs to be a postcore_initcall? =A0Are there users o=
-f
-> hwspinlocks this early in boot?
+On Tuesday 19 October 2010 22:51:22 Ohad Ben-Cohen wrote:
+> >, which is generally discouraged
+> > in all places where you know if you need to disable interrupts or not.
+> >
+> > IMHO the default should be a version that only allows locks that don't get
+> > taken at IRQ time and consequently don't require saving the interrupt flags.
+> 
+> Please note that the hwspinlocks should never be used to achieve
+> synchronization with Linux contexts running on the same cpu - it's
+> always about achieving mutual exclusion with a remote processor.
 
-i2c-omap, which is subsys_initcall (the I2C bus is shared between the
-A9 and the M3 on some OMAP4 boards).
+Ok, I see.
+ 
+> So whether the lock is taken at IRQ time or not does not affect the
+> requirement to disable interrupts while it is taken (very differently
+> from local spin_lock{_irqsave} synchronizations).
 
-And to allow early board code to reserve specific hwspinlock numbers
-for predefined use-cases, we probably want to be before arch_initcall.
+Right. There are two more things to consider though:
 
-> The I2C  =A0Probaly subsys or even device_initcall
-> is more appropriate here.
->
-> I would've suspected that any users of hwspinlocks will be dependent =
-on
-> drivers for the other cores (e.g. syslink) which would likely be
-> initialized much later.
->
-> Kevin
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If you know that interrupts are disabled, you may still want to avoid
+having to save the interrupt flag to the stack, to save some cycles
+saving and restoring it. I don't know how expensive that is on ARM,
+some other architectures take an microseconds to restore the interrupt
+enabled flag from a register.
+
+Even in the case where you know that interrupts are enabled, you may
+want to avoid saving the interrupt flag to the stack, the simpler
+API (one argument instead of two) gives less room for screwing up.
+
+	Arnd
