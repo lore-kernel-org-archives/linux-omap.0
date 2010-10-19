@@ -1,75 +1,154 @@
-From: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Tue, 19 Oct 2010 09:23:48 -0700
-Message-ID: <20101019162348.GA28899@kroah.com>
-References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
- <1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
- <20101019155219.GI4589@kroah.com>
- <4CBDC361.70507@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
+Date: Tue, 19 Oct 2010 09:58:42 -0700
+Message-ID: <8762wyyv99.fsf@deeprootsystems.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+	<1287387875-14168-2-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4CBDC361.70507-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:52756 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754071Ab0JSQ6p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 12:58:45 -0400
+In-Reply-To: <1287387875-14168-2-git-send-email-ohad@wizery.com> (Ohad
+	Ben-Cohen's message of "Mon, 18 Oct 2010 09:44:33 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-On Tue, Oct 19, 2010 at 09:42:17PM +0530, Anand Gadiyar wrote:
-> On 10/19/2010 9:22 PM, Greg KH wrote:
-> >On Tue, Oct 19, 2010 at 01:03:28PM +0300, Felipe Contreras wrote:
-> >>Add missing dependencies, and remove redundant ones, and select sensible
-> >>defaults.
-> >>
-> >>Signed-off-by: Felipe Contreras<felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> >>---
-> >>  drivers/mfd/Kconfig        |    3 ++-
-> >>  drivers/regulator/Kconfig  |    1 +
-> >>  drivers/usb/gadget/Kconfig |    3 +--
-> >>  drivers/usb/musb/Kconfig   |    6 ++----
-> >>  drivers/usb/otg/Kconfig    |    2 ++
-> >>  5 files changed, 8 insertions(+), 7 deletions(-)
-> >>
-> >>diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> >>index db51ea1..0bbaf01 100644
-> >>--- a/drivers/mfd/Kconfig
-> >>+++ b/drivers/mfd/Kconfig
-> >>@@ -156,6 +156,7 @@ config MENELAUS
-> >>  config TWL4030_CORE
-> >>  	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
-> >>  	depends on I2C=y&&  GENERIC_HARDIRQS
-> >>+	default y if ARCH_OMAP3 || ARCH_OMAP4
-> >
-> >Sorry, but unless the driver is somehow required to keep the board from
-> >going up in a puff of smoke, a default should NEVER be y.
-> >
-> >Because of that, I can't take this patch.
-> >
-> 
-> This is the driver for the Power-management IC on the board. Without
-> this IC being correctly configured, I'm guessing a lot of things
-> will fail. Not so sure if anything will go up in smoke (sounds
-> unlikely), or if the kernel will fail to boot - I'll check quickly -
-> but for this one specific instance, I think it's reasonable to
-> accept a default y.
+Ohad Ben-Cohen <ohad@wizery.com> writes:
 
-Sorry, but no, I'm not going to take it for the reasons stated above.
+> From: Simon Que <sque@ti.com>
+>
+> Add driver for OMAP's Hardware Spinlock module.
+>
+> The OMAP Hardware Spinlock module, initially introduced in OMAP4,
+> provides hardware assistance for synchronization between the
+> multiple processors in the device (Cortex-A9, Cortex-M3 and
+> C64x+ DSP).
 
-> Kevin/Tony can probably confirm.
-> 
-> Greg,
-> 
-> For other instances of unnecessary "default y", do you think they
-> should be removed?
+[...]
 
-I wouldn't worry about trivial things like that, the damage is already
-done.
+> +/**
+> + * omap_hwspin_trylock() - attempt to lock a specific hwspinlock
+> + * @hwlock: a hwspinlock which we want to trylock
+> + * @flags: a pointer to where the caller's interrupt state will be saved at
+> + *
+> + * This function attempt to lock the underlying hwspinlock. Unlike
+> + * hwspinlock_lock, this function will immediately fail if the hwspinlock
+> + * is already taken.
+> + *
+> + * Upon a successful return from this function, preemption and interrupts
+> + * are disabled, so the caller must not sleep, and is advised to release
+> + * the hwspinlock as soon as possible. This is required in order to minimize
+> + * remote cores polling on the hardware interconnect.
+> + *
+> + * This function can be called from any context.
+> + *
+> + * Returns 0 if we successfully locked the hwspinlock, -EBUSY if
+> + * the hwspinlock was already taken, and -EINVAL if @hwlock is invalid.
+> + */
+> +int omap_hwspin_trylock(struct omap_hwspinlock *hwlock, unsigned long *flags)
+> +{
+> +	u32 ret;
+> +
+> +	if (IS_ERR_OR_NULL(hwlock)) {
+> +		pr_err("invalid hwlock\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * This spin_trylock_irqsave serves two purposes:
+> +
+> +	 * 1. Disable local interrupts and preemption, in order to
+> +	 *    minimize the period of time in which the hwspinlock
+> +	 *    is taken (so caller will not preempted). This is
+> +	 *    important in order to minimize the possible polling on
+> +	 *    the hardware interconnect by a remote user of this lock.
+> +	 *
+> +	 * 2. Make this hwspinlock primitive SMP-safe (so we can try to
+> +	 *    take it from additional contexts on the local cpu)
+> +	 */
 
-thanks,
+3. Ensures that in_atomic/might_sleep checks catch potential problems
+   with hwspinlock usage (e.g. scheduler checks like 'scheduling while
+   atomic' etc.)
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	if (!spin_trylock_irqsave(&hwlock->lock, *flags))
+> +		return -EBUSY;
+> +
+> +	/* attempt to acquire the lock by reading its value */
+> +	ret = readl(hwlock->addr);
+> +
+> +	/* lock is already taken */
+> +	if (ret == SPINLOCK_TAKEN) {
+> +		spin_unlock_irqrestore(&hwlock->lock, *flags);
+> +		return -EBUSY;
+> +	}
+> +
+> +	/*
+> +	 * We can be sure the other core's memory operations
+> +	 * are observable to us only _after_ we successfully take
+> +	 * the hwspinlock, so we must make sure that subsequent memory
+> +	 * operations will not be reordered before we actually took the
+> +	 * hwspinlock.
+> +	 * Note: the implicit memory barrier of the spinlock above is too
+> +	 * early, so we need this additional explicit memory barrier.
+> +	 */
+> +	mb();
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(omap_hwspin_trylock);
+
+[...]
+
+> +/**
+> + * omap_hwspinlock_unlock() - unlock a specific hwspinlock
+
+minor nit: s/lock_unlock/_unlock/  to match name below
+
+> + * @hwlock: a previously-acquired hwspinlock which we want to unlock
+> + * @flags: a pointer to the caller's saved interrupts state
+> + *
+> + * This function will unlock a specific hwspinlock, enable preemption and
+> + * restore the interrupts state. @hwlock must be taken (by us!) before
+> + * calling this function: it is a bug to call unlock on a @hwlock that was
+> + * not taken by us, i.e. using one of omap_hwspin_{lock trylock, lock_timeout}.
+> + *
+> + * This function can be called from any context.
+> + *
+> + * Returns 0 when the @hwlock on success, or -EINVAL if @hwlock is invalid.
+> + */
+> +int omap_hwspin_unlock(struct omap_hwspinlock *hwlock, unsigned long *flags)
+> +{
+> +	if (IS_ERR_OR_NULL(hwlock)) {
+> +		pr_err("invalid hwlock\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	/*
+> +	 * We must make sure that memory operations, done before unlocking
+> +	 * the hwspinlock, will not be reordered after the lock is released.
+> +	 * The memory barrier induced by the spin_unlock below is too late:
+> +	 * the other core is going to access memory soon after it will take
+> +	 * the hwspinlock, and by then we want to be sure our memory operations
+> +	 * were already observable.
+> +	 */
+> +	mb();
+> +
+> +	/* release the lock by writing 0 to it (NOTTAKEN) */
+> +	writel(SPINLOCK_NOTTAKEN, hwlock->addr);
+> +
+> +	/* undo the spin_trylock_irqsave called in the locking function */
+> +	spin_unlock_irqrestore(&hwlock->lock, *flags);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(omap_hwspin_unlock);
+
+[...]
+
+Kevin
