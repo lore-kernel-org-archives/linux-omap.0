@@ -1,66 +1,65 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] mfd: fix TWL4030 COR bit polarity for BCI SIH block
-Date: Tue, 19 Oct 2010 01:37:49 +0200
-Message-ID: <20101018233748.GB16761@sortiz-mobl>
-References: <1285680139-19092-1-git-send-email-notasas@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap4: pandaboard: fix up mmc card detect logic
+Date: Mon, 18 Oct 2010 17:31:09 -0700
+Message-ID: <20101019003109.GM13341@atomide.com>
+References: <1287149087-16656-1-git-send-email-nm@ti.com>
+ <2E5804DAE93D403D9F7FCEDBF6367E59@am.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:63413 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753931Ab0JRXiH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 18 Oct 2010 19:38:07 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61208 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755188Ab0JSAbO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 Oct 2010 20:31:14 -0400
 Content-Disposition: inline
-In-Reply-To: <1285680139-19092-1-git-send-email-notasas@gmail.com>
+In-Reply-To: <2E5804DAE93D403D9F7FCEDBF6367E59@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Nishanth Menon' <nm@ti.com>, 'l-o' <linux-omap@vger.kernel.org>, 'Dave' <x0132446@ti.com>, 'Adrian Hunter' <adrian.hunter@nokia.com>, 'Samuel Ortiz' <sameo@linux.intel.com>
 
-Hi Grazvydas,
-
-On Tue, Sep 28, 2010 at 04:22:19PM +0300, Grazvydas Ignotas wrote:
-> The chip TRM documentation contradicts itself about this bit, page 174
-> of swcu050e says bit should be 0 for clear-on-read behavior, while
-> page 487 says it should be 1. Testing shows it should be 1, so set
-> the .set_cor flag accordingly. This is needed for upcoming BCI
-> charging driver to function.
-Patch applied, thanks.
-
-Cheers,
-Samuel.
-
-
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> ---
->  drivers/mfd/twl4030-irq.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
+* Madhusudhan <madhu.cr@ti.com> [101018 09:57]:
 > 
-> diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-> index 097f24d..5b5a559 100644
-> --- a/drivers/mfd/twl4030-irq.c
-> +++ b/drivers/mfd/twl4030-irq.c
-> @@ -144,6 +144,7 @@ static const struct sih sih_modules_twl4030[6] = {
->  		.name		= "bci",
->  		.module		= TWL4030_MODULE_INTERRUPTS,
->  		.control_offset	= TWL4030_INTERRUPTS_BCISIHCTRL,
-> +		.set_cor	= true,
->  		.bits		= 12,
->  		.bytes_ixr	= 2,
->  		.edr_offset	= TWL4030_INTERRUPTS_BCIEDR1,
-> @@ -408,7 +409,7 @@ static int twl4030_init_sih_modules(unsigned line)
->  		 * set Clear-On-Read (COR) bit.
->  		 *
->  		 * NOTE that sometimes COR polarity is documented as being
-> -		 * inverted:  for MADC and BCI, COR=1 means "clear on write".
-> +		 * inverted:  for MADC, COR=1 means "clear on write".
->  		 * And for PWR_INT it's not documented...
->  		 */
->  		if (sih->set_cor) {
-> -- 
-> 1.6.3.3
 > 
+> > -----Original Message-----
+> > From: Nishanth Menon [mailto:nm@ti.com]
+> > Sent: Friday, October 15, 2010 8:25 AM
+> > To: l-o
+> > Cc: Dave; Nishanth Menon; Tony Lindgren; Madhusudhan Chikkature; Adrian
+> > Hunter; Samuel Ortiz
+> > Subject: [PATCH] omap4: pandaboard: fix up mmc card detect logic
+> > 
+> > For MMC1 Controller, card detect interrupt source is
+> > twl6030 which is non-gpio. The card detect call back function provides
+> > card present/absent status by reading MMC Control register present
+> > on twl6030. This functionality was introduced in mfd tree on
+> > track to kernel.org
+> > 
+> > Sync pandaboard to the same and make mmc work.
+> > 
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Madhusudhan Chikkature <madhu.cr@ti.com>
+> > Cc: Adrian Hunter <adrian.hunter@nokia.com>
+> > Cc: Samuel Ortiz <sameo@linux.intel.com>
+> > 
+> > Acked-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
+> 
+> The patch looks good.
+> Acked-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> 
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > ---
+> > 
+> > Depends on
+> > http://git.kernel.org/?p=linux/kernel/git/sameo/mfd-
+> > 2.6.git;a=commitdiff;h=1bf5197061a4aec99e9fd4f92d4a543310f83585;hp=0c9b33e
+> > 5a23e2053165c9e30ffff3b3a3cf1b2b8
+> > This patch probably should be squashed to that.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Nishant, please post one more time with linux-arm-kernel list
+also cc'd for review and add all the acks.
+
+After that, Samuel, can you please apply it to your queue because
+of the depenency above?
+
+Acked-by: Tony Lindgren <tony@atomide.com>
