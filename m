@@ -1,66 +1,74 @@
-From: Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Tue, 19 Oct 2010 16:40:37 +0300
-Message-ID: <4CBD9FD5.506@nokia.com>
-References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com> <1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: PATCH [0/4] perf: clean-up of power events API
+Date: Tue, 19 Oct 2010 15:50:53 +0200
+Message-ID: <20101019135053.GA665@elte.hu>
+References: <201010062334.46971.trenn@suse.de>
+ <4CB095FA.8060803@linux.intel.com>
+ <20101010121928.GA2688@elte.hu>
+ <201010191331.03080.trenn@suse.de>
+ <20101019114501.GA25371@elte.hu>
+ <1287488841.1994.5.camel@twins>
+ <20101019115200.GC25371@elte.hu>
+ <4CBD9CDD.1010300@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1287482608-11320-4-git-send-email-felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4CBD9CDD.1010300@linux.intel.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Thomas Renninger <trenn@suse.de>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tejun Heo <tj@kernel.org>, Frederic Weisbecker <fweisbec@gmail.com>, Pierre Tardy <tardyp@gmail.com>, Jean Pihet <jean.pihet@newoldbits.com>, linux-trace-users@vger.kernel.org, linux-pm@lists.linux-foundation.org, rjw@sisk.pl, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Steven Rostedt <rostedt@goodmis.org>, Frank Eigler <fche@redhat.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Felipe,
 
-On 10/19/2010 01:03 PM, ext Felipe Contreras wrote:
-> Add missing dependencies, and remove redundant ones, and select sensible
-> defaults.
->
-> Signed-off-by: Felipe Contreras<felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->   drivers/mfd/Kconfig        |    3 ++-
->   drivers/regulator/Kconfig  |    1 +
->   drivers/usb/gadget/Kconfig |    3 +--
->   drivers/usb/musb/Kconfig   |    6 ++----
->   drivers/usb/otg/Kconfig    |    2 ++
->   5 files changed, 8 insertions(+), 7 deletions(-)
->
+* Arjan van de Ven <arjan@linux.intel.com> wrote:
 
-> diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-> index c530bc6..2aac57e 100644
-> --- a/drivers/usb/gadget/Kconfig
-> +++ b/drivers/usb/gadget/Kconfig
-> @@ -111,7 +111,6 @@ config	USB_GADGET_SELECTED
->   #
->   choice
->   	prompt "USB Peripheral Controller"
-> -	depends on USB_GADGET
->   	help
->   	   A USB device uses a controller to talk to its host.
->   	   Systems should have only one such upstream link.
-> @@ -191,7 +190,6 @@ config USB_GADGET_OMAP
->   	boolean "OMAP USB Device Controller"
->   	depends on ARCH_OMAP
->   	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_H4_OTG
-> -	select USB_OTG_UTILS if ARCH_OMAP
->   	help
->   	   Many Texas Instruments OMAP processors have flexible full
->   	   speed USB device controllers, with support for up to 30
-> @@ -843,6 +841,7 @@ config USB_CDC_COMPOSITE
->   config USB_G_NOKIA
->   	tristate "Nokia composite gadget"
->   	depends on PHONET
-> +	depends on USB_GADGET_MUSB_HDRC
+>  On 10/19/2010 4:52 AM, Ingo Molnar wrote:
+> >* Peter Zijlstra<peterz@infradead.org>  wrote:
+> >
+> >>On Tue, 2010-10-19 at 13:45 +0200, Ingo Molnar wrote:
+> >>>* Thomas Renninger<trenn@suse.de>  wrote:
+> >>>
+> >>>>>Most definitely. It's no accident that it took such a long time for this issue
+> >>>>>to be raised in the first place. It's a rare occurance -
+> >>>>Do you agree that this occurance happened now and these events should get cleaned
+> >>>>up before ARM and other archs make use of the broken interface?
+> >>>>
+> >>>>If not, discussing this further, is a big waste of time... and Jean would have to
+> >>>>try to adapt his ARM code on the broken ABI...
+> >>>The discussion seems to have died down somewhat. Please re-send to lkml the latest
+> >>>patches you have to remind everyone of the latest state of things - the merge window
+> >>>is getting near.
+> >>>
+> >>>My only compatibility/ABI point is basically that it shouldnt break _existing_
+> >>>tracepoints (and users thereof). If your latest bits meet that then it ought to be a
+> >>>good first step. You are free to (and encouraged to) introduce more complete sets of
+> >>>events.
+> >>Can we deprecate and eventually remove the old ones, or will we be forever obliged
+> >>to carry the old ones too?
+> >We most definitely want to deprecate and remove the old ones - but we want to give
+> >instrumentation software some migration time for that.
+> >
+> >Jean, Arjan, what would be a feasible and practical deprecation period for that? One
+> >kernel cycle?
+> 
+> more like a year
+> 
+> for some time software needs to support both, especially if popular distros stick 
+> to an older kernel like *cough* RHEL6
 
-This is wrong. Is there a build problem or run-time problem without this?
+Sure, you can support both. But as long as support for the _new_ events is included 
+in PowerTop there's no need to keep the duality upstream. Running ancient PowerTop 
+on fresh kernels is not common.
 
--- 
-regards,
--roger
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+An old RHEL kernel will still keep on working as you can keep support for old events 
+in PowerTop as long as you wish to.
+
+The new kernel also wont 'overwrite' old events with new definitions in the future, 
+so PowerTop will keep working for as long as you want to support older kernels.
+
+Does that sound good?
+
+Thanks,
+
+	Ingo
