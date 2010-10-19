@@ -1,73 +1,71 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 1/2] video: omap: vram: remove from normal memory
-Date: Tue, 19 Oct 2010 15:03:05 +0300
-Message-ID: <1287489785.2216.10.camel@tubuntu>
-References: <AANLkTik_6byuzkZ+mKunTi6HJTHu49C4XGebfTjCaEeE@mail.gmail.com>
-	 <1287146784-5517-1-git-send-email-felipe.contreras@gmail.com>
-	 <1287407452.6781.64.camel@tubuntu> <1287410618.6781.110.camel@tubuntu>
-	 <20101018225534.GH13341@atomide.com>
+Subject: Re: [RFC v3][PATCH 0/4] OMAP: DSS2: Overlay Manager LCD2 support
+ in DISPC
+Date: Tue, 19 Oct 2010 16:09:50 +0300
+Message-ID: <1287493790.2216.26.camel@tubuntu>
+References: <1286279724-11692-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:25260 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758352Ab0JSMDe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 Oct 2010 08:03:34 -0400
-In-Reply-To: <20101018225534.GH13341@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.233]:62788 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758554Ab0JSNKB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 09:10:01 -0400
+In-Reply-To: <1286279724-11692-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: ext Felipe Contreras <felipe.contreras@gmail.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap <linux-omap@vger.kernel.org>, "Palande Ameya (Nokia-MS/Helsinki)" <ameya.palande@nokia.com>, Russell King <linux@arm.linux.org.uk>, "mike@compulab.co.il" <mike@compulab.co.il>
+To: ext Archit Taneja <archit@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 2010-10-19 at 00:55 +0200, ext Tony Lindgren wrote:
-> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [101018 06:55]:
-> > On Mon, 2010-10-18 at 16:10 +0300, Tomi Valkeinen wrote:
-> > > Hi,
-> > > 
-> > > On Fri, 2010-10-15 at 14:46 +0200, ext Felipe Contreras wrote:
-> > > > So that we can ioremap happily.
-> > > > 
-> > > > Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> > > > Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> > > > ---
-> > > >  drivers/video/omap2/vram.c |    2 ++
-> > > >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
-> > > > index f6fdc20..1a99777 100644
-> > > > --- a/drivers/video/omap2/vram.c
-> > > > +++ b/drivers/video/omap2/vram.c
-> > > > @@ -575,6 +575,8 @@ void __init omap_vram_reserve_sdram_memblock(void)
-> > > >  		}
-> > > >  	} else {
-> > > >  		paddr = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_REAL_LIMIT);
-> > > > +		memblock_free(paddr, size);
-> > > > +		memblock_remove(paddr, size);
-> > > >  	}
-> > > >  
-> > > >  	omap_vram_add_region(paddr, size);
-> > > 
-> > > I tested this on OMAP3 SDP board, on top of my DSS2 tree. I can boot up
-> > > fine, but my test program crashes the kernel (dump below).
-> > > 
-> > > This crash doesn't happen if I have the "HACK: OMAP: DSS2: OMAPFB: use
-> > > phys_to_virt for RAM mappings" patch in (I removed that during testing
-> > > this patch).
-> > > 
-> > > I don't know yet what is crashing the kernel, but I'd guess it's the
-> > > fact that my test program reallocates the framebuffer memory with
-> > > OMAPFB_SETUP_MEM ioctl.
-> > 
-> > Ah, sorry, I was missing the patch from Russel which you mentioned in
-> > another mail (http://article.gmane.org/gmane.linux.kernel/1047146). With
-> > that patch included things seem to work.
-> 
-> Tomi, I assume you're queuing these? If so, for both:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+Hi,
 
-Yes, I can queue them (when the required memblock stuff is in).
+On Tue, 2010-10-05 at 13:55 +0200, ext Archit Taneja wrote:
+> This patch series which incorporates changes in DSS2 to enable
+> omap_dss_device instances to use the new Overlay Manager LCD2 in
+> DISPC.
+> 
+> On OMAP4, we have a new DISPC channel for Overlay Manager LCD2. This
+> channel's video port is a source port for RFBI, DSI2 and DPI. The
+> Primary channel's video port is connected to RFBI and DSI1.
+> 
+> There is a set of regsiters for LCD2 channel similar to the existing
+> LCD channel, like DISPC_CONTROL2, DISPC_DIVISOR2, DISPC_CONFIG2 and so
+> on.
+> 
+> In order to decide which LCD Overlay Manager to configure(LCD/LCD2),
+> there is a need for the omap_dss_device instances to tell the interface
+> drivers(DSI, DPI, RFBI etc) which LCD channel they want to connect to, so
+> that the corresponding registers get configured. Therefore, a new
+> enum omap_channel member is introduced to omap_dss_device.
+> 
+> This design was made keeping in mind the possible addition of more
+> Overlay Managers in future OMAPs, this code is also backward compatible
+> with OMAP3 as omap_dss_device instances in OMAP3 will stick only with
+> OMAP_DSS_CHANNEL_LCD.
+> 
+> This will apply over the set of dss_feature framework patches:
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg34768.html
+
+The patchset makes dispc API changes in patch 2, but doesn't change any
+of the code that uses that API. This means that the kernel doesn't
+compile after applying patch 2.
+
+The kernel has to be compilable and working after each patch, so that is
+not acceptable.
+
+Fixing that in easy way would mean squashing the later patches together
+with patch 2, but that would result in a huge patch, and patch 2 is
+already very big. Thus I'd suggest doing the changes in smaller bits.
+
+You could first add the register definitions, and make the changes in
+dispc.c to keep everything working. After that you could change the
+dispc functions, one by one or in small groups (depending on the amount
+of changes), and add the channel argument and adjusting the code using
+those functions in the same time.
+
+This would solve the problem of keeping the kernel working, and would
+make the patches much more readable.
 
  Tomi
 
