@@ -1,67 +1,119 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Tue, 19 Oct 2010 17:31:16 -0700
-Message-ID: <20101020003115.GC30991@atomide.com>
-References: <20101019103234.GI31170@legolas.emea.dhcp.ti.com>
- <AANLkTinXzMQXoyyu+anSCvSuE9w3FWAP5HswDS0kfpzE@mail.gmail.com>
- <20101019111613.GJ31170@legolas.emea.dhcp.ti.com>
- <AANLkTikkMphKa2DGGtWxy-3LpFX0kn92UEYPj==Euzok@mail.gmail.com>
- <20101019115236.GL31170@legolas.emea.dhcp.ti.com>
- <AANLkTim3NsgjC3Nh8VCCrx4cV1Y+kn38=30=en0KCft6@mail.gmail.com>
- <6ea089ac75d4d15d88698468eacb7fe3@secure211.sgcpanel.com>
- <AANLkTinYM5aavk9_jcTTymff=OY+Yyv8T6C+dmMih0p_@mail.gmail.com>
- <20101019234414.GB30991@atomide.com>
- <87fww1u3fw.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <87fww1u3fw.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 2/3 v2] omap4: opp: add OPP table data
+Date: Tue, 19 Oct 2010 20:02:22 -0500
+Message-ID: <1287536543-9729-3-git-send-email-nm@ti.com>
+References: <1287536543-9729-1-git-send-email-nm@ti.com>
+ <1287536543-9729-2-git-send-email-nm@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45097 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754003Ab0JTBC0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 Oct 2010 21:02:26 -0400
+In-Reply-To: <1287536543-9729-2-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: l-o <linux-omap@vger.kernel.org>
+Cc: Kevin H <khilman@deeprootsystems.com>, Tony <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
-* Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> [101019 17:04]:
-> Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> writes:
-> >
-> > This actually produces a booting omap2+ kernel with no .config
-> > at all. I've tested it with:
-> >
-> > $ echo CONFIG_ARCH_OMAP=y > .config
-> > $ yes "" | ARCH=arm make oldconfig
-> >
-> > So if you have something that's needed on almost every omap,
-> > you can select it there.
-> 
-> One thing I don't like about this is that there is currently no way to
-> 'select' as a module.
+This patch adds OPP tables for OMAP4. New file has been added to keep
+the OMAP4 opp tables and the registration of these tables with the
+generic opp framework by OMAP SoC OPP interface.
 
-I think that would take two passes to do currently for the depenencies..
-But we can certainly select all the omap drivers as modules in
-omap2plus_defconfig.
+Based on:
+http://dev.omapzoom.org/?p=santosh/kernel-omap4-base.git;a=blob;f=arch/arm/mach-omap2/opp44xx_data.c;h=252e3d0cb6050a64f390b9311c1c4977d74f762a;hb=refs/heads/omap4_next
 
-> In order to get to a minimal kernel, in theory, we don't need regulator,
-> i2c, MFD, or twl4030* built in.  They should all be built as modules.
-> Yes, there are some assumptions made today that some of these things are
-> built in, and then are used from init code, but that is broken.
+Signed-off-by: Thara Gopinath <thara@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+[nm@ti.com: cleaned up, synced to latest code, removed iva,dsp,gpu,aess
+as these hwmods are not added yet to l-o for-next. Retaining Thara's
+attribution]
 
-I think the only thing keeping us from doing that is that most of
-the boards don't use initramfs. Without initramfs these are needed
-to mount root on MMC.
+ arch/arm/mach-omap2/Kconfig        |    1 +
+ arch/arm/mach-omap2/opp.c          |    6 ++++-
+ arch/arm/mach-omap2/opp4xxx_data.h |   37 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 43 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/opp4xxx_data.h
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 3eb367a..12fefdb 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -44,6 +44,7 @@ config ARCH_OMAP4
+ 	depends on ARCH_OMAP2PLUS
+ 	select CPU_V7
+ 	select ARM_GIC
++	select PM_OPP if PM
  
-> If someone is looking for a good omap-kernel-janitors project, I would
-> suggest getting to a *really* minimal OMAP2+ kernel with everything
-> possible built as modules to be a very good project.
+ comment "OMAP Core Type"
+ 	depends on ARCH_OMAP2
+diff --git a/arch/arm/mach-omap2/opp.c b/arch/arm/mach-omap2/opp.c
+index 9342986..2266c1f 100644
+--- a/arch/arm/mach-omap2/opp.c
++++ b/arch/arm/mach-omap2/opp.c
+@@ -61,6 +61,7 @@ struct omap_opp_def {
+ }
+ 
+ #include "opp3xxx_data.h"
++#include "opp4xxx_data.h"
+ 
+ /* Temp variable to allow multiple calls */
+ static u8 __initdata omap_table_init;
+@@ -86,7 +87,10 @@ int __init omap_init_opp_table(void)
+ 	omap_table_init = 1;
+ 
+ 	/* Select the OPP table we'd like to enable based on cpu we are on */
+-	if (cpu_is_omap34xx()) {
++	if (cpu_is_omap44xx()) {
++		opp_def = omap44xx_opp_def_list;
++		opp_def_size = ARRAY_SIZE(omap44xx_opp_def_list);
++	} else if (cpu_is_omap34xx()) {
+ 		opp_def = cpu_is_omap3630() ? omap36xx_opp_def_list :
+ 			omap34xx_opp_def_list;
+ 		opp_def_size = cpu_is_omap3630() ?
+diff --git a/arch/arm/mach-omap2/opp4xxx_data.h b/arch/arm/mach-omap2/opp4xxx_data.h
+new file mode 100644
+index 0000000..2e5fe67
+--- /dev/null
++++ b/arch/arm/mach-omap2/opp4xxx_data.h
+@@ -0,0 +1,37 @@
++/*
++ * OMAP4 OPP table definitions.
++ *
++ * Copyright (C) 2009 - 2010 Texas Instruments Incorporated.
++ *	Nishanth Menon
++ * Copyright (C) 2009 - 2010 Deep Root Systems, LLC.
++ *	Kevin Hilman
++ * Copyright (C) 2010 Nokia Corporation.
++ *      Eduardo Valentin
++ * Copyright (C) 2010 Texas Instruments Incorporated.
++ *	Thara Gopinath
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __ASM_PLAT_OPP_OMAP4XXX_H__
++#define __ASM_PLAT_OPP_OMAP4XXX_H__
++
++static struct omap_opp_def __initdata omap44xx_opp_def_list[] = {
++	/* MPU OPP1 - OPP50 */
++	OPP_INITIALIZER("mpu", true, 300000000, 1100000),
++	/* MPU OPP2 - OPP100 */
++	OPP_INITIALIZER("mpu", true, 600000000, 1200000),
++	/* MPU OPP3 - OPP-Turbo */
++	OPP_INITIALIZER("mpu", false, 800000000, 1260000),
++	/* MPU OPP4 - OPP-SB */
++	OPP_INITIALIZER("mpu", false, 1008000000, 1350000),
++	/* L3 OPP1 - OPP50 */
++	OPP_INITIALIZER("l3_main_1", true, 100000000, 930000),
++	/* L3 OPP2 - OPP100, OPP-Turbo, OPP-SB */
++	OPP_INITIALIZER("l3_main_1", true, 200000000, 1100000),
++	/* TODO: add IVA, DSP, aess, fdif, gpu */
++};
++
++#endif		/*  __ASM_PLAT_OPP_OMAP4XXX_H__ */
+-- 
+1.6.3.3
 
-Agreed. The way to do that is to set everything possible as modules
-in omap2plus_defconfig, and move to kernel + initramfs based booting
-like most distros do.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
