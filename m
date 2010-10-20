@@ -1,115 +1,85 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 3/3] omap: add hwspinlock device
-Date: Wed, 20 Oct 2010 21:21:05 +0200
-Message-ID: <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com> <87r5fmxghm.fsf@deeprootsystems.com>
- <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
- <87bp6pviwf.fsf@deeprootsystems.com> <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
- <8739s0sobc.fsf@deeprootsystems.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC v2 0/7] OMAP4: mux: Add the OMAP4430 ES1 & ES2 support
+Date: Wed, 20 Oct 2010 22:52:27 +0200
+Message-ID: <4CBF568B.2010909@ti.com>
+References: <1287526956-21853-1-git-send-email-b-cousson@ti.com> <20101019230642.GF3038@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:33309 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755278Ab0JTTV1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 15:21:27 -0400
-In-Reply-To: <8739s0sobc.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41394 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753359Ab0JTUwc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Oct 2010 16:52:32 -0400
+In-Reply-To: <20101019230642.GF3038@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Balaji T K <balajitk@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>
 
-On Wed, Oct 20, 2010 at 8:37 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
->> Let's take the i2c-omap for example.
+Hi Tony,
+
+On 10/20/2010 1:06 AM, Tony Lindgren wrote:
+> * Benoit Cousson<b-cousson@ti.com>  [101019 15:14]:
+>> Hi Tony,
 >>
->> It sounds like it must have a predefined hwspinlock, but what if:
+>> Upon Nishanth request, here is the updated version...
 >>
->> 1. It will use omap_hwspinlock_request() to dynamically allocate a h=
-wspinlock
->> 2. Obviously, the hwspinlock id number must be communicated to the M=
-3
->> BIOS, so the i2c-omap will publish that id using a small shared memo=
-ry
->> entry that will be allocated for this sole purpose
->> 3. we will make sure that 1+2 completes before the remote processor =
-is
->> taken out of reset
->>
->> This does not require any smart IPC and it will allow us to get rid =
-of
->> the omap_hwspinlock_request_specific() API and its early-callers
->> requirement.
+>> It takes into account your proposal to store partition
+>> information in a partition structure instead of inside every pad entries.
+>> The mechanism relies on the uniqueness of the pad name in each partition to
+>> find the correct partition during iteration.
 >
-> Yes, that would indeed simplify things.
+> OK, using the offset defines won't be unique necessarily..
 
-Balaji, Nishant, are you OK with this ?
-
-It means that the I2C driver will dynamically get a hwspinlock and
-then it would need to announce the id of that hwspinlock before the M3
-is taken out of reset.
-
-It will help us get rid of static allocations that will never scale
-nicely and static vs. dynamic allocation races.
+They should. The defines are all based on pad names that are all unique. 
+Assuming HW folks didn't messed up the spec...
 
 >
->> All we will be left to take care of is the order of the ->probe()
->> execution (assuming we want both the i2c and the hwspinlock drivers =
-to
->> be device_initcall)
+>> Removed as well some cpu_is_xxx calls from the core code by adding a couple of
+>> flags during partition init.
 >
-> I understand the dependency between i2c and hwspinlock for some
-> platforms with a shared i2c bus. =A0Besides that being a broken hardw=
-are
-> design, I can see the need for the i2c driver to take a hwspinlock fo=
-r
-> i2c xfers, but why does the i2c driver need to take the hwspinlock at
-> probe time?
-
-It doesn't; it just needs to reserve a hwspinlock, and for that, we
-need the hwspinlock driver in place.
-
-> =A0Presumably, this is before the remote cores are executing
-> code.
+> That's great.
 >
->>>
->>> This kind of thing needs to be done by platform_data function point=
-ers,
->>> as is done for every other driver that needs platform-specific driv=
-er
->>> customization.
->>
->> Why would we need platform-specific function pointers here ? I'm not
->> sure I'm following this one.
+>> Please note that due to low level access to mux api from the RX51 board code,
+>> I have to disable the mux change to build properly with omap2plus_defconfig.
+>> Look like you do have some idea to fix that :-)
+>> I was thinking of:
+>> - brute force approach that consist of keeping all the data after init, and
+>> thus allowing removing the __init in the omap_mux_init_signal API
+>> - or adding some flag in the pad entry to keep them after init .
 >
-> So that board code (built-in) does not call the hwspinlock driver
-> (potentially a module.)
+> Well I was thinking we just register a board specific dynamic mux table
+> and then call that when hitting retention or off and restore after that.
+> Still need to think about that a bit more, I don't know if we want
+> the automatic muxing of gpio pins still in addition to that.
+
+OK, you were thinking of the MMC remux case only.
+That might be enough for the moment, because the other needs I heard 
+about does not seems to be in mainline anyway (USB or modem link).
+
+>> Boot tested on SDP4430 with ES1.0&  ES2.0 with omap2plus_defconfig. Still require
+>> some real driver to use that mux API in order to validate it.
 >
-> The way to solve this is to have platform_data with function pointers=
-,
-> so that when the driver's ->probe() is done, it can call cany custom
-> hooks registered by the board code.
+> You can test by echoing wrong values after booting via /sys to
+> mess up the MMC data lines and then type sync :)
 
-Sorry, still not following.
+I played with debugfs a little bit but was trying to avoid messing up 
+with pins already used... in fact I should do the opposite. That's a 
+nice technique...
 
-Do you refer to the i2c driver calling the hwspinlcok_request function
-at probe time via platform_data function pointers ?
+>> The series is on top of lo/master (2.6.36-rc8) and is available here:
+>> git://gitorious.org/omap-pm/linux.git ctrl-wip/mux-omap4-v2
+>
+> For pulling anything in, the git branches need to be based on something
+> that's immutable. So preferrably v2.6.35 or some recent -rc tag
+> in this case. Or rebase it on v2.6.36 after that's been released.
 
-With the previous _request_specific() allocation API, the important
-issue to follow was the timing:  it had to be called before any driver
-gets the chance to call the dynamic _request() API.
-That's why we had to have early board code calling it. Obviously the
-hwspinlock instance would then had to be delivered to the driver via
-platform data.
+In that case only the ES1 can be there. ES2 support will be in 2.6.37 only.
 
-But now, if we get rid of that static allocation method entirely,
-i2c_omap can just call hwspinlock_request() on probe(), but again, no
-pdata function pointers are involved because this API is
-EXPORT_SYMBOL'ed.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That's why I have a dependency with lo/master. Do you want to split the 
+series in two parts?
+
+Thanks,
+Benoit
+
