@@ -1,206 +1,106 @@
-From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH] omap2plus: wdt: Fix boot warn when CONFIG_PM_RUNTIME=n
-Date: Wed, 20 Oct 2010 16:49:23 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D1FC500@dbde02.ent.ti.com>
-References: <1286798556-22749-1-git-send-email-charu@ti.com>
-	<4CB40B07.8080301@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030CFC553C@dbde02.ent.ti.com>
-	<4CB45E0E.6080104@ti.com> <87mxqj1d2v.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030D09A22D@dbde02.ent.ti.com>
- <87vd4xu40m.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Samreen <samreen@ti.com>
+Subject: [PATCH v3] OMAP3: DSS: Kconfig changes to enable display options on OMAP3
+Date: Wed, 20 Oct 2010 17:34:20 +0530
+Message-ID: <1287576260-14016-1-git-send-email-samreen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43625 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47116 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751253Ab0JTLTc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 07:19:32 -0400
-In-Reply-To: <87vd4xu40m.fsf@deeprootsystems.com>
-Content-Language: en-US
+	id S1751894Ab0JTMJZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Oct 2010 08:09:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Roger Quadros <roger.quadros@nokia.com>, Senthilvadivu
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Samreen <samreen@ti.com>
 
+The defconfig options for display are taken in the respective Kconfig
+to enable display by default on OMAP3 platforms
+
+Signed-off-by: Samreen <samreen@ti.com>
+---
+ Version3:
+       Eliminate the separate default number of FBs for
+ different architecture. Keeping default FBs as 3 as before.
+
+ Version2:
+        Enables by default NEC panel used in zoom2/3/3630sdp, instead of 
+ Sharp LQ043T1DG01 panel enabled in previous version of this patch
+
+ drivers/video/omap2/displays/Kconfig |    3 +++
+ drivers/video/omap2/dss/Kconfig      |    6 ++++--
+ drivers/video/omap2/omapfb/Kconfig   |    1 +
+ 3 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+index f8152cf..d818e44 100644
+--- a/drivers/video/omap2/displays/Kconfig
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -3,6 +3,7 @@ menu "OMAP2/3 Display Device Drivers"
  
+ config PANEL_GENERIC
+         tristate "Generic Panel"
++	default y
+         help
+ 	  Generic panel driver.
+ 	  Used for DVI output for Beagle and OMAP3 SDP.
+@@ -10,6 +11,7 @@ config PANEL_GENERIC
+ config PANEL_SHARP_LS037V7DW01
+         tristate "Sharp LS037V7DW01 LCD Panel"
+         depends on OMAP2_DSS
++	default y
+         select BACKLIGHT_CLASS_DEVICE
+         help
+           LCD Panel used in TI's SDP3430 and EVM boards
+@@ -23,6 +25,7 @@ config PANEL_SHARP_LQ043T1DG01
+ config PANEL_NEC_NL8048HL11_01B
+ 	tristate "NEC NL8048HL11-01B Panel"
+ 	depends on OMAP2_DSS
++	default y
+ 	help
+ 		This NEC NL8048HL11-01B panel is TFT LCD
+ 		used in the Zoom2/3/3630 sdp boards.
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index 43b6440..f3244a2 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -1,6 +1,7 @@
+ menuconfig OMAP2_DSS
+         tristate "OMAP2/3 Display Subsystem support (EXPERIMENTAL)"
+         depends on ARCH_OMAP2 || ARCH_OMAP3
++	default y
+         help
+           OMAP2/3 Display Subsystem support.
+ 
+@@ -9,7 +10,7 @@ if OMAP2_DSS
+ config OMAP2_VRAM_SIZE
+ 	int "VRAM size (MB)"
+ 	range 0 32
+-	default 0
++	default 4
+ 	help
+ 	  The amount of SDRAM to reserve at boot time for video RAM use.
+ 	  This VRAM will be used by omapfb and other drivers that need
+@@ -102,7 +103,8 @@ config OMAP2_DSS_FAKE_VSYNC
+ config OMAP2_DSS_MIN_FCK_PER_PCK
+ 	int "Minimum FCK/PCK ratio (for scaling)"
+ 	range 0 32
+-	default 0
++	default 4  if ARCH_OMAP2 || ARCH_OMAP3
++	default 0  if ARCH_OMAP4
+ 	help
+ 	  This can be used to adjust the minimum FCK/PCK ratio.
+ 
+diff --git a/drivers/video/omap2/omapfb/Kconfig b/drivers/video/omap2/omapfb/Kconfig
+index 65149b2..923bf48 100644
+--- a/drivers/video/omap2/omapfb/Kconfig
++++ b/drivers/video/omap2/omapfb/Kconfig
+@@ -1,6 +1,7 @@
+ menuconfig FB_OMAP2
+         tristate "OMAP2/3 frame buffer support (EXPERIMENTAL)"
+         depends on FB && OMAP2_DSS
++	default y
+ 
+ 	select OMAP2_VRAM
+ 	select OMAP2_VRFB if ARCH_OMAP2 || ARCH_OMAP3
+-- 
+1.5.6.3
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Wednesday, October 20, 2010 5:31 AM
-> To: Varadarajan, Charulatha
-> Cc: Cousson, Benoit; Paul Walmsley; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] omap2plus: wdt: Fix boot warn when 
-> CONFIG_PM_RUNTIME=n
-> 
-> "Varadarajan, Charulatha" <charu@ti.com> writes:
-> 
-> > Paul, Benoit, 
-> >
-> > Please provide your input on this.
-> >
-> >> -----Original Message-----
-> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> >> Sent: Tuesday, October 12, 2010 11:57 PM
-> >> To: Cousson, Benoit
-> >> Cc: Varadarajan, Charulatha; Paul Walmsley; 
-> linux-omap@vger.kernel.org
-> >> Subject: Re: [PATCH] omap2plus: wdt: Fix boot warn when 
-> >> CONFIG_PM_RUNTIME=n
-> >> 
-> >> "Cousson, Benoit" <b-cousson@ti.com> writes:
-> >> 
-> >> > Adding more folks to the discussion.
-> >> >
-> >> > On 10/12/2010 9:30 AM, Varadarajan, Charulatha wrote:
-> >> >>
-> >> >>> From: Cousson, Benoit
-> >> >>> Sent: Tuesday, October 12, 2010 12:45 PM
-> >> >>> To: Varadarajan, Charulatha
-> >> >>>
-> >> >>> Hi Charu,
-> >> >>>
-> >> >>> On 10/11/2010 2:02 PM, Varadarajan, Charulatha wrote:
-> >> >>>> Fix the below warning during boot
-> >> >>>>
-> >> >>>> [    0.000000] WARNING: at 
-> arch/arm/mach-omap2/omap_hwmod.c:1185
-> >> >>> _omap_hwmod_enable+0x34/0x150()
-> >> >>>> [    0.000000] omap_hwmod: wd_timer2: enabled state can 
-> >> only be entered
-> >> >>> from initialized, idle, or disabled state
-> >> >>>> [    0.000000] Modules linked in:
-> >> >>>> [    0.000000] [<c0050460>] (unwind_backtrace+0x0/0xe4) from
-> >> >>> [<c0083954>] (warn_slowpath_common+0x4c/0x64)
-> >> >>>> [    0.000000] [<c0083954>] 
-> (warn_slowpath_common+0x4c/0x64) from
-> >> >>> [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c)
-> >> >>>> [    0.000000] [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c) from
-> >> >>> [<c0059be4>] (_omap_hwmod_enable+0x34/0x150)
-> >> >>>> [    0.000000] [<c0059be4>] 
-> (_omap_hwmod_enable+0x34/0x150) from
-> >> >>> [<c0059d28>] (omap_hwmod_enable+0x28/0x3c)
-> >> >>>> [    0.000000] [<c0059d28>] (omap_hwmod_enable+0x28/0x3c) from
-> >> >>> [<c005580c>] (omap2_disable_wdt+0x48/0xdc)
-> >> >>>> [    0.000000] [<c005580c>] (omap2_disable_wdt+0x48/0xdc) from
-> >> >>> [<c0058898>] (omap_hwmod_for_each_by_class+0x60/0xa4)
-> >> >>>> [    0.000000] [<c0058898>] 
-> >> (omap_hwmod_for_each_by_class+0x60/0xa4)
-> >> >>> from [<c000f6d0>] (omap2_init_devices+0x44/0x330)
-> >> >>>> [    0.000000] [<c000f6d0>] 
-> (omap2_init_devices+0x44/0x330) from
-> >> >>> [<c0049578>] (do_one_initcall+0xcc/0x1a4)
-> >> >>>> [    0.000000] [<c0049578>] (do_one_initcall+0xcc/0x1a4) from
-> >> >>> [<c0008780>] (kernel_init+0x148/0x210)
-> >> >>>> [    0.000000] [<c0008780>] (kernel_init+0x148/0x210) 
-> >> from [<c004acb8>]
-> >> >>> (kernel_thread_exit+0x0/0x8)
-> >> >>>> [    0.000000] ---[ end trace 1b75b31a2719ed1f ]---
-> >> >>>> [    0.000000] wd_timer2: Could not enable clocks for 
-> >> omap2_disable_wdt
-> >> >>>>
-> >> >>>> When CONFIG_PM_RUNTIME is not defined, watchdog timer 
-> >> clocks are not
-> >> >>>> disabled after a watchdog reset. Hence in 
-> >> omap2_disable_wdt(), it is
-> >> >>>> not required to enable clocks before accessing the 
-> watchdog timer
-> >> >>>> registers if CONFIG_PM_RUNTIME is not defined.
-> >> >>>
-> >> >>> I'm not a big fan of adding some dependencies with 
-> >> CONFIG_PM_RUNTIME
-> >> >>> inside this code.
-> >> >>>
-> >> >>> The real root cause is not CONFIG_PM_RUNTIME, but mostly the
-> >> >>> skip_setup_idle variable added in 
-> >> arch/arm/mach-omap2/io.c by Paul.
-> >> >>
-> >> >> Yes.
-> >> >>
-> >> >>>
-> >> >>> So I'd rather use that parameter as an input for the 
-> >> omap2_disable_wdt.
-> >> >>
-> >> >> I also thought about this, but we need to
-> >> >>
-> >> >> 1. call omap2_disable_wdt() in omap2_init_common_hw() 
-> rather than
-> >> >> omap2_init_devices(). That would involve movement of
-> >> >> omap2_disable_wdt() from devices.c to io.c.
-> >> >> (or)
-> >> >> 2. make skip_setup_idle global
-> >> >> (or)
-> >> >> 3. make omap2_disable_wdt() global and call it from
-> >> >> omap2_init_common_hw() and pass skip_setup_idle as parameter.
-> >> >>
-> >> >> I felt that the usage of CONFIG_PM_RUNTIME is better than 
-> >> the above.
-> >> >> But still we may consider any of the above options or any other
-> >> >> option. Please suggest.
-> >> >
-> >> > It is maybe easier, but I don't think it is better...
-> >> >
-> >> > As I said, CONFIG_PM_RUNTIME is not the root cause of your 
-> >> issue, just
-> >> > an indirect cause. OK, maybe strictly speaking, it is the 
-> >> root cause,
-> >> > since it started for that... but that not the cause that 
-> we should
-> >> > consider in your case.
-> >> >
-> >> > If we decide to remove that CONFIG_PM_RUNTIME dependency 
-> in the io /
-> >> > hwmod code, nobody will be able to find the relation with 
-> >> your code in
-> >> > WDT.
-> >> >
-> >> > That's why you should not do that, for my point of view.
-> >> >
-> >> > Paul, Kevin,
-> >> > Any thoughts on that point?
-> >> 
-> >> I agree that this is not strictly a dependency on PM_RUNTIME.
-> >> 
-> >> What's really needed is a way for low-level hwmod users like 
-> >> this to be
-> >> able to check whether the hwmod is already enabled.  
-> >> Something like this
-> >> (completely untested):
-> >> 
-> >> bool omap_hwmod_is_enabled(struct omap_hwmod *oh)
-> >> {
-> >> 	return (oh->_state == _HWMOD_STATE_ENABLED);
-> >> }
-> >
-
-Okay. Would do the needful and send the patch soon.
-
-
-> > Kevin,
-> >
-> > Thanks. This is similar to what we were discussing internally and
-> > I would prefer this. But is it a good idea to allow drivers to
-> > know the state of oh and then enable/idle the device?
-> >
-> > Or should it be used only in exceptional situations like 
-> the scenario
-> > addressed in this patch?
-> 
-> For the long term (2.6.38), we should follow the direction that Paul
-> laid out.
-> 
-> For the short term (2.6.37) what we need is a fix for this regression.
-> I propose you follow the above approach (checking if it's already
-> enabled.)
-> 
-> As it is a temporary hack, it's probably best not to create 
-> the new API
-> that could be abused.  Instead, just directly check oh->_state in the
-> devices.c code (documented with FIXME comments.)
-> 
-> I'm OK with this short term fix for 2.6.37 if you agree to work on
-> Paul's solution for 2.6.38.
-> 
-> Kevin
-> 
-> 
