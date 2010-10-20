@@ -1,127 +1,148 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] spi/omap2_mcspi: Verify TX reg is empty after TX only
- xfer with DMA
-Date: Wed, 20 Oct 2010 10:43:36 -0600
-Message-ID: <20101020164336.GL7285@angua.secretlab.ca>
-References: <1287497251-25058-1-git-send-email-ilkka.koskinen@nokia.com>
- <20101020162356.GA28099@atomide.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: DSS2 crash with shutdown -h now
+Date: Wed, 20 Oct 2010 10:02:33 -0700
+Message-ID: <AANLkTinZ-MY_fzBU7L7MMsW0L9eAOEOsSqR5OKbgEON2@mail.gmail.com>
+References: <AANLkTinjRuVx+vi4Pq6pnVLfizB6AKdmGDtRzwbq+d1g@mail.gmail.com>
+	<FCCFB4CDC6E5564B9182F639FC356087034BB014BE@dbde02.ent.ti.com>
+	<AANLkTimBhCoWNQ4BmC6ytbS99YBGQsgJH8X6NN+B489u@mail.gmail.com>
+	<AANLkTimG_5W8Y58f7hvxM2iH2FGxJ3DNgv3JNi5WMye8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:52078 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754087Ab0JTQnk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 12:43:40 -0400
-Received: by iwn7 with SMTP id 7so2472579iwn.19
-        for <linux-omap@vger.kernel.org>; Wed, 20 Oct 2010 09:43:39 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20101020162356.GA28099@atomide.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:46673 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752109Ab0JTRCg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 13:02:36 -0400
+Received: by gxk21 with SMTP id 21so1722650gxk.19
+        for <linux-omap@vger.kernel.org>; Wed, 20 Oct 2010 10:02:36 -0700 (PDT)
+In-Reply-To: <AANLkTimG_5W8Y58f7hvxM2iH2FGxJ3DNgv3JNi5WMye8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Ilkka Koskinen <ilkka.koskinen@nokia.com>, dbrownell@users.sourceforge.net, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Oct 20, 2010 at 09:23:57AM -0700, Tony Lindgren wrote:
-> * Ilkka Koskinen <ilkka.koskinen@nokia.com> [101019 06:55]:
-> > In case of TX only with DMA, the driver assumes that the data
-> > has been transferred once DMA callback in invoked. However,
-> > SPI's shift register may still contain data. Thus, the driver
-> > is supposed to verify that the register is empty and the end of
-> > the SPI transfer has been reached.
-> > 
-> > Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-> > Tested-by: Tuomas Katila <ext-tuomas.2.katila@nokia.com>
-> 
-> Grant, can you please queue this one?
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+On Wed, Oct 20, 2010 at 6:02 AM, Robert Nelson <robertcnelson@gmail.com=
+> wrote:
+> On Wed, Oct 20, 2010 at 7:44 AM, Steve Sakoman <sakoman@gmail.com> wr=
+ote:
+>> On Tue, Oct 19, 2010 at 9:42 PM, Taneja, Archit <archit@ti.com> wrot=
+e:
+>>> Hi,
+>>>
+>>> linux-omap-owner@vger.kernel.org wrote:
+>>>> I'm using a 2.6.35 kernel, and the generic panel driver.
+>>>>
+>>>> I see this crash about 25% of the time, so I suspect a race condit=
+ion.
+>>>>
+>>>> Is anyone else encountering this?
+>>>>
+>>>> Steve
+>>>>
+>>>>
+>>>> Unmounting local filesystems...
+>>>> Unhandled fault: external abort on non-linefetch (0x1028) at
+>>>> 0xfa050040 Internal error: : 1028 [#1] last sysfs file:
+>>>> /sys/devices/virtual/vc/vcs12/uevent
+>>>> Modules linked in: ipv6 uvcvideo videodev v4l1_compat ads7846
+>>>> CPU: 0 =A0 =A0Not tainted =A0(2.6.35 #1)
+>>>> PC is at dss_select_dispc_clk_source+0x20/0x40
+>>>> LR is at omapdss_dpi_display_disable+0x20/0x50
+>>>> pc : [<c01f74d4>] =A0 =A0lr : [<c01ffc80>] =A0 =A0psr: 60000013
+>>>> sp : ded59e38 =A0ip : 00000090 =A0fp : 00000001
+>>>> r10: 00000001 =A0r9 : ded58000 =A0r8 : c0032084
+>>>> r7 : ded59e50 =A0r6 : 00000000 =A0r5 : c01fcc28 =A0r4 : c057da00
+>>>> r3 : 00000000 =A0r2 : fa050000 =A0r1 : c05d062c =A0r0 : 00000002
+>>>> Flags: nZCv =A0IRQs on =A0FIQs on =A0Mode SVC_32 =A0ISA ARM =A0Seg=
+ment user
+>>>> Control: 10c5387d =A0Table: 9ed84019 =A0DAC: 00000015 Process
+>>>> halt (pid: 503, stack limit =3D 0xded582f0)
+>>>> Stack: (0xded59e38 to 0xded5a000)
+>>>> 9e20:
+>>>> c057da00 c020a430
+>>>> 9e40: 00000000 c01fcc48 ded59e50 c022f424 dfc3fc78 dfccc170
+>>>> dfe02400 c057d4cc
+>>>> 9e60: c057d4c0 c05d4fac 00000000 c0230ba4 c0575de0 c022c6f8 281219=
+69 cdef0123
+>>>> 9e80: fee1dead c0065d58 28121969 c0065ed4 00000014 dfc17dd8 000000=
+01 dfc299c0
+>>>> 9ea0: 00000000 ded59eb0 c0062ee4 c00546f0 000a4800 a0000013 000000=
+00 ded59f08
+>>>> 9ec0: 00000001 00000014 ded58000 00000001 00000001 c0063068 000000=
+00 ded59f08
+>>>> 9ee0: dfc299c0 dfc18500 ded59f08 00000014 ded58000 c0063cb8 000000=
+01 00000000
+>>>> 9f00: 00000006 c0063d2c 00000014 00000164 00000000 000001f7 000000=
+00 dfc299f8
+>>>> 9f20: 00000164 dfc299f0 c057f598 00000000 00000000 fffffffd 000000=
+00 c006e810
+>>>> 9f40: ded59f6c 00000000 dfc299c0 c0052fbc dfc299c0 dff16e00
+>>>> dec41080 dec92540
+>>>> 9f60: ded59fac ded59f70 c03e841c c0052f90 ffffff9c c0031f58
+>>>> dec927a8 ded58000
+>>>> 9f80: 00000000 00000000 00000000 00000006 00000025 00000000 000000=
+00 00000006
+>>>> 9fa0: 00000058 c0031f00 00000000 00000000 fee1dead 28121969 4321fe=
+dc 00000000
+>>>> 9fc0: 00000000 00000000 00000006 00000058 00000001 00000001 000000=
+01 00000001
+>>>> 9fe0: 00011e50 bef36cb0 0000925c 400e23f8 20000010 fee1dead
+>>>> 00000000 00000000 [<c01f74d4>]
+>>>> (dss_select_dispc_clk_source+0x20/0x40) from [<c01ffc80>]
+>>>> (omapdss_dpi_display_disable+0x20/0x50)
+>>>> [<c01ffc80>] (omapdss_dpi_display_disable+0x20/0x50) from [<c020a4=
+30>]
+>>>> (generic_panel_disable+0xc/0x18)
+>>>> [<c020a430>] (generic_panel_disable+0xc/0x18) from [<c01fcc48>]
+>>>> (dss_disable_device+0x20/0x2c)
+>>>> [<c01fcc48>] (dss_disable_device+0x20/0x2c) from [<c022f424>]
+>>>> (bus_for_each_dev+0x4c/0x8c) [<c022f424>] (bus_for_each_dev+0x4c/0=
+x8c) from
+>>>> [<c0230ba4>] (platform_drv_shutdown+0x1c/0x24)
+>>>> [<c0230ba4>] (platform_drv_shutdown+0x1c/0x24) from [<c022c6f8>]
+>>>> (device_shutdown+0x70/0x94) [<c022c6f8>] (device_shutdown+0x70/0x9=
+4) from
+>>>> [<c0065d58>] (kernel_halt+0x10/0x2c) [<c0065d58>] (kernel_halt+0x1=
+0/0x2c)
+>>>> from [<c0065ed4>] (sys_reboot+0x118/0x1dc) [<c0065ed4>]
+>>>> (sys_reboot+0x118/0x1dc) from [<c0031f00>]
+>>>> (ret_fast_syscall+0x0/0x30)
+>>>> Code: e5833000 eafffffd e59f101c e5912000 (e5923040)
+>>>> OMAPFB: pan_display(0)
+>>>> OMAPFB: setcmap
+>>>> OMAPFB: setcmap
+>>>> OMAPFB: setcmap
+>>>
+>>> Are you running a fb app while shutting down?
+>>
+>> My test method is to use a relatively minimal rootfs. =A0It does lau=
+nch
+>> a console session on the fb using a USB KB on musb, which sits at th=
+e
+>> login prompt throughout the test. =A0I do not login via this console
+>> session.
+>>
+>> I login via serial port, wait till uptime reports 10 minutes, then
+>> issue 'shutdown -h now'
+>
+> Hi Steve
+> 10 minutes?
+>
+> Sounds very much like: http://www.spinics.net/lists/linux-omap/msg345=
+82.html
+>
+> *there might be a newer patch, that's just the one i had marked on my=
+ list..
 
-Applied, thanks.
+I used a variant of the v2 patch in that thread and I can confirm that
+it does fix the issue.
 
-g.
+Thanks!
 
-> 
-> 
-> > ---
-> >  drivers/spi/omap2_mcspi.c |   39 ++++++++++++++++++++++++++-------------
-> >  1 files changed, 26 insertions(+), 13 deletions(-)
-> > 
-> > diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-> > index b3a94ca..a2e053c 100644
-> > --- a/drivers/spi/omap2_mcspi.c
-> > +++ b/drivers/spi/omap2_mcspi.c
-> > @@ -296,6 +296,19 @@ static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
-> >  	return 0;
-> >  }
-> >  
-> > +static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
-> > +{
-> > +	unsigned long timeout;
-> > +
-> > +	timeout = jiffies + msecs_to_jiffies(1000);
-> > +	while (!(__raw_readl(reg) & bit)) {
-> > +		if (time_after(jiffies, timeout))
-> > +			return -1;
-> > +		cpu_relax();
-> > +	}
-> > +	return 0;
-> > +}
-> > +
-> >  static unsigned
-> >  omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
-> >  {
-> > @@ -309,11 +322,14 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
-> >  	u32			l;
-> >  	u8			* rx;
-> >  	const u8		* tx;
-> > +	void __iomem		*chstat_reg;
-> >  
-> >  	mcspi = spi_master_get_devdata(spi->master);
-> >  	mcspi_dma = &mcspi->dma_channels[spi->chip_select];
-> >  	l = mcspi_cached_chconf0(spi);
-> >  
-> > +	chstat_reg = cs->base + OMAP2_MCSPI_CHSTAT0;
-> > +
-> >  	count = xfer->len;
-> >  	c = count;
-> >  	word_len = cs->word_len;
-> > @@ -382,6 +398,16 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
-> >  	if (tx != NULL) {
-> >  		wait_for_completion(&mcspi_dma->dma_tx_completion);
-> >  		dma_unmap_single(NULL, xfer->tx_dma, count, DMA_TO_DEVICE);
-> > +
-> > +		/* for TX_ONLY mode, be sure all words have shifted out */
-> > +		if (rx == NULL) {
-> > +			if (mcspi_wait_for_reg_bit(chstat_reg,
-> > +						OMAP2_MCSPI_CHSTAT_TXS) < 0)
-> > +				dev_err(&spi->dev, "TXS timed out\n");
-> > +			else if (mcspi_wait_for_reg_bit(chstat_reg,
-> > +						OMAP2_MCSPI_CHSTAT_EOT) < 0)
-> > +				dev_err(&spi->dev, "EOT timed out\n");
-> > +		}
-> >  	}
-> >  
-> >  	if (rx != NULL) {
-> > @@ -435,19 +461,6 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
-> >  	return count;
-> >  }
-> >  
-> > -static int mcspi_wait_for_reg_bit(void __iomem *reg, unsigned long bit)
-> > -{
-> > -	unsigned long timeout;
-> > -
-> > -	timeout = jiffies + msecs_to_jiffies(1000);
-> > -	while (!(__raw_readl(reg) & bit)) {
-> > -		if (time_after(jiffies, timeout))
-> > -			return -1;
-> > -		cpu_relax();
-> > -	}
-> > -	return 0;
-> > -}
-> > -
-> >  static unsigned
-> >  omap2_mcspi_txrx_pio(struct spi_device *spi, struct spi_transfer *xfer)
-> >  {
-> > -- 
-> > 1.6.0.4
-> > 
+Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
