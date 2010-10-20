@@ -1,71 +1,66 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Re: linux-next - multi-omap image fails to boot on omap3/4
-Date: Wed, 20 Oct 2010 12:00:27 +0530
-Message-ID: <AANLkTimqymuGdD3_SX2RVj=6a9j+ODKy8ipYZ-6hqw+S@mail.gmail.com>
-References: <4CBDAFFF.2030409@ti.com> <20101019182149.GC3038@atomide.com>
- <AANLkTikYGwH-kQV3b+gqDYOKVvuiXOU=kBDVLy3ryNjR@mail.gmail.com>
- <20101019225726.GE3038@atomide.com> <20101019233204.GA30991@atomide.com> <AANLkTikrVJ3bw3aKE6V7uH9DmheVDihedNOP+wypYunC@mail.gmail.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] usb: fix Kconfig warning
+Date: Wed, 20 Oct 2010 09:34:05 +0300
+Message-ID: <20101020063405.GF15448@legolas.emea.dhcp.ti.com>
+References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
+ <1287482608-11320-2-git-send-email-felipe.contreras@gmail.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55572 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755392Ab0JTGat (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Oct 2010 02:30:49 -0400
-Received: by mail-ww0-f46.google.com with SMTP id 22so2959243wwb.27
-        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2010 23:30:48 -0700 (PDT)
-In-Reply-To: <AANLkTikrVJ3bw3aKE6V7uH9DmheVDihedNOP+wypYunC@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1287482608-11320-2-git-send-email-felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-On Wed, Oct 20, 2010 at 5:16 AM, Gadiyar, Anand <gadiyar@ti.com> wrote:
-> On Wed, Oct 20, 2010 at 5:02 AM, Tony Lindgren <tony@atomide.com> wrote:
->> * Tony Lindgren <tony@atomide.com> [101019 15:48]:
->>> * Gadiyar, Anand <gadiyar@ti.com> [101019 11:26]:
->>> > On Tue, Oct 19, 2010 at 11:51 PM, Tony Lindgren <tony@atomide.com> wrote:
->>> > > * Anand Gadiyar <gadiyar@ti.com> [101019 07:41]:
->>> > >> Hi all,
->>> > >>
->>> > >> linux-next, as of 20101019, built with the omap2plus_defconfig fails
->>> > >> to boot on omap3 and omap4. (I've disabled CONFIG_ARCH_OMAP2 or
->>> > >> CONFIG_SWP_EMULATE to get the image to build). Building with only
->>> > >> ARCH_OMAP3 allows the resultant image to boot up on OMAP3. Likewise,
->>> > >> an image built with only ARCH_OMAP4 boots up on OMAP4 boards.
->>> > >>
->>> > >> earlyprintk does not provide any additional prints after
->>> > >> "Uncompressing Linux... done, booting the kernel."
->>> > >>
->>> > >> Any ideas where to look?
->>> > >
->>> > > Hmm I did a quick test merge of linux-omap master and rmk/devel
->>> > > branches and that boots just fine.
->>> > >
->>> > > So it's probably something that already got fixed in rmk/devel
->>> > > but is not yet in next, or something that came from elsewhere,
->>> > > or something that we have in omap-testing branch that's not in
->>> > > for-next for some reason.
->>> >
->>> > I tried bisecting linux-next between v2.6.36-rc8 and HEAD, but
->>> > there's a commit in between that breaks the build. I'll take another
->>> > stab at this in a while.
->>>
->>> Looks like current next at 80f8f1f8b33750d954beb386c0c8142d0c01c25c
->>> boots again except on 2430sdp it produces a NULL pointer at ubi_io_write.
->>
->> Oops, sorry it's still broken, wrong tree.
->>
+On Tue, Oct 19, 2010 at 05:03:26AM -0500, Felipe Contreras wrote:
+>warning: (USB_MUSB_HDRC_HCD && USB_SUPPORT && USB_MUSB_HDRC &&
+>(USB_MUSB_HOST || USB_MUSB_OTG) && USB_GADGET_MUSB_HDRC || USB_MUSB_OTG
+>&& <choice> && USB && USB_GADGET && PM && EXPERIMENTAL) selects USB_OTG
+>which has unmet direct dependencies (USB_GADGET_OMAP && ARCH_OMAP_OTG &&
+>USB_OHCI_HCD)
 >
-> I've started bisecting again - I needed to pick commit 5bac0926121e
-> (driver core: platform_bus: allow runtime override of dev_pm_ops) to
-> solve the build break.
->
-> Will report back if I find something.
+>This doesn't seem to happen on 2.6.36-rc8, but still doesn't make sense
+>to keep this duplicated config that is already defined in usb/core.
 >
 
-I tried disabling CONFIG_SMP and CONFIG_SMP_ON_UP, and the resulting
-image booted up just fine.
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
-- Anand
+>Signed-off-by: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>---
+> drivers/usb/gadget/Kconfig |   11 -----------
+> 1 files changed, 0 insertions(+), 11 deletions(-)
+>
+>diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
+>index cd27f9b..19a6eb6 100644
+>--- a/drivers/usb/gadget/Kconfig
+>+++ b/drivers/usb/gadget/Kconfig
+>@@ -209,17 +209,6 @@ config USB_OMAP
+> 	default USB_GADGET
+> 	select USB_GADGET_SELECTED
+>
+>-config USB_OTG
+>-	boolean "OTG Support"
+>-	depends on USB_GADGET_OMAP && ARCH_OMAP_OTG && USB_OHCI_HCD
+>-	help
+>-	   The most notable feature of USB OTG is support for a
+>-	   "Dual-Role" device, which can act as either a device
+>-	   or a host.  The initial role choice can be changed
+>-	   later, when two dual-role devices talk to each other.
+>-
+>-	   Select this only if your OMAP board has a Mini-AB connector.
+>-
+> config USB_GADGET_PXA25X
+> 	boolean "PXA 25x or IXP 4xx"
+> 	depends on (ARCH_PXA && PXA25x) || ARCH_IXP4XX
+>-- 
+>1.7.3.1.2.g7fe2b
+
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
