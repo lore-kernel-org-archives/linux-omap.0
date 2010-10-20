@@ -1,72 +1,66 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Wed, 20 Oct 2010 20:54:20 +0300
-Message-ID: <20101020175420.GC3431@legolas.emea.dhcp.ti.com>
-References: <4CBD9FD5.506@nokia.com>
- <AANLkTinRRyrXzqEu=u+CCYkmSNGm03SSo1tVG=5_wdpo@mail.gmail.com>
- <4CBE9E69.6060803@nokia.com>
- <AANLkTinOYDBMVZ3ibG3Md7jdOuOC6NkGWaugvHwT6uqF@mail.gmail.com>
- <4CBEB312.7060400@nokia.com>
- <AANLkTikom=eRFqCJmYE+k1zn5K2MR9s8HhNXtjOvUqvr@mail.gmail.com>
- <20101020125407.GE2433@legolas.emea.dhcp.ti.com>
- <AANLkTi=+6bC=JALdCDKW_BS-jnNk3zFPuWuBT+aY=Utx@mail.gmail.com>
- <20101020151527.GF2883@legolas.emea.dhcp.ti.com>
- <AANLkTim-QeP0hfSVGUd-tHWso9HQv25TwapBBZ1KPD3=@mail.gmail.com>
-Reply-To: balbi-l0cyMroinI0@public.gmane.org
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
+Date: Wed, 20 Oct 2010 11:18:24 -0700
+Message-ID: <87wrpcsp73.fsf@deeprootsystems.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+	<1287387875-14168-2-git-send-email-ohad@wizery.com>
+	<8739s2xfuk.fsf@deeprootsystems.com>
+	<AANLkTinHOOPfke2dJrQ1=+vzsa=0BSQjkX5ai7mwpcF8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTim-QeP0hfSVGUd-tHWso9HQv25TwapBBZ1KPD3=@mail.gmail.com>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:44597 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752065Ab0JTSSa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 14:18:30 -0400
+In-Reply-To: <AANLkTinHOOPfke2dJrQ1=+vzsa=0BSQjkX5ai7mwpcF8@mail.gmail.com>
+	(Ohad Ben-Cohen's message of "Wed, 20 Oct 2010 15:00:22 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-Hi,
+Ohad Ben-Cohen <ohad@wizery.com> writes:
 
-On Wed, Oct 20, 2010 at 11:22:17AM -0500, Felipe Contreras wrote:
->Users would not need to care... if they enable USB and USB_GADGET, it
->will be selected automatically for OMAP3, which is what users would
->expect.
-
-wouldn't a user expect USB to be enabled if the board _has_ a USB
-connector ?
-
->I was talking more about developers.
+> On Tue, Oct 19, 2010 at 7:16 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> Ohad Ben-Cohen <ohad@wizery.com> writes:
+>>
+>>> From: Simon Que <sque@ti.com>
+>>>
+>>> Add driver for OMAP's Hardware Spinlock module.
+>>>
+>>> The OMAP Hardware Spinlock module, initially introduced in OMAP4,
+>>> provides hardware assistance for synchronization between the
+>>> multiple processors in the device (Cortex-A9, Cortex-M3 and
+>>> C64x+ DSP).
+>>
+> ...
 >
->How should the help be fixed?
->"Select y if you are using an OMAP3 system that has TWL4030"
+>>> +config OMAP_HWSPINLOCK
+>>> + =C2=A0 =C2=A0 bool "OMAP Hardware Spinlock module"
+>>
+>> Should be tristate
+>
+> Agree,
+>
+>> so it can also be built as a module by default.
+>>
+>> e.g., when building multi-OMAP kernels, no reason or this to be
+>> built-in. =C2=A0It can then be loaded as a module on OMAP4 only.
+>
+> But considering the current built-in use cases (i2c) we would then
+> need to have the relevant MACH_OMAP4_* select OMAP_HWSPINLOCK (only o=
+n
+> the OMAP4 machines on which the I2C bus is shared).
 
-If you have the TWL4030 family of PMIC chips and want to use USB, you
-probably need this. If unsure, say Y.
+Yes, that is ok.  At least then it can be tested by default as a module=
+=2E
 
->1) Do you think all the OMAP3 boards should add that?
-
-why not ?
-
->2) What if you don't want to use USB?
-
-what if you don't want to use USB and we use your choice of:
-
-default y if ARCH_OMAP3 ??
-
-what's the big difference ? The default will be "USB enabled" and if you
-don't want, just drop it. The thing is that in most cases we want to
-support what is wired on the board. RX51 has a USB micro-B connector, so
-by default we want USB peripheral enabled and host disabled. If a user
-(or developer for that matter) wants to play with the unsupported host
-mode on RX51, he will enable that part by himself and pray for it to
-work. If, on the other hand, a camera developer doesn't need USB at all
-and decides to save a few bytes on the binary, he will make sure to
-disable it.
-
-The thing is that there's no way to make everybody happy, so we stick to
-what the board is wired to do.
-
--- 
-balbi
+Kevin
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
