@@ -1,56 +1,95 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Wed, 20 Oct 2010 11:01:25 +0300
-Message-ID: <20101020080125.GA30965@legolas.emea.dhcp.ti.com>
-References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
- <1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
- <4CBD9FD5.506@nokia.com>
- <AANLkTinRRyrXzqEu=u+CCYkmSNGm03SSo1tVG=5_wdpo@mail.gmail.com>
- <4CBE9E69.6060803@nokia.com>
-Reply-To: balbi@ti.com
+From: "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
+Subject: Re: [PATCHv4 4/4] iommu: create new api to set valid da range
+Date: Wed, 20 Oct 2010 11:35:50 +0300
+Message-ID: <AANLkTimSQabHv3AOFFR4m3POjmuGvN18u7TNsPyauH8D@mail.gmail.com>
+References: <1287542932-14206-1-git-send-email-x0095840@ti.com>
+	<1287542932-14206-2-git-send-email-x0095840@ti.com>
+	<1287542932-14206-3-git-send-email-x0095840@ti.com>
+	<1287542932-14206-4-git-send-email-x0095840@ti.com>
+	<1287542932-14206-5-git-send-email-x0095840@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35501 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750776Ab0JTIBs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Oct 2010 04:01:48 -0400
-Content-Disposition: inline
-In-Reply-To: <4CBE9E69.6060803@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1287542932-14206-5-git-send-email-x0095840@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Fernando Guzman Lugo <x0095840@ti.com>
+Cc: Hiroshi.DOYU@nokia.com, felipe.contreras@nokia.com, david.cohen@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <roger.quadros@nokia.com>
-Cc: ext Felipe Contreras <felipe.contreras@gmail.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, Oct 20, 2010 at 02:46:49AM -0500, Roger Quadros wrote:
->On 10/19/2010 05:33 PM, ext Felipe Contreras wrote:
->> Hi Roger,
->>
->> On Tue, Oct 19, 2010 at 4:40 PM, Roger Quadros<roger.quadros@nokia.com>  wrote:
->>>> @@ -843,6 +841,7 @@ config USB_CDC_COMPOSITE
->>>>   config USB_G_NOKIA
->>>>         tristate "Nokia composite gadget"
->>>>         depends on PHONET
->>>> +       depends on USB_GADGET_MUSB_HDRC
->>>
->>> This is wrong. Is there a build problem or run-time problem without this?
->>
->> Try:
->> CONFIG_USB_G_NOKIA=y
->> CONFIG_USB_GADGET_MUSB_HDRC=n
->>
->> At least g_nokia doesn't seem to work correctly on my N900.
->>
->It won't work on N900 because N900 has MUSB USB gadget controller and
->it needs to be selected somehow while building for N900.
+On Wed, Oct 20, 2010 at 5:48 AM, Fernando Guzman Lugo <x0095840@ti.com> wrote:
+> Some IOMMUs cannot use the whole 0x0 - 0xFFFFFFFF range.
+> With this new API the valid range can be set.
 >
->You should set CONFIG_USB_GADGET_MUSB_HDRC to y somewhere else while
->building for N900 and not here because g_nokia is not MUSB specific.
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 
-It's the same thing I've been trying to say. No gadget driver is
-controller-specific. Even though this one is called g_nokia.ko it
-doesn't only Nokia can use it, neither does it mean nokia will always
-use MUSB.
+I don't see the point in having an API. It could be done through
+platform data, and the usage of 0xFFFFF000 instead of ULONG_MAX is
+independent of this.
+
+diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
+index f5a1aad..db919254 100644
+--- a/arch/arm/mach-omap2/omap-iommu.c
++++ b/arch/arm/mach-omap2/omap-iommu.c
+@@ -43,6 +43,7 @@ static struct iommu_device omap3_devices[] = {
+ 			.name = "iva2",
+ 			.nr_tlb_entries = 32,
+ 			.clk_name = "iva2_ck",
++			.start_addr = 0x11000000,
+ 		},
+ 	},
+ #endif
+diff --git a/arch/arm/plat-omap/include/plat/iommu.h
+b/arch/arm/plat-omap/include/plat/iommu.h
+index 33c7d41..94f3a9a 100644
+--- a/arch/arm/plat-omap/include/plat/iommu.h
++++ b/arch/arm/plat-omap/include/plat/iommu.h
+@@ -50,6 +50,8 @@ struct iommu {
+ 	int (*isr)(struct iommu *obj);
+
+ 	void *ctx; /* iommu context: registres saved area */
++
++	u32		start_addr;
+ };
+
+ struct cr_regs {
+@@ -103,6 +105,7 @@ struct iommu_platform_data {
+ 	const char *name;
+ 	const char *clk_name;
+ 	const int nr_tlb_entries;
++	u32 start_addr;
+ };
+
+ #if defined(CONFIG_ARCH_OMAP1)
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 6336ae2..3023d0b 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -926,6 +926,10 @@ static int __devinit omap_iommu_probe(struct
+platform_device *pdev)
+ 	obj->name = pdata->name;
+ 	obj->dev = &pdev->dev;
+ 	obj->ctx = (void *)obj + sizeof(*obj);
++	obj->start_addr = pdata->start_addr;
++
++	if (!obj->start_addr)
++		obj->start_addr = PAGE_SIZE;
+
+ 	mutex_init(&obj->iommu_lock);
+ 	mutex_init(&obj->mmap_lock);
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index f318476..fd0c93f 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -284,7 +284,7 @@ static struct iovm_struct *alloc_iovm_area(struct
+iommu *obj, u32 da,
+ 		/*
+ 		 * Reserve the first page for NULL
+ 		 */
+-		start = PAGE_SIZE;
++		start = obj->start_addr;
+ 		if (flags & IOVMF_LINEAR)
+ 			alignement = iopgsz_max(bytes);
+ 		start = roundup(start, alignement);
 
 -- 
-balbi
+Felipe Contreras
