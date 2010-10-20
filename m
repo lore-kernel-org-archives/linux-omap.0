@@ -1,44 +1,32 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCHv4 0/4] iovmm: fixes for iovmm module
-Date: Tue, 19 Oct 2010 21:48:48 -0500
-Message-ID: <1287542932-14206-1-git-send-email-x0095840@ti.com>
+Subject: [PATCH] omap: mailbox - fix missing mbox owner assignment when creating queue
+Date: Tue, 19 Oct 2010 21:53:40 -0500
+Message-ID: <1287543220-15483-1-git-send-email-x0095840@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Hiroshi.DOYU@nokia.com
-Cc: felipe.contreras@nokia.com, david.cohen@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
+Cc: felipe.contreras@nokia.com, david.cohen@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Fernando Guzman Lugo <x0095840@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Version 4:
-* Changes in "iommu: create new api to set valid da range"
-  - Validate range for fixed address.
-  - Change way of change boundaries to avoid possible overflow
-    instead of style :
-       start + bytes >= end     which start + end can overflow
-    use style:
-       end - start < bytes
+mbox field of omap_mbox_queue structure is never assigned to
+the mailbox owner. Causing kernel panic when dereference it.
 
-Version 3:
-* change patch 2 base on Felipe Contreras' comments,
-  now it uses min_t and I deleted some blank lines.
-* patch "create new api to set valid da range" is base on
-  "iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF"
-  patch and on Hiroshi's comments and now it is added to
-  this set.
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ arch/arm/plat-omap/mailbox.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Version 2:
-* Removed "iovmm: fixes for iovmm module" that patch was already
-  sent.
-* Modified "iovmm: fix roundup for next area and end check for the
-  last area" patch, base on Davin Cohen's comments and rename it
-  to a proper name that describes what it is doing now.
-
-Fernando Guzman Lugo (4):
-  iovmm: no gap checking for fixed address
-  iovmm: add superpages support to fixed da address
-  iovmm: replace __iounmap with omap_iounmap
-  iommu: create new api to set valid da range
-
- arch/arm/plat-omap/include/plat/iommu.h |    3 +
- arch/arm/plat-omap/iommu.c              |   29 +++++++++++
- arch/arm/plat-omap/iovmm.c              |   81 +++++++++++++++++-------------
- 3 files changed, 78 insertions(+), 35 deletions(-)
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index c59c9c3..b1e0e8f 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -217,6 +217,7 @@ static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
+ 		return NULL;
+ 
+ 	spin_lock_init(&mq->lock);
++	mq->mbox = mbox;
+ 
+ 	if (kfifo_alloc(&mq->fifo, mbox_kfifo_size, GFP_KERNEL))
+ 		goto error;
+-- 
+1.6.3.3
