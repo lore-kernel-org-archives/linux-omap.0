@@ -1,76 +1,65 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 3/3] omap: add hwspinlock device
-Date: Wed, 20 Oct 2010 16:38:32 +0200
-Message-ID: <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com> <87r5fmxghm.fsf@deeprootsystems.com>
- <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com> <87bp6pviwf.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
+Date: Wed, 20 Oct 2010 17:52:06 +0300
+Message-ID: <AANLkTi=+6bC=JALdCDKW_BS-jnNk3zFPuWuBT+aY=Utx@mail.gmail.com>
+References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
+	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
+	<4CBD9FD5.506@nokia.com>
+	<AANLkTinRRyrXzqEu=u+CCYkmSNGm03SSo1tVG=5_wdpo@mail.gmail.com>
+	<4CBE9E69.6060803@nokia.com>
+	<AANLkTinOYDBMVZ3ibG3Md7jdOuOC6NkGWaugvHwT6uqF@mail.gmail.com>
+	<4CBEB312.7060400@nokia.com>
+	<AANLkTikom=eRFqCJmYE+k1zn5K2MR9s8HhNXtjOvUqvr@mail.gmail.com>
+	<20101020125407.GE2433@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87bp6pviwf.fsf@deeprootsystems.com>
+In-Reply-To: <20101020125407.GE2433@legolas.emea.dhcp.ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
+To: balbi@ti.com
+Cc: Roger Quadros <roger.quadros@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 20, 2010 at 1:53 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
->> And to allow early board code to reserve specific hwspinlock numbers
->> for predefined use-cases, we probably want to be before arch_initcall.
+On Wed, Oct 20, 2010 at 3:54 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Wed, Oct 20, 2010 at 04:23:13AM -0500, Felipe Contreras wrote:
+>>
+>> Ok, but USB_OMAP is not supposed to work on the N900? (I tried and it
+>> didn't)
 >
-> There's no reason for board code to have to do this at initcall time.
+> ooooh, that's old. That's from the omap1. It's the old omap_udc.c
 
-If we want to have allow both allocations of predefined hwspinlocks
-with omap_hwspinlock_request_specific(int), and dynamic allocations
-(where we don't care about the specific instance of the hwspinlock we
-will get) with omap_hwspinlock_request(), we must ensure that the
-former _specific() API will never be called after the latter.
+Ok, then the dependency should be ARCH_OMAP1, not ARCH_OMAP.
 
-If we will allow drivers to call omap_hwspinlock_request() before all
-callers of omap_hwspinlock_request_specific() completed, then things
-will break (because drivers might start getting hwspinlocks that are
-predefined for dedicated use cases on the system).
-
-So if we want the _specific API to work, we can only allow early board
-code to use it in order to reserve those predefined hwspinlocks before
-drivers get the chance to call omap_hwspinlock_request().
-
-The tempting alternative is not to provide the
-omap_hwspinlock_request_specific() API at all (which is something we
-discussed internally).
-
-Let's take the i2c-omap for example.
-
-It sounds like it must have a predefined hwspinlock, but what if:
-
-1. It will use omap_hwspinlock_request() to dynamically allocate a hwspinlock
-2. Obviously, the hwspinlock id number must be communicated to the M3
-BIOS, so the i2c-omap will publish that id using a small shared memory
-entry that will be allocated for this sole purpose
-3. we will make sure that 1+2 completes before the remote processor is
-taken out of reset
-
-This does not require any smart IPC and it will allow us to get rid of
-the omap_hwspinlock_request_specific() API and its early-callers
-requirement.
-
-All we will be left to take care of is the order of the ->probe()
-execution (assuming we want both the i2c and the hwspinlock drivers to
-be device_initcall)
-
+>> I don't think so, because people might not want USB at all. The ideal
+>> case would be for USB_GADGET_MUSB_HDRC to be selected automatically
+>> when the user selects USB and USB_GADGET, but that's not happening
+>> because USB_GADGET_OMAP is selected first (all the dependencies are
+>> met).
 >
-> This kind of thing needs to be done by platform_data function pointers,
-> as is done for every other driver that needs platform-specific driver
-> customization.
-
-Why would we need platform-specific function pointers here ? I'm not
-sure I'm following this one.
-
-Thanks,
-Ohad.
-
-
+> And how is that different from:
 >
-> Kevin
->
+> default y if ARCH_OMAP3 ? If you don't want USB at all, you'll disable
+> it by hand, the default is on. Select on board Kconfig.
+
+TWL4030_USB is inside drivers/usb/Kconfig and drivers/usb/otg/Kconfig,
+which means in order to achieve the same on the board config you would
+have to do:
+
+default y if USB_SUPPORT && (USB || USB_GADGET) && ARCH_OMAP3
+
+Seems to be more convoluted to me.
+
+Besides, I think TWL4030_USB and the full description of it doesn't
+give any hints to the people reading drivers/usb/otg/Kconfig what is
+it used for. 'default y if ARCH_OMAP3' achieves that.
+
+Plus, there is no big change:
+
+config USB_MUSB_HDRC
+-	select TWL4030_USB if MACH_OMAP_3430SDP
+
+config TWL4030_USB
++	default y if ARCH_OMAP3
+
+-- 
+Felipe Contreras
