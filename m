@@ -1,56 +1,181 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 3/3] omap: add hwspinlock device
-Date: Tue, 19 Oct 2010 16:53:52 -0700
-Message-ID: <87bp6pviwf.fsf@deeprootsystems.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
-	<1287387875-14168-4-git-send-email-ohad@wizery.com>
-	<87r5fmxghm.fsf@deeprootsystems.com>
-	<AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
+Subject: Re: [PATCH] omap2plus: wdt: Fix boot warn when CONFIG_PM_RUNTIME=n
+Date: Tue, 19 Oct 2010 17:00:41 -0700
+Message-ID: <87vd4xu40m.fsf@deeprootsystems.com>
+References: <1286798556-22749-1-git-send-email-charu@ti.com>
+	<4CB40B07.8080301@ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030CFC553C@dbde02.ent.ti.com>
+	<4CB45E0E.6080104@ti.com> <87mxqj1d2v.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030D09A22D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:49543 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab0JSXyF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 19:54:05 -0400
-In-Reply-To: <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
-	(Ohad Ben-Cohen's message of "Tue, 19 Oct 2010 23:02:37 +0200")
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:43614 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751526Ab0JTAAp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 20:00:45 -0400
+Received: by ywi6 with SMTP id 6so1656514ywi.19
+        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2010 17:00:44 -0700 (PDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030D09A22D@dbde02.ent.ti.com>
+	(Charulatha Varadarajan's message of "Thu, 14 Oct 2010 19:43:30
+	+0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
+To: "Varadarajan, Charulatha" <charu@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Ohad Ben-Cohen <ohad@wizery.com> writes:
+"Varadarajan, Charulatha" <charu@ti.com> writes:
 
-> On Tue, Oct 19, 2010 at 7:03 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->>> +postcore_initcall(hwspinlocks_init);
->>
->> Any reason this needs to be a postcore_initcall? =C2=A0Are there use=
-rs of
->> hwspinlocks this early in boot?
+> Paul, Benoit, 
 >
-> i2c-omap, which is subsys_initcall (the I2C bus is shared between the
-> A9 and the M3 on some OMAP4 boards).
+> Please provide your input on this.
+>
+>> -----Original Message-----
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>> Sent: Tuesday, October 12, 2010 11:57 PM
+>> To: Cousson, Benoit
+>> Cc: Varadarajan, Charulatha; Paul Walmsley; linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH] omap2plus: wdt: Fix boot warn when 
+>> CONFIG_PM_RUNTIME=n
+>> 
+>> "Cousson, Benoit" <b-cousson@ti.com> writes:
+>> 
+>> > Adding more folks to the discussion.
+>> >
+>> > On 10/12/2010 9:30 AM, Varadarajan, Charulatha wrote:
+>> >>
+>> >>> From: Cousson, Benoit
+>> >>> Sent: Tuesday, October 12, 2010 12:45 PM
+>> >>> To: Varadarajan, Charulatha
+>> >>>
+>> >>> Hi Charu,
+>> >>>
+>> >>> On 10/11/2010 2:02 PM, Varadarajan, Charulatha wrote:
+>> >>>> Fix the below warning during boot
+>> >>>>
+>> >>>> [    0.000000] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185
+>> >>> _omap_hwmod_enable+0x34/0x150()
+>> >>>> [    0.000000] omap_hwmod: wd_timer2: enabled state can 
+>> only be entered
+>> >>> from initialized, idle, or disabled state
+>> >>>> [    0.000000] Modules linked in:
+>> >>>> [    0.000000] [<c0050460>] (unwind_backtrace+0x0/0xe4) from
+>> >>> [<c0083954>] (warn_slowpath_common+0x4c/0x64)
+>> >>>> [    0.000000] [<c0083954>] (warn_slowpath_common+0x4c/0x64) from
+>> >>> [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c)
+>> >>>> [    0.000000] [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c) from
+>> >>> [<c0059be4>] (_omap_hwmod_enable+0x34/0x150)
+>> >>>> [    0.000000] [<c0059be4>] (_omap_hwmod_enable+0x34/0x150) from
+>> >>> [<c0059d28>] (omap_hwmod_enable+0x28/0x3c)
+>> >>>> [    0.000000] [<c0059d28>] (omap_hwmod_enable+0x28/0x3c) from
+>> >>> [<c005580c>] (omap2_disable_wdt+0x48/0xdc)
+>> >>>> [    0.000000] [<c005580c>] (omap2_disable_wdt+0x48/0xdc) from
+>> >>> [<c0058898>] (omap_hwmod_for_each_by_class+0x60/0xa4)
+>> >>>> [    0.000000] [<c0058898>] 
+>> (omap_hwmod_for_each_by_class+0x60/0xa4)
+>> >>> from [<c000f6d0>] (omap2_init_devices+0x44/0x330)
+>> >>>> [    0.000000] [<c000f6d0>] (omap2_init_devices+0x44/0x330) from
+>> >>> [<c0049578>] (do_one_initcall+0xcc/0x1a4)
+>> >>>> [    0.000000] [<c0049578>] (do_one_initcall+0xcc/0x1a4) from
+>> >>> [<c0008780>] (kernel_init+0x148/0x210)
+>> >>>> [    0.000000] [<c0008780>] (kernel_init+0x148/0x210) 
+>> from [<c004acb8>]
+>> >>> (kernel_thread_exit+0x0/0x8)
+>> >>>> [    0.000000] ---[ end trace 1b75b31a2719ed1f ]---
+>> >>>> [    0.000000] wd_timer2: Could not enable clocks for 
+>> omap2_disable_wdt
+>> >>>>
+>> >>>> When CONFIG_PM_RUNTIME is not defined, watchdog timer 
+>> clocks are not
+>> >>>> disabled after a watchdog reset. Hence in 
+>> omap2_disable_wdt(), it is
+>> >>>> not required to enable clocks before accessing the watchdog timer
+>> >>>> registers if CONFIG_PM_RUNTIME is not defined.
+>> >>>
+>> >>> I'm not a big fan of adding some dependencies with 
+>> CONFIG_PM_RUNTIME
+>> >>> inside this code.
+>> >>>
+>> >>> The real root cause is not CONFIG_PM_RUNTIME, but mostly the
+>> >>> skip_setup_idle variable added in 
+>> arch/arm/mach-omap2/io.c by Paul.
+>> >>
+>> >> Yes.
+>> >>
+>> >>>
+>> >>> So I'd rather use that parameter as an input for the 
+>> omap2_disable_wdt.
+>> >>
+>> >> I also thought about this, but we need to
+>> >>
+>> >> 1. call omap2_disable_wdt() in omap2_init_common_hw() rather than
+>> >> omap2_init_devices(). That would involve movement of
+>> >> omap2_disable_wdt() from devices.c to io.c.
+>> >> (or)
+>> >> 2. make skip_setup_idle global
+>> >> (or)
+>> >> 3. make omap2_disable_wdt() global and call it from
+>> >> omap2_init_common_hw() and pass skip_setup_idle as parameter.
+>> >>
+>> >> I felt that the usage of CONFIG_PM_RUNTIME is better than 
+>> the above.
+>> >> But still we may consider any of the above options or any other
+>> >> option. Please suggest.
+>> >
+>> > It is maybe easier, but I don't think it is better...
+>> >
+>> > As I said, CONFIG_PM_RUNTIME is not the root cause of your 
+>> issue, just
+>> > an indirect cause. OK, maybe strictly speaking, it is the 
+>> root cause,
+>> > since it started for that... but that not the cause that we should
+>> > consider in your case.
+>> >
+>> > If we decide to remove that CONFIG_PM_RUNTIME dependency in the io /
+>> > hwmod code, nobody will be able to find the relation with 
+>> your code in
+>> > WDT.
+>> >
+>> > That's why you should not do that, for my point of view.
+>> >
+>> > Paul, Kevin,
+>> > Any thoughts on that point?
+>> 
+>> I agree that this is not strictly a dependency on PM_RUNTIME.
+>> 
+>> What's really needed is a way for low-level hwmod users like 
+>> this to be
+>> able to check whether the hwmod is already enabled.  
+>> Something like this
+>> (completely untested):
+>> 
+>> bool omap_hwmod_is_enabled(struct omap_hwmod *oh)
+>> {
+>> 	return (oh->_state == _HWMOD_STATE_ENABLED);
+>> }
+>
+> Kevin,
+>
+> Thanks. This is similar to what we were discussing internally and
+> I would prefer this. But is it a good idea to allow drivers to
+> know the state of oh and then enable/idle the device?
+>
+> Or should it be used only in exceptional situations like the scenario
+> addressed in this patch?
 
-Rather than moving towards having more drivers have to be built in (and
-depend on their probe order) we need to be moving towards building all
-these drivers as modules, including omap-i2c.
+For the long term (2.6.38), we should follow the direction that Paul
+laid out.
 
-> And to allow early board code to reserve specific hwspinlock numbers
-> for predefined use-cases, we probably want to be before arch_initcall=
-=2E
+For the short term (2.6.37) what we need is a fix for this regression.
+I propose you follow the above approach (checking if it's already
+enabled.)
 
-There's no reason for board code to have to do this at initcall time.
+As it is a temporary hack, it's probably best not to create the new API
+that could be abused.  Instead, just directly check oh->_state in the
+devices.c code (documented with FIXME comments.)
 
-This kind of thing needs to be done by platform_data function pointers,
-as is done for every other driver that needs platform-specific driver
-customization.
+I'm OK with this short term fix for 2.6.37 if you agree to work on
+Paul's solution for 2.6.38.
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
