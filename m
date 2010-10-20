@@ -1,115 +1,41 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH v3] OMAP3: DSS: Kconfig changes to enable display
- options on OMAP3
-Date: Wed, 20 Oct 2010 15:52:26 +0300
-Message-ID: <1287579146.2142.11.camel@tubuntu>
-References: <1287576260-14016-1-git-send-email-samreen@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
+Date: Wed, 20 Oct 2010 15:54:07 +0300
+Message-ID: <20101020125407.GE2433@legolas.emea.dhcp.ti.com>
+References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
+ <1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
+ <4CBD9FD5.506@nokia.com>
+ <AANLkTinRRyrXzqEu=u+CCYkmSNGm03SSo1tVG=5_wdpo@mail.gmail.com>
+ <4CBE9E69.6060803@nokia.com>
+ <AANLkTinOYDBMVZ3ibG3Md7jdOuOC6NkGWaugvHwT6uqF@mail.gmail.com>
+ <4CBEB312.7060400@nokia.com>
+ <AANLkTikom=eRFqCJmYE+k1zn5K2MR9s8HhNXtjOvUqvr@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:51417 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752997Ab0JTMwn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 Oct 2010 08:52:43 -0400
-In-Reply-To: <1287576260-14016-1-git-send-email-samreen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTikom=eRFqCJmYE+k1zn5K2MR9s8HhNXtjOvUqvr@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Roger Quadros <roger.quadros@nokia.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: ext Samreen <samreen@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Vaibhav Hiremath <hvaibhav@ti.com>, "Quadros Roger (Nokia-MS/Helsinki)" <roger.quadros@nokia.com>, Senthilvadivu Guruswamy <svadivu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
-Hi,
+On Wed, Oct 20, 2010 at 04:23:13AM -0500, Felipe Contreras wrote:
+>Ok, but USB_OMAP is not supposed to work on the N900? (I tried and it didn't)
 
-On Wed, 2010-10-20 at 14:04 +0200, ext Samreen wrote:
-> The defconfig options for display are taken in the respective Kconfig
-> to enable display by default on OMAP3 platforms
-> 
-> Signed-off-by: Samreen <samreen@ti.com>
-> ---
->  Version3:
->        Eliminate the separate default number of FBs for
->  different architecture. Keeping default FBs as 3 as before.
-> 
->  Version2:
->         Enables by default NEC panel used in zoom2/3/3630sdp, instead of 
->  Sharp LQ043T1DG01 panel enabled in previous version of this patch
-> 
->  drivers/video/omap2/displays/Kconfig |    3 +++
->  drivers/video/omap2/dss/Kconfig      |    6 ++++--
->  drivers/video/omap2/omapfb/Kconfig   |    1 +
->  3 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-> index f8152cf..d818e44 100644
-> --- a/drivers/video/omap2/displays/Kconfig
-> +++ b/drivers/video/omap2/displays/Kconfig
-> @@ -3,6 +3,7 @@ menu "OMAP2/3 Display Device Drivers"
->  
->  config PANEL_GENERIC
->          tristate "Generic Panel"
-> +	default y
->          help
->  	  Generic panel driver.
->  	  Used for DVI output for Beagle and OMAP3 SDP.
-> @@ -10,6 +11,7 @@ config PANEL_GENERIC
->  config PANEL_SHARP_LS037V7DW01
->          tristate "Sharp LS037V7DW01 LCD Panel"
->          depends on OMAP2_DSS
-> +	default y
->          select BACKLIGHT_CLASS_DEVICE
->          help
->            LCD Panel used in TI's SDP3430 and EVM boards
-> @@ -23,6 +25,7 @@ config PANEL_SHARP_LQ043T1DG01
->  config PANEL_NEC_NL8048HL11_01B
->  	tristate "NEC NL8048HL11-01B Panel"
->  	depends on OMAP2_DSS
-> +	default y
->  	help
->  		This NEC NL8048HL11-01B panel is TFT LCD
->  		used in the Zoom2/3/3630 sdp boards.
+ooooh, that's old. That's from the omap1. It's the old omap_udc.c
 
-What kernel is this based on? There's no Nec driver on my or Linus'
-tree.
+>I don't think so, because people might not want USB at all. The ideal
+>case would be for USB_GADGET_MUSB_HDRC to be selected automatically
+>when the user selects USB and USB_GADGET, but that's not happening
+>because USB_GADGET_OMAP is selected first (all the dependencies are
+>met).
 
-If you enable those panels by default, why not enable all the rest of
-the panels also? And should DSI/SDI/RFBI be enabled also by default, and
-all the panels that require those? Where do we draw the line?
+And how is that different from:
 
-I feel the only sane options are to keep everything off by default, or
-all on by default. And setting all on by default doesn't sound too good
-either...
+default y if ARCH_OMAP3 ? If you don't want USB at all, you'll disable
+it by hand, the default is on. Select on board Kconfig.
 
-> diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
-> index 43b6440..f3244a2 100644
-> --- a/drivers/video/omap2/dss/Kconfig
-> +++ b/drivers/video/omap2/dss/Kconfig
-> @@ -1,6 +1,7 @@
->  menuconfig OMAP2_DSS
->          tristate "OMAP2/3 Display Subsystem support (EXPERIMENTAL)"
->          depends on ARCH_OMAP2 || ARCH_OMAP3
-> +	default y
->          help
->            OMAP2/3 Display Subsystem support.
->  
-> @@ -9,7 +10,7 @@ if OMAP2_DSS
->  config OMAP2_VRAM_SIZE
->  	int "VRAM size (MB)"
->  	range 0 32
-> -	default 0
-> +	default 4
->  	help
->  	  The amount of SDRAM to reserve at boot time for video RAM use.
->  	  This VRAM will be used by omapfb and other drivers that need
-> @@ -102,7 +103,8 @@ config OMAP2_DSS_FAKE_VSYNC
->  config OMAP2_DSS_MIN_FCK_PER_PCK
->  	int "Minimum FCK/PCK ratio (for scaling)"
->  	range 0 32
-> -	default 0
-> +	default 4  if ARCH_OMAP2 || ARCH_OMAP3
-> +	default 0  if ARCH_OMAP4
-
-Why is the ratio set to 4 on all OMAP2/3 boards?
-
- Tomi
-
-
+-- 
+balbi
