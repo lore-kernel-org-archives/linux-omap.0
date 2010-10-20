@@ -1,59 +1,71 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 2/2] arm: omap: zoom: substitute gpio number with symbolic name
-Date: Wed, 20 Oct 2010 09:25:12 +0300
-Message-ID: <1287555912-16058-3-git-send-email-balbi@ti.com>
-References: <1287555912-16058-1-git-send-email-balbi@ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: linux-next - multi-omap image fails to boot on omap3/4
+Date: Wed, 20 Oct 2010 12:00:27 +0530
+Message-ID: <AANLkTimqymuGdD3_SX2RVj=6a9j+ODKy8ipYZ-6hqw+S@mail.gmail.com>
+References: <4CBDAFFF.2030409@ti.com> <20101019182149.GC3038@atomide.com>
+ <AANLkTikYGwH-kQV3b+gqDYOKVvuiXOU=kBDVLy3ryNjR@mail.gmail.com>
+ <20101019225726.GE3038@atomide.com> <20101019233204.GA30991@atomide.com> <AANLkTikrVJ3bw3aKE6V7uH9DmheVDihedNOP+wypYunC@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59798 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755515Ab0JTGZi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 02:25:38 -0400
-In-Reply-To: <1287555912-16058-1-git-send-email-balbi@ti.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55572 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755392Ab0JTGat (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 Oct 2010 02:30:49 -0400
+Received: by mail-ww0-f46.google.com with SMTP id 22so2959243wwb.27
+        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2010 23:30:48 -0700 (PDT)
+In-Reply-To: <AANLkTikrVJ3bw3aKE6V7uH9DmheVDihedNOP+wypYunC@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Anand Gadiyar <gadiyar@ti.com>, Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-It's easier to understand what that number means and
-also avoids problems if we ever have to change it.
+On Wed, Oct 20, 2010 at 5:16 AM, Gadiyar, Anand <gadiyar@ti.com> wrote:
+> On Wed, Oct 20, 2010 at 5:02 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> * Tony Lindgren <tony@atomide.com> [101019 15:48]:
+>>> * Gadiyar, Anand <gadiyar@ti.com> [101019 11:26]:
+>>> > On Tue, Oct 19, 2010 at 11:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+>>> > > * Anand Gadiyar <gadiyar@ti.com> [101019 07:41]:
+>>> > >> Hi all,
+>>> > >>
+>>> > >> linux-next, as of 20101019, built with the omap2plus_defconfig fails
+>>> > >> to boot on omap3 and omap4. (I've disabled CONFIG_ARCH_OMAP2 or
+>>> > >> CONFIG_SWP_EMULATE to get the image to build). Building with only
+>>> > >> ARCH_OMAP3 allows the resultant image to boot up on OMAP3. Likewise,
+>>> > >> an image built with only ARCH_OMAP4 boots up on OMAP4 boards.
+>>> > >>
+>>> > >> earlyprintk does not provide any additional prints after
+>>> > >> "Uncompressing Linux... done, booting the kernel."
+>>> > >>
+>>> > >> Any ideas where to look?
+>>> > >
+>>> > > Hmm I did a quick test merge of linux-omap master and rmk/devel
+>>> > > branches and that boots just fine.
+>>> > >
+>>> > > So it's probably something that already got fixed in rmk/devel
+>>> > > but is not yet in next, or something that came from elsewhere,
+>>> > > or something that we have in omap-testing branch that's not in
+>>> > > for-next for some reason.
+>>> >
+>>> > I tried bisecting linux-next between v2.6.36-rc8 and HEAD, but
+>>> > there's a commit in between that breaks the build. I'll take another
+>>> > stab at this in a while.
+>>>
+>>> Looks like current next at 80f8f1f8b33750d954beb386c0c8142d0c01c25c
+>>> boots again except on 2430sdp it produces a NULL pointer at ubi_io_write.
+>>
+>> Oops, sorry it's still broken, wrong tree.
+>>
+>
+> I've started bisecting again - I needed to pick commit 5bac0926121e
+> (driver core: platform_bus: allow runtime override of dev_pm_ops) to
+> solve the build break.
+>
+> Will report back if I find something.
+>
 
-Tested-by: Anand Gadiyar <gadiyar@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/board-zoom.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+I tried disabling CONFIG_SMP and CONFIG_SMP_ON_UP, and the resulting
+image booted up just fine.
 
-diff --git a/arch/arm/mach-omap2/board-zoom.c b/arch/arm/mach-omap2/board-zoom.c
-index 4215abc..d641be8 100644
---- a/arch/arm/mach-omap2/board-zoom.c
-+++ b/arch/arm/mach-omap2/board-zoom.c
-@@ -30,6 +30,8 @@
- #include "sdram-micron-mt46h32m32lf-6.h"
- #include "sdram-hynix-h8mbx00u0mer-0em.h"
- 
-+#define ZOOM3_EHCI_RESET_GPIO		64
-+
- static void __init omap_zoom_init_irq(void)
- {
- 	if (machine_is_omap_zoom2())
-@@ -146,7 +148,7 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.port_mode[2]		= EHCI_HCD_OMAP_MODE_UNKNOWN,
- 	.phy_reset		= true,
- 	.reset_gpio_port[0]	= -EINVAL,
--	.reset_gpio_port[1]	= 64,
-+	.reset_gpio_port[1]	= ZOOM3_EHCI_RESET_GPIO,
- 	.reset_gpio_port[2]	= -EINVAL,
- };
- 
-@@ -156,7 +158,7 @@ static void __init omap_zoom_init(void)
- 		omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	} else if (machine_is_omap_zoom3()) {
- 		omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
--		omap_mux_init_gpio(64, OMAP_PIN_OUTPUT);
-+		omap_mux_init_gpio(ZOOM3_EHCI_RESET_GPIO, OMAP_PIN_OUTPUT);
- 		usb_ehci_init(&ehci_pdata);
- 	}
- 
--- 
-1.7.3.1.120.g38a18
-
+- Anand
