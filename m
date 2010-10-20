@@ -1,95 +1,37 @@
-From: "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Subject: Re: [PATCHv4 4/4] iommu: create new api to set valid da range
-Date: Wed, 20 Oct 2010 11:35:50 +0300
-Message-ID: <AANLkTimSQabHv3AOFFR4m3POjmuGvN18u7TNsPyauH8D@mail.gmail.com>
-References: <1287542932-14206-1-git-send-email-x0095840@ti.com>
-	<1287542932-14206-2-git-send-email-x0095840@ti.com>
-	<1287542932-14206-3-git-send-email-x0095840@ti.com>
-	<1287542932-14206-4-git-send-email-x0095840@ti.com>
+Date: Wed, 20 Oct 2010 11:45:16 +0300 (EEST)
+Message-ID: <20101020.114516.189725260.Hiroshi.DOYU@nokia.com>
+References: <1287542932-14206-4-git-send-email-x0095840@ti.com>
 	<1287542932-14206-5-git-send-email-x0095840@ti.com>
+	<AANLkTimSQabHv3AOFFR4m3POjmuGvN18u7TNsPyauH8D@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1287542932-14206-5-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Fernando Guzman Lugo <x0095840@ti.com>
-Cc: Hiroshi.DOYU@nokia.com, felipe.contreras@nokia.com, david.cohen@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:64043 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752333Ab0JTIqF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 04:46:05 -0400
+In-Reply-To: <AANLkTimSQabHv3AOFFR4m3POjmuGvN18u7TNsPyauH8D@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: felipe.contreras@gmail.com
+Cc: x0095840@ti.com, felipe.contreras@nokia.com, david.cohen@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Wed, Oct 20, 2010 at 5:48 AM, Fernando Guzman Lugo <x0095840@ti.com> wrote:
-> Some IOMMUs cannot use the whole 0x0 - 0xFFFFFFFF range.
-> With this new API the valid range can be set.
->
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+From: "ext felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
+Subject: Re: [PATCHv4 4/4] iommu: create new api to set valid da range
+Date: Wed, 20 Oct 2010 10:35:50 +0200
 
-I don't see the point in having an API. It could be done through
-platform data, and the usage of 0xFFFFF000 instead of ULONG_MAX is
-independent of this.
+> On Wed, Oct 20, 2010 at 5:48 AM, Fernando Guzman Lugo <x0095840@ti.com> wrote:
+>> Some IOMMUs cannot use the whole 0x0 - 0xFFFFFFFF range.
+>> With this new API the valid range can be set.
+>>
+>> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> 
+> I don't see the point in having an API. It could be done through
+> platform data, and the usage of 0xFFFFF000 instead of ULONG_MAX is
+> independent of this.
 
-diff --git a/arch/arm/mach-omap2/omap-iommu.c b/arch/arm/mach-omap2/omap-iommu.c
-index f5a1aad..db919254 100644
---- a/arch/arm/mach-omap2/omap-iommu.c
-+++ b/arch/arm/mach-omap2/omap-iommu.c
-@@ -43,6 +43,7 @@ static struct iommu_device omap3_devices[] = {
- 			.name = "iva2",
- 			.nr_tlb_entries = 32,
- 			.clk_name = "iva2_ck",
-+			.start_addr = 0x11000000,
- 		},
- 	},
- #endif
-diff --git a/arch/arm/plat-omap/include/plat/iommu.h
-b/arch/arm/plat-omap/include/plat/iommu.h
-index 33c7d41..94f3a9a 100644
---- a/arch/arm/plat-omap/include/plat/iommu.h
-+++ b/arch/arm/plat-omap/include/plat/iommu.h
-@@ -50,6 +50,8 @@ struct iommu {
- 	int (*isr)(struct iommu *obj);
+Using platform data is better, but why dropping da_end?
 
- 	void *ctx; /* iommu context: registres saved area */
-+
-+	u32		start_addr;
- };
-
- struct cr_regs {
-@@ -103,6 +105,7 @@ struct iommu_platform_data {
- 	const char *name;
- 	const char *clk_name;
- 	const int nr_tlb_entries;
-+	u32 start_addr;
- };
-
- #if defined(CONFIG_ARCH_OMAP1)
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-index 6336ae2..3023d0b 100644
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -926,6 +926,10 @@ static int __devinit omap_iommu_probe(struct
-platform_device *pdev)
- 	obj->name = pdata->name;
- 	obj->dev = &pdev->dev;
- 	obj->ctx = (void *)obj + sizeof(*obj);
-+	obj->start_addr = pdata->start_addr;
-+
-+	if (!obj->start_addr)
-+		obj->start_addr = PAGE_SIZE;
-
- 	mutex_init(&obj->iommu_lock);
- 	mutex_init(&obj->mmap_lock);
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index f318476..fd0c93f 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -284,7 +284,7 @@ static struct iovm_struct *alloc_iovm_area(struct
-iommu *obj, u32 da,
- 		/*
- 		 * Reserve the first page for NULL
- 		 */
--		start = PAGE_SIZE;
-+		start = obj->start_addr;
- 		if (flags & IOVMF_LINEAR)
- 			alignement = iopgsz_max(bytes);
- 		start = roundup(start, alignement);
-
--- 
-Felipe Contreras
