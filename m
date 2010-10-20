@@ -1,17 +1,21 @@
 From: Roger Quadros <roger.quadros@nokia.com>
 Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
-Date: Wed, 20 Oct 2010 15:33:10 +0300
-Message-ID: <4CBEE186.8090701@nokia.com>
+Date: Wed, 20 Oct 2010 15:33:23 +0300
+Message-ID: <4CBEE193.7000100@nokia.com>
 References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>	<4CBD9FD5.506@nokia.com>	<AANLkTinRRyrXzqEu=u+CCYkmSNGm03SSo1tVG=5_wdpo@mail.gmail.com>	<4CBE9E69.6060803@nokia.com>	<AANLkTinOYDBMVZ3ibG3Md7jdOuOC6NkGWaugvHwT6uqF@mail.gmail.com>	<4CBEB312.7060400@nokia.com> <AANLkTikom=eRFqCJmYE+k1zn5K2MR9s8HhNXtjOvUqvr@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:45673 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753183Ab0JTMcK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 08:32:10 -0400
 In-Reply-To: <AANLkTikom=eRFqCJmYE+k1zn5K2MR9s8HhNXtjOvUqvr@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: ext Felipe Contreras <felipe.contreras@gmail.com>
 Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
-List-Id: linux-omap@vger.kernel.org
 
 On 10/20/2010 12:23 PM, ext Felipe Contreras wrote:
 > On Wed, Oct 20, 2010 at 12:14 PM, Roger Quadros<roger.quadros@nokia.com>  wrote:
@@ -72,11 +76,11 @@ MUSB is not limited to OMAP SoC.
 > because USB_GADGET_OMAP is selected first (all the dependencies are
 > met).
 >
-Yes you are right. In think with the current setup (i.e. controller selection at 
+Yes you are right. I think with the current setup (i.e. controller selection at 
 kconfig and limitation to one controller per config) we will never be able to 
 satisfy all users.
 
-We might need to move to some kind of gadget controller framework and runtime 
+We might need to move to some kind of gadget controller framework and run time 
 controller selection to solve this problem.
 
 -- 
