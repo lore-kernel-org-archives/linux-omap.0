@@ -1,160 +1,235 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 1/3] OMAP: PM: formalize idle notifications
-Date: Wed, 20 Oct 2010 16:31:21 -0700
-Message-ID: <1287617483-24170-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 3/3] OMAP: UART: use atomic idle notifiers
+Date: Wed, 20 Oct 2010 16:31:23 -0700
+Message-ID: <1287617483-24170-3-git-send-email-khilman@deeprootsystems.com>
+References: <1287617483-24170-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:56536 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750915Ab0JTXb0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 19:31:26 -0400
-Received: by pxi16 with SMTP id 16so1050453pxi.19
-        for <linux-omap@vger.kernel.org>; Wed, 20 Oct 2010 16:31:26 -0700 (PDT)
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:41797 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750915Ab0JTXba (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 19:31:30 -0400
+Received: by pwj9 with SMTP id 9so98437pwj.19
+        for <linux-omap@vger.kernel.org>; Wed, 20 Oct 2010 16:31:30 -0700 (PDT)
+In-Reply-To: <1287617483-24170-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Currently in the idle path, we have custom function calls into device
-code to handle device specific actions that need to be coordinated CPU
-idle transitions. Rather than continue this ad-hoc method of calling
-device code from the PM core, create a formal way for device/driver
-code to register for idle notifications.
-
-Idle notifications are done late in the idle path when interrupts are
-disabled, hence use atomic notifier chains.  These notifications will
-also be atomic with respect to CPU idle transitions.
+Convert UART idle management routines from custom hooks in the core
+idle path to use new idle notifiers.
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm.c                 |   26 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm24xx.c             |    4 ++++
- arch/arm/mach-omap2/pm34xx.c             |    5 +++++
- arch/arm/plat-omap/include/plat/common.h |   11 +++++++++++
- 4 files changed, 46 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm24xx.c             |    9 +---
+ arch/arm/mach-omap2/pm34xx.c             |    8 ---
+ arch/arm/mach-omap2/serial.c             |   71 +++++++++++++++++++----------
+ arch/arm/plat-omap/include/plat/serial.h |    2 -
+ 4 files changed, 47 insertions(+), 43 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 59ca03b..343e8d6 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -13,6 +13,7 @@
- #include <linux/init.h>
- #include <linux/io.h>
- #include <linux/err.h>
-+#include <linux/notifier.h>
- 
- #include <plat/omap-pm.h>
- #include <plat/omap_device.h>
-@@ -28,6 +29,31 @@ static struct device *iva_dev;
- static struct device *l3_dev;
- static struct device *dsp_dev;
- 
-+/* idle notifications late in the idle path (atomic, interrupts disabled) */
-+static ATOMIC_NOTIFIER_HEAD(idle_notifier);
-+
-+void omap_idle_notifier_register(struct notifier_block *n)
-+{
-+	atomic_notifier_chain_register(&idle_notifier, n);
-+}
-+EXPORT_SYMBOL_GPL(omap_idle_notifier_register);
-+
-+void omap_idle_notifier_unregister(struct notifier_block *n)
-+{
-+	atomic_notifier_chain_unregister(&idle_notifier, n);
-+}
-+EXPORT_SYMBOL_GPL(omap_idle_notifier_unregister);
-+
-+void omap_idle_notifier_start(void)
-+{
-+	atomic_notifier_call_chain(&idle_notifier, OMAP_IDLE_START, NULL);
-+}
-+
-+void omap_idle_notifier_end(void)
-+{
-+	atomic_notifier_call_chain(&idle_notifier, OMAP_IDLE_END, NULL);
-+}
-+
- struct device *omap2_get_mpuss_device(void)
- {
- 	WARN_ON_ONCE(!mpu_dev);
 diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index a40457d..cb1b333 100644
+index cb1b333..47644d2 100644
 --- a/arch/arm/mach-omap2/pm24xx.c
 +++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -108,6 +108,8 @@ static void omap2_enter_full_retention(void)
- 
- 	omap2_gpio_prepare_for_idle(PWRDM_POWER_RET);
- 
-+	omap_idle_notifier_start();
-+
- 	if (omap2_pm_debug) {
- 		omap2_pm_dump(0, 0, 0);
- 		getnstimeofday(&ts_preidle);
-@@ -140,6 +142,8 @@ no_sleep:
- 		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
- 		omap2_pm_dump(0, 1, tmp);
- 	}
-+
-+	omap_idle_notifier_end();
- 	omap2_gpio_resume_after_idle();
- 
- 	clk_enable(osc_ck);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 75c0cd1..713bd04 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -37,6 +37,7 @@
- #include <plat/prcm.h>
- #include <plat/gpmc.h>
+@@ -40,6 +40,7 @@
+ #include <plat/sram.h>
  #include <plat/dma.h>
+ #include <plat/board.h>
 +#include <plat/common.h>
  
- #include <asm/tlbflush.h>
+ #include "prm.h"
+ #include "prm-regbits-24xx.h"
+@@ -120,19 +121,11 @@ static void omap2_enter_full_retention(void)
+ 	if (omap_irq_pending())
+ 		goto no_sleep;
  
-@@ -375,6 +376,8 @@ void omap_sram_idle(void)
- 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
- 		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
+-	omap_uart_prepare_idle(0);
+-	omap_uart_prepare_idle(1);
+-	omap_uart_prepare_idle(2);
+-
+ 	/* Jump to SRAM suspend code */
+ 	omap2_sram_suspend(sdrc_read_reg(SDRC_DLLA_CTRL),
+ 			   OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL),
+ 			   OMAP_SDRC_REGADDR(SDRC_POWER));
  
-+	omap_idle_notifier_start();
-+
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-@@ -471,6 +474,8 @@ void omap_sram_idle(void)
- 		omap3_disable_io_chain();
+-	omap_uart_resume_idle(2);
+-	omap_uart_resume_idle(1);
+-	omap_uart_resume_idle(0);
+-
+ no_sleep:
+ 	if (omap2_pm_debug) {
+ 		unsigned long long tmp;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 4674748..eaed95d 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -390,8 +390,6 @@ void omap_sram_idle(void)
+ 
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+-		omap_uart_prepare_idle(2);
+-		omap_uart_prepare_idle(3);
+ 		omap2_gpio_prepare_for_idle(per_next_state);
+ 		if (per_next_state == PWRDM_POWER_OFF)
+ 				omap3_per_save_context();
+@@ -399,8 +397,6 @@ void omap_sram_idle(void)
+ 
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
+-		omap_uart_prepare_idle(0);
+-		omap_uart_prepare_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+ 			omap3_core_save_context();
+ 			omap3_prcm_save_context();
+@@ -445,8 +441,6 @@ void omap_sram_idle(void)
+ 			omap3_sram_restore_context();
+ 			omap2_sms_restore_context();
+ 		}
+-		omap_uart_resume_idle(0);
+-		omap_uart_resume_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF)
+ 			prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF_MASK,
+ 					       OMAP3430_GR_MOD,
+@@ -459,8 +453,6 @@ void omap_sram_idle(void)
+ 		omap2_gpio_resume_after_idle();
+ 		if (per_prev_state == PWRDM_POWER_OFF)
+ 			omap3_per_restore_context();
+-		omap_uart_resume_idle(2);
+-		omap_uart_resume_idle(3);
  	}
  
-+	omap_idle_notifier_end();
-+
- 	pwrdm_post_transition();
+ 	/* Disable IO-PAD and IO-CHAIN wakeup */
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index becf0e3..8a619ff 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -73,6 +73,7 @@ struct omap_uart_state {
+ 	u32 padconf;
+ 	u32 dma_enabled;
  
- 	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
-diff --git a/arch/arm/plat-omap/include/plat/common.h b/arch/arm/plat-omap/include/plat/common.h
-index a9d69a0..1ca32cf 100644
---- a/arch/arm/plat-omap/include/plat/common.h
-+++ b/arch/arm/plat-omap/include/plat/common.h
-@@ -27,6 +27,8 @@
- #ifndef __ARCH_ARM_MACH_OMAP_COMMON_H
- #define __ARCH_ARM_MACH_OMAP_COMMON_H
++	struct powerdomain *pwrdm;
+ 	struct clk *ick;
+ 	struct clk *fck;
+ 	int clocked;
+@@ -389,39 +390,31 @@ static void omap_uart_idle_timer(unsigned long data)
+ 	omap_uart_allow_sleep(uart);
+ }
  
-+#include <linux/notifier.h>
-+
- #include <plat/i2c.h>
+-void omap_uart_prepare_idle(int num)
++static void omap_uart_prepare_idle(struct omap_uart_state *uart)
+ {
+-	struct omap_uart_state *uart;
+-
+-	list_for_each_entry(uart, &uart_list, node) {
+-		if (num == uart->num && uart->can_sleep) {
+-			omap_uart_disable_clocks(uart);
+-			return;
+-		}
+-	}
++	if (uart->can_sleep &&
++	    pwrdm_read_next_pwrst(uart->pwrdm) < PWRDM_POWER_ON)
++		omap_uart_disable_clocks(uart);
+ }
  
- struct sys_timer;
-@@ -95,4 +97,13 @@ extern struct device *omap2_get_iva_device(void);
- extern struct device *omap2_get_l3_device(void);
- extern struct device *omap4_get_dsp_device(void);
+-void omap_uart_resume_idle(int num)
++static void omap_uart_resume_idle(struct omap_uart_state *uart)
+ {
+-	struct omap_uart_state *uart;
++	if (uart->can_sleep &&
++	    pwrdm_read_next_pwrst(uart->pwrdm) < PWRDM_POWER_ON) {
++		omap_uart_enable_clocks(uart);
  
-+#define OMAP_IDLE_START 1
-+#define OMAP_IDLE_END	2
+-	list_for_each_entry(uart, &uart_list, node) {
+-		if (num == uart->num) {
+-			omap_uart_enable_clocks(uart);
+-
+-			/* Check for IO pad wakeup */
+-			if (cpu_is_omap34xx() && uart->padconf) {
+-				u16 p = omap_ctrl_readw(uart->padconf);
+-
+-				if (p & OMAP3_PADCONF_WAKEUPEVENT0)
+-					omap_uart_block_sleep(uart);
+-			}
++		/* Check for IO pad wakeup */
++		if (cpu_is_omap34xx() && uart->padconf) {
++			u16 p = omap_ctrl_readw(uart->padconf);
+ 
+-			/* Check for normal UART wakeup */
+-			if (__raw_readl(uart->wk_st) & uart->wk_mask)
++			if (p & OMAP3_PADCONF_WAKEUPEVENT0)
+ 				omap_uart_block_sleep(uart);
+-			return;
+ 		}
 +
-+/* idle notifications late in the idle path (atomic, interrupts disabled) */
-+extern void omap_idle_notifier_register(struct notifier_block *n);
-+extern void omap_idle_notifier_unregister(struct notifier_block *n);
-+extern void omap_idle_notifier_start(void);
-+extern void omap_idle_notifier_end(void);
++		/* Check for normal UART wakeup */
++		if (__raw_readl(uart->wk_st) & uart->wk_mask)
++			omap_uart_block_sleep(uart);
++		return;
+ 	}
+ }
+ 
+@@ -474,6 +467,27 @@ static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+ 	return IRQ_NONE;
+ }
+ 
++static int omap_uart_idle_notifier(struct notifier_block *n,
++				   unsigned long val,
++				   void *p)
++{
++	struct omap_uart_state *uart;
 +
- #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
++	if (val == OMAP_IDLE_START)
++		list_for_each_entry(uart, &uart_list, node)
++			omap_uart_prepare_idle(uart);
++	else
++		list_for_each_entry(uart, &uart_list, node)
++			omap_uart_resume_idle(uart);
++
++	return 0;
++}
++
++static bool omap_uart_notifier_enabled;
++static struct notifier_block omap_uart_notifier = {
++	.notifier_call = omap_uart_idle_notifier,
++};
++
+ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ {
+ 	int ret;
+@@ -549,6 +563,11 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
+ 				   IRQF_SHARED, "serial idle", (void *)uart);
+ 	WARN_ON(ret);
++
++	if (!omap_uart_notifier_enabled) {
++		omap_idle_notifier_register(&omap_uart_notifier);
++		omap_uart_notifier_enabled = true;
++	}
+ }
+ 
+ void omap_uart_enable_irqs(int enable)
+@@ -731,6 +750,8 @@ void __init omap_serial_init_port(int port)
+ 			break;
+ 
+ 	oh = uart->oh;
++	uart->pwrdm = omap_hwmod_get_pwrdm(oh);
++	WARN_ON(!uart->pwrdm);
+ 	uart->dma_enabled = 0;
+ #ifndef CONFIG_SERIAL_OMAP
+ 	name = "serial8250";
+diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+index 19145f5..d3ee47b 100644
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -99,8 +99,6 @@ extern void omap_serial_init_port(int port);
+ extern int omap_uart_can_sleep(void);
+ extern void omap_uart_check_wakeup(void);
+ extern void omap_uart_prepare_suspend(void);
+-extern void omap_uart_prepare_idle(int num);
+-extern void omap_uart_resume_idle(int num);
+ extern void omap_uart_enable_irqs(int enable);
+ #endif
+ 
 -- 
 1.7.2.1
 
