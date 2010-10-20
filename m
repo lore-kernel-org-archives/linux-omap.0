@@ -1,48 +1,61 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCHv4 4/4] iommu: create new api to set valid da range
-Date: Wed, 20 Oct 2010 12:26:38 +0300 (EEST)
-Message-ID: <20101020.122638.112626316.Hiroshi.DOYU@nokia.com>
-References: <AANLkTimSQabHv3AOFFR4m3POjmuGvN18u7TNsPyauH8D@mail.gmail.com>
-	<20101020.114516.189725260.Hiroshi.DOYU@nokia.com>
-	<AANLkTimpmoDY+nDERsTQ_FK0k_vkPjOi=ttbdtt2LpPs@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 0/3] Add OMAP hardware spinlock misc driver
+Date: Wed, 20 Oct 2010 10:53:03 +0100
+Message-ID: <20101020095303.GA21242@n2100.arm.linux.org.uk>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com> <1287531090.9245.139.camel@c-dwalke-linux.qualcomm.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:65351 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891Ab0JTJ1F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 05:27:05 -0400
-In-Reply-To: <AANLkTimpmoDY+nDERsTQ_FK0k_vkPjOi=ttbdtt2LpPs@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1287531090.9245.139.camel@c-dwalke-linux.qualcomm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Walker <dwalker@codeaurora.org>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, mattw@codeaurora.org, akpm@linux-foundation.org, Suman Anna <s-anna@ti.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: x0095840@ti.com, felipe.contreras@nokia.com, david.cohen@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCHv4 4/4] iommu: create new api to set valid da range
-Date: Wed, 20 Oct 2010 10:58:16 +0200
-
-> On Wed, Oct 20, 2010 at 11:45 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
->> From: "ext felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
->> Subject: Re: [PATCHv4 4/4] iommu: create new api to set valid da range
->> Date: Wed, 20 Oct 2010 10:35:50 +0200
->>
->>> On Wed, Oct 20, 2010 at 5:48 AM, Fernando Guzman Lugo <x0095840@ti.com> wrote:
->>>> Some IOMMUs cannot use the whole 0x0 - 0xFFFFFFFF range.
->>>> With this new API the valid range can be set.
->>>>
->>>> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
->>>
->>> I don't see the point in having an API. It could be done through
->>> platform data, and the usage of 0xFFFFF000 instead of ULONG_MAX is
->>> independent of this.
->>
->> Using platform data is better, but why dropping da_end?
+On Tue, Oct 19, 2010 at 04:31:30PM -0700, Daniel Walker wrote:
+> On Mon, 2010-10-18 at 09:44 +0200, Ohad Ben-Cohen wrote:
+> > OMAP4 introduces a Spinlock hardware module, which provides hardware
+> > assistance for synchronization and mutual exclusion between heterogeneous
+> > processors and those not operating under a single, shared operating system
+> > (e.g. OMAP4 has dual Cortex-A9, dual Cortex-M3 and a C64x+ DSP).
+> > 
+> > The intention of this hardware module is to allow remote processors,
+> > that have no alternative mechanism to accomplish synchronization and mutual
+> > exclusion operations, to share resources (such as memory and/or any other
+> > hardware resource).
+> > 
+> > This patchset adds a new misc driver for this OMAP hwspinlock module.
 > 
-> Because it's always 0xFFFFF000. Do you know of any instance where
->it's not?
+> Does this code interface with some hardware unit (other than the other
+> processors) to accomplish this locking ?
+> 
+> The reason I ask is because MSM has similar code, and from what I can
+> tell the MSM version has some structures in memory but that's all. It
+> just operates on the structures in memory.
+> 
+> It might be worth looking over the two implementation so we aren't both
+> remaking the wheel.
 
-We should try to avoid forcing unnecessary limitations and
-dependencies. The usage of device virtual address space range depends
-on dsp(coprocessor) side S/W implimentation or configuration.
+Ohad's message to which you replied had:
+
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Hari Kanigeri <h-kanigeri2@ti.com>,
+        Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>,
+        Greg KH <greg@kroah.com>, Grant Likely <grant.likely@secretlab.ca>,
+        akpm@linux-foundation.org, Suman Anna <s-anna@ti.com>
+
+Yours has:
+
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Benoit Cousson <b-cousson@ti.com>,
+        Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>,
+        linux-kernel@vger.kernel.org,
+        Grant Likely <grant.likely@secretlab.ca>, mattw@codeaurora.org,
+        akpm@linux-foundation.org, Suman Anna <s-anna@ti.com>,
+        mattw@codeaurora.orgmattw, linux-arm-kernel@lists.infradead.org
+
+which includes an invalid address "mattw@codeaurora.orgmattw".  Is there
+a reason why you're excluding the linux-omap list from your message and
+subsequent discussion?
