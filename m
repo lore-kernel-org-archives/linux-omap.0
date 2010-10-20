@@ -1,64 +1,70 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
-Date: Thu, 21 Oct 2010 00:43:45 +0200
-Message-ID: <AANLkTikz-_qhjygzek4tR0CtDLih3ZQyy1mPKnXAiOiV@mail.gmail.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <201010191921.21007.arnd@arndb.de> <AANLkTinXR7OcfTpA6cWhRGzceekD6KQgnxOLeBKXP3WB@mail.gmail.com>
- <201010192308.02018.arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP: UART: fix wakeup registers for OMAP24xx UART2
+Date: Wed, 20 Oct 2010 16:19:03 -0700
+Message-ID: <1287616743-23434-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:58295 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755968Ab0JTWoH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 18:44:07 -0400
-In-Reply-To: <201010192308.02018.arnd@arndb.de>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:64915 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756089Ab0JTXTH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 19:19:07 -0400
+Received: by gxk21 with SMTP id 21so1997817gxk.19
+        for <linux-omap@vger.kernel.org>; Wed, 20 Oct 2010 16:19:06 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, govindraj.raja@ti.com
 
-On Tue, Oct 19, 2010 at 11:08 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> Right. There are two more things to consider though:
->
-> If you know that interrupts are disabled, you may still want to avoid
-> having to save the interrupt flag to the stack, to save some cycles
-> saving and restoring it. I don't know how expensive that is on ARM,
-> some other architectures take an microseconds to restore the interrupt
-> enabled flag from a register.
+On OMAP24xx, UART2 WKEN and WKST registers are in PM_WKEN2_CORE and
+PM_WKST2_CORE respecitvely.  Fix the OMAP2 register init to use the
+correct registers on OMAP24xx.
 
-To do this we need to introduce a new set of API which will not
-disable interrupts, and which should only be used when the caller
-knows that interrupts are already disabled.
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+Tony, this should probably squeeze in for 2.6.37 as well.
 
-This will save some cycles, but my concern is that this API will be
-abused by drivers, and will eventually be used to take the hwspinlocks
-for lengthy period of times (which might even involve sleeping).
+ arch/arm/mach-omap2/serial.c |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
 
-Given that the access to the L4 interconnect is anyway slow I also
-feel that the gain is negligible.
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index ba8a5cc..becf0e3 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -515,14 +515,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		uart->padconf = padconf;
+ 	} else if (cpu_is_omap24xx()) {
+ 		u32 wk_mask = 0;
++		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
+ 
+-		if (cpu_is_omap2430()) {
+-			uart->wk_en = OMAP2430_PRM_REGADDR(CORE_MOD, PM_WKEN1);
+-			uart->wk_st = OMAP2430_PRM_REGADDR(CORE_MOD, PM_WKST1);
+-		} else if (cpu_is_omap2420()) {
+-			uart->wk_en = OMAP2420_PRM_REGADDR(CORE_MOD, PM_WKEN1);
+-			uart->wk_st = OMAP2420_PRM_REGADDR(CORE_MOD, PM_WKST1);
+-		}
+ 		switch (uart->num) {
+ 		case 0:
+ 			wk_mask = OMAP24XX_ST_UART1_MASK;
+@@ -531,10 +525,19 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 			wk_mask = OMAP24XX_ST_UART2_MASK;
+ 			break;
+ 		case 2:
++			wk_en = OMAP24XX_PM_WKEN2;
++			wk_st = OMAP24XX_PM_WKST2;
+ 			wk_mask = OMAP24XX_ST_UART3_MASK;
+ 			break;
+ 		}
+ 		uart->wk_mask = wk_mask;
++		if (cpu_is_omap2430()) {
++			uart->wk_en = OMAP2430_PRM_REGADDR(CORE_MOD, wk_en);
++			uart->wk_st = OMAP2430_PRM_REGADDR(CORE_MOD, wk_st);
++		} else if (cpu_is_omap2420()) {
++			uart->wk_en = OMAP2420_PRM_REGADDR(CORE_MOD, wk_en);
++			uart->wk_st = OMAP2420_PRM_REGADDR(CORE_MOD, wk_st);
++		}
+ 	} else {
+ 		uart->wk_en = NULL;
+ 		uart->wk_st = NULL;
+-- 
+1.7.2.1
 
-Nevertheless, it's a viable way to squeeze some cycles.
-
-We don't have a use case in which we know the interrupts are already
-disabled, but when we will, we will consider adding such API.
-
-> Even in the case where you know that interrupts are enabled, you may
-> want to avoid saving the interrupt flag to the stack, the simpler
-> API (one argument instead of two) gives less room for screwing up.
-
-This sounds like adding a set of API that resembles spin_{unlock,lock}_irq.
-
-My gut feeling here is that while this may be useful and simple at
-certain places, it is somewhat error prone; a driver which would
-erroneously use this at the wrong place will end up enabling
-interrupts where it really shouldn't.
-
-Don't you feel that proving a simple spin_lock_irqsave-like API is
-actually safer and less error prone ?
-
-I guess that is one of the reasons why spin_lock_irqsave is much more
-popular than spin_lock_irq - people just know it will never screw up.
-
-Thanks,
-Ohad.
