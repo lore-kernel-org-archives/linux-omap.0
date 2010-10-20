@@ -1,55 +1,62 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCH 9/9] arch: arm: fixed typos
-Date: Wed, 20 Oct 2010 11:03:12 +0200
-Message-ID: <20101020090312.GI28166@pengutronix.de>
-References: <1287219606-20759-1-git-send-email-andrea.gelmini@gelma.net> <20101018080644.GD12363@pengutronix.de> <alpine.LNX.2.00.1010192224000.6879@pobox.suse.cz> <AANLkTint_NDMD+r40jdRD71u0RSocqTBwSeLw2E4L_Nu@mail.gmail.com>
+From: Roger Quadros <roger.quadros@nokia.com>
+Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
+Date: Wed, 20 Oct 2010 12:14:58 +0300
+Message-ID: <4CBEB312.7060400@nokia.com>
+References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>	<4CBD9FD5.506@nokia.com>	<AANLkTinRRyrXzqEu=u+CCYkmSNGm03SSo1tVG=5_wdpo@mail.gmail.com>	<4CBE9E69.6060803@nokia.com> <AANLkTinOYDBMVZ3ibG3Md7jdOuOC6NkGWaugvHwT6uqF@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41933 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145Ab0JTJDY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 05:03:24 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTint_NDMD+r40jdRD71u0RSocqTBwSeLw2E4L_Nu@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:54621 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944Ab0JTJNk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 Oct 2010 05:13:40 -0400
+In-Reply-To: <AANLkTinOYDBMVZ3ibG3Md7jdOuOC6NkGWaugvHwT6uqF@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrea Gelmini <andrea.gelmini@gelma.net>
-Cc: Jiri Kosina <jkosina@suse.cz>, Nishanth Menon <nm@ti.com>, Leo Chen <leochen@broadcom.com>, Tony Lindgren <tony@atomide.com>, Sergio Aguirre <saaguirre@ti.com>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, Grazvydas Ignotas <notasas@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Rajendra Nayak <rnayak@ti.com>, Maciej Sosnowski <maciej.sosnowski@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@slimlogic.co.uk>, Paul Walmsley <paul@pwsan.com>, Eric Miao <eric.y.miao@gmail.com>, Linus Walleij <linus.walleij@stericsson.com>, Scott Branden <sbranden@broadcom.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tero Kristo <tero.kristo@nokia.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tejun Heo <tj@kernel.org>
+To: "ext felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>, Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hello Jiri, hello Andrea,
+On 10/20/2010 11:53 AM, ext felipe.contreras@gmail.com wrote:
+> On Wed, Oct 20, 2010 at 10:46 AM, Roger Quadros<roger.quadros@nokia.com>  wrote:
+>> On 10/19/2010 05:33 PM, ext Felipe Contreras wrote:
+>>> On Tue, Oct 19, 2010 at 4:40 PM, Roger Quadros<roger.quadros@nokia.com>
+>>>   wrote:
+>>>>>
+>>>>> @@ -843,6 +841,7 @@ config USB_CDC_COMPOSITE
+>>>>>   config USB_G_NOKIA
+>>>>>         tristate "Nokia composite gadget"
+>>>>>         depends on PHONET
+>>>>> +       depends on USB_GADGET_MUSB_HDRC
+>>>>
+>>>> This is wrong. Is there a build problem or run-time problem without this?
+>>>
+>>> Try:
+>>> CONFIG_USB_G_NOKIA=y
+>>> CONFIG_USB_GADGET_MUSB_HDRC=n
+>>>
+>>> At least g_nokia doesn't seem to work correctly on my N900.
+>>>
+>> It won't work on N900 because N900 has MUSB USB gadget controller and it
+>> needs to be selected somehow while building for N900.
+>>
+>> You should set CONFIG_USB_GADGET_MUSB_HDRC to y somewhere else while
+>> building for N900 and not here because g_nokia is not MUSB specific.
+>
+> How do you expect people to know that? The Kconfig should define what
+> USB_G_NOKIA needs to work, so that people can enable those things
+> without go Googling hunting for a workable defconfig. Right now people
+> can build g_nokia modules that don't work, and that shouldn't be
+> allowed by the Kconfig.
+>
 
-On Wed, Oct 20, 2010 at 12:54:33AM +0200, Andrea Gelmini wrote:
-> 2010/10/19 Jiri Kosina <jkosina@suse.cz>:
->=20
-> Hi,
->    and thanks a lot for your reply.
->=20
-> > Could you please refresh it (and probably incorporate Andrea's chan=
-ges as
-> > well) and resend it to me?
-OK, as I have a script to create my series there is no problem to
-refresh it ...
->=20
-> Well, I already merged all the patches. I don't care about credit, so
-> they can be commit with Uwe name.
-> But, some tree had already applied part of my patches.
-> I guess it would be better to wait for the next push time to re-apply
-> all of them.
-I will resend when the dust settles after .37-rc1.
+USB_G_NOKIA just needs a USB gadget controller to work. The gadget controller 
+used for the board should come from the board's Kconfig which will ideally be 
+supplied by the board's vendor.
 
-Best regards
-Uwe
+For example, can't USB_GADGET_MUSB_HDRC be selected in MACH_NOKIA_RX51 in 
+arch/arm/mach-omap2/Kconfig? or is there a better place to put it?
 
---=20
-Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
-    |
-Industrial Linux Solutions                 | http://www.pengutronix.de/=
-  |
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+regards,
+-roger
