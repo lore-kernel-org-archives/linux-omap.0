@@ -1,181 +1,104 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] omap2plus: wdt: Fix boot warn when CONFIG_PM_RUNTIME=n
-Date: Tue, 19 Oct 2010 17:00:41 -0700
-Message-ID: <87vd4xu40m.fsf@deeprootsystems.com>
-References: <1286798556-22749-1-git-send-email-charu@ti.com>
-	<4CB40B07.8080301@ti.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030CFC553C@dbde02.ent.ti.com>
-	<4CB45E0E.6080104@ti.com> <87mxqj1d2v.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB030D09A22D@dbde02.ent.ti.com>
+Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
+Date: Tue, 19 Oct 2010 17:13:07 -0700
+Message-ID: <87fww1u3fw.fsf@deeprootsystems.com>
+References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>
+	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>
+	<20101019103234.GI31170@legolas.emea.dhcp.ti.com>
+	<AANLkTinXzMQXoyyu+anSCvSuE9w3FWAP5HswDS0kfpzE@mail.gmail.com>
+	<20101019111613.GJ31170@legolas.emea.dhcp.ti.com>
+	<AANLkTikkMphKa2DGGtWxy-3LpFX0kn92UEYPj==Euzok@mail.gmail.com>
+	<20101019115236.GL31170@legolas.emea.dhcp.ti.com>
+	<AANLkTim3NsgjC3Nh8VCCrx4cV1Y+kn38=30=en0KCft6@mail.gmail.com>
+	<6ea089ac75d4d15d88698468eacb7fe3@secure211.sgcpanel.com>
+	<AANLkTinYM5aavk9_jcTTymff=OY+Yyv8T6C+dmMih0p_@mail.gmail.com>
+	<20101019234414.GB30991@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:43614 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751526Ab0JTAAp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 Oct 2010 20:00:45 -0400
-Received: by ywi6 with SMTP id 6so1656514ywi.19
-        for <linux-omap@vger.kernel.org>; Tue, 19 Oct 2010 17:00:44 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030D09A22D@dbde02.ent.ti.com>
-	(Charulatha Varadarajan's message of "Thu, 14 Oct 2010 19:43:30
-	+0530")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20101019234414.GB30991@atomide.com> (Tony Lindgren's message of
+	"Tue, 19 Oct 2010 16:44:14 -0700")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, Felipe Balbi <me@felipebalbi.com>, balbi@ti.com, linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-main <linux-kernel@vger.kernel.org>, Greg KH <greg@kroah.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Varadarajan, Charulatha" <charu@ti.com> writes:
+Tony Lindgren <tony@atomide.com> writes:
 
-> Paul, Benoit, 
->
-> Please provide your input on this.
->
->> -----Original Message-----
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> Sent: Tuesday, October 12, 2010 11:57 PM
->> To: Cousson, Benoit
->> Cc: Varadarajan, Charulatha; Paul Walmsley; linux-omap@vger.kernel.org
->> Subject: Re: [PATCH] omap2plus: wdt: Fix boot warn when 
->> CONFIG_PM_RUNTIME=n
+> * Felipe Contreras <felipe.contreras@gmail.com> [101019 13:43]:
+>> On Tue, Oct 19, 2010 at 6:05 PM, Felipe Balbi <me@felipebalbi.com> wrote:
+>> > On Tue, 19 Oct 2010 17:32:07 +0300, Felipe Contreras
+>> > <felipe.contreras@gmail.com> wrote:
+>> >> There are two parts, one part is to fix the Kconfigs, and another was
+>> >> to come up with a way to replace the horrible defconfigs. Part two is
+>> >> mostly fixed thanks to 'make savedefconfig', since the defconfigs are
+>> >> not so horrible any more, but part one is a continued effort.
+>> >>
+>> >> For part two Linus had the idea to use Kconfigs instead of defconfigs,
+>> >> but they would mostly look very similar to the current ones generated
+>> >> by 'make savedefconfig'.
+>> >>
+>> >> I don't know what makes you think Linus didn't want part one to be
+>> >> done. He wanted the Kconfig.rx51 to be human readable, and you are
+>> >> proposing that TWL4030_USB should be manually added there... I don't
+>> >> think TWL4030_USB says anything to human beings.
+>> >
+>> > I don't read anywhere Linus saying we should clutter drivers/*/Kconfig
+>> > with defaults. I think you're inverting things, it's much better
+>> > to select TWL4030_USB when you enable MACH_OMAP_RX51 then default y
+>> > if MACH_OMAP_RX51.
 >> 
->> "Cousson, Benoit" <b-cousson@ti.com> writes:
+>> So say, if you have 100 board defconfigs with OMAP3 chips and TWL4030,
+>> each and every one of them should select both USB_MUSB_HDRC and
+>> TWL4030_USB?
 >> 
->> > Adding more folks to the discussion.
->> >
->> > On 10/12/2010 9:30 AM, Varadarajan, Charulatha wrote:
->> >>
->> >>> From: Cousson, Benoit
->> >>> Sent: Tuesday, October 12, 2010 12:45 PM
->> >>> To: Varadarajan, Charulatha
->> >>>
->> >>> Hi Charu,
->> >>>
->> >>> On 10/11/2010 2:02 PM, Varadarajan, Charulatha wrote:
->> >>>> Fix the below warning during boot
->> >>>>
->> >>>> [    0.000000] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1185
->> >>> _omap_hwmod_enable+0x34/0x150()
->> >>>> [    0.000000] omap_hwmod: wd_timer2: enabled state can 
->> only be entered
->> >>> from initialized, idle, or disabled state
->> >>>> [    0.000000] Modules linked in:
->> >>>> [    0.000000] [<c0050460>] (unwind_backtrace+0x0/0xe4) from
->> >>> [<c0083954>] (warn_slowpath_common+0x4c/0x64)
->> >>>> [    0.000000] [<c0083954>] (warn_slowpath_common+0x4c/0x64) from
->> >>> [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c)
->> >>>> [    0.000000] [<c00839ec>] (warn_slowpath_fmt+0x2c/0x3c) from
->> >>> [<c0059be4>] (_omap_hwmod_enable+0x34/0x150)
->> >>>> [    0.000000] [<c0059be4>] (_omap_hwmod_enable+0x34/0x150) from
->> >>> [<c0059d28>] (omap_hwmod_enable+0x28/0x3c)
->> >>>> [    0.000000] [<c0059d28>] (omap_hwmod_enable+0x28/0x3c) from
->> >>> [<c005580c>] (omap2_disable_wdt+0x48/0xdc)
->> >>>> [    0.000000] [<c005580c>] (omap2_disable_wdt+0x48/0xdc) from
->> >>> [<c0058898>] (omap_hwmod_for_each_by_class+0x60/0xa4)
->> >>>> [    0.000000] [<c0058898>] 
->> (omap_hwmod_for_each_by_class+0x60/0xa4)
->> >>> from [<c000f6d0>] (omap2_init_devices+0x44/0x330)
->> >>>> [    0.000000] [<c000f6d0>] (omap2_init_devices+0x44/0x330) from
->> >>> [<c0049578>] (do_one_initcall+0xcc/0x1a4)
->> >>>> [    0.000000] [<c0049578>] (do_one_initcall+0xcc/0x1a4) from
->> >>> [<c0008780>] (kernel_init+0x148/0x210)
->> >>>> [    0.000000] [<c0008780>] (kernel_init+0x148/0x210) 
->> from [<c004acb8>]
->> >>> (kernel_thread_exit+0x0/0x8)
->> >>>> [    0.000000] ---[ end trace 1b75b31a2719ed1f ]---
->> >>>> [    0.000000] wd_timer2: Could not enable clocks for 
->> omap2_disable_wdt
->> >>>>
->> >>>> When CONFIG_PM_RUNTIME is not defined, watchdog timer 
->> clocks are not
->> >>>> disabled after a watchdog reset. Hence in 
->> omap2_disable_wdt(), it is
->> >>>> not required to enable clocks before accessing the watchdog timer
->> >>>> registers if CONFIG_PM_RUNTIME is not defined.
->> >>>
->> >>> I'm not a big fan of adding some dependencies with 
->> CONFIG_PM_RUNTIME
->> >>> inside this code.
->> >>>
->> >>> The real root cause is not CONFIG_PM_RUNTIME, but mostly the
->> >>> skip_setup_idle variable added in 
->> arch/arm/mach-omap2/io.c by Paul.
->> >>
->> >> Yes.
->> >>
->> >>>
->> >>> So I'd rather use that parameter as an input for the 
->> omap2_disable_wdt.
->> >>
->> >> I also thought about this, but we need to
->> >>
->> >> 1. call omap2_disable_wdt() in omap2_init_common_hw() rather than
->> >> omap2_init_devices(). That would involve movement of
->> >> omap2_disable_wdt() from devices.c to io.c.
->> >> (or)
->> >> 2. make skip_setup_idle global
->> >> (or)
->> >> 3. make omap2_disable_wdt() global and call it from
->> >> omap2_init_common_hw() and pass skip_setup_idle as parameter.
->> >>
->> >> I felt that the usage of CONFIG_PM_RUNTIME is better than 
->> the above.
->> >> But still we may consider any of the above options or any other
->> >> option. Please suggest.
->> >
->> > It is maybe easier, but I don't think it is better...
->> >
->> > As I said, CONFIG_PM_RUNTIME is not the root cause of your 
->> issue, just
->> > an indirect cause. OK, maybe strictly speaking, it is the 
->> root cause,
->> > since it started for that... but that not the cause that we should
->> > consider in your case.
->> >
->> > If we decide to remove that CONFIG_PM_RUNTIME dependency in the io /
->> > hwmod code, nobody will be able to find the relation with 
->> your code in
->> > WDT.
->> >
->> > That's why you should not do that, for my point of view.
->> >
->> > Paul, Kevin,
->> > Any thoughts on that point?
->> 
->> I agree that this is not strictly a dependency on PM_RUNTIME.
->> 
->> What's really needed is a way for low-level hwmod users like 
->> this to be
->> able to check whether the hwmod is already enabled.  
->> Something like this
->> (completely untested):
->> 
->> bool omap_hwmod_is_enabled(struct omap_hwmod *oh)
->> {
->> 	return (oh->_state == _HWMOD_STATE_ENABLED);
->> }
+>> And you are saying if somebody is doing 'make menuconfig', that person
+>> should somehow know that _obviously_ he needs TWL4030_USB in order to
+>> use USB_MUSB_HDRC, or USB_G_NOKIA?
 >
-> Kevin,
+> Hey we're already dealing with stuff like this :)
 >
-> Thanks. This is similar to what we were discussing internally and
-> I would prefer this. But is it a good idea to allow drivers to
-> know the state of oh and then enable/idle the device?
+> See ARCH_OMAP2PLUS_TYPICAL in arch/arm/mach-omap2/Kconfig:
 >
-> Or should it be used only in exceptional situations like the scenario
-> addressed in this patch?
+> config ARCH_OMAP2PLUS_TYPICAL
+>         bool "Typical OMAP configuration"
+>         default y
+>         select AEABI
+>         select REGULATOR
+>         select PM
+>         select PM_RUNTIME
+>         select VFP
+>         select NEON if ARCH_OMAP3 || ARCH_OMAP4
+>         select SERIAL_OMAP
+>         select SERIAL_OMAP_CONSOLE
+>         select I2C
+>         select I2C_OMAP
+>         select MFD
+>         select MENELAUS if ARCH_OMAP2
+>         select TWL4030_CORE if ARCH_OMAP3 || ARCH_OMAP4
+>         select TWL4030_POWER if ARCH_OMAP3 || ARCH_OMAP4
+>         help
+>           Compile a kernel suitable for booting most boards
+>
+> This actually produces a booting omap2+ kernel with no .config
+> at all. I've tested it with:
+>
+> $ echo CONFIG_ARCH_OMAP=y > .config
+> $ yes "" | ARCH=arm make oldconfig
+>
+> So if you have something that's needed on almost every omap,
+> you can select it there.
 
-For the long term (2.6.38), we should follow the direction that Paul
-laid out.
+One thing I don't like about this is that there is currently no way to
+'select' as a module.
 
-For the short term (2.6.37) what we need is a fix for this regression.
-I propose you follow the above approach (checking if it's already
-enabled.)
+In order to get to a minimal kernel, in theory, we don't need regulator,
+i2c, MFD, or twl4030* built in.  They should all be built as modules.
+Yes, there are some assumptions made today that some of these things are
+built in, and then are used from init code, but that is broken.
 
-As it is a temporary hack, it's probably best not to create the new API
-that could be abused.  Instead, just directly check oh->_state in the
-devices.c code (documented with FIXME comments.)
-
-I'm OK with this short term fix for 2.6.37 if you agree to work on
-Paul's solution for 2.6.38.
+If someone is looking for a good omap-kernel-janitors project, I would
+suggest getting to a *really* minimal OMAP2+ kernel with everything
+possible built as modules to be a very good project.
 
 Kevin
-
