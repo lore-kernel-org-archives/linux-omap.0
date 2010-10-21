@@ -1,142 +1,226 @@
-From: "Kamoolkar, Mugdha" <mugdha@ti.com>
-Subject: RE: [PATCH 3/3] omap: add hwspinlock device
-Date: Thu, 21 Oct 2010 14:06:59 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930233F94602@dbde02.ent.ti.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com>
- <87r5fmxghm.fsf@deeprootsystems.com>
- <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
- <87bp6pviwf.fsf@deeprootsystems.com>
- <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
- <8739s0sobc.fsf@deeprootsystems.com>
- <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH V3] OMAP: DSS2: don't power off a panel twice
+Date: Thu, 21 Oct 2010 12:02:04 +0300
+Message-ID: <AANLkTin_ap=CcLXUVC6Ztw_GJ=arymNrK_ByOf8agvQq@mail.gmail.com>
+References: <1283483028-1970-1-git-send-email-stanley.miao@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41581 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750907Ab0JUIhQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 04:37:16 -0400
-In-Reply-To: <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:61376 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753140Ab0JUJCF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 05:02:05 -0400
+In-Reply-To: <1283483028-1970-1-git-send-email-stanley.miao@windriver.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Ohad Ben-Cohen' <ohad@wizery.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "Kamat, Nishant" <nskamat@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Anna, Suman" <s-anna@ti.com>, Simon Que <sque@ti.com>
+To: tomi.valkeinen@nokia.com
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org, bryan.wu@canonical.com, mathieu.poirier@canonical.com, linux-fbdev@vger.kernel.org
 
-> <khilman@deeprootsystems.com> wrote:
-> >> Let's take the i2c-omap for example.
-> >>
-> >> It sounds like it must have a predefined hwspinlock, but what if:
-> >>
-> >> 1. It will use omap_hwspinlock_request() to dynamically allocate
-> a hwspinlock
-> >> 2. Obviously, the hwspinlock id number must be communicated to
-> the M3
-> >> BIOS, so the i2c-omap will publish that id using a small shared
-> memory
-> >> entry that will be allocated for this sole purpose
-> >> 3. we will make sure that 1+2 completes before the remote
-> processor is
-> >> taken out of reset
-> >>
-> >> This does not require any smart IPC and it will allow us to get
-> rid of
-> >> the omap_hwspinlock_request_specific() API and its early-callers
-> >> requirement.
-> >
-> > Yes, that would indeed simplify things.
->=20
-> Balaji, Nishant, are you OK with this ?
->=20
-The problem with this approach is that the i2c driver would have to=20
-sync up on the shared memory location that it uses to share the=20
-information of the spinlock ID. What location would this be? How would=20
-the i2c driver on the m3 know about this location? Does this mean=20
-hard-coding of the shared memory address? If yes, then there would be=20
-an impact to users if they wanted to change their memory map. Any kind=20
-of hard-coding of this sort can be painful in such cases, especially=20
-if it happens in multiple drivers. On the other hand, hard-coding=20
-(reserving) spinlock IDs is a much safer option and does not impact=20
-anything else.
+Tomi can you queue this? This has been tested by multiple people now,
+also see here:
+http://marc.info/?l=3Dlinux-omap&m=3D128759415821646&w=3D2
 
-> It means that the I2C driver will dynamically get a hwspinlock and
-> then it would need to announce the id of that hwspinlock before the
-> M3
-> is taken out of reset.
->=20
-> It will help us get rid of static allocations that will never scale
-> nicely and static vs. dynamic allocation races.
->=20
-> >
-> >> All we will be left to take care of is the order of the ->probe()
-> >> execution (assuming we want both the i2c and the hwspinlock
-> drivers to
-> >> be device_initcall)
-> >
-> > I understand the dependency between i2c and hwspinlock for some
-> > platforms with a shared i2c bus. =A0Besides that being a broken
-> hardware
-> > design, I can see the need for the i2c driver to take a hwspinlock
-> for
-> > i2c xfers, but why does the i2c driver need to take the hwspinlock
-> at
-> > probe time?
->=20
-> It doesn't; it just needs to reserve a hwspinlock, and for that, we
-> need the hwspinlock driver in place.
->=20
-> > =A0Presumably, this is before the remote cores are executing
-> > code.
-> >
-> >>>
-> >>> This kind of thing needs to be done by platform_data function
-> pointers,
-> >>> as is done for every other driver that needs platform-specific
-> driver
-> >>> customization.
-> >>
-> >> Why would we need platform-specific function pointers here ? I'm
-> not
-> >> sure I'm following this one.
-> >
-> > So that board code (built-in) does not call the hwspinlock driver
-> > (potentially a module.)
-> >
-> > The way to solve this is to have platform_data with function
-> pointers,
-> > so that when the driver's ->probe() is done, it can call cany
-> custom
-> > hooks registered by the board code.
->=20
-> Sorry, still not following.
->=20
-> Do you refer to the i2c driver calling the hwspinlcok_request
-> function
-> at probe time via platform_data function pointers ?
->=20
-> With the previous _request_specific() allocation API, the important
-> issue to follow was the timing:  it had to be called before any
-> driver
-> gets the chance to call the dynamic _request() API.
-> That's why we had to have early board code calling it. Obviously the
-> hwspinlock instance would then had to be delivered to the driver via
-> platform data.
->=20
-> But now, if we get rid of that static allocation method entirely,
-> i2c_omap can just call hwspinlock_request() on probe(), but again,
-> no
-> pdata function pointers are involved because this API is
-> EXPORT_SYMBOL'ed.
+On Fri, Sep 3, 2010 at 6:03 AM, Stanley.Miao <stanley.miao@windriver.co=
+m> wrote:
+> If we blank the panel by
+> echo 1 > /sys/devices/platform/omapfb/graphics/fb0/blank
+>
+> Then, we reboot the sytem, the kernel will crash at
+> drivers/video/omap2/dss/core.c:323
+>
+> This is because the panel is closed twice. Now check the state of a d=
+ssdev
+> to forbid a panel is power on or power off twice.
+>
+> Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
+> ---
+> =A0drivers/video/omap2/displays/panel-acx565akm.c =A0 =A0 | =A0 =A06 =
+++++++
+> =A0drivers/video/omap2/displays/panel-generic.c =A0 =A0 =A0 | =A0 =A0=
+6 ++++++
+> =A0.../video/omap2/displays/panel-sharp-lq043t1dg01.c | =A0 =A06 ++++=
+++
+> =A0.../video/omap2/displays/panel-sharp-ls037v7dw01.c | =A0 =A06 ++++=
+++
+> =A0.../video/omap2/displays/panel-toppoly-tdo35s.c =A0 =A0| =A0 =A06 =
+++++++
+> =A0.../video/omap2/displays/panel-tpo-td043mtea1.c =A0 =A0| =A0 =A06 =
+++++++
+> =A06 files changed, 36 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers=
+/video/omap2/displays/panel-acx565akm.c
+> index 07fbb8a..e773106 100644
+> --- a/drivers/video/omap2/displays/panel-acx565akm.c
+> +++ b/drivers/video/omap2/displays/panel-acx565akm.c
+> @@ -587,6 +587,9 @@ static int acx_panel_power_on(struct omap_dss_dev=
+ice *dssdev)
+>
+> =A0 =A0 =A0 =A0dev_dbg(&dssdev->dev, "%s\n", __func__);
+>
+> + =A0 =A0 =A0 if (dssdev->state =3D=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> =A0 =A0 =A0 =A0mutex_lock(&md->mutex);
+>
+> =A0 =A0 =A0 =A0r =3D omapdss_sdi_display_enable(dssdev);
+> @@ -644,6 +647,9 @@ static void acx_panel_power_off(struct omap_dss_d=
+evice *dssdev)
+>
+> =A0 =A0 =A0 =A0dev_dbg(&dssdev->dev, "%s\n", __func__);
+>
+> + =A0 =A0 =A0 if (dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> +
+> =A0 =A0 =A0 =A0mutex_lock(&md->mutex);
+>
+> =A0 =A0 =A0 =A0if (!md->enabled) {
+> diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/v=
+ideo/omap2/displays/panel-generic.c
+> index 300eff5..395a68d 100644
+> --- a/drivers/video/omap2/displays/panel-generic.c
+> +++ b/drivers/video/omap2/displays/panel-generic.c
+> @@ -39,6 +39,9 @@ static int generic_panel_power_on(struct omap_dss_d=
+evice *dssdev)
+> =A0{
+> =A0 =A0 =A0 =A0int r;
+>
+> + =A0 =A0 =A0 if (dssdev->state =3D=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> =A0 =A0 =A0 =A0r =3D omapdss_dpi_display_enable(dssdev);
+> =A0 =A0 =A0 =A0if (r)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err0;
+> @@ -58,6 +61,9 @@ err0:
+>
+> =A0static void generic_panel_power_off(struct omap_dss_device *dssdev=
+)
+> =A0{
+> + =A0 =A0 =A0 if (dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> +
+> =A0 =A0 =A0 =A0if (dssdev->platform_disable)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dssdev->platform_disable(dssdev);
+>
+> diff --git a/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c b=
+/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+> index 1026746..0c6896c 100644
+> --- a/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+> +++ b/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+> @@ -43,6 +43,9 @@ static int sharp_lq_panel_power_on(struct omap_dss_=
+device *dssdev)
+> =A0{
+> =A0 =A0 =A0 =A0int r;
+>
+> + =A0 =A0 =A0 if (dssdev->state =3D=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> =A0 =A0 =A0 =A0r =3D omapdss_dpi_display_enable(dssdev);
+> =A0 =A0 =A0 =A0if (r)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err0;
+> @@ -65,6 +68,9 @@ err0:
+>
+> =A0static void sharp_lq_panel_power_off(struct omap_dss_device *dssde=
+v)
+> =A0{
+> + =A0 =A0 =A0 if (dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> +
+> =A0 =A0 =A0 =A0if (dssdev->platform_disable)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dssdev->platform_disable(dssdev);
+>
+> diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b=
+/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> index 7d9eb2b..9a138f6 100644
+> --- a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> +++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+> @@ -135,6 +135,9 @@ static int sharp_ls_power_on(struct omap_dss_devi=
+ce *dssdev)
+> =A0{
+> =A0 =A0 =A0 =A0int r =3D 0;
+>
+> + =A0 =A0 =A0 if (dssdev->state =3D=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> =A0 =A0 =A0 =A0r =3D omapdss_dpi_display_enable(dssdev);
+> =A0 =A0 =A0 =A0if (r)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err0;
+> @@ -157,6 +160,9 @@ err0:
+>
+> =A0static void sharp_ls_power_off(struct omap_dss_device *dssdev)
+> =A0{
+> + =A0 =A0 =A0 if (dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> +
+> =A0 =A0 =A0 =A0if (dssdev->platform_disable)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dssdev->platform_disable(dssdev);
+>
+> diff --git a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c b/dr=
+ivers/video/omap2/displays/panel-toppoly-tdo35s.c
+> index e320e67..526e906 100644
+> --- a/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+> +++ b/drivers/video/omap2/displays/panel-toppoly-tdo35s.c
+> @@ -46,6 +46,9 @@ static int toppoly_tdo_panel_power_on(struct omap_d=
+ss_device *dssdev)
+> =A0{
+> =A0 =A0 =A0 =A0int r;
+>
+> + =A0 =A0 =A0 if (dssdev->state =3D=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> =A0 =A0 =A0 =A0r =3D omapdss_dpi_display_enable(dssdev);
+> =A0 =A0 =A0 =A0if (r)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err0;
+> @@ -65,6 +68,9 @@ err0:
+>
+> =A0static void toppoly_tdo_panel_power_off(struct omap_dss_device *ds=
+sdev)
+> =A0{
+> + =A0 =A0 =A0 if (dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> +
+> =A0 =A0 =A0 =A0if (dssdev->platform_disable)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dssdev->platform_disable(dssdev);
+>
+> diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/dr=
+ivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> index e866e76..dbe9d43 100644
+> --- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> +++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> @@ -269,6 +269,9 @@ static int tpo_td043_power_on(struct omap_dss_dev=
+ice *dssdev)
+> =A0 =A0 =A0 =A0int nreset_gpio =3D dssdev->reset_gpio;
+> =A0 =A0 =A0 =A0int r;
+>
+> + =A0 =A0 =A0 if (dssdev->state =3D=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+> +
+> =A0 =A0 =A0 =A0r =3D omapdss_dpi_display_enable(dssdev);
+> =A0 =A0 =A0 =A0if (r)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err0;
+> @@ -308,6 +311,9 @@ static void tpo_td043_power_off(struct omap_dss_d=
+evice *dssdev)
+> =A0 =A0 =A0 =A0struct tpo_td043_device *tpo_td043 =3D dev_get_drvdata=
+(&dssdev->dev);
+> =A0 =A0 =A0 =A0int nreset_gpio =3D dssdev->reset_gpio;
+>
+> + =A0 =A0 =A0 if (dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> +
+> =A0 =A0 =A0 =A0tpo_td043_write(tpo_td043->spi, 3,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0TPO_R03_VAL_STANDBY | =
+TPO_R03_EN_PWM);
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Regards,
-Mugdha
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
