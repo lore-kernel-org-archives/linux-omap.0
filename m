@@ -1,110 +1,51 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH v2] OMAP: DSS2: Add NEC NL8048HL11-01B display panel
-Date: Thu, 21 Oct 2010 17:00:36 +0300
-Message-ID: <AANLkTimfQ78Y+fGXCTxPaLHR7xbYonjB2iODH1cOd8Oo@mail.gmail.com>
-References: <1287663940-27327-1-git-send-email-samreen@ti.com>
+From: Roger Quadros <roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2 3/3] drivers: cleanup Kconfig stuff
+Date: Thu, 21 Oct 2010 17:07:59 +0300
+Message-ID: <4CC0493F.1000701@nokia.com>
+References: <1287482608-11320-1-git-send-email-felipe.contreras@gmail.com>	<1287482608-11320-4-git-send-email-felipe.contreras@gmail.com>	<4CBD9FD5.506@nokia.com>	<AANLkTinRRyrXzqEu=u+CCYkmSNGm03SSo1tVG=5_wdpo@mail.gmail.com>	<4CBE9E69.6060803@nokia.com>	<AANLkTinOYDBMVZ3ibG3Md7jdOuOC6NkGWaugvHwT6uqF@mail.gmail.com>	<4CBEB312.7060400@nokia.com>	<AANLkTikom=eRFqCJmYE+k1zn5K2MR9s8HhNXtjOvUqvr@mail.gmail.com>	<4CBEE186.8090701@nokia.com> <AANLkTinULxyUg_vHjk9RsQm4Row7vRC9ApzYXt7ZMQJD@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:45569 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758119Ab0JUOAh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 10:00:37 -0400
-In-Reply-To: <1287663940-27327-1-git-send-email-samreen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTinULxyUg_vHjk9RsQm4Row7vRC9ApzYXt7ZMQJD-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-main <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Samreen <samreen@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Roger Quadros <roger.quadros@nokia.com>, Mukund Mittal <mmittal@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Erik Gilling <konkers@android.com>, Rajkumar N <rajkumar.nagarajan@ti.com>, Subbu Venkatesh <subramani.venkatesh@windriver.com>
 
-On Thu, Oct 21, 2010 at 3:25 PM, Samreen <samreen@ti.com> wrote:
-> From: Erik Gilling <konkers@android.com>
+Hi,
+
+On 10/20/2010 05:38 PM, ext Felipe Contreras wrote:
+> On Wed, Oct 20, 2010 at 3:33 PM, Roger Quadros<roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>  wrote:
+>> On 10/20/2010 12:23 PM, ext Felipe Contreras wrote:
+>>> On Wed, Oct 20, 2010 at 12:14 PM, Roger Quadros<roger.quadros-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+>>>   wrote:
+>>>> USB_G_NOKIA just needs a USB gadget controller to work. The gadget
+>>>> controller used for the board should come from the board's Kconfig which
+>>>> will ideally be supplied by the board's vendor.
+>>>
+>>> Ok, but USB_OMAP is not supposed to work on the N900? (I tried and it
+>>> didn't)
+>>
+>> No it won't work. USB_OMAP was for older OMAP's. MUSB is on OMAP3 and later.
+>> But MUSB is not limited to OMAP SoC.
 >
-> NEC WVGA LCD NL8048HL11-01B panel support has been added.
-> This panel is being used in zoom2/zoom3/3630 sdp boards.
+> config USB_GADGET_OMAP
+>    depends ARCH_OMAP
+>
+> So how about s/ARCH_OMAP/ARCH_OMAP1/
+>
+> Then USB_GADGET_MUSB_HDRC would be selected by default on OMAP2+.
 >
 
-<snip>
-
-> diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c =
-b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-> new file mode 100644
-> index 0000000..0327731
-> --- /dev/null
-> +++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-
-<snip>
-
-> +static int spi_send(struct spi_device *spi, unsigned char reg_addr,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 unsigned char reg_data)
-
-you could be more consistent and name it nec_8048_spi_send.
-
-> +{
-> + =A0 =A0 =A0 int ret =3D 0;
-> + =A0 =A0 =A0 unsigned int cmd =3D 0, data =3D 0;
-> +
-> + =A0 =A0 =A0 cmd =3D 0x0000 | reg_addr; /* register address write */
-> + =A0 =A0 =A0 data =3D 0x0100 | reg_data ; /* register data write */
-> + =A0 =A0 =A0 data =3D (cmd << 16) | data;
-> +
-> + =A0 =A0 =A0 ret =3D spi_write(spi, (unsigned char *)&data, 4);
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("error in spi_write %x\n", data)=
-;
-> +
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
-> +
-
-one blank line is enough
-
-> +static int init_nec_8048_wvga_lcd(struct spi_device *spi)
-> +{
-> + =A0 =A0 =A0 /* Initialization Sequence */
-> + =A0 =A0 =A0 /* spi_send(spi, REG, VAL) */
-> + =A0 =A0 =A0 spi_send(spi, 3, 0x01);
-> + =A0 =A0 =A0 spi_send(spi, 0, 0x00);
-> + =A0 =A0 =A0 spi_send(spi, 1, 0x01); =A0 =A0/* R1 =3D 0x01 (normal),=
- 0x03 (reversed) */
-> + =A0 =A0 =A0 spi_send(spi, 4, 0x00);
-> + =A0 =A0 =A0 spi_send(spi, 5, 0x14);
-> + =A0 =A0 =A0 spi_send(spi, 6, 0x24);
-
-This code wastes quite a bit of space (at least 3 mov and one bl
-instruction for every such write on ARM), you could better do
-something like:
-
-static const struct {
-  u8 address;
-  u8 value;
-} nec_8048_init_seq[] =3D {
-  { 3, 0x01 },
-  { 0, 0x00 },
-  { 1, 0x01 },
-  ...
-};
-
-static int init_nec_8048_wvga_lcd(struct spi_device *spi)
-{
-  int i, ret;
-  for (i =3D 0; i < ARRAY_SIZE(nec_8048_init_seq); i++) {
-    ret =3D nec_8048_spi_send(spi, nec_8048_init_seq[i].address,
-nec_8048_init_seq[i].value);
-    if (ret < 0)
-      break;
-  }
-  udelay(20);
-  nec_8048_spi_send(spi, 2, 0x00);
-}
+But I'm not sure that omap_udc is used only for OMAP1 architecture.
+Dave/Tony should confirm this.
 
 
-> +MODULE_DESCRIPTION("Nec Driver");
-
-could use more complete description here.
+-- 
+regards,
+-roger
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
