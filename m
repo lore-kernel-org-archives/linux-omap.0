@@ -1,29 +1,58 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
-Date: Thu, 21 Oct 2010 14:02:40 +0200
-Message-ID: <201010211402.40272.arnd@arndb.de>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com> <201010211104.28555.arnd@arndb.de> <AANLkTimWG_38hY2Xq=G7r42eP+zmA24Gaw4-hLVJstVA@mail.gmail.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 3/3] omap: add hwspinlock device
+Date: Thu, 21 Oct 2010 07:26:25 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E6E0DD10A@dlee03.ent.ti.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+ <1287387875-14168-4-git-send-email-ohad@wizery.com>
+ <87r5fmxghm.fsf@deeprootsystems.com>
+ <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
+ <87bp6pviwf.fsf@deeprootsystems.com>
+ <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
+ <8739s0sobc.fsf@deeprootsystems.com>
+ <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB5930233F94602@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimWG_38hY2Xq=G7r42eP+zmA24Gaw4-hLVJstVA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-arm-kernel@lists.infradead.org, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:35088 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757737Ab0JUM1L convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 08:27:11 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930233F94602@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Kamoolkar, Mugdha" <mugdha@ti.com>, 'Ohad Ben-Cohen' <ohad@wizery.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Kamat, Nishant
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, "Anna, Suman" <s-anna@ti.com>, Simon Que <sque@ti.com>
 
-On Thursday 21 October 2010, Ohad Ben-Cohen wrote:
-> The change is also pretty trivial:
+Mugdha,
+
+> > >>
+> > >> This does not require any smart IPC and it will allow us to get
+> > rid of
+> > >> the omap_hwspinlock_request_specific() API and its early-callers
+> > >> requirement.
+> > >
+> > > Yes, that would indeed simplify things.
+> >
+> > Balaji, Nishant, are you OK with this ?
+> >
+> The problem with this approach is that the i2c driver would have to
+> sync up on the shared memory location that it uses to share the
+> information of the spinlock ID. What location would this be? How would
+> the i2c driver on the m3 know about this location? Does this mean
+> hard-coding of the shared memory address? If yes, then there would be
+> an impact to users if they wanted to change their memory map. Any kind
+> of hard-coding of this sort can be painful in such cases, especially
+> if it happens in multiple drivers. On the other hand, hard-coding
+> (reserving) spinlock IDs is a much safer option and does not impact
+> anything else.
 > 
-> * move the internal locking implementation to raw_ methods
-> * the raw_ methods would save the current interrupt state only if
-> given a placeholder
-> * wrap those raw_ methods with the desired API (but only support the
-> _irq and _irqsave flavors)
-> 
 
-Sounds good!
+We can avoid the hard-coding of shared memory location if I2C Driver maps using iommu some dynamic memory for shared memory location to M3 virtual address and shares this information to I2c driver counter-part on M3 using the IPC call. But this might not be trivial and this would be against what Ohad mentioned about not requiring any smart IPC :).
+I prefer hard-coding of spinlock id to keep things simple.
 
-	Arnd
+Thank you,
+Best regards,
+Hari
