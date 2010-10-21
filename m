@@ -1,130 +1,106 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [RFC/PATCH 2/2] OMAP3: CPUidle: trigger early idle notification
- call chain
-Date: Thu, 21 Oct 2010 11:08:41 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087034BBEBEBE@dbde02.ent.ti.com>
-References: <1287617926-24308-1-git-send-email-khilman@deeprootsystems.com>
- <1287617926-24308-3-git-send-email-khilman@deeprootsystems.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 3/3] omap: add hwspinlock device
+Date: Thu, 21 Oct 2010 08:11:15 +0200
+Message-ID: <AANLkTi=TbMq4TEDoDby+kqtX6M_7_pOpiHuNNbp8r691@mail.gmail.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+ <1287387875-14168-4-git-send-email-ohad@wizery.com> <87r5fmxghm.fsf@deeprootsystems.com>
+ <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
+ <87bp6pviwf.fsf@deeprootsystems.com> <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
+ <8739s0sobc.fsf@deeprootsystems.com> <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
+ <877hhcl8lf.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45854 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751248Ab0JUFiv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 01:38:51 -0400
-In-Reply-To: <1287617926-24308-3-git-send-email-khilman@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:39579 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756756Ab0JUGLg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 02:11:36 -0400
+In-Reply-To: <877hhcl8lf.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Balaji T K <balajitk@ti.com>, "Kamat, Nishant" <nskamat@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>
 
-Kevin,
+[removed that bouncing email address we had all along :]
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Thursday, October 21, 2010 5:09 AM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Subject: [RFC/PATCH 2/2] OMAP3: CPUidle: trigger early idle notification call chain
-> 
-> During the early part of the CPUidle path (state selection by the
-> governer, checking for device activity, etc.) there is no (good)
-> reason to have interrupts disabled.
-> 
-> Therefore, enable interrupts early in the CPUidle path and then
-> trigger the "early" idle notifier call chain after device activity
-> checks and the next power states have been programmed.  Interrupts are
-> then (re)disabled after the final state is selected.
-> 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |   27 ++++++++++++++++++++++++--
-> -
->  1 files changed, 24 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-
-> omap2/cpuidle34xx.c
-> index 0d50b45..8c57360 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -30,6 +30,7 @@
->  #include <plat/powerdomain.h>
->  #include <plat/clockdomain.h>
->  #include <plat/serial.h>
-> +#include <plat/common.h>
-> 
->  #include "pm.h"
->  #include "control.h"
-> @@ -128,12 +129,14 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
->  	/* Used to keep track of the total time in idle */
->  	getnstimeofday(&ts_preidle);
-> 
-> -	local_irq_disable();
-> -	local_fiq_disable();
-> -
->  	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
->  	pwrdm_set_next_pwrst(core_pd, core_state);
-> 
-> +	omap_early_idle_notifier_start();
-> +
-> +	local_irq_disable();
-> +	local_fiq_disable();
-> +
->  	if (omap_irq_pending() || need_resched())
->  		goto return_sleep_time;
-> 
-> @@ -157,6 +160,8 @@ return_sleep_time:
->  	local_irq_enable();
->  	local_fiq_enable();
-> 
-> +	omap_early_idle_notifier_end();
-It appears that idle notifiers (for restore path) are called after getnstimeofday is called which means time spent in idle callbacks are not accounted in cpuidle time. 
-Will it not impact the cpuidle c state prediction and latency computation?
+On Thu, Oct 21, 2010 at 1:58 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+>>>> Why would we need platform-specific function pointers here ? I'm n=
+ot
+>>>> sure I'm following this one.
+>>>
+>>> So that board code (built-in) does not call the hwspinlock driver
+>>> (potentially a module.)
+>>>
+>>> The way to solve this is to have platform_data with function pointe=
+rs,
+>>> so that when the driver's ->probe() is done, it can call cany custo=
+m
+>>> hooks registered by the board code.
+>>
+>> Sorry, still not following.
+>>
+>> Do you refer to the i2c driver calling the hwspinlcok_request functi=
+on
+>> at probe time via platform_data function pointers ?
+>
+> No, earlier in this discussion, in response to my question about user=
+s
+> of this API early in boot, you said:
+>
+>> And to allow early board code to reserve specific hwspinlock numbers
+>> for predefined use-cases, we probably want to be before arch_initcal=
+l.
 
-Regards
-Vishwa
+yes.
 
-> +
->  	return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_sec * USEC_PER_SEC;
->  }
-> 
-> @@ -459,6 +464,21 @@ struct cpuidle_driver omap3_idle_driver = {
->  	.owner = 	THIS_MODULE,
->  };
-> 
-> +static int omap3_idle_prepare(struct cpuidle_device *dev)
-> +{
-> +	/*
-> +	 * Enable interrupts during the early part of the CPUidle path.
-> +	 * They are later (re)disabled when the final state is selected.
-> +	 *
-> +	 * The primary reason for this is to enable non-atomic idle
-> +	 * notifications to drivers that want to coordinate device
-> +	 * idle transitions with CPU idle transitions.
-> +	 */
-> +	local_irq_enable();
-> +
-> +	return 0;
-> +}
-> +
->  /**
->   * omap3_idle_init - Init routine for OMAP3 idle
->   *
-> @@ -482,6 +502,7 @@ int __init omap3_idle_init(void)
-> 
->  	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
-> 
-> +	dev->prepare = omap3_idle_prepare;
->  	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
->  		cx = &omap3_power_states[i];
->  		state = &dev->states[count];
-> --
-> 1.7.2.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> My suggestion to use platform_data + function pointers was to address
+> the requesting of hwspinlocks in board/platform-specific code.
+>
+=2E..
+> ... if
+> board code ever needs to call the hwspinlock API, then pdata func
+> pointers are needed to handle both the case of late driver probe
+> or driver built as a module.
+
+How would pdata func pointers help here ?
+
+As you say, pdata func pointers are used in scenarios where
+platform-specific code needs to be executed from a driver.
+
+But this is not the case here; here we have driver code ( the
+_request_specific() API) that must be called very early in the boot,
+before any other driver get the chance to call the dynamic _request()
+API.
+
+And to be able to call _request_specific() API that early in the boot,
+we must have the hwspinlock driver in place (loaded and already
+probe()'ed). So we had to give both the hwspinlock device creation
+code and its driver a very early initcall state.
+
+Of course, as we all agree, if we get rid of the _request_specific()
+API, hwspinlock will only race with its users (namely i2c_omap), and
+in this case arch_initcall() is enough.
+
+> I agree with others that this is a much broader problem, and should n=
+ot
+> hold up the hwspinlock driver, so for now, making hwspinlock have an
+> initcall before subsys_initcall is OK with me. =A0Probably arch_initc=
+all()
+> is fine here.
+>
+> I suggest you add a comment in the code at the initcall point as to w=
+hy
+> it is using arch_initcall(), namely it has to load before i2c because=
+=2E..
+
+Sure.
+
+Thanks,
+Ohad.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
