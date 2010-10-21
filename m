@@ -1,93 +1,95 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 4/5] arm: omap: introduce 32k timer hwmod for omap2/3/4
-Date: Thu, 21 Oct 2010 13:29:42 -0700
-Message-ID: <87bp6ns30p.fsf@deeprootsystems.com>
-References: <1287480136-2046-1-git-send-email-balbi@ti.com>
-	<1287480136-2046-5-git-send-email-balbi@ti.com>
+From: Hari Kanigeri <hari.kanigeri@gmail.com>
+Subject: Re: [PATCH 4/7] omap:mailbox-send message in process context
+Date: Thu, 21 Oct 2010 15:49:10 -0500
+Message-ID: <AANLkTi=6fPONRaFmqrWkq8mxZacMCM+9xN9HM9FZJdja@mail.gmail.com>
+References: <1287108808-32119-1-git-send-email-h-kanigeri2@ti.com>
+	<1287108808-32119-5-git-send-email-h-kanigeri2@ti.com>
+	<D2943F03B81C9C458E44DFB213905E02010355C35E@dlee04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:46310 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755191Ab0JUU3o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 16:29:44 -0400
-Received: by pvg16 with SMTP id 16so16209pvg.19
-        for <linux-omap@vger.kernel.org>; Thu, 21 Oct 2010 13:29:44 -0700 (PDT)
-In-Reply-To: <1287480136-2046-5-git-send-email-balbi@ti.com> (Felipe Balbi's
-	message of "Tue, 19 Oct 2010 12:22:15 +0300")
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:58642 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757304Ab0JUUtL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 16:49:11 -0400
+Received: by gyg4 with SMTP id 4so15564gyg.19
+        for <linux-omap@vger.kernel.org>; Thu, 21 Oct 2010 13:49:11 -0700 (PDT)
+In-Reply-To: <D2943F03B81C9C458E44DFB213905E02010355C35E@dlee04.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "Sapiens, Rene" <rene.sapiens@ti.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>, linux omap <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Ohad Ben-Cohen <ohad@wizery.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>
 
-Felipe Balbi <balbi@ti.com> writes:
+Rene,
 
-> Add 32k timer hwmod to the database.
+Thanks for your comment.
+
+
+>> @@ -92,20 +92,25 @@ int omap_mbox_msg_send(struct omap_mbox *mbox,
+>> =A0 =A0 =A0 mbox_msg_t msg) struct omap_mbox_queue *mq =3D mbox->txq=
+;
+>> =A0 =A0 =A0 int ret =3D 0, len;
+>>
+>> - =A0 =A0 spin_lock(&mq->lock);
+>> + =A0 =A0 spin_lock_bh(&mq->lock);
+>>
 >
-> Signed-off-by: Felipe Balbi <balbi@ti.com>
-> ---
+> Please check if this scenario looks valid to you, as discussed and de=
+picted
+> with Fernando:
+>
+> Supposing that at this point the hw fifo is full and there are messag=
+es in
+> the kfifo.
+>
+>> =A0 =A0 =A0 if (kfifo_avail(&mq->fifo) < sizeof(msg)) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
+>> =A0 =A0 =A0 }
+>>
+>
+> We reach this point.
+>
+> In this scenario, the DSP or other Core reads a message from the mbox=
+ hw fifo.
+> The next happens:
+> 1.- The not full interrupt is triggered to the MPU.
+> 2.- The mbox's ISR schedules the tasklet to write the message.
+> 3.- The ISR is left and returns to here (since we still have the bh l=
+ock the
+> =A0 =A0tasklet won't run).
+>
+>> + =A0 =A0 if (!__mbox_poll_for_space(mbox)) {\
+>
+> 4.- We check for mbox_fifo_full and we have space. so the message is =
+written.
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 mbox_fifo_write(mbox, msg);
+>
+> At this point it looks that the FIFO order is lost. We write this mes=
+sage
+> before the ones in the kfifo.
+>
 
-Looking closer at this patch, there are some other problems... 
+Good point. I agree.
 
-[...]
+> A solution for this could be checking if there are messages in the kf=
+ifo
+> before trying to write directly to the hw fifo, if so, just continue
+> scheduling the tasklet.
 
-> +static struct omap_hwmod omap2420_counter_32k_hwmod = {
-> +	.name		= "counter_32k",
-> +	.class		= &omap2420_counter_hwmod_class,
-> +	.main_clk	= "sync_32k_ick",
-> +	.prcm = {
-> +		.omap2 = {
-> +			.prcm_reg_id = 1,
-> +			.module_bit = OMAP24XX_EN_GPT1_SHIFT,
-> +			.idlest_reg_id = 1,
-> +			.idlest_idle_bit = OMAP24XX_ST_GPT1_SHIFT,
-> +		},
-> +	},
+A change something like this ?
 
-You're using the PRCM bits for GPT1, which is not the same as the 32k
-counter.
+-       if (!__mbox_poll_for_space(mbox)) {
++       if (kfifo_is_empty() && !__mbox_poll_for_space(mbox)) {
+                mbox_fifo_write(mbox, msg);
 
-So if this worked, it would be toggling GPT1, which is the kernel timer,
-and that would be a rather bad thing.
-
-[...]
-
-> +static struct omap_hwmod omap2430_counter_32k_hwmod = {
-> +	.name		= "counter_32k",
-> +	.class		= &omap2430_counter_hwmod_class,
-> +	.main_clk	= "sync_32k_ick",
-> +	.prcm = {
-> +		.omap2 = {
-> +			.prcm_reg_id = 1,
-> +			.module_bit = OMAP24XX_EN_GPT1_SHIFT,
-> +			.idlest_reg_id = 1,
-> +			.idlest_idle_bit = OMAP24XX_ST_GPT1_SHIFT,
-> +		},
-> +	},
-
-GPT1 again
-
-[...]
-
-> +static struct omap_hwmod omap3xxx_counter_32k_hwmod = {
-> +	.name		= "counter_32k",
-> +	.class		= &omap3xxx_counter_hwmod_class,
-> +	.main_clk	= "omap_32ksync_ick",
-> +	.prcm = {
-> +		.omap2 = {
-> +			.prcm_reg_id = 1,
-> +			.module_bit = OMAP3430_EN_GPT1_SHIFT,
-> +			.idlest_reg_id = 1,
-> +			.idlest_idle_bit = OMAP3430_ST_GPT1_SHIFT,
-> +		},
-> +	},
-
-and again
-
-> +	.slaves		= omap3xxx_counter_32k_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap3xxx_counter_32k_slaves),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +};
-> +
-
-Kevin
+Thank you,
+Best regards,
+Hari
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
