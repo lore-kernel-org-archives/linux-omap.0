@@ -1,63 +1,113 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH v5 0/3] OMAP2/3: DMA: FIFO drain errata fixes
-Date: Thu, 21 Oct 2010 13:05:17 +0300
-Message-ID: <201010211305.17559.peter.ujfalusi@nokia.com>
-References: <1286261141-1039-1-git-send-email-peter.ujfalusi@nokia.com> <20101005181525.GL3117@atomide.com> <20101008221746.GS7558@atomide.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH] OMAP: hmwod: Update the sysc_cache in case module
+ context is lost
+Date: Thu, 21 Oct 2010 15:43:41 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003FF2DAF83@dbde02.ent.ti.com>
+References: <1287080555-25399-1-git-send-email-rnayak@ti.com>
+	<877hhkv2wb.fsf@deeprootsystems.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030D09A2FE@dbde02.ent.ti.com>
+ <87tyknmpm5.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:57515 "EHLO mgw-sa01.nokia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56879 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751222Ab0JUKFp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 06:05:45 -0400
-In-Reply-To: <20101008221746.GS7558@atomide.com>
+	id S1755801Ab0JUKNw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 06:13:52 -0400
+In-Reply-To: <87tyknmpm5.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Sorry, I did missed this mail...
 
-On Saturday 09 October 2010 01:17:46 ext Tony Lindgren wrote:
 
-> Guys, as we're so late into getting 2.6.36 tagged, I'm thinking about=
- just
-> queueing these for 2.6.37 for the following reasons:
->=20
-> - The 24xx patch is a fix for commit c12abc0 that's was merged over a
->   year ago. We've lived with it for over a year now. What difference =
-does
->   extra few more months make if we have it in 2.6.37 instead of 2.6.3=
-6?
->=20
-> - The second 34xx fix seems to happen only when disabling DMA on the =
-fly.
->   Again, we've had support for 34xx in the mainline kernel for a few
->   years, and we're not seeing unrecoverable issues with MMC or USB or
->   any other code calling omap_dma_stop().
->=20
-> Sure these fix major issues with the DMA, but are these really critic=
-al
-> for 2.6.36?
->=20
-> So if you really want me to argue for merging these into 2.6.36, plea=
-se let
-> me know some oops causing cases or data corruption that happens witho=
-ut
-> these patches.
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Friday, October 15, 2010 9:10 PM
+> To: Shilimkar, Santosh
+> Cc: Nayak, Rajendra; linux-omap@vger.kernel.org; Paul Walmsley; Cousson, Benoit
+> Subject: Re: [PATCH] OMAP: hmwod: Update the sysc_cache in case module context is lost
+> 
+> "Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+> 
+> >> -----Original Message-----
+> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> >> Sent: Friday, October 15, 2010 3:44 AM
+> >> To: Nayak, Rajendra
+> >> Cc: linux-omap@vger.kernel.org; Paul Walmsley; Cousson, Benoit; Shilimkar,
+> >> Santosh
+> >> Subject: Re: [PATCH] OMAP: hmwod: Update the sysc_cache in case module
+> >> context is lost
+> >>
+> >> Rajendra Nayak <rnayak@ti.com> writes:
+> >>
+> >> > Do not skip the sysc programming in the hmwod framework based
+> >> > on the cached value alone, since at times the module might have lost
+> >> > context (due to the Powerdomain in which the module belongs
+> >> > transitions to either Open Switch RET or OFF).
+> >>
+> >> Shouldn't the driver for each IP be responsible for restoring it's
+> >> register contents after context loss, including it's SYSC?
+> >>
+> >> Seems to me that if SYSC is lost, it means the driver's save/restore
+> >> is buggy.
+> >
+> > I am glad you asked this question. I had a same argument with Benoit
+> > that driver anyway does context save restore for other registers and
+> > it can do SYSC as well.
+> >
+> > But Benoit's point was that "sysconfig is a part of the PRCM located
+> > in the IP, but this is purely TI implementation specific. The same
+> > IP in another platform will not have this sysconfig entry. That's why
+> > its important to hide them from the driver "
+> 
+> OK, but this patch still doesn't address the real problem.  Namely, that
+> *somebody* needs to save/restore the SYSC reg for the IP.
 
-Well 2.6.36 is released.
-I still would like to see this to be part of the 2.6.36.1 release. We c=
-an=20
-reproduce the DMA error in 2.6.36 with audio.
+Hi Kevin,
 
-Tony: can you make sure it is going to part of 2.6.36.1?
+What the patch does is reprogram's the sysc value (from the cache)
+whenever its lost. So its infact saved in the cache and restored when 
+needed. 
 
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Otherwise, all this patch does is refresh the _sysc_cache with
+> completely unknown contents.  It also somewhat defeats the purpose of
+> having a cache.  If you're going to read SYSC in order to determine
+> whether or not you can avoid a write, you might as well just blindly
+> write.
+
+I thought of this and dismissed it thinking I would end up with a read/or/write
+and instead a read always to avoid write is better.
+But now looking back again, it does make sense to still keep the cache to avoid
+a read (since a read has significantly more latency than write) and do a blind write
+always. Does that make sense?
+
+Regards,
+Rajendra
+
+> 
+> One option to fix the save/restore would be that TI specific context
+> save/restore could be done in the device layer by adding some additional
+> save/restore do the functions calling omap_device_[idle|enable].
+> 
+> IOW, most devices just call omap_device directly by doing something like:
+> 
+> struct omap_device_pm_latency omap_wdt_latency[] = {
+> 	[0] = {
+> 		.deactivate_func = omap_device_idle_hwmods,
+> 		.activate_func   = omap_device_enable_hwmods,
+> 		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
+> 	},
+> };
+> 
+> 
+> But these [de]activate functions can be anything, and could be made into
+> functions that do some additional save/restore and then call
+> omap_device_*
+> 
+> Kevin
+
