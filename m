@@ -1,40 +1,52 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/5] 32k sync timer meets hwmod
-Date: Thu, 21 Oct 2010 22:09:03 +0300
-Message-ID: <20101021190903.GX3958@legolas.emea.dhcp.ti.com>
-References: <1287480136-2046-1-git-send-email-balbi@ti.com>
- <87mxq7xw7g.fsf@deeprootsystems.com>
-Reply-To: balbi@ti.com
+From: Tim Nordell <tim.nordell@logicpd.com>
+Subject: Re: [PATCH] ARM: OMAP: Modified omap_mux_init_signal() to take in
+ const char *
+Date: Thu, 21 Oct 2010 14:10:58 -0500
+Message-ID: <4CC09042.3000201@logicpd.com>
+References: <1287687041-22377-1-git-send-email-tim.nordell@logicpd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56888 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756071Ab0JUTJI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Oct 2010 15:09:08 -0400
-Content-Disposition: inline
-In-Reply-To: <87mxq7xw7g.fsf@deeprootsystems.com>
+Received: from 174-46-170-154.static.twtelecom.net ([174.46.170.154]:59077
+	"EHLO edprlnx06.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752971Ab0JUTKt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 21 Oct 2010 15:10:49 -0400
+In-Reply-To: <1287687041-22377-1-git-send-email-tim.nordell@logicpd.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Balbi, Felipe" <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tim Nordell <tim.nordell@logicpd.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Oct 21, 2010 at 01:00:19PM -0500, Kevin Hilman wrote:
->Felipe Balbi <balbi@ti.com> writes:
+ On 10/21/10 13:50, Tim Nordell wrote:
+> If one does the following line twice with the old code:
 >
->> Converted 32k-sync timer to platform_driver
->> and now using pm_runtime and hwmod.
->>
->> Tested on 3430 by me and 4430 by Tarun
->>
->> If someone could test on 2430 and 2420, I would
->> be really glad.
+> omap_mux_init_signal("uart3_rts_sd.gpio_164", OMAP_PIN_INPUT);
+> omap_mux_init_signal("uart3_rts_sd.gpio_164", OMAP_PIN_INPUT);
 >
->Hey, don't you have a 2420 device.  There were some cool 2420-based
->tablets a few years ago made by some company in Finland that you may
->have heard of.  ;)
+> the compiler optimizes the two const strings into one string
+> internally in the compiler.  The old code would modify the string
+> by inserting a NULL effectively making the second call become:
+>
+> omap_mux_init_signal("uart3_rts_sd", OMAP_PIN_INPUT);
+>
+> Since the code changes _all_ uart3_rts_sd signals over to this,
+> it'll cause unknown behavior, as well as making it more
+> difficult to track down the reason since the string
+> "uart3_rts_sd" by itself may not actually exist in your
+> normal mux initialization sequence.
+>
 
-I have an n810 which doesn't work :-p sucks to be me :-p
+Gah.  I just realized there was a patch in the linux-omap tree to do the
+same thing.
 
--- 
-balbi
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=5a3b2f7a5a79082dd3a5f2294cbd85fc3b173d98;hp=7ad0e386d46e9edff64705ab25337ad9130baf63
+
+It looks like by inspection that there could be a couple of things wrong
+with that patch however.  Namely, on the comparison of muxname to
+m0_entry, if they have the same string up to mode0_len, such as
+"dss_data1" and "dss_data12" it'd match there prematurely as it'd stop
+comparing.  Also, a minor display issue on the printk of the new muxname.
+
+- Tim
