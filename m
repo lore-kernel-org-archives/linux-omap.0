@@ -1,128 +1,168 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC/PATCH 2/2] OMAP3: CPUidle: trigger early idle notification call chain
-Date: Thu, 21 Oct 2010 10:43:08 -0700
-Message-ID: <87sjzzzbkj.fsf@deeprootsystems.com>
-References: <1287617926-24308-1-git-send-email-khilman@deeprootsystems.com>
-	<1287617926-24308-3-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/5] arm: omap: counter-32k: convert to pm_runtime API
+Date: Thu, 21 Oct 2010 10:46:11 -0700
+Message-ID: <87k4lbzbfg.fsf@deeprootsystems.com>
+References: <1287480136-2046-1-git-send-email-balbi@ti.com>
+	<1287480136-2046-3-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:48123 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752564Ab0JURnL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 13:43:11 -0400
-Received: by pxi16 with SMTP id 16so1217861pxi.19
-        for <linux-omap@vger.kernel.org>; Thu, 21 Oct 2010 10:43:10 -0700 (PDT)
-In-Reply-To: <1287617926-24308-3-git-send-email-khilman@deeprootsystems.com>
-	(Kevin Hilman's message of "Wed, 20 Oct 2010 16:38:46 -0700")
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:35158 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753485Ab0JURqN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 13:46:13 -0400
+Received: by pvh1 with SMTP id 1so290101pvh.19
+        for <linux-omap@vger.kernel.org>; Thu, 21 Oct 2010 10:46:13 -0700 (PDT)
+In-Reply-To: <1287480136-2046-3-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Tue, 19 Oct 2010 12:22:13 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-[updated version of the patch, fixing issues raised by Vishwa]
+Felipe Balbi <balbi@ti.com> writes:
 
->From 1661b0f7ad614d221f90eed590040f2cca01c265 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Thu, 23 Sep 2010 09:54:41 -0700
-Subject: [PATCH] OMAP3: CPUidle: trigger early idle notification call chain
+> Trivial patch removing clock framework and adding
+> pm_runtime API.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 
-During the early part of the CPUidle path (state selection by the
-governer, checking for device activity, etc.) there is no (good)
-reason to have interrupts disabled.
+Minor nit: the runtime PM 'put' calls do not need to be the _sync
+versions.  You can easily get by using the "normal" (async) versions
+here.
 
-Therefore, enable interrupts early in the CPUidle path and then
-trigger the "early" idle notifier call chain after device activity
-checks and the next power states have been programmed.  Interrupts are
-then (re)disabled after the final state is selected.
+Kevin
 
-Also adjust the timing measurements reported back to the CPUidle core
-to ensure that time spent in the idle notifiers is included as part of
-the accounted time.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   33 +++++++++++++++++++++++++++------
- 1 files changed, 27 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 0d50b45..6c806a8 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -30,6 +30,7 @@
- #include <plat/powerdomain.h>
- #include <plat/clockdomain.h>
- #include <plat/serial.h>
-+#include <plat/common.h>
- 
- #include "pm.h"
- #include "control.h"
-@@ -128,12 +129,14 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	/* Used to keep track of the total time in idle */
- 	getnstimeofday(&ts_preidle);
- 
--	local_irq_disable();
--	local_fiq_disable();
--
- 	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
- 	pwrdm_set_next_pwrst(core_pd, core_state);
- 
-+	omap_early_idle_notifier_start();
-+
-+	local_irq_disable();
-+	local_fiq_disable();
-+
- 	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
- 
-@@ -151,12 +154,14 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	}
- 
- return_sleep_time:
--	getnstimeofday(&ts_postidle);
--	ts_idle = timespec_sub(ts_postidle, ts_preidle);
--
- 	local_irq_enable();
- 	local_fiq_enable();
- 
-+	omap_early_idle_notifier_end();
-+
-+	getnstimeofday(&ts_postidle);
-+	ts_idle = timespec_sub(ts_postidle, ts_preidle);
-+
- 	return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_sec * USEC_PER_SEC;
- }
- 
-@@ -459,6 +464,21 @@ struct cpuidle_driver omap3_idle_driver = {
- 	.owner = 	THIS_MODULE,
- };
- 
-+static int omap3_idle_prepare(struct cpuidle_device *dev)
-+{
-+	/*
-+	 * Enable interrupts during the early part of the CPUidle path.
-+	 * They are later (re)disabled when the final state is selected.
-+	 *
-+	 * The primary reason for this is to enable non-atomic idle
-+	 * notifications to drivers that want to coordinate device
-+	 * idle transitions with CPU idle transitions.
-+	 */
-+	local_irq_enable();
-+
-+	return 0;
-+}
-+
- /**
-  * omap3_idle_init - Init routine for OMAP3 idle
-  *
-@@ -482,6 +502,7 @@ int __init omap3_idle_init(void)
- 
- 	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
- 
-+	dev->prepare = omap3_idle_prepare;
- 	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
- 		cx = &omap3_power_states[i];
- 		state = &dev->states[count];
--- 
-1.7.2.1
-
+> ---
+>  arch/arm/plat-omap/counter-32k.c |   48 ++++++++++---------------------------
+>  1 files changed, 13 insertions(+), 35 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/counter-32k.c b/arch/arm/plat-omap/counter-32k.c
+> index f3fcb38..7bfd67a 100644
+> --- a/arch/arm/plat-omap/counter-32k.c
+> +++ b/arch/arm/plat-omap/counter-32k.c
+> @@ -27,7 +27,7 @@
+>  #include <linux/time.h>
+>  #include <linux/clocksource.h>
+>  #include <linux/platform_device.h>
+> -#include <linux/clk.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/err.h>
+>  
+>  struct omap_counter_32k_device {
+> @@ -37,7 +37,6 @@ struct omap_counter_32k_device {
+>  	cycles_t		last_cycles;
+>  
+>  	struct device		*dev;
+> -	struct clk		*ick;
+>  	void __iomem		*base;
+>  
+>  	/*
+> @@ -117,7 +116,6 @@ static int __init omap_counter_32k_probe(struct platform_device *pdev)
+>  {
+>  	struct omap_counter_32k_device		*omap;
+>  	struct resource			*res;
+> -	struct clk			*ick;
+>  
+>  	int				ret;
+>  
+> @@ -130,11 +128,18 @@ static int __init omap_counter_32k_probe(struct platform_device *pdev)
+>  		goto err0;
+>  	}
+>  
+> +	pm_runtime_enable(&pdev->dev);
+> +	ret = pm_runtime_get_sync(&pdev->dev);
+> +	if (ret) {
+> +		dev_dbg(&pdev->dev, "unable to enable runtime pm\n");
+> +		goto err1;
+> +	}
+> +
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (!res) {
+>  		dev_dbg(&pdev->dev, "couldn't get resource\n");
+>  		ret = -ENODEV;
+> -		goto err1;
+> +		goto err2;
+>  	}
+>  
+>  	base = ioremap(res->start, resource_size(res));
+> @@ -144,22 +149,8 @@ static int __init omap_counter_32k_probe(struct platform_device *pdev)
+>  		goto err2;
+>  	}
+>  
+> -	ick = clk_get(&pdev->dev, "ick");
+> -	if (IS_ERR(ick)) {
+> -		dev_dbg(&pdev->dev, "couldn't get clock\n");
+> -		ret = PTR_ERR(ick);
+> -		goto err3;
+> -	}
+> -
+> -	ret = clk_enable(ick);
+> -	if (ret) {
+> -		dev_dbg(&pdev->dev, "couldn't enable clock\n");
+> -		goto err4;
+> -	}
+> -
+>  	omap->base	= base;
+>  	omap->dev	= &pdev->dev;
+> -	omap->ick	= ick;
+>  
+>  	omap->cs.name	= "counter-32k";
+>  	omap->cs.rating	= 250;
+> @@ -174,7 +165,7 @@ static int __init omap_counter_32k_probe(struct platform_device *pdev)
+>  	ret = clocksource_register(&omap->cs);
+>  	if (ret) {
+>  		dev_dbg(&pdev->dev, "failed to register clocksource\n");
+> -		goto err5;
+> +		goto err3;
+>  	}
+>  
+>  	/* initialize our offset */
+> @@ -190,16 +181,12 @@ static int __init omap_counter_32k_probe(struct platform_device *pdev)
+>  
+>  	return 0;
+>  
+> -err5:
+> -	clk_disable(ick);
+> -
+> -err4:
+> -	clk_put(ick);
+> -
+>  err3:
+>  	iounmap(base);
+>  
+>  err2:
+> +	pm_runtime_put_sync(&pdev->dev);
+> +
+>  err1:
+>  	kfree(omap);
+>  
+> @@ -211,9 +198,8 @@ static int __exit omap_counter_32k_remove(struct platform_device *pdev)
+>  {
+>  	struct omap_counter_32k_device	*omap = platform_get_drvdata(pdev);
+>  
+> +	pm_runtime_put_sync(&pdev->dev);
+>  	clocksource_unregister(&omap->cs);
+> -	clk_disable(omap->ick);
+> -	clk_put(omap->ick);
+>  	iounmap(omap->base);
+>  	kfree(omap);
+>  	platform_set_drvdata(pdev, NULL);
+> @@ -221,16 +207,8 @@ static int __exit omap_counter_32k_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
+> -static void omap_counter_32k_shutdown(struct platform_device *pdev)
+> -{
+> -	struct omap_counter_32k_device	*omap = platform_get_drvdata(pdev);
+> -
+> -	clk_disable(omap->ick);
+> -}
+> -
+>  static struct platform_driver omap_counter_32k_driver = {
+>  	.remove		= __exit_p(omap_counter_32k_remove),
+> -	.shutdown	= omap_counter_32k_shutdown,
+>  	.driver		= {
+>  		.name	= "omap-counter-32k",
+>  	},
