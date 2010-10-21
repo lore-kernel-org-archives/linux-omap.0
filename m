@@ -1,52 +1,50 @@
-From: Tim Nordell <tim.nordell@logicpd.com>
-Subject: Re: [PATCH] ARM: OMAP: Modified omap_mux_init_signal() to take in
- const char *
-Date: Thu, 21 Oct 2010 14:10:58 -0500
-Message-ID: <4CC09042.3000201@logicpd.com>
-References: <1287687041-22377-1-git-send-email-tim.nordell@logicpd.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/5] arm: omap: counter-32k: convert to pm_runtime API
+Date: Thu, 21 Oct 2010 13:17:47 -0700
+Message-ID: <87zku7s3kk.fsf@deeprootsystems.com>
+References: <1287480136-2046-1-git-send-email-balbi@ti.com>
+	<1287480136-2046-3-git-send-email-balbi@ti.com>
+	<87k4lbzbfg.fsf@deeprootsystems.com>
+	<20101021190623.GV3958@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 174-46-170-154.static.twtelecom.net ([174.46.170.154]:59077
-	"EHLO edprlnx06.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752971Ab0JUTKt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 Oct 2010 15:10:49 -0400
-In-Reply-To: <1287687041-22377-1-git-send-email-tim.nordell@logicpd.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:49098 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755482Ab0JUURu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 Oct 2010 16:17:50 -0400
+Received: by gxk3 with SMTP id 3so386387gxk.19
+        for <linux-omap@vger.kernel.org>; Thu, 21 Oct 2010 13:17:50 -0700 (PDT)
+In-Reply-To: <20101021190623.GV3958@legolas.emea.dhcp.ti.com> (Felipe Balbi's
+	message of "Thu, 21 Oct 2010 22:06:23 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tim Nordell <tim.nordell@logicpd.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
- On 10/21/10 13:50, Tim Nordell wrote:
-> If one does the following line twice with the old code:
->
-> omap_mux_init_signal("uart3_rts_sd.gpio_164", OMAP_PIN_INPUT);
-> omap_mux_init_signal("uart3_rts_sd.gpio_164", OMAP_PIN_INPUT);
->
-> the compiler optimizes the two const strings into one string
-> internally in the compiler.  The old code would modify the string
-> by inserting a NULL effectively making the second call become:
->
-> omap_mux_init_signal("uart3_rts_sd", OMAP_PIN_INPUT);
->
-> Since the code changes _all_ uart3_rts_sd signals over to this,
-> it'll cause unknown behavior, as well as making it more
-> difficult to track down the reason since the string
-> "uart3_rts_sd" by itself may not actually exist in your
-> normal mux initialization sequence.
->
+Felipe Balbi <balbi@ti.com> writes:
 
-Gah.  I just realized there was a patch in the linux-omap tree to do the
-same thing.
+> On Thu, Oct 21, 2010 at 12:46:11PM -0500, Kevin Hilman wrote:
+>>Felipe Balbi <balbi@ti.com> writes:
+>>
+>>> Trivial patch removing clock framework and adding
+>>> pm_runtime API.
+>>>
+>>> Signed-off-by: Felipe Balbi <balbi@ti.com>
+>>
+>>Minor nit: the runtime PM 'put' calls do not need to be the _sync
+>>versions.  You can easily get by using the "normal" (async) versions
+>>here.
+>
+> Will change for next version, was just following what other drivers were
+> doing.
 
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=5a3b2f7a5a79082dd3a5f2294cbd85fc3b173d98;hp=7ad0e386d46e9edff64705ab25337ad9130baf63
+You're right, I wasn't as picky about this before, but will be going
+forward.  You're the lucky first victim. :)
 
-It looks like by inspection that there could be a couple of things wrong
-with that patch however.  Namely, on the comparison of muxname to
-m0_entry, if they have the same string up to mode0_len, such as
-"dss_data1" and "dss_data12" it'd match there prematurely as it'd stop
-comparing.  Also, a minor display issue on the printk of the new muxname.
+Replacing clk_disable() with put_sync() is the correct functional
+replacement, since clk_disable is immediate, ans so is put_sync.
+However, since we have the option of a delayed disable now with runtime
+PM, I think we should use it.
 
-- Tim
+Kevin
