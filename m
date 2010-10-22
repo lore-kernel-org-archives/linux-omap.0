@@ -1,50 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next - multi-omap image fails to boot on omap3/4
-Date: Fri, 22 Oct 2010 14:38:43 -0700
-Message-ID: <20101022213843.GJ17595@atomide.com>
-References: <20101019182149.GC3038@atomide.com>
- <AANLkTikYGwH-kQV3b+gqDYOKVvuiXOU=kBDVLy3ryNjR@mail.gmail.com>
- <20101019225726.GE3038@atomide.com>
- <20101019233204.GA30991@atomide.com>
- <AANLkTikrVJ3bw3aKE6V7uH9DmheVDihedNOP+wypYunC@mail.gmail.com>
- <AANLkTimqymuGdD3_SX2RVj=6a9j+ODKy8ipYZ-6hqw+S@mail.gmail.com>
- <20101021161545.GC3616@atomide.com>
- <8fb818d83ad3cb8e8e979e9b4ac52736@mail.gmail.com>
- <20101022185254.GG17595@atomide.com>
- <4CC1F0FF.4000701@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/3] OMAP: PM: formalize idle notifications
+Date: Fri, 22 Oct 2010 15:00:22 -0700
+Message-ID: <8762wt7urt.fsf@deeprootsystems.com>
+References: <1287617483-24170-1-git-send-email-khilman@deeprootsystems.com>
+	<20101022180553.GD17595@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64488 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032Ab0JVVir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 17:38:47 -0400
-Content-Disposition: inline
-In-Reply-To: <4CC1F0FF.4000701@ti.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:53795 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab0JVWAY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 18:00:24 -0400
+Received: by pzk3 with SMTP id 3so324892pzk.19
+        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 15:00:24 -0700 (PDT)
+In-Reply-To: <20101022180553.GD17595@atomide.com> (Tony Lindgren's message of
+	"Fri, 22 Oct 2010 11:05:53 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anand Gadiyar <gadiyar@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Anand Gadiyar <gadiyar@ti.com> [101022 13:07]:
-> On 10/22/2010 2:52 PM, Tony Lindgren wrote:
-> >
-> >Yeah, it's an alignment issue that's why it sometimes works depending
-> >on the Kconfig options selected..
-> >
-> >For rererence, posted a fix for that at:
-> >
-> >https://patchwork.kernel.org/patch/276161/
-> 
-> The patch seems to work - thanks! Just curious, how do you go about
-> debugging an issue like this?
+Tony Lindgren <tony@atomide.com> writes:
 
-Well it was a bit tricky to find out as random changes to .config
-would make it work. Found the breaking patch with git bisect, but
-could not see anything wrong with it. Then thought it somehow
-misbehaves with CONFIG_SMP_ON_UP, but some printhex8 debugging
-showed that it happens even earlier. Then went back few lines in
-the boot to narrow it down, but finally had to step through it
-with jtag to see that the address loaded into r5 was not aligned.
+> * Kevin Hilman <khilman@deeprootsystems.com> [101020 16:22]:
+>> Currently in the idle path, we have custom function calls into device
+>> code to handle device specific actions that need to be coordinated CPU
+>> idle transitions. Rather than continue this ad-hoc method of calling
+>> device code from the PM core, create a formal way for device/driver
+>> code to register for idle notifications.
+>> 
+>> Idle notifications are done late in the idle path when interrupts are
+>> disabled, hence use atomic notifier chains.  These notifications will
+>> also be atomic with respect to CPU idle transitions.
+>
+> ...
+>
+>> +EXPORT_SYMBOL_GPL(omap_idle_notifier_register);
+>> +EXPORT_SYMBOL_GPL(omap_idle_notifier_unregister);
+>
+> Let's rather set this up as a generic framework to avoid adding
+> more omap specific frameworks to the drivers.
 
-Tony
+Hmm, I thought I removed those EXPORT_SYMBOLs, just for that reason.  
+
+I actually don't really intend these to be used from drivers, but only
+from OMAP-specific device code.  We currently use these manly for errata
+purposes, but also for UART debug purposes, and only from device code
+currently.
+
+That being said, I did consider a generic framework for this (x86_64 has
+it's own idle notfiers as well), and this topic something already on the
+table for LPC PM miniconf.  However, at least for OMAP, the location of
+when the notifiers are triggered has to be in OMAP-specific code.  It
+cannot be in the ARM-generic idle path (like they do in x86_64.)
+
+The reason is because the idle notifiers have to be called *after* the
+OMAP-specific idle path has programmed the next power states for the
+various power domains.  That way, the idle notifiers can read the next
+power state regs and make decisons on what they need to do (or not to
+do) based on whether he power domain is going to RET, OFF, etc.
+
+Kevin
+
+
+
