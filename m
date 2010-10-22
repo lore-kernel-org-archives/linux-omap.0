@@ -1,59 +1,50 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: hwmod and insertable modules
-Date: Fri, 22 Oct 2010 09:59:49 -0700
-Message-ID: <87tyke6u4a.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB593023458C204@dbde02.ent.ti.com>
-	<0680EC522D0CC943BC586913CF3768C003FF2DAF8D@dbde02.ent.ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593023458C250@dbde02.ent.ti.com>
-	<4CC15CC3.7060406@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593023458C2BE@dbde02.ent.ti.com>
-	<4CC166C6.7060403@ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB593023461A7AC@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] drivers: misc: add omap_hwspinlock driver
+Date: Fri, 22 Oct 2010 10:00:09 -0700
+Message-ID: <20101022170008.GG9149@atomide.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+ <1287387875-14168-2-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:48606 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753890Ab0JVQ7w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 12:59:52 -0400
-Received: by pwj8 with SMTP id 8so16064pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 09:59:52 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593023461A7AC@dbde02.ent.ti.com>
-	(Sanjeev Premi's message of "Fri, 22 Oct 2010 17:47:21 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57181 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757933Ab0JVRAO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 13:00:14 -0400
+Content-Disposition: inline
+In-Reply-To: <1287387875-14168-2-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-"Premi, Sanjeev" <premi@ti.com> writes:
+* Ohad Ben-Cohen <ohad@wizery.com> [101018 00:41]:
+> From: Simon Que <sque@ti.com>
+> 
+> Add driver for OMAP's Hardware Spinlock module.
+> 
+> The OMAP Hardware Spinlock module, initially introduced in OMAP4,
+> provides hardware assistance for synchronization between the
+> multiple processors in the device (Cortex-A9, Cortex-M3 and
+> C64x+ DSP).
 
-> I was trying other way - understand if there is an existing norm/
-> convention that I can follow - rather than (re)invent it!
+...
 
-The existing norm is that omap_devices are never destroyed.  The same is
-true for the way we handle platform_devices that are not omap_devices.
-That being said, it doesn't answer the question of how we would destroy
-them if we wanted to, and that does indeed deserve some discussion.
+> +EXPORT_SYMBOL_GPL(omap_hwspin_trylock);
+> +EXPORT_SYMBOL_GPL(omap_hwspin_lock_timeout);
+> +EXPORT_SYMBOL_GPL(omap_hwspin_unlock);
+> +EXPORT_SYMBOL_GPL(omap_hwspinlock_request);
+> +EXPORT_SYMBOL_GPL(omap_hwspinlock_request_specific);
+> +EXPORT_SYMBOL_GPL(omap_hwspinlock_free);
+> +EXPORT_SYMBOL_GPL(omap_hwspinlock_get_id);
 
-However, I think your confusion is more about the separation between
-device code and driver code.
+Please let's not add yet another omap specific layer that will
+make it incrementally harder to have generic drivers.
 
-It is the responsibility of device init code (arch/arm/*omap*) to create
-and register devices with the system.  This is where platform_devices
-and omap_devices are handled currently.
+Instead, we can do the omap specific locking in the
+platform code and then the drivers can use the functions
+passed in the platform_data if they're implemented.
 
-The drivers then register themselves (as platform_drivers) with the
-driver core, and the driver core hooks them together.
+Regards,
 
-The goal we're working towards is that the drivers be generic, and
-should not know anything about device-specific registration.
-
-Kevin
-
-
-
-
-
-
-
-
+Tony
