@@ -1,56 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] omap: add hwspinlock device
-Date: Fri, 22 Oct 2010 09:56:13 -0700
-Message-ID: <20101022165612.GF9149@atomide.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com>
- <87r5fmxghm.fsf@deeprootsystems.com>
- <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
- <87bp6pviwf.fsf@deeprootsystems.com>
- <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
- <8739s0sobc.fsf@deeprootsystems.com>
- <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: hwmod and insertable modules
+Date: Fri, 22 Oct 2010 09:59:49 -0700
+Message-ID: <87tyke6u4a.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB593023458C204@dbde02.ent.ti.com>
+	<0680EC522D0CC943BC586913CF3768C003FF2DAF8D@dbde02.ent.ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593023458C250@dbde02.ent.ti.com>
+	<4CC15CC3.7060406@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593023458C2BE@dbde02.ent.ti.com>
+	<4CC166C6.7060403@ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB593023461A7AC@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62605 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754084Ab0JVQ4T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 12:56:19 -0400
-Content-Disposition: inline
-In-Reply-To: <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:48606 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753890Ab0JVQ7w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 12:59:52 -0400
+Received: by pwj8 with SMTP id 8so16064pwj.19
+        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 09:59:52 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593023461A7AC@dbde02.ent.ti.com>
+	(Sanjeev Premi's message of "Fri, 22 Oct 2010 17:47:21 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Balaji T K <balajitk@ti.com>, "Kamat, Nishant" <nskamat@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Ohad Ben-Cohen <ohad@wizery.com> [101020 12:12]:
-> On Wed, Oct 20, 2010 at 8:37 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
-> >> Let's take the i2c-omap for example.
-> >>
-> >> It sounds like it must have a predefined hwspinlock, but what if:
-> >>
-> >> 1. It will use omap_hwspinlock_request() to dynamically allocate a hwspinlock
-> >> 2. Obviously, the hwspinlock id number must be communicated to the M3
-> >> BIOS, so the i2c-omap will publish that id using a small shared memory
-> >> entry that will be allocated for this sole purpose
-> >> 3. we will make sure that 1+2 completes before the remote processor is
-> >> taken out of reset
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-Guys, let's try to come up with a generic interface for this instead of
-polluting the device drivers with more omap specific interfaces.
+> I was trying other way - understand if there is an existing norm/
+> convention that I can follow - rather than (re)invent it!
 
-We really want to keep the drivers generic and platform independent.
+The existing norm is that omap_devices are never destroyed.  The same is
+true for the way we handle platform_devices that are not omap_devices.
+That being said, it doesn't answer the question of how we would destroy
+them if we wanted to, and that does indeed deserve some discussion.
 
-Sure we still have some omap specific stuff in the drivers, like
-cpu_is_omapxxxx, and omap specific dma calls, but those will be going
-away.
+However, I think your confusion is more about the separation between
+device code and driver code.
 
-Unless somebody has better ideas, I suggest we pass a lock function
-in the platform_data to the drivers that need it, and do the omap
-specific nasty stuff in the platform code.
+It is the responsibility of device init code (arch/arm/*omap*) to create
+and register devices with the system.  This is where platform_devices
+and omap_devices are handled currently.
 
-Regards,
+The drivers then register themselves (as platform_drivers) with the
+driver core, and the driver core hooks them together.
 
-Tony
+The goal we're working towards is that the drivers be generic, and
+should not know anything about device-specific registration.
+
+Kevin
+
+
+
+
+
+
+
+
