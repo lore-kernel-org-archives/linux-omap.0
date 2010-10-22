@@ -1,69 +1,66 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] staging: tidspbridge: make the MGR_ENUMNODE_INFO ioctl work
-Date: Fri, 22 Oct 2010 16:36:31 +0300
-Message-ID: <AANLkTim_tRKFc84e33irZuuWmrZNApH_Y2kKXBrQ4NcJ@mail.gmail.com>
-References: <1287752386-5974-1-git-send-email-ionut.nicu@mindbit.ro>
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: RE: linux-next - multi-omap image fails to boot on omap3/4
+Date: Fri, 22 Oct 2010 10:08:15 -0400
+Message-ID: <8fb818d83ad3cb8e8e979e9b4ac52736@mail.gmail.com>
+References: <4CBDAFFF.2030409@ti.com> <20101019182149.GC3038@atomide.com>
+ <AANLkTikYGwH-kQV3b+gqDYOKVvuiXOU=kBDVLy3ryNjR@mail.gmail.com>
+ <20101019225726.GE3038@atomide.com> <20101019233204.GA30991@atomide.com>
+ <AANLkTikrVJ3bw3aKE6V7uH9DmheVDihedNOP+wypYunC@mail.gmail.com>
+ <AANLkTimqymuGdD3_SX2RVj=6a9j+ODKy8ipYZ-6hqw+S@mail.gmail.com> <20101021161545.GC3616@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41147 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751446Ab0JVNgd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 09:36:33 -0400
-Received: by fxm16 with SMTP id 16so638887fxm.19
-        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 06:36:32 -0700 (PDT)
-In-Reply-To: <1287752386-5974-1-git-send-email-ionut.nicu@mindbit.ro>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:34110 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756963Ab0JVOIT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Oct 2010 10:08:19 -0400
+Received: by wwe15 with SMTP id 15so879014wwe.13
+        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 07:08:16 -0700 (PDT)
+In-Reply-To: <20101021161545.GC3616@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ionut Nicu <ionut.nicu@gmail.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Oct 22, 2010 at 3:59 PM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
-> The current code was always returning a non-zero status value
-> to userspace applications when this ioctl was called.
+Tony Lindgren wrote:
+> * Gadiyar, Anand <gadiyar@ti.com> [101019 23:21]:
+
+...
+
+> > >>> > >> linux-next, as of 20101019, built with the
+omap2plus_defconfig fails
+> > >>> > >> to boot on omap3 and omap4. (I've disabled CONFIG_ARCH_OMAP2
+or
+> > >>> > >> CONFIG_SWP_EMULATE to get the image to build). Building with
+only
+> > >>> > >> ARCH_OMAP3 allows the resultant image to boot up on OMAP3.
+Likewise,
+> > >>> > >> an image built with only ARCH_OMAP4 boots up on OMAP4 boards.
+> > >>> > >>
+> > >>> > >> earlyprintk does not provide any additional prints after
+> > >>> > >> "Uncompressing Linux... done, booting the kernel."
+> > >>> > >>
+> > >>> > >> Any ideas where to look?
+> > >>> > >
+
+...
+
+> >
+> > I tried disabling CONFIG_SMP and CONFIG_SMP_ON_UP, and the resulting
+> > image booted up just fine.
 >
-> The error code was ENODATA, which isn't actually an error,
-> it's always returned by dcd_enumerate_object() when it hits the
-> end of list.
+> Looks like it's caused by this patch:
 >
-> Reorganized the code so that it works like "dynreg.out -ln" from
-> the userspace-dspbridge package expects it to work.
+> "ARM: hotplug cpu: Keep processor information, startup code &
+> __lookup_processor_type"
 >
-> Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+> It's probably trashing registers it shouldn't. Will take a look and post
+> something to linux-arm-kernel.
+>
 
-I also found this issue, but I have simpler fix. I think my fix should
-be applied first, and then your reorganization.
+I'm not sure what's going on, but looks like linux-next as of
+20101022 boots up fine on panda. I can't explain it, as I couldn't
+find anything related to the patch you mentioned.
 
->From 16759e41adc11ad1f34b757dcf19fe55c84bcfc2 Mon Sep 17 00:00:00 2001
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Date: Sun, 19 Sep 2010 14:52:42 +0300
-Subject: [PATCH] staging: tidspbridge: fix mgr_enum_node_info
-
-It's always erroring out.
-
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/staging/tidspbridge/rmgr/mgr.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/rmgr/mgr.c
-b/drivers/staging/tidspbridge/rmgr/mgr.c
-index 57a39b9..4ba9517 100644
---- a/drivers/staging/tidspbridge/rmgr/mgr.c
-+++ b/drivers/staging/tidspbridge/rmgr/mgr.c
-@@ -148,6 +148,11 @@ int mgr_enum_node_info(u32 node_id, struct
-dsp_ndbprops *pndb_props,
-
- 		}
- 	}
-+
-+	/* the last status is not 0, but neither an error */
-+	if (status > 0)
-+		status = 0;
-+
- 	if (!status) {
- 		if (node_id > (node_index - 1)) {
- 			status = -EINVAL;
-
--- 
-Felipe Contreras
+- Anand
