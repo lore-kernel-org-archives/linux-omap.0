@@ -1,55 +1,82 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
- Smartreflex drivers
-Date: Fri, 22 Oct 2010 20:17:30 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95EB0@dbde02.ent.ti.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	 <1285166719-19352-9-git-send-email-thara@ti.com>
- <1287084030.14514.145.camel@localhost>
+From: Ionut Nicu <ionut.nicu@mindbit.ro>
+Subject: Re: [PATCH] staging: tidspbridge: make the MGR_ENUMNODE_INFO ioctl
+ work
+Date: Fri, 22 Oct 2010 18:08:17 +0300
+Message-ID: <1287760097.17937.20.camel@atlantis.mindbit.ro>
+References: <1287752386-5974-1-git-send-email-ionut.nicu@mindbit.ro>
+	 <AANLkTim_tRKFc84e33irZuuWmrZNApH_Y2kKXBrQ4NcJ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39341 "EHLO arroyo.ext.ti.com"
+Received: from ns.mindbit.ro ([80.86.127.26]:38209 "EHLO ns.mindbit.ro"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753152Ab0JVOrg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Oct 2010 10:47:36 -0400
-In-Reply-To: <1287084030.14514.145.camel@localhost>
-Content-Language: en-US
+	id S1754489Ab0JVPI0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Oct 2010 11:08:26 -0400
+In-Reply-To: <AANLkTim_tRKFc84e33irZuuWmrZNApH_Y2kKXBrQ4NcJ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-DQoNCj4+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+RnJvbTogbGludXgtb21hcC1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLQ0KPj5vd25lckB2Z2VyLmtlcm5l
-bC5vcmddIE9uIEJlaGFsZiBPZiBLZXZpbiBIaWxtYW4NCj4+U2VudDogRnJpZGF5LCBPY3RvYmVy
-IDE1LCAyMDEwIDEyOjUxIEFNDQo+PlRvOiBHb3BpbmF0aCwgVGhhcmENCj4+Q2M6IGxpbnV4LW9t
-YXBAdmdlci5rZXJuZWwub3JnOyBwYXVsQHB3c2FuLmNvbTsgQ291c3NvbiwgQmVub2l0OyBTcmlw
-YXRoeSwNCj4+VmlzaHdhbmF0aDsgU2F3YW50LCBBbmFuZA0KPj5TdWJqZWN0OiBSZTogW1BBVENI
-IHYzIDA4LzExXSBPTUFQMzogUE06IEFkZGluZyBkZWJ1ZyBzdXBwb3J0IHRvIFZvbHRhZ2UgYW5k
-DQo+PlNtYXJ0cmVmbGV4IGRyaXZlcnMNCj4+DQo+Pk9uIFdlZCwgMjAxMC0wOS0yMiBhdCAyMDox
-NSArMDUzMCwgVGhhcmEgR29waW5hdGggd3JvdGU6DQo+Pj4gLS0tIGEvYXJjaC9hcm0vbWFjaC1v
-bWFwMi9zbWFydHJlZmxleC5jDQo+Pj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJl
-ZmxleC5jDQo+Pj4gQEAgLTU1OCw4ICs1NTgsMTMgQEAgaW50IHNyX2VuYWJsZShzdHJ1Y3Qgdm9s
-dGFnZWRvbWFpbiAqdm9sdGRtLA0KPj4+IHVuc2lnbmVkIGxvbmcgdm9sdCkNCj4+PiAgICAgICAg
-ICAgICAgICAgcmV0dXJuIC1FTk9EQVRBOw0KPj4+ICAgICAgICAgfQ0KPj4+DQo+Pj4gLSAgICAg
-ICAvKiBlcnJtaW5saW1pdCBpcyBvcHAgZGVwZW5kZW50IGFuZCBoZW5jZSBsaW5rZWQgdG8gdm9s
-dGFnZSAqLw0KPj4+IC0gICAgICAgc3ItPmVycl9taW5saW1pdCA9IHZvbHRfZGF0YS0+c3JfZXJy
-bWlubGltaXQ7DQo+Pj4gKyAgICAgICAvKg0KPj4+ICsgICAgICAgICogZXJybWlubGltaXQgaXMg
-b3BwIGRlcGVuZGVudCBhbmQgaGVuY2UgbGlua2VkIHRvIHZvbHRhZ2UNCj4+PiArICAgICAgICAq
-IGlmIHRoZSBkZWJ1ZyBvcHRpb24gaXMgZW5hYmxlZCwgdGhlIHVzZXIgbWlnaHQgaGF2ZSBvdmVy
-DQo+Pj4gcmlkZGVuDQo+Pj4gKyAgICAgICAgKiB0aGlzIHBhcmFtZXRlciBzbyBkbyBub3QgZ2V0
-IGl0IGZyb20gdm9sdGFnZSB0YWJsZQ0KPj4+ICsgICAgICAgICovDQo+Pg0KPj50aGlzIGNvbW1l
-bnQgbmVlZHMgYmV0dGVyIHB1bmN0dWF0aW9uIHRvIGJlIGNsZWFyZXINCg0KV2lsbCBkbw0KDQo+
-Pg0KPj4+ICsgICAgICAgaWYgKCFlbmFibGVfc3JfdnBfZGVidWcpDQo+Pj4gKyAgICAgICAgICAg
-ICAgIHNyLT5lcnJfbWlubGltaXQgPSB2b2x0X2RhdGEtPnNyX2Vycm1pbmxpbWl0Ow0KPj4NCj4+
-UmF0aGVyIHRoYW4gY2hlY2tpbmcgaWYgZGVidWcgaXMgZW5hYmxlZCwgeW91IHNob3VsZCBjcmVh
-dGUgYSBmbGFnDQo+PnNwZWNpZmljIHRvIHdoZXRoZXIgdGhpcyB2YWx1ZSB3YXMgb3ZlcndyaXR0
-ZW4gYnkgdGhlIHVzZXIsIGFuZCB1c2UgdGhhdA0KPj5mbGFnIGluc3RlYWQuDQptbW0uLiBTZWUg
-bXkgY29tbWVudCByZWdhcmRpbmcgZmxhZyBhbmQgZW5hYmxlX3NyX3ZwX2RlYnVnIGluIHRoZSBv
-dGhlciBwYXRjaA0KDQpSZWdhcmRzDQpUaGFyYQ0KPj4NCj4+S2V2aW4NCj4+DQo+Pg0KPj4tLQ0K
-Pj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3Jp
-YmUgbGludXgtb21hcCIgaW4NCj4+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2
-Z2VyLmtlcm5lbC5vcmcNCj4+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2Vy
-bmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Hi Felipe,
+
+On Fri, 2010-10-22 at 16:36 +0300, Felipe Contreras wrote:
+> On Fri, Oct 22, 2010 at 3:59 PM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
+> > The current code was always returning a non-zero status value
+> > to userspace applications when this ioctl was called.
+> >
+> > The error code was ENODATA, which isn't actually an error,
+> > it's always returned by dcd_enumerate_object() when it hits the
+> > end of list.
+> >
+> > Reorganized the code so that it works like "dynreg.out -ln" from
+> > the userspace-dspbridge package expects it to work.
+> >
+> > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+> 
+> I also found this issue, but I have simpler fix. I think my fix should
+> be applied first, and then your reorganization.
+> 
+
+Yeah, mine looks more complex because of the code cleanup in
+mgr_enum_node_info().
+
+Anyway I don't have anything against applying your patch first. If your
+patch gets merged, I'll rebase my changes and submit a new one with the
+code cleanup.
+
+> >From 16759e41adc11ad1f34b757dcf19fe55c84bcfc2 Mon Sep 17 00:00:00 2001
+> From: Felipe Contreras <felipe.contreras@gmail.com>
+> Date: Sun, 19 Sep 2010 14:52:42 +0300
+> Subject: [PATCH] staging: tidspbridge: fix mgr_enum_node_info
+> 
+> It's always erroring out.
+> 
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> ---
+>  drivers/staging/tidspbridge/rmgr/mgr.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/staging/tidspbridge/rmgr/mgr.c
+> b/drivers/staging/tidspbridge/rmgr/mgr.c
+> index 57a39b9..4ba9517 100644
+> --- a/drivers/staging/tidspbridge/rmgr/mgr.c
+> +++ b/drivers/staging/tidspbridge/rmgr/mgr.c
+> @@ -148,6 +148,11 @@ int mgr_enum_node_info(u32 node_id, struct
+> dsp_ndbprops *pndb_props,
+> 
+>  		}
+>  	}
+> +
+> +	/* the last status is not 0, but neither an error */
+> +	if (status > 0)
+> +		status = 0;
+> +
+>  	if (!status) {
+>  		if (node_id > (node_index - 1)) {
+>  			status = -EINVAL;
+> 
+
+Acked-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+
