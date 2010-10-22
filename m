@@ -1,77 +1,56 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
-Date: Fri, 22 Oct 2010 09:52:09 -0700
-Message-ID: <87lj5q891i.fsf@deeprootsystems.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-9-git-send-email-thara@ti.com>
-	<87tykopccd.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB035EB95EAB@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/3] omap: add hwspinlock device
+Date: Fri, 22 Oct 2010 09:56:13 -0700
+Message-ID: <20101022165612.GF9149@atomide.com>
+References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
+ <1287387875-14168-4-git-send-email-ohad@wizery.com>
+ <87r5fmxghm.fsf@deeprootsystems.com>
+ <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
+ <87bp6pviwf.fsf@deeprootsystems.com>
+ <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
+ <8739s0sobc.fsf@deeprootsystems.com>
+ <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:38666 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755469Ab0JVQwO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 12:52:14 -0400
-Received: by pwj8 with SMTP id 8so12180pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 09:52:13 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95EAB@dbde02.ent.ti.com>
-	(Thara Gopinath's message of "Fri, 22 Oct 2010 20:11:52 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62605 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754084Ab0JVQ4T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 12:56:19 -0400
+Content-Disposition: inline
+In-Reply-To: <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Balaji T K <balajitk@ti.com>, "Kamat, Nishant" <nskamat@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
 
-"Gopinath, Thara" <thara@ti.com> writes:
+* Ohad Ben-Cohen <ohad@wizery.com> [101020 12:12]:
+> On Wed, Oct 20, 2010 at 8:37 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+> >> Let's take the i2c-omap for example.
+> >>
+> >> It sounds like it must have a predefined hwspinlock, but what if:
+> >>
+> >> 1. It will use omap_hwspinlock_request() to dynamically allocate a hwspinlock
+> >> 2. Obviously, the hwspinlock id number must be communicated to the M3
+> >> BIOS, so the i2c-omap will publish that id using a small shared memory
+> >> entry that will be allocated for this sole purpose
+> >> 3. we will make sure that 1+2 completes before the remote processor is
+> >> taken out of reset
 
->>>Thara Gopinath <thara@ti.com> writes:
->>>
->>>> This patch adds debug support to the voltage and smartreflex drivers.
->>>> This means a whole bunch of voltage processor and smartreflex
->>>> parameters are now visible through the pm debugfs. By default
->>>> only a read of these parameters are permitted. If you need to
->>>> write into them then
->>>>     echo 1 > /pm_debug/enable_sr_vp_debug
->>>
->>>Why a read-only interface by default?   As a debug interface it seems
->>>redundant to have to enable it.
->>>
->
-> Read-only interface by default so that we can read these values from
-> user space even if we do not want to manipulate it from user-side.
->
+Guys, let's try to come up with a generic interface for this instead of
+polluting the device drivers with more omap specific interfaces.
 
-If we do not want to manipulate it from the user-side, then simply don't
-write to it.   Remember, this is a debug interface, not a primary
-interface.
+We really want to keep the drivers generic and platform independent.
 
-I think the enable_sr_vp_debug flag should disappear, and it should be a
-read/write interface.
+Sure we still have some omap specific stuff in the drivers, like
+cpu_is_omapxxxx, and omap specific dma calls, but those will be going
+away.
 
-If the values are changed via debugfs, then set some per-SR instance
-flag that can be checked.
+Unless somebody has better ideas, I suggest we pass a lock function
+in the platform_data to the drivers that need it, and do the omap
+specific nasty stuff in the platform code.
 
-Basically, the current code is confusing because you're using the the
-flag called 'enable' to determine whether the user *might have* written
-the values.
+Regards,
 
-[...]
-
->>>> +   /*
->>>> +    * Getting  vp errorgain based on the voltage. If the debug option is
->>>> +    * enabled allow the override of errorgain from user side.
->>>> +    */
->>>
->>>As suggested in earlier comment, please use a specific flag that this
->>>has been overridden instead of the 'debug enabled' flag (which should
->>>disappear, IMO)
->
-> What do you mean by a separate flag. You want a flag to be maintained
-> for just this purpose ?
-
-Yes.  I want a flag to be maintained *specifically* for this purpose,
-instead of using a much more general flag that only means a user *might*
-have overridden the values, use one that specifically means a user *has*
-overridden the values.
-
-Kevin
+Tony
