@@ -1,66 +1,52 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/3] OMAP: PM: formalize idle notifications
-Date: Fri, 22 Oct 2010 15:00:22 -0700
-Message-ID: <8762wt7urt.fsf@deeprootsystems.com>
-References: <1287617483-24170-1-git-send-email-khilman@deeprootsystems.com>
-	<20101022180553.GD17595@atomide.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] staging: tidspbridge: make the MGR_ENUMNODE_INFO ioctl work
+Date: Sat, 23 Oct 2010 01:26:50 +0300
+Message-ID: <AANLkTin_h_PrMCk96dvcdTq4jy50XtcjjXM3AacyKpdX@mail.gmail.com>
+References: <1287752386-5974-1-git-send-email-ionut.nicu@mindbit.ro>
+	<AANLkTim_tRKFc84e33irZuuWmrZNApH_Y2kKXBrQ4NcJ@mail.gmail.com>
+	<1287760097.17937.20.camel@atlantis.mindbit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:53795 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752858Ab0JVWAY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 18:00:24 -0400
-Received: by pzk3 with SMTP id 3so324892pzk.19
-        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 15:00:24 -0700 (PDT)
-In-Reply-To: <20101022180553.GD17595@atomide.com> (Tony Lindgren's message of
-	"Fri, 22 Oct 2010 11:05:53 -0700")
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:60656 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078Ab0JVW0v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 18:26:51 -0400
+Received: by fxm16 with SMTP id 16so1130668fxm.19
+        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 15:26:50 -0700 (PDT)
+In-Reply-To: <1287760097.17937.20.camel@atlantis.mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ionut Nicu <ionut.nicu@mindbit.ro>
+Cc: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Tony Lindgren <tony@atomide.com> writes:
-
-> * Kevin Hilman <khilman@deeprootsystems.com> [101020 16:22]:
->> Currently in the idle path, we have custom function calls into device
->> code to handle device specific actions that need to be coordinated CPU
->> idle transitions. Rather than continue this ad-hoc method of calling
->> device code from the PM core, create a formal way for device/driver
->> code to register for idle notifications.
->> 
->> Idle notifications are done late in the idle path when interrupts are
->> disabled, hence use atomic notifier chains.  These notifications will
->> also be atomic with respect to CPU idle transitions.
+On Fri, Oct 22, 2010 at 6:08 PM, Ionut Nicu <ionut.nicu@mindbit.ro> wrote:
+> On Fri, 2010-10-22 at 16:36 +0300, Felipe Contreras wrote:
+>> On Fri, Oct 22, 2010 at 3:59 PM, Ionut Nicu <ionut.nicu@gmail.com> wrote:
+>> > The current code was always returning a non-zero status value
+>> > to userspace applications when this ioctl was called.
+>> >
+>> > The error code was ENODATA, which isn't actually an error,
+>> > it's always returned by dcd_enumerate_object() when it hits the
+>> > end of list.
+>> >
+>> > Reorganized the code so that it works like "dynreg.out -ln" from
+>> > the userspace-dspbridge package expects it to work.
+>> >
+>> > Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+>>
+>> I also found this issue, but I have simpler fix. I think my fix should
+>> be applied first, and then your reorganization.
+>>
 >
-> ...
+> Yeah, mine looks more complex because of the code cleanup in
+> mgr_enum_node_info().
 >
->> +EXPORT_SYMBOL_GPL(omap_idle_notifier_register);
->> +EXPORT_SYMBOL_GPL(omap_idle_notifier_unregister);
->
-> Let's rather set this up as a generic framework to avoid adding
-> more omap specific frameworks to the drivers.
+> Anyway I don't have anything against applying your patch first. If your
+> patch gets merged, I'll rebase my changes and submit a new one with the
+> code cleanup.
 
-Hmm, I thought I removed those EXPORT_SYMBOLs, just for that reason.  
+Or you can put it into the next version of your patch series :)
 
-I actually don't really intend these to be used from drivers, but only
-from OMAP-specific device code.  We currently use these manly for errata
-purposes, but also for UART debug purposes, and only from device code
-currently.
-
-That being said, I did consider a generic framework for this (x86_64 has
-it's own idle notfiers as well), and this topic something already on the
-table for LPC PM miniconf.  However, at least for OMAP, the location of
-when the notifiers are triggered has to be in OMAP-specific code.  It
-cannot be in the ARM-generic idle path (like they do in x86_64.)
-
-The reason is because the idle notifiers have to be called *after* the
-OMAP-specific idle path has programmed the next power states for the
-various power domains.  That way, the idle notifiers can read the next
-power state regs and make decisons on what they need to do (or not to
-do) based on whether he power domain is going to RET, OFF, etc.
-
-Kevin
-
-
-
+-- 
+Felipe Contreras
