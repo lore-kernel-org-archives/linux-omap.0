@@ -1,19 +1,20 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v3 06/11] OMAP3: PM: Adding smartreflex class3 driver
-Date: Fri, 22 Oct 2010 20:07:47 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95EA8@dbde02.ent.ti.com>
+Subject: RE: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
+ Smartreflex drivers
+Date: Fri, 22 Oct 2010 20:11:52 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95EAB@dbde02.ent.ti.com>
 References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-7-git-send-email-thara@ti.com>
- <87iq14qsmo.fsf@deeprootsystems.com>
+	<1285166719-19352-9-git-send-email-thara@ti.com>
+ <87tykopccd.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56485 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755197Ab0JVOhx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 10:37:53 -0400
-In-Reply-To: <87iq14qsmo.fsf@deeprootsystems.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50758 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755015Ab0JVOmE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 10:42:04 -0400
+In-Reply-To: <87tykopccd.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -24,193 +25,473 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 
 >>-----Original Message-----
 >>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Friday, October 15, 2010 4:39 AM
+>>Sent: Friday, October 15, 2010 5:16 AM
 >>To: Gopinath, Thara
 >>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
 >>Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH v3 06/11] OMAP3: PM: Adding smartreflex class3 driver
+>>Subject: Re: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
+>>Smartreflex drivers
 >>
 >>Thara Gopinath <thara@ti.com> writes:
 >>
->>> Smartreflex Class3 implementation continuously monitors
->>> silicon performance  and instructs the Voltage Processors
->>> to increase or decrease the voltage.
->>> This patch adds smartreflex class 3 driver. This driver hooks
->>> up with the generic smartreflex driver smartreflex.c to abstract
->>> out class specific implementations out of the generic driver.
+>>> This patch adds debug support to the voltage and smartreflex drivers.
+>>> This means a whole bunch of voltage processor and smartreflex
+>>> parameters are now visible through the pm debugfs. By default
+>>> only a read of these parameters are permitted. If you need to
+>>> write into them then
+>>>     echo 1 > /pm_debug/enable_sr_vp_debug
+>>
+>>Why a read-only interface by default?   As a debug interface it seems
+>>redundant to have to enable it.
+Read-only interface by default so that we can read these values from user space even if we do not want to manipulate it from user-side.
+
+>>
+>>> The voltage parameters can be viewed at
+>>>     /pm_debug/voltage/vdd_<x>/<parameter>
+>>> and the smartreflex parameters can be viewed at
+>>>     /pm_debug/smartreflex/sr_<x>/<parameter>
+>>>
+>>> where <x> is mpu or core for OMAP3.
 >>>
 >>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>
->>Some minor comments below...
-
-Thanks for the review!
-
->>
 >>> ---
->>>  arch/arm/mach-omap2/Makefile             |    1 +
->>>  arch/arm/mach-omap2/smartreflex-class3.c |   61
->>++++++++++++++++++++++++++++++
->>>  arch/arm/mach-omap2/smartreflex-class3.h |   23 +++++++++++
->>>  arch/arm/plat-omap/Kconfig               |    9 ++++
->>>  4 files changed, 94 insertions(+), 0 deletions(-)
->>>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
->>>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
+>>>  arch/arm/mach-omap2/pm-debug.c                |   15 ++
+>>>  arch/arm/mach-omap2/smartreflex.c             |   40 +++++-
+>>>  arch/arm/mach-omap2/voltage.c                 |  210
+>>++++++++++++++++++++++++-
+>>>  arch/arm/plat-omap/include/plat/smartreflex.h |    1 -
+>>>  arch/arm/plat-omap/include/plat/voltage.h     |    5 +
+>>>  5 files changed, 264 insertions(+), 7 deletions(-)
 >>>
->>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
->>> index abc377a..4f6139c 100644
->>> --- a/arch/arm/mach-omap2/Makefile
->>> +++ b/arch/arm/mach-omap2/Makefile
->>> @@ -57,6 +57,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
->>voltage.o \
->>>  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
->>>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
->>>  obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
->>> +obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+>>> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-
+>>debug.c
+>>> index 390f1c6..879efb2 100644
+>>> --- a/arch/arm/mach-omap2/pm-debug.c
+>>> +++ b/arch/arm/mach-omap2/pm-debug.c
+>>> @@ -32,6 +32,7 @@
+>>>  #include <plat/powerdomain.h>
+>>>  #include <plat/clockdomain.h>
+>>>  #include <plat/dmtimer.h>
+>>> +#include <plat/voltage.h>
 >>>
->>>  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
->>>  AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
->>> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-
->>omap2/smartreflex-class3.c
->>> new file mode 100644
->>> index 0000000..f1ade08
->>> --- /dev/null
->>> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
->>> @@ -0,0 +1,61 @@
->>> +/*
->>> + * Smart reflex Class 3 specific implementations
->>> + *
->>> + * Author: Thara Gopinath       <thara@ti.com>
->>> + *
->>> + * Copyright (C) 2010 Texas Instruments, Inc.
->>> + * Thara Gopinath <thara@ti.com>
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
+>>>  #include "prm.h"
+>>>  #include "cm.h"
+>>> @@ -586,6 +587,18 @@ static int option_set(void *data, u64 val)
+>>>                     omap3_pm_off_mode_enable(val);
+>>>     }
+>>>
+>>> +   if (option == &enable_sr_vp_debug && val)
+>>> +           pr_notice("Beware that enabling this option will allow user "
+>>> +                   "to override the system defined vp and sr parameters "
+>>> +                   "All the updated parameters will take effect next "
+>>> +                   "time smartreflex is enabled. Also this option "
+>>> +                   "disables the automatic vp errorgain and sr errormin "
+>>> +                   "limit changes as per the voltage. Users will have "
+>>> +                   "to explicitly write values into the debug fs "
+>>> +                   "entries corresponding to these if they want to see "
+>>> +                   "them changing according to the VDD voltage\n");
 >>> +
->>> +#include <plat/smartreflex.h>
 >>> +
->>> +#include "smartreflex-class3.h"
->>> +
->>> +static int sr_class3_enable(struct voltagedomain *voltdm)
+>>>     return 0;
+>>>  }
+>>>
+>>> @@ -642,6 +655,8 @@ static int __init pm_dbg_init(void)
+>>>     (void) debugfs_create_file("wakeup_timer_milliseconds",
+>>>                     S_IRUGO | S_IWUGO, d, &wakeup_timer_milliseconds,
+>>>                     &pm_dbg_option_fops);
+>>> +   (void) debugfs_create_file("enable_sr_vp_debug",  S_IRUGO | S_IWUGO, d,
+>>> +                           &enable_sr_vp_debug, &pm_dbg_option_fops);
+>>>
+>>>     pm_dbg_main_dir = d;
+>>>     pm_dbg_init_done = 1;
+>>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-
+>>omap2/smartreflex.c
+>>> index 7fc3138..b5a7878 100644
+>>> --- a/arch/arm/mach-omap2/smartreflex.c
+>>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>>> @@ -558,8 +558,13 @@ int sr_enable(struct voltagedomain *voltdm, unsigned
+>>long volt)
+>>>             return -ENODATA;
+>>>     }
+>>>
+>>> -   /* errminlimit is opp dependent and hence linked to voltage */
+>>> -   sr->err_minlimit = volt_data->sr_errminlimit;
+>>> +   /*
+>>> +    * errminlimit is opp dependent and hence linked to voltage
+>>> +    * if the debug option is enabled, the user might have over ridden
+>>> +    * this parameter so do not get it from voltage table
+>>> +    */
+>>> +   if (!enable_sr_vp_debug)
+>>> +           sr->err_minlimit = volt_data->sr_errminlimit;
+>>>
+>>>     /* Enable the clocks */
+>>>     if (!sr->sr_enable) {
+>>> @@ -811,9 +816,34 @@ static int omap_sr_autocomp_store(void *data, u64 val)
+>>>     return 0;
+>>>  }
+>>>
+>>> +static int omap_sr_params_show(void *data, u64 *val)
 >>> +{
->>> +	unsigned long volt = 0;
+>>> +   u32 *param = data;
+>>> +
+>>> +   *val = *param;
+>>> +   return 0;
+>>> +}
+>>> +
+>>> +static int omap_sr_params_store(void *data, u64 val)
+>>> +{
+>>> +   if (enable_sr_vp_debug) {
+>>> +           u32 *option = data;
 >>
->>minor: '= 0' assignment not needed as it's immediately assigned in the
->>next line.
+>>insert blank line
 
-Ok.
+Will do
 
 >>
->>> +	volt = omap_voltage_get_nom_volt(voltdm);
->>> +	if (!volt) {
->>> +		pr_warning("%s: Curr voltage unknown. Cannot enable sr_%s\n",
->>> +				__func__, voltdm->name);
->>> +		return -ENODATA;
->>> +	}
->>> +
->>> +	omap_vp_enable(voltdm);
->>> +	return sr_enable(voltdm, volt);
->>> +}
->>> +
->>> +static int sr_class3_disable(struct voltagedomain *voltdm, int
->>is_volt_reset)
->>> +{
->>> +	omap_vp_disable(voltdm);
->>> +	sr_disable(voltdm);
->>> +	if (is_volt_reset)
->>> +		omap_voltage_reset(voltdm);
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +static int sr_class3_configure(struct voltagedomain *voltdm)
->>> +{
->>> +	return sr_configure_errgen(voltdm);
->>> +}
->>> +
->>> +/* SR class3 structure */
->>> +static struct omap_smartreflex_class_data class3_data = {
->>> +	.enable = sr_class3_enable,
->>> +	.disable = sr_class3_disable,
->>> +	.configure = sr_class3_configure,
->>> +	.class_type = SR_CLASS3,
->>> +};
->>> +
->>> +/* Smartreflex CLASS3 init API to be called from board file */
+>>> +           *option = val;
+>>> +   } else {
+>>> +           pr_notice("%s: DEBUG option not enabled!\n      \
 >>
->>s/CLASS3/Class 3/
+>>you don't need a '\' to continue strings onto new lines.  Just end the
+>>string, and start another on the next line, as you've done elsewhere in
+>>the patch.
 
 Will correct
 
 >>
->>> +int __init sr_class3_init(void)
->>> +{
->>> +	pr_info("SmartReflex CLASS3 initialized\n");
->>
->>ditto
-
-Will correct
-
->>
->>> +	return sr_register_class(&class3_data);
+>>> +                   echo 1 > pm_debug/enable_sr_vp_debug - to enable\n",
+>>> +                   __func__);
+>>> +   }
+>>> +
+>>> +   return 0;
 >>> +}
->>> diff --git a/arch/arm/mach-omap2/smartreflex-class3.h b/arch/arm/mach-
->>omap2/smartreflex-class3.h
->>> new file mode 100644
->>> index 0000000..4d86037
->>> --- /dev/null
->>> +++ b/arch/arm/mach-omap2/smartreflex-class3.h
->>> @@ -0,0 +1,23 @@
->>> +/*
->>> + * Smartreflex Class 3 Routines
->>> + *
->>> + * Author: Thara Gopinath      <thara@ti.com>
->>> + *
->>> + * Copyright (C) 2010 Texas Instruments, Inc.
->>> + * Thara Gopinath <thara@ti.com>
->>> + *
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
 >>> +
->>> +#ifndef __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
->>> +#define __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
->>> +
->>> +#ifdef CONFIG_OMAP_SMARTREFLEX_CLASS3
->>> +int sr_class3_init(void);
->>> +#else
->>> +static int sr_class3_init(void) { return 0; }
->>> +#endif
->>> +
->>> +#endif
->>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
->>> index 8056349..af7acc9 100644
->>> --- a/arch/arm/plat-omap/Kconfig
->>> +++ b/arch/arm/plat-omap/Kconfig
->>> @@ -67,6 +67,15 @@ config OMAP_SMARTREFLEX_TESTING
+>>>  DEFINE_SIMPLE_ATTRIBUTE(pm_sr_fops, omap_sr_autocomp_show,
+>>>             omap_sr_autocomp_store, "%llu\n");
 >>>
->>>  	  WARNING: Enabling this option may cause your device to hang!
->>>
->>> +config OMAP_SMARTREFLEX_CLASS3
->>> +	bool "Class 3 mode of Smartreflex Implementation"
->>> +	depends on OMAP_SMARTREFLEX && TWL4030_CORE
->>> +	help
->>> +	  Say Y to enable Class 3 implementation of Smartreflex
+>>> +DEFINE_SIMPLE_ATTRIBUTE(sr_params_fops, omap_sr_params_show,
+>>> +           omap_sr_params_store, "%llu\n");
 >>> +
->>> +	  Class 3 implementation of Smartreflex employs continuous hardware
->>> +	  voltage caliberation.
+>>>  static int __init omap_smartreflex_probe(struct platform_device *pdev)
+>>>  {
+>>>     struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
+>>> @@ -907,6 +937,12 @@ static int __init omap_smartreflex_probe(struct
+>>platform_device *pdev)
+>>>
+>>>     (void) debugfs_create_file("autocomp", S_IRUGO | S_IWUGO, dbg_dir,
+>>>                             (void *)sr_info, &pm_sr_fops);
+>>> +   (void) debugfs_create_file("errweight", S_IRUGO | S_IWUGO, dbg_dir,
+>>> +                   &sr_info->err_weight, &sr_params_fops);
+>>> +   (void) debugfs_create_file("errmaxlimit", S_IRUGO | S_IWUGO, dbg_dir,
+>>> +                   &sr_info->err_maxlimit, &sr_params_fops);
+>>> +   (void) debugfs_create_file("errminlimit", S_IRUGO | S_IWUGO, dbg_dir,
+>>> +                   &sr_info->err_minlimit, &sr_params_fops);
+>>>
+>>>     return ret;
+>>>
+>>> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
+>>> index 49013cb..70a645e 100644
+>>> --- a/arch/arm/mach-omap2/voltage.c
+>>> +++ b/arch/arm/mach-omap2/voltage.c
+>>> @@ -22,15 +22,22 @@
+>>>  #include <linux/io.h>
+>>>  #include <linux/clk.h>
+>>>  #include <linux/err.h>
+>>> +#include <linux/debugfs.h>
+>>> +#include <linux/slab.h>
+>>>
+>>>  #include <plat/common.h>
+>>>  #include <plat/voltage.h>
+>>>
+>>>  #include "prm-regbits-34xx.h"
+>>> +#include "pm.h"
+>>>
+>>>  #define VP_IDLE_TIMEOUT            200
+>>>  #define VP_TRANXDONE_TIMEOUT       300
+>>> +#define VOLTAGE_DIR_SIZE   16
+>>>
+>>> +static struct dentry *voltage_dir;
+>>> +/* VP SR debug support */
+>>> +u32 enable_sr_vp_debug;
+>>>  /* PRM voltage module */
+>>>  static u32 volt_mod;
+>>>
+>>> @@ -221,6 +228,82 @@ static inline void voltage_write_reg(u8 offset, u32
+>>value)
+>>>     prm_write_mod_reg(value, volt_mod, offset);
+>>>  }
+>>>
+>>> +/* Voltage debugfs support */
+>>> +static int vp_debug_get(void *data, u64 *val)
+>>> +{
+>>> +   u16 *option = data;
+>>> +
+>>> +   if (!option) {
+>>> +           pr_warning("Wrong paramater passed\n");
+>>> +           return -EINVAL;
+>>> +   }
+>>> +
+>>> +   *val = *option;
+>>> +
+>>> +   return 0;
+>>> +}
+>>> +
+>>> +static int vp_debug_set(void *data, u64 val)
+>>> +{
+>>> +   if (enable_sr_vp_debug) {
+>>> +           u32 *option = data;
+>>> +
+>>> +           if (!option) {
+>>> +                   pr_warning("Wrong paramater passed\n");
+>>> +                   return -EINVAL;
+>>> +           }
+>>> +
+>>> +           *option = val;
+>>> +   } else {
+>>> +           pr_notice("DEBUG option not enabled!"
+>>> +                   "echo 1 > pm_debug/enable_sr_vp_debug - to enable\n");
+>>> +   }
+>>> +
+>>> +   return 0;
+>>> +}
+>>> +
+>>> +static int vp_volt_debug_get(void *data, u64 *val)
+>>> +{
+>>> +   struct omap_vdd_info *vdd = (struct omap_vdd_info *) data;
+>>> +   u8 vsel;
+>>> +
+>>> +   if (!vdd) {
+>>> +           pr_warning("Wrong paramater passed\n");
+>>> +           return -EINVAL;
+>>> +   }
+>>> +
+>>> +   vsel = voltage_read_reg(vdd->vp_offs.voltage);
+>>> +   pr_notice("curr_vsel = %x\n", vsel);
+>>> +
+>>> +   if (!volt_pmic_info.vsel_to_uv) {
+>>> +           pr_warning("PMIC function to convert vsel to voltage"
+>>> +                   "in uV not registerd\n");
+>>> +           return -EINVAL;
+>>> +   }
+>>> +
+>>> +   *val = volt_pmic_info.vsel_to_uv(vsel);
+>>> +   return 0;
+>>> +}
+>>> +
+>>> +static int nom_volt_debug_get(void *data, u64 *val)
+>>> +{
+>>> +   struct omap_vdd_info *vdd = (struct omap_vdd_info *) data;
+>>> +
+>>> +   if (!vdd) {
+>>> +           pr_warning("Wrong paramater passed\n");
+>>> +           return -EINVAL;
+>>> +   }
+>>> +
+>>> +   *val = omap_voltage_get_nom_volt(&vdd->voltdm);
+>>> +
+>>> +   return 0;
+>>> +}
+>>> +
+>>> +DEFINE_SIMPLE_ATTRIBUTE(vp_debug_fops, vp_debug_get, vp_debug_set,
+>>"%llu\n");
+>>> +DEFINE_SIMPLE_ATTRIBUTE(vp_volt_debug_fops, vp_volt_debug_get, NULL,
+>>"%llu\n");
+>>> +DEFINE_SIMPLE_ATTRIBUTE(nom_volt_debug_fops, nom_volt_debug_get, NULL,
+>>> +                                                           "%llu\n");
+>>> +
+>>>  static void vp_latch_vsel(struct omap_vdd_info *vdd)
+>>>  {
+>>>     u32 vpconfig;
+>>> @@ -457,6 +540,61 @@ static void __init vdd_data_configure(struct
+>>omap_vdd_info *vdd)
+>>>             omap3_vdd_data_configure(vdd);
+>>>  }
+>>>
+>>> +static void __init vdd_debugfs_init(struct omap_vdd_info *vdd)
+>>> +{
+>>> +   struct dentry *vdd_debug;
+>>> +   char *name;
+>>> +
+>>> +   name = kzalloc(VOLTAGE_DIR_SIZE, GFP_KERNEL);
+>>> +   if (!name) {
+>>> +           pr_warning("%s: Unable to allocate memry for debugfs"
+>>> +                   "directory name for vdd_%s",
+>>> +                   __func__, vdd->voltdm.name);
+>>> +           return;
+>>> +   }
+>>> +   strcpy(name, "vdd_");
+>>> +   strcat(name, vdd->voltdm.name);
+>>> +
+>>> +   vdd_debug = debugfs_create_dir(name, voltage_dir);
+>>> +   if (IS_ERR(vdd_debug)) {
+>>> +           pr_warning("%s: Unable to create debugfs directory for"
+>>> +                   "vdd_%s\n", __func__, vdd->voltdm.name);
+>>> +           return;
+>>> +   }
+>>> +
+>>> +   (void) debugfs_create_file("vp_errorgain", S_IRUGO | S_IWUGO,
+>>> +                           vdd_debug,
+>>> +                           &(vdd->vp_reg.vpconfig_errorgain),
+>>> +                           &vp_debug_fops);
+>>> +   (void) debugfs_create_file("vp_smpswaittimemin", S_IRUGO | S_IWUGO,
+>>> +                           vdd_debug,
+>>> +                           &(vdd->vp_reg.vstepmin_smpswaittimemin),
+>>> +                           &vp_debug_fops);
+>>> +   (void) debugfs_create_file("vp_stepmin", S_IRUGO | S_IWUGO, vdd_debug,
+>>> +                           &(vdd->vp_reg.vstepmin_stepmin),
+>>> +                           &vp_debug_fops);
+>>> +   (void) debugfs_create_file("vp_smpswaittimemax", S_IRUGO | S_IWUGO,
+>>> +                           vdd_debug,
+>>> +                           &(vdd->vp_reg.vstepmax_smpswaittimemax),
+>>> +                           &vp_debug_fops);
+>>> +   (void) debugfs_create_file("vp_stepmax", S_IRUGO | S_IWUGO, vdd_debug,
+>>> +                           &(vdd->vp_reg.vstepmax_stepmax),
+>>> +                           &vp_debug_fops);
+>>> +   (void) debugfs_create_file("vp_vddmax", S_IRUGO | S_IWUGO, vdd_debug,
+>>> +                           &(vdd->vp_reg.vlimitto_vddmax),
+>>> +                           &vp_debug_fops);
+>>> +   (void) debugfs_create_file("vp_vddmin", S_IRUGO | S_IWUGO, vdd_debug,
+>>> +                           &(vdd->vp_reg.vlimitto_vddmin),
+>>> +                           &vp_debug_fops);
+>>> +   (void) debugfs_create_file("vp_timeout", S_IRUGO | S_IWUGO, vdd_debug,
+>>> +                           &(vdd->vp_reg.vlimitto_timeout),
+>>> +                           &vp_debug_fops);
+>>> +   (void) debugfs_create_file("curr_vp_volt", S_IRUGO, vdd_debug,
+>>> +                           (void *) vdd, &vp_volt_debug_fops);
+>>> +   (void) debugfs_create_file("curr_nominal_volt", S_IRUGO, vdd_debug,
+>>> +                           (void *) vdd, &nom_volt_debug_fops);
+>>> +}
+>>> +
+>>>  static void __init init_voltagecontroller(void)
+>>>  {
+>>>     if (cpu_is_omap34xx())
+>>> @@ -524,8 +662,11 @@ static int vc_bypass_scale_voltage(struct
+>>omap_vdd_info *vdd,
+>>>     vc_cmdval |= (target_vsel << vc_cmd_on_shift);
+>>>     voltage_write_reg(vdd->cmdval_reg, vc_cmdval);
+>>>
+>>> -   /* Setting vp errorgain based on the voltage */
+>>> -   if (volt_data) {
+>>> +   /*
+>>> +    * Setting vp errorgain based on the voltage. If the debug option is
+>>> +    * enabled allow the override of errorgain from user side
+>>> +    */
+>>> +   if (!enable_sr_vp_debug && volt_data) {
 >>
->>calibration
+>>Doesn't this happen before the debugfs interface is ready?
+
+Nope it will not. This is the voltage scaling API
+
+>>
+>>>             vp_errgain_val = voltage_read_reg(vdd->vp_offs.vpconfig);
+>>>             vdd->vp_reg.vpconfig_errorgain = volt_data->vp_errgain;
+>>>             vp_errgain_val &= ~vdd->vp_reg.vpconfig_errorgain_mask;
+>>> @@ -630,8 +771,11 @@ static int vp_forceupdate_scale_voltage(struct
+>>omap_vdd_info *vdd,
+>>>     vc_cmdval |= (target_vsel << vc_cmd_on_shift);
+>>>     voltage_write_reg(vdd->cmdval_reg, vc_cmdval);
+>>>
+>>> -   /* Getting  vp errorgain based on the voltage */
+>>> -   if (volt_data)
+>>> +   /*
+>>> +    * Getting  vp errorgain based on the voltage. If the debug option is
+>>> +    * enabled allow the override of errorgain from user side.
+>>> +    */
+>>
+>>As suggested in earlier comment, please use a specific flag that this
+>>has been overridden instead of the 'debug enabled' flag (which should
+>>disappear, IMO)
+
+What do you mean by a separate flag. You want a flag to be maintained for just this purpose ?
+
+>>
+>>> +   if (!enable_sr_vp_debug && volt_data)
+>>>             vdd->vp_reg.vpconfig_errorgain =
+>>>                                     volt_data->vp_errgain;
+>>>
+>>> @@ -806,6 +950,37 @@ void omap_vp_enable(struct voltagedomain *voltdm)
+>>>     if (!voltscale_vpforceupdate)
+>>>             vp_latch_vsel(vdd);
+>>>
+>>> +   /*
+>>> +    * If debug is enabled, it is likely that the following parameters
+>>> +    * were set from user space so rewrite them.
+>>> +    */
+>>
+>>Again, use some sort of override flag, not just the debug enabled flag.
+>>
+>>> +   if (enable_sr_vp_debug) {
+>>> +           vpconfig = voltage_read_reg(vdd->vp_offs.vpconfig);
+>>> +           vpconfig |= (vdd->vp_reg.vpconfig_errorgain <<
+>>> +                   vdd->vp_reg.vpconfig_errorgain_shift);
+>>> +           voltage_write_reg(vdd->vp_offs.vpconfig, vpconfig);
+>>> +
+>>> +           voltage_write_reg(vdd->vp_offs.vstepmin,
+>>> +                   (vdd->vp_reg.vstepmin_smpswaittimemin <<
+>>> +                   vdd->vp_reg.vstepmin_smpswaittimemin_shift) |
+>>> +                   (vdd->vp_reg.vstepmin_stepmin <<
+>>> +                   vdd->vp_reg.vstepmin_stepmin_shift));
+>>> +
+>>> +           voltage_write_reg(vdd->vp_offs.vstepmax,
+>>> +                   (vdd->vp_reg.vstepmax_smpswaittimemax <<
+>>> +                   vdd->vp_reg.vstepmax_smpswaittimemax_shift) |
+>>> +                   (vdd->vp_reg.vstepmax_stepmax <<
+>>> +                   vdd->vp_reg.vstepmax_stepmax_shift));
+>>> +
+>>> +           voltage_write_reg(vdd->vp_offs.vlimitto,
+>>> +                   (vdd->vp_reg.vlimitto_vddmax <<
+>>> +                   vdd->vp_reg.vlimitto_vddmax_shift) |
+>>> +                   (vdd->vp_reg.vlimitto_vddmin <<
+>>> +                   vdd->vp_reg.vlimitto_vddmin_shift) |
+>>> +                   (vdd->vp_reg.vlimitto_timeout <<
+>>> +                   vdd->vp_reg.vlimitto_timeout_shift));
+>>> +   }
+>>> +
+>>>     /* Enable VP */
+>>>     vpconfig = voltage_read_reg(vdd->vp_offs.vpconfig);
+>>>     voltage_write_reg(vdd->vp_offs.vpconfig,
+>>> @@ -1107,6 +1282,7 @@ static int __init omap_voltage_init(void)
+>>>             return 0;
+>>>     }
+>>>
+>>> +
+>>
+>>stray whitespace change
 
 Will correct
 
 >>
+>>>     init_voltagecontroller();
+>>>     for (i = 0; i < nr_scalable_vdd; i++) {
+>>>             vdd_data_configure(&vdd_info[i]);
+>>> @@ -1115,3 +1291,29 @@ static int __init omap_voltage_init(void)
+>>>     return 0;
+>>>  }
+>>>  core_initcall(omap_voltage_init);
 >>> +
->>>  config OMAP_RESET_CLOCKS
->>>  	bool "Reset unused clocks during boot"
->>>  	depends on ARCH_OMAP
+>>> +static int __init omap_voltage_debugfs_init(void)
+>>> +{
+>>> +   int i;
+>>> +
+>>> +   /*
+>>> +    * If pm debug main directory is not created,
+>>> +    * do not create rest of the debugfs entries.
+>>> +    */
+>>> +   if (!pm_dbg_main_dir)
+>>> +           return 0;
+>>> +
+>>> +   voltage_dir = debugfs_create_dir("voltage", pm_dbg_main_dir);
+>>> +   if (IS_ERR(voltage_dir)) {
+>>> +           pr_err("%s: Unable to create voltage debugfs main dir\n",
+>>> +                   __func__);
+>>> +           return 0;
+>>> +   }
+>>> +
+>>> +   for (i = 0; i < nr_scalable_vdd; i++)
+>>> +           vdd_debugfs_init(&vdd_info[i]);
+>>> +
+>>> +   return 0;
+>>> +}
+>>> +
 >>
 >>Kevin
