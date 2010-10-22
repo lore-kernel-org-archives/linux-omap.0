@@ -1,42 +1,33 @@
-From: Ionut Nicu <ionut.nicu@mindbit.ro>
-Subject: Re: [PATCH 3/4] staging: tidspbridge: remove gb bitmap
- implementation
-Date: Fri, 22 Oct 2010 17:08:42 +0300
-Message-ID: <1287756522.17937.9.camel@atlantis.mindbit.ro>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 0/4] staging: tidspbridge: various cleanups
+Date: Fri, 22 Oct 2010 06:58:50 -0700
+Message-ID: <20101022135850.GC2386@kroah.com>
 References: <1287752251-5847-1-git-send-email-ionut.nicu@mindbit.ro>
-	 <1287752251-5847-4-git-send-email-ionut.nicu@mindbit.ro>
-	 <AANLkTikNO53eTTNE1Ed1Tt6Km8BBMah+Rqb6soAQYvCe@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns.mindbit.ro ([80.86.127.26]:50502 "EHLO ns.mindbit.ro"
+Received: from kroah.org ([198.145.64.141]:47939 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756002Ab0JVOIw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 Oct 2010 10:08:52 -0400
-In-Reply-To: <AANLkTikNO53eTTNE1Ed1Tt6Km8BBMah+Rqb6soAQYvCe@mail.gmail.com>
+	id S1757082Ab0JVOJ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Oct 2010 10:09:59 -0400
+Content-Disposition: inline
+In-Reply-To: <1287752251-5847-1-git-send-email-ionut.nicu@mindbit.ro>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Ionut Nicu <ionut.nicu@gmail.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Hi Andy,
+On Fri, Oct 22, 2010 at 03:57:27PM +0300, Ionut Nicu wrote:
+> This set of patches replaces some of the redundant components of
+> the tidspbridge driver, such as:
 
-On Fri, 2010-10-22 at 16:18 +0300, Andy Shevchenko wrote:
-> Briefly I see the clean up of the code as well, which is not related
-> to the mentioned description.
-> I guess it would be better to split this patch at least to two.
-> 
+<snip>
 
-Point taken. I will split this patch into 2 patches: one that converts
-gb to bitmap and one which does the code cleanup.
+You did see my "the merge window is closed for .37 for the staging tree"
+message I sent out yesterday, right?
 
-Most likely I will have to break patch 4/4 from this series (which I
-also believe is way too big) into multiple patches and re-submit.
+Please resend these when 2.6.37-rc1 comes out and I will consider them.
 
-I'm expecting some advices from the maintainers/list on how to split
-patch 4 (lst_list removal).
+thanks,
 
-Thanks,
-Ionut.
-
+greg k-h
