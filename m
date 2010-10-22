@@ -1,211 +1,216 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v3 04/11] OMAP3: PM: Adding smartreflex device file.
-Date: Fri, 22 Oct 2010 20:06:47 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95EA6@dbde02.ent.ti.com>
+Subject: RE: [PATCH v3 06/11] OMAP3: PM: Adding smartreflex class3 driver
+Date: Fri, 22 Oct 2010 20:07:47 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95EA8@dbde02.ent.ti.com>
 References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	 <1285166719-19352-5-git-send-email-thara@ti.com>
- <1287084563.14514.155.camel@localhost>
+	<1285166719-19352-7-git-send-email-thara@ti.com>
+ <87iq14qsmo.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56420 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:56485 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754248Ab0JVOgx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 10:36:53 -0400
-In-Reply-To: <1287084563.14514.155.camel@localhost>
+	with ESMTP id S1755197Ab0JVOhx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 10:37:53 -0400
+In-Reply-To: <87iq14qsmo.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-DQoNCj4+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+RnJvbTogbGludXgtb21hcC1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLQ0KPj5vd25lckB2Z2VyLmtlcm5l
-bC5vcmddIE9uIEJlaGFsZiBPZiBLZXZpbiBIaWxtYW4NCj4+U2VudDogRnJpZGF5LCBPY3RvYmVy
-IDE1LCAyMDEwIDEyOjU5IEFNDQo+PlRvOiBHb3BpbmF0aCwgVGhhcmENCj4+Q2M6IGxpbnV4LW9t
-YXBAdmdlci5rZXJuZWwub3JnOyBwYXVsQHB3c2FuLmNvbTsgQ291c3NvbiwgQmVub2l0OyBTcmlw
-YXRoeSwNCj4+VmlzaHdhbmF0aDsgU2F3YW50LCBBbmFuZA0KPj5TdWJqZWN0OiBSZTogW1BBVENI
-IHYzIDA0LzExXSBPTUFQMzogUE06IEFkZGluZyBzbWFydHJlZmxleCBkZXZpY2UgZmlsZS4NCj4+
-DQo+Pk9uIFdlZCwgMjAxMC0wOS0yMiBhdCAyMDoxNSArMDUzMCwgVGhhcmEgR29waW5hdGggd3Jv
-dGU6DQo+Pj4gVGhpcyBwYXRjaCBhZGRzIHN1cHBvcnQgZm9yIGRldmljZSByZWdpc3RyYXRpb24g
-b2YgdmFyaW91cw0KPj4+IHNtYXJ0cmVmbGV4IG1vZHVsZSBwcmVzZW50IGluIHRoZSBzeXN0ZW0u
-IFRoaXMgcGF0Y2ggaW50cm9kdWNlcw0KPj4+IHRoZSBwbGF0Zm9ybSBkYXRhIGZvciBzbWFydHJl
-ZmxleCBkZXZpY2VzIHdoaWNoIGluY2x1ZGUNCj4+PiB0aGUgZWZ1c2VkIGFuZCB0ZXN0IG4tdGFy
-Z2V0IHZhdWxlcywgbW9kdWxlIGVuYWJsZS9kaXNhYmxlDQo+Pj4gcG9pbnRlcnMgYW5kIGEgcGFy
-YW1ldGVyIHRvIGluZGljYXRlIHdoZXRoZXIgc21hcnRyZWZsZXgNCj4+PiBhdXRvY29tcGVuc2F0
-aW9uIG5lZWRzIHRvIGJlIGVuYWJsZWQgb24gaW5pdCBvciBub3QuDQo+Pj4gQ3VycmVudGx5IGF1
-b2NvbXBlbnNhdGlvbiBpcyBlbmFibGVkIG9uIGluaXQgYnkgZGVmYXVsdA0KPj4+IGZvciBPTUFQ
-MzQzMCBFUzMuMSBjaGlwLg0KPj4+DQo+Pj4gU2lnbmVkLW9mZi1ieTogVGhhcmEgR29waW5hdGgg
-PHRoYXJhQHRpLmNvbT4NCj4+PiAtLS0NCj4+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmls
-ZSAgICB8ICAgIDIgKy0NCj4+PiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9zcl9kZXZpY2UuYyB8ICAx
-NzQNCj4+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+Pj4gIDIgZmls
-ZXMgY2hhbmdlZCwgMTc1IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pDQo+Pj4gIGNyZWF0
-ZSBtb2RlIDEwMDY0NCBhcmNoL2FybS9tYWNoLW9tYXAyL3NyX2RldmljZS5jDQo+Pj4NCj4+PiBk
-aWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmlsZSBiL2FyY2gvYXJtL21hY2gt
-b21hcDIvTWFrZWZpbGUNCj4+PiBpbmRleCA4ZGQzMmE3Li5hYmMzNzdhIDEwMDY0NA0KPj4+IC0t
-LSBhL2FyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUNCj4+PiArKysgYi9hcmNoL2FybS9tYWNo
-LW9tYXAyL01ha2VmaWxlDQo+Pj4gQEAgLTU2LDcgKzU2LDcgQEAgb2JqLSQoQ09ORklHX0FSQ0hf
-T01BUDMpCQkrPSBwbTM0eHgubyBzbGVlcDM0eHgubw0KPj52b2x0YWdlLm8gXA0KPj4+ICAJCQkJ
-CSAgIGNwdWlkbGUzNHh4Lm8gcG1fYnVzLm8NCj4+PiAgb2JqLSQoQ09ORklHX0FSQ0hfT01BUDQp
-CQkrPSBwbTQ0eHgubyBwbV9idXMubw0KPj4+ICBvYmotJChDT05GSUdfUE1fREVCVUcpCQkJKz0g
-cG0tZGVidWcubw0KPj4+IC1vYmotJChDT05GSUdfT01BUF9TTUFSVFJFRkxFWCkgICAgICAgICAg
-Kz0gc21hcnRyZWZsZXgubw0KPj4+ICtvYmotJChDT05GSUdfT01BUF9TTUFSVFJFRkxFWCkgICAg
-ICAgICAgKz0gc3JfZGV2aWNlLm8gc21hcnRyZWZsZXgubw0KPj4+DQo+Pj4gIEFGTEFHU19zbGVl
-cDI0eHgubwkJCTo9LVdhLC1tYXJjaD1hcm12Ng0KPj4+ICBBRkxBR1Nfc2xlZXAzNHh4Lm8JCQk6
-PS1XYSwtbWFyY2g9YXJtdjctYQ0KPj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAy
-L3NyX2RldmljZS5jIGIvYXJjaC9hcm0vbWFjaC0NCj4+b21hcDIvc3JfZGV2aWNlLmMNCj4+PiBu
-ZXcgZmlsZSBtb2RlIDEwMDY0NA0KPj4+IGluZGV4IDAwMDAwMDAuLjYwNmRhNTkNCj4+PiAtLS0g
-L2Rldi9udWxsDQo+Pj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9zcl9kZXZpY2UuYw0KPj4+
-IEBAIC0wLDAgKzEsMTc0IEBADQo+Pj4gKy8qDQo+Pj4gKyAqIE9NQVAzL09NQVA0IHNtYXJ0cmVm
-bGV4IGRldmljZSBmaWxlDQo+Pj4gKyAqDQo+Pj4gKyAqIEF1dGhvcjogVGhhcmEgR29waW5hdGgJ
-PHRoYXJhQHRpLmNvbT4NCj4+PiArICoNCj4+PiArICogQmFzZWQgb3JpZ2luYWxseSBvbiBjb2Rl
-IGZyb20gc21hcnRyZWZsZXguYw0KPj4+ICsgKiBDb3B5cmlnaHQgKEMpIDIwMTAgVGV4YXMgSW5z
-dHJ1bWVudHMsIEluYy4NCj4+PiArICogVGhhcmEgR29waW5hdGggPHRoYXJhQHRpLmNvbT4NCj4+
-PiArICoNCj4+PiArICogQ29weXJpZ2h0IChDKSAyMDA4IE5va2lhIENvcnBvcmF0aW9uDQo+Pj4g
-KyAqIEthbGxlIEpva2luaWVtaQ0KPj4+ICsgKg0KPj4+ICsgKiBDb3B5cmlnaHQgKEMpIDIwMDcg
-VGV4YXMgSW5zdHJ1bWVudHMsIEluYy4NCj4+PiArICogTGVzbHkgQSBNIDx4MDA4MDk3MEB0aS5j
-b20+DQo+Pj4gKyAqDQo+Pj4gKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3Ug
-Y2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5DQo+Pj4gKyAqIGl0IHVuZGVyIHRoZSB0
-ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFzDQo+Pj4g
-KyAqIHB1Ymxpc2hlZCBieSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLg0KPj4+ICsgKi8N
-Cj4+PiArDQo+Pj4gKyNpbmNsdWRlIDxsaW51eC9lcnIuaD4NCj4+PiArI2luY2x1ZGUgPGxpbnV4
-L3NsYWIuaD4NCj4+PiArDQo+Pj4gKyNpbmNsdWRlIDxwbGF0L2NvbnRyb2wuaD4NCj4+PiArI2lu
-Y2x1ZGUgPHBsYXQvb21hcF9kZXZpY2UuaD4NCj4+PiArI2luY2x1ZGUgPHBsYXQvc21hcnRyZWZs
-ZXguaD4NCj4+PiArI2luY2x1ZGUgPHBsYXQvdm9sdGFnZS5oPg0KPj4+ICsNCj4+PiArc3RhdGlj
-IHN0cnVjdCBvbWFwX2RldmljZV9wbV9sYXRlbmN5IG9tYXBfc3JfbGF0ZW5jeVtdID0gew0KPj4+
-ICsJew0KPj4+ICsJCS5kZWFjdGl2YXRlX2Z1bmMgPSBvbWFwX2RldmljZV9pZGxlX2h3bW9kcywN
-Cj4+PiArCQkuYWN0aXZhdGVfZnVuYwkgPSBvbWFwX2RldmljZV9lbmFibGVfaHdtb2RzLA0KPj4+
-ICsJCS5mbGFncyA9IE9NQVBfREVWSUNFX0xBVEVOQ1lfQVVUT19BREpVU1QNCj4+PiArCX0sDQo+
-Pj4gK307DQo+Pj4gKw0KPj4+ICsjaWZkZWYgT01BUF9TTUFSVFJFRkxFWF9URVNUSU5HDQo+Pj4g
-Ky8qDQo+Pj4gKyAqIEhhcmQgY29kZWQgbnZhbHVlcyBmb3IgdGVzdGluZyBwdXJwb3NlcyBmb3Ig
-T01BUDM0MzAsDQo+Pj4gKyAqIG1heSBjYXVzZSBkZXZpY2UgdG8gaGFuZyENCj4+PiArICovDQo+
-Pj4gK3N0YXRpYyB2b2lkIF9faW5pdCBzcl9zZXRfbnZhbHVlcyhzdHJ1Y3Qgb21hcF9zcl9kZXZf
-ZGF0YSAqZGV2X2RhdGEsDQo+Pj4gKwkJCQlzdHJ1Y3Qgb21hcF9zcl9kYXRhICpzcl9kYXRhKQ0K
-Pj4+ICt7DQo+Pj4gKwlpbnQgaTsNCj4+PiArDQo+Pj4gKwlpZiAoIWRldl9kYXRhIHx8ICFkZXZf
-ZGF0YS0+dm9sdHNfc3VwcG9ydGVkIHx8DQo+Pj4gKwkJCSFkZXZfZGF0YS0+dm9sdF9kYXRhIHx8
-ICFkZXZfZGF0YS0+dGVzdF9udmFsdWVzKSB7DQo+Pj4gKwkJcHJfd2FybmluZygiJXM6IEJhZCBw
-YXJhbWV0ZXJzISBkZXZfZGF0YSA9ICV4LCINCj4+PiArCQkJImRldl9kYXRhLT52b2x0c19zdXBw
-b3J0ZWQgPSAleCwiDQo+Pj4gKwkJCSJkZXZfZGF0YS0+dm9sdF9kYXRhID0gJXgsIg0KPj4+ICsJ
-CQkiZGV2X2RhdGEtPnRlc3RfbnZhbHVlcyA9ICV4XG4iLCBfX2Z1bmNfXywNCj4+PiArCQkJKHVu
-c2lnbmVkIGludClkZXZfZGF0YSwgZGV2X2RhdGEtPnZvbHRzX3N1cHBvcnRlZCwNCj4+PiArCQkJ
-KHVuc2lnbmVkIGludClkZXZfZGF0YS0+dm9sdF9kYXRhLA0KPj4+ICsJCQkodW5zaWduZWQgaW50
-KWRldl9kYXRhLT50ZXN0X252YWx1ZXMpOw0KPj4+ICsJCXJldHVybjsNCj4+PiArCX0NCj4+PiAr
-DQo+Pj4gKwlzcl9kYXRhLT5zZW5uX21vZCA9IGRldl9kYXRhLT50ZXN0X3Nlbm5lbmFibGU7DQo+
-Pj4gKwlzcl9kYXRhLT5zZW5wX21vZCA9IGRldl9kYXRhLT50ZXN0X3NlbnBlbmFibGU7DQo+Pj4g
-Kwlmb3IgKGkgPSAwOyBpIDwgZGV2X2RhdGEtPnZvbHRzX3N1cHBvcnRlZDsgaSsrKQ0KPj4+ICsJ
-CWRldl9kYXRhLT52b2x0X2RhdGFbaV0uc3JfbnZhbHVlID0gZGV2X2RhdGEtPnRlc3RfbnZhbHVl
-c1tpXTsNCj4+PiArfQ0KPj4+ICsjZWxzZQ0KPj4+ICsvKiBSZWFkIEVGVVNFIHZhbHVlcyBmcm9t
-IGNvbnRyb2wgcmVnaXN0ZXJzIGZvciBPTUFQMzQzMCAqLw0KPj4+ICtzdGF0aWMgdm9pZCBfX2lu
-aXQgc3Jfc2V0X252YWx1ZXMoc3RydWN0IG9tYXBfc3JfZGV2X2RhdGEgKmRldl9kYXRhLA0KPj4+
-ICsJCQkJc3RydWN0IG9tYXBfc3JfZGF0YSAqc3JfZGF0YSkNCj4+PiArew0KPj4+ICsJaW50IGk7
-DQo+Pj4gKw0KPj4+ICsJaWYgKCFkZXZfZGF0YSB8fCAhZGV2X2RhdGEtPnZvbHRzX3N1cHBvcnRl
-ZCB8fCAhZGV2X2RhdGEtPnZvbHRfZGF0YSB8fA0KPj4+ICsJCQkhZGV2X2RhdGEtPmVmdXNlX252
-YWx1ZXNfb2Zmcykgew0KPj4+ICsJCXByX3dhcm5pbmcoIiVzOiBCYWQgcGFyYW1ldGVycyEgZGV2
-X2RhdGEgPSAleCwiDQo+Pj4gKwkJCSJkZXZfZGF0YS0+dm9sdHNfc3VwcG9ydGVkID0gJXgsIg0K
-Pj4+ICsJCQkiZGV2X2RhdGEtPnZvbHRfZGF0YSA9ICV4LCINCj4+PiArCQkJImRldl9kYXRhLT5l
-ZnVzZV9udmFsdWVzX29mZnMgPSAleFxuIiwgX19mdW5jX18sDQo+Pj4gKwkJCSh1bnNpZ25lZCBp
-bnQpZGV2X2RhdGEsIGRldl9kYXRhLT52b2x0c19zdXBwb3J0ZWQsDQo+Pj4gKwkJCSh1bnNpZ25l
-ZCBpbnQpZGV2X2RhdGEtPnZvbHRfZGF0YSwNCj4+PiArCQkJKHVuc2lnbmVkIGludClkZXZfZGF0
-YS0+ZWZ1c2VfbnZhbHVlc19vZmZzKTsNCj4+PiArCQlyZXR1cm47DQo+Pj4gKwl9DQo+Pj4gKw0K
-Pj4+ICsJLyoNCj4+PiArCSAqIEZyb20gT01BUDM2MzAgb253YXJkcyB0aGVyZSBhcmUgbm8gZWZ1
-c2UgcmVnaXN0ZXJzIGZvciBzZW5uX21vZA0KPj4+ICsJICogYW5kIHNlbnBfbW9kLiBUaGV5IGhh
-dmUgdG8gYmUgMHgxIGJ5IGRlZmF1bHQuDQo+Pj4gKwkgKi8NCj4+PiArCWlmICghZGV2X2RhdGEt
-PmVmdXNlX3NyX2NvbnRyb2wpIHsNCj4+PiArCQlzcl9kYXRhLT5zZW5uX21vZCA9IDB4MTsNCj4+
-PiArCQlzcl9kYXRhLT5zZW5wX21vZCA9IDB4MTsNCj4+PiArCX0gZWxzZSB7DQo+Pj4gKwkJc3Jf
-ZGF0YS0+c2Vubl9tb2QgPQ0KPj4+ICsJCQkJKChvbWFwX2N0cmxfcmVhZGwoZGV2X2RhdGEtPmVm
-dXNlX3NyX2NvbnRyb2wpICYNCj4+PiArCQkJCSgweDMgPDwgZGV2X2RhdGEtPnNlbm5lbmFibGVf
-c2hpZnQpKSA+Pg0KPj4+ICsJCQkJZGV2X2RhdGEtPnNlbm5lbmFibGVfc2hpZnQpOw0KPj4+ICsJ
-CXNyX2RhdGEtPnNlbnBfbW9kID0NCj4+PiArCQkJCSgob21hcF9jdHJsX3JlYWRsKGRldl9kYXRh
-LT5lZnVzZV9zcl9jb250cm9sKSAmDQo+Pj4gKwkJCQkoMHgzIDw8IGRldl9kYXRhLT5zZW5wZW5h
-YmxlX3NoaWZ0KSkgPj4NCj4+PiArCQkJCWRldl9kYXRhLT5zZW5wZW5hYmxlX3NoaWZ0KTsNCj4+
-PiArCX0NCj4+DQo+PkZvciByZWFkYmlsaXR5LCBjYW4geW91IGRvIHRoZSBjdHJsX3JlYWQgb24g
-b25lIGxpbmUsIHRoZW4gdGhlDQo+Pm1hc2svc2hpZnQgb24gYSBzZXBhcmF0ZSBsaW5lLCBlLmcu
-Og0KPj4NCj4+CQlzcl9kYXRhLT5zZW5uX21vZCA9IG9tYXBfY3RybF9yZWFkbC4uLg0KPj4JCXNy
-X2RhdGEtPnNlbm5fbW9kICY9IC4uLi4NCj4+DQo+Pj4gKwlmb3IgKGkgPSAwOyBpIDwgZGV2X2Rh
-dGEtPnZvbHRzX3N1cHBvcnRlZDsgaSsrKQ0KPj4+ICsJCWRldl9kYXRhLT52b2x0X2RhdGFbaV0u
-c3JfbnZhbHVlID0gb21hcF9jdHJsX3JlYWRsKA0KPj4+ICsJCQkJZGV2X2RhdGEtPmVmdXNlX252
-YWx1ZXNfb2Zmc1tpXSk7DQo+Pg0KPj5UaGUgd3JhcHBpbmcgaGVyZSBhZmZlY3RzIHJlYWRhYmls
-aXR5LiAgSXQgd291bGQgYmUgYmV0dGVyIHRvIGRvIHRoaXMgaW4NCj4+dHdvIGxpbmVzOg0KPj4N
-Cj4+CQl2ID0gb21hcF9jdHJsX3JlYWRsLi4uDQo+PgkJZGV2X2RhdGEtLi4uID0gdjsNCj4+DQo+
-PlNpbWlsYXIgcmVhZGFiaWxpdHkgcHJvYmxlbSB0aGlzIHBhcnQgb2YgT01BUDQgc2VyaWVzLg0K
-DQpXaWxsIGRvLiANCg0KPj4NCj4+PiArfQ0KPj4+ICsjZW5kaWYNCj4+PiArDQo+Pj4gK3N0YXRp
-YyBpbnQgc3JfZGV2X2luaXQoc3RydWN0IG9tYXBfaHdtb2QgKm9oLCB2b2lkICp1c2VyKQ0KPj4+
-ICt7DQo+Pj4gKwlzdHJ1Y3Qgb21hcF9zcl9kYXRhICpzcl9kYXRhOw0KPj4+ICsJc3RydWN0IG9t
-YXBfc3JfZGV2X2RhdGEgKnNyX2Rldl9kYXRhOw0KPj4+ICsJc3RydWN0IG9tYXBfZGV2aWNlICpv
-ZDsNCj4+PiArCWNoYXIgKm5hbWUgPSAic21hcnRyZWZsZXgiOw0KPj4+ICsJc3RhdGljIGludCBp
-Ow0KPj4+ICsNCj4+PiArCXNyX2RhdGEgPSBremFsbG9jKHNpemVvZihzdHJ1Y3Qgb21hcF9zcl9k
-YXRhKSwgR0ZQX0tFUk5FTCk7DQo+Pj4gKwlpZiAoIXNyX2RhdGEpIHsNCj4+PiArCQlwcl9lcnIo
-IiVzOiBVbmFibGUgdG8gYWxsb2NhdGUgbWVtb3J5IGZvciAlcyBzcl9kYXRhLkVycm9yIVxuIiwN
-Cj4+PiArCQkJX19mdW5jX18sIG9oLT5uYW1lKTsNCj4+PiArCQlyZXR1cm4gLUVOT01FTTsNCj4+
-PiArCX0NCj4+PiArDQo+Pj4gKwlzcl9kZXZfZGF0YSA9IChzdHJ1Y3Qgb21hcF9zcl9kZXZfZGF0
-YSAqKW9oLT5kZXZfYXR0cjsNCj4+PiArCWlmICh1bmxpa2VseSghc3JfZGV2X2RhdGEpKSB7DQo+
-Pj4gKwkJcHJfZXJyKCIlczogZGV2IGF0cnJpYnV0ZSBpcyBOVUxMXG4iLCBfX2Z1bmNfXyk7DQo+
-Pj4gKwkJZ290byBleGl0Ow0KPj4+ICsJfQ0KPj4+ICsNCj4+PiArCS8qDQo+Pj4gKwkgKiBPTUFQ
-MzQzMCBFUzMuMSBjaGlwcyBieSBkZWZhdWx0IGNvbWUgd2l0aCBFZnVzZSBidXJudA0KPj4+ICsJ
-ICogd2l0aCBwYXJhbWV0ZXJzIHJlcXVpcmVkIGZvciBmdWxsIGZ1bmN0aW9uYWxpdHkgb2YNCj4+
-PiArCSAqIHNtYXJ0cmVmbGV4IEFWUyBmZWF0dXJlIGxpa2UgbnRhcmdldCB2YWx1ZXMgLCBzZW5u
-ZW5hYmxlDQo+Pj4gKwkgKiBhbmQgc2VucGVuYWJsZS4gU28gZW5hYmxlIHRoZSBTUiBBVlMgZmVh
-dHVyZSBkdXJpbmcgYm9vdCB1cA0KPj4+ICsJICogaXRzZWxmIGlmIGl0IGlzIGEgT01BUDM0MzAg
-RVMzLjEgY2hpcC4NCj4+PiArCSAqLw0KPj4+ICsJc3JfZGF0YS0+ZW5hYmxlX29uX2luaXQgPSBm
-YWxzZTsNCj4+PiArCWlmIChjcHVfaXNfb21hcDM0M3goKSkgew0KPj4+ICsJCWlmIChvbWFwX3Jl
-digpID09IE9NQVAzNDMwX1JFVl9FUzNfMSkNCj4+PiArCQkJc3JfZGF0YS0+ZW5hYmxlX29uX2lu
-aXQgPSB0cnVlOw0KPj4+ICsJfQ0KPj4NCj4+VGhlIGJyYWNlcyBhcmUgbm90IG5lZWRlZCBoZXJl
-Lg0KDQpPaw0KDQo+Pg0KPj4+ICsJc3JfZGF0YS0+dm9sdGRtID0gb21hcF92b2x0YWdlX2RvbWFp
-bl9nZXQoc3JfZGV2X2RhdGEtPnZkZF9uYW1lKTsNCj4+PiArCWlmIChJU19FUlIoc3JfZGF0YS0+
-dm9sdGRtKSkgew0KPj4+ICsJCXByX2VycigiJXM6IFVuYWJsZSB0byBnZXQgdm9sdGFnZSBkb21h
-aW4gcG9pbnRlciBmb3IgVkREICVzXG4iLA0KPj4+ICsJCQlfX2Z1bmNfXywgc3JfZGV2X2RhdGEt
-PnZkZF9uYW1lKTsNCj4+PiArCQlnb3RvIGV4aXQ7DQo+Pj4gKwl9DQo+Pj4gKw0KPj4+ICsJc3Jf
-ZGV2X2RhdGEtPnZvbHRzX3N1cHBvcnRlZCA9IG9tYXBfdm9sdGFnZV9nZXRfdm9sdHRhYmxlKA0K
-Pj4+ICsJCQlzcl9kYXRhLT52b2x0ZG0sICZzcl9kZXZfZGF0YS0+dm9sdF9kYXRhKTsNCj4+Pg0K
-Pj4+ICsJaWYgKCFzcl9kZXZfZGF0YS0+dm9sdHNfc3VwcG9ydGVkKSB7DQo+Pj4gKwkJcHJfd2Fy
-bmluZygiJXM6IE5vIFZvbHRhZ2UgdGFibGUgcmVnaXN0ZXJkIGZvIFZERCVkLiINCj4+PiArCQkJ
-IlNvbWV0aGluZyByZWFsbHkgd3JvbmdcblxuIiwgX19mdW5jX18sIGkgKyAxKTsNCj4+PiArCQln
-b3RvIGV4aXQ7DQo+Pj4gKwl9DQo+Pj4gKw0KPj4+ICsJc3Jfc2V0X252YWx1ZXMoc3JfZGV2X2Rh
-dGEsIHNyX2RhdGEpOw0KPj4NCj4+Rmlyc3QgcXVlc3Rpb246IHdoeSBkb2VzIHRoaXMgTi12YWx1
-ZSBpbml0IG5lZWQgdG8gYmUgZG9uZSBpbiB0aGUgZGV2aWNlDQo+PmluaXQ/ICBJdCBzZWVtcyBi
-ZXR0ZXIgdG8gYmUgYSBwYXJ0IG9mIHRoZSBTUiBkcml2ZXIgcHJvYmUuDQoNCk9NQVAzIGFuZCBP
-TUFQNCBoYXMgZGlmZmVyZW50IHdheXMgb2YgcmVhZGluZyB0aGUgZWZ1c2UgcmVnaXN0ZXJzLiBJ
-IHdvdWxkIGxpa2UgaXQgdG8gYmUgaW4gZGV2aWNlIGZpbGUgc28gdGhhdCB3ZSBjYW4gaGF2ZSB0
-aGUgbmVjZXNzYXJ5IGNoZWNrcy4gVGhlIGRyaXZlciBzaG91bGQgbm90IGJlIGJvdGhlcmVkIGFi
-b3V0IGdldHRpbmcgb2YgdGhlIG4tdmFsdWVzLg0KDQo+Pg0KPj5TZWNvbmQsIHRoaXMgc2VjdGlv
-biB0b29rIG1lIHF1aXRlIHNvbWUgdGltZSB0byB1bmRlcnN0YW5kLCBhcyBpdCBzZWVtcw0KPj50
-byBibHVyIHRoZSBsaW5lcyBvZiBkZXZpY2UgYW5kIGRyaXZlciBidXQgYWxzbyBob3cgaXQgaW50
-ZXJhY3RzIHdpdGgNCj4+dGhlIHZvbHRhZ2UgbGF5ZXIuDQo+Pg0KPj5zcl9zZXRfbnZhbHVlcygp
-IGlzIGRpcmVjdGx5IG1hbmlwdWxhdGluZyBzdHJ1Y3R1cmVzIHRoYXQgYXJlIGludGVybmFsDQo+
-PnRvIHRoZSB2b2x0YWdlIGxheWVyLiAgSXQgYWxzbyBtYWtlcyBhc3N1bXB0aW9ucyBhYm91dCB0
-aGUgb3JkZXJpbmcgb2YNCj4+dm9sdF9kYXRhIHN0cnVjdHMgaW4gdGhlIHZvbHRhZ2UgbGF5ZXIu
-DQo+Pg0KPj5TdHJpY3RseSBzcGVha2luZyBuZWl0aGVyIHRoZSBzcl9udmFsdWUgb3Igc3JfZXJy
-bWlubGltaXQgZmllbGRzIG9mDQo+PnZvbHRfZGF0YSBhcmUgbm90IHVzZWQgYXQgYWxsIGluIHRo
-ZSB2b2x0YWdlIGxheWVyLCBidXQgb25seSBpbiB0aGUgU1INCj4+bGF5ZXIsIHNvIGlkZWFsbHkg
-dGhleSBzaG91bGQgcmVhbGx5IHN0YXkgaW4gdGhlIFNSIGxheWVyLg0KPj4NCj4+SSB0aGluayB3
-aGF0IGlzIG5lZWRlZCBoZXJlIGlzIGEgY2xlYW5lciB3YXkgZm9yIHRoZSBTUiBsYXllciB0byBj
-b25uZWN0DQo+PnRoZSBOLXZhbHVlcyB0byBhIHZvbHRhZ2UuICBUaGUgY3VycmVudCBtZXRob2Qg
-b2YgbWFuaXB1bGF0aW5nIHZvbHRhZ2UNCj4+bGF5ZXIgc3RydWN0cyBpbnNpZGUgdGhlIFNSIGxh
-eWVyIGlzIG5vdCBhY2NlcHRhYmxlLiAgU2luY2UgdGhlIG4tdmFsdWVzDQo+PmFyZSBmaXhlZCBp
-biBIVyAocGVyIFNvQyksIHdoYXQgSSBzdWdnZXN0IGlzIHNpbXBseSBoYXZpbmcgYSBmaWVsZCBs
-aWtlDQo+PidlZnVzZV9pZCcgb3Igc29tZXRoaW5nIGluIHZvbHRfZGF0YS4gIFRoZW4sIHRoZSBz
-bWFydCByZWZsZXggbGF5ZXIgY2FuDQo+Pmxvb2t1cCBhbmQgaW5kZXggYWxsIHRoZSBlZnVzZSB2
-YWx1ZXMgZHVyaW5nIHByb2JlLCBhbmQgd2hlbiBzcl9lbmFibGUNCj4+aXMgY2FsbGVkLCBpdCBs
-b29rcyB1cCB0aGUgbnZhbHVlIGJhc2VkIG9uIGVmdXNlX2lkLg0KPj4NCj4+SSBhc3N1bWUgdGhh
-dCB0aGUgc3JfZXJybWlubGltaXQgY291bGQgYWxzbyBiZSBzZXQgYmFzZWQgb24gZWZ1c2VfaWQs
-DQo+PmFuZCB0aGVyZWZvcmUgcmVtYWluIGNvbnRhaW5lZCB3aXRoaW4gdGhlIFNSIGxheWVyLCBi
-dXQgSSdtIG5vdCBzdXJlIEkNCj4+bGlrZSB0aGF0IGlkZWEgYW55IGJldHRlciB0aGFuIGtlZXBp
-bmcgaXQgaW5zaWRlIHZvbHRfZGF0YS4gIEZvciBub3csDQo+PkknbGwgbGV0IHlvdSBtYWtlIHRo
-ZSBjYWxsIG9uIGVycm1pbmxpbWl0LCBidXQgSSByZWFsbHkgd2FudCB0byBzZWUgdGhlDQo+Pk4t
-dmFsdWUgc3R1ZmYgaXNvbGF0ZWQgaW4gdGhlIFNSIGxheWVyLg0KDQpJIGRvIG5vdCB1bmRlcnN0
-YW5kIHlvdXIgcHJvcG9zYWwgaGVyZT8gV2hhdCBraW5kIG9mIHZhcmlhYmxlIGlzIGVmdXNlLWlk
-Pz8NCg0KPj4NCj4+S2V2aW4NCj4+DQo+Pj4gKwlvZCA9IG9tYXBfZGV2aWNlX2J1aWxkKG5hbWUs
-IGksIG9oLCBzcl9kYXRhLCBzaXplb2YoKnNyX2RhdGEpLA0KPj4+ICsJCQkgICAgICAgb21hcF9z
-cl9sYXRlbmN5LA0KPj4+ICsJCQkgICAgICAgQVJSQVlfU0laRShvbWFwX3NyX2xhdGVuY3kpLCAw
-KTsNCj4+PiArCWlmIChJU19FUlIob2QpKQ0KPj4+ICsJCXByX3dhcm5pbmcoIiVzOiBDb3VsZCBu
-b3QgYnVpbGQgb21hcF9kZXZpY2UgZm9yICVzOiAlcy5cblxuIiwNCj4+PiArCQkJX19mdW5jX18s
-IG5hbWUsIG9oLT5uYW1lKTsNCj4+PiArZXhpdDoNCj4+PiArCWkrKzsNCj4+PiArCWtmcmVlKHNy
-X2RhdGEpOw0KPj4+ICsJcmV0dXJuIDA7DQo+Pj4gK30NCj4+PiArDQo+Pj4gK3N0YXRpYyBpbnQg
-X19pbml0IG9tYXBfZGV2aW5pdF9zbWFydHJlZmxleCh2b2lkKQ0KPj4+ICt7DQo+Pj4gKwlyZXR1
-cm4gb21hcF9od21vZF9mb3JfZWFjaF9ieV9jbGFzcygic21hcnRyZWZsZXgiLCBzcl9kZXZfaW5p
-dCwgTlVMTCk7DQo+Pj4gK30NCj4+PiArZGV2aWNlX2luaXRjYWxsKG9tYXBfZGV2aW5pdF9zbWFy
-dHJlZmxleCk7DQo+Pg0KPj4NCj4+LS0NCj4+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
-IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAiIGluDQo+PnRoZSBib2R5IG9m
-IGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+Pk1vcmUgbWFqb3Jkb21v
-IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
+
+
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Friday, October 15, 2010 4:39 AM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
+>>Vishwanath; Sawant, Anand
+>>Subject: Re: [PATCH v3 06/11] OMAP3: PM: Adding smartreflex class3 driver
+>>
+>>Thara Gopinath <thara@ti.com> writes:
+>>
+>>> Smartreflex Class3 implementation continuously monitors
+>>> silicon performance  and instructs the Voltage Processors
+>>> to increase or decrease the voltage.
+>>> This patch adds smartreflex class 3 driver. This driver hooks
+>>> up with the generic smartreflex driver smartreflex.c to abstract
+>>> out class specific implementations out of the generic driver.
+>>>
+>>> Signed-off-by: Thara Gopinath <thara@ti.com>
+>>
+>>Some minor comments below...
+
+Thanks for the review!
+
+>>
+>>> ---
+>>>  arch/arm/mach-omap2/Makefile             |    1 +
+>>>  arch/arm/mach-omap2/smartreflex-class3.c |   61
+>>++++++++++++++++++++++++++++++
+>>>  arch/arm/mach-omap2/smartreflex-class3.h |   23 +++++++++++
+>>>  arch/arm/plat-omap/Kconfig               |    9 ++++
+>>>  4 files changed, 94 insertions(+), 0 deletions(-)
+>>>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.c
+>>>  create mode 100644 arch/arm/mach-omap2/smartreflex-class3.h
+>>>
+>>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+>>> index abc377a..4f6139c 100644
+>>> --- a/arch/arm/mach-omap2/Makefile
+>>> +++ b/arch/arm/mach-omap2/Makefile
+>>> @@ -57,6 +57,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
+>>voltage.o \
+>>>  obj-$(CONFIG_ARCH_OMAP4)		+= pm44xx.o pm_bus.o
+>>>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+>>>  obj-$(CONFIG_OMAP_SMARTREFLEX)          += sr_device.o smartreflex.o
+>>> +obj-$(CONFIG_OMAP_SMARTREFLEX_CLASS3)	+= smartreflex-class3.o
+>>>
+>>>  AFLAGS_sleep24xx.o			:=-Wa,-march=armv6
+>>>  AFLAGS_sleep34xx.o			:=-Wa,-march=armv7-a
+>>> diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-
+>>omap2/smartreflex-class3.c
+>>> new file mode 100644
+>>> index 0000000..f1ade08
+>>> --- /dev/null
+>>> +++ b/arch/arm/mach-omap2/smartreflex-class3.c
+>>> @@ -0,0 +1,61 @@
+>>> +/*
+>>> + * Smart reflex Class 3 specific implementations
+>>> + *
+>>> + * Author: Thara Gopinath       <thara@ti.com>
+>>> + *
+>>> + * Copyright (C) 2010 Texas Instruments, Inc.
+>>> + * Thara Gopinath <thara@ti.com>
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> + * it under the terms of the GNU General Public License version 2 as
+>>> + * published by the Free Software Foundation.
+>>> + */
+>>> +
+>>> +#include <plat/smartreflex.h>
+>>> +
+>>> +#include "smartreflex-class3.h"
+>>> +
+>>> +static int sr_class3_enable(struct voltagedomain *voltdm)
+>>> +{
+>>> +	unsigned long volt = 0;
+>>
+>>minor: '= 0' assignment not needed as it's immediately assigned in the
+>>next line.
+
+Ok.
+
+>>
+>>> +	volt = omap_voltage_get_nom_volt(voltdm);
+>>> +	if (!volt) {
+>>> +		pr_warning("%s: Curr voltage unknown. Cannot enable sr_%s\n",
+>>> +				__func__, voltdm->name);
+>>> +		return -ENODATA;
+>>> +	}
+>>> +
+>>> +	omap_vp_enable(voltdm);
+>>> +	return sr_enable(voltdm, volt);
+>>> +}
+>>> +
+>>> +static int sr_class3_disable(struct voltagedomain *voltdm, int
+>>is_volt_reset)
+>>> +{
+>>> +	omap_vp_disable(voltdm);
+>>> +	sr_disable(voltdm);
+>>> +	if (is_volt_reset)
+>>> +		omap_voltage_reset(voltdm);
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static int sr_class3_configure(struct voltagedomain *voltdm)
+>>> +{
+>>> +	return sr_configure_errgen(voltdm);
+>>> +}
+>>> +
+>>> +/* SR class3 structure */
+>>> +static struct omap_smartreflex_class_data class3_data = {
+>>> +	.enable = sr_class3_enable,
+>>> +	.disable = sr_class3_disable,
+>>> +	.configure = sr_class3_configure,
+>>> +	.class_type = SR_CLASS3,
+>>> +};
+>>> +
+>>> +/* Smartreflex CLASS3 init API to be called from board file */
+>>
+>>s/CLASS3/Class 3/
+
+Will correct
+
+>>
+>>> +int __init sr_class3_init(void)
+>>> +{
+>>> +	pr_info("SmartReflex CLASS3 initialized\n");
+>>
+>>ditto
+
+Will correct
+
+>>
+>>> +	return sr_register_class(&class3_data);
+>>> +}
+>>> diff --git a/arch/arm/mach-omap2/smartreflex-class3.h b/arch/arm/mach-
+>>omap2/smartreflex-class3.h
+>>> new file mode 100644
+>>> index 0000000..4d86037
+>>> --- /dev/null
+>>> +++ b/arch/arm/mach-omap2/smartreflex-class3.h
+>>> @@ -0,0 +1,23 @@
+>>> +/*
+>>> + * Smartreflex Class 3 Routines
+>>> + *
+>>> + * Author: Thara Gopinath      <thara@ti.com>
+>>> + *
+>>> + * Copyright (C) 2010 Texas Instruments, Inc.
+>>> + * Thara Gopinath <thara@ti.com>
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> + * it under the terms of the GNU General Public License version 2 as
+>>> + * published by the Free Software Foundation.
+>>> + */
+>>> +
+>>> +#ifndef __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
+>>> +#define __ARCH_ARM_MACH_OMAP2_SMARTREFLEXCLASS3_H
+>>> +
+>>> +#ifdef CONFIG_OMAP_SMARTREFLEX_CLASS3
+>>> +int sr_class3_init(void);
+>>> +#else
+>>> +static int sr_class3_init(void) { return 0; }
+>>> +#endif
+>>> +
+>>> +#endif
+>>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>>> index 8056349..af7acc9 100644
+>>> --- a/arch/arm/plat-omap/Kconfig
+>>> +++ b/arch/arm/plat-omap/Kconfig
+>>> @@ -67,6 +67,15 @@ config OMAP_SMARTREFLEX_TESTING
+>>>
+>>>  	  WARNING: Enabling this option may cause your device to hang!
+>>>
+>>> +config OMAP_SMARTREFLEX_CLASS3
+>>> +	bool "Class 3 mode of Smartreflex Implementation"
+>>> +	depends on OMAP_SMARTREFLEX && TWL4030_CORE
+>>> +	help
+>>> +	  Say Y to enable Class 3 implementation of Smartreflex
+>>> +
+>>> +	  Class 3 implementation of Smartreflex employs continuous hardware
+>>> +	  voltage caliberation.
+>>
+>>calibration
+
+Will correct
+
+>>
+>>> +
+>>>  config OMAP_RESET_CLOCKS
+>>>  	bool "Reset unused clocks during boot"
+>>>  	depends on ARCH_OMAP
+>>
+>>Kevin
