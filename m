@@ -1,162 +1,111 @@
 From: Ionut Nicu <ionut.nicu@gmail.com>
-Subject: [PATCH] staging: tidspbridge: fix kernel oops in bridge_io_get_proc_load
-Date: Fri, 22 Oct 2010 15:59:24 +0300
-Message-ID: <1287752364-5940-1-git-send-email-ionut.nicu@mindbit.ro>
+Subject: [PATCH] staging: tidspbridge: make the MGR_ENUMNODE_INFO ioctl work
+Date: Fri, 22 Oct 2010 15:59:46 +0300
+Message-ID: <1287752386-5974-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-bw0-f46.google.com ([209.85.214.46]:33200 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756326Ab0JVM7e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 08:59:34 -0400
-Received: by bwz11 with SMTP id 11so490266bwz.19
-        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 05:59:33 -0700 (PDT)
+	with ESMTP id S1751562Ab0JVM7w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 08:59:52 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 11so490266bwz.19
+        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 05:59:51 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 Cc: Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-The DSP shared memory area gets initialized only when
-a COFF file is loaded.
+The current code was always returning a non-zero status value
+to userspace applications when this ioctl was called.
 
-If bridge_io_get_proc_load is called before loading a base
-image into the DSP, the shared_mem member of the io manager
-will be NULL, resulting in a kernel oops when it's dereferenced.
+The error code was ENODATA, which isn't actually an error,
+it's always returned by dcd_enumerate_object() when it hits the
+end of list.
 
-Also made some coding style changes to bridge_io_create.
+Reorganized the code so that it works like "dynreg.out -ln" from
+the userspace-dspbridge package expects it to work.
 
 Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
 ---
- drivers/staging/tidspbridge/core/io_sm.c |   78 +++++++++++------------------
- 1 files changed, 30 insertions(+), 48 deletions(-)
+ drivers/staging/tidspbridge/rmgr/mgr.c |   48 ++++++++++----------------------
+ 1 files changed, 15 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
-index 2b287d1..77cd2b6 100644
---- a/drivers/staging/tidspbridge/core/io_sm.c
-+++ b/drivers/staging/tidspbridge/core/io_sm.c
-@@ -164,57 +164,41 @@ int bridge_io_create(struct io_mgr **io_man,
- 			    struct dev_object *hdev_obj,
- 			    const struct io_attrs *mgr_attrts)
+diff --git a/drivers/staging/tidspbridge/rmgr/mgr.c b/drivers/staging/tidspbridge/rmgr/mgr.c
+index 0ea89a1..b7b7e5b 100644
+--- a/drivers/staging/tidspbridge/rmgr/mgr.c
++++ b/drivers/staging/tidspbridge/rmgr/mgr.c
+@@ -134,8 +134,7 @@ int mgr_enum_node_info(u32 node_id, struct dsp_ndbprops *pndb_props,
+ 			      u32 undb_props_size, u32 *pu_num_nodes)
  {
--	int status = 0;
- 	struct io_mgr *pio_mgr = NULL;
--	struct shm *shared_mem = NULL;
- 	struct bridge_dev_context *hbridge_context = NULL;
- 	struct cfg_devnode *dev_node_obj;
- 	struct chnl_mgr *hchnl_mgr;
- 	u8 dev_type;
- 
- 	/* Check requirements */
--	if (!io_man || !mgr_attrts || mgr_attrts->word_size == 0) {
--		status = -EFAULT;
--		goto func_end;
--	}
-+	if (!io_man || !mgr_attrts || mgr_attrts->word_size == 0)
-+		return -EFAULT;
-+
-+	*io_man = NULL;
-+
- 	dev_get_chnl_mgr(hdev_obj, &hchnl_mgr);
--	if (!hchnl_mgr || hchnl_mgr->hio_mgr) {
--		status = -EFAULT;
--		goto func_end;
--	}
-+	if (!hchnl_mgr || hchnl_mgr->hio_mgr)
-+		return -EFAULT;
-+
- 	/*
- 	 * Message manager will be created when a file is loaded, since
- 	 * size of message buffer in shared memory is configurable in
- 	 * the base image.
- 	 */
- 	dev_get_bridge_context(hdev_obj, &hbridge_context);
--	if (!hbridge_context) {
--		status = -EFAULT;
--		goto func_end;
--	}
-+	if (!hbridge_context)
-+		return -EFAULT;
-+
- 	dev_get_dev_type(hdev_obj, &dev_type);
--	/*
--	 * DSP shared memory area will get set properly when
--	 * a program is loaded. They are unknown until a COFF file is
--	 * loaded. I chose the value -1 because it was less likely to be
--	 * a valid address than 0.
--	 */
--	shared_mem = (struct shm *)-1;
- 
- 	/* Allocate IO manager object */
- 	pio_mgr = kzalloc(sizeof(struct io_mgr), GFP_KERNEL);
--	if (pio_mgr == NULL) {
--		status = -ENOMEM;
--		goto func_end;
--	}
-+	if (!pio_mgr)
-+		return -ENOMEM;
- 
- 	/* Initialize chnl_mgr object */
--#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
--	pio_mgr->pmsg = NULL;
--#endif
- 	pio_mgr->hchnl_mgr = hchnl_mgr;
- 	pio_mgr->word_size = mgr_attrts->word_size;
--	pio_mgr->shared_mem = shared_mem;
- 
- 	if (dev_type == DSP_UNIT) {
- 		/* Create an IO DPC */
-@@ -226,29 +210,24 @@ int bridge_io_create(struct io_mgr **io_man,
- 
- 		spin_lock_init(&pio_mgr->dpc_lock);
- 
--		status = dev_get_dev_node(hdev_obj, &dev_node_obj);
-+		if (dev_get_dev_node(hdev_obj, &dev_node_obj)) {
-+			bridge_io_destroy(pio_mgr);
-+			return -EIO;
-+		}
+ 	int status = 0;
+-	struct dsp_uuid node_uuid, temp_uuid;
+-	u32 temp_index = 0;
++	struct dsp_uuid node_uuid;
+ 	u32 node_index = 0;
+ 	struct dcd_genericobj gen_obj;
+ 	struct mgr_object *pmgr_obj = NULL;
+@@ -149,48 +148,31 @@ int mgr_enum_node_info(u32 node_id, struct dsp_ndbprops *pndb_props,
+ 	*pu_num_nodes = 0;
+ 	/* Get the Manager Object from the driver data */
+ 	if (!drv_datap || !drv_datap->mgr_object) {
+-		status = -ENODATA;
+ 		pr_err("%s: Failed to retrieve the object handle\n", __func__);
+-		goto func_cont;
+-	} else {
+-		pmgr_obj = drv_datap->mgr_object;
++		return -ENODATA;
  	}
++	pmgr_obj = drv_datap->mgr_object;
  
+ 	DBC_ASSERT(pmgr_obj);
+ 	/* Forever loop till we hit failed or no more items in the
+ 	 * Enumeration. We will exit the loop other than 0; */
+ 	while (status == 0) {
+-		status = dcd_enumerate_object(temp_index++, DSP_DCDNODETYPE,
+-					      &temp_uuid);
+-		if (status == 0) {
+-			node_index++;
+-			if (node_id == (node_index - 1))
+-				node_uuid = temp_uuid;
+-
+-		}
+-	}
 -	if (!status) {
--		pio_mgr->hbridge_context = hbridge_context;
--		pio_mgr->shared_irq = mgr_attrts->irq_shared;
--		if (dsp_wdt_init())
--			status = -EPERM;
--	} else {
--		status = -EIO;
--	}
--func_end:
--	if (status) {
--		/* Cleanup */
-+	pio_mgr->hbridge_context = hbridge_context;
-+	pio_mgr->shared_irq = mgr_attrts->irq_shared;
-+	if (dsp_wdt_init()) {
- 		bridge_io_destroy(pio_mgr);
--		if (io_man)
--			*io_man = NULL;
--	} else {
--		/* Return IO manager object to caller... */
--		hchnl_mgr->hio_mgr = pio_mgr;
--		*io_man = pio_mgr;
-+		return -EPERM;
+-		if (node_id > (node_index - 1)) {
+-			status = -EINVAL;
+-		} else {
++		status = dcd_enumerate_object(node_index++, DSP_DCDNODETYPE,
++				&node_uuid);
++		if (status)
++			break;
++		*pu_num_nodes = node_index;
++		if (node_id == (node_index - 1)) {
+ 			status = dcd_get_object_def(pmgr_obj->hdcd_mgr,
+-						    (struct dsp_uuid *)
+-						    &node_uuid, DSP_DCDNODETYPE,
+-						    &gen_obj);
+-			if (!status) {
+-				/* Get the Obj def */
+-				*pndb_props =
+-				    gen_obj.obj_data.node_obj.ndb_props;
+-				*pu_num_nodes = node_index;
+-			}
++					&node_uuid, DSP_DCDNODETYPE, &gen_obj);
++			if (status)
++				break;
++			/* Get the Obj def */
++			*pndb_props = gen_obj.obj_data.node_obj.ndb_props;
+ 		}
  	}
+ 
+-func_cont:
+-	DBC_ENSURE((!status && *pu_num_nodes > 0) ||
+-		   (status && *pu_num_nodes == 0));
+-
 -	return status;
-+
-+	/* Return IO manager object to caller... */
-+	hchnl_mgr->hio_mgr = pio_mgr;
-+	*io_man = pio_mgr;
-+
-+	return 0;
++	return status == ENODATA ? 0 : status;
  }
  
  /*
-@@ -1529,6 +1508,9 @@ int io_sh_msetting(struct io_mgr *hio_mgr, u8 desc, void *pargs)
- int bridge_io_get_proc_load(struct io_mgr *hio_mgr,
- 				struct dsp_procloadstat *proc_lstat)
- {
-+	if (!hio_mgr->shared_mem)
-+		return -EFAULT;
-+
- 	proc_lstat->curr_load =
- 			hio_mgr->shared_mem->load_mon_info.curr_dsp_load;
- 	proc_lstat->predicted_load =
 -- 
 1.7.2.3
 
