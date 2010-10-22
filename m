@@ -1,59 +1,141 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] omap: add hwspinlock device
-Date: Fri, 22 Oct 2010 10:28:10 -0700
-Message-ID: <20101022172809.GB17595@atomide.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com>
- <87r5fmxghm.fsf@deeprootsystems.com>
- <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
- <87bp6pviwf.fsf@deeprootsystems.com>
- <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
- <8739s0sobc.fsf@deeprootsystems.com>
- <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
- <20101022165612.GF9149@atomide.com>
- <20101022170330.GC9445@angua.secretlab.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Greg Kroah-Hartman <gregkh@suse.de>
+Subject: [PATCH 132/141] USB: AM35x: Add musb support
+Date: Fri, 22 Oct 2010 10:57:18 -0700
+Message-ID: <1287770247-13755-132-git-send-email-gregkh@suse.de>
+References: <20101022175102.GA13489@kroah.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20101022170330.GC9445@angua.secretlab.ca>
+In-Reply-To: <20101022175102.GA13489@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@deeprootsystems.com>, Balaji T K <balajitk@ti.com>, "Kamat, Nishant" <nskamat@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Benoit Cousson <b-cousson@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>, Simon Que <sque@ti.com>
+To: linux-usb@vger.kernel.org
+Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-* Grant Likely <grant.likely@secretlab.ca> [101022 09:54]:
-> On Fri, Oct 22, 2010 at 09:56:13AM -0700, Tony Lindgren wrote:
-> > * Ohad Ben-Cohen <ohad@wizery.com> [101020 12:12]:
-> > > On Wed, Oct 20, 2010 at 8:37 PM, Kevin Hilman
-> > > <khilman@deeprootsystems.com> wrote:
-> > > >> Let's take the i2c-omap for example.
-> > > >>
-> > > >> It sounds like it must have a predefined hwspinlock, but what if:
-> > > >>
-> > > >> 1. It will use omap_hwspinlock_request() to dynamically allocate a hwspinlock
-> > > >> 2. Obviously, the hwspinlock id number must be communicated to the M3
-> > > >> BIOS, so the i2c-omap will publish that id using a small shared memory
-> > > >> entry that will be allocated for this sole purpose
-> > > >> 3. we will make sure that 1+2 completes before the remote processor is
-> > > >> taken out of reset
-> > 
-> > Guys, let's try to come up with a generic interface for this instead of
-> > polluting the device drivers with more omap specific interfaces.
-> > 
-> > We really want to keep the drivers generic and platform independent.
-> > 
-> > Sure we still have some omap specific stuff in the drivers, like
-> > cpu_is_omapxxxx, and omap specific dma calls, but those will be going
-> > away.
-> > 
-> > Unless somebody has better ideas, I suggest we pass a lock function
-> > in the platform_data to the drivers that need it, and do the omap
-> > specific nasty stuff in the platform code.
-> 
-> For those of you going to plumbers, I'll put this on the embedded
-> microconference agenda when we're talking about common infrastructure.
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Great, thanks.
+AM35x has musb interface (version 1.8) and uses CPPI41 DMA engine.
+It has USB phy built inside the IP itself.
 
-Tony
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ arch/arm/mach-omap2/board-am3517evm.c |   30 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/usb-musb.c        |    4 ++++
+ arch/arm/plat-omap/include/plat/usb.h |   21 +++++++++++++++++++++
+ 3 files changed, 55 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 4d0f585..9ac9de6 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -375,6 +375,31 @@ static void __init am3517_evm_init_irq(void)
+ 	omap_gpio_init();
+ }
+ 
++static struct omap_musb_board_data musb_board_data = {
++	.interface_type         = MUSB_INTERFACE_ULPI,
++	.mode                   = MUSB_OTG,
++	.power                  = 500,
++};
++
++static __init void am3517_evm_musb_init(void)
++{
++	u32 devconf2;
++
++	/*
++	 * Set up USB clock/mode in the DEVCONF2 register.
++	 */
++	devconf2 = omap_ctrl_readl(AM35XX_CONTROL_DEVCONF2);
++
++	/* USB2.0 PHY reference clock is 13 MHz */
++	devconf2 &= ~(CONF2_REFFREQ | CONF2_OTGMODE | CONF2_PHY_GPIOMODE);
++	devconf2 |=  CONF2_REFFREQ_13MHZ | CONF2_SESENDEN | CONF2_VBDTCTEN
++			| CONF2_DATPOL;
++
++	omap_ctrl_writel(devconf2, AM35XX_CONTROL_DEVCONF2);
++
++	usb_musb_init(&musb_board_data);
++}
++
+ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+ #if defined(CONFIG_PANEL_SHARP_LQ043T1DG01) || \
+@@ -393,6 +418,8 @@ static const struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/* USB OTG DRVVBUS offset = 0x212 */
++	OMAP3_MUX(SAD2D_MCAD23, OMAP_MUX_MODE0 | OMAP_PIN_INPUT_PULLDOWN),
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #else
+@@ -459,6 +486,9 @@ static void __init am3517_evm_init(void)
+ 				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
+ 	/*Ethernet*/
+ 	am3517_evm_ethernet_init(&am3517_evm_emac_pdata);
++
++	/* MUSB */
++	am3517_evm_musb_init();
+ }
+ 
+ MACHINE_START(OMAP3517EVM, "OMAP3517/AM3517 EVM")
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 33a5cde..7260558 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -28,6 +28,7 @@
+ 
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
++#include <mach/am35xx.h>
+ #include <plat/usb.h>
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+@@ -89,6 +90,9 @@ void __init usb_musb_init(struct omap_musb_board_data *board_data)
+ {
+ 	if (cpu_is_omap243x()) {
+ 		musb_resources[0].start = OMAP243X_HS_BASE;
++	} else if (cpu_is_omap3517() || cpu_is_omap3505()) {
++		musb_resources[0].start = AM35XX_IPSS_USBOTGSS_BASE;
++		musb_resources[1].start = INT_35XX_USBOTG_IRQ;
+ 	} else if (cpu_is_omap34xx()) {
+ 		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+ 	} else if (cpu_is_omap44xx()) {
+diff --git a/arch/arm/plat-omap/include/plat/usb.h b/arch/arm/plat-omap/include/plat/usb.h
+index 2a9427c..9feddac 100644
+--- a/arch/arm/plat-omap/include/plat/usb.h
++++ b/arch/arm/plat-omap/include/plat/usb.h
+@@ -218,6 +218,27 @@ static inline omap2_usbfs_init(struct omap_usb_config *pdata)
+ #	define	USBT2TLL5PI		(1 << 17)
+ #	define	USB0PUENACTLOI		(1 << 16)
+ #	define	USBSTANDBYCTRL		(1 << 15)
++/* AM35x */
++/* USB 2.0 PHY Control */
++#define CONF2_PHY_GPIOMODE	(1 << 23)
++#define CONF2_OTGMODE		(3 << 14)
++#define CONF2_NO_OVERRIDE	(0 << 14)
++#define CONF2_FORCE_HOST	(1 << 14)
++#define CONF2_FORCE_DEVICE	(2 << 14)
++#define CONF2_FORCE_HOST_VBUS_LOW (3 << 14)
++#define CONF2_SESENDEN		(1 << 13)
++#define CONF2_VBDTCTEN		(1 << 12)
++#define CONF2_REFFREQ_24MHZ	(2 << 8)
++#define CONF2_REFFREQ_26MHZ	(7 << 8)
++#define CONF2_REFFREQ_13MHZ	(6 << 8)
++#define CONF2_REFFREQ		(0xf << 8)
++#define CONF2_PHYCLKGD		(1 << 7)
++#define CONF2_VBUSSENSE		(1 << 6)
++#define CONF2_PHY_PLLON		(1 << 5)
++#define CONF2_RESET		(1 << 4)
++#define CONF2_PHYPWRDN		(1 << 3)
++#define CONF2_OTGPWRDN		(1 << 2)
++#define CONF2_DATPOL		(1 << 1)
+ 
+ #if defined(CONFIG_ARCH_OMAP1) && defined(CONFIG_USB)
+ u32 omap1_usb0_init(unsigned nwires, unsigned is_device);
+-- 
+1.7.2
