@@ -1,20 +1,20 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v3 09/11] OMAP3: PM: Smartreflex Class3 initialization
- from board files.
-Date: Fri, 22 Oct 2010 20:13:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95EAC@dbde02.ent.ti.com>
+Subject: RE: [PATCH v3 10/11] OMAP3: PM: Program correct init voltages for
+ VDD1 and VDD2
+Date: Fri, 22 Oct 2010 20:14:51 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95EAD@dbde02.ent.ti.com>
 References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-10-git-send-email-thara@ti.com>
- <87aamgpc5e.fsf@deeprootsystems.com>
+	<1285166719-19352-11-git-send-email-thara@ti.com>
+ <871v7spc07.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55361 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50963 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753947Ab0JVOoE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 10:44:04 -0400
-In-Reply-To: <87aamgpc5e.fsf@deeprootsystems.com>
+	id S1754248Ab0JVOo6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 10:44:58 -0400
+In-Reply-To: <871v7spc07.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -25,78 +25,135 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 
 >>-----Original Message-----
 >>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Friday, October 15, 2010 5:20 AM
+>>Sent: Friday, October 15, 2010 5:23 AM
 >>To: Gopinath, Thara
 >>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
 >>Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH v3 09/11] OMAP3: PM: Smartreflex Class3 initialization
->>from board files.
+>>Subject: Re: [PATCH v3 10/11] OMAP3: PM: Program correct init voltages for
+>>VDD1 and VDD2
 >>
 >>Thara Gopinath <thara@ti.com> writes:
 >>
->>> This patch enables smartreflex class3 functionality for OMAP3430SDP,
->>> OMAP3630SDP, ZOOM2 and ZOOM3 boards.
->>
->>This patch doesn't touch 3630sdp.
->>
+>>> By default the system boots up at nominal voltage for every
+>>> voltage domain in the system. This patch puts VDD1 and VDD2
+>>> to the correct boot up voltage as per the opp tables specified.
+>>> This patch implements this by matching the rate of the main clock
+>>> of the voltage domain with the opp table and picking up the correct
+>>> voltage.
+>>>
 >>> Signed-off-by: Thara Gopinath <thara@ti.com>
 >>
->>I'm having some doubts about whether this should be done by board files or
->>not.  Seems like the general case will be that by default will be SoC
->>specific, and only boards that want something other than the default
->>class should need to override this.
+>>For de-coupling the init from OPP, I like this approach better.  Thanks.
+Most welcome!!
 >>
->>Thoughts?
-
-I agree. I wanted this to be a default initcall and one to enable the menuconfig option for the required class driver.. But Nishant wanted this from board files. If we have consensus in removing this init from board file, I am cool with it.
+>>Minor comment below...
+>>
+>>> ---
+>>>  arch/arm/mach-omap2/pm.c |   67
+>>+++++++++++++++++++++++++++++++++++++++++++++-
+>>>  1 files changed, 66 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+>>> index 71c5a77..86c7bf1 100644
+>>> --- a/arch/arm/mach-omap2/pm.c
+>>> +++ b/arch/arm/mach-omap2/pm.c
+>>> @@ -13,6 +13,7 @@
+>>>  #include <linux/init.h>
+>>>  #include <linux/io.h>
+>>>  #include <linux/err.h>
+>>> +#include <linux/clk.h>
+>>>
+>>>  #include <plat/omap-pm.h>
+>>>  #include <plat/omap_device.h>
+>>> @@ -20,6 +21,7 @@
+>>>
+>>>  #include <plat/powerdomain.h>
+>>>  #include <plat/clockdomain.h>
+>>> +#include <plat/voltage.h>
+>>>
+>>>  #include "pm.h"
+>>>
+>>> @@ -138,12 +140,75 @@ err:
+>>>  	return ret;
+>>>  }
+>>>
+>>> +/*
+>>> + * This is to be called during init to put the various voltage
+>>> + * domains to the voltage as per the opp table. Typically we boot up
+>>> + * at the nominal voltage. So this function finds out the rate of
+>>> + * the clock associated with the voltage domain, finds out the correct
+>>> + * opp entry and puts the voltage domain to the voltage specifies
+>>> + * in the opp entry
+>>> + */
+>>> +static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+>>> +						struct device *dev)
+>>> +{
+>>> +	struct voltagedomain *voltdm;
+>>> +	struct clk *_clk;
+>>
+>>s/_clk/clk/
+Will it not conflict with struct clk??
 
 Regards
 Thara
+
 >>
->>Kevin
->>
->>> ---
->>>  arch/arm/mach-omap2/board-3430sdp.c          |    2 ++
->>>  arch/arm/mach-omap2/board-zoom-peripherals.c |    2 ++
->>>  2 files changed, 4 insertions(+), 0 deletions(-)
+>>> +	struct omap_opp *opp;
+>>> +	unsigned long freq, bootup_volt;
+>>> +
+>>> +	if (!vdd_name || !clk_name || !dev) {
+>>> +		printk(KERN_ERR "%s: Invalid parameters!\n", __func__);
+>>> +		goto exit;
+>>> +	}
+>>> +
+>>> +	voltdm = omap_voltage_domain_get(vdd_name);
+>>> +	if (IS_ERR(voltdm)) {
+>>> +		printk(KERN_ERR "%s: Unable to get vdd pointer for vdd_%s\n",
+>>> +			__func__, vdd_name);
+>>> +		goto exit;
+>>> +	}
+>>> +
+>>> +	_clk =  clk_get(NULL, clk_name);
+>>> +	if (IS_ERR(_clk)) {
+>>> +		printk(KERN_ERR "%s: unable to get clk %s\n",
+>>> +			__func__, clk_name);
+>>> +		goto exit;
+>>> +	}
+>>> +
+>>> +	freq = _clk->rate;
+>>> +	opp = opp_find_freq_ceil(dev, &freq);
+>>> +	if (IS_ERR(opp)) {
+>>> +		printk(KERN_ERR "%s: unable to find boot up OPP for vdd_%s\n",
+>>> +			__func__, vdd_name);
+>>> +		goto exit;
+>>> +	}
+>>> +
+>>> +	bootup_volt = opp_get_voltage(opp);
+>>> +	if (!bootup_volt) {
+>>> +		printk(KERN_ERR "%s: unable to find voltage corresponding"
+>>> +			"to the bootup OPP for vdd_%s\n", __func__, vdd_name);
+>>> +		goto exit;
+>>> +	}
+>>> +
+>>> +	omap_voltage_scale_vdd(voltdm, bootup_volt);
+>>> +
+>>> +	return 0;
+>>> +
+>>> +exit:
+>>> +	printk(KERN_ERR "%s: Unable to put vdd_%s to its init voltage\n\n",
+>>> +		__func__, vdd_name);
+>>> +	return -EINVAL;
+>>> +}
+>>> +
+>>>  static int __init omap2_common_pm_init(void)
+>>>  {
+>>>  	omap2_init_processor_devices();
 >>>
->>> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
->>omap2/board-3430sdp.c
->>> index 67b95b5f..9a04a2e 100644
->>> --- a/arch/arm/mach-omap2/board-3430sdp.c
->>> +++ b/arch/arm/mach-omap2/board-3430sdp.c
->>> @@ -47,6 +47,7 @@
->>>  #include "sdram-qimonda-hyb18m512160af-6.h"
->>>  #include "hsmmc.h"
->>>  #include "pm.h"
->>> +#include "smartreflex-class3.h"
+>>> -	if (cpu_is_omap34xx())
+>>> +	if (cpu_is_omap34xx()) {
+>>>  		omap3_pm_init_opp_table();
+>>> +		omap2_set_init_voltage("mpu", "dpll1_ck", mpu_dev);
+>>> +		omap2_set_init_voltage("core", "l3_ick", l3_dev);
+>>> +	}
 >>>
->>>  #define CONFIG_DISABLE_HFCLK 1
->>>
->>> @@ -813,6 +814,7 @@ static void __init omap_3430sdp_init(void)
->>>  	sdp3430_display_init();
->>>  	enable_board_wakeup_source();
->>>  	usb_ehci_init(&ehci_pdata);
->>> +	sr_class3_init();
->>>  }
->>>
->>>  MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
->>> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-
->>omap2/board-zoom-peripherals.c
->>> index 6b39849..98dffc6 100644
->>> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
->>> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
->>> @@ -26,6 +26,7 @@
->>>
->>>  #include "mux.h"
->>>  #include "hsmmc.h"
->>> +#include "smartreflex-class3.h"
->>>
->>>  /* Zoom2 has Qwerty keyboard*/
->>>  static int board_keymap[] = {
->>> @@ -282,4 +283,5 @@ void __init zoom_peripherals_init(void)
->>>  	omap_i2c_init();
->>>  	usb_musb_init(&musb_board_data);
->>>  	enable_board_wakeup_source();
->>> +	sr_class3_init();
->>>  }
+>>>  	omap_pm_if_init();
