@@ -1,97 +1,58 @@
-From: "Kamoolkar, Mugdha" <mugdha@ti.com>
-Subject: RE: [PATCH 3/3] omap: add hwspinlock device
-Date: Fri, 22 Oct 2010 15:44:55 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593023458C2DC@dbde02.ent.ti.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com>
- <87r5fmxghm.fsf@deeprootsystems.com>
- <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
- <87bp6pviwf.fsf@deeprootsystems.com>
- <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
- <8739s0sobc.fsf@deeprootsystems.com>
- <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB5930233F94602@dbde02.ent.ti.com>
- <8F7AF80515AF0D4D93307E594F3CB40E6E0DD10A@dlee03.ent.ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: hwmod and insertable modules
+Date: Fri, 22 Oct 2010 05:26:14 -0500
+Message-ID: <4CC166C6.7060403@ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB593023458C204@dbde02.ent.ti.com> <0680EC522D0CC943BC586913CF3768C003FF2DAF8D@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB593023458C250@dbde02.ent.ti.com> <4CC15CC3.7060406@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593023458C2BE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55911 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43696 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751759Ab0JVKPQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 06:15:16 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E6E0DD10A@dlee03.ent.ti.com>
-Content-Language: en-US
+	id S1753905Ab0JVK0P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 Oct 2010 06:26:15 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9MAQENA004444
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 05:26:15 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id o9MAQEpq001755
+	for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 05:26:14 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o9MAQEdo012905
+	for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 05:26:14 -0500 (CDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593023458C2BE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, 'Ohad Ben-Cohen' <ohad@wizery.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, Kamat, Nishant
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, "Anna, Suman" <s-anna@ti.com>, Simon Que <sque@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hari,
+Premi, Sanjeev had written, on 10/22/2010 05:01 AM, the following:
 
-> -----Original Message-----
-> From: Kanigeri, Hari
-> Sent: Thursday, October 21, 2010 5:56 PM
-> To: Kamoolkar, Mugdha; 'Ohad Ben-Cohen'; Kevin Hilman; Krishnamoorthy,
-> Balaji T; Kamat, Nishant
-> Cc: linux-omap@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> arm-kernel@lists.infradead.org; akpm@linux-foundation.org; Greg KH;
-> Tony Lindgren; Cousson, Benoit; Grant Likely; Anna, Suman; Simon Que
-> Subject: RE: [PATCH 3/3] omap: add hwspinlock device
+>>>>> During module_init I used omap_device_build() to create the 
+>>>> omap_device.
+>>>>> But when trying to implement the module_exit, I couldn't find the
+>>>>> corresponding 'destructor'.
+>>>> omap_device_build essentially does  a platform_device 
+>> register today
+>>>> and hence its not something to be done from a insmod'able 'driver'.
+>>> [sp] How does this work for - say dspbridge - where the DSP 
+>> as device
+>>> may not be 'registered' until it is really expected to be used?
+>>>
+>> arch/arm/mach-omap2/dspbridge.c? ;)
 > 
-> Mugdha,
-> 
-> > > >>
-> > > >> This does not require any smart IPC and it will allow us to get
-> > > rid of
-> > > >> the omap_hwspinlock_request_specific() API and its early-
-> callers
-> > > >> requirement.
-> > > >
-> > > > Yes, that would indeed simplify things.
-> > >
-> > > Balaji, Nishant, are you OK with this ?
-> > >
-> > The problem with this approach is that the i2c driver would have to
-> > sync up on the shared memory location that it uses to share the
-> > information of the spinlock ID. What location would this be? How
-> would
-> > the i2c driver on the m3 know about this location? Does this mean
-> > hard-coding of the shared memory address? If yes, then there would
-> be
-> > an impact to users if they wanted to change their memory map. Any
-> kind
-> > of hard-coding of this sort can be painful in such cases, especially
-> > if it happens in multiple drivers. On the other hand, hard-coding
-> > (reserving) spinlock IDs is a much safer option and does not impact
-> > anything else.
-> >
-> 
-> We can avoid the hard-coding of shared memory location if I2C Driver
-> maps using iommu some dynamic memory for shared memory location to M3
-> virtual address and shares this information to I2c driver counter-part
-> on M3 using the IPC call. But this might not be trivial and this would
-> be against what Ohad mentioned about not requiring any smart IPC :).
-> I prefer hard-coding of spinlock id to keep things simple.
-> 
-I also considered this, and had the same issue with it as what you 
-mentioned above, that the virtual address for the i2c driver on m3 needs 
-to be known to the Linux driver. This could potentially be taken in 
-through kconfig, because there's no harm in fixing virtual maps for the 
-slaves. The problem is in fixing physical memory regions. Note that this 
-assumes presence of a slave MMU. In case slave MMU is not present, the 
-physical address needs to be taken in through kconfig, which makes 
-rearranging the memory map a virtual nightmare if multiple drivers start 
-doing such things.
+> Which repo? On the dspbridge branch on linux-omap, there is not such
+:) it is not there as dspbridge is in staging at the moment - I believe 
+there is some sort of rule of not depending on staging drivers or 
+something like that.. but the point I was attempting to make is backing 
+Rajendra's statement -> split your driver into silicon specific data and 
+silicon independent driver -> the silicon dependent data (like hwmod) 
+can be collected by a file located in arch/arm/mach-omap2 -> pass the 
+data as platform_data(with stuff like baseaddress etc..) to the driver 
+and things can happily function.. Would suggest posting out a RFC patch 
+if you'd like better ideas from the community I guess.
 
-We do need to consider the possibility that in future there might be 
-even more multi-core drivers which not only need hw spinlocks, but also 
-need notifications and some shared memory to do their work effectively. As shared peripherals increase, this is a very likely possibility.
-So I do believe that any effort we put on fixing this the right way 
-needs to take into account all three (hw spinlocks, ipc interrupts and 
-shared memory). That's of course, out of the scope of this hw spinlock 
-patch, but more in the scope of syslink discussions at LPC.
-
-> Thank you,
-> Best regards,
-> Hari
+-- 
+Regards,
+Nishanth Menon
