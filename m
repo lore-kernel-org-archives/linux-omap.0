@@ -1,313 +1,162 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH 3/3] OMAP: UART: use atomic idle notifiers
-Date: Fri, 22 Oct 2010 18:24:29 +0530
-Message-ID: <AANLkTinYhNAYpehKEshPz89uqcKy9K9hB2Q+a7N+EveJ@mail.gmail.com>
-References: <1287617483-24170-1-git-send-email-khilman@deeprootsystems.com>
-	<1287617483-24170-3-git-send-email-khilman@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Ionut Nicu <ionut.nicu@gmail.com>
+Subject: [PATCH] staging: tidspbridge: fix kernel oops in bridge_io_get_proc_load
+Date: Fri, 22 Oct 2010 15:59:24 +0300
+Message-ID: <1287752364-5940-1-git-send-email-ionut.nicu@mindbit.ro>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:61465 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756328Ab0JVMyb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 08:54:31 -0400
-Received: by ewy7 with SMTP id 7so1003952ewy.19
-        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 05:54:29 -0700 (PDT)
-In-Reply-To: <1287617483-24170-3-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:33200 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756326Ab0JVM7e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 Oct 2010 08:59:34 -0400
+Received: by bwz11 with SMTP id 11so490266bwz.19
+        for <linux-omap@vger.kernel.org>; Fri, 22 Oct 2010 05:59:33 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Greg Kroah-Hartman <greg@kroah.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap <linux-omap@vger.kernel.org>, Ionut Nicu <ionut.nicu@mindbit.ro>
 
-Thanks Kevin,
+The DSP shared memory area gets initialized only when
+a COFF file is loaded.
 
-works fine tested on 3630sdp/zoom3 board.
+If bridge_io_get_proc_load is called before loading a base
+image into the DSP, the shared_mem member of the io manager
+will be NULL, resulting in a kernel oops when it's dereferenced.
 
-Tested-by: Govindraj.R <govindraj.raja@ti.com>
+Also made some coding style changes to bridge_io_create.
 
-Regards,
-Govindraj.R
+Signed-off-by: Ionut Nicu <ionut.nicu@mindbit.ro>
+---
+ drivers/staging/tidspbridge/core/io_sm.c |   78 +++++++++++------------------
+ 1 files changed, 30 insertions(+), 48 deletions(-)
 
-On Thu, Oct 21, 2010 at 5:01 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Convert UART idle management routines from custom hooks in the core
-> idle path to use new idle notifiers.
->
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> =A0arch/arm/mach-omap2/pm24xx.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A09 +-=
---
-> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A08 --=
--
-> =A0arch/arm/mach-omap2/serial.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 71 ++++=
-+++++++++++++++----------
-> =A0arch/arm/plat-omap/include/plat/serial.h | =A0 =A02 -
-> =A04 files changed, 47 insertions(+), 43 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24x=
-x.c
-> index cb1b333..47644d2 100644
-> --- a/arch/arm/mach-omap2/pm24xx.c
-> +++ b/arch/arm/mach-omap2/pm24xx.c
-> @@ -40,6 +40,7 @@
-> =A0#include <plat/sram.h>
-> =A0#include <plat/dma.h>
-> =A0#include <plat/board.h>
-> +#include <plat/common.h>
->
-> =A0#include "prm.h"
-> =A0#include "prm-regbits-24xx.h"
-> @@ -120,19 +121,11 @@ static void omap2_enter_full_retention(void)
-> =A0 =A0 =A0 =A0if (omap_irq_pending())
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto no_sleep;
->
-> - =A0 =A0 =A0 omap_uart_prepare_idle(0);
-> - =A0 =A0 =A0 omap_uart_prepare_idle(1);
-> - =A0 =A0 =A0 omap_uart_prepare_idle(2);
-> -
-> =A0 =A0 =A0 =A0/* Jump to SRAM suspend code */
-> =A0 =A0 =A0 =A0omap2_sram_suspend(sdrc_read_reg(SDRC_DLLA_CTRL),
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_SDRC_REGADDR=
-(SDRC_DLLA_CTRL),
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_SDRC_REGADDR=
-(SDRC_POWER));
->
-> - =A0 =A0 =A0 omap_uart_resume_idle(2);
-> - =A0 =A0 =A0 omap_uart_resume_idle(1);
-> - =A0 =A0 =A0 omap_uart_resume_idle(0);
-> -
-> =A0no_sleep:
-> =A0 =A0 =A0 =A0if (omap2_pm_debug) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned long long tmp;
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
-x.c
-> index 4674748..eaed95d 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -390,8 +390,6 @@ void omap_sram_idle(void)
->
-> =A0 =A0 =A0 =A0/* PER */
-> =A0 =A0 =A0 =A0if (per_next_state < PWRDM_POWER_ON) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(2);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(3);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap2_gpio_prepare_for_idle(per_next_s=
-tate);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (per_next_state =3D=3D PWRDM_POWER_=
-OFF)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_=
-per_save_context();
-> @@ -399,8 +397,6 @@ void omap_sram_idle(void)
->
-> =A0 =A0 =A0 =A0/* CORE */
-> =A0 =A0 =A0 =A0if (core_next_state < PWRDM_POWER_ON) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(0);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(1);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (core_next_state =3D=3D PWRDM_POWER=
-_OFF) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_core_save_contex=
-t();
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_prcm_save_contex=
-t();
-> @@ -445,8 +441,6 @@ void omap_sram_idle(void)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_sram_restore_con=
-text();
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap2_sms_restore_cont=
-ext();
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(0);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(1);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (core_next_state =3D=3D PWRDM_POWER=
-_OFF)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0prm_clear_mod_reg_bits=
-(OMAP3430_AUTO_OFF_MASK,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 OMAP3430_GR_MOD,
-> @@ -459,8 +453,6 @@ void omap_sram_idle(void)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap2_gpio_resume_after_idle();
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (per_prev_state =3D=3D PWRDM_POWER_=
-OFF)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_per_restore_cont=
-ext();
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(2);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(3);
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0/* Disable IO-PAD and IO-CHAIN wakeup */
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seria=
-l.c
-> index becf0e3..8a619ff 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -73,6 +73,7 @@ struct omap_uart_state {
-> =A0 =A0 =A0 =A0u32 padconf;
-> =A0 =A0 =A0 =A0u32 dma_enabled;
->
-> + =A0 =A0 =A0 struct powerdomain *pwrdm;
-> =A0 =A0 =A0 =A0struct clk *ick;
-> =A0 =A0 =A0 =A0struct clk *fck;
-> =A0 =A0 =A0 =A0int clocked;
-> @@ -389,39 +390,31 @@ static void omap_uart_idle_timer(unsigned long =
-data)
-> =A0 =A0 =A0 =A0omap_uart_allow_sleep(uart);
-> =A0}
->
-> -void omap_uart_prepare_idle(int num)
-> +static void omap_uart_prepare_idle(struct omap_uart_state *uart)
-> =A0{
-> - =A0 =A0 =A0 struct omap_uart_state *uart;
-> -
-> - =A0 =A0 =A0 list_for_each_entry(uart, &uart_list, node) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (num =3D=3D uart->num && uart->can_s=
-leep) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_disable_clock=
-s(uart);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> - =A0 =A0 =A0 }
-> + =A0 =A0 =A0 if (uart->can_sleep &&
-> + =A0 =A0 =A0 =A0 =A0 pwrdm_read_next_pwrst(uart->pwrdm) < PWRDM_POWE=
-R_ON)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_disable_clocks(uart);
-> =A0}
->
-> -void omap_uart_resume_idle(int num)
-> +static void omap_uart_resume_idle(struct omap_uart_state *uart)
-> =A0{
-> - =A0 =A0 =A0 struct omap_uart_state *uart;
-> + =A0 =A0 =A0 if (uart->can_sleep &&
-> + =A0 =A0 =A0 =A0 =A0 pwrdm_read_next_pwrst(uart->pwrdm) < PWRDM_POWE=
-R_ON) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_enable_clocks(uart);
->
-> - =A0 =A0 =A0 list_for_each_entry(uart, &uart_list, node) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (num =3D=3D uart->num) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_enable_clocks=
-(uart);
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Check for IO pad wak=
-eup */
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx() &=
-& uart->padconf) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u16 p =3D=
- omap_ctrl_readw(uart->padconf);
-> -
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (p &=
- OMAP3_PADCONF_WAKEUPEVENT0)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 omap_uart_block_sleep(uart);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Check for IO pad wakeup */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cpu_is_omap34xx() && uart->padconf)=
+diff --git a/drivers/staging/tidspbridge/core/io_sm.c b/drivers/staging/tidspbridge/core/io_sm.c
+index 2b287d1..77cd2b6 100644
+--- a/drivers/staging/tidspbridge/core/io_sm.c
++++ b/drivers/staging/tidspbridge/core/io_sm.c
+@@ -164,57 +164,41 @@ int bridge_io_create(struct io_mgr **io_man,
+ 			    struct dev_object *hdev_obj,
+ 			    const struct io_attrs *mgr_attrts)
  {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u16 p =3D omap_ctrl_rea=
-dw(uart->padconf);
->
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Check for normal UAR=
-T wakeup */
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (__raw_readl(uart->w=
-k_st) & uart->wk_mask)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (p & OMAP3_PADCONF_W=
-AKEUPEVENT0)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_u=
-art_block_sleep(uart);
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Check for normal UART wakeup */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (__raw_readl(uart->wk_st) & uart->wk=
-_mask)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_block_sleep(u=
-art);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
-> =A0 =A0 =A0 =A0}
-> =A0}
->
-> @@ -474,6 +467,27 @@ static irqreturn_t omap_uart_interrupt(int irq, =
-void *dev_id)
-> =A0 =A0 =A0 =A0return IRQ_NONE;
-> =A0}
->
-> +static int omap_uart_idle_notifier(struct notifier_block *n,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-unsigned long val,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-void *p)
-> +{
-> + =A0 =A0 =A0 struct omap_uart_state *uart;
-> +
-> + =A0 =A0 =A0 if (val =3D=3D OMAP_IDLE_START)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_for_each_entry(uart, &uart_list, n=
-ode)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_prepare_idle(=
-uart);
-> + =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_for_each_entry(uart, &uart_list, n=
-ode)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_resume_idle(u=
-art);
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static bool omap_uart_notifier_enabled;
-> +static struct notifier_block omap_uart_notifier =3D {
-> + =A0 =A0 =A0 .notifier_call =3D omap_uart_idle_notifier,
-> +};
-> +
-> =A0static void omap_uart_idle_init(struct omap_uart_state *uart)
-> =A0{
-> =A0 =A0 =A0 =A0int ret;
-> @@ -549,6 +563,11 @@ static void omap_uart_idle_init(struct omap_uart=
-_state *uart)
-> =A0 =A0 =A0 =A0ret =3D request_threaded_irq(uart->irq, NULL, omap_uar=
-t_interrupt,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 I=
-RQF_SHARED, "serial idle", (void *)uart);
-> =A0 =A0 =A0 =A0WARN_ON(ret);
-> +
-> + =A0 =A0 =A0 if (!omap_uart_notifier_enabled) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_idle_notifier_register(&omap_uart_=
-notifier);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_uart_notifier_enabled =3D true;
-> + =A0 =A0 =A0 }
-> =A0}
->
-> =A0void omap_uart_enable_irqs(int enable)
-> @@ -731,6 +750,8 @@ void __init omap_serial_init_port(int port)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
->
-> =A0 =A0 =A0 =A0oh =3D uart->oh;
-> + =A0 =A0 =A0 uart->pwrdm =3D omap_hwmod_get_pwrdm(oh);
-> + =A0 =A0 =A0 WARN_ON(!uart->pwrdm);
-> =A0 =A0 =A0 =A0uart->dma_enabled =3D 0;
-> =A0#ifndef CONFIG_SERIAL_OMAP
-> =A0 =A0 =A0 =A0name =3D "serial8250";
-> diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat=
--omap/include/plat/serial.h
-> index 19145f5..d3ee47b 100644
-> --- a/arch/arm/plat-omap/include/plat/serial.h
-> +++ b/arch/arm/plat-omap/include/plat/serial.h
-> @@ -99,8 +99,6 @@ extern void omap_serial_init_port(int port);
-> =A0extern int omap_uart_can_sleep(void);
-> =A0extern void omap_uart_check_wakeup(void);
-> =A0extern void omap_uart_prepare_suspend(void);
-> -extern void omap_uart_prepare_idle(int num);
-> -extern void omap_uart_resume_idle(int num);
-> =A0extern void omap_uart_enable_irqs(int enable);
-> =A0#endif
->
-> --
-> 1.7.2.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-	int status = 0;
+ 	struct io_mgr *pio_mgr = NULL;
+-	struct shm *shared_mem = NULL;
+ 	struct bridge_dev_context *hbridge_context = NULL;
+ 	struct cfg_devnode *dev_node_obj;
+ 	struct chnl_mgr *hchnl_mgr;
+ 	u8 dev_type;
+ 
+ 	/* Check requirements */
+-	if (!io_man || !mgr_attrts || mgr_attrts->word_size == 0) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
++	if (!io_man || !mgr_attrts || mgr_attrts->word_size == 0)
++		return -EFAULT;
++
++	*io_man = NULL;
++
+ 	dev_get_chnl_mgr(hdev_obj, &hchnl_mgr);
+-	if (!hchnl_mgr || hchnl_mgr->hio_mgr) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
++	if (!hchnl_mgr || hchnl_mgr->hio_mgr)
++		return -EFAULT;
++
+ 	/*
+ 	 * Message manager will be created when a file is loaded, since
+ 	 * size of message buffer in shared memory is configurable in
+ 	 * the base image.
+ 	 */
+ 	dev_get_bridge_context(hdev_obj, &hbridge_context);
+-	if (!hbridge_context) {
+-		status = -EFAULT;
+-		goto func_end;
+-	}
++	if (!hbridge_context)
++		return -EFAULT;
++
+ 	dev_get_dev_type(hdev_obj, &dev_type);
+-	/*
+-	 * DSP shared memory area will get set properly when
+-	 * a program is loaded. They are unknown until a COFF file is
+-	 * loaded. I chose the value -1 because it was less likely to be
+-	 * a valid address than 0.
+-	 */
+-	shared_mem = (struct shm *)-1;
+ 
+ 	/* Allocate IO manager object */
+ 	pio_mgr = kzalloc(sizeof(struct io_mgr), GFP_KERNEL);
+-	if (pio_mgr == NULL) {
+-		status = -ENOMEM;
+-		goto func_end;
+-	}
++	if (!pio_mgr)
++		return -ENOMEM;
+ 
+ 	/* Initialize chnl_mgr object */
+-#if defined(CONFIG_TIDSPBRIDGE_BACKTRACE) || defined(CONFIG_TIDSPBRIDGE_DEBUG)
+-	pio_mgr->pmsg = NULL;
+-#endif
+ 	pio_mgr->hchnl_mgr = hchnl_mgr;
+ 	pio_mgr->word_size = mgr_attrts->word_size;
+-	pio_mgr->shared_mem = shared_mem;
+ 
+ 	if (dev_type == DSP_UNIT) {
+ 		/* Create an IO DPC */
+@@ -226,29 +210,24 @@ int bridge_io_create(struct io_mgr **io_man,
+ 
+ 		spin_lock_init(&pio_mgr->dpc_lock);
+ 
+-		status = dev_get_dev_node(hdev_obj, &dev_node_obj);
++		if (dev_get_dev_node(hdev_obj, &dev_node_obj)) {
++			bridge_io_destroy(pio_mgr);
++			return -EIO;
++		}
+ 	}
+ 
+-	if (!status) {
+-		pio_mgr->hbridge_context = hbridge_context;
+-		pio_mgr->shared_irq = mgr_attrts->irq_shared;
+-		if (dsp_wdt_init())
+-			status = -EPERM;
+-	} else {
+-		status = -EIO;
+-	}
+-func_end:
+-	if (status) {
+-		/* Cleanup */
++	pio_mgr->hbridge_context = hbridge_context;
++	pio_mgr->shared_irq = mgr_attrts->irq_shared;
++	if (dsp_wdt_init()) {
+ 		bridge_io_destroy(pio_mgr);
+-		if (io_man)
+-			*io_man = NULL;
+-	} else {
+-		/* Return IO manager object to caller... */
+-		hchnl_mgr->hio_mgr = pio_mgr;
+-		*io_man = pio_mgr;
++		return -EPERM;
+ 	}
+-	return status;
++
++	/* Return IO manager object to caller... */
++	hchnl_mgr->hio_mgr = pio_mgr;
++	*io_man = pio_mgr;
++
++	return 0;
+ }
+ 
+ /*
+@@ -1529,6 +1508,9 @@ int io_sh_msetting(struct io_mgr *hio_mgr, u8 desc, void *pargs)
+ int bridge_io_get_proc_load(struct io_mgr *hio_mgr,
+ 				struct dsp_procloadstat *proc_lstat)
+ {
++	if (!hio_mgr->shared_mem)
++		return -EFAULT;
++
+ 	proc_lstat->curr_load =
+ 			hio_mgr->shared_mem->load_mon_info.curr_dsp_load;
+ 	proc_lstat->predicted_load =
+-- 
+1.7.2.3
+
