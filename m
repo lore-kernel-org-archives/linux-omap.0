@@ -1,37 +1,79 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH] omap: mailbox: remove unreachable return
-Date: Mon, 25 Oct 2010 13:38:41 -0500
-Message-ID: <1288031921-14736-1-git-send-email-omar.ramirez@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39343 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380Ab0JYSsw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 14:48:52 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCHv5 0/4] iovmm: fixes for iovmm module
+Date: Mon, 25 Oct 2010 13:49:04 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F4936A90@dlee06.ent.ti.com>
+References: <1288032731-541-1-git-send-email-x0095840@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1288032731-541-1-git-send-email-x0095840@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>
+Cc: "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>, Suman Anna <s-anna@ti.com>, linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Remove unreachable return statement.
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/mach-omap2/mailbox.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index a0af532..7dc9fa6 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -437,8 +437,6 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 	return 0;
--
--	return ret;
- }
- 
- static int __devexit omap2_mbox_remove(struct platform_device *pdev)
--- 
-1.7.1
+Please discard this set of patches I will send them again with
+The correct prefix (omap) to avoid confusion with other
+Iommu componets.
 
+Sorry for the noise.
+
+Regards,
+Fernando.
+
+> -----Original Message-----
+> From: Guzman Lugo, Fernando 
+> Sent: Monday, October 25, 2010 1:52 PM
+> To: Hiroshi.DOYU@nokia.com
+> Cc: felipe.contreras@nokia.com; tony@atomide.com; 
+> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
+> linux-omap@vger.kernel.org; Guzman Lugo, Fernando
+> Subject: [PATCHv5 0/4] iovmm: fixes for iovmm module
+> 
+> Version 5:
+> * Changes in "iommu: create new api to set valid da range"
+>   - Change range variables to platform data structure.
+> 
+> Version 4:
+> * Changes in "iommu: create new api to set valid da range"
+>   - Validate range for fixed address.
+>   - Change way of change boundaries to avoid possible overflow
+>     instead of style :
+>        start + bytes >= end     which start + end can overflow
+>     use style:
+>        end - start < bytes
+> 
+> Version 3:
+> * change patch 2 base on Felipe Contreras' comments,
+>   now it uses min_t and I deleted some blank lines.
+> * patch "create new api to set valid da range" is base on
+>   "iovmm: IVA2 MMU range is from 0x11000000 to 0xFFFFFFFF"
+>   patch and on Hiroshi's comments and now it is added to
+>   this set.
+> 
+> Version 2:
+> * Removed "iovmm: fixes for iovmm module" that patch was already
+>   sent.
+> * Modified "iovmm: fix roundup for next area and end check for the
+>   last area" patch, base on Davin Cohen's comments and rename it
+>   to a proper name that describes what it is doing now.
+> 
+> *** BLURB HERE ***
+> 
+> Fernando Guzman Lugo (4):
+>   iovmm: no gap checking for fixed address
+>   iovmm: add superpages support to fixed da address
+>   iovmm: replace __iounmap with omap_iounmap
+>   iommu: create new api to set valid da range
+> 
+>  arch/arm/plat-omap/include/plat/iommu.h |    3 +
+>  arch/arm/plat-omap/iommu.c              |   33 ++++++++++++
+>  arch/arm/plat-omap/iovmm.c              |   84 
+> ++++++++++++++++++-------------
+>  3 files changed, 85 insertions(+), 35 deletions(-)
+> 
+> 
