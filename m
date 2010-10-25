@@ -1,172 +1,88 @@
-From: srinath@mistralsolutions.com
-Subject: [PATCH 1/1] OMAP: AM3517/05: craneboard: Add craneboard support
-Date: Mon, 25 Oct 2010 19:04:25 +0530
-Message-ID: <1288013665-2487-1-git-send-email-srinath@mistralsolutions.com>
+From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: Re: [PATCH 2/3] PERF(kernel): Cleanup power events
+Date: Mon, 25 Oct 2010 06:55:08 -0700
+Message-ID: <4CC58C3C.60706@linux.intel.com>
+References: <1287488171-25303-1-git-send-email-trenn@suse.de> <1287488171-25303-3-git-send-email-trenn@suse.de> <4CC529AA.9070804@linux.intel.com> <201010251141.12429.trenn@suse.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:34282 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab0JYNtN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 09:49:13 -0400
-Received: by pwj8 with SMTP id 8so390550pwj.19
-        for <linux-omap@vger.kernel.org>; Mon, 25 Oct 2010 06:49:13 -0700 (PDT)
+Received: from mga02.intel.com ([134.134.136.20]:54229 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751164Ab0JYNzK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Oct 2010 09:55:10 -0400
+In-Reply-To: <201010251141.12429.trenn@suse.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jdk@ti.com, tony@atomide.com, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Ingo Molnar <mingo@elte.hu>
 
-From: Srinath <srinath@mistralsolutions.com>
+On 10/25/2010 2:41 AM, Thomas Renninger wrote:
+> On Monday 25 October 2010 08:54:34 Arjan van de Ven wrote:
+>> On 10/19/2010 4:36 AM, Thomas Renninger wrote:
+>>>    static void poll_idle(void)
+>>>    {
+>>> -	trace_power_start(POWER_CSTATE, 0, smp_processor_id());
+>>>    	local_irq_enable();
+>>>    	while (!need_resched())
+>>>    		cpu_relax();
+>>> -	trace_power_end(0);
+>>>    }
+>> why did you remove the idle tracepoints from this one ???
+> Because no idle/sleep state is entered here.
+> State 0 does not exist or say, it means the machine is not idle.
+> The new event uses idle state 0 spec conform as "exit sleep state".
+>
+> If this should still be trackable some kind of dummy sleep state:
+> #define IDLE_BUSY_LOOP 0xFE
+> (or similar) must get defined and passed like this:
+> trace_processor_idle(IDLE_BUSY_LOOP, smp_processor_id());
+>      cpu_relax()
+> trace_processor_idle(0, smp_processor_id());
+>
+> I could imagine this is somewhat worth it to compare idle results
+> to "no idle state at all" is used.
+> But nobody should ever use idle=poll, comparing deep sleep states
+> with C1 with (idle=halt) should be sufficient?
 
-This patch adds basic board file. Detailed support will follow in
-subsequent patches.
+this is not idle=poll on the command line only.
+this also gets used normally, in two cases
+1) during real time operations, for some short periods of time
+     (think wallstreet trading)
+2) by the menu governor when the next event is less than a few 
+microseconds away, so short that even C1 is too much
 
-      [1] http://www.ti.com/sitara
-      [2] http://www.mistralsolutions.com/products/craneboard.php
+I know that your new API tries to use "0" as exit, but 0 is already 
+taken (in all power terminology at least on x86 it is) for this.
 
-This patch has been created against omap-next branch.
+why isn't your "exit" a special define?
 
-Signed-off-by: Srinath <srinath@mistralsolutions.com>
----
- arch/arm/configs/omap2plus_defconfig         |    1 +
- arch/arm/mach-omap2/Kconfig                  |    5 ++
- arch/arm/mach-omap2/Makefile                 |    2 +
- arch/arm/mach-omap2/board-am3517crane.c      |   74 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/uncompress.h |    1 +
- 5 files changed, 83 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
 
-diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
-index ccedde1..8c93f86 100644
---- a/arch/arm/configs/omap2plus_defconfig
-+++ b/arch/arm/configs/omap2plus_defconfig
-@@ -40,6 +40,7 @@ CONFIG_MACH_OMAP_LDP=y
- CONFIG_MACH_OVERO=y
- CONFIG_MACH_OMAP3EVM=y
- CONFIG_MACH_OMAP3517EVM=y
-+CONFIG_MACH_CRANEBOARD=y
- CONFIG_MACH_OMAP3_PANDORA=y
- CONFIG_MACH_OMAP3_TOUCHBOOK=y
- CONFIG_MACH_OMAP_3430SDP=y
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index ab784bf..3688515 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -174,6 +174,11 @@ config MACH_OMAP3517EVM
- 	default y
- 	select OMAP_PACKAGE_CBB
- 
-+config MACH_CRANEBOARD
-+	bool "AM3517/05 CRANE board"
-+	depends on ARCH_OMAP3
-+	select OMAP_PACKAGE_CBB
-+
- config MACH_OMAP3_PANDORA
- 	bool "OMAP3 Pandora"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 7352412..f885037 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -170,6 +170,8 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
- 
- obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
- 
-+obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
-+
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
- 					   hsmmc.o
- # Platform specific device init code
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-new file mode 100644
-index 0000000..152f6ee
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -0,0 +1,74 @@
-+/*
-+ * linux/arch/arm/mach-omap2/board-am3517crane.c
-+ *
-+ * Copyright (C) 2010 Mistral Solutions Pvt Ltd. <www.mistralsolutions.com>
-+ * Author: R.Srinath <srinath@mistralsolutions.com>
-+ *
-+ * Based on mach-omap2/board-am3517evm.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as  published by the
-+ * Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/gpio.h>
-+#include <linux/platform_device.h>
-+
-+#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
-+
-+#include <plat/board.h>
-+#include <plat/common.h>
-+
-+#include "mux.h"
-+
-+/* Board initialization */
-+static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
-+};
-+
-+static struct platform_device *am3517_crane_devices[] __initdata = {
-+};
-+
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
-+static void __init am3517_crane_init_irq(void)
-+{
-+	omap_board_config = am3517_crane_config;
-+	omap_board_config_size = ARRAY_SIZE(am3517_crane_config);
-+
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
-+static void __init am3517_crane_init(void)
-+{
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-+	platform_add_devices(am3517_crane_devices,
-+			ARRAY_SIZE(am3517_crane_devices));
-+	omap_serial_init();
-+}
-+
-+MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
-+	.boot_params	= 0x80000100,
-+	.map_io		= omap3_map_io,
-+	.reserve        = omap_reserve,
-+	.init_irq	= am3517_crane_init_irq,
-+	.init_machine	= am3517_crane_init,
-+	.timer		= &omap_timer,
-+MACHINE_END
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 9036e37..229fbf2 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -145,6 +145,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* omap3 based boards using UART3 */
- 		DEBUG_LL_OMAP3(3, cm_t35);
- 		DEBUG_LL_OMAP3(3, cm_t3517);
-+		DEBUG_LL_OMAP3(3, craneboard);
- 		DEBUG_LL_OMAP3(3, igep0020);
- 		DEBUG_LL_OMAP3(3, igep0030);
- 		DEBUG_LL_OMAP3(3, nokia_rx51);
--- 
-1.7.1.226.g770c5
+also, if you look at many other similar perf events, they ever separate 
+entry/exit points:
+
+process/do_process.cpp:         
+perf_events->add_event("irq:irq_handler_entry");
+process/do_process.cpp:         
+perf_events->add_event("irq:irq_handler_exit");
+process/do_process.cpp:         perf_events->add_event("irq:softirq_entry");
+process/do_process.cpp:         perf_events->add_event("irq:softirq_exit");
+process/do_process.cpp:         
+perf_events->add_event("timer:timer_expire_entry");
+process/do_process.cpp:         
+perf_events->add_event("timer:timer_expire_exit");
+process/do_process.cpp:         
+perf_events->add_event("timer:hrtimer_expire_entry");
+process/do_process.cpp:         
+perf_events->add_event("timer:hrtimer_expire_exit");
+process/do_process.cpp:         perf_events->add_event("power:power_start");
+process/do_process.cpp:         perf_events->add_event("power:power_end");
+process/do_process.cpp:         
+perf_events->add_event("workqueue:workqueue_execute_start");
+process/do_process.cpp:         
+perf_events->add_event("workqueue:workqueue_execute_end");
+
+so there is already an API consistency precedent
+(and frankly, trying to multiplex in "exit" via a magic value is asking 
+for trouble API wise)
 
