@@ -1,34 +1,33 @@
-From: David Woodhouse <dwmw2@infradead.org>
-Subject: Re: [PATCH v2 09/10] OMAP2/3: Convert write/read functions to raw
- read/write
-Date: Mon, 25 Oct 2010 01:01:49 +0100
-Message-ID: <1287964909.5674.22.camel@macbook.infradead.org>
-References: <1285063280-4057-1-git-send-email-manjugk@ti.com>
-	 <1285063280-4057-10-git-send-email-manjugk@ti.com>
-	 <7A436F7769CA33409C6B44B358BFFF0C014F74831E@dlee02.ent.ti.com>
-	 <20101007185630.GA26435@n2100.arm.linux.org.uk>  <4CAE2475.4090607@ti.com>
+From: "DIAMOND FINANCIAL LOAN" <jatalledo@bergara.uned.es>
+Subject: DIAMOND LOAN
+Date: Mon, 25 Oct 2010 04:34:22 +0200
+Message-ID: <f97ff3464c4771a081c9cd4cd7448e1d.squirrel@correo.uned.es>
+Reply-To: d.financialloan1@qualityservice.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:43828 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996Ab0JYAB4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Oct 2010 20:01:56 -0400
-In-Reply-To: <4CAE2475.4090607@ti.com>
+Received: from smtp-out-cinco.uned.es ([62.204.192.119]:52145 "EHLO
+	smtp-out-cinco.uned.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751754Ab0JYCeZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 24 Oct 2010 22:34:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, 2010-10-07 at 14:50 -0500, Nishanth Menon wrote:
-> my comment being that by moving {read,write}[wlb] to __raw versions dont 
-> solve the real issue of namespace here. fix should be in 
-> arch/arm/include/asm/io.h IMHO. so that there are no overlaps as this. 
 
-Indeed. This patch is complete nonsense.
 
--- 
-David Woodhouse                            Open Source Technology Centre
-David.Woodhouse@intel.com                              Intel Corporation
+
+We are Diamond Financial Loan service, we are registered and guaranteed
+loan company here in Europe, and we give out loans to individuals,
+companies, government establishments, churches and business organizations.
+Are you in need of a loan for any purpose? Are you in a financial problem?
+Do you need financial solution? Diamond loans is the solution to all your
+financial problems, our loans are easy, cheap, and quick. Contact us today
+for that loan that you desire, we can arrange any loan to suit your budget
+at only 3% interest rate,minimum of 5,000euros to maximum of 3 million
+euros If interested, contact us immediately,
+
+Brief description of individual:
+Mrs White Goldman
+Email:(d.financialloan@qualityservice.com)
 
