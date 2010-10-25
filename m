@@ -1,101 +1,170 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and Smartreflex drivers
-Date: Mon, 25 Oct 2010 17:19:49 +0100
-Message-ID: <87bp6imehm.fsf@deeprootsystems.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-9-git-send-email-thara@ti.com>
-	<87tykopccd.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB035EB95EAB@dbde02.ent.ti.com>
-	<87lj5q891i.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB035EB96206@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Subject: [PATCHv5 2/4] iovmm: add superpages support to fixed da address
+Date: Mon, 25 Oct 2010 13:52:09 -0500
+Message-ID: <1288032731-541-3-git-send-email-x0095840@ti.com>
+References: <1288032731-541-1-git-send-email-x0095840@ti.com>
+ <1288032731-541-2-git-send-email-x0095840@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54362 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756616Ab0JYQT4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 12:19:56 -0400
-Received: by wyf28 with SMTP id 28so3580095wyf.19
-        for <linux-omap@vger.kernel.org>; Mon, 25 Oct 2010 09:19:55 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035EB96206@dbde02.ent.ti.com>
-	(Thara Gopinath's message of "Mon, 25 Oct 2010 14:30:22 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:38692 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875Ab0JYSin (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 14:38:43 -0400
+In-Reply-To: <1288032731-541-2-git-send-email-x0095840@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Hiroshi.DOYU@nokia.com
+Cc: felipe.contreras@nokia.com, tony@atomide.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
 
-"Gopinath, Thara" <thara@ti.com> writes:
+This patch adds superpages support to fixed ad address
+inside iommu_kmap function.
 
->>>-----Original Message-----
->>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>Sent: Friday, October 22, 2010 10:22 PM
->>>To: Gopinath, Thara
->>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
->>>Vishwanath; Sawant, Anand
->>>Subject: Re: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
->>>Smartreflex drivers
->>>
->>>"Gopinath, Thara" <thara@ti.com> writes:
->>>
->>>>>>Thara Gopinath <thara@ti.com> writes:
->>>>>>
->>>>>>> This patch adds debug support to the voltage and smartreflex drivers.
->>>>>>> This means a whole bunch of voltage processor and smartreflex
->>>>>>> parameters are now visible through the pm debugfs. By default
->>>>>>> only a read of these parameters are permitted. If you need to
->>>>>>> write into them then
->>>>>>>     echo 1 > /pm_debug/enable_sr_vp_debug
->>>>>>
->>>>>>Why a read-only interface by default?   As a debug interface it seems
->>>>>>redundant to have to enable it.
->>>>>>
->>>>
->>>> Read-only interface by default so that we can read these values from
->>>> user space even if we do not want to manipulate it from user-side.
->>>>
->>>
->>>If we do not want to manipulate it from the user-side, then simply don't
->>>write to it.   Remember, this is a debug interface, not a primary
->>>interface.
->>>
->>>I think the enable_sr_vp_debug flag should disappear, and it should be a
->>>read/write interface.
->>>
->>>If the values are changed via debugfs, then set some per-SR instance
->>>flag that can be checked.
->>>
->>>Basically, the current code is confusing because you're using the the
->>>flag called 'enable' to determine whether the user *might have* written
->>>the values.
->>>
->>>[...]
->>>
->>>>>>> +   /*
->>>>>>> +    * Getting  vp errorgain based on the voltage. If the debug option
->>>is
->>>>>>> +    * enabled allow the override of errorgain from user side.
->>>>>>> +    */
->>>>>>
->>>>>>As suggested in earlier comment, please use a specific flag that this
->>>>>>has been overridden instead of the 'debug enabled' flag (which should
->>>>>>disappear, IMO)
->>>>
->>>> What do you mean by a separate flag. You want a flag to be maintained
->>>> for just this purpose ?
->>>
->>>Yes.  I want a flag to be maintained *specifically* for this purpose,
->>>instead of using a much more general flag that only means a user *might*
->>>have overridden the values, use one that specifically means a user *has*
->>>overridden the values.
->
-> Hello Kevin,
->
-> I tried this. Couple of questions/concerns I have.
-> 1. If you take a look at the definition of these debugfs parameters, the omap_vdd_info struct is not passed as an argument. The actual variables are the parameters. I am not sure how to extract omap_vdd_info from this. Maybe container_of will help, but then it will be clumsy. Same concern for smartreflex  err_minlimit variable. There is no way to get the sr instance except use container of which I am not sure will work or not
-> 2.Also in voltage layer we export out eight parameters tat can be over-ridden from the user side. I do not think we should be maintaining one flag per variable. The design will be too very clumsy.
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ arch/arm/plat-omap/iovmm.c |   62 +++++++++++++++++++++++++------------------
+ 1 files changed, 36 insertions(+), 26 deletions(-)
 
-I didn't mean to suggest one flag per varialble.  Just one flag to
-indicate that the user *has* overridden the defaults.
-
-Kevin
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 34f0012..93a34d9 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -87,35 +87,43 @@ static size_t sgtable_len(const struct sg_table *sgt)
+ }
+ #define sgtable_ok(x)	(!!sgtable_len(x))
+ 
++static unsigned max_alignment(u32 addr)
++{
++	int i;
++	unsigned pagesize[] = { SZ_16M, SZ_1M, SZ_64K, SZ_4K, };
++	for (i = 0; i < ARRAY_SIZE(pagesize) && addr & (pagesize[i] - 1); i++)
++		;
++	return (i < ARRAY_SIZE(pagesize)) ? pagesize[i] : 0;
++}
++
+ /*
+  * calculate the optimal number sg elements from total bytes based on
+  * iommu superpages
+  */
+-static unsigned int sgtable_nents(size_t bytes)
++static unsigned sgtable_nents(size_t bytes, u32 da, u32 pa)
+ {
+-	int i;
+-	unsigned int nr_entries;
+-	const unsigned long pagesize[] = { SZ_16M, SZ_1M, SZ_64K, SZ_4K, };
++	unsigned nr_entries = 0, ent_sz;
+ 
+ 	if (!IS_ALIGNED(bytes, PAGE_SIZE)) {
+ 		pr_err("%s: wrong size %08x\n", __func__, bytes);
+ 		return 0;
+ 	}
+ 
+-	nr_entries = 0;
+-	for (i = 0; i < ARRAY_SIZE(pagesize); i++) {
+-		if (bytes >= pagesize[i]) {
+-			nr_entries += (bytes / pagesize[i]);
+-			bytes %= pagesize[i];
+-		}
++	while (bytes) {
++		ent_sz = max_alignment(da | pa);
++		ent_sz = min_t(unsigned, ent_sz, iopgsz_max(bytes));
++		nr_entries++;
++		da += ent_sz;
++		pa += ent_sz;
++		bytes -= ent_sz;
+ 	}
+-	BUG_ON(bytes);
+ 
+ 	return nr_entries;
+ }
+ 
+ /* allocate and initialize sg_table header(a kind of 'superblock') */
+-static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags)
++static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags,
++							u32 da, u32 pa)
+ {
+ 	unsigned int nr_entries;
+ 	int err;
+@@ -127,9 +135,8 @@ static struct sg_table *sgtable_alloc(const size_t bytes, u32 flags)
+ 	if (!IS_ALIGNED(bytes, PAGE_SIZE))
+ 		return ERR_PTR(-EINVAL);
+ 
+-	/* FIXME: IOVMF_DA_FIXED should support 'superpages' */
+-	if ((flags & IOVMF_LINEAR) && (flags & IOVMF_DA_ANON)) {
+-		nr_entries = sgtable_nents(bytes);
++	if (flags & IOVMF_LINEAR) {
++		nr_entries = sgtable_nents(bytes, da, pa);
+ 		if (!nr_entries)
+ 			return ERR_PTR(-EINVAL);
+ 	} else
+@@ -409,7 +416,8 @@ static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
+ 	BUG_ON(!sgt);
+ }
+ 
+-static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
++static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, u32 da,
++								size_t len)
+ {
+ 	unsigned int i;
+ 	struct scatterlist *sg;
+@@ -418,9 +426,10 @@ static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
+ 	va = phys_to_virt(pa);
+ 
+ 	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+-		size_t bytes;
++		unsigned bytes;
+ 
+-		bytes = iopgsz_max(len);
++		bytes = max_alignment(da | pa);
++		bytes = min_t(unsigned, bytes, iopgsz_max(len));
+ 
+ 		BUG_ON(!iopgsz_ok(bytes));
+ 
+@@ -429,6 +438,7 @@ static void sgtable_fill_kmalloc(struct sg_table *sgt, u32 pa, size_t len)
+ 		 * 'pa' is cotinuous(linear).
+ 		 */
+ 		pa += bytes;
++		da += bytes;
+ 		len -= bytes;
+ 	}
+ 	BUG_ON(len);
+@@ -695,18 +705,18 @@ u32 iommu_vmalloc(struct iommu *obj, u32 da, size_t bytes, u32 flags)
+ 	if (!va)
+ 		return -ENOMEM;
+ 
+-	sgt = sgtable_alloc(bytes, flags);
++	flags &= IOVMF_HW_MASK;
++	flags |= IOVMF_DISCONT;
++	flags |= IOVMF_ALLOC;
++	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
++
++	sgt = sgtable_alloc(bytes, flags, da, 0);
+ 	if (IS_ERR(sgt)) {
+ 		da = PTR_ERR(sgt);
+ 		goto err_sgt_alloc;
+ 	}
+ 	sgtable_fill_vmalloc(sgt, va);
+ 
+-	flags &= IOVMF_HW_MASK;
+-	flags |= IOVMF_DISCONT;
+-	flags |= IOVMF_ALLOC;
+-	flags |= (da ? IOVMF_DA_FIXED : IOVMF_DA_ANON);
+-
+ 	da = __iommu_vmap(obj, da, sgt, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da))
+ 		goto err_iommu_vmap;
+@@ -746,11 +756,11 @@ static u32 __iommu_kmap(struct iommu *obj, u32 da, u32 pa, void *va,
+ {
+ 	struct sg_table *sgt;
+ 
+-	sgt = sgtable_alloc(bytes, flags);
++	sgt = sgtable_alloc(bytes, flags, da, pa);
+ 	if (IS_ERR(sgt))
+ 		return PTR_ERR(sgt);
+ 
+-	sgtable_fill_kmalloc(sgt, pa, bytes);
++	sgtable_fill_kmalloc(sgt, pa, da, bytes);
+ 
+ 	da = map_iommu_region(obj, da, sgt, va, bytes, flags);
+ 	if (IS_ERR_VALUE(da)) {
+-- 
+1.6.3.3
 
