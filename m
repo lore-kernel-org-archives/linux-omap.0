@@ -1,22 +1,22 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
- Smartreflex drivers
-Date: Mon, 25 Oct 2010 14:30:22 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB96206@dbde02.ent.ti.com>
+Subject: RE: [PATCH v3 09/11] OMAP3: PM: Smartreflex Class3 initialization
+ from board files.
+Date: Mon, 25 Oct 2010 14:46:22 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB9622C@dbde02.ent.ti.com>
 References: <1285166719-19352-1-git-send-email-thara@ti.com>
-	<1285166719-19352-9-git-send-email-thara@ti.com>
-	<87tykopccd.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB035EB95EAB@dbde02.ent.ti.com>
- <87lj5q891i.fsf@deeprootsystems.com>
+	<1285166719-19352-10-git-send-email-thara@ti.com>
+	<87aamgpc5e.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB035EB95EAC@dbde02.ent.ti.com>
+ <87pqv29oa7.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34456 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754323Ab0JYJAd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 05:00:33 -0400
-In-Reply-To: <87lj5q891i.fsf@deeprootsystems.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35115 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751680Ab0JYJQa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 05:16:30 -0400
+In-Reply-To: <87pqv29oa7.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -27,74 +27,48 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" 
 
 >>-----Original Message-----
 >>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Friday, October 22, 2010 10:22 PM
+>>Sent: Friday, October 22, 2010 10:08 PM
 >>To: Gopinath, Thara
 >>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; Cousson, Benoit; Sripathy,
 >>Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH v3 08/11] OMAP3: PM: Adding debug support to Voltage and
->>Smartreflex drivers
+>>Subject: Re: [PATCH v3 09/11] OMAP3: PM: Smartreflex Class3 initialization
+>>from board files.
 >>
 >>"Gopinath, Thara" <thara@ti.com> writes:
 >>
->>>>>Thara Gopinath <thara@ti.com> writes:
+>>>>>> This patch enables smartreflex class3 functionality for OMAP3430SDP,
+>>>>>> OMAP3630SDP, ZOOM2 and ZOOM3 boards.
 >>>>>
->>>>>> This patch adds debug support to the voltage and smartreflex drivers.
->>>>>> This means a whole bunch of voltage processor and smartreflex
->>>>>> parameters are now visible through the pm debugfs. By default
->>>>>> only a read of these parameters are permitted. If you need to
->>>>>> write into them then
->>>>>>     echo 1 > /pm_debug/enable_sr_vp_debug
+>>>>>This patch doesn't touch 3630sdp.
 >>>>>
->>>>>Why a read-only interface by default?   As a debug interface it seems
->>>>>redundant to have to enable it.
+>>>>>> Signed-off-by: Thara Gopinath <thara@ti.com>
 >>>>>
+>>>>>I'm having some doubts about whether this should be done by board files or
+>>>>>not.  Seems like the general case will be that by default will be SoC
+>>>>>specific, and only boards that want something other than the default
+>>>>>class should need to override this.
+>>>>>
+>>>>>Thoughts?
 >>>
->>> Read-only interface by default so that we can read these values from
->>> user space even if we do not want to manipulate it from user-side.
->>>
+>>> I agree. I wanted this to be a default initcall and one to enable the
+>>> menuconfig option for the required class driver.. But Nishant wanted
+>>> this from board files.
 >>
->>If we do not want to manipulate it from the user-side, then simply don't
->>write to it.   Remember, this is a debug interface, not a primary
->>interface.
+>>And I want both.  :)
 >>
->>I think the enable_sr_vp_debug flag should disappear, and it should be a
->>read/write interface.
+>>> If we have consensus in removing this init from board file, I am cool
+>>> with it.
 >>
->>If the values are changed via debugfs, then set some per-SR instance
->>flag that can be checked.
+>>I want to suport a kernel that could be built with all possible classes
+>>supported.  e.g. an omap3/4 kernel that has both class 1.5 and class 3
+>>support.
 >>
->>Basically, the current code is confusing because you're using the the
->>flag called 'enable' to determine whether the user *might have* written
->>the values.
->>
->>[...]
->>
->>>>>> +   /*
->>>>>> +    * Getting  vp errorgain based on the voltage. If the debug option
->>is
->>>>>> +    * enabled allow the override of errorgain from user side.
->>>>>> +    */
->>>>>
->>>>>As suggested in earlier comment, please use a specific flag that this
->>>>>has been overridden instead of the 'debug enabled' flag (which should
->>>>>disappear, IMO)
->>>
->>> What do you mean by a separate flag. You want a flag to be maintained
->>> for just this purpose ?
->>
->>Yes.  I want a flag to be maintained *specifically* for this purpose,
->>instead of using a much more general flag that only means a user *might*
->>have overridden the values, use one that specifically means a user *has*
->>overridden the values.
+>>If both are enabled in Kconfig, then either could be used.  We'll have
+>>to pick one as the default initcall (e.g. highest class present), but if
+>>a board file chooses to call a different one, that should override the
+>>default one.
 
-Hello Kevin,
+We can pick class 3 by default and make it a late_initcall. This way if the board files choose to call some other class init, that class ddriver would be registered. Smartreflex driver sr_register_class API will ensure that only one class is registered. The second registeration will fail. What say ??
 
-I tried this. Couple of questions/concerns I have.
-1. If you take a look at the definition of these debugfs parameters, the omap_vdd_info struct is not passed as an argument. The actual variables are the parameters. I am not sure how to extract omap_vdd_info from this. Maybe container_of will help, but then it will be clumsy. Same concern for smartreflex  err_minlimit variable. There is no way to get the sr instance except use container of which I am not sure will work or not
-2.Also in voltage layer we export out eight parameters tat can be over-ridden from the user side. I do not think we should be maintaining one flag per variable. The design will be too very clumsy.
-
-Regards
+Regards,
 Thara
-
->>
->>Kevin
