@@ -1,88 +1,45 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v3 01/11] OMAP: PM: Export the main pm debugfs directory
-Date: Mon, 25 Oct 2010 15:00:56 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035EB96247@dbde02.ent.ti.com>
-References: <1285166719-19352-1-git-send-email-thara@ti.com>
- <1285166719-19352-2-git-send-email-thara@ti.com> <4CC54E02.7090008@ti.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 2/3] PERF(kernel): Cleanup power events
+Date: Mon, 25 Oct 2010 11:41:11 +0200
+Message-ID: <201010251141.12429.trenn@suse.de>
+References: <1287488171-25303-1-git-send-email-trenn@suse.de> <1287488171-25303-3-git-send-email-trenn@suse.de> <4CC529AA.9070804@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53673 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754689Ab0JYJbE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 05:31:04 -0400
-In-Reply-To: <4CC54E02.7090008@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <4CC529AA.9070804@linux.intel.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
+On Monday 25 October 2010 08:54:34 Arjan van de Ven wrote:
+> On 10/19/2010 4:36 AM, Thomas Renninger wrote:
+> >   static void poll_idle(void)
+> >   {
+> > -	trace_power_start(POWER_CSTATE, 0, smp_processor_id());
+> >   	local_irq_enable();
+> >   	while (!need_resched())
+> >   		cpu_relax();
+> > -	trace_power_end(0);
+> >   }
+> 
+> why did you remove the idle tracepoints from this one ???
+Because no idle/sleep state is entered here.
+State 0 does not exist or say, it means the machine is not idle.
+The new event uses idle state 0 spec conform as "exit sleep state".
 
+If this should still be trackable some kind of dummy sleep state:
+#define IDLE_BUSY_LOOP 0xFE
+(or similar) must get defined and passed like this:
+trace_processor_idle(IDLE_BUSY_LOOP, smp_processor_id());
+    cpu_relax()
+trace_processor_idle(0, smp_processor_id());
 
->>-----Original Message-----
->>From: Cousson, Benoit
->>Sent: Monday, October 25, 2010 3:00 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com; paul@pwsan.com;
->>Sripathy, Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH v3 01/11] OMAP: PM: Export the main pm debugfs directory
->>
->>On 9/22/2010 4:45 PM, Gopinath, Thara wrote:
->>> This patch makes generic pm_debug directory  global
->>> so that other drivers can include it and use it to create
->>> sub-entries.
->>
->>That should not be needed, if we expose voltage debugfs entry in the top
->>level directly.
+I could imagine this is somewhat worth it to compare idle results
+to "no idle state at all" is used.
+But nobody should ever use idle=poll, comparing deep sleep states
+with C1 with (idle=halt) should be sufficient?
 
-Agreed. I am ok with exposing the voltage debugfs entry at the top level.
-
-Regards
-Thara 
->>
->>Benoit
->>
->>>
->>> Signed-off-by: Thara Gopinath<thara@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/pm-debug.c |    3 +++
->>>   arch/arm/mach-omap2/pm.h       |    1 +
->>>   2 files changed, 4 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-
->>debug.c
->>> index af00c17..390f1c6 100644
->>> --- a/arch/arm/mach-omap2/pm-debug.c
->>> +++ b/arch/arm/mach-omap2/pm-debug.c
->>> @@ -42,6 +42,7 @@ u32 enable_off_mode;
->>>   u32 sleep_while_idle;
->>>   u32 wakeup_timer_seconds;
->>>   u32 wakeup_timer_milliseconds;
->>> +struct dentry *pm_dbg_main_dir;
->>>
->>>   #define DUMP_PRM_MOD_REG(mod, reg)    \
->>>   	regs[reg_count].name = #mod "." #reg; \
->>> @@ -641,6 +642,8 @@ static int __init pm_dbg_init(void)
->>>   	(void) debugfs_create_file("wakeup_timer_milliseconds",
->>>   			S_IRUGO | S_IWUGO, d,&wakeup_timer_milliseconds,
->>>   			&pm_dbg_option_fops);
->>> +
->>> +	pm_dbg_main_dir = d;
->>>   	pm_dbg_init_done = 1;
->>>
->>>   	return 0;
->>> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
->>> index f3ba1e6..c06cedd 100644
->>> --- a/arch/arm/mach-omap2/pm.h
->>> +++ b/arch/arm/mach-omap2/pm.h
->>> @@ -55,6 +55,7 @@ extern int omap2_pm_debug;
->>>   #define omap2_pm_dump(mode, resume, us)		do {} while (0);
->>>   #define omap2_pm_wakeup_on_timer(seconds, milliseconds)	do {} while (0);
->>>   #define omap2_pm_debug				0
->>> +#define pm_dbg_main_dir				0
->>>   #endif
->>>
->>>   #if defined(CONFIG_CPU_IDLE)
-
+    Thomas
