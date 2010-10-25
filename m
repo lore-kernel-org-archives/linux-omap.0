@@ -1,72 +1,168 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH 2/3] PERF(kernel): Cleanup power events
-Date: Mon, 25 Oct 2010 16:56:04 +0200
-Message-ID: <20101025145604.GB16397@elte.hu>
-References: <1287488171-25303-1-git-send-email-trenn@suse.de>
- <201010251141.12429.trenn@suse.de>
- <4CC58C3C.60706@linux.intel.com>
- <201010251636.51468.trenn@suse.de>
- <4CC597FA.7080606@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4CC597FA.7080606@linux.intel.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Thomas Renninger <trenn@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+From: srinath@mistralsolutions.com
+Subject: [PATCH] OMAP: AM3517/05: Add craneboard support
+Date: Mon, 25 Oct 2010 20:15:43 +0530
+Message-ID: <1288017943-6651-1-git-send-email-srinath@mistralsolutions.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:60882 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518Ab0JYPAY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 11:00:24 -0400
+Received: by pxi15 with SMTP id 15so492062pxi.19
+        for <linux-omap@vger.kernel.org>; Mon, 25 Oct 2010 08:00:24 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: jdk@ti.com, tony@atomide.com, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
 
+From: Srinath <srinath@mistralsolutions.com>
 
-* Arjan van de Ven <arjan@linux.intel.com> wrote:
+This patch adds basic board file. Detailed support will follow in
+subsequent patches.
 
-> On 10/25/2010 7:36 AM, Thomas Renninger wrote:
-> >>I know that your new API tries to use "0" as exit, but 0 is already
-> >>taken (in all power terminology at least on x86 it is) for this.
-> >cpuidle indeed misuses C0 as "poll idle" state.
-> >That's really bad/misleading, but nothing that can be changed easily.
-> >
-> >I agree shifting C0 (cpuidle)<->  POLL_IDLE event
-> >and              "not idle"<->  real C0 (executing instructions)
-> >or however this gets mapped makes things even worse.
-> >
-> >Damn, it could be that easy and straight forward, but I agree that
-> >this kills the approach to trigger state 0 event if C0 is entered
-> >(C0 as defined as operational mode executing instructions).
-> 
-> ok so we have
-> 
-> "C0 idle"
-> and
-> "C0 no longer idle"
-> 
-> I'd propose using the number 0 for the first one (it makes the most
-> logical sense, it's the least deep idle state etc etc)
-> 
-> we could use "-1" or "INT_MAX" for the later
-> 
-> but as a user of the API I rather like a separate "we're no longer idle" event... 
-> but if not, as long as things aren't ambigious I'll find a way to code around it.
->
-> basically with a separate event, I demultiplex based on event number between entry 
-> and exit.... with a special exit value I would just need a double demultiplex,
+      [1] http://www.ti.com/sitara
+      [2] http://www.mistralsolutions.com/products/craneboard.php
 
-Hm, does not sound particularly smart.
+This patch has been created against omap-next branch.
 
-> one on "idle" and then a second one on the state number to split between 
-> entry/exit.
+Signed-off-by: Srinath <srinath@mistralsolutions.com>
+---
+ arch/arm/configs/omap2plus_defconfig         |    1 +
+ arch/arm/mach-omap2/Kconfig                  |    5 ++
+ arch/arm/mach-omap2/Makefile                 |    2 +
+ arch/arm/mach-omap2/board-am3517crane.c      |   70 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+ 5 files changed, 79 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
 
-The thing is, in terms of CPU idle state, if the old tracepoints give us all the 
-information that the new tracepoints, why dont we simply add the tracepoints to ARM 
-and be done with it? No app needs to be changed in that case, etc.
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index ccedde1..8c93f86 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -40,6 +40,7 @@ CONFIG_MACH_OMAP_LDP=y
+ CONFIG_MACH_OVERO=y
+ CONFIG_MACH_OMAP3EVM=y
+ CONFIG_MACH_OMAP3517EVM=y
++CONFIG_MACH_CRANEBOARD=y
+ CONFIG_MACH_OMAP3_PANDORA=y
+ CONFIG_MACH_OMAP3_TOUCHBOOK=y
+ CONFIG_MACH_OMAP_3430SDP=y
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index ab784bf..3688515 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -174,6 +174,11 @@ config MACH_OMAP3517EVM
+ 	default y
+ 	select OMAP_PACKAGE_CBB
+ 
++config MACH_CRANEBOARD
++	bool "AM3517/05 CRANE board"
++	depends on ARCH_OMAP3
++	select OMAP_PACKAGE_CBB
++
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
+ 	depends on ARCH_OMAP3
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 7352412..f885037 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -170,6 +170,8 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
+ 
+ obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
+ 
++obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
++
+ obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
+ 					   hsmmc.o
+ # Platform specific device init code
+diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
+new file mode 100644
+index 0000000..f98b89a
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-am3517crane.c
+@@ -0,0 +1,70 @@
++/*
++ * Support for AM3517/05 Craneboard
++ * http://www.mistralsolutions.com/products/craneboard.php
++ *
++ * Copyright (C) 2010 Mistral Solutions Pvt Ltd. <www.mistralsolutions.com>
++ * Author: R.Srinath <srinath@mistralsolutions.com>
++ *
++ * Based on mach-omap2/board-am3517evm.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as  published by the
++ * Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
++ * whether express or implied; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/gpio.h>
++#include <linux/platform_device.h>
++
++#include <mach/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <plat/board.h>
++#include <plat/common.h>
++
++#include "mux.h"
++
++/* Board initialization */
++static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
++};
++
++#ifdef CONFIG_OMAP_MUX
++static struct omap_board_mux board_mux[] __initdata = {
++	{ .reg_offset = OMAP_MUX_TERMINATOR },
++};
++#else
++#define board_mux	NULL
++#endif
++
++static void __init am3517_crane_init_irq(void)
++{
++	omap_board_config = am3517_crane_config;
++	omap_board_config_size = ARRAY_SIZE(am3517_crane_config);
++
++	omap2_init_common_hw(NULL, NULL);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++static void __init am3517_crane_init(void)
++{
++	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
++	omap_serial_init();
++}
++
++MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
++	.boot_params	= 0x80000100,
++	.map_io		= omap3_map_io,
++	.reserve        = omap_reserve,
++	.init_irq	= am3517_crane_init_irq,
++	.init_machine	= am3517_crane_init,
++	.timer		= &omap_timer,
++MACHINE_END
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index 9036e37..229fbf2 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -145,6 +145,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
+ 		/* omap3 based boards using UART3 */
+ 		DEBUG_LL_OMAP3(3, cm_t35);
+ 		DEBUG_LL_OMAP3(3, cm_t3517);
++		DEBUG_LL_OMAP3(3, craneboard);
+ 		DEBUG_LL_OMAP3(3, igep0020);
+ 		DEBUG_LL_OMAP3(3, igep0030);
+ 		DEBUG_LL_OMAP3(3, nokia_rx51);
+-- 
+1.7.1.226.g770c5
 
-Plus, lets express the suspend/resume tracepoints as suspend_enter(X)/suspend_exit() 
-events as well, to keep it symmetric and consistent with the other enter/exit 
-events.
-
-The rename alone isnt a strong enough reason really. 'entering idle state X' and 
-'exiting idle' is pretty much synonymous to 'enter idle state X'.
-
-Thanks,
-
-	Ingo
