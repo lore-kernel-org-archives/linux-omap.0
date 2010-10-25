@@ -1,25 +1,31 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [OFF TOPIC] Out on travel for a week
-Date: Mon, 25 Oct 2010 08:54:22 +0300
-Message-ID: <20101025055422.GD2595__19787.302616942$1287986073$gmane$org@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: Re: [PATCH 2/3] PERF(kernel): Cleanup power events
+Date: Sun, 24 Oct 2010 23:54:34 -0700
+Message-ID: <4CC529AA.9070804@linux.intel.com>
+References: <1287488171-25303-1-git-send-email-trenn@suse.de> <1287488171-25303-3-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54529 "EHLO comal.ext.ti.com"
+Received: from mga01.intel.com ([192.55.52.88]:2011 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751194Ab0JYFyZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Oct 2010 01:54:25 -0400
-Content-Disposition: inline
+	id S1751011Ab0JYGyg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 Oct 2010 02:54:36 -0400
+In-Reply-To: <1287488171-25303-3-git-send-email-trenn@suse.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>Linux OMAP Mailing List <li>
+To: Thomas Renninger <trenn@suse.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Ingo Molnar <mingo@elte.hu>
 
-Hi all,
+On 10/19/2010 4:36 AM, Thomas Renninger wrote:
+>   static void poll_idle(void)
+>   {
+> -	trace_power_start(POWER_CSTATE, 0, smp_processor_id());
+>   	local_irq_enable();
+>   	while (!need_resched())
+>   		cpu_relax();
+> -	trace_power_end(0);
+>   }
 
-I'll be out on travel for a week, back to real life in November 3rd, so
-if you send me mails and I don't reply, wait a bit longer and I'll catch
-up with the pending stuff.
+why did you remove the idle tracepoints from this one ???
 
--- 
-balbi
