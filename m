@@ -1,57 +1,62 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 2/3] PERF(kernel): Cleanup power events
-Date: Mon, 25 Oct 2010 13:03:03 +0200
-Message-ID: <201010251303.04019.trenn@suse.de>
-References: <1287488171-25303-1-git-send-email-trenn@suse.de> <1287488171-25303-3-git-send-email-trenn@suse.de> <20101025100428.GA24061@elte.hu>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH v3 03/11] OMAP3: PM: Adding smartreflex driver support.
+Date: Mon, 25 Oct 2010 14:12:08 +0300
+Message-ID: <AANLkTim-xzAEHF_+D_P-w2gKczaPDhqw9z85xG+2G7a6@mail.gmail.com>
+References: <1285166719-19352-1-git-send-email-thara@ti.com>
+	<1285166719-19352-4-git-send-email-thara@ti.com>
+	<87lj61tzaz.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB035EB95E9C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <20101025100428.GA24061@elte.hu>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:54275 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752723Ab0JYLMJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 Oct 2010 07:12:09 -0400
+Received: by qyk12 with SMTP id 12so1381636qyk.19
+        for <linux-omap@vger.kernel.org>; Mon, 25 Oct 2010 04:12:09 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035EB95E9C@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gopinath, Thara" <thara@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-On Monday 25 October 2010 12:04:28 Ingo Molnar wrote:
-> 
-> * Thomas Renninger <trenn@suse.de> wrote:
-> 
-> > New power trace events:
-> > power:processor_idle
-> > power:processor_frequency
-> > power:machine_suspend
-> > 
-> > 
-> > C-state/idle accounting events:
-> >   power:power_start
-> >   power:power_end
-> > are replaced with:
-> >   power:processor_idle
-> 
-> Well, most power saving hw models (and the code implementing them) have this kind of 
-> model:
-> 
->  enter power saving mode X
->  exit power saving mode
-> 
-> Where X is some sort of 'power saving deepness' attribute, right?
-Sure.
-But ACPI and afaik this model got picked up for PCI and other (sub-)archs
-as well, defines state 0 as the non-power saving mode.
-Same as done here with machine suspend state (S0 is back from suspend) and
-this model should get picked up when device sleep states get tracked at
-some time.
-It's consistent and applies to some well known specifications.
+>>>Thara Gopinath <thara@ti.com> writes:
+>>>
+>>>> + =A0 =A0 =A0 =A0 =A0 if (ret) {
+>>>
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto error;
+>>>
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct resource *mem;
+>>>> +
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 iounmap(sr_info->base);
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mem =3D platform_get_resourc=
+e(sr_info->pdev,
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 IORESOURCE_M=
+EM, 0);
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 release_mem_region(mem->star=
+t, resource_size(mem));
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 list_del(&sr_info->node);
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&sr_info->pdev->dev,=
+ "%s: ERROR in registering"
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "interrupt h=
+andler. Smartreflex will"
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "not functio=
+n as desired\n", __func__);
+>>>> +
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(sr_info);
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
+>>>> + =A0 =A0 =A0 =A0 =A0 }
+>>>
+>>>and move this after the return...
+>
+> I did not understand this comment.
 
-Also tracking processor_idle_{start,end} as a separate event
-makes no sense and there is no need to introduce:
-processor_idle_start/processor_idle_end
-machine_suspend_start/machine_suspend_end
-device_power_mode_start/device_power_mode_end
-events.
-Using state 0 as "exit/end", is much nicer for kernel/
-userspace implementations/code and the user.
-
-     Thomas
+I guess he meant to move error handling to the end of function, and
+jump there with goto.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
