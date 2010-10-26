@@ -1,69 +1,67 @@
-From: Samreen <samreen@ti.com>
-Subject: [PATCH v2 2/2] OMAP3: Enable display on ZOOM2/3/3630SDP
-Date: Tue, 26 Oct 2010 09:58:35 +0530
-Message-ID: <1288067315-30492-3-git-send-email-samreen@ti.com>
-References: <1288067315-30492-1-git-send-email-samreen@ti.com>
- <1288067315-30492-2-git-send-email-samreen@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] omap: dma: Add read-back to DMA interrupt handler to
+ avoid spurious interrupts
+Date: Tue, 26 Oct 2010 11:01:17 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D289B05@dbde02.ent.ti.com>
+References: <1288017324-2181-1-git-send-email-mathias.nyman@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35902 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38880 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751958Ab0JZEeD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Oct 2010 00:34:03 -0400
-In-Reply-To: <1288067315-30492-2-git-send-email-samreen@ti.com>
+	id S1751867Ab0JZFb0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Oct 2010 01:31:26 -0400
+In-Reply-To: <1288017324-2181-1-git-send-email-mathias.nyman@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Kishore Y <kishore.y@ti.com>, Mukund Mittal <mmittal@ti.com>, Samreen <samreen@ti.com>
+To: Mathias Nyman <mathias.nyman@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Kishore Y <kishore.y@ti.com>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Mathias Nyman
+> Sent: Monday, October 25, 2010 8:05 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Mathias Nyman
+> Subject: [PATCH] omap: dma: Add read-back to DMA interrupt handler to
+> avoid spurious interrupts
+> 
+> Flush the writes to IRQSTATUS_L0 register in the DMA interrupt handler by
+> reading the register
+> directly after write. This prevents the spurious DMA interrupts noted when
+> using VDD_OPP 1
+>
+Good fix Mathias.
+Actually we should also clear other status lines as well when
+used with multiple master initiator scenario's. But that need some
+additional fixes as well. 
 
-Enable Display on zoom2, zoom3 and 3630sdp boards.
+> Signed-off-by: Mathias Nyman <mathias.nyman@nokia.com>
 
-Signed-off-by: Mukund Mittal <mmittal@ti.com>
-Signed-off-by: Kishore Y <kishore.y@ti.com>
-Signed-off-by: Samreen <samreen@ti.com>
----
- arch/arm/mach-omap2/board-3630sdp.c |    1 +
- arch/arm/mach-omap2/board-zoom2.c   |    1 +
- arch/arm/mach-omap2/board-zoom3.c   |    1 +
- 3 files changed, 3 insertions(+), 0 deletions(-)
+Acked-by: Santosh Shilimkar <Santosh.shilimkar@ti.com>
 
-diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-index b359c3f..d6ba94a 100644
---- a/arch/arm/mach-omap2/board-3630sdp.c
-+++ b/arch/arm/mach-omap2/board-3630sdp.c
-@@ -210,6 +210,7 @@ static void __init omap_sdp_init(void)
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBP);
- 	omap_serial_init();
- 	zoom_peripherals_init();
-+	zoom_display_init();
- 	board_smc91x_init();
- 	board_flash_init(sdp_flash_partitions, chip_sel_sdp);
- 	enable_board_wakeup_source();
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 3ad9ecf..1db4d95 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -138,6 +138,7 @@ static void __init omap_zoom2_init(void)
- 	board_nand_init(zoom_nand_partitions,
- 			ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS);
- 	zoom_debugboard_init();
-+	zoom_display_init();
- }
- 
- MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-index 6ca0b83..6e012f6 100644
---- a/arch/arm/mach-omap2/board-zoom3.c
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -117,6 +117,7 @@ static void __init omap_zoom_init(void)
- 	board_nand_init(zoom_nand_partitions,
- 			 ARRAY_SIZE(zoom_nand_partitions), ZOOM_NAND_CS);
- 	zoom_debugboard_init();
-+	zoom_display_init();
- 
- 	omap_mux_init_gpio(64, OMAP_PIN_OUTPUT);
- 	usb_ehci_init(&ehci_pdata);
--- 
-1.5.6.3
-
+> ---
+>  arch/arm/plat-omap/dma.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index f5c5b8d..2c28265 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -1983,6 +1983,8 @@ static int omap2_dma_handle_ch(int ch)
+> 
+>  	dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(ch));
+>  	dma_write(1 << ch, IRQSTATUS_L0);
+> +	/* read back the register to flush the write */
+> +	dma_read(IRQSTATUS_L0);
+> 
+>  	/* If the ch is not chained then chain_id will be -1 */
+>  	if (dma_chan[ch].chain_id != -1) {
+> --
+> 1.5.6.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
