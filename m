@@ -1,35 +1,51 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH 0/8] staging: tidspbridge - misc fixes
-Date: Mon, 25 Oct 2010 19:51:38 -0500
-Message-ID: <1288054306-4361-1-git-send-email-x0095840@ti.com>
+Subject: [PATCH 5/8] staging: tidspbridge - use GTP7 for DSP stack dump
+Date: Mon, 25 Oct 2010 19:51:43 -0500
+Message-ID: <1288054306-4361-6-git-send-email-x0095840@ti.com>
+References: <1288054306-4361-1-git-send-email-x0095840@ti.com>
+ <1288054306-4361-2-git-send-email-x0095840@ti.com>
+ <1288054306-4361-3-git-send-email-x0095840@ti.com>
+ <1288054306-4361-4-git-send-email-x0095840@ti.com>
+ <1288054306-4361-5-git-send-email-x0095840@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1288054306-4361-5-git-send-email-x0095840@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: gregkh@suse.de
 Cc: felipe.contreras@nokia.com, Hiroshi.DOYU@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <x0095840@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This set of patches fix some issues found in lastest tree.
+DSP stack dump is changed to GTP7 due to GPT8 is used
+by DSP side apps
 
-Fernando Guzman Lugo (8):
-  staging: tidspbridge - remove req_addr from proc_map
-  staging: tidspbridge - add kconfig parameter for DMM size
-  staging: tidspbridge - change mmufault tasklet to a workqueue
-  staging: tidspbridge - fix timeout in dsp_gpt_wait_overflow
-  staging: tidspbridge - use GTP7 for DSP stack dump
-  staging: tidspbridge - remove disabling twl when printing DSP stack
-  staging: tidspbridge - fix some issues after iommu patches
-  staging: tidspbridge - make sync_wait_on_event interruptible
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ drivers/staging/tidspbridge/core/dsp-mmu.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
- drivers/staging/tidspbridge/Kconfig                |    8 +++
- drivers/staging/tidspbridge/core/dsp-clock.c       |   13 +++--
- drivers/staging/tidspbridge/core/dsp-mmu.c         |   55 +++++++++++---------
- drivers/staging/tidspbridge/core/tiomap3430.c      |   20 ++++++-
- .../staging/tidspbridge/include/dspbridge/clk.h    |    4 +-
- .../tidspbridge/include/dspbridge/dsp-mmu.h        |    3 +
- .../tidspbridge/include/dspbridge/dspapi-ioctl.h   |    1 -
- .../staging/tidspbridge/include/dspbridge/proc.h   |    3 -
- .../staging/tidspbridge/include/dspbridge/sync.h   |   13 ++++-
- drivers/staging/tidspbridge/pmgr/dspapi.c          |    2 +-
- drivers/staging/tidspbridge/rmgr/node.c            |    4 +-
- drivers/staging/tidspbridge/rmgr/proc.c            |   25 ++++-----
- 12 files changed, 95 insertions(+), 56 deletions(-)
+diff --git a/drivers/staging/tidspbridge/core/dsp-mmu.c b/drivers/staging/tidspbridge/core/dsp-mmu.c
+index 2d4e897..157b743 100644
+--- a/drivers/staging/tidspbridge/core/dsp-mmu.c
++++ b/drivers/staging/tidspbridge/core/dsp-mmu.c
+@@ -63,9 +63,9 @@ static void mmu_fault_print_stack(struct bridge_dev_context *dev_context)
+ 
+ 	load_iotlb_entry(mmu, &e);
+ 
+-	dsp_clk_enable(DSP_CLK_GPT8);
++	dsp_clk_enable(DSP_CLK_GPT7);
+ 
+-	if (dsp_gpt_wait_overflow(DSP_CLK_GPT8, 0xfffffffe, 10)) {
++	if (dsp_gpt_wait_overflow(DSP_CLK_GPT7, 0xfffffffe, 10)) {
+ 		pr_err("%s: error sending interrupt to DSP\n", __func__);
+ 		return;
+ 	}
+@@ -75,7 +75,7 @@ static void mmu_fault_print_stack(struct bridge_dev_context *dev_context)
+ 	iommu_write_reg(mmu, tmp, MMU_IRQSTATUS);
+ 
+ 	dump_dsp_stack(dev_context);
+-	dsp_clk_disable(DSP_CLK_GPT8);
++	dsp_clk_disable(DSP_CLK_GPT7);
+ 
+ 	iopgtable_clear_entry(mmu, fa);
+ 	free_page((unsigned long)dummy_addr);
+-- 
+1.6.3.3
