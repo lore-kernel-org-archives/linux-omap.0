@@ -1,36 +1,121 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
-Date: Tue, 26 Oct 2010 21:08:23 +0200
-Message-ID: <201010262108.23537.rjw@sisk.pl>
-References: <1287488171-25303-3-git-send-email-trenn@suse.de> <1288115894.3673.12.camel@laptop> <AANLkTikAGsdm7HS7Au-6CHw5n0OC1c1L_j2AJgZKE_=K@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <AANLkTikAGsdm7HS7Au-6CHw5n0OC1c1L_j2AJgZKE_=K@mail.gmail.com>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Pierre Tardy <tardyp@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Arjan van de Ven <arjan@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: RE: [PATCH 8/8] staging: tidspbridge - make sync_wait_on_event interruptible
+Date: Tue, 26 Oct 2010 22:27:23 +0300
+Message-ID: <1288121052-notmuch-felipe.contreras@nokia.com>
+References: <1288054306-4361-1-git-send-email-x0095840@ti.com> <1288054306-4361-2-git-send-email-x0095840@ti.com> <1288054306-4361-3-git-send-email-x0095840@ti.com> <1288054306-4361-4-git-send-email-x0095840@ti.com> <1288054306-4361-5-git-send-email-x0095840@ti.com> <1288054306-4361-6-git-send-email-x0095840@ti.com> <1288054306-4361-7-git-send-email-x0095840@ti.com> <1288054306-4361-8-git-send-email-x0095840@ti.com> <1288054306-4361-9-git-send-email-x0095840@ti.com> <AANLkTinnLb9DLMKfxEs_KqMvOmegSDYRuLWh5y=hhBCe@mail.gmail.com> <496565EC904933469F292DDA3F1663E602F49E2802@dlee06.ent.ti.com> <1288112260-notmuch-felipe.contreras@nokia.com> <496565EC904933469F292DDA3F1663E602F49E28AB@dlee06.ent.ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <496565EC904933469F292DDA3F1663E602F49E28AB@dlee06.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: fernando.lugo@ti.com, felipe.contreras@gmail.com
+Cc: gregkh@suse.de, hiroshi.doyu@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday, October 26, 2010, Pierre Tardy wrote:
-> On Tue, Oct 26, 2010 at 12:58 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> > On Tue, 2010-10-26 at 11:56 -0500, Pierre Tardy wrote:
-> >>
-> >> +       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
-> >>         atomic_inc(&dev->power.usage_count);
-> >
-> > That's terribly racy..
-> >
-> I know. I'm not proud of this.. As I said, this is preliminary patch.
-> We dont really need to have this prev_usage. This is just for debug.
-> It mayprobably endup with something like:
+fernando.lugo@ti.com wrote:
+> > fernando.lugo@ti.com wrote:
+> > > > On Tue, Oct 26, 2010 at 3:51 AM, Fernando Guzman Lugo 
+> > > > <x0095840@ti.com> wrote:
+> > > > > So that avoid non-killable process.
+> > > > 
+> > > > It would be useful to interrupt these tasks from user-space. 
+> > > > A separate ioctl to do that would be needed.
+> > > 
+> > > I don't see use case where that could be needed. It is only 
+> > To avoid a 
+> > > nonkillable task in the case the user pass an infinite Timeout.
+> > > 
+> > > If you have some test case where that ioctl would be needed Please 
+> > > share it in order to find the best solution.
+> > 
+> > Well, imagine the application is using a library to access 
+> > the DSP, and the library has a dedicated thread listening for 
+> > DSP events in a loop.
+> > This happens to be how libomxil-ti and gst-dsp work.
+> > 
+> > Now, the thread received the last message, but has set a 
+> > timeout of 10s, or even worst, no timeout at all.
+> > 
+> > After realizing that was the last message, the main thread 
+> > decides to shut down, but it has to wait for the DSP thread 
+> > to join. Unfortunately the DSP thread is stuck waiting for 
+> > events, and there's nothing that can be done.
+> > 
+> > However, if we have a separate ioctl to interrupt that task, 
+> > then the main thread can issue that ioctl, and unlock the DSP 
+> > thread without having to wait 10s, or forever.
+> > 
+> > Does that make sense?
 > 
->          atomic_inc(&dev->power.usage_count);
-> +       trace_power_device_usage(dev);
+> Maybe sending a signal to yourselft and having a dummy signal
+> Handle should work, it that would not like good.
 
-Well, please tell me what you're trying to achieve.
+Signals on libraries is a no-no.
 
-Thanks,
-Rafael
+> I am thinking On having a ioctl to create and set an event the you
+> could Something like this:
+> 
+> struct dsp_notification events[3];
+> 
+> proc_register_notify(proc, event_type, &events[0]);
+> ...
+> proc_register_notify(proc, event_type, &events[1]);
+> ...
+> Sync_open_event(&events[2]);
+> 
+> 
+> second thread:
+> 
+> 	mgr_wait_for_bridge_events(proc, events, 3, index);
+> 
+> 	if (index == 2) 
+> 		/* main thread force exit */
+> 
+> 
+> Main thread:
+> 
+> 	/* if some execption happened then finish the second thread */
+> 	sync_set_event(events[2]);
+> 
+> 	pthread_join(...);
+> 
+> 
+> However it is in progess a task for change replacing dspbridge sync.c
+> Module with event_fd to signal events to userspace. Where now simple
+> File descriptor will be used as event elements. So the mgr_wait_for_bridge_events
+> Will be implemented using "select" system call inside to wait for multiple events.
+> So you will be able to do something like this:
+> 
+> int events[3];
+> 
+> proc_register_notify(proc, event_type, &events[0]);
+> ...
+> proc_register_notify(proc, event_type, &events[1]);
+> ...
+> events[2] = eventfd(0, 0);
+> 
+> 
+> second thread:
+> 
+> 	mgr_wait_for_bridge_events(proc, events, 3, index);
+> 
+> 	if (index == 2) 
+> 		/* main thread force exit */
+> 
+> Main thread:
+> 
+> 	/* if some execption happened then finish the second thread */
+> 	write(events[2], "s", 1);
+> 
+> 	pthread_join(...);
+> 
+> You won't need any aditional ioctl in order to do what you want to do.
+> 
+> So, I think it is not worth to make much changes to some module that will
+> Dissapear (my patch is just a fix it is not implementing something new),
+> It is just a matter of time to that task is finished and tested properly
+> And then send to LO.
+
+All right, that makes sense. I just wanted to make suere you are aware
+of that need.
+
+-- 
+Felipe Contreras
