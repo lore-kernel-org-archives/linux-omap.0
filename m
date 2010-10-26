@@ -1,59 +1,65 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 3/3] omap: add hwspinlock device
-Date: Tue, 26 Oct 2010 13:54:37 +0200
-Message-ID: <AANLkTimkUDwAn-+gmNKMkXY0Uw8evt1_W2saeRKY-Xbd@mail.gmail.com>
-References: <1287387875-14168-1-git-send-email-ohad@wizery.com>
- <1287387875-14168-4-git-send-email-ohad@wizery.com> <87r5fmxghm.fsf@deeprootsystems.com>
- <AANLkTinZ2+ocJCfUpT15Ow3J9XBa-8XWnVC3gDDJ7s-v@mail.gmail.com>
- <87bp6pviwf.fsf@deeprootsystems.com> <AANLkTikE1dCXW-7ScVoDgEK3sxai_TyFzstSG+zvNm2F@mail.gmail.com>
- <8739s0sobc.fsf@deeprootsystems.com> <AANLkTikdjtYtzhgM_=io3SFdUZq=8Xcc8n24bW=SFgTA@mail.gmail.com>
- <20101022165612.GF9149@atomide.com> <AANLkTimysu4L+ecFvpGAQ0bj3fhLQC1cveWddFNNp=JQ@mail.gmail.com>
- <20101025190221.GC7206@atomide.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
+Date: Tue, 26 Oct 2010 13:54:22 +0200
+Message-ID: <20101026115422.GA2942@elte.hu>
+References: <1287488171-25303-3-git-send-email-trenn@suse.de>
+ <AANLkTiknZ5t24j44hhDrbocJSJv1d=9LtvcSrd2QPcq2@mail.gmail.com>
+ <20101026112129.GB27258@elte.hu>
+ <201010261348.49240.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:39361 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756941Ab0JZLy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Oct 2010 07:54:58 -0400
-In-Reply-To: <20101025190221.GC7206@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201010261348.49240.trenn@suse.de>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Balaji T K <balajitk@ti.com>, "Kamat, Nishant" <nskamat@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Hari Kanigeri <h-kanigeri2@ti.com>, Suman Anna <s-anna@ti.com>
 
-On Mon, Oct 25, 2010 at 9:02 PM, Tony Lindgren <tony@atomide.com> wrote:
->> if you feel that (2) is justifiable/desirable, I would be more
->> than happy to submit that version.
+
+* Thomas Renninger <trenn@suse.de> wrote:
+
+> On Tuesday 26 October 2010 13:21:29 Ingo Molnar wrote:
+> > 
+> > * Jean Pihet <jean.pihet@newoldbits.com> wrote:
+> ..
+> > > >> +#ifndef _TRACE_POWER_ENUM_
+> > > >> +#define _TRACE_POWER_ENUM_
+> > > >> +enum {
+> > > >> +     POWER_NONE = 0,
+> > > >> +     POWER_CSTATE = 1,
+> > > >> +     POWER_PSTATE = 2,
+> > > >> +};
+> > > >> +#endif
+> > > >
+> > > > Since we are cleaning up all these events, those enum definitions dont really look
+> > > > logical. For example, what is 'POWER_NONE'? Can a CPU have 'no power'?
+> > >
+> > > The enum belongs to the deprecated API so I would rather not touch it.
+> > > Keeping the deprecated code isolated will make it easier to remove
+> > > later.
+> > 
+> > So what will replace it? We still have a state field.
 >
-> Yes (2) please. I would assume there will be more use of this. And then
-> we (or probably me again!) don't have to deal with cleaning up the drivers
-> again in the future.
+> Nothing, this is part of the cleanup.
 
-Sounds good.
+I mean, what will go into the state field of the power:cpu_idle event?
 
->> Or do you mean a variation of (2) with only the specific locking bits
->> coming from pdata func pointers ? I guess that in this case we just
->> might as well go with the full (2).
->
-> Yes variation of (2) where you only pass the locking function via
-> platform data would be best.
+> As you state above: POWER_NONE does not make sense at all.
+> The whole thing (type= attribute that vanishes now) is
+> passed to userspace, but never gets used there because the
+> same info is in the event name:
+> cpu_frequency <-> frequency_switch      <-> PSTATE
+> cpu_idle      <-> power_start/power_end <-> CSTATE 
 
-It feels a bit funky to me because we would still have code that is
-omap-specific inside the "common" probe()/remove() calls.
+Ah, i see, so this 'state' enum went into the type field.
 
-I suggest to move everything that is omap-specific to a small omap
-module that, once probed, would register itself with the common
-hwspinlock framework (after initializing its hardware).
+So my question is, and ignore this particular enum for now, what values go into the 
+state field, which field is still kept in the new events as well.
 
-That small platfom-specific module probably doesn't have to sit in the
-arch/ folder; we can follow established conventions like
-mmc/i2c/gpio/spi/etc..
-
-With that in hand, the hwspinlock would really be hardware-agnostic,
-and then applying s/omap_hwspin/hwspin/ would be justified.
-
-Does this sound reasonable to you ?
+[ I'd like to avoid us having to define a third set of power events a few years down 
+  the road ;-) ]
 
 Thanks,
-Ohad.
+
+	Ingo
