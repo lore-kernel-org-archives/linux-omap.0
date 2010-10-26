@@ -1,62 +1,78 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH 1/4] PERF: Do not export power_frequency, but power_start event
-Date: Wed, 27 Oct 2010 01:43:22 +0200
-Message-ID: <1288136605-10526-2-git-send-email-trenn@suse.de>
+Subject: [PATCH 4/4] PERF: fix power:cpu_idle double end events
+Date: Wed, 27 Oct 2010 01:43:25 +0200
+Message-ID: <1288136605-10526-5-git-send-email-trenn@suse.de>
 References: <1288136605-10526-1-git-send-email-trenn@suse.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:58484 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751373Ab0JZXng (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Oct 2010 19:43:36 -0400
+Return-path: <linux-trace-users-owner@vger.kernel.org>
 In-Reply-To: <1288136605-10526-1-git-send-email-trenn@suse.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-trace-users-owner@vger.kernel.org
 To: arjan@linux.intel.com, jean.pihet@newoldbits.com, mingo@elte.hu, rjw@sisk.pl, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org
-Cc: Thomas Renninger <trenn@suse.de>
+Cc: Thomas Renninger <trenn@suse.de>, Robert Schoene <robert.schoene@tu-dresden.de>
+List-Id: linux-omap@vger.kernel.org
 
-power_frequency moved to drivers/cpufreq/cpufreq.c which has
-to be compiled in, no need to export it.
+cpu_idle events (transition into sleep state and exiting) are
+both fired in pm_idle().
 
-intel_idle can a be module though...
+Entering sleep state and exiting should always get fired inside
+pm_idle() already.
+
+This is a revert of commit c882e0feb937af4e5b991cbd1c
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
-CC: linux-omap@vger.kernel.org
-CC: linux-pm@lists.linux-foundation.org
-CC: linux-trace-users@vger.kernel.org
-CC: Jean Pihet <jean.pihet@newoldbits.com>
+CC: Robert Schoene <robert.schoene@tu-dresden.de>
 CC: Arjan van de Ven <arjan@linux.intel.com>
 CC: Ingo Molnar <mingo@elte.hu>
-CC: rjw@sisk.pl
 ---
- drivers/idle/intel_idle.c   |    2 --
- kernel/trace/power-traces.c |    2 +-
- 2 files changed, 1 insertions(+), 3 deletions(-)
+ arch/x86/kernel/process_32.c |    4 ----
+ arch/x86/kernel/process_64.c |    6 ------
+ 2 files changed, 0 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index c37ef64..21ac077 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -201,9 +201,7 @@ static int intel_idle(struct cpuidle_device *dev, struct cpuidle_state *state)
- 	kt_before = ktime_get_real();
+diff --git a/arch/x86/kernel/process_32.c b/arch/x86/kernel/process_32.c
+index 4b9befa..8d12878 100644
+--- a/arch/x86/kernel/process_32.c
++++ b/arch/x86/kernel/process_32.c
+@@ -57,8 +57,6 @@
+ #include <asm/syscalls.h>
+ #include <asm/debugreg.h>
  
- 	stop_critical_timings();
--#ifndef MODULE
- 	trace_power_start(POWER_CSTATE, (eax >> 4) + 1, cpu);
--#endif
- 	if (!need_resched()) {
+-#include <trace/events/power.h>
+-
+ asmlinkage void ret_from_fork(void) __asm__("ret_from_fork");
  
- 		__monitor((void *)&current_thread_info()->flags, 0, 0);
-diff --git a/kernel/trace/power-traces.c b/kernel/trace/power-traces.c
-index a22582a..0e0497d 100644
---- a/kernel/trace/power-traces.c
-+++ b/kernel/trace/power-traces.c
-@@ -13,5 +13,5 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/power.h>
+ /*
+@@ -113,8 +111,6 @@ void cpu_idle(void)
+ 			stop_critical_timings();
+ 			pm_idle();
+ 			start_critical_timings();
+-			trace_power_end(smp_processor_id());
+-			trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
+ 		}
+ 		tick_nohz_restart_sched_tick();
+ 		preempt_enable_no_resched();
+diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
+index 28153a9..d7b3e95 100644
+--- a/arch/x86/kernel/process_64.c
++++ b/arch/x86/kernel/process_64.c
+@@ -51,8 +51,6 @@
+ #include <asm/syscalls.h>
+ #include <asm/debugreg.h>
  
--EXPORT_TRACEPOINT_SYMBOL_GPL(power_frequency);
-+EXPORT_TRACEPOINT_SYMBOL_GPL(power_start);
+-#include <trace/events/power.h>
+-
+ asmlinkage extern void ret_from_fork(void);
  
+ DEFINE_PER_CPU(unsigned long, old_rsp);
+@@ -141,10 +139,6 @@ void cpu_idle(void)
+ 			pm_idle();
+ 			start_critical_timings();
+ 
+-			trace_power_end(smp_processor_id());
+-			trace_cpu_idle(PWR_EVENT_EXIT,
+-				       smp_processor_id());
+-
+ 			/* In many cases the interrupt that ended idle
+ 			   has already called exit_idle. But some idle
+ 			   loops can be woken up without interrupt. */
 -- 
 1.6.3
 
