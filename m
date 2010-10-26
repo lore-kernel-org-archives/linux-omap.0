@@ -1,95 +1,85 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [GIT PULL] omap DSS changes for 2.6.27
-Date: Tue, 26 Oct 2010 10:53:42 +0300
-Message-ID: <1288079622.2580.130.camel@tubuntu>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
+Date: Tue, 26 Oct 2010 09:59:24 +0200
+Message-ID: <AANLkTikf8QXwbmz6=Pv_onHOb3trUtaz1D5kmsHCPqy+@mail.gmail.com>
+References: <1287488171-25303-3-git-send-email-trenn@suse.de>
+	<1288049630-10947-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:62911 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850Ab0JZHxm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Oct 2010 03:53:42 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <1288049630-10947-1-git-send-email-trenn@suse.de>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>, Ingo Molnar <mingo@elte.hu>
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
 
-Hi Linus,
+On Tue, Oct 26, 2010 at 1:33 AM, Thomas Renninger <trenn@suse.de> wrote=
+:
+> Changes in V2:
+> =A0- Introduce PWR_EVENT_EXIT instead of 0 to mark non-power state
+> =A0- Use u32 instead of u64 for cpuid, state which is by far enough
+>
+> New power trace events:
+> power:processor_idle
+> power:processor_frequency
+> power:machine_suspend
+>
+>
+> C-state/idle accounting events:
+> =A0power:power_start
+> =A0power:power_end
+> are replaced with:
+> =A0power:processor_idle
+>
+> and
+> =A0power:power_frequency
+> is replaced with:
+> =A0power:processor_frequency
+>
+> power:machine_suspend
+> is newly introduced, a first implementation
+> comes from the ARM side, but it's easy to add these events
+> in X86 as well if needed.
+This will come as a separate patch, which fits all platforms. Cf.
+http://marc.info/?l=3Dlinux-omap&m=3D128620575300682&w=3D2.
 
-Please pull OMAP display subsystem changes:
+=2E..
 
+> @@ -481,10 +484,12 @@ static void mwait_idle(void)
+> =A0static void poll_idle(void)
+> =A0{
+> =A0 =A0 =A0 =A0trace_power_start(POWER_CSTATE, 0, smp_processor_id())=
+;
+> +       trace_processor_idle(1, smp_processor_id());
 
-The following changes since commit 899611ee7d373e5eeda08e9a8632684e1ebb=
-bf00:
+Should that be:
++       trace_processor_idle(0, smp_processor_id());
+instead?
+Since state '0' is for the CPU active in polling mode and
+PWR_EVENT_EXIT means 'exit from any idle state'.
 
-  Linux 2.6.36-rc6 (2010-09-28 18:01:22 -0700)
+> =A0 =A0 =A0 =A0local_irq_enable();
+> =A0 =A0 =A0 =A0while (!need_resched())
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cpu_relax();
+> - =A0 =A0 =A0 trace_power_end(0);
+> + =A0 =A0 =A0 trace_power_end(smp_processor_id());
+> + =A0 =A0 =A0 trace_processor_idle(PWR_EVENT_EXIT, smp_processor_id()=
+);
+> =A0}
+>
+> =A0/*
 
-are available in the git repository at:
-  git://gitorious.org/linux-omap-dss2/linux.git for-linus
+=2E..
 
-Archit Taneja (2):
-      OMAP: DSS2: Introduce dss_features files
-      OMAP: DSS2: Use dss_features framework on DSS2 code
+> diff --git a/include/trace/events/power.h b/include/trace/events/powe=
+r.h
+=2E..
 
-Grazvydas Ignotas (1):
-      OMAP: DSS2: make filter coefficient tables human readable
-
-Jarkko Nikula (1):
-      OMAP: DSS2: Add SPI dependency to Kconfig of ACX565AKM panel
-
-Nicolas Kaiser (2):
-      video/omap: remove mux.h include
-      arm/omap: simplify conditional
-
-Senthilvadivu Guruswamy (4):
-      OMAP: DSS2: DSI: Remove extra iounmap in error path
-      OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
-      OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
-      OMAP: DSS2: OMAPFB: Allow usage of def_vrfb only for omap2,3
-
-Stanley.Miao (1):
-      OMAP: DSS2: don't power off a panel twice
-
-Tasslehoff Kjappfot (1):
-      OMAP: DSS2: OMAPFB: swap front and back porches for both hsync an=
-d vsync
-
-Uwe Kleine-K=C3=B6nig (3):
-      ARM: omap/fb: move omap_init_fb to .init.text
-      ARM: omap/fb: move omapfb_reserve_sram to .init.text
-      ARM: omap/fb: move get_fbmem_region() to .init.text
-
- arch/arm/plat-omap/fb.c                            |   14 +-
- arch/arm/plat-omap/include/plat/display.h          |   31 ---
- arch/arm/plat-omap/include/plat/vrfb.h             |   16 ++
- drivers/video/omap/lcd_omap3beagle.c               |    2 -
- drivers/video/omap2/displays/Kconfig               |    2 +-
- drivers/video/omap2/displays/panel-acx565akm.c     |    6 +
- drivers/video/omap2/displays/panel-generic.c       |    6 +
- .../video/omap2/displays/panel-sharp-lq043t1dg01.c |    6 +
- .../video/omap2/displays/panel-sharp-ls037v7dw01.c |    6 +
- .../video/omap2/displays/panel-toppoly-tdo35s.c    |    6 +
- .../video/omap2/displays/panel-tpo-td043mtea1.c    |    6 +
- drivers/video/omap2/dss/Makefile                   |    2 +-
- drivers/video/omap2/dss/core.c                     |    3 +
- drivers/video/omap2/dss/dispc.c                    |  270 +++++++++---=
---------
- drivers/video/omap2/dss/dsi.c                      |    1 -
- drivers/video/omap2/dss/dss_features.c             |  191 ++++++++++++=
-++
- drivers/video/omap2/dss/dss_features.h             |   50 ++++
- drivers/video/omap2/dss/manager.c                  |   33 ++--
- drivers/video/omap2/dss/overlay.c                  |   24 +-
- drivers/video/omap2/omapfb/Kconfig                 |    2 +-
- drivers/video/omap2/omapfb/omapfb-main.c           |   26 ++-
- 21 files changed, 475 insertions(+), 228 deletions(-)
- create mode 100644 drivers/video/omap2/dss/dss_features.c
- create mode 100644 drivers/video/omap2/dss/dss_features.h
-
-
+Regards,
+Jean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-trace-u=
+sers" in
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
