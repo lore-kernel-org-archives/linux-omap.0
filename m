@@ -1,87 +1,224 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
-Date: Tue, 26 Oct 2010 20:57:01 +0200
-Message-ID: <201010262057.02218.rjw@sisk.pl>
-References: <1287488171-25303-3-git-send-email-trenn@suse.de> <20101026112129.GB27258@elte.hu> <201010261348.49240.trenn@suse.de>
+Date: Tue, 26 Oct 2010 21:01:47 +0200
+Message-ID: <201010262101.47473.rjw@sisk.pl>
+References: <1287488171-25303-3-git-send-email-trenn@suse.de> <201010261237.49386.trenn@suse.de> <20101026111920.GA27258@elte.hu>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <201010261348.49240.trenn@suse.de>
+In-Reply-To: <20101026111920.GA27258@elte.hu>
 Sender: linux-trace-users-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Ingo Molnar <mingo@elte.hu>, Jean Pihet <jean.pihet@newoldbits.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Renninger <trenn@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday, October 26, 2010, Thomas Renninger wrote:
-> On Tuesday 26 October 2010 13:21:29 Ingo Molnar wrote:
-> > 
-> > * Jean Pihet <jean.pihet@newoldbits.com> wrote:
-> ..
-> > > >> +#ifndef _TRACE_POWER_ENUM_
-> > > >> +#define _TRACE_POWER_ENUM_
-> > > >> +enum {
-> > > >> +     POWER_NONE = 0,
-> > > >> +     POWER_CSTATE = 1,
-> > > >> +     POWER_PSTATE = 2,
-> > > >> +};
-> > > >> +#endif
-> > > >
-> > > > Since we are cleaning up all these events, those enum definitions dont really look
-> > > > logical. For example, what is 'POWER_NONE'? Can a CPU have 'no power'?
-> > >
-> > > The enum belongs to the deprecated API so I would rather not touch it.
-> > > Keeping the deprecated code isolated will make it easier to remove
-> > > later.
-> > 
-> > So what will replace it? We still have a state field.
-> Nothing, this is part of the cleanup.
-> As you state above: POWER_NONE does not make sense at all.
-> The whole thing (type= attribute that vanishes now) is
-> passed to userspace, but never gets used there because the
-> same info is in the event name:
-> cpu_frequency <-> frequency_switch      <-> PSTATE
-> cpu_idle      <-> power_start/power_end <-> CSTATE 
+On Tuesday, October 26, 2010, Ingo Molnar wrote:
 > 
-> I expect that there was an initial power_start/end which
-> was also used for frequency switching.
-> Then it got realized that _start/_end does not work out and
-> frequency_switch got introduced.
-> To stay compatible the whole power_start/end was not renamed
-> to cpu_idle and the type= field was kept.
+> * Thomas Renninger <trenn@suse.de> wrote:
 > 
-> This is a guess without even looking at the git history.
-> Therefore my partly harsh comments about the sanity of the
-> current power tracing events.
+> > On Tuesday 26 October 2010 09:10:20 Ingo Molnar wrote:
+> > > 
+> > > * Thomas Renninger <trenn@suse.de> wrote:
+> > > 
+> > > > Changes in V2:
+> > > >   - Introduce PWR_EVENT_EXIT instead of 0 to mark non-power state
+> > > >   - Use u32 instead of u64 for cpuid, state which is by far enough
+> > > > 
+> > > > New power trace events:
+> > > > power:processor_idle
+> > > > power:processor_frequency
+> > > > power:machine_suspend
+> > > > 
+> > > > 
+> > > > C-state/idle accounting events:
+> > > >   power:power_start
+> > > >   power:power_end
+> > > > are replaced with:
+> > > >   power:processor_idle
+> > > > 
+> > > > and
+> > > >   power:power_frequency
+> > > > is replaced with:
+> > > >   power:processor_frequency
+> > > 
+> > > Could you please name it power:cpu_idle and power:cpu_frequency instead, for 
+> > > shortness? We generally use 'cpu' in the kernel and for events.
+> > Sure.
+> > > 
+> > > > power:machine_suspend
+> > > 
+> > > How will future PCI (or other device) power saving tracepoints be called?
+> > > 
+> > > Might be more consistent to use:
+> > > 
+> > >   power:cpu_idle
+> > >   power:machine_idle
+> > >   power:device_idle
+> >
+> > device idle is not true. Those may be low power modes
+> > like reduced network throughput, reduced wlan range, the device
+> > needs not to be idle.
+> > Device power states is probably the most complex area, if such
+> > a thing gets introduced, it should makes sense to state
+> > the interface experimental for some time until a wider range of
+> > devices uses it (in contrast to these new ones
+> > which should not change that soon anymore...).
 > 
-> > Passing in platform specific codes is a step backwards.
+> Ok.
+> 
+> > Also machine_idle may be true, but machine_suspend sounds more
+> > familiar and everyone immediately knows what the event is about.
+> 
+> Ok - fair enough.
+> 
+> > > > +#define PWR_EVENT_EXIT 0xFFFFFFFF
+> > > 
+> > > Shouldnt this be part of the POWER_ enum? (and you can write -1 there)
+> >
+> > No, below enum will vanish, but -1 is nicer.
+> 
+> When it vanishes what will replace it?
+> 
+> > ...
 > > 
-> > > >> +TRACE_EVENT(machine_suspend,
-> > > >> +
-> > > >> +     TP_PROTO(unsigned int state),
-> > > >> +
-> > > >> +     TP_ARGS(state),
-> > > >> +
-> > > >> +     TP_STRUCT__entry(
-> > > >> +             __field(        u32,            state           )
-> > > >> +     ),
-> > > >
-> > > > Hm, this event is not used anywhere in the submitted patches. Where is the patch
-> > > > that adds usage, and what are the possible values for 'state'?
-> > >
-> > > This will come as a separate patch, which fits all platforms. Cf.
-> > > http://marc.info/?l=linux-omap&m=128620575300682&w=2.
-> > > The state field is of type suspend_state_t, cf. include/linux/suspend.h
+> > > Plus:
+> > > 
+> > > > +DECLARE_EVENT_CLASS(processor,
+> > > > +
+> > > > +	TP_PROTO(unsigned int state, unsigned int cpu_id),
+> > > > +
+> > > > +	TP_ARGS(state, cpu_id),
+> > > > +
+> > > > +	TP_STRUCT__entry(
+> > > > +		__field(	u32,		state		)
+> > > > +		__field(	u32,		cpu_id		)
+> > > 
+> > > Trace entries can carry a cpu_id of the current processor already. Can this cpu_id 
+> > > ever be different from that CPU id?
+> >
+> > Yes. A core's frequency can depend on another one which
+> > will get switched as well (by one command/MSR).
+> > Compare with commit 6f4f2723d08534fd4e407e1e.
 > > 
-> > Ok, that's at least generic. Needs the review of Rafael, to determine
-> > whether this state value is all we want to know when we enter suspend.
-> He already gave an acked-by on this generic one here:
-> Re: [PATCH 3/4] perf: add calls to suspend trace point
-> Oh now, that was on the X86 specific part which depends on this one.
-> One should expect that he's fine with the generic part as well then,
-> but I agree that he should definitely have a look at this and sign it off.
+> > This can theoretically also be the case for sleep states.
+> > Afaik such HW does not exist yet, but ACPI spec already
+> > provides interfaces to pass these dependency from BIOS to OS.
+> > -> We want a stable ABI and should be prepared for such stuff.
+> > 
+> > > > +	),
+> > > > +
+> > > > +	TP_fast_assign(
+> > > > +		__entry->state = state;
+> > > > +		__entry->cpu_id = cpu_id;
+> > > > +	),
+> > > > +
+> > > > +	TP_printk("state=%lu cpu_id=%lu", (unsigned long)__entry->state,
+> > > > +		  (unsigned long)__entry->cpu_id)
+> > > > +);
+> > > > +
+> > > > +DEFINE_EVENT(processor, processor_idle,
+> > > > +
+> > > > +	TP_PROTO(unsigned int state, unsigned int cpu_id),
+> > > > +
+> > > > +	     TP_ARGS(state, cpu_id)
+> > > > +);
+> > > > +
+> > > > +#define PWR_EVENT_EXIT 0xFFFFFFFF
+> > > > +
+> > > > +DEFINE_EVENT(processor, processor_frequency,
+> > > > +
+> > > > +	TP_PROTO(unsigned int frequency, unsigned int cpu_id),
+> > > > +
+> > > > +	TP_ARGS(frequency, cpu_id)
+> > > > +);
+> > > 
+> > > So, we have a 'state' field in the class, which is used as 'state' by the 
+> > > power::cpu_idle event, and as 'frequency' by the power::cpu_freq event?
+> >
+> > Yes, is this a problem?
+> >
+> > Definitions are a bit shorter having one power processor class.
+> > As "frequency" is stated in frequency event definition everything should
+> > be obvious and this one looks like the more elegant way to me.
+> >  
+> > > Are there any architectures that track frequency in Hz, not in kHz? If yes, might 
+> > > there ever be a need for the frequency value to be larger than 4.29 GHz? If yes, 
+> > > then it wont fit into u32.
+> >
+> > drivers/cpufreq subsystem is fixed to unsigned int (cmp. include/linux/cpufreq.h):
+> >         unsigned int            min;    /* in kHz */
+> >         unsigned int            max;    /* in kHz */
+> >         unsigned int            cur;    /* in kHz,
+> >         ...
+> > that should be fine.
+> 
+> ok, good - so we should be fine up to 4 THz CPUs.
+> 
+> > > Also, might there be a future need to express different types of frequencies? 
+> > > For example, should we decide to track turbo frequencies in Intel CPUs, how 
+> > > would that be expressed via these events? Are there any architectures and CPUs 
+> > > that somehow have some extra attribute to the frequency value?
+> >
+> > I wonder whether this ever can/will work in a sane way.
+> > Userspace can compare with:
+> > /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq
+> > everything above is turbo. So I do not think it's ever needed.
+> > But adding an additional value at the end does not violate
+> > userspace compatibility. This has been done with the cpuid
+> > as well.
+> >  
+> > > > +TRACE_EVENT(machine_suspend,
+> > > > +
+> > > > +	TP_PROTO(unsigned int state),
+> > > > +
+> > > > +	TP_ARGS(state),
+> > > > +
+> > > > +	TP_STRUCT__entry(
+> > > > +		__field(	u32,		state		)
+> > > > +	),
+> > > 
+> > > Hm, this event is not used anywhere in the submitted patches. Where is the patch 
+> > > that adds usage, and what are the possible values for 'state'?
+> >
+> > Jean wants to make use of it on ARM.
+> > I also had patch for x86, I can have another look at it, Rafael
+> > already gave me a comment on it. But on X86 you typically realize
+> > when you suspend the machine (could imagine this is more useful on
+> > ARM driven mobile phones and similar), still I can add it..
+> > 
+> > Values probably should be (include/linux/suspend.h):
+> > #define PM_SUSPEND_ON       0
+> > #define PM_SUSPEND_STANDBY  1
+> > #define PM_SUSPEND_MEM      3
+> > #define PM_SUSPEND_MAX      4
+> > 
+> > How this strange state Arjan talked about is passed is up
+> > to these guys. Instead of using 0 and above pre-defined such
+> > arch specific special states better should get passed by:
+> > 
+> > #define X86_MOORESTOWN_STANDBY_S0   0x100
+> > ..                                  0x101
+> > #define ARM_WHATEVER_STRANGE_THING  0x200
+> > ...
+> 
+> I'd rather like to see a meaningful name to be given to these states and them being 
+> passed, instead of weird platform specific things. Tooling will try to be as generic 
+> as possible.
+> 
+> I dont know this stuff, but making a distinction between s2ram and s2disk events 
+> would seem meaningful.
 
-What patch exactly do you mean?  I'm not quite sure from your comment above.
+Basically, we have 
 
+standby (which is what it says)
+mem (s2ram)
+disk (s2disk)
+
+These are the transitions the PM core really cares about (if supported).
+The can be read from /sys/power/state and I think these names should be used
+by the tracing interfaces too.
+
+Thanks,
 Rafael
