@@ -1,34 +1,35 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH 0/8] staging: tidspbridge - misc fixes
-Date: Mon, 25 Oct 2010 21:06:19 -0700
-Message-ID: <20101026040619.GA8549@suse.de>
-References: <1288054306-4361-1-git-send-email-x0095840@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1288054306-4361-1-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Fernando Guzman Lugo <x0095840@ti.com>
-Cc: felipe.contreras@nokia.com, Hiroshi.DOYU@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Samreen <samreen@ti.com>
+Subject: [PATCH v2 0/2] OMAP3: Display Support
+Date: Tue, 26 Oct 2010 09:58:33 +0530
+Message-ID: <1288067315-30492-1-git-send-email-samreen@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55989 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751028Ab0JZEdy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Oct 2010 00:33:54 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Vikram Pandita <vikram.pandita@ti.com>, Mukund Mittal <mmittal@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, Samreen <samreen@ti.com>
 
-On Mon, Oct 25, 2010 at 07:51:38PM -0500, Fernando Guzman Lugo wrote:
-> This set of patches fix some issues found in lastest tree.
-> 
-> Fernando Guzman Lugo (8):
->   staging: tidspbridge - remove req_addr from proc_map
->   staging: tidspbridge - add kconfig parameter for DMM size
->   staging: tidspbridge - change mmufault tasklet to a workqueue
->   staging: tidspbridge - fix timeout in dsp_gpt_wait_overflow
->   staging: tidspbridge - use GTP7 for DSP stack dump
->   staging: tidspbridge - remove disabling twl when printing DSP stack
->   staging: tidspbridge - fix some issues after iommu patches
->   staging: tidspbridge - make sync_wait_on_event interruptible
+This patch series adds the Display Support for OMAP3 platforms
+and the corresponding changes in the board files.
 
-Are any of these really applicable for .37 after .37-rc1?  Or can they
-wait for .38?
+Version2:
+   - Optimised to configure INTBR from gpio to PWM1 mode setting and 
+   enabling of the PWM1 mode only when its not in PWM1 mode.
 
-thanks,
+Kishore Y (2):
+  OMAP3: ZOOM2/3/3630SDP: Add display board file for OMAP3
+  OMAP3: Enable display on ZOOM2/3/3630SDP
 
-greg k-h
+ arch/arm/mach-omap2/Makefile                  |    3 +
+ arch/arm/mach-omap2/board-3630sdp.c           |    1 +
+ arch/arm/mach-omap2/board-zoom-display.c      |  167 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |   49 +++++++-
+ arch/arm/mach-omap2/board-zoom2.c             |    1 +
+ arch/arm/mach-omap2/board-zoom3.c             |    1 +
+ arch/arm/mach-omap2/include/mach/board-zoom.h |    2 +
+ 7 files changed, 222 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-zoom-display.c
+
