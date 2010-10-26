@@ -1,50 +1,52 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [PATCH] PERF(kernel): Cleanup power events V2
-Date: Tue, 26 Oct 2010 14:50:06 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1010261447090.1634-100000@iolanthe.rowland.org>
-References: <20101026181421.GA30090@Krystal>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
+Date: Tue, 26 Oct 2010 20:52:18 +0200
+Message-ID: <201010262052.19107.rjw@sisk.pl>
+References: <1287488171-25303-3-git-send-email-trenn@suse.de> <1288049630-10947-1-git-send-email-trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <20101026181421.GA30090@Krystal>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>, Pierre Tardy <tardyp@gmail.com>, Arjan van de Ven <arjan@linux.intel.com>, Frederic Weisbecker <fweisbec@gmail.com>, Jean Pihet <jean.pihet@newoldbits.com>, Steven Rostedt <rostedt@goodmis.org>, linux-trace-users@vger.kernel.org, Frank Eigler <fche@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, linux-pm@lists.linux-foundation.org, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@elte.hu>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ogre.sisk.pl ([217.79.144.158]:55380 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754233Ab0JZSx2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Oct 2010 14:53:28 -0400
+In-Reply-To: <1288049630-10947-1-git-send-email-trenn@suse.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>, Ingo Molnar <mingo@elte.hu>
 
-On Tue, 26 Oct 2010, Mathieu Desnoyers wrote:
-
-> * Peter Zijlstra (peterz@infradead.org) wrote:
-> > On Tue, 2010-10-26 at 11:56 -0500, Pierre Tardy wrote:
-> > > 
-> > > +       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
-> > >         atomic_inc(&dev->power.usage_count); 
-> > 
-> > That's terribly racy..
+On Tuesday, October 26, 2010, Thomas Renninger wrote:
+> Changes in V2:
+>   - Introduce PWR_EVENT_EXIT instead of 0 to mark non-power state
+>   - Use u32 instead of u64 for cpuid, state which is by far enough
 > 
-> Looking at the original code, it looks racy even without considering the
-> tracepoint:
+> New power trace events:
+> power:processor_idle
+> power:processor_frequency
+> power:machine_suspend
 > 
-> int __pm_runtime_get(struct device *dev, bool sync)
->  {
->         int retval;
 > 
-> +       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
->         atomic_inc(&dev->power.usage_count);
->         retval = sync ? pm_runtime_resume(dev) : pm_request_resume(dev);
+> C-state/idle accounting events:
+>   power:power_start
+>   power:power_end
+> are replaced with:
+>   power:processor_idle
 > 
-> There is no implied memory barrier after "atomic_inc". So either all these
-> inc/dec are protected with mutexes or spinlocks, in which case one might wonder
-> why atomic operations are used at all, or it's a racy mess. (I vote for the
-> second option)
+> and
+>   power:power_frequency
+> is replaced with:
+>   power:processor_frequency
+> 
+> power:machine_suspend
+> is newly introduced, a first implementation
+> comes from the ARM side, but it's easy to add these events
+> in X86 as well if needed.
 
-I don't understand.  What's the problem?  The inc/dec are atomic 
-because they are not protected by spinlocks, but everything else is 
-(aside from the tracepoint, which is new).
+As I said already somewhere else, I think this one should be done at the
+core level rather than in arch-specific code.
 
-> kref should certainly be used there.
-
-What for?
-
-Alan Stern
-
+Thanks,
+Rafael
