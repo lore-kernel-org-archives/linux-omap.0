@@ -1,142 +1,95 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
-Date: Tue, 26 Oct 2010 09:10:20 +0200
-Message-ID: <20101026071020.GC13036@elte.hu>
-References: <1287488171-25303-3-git-send-email-trenn@suse.de>
- <1288049630-10947-1-git-send-email-trenn@suse.de>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [GIT PULL] omap DSS changes for 2.6.27
+Date: Tue, 26 Oct 2010 10:53:42 +0300
+Message-ID: <1288079622.2580.130.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1288049630-10947-1-git-send-email-trenn@suse.de>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:62911 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850Ab0JZHxm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Oct 2010 03:53:42 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
+
+Hi Linus,
+
+Please pull OMAP display subsystem changes:
 
 
-* Thomas Renninger <trenn@suse.de> wrote:
+The following changes since commit 899611ee7d373e5eeda08e9a8632684e1ebb=
+bf00:
 
-> Changes in V2:
->   - Introduce PWR_EVENT_EXIT instead of 0 to mark non-power state
->   - Use u32 instead of u64 for cpuid, state which is by far enough
-> 
-> New power trace events:
-> power:processor_idle
-> power:processor_frequency
-> power:machine_suspend
-> 
-> 
-> C-state/idle accounting events:
->   power:power_start
->   power:power_end
-> are replaced with:
->   power:processor_idle
-> 
-> and
->   power:power_frequency
-> is replaced with:
->   power:processor_frequency
+  Linux 2.6.36-rc6 (2010-09-28 18:01:22 -0700)
 
-Could you please name it power:cpu_idle and power:cpu_frequency instead, for 
-shortness? We generally use 'cpu' in the kernel and for events.
+are available in the git repository at:
+  git://gitorious.org/linux-omap-dss2/linux.git for-linus
 
-> power:machine_suspend
+Archit Taneja (2):
+      OMAP: DSS2: Introduce dss_features files
+      OMAP: DSS2: Use dss_features framework on DSS2 code
 
-How will future PCI (or other device) power saving tracepoints be called?
+Grazvydas Ignotas (1):
+      OMAP: DSS2: make filter coefficient tables human readable
 
-Might be more consistent to use:
+Jarkko Nikula (1):
+      OMAP: DSS2: Add SPI dependency to Kconfig of ACX565AKM panel
 
-  power:cpu_idle
-  power:machine_idle
-  power:device_idle
+Nicolas Kaiser (2):
+      video/omap: remove mux.h include
+      arm/omap: simplify conditional
 
-Where machine_idle is the suspend event.
+Senthilvadivu Guruswamy (4):
+      OMAP: DSS2: DSI: Remove extra iounmap in error path
+      OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
+      OMAP: DSS2: OMAPFB: make VRFB depends on OMAP2,3
+      OMAP: DSS2: OMAPFB: Allow usage of def_vrfb only for omap2,3
 
-> the type= field got removed from both, it was never
-> used and the type is differed by the event type itself.
->
-> +#define PWR_EVENT_EXIT 0xFFFFFFFF
+Stanley.Miao (1):
+      OMAP: DSS2: don't power off a panel twice
 
-Shouldnt this be part of the POWER_ enum? (and you can write -1 there)
+Tasslehoff Kjappfot (1):
+      OMAP: DSS2: OMAPFB: swap front and back porches for both hsync an=
+d vsync
 
-> +#ifndef _TRACE_POWER_ENUM_
-> +#define _TRACE_POWER_ENUM_
-> +enum {
-> +	POWER_NONE = 0,
-> +	POWER_CSTATE = 1,
-> +	POWER_PSTATE = 2,
-> +};
-> +#endif
+Uwe Kleine-K=C3=B6nig (3):
+      ARM: omap/fb: move omap_init_fb to .init.text
+      ARM: omap/fb: move omapfb_reserve_sram to .init.text
+      ARM: omap/fb: move get_fbmem_region() to .init.text
 
-Since we are cleaning up all these events, those enum definitions dont really look 
-logical. For example, what is 'POWER_NONE'? Can a CPU have 'no power'?
+ arch/arm/plat-omap/fb.c                            |   14 +-
+ arch/arm/plat-omap/include/plat/display.h          |   31 ---
+ arch/arm/plat-omap/include/plat/vrfb.h             |   16 ++
+ drivers/video/omap/lcd_omap3beagle.c               |    2 -
+ drivers/video/omap2/displays/Kconfig               |    2 +-
+ drivers/video/omap2/displays/panel-acx565akm.c     |    6 +
+ drivers/video/omap2/displays/panel-generic.c       |    6 +
+ .../video/omap2/displays/panel-sharp-lq043t1dg01.c |    6 +
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |    6 +
+ .../video/omap2/displays/panel-toppoly-tdo35s.c    |    6 +
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |    6 +
+ drivers/video/omap2/dss/Makefile                   |    2 +-
+ drivers/video/omap2/dss/core.c                     |    3 +
+ drivers/video/omap2/dss/dispc.c                    |  270 +++++++++---=
+--------
+ drivers/video/omap2/dss/dsi.c                      |    1 -
+ drivers/video/omap2/dss/dss_features.c             |  191 ++++++++++++=
+++
+ drivers/video/omap2/dss/dss_features.h             |   50 ++++
+ drivers/video/omap2/dss/manager.c                  |   33 ++--
+ drivers/video/omap2/dss/overlay.c                  |   24 +-
+ drivers/video/omap2/omapfb/Kconfig                 |    2 +-
+ drivers/video/omap2/omapfb/omapfb-main.c           |   26 ++-
+ 21 files changed, 475 insertions(+), 228 deletions(-)
+ create mode 100644 drivers/video/omap2/dss/dss_features.c
+ create mode 100644 drivers/video/omap2/dss/dss_features.h
 
-Plus:
 
-> +DECLARE_EVENT_CLASS(processor,
-> +
-> +	TP_PROTO(unsigned int state, unsigned int cpu_id),
-> +
-> +	TP_ARGS(state, cpu_id),
-> +
-> +	TP_STRUCT__entry(
-> +		__field(	u32,		state		)
-> +		__field(	u32,		cpu_id		)
-
-Trace entries can carry a cpu_id of the current processor already. Can this cpu_id 
-ever be different from that CPU id?
-
-> +	),
-> +
-> +	TP_fast_assign(
-> +		__entry->state = state;
-> +		__entry->cpu_id = cpu_id;
-> +	),
-> +
-> +	TP_printk("state=%lu cpu_id=%lu", (unsigned long)__entry->state,
-> +		  (unsigned long)__entry->cpu_id)
-> +);
-> +
-> +DEFINE_EVENT(processor, processor_idle,
-> +
-> +	TP_PROTO(unsigned int state, unsigned int cpu_id),
-> +
-> +	     TP_ARGS(state, cpu_id)
-> +);
-> +
-> +#define PWR_EVENT_EXIT 0xFFFFFFFF
-> +
-> +DEFINE_EVENT(processor, processor_frequency,
-> +
-> +	TP_PROTO(unsigned int frequency, unsigned int cpu_id),
-> +
-> +	TP_ARGS(frequency, cpu_id)
-> +);
-
-So, we have a 'state' field in the class, which is used as 'state' by the 
-power::cpu_idle event, and as 'frequency' by the power::cpu_freq event?
-
-Are there any architectures that track frequency in Hz, not in kHz? If yes, might 
-there ever be a need for the frequency value to be larger than 4.29 GHz? If yes, 
-then it wont fit into u32.
-
-Also, might there be a future need to express different types of frequencies? For 
-example, should we decide to track turbo frequencies in Intel CPUs, how would that 
-be expressed via these events? Are there any architectures and CPUs that somehow 
-have some extra attribute to the frequency value?
-
-> +TRACE_EVENT(machine_suspend,
-> +
-> +	TP_PROTO(unsigned int state),
-> +
-> +	TP_ARGS(state),
-> +
-> +	TP_STRUCT__entry(
-> +		__field(	u32,		state		)
-> +	),
-
-Hm, this event is not used anywhere in the submitted patches. Where is the patch 
-that adds usage, and what are the possible values for 'state'?
-
-	Ingo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
