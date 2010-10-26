@@ -1,83 +1,61 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 1/8] staging: tidspbridge - remove req_addr from proc_map
-Date: Tue, 26 Oct 2010 13:08:15 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F49E28BD@dlee06.ent.ti.com>
-References: <1288054306-4361-1-git-send-email-x0095840@ti.com>
- <1288054306-4361-2-git-send-email-x0095840@ti.com>
- <AANLkTimCDM_nruvh_gqxxy0CVnw2sH5UYNT9VgyeBfZN@mail.gmail.com>
- <496565EC904933469F292DDA3F1663E602F49E280A@dlee06.ent.ti.com>
- <1288112616-notmuch-felipe.contreras@nokia.com>
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
+Date: Tue, 26 Oct 2010 14:14:21 -0400
+Message-ID: <20101026181421.GA30090@Krystal>
+References: <1287488171-25303-3-git-send-email-trenn@suse.de> <1288049630-10947-1-git-send-email-trenn@suse.de> <20101026071020.GC13036@elte.hu> <AANLkTikWCLTgAGJJ_eH0e016kPfB2K8LtR9g25wbPJXF@mail.gmail.com> <4CC6FC03.708@linux.intel.com> <AANLkTinrmhBkjnXE+xQGgrsv_OR_ckz=dyH4EoDB59X_@mail.gmail.com> <1288115894.3673.12.camel@laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1288112616-notmuch-felipe.contreras@nokia.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@nokia.com>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
-Cc: "gregkh@suse.de" <gregkh@suse.de>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.openrapids.net ([64.15.138.104]:43549 "EHLO
+	blackscsi.openrapids.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933445Ab0JZSOY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Oct 2010 14:14:24 -0400
+Content-Disposition: inline
+In-Reply-To: <1288115894.3673.12.camel@laptop>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>, Greg Kroah-Hartman <greg@kroah.com>
+Cc: Pierre Tardy <tardyp@gmail.com>, Arjan van de Ven <arjan@linux.intel.com>, Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>
 
- 
-
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@nokia.com] 
-> Sent: Tuesday, October 26, 2010 12:08 PM
-> To: Guzman Lugo, Fernando; felipe.contreras@gmail.com
-> Cc: gregkh@suse.de; hiroshi.doyu@nokia.com; 
-> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
-> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [PATCH 1/8] staging: tidspbridge - remove 
-> req_addr from proc_map
-> 
-> fernando.lugo@ti.com wrote:
-> > > On Tue, Oct 26, 2010 at 3:51 AM, Fernando Guzman Lugo 
-> > > <x0095840@ti.com> wrote:
-> > > > The device address is assigned by tidspbridge no need for
-> > > that parameter anymore.
-> > > >
-> > > > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> > > 
-> > > This would break the API with user-space, right?
+* Peter Zijlstra (peterz@infradead.org) wrote:
+> On Tue, 2010-10-26 at 11:56 -0500, Pierre Tardy wrote:
 > > 
-> > Yes, user-space needs to be changed accordingly.
+> > +       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
+> >         atomic_inc(&dev->power.usage_count); 
 > 
-> Wouldn't it make sense to avoid stuffing so many changes at 
-> once including ABI breakage?
-> 
-> Does user-space really _needs_ to be changed? Can't you just 
-> ignore that argument?
+> That's terribly racy..
 
-Actually, I had a previous version of that patch where I only
-Ignored that paramteter. But after thinking again and seeing
-How the long time ago depreacted function are still there I 
-Removed the parameter in order to force apps to make the change.
+Looking at the original code, it looks racy even without considering the
+tracepoint:
 
-You can ignore that argument at API level, so all users of the
-API not need to have change (in that momment). That should be
-Only few line change.
+int __pm_runtime_get(struct device *dev, bool sync)
+ {
+        int retval;
 
-> 
-> > > I think this change should be delayed, preferably after we have a 
-> > > working tidspbridge.
-> > 
-> > The issue you were seeing must be fixed with patch 2/8, and 
-> Having all 
-> > the dependencies tidspbridge has to be working Properly.
-> 
-> Yes, which might not happen at .37. If we revert the iommu 
-> stuff, we might have a chance at having a working bridge on .37.
++       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
+        atomic_inc(&dev->power.usage_count);
+        retval = sync ? pm_runtime_resume(dev) : pm_request_resume(dev);
 
-But havi that merged in tidspbridge make more pressure to merged
-The dependencies, if not maybe that wont have event for .38. But
-That is just my opinion if you all are agree revert is the best
-Option I am ok, but I looks like more work reverting and rebaseing
-specially because it is a big change.
+There is no implied memory barrier after "atomic_inc". So either all these
+inc/dec are protected with mutexes or spinlocks, in which case one might wonder
+why atomic operations are used at all, or it's a racy mess. (I vote for the
+second option)
 
-Thanks and regards,
-Fernando.
+kref should certainly be used there.
 
-> 
-> --
-> Felipe Contreras
-> 
+About the instrumentation, well... the only way to have something that's not
+racy would be to instrument kref directly, and use atomic_add_return() in both
+the get/put paths. But I fear that the performance impact on many architectures
+might be significant (turning atomic_add + smp_mb() into a cmpxchg()). Maybe it
+could be acceptable as a kernel debug option.
+
+Thanks,
+
+Mathieu
+
+-- 
+Mathieu Desnoyers
+Operating System Efficiency R&D Consultant
+EfficiOS Inc.
+http://www.efficios.com
