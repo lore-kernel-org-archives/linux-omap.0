@@ -1,185 +1,216 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 08/11] OMAP4: Adding dev atrributes to OMAP4 smartreflex
- hwmod data
-Date: Tue, 26 Oct 2010 13:17:00 +0200
-Message-ID: <4CC6B8AC.8090007@ti.com>
-References: <1285419086-13047-1-git-send-email-thara@ti.com> <1285419086-13047-9-git-send-email-thara@ti.com>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
+Date: Tue, 26 Oct 2010 13:19:20 +0200
+Message-ID: <20101026111920.GA27258@elte.hu>
+References: <1287488171-25303-3-git-send-email-trenn@suse.de>
+ <1288049630-10947-1-git-send-email-trenn@suse.de>
+ <20101026071020.GC13036@elte.hu>
+ <201010261237.49386.trenn@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44791 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932396Ab0JZLRF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Oct 2010 07:17:05 -0400
-In-Reply-To: <1285419086-13047-9-git-send-email-thara@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201010261237.49386.trenn@suse.de>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Thomas Renninger <trenn@suse.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "paul@pwsan.com" <paul@pwsan.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
-
-On 9/25/2010 2:51 PM, Gopinath, Thara wrote:
-> This patch adds dev attributes for smartreflex modules
-> in the OMAP4 hwmod database. This patch also updates the
-> smartreflex rev in the smartreflex class data structure
-> in the OMAP4 hwmod database.
->
-> Signed-off-by: Thara Gopinath<thara@ti.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   56 ++++++++++++++++++++++++++++
->   arch/arm/plat-omap/include/plat/control.h  |   12 ++++++
->   2 files changed, 68 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> index ba3c215..82657b5 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -22,6 +22,8 @@
->
->   #include<plat/omap_hwmod.h>
->   #include<plat/cpu.h>
-> +#include<plat/smartreflex.h>
-> +#include<plat/control.h>
->
->   #include "omap_hwmod_common_data.h"
->
-> @@ -474,6 +476,7 @@ static struct omap_hwmod_class_sysconfig omap44xx_smartreflex_sysc = {
->   static struct omap_hwmod_class omap44xx_smartreflex_hwmod_class = {
->   	.name = "smartreflex",
->   	.sysc =&omap44xx_smartreflex_sysc,
-> +	.rev  = 2,
->   };
->
->   /* smartreflex_core */
-> @@ -505,6 +508,22 @@ static struct omap_hwmod_ocp_if *omap44xx_smartreflex_core_slaves[] = {
->   	&omap44xx_l4_cfg__smartreflex_core,
->   };
->
-> +static u32 omap44xx_sr_core_efuse_offs[] = {
-> +	OMAP44XX_CONTROL_FUSE_CORE_OPP50, OMAP44XX_CONTROL_FUSE_CORE_OPP100,
-> +};
-> +
-> +static u32 omap44xx_sr_core_test_nvalues[] = {
-> +	0x0, 0x0
-> +};
-
-At first, I thought it was a good idea to put such data here, but now 
-after the discussion about timer hwmod data, I realize I was wrong.
-
-These informations belong to omap_volt_data. For each OPP you should 
-provide the efuse offset an the SW nvalues.
-BTW, you should not call them test Nvalues, these are perfectly valid 
-and can be potentially used in production. There are just not as 
-optimized as a efuse Nvalue.
-
-Benoit
 
 
-> +
-> +static struct omap_sr_dev_data omap44xx_sr_core_dev_attr = {
-> +	.efuse_nvalues_offs	= omap44xx_sr_core_efuse_offs,
-> +	.test_sennenable	= 0x1,
-> +	.test_senpenable	= 0x1,
-> +	.test_nvalues		= omap44xx_sr_core_test_nvalues,
-> +	.vdd_name		= "core"
-> +};
-> +
->   static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
->   	.name		= "smartreflex_core",
->   	.class		=&omap44xx_smartreflex_hwmod_class,
-> @@ -518,6 +537,7 @@ static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
->   	},
->   	.slaves		= omap44xx_smartreflex_core_slaves,
->   	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_slaves),
-> +	.dev_attr	=&omap44xx_sr_core_dev_attr,
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->   };
->
-> @@ -550,6 +570,23 @@ static struct omap_hwmod_ocp_if *omap44xx_smartreflex_iva_slaves[] = {
->   	&omap44xx_l4_cfg__smartreflex_iva,
->   };
->
-> +static u32 omap44xx_sr_iva_efuse_offs[] = {
-> +	OMAP44XX_CONTROL_FUSE_IVA_OPP50, OMAP44XX_CONTROL_FUSE_IVA_OPP100,
-> +	OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO,
-> +};
-> +
-> +static u32 omap44xx_sr_iva_test_nvalues[] = {
-> +	0x0, 0x0, 0x0, 0x0
-> +};
-> +
-> +static struct omap_sr_dev_data omap44xx_sr_iva_dev_attr = {
-> +	.efuse_nvalues_offs	= omap44xx_sr_iva_efuse_offs,
-> +	.test_sennenable	= 0x1,
-> +	.test_senpenable	= 0x1,
-> +	.test_nvalues		= omap44xx_sr_iva_test_nvalues,
-> +	.vdd_name		= "iva"
-> +};
-> +
->   static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
->   	.name		= "smartreflex_iva",
->   	.class		=&omap44xx_smartreflex_hwmod_class,
-> @@ -563,6 +600,7 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
->   	},
->   	.slaves		= omap44xx_smartreflex_iva_slaves,
->   	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_slaves),
-> +	.dev_attr	=&omap44xx_sr_iva_dev_attr,
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->   };
->
-> @@ -595,6 +633,23 @@ static struct omap_hwmod_ocp_if *omap44xx_smartreflex_mpu_slaves[] = {
->   	&omap44xx_l4_cfg__smartreflex_mpu,
->   };
->
-> +static u32 omap44xx_sr_mpu_efuse_offs[] = {
-> +	OMAP44XX_CONTROL_FUSE_MPU_OPP50, OMAP44XX_CONTROL_FUSE_MPU_OPP100,
-> +	OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO, OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO,
-> +};
-> +
-> +static u32 omap44xx_sr_mpu_test_nvalues[] = {
-> +	0x0, 0x0, 0x0, 0x0
-> +};
-> +
-> +static struct omap_sr_dev_data omap44xx_sr_mpu_dev_attr = {
-> +	.efuse_nvalues_offs	= omap44xx_sr_mpu_efuse_offs,
-> +	.test_sennenable	= 0x1,
-> +	.test_senpenable	= 0x1,
-> +	.test_nvalues		= omap44xx_sr_mpu_test_nvalues,
-> +	.vdd_name		= "mpu"
-> +};
-> +
->   static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
->   	.name		= "smartreflex_mpu",
->   	.class		=&omap44xx_smartreflex_hwmod_class,
-> @@ -608,6 +663,7 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
->   	},
->   	.slaves		= omap44xx_smartreflex_mpu_slaves,
->   	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_slaves),
-> +	.dev_attr	=&omap44xx_sr_mpu_dev_attr,
->   	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
->   };
->
-> diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-> index 042eb6e..1e8f6ec 100644
-> --- a/arch/arm/plat-omap/include/plat/control.h
-> +++ b/arch/arm/plat-omap/include/plat/control.h
-> @@ -181,6 +181,18 @@
->   #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
->   #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
->
-> +/* 44xx control efuse offsets */
-> +#define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
-> +#define OMAP44XX_CONTROL_FUSE_IVA_OPP100	0x22F
-> +#define OMAP44XX_CONTROL_FUSE_IVA_OPPTURBO	0x232
-> +#define OMAP44XX_CONTROL_FUSE_IVA_OPPNITRO	0x235
-> +#define OMAP44XX_CONTROL_FUSE_MPU_OPP50		0x240
-> +#define OMAP44XX_CONTROL_FUSE_MPU_OPP100	0x243
-> +#define OMAP44XX_CONTROL_FUSE_MPU_OPPTURBO	0x246
-> +#define OMAP44XX_CONTROL_FUSE_MPU_OPPNITRO	0x249
-> +#define OMAP44XX_CONTROL_FUSE_CORE_OPP50	0x254
-> +#define OMAP44XX_CONTROL_FUSE_CORE_OPP100	0x257
-> +
->   /* AM35XX only CONTROL_GENERAL register offsets */
->   #define AM35XX_CONTROL_MSUSPENDMUX_6    (OMAP2_CONTROL_GENERAL + 0x0038)
->   #define AM35XX_CONTROL_DEVCONF2         (OMAP2_CONTROL_GENERAL + 0x0310)
+* Thomas Renninger <trenn@suse.de> wrote:
 
+> On Tuesday 26 October 2010 09:10:20 Ingo Molnar wrote:
+> > 
+> > * Thomas Renninger <trenn@suse.de> wrote:
+> > 
+> > > Changes in V2:
+> > >   - Introduce PWR_EVENT_EXIT instead of 0 to mark non-power state
+> > >   - Use u32 instead of u64 for cpuid, state which is by far enough
+> > > 
+> > > New power trace events:
+> > > power:processor_idle
+> > > power:processor_frequency
+> > > power:machine_suspend
+> > > 
+> > > 
+> > > C-state/idle accounting events:
+> > >   power:power_start
+> > >   power:power_end
+> > > are replaced with:
+> > >   power:processor_idle
+> > > 
+> > > and
+> > >   power:power_frequency
+> > > is replaced with:
+> > >   power:processor_frequency
+> > 
+> > Could you please name it power:cpu_idle and power:cpu_frequency instead, for 
+> > shortness? We generally use 'cpu' in the kernel and for events.
+> Sure.
+> > 
+> > > power:machine_suspend
+> > 
+> > How will future PCI (or other device) power saving tracepoints be called?
+> > 
+> > Might be more consistent to use:
+> > 
+> >   power:cpu_idle
+> >   power:machine_idle
+> >   power:device_idle
+>
+> device idle is not true. Those may be low power modes
+> like reduced network throughput, reduced wlan range, the device
+> needs not to be idle.
+> Device power states is probably the most complex area, if such
+> a thing gets introduced, it should makes sense to state
+> the interface experimental for some time until a wider range of
+> devices uses it (in contrast to these new ones
+> which should not change that soon anymore...).
+
+Ok.
+
+> Also machine_idle may be true, but machine_suspend sounds more
+> familiar and everyone immediately knows what the event is about.
+
+Ok - fair enough.
+
+> > > +#define PWR_EVENT_EXIT 0xFFFFFFFF
+> > 
+> > Shouldnt this be part of the POWER_ enum? (and you can write -1 there)
+>
+> No, below enum will vanish, but -1 is nicer.
+
+When it vanishes what will replace it?
+
+> ...
+> 
+> > Plus:
+> > 
+> > > +DECLARE_EVENT_CLASS(processor,
+> > > +
+> > > +	TP_PROTO(unsigned int state, unsigned int cpu_id),
+> > > +
+> > > +	TP_ARGS(state, cpu_id),
+> > > +
+> > > +	TP_STRUCT__entry(
+> > > +		__field(	u32,		state		)
+> > > +		__field(	u32,		cpu_id		)
+> > 
+> > Trace entries can carry a cpu_id of the current processor already. Can this cpu_id 
+> > ever be different from that CPU id?
+>
+> Yes. A core's frequency can depend on another one which
+> will get switched as well (by one command/MSR).
+> Compare with commit 6f4f2723d08534fd4e407e1e.
+> 
+> This can theoretically also be the case for sleep states.
+> Afaik such HW does not exist yet, but ACPI spec already
+> provides interfaces to pass these dependency from BIOS to OS.
+> -> We want a stable ABI and should be prepared for such stuff.
+> 
+> > > +	),
+> > > +
+> > > +	TP_fast_assign(
+> > > +		__entry->state = state;
+> > > +		__entry->cpu_id = cpu_id;
+> > > +	),
+> > > +
+> > > +	TP_printk("state=%lu cpu_id=%lu", (unsigned long)__entry->state,
+> > > +		  (unsigned long)__entry->cpu_id)
+> > > +);
+> > > +
+> > > +DEFINE_EVENT(processor, processor_idle,
+> > > +
+> > > +	TP_PROTO(unsigned int state, unsigned int cpu_id),
+> > > +
+> > > +	     TP_ARGS(state, cpu_id)
+> > > +);
+> > > +
+> > > +#define PWR_EVENT_EXIT 0xFFFFFFFF
+> > > +
+> > > +DEFINE_EVENT(processor, processor_frequency,
+> > > +
+> > > +	TP_PROTO(unsigned int frequency, unsigned int cpu_id),
+> > > +
+> > > +	TP_ARGS(frequency, cpu_id)
+> > > +);
+> > 
+> > So, we have a 'state' field in the class, which is used as 'state' by the 
+> > power::cpu_idle event, and as 'frequency' by the power::cpu_freq event?
+>
+> Yes, is this a problem?
+>
+> Definitions are a bit shorter having one power processor class.
+> As "frequency" is stated in frequency event definition everything should
+> be obvious and this one looks like the more elegant way to me.
+>  
+> > Are there any architectures that track frequency in Hz, not in kHz? If yes, might 
+> > there ever be a need for the frequency value to be larger than 4.29 GHz? If yes, 
+> > then it wont fit into u32.
+>
+> drivers/cpufreq subsystem is fixed to unsigned int (cmp. include/linux/cpufreq.h):
+>         unsigned int            min;    /* in kHz */
+>         unsigned int            max;    /* in kHz */
+>         unsigned int            cur;    /* in kHz,
+>         ...
+> that should be fine.
+
+ok, good - so we should be fine up to 4 THz CPUs.
+
+> > Also, might there be a future need to express different types of frequencies? 
+> > For example, should we decide to track turbo frequencies in Intel CPUs, how 
+> > would that be expressed via these events? Are there any architectures and CPUs 
+> > that somehow have some extra attribute to the frequency value?
+>
+> I wonder whether this ever can/will work in a sane way.
+> Userspace can compare with:
+> /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq
+> everything above is turbo. So I do not think it's ever needed.
+> But adding an additional value at the end does not violate
+> userspace compatibility. This has been done with the cpuid
+> as well.
+>  
+> > > +TRACE_EVENT(machine_suspend,
+> > > +
+> > > +	TP_PROTO(unsigned int state),
+> > > +
+> > > +	TP_ARGS(state),
+> > > +
+> > > +	TP_STRUCT__entry(
+> > > +		__field(	u32,		state		)
+> > > +	),
+> > 
+> > Hm, this event is not used anywhere in the submitted patches. Where is the patch 
+> > that adds usage, and what are the possible values for 'state'?
+>
+> Jean wants to make use of it on ARM.
+> I also had patch for x86, I can have another look at it, Rafael
+> already gave me a comment on it. But on X86 you typically realize
+> when you suspend the machine (could imagine this is more useful on
+> ARM driven mobile phones and similar), still I can add it..
+> 
+> Values probably should be (include/linux/suspend.h):
+> #define PM_SUSPEND_ON       0
+> #define PM_SUSPEND_STANDBY  1
+> #define PM_SUSPEND_MEM      3
+> #define PM_SUSPEND_MAX      4
+> 
+> How this strange state Arjan talked about is passed is up
+> to these guys. Instead of using 0 and above pre-defined such
+> arch specific special states better should get passed by:
+> 
+> #define X86_MOORESTOWN_STANDBY_S0   0x100
+> ..                                  0x101
+> #define ARM_WHATEVER_STRANGE_THING  0x200
+> ...
+
+I'd rather like to see a meaningful name to be given to these states and them being 
+passed, instead of weird platform specific things. Tooling will try to be as generic 
+as possible.
+
+I dont know this stuff, but making a distinction between s2ram and s2disk events 
+would seem meaningful.
+
+Thanks,
+
+	Ingo
