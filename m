@@ -1,80 +1,170 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: RE: [PATCH 1/8] staging: tidspbridge - remove req_addr from proc_map
-Date: Tue, 26 Oct 2010 22:37:42 +0300
-Message-ID: <1288121251-notmuch-felipe.contreras@nokia.com>
-References: <1288054306-4361-1-git-send-email-x0095840@ti.com> <1288054306-4361-2-git-send-email-x0095840@ti.com> <AANLkTimCDM_nruvh_gqxxy0CVnw2sH5UYNT9VgyeBfZN@mail.gmail.com> <496565EC904933469F292DDA3F1663E602F49E280A@dlee06.ent.ti.com> <1288112616-notmuch-felipe.contreras@nokia.com> <496565EC904933469F292DDA3F1663E602F49E28BD@dlee06.ent.ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <496565EC904933469F292DDA3F1663E602F49E28BD@dlee06.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: fernando.lugo@ti.com, felipe.contreras@gmail.com
-Cc: gregkh@suse.de, hiroshi.doyu@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Subject: RE: [PATCH 8/8] staging: tidspbridge - make sync_wait_on_event
+ interruptible
+Date: Tue, 26 Oct 2010 15:01:02 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602F49E29A6@dlee06.ent.ti.com>
+References: <1288054306-4361-1-git-send-email-x0095840@ti.com>
+ <1288054306-4361-2-git-send-email-x0095840@ti.com>
+ <1288054306-4361-3-git-send-email-x0095840@ti.com>
+ <1288054306-4361-4-git-send-email-x0095840@ti.com>
+ <1288054306-4361-5-git-send-email-x0095840@ti.com>
+ <1288054306-4361-6-git-send-email-x0095840@ti.com>
+ <1288054306-4361-7-git-send-email-x0095840@ti.com>
+ <1288054306-4361-8-git-send-email-x0095840@ti.com>
+ <1288054306-4361-9-git-send-email-x0095840@ti.com>
+ <AANLkTinnLb9DLMKfxEs_KqMvOmegSDYRuLWh5y=hhBCe@mail.gmail.com>
+ <496565EC904933469F292DDA3F1663E602F49E2802@dlee06.ent.ti.com>
+ <1288112260-notmuch-felipe.contreras@nokia.com>
+ <496565EC904933469F292DDA3F1663E602F49E28AB@dlee06.ent.ti.com>
+ <1288121052-notmuch-felipe.contreras@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60357 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760400Ab0JZUBQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Oct 2010 16:01:16 -0400
+In-Reply-To: <1288121052-notmuch-felipe.contreras@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@nokia.com>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
+Cc: "gregkh@suse.de" <gregkh@suse.de>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-fernando.lugo@ti.com wrote:
-> > fernando.lugo@ti.com wrote:
-> > > > On Tue, Oct 26, 2010 at 3:51 AM, Fernando Guzman Lugo 
-> > > > <x0095840@ti.com> wrote:
-> > > > > The device address is assigned by tidspbridge no need for
-> > > > that parameter anymore.
-> > > > >
-> > > > > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+ 
+
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@nokia.com] 
+> Sent: Tuesday, October 26, 2010 2:27 PM
+> To: Guzman Lugo, Fernando; felipe.contreras@gmail.com
+> Cc: gregkh@suse.de; hiroshi.doyu@nokia.com; 
+> linux-kernel@vger.kernel.org; andy.shevchenko@gmail.com; 
+> linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCH 8/8] staging: tidspbridge - make 
+> sync_wait_on_event interruptible
+> 
+> fernando.lugo@ti.com wrote:
+> > > fernando.lugo@ti.com wrote:
+> > > > > On Tue, Oct 26, 2010 at 3:51 AM, Fernando Guzman Lugo 
+> > > > > <x0095840@ti.com> wrote:
+> > > > > > So that avoid non-killable process.
+> > > > > 
+> > > > > It would be useful to interrupt these tasks from user-space. 
+> > > > > A separate ioctl to do that would be needed.
 > > > > 
-> > > > This would break the API with user-space, right?
+> > > > I don't see use case where that could be needed. It is only
+> > > To avoid a
+> > > > nonkillable task in the case the user pass an infinite Timeout.
+> > > > 
+> > > > If you have some test case where that ioctl would be 
+> needed Please 
+> > > > share it in order to find the best solution.
 > > > 
-> > > Yes, user-space needs to be changed accordingly.
-> > 
-> > Wouldn't it make sense to avoid stuffing so many changes at 
-> > once including ABI breakage?
-> > 
-> > Does user-space really _needs_ to be changed? Can't you just 
-> > ignore that argument?
-> 
-> Actually, I had a previous version of that patch where I only
-> Ignored that paramteter. But after thinking again and seeing
-> How the long time ago depreacted function are still there I 
-> Removed the parameter in order to force apps to make the change.
-
-Again, can we concentrate on first getting this thing to work?
-
-We can think on breaking things again later.
-
-> You can ignore that argument at API level, so all users of the
-> API not need to have change (in that momment). That should be
-> Only few line change.
-
-Yes, that's what I'm proposing.
-
-> > > > I think this change should be delayed, preferably after we have a 
-> > > > working tidspbridge.
+> > > Well, imagine the application is using a library to 
+> access the DSP, 
+> > > and the library has a dedicated thread listening for DSP 
+> events in a 
+> > > loop.
+> > > This happens to be how libomxil-ti and gst-dsp work.
 > > > 
-> > > The issue you were seeing must be fixed with patch 2/8, and 
-> > Having all 
-> > > the dependencies tidspbridge has to be working Properly.
+> > > Now, the thread received the last message, but has set a 
+> timeout of 
+> > > 10s, or even worst, no timeout at all.
+> > > 
+> > > After realizing that was the last message, the main 
+> thread decides 
+> > > to shut down, but it has to wait for the DSP thread to join. 
+> > > Unfortunately the DSP thread is stuck waiting for events, and 
+> > > there's nothing that can be done.
+> > > 
+> > > However, if we have a separate ioctl to interrupt that task, then 
+> > > the main thread can issue that ioctl, and unlock the DSP thread 
+> > > without having to wait 10s, or forever.
+> > > 
+> > > Does that make sense?
 > > 
-> > Yes, which might not happen at .37. If we revert the iommu 
-> > stuff, we might have a chance at having a working bridge on .37.
+> > Maybe sending a signal to yourselft and having a dummy 
+> signal Handle 
+> > should work, it that would not like good.
 > 
-> But havi that merged in tidspbridge make more pressure to merged
-> The dependencies, if not maybe that wont have event for .38.
+> Signals on libraries is a no-no.
+> 
+> > I am thinking On having a ioctl to create and set an event the you 
+> > could Something like this:
+> > 
+> > struct dsp_notification events[3];
+> > 
+> > proc_register_notify(proc, event_type, &events[0]); ...
+> > proc_register_notify(proc, event_type, &events[1]); ...
+> > Sync_open_event(&events[2]);
+> > 
+> > 
+> > second thread:
+> > 
+> > 	mgr_wait_for_bridge_events(proc, events, 3, index);
+> > 
+> > 	if (index == 2) 
+> > 		/* main thread force exit */
+> > 
+> > 
+> > Main thread:
+> > 
+> > 	/* if some execption happened then finish the second thread */
+> > 	sync_set_event(events[2]);
+> > 
+> > 	pthread_join(...);
+> > 
+> > 
+> > However it is in progess a task for change replacing 
+> dspbridge sync.c 
+> > Module with event_fd to signal events to userspace. Where 
+> now simple 
+> > File descriptor will be used as event elements. So the 
+> > mgr_wait_for_bridge_events Will be implemented using 
+> "select" system call inside to wait for multiple events.
+> > So you will be able to do something like this:
+> > 
+> > int events[3];
+> > 
+> > proc_register_notify(proc, event_type, &events[0]); ...
+> > proc_register_notify(proc, event_type, &events[1]); ...
+> > events[2] = eventfd(0, 0);
+> > 
+> > 
+> > second thread:
+> > 
+> > 	mgr_wait_for_bridge_events(proc, events, 3, index);
+> > 
+> > 	if (index == 2) 
+> > 		/* main thread force exit */
+> > 
+> > Main thread:
+> > 
+> > 	/* if some execption happened then finish the second thread */
+> > 	write(events[2], "s", 1);
+> > 
+> > 	pthread_join(...);
+> > 
+> > You won't need any aditional ioctl in order to do what you 
+> want to do.
+> > 
+> > So, I think it is not worth to make much changes to some 
+> module that 
+> > will Dissapear (my patch is just a fix it is not implementing 
+> > something new), It is just a matter of time to that task is 
+> finished 
+> > and tested properly And then send to LO.
+> 
+> All right, that makes sense. I just wanted to make suere you 
+> are aware of that need.
 
-Those patches have been there for a while and there's no sign of when
-they'll be merged. Also, remember that the fact that the patches have
-been sent doesn't guarantee they would be on this, or even the next
-cycle.
+Sure, that need will cover soon.
 
-Besides, the rule followed here is: it's ready when it's ready. In the
-meantime the driver should work, and we can do that rather easily.
+Thanks and regards,
+Fernando.
 
-> But That is just my opinion if you all are agree revert is the best
-> Option I am ok, but I looks like more work reverting and rebaseing
-> specially because it is a big change.
-
-git makes this easy.
-
-The hard part is for the people out there that are trying to use this
-driver and have to hunt mailing lists and multiple repos just to get
-this to work. Moving to staging was supposed to make this easier, not
-harder.
-
--- 
-Felipe Contreras
+> 
+> --
+> Felipe Contreras
+> 
