@@ -1,61 +1,85 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH v3 06/13] OMAP3: DMA: hwmod: add system DMA
-Date: Tue, 26 Oct 2010 18:55:06 +0530
-Message-ID: <1288099513-1854-7-git-send-email-manjugk@ti.com>
+Subject: [PATCH v3 07/13] OMAP4: DMA: hwmod: add system DMA
+Date: Tue, 26 Oct 2010 18:55:07 +0530
+Message-ID: <1288099513-1854-8-git-send-email-manjugk@ti.com>
 References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57757 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59579 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933225Ab0JZNZL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Oct 2010 09:25:11 -0400
+	id S933209Ab0JZNZP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Oct 2010 09:25:15 -0400
 In-Reply-To: <1288099513-1854-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Add OMAP3 DMA hwmod structures.
+From: Benoit Cousson <b-cousson@ti.com>
+
+Add OMAP4 DMA hwmod structures.
 
 Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   93 ++++++++++++++++++++++++++++
- 1 files changed, 93 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   99 ++++++++++++++++++++++++++++
+ 1 files changed, 99 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index ed6bf4a..4a5231c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -45,6 +45,7 @@ static struct omap_hwmod omap3xxx_wd_timer2_hwmod;
- static struct omap_hwmod omap3xxx_i2c1_hwmod;
- static struct omap_hwmod omap3xxx_i2c2_hwmod;
- static struct omap_hwmod omap3xxx_i2c3_hwmod;
-+static struct omap_hwmod omap3xxx_dma_system_hwmod;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 0d5c6eb..f749f0d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -22,6 +22,7 @@
  
- /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
-@@ -736,6 +737,97 @@ static struct omap_hwmod omap3xxx_i2c3_hwmod = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ #include <plat/omap_hwmod.h>
+ #include <plat/cpu.h>
++#include <plat/dma.h>
+ 
+ #include "omap_hwmod_common_data.h"
+ 
+@@ -35,6 +36,7 @@
+ #define OMAP44XX_DMA_REQ_START  1
+ 
+ /* Backward references (IPs with Bus Master capability) */
++static struct omap_hwmod omap44xx_dma_system_hwmod;
+ static struct omap_hwmod omap44xx_dmm_hwmod;
+ static struct omap_hwmod omap44xx_emif_fw_hwmod;
+ static struct omap_hwmod omap44xx_l3_instr_hwmod;
+@@ -215,6 +217,14 @@ static struct omap_hwmod_ocp_if omap44xx_l3_main_1__l3_main_2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
  };
  
-+/* dma_system -> L3 */
-+static struct omap_hwmod_ocp_if omap3xxx_dma_system__l3 = {
-+	.master		= &omap3xxx_dma_system_hwmod,
-+	.slave		= &omap3xxx_l3_main_hwmod,
-+	.clk		= "core_l3_ick",
++/* dma_system -> l3_main_2 */
++static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
++	.master		= &omap44xx_dma_system_hwmod,
++	.slave		= &omap44xx_l3_main_2_hwmod,
++	.clk		= "l3_div_ck",
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
-+/* dma attributes */
-+static struct omap_dma_dev_attr dma_dev_attr = {
-+	.dev_caps  = DMA_LINKED_LCH | GLOBAL_PRIORITY |
-+				IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORITY,
-+	.lch_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT,
-+};
+ /* l4_cfg -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
+ 	.master		= &omap44xx_l4_cfg_hwmod,
+@@ -226,6 +236,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_cfg__l3_main_2 = {
+ /* l3_main_2 slave ports */
+ static struct omap_hwmod_ocp_if *omap44xx_l3_main_2_slaves[] = {
+ 	&omap44xx_l3_main_1__l3_main_2,
++	&omap44xx_dma_system__l3_main_2,
+ 	&omap44xx_l4_cfg__l3_main_2,
+ };
+ 
+@@ -1043,6 +1054,92 @@ static struct omap_hwmod omap44xx_uart4_hwmod = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
+ };
+ 
++/*
++ * 'dma' class
++ * dma controller for data exchange between memory to memory (i.e. internal or
++ * external memory) and gp peripherals to memory or memory to gp peripherals
++ */
 +
-+static struct omap_hwmod_class_sysconfig omap3xxx_dma_sysc = {
++static struct omap_hwmod_class_sysconfig omap44xx_dma_sysc = {
 +	.rev_offs	= 0x0000,
 +	.sysc_offs	= 0x002c,
 +	.syss_offs	= 0x0028,
@@ -67,78 +91,83 @@ index ed6bf4a..4a5231c 100644
 +	.sysc_fields	= &omap_hwmod_sysc_type1,
 +};
 +
-+static struct omap_hwmod_class omap3xxx_dma_hwmod_class = {
++static struct omap_hwmod_class omap44xx_dma_hwmod_class = {
 +	.name = "dma",
-+	.sysc = &omap3xxx_dma_sysc,
++	.sysc = &omap44xx_dma_sysc,
++};
++
++/* dma attributes */
++static struct omap_dma_dev_attr dma_dev_attr = {
++	.dev_caps  = DMA_LINKED_LCH | GLOBAL_PRIORITY |
++				IS_CSSA_32 | IS_CDSA_32 | IS_RW_PRIORITY,
++	.lch_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT,
 +};
 +
 +/* dma_system */
-+static struct omap_hwmod_irq_info omap3xxx_dma_system_irqs[] = {
-+	{ .name = "0", .irq = INT_24XX_SDMA_IRQ0 },
-+	{ .name = "1", .irq = INT_24XX_SDMA_IRQ1 },
-+	{ .name = "2", .irq = INT_24XX_SDMA_IRQ2 },
-+	{ .name = "3", .irq = INT_24XX_SDMA_IRQ3 },
++static struct omap_hwmod_irq_info omap44xx_dma_system_irqs[] = {
++	{ .name = "0", .irq = 12 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "1", .irq = 13 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "2", .irq = 14 + OMAP44XX_IRQ_GIC_START },
++	{ .name = "3", .irq = 15 + OMAP44XX_IRQ_GIC_START },
 +};
 +
-+static struct omap_hwmod_addr_space omap3xxx_dma_system_addrs[] = {
++static struct omap_hwmod_addr_space omap44xx_dma_system_addrs[] = {
 +	{
-+		.pa_start	= 0x48056000,
++		.pa_start	= 0x4a056000,
 +		.pa_end		= 0x4a0560ff,
 +		.flags		= ADDR_TYPE_RT
 +	},
 +};
 +
 +/* dma_system master ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_dma_system_masters[] = {
-+	&omap3xxx_dma_system__l3,
++static struct omap_hwmod_ocp_if *omap44xx_dma_system_masters[] = {
++	&omap44xx_dma_system__l3_main_2,
 +};
 +
 +/* l4_cfg -> dma_system */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__dma_system = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_dma_system_hwmod,
-+	.clk		= "core_l4_ick",
-+	.addr		= omap3xxx_dma_system_addrs,
-+	.addr_cnt	= ARRAY_SIZE(omap3xxx_dma_system_addrs),
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__dma_system = {
++	.master		= &omap44xx_l4_cfg_hwmod,
++	.slave		= &omap44xx_dma_system_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_dma_system_addrs,
++	.addr_cnt	= ARRAY_SIZE(omap44xx_dma_system_addrs),
 +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
 +/* dma_system slave ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_dma_system_slaves[] = {
-+	&omap3xxx_l4_core__dma_system,
++static struct omap_hwmod_ocp_if *omap44xx_dma_system_slaves[] = {
++	&omap44xx_l4_cfg__dma_system,
 +};
 +
-+static struct omap_hwmod omap3xxx_dma_system_hwmod = {
-+	.name		= "dma",
-+	.class		= &omap3xxx_dma_hwmod_class,
-+	.mpu_irqs	= omap3xxx_dma_system_irqs,
-+	.mpu_irqs_cnt	= ARRAY_SIZE(omap3xxx_dma_system_irqs),
-+	.main_clk	= "core_l3_ick",
++static struct omap_hwmod omap44xx_dma_system_hwmod = {
++	.name		= "dma_system",
++	.class		= &omap44xx_dma_hwmod_class,
++	.mpu_irqs	= omap44xx_dma_system_irqs,
++	.mpu_irqs_cnt	= ARRAY_SIZE(omap44xx_dma_system_irqs),
++	.main_clk	= "l3_div_ck",
 +	.prcm = {
-+		.omap2 = {
-+			.prcm_reg_id		= 1,
-+			.module_bit		= OMAP3430_ST_SDMA_SHIFT,
-+			.idlest_reg_id		= 1,
-+			.idlest_idle_bit	= OMAP3430_ST_SDMA_SHIFT,
++		.omap4 = {
++			.clkctrl_reg = OMAP4430_CM_SDMA_SDMA_CLKCTRL,
 +		},
 +	},
-+	.slaves		= omap3xxx_dma_system_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_dma_system_slaves),
-+	.masters	= omap3xxx_dma_system_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap3xxx_dma_system_masters),
++	.slaves		= omap44xx_dma_system_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_dma_system_slaves),
++	.masters	= omap44xx_dma_system_masters,
++	.masters_cnt	= ARRAY_SIZE(omap44xx_dma_system_masters),
 +	.dev_attr	= &dma_dev_attr,
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags = HWMOD_SET_DEFAULT_CLOCKACT,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP4430),
++	.flags		= HWMOD_NO_IDLEST,
 +};
 +
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_main_hwmod,
- 	&omap3xxx_l4_core_hwmod,
-@@ -751,6 +843,7 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_i2c1_hwmod,
- 	&omap3xxx_i2c2_hwmod,
- 	&omap3xxx_i2c3_hwmod,
-+	&omap3xxx_dma_system_hwmod,
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	/* dmm class */
+ 	&omap44xx_dmm_hwmod,
+@@ -1077,6 +1174,8 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_uart2_hwmod,
+ 	&omap44xx_uart3_hwmod,
+ 	&omap44xx_uart4_hwmod,
++	/* dma class */
++	&omap44xx_dma_system_hwmod,
  	NULL,
  };
  
