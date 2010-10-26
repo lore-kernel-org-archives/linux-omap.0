@@ -1,110 +1,69 @@
 From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH 2/8] staging: tidspbridge - add kconfig parameter for DMM size
-Date: Mon, 25 Oct 2010 19:51:40 -0500
-Message-ID: <1288054306-4361-3-git-send-email-x0095840@ti.com>
+Subject: [PATCH 8/8] staging: tidspbridge - make sync_wait_on_event
+	interruptible
+Date: Mon, 25 Oct 2010 19:51:46 -0500
+Message-ID: <1288054306-4361-9-git-send-email-x0095840@ti.com>
 References: <1288054306-4361-1-git-send-email-x0095840@ti.com>
- <1288054306-4361-2-git-send-email-x0095840@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1288054306-4361-2-git-send-email-x0095840@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+	<1288054306-4361-2-git-send-email-x0095840@ti.com>
+	<1288054306-4361-3-git-send-email-x0095840@ti.com>
+	<1288054306-4361-4-git-send-email-x0095840@ti.com>
+	<1288054306-4361-5-git-send-email-x0095840@ti.com>
+	<1288054306-4361-6-git-send-email-x0095840@ti.com>
+	<1288054306-4361-7-git-send-email-x0095840@ti.com>
+	<1288054306-4361-8-git-send-email-x0095840@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1288054306-4361-8-git-send-email-x0095840@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: gregkh@suse.de
-Cc: felipe.contreras@nokia.com, Hiroshi.DOYU@nokia.com, linux-kernel@vger.kernel.org, andy.shevchenko@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fernando Guzman Lugo <x0095840@ti.com>
+Cc: Hiroshi.DOYU@nokia.com, linux-kernel@vger.kernel.org, felipe.contreras@nokia.com, andy.shevchenko@gmail.com, Fernando Guzman Lugo <x0095840@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-A new kconfig parameter for DMM size is added. Also DMM is
-allocated after the end of SHM area. So that the checks on
-DSP are still valid and we avoid using areas between SHM
-which are not mapped reducing the probability of shared
-memory corruption.
-
-NOTE: This patch has a dependency on this patch:
-
-"omap: iommu - create new api to set valid da range"
+So that avoid non-killable process.
 
 Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
 ---
- drivers/staging/tidspbridge/Kconfig                |    8 ++++++++
- drivers/staging/tidspbridge/core/tiomap3430.c      |   20 ++++++++++++++++++--
- .../tidspbridge/include/dspbridge/dsp-mmu.h        |    3 +++
- 3 files changed, 29 insertions(+), 2 deletions(-)
+ .../staging/tidspbridge/include/dspbridge/sync.h   |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
-index 672008f..37e47f5 100644
---- a/drivers/staging/tidspbridge/Kconfig
-+++ b/drivers/staging/tidspbridge/Kconfig
-@@ -42,6 +42,14 @@ config TIDSPBRIDGE_MEMPOOL_SIZE
- 	  Allocate specified size of memory at booting time to avoid allocation
- 	  failure under heavy memory fragmentation after some use time.
+diff --git a/drivers/staging/tidspbridge/include/dspbridge/sync.h b/drivers/staging/tidspbridge/include/dspbridge/sync.h
+index e2651e7..df05b8f 100644
+--- a/drivers/staging/tidspbridge/include/dspbridge/sync.h
++++ b/drivers/staging/tidspbridge/include/dspbridge/sync.h
+@@ -80,13 +80,22 @@ void sync_set_event(struct sync_object *event);
+  * This functios will wait until @event is set or until timeout. In case of
+  * success the function will return 0 and
+  * in case of timeout the function will return -ETIME
++ * in case of signal the function will return -ERESTARTSYS
+  */
  
-+config TIDSPBRIDGE_DMM_SIZE
-+	hex "DMM capable memory size (Byte)"
-+	depends on TIDSPBRIDGE
-+	default "0x10000000"
-+	help
-+	  Memory size of DSP virtual address for Dynamic Memory Mapping.
-+	  Please make sure the size is 4K aligned.
+ static inline int sync_wait_on_event(struct sync_object *event,
+ 							unsigned timeout)
+ {
+-	return wait_for_completion_timeout(&event->comp,
+-		msecs_to_jiffies(timeout)) ? 0 : -ETIME;
++	int res;
 +
- config TIDSPBRIDGE_DEBUG
- 	bool "Debug Support"
- 	depends on TIDSPBRIDGE
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index c28dcf1..88c8c71 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -345,7 +345,6 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 					OMAP343X_CONTROL_IVA2_BOOTMOD));
- 		}
- 	}
--
- 	if (!status) {
- 		(*pdata->dsp_prm_rmw_bits)(OMAP3430_RST2_IVA2_MASK, 0,
- 					OMAP3430_IVA2_MOD, OMAP2_RM_RSTCTRL);
-@@ -362,6 +361,11 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 	if (!status) {
- 		dev_context->dsp_mmu = mmu;
- 		sm_sg = &dev_context->sh_s;
-+		/* Set valid range to map shared memory */
-+		status = iommu_set_da_range(mmu, sm_sg->seg0_da,
-+					sm_sg->seg1_da + sm_sg->seg1_size);
-+	}
-+	if (!status) {
- 		sg0_da = iommu_kmap(mmu, sm_sg->seg0_da, sm_sg->seg0_pa,
- 			sm_sg->seg0_size, IOVMF_ENDIAN_LITTLE | IOVMF_ELSZ_32);
- 		if (IS_ERR_VALUE(sg0_da)) {
-@@ -411,7 +415,19 @@ static int bridge_brd_start(struct bridge_dev_context *dev_ctxt,
- 			l4_i++;
- 		}
- 	}
--
-+	if (!status) {
-+		/* Set valid range for DMM mappings */
-+		if (MAX_DSP_MMU_DA - CONFIG_TIDSPBRIDGE_DMM_SIZE <
-+					sm_sg->seg1_da + sm_sg->seg1_size) {
-+			dev_err(bridge, "DMM size too big!\n");
-+			status = -ENOMEM;
-+		} else {
-+			status = iommu_set_da_range(mmu,
-+				sm_sg->seg1_da + sm_sg->seg1_size,
-+				sm_sg->seg1_da + sm_sg->seg1_size +
-+				CONFIG_TIDSPBRIDGE_DMM_SIZE);
-+		}
-+	}
- 	/* Lock the above TLB entries and get the BIOS and load monitor timer
- 	 * information */
- 	if (!status) {
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/dsp-mmu.h b/drivers/staging/tidspbridge/include/dspbridge/dsp-mmu.h
-index cb38d4c..bbbe9e6 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/dsp-mmu.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/dsp-mmu.h
-@@ -22,6 +22,9 @@
- #include <plat/iommu.h>
- #include <plat/iovmm.h>
++	res = wait_for_completion_interruptible_timeout(&event->comp,
++						msecs_to_jiffies(timeout));
++	if (!res)
++		res = -ETIME;
++	else if (res > 0)
++		res = 0;
++
++	return res;
+ }
  
-+/* Last patch is not mapped to detect buffer overflow in DSP side */
-+#define MAX_DSP_MMU_DA 0xFFFFF000
-+
  /**
-  * dsp_mmu_init() - initialize dsp_mmu module and returns a handle
-  *
 -- 
 1.6.3.3
