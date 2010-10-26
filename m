@@ -1,49 +1,29 @@
 From: Thomas Renninger <trenn@suse.de>
-Subject: [PATCH] PERF(kernel): Cleanup power events V2
-Date: Tue, 26 Oct 2010 01:33:50 +0200
-Message-ID: <1288049630-10947-1-git-send-email-trenn@suse.de>
-References: <1287488171-25303-3-git-send-email-trenn@suse.de>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:50137 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750875Ab0JZAP0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 25 Oct 2010 20:15:26 -0400
-In-Reply-To: <1287488171-25303-3-git-send-email-trenn@suse.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCH] PERF(userspace): Adjust perf timechart to the new power events V2
+Date: Tue, 26 Oct 2010 02:18:30 +0200
+Message-ID: <1288052310-11890-1-git-send-email-trenn@suse.de>
+References: <1287488171-25303-4-git-send-email-trenn@suse.de>
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <1287488171-25303-4-git-send-email-trenn@suse.de>
+Sender: linux-trace-users-owner@vger.kernel.org
 Cc: Thomas Renninger <trenn@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>, Ingo Molnar <mingo@elte.hu>
+List-Id: linux-omap@vger.kernel.org
 
 Changes in V2:
-  - Introduce PWR_EVENT_EXIT instead of 0 to mark non-power state
-  - Use u32 instead of u64 for cpuid, state which is by far enough
+  - Hanlde PWR_EVENT_EXIT instead of 0 to recon non-power state
 
-New power trace events:
-power:processor_idle
-power:processor_frequency
-power:machine_suspend
+The transition was rather smooth, only part I had to fiddle
+some time was the check whether a tracepoint/event is
+supported by the running kernel.
 
-
-C-state/idle accounting events:
-  power:power_start
-  power:power_end
-are replaced with:
-  power:processor_idle
-
-and
-  power:power_frequency
-is replaced with:
-  power:processor_frequency
-
-power:machine_suspend
-is newly introduced, a first implementation
-comes from the ARM side, but it's easy to add these events
-in X86 as well if needed.
-
-the type= field got removed from both, it was never
-used and the type is differed by the event type itself.
-
-perf timechart
-userspace tool gets adjusted in a separate patch.
+builtin-timechart must only pass -e power:xy events which
+are supported by the running kernel.
+For this I added the tiny helper function:
+int is_valid_tracepoint(const char *event_string)
+to parse-events.[hc]
+which could be more generic as an interface and support
+hardware/software/... events, not only tracepoints, but someone
+else could extend that if needed...
 
 Signed-off-by: Thomas Renninger <trenn@suse.de>
 CC: Linus Torvalds <torvalds@linux-foundation.org>
@@ -66,245 +46,236 @@ CC: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 CC: Arjan van de Ven <arjan@linux.intel.com>
 CC: Ingo Molnar <mingo@elte.hu>
 ---
- arch/x86/kernel/process.c    |    7 +++-
- arch/x86/kernel/process_64.c |    2 +
- drivers/cpufreq/cpufreq.c    |    1 +
- drivers/cpuidle/cpuidle.c    |    1 +
- drivers/idle/intel_idle.c    |    1 +
- include/trace/events/power.h |   81 +++++++++++++++++++++++++++++++++++++++++-
- kernel/trace/Kconfig         |   14 +++++++
- kernel/trace/power-traces.c  |    3 ++
- 8 files changed, 108 insertions(+), 2 deletions(-)
+ tools/perf/builtin-timechart.c |   89 ++++++++++++++++++++++++++++++++-------
+ tools/perf/util/parse-events.c |   43 +++++++++++++++++++-
+ tools/perf/util/parse-events.h |    1 +
+ 3 files changed, 116 insertions(+), 17 deletions(-)
 
-diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
-index 57d1868..6a98da3 100644
---- a/arch/x86/kernel/process.c
-+++ b/arch/x86/kernel/process.c
-@@ -374,6 +374,7 @@ void default_idle(void)
- {
- 	if (hlt_use_halt()) {
- 		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-+		trace_processor_idle(1, smp_processor_id());
- 		current_thread_info()->status &= ~TS_POLLING;
- 		/*
- 		 * TS_POLLING-cleared state must be visible before we
-@@ -444,6 +445,7 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
- void mwait_idle_with_hints(unsigned long ax, unsigned long cx)
- {
- 	trace_power_start(POWER_CSTATE, (ax>>4)+1, smp_processor_id());
-+	trace_processor_idle((ax>>4)+1, smp_processor_id());
- 	if (!need_resched()) {
- 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
- 			clflush((void *)&current_thread_info()->flags);
-@@ -460,6 +462,7 @@ static void mwait_idle(void)
- {
- 	if (!need_resched()) {
- 		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-+		trace_processor_idle(1, smp_processor_id());
- 		if (cpu_has(&current_cpu_data, X86_FEATURE_CLFLUSH_MONITOR))
- 			clflush((void *)&current_thread_info()->flags);
+diff --git a/tools/perf/builtin-timechart.c b/tools/perf/builtin-timechart.c
+index 9bcc38f..7eaa5b5 100644
+--- a/tools/perf/builtin-timechart.c
++++ b/tools/perf/builtin-timechart.c
+@@ -32,6 +32,10 @@
+ #include "util/session.h"
+ #include "util/svghelper.h"
  
-@@ -481,10 +484,12 @@ static void mwait_idle(void)
- static void poll_idle(void)
++#define SUPPORT_OLD_POWER_EVENTS 1
++#define PWR_EVENT_EXIT 0xFFFFFFFF
++
++
+ static char		const *input_name = "perf.data";
+ static char		const *output_name = "output.svg";
+ 
+@@ -298,12 +302,25 @@ struct trace_entry {
+ 	int			lock_depth;
+ };
+ 
+-struct power_entry {
++#if defined(SUPPORT_OLD_POWER_EVENTS)
++struct power_entry_old {
+ 	struct trace_entry te;
+ 	u64	type;
+ 	u64	value;
+ 	u64	cpu_id;
+ };
++#endif
++
++struct power_processor_entry {
++	struct trace_entry te;
++	u64	state;
++	u64	cpu_id;
++};
++
++struct power_suspend_entry {
++	struct trace_entry te;
++	u64	state;
++};
+ 
+ #define TASK_COMM_LEN 16
+ struct wakeup_entry {
+@@ -489,29 +506,46 @@ static int process_sample_event(event_t *event, struct perf_session *session)
+ 	te = (void *)data.raw_data;
+ 	if (session->sample_type & PERF_SAMPLE_RAW && data.raw_size > 0) {
+ 		char *event_str;
+-		struct power_entry *pe;
+-
+-		pe = (void *)te;
++#if defined(SUPPORT_OLD_POWER_EVENTS)
++		struct power_entry_old *peo;
++		peo = (void *)te;
++#endif
+ 
+ 		event_str = perf_header__find_event(te->type);
+ 
+ 		if (!event_str)
+ 			return 0;
+ 
+-		if (strcmp(event_str, "power:power_start") == 0)
+-			c_state_start(pe->cpu_id, data.time, pe->value);
+-
+-		if (strcmp(event_str, "power:power_end") == 0)
+-			c_state_end(pe->cpu_id, data.time);
++		if (strcmp(event_str, "power:processor_idle") == 0) {
++			struct power_processor_entry *ppe = (void *)te;
++			if (ppe->state == PWR_EVENT_EXIT)
++				c_state_end(ppe->cpu_id, data.time);
++			else
++				c_state_start(ppe->cpu_id, data.time,
++					      ppe->state);
++		}
+ 
+-		if (strcmp(event_str, "power:power_frequency") == 0)
+-			p_state_change(pe->cpu_id, data.time, pe->value);
++		else if (strcmp(event_str, "power:processor_frequency") == 0) {
++			struct power_processor_entry *ppe = (void *)te;
++			p_state_change(ppe->cpu_id, data.time, ppe->state);
++		}
+ 
+-		if (strcmp(event_str, "sched:sched_wakeup") == 0)
++		else if (strcmp(event_str, "sched:sched_wakeup") == 0)
+ 			sched_wakeup(data.cpu, data.time, data.pid, te);
+ 
+-		if (strcmp(event_str, "sched:sched_switch") == 0)
++		else if (strcmp(event_str, "sched:sched_switch") == 0)
+ 			sched_switch(data.cpu, data.time, te);
++
++#if defined(SUPPORT_OLD_POWER_EVENTS)
++		else if (strcmp(event_str, "power:power_start") == 0)
++			c_state_start(peo->cpu_id, data.time, peo->value);
++
++		else if (strcmp(event_str, "power:power_end") == 0)
++			c_state_end(peo->cpu_id, data.time);
++
++		else if (strcmp(event_str, "power:power_frequency") == 0)
++			p_state_change(peo->cpu_id, data.time, peo->value);
++#endif
+ 	}
+ 	return 0;
+ }
+@@ -968,7 +1002,8 @@ static const char * const timechart_usage[] = {
+ 	NULL
+ };
+ 
+-static const char *record_args[] = {
++#if defined(SUPPORT_OLD_POWER_EVENTS)
++static const char *record_old_args[] = {
+ 	"record",
+ 	"-a",
+ 	"-R",
+@@ -980,16 +1015,38 @@ static const char *record_args[] = {
+ 	"-e", "sched:sched_wakeup",
+ 	"-e", "sched:sched_switch",
+ };
++#endif
++
++static const char *record_new_args[] = {
++	"record",
++	"-a",
++	"-R",
++	"-f",
++	"-c", "1",
++	"-e", "power:processor_frequency",
++	"-e", "power:processor_idle",
++	"-e", "sched:sched_wakeup",
++	"-e", "sched:sched_switch",
++};
+ 
+ static int __cmd_record(int argc, const char **argv)
  {
- 	trace_power_start(POWER_CSTATE, 0, smp_processor_id());
-+	trace_processor_idle(1, smp_processor_id());
- 	local_irq_enable();
- 	while (!need_resched())
- 		cpu_relax();
--	trace_power_end(0);
-+	trace_power_end(smp_processor_id());
-+	trace_processor_idle(PWR_EVENT_EXIT, smp_processor_id());
+ 	unsigned int rec_argc, i, j;
+ 	const char **rec_argv;
++	const char **record_args = record_new_args;
++	unsigned int record_elems = ARRAY_SIZE(record_new_args);
+ 
+-	rec_argc = ARRAY_SIZE(record_args) + argc - 1;
++#if defined(SUPPORT_OLD_POWER_EVENTS)
++	if (is_valid_tracepoint("power:power_start")) {
++		record_args = record_old_args;
++		record_elems = ARRAY_SIZE(record_old_args);
++	}
++#endif
++	
++	rec_argc = record_elems + argc - 1;
+ 	rec_argv = calloc(rec_argc + 1, sizeof(char *));
+ 
+-	for (i = 0; i < ARRAY_SIZE(record_args); i++)
++	for (i = 0; i < record_elems; i++)
+ 		rec_argv[i] = strdup(record_args[i]);
+ 
+ 	for (j = 1; j < (unsigned int)argc; j++, i++)
+diff --git a/tools/perf/util/parse-events.c b/tools/perf/util/parse-events.c
+index 4af5bd5..d706dcb 100644
+--- a/tools/perf/util/parse-events.c
++++ b/tools/perf/util/parse-events.c
+@@ -824,7 +824,7 @@ int parse_events(const struct option *opt __used, const char *str, int unset __u
+ 		if (ret != EVT_HANDLED_ALL) {
+ 			attrs[nr_counters] = attr;
+ 			nr_counters++;
+-		}
++	}
+ 
+ 		if (*str == 0)
+ 			break;
+@@ -906,6 +906,47 @@ static void print_tracepoint_events(void)
  }
  
  /*
-diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
-index 3d9ea53..5f2bb98 100644
---- a/arch/x86/kernel/process_64.c
-+++ b/arch/x86/kernel/process_64.c
-@@ -142,6 +142,8 @@ void cpu_idle(void)
- 			start_critical_timings();
++ * Check whether event is in <debugfs_mount_point>/tracing/events
++ */
++
++int is_valid_tracepoint(const char *event_string)
++{
++	DIR *sys_dir, *evt_dir;
++	struct dirent *sys_next, *evt_next, sys_dirent, evt_dirent;
++	char evt_path[MAXPATHLEN];
++	char dir_path[MAXPATHLEN];
++
++	if (debugfs_valid_mountpoint(debugfs_path))
++		return 0;
++
++	sys_dir = opendir(debugfs_path);
++	if (!sys_dir)
++		return 0;
++
++	for_each_subsystem(sys_dir, sys_dirent, sys_next) {
++
++		snprintf(dir_path, MAXPATHLEN, "%s/%s", debugfs_path,
++			 sys_dirent.d_name);
++		evt_dir = opendir(dir_path);
++		if (!evt_dir)
++			continue;
++
++		for_each_event(sys_dirent, evt_dir, evt_dirent, evt_next) {
++			snprintf(evt_path, MAXPATHLEN, "%s:%s",
++				 sys_dirent.d_name, evt_dirent.d_name);
++			if (!strcmp(evt_path, event_string)) {
++				closedir(evt_dir);
++				closedir(sys_dir);
++				return 1;
++			}
++		}
++		closedir(evt_dir);
++	}
++	closedir(sys_dir);
++	return 0;
++}
++
++/*
+  * Print the help text for the event symbols:
+  */
+ void print_events(void)
+diff --git a/tools/perf/util/parse-events.h b/tools/perf/util/parse-events.h
+index fc4ab3f..7ab4685 100644
+--- a/tools/perf/util/parse-events.h
++++ b/tools/perf/util/parse-events.h
+@@ -29,6 +29,7 @@ extern int parse_filter(const struct option *opt, const char *str, int unset);
+ #define EVENTS_HELP_MAX (128*1024)
  
- 			trace_power_end(smp_processor_id());
-+			trace_processor_idle(PWR_EVENT_EXIT,
-+					     smp_processor_id());
+ extern void print_events(void);
++extern int is_valid_tracepoint(const char *event_string);
  
- 			/* In many cases the interrupt that ended idle
- 			   has already called exit_idle. But some idle
-diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-index 199dcb9..33bdc41 100644
---- a/drivers/cpufreq/cpufreq.c
-+++ b/drivers/cpufreq/cpufreq.c
-@@ -355,6 +355,7 @@ void cpufreq_notify_transition(struct cpufreq_freqs *freqs, unsigned int state)
- 		dprintk("FREQ: %lu - CPU: %lu", (unsigned long)freqs->new,
- 			(unsigned long)freqs->cpu);
- 		trace_power_frequency(POWER_PSTATE, freqs->new, freqs->cpu);
-+		trace_processor_frequency(freqs->new, freqs->cpu);
- 		srcu_notifier_call_chain(&cpufreq_transition_notifier_list,
- 				CPUFREQ_POSTCHANGE, freqs);
- 		if (likely(policy) && likely(policy->cpu == freqs->cpu))
-diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-index a507108..ec703e6 100644
---- a/drivers/cpuidle/cpuidle.c
-+++ b/drivers/cpuidle/cpuidle.c
-@@ -107,6 +107,7 @@ static void cpuidle_idle_call(void)
- 	if (cpuidle_curr_governor->reflect)
- 		cpuidle_curr_governor->reflect(dev);
- 	trace_power_end(smp_processor_id());
-+	trace_processor_idle(PWR_EVENT_EXIT, smp_processor_id());
- }
- 
- /**
-diff --git a/drivers/idle/intel_idle.c b/drivers/idle/intel_idle.c
-index 21ac077..c78e496 100644
---- a/drivers/idle/intel_idle.c
-+++ b/drivers/idle/intel_idle.c
-@@ -202,6 +202,7 @@ static int intel_idle(struct cpuidle_device *dev, struct cpuidle_state *state)
- 
- 	stop_critical_timings();
- 	trace_power_start(POWER_CSTATE, (eax >> 4) + 1, cpu);
-+	trace_processor_idle((eax >> 4) + 1, smp_processor_id());
- 	if (!need_resched()) {
- 
- 		__monitor((void *)&current_thread_info()->flags, 0, 0);
-diff --git a/include/trace/events/power.h b/include/trace/events/power.h
-index 35a2a6e..4b13414 100644
---- a/include/trace/events/power.h
-+++ b/include/trace/events/power.h
-@@ -7,6 +7,61 @@
- #include <linux/ktime.h>
- #include <linux/tracepoint.h>
- 
-+DECLARE_EVENT_CLASS(processor,
-+
-+	TP_PROTO(unsigned int state, unsigned int cpu_id),
-+
-+	TP_ARGS(state, cpu_id),
-+
-+	TP_STRUCT__entry(
-+		__field(	u32,		state		)
-+		__field(	u32,		cpu_id		)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->state = state;
-+		__entry->cpu_id = cpu_id;
-+	),
-+
-+	TP_printk("state=%lu cpu_id=%lu", (unsigned long)__entry->state,
-+		  (unsigned long)__entry->cpu_id)
-+);
-+
-+DEFINE_EVENT(processor, processor_idle,
-+
-+	TP_PROTO(unsigned int state, unsigned int cpu_id),
-+
-+	     TP_ARGS(state, cpu_id)
-+);
-+
-+#define PWR_EVENT_EXIT 0xFFFFFFFF
-+
-+DEFINE_EVENT(processor, processor_frequency,
-+
-+	TP_PROTO(unsigned int frequency, unsigned int cpu_id),
-+
-+	TP_ARGS(frequency, cpu_id)
-+);
-+
-+TRACE_EVENT(machine_suspend,
-+
-+	TP_PROTO(unsigned int state),
-+
-+	TP_ARGS(state),
-+
-+	TP_STRUCT__entry(
-+		__field(	u32,		state		)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->state = state;
-+	),
-+
-+	TP_printk("state=%lu", (unsigned long)__entry->state)
-+);
-+
-+#ifdef CONFIG_EVENT_POWER_TRACING_DEPRECATED
-+
- #ifndef _TRACE_POWER_ENUM_
- #define _TRACE_POWER_ENUM_
- enum {
-@@ -69,8 +124,32 @@ TRACE_EVENT(power_end,
- 	TP_printk("cpu_id=%lu", (unsigned long)__entry->cpu_id)
- 
- );
--
-+#endif /* CONFIG_EVENT_POWER_TRACING_DEPRECATED */
- #endif /* _TRACE_POWER_H */
- 
-+/* Deprecated dummy functions must be protected against multi-declartion */
-+#ifndef EVENT_POWER_TRACING_DEPRECATED_PART_H
-+#define EVENT_POWER_TRACING_DEPRECATED_PART_H
-+
-+#ifndef CONFIG_EVENT_POWER_TRACING_DEPRECATED
-+
-+#ifndef _TRACE_POWER_ENUM_
-+#define _TRACE_POWER_ENUM_
-+enum {
-+	POWER_NONE = 0,
-+	POWER_CSTATE = 1,
-+	POWER_PSTATE = 2,
-+};
-+#endif
-+
-+static inline void trace_power_start(u64 type, u64 state, u64 cpuid) {};
-+static inline void trace_power_end(u64 cpuid) {};
-+static inline void trace_power_frequency(u64 type, u64 state, u64 cpuid) {};
-+#endif /* CONFIG_EVENT_POWER_TRACING_DEPRECATED */
-+
-+#endif /* EVENT_POWER_TRACING_DEPRECATED_PART_H */
-+
-+
-+
- /* This part must be outside protection */
- #include <trace/define_trace.h>
-diff --git a/kernel/trace/Kconfig b/kernel/trace/Kconfig
-index 538501c..0b5c841 100644
---- a/kernel/trace/Kconfig
-+++ b/kernel/trace/Kconfig
-@@ -64,6 +64,20 @@ config EVENT_TRACING
- 	select CONTEXT_SWITCH_TRACER
- 	bool
- 
-+config EVENT_POWER_TRACING_DEPRECATED
-+	depends on EVENT_TRACING
-+	bool
-+	help
-+	  Provides old power event types:
-+	  C-state/idle accounting events:
-+	  power:power_start
-+	  power:power_end
-+	  and old cpufreq accounting event:
-+	  power:power_frequency
-+	  This is for userspace compatibility
-+	  and will vanish after 5 kernel iterations,
-+	  namely 2.6.41.
-+
- config CONTEXT_SWITCH_TRACER
- 	bool
- 
-diff --git a/kernel/trace/power-traces.c b/kernel/trace/power-traces.c
-index 0e0497d..6b6da42 100644
---- a/kernel/trace/power-traces.c
-+++ b/kernel/trace/power-traces.c
-@@ -13,5 +13,8 @@
- #define CREATE_TRACE_POINTS
- #include <trace/events/power.h>
- 
-+#ifdef EVENT_POWER_TRACING_DEPRECATED
- EXPORT_TRACEPOINT_SYMBOL_GPL(power_start);
-+#endif
-+EXPORT_TRACEPOINT_SYMBOL_GPL(processor_idle);
- 
+ extern char debugfs_path[];
+ extern int valid_debugfs_mount(const char *debugfs);
 -- 
 1.6.3
 
