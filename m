@@ -1,57 +1,118 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
-Date: Tue, 26 Oct 2010 15:17:43 +0200
-Message-ID: <201010261517.44417.trenn@suse.de>
-References: <1287488171-25303-3-git-send-email-trenn@suse.de> <201010261348.49240.trenn@suse.de> <20101026115422.GA2942@elte.hu>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-trace-users-owner@vger.kernel.org>
-In-Reply-To: <20101026115422.GA2942@elte.hu>
-Sender: linux-trace-users-owner@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: [PATCH v3 00/13] OMAP: DMA: hwmod and DMA as platform device
+Date: Tue, 26 Oct 2010 18:55:00 +0530
+Message-ID: <1288099513-1854-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57735 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932116Ab0JZNYx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Oct 2010 09:24:53 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Tuesday 26 October 2010 13:54:22 Ingo Molnar wrote:
-> 
-> * Thomas Renninger <trenn@suse.de> wrote:
-> 
-..
-> As you state above: POWER_NONE does not make sense at all.
-> > The whole thing (type= attribute that vanishes now) is
-> > passed to userspace, but never gets used there because the
-> > same info is in the event name:
-> > cpu_frequency <-> frequency_switch      <-> PSTATE
-> > cpu_idle      <-> power_start/power_end <-> CSTATE 
-> 
-> Ah, i see, so this 'state' enum went into the type field.
-> 
-> So my question is, and ignore this particular enum for now, what values go into the 
-> state field, which field is still kept in the new events as well.
-Same as before:
-cpu_idle:
-                trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-+               trace_processor_idle(1, smp_processor_id());
-(Ooops found a copy and paste bug in my patch where I reverted
-the poll_idle event, but it should be zero...).
+This patch series converts DMA library into platform device and hwmod 
+adaptation is done for omap2+ processors.
 
-State in cpu_idle is identical with cpuidle registered
-state. If cpuidle got registered, one should be able to calculate the
-same C-state residency time and usage via state=X (cpu_idle event)
-which you can grab via:
-cat /sys/devices/system/cpu/cpu0/cpuidle/stateX/{time,usage}
-The cpu_idle event additionally gives you the timestamps of the state
-changes.
-This is rather nice as userspace can grab additional info from
-cpuidle sysfs layer like:
-/sys/devices/system/cpu/cpu0/cpuidle/stateX/{desc,power,name}
+It also replaces cpu_*is* checks by moving omap1 and omap2+ processor 
+code into repsective mach-omapx directories. The common code in plat-omap
+will use device attributes for differentiating omap1 and omap2 code.
 
-If cpuidle is not registered, the events you get are arch specific.
-I mean they are arch specific anyway, but with cpuidle you can
-build up an arch independent userspace framework nicely by looking
-up name/desc/power/... of an cpu_idle event in cpuidle sysfs as
-described above.
+Build Report:
+omap1:  Success for omap_h2_1610_defconfig
+omap2+: Success for omap2plus_defconfig
 
-   Thomas
+Test Report:
+omap2+:(multiboot defconfig boots on all the omap2+ boards listed below):
+OMAP4BLAZE: http://pastebin.com/HVnim30G
+OMAP3630ZOOM3: http://pastebin.com/JJwrtP4F
+OMAP243SDP: http://pastebin.com/mz7cVQL3
+
+omap1 : Not tested 
+
+Test cases executed:
+1. All applicable TI DMA tests which are located at:
+http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=tree;f=dma/test_code;h=0d00de3c0fe6933b405c62da63f694883f3e4b8f;hb=2c50a5a58dea0ffc2d31b827935aeef9b9d11253
+
+2. Use case tests :  TI MMC tests are executed with differenct types of
+files systems such as DOS, ext2, ext3 etc on omap4 blaze and omap3630 zoom3. 
+More information can be found at:
+http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=tree;f=mmc/test_code;h=d0bc1984eef46ac45719efb02b5c1f4193422a1b;hb=2c50a5a58dea0ffc2d31b827935aeef9b9d11253
+
+Dependencies:
+This patch series has dependency on omap_device patch:
+https://patchwork.kernel.org/patch/282212/
+
+This patch series applies on:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+Branch: master
+commit a83d12a47c9a8c78a184910150797045d69a1570
+Merge: f9f47f5 c1fb8df
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Fri Oct 22 11:21:08 2010 -0700
+
+    Linux-omap rebuilt: Updated to v2.6.36, add 24xx uart fix
+
+Changelist summary:
+v3:
+Review comments fixed:
+http://www.listware.net/201008/linux-omap/89002-patch-v2-0011-omap-dma-hwmod-and-dma-as-platform-driver.html
+ - created and tested on latest linux-omap master branch(2.6.36 kernel)
+
+v2:
+The review comments which are fixed can be found at:
+http://www.spinics.net/lists/linux-omap/msg34291.html
+http://www.spinics.net/lists/linux-omap/msg34292.html
+http://www.spinics.net/lists/linux-omap/msg34078.html
+http://www.spinics.net/lists/linux-omap/msg34083.html
+
+v1:
+These changes are based on comments received during internal discussions which has changes(compared to previous version) such as:
+ - Code optimization
+ - Patches are rearranged in more meaningful way so that git bisect works at any
+   intermediate patch in the series.
+ - Build tested for all omap's(OMAP1 and OMAP2PLUS)
+ - Boot tested for OMAP3 and OMAP4(appreciate if some one tests on OMAP1/2)
+ - Applicalbe tests are executed on OMAP3 and OMAP4 boards
+ - Rebased and added descriptor autoloading feature(only for omap3630 and omap4)
+
+
+Benoit Cousson (1):
+  OMAP4: DMA: hwmod: add system DMA
+
+G, Manjunath Kondaiah (12):
+  OMAP: DMA: Replace read/write macros with functions
+  OMAP: DMA: Introduce errata handling feature
+  OMAP: DMA: Introduce DMA device attributes
+  OMAP2420: DMA: hwmod: add system DMA
+  OMAP2430: DMA: hwmod: add system DMA
+  OMAP3: DMA: hwmod: add system DMA
+  OMAP1: DMA: Introduce DMA driver as platform device
+  OMAP2+: DMA: hwmod: Device registration
+  OMAP: DMA: Convert DMA library into DMA platform Driver
+  OMAP: DMA: Use DMA device attributes
+  sDMA: descriptor autoloading feature
+  OMAP: PM: DMA: Enable runtime pm
+
+ arch/arm/mach-omap1/Makefile               |    2 +-
+ arch/arm/mach-omap1/dma.c                  |  665 ++++++++++
+ arch/arm/mach-omap1/include/mach/dma.h     |   51 +
+ arch/arm/mach-omap2/Makefile               |    2 +-
+ arch/arm/mach-omap2/dma.c                  | 1579 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/include/mach/dma.h     |   86 ++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   85 ++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   85 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   93 ++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   99 ++
+ arch/arm/plat-omap/dma.c                   | 1850 ++++------------------------
+ arch/arm/plat-omap/include/plat/dma.h      |  387 ++++---
+ 12 files changed, 3207 insertions(+), 1777 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/dma.c
+ create mode 100644 arch/arm/mach-omap1/include/mach/dma.h
+ create mode 100644 arch/arm/mach-omap2/dma.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/dma.h
+
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
