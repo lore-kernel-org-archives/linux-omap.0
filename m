@@ -1,118 +1,68 @@
 From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: [PATCH v3 00/13] OMAP: DMA: hwmod and DMA as platform device
-Date: Tue, 26 Oct 2010 18:55:00 +0530
-Message-ID: <1288099513-1854-1-git-send-email-manjugk@ti.com>
+Subject: [PATCH v3 03/13] OMAP: DMA: Introduce DMA device attributes
+Date: Tue, 26 Oct 2010 18:55:03 +0530
+Message-ID: <1288099513-1854-4-git-send-email-manjugk@ti.com>
+References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57735 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57741 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932116Ab0JZNYx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Oct 2010 09:24:53 -0400
+	id S932116Ab0JZNZA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 26 Oct 2010 09:25:00 -0400
+In-Reply-To: <1288099513-1854-1-git-send-email-manjugk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch series converts DMA library into platform device and hwmod 
-adaptation is done for omap2+ processors.
+This patch introduces OMAP DMA device attributes for using the same in
+DMA platform driver for all OMAP's and HWMOD database(OMAP2PLUS onwards)
 
-It also replaces cpu_*is* checks by moving omap1 and omap2+ processor 
-code into repsective mach-omapx directories. The common code in plat-omap
-will use device attributes for differentiating omap1 and omap2 code.
-
-Build Report:
-omap1:  Success for omap_h2_1610_defconfig
-omap2+: Success for omap2plus_defconfig
-
-Test Report:
-omap2+:(multiboot defconfig boots on all the omap2+ boards listed below):
-OMAP4BLAZE: http://pastebin.com/HVnim30G
-OMAP3630ZOOM3: http://pastebin.com/JJwrtP4F
-OMAP243SDP: http://pastebin.com/mz7cVQL3
-
-omap1 : Not tested 
-
-Test cases executed:
-1. All applicable TI DMA tests which are located at:
-http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=tree;f=dma/test_code;h=0d00de3c0fe6933b405c62da63f694883f3e4b8f;hb=2c50a5a58dea0ffc2d31b827935aeef9b9d11253
-
-2. Use case tests :  TI MMC tests are executed with differenct types of
-files systems such as DOS, ext2, ext3 etc on omap4 blaze and omap3630 zoom3. 
-More information can be found at:
-http://dev.omapzoom.org/?p=richo/device_driver_test.git;a=tree;f=mmc/test_code;h=d0bc1984eef46ac45719efb02b5c1f4193422a1b;hb=2c50a5a58dea0ffc2d31b827935aeef9b9d11253
-
-Dependencies:
-This patch series has dependency on omap_device patch:
-https://patchwork.kernel.org/patch/282212/
-
-This patch series applies on:
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-Branch: master
-commit a83d12a47c9a8c78a184910150797045d69a1570
-Merge: f9f47f5 c1fb8df
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Fri Oct 22 11:21:08 2010 -0700
-
-    Linux-omap rebuilt: Updated to v2.6.36, add 24xx uart fix
-
-Changelist summary:
-v3:
-Review comments fixed:
-http://www.listware.net/201008/linux-omap/89002-patch-v2-0011-omap-dma-hwmod-and-dma-as-platform-driver.html
- - created and tested on latest linux-omap master branch(2.6.36 kernel)
-
-v2:
-The review comments which are fixed can be found at:
-http://www.spinics.net/lists/linux-omap/msg34291.html
-http://www.spinics.net/lists/linux-omap/msg34292.html
-http://www.spinics.net/lists/linux-omap/msg34078.html
-http://www.spinics.net/lists/linux-omap/msg34083.html
-
-v1:
-These changes are based on comments received during internal discussions which has changes(compared to previous version) such as:
- - Code optimization
- - Patches are rearranged in more meaningful way so that git bisect works at any
-   intermediate patch in the series.
- - Build tested for all omap's(OMAP1 and OMAP2PLUS)
- - Boot tested for OMAP3 and OMAP4(appreciate if some one tests on OMAP1/2)
- - Applicalbe tests are executed on OMAP3 and OMAP4 boards
- - Rebased and added descriptor autoloading feature(only for omap3630 and omap4)
-
-
-Benoit Cousson (1):
-  OMAP4: DMA: hwmod: add system DMA
-
-G, Manjunath Kondaiah (12):
-  OMAP: DMA: Replace read/write macros with functions
-  OMAP: DMA: Introduce errata handling feature
-  OMAP: DMA: Introduce DMA device attributes
-  OMAP2420: DMA: hwmod: add system DMA
-  OMAP2430: DMA: hwmod: add system DMA
-  OMAP3: DMA: hwmod: add system DMA
-  OMAP1: DMA: Introduce DMA driver as platform device
-  OMAP2+: DMA: hwmod: Device registration
-  OMAP: DMA: Convert DMA library into DMA platform Driver
-  OMAP: DMA: Use DMA device attributes
-  sDMA: descriptor autoloading feature
-  OMAP: PM: DMA: Enable runtime pm
-
- arch/arm/mach-omap1/Makefile               |    2 +-
- arch/arm/mach-omap1/dma.c                  |  665 ++++++++++
- arch/arm/mach-omap1/include/mach/dma.h     |   51 +
- arch/arm/mach-omap2/Makefile               |    2 +-
- arch/arm/mach-omap2/dma.c                  | 1579 ++++++++++++++++++++++++
- arch/arm/mach-omap2/include/mach/dma.h     |   86 ++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   85 ++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   85 ++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   93 ++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   99 ++
- arch/arm/plat-omap/dma.c                   | 1850 ++++------------------------
- arch/arm/plat-omap/include/plat/dma.h      |  387 ++++---
- 12 files changed, 3207 insertions(+), 1777 deletions(-)
- create mode 100644 arch/arm/mach-omap1/dma.c
- create mode 100644 arch/arm/mach-omap1/include/mach/dma.h
- create mode 100644 arch/arm/mach-omap2/dma.c
- create mode 100644 arch/arm/mach-omap2/include/mach/dma.h
-
+Signed-off-by: G, Manjunath Kondaiah <manjugk@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/plat-omap/include/plat/dma.h |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+index 5e28d26..9757b22 100644
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -296,6 +296,22 @@
+ #define DMA_ERRATA_i88			(1 << 4)
+ #define DMA_ERRATA_3_3			(1 << 5)
+ 
++/* Attributes for OMAP DMA Contrllers */
++#define ENABLE_1510_MODE		(1 << 0x0)
++#define DMA_LINKED_LCH			(1 << 0x1)
++#define GLOBAL_PRIORITY			(1 << 0x2)
++#define RESERVE_CHANNEL			(1 << 0x3)
++#define SRC_PORT			(1 << 0x4)
++#define DST_PORT			(1 << 0x5)
++#define IS_CSSA_32			(1 << 0x6)
++#define IS_CDSA_32			(1 << 0x7)
++#define SRC_INDEX			(1 << 0x8)
++#define DST_INDEX			(1 << 0x9)
++#define IS_BURST_ONLY4			(1 << 0xA)
++#define CLEAR_CSR_ON_READ		(1 << 0xB)
++#define IS_WORD_16			(1 << 0xC)
++#define IS_RW_PRIORITY			(1 << 0xD)
++
+ enum omap_dma_burst_mode {
+ 	OMAP_DMA_DATA_BURST_DIS = 0,
+ 	OMAP_DMA_DATA_BURST_4,
+@@ -361,6 +377,10 @@ struct omap_dma_channel_params {
+ #endif
+ };
+ 
++struct omap_dma_dev_attr {
++	u32 dev_caps;
++	u16 lch_count;
++};
+ 
+ extern void omap_set_dma_priority(int lch, int dst_port, int priority);
+ extern int omap_request_dma(int dev_id, const char *dev_name,
+-- 
+1.7.1
+
