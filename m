@@ -1,61 +1,38 @@
-From: "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
-Subject: RE: [PATCH 1/8] staging: tidspbridge - remove req_addr from proc_map
-Date: Tue, 26 Oct 2010 10:52:27 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602F49E280A@dlee06.ent.ti.com>
-References: <1288054306-4361-1-git-send-email-x0095840@ti.com>
-	<1288054306-4361-2-git-send-email-x0095840@ti.com>
- <AANLkTimCDM_nruvh_gqxxy0CVnw2sH5UYNT9VgyeBfZN@mail.gmail.com>
+From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
+Date: Tue, 26 Oct 2010 09:04:19 -0700
+Message-ID: <4CC6FC03.708@linux.intel.com>
+References: <1287488171-25303-3-git-send-email-trenn@suse.de>	<1288049630-10947-1-git-send-email-trenn@suse.de>	<20101026071020.GC13036@elte.hu> <AANLkTikWCLTgAGJJ_eH0e016kPfB2K8LtR9g25wbPJXF@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42593 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751543Ab0JZPwk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Oct 2010 11:52:40 -0400
-In-Reply-To: <AANLkTimCDM_nruvh_gqxxy0CVnw2sH5UYNT9VgyeBfZN@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <AANLkTikWCLTgAGJJ_eH0e016kPfB2K8LtR9g25wbPJXF@mail.gmail.com>
+Sender: linux-trace-users-owner@vger.kernel.org
+To: Pierre Tardy <tardyp@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>, Thomas Renninger <trenn@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, rjw@sisk.pl, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "gregkh@suse.de" <gregkh@suse.de>, "felipe.contreras@nokia.com" <felipe.contreras@nokia.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
- 
+On 10/26/2010 8:32 AM, Pierre Tardy wrote:
+> On Tue, Oct 26, 2010 at 2:10 AM, Ingo Molnar<mingo@elte.hu>  wrote:
+>
+>> How will future PCI (or other device) power saving tracepoints be called?
+>>
+>> Might be more consistent to use:
+>>
+>>   power:cpu_idle
+>>   power:machine_idle
+>>   power:device_idle
+> Agree with this.
+>
+> FYI, I have a runtime_pm tracepoint currently cooking. Here is
+> preliminary patch.
+> Can this be a candidate for a "power:device_idle" tracepoint?
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
-> Sent: Tuesday, October 26, 2010 6:46 AM
-> To: Guzman Lugo, Fernando
-> Cc: gregkh@suse.de; felipe.contreras@nokia.com; 
-> Hiroshi.DOYU@nokia.com; linux-kernel@vger.kernel.org; 
-> andy.shevchenko@gmail.com; linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 1/8] staging: tidspbridge - remove 
-> req_addr from proc_map
-> 
-> On Tue, Oct 26, 2010 at 3:51 AM, Fernando Guzman Lugo 
-> <x0095840@ti.com> wrote:
-> > The device address is assigned by tidspbridge no need for 
-> that parameter anymore.
-> >
-> > Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> 
-> This would break the API with user-space, right?
 
-Yes, user-space needs to be changed accordingly.
+I would like to see a slightly more advanced tracepoint do the runtime 
+pm framework;
+specifically I'd like to see the "comm" of the process that's taking a 
+refcount on a device
+(that way, powertop can track which process keeps a device busy)
 
-> 
-> I think this change should be delayed, preferably after we 
-> have a working tidspbridge.
-
-The issue you were seeing must be fixed with patch 2/8, and
-Having all the dependencies tidspbridge has to be working
-Properly.
-
-Regards,
-Fernando.
-
-> 
-> --
-> Felipe Contreras
-> 
