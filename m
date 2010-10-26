@@ -1,52 +1,87 @@
 From: "Rafael J. Wysocki" <rjw@sisk.pl>
 Subject: Re: [PATCH] PERF(kernel): Cleanup power events V2
-Date: Tue, 26 Oct 2010 20:52:18 +0200
-Message-ID: <201010262052.19107.rjw@sisk.pl>
-References: <1287488171-25303-3-git-send-email-trenn@suse.de> <1288049630-10947-1-git-send-email-trenn@suse.de>
+Date: Tue, 26 Oct 2010 20:57:01 +0200
+Message-ID: <201010262057.02218.rjw@sisk.pl>
+References: <1287488171-25303-3-git-send-email-trenn@suse.de> <20101026112129.GB27258@elte.hu> <201010261348.49240.trenn@suse.de>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-2"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:55380 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754233Ab0JZSx2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Oct 2010 14:53:28 -0400
-In-Reply-To: <1288049630-10947-1-git-send-email-trenn@suse.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-trace-users-owner@vger.kernel.org>
+In-Reply-To: <201010261348.49240.trenn@suse.de>
+Sender: linux-trace-users-owner@vger.kernel.org
 To: Thomas Renninger <trenn@suse.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Jean Pihet <jean.pihet@newoldbits.com>, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>, Ingo Molnar <mingo@elte.hu>
+Cc: Ingo Molnar <mingo@elte.hu>, Jean Pihet <jean.pihet@newoldbits.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Frank Eigler <fche@redhat.com>, Steven Rostedt <rostedt@goodmis.org>, Kevin Hilman <khilman@deeprootsystems.com>, Peter Zijlstra <peterz@infradead.org>, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Pierre Tardy <tardyp@gmail.com>, Frederic Weisbecker <fweisbec@gmail.com>, Tejun Heo <tj@kernel.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Arjan van de Ven <arjan@linux.intel.com>
+List-Id: linux-omap@vger.kernel.org
 
 On Tuesday, October 26, 2010, Thomas Renninger wrote:
-> Changes in V2:
->   - Introduce PWR_EVENT_EXIT instead of 0 to mark non-power state
->   - Use u32 instead of u64 for cpuid, state which is by far enough
+> On Tuesday 26 October 2010 13:21:29 Ingo Molnar wrote:
+> > 
+> > * Jean Pihet <jean.pihet@newoldbits.com> wrote:
+> ..
+> > > >> +#ifndef _TRACE_POWER_ENUM_
+> > > >> +#define _TRACE_POWER_ENUM_
+> > > >> +enum {
+> > > >> +     POWER_NONE = 0,
+> > > >> +     POWER_CSTATE = 1,
+> > > >> +     POWER_PSTATE = 2,
+> > > >> +};
+> > > >> +#endif
+> > > >
+> > > > Since we are cleaning up all these events, those enum definitions dont really look
+> > > > logical. For example, what is 'POWER_NONE'? Can a CPU have 'no power'?
+> > >
+> > > The enum belongs to the deprecated API so I would rather not touch it.
+> > > Keeping the deprecated code isolated will make it easier to remove
+> > > later.
+> > 
+> > So what will replace it? We still have a state field.
+> Nothing, this is part of the cleanup.
+> As you state above: POWER_NONE does not make sense at all.
+> The whole thing (type= attribute that vanishes now) is
+> passed to userspace, but never gets used there because the
+> same info is in the event name:
+> cpu_frequency <-> frequency_switch      <-> PSTATE
+> cpu_idle      <-> power_start/power_end <-> CSTATE 
 > 
-> New power trace events:
-> power:processor_idle
-> power:processor_frequency
-> power:machine_suspend
+> I expect that there was an initial power_start/end which
+> was also used for frequency switching.
+> Then it got realized that _start/_end does not work out and
+> frequency_switch got introduced.
+> To stay compatible the whole power_start/end was not renamed
+> to cpu_idle and the type= field was kept.
 > 
+> This is a guess without even looking at the git history.
+> Therefore my partly harsh comments about the sanity of the
+> current power tracing events.
 > 
-> C-state/idle accounting events:
->   power:power_start
->   power:power_end
-> are replaced with:
->   power:processor_idle
-> 
-> and
->   power:power_frequency
-> is replaced with:
->   power:processor_frequency
-> 
-> power:machine_suspend
-> is newly introduced, a first implementation
-> comes from the ARM side, but it's easy to add these events
-> in X86 as well if needed.
+> > Passing in platform specific codes is a step backwards.
+> > 
+> > > >> +TRACE_EVENT(machine_suspend,
+> > > >> +
+> > > >> +     TP_PROTO(unsigned int state),
+> > > >> +
+> > > >> +     TP_ARGS(state),
+> > > >> +
+> > > >> +     TP_STRUCT__entry(
+> > > >> +             __field(        u32,            state           )
+> > > >> +     ),
+> > > >
+> > > > Hm, this event is not used anywhere in the submitted patches. Where is the patch
+> > > > that adds usage, and what are the possible values for 'state'?
+> > >
+> > > This will come as a separate patch, which fits all platforms. Cf.
+> > > http://marc.info/?l=linux-omap&m=128620575300682&w=2.
+> > > The state field is of type suspend_state_t, cf. include/linux/suspend.h
+> > 
+> > Ok, that's at least generic. Needs the review of Rafael, to determine
+> > whether this state value is all we want to know when we enter suspend.
+> He already gave an acked-by on this generic one here:
+> Re: [PATCH 3/4] perf: add calls to suspend trace point
+> Oh now, that was on the X86 specific part which depends on this one.
+> One should expect that he's fine with the generic part as well then,
+> but I agree that he should definitely have a look at this and sign it off.
 
-As I said already somewhere else, I think this one should be done at the
-core level rather than in arch-specific code.
+What patch exactly do you mean?  I'm not quite sure from your comment above.
 
-Thanks,
 Rafael
