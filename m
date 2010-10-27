@@ -1,15 +1,15 @@
 From: "Dr. Robert William" <pascale.vial@noos.fr>
 Subject: Yours Faithfully
-Date: Wed, 27 Oct 2010 02:18:03 +0200 (CEST)
-Message-ID: <ea-mime-4cc76fbb-7d62-20d7ee4b__40004.0770219222$1288139354$gmane$org@webmail.numericable.fr>
+Date: Wed, 27 Oct 2010 02:18:08 +0200 (CEST)
+Message-ID: <ea-mime-4cc76fc0-7e73-51ab030a__22982.7347481207$1288139357$gmane$org@webmail.numericable.fr>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fb2.tech.numericable.fr ([82.216.111.50]:48020 "EHLO
+Received: from fb2.tech.numericable.fr ([82.216.111.50]:42401 "EHLO
 	fb2.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760676Ab0J0A2Y convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1760678Ab0J0A2Y convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Oct 2010 20:28:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
