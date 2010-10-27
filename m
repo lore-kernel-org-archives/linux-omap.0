@@ -1,278 +1,209 @@
-From: Samreen <samreen@ti.com>
-Subject: [PATCH] OMAP3630: DSS2: Enable Pre-Multiplied Alpha Support
-Date: Wed, 27 Oct 2010 15:46:07 +0530
-Message-ID: <1288174567-24734-1-git-send-email-samreen@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH] PERF(kernel): Cleanup power events V2
+Date: Wed, 27 Oct 2010 12:22:08 +0200
+Message-ID: <201010271222.08921.rjw@sisk.pl>
+References: <20101026181421.GA30090@Krystal> <201010270020.35941.rjw@sisk.pl> <20101027004625.GB8219@Krystal>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43171 "EHLO comal.ext.ti.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:57397 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753180Ab0J0KV2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Oct 2010 06:21:28 -0400
+	id S1760727Ab0J0KXJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Oct 2010 06:23:09 -0400
+In-Reply-To: <20101027004625.GB8219@Krystal>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, =?utf-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@nokia.com>
-Cc: linux-omap@vger.kernel.org, linufbdev@vger.kernel.org, Rajkumar N <rajkumar.nagarajan@ti.com>, Sudeep Basavaraj <sudeep.basavaraj@ti.com>, Samreen <samreen@ti.com>
+To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Pierre Tardy <tardyp@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, Jean Pihet <jean.pihet@newoldbits.com>, Steven Rostedt <rostedt@goodmis.org>, linux-trace-users@vger.kernel.org, Frank Eigler <fche@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Frederic Weisbecker <fweisbec@gmail.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>
 
-From: Rajkumar N <rajkumar.nagarajan@ti.com>
+On Wednesday, October 27, 2010, Mathieu Desnoyers wrote:
+> * Rafael J. Wysocki (rjw@sisk.pl) wrote:
+> > On Tuesday, October 26, 2010, Mathieu Desnoyers wrote:
+> > > * Alan Stern (stern@rowland.harvard.edu) wrote:
+> > > > On Tue, 26 Oct 2010, Mathieu Desnoyers wrote:
+> > > > 
+> > > > > * Peter Zijlstra (peterz@infradead.org) wrote:
+> > > > > > On Tue, 2010-10-26 at 11:56 -0500, Pierre Tardy wrote:
+> > > > > > > 
+> > > > > > > +       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
+> > > > > > >         atomic_inc(&dev->power.usage_count); 
+> > > > > > 
+> > > > > > That's terribly racy..
+> > > > > 
+> > > > > Looking at the original code, it looks racy even without considering the
+> > > > > tracepoint:
+> > > > > 
+> > > > > int __pm_runtime_get(struct device *dev, bool sync)
+> > > > >  {
+> > > > >         int retval;
+> > > > > 
+> > > > > +       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
+> > > > >         atomic_inc(&dev->power.usage_count);
+> > > > >         retval = sync ? pm_runtime_resume(dev) : pm_request_resume(dev);
+> > > > > 
+> > > > > There is no implied memory barrier after "atomic_inc". So either all these
+> > > > > inc/dec are protected with mutexes or spinlocks, in which case one might wonder
+> > > > > why atomic operations are used at all, or it's a racy mess. (I vote for the
+> > > > > second option)
+> > > > 
+> > > > I don't understand.  What's the problem?  The inc/dec are atomic 
+> > > > because they are not protected by spinlocks, but everything else is 
+> > > > (aside from the tracepoint, which is new).
+> > > > 
+> > > > > kref should certainly be used there.
+> > > > 
+> > > > What for?
+> > > 
+> > > kref has the following "get":
+> > > 
+> > >         atomic_inc(&kref->refcount);
+> > >         smp_mb__after_atomic_inc();
+> > > 
+> > > What seems to be missing in __pm_runtime_get() and pm_runtime_get_noresume() is
+> > > the memory barrier after the atomic increment. The atomic increment is free to
+> > > be reordered into the following spinlock (within pm_request_resume or pm_request
+> > > resume execution) because taking a spinlock only acts as a memory barrier with
+> > > acquire semantic, not a full memory barrier.
+> > >
+> > > So AFAIU, the failure scenario would be as follows (sorry for the 80+ columns):
+> > > 
+> > > initial conditions: usage_count = 1
+> > > 
+> > > CPU A                                                       CPU B
+> > > 1) __pm_runtime_get() (sync = true)
+> > > 2)   atomic_inc(&usage_count) (not committed to memory yet)
+> > > 3)   pm_runtime_resume()
+> > > 4)     spin_lock_irqsave(&dev->power.lock, flags);
+> > > 5)     retval = __pm_request_resume(dev);
+> > 
+> > If sync = true this is
+> >            retval = __pm_runtime_resume(dev);
+> > which drops and reacquires the spinlock.
+> 
+> Let's see. Upon entry in __pm_runtime_resume, the following condition holds
+> (remember, the initial condition is that usage_count == 1):
+> 
+>   dev->power.runtime_status == RPM_ACTIVE
+> 
+> so retval is set to 1, which goto directly to "out", without setting "parent".
+> So there does not seem to be any spinlock reacquire on this path, or am I
+> misunderstanding how the "runtime_status" works ?
 
-Enable dss to process color formats with pre-mulitplied alpha.
-With this we can have alpha values defined for each pixel
-and hence can have different blending values for each pixel.
-sysfs entry has been created for this and pre-multiplied alpha
-support is turned off by default.
+No, you're not I think, the above is correct.  I was referring to the scenario
+in which the device was RPM_SUSPENDED initially.
 
-Also, the check for '(plane != OMAP_DSS_VIDEO1)'
-in  _dispc_setup_plane has been replaced by the correct
-dss_has_feature check
+> > In the meantime it sets
+> > ->power.runtime_status so that __pm_runtime_idle() will fail if run at this
+> > point.
+> 
+> runtime_status will be left at "RPM_ACTIVE", which is the appropriate value
+> expected by __pm_runtime_idle.
+> 
+> > 
+> > > 6)     (execute the body of __pm_request_resume and return)
+> > > 7)                                                          __pm_runtime_put() (sync = true) 
+> > > 8)                                                          if (atomic_dec_and_test(&dev->power.usage_count))
+> > >                                                               (still see usage_count == 1 before decrement,
+> > >                                                                thus decrement to 0)
+> > > 9)                                                             pm_runtime_idle()
+> > > 10)  spin_unlock_irqrestore(&dev->power.lock, flags)
+> > > 11)                                                            spin_lock_irq(&dev->power.lock);
+> > > 12)                                                            retval = __pm_runtime_idle(dev);
+> > 
+> > Moreover, __pm_runtime_idle() checks ->power.usage_count under the spinlock,
+> > so it will see it's been incremented in the meantime and it will back off.
+> 
+> This is a subtle but important point. Yes, my scenario seems to be dealt with by
+> the extra usage_count check while the spinlock is held.
+> 
+> How about adding a comment under this atomic_inc() stating that the memory
+> barriers are implicitely dealt with by the following spinlock release and the
+> extra check while spinlock is held ?
+> 
+> Commenting memory barriers is important, but commenting why memory barriers are
+> not needed due to a subtle corner-case looks even more important.
 
-Signed-off-by: Sudeep Basavaraj <sudeep.basavaraj@ti.com>
-Signed-off-by: Rajkumar N <rajkumar.nagarajan@ti.com>
-Signed-off-by: Samreen <samreen@ti.com>
----
- arch/arm/plat-omap/include/plat/display.h |    1 +
- drivers/video/omap2/dss/dispc.c           |   25 +++++++++++++++++---
- drivers/video/omap2/dss/dss.h             |    3 +-
- drivers/video/omap2/dss/dss_features.c    |   20 ++++++++++++++--
- drivers/video/omap2/dss/dss_features.h    |    1 +
- drivers/video/omap2/dss/manager.c         |    5 +++-
- drivers/video/omap2/dss/overlay.c         |   35 +++++++++++++++++++++++++++++
- 7 files changed, 81 insertions(+), 9 deletions(-)
+Well, given that this discussion is taking place at all, I admit that it would
+be good to document this somehow. :-)
 
-diff --git a/arch/arm/plat-omap/include/plat/display.h b/arch/arm/plat-omap/include/plat/display.h
-index c915a66..d433baf 100644
---- a/arch/arm/plat-omap/include/plat/display.h
-+++ b/arch/arm/plat-omap/include/plat/display.h
-@@ -268,6 +268,7 @@ struct omap_overlay_info {
- 	u16 out_width;	/* if 0, out_width == width */
- 	u16 out_height;	/* if 0, out_height == height */
- 	u8 global_alpha;
-+	u8 pre_mult_alpha;
- };
- 
- struct omap_overlay {
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index fa40fa5..f1d1797 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -773,6 +773,17 @@ static void _dispc_set_vid_size(enum omap_plane plane, int width, int height)
- 	dispc_write_reg(vsi_reg[plane-1], val);
- }
- 
-+static void _dispc_set_pre_mult_alpha(enum omap_plane plane, bool enable)
-+{
-+	if (!dss_has_feature(FEAT_PREMUL_ALPHA))
-+		return;
-+
-+	BUG_ON(!dss_has_feature(FEAT_GLOBAL_ALPHA_VID1) &&
-+		plane == OMAP_DSS_VIDEO1);
-+
-+	REG_FLD_MOD(dispc_reg_att[plane], enable ? 1 : 0, 28, 28);
-+}
-+
- static void _dispc_setup_global_alpha(enum omap_plane plane, u8 global_alpha)
- {
- 	if (!dss_has_feature(FEAT_GLOBAL_ALPHA))
-@@ -1507,7 +1518,8 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 		bool ilace,
- 		enum omap_dss_rotation_type rotation_type,
- 		u8 rotation, int mirror,
--		u8 global_alpha)
-+		u8 global_alpha,
-+		u8 pre_mult_alpha)
- {
- 	const int maxdownscale = cpu_is_omap34xx() ? 4 : 2;
- 	bool five_taps = 0;
-@@ -1693,8 +1705,11 @@ static int _dispc_setup_plane(enum omap_plane plane,
- 
- 	_dispc_set_rotation_attrs(plane, rotation, mirror, color_mode);
- 
--	if (plane != OMAP_DSS_VIDEO1)
-+	if ((plane != OMAP_DSS_VIDEO1) ||
-+		dss_has_feature(FEAT_GLOBAL_ALPHA_VID1)) {
-+		_dispc_set_pre_mult_alpha(plane, pre_mult_alpha);
- 		_dispc_setup_global_alpha(plane, global_alpha);
-+	}
- 
- 	return 0;
- }
-@@ -3139,7 +3154,8 @@ int dispc_setup_plane(enum omap_plane plane,
- 		       enum omap_color_mode color_mode,
- 		       bool ilace,
- 		       enum omap_dss_rotation_type rotation_type,
--		       u8 rotation, bool mirror, u8 global_alpha)
-+		       u8 rotation, bool mirror, u8 global_alpha,
-+		       u8 pre_mult_alpha)
- {
- 	int r = 0;
- 
-@@ -3161,7 +3177,8 @@ int dispc_setup_plane(enum omap_plane plane,
- 			   color_mode, ilace,
- 			   rotation_type,
- 			   rotation, mirror,
--			   global_alpha);
-+			   global_alpha,
-+			   pre_mult_alpha);
- 
- 	enable_clocks(0);
- 
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 5c7940d..2bb515c 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -359,7 +359,8 @@ int dispc_setup_plane(enum omap_plane plane,
- 		      bool ilace,
- 		      enum omap_dss_rotation_type rotation_type,
- 		      u8 rotation, bool mirror,
--		      u8 global_alpha);
-+		      u8 global_alpha,
-+		      u8 pre_mult_alpha);
- 
- bool dispc_go_busy(enum omap_channel channel);
- void dispc_go(enum omap_channel channel);
-diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
-index 867f68d..1abb8c5 100644
---- a/drivers/video/omap2/dss/dss_features.c
-+++ b/drivers/video/omap2/dss/dss_features.c
-@@ -134,7 +134,7 @@ static struct omap_dss_features omap2_dss_features = {
- };
- 
- /* OMAP3 DSS Features */
--static struct omap_dss_features omap3_dss_features = {
-+static struct omap_dss_features omap3430_dss_features = {
- 	.reg_fields = omap3_dss_reg_fields,
- 	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
- 
-@@ -146,6 +146,18 @@ static struct omap_dss_features omap3_dss_features = {
- 	.supported_color_modes = omap3_dss_supported_color_modes,
- };
- 
-+static struct omap_dss_features omap3630_dss_features = {
-+	.reg_fields = omap3_dss_reg_fields,
-+	.num_reg_fields = ARRAY_SIZE(omap3_dss_reg_fields),
-+
-+	.has_feature    = FEAT_GLOBAL_ALPHA | FEAT_PREMUL_ALPHA,
-+
-+	.num_mgrs = 2,
-+	.num_ovls = 3,
-+	.supported_displays = omap3_dss_supported_displays,
-+	.supported_color_modes = omap3_dss_supported_color_modes,
-+};
-+
- /* Functions returning values related to a DSS feature */
- int dss_feat_get_num_mgrs(void)
- {
-@@ -186,6 +198,8 @@ void dss_features_init(void)
- {
- 	if (cpu_is_omap24xx())
- 		omap_current_dss_features = &omap2_dss_features;
--	else
--		omap_current_dss_features = &omap3_dss_features;
-+	else if (cpu_is_omap3630())
-+		omap_current_dss_features = &omap3630_dss_features;
-+	else if (cpu_is_omap34xx())
-+		omap_current_dss_features = &omap3430_dss_features;
- }
-diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
-index cb231ea..f287da8 100644
---- a/drivers/video/omap2/dss/dss_features.h
-+++ b/drivers/video/omap2/dss/dss_features.h
-@@ -27,6 +27,7 @@
- enum dss_feat_id {
- 	FEAT_GLOBAL_ALPHA	= 1 << 0,
- 	FEAT_GLOBAL_ALPHA_VID1	= 1 << 1,
-+	FEAT_PREMUL_ALPHA	= 1 << 2,
- };
- 
- /* DSS register field id */
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 545e9b9..873b334 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -406,6 +406,7 @@ struct overlay_cache_data {
- 	u16 out_width;	/* if 0, out_width == width */
- 	u16 out_height;	/* if 0, out_height == height */
- 	u8 global_alpha;
-+	u8 pre_mult_alpha;
- 
- 	enum omap_channel channel;
- 	bool replication;
-@@ -842,7 +843,8 @@ static int configure_overlay(enum omap_plane plane)
- 			c->rotation_type,
- 			c->rotation,
- 			c->mirror,
--			c->global_alpha);
-+			c->global_alpha,
-+			c->pre_mult_alpha);
- 
- 	if (r) {
- 		/* this shouldn't happen */
-@@ -1265,6 +1267,7 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
- 		oc->out_width = ovl->info.out_width;
- 		oc->out_height = ovl->info.out_height;
- 		oc->global_alpha = ovl->info.global_alpha;
-+		oc->pre_mult_alpha = ovl->info.pre_mult_alpha;
- 
- 		oc->replication =
- 			dss_use_replication(dssdev, ovl->info.color_mode);
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index 75642c2..f704d06 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -257,6 +257,37 @@ static ssize_t overlay_global_alpha_store(struct omap_overlay *ovl,
- 	return size;
- }
- 
-+static ssize_t overlay_pre_multiplication_alpha_show(struct omap_overlay *ovl,
-+		char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE, "%d\n",
-+			ovl->info.pre_mult_alpha);
-+}
-+
-+static ssize_t overlay_pre_multiplication_alpha_store(struct omap_overlay *ovl,
-+		const char *buf, size_t size)
-+{
-+	int r;
-+	struct omap_overlay_info info;
-+
-+	ovl->get_overlay_info(ovl, &info);
-+
-+	/* only GFX and Video2 plane support pre alpha multiplication */
-+	info.pre_mult_alpha = simple_strtoul(buf, NULL, 10);
-+
-+	r = ovl->set_overlay_info(ovl, &info);
-+	if (r)
-+		return r;
-+
-+	if (ovl->manager) {
-+		r = ovl->manager->apply(ovl->manager);
-+		if (r)
-+			return r;
-+	}
-+
-+	return size;
-+}
-+
- struct overlay_attribute {
- 	struct attribute attr;
- 	ssize_t (*show)(struct omap_overlay *, char *);
-@@ -280,6 +311,9 @@ static OVERLAY_ATTR(enabled, S_IRUGO|S_IWUSR,
- 		overlay_enabled_show, overlay_enabled_store);
- static OVERLAY_ATTR(global_alpha, S_IRUGO|S_IWUSR,
- 		overlay_global_alpha_show, overlay_global_alpha_store);
-+static OVERLAY_ATTR(pre_multiplication_alpha, S_IRUGO|S_IWUSR,
-+		overlay_pre_multiplication_alpha_show,
-+		overlay_pre_multiplication_alpha_store);
- 
- static struct attribute *overlay_sysfs_attrs[] = {
- 	&overlay_attr_name.attr,
-@@ -290,6 +324,7 @@ static struct attribute *overlay_sysfs_attrs[] = {
- 	&overlay_attr_output_size.attr,
- 	&overlay_attr_enabled.attr,
- 	&overlay_attr_global_alpha.attr,
-+	&overlay_attr_pre_multiplication_alpha.attr,
- 	NULL
- };
- 
--- 
-1.5.6.3
+I'll take care of that.
 
+> (hrm, but more below considering pm_runtime_get_noresume())
+> 
+> > 
+> > > 13)                                                            spin_unlock_irq(&dev->power.lock);
+> > > 
+> > > So we end up in a situation where CPU A expects the device to be resumed, but
+> > > the last action performed has been to bring it to idle.
+> > >
+> > > A smp_mb__after_atomic_inc() between lines 2 and 3 would fix this.
+> > 
+> > I don't think this particular race is possible.  However, there is another one
+> > that seems to be possible (in a different function) that an explicit barrier
+> > will prevent from happening.
+> > 
+> > It's related to pm_runtime_get_noresume(), but I think it's better to put the
+> > barrier where it's necessary rather than into pm_runtime_get_noresume() itself.
+> 
+> Quoting your following mail:
+> 
+> > Actually, no.  Since rpm_idle() and rpm_suspend() both check usage_count under
+> > the spinlock, the race I was thinking about doesn't appear to be possible
+> > after all.
+> 
+> Hrm, for the extra-usage_count-under-spinlock check to work, all
+> pm_runtime_get_noresume() callers should grab and release the dev->power.lock
+> after incrementing the usage_count. This does not seem to be the case though. So
+> you might really have a race there.
+> 
+> So every code path that does:
+> 
+> 1) pm_runtime_get_noresume(dev);
+> 
+> 2) ...
+> 
+> 3) pm_runtime_put_noidle(dev);
+> 
+> expecting that the device state cannot be changed between 1 and 3 might be
+> surprised by a concurrent call to __pm_runtime_idle() that would put a device to
+> idle (or similarly with suspend) due to lack of memory barrier after the atomic
+> increment.
+> 
+> Or am I missing something else ?
+
+First of all, the device can always be resumed regardless of the usage_count
+value.  usage_count is only used to block attempts to suspend the device and
+execute its driver's ->runtime_idle() callback after it has been resumed.
+That's why the "normal" pm_runtime_get() queues up a resume request.
+
+IOW, the _get() only becomes meaningful after attempting to resume the device
+(which is what I tried to tell Arjan in one of the previous messages).
+
+Second, there's no synchronization between pm_runtime_get_noresume() and
+pm_runtime_suspend/idle() etc., so calling pm_runtime_get_noresume() is
+certainly insufficient to block pm_runtime_suspend/idle() regardless of memory
+barriers (there may be one already in progress when _get_noresume() is called).
+To limit possible status changes from happening one should (at least) run
+pm_runtime_barrier() (surprise, no? ;-)) after pm_runtime_get_noresume().
+
+So if you don't want to resume the device immediately after increasing its
+usage_count (in which case it's better to use pm_runtime_get_sync()), you
+should do something like this:
+
+1) pm_runtime_get_noresume(dev);
+1a) pm_runtime_barrier(dev);  // That takes care of all pending requests etc.
+
+2) ...
+ 
+3) pm_runtime_put_noidle(dev);
+
+[The meaning of pm_runtime_barrier() is that all of the runtime PM activity
+started before the barrier has been completed when it returns.]
+
+There's one place in the PM core where that really is necessary, but I wouldn't
+recommend anyone doing anything like it in a driver.
+
+Thanks,
+Rafael
