@@ -1,73 +1,74 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v4 0/9] OMAP3: Adding Smartreflex and Voltage driver support
-Date: Wed, 27 Oct 2010 12:21:19 -0500
-Message-ID: <4CC85F8F.8020705@ti.com>
-References: <1288195856-11011-1-git-send-email-thara@ti.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [linux-pm] [PATCH] PERF(kernel): Cleanup power events V2
+Date: Wed, 27 Oct 2010 23:43:20 +0200
+Message-ID: <201010272343.20968.rjw@sisk.pl>
+References: <20101026181421.GA30090@Krystal> <201010271222.08921.rjw@sisk.pl> <20101027122115.GA10722@Krystal>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32836 "EHLO bear.ext.ti.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:59314 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752675Ab0J0RVW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Oct 2010 13:21:22 -0400
-In-Reply-To: <1288195856-11011-1-git-send-email-thara@ti.com>
+	id S1753792Ab0J0VoV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 Oct 2010 17:44:21 -0400
+In-Reply-To: <20101027122115.GA10722@Krystal>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Pierre Tardy <tardyp@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, Jean Pihet <jean.pihet@newoldbits.com>, Steven Rostedt <rostedt@goodmis.org>, linux-trace-users@vger.kernel.org, Frank Eigler <fche@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Frederic Weisbecker <fweisbec@gmail.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>
 
-Gopinath, Thara had written, on 10/27/2010 11:10 AM, the following:
-> This patch series introduces smartreflex and voltage driver support
-> for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
-> control for real-time voltage adjustments.
-[..]
-thanks for the revamped set
+On Wednesday, October 27, 2010, Mathieu Desnoyers wrote:
+> * Rafael J. Wysocki (rjw@sisk.pl) wrote:
+...
 > 
-> This patch series is based against lo-master with the following additional
-> patches applied.
-> 	https://patchwork.kernel.org/patch/266911/
-> 	https://patchwork.kernel.org/patch/266921/
-> 	https://patchwork.kernel.org/patch/266931/
-> 	https://patchwork.kernel.org/patch/183712/
-> 	https://patchwork.kernel.org/patch/285872/
+> Hrm, then why export pm_runtime_get_noresume() at all ?
+
+Basically, the PM core needs it for some obscure stuff.  Beyond that people
+really should use it with care (preferably avoid using it at all).
+
+> I don't feel comfortable with some of the pm_runtime_get_noresume() callers.
 > 
-> The entire series with the dependencies are available at
->         http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=summary
->         head: thara-pm-sr
+> > 
+> > So if you don't want to resume the device immediately after increasing its
+> > usage_count (in which case it's better to use pm_runtime_get_sync()), you
+> > should do something like this:
+> > 
+> > 1) pm_runtime_get_noresume(dev);
+> > 1a) pm_runtime_barrier(dev);  // That takes care of all pending requests etc.
+> > 
+> > 2) ...
+> >  
+> > 3) pm_runtime_put_noidle(dev);
+> > 
+> > [The meaning of pm_runtime_barrier() is that all of the runtime PM activity
+> > started before the barrier has been completed when it returns.]
+> > 
+> > There's one place in the PM core where that really is necessary, but I wouldn't
+> > recommend anyone doing anything like it in a driver.
 > 
-> This patch series has been tested on OMAP3430 SDP with omap2plus_defconfig
-> with the following menuconfig options enabled.
-> System type -> TI OMAP Implementations -> Smartreflex Support
-> System type -> TI OMAP Implementations ->
-> 		Class 3 mode of Smartreflex Implementation
+> grep -r pm_runtime_get_noresume drivers/    hands out very interesting info.
 > 
-Thanks for hosting the branch, Looking at:
-http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=shortlog;h=refs/heads/thara-pm-sr
-I am guessing DVFS is missing in this branch? Is it possible to give it 
-a test drive?
+> e.g.:
+> 
+> drivers/usb/core/drivers.c: usb_autopm_get_interface_async()
+> 
+>         pm_runtime_get_noresume(&intf->dev);
+>         s = ACCESS_ONCE(intf->dev.power.runtime_status);
+>         if (s == RPM_SUSPENDING || s == RPM_SUSPENDED)
+>                 status = pm_request_resume(&intf->dev);
+> 
+> How is this supposed to work ?
+> 
+> If the ACCESS_ONCE can be reordered before the atomic_inc(), then I fear the
+> device can be suspended even after the check.
+> 
+> My point is that a get/put semantic should imply memory barriers, especially if
+> these are exported APIs.
 
-Also curious should:
-"OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code should probably be 
-" dropped with "OMAP3: PM: Register TWL4030 pmic info with the voltage" ?
+Well, IMO adding a memory barrier to pm_runtime_get_noresume() wouldn't really
+change a lot (it still would be racy with respect to some other runtime PM helper
+funtions).  That said I guess we should put a "handle with care" sticker on it.
 
-[...]
-
-my 2cents: If that tree were organized based on branches which depend on 
-each other it will be easier to identify the dependencies :)
-probably:
-kernel.org (now that l-o is merged - potential 2.6.37-rc1)
-  |- clock patches  -\
-  |- DVFS series    -|
-  |- OMAP OPP series |
-                     |-merged-based -
-				 |-voltage layer & SR series perhaps
-				 	|- twl optimization
-						|- board changes
-						*** final code ***
-Just 2 cents to make it easier for folks who are not in PM mostly to see 
-how everything falls together in place..
-
--- 
-Regards,
-Nishanth Menon
+Thanks,
+Rafael
