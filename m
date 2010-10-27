@@ -1,85 +1,115 @@
-From: Thomas Renninger <trenn@suse.de>
-Subject: Re: [PATCH 4/4] PERF: fix power:cpu_idle double end events
-Date: Wed, 27 Oct 2010 17:42:04 +0200
-Message-ID: <201010271742.04545.trenn@suse.de>
-References: <1288136605-10526-1-git-send-email-trenn@suse.de> <1288136605-10526-5-git-send-email-trenn@suse.de>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
+From: Thara Gopinath <thara@ti.com>
+Subject: [PATCH v4 6/9] OMAP3: PM: Adding T2 enabling of smartreflex support
+Date: Wed, 27 Oct 2010 21:40:53 +0530
+Message-ID: <1288195856-11011-7-git-send-email-thara@ti.com>
+References: <1288195856-11011-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:56809 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753768Ab0J0PmI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Oct 2010 11:42:08 -0400
-In-Reply-To: <1288136605-10526-5-git-send-email-trenn@suse.de>
+Received: from devils.ext.ti.com ([198.47.26.153]:38076 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759864Ab0J0QLJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2010 12:11:09 -0400
+In-Reply-To: <1288195856-11011-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: arjan@linux.intel.com
-Cc: jean.pihet@newoldbits.com, mingo@elte.hu, rjw@sisk.pl, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-trace-users@vger.kernel.org, Robert Schoene <robert.schoene@tu-dresden.de>
+To: linux-omap@vger.kernel.org
+Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-On Wednesday 27 October 2010 01:43:25 Thomas Renninger wrote:
-> cpu_idle events (transition into sleep state and exiting) are
-> both fired in pm_idle().
-> 
-> Entering sleep state and exiting should always get fired inside
-> pm_idle() already.
-> 
-> This is a revert of commit c882e0feb937af4e5b991cbd1c
-Robert: I expect you tested this on a machine with no cpuidle
-driver registered?
+This patch adds support in the twl4030 driver to hook up
+the API enabling smartreflex support on PMIC side with the
+smartreflex driver. Without this the OMAP smartreflex modules
+will not function.
 
-I should have had a deeper look at this at once, done so now:
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+ drivers/mfd/twl-core.c      |    7 +++++--
+ drivers/mfd/twl4030-power.c |   29 +++++++++++++++++++++++++++++
+ include/linux/i2c/twl.h     |    1 +
+ 3 files changed, 35 insertions(+), 2 deletions(-)
 
-Current cpu_idle, power_start/end (same before my changes) behavior
-on X86 is rather weird (without this patch):
-
-if pm_idle is:
-   poll_idle -> should throw double end events
-
-   default_idle -> only throws power_start, your patch
-                   fixed that, but in the generic cpu_idle
-                   thread function which always gets executed
-                   also if pm_idle != default_idle
-                   So Robert fixed this case, but at the wrong place.
-
-   cpuidle_idle_call -> depends whether intel_idle or acpi_idle
-                        driver registered:
-
-        intel_idle -> throws a cpu idle state event, still double end
-                      events (one from cpuidle, one from
-                      process_{32,64}.c, due to Robert's patch
-
-        acpi_idle  -> whether a power_start event is thrown at all
-                      depends on (cmp with acpi_idle_do_entry()):
-                      cx->entry_method == ACPI_CSTATE_FFH
-                      will end up in a power_start event via:
-                      acpi_processor_ffh_cstate_enter(cx)
-                           mwait_idle_with_hints()
-                      but it will not in case of:
-                      cx->entry_method == ACPI_CSTATE_HALT
-                      or IO based switching (the else path there):
-                      /* IO port based C-state */
-                      
-
-Again without this(my) patch you get:
-   poll_idle                  -> double end events
-   default_idle               -> all is fine (with your patch)
-   cpuidle_idle_call
-        intel_idle registered -> double end events
-        acpi_idle registered  -> double end events
-                                 start events may not be thrown
-                                 at all.
-
-perf timechart can handle double end events, this may be
-the reason this was overseen.
-
-Argh, I tried to come up with patches, but run out of
-time. I will send something soon.
-I also found a bug in my userspace stuff: I forgot to convert
-u64 to u32..., sorry about that.
-I try to resend everything tomorrow.
-
-     Thomas
-
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 720e099..677b903 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -1009,8 +1009,11 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	clocks_init(&client->dev, pdata->clock);
+ 
+ 	/* load power event scripts */
+-	if (twl_has_power() && pdata->power)
+-		twl4030_power_init(pdata->power);
++	if (twl_has_power()) {
++		twl4030_power_sr_init();
++		 if (pdata->power)
++			twl4030_power_init(pdata->power);
++	}
+ 
+ 	/* Maybe init the T2 Interrupt subsystem */
+ 	if (client->irq
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 7efa878..0e897a7 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -31,6 +31,8 @@
+ 
+ #include <asm/mach-types.h>
+ 
++#include <plat/smartreflex.h>
++
+ static u8 twl4030_start_script_address = 0x2b;
+ 
+ #define PWR_P1_SW_EVENTS	0x10
+@@ -63,6 +65,10 @@ static u8 twl4030_start_script_address = 0x2b;
+ #define R_MEMORY_ADDRESS	PHY_TO_OFF_PM_MASTER(0x59)
+ #define R_MEMORY_DATA		PHY_TO_OFF_PM_MASTER(0x5a)
+ 
++/* Smartreflex Control */
++#define R_DCDC_GLOBAL_CFG	PHY_TO_OFF_PM_RECEIVER(0x61)
++#define CFG_ENABLE_SRFLX	0x08
++
+ #define R_PROTECT_KEY		0x0E
+ #define R_KEY_1			0xC0
+ #define R_KEY_2			0x0C
+@@ -511,6 +517,29 @@ int twl4030_remove_script(u8 flags)
+ 	return err;
+ }
+ 
++/* API to enable smrtreflex on Triton side */
++static void twl4030_smartreflex_init(void)
++{
++	int ret = 0;
++	u8 read_val;
++
++	ret = twl_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &read_val,
++			R_DCDC_GLOBAL_CFG);
++	read_val |= CFG_ENABLE_SRFLX;
++	ret |= twl_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, read_val,
++			R_DCDC_GLOBAL_CFG);
++}
++
++struct omap_sr_pmic_data twl4030_sr_data = {
++	.sr_pmic_init   = twl4030_smartreflex_init,
++};
++
++void __init twl4030_power_sr_init()
++{
++	/* Register the SR init API with the Smartreflex driver */
++	omap_sr_register_pmic(&twl4030_sr_data);
++}
++
+ void __init twl4030_power_init(struct twl4030_power_data *twl4030_scripts)
+ {
+ 	int err = 0;
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index 6de90bf..b02011e 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -550,6 +550,7 @@ struct twl4030_power_data {
+ };
+ 
+ extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
++extern void twl4030_power_sr_init(void);
+ extern int twl4030_remove_script(u8 flags);
+ 
+ struct twl4030_codec_audio_data {
+-- 
+1.7.0.4
 
