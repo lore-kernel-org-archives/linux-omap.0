@@ -1,39 +1,35 @@
-From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
-Subject: How to add an expansion board on IGEP v2 board.
-Date: Wed, 27 Oct 2010 10:32:35 +0200
-Message-ID: <AANLkTi=_nQu2YZT0+Nq-vGOfu=YufAGC9k+g6GBzYHZH@mail.gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH 4/5] omap: mailbox: fix detection for previously supported chips
+Date: Wed, 27 Oct 2010 12:00:55 +0300
+Message-ID: <AANLkTimaeoLdUK=0zzk37GZf0TWLRR4=AjKO8EkD72g-@mail.gmail.com>
+References: <1288129984-22957-1-git-send-email-omar.ramirez@ti.com>
+	<1288129984-22957-5-git-send-email-omar.ramirez@ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB030D3105B2@dbde02.ent.ti.com>
+	<AANLkTimvapU3w6BzM4MLawEjkohAT+yOrg6kdGj8fLkg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:33712 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750756Ab0J0Icg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2010 04:32:36 -0400
-Received: by qyk10 with SMTP id 10so491027qyk.19
-        for <linux-omap@vger.kernel.org>; Wed, 27 Oct 2010 01:32:35 -0700 (PDT)
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:45551 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754852Ab0J0JA4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2010 05:00:56 -0400
+Received: by qwk3 with SMTP id 3so454397qwk.19
+        for <linux-omap@vger.kernel.org>; Wed, 27 Oct 2010 02:00:55 -0700 (PDT)
+In-Reply-To: <AANLkTimvapU3w6BzM4MLawEjkohAT+yOrg6kdGj8fLkg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Varadarajan, Charulatha" <charu@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Tony Lindgren <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Dmitry Kasatkin <dmitry.kasatkin@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Anna, Suman" <s-anna@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello all,
+On Wed, Oct 27, 2010 at 10:28 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Wed, Oct 27, 2010 at 8:06 AM, Varadarajan, Charulatha <charu@ti.com> wrote:
+>>
+>> Use cpu_is_* check only. No need to have #if CONFIG_ARCH_* checks.
+>
+> Some people conditionally compile only for one architecture, like in
+> consumer devices. There's no point in wasting space for that.
 
-I would ask some technical questions, maybe someone can help me. I
-would add support for a new expansion board for IGEP v2 board,
-
-The expansion board comes with a EEPROM, the EEPROM is used to
-identify the expansion board, my idea is create a new file for
-expansion board ( board-igep0020-expansion.c ) and
-
-* on board-igep0020.c
-  - Add extern void __init igep2_expansion_init(void);
-  - Call igep2_expansion_init on igep2_init()
-
-* on board-igep0020-expansion.c
-  - Create  igep2_expansion_init, inside this funciton
-    - Add e2prom device and read board id
-    - If board ID exists then init all expansion devices
-
-I'm in the right way ? Comments ?
-
-Thanks in advance,
-   Enric
+And cpu_is_* calls become constants in such cases, allowing compiler
+to optimize away unneeded 'if' blocks, not to mention cpu_is_* allows
+multi-omap support. cpu_is_* is the way to go.
