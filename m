@@ -1,57 +1,129 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v3 0/6] OMAP4: Smartreflex and Voltage layer support
-Date: Wed, 27 Oct 2010 21:46:30 +0530
-Message-ID: <1288196196-15469-1-git-send-email-thara@ti.com>
+Subject: [PATCH v3 1/6] OMAP4: Add the new voltage to vsel calculation formula
+Date: Wed, 27 Oct 2010 21:46:31 +0530
+Message-ID: <1288196196-15469-2-git-send-email-thara@ti.com>
+References: <1288196196-15469-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56151 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:56152 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756380Ab0J0QQo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1757603Ab0J0QQo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 27 Oct 2010 12:16:44 -0400
+In-Reply-To: <1288196196-15469-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-This patch series adds support for OMAP4 support in the
-smartreflex and voltage layer. The series involves extensions
-to voltage layer and smartreflex layer for supporting OMAP4.
-All these patches might not be dependent on voltage and
-smartreflex layer but is required for the correct
-functionality of these layers for OMAP4.
+TWL6030 the power IC used along with OMAP4 in OMAP4 SDPs,
+blaze boards and panda boards has a different formula
+from that of TWL4030 for voltage to vsel and
+vsel to voltage calculation. This patch implements the new
+formula depending on the PMIC type.
 
-This series in based off lo-master and is dependent on the
-"OMAP3: Adding Smartreflex and Voltage driver support" series
-the link to which is below.
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+ arch/arm/plat-omap/opp_twl_tps.c |   71 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 71 insertions(+), 0 deletions(-)
 
-All these patches are also available at 
-	http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=summary
-	head: thara-pm-sr
-
-This patch series has been tested on OMAP4430 SDP with omap2plus_defconfig
-with the following menuconfig options enabled
-        System type -> TI OMAP Implementations -> Smartreflex Support
-        System type -> TI OMAP Implementations ->
-                Class 3 mode of Smartreflex Implementation
-
-Benoit Cousson (1):
-  OMAP4: hwmod: Add inital data for smartreflex modules.
-
-Thara Gopinath (5):
-  OMAP4: Add the new voltage to vsel calculation formula
-  OMAP4: Adding voltage driver support
-  OMAP4: PM: Program correct init voltages for scalable VDDs
-  OMAP4: Adding dev atrributes to OMAP4 smartreflex hwmod data
-  OMAP4: Smartreflex framework extensions
-
- arch/arm/mach-omap2/Makefile               |    2 +-
- arch/arm/mach-omap2/control.h              |   13 ++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  219 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.c                   |    4 +
- arch/arm/mach-omap2/smartreflex.c          |    8 +-
- arch/arm/mach-omap2/sr_device.c            |   12 ++-
- arch/arm/mach-omap2/voltage.c              |  208 ++++++++++++++++++++++++++-
- arch/arm/plat-omap/Kconfig                 |    2 +-
- arch/arm/plat-omap/include/plat/voltage.h  |   20 +++-
- arch/arm/plat-omap/opp_twl_tps.c           |   71 +++++++++
- 10 files changed, 552 insertions(+), 7 deletions(-)
+diff --git a/arch/arm/plat-omap/opp_twl_tps.c b/arch/arm/plat-omap/opp_twl_tps.c
+index 4448fc5..358b67b 100644
+--- a/arch/arm/plat-omap/opp_twl_tps.c
++++ b/arch/arm/plat-omap/opp_twl_tps.c
+@@ -15,9 +15,16 @@
+ 
+ #include <linux/module.h>
+ 
++#include <linux/i2c/twl.h>
++
+ #include <plat/opp_twl_tps.h>
+ #include <plat/voltage.h>
+ 
++static bool is_offset_valid;
++static u8 smps_offset;
++
++#define REG_SMPS_OFFSET         0xE0
++
+ /**
+  * omap_twl_vsel_to_vdc - convert TWL/TPS VSEL value to microvolts DC
+  * @vsel: TWL/TPS VSEL value to convert
+@@ -27,6 +34,38 @@
+  */
+ unsigned long omap_twl_vsel_to_uv(const u8 vsel)
+ {
++	if (twl_class_is_6030()) {
++		/*
++		 * In TWL6030 depending on the value of SMPS_OFFSET
++		 * efuse register the voltage range supported in
++		 * standard mode can be either between 0.6V - 1.3V or
++		 * 0.7V - 1.4V. In TWL6030 ES1.0 SMPS_OFFSET efuse
++		 * is programmed to all 0's where as starting from
++		 * TWL6030 ES1.1 the efuse is programmed to 1
++		 */
++		if (!is_offset_valid) {
++			twl_i2c_read_u8(TWL6030_MODULE_ID0, &smps_offset, 0xE0);
++			is_offset_valid = true;
++		}
++
++		if (smps_offset & 0x8) {
++			return ((((vsel - 1) * 125) + 7000)) * 100;
++		} else {
++			/*
++			 * In case of the supported voltage range being
++			 * between 0.6V - 1.3V, there is not specific
++			 * formula for voltage to vsel conversion above
++			 * 1.3V. There are special hardcoded values for
++			 * voltages above 1.3V. Currently we are hardcodig
++			 * only for 1.35 V which is used for 1GH OPP for
++			 * OMAP4430.
++			 */
++			if (vsel == 0x3A)
++				return 1350000;
++			return ((((vsel - 1) * 125) + 6000)) * 100;
++		}
++	}
++
+ 	return (((vsel * 125) + 6000)) * 100;
+ }
+ 
+@@ -40,6 +79,38 @@ unsigned long omap_twl_vsel_to_uv(const u8 vsel)
+ u8 omap_twl_uv_to_vsel(unsigned long uv)
+ {
+ 	/* Round up to higher voltage */
++	if (twl_class_is_6030()) {
++		/*
++		 * In TWL6030 depending on the value of SMPS_OFFSET
++		 * efuse register the voltage range supported in
++		 * standard mode can be either between 0.6V - 1.3V or
++		 * 0.7V - 1.4V. In TWL6030 ES1.0 SMPS_OFFSET efuse
++		 * is programmed to all 0's where as starting from
++		 * TWL6030 ES1.1 the efuse is programmed to 1
++		 */
++		if (!is_offset_valid) {
++			twl_i2c_read_u8(TWL6030_MODULE_ID0, &smps_offset, 0xE0);
++			is_offset_valid = true;
++		}
++
++		if (smps_offset & 0x8) {
++			return DIV_ROUND_UP(uv - 700000, 12500) + 1;
++		} else {
++			/*
++			 * In case of the supported voltage range being
++			 * between 0.6V - 1.3V, there is not specific
++			 * formula for voltage to vsel conversion above
++			 * 1.3V. There are special hardcoded values for
++			 * voltages above 1.3V. Currently we are hardcodig
++			 * only for 1.35 V which is used for 1GH OPP for
++			 * OMAP4430.
++			 */
++			if (uv == 1350000)
++				return 0x3A;
++			return DIV_ROUND_UP(uv - 600000, 12500) + 1;
++		}
++	}
++
+ 	return DIV_ROUND_UP(uv - 600000, 12500);
+ }
+ 
+-- 
+1.7.0.4
 
