@@ -1,183 +1,222 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Subject: Re: [linux-pm] [PATCH] PERF(kernel): Cleanup power events V2
-Date: Tue, 26 Oct 2010 20:46:25 -0400
-Message-ID: <20101027004625.GB8219@Krystal>
-References: <20101026181421.GA30090@Krystal> <Pine.LNX.4.44L0.1010261447090.1634-100000@iolanthe.rowland.org> <20101026213356.GA21495@Krystal> <201010270020.35941.rjw@sisk.pl>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v3 01/13] OMAP: DMA: Replace read/write macros with
+ functions
+Date: Wed, 27 Oct 2010 09:24:49 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBEBEC0B@dbde02.ent.ti.com>
+References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
+ <1288099513-1854-2-git-send-email-manjugk@ti.com> <4CC6EA5A.8070302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.openrapids.net ([64.15.138.104]:49473 "EHLO
-	blackscsi.openrapids.net" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S933263Ab0J0Aqa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 Oct 2010 20:46:30 -0400
-Content-Disposition: inline
-In-Reply-To: <201010270020.35941.rjw@sisk.pl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49170 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752345Ab0J0DzA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 Oct 2010 23:55:00 -0400
+In-Reply-To: <4CC6EA5A.8070302@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Pierre Tardy <tardyp@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, Jean Pihet <jean.pihet@newoldbits.com>, Steven Rostedt <rostedt@goodmis.org>, linux-trace-users@vger.kernel.org, Frank Eigler <fche@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Frederic Weisbecker <fweisbec@gmail.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-* Rafael J. Wysocki (rjw@sisk.pl) wrote:
-> On Tuesday, October 26, 2010, Mathieu Desnoyers wrote:
-> > * Alan Stern (stern@rowland.harvard.edu) wrote:
-> > > On Tue, 26 Oct 2010, Mathieu Desnoyers wrote:
-> > > 
-> > > > * Peter Zijlstra (peterz@infradead.org) wrote:
-> > > > > On Tue, 2010-10-26 at 11:56 -0500, Pierre Tardy wrote:
-> > > > > > 
-> > > > > > +       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
-> > > > > >         atomic_inc(&dev->power.usage_count); 
-> > > > > 
-> > > > > That's terribly racy..
-> > > > 
-> > > > Looking at the original code, it looks racy even without considering the
-> > > > tracepoint:
-> > > > 
-> > > > int __pm_runtime_get(struct device *dev, bool sync)
-> > > >  {
-> > > >         int retval;
-> > > > 
-> > > > +       trace_runtime_pm_usage(dev, atomic_read(&dev->power.usage_count)+1);
-> > > >         atomic_inc(&dev->power.usage_count);
-> > > >         retval = sync ? pm_runtime_resume(dev) : pm_request_resume(dev);
-> > > > 
-> > > > There is no implied memory barrier after "atomic_inc". So either all these
-> > > > inc/dec are protected with mutexes or spinlocks, in which case one might wonder
-> > > > why atomic operations are used at all, or it's a racy mess. (I vote for the
-> > > > second option)
-> > > 
-> > > I don't understand.  What's the problem?  The inc/dec are atomic 
-> > > because they are not protected by spinlocks, but everything else is 
-> > > (aside from the tracepoint, which is new).
-> > > 
-> > > > kref should certainly be used there.
-> > > 
-> > > What for?
+ 
+
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Tuesday, October 26, 2010 8:19 PM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Cousson, Benoit; Kevin 
+> Hilman; Shilimkar, Santosh
+> Subject: Re: [PATCH v3 01/13] OMAP: DMA: Replace read/write 
+> macros with functions
+> 
+> G, Manjunath Kondaiah had written, on 10/26/2010 08:25 AM, 
+> the following:
+> [...]
 > > 
-> > kref has the following "get":
+> > diff --git a/arch/arm/plat-omap/dma.c 
+> b/arch/arm/plat-omap/dma.c index 
+> > f5c5b8d..77241e2 100644
+> > --- a/arch/arm/plat-omap/dma.c
+> > +++ b/arch/arm/plat-omap/dma.c
+> > @@ -40,6 +40,147 @@
 > > 
-> >         atomic_inc(&kref->refcount);
-> >         smp_mb__after_atomic_inc();
+[...]
+> > +static u16 reg_map_omap2[] = {
+> > +       [REVISION]              = 0x00,
+> > +       [GCR2]                  = 0x78,
+> > +       [IRQSTATUS_L0]          = 0x08,
+> > +       [IRQSTATUS_L1]          = 0x0c,
+> [..]
+> > +       /* OMAP4 specific registers */
+> > +       [CDP]                   = 0xd0,
+> > +       [CNDP]                  = 0xd4,
+> > +       [CCDN]                  = 0xd8,
+> > +};
+> > +
+> dumb question: any reason why a struct wont do?
+> struct reg_map_omap2 {
+> u16 revision;
+> ...
+> ...
+> }
+
+This approach is as per i2c driver as suggested by kevin. 
+http://www.spinics.net/lists/linux-omap/msg36446.html
+
+> 
+> [..]
 > > 
-> > What seems to be missing in __pm_runtime_get() and pm_runtime_get_noresume() is
-> > the memory barrier after the atomic increment. The atomic increment is free to
-> > be reordered into the following spinlock (within pm_request_resume or pm_request
-> > resume execution) because taking a spinlock only acts as a memory barrier with
-> > acquire semantic, not a full memory barrier.
-> >
-> > So AFAIU, the failure scenario would be as follows (sorry for the 80+ columns):
+> > -#define dma_read(reg)                                      
+>             \
+> > -({                                                         
+>             \
+> > -       u32 __val;                                          
+>             \
+> > -       if (cpu_class_is_omap1())                           
+>             \
+> > -               __val = __raw_readw(omap_dma_base + 
+> OMAP1_DMA_##reg);   \
+> > -       else                                                
+>             \
+> > -               __val = __raw_readl(omap_dma_base + 
+> OMAP_DMA4_##reg);   \
+> > -       __val;                                              
+>             \
+> > -})
+> > -
+> > -#define dma_write(val, reg)                                
+>             \
+> > -({                                                         
+>             \
+> > -       if (cpu_class_is_omap1())                           
+>             \
+> > -               __raw_writew((u16)(val), omap_dma_base + 
+> OMAP1_DMA_##reg); \
+> > -       else                                                
+>             \
+> > -               __raw_writel((val), omap_dma_base + 
+> OMAP_DMA4_##reg);   \
+> > -})
+> > +static inline void dma_write(u32 val, int reg, int lch) {
+> > +       if (cpu_class_is_omap1()) {
+> > +               if (reg > OMAP1_CH_COMMON_START)
+> > +                       __raw_writew(val, dma_base +
+> > +                               (reg_map_omap1[reg] + 0x40 * lch));
+> > +               else
+> > +                       __raw_writew(val, dma_base + 
+> reg_map_omap1[reg]);
+> > +       } else {
+> > +               if (reg > OMAP2_CH_COMMON_START)
+> > +                       __raw_writel(val, dma_base +
+> > +                               (reg_map_omap2[reg] + 0x60 * lch));
+> > +               else
+> > +                       __raw_writel(val, dma_base + 
+> reg_map_omap2[reg]);
+> > +       }
+> > +}
+> > +
+> > +static inline u32 dma_read(int reg, int lch) {
+> > +       u32 val;
+> > +
+> > +       if (cpu_class_is_omap1()) {
+> > +               if (reg > OMAP1_CH_COMMON_START)
+> > +                       val = __raw_readw(dma_base +
+> > +                                       (reg_map_omap1[reg] 
+> + 0x40 * lch));
+> > +               else
+> > +                       val = __raw_readw(dma_base + 
+> reg_map_omap1[reg]);
+> > +       } else {
+> > +               if (reg > OMAP2_CH_COMMON_START)
+> > +                       val = __raw_readl(dma_base +
+> > +                                       (reg_map_omap2[reg] 
+> + 0x60 * lch));
+> > +               else
+> > +                       val = __raw_readl(dma_base + 
+> reg_map_omap2[reg]);
+> > +       }
+> > +       return val;
+> > +}
+> What is the benefit of using inline function here? would'nt 
+> we increase code size? cant we use a function pointer 
+> initialized to class1 or rest? 
+> Quote from CodingStyle (15):
+> "A reasonable rule of thumb is to not put inline at functions 
+> that have more than 3 lines of code in them. An exception to 
+> this rule are the cases where a parameter is known to be a 
+> compiletime constant, and as a result of this constantness 
+> you *know* the compiler will be able to optimize most of your 
+> function away at compile time. For a good example of this 
+> later case, see the kmalloc() inline function.
+> "
+> is the expectation that cpu_class_is_omap1 compile time 
+> constant hence the actual compiled in code is smaller 
+> -candidate for inline?
+
+Detailed discussion and alignment can be found at:
+http://www.spinics.net/lists/linux-omap/thrd6.html
+
+Search for:
+[PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
+
+
+> 
 > > 
-> > initial conditions: usage_count = 1
+> >  #ifdef CONFIG_ARCH_OMAP15XX
+> >  /* Returns 1 if the DMA module is in OMAP1510-compatible mode, 0 
+> >         if (cpu_class_is_omap1()) {
+[...]
+> >                 u16 ccr;
 > > 
-> > CPU A                                                       CPU B
-> > 1) __pm_runtime_get() (sync = true)
-> > 2)   atomic_inc(&usage_count) (not committed to memory yet)
-> > 3)   pm_runtime_resume()
-> > 4)     spin_lock_irqsave(&dev->power.lock, flags);
-> > 5)     retval = __pm_request_resume(dev);
-> 
-> If sync = true this is
->            retval = __pm_runtime_resume(dev);
-> which drops and reacquires the spinlock.
-
-Let's see. Upon entry in __pm_runtime_resume, the following condition holds
-(remember, the initial condition is that usage_count == 1):
-
-  dev->power.runtime_status == RPM_ACTIVE
-
-so retval is set to 1, which goto directly to "out", without setting "parent".
-So there does not seem to be any spinlock reacquire on this path, or am I
-misunderstanding how the "runtime_status" works ?
-
-> In the meantime it sets
-> ->power.runtime_status so that __pm_runtime_idle() will fail if run at this
-> point.
-
-runtime_status will be left at "RPM_ACTIVE", which is the appropriate value
-expected by __pm_runtime_idle.
-
-> 
-> > 6)     (execute the body of __pm_request_resume and return)
-> > 7)                                                          __pm_runtime_put() (sync = true) 
-> > 8)                                                          if (atomic_dec_and_test(&dev->power.usage_count))
-> >                                                               (still see usage_count == 1 before decrement,
-> >                                                                thus decrement to 0)
-> > 9)                                                             pm_runtime_idle()
-> > 10)  spin_unlock_irqrestore(&dev->power.lock, flags)
-> > 11)                                                            spin_lock_irq(&dev->power.lock);
-> > 12)                                                            retval = __pm_runtime_idle(dev);
-> 
-> Moreover, __pm_runtime_idle() checks ->power.usage_count under the spinlock,
-> so it will see it's been incremented in the meantime and it will back off.
-
-This is a subtle but important point. Yes, my scenario seems to be dealt with by
-the extra usage_count check while the spinlock is held.
-
-How about adding a comment under this atomic_inc() stating that the memory
-barriers are implicitely dealt with by the following spinlock release and the
-extra check while spinlock is held ?
-
-Commenting memory barriers is important, but commenting why memory barriers are
-not needed due to a subtle corner-case looks even more important.
-
-(hrm, but more below considering pm_runtime_get_noresume())
-
-> 
-> > 13)                                                            spin_unlock_irq(&dev->power.lock);
+> > -               ccr = dma_read(CCR(lch));
+> > +               l = dma_read(CSDP1, lch);
+> > +               l &= ~0x03;
+> > +               l |= data_type;
+> > +               dma_write(l, CSDP1, lch);
+> > +
+> > +               ccr = dma_read(CCR1, lch);
+> >                 ccr &= ~(1 << 5);
+> >                 if (sync_mode == OMAP_DMA_SYNC_FRAME)
+> >                         ccr |= 1 << 5;
+> > -               dma_write(ccr, CCR(lch));
+> > +               dma_write(ccr, CCR1, lch);
 > > 
-> > So we end up in a situation where CPU A expects the device to be resumed, but
-> > the last action performed has been to bring it to idle.
-> >
-> > A smp_mb__after_atomic_inc() between lines 2 and 3 would fix this.
+> > -               ccr = dma_read(CCR2(lch));
+> > +               ccr = dma_read(CCR1_2, lch);
+> >                 ccr &= ~(1 << 2);
+> >                 if (sync_mode == OMAP_DMA_SYNC_BLOCK)
+> >                         ccr |= 1 << 2;
+> > -               dma_write(ccr, CCR2(lch));
+> > +               dma_write(ccr, CCR1_2, lch);
+> >         }
+> > 
+> >         if (cpu_class_is_omap2() && dma_trigger) {
+> >                 u32 val;
+> > 
+> > -               val = dma_read(CCR(lch));
+> > +               l = dma_read(CSDP2, lch);
+> > +               l &= ~0x03;
+> > +               l |= data_type;
+> > +               dma_write(l, CSDP2, lch);
+> This seems to me to be a replication mess :( compared to the original
+> CSDP(lch) - which mapped to class1 or class2 as needed - same 
+> elsewhere. 
+> Code is becoming pretty much needing a refactoring as a result :(
 > 
-> I don't think this particular race is possible.  However, there is another one
-> that seems to be possible (in a different function) that an explicit barrier
-> will prevent from happening.
-> 
-> It's related to pm_runtime_get_noresume(), but I think it's better to put the
-> barrier where it's necessary rather than into pm_runtime_get_noresume() itself.
+> [...]
 
-Quoting your following mail:
+This is interim patch towards hwmod and driver cleanup. As mentioned in the
+patch description, objective is to replace lowlevel read/write macros with 
+inline functions. For few registers(between omap1 and omap2+), the offset is 
+different. Earlier, this offset difference was handled through macros. 
+Now, it is replaced with inline functions, the code should be seperated for 
+handling between omap1 and omap2+. It will get cleaned up once the code is 
+moved respective mach-omapx directories.
 
-> Actually, no.  Since rpm_idle() and rpm_suspend() both check usage_count under
-> the spinlock, the race I was thinking about doesn't appear to be possible
-> after all.
+You can have look at: PATCH 11/13 
 
-Hrm, for the extra-usage_count-under-spinlock check to work, all
-pm_runtime_get_noresume() callers should grab and release the dev->power.lock
-after incrementing the usage_count. This does not seem to be the case though. So
-you might really have a race there.
 
-So every code path that does:
-
-1) pm_runtime_get_noresume(dev);
-
-2) ...
-
-3) pm_runtime_put_noidle(dev);
-
-expecting that the device state cannot be changed between 1 and 3 might be
-surprised by a concurrent call to __pm_runtime_idle() that would put a device to
-idle (or similarly with suspend) due to lack of memory barrier after the atomic
-increment.
-
-Or am I missing something else ?
-
-Thanks,
-
-Mathieu
-
-> 
-> Thanks,
-> Rafael
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-trace-users" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Mathieu Desnoyers
-Operating System Efficiency R&D Consultant
-EfficiOS Inc.
-http://www.efficios.com
+-Manjunath
