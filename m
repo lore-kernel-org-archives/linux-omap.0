@@ -1,223 +1,158 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH v3 01/13] OMAP: DMA: Replace read/write macros with
- functions
-Date: Wed, 27 Oct 2010 09:26:08 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C014FD7F3FE@dlee02.ent.ti.com>
-References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
- <1288099513-1854-2-git-send-email-manjugk@ti.com> <4CC6EA5A.8070302@ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E9402DBEBEC0B@dbde02.ent.ti.com>
+From: "Qassid, Youcef" <y-qassid@ti.com>
+Subject: RE: Requirement for DSI video mode support
+Date: Wed, 27 Oct 2010 16:31:04 +0200
+Message-ID: <470B922D8A441644AAD7CE6FE610ADEB0121DA3B0C@dnce01.ent.ti.com>
+References: <AANLkTikBn63Y1CofZksexds7tBqzxrNvX3MD=tZ49hDw@mail.gmail.com>
+ <1286532774.28499.1088.camel@tubuntu.research.nokia.com>
+ <FCCFB4CDC6E5564B9182F639FC356087034BD6BBEE@dbde02.ent.ti.com>
+ <1288163876.2580.160.camel@tubuntu>
+ <FCCFB4CDC6E5564B9182F639FC356087034BD6BCCE@dbde02.ent.ti.com>
+ <1288181866.2580.172.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57001 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013Ab0J0O0P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2010 10:26:15 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBEBEC0B@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47552 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752013Ab0J0ObT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 Oct 2010 10:31:19 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <1288181866.2580.172.camel@tubuntu>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "Taneja, Archit" <archit@ti.com>
+Cc: ext Jorge Bustamante <jbustamante.init@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Iovescu, Magdalena" <m-iovescu1@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Aguirre, Alberto" <a-aguirre@ti.com>
 
-> -----Original Message-----
-> From: G, Manjunath Kondaiah
-> Sent: Tuesday, October 26, 2010 10:55 PM
-[..]
+Hi,
 
-> > [...]
-> > >
-> > > diff --git a/arch/arm/plat-omap/dma.c
-> > b/arch/arm/plat-omap/dma.c index
-> > > f5c5b8d..77241e2 100644
-> > > --- a/arch/arm/plat-omap/dma.c
-> > > +++ b/arch/arm/plat-omap/dma.c
-> > > @@ -40,6 +40,147 @@
-> > >
-> [...]
-> > > +static u16 reg_map_omap2[] = {
-> > > +       [REVISION]              = 0x00,
-> > > +       [GCR2]                  = 0x78,
-> > > +       [IRQSTATUS_L0]          = 0x08,
-> > > +       [IRQSTATUS_L1]          = 0x0c,
-> > [..]
-> > > +       /* OMAP4 specific registers */
-> > > +       [CDP]                   = 0xd0,
-> > > +       [CNDP]                  = 0xd4,
-> > > +       [CCDN]                  = 0xd8,
-> > > +};
-> > > +
-> > dumb question: any reason why a struct wont do?
-> > struct reg_map_omap2 {
-> > u16 revision;
-> > ...
-> > ...
-> > }
-> 
-> This approach is as per i2c driver as suggested by kevin.
-> http://www.spinics.net/lists/linux-omap/msg36446.html
-Thanks for pointing this out. I2c has what 18 registers while dma has over 40 registers :( patch 11 [1] now I understand this step -> this merges 
-together at later patchset - it starts to make sense now. It becomes reg_map. Thanks - looks like a good change in the eventual code.
+Please see [YQ].
 
-
-[...]
-> > > +static inline void dma_write(u32 val, int reg, int lch) {
-> > > +       if (cpu_class_is_omap1()) {
-> > > +               if (reg > OMAP1_CH_COMMON_START)
-> > > +                       __raw_writew(val, dma_base +
-> > > +                               (reg_map_omap1[reg] + 0x40 * lch));
-> > > +               else
-> > > +                       __raw_writew(val, dma_base +
-> > reg_map_omap1[reg]);
-> > > +       } else {
-> > > +               if (reg > OMAP2_CH_COMMON_START)
-> > > +                       __raw_writel(val, dma_base +
-> > > +                               (reg_map_omap2[reg] + 0x60 * lch));
-> > > +               else
-> > > +                       __raw_writel(val, dma_base +
-> > reg_map_omap2[reg]);
-> > > +       }
-> > > +}
-Eventual code looks like this:
-
-62 static inline void dma_write(u32 val, int reg, int lch)
-63 {
-64         if (d->dev_caps & IS_WORD_16) {
-65                 if (reg >= CH_COMMON_START)
-66                         __raw_writew(val, dma_base +
-67                                 (reg_map[reg] + 0x40 * lch));
-68                 else
-69                         __raw_writew(val, dma_base + reg_map[reg]);
-70         } else {
-71                 if (reg > CH_COMMON_START)
-72                         __raw_writel(val, dma_base +
-73                                 (reg_map[reg] + 0x60 * lch));
-74                 else
-75                         __raw_writel(val, dma_base + reg_map[reg]);
-76         }
-77 }
-I don't really see how inline will really help here!
-
-> > > +
-> > > +static inline u32 dma_read(int reg, int lch) {
-> > > +       u32 val;
-> > > +
-> > > +       if (cpu_class_is_omap1()) {
-> > > +               if (reg > OMAP1_CH_COMMON_START)
-> > > +                       val = __raw_readw(dma_base +
-> > > +                                       (reg_map_omap1[reg]
-> > + 0x40 * lch));
-> > > +               else
-> > > +                       val = __raw_readw(dma_base +
-> > reg_map_omap1[reg]);
-> > > +       } else {
-> > > +               if (reg > OMAP2_CH_COMMON_START)
-> > > +                       val = __raw_readl(dma_base +
-> > > +                                       (reg_map_omap2[reg]
-> > + 0x60 * lch));
-> > > +               else
-> > > +                       val = __raw_readl(dma_base +
-> > reg_map_omap2[reg]);
-> > > +       }
-> > > +       return val;
-> > > +}
-> > What is the benefit of using inline function here? would'nt
-> > we increase code size? cant we use a function pointer
-> > initialized to class1 or rest?
-> > Quote from CodingStyle (15):
-> > "A reasonable rule of thumb is to not put inline at functions
-> > that have more than 3 lines of code in them. An exception to
-> > this rule are the cases where a parameter is known to be a
-> > compiletime constant, and as a result of this constantness
-> > you *know* the compiler will be able to optimize most of your
-> > function away at compile time. For a good example of this
-> > later case, see the kmalloc() inline function.
-> > "
-> > is the expectation that cpu_class_is_omap1 compile time
-> > constant hence the actual compiled in code is smaller
-> > -candidate for inline?
-> 
-> Detailed discussion and alignment can be found at:
-> http://www.spinics.net/lists/linux-omap/thrd6.html
-Better link:
-http://marc.info/?t=128264802300006&r=1&w=2
-
-> 
-> Search for:
-> [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
-
-http://marc.info/?l=linux-omap&m=128464661906497&w=2
-my question is slightly different here - debate of suggestion to use inline
-is based on the size of code involved, the discussion in the thread 
-discussed around 3 lines of code, which made sense, unfortunately, the 
-thread does not answer my question unfortunately for *this* specific patch
-- OR do you wish to point me to some specific link which answers this?
-
-> 
-> 
-> >
-> > >
-> > >  #ifdef CONFIG_ARCH_OMAP15XX
-> > >  /* Returns 1 if the DMA module is in OMAP1510-compatible mode, 0
-> > >         if (cpu_class_is_omap1()) {
-> [...]
-> > >                 u16 ccr;
-> > >
-> > > -               ccr = dma_read(CCR(lch));
-> > > +               l = dma_read(CSDP1, lch);
-> > > +               l &= ~0x03;
-> > > +               l |= data_type;
-> > > +               dma_write(l, CSDP1, lch);
-> > > +
-> > > +               ccr = dma_read(CCR1, lch);
-> > >                 ccr &= ~(1 << 5);
-> > >                 if (sync_mode == OMAP_DMA_SYNC_FRAME)
-> > >                         ccr |= 1 << 5;
-> > > -               dma_write(ccr, CCR(lch));
-> > > +               dma_write(ccr, CCR1, lch);
-> > >
-> > > -               ccr = dma_read(CCR2(lch));
-> > > +               ccr = dma_read(CCR1_2, lch);
-> > >                 ccr &= ~(1 << 2);
-> > >                 if (sync_mode == OMAP_DMA_SYNC_BLOCK)
-> > >                         ccr |= 1 << 2;
-> > > -               dma_write(ccr, CCR2(lch));
-> > > +               dma_write(ccr, CCR1_2, lch);
-> > >         }
-> > >
-> > >         if (cpu_class_is_omap2() && dma_trigger) {
-> > >                 u32 val;
-> > >
-> > > -               val = dma_read(CCR(lch));
-> > > +               l = dma_read(CSDP2, lch);
-> > > +               l &= ~0x03;
-> > > +               l |= data_type;
-> > > +               dma_write(l, CSDP2, lch);
-> > This seems to me to be a replication mess :( compared to the original
-> > CSDP(lch) - which mapped to class1 or class2 as needed - same
-> > elsewhere.
-> > Code is becoming pretty much needing a refactoring as a result :(
-> >
-> > [...]
-> 
-> This is interim patch towards hwmod and driver cleanup. As mentioned in
-> the
-> patch description, objective is to replace lowlevel read/write macros with
-> inline functions. For few registers(between omap1 and omap2+), the offset
-> is
-> different. Earlier, this offset difference was handled through macros.
-> Now, it is replaced with inline functions, the code should be seperated
-> for
-> handling between omap1 and omap2+. It will get cleaned up once the code is
-> moved respective mach-omapx directories.
-> 
-> You can have look at: PATCH 11/13
-
-Ok looks like it never made to ML :( [1] as you refered to in a later patch 
-Makes sense to me now. Thanks.
-
-
-[1] http://dev.omapzoom.org/?p=manju/kernel-omap3-dev.git;a=commitdiff;h=7457a6b4248772aaa52dfb13a170f891596a512a
 Regards,
-Nishanth Menon
+Youcef
+
+
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+
+-----Original Message-----
+
+From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+Sent: Wednesday, October 27, 2010 2:18 PM
+To: Taneja, Archit
+Cc: ext Jorge Bustamante; linux-omap@vger.kernel.org; Iovescu, Magdalena; Menon, Nishanth; Qassid, Youcef; Aguirre, Alberto
+Subject: RE: Requirement for DSI video mode support
+
+On Wed, 2010-10-27 at 10:17 +0200, ext Taneja, Archit wrote:
+> Hi,
+>
+> >>
+> >> Command mode panels will work fine with a single VC, I don't think
+> >> video mode can run by using only one VC.
+> >
+> > Okay, I think we're talking about different VCs =). It's
+> > rather confusing in the TRM. A VC (in DSI packet sense)
+> > refers to the channel ID sent in the packet, and a VC (in
+> > OMAP DSS register sense) refers to a set of configurations
+> > used to send DSI packets. I think we need to come up with
+> > terms that clearly make the distinction between these,
+> > because they really don't have anything in common. (I'd like
+> > to hear the rationale for naming OMAP's config registers as VCs... =).
+> >
+>
+> Yeah, it took me a while to figure out the difference from the TRM too.
+>
+> As far as the driver is concerned, I think there was a "dest_per" member
+> for each set of VC configurations, that really made things clear.
+
+There was, yes. But that wasn't perfect either. You can use one OMAP VC
+register set to send packets to any peripheral by using different
+virtual channel ID.
+
+[YQ]: Command Mode will work fine with any OMAP VC register as you can control the VC ID field (generally set to 0). But you cannot control the VC for synchronization packets that are generated and sent automatically by the DSI is in Video Mode.
+
+
+> Its not in the present kernel, but it would be nice to get it back. The
+> present approach always correlates VC0 configuration to VC_ID 0,
+> 1 to 1 and so on. That confused me for a while again :|
+>
+> >> Also, for command mode, there isn't a restriction to use a single VC.
+> >> If you configure one VC to have slave port as source and the other as
+> >> video port, the need to switch the VC source between L4 and VP would go away.
+> >
+> > This was what I had at some point. However, I was unsure how
+> > transmissions are synchronized in that case. If there's
+> > transmission going on from VP via, say, VC0, and I send a
+> > message from L4 via VC1, what happens? Does VC1 wait until
+> > VC0 is done? Or does it send the packet between VC0's packets?
+> >
+>
+> I don't know how things works internally, but I am sure the 2 VC
+> configuration works for a handful of phones :)
+>
+> Is this a thing that should be explained in the DSI specification, or
+> is this something that should be taken care of while implementing DSI
+> hardware? I'll try to find out.
+
+It's DSI implementation spesific. It's about how OMAP HW handles the
+transmissions. I would guess that multiple OMAP VCs can send packets at
+the same time (but one packet on the DSI lines at one time, of course).
+But I'm not sure.
+
+[YQ] While using OCP (L3/L4) and Video Port interfaces for Command Mode you have several possibilities on OMAP4. You can choose the arbitration scheme.
+While the DSI is used in Video Mode, the packets you want to send via the OCP interface are transmitted during the blanking time. It is the interleaved mode. You have to respect some timing constraint for this feature.
+This is my understanding. I still have to validate these on silicon.
+
+> > But I agree, different VCs for L4 and VP usage would make
+> > some things a bit simpler.
+> >
+> >> The most optimal way would be to use one VC for each peripheral, but I
+> >> don't think the usecase of connecting 4 panels to the same
+> > DSI lanes would ever be needed.
+> >
+> > Yes, that is quite unlikely. But it's difficult to say what
+> > kind of devices one needs to connect (see below), but it
+> > could be that we may come up with some kind of rules that fit
+> > to all cases.
+> >
+> > For example, is there ever need to have to OMAP VCs
+> > configured as VP at the same time? If not, we know that there
+> > will always be 3 OMAP VCs free for L4 use. Etc. (I didn't
+> > think this really, just throwing ideas =).
+> >
+>
+> Yes it would be good to more of such rules. I don't think the
+> one above is valid for OMAP4 though. One of the DSI blocks has
+> 2 video ports as input. One VC can be configured in Video mode + Video Port
+> and the other can be Command mode + Video port, and command mode and video
+> port can run together. We haven't tried it out yet (and don't want to either :))
+>
+> >>>
+> >>> Nevertheless, it should be possible to use multiple VCs in one driver.
+> >>> I've implemented a driver for a buffer chip that used all 4 channels.
+> >>
+> >> So did you connect more than one panel to DSI? I am curious about how
+> >> it works
+> >
+> > The chip had it's own framebuffer memory, and you could
+> > connect two displays to the chip. The virtual channel mapping
+> > was something like
+> > this:
+> > 0 - routed to first panel
+> > 1 - routed to second panel
+> > 2 - buffer chip config
+> > 3 - buffer chip framebuffer config
+> >
+>
+> That's interesting, slightly out of topic question: How would a
+> buffer chip / LVDS bridge chip fit in the DSS2 fw. Should it be in the
+> panel driver or have its own driver? Asking out of curiosity.
+
+In a perfect world we would have separate panel drivers for the panels,
+and driver for the buffer chip. And they could be connected as you want.
+But my implementation was a combined buffer chip/panel driver, handling
+everything. The DSS architecture isn't flexible enough (yet =).
+
+ Tomi
+
+
+
