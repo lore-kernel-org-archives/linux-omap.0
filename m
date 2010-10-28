@@ -1,105 +1,94 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v4 0/9] OMAP3: Adding Smartreflex and Voltage driver
- support
-Date: Thu, 28 Oct 2010 21:02:48 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035ECA9D5D@dbde02.ent.ti.com>
-References: <1288195856-11011-1-git-send-email-thara@ti.com>
- <4CC85F8F.8020705@ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [Question] which type of DMA taken by musb of beagle-xM(DM3730)?
+Date: Thu, 28 Oct 2010 23:36:58 +0800
+Message-ID: <AANLkTikUqXpMhPfMV78sf4zusQ-h4JpE+eSgnnpE2PON@mail.gmail.com>
+References: <AANLkTi=r08ipWPYfEbpsX-tuG=3evFfVazR198ECjFnn@mail.gmail.com>
+	<AANLkTi=4K1V2pZQNZOhbkJJ8WCh0X8botpWHOU03p3Hv@mail.gmail.com>
+	<AANLkTimYJ-hyNm7nx+dvTrgO4QC2YSjBYjLqHR_wvGni@mail.gmail.com>
+	<AANLkTim_xYch-BS0Edc70679Rx03fpofpoGSkTzQV1HW@mail.gmail.com>
+	<4CC84109.9040304@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:49246 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932572Ab0J1Pcy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 11:32:54 -0400
-In-Reply-To: <4CC85F8F.8020705@ti.com>
-Content-Language: en-US
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:48815 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752525Ab0J1Pg7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 11:36:59 -0400
+In-Reply-To: <4CC84109.9040304@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: Anand Gadiyar <gadiyar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb <linux-usb@vger.kernel.org>
 
+Hello,
 
-
->>-----Original Message-----
->>From: Menon, Nishanth
->>Sent: Wednesday, October 27, 2010 10:51 PM
->>To: Gopinath, Thara
->>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; khilman@deeprootsystems.com;
->>Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand
->>Subject: Re: [PATCH v4 0/9] OMAP3: Adding Smartreflex and Voltage driver
->>support
+2010/10/27 Anand Gadiyar <gadiyar@ti.com>:
+> On 10/27/2010 10:55 AM, Ming Lei wrote:
 >>
->>Gopinath, Thara had written, on 10/27/2010 11:10 AM, the following:
->>> This patch series introduces smartreflex and voltage driver support
->>> for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
->>> control for real-time voltage adjustments.
->>[..]
->>thanks for the revamped set
-
-You are most welcome!!
-
+>> 2010/10/27 Ming Lei<tom.leiming@gmail.com>:
 >>>
->>> This patch series is based against lo-master with the following additional
->>> patches applied.
->>> 	https://patchwork.kernel.org/patch/266911/
->>> 	https://patchwork.kernel.org/patch/266921/
->>> 	https://patchwork.kernel.org/patch/266931/
->>> 	https://patchwork.kernel.org/patch/183712/
->>> 	https://patchwork.kernel.org/patch/285872/
+>>> Hi Gadiyar,
 >>>
->>> The entire series with the dependencies are available at
->>>         http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=summary
->>>         head: thara-pm-sr
+>>> Thanks for your reply.
 >>>
->>> This patch series has been tested on OMAP3430 SDP with omap2plus_defconfig
->>> with the following menuconfig options enabled.
->>> System type -> TI OMAP Implementations -> Smartreflex Support
->>> System type -> TI OMAP Implementations ->
->>> 		Class 3 mode of Smartreflex Implementation
+>>> 2010/10/27 Gadiyar, Anand<gadiyar@ti.com>:
+>>>>
+>>>> On Wed, Oct 27, 2010 at 5:54 AM, Ming Lei<tom.leiming@gmail.com> =A0=
+wrote:
+>>>>>
+>>>>> I want to know which type of DMA is taken by musb of DM3730,
+>>>>> INVENTRA_DMA, TI_CPPI_DMA or others?
+>>>>
+>>>> Inventra DMA. An updated version compared to the OMAP34xx/35xx.
+>>>>
+>>>> - No major change to the programming model
+>>>> - The simultaneous TX-RX DMA hang bug is gone with this one.
 >>>
->>Thanks for hosting the branch, Looking at:
+>>> I find one issue about the dma transfer if Inventra DMA is used, se=
+ems
+>>> always 2 bytes less than required length, is it caused by unaligned
+>>> destination address?
+>>>
+>>> See the log captured in g_ether context:
+>>>
+>
+> Ouch, yes. I'd forgotten about this one. I think I did post out patch=
+es for
+> this. But I've moved to other activities and didn't follow up. I'll d=
+ig them
+> up and =A0post in a bit.
+>
+> The issue is that, by design, the last 2 bits of DMA_ADDR are masked =
+by the
+> DMA engine; so we need DMA_ADDR to be aligned to a 32-bit boundary.
+>
+> In gadget mode, g_ether is one driver that's badly affected - there w=
+ere
+> some patches posted which improved g_ether somewhat. In host mode,
+> USB-networking cases were most affected. MUSB has two options:
+>
+> - dma_channel_program can reject transfers to unaligned DMA addresses=
+, so
+> that the backup PIO mode can take over (a quick fix - I'll post this =
+one
+> again)
+>
+> - MUSB can bounce the transfer buffer to another buffer which is prop=
+erly
+> aligned
+>
+> Any other ideas?
 
-Again glad tat u liked it:-)
+Another question, musb_read_fifo and musb_write_fifo need to be fixed t=
+o
+use 32bit operation only alike am35x?
 
->>http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=shortlog;h=refs/heads/thara-
->>pm-sr
->>I am guessing DVFS is missing in this branch? Is it possible to give it
->>a test drive?
-
-Yes.. This is exactly what I am trying to do. Will keep you updated.
-
->>
->>Also curious should:
->>"OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code should probably be
->>" dropped with "OMAP3: PM: Register TWL4030 pmic info with the voltage" ?
-
-Hmm.. Last time I suggested moving the contents of this patch to twl-core.c
-Nobody seemed to much keen. Hence I retained the plat-omap/opp-twl-tpl.c file.
-In fact "OMAP3: PM: Register TWL4030 pmic info with the voltage" registers the
-params from plat-omap/opp-twl-tpl.c. But if we have a consensus I will just drop this patch and have the pmic params passed from twl-core.c.
-
->>
->>[...]
->>
->>my 2cents: If that tree were organized based on branches which depend on
->>each other it will be easier to identify the dependencies :)
->>probably:
->>kernel.org (now that l-o is merged - potential 2.6.37-rc1)
->>  |- clock patches  -\
->>  |- DVFS series    -|
->>  |- OMAP OPP series |
->>                     |-merged-based -
->>				 |-voltage layer & SR series perhaps
->>				 	|- twl optimization
->>						|- board changes
->>						*** final code ***
->>Just 2 cents to make it easier for folks who are not in PM mostly to see
->>how everything falls together in place..
-
-I agree. But then I need some five patches on top of potential 2.6.37-rc1,
-which are not present in any branch. Are you asking me to generate separate branches for all these patches?
-
-Regards
-Thara
+thanks,
+--=20
+Lei Ming
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
