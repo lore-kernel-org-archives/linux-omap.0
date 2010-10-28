@@ -1,164 +1,70 @@
-From: srinath@mistralsolutions.com
-Subject: [Patch v3] OMAP: AM3517/05: Add craneboard support
-Date: Thu, 28 Oct 2010 18:59:12 +0530
-Message-ID: <1288272552-22303-1-git-send-email-srinath@mistralsolutions.com>
-References: <[PATCH] OMAP: AM3517/05: Add craneboard support>
+From: "Ghorai, Sukumar" <s-ghorai@ti.com>
+Subject: RE: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
+Date: Thu, 28 Oct 2010 19:41:53 +0530
+Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356AEEDE2@dbde02.ent.ti.com>
+References: <1285594634-19277-1-git-send-email-s-ghorai@ti.com>
+ <1285594634-19277-2-git-send-email-s-ghorai@ti.com>
+ <20100928222727.GS3117@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:37743 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758406Ab0J1Noj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 09:44:39 -0400
-Received: by pwj3 with SMTP id 3so85388pwj.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Oct 2010 06:44:38 -0700 (PDT)
-In-Reply-To: <[PATCH] OMAP: AM3517/05: Add craneboard support>
+Received: from devils.ext.ti.com ([198.47.26.153]:44689 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751951Ab0J1OMB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 10:12:01 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jdk@ti.com, tony@atomide.com, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-From: Srinath <srinath@mistralsolutions.com>
+Tony,
 
-Craneboard is a hardware development platform based on the
-Sitara AM3517 ARM Cortex - A8 microprocessor device. This is a
-low cost reference design.
+> -----Original Message-----
+> From: Ghorai, Sukumar
+> Sent: Wednesday, September 29, 2010 12:08 PM
+> To: 'Tony Lindgren'
+> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
+> kernel@lists.infradead.org
+> Subject: RE: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
+> 
+> 
+[..snip..]
 
-This patch adds basic board file. Detailed support will follow in
-subsequent patches.
+> > > diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
+> > omap2/board-3430sdp.c
+> > > index 67b95b5..549cd62 100644
+> > > --- a/arch/arm/mach-omap2/board-3430sdp.c
+> > > +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> > > @@ -328,6 +328,7 @@ static void __init omap_3430sdp_init_irq(void)
+> > >  	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+> > >  	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
+> > >  	omap_init_irq();
+> > > +	gpmc_init();
+> > >  	omap_gpio_init();
+> > >  }
+> > ...
+> >
+> > You can avoid adding gpmc_init() by making it a subsys_initcall().
+> > Just make sure you return early from it with if (!cpu_class_is_omap2()).
+> [Ghorai] will do
+> >
+[Ghorai] I was trying this and no success, as nand_init() get called before  subsys_initcall(gpmc_init);
 
-  [1] http://www.ti.com/sitara
-  [2] http://www.ti.com/arm
-  [3] http://tiexpressdsp.com/index.php?title=Applications_Processors_Crossreference
-  [4] http://marc.info/?l=linux-omap&m=125615009412281&w=2
-  [5] http://www.mistralsolutions.com/products/craneboard.php
+126 MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board") 
+..
+130         .init_irq       = omap_zoom_init_irq,
+131         .init_machine   = omap_zoom_init,
+..
 
-History and comments:
-http://marc.info/?l=linux-omap&w=2&r=1&s=craneboard&q=b
+Step-(n):
+	kernel_init() -> customize_machine() 
+             -> omap_zoom_init() -> gpmc_nand_init() -> which call gpmc
+                functions, that's crashing, as gpmc is not initialized.
 
-Signed-off-by: Srinath <srinath@mistralsolutions.com>
----
- arch/arm/mach-omap2/Kconfig                  |    5 ++
- arch/arm/mach-omap2/Makefile                 |    2 +
- arch/arm/mach-omap2/board-am3517crane.c      |   69 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/uncompress.h |    1 +
- 4 files changed, 77 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
+Step-(n+1):
+	Followed by subsys_initcall(gpmc_init)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index ab784bf..3688515 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -174,6 +174,11 @@ config MACH_OMAP3517EVM
- 	default y
- 	select OMAP_PACKAGE_CBB
- 
-+config MACH_CRANEBOARD
-+	bool "AM3517/05 CRANE board"
-+	depends on ARCH_OMAP3
-+	select OMAP_PACKAGE_CBB
-+
- config MACH_OMAP3_PANDORA
- 	bool "OMAP3 Pandora"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 7352412..f885037 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -170,6 +170,8 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
- 
- obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
- 
-+obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
-+
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
- 					   hsmmc.o
- # Platform specific device init code
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-new file mode 100644
-index 0000000..4b209c4
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -0,0 +1,69 @@
-+/*
-+ * Support for AM3517/05 Craneboard
-+ * http://www.mistralsolutions.com/products/craneboard.php
-+ *
-+ * Copyright (C) 2010 Mistral Solutions Pvt Ltd. <www.mistralsolutions.com>
-+ * Author: R.Srinath <srinath@mistralsolutions.com>
-+ *
-+ * Based on mach-omap2/board-am3517evm.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as  published by the
-+ * Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/gpio.h>
-+
-+#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
-+
-+#include <plat/board.h>
-+#include <plat/common.h>
-+
-+#include "mux.h"
-+
-+/* Board initialization */
-+static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
-+};
-+
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
-+static void __init am3517_crane_init_irq(void)
-+{
-+	omap_board_config = am3517_crane_config;
-+	omap_board_config_size = ARRAY_SIZE(am3517_crane_config);
-+
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
-+static void __init am3517_crane_init(void)
-+{
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-+	omap_serial_init();
-+}
-+
-+MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
-+	.boot_params	= 0x80000100,
-+	.map_io		= omap3_map_io,
-+	.reserve        = omap_reserve,
-+	.init_irq	= am3517_crane_init_irq,
-+	.init_machine	= am3517_crane_init,
-+	.timer		= &omap_timer,
-+MACHINE_END
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 9036e37..229fbf2 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -145,6 +145,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* omap3 based boards using UART3 */
- 		DEBUG_LL_OMAP3(3, cm_t35);
- 		DEBUG_LL_OMAP3(3, cm_t3517);
-+		DEBUG_LL_OMAP3(3, craneboard);
- 		DEBUG_LL_OMAP3(3, igep0020);
- 		DEBUG_LL_OMAP3(3, igep0030);
- 		DEBUG_LL_OMAP3(3, nokia_rx51);
--- 
-1.7.1.226.g770c5
-
+So I will incorporate the other input and will re-submit.
+[..snip..]
