@@ -1,70 +1,78 @@
-From: "Ghorai, Sukumar" <s-ghorai@ti.com>
-Subject: RE: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
-Date: Thu, 28 Oct 2010 19:41:53 +0530
-Message-ID: <2A3DCF3DA181AD40BDE86A3150B27B6B0356AEEDE2@dbde02.ent.ti.com>
-References: <1285594634-19277-1-git-send-email-s-ghorai@ti.com>
- <1285594634-19277-2-git-send-email-s-ghorai@ti.com>
- <20100928222727.GS3117@atomide.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [Patch v3] OMAP: AM3517/05: Add craneboard support
+Date: Thu, 28 Oct 2010 19:46:33 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593023475E6FE@dbde02.ent.ti.com>
+References: <[PATCH] OMAP: AM3517/05: Add craneboard support>
+ <1288272552-22303-1-git-send-email-srinath@mistralsolutions.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44689 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:44969 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751951Ab0J1OMB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 10:12:01 -0400
+	with ESMTP id S1758011Ab0J1OQj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 10:16:39 -0400
+In-Reply-To: <1288272552-22303-1-git-send-email-srinath@mistralsolutions.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-
-Tony,
+To: "srinath@mistralsolutions.com" <srinath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kridner, Jason" <jdk@ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "nagendra@mistralsolutions.com" <nagendra@mistralsolutions.com>, "umeshk@mistralsolutions.com" <umeshk@mistralsolutions.com>
 
 > -----Original Message-----
-> From: Ghorai, Sukumar
-> Sent: Wednesday, September 29, 2010 12:08 PM
-> To: 'Tony Lindgren'
-> Cc: linux-omap@vger.kernel.org; linux-mtd@lists.infradead.org; linux-arm-
-> kernel@lists.infradead.org
-> Subject: RE: [PATCH v5 1/5] omap gpmc: enable irq mode in gpmc
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> srinath@mistralsolutions.com
+> Sent: Thursday, October 28, 2010 6:59 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Kridner, Jason; tony@atomide.com; 
+> khilman@deeprootsystems.com; Menon, Nishanth; 
+> nagendra@mistralsolutions.com; umeshk@mistralsolutions.com; Srinath
+> Subject: [Patch v3] OMAP: AM3517/05: Add craneboard support
 > 
+
+[snip]
+
+> +MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
+
+Compared against AM3715, I see these missing:
+	.phys_io	= 0x48000000,
+	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
+
+Are these not required?
+
+> +	.boot_params	= 0x80000100,
+> +	.map_io		= omap3_map_io,
+> +	.reserve        = omap_reserve,
+              ^^^^^^^^
+Check for mix of space & tabs here.
+
+~sanjeev
+
+> +	.init_irq	= am3517_crane_init_irq,
+> +	.init_machine	= am3517_crane_init,
+> +	.timer		= &omap_timer,
+> +MACHINE_END
+> diff --git a/arch/arm/plat-omap/include/plat/uncompress.h 
+> b/arch/arm/plat-omap/include/plat/uncompress.h
+> index 9036e37..229fbf2 100644
+> --- a/arch/arm/plat-omap/include/plat/uncompress.h
+> +++ b/arch/arm/plat-omap/include/plat/uncompress.h
+> @@ -145,6 +145,7 @@ static inline void 
+> __arch_decomp_setup(unsigned long arch_id)
+>  		/* omap3 based boards using UART3 */
+>  		DEBUG_LL_OMAP3(3, cm_t35);
+>  		DEBUG_LL_OMAP3(3, cm_t3517);
+> +		DEBUG_LL_OMAP3(3, craneboard);
+>  		DEBUG_LL_OMAP3(3, igep0020);
+>  		DEBUG_LL_OMAP3(3, igep0030);
+>  		DEBUG_LL_OMAP3(3, nokia_rx51);
+> -- 
+> 1.7.1.226.g770c5
 > 
-[..snip..]
-
-> > > diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
-> > omap2/board-3430sdp.c
-> > > index 67b95b5..549cd62 100644
-> > > --- a/arch/arm/mach-omap2/board-3430sdp.c
-> > > +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> > > @@ -328,6 +328,7 @@ static void __init omap_3430sdp_init_irq(void)
-> > >  	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
-> > >  	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
-> > >  	omap_init_irq();
-> > > +	gpmc_init();
-> > >  	omap_gpio_init();
-> > >  }
-> > ...
-> >
-> > You can avoid adding gpmc_init() by making it a subsys_initcall().
-> > Just make sure you return early from it with if (!cpu_class_is_omap2()).
-> [Ghorai] will do
-> >
-[Ghorai] I was trying this and no success, as nand_init() get called before  subsys_initcall(gpmc_init);
-
-126 MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board") 
-..
-130         .init_irq       = omap_zoom_init_irq,
-131         .init_machine   = omap_zoom_init,
-..
-
-Step-(n):
-	kernel_init() -> customize_machine() 
-             -> omap_zoom_init() -> gpmc_nand_init() -> which call gpmc
-                functions, that's crashing, as gpmc is not initialized.
-
-Step-(n+1):
-	Followed by subsys_initcall(gpmc_init)
-
-So I will incorporate the other input and will re-submit.
-[..snip..]
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
