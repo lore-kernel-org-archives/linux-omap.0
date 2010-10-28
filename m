@@ -1,144 +1,136 @@
 From: "Varadarajan, Charulatha" <charu@ti.com>
-Subject: RE: [PATCH v4 3/9] OMAP3: PM: Adding smartreflex device file.
-Date: Thu, 28 Oct 2010 11:08:42 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D310D1C@dbde02.ent.ti.com>
-References: <1288195856-11011-1-git-send-email-thara@ti.com>
- <1288195856-11011-4-git-send-email-thara@ti.com>
+Subject: RE: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
+Date: Thu, 28 Oct 2010 11:09:01 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D310D1D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50118 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:50125 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752965Ab0J1Fiv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 01:38:51 -0400
-In-Reply-To: <1288195856-11011-4-git-send-email-thara@ti.com>
+	with ESMTP id S1753005Ab0J1FjH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 01:39:07 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>, "Gopinath, Thara" <thara@ti.com>
 
-Thara, 
+ 
+Thara,
 
 > -----Original Message-----
 > From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gopinath, Thara
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Thara Gopinath
 > Sent: Wednesday, October 27, 2010 9:41 PM
 > To: linux-omap@vger.kernel.org
 > Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson, 
 > Benoit; Sripathy, Vishwanath; Sawant, Anand; Gopinath, Thara
-> Subject: [PATCH v4 3/9] OMAP3: PM: Adding smartreflex device file.
+> Subject: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
 > 
-> This patch adds support for device registration of various
-> smartreflex module present in the system. This patch introduces
-> the platform data for smartreflex devices which include
-> the efused and test n-target vaules, module enable/disable
-> pointers and a parameter to indicate whether smartreflex
-> autocompensation needs to be enabled on init or not.
-> Currently auocompensation is enabled on init by default
-> for OMAP3430 ES3.1 chip.
+> SmartReflex modules do adaptive voltage control for real-time
+> voltage adjustments. With Smartreflex the power supply voltage
+> can be adapted to the silicon performance(manufacturing process,
+> temperature induced performance, age induced performance etc).
+> 
+> There are differnet classes of smartreflex implementation.
+> 	Class-0: Manufacturing Test Calibration
+> 	Class-1: Boot-Time Software Calibration
+> 	Class-2: Continuous Software Calibration
+> 	Class-3: Continuous Hardware Calibration
+> 	Class-4: Fully Integrated Power Management
+> 
+> OMAP3 has two smartreflex modules one associated with VDD MPU and the
+> other associated with VDD CORE.
+> This patch adds support for  smartreflex driver. The driver 
+> is designed
+> for Class-1 , Class-2 and Class-3 support and is  a platform driver.
+> Smartreflex driver can be enabled through a Kconfig option
+> "SmartReflex support" under "System type"->"TI OMAP 
+> implementations" menu.
+> 
+> Smartreflex autocompensation feature can be enabled runtime through
+> a debug fs option.
+> To enable smartreflex autocompensation feature
+> 	echo 1 > /debug/voltage/vdd_<X>/smartreflex/autocomp
+> To disable smartreflex autocompensation feature
+> 	echo 0 > /debug/voltage/vdd_<X>/smartreflex/autocomp
+> 
+> where X can be mpu, core , iva etc.
+> 
+> This patch contains code originally in linux omap pm branch.
+> Major contributors to this driver are
+> Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
+> Nishant Menon, Kevin Hilman.
 > 
 > Signed-off-by: Thara Gopinath <thara@ti.com>
 > ---
->  arch/arm/mach-omap2/Makefile    |    2 +-
->  arch/arm/mach-omap2/sr_device.c |  177 
-> +++++++++++++++++++++++++++++++++++++++
->  2 files changed, 178 insertions(+), 1 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/sr_device.c
+>  arch/arm/mach-omap2/Makefile                  |    1 +
+>  arch/arm/mach-omap2/smartreflex.c             |  975 
+> +++++++++++++++++++++++++
+>  arch/arm/plat-omap/Kconfig                    |   36 +
+>  arch/arm/plat-omap/include/plat/smartreflex.h |  271 +++++++
+>  4 files changed, 1283 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/smartreflex.c
+>  create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
 > 
 
 <<snip>>
 
-> +
-> +static int sr_dev_init(struct omap_hwmod *oh, void *user)
-
-Since *user is unused, you may rename it to *unused
-
+> +static int __init omap_sr_probe(struct platform_device *pdev)
 > +{
-> +	struct omap_sr_data *sr_data;
-> +	struct omap_sr_dev_data *sr_dev_data;
-> +	struct omap_device *od;
-> +	char *name = "smartreflex";
-> +	static int i;
+> +	struct omap_sr *sr_info = kzalloc(sizeof(struct 
+> omap_sr), GFP_KERNEL);
+> +	struct omap_device *odev = to_omap_device(pdev);
+
+Patch3 should be ordered before patch2 in your series. Otherwise,
+this would fail during a git-bisect.
+
+> +	struct omap_sr_data *pdata = pdev->dev.platform_data;
+> +	struct resource *mem, *irq;
+> +	struct dentry *vdd_dbg_dir, *dbg_dir;
+> +	int ret = 0;
 > +
-> +	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
-> +	if (!sr_data) {
-> +		pr_err("%s: Unable to allocate memory for %s 
-> sr_data.Error!\n",
-> +			__func__, oh->name);
+> +	if (!sr_info) {
+> +		dev_err(&pdev->dev, "%s: unable to allocate sr_info\n",
+> +			__func__);
 > +		return -ENOMEM;
 > +	}
 > +
-> +	sr_dev_data = (struct omap_sr_dev_data *)oh->dev_attr;
-> +	if (unlikely(!sr_dev_data)) {
-> +		pr_err("%s: dev atrribute is NULL\n", __func__);
-> +		goto exit;
+> +	if (!pdata) {
+> +		dev_err(&pdev->dev, "%s: platform data 
+> missing\n", __func__);
+> +		return -EINVAL;
 > +	}
 > +
-> +	/*
-> +	 * OMAP3430 ES3.1 chips by default come with Efuse burnt
-> +	 * with parameters required for full functionality of
-> +	 * smartreflex AVS feature like ntarget values , sennenable
-> +	 * and senpenable. So enable the SR AVS feature during boot up
-> +	 * itself if it is a OMAP3430 ES3.1 chip.
-> +	 */
-> +	sr_data->enable_on_init = false;
-> +	if (cpu_is_omap343x())
-> +		if (omap_rev() == OMAP3430_REV_ES3_1)
-> +			sr_data->enable_on_init = true;
-> +
-> +	sr_data->voltdm = 
-> omap_voltage_domain_lookup(sr_dev_data->vdd_name);
-> +	if (IS_ERR(sr_data->voltdm)) {
-> +		pr_err("%s: Unable to get voltage domain 
-> pointer for VDD %s\n",
-> +			__func__, sr_dev_data->vdd_name);
-> +		goto exit;
+> +	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!mem) {
+> +		dev_err(&pdev->dev, "%s: no mem resource\n", __func__);
+> +		ret = -ENODEV;
+> +		goto err_free_devinfo;
 > +	}
 > +
-> +	sr_dev_data->volts_supported = omap_voltage_get_volttable(
-> +			sr_data->voltdm, &sr_dev_data->volt_data);
-> +	if (!sr_dev_data->volts_supported) {
-> +		pr_warning("%s: No Voltage table registerd fo VDD%d."
-> +			"Something really wrong\n\n", __func__, i + 1);
-> +		goto exit;
+> +	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> +
+> +	pm_runtime_enable(&pdev->dev);
+> +
+> +	sr_info->pdev = pdev;
+> +	sr_info->srid = pdev->id;
+> +	sr_info->voltdm = pdata->voltdm;
+> +	sr_info->autocomp_active = false;
+> +	sr_info->ip_type = odev->hwmods[0]->class->rev;
+
+I am not sure if it is okay to get hwmods-info in the driver.
+To avoid too many indirections, it can be obtained before
+omap_device_build() of the device and passed to the driver.
+
+> +	sr_info->base = ioremap(mem->start, resource_size(mem));
+> +	if (!sr_info->base) {
+> +		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
+> +		ret = -ENOMEM;
+> +		goto err_release_region;
 > +	}
-> +
-> +	sr_set_nvalues(sr_dev_data, sr_data);
-> +
-> +	od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
-> +			       omap_sr_latency,
-> +			       ARRAY_SIZE(omap_sr_latency), 0);
 
-Patch 4 should come before patch 3 in the series. Otherwise, this
-would fail during a git-bisect.
+<<snip>>
 
-> +	if (IS_ERR(od))
-> +		pr_warning("%s: Could not build omap_device for 
-> %s: %s.\n\n",
-> +			__func__, name, oh->name);
-
-Return error.
-
-> +exit:
-> +	i++;
-> +	kfree(sr_data);
-> +	return 0;
-> +}
-> +
-> +static int __init omap_devinit_smartreflex(void)
-> +{
-> +	return omap_hwmod_for_each_by_class("smartreflex", 
-> sr_dev_init, NULL);
-> +}
-> +device_initcall(omap_devinit_smartreflex);
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-V Charulatha
