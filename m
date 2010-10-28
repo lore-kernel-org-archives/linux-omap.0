@@ -1,74 +1,144 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [linux-pm] [PATCH] PERF(kernel): Cleanup power events V2
-Date: Wed, 27 Oct 2010 23:43:20 +0200
-Message-ID: <201010272343.20968.rjw@sisk.pl>
-References: <20101026181421.GA30090@Krystal> <201010271222.08921.rjw@sisk.pl> <20101027122115.GA10722@Krystal>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH v4 3/9] OMAP3: PM: Adding smartreflex device file.
+Date: Thu, 28 Oct 2010 11:08:42 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D310D1C@dbde02.ent.ti.com>
+References: <1288195856-11011-1-git-send-email-thara@ti.com>
+ <1288195856-11011-4-git-send-email-thara@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:59314 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753792Ab0J0VoV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 Oct 2010 17:44:21 -0400
-In-Reply-To: <20101027122115.GA10722@Krystal>
+Received: from devils.ext.ti.com ([198.47.26.153]:50118 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752965Ab0J1Fiv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 01:38:51 -0400
+In-Reply-To: <1288195856-11011-4-git-send-email-thara@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: linux-pm@lists.linux-foundation.org, Alan Stern <stern@rowland.harvard.edu>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Pierre Tardy <tardyp@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@elte.hu>, Jean Pihet <jean.pihet@newoldbits.com>, Steven Rostedt <rostedt@goodmis.org>, linux-trace-users@vger.kernel.org, Frank Eigler <fche@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Frederic Weisbecker <fweisbec@gmail.com>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, Tejun Heo <tj@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>
+To: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
-On Wednesday, October 27, 2010, Mathieu Desnoyers wrote:
-> * Rafael J. Wysocki (rjw@sisk.pl) wrote:
-...
-> 
-> Hrm, then why export pm_runtime_get_noresume() at all ?
+Thara, 
 
-Basically, the PM core needs it for some obscure stuff.  Beyond that people
-really should use it with care (preferably avoid using it at all).
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gopinath, Thara
+> Sent: Wednesday, October 27, 2010 9:41 PM
+> To: linux-omap@vger.kernel.org
+> Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson, 
+> Benoit; Sripathy, Vishwanath; Sawant, Anand; Gopinath, Thara
+> Subject: [PATCH v4 3/9] OMAP3: PM: Adding smartreflex device file.
+> 
+> This patch adds support for device registration of various
+> smartreflex module present in the system. This patch introduces
+> the platform data for smartreflex devices which include
+> the efused and test n-target vaules, module enable/disable
+> pointers and a parameter to indicate whether smartreflex
+> autocompensation needs to be enabled on init or not.
+> Currently auocompensation is enabled on init by default
+> for OMAP3430 ES3.1 chip.
+> 
+> Signed-off-by: Thara Gopinath <thara@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile    |    2 +-
+>  arch/arm/mach-omap2/sr_device.c |  177 
+> +++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 178 insertions(+), 1 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/sr_device.c
+> 
 
-> I don't feel comfortable with some of the pm_runtime_get_noresume() callers.
-> 
-> > 
-> > So if you don't want to resume the device immediately after increasing its
-> > usage_count (in which case it's better to use pm_runtime_get_sync()), you
-> > should do something like this:
-> > 
-> > 1) pm_runtime_get_noresume(dev);
-> > 1a) pm_runtime_barrier(dev);  // That takes care of all pending requests etc.
-> > 
-> > 2) ...
-> >  
-> > 3) pm_runtime_put_noidle(dev);
-> > 
-> > [The meaning of pm_runtime_barrier() is that all of the runtime PM activity
-> > started before the barrier has been completed when it returns.]
-> > 
-> > There's one place in the PM core where that really is necessary, but I wouldn't
-> > recommend anyone doing anything like it in a driver.
-> 
-> grep -r pm_runtime_get_noresume drivers/    hands out very interesting info.
-> 
-> e.g.:
-> 
-> drivers/usb/core/drivers.c: usb_autopm_get_interface_async()
-> 
->         pm_runtime_get_noresume(&intf->dev);
->         s = ACCESS_ONCE(intf->dev.power.runtime_status);
->         if (s == RPM_SUSPENDING || s == RPM_SUSPENDED)
->                 status = pm_request_resume(&intf->dev);
-> 
-> How is this supposed to work ?
-> 
-> If the ACCESS_ONCE can be reordered before the atomic_inc(), then I fear the
-> device can be suspended even after the check.
-> 
-> My point is that a get/put semantic should imply memory barriers, especially if
-> these are exported APIs.
+<<snip>>
 
-Well, IMO adding a memory barrier to pm_runtime_get_noresume() wouldn't really
-change a lot (it still would be racy with respect to some other runtime PM helper
-funtions).  That said I guess we should put a "handle with care" sticker on it.
+> +
+> +static int sr_dev_init(struct omap_hwmod *oh, void *user)
 
-Thanks,
-Rafael
+Since *user is unused, you may rename it to *unused
+
+> +{
+> +	struct omap_sr_data *sr_data;
+> +	struct omap_sr_dev_data *sr_dev_data;
+> +	struct omap_device *od;
+> +	char *name = "smartreflex";
+> +	static int i;
+> +
+> +	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
+> +	if (!sr_data) {
+> +		pr_err("%s: Unable to allocate memory for %s 
+> sr_data.Error!\n",
+> +			__func__, oh->name);
+> +		return -ENOMEM;
+> +	}
+> +
+> +	sr_dev_data = (struct omap_sr_dev_data *)oh->dev_attr;
+> +	if (unlikely(!sr_dev_data)) {
+> +		pr_err("%s: dev atrribute is NULL\n", __func__);
+> +		goto exit;
+> +	}
+> +
+> +	/*
+> +	 * OMAP3430 ES3.1 chips by default come with Efuse burnt
+> +	 * with parameters required for full functionality of
+> +	 * smartreflex AVS feature like ntarget values , sennenable
+> +	 * and senpenable. So enable the SR AVS feature during boot up
+> +	 * itself if it is a OMAP3430 ES3.1 chip.
+> +	 */
+> +	sr_data->enable_on_init = false;
+> +	if (cpu_is_omap343x())
+> +		if (omap_rev() == OMAP3430_REV_ES3_1)
+> +			sr_data->enable_on_init = true;
+> +
+> +	sr_data->voltdm = 
+> omap_voltage_domain_lookup(sr_dev_data->vdd_name);
+> +	if (IS_ERR(sr_data->voltdm)) {
+> +		pr_err("%s: Unable to get voltage domain 
+> pointer for VDD %s\n",
+> +			__func__, sr_dev_data->vdd_name);
+> +		goto exit;
+> +	}
+> +
+> +	sr_dev_data->volts_supported = omap_voltage_get_volttable(
+> +			sr_data->voltdm, &sr_dev_data->volt_data);
+> +	if (!sr_dev_data->volts_supported) {
+> +		pr_warning("%s: No Voltage table registerd fo VDD%d."
+> +			"Something really wrong\n\n", __func__, i + 1);
+> +		goto exit;
+> +	}
+> +
+> +	sr_set_nvalues(sr_dev_data, sr_data);
+> +
+> +	od = omap_device_build(name, i, oh, sr_data, sizeof(*sr_data),
+> +			       omap_sr_latency,
+> +			       ARRAY_SIZE(omap_sr_latency), 0);
+
+Patch 4 should come before patch 3 in the series. Otherwise, this
+would fail during a git-bisect.
+
+> +	if (IS_ERR(od))
+> +		pr_warning("%s: Could not build omap_device for 
+> %s: %s.\n\n",
+> +			__func__, name, oh->name);
+
+Return error.
+
+> +exit:
+> +	i++;
+> +	kfree(sr_data);
+> +	return 0;
+> +}
+> +
+> +static int __init omap_devinit_smartreflex(void)
+> +{
+> +	return omap_hwmod_for_each_by_class("smartreflex", 
+> sr_dev_init, NULL);
+> +}
+> +device_initcall(omap_devinit_smartreflex);
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
