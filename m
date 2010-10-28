@@ -1,155 +1,105 @@
 From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
-Date: Thu, 28 Oct 2010 20:57:33 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035ECA9D57@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB030D310D1D@dbde02.ent.ti.com>
+Subject: RE: [PATCH v4 0/9] OMAP3: Adding Smartreflex and Voltage driver
+ support
+Date: Thu, 28 Oct 2010 21:02:48 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB035ECA9D5D@dbde02.ent.ti.com>
+References: <1288195856-11011-1-git-send-email-thara@ti.com>
+ <4CC85F8F.8020705@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50237 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755503Ab0J1P1j convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 11:27:39 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB030D310D1D@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49246 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932572Ab0J1Pcy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 Oct 2010 11:32:54 -0400
+In-Reply-To: <4CC85F8F.8020705@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Varadarajan, Charulatha" <charu@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
 
 
 >>-----Original Message-----
->>From: Varadarajan, Charulatha
->>Sent: Thursday, October 28, 2010 11:09 AM
->>To: Gopinath, Thara; linux-omap@vger.kernel.org
->>Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson, Benoit; Sripathy,
->>Vishwanath; Sawant, Anand; Gopinath, Thara
->>Subject: RE: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
+>>From: Menon, Nishanth
+>>Sent: Wednesday, October 27, 2010 10:51 PM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; paul@pwsan.com; khilman@deeprootsystems.com;
+>>Cousson, Benoit; Sripathy, Vishwanath; Sawant, Anand
+>>Subject: Re: [PATCH v4 0/9] OMAP3: Adding Smartreflex and Voltage driver
+>>support
 >>
->>
->>Thara,
->>
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org
->>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Thara Gopinath
->>> Sent: Wednesday, October 27, 2010 9:41 PM
->>> To: linux-omap@vger.kernel.org
->>> Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson,
->>> Benoit; Sripathy, Vishwanath; Sawant, Anand; Gopinath, Thara
->>> Subject: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
->>>
->>> SmartReflex modules do adaptive voltage control for real-time
->>> voltage adjustments. With Smartreflex the power supply voltage
->>> can be adapted to the silicon performance(manufacturing process,
->>> temperature induced performance, age induced performance etc).
->>>
->>> There are differnet classes of smartreflex implementation.
->>> 	Class-0: Manufacturing Test Calibration
->>> 	Class-1: Boot-Time Software Calibration
->>> 	Class-2: Continuous Software Calibration
->>> 	Class-3: Continuous Hardware Calibration
->>> 	Class-4: Fully Integrated Power Management
->>>
->>> OMAP3 has two smartreflex modules one associated with VDD MPU and the
->>> other associated with VDD CORE.
->>> This patch adds support for  smartreflex driver. The driver
->>> is designed
->>> for Class-1 , Class-2 and Class-3 support and is  a platform driver.
->>> Smartreflex driver can be enabled through a Kconfig option
->>> "SmartReflex support" under "System type"->"TI OMAP
->>> implementations" menu.
->>>
->>> Smartreflex autocompensation feature can be enabled runtime through
->>> a debug fs option.
->>> To enable smartreflex autocompensation feature
->>> 	echo 1 > /debug/voltage/vdd_<X>/smartreflex/autocomp
->>> To disable smartreflex autocompensation feature
->>> 	echo 0 > /debug/voltage/vdd_<X>/smartreflex/autocomp
->>>
->>> where X can be mpu, core , iva etc.
->>>
->>> This patch contains code originally in linux omap pm branch.
->>> Major contributors to this driver are
->>> Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
->>> Nishant Menon, Kevin Hilman.
->>>
->>> Signed-off-by: Thara Gopinath <thara@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/Makefile                  |    1 +
->>>  arch/arm/mach-omap2/smartreflex.c             |  975
->>> +++++++++++++++++++++++++
->>>  arch/arm/plat-omap/Kconfig                    |   36 +
->>>  arch/arm/plat-omap/include/plat/smartreflex.h |  271 +++++++
->>>  4 files changed, 1283 insertions(+), 0 deletions(-)
->>>  create mode 100644 arch/arm/mach-omap2/smartreflex.c
->>>  create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
->>>
->>
->><<snip>>
->>
->>> +static int __init omap_sr_probe(struct platform_device *pdev)
->>> +{
->>> +	struct omap_sr *sr_info = kzalloc(sizeof(struct
->>> omap_sr), GFP_KERNEL);
->>> +	struct omap_device *odev = to_omap_device(pdev);
->>
->>Patch3 should be ordered before patch2 in your series. Otherwise,
->>this would fail during a git-bisect.
+>>Gopinath, Thara had written, on 10/27/2010 11:10 AM, the following:
+>>> This patch series introduces smartreflex and voltage driver support
+>>> for OMAP3430 and OMAP3630. SmartReflex modules do adaptive voltage
+>>> control for real-time voltage adjustments.
+>>[..]
+>>thanks for the revamped set
 
-Again why ?? All patches individually compile and boot.
+You are most welcome!!
+
+>>>
+>>> This patch series is based against lo-master with the following additional
+>>> patches applied.
+>>> 	https://patchwork.kernel.org/patch/266911/
+>>> 	https://patchwork.kernel.org/patch/266921/
+>>> 	https://patchwork.kernel.org/patch/266931/
+>>> 	https://patchwork.kernel.org/patch/183712/
+>>> 	https://patchwork.kernel.org/patch/285872/
+>>>
+>>> The entire series with the dependencies are available at
+>>>         http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=summary
+>>>         head: thara-pm-sr
+>>>
+>>> This patch series has been tested on OMAP3430 SDP with omap2plus_defconfig
+>>> with the following menuconfig options enabled.
+>>> System type -> TI OMAP Implementations -> Smartreflex Support
+>>> System type -> TI OMAP Implementations ->
+>>> 		Class 3 mode of Smartreflex Implementation
+>>>
+>>Thanks for hosting the branch, Looking at:
+
+Again glad tat u liked it:-)
+
+>>http://dev.omapzoom.org/?p=thara/omap-dvfs.git;a=shortlog;h=refs/heads/thara-
+>>pm-sr
+>>I am guessing DVFS is missing in this branch? Is it possible to give it
+>>a test drive?
+
+Yes.. This is exactly what I am trying to do. Will keep you updated.
+
 >>
->>> +	struct omap_sr_data *pdata = pdev->dev.platform_data;
->>> +	struct resource *mem, *irq;
->>> +	struct dentry *vdd_dbg_dir, *dbg_dir;
->>> +	int ret = 0;
->>> +
->>> +	if (!sr_info) {
->>> +		dev_err(&pdev->dev, "%s: unable to allocate sr_info\n",
->>> +			__func__);
->>> +		return -ENOMEM;
->>> +	}
->>> +
->>> +	if (!pdata) {
->>> +		dev_err(&pdev->dev, "%s: platform data
->>> missing\n", __func__);
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>> +	if (!mem) {
->>> +		dev_err(&pdev->dev, "%s: no mem resource\n", __func__);
->>> +		ret = -ENODEV;
->>> +		goto err_free_devinfo;
->>> +	}
->>> +
->>> +	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->>> +
->>> +	pm_runtime_enable(&pdev->dev);
->>> +
->>> +	sr_info->pdev = pdev;
->>> +	sr_info->srid = pdev->id;
->>> +	sr_info->voltdm = pdata->voltdm;
->>> +	sr_info->autocomp_active = false;
->>> +	sr_info->ip_type = odev->hwmods[0]->class->rev;
+>>Also curious should:
+>>"OMAP: OPP: twl/tps: Introduce TWL/TPS-specific code should probably be
+>>" dropped with "OMAP3: PM: Register TWL4030 pmic info with the voltage" ?
+
+Hmm.. Last time I suggested moving the contents of this patch to twl-core.c
+Nobody seemed to much keen. Hence I retained the plat-omap/opp-twl-tpl.c file.
+In fact "OMAP3: PM: Register TWL4030 pmic info with the voltage" registers the
+params from plat-omap/opp-twl-tpl.c. But if we have a consensus I will just drop this patch and have the pmic params passed from twl-core.c.
+
 >>
->>I am not sure if it is okay to get hwmods-info in the driver.
->>To avoid too many indirections, it can be obtained before
->>omap_device_build() of the device and passed to the driver.
-mmm. yep we could do it also. Maybe Kevin/Benoit needs to confirm the
-correct way of doing this.
+>>[...]
+>>
+>>my 2cents: If that tree were organized based on branches which depend on
+>>each other it will be easier to identify the dependencies :)
+>>probably:
+>>kernel.org (now that l-o is merged - potential 2.6.37-rc1)
+>>  |- clock patches  -\
+>>  |- DVFS series    -|
+>>  |- OMAP OPP series |
+>>                     |-merged-based -
+>>				 |-voltage layer & SR series perhaps
+>>				 	|- twl optimization
+>>						|- board changes
+>>						*** final code ***
+>>Just 2 cents to make it easier for folks who are not in PM mostly to see
+>>how everything falls together in place..
+
+I agree. But then I need some five patches on top of potential 2.6.37-rc1,
+which are not present in any branch. Are you asking me to generate separate branches for all these patches?
 
 Regards
 Thara
->>
->>> +	sr_info->base = ioremap(mem->start, resource_size(mem));
->>> +	if (!sr_info->base) {
->>> +		dev_err(&pdev->dev, "%s: ioremap fail\n", __func__);
->>> +		ret = -ENOMEM;
->>> +		goto err_release_region;
->>> +	}
->>
->><<snip>>
->>
->>-V Charulatha
