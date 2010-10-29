@@ -1,46 +1,66 @@
-From: shubhrajyoti@ti.com
-Subject: [PATCH] McBSP: Fix the free variable update at remove.
-Date: Fri, 29 Oct 2010 13:49:27 +0530
-Message-ID: <1288340367-29956-1-git-send-email-shubhrajyoti@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [Patch v4] OMAP: AM3517/05: Add craneboard support
+Date: Fri, 29 Oct 2010 15:02:15 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593023475EBE5@dbde02.ent.ti.com>
+References: <[PATCH] OMAP: AM3517/05: Add craneboard support>
+ <1288336394-6320-1-git-send-email-srinath@mistralsolutions.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55286 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755715Ab0J2ITc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Oct 2010 04:19:32 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o9T8JTHd032529
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 29 Oct 2010 03:19:31 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:46325 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751889Ab0J2JcX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Oct 2010 05:32:23 -0400
+In-Reply-To: <1288336394-6320-1-git-send-email-srinath@mistralsolutions.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: vikram.pandita@ti.com, Shubhrajyoti D <shubhrajyoti@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
+To: "srinath@mistralsolutions.com" <srinath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kridner, Jason" <jdk@ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "nagendra@mistralsolutions.com" <nagendra@mistralsolutions.com>, "umeshk@mistralsolutions.com" <umeshk@mistralsolutions.com>
 
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> srinath@mistralsolutions.com
+> Sent: Friday, October 29, 2010 12:43 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Kridner, Jason; tony@atomide.com; 
+> khilman@deeprootsystems.com; Menon, Nishanth; 
+> nagendra@mistralsolutions.com; umeshk@mistralsolutions.com; Srinath
+> Subject: [Patch v4] OMAP: AM3517/05: Add craneboard support
+> 
+> From: Srinath <srinath@mistralsolutions.com>
+> 
+> Craneboard is a hardware development platform based on the
+> Sitara AM3517 ARM Cortex - A8 microprocessor device. This is a
+> low cost reference design.
+> 
+> This patch adds basic board file. Detailed support will follow in
+> subsequent patches.
+> 
+>   [1] http://www.ti.com/sitara
+>   [2] http://www.ti.com/arm
+>   [3] 
+> http://tiexpressdsp.com/index.php?title=Applications_Processor
+s_Crossreference
+>   [4] http://marc.info/?l=linux-omap&m=125615009412281&w=2
+>   [5] http://www.mistralsolutions.com/products/craneboard.php
+> 
+> History and comments:
+> http://marc.info/?l=linux-omap&w=2&r=1&s=craneboard&q=b
+> 
+> Signed-off-by: Srinath <srinath@mistralsolutions.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig                  |    5 ++
+>  arch/arm/mach-omap2/Makefile                 |    2 +
+>  arch/arm/mach-omap2/board-am3517crane.c      |   69 
+> ++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/uncompress.h |    1 +
+>  4 files changed, 77 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
+> 
 
-At remove the free variable is wrongly updated.Attempting to solve the same.
+Acked-by: Sanjeev Premi <premi@ti.com>
 
-
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Reported-by: Vikram Pandita <vikram.pandita@ti.com>
----
- arch/arm/plat-omap/mcbsp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index eac4b97..6802ed1 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -1845,7 +1845,7 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
- 
- 		mcbsp->fclk = NULL;
- 		mcbsp->iclk = NULL;
--		mcbsp->free = 0;
-+		mcbsp->free = 1;
- 		mcbsp->dev = NULL;
- 	}
- 
--- 
-1.7.0.4
-
+[snip]
