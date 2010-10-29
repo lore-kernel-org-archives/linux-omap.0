@@ -1,164 +1,149 @@
-From: srinath@mistralsolutions.com
-Subject: [Patch v4] OMAP: AM3517/05: Add craneboard support
-Date: Fri, 29 Oct 2010 12:43:14 +0530
-Message-ID: <1288336394-6320-1-git-send-email-srinath@mistralsolutions.com>
-References: <[PATCH] OMAP: AM3517/05: Add craneboard support>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH v3 01/13] OMAP: DMA: Replace read/write macros with
+ functions
+Date: Fri, 29 Oct 2010 13:45:00 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402DBF58654@dbde02.ent.ti.com>
+References: <1288099513-1854-1-git-send-email-manjugk@ti.com>
+ <1288099513-1854-2-git-send-email-manjugk@ti.com> <4CC6EA5A.8070302@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E9402DBEBEC0B@dbde02.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C014FD7F3FE@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:57007 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755112Ab0J2H2x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Oct 2010 03:28:53 -0400
-Received: by pwj3 with SMTP id 3so708690pwj.19
-        for <linux-omap@vger.kernel.org>; Fri, 29 Oct 2010 00:28:52 -0700 (PDT)
-In-Reply-To: <[PATCH] OMAP: AM3517/05: Add craneboard support>
+Received: from devils.ext.ti.com ([198.47.26.153]:42464 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755776Ab0J2IPM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Oct 2010 04:15:12 -0400
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C014FD7F3FE@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: jdk@ti.com, tony@atomide.com, khilman@deeprootsystems.com, nm@ti.com, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com, Srinath <srinath@mistralsolutions.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-From: Srinath <srinath@mistralsolutions.com>
-
-Craneboard is a hardware development platform based on the
-Sitara AM3517 ARM Cortex - A8 microprocessor device. This is a
-low cost reference design.
-
-This patch adds basic board file. Detailed support will follow in
-subsequent patches.
-
-  [1] http://www.ti.com/sitara
-  [2] http://www.ti.com/arm
-  [3] http://tiexpressdsp.com/index.php?title=Applications_Processors_Crossreference
-  [4] http://marc.info/?l=linux-omap&m=125615009412281&w=2
-  [5] http://www.mistralsolutions.com/products/craneboard.php
-
-History and comments:
-http://marc.info/?l=linux-omap&w=2&r=1&s=craneboard&q=b
-
-Signed-off-by: Srinath <srinath@mistralsolutions.com>
----
- arch/arm/mach-omap2/Kconfig                  |    5 ++
- arch/arm/mach-omap2/Makefile                 |    2 +
- arch/arm/mach-omap2/board-am3517crane.c      |   69 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/uncompress.h |    1 +
- 4 files changed, 77 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index ab784bf..3688515 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -174,6 +174,11 @@ config MACH_OMAP3517EVM
- 	default y
- 	select OMAP_PACKAGE_CBB
  
-+config MACH_CRANEBOARD
-+	bool "AM3517/05 CRANE board"
-+	depends on ARCH_OMAP3
-+	select OMAP_PACKAGE_CBB
-+
- config MACH_OMAP3_PANDORA
- 	bool "OMAP3 Pandora"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 7352412..f885037 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -170,6 +170,8 @@ obj-$(CONFIG_MACH_OMAP4_PANDA)		+= board-omap4panda.o \
- 
- obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-am3517evm.o
- 
-+obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
-+
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o \
- 					   hsmmc.o
- # Platform specific device init code
-diff --git a/arch/arm/mach-omap2/board-am3517crane.c b/arch/arm/mach-omap2/board-am3517crane.c
-new file mode 100644
-index 0000000..13ead33
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-am3517crane.c
-@@ -0,0 +1,69 @@
-+/*
-+ * Support for AM3517/05 Craneboard
-+ * http://www.mistralsolutions.com/products/craneboard.php
-+ *
-+ * Copyright (C) 2010 Mistral Solutions Pvt Ltd. <www.mistralsolutions.com>
-+ * Author: R.Srinath <srinath@mistralsolutions.com>
-+ *
-+ * Based on mach-omap2/board-am3517evm.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as  published by the
-+ * Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/gpio.h>
-+
-+#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
-+
-+#include <plat/board.h>
-+#include <plat/common.h>
-+
-+#include "mux.h"
-+
-+/* Board initialization */
-+static struct omap_board_config_kernel am3517_crane_config[] __initdata = {
-+};
-+
-+#ifdef CONFIG_OMAP_MUX
-+static struct omap_board_mux board_mux[] __initdata = {
-+	{ .reg_offset = OMAP_MUX_TERMINATOR },
-+};
-+#else
-+#define board_mux	NULL
-+#endif
-+
-+static void __init am3517_crane_init_irq(void)
-+{
-+	omap_board_config = am3517_crane_config;
-+	omap_board_config_size = ARRAY_SIZE(am3517_crane_config);
-+
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
-+static void __init am3517_crane_init(void)
-+{
-+	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
-+	omap_serial_init();
-+}
-+
-+MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
-+	.boot_params	= 0x80000100,
-+	.map_io		= omap3_map_io,
-+	.reserve	= omap_reserve,
-+	.init_irq	= am3517_crane_init_irq,
-+	.init_machine	= am3517_crane_init,
-+	.timer		= &omap_timer,
-+MACHINE_END
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 9036e37..229fbf2 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -145,6 +145,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* omap3 based boards using UART3 */
- 		DEBUG_LL_OMAP3(3, cm_t35);
- 		DEBUG_LL_OMAP3(3, cm_t3517);
-+		DEBUG_LL_OMAP3(3, craneboard);
- 		DEBUG_LL_OMAP3(3, igep0020);
- 		DEBUG_LL_OMAP3(3, igep0030);
- 		DEBUG_LL_OMAP3(3, nokia_rx51);
--- 
-1.7.1.226.g770c5
 
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Wednesday, October 27, 2010 7:56 PM
+> To: G, Manjunath Kondaiah
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Cousson, Benoit; Kevin 
+> Hilman; Shilimkar, Santosh
+> Subject: RE: [PATCH v3 01/13] OMAP: DMA: Replace read/write 
+> macros with functions
+> 
+[...]
+> > This approach is as per i2c driver as suggested by kevin.
+> > http://www.spinics.net/lists/linux-omap/msg36446.html
+> Thanks for pointing this out. I2c has what 18 registers while 
+> dma has over 40 registers :( patch 11 [1] now I understand 
+> this step -> this merges 
+> together at later patchset - it starts to make sense now. It 
+> becomes reg_map. Thanks - looks like a good change in the 
+> eventual code.
+> 
+> 
+> [...]
+> > > > +static inline void dma_write(u32 val, int reg, int lch) {
+> > > > +       if (cpu_class_is_omap1()) {
+> > > > +               if (reg > OMAP1_CH_COMMON_START)
+> > > > +                       __raw_writew(val, dma_base +
+> > > > +                               (reg_map_omap1[reg] + 
+> 0x40 * lch));
+> > > > +               else
+> > > > +                       __raw_writew(val, dma_base +
+> > > reg_map_omap1[reg]);
+> > > > +       } else {
+> > > > +               if (reg > OMAP2_CH_COMMON_START)
+> > > > +                       __raw_writel(val, dma_base +
+> > > > +                               (reg_map_omap2[reg] + 
+> 0x60 * lch));
+> > > > +               else
+> > > > +                       __raw_writel(val, dma_base +
+> > > reg_map_omap2[reg]);
+> > > > +       }
+> > > > +}
+> Eventual code looks like this:
+> 
+> 62 static inline void dma_write(u32 val, int reg, int lch)
+> 63 {
+> 64         if (d->dev_caps & IS_WORD_16) {
+> 65                 if (reg >= CH_COMMON_START)
+> 66                         __raw_writew(val, dma_base +
+> 67                                 (reg_map[reg] + 0x40 * lch));
+> 68                 else
+> 69                         __raw_writew(val, dma_base + reg_map[reg]);
+> 70         } else {
+> 71                 if (reg > CH_COMMON_START)
+> 72                         __raw_writel(val, dma_base +
+> 73                                 (reg_map[reg] + 0x60 * lch));
+> 74                 else
+> 75                         __raw_writel(val, dma_base + reg_map[reg]);
+> 76         }
+> 77 }
+> I don't really see how inline will really help here!
+> 
+> > > > +
+> > > > +static inline u32 dma_read(int reg, int lch) {
+> > > > +       u32 val;
+> > > > +
+> > > > +       if (cpu_class_is_omap1()) {
+> > > > +               if (reg > OMAP1_CH_COMMON_START)
+> > > > +                       val = __raw_readw(dma_base +
+> > > > +                                       (reg_map_omap1[reg]
+> > > + 0x40 * lch));
+> > > > +               else
+> > > > +                       val = __raw_readw(dma_base +
+> > > reg_map_omap1[reg]);
+> > > > +       } else {
+> > > > +               if (reg > OMAP2_CH_COMMON_START)
+> > > > +                       val = __raw_readl(dma_base +
+> > > > +                                       (reg_map_omap2[reg]
+> > > + 0x60 * lch));
+> > > > +               else
+> > > > +                       val = __raw_readl(dma_base +
+> > > reg_map_omap2[reg]);
+> > > > +       }
+> > > > +       return val;
+> > > > +}
+> > > What is the benefit of using inline function here? would'nt
+> > > we increase code size? cant we use a function pointer
+> > > initialized to class1 or rest?
+> > > Quote from CodingStyle (15):
+> > > "A reasonable rule of thumb is to not put inline at functions
+> > > that have more than 3 lines of code in them. An exception to
+> > > this rule are the cases where a parameter is known to be a
+> > > compiletime constant, and as a result of this constantness
+> > > you *know* the compiler will be able to optimize most of your
+> > > function away at compile time. For a good example of this
+> > > later case, see the kmalloc() inline function.
+> > > "
+> > > is the expectation that cpu_class_is_omap1 compile time
+> > > constant hence the actual compiled in code is smaller
+> > > -candidate for inline?
+> > 
+> > Detailed discussion and alignment can be found at:
+> > http://www.spinics.net/lists/linux-omap/thrd6.html
+> Better link:
+> http://marc.info/?t=128264802300006&r=1&w=2
+> 
+> > 
+> > Search for:
+> > [PATCH v2 07/11] OMAP2/3/4: DMA: HWMOD: Device registration
+> 
+> http://marc.info/?l=linux-omap&m=128464661906497&w=2
+> my question is slightly different here - debate of suggestion 
+> to use inline
+> is based on the size of code involved, the discussion in the thread 
+> discussed around 3 lines of code, which made sense, 
+> unfortunately, the 
+> thread does not answer my question unfortunately for *this* 
+> specific patch
+> - OR do you wish to point me to some specific link which answers this?
+
+for plat-omap dma code, these read/write api's can be replaced with function
+pointers.
+
+-Manjunath
