@@ -1,97 +1,111 @@
-From: "Srinath R" <srinath@mistralsolutions.com>
-Subject: RE: [Patch v3] OMAP: AM3517/05: Add craneboard support
-Date: Fri, 29 Oct 2010 10:32:14 +0530
-Message-ID: <000001cb7726$77a7cf60$66f76e20$@com>
-References: <[PATCH] OMAP: AM3517/05: Add craneboard support> <1288272552-22303-1-git-send-email-srinath@mistralsolutions.com> <B85A65D85D7EB246BE421B3FB0FBB593023475E6FE@dbde02.ent.ti.com>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: RE: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver support.
+Date: Fri, 29 Oct 2010 10:30:41 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB030D398AEE@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB030D310D1D@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB035ECA9D57@dbde02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB030D398ADB@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB035ECA9E8B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:35195 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180Ab0J2E5g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Oct 2010 00:57:36 -0400
-Received: by ywk9 with SMTP id 9so1763000ywk.19
-        for <linux-omap@vger.kernel.org>; Thu, 28 Oct 2010 21:57:35 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB593023475E6FE@dbde02.ent.ti.com>
-Content-Language: en-us
+Received: from devils.ext.ti.com ([198.47.26.153]:33458 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752168Ab0J2FAt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Oct 2010 01:00:49 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB035ECA9E8B@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "'Premi, Sanjeev'" <premi@ti.com>, linux-omap@vger.kernel.org
-Cc: "'Kridner, Jason'" <jdk@ti.com>, tony@atomide.com, khilman@deeprootsystems.com, "'Menon, Nishanth'" <nm@ti.com>, nagendra@mistralsolutions.com, umeshk@mistralsolutions.com
+To: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "Sawant, Anand" <sawant@ti.com>
 
 
-
------Original Message-----
-From: Premi, Sanjeev [mailto:premi@ti.com] 
-Sent: Thursday, October 28, 2010 7:47 PM
-To: srinath@mistralsolutions.com; linux-omap@vger.kernel.org
-Cc: Kridner, Jason; tony@atomide.com; khilman@deeprootsystems.com; Menon,
-Nishanth; nagendra@mistralsolutions.com; umeshk@mistralsolutions.com
-Subject: RE: [Patch v3] OMAP: AM3517/05: Add craneboard support
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> srinath@mistralsolutions.com
-> Sent: Thursday, October 28, 2010 6:59 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Kridner, Jason; tony@atomide.com; 
-> khilman@deeprootsystems.com; Menon, Nishanth; 
-> nagendra@mistralsolutions.com; umeshk@mistralsolutions.com; Srinath
-> Subject: [Patch v3] OMAP: AM3517/05: Add craneboard support
+> >>> >>> -----Original Message-----
+> >>> >>> From: linux-omap-owner@vger.kernel.org
+> >>> >>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Thara
+> Gopinath
+> >>> >>> Sent: Wednesday, October 27, 2010 9:41 PM
+> >>> >>> To: linux-omap@vger.kernel.org
+> >>> >>> Cc: paul@pwsan.com; khilman@deeprootsystems.com; Cousson,
+> >>> >>> Benoit; Sripathy, Vishwanath; Sawant, Anand; Gopinath, Thara
+> >>> >>> Subject: [PATCH v4 2/9] OMAP3: PM: Adding smartreflex driver
+> support.
+> >>> >>>
+> >>> >>> SmartReflex modules do adaptive voltage control for real-time
+> >>> >>> voltage adjustments. With Smartreflex the power supply voltage
+> >>> >>> can be adapted to the silicon performance(manufacturing process,
+> >>> >>> temperature induced performance, age induced performance etc).
+> >>> >>>
+> >>> >>> There are differnet classes of smartreflex implementation.
+> >>> >>> 	Class-0: Manufacturing Test Calibration
+> >>> >>> 	Class-1: Boot-Time Software Calibration
+> >>> >>> 	Class-2: Continuous Software Calibration
+> >>> >>> 	Class-3: Continuous Hardware Calibration
+> >>> >>> 	Class-4: Fully Integrated Power Management
+> >>> >>>
+> >>> >>> OMAP3 has two smartreflex modules one associated with VDD MPU and
+> the
+> >>> >>> other associated with VDD CORE.
+> >>> >>> This patch adds support for  smartreflex driver. The driver
+> >>> >>> is designed
+> >>> >>> for Class-1 , Class-2 and Class-3 support and is  a platform
+> driver.
+> >>> >>> Smartreflex driver can be enabled through a Kconfig option
+> >>> >>> "SmartReflex support" under "System type"->"TI OMAP
+> >>> >>> implementations" menu.
+> >>> >>>
+> >>> >>> Smartreflex autocompensation feature can be enabled runtime
+> through
+> >>> >>> a debug fs option.
+> >>> >>> To enable smartreflex autocompensation feature
+> >>> >>> 	echo 1 > /debug/voltage/vdd_<X>/smartreflex/autocomp
+> >>> >>> To disable smartreflex autocompensation feature
+> >>> >>> 	echo 0 > /debug/voltage/vdd_<X>/smartreflex/autocomp
+> >>> >>>
+> >>> >>> where X can be mpu, core , iva etc.
+> >>> >>>
+> >>> >>> This patch contains code originally in linux omap pm branch.
+> >>> >>> Major contributors to this driver are
+> >>> >>> Lesly A M, Rajendra Nayak, Kalle Jokiniemi, Paul Walmsley,
+> >>> >>> Nishant Menon, Kevin Hilman.
+> >>> >>>
+> >>> >>> Signed-off-by: Thara Gopinath <thara@ti.com>
+> >>> >>> ---
+> >>> >>>  arch/arm/mach-omap2/Makefile                  |    1 +
+> >>> >>>  arch/arm/mach-omap2/smartreflex.c             |  975
+> >>> >>> +++++++++++++++++++++++++
+> >>> >>>  arch/arm/plat-omap/Kconfig                    |   36 +
+> >>> >>>  arch/arm/plat-omap/include/plat/smartreflex.h |  271 +++++++
+> >>> >>>  4 files changed, 1283 insertions(+), 0 deletions(-)
+> >>> >>>  create mode 100644 arch/arm/mach-omap2/smartreflex.c
+> >>> >>>  create mode 100644 arch/arm/plat-omap/include/plat/smartreflex.h
+> >>> >>>
+> >>> >>
+> >>> >><<snip>>
+> >>> >>
+> >>> >>> +static int __init omap_sr_probe(struct platform_device *pdev)
+> >>> >>> +{
+> >>> >>> +	struct omap_sr *sr_info = kzalloc(sizeof(struct
+> >>> >>> omap_sr), GFP_KERNEL);
+> >>> >>> +	struct omap_device *odev = to_omap_device(pdev);
+> >>> >>
+> >>> >>Patch3 should be ordered before patch2 in your series. Otherwise,
+> >>> >>this would fail during a git-bisect.
+> >>>
+> >>> Again why ?? All patches individually compile and boot.
+> >>
+> >>omap_device_build() for this device is being done in the next patch.
+> >>Hence I gave this input. But I believe that this does not harm because
+> >>the probe would not get called. Correct me if I am wrong.
 > 
+> Exactly probe will not get called. So I do not think the patch ordering
+> needs to change.
 
-[snip]
+Okay. But for the other patch, I think it is required to reorder the patch 
+series because the oh data is accessed in omap_device_build() and omap_hwmod_each_by_class(), but oh data is not filled by then.
 
-> +MACHINE_START(CRANEBOARD, "AM3517/05 CRANEBOARD")
-
-Compared against AM3715, I see these missing:
-	.phys_io	= 0x48000000,
-	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-
-Are these not required?
-
-[Srintah] According to commit ID de01f1735c9a8c00b3625507c7327a1f0b347b7b,
-io_pg_offst and phys_io members are 
-no more required in struct machine_desc
-
-> +	.boot_params	= 0x80000100,
-> +	.map_io		= omap3_map_io,
-> +	.reserve        = omap_reserve,
-              ^^^^^^^^
-Check for mix of space & tabs here.
-
-[Srintah] Sure, I will update and re-submit patch 
-
-~sanjeev
-
-> +	.init_irq	= am3517_crane_init_irq,
-> +	.init_machine	= am3517_crane_init,
-> +	.timer		= &omap_timer,
-> +MACHINE_END
-> diff --git a/arch/arm/plat-omap/include/plat/uncompress.h 
-> b/arch/arm/plat-omap/include/plat/uncompress.h
-> index 9036e37..229fbf2 100644
-> --- a/arch/arm/plat-omap/include/plat/uncompress.h
-> +++ b/arch/arm/plat-omap/include/plat/uncompress.h
-> @@ -145,6 +145,7 @@ static inline void 
-> __arch_decomp_setup(unsigned long arch_id)
->  		/* omap3 based boards using UART3 */
->  		DEBUG_LL_OMAP3(3, cm_t35);
->  		DEBUG_LL_OMAP3(3, cm_t3517);
-> +		DEBUG_LL_OMAP3(3, craneboard);
->  		DEBUG_LL_OMAP3(3, igep0020);
->  		DEBUG_LL_OMAP3(3, igep0030);
->  		DEBUG_LL_OMAP3(3, nokia_rx51);
-> -- 
-> 1.7.1.226.g770c5
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> =
-
+> Regards
+> Thara
