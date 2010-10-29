@@ -1,66 +1,88 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [Patch v4] OMAP: AM3517/05: Add craneboard support
-Date: Fri, 29 Oct 2010 15:02:15 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB593023475EBE5@dbde02.ent.ti.com>
-References: <[PATCH] OMAP: AM3517/05: Add craneboard support>
- <1288336394-6320-1-git-send-email-srinath@mistralsolutions.com>
+From: =?UTF-8?Q?Enric_Balletb=C3=B2_i_Serra?= <eballetbo@gmail.com>
+Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+Date: Fri, 29 Oct 2010 13:33:55 +0200
+Message-ID: <AANLkTinHVhQzqYZ9D=PwmvJmyPhKhUHM+JZtAeaq50Aq@mail.gmail.com>
+References: <cover.1266847842.git.david.vrabel@csr.com>
+	<20100827192248.GJ20407@void.printf.net>
+	<4C7CC480.2040903@csr.com>
+	<4C7F3E0F.2080402@compulab.co.il>
+	<AANLkTi=RvWpuUC3FjwELkM0v57YXZbH_DBiA-4KuOwdN@mail.gmail.com>
+	<C903F2608D694655921F553D0D3557E3@am.dhcp.ti.com>
+	<AANLkTikskMMFWS+qxD+J=o6OiOa+d5H02DiT1iZ95vkz@mail.gmail.com>
+	<CD6B4CE9F7FA427BBD19242F669AD014@am.dhcp.ti.com>
+	<AANLkTin-r5Svg1+YrdYq95WA6=sh7+X0Bwogk=h0V6pP@mail.gmail.com>
+	<4CAC146D.3040001@compulab.co.il>
+	<AANLkTi=kmLuUyD-9k-Xa5vfgvjx2nNUGfyADhoY0HC1i@mail.gmail.com>
+	<4CAC7D65.8010705@compulab.co.il>
+	<AANLkTikvduxP+gQOs4HvZz2Yw6KCrqHAyim0Ads0Bvj_@mail.gmail.com>
+	<56009.192.168.10.88.1286389699.squirrel@dbdmail.itg.ti.com>
+	<4CAD739B.4090909@compulab.co.il>
+	<AANLkTimvHnLAchE-Ed1Zve-PU6S98Euj=bFaAtkDWWji@mail.gmail.com>
+	<B02FD62E0C9F4E70856C21355A0BAB59@am.dhcp.ti.com>
+	<4CB16239.1050203@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46325 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889Ab0J2JcX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Oct 2010 05:32:23 -0400
-In-Reply-To: <1288336394-6320-1-git-send-email-srinath@mistralsolutions.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4CB16239.1050203@compulab.co.il>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: Madhusudhan <madhu.cr@ti.com>, Steve Sakoman <sakoman@gmail.com>, David Vrabel <david.vrabel@csr.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "srinath@mistralsolutions.com" <srinath@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kridner, Jason" <jdk@ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "nagendra@mistralsolutions.com" <nagendra@mistralsolutions.com>, "umeshk@mistralsolutions.com" <umeshk@mistralsolutions.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> srinath@mistralsolutions.com
-> Sent: Friday, October 29, 2010 12:43 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Kridner, Jason; tony@atomide.com; 
-> khilman@deeprootsystems.com; Menon, Nishanth; 
-> nagendra@mistralsolutions.com; umeshk@mistralsolutions.com; Srinath
-> Subject: [Patch v4] OMAP: AM3517/05: Add craneboard support
-> 
-> From: Srinath <srinath@mistralsolutions.com>
-> 
-> Craneboard is a hardware development platform based on the
-> Sitara AM3517 ARM Cortex - A8 microprocessor device. This is a
-> low cost reference design.
-> 
-> This patch adds basic board file. Detailed support will follow in
-> subsequent patches.
-> 
->   [1] http://www.ti.com/sitara
->   [2] http://www.ti.com/arm
->   [3] 
-> http://tiexpressdsp.com/index.php?title=Applications_Processor
-s_Crossreference
->   [4] http://marc.info/?l=linux-omap&m=125615009412281&w=2
->   [5] http://www.mistralsolutions.com/products/craneboard.php
-> 
-> History and comments:
-> http://marc.info/?l=linux-omap&w=2&r=1&s=craneboard&q=b
-> 
-> Signed-off-by: Srinath <srinath@mistralsolutions.com>
-> ---
->  arch/arm/mach-omap2/Kconfig                  |    5 ++
->  arch/arm/mach-omap2/Makefile                 |    2 +
->  arch/arm/mach-omap2/board-am3517crane.c      |   69 
-> ++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/uncompress.h |    1 +
->  4 files changed, 77 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-am3517crane.c
-> 
+Hi all,
 
-Acked-by: Sanjeev Premi <premi@ti.com>
+2010/10/10 Mike Rapoport <mike@compulab.co.il>:
+> Hi Madhu,
+>
+> Madhusudhan wrote:
+>>
+>>> -----Original Message-----
+>>> From: Steve Sakoman [mailto:sakoman@gmail.com]
+>>> Sent: Thursday, October 07, 2010 8:57 AM
+>>> To: Mike Rapoport
+>>> Cc: Madhusudhan Chikkature; David Vrabel; Chris Ball; linux-
+>>> mmc@vger.kernel.org; linux-omap@vger.kernel.org; Adrian Hunter
+>>> Subject: Re: [PATCH 0/2] mmc: omap_hsmmc: support SDIO cards (#2)
+>>>
+>>> I can confirm exactly the same behavior on my hardware with this
+>>> version of the patch.
+>>
+>> Steve,
+>>
+>> Okay. Did the version you had in your tree worked? I just want to ch=
+eck if
+>> I
+>> messed up something in my patch.
+>
+> The patch works if applied before commit
+> b417577d3b9bbb06a4ddc9aa955af9bd503f7242 (omap_hsmmc: improve interru=
+pt
+> synchronisation). Apparently, changes in interrupt handling require m=
+ajor
+> rework =C2=A0of the SDIO interrupt handling...
 
-[snip]
+On my hardware with this version of the patch and with commit
+b417577d3b9bbb06a4ddc9aa955af9bd503f7242 previously applied still not
+working, I'm missing something else ?
+
+Cheers,
+  Enric
+>
+>> Regards,
+>> Madhu
+>>
+>>> Steve
+>>
+>
+>
+> --
+> Sincerely yours,
+> Mike.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
