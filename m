@@ -1,12 +1,12 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v2 07/14] OMAP: Introduce dependent voltage domain support.
-Date: Fri, 29 Oct 2010 21:08:21 +0530
-Message-ID: <1288366708-32302-8-git-send-email-thara@ti.com>
+Subject: [PATCH v2 06/14] OMAP: Voltage layer changes to support DVFS.
+Date: Fri, 29 Oct 2010 21:08:20 +0530
+Message-ID: <1288366708-32302-7-git-send-email-thara@ti.com>
 References: <1288366708-32302-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51562 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51561 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932807Ab0J2Pik (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S932789Ab0J2Pik (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 29 Oct 2010 11:38:40 -0400
 In-Reply-To: <1288366708-32302-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -14,194 +14,135 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-There could be dependencies between various voltage domains for
-maintaining system performance or hardware limitation reasons
-like VDD<X> should be at voltage v1 when VDD<Y> is at voltage v2.
-This patch introduce dependent vdd information structures in the
-voltage layer which can be used to populate these dependencies
-for a voltage domain. This patch also adds support to scale
-the dependent vdd and the scalable devices belonging to it
-during the scaling of a main vdd through omap_voltage_scale.
+This patch introduces an API to take in the voltage domain and the
+new voltage as parameter and to scale all the scalable devices
+associated with the the voltage domain to the rate corresponding to the
+new voltage and scale the voltage domain to the new voltage.
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c |  122 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 122 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/voltage.c             |   72 +++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/voltage.h |    7 +++
+ 2 files changed, 79 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 458f8c1..67748b0 100644
+index 6c2e4ef..458f8c1 100644
 --- a/arch/arm/mach-omap2/voltage.c
 +++ b/arch/arm/mach-omap2/voltage.c
-@@ -90,6 +90,36 @@ struct vp_reg_val {
- };
+@@ -27,9 +27,11 @@
+ #include <linux/spinlock.h>
+ #include <linux/plist.h>
+ #include <linux/slab.h>
++#include <linux/opp.h>
  
- /**
-+ * omap_vdd_dep_volt - Table containing the parent vdd voltage and the
-+ *			dependent vdd voltage corresponding to it.
-+ *
-+ * @main_vdd_volt	: The main vdd voltage
-+ * @dep_vdd_volt	: The voltage at which the dependent vdd should be
-+ *			  when the main vdd is at <main_vdd_volt> voltage
-+ */
-+struct omap_vdd_dep_volt {
-+	u32 main_vdd_volt;
-+	u32 dep_vdd_volt;
-+};
-+
-+/**
-+ * omap_vdd_dep_info - Dependent vdd info
-+ *
-+ * @name		: Dependent vdd name
-+ * @voltdm		: Dependent vdd pointer
-+ * @dep_table		: Table containing the dependent vdd voltage
-+ *			  corresponding to every main vdd voltage.
-+ * @cur_dep_volt	: The voltage to which dependent vdd should be put
-+ *			  to for the current main vdd voltage.
-+ */
-+struct omap_vdd_dep_info{
-+	char *name;
-+	struct voltagedomain *voltdm;
-+	struct omap_vdd_dep_volt *dep_table;
-+	unsigned long cur_dep_volt;
-+};
-+
-+/**
-  * struct omap_vdd_user_list - The per vdd user list
-  *
-  * @dev:	The device asking for the vdd to be set at a particular
-@@ -135,12 +165,14 @@ struct omap_vdd_info{
- 	struct vp_reg_offs vp_offs;
- 	struct vp_reg_val vp_reg;
- 	struct voltagedomain voltdm;
-+	struct omap_vdd_dep_info *dep_vdd_info;
- 	struct dentry *debug_dir;
- 	spinlock_t user_lock;
- 	struct plist_head user_list;
- 	struct mutex scaling_mutex;
- 	struct list_head dev_list;
- 	int volt_data_count;
-+	int nr_dep_vdd;
- 	u32 nominal_volt;
- 	u32 curr_volt;
- 	u8 cmdval_reg;
-@@ -1139,6 +1171,80 @@ static int vp_forceupdate_scale_voltage(struct omap_vdd_info *vdd,
- 	return 0;
+ #include <plat/common.h>
+ #include <plat/voltage.h>
++#include <plat/omap_device.h>
+ 
+ #include "prm-regbits-34xx.h"
+ #include "prm44xx.h"
+@@ -1678,6 +1680,76 @@ struct voltagedomain *omap_voltage_domain_lookup(char *name)
  }
  
-+static int calc_dep_vdd_volt(struct device *dev,
-+		struct omap_vdd_info *main_vdd, unsigned long main_volt)
-+{
-+	struct omap_vdd_dep_info *dep_vdds;
-+	int i, ret = 0;
-+
-+	if (!main_vdd->dep_vdd_info) {
-+		pr_debug("%s: No dependent VDD's for vdd_%s\n",
-+			__func__, main_vdd->voltdm.name);
-+		return 0;
-+	}
-+
-+	dep_vdds = main_vdd->dep_vdd_info;
-+
-+	for (i = 0; i < main_vdd->nr_dep_vdd; i++) {
-+		struct omap_vdd_dep_volt *volt_table = dep_vdds[i].dep_table;
-+		int nr_volt = 0;
-+		unsigned long dep_volt = 0, act_volt = 0;
-+
-+		while (volt_table[nr_volt].main_vdd_volt != 0) {
-+			if (volt_table[nr_volt].main_vdd_volt == main_volt) {
-+				dep_volt = volt_table[nr_volt].dep_vdd_volt;
-+				break;
-+			}
-+			nr_volt++;
-+		}
-+		if (!dep_volt) {
-+			pr_warning("%s: Not able to find a matching volt for"
-+				"vdd_%s corresponding to vdd_%s %ld volt\n",
-+				__func__, dep_vdds[i].name,
-+				main_vdd->voltdm.name, main_volt);
-+			ret = -EINVAL;
-+			continue;
-+		}
-+
-+		if (!dep_vdds[i].voltdm)
-+			dep_vdds[i].voltdm =
-+				omap_voltage_domain_lookup(dep_vdds[i].name);
-+
-+		act_volt = dep_volt;
-+
-+		/* See if dep_volt is possible for the vdd*/
-+		ret = omap_voltage_add_request(dep_vdds[i].voltdm, dev,
-+				&act_volt);
-+
-+		/*
-+		 * Currently we do not bother if the dep volt and act volt are
-+		 * different. We could add a check if needed.
-+		 */
-+		dep_vdds[i].cur_dep_volt = act_volt;
-+	}
-+
-+	return ret;
-+}
-+
-+static int scale_dep_vdd(struct omap_vdd_info *main_vdd)
-+{
-+	struct omap_vdd_dep_info *dep_vdds;
-+	int i;
-+
-+	if (!main_vdd->dep_vdd_info) {
-+		pr_debug("%s: No dependent VDD's for vdd_%s\n",
-+			__func__, main_vdd->voltdm.name);
-+		return 0;
-+	}
-+
-+	dep_vdds = main_vdd->dep_vdd_info;
-+
-+	for (i = 0; i < main_vdd->nr_dep_vdd; i++)
-+		omap_voltage_scale(dep_vdds[i].voltdm,
-+				dep_vdds[i].cur_dep_volt);
-+	return 0;
-+}
-+
- /* Public functions */
  /**
-  * omap_voltage_get_nom_volt() - Gets the current non-auto-compensated voltage
-@@ -1697,6 +1803,8 @@ int omap_voltage_scale(struct voltagedomain *voltdm, unsigned long volt)
- 	int is_volt_scaled = 0;
- 	struct omap_vdd_info *vdd;
- 	struct omap_vdd_dev_list *temp_dev;
-+	struct plist_node *node;
-+	struct omap_vdd_user_list *user;
- 
- 	if (!voltdm || IS_ERR(voltdm)) {
- 		pr_warning("%s: VDD specified does not exist!\n", __func__);
-@@ -1709,6 +1817,17 @@ int omap_voltage_scale(struct voltagedomain *voltdm, unsigned long volt)
- 
- 	curr_volt = omap_voltage_get_nom_volt(voltdm);
- 
-+	/* Find the device requesting the voltage scaling */
-+	node = plist_first(&vdd->user_list);
-+	user = container_of(node, struct omap_vdd_user_list, node);
++ * omap_voltage_scale : API to scale the devices associated with a
++ *			voltage domain vdd voltage.
++ * @volt_domain : the voltage domain to be scaled
++ * @volt : the new voltage for the voltage domain
++ *
++ * This API runs through the list of devices associated with the
++ * voltage domain and scales the device rates to those corresponding
++ * to the new voltage of the voltage domain. This API also scales
++ * the voltage domain voltage to the new value. Returns 0 on success
++ * else the error value.
++ */
++int omap_voltage_scale(struct voltagedomain *voltdm, unsigned long volt)
++{
++	unsigned long curr_volt;
++	int is_volt_scaled = 0;
++	struct omap_vdd_info *vdd;
++	struct omap_vdd_dev_list *temp_dev;
 +
-+	/* calculate the voltages for dependent vdd's */
-+	if (calc_dep_vdd_volt(user->dev, vdd, volt)) {
-+		pr_warning("%s: Error in calculating dependent vdd voltages"
-+			"for vdd_%s\n", __func__, voltdm->name);
++	if (!voltdm || IS_ERR(voltdm)) {
++		pr_warning("%s: VDD specified does not exist!\n", __func__);
 +		return -EINVAL;
 +	}
 +
- 	if (curr_volt == volt) {
- 		is_volt_scaled = 1;
- 	} else if (curr_volt < volt) {
-@@ -1746,6 +1865,9 @@ int omap_voltage_scale(struct voltagedomain *voltdm, unsigned long volt)
- 
- 	mutex_unlock(&vdd->scaling_mutex);
- 
-+	/* Scale dependent vdds */
-+	scale_dep_vdd(vdd);
++	vdd = container_of(voltdm, struct omap_vdd_info, voltdm);
 +
- 	return 0;
++	mutex_lock(&vdd->scaling_mutex);
++
++	curr_volt = omap_voltage_get_nom_volt(voltdm);
++
++	if (curr_volt == volt) {
++		is_volt_scaled = 1;
++	} else if (curr_volt < volt) {
++		omap_voltage_scale_vdd(voltdm, volt);
++		is_volt_scaled = 1;
++	}
++
++	list_for_each_entry(temp_dev, &vdd->dev_list, node) {
++		struct device *dev;
++		struct opp *opp;
++		unsigned long freq;
++
++		dev = temp_dev->dev;
++
++		opp = opp_find_voltage(dev, volt);
++		if (IS_ERR(opp)) {
++			dev_err(dev, "%s: Unable to find OPP for"
++				"volt%ld\n", __func__, volt);
++			continue;
++		}
++
++		freq = opp_get_freq(opp);
++
++		if (freq == omap_device_get_rate(dev)) {
++			dev_warn(dev, "%s: Already at the requested"
++				"rate %ld\n", __func__, freq);
++			continue;
++		}
++
++		omap_device_set_rate(dev, freq);
++	}
++
++	if (!is_volt_scaled)
++		omap_voltage_scale_vdd(voltdm, volt);
++
++	mutex_unlock(&vdd->scaling_mutex);
++
++	return 0;
++}
++
++/**
+  * omap_voltage_init : Volatage init API which does VP and VC init.
+  */
+ static int __init omap_voltage_init(void)
+diff --git a/arch/arm/plat-omap/include/plat/voltage.h b/arch/arm/plat-omap/include/plat/voltage.h
+index dc64a9a..54d50e2 100644
+--- a/arch/arm/plat-omap/include/plat/voltage.h
++++ b/arch/arm/plat-omap/include/plat/voltage.h
+@@ -153,6 +153,7 @@ void omap_change_voltscale_method(int voltscale_method);
+ int omap_voltage_add_request(struct voltagedomain *voltdm, struct device *dev,
+ 		unsigned long *volt);
+ int omap_voltage_add_dev(struct voltagedomain *voltdm, struct device *dev);
++int omap_voltage_scale(struct voltagedomain *voltdm, unsigned long volt);
+ #else
+ static inline void omap_voltage_register_pmic
+ 			(struct omap_volt_pmic_info *pmic_info) {}
+@@ -169,6 +170,12 @@ static inline int omap_voltage_add_dev(struct voltagedomain *voltdm,
+ {
+ 	return -EINVAL;
  }
++
++static inline int omap_voltage_scale(struct voltagedomain *voltdm,
++		unsigned long volt)
++{
++	return -EINVAL;
++}
+ #endif
  
+ #endif
 -- 
 1.7.0.4
 
