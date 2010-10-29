@@ -1,65 +1,187 @@
 From: Thara Gopinath <thara@ti.com>
-Subject: [PATCH v2 13/14] OMAP3: Add voltage dependency table for VDD1.
-Date: Fri, 29 Oct 2010 21:08:27 +0530
-Message-ID: <1288366708-32302-14-git-send-email-thara@ti.com>
+Subject: [PATCH v2 10/14] OMAP3: Introduce custom set rate and get rate APIs for scalable devices
+Date: Fri, 29 Oct 2010 21:08:24 +0530
+Message-ID: <1288366708-32302-11-git-send-email-thara@ti.com>
 References: <1288366708-32302-1-git-send-email-thara@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34629 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34619 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932704Ab0J2Pip (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 29 Oct 2010 11:38:45 -0400
+	id S933859Ab0J2Pil (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 29 Oct 2010 11:38:41 -0400
 In-Reply-To: <1288366708-32302-1-git-send-email-thara@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: paul@pwsan.com, khilman@deeprootsystems.com, b-cousson@ti.com, vishwanath.bs@ti.com, sawant@ti.com, Thara Gopinath <thara@ti.com>
 
-In OMAP3, for perfomrance reasons when VDD1 is at voltage above
-1.075V, VDD2 should be at 1.15V for perfomrance reasons. This
-patch introduce this cross VDD dependency for OMAP3 VDD1.
+This patch also introduces omap3_mpu_set_rate, omap3_iva_set_rate,
+omap3_l3_set_rate, omap3_mpu_get_rate, omap3_iva_get_rate,
+omap3_l3_get_rate as device specific set rate and get rate
+APIs for OMAP3 mpu, iva and l3_main devices. This patch also
+calls into omap_device_populate_rate_fns during system init to register
+various set_rate and get_rate APIs with the omap device layer
 
 Signed-off-by: Thara Gopinath <thara@ti.com>
 ---
- arch/arm/mach-omap2/voltage.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm.c |  110 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 110 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-index 6f85f75..241fac5 100644
---- a/arch/arm/mach-omap2/voltage.c
-+++ b/arch/arm/mach-omap2/voltage.c
-@@ -350,6 +350,23 @@ static struct omap_volt_data omap44xx_vdd_core_volt_data[] = {
- 	{.volt_nominal = 1100000, .sr_errminlimit = 0xF9, .vp_errgain = 0x16},
- };
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 0651667..0fa7fca 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -14,6 +14,7 @@
+ #include <linux/io.h>
+ #include <linux/err.h>
+ #include <linux/opp.h>
++#include <linux/delay.h>
  
-+/* OMAP 3430 MPU Core VDD dependency table */
-+static struct omap_vdd_dep_volt omap34xx_vdd1_vdd2_data[] = {
-+	{.main_vdd_volt = 975000, .dep_vdd_volt = 1050000},
-+	{.main_vdd_volt = 1075000, .dep_vdd_volt = 1050000},
-+	{.main_vdd_volt = 1200000, .dep_vdd_volt = 1150000},
-+	{.main_vdd_volt = 1270000, .dep_vdd_volt = 1150000},
-+	{.main_vdd_volt = 1350000, .dep_vdd_volt = 1150000},
-+	{.main_vdd_volt = 0, .dep_vdd_volt = 0},
-+};
+ #include <plat/omap-pm.h>
+ #include <plat/omap_device.h>
+@@ -23,6 +24,8 @@
+ #include <plat/clockdomain.h>
+ #include <plat/voltage.h>
+ 
++#include "cm-regbits-34xx.h"
++#include "prm.h"
+ #include "pm.h"
+ 
+ static struct omap_device_pm_latency *pm_lats;
+@@ -32,6 +35,8 @@ static struct device *iva_dev;
+ static struct device *l3_dev;
+ static struct device *dsp_dev;
+ 
++static struct clk *dpll1_clk, *dpll2_clk, *dpll3_clk;
 +
-+static struct omap_vdd_dep_info omap34xx_vdd1_dep_info[] = {
-+	{
-+		.name	= "core",
-+		.dep_table = omap34xx_vdd1_vdd2_data,
-+	},
-+};
+ struct device *omap2_get_mpuss_device(void)
+ {
+ 	WARN_ON_ONCE(!mpu_dev);
+@@ -57,6 +62,26 @@ struct device *omap4_get_dsp_device(void)
+ }
+ EXPORT_SYMBOL(omap4_get_dsp_device);
+ 
++static unsigned long compute_lpj(unsigned long ref, u_int div, u_int mult)
++{
++	unsigned long new_jiffy_l, new_jiffy_h;
 +
- /* By default VPFORCEUPDATE is the chosen method of voltage scaling */
- static bool voltscale_vpforceupdate = true;
++	/*
++	 * Recalculate loops_per_jiffy.  We do it this way to
++	 * avoid math overflow on 32-bit machines.  Maybe we
++	 * should make this architecture dependent?  If you have
++	 * a better way of doing this, please replace!
++	 *
++	 *    new = old * mult / div
++	 */
++	new_jiffy_h = ref / div;
++	new_jiffy_l = (ref % div) / 100;
++	new_jiffy_h *= mult;
++	new_jiffy_l = new_jiffy_l * mult / div;
++
++	return new_jiffy_h + new_jiffy_l * 100;
++}
++
+ /* static int _init_omap_device(struct omap_hwmod *oh, void *user) */
+ static int _init_omap_device(char *name, struct device **new_dev)
+ {
+@@ -78,6 +103,74 @@ static int _init_omap_device(char *name, struct device **new_dev)
+ 	return 0;
+ }
  
-@@ -574,6 +591,8 @@ static void __init omap3_vdd_data_configure(struct omap_vdd_info *vdd)
- 			vdd->volt_data = omap34xx_vdd1_volt_data;
- 			vdd->volt_data_count =
- 					ARRAY_SIZE(omap34xx_vdd1_volt_data);
-+			vdd->dep_vdd_info = omap34xx_vdd1_dep_info;
-+			vdd->nr_dep_vdd = ARRAY_SIZE(omap34xx_vdd1_dep_info);
- 		}
++static unsigned long omap3_mpu_get_rate(struct device *dev)
++{
++	return dpll1_clk->rate;
++}
++
++static int omap3_mpu_set_rate(struct device *dev, unsigned long rate)
++{
++	unsigned long cur_rate = omap3_mpu_get_rate(dev);
++	int ret;
++
++#ifdef CONFIG_CPU_FREQ
++	struct cpufreq_freqs freqs_notify;
++
++	freqs_notify.old = cur_rate / 1000;
++	freqs_notify.new = rate / 1000;
++	freqs_notify.cpu = 0;
++	/* Send pre notification to CPUFreq */
++	cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
++#endif
++	ret = clk_set_rate(dpll1_clk, rate);
++	if (ret) {
++		dev_warn(dev, "%s: Unable to set rate to %ld\n",
++			__func__, rate);
++		return ret;
++	}
++
++#ifdef CONFIG_CPU_FREQ
++	/* Send a post notification to CPUFreq */
++	cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
++#endif
++
++#ifndef CONFIG_CPU_FREQ
++	/*Update loops_per_jiffy if processor speed is being changed*/
++	loops_per_jiffy = compute_lpj(loops_per_jiffy,
++			cur_rate / 1000, rate / 1000);
++#endif
++	return 0;
++}
++
++static int omap3_iva_set_rate(struct device *dev, unsigned long rate)
++{
++	return clk_set_rate(dpll2_clk, rate);
++}
++
++static unsigned long omap3_iva_get_rate(struct device *dev)
++{
++	return dpll2_clk->rate;
++}
++
++static int omap3_l3_set_rate(struct device *dev, unsigned long rate)
++{
++	int l3_div;
++
++	l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++			OMAP3430_CLKSEL_L3_MASK;
++
++	return clk_set_rate(dpll3_clk, rate * l3_div);
++}
++
++static unsigned long omap3_l3_get_rate(struct device *dev)
++{
++	int l3_div;
++
++	l3_div = cm_read_mod_reg(CORE_MOD, CM_CLKSEL) &
++			OMAP3430_CLKSEL_L3_MASK;
++	return dpll3_clk->rate / l3_div;
++}
++
+ /*
+  * Build omap_devices for processors and bus.
+  */
+@@ -91,6 +184,23 @@ static void omap2_init_processor_devices(void)
+ 	} else {
+ 		_init_omap_device("l3_main", &l3_dev);
+ 	}
++
++	if (cpu_is_omap34xx()) {
++		dpll1_clk = clk_get(NULL, "dpll1_ck");
++		dpll2_clk = clk_get(NULL, "dpll2_ck");
++		dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
++
++		if (mpu_dev)
++			omap_device_populate_rate_fns(mpu_dev,
++				omap3_mpu_set_rate, omap3_mpu_get_rate);
++		if (iva_dev)
++			omap_device_populate_rate_fns(iva_dev,
++				omap3_iva_set_rate, omap3_iva_get_rate);
++		if (l3_dev)
++			omap_device_populate_rate_fns(l3_dev,
++				omap3_l3_set_rate, omap3_l3_get_rate);
++
++	}
+ }
  
- 		vdd->vp_reg.tranxdone_status = OMAP3430_VP1_TRANXDONE_ST_MASK;
+ /*
 -- 
 1.7.0.4
 
