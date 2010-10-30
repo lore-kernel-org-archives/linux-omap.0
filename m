@@ -1,55 +1,63 @@
-From: "John Luguard" <info@time.net.my>
-Subject: Senate =?iso-8859-1?Q?House=AE?=
-Date: Sat, 30 Oct 2010 09:51:05 +0800 (MYT)
-Message-ID: <2339.82.128.88.155.1288403465.squirrel__12528.6939241507$1288404346$gmane$org@webmail.time.net.my>
-Reply-To: fedexdeliverypost290@hotmail.com
+From: "Maksim A. Boyko" <maksim.a.boyko@gmail.com>
+Subject: n810 video
+Date: Sat, 30 Oct 2010 12:40:53 +0400
+Message-ID: <AANLkTinV0PK=77MYkVQF2RRG4g2w_U==pbiO++j7jst-@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.time.net.my ([203.121.65.122]:24139 "EHLO
-	cuda4.time.net.my" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751135Ab0J3CFg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 Oct 2010 22:05:36 -0400
-Received: from carp.time.net.my (unknown [10.20.0.226])
-	by cuda4.time.net.my (Spam & Virus Firewall) with ESMTP id AA804432FE1D
-	for <linux-omap@vger.kernel.org>; Sat, 30 Oct 2010 09:51:05 +0800 (MYT)
-Received: from carp.time.net.my ([10.20.0.226]) by cuda4.time.net.my with ESMTP id xvg3LNGhsNE6CXND for <linux-omap@vger.kernel.org>; Sat, 30 Oct 2010 09:51:05 +0800 (MYT)
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:52416 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752275Ab0J3Ikz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 Oct 2010 04:40:55 -0400
+Received: by iwn10 with SMTP id 10so4749250iwn.19
+        for <linux-omap@vger.kernel.org>; Sat, 30 Oct 2010 01:40:55 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+Hi,
 
+I try to switch on "OMAP2/3 Display Subsystem Support" and "Omap frame
+buffer support" on n810  (commit 8b4b01).
 
+In OMAP2/3 Display Subsystem Support I used:
+CONFIG_OMAP2_VRAM_SIZE=4
+CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
+CONFIG_OMAP2_DSS_DPI=y
+CONFIG_OMAP2_DSS_VENC=y
+CONFIG_PANEL_GENERIC=y
 
---=20
-Senate House=AE
----DEPUIS 1725---
-276xc Committee On foreign Payment,
-Resolution Panel On Contract Payment.
-Lagos State, Nigeria.
-Phone : +234- (West Africa Office)
+In Omap frame buffer support I used:
+CONFIG_FB=y
+CONFIG_FB_OMAP_LCDC_EXTERNAL=y
+CONFIG_FB_OMAP_LCDC_BLIZZARD=y
+CONFIG_FB_OMAP_LCD_MIPID=y
+CONFIG_FB_OMAP_BOOTLOADER_INIT=y
+CONFIG_FB_OMAP=y
+CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
 
-Accredited ATM card (231) awarded for contract payment of $6.8
-Million Usd with card number: 3478763199030014 has been allocated in
-favor of your email address which was gotten during a discreet search
-on the internet and emerged the winning mail after the raffle draws
-of our Yearly promo from the senate house of Nigeria. Provide my
-secretary Mr Richard ( fedexdeliverypost290@hotmail.com ) with the
-following information to facilitate your claims:
+I create fb device:
+#mknod /dev/fb0 c 29 0
+#chgrp video  /dev/fb0
+#chmod 660  /dev/fb0
 
-=46ull Names:
-Complete Postal  Address:
-Direct Phone Number:
+But XServer 1.7.7-8 from debian squeeze armel don't work in both
+cases. Tail of Xorg.0.log
 
-Regards
-Mr. John Luguard
-CC;
-Senator David Mark
-(Senate President)
-Direct line +234-703853-7699
+(II) LoadModule: "omapfb"
+(II) Loading /usr/lib/xorg/modules/drivers/omapfb_drv.so
+(II) Module omapfb: vendor="X.Org Foundation"
+        compiled for 1.7.4, module version = 0.1.1
+        ABI class: X.Org Video Driver, version 6.0
+(II) omapfb: Driver for OMAP framebuffer (omapfb) and external LCD controllers:
+        omap1/2/3, S1D13745, HWA742
+(WW) Falling back to old probe method for OMAPFB
+(WW) Could not open '/dev/fb0': No such device or address(EE) No
+devices detected
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+How to correct enable support video on n810?
+
+Thanks.
+
+-- 
+Best regards, Maksim A. Boyko
